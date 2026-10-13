@@ -261,6 +261,7 @@ cell (the row text is the authority).
 
 **[C — The seven shards ported → M3 (from M1; all seven to 80/20, G49)](shard-platform/rows.md#c--the-seven-shards-ported--m3-from-m1-all-seven-to-8020-g49)**
 
+- **M3 re-cut (G403): three waves of component milestones.** W1 Sky + Signal (now): **W1-M0** component inventory — open; **W1-C1** static world, **W1-C2** looks, **W1-C3** effects, **W1-C4** creatures, **W1-C5** NPCs and quests, **W1-C6** items and combat (lash no later than fan), **W1-C7** movers, **W1-C8** audio, **W1-C9** boot glue — open (0 of 9 closed). W2 Driftwood + Nalati + Pine (SF46–SF48), W3 Nine (SF51): after W1.
 - **SF46** (X+O) Driftwood Isle — open
 - **SF47** (X+O) Pine Hollow — needs pick
 - **SF48** (X+O) Nalati Grasslands — open
@@ -318,7 +319,7 @@ cell (the row text is the authority).
    SF19a → SF19b; SF20a; SF23; SF22b, SF22c; SF46-g, SF47-g, SF48-g prepared → **SF57** (its shipped-leg verdict; C3-R1-C5) → SF22) and **the conversions**: SF46-g (with the hybrid loader), then SF47-g and SF48-g so the shipped cells are
    grid-ready, then SF49-g, SF50-g; the -p ports follow, then SF51; each pulls the systems it uses from the "used today"
    table. **M2** = the 3 × 3 grid playable from
-   INFINITE WILDSHARD with seamless travel (never a page reload, G171) and SF57's and SF22's gates passed. **M3** = all seven at 80/20 by both measures.
+   INFINITE WILDSHARD with seamless travel (never a page reload, G171) and SF57's and SF22's gates passed. **M3** = all seven at 80/20 by both measures, worked in three waves of component milestones (G403): W1 Sky + Signal, W2 Driftwood + Nalati + Pine, W3 Nine.
    **Alongside, off the M2 path** (C3-R1-A8, B2, C8): **SF56** (B picked, G163; shipped `e894412ca`; its proof gates stay with its lane); **SF58** after SF8a's reopened admission, its preflight (1′) before any non-first-party fetch, the whole row before S19; **SF55a → SF55** now, one parallel lane (G211); **SF59** (the TSL spike first) in Part A (no format freeze, G195).
 5. **Part B** after M3, or a single stretch goal earlier when a shard's port needs it; S3 (vehicles, a highway car) and S14 / S15 (bot and AI playtests) first (G205).
 
@@ -468,7 +469,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G402+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G403+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.

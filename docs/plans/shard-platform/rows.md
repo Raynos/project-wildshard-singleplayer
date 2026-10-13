@@ -185,7 +185,59 @@ Jake (G57): *"we want to get the 6 shards ported over to the shardfile format fi
 | SF45 | X | **`docs/SHARDFILE.md` and the SDK docs** from the schemas (A1) | Every conversion | Every schema field and ABI call documented **Done** (`4ba7ada99`, sp-x5): 5,046 / 5,046 schema paths (16 public SDK schemas, auto-discovered) and 16 / 16 ABI calls documented, a coverage test fails on a missing / duplicate / obsolete entry; full suite 5,419 green | M |
 | SF54 | X+O | **Dissolve `@wildshard/kit` into the SDK** (Jake, G135): its ~7.3k lines (audio, bag, effects, items, looks, models, npc, props, species, tools, viewmodel, weapons, weather) become SDK systems, generators and data rows, its assets become commons entries (SF26), as G138's hybrid packs (one `@wildshard/commons` package of build-time packs that emit hash-named content; runtime behaviour graduates into the SDK; `docs/plans/shard-platform/kit-commons-audit.md`); the 64 shard files that import it move to the SDK or (build-time files) the commons, each inside its own shard's lane; the kit-subclassing weapons (Lever Rifle; Sabre, Naizagai, Spear, Golden Bow) move to `runtime/weapons/` in their shard's lane and extend `@wildshard/sdk/runtime/weapons` until SF36 (G140), held by a shrink-only allowlist of those sites; the audit's routing applies (11 single-shard files move into their shard, 3 dead files go; the layers become engine → game → sdk → commons → shards; C2-R3-C7, A3, B4); then the package, its workspace entry and the `kit` layer in the guards go, and AGENTS.md's four layers become engine → game → sdk → shards (Opus for looks / models / viewmodel, Codex for the rest) | Every shard | `@wildshard/kit` no longer exists; no shard file imports the kit (the 64 sites); `runtime/`'s closure holds no kit or commons code (G143); the G143 ratchet on engine / game imports from shipped files outside `runtime/` is shrink-only and reaches 0 with each shard's -p port, not at SF54 (C2-R3-C6); Part A also delivers the commons skeleton and catalogue, the build hooks, the shared AS setup module and one shared bridge mover used by Driftwood and Sky Reach with pinned compilation and mover parity (C2-R3-A2); quest / dialogue / encounter generators are Part B row S22 (G141); the measures, ENGINE.md, SHARDS.md and AGENTS.md describe the new layering; parity and the frame floor green per shard **Done** (`f72b637c8`, sf54-final, 2026-10-08): `@wildshard/kit` deleted with its workspace entry, `tsconfig.kit.json`, the `kit` layer in the guards and `docs/api/KIT.md`; NPC rig / effects / declared items / hoverboard / icons moved into `src/game/systems/` + `src/game/icons.ts`, weapon shims gone (shards import `@wildshard/game/weapons/*`, `runtime/` through SDK facades); the layer rule refuses any `@wildshard/*` name that isn't a package and `runtime-commons` is a hard 0; the commons skeleton, catalogue and the shared ABI setup + bridge mover sources (`src/commons/scripts.ts`) were already in; AGENTS / ENGINE §21 / SHARDS say engine → game → sdk → (commons) → shards; parity pixel-identical or ≤ 0.08 levels, facade-instancing 3/3, WebKit + boot smoke green, clean full suite 992 / 5518 | L |
 
-#### C — The seven shards ported → **M3** (from M1; all seven to 80/20, G49)
+#### M3 re-cut (G403): three waves of component milestones
+
+Jake, 2026-10-13: *"The first wave is Skyreach and Dunes. And the second wave is Driftwood, Nalati, Pinewood. And the
+last wave, the third wave, is Nine Dragon. … I think the component breakdown is great. But we can't cross-cut against
+all seven shards on a per component basis."* And: *"Rather than refocusing one sprint at a time, we refocus
+permanently."* Input: `progress/process/m3-recut-2026-10-13/README.md` (`428f89af6`). This section is the order of
+work for M3; the shard rows below (SF46–SF51) keep their exits, each mapped to a wave and a component.
+
+| Wave | Shards | Finish line | Status |
+|---|---|---|---|
+| **W1** | Sky Reach, Signal Dunes | 80/20 each, stretch 90/10 | **now** (started as Sprint 2, G400) |
+| **W2** | Driftwood Isle, Nalati Grasslands, Pine Hollow | 80/20 each | after W1 |
+| **W3** | Nine Dragon Stack | 80/20 | last |
+
+**Rules inside a wave:**
+1. **The unit of work is a component across the wave's shards**, never all seven. A component closes when the format /
+   SDK / game carries it as data, generators or approved systems, every shard in the wave uses that path, and every
+   custom line of that component is deleted in those shards, legacy path included (100/0 for that component in that
+   wave). Custom code left at the finish line sits in named open components.
+2. **Every shard stays valid at every step**: booting, playable, passing validate. A component's old path runs until
+   the component closes, then goes in one commit set.
+3. **Discovered work is routed, not built**: a finding for another component becomes a line in that component's row; a
+   finding in a later wave's shard goes to that wave's list.
+4. **Headline per wave:** components closed N of M and custom lines left per component, beside each shard's custom %.
+5. **Lanes own components** (disjoint files), at most one component per lane; a component owns its bakes and
+   generated files.
+6. **A component closes with one check per shard in the wave**: a labelled before / after board when the look
+   changes (G112, G387), a behaviour check otherwise (a fight finishes, a quest completes, a mover arrives).
+   Exact-value tests it touches become bounds or behaviour tests in the same milestone.
+7. **The next wave reuses**: W2 starts from what W1 built and extends it for three shards, W3 for Nine. Each wave opens
+   with its own milestone 0.
+
+**W1 rows** (lines from the two custom-code analyses: Sky at `ccf5c7532`, 3,398; Signal at `94810465f`, 1,860; W1-M0
+replaces them with exact per-component counts):
+
+| Row | Component | Closes when | Sky (lines, part) | Signal (lines, part) | Lanes |
+|---|---|---|---:|---:|---|
+| W1-M0 | **Milestone 0: the component inventory** | every custom line in Sky and Signal tagged with exactly one component in `generator-inventory.md`; `scripts/shard-platform.mjs` reports custom lines per component | — | — | x6 (extends its checklist `6d346ac03`) |
+| W1-C1 | **Static world**: terrain, props, buildings, dressing, Explorer entries | every legacy builder a generator (G391); tiles, colliders and far proxy from the build; no runtime world code | 848 (4) | 346 (5, 6) | o125 Sky, o123 Signal |
+| W1-C2 | **Looks**: materials, shaders, sky, fog, time of day | every material on a family or SF59 graph; sky and dusk as curve rows; one shared painted look; no raw GLSL | 867 (3, 5) | 243 (4) | o125 + o126 Sky, o124 Signal |
+| W1-C3 | **Effects**: particles, wind, fire, cards, discs | effect rows on one shared effect host (G395) | 237 (9) | 294 (3) | o122 (G395 done), o124 for the fire graphs |
+| W1-C4 | **Creatures**: bodies, rigs, brains, a boss's weather | shared creature loader + brain / boss rows for every species; Roc re-recorded with a clip check (G393) | 218 (7) | 151 (7) | x8 Sky, x6 Signal |
+| W1-C5 | **NPCs and quests** | quest graph rows, NPCs on the shared host, director stages | 125 (8) | 83 (8) | x5 Sky, x6 Signal |
+| W1-C6 | **Items and combat** | the fan and the lash as moves on the melee row + AS secondary actions (G394) + view rows; **the lash lands no later than the fan** (else 225 contact-family lines become Signal-only) | 337 (6) | 434 (2) | x1 lash, x8 fan |
+| W1-C7 | **Movers and traversal** | mover rows on the fixed step (G388): Sky's winch, islets, updraft; Signal's well bucket | 237 (2) | in C1 | x4 Sky, x1 Signal |
+| W1-C8 | **Audio** | cue rows on the shared audio host | in C6 / C9 | 19 (in 2) | after C6 |
+| W1-C9 | **Boot glue**: manifest, installers, headless host, `runtime/index.ts` | what is left in `runtime/` is only what the finish line allows; at 90/10 the trusted runtime is deleted | 529 (1, 10) | 309 (1, 9) | x5 Sky, x6 Signal |
+
+SF49's and SF50's open exits map here: entries, edge profile and far proxy → W1-C1; sky, sand and haze band → W1-C2;
+the bullwhip and the war fan → W1-C6; hover decks and movers → W1-C7. **W2** takes SF46, SF47 and SF48 (and G391's
+Nalati, Driftwood and Pine generators); **W3** takes SF51. Both stay untouched until their wave starts.
+
+#### C — The seven shards ported → **M3** (from M1; all seven to 80/20, G49; worked in three waves, G403)
 
 Every conversion row has two parts (R2-C5): **-g, grid-ready** (§0: baked tiles, edge profile, look under one frame, within the 1.0 GB cap, **four midpoint entryways at y = 0 with 15 m of asphalt in** (G93, G103), the shard's HUD accent (G104); behaviour may stay in `runtime/` through the hybrid loader) and **-p, the 80/20 port** (behaviour into AS or `runtime/`). M2 needs SF46-g, SF47-g and SF48-g (SF49-g, SF50-g for dev mode). Each part (the -p part also removes the shard's direct progress writes: feats become SF14 facts, R4-S4): a **save migration** tested on a current
 save of that shard (C26); **a port whose look passes `scripts/parity/compare.mjs`, that passes the frame floor, and whose Simulator census and
