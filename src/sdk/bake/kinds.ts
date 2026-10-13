@@ -56,7 +56,11 @@ export function bakeKinds<C extends KindCollider>(name: string, meshes: readonly
     const instanceColours = options.exactInstances === true && mesh.instanceColor !== null ? Array.from({ length: mesh.count }, (_, i) => { const colour = new Color(); mesh.getColorAt(i, colour); return colour; }) : undefined;
     const material = Array.isArray(mesh.material) ? undefined : mesh.material;
     if (!(material instanceof MeshStandardMaterial)) throw new Error(`${name}.${kind}: one standard material per kind`);
-    const customAttributes = custom(mesh.geometry, options.attributes);
+    const explicit = custom(mesh.geometry, options.attributes);
+    const automatic = options.nativeAttributes === true ? Object.fromEntries(Object.keys(mesh.geometry.attributes)
+      .filter(key => !['position', 'normal', 'color', 'uv', 'tangent'].includes(key) && !Object.values(explicit ?? {}).includes(key))
+      .map((key, index) => [`_WS_CHANNEL_${index}`, key])) : undefined;
+    const customAttributes = automatic === undefined ? explicit : { ...automatic, ...explicit };
     const extras = options.nodeExtras?.(kind, mesh);
     primitives.push({ geometry: mesh.geometry, material, instances, castShadow: false,
       ...(options.exactInstances === undefined ? {} : { exactInstances: options.exactInstances }),
