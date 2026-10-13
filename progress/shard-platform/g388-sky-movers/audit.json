@@ -1,0 +1,81 @@
+{
+  "schema": "sky-g388-audit/1",
+  "checkpoints": [
+    {
+      "checkpoint": "step",
+      "tick": 7692,
+      "sameTape": true,
+      "sameAllNativeFieldsAndPhysicsBytes": true,
+      "sameOtherAdapters": true,
+      "nativeMoverState": "unchanged pending commands and body handle table; moved out of combined host envelope",
+      "scriptMoverEntities": "all entities/positions/fields/frozen/interactive identical; now in mover role with immutable row contract",
+      "numericRole": {
+        "world": {
+          "entities": [],
+          "shared": [],
+          "players": []
+        },
+        "contract": "explicit divisor1, no bindings, empty declared state, identical admitted module bytes, identity seed6417"
+      },
+      "hostModuleOrderChanged": false,
+      "hostCountersQueuesAndTick": "identical",
+      "moduleFieldChanges": []
+    },
+    {
+      "checkpoint": "gale",
+      "tick": 10140,
+      "sameTape": true,
+      "sameAllNativeFieldsAndPhysicsBytes": true,
+      "sameOtherAdapters": true,
+      "nativeMoverState": "unchanged pending commands and body handle table; moved out of combined host envelope",
+      "scriptMoverEntities": "all entities/positions/fields/frozen/interactive identical; now in mover role with immutable row contract",
+      "numericRole": {
+        "world": {
+          "entities": [],
+          "shared": [],
+          "players": []
+        },
+        "contract": "explicit divisor1, no bindings, empty declared state, identical admitted module bytes, identity seed6417"
+      },
+      "hostModuleOrderChanged": false,
+      "hostCountersQueuesAndTick": "identical",
+      "moduleFieldChanges": []
+    },
+    {
+      "checkpoint": "storm",
+      "tick": 17340,
+      "sameTape": true,
+      "sameAllNativeFieldsAndPhysicsBytes": true,
+      "sameOtherAdapters": true,
+      "nativeMoverState": "unchanged pending commands and body handle table; moved out of combined host envelope",
+      "scriptMoverEntities": "all entities/positions/fields/frozen/interactive identical; now in mover role with immutable row contract",
+      "numericRole": {
+        "world": {
+          "entities": [],
+          "shared": [],
+          "players": []
+        },
+        "contract": "explicit divisor1, no bindings, empty declared state, identical admitted module bytes, identity seed6417"
+      },
+      "hostModuleOrderChanged": false,
+      "hostCountersQueuesAndTick": "identical",
+      "moduleFieldChanges": []
+    }
+  ],
+  "sourceParent": "c926aa3db4508304301165630bf6a95153db26df",
+  "approval": "G388/G400; call42 retains empty lift reset IDs",
+  "headless": {
+    "ticksExecuted": 26469,
+    "victoryTick": 26349,
+    "before": "2c62014cd744811d83b9fd842eb9b8ee450c078222805a8f4ea95af860fe24d5",
+    "after": "146505ca06c9ca5c5f523bbff3dc7cf6ed248017a5ad184c543b819c8ba6e864"
+  },
+  "recordedOutcomeChanges": [
+    "headless.hash",
+    "replay.hash",
+    "replay.replayHash"
+  ],
+  "otherOutcomeFields": "all identical, including full journey logs, actions, effects and durable Ledger",
+  "newScriptContract": "mover+numeric role identities, sorted bindings, admitted module byte identity and seed6417, maxEntities32 and unchanged host limits; numeric role has no entities, state or bindings",
+  "sameNativeContinuation": "all snapshot fields outside adapters byte-identical at step7692, gale10140, storm17340, including raw physics; same pending commands, handles, module memories/globals and entity fields"
+}

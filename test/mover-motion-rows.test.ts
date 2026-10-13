@@ -8,7 +8,7 @@ import { MOVER_DRIVER_MODULES } from '../src/format/moverMotion';
 import { createSimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier } from '../src/engine/physics/rapier';
-import { installHeadlessMovers } from '../src/game/plugin/mover';
+import { installMoverFixture as installHeadlessMovers } from './fixtures/mover-installation';
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 

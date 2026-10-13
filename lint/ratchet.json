@@ -241,7 +241,7 @@
     "src/sdk/runtime/audio/silentScore.ts": 1,
     "src/sdk/runtime/audio/weaponVoices.ts": 3,
     "src/sdk/runtime/effects.ts": 3,
-    "src/sdk/runtime/movers.ts": 16,
+    "src/sdk/runtime/movers.ts": 8,
     "src/sdk/runtime/prompts.ts": 3,
     "src/sdk/runtime/viewmodel/armClips.ts": 3,
     "src/sdk/runtime/viewmodel/rigArms.ts": 8,

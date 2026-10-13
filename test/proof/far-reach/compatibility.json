@@ -1,11 +1,11 @@
 {
   "audit": {
-    "sourceRevision": "00e7da5fbf89cf32395fdf32e602161399e107aa",
-    "candidate": "Accepted portable recorder/worker math (dbcef52f5), shared home keeper continuation (dd74465a8), and exact MV-2 mover admission (3345469e4).",
+    "sourceRevision": "c926aa3db4508304301165630bf6a95153db26df",
+    "candidate": "G388 mover role composition; native bodies, pending commands and mid-travel lifts remain durable.",
     "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/far-reach/run.mjs all",
     "exitStatus": 0,
-    "scope": "Portable math deliberately changes the terminal tick from 21134 to 26469 and victory from 21014 to 26349. The shared home keeper changes only the far.flock continuation wrapper and terminal hash. Gameplay facts, coins, entries and MV-2 native laws remain exact.",
-    "runs": "Complete headless, shipping-worker replay and durable gameplay ledger on a clean committed source export with installed Rapier and existing generated resources."
+    "scope": "Same 26469 endpoint, 26349 victory, command route, fan, flock, effects and Ledger. Replay fingerprint changes because mover script host/entity state is now a composed role continuation separated from native handles. Three checkpoint wires recorded deliberately.",
+    "runs": "Retained native recorder, full uninterrupted/restore/shipping-worker replay and durable Ledger; individual slice outcomes asserted."
   },
   "slug": "far-reach",
   "entry": "runtime/headless.ts",
@@ -13,7 +13,7 @@
   "headless": {
     "status": "passed",
     "ticksExecuted": 26469,
-    "hash": "2c62014cd744811d83b9fd842eb9b8ee450c078222805a8f4ea95af860fe24d5",
+    "hash": "146505ca06c9ca5c5f523bbff3dc7cf6ed248017a5ad184c543b819c8ba6e864",
     "victoryTick": 26349,
     "attempts": 1,
     "questComplete": true,
@@ -315,8 +315,8 @@
     },
     "suffixTicksExecuted": 16329,
     "victoryTick": 26349,
-    "hash": "2c62014cd744811d83b9fd842eb9b8ee450c078222805a8f4ea95af860fe24d5",
-    "replayHash": "2c62014cd744811d83b9fd842eb9b8ee450c078222805a8f4ea95af860fe24d5",
+    "hash": "146505ca06c9ca5c5f523bbff3dc7cf6ed248017a5ad184c543b819c8ba6e864",
+    "replayHash": "146505ca06c9ca5c5f523bbff3dc7cf6ed248017a5ad184c543b819c8ba6e864",
     "workerTicks": 60,
     "workerExact": true,
     "suffixFacts": [

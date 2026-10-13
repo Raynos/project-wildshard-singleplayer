@@ -44,10 +44,9 @@ import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from "../s
 import { dataCreaturePorts } from "../shardfile/dataCreaturePorts";
 import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroupPolicy } from "../shardfile/groupRuntime";
 import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } from "../shardfile/crowdRuntime";
-import { MoverScriptDriver } from "../shardfile/moverDriver";
 import { installLadders, type LadderClientPorts } from '../shardfile/ladder';
 import type { LiftApproachSource } from '@wildshard/format/liftApproach';
-import { MoverRuntime } from "./mover";
+import { MoverScriptDriver, type MoverRuntime } from "./mover";
 import { socketLiftEntries, socketLiftRules, type SocketLiftEntry } from "@wildshard/format/socketLiftAssets";
 import { portalLinkEntries, portalLinkRules } from "@wildshard/format/portalLinkAssets";
 import { validatePortalFloors } from "@wildshard/format/portalFloor";
@@ -332,28 +331,23 @@ export function bindShardfileSim(host: SimHost, shard: Shardfile, assets: Readon
         ...(ports.scriptDisabled === undefined ? {} : { onDisabled: ports.scriptDisabled }),
         query: ports.query ?? ((kind, input, entity) => scriptPhysicsQueries({ physics: host.physics, navigation: ports.navigation ?? { closestWalkable: () => null, findPath: () => null }, handle: (owner) => typeof owner === 'string' ? actors.get(owner) : undefined })(kind, input, entity)),
       };
-      const installedMover: { current?: MoverRuntime } = {};
       const moverDriver = shard.movers.length === 0 ? undefined : new MoverScriptDriver(shard.movers, options.query, [...resetMovers]);
-      const extra = moverDriver === undefined ? undefined : { roles: [moverDriver.role()], transientModules: moverDriver.transientModules,
-        schedules: [moverDriver.schedule(() => { const current = installedMover.current; if (current === undefined) throw new Error('Missing mover runtime'); return current; })] };
       if (brainBindings.length > 0) {
         if (ports.scriptBrains === undefined) throw new Error('Missing custom brain port');
         const trustedBrains = ports.scriptBrains(host);
         if (typeof trustedBrains.ports.observe !== 'function' || typeof trustedBrains.ports.mayAttack !== 'function' || typeof trustedBrains.ports.strike !== 'function') throw new Error('Missing custom brain observation or strike recipe');
-        lane = createShardfileComposedLane(shard, assets, options, { ...trustedBrains, query: trustedBrains.query ?? options.query, actors: host.entities, bindings: brainBindings }, extra);
-      } else lane = extra === undefined ? createShardfileScriptLane(shard, assets, options) : createShardfileComposedLane(shard, assets, options, undefined, extra);
+        const brainPorts = { ...trustedBrains, query: trustedBrains.query ?? options.query, actors: host.entities, bindings: brainBindings };
+        lane = moverDriver === undefined ? createShardfileComposedLane(shard, assets, options, brainPorts) : moverDriver.compose(shard, assets, options, brainPorts);
+      } else lane = moverDriver === undefined ? createShardfileScriptLane(shard, assets, options) : moverDriver.compose(shard, assets, options);
       if (moverDriver !== undefined) {
         const stateWorld = lane.world;
-        const runtime = new MoverRuntime(shard.movers, { host: lane.host, physics: () => host.physics, scope: host.scope,
+        const runtime = moverDriver.install(host, lane, { id: 'movers.declared',
           activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined, shared: id => {
             const field = shard.state.shared.find(row => row.id === id);
             const value = field === undefined ? undefined : stateWorld.view(host.player.id).shared[field.name];
             return typeof value === 'number' || typeof value === 'boolean' ? value : undefined;
           } }, ...(ports.restoring === undefined ? {} : { restoring: ports.restoring }) });
-        movers = runtime; installedMover.current = runtime;
-        host.onStep('movers.declared', () => { runtime.capture(); }, { snapshot: () => runtime.snapshotState(resetMovers), restore: value => {
-          if (typeof value !== 'string') throw new Error('Invalid mover continuation'); runtime.restoreState(value);
-        }, physicsRestored: () => { runtime.reconnect(resetMovers); } });
+        movers = runtime;
       }
       installScriptLane(host, 'script.declared', lane, ports.commands);
     }

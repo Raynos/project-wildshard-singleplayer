@@ -17,7 +17,7 @@ import { FAN_ID } from '../data/items';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM, installSkyFan, type FanCommand } from './fan';
 import { installSkyQuest, skyWinchPermission } from './quest';
 import { SKY_MOVER_BINDING } from '../data/moverBindings';
-import { UpdraftDriver, installHeadlessMovers, verifiedMoverModules, type HeadlessMovers } from '@wildshard/game/plugin/mover';
+import { UpdraftDriver, MoverScriptDriver, verifiedMoverModules, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** The baked native specs by kind (generators/physics.ts, authored rows only); every body of a kind shares one recipe. */
@@ -44,7 +44,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (input) => (
 /** Sky's prepared runtime: the SDK plan, and its install returning the movers it built (the witness rides and calls them). */
 export interface SkyRuntime {
   readonly plan: HeadlessRuntimePlan;
-  readonly installSky: (host: SimHost, context: HeadlessRuntimeInstallation) => HeadlessMovers;
+  readonly installSky: (host: SimHost, context: HeadlessRuntimeInstallation) => { runtime: MoverRuntime; failures: () => number };
 }
 export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRuntimePreparation): Promise<SkyRuntime> {
   const fanRow = weaponRow(shard, FAN_ID), fanSpec = coneStrikeSpec(fanRow, fanRow.profile);
@@ -54,21 +54,25 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
   // the islet and bridge modules, admitted in shard.config.ts `files`, hash-checked once here (install is synchronous)
   const moverRows = shard.movers.filter(row => !row.id.startsWith(SKY_MOVER_BINDING.staticPrefix));
   const modules = await verifiedMoverModules(assets, moverRows);
+  const installMovers = (host: SimHost, restoring: boolean, permissions: () => ReadonlyMap<string, number>) => {
+    const driver = new MoverScriptDriver(moverRows, host);
+    const content = { identity: shard.identity, sim: { scripts: [...modules.keys()], bindings: [], scriptTickDivisor: 1 }, state: { shared: [], player: [] } };
+    const lane = driver.compose(content, modules, { rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 }, entities: [], actors: new Map(), query: () => [] }, undefined, permissions);
+    const runtime = driver.install(host, lane, { id: SKY_MOVER_BINDING.systemId, restoring, drive: true,
+      activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined } });
+    return { runtime, failures: () => lane.host.failureCount };
+  };
   const specs = skySpecs();
   // the shipping spawn (manifest `spawn`, layout SPAWN) standing on Sunrest's deck, not the shardfile's grid datum; the
   // host's player strike is the zero-damage probe, never the War Fan (a declared item, data/items.ts)
   const level = trustedLevel(shard, { at: { x: SPAWN.x, y: DECK, z: SPAWN.z }, yaw: SPAWN.yaw, speed: 5 }, { size: 500, height: SKY_ANALYTIC_FLOOR });
   const ports = { ground: false, heightAt: () => SKY_ANALYTIC_FLOOR } as const;
-  const installSky = (host: SimHost, context: HeadlessRuntimeInstallation): HeadlessMovers => {
+  const installSky = (host: SimHost, context: HeadlessRuntimeInstallation): { runtime: MoverRuntime; failures: () => number } => {
     // every piece the browser collides with on foot, plus the board-only ones (the hover decks and the updraft ramp, baked
     // `mode: 'board'`) in the host's board mode; a restore brings them back with the physics (SimSnapshot.boardColliders)
     if (!context.restoring) addBakedWorld(host, baked.pieces);
     host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
-    const movers = installHeadlessMovers(host, moverRows, modules, {
-      systemId: SKY_MOVER_BINDING.systemId, restoring: context.restoring,
-      initialPermissions: new Map([[SKY_MOVER_BINDING.winch, 0]]),
-      permissions: () => new Map([[SKY_MOVER_BINDING.winch, skyWinchPermission(host.flags)]]),
-    });
+    const movers = installMovers(host, context.restoring, () => new Map([[SKY_MOVER_BINDING.winch, skyWinchPermission(host.flags)]]));
     const flock = installSkyFlock(host, { specs, seed: shard.identity.seed }, context.snapshot);
     const ledger = ledgerPorts(context.emit);
     const encounter = installBossOwnerRow(host, ROC_OWNER, { body: { kind: 'held', actor: flock.roc.actor, brain: flock.roc.body }, ...ledger });
@@ -102,11 +106,7 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
       addBakedWorld(fresh, baked.pieces);
       installEntrySockets(fresh.physics, fresh.scope, [{ x: 0, z: 0 }]);
       installDeclaredPropColliders(shard.props === null ? [] : propColliderDescriptors(shard.props), () => fresh.physics, fresh.scope);
-      const movers = installHeadlessMovers(fresh, moverRows, modules, {
-        systemId: SKY_MOVER_BINDING.systemId, restoring: false,
-        initialPermissions: new Map([[SKY_MOVER_BINDING.winch, 0]]),
-        permissions: () => new Map([[SKY_MOVER_BINDING.winch, 0]]),
-      });
+      const movers = installMovers(fresh, false, () => new Map([[SKY_MOVER_BINDING.winch, 0]]));
       return { physics: fresh.physics, movers: movers.runtime, dispose: () => { fresh.dispose(); },
         fixedStep: () => { fresh.step(); if (movers.failures() !== 0) throw new Error('Sky Reach mover script call failed'); } };
     } catch (error) { fresh.dispose(); throw error; }

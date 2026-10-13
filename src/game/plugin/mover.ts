@@ -13,6 +13,9 @@ import { scriptPhysicsQueries } from "@wildshard/engine/script/queries";
 import type { World } from "@wildshard/engine/core/bootstrap";
 import type { SimHost } from "@wildshard/engine/sim";
 import type { LevelContext } from "@wildshard/engine/level/context";
+import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from "../shardfile/scriptComposition";
+import type { ShardScriptContent, ShardScriptPorts } from "../shardfile/scripts";
+import type { ScriptRole, ScriptSchedule } from "@wildshard/engine/script/composition";
 import type { Scope } from "@wildshard/engine/app/scope";
 import { KinematicMover, type MoverPose } from "@wildshard/engine/physics/mover";
 import { RopeChain } from "@wildshard/engine/physics/ropeChain";
@@ -66,13 +69,7 @@ export function proveTerrainEntries(physics: Physics, entryways: readonly Terrai
 
 /** Transitional standalone composition; a full session injects its existing host and merges entities/rules/queries instead. */
 export async function createMoverHost(data: MoverData, assets: ReadonlyMap<string, Uint8Array>, physicsQueries: ScriptQuery): Promise<ScriptHost> {
-  const checked = parseMovers(data), modules: [string, Uint8Array][] = [];
-  for (const hash of new Set(checked.map((m) => m.module))) {
-    const bytes = assets.get(hash); if (bytes === undefined) throw new Error('Missing mover module');
-    const copy = Uint8Array.from(bytes), digest = new Uint8Array(await crypto.subtle.digest('SHA-256', copy));
-    if ([...digest].map((b) => b.toString(16).padStart(2, '0')).join('') !== hash) throw new Error('Mover module hash mismatch');
-    modules.push([hash, copy]);
-  }
+  const checked = parseMovers(data), modules = await verifiedMoverModules(assets, checked);
   const host = new ScriptHost({ world: new ScriptWorld({ fields: MOVER_FIELD_RANGES, archetypes: [], events: [], maxEntities: 32 }, moverScriptEntities(checked)), query: moverQueries(checked, physicsQueries) });
   for (const [hash, bytes] of modules) host.install(hash, bytes);
   return host;
@@ -254,29 +251,81 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
   return runtime;
 }
 
-const moverFinite = v.pipe(v.number(), v.finite());
-const moverNatural = v.pipe(moverFinite, v.integer(), v.minValue(0));
-const headlessMoverSaved = v.strictObject({
-  host: v.strictObject({ tick: v.pipe(moverFinite, v.integer(), v.minValue(-1)),
-    used: v.strictObject({ effects: moverNatural, spawns: moverNatural, events: moverNatural, queries: moverNatural, fuel: moverNatural }),
-    pending: v.array(v.strictObject({ type: moverNatural, target: moverNatural, value: moverFinite })),
-    modules: v.array(v.strictObject({ name: v.string(), memory: v.array(moverNatural), globals: v.array(v.strictObject({ name: v.string(), type: v.picklist(['number', 'bigint']), value: v.string() })), failures: moverNatural, disabled: v.boolean() })) }),
-  world: v.array(v.strictObject({ id: moverNatural, name: v.string(), position: v.tuple([moverFinite, moverFinite, moverFinite]), fields: v.record(v.string(), moverFinite), frozen: v.boolean(), interactive: v.boolean() })),
-  movers: v.string(),
-});
-
-/** A headless platform installation exposes published poses and refused script calls. */
-export interface HeadlessMovers { readonly runtime: MoverRuntime; failures: () => number }
-/** Explicit native ownership; the getter follows replacement worlds after a restore. */
-export interface HeadlessMoverPorts { physics: () => SimHost['physics']; scope: SimHost['scope']; restoring: boolean; activation?: MoverActivationPorts }
-/** A caller-driven set owns its script host, entities and trusted permission table. */
-export interface HeadlessMoverSet extends HeadlessMovers { host: ScriptHost; world: ScriptWorld; permissions: Map<string, number> }
-/** Stable continuation identity and trusted permissions for a SimHost installation. */
-export interface HeadlessMoverInstallation {
-  systemId: string; restoring: boolean;
-  initialPermissions?: ReadonlyMap<string, number>;
-  permissions?: () => ReadonlyMap<string, number>;
-  sharedState?: (field: number) => number | boolean | undefined;
+const driverFinite = v.pipe(v.number(), v.finite());
+const driverEntity = v.strictObject({ id: v.pipe(driverFinite, v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), name: v.pipe(v.string(), v.maxLength(128)),
+  position: v.tuple([driverFinite, driverFinite, driverFinite]), fields: v.record(v.string(), driverFinite), frozen: v.boolean(), interactive: v.boolean() });
+/** The mover's field/query role shares its level's host, module union, fuel, events and effect allowances. */
+export class MoverScriptDriver {
+  readonly data: MoverData;
+  readonly world: ScriptWorld;
+  private readonly contract: string;
+  private readonly query: ScriptQuery;
+  private readonly resetIds: ReadonlySet<string>;
+  private runtime: MoverRuntime | undefined;
+  /** Lift-only modules reset on load; sharing their memory with persistent movers is refused. */
+  readonly transientModules: readonly string[];
+  constructor(input: MoverData, physicsQueries: ScriptQuery | Pick<SimHost, 'physics'>, resetIds: readonly string[] = []) {
+    const query: ScriptQuery = typeof physicsQueries === 'function' ? physicsQueries : (kind, values, entity) =>
+      scriptPhysicsQueries({ physics: physicsQueries.physics, navigation: { closestWalkable: () => null, findPath: () => null }, handle: () => undefined })(kind, values, entity);
+    this.data = parseMovers(input); this.query = moverQueries(this.data, query);
+    this.resetIds = new Set(resetIds);
+    if (this.resetIds.size !== resetIds.length || resetIds.some(id => !this.data.some(row => row.id === id))) throw new Error('Invalid transient mover identity');
+    this.transientModules = [...new Set(this.data.filter(row => this.resetIds.has(row.id)).map(row => row.module))].sort();
+    if (this.data.some(row => !this.resetIds.has(row.id) && this.transientModules.includes(row.module))) throw new Error('Lift module cannot own persistent movers');
+    this.contract = JSON.stringify(resetIds.length === 0 ? this.data : { data: this.data, resetIds: [...resetIds].sort() });
+    this.world = new ScriptWorld({ fields: MOVER_FIELD_RANGES, archetypes: [], events: [], maxEntities: 32 }, moverScriptEntities(this.data));
+  }
+  /** No events cross into mover entity fields from the numeric/brain role. */
+  role(): ScriptRole { return { id: 'mover', world: this.world, query: this.query, events: 'consume', snapshot: () => this.snapshot(), restore: text => { this.restore(text); } }; }
+  /** Every due call runs under the existing one beginTick; the runtime only publishes admitted collision poses. */
+  schedule(runtime: () => MoverRuntime, permissions: () => ReadonlyMap<string, number> = () => new Map()): ScriptSchedule {
+    const rows = new Map(this.data.map(row => [row.entity, row]));
+    return { id: 'mover', role: 'mover', bindings: this.data.map(row => ({ module: row.module, entity: row.entity, divisor: 1 })),
+      input: (binding, tick) => {
+        const row = rows.get(binding.entity); if (row === undefined) throw new Error('Missing mover binding');
+        return runtime().scriptInput(row.id, tick, permissions().get(row.id) ?? 0);
+      }, committed: (binding, call) => {
+        const row = rows.get(binding.entity); if (row === undefined) throw new Error('Missing mover binding');
+        runtime().publish(row.id, call.ok);
+      },
+    };
+  }
+  /** Compose the admitted role with numeric and optional brain roles, under one host's aggregate allowances. */
+  compose(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts,
+    brains?: DeclaredScriptBrainPorts, permissions: () => ReadonlyMap<string, number> = () => new Map()): ReturnType<typeof createShardfileComposedLane> {
+    return createShardfileComposedLane(content, assets, ports, brains, { roles: [this.role()], transientModules: this.transientModules,
+      schedules: [this.schedule(() => { if (this.runtime === undefined) throw new Error('Missing mover runtime'); return this.runtime; }, permissions)] });
+  }
+  /** Attach native handles to the same host; an explicit drive owns one fixed tick, never another script host. */
+  install(sim: SimHost, lane: ReturnType<typeof createShardfileComposedLane>, options: { id: string; restoring?: boolean; activation?: MoverActivationPorts; drive?: boolean }): MoverRuntime {
+    if (this.runtime !== undefined) throw new Error('Mover driver is already installed');
+    const runtime = new MoverRuntime(this.data, { host: lane.host, physics: () => sim.physics, scope: sim.scope,
+      ...(options.restoring === undefined ? {} : { restoring: options.restoring }),
+      ...(options.activation === undefined ? {} : { activation: options.activation }) });
+    this.runtime = runtime;
+    sim.onStep(options.id, () => { if (options.drive === true) lane.step(sim.state.tick); runtime.capture(); }, {
+      snapshot: () => runtime.snapshotState(this.resetIds), restore: value => {
+        if (typeof value !== 'string') throw new Error('Invalid mover continuation'); runtime.restoreState(value);
+      }, physicsRestored: () => { runtime.reconnect(this.resetIds); } });
+    if (options.drive === true) sim.onStep(`${options.id}.script`, () => undefined, { snapshot: () => lane.snapshot(), restore: value => {
+      if (typeof value !== 'string') throw new Error('Invalid script adapter snapshot'); lane.restore(value);
+    } });
+    return runtime;
+  }
+  /** Typed role state; the owning composition captures module memories and host quotas once. */
+  snapshot(): string {
+    const initial = new Map(moverScriptEntities(this.data).map(row => [row.id, row]));
+    return JSON.stringify({ contract: this.contract, entities: this.world.state().map(row => this.resetIds.has(row.name) ? initial.get(row.id) : row) });
+  }
+  /** Restore matching entity identities atomically without commands, body movement or script execution. */
+  restore(text: string): void {
+    const saved = v.parse(v.strictObject({ contract: v.string(), entities: v.pipe(v.array(driverEntity), v.maxLength(32)) }), JSON.parse(text));
+    if (saved.contract !== this.contract || saved.entities.length !== this.data.length
+      || saved.entities.some(row => !this.data.some(mover => mover.entity === row.id && mover.id === row.name))) throw new Error('Incompatible mover role continuation');
+    const initial = new Map(moverScriptEntities(this.data).map(row => [row.id, row]));
+    if (saved.entities.some(row => this.resetIds.has(row.name) && JSON.stringify(row) !== JSON.stringify(initial.get(row.id)))) throw new Error('Lift continuation must reset at the road stop');
+    this.world.restore(saved.entities);
+  }
 }
 
 /** Copy and SHA-256-check each declared module before constructing a headless host. */
@@ -287,42 +336,6 @@ export async function verifiedMoverModules(assets: ReadonlyMap<string, Uint8Arra
     if ([...digest].map(b => b.toString(16).padStart(2, '0')).join('') !== hash) throw new Error('Mover module hash mismatch');
     return [hash, copy] as const;
   })));
-}
-
-/** Construct native movers without stepping; the caller explicitly owns the fixed clock. */
-export function createHeadlessMovers(rows: MoverData, modules: ReadonlyMap<string, Uint8Array>, ports: HeadlessMoverPorts, initialPermissions: ReadonlyMap<string, number> = new Map()): HeadlessMoverSet {
-  const data = parseMovers(rows);
-  const world = new ScriptWorld({ fields: MOVER_FIELD_RANGES, archetypes: [], events: [], maxEntities: 32 }, moverScriptEntities(data));
-  const physicsQuery: ScriptQuery = (kind, input, entity) => scriptPhysicsQueries({ physics: ports.physics(), navigation: { closestWalkable: () => null, findPath: () => null }, handle: () => undefined })(kind, input, entity);
-  const host = new ScriptHost({ world, query: moverQueries(data, physicsQuery) });
-  for (const hash of new Set(data.map(row => row.module))) {
-    const bytes = modules.get(hash); if (bytes === undefined) throw new Error('Unverified mover module');
-    host.install(hash, bytes);
-  }
-  const runtime = new MoverRuntime(data, { host, physics: ports.physics, scope: ports.scope, restoring: ports.restoring, ...(ports.activation === undefined ? {} : { activation: ports.activation }) });
-  return { runtime, host, world, permissions: new Map(initialPermissions), failures: () => host.failureCount };
-}
-
-/** Advance the script clock, publish platform poses, then capture any native chains. */
-export function stepHeadlessMovers(movers: Pick<HeadlessMoverSet, 'runtime' | 'host' | 'permissions'>, tick: number, permissions: ReadonlyMap<string, number> = movers.permissions): void {
-  movers.host.beginTick(tick); movers.runtime.step(tick, permissions); movers.runtime.capture();
-}
-
-/** Install one fixed-step owner and preserve exact guest/native continuation without an installation tick. */
-export function installHeadlessMovers(host: SimHost, rows: MoverData, modules: ReadonlyMap<string, Uint8Array>, options: HeadlessMoverInstallation): HeadlessMovers {
-  const movers = createHeadlessMovers(rows, modules, { physics: () => host.physics, scope: host.scope, restoring: options.restoring, activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined, ...(options.sharedState === undefined ? {} : { shared: options.sharedState }) } }, options.initialPermissions);
-  host.onStep(options.systemId, () => { stepHeadlessMovers(movers, host.state.tick, options.permissions?.() ?? movers.permissions); }, {
-    snapshot: () => JSON.stringify({ host: movers.host.checkpoint(), world: movers.world.state(), movers: movers.runtime.snapshotState() }),
-    restore: value => {
-      if (typeof value !== 'string') throw new Error('Invalid mover continuation');
-      const saved = v.parse(headlessMoverSaved, JSON.parse(value));
-      movers.host.restoreState(saved.host);
-      movers.world.restore(saved.world.map(row => ({ ...row, fields: Object.fromEntries(Object.entries(row.fields).map(([key, field]) => [Number(key), field])) })));
-      movers.runtime.restoreState(saved.movers);
-    },
-    physicsRestored: () => { movers.runtime.reconnect(); },
-  });
-  return { runtime: movers.runtime, failures: movers.failures };
 }
 
 /** The platform's cable/deck law, used by author rows and both native hosts. */

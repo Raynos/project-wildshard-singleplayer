@@ -2166,12 +2166,15 @@ The composition root installs the gold coin geometry recipe with `installCoinMod
 
 `@wildshard/sdk/runtime/movers` exposes the declared platform owner to shard runtime code.
 `installDeclaredMovers` admits guest modules and installs scoped page fixed steps; views read published poses.
-`verifiedMoverModules` detaches and SHA-256-checks admitted bytes before headless construction.
-`createHeadlessMovers` and `stepHeadlessMovers` give an existing scheduler explicit clock ownership.
-`installHeadlessMovers` installs that owner on a SimHost with a stable system id and trusted permission source.
-Its continuation retains guest memory/globals, entity fields, pending commands and native body handles;
-native restore reconnects those handles without an installation tick. Adopted views and chains require
-their existing native owner and cannot use the platform/static headless restore path.
+`verifiedMoverModules` detaches and SHA-256-checks admitted bytes before page or native construction.
+`MoverScriptDriver` on `@wildshard/game/plugin/mover` supplies a consuming role and schedule to the generic
+composed script lane. `compose(content, assets, ports, brains?, permissions?)` joins numeric state, optional
+brain roles and movers under one module union and aggregate allowance. `install(sim, lane, options)` attaches
+the separate pending-command/native-handle adapter. The full data host already owns the lane clock; a trusted
+host opts into `drive: true` to advance that same lane once per fixed step and capture its complete continuation.
+Restoration reconnects saved handles without an installation tick or duplicate bodies. Explicit reset IDs restart
+dedicated road lifts; an empty list preserves durable mid-travel poses and pending commands. Adopted views and
+chains keep their existing native owners and cannot use the platform/static native restore path.
 
 ### Embedded simulation
 

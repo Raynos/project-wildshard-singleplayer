@@ -9,8 +9,7 @@ import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { createShardfileComposedLane } from '../src/game/shardfile/scriptComposition';
 import { parseMovers } from '@wildshard/format/movers';
-import { MoverScriptDriver } from '../src/game/shardfile/moverDriver';
-import { MoverRuntime } from "../src/game/plugin/mover";
+import { MoverScriptDriver, MoverRuntime } from "../src/game/plugin/mover";
 import { SIM_LEVEL } from './fixtures/sim-level/level';
 import wasmInline from '@dimforge/rapier3d-simd/rapier_wasm3d_bg.wasm?inline';
 

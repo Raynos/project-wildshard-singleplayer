@@ -8,8 +8,8 @@ import { createSimHost, type SimHost } from '../src/engine/sim';
 import { snapshotSimHost, restoreSimHost } from '../src/engine/sim/snapshot';
 import { loadRapier } from '../src/engine/physics/rapier';
 import { tagOf } from '../src/engine/physics/surface';
-import { installHeadlessMovers, createHeadlessMovers, MoverRuntime, type HeadlessMovers } from '../src/game/plugin/mover';
-import { MoverScriptDriver } from '../src/game/shardfile/moverDriver';
+import { MoverScriptDriver, MoverRuntime } from '../src/game/plugin/mover';
+import { installMoverFixture as installHeadlessMovers, type FixtureMovers as HeadlessMovers } from './fixtures/mover-installation';
 import { createShardfileComposedLane } from '../src/game/shardfile/scriptComposition';
 import { compileScript } from '../src/sdk/compileScript';
 import { hashImmutableBytes } from '../src/sdk/immutable';
@@ -70,7 +70,7 @@ describe('general fixed mover channels', () => {
     let movers: HeadlessMovers | undefined;
     try {
       const before = host.physics.world.bodies.len();
-      expect(() => createHeadlessMovers([data], modules(), { physics: () => host.physics, scope: host.scope, restoring: false })).toThrow('real player ground');
+      expect(() => installHeadlessMovers(host, [data], modules(), { systemId: 'refused', restoring: false, activation: false })).toThrow('real player ground');
       expect(host.physics.world.bodies.len()).toBe(before);
       movers = install(host, [data]);
       for (let i = 0; i < 10; i++) host.step({ moveX: 0, moveZ: 0, yaw: 0 });

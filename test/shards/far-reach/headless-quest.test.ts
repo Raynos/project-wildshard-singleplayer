@@ -14,7 +14,7 @@ import { FAN_ACT, FAN_ACTOR } from '../../../src/shards/far-reach/runtime/fan';
 import { SKY_MOVER_BINDING } from '../../../src/shards/far-reach/data/moverBindings';
 import { ROOST_IDS, SKY_ACT, SKY_INTERACT } from '../../../src/shards/far-reach/data/questPrompts';
 import { prepareSkyRuntime, type SkyRuntime } from '../../../src/shards/far-reach/runtime/headless';
-import type { HeadlessMovers as SkyMovers } from '@wildshard/game/plugin/mover';
+import type { FixtureMovers as SkyMovers } from '../../fixtures/mover-installation';
 import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 
 let rapier: Rapier, sky: SkyRuntime;
