@@ -15,7 +15,7 @@ import type { Bow } from '../../../src/game/weapons/Bow';
 import type { Inventory } from '../../../src/game/Inventory';
 import type { Owned } from '../../../src/game/loot/Owned';
 import { shardContext } from "../../../src/game/plugin/context";
-import { RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
+import { RetainedRuntimeHooks } from "../../../src/game/shard/retainedHooks";
 import { emptyShardfileSource } from '../../../src/game/plugin/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { installPineLoadout } from '../../../src/shards/pine-hollow/loadout/loadout';

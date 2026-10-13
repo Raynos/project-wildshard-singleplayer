@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 
 const definitions=[
-  {key:'./plugin/lifecycle',target:'./plugin/lifecycle.ts',old:'./shard/retainedHooks',load:async()=>[await import('@wildshard/game/plugin/lifecycle'),await import('@wildshard/game/shard/retainedHooks')]},
+  {key:'./shard/retainedHooks',target:'./shard/retainedHooks.ts',old:null,load:async()=>[await import('@wildshard/game/shard/retainedHooks'),await import('../src/game/shard/retainedHooks')]},
   {key:'./plugin/headless',target:'./plugin/headless.ts',old:'./shardfile/hybridRows',load:async()=>[await import('@wildshard/game/plugin/headless'),await import('@wildshard/game/shardfile/hybridRows')]},
   {key:'./plugin/brain',target:'./plugin/brain.ts',old:null,load:async()=>[await import('@wildshard/game/plugin/brain'),await import('@wildshard/game/plugin/brain')]},
   {key:'./plugin/bossPhase',target:'./plugin/bossPhase.ts',old:null,load:async()=>[await import('@wildshard/game/plugin/bossPhase'),await import('../src/game/plugin/bossPhase')]},
@@ -16,6 +16,7 @@ it('publishes real plugin definitions and keeps exact binding identity for trans
   const manifest:unknown=JSON.parse(readFileSync('src/game/package.json','utf8'));
   if(manifest===null||typeof manifest!=='object'||!('exports' in manifest)||manifest.exports===null||typeof manifest.exports!=='object')throw new Error('Missing game exports');
   expect(Object.hasOwn(manifest.exports, './shardfile/phasedBoss')).toBe(false);
+  expect(Object.hasOwn(manifest.exports, './plugin/lifecycle')).toBe(false);
   expect(manifest.exports).toMatchObject({ './shardfile/directorClient': './shardfile/directorClient.ts' });
   for(const row of definitions){
     expect(manifest.exports).toMatchObject({[row.key]:row.target});

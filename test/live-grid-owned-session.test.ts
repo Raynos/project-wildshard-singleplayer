@@ -27,7 +27,7 @@ import { regionalRuntimeAccountedBytes } from '../src/game/grid/regionalRuntime'
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
 
 import { ShardPlugin } from '../src/game/plugin/shardPlugin';
-import { installEnteredRuntimeService } from "../src/game/plugin/lifecycle";
+import { installEnteredRuntimeService } from "../src/game/shard/retainedHooks";
 import type { ShardPlayHost, ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardWorld } from '../src/game/shard/world';
 import { findShard } from '../src/game/shard/registry';

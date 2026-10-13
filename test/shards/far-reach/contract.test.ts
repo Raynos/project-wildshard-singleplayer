@@ -17,7 +17,7 @@ import { TabRegistry } from '../../../src/engine/ui/tabs';
 import { WorldRegistry } from '../../../src/engine/world/registry';
 import { purseSave, shardSave } from '../../../src/game/saves';
 import { shardContext, type GameServices } from "../../../src/game/plugin/context";
-import { RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
+import { RetainedRuntimeHooks } from "../../../src/game/shard/retainedHooks";
 import type { LevelContext } from '../../../src/engine/level/context';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import { resolveLevelBounds, type ShardPlayHooks } from '../../../src/game/shard/runtime';

@@ -8,7 +8,7 @@ import { createLevelInstallation } from '../../src/engine/level/installation';
 import type { DebugRowSpec } from '../../src/engine/level/context';
 import { hudSlots } from '../../src/engine/ui/hudSlots';
 import { shardContext } from "../../src/game/plugin/context";
-import { installEnteredRuntimeService, installRetainedPlayerEffects, RetainedRuntimeHooks } from "../../src/game/plugin/lifecycle";
+import { installEnteredRuntimeService, installRetainedPlayerEffects, RetainedRuntimeHooks } from "../../src/game/shard/retainedHooks";
 import { emptyShardfileSource } from '../../src/game/plugin/loader';
 import { installStarterEffects } from '../../src/game/plugin/effects';
 import { STARTER_EFFECTS } from '@wildshard/sdk/runtime/effects';

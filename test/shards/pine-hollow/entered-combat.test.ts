@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { App } from '../../../src/engine/app/app';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
 import { shardContext } from "../../../src/game/plugin/context";
-import { RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
+import { RetainedRuntimeHooks } from "../../../src/game/shard/retainedHooks";
 import { emptyShardfileSource } from '../../../src/game/plugin/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { installPineCombatCallbacks } from '../../../src/shards/pine-hollow/runtime/combatService';

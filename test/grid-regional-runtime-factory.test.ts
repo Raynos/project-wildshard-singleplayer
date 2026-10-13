@@ -31,7 +31,7 @@ import type { ShardWorld } from '../src/game/shard/world';
 import { Progress } from '../src/game/Progress';
 import { Inventory } from '../src/game/Inventory';
 import { progressSave, inventorySave } from '../src/game/saves';
-import { installEnteredRuntimeService } from "../src/game/plugin/lifecycle";
+import { installEnteredRuntimeService } from "../src/game/shard/retainedHooks";
 import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 import pineSource from '../src/shards/pine-hollow/shard.config';
 import { fakeWorld } from './fake/world';

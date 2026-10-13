@@ -14,7 +14,7 @@ import { installEnteredQuestPresentation, installQuestPresentation, presentQuest
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { shardContext } from "../src/game/plugin/context";
 import type { ShardRuntime } from '../src/game/shard/runtime';
-import { RetainedRuntimeHooks, installEnteredRuntimeInput } from "../src/game/plugin/lifecycle";
+import { RetainedRuntimeHooks, installEnteredRuntimeInput } from "../src/game/shard/retainedHooks";
 import { emptyShardfileSource } from '../src/game/plugin/loader';
 import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from './fake/FakeGame';

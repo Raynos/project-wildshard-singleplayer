@@ -7,7 +7,7 @@ import { ShardPlugin, prepareTrustedRuntime, type TrustedRuntimeEntry } from "..
 import type { ShardRuntime } from '../shard/runtime';
 import type { ShardManifest } from '../shard/manifest';
 import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../shard/scopedRuntime';
-import { RetainedRuntimeHooks } from "../plugin/lifecycle";
+import { RetainedRuntimeHooks } from "../shard/retainedHooks";
 
 import { browserShardfileOptions, shardfileSource } from '../plugin/loader';
 import { boundedResponse, type ProductOptions } from './product';

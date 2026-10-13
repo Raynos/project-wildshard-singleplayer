@@ -3,7 +3,7 @@ import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { AudioData } from '@wildshard/format/audio';
 import type { GameServices, ShardContext } from './context';
-import { installEnteredRuntimeService } from './lifecycle';
+import { installEnteredRuntimeService } from '../shard/retainedHooks';
 import { installSilentScore } from '../systems/audio/silentScore';
 import { crossbowFire, dryFire, boltImpact, reload } from "../systems/audio/crossbowSounds";
 import { rifleFire, rifleReload } from "../systems/audio/firearmSounds";

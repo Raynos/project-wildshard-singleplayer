@@ -28,7 +28,7 @@ import type { Shardfile } from "@wildshard/format/shardSchema";
 import { npcDef, type NpcRow } from "./quests";
 import { parseBossProfile, type MarkedBossPresentation } from "@wildshard/format/bossProfiles";
 import { bossFight, type HeldBossBrain } from "./bossPhase";
-import { installEnteredRuntimeService, retainsRuntimeServices } from "./lifecycle";
+import { installEnteredRuntimeService, retainsRuntimeServices } from "../shard/retainedHooks";
 
 /**
  * The client-script view adapter (SHARD-PLATFORM SF25, the render side; G66 "frozen, but alive-looking"). sp-x5's

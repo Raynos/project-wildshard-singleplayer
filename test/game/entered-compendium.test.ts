@@ -17,7 +17,7 @@ import { registerCompendium } from '../../src/game/compendium/registry';
 import { Inventory } from '../../src/game/Inventory';
 import { Progress } from '../../src/game/Progress';
 import { shardContext } from "../../src/game/plugin/context";
-import { RetainedRuntimeHooks } from "../../src/game/plugin/lifecycle";
+import { RetainedRuntimeHooks } from "../../src/game/shard/retainedHooks";
 import { emptyShardfileSource } from '../../src/game/plugin/loader';
 import { emptyShardfile } from '../../src/sdk/author';
 import { legacyDouble } from '../fake/FakeGame';

@@ -12,7 +12,7 @@ import { Music } from '../../../src/engine/audio/Music';
 import type { AnimalManager } from '../../../src/engine/entities/AnimalManager';
 import type { Player } from '../../../src/engine/player/Player';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
-import { installEnteredRuntimeService, RetainedRuntimeHooks } from "../../../src/game/plugin/lifecycle";
+import { installEnteredRuntimeService, RetainedRuntimeHooks } from "../../../src/game/shard/retainedHooks";
 import { shardContext } from "../../../src/game/plugin/context";
 import { emptyShardfileSource } from '../../../src/game/plugin/loader';
 import { emptyShardfile } from '../../../src/sdk/author';
