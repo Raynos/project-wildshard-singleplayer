@@ -26,6 +26,10 @@ p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may 
   reverts the newer landings (bb6291f57 reverted ae7304f04). Re-read the tree and retry rather than committing a stale index.
   **After a private-index commit, reset only the shared INDEX for your own paths; never write HEAD bytes over working-tree
   files you did not author** (sp-x8's uncommitted geometry.ts work was wiped that way, 2026-10-13).
+  **After landing from an export, refresh your own stale shared copies:** for each path you committed whose
+  shared working-tree bytes still equal its previous committed blob (`git hash-object` found by
+  `git log --find-object`), write the `HEAD` bytes; leave anything else alone (49 stale copies, incl.
+  `.githooks/pre-commit`, were found and reset on 2026-10-13).
   **Generated files are made by pre-commit (G367):** a private-index helper must run pre-commit FIRST and `git write-tree`
   AFTER it, so the regenerated outputs are in the commit; the push regenerates nothing.
 - **Silent-revert guard (`afad1ea04`):** both commit hooks refuse a commit that puts a path back to bytes/modes from an
