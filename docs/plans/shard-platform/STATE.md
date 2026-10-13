@@ -18,10 +18,7 @@
 **For wildshard-v, Jake ask (S2):** Graph materials stay default-off pending a physical-iPhone reading, so the GLSL stays as fallback (no cut). Recommend accepting the Simulator + desktop reading. Near boards: `art/near-tier/round-6/`.
 
 **Calls for Jake (2026-10-13; reverse any):**
-6–10. Ground loader; Sky prop tiles; commons 0 packs; literal physics rows; Signal navmesh kept.
-11. Terrain `form:'query'`: sampling only, 0 render tiles (`8be4e615d`).
-12. Pine cabins: Scene bake as a shape library.
-13. Optional `props.wholeLibrary` binds Nine's library GLBs.
+6–13. Ground loader; Sky prop tiles; commons 0 packs; literal physics rows; Signal navmesh kept; query terrain; Pine cabin shape library; `props.wholeLibrary`.
 14. Tile subsets may declare ≤ 1 m edge overhang.
 15. Nine authoring uses portable math; collider delta ≤ 9e-16, look exact.
 16. Driftwood boat hull equation shared by generator + live, not a cut.
@@ -34,5 +31,6 @@
 24. Driftwood stops its duplicate legacy terrain/nav/GLB prefetch.
 25. Pine bridge yaw keeps a tiny runtime atan2 adapter (libm, ≤ 4.5e-16).
 26. Data client drops runtime-bound tile transports it no longer needs (Driftwood +11 MB RAM).
+27. Grid session start configures the engine to the shell's own level spec first (no eager home queries).
 
 Paused: SF22, SF57, SF67.
