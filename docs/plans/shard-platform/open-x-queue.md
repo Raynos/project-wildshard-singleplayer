@@ -36,7 +36,7 @@ roots and every registered output deleted; 17 entry points unregistered. All six
 spots and Pine King collision now pass cold (the 10-11 CPU gap is closed); Signal/Sky navigation, ground, placements,
 tower, bridge and islet components pass; Template/Pastel terrain, props, behaviour and retained director/brain/weapon
 components pass. Fixes `8acd18700`, `2e24ff5bf`.
-- **Whole products: none registered** (no complete `shard.json` producer for any shard).
+- **Whole products:** Template registered (`f04c2a912`: 169 charged outputs exact cold + forced and after deleting 13 runtime/legacy dirs, every registered output and the cache; comparison-only pins). Pastel next (sp-x6).
 - Blocked: Signal (trusted/seeded rigs, sand, world); Sky (rigs, world, browser textures); Driftwood (topology seeds
   public `navmesh.bin`); Nine layout and Pine static jobs (trusted / terrain-seed edges); Nalati bodies/places (trusted)
   and its terrain job reads the retained WSTR through a root script.
