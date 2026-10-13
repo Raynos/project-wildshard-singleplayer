@@ -218,6 +218,8 @@ Lanes (§9): **X** = Codex, **O** = Opus, **X+O** = Codex builds and Opus does t
 done-whens and evidence, is [rows.md](shard-platform/rows.md); statuses here are a first read of each row's done-when
 cell (the row text is the authority).
 
+**Split (G417):** Part B, the stretch goals after 80/20 (S1–S22), moved whole to its own plan, [SHARD-PLATFORM-NEXT](SHARD-PLATFORM-NEXT.md), which starts when this plan is done. Nothing was cut or deleted: every Part A row stays here.
+
 **The current wave (G403–G408), first:**
 
 - **M3 re-cut (G403): three waves of component milestones.** W1 Sky + Signal (now): **W1-M0** component inventory — open; **W1-C1** static world, **W1-C2** looks, **W1-C3** effects, **W1-C4** creatures, **W1-C5** NPCs and quests, **W1-C6** items and combat (lash no later than fan), **W1-C7** movers, **W1-C8** audio, **W1-C9** boot glue — open (0 of 9 closed). W2 Pine + Driftwood (SF46, SF47), W3 Nalati + Nine (SF48, SF51): after W1 (G413).
@@ -306,31 +308,6 @@ cell (the row text is the authority).
 - **SF55** (O + X) Template 2, the Blender shard — open
 - **SF56** (O + X) Template 1's dev-texture look — open
 
-**[Part B — stretch goals](shard-platform/rows.md#part-b--stretch-goals)**
-
-- **S1** Crowds of hundreds — stretch
-- **S2** Interiors and verticality — stretch
-- **S3** New physics toys and vehicles — stretch
-- **S4** New player modes — stretch
-- **S5** Restricted shader code — stretch
-- **S6** The WebGPU spike — stretch
-- **S6b** Horizon impostors — stretch
-- **S7** Standard rigs — stretch
-- **S8** Adaptive music — stretch
-- **S9** The sandboxed UI panel canvas — stretch
-- **S10** Shared world state with reset rules — stretch
-- **S11** Signposts — stretch
-- **S12** The phone QR — stretch
-- **S13** The one-click Vercel preview — stretch
-- **S14** Bot playtests — stretch
-- **S15** The AI playtester — stretch
-- **S16** Starters — stretch
-- **S17** /wildshard-quickstart — stretch
-- **S18** wildshard upgrade — stretch
-- **S19** The outside-author trial — stretch
-- **S20** Grid-wide events — stretch
-- **S21** Laptop GPU headroom — stretch
-- **S22** Quest, dialogue and encounter generators — stretch
 
 **Done** (63): SP0, SP1, SP2, SP4, SP5, SF0, SF0a, SF0b, SF0c, SF0d, SF1a, SF1b, SF1c, SF1d, SF1e, SF2, SF3a, SF3b, SF3c, SF4a, SF5a, SF5b, SF5c, SF4c, SF6, SF6b, SF22a, SF22b, SF8b-0, SF7a, SF7b, SF7c, SF7d, SF7e, SF7f, SF7h, SF8a, SF8b, SF8d, SF9a, SF9d, SF9b, SF9c, SF10b, SF11a, SF11b, SF11c, SF12, SF13, SF13b, SF29a, SF14, SF33a, SF17a, SF18c, SF20d, SF69, SF23, SF33, SF33b, SF45, SF54, SF55a.
 
@@ -357,6 +334,8 @@ cell (the row text is the authority).
 5. **Part B** after M3, or a single stretch goal earlier when a shard's port needs it; S3 (vehicles, a highway car) and S14 / S15 (bot and AI playtests) first (G205).
 
 ## 6. Done when
+
+**G417 overrides what follows:** one measure only, custom ÷ frozen legacy (the second measure is gone); **M2 is done** when the 3 × 3 grid plays from the menu with seamless travel and Jake's three phone runs have no tab kill and feel OK, with no Simulator millisecond targets; **the compatibility proofs** a shard must pass are headless only (it simulates on a server with no renderer); exact replay, ledger and witness matching are dropped.
 
 Part A (this plan's goal):
 - **M1:** every milestone boolean true for the template.
@@ -502,7 +481,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G416+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G417+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
