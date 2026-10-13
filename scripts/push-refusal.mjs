@@ -34,16 +34,22 @@ function value(identity, entry) {
 }
 const ALWAYS = ['F package.json','F pnpm-lock.yaml','F pnpm-workspace.yaml','F tsconfig.json','F vitest.config.ts','F .oxlintrc.json',
   'F scripts/local-gate.py','F scripts/local-gate-checks.mjs','F scripts/push-refusal.mjs','F scripts/gate-trace.mjs','F scripts/commit-inputs.mjs'];
+// Worker-side map reads may not appear in the parent Node trace. Their actual
+// committed stamps/rasters must still invalidate an immutable refusal repair.
+function required(identity) {
+  const maps = [...identity.files.keys()].filter(file => /^(?:src\/shards\/[^/]+\/look\/map\.baked\.json|public\/assets\/[^/]+\/map\/top\.webp)$/u.test(file));
+  return [...ALWAYS, ...maps.map(file => `F ${file}`)];
+}
 /** @param {string} root @param {string} sha @param {string} tree @param {string[]} traces */
 export function recordPushRefusal(root,sha,tree,traces) {
-  const entries = new Set(ALWAYS);
+  const identity = identities(root,sha), entries = new Set(required(identity));
   let complete = traces.length > 0;
   for (const directory of traces) {
     const logs = existsSync(directory) ? readdirSync(directory).filter(name => name.endsWith('.trace')) : [];
     if (logs.length === 0) complete = false;
     for (const file of logs) for (const entry of treeEntries(tree,readFileSync(resolve(directory,file),'utf8').split('\n'))) entries.add(entry);
   }
-  const identity = identities(root,sha), inputs = Object.fromEntries([...entries].map(entry => [entry,value(identity,entry)]));
+  const inputs = Object.fromEntries([...entries].map(entry => [entry,value(identity,entry)]));
   const file = resolve(common(root),'push-refusals',`${sha}.json`);
   mkdirSync(resolve(file,'..'),{recursive:true});
   writeFileSync(file,JSON.stringify({sha,node:process.version,platform:process.platform,arch:process.arch,complete,approval:approval(root),key:identity.key,recipe:identity.recipe,inputs}));
@@ -55,7 +61,7 @@ export function unchangedPushRefusal(root,red,tip) {
     if (saved.sha !== red || saved.node !== process.version || saved.platform !== process.platform || saved.arch !== process.arch || saved.approval !== approval(root)) return false;
     const identity = identities(root,tip);
     if (saved.complete !== true) return saved.key === identity.key && saved.recipe === identity.recipe;
-    return ALWAYS.every(entry => Object.hasOwn(saved.inputs,entry)) && Object.entries(saved.inputs).every(([entry,expected]) => value(identity,entry) === expected);
+    return required(identity).every(entry => Object.hasOwn(saved.inputs,entry)) && Object.entries(saved.inputs).every(([entry,expected]) => value(identity,entry) === expected);
   } catch { return false; }
 }
 if (process.argv[2] === '--record') {

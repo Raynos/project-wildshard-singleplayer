@@ -73,3 +73,26 @@ m.record_command_inputs(pathlib.Path(sys.argv[2]),pathlib.Path(sys.argv[3]),['na
     expect(unchangedPushRefusal(root, red, fixed)).toBe(false);
   } finally {rmSync(root, {recursive: true, force: true});}
 });
+
+it('retries committed map repairs absent from the worker trace without retrying unrelated commits', () => {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'push-map-refusal-')));
+  const git = (...args: string[]): string => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+  const put = (file: string, bytes: string): void => { mkdirSync(join(root, file, '..'), { recursive: true }); writeFileSync(join(root, file), bytes); };
+  const commit = (): string => { git('add', '.'); git('-c', 'core.hooksPath=/dev/null', '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture'); return git('rev-parse', 'HEAD'); };
+  try {
+    git('init', '-q'); put('package.json', '{}');
+    const stamp = 'src/shards/fixture/look/map.baked.json', image = 'public/assets/fixture/map/top.webp';
+    put(stamp, 'old stamp'); put(image, 'old raster');
+    const red = commit(), trace = join(root, '.git/trace'); mkdirSync(trace);
+    writeFileSync(join(trace, 'worker.trace'), `F ${join(root, 'package.json')}`);
+    recordPushRefusal(root, red, root, [trace]);
+    put('docs/note.md', 'unrelated'); const other = commit();
+    expect(unchangedPushRefusal(root, red, other)).toBe(true);
+    put(stamp, 'official repaired stamp'); const fixed = commit();
+    expect(unchangedPushRefusal(root, red, fixed)).toBe(false);
+    put(stamp, 'old stamp'); put(image, 'official repaired raster'); const raster = commit();
+    expect(unchangedPushRefusal(root, red, raster)).toBe(false);
+    put(image, 'old raster'); put('src/shards/new/look/map.baked.json', 'new required map'); const added = commit();
+    expect(unchangedPushRefusal(root, red, added)).toBe(false);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
