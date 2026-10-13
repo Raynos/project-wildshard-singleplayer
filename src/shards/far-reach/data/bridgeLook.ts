@@ -1,4 +1,5 @@
-import { SKY_PAINTER_GRAPH, skyMapGraph } from './skyLook';
+import { skyMapGraph } from '../look/mapGraph';
+import { SKY_PAINTER_GRAPH } from './skyLook';
 
 /**
  * The bridges' looks: the hover deck frame's glow for the rider near it and the rope bridges' painted deck wood (SF59

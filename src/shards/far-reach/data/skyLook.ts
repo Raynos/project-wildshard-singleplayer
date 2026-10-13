@@ -83,18 +83,7 @@ export const SKY_HAZE = { tint: [1.04, 0.98, 0.84], sunHaze: 0.12, name: 'far.ro
 
 /** A graph node row (an op, its inputs: node ids or literals, and a swizzle's mask). */
 export interface SkyGraphNode { readonly op: string; readonly in?: readonly (string | number | readonly number[])[]; readonly mask?: string }
-type SkyGraphStage = Readonly<Record<string, string | number>>;
+export type SkyGraphStage = Readonly<Record<string, string | number>>;
 /** An SF59 material graph as Sky's look rows write it (validated when the shardfile is parsed). */
 export interface SkyGraph { readonly version: 1; readonly kind: 'material'; readonly model: 'standard';
   readonly nodes: Readonly<Record<string, SkyGraphNode>>; readonly stages: { readonly surface: SkyGraphStage; readonly lighting: SkyGraphStage } }
-/**
- * A look over its model's own colour map (SF59 `meshMap`, bound per map by world/looks.ts `skyMappedLook`) in the painted
- * light: `c` is the map's linear colour (`cr` / `cg` / `cb` its channels), `nodes` build on it and `surface` names the
- * outputs, matte as the hero models' painted material (roughness 0.85).
- */
-export function skyMapGraph(nodes: Readonly<Record<string, SkyGraphNode>>, surface: SkyGraphStage): SkyGraph {
-  return { version: 1, kind: 'material', model: 'standard',
-    nodes: { ...SKY_PAINTER_GRAPH.nodes, mm: { op: 'meshMap' }, c: { op: 'swizzle', in: ['mm'], mask: 'xyz' },
-      cr: { op: 'swizzle', in: ['c'], mask: 'x' }, cg: { op: 'swizzle', in: ['c'], mask: 'y' }, cb: { op: 'swizzle', in: ['c'], mask: 'z' }, ...nodes },
-    stages: { surface: { roughness: 0.85, metalness: 0, ...surface }, lighting: SKY_PAINTER_GRAPH.lighting } };
-}
