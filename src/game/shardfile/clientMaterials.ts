@@ -10,13 +10,14 @@ import { BASIS_PATH, releaseAfterUpload } from '@wildshard/engine/core/ktx2';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import { PainterlyLook } from '@wildshard/engine/render/families/painterly';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
-import { familyMaterial } from '@wildshard/engine/render/families/registry';
+import { familyMaterial, moveFamilyMaterial } from '@wildshard/engine/render/families/registry';
+import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { setting } from '@wildshard/engine/ui/Settings';
 import { loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
-import { graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
+import { curvedParams, graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
 import { clientGraphs, graphOutlineHook, isGraphEntry, type GraphOutlineHook, type GraphReadout, type GraphSources } from './clientGraphs';
 import { parseSkinFile, skinLookParameters } from '@wildshard/format/skinAssets';
 import { SKIN_LOOK_RECIPE } from '@wildshard/format/skins';
@@ -45,7 +46,9 @@ function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>)
  * they bind a catalogue material: a compiled graph that declares `stages.outline` adds its hull as each mesh's second draw
  * (scope-owned with the material); every other material attaches nothing. `surfaces` (SF55) resolves a props GLB material
  * name to its base material and texture slots when the props declare named materials (`clientPropMaterials.ts`); null
- * keeps the one-family path.
+ * keeps the one-family path. A family entry with `look.curves` (state-bound curves) compiles at its fields' values and
+ * moves in `tick`, uniforms only, whenever a field it reads moved: the live state source `graphs.bind` hands over, else
+ * the field's declared default.
  */
 export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, renderer: Renderer, scope: Scope, options: { graphs?: boolean; sources?: GraphSources } = {}): Promise<{
   materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown) => Material; tick: (dt: number) => void;
@@ -91,11 +94,34 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
     if (outline !== null) scope.own(outline.material);
     return scope.own(material);
   };
-  for (const [id, entry] of Object.entries(shard.look.materials)) materials.set(id, compile(entry));
+  // state-bound curves (look.curves): compiled at the fields' values now, moved in `tick` when a field moves
+  let stateOf = options.sources?.state;
+  const fieldDefaults = new Map<string, number>();
+  for (const part of ['shared', 'player'] as const) for (const field of shard.state[part]) if (typeof field.default === 'number') fieldDefaults.set(`${part}.${field.name}`, field.default);
+  const fieldValue = (key: string): number => {
+    const dot = key.indexOf('.'), part = key.slice(0, dot) === 'player' ? 'player' : 'shared';
+    return stateOf?.(part, key.slice(dot + 1)) ?? fieldDefaults.get(key) ?? 0;
+  };
+  const moving: { material: Material; base: ReturnType<typeof parseFamilyMaterial>; rows: NonNullable<Shardfile['look']['curves']>[string]; seen: Map<string, number> }[] = [];
+  for (const [id, entry] of Object.entries(shard.look.materials)) {
+    const rows = shard.look.curves?.[id];
+    if (rows === undefined || isGraphEntry(entry)) { materials.set(id, compile(entry)); continue; }
+    const base = parseFamilyMaterial(entry), seen = new Map(rows.map((row) => [row.state, fieldValue(row.state)]));
+    const material = compile(curvedParams(base, rows, (key) => seen.get(key) ?? 0));
+    materials.set(id, material); moving.push({ material, base, rows, seen });
+  }
+  const moveCurves = (): void => {
+    for (const row of moving) {
+      let moved = false;
+      for (const [key, last] of row.seen) { const now = fieldValue(key); if (now !== last) { row.seen.set(key, now); moved = true; } }
+      if (moved) moveFamilyMaterial(row.material, curvedParams(row.base, row.rows, (key) => row.seen.get(key) ?? 0));
+    }
+  };
   const propNamed = named === undefined ? null : propSurfaces(named, { look: shard.look.materials, catalogue: materials, compile, texture: resolveTexture });
   // G227: the splat terrain's tile primitives draw with the live terrain's splat material, every other name as before
   const splatDrawn = splat === undefined ? null : splatSurface(splat, { scope, anisotropy: Math.min(16, renderer.capabilities.getMaxAnisotropy()), texture: (ref) => { const texture = textures.get(ref); if (texture === undefined) throw new Error('Unresolved admitted splat layer'); return texture; } });
   const surfaces = splat === undefined || splatDrawn === null ? propNamed : withSplatSurface({ name: splat.material, binding: splatDrawn.binding }, propNamed);
   // a further entry (an exported skin's binding, SF16) compiles on the same looks, compiler and admitted textures, scope-owned
-  return { materials, textures, compile, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); }, graphs: { bind: graphs.bind, readout: graphs.readout }, surfaces };
+  return { materials, textures, compile, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); moveCurves(); },
+    graphs: { bind: (sources) => { if (sources.state !== undefined) stateOf = sources.state; graphs.bind(sources); moveCurves(); }, readout: graphs.readout }, surfaces };
 }

@@ -45,7 +45,7 @@ import { AccentSchema } from '@wildshard/format/accent';
 import { MapSchema, PresentationSchema } from '@wildshard/format/presentation';
 import { MigrationsSchema, migrationRules } from '@wildshard/format/migrations';
 import { skinLookRules } from '@wildshard/format/skinAssets';
-import { MaterialsSchema, FamilyLooksSchema, materialExists, materialTextureRefs, materialGraphRules } from '@wildshard/format/materials';
+import { MaterialsSchema, FamilyLooksSchema, MaterialCurvesSchema, materialExists, materialTextureRefs, materialGraphRules, materialCurveRules } from '@wildshard/format/materials';
 import { PostStackSchema, postStackRules } from '@wildshard/format/postStack';
 
 const channel = v.pipe(finite, v.minValue(0), v.maxValue(1));
@@ -63,7 +63,7 @@ const rawSchema = v.strictObject({
   map: v.exactOptional(MapSchema),
   requires: RequiresSchema,
   budgets: BudgetsSchema,
-  look: v.strictObject({ families: names, materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), post: v.exactOptional(PostStackSchema), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
+  look: v.strictObject({ families: names, materials: v.optional(MaterialsSchema, {}), familyLooks: v.optional(FamilyLooksSchema, {}), curves: v.exactOptional(MaterialCurvesSchema), post: v.exactOptional(PostStackSchema), grade: v.strictObject({ exposure: finite, saturation: v.pipe(finite, v.minValue(0)), contrast: v.pipe(finite, v.minValue(0)), lut: v.nullable(ref) }), clock: v.literal('engine'), day: v.optional(day), dayOverride: v.nullable(channel), keys: v.pipe(v.array(key), v.maxLength(64)) }),
   sim: SimSchema,
   state: StateSchema,
   migrations: v.optional(MigrationsSchema, []),
@@ -146,7 +146,7 @@ export function shardfileRules(s: Shardfile): string[] {
   errors.push(...stateRules(s.state));
   if ((s.clientChannels?.length ?? 0) > 0 && s.runtime?.binds?.includes('clientChannels') !== true) errors.push('native visual channels require runtime.binds clientChannels');
   if (s.runtime?.binds?.includes('state') === true && (s.state.player.length > 0 || s.state.shared.some((field) => field.privacy !== 'host'))) errors.push('runtime-bound state supports only host-owned shared fields');
-  errors.push(...materialGraphRules(s), ...postStackRules(s));
+  errors.push(...materialGraphRules(s), ...materialCurveRules(s), ...postStackRules(s));
   const materialRefs = materialTextureRefs(s.look.materials), libraryClosure = new Set<string>();
   const libraryPending = [...s.library];
   while (libraryPending.length > 0) {

@@ -16,6 +16,7 @@ import { parseFamilyMaterial, type FamilyMaterialParams } from '@wildshard/forma
 import { compileEmissive, type EmissiveLook } from './emissive';
 import { compilePainterly, type PainterlyLook } from './painterly';
 import { compilePbr, type TextureResolver } from './pbr';
+import { updateGround } from './ground';
 import { compileToon, type ToonLook } from './toon';
 
 /** What a compiler may read besides the material's own parameters. */
@@ -55,6 +56,17 @@ export function familyMaterial(entry: unknown, ctx: FamilyContext): THREE.Materi
   live.set(m, params);
   ctx.scope.onDispose(() => { live.delete(m); });
   return m;
+}
+
+/**
+ * Move a live family material to `params` (the same entry with some numbers moved: a state-bound curve, SF59's material
+ * twin) through uniforms only: a PBR surface's roughness, metalness and ground layer. Anything else needs a new program.
+ */
+export function moveFamilyMaterial(m: THREE.Material, params: FamilyMaterialParams): void {
+  if (params.family !== 'pbr' || !(m instanceof THREE.MeshStandardMaterial)) throw new Error(`moveFamilyMaterial: a ${params.family} material does not move`);
+  m.roughness = params.roughness; m.metalness = params.metalness;
+  if (params.ground !== null) updateGround(m, params.ground);
+  if (live.has(m)) live.set(m, params);
 }
 
 /**
