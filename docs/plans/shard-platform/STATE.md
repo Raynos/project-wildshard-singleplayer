@@ -1,33 +1,31 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-13 04:30Z. G345 sprint: Signal + Sky to 80/20 by ~09:30Z.** Review picks G349–G352: queue Part D.
+**2026-10-13 04:45Z. G345 sprint: Signal + Sky to 80/20 by ~09:30Z.** Review picks G349–G352: queue Part D.
 
 | Shard (per-export G294) | 21:40Z → 04:30Z | Target | Tiles / private bins |
 |---|---|---|---|
-| Signal Dunes | 70.7 % → **48.2 %** | ≤ 824 lines | 80 / **1** (navmesh; physics from authored rows `e6f5078d8`) |
-| Sky Reach | 78.4 % → **54.4 %** | ≤ 1355 lines | 0 / **1** (navmesh; physics `3ed995b80`) |
+| Signal Dunes | 70.7 % → **48.2 %** | ≤ 824 lines | 80 / **1** (navmesh) |
+| Sky Reach | 78.4 % → **54.4 %** | ≤ 1355 lines | 0 / **1** (navmesh) |
 
-**Game exports (G351):** 104 (from 328); `plugin/` 20 → **14** (`1a513ba40`).
-**Push (Jake `a44511f05`, `193a7e998`, `ef0eb5e04`, `267504b5a`; sp-x7 building):** debt shrink-only, refused per file at commit; generated files made at commit, never at push (regen bot goes); pre-commit ≤ 10 s, local gate ≤ 2 min, full suite/bakes in CI with fix-forward; no repeat retries; allowed graph counts report-only; exact-number tests → limits (sp-o66). **Origin stuck at `53d4b7aa0`** while the gate is rebuilt; live `957b05e6`, unpin `e6eeefc1e` queued.
+Both shards' physics now come from authored rows (G350, `e6f5078d8`, `3ed995b80`); sp-x6's navigation switch takes both to 0 private binaries. Game exports 104 (from 328); `plugin/` 20 → 14.
+**CI red since 02:01Z, prod stale (`957b05e6`): sp-x7 fixes first** (Jake `9699623e2`). Push: debt shrink-only at commit; generated files + native/maps made at commit (`9c57a9808`), never at push; local gate ≤ 2 min; pre-commit warm ~10 s, cold 15 s open (sp-x5). Never stop the line.
 
-**Next for Signal + Sky (Jake `9699623e2`) = S2:** raw GLSL looks (fire, ground, dusk, Sky wind, 614 lines) → public shader graphs with the look kept (G377), weapons → shared weapon rows; S1 dropped (quests already rows). **CI red since 02:01Z, prod stale: sp-x7 fixes first.** Fleet stays 4 + 3. **Never stop the line.**
-**Fleet: 4 Opus + 3 Codex.** Codex: sp-x7 push, sp-x6 navigation, sp-x5 **bench-max** (warm ~10 s, cold 13.8 s open). Opus: sp-o65 Sky island tiles, sp-o75 looks, sp-o76 G350 Nine/Driftwood, sp-o77 S2 Signal fire graph. Pre-commit 26 → 9.4 s (`91cf2cdb7`).
+**Fleet (4 Opus + 3 Codex):** Codex sp-x7 CI/push, sp-x6 navigation, sp-x5 bench-max. Opus sp-o65 Sky island tiles, sp-o75 looks, sp-o76 G350 Nine/Driftwood, 4th → weapons onto shared rows.
 
-**For wildshard-v, Jake pick:** hero round 6 over Nalati's far edge toward Driftwood, `art/main-menu-hero/round-6/board.jpg` (7 near + Nalati entered; Sky + Blender still far), **recommend SQ-NE-b + LS-NE-b**. NW-b ships (`53ba19d09`). Navigation switch (sp-x6) takes both shards to **0 private binaries**; Signal ground switch parked (`5449941c9`).
+**For wildshard-v, Jake ask (S2 blocked, sp-o77):** SF59 graphs can't keep the fire look today: always fogged and alpha-only (fire needs fog off, additive/premultiplied, depthWrite off, depth bias, point embers, view billboards); graphs only compile from shardfile `look.materials`; and **Graph materials is default-off pending a physical-iPhone reading**, so the GLSL stays as fallback (no cut). Recommend: approve an **SF59 effect-state row** (users Signal fire + Sky wind) and accept the Simulator + desktop frame-floor reading (or one normal playtest with Debug ▸ Graph materials on) to default it on.
+
+**For wildshard-v, Jake pick:** hero round 6 over Nalati's far edge `art/main-menu-hero/round-6/board.jpg`, **recommend SQ-NE-b + LS-NE-b** (NW-b ships, `53ba19d09`). Signal ground switch parked (`5449941c9`).
 
 **Calls for Jake (2026-10-13; reverse any):**
 1. Bosses never shrink on phone (`30dc4c9ae`).
-3. Missing Sky models stand undrawn, no stand-ins (`d5267c284`).
-4. Metric per-export (`ddf5c4dea`); entryway proof credits Sky's lift proof to Nine (`add1035d6`).
-6. New SDK export `./bake` (`6d2161e6f`).
-8. Plugin folds into existing modules (SDK callers block internalising).
-9. `terrain.bin` → session-installed engine ground loader (no debt rise).
-11. Sky tiles = island prop tiles its runtime draws, no fake tiles (`28439b8ee`).
-12. Commons 0 packs; plan desk: SF26/DS1.6 done-when → "first two-real-shard pack (G355)".
-14. Signal glows drape on a generated copy of the old ground heights (pixel-exact; `5cfc5674b`); `terrain.bin` gone (`602f8136a`).
-
-**For wildshard-v, Jake ask (S2 blocked, sp-o77):** today's SF59 graphs can't keep the fire look: graphs are always fogged and alpha-only (fire needs fog off, additive/premultiplied, depthWrite off, depth bias, point embers, view billboards); graphs only compile from shardfile `look.materials`; and **Graph materials is default-off pending a physical-iPhone reading**, so the GLSL must stay as fallback (no cut). Recommend: approve an **SF59 effect-state row** (blend / fog / depthWrite / depthBias, points, view billboard; users Signal fire + Sky wind) and accept the Simulator + desktop frame-floor reading (or one normal playtest with Debug ▸ Graph materials on) to default the row on. Weapons → shared rows proceeds meanwhile.
-
-**Jake picks waiting:** Signal look A/B (`art/signal-look/round-1/`): recommend A.
+2. Missing Sky models stand undrawn, no stand-ins (`d5267c284`).
+3. Metric per-export (`ddf5c4dea`).
+4. New SDK export `./bake` (`6d2161e6f`).
+5. Plugin folds into existing modules (SDK callers block internalising).
+6. `terrain.bin` → session-installed ground loader; glows drape on generated old heights (`5cfc5674b`).
+7. Sky tiles = island prop tiles its runtime draws, no fake tiles (`28439b8ee`).
+8. Commons 0 packs; plan desk: SF26/DS1.6 done-when → "first two-real-shard pack (G355)".
+9. Physics rows no recipe can compute are authored literally (`data/physicsRows.json`, G350).
+10. Signal navmesh kept byte-identical (739 polys) from the recipe's old height lattice, not rebaked.
 
 Paused: frame floor, SF22, SF57, SF67.
