@@ -2,11 +2,11 @@
 import { resolve } from 'node:path';
 import { Vector3 } from 'three';
 import { expect, it } from 'vitest';
-import { readKingRig } from '../../../src/shards/pine-hollow/generators/bake-pine-king-collision.mjs';
+import { readKingRig } from '../../fixtures/pine/kingRigOracle';
 import { advanceKingPose, applyKingPose, newPose, type KingPose, type KingPoseInput } from '../../../src/shards/pine-hollow/combat/kingRig';
 import { bindKingQueryView } from '../../../src/shards/pine-hollow/runtime/kingQueryView';
 import { readKingCollisionBake } from '../../../src/shards/pine-hollow/runtime/kingCollisionBake';
-import raw from '../../../src/shards/pine-hollow/runtime/kingCollision.baked.json';
+import raw from '../../../src/shards/pine-hollow/data/kingCollision.generated.json';
 
 it('keeps every old live volume at its original query clock and restores the exact page methods on retirement', () => {
   const { group, bones, rest } = readKingRig(resolve(import.meta.dirname, '../../..'));

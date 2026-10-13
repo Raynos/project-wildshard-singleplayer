@@ -7,9 +7,9 @@ import { pineBake } from '../../../src/shards/pine-hollow/runtime/baked';
 import { PineKingPose } from '../../../src/shards/pine-hollow/runtime/kingPoseHost';
 import { readKingCollisionBake } from '../../../src/shards/pine-hollow/runtime/kingCollisionBake';
 import { advanceKingPose, applyKingPose, newPose, type KingPoseInput } from '../../../src/shards/pine-hollow/combat/kingRig';
-import { readKingRig } from '../../../src/shards/pine-hollow/generators/bake-pine-king-collision.mjs';
+import { readKingRig } from '../../fixtures/pine/kingRigOracle';
 import { ShippingAnimalPoseOracle } from '../../fixtures/animal-pose/shipping';
-import raw from '../../../src/shards/pine-hollow/runtime/kingCollision.baked.json';
+import raw from '../../../src/shards/pine-hollow/data/kingCollision.generated.json';
 
 const metadata = readKingCollisionBake(raw);
 const height = (x: number, z: number): number => 0.035 * x - 0.027 * z;

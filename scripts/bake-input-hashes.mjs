@@ -14,9 +14,8 @@ import { isAbsolute, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 /** Committed bakes with recorded input hashes: the output file, the script that bakes it and its exported bake function. */
-export const RECORDED_BAKES = [
-  { file: 'src/shards/pine-hollow/runtime/kingCollision.baked.json', script: 'src/shards/pine-hollow/generators/bake-pine-king-collision.mjs', bake: 'bakeKingCollision' },
-];
+// Empty since G350: the King collision table, the last one, generates from authored rows without `inputs`.
+export const RECORDED_BAKES = /** @type {{ file: string, script: string, bake: string }[]} */ ([]);
 /** @param {string} file */
 export const isRecordedBake = (file) => RECORDED_BAKES.some((row) => row.file === file);
 /** A recorded bake's text with its `inputs` blanked: every byte a re-record must reproduce. @param {string} text */

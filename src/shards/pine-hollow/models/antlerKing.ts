@@ -11,7 +11,7 @@ import { KING_COAT, KING_DRESS, KING_OWN_RIG } from '../data/antlerKingLook';
 import { KING_BONES, animateKing, observeKingPose } from '../combat/kingRig';
 import { bindKingQueryView } from '../runtime/kingQueryView';
 import { readKingCollisionBake } from '../runtime/kingCollisionBake';
-import kingCollision from '../runtime/kingCollision.baked.json' with { type: 'json' };
+import kingCollision from '../data/kingCollision.generated.json' with { type: 'json' };
 
 /**
  * The Antler King's STAND-IN look (PINE-HOLLOW-REMASTER PH-C2; the final model is PH-M3, board B2 pick A "the Bark

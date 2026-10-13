@@ -981,40 +981,34 @@
     {
       "id": "pine-king-collision",
       "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-pine-king-collision.mjs",
+      "entry": "src/shards/pine-hollow/generators/kingCollision.ts",
       "command": [
-        "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
-        "--import",
-        "./scripts/generation-level.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-king-collision.mjs",
-        "--generation-shard=pine-hollow"
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/pine-hollow/generators/kingCollision.ts",
+        "pineKingCollision",
+        "src/shards/pine-hollow/data/kingCollision.generated.json"
       ],
       "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/pine-hollow",
-        "scripts/bake-loader.mjs",
-        "scripts/bake",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "public/assets/baked/pine-hollow/terrain.bin",
-        "public/assets/pine-hollow/creatures/antler-king-rig.phone.rigged.glb",
-        "test/fake/portableMath.ts",
-        "scripts/generation-level.mjs"
+        "src/format/package.json",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/pine-hollow/data/kingCollisionRows.json",
+        "src/shards/pine-hollow/data/physicsRows.json",
+        "src/shards/pine-hollow/generators/kingCollision.ts"
       ],
       "outputs": [
-        "src/shards/pine-hollow/runtime/kingCollision.baked.json"
+        "src/shards/pine-hollow/data/kingCollision.generated.json"
       ],
-      "platform": "native",
-      "seedOutputs": [
-        "src/shards/pine-hollow/runtime/kingCollision.baked.json"
-      ],
-      "recordedInputs": true
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/pine-hollow/data/kingCollision.generated.json": "0126e1f737a6c88f60ba42b2bf2acc78865e46e39605087c01407f605b1133af"
+      },
+      "seedOutputs": []
     },
     {
       "id": "pine-lookout",

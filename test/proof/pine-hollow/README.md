@@ -29,3 +29,5 @@ SF81 DIR-4 elite prelude: page and native bodies use the same authored absent/ho
 
 
 G350-PH: Pine's physics and quest spots products are now `data/physics.generated.json` and `data/spots.generated.json`, made from authored rows only (`data/physicsRows.json`, `data/spotsRows.json`) by `generators/physics.ts` and `generators/spots.ts` under the SDK source loader. Every physics and spots gameplay field is byte-equal to the retired DS1.5 Node bakes; the King collision table keeps every gameplay field and reads the King's prewarm and cage rows from the authored physics rows. Re-recording the checkpoints changes only their inputs hash.
+
+G350 King collision: the Antler King's collision table is now `data/kingCollision.generated.json`, made by `generators/kingCollision.ts` from authored rows only (`data/kingCollisionRows.json`: joints, rest pose, per-tick clip transforms; the hit volumes from the King rows of `data/physicsRows.json`). Every gameplay field is byte-equal to the retired native bake, which only loses its `inputs` hashes; the King tests prove the table against the live rig oracle (`test/fixtures/pine/kingRigOracle.ts`).

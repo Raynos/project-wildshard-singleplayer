@@ -152,22 +152,13 @@ describe('G292 shard generation entry',()=>{
     await expect(generateShardJob(root,{...job,outputs:[output],seedOutputs:[output]},{cacheDir:resolve(root,'cache')})).rejects.toThrow('did not write declared outputs');
     expect(readFileSync(resolve(root,output),'utf8')).toBe('bit-exact');
   });
-  it('ignores only registered input metadata while preserving every recorded gameplay field',async()=>{
-    const {root,job}=fixture(),output='src/shards/pine-hollow/runtime/kingCollision.baked.json';
-    mkdirSync(dirname(resolve(root,output)),{recursive:true});writeFileSync(resolve(root,output),JSON.stringify({inputs:{source:'old'},anchor:[1,2,3]}));
-    writeFileSync(resolve(root,job.entry),`import {writeFileSync} from 'node:fs';import {resolve} from 'node:path';writeFileSync(resolve(import.meta.dirname,'../../../..','${output}'),JSON.stringify({inputs:{source:'new'},anchor:[1,2,3]}));`);
-    const recorded={...job,outputs:[output],recordedInputs:true};
-    let rows:readonly GenerationComparison[]=[];
-    const result=await generateShardJob(root,recorded,{cacheDir:resolve(root,'cache'),onComparison:observed=>{rows=observed;}});expect(result.hit).toBe(false);
-    expect(rows[0]?.rawExact).toBe(false);expect(rows[0]?.equivalent).toBe(true);
-    const original=readFileSync(resolve(root,output),'utf8');expect(original).toContain('old');
-    writeFileSync(resolve(root,job.entry),readFileSync(resolve(root,job.entry),'utf8').replace('anchor:[1,2,3]','anchor:[1,2,3.0000001]'));
-    await expect(generateShardJob(root,recorded,{cacheDir:resolve(root,'cache')})).rejects.toThrow('Committed generated output differs');
-    expect(readFileSync(resolve(root,output),'utf8')).toBe(original);
-  });
   it('refuses provenance exclusions for outputs outside the registered recorded-bake list',async()=>{
     const {root,job}=fixture();
     await expect(generateShardJob(root,{...job,recordedInputs:true},{cacheDir:resolve(root,'cache')})).rejects.toThrow('not registered');
+    // G350: the King collision table, the last recorded bake, now generates from authored rows; its old path is refused too.
+    const king='src/shards/pine-hollow/runtime/kingCollision.baked.json';
+    mkdirSync(dirname(resolve(root,king)),{recursive:true});writeFileSync(resolve(root,king),JSON.stringify({inputs:{source:'old'},anchor:[1,2,3]}));
+    await expect(generateShardJob(root,{...job,outputs:[king],recordedInputs:true},{cacheDir:resolve(root,'cache')})).rejects.toThrow('not registered');
   });
   it('reports exact bytes, refused mismatches, unavailable generation and Darwin retention separately',async()=>{
     const {root,job}=fixture();

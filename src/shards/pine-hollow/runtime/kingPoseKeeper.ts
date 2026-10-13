@@ -5,7 +5,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import { PineKingPose } from './kingPoseHost';
 import { readKingCollisionBake } from './kingCollisionBake';
 import { bindRangedVolumes } from './rangedVolumes';
-import raw from './kingCollision.baked.json' with { type: 'json' };
+import raw from '../data/kingCollision.generated.json' with { type: 'json' };
 
 const MAX_KINGS = 512; // The roster's same bounded live-body capacity, including unlisted encounter bodies.
 const NEAR_SQUARED = 140 * 140; // AnimalManager's shipping custom-pose near/far boundary.

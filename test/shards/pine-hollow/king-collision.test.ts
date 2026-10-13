@@ -1,31 +1,26 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Trusted bake freshness hashes the exact checked-out source/GLB bytes.
-import { createHash } from 'node:crypto';
-// oxlint-disable-next-line import/no-nodejs-modules -- The oracle reads the real committed GLB and source inputs, never renderer fixtures.
-import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Resolve the trusted bake inputs relative to this test checkout.
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve the oracle's real rig relative to this test checkout.
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
-import { bakeKingCollision, readKingRig } from '../../../src/shards/pine-hollow/generators/bake-pine-king-collision.mjs';
+import { bakeKingCollision, readKingRig } from '../../fixtures/pine/kingRigOracle';
 import { advanceKingPose, applyKingPose, clipPose, newPose, type KingPoseInput } from '../../../src/shards/pine-hollow/combat/kingRig';
+import { KING_ATTACK_TIMING } from '../../../src/shards/pine-hollow/combat/kingTiming';
 import { KingCollision } from '../../../src/shards/pine-hollow/runtime/kingCollision';
 import { readKingCollisionBake } from '../../../src/shards/pine-hollow/runtime/kingCollisionBake';
-import raw from '../../../src/shards/pine-hollow/runtime/kingCollision.baked.json';
+import raw from '../../../src/shards/pine-hollow/data/kingCollision.generated.json';
 import { withPortableMath } from '../../fake/portableMath';
 
 const root = resolve(import.meta.dirname, '../../..');
 const EPSILON = 1e-10; // World metres; below 0.0000001 mm, only double-precision matrix evaluation noise.
 
 describe('the real King rig collision-only law', () => {
-  it('has byte-identical deterministic bake output and exact input hashes', () => {
+  it('generates from authored rows exactly what the live rig oracle bakes', () => {
     const sin = Math.sin, cos = Math.cos;
     const bake = readKingCollisionBake(raw);
     expect(bakeKingCollision(root)).toEqual(bake);
     expect(bakeKingCollision(root)).toEqual(bake);
     expect(Math.sin).toBe(sin); expect(Math.cos).toBe(cos);
-    for (const [path, hash] of Object.entries(bake.inputs)) {
-      expect(createHash('sha256').update(readFileSync(resolve(root, path))).digest('hex'), path).toBe(hash);
-    }
+    expect(bake.clips.map(clip => [clip.name, clip.duration])).toEqual(Object.entries(KING_ATTACK_TIMING).map(([name, timing]) => [name, timing.duration]));
   });
 
   it('matches the old live-bone anchors at every authored fixed-step clip sample', () => withPortableMath(() => {

@@ -9,9 +9,9 @@ describe('recorded bake input hashes', () => {
     expect(bakeOutcome(JSON.stringify(base))).not.toBe(bakeOutcome(JSON.stringify({ ...base, joints: [1, 3] })));
     expect(() => bakeOutcome('{"version":1}')).toThrow('no "inputs"');
   });
-  it('lists the King collision bake', () => {
-    expect(RECORDED_BAKES[0]?.script).toBe('src/shards/pine-hollow/generators/bake-pine-king-collision.mjs');
-    expect(isRecordedBake('src/shards/pine-hollow/runtime/kingCollision.baked.json')).toBe(true);
-    expect(isRecordedBake('src/shards/pine-hollow/runtime/physics.baked.json')).toBe(false);
+  it('lists no recorded bake since the King table generates from authored rows (G350)', () => {
+    expect(RECORDED_BAKES).toEqual([]);
+    expect(isRecordedBake('src/shards/pine-hollow/runtime/kingCollision.baked.json')).toBe(false);
+    expect(isRecordedBake('src/shards/pine-hollow/data/kingCollision.generated.json')).toBe(false);
   });
 });

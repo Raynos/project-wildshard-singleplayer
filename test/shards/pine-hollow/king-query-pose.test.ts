@@ -2,11 +2,11 @@
 import { resolve } from 'node:path';
 import { Matrix4, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import { readKingRig } from '../../../src/shards/pine-hollow/generators/bake-pine-king-collision.mjs';
+import { readKingRig } from '../../fixtures/pine/kingRigOracle';
 import { advanceKingPose, applyKingPose, newPose, type KingPoseInput } from '../../../src/shards/pine-hollow/combat/kingRig';
 import { readKingCollisionBake } from '../../../src/shards/pine-hollow/runtime/kingCollisionBake';
 import { KingQueryPose } from '../../../src/shards/pine-hollow/runtime/kingQueryPose';
-import raw from '../../../src/shards/pine-hollow/runtime/kingCollision.baked.json';
+import raw from '../../../src/shards/pine-hollow/data/kingCollision.generated.json';
 
 const root = resolve(import.meta.dirname, '../../..');
 const EPSILON = 1e-10; // Metres: retain the same floating-point FK bound as the real King volume oracle.
