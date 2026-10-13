@@ -1,16 +1,16 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-13 04:45Z. G345 sprint: Signal + Sky to 80/20 by ~09:30Z.** Review picks G349–G352: queue Part D.
+**2026-10-13 07:45Z. G345 sprint: Signal + Sky to 80/20 by ~09:30Z.** Review picks G349–G352: queue Part D.
 
-| Shard (per-export G294) | 21:40Z → 04:30Z | Target | Tiles / private bins |
+| Shard (per-export G294) | 21:40Z → 07:45Z | Target | Tiles / private bins |
 |---|---|---|---|
 | Signal Dunes | 70.7 % → **45.6 %** | ≤ 824 lines | **80 / 0** ✔ |
-| Sky Reach | 78.4 % → **54.0 %** | ≤ 1355 lines | **11 / 0** ✔ (`fd1b0a9a4`) |
+| Sky Reach | 78.4 % → **53.5 %** | ≤ 1355 lines | **11 / 0** ✔ (`fd1b0a9a4`) |
 
 **Signal and Sky both meet Jake's port bar (tiles + 0 private binaries).** Physics from authored rows (G350, `e6f5078d8`, `3ed995b80`), navigation as format rows (`c9f6e59be`); content-gate issue left: "trusted runtime owns simulation". `plugin/` 20 → 14.
 **LIVE `35e6c10ba-mv6a7k7z` (06:10Z)**: first release since 957b05e6; ships the NE-b hero (re-shot with all nine near), Signal fire A, navigation rows (both shards 0 private binaries), authored physics. Sky island tiles (`fd1b0a9a4`) go out in the next release.
 
-**Fleet (Jake G384): 4 Opus + 6 Codex.** Codex: sp-x7 pusher (push, CI, deploys); sp-x5 bench-max; sp-x6 SF59 effect-state groundwork (S2); sp-x4 Pine port via `bake(scene)` → tiles; sp-x1 Driftwood port; sp-x8 Nine port. Opus: sp-o81 looks, sp-o82 G350 tail (King, Nalati), sp-o83 Sky island tiles + sweep. Weapons: no honest cut (sp-o78).
+**Fleet (G384): 4 Opus + 6 Codex.** Codex: sp-x7 pusher; sp-x5 bench-max; sp-x6 query-only terrain form; sp-x4 Pine port; sp-x1 Driftwood port; sp-x8 Nine port (Linux proof via sp-x7). Opus: sp-o90 cleanup, sp-o92 sound/desktop regression bisect, sp-o93 frame-floor milestone measure. Weapons / S1: no honest cut.
 
 **For wildshard-v, Jake ask (G350 Nalati places):** its bake reaches 22k lines of engine code for 4.2 MB of geometry. **Port** to authored generators (big) or **freeze** the bins + rows as authored inputs (cheap, not regenerable). Recommend port later; the bridge stays meanwhile.
 
