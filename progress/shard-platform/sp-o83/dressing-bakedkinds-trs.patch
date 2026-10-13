@@ -1,0 +1,616 @@
+diff --git a/src/game/plugin/geometry.ts b/src/game/plugin/geometry.ts
+index cd6942044..2f29a3485 100644
+--- a/src/game/plugin/geometry.ts
++++ b/src/game/plugin/geometry.ts
+@@ -1,7 +1,7 @@
+ import { loadRigFile, type ClipName, type SocketName } from "@wildshard/engine/anim/rig";
+ import { cacheUntilDisposed, retainCachedResources } from "@wildshard/engine/app/cachedAssets";
+ import { releaseOnUpload } from "@wildshard/engine/render/memorySaver";
+-import { Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, type Wrapping, type MinificationTextureFilter, type MagnificationTextureFilter, Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, InterleavedBufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material, InstancedMesh, InstancedBufferAttribute } from "three";
++import { Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, type Wrapping, type MinificationTextureFilter, type MagnificationTextureFilter, Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, InterleavedBufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material } from "three";
+ import { applySurfaceLooks, type SurfaceInputs } from "../systems/looks/surfaceLooks";
+ import type { SurfaceLook } from "@wildshard/format/surfaceLooks";
+ import { Rng } from "@wildshard/engine/core/rng";
+@@ -11,6 +11,11 @@ import { NO_FUR } from "@wildshard/engine/entities/species/rigs";
+ import { clipAnimate, type SpeciesClips } from "./animation";
+ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
+ import type { NpcMotion, NpcRow } from "./quests";
++import * as v from 'valibot';
++import { Matrix4 } from 'three';
++import type { Scope as ResourceScope } from '@wildshard/engine/app/scope';
++import type { Shardfile } from '@wildshard/format/shardSchema';
++import { runtimeProduct } from '../shardfile/runtimeProduct';
+ 
+ /**
+  * A model library (SHARD-PLATFORM M3; ex a dune shard's generated models): the GLBs a level loads once behind its loading
+@@ -1096,9 +1101,9 @@ export async function fetchDeflated(url: string): Promise<Uint8Array> {
+   return new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+ }
+ 
+-// Lane-shuffled bakes (SHARD-PLATFORM M3; Pine Hollow's crags, streams, timbers, lookout and wildlife, Sky Reach's island
+-// dressing): a binary of 4-byte words whose bytes are split into four lanes (every word's first bytes, then its second …:
+-// floats compress ~30 % better so), deflated. A shard's generator writes them; the page reads them here.
++// Lane-shuffled bakes (SHARD-PLATFORM M3; Pine Hollow's crags, streams, timbers, lookout and wildlife): a binary of 4-byte
++// words whose bytes are split into four lanes (every word's first bytes, then its second …: floats compress ~30 % better
++// so), deflated. A shard's generator writes them; the page reads them here.
+ 
+ /** The words from their byte lanes (the generators' `shuffleLanes` reversed). */
+ export function unshuffleLanes(lanes: Uint8Array): Uint8Array {
+@@ -1111,74 +1116,6 @@ export function unshuffleLanes(lanes: Uint8Array): Uint8Array {
+ /** Fetch a deflated, lane-shuffled bake, inflate it and put its lanes back. */
+ export async function fetchLaneBake(url: string): Promise<Uint8Array> { return unshuffleLanes(await fetchDeflated(url)); }
+ 
+-/**
+- * Baked instance sets, a lane-shuffled bake of a scatter (grass clumps, flowers, boulders) placed at build time: each set's
+- * instance matrices (and colours, when it has them) as the float32 words three keeps them in, so the page draws exactly
+- * the matrices the live placement computed. Stored column by column (one matrix element, or colour channel, across every
+- * instance): a column that holds one word throughout, or an earlier column's words (or their negation), is stored as its
+- * row only. Nothing here knows a shard: the set names, the geometry and the material are the caller's.
+- *
+- * How one column is stored: `lane` (always true) — its words are in the binary; `bits` — every instance holds this one
+- * word (the float's bits as a uint32); `of` — the same words as an earlier stored column, its sign bit flipped when `neg`.
+- */
+-export type ColumnRow = { readonly lane: boolean } | { readonly bits: number } | { readonly of: number; readonly neg: boolean };
+-
+-/** One baked set's row: its name, instance count, its matrix columns (16) and colour columns (3, or null: no colours). */
+-export interface InstanceSetRow {
+-  readonly name: string;
+-  readonly count: number;
+-  readonly matrix: readonly ColumnRow[];
+-  readonly color: readonly ColumnRow[] | null;
+-}
+-
+-/** One baked set: its instance matrices (16 floats each, as three's `instanceMatrix` holds them) and colours (3 each) or null. */
+-export interface InstanceSet {
+-  readonly matrices: Float32Array;
+-  readonly colors: Float32Array | null;
+-}
+-
+-/** Fills `target` (`count` instances × `rows.length` columns), the stored columns read from `words` at `at`; returns the new `at`. */
+-function fillColumns(target: Uint32Array, rows: readonly ColumnRow[], count: number, words: Uint32Array, at: number): number {
+-  const width = rows.length;
+-  let next = at;
+-  rows.forEach((row, j) => {
+-    if ('lane' in row) { for (let i = 0; i < count; i++) target[i * width + j] = words[next + i] ?? 0; next += count; }
+-    else if ('bits' in row) for (let i = 0; i < count; i++) target[i * width + j] = row.bits;
+-    else for (let i = 0; i < count; i++) { const w = target[i * width + row.of] ?? 0; target[i * width + j] = row.neg ? (w ^ 0x80000000) >>> 0 : w; }
+-  });
+-  if (next > words.length) throw new Error('decodeInstanceSets: the binary is shorter than its rows');
+-  return next;
+-}
+-
+-/** The sets from their (unshuffled) words, by name; throws when the binary is not the rows' size. */
+-export function decodeInstanceSets(bytes: Uint8Array, rows: readonly InstanceSetRow[]): Map<string, InstanceSet> {
+-  const words = new Uint32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)), sets = new Map<string, InstanceSet>();
+-  let at = 0;
+-  for (const row of rows) {
+-    const matrices = new Float32Array(row.count * 16);
+-    at = fillColumns(new Uint32Array(matrices.buffer), row.matrix, row.count, words, at);
+-    let colors: Float32Array | null = null;
+-    if (row.color !== null) { colors = new Float32Array(row.count * 3); at = fillColumns(new Uint32Array(colors.buffer), row.color, row.count, words, at); }
+-    sets.set(row.name, { matrices, colors });
+-  }
+-  if (at !== words.length) throw new Error(`decodeInstanceSets: ${String(words.length)} words, the rows hold ${String(at)}`);
+-  return sets;
+-}
+-
+-/** Fetch a lane-shuffled instance bake and decode it against its rows. */
+-export async function fetchInstanceSets(url: string, rows: readonly InstanceSetRow[]): Promise<Map<string, InstanceSet>> {
+-  return decodeInstanceSets(await fetchLaneBake(url), rows);
+-}
+-
+-/** One instanced draw of `geometry` in `material` with the set's matrices and colours (no instances when `baked` is absent). */
+-export function instancedFromSet(geometry: BufferGeometry, material: Material, baked: InstanceSet | undefined): InstancedMesh {
+-  const mesh = new InstancedMesh(geometry, material, baked === undefined ? 0 : baked.matrices.length / 16);
+-  if (baked === undefined) return mesh;
+-  mesh.instanceMatrix.array.set(baked.matrices);
+-  if (baked.colors !== null) mesh.instanceColor = new InstancedBufferAttribute(baked.colors.slice(), 3);
+-  return mesh;
+-}
+-
+ // Built geometry as an offline bake stores it (SHARD-PLATFORM M3, the kit system): each attribute's typed array exactly
+ // as the builder made it (float, half, normalized bytes), so a baked kit draws the same bytes the page's own build would
+ // have; and `appendGeometry`, which puts what the page adds to a baked builder after its bake.
+@@ -1509,3 +1446,116 @@ export function installPivotNpc(ctx: PivotNpcLevel, row: NpcRow, ports: PivotNpc
+   if (ports.source !== null) ctx.system({ id: row.id, phase: 'update', run: (dt, t) => { npc.update(dt, t, ports.player, ports.met()); } });
+   return npc;
+ }
++
++const WholeAttribute = v.strictObject({ semantic: v.string(), storage: v.picklist(['Float32Array', 'Float16Array', 'Uint16Array', 'Uint32Array', 'Int16Array', 'Int8Array', 'Uint8Array']), normalized: v.boolean(), itemSize: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(4)) });
++const WholeNative = v.record(v.string(), WholeAttribute);
++const WholePartition = v.strictObject({ id: v.string(), vertices: v.array(v.pipe(v.number(), v.integer(), v.minValue(0))), triangles: v.array(v.pipe(v.number(), v.integer(), v.minValue(0))), vertexCount: v.pipe(v.number(), v.integer(), v.minValue(1)), indexCount: v.pipe(v.number(), v.integer(), v.minValue(0)), index: v.picklist(['none', 'u16', 'u32']) });
++const WHOLE_SEMANTICS: Readonly<Record<string, string>> = { POSITION: 'position', NORMAL: 'normal', COLOR_0: 'color', TEXCOORD_0: 'uv', TANGENT: 'tangent' };
++
++/** Original typed channels from a portable GLB node (including half-float bit accessors and vec4 shader normals). */
++export function nativeWholeGeometry(node: Mesh): BufferGeometry {
++  const metadata: unknown = node.userData['nativeAttributes'], input: unknown = node.geometry;
++  if (!(input instanceof BufferGeometry)) throw new Error('Whole shape needs geometry');
++  const result = new BufferGeometry();
++  for (const [name, row] of Object.entries(v.parse(WholeNative, metadata))) {
++    const channel = WHOLE_SEMANTICS[row.semantic] ?? row.semantic.toLowerCase(), attribute: unknown = input.getAttribute(channel);
++    if (!(attribute instanceof BufferAttribute) || attribute.itemSize !== row.itemSize || attribute.normalized !== row.normalized) throw new Error(`Whole shape missing typed channel ${channel}`);
++    if (row.storage === 'Float16Array') {
++      if (!(attribute.array instanceof Uint16Array)) throw new Error('Whole half-float channel needs uint16 bits');
++      result.setAttribute(name, new Float16BufferAttribute(attribute.array.slice(), row.itemSize, row.normalized));
++    } else {
++      if (attribute.array.constructor.name !== row.storage) throw new Error('Whole channel storage mismatch');
++      result.setAttribute(name, attribute.clone());
++    }
++  }
++  result.setIndex(input.getIndex()?.clone() ?? null);
++  return result;
++}
++
++function wholeStorage(row: v.InferOutput<typeof WholeAttribute>, count: number): BufferAttribute {
++  const n = row.itemSize * count;
++  if (row.storage === 'Float16Array') return new Float16BufferAttribute(new Uint16Array(n), row.itemSize, row.normalized);
++  const array = row.storage === 'Float32Array' ? new Float32Array(n) : row.storage === 'Uint16Array' ? new Uint16Array(n)
++    : row.storage === 'Uint32Array' ? new Uint32Array(n) : row.storage === 'Int16Array' ? new Int16Array(n)
++    : row.storage === 'Int8Array' ? new Int8Array(n) : new Uint8Array(n);
++  return new BufferAttribute(array, row.itemSize, row.normalized);
++}
++
++/** One original source draw reconstructed from its exact subsets; the matrix remains double precision. */
++export interface WholeGeometryView { readonly geometry: BufferGeometry; readonly matrix: Matrix4 }
++
++/** Reconstruct source draws from partitioned GLB nodes; duplicates, missing triangles and conflicting shared bytes refuse. */
++export function assembleWholeGeometryViews(nodes: readonly Mesh[]): Map<string, WholeGeometryView> {
++  const groups = new Map<string, { output: BufferGeometry; matrix: Matrix4; seen: Uint8Array; triangles: Uint8Array; layout: string }>();
++  try {
++    for (const node of nodes) {
++      const metadata: unknown = node.userData['wholePartition'], native: unknown = node.userData['nativeAttributes'];
++      const row = v.parse(WholePartition, metadata), channels = v.parse(WholeNative, native), signature = JSON.stringify(channels);
++      const input = nativeWholeGeometry(node);
++      const pose: unknown = node.userData['matrix64'];
++      const values = v.parse(v.pipe(v.array(v.pipe(v.number(), v.finite())), v.length(16)), pose);
++      let group = groups.get(row.id);
++      if (group === undefined) {
++        const output = new BufferGeometry();
++        for (const [name, channel] of Object.entries(channels)) output.setAttribute(name, wholeStorage(channel, row.vertexCount));
++        if (row.index !== 'none') output.setIndex(new BufferAttribute(row.index === 'u16' ? new Uint16Array(row.indexCount) : new Uint32Array(row.indexCount), 1));
++        group = { output, matrix: new Matrix4().fromArray(values), seen: new Uint8Array(row.vertexCount), triangles: new Uint8Array((row.index === 'none' ? row.vertexCount : row.indexCount) / 3), layout: signature };
++        groups.set(row.id, group);
++      }
++      if (signature !== group.layout || !group.matrix.equals(new Matrix4().fromArray(values)) || row.vertexCount !== group.seen.length || row.indexCount !== (group.output.index?.count ?? 0)) throw new Error('Whole source layout or transform differs');
++      for (const [local, vertex] of row.vertices.entries()) {
++        if (vertex >= group.seen.length) throw new Error('Whole vertex ordinal outside source');
++        for (const [name, destination] of Object.entries(group.output.attributes)) {
++          const source = input.getAttribute(name);
++          if (!(source instanceof BufferAttribute) || !(destination instanceof BufferAttribute) || local >= source.count) throw new Error('Whole channel layout differs');
++          const bytes = source.array.subarray(local * source.itemSize, (local + 1) * source.itemSize);
++          if (group.seen[vertex] === 1) for (const [i, value] of bytes.entries()) if (!Object.is(value, destination.array[vertex * destination.itemSize + i])) throw new Error('Whole shared vertex differs');
++          destination.array.set(bytes, vertex * destination.itemSize);
++        }
++        group.seen[vertex] = 1;
++      }
++      const index = input.getIndex();
++      for (const [local, triangle] of row.triangles.entries()) {
++        if (triangle >= group.triangles.length || group.triangles[triangle] === 1) throw new Error('Whole duplicate or invalid triangle');
++        for (let corner = 0; corner < 3; corner++) {
++          const vertex = row.vertices[index?.getX(local * 3 + corner) ?? local * 3 + corner];
++          if (vertex === undefined) throw new Error('Whole missing triangle vertex');
++          if (group.output.index !== null) group.output.index.setX(triangle * 3 + corner, vertex);
++          else if (vertex !== triangle * 3 + corner) throw new Error('Whole non-indexed topology differs');
++        }
++        group.triangles[triangle] = 1;
++      }
++      input.dispose();
++    }
++    const result = new Map<string, WholeGeometryView>();
++    for (const [id, group] of groups) {
++      if (group.seen.some(value => value === 0) || group.triangles.some(value => value === 0)) throw new Error(`Whole source ${id} is incomplete`);
++      group.output.computeBoundingSphere(); result.set(id, { geometry: group.output, matrix: group.matrix });
++    }
++    return result;
++  } catch (error) { for (const group of groups.values()) group.output.dispose(); throw error; }
++}
++
++/** Read verified tile/library GLBs and assemble their original draws. Temporary decodes never become render objects. */
++export async function readWholeGeometry(scope: ResourceScope, source: Shardfile, refs?: readonly string[]): Promise<Map<string, WholeGeometryView>> {
++  const product = runtimeProduct(source), hashes = refs ?? source.props?.tiles.flatMap(row => [row.file, ...row.additionalFiles ?? []]) ?? [];
++  const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
++  const nodes: Mesh[] = [], cleanup: (() => void)[] = [];
++  try {
++    for (const hash of hashes) {
++      const bytes = await product.assets.read(hash), gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
++      gltf.scene.traverse(object => {
++        if (!(object instanceof Mesh)) return;
++        const original: unknown = object.geometry;
++        if (!(original instanceof BufferGeometry)) throw new Error('Whole shape needs geometry');
++        nodes.push(object);
++        cleanup.push(() => { original.dispose(); for (const material of Array.isArray(object.material) ? object.material : [object.material]) material.dispose(); });
++      });
++      if (scope.disposed) throw new Error('Whole geometry unloaded while reading');
++    }
++    const result = assembleWholeGeometryViews(nodes);
++    for (const view of result.values()) scope.own(view.geometry);
++    product.assets.releaseTiles();
++    return result;
++  } finally { for (const dispose of cleanup) dispose(); }
++}
+diff --git a/src/shards/far-reach/data/files.ts b/src/shards/far-reach/data/files.ts
+index 1cb8217e7..168b9a129 100644
+--- a/src/shards/far-reach/data/files.ts
++++ b/src/shards/far-reach/data/files.ts
+@@ -58,15 +58,13 @@ export const HD_URLS: Readonly<Record<SkyHdName, string>> = {
+   'mill-tower': '/assets/far-reach/models/mill/mill-tower.glb', 'mill-foot': '/assets/far-reach/models/mill/mill-foot.glb',
+ };
+ /** The world pieces baked offline (SF72: `generators/<piece>.ts` → `scripts/bake-sky-world.mjs`), drawn by `world/baked.ts`. */
+-export const BAKED_PIECES = ['winch-house', 'roost', 'docks', 'crown', 'mill', 'book-stand', 'knolls', 'geometries', 'islet-rig'] as const;
++export const BAKED_PIECES = ['winch-house', 'roost', 'docks', 'crown', 'mill', 'book-stand', 'knolls', 'geometries', 'islet-rig', 'dressing'] as const;
+ export type BakedPiece = (typeof BAKED_PIECES)[number];
+ /** Generated world piece URLs keyed by authored piece name. */
+ export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { 'winch-house': '/assets/far-reach/baked/winch-house.glb', roost: '/assets/far-reach/baked/roost.glb', docks: '/assets/far-reach/baked/docks.glb',
+   crown: '/assets/far-reach/baked/crown.glb', mill: '/assets/far-reach/baked/mill.glb',
+   'book-stand': '/assets/far-reach/baked/book-stand.glb', knolls: '/assets/far-reach/baked/knolls.glb',
+-  geometries: '/assets/far-reach/baked/geometries.glb', 'islet-rig': '/assets/far-reach/baked/islet-rig.glb' };
+-/** The island dressing's baked instance sets (world/dressing.ts; SHARD-PLATFORM M3). */
+-export const DRESSING_URL = '/assets/far-reach/baked/dressing.bin';
++  geometries: '/assets/far-reach/baked/geometries.glb', 'islet-rig': '/assets/far-reach/baked/islet-rig.glb', dressing: '/assets/far-reach/baked/dressing.glb' };
+ /** The sward's tuft atlas texels, deflated RGBA (world/meadow.ts; SHARD-PLATFORM M3, generators/swardAtlas.ts). */
+ export const SWARD_ATLAS_URL = '/assets/far-reach/baked/sward-atlas.bin';
+ /** Every island's baked shape (world/isle.ts `islandMesh`; SHARD-PLATFORM M3, generators/isles.ts). */
+diff --git a/src/shards/far-reach/generators/bake-sky-world.mjs b/src/shards/far-reach/generators/bake-sky-world.mjs
+index da45e7091..62fd53a18 100644
+--- a/src/shards/far-reach/generators/bake-sky-world.mjs
++++ b/src/shards/far-reach/generators/bake-sky-world.mjs
+@@ -47,14 +47,6 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
+   emit(resolve(project, 'data/skyCards.ts'), `// Generated by generators/bake-sky-world.mjs (generators/skyCards.ts): do not edit.\nimport type { SkyCardRows } from './skyCardsLook';\n\nexport const SKY_CARDS: SkyCardRows = ${JSON.stringify(bakeSkyCards(), null, 2)};\n`);
+   console.info('far-reach skyCards: data/skyCards.ts');
+ }
+-// the instance bakes: a generator's placed copies as float32 instance matrices + colours (lane-shuffled, deflated)
+-{
+-  const { bakeSkyDressing } = await import(pathToFileURL(resolve(project, 'generators/dressing.ts')).href);
+-  const { rows, bytes, discs } = bakeSkyDressing(), bin = deflateSync(bytes, { level: 9 });
+-  emit(resolve(out, 'dressing.bin'), bin);
+-  emit(resolve(project, 'data/dressing.json'), `${JSON.stringify({ lanes: createHash('sha256').update(bytes).digest('hex'), sets: rows, discs }, null, 2)}\n`);
+-  console.info(`far-reach dressing: ${String(bytes.length)} bytes → baked/dressing.bin (${String(bin.length)} deflated), ${rows.map((r) => `${r.name} ${String(r.count)}`).join(', ')}`);
+-}
+ // the rope bridges: every rope span from the kit's two source models, as a deflated geometry pack (world/shapes.ts ropeBridge)
+ {
+   const { bakeSkyBridges } = await import(pathToFileURL(resolve(project, 'generators/bridges.ts')).href);
+diff --git a/src/shards/far-reach/generators/dressing.ts b/src/shards/far-reach/generators/dressing.ts
+index 41fbaf7aa..5181a9059 100644
+--- a/src/shards/far-reach/generators/dressing.ts
++++ b/src/shards/far-reach/generators/dressing.ts
+@@ -1,13 +1,15 @@
+-import { BufferGeometry, Color, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, Vector3 } from 'three';
+-import { encodeInstanceSets, type InstanceSetRow } from './instanceSets';
++import { BufferGeometry, Color, DoubleSide, InstancedMesh, Matrix4, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3 } from 'three';
++import type { PieceBake } from '@wildshard/sdk/bake/kinds';
+ import { buildGeometries } from './geometries';
++import { bakeSkyPiece, SkyPiece } from './piece';
+ import { meadowHoles, meadowPaths } from '../world/meadow';
+ import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, type Isle, type Span } from '../data/layout';
+ import { apothem, knollHeight } from '../layout';
+ 
+ /**
+- * Build-time only (SHARD-PLATFORM M3, offline bakes): baked by `scripts/bake-sky-world.mjs` into `baked/dressing.bin` +
+- * `data/dressing.json`; the page draws the bake (`world/dressing.ts`).
++ * Build-time only (SHARD-PLATFORM M3, offline bakes): a world piece of instanced kinds (`scene.ts`, `bake-sky-world.mjs` →
++ * `baked/dressing.glb` + `data/dressing.json`); the page draws it in its own
++ * materials (`world/baked.ts`, `world/dressing.ts`).
+  *
+  * The island dressing (Gilded Air, review items 6 / 7, loop 2): what makes an island top read as a meadow and its
+  * underside as old rock, not felt and a cone. All instanced, no colliders (you walk through grass and flowers; the stones
+@@ -239,7 +241,25 @@ function boulderGeometry(): BufferGeometry {
+   return kind[1].geometry;
+ }
+ 
+-/** The dressing bake: its sets' rows and lane-shuffled binary (`scripts/bake-sky-world.mjs` deflates it to baked/dressing.bin), and the meadow's short-grass discs round the larger rocks. */
+-export function bakeSkyDressing(): { rows: InstanceSetRow[]; bytes: Uint8Array; discs: [number, number, number][] } {
+-  return { ...encodeInstanceSets(buildDressing()), discs: heroStoneDiscs() };
++/** Each dressing kind's shape (the geometries bake's): the lip clumps are clumps, the stones boulders. */
++const SHAPES: Readonly<Record<string, string>> = { clump: 'clump', lip: 'clump', flower: 'flower', stone: 'boulder' };
++
++/**
++ * The dressing as a world piece: each kind's placed copies on its shape, in a standard material named for the page's own
++ * (`world/dressing.ts` `dressingMaterial`, the rows' `dressing`); the roots place none (`DRESS.rootsPerM` 0), so the bake
++ * keeps no root kind. Its extra rows: the flowers' colours as the rows' tints (the float32 values, exact) and the meadow's
++ * short-grass discs.
++ */
++export function skyDressingPiece(): SkyPiece<{ tints: Record<string, number[]>; discs: [number, number, number][] }> {
++  const shapes = new Map(buildGeometries().map(([name, mesh]) => [name, mesh.geometry])), tints: Record<string, number[]> = {};
++  const kinds = buildDressing().filter(([name]) => Object.hasOwn(SHAPES, name)).map(([name, placed]) => {
++    const material = new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0 }); material.name = name;
++    const mesh = new InstancedMesh(shapes.get(SHAPES[name] ?? '') ?? new BufferGeometry(), material, placed.count);
++    mesh.instanceMatrix.copy(placed.instanceMatrix);
++    if (placed.instanceColor !== null) tints[name] = Array.from(placed.instanceColor.array.subarray(0, placed.count * 3));
++    return [name, mesh] as const;
++  });
++  return new SkyPiece('far.dressing', kinds, [], { extra: (material) => ({ dressing: material.name }) }, { tints, discs: heroStoneDiscs() });
+ }
++/** The dressing bake on its own (the stale gate's reader). */
++export function bakeSkyDressing(): PieceBake & { tints: Record<string, number[]>; discs: [number, number, number][] } { return bakeSkyPiece(skyDressingPiece()); }
+diff --git a/src/shards/far-reach/generators/scene.ts b/src/shards/far-reach/generators/scene.ts
+index bfdae50cf..f74b72d1f 100644
+--- a/src/shards/far-reach/generators/scene.ts
++++ b/src/shards/far-reach/generators/scene.ts
+@@ -10,6 +10,7 @@ import { skyBookStandPiece } from './bookStand';
+ import { skyKnollsPiece } from './knoll';
+ import { skyGeometriesPiece } from './geometries';
+ import { skyIsletRigPiece } from './isletRig';
++import { skyDressingPiece } from './dressing';
+ 
+ /** Each code-built piece: its GLB's name under `public/assets/far-reach/baked/`, its rows file under `data/`, its builder. */
+ export const SKY_PIECES: readonly { glb: string; rows: string; piece: () => SkyPiece<object> }[] = [
+@@ -17,7 +18,7 @@ export const SKY_PIECES: readonly { glb: string; rows: string; piece: () => SkyP
+   { glb: 'docks', rows: 'docks', piece: skyDocksPiece }, { glb: 'crown', rows: 'crown', piece: skyCrownPiece },
+   { glb: 'mill', rows: 'mill', piece: skyMillPiece }, { glb: 'book-stand', rows: 'bookStand', piece: skyBookStandPiece },
+   { glb: 'knolls', rows: 'knolls', piece: skyKnollsPiece }, { glb: 'geometries', rows: 'geometries', piece: skyGeometriesPiece },
+-  { glb: 'islet-rig', rows: 'isletRig', piece: skyIsletRigPiece },
++  { glb: 'islet-rig', rows: 'isletRig', piece: skyIsletRigPiece }, { glb: 'dressing', rows: 'dressing', piece: skyDressingPiece },
+ ];
+ 
+ /** Sky Reach's code-built world pieces as one three.js scene, each a `BakedPiece` of instanced kinds, in `SKY_PIECES` order. */
+diff --git a/src/shards/far-reach/manifest.ts b/src/shards/far-reach/manifest.ts
+index ee9019175..81a67c3bd 100644
+--- a/src/shards/far-reach/manifest.ts
++++ b/src/shards/far-reach/manifest.ts
+@@ -7,13 +7,13 @@ import { SKY_CARD } from './thumbs/card';
+ import { EXPLORE } from './explore/art';
+ import { filePolicy } from '@wildshard/engine/boot/filePolicy';
+ import { GPU_FILES } from './ktx2.generated';
+-import { SKY_CREATURES, SKY_CREATURE_RIGS, SKY_MESHES, MODEL_URLS, SKY_HD, HD_URLS, BAKED_PIECES, BAKED_URLS, DRESSING_URL, BRIDGES_URL, ISLES_URL, FAN_URL, MILL_MODEL_URL, SWARD_ATLAS_URL, TEX_URL, FAN_LEAF_URL, PANO_URL } from './data/files';
++import { SKY_CREATURES, SKY_CREATURE_RIGS, SKY_MESHES, MODEL_URLS, SKY_HD, HD_URLS, BAKED_PIECES, BAKED_URLS, BRIDGES_URL, ISLES_URL, FAN_URL, MILL_MODEL_URL, SWARD_ATLAS_URL, TEX_URL, FAN_LEAF_URL, PANO_URL } from './data/files';
+ import { mapPalette } from '@wildshard/format/minimap';
+ 
+ /** Sky Reach downloads its painted sky (look/sky.ts), its generated models (C6, `world/meshes.ts`), its baked world pieces (`world/baked.ts`) and creature bodies (`species/bodies.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
+ // The HD models name their KTX2 stand-ins when this boot loads KTX2 (the phone's default, G253, manifest.ts): images otherwise.
+ export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = (tier, tex) => ({
+-  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(name => MODEL_URLS[name]), ...SKY_HD.map((name) => filePolicy(tier, tex, GPU_FILES).gpu(HD_URLS[name])), ...BAKED_PIECES.map(piece => BAKED_URLS[piece]), DRESSING_URL, BRIDGES_URL, ISLES_URL, FAN_URL, MILL_MODEL_URL, SWARD_ATLAS_URL,
++  sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(name => MODEL_URLS[name]), ...SKY_HD.map((name) => filePolicy(tier, tex, GPU_FILES).gpu(HD_URLS[name])), ...BAKED_PIECES.map(piece => BAKED_URLS[piece]), BRIDGES_URL, ISLES_URL, FAN_URL, MILL_MODEL_URL, SWARD_ATLAS_URL,
+     ...SKY_CREATURES.map((creature) => filePolicy(tier, tex, GPU_FILES).gpu(SKY_CREATURE_RIGS[creature]))], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
+ });
+ export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
+diff --git a/src/shards/far-reach/runtime/index.ts b/src/shards/far-reach/runtime/index.ts
+index 73c95185e..a95ea6000 100644
+--- a/src/shards/far-reach/runtime/index.ts
++++ b/src/shards/far-reach/runtime/index.ts
+@@ -47,7 +47,7 @@ import { setStormPaint } from '../world/storm';
+ import { wakeRibbon } from './looks/wakeRibbon';
+ import { RAY_WAKE } from '../data/rayWakeLook';
+ import { meadow, type Meadow } from '../world/meadow';
+-import { heroStoneDiscs, loadSkyDressing } from '../world/dressing';
++import { heroStoneDiscs } from '../world/dressing';
+ import { SUN_DIR } from '../look/sun';
+ import { StormRocBoss } from '../combat/stormRoc';
+ import { installBossView } from '@wildshard/game/plugin/ui';
+@@ -112,7 +112,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
+   protected override async build(ctx: ShardContext): Promise<void> {
+     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
+     // and the world pieces baked offline (SF72, world/baked.ts)
+-    await Promise.all([preloadSkyMeshes(), loadSkyBaked(), loadSkyDressing(), loadSkyBridges(), loadSkyFan(), loadSkyMillModel()]);
++    await Promise.all([preloadSkyMeshes(), loadSkyBaked(), loadSkyBridges(), loadSkyFan(), loadSkyMillModel()]);
+     // the fan's painted silk; without it (offline, a test page) the fan keeps its plain teal, as the models keep their code stand-ins
+     const leaf = await loadPainted(FAN_LEAF_URL, 'far.fan-leaf');
+     if (leaf !== null) { this.leaf = leaf; ctx.scope.own(leaf); }
+diff --git a/src/shards/far-reach/world/baked.ts b/src/shards/far-reach/world/baked.ts
+index aa40524f5..e1cce8969 100644
+--- a/src/shards/far-reach/world/baked.ts
++++ b/src/shards/far-reach/world/baked.ts
+@@ -12,19 +12,21 @@ import bookStand from '../data/bookStand.json' with { type: 'json' };
+ import knolls from '../data/knolls.json' with { type: 'json' };
+ import geometries from '../data/geometries.json' with { type: 'json' };
+ import isletRig from '../data/isletRig.json' with { type: 'json' };
++import dressing from '../data/dressing.json' with { type: 'json' };
+ import { BAKED_URLS, ISLES_URL, SWARD_ATLAS_URL, type BakedPiece } from '../data/files';
+ import { SWARD_ATLAS } from '../data/swardAtlas';
+ import { shackMaterial, type ShackKind } from './shack';
+ import { paintIsleMaterial, setIslePack } from './isle';
++import { dressingMaterial } from './dressing';
+ 
+ /**
+  * SHARD-PLATFORM SF72: Sky Reach's world pieces drawn from their offline bake. The shapes are built at build time
+  * (`generators/*.ts`, `scripts/bake-sky-world.mjs`) and folded into instanced kinds (`@wildshard/sdk/bake/kinds`); the
+  * client loads each piece's GLB behind the loading screen and draws it in its own materials: a shack part in its kind's
+- * procedural shader (`world/shack.ts`), anything else in its row's standard material (a kind with a `paint` in the islands'
++ * procedural shader (`world/shack.ts`), a dressing kind in its own (`world/dressing.ts`), anything else in its row's standard material (a kind with a `paint` in the islands'
+  * painted rock, `paintIsleMaterial`). The colliders are the rows'.
+  */
+-const PIECES = { 'winch-house': winchHouse, roost, docks, crown, mill, 'book-stand': bookStand, knolls, geometries, 'islet-rig': isletRig } as const satisfies Readonly<Record<BakedPiece, unknown>>;
++const PIECES = { 'winch-house': winchHouse, roost, docks, crown, mill, 'book-stand': bookStand, knolls, geometries, 'islet-rig': isletRig, dressing } as const satisfies Readonly<Record<BakedPiece, unknown>>;
+ 
+ const SHACK: readonly ShackKind[] = ['plank', 'shingle', 'stone', 'beam'];
+ const shackKind = (kind: object): ShackKind | undefined => {
+@@ -34,7 +36,8 @@ const shackKind = (kind: object): ShackKind | undefined => {
+ 
+ let sward: Uint8Array | null = null;
+ const WORLD = bakedWorld<BakedPiece, BakedKindRow>(PIECES, BAKED_URLS, 'far-reach', {
+-  material: (kind) => { const shack = shackKind(kind); return shack === undefined ? undefined : shackMaterial(shack); },
++  material: (kind) => { const shack = shackKind(kind), dressed: unknown = 'dressing' in kind ? kind.dressing : undefined;
++    return shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : undefined; },
+   decorate: (material, kind) => { const rockMix: unknown = 'paint' in kind ? kind.paint : undefined; if (typeof rockMix === 'number') paintIsleMaterial(material, rockMix); },
+   attributes: { _shk: 'shk', _farcloth: 'farCloth' },
+ });
+diff --git a/src/shards/far-reach/world/build.ts b/src/shards/far-reach/world/build.ts
+index e65e67d05..134c8c19a 100644
+--- a/src/shards/far-reach/world/build.ts
++++ b/src/shards/far-reach/world/build.ts
+@@ -8,7 +8,6 @@ import type { ShardContext } from '@wildshard/game/shard/context';
+ import { Group, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
+ import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, type Span } from '../data/layout';
+ import { STRINGS } from '../data/strings';
+-import { dressIslands } from './dressing';
+ import { staticIsle, type IsleMeshes } from './isle';
+ import { crownArena } from './crown';
+ import { trees } from './trees';
+@@ -161,7 +160,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>,
+   pieces.add('far.pines', trees(pineAt) ?? new Group());
+   await pause();
+   // the meadow and the roots (loop 2): grass clumps, flowers, stones, hanging roots; no colliders
+-  pieces.add('far.dressing', dressIslands().group);
++  pieces.add('far.dressing', skyBakedPiece('dressing').root);
+   await pause();
+   // the skyline: decorative 3-D islands and waterfalls out past the archipelago, and the windmill isle's fall
+   const sky = skyline(ISLES, (isle, a) => skyHd.lipAt(isle, a), skyIsles); root.add(sky);
+diff --git a/src/shards/far-reach/world/dressing.ts b/src/shards/far-reach/world/dressing.ts
+index ac5a266ba..4899d8265 100644
+--- a/src/shards/far-reach/world/dressing.ts
++++ b/src/shards/far-reach/world/dressing.ts
+@@ -1,58 +1,43 @@
+-import { ConeGeometry, DoubleSide, Group, MeshStandardMaterial, type InstancedMesh } from 'three';
++import { DoubleSide, MeshStandardMaterial, type Material } from 'three';
+ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+ import { editShader } from '@wildshard/sdk/looks/shaderEdits';
+-import { fetchInstanceSets, instancedFromSet, type InstanceSet } from '@wildshard/game/plugin/geometry';
+ import { paintIsleMaterial } from './isle';
+-import { skyBakedGeometry } from './baked';
+ import dressing from '../data/dressing.json' with { type: 'json' };
+ import { BOULDER_EDITS, CLUMP_EDITS, FLOWER_EDITS } from '../data/dressingLook';
+-import { DRESSING_URL } from '../data/files';
+ 
+ /**
+- * The island dressing (Gilded Air, review items 6 / 7, loop 2): grass clumps, the rims' lip clumps, flowers, boulders and
+- * hanging roots, all instanced, no colliders, one draw each. SHARD-PLATFORM M3: placed offline (`generators/dressing.ts`,
+- * `scripts/bake-sky-world.mjs` → `baked/dressing.bin` + `data/dressing.json`); the page draws the baked matrices and
+- * colours in the shapes of the geometries bake and its own materials (their edits are data/dressingLook.ts).
++ * The island dressing (Gilded Air, review items 6 / 7, loop 2): grass clumps, the rims' lip clumps, flowers and boulders,
++ * all instanced, no colliders, one draw each. SHARD-PLATFORM M3: placed offline (`generators/dressing.ts`, a baked world
++ * piece: `baked/dressing.glb` + `data/dressing.json`, the flowers' colours its tints); `world/baked.ts` draws it
++ * in the materials below (their edits are data/dressingLook.ts).
+  */
+ 
+-let loaded: ReadonlyMap<string, InstanceSet> = new Map();
+-/** Load the dressing bake (with the other baked pieces, before the world is built); a failed load draws no dressing. */
+-export async function loadSkyDressing(): Promise<void> {
+-  try { loaded = await fetchInstanceSets(DRESSING_URL, dressing.sets); } catch (e: unknown) { console.warn('[far-reach] dressing not loaded:', e); }
+-}
+-
+ /** The hero boulders and the meadow's larger rocks, as discs (x, z, radius) for the meadow's short grass round them. */
+ export function heroStoneDiscs(): [number, number, number][] {
+   return dressing.discs.map(([x = 0, z = 0, r = 0]) => [x, z, r]);
+ }
+ 
+-/** The dressing's draws. */
+-export interface Dressing { readonly group: Group; readonly meshes: readonly InstancedMesh[] }
+-
+-/** The playable islands' dressing from its bake (`sets` defaults to the loaded one; a test passes its own). */
+-export function dressIslands(sets: ReadonlyMap<string, InstanceSet> = loaded): Dressing {
+-  // (the boulder's copy first, the clumps' after it: the page made its shapes in this order)
+-  const stone = skyBakedGeometry('boulder'); stone.computeBoundingBox();
+-  const group = new Group(), meshes: InstancedMesh[] = [];
+-  const add = (mesh: InstancedMesh, box = true): InstancedMesh => {
+-    mesh.computeBoundingSphere(); if (box) mesh.computeBoundingBox(); group.add(mesh); meshes.push(mesh); return mesh;
+-  };
+-  // the clumps carry the meadow beyond the near field (world/meadow.ts); inside it they shrink away so the fine blades own the foreground
+-  const clumpMaterial = new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0 });
+-  patchShader(clumpMaterial, 'far.clump-handoff', PATCH_ORDER.decorate, (shader) => { editShader(shader, CLUMP_EDITS); }, { key: (prior) => `${prior}|far.clump-handoff` });
+-  add(instancedFromSet(skyBakedGeometry('clump'), clumpMaterial, sets.get('clump')));
+-  // the lip clumps lean out over every rim, and shrink away near the camera like the clumps (E407 row 4)
+-  add(instancedFromSet(skyBakedGeometry('clump'), clumpMaterial, sets.get('lip')), false);
+-  // the near meadow draws its own flowers (world/meadow.ts): these grow in past it
+-  const flowerMaterial = new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0, emissive: 0x2a2418 });
+-  patchShader(flowerMaterial, 'far.flower-handoff', PATCH_ORDER.decorate, (shader) => { editShader(shader, FLOWER_EDITS); }, { key: (prior) => `${prior}|far.flower-handoff` });
+-  add(instancedFromSet(skyBakedGeometry('flower'), flowerMaterial, sets.get('flower')));
+-  // the boulders wear the islands' painted rock and moss, with their own near detail over it (E392)
+-  const stoneMaterial = paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 }));
+-  patchShader(stoneMaterial, 'far.boulder-detail', PATCH_ORDER.decorate + 10, (shader) => { editShader(shader, BOULDER_EDITS); }, { key: (prior) => `${prior}|far.boulder-detail` });
+-  add(instancedFromSet(stone, stoneMaterial, sets.get('stone')));
+-  // a strand 1 m long, tip down: its wide end at y 0 hangs from the rim band; instances stretch it to their length
+-  const strand = new ConeGeometry(0.16, 1, 5, 1, true); strand.rotateX(Math.PI); strand.translate(0, -0.5, 0);
+-  add(instancedFromSet(strand, new MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0, side: DoubleSide }), sets.get('root')));
+-  return { group, meshes };
++let clumps: MeshStandardMaterial | null = null;
++/**
++ * A dressing kind's own material (its row's `dressing`), made as the piece is drawn, in row order: the clumps carry the
++ * meadow beyond the near field (world/meadow.ts) and shrink away inside it so the fine blades own the foreground; the lip
++ * clumps (the next kind) lean out over every rim in the clumps' material (E407 row 4); the flowers grow in past the near
++ * meadow's own; the boulders wear the islands' painted rock and moss with their own near detail over it (E392).
++ */
++export function dressingMaterial(kind: string): Material | undefined {
++  if (kind === 'lip') return clumps ?? undefined;
++  if (kind === 'clump') {
++    clumps = new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0 });
++    patchShader(clumps, 'far.clump-handoff', PATCH_ORDER.decorate, (shader) => { editShader(shader, CLUMP_EDITS); }, { key: (prior) => `${prior}|far.clump-handoff` });
++    return clumps;
++  }
++  if (kind === 'flower') {
++    const flowers = new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0, emissive: 0x2a2418 });
++    patchShader(flowers, 'far.flower-handoff', PATCH_ORDER.decorate, (shader) => { editShader(shader, FLOWER_EDITS); }, { key: (prior) => `${prior}|far.flower-handoff` });
++    return flowers;
++  }
++  if (kind !== 'stone') return undefined;
++  const stones = paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 }));
++  patchShader(stones, 'far.boulder-detail', PATCH_ORDER.decorate + 10, (shader) => { editShader(shader, BOULDER_EDITS); }, { key: (prior) => `${prior}|far.boulder-detail` });
++  return stones;
+ }
+diff --git a/test/shards/far-reach/file-rows.test.ts b/test/shards/far-reach/file-rows.test.ts
+index 54a2d4470..1c5d99ef8 100644
+--- a/test/shards/far-reach/file-rows.test.ts
++++ b/test/shards/far-reach/file-rows.test.ts
+@@ -12,7 +12,7 @@ it('declares the empty boot audio inventory as serializable data', () => {
+ it('retains every ordered desktop/phone image/KTX2 boot URL and late read', () => {
+   const sources = (['desktop', 'phone'] as const).flatMap(tier => (['img', 'ktx2'] as const).map(texture => bootSources(tier, texture)));
+   const digest = createHash('sha256').update(JSON.stringify({ sources, boot: bootFiles(), late: lateReads() })).digest('hex');
+-  expect(digest).toBe('9528a0981ea98dd0f72539fccff991c52c6ec9abf4988801fd896f30fba22b44');
++  expect(digest).toBe('625f2b90b36f97c78fcad135198b5a43204266c6e43de309a64b04e1e6a06015');
+ });
+ it('publishes only finite JSON data and resolves every model, rig and generated piece name', () => {
+   for (const value of Object.values(files)) {
+diff --git a/test/shards/far-reach/world-bake.test.ts b/test/shards/far-reach/world-bake.test.ts
+index 6422ff7df..4d7fc5fca 100644
+--- a/test/shards/far-reach/world-bake.test.ts
++++ b/test/shards/far-reach/world-bake.test.ts
+@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
+ import { createHash } from 'node:crypto';
+ // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate reads the committed bake the client loads.
+ import { readdirSync, readFileSync } from 'node:fs';
+-// oxlint-disable-next-line import/no-nodejs-modules -- The stale gate inflates the shipped dressing bake.
++// oxlint-disable-next-line import/no-nodejs-modules -- The stale gate inflates the shipped sward atlas.
+ import { inflateSync } from 'node:zlib';
+ import { InstancedMesh, Matrix4, Mesh, Vector3, type Object3D } from 'three';
+ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+@@ -29,8 +29,7 @@ import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+ import { skyBakedPiece, skyKnollHulls } from '../../../src/shards/far-reach/world/baked';
+ import { bakeSkyDressing, buildDressing } from '../../../src/shards/far-reach/generators/dressing';
+ import dressingRows from '../../../src/shards/far-reach/data/dressing.json' with { type: 'json' };
+-import { dressIslands, heroStoneDiscs } from '../../../src/shards/far-reach/world/dressing';
+-import { decodeInstanceSets, unshuffleLanes } from '@wildshard/game/plugin/geometry';
++import { heroStoneDiscs } from '../../../src/shards/far-reach/world/dressing';
+ import { BAKED_PIECES } from '../../../src/shards/far-reach/data/files';
+ import { ISLES, KNOLLS, STEP, WINCH_HOUSE } from '../../../src/shards/far-reach/data/layout';
+ import winchHouse from '../../../src/shards/far-reach/data/winchHouse.json' with { type: 'json' };
+@@ -57,7 +56,7 @@ async function nodesOf(piece: string, kinds: readonly { name: string }[]): Promi
+ 
+ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', () => {
+   it('every committed piece is byte-exact against its generator (the stale gate: rerun src/shards/far-reach/generators/bake-sky-world.mjs)', () => {
+-    const pieces = [['winch-house', bakeSkyWinchHouse(), winchHouse], ['roost', bakeSkyRoost(), roostRows], ['docks', bakeSkyDocks(), dockRows], ['crown', bakeSkyCrown(), crownRows], ['mill', bakeSkyMill(), millRows], ['book-stand', bakeSkyBookStand(), bookRows], ['knolls', bakeSkyKnolls(), knollRows], ['geometries', bakeSkyGeometries(), geometryRows], ['islet-rig', bakeSkyIsletRig(), isletRigRows]] as const;
++    const pieces = [['winch-house', bakeSkyWinchHouse(), winchHouse], ['roost', bakeSkyRoost(), roostRows], ['docks', bakeSkyDocks(), dockRows], ['crown', bakeSkyCrown(), crownRows], ['mill', bakeSkyMill(), millRows], ['book-stand', bakeSkyBookStand(), bookRows], ['knolls', bakeSkyKnolls(), knollRows], ['geometries', bakeSkyGeometries(), geometryRows], ['islet-rig', bakeSkyIsletRig(), isletRigRows], ['dressing', bakeSkyDressing(), dressingRows]] as const;
+     for (const [piece, { glb, ...rows }, committed] of pieces) {
+       expect({ glb: sha(glb), ...rows }).toEqual(committed);
+       expect(sha(new Uint8Array(readFileSync(new URL(`${piece}.glb`, folder))))).toBe(committed.glb);
+@@ -212,20 +211,21 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
+     expect([puffs.name, puffs.renderOrder, puffs.geometry.instanceCount]).toEqual(['far.cumulus', -5, puffs.geometry.getAttribute('aAt').count]);
+     glow.geometry.dispose(); for (const m of glow.materials) m.dispose(); puffs.geometry.dispose(); puffs.material.dispose();
+   });
+-  it('the island dressing is its generator\'s copies (the stale gate) and the page draws exactly their matrices and colours', () => {
+-    const { rows, bytes, discs } = bakeSkyDressing();
+-    expect({ lanes: sha(bytes), sets: rows, discs }).toEqual(dressingRows);
+-    // the shipped binary inflates to the generator's lanes
+-    const shipped = inflateSync(readFileSync(new URL('dressing.bin', folder)));
+-    expect(sha(new Uint8Array(shipped))).toBe(dressingRows.lanes);
+-    expect(heroStoneDiscs()).toEqual(discs);
+-    const sets = decodeInstanceSets(unshuffleLanes(new Uint8Array(shipped)), dressingRows.sets), drawn = dressIslands(sets).meshes, built = buildDressing();
+-    expect(drawn.length).toBe(built.length);
+-    built.forEach(([, live], i) => {
+-      const mesh = drawn[i];
++  it('the island dressing draws its generator\'s copies (matrices through the GLB\'s TRS, colours exact), each kind in its own material', async () => {
++    expect(heroStoneDiscs()).toEqual(dressingRows.discs);
++    const drawn = skyBakedPiece('dressing', await nodesOf('dressing', dressingRows.kinds)), built = buildDressing().filter(([, mesh]) => mesh.count > 0);
++    expect([...drawn.kinds.keys()]).toEqual(built.map(([name]) => name));
++    expect(drawn.colliders).toEqual([]);
++    built.forEach(([name, live]) => {
++      const mesh = drawn.kinds.get(name);
+       expect(mesh?.count).toBe(live.count);
+-      expect(new Uint8Array(mesh?.instanceMatrix.array.buffer ?? new ArrayBuffer(0))).toEqual(new Uint8Array(live.instanceMatrix.array.buffer));
++      // the TRS round trip keeps every element within a float32 ulp or two of the placed matrix
++      const drawnMatrices = Array.from(mesh?.instanceMatrix.array ?? []), placed = Array.from(live.instanceMatrix.array);
++      expect(drawnMatrices.length).toBe(placed.length);
++      expect(placed.reduce((worst, v, k) => Math.max(worst, Math.abs(v - (drawnMatrices[k] ?? Infinity))), 0)).toBeLessThan(1e-5);
+       expect(mesh?.instanceColor?.array).toEqual(live.instanceColor?.array);
+     });
++    // the lip clumps share the clumps' material
++    expect(drawn.kinds.get('lip')?.material).toBe(drawn.kinds.get('clump')?.material);
+   });
+ });
