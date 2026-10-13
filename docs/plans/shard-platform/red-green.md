@@ -197,3 +197,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | same CI: pivot NPC figure type + Sky grid-entry and Signal hybrid bind semantic fixtures | `1c0cd8ec6` | fixed `10e1ab895` | sp-x6 |
 | 2026-10-13 | CI 38451539752 on `10e1ab895`: keeperFigure typed lint (dead fallbacks l.57–61) + Three core in the pre-entry static unlock graph (`9a8513d9e` presentation scope reach) | `1c0cd8ec6`, `9a8513d9e` | fixed `c972ac5f2` (pre-entry 217.3 → 28.8 KB gz) | sp-x5 |
 | 2026-10-13 | same CI: Signal product root 24f6765b vs 64223ebc: only map.tilesHash ae50ee79 → d56b0b39 | `5a7b6153f` (stamp landed without the root pin; third time) | fixed `f81f4eb7c` | sp-x6 |
+| 2026-10-13 | CI 38455010734 on `c972ac5f2`: typecheck, far-reach world-bake fixture lines 181/230/231 read InstancedMesh members on what is now typed Mesh after the mixed host widened drawn kinds | `8c858b9f5` | pending (narrow real InstancedMesh admission, assertions kept) | sp-x5 |
