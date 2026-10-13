@@ -15,22 +15,22 @@
 **For wildshard-v, Jake ask (G350 Nalati places):** bake runs 22k engine lines for 4.2 MB. **Port** to authored generators (big) or **freeze** bins + rows (cheap, not regenerable). Recommend port later; bridge stays.
 **Jake ask (Sky movers):** Sky headless onto the generic mover driver deletes one-user code but re-records the gameplay hash. Recommend yes, after the sprint.
 
-**For wildshard-v, Jake ask (S2):** Graph materials stay default-off pending a physical-iPhone reading, so the GLSL stays as fallback (no cut). Recommend accepting the Simulator + desktop reading.
-
-**For wildshard-v:** near boards `art/near-tier/round-6/` (A/B/C).
+**For wildshard-v, Jake ask (S2):** Graph materials stay default-off pending a physical-iPhone reading, so the GLSL stays as fallback (no cut). Recommend accepting the Simulator + desktop reading. Near boards: `art/near-tier/round-6/`.
 
 **Calls for Jake (2026-10-13; reverse any):**
-6–10. Session ground loader; Sky island prop tiles; commons 0 packs (G355); literal physics rows (G350); Signal navmesh kept.
-11. Terrain `form:'query'`: sampling only, 0 render tiles (`8be4e615d`); bake helper `269813a80`.
-12. Pine cabins: one Scene bake as a shape library; live owners unchanged (`5e4c9f9d5`).
-13. Optional `props.wholeLibrary` binds Nine's library GLBs, not 348 rebucketed subsets (`b43d310c2`).
+6–10. Ground loader; Sky prop tiles; commons 0 packs; literal physics rows; Signal navmesh kept.
+11. Terrain `form:'query'`: sampling only, 0 render tiles (`8be4e615d`).
+12. Pine cabins: Scene bake as a shape library.
+13. Optional `props.wholeLibrary` binds Nine's library GLBs.
 14. Tile subsets may declare ≤ 1 m edge overhang; no vertex clamp.
-15. Nine authoring uses portable math (Linux = Mac); collider delta ≤ 9e-16, look exact.
-16. Driftwood boat hull equation shared by generator + live (`world/boatFrame.ts`), not a cut.
-17. Debug rows 7 → 4; DEVSERVER-only grid cell row deleted without a pick.
+15. Nine authoring uses portable math; collider delta ≤ 9e-16, look exact.
+16. Driftwood boat hull equation shared by generator + live, not a cut.
+17. Debug rows 7 → 4 (DEVSERVER grid row deleted without a pick).
 18. Node bake host with a filesystem fetch reports online (bytes still verified).
 19. Driftwood ground reads its original 256 query lattice; runtime owns render/collision.
 20. Nalati grid fetches ground twice (+0.52 MB) until sp-o98's one-fetch row lands.
 21. Sky static placements baked per cube (`a77443f19`). 22. Pine timber/lookout authoring copies Pine helpers until the live copy goes.
+23. Whole-product producers (Template, Pastel): author-only writer, frozen map bytes, comparison-only pins.
+24. Driftwood stops its duplicate legacy terrain/nav/GLB prefetch (product owns the bytes).
 
 Paused: SF22, SF57, SF67.
