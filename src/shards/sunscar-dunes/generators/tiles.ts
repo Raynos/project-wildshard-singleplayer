@@ -1,7 +1,6 @@
 import { bakeTerrain, type BakedTerrain } from '@wildshard/sdk/bake/terrain';
 import { signalHeightAt, signalTrailDistance } from './landscape';
-import { mapPalette } from '../runtime/looks/mapPalette';
-import { SIGNAL_DUNES_MAP } from '../data/minimap';
+import { signalMapGround } from '../look/mapGround';
 
 /** The lattice step of the 257² bake (500 m / 256). */
 const STEP = 500 / 256;
@@ -22,7 +21,7 @@ export const signalDunesField = (): { heightAt: (x: number, z: number) => number
  */
 export function signalDunesTiles(): BakedTerrain {
   const field = signalDunesField();
-  const rgb: [number, number, number] = [0, 0, 0], ground = mapPalette(SIGNAL_DUNES_MAP).ground;
+  const rgb: [number, number, number] = [0, 0, 0], ground = signalMapGround;
   const baked = bakeTerrain({ heightAt: field.heightAt, family: 'pbr', colourAt: (x, z, h) => {
     const slope = Math.min(1, Math.hypot(field.heightAt(x + STEP, z) - field.heightAt(x - STEP, z), field.heightAt(x, z + STEP) - field.heightAt(x, z - STEP)) / (2 * STEP) / 2);
     ground(x, z, h, slope, 0, rgb);

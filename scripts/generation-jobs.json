@@ -2134,6 +2134,7 @@
         "src/sdk/sceneTransform.ts",
         "src/shards/far-reach/data/isletDesign.ts",
         "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/risingIslets.ts"
       ],
       "outputs": [

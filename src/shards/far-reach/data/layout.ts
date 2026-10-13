@@ -1,3 +1,5 @@
+import { STRINGS } from './strings';
+
 /** Every coordinate in Sky Reach. Islands float over the cloud sea; each walkable top sits at its own `y`. */
 export const DECK = 30;
 /** A rope bridge's sag (`layout.ts` `ropeSag`): level for `ends` metres, then `depth` of the length deep, at most `max`. */
@@ -134,3 +136,33 @@ export const PINES: Readonly<Record<string, readonly (readonly [number, number, 
   step: [[-6, 5, 0.8], [7, 3, 0.9]],
   crown: [[-13, 6, 1.1], [13, 7, 1], [-12, -7, 0.9], [14, -6, 0.8]],
 };
+
+/**
+ * Sky Reach's map look (loop 5; council R1B-6: the minimap was a dark olive disc with dots) as rows for
+ * `@wildshard/format/minimap`'s `mapPalette`, the manifest's `minimap.palette`. The void is the cloud sea, a pale rose
+ * banded a little; every island is a meadow disc with a darker soil rim; rope bridges are solid plank lines, hover bridges
+ * dashed cyan glass, the updraft a cyan ramp; the windmill a white disc, the crown's dais a stone ring; the named places
+ * are the full map's pins. Kept here, not in its own file: the manifest's closure is at its budget.
+ */
+const MAP_MEADOW = [128, 150, 74] as const, MAP_GOLD = [168, 164, 84] as const, MAP_SOIL = [110, 76, 54] as const;
+const MAP_POI = '#fbe6c4', MAP_GLASS = '#9fe6f2', MAP_DASH = [3, 2.5] as const;
+const mapIsle = (isle: Isle) => {
+  const a = isle.r * APOTHEM * 0.97, centre = { x: isle.x, z: isle.z, within: a + 1.5 };
+  return { by: 'distance', edges: [a, a + 1.5], invert: true, centre, color: { base: MAP_MEADOW, layers: [
+    { color: MAP_GOLD, by: 'wave', wave: { kx: 0.21, kz: 0.17 } },
+    { color: MAP_SOIL, by: 'distance', edges: [a - 1.6, a], centre },
+  ] } } as const;
+};
+const mapSpan = (s: Span) => ({ from: [s.x0, s.z0], to: [s.x1, s.z1], strokes: s.kind === 'rope'
+  ? [{ width: s.width + 1.2, style: 'rgba(60, 36, 24, 0.6)' }, { width: s.width, style: '#a0764e' }]
+  : [{ width: s.width + 0.8, style: 'rgba(40, 90, 110, 0.45)' }, { width: s.width * 0.6, style: MAP_GLASS, dash: MAP_DASH }] } as const);
+/** (typed by the manifest's `mapPalette` call: an author folder imports only the authoring surface) */
+export const SKY_REACH_MAP = {
+  ground: { base: [176, 138, 162], layers: [{ color: [214, 170, 172], by: 'wave', wave: { kx: 0.045, kz: 0, warp: [0.03, 2] } }, ...ISLES.map(mapIsle)] },
+  segments: [...[...SPANS, FALLEN_BRIDGE].map(mapSpan),
+    { from: [UPDRAFT.x0, UPDRAFT.z0], to: [UPDRAFT.x1, UPDRAFT.z1], strokes: [{ width: UPDRAFT.width * 0.6, style: MAP_GLASS, dash: MAP_DASH }] }],
+  trails: [],
+  marks: [{ kind: 'dot', x: MILL.x, z: MILL.z, r: 2.6, fill: '#f2ead8' }, { kind: 'ring', x: DAIS.x, z: DAIS.z, r: DAIS.r, line: 1.2, stroke: '#5c5264' }],
+  pois: ([[SUNREST, STRINGS.sunrest], [WINDMILL, STRINGS.windmill], [GROVE, STRINGS.grove], [ROOST, STRINGS.roost], [KEEPER, STRINGS.keeper],
+    [RUIN, STRINGS.ruin], [STEP, STRINGS.step], [CROWN, STRINGS.crown]] as const).map(([isle, label]) => ({ x: isle.x, z: isle.z, label, color: MAP_POI })),
+} as const;

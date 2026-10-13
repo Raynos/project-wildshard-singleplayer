@@ -16,10 +16,6 @@
     "Driftwood Isle",
     "driftwood-isle",
     "far-reach",
-    "far.creature.driftRay",
-    "far.creature.galeWisp",
-    "far.creature.skyGoat",
-    "far.creature.stormRoc",
     "Ink & Cel Valley",
     "ink-cel-valley",
     "Nalati Grasslands",
@@ -45,20 +41,14 @@
     "species.nalati.sheepdog",
     "species.nalati.wolf",
     "sunscar-dunes",
-    "sunscar.creature.duneMatriarch",
-    "sunscar.creature.duneRay",
-    "sunscar.creature.duneStrider",
-    "sunscar.creature.sandSkitterer",
     "weapon.bow",
     "weapon.crossbow",
-    "weapon.far-reach.fan",
     "weapon.jian",
     "weapon.lever",
     "weapon.longbow",
     "weapon.rifle",
     "weapon.sabre",
-    "weapon.spear",
-    "weapon.sunscar-whip"
+    "weapon.spear"
   ],
   "sharedAssets": [
     "public/assets/tex/**",
@@ -108,13 +98,7 @@
     },
     "far-reach": {
       "name": "Sky Reach",
-      "ids": [
-        "far.creature.driftRay",
-        "far.creature.galeWisp",
-        "far.creature.skyGoat",
-        "far.creature.stormRoc",
-        "weapon.far-reach.fan"
-      ],
+      "ids": [],
       "settings": [],
       "assets": [
         "public/assets/far-reach/**",
@@ -212,13 +196,7 @@
     },
     "sunscar-dunes": {
       "name": "Signal Dunes",
-      "ids": [
-        "sunscar.creature.duneMatriarch",
-        "sunscar.creature.duneRay",
-        "sunscar.creature.duneStrider",
-        "sunscar.creature.sandSkitterer",
-        "weapon.sunscar-whip"
-      ],
+      "ids": [],
       "settings": [],
       "assets": [
         "public/assets/sunscar-dunes/**",

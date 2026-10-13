@@ -1,13 +1,13 @@
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { STRINGS } from './data/strings';
 import { BUDGETS, SKY_REACH_RUNTIME_COST } from './budgets';
-import { CROWN, DECK, HIGH, KEEPER, ROOST, SPAWN, STEP, WINDMILL } from './data/layout';
+import { CROWN, DECK, HIGH, KEEPER, ROOST, SKY_REACH_MAP, SPAWN, STEP, WINDMILL } from './data/layout';
 import { SKY_CARD } from './thumbs/card';
 import { EXPLORE } from './explore/art';
 import { filePolicy } from '@wildshard/engine/boot/filePolicy';
 import { GPU_FILES } from './ktx2.generated';
 import { SKY_CREATURES, SKY_CREATURE_RIGS, SKY_MESHES, MODEL_URLS, SKY_HD, HD_URLS, BAKED_PIECES, BAKED_URLS, DRESSING_URL, BRIDGES_URL, FAN_URL, MILL_MODEL_URL, SWARD_ATLAS_URL, TEX_URL, FAN_LEAF_URL, PANO_URL } from './data/files';
-import { SKY_REACH_MINIMAP } from './look/minimap';
+import { mapPalette } from '@wildshard/format/minimap';
 
 /** Sky Reach downloads its painted sky (look/sky.ts), its generated models (C6, `world/meshes.ts`), its baked world pieces (`world/baked.ts`) and creature bodies (`species/bodies.ts`); the rest is built in code. The card and Explore images are bundled imports (thumbs/, explore/). */
 // The HD models name their KTX2 stand-ins when this boot loads KTX2 (the phone's default, G253, manifest.ts): images otherwise.
@@ -36,7 +36,7 @@ export const SKY_REACH: ShardManifest = {
   spawn: { x: SPAWN.x, y: DECK + 1, z: SPAWN.z, yaw: SPAWN.yaw }, bounds: { x0: -120, x1: 120, z0: -240, z1: 60, floor: DECK - 18 },
   world: { killY: DECK - 24 },
   horizon: { rings: [], cloudSea: false }, boundary: { visible: false },
-  minimap: { image: '/assets/far-reach/map/top.webp', palette: SKY_REACH_MINIMAP }, // the map baked from the world (SF66); the palette paints the grid's edges (look/minimap.ts)
+  minimap: { image: '/assets/far-reach/map/top.webp', palette: mapPalette(SKY_REACH_MAP) }, // the map baked from the world (SF66); the palette paints the grid's edges (data/layout.ts)
   // the full map's fixed places (SF66; test/map-coverage.test.ts holds every lift and mover on one): the four rising islets
   // where the road's lifts wait (world/islets.ts RISING_ISLETS `rest`, 228 m out on each axis). The eight isles are the
   // quest's places (quest/install.ts PLACES), named on the map as they are discovered, so they are not listed here twice.

@@ -10,7 +10,7 @@ import { EXPLORE } from './explore/art';
 import { bootFiles, bootSources, lateReads } from './boot/files';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import groundQueries from './data/manifestGround.generated.json' with { type: 'json' };
-import { mapPalette } from './runtime/looks/mapPalette';
+import { mapPalette } from '@wildshard/format/minimap';
 import { SIGNAL_DUNES_MAP } from './data/minimap';
 import { SIGNAL_MANIFEST_ROWS } from './data/manifestRows';
 import { SIGNAL_ATMOSPHERE, SIGNAL_GRADE, SIGNAL_HORIZON, SIGNAL_SKY } from './data/manifestLook';
