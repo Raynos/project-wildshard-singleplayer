@@ -24,6 +24,8 @@ p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may 
 - **Private-index commits must be built on the CURRENT HEAD.** `GIT_INDEX_FILE=x git read-tree HEAD` then commit
   immediately and verify the new commit's parent is the HEAD you read. If HEAD moved in between, your index silently
   reverts the newer landings (bb6291f57 reverted ae7304f04). Re-read the tree and retry rather than committing a stale index.
+  **Generated files are made by pre-commit (G367):** a private-index helper must run pre-commit FIRST and `git write-tree`
+  AFTER it, so the regenerated outputs are in the commit; the push regenerates nothing.
 - **Silent-revert guard (`afad1ea04`):** both commit hooks refuse a commit that puts a path back to bytes/modes from an
   ancestor of HEAD (including deleting a newer file). A DELIBERATE rollback or a recapture that legitimately restores older
   bytes must set `WS_COMMIT_INTENT='{"base":"<full current parent SHA>","paths":["<every staged path>"]}'`; it is admitted
