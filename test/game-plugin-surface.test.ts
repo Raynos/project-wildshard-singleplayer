@@ -75,7 +75,8 @@ it('enforces the real export surface and names only the remaining temporary migr
   const report = realExportCheck;
   expect(report.failures).toEqual([]);
   expect(report.pluginExports).toBeLessThanOrEqual(20);
-  expect(report.temporary.map(row => row.key)).toEqual(['./systems/looks/surfaceLooks']);
+  // shrink-only: no new temporary exception; retiring the last one is not a red (usage audit 2026-10-13)
+  expect(report.temporary.map(row => row.key).filter(key => key !== './systems/looks/surfaceLooks')).toEqual([]);
   expect(report.temporary.every(row => row.owner.length > 0 && row.reason.length > 0)).toBe(true);
 });
 
