@@ -3,9 +3,10 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Node test reads the committed baked far proxy.
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import { InstancedMesh, Matrix4, Vector3 } from 'three';
+import { InstancedMesh, Matrix4, MeshBasicMaterial, Vector3 } from 'three';
 import PLACEMENTS from '../../../src/shards/far-reach/data/placements.json' with { type: 'json' };
 import { skyline } from '../../../src/shards/far-reach/world/distant';
+import { setSkyLooks } from '../../../src/shards/far-reach/world/looks';
 import { SKY_ISLES } from '../../../src/shards/far-reach/data/skyIsles';
 import { skyIslesIn } from '../../../src/shards/far-reach/generators/placements';
 
@@ -29,7 +30,9 @@ it('hangs no waterfall from an out-of-cube isle in a grid cell', () => {
     return out;
   };
   expect(PLACEMENTS.half).toBe(CUBE.half);
+  setSkyLooks(new Map([['falls', new MeshBasicMaterial()]]));
   const standalone = lips(skyline(PLACEMENTS.standalone.falls)), grid = lips(skyline(PLACEMENTS.cell.falls));
+  setSkyLooks(new Map());
   expect(standalone.some((p) => Math.max(Math.abs(p.x), Math.abs(p.z)) > CUBE.half)).toBe(true);
   expect(grid.length).toBeLessThan(standalone.length);
   for (const p of grid) expect(Math.max(Math.abs(p.x), Math.abs(p.z))).toBeLessThanOrEqual(CUBE.half);

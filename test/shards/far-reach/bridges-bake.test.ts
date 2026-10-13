@@ -29,20 +29,21 @@ describe('Sky Reach bakes its rope bridges offline (SHARD-PLATFORM M3)', () => {
     expect(bridgeRows.spans.map((s) => s.id)).toEqual(ropeSpans().map((s) => s.id));
     const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(() => Promise.resolve(new Response(bin())));
     await loadSkyBridges(); fetch.mockRestore();
-    const rails = new MeshStandardMaterial(), deckIndex: number = bridgeRows.deck, deckRow: PackedGeometryRow | undefined = packedRows(bridgeRows).geometries[deckIndex];
+    const rails = new MeshStandardMaterial(), wood = new MeshStandardMaterial(), deckIndex: number = bridgeRows.deck, deckRow: PackedGeometryRow | undefined = packedRows(bridgeRows).geometries[deckIndex];
     for (const span of bridgeRows.spans) {
-      const group = ropeBridge(span.id, rails), [deck, ...rest] = group.children;
+      const group = ropeBridge(span.id, rails, wood), [deck, ...rest] = group.children;
       // no textured post in a test (its model never loaded): the deck, then per side the top and mid ropes and the ties
       expect(deck).toBeInstanceOf(InstancedMesh);
       if (!(deck instanceof InstancedMesh)) continue;
       const geometry: unknown = deck.geometry, normal: unknown = geometry instanceof BufferGeometry ? geometry.getAttribute('normal') : null;
       expect(normal instanceof BufferAttribute && normal.count).toBe(deckRow?.count);
       expect(deck.count).toBeGreaterThan(0);
+      expect(deck.material).toBe(wood);
       const ties = span.sides.filter((s) => s.ties.length > 0).length;
       expect(rest).toHaveLength(4 + ties);
       expect(rest.filter((o) => o instanceof Mesh && o.geometry instanceof TubeGeometry)).toHaveLength(4);
       for (const o of rest) expect(o instanceof Mesh && o.material === rails).toBe(true);
     }
-    expect(ropeBridge('far.rope.unknown', rails).children).toHaveLength(0);
+    expect(ropeBridge('far.rope.unknown', rails, wood).children).toHaveLength(0);
   });
 });

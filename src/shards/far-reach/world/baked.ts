@@ -23,7 +23,7 @@ import { dressingMaterial } from './dressing';
  * SHARD-PLATFORM SF72: Sky Reach's world pieces drawn from their offline bake. The shapes are built at build time
  * (`generators/*.ts`, `scripts/bake-sky-world.mjs`) and folded into instanced kinds (`@wildshard/sdk/bake/kinds`); the
  * client loads each piece's GLB behind the loading screen and draws it in its own materials: a shack part in its kind's
- * procedural shader (`world/shack.ts`), a dressing kind in its own (`world/dressing.ts`), anything else in its row's standard material (a kind with a `paint` in the islands'
+ * material graph (`world/shack.ts`), a dressing kind in its own (`world/dressing.ts`), anything else in its row's standard material (a kind with a `paint` in the islands'
  * painted rock, `paintIsleMaterial`). The colliders are the rows'.
  */
 const PIECES = { 'winch-house': winchHouse, roost, docks, crown, mill, 'book-stand': bookStand, knolls, geometries, 'islet-rig': isletRig, dressing } as const satisfies Readonly<Record<BakedPiece, unknown>>;
@@ -39,7 +39,7 @@ const WORLD = bakedWorld<BakedPiece, BakedKindRow>(PIECES, BAKED_URLS, 'far-reac
   material: (kind) => { const shack = shackKind(kind), dressed: unknown = 'dressing' in kind ? kind.dressing : undefined;
     return shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : undefined; },
   decorate: (material, kind) => { const rockMix: unknown = 'paint' in kind ? kind.paint : undefined; if (typeof rockMix === 'number') paintIsleMaterial(material, rockMix); },
-  attributes: { _shk: 'shk', _farcloth: 'farCloth' },
+  attributes: { _shk: 'aShk', _farcloth: 'farCloth' },
 });
 /** Load every baked piece, the islands and the sward atlas (the plugin's `world` hook, before the world is built); a piece that fails to load is empty. */
 export async function loadSkyBaked(): Promise<void> {

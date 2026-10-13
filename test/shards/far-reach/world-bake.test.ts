@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate inflates the shipped sward atlas.
 import { inflateSync } from 'node:zlib';
-import { InstancedMesh, Matrix4, Mesh, Vector3, type Object3D } from 'three';
+import { InstancedMesh, type Material, Matrix4, Mesh, MeshStandardMaterial, Vector3, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { colliderRows } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyWinchHouse, buildWinchHouse } from '../../../src/shards/far-reach/generators/winchHouse';
@@ -24,9 +24,10 @@ import seaRows from '../../../src/shards/far-reach/data/seaTexture.json' with { 
 import { bakeSkyCards } from '../../../src/shards/far-reach/generators/skyCards';
 import { SKY_CARDS as skyCardRows } from '../../../src/shards/far-reach/data/skyCards';
 import { SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS } from '../../../src/shards/far-reach/data/skyCardsLook';
-import { cardField, cardGroup } from '../../../src/shards/far-reach/runtime/looks/cardField';
+import { cardField, cardGroup } from '../../../src/sdk/looks/cardField';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { skyBakedPiece, skyKnollHulls } from '../../../src/shards/far-reach/world/baked';
+import { setSkyLooks } from '../../../src/shards/far-reach/world/looks';
 import { bakeSkyDressing, buildDressing } from '../../../src/shards/far-reach/generators/dressing';
 import dressingRows from '../../../src/shards/far-reach/data/dressing.json' with { type: 'json' };
 import { heroStoneDiscs } from '../../../src/shards/far-reach/world/dressing';
@@ -67,7 +68,9 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
     expect(readdirSync(folder).filter((name) => name.endsWith('.glb')).sort()).toEqual(BAKED_PIECES.map((piece) => `${piece}.glb`).sort());
   });
 
-  it('the winch house draws every built mesh as one instance of a kind, its shack parts in their shaders with their `shk` channel', async () => {
+  it('the winch house draws every built mesh as one instance of a kind, its shack parts in their graphs with their `aShk` channel', async () => {
+    const graphs = new Map<string, Material>(['plank', 'shingle', 'stone', 'beam'].map((kind) => [`shack-${kind}`, new MeshStandardMaterial({ name: kind })]));
+    setSkyLooks(graphs);
     const drawn = skyBakedPiece('winch-house', await nodesOf('winch-house', winchHouse.kinds)), built = buildWinchHouse(), meshes: Mesh[] = [];
     // the client stands the piece on the step (world/build.ts); the parts keep the house's own frame
     drawn.root.position.set(WINCH_HOUSE.x, STEP.y, WINCH_HOUSE.z); drawn.root.updateMatrixWorld(true);
@@ -80,14 +83,15 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
     // fewer draws than meshes, never multi-draw: one instanced mesh per kind
     expect(kinds.length).toBeLessThan(meshes.length);
     for (const mesh of kinds) {
-      const shack = mesh.geometry.hasAttribute('shk');
+      const shack = mesh.geometry.hasAttribute('aShk');
       expect(Array.isArray(mesh.material)).toBe(false);
-      // a shack kind is drawn in its pattern shader, which reads `shk`
-      const material = mesh.material, patched = !Array.isArray(material) && material.defines !== undefined && 'SHK_MODE' in material.defines;
-      expect(patched).toBe(shack);
+      // a shack kind is drawn in its kind's look material (its graph), which reads `aShk`
+      const material = mesh.material, graphed = !Array.isArray(material) && [...graphs.values()].includes(material);
+      expect(graphed).toBe(shack);
       // the soups draw unindexed, as built (the GLB's identity index dropped)
       if (shack) expect(mesh.geometry.getIndex()).toBe(null);
     }
+    setSkyLooks(new Map());
     // every vertex of every built mesh lands where an instance of its kind puts it (≤ 1e-4 m after the TRS round trip)
     const all = kinds.flatMap((o) => Array.from({ length: o.count }, (_, i) => { const t = new Matrix4(); o.getMatrixAt(i, t); return { o, t: t.premultiply(drawn.root.matrixWorld) }; }));
     const want = new Vector3(), got = new Vector3();
@@ -215,6 +219,8 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
   });
   it('the island dressing draws its generator\'s copies exactly (the float32 matrices and colours, no TRS round trip), each kind in its own material', async () => {
     expect(heroStoneDiscs()).toEqual(dressingRows.discs);
+    const clump = new MeshStandardMaterial({ name: 'clump' }), flower = new MeshStandardMaterial({ name: 'flower' });
+    setSkyLooks(new Map([['dressing-clump', clump], ['dressing-flower', flower]]));
     const drawn = skyBakedPiece('dressing', await nodesOf('dressing', dressingRows.kinds)), built = buildDressing().filter(([, mesh]) => mesh.count > 0);
     expect([...drawn.kinds.keys()]).toEqual(built.map(([name]) => name));
     expect(drawn.colliders).toEqual([]);
@@ -224,7 +230,10 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
       expect(new Uint8Array(mesh?.instanceMatrix.array.buffer ?? new ArrayBuffer(0))).toEqual(new Uint8Array(live.instanceMatrix.array.buffer));
       expect(mesh?.instanceColor?.array).toEqual(live.instanceColor?.array);
     });
-    // the lip clumps share the clumps' material
-    expect(drawn.kinds.get('lip')?.material).toBe(drawn.kinds.get('clump')?.material);
+    // the lip clumps share the clumps' graph; the flowers draw in theirs
+    expect(drawn.kinds.get('lip')?.material).toBe(clump);
+    expect(drawn.kinds.get('clump')?.material).toBe(clump);
+    expect(drawn.kinds.get('flower')?.material).toBe(flower);
+    setSkyLooks(new Map());
   });
 });

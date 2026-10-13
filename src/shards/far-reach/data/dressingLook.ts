@@ -1,30 +1,41 @@
 import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
+import { SKY_PAINTER_GRAPH } from './skyLook';
 
 /**
- * The island dressing's material edits (SHARD-PLATFORM M3: shader edit rows; world/dressing.ts applies them with
- * `editShader` in its `patchShader` callbacks). The clumps carry the meadow beyond the near field and shrink away inside it
+ * The island dressing's looks: the clumps' and flowers' hand-offs are SF59 material graphs (the shardfile's
+ * `look.materials`), the boulders' detail a shader edit row (world/dressing.ts applies it with `editShader`). The clumps carry the meadow beyond the near field and shrink away inside it
  * (between 15 and 22 m from the camera: world/meadow.ts's blades own the foreground); the flowers grow in past 9-13 m, a
  * little larger far off; the boulders wear the islands' painted rock with cracks, lichen flecks and a moss cap at a
  * boulder's own scale.
  */
 
-/** The grass clumps' (and the rim's lip clumps') hand-off to the near meadow. */
-export const CLUMP_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'vertex', find: '#include <begin_vertex>', put: `#include <begin_vertex>
-      #ifdef USE_INSTANCING
-      { vec3 farAt = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-        transformed *= smoothstep(15.0, 22.0, distance(farAt.xz, cameraPosition.xz)); }
-      #endif` },
-];
+/**
+ * The vertex shrink a hand-off draws with: the instance's origin from the camera across the ground (`d`), and every vertex
+ * pulled toward that origin by `scale` (model space: the world offset turned back through the piece's own rotation).
+ */
+const handoff = (scale: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> => ({ ...SKY_PAINTER_GRAPH.nodes,
+  origin: { op: 'objectOrigin' }, eye: { op: 'cameraPosition' }, rel: { op: 'sub', in: ['origin', 'eye'] }, flat: { op: 'swizzle', in: ['rel'], mask: 'xz' },
+  d: { op: 'length', in: ['flat'] }, wp: { op: 'positionWorld' }, arm: { op: 'sub', in: ['wp', 'origin'] }, local: { op: 'worldToLocal', in: ['arm'] },
+  ...scale, less: { op: 'sub', in: ['s', 1] }, offset: { op: 'mul', in: ['local', 'less'] },
+});
 
-/** The far flowers' hand-off: grown in past the near meadow's flowers, up to 2.2 × far off. */
-export const FLOWER_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'vertex', find: '#include <begin_vertex>', put: `#include <begin_vertex>
-      #ifdef USE_INSTANCING
-      { vec3 farAt = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz; float farD = distance(farAt.xz, cameraPosition.xz);
-        transformed *= smoothstep(9.0, 13.0, farD) * clamp(farD / 12.0, 1.0, 2.2); }
-      #endif` },
-];
+/**
+ * The grass clumps' (and the rim's lip clumps') hand-off to the near meadow (SHARD-PLATFORM G382: an SF59 material graph,
+ * `look.materials.dressing-clump`): each clump shrinks away between 15 and 22 m from the camera.
+ */
+export const CLUMP_GRAPH = { version: 1, kind: 'material', model: 'standard', doubleSided: true,
+  nodes: { ...handoff({ s: { op: 'smoothstep', in: [15, 22, 'd'] } }), c: { op: 'vertexColour' } },
+  stages: { 'vertex.offset': { offset: 'offset' }, surface: { colour: 'c', roughness: 1, metalness: 0 }, lighting: SKY_PAINTER_GRAPH.lighting } } as const;
+
+/**
+ * The far flowers' hand-off (`look.materials.dressing-flower`): grown in past the near meadow's flowers (9 to 13 m), up to
+ * 2.2 × far off, lit a little by their own warm emissive.
+ */
+export const FLOWER_GRAPH = { version: 1, kind: 'material', model: 'standard', doubleSided: true,
+  params: { warm: { type: 'colour', value: [0x2a / 255, 0x24 / 255, 0x18 / 255] } },
+  nodes: { ...handoff({ grow: { op: 'smoothstep', in: [9, 13, 'd'] }, far: { op: 'div', in: ['d', 12] }, big: { op: 'clamp', in: ['far', 1, 2.2] }, s: { op: 'mul', in: ['grow', 'big'] } }),
+    c: { op: 'vertexColour' }, warm: { op: 'param', param: 'warm' } },
+  stages: { 'vertex.offset': { offset: 'offset' }, surface: { colour: 'c', emissive: 'warm', roughness: 1, metalness: 0 }, lighting: SKY_PAINTER_GRAPH.lighting } } as const;
 
 /** The boulders' near detail over the islands' paint (E392 foreground, E407 row 4: grey rocks with pale lichen). */
 export const BOULDER_EDITS: readonly ShaderEditRow[] = [

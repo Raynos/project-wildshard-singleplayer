@@ -1,9 +1,10 @@
-import { DoubleSide, MeshStandardMaterial, type Material } from 'three';
+import { MeshStandardMaterial, type Material } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { paintIsleMaterial } from './isle';
 import dressing from '../data/dressing.json' with { type: 'json' };
-import { BOULDER_EDITS, CLUMP_EDITS, FLOWER_EDITS } from '../data/dressingLook';
+import { BOULDER_EDITS } from '../data/dressingLook';
+import { skyLook } from './looks';
 
 /**
  * The island dressing (Gilded Air, review items 6 / 7, loop 2): grass clumps, the rims' lip clumps, flowers and boulders,
@@ -17,25 +18,15 @@ export function heroStoneDiscs(): [number, number, number][] {
   return dressing.discs.map(([x = 0, z = 0, r = 0]) => [x, z, r]);
 }
 
-let clumps: MeshStandardMaterial | null = null;
 /**
- * A dressing kind's own material (its row's `dressing`), made as the piece is drawn, in row order: the clumps carry the
- * meadow beyond the near field (world/meadow.ts) and shrink away inside it so the fine blades own the foreground; the lip
- * clumps (the next kind) lean out over every rim in the clumps' material (E407 row 4); the flowers grow in past the near
- * meadow's own; the boulders wear the islands' painted rock and moss with their own near detail over it (E392).
+ * A dressing kind's own material (its row's `dressing`), as the piece is drawn: the clumps (and the lip clumps, which lean
+ * out over every rim, E407 row 4) carry the meadow beyond the near field (world/meadow.ts) and shrink away inside it so the
+ * fine blades own the foreground, the flowers grow in past the near meadow's own (their graphs, `look.materials`); the
+ * boulders wear the islands' painted rock and moss with their own near detail over it (E392).
  */
 export function dressingMaterial(kind: string): Material | undefined {
-  if (kind === 'lip') return clumps ?? undefined;
-  if (kind === 'clump') {
-    clumps = new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0 });
-    patchShader(clumps, 'far.clump-handoff', PATCH_ORDER.decorate, (shader) => { editShader(shader, CLUMP_EDITS); }, { key: (prior) => `${prior}|far.clump-handoff` });
-    return clumps;
-  }
-  if (kind === 'flower') {
-    const flowers = new MeshStandardMaterial({ vertexColors: true, side: DoubleSide, roughness: 1, metalness: 0, emissive: 0x2a2418 });
-    patchShader(flowers, 'far.flower-handoff', PATCH_ORDER.decorate, (shader) => { editShader(shader, FLOWER_EDITS); }, { key: (prior) => `${prior}|far.flower-handoff` });
-    return flowers;
-  }
+  if (kind === 'clump' || kind === 'lip') return skyLook('dressing-clump');
+  if (kind === 'flower') return skyLook('dressing-flower');
   if (kind !== 'stone') return undefined;
   const stones = paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 }));
   patchShader(stones, 'far.boulder-detail', PATCH_ORDER.decorate + 10, (shader) => { editShader(shader, BOULDER_EDITS); }, { key: (prior) => `${prior}|far.boulder-detail` });

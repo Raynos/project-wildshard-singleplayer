@@ -5,7 +5,7 @@ import { ISLE_DRAWS } from '../data/isleLook';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { Group, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
+import { Group, Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
 import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, NOTES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, type Span } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { staticIsle, type IsleMeshes } from './isle';
@@ -109,9 +109,9 @@ const CUT = ISLE_KEEL_CUT;
  * ones) per task (op-hitch41: a grid cell builds it on the road, in play, where the whole build was one 366 ms task on
  * the iOS Simulator). The same pieces in the same order, the same seeded draws. `pause` ends a piece's task (the plugin's
  * paced worldBuildYield, op-hitch45: in play a drawn frame when one is due, else a timer task of the shard's scope;
- * it rejects once the cell has unloaded, and the build stops).
+ * it rejects once the cell has unloaded, and the build stops). `looks` are the rope decks' wood and the hover frames' glow (`look.materials`).
  */
-export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, isles: IsleMeshes): Promise<BuiltWorld> {
+export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, isles: IsleMeshes, looks: { readonly deck: Material; readonly frame: Material }): Promise<BuiltWorld> {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const pieces = skyPieces(ctx.piece, root);
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
@@ -171,7 +171,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   // SF49-g (G183): each gate isle's rope bridge to its island is one more rope span of the same builder
   const bridges: Piece[] = [];
   for (const span of [...SPANS, ...RISING_ISLETS.map((entry) => entry.bridge)]) {
-    const hover = span.kind === 'hover', length = spanLength(span), bridge = hover ? hoverBridge(length, span.width, hoverDeck) : ropeBridge(span.id, rope);
+    const hover = span.kind === 'hover', length = spanLength(span), bridge = hover ? hoverBridge(length, span.width, hoverDeck, looks.frame) : ropeBridge(span.id, rope, looks.deck);
     bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.set(spanPitch(span), spanYaw(span), 0, 'YXZ');
     const piece: Piece = { id: span.id, name: hover ? STRINGS.hover : STRINGS.rope, category: 'buildings', file: FILE, object: bridge,
       colliders: spanColliders(span.id), surface: 'wood' };
@@ -186,7 +186,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   await pause();
 
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
-  const ramp = hoverBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck);
+  const ramp = hoverBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck, looks.frame);
   ramp.position.set(UPDRAFT.x0, UPDRAFT.y, UPDRAFT.z0); ramp.rotation.set(UPDRAFT_ANGLE, spanYaw(UPDRAFT), 0, 'YXZ');
   pieces.add('far.updraft', ramp, { colliders: spanColliders('far.updraft') });
   // the wind column: a spiral of streaks and leaves up the ramp (loop 3; the plugin turns it)
@@ -196,7 +196,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
   const state = { raised: false, raising: false };
-  const fallen = new Group(), deck = ropeBridge(FALLEN_BRIDGE.id, rope);
+  const fallen = new Group(), deck = ropeBridge(FALLEN_BRIDGE.id, rope, looks.deck);
   fallen.add(deck); fallen.position.set(FALLEN_BRIDGE.x0, FALLEN_BRIDGE.y, FALLEN_BRIDGE.z0); fallen.rotation.set(FALLEN_ANGLE, spanYaw(FALLEN_BRIDGE), 0, 'YXZ');
   pieces.add(FALLEN_BRIDGE.id, fallen, { colliders: spanColliders(FALLEN_BRIDGE.id), active: () => state.raised });
 

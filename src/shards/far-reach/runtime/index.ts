@@ -22,7 +22,6 @@ import { gustFx } from './looks/windFx';
 import { GUST_FX } from '../data/windLook';
 import { RISING_ISLETS } from '../world/islets';
 import type { RisingIslet } from '../data/isletDesign';
-import { FALL_TIME } from '../world/distant';
 import { WarFan, type WarFanWeapon } from '../weapons/WarFan';
 import { loadSkyFan } from '../weapons/fanShapes';
 import type { ConeFanTarget } from './weapons/coneStrikes';
@@ -39,6 +38,7 @@ import { preloadSkyMeshes } from '../world/meshes';
 import { loadSkyBaked } from '../world/baked';
 import { loadSkyBridges } from '../world/shapes';
 import { adoptIsleTile, setIsleTextures } from '../world/isle';
+import { setSkyLooks } from '../world/looks';
 import { loadSkyMillModel, setMillTextures } from '../world/mill';
 import { FAN_LEAF_URL, TEX_URL } from '../data/files';
 import { loadPainted } from '../look/image';
@@ -56,7 +56,7 @@ import { FLAGS, vaneFlag } from '../quest/flags';
 import { installSkyCues } from './audio/cues';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { HybridRuntimePlugin, bindRuntimeHomes, type HybridRuntimeRows, type RuntimeHomes } from '@wildshard/game/plugin/headless';
-import { bindRuntimeProductProps } from '@wildshard/game/shardfile/runtimeProduct';
+import { bindRuntimeProductProps, runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import { bindSkyItems } from './items';
 
 declare module '@wildshard/engine/input/InputService' {
@@ -134,7 +134,12 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const isles = new Map<string, Mesh>();
     await bindRuntimeProductProps(ctx.scope, source, { props: (tile) => { adoptIsleTile(tile, isles); } })
       .catch((e: unknown) => { console.error('[far-reach] the island tiles did not load; they stand undrawn:', e); });
-    this.built = await buildWorld(ctx, () => worldBuildYield(ctx), isles);
+    // the shard's look materials (look.materials, material graphs switched on for Sky, G387): the rope decks, the hover frames,
+    // the shacks' kinds, the dressing's clumps and flowers, the falls (world/looks.ts)
+    const looks = (await runtimeLookMaterials(ctx, source, true)).materials, deck = looks.get('deck-wood'), frame = looks.get('hover-frame');
+    if (deck === undefined || frame === undefined) throw new Error('Sky Reach: look.materials lacks deck-wood or hover-frame');
+    setSkyLooks(looks);
+    this.built = await buildWorld(ctx, () => worldBuildYield(ctx), isles, { deck, frame });
     await worldBuildYield(ctx);
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
     ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
@@ -219,7 +224,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       const cam = rt.world?.game.camera; if (cam && this.meadow) this.meadow.update(this.meadow.mesh.worldToLocal(cam.getWorldPosition(eye)), t);
       // SF49-g (G183): the Rising Islets ride their movers (fixed ride driver, in the fixed step); draw them and their chains
       const movers = this.movers; if (movers !== null) { built.islets.update(moverPose); this.isletCalls?.update(moverPose); }
-      built.millHub.rotation.z += dt * 0.35; FALL_TIME.value = t; built.storm.update(dt, t); built.wind.update(t);
+      built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t); built.wind.update(t);
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
         const row = vanes[i]; if (row === undefined) break;
         row.vane.rotor.rotation.y += dt * (flags.has(row.flag) ? 6 : 0.25);
