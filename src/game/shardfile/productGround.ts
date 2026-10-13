@@ -25,6 +25,7 @@ export function installProductGround(): () => void {
     if (terrain.sampling !== undefined && terrain.sampling.file !== terrain.collider) assets.set(terrain.sampling.file, await product.assets.read(terrain.sampling.file));
     // Required manifest metadata applies its datum once, after admitting these raw native queries.
     const ground = clientGround({ ...product.source, meshCollision: null }, assets, 0);
+    await product.releaseTransport(assets.keys());
     return { seed: product.source.identity.seed, heightAt: ground.heightAt, normalAt: ground.normalAt, splatAt: ground.splatAt };
   });
 }
@@ -52,7 +53,9 @@ export function installProductSampling(): () => void {
       const terrain = product.source.terrain;
       if (terrain === null || terrain.form !== 'query') return null;
       const profile = terrain.sampling, wire = await product.assets.read(profile.file);
-      return { seed: product.source.identity.seed, ...bilinearTerrainSamplers(decodeTerrainTile(wire), profile.normalEpsilon, profile.datum) };
+      const queries = bilinearTerrainSamplers(decodeTerrainTile(wire), profile.normalEpsilon, profile.datum);
+      await product.releaseTransport([profile.file]);
+      return { seed: product.source.identity.seed, ...queries };
     });
   });
 }

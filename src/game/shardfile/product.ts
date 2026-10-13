@@ -8,6 +8,7 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
 import { assertExternalShardSlug, externalShardInstance } from './identity';
+import { runtimeBoundWorldFiles } from '../plugin/headless';
 
 
 const HASH = /^[a-f0-9]{64}$/u;
@@ -43,7 +44,33 @@ export interface ProductOptions {
   progress?: (progress: ProductProgress) => void;
 }
 /** Admitted owned wire bytes; callers release this map when decoded resources take over. */
-export interface AdmittedProduct { source: Shardfile; assets: ReadonlyMap<string, Uint8Array>; cached: boolean; instance?: string }
+export interface AdmittedProduct {
+  source: Shardfile; assets: ReadonlyMap<string, Uint8Array>; cached: boolean; instance?: string;
+  /** After reader handoff and decoding, forget only runtime-bound wire copies with verified durable rereads. */
+  releaseTransport?: (refs: Iterable<string>) => Promise<readonly string[]>;
+}
+
+// Construct outside admission's decoding context: the owner must not retain the temporary hash/transport maps.
+function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, options: ProductOptions): (refs: Iterable<string>) => Promise<readonly string[]> {
+  const bound = runtimeBoundWorldFiles(source), files = new Map(source.files.map(file => [file.hash, file]));
+  const base = new URL('.', options.base).href, cache = options.cache, hash = options.hash;
+  return async refs => {
+    const requested = [...new Set(refs)];
+    for (const ref of requested) if (!files.has(ref) && !source.requires.commons.some(value => ref === `commons:${value}`)) throw new Error('Undeclared transport release');
+    const released: string[] = [];
+    if (cache === undefined) return released;
+    // Quota failures keep the admitted copy. A reread remains byte/hash checked and its residency owner pins the disk file.
+    for (const ref of requested) {
+      if (!bound.has(ref)) continue;
+      const bytes = await cache.asset(base, ref), file = files.get(ref);
+      if (bytes === null) continue;
+      if (file === undefined || bytes.length !== file.compressed || await hash(bytes) !== ref) throw new Error('Released transport cache hash or size mismatch');
+      released.push(ref);
+    }
+    for (const ref of released) assets.delete(ref);
+    return released;
+  };
+}
 function version(input: unknown): string | 0 {
   if (typeof input !== 'object' || input === null || !('version' in input)) throw new Error('Shardfile needs a format version');
   if (input.version === 0) return 0;
@@ -182,7 +209,7 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
     } finally { release?.(); }
   }
   progress('complete', 'Product admitted');
-  return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
+  return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options) } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }
 /** Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. */
 export function browserProductCache(storage: Pick<CacheStorage, 'open'>): ProductCache {

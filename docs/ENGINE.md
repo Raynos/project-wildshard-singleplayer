@@ -3778,3 +3778,22 @@ CI removes runtime/legacy directories and generated outputs, then compares
 all cold bytes. These pins never activate `prepareGeneration`, restore an
 output, or authorize a tracked-output removal. Promotion to `buildOutputs`
 remains a separate G318 change, requiring the complete product fixtures.
+
+### Runtime-owned admission transports (G384)
+
+First-party `AdmittedProduct.releaseTransport(refs)` owns its admission
+Map; it releases only `runtimeBoundWorldFiles` after a decoder handoff,
+and only when exact-size, hash-checked durable bytes remain available.
+Quota failures retain the admitted copy. Undeclared refs refuse before
+any deletion; unbound and shared references remain. Caller-provided Maps
+without this callback are never mutated.
+
+`provideRuntimeProduct(admitted, scope, options?)` copies the admission
+into its resident reader and pins runtime-owned disk refs until disposal.
+Its `RuntimeProduct.releaseTransport(refs)` invokes the owner's callback
+then prunes only the released refs from its mirror. Required-ground and
+query-lattice decoders release their wire refs once sampling takes over.
+Subsequent reads still verify declared size and hash. The optional options
+use the admitting transport/cache; omitted options use the canonical
+first-party browser product. Standalone readers start without an
+admission Map and retain no decoded transports.

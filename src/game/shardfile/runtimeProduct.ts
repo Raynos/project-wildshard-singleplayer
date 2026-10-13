@@ -6,6 +6,7 @@ import { bindRuntimeProps, bindRuntimeTerrain, type RuntimePropsPorts, type Runt
 import { hybridPresentation, type HybridPresentation } from './hybridPresentation';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
+import { runtimeBoundWorldFiles } from '../plugin/headless';
 
 /**
  * The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,
@@ -18,7 +19,21 @@ import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
  *   against its declared hash and size and cached like every product file, so only the collider and the resident tiles
  *   are ever fetched.
  */
-export interface RuntimeProduct { readonly source: Shardfile; readonly assets: ClientAssets }
+export interface RuntimeProduct {
+  readonly source: Shardfile; readonly assets: ClientAssets;
+  /** Release decoded runtime-owned wires from both admission and this reader; unbound/shared files remain. */
+  readonly releaseTransport: (refs: Iterable<string>) => Promise<void>;
+}
+
+function ownedRuntimeProduct(source: Shardfile, assets: ClientAssets, release?: AdmittedProduct['releaseTransport']): RuntimeProduct {
+  const bound = runtimeBoundWorldFiles(source);
+  return { source, assets, releaseTransport: async refs => {
+    const requested = [...refs].filter(ref => bound.has(ref));
+    // Old/caller-owned admissions have no release authority: preserve their supplied maps and mirrors.
+    const released = release === undefined ? [] : await release(requested);
+    assets.releaseTransport(released);
+  } };
+}
 
 const provided = new Map<string, RuntimeProduct[]>();
 
@@ -28,10 +43,13 @@ function productBase(slug: string): string {
 }
 
 /** A grid cell's admitted product, read by its resident runtime while `scope` lives (the cell's resident scope). */
-export function provideRuntimeProduct(admitted: AdmittedProduct, scope: Scope): void {
+export function provideRuntimeProduct(admitted: AdmittedProduct, scope: Scope, options?: ProductOptions): void {
   if (scope.disposed) throw new Error('Runtime product needs a live resident scope');
   const slug = admitted.source.identity.slug;
-  const product: RuntimeProduct = { source: admitted.source, assets: new ClientAssets(admitted.source, admitted.assets, browserShardfileOptions(productBase(slug), true)) };
+  const assets = new ClientAssets(admitted.source, admitted.assets, options ?? browserShardfileOptions(productBase(slug), true));
+  // The handoff copies first, then pins every runtime-owned reread for the resident scope before any decoder releases it.
+  scope.onDispose(assets.lease(runtimeBoundWorldFiles(admitted.source)));
+  const product = ownedRuntimeProduct(admitted.source, assets, admitted.releaseTransport);
   const stack = provided.get(slug) ?? [];
   stack.push(product); provided.set(slug, stack);
   scope.onDispose(() => {
@@ -99,7 +117,8 @@ export function slugRuntimeProduct(slug: string): RuntimeProduct | null {
 export function runtimeProduct(source: Shardfile): RuntimeProduct {
   const slug = source.identity.slug, admitted = admittedRuntimeProduct(slug);
   if (admitted !== null) return admitted;
-  return { source, assets: new ClientAssets(source, new Map(), browserShardfileOptions(productBase(slug), true)) };
+  return ownedRuntimeProduct(source, new ClientAssets(source, new Map(), browserShardfileOptions(productBase(slug), true)),
+    refs => Promise.resolve([...refs]));
 }
 
 /** Bind a runtime's declared terrain tiles from its product reader (`runtimeProduct`) under `scope`; see `bindRuntimeTerrain`. */
