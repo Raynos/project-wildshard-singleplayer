@@ -3,8 +3,6 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The committed bake is a zlib stream the page inflates.
 import { inflateSync } from 'node:zlib';
-// oxlint-disable-next-line import/no-nodejs-modules -- The stale gate runs on the platform the bake was recorded on.
-import { platform } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare complete native bytes without deep array traversal.
 import { Buffer } from 'node:buffer';
 import * as THREE from 'three';
@@ -13,7 +11,8 @@ import { CRAG_ROWS, CragSkin as AuthoredCragSkin } from '../../../src/shards/pin
 import { CragSkin } from '../../../src/shards/pine-hollow/generators/cragCodec';
 import { assembleWholeGeometryViews, nativeWholeGeometry, unshuffleLanes } from '@wildshard/game/plugin/geometry';
 import committed from '../../../src/shards/pine-hollow/data/crags.json' with { type: 'json' };
-import { bakeCragRows } from '../../../src/shards/pine-hollow/generators/bake-pine-crags.mjs';
+import { bakeCragRows, pineCragKit, pineCragGround, pineTrunks } from '../../../src/shards/pine-hollow/generators/bake-pine-crags.mjs';
+import { bakePineCrags } from '../../../src/shards/pine-hollow/generators/crags';
 import { pineCragBake } from '../../../src/shards/pine-hollow/generators/cragScene';
 import { pineTimberWorldBake } from '../../../src/shards/pine-hollow/generators/timberWorld';
 import { pineTimberGround } from '../../../src/shards/pine-hollow/generators/bake-pine-lookout.mjs';
@@ -66,14 +65,31 @@ describe('Pine Hollow bakes its crags offline (G285)', () => {
     for (const view of views.values()) view.geometry.dispose();
   }, 30_000);
 
-  // Byte-exact against a bake recorded on the Mac; Linux's libm differs in the last ulp (CI 38008817381: tiltX …043 vs …046),
-  // so the stale gate runs where bakes are made (the local push gate), not on the Linux runners.
-  it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun src/shards/pine-hollow/generators/bake-pine-crags.mjs)', async () => {
+  it('the committed bake is byte-exact against its generator on every platform (rerun src/shards/pine-hollow/generators/bake-pine-crags.mjs)', async () => {
     // the ground the crags stand on is the level's: its baked grid carries the level seed (1337)
     const { rows, bins } = await bakeCragRows();
     expect(rows).toEqual(committed);
     for (const tier of ['phone', 'desktop'] as const) expect(Buffer.from(shipped(tier)).equals(bins[tier])).toBe(true);
   }, 30_000);
+
+  it('canonicalizes only written tiltX from each raw native angle at exactly 1e-12 rad precision', async () => {
+    const raw = bakePineCrags(await pineCragKit(), pineTrunks(), pineCragGround());
+    const { rows, bins } = await bakeCragRows();
+    expect(rows.places).toHaveLength(raw.places.length);
+    for (const [i, original] of raw.places.entries()) {
+      const written = rows.places[i];
+      if (written === undefined) throw new Error('Canonical producer dropped a native placement');
+      expect(written.tiltX).toBe(Math.round(original.tiltX * 1e12) / 1e12);
+      expect(Math.abs(written.tiltX - original.tiltX)).toBeLessThanOrEqual(5e-13);
+      expect({ ...written, tiltX: original.tiltX }).toEqual(original);
+      const frame = (p: typeof original): number[] => new THREE.Matrix4().compose(
+        new THREE.Vector3(p.x, p.y, p.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(p.tiltX, p.yaw, p.tiltZ, 'YXZ')),
+        new THREE.Vector3(p.scale, p.scale, p.scale)).elements;
+      const before = frame(original), after = frame(written);
+      for (const [j, value] of before.entries()) expect(Math.abs(value - (after[j] ?? Number.NaN)), `native matrix ${i}:${j}`).toBeLessThanOrEqual(Math.max(1, original.scale) * 1e-12);
+    }
+    for (const tier of ['phone', 'desktop'] as const) expect(Buffer.from(bins[tier]).equals(raw.skin[tier].bin)).toBe(true);
+  });
 
   it('decodes every tier\'s skin into the page\'s tiles: a near and a far geometry each, finite, indexed, bounded', async () => {
     expect(CRAG_ROWS.places.filter((p) => p.id === 'hero')).toHaveLength(1);

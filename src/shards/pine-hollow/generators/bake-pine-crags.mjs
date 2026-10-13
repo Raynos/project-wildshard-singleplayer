@@ -17,7 +17,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import { pineCragQueries } from './cragGround.ts';
-import { bakePineCrags, shuffleLanes } from './crags.ts';
+import { bakePineCrags, canonicalCragTiltX, shuffleLanes } from './crags.ts';
 import { pineCragBake } from './cragScene.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
@@ -60,6 +60,7 @@ export function pineTrunks() {
 /** the bake: the rows and each tier's raw binary */
 export async function bakeCragRows() {
   const { places, skin } = bakePineCrags(await pineCragKit(), pineTrunks(), pineCragGround());
+  for (const placement of places) placement.tiltX = canonicalCragTiltX(placement.tiltX);
   const tier = (t) => ({ bin: createHash('sha256').update(skin[t].bin).digest('hex'), bytes: skin[t].bin.length, tiles: skin[t].tiles });
   return { rows: { places, skin: { phone: tier('phone'), desktop: tier('desktop') } }, bins: { phone: skin.phone.bin, desktop: skin.desktop.bin } };
 }

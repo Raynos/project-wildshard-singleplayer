@@ -219,6 +219,9 @@ export function placeCrags(o: PlaceOpts): CragPlace[] {
   return out;
 }
 
+/** Written tiltX angles have 1e-12 rad precision; native placement and skin calculations keep their original doubles. */
+export function canonicalCragTiltX(raw: number): number { return Math.round(raw * 1e12) / 1e12; }
+
 // ───────────────────────────────────── the face skin (the heightfield's steep faces as granite) ─────────────────────────
 
 const fract = (v: number): number => v - Math.floor(v);
