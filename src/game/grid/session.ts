@@ -126,7 +126,7 @@ export interface GridSessionHost {
 }
 /**
  * What each cell draws now, for the readout and the captures: `playing` (the entered runtime), `frozen` (the home's
- * runtime, not stepping), `near` (its near placeholder, its far proxy hidden), `far proxy`, `tiles` (only its L1 / L0
+ * runtime, not stepping, when no placeholder layer draws it), `near` (its near placeholder, its far proxy hidden), `far proxy`, `tiles` (only its L1 / L0
  * ring tiles: the far proxy wholly refined away), `loading` (nothing yet).
  */
 export type GridCellShows = 'playing' | 'frozen' | 'near' | 'far proxy' | 'tiles' | 'loading';
@@ -664,8 +664,9 @@ export class GridSession {
     const at = this.world(), cost = this.allocator.cost(), playing = this.live === null ? this.home.instance : this.live.live.current();
     const tiles = (instance: string, level: 'l1' | 'l0'): number => residentKeys.filter((key) => key.startsWith(`${instance}:${level}/`)).length;
     const drawn = (instance: string): GridCellDrawn => ({ far: this.farMeshes.get(instance)?.mesh.visible === true, near: this.near?.visible(instance) === true, l1: tiles(instance, 'l1'), l0: tiles(instance, 'l0') });
-    const shows = (instance: string, d: GridCellDrawn): GridCellShows => instance === playing ? 'playing' : instance === this.home.instance ? 'frozen'
-      : d.near ? 'near' : d.far ? 'far proxy' : d.l1 + d.l0 > 0 ? 'tiles' : resident.has(instance) ? 'far proxy' : 'loading';
+    // the home off its cell (an owned home on the road) is drawn like any neighbour; `frozen` only when no layer draws it
+    const shows = (instance: string, d: GridCellDrawn): GridCellShows => instance === playing ? 'playing'
+      : d.near ? 'near' : d.far ? 'far proxy' : d.l1 + d.l0 > 0 ? 'tiles' : instance === this.home.instance ? 'frozen' : resident.has(instance) ? 'far proxy' : 'loading';
     return {
       home: this.home.instance, inside: gridCells.cell?.instance ?? null, feet: { x: Math.round(at.x * 100) / 100, z: Math.round(at.z * 100) / 100 },
       cells: this.assembly.cells.map((cell) => { const d = drawn(cell.instance); return { instance: cell.instance, slug: cell.slug, cell: cell.cell, shows: shows(cell.instance, d), drawn: d }; }),
