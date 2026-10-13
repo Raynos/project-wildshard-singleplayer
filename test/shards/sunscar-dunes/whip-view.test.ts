@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 import { describe, expect, it, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hashes the geometry and texture bytes against the recorded ones.
 import { createHash } from 'node:crypto';
@@ -5,9 +6,13 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate inflates the committed plait texels the client loads.
 import { inflateSync } from 'node:zlib';
-import { CylinderGeometry, InstancedMesh, Vector3, type BufferAttribute, type BufferGeometry, type InterleavedBufferAttribute, type Object3D } from 'three';
+import { CylinderGeometry, InstancedMesh, type BufferAttribute, type BufferGeometry, type InterleavedBufferAttribute, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { ClientChannels } from '../../../src/sdk/clientChannels';
+import { parseClientChannels } from '../../../src/format/clientChannels';
+import { createClientChannelView } from '../../../src/game/plugin/ui';
+import playback from '../../../src/shards/sunscar-dunes/data/heldPlayback.generated.json' with { type: 'json' };
 import { LashCord } from '../../../src/shards/sunscar-dunes/runtime/items/lashView';
 import { buildLashHold } from '../../../src/shards/sunscar-dunes/runtime/items/lashHold';
 import { bakeSignalLash, braidColours, coilPoints, lashTip, plaitTexels, wrapGeometry } from '../../../src/shards/sunscar-dunes/generators/lash';
@@ -58,7 +63,14 @@ describe('the lash item\'s view draws a shard\'s cord from its bake and rows (SH
   it('the client reads exactly the lash, plait tile, coil and braid Signal Dunes\' own code built (pixel parity by construction)', async () => {
     const baked = await loadLash(), kind = (name: string): BufferGeometry => { const g = baked.get(name); if (g === undefined) throw new Error(name); return g.clone(); };
     const hold = buildLashHold(WHIP_HOLD, { tip: [0, 0, 0], along: lash.along }, { baked: kind, plait: () => null, hd: () => null, coilSurface: () => undefined });
-    hold.lash.shape(new Vector3(0.01, 0.02, -0.1), new Vector3(0.5, 0.3, -7), 0.7, 0.4, 1.3);
+    const declared = parseClientChannels(playback.cord)[0]?.geometry;
+    if (declared === undefined) throw new Error('Missing retained cord descriptor');
+    const probe = new ClientChannels('cord.fixture');
+    probe.deformTube({ ...declared, from: [probe.constant(.01), probe.constant(.02), probe.constant(-.1)],
+      to: [probe.constant(.5), probe.constant(.3), probe.constant(-7)], extent: probe.constant(.7), wave: probe.constant(.4) });
+    const lane = createClientChannelView(probe.build(), new Map([['cord', hold.lash.mesh]]),
+      new Map([['cord', (row, target) => hold.lash.bindCurve(row, target)]]));
+    lane.evaluate({ time: 1.3, delta: 0, values: [] });
     const g = hold.lash.mesh.geometry, index = g.getIndex();
     if (index === null) throw new Error('lash index');
     expect({ position: floats(g.getAttribute('position')), normal: floats(g.getAttribute('normal')), color: floats(g.getAttribute('color')), index: sha(Uint32Array.from(index.array)),
