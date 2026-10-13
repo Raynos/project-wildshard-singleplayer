@@ -56,7 +56,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `.github/workflows/boot-smoke.yml` follows successful main push CI (or an explicit SHA dispatch), builds that exact
   commit and drives every public primary shard to entered, unpaused page-ready with ten live gameplay frames.
   Cases come from that build's actual title catalogue, excluding hidden levels and frozen copies. Experimental
-  primaries (including Signal) use their real Developer entry. The Developer grid proves its home handoff, then a
+  primaries (including Signal) use their real Developer entry. A separate Nine entry with Developer off is mandatory
+  in the public leg, even while Nine is experimental; its public playing-envelope admission must pass independently
+  of the Developer entry. The Developer grid proves its home handoff, then a
   real road-to-Signal crossing, entered runtime residency and ten live gameplay frames. One initial road pose uses
   the existing probe; held input and the shipping fixed step perform admission. Home and road each retain a
   90-second budget; a prepared cell or a ready home cannot substitute for Signal entry.

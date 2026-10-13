@@ -83,10 +83,14 @@ it('boots the entire actual public catalogue and experimental primaries without 
     { slug: 'future-public', status: 'live', legacy: false },
   ];
   const publicCases = bootCases(catalogue, 'public'), developerCases = bootCases(catalogue, 'developer');
-  expect(publicCases).toEqual(['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'future-public'].map(slug => ['standalone', slug, false]));
+  expect(publicCases).toEqual(['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'future-public'].map(slug => ['standalone', slug, false]));
   expect(developerCases).toEqual([['standalone', 'sunscar-dunes', true], ['standalone', 'far-reach', true], ['standalone', 'nine-dragon-stack', true], ['grid', 'driftwood-isle', false]]);
   expect(bootCases(catalogue)).toEqual([...publicCases, ...developerCases]);
   expect(() => bootCases(catalogue.filter(row => row.slug !== 'sunscar-dunes'))).toThrow('Signal');
+  expect(() => bootCases(catalogue.filter(row => row.slug !== 'nine-dragon-stack'))).toThrow('Nine Developer-off');
+  const publicNine = catalogue.map(row => row.slug === 'nine-dragon-stack' ? { ...row, status: 'earlyAccess' } : row);
+  expect(bootCases(publicNine, 'public').filter(row => row[1] === 'nine-dragon-stack')).toEqual([['standalone', 'nine-dragon-stack', false]]);
+  expect(bootCases(publicNine, 'developer').some(row => row[1] === 'nine-dragon-stack')).toBe(false);
   expect(() => bootCases([...catalogue, catalogue[0] ?? catalogue[1] ?? { slug: '', status: '', legacy: false }])).toThrow('duplicate');
   expect(() => bootCases([{ slug: 'sunscar-dunes', status: 'unknown', legacy: false }])).toThrow('Invalid');
   expect(() => bootCases([{ slug: 'sunscar-dunes', status: 'experimental', legacy: false }])).toThrow('No public');

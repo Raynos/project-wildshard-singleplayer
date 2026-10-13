@@ -80,7 +80,12 @@ export function bootCases(catalogue, group = 'all') {
   const publicRows = primary.filter(row => row.status !== 'experimental');
   const home = publicRows.at(0)?.slug;
   if (home === undefined) throw new Error('No public shard page-ready cases');
-  const publicCases = publicRows.map(row => /** @type {const} */ (['standalone', row.slug, false]));
+  if (!primary.some(row => row.slug === 'nine-dragon-stack')) throw new Error('Nine Developer-off page-ready case is missing from the built catalogue');
+  // Nine is experimental but direct public entry still admits its product. Its
+  // playing envelope must pass with Developer off, independently of the
+  // experimental entry below (Developer may waive that envelope).
+  const publicCases = primary.filter(row => row.status !== 'experimental' || row.slug === 'nine-dragon-stack')
+    .map(row => /** @type {const} */ (['standalone', row.slug, false]));
   const developerCases = [...primary.filter(row => row.status === 'experimental').map(row => /** @type {const} */ (['standalone', row.slug, true])), /** @type {const} */ (['grid', home, false])];
   return group === 'public' ? publicCases : group === 'developer' ? developerCases : [...publicCases, ...developerCases];
 }
