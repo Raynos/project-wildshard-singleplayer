@@ -323,3 +323,23 @@ Measured debt producer fell **12.671 -> 4.763 s**, while export/gen costs
 rose (2.142/11.619 -> 5.445/15.150 s) under concurrent machine work.
 These are observations, not an end-to-end qualification. Cold <=10 s stays
 OPEN; generation, first export and the final source guard remain targets.
+
+## Prepare Debug facts beside initial generation (sp-x5)
+
+CALL: prepare existing exact per-file syntax facts alongside the first `gen`.
+Both processes settle before dependent producers or index writes. The primer
+returns no rows/verdict and leaves generated TS to the final complete census,
+so in-flight generated writes cannot create a premature parse refusal.
+Actual current-tree census and policy still run; modified/new files reparse.
+Generation and fact-preparation failures both block publication.
+
+Fresh-cache observation on `9361ccc83`: **27.85 s**, still OPEN against 10 s.
+Export/gen/bakes/save: 2.417/13.348/4.068/0.742 s. Debt measurement **0.775 s**
+with 25 parsed / 3,718 verified files, versus 4.763 s without preparation in
+the preceding empty-store observation. Different machine load prevents an
+unconditional total-speed claim. Final architecture work still finishes last.
+
+Fifteen focused checks plus narrowed types/touched lint passed: final added,
+changed and generated rows still hit the ceiling, opaque rows still refuse,
+both failing children settle, no-cache generation works, and real isolated
+runner/index/environment/foreign-byte cases stay exact.

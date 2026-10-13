@@ -56,7 +56,7 @@ export function declaredDebugRows(program) {
 }
 /** Read authored rows without executing the game or loading its renderer.
  * @param {string} root @param {string} [cacheDir] Verified per-file facts only; the file inventory stays fresh. */
-export function debugFlags(root, cacheDir) {
+function inventoryDebugFlags(root, cacheDir, sourceOnly = false) {
   const hash = value => createHash('sha256').update(value).digest('hex');
   const recipe = cacheDir === undefined ? null : hash(JSON.stringify([
     process.version, process.versions.v8, process.platform, process.arch,
@@ -76,7 +76,7 @@ export function debugFlags(root, cacheDir) {
       const file = resolve(dir, entry.name);
       // The SDK ships copied clients and author templates here; their defining sources are inventoried instead.
       if (entry.isDirectory()) { if (file !== resolve(root, 'src/sdk/dist')) scan(file); continue; }
-      if (!/\.[cm]?[jt]sx?$/u.test(file)) continue;
+      if (!/\.[cm]?[jt]sx?$/u.test(file) || sourceOnly && /\.generated\.[cm]?[jt]sx?$/u.test(file)) continue;
       const source = readFileSync(file, 'utf8');
       const key = recipe === null ? null : hash(JSON.stringify([recipe, relative(root, file), source]));
       const receipt = key === null ? null : resolve(cacheDir, 'debug-file-facts', `${key}.json`);
@@ -133,6 +133,17 @@ export function debugFlags(root, cacheDir) {
   scan(resolve(root, 'src'));
   if (cacheDir !== undefined) console.log(`Debug facts: ${parsedFiles} parsed, ${reusedFiles} verified`);
   return rows;
+}
+/** Full current-tree census; every generated file and current policy still participate.
+ * @param {string} root @param {string} [cacheDir] */
+export function debugFlags(root, cacheDir) {
+  return inventoryDebugFlags(root, cacheDir);
+}
+/** Prepare exact syntax facts only for immutable source while generation runs.
+ * Never returns rows or a verdict; the final full census handles generated code.
+ * @param {string} root @param {string} cacheDir */
+export function primeDebugFlagFacts(root, cacheDir) {
+  inventoryDebugFlags(root, cacheDir, true);
 }
 export function validateFlags(rows, { today, max, raisedBy = [], askExists: hasAsk }) {
   const errors = [], overdue = [], now = Date.parse(`${today}T00:00:00Z`);

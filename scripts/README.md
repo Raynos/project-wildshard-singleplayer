@@ -369,6 +369,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [precommit-generated.mjs](./precommit-generated.mjs)
 - [precommit-generation-removals.d.mts](./precommit-generation-removals.d.mts)
 - [precommit-generation-removals.mjs](./precommit-generation-removals.mjs)
+- [precommit-generation.d.mts](./precommit-generation.d.mts)
+- [precommit-generation.mjs](./precommit-generation.mjs)
 - [precommit-guards.d.mts](./precommit-guards.d.mts)
 - [precommit-guards.mjs](./precommit-guards.mjs)
 - [precommit-inputs.d.mts](./precommit-inputs.d.mts)

@@ -24,6 +24,8 @@ it('generates from staged bytes, includes tracked tables and refuses corrupt cac
     writeFileSync(join(root, 'lint/ask-ids.json'), '[]');
     writeFileSync(join(root, 'lint/shard-words.generated.json'), '{}');
     writeFileSync(join(root, 'scripts/generation-jobs.json'), '{"jobs":[]}');
+    writeFileSync(join(root, 'scripts/precommit-generation.mjs'), readFileSync('scripts/precommit-generation.mjs'));
+    writeFileSync(join(root, 'lint/debug-flags.mjs'), "import{writeFileSync}from'node:fs';export function primeDebugFlagFacts(){writeFileSync('primer-ran','');}");
     writeFileSync(join(root, 'scripts/gen.mjs'), `import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 mkdirSync('public/assets/physics',{recursive:true});writeFileSync('public/assets/physics/rapier.wasm',new Uint8Array([0,97,115,109]));
 for(const key of ['GIT_INDEX_FILE','GIT_DIR','GIT_WORK_TREE','GIT_PREFIX','WS_COMMIT_INTENT','WS_PRECOMMIT_INPUTS_DONE','SHLVL','_']) if(process.env[key] !== undefined) throw Error('leaked hook environment:'+key);

@@ -112,8 +112,11 @@ if (paths.some(path => /^(src|scripts|lint|public|test|music|sfx)\//u.test(path)
     if (existsSync(resolve(common, 'commit-inputs', `${inputKey(root, before)}.json`))) {
       restoreCommitInputs(root, before, scratch);
       console.log('precommit-inputs: verified generation cache');
-    } else execFileSync(process.execPath, [...(existsSync(resolve(scratch, 'scripts/gen-boot-cache.mjs')) ? ['--import', './scripts/bake-loader.mjs', '--import', './scripts/gen-boot-cache.mjs'] : []), 'scripts/gen.mjs', '--build-inputs'], { cwd: scratch, stdio: 'inherit',
-      env: producerEnv });
+    } else {
+      const command = [...(existsSync(resolve(scratch, 'scripts/gen-boot-cache.mjs')) ? ['--import', './scripts/bake-loader.mjs', '--import', './scripts/gen-boot-cache.mjs'] : []), 'scripts/gen.mjs', '--build-inputs'];
+      const prepare = existsSync(resolve(scratch, 'scripts/precommit-generation.mjs'));
+      execFileSync(process.execPath, prepare ? ['scripts/precommit-generation.mjs', JSON.stringify(command)] : command, { cwd: scratch, stdio: 'inherit', env: producerEnv });
+    }
     const generated = performance.now();
     if (guardRequirement!==undefined) requiredGuardRules(scratch,guardRequirement,paths);
     /** @type {string[]} */
