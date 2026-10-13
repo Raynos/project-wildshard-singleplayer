@@ -21,7 +21,8 @@ import { RISING_ISLETS } from './world/islets';
 import { ISLET_LIFTS } from './data/isletLift';
 import isleProps from './data/props.json' with { type: 'json' };
 import { DECK_WOOD_GRAPH, HOVER_FRAME_GRAPH, POST_WEATHER_GRAPH } from './data/bridgeLook';
-import { CROWN_DAIS_GRAPH, KEEPER_SCARF_GRAPH, LANTERN_GLOW_GRAPH } from './data/paintLook';
+import { CROWN_DAIS_GRAPH, KEEPER_SCARF_GRAPH, LANTERN_GLOW_GRAPH, TREE_BARK_GRAPH } from './data/paintLook';
+import { SKY_ISLE_GRAPH, SKY_ISLE_KEEL_GRAPH } from './data/skyIsleLook';
 import { SHACK_GRAPHS } from './data/shackLook';
 import { CLUMP_GRAPH, FLOWER_GRAPH } from './data/dressingLook';
 import { FALL_GRAPH } from './data/fallLook';
@@ -41,10 +42,11 @@ const wasm = (module: { hash: string; bytes: number }) => ({ hash: module.hash, 
 export default parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'props', 'clientChannels'], spawns: SKY_SPAWNS }, audio: AUDIO, directors: [bossStages],
   // the material graphs the runtime draws its own meshes in (runtime/index.ts): the rope decks' wood, the hover frames' glow,
   // the shacks' four kinds, the dressing's clumps and flowers, the falls; and the looks over a model's own map (meshMap, bound per model by
-  // world/looks.ts skyMappedLook): the crown dais, the lantern, the keeper's scarf, the anchor posts
+  // world/looks.ts skyMappedLook): the crown dais, the lantern, the keeper's scarf, the anchor posts, the trees' bark,
+  // the sky isles and the playable islands' keels
   look: { ...base.look, materials: { ...base.look.materials, 'deck-wood': { family: 'graph', graph: DECK_WOOD_GRAPH }, 'hover-frame': { family: 'graph', graph: HOVER_FRAME_GRAPH },
     'dressing-clump': { family: 'graph', graph: CLUMP_GRAPH }, 'dressing-flower': { family: 'graph', graph: FLOWER_GRAPH }, falls: { family: 'graph', graph: FALL_GRAPH },
-    ...Object.fromEntries(Object.entries({ 'crown-dais': CROWN_DAIS_GRAPH, 'lantern-glow': LANTERN_GLOW_GRAPH, 'keeper-scarf': KEEPER_SCARF_GRAPH, 'post-weather': POST_WEATHER_GRAPH })
+    ...Object.fromEntries(Object.entries({ 'crown-dais': CROWN_DAIS_GRAPH, 'lantern-glow': LANTERN_GLOW_GRAPH, 'keeper-scarf': KEEPER_SCARF_GRAPH, 'post-weather': POST_WEATHER_GRAPH, 'tree-bark': TREE_BARK_GRAPH, 'sky-isle': SKY_ISLE_GRAPH, 'sky-isle-keel': SKY_ISLE_KEEL_GRAPH })
       .map(([id, graph]) => [id, { family: 'graph', graph }])),
     ...Object.fromEntries(Object.entries(SHACK_GRAPHS).map(([kind, graph]) => [`shack-${kind}`, { family: 'graph', graph }])) } },
   clientChannels: [...SKY_MOVER_VIEWS, ...SKY_LIFT_PROMPTS], modes: SKY_MODES, quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,

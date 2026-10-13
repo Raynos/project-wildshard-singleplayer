@@ -4,9 +4,9 @@ import { skyMapGraph } from '../look/mapGraph';
 /**
  * Sky Reach's smaller paint corrections, each pulling a generated model's paint toward the mockups: SF59 material graphs
  * over the model's own map (the shardfile's `look.materials`, bound by world/looks.ts `skyMappedLook` in world/crown.ts,
- * world/bookStand.ts, quest/keeper.ts), and shader edit rows (applied with `editShader` in world/trees.ts,
- * weapons/fanModel.ts, world/build.ts, runtime/index.ts): the trees wear five maps (a graph per map is a program each until
- * a meshMap graph can share one), the fan's map arrives late, a keel has none, a creature wears the Roc's.
+ * world/bookStand.ts, quest/keeper.ts, world/trees.ts; one program per graph, a material per map), and shader edit rows
+ * (applied with `editShader` in weapons/fanModel.ts, world/build.ts, runtime/index.ts): the fan's map arrives late, a keel
+ * has none, a creature wears the Roc's.
  */
 
 const LUMA = [0.2126, 0.7152, 0.0722];
@@ -19,11 +19,9 @@ export const LANTERN_GLOW_GRAPH = skyMapGraph({ a1: { op: 'smoothstep', in: [0.4
   amber: { op: 'mul', in: ['a1', 'a2'] }, warm: { op: 'mul', in: ['c', [1.6, 1.15, 0.7]] }, glow: { op: 'mul', in: ['warm', 'amber'] } }, { colour: 'c', emissive: 'glow' });
 
 /** The trees' bark (the paint's came out magenta-red) toward a warm grey-brown; the foliage kept. */
-export const TREE_BARK_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'fragment', find: '#include <map_fragment>', put: `#include <map_fragment>
-  { vec3 c = diffuseColor.rgb; float bark = smoothstep(0.0, 0.06, c.r - c.g) * smoothstep(-0.02, 0.04, c.b - c.g * 0.8);
-    float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); diffuseColor.rgb = mix(c, vec3(l) * vec3(1.35, 1.0, 0.72), bark * 0.85); }` },
-];
+export const TREE_BARK_GRAPH = skyMapGraph({ rg: { op: 'sub', in: ['cr', 'cg'] }, b1: { op: 'smoothstep', in: [0, 0.06, 'rg'] }, g8: { op: 'mul', in: ['cg', 0.8] }, bg: { op: 'sub', in: ['cb', 'g8'] },
+  b2: { op: 'smoothstep', in: [-0.02, 0.04, 'bg'] }, b3: { op: 'mul', in: ['b1', 'b2'] }, bark: { op: 'mul', in: ['b3', 0.85] }, l: { op: 'dot', in: ['c', LUMA] },
+  brown: { op: 'mul', in: ['l', [1.35, 1, 0.72]] }, colour: { op: 'mix', in: ['c', 'brown', 'bark'] } }, { colour: 'colour' });
 
 /** The keeper's scarf and sash a warm rust-brown, not a loud red: strongly red texels pulled toward brown. */
 export const KEEPER_SCARF_GRAPH = skyMapGraph({ gb: { op: 'max', in: ['cg', 'cb'] }, gb1: { op: 'mul', in: ['gb', 1.1] }, rd: { op: 'sub', in: ['cr', 'gb1'] }, r1: { op: 'smoothstep', in: [0.08, 0.25, 'rd'] },

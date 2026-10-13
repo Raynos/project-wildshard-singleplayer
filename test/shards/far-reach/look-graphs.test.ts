@@ -8,7 +8,7 @@ describe('Sky Reach look graphs (SHARD-PLATFORM G382 / G387)', () => {
   it('every look material is an SF59 graph inside the default per-program budget', () => {
     const entries = Object.entries(source.look.materials);
     expect(entries.map(([id]) => id).sort()).toEqual(['crown-dais', 'deck-wood', 'dressing-clump', 'dressing-flower', 'falls', 'hover-frame', 'keeper-scarf', 'lantern-glow', 'post-weather', 'shack-beam', 'shack-plank', 'shack-shingle',
-      'shack-stone']);
+      'shack-stone', 'sky-isle', 'sky-isle-keel', 'tree-bark']);
     for (const [id, entry] of entries) {
       const checked = validateGraph(Reflect.get(entry, 'graph'), { dayKeys: [], stateFields: [], budget: DEFAULT_GRAPH_BUDGET });
       expect(checked.ok ? id : `${id}: ${checked.errors.join('; ')}`).toBe(id);
@@ -16,7 +16,7 @@ describe('Sky Reach look graphs (SHARD-PLATFORM G382 / G387)', () => {
   });
 
   it('the looks over a model map read it once (meshMap: one sampler)', () => {
-    for (const id of ['crown-dais', 'keeper-scarf', 'lantern-glow', 'post-weather']) {
+    for (const id of ['crown-dais', 'keeper-scarf', 'lantern-glow', 'post-weather', 'sky-isle', 'sky-isle-keel', 'tree-bark']) {
       const checked = validateGraph(Reflect.get(source.look.materials[id] ?? {}, 'graph'));
       expect(checked.ok && graphUsesMeshMap(checked.graph) && checked.cost.samplers === 1 ? id : `${id}: not one meshMap sampler`).toBe(id);
     }

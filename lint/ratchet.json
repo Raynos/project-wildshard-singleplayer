@@ -469,8 +469,6 @@
     "src/shards/far-reach/world/resources.ts": 1,
     "src/shards/far-reach/world/risingIslet.ts": 2,
     "src/shards/far-reach/world/skyDock.ts": 1,
-    "src/shards/far-reach/world/skyIsleHd.ts": 1,
-    "src/shards/far-reach/world/trees.ts": 1,
     "src/shards/ink-cel-valley/budgetCeilings.ts": 1,
     "src/shards/ink-cel-valley/generators/props.ts": 3,
     "src/shards/ink-cel-valley/generators/terrain.ts": 2,

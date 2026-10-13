@@ -1,10 +1,7 @@
 import { Group, InstancedMesh } from 'three';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { TREE_BARK_EDITS } from '../data/paintLook';
 import { TREE_MODELS, type TreeModel as AuthoredTreeModel } from '../data/trees';
-
-import { hdMaterial, skyHd } from './meshes';
+import { skyMappedLook } from './looks';
+import { skyHd } from './meshes';
 
 /** The authored tree model identity used by placements. */
 export type TreeModel = AuthoredTreeModel;
@@ -22,12 +19,8 @@ export async function trees(placed: readonly { readonly model: string; readonly 
   for (const { model, m } of placed) {
     const name = TREE_MODELS.find((n) => n === model), made = name === undefined ? null : skyHd(name); if (name === undefined || made === null) return null;
     const g = made.geometry;
-    const material = hdMaterial(made.map);
-    // the paint's bark came out magenta-red: toward a warm grey-brown; the foliage kept
-    patchShader(material, 'far.tree-bark', PATCH_ORDER.decorate, (shader) => {
-      editShader(shader, TREE_BARK_EDITS);
-    }, { key: (prior) => `${prior}|far.tree-bark` });
-    const mesh = new InstancedMesh(g, material, m.length / 16); mesh.name = `far.trees.${name}`;
+    // the paint's bark came out magenta-red: toward a warm grey-brown, the foliage kept (look.materials 'tree-bark')
+    const mesh = new InstancedMesh(g, skyMappedLook('tree-bark', made.map), m.length / 16); mesh.name = `far.trees.${name}`;
     mesh.instanceMatrix.array.set(m); mesh.computeBoundingSphere(); group.add(mesh);
     await pause();
   }
