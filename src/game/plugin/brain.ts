@@ -23,7 +23,7 @@ import { BurstFlyerBrain } from "@wildshard/engine/ai/burstFlyer";
 import { ChallengeGrazerBrain } from "@wildshard/engine/ai/challengeGrazer";
 import { PatrolDiverBrain } from "@wildshard/engine/ai/patrolDiver";
 import { PhasedFlyerBrain } from "@wildshard/engine/ai/phasedFlyer";
-import type { Rng } from "@wildshard/engine/core/rng";
+import { DiverBrain, readRaptorDiverSpec, type RaptorDiverSpec } from "@wildshard/engine/ai/diver";
 import { CreatureBodyRecipeSchema, CreatureHomeSchema, type CreatureBodyRecipe } from "@wildshard/format/creatures";
 import { canReach } from "@wildshard/engine/ai/reach";
 import type { SimSnapshot } from "@wildshard/engine/sim/snapshot";
@@ -32,6 +32,8 @@ import { parseDiver, diverPreset, type DiverSchema, parsePatrolDiver, type Patro
 import { phasedDiverPreset, type PhasedDiverSchema, parsePhasedFlyer, type PhasedFlyerSchema, type ShardPhasedFlyer } from "@wildshard/format/phasedFlyers";
 import { installHomeKeeper, type HomeKeeperSpec, type KeptBossBody, type KeptHome, type KeptPolicy } from "../shardfile/homeKeeper";
 import { type StalkerSchema, parseStalker, stalkerPreset, type GuardianPatternsSchema, guardianPreset, parseGuardianPattern, parseSkirmisher, parseGuardian, parsePerchHunter, type SkirmisherSchema, type GuardianSchema, type PerchHunterSchema, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from "@wildshard/format/brains";
+
+type Rng = ReturnType<SimHost['rng']['stream']>;
 
 /** Resolve both species and variant, preserving authored health and gameplay multipliers. */
 export function speciesResolver(rows: ShardRows): (speciesId: string, variantId: string) => AnimalSimSpec {
@@ -457,6 +459,7 @@ export type SpeciesBrain =
   | { readonly archetype: 'grazer'; readonly data: Extract<v.InferInput<typeof GrazerSchema>, { pattern: 'wander-ram' }> }
   | { readonly archetype: 'grazer'; readonly data: Extract<v.InferInput<typeof GrazerSchema>, { pattern: 'circle-challenge' }>; readonly phaseSlots: number }
   | { readonly archetype: 'diver'; readonly data: v.InferInput<typeof DiverSchema> | v.InferInput<typeof PhasedDiverSchema> }
+  | { readonly archetype: 'raptor'; readonly data: unknown }
   | { readonly archetype: 'challenge-grazer'; readonly data: v.InferInput<typeof ChallengeGrazerSchema>; readonly phaseSlots: number }
   | { readonly archetype: 'patrol-diver'; readonly data: v.InferInput<typeof PatrolDiverSchema> }
   | { readonly archetype: 'phased-flyer'; readonly data: v.InferInput<typeof PhasedFlyerSchema> }
@@ -507,6 +510,7 @@ type Admitted =
   | { readonly archetype: 'challenge-grazer'; readonly data: ShardChallengeGrazer; readonly phaseSlots: number; readonly charge: StrikeSpec; readonly close: StrikeSpec }
   | { readonly archetype: 'patrol-diver'; readonly data: ShardPatrolDiver; readonly strike: StrikeSpec }
   | { readonly archetype: 'phased-flyer'; readonly data: ShardPhasedFlyer; readonly dive: readonly StrikeSpec[]; readonly grounded: readonly StrikeSpec[] }
+  | { readonly archetype: 'raptor'; readonly data: RaptorDiverSpec; readonly strikes: readonly StrikeSpec[] }
   | { readonly archetype: 'script'; readonly data: ScriptSpeciesData; readonly lane: SpeciesScriptLane; readonly catalogue: readonly StrikeSpec[] }
   | { readonly archetype: 'skirmisher'; readonly data: ShardSkirmisher }
   | { readonly archetype: 'guardian'; readonly data: ShardGuardian }
@@ -523,7 +527,9 @@ export interface SpeciesBrains {
    * The browser callbacks of a declared kind: `think` / `act` bound to one policy per animal, spread onto its species
    * row (`{ ...ROW, ...brains.bind(kind) }`). Each call binds a fresh policy table; a kind without a brain refuses.
    */
-  bind: (kind: string, native?: SpeciesNativeFactory, homes?: SpeciesBodyHomes) => Required<Pick<SpeciesRow, 'think' | 'act'>>;
+  bind: (kind: string, native?: SpeciesNativeFactory, homes?: SpeciesBodyHomes, held?: SpeciesHeldPorts) => SpeciesBinding;
+  /** The controller prepared by this catalogue's body binding; lookup never advances perception, movement or RNG. */
+  held: (kind: string, actor: AnimalSim) => HeldSpeciesControl | null;
   /** Construct a decision-only family for a trusted native body adapter; refuses self-contained policy kinds. */
   decision: <A extends AnimalSim>(kind: string, actor: A, home?: SpeciesBodyHome) => SpeciesDecision<A>;
   /** The archetype a live browser animal runs (null when it runs none of these rows' brains). */
@@ -535,6 +541,17 @@ export interface SpeciesBrains {
   /** The headless phase offset of one body (its challenge grazer's seed slot, else 0). */
   phase: (kind: string, actor: AnimalSim) => number;
 }
+
+/** Trusted held-body authority supplies player impulses; rows select only admitted numeric recipes. */
+export interface SpeciesHeldPorts { readonly shove: (yaw: number, speed: number, lift: number) => void }
+/** A held encounter drives its existing body, with read-only strike observations for presentation. */
+export interface HeldSpeciesControl {
+  phase: number; fighting: boolean; restart: () => void;
+  readonly current: StrikeSpec | null; readonly windup: number;
+  snapshot: () => SimValue; restore: (saved: SimValue) => void;
+}
+/** Preparing a held controller constructs it once without advancing perception, movement or a clock. */
+export interface SpeciesBinding extends Required<Pick<SpeciesRow, 'think' | 'act'>> { control?: (actor: Animal) => HeldSpeciesControl }
 
 function strikeOf(strikes: ReadonlyMap<string, StrikeSpec>, id: string, kind: string): StrikeSpec {
   const strike = strikes.get(id); if (strike === undefined) throw new Error(`Species ${kind}'s brain names an undeclared strike ${id}`); return strike;
@@ -567,6 +584,10 @@ function admit(brain: SpeciesBrain, kind: string, strikes: ReadonlyMap<string, S
       return { archetype: brain.archetype, data, phaseSlots: brain.phaseSlots, charge: strikeOf(strikes, data.charge, kind), close: strikeOf(strikes, data.close, kind) };
     }
     case 'patrol-diver': { const data = parsePatrolDiver(brain.data); return { archetype: brain.archetype, data, strike: strikeOf(strikes, data.strike, kind) }; }
+    case 'raptor': {
+      const data = readRaptorDiverSpec(brain.data);
+      return { archetype: brain.archetype, data, strikes: [...new Set(data.phases.map(phase => phase.strike))].map(id => strikeOf(strikes, id, kind)) };
+    }
     case 'phased-flyer': {
       const data = parsePhasedFlyer(brain.data);
       return { archetype: brain.archetype, data, dive: data.dive.map(id => strikeOf(strikes, id, kind)), grounded: data.grounded.map(id => strikeOf(strikes, id, kind)) };
@@ -579,10 +600,27 @@ function admit(brain: SpeciesBrain, kind: string, strikes: ReadonlyMap<string, S
     default: throw new Error(`Species ${kind} declares an unknown brain archetype`);
   }
 }
-type Callbacks = Required<Pick<SpeciesRow, 'think' | 'act'>>;
+type Callbacks = SpeciesBinding;
 /** Browser callbacks bound to one policy per animal (built at its first decision); `live` answers the witness. */
-function browserCallbacks(brain: Admitted, native?: SpeciesNativeFactory, homes?: SpeciesBodyHomes): { callbacks: Callbacks; live: (actor: Animal) => boolean } {
+function browserCallbacks(brain: Admitted, native?: SpeciesNativeFactory, homes?: SpeciesBodyHomes,
+  held?: SpeciesHeldPorts & { register: (actor: AnimalSim, controller: HeldSpeciesControl) => void; occupied: (actor: AnimalSim) => boolean; kind: string }): { callbacks: Callbacks; live: (actor: Animal) => boolean } {
   switch (brain.archetype) {
+    case 'raptor': {
+      if (held === undefined || native !== undefined) throw new Error('Held species requires its trusted body authority');
+      const live = new WeakMap<Animal, DiverBrain<Animal>>();
+      const of = (actor: Animal): DiverBrain<Animal> => {
+        if (actor.kind !== held.kind) throw new Error('Held species requires its declared live body');
+        let value = live.get(actor);
+        if (value === undefined) {
+          if (held.occupied(actor)) throw new Error('Held species already has an owning controller');
+          value = new DiverBrain(actor, { pattern: 'raptor', spec: brain.data, strikes: brain.strikes, shove: held.shove });
+          held.register(actor, value); live.set(actor, value);
+        }
+        return value;
+      };
+      return { live: actor => live.has(actor), callbacks: { think: (actor, context) => { of(actor).think(context); },
+        act: (actor, context) => { of(actor).act(context); }, control: of } };
+    }
     case 'ram-grazer': case 'orbit-diver': case 'burst-flyer': case 'skirmisher': case 'guardian': case 'perch-hunter': {
       if (native === undefined) throw new Error(`Species ${brain.archetype} requires a trusted native body adapter`);
       if ((brain.archetype === 'orbit-diver' || brain.archetype === 'burst-flyer') && homes === undefined) throw new Error(`Species ${brain.archetype} requires its native body home`);
@@ -636,7 +674,7 @@ function decisionOf<A extends AnimalSim>(brain: Admitted, actor: A, home?: Speci
     case 'skirmisher': return { archetype: brain.archetype, policy: new SkirmisherBrain(actor, brain.data) };
     case 'guardian': return { archetype: brain.archetype, policy: new GuardianBrain(actor, brain.data) };
     case 'perch-hunter': return { archetype: brain.archetype, policy: new PerchHunterBrain(actor, brain.data) };
-    case 'challenge-grazer': case 'patrol-diver': case 'phased-flyer': case 'script':
+    case 'challenge-grazer': case 'patrol-diver': case 'phased-flyer': case 'raptor': case 'script':
       throw new Error(`Species ${brain.archetype} is not a native decision family`);
     default: throw new Error('Unknown admitted brain archetype');
   }
@@ -706,7 +744,7 @@ function homePolicy(brain: Admitted, actor: AnimalSim): SpeciesPolicy<HomeObserv
     case 'patrol-diver': return new PatrolDiverBrain(actor, brain.data, brain.data.home, brain.strike);
     case 'phased-flyer': return new PhasedFlyerBrain(actor, brain.data, brain);
     case 'script': return new ScriptSpeciesPolicy(actor, brain.lane, brain.catalogue);
-    case 'ram-grazer': case 'orbit-diver': case 'burst-flyer': case 'skirmisher': case 'guardian': case 'perch-hunter':
+    case 'ram-grazer': case 'orbit-diver': case 'burst-flyer': case 'raptor': case 'skirmisher': case 'guardian': case 'perch-hunter':
       throw new Error(`Species ${actor.kind} requires a trusted native body adapter`);
     default: throw new Error('Unknown admitted brain archetype');
   }
@@ -728,12 +766,24 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
       throw new Error(`Species ${kind} has no admitted native body protocol`);
   }
   const witnesses: { archetype: string; live: (actor: Animal) => boolean }[] = [];
+  const heldControls = new WeakMap<AnimalSim, { kind: string; controller: HeldSpeciesControl }>();
+  const registerHeld = (kind: string, actor: AnimalSim, controller: HeldSpeciesControl): void => {
+    if (actor.kind !== kind || heldControls.has(actor)) throw new Error('Held species already has an owning controller');
+    heldControls.set(actor, { kind, controller });
+  };
   return {
     kinds: new Set(admitted.keys()),
-    bind: (kind, native, homes) => {
+    bind: (kind, native, homes, held) => {
       const brain = admitted.get(kind);
       if (brain === undefined) throw new Error(`Species ${kind} declares no brain`);
-      const bound = browserCallbacks(brain, native, homes); witnesses.push({ archetype: brain.archetype, live: bound.live }); return bound.callbacks;
+      const bound = browserCallbacks(brain, native, homes, held === undefined ? undefined : { ...held, kind,
+        occupied: actor => heldControls.has(actor),
+        register: (actor, controller) => { registerHeld(kind, actor, controller); } });
+      witnesses.push({ archetype: brain.archetype, live: bound.live }); return bound.callbacks;
+    },
+    held: (kind, actor) => {
+      if (actor.kind !== kind) throw new Error('Held species requires its declared live body');
+      const registered = heldControls.get(actor); return registered?.kind === kind ? registered.controller : null;
     },
     decision: (kind, actor, home) => {
       const brain = admitted.get(kind);
@@ -755,6 +805,11 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
       if ((brain.archetype === 'ram-grazer' || brain.archetype === 'orbit-diver' || brain.archetype === 'burst-flyer') && home === undefined)
         throw new Error(`Species ${kind} requires its actual body home`);
       return bindSpeciesBody(actor, recipe, shared, ports => {
+        if (brain.archetype === 'raptor') {
+          if (heldControls.has(actor)) throw new Error('Held species already has an owning controller');
+          const controller = new DiverBrain(actor, { pattern: 'raptor', spec: brain.data, strikes: brain.strikes, shove: ports.shove });
+          registerHeld(kind, actor, controller); return controller;
+        }
         if (brain.archetype === 'ram-grazer') {
           if (home === undefined) throw new Error('Missing admitted ram home');
           return bodyPolicy(new RamGrazerBrain(actor, brain.data, brain.strike), Object.assign(ports, { home }));

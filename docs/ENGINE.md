@@ -3982,3 +3982,20 @@ to a contact with the declared immediate/delayed phase; scripted actions
 require a secondary contact. It retains original contact and tag arrays for
 event lifetimes. `installNativeMelee` uses this items admission before
 allocating its controller or registering a native step.
+
+**Held species controllers (W1 C4).** `plugin/brain#admitSpeciesBrains`
+admits `{ archetype: 'raptor', data }` through the strict raptor schema and
+resolves every phase's strike before creating a body. `brains.body(kind,
+actor, shared)` uses the actual host, motor, attack authority and RNG; it
+registers one controller, available through `brains.held(kind, actor)`.
+The held encounter sets `phase` and `fighting` or calls `restart()`, while
+presentation reads `current` and `windup`. `snapshot()` / `restore(value)`
+retain the original controller continuation without advancing the body.
+
+For the browser, `brains.bind(kind, undefined, undefined, { shove })`
+returns the normal `think` / `act` callbacks plus `control(actor)`.
+Preparing that controller draws no RNG and advances no clock. The trusted
+body supplies the player-impulse port; authored rows supply numeric recipes
+only. Missing authority, foreign body kinds, duplicate controller owners
+and undeclared strikes refuse. Other archetypes keep their existing
+callback shapes. Lookup through `held()` does not construct a controller.
