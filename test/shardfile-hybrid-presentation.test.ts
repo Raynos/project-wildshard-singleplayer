@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- The template's own admitted terrain files are read from its folder.
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
-import { Mesh, MeshStandardMaterial, PlaneGeometry, Vector3, type Material, type Object3D } from 'three';
+import { describe, expect, it, vi } from 'vitest';
+import { Mesh, Points, MeshStandardMaterial, PlaneGeometry, Vector3, type Material, type Object3D } from 'three';
 import { emptyShardfile } from '../src/sdk/author';
 import { declareNavigation } from '../src/sdk/bake/navigationAsset';
 import { bakeTerrain } from '../src/sdk/bake/terrain';
@@ -9,6 +9,8 @@ import { contentHash } from '../src/sdk/project';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { materialCurveRules } from '@wildshard/format/materials';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import * as settings from '../src/engine/ui/Settings';
+import { Scope } from '../src/engine/app/scope';
 import { App } from '../src/engine/app/app';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { Game } from '../src/engine/core/Game';
@@ -82,6 +84,59 @@ function meshesWith(root: Object3D, material: Material): number {
 }
 
 describe('presentation-only data for a hybrid whose runtime keeps the simulation (G345)', () => {
+  it.each(['off', 'on'] as const)('lends a point graph by id with Graph materials %s and restores it when the data scope ends', async (mode) => {
+    const pick = vi.spyOn(settings, 'setting').mockReturnValue(mode);
+    const base = fixture();
+    const source: Shardfile = { ...base.source, look: { ...base.source.look, materials: { ...base.source.look.materials,
+      spark: { family: 'graph', graph: { version: 1, kind: 'material', model: 'unlit', primitive: 'points',
+        effectState: { blend: 'additive', fog: false, depthWrite: false }, nodes: {},
+        stages: { points: { size: 12 }, surface: { colour: [1, 0.5, 0.2], alpha: 0.5 } } } },
+    } } };
+    const { app, ctx, runtime } = level(source), caller = new Scope('runtime-points');
+    const world = runtime.world; if (world === null) throw new Error('No world');
+    Reflect.set(world.game, 'renderer', { setNodesHandler: noop });
+    const original = new MeshStandardMaterial(), geometry = new PlaneGeometry(1, 1), points = new Points(geometry, original);
+    const materialDisposed = vi.fn<() => void>();
+    try {
+      await client(source, base.bytes, { count: 0 }).world(ctx);
+      const lent = runtimePresentation(source); if (lent === null) throw new Error('No lent presentation');
+      const material = lent.material('spark'); material.addEventListener('dispose', materialDisposed);
+      const wrong = new Mesh(geometry, original);
+      expect(() => lent.bindMaterial('spark', wrong, caller)).toThrow('primitive');
+      expect(wrong.material).toBe(original);
+      lent.bindMaterial('spark', points, caller);
+      expect(points.material).toBe(material);
+      if (mode === 'on') { expect(Reflect.get(material, 'fog')).toBe(false); expect(material.depthWrite).toBe(false); }
+      else { expect(Reflect.get(material, 'size')).toBe(1); expect(Reflect.get(material, 'sizeAttenuation')).toBe(false); }
+      app.engineScope.dispose();
+      expect(points.material).toBe(original); expect(materialDisposed).toHaveBeenCalledOnce();
+      expect(() => lent.bindMaterial('spark', points, caller)).toThrow('live scopes');
+    } finally { caller.dispose(); app.engineScope.dispose(); geometry.dispose(); original.dispose(); pick.mockRestore(); }
+  });
+
+  it('retires the lent graph outline at unbind without disposing either material or body geometry', async () => {
+    const pick = vi.spyOn(settings, 'setting').mockReturnValue('on'), base = fixture();
+    const source: Shardfile = { ...base.source, look: { ...base.source.look, materials: { ...base.source.look.materials,
+      ink: { family: 'graph', graph: { version: 1, kind: 'material', model: 'unlit', nodes: {},
+        stages: { surface: { colour: [0.2, 0.4, 0.8] }, outline: { offset: [0.01, 0, 0], colour: [0, 0, 0] } } } },
+    } } };
+    const { app, ctx, runtime } = level(source), world = runtime.world;
+    if (world === null) throw new Error('No world');
+    Reflect.set(world.game, 'renderer', { setNodesHandler: noop });
+    const original = new MeshStandardMaterial(), geometry = new PlaneGeometry(1, 1), body = new Mesh(geometry, original);
+    const disposed = vi.fn<() => void>(); geometry.addEventListener('dispose', disposed); original.addEventListener('dispose', disposed);
+    try {
+      await client(source, base.bytes, { count: 0 }).world(ctx);
+      const lent = runtimePresentation(source); if (lent === null) throw new Error('No lent presentation');
+      lent.material('ink').addEventListener('dispose', disposed);
+      const child = new Mesh(geometry, original); body.add(child);
+      const release = lent.bindMaterial('ink', body, ctx.scope);
+      expect(body.children).toHaveLength(2); expect(child.children).toHaveLength(0); release();
+      expect(body.children).toEqual([child]); expect(body.material).toBe(original); expect(disposed).not.toHaveBeenCalled();
+      lent.bindMaterial('ink', body, ctx.scope); expect(body.children).toHaveLength(2);
+    } finally { app.engineScope.dispose(); geometry.dispose(); original.dispose(); pick.mockRestore(); }
+  });
+
   it('admits a runtime-bound host field as a curve source only when the runtime binds state', () => {
     const { source } = fixture();
     expect(materialCurveRules(source)).toEqual([]);
@@ -119,6 +174,18 @@ describe('presentation-only data for a hybrid whose runtime keeps the simulation
       // 16 coarse tiles plus the fine ring, and the runtime's skirt, all in one material
       expect(meshesWith(ctx.root, sand)).toBeGreaterThan(17);
       expect(() => lent.material('missing')).toThrow('no material missing');
+      const original = new MeshStandardMaterial(), borrowed = new Mesh(new PlaneGeometry(1, 1), original);
+      const borrower = ctx.scope.child('runtime-effect');
+      const release = lent.bindMaterial('pbr', borrowed, borrower);
+      expect(borrowed.material).toBe(sand);
+      expect(() => lent.bindMaterial('pbr', borrowed, borrower)).toThrow('unbound object');
+      expect(() => lent.bindMaterial('missing', new Mesh(), borrower)).toThrow('no material missing');
+      release(); expect(borrowed.material).toBe(original);
+      lent.bindMaterial('pbr', borrowed, borrower); borrower.dispose();
+      expect(borrowed.material).toBe(original);
+      expect(() => lent.bindMaterial('pbr', borrowed, borrower)).toThrow('live scopes');
+      borrowed.geometry.dispose(); original.dispose();
+
       // the drawn terrain's queries are the admitted collider's
       const ground = lent.ground; if (ground === null) throw new Error('No lent ground');
       const reference = clientGround(source, bytes);

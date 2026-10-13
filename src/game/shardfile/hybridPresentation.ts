@@ -1,4 +1,4 @@
-import type { Material } from 'three';
+import type { Material, Mesh, Points } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { TerrainField } from '@wildshard/engine/level/data';
 import type { GraphSources } from './clientGraphs';
@@ -12,6 +12,12 @@ import type { GraphSources } from './clientGraphs';
 export interface HybridPresentation {
   /** The data client's built family material `id` (a `look.materials` entry or a family default), owned by its scope. */
   readonly material: (id: string) => Material;
+  /**
+   * Lend a declared material to a runtime mesh or points object. The caller owns its
+   * geometry; the data client owns the material. Scope disposal or unbind restores
+   * the original material and retires any graph outline. Unknown ids refuse.
+   */
+  readonly bindMaterial: (id: string, object: Mesh | Points, scope: Scope) => () => void;
   /** The drawn terrain's height / normal queries, from its admitted collider; null when the data client draws no terrain. */
   readonly ground: TerrainField | null;
   /**

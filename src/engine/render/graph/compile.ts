@@ -1,6 +1,6 @@
 /**
  * The material graph compiler (SHARD-PLATFORM SF59 step 3; `docs/design/mmo/research/sf59-tsl-spike.md` §4–5):
- * `compileGraph(ir)` turns a validated graph IR (`core/materialGraph.ts`) into a three TSL node material that the engine's node
+ * `compileGraph(ir)` turns a validated graph IR (`@wildshard/format/materialGraph`) into a three TSL node material that the engine's node
  * handler (`nodes/engineNodesHandler.ts`) runs inside today's `WebGLRenderer`. Every IR op maps to node classes in this
  * file and nowhere else; content never reaches `NodeLoader`, `CodeNode` or `glslFn`.
  *
@@ -12,7 +12,7 @@
  * - **Safe maths:** a divisor that is not a non-zero literal is kept off zero; `pow`'s base is clamped at 0.
  * - **Constant-count loops** unroll nowhere: a `loop` is a GLSL `for` with a literal bound.
  * - The engine epilogue (fog after the output transform) is appended by the handler: a graph material always has
- *   `fog` on, which a graph cannot switch off.
+ *   `fog` on by default; the optional effect state may bypass fog only.
  * - **The lighting stage** (SF59 step 6): a graph with `stages.lighting` compiles to a `GraphLitMaterial`, a standard
  *   node material whose lighting model (`GraphLightingModel`, three's physical model underneath) builds the `sun`
  *   sub-graph for each directional light from the light node's own direction, unshadowed colour and shadow ratio, so
@@ -36,9 +36,9 @@ import {
   PhysicalLightingModel, SplitNode, type Node, type NodeBuilder, type NodeMaterial,
 } from 'three/webgpu';
 import {
-  Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraViewMatrix, clamp, diffuseContribution, dot, float, hash,
-  instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, modelPosition, modelWorldMatrix,
-  mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, positionGeometry, positionLocal,
+  Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, hash,
+  instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
+  mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, positionGeometry, positionLocal,
   positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uv, varying, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
 import { Pass } from 'postprocessing';
@@ -330,6 +330,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   for (const n of Object.values(ir.nodes)) for (const r of n.in ?? []) countRef(r);
   const st = ir.stages;
   countRef(st['vertex.offset']?.offset);
+  countRef(st.points?.size);
   for (const k of ['colour', 'alpha', 'emissive', 'roughness', 'metalness', 'occlusion'] as const) countRef(st.surface?.[k]);
   countRef(st.post?.colour);
   for (const k of ['sun', 'sunSpecular', 'ambient', 'grade'] as const) countRef(st.lighting?.[k]);
@@ -399,6 +400,12 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'instanceHash': return { t: 'float', n: hash(instanceIndex) };
       case 'vertexColour': return { t: 'vec3', n: new SplitNode(vertexColor(), 'xyz') };
       case 'screenUV': return { t: 'vec2', n: uv() };
+      case 'pointCoord': return { n: pointUV, t: 'vec2' };
+      case 'viewBillboard': {
+        const direction = new SplitNode(new OperatorNode('*', cameraWorldMatrix, vec4(positionGeometry, 0)), 'xyz');
+        const world = new OperatorNode('+', objectOriginNode(), direction);
+        return { n: new SplitNode(new OperatorNode('*', modelWorldMatrixInverse, new JoinNode([world, float(1)])), 'xyz'), t: 'vec3' };
+      }
       case 'fragCoord': return { t: 'vec2', n: screenCoordinate };
       case 'attribute': {
         const t = n.type;
@@ -593,7 +600,26 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     m.side = ir.doubleSided === true ? THREE.DoubleSide : THREE.FrontSide;
     if (m instanceof MeshStandardNodeMaterial) m.flatShading = ir.flatShading === true;
     if (lit?.grade !== undefined) m.toneMapped = false; // a graded colour is display linear already
-    m.fog = true; // the engine epilogue (fog) is not optional
+    m.fog = ir.effectState?.fog ?? true;
+    const effect = ir.effectState;
+    if (effect?.blend !== undefined) {
+      m.transparent = true;
+      m.blending = effect.blend === 'additive' ? THREE.AdditiveBlending : effect.blend === 'premultiplied' ? THREE.CustomBlending : THREE.NormalBlending;
+      if (effect.blend === 'premultiplied') {
+        m.blendSrc = THREE.OneFactor; m.blendDst = THREE.OneMinusSrcAlphaFactor;
+        m.blendSrcAlpha = THREE.OneFactor; m.blendDstAlpha = THREE.OneMinusSrcAlphaFactor;
+      }
+    }
+    if (effect?.depthWrite !== undefined) m.depthWrite = effect.depthWrite;
+    if (effect?.depthBias !== undefined) {
+      m.polygonOffset = true; m.polygonOffsetFactor = effect.depthBias.factor; m.polygonOffsetUnits = effect.depthBias.units;
+    }
+    if (st.points !== undefined) {
+      const size = asFloat(ref(st.points.size, root));
+      m.geometryNode = Fn(() => { property('float', 'wildshardGraphPointSize').assign(clamp(size, 1, 2048)); })();
+      m.userData['graphPrimitive'] = 'points';
+      m.userData['graphPointSize'] = true;
+    }
     return m;
   };
   /** the outline stage: the inverted hull's own unlit material (back faces, depth on, opaque, fogged) */

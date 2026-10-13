@@ -216,6 +216,36 @@ KTX2 hashes in the charged library closure, including declared commons; they can
 be bound. Graphs have no implicit default material: terrain, props and creature
 looks reference their authored material ID.
 
+
+SF59 effect graphs may add `effectState: { blend?, fog?, depthWrite?, depthBias? }`.
+`blend` is `alpha` (straight RGB), `additive` (straight RGB multiplied by alpha
+and added), or `premultiplied` (RGB already multiplied by alpha, One /
+OneMinusSrcAlpha factors). Each explicit blend enables transparency. `fog` can
+only be `false`, bypassing fog for the effect; output colour conversion stays.
+`depthWrite` is boolean; depth testing stays on. `depthBias` is `{ factor, units }`,
+finite numbers within -16 … 16, using polygon offset. Omission keeps all old
+material state, including fog and opaque depth writes. Post graphs cannot use it.
+
+`primitive: "points"` requires `model: "unlit"` and
+`stages.points: { size: <float vertex reference> }`. Size is drawing-buffer pixels,
+clamped to 1 … 2048 and the hardware point range. Fragment input `pointCoord`
+is vec2 over the point sprite (top-origin); it is refused on mesh graphs. Points
+cannot have a mesh outline. Mesh remains the implicit primitive.
+Vertex input `viewBillboard` is the absolute model-space position of a camera-facing
+vertex: geometry coordinates are world metres, independent of object rotation or
+scale, with object/instance origins retained. Use
+`vertex.offset = sub(viewBillboard, positionLocal)`; instance scale is deliberately
+not applied. Its camera/model matrix work is included in the instruction budget.
+
+A trusted runtime can call `runtimePresentation(source)?.bindMaterial(id, object,
+scope)` to lend a `look.materials` material to its own Mesh or Points by id.
+It keeps geometry ownership, shares the data client's material and uniform feeds,
+and gets a disposer. Either scope retiring restores the prior material and removes
+any graph outline. Unknown ids, mismatched primitives and double bindings refuse.
+This uses the existing runtime-product door, with no SDK facade. The Graph materials
+Debug setting still controls graph compilation; when off, existing family fallbacks
+remain active (a new point graph falls back to an unlit one-pixel point).
+
 Material graphs with the standard lighting model may add `stages.lighting`:
 required `sun` (vec3 direct-diffuse radiance), optional `sunSpecular` (float scaling
 the sun's physical specular; omitted means no specular), optional `ambient` (vec3

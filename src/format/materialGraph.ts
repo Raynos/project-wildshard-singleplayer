@@ -12,7 +12,7 @@
  *   alpha, cutoff, emissive, roughness, metalness, occlusion), `lighting` (the lighting model: see below), `outline` (the
  *   inverted-hull second draw: see below), `post` (a screen pass over `sceneColour`, with SF59 (2b)'s taps `sceneColourAt`,
  *   `sceneDepth` and `sceneNormal`, each input one sampler: `inputs` in the validation names those a pass reads); the engine epilogue (fog, the CSM
- *   cascade gate, the tent PCF, the shadow fade) is appended by the back-end and is not a stage a graph can skip;
+ *   cascade gate, the tent PCF, the shadow fade) is appended by the back-end; effectState.fog:false skips fog only;
  * - `outline` (SF59 step 7, the ink outline as a render state the format owns, not a free one): a second draw of the
  *   same geometry with a fixed render state: back faces only, depth tested and written, opaque, unlit, fogged by the
  *   epilogue, casting no shadow. `offset` (vec3, the vertex place, model space like `vertex.offset`) pushes the hull out
@@ -134,7 +134,20 @@ export interface GraphOutline {
   readonly colour: GraphRef;
 }
 /** the stages */
+/** Optional effect render state. Absent fields retain the existing material defaults. */
+export interface GraphEffectState {
+  /** Alpha uses straight RGB; premultiplied expects RGB already multiplied by alpha. */
+  readonly blend?: 'alpha' | 'additive' | 'premultiplied';
+  /** Explicitly bypass the engine fog epilogue for this effect only. */
+  readonly fog?: false;
+  /** Whether fragments update depth; depth testing stays enabled. */
+  readonly depthWrite?: boolean;
+  /** Polygon offset factor and units, each finite and within -16 … 16. */
+  readonly depthBias?: { readonly factor: number; readonly units: number };
+}
 export interface GraphStages {
+  /** Points only: diameter in drawing-buffer pixels, clamped to 1 … 2048 and the device's point range. */
+  readonly points?: { readonly size: GraphRef };
   readonly 'vertex.offset'?: GraphVertexOffset;
   readonly surface?: GraphSurface;
   readonly lighting?: GraphLighting;
@@ -148,6 +161,10 @@ export interface GraphIr {
   readonly kind: 'material' | 'post';
   /** a material's lighting model: three's physical standard model, or unlit */
   readonly model?: 'standard' | 'unlit';
+  /** Absent: mesh. Points require an unlit graph and a points.size vertex output. */
+  readonly primitive?: 'mesh' | 'points';
+  /** Optional material-only effect state; omission preserves every prior render default. */
+  readonly effectState?: GraphEffectState;
   readonly doubleSided?: boolean;
   /** one normal per triangle (the toon family's faceted look): `normalView` is the face's */
   readonly flatShading?: boolean;
@@ -266,6 +283,9 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   screenUV: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: ['post'] },
   // the pixel's window coordinate in pixels (`gl_FragCoord.xy`, from the top left as three's node back-end gives it): a
   // screen-space dither or clip on a mesh, never a full-screen pass (that is `screenUV`)
+  pointCoord: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: ['fragment'] },
+  // Absolute model-space billboard position. Geometry coordinates are world metres; object/instance origins stay fixed.
+  viewBillboard: { arity: [0, 0], rule: 'input', cost: 32, type: 'vec3', places: VERT },
   fragCoord: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: ['fragment', 'outline'] },
   // a declared geometry attribute (`name`, `type`): a shard's own per-vertex or per-instance data
   attribute: { arity: [0, 0], rule: 'attribute', cost: 0, places: MESH },
@@ -382,6 +402,8 @@ const VARYING_SOURCE: Readonly<Partial<Record<GraphPlace, GraphPlace>>> = { frag
 interface Raw {
   readonly [k: string]: unknown;
   readonly version?: unknown; readonly kind?: unknown; readonly model?: unknown; readonly doubleSided?: unknown; readonly flatShading?: unknown;
+  readonly primitive?: unknown; readonly effectState?: unknown; readonly blend?: unknown; readonly fog?: unknown;
+  readonly depthWrite?: unknown; readonly depthBias?: unknown; readonly factor?: unknown; readonly units?: unknown; readonly size?: unknown; readonly points?: unknown;
   readonly params?: unknown; readonly nodes?: unknown; readonly stages?: unknown;
   readonly type?: unknown; readonly value?: unknown; readonly min?: unknown; readonly max?: unknown; readonly bind?: unknown;
   readonly day?: unknown; readonly state?: unknown;
@@ -433,12 +455,33 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   if (!Number.isInteger(cascades) || cascades < 1 || cascades > SUN_CASCADES_MAX) return { ok: false, errors: [`graph: cascades ${cascades} (1–${SUN_CASCADES_MAX})`] };
   if (!isRecord(input)) return { ok: false, errors: ['graph: not an object'] };
   if (input.version !== GRAPH_IR_VERSION) fail(`graph: version ${String(input.version)} (this engine reads ${GRAPH_IR_VERSION})`);
-  const kind = input.kind;
+  const kind = input.kind, primitive = input.primitive;
   if (kind !== 'material' && kind !== 'post') fail(`graph: kind ${String(kind)} (material or post)`);
   if (input.model !== undefined && input.model !== 'standard' && input.model !== 'unlit') fail(`graph: model ${JSON.stringify(input.model)} (standard or unlit)`);
   if (input.doubleSided !== undefined && typeof input.doubleSided !== 'boolean') fail('graph: doubleSided is not a boolean');
   if (input.flatShading !== undefined && typeof input.flatShading !== 'boolean') fail('graph: flatShading is not a boolean');
-  for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'doubleSided', 'flatShading', 'params', 'nodes', 'stages'].includes(k)) fail(`graph: unknown field ${k}`);
+  for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'primitive', 'effectState', 'doubleSided', 'flatShading', 'params', 'nodes', 'stages'].includes(k)) fail(`graph: unknown field ${k}`);
+
+  if (input.primitive !== undefined && input.primitive !== 'mesh' && input.primitive !== 'points') fail('graph: primitive must be mesh or points');
+  if (kind === 'post' && (input.primitive !== undefined || input.effectState !== undefined)) fail('graph: post graphs have no effect state or primitive');
+  const effect = input.effectState;
+  if (effect !== undefined) {
+    if (!isRecord(effect)) fail('graph: effectState is not an object');
+    else {
+      for (const k of Object.keys(effect)) if (!['blend', 'fog', 'depthWrite', 'depthBias'].includes(k)) fail(`effectState: unknown field ${k}`);
+      if (effect.blend !== undefined && effect.blend !== 'alpha' && effect.blend !== 'additive' && effect.blend !== 'premultiplied') fail('effectState: unsupported blend');
+      if (effect.fog !== undefined && effect.fog !== false) fail('effectState: fog must be false');
+      if (effect.depthWrite !== undefined && typeof effect.depthWrite !== 'boolean') fail('effectState: depthWrite must be boolean');
+      const bias = effect.depthBias;
+      if (bias !== undefined) {
+        if (!isRecord(bias)) fail('effectState: depthBias is not an object');
+        else {
+          for (const k of Object.keys(bias)) if (k !== 'factor' && k !== 'units') fail(`effectState.depthBias: unknown field ${k}`);
+          for (const k of ['factor', 'units']) if (!isFiniteNumber(bias[k]) || Math.abs(bias[k]) > 16) fail(`effectState.depthBias.${k}: needs a finite number within -16 … 16`);
+        }
+      }
+    }
+  }
 
   // params
   const paramTypes = new Map<string, GraphParamType>();
@@ -515,6 +558,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     const spec = GRAPH_OPS[op];
     if (spec === undefined) return fail(`${at}: unknown op ${op}`);
     if (spec.places && !spec.places.includes(place)) return fail(`${at}: ${op} cannot run in the ${place} stage`);
+    if (op === 'pointCoord' && primitive !== 'points') return fail(`${at}: pointCoord needs a points primitive`);
     const ins = raw.in ?? [];
     if (!Array.isArray(ins)) return fail(`${at}: in is not a list`);
     if (ins.length < spec.arity[0] || ins.length > spec.arity[1]) return fail(`${at}: ${op} takes ${spec.arity[0] === spec.arity[1] ? spec.arity[0] : spec.arity.join('–')} inputs, got ${ins.length}`);
@@ -629,13 +673,23 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   // stages
   const stages = input.stages;
   if (!isRecord(stages)) return { ok: false, errors: [...errors, 'graph: stages is not an object'] };
-  for (const k of Object.keys(stages)) if (!['vertex.offset', 'surface', 'lighting', 'outline', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
+  for (const k of Object.keys(stages)) if (!['vertex.offset', 'surface', 'lighting', 'outline', 'points', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
   const want = (ref: unknown, place: GraphPlace, type: GraphValueType, at: string): void => {
     const t = typeRef(ref, root, place, at, 1);
     if (t !== null && t !== type && !(t === 'float' && type !== 'bool')) fail(`${at}: is a ${t}, wants a ${type}`);
   };
   if (kind === 'material') {
     if (stages.post !== undefined) fail('stages.post: a material graph has no post stage');
+    const points = stages.points;
+    if (input.primitive === 'points') {
+      if (input.model !== 'unlit') fail('graph: points require an unlit model');
+      if (stages.outline !== undefined) fail('graph: points cannot have a mesh outline');
+      if (!isRecord(points)) fail('stages.points: points need { size }');
+      else {
+        for (const k of Object.keys(points)) if (k !== 'size') fail(`stages.points: unknown output ${k}`);
+        want(points.size, 'vertex', 'float', 'stages.points.size');
+      }
+    } else if (points !== undefined) fail('stages.points: needs a points primitive');
     const vo = stages['vertex.offset'];
     if (vo !== undefined) {
       if (!isRecord(vo)) fail('stages.vertex.offset: not an object');
@@ -679,7 +733,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       }
     }
   } else if (kind === 'post') {
-    for (const k of ['vertex.offset', 'surface', 'lighting', 'outline'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
+    for (const k of ['vertex.offset', 'surface', 'lighting', 'outline', 'points'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
     const p = stages.post;
     if (!isRecord(p)) fail('stages.post: a post graph needs { colour }');
     else want(p.colour, 'post', 'vec3', 'stages.post.colour');
@@ -703,12 +757,23 @@ function asGraph(input: Raw): GraphIr {
     kind: input.kind === 'post' ? 'post' : 'material',
     nodes: isRecord(input.nodes) ? toNodes(input.nodes) : {},
     stages: isRecord(input.stages) ? toStages(input.stages) : {},
+    ...(input.primitive === 'mesh' || input.primitive === 'points' ? { primitive: input.primitive } : {}),
+    ...(isRecord(input.effectState) ? { effectState: toEffectState(input.effectState) } : {}),
     ...(input.model === 'standard' || input.model === 'unlit' ? { model: input.model } : {}),
     ...(typeof input.doubleSided === 'boolean' ? { doubleSided: input.doubleSided } : {}),
     ...(typeof input.flatShading === 'boolean' ? { flatShading: input.flatShading } : {}),
     ...(isRecord(input.params) ? { params: toParams(input.params) } : {}),
   };
   return graph;
+}
+function toEffectState(raw: Raw): GraphEffectState {
+  const bias = raw.depthBias;
+  return {
+    ...(raw.blend === 'alpha' || raw.blend === 'additive' || raw.blend === 'premultiplied' ? { blend: raw.blend } : {}),
+    ...(raw.fog === false ? { fog: false } : {}),
+    ...(typeof raw.depthWrite === 'boolean' ? { depthWrite: raw.depthWrite } : {}),
+    ...(isRecord(bias) && isFiniteNumber(bias.factor) && isFiniteNumber(bias.units) ? { depthBias: { factor: bias.factor, units: bias.units } } : {}),
+  };
 }
 const toRef = (v: unknown): GraphRef => (typeof v === 'string' ? v : isFiniteNumber(v) ? v : Array.isArray(v) ? v.filter(isFiniteNumber) : 0);
 function toNodes(raw: Raw): Record<string, GraphNode> {
@@ -734,6 +799,7 @@ function toStages(raw: Raw): GraphStages {
   const surface: Record<string, GraphRef | number> = {};
   if (isRecord(s)) for (const [k, v] of Object.entries(s)) surface[k] = k === 'alphaCutoff' && isFiniteNumber(v) ? v : toRef(v);
   return {
+    ...(isRecord(raw.points) ? { points: { size: toRef(raw.points.size) } } : {}),
     ...(isRecord(vo) ? { 'vertex.offset': { offset: toRef(vo.offset), ...(vo.shadow === false ? { shadow: false } : {}) } } : {}),
     ...(isRecord(s) ? { surface } : {}),
     ...(isRecord(p) ? { post: { colour: toRef(p.colour) } } : {}),

@@ -20,7 +20,7 @@
  *   graph without an outline, or any graph while the row is off, draws exactly as before. The outline's instructions are
  *   already in the graph's admitted cost (`validateGraph` counts the `outlineVertex` / `outline` programs).
  */
-import { Color, Mesh, SRGBColorSpace, type Material, type Object3D, type Texture } from 'three';
+import { Color, Mesh, PointsMaterial, SRGBColorSpace, type Material, type Object3D, type Texture } from 'three';
 import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphBudget, type GraphIr, type GraphParamType } from '@wildshard/format/materialGraph';
 import { DATA_LOOK_DAY, dataLookClock, lookSample, sampleLook, type LookSample } from '@wildshard/engine/render/dataLook';
 import type { GraphCompiler } from '@wildshard/engine/render/graphBackend';
@@ -51,7 +51,8 @@ export interface GraphReadout { compiled: number; fallback: number; reasons: str
 /** A compiled graph's outline stage: its hull material and the attach that adds it to a mesh as the second draw. */
 export interface GraphOutline { readonly material: Material; readonly attach: (mesh: Mesh) => Mesh }
 /** Attach `material`'s outline (when its graph declares one) to every mesh under `root`; the hulls go with `scope`. */
-export type GraphOutlineHook = (root: Object3D, material: Material, scope: Scope) => readonly Mesh[];
+/** `onlyRoot` binds the named runtime mesh alone, leaving its children in their own materials. */
+export type GraphOutlineHook = (root: Object3D, material: Material, scope: Scope, onlyRoot?: boolean) => readonly Mesh[];
 
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
 /** every live body the hook outlined and every hull it attached (a root walked twice gets no second hull) */
@@ -62,11 +63,12 @@ const outlined = new WeakSet<Mesh>();
  * attributes the body owns) is disposed. A material without an outline attaches nothing and touches no mesh.
  */
 export function graphOutlineHook(outline: (material: Material) => GraphOutline | null): GraphOutlineHook {
-  return (root, material, scope) => {
+  return (root, material, scope, onlyRoot = false) => {
     const stage = outline(material);
     if (stage === null) return [];
     const bodies: Mesh[] = [];
-    root.traverse((object) => { if (isMesh(object) && !outlined.has(object)) bodies.push(object); });
+    if (onlyRoot) { if (isMesh(root) && !outlined.has(root)) bodies.push(root); }
+    else root.traverse((object) => { if (isMesh(object) && !outlined.has(object)) bodies.push(object); });
     return bodies.map((mesh) => {
       const hull = stage.attach(mesh);
       outlined.add(mesh); outlined.add(hull);
@@ -191,6 +193,11 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options:
     if (typeof entry.file === 'string') return { graph: graphFileJson(entry.file, (hash) => options.file?.(hash)), budget: DEFAULT_GRAPH_BUDGET, preset: false, family: null };
     return { graph: entry.graph, budget: DEFAULT_GRAPH_BUDGET, preset: false, family: null };
   };
+  const pointFallback = (): Material => {
+    const material = new PointsMaterial({ size: 1, sizeAttenuation: false, vertexColors: true });
+    material.userData['graphPrimitive'] = 'points';
+    return material;
+  };
   const compile = (entry: GraphMaterialEntry): Material => {
     const resolved = resolve(entry), graph = resolved.graph, budget = resolved.budget;
     // a preset reference while the row is off draws its own family: the preset is held to parity with it
@@ -204,10 +211,14 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options:
       if (resolved.family !== null) { readout.fallback++; readout.reasons.push(checked.errors.join('; ')); return options.fallback(resolved.family); }
       const shape: object = typeof graph === 'object' && graph !== null ? graph : {};
       readout.fallback++; readout.reasons.push(checked.errors.join('; '));
+      if (Reflect.get(shape, 'primitive') === 'points') return pointFallback();
       return options.fallback(graphFallbackEntry({ model: Reflect.get(shape, 'model') === 'unlit' ? 'unlit' : 'standard', doubleSided: Reflect.get(shape, 'doubleSided') === true }));
     }
     const ir = checked.graph;
-    if (options.compiler === null) { readout.fallback++; readout.reasons.push('graph materials row off'); return options.fallback(graphFallbackEntry(ir)); }
+    if (options.compiler === null) {
+      readout.fallback++; readout.reasons.push('graph materials row off');
+      return ir.primitive === 'points' ? pointFallback() : options.fallback(graphFallbackEntry(ir));
+    }
     const compiler = options.compiler, compiled = compiler.compileGraph(ir, { dayKeys, stateFields, budget, textures: options.textures });
     if (resolved.preset) for (const name of PRESET_CLOCK_PARAMS) if (ir.params?.[name] !== undefined) clocks.push(() => { compiled.setParam(name, elapsed); });
     const hull = compiled.outline;

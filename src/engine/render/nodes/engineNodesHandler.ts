@@ -278,6 +278,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   override build(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): void {
     const t0 = diagnosticNow();
     super.build(material, object, parameters);
+    // Three's classic node builder hardcodes GL_POINTS to one pixel. A compiler-owned
+    // size property replaces only that epilogue; content still supplies no shader code.
+    if (material.userData['graphPointSize'] === true) {
+      if (!(object instanceof THREE.Points)) throw new Error('Points graph requires a Points object');
+      const shader = parameters.vertexShader;
+      if (!shader.includes('float wildshardGraphPointSize;') || !shader.includes('gl_PointSize = 1.0;')) throw new Error('Missing graph point-size output');
+      parameters.vertexShader = shader.replace('gl_PointSize = 1.0;', 'gl_PointSize = wildshardGraphPointSize;');
+    }
     this.buildMs += diagnosticNow() - t0;
     this.builds++;
     // WebGLRenderer.getProgram calls build only for a key its material has no program for, then files the acquired

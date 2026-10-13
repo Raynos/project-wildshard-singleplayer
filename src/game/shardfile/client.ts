@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { Mesh, Object3D, Vector3 } from 'three';
+import { Mesh, Points, Object3D, Vector3 } from 'three';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Actor, CombatTarget } from '@wildshard/engine/combat/pipeline';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
@@ -231,7 +231,20 @@ export class ShardfileClient {
   /** A trusted hybrid's runtime reads the built materials, the drawn terrain's queries and the curves' host-state port. */
   private lend(ctx: ShardContext, presentation: Awaited<ReturnType<typeof clientMaterials>>, ground: TerrainField | null): void {
     if (this.bindings.trustedRuntime !== true) return;
+    const bound = new WeakSet<Mesh | Points>();
     publishHybridPresentation(this.source.identity.slug, { ground,
+      bindMaterial: (id, object, scope) => {
+        if (ctx.scope.disposed || scope.disposed || bound.has(object)) throw new Error('Material lending needs live scopes and an unbound object');
+        const material = presentation.materials.get(id);
+        if (material === undefined) throw new Error(`Hybrid presentation has no material ${id}`);
+        if ((material.userData['graphPrimitive'] === 'points') !== (object instanceof Points)) throw new Error('Graph primitive does not match runtime object');
+        const prior = object.material, lease = scope.child(`material:${id}`);
+        ctx.scope.onDispose(() => { lease.dispose(); });
+        bound.add(object); object.material = material;
+        lease.onDispose(() => { bound.delete(object); if (object.material === material) object.material = prior; });
+        try { presentation.outline(object, material, lease, true); } catch (error) { lease.dispose(); throw error; }
+        return () => { lease.dispose(); };
+      },
       material: (id) => { const material = presentation.materials.get(id); if (material === undefined) throw new Error(`Hybrid presentation has no material ${id}`); return material; },
       bindState: (read) => { this.hostState = read; return () => { if (this.hostState === read) this.hostState = undefined; }; },
     }, ctx.scope);
