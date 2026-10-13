@@ -22,8 +22,8 @@ const run = (cwd, command, args, options = {}) => {
 };
 
 /** spawnSync's result shape, without blocking: the guards' slow children run side by side (SF74 W14). */
-async function spawnAsync(cwd, command, args) {
-  const child = spawn(command, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
+async function spawnAsync(cwd, command, args, env = process.env) {
+  const child = spawn(command, args, { cwd, stdio: ['ignore', 'pipe', 'pipe'], env });
   let stdout = '', stderr = '';
   child.stdout.on('data', (chunk) => { stdout += String(chunk); });
   child.stderr.on('data', (chunk) => { stderr += String(chunk); });
@@ -163,14 +163,14 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
     const beforeConfig = join(beforeRoot, '.oxlintrc.precommit.json');
     writeFileSync(beforeConfig, JSON.stringify(config));
     const beforePaths = paths.filter(path => beforeSnapshot.paths.includes(path));
-    const beforeLint = beforePaths.length > 0 ? spawnAsync(beforeRoot, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', beforeConfig, '--disable-nested-config', '-f', 'json', ...beforePaths]) : null;
+    const beforeLint = beforePaths.length > 0 ? spawnAsync(beforeRoot, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', beforeConfig, '--disable-nested-config', '-f', 'json', ...beforePaths], { ...process.env, WS_HTML_LINT_FILES: JSON.stringify(beforePaths) }) : null;
     if (beforeLint !== null) children.push(beforeLint);
     const existing = new Set(snapshot.paths);
     const lintPaths = paths.filter((p) => existing.has(p));
     const startLint = () => {
       if (lintPaths.length === 0) return null;
       const started = performance.now();
-      return spawnAsync(scratch, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', guardConfig, '--disable-nested-config', '-f', 'json', ...lintPaths]).then(result => {
+      return spawnAsync(scratch, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', guardConfig, '--disable-nested-config', '-f', 'json', ...lintPaths], { ...process.env, WS_HTML_LINT_FILES: JSON.stringify(lintPaths) }).then(result => {
         console.log(`precommit-guards: source lint ${((performance.now() - started) / 1000).toFixed(3)}s`);
         return result;
       });

@@ -26,15 +26,25 @@ function property(node, checker) {
 }
 // E454: every file the rule's AST pass can send here (a sink word, or a call named write / writeln / assign), so one
 // program serves the whole lint run. A file outside it used to rebuild the program from scratch: 24 of the ratchet's
-// 50 s. Extra root files never change another file's types (src files are modules; the merge files are always in).
+// 50 s. A scoped hook lists its actual lint files; retain all script/global
+// and augmentation candidates while real imports pull in module dependencies.
+// Extra root files never change another file's types (src files are modules; the merge files are always in).
 const CANDIDATE = /innerHTML|outerHTML|srcdoc|__html|insertAdjacentHTML|createContextualFragment|\bwrite(?:ln)?\b|\bassign\b/u;
+/** @param {import('@typescript/typescript6').Node} node @returns {boolean} */
+function hasAmbientEffects(node) {
+  if (ts.isModuleDeclaration(node) && ((node.flags & ts.NodeFlags.GlobalAugmentation) !== 0 || ts.isStringLiteral(node.name))) return true;
+  return ts.forEachChild(node, hasAmbientEffects) === true;
+}
 function checkerFor(root, filename) {
-  const key = resolve(root), file = resolve(filename), text = readFileSync(file, 'utf8');
+  const scope = process.env.WS_HTML_LINT_FILES === undefined ? null : JSON.parse(process.env.WS_HTML_LINT_FILES);
+  if (scope !== null && (!Array.isArray(scope) || scope.some(file => typeof file !== 'string' || !file.startsWith('src/') || file.includes('\\') || file.split('/').some(part => part === '' || part === '.' || part === '..')))) throw new Error('Invalid HTML lint file scope');
+  const selected = scope === null ? null : new Set(scope.map(file => resolve(root, file)));
+  const key = JSON.stringify([resolve(root), scope]), file = resolve(filename), text = readFileSync(file, 'utf8');
   const cached = cache.get(key);
   if (cached?.program.getSourceFile(file)?.text === text) return cached;
-  const config = ts.findConfigFile(key, existsSync);
-  const parsed = config ? ts.parseJsonConfigFileContent(ts.readConfigFile(config, (path) => ts.sys.readFile(path)).config, ts.sys, key) : null;
-  const names = cached?.names ?? new Set(globSync('src/**/*.{ts,tsx}', { cwd: key }).map((path) => resolve(key, path)).filter((path) => path.endsWith('.merge.d.ts') ? true : CANDIDATE.test(readFileSync(path, 'utf8'))));
+  const config = ts.findConfigFile(resolve(root), existsSync);
+  const parsed = config ? ts.parseJsonConfigFileContent(ts.readConfigFile(config, (path) => ts.sys.readFile(path)).config, ts.sys, resolve(root)) : null;
+  const names = cached?.names ?? new Set(globSync('src/**/*.{ts,tsx}', { cwd: root }).map((path) => resolve(root, path)).filter((path) => path.endsWith('.merge.d.ts') ? true : CANDIDATE.test(readFileSync(path, 'utf8'))));
   names.add(file);
   const options = { ...parsed?.options, noEmit: true, strict: true, skipLibCheck: true, allowJs: true };
   // A rebuild (an edited file in a long-lived process) reparses only what changed.
@@ -46,7 +56,19 @@ function checkerFor(root, filename) {
     if (parsedFile !== undefined) parsedFiles.set(name, parsedFile);
     return parsedFile;
   } };
-  const program = ts.createProgram([...names], options, host);
+  const complete = ts.createProgram([...names], options, host);
+  let program = complete;
+  if (selected !== null) {
+    // Preserve ambient effects throughout the ORIGINAL dependency graph,
+    // including an augmentation imported only by an unselected HTML module.
+    // Discovery parses but does not construct a checker for unrelated roots.
+    const narrowed = new Set([...names].filter(name => selected.has(name) || name === file || name.endsWith('.merge.d.ts')));
+    for (const source of complete.getSourceFiles()) {
+      if (!ts.isExternalModule(source)) { narrowed.add(source.fileName); continue; }
+      if (hasAmbientEffects(source)) narrowed.add(source.fileName);
+    }
+    program = ts.createProgram([...narrowed], options, host);
+  }
   const entry = { program, checker: program.getTypeChecker(), names, parsedFiles }; cache.set(key, entry); return entry;
 }
 

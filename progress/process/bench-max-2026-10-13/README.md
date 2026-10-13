@@ -225,3 +225,23 @@ The real scratch hook restored all 111 boot outputs exactly: boot work
 A source-edit cold run remains 13.83 s: export0.412/gen7.710/bakes3.984/
 save0.554. Its scoped measurement alone takes3.732 s. The 10 s cold cap
 and a green 120 s push qualification remain OPEN. No full suite was run.
+
+
+## Scoped HTML type checking (sp-x5)
+
+A CPU profile attributes3.23 s of scoped measurement to the linter child,
+which constructs the HTML guard's TypeScript program. Scoped hooks now
+name their actual source roots. Discovery retains the original candidate
+graph's globals, merge files and module augmentations, including those
+imported only by an unselected candidate. Only the selected/imported
+modules need the final checker. Full CI keeps its original root set.
+Every sink, alias, data-flow and policy decision is unchanged.
+
+40 HTML tests pass, with exact full/scoped diagnostics and transitive
+augmentation/import/global fixtures; 112 ratchet checks and the staged
+source/vocabulary fixtures pass. Narrowed types and touched lint pass.
+Actual linter ABBA: full3.112/2.937 s, scoped2.565/2.572 s; all three
+existing diagnostics agree field-for-field. Median3.024 ->2.568 s.
+The cold-source hook remains above10 s; this is a bounded0.456 s cut,
+not qualification. Four broad generation jobs still recapture for an
+unrelated engine source edit. Their declared input contracts stay intact.

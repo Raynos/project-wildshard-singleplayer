@@ -44,7 +44,7 @@ function counts(root, baselineFile, files = null) {
   if (files !== null && !files.some(file => existsSync(resolve(root,file)))) return {};
   const result = spawnSync(process.execPath, [resolve(REPO, 'node_modules/oxlint/bin/oxlint'), '-c', configFile, '-f', 'json', ...(measuredFiles ?? ['src'])], {
     cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
-    env: { ...process.env, WILDSHARD_RATCHET_FILE: baselineFile },
+    env: { ...process.env, WILDSHARD_RATCHET_FILE: baselineFile, WS_HTML_LINT_FILES: measuredFiles === null ? undefined : JSON.stringify(measuredFiles) },
   });
   if (result.error) throw result.error;
   if (result.status !== 0 && result.status !== 1) throw new Error(`oxlint failed (${result.status}): ${result.stderr}`);

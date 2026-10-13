@@ -15,7 +15,16 @@ afterAll(() => rmSync(root, { recursive: true, force: true }));
 mkdirSync(join(root, 'src'), { recursive: true });
 writeFileSync(join(root, 'package.json'), '{"type":"module"}');
 writeFileSync(join(root, '.oxlintrc.json'), JSON.stringify({ jsPlugins: [resolve('lint/wildshard-plugin.js')], categories: { correctness: 'off' }, rules: { 'wildshard/no-authored-html': 'error' } }));
+writeFileSync(join(root, 'src/globals.ts'), 'declare const ambientNumeric:number; // innerHTML candidate global');
+writeFileSync(join(root, 'src/augmentation.ts'), 'export {}; declare global { interface MarkupNumber {value:number} } // innerHTML candidate augmentation');
+writeFileSync(join(root, 'src/inputs.ts'), 'export declare const authoredText:string;');
+writeFileSync(join(root, 'src/unselected.ts'), 'export {}; import "./transitive-augmentation"; // innerHTML candidate');
+writeFileSync(join(root, 'src/transitive-augmentation.ts'), 'export {}; declare global { interface IndirectMarkupNumber {value:number} }');
 const cases = [
+  { id: 'scoped-transitive', code: `declare const value:IndirectMarkupNumber;node.innerHTML=\`<b>\${value.value}</b>\`;`, count: 0 },
+  { id: 'scoped-global', code: `node.innerHTML=\`<b>\${ambientNumeric}</b>\`;`, count: 0 },
+  { id: 'scoped-augmentation', code: `declare const value:MarkupNumber;node.innerHTML=\`<b>\${value.value}</b>\`;`, count: 0 },
+  { id: 'scoped-import', code: 'import {authoredText} from "./inputs";node.innerHTML=authoredText;', count: 1 },
   { id: 'module-write', ext: 'mjs', code: 'const write=(text)=>text;write("fixed");', count: 0 },
   { id: 'module-unsafe', ext: 'mjs', code: 'export function render(html){node.innerHTML=html;}render("fixed");', count: 1 },
   { id: 'direct', code: 'declare const source: {title:string}; node.innerHTML=source.title;', count: 1 },
@@ -58,4 +67,15 @@ const diagnostics = (JSON.parse(result.stdout) as { diagnostics: Diagnostic[] })
 it('loads the defining HTML guard without a plugin or process failure', () => { expect(result.status, result.stderr).toBe(1); expect(result.stderr).toBe(''); });
 it.each(cases)('$id', (row) => {
   expect(diagnostics.filter((site) => site.filename === `src/${row.id}.${'ext' in row ? row.ext : 'ts'}` && site.code === 'wildshard(no-authored-html)'), row.code).toHaveLength(row.count);
+});
+
+it('keeps scoped typed HTML verdicts exact with imported, global and augmentation dependencies', () => {
+  const selected = cases.filter(row => ['scoped-transitive', 'scoped-global', 'scoped-augmentation', 'scoped-import', 'computed', 'helper', 'spread', 'bound-adjacent', 'module-unsafe', 'numeric'].includes(row.id));
+  const files = selected.map(row => `src/${row.id}.${'ext' in row ? row.ext : 'ts'}`);
+  const scoped = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', join(root, '.oxlintrc.json'), '-f', 'json', ...files], {
+    cwd: root, encoding: 'utf8', timeout: 30_000, env: { WS_HTML_LINT_FILES: JSON.stringify(files) },
+  });
+  expect(scoped.status, scoped.stderr).toBe(1); expect(scoped.stderr).toBe('');
+  const sites = (JSON.parse(scoped.stdout) as { diagnostics: Diagnostic[] }).diagnostics;
+  expect(sites.map(site => JSON.stringify(site)).sort()).toEqual(diagnostics.filter(site => files.includes(site.filename)).map(site => JSON.stringify(site)).sort());
 });
