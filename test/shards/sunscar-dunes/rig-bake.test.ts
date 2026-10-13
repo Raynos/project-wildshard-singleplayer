@@ -8,9 +8,8 @@ import { bakeSignalSkitterer, skittererGeometry } from '../../../src/shards/suns
 import { bakeSignalManta, bakeSignalStrider, bandSkin, quadrupedHull } from '../../../src/shards/sunscar-dunes/generators/hulls';
 import { DUNE_MODELS, DUNE_RIGS } from '../../../src/shards/sunscar-dunes/data/files';
 import { MANTA_HULL, RAY_TINT, STRIDER_HULL } from '../../../src/shards/sunscar-dunes/data/hulls';
-import { RAY_BODY } from '../../../src/shards/sunscar-dunes/data/species/duneRay';
+import { RAY_BODY, SKITTERER_BODY } from '../../../src/shards/sunscar-dunes/data/species/bodies';
 import { STRIDER_BODY } from '../../../src/shards/sunscar-dunes/data/striderRig.baked';
-import { SKITTERER_BODY } from '../../../src/shards/sunscar-dunes/data/species/skitterer';
 import { STRIDER_LOOK } from '../../../src/shards/sunscar-dunes/data/species/strider';
 import { createModelLibrary } from '../../../src/sdk/looks/modelLibrary';
 import { duneBakedBody, preloadDuneMeshes } from '../../../src/shards/sunscar-dunes/world/meshes';

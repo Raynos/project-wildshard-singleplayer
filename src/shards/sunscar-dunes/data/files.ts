@@ -1,5 +1,6 @@
 import type { ModelLibraryRows } from '@wildshard/sdk/looks/modelLibrary';
-import { FACET_AO_FLOOR, HD_LOOKS } from './surfaces';
+import { HD_LOOKS } from './surfaces';
+import { FACET_AO_FLOOR } from './facets';
 
 /**
  * Signal Dunes' asset files as rows: the generated models, the baked world pieces and creature rigs, the painted skies. The

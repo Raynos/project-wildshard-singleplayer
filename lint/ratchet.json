@@ -162,7 +162,7 @@
     "src/shards/sunscar-dunes/data/minimap.ts": 1,
     "src/shards/sunscar-dunes/data/surfaces.ts": 1,
     "src/shards/sunscar-dunes/generators/bake-manifest-ground.mjs": 3,
-    "src/shards/sunscar-dunes/generators/bake-signal-rigs.mjs": 3,
+    "src/shards/sunscar-dunes/generators/bake-signal-rigs.mjs": 2,
     "src/shards/sunscar-dunes/generators/bake-signal-sand.mjs": 4,
     "src/shards/sunscar-dunes/generators/bake-signal-world.mjs": 3,
     "src/shards/sunscar-dunes/generators/bake-skitterer-behaviour.mjs": 3,

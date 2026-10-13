@@ -57,6 +57,3 @@ export const HD_LOOKS: Readonly<Partial<Record<DuneHdName, HdLookRow>>> = {
   'crates-hd': { surface: CAMP_SURFACE },
   'sacks-hd': { surface: CAMP_SURFACE },
 };
-
-/** How much of a facet model's baked AO survives: a facet in full occlusion keeps this share of its colour. */
-export const FACET_AO_FLOOR = 0.55;

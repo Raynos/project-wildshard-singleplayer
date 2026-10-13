@@ -2187,31 +2187,35 @@
       "command": [
         "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
-        "--import",
-        "./scripts/generation-level.mjs",
-        "src/shards/sunscar-dunes/generators/bake-signal-rigs.mjs",
-        "--generation-shard=sunscar-dunes"
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/sunscar-dunes/generators/bake-signal-rigs.mjs"
       ],
       "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/sunscar-dunes",
-        "scripts/bake-loader.mjs",
-        "scripts/bake",
-        "scripts/generation-level.mjs",
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "public/assets/sunscar-dunes",
-        "lint/runtime-performance.mjs"
+        "src/commons/package.json",
+        "src/format/package.json",
+        "src/sdk/bake/skinned.ts",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/sunscar-dunes/assets/models/dune-matriarch.glb",
+        "src/shards/sunscar-dunes/assets/models/dune-strider.glb",
+        "src/shards/sunscar-dunes/data/facets.ts",
+        "src/shards/sunscar-dunes/data/hulls.ts",
+        "src/shards/sunscar-dunes/data/species/bodies.ts",
+        "src/shards/sunscar-dunes/generators/bake-signal-rigs.mjs",
+        "src/shards/sunscar-dunes/generators/facets.ts",
+        "src/shards/sunscar-dunes/generators/hulls.ts",
+        "src/shards/sunscar-dunes/generators/rigidSkin.ts",
+        "src/shards/sunscar-dunes/generators/species.ts"
       ],
       "outputs": [
         "public/assets/sunscar-dunes/rigs/skitterer.glb",
         "public/assets/sunscar-dunes/rigs/ray.glb",
-        "public/assets/sunscar-dunes/rigs/matriarch.glb"
+        "public/assets/sunscar-dunes/rigs/matriarch.glb",
+        "public/assets/sunscar-dunes/rigs/strider.glb",
+        "src/shards/sunscar-dunes/data/striderRig.baked.ts"
       ],
       "platform": "native",
       "seedOutputs": []

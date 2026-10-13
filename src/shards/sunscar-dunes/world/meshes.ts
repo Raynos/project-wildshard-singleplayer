@@ -1,9 +1,8 @@
 import { createModelLibrary, undrawnRig } from '@wildshard/sdk/looks/modelLibrary';
 import { bakedLook, creatureBodies, type BakedLookRow } from '@wildshard/game/plugin/geometry';
 import type { SpeciesClips } from '@wildshard/sdk/species/clips';
-import { SKITTERER_BODY } from '../data/species/skitterer';
 import { STRIDER_BODY } from '../data/striderRig.baked';
-import { RAY_BODY } from '../data/species/duneRay';
+import { RAY_BODY, SKITTERER_BODY } from '../data/species/bodies';
 import { applySurfaceLooks } from '@wildshard/game/systems/looks/surfaceLooks';
 import type { SurfaceLook } from '@wildshard/format/surfaceLooks';
 import { FIRE_LIGHTS } from './fireFx';

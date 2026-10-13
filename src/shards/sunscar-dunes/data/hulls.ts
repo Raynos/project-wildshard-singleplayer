@@ -1,4 +1,6 @@
-import type { ModelFit } from '@wildshard/sdk/looks/modelLibrary';
+/** How a hull's source model is framed (the model library's `ModelFit`): turned `yaw` about +Y, centred on x / z (on its
+ *  footing, the lowest tenth, with `centre: 'base'`), its lowest point at `floor`, `size` metres by span or height. */
+export interface ModelFit { readonly size: number; readonly by: 'span' | 'height'; readonly floor?: number; readonly yaw?: number; readonly centre?: 'base' }
 
 /** One bone of a hull's skeleton (absolute bind space). */
 export interface HullBone { name: string; parent: string | null; pos: [number, number, number] }

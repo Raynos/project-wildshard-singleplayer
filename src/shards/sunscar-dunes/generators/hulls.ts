@@ -1,8 +1,7 @@
 import { Float32BufferAttribute, MeshStandardMaterial, Uint16BufferAttribute, type BufferGeometry } from 'three';
 import { skinnedGlb } from '@wildshard/sdk/bake/skinned';
-import { STRIDER_LOOK } from '../data/species/strider';
-import { RAY_BODY } from '../data/species/duneRay';
-import { bindRigid, fitGeometry } from '@wildshard/sdk/looks/modelLibrary';
+import { RAY_BODY, STRIDER_DIMS } from '../data/species/bodies';
+import { bindRigid, fitGeometry } from './facets';
 import type { BandSkinRow, HullBone, HullTint, QuadrupedHullRow } from '../data/hulls';
 
 /** A fitted hull: its skeleton, its skinned geometry and its height. */
@@ -12,8 +11,9 @@ interface FittedHull { bones: HullBone[]; geometry: BufferGeometry; h: number }
  * Build-time only (SHARD-PLATFORM G345): Signal Dunes' generated strider fitted and rigidly skinned from its rows, baked
  * offline (`bake-signal-rigs.mjs` → `rigs/strider.glb` + `data/striderRig.baked.ts`) so the client only loads it
  * (`world/meshes.ts` duneBody), as the skitterer's rig is; and the generated manta, band-skinned twice: the dune ray in its
- * tint (`rigs/ray.glb`) and the Matriarch untinted (`rigs/matriarch.glb`). Each source is the client's own intake of its
- * model (the model library's `mesh`), so the bake is the geometry the client used to build.
+ * tint (`rigs/ray.glb`) and the Matriarch untinted (`rigs/matriarch.glb`). Each source is its generated model as the model
+ * library takes it in (`generators/facets.ts` over the retained `assets/models/` file), so the bake is the geometry the
+ * client used to build.
  */
 
 /**
@@ -41,10 +41,10 @@ export function quadrupedHull(source: BufferGeometry, row: QuadrupedHullRow): Fi
 }
 
 /** The strider's rig file (a standard skinned GLB: its rigid skin, skeleton and dims, `bodyY` / `legLen` as shares of the
- *  hull's height from STRIDER_LOOK) and its skeleton and dims as data, the stand-in when the rig did not load. The soup
+ *  hull's height from STRIDER_DIMS) and its skeleton and dims as data, the stand-in when the rig did not load. The soup
  *  stays a soup and carries no normals: the client computes its flat normals per copy. */
 export function bakeSignalStrider(source: BufferGeometry, row: QuadrupedHullRow): { glb: Uint8Array; rig: string } {
-  const hull = quadrupedHull(source, row), material = new MeshStandardMaterial({ name: 'sunscar.strider', vertexColors: true }), d = STRIDER_LOOK.dims;
+  const hull = quadrupedHull(source, row), material = new MeshStandardMaterial({ name: 'sunscar.strider', vertexColors: true }), d = STRIDER_DIMS;
   const geometry = hull.geometry.index === null ? hull.geometry : hull.geometry.toNonIndexed();
   if (geometry.hasAttribute('normal')) geometry.deleteAttribute('normal');
   const dims = { bodyY: hull.h * d.bodyY, bodyHalfLen: d.bodyHalfLen, bodyRadius: d.bodyRadius, headRadius: d.headRadius, legLen: hull.h * d.legLen, halfWidth: d.halfWidth };

@@ -27,9 +27,3 @@ export const SKITTERER_CLIPS: SpeciesClips = [
 /** The skitterer's look rows (species/skitterer.ts). */
 export const SKITTERER_LOOK = { id: 'sunscar.look.sandSkitterer', species: SKITTERER_DATA.id, kind: 'sandSkitterer', skeleton: 'sunscar.sandSkitterer',
   sockets: ['body', 'head', 'legsL', 'legsR', 'tail'], clipNames: ['idle', 'walk', 'attack', 'hit', 'die'] } as const;
-/** The skitterer's skeleton (absolute bind space, +Z forward) and size: baked beside its skin (generators/species.ts), and its stand-in when the rig did not load. */
-export const SKITTERER_BODY = {
-  bones: [{ name: 'body', parent: null, pos: [0, 0.22, 0] }, { name: 'head', parent: 'body', pos: [0, 0.22, 0.42] },
-    { name: 'legsL', parent: 'body', pos: [-0.18, 0.14, 0] }, { name: 'legsR', parent: 'body', pos: [0.18, 0.14, 0] }, { name: 'tail', parent: 'body', pos: [0, 0.26, -0.45] }],
-  dims: { bodyY: 0.22, bodyHalfLen: 0.45, bodyRadius: 0.3, headRadius: 0.17, legLen: 0.2, halfWidth: 0.45 },
-} as const;
