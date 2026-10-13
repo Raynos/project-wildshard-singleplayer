@@ -18,7 +18,7 @@ def main():
         return 0
     try:
         with tempfile.TemporaryDirectory(prefix='wildshard-build-gate-') as temporary:
-            tree = Path(temporary)
+            tree = Path(temporary).resolve()
             archive = tree / 'source.tar'
             subprocess.run(['git', 'archive', sha, '--output', str(archive)], cwd=root, check=True)
             subprocess.run(['tar', '-xf', str(archive), '-C', str(tree)], check=True)
