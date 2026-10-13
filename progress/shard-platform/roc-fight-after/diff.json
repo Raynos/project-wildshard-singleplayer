@@ -1,0 +1,375 @@
+{
+ "before": {
+  "label": "BEFORE",
+  "build": "6e136f0-mv6t94zz",
+  "deterministic": {
+   "passes": 2,
+   "fightIdentical": true,
+   "firstDifferentFrame": null,
+   "playerHpFramesDiffering": 377,
+   "note": "player HP regeneration runs on the wall clock; every other logged column repeats exactly"
+  }
+ },
+ "after": {
+  "label": "AFTER",
+  "build": "591577b-mv6vrwre",
+  "deterministic": {
+   "passes": 2,
+   "fightIdentical": true,
+   "firstDifferentFrame": null,
+   "playerHpFramesDiffering": 758,
+   "note": "player HP regeneration runs on the wall clock; every other logged column repeats exactly"
+  }
+ },
+ "identical": false,
+ "rows": [
+  {
+   "side": "headless",
+   "key": "endpointTick",
+   "before": 26469,
+   "after": 26469,
+   "delta": 0
+  },
+  {
+   "side": "headless",
+   "key": "victoryTick",
+   "before": 26349,
+   "after": 26349,
+   "delta": 0
+  },
+  {
+   "side": "headless",
+   "key": "crownTick",
+   "before": 8888,
+   "after": 8888,
+   "delta": 0
+  },
+  {
+   "side": "headless",
+   "key": "fightTicks",
+   "before": 17461,
+   "after": 17461,
+   "delta": 0
+  },
+  {
+   "side": "headless",
+   "key": "attempts",
+   "before": 1,
+   "after": 1,
+   "delta": 0
+  },
+  {
+   "side": "headless",
+   "key": "fightHitsTaken",
+   "before": 14,
+   "after": 14,
+   "delta": 0
+  },
+  {
+   "side": "headless",
+   "key": "fightDamageTaken",
+   "before": 172,
+   "after": 172,
+   "delta": 0
+  },
+  {
+   "side": "headless",
+   "key": "journeyHitsTaken",
+   "before": 3,
+   "after": 3,
+   "delta": 0
+  },
+  {
+   "side": "headless",
+   "key": "minPlayerHp",
+   "before": 80,
+   "after": 80,
+   "delta": 0
+  },
+  {
+   "side": "headless",
+   "key": "stoops",
+   "before": 3,
+   "after": 3,
+   "delta": 0
+  },
+  {
+   "side": "headless",
+   "key": "hash",
+   "before": "146505ca06c9ca5c5f523bbff3dc7cf6ed248017a5ad184c543b819c8ba6e864",
+   "after": "04dd4bf8da2829ea1730e9ba04a817eeb765dc16c72faa92542636e3c8d1cfa5",
+   "delta": null
+  },
+  {
+   "side": "page",
+   "key": "fightFrames",
+   "before": 6529,
+   "after": 6529,
+   "delta": 0
+  },
+  {
+   "side": "page",
+   "key": "fightTicks",
+   "before": 13058,
+   "after": 13058,
+   "delta": 0
+  },
+  {
+   "side": "page",
+   "key": "attempts",
+   "before": 1,
+   "after": 1,
+   "delta": 0
+  },
+  {
+   "side": "page",
+   "key": "hitsTaken",
+   "before": 15,
+   "after": 15,
+   "delta": 0
+  },
+  {
+   "side": "page",
+   "key": "damageTaken",
+   "before": 182,
+   "after": 182,
+   "delta": 0
+  },
+  {
+   "side": "page",
+   "key": "minPlayerHp",
+   "before": 86,
+   "after": 86,
+   "delta": 0
+  },
+  {
+   "side": "page",
+   "key": "stoops",
+   "before": 2,
+   "after": 2,
+   "delta": 0
+  }
+ ],
+ "encounter": {
+  "headless": {
+   "before": [
+    {
+     "tick": 8888,
+     "state": "fight",
+     "phase": 0,
+     "attempts": 1,
+     "rocHp": 420,
+     "playerHp": 100
+    },
+    {
+     "tick": 10038,
+     "state": "beat",
+     "phase": 1,
+     "attempts": 1,
+     "rocHp": 277.2,
+     "playerHp": 86
+    },
+    {
+     "tick": 10129,
+     "state": "fight",
+     "phase": 1,
+     "attempts": 1,
+     "rocHp": 277.2,
+     "playerHp": 86
+    },
+    {
+     "tick": 17234,
+     "state": "beat",
+     "phase": 2,
+     "attempts": 1,
+     "rocHp": 138.6,
+     "playerHp": 88
+    },
+    {
+     "tick": 17325,
+     "state": "fight",
+     "phase": 2,
+     "attempts": 1,
+     "rocHp": 138.6,
+     "playerHp": 88
+    },
+    {
+     "tick": 26349,
+     "state": "victory",
+     "phase": 2,
+     "attempts": 1,
+     "rocHp": 0,
+     "playerHp": 100
+    }
+   ],
+   "after": [
+    {
+     "tick": 8888,
+     "state": "fight",
+     "phase": 0,
+     "attempts": 1,
+     "rocHp": 420,
+     "playerHp": 100
+    },
+    {
+     "tick": 10038,
+     "state": "beat",
+     "phase": 1,
+     "attempts": 1,
+     "rocHp": 277.2,
+     "playerHp": 86
+    },
+    {
+     "tick": 10129,
+     "state": "fight",
+     "phase": 1,
+     "attempts": 1,
+     "rocHp": 277.2,
+     "playerHp": 86
+    },
+    {
+     "tick": 17234,
+     "state": "beat",
+     "phase": 2,
+     "attempts": 1,
+     "rocHp": 138.6,
+     "playerHp": 88
+    },
+    {
+     "tick": 17325,
+     "state": "fight",
+     "phase": 2,
+     "attempts": 1,
+     "rocHp": 138.6,
+     "playerHp": 88
+    },
+    {
+     "tick": 26349,
+     "state": "victory",
+     "phase": 2,
+     "attempts": 1,
+     "rocHp": 0,
+     "playerHp": 100
+    }
+   ]
+  },
+  "page": {
+   "before": [
+    {
+     "frame": 1,
+     "tick": 2,
+     "state": "intro",
+     "phase": 0,
+     "attempts": 1,
+     "rocHp": 420
+    },
+    {
+     "frame": 46,
+     "tick": 92,
+     "state": "fight",
+     "phase": 0,
+     "attempts": 1,
+     "rocHp": 420
+    },
+    {
+     "frame": 454,
+     "tick": 908,
+     "state": "beat",
+     "phase": 1,
+     "attempts": 1,
+     "rocHp": 277.2
+    },
+    {
+     "frame": 499,
+     "tick": 998,
+     "state": "fight",
+     "phase": 1,
+     "attempts": 1,
+     "rocHp": 277.2
+    },
+    {
+     "frame": 4610,
+     "tick": 9220,
+     "state": "beat",
+     "phase": 2,
+     "attempts": 1,
+     "rocHp": 138.6
+    },
+    {
+     "frame": 4655,
+     "tick": 9310,
+     "state": "fight",
+     "phase": 2,
+     "attempts": 1,
+     "rocHp": 138.6
+    },
+    {
+     "frame": 6529,
+     "tick": 13058,
+     "state": "victory",
+     "phase": 2,
+     "attempts": 1,
+     "rocHp": 0
+    }
+   ],
+   "after": [
+    {
+     "frame": 1,
+     "tick": 2,
+     "state": "intro",
+     "phase": 0,
+     "attempts": 1,
+     "rocHp": 420
+    },
+    {
+     "frame": 46,
+     "tick": 92,
+     "state": "fight",
+     "phase": 0,
+     "attempts": 1,
+     "rocHp": 420
+    },
+    {
+     "frame": 454,
+     "tick": 908,
+     "state": "beat",
+     "phase": 1,
+     "attempts": 1,
+     "rocHp": 277.2
+    },
+    {
+     "frame": 499,
+     "tick": 998,
+     "state": "fight",
+     "phase": 1,
+     "attempts": 1,
+     "rocHp": 277.2
+    },
+    {
+     "frame": 4610,
+     "tick": 9220,
+     "state": "beat",
+     "phase": 2,
+     "attempts": 1,
+     "rocHp": 138.6
+    },
+    {
+     "frame": 4655,
+     "tick": 9310,
+     "state": "fight",
+     "phase": 2,
+     "attempts": 1,
+     "rocHp": 138.6
+    },
+    {
+     "frame": 6529,
+     "tick": 13058,
+     "state": "victory",
+     "phase": 2,
+     "attempts": 1,
+     "rocHp": 0
+    }
+   ]
+  }
+ }
+}
