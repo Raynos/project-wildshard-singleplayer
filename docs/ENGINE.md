@@ -3999,3 +3999,17 @@ body supplies the player-impulse port; authored rows supply numeric recipes
 only. Missing authority, foreign body kinds, duplicate controller owners
 and undeclared strikes refuse. Other archetypes keep their existing
 callback shapes. Lookup through `held()` does not construct a controller.
+
+**Ordered held-rig clip state (W1 C4).** A clip factor may declare
+`{ bounded: [terms], max?, min?, divide? }`: sum the terms in order,
+apply the upper cap, then the lower cap, then divide. Division uses the
+authored divisor directly so existing floating-point values survive.
+Nonfinite bounds, inverted bounds and a zero divisor refuse.
+
+A clip row may instead write scratch memory with `{ mem, ease, cases }`.
+It evaluates the selected case's target, then writes
+`old + (target - old) * min(1, dt * ease)`. An absent old value is zero.
+Subsequent rows read the new value, including when the rig lacks a bone.
+These rows require finite nonnegative frame `dt` and easing rate; missing
+frame authority refuses. Ordinary bone clips require no new inputs and
+keep their original arithmetic and signed zeroes.

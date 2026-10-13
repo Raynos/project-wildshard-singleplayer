@@ -145,6 +145,8 @@ export type ClipFactor =
   | { readonly clock: ClipClock }
   /** A number the species' brain keeps in `mem` (absent reads 0). */
   | { readonly mem: string }
+  /** Sum in authored order, cap with max then min, then divide (never multiply by a reciprocal). */
+  | { readonly bounded: readonly ClipTerm[]; readonly min?: number; readonly max?: number; readonly divide?: number }
   /** The attack's progress 0..1, × `rate` and capped at `max` when given (pair it with a term `when: { attacking: true }`). */
   | { readonly attack: true; readonly rate?: number; readonly max?: number }
   /** A gait weight: `min(1, |speed| / full)`, × (`speed > run` ? `fast` : `slow`) when `run` is given. One value. */
@@ -164,19 +166,25 @@ export interface ClipCase { readonly when?: ClipWhen; readonly sum: readonly Cli
 export type ClipChannel = 'rotation.x' | 'rotation.y' | 'rotation.z' | 'position.x' | 'position.y' | 'position.z' | 'scale';
 
 /** One row: a bone's channel and its cases, in priority order. When no case holds the channel keeps its value. */
-export interface ClipRow {
+export type ClipRow = {
   readonly bone: string;
   readonly channel: ClipChannel;
   /** The `mem` key that keeps the bone's bind value; the sum then starts from it. */
   readonly bind?: string;
   readonly cases: readonly ClipCase[];
-}
+} | {
+  /** Ordered scratch channel; later rows observe its newly eased value even when a rig bone is absent. */
+  readonly mem: string;
+  /** old + (target - old) * min(1, dt * ease), with an absent old value read as zero. */
+  readonly ease: number;
+  readonly cases: readonly ClipCase[];
+};
 
 /** A species' clips: its rows, played in order every frame. */
 export type SpeciesClips = readonly ClipRow[];
 
 /** What a clip reads from the frame: a subset of the engine's rig animation context. */
-export type ClipCtx = Pick<RigAnimCtx, 'bones' | 't' | 'phase' | 'speed' | 'alive' | 'deathT' | 'attack' | 'mem'>;
+export type ClipCtx = Pick<RigAnimCtx, 'bones' | 't' | 'phase' | 'speed' | 'alive' | 'deathT' | 'attack' | 'mem'> & Partial<Pick<RigAnimCtx, 'dt'>>;
 
 const clamp01 = (v: number): number => Math.min(1, Math.max(0, v));
 
@@ -202,6 +210,15 @@ function factor(f: ClipFactor, c: ClipCtx): number {
   }
   if ('clock' in f) return f.clock === 't' ? c.t : c.phase;
   if ('mem' in f) return c.mem[f.mem] ?? 0;
+  if ('bounded' in f) {
+    if ((f.min !== undefined && !Number.isFinite(f.min)) || (f.max !== undefined && !Number.isFinite(f.max))
+      || (f.min !== undefined && f.max !== undefined && f.min > f.max)
+      || (f.divide !== undefined && (!Number.isFinite(f.divide) || f.divide === 0))) throw new RangeError('Invalid bounded clip factor');
+    let value = total(f.bounded, undefined, c);
+    if (f.max !== undefined) value = Math.min(f.max, value);
+    if (f.min !== undefined) value = Math.max(f.min, value);
+    return f.divide === undefined ? value : value / f.divide;
+  }
   if ('attack' in f) { const a = f.rate === undefined ? c.attack : c.attack * f.rate; return f.max === undefined ? a : Math.min(f.max, a); }
   if ('gait' in f) {
     const w = Math.min(1, Math.abs(c.speed) / f.gait);
@@ -238,6 +255,15 @@ const TARGET: Readonly<Record<ClipChannel, readonly ['rotation' | 'position' | '
 /** Plays one frame of `clips` on the frame's bones (a bone the rig lacks is skipped). Allocates nothing. */
 export function playClips(clips: SpeciesClips, c: ClipCtx): void {
   for (const row of clips) {
+    if ('mem' in row) {
+      if (c.dt === undefined || !Number.isFinite(c.dt) || c.dt < 0 || !Number.isFinite(row.ease) || row.ease < 0)
+        throw new RangeError('Eased clip memory requires a finite nonnegative frame and rate');
+      for (const k of row.cases) if (holds(k.when, c)) {
+        const old = c.mem[row.mem] ?? 0, target = total(k.sum, undefined, c);
+        c.mem[row.mem] = old + (target - old) * Math.min(1, c.dt * row.ease); break;
+      }
+      continue;
+    }
     const bone = c.bones[row.bone];
     if (bone === undefined) continue;
     let chosen: ClipCase | undefined;
