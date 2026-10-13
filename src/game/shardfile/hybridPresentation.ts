@@ -67,7 +67,7 @@ export function lendHybridPresentation(slug: string, presentation: { readonly ma
   return (owner, name) => host?.(owner, name);
 }
 
-/** The newest live presentation of shard `slug`, or null when no data client lends one. */
+/** The newest live presentation of shard `slug`, or null when neither a data client nor a grid region lends one. */
 export function hybridPresentation(slug: string): HybridPresentation | null {
   return published.get(slug)?.at(-1) ?? null;
 }

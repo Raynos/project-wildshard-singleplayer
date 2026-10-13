@@ -65,9 +65,10 @@ export function bindRuntimeProductProps(scope: Scope, source: Shardfile, ports: 
 
 /**
  * What its data client lends a trusted runtime (`HybridPresentation`): the built look materials by id, the drawn terrain's
- * queries and the host-state port of the look's curves; null when no data client of this shard is live (a LEGACY entry, a
- * runtime that owns every stage, or a grid region whose ground the rings draw). Read it from a hook that runs after the data
- * client's world stage (the hybrid's runtime world, kit or play).
+ * queries and the host-state port of the look's curves. A grid region runs no data client: it lends a presentation-only
+ * hybrid's drawn ground the same way (`lendHybridPresentation`) while it is resident. Null when nothing lends one (a LEGACY
+ * entry, or a runtime that owns every stage). Read it from a hook that runs after the data client's world stage (the
+ * hybrid's runtime world, kit or play) or the region's presentation.
  */
 export function runtimePresentation(source: Shardfile): HybridPresentation | null {
   return hybridPresentation(source.identity.slug);
