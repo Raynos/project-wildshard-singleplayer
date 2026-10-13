@@ -27,5 +27,5 @@ The `shard.config.ts` project entry imports its author-only declaration in
 `generators/build-product.mjs` shares SDK admission/emission with normal
 builds. `assets/map.webp` and `data/productMap.json` freeze the authored
 map and official stamp; refresh together after an official map bake. The
-live stale-map gate remains unchanged. Whole-product comparison pins are
-report-only and never grant cache activation or output removal.
+live stale-map gate remains unchanged. Whole-product pins restore exact build bytes. Output removal still requires a
+fresh complete-product clean room and preserves every admission refusal.

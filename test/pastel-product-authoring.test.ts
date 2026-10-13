@@ -34,23 +34,23 @@ it('keeps the documented config and frozen authored map equal to the committed p
   expect(readFileSync('src/shards/pastel-plain/assets/map.webp')).toEqual(readFileSync('public/assets/pastel-plain/map/top.webp'));
 });
 
-it('registers the full authoring closure and pins every charged product file without cache activation', () => {
+it('registers the full authoring closure and pins every charged product file for exact cache restoration', () => {
   const job = discoverGeneration(process.cwd()).jobs.find(row => row.id === 'pastel-product');
-  if (job === undefined) throw new Error('Missing whole Pastel product job');
+  if (job?.buildOutputs === undefined) throw new Error('Missing whole Pastel product job');
   const audits = [job.entry, 'src/sdk/bake/source-loader.mjs'].map(entry => auditAuthoringInputs(process.cwd(), 'pastel-plain', entry));
   expect(audits.flatMap(row => row.issues)).toEqual([]);
   expectKeyedClosure(job.inputRoots, [...new Set(audits.flatMap(row => row.files))], 'pastel-plain');
-  expect(job.buildOutputs).toEqual({});
+  expect(job.comparisonOutputs).toEqual({});
   expect(job.seedOutputs).toEqual([]);
   const { shard } = inputs();
   const prefix = 'src/shards/pastel-plain/.wildshard/product/';
   expect([...job.outputs].sort()).toEqual([...shard.files.map(file => `${prefix}${file.hash}`), `${prefix}shard.json`].sort());
-  expect(Object.keys(job.comparisonOutputs ?? {}).sort()).toEqual([...job.outputs].sort());
+  expect(Object.keys(job.buildOutputs).sort()).toEqual([...job.outputs].sort());
 });
 
 it('emits every pinned product byte twice and refuses malformed assets before emission', () => {
   const job = discoverGeneration(process.cwd()).jobs.find(row => row.id === 'pastel-product');
-  if (job?.comparisonOutputs === undefined) throw new Error('Missing comparison-only product pins');
+  if (job?.buildOutputs === undefined) throw new Error('Missing pinned complete product');
   const temporary = mkdtempSync(resolve(tmpdir(), 'pastel-product-'));
   try {
     for (const name of ['cold', 'forced']) {
@@ -58,7 +58,7 @@ it('emits every pinned product byte twice and refuses malformed assets before em
       const destination = resolve(temporary, name);
       if (name === 'cold') writeAuthoredProduct(product, resolve('src/shards/pastel-plain'), destination, { file: 'assets/map.webp', tilesHash: map.tilesHash });
       else writeProduct(shard, assets, destination);
-      for (const [path, hash] of Object.entries(job.comparisonOutputs)) {
+      for (const [path, hash] of Object.entries(job.buildOutputs)) {
         const file = path.slice(path.lastIndexOf('/') + 1);
         expect(hashImmutableBytes(readFileSync(resolve(destination, file))), file).toBe(hash);
       }

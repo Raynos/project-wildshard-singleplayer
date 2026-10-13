@@ -7060,7 +7060,8 @@
         "src/shards/pastel-plain/.wildshard/product/fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31",
         "src/shards/pastel-plain/.wildshard/product/shard.json"
       ],
-      "comparisonOutputs": {
+      "platform": "portable",
+      "buildOutputs": {
         "src/shards/pastel-plain/.wildshard/product/0176cb7141da53ad785f70bef6b889ac5370ec6d0026a340a78ae4834dd94658": "0176cb7141da53ad785f70bef6b889ac5370ec6d0026a340a78ae4834dd94658",
         "src/shards/pastel-plain/.wildshard/product/0179d1cdfa05d8a58f3a3d2c53c5f61b7ba672716c6f485d4ddc02c5f9d97882": "0179d1cdfa05d8a58f3a3d2c53c5f61b7ba672716c6f485d4ddc02c5f9d97882",
         "src/shards/pastel-plain/.wildshard/product/0313bdcc43c40f673da098289c76fb0c126da75b5d51d59ff233ef0b3f0c0b67": "0313bdcc43c40f673da098289c76fb0c126da75b5d51d59ff233ef0b3f0c0b67",
@@ -7230,8 +7231,7 @@
         "src/shards/pastel-plain/.wildshard/product/faa43461f9a79aff83fc2e58089090e14d9eda05b3b9c0c76108851cd85d674e": "faa43461f9a79aff83fc2e58089090e14d9eda05b3b9c0c76108851cd85d674e",
         "src/shards/pastel-plain/.wildshard/product/fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31": "fc760d336183651d084c1b244c98495591ce11f13c4a10d4956553834b73bb31",
         "src/shards/pastel-plain/.wildshard/product/shard.json": "ba53cf6356f1ad36e6b2aa869b22b404bd786ef208ba9de9732b4b3a3211d086"
-      },
-      "platform": "portable"
+      }
     }
   ]
 }
