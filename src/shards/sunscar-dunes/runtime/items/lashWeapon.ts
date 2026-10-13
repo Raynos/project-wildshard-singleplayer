@@ -7,8 +7,8 @@ import { HeldContactWeapon, HeldPlayback } from '@wildshard/game/plugin/weaponFa
 import playback from '../../data/heldPlayback.generated.json' with { type: 'json' };
 import { Vector3, type Group, type Mesh, type Object3D } from 'three';
 import { lashRuntime, type LashRuntime, type LashSpec, type LashWorldTarget } from './lash';
-import type { LashCord } from './lashView';
-import type { LashView } from '../../data/whip';
+import { LashCord } from './lashView';
+import type { CordStyle, LashView } from '../../data/whip';
 
 /**
  * The lash item as a held weapon with a declared view (SHARD-PLATFORM SF72, a declared item view): the platform's lash
@@ -23,19 +23,14 @@ import type { LashView } from '../../data/whip';
  */
 
 /** The viewmodel's parts a lash weapon moves: the root, the grip that flicks, the coil shown at rest, the thrown cord and where it leaves the hand. */
-export interface LashParts {
-  readonly root: Group;
-  readonly grip: Object3D;
-  readonly coil: Object3D;
-  readonly lash: LashCord;
-  /** the keeper end of the handle in root space, where the lash leaves the hand */
-  readonly tip: Vector3;
+export type LashParts = Readonly<Pick<HeldLashModel, 'root' | 'grip' | 'coil' | 'lash' | 'tip'>> & {
   /** the model's hand loaded: it takes `hold.hero`, else `hold.code` */
   readonly hero: boolean;
   /** `coil` shows at rest (false: a hero model's own coil stands in for it) */
   readonly restCoil: boolean;
   /** a new coil to wind round a caught lever (its helix baked, `generators/lash.ts` wrapGeometry) */
   readonly wrapCoil: () => Mesh;
+  readonly playback?: HeldPlayback;
 }
 
 /** A lash held as a weapon: the declared crack (`spec`) on the shared contact family's rows, its viewmodel moved by `view`. */
@@ -44,7 +39,7 @@ export class LashWeapon extends HeldContactWeapon<CombatTarget> {
   readonly parts: LashParts;
   private readonly targets: Targets | null;
   private readonly spec: LashSpec; private readonly view: LashView;
-  private readonly playback: HeldPlayback;
+  readonly presentation: HeldPlayback;
   private readonly observed = { holster: 0, spring: 0, ext: 0, slack: 0, tipX: 0, tipY: 0, tipZ: 0, gripX: 0, gripY: 0, gripZ: 0, modelX: 0, modelY: 0, reach: 0, taut: 0, caughtX: 0, caughtY: 0, caughtZ: 0 };
   private readonly end = new Vector3();
   /** What the lash reacts to in the world when it hits no creature. */
@@ -66,7 +61,7 @@ export class LashWeapon extends HeldContactWeapon<CombatTarget> {
       fired: () => { this.onFire?.(); }, struck: (id, killed) => { this.onHit?.(id, false, killed); },
       caught: caught => { if (this.moves.move === 1) this.wrap(caught.at); } });
     this.parts = o.parts; this.model = o.parts.root;
-    this.playback = new HeldPlayback(playback, new Map([['root', this.model], ['grip', this.parts.grip], ['cord', this.parts.lash.mesh]]), new Map([['cord', (row, object) => this.parts.lash.bindCurve(row, object)]]));
+    this.presentation = this.parts.playback ?? new HeldPlayback(playback, new Map<string,unknown>([['root', this.model], ['grip', this.parts.grip], ['cord', this.parts.lash.mesh]]), new Map([['cord', (row, object) => this.parts.lash.bindCurve(row, object)]]));
     this.model.position.set(...(o.parts.hero ? o.view.hold.hero : o.view.hold.code));
   }
   /** The world things the lash can crack. */
@@ -95,22 +90,22 @@ export class LashWeapon extends HeldContactWeapon<CombatTarget> {
   /** Damage through the pipeline; the heavy's first lash yanks a small creature in, its second staggers a big one (ENGINE §18, §19). */
   strike(target: WeaponContactTarget, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean { return this.moves.strike(target, heavy ? 1 : 0, second ? 1 : 0, point, dir, from); }
   override update(dt: number): void {
-    this.playback.beginFrame(dt); this.stepHeld(dt);
+    this.presentation.beginFrame(dt); this.stepHeld(dt);
     this.observed.holster = this.holster; this.observed.spring = this.spring.yaw;
-    this.playback.apply('root', this.observed);
+    this.presentation.apply('root', this.observed);
     this.animate(dt);
   }
   private animate(dt: number): void {
     const { grip, coil, lash, tip } = this.parts, spec = this.spec, k = this.view.flick;
     if (this.wrapT > 0) { this.wrapT -= dt; if (this.wrapT <= 0 && this.wrapCoil) this.wrapCoil.visible = false; }
-    if (this.moves.t < 0) { lash.mesh.visible = false; coil.visible = this.parts.restCoil; this.playback.apply('rest', this.observed); return; }
+    if (this.moves.t < 0) { lash.mesh.visible = false; coil.visible = this.parts.restCoil; this.presentation.apply('rest', this.observed); return; }
     const t = this.moves.advance(dt), double = this.moves.move === 1;
     if (t < 0) return;
     // the flick: the hand snaps forward on each lash, the lash unrolls to the crosshair, then falls slack
     const local = double && t > spec.second - k.overlap ? t - (spec.second - spec.unroll) : t;
     const ext = Math.min(1, local / spec.unroll), slack = Math.max(0, (local - spec.unroll) / (spec.show - spec.unroll));
     this.observed.ext = ext; this.observed.slack = slack;
-    this.playback.apply('active', this.observed);
+    this.presentation.apply('active', this.observed);
     coil.visible = false; lash.mesh.visible = true;
     // The contact clock and world-space catch remain authoritative; the copied view observations are not.
     this.observed.tipX = tip.x; this.observed.tipY = tip.y; this.observed.tipZ = tip.z;
@@ -120,6 +115,26 @@ export class LashWeapon extends HeldContactWeapon<CombatTarget> {
     if (this.wrapT > 0 && this.wrapAt !== null) { this.model.updateWorldMatrix(true, false); this.end.copy(this.wrapAt); this.model.worldToLocal(this.end); }
     this.observed.taut = Number(this.wrapT > 0);
     this.observed.caughtX = this.end.x; this.observed.caughtY = this.end.y; this.observed.caughtZ = this.end.z;
-    this.playback.apply('cord', this.observed);
+    this.presentation.apply('cord', this.observed);
   }
+}
+
+/** Catalogue and gameplay share the actual admitted hierarchy and its original cord kernel. */
+export type HeldModelSource = NonNullable<ConstructorParameters<typeof HeldPlayback>[3]>;
+export interface HeldLashModel {root:Group;grip:Group;coil:Object3D;hd:Group|null;lash:LashCord;tip:Vector3;playback:HeldPlayback}
+export function buildLashHold(source: HeldModelSource, style: CordStyle, tip: readonly [number,number,number]): HeldLashModel {
+  const bound: { cord: LashCord | null } = { cord: null };
+  const owner = new HeldPlayback(playback, new Map(), (_parts, model) => {
+    const mesh = model?.mesh('cord');
+    if (mesh === null || mesh === undefined) throw new Error('Cord scene binding unavailable');
+    bound.cord = new LashCord(style, mesh);
+    const kernel = bound.cord;
+    return new Map([['cord', (profile, target) => kernel.bindCurve(profile, target)]]);
+  }, source);
+  const root = owner.model?.group('root'), grip = owner.model?.group('grip'), coil = owner.model?.parts.get('coil'), hd = owner.model?.group('glove') ?? null;
+  if (root === null || root === undefined || grip === null || grip === undefined || coil === undefined) throw new Error('Lash scene bindings unavailable');
+  // The trusted binder writes once synchronously during admission.
+  const cord = bound.cord;
+  if (cord === null) throw new Error('Lash kernel binding unavailable');
+  return {root,grip,coil,hd,lash:cord,tip:new Vector3(...tip),playback:owner};
 }

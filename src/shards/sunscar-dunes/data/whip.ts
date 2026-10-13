@@ -165,3 +165,25 @@ export const HD_GLOVE_SIZE = 0.14;
  * reads no public/ model (G320). test/shards/sunscar-dunes/whip-view.test.ts recomputes it from the GLB.
  */
 export const LASH_TIP: V3 = [-0.04935241128166193, -0.05003700856880042, 0.06305454752961058];
+
+/** Exact private held hierarchy and undecorated material rows; no placement executes at runtime. */
+export const WHIP_SCENE = { version: 1, root: 'root', nodes: [
+    {kind:'group',id:'root',children:['grip','coil','cord','glove']}, {kind:'group',id:'grip'},
+    {kind:'mesh',id:'coil',geometry:'coil',material:'coil',missing:'group',position:WHIP_HOLD.made.coil.pos,rotation:WHIP_HOLD.made.coil.rot,visibleWhen:{object:'hero',present:false}},
+    {kind:'mesh',id:'cord',geometry:'cord',material:'cord',missing:'empty',visible:false},
+    {kind:'object',id:'glove',source:'hero',missing:'omit',position:WHIP_HOLD.hd.pos,rotation:WHIP_HOLD.hd.rot},
+    {kind:'anchor',id:'turn',source:'glove',path:[0,0],missing:'omit',children:['loop']},
+    {kind:'mesh',id:'loop',geometry:'loop',material:'plait',missing:'omit',whenTexture:{texture:'plait.map',present:true}},
+  ], materials:[
+    {kind:'standard',id:'coil',properties:{vertexColors:true,roughness:WHIP_HOLD.coil.roughness,metalness:0,emissive:WHIP_HOLD.leathers.emissive},userData:WHIP_HOLD.coilUserData},
+    {kind:'standard',id:'cord',properties:{vertexColors:true,roughness:WHIP_HOLD.lash.roughness,metalness:0,emissive:WHIP_HOLD.lash.emissive}},
+    {kind:'standard',id:'plait',properties:{roughness:1,metalness:0,fog:false},maps:{map:'plait.map',normalMap:'plait.normal',roughnessMap:'plait.roughness'},userData:WHIP_HOLD.coilUserData,decorate:'plait'},
+  ], textures:[
+    {kind:'rgba',id:'plait.map',source:'plait',width:128,height:128,offset:0,bytes:196608,colorSpace:'srgb',repeat:{port:'plait.repeat'},wrapS:1000,wrapT:1000,magFilter:1006,minFilter:1008,mipmaps:true,anisotropy:4},
+    {kind:'rgba',id:'plait.normal',source:'plait',width:128,height:128,offset:65536,bytes:196608,colorSpace:'',repeat:{port:'plait.repeat'},wrapS:1000,wrapT:1000,magFilter:1006,minFilter:1008,mipmaps:true,anisotropy:4},
+    {kind:'rgba',id:'plait.roughness',source:'plait',width:128,height:128,offset:131072,bytes:196608,colorSpace:'',repeat:{port:'plait.repeat'},wrapS:1000,wrapT:1000,magFilter:1006,minFilter:1008,mipmaps:true,anisotropy:4},
+  ]} as const;
+
+/** Exact caught-wrap mesh and plain braid material; geometry is still the original committed helix. */
+export const WHIP_WRAP_SCENE = {version:1,root:'wrap',nodes:[{kind:'mesh',id:'wrap',geometry:'wrap',material:'braid',missing:'empty'}],
+  materials:[{kind:'standard',id:'braid',properties:{color:WHIP_HOLD.wrap.colour,roughness:WHIP_HOLD.wrap.roughness,metalness:0,emissive:WHIP_HOLD.leathers.emissive}}]} as const;

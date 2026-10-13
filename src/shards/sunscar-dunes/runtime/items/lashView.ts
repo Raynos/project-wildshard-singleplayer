@@ -1,5 +1,5 @@
 import type { CordStyle } from '../../data/whip';
-import { BufferAttribute, BufferGeometry, Mesh, MeshStandardMaterial, Vector3 } from 'three';
+import { BufferAttribute, type BufferGeometry, type Mesh, type MeshStandardMaterial, Vector3 } from 'three';
 
 /**
  * The lash item's view (SHARD-PLATFORM SF72, a declared item view beside `./lash`, the item's runtime): a braided cord
@@ -19,12 +19,11 @@ interface TubeFrame { readonly fromX: number; readonly fromY: number; readonly f
 export class LashCord {
   readonly mesh: Mesh<BufferGeometry, MeshStandardMaterial>;
   /** `geometry`: the cord's baked rings and braid (`generators/lash.ts` cordGeometry), its own copy; null (its bake did not load): an undrawn cord. */
-  constructor(style: CordStyle, geometry: BufferGeometry | null) {
-    const position = geometry?.getAttribute('position'), positions = position instanceof BufferAttribute && position.array instanceof Float32Array ? position.array : null;
-    if (geometry !== null && positions?.length !== (style.segments + 1) * style.radial * 3) throw new Error('lash cord: baked rings do not match its style');
-    const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.55, metalness: 0, emissive: style.emissive }); material.roughness = style.roughness;
-    this.mesh = new Mesh(geometry ?? new BufferGeometry(), material);
-    this.mesh.visible = false;
+  constructor(style: CordStyle, mesh: Mesh<BufferGeometry, MeshStandardMaterial>) {
+    const geometry = mesh.geometry, position = geometry.getAttribute('position');
+    const positions = position instanceof BufferAttribute && position.array instanceof Float32Array ? position.array : null;
+    if (Object.keys(geometry.attributes).length > 0 && positions?.length !== (style.segments + 1) * style.radial * 3) throw new Error('lash cord: baked rings do not match its style');
+    this.mesh = mesh;
   }
   /** Bind original ring arithmetic to admitted scalar/coefficient rows; all backing stays on this owned mesh. */
   bindCurve(row: TubeProfile, object: unknown): (frame: TubeFrame, time: number) => void {

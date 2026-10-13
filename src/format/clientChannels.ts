@@ -90,3 +90,82 @@ export const ClientChannelsSchema: v.GenericSchema<ClientChannelProgram[], Clien
 export type ClientChannelProperty = v.InferOutput<typeof ClientChannelPropertySchema>;
 /** Strictly parse detached author data before the trusted view owner binds it. */
 export function parseClientChannels(input: unknown): ClientChannelProgram[] { return v.parse(ClientChannelsSchema, input); }
+
+/** Data-only private scene construction: geometry, textures and graph materials stay in trusted owned ports. */
+const sceneCoordinate = v.pipe(v.number(), v.finite(), v.minValue(-1e5), v.maxValue(1e5));
+const sceneVector = v.tuple([sceneCoordinate, sceneCoordinate, sceneCoordinate]);
+const sceneChildren = v.pipe(v.array(name), v.maxLength(128));
+const scenePose = {
+  children: v.optional(sceneChildren, []), position: v.exactOptional(sceneVector), rotation: v.exactOptional(sceneVector), scale: v.exactOptional(sceneVector),
+  order: v.exactOptional(v.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY'])),
+  visible: v.exactOptional(v.boolean()), castShadow: v.exactOptional(v.boolean()), receiveShadow: v.exactOptional(v.boolean()),
+  frustumCulled: v.exactOptional(v.boolean()), renderOrder: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(-1000), v.maxValue(1000))),
+  when: v.exactOptional(v.strictObject({ object: name, present: v.boolean() })),
+  whenTexture: v.exactOptional(v.strictObject({ texture: name, present: v.boolean() })),
+  visibleWhen: v.exactOptional(v.strictObject({ object: name, present: v.boolean() })),
+};
+const sceneNode = v.variant('kind', [
+  v.strictObject({ kind: v.literal('group'), id: name, ...scenePose }),
+  v.strictObject({ kind: v.literal('mesh'), id: name, geometry: name, material: name, missing: v.picklist(['empty', 'group', 'omit']), ...scenePose }),
+  v.strictObject({ kind: v.literal('object'), id: name, source: name, missing: v.picklist(['omit', 'refuse']), ...scenePose }),
+  v.strictObject({ kind: v.literal('anchor'), id: name, source: name, path: v.pipe(v.array(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(127))), v.minLength(1), v.maxLength(8)), missing: v.picklist(['omit', 'refuse']), children: v.optional(sceneChildren, []) }),
+]);
+const sceneRgb = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(0xffffff));
+const unitScalar = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1));
+const sceneMaterial = v.variant('kind', [
+  v.strictObject({ kind: v.literal('port'), id: name, source: name }),
+  v.strictObject({ kind: v.literal('standard'), id: name,
+    properties: v.strictObject({ color: v.exactOptional(sceneRgb), emissive: v.exactOptional(sceneRgb), roughness: v.exactOptional(unitScalar), metalness: v.exactOptional(unitScalar),
+      vertexColors: v.exactOptional(v.boolean()), fog: v.exactOptional(v.boolean()), transparent: v.exactOptional(v.boolean()), opacity: v.exactOptional(unitScalar),
+      depthWrite: v.exactOptional(v.boolean()), side: v.exactOptional(v.picklist([0, 1, 2])), normalScale: v.exactOptional(v.tuple([sceneCoordinate, sceneCoordinate])) }),
+    maps: v.exactOptional(v.strictObject({ map: v.exactOptional(name), normalMap: v.exactOptional(name), roughnessMap: v.exactOptional(name) })),
+    decorate: v.exactOptional(name),
+    userData: v.exactOptional(v.pipe(v.record(name, v.boolean()), v.check(value => Object.keys(value).length <= 16))),
+  }),
+]);
+const privateTexture = v.variant('kind', [
+  v.strictObject({kind:v.literal('port'),id:name,source:name}),
+  v.strictObject({kind:v.literal('rgba'),id:name,source:name,
+    width:v.pipe(v.number(),v.integer(),v.minValue(1),v.maxValue(2048)), height:v.pipe(v.number(),v.integer(),v.minValue(1),v.maxValue(2048)),
+    offset:v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(67108864)), bytes:v.pipe(v.number(),v.integer(),v.minValue(4),v.maxValue(67108864)),
+    colorSpace:v.picklist(['','srgb']), repeat:v.union([v.tuple([sceneCoordinate,sceneCoordinate]),v.strictObject({port:name})]),
+    wrapS:v.picklist([1000,1001,1002]),wrapT:v.picklist([1000,1001,1002]),magFilter:v.picklist([1003,1006]),minFilter:v.picklist([1003,1004,1005,1006,1007,1008]),
+    mipmaps:v.boolean(),anisotropy:v.pipe(v.number(),v.integer(),v.minValue(1),v.maxValue(16)),
+  }),
+]);
+const privateScene = v.strictObject({ version: v.literal(1), root: name,
+  nodes: v.pipe(v.array(sceneNode), v.minLength(1), v.maxLength(128)), materials: v.pipe(v.array(sceneMaterial), v.maxLength(32)), textures:v.optional(v.pipe(v.array(privateTexture),v.maxLength(16)),[]) });
+/** Exact ordered private visual hierarchy, independent of state, collision and the world registry. */
+export type PrivateScene = v.InferOutput<typeof privateScene>;
+/** Refuse duplicate identities, crossed references, cycles and unreachable parts before allocating a scene. */
+export const PrivateSceneSchema = v.pipe(privateScene, v.check(row => {
+  const nodes = new Map(row.nodes.map(entry => [entry.id, entry])), materials = new Set(row.materials.map(material => material.id));
+  if (nodes.size !== row.nodes.length || materials.size !== row.materials.length || !nodes.has(row.root) || !['group','mesh'].includes(nodes.get(row.root)?.kind ?? '')) return false;
+  const textures = new Set(row.textures.map(texture => texture.id));
+  if (textures.size !== row.textures.length || row.textures.some(texture => texture.kind === 'rgba' && texture.offset + texture.width * texture.height * 4 > texture.bytes)) return false;
+  const parents = new Map<string, string>();
+  for (const entry of row.nodes) {
+    if (entry.kind === 'mesh' && !materials.has(entry.material)) return false;
+    if ('whenTexture' in entry && !textures.has(entry.whenTexture.texture)) return false;
+    if (entry.kind === 'anchor') {
+      if (nodes.get(entry.source)?.kind !== 'object' || parents.has(entry.id)) return false;
+      parents.set(entry.id, entry.source);
+    }
+    for (const child of entry.children) {
+      if (!nodes.has(child) || child === row.root || child === entry.id || parents.has(child) || nodes.get(child)?.kind === 'anchor') return false;
+      parents.set(child, entry.id);
+    }
+  }
+  for (const entry of row.nodes) {
+    let current = entry.id;
+    const visited = new Set<string>();
+    while (current !== row.root) {
+      if (visited.has(current)) return false;
+      visited.add(current);
+      const parent = parents.get(current); if (parent === undefined) return false; current = parent;
+    }
+  }
+  return true;
+}, 'unique bounded connected private scene; ordered children and owned material references'));
+/** Admit authored private scene rows; functions and unknown properties cannot cross this boundary. */
+export function parsePrivateScene(input: unknown): PrivateScene { return v.parse(PrivateSceneSchema, input); }

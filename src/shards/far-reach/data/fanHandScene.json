@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "root": "hand",
+  "nodes": [
+    {
+      "kind": "mesh",
+      "id": "hand",
+      "geometry": "hand",
+      "material": "hand",
+      "missing": "empty"
+    }
+  ],
+  "materials": [
+    {
+      "kind": "standard",
+      "id": "hand",
+      "properties": {
+        "roughness": 0.78,
+        "metalness": 0
+      },
+      "maps": {
+        "map": "hand"
+      }
+    }
+  ],
+  "textures": [
+    {
+      "kind": "port",
+      "id": "hand",
+      "source": "hand"
+    }
+  ]
+}

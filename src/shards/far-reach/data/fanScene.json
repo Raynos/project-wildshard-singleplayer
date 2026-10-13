@@ -1,0 +1,280 @@
+{
+  "version": 1,
+  "root": "root",
+  "nodes": [
+    {
+      "kind": "group",
+      "id": "root",
+      "children": [
+        "fan"
+      ]
+    },
+    {
+      "kind": "group",
+      "id": "fan",
+      "children": [
+        "panels",
+        "sticks",
+        "straps",
+        "guards",
+        "rim",
+        "plates",
+        "tassel0",
+        "pendant"
+      ]
+    },
+    {
+      "kind": "group",
+      "id": "pendant",
+      "position": [
+        0,
+        -0.004,
+        0.028
+      ],
+      "children": [
+        "tassel1",
+        "tassel2",
+        "tassel3",
+        "tassel4",
+        "tassel5",
+        "tassel6"
+      ]
+    },
+    {
+      "kind": "mesh",
+      "id": "panels",
+      "geometry": "panels",
+      "material": "silk",
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "sticks",
+      "geometry": "sticks",
+      "material": "lacquer",
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "straps",
+      "geometry": "straps",
+      "material": "iron",
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "guards",
+      "geometry": "guards",
+      "material": "guard",
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "rim",
+      "geometry": "rim",
+      "material": "rim",
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "plates",
+      "geometry": "plates",
+      "material": "bronze",
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "tassel0",
+      "geometry": "shape8",
+      "material": "bronze",
+      "position": [
+        0,
+        -0.166,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "tassel1",
+      "geometry": "shape9",
+      "material": "red",
+      "position": [
+        0,
+        -0.02,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "tassel2",
+      "geometry": "shape10",
+      "material": "red",
+      "position": [
+        0,
+        -0.042,
+        0
+      ],
+      "scale": [
+        1.2,
+        0.8,
+        0.7
+      ],
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "tassel3",
+      "geometry": "shape11",
+      "material": "red",
+      "position": [
+        0,
+        -0.042,
+        0
+      ],
+      "scale": [
+        1.6,
+        1,
+        1
+      ],
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "tassel4",
+      "geometry": "shape12",
+      "material": "bronze",
+      "position": [
+        0,
+        -0.058,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "tassel5",
+      "geometry": "shape13",
+      "material": "bronze",
+      "position": [
+        0,
+        -0.07,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "missing": "empty"
+    },
+    {
+      "kind": "mesh",
+      "id": "tassel6",
+      "geometry": "shape6",
+      "material": "red",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "missing": "empty"
+    }
+  ],
+  "materials": [
+    {
+      "kind": "standard",
+      "id": "silk",
+      "properties": {
+        "vertexColors": true,
+        "color": 3112058,
+        "roughness": 0.8,
+        "metalness": 0,
+        "side": 2,
+        "emissive": 266770
+      },
+      "decorate": "silk"
+    },
+    {
+      "kind": "standard",
+      "id": "lacquer",
+      "properties": {
+        "vertexColors": true,
+        "roughness": 0.36,
+        "metalness": 0.1,
+        "side": 2
+      }
+    },
+    {
+      "kind": "standard",
+      "id": "bronze",
+      "properties": {
+        "color": 8018994,
+        "roughness": 0.42,
+        "metalness": 0.55,
+        "emissive": 656898
+      }
+    },
+    {
+      "kind": "standard",
+      "id": "red",
+      "properties": {
+        "color": 11018266,
+        "roughness": 0.75,
+        "metalness": 0,
+        "emissive": 1967107
+      }
+    },
+    {
+      "kind": "standard",
+      "id": "iron",
+      "properties": {
+        "color": 6967858,
+        "roughness": 0.4,
+        "metalness": 0.75,
+        "emissive": 525571
+      }
+    },
+    {
+      "kind": "standard",
+      "id": "guard",
+      "properties": {
+        "color": 2761760,
+        "roughness": 0.34,
+        "metalness": 0.08
+      }
+    },
+    {
+      "kind": "standard",
+      "id": "rim",
+      "properties": {
+        "color": 12884562,
+        "roughness": 0.35,
+        "metalness": 0.6,
+        "emissive": 1708038
+      }
+    }
+  ],
+  "textures": []
+}

@@ -1,7 +1,7 @@
-import { coneFanType, type ConeFan } from '../runtime/weapons/coneFan';
+import { coneFanType, fanParts, type ConeFan } from '../runtime/weapons/coneFan';
 import { FAN_VIEW } from '../data/fanView';
 import { FAN_ROW } from './rows';
-import { fanParts, type FanParts } from './fanModel';
+import type { FanParts } from './fanModel';
 
 /**
  * The war fan (rung 3) as a row over the platform's cone fan (SHARD-PLATFORM M3): SWING is an arc slash through the

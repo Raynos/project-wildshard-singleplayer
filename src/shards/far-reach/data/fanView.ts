@@ -1,4 +1,3 @@
-import type { ConeFanView } from '../runtime/weapons/coneFan';
 
 /**
  * The war fan's viewmodel rows (the platform's cone fan, SHARD-PLATFORM M3).
@@ -14,7 +13,7 @@ import type { ConeFanView } from '../runtime/weapons/coneFan';
  * turned face-on, then thrust out to the centre like a push of wind. At rest a slow breath and the tassel swinging;
  * holding for HEAVY (a full charge in 0.6 s) draws the fan up and back.
  */
-export const FAN_VIEW: ConeFanView = {
+export const FAN_VIEW = {
   hold: { x: 0.155, y: -0.194, z: -0.6, pitch: 0.35, yaw: -0.5, roll: 0.55, scale: 0.46 },
   spring: { gain: 0.01, clampYaw: 0.1, clampPitch: 0.1, k: 50, c: 12 },
   charge: 0.6,
@@ -32,4 +31,4 @@ export const FAN_VIEW: ConeFanView = {
   draw: { x: 0.04, y: 0.06, z: 0.03, pitch: 0.35, yaw: 0.2, roll: 0.25 },
   pendant: { rate: 2.1, sway: 0.25, swish: 0.7 },
   hideAt: 0.5,
-};
+} as const;

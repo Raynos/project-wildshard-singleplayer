@@ -1,4 +1,4 @@
-import { createClientChannelView, type ClientGeometryKernels } from './ui';
+import { createClientChannelView, createClientScene, type ClientScene, type ClientScenePorts, type ClientGeometryKernels } from './ui';
 import { Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
 import { HeldWeaponClock, type ContactFamily, type ContactScanTarget } from "@wildshard/engine/combat/contactWeapon";
@@ -336,20 +336,39 @@ export async function installWeaponHooks(context: Pick<LevelContext, 'scope' | '
 /** One presentation clock and the admitted numeric views of privately owned held-model parts.
  * The owner cannot write simulation state, issue contacts or choose a gameplay action. */
 export class HeldPlayback {
+  readonly model: ClientScene | null;
+  private readonly attachments: ClientScene[] = [];
   private elapsed = 0;
   private delta = 0;
   private readonly groups = new Map<string, { lane: ReturnType<typeof createClientChannelView>; copied: number[] }[]>();
-  constructor(rows: Readonly<Record<string, readonly unknown[]>>, parts: ReadonlyMap<string, unknown>, kernels?: ClientGeometryKernels) {
+  constructor(rows: Readonly<Record<string, readonly unknown[]>>, parts: ReadonlyMap<string, unknown>, kernels?: ClientGeometryKernels | ((parts: ReadonlyMap<string, unknown>, model: ClientScene | null) => ClientGeometryKernels), source?: { readonly row: unknown; readonly ports: ClientScenePorts }) {
     const groups = Object.entries(rows);
     if (groups.length === 0 || groups.length > 16) throw new RangeError('Held playback groups exceed admission');
+    for (const [id, programs] of groups) if (!/^[a-z][a-zA-Z0-9.-]*$/u.test(id) || id.length > 128 || !Array.isArray(programs) || programs.length === 0 || programs.length > 8) throw new Error('Invalid held playback group');
+    this.model = source === undefined ? null : createClientScene(source.row, source.ports);
+    try {
+    const targets = new Map(parts);
+    for (const [id, object] of this.model?.parts ?? []) {
+      if (targets.has(id)) { this.model?.dispose(); throw new Error('Private scene target repeated'); }
+      targets.set(id, object);
+    }
+    const binding = typeof kernels === 'function' ? kernels(targets, this.model) : kernels;
     for (const [id, programs] of groups) {
-      if (!/^[a-z][a-zA-Z0-9.-]*$/u.test(id) || id.length > 128 || !Array.isArray(programs) || programs.length === 0 || programs.length > 8) throw new Error('Invalid held playback group');
       this.groups.set(id, programs.map(program => {
-        const lane = createClientChannelView(program, parts, kernels);
+        const lane = createClientChannelView(program, targets, binding);
         return { lane, copied: Array.from({ length: lane.reads.length }, () => 0) };
       }));
-    }
+    }    } catch (error) { this.model?.dispose(); throw error; }
   }
+
+  /** Construct another owned private part, optionally appended at an existing admitted node. No world-scene access. */
+  createPart(source: {readonly row:unknown;readonly ports:ClientScenePorts}, parent?: string): ClientScene {
+    const target = parent === undefined ? null : this.model?.parts.get(parent);
+    if (target === undefined) throw new Error('Missing owned attachment parent');
+    const part = createClientScene(source.row,source.ports); target?.add(part.root); this.attachments.push(part); return part;
+  }
+  /** Dispose only resources this owner constructed, including detached parts. Borrowed ports remain caller-owned. */
+  dispose(): void { for (const part of this.attachments) part.dispose(); this.model?.dispose(); this.attachments.length = 0; }
   /** Presentation time only; callers retain their original contact/hold phase ordering. */
   beginFrame(dt: number): void {
     if (!Number.isFinite(dt) || dt < 0 || dt > 1e12 || this.elapsed + dt > 1e12) throw new RangeError('Invalid held playback frame');

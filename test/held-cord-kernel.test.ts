@@ -2,7 +2,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Hashes the exact original raw presentation geometry.
 import { createHash } from 'node:crypto';
 import { expect, it } from 'vitest';
-import { type BufferGeometry, Mesh, MeshBasicMaterial, BufferAttribute } from 'three';
+import { BufferGeometry, Mesh, MeshStandardMaterial, MeshBasicMaterial, BufferAttribute } from 'three';
 import { ClientChannels } from '../src/sdk/clientChannels';
 import { createClientChannels, createClientChannelView } from '../src/game/plugin/ui';
 import { cordGeometry } from '../src/shards/sunscar-dunes/generators/lash';
@@ -23,7 +23,7 @@ function rawAttribute(geometry: BufferGeometry, name: string): BufferAttribute {
  return attribute;
 }
 it('keeps the exact original 120-frame position and normal bytes with stable private storage',()=>{
- const kernelCord=new LashCord(LASH_CORD,cordGeometry(LASH_CORD)), mesh=kernelCord.mesh, program=declared();
+ const kernelCord=new LashCord(LASH_CORD,new Mesh(cordGeometry(LASH_CORD),new MeshStandardMaterial())), mesh=kernelCord.mesh, program=declared();
  const lane=createClientChannelView(program,new Map([['cord',mesh]]),new Map([['cord',(row,object)=>kernelCord.bindCurve(row,object)]]));
  if(program.geometry===undefined)throw new Error('Missing declared geometry');
  program.geometry.radius[0]=99; // Admission and binding detach the author row.
@@ -48,11 +48,11 @@ it('refuses excess layouts, absent nodes, mutated input, non-private targets and
  expect(()=>createClientChannels({id:'empty',reads:[],nodes:[{op:'constant',value:0}],channels:[]})).toThrow();
  expect(()=>createClientChannelView(program,new Map([['cord',{}]]))).toThrow();
  const missing=new Mesh(cordGeometry(LASH_CORD),new MeshBasicMaterial());expect(()=>createClientChannelView(program,new Map([['cord',missing]]))).toThrow('Missing trusted private geometry kernel');missing.geometry.dispose();missing.material.dispose();
- const emptyCord=new LashCord(LASH_CORD,null), empty=emptyCord.mesh;
+ const emptyCord=new LashCord(LASH_CORD,new Mesh(new BufferGeometry(),new MeshStandardMaterial())), empty=emptyCord.mesh;
  const inactive=createClientChannelView(program,new Map([['cord',empty]]),new Map([['cord',(row,object)=>emptyCord.bindCurve(row,object)]]));inactive.evaluate({time:0,delta:0,values:[0,0,0,0,0,0,0,0]});
  expect(empty.geometry.attributes).toEqual({});empty.geometry.dispose();empty.material.dispose();
- const badCord=new LashCord({...LASH_CORD,segments:29},cordGeometry({...LASH_CORD,segments:29})), bad=badCord.mesh;expect(()=>createClientChannelView(program,new Map([['cord',bad]]),new Map([['cord',(row,object)=>badCord.bindCurve(row,object)]]))).toThrow();bad.geometry.dispose();bad.material.dispose();
- const kernelCord=new LashCord(LASH_CORD,cordGeometry(LASH_CORD)), mesh=kernelCord.mesh;const lane=createClientChannelView(program,new Map([['cord',mesh]]),new Map([['cord',(row,object)=>kernelCord.bindCurve(row,object)]]));const prior=rawAttribute(mesh.geometry,'position').array.slice();
+ const badCord=new LashCord({...LASH_CORD,segments:29},new Mesh(cordGeometry({...LASH_CORD,segments:29}),new MeshStandardMaterial())), bad=badCord.mesh;expect(()=>createClientChannelView(program,new Map([['cord',bad]]),new Map([['cord',(row,object)=>badCord.bindCurve(row,object)]]))).toThrow();bad.geometry.dispose();bad.material.dispose();
+ const kernelCord=new LashCord(LASH_CORD,new Mesh(cordGeometry(LASH_CORD),new MeshStandardMaterial())), mesh=kernelCord.mesh;const lane=createClientChannelView(program,new Map([['cord',mesh]]),new Map([['cord',(row,object)=>kernelCord.bindCurve(row,object)]]));const prior=rawAttribute(mesh.geometry,'position').array.slice();
  for(const ext of [-1,2])expect(()=>lane.evaluate({time:0,delta:0,values:[0,0,0,0,0,-7,ext,.1]})).toThrow();
  expect(rawAttribute(mesh.geometry,'position').array).toEqual(prior);
  expect(()=>lane.evaluate({time:0,delta:0,values:[0,0,0,0,0,Number.NaN,1,.1]})).toThrow();

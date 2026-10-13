@@ -4255,3 +4255,31 @@ attackers use `null`, and `think: 'legacy'` selects the existing decision band.
 the caller still owns settle timing. Preparation allocates no actor or tick.
 Both page and native programs use the SDK's unchanged strict strike schema,
 now defined by `CreatureStrikeSchema` in `format/creatures`.
+
+### Admitted private held models (C6, G405)
+
+`@wildshard/format/clientChannels` defines `PrivateSceneSchema`,
+`PrivateScene` and `parsePrivateScene`. Version 1 admits at most 128 ordered
+nodes, 32 materials and 16 textures; identities, connectivity, bounds and
+references are checked before assembly. Group, mesh, imported owned object
+and indexed child-anchor nodes preserve the original hierarchy and draw
+order. Optional resources omit their entire subtree before decoding.
+
+`@wildshard/game/plugin/ui.createClientScene(row, ports)` constructs only a
+private model, with no registry, collision, fetch or installation. Standard
+material properties and transforms are rows. Texture ports retain original
+samplers; bounded RGBA planes reference admitted bytes at exact offsets,
+without resampling. A repeat port supplies an immutable copied pair from
+baked fit metadata. Named trusted material decorators keep existing shader
+programs in their defining owners. Missing references or invalid byte
+extents refuse; no fallback rewrites accepted data. The returned owned
+boundary disposes its new materials/textures and empty fallback geometry,
+never borrowed assets, and retains no source transport map or callbacks.
+
+`@wildshard/game/plugin/weaponFamily.HeldPlayback` accepts an optional fourth
+argument `{row, ports}`. Its `model` exposes the exact hierarchy and typed
+part/material accessors; a trusted optional geometry-kernel factory binds
+once against those owned meshes. Absent model input preserves existing
+callers. Signal lash and Sky fan use this one model/presentation owner in
+both gameplay and their catalogue, retaining the original contact phase,
+clock and independent shader ports. No SDK runtime forwarding alias exists.

@@ -20,6 +20,6 @@ export const CRACK = lashSpec(WHIP_ITEM, WHIP_ITEM.profile);
 export class Bullwhip extends LashWeapon {
   constructor(app: App, targets: Targets | null = null, spec: LashSpec = CRACK) {
     const model = buildWhipModel();
-    super(app, targets, { row: WHIP_ROW, spec, view: WHIP_VIEW, parts: { ...model, hero: true, restCoil: model.hd === null, wrapCoil: braidedCoil } });
+    super(app, targets, { row: WHIP_ROW, spec, view: WHIP_VIEW, parts: { ...model, hero: true, restCoil: model.hd === null, wrapCoil: () => braidedCoil(model) } });
   }
 }

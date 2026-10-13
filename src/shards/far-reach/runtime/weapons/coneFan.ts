@@ -1,7 +1,9 @@
+import type { FAN_VIEW } from '../../data/fanView';
 import type { ContactFamily, ContactFamilyPorts, ContactScanTarget } from '@wildshard/engine/combat/contactWeapon';
 import type { EquipContext, EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { DeclaredAction } from '@wildshard/engine/input/InputService';
 import { HeldContactWeapon, HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
+import { fanSource, type FanParts } from '../../weapons/fanModel';
 import playback from '../../data/heldPlayback.generated.json' with { type: 'json' };
 import { Vector3, Object3D, type Group } from 'three';
 
@@ -28,31 +30,10 @@ export type ConeFanContacts = (ports: Pick<ContactFamilyPorts<ConeFanTarget>, 'h
  *   const fan = new WarFan(app, targets);  fan.parts.silk.map = leaf;
  */
 
-/** A viewmodel offset (metres, radians). */
-export interface ConeFanPose { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number; readonly pitch: number; readonly roll: number }
-/** A cone fan's three moves. */
+/** The remaining phase choices; presentation tracks themselves are admitted channel data. */
 export type ConeFanMotion = 'swing' | 'heavy' | 'gust';
-/** One move as key poses over its duration: `[k (0…1), pose]`, eased (smoothstep) between keys. */
-export interface ConeFanMoveView { readonly seconds: number; readonly keys: readonly (readonly [number, ConeFanPose])[] }
-/** The cone fan's view as rows (metres, seconds, radians). */
-export interface ConeFanView {
-  /** the model's place, turn and scale in the view */
-  readonly hold: { readonly x: number; readonly y: number; readonly z: number; readonly pitch: number; readonly yaw: number; readonly roll: number; readonly scale: number };
-  /** the view spring (`blocks.viewmodel`) */
-  readonly spring: { readonly gain: number; readonly clampYaw: number; readonly clampPitch: number; readonly k: number; readonly c: number };
-  /** seconds of hold for a full charge */
-  readonly charge: number;
-  /** the three moves' key poses */
-  readonly motions: Readonly<Record<ConeFanMotion, ConeFanMoveView>>;
-  /** the idle breath: its rate (rad/s), lift (m) and pitch (rad) */
-  readonly breath: { readonly rate: number; readonly lift: number; readonly pitch: number };
-  /** the charge draw at full charge: up and back (m) and turned (rad; roll taken off) */
-  readonly draw: { readonly x: number; readonly y: number; readonly z: number; readonly pitch: number; readonly yaw: number; readonly roll: number };
-  /** the pendant's sway rate (rad/s) and swing (rad), and the swish each move gives it (the SWING the other way) */
-  readonly pendant: { readonly rate: number; readonly sway: number; readonly swish: number };
-  /** the model hides once the holster passes this */
-  readonly hideAt: number;
-}
+/** Only the authored controls the controller still reads; duplicate pose/pendant contracts are retired. */
+export type ConeFanView = Pick<typeof FAN_VIEW, 'hold' | 'spring' | 'charge' | 'motions'>;
 /** The viewmodel's parts a cone fan moves: the root, and a pendant that hangs plumb (null: none). */
 export interface ConeFanParts { readonly group: Group; readonly pendant: Object3D | null }
 
@@ -71,7 +52,7 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends HeldContactW
   /** the model's parts (a shard dresses them, e.g. paints a leaf) */
   readonly parts: P;
   override readonly model: Group;
-  private readonly playback: HeldPlayback;
+  readonly presentation: HeldPlayback;
   private readonly observed = { phase: 1, charge: 0, spring: 0, holster: 0, stowed: 0 };
   /** told of every gust that leaves, with its origin and direction */
   onGust: ((from: Vector3, dir: Vector3) => void) | null = null;
@@ -88,7 +69,7 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends HeldContactW
     super(app, o.row, o.view.spring, o.view.charge);
     this.parts = o.parts(); this.model = this.parts.group;
     this.targets = targets; this.view = o.view; this.gustAction = o.gustAction;
-    this.playback = new HeldPlayback(playback, new Map([['root', this.model], ['pendant', this.parts.pendant ?? new Object3D()]]));
+    this.presentation = 'playback' in this.parts && this.parts.playback instanceof HeldPlayback ? this.parts.playback : new HeldPlayback(playback, new Map([['root', this.model], ['pendant', this.parts.pendant ?? new Object3D()]]));
     this.moves = contacts({ hit: (req) => this.contact.hit(req), targets: () => this.targets(), struck: (id, killed) => { this.onHit?.(id, false, killed); } });
     const hold = o.view.hold;
     this.model.position.set(hold.x, hold.y, hold.z); this.model.rotation.set(hold.pitch, hold.yaw, hold.roll); this.model.scale.setScalar(hold.scale);
@@ -130,10 +111,10 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends HeldContactW
   override update(dt: number): void {
     this.stepHeld(dt);
     this.motionK = Math.min(1, this.motionK + dt / this.view.motions[this.motion].seconds);
-    this.playback.beginFrame(dt);
+    this.presentation.beginFrame(dt);
     const observed = this.observed;
     observed.phase = this.motionK; observed.charge = this.charge; observed.spring = this.spring.yaw; observed.holster = this.holster; observed.stowed = Number(this.stowed());
-    this.playback.apply(this.motion, observed);
+    this.presentation.apply(this.motion, observed);
   }
 }
 
@@ -151,4 +132,14 @@ export function coneFanType<P extends ConeFanParts>(row: ConeFanOptions<P>): Con
   return class extends ConeFan<P> {
     constructor(app: App, targets: () => readonly ConeFanTarget[], contacts: ConeFanContacts) { super(app, targets, row, contacts); }
   };
+}
+
+/** Both the held fan and its catalogue entry use the same admitted private scene owner. */
+export type HeldModelSource = NonNullable<ConstructorParameters<typeof HeldPlayback>[3]>;
+export function fanParts(): FanParts {
+  const source=fanSource(), owner = new HeldPlayback(playback, new Map(), undefined, source), model = owner.model;
+  if (source.hand !== null) owner.createPart(source.hand,'root');
+  const group = model?.group('root'), fan = model?.group('fan'), pendant = model?.group('pendant'), silk = model?.standardMaterial('silk');
+  if (group === null || group === undefined || fan === null || fan === undefined || pendant === null || pendant === undefined || silk === null || silk === undefined) throw new Error('Fan scene bindings unavailable');
+  return { group, fan, pendant, silk, playback: owner };
 }

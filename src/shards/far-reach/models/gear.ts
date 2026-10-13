@@ -1,11 +1,11 @@
 import { defineModel } from '@wildshard/engine/models/model';
-import { fanModel } from '../weapons/fanModel';
+import { fanParts } from '../runtime/weapons/coneFan';
 import { bridgeKit, windmill } from '../world/shapes';
 import { keeper } from '../quest/keeper';
 import { STRINGS } from '../data/strings';
 
 export const fanEntry = defineModel({ id: 'far-reach/war-fan', name: STRINGS.fan, category: 'gear',
-  pipeline: 'code', file: 'src/shards/far-reach/models/gear.ts', defaults: {}, build: () => fanModel() });
+  pipeline: 'code', file: 'src/shards/far-reach/models/gear.ts', defaults: {}, build: () => fanParts().group });
 export const windmillEntry = defineModel({ id: 'far-reach/windmill', name: STRINGS.mill, category: 'buildings',
   pipeline: ['code'], file: 'src/shards/far-reach/world/mill.ts', defaults: {}, build: () => windmill().group });
 /** The rope-bridge kit: Hunyuan3D-2 deck segment and anchor post (`art/far-reach/round-9-bridge/`), code ropes. */

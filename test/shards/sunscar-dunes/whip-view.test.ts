@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate inflates the committed plait texels the client loads.
 import { inflateSync } from 'node:zlib';
-import { CylinderGeometry, InstancedMesh, type BufferAttribute, type BufferGeometry, type InterleavedBufferAttribute, type Object3D } from 'three';
+import { CylinderGeometry, Mesh, MeshStandardMaterial, InstancedMesh, type BufferAttribute, type BufferGeometry, type InterleavedBufferAttribute, type Object3D } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { ClientChannels } from '../../../src/sdk/clientChannels';
@@ -14,11 +14,11 @@ import { parseClientChannels } from '../../../src/format/clientChannels';
 import { createClientChannelView } from '../../../src/game/plugin/ui';
 import playback from '../../../src/shards/sunscar-dunes/data/heldPlayback.generated.json' with { type: 'json' };
 import { LashCord } from '../../../src/shards/sunscar-dunes/runtime/items/lashView';
-import { buildLashHold } from '../../../src/shards/sunscar-dunes/runtime/items/lashHold';
+import { buildLashHold } from '../../../src/shards/sunscar-dunes/runtime/items/lashWeapon';
 import { bakeSignalLash, braidColours, coilPoints, lashTip, plaitTexels, wrapGeometry } from '../../../src/shards/sunscar-dunes/generators/lash';
 import { createModelLibrary } from '../../../src/sdk/looks/modelLibrary';
 import { DUNE_MODELS } from '../../../src/shards/sunscar-dunes/data/files';
-import { LASH_CORD, LASH_TIP, LOOP, PLAIT, POPPER, RADIAL, STRAND_A, STRAND_B, WHIP_HOLD, WHIP_VIEW, type PlaitStyle } from '../../../src/shards/sunscar-dunes/data/whip';
+import { LASH_CORD, LASH_TIP, LOOP, PLAIT, POPPER, RADIAL, STRAND_A, STRAND_B, WHIP_HOLD, WHIP_SCENE, WHIP_VIEW, type PlaitStyle } from '../../../src/shards/sunscar-dunes/data/whip';
 import lash from '../../../src/shards/sunscar-dunes/data/lash.json' with { type: 'json' };
 // The bullwhip's cord, plait tile and held coil as Signal Dunes' own code built them before they became rows (HEAD d91bc1a63, weapons/whipModel.ts).
 import before from './whip-view.json' with { type: 'json' };
@@ -62,7 +62,7 @@ describe('the lash item\'s view draws a shard\'s cord from its bake and rows (SH
 
   it('the client reads exactly the lash, plait tile, coil and braid Signal Dunes\' own code built (pixel parity by construction)', async () => {
     const baked = await loadLash(), kind = (name: string): BufferGeometry => { const g = baked.get(name); if (g === undefined) throw new Error(name); return g.clone(); };
-    const hold = buildLashHold(WHIP_HOLD, { tip: [0, 0, 0], along: lash.along }, { baked: kind, plait: () => null, hd: () => null, coilSurface: () => undefined });
+    const hold = buildLashHold({row:WHIP_SCENE,ports:{geometry:kind,objects:new Map([['hero',null]]),textures:new Map([['plait',null]]),textureRepeat:new Map([['plait.repeat',[lash.along,1] as const]]),decorators:new Map([['plait',()=>undefined]])}},LASH_CORD,[0,0,0]);
     const declared = parseClientChannels(playback.cord)[0]?.geometry;
     if (declared === undefined) throw new Error('Missing retained cord descriptor');
     const probe = new ClientChannels('cord.fixture');
@@ -95,7 +95,7 @@ describe('the lash item\'s view draws a shard\'s cord from its bake and rows (SH
     const tile = plaitTexels(rope);
     expect(tile.length).toBe(32 * 32 * 12);
     expect(sha(tile.subarray(0, 32 * 32 * 4))).not.toBe(before.plait.map);
-    expect(() => new LashCord({ ...LASH_CORD, segments: 8, radial: 4 }, new CylinderGeometry())).toThrow(/baked rings/u);
+    expect(() => new LashCord({ ...LASH_CORD, segments: 8, radial: 4 }, new Mesh(new CylinderGeometry(), new MeshStandardMaterial()))).toThrow(/baked rings/u);
     const pts = coilPoints({ ...LOOP, turns: 1, tail: [] });
     expect(pts).toHaveLength(41);
   });
