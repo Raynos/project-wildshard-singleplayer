@@ -54,10 +54,13 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   or manual release reads `.github/deploy-pin.json`: mode `newest-ci-green` picks the newest main commit whose push
   `deploy` run (typecheck, lint, test, build) passed **and whose exact SHA has `boot-smoke = success`**. The separate
   `.github/workflows/boot-smoke.yml` follows successful main push CI (or an explicit SHA dispatch), builds that exact
-  commit and drives the real title, Driftwood gameplay and Developer grid home. It runs as three macOS legs (`boot`: title and
-  gameplay; `hover-chromium` and `hover-webkit`: each browser's complete touch HOVER mounts). Build/setup plus both
+  commit and drives every public primary shard to entered, unpaused page-ready with ten live gameplay frames.
+  Cases come from that build's actual title catalogue, excluding hidden levels and frozen copies. Experimental
+  primaries (including Signal) use their real Developer entry, and the Developer grid still proves its home handoff.
+  Four macOS legs keep public and Developer cases separate (`boot-public`, `boot-developer`, `hover-chromium` and
+  `hover-webkit`: each browser's complete touch HOVER mounts). Build/setup plus both
   serial HOVER drives exceeded the 12-minute deadline on 2026-10-12; separate legs keep that deadline and every case.
-  The `verdict` job requires all three legs before publishing the one `boot-smoke` status (SF74 W16). Fatal UI, page errors and bad asset
+  The `verdict` job requires all four legs before publishing the one `boot-smoke` status (SF74 W16). Fatal UI, page errors and bad asset
   responses refuse the proof. Its macOS queue stays outside push CI's critical path. A scheduled, backstop or manual
   release waits within the same run while a newer CI-green candidate's exact-SHA smoke is pending. A newly completed
   push CI with no smoke status yet gets the same wait (up to 15 minutes after CI completion), covering dispatch and

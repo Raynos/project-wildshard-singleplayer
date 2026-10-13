@@ -52,6 +52,51 @@ export function bootLifecycleDiagnostic(report, observedGridNavigation) {
     /^boot after the last page ended on "hide" \(nav navigate\): \d+ frames \/ 6s$/u.test(report.message);
 }
 
+/** Read the actual built title's installed catalogue, without loading or injecting a world. */
+export function bootCatalogue() {
+  /** @type {unknown} */ const installed = Reflect.get(globalThis, Symbol.for('game.shards'));
+  if (!Array.isArray(installed) || installed.length === 0) throw new Error('Missing built title shard catalogue');
+  return installed.map((/** @type {unknown} */ row) => {
+    if (typeof row !== 'object' || row === null || !('slug' in row) || typeof row.slug !== 'string' ||
+      !('status' in row) || typeof row.status !== 'string') throw new Error('Invalid built title shard catalogue row');
+    return { slug: row.slug, status: row.status, legacy: 'legacy' in row && row.legacy === true };
+  });
+}
+
+/** Every public primary enters through its real public button; experimental primaries enter with Developer on.
+ * @param {readonly {slug:string,status:string,legacy:boolean}[]} catalogue
+ * @param {'all'|'public'|'developer'} [group]
+ * @returns {readonly (readonly ['standalone'|'grid',string,boolean])[]} */
+export function bootCases(catalogue, group = 'all') {
+  if (!['all', 'public', 'developer'].includes(group)) throw new Error('Unknown boot case group');
+  const seen = new Set();
+  for (const row of catalogue) {
+    if (!/^[a-z0-9_-]+$/u.test(row.slug) || seen.has(row.slug) || !['live', 'earlyAccess', 'experimental', 'hidden'].includes(row.status)) throw new Error('Invalid or duplicate built title shard');
+    seen.add(row.slug);
+  }
+  const primary = catalogue.filter(row => !row.legacy && row.status !== 'hidden' && !row.slug.startsWith('_'));
+  if (!primary.some(row => row.slug === 'sunscar-dunes')) throw new Error('Signal page-ready case is missing from the built catalogue');
+  const publicRows = primary.filter(row => row.status !== 'experimental');
+  const home = publicRows.at(0)?.slug;
+  if (home === undefined) throw new Error('No public shard page-ready cases');
+  const publicCases = publicRows.map(row => /** @type {const} */ (['standalone', row.slug, false]));
+  const developerCases = [...primary.filter(row => row.status === 'experimental').map(row => /** @type {const} */ (['standalone', row.slug, true])), /** @type {const} */ (['grid', home, false])];
+  return group === 'public' ? publicCases : group === 'developer' ? developerCases : [...publicCases, ...developerCases];
+}
+
+/** @param {import('playwright').Browser} browser @param {string} base */
+async function discoverCatalogue(browser, base) {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
+  try {
+    await saveFixture(context, { scope: 'device', key: 'devMode', data: false });
+    const page = await context.newPage(), url = new URL(base);
+    for (const [key, value] of Object.entries({ tier: 'phone', touch: '1', mute: '1', nolock: '1', sw: '0' })) url.searchParams.set(key, value);
+    await page.goto(url.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.locator('.ws-main-logo').waitFor({ timeout: 30000 });
+    return await page.evaluate(bootCatalogue);
+  } finally { await context.close(); }
+}
+
 /** Browser-side: the first world collider within 3 m above the player's head in the live physics (null: open sky). */
 export function spawnOverhead() {
   const probe = window.__wildshard;
@@ -182,7 +227,11 @@ async function main() {
   const pool = browserPool(root, 1, option('angle') ?? (process.platform === 'darwin' ? 'metal' : 'swiftshader'));
   try {
     const browser = await pool.browser(0);
-    for (const [mode, shard, developer] of /** @type {const} */ ([['standalone', 'driftwood-isle', false], ['standalone', 'pine-hollow', false], ['standalone', 'sunscar-dunes', true], ['grid', 'driftwood-isle', false]])) {
+    const group = option('case-group') ?? 'all';
+    if (group !== 'all' && group !== 'public' && group !== 'developer') throw new Error('usage: --case-group=all|public|developer');
+    const catalogue = await discoverCatalogue(browser, base), cases = bootCases(catalogue, group);
+    writeFileSync(join(out, 'cases.json'), `${JSON.stringify({ group, catalogue, cases }, null, 2)}\n`);
+    for (const [mode, shard, developer] of cases) {
       const result = await bootCase(browser, base, mode, out, shard, developer);
       console.log(`${mode}: gameplay PASS in ${result.elapsedMs}ms, frame=${result.frame}, faults=${result.faults.length}`);
     }

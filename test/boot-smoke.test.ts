@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Browser callback fixture keeps production services out of the unit test.
 import { runInNewContext } from 'node:vm';
 import { expect, it } from 'vitest';
+import { bootCases, bootCatalogue } from '../scripts/parity/boot-smoke.mjs';
 
 const source = readFileSync('scripts/parity/boot-smoke.mjs', 'utf8');
 const observer = source.slice(source.indexOf('export function bootObservation()'), source.indexOf('/** @param')).replace('export ', '');
@@ -13,6 +14,11 @@ it('refuses the registered-asset fatal before a gameplay probe exists', () => {
     window: {},
   });
   expect(result).toMatchObject({ ready: false, fatal: ['Asset already registered: scene:undefined'] });
+  const playFailure: unknown = runInNewContext(`(${observer})()`, {
+    document: { querySelectorAll: () => [{ textContent: 'Shardfile requires the normal play stage' }] },
+    window: {},
+  });
+  expect(playFailure).toMatchObject({ ready: false, fatal: ['Shardfile requires the normal play stage'] });
 });
 
 it('requires a real entered gameplay probe, not just a rendered title', () => {
@@ -35,7 +41,9 @@ it('gates releases with an exact-SHA real boot outside push CI and pre-push', ()
   expect(job).toContain('runs-on: macos-15');
   expect(job).toContain('job-timing.json');
   expect(job).toContain('node scripts/build-shardfiles.mjs && pnpm exec vite build');
-  expect(job).toContain('node scripts/parity/boot-smoke.mjs');
+  expect(job).toContain('part: [boot-public, boot-developer, hover-chromium, hover-webkit]');
+  expect(job).toContain('node scripts/parity/boot-smoke.mjs --case-group=public');
+  expect(job).toContain('node scripts/parity/boot-smoke.mjs --case-group=developer');
   expect(job).toContain('-f context=boot-smoke -f state="$state"');
   const pin = readFileSync('scripts/deploy-pin.mjs', 'utf8');
   expect(pin).toContain('event=push&status=success');
@@ -61,9 +69,29 @@ it('waits for the real entered HUD, frame gate and current grid reveal before cl
   expect(observe(true, false, false, true)).toMatchObject({ ready: true, frame: 24 });
 });
 
-it('boots public Pine through real SHARD SELECT as well as Driftwood, Developer Signal Dunes and the Developer grid', () => {
-  expect(source).toContain("['standalone', 'pine-hollow', false]");
-  expect(source).toContain("['standalone', 'sunscar-dunes', true]"); // the Developer-only shard SF57's composer coverage broke
+it('boots the entire actual public catalogue and experimental primaries without frozen or hidden substitutes', () => {
+  const catalogue = [
+    { slug: 'driftwood-isle', status: 'live', legacy: false },
+    { slug: 'pine-hollow', status: 'earlyAccess', legacy: false },
+    { slug: 'nalati-grasslands', status: 'earlyAccess', legacy: false },
+    { slug: 'sunscar-dunes', status: 'experimental', legacy: false },
+    { slug: 'far-reach', status: 'experimental', legacy: false },
+    { slug: 'nine-dragon-stack', status: 'experimental', legacy: false },
+    { slug: 'driftwood-isle-legacy', status: 'live', legacy: true },
+    { slug: '_template', status: 'hidden', legacy: false },
+    { slug: 'future-public', status: 'live', legacy: false },
+  ];
+  const publicCases = bootCases(catalogue, 'public'), developerCases = bootCases(catalogue, 'developer');
+  expect(publicCases).toEqual(['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'future-public'].map(slug => ['standalone', slug, false]));
+  expect(developerCases).toEqual([['standalone', 'sunscar-dunes', true], ['standalone', 'far-reach', true], ['standalone', 'nine-dragon-stack', true], ['grid', 'driftwood-isle', false]]);
+  expect(bootCases(catalogue)).toEqual([...publicCases, ...developerCases]);
+  expect(() => bootCases(catalogue.filter(row => row.slug !== 'sunscar-dunes'))).toThrow('Signal');
+  expect(() => bootCases([...catalogue, catalogue[0] ?? catalogue[1] ?? { slug: '', status: '', legacy: false }])).toThrow('duplicate');
+  expect(() => bootCases([{ slug: 'sunscar-dunes', status: 'unknown', legacy: false }])).toThrow('Invalid');
+  expect(() => bootCases([{ slug: 'sunscar-dunes', status: 'experimental', legacy: false }])).toThrow('No public');
+  const installed = new Map<symbol, unknown>([[Symbol.for('game.shards'), catalogue]]);
+  expect(runInNewContext(`(${bootCatalogue.toString()})()`, { Reflect: { get: (_target: unknown, key: symbol) => installed.get(key) }, Symbol })).toEqual(catalogue);
+  expect(() => { runInNewContext(`(${bootCatalogue.toString()})()`, { Reflect: { get: () => undefined }, Symbol }); }).toThrow('Missing');
   expect(source).toContain("data: mode === 'grid' || developer");
   expect(source).toContain("url.searchParams.set('chunk', shard)");
   expect(source).toContain("page.locator('.ws-main-select').click()");
@@ -104,8 +132,10 @@ it('keeps hourly/manual promotion and reuses only an exact successful push-CI pr
   expect(coverage).toContain('workflow_dispatch:');
   expect(coverage).not.toMatch(/^ {2}(push|pull_request):/mu);
   expect(job).toContain(`group: boot-smoke-\${{ matrix.part }}-\${{ github.event_name == 'workflow_run' && 'main' || inputs.sha || github.sha }}`);
-  // Each full browser drive gets its own unchanged deadline; all three legs supply the exact-SHA verdict.
-  expect(job).toContain('part: [boot, hover-chromium, hover-webkit]');
+  // Every catalogue case and both full browser drives keep their deadlines; all four legs supply the exact-SHA verdict.
+  expect(job).toContain('part: [boot-public, boot-developer, hover-chromium, hover-webkit]');
+  expect(job).toContain("if: matrix.part == 'boot-public'\n        run: node scripts/parity/boot-smoke.mjs --case-group=public");
+  expect(job).toContain("if: matrix.part == 'boot-developer'\n        run: node scripts/parity/boot-smoke.mjs --case-group=developer");
   expect(job).toContain("if: matrix.part == 'hover-chromium'\n        run: node scripts/parity/hover-touch.mjs --out=boot-smoke-results/hover-chromium");
   expect(job).toContain("if: matrix.part == 'hover-webkit'\n        run: scripts/browser-lane.sh --max 8 node scripts/parity/hover-touch.mjs --engine=webkit --out=boot-smoke-results/hover-webkit");
   expect(job).toContain('timeout-minutes: 12');
