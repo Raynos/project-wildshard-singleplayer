@@ -24,7 +24,7 @@ import seaRows from '../../../src/shards/far-reach/data/seaTexture.json' with { 
 import { bakeSkyCards } from '../../../src/shards/far-reach/generators/skyCards';
 import { SKY_CARDS as skyCardRows } from '../../../src/shards/far-reach/data/skyCards';
 import { SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS } from '../../../src/shards/far-reach/data/skyCardsLook';
-import { cardField, cardGroup } from '../../../src/sdk/looks/cardField';
+import { cardField, cardGroup } from '../../../src/shards/far-reach/runtime/looks/cardField';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { skyBakedPiece, skyKnollHulls } from '../../../src/shards/far-reach/world/baked';
 import { setSkyLooks } from '../../../src/shards/far-reach/world/looks';
