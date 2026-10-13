@@ -29,7 +29,8 @@ describe('Sky Reach Rising Islet entries', () => {
     expect(source.accent).toBe('pink'); // G104: 18 PINK
     // every admitted file (the islet and the bridge modules) from its committed bytes
     const admitted = new Map(source.files.map((file) => [file.hash, Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${file.hash}`))]));
-    expect(source.files.map((file) => file.hash).sort()).toEqual([BRIDGE_MODULE.hash, LIFT_MODULE.hash].sort());
+    expect(source.navigation).toBeDefined();
+    expect(source.files.map((file) => file.hash).sort((a,b)=>a.localeCompare(b))).toEqual([BRIDGE_MODULE.hash, LIFT_MODULE.hash, source.navigation?.file].sort((a,b)=>String(a).localeCompare(String(b))));
     expect(() => validateShardfileAssets(source, admitted, contentHash)).not.toThrow();
     const lifts = socketLiftEntries(source.entryways);
     expect(lifts.map((row) => [row.lift.mover, row.lift.gate, row.lift.approach?.colliders])).toEqual(RISING_ISLETS.map((e) => [`far.islet.${e.edge}`, `far.islet.${e.edge}.gate`, [`landing.${e.edge}`]]));

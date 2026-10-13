@@ -18,7 +18,7 @@ it('discovers and admits the emitted Signal Dunes product at its complete measur
   const allocator = new ResidencyAllocator(), scope = new Scope('sun.grid.discovery');
   try {
     const source = await buildProject(resolve('src/shards/sunscar-dunes'), output, { client: null });
-    expect(source).toEqual(declaration);
+    expect(source).toEqual({ ...declaration, files: [...declaration.files].sort((a,b)=>a.hash.localeCompare(b.hash)) });
     expect(readFileSync(join(output, 'shard.json'), 'utf8')).toBe(canonicalJson(source));
     expect(SUNSCAR_DUNES.shardfile).toBeUndefined(); // Standalone keeps its ordinary legacy loader.
     expect(SUNSCAR_DUNES.gridShardfile).toBe('/shardfiles/sunscar-dunes/shard.json');

@@ -28,8 +28,11 @@ describe('Signal Dunes declares runtime-bound rows (SHARD-PLATFORM M3, the runti
     const data = withoutRuntimeRows(source);
     expect([data.quests.quests.length, data.quests.flags.length, data.ledger.length, data.items.rows.length, data.items.contexts.length]).toEqual([0, 0, 0, 0, 0]);
     expect(data.audio).toBe(source.audio); expect(data.edge).toBe(source.edge);
-    // G227: the compiled terrain tiles are bound too; the data client sees no terrain, tile, file or critical row
-    expect([data.terrain, data.tiles.length, data.files.length, data.critical.length]).toEqual([null, 0, 0, 0]);
+    // Bound terrain stays absent; the engine-owned navigation asset stays admitted.
+    expect([data.terrain, data.tiles.length]).toEqual([null, 0]);
+    expect(data.navigation).toEqual(source.navigation);
+    expect(data.files.map(file=>file.hash)).toEqual([source.navigation?.file]);
+    expect(data.critical).toEqual([source.navigation?.file]);
   });
   it('the whip row drives the bullwhip and its equipment row: the same numbers, slot and context as before', () => {
     expect([CRACK.reach, CRACK.heavyReach, CRACK.width, CRACK.light, CRACK.heavy, CRACK.cooldown, CRACK.heavyCooldown, CRACK.charge]).toEqual([7, 8, 0.9, 18, 16, 0.45, 0.9, 0.6]);

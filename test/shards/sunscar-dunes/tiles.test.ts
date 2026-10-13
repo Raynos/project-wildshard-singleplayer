@@ -31,7 +31,7 @@ describe('Signal Dunes compiles its dune field into shardfile terrain tiles (SHA
       expect(sha(committed.get(hash) ?? new Uint8Array())).toBe(hash);
     }
     // the folder holds exactly this bake: no orphan file from an older bake ships in the product
-    expect(readdirSync(folder).filter((name) => /^[a-f0-9]{64}$/u.test(name)).sort()).toEqual([...assets.keys()].sort());
+    expect(readdirSync(folder).filter((name) => /^[a-f0-9]{64}$/u.test(name)).sort()).toEqual(source.files.map(file=>file.hash).sort());
     expect([tiles.tiles.length, assets.size, tiles.critical]).toEqual([80, 81, [tiles.terrain.collider]]);
   });
 
@@ -41,7 +41,10 @@ describe('Signal Dunes compiles its dune field into shardfile terrain tiles (SHA
     expect(source.edge).toEqual(tiles.edge);
     expect(runtimeBoundWorldFiles(source).size).toBe(81);
     const data = withoutRuntimeRows(source);
-    expect([data.terrain, data.tiles.length, data.files.length, data.critical.length, data.library.length]).toEqual([null, 0, 0, 0, 0]);
+    expect([data.terrain, data.tiles.length, data.library.length]).toEqual([null,0,0]);
+    expect(data.navigation).toEqual(source.navigation);
+    expect(data.files.map(file=>file.hash)).toEqual([source.navigation?.file]);
+    expect(data.critical).toEqual([source.navigation?.file]);
     // unbound, the same terrain stays the data client's
     const runtime = source.runtime; if (runtime === null) throw new Error('Signal Dunes declares its runtime');
     const unbound = parseShardfile({ ...source, runtime: { ...runtime, binds: (runtime.binds ?? []).filter((section) => section !== 'terrain') } });

@@ -18,7 +18,7 @@ it('discovers and admits the emitted Sky Reach product at its matched measured r
   const allocator = new ResidencyAllocator(), scope = new Scope('sky.grid.discovery');
   try {
     const source = await buildProject(resolve('src/shards/far-reach'), output, { client: null });
-    expect(source).toEqual(declaration);
+    expect(source).toEqual({ ...declaration, files: [...declaration.files].sort((a,b)=>a.hash.localeCompare(b.hash)) });
     expect(readFileSync(join(output, 'shard.json'), 'utf8')).toBe(canonicalJson(source));
     expect(SKY_REACH.shardfile).toBeUndefined(); // Standalone keeps its ordinary legacy loader.
     expect(SKY_REACH.gridShardfile).toBe('/shardfiles/far-reach/shard.json');
