@@ -14,7 +14,7 @@
 
 **For wildshard-v, Jake ask (S2 blocked, sp-o77):** SF59 graphs can't keep the fire look today: always fogged and alpha-only (fire needs fog off, additive/premultiplied, depthWrite off, depth bias, point embers, view billboards); graphs only compile from shardfile `look.materials`; and **Graph materials is default-off pending a physical-iPhone reading**, so the GLSL stays as fallback (no cut). Recommend: approve an **SF59 effect-state row** (users Signal fire + Sky wind) and accept the Simulator + desktop frame-floor reading (or one normal playtest with Debug ▸ Graph materials on) to default it on.
 
-**Hero NE-b SHIPPED** (`bcaa12ff3`, G383); sp-o75 re-shoots NE-b with all nine near (`art/main-menu-hero/round-6b/`). Signal ground switch parked (`5449941c9`).
+**Hero NE-b SHIPPED, re-shot with all nine near** (`77529adfb`, G383; call: shipped the re-shoot Jake asked for). **For wildshard-v:** near round 5 boards `art/near-tier/round-5/` (A/B/C, 4 road views). Signal ground switch parked.
 
 **Calls for Jake (2026-10-13; reverse any):**
 1. Bosses never shrink on phone (`30dc4c9ae`).
