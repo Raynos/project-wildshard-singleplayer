@@ -1,0 +1,36 @@
+--- src/commons/bake/portableMath.ts	2026-10-12 19:59:46
++++ src/commons/bake/portableMath.ts	2026-10-13 00:47:14
+@@ -18,6 +18,11 @@
+ 
+ const PIO2_1 = 1.57079632673412561417e+00, PIO2_1T = 6.07710050650619224932e-11;
+ const PIO2_2 = 6.07710050630396597660e-11, PIO2_2T = 2.02226624879595063154e-21;
++const PIO2_3 = 2.02226624871116645580e-21, PIO2_3T = 8.47842766036889956997e-32;
++const NPIO2_HW = [0x3FF921FB, 0x400921FB, 0x4012D97C, 0x401921FB, 0x401F6A7A, 0x4022D97C, 0x4025FDBB, 0x402921FB, 0x402C463A, 0x402F6A7A,
++  0x4031475C, 0x4032D97C, 0x40346B9C, 0x4035FDBB, 0x40378FDB, 0x403921FB, 0x403AB41B, 0x403C463A, 0x403DD85A, 0x403F6A7A,
++  0x40407E4C, 0x4041475C, 0x4042106C, 0x4042D97C, 0x4043A28C, 0x40446B9C, 0x404534AC, 0x4045FDBB, 0x4046C6CB, 0x40478FDB,
++  0x404858EB, 0x404921FB];
+ const INV_PIO2 = 6.36619772367581382433e-01;
+ const LN2_HI = 6.93147180369123816490e-01, LN2_LO = 1.90821492927058770002e-10, INV_LN2 = 1.44269504088896338700e+00;
+ const PI = 3.14159265358979311600e+00, PI_LO = 1.2246467991473532e-16;
+@@ -54,7 +59,20 @@
+   const n = Math.round(x * INV_PIO2);
+   const r0 = x - n * PIO2_1, w0 = n * PIO2_1T;
+   const y0 = r0 - w0;
+-  if (Math.abs(n) < 32) return [n, y0, (r0 - y0) - w0];
++  if (Math.abs(n) < 32) {
++    // fdlibm: no cancellation unless x's high word is n * pi/2's; else iterate while the result lost > 16 / 49 bits
++    bits[0] = Math.abs(x); const hx = words[1] ?? 0;
++    if (hx !== NPIO2_HW[Math.abs(n) - 1]) return [n, y0, (r0 - y0) - w0];
++    const j = hx >>> 20;
++    const lost = (y: number): number => { bits[0] = y; return j - (((words[1] ?? 0) >>> 20) & 0x7ff); };
++    if (lost(y0) <= 16) return [n, y0, (r0 - y0) - w0];
++    let t = r0, w = n * PIO2_2; const r1 = t - w; w = n * PIO2_2T - ((t - r1) - w);
++    const y1 = r1 - w;
++    if (lost(y1) <= 49) return [n, y1, (r1 - y1) - w];
++    t = r1; w = n * PIO2_3; const r2 = t - w; w = n * PIO2_3T - ((t - r2) - w);
++    const y2 = r2 - w;
++    return [n, y2, (r2 - y2) - w];
++  }
+   // a second pass for larger n (fdlibm's 2nd iteration)
+   const t = r0, w = n * PIO2_2, r = t - w, w2 = n * PIO2_2T - ((t - r) - w);
+   const y = r - w2;
