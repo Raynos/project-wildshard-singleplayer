@@ -1,4 +1,4 @@
-import { sourceManifest as mapSource } from '@wildshard/game/plugin/shardPlugin';
+import { sourceManifest as mapSource } from '@wildshard/game/plugin/context';
 import type { Shardfile } from './shardfile';
 
 /** Map a parsed author's identity and presentation into discovery data without fetching or installing services.

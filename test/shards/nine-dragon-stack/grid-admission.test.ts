@@ -4,7 +4,7 @@ import { GridAssembly } from '../../../src/game/grid/assembly';
 import { ResidencyAllocator } from '../../../src/game/grid/allocator';
 import { gridShardfileProduct } from '../../../src/game/grid/products';
 import { installShards, shards } from '../../../src/game/shard/list';
-import { prepareTrustedRuntime } from '../../../src/game/plugin/shardPlugin';
+import { prepareTrustedRuntime } from '../../../src/game/plugin/context';
 import manifest from '../../../src/shards/nine-dragon-stack/manifest';
 import source from '../../../src/shards/nine-dragon-stack/shard.config';
 import { NdPlugin, resolveTrustedRuntime } from '../../../src/shards/nine-dragon-stack/plugin';

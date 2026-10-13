@@ -3,7 +3,7 @@ import { App } from '../../../src/engine/app/app';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
 import { RetainedRuntimeHooks } from "../../../src/game/shard/retainedHooks";
 import { shardContext } from "../../../src/game/plugin/context";
-import { emptyShardfileSource } from '../../../src/game/plugin/loader';
+import { emptyShardfileSource } from '../../../src/game/plugin/ui';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { wildEnv } from '../../../src/shards/nalati-grasslands/creatures/env';
 import { bindEnteredEnvironment } from '../../../src/shards/nalati-grasslands/runtime/enteredEnvironment';

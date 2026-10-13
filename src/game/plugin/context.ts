@@ -1,67 +1,27 @@
-import { GridAssembly, type GridCell } from "../grid/assembly";
-import { pageGridIntents } from "../grid/intent";
-import { gridMode, type MenuMode } from "../grid/menu";
-import { devserverCellOn } from "../grid/debug";
-import { findShard } from "../shard/registry";
-import { chooseShardEntry } from "../shard/entryMode";
-import { travel } from "../travel/travel";
-import { type HomeResidencyClaim, PageResidency } from "../grid/pageResidency";
-import { gridRecovery, recoveryCatalogue, type GridRecoveryRecord } from "../grid/recovery";
-import { app } from "@wildshard/engine/app/runtime";
-import { currentPageMode, setPageMode } from "../grid/pageMode";
-import type { SaveStore } from "@wildshard/engine/saves/store";
-import type { ShardManifest } from "../shard/manifest";
-import { runtimeAccountedBytes } from "@wildshard/format/runtimeCost";
-import { ResidencyAllocator } from "../grid/allocator";
-import { MemoryAdmission } from "@wildshard/format/product";
-import { isDev } from "@wildshard/engine/core/devMode";
-import { contentCost } from "@wildshard/format/contentCost";
-import { CONTENT_CAPS, CHUNK_HALF } from "@wildshard/engine/core/config";
-import type { TabId as BagTabId, TabSpec as BagTabSpec, TabFragment as BagFragment } from "@wildshard/engine/ui/tabs";
-import { registerItemRow } from "../bag/itemCatalog";
-import { registerAchievements, type AchievementDef } from "../achievements";
-import { registerCompendium } from "../compendium/registry";
-import type { ShardCompendium } from "../compendium/types";
-import type { ShardRuntime } from "../shard/runtime";
-import { normalizeItemRow, type ItemRow } from "../bag/items";
-import type { ContentRow, EngineRows, LevelContext } from "@wildshard/engine/level/context";
-import type { SkinDef } from "@wildshard/engine/player/Skins";
+import * as v from "valibot";
+import type { HomeResidencyClaim, PageResidency } from '../grid/pageResidency';
+import { currentPageMode } from '../grid/pageMode';
+import type { ShardManifest } from '../shard/manifest';
+import { CHUNK_HALF } from '@wildshard/engine/core/config';
+import type { TabId as BagTabId, TabSpec as BagTabSpec, TabFragment as BagFragment } from '@wildshard/engine/ui/tabs';
+import { registerItemRow } from '../bag/itemCatalog';
+import { registerAchievements, type AchievementDef } from '../achievements';
+import { registerCompendium } from '../compendium/registry';
+import type { ShardCompendium } from '../compendium/types';
+import type { ShardRuntime } from '../shard/runtime';
+import { normalizeItemRow, type ItemRow } from '../bag/items';
+import type { ContentRow, EngineRows, LevelContext } from '@wildshard/engine/level/context';
+import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { AudioData } from '@wildshard/format/audio';
+import { RuntimeSchema, type RuntimeDeclaration } from '@wildshard/format/runtime';
+import { parseShardSlug } from '../shard/slug';
+import type { Shardfile } from '@wildshard/format/shardSchema';
+import { stillImageUrl } from '../shardfile/stillImage';
+import { presentationCard } from '../shardfile/presentation';
 
-/**
- * Infinite Wildshard's way in (SF21a). The catalogue's home cell boots through the normal shard flow as page mode
- * `'grid'`; its live grid session borrows that world and transfers the traveller between admitted frames. A title tap
- * or a validated recovery record selects the home before normal memory admission and descriptor hydration.
- *
- *   title tap  → enterGrid()               the one-shot intent, then a fresh document for the home cell
- *   boot       → bootPageMode(slug)         consumes the tap or uses validated recovery; the URL drops to the bare title
- *                                           URL, so an unrecorded reload (or an iOS kill's restart) lands on the title
- *   alive beat → pageMode()                 AliveInfo.mode, so the title can say the grid ended unexpectedly
- */
+
+/** The page's chosen entry mode. */
 export type PageMode = 'grid' | 'shard';
-
-/** the home cell of the grid this device would assemble now (Developer, DEVSERVER and its Debug row apply at grid start) */
-export function gridHome(mode?: MenuMode): GridCell {
-  const assembly = new GridAssembly(gridMode(devserverCellOn(), mode));
-  const home = assembly.at(0, 0);
-  if (home === undefined) throw new Error('The grid catalogue has no home cell at (0, 0)');
-  return home;
-}
-
-/** The title's Infinite Wildshard tap: write the one-shot intent, then open the home cell in a fresh document. */
-export function enterGrid(): void {
-  // A deliberate new player attempt starts a new guard window; automatic reloads cannot clear it.
-  if (!gridRecovery(app.saves).clearLoop()) throw new Error('Grid recovery guard could not be cleared');
-  clearGridRecovery();
-  const home = gridHome();
-  const target = findShard(home.slug);
-  if (target === undefined) throw new Error(`The grid's home cell names no shard: ${home.slug}`);
-  // INFINITE WILDSHARD enters the catalogue home, never SHARD SELECT's frozen LEGACY copy.
-  chooseShardEntry(target.slug, 'shardfile');
-  pageGridIntents().set({ instance: home.instance, slug: target.slug });
-  travel({ to: target.slug, mode: 'enter' });
-}
-
 /** A grid cell by its stable catalogue instance id (SF14: `driftwood-isle`, `template-1` …; never the cell coordinates). */
 export interface GridCellRef { readonly instance: string; readonly slug: string }
 /**
@@ -128,106 +88,8 @@ export const gridHomeSim = new GridHomeHandoff();
 
 /** this page's mode, decided once at boot (held in the leaf grid/pageMode.ts) */
 export function pageMode(): PageMode { return currentPageMode(); }
-
-/** The boot's one read of the tap intent (used or not), overridden by validated recovery before ordinary admission.
- * In grid mode the address becomes the bare title URL, preventing an unrecorded automatic restart. */
-export function bootPageMode(slug: string): PageMode {
-  let intent = null;
-  try { intent = pageGridIntents().consume(slug); } catch { /* blocked storage: no intent, the normal shard flow */ }
-  const recovery = pageGridRecovery();
-  if (recovery !== null && [slug].includes(recovery.slug)) intent = { instance: recovery.instance, slug: recovery.slug, at: recovery.at };
-  const mode: PageMode = intent === null ? 'shard' : 'grid';
-  setPageMode(mode);
-  if (intent !== null) gridCells.enter({ instance: intent.instance, slug: intent.slug }); // the home cell: the page starts inside it
-  if (mode === 'grid' && typeof history !== 'undefined') {
-    try { history.replaceState(history.state, '', new URL(location.pathname, location.origin)); } catch { /* a sandboxed frame: the URL stays */ }
-  }
-  return mode;
-}
-
 /** the catalogue instance this grid page booted into (null in shard mode) */
 export function pageGridInstance(): string | null { return currentPageMode() === 'grid' ? gridCells.cell?.instance ?? null : null; }
-
-/** The title page's boot: a stale intent is consumed and dropped, never kept for a later page. */
-export function dropGridIntent(): void {
-  try { pageGridIntents().consume(''); } catch { /* nothing to drop */ }
-}
-
-/** Page-local selection is installed explicitly by the composition root, never by importing this module. */
-let selected: NonNullable<GridRecoveryRecord> | null = null;
-let refused = false;
-let loop = false;
-
-/** A validated current catalogue's default home and road lane, used when recovery metadata is unsafe. */
-export function safeGridRecovery(assembly: GridAssembly, now: number): NonNullable<GridRecoveryRecord> {
-  const home = assembly.at(0, 0);
-  if (home === undefined) throw new Error('Recovery catalogue requires a home cell');
-  return { instance: home.instance, slug: home.slug, catalogue: recoveryCatalogue(assembly), at: now, reason: 'gpu',
-    road: { x: home.origin.x + assembly.pitch / 2 + 3.6, z: home.origin.z, yaw: 0 } };
-}
-
-/** Consume recovery metadata before routing/hydration; ordinary boot and unsupported future records select nothing. */
-export function consumeGridRecovery(options: { assembly?: GridAssembly; saves?: SaveStore; now?: () => number; unexpected?: boolean } = {}): NonNullable<GridRecoveryRecord> | null {
-  const assembly = options.assembly ?? new GridAssembly(gridMode(devserverCellOn()));
-  const now = options.now ?? Date.now;
-  const result = gridRecovery(options.saves ?? app.saves, now).consume(assembly, options.unexpected);
-  loop = result.kind === 'loop';
-  refused = result.kind === 'refused' || loop;
-  selected = result.kind === 'resume' ? result.record : result.kind === 'fallback' ? safeGridRecovery(assembly, now()) : null;
-  return selected;
-}
-
-/** Same-document handoff to ordinary admission and the live road placement; progress is read from real saves. */
-export function pageGridRecovery(): NonNullable<GridRecoveryRecord> | null { return selected; }
-/** A failed recovery boot returns to the title and must not supply a selection to another boot. */
-export function clearGridRecovery(): void { selected = null; refused = false; loop = false; }
-/** Future or unconsumed metadata cannot enter a renderer on this boot. */
-export function gridRecoveryRefused(): boolean { return refused; }
-/** A repeated failing recovery opens the existing shard picker, never another automatic boot. */
-export function gridRecoveryLoop(): boolean { return loop; }
-
-/** The composition root passes this selection to hydration and startSession; its grid intent has already been consumed. */
-export interface PageResidencyBoot {
-  readonly mode: PageMode;
-  readonly instance: string | null;
-  readonly residency?: PageResidency;
-  /** G216: one trusted page policy also reaches data-only SHARD SELECT validation and its warning surface. */
-  readonly memory: MemoryAdmission;
-  /** Validated recovery uses the ordinary owner, then returns to the road. */
-  readonly recovery?: NonNullable<GridRecoveryRecord>;
-}
-
-/**
- * G144's single grid boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply
- * reviewed measurements here, since their hybrid data hook runs after bootstrap. Data homes are admitted by the loader
- * against their declared sim cost, then their actual library and tile claims. The root disposes failed hydration; the
- * successful session installs the owner's level lifetime.
- */
-export function preparePageResidency(manifest: Pick<ShardManifest, 'slug' | 'shardfile' | 'runtimeCost'>, configuredSlug?: string, memory = new MemoryAdmission(isDev)): PageResidencyBoot {
-  const mode = bootPageMode(configuredSlug ?? manifest.slug);
-  const measuredHome = configuredSlug === undefined && manifest.shardfile === undefined;
-  if (mode !== 'grid' && (!measuredHome || manifest.runtimeCost === undefined)) return { mode, instance: null, memory };
-  const instance = mode === 'grid' ? pageGridInstance() : manifest.slug;
-  if (instance === null) throw new Error('Grid residency requires the consumed home instance');
-  const residency = new PageResidency(new ResidencyAllocator({ memory }));
-  try {
-    if (measuredHome) {
-      if (manifest.runtimeCost === undefined) throw new Error('Grid runtime home requires reviewed memory measurements before bootstrap');
-      const bytes = runtimeAccountedBytes(manifest.runtimeCost), row = manifest.runtimeCost;
-      const cost = contentCost({ l0: 0, l1: 0, far: 0, libraries: 0, sims: bytes, commons: 0, overlap: CONTENT_CAPS.overlap });
-      if (!memory.accept({ stage: 'runtime', owner: instance, id: `sim:${instance}`, claimedBytes: bytes,
-        accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading,
-        measured: { webContentBytes: Math.ceil(row.webContentMB * 1_000_000), glBytes: Math.ceil(row.glMB * 1_000_000), engineBaseBytes: Math.ceil(row.engineBaseMB * 1_000_000),
-          ...(row.residentBaseMB === undefined ? {} : { residentBaseBytes: Math.ceil(row.residentBaseMB * 1_000_000) }),
-          rev: row.rev, device: row.device, evidence: row.evidence } })) throw new Error('Home residency admission deferred by the shared budget');
-      // A matched increment subtracts the persistent composer; it cannot cover that page component again.
-      residency.admitHome(instance, bytes, row.residentBaseMB === undefined);
-    }
-    const recovery = mode === 'grid' ? pageGridRecovery() : null;
-    return { mode, instance, residency, memory, ...(recovery === null ? {} : { recovery }) };
-  } catch (error) { residency.dispose(); throw error; }
-}
-
 /** Scoped bag registration verbs supplied to trusted plugins. */
 export interface BagVerbs { tab: (spec: BagTabSpec) => void; fragment: (tab: BagTabId, fragment: BagFragment) => void }
 /** Content rows a trusted plugin may register through its owned context. */
@@ -305,3 +167,99 @@ export function shardContext(ctx: LevelContext, manifest: ShardManifest, game: G
 
 /** Read the current counted world-step sink through the defining game context port. */
 export function buildProgress(context: Pick<ShardContext, 'progress'>): ShardContext['progress'] { return context.progress; }
+
+
+/** Trusted composition-root binding; the declaration can select only the entry belonging to the same shard. */
+export interface TrustedRuntimeEntry {
+  readonly slug: string;
+  readonly entry: string;
+  readonly load: () => Promise<{ default: new () => ShardPlugin }>;
+}
+/** Resolve only explicitly registered first-party code. Neighbour preparation may import it without running hooks. */
+export async function prepareTrustedRuntime(declaration: RuntimeDeclaration, slug: string, firstParty: boolean,
+  entries: readonly TrustedRuntimeEntry[]): Promise<new () => ShardPlugin> {
+  const parsed = v.parse(RuntimeSchema, declaration);
+  if (!firstParty) throw new Error('Custom runtime requires a trusted first-party shard');
+  const registered = new Map<string, TrustedRuntimeEntry[]>();
+  for (const entry of entries) { const group = registered.get(entry.slug) ?? []; group.push(entry); registered.set(entry.slug, group); }
+  const matches = (registered.get(slug) ?? []).filter((entry) => entry.entry === parsed.entry);
+  if (matches.length !== 1) throw new Error('Runtime entry must have exactly one matching trusted shard binding');
+  const match = matches[0];
+  if (match === undefined) throw new Error('Missing trusted runtime entry');
+  return (await match.load()).default;
+}
+
+/** Pure catalogue/level mapping from parsed data and already admitted immutable image bytes.
+ * No fetch, browser decode, world allocation or service installation occurs here. Absent presentation keeps the empty card.
+ * The caller owns asset admission and the library lease; the returned hooks enter the ordinary session later. */
+export function sourceManifest(source: Pick<Shardfile, 'identity' | 'accent' | 'spawn' | 'look' | 'presentation' | 'map'> & Partial<Pick<Shardfile, 'navigation'>>, assets: ReadonlyMap<string, Uint8Array> = new Map()): ShardManifest {
+  const presentation = source.presentation;
+  const navigation = source.navigation === null || source.navigation === undefined ? undefined : assets.get(source.navigation.file);
+  if (source.navigation !== null && source.navigation !== undefined && navigation === undefined) throw new Error('Navigation is missing admitted bytes');
+  const map = source.map === undefined ? undefined : assets.get(source.map.image);
+  if (source.map !== undefined && map === undefined) throw new Error('Map image is missing admitted bytes');
+  const card = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/%3E';
+  return {
+    ...(source.navigation === null || source.navigation === undefined || navigation === undefined ? {} : { navigation: { row: source.navigation, bytes: navigation } }),
+    api: 1, accent: source.accent, slug: parseShardSlug(source.identity.slug), name: source.identity.name, seed: source.identity.seed,
+    order: 0, status: 'live', label: '(0, 0)', biome: presentation?.biome ?? 'Empty world', blurb: presentation?.blurb ?? 'An empty shardfile world.',
+    card: presentation === undefined ? { thumb: card, portrait: card, landscape: card } : presentationCard(presentation, assets), style: 'greybox', kitLook: 'toon', hands: 'toon', weapon: 'custom',
+    treeCount: 0, trees: { factory: 'none', noun: 'trees' }, ground: { structures: true, paths: 'plugin' }, horizon: { rings: [], cloudSea: false },
+    spawn: { ...source.spawn }, spawns: [], species: [], uses: [], boundary: { visible: false },
+    sky: { sunColor: [1, 1, 1], sunIntensity: 1, envIntensity: 0.5, bgIntensity: 1, fogSunColor: [1, 1, 1], cloudSunColor: [1, 1, 1], hemiSky: 0x9ca7b4, hemiGround: 0x606060, hemiIntensity: 0.7, sun: { azimuth: 35, elevation: 45 } },
+    atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 1, 1] },
+    grade: { saturation: source.look.grade.saturation - 1, brightness: 0, contrast: source.look.grade.contrast - 1, bloomIntensity: 0, bloomThreshold: 1, shadowTint: [1, 1, 1], highTint: [1, 1, 1], lift: [0, 0, 0], gain: [1, 1, 1], gamma: 1 },
+    budgets: {}, fight: {}, loadout: { weapons: [], tools: [], start: [] }, minimap: map === undefined ? {} : { image: stillImageUrl(map) },
+    render: async () => source.look.keys.length === 0 ? (await import('../shardfile/emptyLook')).emptyLook(source.look.dayOverride) : (await import('../shardfile/look')).shardfileLook(source.look), tiers: { phone: { ao: false, godRays: false }, desktop: { ao: false, godRays: false } },
+    audio: { ambience: 'none', score: 'none' },
+    boot: { files: () => [], sources: () => ({ sky: [], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [], art: [], music: [], sfx: [] }), viewmodelSets: [], audio: () => Promise.resolve([]), precache: [] },
+    // A plugin source enters the ordinary staged LevelLoader, even with no authored hooks.
+    load: async () => { const { EmptyEquipment } = await import('../shardfile/emptyEquipment'); return { default: class {
+      kit(ctx: ShardContext): void {
+        const runtime = ctx.game.runtime;
+        if (runtime === undefined) throw new Error('Shardfile source requires the session host');
+        runtime.buildEquipment = () => Promise.resolve({ primary: new EmptyEquipment(), secondary: null, rifle: null });
+      }
+    } }; },
+  };
+}
+
+/** Staged trusted plugin hooks; invoked only by the owning session. */
+export abstract class ShardPlugin {
+  world?(ctx: ShardContext): Promise<void> | void;
+  kit?(ctx: ShardContext): Promise<void> | void;
+  play?(ctx: ShardContext): Promise<void> | void;
+}
+
+/** Standalone admission factory; caller-owned data and native constructors retain their original staged hook order.
+ * The instance chooses its entry once in world(), then kit/play reuse that same composite. No service runs on import.
+ * Optional constructor ports preserve existing LEGACY and SHARDFILE test/host injection without a second boot. */
+export function standaloneHybridEntry(Native: new () => ShardPlugin, admitDefault: (ctx: ShardContext) => Promise<ShardPlugin>,
+  shardfileDefault: (ctx: ShardContext) => boolean, name: string): new (
+    Legacy?: new () => ShardPlugin, admit?: (ctx: ShardContext) => Promise<ShardPlugin>,
+    shardfile?: (ctx: ShardContext) => boolean,
+  ) => Required<ShardPlugin> {
+  return class extends ShardPlugin {
+    private composite: ShardPlugin | undefined;
+    private readonly Legacy: new () => ShardPlugin;
+    private readonly admit: (ctx: ShardContext) => Promise<ShardPlugin>;
+    private readonly shardfile: (ctx: ShardContext) => boolean;
+    constructor(Legacy: new () => ShardPlugin = Native,
+      admit: (ctx: ShardContext) => Promise<ShardPlugin> = admitDefault,
+      shardfile: (ctx: ShardContext) => boolean = shardfileDefault) {
+      super(); this.Legacy = Legacy; this.admit = admit; this.shardfile = shardfile;
+    }
+    override async world(ctx: ShardContext): Promise<void> {
+      this.composite = this.shardfile(ctx) ? await this.admit(ctx) : new this.Legacy();
+      await this.composite.world?.(ctx);
+    }
+    override async kit(ctx: ShardContext): Promise<void> {
+      if (this.composite === undefined) throw new Error(`${name} hybrid world is not admitted`);
+      await this.composite.kit?.(ctx);
+    }
+    override async play(ctx: ShardContext): Promise<void> {
+      if (this.composite === undefined) throw new Error(`${name} hybrid world is not admitted`);
+      await this.composite.play?.(ctx);
+    }
+  };
+}

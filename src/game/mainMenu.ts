@@ -14,7 +14,7 @@
 import { lastEnd } from '@wildshard/engine/boot/lastEnd';
 import { buildTitleDeck, titleCards, type TitleDeck, type TitleDeckOptions } from './titleDeck';
 import { gridEntryShown, menuMode } from './grid/menu';
-import { dropGridIntent, enterGrid, gridRecoveryLoop } from "./plugin/context";
+import { dropGridIntent, enterGrid, gridRecoveryLoop } from './plugin/ui';
 
 import { installGridDebug } from './grid/debug';
 import { GAME_STRINGS } from './strings';

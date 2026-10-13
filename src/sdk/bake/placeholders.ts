@@ -6,7 +6,7 @@ import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import type { PlaceholderTree } from '@wildshard/format/placeholderSource';
 import { NEAR_PLACEHOLDER_LIMITS } from '@wildshard/format/nearPlaceholder';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { placeholderGeometry, type PlaceholderGrid, type PlaceholderLook, type PlaceholderLookRuntime, type PlaceholderPart } from '@wildshard/game/plugin/placeholder';
+import { placeholderGeometry, type PlaceholderGrid, type PlaceholderLook, type PlaceholderLookRuntime, type PlaceholderPart } from '@wildshard/game/plugin/animation';
 import { parseGlb } from '../assets';
 import { encodeCanonicalJson, hashImmutableBytes } from '../immutable';
 import { staticGlb } from './glb';

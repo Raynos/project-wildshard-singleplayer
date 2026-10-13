@@ -102,7 +102,7 @@ contains numeric data, with no procedural pose callback.
 
 `@wildshard/engine/level/installation` constructs the ordinary level registration context for a supplied scope;
 `LevelLoader` and child installations share that implementation and the same kit registration window.
-`@wildshard/game/plugin/shardPlugin` resolves a declared `runtime/*.ts` entry only through a trusted first-party
+`@wildshard/game/plugin/context` resolves a declared `runtime/*.ts` entry only through a trusted first-party
 registry. `prepareHybridShard` admits the shardfile and its trusted entry, chooses the catalogue instance inside
 the game layer, and composes their world, kit and play stages. Empty transitional data adds no gameplay services.
 `HybridRuntimeSession.prepare` prefetches module code without running hooks. `installAhead(instance)` requires an
@@ -2319,7 +2319,7 @@ The SDK cannot import shard content. Each module owns its exports; there is no b
 Driftwood's private `runtime/boot/modelGeometry.ts` loader (`modelGeometry(url, channels?)`) loads a single identity-space offline GLB before synchronous model placement. `load(bytes?)` deduplicates the intake and permits explicit bytes in Node; `copy()` returns independent geometry attributes for merging, scaling, collectible slots or release after upload. Custom GLB attributes map back to authored shader channels without quantization or recomputing normals; identity triangle indices restore an original triangle soup. Materials, colliders and animation stay with the runtime owner. Nothing loads or installs on import.
 
 
-`@wildshard/game/plugin/loader` admits a browser product with `shardfileSource` or selects it with
+`@wildshard/game/plugin/ui` admits a browser product with `shardfileSource` or selects it with
 `installShardfileProduct`; `browserShardfileOptions` supplies the verified origin-wide content cache. Trusted kit
 recipes and item factories are injected by the composition root. The resulting manifest runs the ordinary Game
 stages and borrows its player, physics and fixed-step driver. Terrain and props refine under scoped tile residency;
@@ -2351,7 +2351,7 @@ without executing bytes; `@wildshard/engine/script/abi` defines the versioned co
 `prepareHybridShard` accepts an explicit first-party `stagesOwner: "runtime"` transition when the native runtime installs all admitted world, kit and play declarations (including its movers). Product validation, immutable-byte admission and residency run before native hooks. The data plugin is not constructed, so it registers no duplicate simulation, equipment or handoff. The default remains declared stages; outside products cannot select runtime stage ownership. This is a trusted composition port, not a shardfile-authored escape from admission.
 
 
-**Data-only catalogue cards.** `@wildshard/game/plugin/shardPlugin` defines `sourceManifest(source, admittedAssets?)`: pure identity/accent/presentation mapping with no fetch, decode or install. `@wildshard/game/shardfile/presentation` defines the exact `PresentationSchema` and `presentationCard`; `@wildshard/game/shardfile/stillImage` defines `parseStillImage`, `stillImageUrl` and `STILL_IMAGE_LIMITS`. Local charged image hashes resolve only from admitted bounded PNG/JPEG/WebP bytes to inert MIME-sniffed data URLs. The full loader uses these fields when present and preserves existing cards otherwise. SDK `assetCost("image", bytes)` uses the same parser and residency law.
+**Data-only catalogue cards.** `@wildshard/game/plugin/context` defines `sourceManifest(source, admittedAssets?)`: pure identity/accent/presentation mapping with no fetch, decode or install. `@wildshard/game/shardfile/presentation` defines the exact `PresentationSchema` and `presentationCard`; `@wildshard/game/shardfile/stillImage` defines `parseStillImage`, `stillImageUrl` and `STILL_IMAGE_LIMITS`. Local charged image hashes resolve only from admitted bounded PNG/JPEG/WebP bytes to inert MIME-sniffed data URLs. The full loader uses these fields when present and preserves existing cards otherwise. SDK `assetCost("image", bytes)` uses the same parser and residency law.
 
 ### Declared water (SHARD-PLATFORM SF9d)
 
@@ -2732,7 +2732,7 @@ runtime modules. Frozen registered legacy copies retain their compatibility inpu
 The current migration inventory is reproducible with `node scripts/game-plugins.mjs`:
 it follows primary shards' runtime closures to their SDK facade imports and lists
 those facades' defining game targets alongside direct game consumers. Context and
-plugin installation use `plugin/context` and `plugin/shardPlugin`; brain policies
+plugin installation use `plugin/context` and `plugin/context`; brain policies
 use `plugin/brain`; weapon bindings use `plugin/headless` and
 `plugin/weaponFamily`; boss phases use `plugin/bossPhase`. These existing modules are exported directly, not rebound.
 The inventory is evidence of current reachability, not permission to keep one-user
@@ -2746,7 +2746,7 @@ root config after the move-backs; its tests already exercise enforcement.
 
 The defining plugin modules also own shared geometry packing (`plugin/geometry`), model and atlas registries (`plugin/geometry`), quest rows (`plugin/quests`), native prompt selection (`quest/interactionRows`), weapon hook admission (`plugin/weaponFamily`), collision pose and clip metadata (`plugin/animation`), and starter effect installation (`plugin/ui`). Their implementations live in these modules; consumers do not pass through forwarding facades. Frozen compatibility keys remain until their registered consumers retire.
 
-The admitted product API is defined by `plugin/product`: bounded byte parsers, dependency preflight, terrain validation, saved-state lineage, build verdicts, report cards and memory admission. Existing defining hosts own their associated laws: `plugin/brain` resolves numeric species/strike rows; `plugin/director` owns the isolated director lane; `plugin/mover` proves terrain entries and lift approaches; `plugin/shardPlugin` resolves trusted runtime constructors and maps admitted catalogue data. These imports install no service.
+The admitted product API is defined by `plugin/product`: bounded byte parsers, dependency preflight, terrain validation, saved-state lineage, build verdicts, report cards and memory admission. Existing defining hosts own their associated laws: `plugin/brain` resolves numeric species/strike rows; `plugin/director` owns the isolated director lane; `plugin/mover` proves terrain entries and lift approaches; `plugin/context` resolves trusted runtime constructors and maps admitted catalogue data. These imports install no service.
 
 ## Trusted plugin definitions (SF79 DS0.2)
 
@@ -2762,7 +2762,7 @@ expanded the same way by `scripts/gen-starter-weapons.mjs`; the starter profile 
 needs two real shard users of the pack itself; these shards read the game tables, not the pack).
 
 `@wildshard/game/plugin/context` defines `ShardContext` and `shardContext`;
-`@wildshard/game/plugin/shardPlugin` defines the staged `ShardPlugin` base class. Its `standaloneHybridEntry(Native, admit, shardfile, name)` defines the shared standalone lifecycle used by Nine and Sky: choose one composite in the world stage, await admission, then forward kit/play to that same owner. Shards retain their own admitted source, bindings, native constructor and entry choice; optional constructor ports keep existing test/host injection. Calling the factory or importing it installs no service.
+`@wildshard/game/plugin/context` defines the staged `ShardPlugin` base class. Its `standaloneHybridEntry(Native, admit, shardfile, name)` defines the shared standalone lifecycle used by Nine and Sky: choose one composite in the world stage, await admission, then forward kit/play to that same owner. Shards retain their own admitted source, bindings, native constructor and entry choice; optional constructor ports keep existing test/host injection. Calling the factory or importing it installs no service.
 Internal game consumers import these defining modules relatively. The frozen
 `./shard/context` and `./shard/plugin` export keys point to those distinct modules,
 preserving the exact constructor identity without collapsing distinct frozen imports. They retire with the old consumers; no duplicate class or service
@@ -2810,7 +2810,7 @@ same files while runtime consumers and sealed legacy copies migrate.
 | Public definition | Existing API |
 |---|---|
 | `plugin/context` | `ShardContext`, `shardContext` |
-| `plugin/shardPlugin` | staged `ShardPlugin` constructor |
+| `plugin/context` | staged `ShardPlugin` constructor |
 | `plugin/lifecycle` | retained context and entered-service/input lifetime hooks |
 | `plugin/headless` | runtime row bindings for quests, items, ledger, state and spawns |
 

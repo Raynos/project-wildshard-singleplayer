@@ -3,7 +3,7 @@ import { ACCENTS, ACCENT_IDS, parseAccent } from '@wildshard/sdk/accent';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { validateProject } from '@wildshard/sdk/project';
-import { emptyShardfileSource, installManifestShardfile } from '../src/game/plugin/loader';
+import { emptyShardfileSource, installManifestShardfile } from '../src/game/plugin/ui';
 import type { ShardfileClientBindings } from '../src/game/shardfile/client';
 import type { ShardManifest } from '../src/game/shard/manifest';
 import template from '../src/shards/_template/shard.config';

@@ -10,7 +10,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { buildProject, canonicalJson, readProjectAssets, validateProject } from '../src/sdk/project';
 import { validateSimulation } from '../src/sdk/headless';
 import { decodeMeshCollision } from '@wildshard/format/meshCollisionBytes';
-import { shardfileSource } from '../src/game/plugin/loader';
+import { shardfileSource } from '../src/game/plugin/ui';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 
 const fixture = resolve('test/fixtures/sdk-authored-world/world.glb');

@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The shared Node bake host resolves the repository's native engine modules.
 import { cwd } from 'node:process';
 import { visitAuthoredWorld } from '../scripts/bake/worldHost.mjs';
-import { emptyShardfileSource } from '../src/game/plugin/loader';
+import { emptyShardfileSource } from '../src/game/plugin/ui';
 import { emptyShardfile } from '../src/sdk/author';
 import { fakeWorld } from './fake/world';
 import { app } from '../src/engine/app/runtime';

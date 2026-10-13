@@ -6,7 +6,7 @@ import { loadRapier } from '../src/engine/physics/rapier';
 import { restoreSimHost, snapshotSimHost } from '../src/engine/sim/snapshot';
 import { parseFlock } from '@wildshard/format/crowds';
 import { parseShardfile } from '@wildshard/format/shardSchema';
-import { emptyShardfileSource } from '../src/game/plugin/loader';
+import { emptyShardfileSource } from '../src/game/plugin/ui';
 import { createShardfileSim, bindShardfileSim, type ShardfileSimPorts } from '../src/game/plugin/simulation';
 import { expectSameSimSnapshot } from './fake/simSnapshot';
 

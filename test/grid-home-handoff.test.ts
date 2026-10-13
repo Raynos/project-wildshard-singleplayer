@@ -3,11 +3,11 @@ import { expect, it, vi } from 'vitest';
 import { PerspectiveCamera } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
-import { GridHomeHandoff } from '../src/game/plugin/context';
+import { GridHomeHandoff, ShardPlugin } from '../src/game/plugin/context';
 import { installGridReveal } from '../src/game/grid/reveal';
-import { shardfileSource } from '../src/game/plugin/loader';
+import { shardfileSource } from '../src/game/plugin/ui';
 import { prepareHybridShard } from '../src/game/shardfile/hybrid';
-import { ShardPlugin } from "../src/game/plugin/shardPlugin";
+
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { emptyShardfile } from '../src/sdk/author';
 import driftwood from '../src/shards/driftwood-isle/shard.config';

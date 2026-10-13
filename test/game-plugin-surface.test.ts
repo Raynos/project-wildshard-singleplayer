@@ -75,8 +75,7 @@ it('enforces the real export surface and names only the remaining temporary migr
   const report = realExportCheck;
   expect(report.failures).toEqual([]);
   expect(report.pluginExports).toBeLessThanOrEqual(20);
-  // shrink-only: no new temporary exception; retiring the last one is not a red (usage audit 2026-10-13)
-  expect(report.temporary.map(row => row.key).filter(key => key !== './systems/looks/surfaceLooks')).toEqual([]);
+  expect(report.temporary.map(row => row.key)).toEqual(['./systems/looks/surfaceLooks']);
   expect(report.temporary.every(row => row.owner.length > 0 && row.reason.length > 0)).toBe(true);
 });
 
@@ -152,7 +151,7 @@ it('defines boot admission and prompt selection without compatibility wrappers',
   for (const entry of report.entries.filter(row => row.frozenConsumers.length > 0)) expect(entry.published, entry.key).toBe(true);
   for (const key of ["./shardfile/loader","./plugin/boot"]) expect(report.entries.some(row => row.key === key), key).toBe(false);
   expect(report.pluginExports).toBeLessThanOrEqual(20);
-  expect(report.entries.find(row => row.key === './plugin/loader')).toMatchObject({ published: true, target: './plugin/loader.ts' });
+  expect(report.entries.find(row => row.key === './plugin/ui')).toMatchObject({ published: true, target: './plugin/ui.ts' });
 });
 
 

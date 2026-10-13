@@ -3,7 +3,7 @@ import { emptyShardfile } from '../src/sdk/author';
 import { ResidencyAllocator } from '../src/game/grid/allocator';
 import { PageResidency } from '../src/game/grid/pageResidency';
 import { clientResidency } from '../src/game/shardfile/clientResidency';
-import { shardfileSource } from '../src/game/plugin/loader';
+import { shardfileSource } from '../src/game/plugin/ui';
 import type { ShardfileClientBindings } from '../src/game/shardfile/client';
 import type { ProductOptions } from '../src/game/shardfile/product';
 

@@ -8,8 +8,8 @@ import { schemaInventory } from '../scripts/docs/schema-reference.mjs';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { parseStillImage, STILL_IMAGE_LIMITS } from '@wildshard/format/stillImage';
 import { stillImageUrl } from '../src/game/shardfile/stillImage';
-import { sourceManifest } from '../src/game/plugin/shardPlugin';
-import { emptyShardfileSource, installManifestShardfile, shardfileSource } from '../src/game/plugin/loader';
+import { sourceManifest } from '../src/game/plugin/context';
+import { emptyShardfileSource, installManifestShardfile, shardfileSource } from '../src/game/plugin/ui';
 
 // Actual lossless PNG and encoded JPEG/WebP of the same 2x3 fixture, emitted once by the SDK's pinned sharp.
 const images = {

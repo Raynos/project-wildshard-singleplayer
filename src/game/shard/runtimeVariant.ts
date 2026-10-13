@@ -1,9 +1,9 @@
 import { isDev } from '@wildshard/engine/core/devMode';
-import type { ShardContext } from "../plugin/context";
+import { type ShardContext, type ShardPlugin, type TrustedRuntimeEntry, standaloneHybridEntry } from '../plugin/context';
 import { currentPageMode } from '../grid/pageMode';
 import { shardEntry } from './entryMode';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-import { type ShardPlugin, type TrustedRuntimeEntry, standaloneHybridEntry } from '../plugin/shardPlugin';
+
 
 /** Register a reload-only runtime choice without importing the data loader or preparing trusted hooks. */
 export function runtimeVariantEnabled(context: Pick<ShardContext, 'debugRow'>,

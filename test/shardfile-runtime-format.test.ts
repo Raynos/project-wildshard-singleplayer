@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
 import { admitProduct, type ProductOptions } from '../src/game/shardfile/product';
-import { emptyShardfileSource, installShardfileProduct, shardfileSource } from '../src/game/plugin/loader';
+import { emptyShardfileSource, installShardfileProduct, shardfileSource } from '../src/game/plugin/ui';
 import type { ShardfileClientBindings } from '../src/game/shardfile/client';
 import { App } from '../src/engine/app/app';
 import { createLevelInstallation } from '../src/engine/level/installation';

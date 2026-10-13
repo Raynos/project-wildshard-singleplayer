@@ -14,7 +14,7 @@ import type { SkyRig } from '../../../src/engine/world/skyRig';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
 import { shardContext } from "../../../src/game/plugin/context";
 import { RetainedRuntimeHooks } from "../../../src/game/shard/retainedHooks";
-import { emptyShardfileSource } from '../../../src/game/plugin/loader';
+import { emptyShardfileSource } from '../../../src/game/plugin/ui';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { installPineLife } from '../../../src/shards/pine-hollow/life/index';
 import type { PineHollowSfx } from '../../../src/shards/pine-hollow/runtime/audio/sfx';

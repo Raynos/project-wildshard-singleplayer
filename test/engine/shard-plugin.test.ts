@@ -3,8 +3,8 @@ import { achievementsFor } from '../../src/game/achievements';
 import { describe, expect, it, vi } from 'vitest';
 import { App } from '../../src/engine/app/app';
 import type { LevelDriver } from '../../src/engine/level/load';
-import type { ShardContext, GameServices } from '../../src/game/plugin/context';
-import { ShardPlugin } from '../../src/game/plugin/shardPlugin';
+import { type ShardContext, type GameServices, ShardPlugin } from '../../src/game/plugin/context';
+
 import manifest from '../../src/shards/nine-dragon-stack/manifest';
 import { loadShardPlugin } from '../../src/game/shard/pluginLoad';
 

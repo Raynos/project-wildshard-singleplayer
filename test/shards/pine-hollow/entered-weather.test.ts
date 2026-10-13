@@ -11,7 +11,7 @@ import { windBoost } from '../../../src/engine/world/wind';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
 import { shardContext } from "../../../src/game/plugin/context";
 import { RetainedRuntimeHooks } from "../../../src/game/shard/retainedHooks";
-import { emptyShardfileSource } from '../../../src/game/plugin/loader';
+import { emptyShardfileSource } from '../../../src/game/plugin/ui';
 import { emptyShardfile } from '../../../src/sdk/author';
 import * as backdrop from '../../../src/shards/pine-hollow/look/skyBackdrop';
 import { installWeather } from '../../../src/shards/pine-hollow/world/weather';

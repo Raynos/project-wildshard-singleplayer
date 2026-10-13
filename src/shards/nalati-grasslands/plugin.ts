@@ -1,5 +1,5 @@
-import type { ShardContext } from '@wildshard/game/shard/context';
-import { standaloneHybridEntry, type ShardPlugin } from '@wildshard/game/plugin/shardPlugin';
+import { type ShardContext, standaloneHybridEntry, type ShardPlugin } from '@wildshard/game/plugin/context';
+
 import { shardfileEntry } from '@wildshard/game/shard/runtimeVariant';
 import RuntimePlugin from './runtime/index';
 

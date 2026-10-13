@@ -1,4 +1,4 @@
-import type { ShardPlugin } from '@wildshard/game/plugin/shardPlugin';
+import type { ShardPlugin } from '@wildshard/game/plugin/context';
 import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 
 /** SF73: admit this primary's data and bound runtime for SHARDFILE, preserving the supplied native LEGACY constructor. */

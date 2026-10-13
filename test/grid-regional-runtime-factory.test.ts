@@ -24,8 +24,8 @@ import { HybridRuntimeSession } from '../src/game/shardfile/hybrid';
 import { EmptyEquipment } from '../src/game/shardfile/emptyEquipment';
 import { EquipmentService } from '../src/engine/combat/EquipmentService';
 import { EnteredEquipment } from '../src/game/grid/enteredEquipment';
-import { shardContext, type ShardContext } from '../src/game/plugin/context';
-import { ShardPlugin } from '../src/game/plugin/shardPlugin';
+import { shardContext, type ShardContext, ShardPlugin } from '../src/game/plugin/context';
+
 import type { ShardPlayHost, ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardWorld } from '../src/game/shard/world';
 import { Progress } from '../src/game/Progress';

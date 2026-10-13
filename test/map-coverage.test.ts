@@ -13,7 +13,7 @@ import { SHARDS } from '../src/shards.generated';
 import { toLevelSpec } from '../src/game/shard/spec';
 import { emptyShardfile } from '../src/sdk/author';
 import { packProjectMap } from '../src/sdk/projectMap';
-import { sourceManifest } from '../src/game/plugin/shardPlugin';
+import { sourceManifest } from '../src/game/plugin/context';
 import { admitProduct } from '../src/game/shardfile/product';
 import { hashImmutableBytes } from '../src/sdk/immutable';
 import { parseMovers } from '../src/format/movers';

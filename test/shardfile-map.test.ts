@@ -41,7 +41,7 @@ it('refuses URLs, uncharged/wrong-kind/missing maps, changed pixels, bad freshne
 });
 
 it('uses admitted map pixels without a manifest or network URL', async () => {
-  const { sourceManifest } = await import('../src/game/plugin/shardPlugin');
+  const { sourceManifest } = await import('../src/game/plugin/context');
   const { bakedMapUrl } = await import('../src/game/shard/manifest');
   const source = packProjectMap(base, baked).shard;
   const manifest = sourceManifest(source, new Map([[hash(bytes), bytes]]));
@@ -51,7 +51,7 @@ it('uses admitted map pixels without a manifest or network URL', async () => {
 });
 
 it('keeps legacy maps while product entries refuse a public-URL fallback', async () => {
-  const { sourceManifest } = await import('../src/game/plugin/shardPlugin');
+  const { sourceManifest } = await import('../src/game/plugin/context');
   const { toLevelSpec } = await import('../src/game/shard/spec');
   const manifest = sourceManifest(base), minimap = { image: '/assets/template/map/top.webp' };
   expect(toLevelSpec({ ...manifest, minimap }).minimap.image).toContain(minimap.image);

@@ -11,7 +11,7 @@ export function loadingDevice(captures) {
 
 const phaseOwner = (name, shard) => {
   if (name === 'admission.modules') return 'src/entry.ts';
-  if (name === 'admission.descriptor') return 'src/game/plugin/loader.ts';
+  if (name === 'admission.descriptor') return 'src/game/plugin/ui.ts';
   if (name.startsWith('admission.')) return 'src/game/shardfile/product.ts';
   if (name === 'props' || name === 'animals' || name === 'weapon') return `shard ${shard}: ${name} hook`;
   if (name === 'shaders' || name === 'firstFrame') return 'src/engine/render/precompile.ts';

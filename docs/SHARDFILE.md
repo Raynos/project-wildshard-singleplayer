@@ -1377,7 +1377,7 @@ with zero geometry/draws. These costs are derived by `assetCost("image", bytes)`
 the SDK and checked by ordinary asset admission, charged once per distinct library hash.
 
 `sourceManifest(source, admittedAssets?)` in
-`@wildshard/game/plugin/shardPlugin` is the pure defining identity/accent/card
+`@wildshard/game/plugin/context` is the pure defining identity/accent/card
 mapping for shardfile-only catalogue rows. It performs no fetch, image decode, world
 allocation or service installation. A presentation requires its already admitted byte
 map. `presentationCard` resolves each distinct hash once to a MIME-sniffed inert

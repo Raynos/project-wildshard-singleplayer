@@ -14,7 +14,7 @@ import type { Voices } from '../../../src/engine/audio/Voices';
 import { createLevelInstallation } from '../../../src/engine/level/installation';
 import { shardContext } from "../../../src/game/plugin/context";
 import { RetainedRuntimeHooks } from "../../../src/game/shard/retainedHooks";
-import { emptyShardfileSource } from '../../../src/game/plugin/loader';
+import { emptyShardfileSource } from '../../../src/game/plugin/ui';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { ForestAmbience } from '../../../src/shards/pine-hollow/runtime/audio/ambience';
 import { PineHollowSfx, type PhLoop } from '../../../src/shards/pine-hollow/runtime/audio/sfx';

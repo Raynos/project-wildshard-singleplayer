@@ -1,8 +1,8 @@
 import { standaloneEntry as driftwoodEntry } from '../src/shards/driftwood-isle/runtime/standalone';
 import { standaloneEntry as signalEntry } from '../src/shards/sunscar-dunes/runtime/standalone';
 import { describe, expect, it, vi } from 'vitest';
-import type { ShardContext } from '../src/game/plugin/context';
-import { ShardPlugin } from '../src/game/plugin/shardPlugin';
+import { type ShardContext, ShardPlugin } from '../src/game/plugin/context';
+
 import { standaloneEntry as nineEntry } from '../src/shards/nine-dragon-stack/runtime/standalone';
 import { standaloneEntry as skyEntry } from '../src/shards/far-reach/runtime/standalone';
 import { legacyDouble } from './fake/FakeGame';

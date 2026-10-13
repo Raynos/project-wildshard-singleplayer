@@ -47,7 +47,7 @@ import { GridWallet, stowGridMount, type GridLoadout } from './wallet';
 import { GridRegionDurability } from './durability';
 import type { LedgerCatalogueItem } from '../ledger';
 import { installGridHoverSpeed, installGridTravellerCombat } from './rules';
-import { gridHomeSim, gridCells, type GridHomeSimulation } from '../plugin/context';
+import { gridHomeSim, gridCells, type GridHomeSimulation, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../plugin/context';
 import { findShard } from '../shard/registry';
 import { gridPostCosts, gridShardfileProduct } from './products';
 import { gridPostPairRefusal } from './postPairs';
@@ -65,7 +65,7 @@ import { enteredRuntime, pickInFrame } from './enteredInteract';
 import { copyPrompts, enteredCopy } from './copyPrompts';
 import { yieldGridAdmission, yieldGridConstruction } from './admissionYield';
 import { HybridRuntimeSession, type HybridResident } from '../shardfile/hybrid';
-import { prepareTrustedRuntime, type TrustedRuntimeEntry } from '../plugin/shardPlugin';
+
 import { createRegionalRuntimeFactory, regionalRuntimeAccountedBytes, type PreparedRegionalRuntime, type RegionalRuntimePage } from './regionalRuntime';
 import { createRegionalWorldFoundation, hangCellDataSky, resolveRegionalRuntimeTextures } from './regionalWorld';
 import { regionalRuntimeCheckpoint } from './runtimeCheckpoint';

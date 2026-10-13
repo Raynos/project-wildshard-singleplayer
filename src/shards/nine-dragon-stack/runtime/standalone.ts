@@ -1,5 +1,5 @@
-import type { ShardContext } from '@wildshard/game/plugin/context';
-import { type ShardPlugin, standaloneHybridEntry } from '@wildshard/game/plugin/shardPlugin';
+import { type ShardContext, type ShardPlugin, standaloneHybridEntry } from '@wildshard/game/plugin/context';
+
 import { shardfileEntry } from '@wildshard/game/shard/runtimeVariant';
 
 async function prepareHybrid(ctx: ShardContext): Promise<ShardPlugin> {

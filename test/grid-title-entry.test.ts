@@ -6,7 +6,8 @@ import { titleCards } from '../src/game/titleDeck';
 import { travel } from '../src/game/travel/travel';
 import { shardEntry } from '../src/game/shard/entryMode';
 import { findShard } from '../src/game/shard/registry';
-import { bootPageMode, enterGrid, gridCells, clearGridRecovery } from "../src/game/plugin/context";
+import { gridCells } from '../src/game/plugin/context';
+import { bootPageMode, enterGrid, clearGridRecovery } from '../src/game/plugin/ui';
 
 import { gridPageShellLevel, useOwnedGridHome } from '../src/game/grid/pageShell';
 

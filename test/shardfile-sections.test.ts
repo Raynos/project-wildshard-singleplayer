@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { parseShardfile, shardfileRules } from '@wildshard/sdk/shardfile';
 import { emptyShardfile } from '@wildshard/sdk/author';
-import { emptyShardfileSource } from '@wildshard/game/plugin/loader';
+import { emptyShardfileSource } from '@wildshard/game/plugin/ui';
 import door from '../src/shards/_template/behaviour/door.json' with { type: 'json' };
 import { TEMPLATE_HOOKS, TEMPLATE_STATE } from '../src/shards/_template/behaviour/hooks';
 import { TEMPLATE_ROWS } from '../src/shards/_template/data/rows';

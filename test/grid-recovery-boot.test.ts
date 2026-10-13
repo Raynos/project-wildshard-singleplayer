@@ -3,7 +3,8 @@ import { afterEach, expect, it } from 'vitest';
 import { SaveStore } from '../src/engine/saves/store';
 import { GridAssembly } from '../src/game/grid/assembly';
 import { gridRecovery } from '../src/game/grid/recovery';
-import { clearGridRecovery, consumeGridRecovery, gridRecoveryLoop, gridRecoveryRefused, pageGridRecovery, safeGridRecovery, bootPageMode, gridCells, preparePageResidency } from "../src/game/plugin/context";
+import { gridCells } from '../src/game/plugin/context';
+import { clearGridRecovery, consumeGridRecovery, gridRecoveryLoop, gridRecoveryRefused, pageGridRecovery, safeGridRecovery, bootPageMode, preparePageResidency } from '../src/game/plugin/ui';
 
 
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';

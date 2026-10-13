@@ -2,14 +2,14 @@ import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { createLevelInstallation, type LevelInstallation } from '@wildshard/engine/level/installation';
-import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstance, type GridCellEvents, type GridCellRef } from "../plugin/context";
-import { ShardPlugin, prepareTrustedRuntime, type TrustedRuntimeEntry } from "../plugin/shardPlugin";
+import { shardContext, type ShardContext, gridCells, gridHomeSim, pageGridInstance, type GridCellEvents, type GridCellRef, ShardPlugin, prepareTrustedRuntime, type TrustedRuntimeEntry } from '../plugin/context';
+
 import type { ShardRuntime } from '../shard/runtime';
 import type { ShardManifest } from '../shard/manifest';
 import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../shard/scopedRuntime';
 import { RetainedRuntimeHooks } from "../shard/retainedHooks";
 
-import { browserShardfileOptions, shardfileSource } from '../plugin/loader';
+import { browserShardfileOptions, shardfileSource } from '../plugin/ui';
 import { boundedResponse, type ProductOptions } from './product';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 import { configureLevel, selectedLevel } from '@wildshard/engine/level/selection';

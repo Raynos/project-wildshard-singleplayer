@@ -10,12 +10,12 @@ import type { MapMark } from '../src/engine/ui/Minimap';
 import { Flags } from '../src/engine/world/interact/flags';
 import type { Interactable } from '../src/engine/world/interact/types';
 import { QuestState } from '../src/engine/quest/core';
-import { installEnteredQuestPresentation, installQuestPresentation, presentQuest, type QuestPresentationContext, type PresentedQuestDef } from "../src/game/plugin/ui";
+import { installEnteredQuestPresentation, installQuestPresentation, presentQuest, type QuestPresentationContext, type PresentedQuestDef, emptyShardfileSource } from '../src/game/plugin/ui';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { shardContext } from "../src/game/plugin/context";
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import { RetainedRuntimeHooks, installEnteredRuntimeInput } from "../src/game/shard/retainedHooks";
-import { emptyShardfileSource } from '../src/game/plugin/loader';
+
 import { emptyShardfile } from '../src/sdk/author';
 import { legacyDouble } from './fake/FakeGame';
 import { DRIFTWOOD_QUEST } from '../src/shards/driftwood-isle/data/questStory';

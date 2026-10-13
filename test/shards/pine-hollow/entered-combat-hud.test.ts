@@ -8,7 +8,7 @@ import { BossBar } from '../../../src/engine/ui/BossBar';
 import { EliteBar } from '../../../src/engine/ui/EliteBar';
 import { shardContext } from "../../../src/game/plugin/context";
 import { installEnteredRuntimeAttachment, RetainedRuntimeHooks } from "../../../src/game/shard/retainedHooks";
-import { emptyShardfileSource } from '../../../src/game/plugin/loader';
+import { emptyShardfileSource } from '../../../src/game/plugin/ui';
 import { emptyShardfile } from '../../../src/sdk/author';
 import { installPineCombatAttachments } from '../../../src/shards/pine-hollow/runtime/combatService';
 

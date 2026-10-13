@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { PageResidency } from '../src/game/grid/pageResidency';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { contentHash } from '@wildshard/sdk/project';
-import { emptyShardfileSource, installManifestShardfile } from '../src/game/plugin/loader';
+import { emptyShardfileSource, installManifestShardfile } from '../src/game/plugin/ui';
 import { installShards, shards } from '../src/game/shard/list';
 import type { ShardManifest } from '../src/game/shard/manifest';
 import type { ShardfileClientBindings } from '../src/game/shardfile/client';

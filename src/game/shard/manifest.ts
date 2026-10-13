@@ -1,4 +1,4 @@
-import type { TrustedRuntimeEntry, ShardPlugin } from "../plugin/shardPlugin";
+import type { TrustedRuntimeEntry, ShardPlugin } from "../plugin/context";
 import type { Ktx2Table } from '@wildshard/engine/boot/gpuFiles';
 import type { SwordArms, SwordFraming, SwordMoveSet, SwordRig } from '@wildshard/engine/combat/view/melee';
 import type { Noise2D } from '@wildshard/engine/core/noise';

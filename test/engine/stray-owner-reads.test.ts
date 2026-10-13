@@ -15,7 +15,7 @@ import { createLevelInstallation } from '../../src/engine/level/installation';
 import { WorldRegistry } from '../../src/engine/world/registry';
 import { shardContext } from "../../src/game/plugin/context";
 import { RetainedRuntimeHooks } from "../../src/game/shard/retainedHooks";
-import { emptyShardfileSource } from '../../src/game/plugin/loader';
+import { emptyShardfileSource } from '../../src/game/plugin/ui';
 import { emptyShardfile } from '../../src/sdk/author';
 
 const tick = (): Promise<void> => new Promise((resolve) => { setTimeout(resolve, 0); });

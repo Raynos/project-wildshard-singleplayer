@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { parseAudioData } from '@wildshard/format/audio';
 import { selectScoreSlots } from '../src/engine/audio/scoreSelection';
 import { emptyShardfile } from '../src/sdk/author';
-import { emptyShardfileSource } from '../src/game/plugin/loader';
+import { emptyShardfileSource } from '../src/game/plugin/ui';
 
 const music = { id: 'fixture.score', base: 'grass', slots: ['grass', 'night', 'boss'], bootSlots: ['title', 'grass'], synthLead: 'pluck', minFade: 0,
   source: { dir: '/assets/music/fixture/', manifestKey: 'fixture' }, sets: {}, selectMode: 'all', selection: [

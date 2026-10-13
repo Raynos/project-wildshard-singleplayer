@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { afterEach, expect, it, vi } from 'vitest';
 import * as THREE from 'three';
 import { parseShardfile } from '@wildshard/format/shardSchema';
-import { emptyShardfileSource } from '../src/game/plugin/loader';
+import { emptyShardfileSource } from '../src/game/plugin/ui';
 import { shardfileLook } from '../src/game/shardfile/look';
 import { sampleLook } from '../src/engine/render/dataLook';
 import type { SkyBackdropContext, SkyBackdropTargets } from '../src/engine/render/look';

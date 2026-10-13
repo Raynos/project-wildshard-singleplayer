@@ -11,8 +11,8 @@ import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { App } from '../src/engine/app/app';
 import { createLevelInstallation } from '../src/engine/level/installation';
 import { Game } from '../src/engine/core/Game';
-import { shardContext, type ShardContext } from '../src/game/plugin/context';
-import { ShardPlugin, sourceManifest } from '../src/game/plugin/shardPlugin';
+import { shardContext, type ShardContext, ShardPlugin, sourceManifest } from '../src/game/plugin/context';
+
 import type { ShardRuntime } from '../src/game/shard/runtime';
 import type { ShardWorld } from '../src/game/shard/world';
 import { ClientAssets } from '../src/game/shardfile/clientAssets';

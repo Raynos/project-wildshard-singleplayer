@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it, vi } from 'vitest';
-import { preparePageResidency, bootPageMode, clearGridRecovery, gridCells } from '../src/game/plugin/context';
+import { gridCells } from '../src/game/plugin/context';
+import { preparePageResidency, bootPageMode, clearGridRecovery } from '../src/game/plugin/ui';
 import { jsonSlot } from '../src/engine/saves/slots';
 import { DRIFTWOOD_RUNTIME_COST } from '../src/shards/driftwood-isle/data/runtimeCost';
 import { Scope } from '../src/engine/app/scope';

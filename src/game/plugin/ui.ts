@@ -1,3 +1,4 @@
+import "../quest/presentation.css";
 import { parseClientChannels, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import { AdditiveBlending, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, type Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -16,14 +17,14 @@ import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoi
 import { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from '../quest/reward';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
-import type { ShardContext } from './context';
+import { type ShardContext, gridCells, pageGridInstance, type PageMode, sourceManifest } from './context';
 import type { BossDefinition, BossSaved, BossScript } from '@wildshard/engine/ai/BossBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { CoinBurst } from '../loot/CoinBurst';
 import { DirectorBossBrain } from './director';
 import { bindRuntimeQuest, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
-import type { Shardfile } from '@wildshard/format/shardSchema';
+import { type Shardfile, parseShardfile } from '@wildshard/format/shardSchema';
 import { npcDef, type NpcRow } from './quests';
 import { parseBossProfile, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import { bossFight, type HeldBossBrain } from './bossPhase';
@@ -34,8 +35,44 @@ import { hudSlots } from '@wildshard/engine/ui/hudSlots';
 import { bindPlayerEffects, type EffectService } from '@wildshard/engine/combat/effects/EffectService';
 import type { Actor } from '@wildshard/engine/combat/pipeline';
 import { StatusIcons } from '../systems/effects/view';
+import { GridAssembly, type GridCell } from '../grid/assembly';
+import { pageGridIntents } from '../grid/intent';
+import { gridMode, type MenuMode } from '../grid/menu';
+import { devserverCellOn } from '../grid/debug';
+import { findShard, game } from '../shard/registry';
+import { chooseShardEntry, shardEntries } from '../shard/entryMode';
+import { travel } from '../travel/travel';
+import { PageResidency } from '../grid/pageResidency';
+import { gridRecovery, recoveryCatalogue, type GridRecoveryRecord } from '../grid/recovery';
+import { app as pageApp } from '@wildshard/engine/app/runtime';
+import { setPageMode } from '../grid/pageMode';
+import type { SaveStore } from '@wildshard/engine/saves/store';
+import type { ShardManifest } from '../shard/manifest';
+import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
+import { ResidencyAllocator } from '../grid/allocator';
+import { MemoryAdmission } from '@wildshard/format/product';
+import { isDev } from '@wildshard/engine/core/devMode';
+import { contentCost } from '@wildshard/format/contentCost';
+import { CONTENT_CAPS, _applyChunkConstants } from '@wildshard/engine/core/config';
+import type { App } from '@wildshard/engine/app/app';
+import type { LevelSpec } from '@wildshard/engine/level/spec';
+import { configureLevel } from '@wildshard/engine/level/selection';
+import { installShards, shards } from '../shard/list';
+import { toLevelSpec } from '../shard/spec';
+import { SHARDFILE_VERSION } from '@wildshard/format/version';
+import { emptyLook } from '../shardfile/emptyLook';
+import { shardfileLook } from '../shardfile/look';
+import { admitProduct, boundedResponse, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
+import { ClientAssets } from '../shardfile/clientAssets';
+import type { ShardfileClientBindings } from '../shardfile/client';
+import { clientGround } from '../shardfile/clientGround';
+import { shardfileWater } from '../shardfile/water';
+import { clientResidency } from '../shardfile/clientResidency';
+import { firstPartyInstance } from '../grid/instances';
+import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
+import { preflightShardfile } from '@wildshard/format/preflight';
 
-import "../quest/presentation.css";
+
 
 /**
  * The client-script view adapter (SHARD-PLATFORM SF25, the render side; G66 "frozen, but alive-looking"). sp-x5's
@@ -709,4 +746,284 @@ export function installStarterEffects(ctx: StarterContext, host: { player: Statu
     for (const effect of effects.active(health)) if (effect.def.tags.some((tag) => tag.startsWith('status.'))) effects.remove(health, effect.def.id);
   });
   ctx.scope.onDispose(() => { icons?.root.remove(); });
+}
+
+/**
+ * Infinite Wildshard's way in (SF21a). The catalogue's home cell boots through the normal shard flow as page mode
+ * `'grid'`; its live grid session borrows that world and transfers the traveller between admitted frames. A title tap
+ * or a validated recovery record selects the home before normal memory admission and descriptor hydration.
+ *
+ *   title tap  → enterGrid()               the one-shot intent, then a fresh document for the home cell
+ *   boot       → bootPageMode(slug)         consumes the tap or uses validated recovery; the URL drops to the bare title
+ *                                           URL, so an unrecorded reload (or an iOS kill's restart) lands on the title
+ *   alive beat → pageMode()                 AliveInfo.mode, so the title can say the grid ended unexpectedly
+ */
+
+
+/** the home cell of the grid this device would assemble now (Developer, DEVSERVER and its Debug row apply at grid start) */
+export function gridHome(mode?: MenuMode): GridCell {
+  const assembly = new GridAssembly(gridMode(devserverCellOn(), mode));
+  const home = assembly.at(0, 0);
+  if (home === undefined) throw new Error('The grid catalogue has no home cell at (0, 0)');
+  return home;
+}
+
+/** The title's Infinite Wildshard tap: write the one-shot intent, then open the home cell in a fresh document. */
+export function enterGrid(): void {
+  // A deliberate new player attempt starts a new guard window; automatic reloads cannot clear it.
+  if (!gridRecovery(pageApp.saves).clearLoop()) throw new Error('Grid recovery guard could not be cleared');
+  clearGridRecovery();
+  const home = gridHome();
+  const target = findShard(home.slug);
+  if (target === undefined) throw new Error(`The grid's home cell names no shard: ${home.slug}`);
+  // INFINITE WILDSHARD enters the catalogue home, never SHARD SELECT's frozen LEGACY copy.
+  chooseShardEntry(target.slug, 'shardfile');
+  pageGridIntents().set({ instance: home.instance, slug: target.slug });
+  travel({ to: target.slug, mode: 'enter' });
+}
+
+
+/** The boot's one read of the tap intent (used or not), overridden by validated recovery before ordinary admission.
+ * In grid mode the address becomes the bare title URL, preventing an unrecorded automatic restart. */
+export function bootPageMode(slug: string): PageMode {
+  let intent = null;
+  try { intent = pageGridIntents().consume(slug); } catch { /* blocked storage: no intent, the normal shard flow */ }
+  const recovery = pageGridRecovery();
+  if (recovery !== null && [slug].includes(recovery.slug)) intent = { instance: recovery.instance, slug: recovery.slug, at: recovery.at };
+  const mode: PageMode = intent === null ? 'shard' : 'grid';
+  setPageMode(mode);
+  if (intent !== null) gridCells.enter({ instance: intent.instance, slug: intent.slug }); // the home cell: the page starts inside it
+  if (mode === 'grid' && typeof history !== 'undefined') {
+    try { history.replaceState(history.state, '', new URL(location.pathname, location.origin)); } catch { /* a sandboxed frame: the URL stays */ }
+  }
+  return mode;
+}
+
+
+/** The title page's boot: a stale intent is consumed and dropped, never kept for a later page. */
+export function dropGridIntent(): void {
+  try { pageGridIntents().consume(''); } catch { /* nothing to drop */ }
+}
+
+/** Page-local selection is installed explicitly by the composition root, never by importing this module. */
+let selected: NonNullable<GridRecoveryRecord> | null = null;
+let refused = false;
+let loop = false;
+
+/** A validated current catalogue's default home and road lane, used when recovery metadata is unsafe. */
+export function safeGridRecovery(assembly: GridAssembly, now: number): NonNullable<GridRecoveryRecord> {
+  const home = assembly.at(0, 0);
+  if (home === undefined) throw new Error('Recovery catalogue requires a home cell');
+  return { instance: home.instance, slug: home.slug, catalogue: recoveryCatalogue(assembly), at: now, reason: 'gpu',
+    road: { x: home.origin.x + assembly.pitch / 2 + 3.6, z: home.origin.z, yaw: 0 } };
+}
+
+/** Consume recovery metadata before routing/hydration; ordinary boot and unsupported future records select nothing. */
+export function consumeGridRecovery(options: { assembly?: GridAssembly; saves?: SaveStore; now?: () => number; unexpected?: boolean } = {}): NonNullable<GridRecoveryRecord> | null {
+  const assembly = options.assembly ?? new GridAssembly(gridMode(devserverCellOn()));
+  const now = options.now ?? Date.now;
+  const result = gridRecovery(options.saves ?? pageApp.saves, now).consume(assembly, options.unexpected);
+  loop = result.kind === 'loop';
+  refused = result.kind === 'refused' || loop;
+  selected = result.kind === 'resume' ? result.record : result.kind === 'fallback' ? safeGridRecovery(assembly, now()) : null;
+  return selected;
+}
+
+/** Same-document handoff to ordinary admission and the live road placement; progress is read from real saves. */
+export function pageGridRecovery(): NonNullable<GridRecoveryRecord> | null { return selected; }
+/** A failed recovery boot returns to the title and must not supply a selection to another boot. */
+export function clearGridRecovery(): void { selected = null; refused = false; loop = false; }
+/** Future or unconsumed metadata cannot enter a renderer on this boot. */
+export function gridRecoveryRefused(): boolean { return refused; }
+/** A repeated failing recovery opens the existing shard picker, never another automatic boot. */
+export function gridRecoveryLoop(): boolean { return loop; }
+
+/** The composition root passes this selection to hydration and startSession; its grid intent has already been consumed. */
+export interface PageResidencyBoot {
+  readonly mode: PageMode;
+  readonly instance: string | null;
+  readonly residency?: PageResidency;
+  /** G216: one trusted page policy also reaches data-only SHARD SELECT validation and its warning surface. */
+  readonly memory: MemoryAdmission;
+  /** Validated recovery uses the ordinary owner, then returns to the road. */
+  readonly recovery?: NonNullable<GridRecoveryRecord>;
+}
+
+/**
+ * G144's single grid boot seam. Call before descriptor hydration and any world construction. Opaque homes must supply
+ * reviewed measurements here, since their hybrid data hook runs after bootstrap. Data homes are admitted by the loader
+ * against their declared sim cost, then their actual library and tile claims. The root disposes failed hydration; the
+ * successful session installs the owner's level lifetime.
+ */
+export function preparePageResidency(manifest: Pick<ShardManifest, 'slug' | 'shardfile' | 'runtimeCost'>, configuredSlug?: string, memory = new MemoryAdmission(isDev)): PageResidencyBoot {
+  const mode = bootPageMode(configuredSlug ?? manifest.slug);
+  const measuredHome = configuredSlug === undefined && manifest.shardfile === undefined;
+  if (mode !== 'grid' && (!measuredHome || manifest.runtimeCost === undefined)) return { mode, instance: null, memory };
+  const instance = mode === 'grid' ? pageGridInstance() : manifest.slug;
+  if (instance === null) throw new Error('Grid residency requires the consumed home instance');
+  const residency = new PageResidency(new ResidencyAllocator({ memory }));
+  try {
+    if (measuredHome) {
+      if (manifest.runtimeCost === undefined) throw new Error('Grid runtime home requires reviewed memory measurements before bootstrap');
+      const bytes = runtimeAccountedBytes(manifest.runtimeCost), row = manifest.runtimeCost;
+      const cost = contentCost({ l0: 0, l1: 0, far: 0, libraries: 0, sims: bytes, commons: 0, overlap: CONTENT_CAPS.overlap });
+      if (!memory.accept({ stage: 'runtime', owner: instance, id: `sim:${instance}`, claimedBytes: bytes,
+        accountedBytes: cost.accounted, playingBytes: cost.playing, loadingBytes: cost.loading,
+        measured: { webContentBytes: Math.ceil(row.webContentMB * 1_000_000), glBytes: Math.ceil(row.glMB * 1_000_000), engineBaseBytes: Math.ceil(row.engineBaseMB * 1_000_000),
+          ...(row.residentBaseMB === undefined ? {} : { residentBaseBytes: Math.ceil(row.residentBaseMB * 1_000_000) }),
+          rev: row.rev, device: row.device, evidence: row.evidence } })) throw new Error('Home residency admission deferred by the shared budget');
+      // A matched increment subtracts the persistent composer; it cannot cover that page component again.
+      residency.admitHome(instance, bytes, row.residentBaseMB === undefined);
+    }
+    const recovery = mode === 'grid' ? pageGridRecovery() : null;
+    return { mode, instance, residency, memory, ...(recovery === null ? {} : { recovery }) };
+  } catch (error) { residency.dispose(); throw error; }
+}
+
+/** Validate before allocating a level. Content bindings belong to the full loader. */
+export function emptyShardfileSource(input: unknown): ShardManifest {
+  preflightShardfile(input);
+  if (typeof input === 'object' && input !== null && 'version' in input && input.version !== SHARDFILE_VERSION) throw new Error(`Shardfile version ${String(input.version)} requires a compatible client (this client supports ${SHARDFILE_VERSION})`);
+  const source = parseShardfile(input);
+  if (source.meshCollision !== null) throw new Error('Compiled mesh collision runtime and entry admission pending');
+  if (source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
+  // The look (SF10b) is the one content kind bound here: day keys and a LUT, the LUT's file the only file allowed.
+  const lut = source.look.grade.lut;
+  const lutOnly = source.files.every((f) => f.hash === lut) && source.requires.commons.every((h) => `commons:${h}` === lut);
+  const newContent = (source.directors?.length ?? 0) + source.movers.length + source.crowds.length + source.clientScripts.bindings.length + source.water.length + source.creatures.spawns.length + source.creatures.brains.length + source.encounters.length + source.ledger.length + source.audio.cues.length + source.audio.routing.length + Object.values(source.quests).reduce((sum, rows) => sum + rows.length, 0);
+  if ((source.modes?.traverse.length ?? 0) > 0 || source.items.rows.length + source.items.contexts.length > 0 || source.props !== null || source.targets.panels.length + source.targets.interactions.length > 0 || Object.keys(source.look.materials).length + Object.keys(source.look.familyLooks).length > 0 || newContent > 0 || source.hooks.conditions.length + source.hooks.scenes.length > 0 || source.plumbing !== null || source.navigation !== null || source.terrain !== null || source.audio.ambience !== null || source.audio.score !== 'silent' || source.audio.music !== undefined || source.audio.samples !== undefined || source.audio.zones !== undefined || Object.values(source.rows).reduce((sum, rows) => sum + rows.length, 0) + source.ui.length + source.tiles.length + source.library.filter((ref) => ref !== lut).length + source.requires.capabilities.length + source.sim.scripts.length + source.sim.bindings.length + source.look.families.length > 0 || !lutOnly || source.far !== null || source.state.shared.length + source.state.player.length > 0) throw new Error('This client supports empty shardfiles only; content requires the full shardfile loader');
+  return sourceManifest(source);
+}
+
+
+/** Admit every immutable byte before creating a normal Game level source; scopes own all staged content bindings. */
+export async function shardfileSource(input: unknown, options: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
+  const ownedOptions = withPageMemory(options, bindings);
+  return clientSource(await admitProduct(input, ownedOptions), ownedOptions, bindings);
+}
+
+function withPageMemory(options: ProductOptions, bindings: ShardfileClientBindings): ProductOptions {
+  const memory = bindings.residency?.memory ?? options.memory;
+  if (bindings.residency !== undefined && options.memory !== undefined && memory !== options.memory) throw new Error('Shardfile admission must share the page memory policy');
+  return memory === undefined ? options : { ...options, memory };
+}
+
+function clientSource(admitted: AdmittedProduct, options: ProductOptions, bindings: ShardfileClientBindings): ShardManifest {
+  const source = admitted.source;
+  if (bindings.trustedRuntime === true && (!options.firstParty || source.runtime === null)) throw new Error('Empty hybrid policy requires a trusted first-party runtime declaration');
+  if (bindings.audioOwner === 'runtime' && (!options.firstParty || source.runtime === null)) throw new Error('Runtime audio ownership requires a trusted first-party runtime declaration');
+  if (bindings.worldOwner === 'runtime' && (!options.firstParty || source.runtime === null)) throw new Error('Runtime world ownership requires a trusted first-party runtime declaration');
+  if (!options.firstParty && admitted.instance === undefined) throw new Error('Outside shardfile is missing its admitted save identity');
+  const ownedBindings = { ...bindings,
+    ...(bindings.allocator === undefined && bindings.residency === undefined && options.memory !== undefined ? { allocator: new ResidencyAllocator({ memory: options.memory }) } : {}),
+    ...(options.firstParty ? {} : { instance: admitted.instance ?? '' }) };
+  const residency = clientResidency(source, ownedBindings);
+  const assets = new ClientAssets(source, admitted.assets, options);
+  const manifest = sourceManifest(source, admitted.assets);
+  const clientBindings = { ...ownedBindings, allocator: residency.allocator };
+  return { ...manifest, ...(source.presentation === undefined ? { biome: 'Authored world', blurb: source.identity.name } : {}),
+    // Traversal belongs to the platform, independently of authored item rows or Developer mode.
+    loadout: { weapons: [], tools: ['tool.hoverboard'], start: ['tool.hoverboard'] },
+    ...(manifest.navigation === undefined ? {} : { navigation: manifest.navigation }),
+    ground: { ...(source.terrain === null && source.meshCollision === null && !source.entryways.some(entry => entry.kind === 'socketLift' || entry.kind === 'portalLink') ? {} : { structures: true }), paths: 'plugin', terrain: clientGround(source, assets.retained), water: shardfileWater(source.water) },
+    species: source.rows.species.map((row) => row.kind), uses: ['spawns', 'quests', 'bosses', 'elites', 'swim', 'hover', 'explore', 'practice'],
+    loot: { coins: source.rows.loot.length > 0 },
+    creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
+    render: () => Promise.resolve(source.look.keys.length === 0 ? emptyLook(source.look.dayOverride) : shardfileLook(source.look, assets.retained)),
+    load: async () => { const { ShardfileClient } = await import('../shardfile/client'); return { default: class extends ShardfileClient { constructor() { super(source, assets, clientBindings); } } }; },
+  };
+}
+
+/** Select a fully admitted external product before the ordinary session starts; first-party discovery remains installed. */
+export async function installShardfileProduct(input: unknown, providedOptions: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
+  const options = withPageMemory(providedOptions, bindings);
+  const admitted = await admitProduct(input, options);
+  if (admitted.source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
+  const source = clientSource(admitted, options, bindings);
+  return selectSource(source, options.firstParty);
+}
+
+function selectSource(source: ShardManifest, firstParty: boolean): ShardManifest {
+  const list = new Map(firstParty ? shards().map((manifest) => [manifest.slug.replace(/^_/u, ''), manifest]) : []);
+  list.set(source.slug.replace(/^_/u, ''), source); installShards([...list.values()]);
+  game.shard = source; _applyChunkConstants(source); configureLevel(toLevelSpec(source)); return source;
+}
+
+/** Admit a built first-party descriptor before the normal session, preserving picker identity and its canonical save instance. */
+export async function installManifestShardfile(manifest: ShardManifest, providedOptions: ProductOptions, bindings: ShardfileClientBindings): Promise<ShardManifest> {
+  const options = withPageMemory(providedOptions, bindings);
+  if (manifest.shardfile === undefined) return manifest;
+  if (!options.firstParty) throw new Error('Manifest shardfile descriptors require first-party provenance');
+  const url = new URL(manifest.shardfile, options.base);
+  if (url.origin !== new URL(options.base).origin || url.search !== '' || url.hash !== '') throw new Error('Manifest shardfile must be an unqualified same-origin source');
+  const productOptions = { ...options, base: new URL('.', url).href };
+  let input: unknown;
+  if (options.offline) {
+    options.progress?.({ phase: 'descriptor', detail: 'Reading visited shard descriptor', bytesRead: 0, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
+    const visited = await options.cache?.product(productOptions.base);
+    if (visited?.firstParty !== true) throw new Error('First-party shardfile has not been visited offline');
+    input = visited.source;
+  } else {
+    let bytesRead = 0;
+    options.progress?.({ phase: 'descriptor', detail: 'Fetching shard descriptor', bytesRead, bytesTotal: 0, filesDone: 0, filesTotal: 1 });
+    const response = await options.fetch(url.href), length = Number(response.headers.get('content-length'));
+    const bytesTotal = Number.isSafeInteger(length) && length > 0 ? length : 0;
+    const bytes = await boundedResponse(response, limits.sourceBytes, (size) => {
+      bytesRead += size; options.progress?.({ phase: 'descriptor', detail: 'Reading shard descriptor', bytesRead, bytesTotal, filesDone: 0, filesTotal: 1 });
+    });
+    options.progress?.({ phase: 'descriptor', detail: 'Parsing shard descriptor', bytesRead, bytesTotal: bytesRead, filesDone: 1, filesTotal: 1 });
+    input = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+  }
+  const source = parseShardfile(input);
+  const { slug: authoredIdentity } = source.identity, expectedIdentity = manifest.slug.replace(/^_/u, '');
+  if (authoredIdentity !== expectedIdentity) throw new Error('Manifest and shardfile identities differ');
+  if (source.runtime !== null) throw new Error('Custom runtime requires trusted hybrid composition');
+  const admitted = await admitProduct(source, productOptions);
+  const client = clientSource(admitted, productOptions, { ...bindings, instance: bindings.residency === undefined ? firstPartyInstance(manifest.slug) : bindings.instance });
+  const { image: _unadmittedImage, ...mapLook } = manifest.minimap ?? {};
+  return selectSource({ ...client,
+    slug: manifest.slug, name: manifest.name, order: manifest.order, status: manifest.status, label: manifest.label,
+    ...(source.presentation === undefined ? { biome: manifest.biome, blurb: manifest.blurb, card: manifest.card } : {}),
+    // SF65 (G241): the picker's ways in survive admission (the admitted manifest's client `load` is not legacy TypeScript)
+    entries: shardEntries(manifest),
+    // Keep the authored map look; image bytes come exclusively from the admitted product (SF66).
+    minimap: { ...mapLook, ...client.minimap },
+    // and its listed places, the full map's pins (SF66): the admitted source has none
+    ...(manifest.pois === undefined ? {} : { pois: manifest.pois }),
+  }, true);
+}
+
+/** Browser connectivity and visited-product storage feed the same admission path as headless validation. */
+export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
+  return { base, firstParty, offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => fetch(url),
+    ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
+  };
+}
+
+/** Project an empty shardfile into the same engine spec consumed by legacy sources. */
+export function shardfileLevelSpec(input: unknown): LevelSpec { return toLevelSpec(emptyShardfileSource(input)); }
+
+/** Load through an installed engine driver; the ordinary unloadLevel owns every resource. */
+export async function loadShardfile(app: App, input: unknown): Promise<void> {
+  await app.loadLevel(shardfileLevelSpec(input), {});
+}
+
+/** The prebuilt client's HTML supplies data, without a second boot loop or URL switch. */
+export function configuredShardfile(document: Pick<Document, 'getElementById'>): Shardfile | null {
+  const element = document.getElementById('ws-shardfile');
+  if (element === null) return null;
+  const text = element.textContent;
+  // Reject excessive character counts before creating a UTF-8 copy or parsing the inline source.
+  if (text.length > limits.sourceBytes || new TextEncoder().encode(text).length > limits.sourceBytes) throw new Error('Shardfile source exceeds admission cap');
+  return parseShardfile(JSON.parse(text));
+}
+
+/** Select a validated external source before the normal session starts. */
+export function installShardfileSource(input: unknown): ShardManifest {
+  const source = emptyShardfileSource(input);
+  installShards([source]);
+  game.shard = source;
+  _applyChunkConstants(source);
+  configureLevel(toLevelSpec(source));
+  return source;
 }
