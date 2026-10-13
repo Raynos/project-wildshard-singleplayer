@@ -18,6 +18,7 @@ it.each(['on', 'off'])('seeds a fresh Safari origin before modules boot with Dev
   runInNewContext(`${writer}\n${serializer}\n${fixtures}\n${helper}`, {
     settings: { buildPacing: 'on', fps: 'auto' }, developer, deviceSaves: {}, publicGrid: false,
     helper: 'helper.html', html: '<html><head></head><body></body></html>',
+    HARNESS_PINS: JSON.stringify({ seed: 357, capture: null }),
     ERROR_SCRIPT: '', CONSOLE_SCRIPT: '', GL_TIME_SCRIPT: '', TASK_CLOCK: '', travelGl: '',
     writeFileSync: (_path: string, value: string) => { html = value; },
   });
