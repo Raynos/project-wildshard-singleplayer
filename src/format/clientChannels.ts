@@ -48,9 +48,27 @@ const geometry = v.pipe(v.strictObject({ kind: v.literal('tubeCurve'), target: n
   radius: v.tuple([v.pipe(coefficient, v.minValue(0)), v.pipe(coefficient, v.minValue(0), v.maxValue(8)),
     v.pipe(coefficient, v.minValue(0)), v.pipe(coefficient, v.minValue(0), v.maxValue(1)), v.pipe(coefficient, v.minValue(0))]),
 }), v.check(row => (row.segments + 1) * row.radial <= 4096, 'bounded tube vertices'));
+/** Bounded private connector poses; storage and clocks remain owned by the existing scene. */
+const connectorAxis = v.pipe(v.tuple([coefficient, coefficient, coefficient]),
+  v.check(axis => axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2] === 1, 'unit connector axis'));
+const connector = v.pipe(v.strictObject({
+  target: name, from: v.tuple([index, index, index]), to: v.tuple([index, index, index]),
+  at: v.exactOptional(v.tuple([index, index, index])), scale: v.tuple([index, index, index]), enabled: index,
+  aim: v.exactOptional(connectorAxis),
+  turn: v.exactOptional(v.strictObject({ axis: connectorAxis, radians: coefficient, alternate: v.boolean() })),
+  instances: v.exactOptional(v.strictObject({
+    start: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(8191)),
+    capacity: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8192)),
+    pitch: v.exactOptional(v.pipe(coefficient, v.minValue(0.000001))),
+  })),
+  cache: v.exactOptional(index),
+}), v.check(row => (row.instances === undefined || row.instances.start + row.instances.capacity <= 8192
+  && (row.instances.capacity === 1 || row.instances.pitch !== undefined))
+  && (row.turn?.alternate !== true || row.instances?.pitch !== undefined), 'bounded connector slots and alternating copies'));
 const program = v.strictObject({
   id: name,
   geometry: v.exactOptional(geometry),
+  connectors: v.exactOptional(v.pipe(v.array(connector), v.minLength(1), v.maxLength(32))),
   prompt: v.exactOptional(prompt),
   bindings: v.exactOptional(v.pipe(v.array(binding), v.minLength(1), v.maxLength(CLIENT_CHANNEL_LIMITS.channels))),
   mover: v.exactOptional(name),
@@ -61,9 +79,27 @@ const program = v.strictObject({
 });
 /** Data-only client programme, with selected copied observations and visual outputs. */
 export type ClientChannelProgram = v.InferOutput<typeof program>;
+/** Each connector owns a complete private transform or a disjoint interval of instance slots. */
+function uniqueConnectorSlots(rows: readonly ClientChannelProgram[]): boolean {
+  const targets = new Map<string, [number, number][]>(), bound = new Set(rows.flatMap(row => (row.bindings ?? []).map(item => item.target)));
+  for (const row of rows) for (const pose of row.connectors ?? []) {
+    if (bound.has(pose.target)) return false;
+    const intervals = targets.get(pose.target) ?? [];
+    intervals.push(pose.instances === undefined ? [0, 8192] : [pose.instances.start, pose.instances.start + pose.instances.capacity]);
+    targets.set(pose.target, intervals);
+  }
+  for (const intervals of targets.values()) {
+    intervals.sort((a, b) => a[0] - b[0]);
+    if (intervals.some((range, at) => at > 0 && range[0] < (intervals[at - 1]?.[1] ?? Infinity))) return false;
+  }
+  return true;
+}
 /** A straight-line DAG: every reference names an earlier node, never a loop, call or recursive expression. */
-export const ClientChannelProgramSchema: v.GenericSchema<v.InferInput<typeof program>, ClientChannelProgram> = v.pipe(program, v.check(row => (row.channels.length > 0 || row.geometry !== undefined)
+export const ClientChannelProgramSchema: v.GenericSchema<v.InferInput<typeof program>, ClientChannelProgram> = v.pipe(program, v.check(row => (row.channels.length > 0 || row.geometry !== undefined || row.connectors !== undefined)
   && (row.geometry === undefined || [...row.geometry.from, ...row.geometry.to, row.geometry.extent, row.geometry.wave].every(value => value < row.nodes.length))
+  && (row.connectors ?? []).every(pose => [...pose.from, ...pose.to, ...(pose.at ?? []), ...pose.scale,
+    pose.enabled, ...(pose.cache === undefined ? [] : [pose.cache])].every(value => value < row.nodes.length))
+  && uniqueConnectorSlots([row])
   && new Set(row.reads).size === row.reads.length
   && new Set(row.channels.map(channel => channel.property)).size === row.channels.length
   && new Set((row.bindings ?? []).map(item => `${item.target}:${item.property}`)).size === (row.bindings?.length ?? 0)
@@ -82,7 +118,9 @@ export const ClientChannelProgramSchema: v.GenericSchema<v.InferInput<typeof pro
 export const ClientChannelsSchema: v.GenericSchema<ClientChannelProgram[], ClientChannelProgram[]> = v.pipe(v.array(ClientChannelProgramSchema), v.maxLength(CLIENT_CHANNEL_LIMITS.programs),
   v.check(rows => new Set(rows.map(row => row.id)).size === rows.length
     && new Set(rows.flatMap(row => row.prompt === undefined ? [] : [row.prompt.id])).size === rows.filter(row => row.prompt !== undefined).length
+    && uniqueConnectorSlots(rows)
     && rows.filter(row => row.prompt !== undefined).length <= CLIENT_CHANNEL_LIMITS.prompts
+    && rows.reduce((sum, row) => sum + (row.connectors ?? []).reduce((total, pose) => total + (pose.instances?.capacity ?? 1), 0), 0) <= 8192
     && rows.reduce((sum, row) => sum + row.nodes.length, 0) <= CLIENT_CHANNEL_LIMITS.totalNodes
     && rows.reduce((sum, row) => sum + (row.locals?.length ?? 0), 0) <= CLIENT_CHANNEL_LIMITS.totalLocals
     && rows.reduce((sum, row) => sum + row.channels.length, 0) <= CLIENT_CHANNEL_LIMITS.totalChannels, 'unique bounded client channel programs'));

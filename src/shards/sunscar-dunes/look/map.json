@@ -10,7 +10,8 @@
     "data/restScenes.generated.json",
     "data/restPools.generated.json",
     "../../../public/assets/sunscar-dunes/baked/rest-oil.glb",
-    "../../../public/assets/sunscar-dunes/baked/rest-well.glb"
+    "../../../public/assets/sunscar-dunes/baked/rest-well.glb",
+    "data/bucketMotion.ts"
   ],
   "style": {
     "kind": "ground",

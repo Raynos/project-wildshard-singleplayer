@@ -9,6 +9,7 @@ export class ClientChannels {
   private readonly reads: string[] = [];
   private readonly locals: NonNullable<ClientChannelProgram['locals']> = [];
   private readonly bindings: NonNullable<ClientChannelProgram['bindings']> = [];
+  private readonly connectorRows: NonNullable<ClientChannelProgram['connectors']> = [];
   private geometryRow: ClientChannelProgram['geometry'];
   private promptRow: ClientChannelProgram['prompt'];
   private moverId: string | undefined;
@@ -58,6 +59,8 @@ export class ClientChannels {
   }
   /** Bind a declared fast kernel to private geometry, retaining the caller's original scalar arithmetic. */
   deformTube(row: NonNullable<ClientChannelProgram['geometry']>): void { this.geometryRow = structuredClone(row); }
+  /** Declare bounded exact connector poses on borrowed private objects or existing instance slots. */
+  connector(row: NonNullable<ClientChannelProgram['connectors']>[number]): void { this.connectorRows.push(structuredClone(row)); }
   /** Declare a normal input prompt; channel evaluation never dispatches its separate trusted action. */
   prompt(row: NonNullable<ClientChannelProgram['prompt']>): void { this.promptRow = structuredClone(row); }
   /** Select already evaluated scalar nodes without a call, loop or side effect. */
@@ -73,7 +76,7 @@ export class ClientChannels {
   fromMover(id: string): void { this.moverId = id; }
   /** Validate and detach the authored program. */
   build(): ClientChannelProgram {
-    const result = parseClientChannels([{ id: this.id, reads: this.reads, nodes: this.nodes, channels: this.channels, ...(this.geometryRow === undefined ? {} : { geometry: this.geometryRow }), ...(this.locals.length === 0 ? {} : { locals: this.locals }), ...(this.bindings.length === 0 ? {} : { bindings: this.bindings }), ...(this.moverId === undefined ? {} : { mover: this.moverId }), ...(this.promptRow === undefined ? {} : { prompt: this.promptRow }) }])[0];
+    const result = parseClientChannels([{ id: this.id, reads: this.reads, nodes: this.nodes, channels: this.channels, ...(this.geometryRow === undefined ? {} : { geometry: this.geometryRow }), ...(this.connectorRows.length === 0 ? {} : { connectors: this.connectorRows }), ...(this.locals.length === 0 ? {} : { locals: this.locals }), ...(this.bindings.length === 0 ? {} : { bindings: this.bindings }), ...(this.moverId === undefined ? {} : { mover: this.moverId }), ...(this.promptRow === undefined ? {} : { prompt: this.promptRow }) }])[0];
     if (result === undefined) throw new Error('Missing client channel program'); return result;
   }
 }

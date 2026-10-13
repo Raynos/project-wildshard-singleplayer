@@ -4400,3 +4400,21 @@ refuses unbound groups. Native hosts and contact snapshot bytes do not
 change. Sky's fan and Signal's lash are the two shipping users; both old
 page controllers are deleted. The private cord kernel and material shader
 ports remain honestly shard-owned.
+
+### Bounded connector transforms
+
+`ClientChannels.connector(row)` declares private object poses or explicit
+intervals in an existing instance mesh. Coordinate, scale, enabled and
+optional cache references name already evaluated scalar DAG nodes. `aim`
+aligns a literal unit axis with the endpoint direction; an optional axis
+turn can alternate repeated copies. Instance capacity and aggregate slots
+are capped at 8,192, with disjoint ownership admitted before binding.
+The optional field is omitted from existing programs and their wire bytes.
+
+`createClientChannelView` borrows scene storage and writes these transforms
+without constructing geometry or granting physics/state authority.
+`bindClientChannels(..., { copiedOwners })` reads poses in the caller's
+existing visual phase, batches dirty instance buffers, and excludes these
+views from its native mover adoption map. Copied views cannot read native
+fields. Sky's chains, gates and rails and Signal's well bucket/rope use the
+same kernel; their original bodies, clocks and interaction owners remain.

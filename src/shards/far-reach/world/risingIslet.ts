@@ -1,11 +1,12 @@
 import type { MoverPose } from '@wildshard/engine/physics/mover';
 import type { ColliderDesc, Piece } from '@wildshard/engine/world/registry';
-import { BoxGeometry, Group, InstancedMesh, Matrix4, Mesh, Quaternion, TorusGeometry, Vector3 } from 'three';
+import { BoxGeometry, Group, InstancedMesh, Mesh, TorusGeometry } from 'three';
 import type { Isle } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { islandMesh } from './isle';
 import { RISING_ISLETS } from './islets';
-import { ISLET, type P3, type RisingIslet } from '../data/isletDesign';
+import type { RisingIslet } from '../data/isletDesign';
+import isletMotion from '../data/isletMotion.generated.json' with { type: 'json' };
 import { PALETTE, flat } from './shapes';
 import { skyBakedPiece } from './baked';
 import { bakedColliders } from '@wildshard/game/shardfile/bakedKinds';
@@ -22,12 +23,7 @@ import ISLET_RIG from '../data/isletRig.json' with { type: 'json' };
  * The rope bridge from the gate isle is one more rope span in world/build.ts (the shard's own bridge builder).
  */
 const FILE = 'src/shards/far-reach/world/risingIslet.ts';
-/** The mover id of an entry's islet. */
-export const isletId = (entry: RisingIslet): string => `far.islet.${entry.edge}`;
-/** The mover id of an entry's stationary road gate (SF8c socketLift). */
-export const gateId = (entry: RisingIslet): string => `far.islet.${entry.edge}.gate`;
-/** The islet's footprint as an island (centred at its local origin, deck top y 0). */
-export const ISLET_ISLE: Isle = { id: 'islet', x: 0, z: 0, r: ISLET.islet.r, y: 0, keel: ISLET.islet.keel };
+const { counts: ISLET_VIEW_COUNTS, rest: ISLET_VIEW_REST } = isletMotion;
 /** The gate isles as islands (world/build.ts draws and collides them with the playable ones' builder). */
 export const GATE_ISLES: readonly Isle[] = RISING_ISLETS.map((entry) => entry.gate);
 
@@ -50,81 +46,24 @@ export function isletPieces(): Piece[] {
   return [...lips, rails, { id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: rigs.root, colliders: rigs.colliders, surface: 'wood' }];
 }
 
-const LINK = { r: 0.3, tube: 0.075, pitch: 0.46 } as const;
-/** The moving parts: each islet's island and the chains, posed from the mover runtime's published poses. */
+/** Existing private scene storage driven only by copied native poses. */
 export interface IsletViews { readonly group: Group; readonly ids: readonly string[]; update: (pose: (id: string) => MoverPose) => void }
-export function isletViews(): IsletViews {
+export function isletViews(bind: (targets: ReadonlyMap<string, unknown>, owners: readonly string[]) => IsletViews['update']): IsletViews {
   const group = new Group(); group.name = 'far.islets';
-  const rigs = ISLET_RIG.rigs.map((r) => ({ tops: r.tops.map(([x, y, z]) => new Vector3(x, y, z)), local: r.local.map(([x, y, z]) => new Vector3(x, y, z)) })), islets = RISING_ISLETS.map((entry) => {
-    const g = new Group(), mesh = islandMesh(`islet.${entry.edge}`); g.name = isletId(entry); g.add(mesh); g.position.set(entry.rest.x, entry.rest.y, entry.rest.z); group.add(g); return g;
-  });
-  // the most links a chain needs: its length with the islet at rest
-  const most = RISING_ISLETS.map((entry, i) => Math.max(...(rigs[i]?.local ?? []).map((l, k) => {
-    const top = rigs[i]?.tops[k < 2 ? 0 : 1]; if (top === undefined) return 0;
-    return Math.ceil(new Vector3(entry.rest.x + l.x, entry.rest.y + l.y, entry.rest.z + l.z).distanceTo(top) / LINK.pitch) + 2;
-  })));
-  const offsets = most.map((_, i) => most.slice(0, i).reduce((a, b) => a + b * 4, 0)), total = most.reduce((a, b) => a + b * 4, 0);
-  const links = new InstancedMesh(new TorusGeometry(LINK.r, LINK.tube, 3, 6), flat(0x4a4244, { roughness: 0.7, metalness: 0.3 }), total);
-  links.name = 'far.islet.chains'; links.frustumCulled = false; group.add(links);
-  const m = new Matrix4(), q = new Quaternion(), turned = new Quaternion(), rot = new Quaternion(), y = new Vector3(0, 1, 0), zero = new Vector3(0, 0, 0), one = new Vector3(1, 1, 1);
-  const a = new Vector3(), d = new Vector3(), c = new Vector3(), hidden = new Matrix4().compose(zero, q, zero), last = RISING_ISLETS.map(() => Number.NaN);
-  const lay = (i: number, at: P3): void => {
-    const r = rigs[i], base = offsets[i], count = most[i]; if (r === undefined || base === undefined || count === undefined) return;
-    r.local.forEach((l, k) => {
-      const top = r.tops[k < 2 ? 0 : 1]; if (top === undefined) return;
-      a.set(at.x + l.x, at.y + l.y, at.z + l.z); d.subVectors(top, a); const length = d.length(); d.normalize();
-      // a torus rings its local z: its y runs along the chain, every other link turned a quarter about it
-      q.setFromUnitVectors(y, d); turned.setFromAxisAngle(y, Math.PI / 2).premultiply(q); const n = Math.min(count, Math.max(1, Math.floor(length / LINK.pitch)));
-      for (let j = 0; j < count; j++) {
-        const slot = base + k * count + j;
-        if (j >= n) { links.setMatrixAt(slot, hidden); continue; }
-        // links hang from the post down to the islet's ring
-        rot.copy(j % 2 === 0 ? q : turned);
-        links.setMatrixAt(slot, m.compose(c.copy(top).addScaledVector(d, -(j + 0.5) * (length / n)), rot, one));
-      }
-    });
-  };
-  RISING_ISLETS.forEach((entry, i) => { lay(i, entry.rest); });
-  links.instanceMatrix.needsUpdate = true;
-  // SF8c: each entry's stationary road gate, a timber bar across the lip's road edge, drawn while its mover collides
-  const bars = new InstancedMesh(new BoxGeometry(1, 1, 1), flat(PALETTE.trunk), RISING_ISLETS.length), shut = RISING_ISLETS.map(() => false);
-  bars.name = 'far.islet.gates'; bars.frustumCulled = false; group.add(bars);
-  const barAt = (i: number, on: boolean): void => {
-    const g = RISING_ISLETS[i]?.gateBar; if (g === undefined) return;
-    bars.setMatrixAt(i, on ? m.compose(c.set(g.x, g.y, g.z), q.identity(), a.set(2 * g.hx, 2 * g.hy, 2 * g.hz)) : hidden);
-  };
-  RISING_ISLETS.forEach((_entry, i) => { barAt(i, false); });
-  bars.instanceMatrix.needsUpdate = true;
-  // round 3 (#8): each entry's rail, drawn while its islet rests at the road (its colliders are isletPieces')
-  const railRows = ISLET_RIG.rails, perEntry = Math.max(...railRows.map((r) => r.length));
-  const railMesh = new InstancedMesh(new BoxGeometry(1, 1, 1), flat(PALETTE.trunk), RISING_ISLETS.length * perEntry), resting = RISING_ISLETS.map(() => true);
-  railMesh.name = 'far.islet.rails'; railMesh.frustumCulled = false; group.add(railMesh);
-  const railAt = (i: number, on: boolean): void => {
-    const rows = railRows[i] ?? [];
-    for (let j = 0; j < perEntry; j++) {
-      const row = rows[j];
-      railMesh.setMatrixAt(i * perEntry + j, row !== undefined && on ? m.compose(c.set(row.box.x, row.box.y, row.box.z), q.setFromAxisAngle(y, -row.a), a.set(2 * row.box.hx, 2 * row.box.hy, 2 * row.box.hz)) : hidden);
-    }
-  };
-  RISING_ISLETS.forEach((_entry, i) => { railAt(i, true); });
-  railMesh.instanceMatrix.needsUpdate = true;
-  return { group, ids: RISING_ISLETS.map(isletId), update: (pose) => {
-    let moved = false, gated = false;
-    for (let i = 0; i < RISING_ISLETS.length; i++) {
-      const entry = RISING_ISLETS[i]; if (entry === undefined) continue;
-      const on = pose(gateId(entry)).enabled; if (on === shut[i]) continue;
-      shut[i] = on; barAt(i, on); gated = true;
-    }
-    if (gated) bars.instanceMatrix.needsUpdate = true;
-    for (let i = 0; i < RISING_ISLETS.length; i++) {
-      const entry = RISING_ISLETS[i], g = islets[i]; if (entry === undefined || g === undefined) continue;
-      const p = pose(isletId(entry)).position; g.position.set(p.x, p.y, p.z);
-      const atRest = Math.hypot(p.x - entry.rest.x, p.y - entry.rest.y, p.z - entry.rest.z) < 0.001;
-      if (atRest !== resting[i]) { resting[i] = atRest; railAt(i, atRest); railMesh.instanceMatrix.needsUpdate = true; }
-      const key = p.x * 1e-3 + p.y + p.z * 1e-6; if (key === last[i]) continue;
-      last[i] = key; lay(i, p); moved = true;
-    }
-    if (moved) links.instanceMatrix.needsUpdate = true;
-  } };
+  const targets = new Map<string, Group | InstancedMesh>();
+  for (const entry of RISING_ISLETS) {
+    const object = new Group(); object.name = `far.islet.${entry.edge}`;
+    object.add(islandMesh(`islet.${entry.edge}`)); group.add(object); targets.set(`islet.${entry.edge}`, object);
+  }
+  const links = new InstancedMesh(new TorusGeometry(0.3, 0.075, 3, 6), flat(0x4a4244, { roughness: 0.7, metalness: 0.3 }), ISLET_VIEW_COUNTS.links);
+  const gates = new InstancedMesh(new BoxGeometry(1, 1, 1), flat(PALETTE.trunk), ISLET_VIEW_COUNTS.gates);
+  const rails = new InstancedMesh(new BoxGeometry(1, 1, 1), flat(PALETTE.trunk), ISLET_VIEW_COUNTS.rails);
+  for (const [id, object] of [['links', links], ['gates', gates], ['rails', rails]] as const) {
+    object.name = id === 'links' ? 'far.islet.chains' : `far.islet.${id}`;
+    object.frustumCulled = false; group.add(object); targets.set(id, object);
+  }
+  const rest = new Map(ISLET_VIEW_REST.map(row => [row.id, row])), ids = [...rest.keys()];
+  const update = bind(targets, ids);
+  update(id => { const pose = rest.get(id); if (pose === undefined) throw new Error('Missing initial islet pose'); return pose; });
+  return { group, ids: RISING_ISLETS.map(entry => `far.islet.${entry.edge}`), update };
 }
-

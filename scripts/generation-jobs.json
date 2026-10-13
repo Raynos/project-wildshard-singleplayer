@@ -9490,7 +9490,7 @@
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/sunscar-dunes/data/product.generated.json": "2f1eb6ce7484560541d7d152c50661328979a8a040d6b478a3547b9b70f0a568"
+        "src/shards/sunscar-dunes/data/product.generated.json": "b26aa06009c1fc6953dc36f3f163edf9f9557b2c5e82827fa91ebd410ae9e48a"
       },
       "catalogueDependencies": [
         "signal-fire-book"
@@ -9848,7 +9848,7 @@
         "src/shards/sunscar-dunes/.wildshard/product/f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef": "f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef",
         "src/shards/sunscar-dunes/.wildshard/product/f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb": "f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb",
         "src/shards/sunscar-dunes/.wildshard/product/fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd": "fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd",
-        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "81c0402182b680172b6d4abcafabe2a27222a7a66e99c5294b529bb72a77386c",
+        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "e27be5542cf5fe072b34125e2ba9cff3e3bac031b5ca523ceaa091c0c7b209ef",
         "src/shards/sunscar-dunes/.wildshard/product/5fe421ef5db33fc737043742feea77ad24105299c23e120b62c39e206e331b0a": "5fe421ef5db33fc737043742feea77ad24105299c23e120b62c39e206e331b0a",
         "src/shards/sunscar-dunes/.wildshard/product/f8ae4cdc3eb7454a68b2d6746d9b96a01762bf5d9030596da2cd31a28a34aa5f": "f8ae4cdc3eb7454a68b2d6746d9b96a01762bf5d9030596da2cd31a28a34aa5f"
       },
@@ -10206,6 +10206,40 @@
       },
       "seedOutputs": [],
       "platform": "native"
+    },
+    {
+      "id": "sky-islet-motion",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/isletMotion.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/isletMotion.ts",
+        "isletMotionRows",
+        "src/shards/far-reach/data/isletMotion.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk/package.json",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/clientChannels.ts",
+        "src/format/package.json",
+        "src/format/clientChannels.ts",
+        "src/shards/far-reach/generators/isletMotion.ts",
+        "src/shards/far-reach/data/islets.generated.json",
+        "src/shards/far-reach/data/isletRig.json"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/isletMotion.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/isletMotion.generated.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

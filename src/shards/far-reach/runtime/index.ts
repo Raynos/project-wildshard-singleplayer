@@ -119,7 +119,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const compiled = await runtimeLookMaterials(ctx, source, true), looks = compiled.materials, deck = looks.get('deck-wood'), frame = looks.get('hover-frame');
     if (deck === undefined || frame === undefined) throw new Error('Sky Reach: look.materials lacks deck-wood or hover-frame');
     setSkyLooks(looks, compiled.bindMeshMap);
-    this.built = await buildWorld(ctx, () => worldBuildYield(ctx, 4), isles, { deck, frame });
+    this.built = await buildWorld(ctx, () => worldBuildYield(ctx, 4), isles, { deck, frame, channels: source.clientChannels ?? [] });
     await worldBuildYield(ctx, 4);
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
     ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
@@ -171,7 +171,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // the world pins, chip, map and minimap marks are the quest presentation's (quest/install.ts)
     if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');
     const raised = bindSkyQuestStage('raised', flags, () => true);
-    const channelRows = source.clientChannels;
+    const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
     if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
     const channels = bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_MOVER_OWNERS, observed: (_id, frame) => {
       const previouslyRaised = built.state.raised;

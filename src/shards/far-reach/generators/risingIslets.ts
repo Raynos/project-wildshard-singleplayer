@@ -58,9 +58,9 @@ function isleStrips(isle: Isle): IsleStrip[] {
 }
 
 /** The mover id of an entry's islet. */
-const isletId = (entry: Omit<RisingIslet, 'at'>): string => `far.islet.${entry.edge}`;
+export const isletId = (entry: Omit<RisingIslet, 'at'>): string => `far.islet.${entry.edge}`;
 /** The mover id of an entry's stationary road gate (SF8c socketLift). */
-const gateId = (entry: Omit<RisingIslet, 'at'>): string => `far.islet.${entry.edge}.gate`;
+export const gateId = (entry: Omit<RisingIslet, 'at'>): string => `far.islet.${entry.edge}.gate`;
 /** SF8c: an entry's declared socketLift link (shard.config.ts's entryway; the platform proves and commands it). */
 function isletLift(entry: Omit<RisingIslet, 'at'>): { mover: string; gate: string; roadStop: [number, number, number]; topStop: [number, number, number]; route: [number, number, number][]; rideTicks: number; approach: { colliders: string[]; route: [number, number, number][] } } {
   const v = (p: P3): [number, number, number] => [p.x + 0, p.y + 0, p.z + 0]; // JSON data: never −0

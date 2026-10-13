@@ -4,8 +4,7 @@ import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';
 import { apothem } from '../layout';
 import { RISING_ISLETS } from '../world/islets';
-import { ISLET, type RisingIslet } from '../data/isletDesign';
-import { ISLET_ISLE } from '../world/risingIslet';
+import { ISLET, ISLET_ISLE, type RisingIslet } from '../data/isletDesign';
 import { PALETTE, flat } from '../world/shapes';
 
 /**

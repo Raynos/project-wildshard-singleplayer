@@ -2,7 +2,7 @@ import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import type { MoverView } from './mover';
 import "../quest/presentation.css";
 import { parseClientChannels, parsePrivateScene, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
-import { AdditiveBlending, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
+import { AdditiveBlending, Matrix4, InstancedMesh, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ParticlePool, pointScale } from '@wildshard/engine/fx/ParticlePool';
 import { CLIENT_SCRIPT_LIMITS, type ClientScriptFrame } from '@wildshard/engine/script/client';
@@ -478,13 +478,72 @@ export function installEnteredQuestPresentation(context: ShardContext, quest: Qu
 export interface ClientTubeFrame { readonly fromX: number; readonly fromY: number; readonly fromZ: number;
   readonly toX: number; readonly toY: number; readonly toZ: number; readonly extent: number; readonly wave: number }
 
+/** Detached connector values; only scalar DAG outputs cross into private presentation. */
+export interface ClientConnectorFrame {
+  readonly fromX: number; readonly fromY: number; readonly fromZ: number;
+  readonly toX: number; readonly toY: number; readonly toZ: number;
+  readonly atX: number; readonly atY: number; readonly atZ: number;
+  readonly scaleX: number; readonly scaleY: number; readonly scaleZ: number;
+  readonly enabled: number; readonly cache?: number;
+}
+
+function clientInstance(value: unknown): value is InstancedMesh {
+  return value instanceof InstancedMesh && value.geometry instanceof BufferGeometry
+    && (Array.isArray(value.material) ? value.material.every((material: unknown) => material instanceof Material) : value.material instanceof Material);
+}
+
+/** Bind one bounded writer to the caller's existing object or instance slots. No geometry, body or clock is allocated. */
+function clientConnector(row: NonNullable<ClientChannelProgram['connectors']>[number], target: unknown,
+  changed: (mesh: InstancedMesh) => void): (frame: ClientConnectorFrame) => void {
+  if (!(target instanceof Object3D)) throw new Error('Connector target must be a private scene object');
+  const span = row.instances;
+  if (span !== undefined && (!(clientInstance(target)) || span.start + span.capacity > target.count))
+    throw new Error('Connector instance slots exceed the borrowed mesh');
+  if (span === undefined && clientInstance(target)) throw new Error('Connector instances require explicit slots');
+  const mesh = clientInstance(target) ? target : undefined;
+  const matrix = new Matrix4(), quaternion = new Quaternion(), turned = new Quaternion(), rotation = new Quaternion();
+  const axis = new Vector3(...(row.aim ?? [0, 1, 0])), direction = new Vector3(), point = new Vector3(), scale = new Vector3();
+  const zero = new Vector3(), identity = new Quaternion(), hidden = new Matrix4().compose(zero, identity, zero);
+  const turnAxis = new Vector3(...(row.turn?.axis ?? [0, 1, 0]));
+  let initialized = false, previous = Number.NaN, enabled = false;
+  return frame => {
+    const on = frame.enabled !== 0;
+    if (initialized && row.cache !== undefined && frame.cache === previous && on === enabled) return;
+    if (row.cache !== undefined && frame.cache === undefined) throw new Error('Missing connector cache output');
+    if (mesh !== undefined && !on) {
+      for (let index = 0; index < (span?.capacity ?? 0); index++) mesh.setMatrixAt((span?.start ?? 0) + index, hidden);
+    } else {
+      direction.set(frame.toX - frame.fromX, frame.toY - frame.fromY, frame.toZ - frame.fromZ);
+      const length = direction.length(); direction.normalize();
+      if (row.aim === undefined) quaternion.identity(); else quaternion.setFromUnitVectors(axis, direction);
+      if (row.turn !== undefined) {
+        turned.setFromAxisAngle(turnAxis, row.turn.radians);
+        if (row.aim !== undefined) turned.premultiply(quaternion);
+      } else turned.copy(quaternion);
+      const count = span?.capacity ?? 1;
+      const visible = span?.pitch === undefined ? count : Math.min(count, Math.max(1, Math.floor(length / span.pitch)));
+      scale.set(frame.scaleX, frame.scaleY, frame.scaleZ);
+      for (let index = 0; index < count; index++) {
+        if (mesh !== undefined && index >= visible) { mesh.setMatrixAt((span?.start ?? 0) + index, hidden); continue; }
+        rotation.copy(row.turn === undefined || row.turn.alternate && index % 2 === 0 ? quaternion : turned);
+        if (span?.pitch === undefined) point.set(frame.atX, frame.atY, frame.atZ);
+        else point.set(frame.toX, frame.toY, frame.toZ).addScaledVector(direction, -(index + 0.5) * (length / visible));
+        if (mesh !== undefined) mesh.setMatrixAt((span?.start ?? 0) + index, matrix.compose(point, rotation, scale));
+        else { target.position.copy(point); target.quaternion.copy(rotation); target.scale.copy(scale); target.visible = on; }
+      }
+    }
+    if (mesh !== undefined) changed(mesh);
+    initialized = true; previous = frame.cache ?? Number.NaN; enabled = on;
+  };
+}
+
 /** A detached visual observation; only these numeric values and the clock cross the presentation boundary. */
 export interface ClientChannelObservation { readonly time: number; readonly delta: number; readonly values: readonly number[] }
 /** Read-only visual output; property getters expose no writable storage or authoritative object. */
 export type ClientChannelFrame = Readonly<Partial<Record<ClientChannelProperty, number>>>;
 /** A capability-limited numeric lane; it has no state setter, physics port, event writer or player reference. */
 export function createClientChannels(input: unknown): {
-  readonly reads: readonly string[]; readonly frame: ClientChannelFrame; readonly geometry?: ClientTubeFrame; evaluate: (observation: ClientChannelObservation) => void;
+  readonly reads: readonly string[]; readonly frame: ClientChannelFrame; readonly geometry?: ClientTubeFrame; readonly connectors?: readonly ClientConnectorFrame[]; evaluate: (observation: ClientChannelObservation) => void;
 } {
   const program = parseClientChannels([input])[0]; if (program === undefined) throw new Error('Missing client channel program');
   const nodes = structuredClone(program.nodes), scratch = new Float64Array(nodes.length), published = new Float64Array(nodes.length), reads = new Float64Array(program.reads.length);
@@ -499,6 +558,19 @@ export function createClientChannels(input: unknown): {
     get toX() { return published[tube.to[0]] ?? Number.NaN; }, get toY() { return published[tube.to[1]] ?? Number.NaN; }, get toZ() { return published[tube.to[2]] ?? Number.NaN; },
     get extent() { return published[tube.extent] ?? Number.NaN; }, get wave() { return published[tube.wave] ?? Number.NaN; },
   });
+  const connectors = program.connectors?.map(row => {
+    const connectorFrame: ClientConnectorFrame = {
+    get fromX() { return published[row.from[0]] ?? Number.NaN; }, get fromY() { return published[row.from[1]] ?? Number.NaN; }, get fromZ() { return published[row.from[2]] ?? Number.NaN; },
+    get toX() { return published[row.to[0]] ?? Number.NaN; }, get toY() { return published[row.to[1]] ?? Number.NaN; }, get toZ() { return published[row.to[2]] ?? Number.NaN; },
+    get atX() { return published[(row.at ?? row.from)[0]] ?? Number.NaN; }, get atY() { return published[(row.at ?? row.from)[1]] ?? Number.NaN; }, get atZ() { return published[(row.at ?? row.from)[2]] ?? Number.NaN; },
+    get scaleX() { return published[row.scale[0]] ?? Number.NaN; }, get scaleY() { return published[row.scale[1]] ?? Number.NaN; }, get scaleZ() { return published[row.scale[2]] ?? Number.NaN; },
+    get enabled() { return published[row.enabled] ?? Number.NaN; },
+    };
+    const cache = row.cache;
+    if (cache !== undefined) Object.defineProperty(connectorFrame, 'cache', { enumerable: true, get: () => published[cache] ?? Number.NaN });
+    return Object.freeze(connectorFrame);
+  });
+  if (connectors !== undefined) Object.freeze(connectors);
   const evaluate = (observation: ClientChannelObservation): void => {
     const { time, delta, values } = observation;
     if (!Number.isFinite(time) || !Number.isFinite(delta) || delta < 0 || Math.abs(time) > 1e12 || delta > 1e12 || values.length !== reads.length) throw new Error('Invalid copied client observation');
@@ -557,16 +629,16 @@ export function createClientChannels(input: unknown): {
     }
     published.set(scratch); locals.set(next); initialized = true;
   };
-  return Object.freeze({ reads: Object.freeze([...program.reads]), frame, evaluate, ...(geometry === undefined ? {} : { geometry }) });
+  return Object.freeze({ reads: Object.freeze([...program.reads]), frame, evaluate, ...(geometry === undefined ? {} : { geometry }), ...(connectors === undefined ? {} : { connectors }) });
 }
 
 /** A trusted private view supplies its own declared geometry kernel; admission never accepts a function. */
 export type ClientGeometryKernels = ReadonlyMap<string, (row: NonNullable<ClientChannelProgram['geometry']>, target: unknown) => (frame: ClientTubeFrame, time: number) => void>;
 
 /** Bind admitted numeric outputs only to named private scene objects; authoritative player/shared objects refuse. */
-export function createClientChannelView(input: unknown, targets: ReadonlyMap<string, unknown>, kernels?: ClientGeometryKernels): ReturnType<typeof createClientChannels> {
+export function createClientChannelView(input: unknown, targets: ReadonlyMap<string, unknown>, kernels?: ClientGeometryKernels, changed?: (mesh: InstancedMesh) => void): ReturnType<typeof createClientChannels> {
   const program = parseClientChannels([input])[0];
-  if (program === undefined || program.bindings === undefined && program.geometry === undefined) throw new Error('Missing visual channel bindings');
+  if (program === undefined || program.bindings === undefined && program.geometry === undefined && program.connectors === undefined) throw new Error('Missing visual channel bindings');
   let curve: ((frame: ClientTubeFrame, time: number) => void) | undefined;
   if (program.geometry !== undefined) {
     const target = targets.get(program.geometry.target), kernel = kernels?.get(program.geometry.target);
@@ -579,9 +651,15 @@ export function createClientChannelView(input: unknown, targets: ReadonlyMap<str
     if (!(object instanceof Object3D)) throw new Error('Client channel target must be a private scene object');
     return { property: binding.property, target: binding.target, order: binding.order, object };
   });
-  const lane = createClientChannels(program);
+  const lane = createClientChannels(program), pending = new Set<InstancedMesh>();
+  const poses = (program.connectors ?? []).map(row => clientConnector(row, targets.get(row.target), mesh => { pending.add(mesh); }));
   const evaluate = (observation: ClientChannelObservation): void => {
     lane.evaluate(observation);
+    for (const [index, pose] of poses.entries()) {
+      const frame = lane.connectors?.[index]; if (frame === undefined) throw new Error('Missing connector outputs'); pose(frame);
+    }
+    for (const mesh of pending) { if (changed === undefined) mesh.instanceMatrix.needsUpdate = true; else changed(mesh); }
+    pending.clear();
     if (curve !== undefined) { if (lane.geometry === undefined) throw new Error('Missing tube outputs'); curve(lane.geometry, observation.time); }
     for (const binding of bindings) {
       const { object, property, order } = binding, value = lane.frame[property];
@@ -602,7 +680,7 @@ export function createClientChannelView(input: unknown, targets: ReadonlyMap<str
       }
     }
   };
-  return Object.freeze({ reads: lane.reads, frame: lane.frame, evaluate });
+  return Object.freeze({ reads: lane.reads, frame: lane.frame, evaluate, ...(lane.connectors === undefined ? {} : { connectors: lane.connectors }) });
 }
 
 /** Copy only the fixed mover ABI's published observations, never its world or module memory. */
@@ -624,7 +702,7 @@ function moverChannelValues(reads: readonly string[], pose: MoverPose, fields: R
 
 /** Declared visual channels and input prompts, with clocks lent by their existing owners. */
 export function bindClientChannels(programs: readonly ClientChannelProgram[], ports: {
-  readonly targets: ReadonlyMap<string, unknown>; readonly nativeOwners?: readonly string[];
+  readonly targets: ReadonlyMap<string, unknown>; readonly nativeOwners?: readonly string[]; readonly copiedOwners?: readonly string[];
   readonly kernels?: ClientGeometryKernels; readonly observed?: (id: string, frame: ClientChannelFrame) => void;
 }): {
   readonly movers: ReadonlyMap<string, MoverView>; readonly interactables: readonly Interactable[];
@@ -636,13 +714,22 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
 } {
   const owners = ports.nativeOwners ?? [];
   if (owners.length > 32 || new Set(owners).size !== owners.length) throw new Error('Invalid native mover view owners');
+  const copiedOwners = ports.copiedOwners ?? [];
+  if (copiedOwners.length > 32 || new Set([...owners, ...copiedOwners]).size !== owners.length + copiedOwners.length) throw new Error('Invalid copied mover view owners');
+  const copiedViews: { id: string; view: ReturnType<typeof createClientChannelView> }[] = [];
+  const pending = new Set<InstancedMesh>(); let batching = false;
+  const changed = (mesh: InstancedMesh): void => { if (batching) pending.add(mesh); else mesh.instanceMatrix.needsUpdate = true; };
   const rows = parseClientChannels(programs), movers = new Map<string, MoverView>(owners.map(id => [id, { pose: () => undefined }]));
   const views = new Map<string, ReturnType<typeof createClientChannelView>>(), bound = new Set<string>();
   for (const row of rows) {
-    if (row.bindings === undefined && row.geometry === undefined) continue;
-    const view = createClientChannelView(row, ports.targets, ports.kernels); views.set(row.id, view);
+    if (row.bindings === undefined && row.geometry === undefined && row.connectors === undefined) continue;
+    const view = createClientChannelView(row, ports.targets, ports.kernels, changed); views.set(row.id, view);
     if (row.mover === undefined) continue;
     const id = row.mover;
+    if (copiedOwners.includes(id)) {
+      if (view.reads.some(read => read.startsWith('field.'))) throw new Error('Copied pose view has no native field grant');
+      copiedViews.push({ id, view }); continue;
+    }
     if (!movers.has(id) || bound.has(id)) throw new Error('Mover channels require one borrowed native owner');
     bound.add(id); movers.set(id, { pose: (pose, fields) => {
       view.evaluate({ time: 0, delta: 0, values: moverChannelValues(view.reads, pose, fields) }); ports.observed?.(id, view.frame);
@@ -669,7 +756,15 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
     },
     // Native views are published by the existing mover callback; only copied-pose prompts evaluate here.
     updateMovers: (pose: (id: string) => MoverPose) => {
-      for (const row of promptRows) row.lane.evaluate({ time: 0, delta: 0, values: moverChannelValues(row.lane.reads, pose(row.id), {}) });
+      batching = true;
+      try {
+        for (const row of copiedViews) row.view.evaluate({ time: 0, delta: 0, values: moverChannelValues(row.view.reads, pose(row.id), {}) });
+        for (const row of promptRows) row.lane.evaluate({ time: 0, delta: 0, values: moverChannelValues(row.lane.reads, pose(row.id), {}) });
+      } finally {
+        batching = false;
+        for (const mesh of pending) mesh.instanceMatrix.needsUpdate = true;
+        pending.clear();
+      }
     },
   });
 }

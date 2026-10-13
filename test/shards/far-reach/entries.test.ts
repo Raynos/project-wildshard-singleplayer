@@ -11,8 +11,8 @@ import { socketLiftEntries, socketLiftRules } from '@wildshard/format/socketLift
 import { validateEntrywayClearance } from '@wildshard/format/entryClearance';
 import { parseMovers } from '@wildshard/format/movers';
 import { RISING_ISLETS } from '../../../src/shards/far-reach/world/islets';
-import { ISLET } from '../../../src/shards/far-reach/data/isletDesign';
-import { ISLET_ISLE, lipCollider } from '../../../src/shards/far-reach/world/risingIslet';
+import { ISLET, ISLET_ISLE } from '../../../src/shards/far-reach/data/isletDesign';
+import { lipCollider } from '../../../src/shards/far-reach/world/risingIslet';
 import { isletBoxes } from '../../../src/shards/far-reach/generators/movers';
 import { CROWN, ISLES, KEEPER, NEST, SPIRES, STEP, type Isle } from '../../../src/shards/far-reach/data/layout';
 import { apothem, rimAlong, spireAt } from '../../../src/shards/far-reach/layout';

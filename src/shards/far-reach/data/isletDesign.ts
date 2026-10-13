@@ -66,3 +66,6 @@ export interface RisingIslet {
   readonly at: (t: number, u: number, y: number) => P3;
 }
 
+
+/** The moving deck's authored footprint; its exact row also feeds the offline collider/rig recipes. */
+export const ISLET_ISLE: Isle = { id: 'islet', x: 0, z: 0, r: ISLET.islet.r, y: 0, keel: ISLET.islet.keel };

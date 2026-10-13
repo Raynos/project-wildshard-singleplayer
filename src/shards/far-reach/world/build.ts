@@ -4,7 +4,7 @@ import { ISLE_CUT_EDITS } from '../data/paintLook';
 import { ISLE_DRAWS } from '../data/isleLook';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
-import { createClientScene } from '@wildshard/game/plugin/ui';
+import { bindClientChannels, createClientScene } from '@wildshard/game/plugin/ui';
 import type { SkyReachPlugin } from '../runtime/index';
 import { spanLength, spanYaw, spanPitch } from '../layout';
 import { FALLEN_ANGLE } from '../data/moverBindings';
@@ -109,7 +109,7 @@ const CUT = ISLE_KEEL_CUT;
  * paced worldBuildYield, op-hitch45: in play a drawn frame when one is due, else a timer task of the shard's scope;
  * it rejects once the cell has unloaded, and the build stops). `looks` are the rope decks' wood and the hover frames' glow (`look.materials`).
  */
-export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, isles: IsleMeshes, looks: { readonly deck: Material; readonly frame: Material }): Promise<BuiltWorld> {
+export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, isles: IsleMeshes, looks: { readonly deck: Material; readonly frame: Material; readonly channels: Parameters<typeof bindClientChannels>[0] }): Promise<BuiltWorld> {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const pieces = skyPieces(ctx.piece, root);
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
@@ -238,7 +238,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   const storm = crownStorm(new Vector3(...SKY_SUN), stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
 
   await pause();
-  const islets = isletViews();
+  const islets = isletViews((targets, ids) => bindClientChannels(looks.channels.filter(row => row.mover !== undefined && ids.includes(row.mover) && row.connectors !== undefined), { targets, copiedOwners: ids }).updateMovers);
   root.add(islets.group);
   ctx.root.add(root); ctx.scope.ownPrimitives(root, { instances: true });
   return { hoverDeck, wind, fallen, millHub: mill.hub, storm, vanes, winch: handle, winchAt, notes, notesAt, state, islets };
