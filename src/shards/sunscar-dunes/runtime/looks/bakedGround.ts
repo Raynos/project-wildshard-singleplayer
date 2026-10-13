@@ -7,17 +7,13 @@
  * - `bindColliderGround`: the level frame's ground (its queries and collider) from the shardfile's terrain collider; the
  *   data client draws the tiles (G345, presentation-only).
  * - `lentMaterial`: the data client's built ground material, its curves reading the runtime's host fields.
- * - `mappedFamilyMaterial`: an engine family material whose texture refs name the caller's maps.
  * - `ownLookMaterials`: the runtime's own meshes' look.materials entries, graphs switched on (G387).
  */
-import { Mesh, type BufferGeometry, type Material, type Object3D, type Texture } from 'three';
+import { Mesh, type BufferGeometry, type Material, type Object3D } from 'three';
 import { GeometryPack, fetchDeflated, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { PainterField } from '@wildshard/engine/render/look';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
-import { ToonLook } from '@wildshard/engine/render/families/toon';
-import type { EmissiveLook } from '@wildshard/engine/render/families/emissive';
-import { familyMaterial } from '@wildshard/engine/render/families/registry';
 import { runtimeLookMaterials, runtimePresentation, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
@@ -102,17 +98,6 @@ export function lentMaterial(source: Shardfile, id: string, scope: Scope, state:
   const lent = runtimePresentation(source); if (lent === null) return null;
   scope.onDispose(lent.bindState(state));
   return lent.material(id);
-}
-
-/** An engine family material from `entry` whose texture refs name `maps`, freed with `scope`; `name` opens its missing-map error. */
-export function mappedFamilyMaterial(entry: unknown, maps: Readonly<Record<string, Texture>>, scope: Scope, name: string, emissive?: EmissiveLook): Material {
-  const material = familyMaterial(entry, { toon: new ToonLook(), ...(emissive === undefined ? {} : { emissive }), scope, textures: (ref) => {
-    const t = maps[ref];
-    if (t === undefined) throw new Error(`${name}: no texture ${ref}`);
-    return t;
-  } });
-  scope.own(material);
-  return material;
 }
 
 /** The runtime's own meshes' `ids` from its look.materials, graphs switched on (G387, G397), on its world's renderer. */
