@@ -25,11 +25,13 @@ function farLine(edge: ShardEntryways[number]['edge'], footprint: EntryFootprint
 }
 
 /** Socket floors may bridge below-road ground only when actual collision surfaces meet their entire shard-side edge. */
-export function validateSocketLandings(source: { entryways: ShardEntryways; terrain: { collider: string } | null; props: ShardProps | null; meshCollision?: ShardMeshCollision | null }, assets: ReadonlyMap<string, Uint8Array>): void {
+export function validateSocketLandings(source: { entryways: ShardEntryways; terrain: { collider: string; form?: 'render' | 'query' } | null; props: ShardProps | null; meshCollision?: ShardMeshCollision | null }, assets: ReadonlyMap<string, Uint8Array>): void {
   const sockets = source.entryways.filter((entry) => entry.kind === 'socketOverWater');
   if (sockets.length === 0) return;
-  const terrainBytes = source.terrain === null ? undefined : assets.get(source.terrain.collider);
-  if (source.terrain !== null && terrainBytes === undefined) throw new Error('Missing socket landing terrain');
+  // Placement queries do not install collision, even when their samples happen to lie at road height.
+  const collisionTerrain = source.terrain?.form === 'query' ? null : source.terrain;
+  const terrainBytes = collisionTerrain === null ? undefined : assets.get(collisionTerrain.collider);
+  if (collisionTerrain !== null && terrainBytes === undefined) throw new Error('Missing socket landing terrain');
   const terrain = terrainBytes === undefined ? undefined : decodeTerrainTile(terrainBytes);
   const decks: EntryVertex[][] = [];
   for (const row of source.props?.colliders ?? []) {
