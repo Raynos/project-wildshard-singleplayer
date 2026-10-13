@@ -167,7 +167,7 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
       expect([...drawn.kinds.keys()]).toEqual(built.map(([name]) => name));
       const a = new Matrix4(), b = new Matrix4();
       for (const [name, from] of built) {
-        const kind = drawn.kinds.get(name); if (kind === undefined) throw new Error(`${piece}: missing kind ${name}`);
+        const kind = drawn.kinds.get(name); if (kind === undefined || !instanced(kind)) throw new Error(`${piece}: missing instanced kind ${name}`);
         expect(kind.count).toBe(from.count);
         // every vertex channel the builder made (positions, normals, uvs, colours, the canvas's `farCloth`), bit for bit as float32
         for (const [channel, attribute] of Object.entries(from.geometry.attributes)) {
@@ -226,9 +226,10 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
     expect(drawn.colliders).toEqual([]);
     built.forEach(([name, live]) => {
       const mesh = drawn.kinds.get(name);
-      expect(mesh?.count).toBe(live.count);
-      expect(new Uint8Array(mesh?.instanceMatrix.array.buffer ?? new ArrayBuffer(0))).toEqual(new Uint8Array(live.instanceMatrix.array.buffer));
-      expect(mesh?.instanceColor?.array).toEqual(live.instanceColor?.array);
+      if (mesh === undefined || !instanced(mesh)) throw new Error(`dressing: missing instanced kind ${name}`);
+      expect(mesh.count).toBe(live.count);
+      expect(new Uint8Array(mesh.instanceMatrix.array.buffer)).toEqual(new Uint8Array(live.instanceMatrix.array.buffer));
+      expect(mesh.instanceColor?.array).toEqual(live.instanceColor?.array);
     });
     // the lip clumps share the clumps' graph; the flowers draw in theirs
     expect(drawn.kinds.get('lip')?.material).toBe(clump);
