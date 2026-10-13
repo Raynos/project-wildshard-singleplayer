@@ -7,6 +7,8 @@ import { declareNavigation } from '../src/sdk/bake/navigationAsset';
 import { bakeTerrain } from '../src/sdk/bake/terrain';
 import { contentHash } from '../src/sdk/project';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
+import { encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
+import { assetCost } from '@wildshard/format/product';
 import { materialCurveRules } from '@wildshard/format/materials';
 import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import * as settings from '../src/engine/ui/Settings';
@@ -248,4 +250,22 @@ describe('presentation-only data for a hybrid whose runtime keeps the simulation
       expect(app.systemIds(ctx.scope).sort()).toEqual(['game.shardfile.presentation', 'game.shardfile.residency']);
     } finally { app.engineScope.dispose(); }
   });
+});
+
+
+it('a runtime-bound query form adds no data-client scene, material, simulation or tick owner', async () => {
+  const base = emptyShardfile({ slug: 'query-client', name: 'Query client', author: 'Fixture', seed: 1, revision: 1 });
+  const resolution = 256, wire = encodeTerrainTile({ resolution, x: -250, z: -250, size: 500,
+    heights: new Float32Array(resolution ** 2), splat: new Uint8Array(resolution ** 2 * 4).fill(255) });
+  const hash = contentHash(wire), bytes = new Map([[hash, wire]]);
+  const source = validateShardfileAssets({ ...base, runtime: { entry, binds: ['terrain'] },
+    terrain: { version: 1, form: 'query', tiles: [], sampling: { law: 'bilinear', file: hash, normalEpsilon: 1, datum: 0 } },
+    budgets: { ...base.budgets, sim: { resident: 2_000_000, compressed: 1_000_000 } }, serverBudget: { tickMicros: 1000, memory: 2_000_000, entities: 1, commandsPerTick: 1 },
+    critical: [hash], files: [{ hash, kind: 'binary', critical: true, ...assetCost('binary', wire), compressed: wire.length, dependencies: [] }] }, bytes, contentHash);
+  const announced = { count: 0 }, stage = client(source, bytes, announced), { app, ctx } = level(source);
+  try {
+    const before = { ...ctx.scope.census }, children = [...ctx.root.children];
+    await stage.world(ctx); stage.kit(ctx); await stage.play(ctx);
+    expect(ctx.root.children).toEqual(children); expect(ctx.scope.census).toEqual(before); expect(announced.count).toBe(0);
+  } finally { app.engineScope.dispose(); }
 });

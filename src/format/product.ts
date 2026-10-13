@@ -334,11 +334,13 @@ export function validateTerrainAssets(terrain: ShardTerrain, assets: ReadonlyMap
 }): void {
   const read = (fileRef: string) => { const bytes = assets.get(fileRef); if (bytes === undefined) throw new Error('Missing terrain file'); return decodeTerrainTile(bytes); };
   const collider = read(terrain.collider);
-  if (!content.critical.includes(terrain.collider) || collider.colours !== undefined || collider.splat !== undefined || collider.x !== -250 || collider.z !== -250 || collider.size !== 500 || collider.resolution !== 257) throw new Error('Terrain collider must be a complete critical heightfield');
+  const derivedQuery = terrain.form === 'query' && terrain.collider === terrain.sampling.file;
+  if (!derivedQuery && (!content.critical.includes(terrain.collider) || collider.colours !== undefined || collider.splat !== undefined || collider.x !== -250 || collider.z !== -250 || collider.size !== 500 || collider.resolution !== 257)) throw new Error('Terrain collider must be a complete critical heightfield');
   if (terrain.sampling !== undefined) {
     if (!content.critical.includes(terrain.sampling.file)) throw new Error('Terrain sampling must be a critical query root');
     bilinearTerrainSamplers(read(terrain.sampling.file), terrain.sampling.normalEpsilon, terrain.sampling.datum);
   }
+  if (terrain.form === 'query') return; // Queries install no render seams, road colours or collision.
   const colours = new Map<string, readonly number[]>();
   for (const tile of terrain.tiles) {
     const data = read(tile.file), size = tile.lod === 0 ? 62.5 : 125, row = content.tiles.find((t) => t.lod === tile.lod && t.x === tile.x && t.z === tile.z);

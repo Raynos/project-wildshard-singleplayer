@@ -45,6 +45,9 @@ import { Inventory } from '../src/game/Inventory';
 import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 import pineSource from '../src/shards/pine-hollow/shard.config';
 import { fakeWorld } from './fake/world';
+import * as materialPresentation from '../src/game/shardfile/clientMaterials';
+import { TerrainSchema } from '@wildshard/format/terrain';
+import * as v from 'valibot';
 import { emptyShardfile } from '../src/sdk/author';
 import { bakeTerrain } from '../src/sdk/bake/terrain';
 import { contentHash } from '../src/sdk/project';
@@ -486,4 +489,17 @@ it('draws a presentation-only hybrid\'s tiles in its look\'s material and lends 
     prepared.region.dispose();
     expect([runtimePresentation(source), tiles()]).toEqual([null, 0]);
   } finally { scope.dispose(); f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
+});
+
+
+it('a hybrid query form never builds additional regional data terrain or materials', async () => {
+  const f = fixture(), scope = f.scope.child('query-region'), materials = vi.spyOn(materialPresentation, 'clientMaterials');
+  const file = 'a'.repeat(64), source: Shardfile = { ...f.request.admitted.source,
+    runtime: { entry: 'runtime/index.ts', binds: ['terrain'] },
+    terrain: v.parse(TerrainSchema, { version: 1, form: 'query', tiles: [], sampling: { law: 'bilinear', file, normalEpsilon: 1, datum: 0 } }), tiles: [] };
+  try {
+    const prepared = await f.foundation({ ...f.request, scope, admitted: { ...f.request.admitted, source } });
+    expect(materials).not.toHaveBeenCalled();
+    const entry = scope.child('entered'); prepared.enter(entry); entry.dispose(); prepared.region.dispose();
+  } finally { materials.mockRestore(); scope.dispose(); f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
 });

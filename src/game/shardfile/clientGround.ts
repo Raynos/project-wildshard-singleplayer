@@ -7,7 +7,7 @@ import { decodeMeshCollision, lowestMeshHeight } from '@wildshard/format/meshCol
 export function clientGround(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, nativeDatum?: number): TerrainField {
   const bytes = source.terrain === null ? undefined : assets.get(source.terrain.collider);
   if (source.terrain !== null && bytes === undefined) throw new Error('Missing admitted terrain queries');
-  const data = bytes === undefined ? null : decodeTerrainTile(bytes);
+  const data = bytes === undefined || (source.terrain?.form === 'query' && source.terrain.collider === source.terrain.sampling.file) ? null : decodeTerrainTile(bytes);
   const profile = source.terrain?.sampling;
   const queries = profile === undefined ? null : (() => {
     const wire = assets.get(profile.file); if (wire === undefined) throw new Error('Missing admitted terrain sampling profile');

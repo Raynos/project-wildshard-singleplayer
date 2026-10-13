@@ -3664,6 +3664,23 @@ existing bytes. `BakedPiece.nodeExtras` supplies plain per-kind node rows
 for library subsets; one-copy instanced subsets reconstruct at their exact
 `instances64` matrix through the same game assembler.
 
+### Query-only native terrain
+
+`@wildshard/format/terrain` admits `form: "query"` with a required bilinear
+sampling profile and zero tiles, only when the hybrid runtime binds `terrain`.
+An omitted collider reference derives from sampling.file; an explicit separate
+collider retains the complete critical-heightfield checks. Neither form installs
+collision through the runtime terrain binder. Query binding returns original
+height/normal/splat queries and no render residency; it compiles no family
+material. Rings, regional presentation and the data client allocate no query
+terrain view. The default 80-tile form retains its original bytes and defaults.
+
+The content audit uses the existing bounded SDK `readNativeTerrain` reader in
+an isolated Node bake-loader process. A retained WSTR alias loses its private
+classification only after exact height/splat re-encoding to the admitted
+sampling payload, with no placement section or unread bytes. This does not
+waive hashes, critical costs, entry checks or native collision ownership.
+
 ### Original native terrain queries
 
 `readNativeTerrain(bytes)` in `@wildshard/sdk/bake/terrain` admits an

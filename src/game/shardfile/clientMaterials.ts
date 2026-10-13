@@ -102,7 +102,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   for (const entry of shard.props?.textures ?? []) resolveTexture(entry.colour, 'colour');
   const toon = new ToonLook(shard.look.familyLooks.toon ?? {}), painterly = new PainterlyLook(shard.look.familyLooks.painterly ?? {}), emissive = new EmissiveLook(shard.look.familyLooks.emissive ?? {});
   const context = { toon, painterly, emissive, textures: resolveTexture, scope }, materials = new Map<string, Material>();
-  const defaults = new Set([...shard.look.families, ...(shard.terrain === null ? [] : [shard.terrain.family]), ...(shard.props === null ? [] : [shard.props.family])]);
+  const defaults = new Set([...shard.look.families, ...(shard.terrain === null || shard.terrain.form === 'query' ? [] : [shard.terrain.family]), ...(shard.props === null ? [] : [shard.props.family])]);
   // a family's implicit surface is plain and vertex-coloured; PBR's metalness default is a map multiplier, so the plain one is dielectric
   for (const id of defaults) if (!Object.hasOwn(shard.look.materials, id)) materials.set(id, scope.own(familyMaterial({ family: id, vertexColours: true, ...(id === 'pbr' ? { metalness: 0 } : {}) }, context)));
   // graph entries: the lazy compiler loads only when the row is on and the shard carries one (a shard without pays nothing)

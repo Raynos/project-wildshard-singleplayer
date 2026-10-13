@@ -201,9 +201,10 @@ export function shardfileRules(s: Shardfile): string[] {
   if (new Set(s.sim.scripts).size !== s.sim.scripts.length) errors.push('unique script modules');
   if (s.sim.scripts.some((module) => !module.startsWith('commons:') && files.get(module)?.kind !== 'wasm')) errors.push('script module is a Wasm file');
   if (s.terrain !== null && (!s.critical.includes(s.terrain.collider) || files.get(s.terrain.collider)?.kind !== 'binary' || s.terrain.tiles.some((payload) => files.get(payload.file)?.kind !== 'binary' || !s.tiles.some((row) => row.lod === payload.lod && row.x === payload.x && row.z === payload.z && row.files.includes(payload.file))))) errors.push('declared terrain payload references');
+  if (s.terrain?.form === 'query' && s.runtime?.binds?.includes('terrain') !== true) errors.push('query terrain requires runtime.binds terrain');
   if (s.terrain?.sampling !== undefined && (!s.critical.includes(s.terrain.sampling.file) || files.get(s.terrain.sampling.file)?.kind !== 'binary')) errors.push('declared terrain sampling reference');
   if (s.terrain?.sampling !== undefined && s.meshCollision !== null) errors.push('terrain sampling and mesh ground are mutually exclusive');
-  if (s.look.families.some((family) => !materialExists({}, family)) || (s.terrain !== null && !materialExists(s.look.materials, s.terrain.family)) || s.rows.looks.some((row) => row.material !== null && !materialExists(s.look.materials, row.material))) errors.push('declared platform material family');
+  if (s.look.families.some((family) => !materialExists({}, family)) || (s.terrain !== null && s.terrain.form !== 'query' && !materialExists(s.look.materials, s.terrain.family)) || s.rows.looks.some((row) => row.material !== null && !materialExists(s.look.materials, row.material))) errors.push('declared platform material family');
   const species = new Map(s.rows.species.map((row) => [row.id, row])), strikes = new Map(s.rows.strikes.map((row) => [row.id, row]));
   for (const brain of s.creatures.brains) if (brain.kind === 'script' && (!s.sim.scripts.includes(brain.module) || brain.strikes.some((request) => !strikes.has(request.strike)))) errors.push('declared custom brain module and strikes');
   for (const declared of s.creatures.brains) {

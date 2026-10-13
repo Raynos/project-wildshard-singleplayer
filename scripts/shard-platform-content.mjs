@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process';
+import { execPath } from 'node:process';
 import { createHash } from 'node:crypto';
 import { readNavigation, navigationRules } from '@wildshard/format/navigation';
 // G304: report the built world envelope separately from the source-code ratio.
@@ -31,10 +33,34 @@ export function shardContent(slug, root, products = resolve(root, 'public/shardf
     || (present(source.props) && (!record(source.props) || !rows(source.props.colliders ?? [])
       || (source.props.colliders ?? []).some(collider => !rows(collider.shapes) || collider.shapes.some(shape => shape.kind === 'treads' && (!Number.isSafeInteger(shape.count) || shape.count < 1)))))
     || (present(source.meshCollision) && (!record(source.meshCollision) || !rows(source.meshCollision.tiles) || !rows(source.meshCollision.panels)))
-    || (present(source.terrain) && (!record(source.terrain) || typeof source.terrain.collider !== 'string' || !rows(source.terrain.tiles)
+    || (present(source.terrain) && (!record(source.terrain) || (source.terrain.form !== 'query' && typeof source.terrain.collider !== 'string') || !rows(source.terrain.tiles)
       || source.terrain.tiles.some(tile => typeof tile.file !== 'string')))
     || (present(source.nativeGround) && (!record(source.nativeGround) || typeof source.nativeGround.file !== 'string'))
     || (present(source.runtime) && (!record(source.runtime) || typeof source.runtime.entry !== 'string'))) return absent('invalid');
+  if (source.terrain?.form === 'query') {
+    if (!record(source.terrain.sampling) || source.terrain.tiles.length > 0 || !Array.isArray(source.runtime?.binds)
+      || !source.runtime.binds.includes('terrain')) return absent('invalid');
+    source.terrain.collider ??= source.terrain.sampling.file;
+  }
+  // Native WSTR aliases own only the exact admitted query lattice, never an opaque placement tail.
+  if (present(source.terrain?.sampling)) {
+    try {
+      const profile = source.terrain.sampling, file = source.files.find(row => row.hash === profile.file);
+      const candidates = [resolve(products, slug, 'assets', profile.file), resolve(root, 'src/shards', slug, 'assets', profile.file)];
+      const payload = candidates.find(candidate => existsSync(candidate));
+      if (payload === undefined || file?.kind !== 'binary' || !source.critical?.includes(profile.file)) return absent('invalid');
+      const bytes = readFileSync(payload);
+      if (bytes.length !== file.compressed || createHash('sha256').update(bytes).digest('hex') !== profile.file) return absent('invalid');
+      // The author reader runs through the existing Node TS loader; importing this report installs no loader or service.
+      const aliases = privateBinaries.map(alias => resolve(root, alias));
+      const matched = new Set(JSON.parse(execFileSync(execPath, ['--import', new URL('bake-loader.mjs', import.meta.url).pathname,
+        new URL('terrain-content-aliases.mjs', import.meta.url).pathname], {
+        input: JSON.stringify({ terrain: source.terrain, payload, aliases }), encoding: 'utf8', timeout: 10_000,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      })));
+      privateBinaries = privateBinaries.filter(alias => !matched.has(resolve(root, alias)));
+    } catch { return absent('invalid'); }
+  }
   // Only a fully declared, admitted WSNM payload owns legacy aliases. A filename or plain binary row never does.
   if (present(source.navigation)) {
     try {
@@ -55,7 +81,7 @@ export function shardContent(slug, root, products = resolve(root, 'public/shardf
   // Binaries a schema row hands to the platform's own decoder are tiles, not shard-private: mesh collision chunks and panels
   // (game shardfile/meshCollision), the heightfield's collider and tile payloads (shardfile/terrain), the look's LUT.
   const platformDecoded = new Set([...(source.meshCollision?.tiles ?? []), ...(source.meshCollision?.panels ?? []), ...(source.terrain?.tiles ?? [])]
-    .map(row => row.file).concat(source.terrain?.collider ?? [], source.look?.grade?.lut ?? [], source.navigation?.file ?? []).filter(file => typeof file === 'string'));
+    .map(row => row.file).concat(source.terrain?.collider ?? [], source.terrain?.sampling?.file ?? [], source.look?.grade?.lut ?? [], source.navigation?.file ?? []).filter(file => typeof file === 'string'));
   const kinds = new Map();
   let platformBinaries = 0;
   for (const file of source.files) {
@@ -66,7 +92,7 @@ export function shardContent(slug, root, products = resolve(root, 'public/shardf
   if (present(source.nativeGround)) privateBinaries.push(`shard.json nativeGround:${source.nativeGround.file} (trusted native collider owner)`);
   const descriptors = source.props?.colliders ?? [];
   const colliders = { descriptors: descriptors.length, shapes: descriptors.reduce((count, collider) => count + collider.shapes.reduce((total, shape) => total + (shape.kind === 'treads' ? shape.count : 1), 0), 0),
-    meshTiles: source.meshCollision?.tiles.length ?? 0, meshPanels: source.meshCollision?.panels.length ?? 0, heightfield: present(source.terrain) };
+    meshTiles: source.meshCollision?.tiles.length ?? 0, meshPanels: source.meshCollision?.panels.length ?? 0, heightfield: present(source.terrain) && (source.terrain.form !== 'query' || source.terrain.collider !== source.terrain.sampling.file) };
   const trustedSimulation = present(source.runtime);
   // This is a structural candidate, not a claim that a partial world covers all native geometry.
   const structuralWorld = source.tiles.length > 0 && source.files.length > 0

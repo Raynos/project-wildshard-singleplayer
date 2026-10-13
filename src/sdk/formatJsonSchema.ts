@@ -274,6 +274,11 @@ export function formatJsonSchema(schema: GenericSchema): FormatJsonSchema {
       if (valibotAction === CommonsCostsSchema.pipe[1]) {
         return { ...jsonSchema, maxProperties: SHARDFILE_ADMISSION_LIMITS.commons };
       }
+      // Only the defining query form derives an omitted collider reference from its required sampling file.
+      if (valibotAction === TerrainSchema.options[1].pipe[1]) return {
+        ...jsonSchema, required: [...jsonSchema.required ?? [], 'collider'],
+        'x-wildshard-checks': ['@wildshard/format/terrain#TerrainSchema.options.1.pipe.1'],
+      } satisfies FormatJsonSchema;
       // The retained clip transform returns its input unchanged; identity is checked against its defining object.
       if (valibotAction === SkinClipNameSchema.pipe[2]) return jsonSchema;
       const check = wireChecks.get(valibotAction);

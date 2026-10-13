@@ -114,7 +114,10 @@ it('retains presentation hashes, independent mesh chunk checks and strict hook/s
 
 it('documents exact terrain grids, bounded water and the closed twenty-accent palette', () => {
   const roots = formatJsonSchemas();
-  expect(roots['terrain.Terrain']?.['x-wildshard-checks']).toEqual(['@wildshard/format/terrain#TerrainSchema.pipe.1']);
+  expect(roots['terrain.Terrain']?.anyOf?.map((branch): unknown => typeof branch === 'object' ? Reflect.get(branch, 'x-wildshard-checks') : undefined)).toEqual([
+    ['@wildshard/format/terrain#TerrainSchema.options.0.pipe.1'],
+    ['@wildshard/format/terrain#TerrainSchema.options.1.pipe.1'],
+  ]);
   expect(roots['water.Water']?.maxItems).toBe(64);
   expect(roots['accent.Accent']?.enum).toHaveLength(20);
   expect(roots['accent.Accent']?.enum).not.toContain('cyan');

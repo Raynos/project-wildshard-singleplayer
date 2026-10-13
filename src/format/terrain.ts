@@ -20,9 +20,17 @@ const sampling = v.strictObject({ law: v.literal('bilinear'), file: ref,
  */
 const order = v.pipe(v.number(), v.integer(), v.minValue(-100), v.maxValue(100));
 /** The terrain's render files address the ordinary tile grid; the collider file is a separate critical sim root. */
-export const TerrainSchema = v.pipe(v.strictObject({ version: v.literal(1), family: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u)), collider: ref,
+const renderedTerrain = v.pipe(v.strictObject({ version: v.literal(1), form: v.exactOptional(v.literal('render')), family: v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u)), collider: ref,
   tiles: v.pipe(v.array(v.strictObject({ lod: v.picklist([0, 1]), x: address, z: address, file: ref })), v.length(80)),
   shadow: v.exactOptional(shadow), follow: v.exactOptional(follow), sampling: v.exactOptional(sampling), order: v.exactOptional(order) }),
 v.check((terrain) => new Set(terrain.tiles.map((tile) => `${tile.lod}/${tile.x}/${tile.z}`)).size === 80 && terrain.tiles.every((tile) => tile.x < (tile.lod === 0 ? 8 : 4) && tile.z < (tile.lod === 0 ? 8 : 4)), 'complete terrain tile grids'));
+const queryTerrain = v.pipe(v.strictObject({ version: v.literal(1), form: v.literal('query'),
+  family: v.optional(v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.-]*$/u)), 'toon'), collider: v.exactOptional(ref),
+  tiles: v.pipe(v.array(v.strictObject({ lod: v.picklist([0, 1]), x: address, z: address, file: ref })), v.length(0)),
+  sampling, shadow: v.exactOptional(shadow), follow: v.exactOptional(follow), order: v.exactOptional(order) }),
+v.transform((row) => ({ ...row, collider: row.collider ?? row.sampling.file })));
+/** Rendered terrain retains its original defaults; query terrain has no render tiles and requires a runtime terrain owner.
+ * An omitted query collider reference derives from sampling.file; this does not allocate collision. */
+export const TerrainSchema = v.union([renderedTerrain, queryTerrain]);
 /** A validated terrain section, containing no landscape closures. */
 export type ShardTerrain = v.InferOutput<typeof TerrainSchema>;

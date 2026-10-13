@@ -424,6 +424,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [source-generation-outputs.json](./source-generation-outputs.json)
 - [stutter-run.mjs](./stutter-run.mjs)
 - [telemetry-brief.mjs](./telemetry-brief.mjs)
+- [terrain-content-aliases.mjs](./terrain-content-aliases.mjs)
 - [texmem-probe.mjs](./texmem-probe.mjs)
 - [texture-inputs.d.mts](./texture-inputs.d.mts)
 - [texture-inputs.mjs](./texture-inputs.mjs)

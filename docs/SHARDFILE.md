@@ -843,6 +843,23 @@ queries over the admitted collider, resident fine-tile keys and `refresh(x, z)`.
 Tile residency and view disposal follow the supplied scope; the runtime retains
 physics ownership and must avoid installing duplicate ground.
 
+Query-only terrain is additive: `{version:1, form:"query", tiles:[],
+sampling:{law:"bilinear", file, normalEpsilon, datum}}`. Only a hybrid declaring
+`runtime.binds:["terrain"]` may use it. `collider` may be omitted; admission
+then derives its reference from `sampling.file`, without creating collision.
+An explicit distinct collider still passes the ordinary critical 257² collider
+checks. The optional family defaults to `toon` solely for the common terrain
+shape; query terrain compiles no material and draws no mesh. The binder returns
+the original bilinear height, normal and splat queries, an empty fine-tile set
+and a no-op residency refresh. The native runtime keeps collision ownership.
+Rings have no query tile to schedule; regional and data presentation skip it.
+
+The content report counts a retained WSTR alias as admitted only when the
+bounded `readNativeTerrain` author reader re-encodes its entire height/splat
+lattice to the exact hash-checked `terrain.sampling.file` bytes. A placement
+section or any unread tail remains private, even when its heights match. A
+plain binary declaration, wrong hash or differing sample grants no ownership.
+
 `runtime.binds: ["props"]` binds the ordinary compiled `props` section, including
 tiles, library models, panels, textures and the far proxy. The trusted runtime
 owns their installation and piece behaviour; naming the section alone installs
