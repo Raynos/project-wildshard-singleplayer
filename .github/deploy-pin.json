@@ -1,10 +1,10 @@
 {
   "$doc": "What production and the native OTA channel serve (E357 decision 32). Moved only by scripts/deploy-pin.mjs set (at a milestone; decision 103: the lead moves it when the gate is green) or rollback. mode: pinned (during GAME-NORMALIZATION) | newest-green (gpu-gate-green main) | newest-ci-green (the newest main whose push CI passed; Jake 2026-10-02).",
-  "mode": "pinned",
+  "mode": "newest-ci-green",
   "sha": "ad30fba68050dcf59902c06abdfb6bf3a03eb9de",
   "milestone": "post-Z4 hotfix-rollback-rollback-rollback",
   "gate": "grandfathered",
-  "go": "wildshard-new P0 release hold: since 9c2ce3013 public Nine exceeds the 1000 MB playing envelope; keep verified live ad30 until source fix and Developer-off Nine boot pass",
-  "set": "2026-10-13T10:46:05.637Z",
+  "go": "wildshard-new approved unpin condition cleared: c4e74b65bd778d5ec002ecd1b561a20bb810bde0 full Linux CI38445509424 + exact four-leg smoke38446642242 green; includes77bfbba70 Nine memory/frame fixes and8bfe85ab5 amended Developer-off public-policy admission; every case fault/report0, public card remains locked, Developer gameplay10frames. Newer CI reds fix forward; hourly and exact-proof gates kept.",
+  "set": "2026-10-13T18:56:37.384Z",
   "by": "E357 lead"
 }
