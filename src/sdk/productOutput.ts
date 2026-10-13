@@ -7,6 +7,9 @@ import { MemoryAdmission, validationRevision, validationSourceBytes } from '@wil
 import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { performanceReport, performanceReportLines, performanceTargetIssues } from './reportCard';
+import { packProjectMap } from './projectMap';
+import { readBoundedFile } from './sourceReader';
+import { STILL_IMAGE_LIMITS } from '@wildshard/format/stillImage';
 
 function memory(policy: 'warn' | 'refuse'): MemoryAdmission | undefined { return policy === 'warn' ? new MemoryAdmission(() => true) : undefined; }
 
@@ -42,4 +45,18 @@ export function writeProduct(input: unknown, assets: ReadonlyMap<string, Uint8Ar
   writeFileSync(resolve(destination, 'shard.json'), encodeCanonicalJson(shard));
   writeFileSync(resolve(destination, 'validation.json'), encodeCanonicalJson({ revision: validationRevision(), sourceHash: hashImmutableBytes(validationSourceBytes(shard)), worst: preflightDeclaredCosts(shard, memory(policy)).worst }));
   return shard;
+}
+
+/** Read bounded immutable author assets and emit a complete product without loading a root config or trusted world.
+ * Local and required commons bytes live under assets/, named by hash. An optional frozen map is also an authored asset.
+ * All costs, bytes, graph closure and performance targets are admitted before any product file is written. */
+export function writeAuthoredProduct(input: unknown, project: string, destination: string, map?: { readonly file: string; readonly tilesHash: string }): Shardfile {
+  const source = parseShardfile(input);
+  if (map !== undefined && !/^assets\/(?:[A-Za-z0-9_-][A-Za-z0-9_.-]*\/)*[A-Za-z0-9_-][A-Za-z0-9_.-]*$/u.test(map.file)) throw new Error('Product map must be an authored asset path');
+  const bytes = map === undefined ? undefined : readBoundedFile(resolve(project, map.file), STILL_IMAGE_LIMITS.bytes);
+  const packed = map === undefined || bytes === undefined ? undefined : packProjectMap(source, { bytes, tilesHash: map.tilesHash });
+  const shard = packed?.shard ?? source;
+  const assets = new Map(shard.files.map(file => [file.hash, file.hash === packed?.hash && bytes !== undefined ? bytes : readBoundedFile(resolve(project, 'assets', file.hash), file.compressed)]));
+  for (const hash of shard.requires.commons) assets.set(`commons:${hash}`, readBoundedFile(resolve(project, 'assets', hash), shard.requires.commonsWire[hash] ?? 0));
+  return writeProduct(shard, assets, destination);
 }

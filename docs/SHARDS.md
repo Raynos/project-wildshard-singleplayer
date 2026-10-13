@@ -103,7 +103,8 @@ two ledger facts and the bullwhip row live in `shard.config.ts`; the runtime res
 `Bullwhip`, which reads its crack numbers from the row.
 
 To start a shard, copy `src/shards/_template/` to a fresh project folder, install
-`@wildshard/sdk`, and edit the identity in `shard.config.ts`. Run `wildshard build
+`@wildshard/sdk`, and open `shard.config.ts` to edit the identity (follow its imported
+author-only declaration when the entry is thin). Run `wildshard build
 <folder>` and `wildshard validate <folder>`. The config imports only SDK modules;
 content-addressed assets are already included. Build-time generators may use author
 tools, while shipped behaviour is admitted AssemblyScript and callback-free data.

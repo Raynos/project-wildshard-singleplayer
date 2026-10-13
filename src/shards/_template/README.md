@@ -2,7 +2,8 @@
 
 Copy this folder to start a shardfile project; see [SHARDS.md](../../../docs/SHARDS.md)
 and [SHARDFILE.md](../../../docs/SHARDFILE.md). Install `@wildshard/sdk`, edit the
-identity in `shard.config.ts`, then run `wildshard build <folder>` and
+identity via the documented `shard.config.ts` entry (follow its import to
+`generators/product.ts`), then run `wildshard build <folder>` and
 `wildshard validate <folder>`. Included immutable assets make the copy buildable.
 
 `data/` declares terrain, props, exported creature skins, brains, encounters, items,
@@ -27,3 +28,11 @@ Four native proofs under `test/proof/_template/` cover boot, 10,000 fixed ticks,
 checkpoint replay and ledger dedupe. Weapon input/replay and HUD regressions use the
 declared item runtime. The installed-client proof covers real door/lantern input,
 tile driving, cached/offline revisit and scoped unload.
+
+The complete author-only producer is `generators/build-product.mjs`. It
+uses the same declaration, admission and immutable writer as the normal
+SDK build. `assets/map.webp` and `data/productMap.json` freeze the authored
+map raster and its official stamp; refresh them together after an official
+map bake. The live stale-map gate still checks `look/map.baked.json` and
+the public raster. Comparison-only product pins in the generation catalogue
+are a report-only clean-room rehearsal, never permission to remove assets.

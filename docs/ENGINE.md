@@ -3757,7 +3757,8 @@ the existing whole-geometry reader; do not draw its subsets separately.
 with `wildshard build`: `admitProduct` checks actual immutable asset bytes
 and costs; `assertProductTargets` applies the same target policy;
 `writeProduct` writes canonical `shard.json`, every charged asset, and an
-informational validation receipt. It reads no config, runtime or retained
+informational validation receipt. `writeAuthoredProduct` reads bounded
+immutable inputs from the project assets folder before using that writer. It reads no config, runtime or retained
 product. `@wildshard/sdk/projectMap` supplies `packProjectMap` and its
 `ProjectMap` input to retain the exact bounded map raster in the library.
 
