@@ -169,7 +169,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   // ── Look ──
   opt('graphMaterials', 'look', engineString('s_graph_materials'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_graph_materials_note') }),
 
-  opt('nearTier', 'look', engineString('s_near_tier'), [['far', engineString('s_near_tier_far')], ['near', engineString('s_near_tier_near')], ['all', engineString('s_near_tier_all')]], { reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_near_tier_note') }),
 
   // ── Sky & weather ──
   // Authored clocks and weather opt in through level mechanisms.

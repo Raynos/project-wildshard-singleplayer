@@ -49,7 +49,6 @@ import { farRingPorts, type FarPrepared, type FarProxyView } from './farView';
 import { bindCellCover, cellCoverPort } from './cellCover';
 import type { FarLookRuntime } from './farProxy';
 import { NearPlaceholders, type NearPlaceholderState } from './nearPlaceholderView';
-import { setting } from '@wildshard/engine/ui/Settings';
 import { GridFrame, type GridFrameHost, type GridFrameState } from './frame';
 import { installHazeBand } from './hazeBand';
 import { LiveGridSession, type LiveGridPage, type LiveGridSessionState } from './liveSession';
@@ -159,8 +158,8 @@ export interface GridSessionState {
   readonly live: LiveGridSessionState | null;
   /** SF25 / G66: each shardfile neighbour's client-script life (frozen cells breathe and graze) */
   readonly life: readonly NeighbourLifeCell[];
-  /** G342: the near-placeholder tier's cells and resident bytes (null on Debug ▸ Look ▸ Neighbour detail A) */
-  readonly near: NearPlaceholderState | null;
+  /** G342 / G385: the near-placeholder tier's cells and resident bytes */
+  readonly near: NearPlaceholderState;
 }
 
 /** The shardfile neighbours' L1 / L0 tiles (sources load late: until then the catalogue has no tile and the far proxy draws). */
@@ -281,8 +280,8 @@ export class GridSession {
   /** G222 playtest #7: each neighbour's declared doors and gates, shown exactly when its region has them standing */
   private readonly panels: NeighbourPanels;
   private readonly softWalls: { readonly step: () => void; readonly state: () => SoftWallState };
-  /** G342: the near-placeholder tier (Debug ▸ Look ▸ Neighbour detail B); null on A, the shipped far proxies */
-  private near: NearPlaceholders | null = null;
+  /** G342 / G385: the near-placeholder tier, shipped for everyone: the four nearest cells draw their near view */
+  private readonly near: NearPlaceholders;
   private readonly shimmer: { readonly step: () => void; readonly state: () => BorderShimmerState };
   /** G167: why a neighbour's shard can't load (its product refused, with the admission's message) and its far view's status */
   private readonly refusals = new Map<string, ShardRefusal>();
@@ -457,30 +456,29 @@ export class GridSession {
       view.dispose = () => { unband(); untag(); dispose(); };
       return view;
     } };
-    // the drawn far views, for the cell screen's far-view row; G342 B: each one's mask is mirrored onto its near view
+    // the drawn far views, for the cell screen's far-view row; G342: each one's mask is mirrored onto its near view
     const drawnFar = new Map<string, { view: FarProxyView; excluded: ReadonlySet<number> }>();
+    // G385: the near tier draws for everyone. C (G380) is the hero captures' alone: every neighbour draws its near view,
+    // whatever its distance or the four-cell cap, pinned by the capture's init script (`__wildshardHarness.nearEvery`)
+    const near = new NearPlaceholders({ every: typeof window !== 'undefined' && window.__wildshardHarness?.nearEvery === true,
+      allocator: this.allocator, cells: this.assembly.cells, pitch: this.assembly.pitch, root: (id) => roots.get(id),
+      load: (id) => loadNear(this.assembly.cell(id).slug, { allocator: this.allocator, scope: host.scope }),
+      cover: (id, covered) => { const drawn = drawnFar.get(id); if (drawn !== undefined) drawn.view.mesh.visible = !covered && drawn.excluded.size < 16; },
+      mask: (id) => drawnFar.get(id)?.excluded ?? new Set<number>(),
+      adopt: (view) => (frame === null ? () => undefined : frame.proxy(view)), decorate: horizon.patch });
+    this.near = near;
+    host.scope.onDispose(() => { near.dispose(); });
     const farPorts = { ...framedPorts, upload: (tile: { instance: string }, data: FarPrepared) => {
       const view: FarProxyView = framedPorts.upload(tile, data), dispose = view.dispose;
       this.farViews.add(tile.instance); this.farMeshes.set(tile.instance, view);
       view.dispose = () => { this.farViews.delete(tile.instance); if (this.farMeshes.get(tile.instance) === view) this.farMeshes.delete(tile.instance); dispose(); };
-      if (this.near !== null) {
-        const id = tile.instance, entry = { view, excluded: new Set<number>() as ReadonlySet<number> }, mask = view.mask, gone = view.dispose;
-        drawnFar.set(id, entry);
-        view.mask = (excluded) => { entry.excluded = excluded; mask(excluded); if (this.near?.shows(id) === true) view.mesh.visible = false; this.near?.remask(id); };
-        view.dispose = () => { if (drawnFar.get(id) === entry) drawnFar.delete(id); gone(); };
-        if (this.near.shows(id)) view.mesh.visible = false;
-      }
+      const id = tile.instance, entry = { view, excluded: new Set<number>() as ReadonlySet<number> }, mask = view.mask, gone = view.dispose;
+      drawnFar.set(id, entry);
+      view.mask = (excluded) => { entry.excluded = excluded; mask(excluded); if (near.shows(id)) view.mesh.visible = false; near.remask(id); };
+      view.dispose = () => { if (drawnFar.get(id) === entry) drawnFar.delete(id); gone(); };
+      if (near.shows(id)) view.mesh.visible = false;
       return view;
     } };
-    if (setting('nearTier') !== 'far') {
-      // C (G380, the hero captures): every neighbour draws its near view, whatever its distance or the four-cell cap
-      this.near = new NearPlaceholders({ every: setting('nearTier') === 'all', allocator: this.allocator, cells: this.assembly.cells, pitch: this.assembly.pitch, root: (id) => roots.get(id),
-        load: (id) => loadNear(this.assembly.cell(id).slug, { allocator: this.allocator, scope: host.scope }),
-        cover: (id, covered) => { const drawn = drawnFar.get(id); if (drawn !== undefined) drawn.view.mesh.visible = !covered && drawn.excluded.size < 16; },
-        mask: (id) => drawnFar.get(id)?.excluded ?? new Set<number>(),
-        adopt: (view) => (frame === null ? () => undefined : frame.proxy(view)), decorate: horizon.patch });
-      host.scope.onDispose(() => { this.near?.dispose(); this.near = null; });
-    }
     // SF25 / G66: frozen neighbours look alive (presentation-only client scripts; their sims never step here)
     this.life = new NeighbourLife({ scope: host.scope, simulation: (id) => this.live?.simulation(id), active: (id) => (this.live === null ? this.home.instance : this.live.live.current()) === id });
     // one late system for the grid (the page's onLate takes one label): the alive neighbours, then the one frame's weights
@@ -491,11 +489,11 @@ export class GridSession {
       horizon.patch(tile.group, 'outside');
       await host.prepareTile?.(tile);
     }), tileCost = clientRingCatalogue(tiles.instances);
-    // G342 round 3, Neighbour detail B: a cell whose near view draws and carries its own world owns it whole (its dense
+    // G342 round 3: a cell whose near view draws and carries its own world owns it whole (its dense
     // ground over the cell), so the rings stop refining it to its own L1 / L0 tiles, which would mask the near view near
     // the road (round 3's first A = B); a terrain-only near view (the template, its world in its tiles) keeps them
     this.rings = new RenderRings(this.neighbours, this.allocator, (id, level, x, z) => (level === 'far' ? this.costs.get(id) ?? 1_600_000
-      : this.near?.owns(id) === true ? null : tileCost(id, level, x, z)),
+      : this.near.owns(id) ? null : tileCost(id, level, x, z)),
       levelPorts<FarPrepared, PreparedRingTile>(farPorts, tiles.ports));
     if (host.renderer !== undefined) void this.admitTiles(host.renderer, roots, tiles.instances);
     host.scope.onDispose(() => {
@@ -631,14 +629,14 @@ export class GridSession {
     this.last = at;
     const speed = Math.hypot(this.velocity.x, this.velocity.z), clamp = speed > 60 ? 60 / speed : 1; // a respawn's jump is not a velocity
     this.rings.step({ x: at.x, z: at.z, vx: this.velocity.x * clamp, vz: this.velocity.z * clamp });
-    if (this.near !== null) for (const cell of this.neighbours) if (this.near.owns(cell.instance)) this.rings.retireRefinement(cell.instance);
+    for (const cell of this.neighbours) if (this.near.owns(cell.instance)) this.rings.retireRefinement(cell.instance);
     this.softWalls.step();
     this.screens.step();
     this.shimmer.step();
     this.plots.step(dt);
     const inside = this.assembly.at(at.x, at.z), active = this.live === null ? this.home.instance : this.live.live.current();
     const eye = this.host.eye?.();
-    this.near?.update(eye === undefined || !Number.isFinite(eye.x) || !Number.isFinite(eye.z) ? at : { x: at.x + eye.x, z: at.z + eye.z }, active);
+    this.near.update(eye === undefined || !Number.isFinite(eye.x) || !Number.isFinite(eye.z) ? at : { x: at.x + eye.x, z: at.z + eye.z }, active);
     if (inside === undefined || inside.instance !== active) gridCells.leave();
     else gridCells.enter({ instance: inside.instance, slug: inside.slug });
   }
@@ -665,7 +663,7 @@ export class GridSession {
     const stats = this.rings.stats(), residentKeys = this.rings.resident(), resident = new Set(residentKeys.map((key) => key.split(':')[0]));
     const at = this.world(), cost = this.allocator.cost(), playing = this.live === null ? this.home.instance : this.live.live.current();
     const tiles = (instance: string, level: 'l1' | 'l0'): number => residentKeys.filter((key) => key.startsWith(`${instance}:${level}/`)).length;
-    const drawn = (instance: string): GridCellDrawn => ({ far: this.farMeshes.get(instance)?.mesh.visible === true, near: this.near?.visible(instance) === true, l1: tiles(instance, 'l1'), l0: tiles(instance, 'l0') });
+    const drawn = (instance: string): GridCellDrawn => ({ far: this.farMeshes.get(instance)?.mesh.visible === true, near: this.near.visible(instance), l1: tiles(instance, 'l1'), l0: tiles(instance, 'l0') });
     // the home off its cell (an owned home on the road) is drawn like any neighbour; `frozen` only when no layer draws it
     const shows = (instance: string, d: GridCellDrawn): GridCellShows => instance === playing ? 'playing'
       : d.near ? 'near' : d.far ? 'far proxy' : d.l1 + d.l0 > 0 ? 'tiles' : instance === this.home.instance ? 'frozen' : resident.has(instance) ? 'far proxy' : 'loading';
@@ -679,7 +677,7 @@ export class GridSession {
       frame: this.frame?.state() ?? null,
       live: this.live?.state() ?? null,
       life: this.life.state(),
-      near: this.near?.state() ?? null,
+      near: this.near.state(),
     };
   }
 }

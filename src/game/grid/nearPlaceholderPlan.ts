@@ -13,7 +13,7 @@ export interface NearPlaceholderPlan {
 /** What the plan should keep (held: drawn or loading now) or pass over (skip: no near placeholder to draw). */
 export interface NearPlanOptions {
   readonly held?: ReadonlySet<string>; readonly skip?: ReadonlySet<string>;
-  /** G380 (Debug ▸ Neighbour detail C, the hero captures only): every cell, with no reach or count limit */
+  /** G380 / G385 C (the hero captures only): every cell, with no reach or count limit */
   readonly every?: boolean;
 }
 

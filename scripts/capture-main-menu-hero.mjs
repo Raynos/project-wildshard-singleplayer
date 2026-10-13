@@ -3,17 +3,18 @@
  * --round=landscape (G336 round 3): the five landscapeHeroPlan poses at 2560×1440 and 1920×1080, desktop tier, DSF 1.
  * --round=square (G344): squareHeroPlan at a phone-1x lens, the square poses at 2048×2048 and 1440×1440 and the
  *   landscape ones at 2560×1440 and 1920×1080, desktop tier, DSF 1; each pose's fovDegrees is the capture camera's only.
- * --round=near (G342): the near-tier A / B / C, raw and unlabelled: Debug Neighbour detail A (far proxy), B (near
- *   placeholder, the four nearest cells) and C (every cell near, capture-only), four road views from the roundabout to
- *   each crossroads cell, on iPhone 16 Pro portrait and 1920×1080 desktop; files <A|B|C>-<pose>-<device>.png.
+ * --round=near (G342 / G385): the near tier B / C, raw and unlabelled: B (the shipped game, the four nearest cells on
+ *   their near placeholder) and C (every cell near: the capture-only harness pin `__wildshardHarness.nearEvery`, never a
+ *   setting), four road views from the roundabout to each crossroads cell, on iPhone 16 Pro portrait and 1920×1080
+ *   desktop; files <B|C>-<pose>-<device>.png. (A, the far proxy only, was deleted by G385.)
  * --round=near also shoots the shipped hero (round 6's SQ-NE-b, G383, entered with --enter, after the road views). Every
  *   frame records each cell's real tier (grid.state().cells[].shows / drawn: near, far proxy, tiles, playing) and the
  *   near tier's own readout (frame.near), for the labels.
- * --round=5 (G372): round5HeroPlan (above Nalati's centre looking toward Driftwood) with Neighbour detail B on.
- * --round=6 (G379 / G380): round6HeroPlan (above Nalati's far edge, across it to Driftwood) with Neighbour detail C on
- *   (every cell's near view, the capture-only row).
+ * --round=5 (G372): round5HeroPlan (above Nalati's centre looking toward Driftwood) with the near tier (B, shipped).
+ * --round=6 (G379 / G380): round6HeroPlan (above Nalati's far edge, across it to Driftwood) with C pinned (every cell's
+ *   near view, the capture-only harness pin).
  * --round=4 (G343): round4HeroPlan (above Driftwood, Nalati and Pine, aimed across the roundabout; never the template)
- *   with Debug Neighbour detail B (near placeholders) on; the square round's sizes and lenses.
+ *   with the near tier (B, shipped); the square round's sizes and lenses.
  *   --enter stands the player in the cell under the eye first (enterOver); --only=<ids> / --sessions=<keys> narrow a re-shoot.
  *   --pose=<id>:<ex,ey,ez>:<tx,ty,tz>[:<px,pz>] (round near) shoots one view of your own instead of the road views and
  *   the hero, the player standing on the roundabout or at <px,pz>.
@@ -229,7 +230,7 @@ async function captureAerial(base) {
   // Square (G344): the same desktop contexts, square resolutions for the square poses and 16:9 for the landscape ones.
   const desktop = (width, height, poses) => ({ key: `${width}x${height}`, poses,
     context: { ...devices['Desktop Chrome'], viewport: { width, height }, deviceScaleFactor: 1 },
-    settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0, ...(round4 ? { nearTier: round === '6' ? 'all' : 'near' } : {}) }, gfx: { dpr: 'native', aa: 'auto' } });
+    settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' }, nearEvery: round === '6' });
   // G342: from the roundabout to each of the four crossroads cells (the game's own lens), then the shipped hero (NE-b, G383)
   const centre0 = plan.road ?? plan.poses[0].target, nearPoses = [...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => ({ id: `road-${i}`, name: `Road view ${i}`,
     eye: { x: centre0.x - sx * 30, y: 22, z: centre0.z - sz * 30 }, target: { x: centre0.x + sx * 240, y: 0, z: centre0.z + sz * 240 } })),
@@ -240,11 +241,11 @@ async function captureAerial(base) {
   const [standX, standZ] = (custom[3] ?? '').split(',').map(Number), stand = custom.length === 4 ? { x: standX, y: 0, z: standZ } : null;
   if (custom.length >= 3) nearPoses.splice(0, nearPoses.length, { id: custom[0], name: custom[0], eye: { x: eyeX, y: eyeY, z: eyeZ }, target: { x: toX, y: toY, z: toZ } });
   const sessions = (near
-    ? ['far', 'near', 'all'].flatMap(nearTier => [
-      { key: `${{ far: 'A', near: 'B', all: 'C' }[nearTier]}-iphone`, poses: nearPoses, context: { ...devices['iPhone 16 Pro'] },
-        settings: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, nearTier }, gfx: { dpr: '2', aa: 'auto' } },
-      { key: `${{ far: 'A', near: 'B', all: 'C' }[nearTier]}-desktop`, poses: nearPoses, context: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 },
-        settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0, nearTier }, gfx: { dpr: 'native', aa: 'auto' } }])
+    ? ['B', 'C'].flatMap(mode => [
+      { key: `${mode}-iphone`, poses: nearPoses, context: { ...devices['iPhone 16 Pro'] }, nearEvery: mode === 'C',
+        settings: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 }, gfx: { dpr: '2', aa: 'auto' } },
+      { key: `${mode}-desktop`, poses: nearPoses, context: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 }, nearEvery: mode === 'C',
+        settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' } }])
     : square
     ? [[2048, 2048, 'square'], [1440, 1440, 'square'], [2560, 1440, 'landscape'], [1920, 1080, 'landscape']]
       .map(([width, height, aspect]) => desktop(width, height, plan.poses.filter(p => p.aspect === aspect)))
@@ -271,7 +272,8 @@ async function captureAerial(base) {
         await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
         await saveFixture(context, { scope: 'global', key: 'settings', merge: true, data: session.settings });
         await saveFixture(context, { scope: 'global', key: 'gfx', data: session.gfx });
-        await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });
+        // G385: C (every cell near) is this pin alone, set before the page loads; B is the shipped game
+        await context.addInitScript(nearEvery => { window.__wildshardHarness = { seed: 357, capture: null, ...(nearEvery ? { nearEvery: true } : {}) }; }, session.nearEvery === true);
         await context.route('**/api/errors', route => route.fulfill({ status: 204, body: '' }));
         const page = await context.newPage(), errors = [], consoleErrors = [];
         page.setDefaultTimeout(180000);

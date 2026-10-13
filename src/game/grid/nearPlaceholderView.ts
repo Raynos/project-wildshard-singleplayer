@@ -17,7 +17,7 @@ import { planNearPlaceholders } from './nearPlaceholderPlan';
 
 /** What the owner needs from the grid session. */
 export interface NearPlaceholderHost {
-  /** G380 (Debug ▸ Neighbour detail C): every cell near, no reach or four-cell cap (captures only) */
+  /** G380 / G385 C: every cell near, no reach or four-cell cap (the hero captures' harness pin only, never a setting) */
   readonly every?: boolean;
   readonly allocator: ResidencyAllocator;
   readonly cells: readonly GridCell[];

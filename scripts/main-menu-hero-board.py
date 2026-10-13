@@ -279,7 +279,7 @@ def round4(source, output, report, options):
               font=font(25), fill='#a9cce0')
     entered = all(row.get('entered') is not None for row in rows)
     draw.text((margin, 128), ('the cell under the camera entered (its own runtime), the others near tier B; ' if entered
-                              else 'with the near-placeholder tier on (Neighbour detail B); ')
+                              else 'with the near-placeholder tier on (B, shipped by G385); ')
               + 'phone-1x lens: square 62°, landscape 70° across.', font=font(25), fill='#a9cce0')
     draw.text((margin, 176), f'Recommended: {pick} (square) and {pick_wide} (landscape). {why}', font=font(27), fill='#ffd27a')
 

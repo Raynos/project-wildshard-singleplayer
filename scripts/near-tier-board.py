@@ -165,8 +165,8 @@ def main(source, output, tag=None):
             for aspect in ('SQ', 'LS'):
                 order += [labelled[s['file']] for s in shots if s['id'] == f"{aspect}-{'NE' if six else 'NW'}-{variant}"]
         board(order, 2, f"Main-menu hero · round {tag or '6'} · above Nalati’s far edge, toward Driftwood" if six else 'Main-menu hero · round 5 · above Nalati, toward Driftwood',
-              ('Neighbour detail C (every cell near) · Nalati entered · phone-1x lens · each label lists every cell’s drawn tier' if six
-               else 'Neighbour detail B · Nalati entered · phone-1x lens · each label lists every cell’s drawn tier'),
+              ('near tier C (every cell near, capture only) · Nalati entered · phone-1x lens · each label lists every cell’s drawn tier' if six
+               else 'near tier B (shipped, G385) · Nalati entered · phone-1x lens · each label lists every cell’s drawn tier'),
               output / 'board.jpg', 900)
     (output / 'capture.json').write_text(json.dumps(report, indent=2) + '\n')
 

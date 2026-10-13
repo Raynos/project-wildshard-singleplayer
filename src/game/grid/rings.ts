@@ -142,7 +142,7 @@ export class RenderRings<D> {
     return true;
   }
   /**
-   * G342 B (Neighbour detail B): drop a cell's L1 / L0 tiles, children first, so its coarse level (the near view over its
+   * G342 / G385 (the near tier): drop a cell's L1 / L0 tiles, children first, so its coarse level (the near view over its
    * far proxy) draws the whole cell. The caller's catalogue must stop offering the cell's tiles, or the next step wants
    * them again. The parents' masks follow on the next step's re-mask.
    */
