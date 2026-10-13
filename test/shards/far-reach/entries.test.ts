@@ -1,3 +1,4 @@
+import { FAN_GUST_MODULE } from '../../../src/shards/far-reach/data/fanGustModule';
 // oxlint-disable-next-line import/no-nodejs-modules -- The admission check reads the committed, content-addressed islet module.
 import { readFileSync } from 'node:fs';
 import { LIFT_MODULE } from '../../../src/shards/far-reach/data/liftModule';
@@ -30,7 +31,7 @@ describe('Sky Reach Rising Islet entries', () => {
     // every admitted file (the islet and the bridge modules, the navigation mesh, the islands' props tiles) from its committed bytes
     const admitted = new Map(source.files.map((file) => [file.hash, Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${file.hash}`))]));
     expect(source.navigation).toBeDefined();
-    expect(source.files.map((file) => file.hash).sort((a,b)=>a.localeCompare(b))).toEqual([BRIDGE_MODULE.hash, LIFT_MODULE.hash, source.navigation?.file, ...(source.props?.tiles.map((tile) => tile.file) ?? [])].sort((a,b)=>String(a).localeCompare(String(b))));
+    expect(source.files.map((file) => file.hash).sort((a,b)=>a.localeCompare(b))).toEqual([BRIDGE_MODULE.hash, LIFT_MODULE.hash, FAN_GUST_MODULE.hash, source.navigation?.file, ...(source.props?.tiles.map((tile) => tile.file) ?? [])].sort((a,b)=>String(a).localeCompare(String(b))));
     expect(() => validateShardfileAssets(source, admitted, contentHash)).not.toThrow();
     const lifts = socketLiftEntries(source.entryways);
     expect(lifts.map((row) => [row.lift.mover, row.lift.gate, row.lift.approach?.colliders])).toEqual(RISING_ISLETS.map((e) => [`far.islet.${e.edge}`, `far.islet.${e.edge}.gate`, [`landing.${e.edge}`]]));
@@ -38,7 +39,8 @@ describe('Sky Reach Rising Islet entries', () => {
     // All authored movers are admitted; the socket subset remains exactly the four islets and gates.
     expect(source.movers).toEqual(MOVERS);
     expect(source.movers.filter(row => row.id.startsWith('far.islet.')).map((m) => m.id).sort()).toEqual(RISING_ISLETS.flatMap((e) => [`far.islet.${e.edge}`, `far.islet.${e.edge}.gate`]).sort());
-    expect(new Set(source.movers.map((m) => m.module))).toEqual(new Set(source.sim.scripts));
+    expect(new Set(source.movers.map((m) => m.module))).toEqual(new Set([BRIDGE_MODULE.hash, LIFT_MODULE.hash]));
+    expect(new Set(source.sim.scripts)).toEqual(new Set([BRIDGE_MODULE.hash, LIFT_MODULE.hash, FAN_GUST_MODULE.hash]));
     // no lip, one shifted 9.5 m along the edge, or one 1 cm proud of the road: refused
     const props = source.props; if (props === null) throw new Error('Sky Reach declares its landings');
     const shifted = (dy: number, dt: number) => props.colliders.map((row) => {

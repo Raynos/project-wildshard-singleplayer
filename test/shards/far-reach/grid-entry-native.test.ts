@@ -1,3 +1,6 @@
+import { BRIDGE_MODULE } from '../../../src/shards/far-reach/data/bridgeModule';
+import { LIFT_MODULE } from '../../../src/shards/far-reach/data/liftModule';
+import { FAN_GUST_MODULE } from '../../../src/shards/far-reach/data/fanGustModule';
 // oxlint-disable-next-line import/no-nodejs-modules -- Native proof consumes the committed immutable islet module.
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
@@ -23,7 +26,7 @@ it('walks and rides all four authored Rising Islets, calls both stops and closes
     expect(proof).toMatchObject({ lanes: 92, liftRides: 8, liftCalls: 8 });
     expect(proof.steps).toBeGreaterThan(0);
     expect([sim.host.physics.world.bodies.len(), sim.host.physics.world.colliders.len()]).toEqual(before);
-    expect(sim.lane?.host.checkpoint().modules).toHaveLength(2);
+    expect(sim.lane?.host.checkpoint().modules.map(module => module.name).sort()).toEqual([BRIDGE_MODULE.hash, LIFT_MODULE.hash, FAN_GUST_MODULE.hash].sort());
   } finally { sim.dispose(); }
   expect(sim.host.scope.disposed).toBe(true);
   expect(sim.host.physics.world.bodies).toBeUndefined();

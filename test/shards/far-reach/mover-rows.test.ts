@@ -1,3 +1,6 @@
+import { BRIDGE_MODULE } from '../../../src/shards/far-reach/data/bridgeModule';
+import { LIFT_MODULE } from '../../../src/shards/far-reach/data/liftModule';
+import { FAN_GUST_MODULE } from '../../../src/shards/far-reach/data/fanGustModule';
 // oxlint-disable-next-line import/no-nodejs-modules -- The native owner consumes the committed, admitted guest modules.
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
@@ -17,7 +20,8 @@ it('admits every authored clip row in the exact former browser and native instal
   const former = parseMovers([...MOVERS.filter(row => !isSocket(row.id)), ...parseMovers(MOVERS.filter(row => isSocket(row.id)))]);
   expect(parseMovers(source.movers)).toEqual(former);
   expect(parseMovers(source.movers.filter(row => !row.id.startsWith(SKY_MOVER_BINDING.staticPrefix)))).toEqual(former.filter(row => !row.id.startsWith(SKY_MOVER_BINDING.staticPrefix)));
-  expect(new Set(source.movers.map(row => row.module))).toEqual(new Set(source.sim.scripts));
+  expect(new Set(source.movers.map(row => row.module))).toEqual(new Set([BRIDGE_MODULE.hash, LIFT_MODULE.hash]));
+  expect(new Set(source.sim.scripts)).toEqual(new Set([BRIDGE_MODULE.hash, LIFT_MODULE.hash, FAN_GUST_MODULE.hash]));
 });
 
 it('restores the travelling winch and pending command without duplicating native mover bodies', async () => {
