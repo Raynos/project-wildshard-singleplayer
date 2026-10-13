@@ -281,6 +281,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [generated-policy.mjs](./generated-policy.mjs)
 - [generation-cache.d.mts](./generation-cache.d.mts)
 - [generation-cache.mjs](./generation-cache.mjs)
+- [generation-candidate.py](./generation-candidate.py)
 - [generation-clean-room.d.mts](./generation-clean-room.d.mts)
 - [generation-clean-room.mjs](./generation-clean-room.mjs)
 - [generation-inventory.d.mts](./generation-inventory.d.mts)
