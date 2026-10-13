@@ -77,7 +77,7 @@ describe('manual game loop contract', () => {
     expect(dts.slice(15)).toEqual([0.02, 0.02, 0.02]);
     expect(times.at(-1)).toBeCloseTo(0.12);
     expect(game.fixedSteps).toBeGreaterThanOrEqual(1);
-    expect(worldTime).toEqual({ realDt: 0.02, scale: 1 });
+    expect(worldTime).toEqual({ realDt: 0.02, scale: 1, t: null });
   });
 
   it.each(['input', 'pre', 'step', 'post', 'update', 'late'] as const)('isolates a throwing %s system after the production fault streak', (phase) => {
