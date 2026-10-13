@@ -23,6 +23,5 @@
 8. Commons 0 packs; plan desk: SF26/DS1.6 done-when → "first two-real-shard pack (G355)".
 9. Physics rows no recipe can compute are authored literally (`data/physicsRows.json`, G350).
 10. Signal navmesh kept byte-identical (739 polys) from the recipe's old height lattice, not rebaked.
-11. Driftwood's loot RNG stream declared in `src/game/rng.merge.d.ts` so the gate's narrowed typecheck sees it (`d3c462a00`).
 
-Paused: frame floor, SF22, SF57.
+Paused: frame floor, SF22, SF57, SF67.
