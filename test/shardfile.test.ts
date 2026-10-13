@@ -20,6 +20,8 @@ it.each(readdirSync(dir).filter((f) => f.startsWith('warn-')))('warns instead of
 
 it.each(readdirSync(dir).filter(file => file.startsWith('target-')))('grades %s at the build boundary instead of corrupting the format', file => {
   const shard = parseShardfile(JSON.parse(readFileSync(dir + file, 'utf8')));
-  expect(performanceTargetIssues(shard).some(issue => issue.severity === 'refusal')).toBe(true);
+  const issues = performanceTargetIssues(shard);
+  expect(issues.length).toBeGreaterThan(0);
+  expect(issues.every(issue => issue.severity === (file.startsWith('target-tile-') ? 'warning' : 'refusal'))).toBe(true);
   expect(performanceTargetIssues(shard, 'warn').every(issue => issue.severity === 'warning')).toBe(true);
 });

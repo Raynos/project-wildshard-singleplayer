@@ -468,8 +468,8 @@ const near = (tile: Shardfile['tiles'][number], x: number, z: number): boolean =
 /** Cheap target grading before asset reads; format integrity and total-memory admission remain separate. */
 export function performanceTargetIssues(source: Shardfile, policy: 'refuse' | 'warn' = 'refuse'): PerformanceIssue[] {
   const issues: PerformanceIssue[] = [];
-  const check = (metric: string, actual: number, limit: number): void => {
-    if (actual > limit) issues.push({ metric, actual, limit, severity: policy === 'warn' ? 'warning' : 'refusal' });
+  const check = (metric: string, actual: number, limit: number, provisional = false): void => {
+    if (actual > limit) issues.push({ metric, actual, limit, severity: provisional || policy === 'warn' ? 'warning' : 'refusal' });
   };
   check('library download budget bytes', source.budgets.library.compressed, C.library.compressed);
   check('critical download budget bytes', source.budgets.sim.compressed, C.sim.compressed);
@@ -477,7 +477,7 @@ export function performanceTargetIssues(source: Shardfile, policy: 'refuse' | 'w
   check('critical download bytes', totals(source, reportCardClosure(source, source.critical)).bytes, C.sim.compressed);
   for (const tile of source.tiles) {
     const cap = tile.lod === 0 ? C.l0 : C.l1, id = `tile ${tile.lod}/${tile.x}/${tile.z}`;
-    check(`${id} download bytes`, tile.compressed, cap.compressed); check(`${id} draws`, tile.draws, cap.draws); check(`${id} triangles`, tile.triangles, cap.triangles);
+    check(`${id} download bytes`, tile.compressed, cap.compressed, true); check(`${id} draws`, tile.draws, cap.draws, true); check(`${id} triangles`, tile.triangles, cap.triangles, true);
   }
   if (source.far !== null) {
     check('far download bytes', source.far.compressed, C.far.compressed); check('far draws', source.far.draws, C.far.draws); check('far triangles', source.far.triangles, C.far.triangles);
