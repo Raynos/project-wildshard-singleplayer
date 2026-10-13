@@ -2243,7 +2243,7 @@
     },
     "scene": {
       "totals": {
-        "mesh": 579,
+        "mesh": 580,
         "instanced": 44,
         "instances": 3701,
         "skinned": 36,
@@ -2287,7 +2287,12 @@
         {
           "path": "kurgan-dungeon",
           "type": "Group",
-          "n": 33
+          "n": 34
+        },
+        {
+          "path": "kurgan-dungeon/kurgan-interior",
+          "type": "Mesh",
+          "n": 0
         },
         {
           "path": "light-pool",
@@ -2628,17 +2633,17 @@
     },
     "render": {
       "programs": 115,
-      "programKeys": "2534542e89d4edf5bd05e723b093c8382716f245e23e99f5a5326427aee3ef85",
+      "programKeys": "c6874b7b5de8a657e5a06e2e27ba577e2dddef7d9016bc4d040b7d068bce7efb",
       "memory": {
         "geometries": 393,
         "textures": 159
       }
     },
     "gpuBytes": {
-      "textures": 408051512,
+      "textures": 458383160,
       "renderbuffers": 79074304,
       "buffers": 79056466,
-      "total": 566182282
+      "total": 616513930
     },
     "audio": {
       "requests": [
@@ -34049,7 +34054,7 @@
     "plains": 1
   },
   "harness": 2,
-  "sha": "f983de200b2b54ccde9cb551cc41188c24445222",
-  "recorded": "2026-10-09T12:45:52.318Z",
+  "sha": "84eb0f68fe1b2972c66049fea52517836da7b736",
+  "recorded": "2026-10-13T12:28:11.159Z",
   "browser": "153.0.8010.12"
 }
