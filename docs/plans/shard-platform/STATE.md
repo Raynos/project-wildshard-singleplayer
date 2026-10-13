@@ -20,12 +20,9 @@
 2. Signal road seam = drawn sand tint (`f54924aa3`).
 3. Missing Sky models stand undrawn, no stand-ins (`d5267c284`).
 4. Metric per-export (`ddf5c4dea`); entryway proof credits Sky's lift proof to Nine (`add1035d6`).
-5. Signal dusk proven by uniforms, not captures (`d9112c821`).
 6. New SDK export `./bake` (`6d2161e6f`).
-7. Fan test snapshot re-accepted; game viewmodel 0 px diff (`5dc782337`).
 8. Plugin folds into existing modules (SDK callers block internalising).
 9. `terrain.bin` → session-installed engine ground loader (no debt rise).
-10. Rigs +2.3 MB (`38145d61d`); compression in flight.
 11. Sky tiles = island prop tiles its runtime draws, no fake tiles (`28439b8ee`).
 12. Commons 0 packs; plan desk: SF26/DS1.6 done-when → "first two-real-shard pack (G355)".
 13. Hero cropped from the labelled round-4 board.
