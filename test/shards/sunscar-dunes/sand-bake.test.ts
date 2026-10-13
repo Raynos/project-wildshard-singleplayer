@@ -36,7 +36,7 @@ describe('Signal Dunes bakes its sand maps offline (SHARD-PLATFORM SF72, RENDERI
     for (const url of Object.values(SAND_FILES)) expect(bootFiles()).toContain(url);
   });
 
-  it('the client uploads the bake as the textures it computed: the same bytes, formats, filters and grain means', async () => {
+  it('the client uploads the bake as the textures it computed: the same bytes, formats and filters', async () => {
     serve(committed);
     const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { shadow, trail, grain } = await loadSandMaps();
@@ -48,7 +48,6 @@ describe('Signal Dunes bakes its sand maps offline (SHARD-PLATFORM SF72, RENDERI
     }
     expect([grain.image.width, grain.format, grain.wrapS, grain.minFilter, grain.generateMipmaps, grain.anisotropy]).toEqual([GRAIN_TILE, RGBAFormat, RepeatWrapping, LinearMipmapLinearFilter, true, 8]);
     expect(grain.image.data).toEqual(bake.grain);
-    expect([grain.userData['meanR'], grain.userData['meanGlint']]).toEqual([bake.meanR, bake.meanGlint]);
   });
 
   it('the client reads the baked skirt back exact: the standalone reach and the cube cut, indexed as built', async () => {

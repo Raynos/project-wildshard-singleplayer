@@ -2,43 +2,18 @@ import { MeshStandardMaterial, type Material, type Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { setGroundPools, updateGround, type GroundPool } from '@wildshard/engine/render/families/ground';
-import type { GroundLayerParams } from '@wildshard/format/materialFamilies';
+import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
+import { curvedParams } from '@wildshard/format/materials';
 import { mappedFamilyMaterial } from './bakedGround';
-import { duskRow } from './duskCurves';
 import type { DuskSandRow, DuskSkyRow } from '../../data/familyLook';
 
 /**
  * Dusk family surfaces (SHARD-PLATFORM M3; ex a dune shard's sky and sand): a sand that is the PBR family's ground layer
  * over three baked maps (a grain tile, a trail mask, a key-shadow map) and a painted sky that is the emissive family's sky
  * over two dusk stages, both moved by one dusk value (0 the first frame … 1 the end of the dusk) through uniforms only.
- * The sand's dusk terms (the ripples' contrast, the grain's strength, the albedo, the shade and the faces turned from the
- * afterglow) are dusk-curve rows (`./duskCurves`); the burning fires are the ground layer's light pools. Nothing here
- * knows a shard: the maps' names, numbers, wind and afterglow come in as rows and arguments.
+ * The sand's dusk terms are state-bound material curves (the format's `look.curves` rows, `curvedParams`); the burning
+ * fires are the ground layer's light pools. Nothing here knows a shard: the maps' names and numbers come in as rows.
  */
-
-/** Where a dusk sand lies: the wind its ripples run with and where the afterglow is brightest (x / z). */
-export interface DuskSandSite { readonly wind: { readonly x: number; readonly z: number }; readonly glow: { readonly x: number; readonly z: number } }
-
-/** The grain tile's own means (the shader subtracts them so every faded grain term is zero-mean). */
-export interface GrainMeans { readonly mean: number; readonly glintMean: number }
-
-/** A dusk sand's family terms at one dusk value (clamped to 0..1). */
-export function duskSandAt(row: DuskSandRow, dusk: number, grain: GrainMeans, glow: DuskSandSite['glow']): Pick<GroundLayerParams, 'contrast' | 'grain' | 'albedo' | 'shade' | 'away'> {
-  const terms = duskRow(row.curves, Math.min(1, Math.max(0, dusk))) as Pick<GroundLayerParams, 'contrast' | 'albedo' | 'shade'> & { readonly grainStrength: number; readonly away: number };
-  return { contrast: terms.contrast, grain: { map: row.maps.grain, mean: grain.mean, glintMean: grain.glintMean, strength: terms.grainStrength }, albedo: terms.albedo, shade: terms.shade,
-    away: { from: [glow.x, glow.z], amount: terms.away } };
-}
-
-/** A dusk sand's family entry: the PBR family with its ground layer over its three maps. */
-export function duskSandEntry(row: DuskSandRow, dusk: number, grain: GrainMeans, site: DuskSandSite): unknown {
-  return { family: 'pbr', vertexColours: true, roughness: row.roughness, metalness: row.metalness, ground: {
-    wind: [site.wind.x, site.wind.z],
-    ...duskSandAt(row, dusk, grain, site.glow),
-    trail: { map: row.maps.trail, rect: row.trail.rect, ripples: row.trail.ripples, tint: row.trail.tint, amount: row.trail.amount },
-    keyShadow: { map: row.maps.shadow, rect: row.keyShadow.rect, edge: row.keyShadow.edge, floor: row.keyShadow.floor },
-    pools: { low: row.pools.low, high: row.pools.high, split: row.pools.split, radius: row.pools.radius, gain: row.pools.gain },
-  } };
-}
 
 /** The live sand: its material and the adapter that moves it with the dusk and the fires. */
 export interface DuskSand {
@@ -47,14 +22,14 @@ export interface DuskSand {
   readonly update: (dusk: number, fires: readonly GroundPool[]) => void;
 }
 
-/** A dusk sand as a PBR family material over its baked maps (the grain's `meanR` / `meanGlint` in its user data); freed with `scope`. */
-export function duskSand(row: DuskSandRow, maps: { readonly grain: Texture; readonly trail: Texture; readonly shadow: Texture }, site: DuskSandSite, dusk: number, scope: Scope): DuskSand {
-  const grain = { mean: Number(maps.grain.userData['meanR']), glintMean: Number(maps.grain.userData['meanGlint']) };
-  const material = mappedFamilyMaterial(duskSandEntry(row, dusk, grain, site), { [row.maps.grain]: maps.grain, [row.maps.trail]: maps.trail, [row.maps.shadow]: maps.shadow }, scope, row.name);
-  if (!(material instanceof MeshStandardMaterial)) throw new Error(`${row.name}: the PBR family compiles to a MeshStandardMaterial`);
+/** A dusk sand as a PBR family material over its baked maps (keyed by the row's map names), at `dusk`; freed with `scope`. */
+export function duskSand(row: DuskSandRow, maps: Readonly<Record<string, Texture>>, dusk: number, scope: Scope): DuskSand {
   let fed = dusk;
+  const base = parseFamilyMaterial(row.entry), fedDusk = (): number => fed;
+  const material = mappedFamilyMaterial(curvedParams(base, row.curves, fedDusk), maps, scope, row.name);
+  if (!(material instanceof MeshStandardMaterial)) throw new Error(`${row.name}: the PBR family compiles to a MeshStandardMaterial`);
   return { material, update: (next, fires) => {
-    if (next !== fed) { fed = next; updateGround(material, duskSandAt(row, next, grain, site.glow)); }
+    if (next !== fed) { fed = next; const moved = curvedParams(base, row.curves, fedDusk); if (moved.family === 'pbr' && moved.ground !== null) updateGround(material, moved.ground); }
     setGroundPools(material, fires);
   } };
 }

@@ -2,14 +2,13 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
-import { curveAt, materialCurveRules, type Curve } from '@wildshard/format/materials';
+import { curvedParams, materialCurveRules } from '@wildshard/format/materials';
+import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { Scope } from '../src/engine/app/scope';
-import { familyMaterial } from '../src/engine/render/families/registry';
-import { updateGround } from '../src/engine/render/families/ground';
+import { familyMaterial, moveFamilyMaterial } from '../src/engine/render/families/registry';
 import { ToonLook } from '../src/engine/render/families/toon';
 import { clientMaterials } from '../src/game/shardfile/clientMaterials';
-import { curveAt as duskCurveAt, duskRow } from '../src/shards/sunscar-dunes/runtime/looks/duskCurves';
-import { SAND_DUSK, AERIAL_FOG, FILL, type DuskCurve, type DuskRow } from '../src/shards/sunscar-dunes/data/dusk';
+import { SAND_DUSK } from '../src/shards/sunscar-dunes/data/dusk';
 import template from '../src/shards/_template/shard.config';
 
 /** clientMaterials reads the renderer only for KTX2 and graph compiles; these entries need neither. */
@@ -21,26 +20,15 @@ function renderer(): THREE.WebGLRenderer {
 const field = (id: number, name: string, value: number) => ({ id, name, type: 'f64' as const, privacy: 'public' as const, default: value, min: 0, max: 1 });
 const uniforms = (m: THREE.Material): string => JSON.stringify(m.userData['familyUniforms'], (_key, value: unknown) => value instanceof THREE.Texture ? value.name : value);
 
-/** Signal's dusk sand terms (data/dusk.ts SAND_DUSK) as `look.curves` rows: every curve leaf under `ground.` (the grain's strength aside, it needs its map). */
-const isCurve = (row: DuskRow): row is { readonly curve: DuskCurve } => typeof row === 'object' && !Array.isArray(row) && 'curve' in row;
-function sandRows(row: DuskRow, path: string): { param: string; state: string; curve: Curve }[] {
-  if (isCurve(row)) return [{ param: path === 'ground.away' ? 'ground.away.amount' : path, state: 'shared.dusk', curve: row.curve }];
-  if (typeof row !== 'object') return [];
-  if (Array.isArray(row)) return row.flatMap((item: DuskRow, i: number) => sandRows(item, `${path}.${String(i)}`));
-  return Object.entries(row).flatMap(([key, value]) => key === 'grainStrength' ? [] : sandRows(value, `${path}.${key}`));
-}
+/** Signal's dusk sand curves (data/dusk.ts SAND_DUSK, `look.curves` rows; the grain's strength aside, it needs its map). */
+const sandRows = SAND_DUSK.filter((row) => row.param !== 'ground.grain.strength');
 
 describe('state-bound curves on family materials (look.curves)', () => {
-  it('evaluates the dusk-curve shapes exactly as Signal\'s own evaluator', () => {
-    for (const curve of [AERIAL_FOG, FILL]) for (const d of [0, 0.13, 0.5, 0.71, 1]) expect(curveAt(curve, d)).toBe(duskCurveAt(curve, d));
-  });
-
-  it('moves Signal\'s sand ground layer with a declared dusk field, uniform for uniform as its dusk adapter', async () => {
+  it('moves Signal\'s sand ground layer with a declared dusk field, uniform for uniform as moving it by hand', async () => {
     const base = emptyShardfile({ slug: 'curve-sand', name: 'Curve sand', author: 'Local', seed: 1, revision: 1 });
-    const at0 = duskRow(SAND_DUSK, 0) as { contrast: unknown; albedo: number; shade: unknown; away: number };
-    const entry = { family: 'pbr', vertexColours: true, roughness: 0.88, metalness: 0, ground: { wind: [-0.643, 0.766], contrast: at0.contrast, albedo: at0.albedo, shade: at0.shade, away: { from: [0.3, -0.9], amount: at0.away } } };
+    const entry = { family: 'pbr', vertexColours: true, roughness: 0.88, metalness: 0, ground: { wind: [-0.643, 0.766], away: { from: [0.3, -0.9], amount: 0 } } };
     const shard: Shardfile = parseShardfile({ ...base, state: { ...base.state, shared: [field(1, 'dusk', 0.25)] },
-      look: { ...base.look, families: ['toon', 'pbr'], materials: { sand: entry }, curves: { sand: sandRows(SAND_DUSK, 'ground') } } });
+      look: { ...base.look, families: ['toon', 'pbr'], materials: { sand: entry }, curves: { sand: sandRows } } });
     expect(materialCurveRules(shard)).toEqual([]);
     const scope = new Scope('curve-sand'), reference = new Scope('curve-sand-ref');
     try {
@@ -52,8 +40,7 @@ describe('state-bound curves on family materials (look.curves)', () => {
       client.graphs.bind({ state: (scopeName, name) => scopeName === 'shared' && name === 'dusk' ? dusk : undefined });
       for (const next of [0.25, 0.6, 1, 0]) {
         dusk = next; client.tick(1 / 30);
-        const terms = duskRow(SAND_DUSK, next) as { contrast: { near: number; far: number; window: [number, number]; strength: number }; albedo: number; shade: { tint: [number, number, number]; gain: number; lift: [number, number, number]; amount: number; edge: number; floor: [number, number, number] }; away: number };
-        updateGround(twin, { contrast: terms.contrast, albedo: terms.albedo, shade: terms.shade, away: { from: [0.3, -0.9], amount: terms.away } });
+        moveFamilyMaterial(twin, curvedParams(parseFamilyMaterial(entry), sandRows, () => next));
         expect(uniforms(sand)).toBe(uniforms(twin));
       }
       expect(sand.customProgramCacheKey()).toBe(program);
