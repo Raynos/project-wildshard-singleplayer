@@ -26,6 +26,8 @@
 12. Commons 0 packs; plan desk: SF26/DS1.6 done-when → "first two-real-shard pack (G355)".
 14. Signal glows drape on a generated copy of the old ground heights (pixel-exact; `5cfc5674b`); `terrain.bin` gone (`602f8136a`).
 
+**For wildshard-v, Jake ask (S2 blocked, sp-o77):** today's SF59 graphs can't keep the fire look: graphs are always fogged and alpha-only (fire needs fog off, additive/premultiplied, depthWrite off, depth bias, point embers, view billboards); graphs only compile from shardfile `look.materials`; and **Graph materials is default-off pending a physical-iPhone reading**, so the GLSL must stay as fallback (no cut). Recommend: approve an **SF59 effect-state row** (blend / fog / depthWrite / depthBias, points, view billboard; users Signal fire + Sky wind) and accept the Simulator + desktop frame-floor reading (or one normal playtest with Debug ▸ Graph materials on) to default the row on. Weapons → shared rows proceeds meanwhile.
+
 **Jake picks waiting:** Signal look A/B (`art/signal-look/round-1/`): recommend A.
 
 Paused: frame floor, SF22, SF57, SF67.
