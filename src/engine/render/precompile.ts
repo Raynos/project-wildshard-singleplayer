@@ -67,12 +67,14 @@ export interface CompileJob {
   environment?: THREE.Texture;
   /** Release only stand-in resources, after their owner's real draws no longer need the cached programs. */
   dispose?: () => void;
+  /** Diagnostic family of this job (scene, shadow, exterior…): new programs are counted per kind in the stage trace. */
+  kind?: string;
 }
 
 export interface PrecompileReport { materials: number; jobs: number; programs: number; parallel: boolean }
 
 /** Scalar preparation stage observation. Elapsed time includes painted waits; units count completed jobs/resources. */
-export type PrecompileStage = (phase: 'compile' | 'link' | 'upload', elapsedMs: number, units: number) => void;
+export type PrecompileStage = (phase: 'compile' | 'link' | 'upload' | 'upload-kib' | `programs:${string}`, elapsedMs: number, units: number) => void;
 
 const exteriorLighting = new WeakMap<THREE.Scene, { environment: THREE.Texture | null; roots: Set<THREE.Object3D> }>();
 
@@ -702,8 +704,10 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   const mode = parallel ? 'parallel' : 'serial';
   let tFrame = performance.now(), programsAtFrame = programCount(renderer);
   let stageStart = tFrame;
+  const programsByKind = new Map<string, number>();
   for (const [i, job] of jobs.entries()) {
     checkCurrent();
+    const programsBefore = programCount(renderer);
     const prevRt = renderer.getRenderTarget(), prevTone = renderer.toneMapping;
     const fog = job.target?.fog ?? null;
     const environment = job.target?.environment ?? null;
@@ -721,6 +725,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       if (job.fogOff && job.target) job.target.fog = fog;
       if (job.environment !== undefined && job.target) job.target.environment = environment;
     }
+    const made = programCount(renderer) - programsBefore;
+    if (made > 0 && job.kind !== undefined) programsByKind.set(job.kind, (programsByKind.get(job.kind) ?? 0) + made);
     if (isolateImageUploads) {
       for (const program of snapshotPrograms(renderer)) if (!before.has(program) || jobPrograms.has(program)) queue(program);
     }
@@ -734,7 +740,10 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   }
   created.push(...newProgramsSince(renderer, before));
   for (const program of before) if (jobPrograms.has(program)) created.push(program);
-  if (onStage !== undefined) { onStage('compile', performance.now() - stageStart, jobs.length); stageStart = performance.now(); }
+  if (onStage !== undefined) {
+    for (const [kind, count] of programsByKind) onStage(`programs:${kind}`, 0, count);
+    onStage('compile', performance.now() - stageStart, jobs.length); stageStart = performance.now();
+  }
   const pending = created.filter(program => !resolvedPrograms.has(program));
   const n = pending.length;
   // Ordinary parallel preparation waits for the batch before resolving it. Live preparation
@@ -787,6 +796,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   // op-hitch32: with an upload budget, live preparation batches image uploads per frame under it: several instead of one
   // when isolated, and a predicted overshoot waits for the next frame instead of the 12 ms check after the fact.
   const batch = uploadBudget !== undefined ? newUploadBatch(uploadBudget) : undefined;
+  let imageBytes = 0, slowestUpload = 0;
   for (const [i, tex] of uploadTextures.entries()) {
     checkCurrent();
     const compressed = tex instanceof THREE.CompressedTexture;
@@ -803,6 +813,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       }
     }
     onProgress?.(base + i + 1, base + uploadTextures.length, `${i + 1} / ${uploadTextures.length} textures uploaded`);
+    if (imageUpload) { imageBytes += bytes; slowestUpload = Math.max(slowestUpload, performance.now() - tUpload); }
     if (compressed) { checkCurrent(); tSlice = performance.now(); batch?.reset(); }
     else if (batch !== undefined) { if (imageUpload) batch.add(bytes, performance.now() - tUpload); }
     else if (isolateImageUploads ? imageUpload : performance.now() - tSlice > sliceMs) { await pause(); checkCurrent(); tSlice = performance.now(); }
@@ -811,6 +822,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
   if (batch?.pending() === true) await pause();
   checkCurrent();
   onStage?.('upload', performance.now() - stageStart, uploadTextures.length);
+  // Image bytes uploaded (KiB) with the slowest single upload's main-thread time.
+  onStage?.('upload-kib', slowestUpload, Math.round(imageBytes / 1024));
   return { materials, jobs: jobs.length, programs: created.length, parallel };
 }
 
@@ -877,20 +890,25 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const single = options.isolateImageUploads === true || options.sliceMs !== undefined;
     const per = single ? 1 : 6;
     const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
+    const kinded = (kind: string, list: CompileJob[]): CompileJob[] => { for (const job of list) job.kind = kind; return list; };
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 } : sceneJobs(scene, rt, per, [scene], excludedRoots);
+    // Diagnostic split: the entered root's own materials, else the rest of the page compiled under its lights.
+    const entered = new Set<THREE.Material>();
+    options.futureLighting?.traverse(object => { for (const material of materialsOf(object)) entered.add(material); });
+    for (const job of jobs) job.kind = job.root.children.some(clone => materialsOf(clone).some(material => entered.has(material))) ? 'scene-entered' : 'scene-other';
     // material families (SF10a): live family programs the scene does not hold yet (none live: no jobs)
-    if (policy?.scene !== false) jobs.push(...familyCompileJobs(scene, rt, per, exclusiveMaterials(scene, excludedRoots)), ...offscreenJobs(scene, 1, excludedRoots));
-    if (policy?.shadows !== false) jobs.push(...shadowJobs(scene, rt, per, excludedRoots));
+    if (policy?.scene !== false) jobs.push(...kinded('family', familyCompileJobs(scene, rt, per, exclusiveMaterials(scene, excludedRoots))), ...kinded('offscreen', offscreenJobs(scene, 1, excludedRoots)));
+    if (policy?.shadows !== false) jobs.push(...kinded('shadow', shadowJobs(scene, rt, per, excludedRoots)));
     const bg = backgroundJob(scene, rt);
-    if (bg && policy?.background !== false) jobs.push(bg); else bg?.dispose?.();
-    if (policy?.post !== false) jobs.push(...postJobs(game.composer, rt, single ? 1 : Number.POSITIVE_INFINITY));
+    if (bg && policy?.background !== false) jobs.push(...kinded('background', [bg])); else bg?.dispose?.();
+    if (policy?.post !== false) jobs.push(...kinded('post', postJobs(game.composer, rt, single ? 1 : Number.POSITIVE_INFINITY)));
     // Three renders shadows before setupLights(), so the first entered shadow draw still uses the preceding
     // road frame's light state. Warm that depth variant too; the following shadow draw uses the future state.
     const previousShadows = policy?.shadows !== false && options.futureLighting !== undefined && options.futureLighting !== scene
-      ? shadowJobs(scene, rt, per, excludedRoots) : [];
+      ? kinded('previous-shadow', shadowJobs(scene, rt, per, excludedRoots)) : [];
     if (options.futureLighting !== undefined) includeFutureLights(jobs, scene, options.futureLighting, options.futureEnvironment);
     jobs.push(...previousShadows);
-    if (policy?.scene !== false) jobs.push(...exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per));
+    if (policy?.scene !== false) jobs.push(...kinded('exterior', exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per)));
     const owner = options.owner ?? resourceScope();
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
     const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage, options.sliceMs);

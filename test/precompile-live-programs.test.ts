@@ -36,7 +36,7 @@ async function slices(jobs: number, perJob: number, live: boolean, linkDelay = 0
 it('reports scalar stage units without changing the live compile/link schedule', async () => {
   const result = await slices(5, 2, true);
   expect(result.stages).toEqual([{ phase: 'compile', elapsedMs: 0, units: 5 }, { phase: 'link', elapsedMs: 0, units: 5 },
-    { phase: 'upload', elapsedMs: 0, units: 0 }]);
+    { phase: 'upload', elapsedMs: 0, units: 0 }, { phase: 'upload-kib', elapsedMs: 0, units: 0 }]);
   expect(result.compiled).toEqual([0, 1, 2, 3, 4]);
   expect(result.resolved).toEqual(Array.from({ length: 10 }, (_, i) => i));
 });
