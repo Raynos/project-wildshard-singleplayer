@@ -22,7 +22,7 @@ Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an own
 | SF60 | Daily pinned build / playtest / feedback receipts (automation only) | S, recurring | sp-x7 |
 | SF61 | Retire comparison and director switches after parity; delete dead paths; lower the Debug inventory | S–M | deletion half done (sp-o94: `de6802f39` inventory, `8ebbf72ba`, `af889bfea`; `debugRows.max` 7 → 4). Left: `graphMaterials`, `nearTier` (Jake picks), `tex` (four scripts set it), `shardDirectors` (SF81) |
 | SF64 | < 10 % no-owner memory attribution with aligned native / heap / region evidence | L | next free |
-| SF66 | The baked map image inside the charged shardfile file closure / schema | M | next free |
+| SF66 | The baked map image inside the charged shardfile file closure / schema | M | **done** `ed161dbfc` (existing MapSchema + `packProjectMap`; builder checks the pixel digest; 10 maps byte-exact) |
 | SF77 / SF79 base exit | Content-gate adoption and enforcement as ports qualify; remove private runtime-decoded world binaries | M | next free |
 | SF80 / DS1.6 / SF26 | Production adoption of the qualified commons packs with download-once proof (figure textures are O) | M–L | after O inputs |
 | SF72 / SF46-p, SF47-p, SF48-p | Driftwood, Pine and Nalati whole-native witness gaps, then shrink the bridges | XL each | after BR rows |

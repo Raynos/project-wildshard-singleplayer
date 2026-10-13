@@ -10,7 +10,7 @@
 **Signal and Sky both meet Jake's port bar (tiles + 0 private binaries).** Authored physics (G350), navigation rows (`c9f6e59be`); content-gate issue left: "trusted runtime owns simulation". `plugin/` 20 → 14.
 **LIVE `2f7cc5e25-mv6dko3t` (07:44Z)**: Sky island tiles, NE-b hero, fire A, nav rows, authored physics. Desktop frame floor at `fea49ae28` RED (worst 133–267 ms): sp-o93.
 
-**Fleet (G384): 4 Opus + 6 Codex.** Codex: sp-x7 pusher; sp-x5 bench-max; sp-x6 SF66 map packing; sp-x4 Pine; sp-x1 Driftwood; sp-x8 Nine (Linux proof). Opus: sp-o92 desktop render, sp-o93 frame floor, sp-o95 Nalati query terrain, sp-o96 Sky world → baked.
+**Fleet (G384): 4 Opus + 6 Codex.** Codex: sp-x7 pusher; sp-x5 bench-max; sp-x6 SF66 map packing; sp-x4 Pine; sp-x1 Driftwood; sp-x8 Nine (Linux proof). Opus: sp-o93 frame floor, sp-o97 sound diffs, sp-o95 Nalati query terrain, sp-o96 Sky world → baked.
 
 **For wildshard-v, Jake ask (G350 Nalati places):** bake runs 22k engine lines for 4.2 MB. **Port** to authored generators (big) or **freeze** the bins + rows as authored inputs (cheap, not regenerable). Recommend port later; bridge stays.
 
