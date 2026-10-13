@@ -77,7 +77,7 @@ jobs:
       - name: Every public shard reaches real page-ready
         if: matrix.part == 'boot-public'
         run: node scripts/parity/boot-smoke.mjs --case-group=public
-      - name: Every experimental shard and Developer grid reach page-ready
+      - name: Experimental shards, grid home and Signal road entry reach page-ready
         if: matrix.part == 'boot-developer'
         run: node scripts/parity/boot-smoke.mjs --case-group=developer
       - name: Chromium touch HOVER mounts in the template and on the grid road

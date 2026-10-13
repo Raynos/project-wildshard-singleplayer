@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Browser callback fixture keeps production services out of the unit test.
 import { runInNewContext } from 'node:vm';
 import { expect, it } from 'vitest';
-import { bootCases, bootCatalogue } from '../scripts/parity/boot-smoke.mjs';
+import type { FloorGridState, FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
+import { bootCases, bootCatalogue, bootSignalRoadPlan, verifyBootSignalRoad } from '../scripts/parity/boot-smoke.mjs';
 
 const source = readFileSync('scripts/parity/boot-smoke.mjs', 'utf8');
 const observer = source.slice(source.indexOf('export function bootObservation()'), source.indexOf('/** @param')).replace('export ', '');
@@ -102,6 +103,41 @@ it('boots the entire actual public catalogue and experimental primaries without 
   expect(source).toContain('started + 90000');
   expect(source).toContain('grid spawn is under a collider'); // E463
   expect(source).toContain("page.locator('.ws-grid-reveal').dispatchEvent('pointerdown')");
+});
+
+it('requires an actual entered Signal road crossing, not a prepared cell or ready home', () => {
+  const cells: FloorGridState['cells'] = [
+    { slug: 'driftwood-isle', instance: 'home', cell: [0, 0] },
+    { slug: 'sunscar-dunes', instance: 'signal', cell: [2, -1] },
+  ];
+  const plan = bootSignalRoadPlan({ cells });
+  expect(plan.start).toEqual({ x: 1110, z: -303.5 });
+  expect(plan.waypoints).toEqual([{ x: 1110, z: -310 }]);
+  expect(plan).toMatchObject({ from: null, to: 'signal', requiredResidents: ['signal'], finishOnArrival: true });
+  expect(() => bootSignalRoadPlan({ cells: [cells[0]] })).toThrow('missing');
+  expect(() => bootSignalRoadPlan({ cells: [...cells, cells[1]] })).toThrow('ambiguous');
+  expect(() => bootSignalRoadPlan({ cells: [{ slug: 'sunscar-dunes', instance: 'signal', cell: [Number.NaN, 0] }] })).toThrow('address');
+  const state = (current: string | null, crossings: number, z: number): FloorGridState => ({
+    home: 'home', inside: current, cells,
+    live: { crossing: { phase: 'idle', issue: null }, live: { current, crossings,
+      worldFeet: { x: 1110, y: 0.55, z }, gameplayReady: true,
+      residents: current === null ? [] : [current], transitions: current === null ? [] : [{ from: null, to: current }] } },
+  });
+  const witness: FloorGridWitness = { plan, before: state(null, 0, -303.5), after: state('signal', 1, -310),
+    elapsedSeconds: 1, trace: [{ seconds: 0.25, x: 1110, y: 0.55, z: -304, current: null, gameplayReady: true }] };
+  expect(() => verifyBootSignalRoad(witness)).not.toThrow();
+  expect(() => verifyBootSignalRoad({ ...witness, after: state('home', 1, 0) })).toThrow('Destination');
+  expect(() => verifyBootSignalRoad({ ...witness, after: { ...witness.after, live: { ...witness.after.live,
+    live: { ...witness.after.live.live, crossings: 0, transitions: [] } } } })).toThrow('frame commits');
+  expect(() => verifyBootSignalRoad({ ...witness, after: { ...witness.after, live: { ...witness.after.live,
+    live: { ...witness.after.live.live, gameplayReady: false } } } })).toThrow('not ready');
+  expect(() => verifyBootSignalRoad({ ...witness, after: { ...witness.after, live: { ...witness.after.live,
+    live: { ...witness.after.live.live, residents: [] } } } })).toThrow('residents');
+  expect(() => verifyBootSignalRoad({ ...witness, trace: [{ seconds: 0.25, x: 1110, y: 0.55, z: -304, current: 'signal', gameplayReady: true }] })).toThrow('road frame');
+  expect(source).toContain("const road = mode === 'grid' ? await bootSignalRoad(page, faults) : null");
+  expect(source).toContain('runFloorGridRoute(page, plan, documentOrigin)');
+  expect(source).toContain('Date.now() + 90000');
+  expect(source).toContain('Signal ten live gameplay frames');
 });
 
 it('keeps hourly/manual promotion and reuses only an exact successful push-CI proof', () => {

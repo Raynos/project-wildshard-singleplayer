@@ -56,7 +56,10 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `.github/workflows/boot-smoke.yml` follows successful main push CI (or an explicit SHA dispatch), builds that exact
   commit and drives every public primary shard to entered, unpaused page-ready with ten live gameplay frames.
   Cases come from that build's actual title catalogue, excluding hidden levels and frozen copies. Experimental
-  primaries (including Signal) use their real Developer entry, and the Developer grid still proves its home handoff.
+  primaries (including Signal) use their real Developer entry. The Developer grid proves its home handoff, then a
+  real road-to-Signal crossing, entered runtime residency and ten live gameplay frames. One initial road pose uses
+  the existing probe; held input and the shipping fixed step perform admission. Home and road each retain a
+  90-second budget; a prepared cell or a ready home cannot substitute for Signal entry.
   Four macOS legs keep public and Developer cases separate (`boot-public`, `boot-developer`, `hover-chromium` and
   `hover-webkit`: each browser's complete touch HOVER mounts). Build/setup plus both
   serial HOVER drives exceeded the 12-minute deadline on 2026-10-12; separate legs keep that deadline and every case.

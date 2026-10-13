@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { browserPool } from './pool.mjs';
 import { serve } from './serve.mjs';
 import { saveFixture } from '../debug-settings.mjs';
+import { gridFloorDocumentIdentity, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
 /** Browser-side observation; also exercised against fatal and incomplete boot fixtures. */
 export function bootObservation() {
@@ -84,6 +85,52 @@ export function bootCases(catalogue, group = 'all') {
   return group === 'public' ? publicCases : group === 'developer' ? developerCases : [...publicCases, ...developerCases];
 }
 
+/** Plan a genuine road crossing into the actual Signal cell, never a home/title substitute.
+ * @param {unknown} state @returns {import('../frame-floor-grid.mjs').FloorGridPlan} */
+export function bootSignalRoadPlan(state) {
+  if (typeof state !== 'object' || state === null || !('cells' in state) || !Array.isArray(state.cells)) throw new Error('Missing grid cell catalogue');
+  const targets = state.cells.filter((/** @type {unknown} */ row) => typeof row === 'object' && row !== null && 'slug' in row && row.slug === 'sunscar-dunes');
+  const target = /** @type {unknown} */ (targets.at(0));
+  if (targets.length !== 1 || typeof target !== 'object' || target === null || !('instance' in target) || typeof target.instance !== 'string' || target.instance.length === 0 ||
+    !('cell' in target) || !Array.isArray(target.cell) || target.cell.length !== 2) throw new Error('Signal grid cell is missing or ambiguous');
+  const x = /** @type {unknown} */ (target.cell[0]), z = /** @type {unknown} */ (target.cell[1]);
+  if (typeof x !== 'number' || typeof z !== 'number' || !Number.isSafeInteger(x) || !Number.isSafeInteger(z)) throw new Error('Invalid Signal grid address');
+  return { name: 'boot-signal-road-entry', from: null, to: target.instance, movement: 'road-hover',
+    start: { x: x * 555, z: z * 555 + 251.5 }, waypoints: [{ x: x * 555, z: z * 555 + 245 }],
+    requiredResidents: [target.instance], finishOnArrival: true };
+}
+
+/** A ready home or prepared-only destination cannot satisfy the road-entry gate.
+ * @param {import('../frame-floor-grid.mjs').FloorGridWitness} witness */
+export function verifyBootSignalRoad(witness) {
+  const failures = gridFloorWitnessFailures(witness);
+  const cell = witness.after.cells.find(row => row.instance === witness.plan.to);
+  if (witness.plan.from !== null || cell?.slug !== 'sunscar-dunes') failures.push('Required Signal road entry was not driven');
+  if (!witness.trace.some(row => row.current === null)) failures.push('No actual road frame was observed');
+  if (failures.length > 0) throw new Error(`Signal road entry: ${failures.join('; ')}`);
+}
+
+/** Keep the existing home deadline and give this additional mandatory crossing its own unchanged 90-second budget.
+ * @param {import('playwright').Page} page @param {string[]} faults */
+async function bootSignalRoad(page, faults) {
+  const deadline = Date.now() + 90000;
+  const plan = bootSignalRoadPlan((await page.evaluate(bootObservation)).grid);
+  const documentOrigin = await page.evaluate(gridFloorDocumentIdentity);
+  let finished = false;
+  const route = (async () => {
+    try { return { witness: await runFloorGridRoute(page, plan, documentOrigin) }; }
+    catch (error) { return { error }; }
+    finally { finished = true; }
+  })();
+  await until(page, faults, () => Promise.resolve(finished), 'Signal road entry', deadline);
+  const result = await route;
+  if ('error' in result) throw result.error instanceof Error ? result.error : new Error(String(result.error));
+  verifyBootSignalRoad(result.witness);
+  const initial = await page.evaluate(bootObservation);
+  await until(page, faults, async () => { const observed = await page.evaluate(bootObservation); return observed.ready && observed.frame >= initial.frame + 10; }, 'Signal ten live gameplay frames', deadline);
+  return result.witness;
+}
+
 /** @param {import('playwright').Browser} browser @param {string} base */
 async function discoverCatalogue(browser, base) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
@@ -117,6 +164,8 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
   // Both ordinary documents read the same device choice. Standalone proves the public default too.
   await saveFixture(context, { scope: 'device', key: 'devMode', data: mode === 'grid' || developer });
+  // Existing probe permission for the one initial road pose; no scheduler or service is replaced.
+  if (mode === 'grid') await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });
   // Static dist has no serverless API. Acknowledge telemetry and recorded nonfatal lifecycle diagnostics only.
   let telemetryPosts = 0;
   await context.route(new URL('/api/telemetry', base).href, async route => {
@@ -204,7 +253,8 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
       if (overhead !== null) throw new Error(`grid spawn is under a collider: ${JSON.stringify(overhead)}`);
     }
     await until(page, faults, async () => (await page.evaluate(bootObservation)).frame >= initial.frame + 10, 'ten live gameplay frames', deadline);
-    const result = { mode, phases, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
+    const road = mode === 'grid' ? await bootSignalRoad(page, faults) : null;
+    const result = { mode, phases, road, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
     if (faults.length > 0 || result.fatal.length > 0) throw new Error(JSON.stringify(result));
     writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify(result, null, 2)}\n`);
     return result;

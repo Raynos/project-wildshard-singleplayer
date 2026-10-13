@@ -6,3 +6,8 @@ export function bootLifecycleDiagnostic(report: unknown, observedGridNavigation:
 export function bootCatalogue(): { slug: string; status: string; legacy: boolean }[];
 /** Required public and Developer page-ready cases, excluding hidden levels and frozen copies. */
 export function bootCases(catalogue: readonly { slug: string; status: string; legacy: boolean }[], group?: 'all' | 'public' | 'developer'): readonly (readonly ['standalone' | 'grid', string, boolean])[];
+
+/** Plan the required real Signal road crossing from the running grid catalogue. */
+export function bootSignalRoadPlan(state: unknown): import('../frame-floor-grid.mjs').FloorGridPlan;
+/** Refuse missing Signal transitions, live residency or actual road frames. */
+export function verifyBootSignalRoad(witness: import('../frame-floor-grid.mjs').FloorGridWitness): void;
