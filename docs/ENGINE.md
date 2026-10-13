@@ -3535,3 +3535,17 @@ The game supplies admitted bytes to ordinary level and grid boot. A
 trusted manifest can declare the same row with an immutable URL; hash or
 layout failure is fatal. Manifests without a row retain the older optional
 navmesh lookup while they migrate.
+
+### Typed whole-shape GLBs (SHARD-PLATFORM M3)
+
+`PropWhole` in `@wildshard/sdk/bake/props` accepts `customAttributes`
+(application semantic → source channel) and opt-in `nativeAttributes: true`.
+`staticGlb` in `@wildshard/sdk/bake/glb` accepts the same storage option.
+Ordinary glTF semantics stay portable float32. Original integer and
+half-float channels also travel as typed `_WS_RAW_*` application accessors;
+node extras `nativeAttributes` record their source names, storage, item
+sizes and normalization. Half floats use uint16 bits because glTF has no
+float16 component type. A trusted client reconstructs those channels before
+using its own material. Extras `matrix64` and `instances64` retain source
+transform doubles alongside portable glTF transforms. These bytes count in
+normal product admission; omitting the options preserves existing outputs.

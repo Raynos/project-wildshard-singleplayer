@@ -1,7 +1,8 @@
-import { BufferAttribute, BufferGeometry, Float32BufferAttribute, InterleavedBufferAttribute, Mesh, MeshStandardMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Float32BufferAttribute, Group, InstancedMesh, Matrix4, InterleavedBufferAttribute, Mesh, MeshStandardMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { describe, expect, it } from 'vitest';
 import { staticGlb } from '../src/sdk/bake/glb';
+import { bakeProps } from '../src/sdk/bake/props';
 import { parseGlb } from '../src/sdk/assets';
 
 function geometry(): BufferGeometry {
@@ -72,5 +73,52 @@ describe('native terrain GLB application channels', () => {
     expect(() => staticGlb([{ geometry: g, material, customAttributes: { NORMAL: 'normal' } }])).toThrow('custom attribute NORMAL');
     g.setAttribute('zone', new Float32BufferAttribute([1, 2, 3], 3));
     expect(() => staticGlb([{ geometry: g, material, customAttributes: { _ZONE: 'zone' } }])).toThrow('Mismatched');
+  });
+});
+
+
+describe('native whole-shape storage', () => {
+  it('retains half-float bits, normalized bytes, custom names and source transform doubles through GLTFLoader', async () => {
+    const g = geometry(), material = new MeshStandardMaterial({ vertexColors: true });
+    const halves = new Uint16Array([0x3c00, 0, 0, 0, 0x3c00, 0, 0, 0, 0x3c00]);
+    g.setAttribute('normal', new Float16BufferAttribute(halves, 3));
+    g.setAttribute('color', new BufferAttribute(new Uint8Array([255, 17, 3, 1, 2, 3, 0, 128, 255]), 3, true));
+    g.setAttribute('ink', new BufferAttribute(new Int8Array([-128, 0, 127]), 1, true));
+    const transform = new Matrix4().makeTranslation(0.123456789012345, 125, -0.987654321098765);
+    const props = bakeProps({ static: new Group(), whole: [{ id: 'nine_fabric', mesh: new Mesh(g, material), transform,
+      customAttributes: { _INK: 'ink' }, nativeAttributes: true }] });
+    expect(props.tiles).toHaveLength(1);
+    const bytes = props.assets.get(props.props.tiles[0]?.file ?? '');
+    if (bytes === undefined) throw new Error('Missing whole tile');
+    const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
+    const mesh = loaded.scene.getObjectByName('nine_fabric');
+    if (!(mesh instanceof Mesh)) throw new Error('Missing whole mesh');
+    const restored: unknown = mesh.geometry;
+    if (!(restored instanceof BufferGeometry)) throw new Error('Missing geometry');
+    const channel = (name: string): { array: ArrayLike<number>; normalized: boolean } => {
+      const attribute: unknown = restored.getAttribute(name);
+      if (!(attribute instanceof BufferAttribute)) throw new Error(`Missing channel ${name}`);
+      return { array: attribute.array, normalized: attribute.normalized };
+    };
+    expect(Array.from(channel('_ws_raw_normal').array)).toEqual(Array.from(halves));
+    expect(Array.from(channel('_ws_raw_color_0').array)).toEqual(Array.from(g.getAttribute('color').array));
+    expect(channel('_ws_raw_color_0').normalized).toBe(true);
+    expect(Array.from(channel('_ws_raw_ink').array)).toEqual([-128, 0, 127]);
+    expect(mesh.userData['matrix64']).toEqual(transform.elements);
+    expect(mesh.userData['nativeAttributes']).toEqual({
+      position: { semantic: 'POSITION', storage: 'Float32Array', normalized: false, itemSize: 3 },
+      normal: { semantic: '_WS_RAW_NORMAL', storage: 'Float16Array', normalized: false, itemSize: 3 },
+      color: { semantic: '_WS_RAW_COLOR_0', storage: 'Uint8Array', normalized: true, itemSize: 3 },
+      ink: { semantic: '_WS_RAW_INK', storage: 'Int8Array', normalized: true, itemSize: 1 },
+    });
+    expect(parseGlb(bytes).gpu).toBeGreaterThan(0);
+  });
+  it('keeps instance transform doubles beside portable float32 instancing', async () => {
+    const matrix = new Matrix4().makeTranslation(1 / 3, 2 / 7, 3 / 11);
+    const bytes = staticGlb([{ geometry: geometry(), material: new MeshStandardMaterial(), instances: [matrix], nativeAttributes: true }]);
+    const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
+    const mesh = loaded.scene.children[0];
+    if (!(mesh instanceof InstancedMesh)) throw new Error('Missing instances');
+    expect(mesh.userData['instances64']).toEqual([matrix.elements]);
   });
 });

@@ -23,7 +23,13 @@ export interface PropsBakeSource {
  * and no far proxy: a whole shape is never decimated), so a runtime drawing it in its own material finds it by name and draws exactly the triangles it built. Its surface is opaque,
  * untextured, nonmetal and white (the colour is the vertices'); the GLB keeps its roughness and its `castShadow`.
  */
-export interface PropWhole { id: string; mesh: Mesh; transform: Matrix4 }
+export interface PropWhole {
+  id: string; mesh: Mesh; transform: Matrix4;
+  /** Application semantic → source channel, retained whole beside positions, normals and colours. */
+  customAttributes?: GlbPrimitive['customAttributes'];
+  /** Preserve typed channels and source transform doubles in GLB node extras (see staticGlb). */
+  nativeAttributes?: true;
+}
 /** Content-addressed GLBs and tile rows, including actual budget numbers and an independent far proxy (none for whole shapes alone). */
 export interface BakedProps {
   props: ShardProps; tiles: Shardfile['tiles']; files: Shardfile['files']; library: string[];
@@ -96,9 +102,9 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     if (!(m instanceof MeshStandardMaterial) || m.transparent || m.metalness !== 0 || m.map !== null || m.color.getHex() !== 0xffffff) throw new Error(`Whole prop ${entry.id} needs one opaque untextured nonmetal white surface`);
     const placed = new Mesh(mesh.geometry, m); placed.applyMatrix4(entry.transform); vertices(placed, new Matrix4(), false); // refuses a shape outside the cell
     // the shape's own attributes and index, untouched: the runtime draws exactly the triangles it built
-    const g = new BufferGeometry(); for (const key of ['position', 'normal', 'color'] as const) if (mesh.geometry.hasAttribute(key)) g.setAttribute(key, mesh.geometry.getAttribute(key));
+    const g = new BufferGeometry(); for (const key of ['position', 'normal', 'color', ...Object.values(entry.customAttributes ?? {})]) if (mesh.geometry.hasAttribute(key)) g.setAttribute(key, mesh.geometry.getAttribute(key));
     g.setIndex(mesh.geometry.getIndex());
-    return { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness }), transform: entry.transform };
+    return { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness }), transform: entry.transform, customAttributes: entry.customAttributes, nativeAttributes: entry.nativeAttributes };
   });
   const base = vertices(source.static), spill: Vertex[][] = [], eligible = new Map<PropScatter, Matrix4[]>();
   for (const batch of source.scatter ?? []) {
@@ -123,7 +129,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
         // Scatter keeps a model in one owning tile; its conservative bounds may extend into its neighbours.
         const local = geometry(vertices(batch.model)); primitives.push({ geometry: local, material: mergedMaterial(), instances: transforms });
       }
-      for (const w of lod === 0 ? whole : []) if (w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.transform, compactIndex: true });
+      for (const w of lod === 0 ? whole : []) if (w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.transform, compactIndex: true, ...(w.customAttributes === undefined ? {} : { customAttributes: w.customAttributes }), ...(w.nativeAttributes === undefined ? {} : { nativeAttributes: w.nativeAttributes }) });
       const hasPanel = lod === 0 && panelFiles.some((p) => p.bounds !== null && p.bounds.max.x >= x0 && p.bounds.min.x <= x0 + size && p.bounds.max.z >= z0 && p.bounds.min.z <= z0 + size);
       if (primitives.length === 0 && !hasPanel) continue;
       const file = save(primitives, `props.${lod}.${x}.${z}`), cost = { ...parseGlb(assets.get(file.hash) ?? new Uint8Array()) };

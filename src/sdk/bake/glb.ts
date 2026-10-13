@@ -1,4 +1,4 @@
-import { Box3, Matrix4, type MeshStandardMaterial, Quaternion, Vector3, type Object3D, type BufferGeometry } from 'three';
+import { BufferAttribute, Float16BufferAttribute, Box3, Matrix4, type MeshStandardMaterial, Quaternion, Vector3, type Object3D, type BufferGeometry } from 'three';
 import { parseGlb } from '../assets';
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
@@ -11,6 +11,10 @@ export interface GlbPrimitive {
   customAttributes?: Readonly<Record<string, string>>;
   /** Optional node transform (a finite positive TRS; not with `instances`); absent preserves the old byte path. */
   transform?: Matrix4;
+  /** Keep original typed vertex channels as glTF application accessors with reconstruction metadata in node extras.
+   * Half floats use uint16 bits (glTF has no float16); ordinary semantics remain portable float32. Also retains
+   * double-precision source transforms in extras. Omitted: the existing byte path. */
+  nativeAttributes?: true;
   /** `true` writes the index as built: none for a non-indexed geometry, 16-bit when it is 16-bit; absent always writes a 32-bit index (the old byte path). */
   compactIndex?: true;
 }
@@ -33,6 +37,21 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     if (bounds) { a['min'] = Array.from({ length: width }, (_, c) => values.reduce((n, sample, i) => i % width === c ? Math.min(n, sample) : n, Infinity)); a['max'] = Array.from({ length: width }, (_, c) => values.reduce((n, sample, i) => i % width === c ? Math.max(n, sample) : n, -Infinity)); }
     accessors.push(a); return accessors.length - 1;
   };
+  const rawAccessor = (attribute: BufferAttribute): number => {
+    const array = attribute.array;
+    const componentType = array instanceof Float32Array ? 5126 : array instanceof Uint32Array ? 5125
+      : array instanceof Uint16Array ? 5123 : array instanceof Int16Array ? 5122
+      : array instanceof Uint8Array ? 5121 : array instanceof Int8Array ? 5120 : null;
+    if (componentType === null) throw new Error('Native GLB attributes require a glTF component type');
+    const length = attribute.count * attribute.itemSize * array.BYTES_PER_ELEMENT;
+    const bytes = new Uint8Array(Math.ceil(length / 4) * 4);
+    bytes.set(new Uint8Array(array.buffer, array.byteOffset, length));
+    const view = views.length; views.push({ buffer: 0, byteOffset: offset, byteLength: length }); chunks.push(bytes); offset += bytes.length;
+    accessors.push({ bufferView: view, componentType, count: attribute.count,
+      type: attribute.itemSize === 1 ? 'SCALAR' : `VEC${attribute.itemSize}`,
+      ...(attribute.normalized ? { normalized: true } : {}) });
+    return accessors.length - 1;
+  };
   const trs = (matrix: Matrix4): { position: Vector3; rotation: Quaternion; scale: Vector3 } => {
     const position = new Vector3(), scale = new Vector3(), rotation = new Quaternion();
     matrix.decompose(position, rotation, scale);
@@ -40,7 +59,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     if (matrix.elements.some((n, i) => !Number.isFinite(n) || Math.abs(n - (composed.elements[i] ?? Infinity)) > 1e-5) || scale.x <= 0 || scale.y <= 0 || scale.z <= 0) throw new Error('Instance must be a finite positive TRS transform');
     return { position, rotation, scale };
   };
-  for (const { geometry, material, instances, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex } of primitives) {
+  for (const { geometry, material, instances, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes } of primitives) {
     if (material.map !== null || material.normalMap !== null || material.roughnessMap !== null || material.metalnessMap !== null || material.alphaMap !== null) throw new Error('GLB textures must be external KTX2 declarations');
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
@@ -58,6 +77,23 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       if (!Number.isInteger(width) || width < 1 || width > 4 || a.count !== p.count) throw new Error(`Mismatched GLB custom attribute ${semantic}`);
       attributes[semantic] = accessor(Array.from({ length: a.count * width }, (_, i) => a.getComponent(Math.floor(i / width), i % width)), width, width === 1 ? 'SCALAR' : `VEC${width}`);
     }
+    const native: Record<string, Json> = {};
+    if (nativeAttributes === true) {
+      const channels = new Map<string, string>([['position', 'POSITION'], ['normal', 'NORMAL'], ['uv', 'TEXCOORD_0'], ['color', 'COLOR_0'], ['tangent', 'TANGENT'], ...custom.map(([semantic, channel]) => [channel, semantic] as [string, string])]);
+      for (const [channel, semantic] of channels) {
+        if (!geometry.hasAttribute(channel)) continue;
+        const a = geometry.getAttribute(channel);
+        if (!(a instanceof BufferAttribute)) throw new Error('Native GLB attributes must not be interleaved');
+        let stored = semantic;
+        if (!(a.array instanceof Float32Array)) {
+          stored = `_WS_RAW_${semantic.replace(/^_/u, '')}`;
+          if (Object.hasOwn(attributes, stored)) throw new Error(`Native GLB semantic collision ${stored}`);
+          attributes[stored] = rawAccessor(a);
+        }
+        native[channel] = { semantic: stored, storage: a instanceof Float16BufferAttribute ? 'Float16Array' : a.array.constructor.name,
+          normalized: a.normalized, itemSize: a.itemSize };
+      }
+    }
     const index = geometry.getIndex(), indices = index === null ? Array.from({ length: p.count }, (_, i) => i) : Array.from(index.array);
     if (indices.length % 3 !== 0 || indices.some((i) => !Number.isInteger(i) || i < 0 || i >= p.count)) throw new Error('Invalid triangle indices');
     const materialIndex = materials.length;
@@ -68,7 +104,9 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     });
     const compact = compactIndex === true, short = compact && index !== null && index.array instanceof Uint16Array;
     meshes.push({ name: nodeName, primitives: [{ attributes, ...(compact && index === null ? {} : { indices: accessor(indices, 1, 'SCALAR', true, false, short) }), material: materialIndex }] });
-    const node: Record<string, Json> = { name: nodeName, mesh: meshes.length - 1, extras: { castShadow } };
+    const node: Record<string, Json> = { name: nodeName, mesh: meshes.length - 1, extras: { castShadow, ...(nativeAttributes === true ? { nativeAttributes: native,
+      ...(transform === undefined ? {} : { matrix64: transform.elements }),
+      ...(instances === undefined ? {} : { instances64: instances.map(matrix => matrix.elements) }) } : {}) } };
     if (instances !== undefined) {
       if (instances.length === 0 || instances.length > 10_000) throw new Error('Invalid instance count');
       const t: number[] = [], r: number[] = [], s: number[] = [];
