@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // E357 F4: the linter measures file counts; budget measurements belong to the parity harness.
 import { spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, globSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { debugFlags } from './debug-flags.mjs';
 import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -63,9 +64,37 @@ function counts(root, baselineFile, files = null) {
   return current;
 }
 
-function debugCount(root) {
+function debugCount(root, cacheDir) {
+  let receipt, key;
+  if (cacheDir !== undefined) {
+    const digest=createHash('sha256').update(JSON.stringify([process.version,process.platform,process.arch]));
+    // The complete AST census reads every eligible source, including files
+    // outside the commit's debt scope. Include additions/deletions and helpers.
+    for (const file of globSync('src/**/*',{cwd:root}).filter(path=>/\.[cm]?[jt]sx?$/u.test(path) && !path.startsWith('src/sdk/dist/')).sort()) {
+      digest.update(JSON.stringify([file,createHash('sha256').update(readFileSync(resolve(root,file))).digest('hex')]));
+    }
+    for (const file of ['lint/ratchet.mjs','lint/debug-flags.mjs','scripts/legacy-shards.mjs','package.json','pnpm-lock.yaml','node_modules/vite/package.json']) {
+      digest.update(JSON.stringify([file,existsSync(resolve(REPO,file)) ? createHash('sha256').update(readFileSync(resolve(REPO,file))).digest('hex') : null]));
+    }
+    const legacy=resolve(root,'lint/legacy-shards.json');
+    if (existsSync(legacy)) digest.update(readFileSync(legacy));
+    key=digest.digest('hex');receipt=resolve(cacheDir,'debug-census',`${key}.json`);
+    try {
+      const saved=readJSON(receipt);
+      if (saved.key===key && Number.isSafeInteger(saved.count) && saved.count>=0
+        && saved.digest===createHash('sha256').update(JSON.stringify([key,saved.count])).digest('hex')) {
+        console.log('Ratchet Debug census: verified exact source receipt');
+        return saved.count;
+      }
+    } catch { /* a missing or corrupt receipt requires the actual AST census */ }
+  }
   const frozen = legacyInventory(root);
-  return debugFlags(root).filter((row) => row.purpose !== 'developer' && !registeredLegacyFile(frozen, relative(root, row.file).replaceAll('\\', '/'))).length;
+  const count=debugFlags(root).filter((row) => row.purpose !== 'developer' && !registeredLegacyFile(frozen, relative(root, row.file).replaceAll('\\', '/'))).length;
+  if (receipt!==undefined) {
+    mkdirSync(resolve(cacheDir,'debug-census'),{recursive:true});
+    save(receipt,{key,count,digest:createHash('sha256').update(JSON.stringify([key,count])).digest('hex')});
+  }
+  return count;
 }
 
 function main() {
@@ -125,7 +154,7 @@ function main() {
   if (mode === 'measure') for (const [rule, files] of Object.entries(current)) if (hard.has(rule) && Object.keys(files).length > 0) failures.push(`${rule}: hard rule cannot be measured as legacy debt`);
   if (mode !== 'measure') for (const warning of warnings) console.warn(deferReductions
     ? warning.replace('partial slack; lower the ratchet', 'central regeneration will lower the debt') : warning);
-  const rows = baseline.debugRows ? debugCount(root) : null;
+  const rows = baseline.debugRows ? debugCount(root,mode==='update' && scopedPaths!==null ? process.env.WS_COMMIT_WITNESS_CACHE : undefined) : null;
   if (rows !== null && rows > baseline.debugRows.max) failures.push(`debugRows: was ${baseline.debugRows.max}, now ${rows}`);
   if (failures.length > 0) throw new Error(`Ratchet rose:\n${failures.join('\n')}`);
   if (mode === 'measure') { console.log(JSON.stringify(current)); return; }

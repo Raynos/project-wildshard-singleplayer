@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real oxlint and ratchet CLIs in Node.
 import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Isolated fixtures never edit the shared source tree.
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths are platform independent.
 import { dirname, join, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Temporary test repositories live outside the checkout.
@@ -140,6 +140,25 @@ describe('ratchet CLI', () => {
     expect(f.run('--update','--files-from',paths).status).toBe(0);
     expect(f.read()['wildshard/no-raw-save']).toEqual({'src/engine/ui/example.ts':1});
     expect(f.run().status).toBe(1);
+  });
+  it('reuses exact Debug census inputs while refusing changed policy, source and corrupt receipts', () => {
+    const f=fixture('ctx.debugRow({});');f.write({debugRows:{max:1,raisedBy:['E435']}});
+    const paths=join(f.root,'changed.json'),cache=join(f.root,'cache');writeFileSync(paths,'[]');
+    const run=()=>spawnSync(execPath,['lint/ratchet.mjs','--root',f.root,'--baseline',f.file,'--update','--files-from',paths],{encoding:'utf8',env:{...env,WS_COMMIT_WITNESS_CACHE:cache}});
+    expect(run().status).toBe(0);
+    const warm=run();expect(warm.status).toBe(0);expect(warm.stdout).toContain('verified exact source receipt');
+    f.write({debugRows:{max:0,raisedBy:['E435']}});
+    expect(run().stderr).toContain('debugRows: was 0, now 1');
+    const dir=join(cache,'debug-census'),name=readdirSync(dir)[0];
+    if(name===undefined)throw new Error('Missing real census receipt');
+    const receipt=join(dir,name),saved=JSON.parse(readFileSync(receipt,'utf8')) as {key:string;count:number;digest:string};
+    writeFileSync(receipt,JSON.stringify({...saved,count:0}));
+    const refused=run();expect(refused.status).toBe(1);expect(refused.stderr).toContain('debugRows: was 0, now 1');
+    f.write({debugRows:{max:1,raisedBy:['E435']}});
+    put(f.root,'src/engine/ui/added.ts','ctx.debugRow({});');
+    expect(run().stderr).toContain('debugRows: was 1, now 2');
+    put(f.root,'src/engine/ui/added.ts','ctx.debugRow(opaque);');
+    expect(run().stderr).toContain('Unresolvable Debug row');
   });
   it('measures candidate increases without writing or relaxing policy inputs', () => {
     const f = fixture('Math.random();'); f.write({ budgets: { gpu: 12 }, debugRows: { max: 5, raisedBy: ['E435'] } });
