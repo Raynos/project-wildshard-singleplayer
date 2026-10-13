@@ -3804,3 +3804,11 @@ Its default reads the declared props tiles plus whole library. Passing
 a source object retains the original tile-only default. Explicit refs
 and per-mesh pauses work in both forms; neither form changes draws,
 source ordinals, attribute storage or decoder-release ownership.
+
+The defining `bakedSamplers` retains four components for a proven-uniform
+complete immutable splat lattice. Its original bilinear operation order,
+clamps, NaN fallback and positive-only normalization remain exact.
+Partial and varying lattices keep their original storage. The encoded
+terrain, collider, native heights and conservative admission costs do
+not change; separate decoded WTT arrays can release their redundant
+uniform splat backing while samples stay live.

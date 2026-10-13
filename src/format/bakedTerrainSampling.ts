@@ -10,10 +10,18 @@ export interface BakedTerrainSamplers {
   splatAt: (x: number, z: number) => [number, number, number, number];
 }
 
+// A uniform lattice needs only its original four components. Never change a partial or varying lattice.
+function sampledSplat(res: number, splat: Uint8Array): { samples: Uint8Array; uniform: boolean } {
+  if (!Number.isInteger(res) || res < 2 || splat.length !== res * res * 4) return { samples: splat, uniform: false };
+  for (let i = 4; i < splat.length; i++) if (splat[i] !== splat[i % 4]) return { samples: splat, uniform: false };
+  return { samples: Uint8Array.from(splat.subarray(0, 4)), uniform: true };
+}
+
 /** The defining native sampling law, shared by authoring and every engine terrain binding.
  * Keep operation order, boundary clamping and fallback reads identical to the original runtime. */
 export function bakedSamplers(g: BakedGrid): BakedTerrainSamplers {
-  const { res, size, heights, splat } = g;
+  const { res, size, heights } = g;
+  const { samples: splat, uniform } = sampledSplat(res, g.splat);
   const half = size / 2, inv = (res - 1) / size, last = res - 2;
   const cell = (v: number): [number, number] => {
     const u = Math.min(res - 1, Math.max(0, (v + half) * inv));
@@ -39,7 +47,9 @@ export function bakedSamplers(g: BakedGrid): BakedTerrainSamplers {
   };
   const splatAt = (x: number, z: number): [number, number, number, number] => {
     const [ix, fx] = cell(x), [iz, fz] = cell(z);
-    const i00 = (iz * res + ix) * 4, i10 = i00 + 4, i01 = i00 + res * 4, i11 = i01 + 4;
+    let i00 = (iz * res + ix) * 4, i10 = i00 + 4, i01 = i00 + res * 4, i11 = i01 + 4;
+    // Keep NaN's original undefined-index fallback; finite/clamped corners read the same four proven-uniform bytes.
+    if (uniform && Number.isFinite(i00)) i00 = i10 = i01 = i11 = 0;
     const out: [number, number, number, number] = [0, 0, 0, 0];
     let sum = 0;
     for (let c = 0; c < 4; c++) {
