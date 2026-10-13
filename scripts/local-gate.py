@@ -24,7 +24,7 @@ def main():
             subprocess.run(['tar', '-xf', str(archive), '-C', str(tree)], check=True)
             archive.unlink()
             subprocess.run(['node', str(root / 'scripts/link-node-modules.mjs'), str(root), str(tree)], check=True)
-            env = dict(os.environ, WS_VITEST_MAX_WORKERS='2')
+            env = dict(os.environ, WS_VITEST_MAX_WORKERS='2', WS_FULL_SUITE='1')
             for key in subprocess.check_output(['git', 'rev-parse', '--local-env-vars'], cwd=root, text=True).splitlines():
                 env.pop(key, None)
             base = subprocess.check_output(['git', 'merge-base', 'origin/main', sha], cwd=root, text=True).strip()
