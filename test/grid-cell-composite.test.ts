@@ -11,7 +11,7 @@ import { toLevelSpec } from '../src/game/shard/spec';
 import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 import { Scope } from '../src/engine/app/scope';
 import { legacyDouble } from './fake/FakeGame';
-import { SkyNeutralToneEffect } from '../src/shards/far-reach/look/neutralTone';
+import { NeutralToneEffect } from '../src/engine/render/dataLook';
 
 const pitch = 555, half = 250;
 const cells = [-1, 0, 1].flatMap((cx) => [-1, 0, 1].map((cz) => ({ instance: `${String(cx)},${String(cz)}`, origin: { x: cx * pitch, z: cz * pitch } })));
@@ -128,7 +128,7 @@ describe('op-frame21 grid cell composite', () => {
     const port = frameLookOf(scene); if (port?.composite === undefined) throw new Error('no composite port');
     frame.frame();
     port.contribute('1,0', { fog: null, chain: regionChain(toLevelSpec(PINE_HOLLOW), () => null, 'clean', { ao: true }) });
-    port.composite('1,0', { display: new SkyNeutralToneEffect() }, 'tone');
+    port.composite('1,0', { display: new NeutralToneEffect() }, 'tone');
     frame.frame();
     expect([saturation, contrast, gradeEffect].map((effect) => effect.blendMode.blendFunction)).toEqual([BlendFunction.SRC, BlendFunction.SRC, BlendFunction.SRC]);
     expect(frame.state().chain.bypass).toBe(0);
@@ -178,7 +178,7 @@ describe('op-frame21 grid cell composite', () => {
     port.contribute('1,0', { fog: null, chain: regionChain(toLevelSpec(PINE_HOLLOW), () => null, 'clean', { ao: true }) });
     expect(() => port.composite?.('1,0', { display: new ToneMappingEffect() })).toThrow('tone-mapping chunk');
     // Sky Reach's NEUTRAL curve is its own effect: it shares the pass with the shell's tone mapping
-    const sky = new SkyNeutralToneEffect();
+    const sky = new NeutralToneEffect();
     expect(sky.getFragmentShader()).not.toContain('tonemapping_pars_fragment');
     port.composite('1,0', { display: sky });
     const list = passEffects(pass); if (list === null) throw new Error('no list');

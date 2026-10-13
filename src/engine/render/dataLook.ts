@@ -9,7 +9,7 @@
  * across midnight. The sun's direction is the clock's; a key sets its colour and intensity only.
  */
 import * as THREE from 'three';
-import { LookupTexture } from 'postprocessing';
+import { BlendFunction, Effect, LookupTexture, ToneMappingMode } from 'postprocessing';
 import { DEFAULT_NORMALIZED_DAY, normalizedDayClock, type DayCycle } from '../world/dayCycle';
 import type { LookStrategy, SkyBackdropTargets } from './look';
 import { LUT_SIZE, fetchLut } from './lut';
@@ -185,6 +185,217 @@ export function dataLook(spec: DataLookSpec): LookStrategy {
         bind: (t) => { targets = t; apply(); },
         update: (dt) => { clock.update(dt); apply(); },
         rebuild: () => undefined, attachPost: () => undefined };
+    },
+  };
+}
+
+/*
+ * A painted look (SHARD-PLATFORM G345): a level whose sky is its own painted dome and dressing, declared as rows the
+ * engine interprets: a painter's light (rim, warm bounce, shade floor), a distance haze that takes a per-heading colour
+ * strip (gold toward the sun, cooler away), the NEUTRAL tone curve, a fixed key light and the level's LUT. The level
+ * builds only its dome and its dressing; the engine owns their lifetimes, the compose, the backdrop and the grid cell.
+ */
+
+/** A direction's three components (world, unit). */
+export interface LookVec3 { readonly x: number; readonly y: number; readonly z: number }
+const vec3Glsl = (v: readonly number[]): string => `vec3(${v.map((n) => n.toFixed(4)).join(',')})`;
+
+/**
+ * A painter's light: three terms on every lit material's light sum, after three's own lights. `bounce` (a soft wrap from
+ * the anti-sun heading lifted by `bounceLift`), `rim` (a sun-coloured fresnel edge, strongest with the sun behind the
+ * surface, mostly on vertical faces) and `floor` (no shaded surface below that share of its own albedo); linear colours ×
+ * strengths. `prefix` names its GLSL identifiers; a material opts out with the define `optOut`.
+ */
+export interface PainterLightRow { readonly bounce: Rgb; readonly bounceLift: number; readonly rim: Rgb; readonly floor: Rgb; readonly prefix: string; readonly optOut: string }
+
+/** The painter's light's GLSL (appended to three's `lights_fragment_end`), the sun's direction baked in. */
+export function painterLightGlsl(row: PainterLightRow, sun: LookVec3): string {
+  const p = row.prefix, bounce = new THREE.Vector3(-sun.x, row.bounceLift, -sun.z).normalize();
+  return `
+#ifndef ${row.optOut}
+{
+  vec3 ${p}L = normalize( ( viewMatrix * vec4( ${vec3Glsl([sun.x, sun.y, sun.z])}, 0.0 ) ).xyz );
+  vec3 ${p}B = normalize( ( viewMatrix * vec4( ${vec3Glsl(bounce.toArray())}, 0.0 ) ).xyz );
+  vec3 ${p}Up = normalize( ( viewMatrix * vec4( 0.0, 1.0, 0.0, 0.0 ) ).xyz );
+  float ${p}NV = clamp( dot( geometryNormal, geometryViewDir ), 0.0, 1.0 );
+  float ${p}Back = clamp( dot( -geometryViewDir, ${p}L ), 0.0, 1.0 );
+  float ${p}Side = 1.0 - abs( dot( geometryNormal, ${p}Up ) );
+  float ${p}Rim = pow( 1.0 - ${p}NV, 3.0 ) * ( 0.2 + 0.8 * ${p}Back * ${p}Back ) * ( 0.3 + 0.7 * ${p}Side );
+  reflectedLight.directDiffuse += material.diffuseColor * ${vec3Glsl(row.rim)} * ${p}Rim;
+  float ${p}Wrap = clamp( ( dot( geometryNormal, ${p}B ) + 0.45 ) / 1.45, 0.0, 1.0 );
+  reflectedLight.indirectDiffuse += material.diffuseColor * ${vec3Glsl(row.bounce)} * ${p}Wrap;
+  reflectedLight.indirectDiffuse = max( reflectedLight.indirectDiffuse, material.diffuseColor * ${vec3Glsl(row.floor)} );
+}
+#endif
+`;
+}
+
+const installedLight = new Set<string>();
+/** The painter's light as a look's `lighting` rig: patched into three's chunk once a page (a shard switch reloads it). */
+export function painterLight(row: PainterLightRow, sun: LookVec3): { install: () => void } {
+  return { install: () => {
+    const glsl = painterLightGlsl(row, sun);
+    if (installedLight.has(glsl)) return;
+    installedLight.add(glsl); THREE.ShaderChunk.lights_fragment_end += glsl;
+  } };
+}
+
+/**
+ * A heading haze: the distance fog takes the colour of a strip sampled by the heading you look along (`strip`: sRGB 0..1
+ * r, g, b per heading from −z round through +x, multiplied by `tint`), starting at `near`, full at `far`, never over
+ * `max`; the air toward the sun goes gold over distance by `sunHaze`. `name` keys its patch, `prefix` its GLSL names.
+ */
+export interface HeadingHazeRow { readonly strip: readonly number[]; readonly tint: Rgb; readonly near: number; readonly far: number; readonly max: number; readonly sunHaze: number; readonly name: string; readonly prefix: string }
+
+/** GLSL: the heading (0..1, 0 = −z, a quarter = +x) of a direction, as a heading strip reads it. */
+export const headingGlsl = (prefix: string): string => `float ${prefix}Heading(vec3 v){ return fract(atan(v.x, -v.z) / 6.2831853 + 1.0); }`;
+
+/** The heading haze's strip as a texture: linear, wrapping round the compass. */
+export function headingStrip(row: HeadingHazeRow): THREE.DataTexture {
+  const n = row.strip.length / 3, data = new Uint8Array(n * 4), c = new THREE.Color(), tint = new THREE.Color(...row.tint);
+  for (let i = 0; i < n; i++) {
+    c.setRGB(row.strip[i * 3] ?? 0, row.strip[i * 3 + 1] ?? 0, row.strip[i * 3 + 2] ?? 0, THREE.SRGBColorSpace);
+    c.multiply(tint);
+    data[i * 4] = Math.round(Math.min(1, c.r) * 255); data[i * 4 + 1] = Math.round(Math.min(1, c.g) * 255); data[i * 4 + 2] = Math.round(Math.min(1, c.b) * 255); data[i * 4 + 3] = 255;
+  }
+  const tex = new THREE.DataTexture(data, n, 1, THREE.RGBAFormat, THREE.UnsignedByteType);
+  tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.ClampToEdgeWrapping; tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter; tex.needsUpdate = true;
+  return tex;
+}
+
+/** The heading haze's fragment patch (three's `fog_fragment` replaced), reading the strip `strip`. */
+export function headingHaze(row: HeadingHazeRow, sun: LookVec3): (shader: ShaderSource, strip: THREE.Texture) => void {
+  const p = row.prefix, near = row.near.toFixed(1), span = (row.far - row.near).toFixed(1), max = row.max.toFixed(2), gold = row.sunHaze.toFixed(2);
+  const s = `${sun.x.toFixed(4)},${sun.y.toFixed(4)},${sun.z.toFixed(4)}`, guard = `${p.toUpperCase()}_HAZE`;
+  const fog = `#ifdef USE_FOG\n vec3 ${p}V=vFogWorldPos-cameraPosition; gl_FragColor.rgb=mix(gl_FragColor.rgb,texture2D(${p}Haze,vec2(${p}Heading(${p}V),0.5)).rgb,clamp((length(${p}V)-${near})/${span},0.0,1.0)*${max});\n float ${p}Sun=pow(max(dot(normalize(${p}V),vec3(${s})),0.0),24.0); gl_FragColor.rgb=mix(gl_FragColor.rgb,vec3(1.0,0.8,0.52),${p}Sun*clamp((length(${p}V)-15.0)/160.0,0.0,1.0)*${gold});\n#endif`;
+  const head = `#ifndef ${guard}\n#define ${guard}\nuniform sampler2D ${p}Haze;\n${headingGlsl(p)}\n#endif\n`;
+  return (shader, strip) => {
+    shader.uniforms[`${p}Haze`] = { value: strip };
+    shader.fragmentShader = head + shader.fragmentShader.replace('#include <fog_fragment>', fog);
+  };
+}
+
+const NEUTRAL_FRAGMENT = `
+vec3 neutralCurve(vec3 color) {
+  const float startCompression = 0.8 - 0.04;
+  const float desaturation = 0.15;
+  float x = min(color.r, min(color.g, color.b));
+  float offset = x < 0.08 ? x - 6.25 * x * x : 0.04;
+  color -= offset;
+  float peak = max(color.r, max(color.g, color.b));
+  if (peak < startCompression) return color;
+  float d = 1.0 - startCompression;
+  float newPeak = 1.0 - d * d / (peak + d - startCompression);
+  color *= newPeak / peak;
+  float g = 1.0 - 1.0 / (desaturation * (peak - newPeak) + 1.0);
+  return mix(color, vec3(newPeak), g);
+}
+void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor) {
+  outputColor = vec4(neutralCurve(inputColor.rgb), inputColor.a);
+}
+`;
+
+/**
+ * The NEUTRAL tone curve (Khronos PBR Neutral, three's `NeutralToneMapping` at exposure 1) as a grid cell's display: the
+ * page's colour pass already holds a ToneMappingEffect, and a second one includes three's tone-mapping chunk twice
+ * ('toneMappingExposure' redefinition), so the merged pass would never compile; this is the same curve under its own name.
+ */
+export class NeutralToneEffect extends Effect {
+  constructor() { super('NeutralToneEffect', NEUTRAL_FRAGMENT, { blendFunction: BlendFunction.NORMAL }); }
+}
+
+/** A painted look's dome (its sky layer) and the heading strip its haze reads. */
+export interface PaintedSky { readonly dome: THREE.Mesh<THREE.BufferGeometry, THREE.Material>; readonly strip: THREE.Texture }
+/** A painted look's dressing: the sky pieces that stand in the world (a sea of cloud, the sun's glow) and their tick. */
+export interface PaintedDressing { readonly group: THREE.Group; readonly update: (dt: number) => void; /** its textures, freed with the look's */ readonly textures: readonly THREE.Texture[] }
+
+/** A painted look's rows and the two builders the level keeps (its dome and its dressing, each made once on first ask). */
+export interface PaintedLookSpec {
+  /** the textures the look loaded up front: the look frees them unless a compose takes them */
+  readonly textures: readonly THREE.Texture[];
+  /** the dome over its heading strip (made by the look from `haze`) */
+  readonly sky: (strip: THREE.Texture) => THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
+  readonly dressing: () => PaintedDressing;
+  readonly haze: HeadingHazeRow;
+  readonly light: PainterLightRow;
+  /** the key light (fixed: its direction, colour and intensity), the scene fog's and the horizon's colours */
+  readonly sun: { readonly dir: LookVec3; readonly colour: number; readonly intensity: number };
+  readonly fog: number;
+  readonly horizon: number;
+  /** the god rays' source (degrees, the engine compass): the painted sun, its disc kept out of the frame */
+  readonly rays: { readonly azimuth: number; readonly elevation: number };
+  readonly clock: () => DayCycle;
+  readonly lut: () => Promise<LookupTexture | null>;
+}
+
+/**
+ * A painted look (see above): the clean chain under the NEUTRAL curve (a grid cell carries its own NEUTRAL display), the
+ * dome as the backdrop's sky layer, the dressing in the world, the heading haze patched into every scene material
+ * (a grid cell's region's, as `worldPatch`), the painter's light and the fixed key light.
+ */
+export function paintedLook(spec: PaintedLookSpec): LookStrategy {
+  const pending = new Set(spec.textures);
+  const sunDir = new THREE.Vector3(spec.sun.dir.x, spec.sun.dir.y, spec.sun.dir.z), haze = headingHaze(spec.haze, spec.sun.dir);
+  let sky: PaintedSky | null = null, dressing: { readonly own: PaintedDressing; readonly meshes: ReadonlySet<THREE.Object3D> } | null = null;
+  const makeSky = (): PaintedSky => {
+    const strip = headingStrip(spec.haze), dome = spec.sky(strip); pending.add(strip);
+    dome.renderOrder = -10; dome.frustumCulled = false;
+    sky = { dome, strip };
+    return sky;
+  };
+  const makeDressing = (): NonNullable<typeof dressing> => {
+    const own = spec.dressing(), meshes = new Set<THREE.Object3D>(); own.group.traverse((node) => { meshes.add(node); });
+    for (const texture of own.textures) pending.add(texture);
+    dressing = { own, meshes };
+    return dressing;
+  };
+  const worldPatch: NonNullable<LookStrategy['worldPatch']> = (material, scope) => {
+    const { strip } = sky ?? makeSky();
+    patchShader(material, spec.haze.name, PATCH_ORDER.decorate, (shader) => { haze(shader, strip); }, { scope });
+  };
+  const parts = (group: THREE.Object3D): { geometry: THREE.BufferGeometry; material: THREE.Material }[] => {
+    const out: { geometry: THREE.BufferGeometry; material: THREE.Material }[] = [];
+    group.traverse((node) => { if (mesh(node)) for (const material of Array.isArray(node.material) ? node.material : [node.material]) out.push({ geometry: node.geometry, material }); });
+    return out;
+  };
+  return { mode: 'extend', chain: 'clean',
+    cell: { replaces: 'tone', build: () => ({ display: new NeutralToneEffect() }) },
+    dispose: () => { for (const texture of pending) texture.dispose(); pending.clear(); },
+    // `c.fx` builds the cinematic chain when nothing is built yet: the clean chain is asked first, `fx` only after it
+    compose: (c) => {
+      const { scene, scope } = c, chain = c.engineChain('clean');
+      for (const texture of pending) scope.own(texture);
+      pending.clear();
+      c.fx.tone.mode = ToneMappingMode.NEUTRAL;
+      const { dome, strip } = sky ?? makeSky(); scope.own(strip);
+      scope.own(dome.geometry); scope.own(dome.material); scope.onDispose(() => { dome.removeFromParent(); });
+      scene.fog = new THREE.Fog(new THREE.Color(spec.fog), spec.haze.near, spec.haze.far);
+      const { own, meshes } = dressing ?? makeDressing();
+      if (own.group.parent === null) scene.add(own.group);
+      for (const part of parts(own.group)) { scope.own(part.geometry); scope.own(part.material); }
+      scope.onDispose(() => { own.group.removeFromParent(); });
+      scene.traverse((object) => {
+        if (!mesh(object) || object === dome || meshes.has(object)) return;
+        for (const material of Array.isArray(object.material) ? object.material : [object.material]) worldPatch(material, scope);
+      });
+      return { chain };
+    },
+    lighting: painterLight(spec.light, spec.sun.dir),
+    worldPatch,
+    sky: { clouds: false, planet: false, sun: { disc: false, halo: false, rays: { azimuth: spec.rays.azimuth, elevation: spec.rays.elevation } } },
+    backdrop: async ({ sky: rig }) => {
+      const clock = spec.clock(), key = new THREE.Color(spec.sun.colour), fog = new THREE.Color(spec.fog), lut = await spec.lut();
+      const own = sky ?? makeSky(), pieces = (dressing ?? makeDressing()).own;
+      let air: (() => THREE.Fog | null) | null = null;
+      return { clock, horizon: new THREE.Color(spec.horizon), lut, clouds: own.dome, dressing: pieces.group,
+        bind: (targets) => { air = () => (targets.underwater() ? null : targets.fog); },
+        update: (dt: number) => { clock.update(dt); rig.setKeyLight(sunDir, key, spec.sun.intensity); air?.()?.color.copy(fog); pieces.update(dt); },
+        rebuild: () => undefined, attachPost: () => undefined,
+        // a grid cell's layer frees what it drew (standalone the compose owns the dome and its strip)
+        dispose: () => {
+          own.dome.removeFromParent(); own.dome.geometry.dispose(); own.dome.material.dispose(); own.strip.dispose();
+          pieces.group.removeFromParent(); for (const part of parts(pieces.group)) { part.geometry.dispose(); part.material.dispose(); }
+        } };
     },
   };
 }
