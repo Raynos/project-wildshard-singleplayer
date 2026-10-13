@@ -5,6 +5,7 @@ import { execPath } from 'node:process';
 import { expect, it, vi } from 'vitest';
 import { BufferGeometry, Float32BufferAttribute, MeshStandardMaterial } from 'three';
 import { Scope } from '../src/engine/app/scope';
+import { ContentCache } from '../src/engine/boot/contentCache';
 import { emptyShardfile } from '../src/sdk/author';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { parseGlb } from '../src/sdk/assets';
@@ -166,3 +167,23 @@ it('collects decoded wire backing while admission and the runtime reader both re
   expect(result.error).toBeUndefined();
   expect(result.status, result.stderr).toBe(0);
 }, 20_000);
+
+
+it('hashes a durable transport exactly once through the real content-cache release path', async () => {
+  const f = fixture(), disk = new Map<string, Response>();
+  const key = (input: RequestInfo | URL): string => input instanceof Request ? input.url : String(input);
+  const hash = vi.fn((wire: Uint8Array) => Promise.resolve(contentHash(wire)));
+  const content = new ContentCache({ origin: 'https://fixture.test', hash,
+    storage: { open: () => Promise.resolve({ match: input => Promise.resolve(disk.get(key(input))?.clone()),
+      put: (input, response) => { disk.set(key(input), response.clone()); return Promise.resolve(); },
+      delete: input => Promise.resolve(disk.delete(key(input))), keys: () => Promise.resolve([...disk.keys()].map(url => new Request(url))) }) } });
+  await content.put(f.hash, f.bytes);
+  const cache = { ...f.cache, verifiedAsset: (ref: string) => content.get(ref) };
+  const admitted = await admitProduct(f.source, { ...f.options, cache, hash });
+  try {
+    if (admitted.releaseTransport === undefined) throw new Error('Missing release authority');
+    hash.mockClear();
+    expect(await admitted.releaseTransport([f.hash])).toEqual([f.hash]);
+    expect(hash).toHaveBeenCalledTimes(1); expect(admitted.assets.has(f.hash)).toBe(false);
+  } finally { await content.flush(); }
+});

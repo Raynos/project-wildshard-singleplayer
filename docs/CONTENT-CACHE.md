@@ -17,7 +17,10 @@ requires handling actual write failures.
 
 `pin(hashes)` returns an idempotent release function. Overlapping owners
 protect active critical bytes until all leases release. A durable LRU index
-tracks wire size and access order; entries carry recovery metadata if a
+tracks wire size and access order. Reads update access ages in memory; one
+scoped two-second flush coalesces their index writes. Writes, eviction and
+pagehide flush promptly, and remove the pending timer/listener. Entries carry
+recovery metadata if a
 quota failure prevented an index write. Browser-evicted or corrupted bytes
 become cache misses. Concurrent reads of a missing address share one download.
 

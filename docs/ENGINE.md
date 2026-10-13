@@ -2694,7 +2694,7 @@ The list itself is generated at build time: [docs/api/EXPORTS.md](api/EXPORTS.md
 
 ### Content-addressed disk cache (SF18c)
 
-`@wildshard/engine/boot/contentCache` exposes `ContentCache` with injected storage, SHA-256 and quota ports. Immutable addresses are shared across content sources; reads verify hashes and offline misses never fetch. A durable LRU index, active-content leases, bounded entry/byte counts and quota eviction/retry keep disk growth bounded. Service-worker activation preserves this independently versioned cache and visited product manifests. See [CONTENT-CACHE.md](CONTENT-CACHE.md) for limits, ownership and recovery.
+`@wildshard/engine/boot/contentCache` exposes `ContentCache` with injected storage, SHA-256 and quota ports. Immutable addresses are shared across content sources; reads verify hashes and offline misses never fetch. Read-age index updates coalesce through a scoped two-second window; `flush()` forces pending metadata on pagehide. A durable LRU index, active-content leases, bounded entry/byte counts and quota eviction/retry keep disk growth bounded. Service-worker activation preserves this independently versioned cache and visited product manifests. See [CONTENT-CACHE.md](CONTENT-CACHE.md) for limits, ownership and recovery.
 
 ### Seamless grid crossing (SF20a)
 

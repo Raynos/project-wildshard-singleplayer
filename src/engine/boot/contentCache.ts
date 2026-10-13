@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import { Scope } from '../app/scope';
 
 const address = /^[a-f0-9]{64}$/u;
 const count = v.pipe(v.number(), v.finite(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER));
@@ -10,6 +11,8 @@ export interface ContentCachePorts {
   origin: string; hash: (bytes: Uint8Array) => Promise<string>;
   estimate?: () => Promise<{ usage?: number; quota?: number }>;
   maxBytes?: number; maxEntries?: number; reserveBytes?: number; now?: () => number;
+  /** Optional lifecycle listener; installed only while read ages are dirty, removed after a flush. */
+  pagehide?: EventTarget;
 }
 /** Aggregate wire bytes on disk; decoded CPU/GPU allocations belong to their session owners. */
 export interface ContentCacheStats { bytes: number; entries: number }
@@ -44,6 +47,12 @@ export class ContentCache {
   private cache: Pick<Cache, 'match' | 'put' | 'delete' | 'keys'> | undefined;
   private index: Record<string, Entry> = {};
   private clock = 0;
+  private dirty = false;
+  private readonly scope = new Scope('content-cache');
+  private flushTimer: ReturnType<typeof setTimeout> | 0 | undefined;
+  private readonly onPagehide = (): void => { void this.flush(); };
+  private removePagehide: (() => void) | undefined;
+  private pendingFlush: Promise<void> | undefined;
   private tail = Promise.resolve();
   private readonly pinned = new Map<string, number>();
   private readonly inflight = new Map<string, Promise<Uint8Array>>();
@@ -89,7 +98,31 @@ export class ContentCache {
     await this.metadata(cache); return cache;
   }
   private statsNow(): ContentCacheStats { const values = Object.values(this.index); return { entries: values.length, bytes: values.reduce((sum, entry) => sum + entry.bytes, 0) }; }
+  private readAgeChanged(): void {
+    this.dirty = true;
+    if (this.flushTimer !== undefined) return;
+    const target = this.ports.pagehide;
+    if (target !== undefined) {
+      this.scope.listen(target, 'pagehide', this.onPagehide);
+      this.removePagehide = () => { this.scope.unlisten(target, 'pagehide', this.onPagehide); };
+    }
+    this.flushTimer = this.scope.timeout(2000, () => { this.flushTimer = undefined; void this.flush(); });
+  }
+  /** Coalesce read-age writes; explicit writes/evictions and pagehide flush without waiting for the read window. */
+  flush(): Promise<void> {
+    if (this.pendingFlush !== undefined) return this.pendingFlush;
+    const pending = this.serial(async () => {
+      if (this.dirty && this.cache !== undefined) await this.metadata(this.cache);
+    });
+    this.pendingFlush = pending;
+    void pending.finally(() => { if (this.pendingFlush === pending) this.pendingFlush = undefined; });
+    return pending;
+  }
   private async metadata(cache: Pick<Cache, 'put'>): Promise<void> {
+    this.scope.cancelTimer(this.flushTimer);
+    this.flushTimer = undefined;
+    this.removePagehide?.(); this.removePagehide = undefined;
+    this.dirty = false;
     // Asset entries carry recovery metadata. An index failure cannot turn good immutable bytes into a failed load.
     await cache.put(new URL('index', this.root).href, Response.json(this.index)).catch(() => undefined);
   }
@@ -112,12 +145,12 @@ export class ContentCache {
     return this.serial(async () => {
       const cache = await this.open().catch(() => undefined); if (cache === undefined) return null;
       const response = await cache.match(key);
-      if (response === undefined) { delete this.index[hash]; return null; }
+      if (response === undefined) { if (this.index[hash] !== undefined) { delete this.index[hash]; await this.metadata(cache); } return null; }
       let bytes: Uint8Array;
       try { bytes = await read(response, MAX_FILE); }
-      catch { await cache.delete(key); delete this.index[hash]; return null; }
-      if (await this.ports.hash(bytes) !== hash) { await cache.delete(key); delete this.index[hash]; return null; }
-      this.index[hash] = { bytes: bytes.length, used: this.used() }; await this.metadata(cache); return bytes;
+      catch { await cache.delete(key); delete this.index[hash]; await this.metadata(cache); return null; }
+      if (await this.ports.hash(bytes) !== hash) { await cache.delete(key); delete this.index[hash]; await this.metadata(cache); return null; }
+      this.index[hash] = { bytes: bytes.length, used: this.used() }; this.readAgeChanged(); return bytes;
     });
   }
   /** Refuses mismatched bytes. Unavailable disk capacity returns false while an online load can still continue. */

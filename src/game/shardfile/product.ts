@@ -20,6 +20,8 @@ export interface CachedProduct { source: unknown; firstParty: boolean; validatio
 export interface ProductCache {
   product: (key: string) => Promise<CachedProduct | null>;
   asset: (base: string, hash: string) => Promise<Uint8Array | null>;
+  /** Trusted content-cache read that already checked SHA-256; absent keeps raw/legacy cache verification. */
+  verifiedAsset?: (hash: string) => Promise<Uint8Array | null>;
   putAsset: (base: string, hash: string, bytes: Uint8Array) => Promise<boolean> | Promise<void>;
   putProduct: (key: string, product: CachedProduct) => Promise<void>;
   pin?: (hashes: Iterable<string>) => () => void;
@@ -65,9 +67,10 @@ function transportRelease(source: Shardfile, assets: Map<string, Uint8Array>, op
     // Quota failures keep the admitted copy. A reread remains byte/hash checked and its residency owner pins the disk file.
     for (const ref of requested) {
       if (!bound.has(ref)) continue;
-      const bytes = await cache.asset(base, ref), file = files.get(ref);
+      const verified = await cache.verifiedAsset?.(ref);
+      const bytes = verified ?? await cache.asset(base, ref), file = files.get(ref);
       if (bytes === null) continue;
-      if (file === undefined || bytes.length !== file.compressed || await hash(bytes) !== ref) throw new Error('Released transport cache hash or size mismatch');
+      if (file === undefined || bytes.length !== file.compressed || ((verified === null || verified === undefined) && await hash(bytes) !== ref)) throw new Error('Released transport cache hash or size mismatch');
       released.push(ref);
     }
     for (const ref of released) assets.delete(ref);
@@ -109,7 +112,9 @@ export async function boundedResponse(response: Response, maximum: number, read?
 }
 /** SHA-256 over an owned ArrayBuffer, usable by WebKit without Node or SDK dependencies. */
 export async function browserContentHash(bytes: Uint8Array): Promise<string> {
-  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', Uint8Array.from(bytes)));
+  const input = bytes.buffer instanceof ArrayBuffer && bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength
+    ? bytes.buffer : Uint8Array.from(bytes).buffer;
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', input));
   return [...digest].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 /** Validate a visited cached product again, including cached Wasm; previous versions require offline first-party provenance. */
@@ -220,7 +225,8 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
 export function browserProductCache(storage: Pick<CacheStorage, 'open'>): ProductCache {
   const open = () => storage.open('ws-shardfile-products-v0');
   const productUrl = (base: string) => new URL('__visited_shardfile__', base).href;
-  const content = new ContentCache({ storage, origin: location.origin, hash: browserContentHash, estimate: () => navigator.storage.estimate() });
+  const content = new ContentCache({ storage, origin: location.origin, hash: browserContentHash, estimate: () => navigator.storage.estimate(),
+    pagehide: window });
   return {
     product: async (base) => {
       const response = await (await open()).match(productUrl(base)); if (response === undefined) return null;
@@ -236,6 +242,7 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'>): Produc
       const response = await (await open()).match(new URL(hash, base).href);
       return response === undefined ? null : boundedResponse(response, MAX_FILE_BYTES);
     },
+    verifiedAsset: hash => content.get(hash),
     putAsset: (_base, hash, bytes) => content.put(hash, bytes), pin: (hashes) => content.pin(hashes),
     putProduct: async (base, product) => { await (await open()).put(productUrl(base), Response.json(product)); },
   };

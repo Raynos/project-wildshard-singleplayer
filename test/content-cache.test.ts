@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { ContentCache, CONTENT_CACHE_NAME, type ContentCachePorts } from '../src/engine/boot/contentCache';
 import { browserContentHash } from '../src/game/shardfile/product';
 // oxlint-disable-next-line import/no-nodejs-modules -- Execute the real worker activation policy against isolated cache names.
@@ -6,13 +6,13 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The worker is a stamped script rather than a Node module.
 import { runInNewContext } from 'node:vm';
 
-function fixture(maxBytes = 20): { cache: ContentCache; ports: ContentCachePorts; files: Map<string, Response>; quota: (value: number) => void } {
-  const files = new Map<string, Response>(); let quota = Infinity;
+function fixture(maxBytes = 20, pagehide?: EventTarget): { cache: ContentCache; ports: ContentCachePorts; files: Map<string, Response>; quota: (value: number) => void; indexWrites: () => number } {
+  const files = new Map<string, Response>(); let quota = Infinity, indexWrites = 0;
   const url = (value: RequestInfo | URL) => value instanceof Request ? value.url : String(value);
   const disk: Pick<Cache, 'match' | 'put' | 'delete' | 'keys'> = {
     match: (value) => Promise.resolve(files.get(url(value))?.clone()),
     put: async (value, response) => {
-      if (url(value).endsWith('/index')) { files.set(url(value), response.clone()); return; }
+      if (url(value).endsWith('/index')) { indexWrites++; files.set(url(value), response.clone()); return; }
       const next = (await response.clone().arrayBuffer()).byteLength;
       let bytes = next;
       for (const [key, old] of files) if (!key.endsWith('/index') && key !== url(value)) bytes += (await old.clone().arrayBuffer()).byteLength;
@@ -22,8 +22,8 @@ function fixture(maxBytes = 20): { cache: ContentCache; ports: ContentCachePorts
     delete: (value) => Promise.resolve(files.delete(url(value))),
     keys: () => Promise.resolve([...files.keys()].map((key) => new Request(key))),
   };
-  const ports: ContentCachePorts = { storage: { open: (name) => { expect(name).toBe(CONTENT_CACHE_NAME); return Promise.resolve(disk); } }, origin: 'https://world.test', hash: browserContentHash, maxBytes, reserveBytes: 0, now: () => 1 };
-  return { cache: new ContentCache(ports), ports, files, quota: (value) => { quota = value; } };
+  const ports: ContentCachePorts = { storage: { open: (name) => { expect(name).toBe(CONTENT_CACHE_NAME); return Promise.resolve(disk); } }, origin: 'https://world.test', hash: browserContentHash, maxBytes, reserveBytes: 0, now: () => 1, ...(pagehide === undefined ? {} : { pagehide }) };
+  return { cache: new ContentCache(ports), ports, files, quota: (value) => { quota = value; }, indexWrites: () => indexWrites };
 }
 const bytes = (value: number): Uint8Array => Uint8Array.from({ length: 8 }, () => value);
 
@@ -107,4 +107,39 @@ it('keeps content bytes and visited manifests across service-worker activation',
   if (activate === undefined) throw new Error('Worker activation missing');
   activate({ waitUntil: (work) => { finished = work; } }); await finished;
   expect([...names]).toEqual(['ws-content-v0', 'ws-shardfile-products-v0']);
+});
+
+
+it('coalesces read ages into one index write per two-second window and flushes on pagehide', async () => {
+  vi.useFakeTimers();
+  const page = new EventTarget(), f = fixture(20, page), asset = bytes(1), hash = await browserContentHash(asset);
+  try {
+    await f.cache.put(hash, asset); const before = f.indexWrites();
+    for (let i = 0; i < 50; i++) expect(await f.cache.get(hash)).toEqual(asset);
+    expect(f.indexWrites()).toBe(before);
+    await vi.advanceTimersByTimeAsync(1999); expect(f.indexWrites()).toBe(before);
+    await vi.advanceTimersByTimeAsync(1); await f.cache.flush(); expect(f.indexWrites()).toBe(before + 1);
+    for (let i = 0; i < 25; i++) await f.cache.get(hash);
+    expect(f.indexWrites()).toBe(before + 1);
+    page.dispatchEvent(new Event('pagehide')); await f.cache.flush(); expect(f.indexWrites()).toBe(before + 2);
+    await vi.advanceTimersByTimeAsync(2000); expect(f.indexWrites()).toBe(before + 2);
+    await f.cache.get(hash); await f.cache.put(hash, asset); expect(f.indexWrites()).toBe(before + 3);
+    await vi.advanceTimersByTimeAsync(2000); expect(f.indexWrites()).toBe(before + 3);
+  } finally { await f.cache.flush(); vi.useRealTimers(); }
+});
+
+it('hashes an owned buffer without copying and copies sliced or shared buffers', async () => {
+  const spy = vi.spyOn(crypto.subtle, 'digest').mockResolvedValue(new ArrayBuffer(32));
+  try {
+    const owned = new Uint8Array([1, 2, 3]); await browserContentHash(owned);
+    expect(spy.mock.calls.at(-1)?.[1]).toBe(owned.buffer);
+    const sliced = owned.subarray(1); await browserContentHash(sliced);
+    const copied = spy.mock.calls.at(-1)?.[1];
+    if (!(copied instanceof ArrayBuffer)) throw new Error('Expected copied buffer');
+    expect(copied).not.toBe(owned.buffer); expect([...new Uint8Array(copied)]).toEqual([2, 3]);
+    const shared = new Uint8Array(new SharedArrayBuffer(3)); shared.set([4, 5, 6]); await browserContentHash(shared);
+    const stable = spy.mock.calls.at(-1)?.[1];
+    if (!(stable instanceof ArrayBuffer)) throw new Error('Expected private shared-buffer copy');
+    expect([...new Uint8Array(stable)]).toEqual([4, 5, 6]);
+  } finally { spy.mockRestore(); }
 });
