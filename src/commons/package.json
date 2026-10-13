@@ -10,7 +10,6 @@
     "./packs/effects": "./packs/effects/pack.ts",
     "./packs/arms": "./packs/arms/pack.ts",
     "./packs/weapons": "./packs/weapons/pack.ts",
-    "./packs/spear": "./packs/spear/pack.ts",
     "./bake/portableMath": "./bake/portableMath.ts"
   },
   "dependencies": {

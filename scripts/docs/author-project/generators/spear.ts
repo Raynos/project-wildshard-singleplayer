@@ -4,6 +4,9 @@ import { encodeCanonicalJson, hashImmutableBytes } from '@wildshard/sdk/immutabl
 import type { BuiltCommons, CommonsPack } from '@wildshard/sdk/commons';
 import { parseItems, type ShardItems } from '@wildshard/format/items';
 
+// The SF86 Mesa fixture's own spear (G355): no real shard uses it, so it lives with the author project, not in
+// `@wildshard/commons`. It still publishes through a project-local catalogue so its `commons:` closure is unchanged.
+
 /** Retained starter spear generator: an ash shaft, iron leaf point and wrapped grip, in the hand's local +Y frame.
  * The self-contained GLB needs no image, decoder, rig, clip or external material. No generated asset is committed. */
 export function starterSpearModel(): Uint8Array {

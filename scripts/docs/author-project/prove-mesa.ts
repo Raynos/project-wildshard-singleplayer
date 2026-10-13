@@ -1,4 +1,4 @@
-import { starterSpearPack, spearLoadout } from '@wildshard/commons/packs/spear';
+import { starterSpearPack, spearLoadout } from './generators/spear';
 import { createCatalogue } from '@wildshard/commons/catalogue';
 import { hashImmutableBytes, encodeCanonicalJson } from '@wildshard/sdk/immutable';
 import {

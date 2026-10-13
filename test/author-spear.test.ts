@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { beforeAll, expect, it } from 'vitest';
 import { Group, Mesh, Vector3 } from 'three';
-import { starterSpearModel, starterSpearPack, spearLoadout } from '@wildshard/commons/packs/spear';
+import { starterSpearModel, starterSpearPack, spearLoadout } from '../scripts/docs/author-project/generators/spear';
 import { createCatalogue } from '@wildshard/commons/catalogue';
 import { spearExample } from '../scripts/docs/authoring/spear';
 import { assetCost } from '../src/sdk/assets';

@@ -5,7 +5,7 @@ import * as v from 'valibot';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { skinnedGlb, sampleSkinClip } from '@wildshard/sdk/bake/export';
 import { readRigRest, readRigMotion } from '@wildshard/sdk/bake/rig';
-import { starterSpearPack, spearLoadout } from '@wildshard/commons/packs/spear';
+import { createCatalogue } from '@wildshard/commons/catalogue';
 import { SkinLookParametersSchema } from '@wildshard/format/skins';
 
 const published = v.object({ publishConfig: v.object({ exports: v.record(v.string(), v.object({ types: v.string(), default: v.string() })) }) });
@@ -23,8 +23,7 @@ it('follows the defining format and commons exports rather than invented SDK fil
   const format = v.parse(source, JSON.parse(readFileSync('src/format/package.json', 'utf8')));
   const commons = v.parse(source, JSON.parse(readFileSync('src/commons/package.json', 'utf8')));
   expect(format.exports['./skins']).toBe('./skins.ts');
-  expect(commons.exports['./packs/spear']).toBe('./packs/spear/pack.ts');
-  expect(typeof starterSpearPack).toBe('function');
-  expect(typeof spearLoadout).toBe('function');
+  expect(commons.exports['./catalogue']).toBe('./catalogue.ts');
+  expect(typeof createCatalogue).toBe('function');
   expect(v.safeParse(SkinLookParametersSchema, { skin: 'a'.repeat(64) }).success).toBe(true);
 });

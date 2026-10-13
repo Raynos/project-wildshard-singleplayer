@@ -14,7 +14,7 @@ must start unlit and become lit through the nearest reachable scene interaction,
 script event, timer-only light or pre-lit state cannot substitute for this interaction. A checkpoint's next 30 native ticks must restore
 byte-exactly. The report records observed displacement, distances, health, strike receipt and checkpoint tick.
 
-The runner checks the exact `starter-spear` commons catalogue closure and primary loadout: immutable model bytes,
+The runner checks the exact `starter-spear` catalogue closure (the author template's `generators/spear.ts`) and primary loadout: immutable model bytes,
 contact/profile bytes, charged commons requirements and library entries. In the normal built client it requires the
 current weapon to be mounted on the actual viewmodel, visible, and drawing nonempty geometry from that admitted
 asset lease. An unequipped declaration or replacement placeholder fails. It also runs `proveSceneClient` for every

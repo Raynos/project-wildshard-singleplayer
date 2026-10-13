@@ -1,4 +1,4 @@
-import { starterSpearPack, spearLoadout } from '@wildshard/commons/packs/spear';
+import { starterSpearPack, spearLoadout } from '../author-project/generators/spear';
 import { createCatalogue, catalogueRef } from '@wildshard/commons/catalogue';
 import { commonsRequirements, type BuiltCommons } from '@wildshard/sdk/commons';
 import { emptyShardfile } from '@wildshard/sdk/author';

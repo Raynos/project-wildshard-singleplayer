@@ -69,16 +69,17 @@ The SDK's retained publication map uses these paths relative to its package:
 | `skinnedGlb`, `sampleSkinClip` | `@wildshard/sdk/bake/export` | `dist/types/sdk/bake/export.d.ts` |
 | `readRigRest`, `readRigMotion` | `@wildshard/sdk/bake/rig` | `dist/types/sdk/bake/rig.d.ts` |
 | Skin contracts | `@wildshard/format/skins` | Follow the format package export; the SDK's referenced copy is `dist/types/format/skins.d.ts` |
-| `starterSpearPack`, `spearLoadout` | `@wildshard/commons/packs/spear` | Follow the commons package export; the workspace currently names `packs/spear/pack.ts` |
+| `createCatalogue`, `catalogueRef` | `@wildshard/commons/catalogue` | Follow the commons package export; the workspace currently names `catalogue.ts` |
 
 There is no SDK function named `exportGlb`. Choose `staticGlb` for static primitives
 or `skinnedGlb` for a skinned mesh and sampled clips. The executed rig, reader and
-spear examples in `scripts/docs/authoring/` use those real exports.
+spear examples in `scripts/docs/authoring/` use those real exports; the spear generator itself is the
+author template's own `generators/spear.ts`.
 
 To locate a public module without executing it:
 
 ```sh
-node --input-type=module -e 'console.log(import.meta.resolve("@wildshard/commons/packs/spear"))'
+node --input-type=module -e 'console.log(import.meta.resolve("@wildshard/commons/catalogue"))'
 ```
 
 This prints the runtime entry, not a guessed declaration filename. Use the
