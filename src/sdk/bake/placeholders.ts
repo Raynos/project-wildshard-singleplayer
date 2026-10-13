@@ -1,4 +1,7 @@
 import { NodeIO } from '@gltf-transform/core';
+import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
+import { MeshoptDecoder, MeshoptSimplifier } from 'meshoptimizer';
+import sharp from 'sharp';
 import { Color, Matrix4, MeshStandardMaterial, Quaternion, SRGBColorSpace, Vector3 } from 'three';
 import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
@@ -29,7 +32,12 @@ import { nearGroundReducer, nearPlaceholderParts, type NearPlaceholderOptions, t
  * whole cells Nalati 5.47, Driftwood 5.81 and Pine 8.07 MB with its 40k props, so the ceiling went 6 → 8.5 MB
  * (coordinator approval, G342 / E435): four cells 34 MB on the near line, inside the 1.0 GB Explorer envelope.
  */
-export const NEAR_BAKE = { quads: 64, groundError: 0.5, contentTriangles: 42_000, triangles: 160_000, residentBytes: 8_500_000 } as const;
+export const NEAR_BAKE = { quads: 64, groundError: 0.5, contentTriangles: 42_000, triangles: 160_000, residentBytes: 8_500_000, landTriangles: 60_000, modelScale: 16 } as const;
+/*
+ * G380: `landTriangles` is the budget of a shard whose land is models (Sky Reach's floating islands, its far row's
+ * `parts`), on top of the content budget as a height field's ground is; `modelScale` is how many times the far share
+ * of triangles its model tools keep for the near bake before that budget reduces them (`placeholderModelTools`).
+ */
 /**
  * G342 near round 5: the near ground leans back from the cell border (`FarEdgeLean`) instead of ending in a 60–120 m
  * boundary face (Nalati's snow ring stands 100 m at its west edge, Pine's north ridge 62 m). `top` is the seam's tallest
@@ -40,6 +48,71 @@ export const NEAR_EDGE_LEAN = { top: 14, grade: 1.6, jitter: 0.45 } as const;
 export const NEAR_TREE_TRIANGLES = 30_000;
 /** Half a cell (m): copies leaving it are dropped. */
 const HALF = 250;
+
+/** The paint a model's vertex samples: its base colour texture area-averaged to this square (a placeholder vertex stands
+ *  for metres of paint), read bilinearly. */
+const MODEL_PAINT = 96;
+const linearOf = (c: number): number => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+
+/**
+ * SF49 / G380: the model tools a shard's declared model `parts` (`placeholder.far.parts`, a land of models such as
+ * floating islands) are built with, shared by the far and the near bake: `model` reads a GLB under `root` (every
+ * primitive in world space, welded by position with seams averaged, its base colour texture sampled per vertex, linear
+ * RGB) and `decimate` is meshoptimizer's simplifier toward a triangle count (the sloppy one when topology stops it short).
+ * `scale` multiplies every count `decimate` is asked for (the near bake keeps `NEAR_BAKE.modelScale` times the far share,
+ * then reduces the whole land to its own budget). Nothing here knows a shard.
+ */
+export async function placeholderModelTools(root: string, scale = 1): Promise<{
+  model: (path: string) => Promise<{ positions: Float32Array; colours: Float32Array; index: Uint32Array }>;
+  decimate: (positions: Float32Array, index: Uint32Array, triangles: number) => Uint32Array;
+}> {
+  await MeshoptDecoder.ready; await MeshoptSimplifier.ready;
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
+  const paint = async (image: Uint8Array | null | undefined): Promise<((u: number, v: number) => [number, number, number]) | null> => {
+    if (image === null || image === undefined) return null;
+    const { data } = await sharp(image).resize(MODEL_PAINT, MODEL_PAINT, { fit: 'fill', kernel: 'cubic' }).removeAlpha().raw().toBuffer({ resolveWithObject: true });
+    const at = (ix: number, iy: number, c: number): number => (data[(iy * MODEL_PAINT + ix) * 3 + c] ?? 0) / 255;
+    return (u, v) => {
+      const x = Math.min(MODEL_PAINT - 1.001, Math.max(0, (((u % 1) + 1) % 1) * MODEL_PAINT - 0.5)), y = Math.min(MODEL_PAINT - 1.001, Math.max(0, (((v % 1) + 1) % 1) * MODEL_PAINT - 0.5));
+      const ix = Math.floor(x), iy = Math.floor(y), fx = x - ix, fy = y - iy;
+      const ch = (c: number): number => linearOf((at(ix, iy, c) * (1 - fx) + at(ix + 1, iy, c) * fx) * (1 - fy) + (at(ix, iy + 1, c) * (1 - fx) + at(ix + 1, iy + 1, c) * fx) * fy);
+      return [ch(0), ch(1), ch(2)];
+    };
+  };
+  const model = async (path: string): Promise<{ positions: Float32Array; colours: Float32Array; index: Uint32Array }> => {
+    const doc = await io.read(`${root.replace(/\/+$/u, '')}/${path}`), pos: number[] = [], col: number[] = [], idx: number[] = [];
+    for (const node of doc.getRoot().listNodes()) {
+      const mesh = node.getMesh(); if (mesh === null) continue;
+      const m = node.getWorldMatrix();
+      for (const prim of mesh.listPrimitives()) {
+        const p = prim.getAttribute('POSITION'), uv = prim.getAttribute('TEXCOORD_0'), index = prim.getIndices(), material = prim.getMaterial();
+        if (p === null) continue;
+        const sample = uv === null ? null : await paint(material?.getBaseColorTexture()?.getImage()), factor = material?.getBaseColorFactor() ?? [1, 1, 1, 1], base = pos.length / 3, e = [0, 0, 0], t = [0, 0];
+        for (let i = 0; i < p.getCount(); i++) {
+          p.getElement(i, e);
+          const [x = 0, y = 0, z = 0] = e;
+          pos.push(m[0] * x + m[4] * y + m[8] * z + m[12], m[1] * x + m[5] * y + m[9] * z + m[13], m[2] * x + m[6] * y + m[10] * z + m[14]);
+          const c = sample === null || uv === null ? [1, 1, 1] : (uv.getElement(i, t), sample(t[0] ?? 0, t[1] ?? 0));
+          col.push((c[0] ?? 1) * factor[0], (c[1] ?? 1) * factor[1], (c[2] ?? 1) * factor[2]);
+        }
+        const n = index === null ? p.getCount() : index.getCount();
+        for (let k = 0; k < n; k++) idx.push(base + (index === null ? k : index.getScalar(k)));
+      }
+    }
+    const positions = new Float32Array(pos), remap = MeshoptSimplifier.generatePositionRemap(positions, 3), first = new Map<number, number>(), out: number[] = [], sum: number[] = [], count: number[] = [], slot = new Uint32Array(remap.length);
+    for (let v = 0; v < remap.length; v++) {
+      const r = remap[v] ?? v; let s = first.get(r);
+      if (s === undefined) { s = out.length / 3; first.set(r, s); out.push(pos[v * 3] ?? 0, pos[v * 3 + 1] ?? 0, pos[v * 3 + 2] ?? 0); sum.push(0, 0, 0); count.push(0); }
+      slot[v] = s; sum[s * 3] = (sum[s * 3] ?? 0) + (col[v * 3] ?? 0); sum[s * 3 + 1] = (sum[s * 3 + 1] ?? 0) + (col[v * 3 + 1] ?? 0); sum[s * 3 + 2] = (sum[s * 3 + 2] ?? 0) + (col[v * 3 + 2] ?? 0); count[s] = (count[s] ?? 0) + 1;
+    }
+    return { positions: new Float32Array(out), colours: Float32Array.from(sum, (c, i) => c / (count[Math.floor(i / 3)] ?? 1)), index: Uint32Array.from(idx, k => slot[k] ?? 0) };
+  };
+  const decimate = (positions: Float32Array, index: Uint32Array, triangles: number): Uint32Array => {
+    const target = Math.round(triangles * scale) * 3, [kept] = MeshoptSimplifier.simplify(index, positions, 3, target, 1, ['Prune']);
+    return kept.length <= target * 1.15 ? kept : MeshoptSimplifier.simplifySloppy(index, positions, 3, null, target, 1)[0];
+  };
+  return { model, decimate };
+}
 
 /** One immutable file row of a baked placeholder GLB. */
 export type PlaceholderFile = Shardfile['files'][number];
@@ -144,7 +217,12 @@ export function nearTreePrototypes(trees: readonly PlaceholderTreePlacement[], h
 
 /** What `bakeNearPlaceholder` merges over the shard's ground. */
 export interface NearPlaceholderInput {
-  readonly grid: PlaceholderGrid;
+  /** the shard's height grid; null for a world with no height field (an authored mesh world): a flat floor then stands
+   *  half a metre under the lowest point of its world, one quad a region */
+  readonly grid: PlaceholderGrid | null;
+  /** a land of models (its far row's `parts`, built with `placeholderModelTools`): cell-local parts reduced to their own
+   *  budget (`NEAR_BAKE.landTriangles`), never sunk by the edge lean (they stand on no ground) */
+  readonly parts?: readonly PlaceholderPart[];
   readonly look: PlaceholderLook;
   /** the shard's drawn static world as prototypes with their placed copies (cell-local) */
   readonly prototypes: readonly NearPrototype[];
@@ -160,13 +238,33 @@ export interface NearPlaceholderInput {
   readonly log?: (line: string) => void;
 }
 
+/** A model part (cell-local) as a near prototype placed once at its footprint's centre (the regions count copy origins). */
+function landPrototype(part: PlaceholderPart, i: number): NearPrototype {
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  for (let v = 0; v < part.positions.length; v += 3) { const x = part.positions[v] ?? 0, z = part.positions[v + 2] ?? 0; minX = Math.min(minX, x); maxX = Math.max(maxX, x); minZ = Math.min(minZ, z); maxZ = Math.max(maxZ, z); }
+  const cx = Number.isFinite(minX) ? (minX + maxX) / 2 : 0, cz = Number.isFinite(minZ) ? (minZ + maxZ) / 2 : 0, positions = Float32Array.from(part.positions);
+  for (let v = 0; v < positions.length; v += 3) { positions[v] = (positions[v] ?? 0) - cx; positions[v + 2] = (positions[v + 2] ?? 0) - cz; }
+  return { name: `land-${String(i)}`, positions, colours: part.colours, index: part.index, transforms: [[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, cx, 0, cz, 1]] };
+}
+
+/** G380: the flat floor of a world with no height field, half a metre under the lowest point of its placed world. */
+function floorUnder(prototypes: readonly NearPrototype[], parts: readonly PlaceholderPart[]): PlaceholderGrid {
+  let low = Infinity;
+  for (const p of prototypes) for (const m of p.transforms) for (let v = 0; v < p.positions.length; v += 3) {
+    const x = p.positions[v] ?? 0, y = p.positions[v + 1] ?? 0, z = p.positions[v + 2] ?? 0;
+    low = Math.min(low, (m[1] ?? 0) * x + (m[5] ?? 0) * y + (m[9] ?? 0) * z + (m[13] ?? 0));
+  }
+  for (const p of parts) for (let v = 1; v < p.positions.length; v += 3) low = Math.min(low, p.positions[v] ?? 0);
+  return { res: 2, size: HALF * 2, heights: new Float32Array(4).fill(Number.isFinite(low) ? low - 0.5 : 0), splat: null };
+}
+
 /**
  * Bake one near placeholder: the ground at the height field's own density reduced by geometric error, in the shard's far
  * look, with its world's prototypes and its forest's stand-ins merged in at a low LOD; one draw, regions in
  * TEXCOORD_0.x, no colliders. The content budget steps down until the whole cell fits its resident ceiling.
  */
 export async function bakeNearPlaceholder(input: NearPlaceholderInput): Promise<{ bytes: Uint8Array; manifest: NearManifest; reduced: NearPlaceholderReport }> {
-  const { grid, look, log } = input;
+  const { look, log } = input, grid = input.grid ?? floorUnder(input.prototypes, input.parts ?? []);
   // round 5: what stands on a leaned flank sinks with it (a ridge's trees, a hut on the snow ring), never floats
   const drop = placeholderLeanDrop(grid, NEAR_EDGE_LEAN);
   const trees: PlaceholderTreePlacement[] = [], prototypes: NearPrototype[] = [];
@@ -182,8 +280,12 @@ export async function bakeNearPlaceholder(input: NearPlaceholderInput): Promise<
   if (forest !== null) log?.(`forest ${JSON.stringify(forest.report)}`);
   const treeParts = forest === null ? { parts: [], report: { triangles: 0 } }
     : await nearPlaceholderParts(forest.prototypes, { triangles: NEAR_TREE_TRIANGLES * 2, half: HALF, minSize: 0 });
+  // G380: a land of models, each part re-centred on its own footprint so it falls in the region it stands over
+  const land = input.parts === undefined || input.parts.length === 0 ? { parts: [], report: { triangles: 0 } }
+    : await nearPlaceholderParts(input.parts.map(landPrototype), { triangles: NEAR_BAKE.landTriangles, half: HALF, minSize: 0 });
+  if (land.report.triangles > 0) log?.(`land ${String(land.report.triangles)} tris from ${String(input.parts?.length ?? 0)} model parts`);
   // a forest placed tree by tree replaces its far look's canopy lift; a declared lattice (a cloud sea's one sheet, SF49) wins
-  const { canopyAt, ...bare } = look, quads = look.quads ?? NEAR_BAKE.quads,
+  const { canopyAt, ...bare } = look, quads = input.grid === null ? 1 : look.quads ?? NEAR_BAKE.quads,
     nearLook: PlaceholderLook = forest === null || canopyAt === undefined ? { ...look, quads } : { ...bare, quads };
   const groundError = input.groundError ?? NEAR_BAKE.groundError, residentCeiling = input.residentBytes ?? NEAR_BAKE.residentBytes;
   const reduceGround = await nearGroundReducer(groundError);
@@ -194,10 +296,10 @@ export async function bakeNearPlaceholder(input: NearPlaceholderInput): Promise<
   let budget: number = NEAR_BAKE.contentTriangles;
   for (;;) {
     const { parts, report: reduced } = await nearPlaceholderParts(prototypes, { triangles: budget, half: HALF, ...(input.floors === undefined ? {} : { floors: input.floors }) });
-    const bytes = oneDraw(placeholderGeometry(grid, nearLook, [...parts, ...treeParts.parts], NEAR_BAKE.triangles + treeParts.report.triangles, reduceGround, NEAR_EDGE_LEAN), 'near-placeholder');
+    const bytes = oneDraw(placeholderGeometry(grid, nearLook, [...parts, ...treeParts.parts, ...land.parts], NEAR_BAKE.triangles + treeParts.report.triangles + land.report.triangles, reduceGround, NEAR_EDGE_LEAN), 'near-placeholder');
     const file = fileRow(bytes);
     if (file.decoded + file.gpu <= residentCeiling) {
-      const near: NearManifest['near'] = { files: [file.hash], compressed: file.compressed, decoded: file.decoded, gpu: file.gpu, triangles: file.triangles, draws: file.draws, content: reduced.triangles,
+      const near: NearManifest['near'] = { files: [file.hash], compressed: file.compressed, decoded: file.decoded, gpu: file.gpu, triangles: file.triangles, draws: file.draws, content: reduced.triangles + land.report.triangles,
         ...(forest === null ? {} : { trees: forest.report.kept, treeTriangles: treeParts.report.triangles }) };
       return { bytes, reduced, manifest: { near, file, look: { family: look.family, haze: look.haze, ...(look.grade === undefined ? {} : { grade: look.grade }) } } };
     }
@@ -261,11 +363,21 @@ export async function shardfileWorld(shard: Shardfile, assets: ReadonlyMap<strin
 /**
  * G348: `wildshard build`'s placeholders for any shardfile with a terrain: its far proxy when it ships none, and its near
  * placeholder (one render-only GLB in `near.content`) when it declares none, both from its own terrain collider, its own
- * coarse tiles' meshes and its own look. A shard without a height field (an authored mesh world ships its own far) is
- * returned unchanged. New files are added to `assets` and the returned shardfile.
+ * coarse tiles' meshes and its own look. A shard without a height field (an authored mesh world ships its own far) keeps
+ * its far and gets its near view from its coarse tiles over a flat floor (G380). New files are added to `assets` and the returned shardfile.
  */
 export async function projectPlaceholders(shard: Shardfile, assets: Map<string, Uint8Array>): Promise<Shardfile> {
   const collider = shard.terrain === null ? undefined : assets.get(shard.terrain.collider);
+  if (shard.terrain === null && shard.near === undefined) {
+    // G380: a world with no height field (an authored mesh world, which ships its own far) gets its near view from its
+    // coarse tiles alone, over a flat floor under them; none when it has no coarse tile meshes
+    const prototypes = await shardfileWorld(shard, assets);
+    if (prototypes.length === 0) return shard;
+    const baked = await bakeNearPlaceholder({ grid: null, look: shardfileLook(shard), prototypes, residentBytes: Math.min(NEAR_BAKE.residentBytes, NEAR_PLACEHOLDER_LIMITS.contentBytes) });
+    const file = baked.manifest.file;
+    assets.set(file.hash, baked.bytes);
+    return { ...shard, files: shard.files.some(row => row.hash === file.hash) ? shard.files : [...shard.files, file], near: { version: 1, terrain: [], content: [file.hash] } };
+  }
   if (collider === undefined || (shard.far !== null && shard.near !== undefined)) return shard;
   const grid = colliderGrid(collider), look = shardfileLook(shard), files = [...shard.files];
   let far = shard.far, near = shard.near;

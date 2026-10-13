@@ -28,6 +28,9 @@ if (typeof slug !== 'string') throw new Error('usage: near-placeholder.mjs <slug
 const report = process.argv.includes('--report');
 const root = resolve(import.meta.dirname, '../..');
 const at = path => import(pathToFileURL(resolve(root, path)).href);
+// a shardfile project (its shard.config.ts): what `wildshard build` reads, for its tiles, its look and its terrain; read
+// before the bake environment's browser stand-ins exist (its behaviour compiler takes them for a browser)
+const project = existsSync(resolve(root, 'src/shards', slug, 'shard.config.ts')) ? await (await at('src/sdk/project.ts')).readProjectAssets(resolve(root, 'src/shards', slug)) : null;
 const environment = installBakeEnvironment(root);
 // G342: a colour map's mean colour, decoded from its encoded bytes (PNG / JPEG / WebP) by Pillow, so a textured prop keeps
 // its own paint (Pine's cabins, Driftwood's huts) instead of a guessed wood tint; the bitmap is that one mean texel
@@ -217,22 +220,28 @@ const prototypes = parts.filter((p) => {
 });
 // the far look, the grid and the bake are the generic ones (`@wildshard/sdk/bake/placeholders`, as `wildshard build`)
 const sdk = await at('src/sdk/bake/placeholders.ts');
-if (source.far === undefined) throw new Error(`${slug}: no far row in its data/placeholder.ts`);
 const exported = async (ref) => { const value = (await at(`src/shards/${slug}/${ref.module}`))[ref.export]; if (value === undefined) throw new Error(`${slug}: ${ref.module} has no export ${ref.export}`); return value; };
-const look = await exported(source.far.look);
-// a shard whose world lives in its shardfile tiles (Signal's sand and tower, a template's props) has nothing the authored
-// host builds: its coarse (L1) tiles' meshes are its world, harvested as `wildshard build` harvests them (`shardfileWorld`)
-if (prototypes.length === 0 && existsSync(resolve(root, 'src/shards', slug, 'shard.config.ts'))) {
-  const { readProjectAssets } = await at('src/sdk/project.ts');
-  const project = await readProjectAssets(resolve(root, 'src/shards', slug));
+// G380: a shard that declares no far look takes the generic one `wildshard build` gives any shardfile (`shardfileLook`)
+if (source.far === undefined && project === null) throw new Error(`${slug}: no far row in its data/placeholder.ts and no shardfile project`);
+const look = source.far === undefined ? sdk.shardfileLook(project.shard) : await exported(source.far.look);
+// a shard whose world lives in its shardfile tiles (Signal's sand and tower, a template's props, the Blender template's
+// authored mesh world) has nothing the authored host builds: its coarse (L1) tiles' meshes are its world, harvested as
+// `wildshard build` harvests them (`shardfileWorld`)
+if (prototypes.length === 0 && project !== null) {
   prototypes.push(...await sdk.shardfileWorld(project.shard, project.assets));
   console.log(`${slug}: ${prototypes.length} shardfile L1 tile meshes`);
 }
-const ground = source.far.grid === undefined ? placeholderGridBytes(root, resolve(root, 'src/shards', slug), slug) : null;
-const grid = ground === null ? (await exported(source.far.grid))() : ground.kind === 'baked' ? sdk.bakedTerrainGrid(ground.bytes) : sdk.colliderGrid(ground.bytes);
+// G380: a land of models (Sky Reach's islands, its far row's `parts`) is built with the SDK's shared model tools, at
+// `NEAR_BAKE.modelScale` times the far share, and reduced to the near bake's land budget
+const land = source.far?.parts === undefined ? [] : await (await exported(source.far.parts))(await sdk.placeholderModelTools(root, sdk.NEAR_BAKE.modelScale));
+// the ground: a declared grid, else the baked terrain.bin or the shardfile's terrain collider; a world with no height
+// field (a shardfile whose terrain is null, an authored mesh world) stands on the bake's flat floor (grid null)
+const flat = source.far?.grid === undefined && project?.shard.terrain === null && !existsSync(terrainBin);
+const ground = source.far?.grid !== undefined || flat ? null : placeholderGridBytes(root, resolve(root, 'src/shards', slug), slug);
+const grid = flat ? null : ground === null ? (await exported(source.far.grid))() : ground.kind === 'baked' ? sdk.bakedTerrainGrid(ground.bytes) : sdk.colliderGrid(ground.bytes);
 // round 3: the ground at the height field's own density, reduced by geometric error (--ground-error=<m> to measure)
 const arg = (name) => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
-const { bytes, manifest: row, reduced } = await sdk.bakeNearPlaceholder({ grid, look, prototypes, trees: forestTrees, stands: source.trees, floors: source.near?.floors,
+const { bytes, manifest: row, reduced } = await sdk.bakeNearPlaceholder({ grid, look, prototypes, parts: land, trees: forestTrees, stands: source.trees, floors: source.near?.floors,
   groundError: Number(arg('ground-error') ?? sdk.NEAR_BAKE.groundError), residentBytes: Number(arg('resident') ?? sdk.NEAR_BAKE.residentBytes), log: line => console.log(`${slug}: ${line}`) });
 const { file } = row, resident = file.decoded + file.gpu;
 if (report) { for (const k of reduced.kept) console.log(`  keep ${k.name}: ${k.copies} x ${k.triangles}/${k.source}`); for (const d of reduced.dropped) console.log(`  drop ${d.name}: ${d.why}`); }
