@@ -124,8 +124,8 @@ function descriptorContract(root, slug, text) {
 }
 /**
  * E362 AG10: a legacy `load` is `() => import('./plugin')`; a data descriptor has a canonical shardfile path and no load.
- * manifest's static closure stays inside its file budget (`lint/manifest-closure-budget.json`, `default` for a new
- * shard; it may only fall); every `ShardManifest` field is read by the engine, the game or the tooling (`fields`).
+ * manifest's static closure stays inside its file budget (`lint/manifest-closure-budget.json`: one `default` limit for
+ * every shard, not a ratchet); every `ShardManifest` field is read by the engine, the game or the tooling (`fields`).
  * Slug = folder is check-shards' (AG9).
  */
 export function manifestContract(root, closure, fields = false) {
