@@ -501,7 +501,6 @@
     "src/shards/far-reach/runtime/persistence.ts": 1,
     "src/shards/far-reach/runtime/quest.ts": 1,
     "src/shards/far-reach/runtime/stormRocBrain.ts": 5,
-    "src/shards/far-reach/runtime/strikes.ts": 1,
     "src/shards/far-reach/runtime/weapons/coneFan.ts": 4,
     "src/shards/far-reach/runtime/weapons/coneStrikes.ts": 3,
     "src/shards/far-reach/species/bodies.ts": 1,

@@ -24,7 +24,7 @@ import { DUNE_STRIDER, STRIDE, CHARGE_DATA, HORNS_DATA } from '../../src/shards/
 import { SKITTERER_DATA, SKITTER, BITE_DATA } from '../../src/shards/sunscar-dunes/data/species/skitterer';
 import { MATRIARCH_DATA, MATRIARCH, MATRIARCH_HP } from '../../src/shards/sunscar-dunes/data/species/matriarch';
 import { PINE_LANES, PINE_STRIKES } from '../../src/shards/pine-hollow/combat/strikes';
-import { RAM, DIVE, BURST } from '../../src/shards/far-reach/runtime/strikes';
+import { RAM, DIVE, BURST } from '../fixtures/far-reach/skyStrikes';
 import { STOOP, GALE_WALL, SWEEP } from '../../src/shards/far-reach/runtime/stormRocBrain';
 
 const SWOOP = strikeFromData(strike(SWOOP_DATA)), BITE = strikeFromData(strike(BITE_DATA));

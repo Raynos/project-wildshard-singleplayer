@@ -10,7 +10,7 @@ import { ramGrazer } from '../../../src/sdk/grazers';
 import { SKY_GOAT, SKY_GOAT_LOOK } from '../../../src/shards/far-reach/species/skyGoat';
 import { setHome } from '../../../src/shards/far-reach/species/rig';
 import { GOAT_BRAIN } from '../../../src/shards/far-reach/data/brains';
-import { RAM } from '../../../src/shards/far-reach/runtime/strikes';
+import { RAM } from '../../fixtures/far-reach/skyStrikes';
 import { creature } from '../../fake/creature';
 import { installPortableMath } from '../../fake/portableMath';
 

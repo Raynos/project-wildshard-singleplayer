@@ -10,7 +10,7 @@ import type { SimHost, SimValue } from '@wildshard/engine/sim';
 import { parseRamGrazer as ramGrazer } from '@wildshard/format/grazers';
 import { parseOrbitDiver as orbitDiver, parseBurstFlyer as burstFlyer } from '@wildshard/format/flyers';
 import { GOAT_BRAIN, RAY_BRAIN, WISP_BRAIN } from '../../../src/shards/far-reach/data/brains';
-import { DIVE, RAM, BURST } from '../../../src/shards/far-reach/runtime/strikes';
+import { DIVE, RAM, BURST } from '../far-reach/skyStrikes';
 import { stormRocBrain, type StormRocBrain } from '../../../src/shards/far-reach/runtime/stormRocBrain';
 import type { Home } from '../../../src/shards/far-reach/data/layout';
 
