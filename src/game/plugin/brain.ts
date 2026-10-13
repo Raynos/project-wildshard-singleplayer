@@ -803,6 +803,13 @@ export interface SpeciesHomesSpec {
   readonly beforeStep?: (homes: readonly KeptHome[]) => void;
 }
 
+/** Each species' scale range by kind: its first variant's, the creature manager's first draw (a species without one refuses). */
+export function speciesScales(species: readonly { readonly kind: string; readonly variants: readonly { readonly scale: readonly [number, number] }[] }[]): ReadonlyMap<string, readonly [number, number]> {
+  return new Map(species.map(row => {
+    const variant = row.variants[0]; if (variant === undefined) throw new Error(`Species ${row.kind} has no variant`);
+    return [row.kind, variant.scale] as const;
+  }));
+}
 /**
  * Declared homes whose policies come from their species rows (SF27): the keeper's stream, tokens, respawn clocks and
  * exact restore (`installHomeKeeper`), each body observing through one reused `HomeObservation`. Contacts reach the
@@ -811,10 +818,7 @@ export interface SpeciesHomesSpec {
  * reach test is the line check), the blow's point at the creature.
  */
 export function installSpeciesHomes(host: SimHost, spec: SpeciesHomesSpec, saved?: Readonly<SimSnapshot>): { settle: () => void; homes: () => readonly KeptHome[]; boss: KeptBossBody | null } {
-  const scales = new Map(spec.species.map(row => {
-    const variant = row.variants[0]; if (variant === undefined) throw new Error(`Species ${row.kind} has no variant`);
-    return [row.kind, variant.scale] as const;
-  }));
+  const scales = speciesScales(spec.species);
   const player = host.player.position, reach = (a: AnimalSim): boolean => canReach(a, player, host.physics);
   return installHomeKeeper(host, { step: spec.step, seed: spec.seed, homes: spec.homes, ...(spec.boss === undefined ? {} : { boss: spec.boss }),
     specs: spec.specs, scales, attackers: spec.attackers, think: spec.think, ...(spec.beforeStep === undefined ? {} : { beforeStep: spec.beforeStep }),

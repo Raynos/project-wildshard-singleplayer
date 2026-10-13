@@ -16,7 +16,7 @@ import { provePortalLinks } from '../shardfile/portalLinkProof';
 import { DirectorStageLane } from './director';
 import { directorDayRange, directorDataHostIssues } from '@wildshard/format/directorStages';
 import { DEFAULT_NORMALIZED_DAY, normalizedDayClock, inNormalizedDayRange, type DayCycle } from '@wildshard/engine/world/dayCycle';
-import { createSimHost, SIM_API_VERSION, type SimHost, type SimCommand, type SimHostPorts, type SimStrike, type SimValue } from "@wildshard/engine/sim";
+import { createSimHost, SIM_API_VERSION, type SimHost, type SimCommand, type SimHostPorts, type SimLevel, type SimStrike, type SimValue } from "@wildshard/engine/sim";
 import { buildPlatformSpawns } from "@wildshard/engine/ai/platform";
 import { addBakedTerrainCollider } from "@wildshard/engine/physics/terrainTiles";
 import { decodeTerrainTile, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
@@ -87,6 +87,63 @@ export function addBakedPieces(physics: Physics, pieces: unknown): AddedPiece['c
   return board;
 }
 
+/** The host's player strike where declared items own every damaging contact: a zero-damage probe. */
+export const HOST_PROBE: Readonly<SimStrike> = { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] };
+/**
+ * A trusted runtime's native level (SF72): the shard's identity, the player at the runtime's own stand and speed (capped
+ * by the shard's author speed), no declared entities or quests (the runtime installs its own owners), and `HOST_PROBE`.
+ */
+export function trustedLevel(shard: Pick<Shardfile, 'identity' | 'authorCaps'>, player: SimLevel['player'], ground: SimLevel['ground']): SimLevel {
+  return { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground,
+    player: { at: player.at, yaw: player.yaw, speed: Math.min(player.speed, shard.authorCaps.speed) }, entities: [], quests: [], weapon: HOST_PROBE };
+}
+/** The shard's admitted terrain collider and its height query; a shard that declares none, or whose bytes are absent, refuses. */
+export function admittedTerrain(shard: Pick<Shardfile, 'terrain'>, assets: ReadonlyMap<string, Uint8Array>): { readonly bytes: Uint8Array; readonly heightAt: (x: number, z: number) => number } {
+  const bytes = shard.terrain === null ? undefined : assets.get(shard.terrain.collider);
+  if (bytes === undefined) throw new Error('Missing admitted terrain collider');
+  const terrain = decodeTerrainTile(bytes);
+  return { bytes, heightAt: (x, z) => terrainTileHeight(terrain, x, z) };
+}
+/**
+ * Register a Node-baked world into a fresh trusted host (a restore brings it back with the physics): the admitted terrain
+ * collider when given, then the baked pieces (`addBakedPieces`), whose board-only colliders join the host's board mode.
+ */
+export function addBakedWorld(host: SimHost, pieces: unknown, terrain?: Uint8Array): void {
+  if (terrain !== undefined) addBakedTerrainCollider(host.physics, terrain, host.scope);
+  const board = addBakedPieces(host.physics, pieces);
+  if (board.length > 0) host.boardColliders(board);
+}
+/** A declared weapon row (`shard.items`) by id; an absent or non-weapon row refuses. */
+export function weaponRow(shard: Pick<Shardfile, 'items'>, id: string): Extract<Shardfile['items']['rows'][number], { kind: 'weapon' }> {
+  const row = shard.items.rows.find(item => item.id === id);
+  if (row?.kind !== 'weapon') throw new Error(`Missing declared weapon ${id}`);
+  return row;
+}
+/** The fact and coin ports every declared owner takes, emitted into a trusted runtime's tick effects. */
+export function ledgerPorts(emit: (effect: { kind: 'fact'; name: string; actorId: string } | { kind: 'coins'; amount: number; actorId: string }) => void): {
+  readonly fact: (name: string, actorId: string) => void; readonly coins: (amount: number, actorId: string) => void;
+} {
+  return { fact: (name, actorId) => { emit({ kind: 'fact', name, actorId }); }, coins: (amount, actorId) => { emit({ kind: 'coins', amount, actorId }); } };
+}
+/** The tick protocol's command allowance (sdk/tickProtocol.ts): one tick never carries more. */
+const MAX_TICK_COMMANDS = 1024;
+/**
+ * One owner's view of a trusted runtime's tick commands: each lent command in tape order through `pick` (undefined skips
+ * it) into one reused list, so a step allocates no list; a tick past the protocol's allowance refuses.
+ */
+export function pickCommands<C, T>(commands: () => readonly C[], pick: (command: C) => T | undefined): () => readonly T[] {
+  const out: T[] = [], overflow = new RangeError('Tick commands exceed the protocol allowance');
+  return () => {
+    out.length = 0;
+    const list = commands(); if (list.length > MAX_TICK_COMMANDS) throw overflow;
+    for (let i = 0; i < MAX_TICK_COMMANDS; i++) {
+      const command = list[i]; if (command === undefined) break;
+      const picked = pick(command); if (picked !== undefined) out.push(picked);
+    }
+    return out;
+  };
+}
+
 const dayClockContinuation = v.strictObject({
   value: v.number(), paused: v.boolean(), scale: v.number(), cycle: v.number(),
   held: v.nullable(v.strictObject({ value: v.number(), paused: v.boolean() })),
@@ -149,7 +206,7 @@ export function createShardfileSim(shard: Shardfile, assets: ReadonlyMap<string,
   const terrain = bytes === undefined ? undefined : decodeTerrainTile(bytes);
   const heightAt = shard.meshCollision === null ? terrain === undefined ? () => 0 : (x: number, z: number) => terrainTileHeight(terrain, x, z)
     : clientGround(shard, assets).heightAt;
-  const weapon = ports.weapon ?? { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] };
+  const weapon = ports.weapon ?? HOST_PROBE;
   const host = createSimHost({ version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed,
     ground: { size: 500, height: 0 }, player: { at: { x: shard.spawn.x, y: shard.spawn.y, z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     entities: buildPlatformSpawns(shard.creatures.spawns, speciesResolver(shard.rows), simStrikes(shard.rows)), weapon, quests: [],
