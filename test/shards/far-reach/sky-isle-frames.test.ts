@@ -6,6 +6,9 @@ import { platform } from 'node:process';
 import { bakeSkyIsleFrames } from '../../../src/shards/far-reach/generators/skyIsleFrames';
 import { SKY_ISLE_HD, SKY_ISLE_MODELS } from '../../../src/shards/far-reach/data/skyIsles';
 import frames from '../../../src/shards/far-reach/data/skyIsleFrames.json' with { type: 'json' };
+import pines from '../../../src/shards/far-reach/data/skyIslePines.json' with { type: 'json' };
+import placements from '../../../src/shards/far-reach/data/placements.json' with { type: 'json' };
+import { bakeSkyPlacements } from '../../../src/shards/far-reach/generators/placements';
 
 const publicFile = (url: string): Uint8Array => new Uint8Array(readFileSync(new URL(`../../../public${url}`, import.meta.url)));
 
@@ -13,6 +16,16 @@ describe('Sky Reach finds its sky-isle models\' unit frames offline (SHARD-PLATF
   // bit-exact on the platform that baked it (Linux CI's libm differs in the last ulp)
   it.runIf(platform === 'darwin')('the committed frames are exact against their generator (the stale gate: rerun src/shards/far-reach/generators/bake-sky-world.mjs)', async () => {
     expect(await bakeSkyIsleFrames(publicFile)).toEqual(frames);
+  });
+  it.runIf(platform === 'darwin')('the committed placements (sky isles, keels, falls, trees, meadow) are exact against their generator', async () => {
+    expect(structuredClone(await bakeSkyPlacements(publicFile, frames, pines))).toEqual(placements);
+  });
+  it('places every instance as sixteen float32 words', () => {
+    for (const cube of [placements.standalone, placements.cell]) for (const m of [cube.falls, ...[...placements.keels, ...cube.isles, ...cube.trees].map((p) => p.m)]) {
+      expect(m.length % 16).toBe(0);
+      // each word names one float32 (nine significant digits round-trip it)
+      expect(Array.from(Float32Array.from(m), (v) => Number(v.toPrecision(9)))).toEqual(m);
+    }
   });
 
   it('frames every model, each rim a bin per angle in float32', () => {

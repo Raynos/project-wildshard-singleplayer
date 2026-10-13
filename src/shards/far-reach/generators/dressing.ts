@@ -2,7 +2,7 @@ import { BufferGeometry, Color, DoubleSide, InstancedMesh, Matrix4, MeshBasicMat
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { buildGeometries } from './geometries';
 import { bakeSkyPiece, SkyPiece } from './piece';
-import { meadowHoles, meadowPaths } from '../world/meadow';
+import { meadowHoles, meadowPaths } from './placements';
 import { DECK, FALLEN_BRIDGE, HIGH, ISLES, SPANS, STEP, UPDRAFT, type Isle, type Span } from '../data/layout';
 import { apothem, knollHeight } from '../layout';
 

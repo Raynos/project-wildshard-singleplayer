@@ -15,9 +15,8 @@
 import { BufferAttribute, BufferGeometry, Color, Vector3 } from 'three';
 import { HD_URLS } from '../data/files';
 import { ISLE_CUT, ISLE_KEEL_CUT, SKY_ISLE_MODELS, type SkyIsle, type SkyIsleModel } from '../data/skyIsles';
-import { keelIsles, skyIslePose, skyIsleUnit, skyIsleWear, type SkyIsleUnit } from '../world/skyIsleHd';
+import { keelIsles, skyIslePose, skyIslesIn, skyIsleUnit, skyIsleWear, type SkyIsleUnit } from './placements';
 import { skyIsleFrame } from './skyIsleFrames';
-import { skyIslesIn } from '../world/skyIsles';
 import { ISLES, MILL, PINES, WINDMILL, type Isle } from '../data/layout';
 import { apothem } from '../layout';
 import { builtIsleGeometry } from './isles';

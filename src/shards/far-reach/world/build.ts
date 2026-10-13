@@ -6,17 +6,16 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Group, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, type Span } from '../data/layout';
+import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, NOTES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, type Span } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
 import { trees } from './trees';
-import { ISLE_CUT, ISLE_KEEL_CUT, SKY_ISLES } from '../data/skyIsles';
-import skyIslePines from '../data/skyIslePines.json' with { type: 'json' };
+import { ISLE_CUT, ISLE_KEEL_CUT } from '../data/skyIsles';
+import PLACEMENTS_BAKED from '../data/placements.json' with { type: 'json' };
 import BRIDGE_PHYSICS from '../data/bridgePhysics.generated.json' with { type: 'json' };
 import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type: 'json' };
-import { inCube, skyIslesIn } from './skyIsles';
-import { keelIsles, skyIsleModels } from './skyIsleHd';
+import { skyIsleModels } from './skyIsleHd';
 import { skyBakedPiece, skyKnollHulls, skyPieces } from './baked';
 import { ownPrimitives } from './resources';
 import { skyline } from './distant';
@@ -70,6 +69,12 @@ function bakedColliders(rows: readonly { readonly id: string; readonly colliders
 const spanColliders = (id: string): ColliderDesc[] => bakedColliders(BRIDGE_PHYSICS, id, 'wood');
 /** The windmill (its tower and rock drum), the winch, the notes and the vanes (generators/physicsPlacements.ts). */
 const propColliders = (id: string): ColliderDesc[] => bakedColliders(PLACEMENTS, id);
+/** The baked placements for this session's cube (G99): standalone, or a grid cell of the half width they were baked for. */
+function skyPlacements(cube: { readonly half: number } | null): typeof PLACEMENTS_BAKED.standalone {
+  if (cube === null) return PLACEMENTS_BAKED.standalone;
+  if (cube.half !== PLACEMENTS_BAKED.half) throw new Error(`far-reach: placements baked for a ${String(PLACEMENTS_BAKED.half)} m cube, not ${String(cube.half)}`);
+  return PLACEMENTS_BAKED.cell;
+}
 export interface BuiltWorld {
   /** The hover decks' shared material: the plugin brightens it while the player rides the board. */
   readonly hoverDeck: MeshStandardMaterial;
@@ -136,34 +141,27 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
     ctx.piece({ id: `far.${k.id}.knoll`, name: names[isle.id] ?? isle.id, category: 'ground', file: FILE, object: knoll, colliders: [hull], surface: 'grass' });
   }
   await pause();
-  const pineAt: [number, number, number, number][] = [];
-  for (const isle of ISLES) for (const [dx, dz, s] of PINES[isle.id] ?? []) pineAt.push([isle.x + dx, isle.y, isle.z + dz, s]);
-  // a pine on each gate isle beside the chain posts (the board's tree over the islet)
-  for (const isle of GATE_ISLES) pineAt.push([isle.x + 3, isle.y, isle.z - 3, 0.9]);
   // E392/E399: the sky around the archipelago, the textured floating-island models (world/skyIsleHd.ts; one that did not load stands undrawn)
+  // G99: in a grid cell only the isles inside the 500 m cube (ctx.cube); standalone every one: each placed offline (generators/placements.ts)
   const skyGroup = new Group(); skyGroup.name = 'far.sky-isles';
-  // G99: in a grid cell only the isles inside the 500 m cube (ctx.cube); standalone every one
-  const skyIsles = skyIslesIn(ctx.cube), half = ctx.cube?.half ?? null;
-  const skyHd = skyIsleModels(skyIsles); skyGroup.add(skyHd.group);
+  const placed = skyPlacements(ctx.cube);
+  skyGroup.add(skyIsleModels(placed.isles));
   await pause();
   // the playable islands' keels in the same painted rock (E399 round 2, seat C: 'under the bridge a flat sage-green cliff
   // wall'): a model under each island, its turf 1.8 m under the walkable top (its turf mounds poked up through the arena floor at 0.7 m), so
   // the rock below are the textured ones; the code top and its colliders are unchanged, nothing here collides
-  const keels = skyIsleModels(keelIsles(ISLES), true);
-  keels.group.name = 'far.isle-keels'; skyGroup.add(keels.group);
+  const keels = skyIsleModels(PLACEMENTS_BAKED.keels, true);
+  keels.name = 'far.isle-keels'; skyGroup.add(keels);
   await pause();
-  const SKY_ISLE_PINES: Readonly<Record<string, readonly { x: number; z: number; size: number; y: number | null }[]>> = skyIslePines;
-  // the firs placed offline (generators/skyIslePines.ts): on a model's turf or not at all
-  for (const s of SKY_ISLES) if (half === null || inCube(s, half)) for (const p of SKY_ISLE_PINES[s.id] ?? []) if (p.y !== null) pineAt.push([p.x, p.y, p.z, p.size]);
   pieces.add('far.sky-isles', skyGroup);
   // the modelled trees (top-10 row 2; none stand when a model did not load)
-  pieces.add('far.pines', trees(pineAt) ?? new Group());
+  pieces.add('far.pines', trees(placed.trees) ?? new Group());
   await pause();
   // the meadow and the roots (loop 2): grass clumps, flowers, stones, hanging roots; no colliders
   pieces.add('far.dressing', skyBakedPiece('dressing').root);
   await pause();
   // the skyline: decorative 3-D islands and waterfalls out past the archipelago, and the windmill isle's fall
-  const sky = skyline(ISLES, (isle, a) => skyHd.lipAt(isle, a), skyIsles); root.add(sky);
+  const sky = skyline(placed.falls); root.add(sky);
   await pause();
 
   const rope = flat(PALETTE.rope);

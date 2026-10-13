@@ -3,7 +3,8 @@ import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { skyIsleHitDown } from './skyIsleProbe';
 import { hdGeometry } from '../runtime/looks/modelIntake';
 import { SKY_ISLES, SKY_ISLE_HD, SKY_ISLE_MODELS, type SkyIsleModel } from '../data/skyIsles';
-import { skyIslePose, skyIsleUnit, skyIsleWear, type SkyIsleFrame, type SkyIsleUnit } from '../world/skyIsleHd';
+import type { SkyIsleFrame } from '../world/skyIsleHd';
+import { skyIslePose, skyIsleUnit, skyIsleWear, type SkyIsleUnit } from './placements';
 import { HD_URLS } from '../data/files';
 
 /**

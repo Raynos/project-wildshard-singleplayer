@@ -2,12 +2,10 @@ import { KNOLL_GLSL } from '../runtime/looks/knollGlsl';
 import { Color, type Texture, type InstancedBufferGeometry, Mesh, type ShaderMaterial, Vector2, Vector3, Vector4 } from 'three';
 import { ShaderFamily, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
 import { tileFieldGeometry, tileOrigin } from '../runtime/looks/tileField';
-import { DAIS, FALLEN_BRIDGE, ISLES, MILL, MILL_DRUM, NOTES, SPANS, UPDRAFT, VANES, NEST, SPIRES, WINCH, WINCH_HOUSE, type Isle } from '../data/layout';
+import { ISLES, type Isle } from '../data/layout';
+import PLACEMENTS from '../data/placements.json' with { type: 'json' };
 import { MEADOW, MEADOW_CARD, MEADOW_GLSL, MEADOW_PROGRAMS, SWARD } from '../data/meadowLook';
-import { apothem, spireAt } from '../layout';
-import { KEEPER_STAND } from '../quest/keeper';
-import { KEEPER_AT } from '../data/quests';
-import { CROWN_STONES } from '../data/crownLayout';
+import { apothem } from '../layout';
 import { FOG, SKY } from '../look/sun';
 import { SWARD_ATLAS } from '../data/swardAtlas';
 import { skySwardAtlas } from './baked';
@@ -16,40 +14,9 @@ import { skySwardAtlas } from './baked';
  * The near meadow (loop 4): a field of tuft cards and flowers that travels with the camera, drawn by data/meadowLook.ts's
  * program on an SDK tile field (one 8 m tile of blades as a grid of instances round the camera; nothing is uploaded per
  * frame). The lattice, the card outline, the sward's paint and the GLSL are data; this module adds what only the world
- * knows: the islands, the holes round the structures, the worn paths and the rocks, and the numbers the program splices.
+ * knows: the islands, the holes round the structures and the worn paths (both baked, generators/placements.ts), the rocks,
+ * and the numbers the program splices.
  */
-
-/** Where grass never grows: discs (x, z, radius) round the structures and pieces you stand at. */
-export function meadowHoles(): Vector4[] {
-  const holes: [number, number, number][] = [[MILL.x, MILL.z, MILL_DRUM.r + 0.1], [WINCH.x, WINCH.z, 1.3], [NOTES.x, NOTES.z, 0.8], [KEEPER_AT.x, KEEPER_AT.z, 0.7], [KEEPER_STAND.x, KEEPER_STAND.z, 0.45], [DAIS.x, DAIS.z, DAIS.r + 0.4]];
-  for (const v of VANES) holes.push([v.x, v.z, 1]);
-  for (const st of CROWN_STONES) holes.push([st.x, st.z, 0.85]);
-  holes.push([NEST.x, NEST.z, NEST.r + 0.2], [WINCH_HOUSE.x, WINCH_HOUSE.z, WINCH_HOUSE.w * 0.75]);
-  for (const sp of SPIRES) { const at = spireAt(sp); holes.push([at.x, at.z, sp.r + 0.2]); }
-  const out = holes.map(([x, z, r]) => new Vector4(x, z, r, 0));
-  // the keeper's trodden ground (E399 round 6, mockup B: he stands in low grass, his boots and his stand in view; the
-  // sward between him and the spawn hid both): a disc where the grass grows short (w 1, as round the hero rocks)
-  // (round 7, seat B: at 3.2 m it mowed A's foreground, 1.8-2.4 m from him: to his boots and the stand)
-  out.push(new Vector4(KEEPER_AT.x, KEEPER_AT.z, 1.2, 1), new Vector4(KEEPER_STAND.x, KEEPER_STAND.z, 0.9, 1));
-  return out;
-}
-
-/** The worn paths: a segment (x0, z0) → (x1, z1) from each bridge landing in toward its island's middle. */
-export function meadowPaths(isles: readonly Isle[] = ISLES): Vector4[] {
-  const out: Vector4[] = [];
-  const ends: [number, number][] = [];
-  for (const s of [...SPANS, FALLEN_BRIDGE]) { ends.push([s.x0, s.z0], [s.x1, s.z1]); }
-  ends.push([UPDRAFT.x0, UPDRAFT.z0], [UPDRAFT.x1, UPDRAFT.z1]);
-  for (const [x, z] of ends) {
-    let best: Isle | null = null, bd = Infinity;
-    for (const isle of isles) { const d = Math.hypot(x - isle.x, z - isle.z); if (d < bd) { bd = d; best = isle; } }
-    if (best === null || bd > best.r + 2) continue;
-    // a short worn apron in from each landing (E392: the mockups' meadow runs right up to the bridge)
-    const k = Math.max(0, bd - 3.5) / Math.max(1e-3, bd);
-    out.push(new Vector4(x, z, best.x + (x - best.x) * k, best.z + (z - best.z) * k));
-  }
-  return out;
-}
 
 function glslColor(hex: number): string { const c = new Color(hex); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; }
 
@@ -66,7 +33,9 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
   const atlas = skySwardAtlas();
   const g = tileFieldGeometry({ across: MEADOW.across, layers: MEADOW.layers, seed: MEADOW.seed, card: MEADOW_CARD }, blades);
   const isleU = isles.map((isle) => new Vector4(isle.x, isle.z, apothem(isle), isle.y));
-  const holes = [...meadowHoles(), ...rocks.map(([x, z, r]) => new Vector4(x, z, r, 1))], paths = meadowPaths(isles);
+  // the holes round the structures and the worn paths in from the landings, placed offline (generators/placements.ts)
+  const v4 = ([x = 0, y = 0, z = 0, w = 0]: readonly number[]): Vector4 => new Vector4(x, y, z, w);
+  const holes = [...PLACEMENTS.meadow.holes.map(v4), ...rocks.map(([x, z, r]) => new Vector4(x, z, r, 1))], paths = PLACEMENTS.meadow.paths.map(v4);
   const paint = uniformsFrom({ uRootC: { rgb: SWARD.root }, uLowC: { rgb: SWARD.low }, uLawnC: { rgb: SWARD.lawn }, uBroadC: { rgb: SWARD.broad },
     uWildC: { rgb: SWARD.wild }, uTipC: { rgb: SWARD.tip }, uSunC: { rgb: SWARD.sun },
     uLight: { v4: [SWARD.light.floor, SWARD.light.gain, SWARD.light.through, SWARD.light.edge] }, uTop: SWARD.light.top });

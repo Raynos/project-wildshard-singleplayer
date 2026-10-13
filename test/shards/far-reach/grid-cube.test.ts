@@ -4,10 +4,10 @@
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import { InstancedMesh, Matrix4, Vector3 } from 'three';
-import { ISLES } from '../../../src/shards/far-reach/data/layout';
+import PLACEMENTS from '../../../src/shards/far-reach/data/placements.json' with { type: 'json' };
 import { skyline } from '../../../src/shards/far-reach/world/distant';
 import { SKY_ISLES } from '../../../src/shards/far-reach/data/skyIsles';
-import { skyIslesIn } from '../../../src/shards/far-reach/world/skyIsles';
+import { skyIslesIn } from '../../../src/shards/far-reach/generators/placements';
 
 const CUBE = { half: 250 } as const;
 
@@ -28,7 +28,8 @@ it('hangs no waterfall from an out-of-cube isle in a grid cell', () => {
     for (let i = 0; i < falls.count; i++) { falls.getMatrixAt(i, m); out.push(new Vector3().setFromMatrixPosition(m)); }
     return out;
   };
-  const standalone = lips(skyline(ISLES)), grid = lips(skyline(ISLES, () => null, skyIslesIn(CUBE)));
+  expect(PLACEMENTS.half).toBe(CUBE.half);
+  const standalone = lips(skyline(PLACEMENTS.standalone.falls)), grid = lips(skyline(PLACEMENTS.cell.falls));
   expect(standalone.some((p) => Math.max(Math.abs(p.x), Math.abs(p.z)) > CUBE.half)).toBe(true);
   expect(grid.length).toBeLessThan(standalone.length);
   for (const p of grid) expect(Math.max(Math.abs(p.x), Math.abs(p.z))).toBeLessThanOrEqual(CUBE.half);

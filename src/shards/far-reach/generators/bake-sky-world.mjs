@@ -111,6 +111,11 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
   const pines = await bakeSkyIslePines((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`))), frames);
   emit(resolve(project, 'data/skyIslePines.json'), `${JSON.stringify(pines, null, 2)}\n`);
   console.info(`far-reach sky isle pines: ${String(Object.values(pines).flat().length)} firs`);
+  // where the static instanced things stand: the sky isles, the keels, the falls, the trees, the meadow's holes and paths
+  const { bakeSkyPlacements } = await import(pathToFileURL(resolve(project, 'generators/placements.ts')).href);
+  const placements = await bakeSkyPlacements((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`))), frames, pines);
+  emit(resolve(project, 'data/placements.json'), `${JSON.stringify(placements)}\n`);
+  console.info(`far-reach placements: ${String(placements.standalone.trees.reduce((n, t) => n + t.m.length / 16, 0))} trees, ${String(placements.standalone.falls.length / 16)} falls`);
 }
 // the folder holds exactly this bake: no orphan GLB from an older bake ships
 for (const entry of readdirSync(out)) if (entry.endsWith('.glb') && !keep.has(entry)) { if (check) throw new Error(`Orphan bake ${entry}`); rmSync(resolve(out, entry)); }

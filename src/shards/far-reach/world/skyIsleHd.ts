@@ -1,9 +1,8 @@
-import { Color, Group, InstancedMesh, Matrix4, Quaternion, Vector3, type BufferGeometry, type MeshStandardMaterial, type Texture } from 'three';
-import type { Isle } from '../data/layout';
+import { Color, Group, InstancedMesh, type MeshStandardMaterial } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { SKY_ISLE_CLIP_EDITS, SKY_ISLE_ROCK, SKY_ISLE_ROCK_EDITS } from '../data/skyIsleLook';
-import { ISLE_KEEL_CUT, KEEL_TOP, SKY_ISLE_HD, SKY_ISLE_MODELS, SKY_ISLE_WEAR, type SkyIsle, type SkyIsleModel } from '../data/skyIsles';
+import { SKY_ISLE_HD, SKY_ISLE_MODELS } from '../data/skyIsles';
 import { hdMaterial, skyHd } from './meshes';
 import FRAMES from '../data/skyIsleFrames.json' with { type: 'json' };
 import { SKY, SUN_DIR } from '../look/sun';
@@ -17,8 +16,8 @@ function linear(hex: number): string { const c = new Color(hex); return `vec3(${
  * turf spilling over the rim, warm sandy-grey stratified rock, long roots and moss trailing beneath). Three codex
  * references on white → BiRefNet cutout → Hunyuan3D-2 turbo shape + 2048 paint → decimated, a 1024 WebP map, meshopt.
  * Each model is brought to a unit frame once (its turf level at y 0, its rim's median radius 1, centred on its top: found
- * offline, generators/skyIsleFrames.ts), then every isle that uses it is one instance, scaled to its rim radius and keel depth and turned to its own yaw.
- * No trees in the models: the card firs stand on the turf (`topAt`). A model that failed to load leaves its isles undrawn.
+ * offline, generators/skyIsleFrames.ts), then every isle that uses it is one instance, scaled to its rim radius and keel depth and turned to its own yaw
+ * (placed offline, generators/placements.ts). No trees in the models: the firs stand on the turf. A model that failed to load leaves its isles undrawn.
  */
 /**
  * The aerial haze on the sky isles (E399 round 6, measured on mockup A's isle band, x 0.1-0.9, y 0.27-0.42: its darkest
@@ -26,76 +25,26 @@ function linear(hex: number): string { const c = new Color(hex); return `vec3(${
  */
 export const SKY_ISLE_HAZE = { color: SKY.fog, near: 60, far: 320, max: 0.22 } as const;
 
-const FALLBACK: readonly SkyIsleModel[] = SKY_ISLE_MODELS;
-/** The model a sky isle (or a playable keel) wears: its `SKY_ISLE_WEAR` row, else the `i`-th model in turn. */
-export const skyIsleWear = (s: Isle, i: number): SkyIsleModel => SKY_ISLE_WEAR[s.id]?.[0] ?? FALLBACK[i % FALLBACK.length] ?? 'isle-mass-hd';
-
-export const keelIsles = (isles: readonly Isle[]): SkyIsle[] => isles.map((isle) => ({ ...isle, id: `keel.${isle.id}`, y: isle.y - (ISLE_KEEL_CUT[isle.id]?.keelTop ?? KEEL_TOP), r: isle.r * (ISLE_KEEL_CUT[isle.id]?.keelScale ?? 0.97), pines: 0, fall: null }));
-
-/** A model in its unit frame, with a probe of its turf and its rim radius per angle. */
-/** `bulge`: the model's widest horizontal reach under its turf (deck radii), where its overhangs and bushes spill out. */
-export interface SkyIsleUnit { readonly geometry: BufferGeometry; readonly depth: number; readonly rim: Float32Array; readonly bulge: number }
-interface Unit extends SkyIsleUnit { readonly map: Texture }
-
 /**
  * A model's unit frame as baked (generators/skyIsleFrames.ts, `data/skyIsleFrames.json`): the move (its top's centre and
  * turf level, `tx` / `deck` / `tz`) and the scale (`k`, its rim's median radius to 1) that bring it there, its rim radius
- * per angle bin and its widest reach under the turf, both in unit radii.
+ * per angle bin and its widest reach under the turf, both in unit radii (the bakes' poses read those).
  */
 export interface SkyIsleFrame { model: string; tx: number; deck: number; tz: number; k: number; bulge: number; rim: number[] }
 
-/** Bring a loaded model to the unit frame by its `frame` (see the module note); moves the geometry in place. Node-safe (the far bake). */
-export function skyIsleUnit(geometry: BufferGeometry, frame: Omit<SkyIsleFrame, 'model'>): SkyIsleUnit {
-  geometry.translate(-frame.tx, -frame.deck, -frame.tz); geometry.scale(frame.k, frame.k, frame.k);
-  geometry.computeBoundingBox(); geometry.computeBoundingSphere();
-  return { geometry, depth: -(geometry.boundingBox?.min.y ?? -1), rim: Float32Array.from(frame.rim), bulge: frame.bulge };
-}
+/** The placed isles: each model's instance matrices, baked (generators/placements.ts, `data/placements.json`). */
+export type SkyIslePlacements = readonly { readonly model: string; readonly m: readonly number[] }[];
 
-/**
- * Where an isle's model instance stands: its yaw (radians), its rim scale and its keel stretch (`sy`, applied on top of
- * the rim scale to y). `k` is its place among the isles wearing the same model (the yaw fallback). A playable keel
- * (`clipTop`) tapers INSIDE its deck (round 13, seat C: the mill's keel bulged past its deck, a thin disc on a mossy
- * bun): its widest rock under the cut fitted to keelInset of the deck's radius; its depth kept.
- */
-export function skyIslePose(s: Isle, u: SkyIsleUnit, k: number, clipTop: boolean): { readonly yaw: number; readonly r: number; readonly sy: number } {
-  const r = clipTop ? s.r * Math.min(1, SKY_ISLE_HD.keelInset / Math.max(1e-3, u.bulge)) : s.r;
-  const yaw = SKY_ISLE_WEAR[s.id]?.[1] ?? k * 2.39996, [lo, hi] = SKY_ISLE_HD.stretch, sy = Math.min(hi * s.r / r, Math.max(lo, s.keel / (r * u.depth)));
-  return { yaw, r, sy };
-}
-
-/** A unit model's rim radius at a local angle (radians from +x), bins without a vertex borrowing the median. */
-const rimAt = (u: Unit, a: number): number => {
-  const bins = SKY_ISLE_HD.rimBins, b = Math.floor(((a / (Math.PI * 2)) % 1 + 1) * bins) % bins, r = u.rim[b] ?? 0;
-  return r > 0 ? r : 1;
-};
-
-export interface SkyIsleHd {
-  /** One instanced draw per model. */
-  readonly group: Group;
-  /** The rim's radius at a world angle round an isle the models cover (null: a code isle): where its waterfall hangs. */
-  readonly lipAt: (isle: Isle, a: number) => number | null;
-}
-
-/** The sky isles as textured models (see the module note). */
+/** The sky isles as textured models (see the module note), one instanced draw per model at its baked matrices. */
 /** `clipTop` (the playable islands' keels): everything above the model's turf is cut away, so its canopy never pokes through a deck. */
-export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIsleHd {
-  const units = new Map<SkyIsleModel, Unit>();
-  for (const name of SKY_ISLE_MODELS) {
-    const m = skyHd(name), frame = FRAMES.find((f) => f.model === name);
-    if (m !== null && frame !== undefined) units.set(name, { ...skyIsleUnit(m.geometry, frame), map: m.map });
-  }
-  const group = new Group(), placed = new Map<string, { u: Unit; yaw: number }>();
-  const byModel = new Map<SkyIsleModel, SkyIsle[]>();
-  isles.forEach((s, i) => {
-    const name = skyIsleWear(s, i);
-    if (!units.has(name)) return;
-    byModel.set(name, [...(byModel.get(name) ?? []), s]);
-  });
-  const m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
-  for (const [name, list] of byModel) {
-    const u = units.get(name); if (u === undefined) continue;
-    const material: MeshStandardMaterial = hdMaterial(u.map);
-    material.color.setScalar(SKY_ISLE_HD.tint); material.emissiveMap = u.map; material.emissive.setScalar(1); material.emissiveIntensity = SKY_ISLE_HD.selfLight;
+export function skyIsleModels(placed: SkyIslePlacements, clipTop = false): Group {
+  const group = new Group();
+  for (const { model, m } of placed) {
+    const name = SKY_ISLE_MODELS.find((n) => n === model); if (name === undefined) throw new Error(`far-reach: no sky isle model ${model}`);
+    const made = skyHd(name), frame = FRAMES.find((f) => f.model === name); if (made === null || frame === undefined) continue;
+    const g = made.geometry; g.translate(-frame.tx, -frame.deck, -frame.tz); g.scale(frame.k, frame.k, frame.k); g.computeBoundingBox(); g.computeBoundingSphere();
+    const material: MeshStandardMaterial = hdMaterial(made.map);
+    material.color.setScalar(SKY_ISLE_HD.tint); material.emissiveMap = made.map; material.emissive.setScalar(1); material.emissiveIntensity = SKY_ISLE_HD.selfLight;
     // the rock grey-brown, the turf kept green (E399: from below the paint read olive-yellow; the mockups' undersides are
     // sandy-grey stone with darker crevices)
     patchShader(material, 'far.sky-isle-rock', PATCH_ORDER.decorate, (shader) => {
@@ -103,21 +52,8 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
         sunX: SUN_DIR.x.toFixed(4), sunY: SUN_DIR.y.toFixed(4), sunZ: SUN_DIR.z.toFixed(4), shadeLo: SKY_ISLE_HD.shade[0].toFixed(2), shadeHi: SKY_ISLE_HD.shade[1].toFixed(2),
         hazeColor: linear(SKY_ISLE_HAZE.color), hazeNear: SKY_ISLE_HAZE.near.toFixed(1), hazeSpan: (SKY_ISLE_HAZE.far - SKY_ISLE_HAZE.near).toFixed(1), hazeMax: SKY_ISLE_HAZE.max.toFixed(2) }));
     }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim-sun${clipTop ? '|clip' : ''}` });
-    const mesh = new InstancedMesh(u.geometry, material, list.length); mesh.name = `far.sky-isles.${name}`;
-    list.forEach((s, k) => {
-      const { yaw, r, sy } = skyIslePose(s, u, k, clipTop);
-      q.setFromAxisAngle(up, yaw); m.compose(new Vector3(s.x, s.y, s.z), q, new Vector3(r, r * sy, r)); mesh.setMatrixAt(k, m);
-      placed.set(s.id, { u, yaw });
-    });
-    mesh.computeBoundingSphere(); group.add(mesh);
+    const mesh = new InstancedMesh(g, material, m.length / 16); mesh.name = `far.sky-isles.${name}`;
+    mesh.instanceMatrix.array.set(m); mesh.computeBoundingSphere(); group.add(mesh);
   }
-  const local = new Vector3();
-  return {
-    group,
-    lipAt: (isle, a) => {
-      const at = placed.get(isle.id); if (at === undefined) return null;
-      local.set(Math.cos(a), 0, Math.sin(a)).applyAxisAngle(up, -at.yaw);
-      return rimAt(at.u, Math.atan2(local.z, local.x)) * isle.r;
-    },
-  };
+  return group;
 }
