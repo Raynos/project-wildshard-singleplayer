@@ -1,0 +1,29 @@
+test/clean-export-workspace.test.ts:39:    const manifest = JSON.stringify({ name: '@wildshard/commons', type: 'module', exports: { './bake/portableMath': './bake/portableMath.mjs' } });
+test/clean-export-workspace.test.ts:41:    put(join(repo, 'src/commons/bake/portableMath.mjs'), "export const owner = 'foreign-working-source';");
+test/clean-export-workspace.test.ts:43:    put(join(tree, 'src/commons/bake/portableMath.mjs'), "export const owner = 'committed-export';");
+test/clean-export-workspace.test.ts:45:    const child = spawnSync(process.execPath, ['--input-type=module', '-e', "import {owner} from '@wildshard/commons/bake/portableMath'; console.log(owner);"], { cwd: tree, encoding: 'utf8' });
+scripts/generation-jobs.json:17:        "src/commons/bake/portableMath.ts",
+scripts/generation-jobs.json:1293:        "test/fake/portableMath.ts",
+scripts/generation-jobs.json:1675:        "src/commons/bake/portableMath.ts",
+test/engine/player-modes.test.ts:22:import { installPortableMath } from '../fake/portableMath';
+test/engine/hunt-brain-oracle.test.ts:8:// which flipped hunter / crossbow's charges on the Linux CI runner. The whole file runs on test/fake/portableMath over
+test/engine/hunt-brain-oracle.test.ts:21:import { installPortableMath } from '../fake/portableMath';
+test/proof/driftwood-isle/worker.ts:2:import { installPortableMath } from '../../fake/portableMath';
+test/proof/driftwood-isle/run.mjs:16:const { installPortableMath } = await import('../../fake/portableMath.ts'); installPortableMath();
+test/proof/pine-hollow/run.mjs:16:const { installPortableMath } = await import('../../fake/portableMath.ts');
+test/fake/portableMath.ts:3:import { installPortableMath as install, withPortableMath as scoped, portableMath as functions } from '@wildshard/commons/bake/portableMath';
+test/fake/portableMath.ts:7:export const portableMath = functions;
+test/engine/player-board-tape.test.ts:14:import { installPortableMath } from '../fake/portableMath';
+test/engine/player-board-tape.test.ts:17:// test/fake/portableMath; the prints were re-recorded that way on 3d68396a2 and match on arm64 and x64.
+test/engine/player-foot-tape.test.ts:14:import { installPortableMath } from '../fake/portableMath';
+test/engine/player-foot-tape.test.ts:16:// Platform-stable (ci-green): the tape runs on test/fake/portableMath, as the board tape does.
+test/proof/far-reach/worker.ts:2:import { installPortableMath } from '../../fake/portableMath';
+test/shards/far-reach/goat-ram-oracle.test.ts:15:import { installPortableMath } from '../../fake/portableMath';
+test/shards/far-reach/goat-ram-oracle.test.ts:21:// on test/fake/portableMath; the hashes were re-recorded that way on 243da2c5e and match on arm64 and x64.
+test/proof/far-reach/run.mjs:19:const { installPortableMath } = await import('../../fake/portableMath.ts'); installPortableMath();
+test/fixtures/pine/kingRigOracle.ts:14:import { withPortableMath } from '../../fake/portableMath';
+test/shards/pine-hollow/king-collision.test.ts:11:import { withPortableMath } from '../../fake/portableMath';
+src/commons/bake/portableMath.ts:176:export const portableMath = PORTABLE;
+src/commons/package.json:9:    "./bake/portableMath": "./bake/portableMath.ts"
+src/shards/sunscar-dunes/generators/manifestGround.ts:1:import { withPortableMath } from '@wildshard/commons/bake/portableMath';
+src/shards/nalati-grasslands/generators/bake-nalati-places.mjs:10:import { withPortableMath } from '../../../../test/fake/portableMath.ts';
