@@ -189,3 +189,19 @@ save 0.46 s. The persistent export was occupied, so this run used the full
 archive fallback. Previous source hooks were 17.56 s with a free export;
 these totals are not a matched speedup. The 10 s cold cap remains OPEN.
 A speculative census warmer was tested privately and discarded.
+
+
+## Isolated producer environment (sp-x5)
+
+Official producer children no longer inherit the caller's Git index, Git
+checkout or hook intent/status transport. The caller retains those values
+for exact staged publication. Preview/provenance and all ordinary producer
+environment variables remain. The all-environment boot cache key is unchanged.
+An isolated-process fixture supplies a private index and foreign Git prefix;
+the producer refuses any leaked transport and still emits the staged bytes.
+The caller's default index and foreign working bytes remain untouched.
+
+Two distinct test edits/private indexes passed in 6.62 and 6.39 s. Their
+boot-table steps still took 1.62 and 1.86 s; this is no cache-hit or cold
+10 s qualification. The shared boot receipt is currently a single file,
+so unrelated producer contexts can replace each other's reusable evidence.

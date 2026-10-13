@@ -97,11 +97,15 @@ if (paths.some(path => /^(src|scripts|lint|public|test|music|sfx)\//u.test(path)
   try {
     linkNodeModules(root, scratch);
     const common = git(['rev-parse', '--path-format=absolute', '--git-common-dir'], undefined);
+    // Producers run in an immutable filesystem export, not the caller's Git
+    // checkout. Hook transport changes must not reach or steer that producer.
+    const producerEnv = { ...process.env, WS_COMMIT_WITNESS_CACHE: resolve(common, 'commit-inputs/witnesses'), WS_PRECOMMIT_BOOT_CACHE: resolve(common, 'commit-inputs/boot'), WS_SHARD_PARSE_CACHE: resolve(common, 'commit-inputs/parse') };
+    for (const key of ['GIT_INDEX_FILE', 'GIT_DIR', 'GIT_WORK_TREE', 'GIT_PREFIX', 'WS_COMMIT_INTENT', 'WS_PRECOMMIT_INPUTS_DONE']) delete producerEnv[key];
     if (existsSync(resolve(common, 'commit-inputs', `${inputKey(root, before)}.json`))) {
       restoreCommitInputs(root, before, scratch);
       console.log('precommit-inputs: verified generation cache');
     } else execFileSync(process.execPath, [...(existsSync(resolve(scratch, 'scripts/gen-boot-cache.mjs')) ? ['--import', './scripts/bake-loader.mjs', '--import', './scripts/gen-boot-cache.mjs'] : []), 'scripts/gen.mjs', '--build-inputs'], { cwd: scratch, stdio: 'inherit',
-      env: { ...process.env, WS_COMMIT_WITNESS_CACHE: resolve(common, 'commit-inputs/witnesses'), WS_PRECOMMIT_BOOT_CACHE: resolve(common, 'commit-inputs/boot'), WS_SHARD_PARSE_CACHE: resolve(common, 'commit-inputs/parse') } });
+      env: producerEnv });
     const generated = performance.now();
     /** @type {string[]} */
     let produced = [];
@@ -117,7 +121,7 @@ execFileSync(process.execPath,[...(existsSync('scripts/gen-boot-cache.mjs')?['--
 const recorded=await refreshRecordedCommitInputs(process.cwd(),process.env.WS_COMMIT_WITNESS_CACHE);
 writeFileSync(process.argv[1],JSON.stringify([...files,...recorded]));`;
       execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', producer, result, JSON.stringify(paths)], { cwd: scratch, stdio: 'inherit',
-        env: { ...process.env, WS_PRECOMMIT_BOOT_CACHE: resolve(common, 'commit-inputs/boot'), WS_SHARD_PARSE_CACHE: resolve(common, 'commit-inputs/parse'), WS_COMMIT_WITNESS_CACHE: resolve(common, 'commit-inputs/witnesses') } });
+        env: producerEnv });
       produced = JSON.parse(readFileSync(result, 'utf8'));
       if (!Array.isArray(produced) || produced.some(file => typeof file !== 'string' || file.includes('\\') || file.split('/').some(part => part === '' || part === '.' || part === '..'))) throw new Error('Invalid commit producer paths');
     }
