@@ -13,7 +13,8 @@
     "./packs/sounds": "./packs/sounds/pack.ts",
     "./packs/practice": "./packs/practice/pack.ts",
     "./packs/species": "./packs/species/pack.ts",
-    "./packs/spear": "./packs/spear/pack.ts"
+    "./packs/spear": "./packs/spear/pack.ts",
+    "./bake/portableMath": "./bake/portableMath.ts"
   },
   "dependencies": {
     "@wildshard/sdk": "workspace:*",

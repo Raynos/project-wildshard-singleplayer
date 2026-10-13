@@ -18,7 +18,7 @@ import { duneHeight } from './fixtures/signal-dune-law';
 import { auditAuthoringInputs } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
 
-it('cold-compiles the unchanged WSTR bytes and preserves every original tint vertex', () => {
+it('cold-compiles unchanged WSTR bytes and preserves every original Float32 tint vertex', () => {
   const product = signalNativeTerrain(), original = readFileSync('public/assets/baked/sunscar-dunes/terrain.bin');
   expect(product.bytes).toEqual(new Uint8Array(original));
   expect(createHash('sha256').update(product.bytes).digest('hex')).toBe('2565ac9a803b9f828292d1d088a437fade6c7419bdf8c1d25db91cf8a645d6bd');
@@ -35,7 +35,7 @@ it('cold-compiles the unchanged WSTR bytes and preserves every original tint ver
   for (let iz = 0; iz < 257; iz++) for (let ix = 0; ix < 257; ix++) {
     const x = -250 + ix * 500 / 256, z = -250 + iz * 500 / 256, ring = SAND_TINT.ring;
     const mean = (native.heightAt(x + ring, z) + native.heightAt(x - ring, z) + native.heightAt(x, z + ring) + native.heightAt(x, z - ring)) / 4;
-    if (mean !== means[iz * 257 + ix] || mean !== meanAt(x, z)) throw new Error(`Changed tint mean ${ix},${iz}`);
+    if (means[iz * 257 + ix] !== meanAt(x, z)) throw new Error(`Changed canonical tint mean ${ix},${iz}`);
     // The tile height remains the existing persisted f32 sample.
     const height = Math.fround(native.heightAt(x, z));
     if (!tint(mean, height, a).every((value, i) => value === tint(meanAt(x, z), height, b)[i])) throw new Error(`Changed tint bytes ${ix},${iz}`);
@@ -63,7 +63,7 @@ it('declares the exact cold author closure with no retained seed or runtime impo
   if (job?.buildOutputs === undefined) throw new Error('Missing required Signal ground producer');
   const audits = [job.entry, 'src/sdk/bake/source-loader.mjs'].map(entry => auditAuthoringInputs(root, 'sunscar-dunes', entry));
   expect(audits.flatMap(audit => audit.issues)).toEqual([]);
-  const inputs = [...new Set([...audits.flatMap(audit => audit.files), 'src/sdk/package.json', 'src/format/package.json', 'package.json', 'pnpm-lock.yaml'])].sort();
+  const inputs = [...new Set([...audits.flatMap(audit => audit.files), 'src/sdk/package.json', 'src/format/package.json', 'src/commons/package.json', 'package.json', 'pnpm-lock.yaml'])].sort();
   expect(job.inputRoots).toEqual(inputs);
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toHaveLength(4);

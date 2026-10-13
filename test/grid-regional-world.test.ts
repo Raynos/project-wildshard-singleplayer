@@ -18,6 +18,9 @@ import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import type { SimHost } from '../src/engine/sim';
 import { activeLevel, configureLevel } from '../src/engine/level/selection';
 import { heightAt } from '../src/engine/world/Heightfield';
+import { createBakedTerrainField } from '../src/engine/world/bakedTerrainField';
+import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
+import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
 import type { TerrainField } from '../src/engine/level/data';
 import type { LevelSpec } from '../src/engine/level/spec';
 import { WorldRegistry } from '../src/engine/world/registry';
@@ -381,4 +384,47 @@ it('keeps a custom thinker at its legacy cadence after regional async constructi
   } finally {
     registerSpecies(original); prepared.region.dispose(); f.scope.dispose(); f.homePhysics.dispose(); f.claim.release();
   }
+});
+
+
+it('awaits required native ground before sampling collision or constructing its drawn world', async () => {
+  const f = fixture(), bytes = Uint8Array.from(readFileSync('public/assets/baked/sunscar-dunes/terrain.bin'));
+  const grid = parseBakedTerrain(bytes.buffer);
+  if (grid === null) throw new Error('Missing native terrain corpus');
+  const required = createBakedTerrainField({ url: '/assets/baked/sunscar-dunes/terrain.bin', seed: grid.seed }, field(30));
+  const region = { ...f.region, seed: grid.seed, ground: { terrain: required } };
+  let release: (response: Response) => void = () => { throw new Error('Missing deferred fetch'); };
+  const pending = new Promise<Response>(resolve => { release = resolve; });
+  const fetch = vi.spyOn(globalThis, 'fetch').mockReturnValue(pending), terrain = vi.fn(drawnGround);
+  const foundation = createRegionalWorldFoundation({ rapier, level: () => region, terrain,
+    pause: () => Promise.resolve(), checkpoint: () => true });
+  try {
+    const building = foundation(f.request);
+    await vi.waitFor(() => { expect(fetch).toHaveBeenCalledWith('/assets/baked/sunscar-dunes/terrain.bin'); });
+    expect(() => required.heightAt(0, 0)).toThrow('not ready');
+    expect(terrain).not.toHaveBeenCalled();
+    release(new Response(bytes));
+    const prepared = await building;
+    expect(required.heightAt(0, 0)).toBe(bakedSamplers(grid).heightAt(0, 0));
+    expect(terrain).toHaveBeenCalledOnce();
+    expect(prepared.region.host.hasPlayerMotor).toBe(false);
+    prepared.region.dispose();
+  } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
+});
+
+it.each(['missing', 'wrong-seed'] as const)('refuses %s required grid ground without constructing the world', async kind => {
+  const f = fixture(), bytes = Uint8Array.from(readFileSync('public/assets/baked/sunscar-dunes/terrain.bin'));
+  const grid = parseBakedTerrain(bytes.buffer);
+  if (grid === null) throw new Error('Missing native terrain corpus');
+  const required = createBakedTerrainField({ url: '/assets/baked/sunscar-dunes/terrain.bin', seed: grid.seed }, field(30));
+  const region = { ...f.region, seed: grid.seed, ground: { terrain: required } };
+  new DataView(bytes.buffer).setUint32(16, grid.seed + 1, true);
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(kind === 'missing' ? new Response(null, { status: 404 }) : new Response(bytes));
+  const terrain = vi.fn(drawnGround), foundation = createRegionalWorldFoundation({ rapier, level: () => region, terrain,
+    pause: () => Promise.resolve(), checkpoint: () => true });
+  try {
+    await expect(foundation(f.request)).rejects.toThrow(kind === 'missing' ? '404' : 'bad header / seed');
+    expect(() => required.heightAt(0, 0)).toThrow('not ready');
+    expect(terrain).not.toHaveBeenCalled();
+  } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
 });

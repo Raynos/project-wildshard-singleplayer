@@ -61,6 +61,8 @@ import { WaterBodies } from '@wildshard/engine/world/water/body';
 import { CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { workSlice } from '@wildshard/engine/core/workSlice';
 import { heightAt } from '@wildshard/engine/world/Heightfield';
+import { loadBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
+import { bakedTerrainSource } from '@wildshard/engine/world/bakedTerrainField';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ShardManifest } from '../shard/manifest';
 import { prepareShardAssets } from '../shard/load';
@@ -199,6 +201,11 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       resident.onDispose(() => { levelLook?.dispose?.(); });
       if (left()) throw new Error('Regional world left while loading its look');
       const frame = new LevelFrameBinding({ level, scope: resident, levelScope: request.scope, navmesh, water, textures, look: levelLook });
+      // Required manifest ground must enter before collision sampling or native home construction.
+      if (bakedTerrainSource(frame.terrain.base) !== null) {
+        await loadBakedTerrain(frame.terrain);
+        if (left()) throw new Error('Regional world left while loading its required ground');
+      }
       const field = (): typeof frame.terrain.field => frame.terrain.field;
       const host = withOwner(resident, () => createSimHost(simLevel(level), { rapier: ports.rapier, playerBody: false, ground: false,
         heightAt: (x, z) => field().heightAt(x, z), scope: resident }));

@@ -169,6 +169,14 @@ import { Bow } from '@wildshard/game/weapons/Bow';
 | `@wildshard/sdk` | `src/sdk/package.json` `exports` | The authoring SDK; existing trusted runtime facades are transitional and being deleted under G307 |
 | `@wildshard/commons` | `src/commons/package.json` `exports` | Build-time packs that emit hash-named content; no commons code runs in the game |
 
+`@wildshard/commons/bake/portableMath` supplies the established portable
+transcendental functions for cold authoring. `withPortableMath(fn)` installs
+those functions only for a synchronous call and restores them even on failure;
+`installPortableMath()` returns an explicit restore function for native proof
+processes. Importing the module changes no Math binding. Neither API is a
+runtime rendering path. Bit-exact producers use the portable result as their
+canonical output and retain their immutable output hashes.
+
 [docs/api/ENGINE.md](api/ENGINE.md), [GAME.md](api/GAME.md), [SDK.md](api/SDK.md) and [COMMONS.md](api/COMMONS.md) (generated) list every export
 with the module to import it from; where this file says a name is "on `@wildshard/engine`", that list gives its
 module. A path the package does not export (`@wildshard/engine/world/Sky`) is `ERR_PACKAGE_PATH_NOT_EXPORTED` in

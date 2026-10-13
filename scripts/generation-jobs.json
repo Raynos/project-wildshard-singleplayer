@@ -14,6 +14,8 @@
       "inputRoots": [
         "package.json",
         "pnpm-lock.yaml",
+        "src/commons/bake/portableMath.ts",
+        "src/commons/package.json",
         "src/format/contentBounds.ts",
         "src/format/package.json",
         "src/sdk/bake/source-loader.mjs",
@@ -36,7 +38,7 @@
       ],
       "platform": "portable",
       "buildOutputs": {
-        "public/assets/sunscar-dunes/ground/ring-mean.bin": "75a22d84597191eef96f8db39672fe0b475220a0a7b8e4ceb058f57f1a16b3b2",
+        "public/assets/sunscar-dunes/ground/ring-mean.bin": "d308466b111a20bcf07fbe3571e4a958b9a97d07266a8cd9409388ee62544d77",
         "src/shards/sunscar-dunes/data/manifestGround.generated.json": "ffb994ab2122111979074b82014225498393aaa96ed2155cbd620335850fe92f"
       }
     },

@@ -1,3 +1,4 @@
+import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { CHUNK_SIZE } from '@wildshard/format/contentBounds';
 import { SEED } from '../data/layout';
 import { signalHeightAt } from './landscape';
@@ -5,6 +6,7 @@ import { signalHeightAt } from './landscape';
 /** Cold WSTR product in the original byte order. Signal has no forest log or
  * custom splat rule. The height recipe, not a retained grid, owns every sample. */
 export function signalNativeTerrain(): { bytes: Uint8Array; landscapeHash: number; heightRange: [number, number] } {
+  return withPortableMath(() => {
   const heightAt = signalHeightAt(), resolution = 256, count = resolution ** 2;
   let hash = 0x811c9dc5;
   for (let z = 0; z < 16; z++) for (let x = 0; x < 16; x++) {
@@ -24,4 +26,5 @@ export function signalNativeTerrain(): { bytes: Uint8Array; landscapeHash: numbe
     min = Math.min(min, height); max = Math.max(max, height);
   }
   return { bytes, landscapeHash: hash, heightRange: [min, max] };
+  });
 }

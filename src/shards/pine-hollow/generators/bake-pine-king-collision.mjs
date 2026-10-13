@@ -25,7 +25,7 @@ export const KING_COLLISION_INPUTS = [
   'src/shards/pine-hollow/combat/kingTiming.ts',
   'src/shards/pine-hollow/runtime/physics.baked.json', 'src/shards/pine-hollow/runtime/kingCollision.ts',
   'src/shards/pine-hollow/runtime/kingCollisionBake.ts', 'src/game/plugin/animation.ts',
-  'src/shards/pine-hollow/generators/bake-pine-king-collision.mjs', 'test/fake/portableMath.ts',
+  'src/shards/pine-hollow/generators/bake-pine-king-collision.mjs', 'test/fake/portableMath.ts', 'src/commons/bake/portableMath.ts',
 ];
 
 /** Real rig joints only; no vertex attributes or runtime renderer are loaded. @param {string} root */
