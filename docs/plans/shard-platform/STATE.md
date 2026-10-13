@@ -10,7 +10,7 @@
 **Lanes by component (W1, both shards):** C1 world o123 · C2 looks o124 (Signal), o125 (Sky), o126 (sky+grade) · C3 effects open · C4 creatures + C5 quests x6 (after W1-M0) · C6 combat x1+x8 · C7 movers x4 · C8 audio open · C9 boot glue x5. x7 pusher. Non-wave work paused.
 
 **Decided:** G385 near B (shipped `45a8bd0e3`), G386 Pine KTX2, G387 graphs with boards, G388 Sky movers yes, G391 (supersedes G389): Nalati port NOW (sp-x5) and every legacy three.js builder/model/set becomes a generator, all shards.
-**Explorer inventory (G391, `generator-inventory.md` `15f01e335`), ported/total:** Template 0/3, Signal 8/10, Sky 0/27, Nine 0/47, Nalati 0/125, Driftwood 0/70, Pine 0/89.
+**Explorer inventory (G391, `generator-inventory.md`):** ported/total Signal 8/10, Sky 0/27 (W1).
 **G398 for wildshard-v:** grid Simulator **Nine road travel PASSES** (p95 34, max 84–106 ms; `b20a6716a`). Still failing in the Simulator: Pine (~50), Driftwood (42–50), Far (40–47) travel.
 
 **For wildshard-v:** G392 Sky steps 1/2/8/7 sp-x6 (after inventory + G390), 3–4 sp-o120. Ruling (call 36): declarations-only `shard.config.ts` is not custom. STATE hourly.
