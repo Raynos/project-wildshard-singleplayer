@@ -20,13 +20,18 @@ export function generationBrowserDigest() { return createHash('sha256').update(r
 
 /** Read and fence a pinned preview's build; the producer already enforces the same revision in its own capture.
  * @param {{url:string,revision:string}} spec */
-export async function capturePreview(spec) {
+export async function readPreviewBuild(spec) {
   const preview=v.parse(Preview,spec),url=new URL('/version.json',preview.url);
   if(url.protocol!=='http:' && url.protocol!=='https:') throw new Error('Invalid capture preview protocol');
   const response=await fetch(url);
   if(!response.ok) throw new Error(`Capture preview unavailable: ${String(response.status)}`);
   const {build}=v.parse(Version,await response.json());
   if(!build.startsWith(`${preview.revision.slice(0,7)}-`)) throw new Error(`Capture preview revision mismatch: ${build}`);
-  const browserDigest=generationBrowserDigest();
-  return {url:preview.url,revision:preview.revision,build,browserDigest};
+  return {url:preview.url,revision:preview.revision,build};
+}
+
+/** Bind a verified preview to the actual Chromium executable for capture caching.
+ * @param {{url:string,revision:string}} spec */
+export async function capturePreview(spec) {
+  return {...await readPreviewBuild(spec),browserDigest:generationBrowserDigest()};
 }

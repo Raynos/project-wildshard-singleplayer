@@ -23,7 +23,7 @@ export async function checkChangedTypes(changed) {
     for (const source of parsed.fileNames) if (/\.d\.[cm]?ts$/u.test(source)) layerDeclarations.add(source);
     for (const reference of parsed.projectReferences ?? []) pending.push(reference.path);
   }
-  const merges = existsSync('src') ? ts.sys.readDirectory(resolve('src'),['.ts'],['node_modules','src/sdk/dist'],['**/*.merge.d.ts']) : [];
+  const merges = existsSync('src') ? ts.sys.readDirectory(resolve('src'),['.ts'],['**/node_modules/**','**/sdk/dist/**'],['**/*.merge.d.ts']) : [];
   for (const config of configs) {
     if (!existsSync(config)) continue;
     const file = ts.readConfigFile(config, path => ts.sys.readFile(path));

@@ -74,11 +74,11 @@ export async function regenerateCheapBakes(root, product = {}) {
     if (product.url === undefined || product.revision === undefined || !/^[a-f0-9]{40}$/u.test(product.revision)) throw new Error(`Commit-time maps require the exact staged product: ${page.map(row => row.slug).join(', ')}; no stamp-only refresh is permitted`);
     // Use the shipping build-id protocol, shared with pinned generation
     // captures; version.json contains build/time, not a revision field.
-    const {capturePreview} = await import('./generation-capture.mjs');
+    const {readPreviewBuild} = await import('./generation-capture.mjs');
     const preview = {url:product.url,revision:product.revision};
-    const before = await capturePreview(preview);
+    const before = await readPreviewBuild(preview);
     await producer(root, ['bash', 'scripts/browser-lane.sh', '--max', '4', process.execPath, 'scripts/bake-maps.mjs', `--url=${product.url}`, `--shards=${page.map(row => row.slug).join(',')}`]);
-    if ((await capturePreview(preview)).build !== before.build) throw new Error('Commit-time map product changed during capture');
+    if ((await readPreviewBuild(preview)).build !== before.build) throw new Error('Commit-time map product changed during capture');
   }
   const glb = maps.filter(({dir}) => mapSettings(dir).from !== null);
   if (glb.length > 0) await producer(root, [process.execPath, 'scripts/bake-map-glb.mjs', `--shards=${glb.map(row => row.slug).join(',')}`]);

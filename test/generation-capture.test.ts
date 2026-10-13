@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { captureOutcome, capturePreview } from '../scripts/generation-capture.mjs';
+import { captureOutcome, readPreviewBuild } from '../scripts/generation-capture.mjs';
 
 // oxlint-disable-next-line import/no-nodejs-modules -- Serve the real shipping version protocol without a browser or game.
 import { createServer } from 'node:http';
@@ -35,10 +35,10 @@ it('pins map previews through the shipping build/time version protocol', async (
     const address=server.address();
     if (address===null || typeof address==='string') throw new Error('Missing fixture server address');
     const spec={url:`http://127.0.0.1:${address.port}`,revision};
-    expect(await capturePreview(spec)).toMatchObject({...spec,build});
+    expect(await readPreviewBuild(spec)).toMatchObject({...spec,build});
     build=`${'b'.repeat(7)}-other`;
-    await expect(capturePreview(spec)).rejects.toThrow('revision mismatch');
+    await expect(readPreviewBuild(spec)).rejects.toThrow('revision mismatch');
     status=503;
-    await expect(capturePreview(spec)).rejects.toThrow('unavailable');
+    await expect(readPreviewBuild(spec)).rejects.toThrow('unavailable');
   } finally {await new Promise<void>((resolve,reject)=>{server.close(error=>{if(error)reject(error);else resolve();});});}
 });

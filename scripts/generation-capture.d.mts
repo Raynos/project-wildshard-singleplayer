@@ -5,3 +5,6 @@ export function capturePreview(spec:{url:string;revision:string}):Promise<{url:s
 
 /** Exact Chromium executable SHA for every browser-backed job. */
 export function generationBrowserDigest():string;
+
+/** Read and validate the shipping version protocol without starting or locating a browser. */
+export function readPreviewBuild(spec:{url:string;revision:string}):Promise<{url:string;revision:string;build:string}>;
