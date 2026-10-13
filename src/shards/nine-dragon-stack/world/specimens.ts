@@ -11,12 +11,10 @@
  */
 import type { BufferGeometry } from 'three';
 import * as v from 'valibot';
-import { type BakedGeometryRow, bakedGeometryBytes, readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import stamp from '../data/specimens.json' with { type: 'json' };
 
-/** the two binaries: the page's own (listed in the world's files, ../manifest.ts) and the Explorer's */
-export const SPECIMENS_URL = { boot: '/assets/nine-dragon/baked/specimens.bin', explorer: '/assets/nine-dragon/baked/specimens-explorer.bin' } as const;
-export type SpecimenPart = keyof typeof SPECIMENS_URL;
+/** Boot geometry is mandatory; Explorer library geometry is read on its first specimen request. */
+export type SpecimenPart = 'boot' | 'explorer';
 const Stamp = v.strictObject({ bin: v.string(), bytes: v.number() });
 /** the bakes' stamps: each inflated binary's hash and size (the stale gate, test/shards/nine-dragon-stack/specimens-bake.test.ts;
  *  read when a bake loads, so the generator that writes them can load the models) */
@@ -32,45 +30,24 @@ const Geometry = v.strictObject({
 export const SpecimenRowsSchema = v.strictObject({ version: v.literal(1), entries: v.array(v.strictObject({ key: v.string(), geo: Geometry })) });
 export type SpecimenRows = v.InferOutput<typeof SpecimenRowsSchema>;
 
-/** A decoded binary: each entry's bytes kept on their own, a fresh geometry per read, by key. */
+/** Keyed standard GLB geometries, with original typed channels and index. */
 export class SpecimenBake {
-  readonly rows: SpecimenRows;
-  private readonly at = new Map<string, { row: BakedGeometryRow; bytes: Uint8Array }>();
-  constructor(bytes: Uint8Array, part: SpecimenPart) {
-    const expected = specimensStamp()[part].bytes;
-    if (bytes.length !== expected) throw new Error(`[nine-dragon] the ${part} specimens bake holds ${String(bytes.length)} bytes, its stamp ${String(expected)}`);
-    const jsonBytes = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0, true);
-    const parsed: unknown = JSON.parse(new TextDecoder().decode(bytes.subarray(4, 4 + jsonBytes)));
-    this.rows = v.parse(SpecimenRowsSchema, parsed);
-    let offset = Math.ceil((4 + jsonBytes) / 4) * 4;
-    for (const { key, geo } of this.rows.entries) {
-      if (this.at.has(key)) throw new Error(`[nine-dragon] the specimens bake holds '${key}' twice`);
-      const length = bakedGeometryBytes(geo);
-      this.at.set(key, { row: geo, bytes: bytes.slice(offset, offset + length) });
-      offset += length;
-    }
-    if (offset !== bytes.length) throw new Error('[nine-dragon] the specimens bake does not match its rows');
-  }
-  has(key: string): boolean { return this.at.has(key); }
-  /** the geometry baked under `key` (a copy the caller owns); a key the bake lacks is a stale bake or a new variant */
+  constructor(private readonly entries: Map<string, BufferGeometry>) {}
+  has(key: string): boolean { return this.entries.has(key); }
   geometry(key: string): BufferGeometry {
-    const entry = this.at.get(key);
-    if (entry === undefined) throw new Error(`[nine-dragon] the specimens bake has no '${key}' (rebake: src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs)`);
-    return readBakedGeometry(entry.bytes, 0, entry.row);
+    const geometry = this.entries.get(key);
+    if (geometry === undefined) throw new Error(`[nine-dragon] no specimen ${key}`);
+    return geometry.clone();
   }
-  /** read `key` once and drop its bytes (what the page draws once: the crown) */
   take(key: string): BufferGeometry {
-    const g = this.geometry(key);
-    this.at.delete(key);
-    return g;
+    const geometry = this.entries.get(key);
+    if (geometry === undefined) throw new Error(`[nine-dragon] no specimen ${key}`);
+    this.entries.delete(key); return geometry;
   }
 }
 
-/** Fetch and inflate one of the bakes. The page's is mandatory, as the layout's: the builders are build-time code
- *  (../generators/). */
+/** Read standard declared GLBs through the shared exact whole-geometry assembler. */
 export async function loadSpecimens(part: SpecimenPart): Promise<SpecimenBake> {
-  const url = SPECIMENS_URL[part];
-  const response = await fetch(url);
-  if (!response.ok || response.body === null) throw new Error(`[nine-dragon] the specimens bake did not load: ${String(response.status)} ${url}`);
-  return new SpecimenBake(new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer()), part);
+  const { readNineSpecimens } = await import('../runtime/geometry');
+  return readNineSpecimens(part);
 }

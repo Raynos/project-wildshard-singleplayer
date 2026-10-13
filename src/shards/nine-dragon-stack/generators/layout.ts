@@ -81,11 +81,11 @@ function bakedAt(model: string, at: Placement<object>): LayoutRows['inKit'][numb
 }
 
 /** the layout, run and written as the bake's binary (inflated) */
-export function bakeNineLayout(): Uint8Array {
+export function nineLayoutSource(): { bin: Uint8Array; rows: LayoutRows; records: number[]; geometries: BufferGeometry[] } {
   const signs = new SignRecorder();
   const ctx = runLayout(signs);
-  const geometries: LayoutRows['geometries'] = [], writer = geometryWriter('bake-nine-layout'), blocks = writer.blocks;
-  const addGeometry = (g: BufferGeometry): number => { geometries.push(writer.add(g)); return geometries.length - 1; };
+  const built: BufferGeometry[] = [], geometries: LayoutRows['geometries'] = [], writer = geometryWriter('bake-nine-layout'), blocks = writer.blocks;
+  const addGeometry = (g: BufferGeometry): number => { built.push(g); geometries.push(writer.add(g)); return geometries.length - 1; };
   // the kits' names, the folded parts' too (a model drawn into a kit names its Kit object: build.ts `kitName`)
   const kitName = new Map<Kit, string>();
   for (const [name, k] of ctx.kits) {
@@ -151,5 +151,8 @@ export function bakeNineLayout(): Uint8Array {
   out.set(new Uint8Array(new Float64Array(f64).buffer), head);
   let at = head + f64.length * 8;
   for (const b of blocks) { out.set(b, at); at += b.length; }
-  return out;
+  return { bin: out, rows, records: f64, geometries: built };
 }
+
+/** Byte proof of the former layout product; the scene baker emits no private binary. */
+export const bakeNineLayout = (): Uint8Array => nineLayoutSource().bin;

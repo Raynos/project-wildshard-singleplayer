@@ -13,7 +13,7 @@ import { platform } from 'node:process';
 import { BufferAttribute, BufferGeometry, type Group, Mesh, MeshBasicMaterial, ShaderMaterial, Vector3 } from 'three';
 import { bakeNineSpecimens, bootSpecimen, specimenRecipes } from '../../../src/shards/nine-dragon-stack/generators/specimens';
 import { SpecimenBake, specimensStamp } from '../../../src/shards/nine-dragon-stack/world/specimens';
-import { LayoutBake } from '../../../src/shards/nine-dragon-stack/world/layoutBake';
+import { oracleLayout, oracleSpecimens } from './oracleBakes';
 import type { CanopyLump } from '../../../src/shards/nine-dragon-stack/world/banyanPlan';
 import { ndModelContext } from '../../../src/shards/nine-dragon-stack/world/modelLook';
 import { paramsOf, type ModelDef, type ModelPart } from '../../../src/engine/models/model';
@@ -38,7 +38,7 @@ const shipped = (file: string): Uint8Array => new Uint8Array(inflateSync(readFil
 
 /** the world's banyan plan as the committed layout bake holds it (its own stale gate keeps it current) */
 function lumps(): CanopyLump[] {
-  const plan = new LayoutBake(shipped('layout.bin')).rows.banyan;
+  const plan = oracleLayout(shipped('layout.bin')).rows.banyan;
   const vec = (a: readonly [number, number, number]): Vector3 => new Vector3(a[0], a[1], a[2]);
   return plan === null ? [] : plan.lumps.map((l) => ({ c: vec(l.c), r: vec(l.r), up: l.up, seed: l.seed, wash: l.wash }));
 }
@@ -74,7 +74,7 @@ describe('Nine Dragon specimens bake (G285)', () => {
   });
 
   it.runIf(platform === 'darwin')('reads back every key as the live builders build it: attribute types and bytes, index, bounds', () => {
-    const bakes = { boot: new SpecimenBake(boot, 'boot'), explorer: new SpecimenBake(explorer, 'explorer') };
+    const bakes = { boot: oracleSpecimens(boot), explorer: oracleSpecimens(explorer) };
     const recipes = specimenRecipes(plan);
     expect(recipes.length).toBeGreaterThan(40);
     for (const [key, build] of recipes) {
@@ -93,8 +93,8 @@ describe('Nine Dragon specimens bake (G285)', () => {
     nd.look.mat = mat;
     nd.look.canopy = { core: new MeshBasicMaterial(), cards: new MeshBasicMaterial(), depth: new MeshBasicMaterial() };
     nd.look.facade = { mat, small: new ShaderMaterial() };
-    nd.look.specimens = new SpecimenBake(boot, 'boot');
-    nd.look.explorer = new SpecimenBake(explorer, 'explorer');
+    nd.look.specimens = oracleSpecimens(boot);
+    nd.look.explorer = oracleSpecimens(explorer);
     let parts = 0;
     const check = <P extends object>(model: ModelDef<P>): void => {
       for (const variant of [undefined, ...(model.variants ?? []).map((v) => v.id)]) {
@@ -117,12 +117,12 @@ describe('Nine Dragon specimens bake (G285)', () => {
   it('an Explorer specimen asked before its bake is in is a group that fills when it lands', async () => {
     const nd = ndModelContext(null);
     nd.look.mat = new ShaderMaterial();
-    nd.look.specimens = new SpecimenBake(boot, 'boot');
+    nd.look.specimens = oracleSpecimens(boot);
     let land: (b: SpecimenBake) => void = () => undefined;
     nd.look.explorer = new Promise<SpecimenBake>((resolve) => { land = resolve; });
     const built = noodleStallModel.build(nd.ctx, noodleStallModel.defaults, new Rng(0));
     expect(Array.isArray(built)).toBe(false);
-    land(new SpecimenBake(explorer, 'explorer'));
+    land(oracleSpecimens(explorer));
     await nd.look.explorer;
     await new Promise((resolve) => { setTimeout(resolve, 0); });
     if (Array.isArray(built)) throw new Error('not a group');

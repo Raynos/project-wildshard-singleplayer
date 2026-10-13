@@ -7,31 +7,24 @@
  * banyan's plan, and the 1,156 sign calls in the order the builders made them. `restoreLayout` fills a page's `Ctx` from
  * it and replays the signs into the page's own SignBuilder, so build.ts carries on exactly as after the builders ran.
  */
-import { Box3, Color, Matrix4, Vector3, Vector4 } from 'three';
+import { Box3, type BufferGeometry, Color, Matrix4, Vector3, Vector4 } from 'three';
 import * as v from 'valibot';
-import type { Ctx, InKit, MapRect } from './ctx';
+import type { Ctx, InKit } from './ctx';
 import { Kit } from './kit';
 import { KitX } from './hero/kitx';
 import { Builder } from './facade/geo';
 import { isPiece } from './facade/pieceIds';
-import type { Material } from '@wildshard/engine/physics/surface';
 import type { SignPlace, SignSink } from '../look/signs';
-import type { SignStyle } from '../data/signs';
-import { type BakedGeometryRow, bakedGeometryBytes, readBakedGeometry } from '@wildshard/sdk/kit/bakedGeometry';
 import { restoreQueued } from './props3d';
 import { restoreCrossingColliders, wellSheets } from './wellBounds';
 import { banyanOut } from './banyanPlan';
-import rows from '../data/layout.json' with { type: 'json' };
+import stamp from '../data/layout.json' with { type: 'json' };
 
-/** the bake's binary (`src/shards/nine-dragon-stack/generators/bake-nine-layout.mjs`); listed in the boot's world reads (../boot/files.ts) */
-export const LAYOUT_BAKE_URL = '/assets/nine-dragon/baked/layout.bin';
-/** the bake's stamp: the inflated binary's hash and size (the stale gate, test/shards/nine-dragon-stack/layout-bake.test.ts) */
-export const LAYOUT_STAMP = v.parse(v.strictObject({ version: v.literal(1), bin: v.string(), bytes: v.number() }), rows);
 
 const finite = v.number();
-const SURFACES: readonly Material[] = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand'];
+const SURFACES = ['wood', 'metal', 'flesh', 'felt', 'stone', 'rock', 'sand', 'water', 'grass', 'wetSand', 'planks', 'shell', 'ground', 'edge', 'earth'] as const;
 const V3 = v.tuple([finite, finite, finite]);
-const STYLES: readonly SignStyle[] = ['tube', 'box', 'plaque', 'paper', 'talisman', 'etch', 'banner'];
+const STYLES = ['tube', 'box', 'plaque', 'paper', 'talisman', 'etch', 'banner'] as const;
 const Spec = v.strictObject({ text: v.string(), color: v.string(), vertical: v.boolean(), style: v.picklist(STYLES), ink: v.exactOptional(v.string()) });
 const Place = v.strictObject({
   at: V3, normal: V3, size: finite, spec: Spec, gain: v.exactOptional(finite), flicker: v.exactOptional(finite), blade: v.exactOptional(v.boolean()),
@@ -48,7 +41,7 @@ const Geometry = v.strictObject({
 });
 const Slot = v.strictObject({ at: V3, normal: V3, size: finite, color: finite, blade: v.boolean() });
 const Named = v.strictObject({ name: v.string(), geo: finite });
-const KINDS: readonly MapRect['kind'][] = ['block', 'street', 'well', 'plaza', 'green', 'gate'];
+const KINDS = ['block', 'street', 'well', 'plaza', 'green', 'gate'] as const;
 const Params = v.record(v.string(), v.union([finite, v.string(), v.boolean()]));
 const Box = v.strictObject({ kind: v.literal('box'), x: finite, y: finite, z: finite, hx: finite, hy: finite, hz: finite,
   yaw: v.exactOptional(finite), rot: v.exactOptional(v.strictObject({ x: finite, y: finite, z: finite, w: finite })), surface: v.exactOptional(v.picklist(SURFACES)) });
@@ -83,45 +76,32 @@ export type LayoutRows = v.InferOutput<typeof LayoutRowsSchema>;
 export type SignCallRow = v.InferOutput<typeof SignCall>;
 export type BakedPlace = v.InferOutput<typeof Place>;
 
-/** JSON keeps every double exactly but -0 and the non-finite: the bake writes those as strings (../generators/layout.ts) */
-export function layoutReviver(_key: string, value: unknown): unknown {
-  if (value === '-0') return -0;
-  if (value === 'Infinity') return Number.POSITIVE_INFINITY;
-  if (value === '-Infinity') return Number.NEGATIVE_INFINITY;
-  return value;
-}
 
-/** The decoded binary: its rows, its float64 records and its geometry blocks. */
+/** the bake's stamp: the inflated binary's hash and size (the stale gate, test/shards/nine-dragon-stack/layout-bake.test.ts) */
+export const LAYOUT_STAMP = v.parse(v.strictObject({ version: v.literal(1), bin: v.string(), bytes: v.number() }), stamp);
+
+/** Standard GLB layout geometries and plain double-precision author rows. */
 export class LayoutBake {
   readonly rows: LayoutRows;
   readonly f64: Float64Array;
-  private readonly geoAt: number[] = [];
-  constructor(private readonly bytes: Uint8Array) {
-    if (bytes.length !== LAYOUT_STAMP.bytes) throw new Error(`[nine-dragon] the layout bake holds ${String(bytes.length)} bytes, its stamp ${String(LAYOUT_STAMP.bytes)}`);
-    const head = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    const jsonBytes = head.getUint32(0, true), f64Count = head.getUint32(4, true);
-    const parsed: unknown = JSON.parse(new TextDecoder().decode(bytes.subarray(8, 8 + jsonBytes)), layoutReviver);
-    this.rows = v.parse(LayoutRowsSchema, parsed);
-    let at = Math.ceil((8 + jsonBytes) / 8) * 8;
-    this.f64 = new Float64Array(bytes.slice(at, at + f64Count * 8).buffer);
-    at += f64Count * 8;
-    for (const g of this.rows.geometries) { this.geoAt.push(at); at += bakedGeometryBytes(g); }
-    if (at !== bytes.length) throw new Error('[nine-dragon] the layout bake does not match its rows');
+  constructor(rows: LayoutRows, records: readonly number[], private readonly geometries: Map<number, BufferGeometry>) {
+    this.rows = v.parse(LayoutRowsSchema, rows); this.f64 = Float64Array.from(records);
   }
-  geometry(i: number): ReturnType<typeof readBakedGeometry> {
-    const row: BakedGeometryRow | undefined = this.rows.geometries[i], at = this.geoAt[i];
-    if (row === undefined || at === undefined) throw new Error(`[nine-dragon] no baked layout geometry ${String(i)}`);
-    return readBakedGeometry(this.bytes, at, row);
+  geometry(i: number): BufferGeometry {
+    const geometry = this.geometries.get(i), row = this.rows.geometries[i];
+    if (geometry === undefined || row === undefined) throw new Error(`[nine-dragon] no layout geometry ${i}`);
+    const result = geometry.clone(); result.computeBoundingSphere();
+    if (row.box) result.computeBoundingBox(); else result.boundingBox = null;
+    return result;
   }
+  /** Drop immutable source arrays after every runtime kit has taken its own mutable copy. */
+  release(): void { for (const geometry of this.geometries.values()) geometry.dispose(); this.geometries.clear(); }
 }
 
-/** Fetch and inflate the bake. It is mandatory: the layout's builders are build-time code (../generators/), so a missing
- *  or mismatched bake fails the world build (the stale gate, test/shards/nine-dragon-stack/layout-bake.test.ts, keeps the
- *  committed bake current). */
+/** Read declared whole tiles through the game's verified product reader. */
 export async function loadLayoutBake(): Promise<LayoutBake> {
-  const response = await fetch(LAYOUT_BAKE_URL);
-  if (!response.ok || response.body === null) throw new Error(`[nine-dragon] the layout bake did not load: ${String(response.status)} ${LAYOUT_BAKE_URL}`);
-  return new LayoutBake(new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer()));
+  const { readNineLayout } = await import('../runtime/geometry');
+  return readNineLayout();
 }
 
 const vec = (a: readonly [number, number, number]): Vector3 => new Vector3(a[0], a[1], a[2]);
@@ -210,4 +190,14 @@ export function restoreLayout(bake: LayoutBake, ctx: Ctx): void {
     lumps: r.banyan.lumps.map((l) => ({ c: vec(l.c), r: vec(l.r), up: l.up, seed: l.seed, wash: l.wash })),
     hangs: r.banyan.hangs.map(vec),
   };
+  bake.release();
 }
+
+/** JSON keeps every double exactly but -0 and the non-finite: the bake writes those as strings (../generators/layout.ts) */
+export function layoutReviver(_key: string, value: unknown): unknown {
+  if (value === '-0') return -0;
+  if (value === 'Infinity') return Number.POSITIVE_INFINITY;
+  if (value === '-Infinity') return Number.NEGATIVE_INFINITY;
+  return value;
+}
+

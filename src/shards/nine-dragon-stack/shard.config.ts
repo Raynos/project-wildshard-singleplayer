@@ -6,6 +6,7 @@ import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { ND_AUDIO } from './data/audio';
 import { NINE_ITEMS } from './data/items';
 import { NINE_LEDGER } from './data/ledger';
+import world from './data/world.generated.json' with { type: 'json' };
 import portalStages from './data/portalStages.json' with { type: 'json' };
 import portalEntries from './data/portalEntries.generated.json' with { type: 'json' };
 import portalFloors from './data/portalFloors.generated.json' with { type: 'json' };
@@ -18,9 +19,11 @@ import portalFloors from './data/portalFloors.generated.json' with { type: 'json
 // (world/portalPlan.ts `portalLinks`). The floors they bind are this file's `props.colliders` (the generated portal-floor rows: each whole deck, `deck.<edge>`, and the square's slab, `square`), the very boxes the trusted runtime
 // installs under those ids (world/install.ts), so its ride (world/portalRide.ts) is the format's checked transfer.
 const base = emptyShardfile({ slug: 'nine-dragon-stack', name: 'Nine Dragon Stack', author: 'Wildshard', revision: 1, seed: 0x9d2a });
+const library = new Set(world.shardfile.library), charged = world.shardfile.files.filter(file => library.has(file.hash));
+const budgets = { ...base.budgets, library: { compressed: charged.reduce((sum, file) => sum + file.compressed, 0), resident: charged.reduce((sum, file) => sum + file.decoded + file.gpu, 0) } };
 // parseShardfile admits each link against the format's PortalLink schema (strict nodes, bound links, the walked route)
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base,
-  accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['items', 'ledger', 'modes', 'clientChannels'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, clientChannels: NINE_CLIENT_CHANNELS, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
+export default parseShardfile({ ...base, budgets, files: world.shardfile.files, tiles: world.shardfile.tiles, library: world.shardfile.library,
+  accent: 'iris', runtime: { entry: 'runtime/index.ts', binds: ['props', 'items', 'ledger', 'modes', 'clientChannels'], cost: NINE_DRAGON_RUNTIME_COST }, audio: ND_AUDIO, clientChannels: NINE_CLIENT_CHANNELS, modes: NINE_MODES, items: NINE_ITEMS, ledger: NINE_LEDGER, spawn: { x: 0.95, y: 125, z: 7.5, yaw: -12 * (Math.PI / 180) },
   entryways: portalEntries, directors: [portalStages],
-  props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [], colliders: portalFloors } });
+  props: { ...world.props, wholeLibrary: world.shardfile.library, colliders: portalFloors } });

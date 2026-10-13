@@ -30,10 +30,6 @@ export const BOOT_FILES = [
   // the paint (look/paint.ts)
   '/assets/nine-dragon/paint/concrete.jpg', '/assets/nine-dragon/paint/flag.jpg', '/assets/nine-dragon/paint/flag-a.jpg', '/assets/nine-dragon/paint/flag2.jpg', '/assets/nine-dragon/paint/flag2-a.jpg', '/assets/nine-dragon/paint/lacquer.jpg',
   '/assets/nine-dragon/paint/panel.jpg', '/assets/nine-dragon/paint/poster.jpg', '/assets/nine-dragon/paint/poster-a.jpg', '/assets/nine-dragon/paint/stone.jpg', '/assets/nine-dragon/paint/tiles.jpg', '/assets/nine-dragon/paint/wood.jpg',
-  // G285: the layout's offline bake (world/layoutBake.ts)
-  '/assets/nine-dragon/baked/layout.bin',
-  // G285: the code-built models' and the canopy's geometry (world/specimens.ts)
-  '/assets/nine-dragon/baked/specimens.bin',
   '/assets/nine-dragon/lab/walker.glb', '/assets/nine-dragon/lab/sitter.glb',
   '/assets/nine-dragon/lab/grapple/dragon-hook.glb',
   '/assets/nine-dragon/lab/organic/lion.glb', '/assets/nine-dragon/lab/organic/pots.glb', '/assets/nine-dragon/lab/organic/lanterns.glb',

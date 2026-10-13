@@ -10,7 +10,6 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { deflateSync } from 'node:zlib';
 import { bakeNineLayout } from './layout.ts';
 import { bakeNineSpecimens } from './specimens.ts';
 import { banyanOut } from '../world/banyanPlan.ts';
@@ -32,19 +31,29 @@ export function nineSpecimensBake() {
   return { bins, stamp: { version: 1, boot, explorer } };
 }
 
-if (import.meta.main) {
-  const { bin, stamp } = nineLayoutBake();
-  const out = resolve(root, 'public/assets/nine-dragon/baked');
+/** Nine's entire static scene as regenerated shardfile tiles and standard library GLBs. */
+export async function writeNineScene() {
+  const [{ nineScene }, { parseGlb }] = await Promise.all([import('./scene.ts'), import('@wildshard/sdk/assets')]);
+  const product = nineScene(root), { baked } = product, out = resolve(root, 'src/shards/nine-dragon-stack/assets');
   mkdirSync(out, { recursive: true });
-  const packed = deflateSync(bin, { level: 9 });
-  writeFileSync(resolve(out, 'layout.bin'), packed);
-  writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/layout.json'), `${JSON.stringify(stamp)}\n`);
-  console.info(`nine-dragon layout: ${String(bin.length)} bytes → ${String(packed.length)} zlib (baked/layout.bin, ${stamp.bin.slice(0, 12)})`);
-  const specimens = nineSpecimensBake();
-  for (const [part, file] of [['boot', 'specimens.bin'], ['explorer', 'specimens-explorer.bin']]) {
-    const packedPart = deflateSync(specimens.bins[part], { level: 9 });
-    writeFileSync(resolve(out, file), packedPart);
-    console.info(`nine-dragon specimens (${part}): ${String(specimens.bins[part].length)} bytes → ${String(packedPart.length)} zlib (baked/${file}, ${specimens.stamp[part].bin.slice(0, 12)})`);
+  const libraries = { layout: [], boot: [], explorer: [] }, assets = new Map(baked.assets), files = [...baked.shardfile.files];
+  for (const part of baked.pieces) {
+    const hash = createHash('sha256').update(part.glb).digest('hex'); assets.set(hash, part.glb);
+    files.push({ hash, kind: 'glb', compressed: part.glb.length, ...parseGlb(part.glb), dependencies: [], critical: false });
+    const section = part.name.startsWith('layout_sets_') ? 'layout' : part.name.startsWith('specimens_boot_') ? 'boot' : 'explorer';
+    libraries[section].push(hash);
   }
-  writeFileSync(resolve(root, 'src/shards/nine-dragon-stack/data/specimens.json'), `${JSON.stringify(specimens.stamp)}\n`);
+  for (const [hash, bytes] of assets) writeFileSync(resolve(out, hash), bytes);
+  files.sort((a, b) => a.hash.localeCompare(b.hash));
+  const metadata = { version: 1, notice: 'DO NOT EDIT: generators/bake-nine-layout.mjs through bake(scene, identity).',
+    layout: { rows: product.layout.rows, records: product.layout.records }, libraries, specimenBoxes: product.boxes,
+    shardfile: { ...baked.shardfile, files, library: [...libraries.layout, ...libraries.boot, ...libraries.explorer].sort() }, props: baked.props?.props, report: baked.props?.report };
+  const replacer = (_key, value) => typeof value === 'number' && Object.is(value, -0) ? '-0'
+    : value === Infinity ? 'Infinity' : value === -Infinity ? '-Infinity' : value;
+  const metadataPath = 'src/shards/nine-dragon-stack/data/world.generated.json';
+  writeFileSync(resolve(root, metadataPath), JSON.stringify(metadata, replacer) + '\n');
+  const outputs = [metadataPath, ...[...assets.keys()].map(hash => `src/shards/nine-dragon-stack/assets/${hash}`)].sort();
+  console.info(`Nine scene: ${baked.shardfile.tiles.length} L0 tiles, ${files.length} bounded GLBs, ${assets.size} files, scene.json ${baked.scenePath}`);
+  return { metadata, outputs };
 }
+if (import.meta.main) await writeNineScene();

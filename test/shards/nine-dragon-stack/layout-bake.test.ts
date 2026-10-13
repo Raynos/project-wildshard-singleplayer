@@ -1,3 +1,4 @@
+import { oracleLayout } from './oracleBakes';
 import { describe, expect, it } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate hashes the committed bake's bytes.
 import { createHash } from 'node:crypto';
@@ -13,7 +14,7 @@ import { Ctx } from '../../../src/shards/nine-dragon-stack/world/ctx';
 import { buildEntryDecks } from '../../../src/shards/nine-dragon-stack/world/entries';
 import { Builder } from '../../../src/shards/nine-dragon-stack/world/facade/geo';
 import { merge } from '../../../src/shards/nine-dragon-stack/world/hero/kitx';
-import { LAYOUT_STAMP, LayoutBake, restoreLayout } from '../../../src/shards/nine-dragon-stack/world/layoutBake';
+import { LAYOUT_STAMP, restoreLayout } from '../../../src/shards/nine-dragon-stack/world/layoutBake';
 import { crossingColliders } from '../../../src/shards/nine-dragon-stack/world/wellBounds';
 import { peekQueued } from '../../../src/shards/nine-dragon-stack/world/props3d';
 import { banyanOut } from '../../../src/shards/nine-dragon-stack/world/banyanPlan';
@@ -84,7 +85,7 @@ describe('Nine Dragon bakes its layout offline (G285)', () => {
     const liveKits = afterLayout(live);
     const bakedSigns = new SignRecorder();
     const baked = new Ctx(bakedSigns);
-    restoreLayout(new LayoutBake(shipped()), baked);
+    restoreLayout(oracleLayout(shipped()), baked);
     expect(records(baked, bakedSigns.calls)).toEqual(liveRecords);
     expect(afterLayout(baked)).toEqual(liveKits);
   }, 60_000);
@@ -100,7 +101,7 @@ describe('Nine Dragon bakes its layout offline (G285)', () => {
     }
     for (const [id, b] of cache) { const box = b.bounds(new Box3()); own.push([id, [...box.min, ...box.max]]); }
     const baked = new Ctx(new SignRecorder());
-    restoreLayout(new LayoutBake(shipped()), baked);
+    restoreLayout(oracleLayout(shipped()), baked);
     expect(fingerprint(baked.fd.shell.build())).toEqual(fingerprint(page.fd.shell.build()));
     expect(baked.fd.shell.triangleCount).toBe(page.fd.shell.triangleCount);
     expect([...baked.fd.merged].map(([id, b]) => [id, [...b.min, ...b.max]])).toEqual(own);

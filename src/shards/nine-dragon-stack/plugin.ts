@@ -1,3 +1,4 @@
+import { installNineGeometry } from './runtime/geometry';
 import { standaloneEntry } from './runtime/standalone';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { JIAN_ROW } from './vm/jianRow';
@@ -94,6 +95,7 @@ export class NdPlugin extends ShardPlugin {
     this.build = build;
   }
   override async world(ctx: ShardContext): Promise<void> {
+    const scope = ctx.scope; installNineGeometry(scope);
     ctx.strings(STRINGS);
     ctx.playground(GRAPPLE_PLAYGROUND);
     this.shell = ctx.game.runtime;
@@ -104,10 +106,10 @@ export class NdPlugin extends ShardPlugin {
     if (shell !== undefined) shell.hooks.levelBounds = (bounds) => bounds === undefined ? undefined : { x0: -250, x1: 250, z0: -250, z1: 250,
       get floor(): number { const p = shell.world?.player.position; return p !== undefined && Math.max(Math.abs(p.x), Math.abs(p.z)) > DECK_ZONE ? -20 : bounds.floor; } };
     const { world, camera } = await this.build(ctx, entryCapsFor(ctx.cube), () => worldBuildYield(ctx));
-    if (ctx.scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
+    if (scope.disposed) throw new Error('Nine Dragon was unloaded during its world build');
     this.ndWorld = world;
     const rt = installWorld(ctx, world, camera);
-    installSpecimenLight(ctx.app.events, ctx.scope, (on, key) => { rt.specimenLight(on, key); });
+    installSpecimenLight(ctx.app.events, scope, (on, key) => { rt.specimenLight(on, key); });
   }
 }
 

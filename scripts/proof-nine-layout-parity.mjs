@@ -24,6 +24,7 @@ if (compare !== undefined) {
     for (const key of ['tier', 'pose', 'pixels', 'calls', 'triangles', 'width', 'height']) if (row[key] !== other?.[key]) diffs.push(`${row.tier}/${row.pose}: ${key} ${row[key]} ≠ ${other?.[key]}`);
   }
   for (const key of ['gpuBytes', 'colliders', 'pieces', 'colliderCount', 'programs']) for (const tier of Object.keys(a.tiers)) if (a.tiers[tier][key] !== b.tiers[tier]?.[key]) diffs.push(`${tier}: ${key} ${a.tiers[tier][key]} ≠ ${b.tiers[tier]?.[key]}`);
+  for (const tier of Object.keys(a.tiers)) if (typeof a.tiers[tier].cpuBackingBytes !== 'number' || typeof b.tiers[tier]?.cpuBackingBytes !== 'number' || b.tiers[tier].cpuBackingBytes > a.tiers[tier].cpuBackingBytes) diffs.push(`${tier}: CPU backing bytes rose or measurement is unavailable`);
   console.log(diffs.length === 0 ? `nine-layout-parity: ${a.build} = ${b.build} on ${a.rows.length} poses (pixels, draws, triangles), GPU bytes and colliders` : diffs.join('\n'));
   process.exit(diffs.length === 0 ? 0 : 1);
 }
@@ -103,6 +104,10 @@ try {
     }
     const census = await page.evaluate(() => window.__sc_gl().reduce((n, row) => n + row.totalBytes, 0));
     tiers[tier].gpuBytes = census;
+    const memory = await context.newCDPSession(page);
+    try { await memory.send('HeapProfiler.collectGarbage'); } finally { await memory.detach(); }
+    // The engine's scalar RAM projection counts observed backing stores, distinct from native process footprint.
+    tiers[tier].cpuBackingBytes = await page.evaluate(() => window.__wildshard.memory?.().totals.ram ?? null);
     // the linked programs after the three poses (the renderer's cache: a split or merged program shows here)
     tiers[tier].programs = await page.evaluate(() => window.__wildshard.world.game.renderer.info.programs?.length ?? -1);
     await context.close();

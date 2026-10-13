@@ -57,6 +57,7 @@ export const SCOPE = {
 } as const;
 
 const ROOT = new URL('../../../', import.meta.url);
+const assets = new Map(source.files.map(file => [file.hash, new Uint8Array(readFileSync(new URL(`src/shards/nine-dragon-stack/assets/${file.hash}`, ROOT)))]));
 const MODULE = new URL(`src/shards/nine-dragon-stack/${ENTRY}`, ROOT).href;
 /** The walk's speed per tick (the host's 5 m/s at 60 Hz) and the north deck the square's ring sends a fresh spawn to. */
 const STEP = 5 / 60, NORTH = DECK_PORTALS[0];
@@ -120,7 +121,7 @@ export async function writeCheckpoints(rapier: Rapier, inputs: string): Promise<
 
 export function nineRapier(): Promise<Rapier> { return loadRapier(readFileSync(new URL('public/assets/physics/rapier.wasm', ROOT))); }
 function adapter(rapier: Rapier, snapshot?: string): Promise<TickWorkerAdapter> {
-  return createTrustedHeadlessAdapter({ shard: source, assets: new Map(), rapier }, { module: MODULE }, snapshot);
+  return createTrustedHeadlessAdapter({ shard: source, assets, rapier }, { module: MODULE }, snapshot);
 }
 /** The tape: the walk, three Jian taps 12 ticks apart every 1.5 s (a chained combo, then the gap lapses). */
 function tape(tick: number): HeadlessCommand[] {
@@ -224,7 +225,7 @@ export async function replayProof(rapier: Rapier, inputs: string, name: Checkpoi
     const end = run(sim, from, to), hash = digest(end);
     sim.dispose(); sim = undefined;
     replay = await adapter(rapier, saved.snapshot);
-    worker = await HeadlessSimulation.create(source, new Map(), saved.snapshot, { deadline: 'advisory', trustedRuntime: { module: MODULE } });
+    worker = await HeadlessSimulation.create(source, assets, saved.snapshot, { deadline: 'advisory', trustedRuntime: { module: MODULE } });
     let replayEnd = saved.snapshot;
     for (let tick = from; tick < to; tick++) {
       const effects: HeadlessEffect[] = [];
