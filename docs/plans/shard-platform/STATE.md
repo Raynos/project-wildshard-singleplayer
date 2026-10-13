@@ -13,7 +13,7 @@
 **G398 for wildshard-v:** grid Simulator **Nine road travel PASSES** (p95 34 ms, max 84–106 ms, 2 runs each at `fa33af75d` and HEAD; receipt `b20a6716a`). Still failing in the Simulator: Pine (~50), Driftwood (42–50), Far (40–47) travel.
 
 **For wildshard-v:** G392 Sky steps 1/2/8/7 sp-x6 (after inventory + G390), 3–4 sp-o120. Ruling (call 36): declarations-only `shard.config.ts` is not custom. STATE hourly.
-**G387/G392 boards for wildshard-v:** Sky graphs ON (`fdb140aec`) `art/sky-graphs/round-1/board-{bridges,shack,dressing,falls}.jpg` (graphs use plain fog, a touch darker in shade); Pine KTX2 shipped `art/pine-ktx2/round-2-shipped/`; parity review `art/parity-review/signal-sky-2026-10-13/` (Signal look change = G266 near-sand grain, approved); G395 `art/effects-pairing/round-1/`. G393 Roc clip check staffed when sp-x6 has a candidate. Plan l.157 still says near tier is behind a row.
+**G387/G392 boards for wildshard-v:** Sky graphs ON (`fdb140aec`) `art/sky-graphs/round-1/board-{bridges,shack,dressing,falls}.jpg`; Pine KTX2 shipped `art/pine-ktx2/round-2-shipped/`; parity review `art/parity-review/signal-sky-2026-10-13/`; G395 `art/effects-pairing/round-1/`. G393 Roc clip check staffed when sp-x6 has a candidate. Plan l.157 still says near tier is behind a row.
 
 **Calls for Jake (2026-10-13; reverse any):** calls 6–41 are listed in commit bodies and `open-x-queue.md`; highlights: Nine portable math, literal physics rows, G318 cache move (`pnpm gen` first), Template binary to a test fixture, declarations-only `shard.config.ts` not custom (36).
 
