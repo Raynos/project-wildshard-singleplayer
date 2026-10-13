@@ -5,11 +5,10 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Name the exact owned fixture output.
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
-import { starterWeaponsPack } from '@wildshard/commons/packs/weapons';
-import { buildCommons } from '@wildshard/sdk/commons';
 import { BOW } from '../src/game/weapons/starterBowProfile';
 import { wind } from '../src/engine/world/steppeWind';
 import { genStarterWeapons, starterWeaponsTableSource } from '../scripts/gen-starter-weapons.mjs';
+import bow from '../src/game/weapons/starterBow.json' with { type: 'json' };
 
 // Independent pre-pack recipe, retaining the exact arithmetic and field order.
 const original = {
@@ -20,15 +19,7 @@ const original = {
 };
 
 it('emits byte-identical starter parameters without copying the owning mutable wind field', () => {
-  const provenance = { credit: 'Fixture', licence: 'Fixture' };
-  const first = buildCommons([starterWeaponsPack(provenance)]);
-  expect(buildCommons([starterWeaponsPack(provenance)])).toEqual(first);
-  const entry = first.catalogue.entries[0];
-  if (entry === undefined) throw new Error('Missing bow data');
-  expect(entry).toMatchObject({ id: 'starter-weapons/bow', packVersion: '1.0.0', kind: 'binary' });
-  const bytes = first.assets.get(entry.hash);
-  if (bytes === undefined) throw new Error('Missing bow bytes');
-  expect(new TextDecoder().decode(bytes)).toBe(JSON.stringify(original));
+  expect(JSON.stringify(bow)).toBe(JSON.stringify(original));
   const { wind: runtimeWind, ...parameters } = BOW;
   expect(JSON.stringify(parameters)).toBe(JSON.stringify(original));
   expect(runtimeWind).toBe(wind);

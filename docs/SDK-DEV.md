@@ -78,11 +78,9 @@ Standalone snapshots reinstall adapters with `bindShardfileSim` and
 `restoring:true`, reconnecting collider handles after world replacement without
 allocating duplicates. Borrowed snapshots belong to the client world owner.
 
-The build-only `@wildshard/commons/packs/bag.starterBagPack({credit, licence})`
-emits the ten starter harvest rows as immutable JSON for the existing commons
-catalogue/build hook. It owns their ids, labels, icons and travel flags. The game
-expands the same pack into a gitignored literal table during every `pnpm gen`;
-boot never imports commons code. Trusted runtimes normalize bag metadata through
+The ten starter harvest rows (ids, labels, icons and travel flags) are authored
+once in `src/game/bag/starterItems.json`. The game expands them into a gitignored
+literal table during every `pnpm gen`. Trusted runtimes normalize bag metadata through
 `@wildshard/sdk/bag.normalizeItemRow`, whose default remains `travels: false`.
 
 `@wildshard/sdk/runtime/effects.bindPlayerEffects` exposes the engine's existing
@@ -91,9 +89,9 @@ periodic damage uses the supplied combat pipeline, and death/disposal cleanup en
 with the owner. It adds no HUD or visual policy; status-icon presentation stays
 separate. Importing the module installs nothing.
 
-`@wildshard/commons/packs/effects.starterEffectsPack({credit, licence})` emits the
-five existing status rows as immutable JSON. The normal boot-table generator
-expands that same pack into a literal game table. Trusted runtimes read it through
+The five existing status rows are authored once in
+`src/game/systems/effects/starterRows.json`. The normal boot-table generator
+expands them into a literal game table. Trusted runtimes read it through
 `@wildshard/sdk/runtime/effects.STARTER_EFFECTS`; the engine checks the typed row
 contract, and neither import installs or applies an effect. Stun / burn / poison /
 bleed / slow tuning, damage cadence, stacking and cue/icon ids stay unchanged.

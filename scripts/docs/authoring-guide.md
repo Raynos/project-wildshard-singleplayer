@@ -247,11 +247,10 @@ so the shared cache downloads it once and leases it independently.
 
 <!-- example: commons -->
 
-Current packs include bag/effects data, starter weapon parameters and arm clip
-aliases. These reusable generators run in Node and produce immutable partial
-content. Alias/parameter packs do not replace figure geometry, animation
-controllers or rigs. Models, clips and sounds remain backed by retained authored
-inputs; generated output never substitutes for its generator.
+There are no shared packs yet: a pack lands only in the commit where two real
+shards use it (G355). The example's rows are a stand-in. Packs run in Node and
+produce immutable partial content; models, clips and sounds stay backed by
+retained authored inputs, and generated output never substitutes for its generator.
 
 ## Data-only herds and divers
 

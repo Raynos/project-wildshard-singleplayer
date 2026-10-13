@@ -3,13 +3,13 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { readScene } from '@wildshard/sdk/scene';
 import { commonsRequirements } from '@wildshard/sdk/commons';
 import { createCatalogue } from '@wildshard/commons/catalogue';
-import { starterBagPack } from '@wildshard/commons/packs/bag';
+import { starterSpearPack } from './generators/spear.ts';
 import { buildWorld, disposeWorld } from './generators/world.ts';
 import { identity as authoredIdentity } from './data/identity.ts';
 
 /** Build-only catalogue and pinned immutable bytes; importing a pack never installs gameplay. */
-export const commons = createCatalogue([starterBagPack({ credit: 'Wildshard shared starter data', licence: 'First-party' })]);
-const required = commonsRequirements(commons, ['bag/starter-items']);
+export const commons = createCatalogue([starterSpearPack({ credit: 'Wildshard starter spear generator', licence: 'First-party' })]);
+const required = commonsRequirements(commons, ['starter-spear/model', 'starter-spear/contacts']);
 /** The synth CLI reads the same graph used to derive the product declaration. */
 export const scene = buildWorld();
 /** Stable authored identity shared by synth, product generation and saves. */

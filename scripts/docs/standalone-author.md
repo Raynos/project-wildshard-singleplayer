@@ -57,8 +57,8 @@ four `Entry.midpoints()` belong to the same graph. The official GLB reader insta
 mesh collision from that retained source. This is a small floor reference, not an outpost
 with every one-shot behavior already implemented.
 
-`shard.config.ts` builds the catalogue from `starterBagPack`, selects the stable
-`bag/starter-items` identity, copies its byte-derived costs and exports the pinned
+`shard.config.ts` builds a project-local catalogue from `generators/spear.ts`, selects
+the stable `starter-spear/model` and `starter-spear/contacts` identities, copies their byte-derived costs and exports the pinned
 `commons` bytes for the builder. Pack imports install nothing. See the executable
 [commons example](author-project/shard.config.ts); assets remain immutable
 content hashes in the product. Add gameplay through the documented rows, then repeat
@@ -107,7 +107,7 @@ node proof-tools/audit-product.mjs dist
 ```
 
 Bootstrap copies `proof.config.mjs` and an executing `prove-native.ts`. The runner
-reads the exact built product and immutable files, checks its starter-bag catalogue
+reads the exact built product and immutable files, checks its starter-spear catalogue
 closure, and invokes the SDK's native validation. When changing packs, update that
 explicit pack list to match `shard.config.ts`. The bundle includes commons/format
 source but keeps `@wildshard/sdk/*`, `three`, and Node built-ins external: the SDK

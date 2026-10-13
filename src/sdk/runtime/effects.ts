@@ -7,7 +7,7 @@ export type StatusMovement = Parameters<typeof platformBindPlayerEffects>[0]['mo
 /** Scope-owned platform binding for status movement, periodic damage and death cleanup; installs only when called. */
 export const bindPlayerEffects: typeof platformBindPlayerEffects = platformBindPlayerEffects;
 
-/** Starter tuning derived from the build-only commons effects pack; no runtime commons dependency or automatic installation. */
+/** Starter tuning generated from the game's authored status rows; no automatic installation. */
 export const STARTER_EFFECTS: typeof platformStarterEffects = platformStarterEffects;
 
 /** The status-icon row and the player-effect binding for a trusted runtime; installs only when called (SF54: out of the kit). */

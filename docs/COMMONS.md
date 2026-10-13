@@ -4,6 +4,14 @@
 pack contract from `@wildshard/sdk/commons`; it cannot import engine, game, kit or
 trusted runtime modules. Importing it installs no services.
 
+**A pack lands only in the commit where two real shards use it** (Jake, G355,
+2026-10-13; templates and the one-shot fixture don't count). Today the package
+holds no packs: the eight early packs had no real-shard user and were deleted,
+or moved to their one owner (starter bag/effects rows, arm aliases and bow data
+to the game tables their shards already read; the SF86 spear to the author
+template's `generators/spear.ts`). `@wildshard/commons/bake/portableMath` and
+`@wildshard/commons/scripts` are build tools, not packs.
+
 `createCatalogue(packs)` compiles pinned pack versions into a version-zero
 `wildshard.commons` catalogue. Every entry records its stable namespaced id,
 SHA-256 hash, kind, actual wire and parsed residency costs, credit and licence.

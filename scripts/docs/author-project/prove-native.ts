@@ -5,7 +5,7 @@ import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { validateSimulation } from '@wildshard/sdk/headless';
 import { createCatalogue } from '@wildshard/commons/catalogue';
-import { starterBagPack } from '@wildshard/commons/packs/bag';
+import { starterSpearPack } from './generators/spear';
 
 const product = resolve(process.argv[2] ?? 'dist');
 const input: unknown = JSON.parse(readFileSync(resolve(product, 'shard.json'), 'utf8'));
@@ -17,7 +17,7 @@ for (const hash of shard.requires.commons) {
   assets.set(`commons:${hash}`, bytes);
 }
 // Match the packs in shard.config.ts; a different project must list its own configured packs here.
-const catalogue = createCatalogue([starterBagPack({ credit: 'Wildshard shared starter data', licence: 'First-party' })]);
+const catalogue = createCatalogue([starterSpearPack({ credit: 'Wildshard starter spear generator', licence: 'First-party' })]);
 for (const entry of catalogue.catalogue.entries) {
   if (!shard.requires.commons.includes(entry.hash)) throw new Error(`Missing declared pack: ${entry.id}`);
 }

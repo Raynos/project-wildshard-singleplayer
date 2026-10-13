@@ -48,9 +48,9 @@ from the kit, and its weapon compatibility names gave way to the defining `@wild
 modules (SF54). That emptied the kit: `@wildshard/kit`, its workspace entry and its guard layer are deleted.
 
 `@wildshard/game/plugin/effects.STARTER_EFFECTS` owns the typed runtime
-view of the build-only commons effects pack. The SDK exposes the same rows through
+view of the authored rows in `game/systems/effects/starterRows.json`. The SDK exposes the same rows through
 `runtime/effects`; `pnpm gen` and direct Vite/native builds generate their literal
-table before compilation. Runtime imports hold no commons code and apply nothing.
+table before compilation. Runtime imports apply nothing.
 
 `@wildshard/sdk/runtime/effects.bindPlayerEffects` is the same defining function
 as `@wildshard/engine/combat/effects/EffectService.bindPlayerEffects`. It owns scoped
@@ -59,9 +59,9 @@ HUD changes or import-time installation. `StatusMovement` derives from that port
 
 `@wildshard/sdk/bag.normalizeItemRow` is the trusted facade for the existing
 `@wildshard/game/bag/items` normalizer. Starter harvest content is authored once in
-the build-only commons bag pack and expanded by `pnpm gen` into
-`game/bag/starter.generated.ts`; boot installs those rows explicitly. No runtime
-imports a commons module, and no import registers a row.
+`game/bag/starterItems.json` and expanded by `pnpm gen` into
+`game/bag/starter.generated.ts`; boot installs those rows explicitly. No import
+registers a row.
 
 `@wildshard/game/systems/audio/combatCues` defines the shared equipment cue router.
 Trusted runtimes use `@wildshard/sdk/runtime/audio/combatCues.sharedCombatCues(audio, meleeSilent)`;
@@ -2750,26 +2750,16 @@ The admitted product API is defined by `plugin/product`: bounded byte parsers, d
 
 ## Trusted plugin definitions (SF79 DS0.2)
 
-### Shared arm clip content (DS1.6)
+### Shared arm clips and starter bow (game content)
 
-`@wildshard/commons/packs/arms` defines `starterArmClipsPack(provenance)` v1.0.0.
-It emits the 16 unchanged arm aliases and two swim aliases as one immutable JSON asset;
-Driftwood and Nine are its existing runtime users. The source is authored JSON in the pack,
-not a generated output. `scripts/gen-starter-arm-clips.mjs` expands the same bytes into an
-ignored literal table before rig producers run and during ordinary boot-table generation.
-The existing game `armClips` path remains for frozen consumers, with the same names, key order
-and `armClipNames` behavior. Runtime imports only the emitted data, never commons code.
-SF26's two-shard cache/lease proof uses this real pack asset: one download, one charged resident,
-two owners and zero residents after both owners dispose. Models, rig geometry, clip keyframes
-and playback timing are unchanged; those asset packs remain separate DS1.6 work.
-
-`@wildshard/commons/packs/weapons` defines `starterWeaponsPack(provenance)` v1.0.0,
-starting with the bow parameters shared by Nalati and Pine. Its readable authored `pack.ts`
-retains the original arithmetic; the pack emits identical immutable JSON. Normal generation
-expands it into an ignored literal table before producers run. The existing starter profile
-retains the same mutable `wind` field and injected view strategies, with no changed timing, damage,
-aim, framing or appearance. The SF26 proof admits that exact asset for both owning shards
-and verifies one download and one resident claim until the last lease is released.
+The 16 arm aliases and two swim aliases Driftwood and Nine share are authored once in
+`game/systems/viewmodel/armAliases.json`; `scripts/gen-starter-arm-clips.mjs` expands the same
+bytes into an ignored literal table before rig producers run and during ordinary boot-table
+generation. The game `armClips` path keeps the same names, key order and `armClipNames` behavior.
+The bow parameters Nalati and Pine share are authored in `game/weapons/starterBow.json` and
+expanded the same way by `scripts/gen-starter-weapons.mjs`; the starter profile keeps its mutable
+`wind` field and injected view strategies. Both were commons packs until G355 (a commons pack
+needs two real shard users of the pack itself; these shards read the game tables, not the pack).
 
 `@wildshard/game/plugin/context` defines `ShardContext` and `shardContext`;
 `@wildshard/game/plugin/shardPlugin` defines the staged `ShardPlugin` base class. Its `standaloneHybridEntry(Native, admit, shardfile, name)` defines the shared standalone lifecycle used by Nine and Sky: choose one composite in the world stage, await admission, then forward kit/play to that same owner. Shards retain their own admitted source, bindings, native constructor and entry choice; optional constructor ports keep existing test/host injection. Calling the factory or importing it installs no service.
