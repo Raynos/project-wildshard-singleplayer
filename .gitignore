@@ -158,5 +158,7 @@ src/**/*.generated.*
 /public/assets/pine-hollow/baked/undergrowth.glb
 # Nalati declared navigation: cheap generated asset, retained input has navigation- prefix.
 /src/shards/nalati-grasslands/assets/223ce1ab45d736c5fb526308cb86bc6d61bdeb482ac886a7d47306fd5a8c41b5
+# Nalati query terrain: cheap generated sampling file from the retained bare WSTR lattice (G384).
+/src/shards/nalati-grasslands/assets/166d495ae538065d398fa47a8a4a2ce7b63c6c5cc29fa9cfb01f097c49f3ad05
 /public/assets/pine-hollow/baked/cabins.glb
 /public/assets/pine-hollow/baked/streams.glb

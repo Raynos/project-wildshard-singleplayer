@@ -7,7 +7,8 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { withOwner } from '@wildshard/engine/app/ownership';
 import { tagCollider } from '@wildshard/engine/physics/surface';
 import { castRay } from '@wildshard/engine/physics/query';
-import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
+import { bakedSamplers, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
+import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { NALATI_GROUND_RES, NALATI_GROUND_SIZE, nalatiBake, type NalatiBake, type NalatiBakedActor } from './baked';
 import { nalatiBootRoster, type NalatiBootBody, type NalatiBootClock, type NalatiBootHerd } from './bootRoster';
 import { installNalatiElites, nalatiEliteBindings, type NalatiEliteBindings } from './headlessElites';
@@ -36,8 +37,6 @@ import { installNalatiMountedPlayer, nalatiMountedOf } from './headlessMounted';
 import { HITCH_HORSE_SPOTS } from '../world/layout';
 import { N_ROAD_PTS, S_ROAD_PTS, W_ROAD_PTS, E_ROAD_PTS, SKY_ROAD, CAMP_SPUR, BOWL_TRACKS, EAGLE_TRAIL, CAVE_TRAIL, ARGYMAQ_TRAIL } from '../layout';
 
-/** The page's terrain grid, handed to the trusted runtime by path (the boot roster's ground, the bodies' height query). */
-export const NALATI_TERRAIN_ASSET = 'public/assets/baked/nalati-grasslands/terrain.bin';
 /** The manifest's sun (manifest.ts `sky.sun`, test-pinned): the page's clock starts on it (world/installWeather.ts
  *  `clockForSun(def.sky.sun)`, 16.2 h, the day phase), so its first frame is the look the shard was painted with. */
 export const NALATI_SUN = { azimuth: 250, elevation: 26 } as const;
@@ -76,11 +75,14 @@ export function addNalatiWorld(host: SimHost, bake: NalatiBake): void {
   });
 }
 
-/** The page's terrain grid from its trusted bytes, refused unless it is Nalati's own 256² lattice over the 500 m chunk. */
+/** The page's terrain grid (the boot roster's ground, the bodies' height query) from the admitted query terrain's sampling
+ *  bytes (shard.config `terrain`, G384: the page's own native heights and splat, re-encoded without resampling), refused
+ *  unless it is Nalati's own 256² lattice over the 500 m chunk. The level's seed stands in for the WSTR header's. */
 export function nalatiTerrainGrid(bytes: Uint8Array | undefined, seed: number): BakedGrid {
-  const grid = bytes === undefined ? null : parseBakedTerrain(buffer(bytes));
-  if (grid === null || grid.res !== NALATI_GROUND_RES || grid.size !== NALATI_GROUND_SIZE || grid.seed !== seed) throw new Error(`Nalati headless needs its baked terrain grid (${NALATI_TERRAIN_ASSET})`);
-  return grid;
+  const tile = bytes === undefined ? null : decodeTerrainTile(bytes);
+  if (tile?.splat === undefined || tile.colours !== undefined || tile.resolution !== NALATI_GROUND_RES || tile.size !== NALATI_GROUND_SIZE
+    || tile.x !== -NALATI_GROUND_SIZE / 2 || tile.z !== -NALATI_GROUND_SIZE / 2) throw new Error('Nalati headless needs its admitted query terrain sampling');
+  return { res: tile.resolution, size: tile.size, seed, landscapeHash: 0, heights: tile.heights, splat: tile.splat, undergrowth: null };
 }
 
 /**
@@ -288,7 +290,7 @@ export function installNalatiRoster(host: SimHost, ports: { bake: NalatiBake; gr
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets }) => {
   const raidDirector = await prepareNalatiRaidDirector();
-  const bake = nalatiBake(), grid = nalatiTerrainGrid(assets.get(NALATI_TERRAIN_ASSET), shard.identity.seed), heightAt = bakedSamplers(grid).heightAt;
+  const bake = nalatiBake(), grid = nalatiTerrainGrid(shard.terrain?.sampling === undefined ? undefined : assets.get(shard.terrain.sampling.file), shard.identity.seed), heightAt = bakedSamplers(grid).heightAt;
   const nav = nalatiNavmesh(shard.navigation === null ? undefined : assets.get(shard.navigation.file));
   const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: NALATI_GROUND_SIZE, height: 0 },
     player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },

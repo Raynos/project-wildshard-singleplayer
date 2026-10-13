@@ -11,6 +11,7 @@ import { NALATI_STATE } from './data/state';
 import { NALATI_ITEMS } from './data/items';
 import { NALATI_RUNTIME_SPAWNS } from './data/spawns';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
+import queryTerrain from './data/terrain.generated.json' with { type: 'json' };
 
 // The existing plugin remains the trusted world entry while its audio comes from the shardfile.
 // SF48-g edges (G93 / G99 / G103 / G131): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand
@@ -21,15 +22,17 @@ const row = (side: keyof typeof NALATI_EDGES): { heights: number[]; colours: [nu
   heights: [...NALATI_EDGES[side].heights], colours: NALATI_EDGES[side].colours.map(([r, g, b]): [number, number, number] => [r, g, b]), roadHeight: 0,
 });
 const base = emptyShardfile({ slug: 'nalati-grasslands', name: 'Nalati Grasslands', author: 'Wildshard', revision: 1, seed: 0x4a1a });
-// G384: the creatures' navigation is the platform's WSNM row over the original bytes (generators/navigation.ts), charged
-// to the server's memory and the sim budget at its actual decoded cost.
-const resident = navigation.files.reduce((sum, file) => sum + file.decoded, 0);
+// G384: the creatures' navigation is the platform's WSNM row over the original bytes (generators/navigation.ts), and the
+// ground's native lattice is query-only terrain (generators/terrain.ts: no render tiles; the bound runtime keeps rendering
+// and collision), both charged to the server's memory and the sim budget at their actual decoded cost.
+const files = [...navigation.files, ...queryTerrain.files].sort((a, b) => a.hash.localeCompare(b.hash));
+const resident = files.reduce((sum, file) => sum + file.decoded, 0);
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base,
-  navigation: navigation.navigation, files: navigation.files, critical: navigation.critical,
+  navigation: navigation.navigation, terrain: queryTerrain.terrain, files, critical: [...navigation.critical, ...queryTerrain.critical],
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + resident },
-  budgets: { ...base.budgets, sim: { resident: navigation.files.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: navigation.files.reduce((sum, file) => sum + file.compressed, 0) } },
-  accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels'], spawns: NALATI_RUNTIME_SPAWNS },
+  budgets: { ...base.budgets, sim: { resident: files.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: files.reduce((sum, file) => sum + file.compressed, 0) } },
+  accent: 'ember', runtime: { entry: 'runtime/index.ts', cost: NALATI_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'clientChannels', 'terrain'], spawns: NALATI_RUNTIME_SPAWNS },
   clientChannels: NALATI_FAR_HERD_CHANNELS,
   modes: NALATI_MODES, quests: NALATI_QUEST_DATA, ledger: NALATI_LEDGER, state: NALATI_STATE, items: NALATI_ITEMS, audio: NALATI_AUDIO, spawn: { x: 0, y: 0, z: 232, yaw: 0 },
   edge: { north: row('north'), east: row('east'), south: row('south'), west: row('west') } });

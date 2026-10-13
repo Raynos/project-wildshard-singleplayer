@@ -43,7 +43,7 @@ it('captures the actual settled Nalati world, including unculled copies and asyn
     }); // Real geometry/physics capture shares CPU with the parallel gate; time is never a world correctness verdict.
     expect(child.error, child.stderr).toBeUndefined(); expect(child.status, child.stderr).toBe(0);
     const summary = v.parse(summarySchema, JSON.parse(readFileSync(output, 'utf8')));
-    expect(summary.nativeTerrain).toEqual({ bytes: 540483, sha256: '8e610bab24eeae2d8fbd710466c99fbaf9f7fdfe721adbbfb218b4f5550855fa' });
+    expect(summary.nativeTerrain).toEqual({ bytes: 524312, sha256: '6e891957a4397f11df121137c7d35311fe975d062975f46aca03873d3476d7dd' });
     expect(summary.counts.placementRows).toBe(summary.placements.length); expect(summary.counts.roots).toBe(summary.roots.length);
     expect(summary.counts.authoredCopies).toBe(summary.placements.reduce((sum, row) => sum + row.copies, 0));
     for (const row of summary.placements) expect(row.copiesSha256).toMatch(/^[a-f0-9]{64}$/u);

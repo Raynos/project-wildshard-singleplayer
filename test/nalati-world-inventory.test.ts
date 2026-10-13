@@ -8,7 +8,7 @@ const bytes = readFileSync(new URL('../public/assets/baked/nalati-grasslands/ter
 describe('Nalati world conversion authority', () => {
   it('pins all native samples, four boundaries and complete entry footprints without resampling', () => {
     const report = nativeTerrainWitness(bytes, NALATI_EDGES);
-    expect(report.sha256).toBe('8e610bab24eeae2d8fbd710466c99fbaf9f7fdfe721adbbfb218b4f5550855fa');
+    expect(report.sha256).toBe('6e891957a4397f11df121137c7d35311fe975d062975f46aca03873d3476d7dd');
     expect(report.resolution).toBe(256); expect(report.samples).toBe(65536);
     expect(Object.values(report.boundaries)).toHaveLength(4);
     expect(report.entries.map(entry => [entry.area, entry.y, entry.nativeCorners > 0])).toEqual(Array.from({ length: 4 }, () => [120, 0, true]));

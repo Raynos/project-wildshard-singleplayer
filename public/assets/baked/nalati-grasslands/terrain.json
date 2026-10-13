@@ -1,22 +1,12 @@
 {
-  "hash": "8e610bab24eeae2d8fbd710466c99fbaf9f7fdfe721adbbfb218b4f5550855fa",
+  "hash": "6e891957a4397f11df121137c7d35311fe975d062975f46aca03873d3476d7dd",
   "version": 1,
   "res": 256,
   "size": 500,
   "seed": 18970,
   "landscapeHash": 1454055178,
-  "bytes": 540483,
-  "placement": {
-    "decisions": 128981,
-    "counts": [
-      4544,
-      1500,
-      297,
-      193,
-      3000,
-      0
-    ]
-  },
+  "bytes": 524312,
+  "placement": null,
   "heightRange": [
     -11.761389395173564,
     111.16221771576117

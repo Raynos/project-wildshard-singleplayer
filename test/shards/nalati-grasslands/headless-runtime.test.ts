@@ -61,8 +61,8 @@ it('starts the page\'s day clock on the manifest\'s sun, in the day; a witness l
   try { expect(() => { plan.install(dusk, { restoring: false, ...effects }); }).toThrow('does not model the kokbori elite'); } finally { dusk.dispose(); }
 });
 
-it('refuses without the page\'s terrain grid', async () => {
-  await expect(Promise.resolve().then(() => prepareHeadlessRuntime({ shard: source, assets: new Map(), rapier }))).rejects.toThrow('baked terrain grid');
+it('refuses without the admitted query terrain sampling', async () => {
+  await expect(Promise.resolve().then(() => prepareHeadlessRuntime({ shard: source, assets: new Map(), rapier }))).rejects.toThrow('admitted query terrain sampling');
 });
 
 it('spawns the page\'s 35 load-time bodies in its list order at their tick-0 spots and headings, on the creature floor', () => {

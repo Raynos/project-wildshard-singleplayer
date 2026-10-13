@@ -1523,6 +1523,39 @@
       }
     },
     {
+      "id": "nalati-terrain",
+      "shard": "nalati-grasslands",
+      "entry": "src/shards/nalati-grasslands/generators/terrain.ts",
+      "command": [
+        "scripts/bake-query-terrain.mjs",
+        "src/shards/nalati-grasslands/generators/terrain.ts",
+        "nalatiQueryTerrain",
+        "public/assets/baked/nalati-grasslands/terrain.bin",
+        "src/shards/nalati-grasslands/data/terrain.generated.json",
+        "src/shards/nalati-grasslands/assets"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/bake-query-terrain.mjs",
+        "src/sdk/bake/terrain.ts",
+        "src/sdk/immutable.ts",
+        "src/sdk/package.json",
+        "src/shards/nalati-grasslands/generators/terrain.ts",
+        "public/assets/baked/nalati-grasslands/terrain.bin"
+      ],
+      "outputs": [
+        "src/shards/nalati-grasslands/data/terrain.generated.json",
+        "src/shards/nalati-grasslands/assets/166d495ae538065d398fa47a8a4a2ce7b63c6c5cc29fa9cfb01f097c49f3ad05"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/data/terrain.generated.json": "95a4638ad793b2942bf16f02f123cad8781372decc088c72f90684235d0627aa",
+        "src/shards/nalati-grasslands/assets/166d495ae538065d398fa47a8a4a2ce7b63c6c5cc29fa9cfb01f097c49f3ad05": "166d495ae538065d398fa47a8a4a2ce7b63c6c5cc29fa9cfb01f097c49f3ad05"
+      }
+    },
+    {
       "id": "nalati-bodies",
       "shard": "nalati-grasslands",
       "entry": "src/shards/nalati-grasslands/generators/bake-nalati-bodies.mjs",

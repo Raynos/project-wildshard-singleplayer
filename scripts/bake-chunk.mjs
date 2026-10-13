@@ -40,9 +40,13 @@ const bakedTerrain = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/
 const placement = await import(pathToFileURL(resolve(ROOT, 'src/engine/world/forest/placement.ts')).href);
 const { bakesTerrain } = await import(pathToFileURL(resolve(ROOT, 'src/game/shard/terrainBake.ts')).href);
 
+// G384: a shard whose retained WSTR alias is its shardfile's admitted query terrain (shard.config `terrain.form: 'query'`)
+// ships the bare lattice. The content gate admits no placement tail, and no runtime of these shards replays one.
+const QUERY_TERRAIN = new Set(['nalati-grasslands']);
+
 /** The undergrowth decision log for `def` planted on the grid in `gridBuf` — null for a shard that grows none (main.ts: no forest carpet at sea). */
 function placementSection(def, gridBuf) {
-  if (def.ocean || !registry.findChunk(def.slug)) return null;
+  if (def.ocean || QUERY_TERRAIN.has(def.slug) || !registry.findChunk(def.slug)) return null;
   registry.setActiveChunk(def.slug);
   heightfield._installBakedTerrain(bakedTerrain.bakedSamplers(bakedTerrain.parseBakedTerrain(gridBuf))); // as loadBakedTerrain does at launch
   const variants = placement.plantSpecs(def.trees); // the species set when the shard has one (PH-B4), else the runtime pines
