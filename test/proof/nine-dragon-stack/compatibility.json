@@ -1,11 +1,11 @@
 {
   "audit": {
-    "sourceRevision": "00e7da5fbf89cf32395fdf32e602161399e107aa",
-    "candidate": "Current Nine native modes and client channels, including defining grapple host 53e1d8c01 and visual channels 39e8f5ed4.",
+    "sourceRevision": "9c2ce301302cb030c780d0d560a968dff7150150",
+    "candidate": "Static-fabric tile port with approved portable-math collider epsilons and deliberate checkpoint recapture.",
     "command": "node --experimental-transform-types --import ./scripts/sim-node-loader.mjs test/proof/nine-dragon-stack/run.mjs all",
     "exitStatus": 0,
-    "scope": "Headless gameplay and ledger outcomes exactly match the committed record. Runtime bind metadata and the ride/crossing native continuation hashes are refreshed; exact restored shipping-worker suffixes pass.",
-    "runs": "Clean committed source export, complete headless, both replay legs and durable gameplay ledger."
+    "scope": "Headless gameplay and durable ledger outcomes unchanged. Props binding and native continuation hashes follow the port; exact restored and shipping-worker suffixes pass.",
+    "runs": "Clean immediate parent 8aabadebe and defining 9c2ce3013 exports, admitted outputs restored only by catalogue SHA-256 pins. Current-head fixture checks retain exact equality."
   },
   "slug": "nine-dragon-stack",
   "entry": "runtime/headless.ts",
@@ -78,8 +78,8 @@
       },
       "suffixTicksExecuted": 60,
       "ticksExecuted": 120,
-      "hash": "eb5a2b2d18496a5113cbcc6fa5c607806b61345428f0f27074a993509f8fbbb9",
-      "replayHash": "eb5a2b2d18496a5113cbcc6fa5c607806b61345428f0f27074a993509f8fbbb9",
+      "hash": "58a4fc3bbf18dbebf003615f1f8cc386554db777a663be4d25a353a8b6e2491a",
+      "replayHash": "58a4fc3bbf18dbebf003615f1f8cc386554db777a663be4d25a353a8b6e2491a",
       "workerTicks": 60,
       "workerExact": true
     },
@@ -93,8 +93,8 @@
       },
       "suffixTicksExecuted": 144,
       "ticksExecuted": 288,
-      "hash": "7f6553798d19d1439d452318bc7df352d4b8e28c1e0a93f0e6473911894792c9",
-      "replayHash": "7f6553798d19d1439d452318bc7df352d4b8e28c1e0a93f0e6473911894792c9",
+      "hash": "dddea73614e518176bbd150b6bea9f29ce4c1d5e36e21b2a83f55478d03e6dff",
+      "replayHash": "dddea73614e518176bbd150b6bea9f29ce4c1d5e36e21b2a83f55478d03e6dff",
       "workerTicks": 144,
       "workerExact": true
     }
@@ -107,6 +107,7 @@
       "nine-dragon-stack.well"
     ],
     "runtimeBinds": [
+      "props",
       "items",
       "ledger",
       "modes",

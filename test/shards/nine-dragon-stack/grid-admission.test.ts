@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Admit the generated immutable product files through the real reader.
+import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Scope } from '../../../src/engine/app/scope';
 import { GridAssembly } from '../../../src/game/grid/assembly';
@@ -26,14 +28,22 @@ describe('Nine Dragon DEVSERVER grid admission (SF51-g)', () => {
   it('admits the real declared product and resolves its runtime without the far-proxy fallback', async () => {
     installShards([...originalCatalogue.filter(row => row.slug !== manifest.slug), manifest]);
     vi.stubGlobal('navigator', { onLine: true });
-    const fetchSource = vi.fn(() => Promise.resolve(Response.json(source)));
+    const descriptor = 'http://localhost:5173/shardfiles/nine-dragon-stack/shard.json';
+    const fetchSource = vi.fn((url: string) => {
+      if (url === descriptor) return Promise.resolve(Response.json(source));
+      const file = source.files.find(row => url === new URL(row.hash, descriptor).href);
+      if (file === undefined) throw new Error(`Undeclared product fetch: ${url}`);
+      const bytes = readFileSync(new URL(`../../../src/shards/nine-dragon-stack/assets/${file.hash}`, import.meta.url));
+      return Promise.resolve(new Response(Uint8Array.from(bytes)));
+    });
     vi.stubGlobal('fetch', fetchSource);
     const allocator = new ResidencyAllocator(), scope = new Scope('nine.grid-admission');
     try {
       const pending = gridShardfileProduct(manifest.slug, { allocator, scope });
       if (pending === null) throw new Error('Nine unexpectedly remains a far proxy');
       const product = await pending;
-      expect(fetchSource.mock.calls).toEqual([['http://localhost:5173/shardfiles/nine-dragon-stack/shard.json']]);
+      expect(fetchSource.mock.calls).toEqual([[descriptor], ...source.files.map(file => [new URL(file.hash, descriptor).href])]);
+      expect(product.admitted.assets.size).toBe(source.files.length);
       expect(product.admitted.source.runtime).toEqual(source.runtime);
       expect(product.options.firstParty).toBe(true);
       const trusted = manifest.trustedRuntime, runtime = product.admitted.source.runtime;
