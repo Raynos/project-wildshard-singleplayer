@@ -10,13 +10,13 @@ import { dirname, resolve } from 'node:path';
 import process from 'node:process';
 import { expect, it } from 'vitest';
 
-function fixture(): { put: (path: string, source: string) => void; run: () => string; direct: (entry: string, extra?: readonly string[]) => string; close: () => void } {
+function fixture(): { put: (path: string, source: string) => void; read: (path: string) => Uint8Array; run: () => string; direct: (entry: string, extra?: readonly string[]) => string; close: () => void } {
   const root = realpathSync(mkdtempSync(resolve(tmpdir(), 'authoring-loader-')));
   const put = (path: string, source: string): void => { const file = resolve(root, path); mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, source); };
   for (const file of ['src/sdk/bake/source-loader.mjs', 'src/sdk/bake/json.mjs']) {
     mkdirSync(dirname(resolve(root, file)), { recursive: true }); copyFileSync(resolve(file), resolve(root, file));
   }
-  return { put, run: () => {
+  return { put, read: path => Uint8Array.from(readFileSync(resolve(root, path))), run: () => {
     execFileSync(process.execPath, ['--import', './src/sdk/bake/source-loader.mjs', 'src/sdk/bake/json.mjs', 'src/shards/sample/generators/rows.ts', 'rows', 'src/shards/sample/data/output.json'], { cwd: root, stdio: 'pipe' });
     return readFileSync(resolve(root, 'src/shards/sample/data/output.json'), 'utf8');
   }, direct: (entry, extra = []) => execFileSync(process.execPath, ['--import', './src/sdk/bake/source-loader.mjs', entry, ...extra], { cwd: root, encoding: 'utf8', stdio: 'pipe' }), close: () => { rmSync(root, { recursive: true, force: true }); } };
@@ -27,6 +27,22 @@ it('runs direct producer entries after Node makes their path absolute', () => {
     f.put('src/shards/sample/generators/direct.mjs', "import { value } from '../data/input'; console.log(value);");
     f.put('src/shards/sample/data/input.ts', 'export const value: number = 7;');
     expect(f.direct('src/shards/sample/generators/direct.mjs')).toBe('7\n');
+  } finally { f.close(); }
+});
+it('emits exact bytes through the confined SDK driver without any engine or game tree', () => {
+  const f = fixture();
+  try {
+    f.put('public/assets/sample/input.bin', 'exact asset bytes');
+    f.put('src/shards/sample/generators/bytes.ts', "export function bytes(read: (url: string) => Uint8Array): Uint8Array { return read('/assets/sample/input.bin'); }");
+    f.direct('src/sdk/bake/json.mjs', ['src/shards/sample/generators/bytes.ts', 'bytes', 'public/assets/sample/output.bin', '--bytes']);
+    expect(f.read('public/assets/sample/output.bin')).toStrictEqual(f.read('public/assets/sample/input.bin'));
+  } finally { f.close(); }
+});
+it.each(["read('/assets/../../escape')", "read('/not-assets/input')", '({ bytes: [1] })'])('refuses unsafe asset reads or non-byte products: %s', expression => {
+  const f = fixture();
+  try {
+    f.put('src/shards/sample/generators/bytes.ts', `export function bytes(read: (url: string) => Uint8Array): unknown { return ${expression}; }`);
+    expect(() => f.direct('src/sdk/bake/json.mjs', ['src/shards/sample/generators/bytes.ts', 'bytes', 'public/assets/sample/output.bin', '--bytes'])).toThrow(/generate-json/u);
   } finally { f.close(); }
 });
 it('does not grant an unrelated script authority through a forged authoring argument', () => {

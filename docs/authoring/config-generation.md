@@ -7,3 +7,18 @@ Run `npm run generate` before `wildshard synth`, `build`, `validate` or `dev` on
 The reference package's build/dev scripts run generation first. For synth use `npm run generate && npm run synth`. `wildshard build` also compiles explicitly declared `behaviour/build.json` or exported `behaviour` source rows through its own confined compiler; that supported declaration path needs no compiler call in config. The CLI does not execute arbitrary `generate.ts` automatically.
 
 Generated metadata carries a DO-NOT-EDIT notice; the readable generator stays in source. Missing metadata is a generation/setup error, never grounds to invent an asset hash or skip byte admission.
+
+Retained repository jobs can emit a standard GLB or another byte product through
+the same confined SDK driver, without filesystem imports in the recipe:
+
+```sh
+node --import ./src/sdk/bake/source-loader.mjs src/sdk/bake/json.mjs \
+  src/shards/far-reach/generators/preparedModels.ts bakePreparedModels \
+  public/assets/far-reach/baked/prepared-models.glb --bytes
+```
+
+The byte recipe receives `read(url): Uint8Array`, restricted to regular files
+under `/assets/` in the isolated tree, and returns a `Uint8Array`. Escaping paths,
+symlinks and other return types refuse. Omitting `--bytes` preserves the JSON
+recipe's zero-argument contract and exact output. Keep every source asset and
+transitive recipe dependency in the generation job's input closure.
