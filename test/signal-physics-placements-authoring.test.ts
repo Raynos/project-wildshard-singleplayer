@@ -5,6 +5,7 @@ import { duneHeight } from './fixtures/signal-dune-law';
 import { TRAIL } from '../src/shards/sunscar-dunes/data/layout';
 import { signalHeightAt } from '../src/shards/sunscar-dunes/generators/landscape';
 import { expect, it } from 'vitest';
+import { expectKeyedClosure } from './fixtures/authoringClosure';
 import { auditAuthoringInputs, isAuthoringInput } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
 import { signalPhysicsPlacements } from '../src/shards/sunscar-dunes/generators/physicsPlacements';
@@ -34,7 +35,7 @@ it('keys a complete portable component without runtime, legacy, generated seeds 
   const audits = [job.entry, 'src/sdk/bake/source-loader.mjs'].map(entry => auditAuthoringInputs(root, 'sunscar-dunes', entry));
   expect(audits.flatMap(audit => audit.issues)).toEqual([]);
   const inputs = [...new Set([...audits.flatMap(audit => audit.files), 'src/sdk/bake/json.mjs', 'src/sdk/package.json', 'src/format/package.json', 'package.json', 'pnpm-lock.yaml'])].sort();
-  expect(job.inputRoots).toEqual(inputs);
+  expectKeyedClosure(job.inputRoots, inputs, 'sunscar-dunes');
   expect(job.inputRoots.filter(file => !isAuthoringInput(file, 'sunscar-dunes') && !['package.json', 'pnpm-lock.yaml'].includes(file))).toEqual([]);
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['src/shards/sunscar-dunes/data/physicsPlacements.generated.json']);

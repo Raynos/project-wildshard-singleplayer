@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Inspect the registered complete authoring job in this isolated tree.
 import process from 'node:process';
 import { expect, it } from 'vitest';
+import { expectKeyedClosure } from './fixtures/authoringClosure';
 import { auditAuthoringInputs, isAuthoringInput } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
 import { ninePhysicsPlacements } from '../src/shards/nine-dragon-stack/generators/physicsPlacements';
@@ -34,7 +35,7 @@ it('keys a complete portable component without runtime, legacy, generated seeds 
   const audits = [job.entry, 'src/sdk/bake/source-loader.mjs'].map(entry => auditAuthoringInputs(root, 'nine-dragon-stack', entry));
   expect(audits.flatMap(audit => audit.issues)).toEqual([]);
   const inputs = [...new Set([...audits.flatMap(audit => audit.files), 'src/sdk/bake/json.mjs', 'src/sdk/package.json', 'src/format/package.json', 'package.json', 'pnpm-lock.yaml'])].sort();
-  expect(job.inputRoots).toEqual(inputs);
+  expectKeyedClosure(job.inputRoots, inputs, 'nine-dragon-stack');
   expect(job.inputRoots.filter(file => !isAuthoringInput(file, 'nine-dragon-stack') && !['package.json', 'pnpm-lock.yaml'].includes(file))).toEqual([]);
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['src/shards/nine-dragon-stack/data/physicsPlacements.generated.json']);

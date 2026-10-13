@@ -10,6 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
 import { expect, it } from 'vitest';
+import { expectKeyedClosure } from './fixtures/authoringClosure';
 import { BoxCollider } from '@wildshard/sdk/physics';
 import { auditAuthoringInputs } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
@@ -88,7 +89,7 @@ it('registers a complete author-only primitive-floor job without a retained data
   expect(audits.flatMap(audit => audit.issues)).toEqual([]);
   const inputs = [...new Set([...audits.flatMap(audit => audit.files), 'src/sdk/bake/json.mjs', 'src/sdk/package.json',
     'src/format/package.json', 'package.json', 'pnpm-lock.yaml'])].sort();
-  expect(job.inputRoots).toEqual(inputs);
+  expectKeyedClosure(job.inputRoots, inputs, 'driftwood-isle');
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['src/shards/driftwood-isle/data/entryFloors.generated.json']);
   if (job.buildOutputs === undefined) throw new Error('Missing admitted floor hash');

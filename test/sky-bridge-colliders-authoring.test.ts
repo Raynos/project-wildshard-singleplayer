@@ -1,6 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Inspect this isolated registered author job.
 import process from 'node:process';
 import { expect, it } from 'vitest';
+import { expectKeyedClosure } from './fixtures/authoringClosure';
 import { auditAuthoringInputs, isAuthoringInput } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
 import { deckCollider, railColliders, saggedColliders, skyBridgePhysicsPlacements } from '../src/shards/far-reach/generators/bridgeColliders';
@@ -43,7 +44,7 @@ it('pins a complete portable component without world/runtime constructors or cap
   const audits = [job.entry, 'src/sdk/bake/source-loader.mjs'].map(entry => auditAuthoringInputs(root, 'far-reach', entry));
   expect(audits.flatMap(audit => audit.issues)).toEqual([]);
   const inputs = [...new Set([...audits.flatMap(audit => audit.files), 'src/sdk/bake/json.mjs', 'src/sdk/package.json', 'src/format/package.json', 'package.json', 'pnpm-lock.yaml'])].sort();
-  expect(job.inputRoots).toEqual(inputs);
+  expectKeyedClosure(job.inputRoots, inputs, 'far-reach');
   expect(job.inputRoots.filter(file => !isAuthoringInput(file, 'far-reach') && !['package.json', 'pnpm-lock.yaml'].includes(file))).toEqual([]);
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['src/shards/far-reach/data/bridgePhysics.generated.json']);

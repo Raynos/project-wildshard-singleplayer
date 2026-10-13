@@ -2,6 +2,7 @@
 import process from 'node:process';
 import { BufferGeometry, Material, Mesh } from 'three';
 import { expect, it } from 'vitest';
+import { expectKeyedClosure } from './fixtures/authoringClosure';
 import { auditAuthoringInputs, isAuthoringInput } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
 import { signalTowerPhysicsPlacements } from '../src/shards/sunscar-dunes/generators/towerColliders';
@@ -48,7 +49,7 @@ it('pins a complete source-only component without captured tower JSON, runtime s
   const audits = [job.entry, 'src/sdk/bake/source-loader.mjs'].map(entry => auditAuthoringInputs(root, 'sunscar-dunes', entry));
   expect(audits.flatMap(audit => audit.issues)).toEqual([]);
   const inputs = [...new Set([...audits.flatMap(audit => audit.files), 'src/sdk/bake/json.mjs', 'src/sdk/package.json', 'src/format/package.json', 'package.json', 'pnpm-lock.yaml'])].sort();
-  expect(job.inputRoots).toEqual(inputs);
+  expectKeyedClosure(job.inputRoots, inputs, 'sunscar-dunes');
   expect(job.inputRoots.filter(file => !isAuthoringInput(file, 'sunscar-dunes') && !['package.json', 'pnpm-lock.yaml'].includes(file))).toEqual([]);
   expect(job.inputRoots).not.toContain('src/shards/sunscar-dunes/data/tower.json');
   expect(job.seedOutputs).toEqual([]);

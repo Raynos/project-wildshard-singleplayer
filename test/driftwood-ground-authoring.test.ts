@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The generation catalogue belongs to this isolated source root.
 import process from 'node:process';
 import { expect, it } from 'vitest';
+import { expectKeyedClosure } from './fixtures/authoringClosure';
 import { Noise2D } from '@wildshard/engine/core/noise';
 import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
 import { auditAuthoringInputs, isAuthoringInput } from '../scripts/authoring-inputs.mjs';
@@ -60,7 +61,7 @@ it('keys the complete cold ground component from authoring sources, with no reta
   const audits = [job.entry, 'src/sdk/bake/source-loader.mjs'].map(entry => auditAuthoringInputs(root, 'driftwood-isle', entry));
   expect(audits.flatMap(audit => audit.issues)).toEqual([]);
   const inputs = [...new Set([...audits.flatMap(audit => audit.files), 'src/sdk/package.json', 'src/format/package.json', 'package.json', 'pnpm-lock.yaml'])].sort();
-  expect(job.inputRoots).toEqual(inputs);
+  expectKeyedClosure(job.inputRoots, inputs, 'driftwood-isle');
   expect(job.inputRoots.filter(file => !isAuthoringInput(file, 'driftwood-isle') && !['package.json', 'pnpm-lock.yaml'].includes(file))).toEqual([]);
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['public/assets/baked/driftwood-isle/terrain.bin']);

@@ -10,6 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { linkNodeModules } from '../scripts/link-node-modules.mjs';
 import { expect, it } from 'vitest';
+import { expectKeyedClosure } from './fixtures/authoringClosure';
 import { auditAuthoringInputs } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
 import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
@@ -93,7 +94,7 @@ it('registers a complete author-only deck job with no retained terrain or geomet
   expect(audits.flatMap(audit => audit.issues)).toEqual([]);
   const inputs = [...new Set([...audits.flatMap(audit => audit.files), 'src/sdk/bake/json.mjs', 'src/sdk/package.json',
     'src/format/package.json', 'package.json', 'pnpm-lock.yaml'])].sort();
-  expect(job.inputRoots).toEqual(inputs);
+  expectKeyedClosure(job.inputRoots, inputs, 'driftwood-isle');
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['src/shards/driftwood-isle/data/entryDecks.generated.json']);
   expect(inputs.some(file => file.includes('/runtime/') || file.includes('-legacy/') || file.endsWith('terrain.bin'))).toBe(false);
