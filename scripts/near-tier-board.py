@@ -22,7 +22,8 @@ TIERS = [('playing', 'entered'), ('frozen', 'home (frozen)'), ('near', 'NEAR'), 
 VIEWS = {'road-driftwood': 'road view toward Driftwood', 'road-pine': 'road view toward Pine',
          'road-nalati': 'road view toward Nalati', 'road-template': 'road view toward the template',
          'SQ-NA-a': 'shipped hero SQ-NA-a (over Nalati, toward Pine)',
-         'SQ-NW-b': 'shipped hero SQ-NW-b (over Nalati, toward Driftwood)'}
+         'SQ-NW-b': 'shipped hero SQ-NW-b (over Nalati, toward Driftwood)',
+         'SQ-NE-b': 'shipped hero SQ-NE-b (over Nalati’s far edge, toward Driftwood)'}
 MODES = {'A': ('today (far proxy)', (255, 196, 64)), 'B': ('near tier (4 nearest)', (120, 210, 255)),
          'C': ('every cell near (capture-only)', (150, 240, 170))}
 AMBER, CYAN, WHITE, GREY, INK = (255, 196, 64), (120, 210, 255), (240, 240, 240), (170, 176, 186), (16, 18, 24)

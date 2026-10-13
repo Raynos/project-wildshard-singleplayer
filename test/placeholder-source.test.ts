@@ -34,6 +34,25 @@ it('sp-o37: a declared near floor lifts only its prototype, on top of the conten
   expect(tris(floored, 'b')).toBe(tris(base, 'b'));
 });
 
+it('near round 6: one world-space error for the cell, so a wide jagged ridge keeps more of itself than a small prop', async () => {
+  const { nearPlaceholderParts } = await import('@wildshard/sdk/bake/nearPlaceholder');
+  // the same 32 x 32 jagged lattice (1922 triangles) as a 120 m ridge and as a 1.5 m prop, one copy each
+  const lattice = (name: string, size: number, x: number) => {
+    const n = 32, positions: number[] = [], index: number[] = [];
+    for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) positions.push((i / (n - 1) - 0.5) * size, Math.abs(Math.sin(i * 1.7) * Math.cos(j * 2.3)) * size * 0.3, (j / (n - 1) - 0.5) * size);
+    for (let j = 0; j + 1 < n; j++) for (let i = 0; i + 1 < n; i++) { const a = j * n + i; index.push(a, a + n, a + 1, a + 1, a + n, a + n + 1); }
+    return { name, positions: Float32Array.from(positions), colours: new Float32Array(positions.length).fill(0.5), index: Uint32Array.from(index), transforms: [[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, x, 0, 0, 1]] };
+  };
+  const { report } = await nearPlaceholderParts([lattice('ridge', 120, -100), lattice('prop', 1.5, 100)], { triangles: 1200, half: 250 });
+  const tris = (name: string) => report.kept.find((k) => k.name === name)?.triangles ?? -1;
+  expect(report.error).toBeGreaterThan(0);
+  expect(report.triangles).toBeLessThanOrEqual(1200);
+  expect(tris('ridge')).toBeGreaterThan(tris('prop') * 4);
+  // a cell whose world fits its budget keeps every triangle
+  const whole = await nearPlaceholderParts([lattice('ridge', 120, -100)], { triangles: 4000, half: 250 });
+  expect(whole.report.kept[0]?.triangles).toBe(1922); expect(whole.report.error).toBeUndefined();
+});
+
 it('G348: every declared row names modules inside its own shard folder', () => {
   const rows = import.meta.glob<{ PLACEHOLDER: unknown }>('../src/shards/*/data/placeholder.ts', { eager: true });
   const modules = new Set(Object.keys(import.meta.glob(['../src/shards/*/look/**/*.ts', '../src/shards/*/generators/**/*.ts'])));

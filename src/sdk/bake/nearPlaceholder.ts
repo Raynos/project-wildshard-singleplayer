@@ -18,7 +18,7 @@ export interface NearPrototype {
 export interface NearPart { readonly positions: Float32Array; readonly colours: Float32Array; readonly index: Uint32Array }
 /**
  * How `nearPlaceholderParts` reduces a shard's harvested world: the cell-wide content triangle budget the prototypes
- * share (each is simplified by one common ratio, bisected to fit), the cell half-size that clips copies leaving the cell,
+ * share (each is simplified to one common world-space error, bisected to fit), the cell half-size that clips copies leaving the cell,
  * the smallest copy worth keeping from a neighbour's road, and the floor a kept prototype is never simplified below.
  */
 export interface NearPlaceholderOptions {
@@ -39,7 +39,9 @@ export interface NearPlaceholderOptions {
  * copies and its triangles after / before simplification, each dropped one with why (malformed, a two-triangle card,
  * every copy too small, or outside the cell), and the content triangles the parts carry in all.
  */
-export interface NearPlaceholderReport { readonly kept: { name: string; copies: number; triangles: number; source: number }[]; readonly dropped: { name: string; why: string }[]; readonly triangles: number }
+export interface NearPlaceholderReport { readonly kept: { name: string; copies: number; triangles: number; source: number }[]; readonly dropped: { name: string; why: string }[]; readonly triangles: number;
+  /** the world-space error (m) every prototype was simplified to; absent when round 3's common ratio was the fallback */
+  readonly error?: number }
 
 const REGIONS = 4;
 
@@ -64,6 +66,24 @@ function simplify(mesh: { positions: Float32Array; index: Uint32Array }, triangl
   const [sloppy] = MeshoptSimplifier.simplifySloppy(mesh.index, mesh.positions, 3, null, target, 1);
   return sloppy.length > 0 ? sloppy : kept.length > 0 ? kept : mesh.index;
 }
+
+/**
+ * Near round 6 (Nalati's crags read spiky against the sky from the road): a prototype simplified to a world-space
+ * geometric error instead of a share of its own triangles. One error for the whole cell is one screen error at one
+ * distance, so a 100 m ridge of rock fins keeps the vertices its skyline needs while a 1 m chest, sub-pixel from a
+ * neighbour's road, gives its triangles up; a common ratio cut both by the same 90 % and collapsed every fin to a sliver.
+ * `scale` is the copies' largest scale (model-space error is the world error over it).
+ */
+function atError(mesh: { positions: Float32Array; index: Uint32Array }, metres: number, scale: number): Uint32Array {
+  return MeshoptSimplifier.simplify(mesh.index, mesh.positions, 3, 0, metres / scale, ['ErrorAbsolute'])[0];
+}
+/** The largest scale among a prototype's copies (each matrix's longest basis column). */
+const largestScale = (copies: readonly (readonly number[])[]): number => copies.reduce((s, m) => Math.max(s,
+  Math.hypot(m[0] ?? 0, m[1] ?? 0, m[2] ?? 0), Math.hypot(m[4] ?? 0, m[5] ?? 0, m[6] ?? 0), Math.hypot(m[8] ?? 0, m[9] ?? 0, m[10] ?? 0)), 1e-6);
+/** The least share of its own triangles a prototype keeps under the error search (its thin sheets' silhouette). */
+const RATIO_FLOOR = 0.04;
+/** The error search's range (m): finer than a vertex weld, coarser than any cell needs. */
+const ERROR_RANGE = { lo: 0.005, hi: 200, steps: 22 } as const;
 
 const apply = (m: readonly number[], x: number, y: number, z: number): [number, number, number] => [
   (m[0] ?? 0) * x + (m[4] ?? 0) * y + (m[8] ?? 0) * z + (m[12] ?? 0),
@@ -123,18 +143,48 @@ export async function nearPlaceholderParts(prototypes: readonly NearPrototype[],
     if (copies.length === 0) { dropped.push({ name: p.name, why: small > 0 ? 'small' : 'outside' }); continue; }
     live.push({ name: p.name, mesh: weld(p), copies, source: p.index.length / 3, floor: Math.max(minTriangles, floors.get(p.name) ?? 0) });
   }
-  // one scale for every prototype's share of its own triangles, bisected to the budget; a declared floor is applied after
-  // it, on top of the budget, so every other prototype keeps exactly the share it has without the floors
+  // round 6: one world-space error for every prototype, bisected (log-spaced) to the budget: the finest whose copies fit.
+  // A declared floor is applied after it, on top of the budget, so every other prototype keeps exactly what it has
+  // without the floors. Only a cell whose copies overflow the budget even at the coarsest error (thousands of copies of a
+  // closed mesh simplify no further) falls back to round 3's common ratio, which the sloppy simplifier can still meet.
+  // Thin sheets (a palm's fronds, a bush's leaves) lie within any error a whole cell can afford and would vanish, so no
+  // prototype keeps less than `RATIO_FLOOR` of its triangles (round 3's target simplifier, computed once).
+  const scales = live.map(l => largestScale(l.copies)), memo = live.map(() => new Map<number, Uint32Array>()), least: (Uint32Array | undefined)[] = [];
+  const reducedAt = (i: number, e: number): Uint32Array => {
+    const l = live[i], m = memo[i];
+    if (l === undefined || m === undefined) return new Uint32Array(0);
+    let index = m.get(e);
+    if (index === undefined) {
+      index = atError(l.mesh, e, scales[i] ?? 1);
+      const floor = Math.min(l.source, Math.max(minTriangles, Math.ceil(l.source * RATIO_FLOOR)));
+      if (index.length / 3 < floor) { least[i] ??= simplify(l.mesh, floor); index = least[i]; }
+      m.set(e, index);
+    }
+    return index;
+  };
+  const errorTotal = (e: number): number => live.reduce((sum, l, i) => sum + (reducedAt(i, e).length / 3) * l.copies.length, 0);
+  // round 3's fallback below: one scale for every prototype's share of its own triangles, bisected to the budget; a cell
+  // whose whole world fits the budget keeps every triangle (no error search)
   const total = (s: number): number => live.reduce((sum, l) => sum + Math.min(l.source, Math.max(minTriangles, Math.floor(l.source * s))) * l.copies.length, 0);
+  let error: number | null = null;
+  if (total(1) > options.triangles && errorTotal(ERROR_RANGE.hi) <= options.triangles) {
+    let fine = Math.log(ERROR_RANGE.lo), coarse = Math.log(ERROR_RANGE.hi);
+    if (errorTotal(ERROR_RANGE.lo) <= options.triangles) coarse = fine;
+    else for (let k = 0; k < ERROR_RANGE.steps; k++) { const mid = (fine + coarse) / 2; if (errorTotal(Math.exp(mid)) <= options.triangles) coarse = mid; else fine = mid; }
+    error = Math.exp(coarse);
+  }
   let lo = 0, hi = 1;
-  if (total(1) > options.triangles) { for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (total(mid) <= options.triangles) lo = mid; else hi = mid; } } else lo = 1;
+  if (error !== null) lo = 1;
+  else if (total(1) > options.triangles) { for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (total(mid) <= options.triangles) lo = mid; else hi = mid; } } else lo = 1;
   const regions = Array.from({ length: REGIONS * REGIONS }, () => ({ positions: [] as number[], colours: [] as number[], index: [] as number[] }));
   const kept: NearPlaceholderReport['kept'] = [];
   let triangles = 0;
   const size = (2 * half) / REGIONS, cell = (u: number): number => Math.min(REGIONS - 1, Math.max(0, Math.floor((u + half) / size)));
-  for (const l of live) {
-    const want = Math.min(l.source, Math.max(l.floor, Math.floor(l.source * lo)));
-    const index = simplify(l.mesh, want), used = new Map<number, number>(), order: number[] = [];
+  for (const [at, l] of live.entries()) {
+    // at the common error a declared floor still lifts its prototype on top of the budget
+    const atErr = error === null ? null : reducedAt(at, error), floor = floors.get(l.name) ?? 0;
+    const index = atErr === null ? simplify(l.mesh, Math.min(l.source, Math.max(l.floor, Math.floor(l.source * lo))))
+      : atErr.length / 3 >= Math.min(l.source, floor) ? atErr : simplify(l.mesh, Math.min(l.source, floor)), used = new Map<number, number>(), order: number[] = [];
     for (const i of index) if (!used.has(i)) { used.set(i, order.length); order.push(i); }
     const local = Uint32Array.from(index, i => used.get(i) ?? 0);
     for (const m of l.copies) {
@@ -152,5 +202,5 @@ export async function nearPlaceholderParts(prototypes: readonly NearPrototype[],
     kept.push({ name: l.name, copies: l.copies.length, triangles: local.length / 3, source: l.source });
   }
   const parts = regions.filter(r => r.index.length > 0).map(r => ({ positions: Float32Array.from(r.positions), colours: Float32Array.from(r.colours), index: Uint32Array.from(r.index) }));
-  return { parts, report: { kept, dropped, triangles } };
+  return { parts, report: { kept, dropped, triangles, ...(error === null ? {} : { error }) } };
 }

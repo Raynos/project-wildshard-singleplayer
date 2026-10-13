@@ -247,6 +247,49 @@ function landPrototype(part: PlaceholderPart, i: number): NearPrototype {
   return { name: `land-${String(i)}`, positions, colours: part.colours, index: part.index, transforms: [[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, cx, 0, cz, 1]] };
 }
 
+/** Round 6: the widest copy (m, its world footprint) that sinks rigidly with the lean; a wider one is a merge of pieces. */
+const RIGID_SPAN = 32;
+const placed = (m: readonly number[], p: Float32Array, v: number): [number, number, number] => {
+  const x = p[v] ?? 0, y = p[v + 1] ?? 0, z = p[v + 2] ?? 0;
+  return [(m[0] ?? 0) * x + (m[4] ?? 0) * y + (m[8] ?? 0) * z + (m[12] ?? 0), (m[1] ?? 0) * x + (m[5] ?? 0) * y + (m[9] ?? 0) * z + (m[13] ?? 0),
+    (m[2] ?? 0) * x + (m[6] ?? 0) * y + (m[10] ?? 0) * z + (m[14] ?? 0)];
+};
+function wideCopy(p: NearPrototype, m: readonly number[]): boolean {
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+  for (let v = 0; v < p.positions.length; v += 3) { const [x, , z] = placed(m, p.positions, v); minX = Math.min(minX, x); maxX = Math.max(maxX, x); minZ = Math.min(minZ, z); maxZ = Math.max(maxZ, z); }
+  return Math.max(maxX - minX, maxZ - minZ) > RIGID_SPAN;
+}
+/**
+ * One wide copy as its own prototype in cell space, each connected piece (vertices joined by position) sunk rigidly by
+ * the lean under its own centre; null when no piece stands on a leaned flank (the copy stays an ordinary copy).
+ */
+function sinkPieces(p: NearPrototype, m: readonly number[], drop: (x: number, z: number) => number): NearPrototype | null {
+  const n = p.positions.length / 3, parent = Int32Array.from({ length: n }, (_, i) => i), byKey = new Map<string, number>();
+  const find = (start: number): number => { let r = start; while (parent[r] !== r) r = parent[r] ?? r; for (let i = start; parent[i] !== r;) { const next = parent[i] ?? r; parent[i] = r; i = next; } return r; };
+  const join = (a: number, b: number): void => { const ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; };
+  for (let v = 0; v < n; v++) {
+    const k = `${(p.positions[v * 3] ?? 0).toFixed(4)},${(p.positions[v * 3 + 1] ?? 0).toFixed(4)},${(p.positions[v * 3 + 2] ?? 0).toFixed(4)}`, at = byKey.get(k);
+    if (at === undefined) byKey.set(k, v); else join(v, at);
+  }
+  for (let t = 0; t + 2 < p.index.length; t += 3) { join(p.index[t] ?? 0, p.index[t + 1] ?? 0); join(p.index[t] ?? 0, p.index[t + 2] ?? 0); }
+  // each piece's footprint box: a piece wider than RIGID_SPAN itself (a road ribbon, a rope of flags) drapes vertex by
+  // vertex over the lean, every other piece sinks rigidly by the lean under its box's centre
+  const world = new Float32Array(p.positions.length), box = new Map<number, [number, number, number, number]>();
+  for (let v = 0; v < n; v++) {
+    const xyz = placed(m, p.positions, v * 3), r = find(v), b = box.get(r) ?? [Infinity, -Infinity, Infinity, -Infinity];
+    world.set(xyz, v * 3); b[0] = Math.min(b[0], xyz[0]); b[1] = Math.max(b[1], xyz[0]); b[2] = Math.min(b[2], xyz[2]); b[3] = Math.max(b[3], xyz[2]); box.set(r, b);
+  }
+  const sink = new Map<number, number | null>();
+  for (const [r, [x0, x1, z0, z1]] of box) sink.set(r, Math.max(x1 - x0, z1 - z0) > RIGID_SPAN ? null : drop((x0 + x1) / 2, (z0 + z1) / 2));
+  let moved = false;
+  for (let v = 0; v < n; v++) {
+    const rigid = sink.get(find(v)), d = rigid ?? drop(world[v * 3] ?? 0, world[v * 3 + 2] ?? 0);
+    if (d > 0) { world[v * 3 + 1] = (world[v * 3 + 1] ?? 0) - d; moved = true; }
+  }
+  if (!moved) return null;
+  return { name: p.name, positions: world, colours: p.colours, index: p.index, transforms: [[1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]] };
+}
+
 /** G380: the flat floor of a world with no height field, half a metre under the lowest point of its placed world. */
 function floorUnder(prototypes: readonly NearPrototype[], parts: readonly PlaceholderPart[]): PlaceholderGrid {
   let low = Infinity;
@@ -273,8 +316,15 @@ export async function bakeNearPlaceholder(input: NearPlaceholderInput): Promise<
     trees.push(d > 0 ? sunk : t);
   }
   for (const p of input.prototypes) {
-    const transforms = p.transforms.map(m => { const d = drop(m[12] ?? 0, m[14] ?? 0); return d > 0 ? m.map((v, i) => i === 13 ? v - d : v) : m; });
-    prototypes.push({ name: p.name, positions: p.positions, colours: p.colours, index: p.index, transforms });
+    const rigid: (readonly number[])[] = [];
+    for (const m of p.transforms) {
+      // round 6: a copy wider than one piece (a merged ring of crag fins, a quadrant of dressing) sinks piece by piece:
+      // sunk by its origin, the fins on a leaned flank stood in the air over the leaned ground (Nalati's floating spikes)
+      const sunk = wideCopy(p, m) ? sinkPieces(p, m, drop) : null;
+      if (sunk !== null) { prototypes.push(sunk); continue; }
+      const d = drop(m[12] ?? 0, m[14] ?? 0); rigid.push(d > 0 ? m.map((v, i) => i === 13 ? v - d : v) : m);
+    }
+    if (rigid.length > 0) prototypes.push({ name: p.name, positions: p.positions, colours: p.colours, index: p.index, transforms: rigid });
   }
   const forest = trees.length === 0 ? null : nearTreePrototypes(trees, HALF, input.stands);
   if (forest !== null) log?.(`forest ${JSON.stringify(forest.report)}`);

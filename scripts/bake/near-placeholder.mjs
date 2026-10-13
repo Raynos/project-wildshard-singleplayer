@@ -244,7 +244,7 @@ const arg = (name) => process.argv.find(value => value.startsWith(`--${name}=`))
 const { bytes, manifest: row, reduced } = await sdk.bakeNearPlaceholder({ grid, look, prototypes, parts: land, trees: forestTrees, stands: source.trees, floors: source.near?.floors,
   groundError: Number(arg('ground-error') ?? sdk.NEAR_BAKE.groundError), residentBytes: Number(arg('resident') ?? sdk.NEAR_BAKE.residentBytes), log: line => console.log(`${slug}: ${line}`) });
 const { file } = row, resident = file.decoded + file.gpu;
-if (report) { for (const k of reduced.kept) console.log(`  keep ${k.name}: ${k.copies} x ${k.triangles}/${k.source}`); for (const d of reduced.dropped) console.log(`  drop ${d.name}: ${d.why}`); }
+if (report) { console.log(`  error ${reduced.error === undefined ? 'none (common ratio)' : `${reduced.error.toFixed(3)} m`}`); for (const k of reduced.kept) console.log(`  keep ${k.name}: ${k.copies} x ${k.triangles}/${k.source}`); for (const d of reduced.dropped) console.log(`  drop ${d.name}: ${d.why}`); }
 const dir = resolve(root, 'public/assets/baked', slug);
 mkdirSync(dir, { recursive: true });
 writeFileSync(resolve(dir, 'near.glb'), bytes); writeFileSync(resolve(dir, 'near.json'), sdk.placeholderJson(row));
