@@ -5,7 +5,7 @@ import { mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSy
 // oxlint-disable-next-line import/no-nodejs-modules -- Put fixtures outside the shared checkout.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture paths only.
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { expect, it } from 'vitest';
 import { recordPushRefusal, unchangedPushRefusal } from '../scripts/push-refusal.mjs';
 import { inputKey } from '../scripts/commit-inputs.mjs';
@@ -34,4 +34,25 @@ it('defers unchanged failures across other lanes and retries observed input repa
     put(`.git/push-refusals/${red}.json`,'broken');expect(unchangedPushRefusal(root,red,other)).toBe(false);
     expect(readFileSync(join(root,'src/culprit.ts'),'utf8')).toBe('red');
   } finally { rmSync(root,{recursive:true,force:true}); }
+});
+
+
+it('retries a native lint operand repair even when Node only read policy', () => {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), 'push-native-refusal-')));
+  const git = (...args: string[]) => execFileSync('git', args, {cwd: root, encoding: 'utf8'}).trim();
+  const commit = () => {git('add', '.'); git('-c', 'core.hooksPath=/dev/null', '-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', 'fixture'); return git('rev-parse', 'HEAD');};
+  try {
+    git('init', '-q'); writeFileSync(join(root, 'package.json'), '{}');
+    writeFileSync(join(root, 'native.test.ts'), 'missing blank line');
+    const red = commit(), trace = join(root, '.git/native-trace');
+    execFileSync('python3', ['-c', `import importlib.util,pathlib,sys
+s=importlib.util.spec_from_file_location('gate',sys.argv[1]);m=importlib.util.module_from_spec(s);s.loader.exec_module(m)
+m.record_command_inputs(pathlib.Path(sys.argv[2]),pathlib.Path(sys.argv[3]),['native.test.ts'])`, resolve('scripts/local-gate.py'), trace, root]);
+    writeFileSync(join(trace, 'node.trace'), `F ${join(root, 'package.json')}`);
+    recordPushRefusal(root, red, root, [trace]);
+    writeFileSync(join(root, 'note.md'), 'other lane'); const other = commit();
+    expect(unchangedPushRefusal(root, red, other)).toBe(true);
+    writeFileSync(join(root, 'native.test.ts'), 'blank line fixed'); const fixed = commit();
+    expect(unchangedPushRefusal(root, red, fixed)).toBe(false);
+  } finally {rmSync(root, {recursive: true, force: true});}
 });

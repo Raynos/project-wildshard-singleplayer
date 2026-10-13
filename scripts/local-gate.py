@@ -26,6 +26,12 @@ def bounded(command, cwd, deadline, output=None, env=None):
         return 124
 
 
+def record_command_inputs(trace, tree, paths):
+    """Native tools bypass Node's reader trace; bind their literal operands too."""
+    trace.mkdir(parents=True, exist_ok=True)
+    (trace / 'command-inputs.trace').write_text(''.join('F ' + str(tree / path) + '\n' for path in paths))
+
+
 def main():
     started = time.monotonic()
     # Reserve cleanup/receipt time inside the hard 120s cap.
@@ -48,12 +54,14 @@ def main():
             tree = work / 'tree'
             tree.mkdir()
 
-            def run(name, command, cwd=tree, env=None):
+            def run(name, command, cwd=tree, env=None, observed=()):
                 before = time.monotonic()
                 log = work / (name + '.log')
                 trace = work / ('trace-' + name)
                 if cwd == tree:
                     trace.mkdir()
+                    if observed:
+                        record_command_inputs(trace, tree, observed)
                     env = dict(env or os.environ, GATE_TRACE_ROOT=str(tree), GATE_TRACE_DIR=str(trace))
                     env['NODE_OPTIONS'] = env.get('NODE_OPTIONS', '') + ' --import=' + (root / 'scripts/gate-trace.mjs').as_uri()
                 with log.open('w') as stream:
@@ -108,13 +116,13 @@ def main():
                 run('affected-plan', ['node', str(root / 'scripts/local-gate-checks.mjs'), 'plan', str(tree / '.local-gate-changed.json'), str(common / 'gate-vitest-results')])
                 plan = json.loads((tree / '.local-gate-plan.json').read_text())
                 print((work / 'affected-plan.log').read_text(), flush=True)
-                jobs = [('typecheck', ['node', str(root / 'scripts/local-gate-checks.mjs'), 'types', str(tree / '.local-gate-changed.json')]),
-                        ('oxlint', ['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *present])]
+                jobs = [('typecheck', ['node', str(root / 'scripts/local-gate-checks.mjs'), 'types', str(tree / '.local-gate-changed.json')], present),
+                        ('oxlint', ['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *present], present)]
                 if plan['local']:
-                    jobs.append(('vitest', ['pnpm', 'exec', 'vitest', 'run', *plan['local']]))
+                    jobs.append(('vitest', ['pnpm', 'exec', 'vitest', 'run', *plan['local']], plan['local']))
                 test_env = dict(os.environ, WS_VITEST_MAX_WORKERS=os.environ.get('WS_VITEST_MAX_WORKERS', '4'))
                 with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-                    futures = [executor.submit(run, name, command, tree, test_env) for name, command in jobs]
+                    futures = [executor.submit(run, name, command, tree, test_env, observed) for name, command, observed in jobs]
                     errors = []
                     for future in futures:
                         try:
@@ -122,6 +130,12 @@ def main():
                         except RuntimeError as error:
                             errors.append(str(error))
                     if errors:
+                        # Type-aware native lint also depends on the narrowed
+                        # program's imports and ambient roots, not just operands.
+                        lint_trace = str(work / 'trace-oxlint')
+                        type_trace = str(work / 'trace-typecheck')
+                        if lint_trace in failed and type_trace not in failed:
+                            failed.append(type_trace)
                         # No producers: bind refusal to this exact commit's observed inputs.
                         with (work / 'refusal.log').open('w') as stream:
                             bounded(['node', str(root / 'scripts/push-refusal.mjs'), '--record', str(root), sha, str(tree), json.dumps(failed)], root, started + CAP_SECONDS, stream)
