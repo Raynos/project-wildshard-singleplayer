@@ -1,5 +1,4 @@
 import { KEEPER_FIGURE } from './keeperFigure';
-import { parseNpcRow } from '@wildshard/sdk/questGraph';
 import { FLAGS } from '../quest/flags';
 import { SPAWN } from './layout';
 import { KEEPER_AT } from './quests';
@@ -20,12 +19,13 @@ import { KEEPER_NPC } from './keeperDialogue';
  * held-out arm lowers toward his side; waving keeps the upper arm out and down and folds the forearm up so the open
  * hand stands beside his head (mockup B); talking, an open-hand gesture. His arm eases ~0.15 a frame at 60 fps.
  */
-export const KEEPER_ROW = parseNpcRow({
-  ...KEEPER_NPC, spot: 'keeper', at: { x: KEEPER_AT.x, z: KEEPER_AT.z }, faceHome: { x: SPAWN.x, z: SPAWN.z }, metFlag: FLAGS.notes,
+export const KEEPER_ROW = {
+  id: KEEPER_NPC.id, name: KEEPER_NPC.name, spot: 'keeper', at: { x: KEEPER_AT.x, z: KEEPER_AT.z }, faceHome: { x: SPAWN.x, z: SPAWN.z }, metFlag: FLAGS.notes,
   talkHeight: 1.8, talkRadius: 3.5, faceRange: 16, waveRange: 16,
   figure: KEEPER_FIGURE,
   motion: { turns: false, waveUntilMet: false, ease: 9, breathe: { yaw: [0.03, 0.6], scale: [0, 0] },
     rest: { lift: [0.3, 0, 0], forward: [0, 0, 0], bend: [0, 0, 0] },
     wave: { lift: [-0.1, -0.05, 3], forward: [0, 0, 0], bend: [-2.3, -0.25, 7] },
     talk: { lift: [0, -0.2, 2.2], forward: [0, 0, 0], bend: [-0.9, 0, 0] } },
-});
+  dialogue: KEEPER_NPC.dialogue,
+};

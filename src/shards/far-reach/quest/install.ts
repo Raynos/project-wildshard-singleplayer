@@ -1,6 +1,6 @@
 import type { QuestState } from '@wildshard/engine/quest/core';
 import { Flags } from '@wildshard/engine/world/interact/flags';
-import { installQuestNpc, installRewardedQuest } from '@wildshard/game/plugin/ui';
+import { installDeclaredQuestNpc, installRewardedQuest } from '@wildshard/game/plugin/ui';
 import { bindSkyQuestStage } from '../runtime/quest';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
 import { bindRuntimeCoins } from '@wildshard/game/shardfile/hybridRows';
@@ -12,7 +12,6 @@ import { ownPrimitives } from '../world/resources';
 import { FLAGS, vaneFlag } from './flags';
 import { skyHd } from '../world/meshes';
 import { skyMappedLook } from '../world/looks';
-import { QUEST_NPC } from '../data/questNpc';
 import { SKY_PLACES } from '../data/places';
 import source from '../shard.config';
 import { bindSkyPersistence, type SkyPersistence } from '../runtime/persistence';
@@ -37,7 +36,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
   // The keeper at the spawn waves within 16 m and gestures while he talks; headless (tests, a node bake) the reward pays at once.
   const { quest, reward, view } = installRewardedQuest(ctx, source, { id: 'far.quest', rewardId: 'far.reward', strings: STRINGS, flags, facts, player,
     coins: onCoin ?? bindRuntimeCoins(ctx, null), paid: () => rewarded.read(), markPaid: () => { rewarded.write(true); }, unpaid: () => !rewarded.read(),
-    presentation: { flags, places: [...SKY_PLACES] }, beat: { ...REWARD_VIEW, holdSeconds: 5 }, npc: () => installQuestNpc(ctx, QUEST_NPC, { player, flags,
+    presentation: { flags, places: [...SKY_PLACES] }, beat: { ...REWARD_VIEW, holdSeconds: 5 }, npc: () => installDeclaredQuestNpc(ctx, source, 'far.keeper', { player, flags,
       model: id => {
         if (id !== 'keeper-hd') throw new Error('Unknown quest keeper model');
         const made = skyHd(id);

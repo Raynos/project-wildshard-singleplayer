@@ -1,6 +1,6 @@
 import type { QuestState } from '@wildshard/engine/quest/core';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
-import { installQuestNpc, installRewardedQuest } from '@wildshard/game/plugin/ui';
+import { installDeclaredQuestNpc, installRewardedQuest } from '@wildshard/game/plugin/ui';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
@@ -15,7 +15,6 @@ import { PAID_FLAG } from '../data/signalQuest';
 import { bindRuntimeCoins, type RuntimeCoins, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
 import source from '../runtime/source';
 import { bindSignalFacts } from '../runtime/persistence';
-import { QUEST_NPC } from '../data/questNpc';
 import { QUEST_MARKERS } from '../data/questMarkers';
 import { QUEST_REPAIR, QUEST_REPAIR_INITIAL } from '../data/questRepair';
 import { bindDirectorActions } from '@wildshard/game/plugin/director';
@@ -52,7 +51,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   // the Matriarch falls; Sefa, the caravan scout, starts it on the spawn crest (P4; Driftwood's Wendell): she waves until you talk.
   const { quest, reward, view } = installRewardedQuest(ctx, source, { id: 'sunscar.signal', rewardId: 'sunscar.reward', strings: STRINGS, flags, facts,
     place: (marker) => QUEST_MARKERS[marker.id], player, coins, paid: () => flags.has(PAID_FLAG), markPaid: () => { flags.set(PAID_FLAG); },
-    presentation: { places: [...DISCOVERY_PLACES] }, npc: () => installQuestNpc(ctx, QUEST_NPC, { player, flags,
+    presentation: { places: [...DISCOVERY_PLACES] }, npc: () => installDeclaredQuestNpc(ctx, source, 'sunscar.scout', { player, flags,
       model: id => { if (id !== 'caravan-scout') throw new Error('Unknown quest scout model'); const geometry = duneMesh(id); return geometry === null ? null : { geometry }; },
       dress: group => { ownPrimitives(group, ctx.scope); lastLightAll(group, ctx.scope); },
     }) });

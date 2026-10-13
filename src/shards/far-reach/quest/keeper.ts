@@ -3,7 +3,7 @@ import { skyHd } from '../world/meshes';
 import { skyMappedLook } from '../world/looks';
 import { SPAWN } from '../data/layout';
 import { KEEPER_AT } from '../data/quests';
-import { KEEPER_ROW } from '../data/keeperLook';
+import source from '../shard.config';
 
 /**
  * His book stand and lantern (E399, mockup B): a step behind him and to his right as the spawn sees him, outside the
@@ -18,11 +18,13 @@ export const KEEPER_STAND = { x: STAND_X, z: STAND_Z, yaw: Math.atan2(SPAWN.x - 
  * (data/keeperLook.ts) in his painted material. Not loaded: no figure, his talk anchor still stands.
  */
 export function keeper(y: number): PivotNpc {
+  const row = source.questNpcs?.find(binding => binding.npc.id === 'far.keeper')?.npc;
+  if (row === undefined) throw new Error('Undeclared quest NPC far.keeper');
   const made = skyHd('keeper-hd');
   if (made !== null) {
     made.geometry.dispose();
     if (made.pivots === undefined) throw new Error('Missing authored keeper pivots');
   }
   // his painted material, its scarf and sash a warm rust-brown (council: 'the keeper's red scarf reads louder than the mockup's brown one')
-  return pivotNpc(KEEPER_ROW, made?.pivots ?? null, () => y, made === null ? undefined : skyMappedLook('keeper-scarf', made.map));
+  return pivotNpc(row, made?.pivots ?? null, () => y, made === null ? undefined : skyMappedLook('keeper-scarf', made.map));
 }

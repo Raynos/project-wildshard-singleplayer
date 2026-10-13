@@ -79,7 +79,7 @@ it('lends prepared local-frame pivots without fitting or partitioning them again
   const empty = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([], 3));
   const parts = { body: new BoxGeometry(1, 2, 1), head: empty, arm: new BoxGeometry(0.2, 0.7, 0.2), fore: new BoxGeometry(0.2, 0.4, 0.2) };
   const copy = () => ({ body: parts.body.clone(), head: parts.head.clone(), arm: parts.arm.clone(), fore: parts.fore.clone() });
-  const original = pivotNpc(KEEPER.npc, copy(), () => KEEPER.ground.height, material);
+  const original = pivotNpc(parseNpcRow(KEEPER.npc), copy(), () => KEEPER.ground.height, material);
   expected.ctx.root.add(original.group);
   expected.ctx.system({ id: KEEPER.system, phase: 'update', run: (dt, time) => { original.update(dt, time, player, false); } });
   const bound = installQuestNpc(actual.ctx, KEEPER, { player, flags: { has: () => false }, model: () => ({ geometry: copy(), material }) });

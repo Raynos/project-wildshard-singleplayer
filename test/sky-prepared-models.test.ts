@@ -14,6 +14,7 @@ import { LECTERN } from '../src/shards/far-reach/data/bookStand';
 import { DAIS } from '../src/shards/far-reach/data/layout';
 import { releasedPivotNpcParts } from './fixtures/pivot-npc-released';
 import { KEEPER_ROW } from '../src/shards/far-reach/data/keeperLook';
+import { parseNpcRow } from '@wildshard/format/npcs';
 import { bakeKeeperFigure } from '../src/shards/far-reach/generators/keeperFigure';
 import frames from '../src/shards/far-reach/data/skyIsleFrames.json' with { type: 'json' };
 
@@ -87,9 +88,10 @@ it('bakes keeper pivots with released local channels, bounds, hierarchy and nati
   const source = await sourceModel('keeper-hd');
   const native = hdGeometry(source.gltf.scene, material => source.texture(material) !== null);
   if (native === null) throw new Error('Missing native keeper');
-  const expected = releasedPivotNpcParts(KEEPER_ROW, native.geometry.clone());
+  const row = parseNpcRow(KEEPER_ROW);
+  const expected = releasedPivotNpcParts(row, native.geometry.clone());
   const parts = bakeKeeperFigure(native.geometry.clone());
-  const actual = pivotNpcParts(KEEPER_ROW, { body: parts[0], head: parts[1], arm: parts[2], fore: parts[3] });
+  const actual = pivotNpcParts(row, { body: parts[0], head: parts[1], arm: parts[2], fore: parts[3] });
   const collect = (root: Object3D): Object3D[] => { const nodes: Object3D[] = []; root.traverse(node => { nodes.push(node); }); return nodes; };
   const actualNodes = collect(actual.root), expectedNodes = collect(expected.root);
   expect(actualNodes).toHaveLength(expectedNodes.length);
