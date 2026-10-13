@@ -115,3 +115,5 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | push gate: Nalati `hybrid-rows` test pinned `runtime.binds` without `terrain` (query form requires it) | `d3bdac368` | `52ebd4ed0` (pushed green 03:07 local) | sp-o95 |
 | 2026-10-13 | push gate: `commit-ratchet` historical-helper fixture (empty historical exports lack `materializeGuardData`) | `d15d6cf56` | `d3c09f654` (CLI-only fallback + independent path/hash/JSON verification; bad bytes / missing pins still refused) | sp-x7 |
 | 2026-10-13 | push gate: typecheck TS7006 implicit-any in `scripts/parity/audio-settle.mjs`, `init.mjs`, `resources.mjs` | `530a093ea` | `c8288fe0c` (JSDoc types) | sp-o97 |
+| 2026-10-13 | Driftwood / Pine sound diffs (walk-only captures): beds raced the walk reset; Driftwood gull 14 vs 13 from intended `00196a4c2` ramps | walk-only mode, `00196a4c2` | `530a093ea` + `c8288fe0c` (settle level audio before the walk); gull re-baseline + full-capture-only sound gating (sp-x7) | sp-o97, sp-x7 |
+| 2026-10-13 | `scripts/test-template-gate.mjs`: "Scripted weapon absent: template-whip" (pre-existing) | tracing | pending (sp-x7 triage) | sp-x7 |
