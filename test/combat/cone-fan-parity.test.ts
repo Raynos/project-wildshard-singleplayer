@@ -6,6 +6,10 @@ import { readFileSync } from 'node:fs';
 import { app } from '../../src/engine/app/runtime';
 import type { App } from '../../src/engine/app/app';
 import type { Actor, DamageDealt, DamageRequest } from '../../src/engine/combat/pipeline';
+import { SKY_ITEMS } from '../../src/shards/far-reach/data/items';
+import { FAN_GUST_MODULE } from '../../src/shards/far-reach/data/fanGustModule';
+import { bindMeleeContacts, createMeleeScriptDriver, startMeleeSecondary } from '../../src/game/plugin/simulation';
+import { createComposedMoverHost } from '../../src/game/plugin/mover';
 import { WarFan } from '../../src/shards/far-reach/weapons/WarFan';
 import { loadSkyFan } from '../../src/shards/far-reach/weapons/fanShapes';
 import { preloadSkyMeshes, skyHd } from '../../src/shards/far-reach/world/meshes';
@@ -39,7 +43,7 @@ afterEach(() => { vi.restoreAllMocks(); });
 
 interface Dummy { position: THREE.Vector3; actor: Actor; impulse: (velocity: THREE.Vector3) => void }
 
-function trace(): { row: unknown; events: unknown[] } {
+async function trace(): Promise<{ row: unknown; events: unknown[] }> {
   const events: unknown[] = [];
   const hp = new Map<string, number>(), lives = new Map<string, { alive: boolean }>();
   const dummy = (id: string, x: number, y: number, z: number, health: number): Dummy => {
@@ -66,7 +70,13 @@ function trace(): { row: unknown; events: unknown[] } {
   const host = { player: { sampleAimCommand: () => ({ origin: { ...aim.origin }, direction: { ...aim.direction } }) } };
   const fakeApp = legacyDouble<App>({ combat: legacyDouble<App['combat']>(combat), input: app.input });
   Reflect.defineProperty(fakeApp, 'equipmentHost', { get: () => hosted ? host : null });
-  const fan = new WarFan(fakeApp, () => all);
+  const row = SKY_ITEMS.rows[0];
+  const items = await createMeleeScriptDriver(SKY_ITEMS, 'actor.player', new Map([[FAN_GUST_MODULE.hash,
+    new Uint8Array(readFileSync(`src/shards/far-reach/assets/${FAN_GUST_MODULE.hash}`))]]), 6417);
+  const lane = await createComposedMoverHost([], new Map(), () => [], { modules: items.modules, roles: [items.role()], seed: 6417 });
+  const hook = items.hooks(lane.host).get(row.id); if (hook === undefined) throw new Error('Missing admitted fan hook');
+  const fan = new WarFan(fakeApp, () => all, ports => bindMeleeContacts(row.id, row.contacts, { owner: 'env', ...ports }));
+  fan.bindSecondary(family => startMeleeSecondary(family, hook, { tick: lane.host.currentTick, dt: 1 / 60, action: 3, move: 2 }), row.charge);
   let board = false;
   fan.stowed = () => board;
   fan.onSwing = (heavy) => { events.push(['swing', heavy]); };
@@ -85,6 +95,7 @@ function trace(): { row: unknown; events: unknown[] } {
   const frames: unknown[] = [];
   const dt = 1 / 60;
   for (let i = 0; i < 1200; i++) {
+    lane.step(i + 1);
     const t = i * dt, yaw = Math.sin(t * 0.7) * 0.5, pitch = Math.sin(t * 0.4) * 0.15;
     aim.direction = { x: -Math.sin(yaw) * Math.cos(pitch), y: Math.sin(pitch), z: -Math.cos(yaw) * Math.cos(pitch) };
     fan.adsHeld = (i >= 200 && i < 260) || (i >= 600 && i < 620) || (i >= 1000 && i < 1080);
@@ -105,12 +116,13 @@ function trace(): { row: unknown; events: unknown[] } {
   const direct = [fan.slash(new THREE.Vector3(0, 1.4, 0), new THREE.Vector3(0, 0, -1), true), fan.blow(new THREE.Vector3(0, 1.4, 0), new THREE.Vector3(0, 0, -1))];
   const windows: string[] = [];
   for (let w = 0; w < frames.length; w += 30) windows.push(digest(JSON.stringify(frames.slice(w, w + 30))));
+  expect(lane.host.failureCount).toBe(0);
   return { row: { built, events: digest(JSON.stringify(events)), eventCount: events.length, direct, last: frames.at(-1), windows }, events };
 }
 
 describe('the war fan on the cone fan family keeps its pre-M3 trace', () => {
-  it('builds the same viewmodel and plays the same scripted twenty seconds', () => {
-    const { row, events } = trace();
+  it('builds the same viewmodel and plays the same scripted twenty seconds', async () => {
+    const { row, events } = await trace();
     expect(row).toMatchSnapshot();
     // the trace walked what it claims: light and heavy swings, gusts, impulses, a kill and the wind's own hits
     const kinds = new Set<unknown>(events.map((e): unknown => Array.isArray(e) ? e[0] : null));

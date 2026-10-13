@@ -1,3 +1,5 @@
+import { FAN_GUST_MODULE } from '../../../src/shards/far-reach/data/fanGustModule';
+import { bindMeleeContacts } from '../../../src/game/plugin/simulation';
 // @vitest-environment happy-dom
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture serves the committed, content-addressed mover module without a browser server.
 import { readFileSync } from 'node:fs';
@@ -28,7 +30,7 @@ import { ISLET } from '../../../src/shards/far-reach/data/isletDesign';
 import manifest from '../../../src/shards/far-reach/manifest';
 import { SkyReachPlugin } from '../../../src/shards/far-reach/runtime/index';
 import { WarFan } from '../../../src/shards/far-reach/weapons/WarFan';
-import { FAN_GUST as GUST } from '../../../src/shards/far-reach/data/items';
+import { FAN_GUST as GUST, SKY_ITEMS } from '../../../src/shards/far-reach/data/items';
 import { inCone } from '../../../src/shards/far-reach/runtime/weapons/coneStrikes';
 import { VANE_HUB } from '../../../src/shards/far-reach/quest/vanes';
 import { DIVE } from '../../fixtures/far-reach/skyStrikes';
@@ -49,7 +51,8 @@ const noop = (): void => undefined;
 const loaded = new Set<App>();
 /** every mover module the page fetched (SF72: a grid cell reads its admitted bytes instead) */
 const moduleFetches: string[] = [];
-afterEach(async () => { for (const app of loaded) await app.unloadLevel(); loaded.clear(); vi.unstubAllGlobals(); moduleFetches.length = 0; });
+const itemFetches: string[] = [];
+afterEach(async () => { for (const app of loaded) await app.unloadLevel(); loaded.clear(); vi.unstubAllGlobals(); moduleFetches.length = 0; itemFetches.length = 0; });
 async function boot(retain = false): Promise<{ app: App; plugin: SkyReachPlugin; stages: string[]; active: Set<string>; fake: FakeGame; hooks: ShardPlayHooks; physics: Physics; retained: RetainedRuntimeHooks | undefined }> {
   const fake = new FakeGame(), surface = fakeWorld();
   const physics = new Physics(await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer));
@@ -64,7 +67,11 @@ async function boot(retain = false): Promise<{ app: App; plugin: SkyReachPlugin;
   const modules = [BRIDGE_MODULE.hash, LIFT_MODULE.hash];
   vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    const module = modules.find((hash) => url.endsWith(`/assets/${hash}`));
+    if (url.endsWith(`/${FAN_GUST_MODULE.hash}`)) {
+      itemFetches.push(FAN_GUST_MODULE.hash);
+      return Promise.resolve(new Response(Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${FAN_GUST_MODULE.hash}`))));
+    }
+    const module = modules.find((hash) => url.endsWith(`/${hash}`));
     if (module !== undefined) moduleFetches.push(module);
     if (module !== undefined) return Promise.resolve(new Response(Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${module}`))));
     return originalFetch(input, init);
@@ -139,13 +146,14 @@ describe('Sky Reach contract', () => {
   it('SF72: standalone fetches each mover module once; a grid cell reads its admission\'s verified bytes and fetches none', async () => {
     await boot();
     expect(moduleFetches.sort()).toEqual([BRIDGE_MODULE.hash, LIFT_MODULE.hash].sort());
-    for (const app of loaded) await app.unloadLevel(); loaded.clear(); moduleFetches.length = 0;
+    expect(itemFetches).toEqual([FAN_GUST_MODULE.hash]);
+    for (const app of loaded) await app.unloadLevel(); loaded.clear(); moduleFetches.length = 0; itemFetches.length = 0;
     // the grid's admission (grid-discovery.test.ts: each declared file fetched once) hands its product to the resident runtime
     const resident = new Scope('sky.grid.resident');
     try {
       provideRuntimeProduct({ source, cached: false, assets: new Map(source.files.map((file) => [file.hash, Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${file.hash}`))])) }, resident);
       const { app, plugin } = await boot();
-      expect(moduleFetches).toEqual([]);
+      expect(moduleFetches).toEqual([]); expect(itemFetches).toEqual([]);
       // the movers run on those bytes: INTERACT rides the north islet off its road stop
       const before = plugin.isletAt('north'); plugin.interactIslet('north', 1); tick(app, 1, 0);
       expect(plugin.isletAt('north')).not.toEqual(before);
@@ -238,7 +246,7 @@ describe('Sky Reach contract', () => {
       applyDamage: (req) => { actor.attributes.health -= req.amount; return false; } }; return actor; };
     const ahead = make('ahead'), behind = make('behind'), pushes: Vector3[] = [];
     const fan = new WarFan(app, () => [{ position: new Vector3(0, 0, -5), actor: ahead, impulse: (v) => { pushes.push(v.clone()); } },
-      { position: new Vector3(0, 0, 5), actor: behind, impulse: (v) => { pushes.push(v.clone()); } }]);
+      { position: new Vector3(0, 0, 5), actor: behind, impulse: (v) => { pushes.push(v.clone()); } }], ports => bindMeleeContacts(SKY_ITEMS.rows[0].id, SKY_ITEMS.rows[0].contacts, { owner: 'env', ...ports }));
     expect(fan.blow(new Vector3(), new Vector3(0, 0, -1))).toBe(1);
     expect(ahead.attributes.health).toBe(50 - GUST.damage); expect(behind.attributes.health).toBe(50);
     expect(pushes[0]?.z).toBeCloseTo(-GUST.push); expect(pushes[0]?.y).toBeCloseTo(GUST.lift);
