@@ -5,13 +5,11 @@ import { speciesWithLook } from '../../src/engine/entities/species/look';
 import { declaredSkyRows } from '../fixtures/far-reach/declaredRows';
 import { speciesBrains } from '../../src/sdk/speciesBrains';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../../src/shards/sunscar-dunes/data/brains';
-import { SKY_GOAT, SKY_GOAT_LOOK } from '../../src/shards/far-reach/species/skyGoat';
-import { DRIFT_RAY, DRIFT_RAY_LOOK } from '../../src/shards/far-reach/species/driftRay';
-import { GALE_WISP, GALE_WISP_LOOK } from '../../src/shards/far-reach/species/galeWisp';
+import { SKY_GOAT_DATA as SKY_GOAT, DRIFT_RAY_DATA as DRIFT_RAY, GALE_WISP_DATA as GALE_WISP, STORM_ROC_DATA as STORM_ROC } from '../../src/shards/far-reach/data/species';
+import { SKY_GOAT_LOOK, DRIFT_RAY_LOOK, GALE_WISP_LOOK } from '../fixtures/far-reach/looks';
 import { DUNE_STRIDER } from '../../src/shards/sunscar-dunes/data/species/strider';
-import { DUNE_STRIDER_LOOK } from '../../src/shards/sunscar-dunes/species/strider';
+import { DUNE_STRIDER_LOOK, DUNE_RAY_LOOK } from '../fixtures/sunscar-dunes/looks';
 import { DUNE_RAY } from '../../src/shards/sunscar-dunes/data/species/duneRay';
-import { DUNE_RAY_LOOK } from '../../src/shards/sunscar-dunes/species/duneRay';
 import { setHome, bindPlayerPush, homeOf } from '../fixtures/far-reach/heldAuthority';
 import { creature } from '../fake/creature';
 import { SkyGoatBrain, RAM as CAPTURED_RAM } from '../fixtures/grazer-oracle/goat';
@@ -22,9 +20,8 @@ import { DuneRayBrain } from '../fixtures/flight-oracle/patrol';
 import type { Animal } from '../../src/engine/entities/AnimalView';
 import type { SpeciesRow } from '../../src/engine/ai/species';
 import { DECK, RAY_HOMES } from '../../src/shards/far-reach/data/layout';
-import { STORM_ROC } from '../../src/shards/far-reach/species/stormRoc';
 import { SKITTERER_DATA } from '../../src/shards/sunscar-dunes/data/species/skitterer';
-import { DUNE_MATRIARCH } from '../../src/shards/sunscar-dunes/species/matriarch';
+import { MATRIARCH_DATA as DUNE_MATRIARCH } from '../../src/shards/sunscar-dunes/data/species/matriarch';
 
 /** Signal's browser rows as plugin.ts registers them (SF27): the rows' declared brains (the skitterer's a species script), the runtime's Matriarch. */
 function declaredDuneRows(): { rows: SpeciesRow[]; witness: (actor: Animal) => string | null } {

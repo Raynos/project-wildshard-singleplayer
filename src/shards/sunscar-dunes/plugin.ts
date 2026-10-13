@@ -20,9 +20,8 @@ import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
 import { ownPrimitives } from './world/resources';
 import { lastLightAll } from './look/light';
 import { DUSK, setDusk, stepDusk } from './look/dusk';
-import { preloadDuneMeshes } from './world/meshes';
+import { preloadDuneMeshes, DUNE_CREATURE_LOOKS } from './world/meshes';
 import { loadBakedWorld } from './world/baked';
-import { DUNE_RAY_LOOK } from './species/duneRay';
 import type { Bullwhip } from './weapons/Bullwhip';
 import { WHIP_ROW } from './weapons/rows';
 import { installQuest } from './quest/install';
@@ -30,9 +29,7 @@ import { FACT, MATRIARCH_FLAG } from './data/signalQuest';
 import { FLAG, SCOUT_FLAG } from './data/flags';
 import { installSunscarCues } from './runtime/audio/cues';
 import { installCreatures } from './combat/creatures';
-import { SAND_SKITTERER_LOOK } from './species/skitterer';
-import { DUNE_STRIDER_LOOK } from './species/strider';
-import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from './species/matriarch';
+import { MATRIARCH_DATA as DUNE_MATRIARCH } from './data/species/matriarch';
 import { installMatriarch } from './combat/matriarch';
 import type { MarkedBoss } from './runtime/shardfile/markedBoss';
 import { SAND, SKIRT } from './look/render';
@@ -59,7 +56,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     audio: source.audio, cues: installSunscarCues, species: () => {
       const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES);
       return { rows: [{ ...DUNE_RAY, ...brains.bind(DUNE_RAY.kind) }, { ...SKITTERER_DATA, ...brains.bind(SKITTERER_DATA.kind) }, { ...DUNE_STRIDER, ...brains.bind(DUNE_STRIDER.kind) }, { ...DUNE_MATRIARCH, ...brains.bind(DUNE_MATRIARCH.kind) }],
-        looks: [DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK], witness: brains.witness };
+        looks: DUNE_CREATURE_LOOKS, witness: brains.witness };
     } };
   /**
    * Quest state for a capture (E399; council round 1: run the player's own path, every side effect with it). Each step is

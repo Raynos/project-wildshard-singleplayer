@@ -29,10 +29,7 @@ import type { ConeFanTarget } from './weapons/coneFan';
 import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
 import { FAN_ROW } from '../weapons/rows';
-import { DRIFT_RAY_LOOK } from '../species/driftRay';
-import { SKY_GOAT_LOOK } from '../species/skyGoat';
-import { GALE_WISP_LOOK } from '../species/galeWisp';
-import { STORM_ROC_LOOK } from '../species/stormRoc';
+import { SKY_CREATURE_LOOKS } from '../species/bodies';
 import { preloadSkyMeshes } from '../world/meshes';
 import { loadSkyBaked } from '../world/baked';
 import { loadSkyBridges } from '../world/shapes';
@@ -119,7 +116,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
         if (kind === 'stormRoc') this.prepareHeld = bound.control ?? null;
         rows.push({ ...row, ...bound });
       }
-      return { rows, looks: [DRIFT_RAY_LOOK, SKY_GOAT_LOOK, GALE_WISP_LOOK, STORM_ROC_LOOK], witness: brains.witness };
+      return { rows, looks: SKY_CREATURE_LOOKS, witness: brains.witness };
     } };
 
   protected override async build(ctx: ShardContext): Promise<void> {

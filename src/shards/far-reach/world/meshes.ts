@@ -1,7 +1,7 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { releaseDecodedOnUpload } from '../look/image';
-import { preloadSkyBodies } from '../species/bodies';
+import { SKY_BODIES } from '../species/bodies';
 import { SKY_HD, SKY_MESHES, HD_URLS, MODEL_URLS, type SkyHdName, type SkyMeshName } from '../data/files';
 import { PREPARED_MODELS_URL } from '../data/modelFrames';
 import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
@@ -95,7 +95,7 @@ async function loadPreparedModels(pause?: () => Promise<void>): Promise<void> {
 }
 
 async function loadModels(pause?: () => Promise<void>): Promise<void> {
-  try { await Promise.all([loadPreparedModels(pause), preloadSkyBodies()]); }
+  try { await Promise.all([loadPreparedModels(pause), SKY_BODIES.preload()]); }
   catch (error) { loading = null; throw error; }
 }
 

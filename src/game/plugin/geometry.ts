@@ -431,6 +431,13 @@ export function bakedLook(row: BakedLookRow, build: () => AnimalSpecies, clips: 
     rigContract: { skeleton: row.skeleton, sockets: [...row.sockets], clips: [...row.clipNames] }, build, animate: clipAnimate(clips) };
 }
 
+/** One authored look on an existing baked body, with its original clip rows. */
+export interface CreatureLookRow<C extends string> { readonly body: C; readonly look: BakedLookRow; readonly clips: SpeciesClips }
+/** Build an ordered look catalogue on the existing body loader; every spawn keeps its own body copy and clip state. */
+export function creatureLooks<C extends string>(bodies: Pick<CreatureBodies<C>, 'bodyOrStandIn'>, rows: readonly CreatureLookRow<C>[]): readonly SpeciesLook[] {
+  return rows.map(row => bakedLook(row.look, () => bodies.bodyOrStandIn(row.body), row.clips));
+}
+
 /** Fit a geometry into a frame (turned `yaw` radians about +Y first): centred on x / z, its lowest point at `floor`, scaled to `size`. */
 export function fitGeometry(g: BufferGeometry, o: ModelFit): BufferGeometry {
   if (o.yaw !== undefined) g.rotateY(o.yaw);

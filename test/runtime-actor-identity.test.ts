@@ -11,7 +11,8 @@ import type { ShardRuntime, ShardPlayHost } from '../src/game/shard/runtime';
 import { bindRuntimeActor } from "../src/game/plugin/headless";
 import manifest from '../src/shards/sunscar-dunes/manifest';
 import source from '../src/shards/sunscar-dunes/shard.config';
-import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from '../src/shards/sunscar-dunes/species/matriarch';
+import { MATRIARCH_DATA as DUNE_MATRIARCH } from '../src/shards/sunscar-dunes/data/species/matriarch';
+import { DUNE_MATRIARCH_LOOK } from './fixtures/sunscar-dunes/looks';
 import { fakeWorld } from './fake/world';
 import { legacyDouble } from './fake/FakeGame';
 

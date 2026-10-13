@@ -39,7 +39,7 @@ import { DECK, HOVER_GAP, ISLES, SPANS, UPDRAFT, VANES, FALLEN_BRIDGE } from '..
 import { apothem } from '../../../src/shards/far-reach/layout';
 import { UPDRAFT_ANGLE } from '../../../src/shards/far-reach/world/build';
 import { skyPhysicsPlacements } from '../../../src/shards/far-reach/generators/physicsPlacements';
-import { SKY_GOAT } from '../../../src/shards/far-reach/species/skyGoat';
+import { SKY_GOAT_DATA as SKY_GOAT } from '../../../src/shards/far-reach/data/species';
 import { warmCoat } from '../../../src/shards/far-reach/generators/creatures';
 import { REWARD } from '../../../src/shards/far-reach/quest/install';
 import { FLAGS } from '../../../src/shards/far-reach/quest/flags';

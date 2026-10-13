@@ -7,7 +7,8 @@ import type { Animal } from '../../src/engine/entities/AnimalView';
 import { registerSpecies } from '../../src/engine/entities/species/registry';
 import { speciesWithLook } from '../../src/engine/entities/species/look';
 import { overrideTerrain } from '../../src/engine/world/Heightfield';
-import { DRIFT_RAY, DRIFT_RAY_LOOK } from '../../src/shards/far-reach/species/driftRay';
+import { DRIFT_RAY_DATA as DRIFT_RAY } from '../../src/shards/far-reach/data/species';
+import { DRIFT_RAY_LOOK } from '../fixtures/far-reach/looks';
 import { DriftRayBrain, DIVE, RAY } from '../fixtures/flight-oracle/orbit';
 import { creature } from '../fake/creature';
 

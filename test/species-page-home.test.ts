@@ -5,9 +5,7 @@ import { speciesWithLook } from '../src/engine/entities/species/look';
 import { overrideTerrain } from '../src/engine/world/Heightfield';
 import { SKY_SPECIES_BRAINS } from '../src/shards/far-reach/data/brains';
 import { RAM_DATA, DIVE_DATA, BURST_DATA } from '../src/shards/far-reach/data/strikes';
-import { SKY_GOAT_LOOK } from '../src/shards/far-reach/species/skyGoat';
-import { DRIFT_RAY_LOOK } from '../src/shards/far-reach/species/driftRay';
-import { GALE_WISP_LOOK } from '../src/shards/far-reach/species/galeWisp';
+import { SKY_GOAT_LOOK, DRIFT_RAY_LOOK, GALE_WISP_LOOK } from './fixtures/far-reach/looks';
 import { strike } from '../src/sdk/species';
 import { creature } from './fake/creature';
 

@@ -4115,3 +4115,10 @@ memory field to one until the host flag is set, then zero, in authored
 order at the original beforeStep phase. Invalid home indices refuse
 before body allocation. Neither option allocates another policy, clock
 or stream; absent options preserve the original callback paths and wire.
+
+**Baked creature look catalogues (W1 C4).** `creatureLooks(bodies, rows)`
+builds an ordered catalogue over an existing `creatureBodies` loader.
+Each row lends a body key, the unchanged baked look metadata and its
+clip rows. Every spawn still obtains its own cloned body and animation
+state through the original loader and `bakedLook`; no rig fitting,
+material, palette or clip arithmetic is added by catalogue assembly.

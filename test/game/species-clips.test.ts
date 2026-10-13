@@ -9,13 +9,8 @@ import { describe, expect, it } from 'vitest';
 import type { Animal } from '../../src/engine/entities/AnimalView';
 import type { RigAnimCtx } from '../../src/engine/entities/species/registry';
 import type { SpeciesLook } from '../../src/engine/entities/species/look';
-import { DUNE_STRIDER_LOOK } from '../../src/shards/sunscar-dunes/species/strider';
-import { SAND_SKITTERER_LOOK } from '../../src/shards/sunscar-dunes/species/skitterer';
-import { DUNE_RAY_LOOK } from '../../src/shards/sunscar-dunes/species/duneRay';
-import { DUNE_MATRIARCH_LOOK } from '../../src/shards/sunscar-dunes/species/matriarch';
-import { DRIFT_RAY_LOOK } from '../../src/shards/far-reach/species/driftRay';
-import { SKY_GOAT_LOOK } from '../../src/shards/far-reach/species/skyGoat';
-import { GALE_WISP_LOOK } from '../../src/shards/far-reach/species/galeWisp';
+import { DUNE_STRIDER_LOOK, SAND_SKITTERER_LOOK, DUNE_RAY_LOOK, DUNE_MATRIARCH_LOOK } from '../fixtures/sunscar-dunes/looks';
+import { DRIFT_RAY_LOOK, SKY_GOAT_LOOK, GALE_WISP_LOOK } from '../fixtures/far-reach/looks';
 import { playClips, type ClipCtx, type SpeciesClips } from '../../src/game/plugin/animation';
 import pinned from './species-clips.json' with { type: 'json' };
 
