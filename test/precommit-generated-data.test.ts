@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the isolated fixture paths.
 import { dirname, join } from 'node:path';
 import { expect, it } from 'vitest';
-import { materializeGuardData } from '../scripts/precommit-generated-data.mjs';
+import { materializeGuardData, publishGuardData } from '../scripts/precommit-generated-data.mjs';
 import { simClosure } from '../lint/sim-closure.mjs';
 
 it('admits only staged-hash JSON bytes and leaves missing dependencies fail-closed', () => {
@@ -103,4 +103,47 @@ it('uses verified commit blobs without requiring matching working output and ref
     expect(readFileSync(join(snapshot, output), 'utf8')).toBe(bytes);
     expect(existsSync(join(root, output))).toBe(false);
   } finally { rmSync(owned, { recursive: true, force: true }); }
+});
+
+
+it('publishes all pinned inert data before guards start and still checks the staged pin', () => {
+  const root=mkdtempSync(join(tmpdir(),'guard-early-'));
+  const snapshot=join(root,'stage'),blobs=join(root,'blobs'),guard=join(root,'guard');
+  const path='src/shards/fixture/data/rows.json',bytes='{"rows":[2]}';
+  const hash=createHash('sha256').update(bytes).digest('hex');
+  try {
+    mkdirSync(join(snapshot,'scripts'),{recursive:true});mkdirSync(dirname(join(snapshot,path)),{recursive:true});
+    mkdirSync(join(guard,'scripts'),{recursive:true});
+    const catalogue=JSON.stringify({jobs:[{buildOutputs:{[path]:hash,'src/shards/fixture/data/code.generated.ts':hash}}]});
+    writeFileSync(join(snapshot,'scripts/generation-jobs.json'),catalogue);
+    writeFileSync(join(guard,'scripts/generation-jobs.json'),catalogue);
+    writeFileSync(join(snapshot,path),bytes);
+    publishGuardData(snapshot,blobs);
+    expect(readFileSync(join(blobs,hash),'utf8')).toBe(bytes);
+    materializeGuardData(guard,guard,blobs);
+    expect(readFileSync(join(guard,path),'utf8')).toBe(bytes);
+    expect(existsSync(join(guard,'src/shards/fixture/data/code.generated.ts'))).toBe(false);
+    writeFileSync(join(snapshot,path),'wrong');
+    expect(()=>publishGuardData(snapshot,blobs)).toThrow('does not match staged hash');
+    expect(readFileSync(join(blobs,hash),'utf8')).toBe(bytes);
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
+
+it('refuses missing, malformed, escaped and partially verified early publications', () => {
+  const root=mkdtempSync(join(tmpdir(),'guard-early-refusal-')),blobs=join(root,'blobs');
+  const path='src/shards/fixture/data/rows.json',good='{}',bad='not JSON';
+  const hash=(bytes:string)=>createHash('sha256').update(bytes).digest('hex');
+  const catalogue=(outputs:Record<string,string>)=>writeFileSync(join(root,'scripts/generation-jobs.json'),JSON.stringify({jobs:[{buildOutputs:outputs}]}));
+  try {
+    mkdirSync(join(root,'scripts'));mkdirSync(dirname(join(root,path)),{recursive:true});
+    catalogue({[path]:hash(good)});
+    expect(()=>publishGuardData(root,blobs)).toThrow();
+    writeFileSync(join(root,path),bad);catalogue({[path]:hash(bad)});
+    expect(()=>publishGuardData(root,blobs)).toThrow();
+    writeFileSync(join(root,path),good);catalogue({[path]:hash(good),'src/shards/fixture/data/missing.json':hash(good)});
+    expect(()=>publishGuardData(root,blobs)).toThrow();
+    expect(existsSync(join(blobs,hash(good)))).toBe(false);
+    catalogue({'src/shards/fixture/../escape.json':hash(good)});
+    expect(()=>publishGuardData(root,blobs)).toThrow('Invalid generated guard data');
+  } finally {rmSync(root,{recursive:true,force:true});}
 });

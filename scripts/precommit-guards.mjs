@@ -83,11 +83,18 @@ export function canOverlayGuardTable(path, before, after, producedWitness = fals
 }
 
 /** The hook's status file for scripts/precommit-inputs.mjs: its exit code once the index is final (G367). */
-async function inputsStatus(file) {
+async function inputsStatus(file, dataReady, expectedTree) {
   const deadline = Date.now() + 600_000;
   for (;;) {
     try { return Number(readFileSync(file, 'utf8').trim()); }
     catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error; }
+    if (dataReady !== undefined) {
+      try {
+        const ready = JSON.parse(readFileSync(dataReady, 'utf8'));
+        if (ready.tree !== expectedTree) throw new Error('Pinned guard data belongs to another source tree');
+        return 0;
+      } catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error; }
+    }
     if (Date.now() > deadline) throw new Error(`precommit-inputs never reported to ${file}`);
     await new Promise((_resolve) => { setTimeout(_resolve, 25); });
   }
@@ -127,6 +134,7 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
   /** @type {Promise<unknown>[]} children that must settle before the scratch export is removed */
   const children = [];
   try {
+    const tree = run(root, 'git', ['write-tree']).trim();
     const blobDirectory = join(run(root, 'git', ['rev-parse', '--path-format=absolute', '--git-common-dir']).trim(), 'commit-inputs', 'blobs');
     const materialize = async destination => {
       try { materializeGuardData(root, destination, blobDirectory); }
@@ -135,12 +143,11 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
         // writer's successful publication, then verify its exact staged pin.
         if (inputsDone === undefined || inputsDone === '') throw error;
         console.log('precommit-guards: waiting for pinned data');
-        if (await inputsStatus(inputsDone) !== 0) throw new Error('Architecture guards stopped: scripts/precommit-inputs.mjs failed', { cause: error });
+        if (await inputsStatus(inputsDone, `${inputsDone}.data`, tree) !== 0) throw new Error('Architecture guards stopped: scripts/precommit-inputs.mjs failed', { cause: error });
         materializeGuardData(root, destination, blobDirectory);
       }
     };
-    // write-tree observes Git's pathspec temporary index too. Exporting it prevents dependency reads from WIP.
-    const tree = run(root, 'git', ['write-tree']).trim();
+    // The original staged tree prevents dependency reads from WIP.
     // SF2 (~4 s, the longest guard) reads src, tsconfig and its own lint lists, never STAGED_TABLES. It gets its own
     // export of the same tree so it starts first; no child reads a file another extraction rewrites.
     const couplingRoot = join(scratch, 'coupling');

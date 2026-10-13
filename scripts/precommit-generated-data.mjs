@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -32,6 +32,35 @@ export function materializeGuardData(root, snapshot, blobDirectory) {
       mkdirSync(dirname(target), { recursive: true });
       writeFileSync(target, bytes);
     }
+  }
+}
+
+/** Publish inert generated JSON only after checking every staged catalogue pin.
+ * Executable outputs never enter the early guard transport; this grants no verdict.
+ * @param {string} snapshot Exact staged export after initial generation.
+ * @param {string} blobDirectory Content-addressed commit guard transport.
+ */
+export function publishGuardData(snapshot, blobDirectory) {
+  const catalogue = resolve(snapshot, 'scripts/generation-jobs.json');
+  if (!existsSync(catalogue)) return;
+  /** @type {{jobs: {buildOutputs?: Record<string, string>}[]}} */
+  const staged = JSON.parse(readFileSync(catalogue, 'utf8'));
+  const verified = [];
+  for (const job of staged.jobs) for (const [path, hash] of Object.entries(job.buildOutputs ?? {})) {
+    if (!path.endsWith('.json')) continue;
+    if (!/^src\/shards\/[^/]+\//u.test(path)
+      || path.includes('\\') || path.split('/').some(part => part === '' || part === '.' || part === '..')
+      || !/^[a-f0-9]{64}$/u.test(hash)) throw new Error(`Invalid generated guard data: ${path}`);
+    const bytes = readFileSync(resolve(snapshot, path));
+    if (createHash('sha256').update(bytes).digest('hex') !== hash) throw new Error(`Generated guard data does not match staged hash: ${path}`);
+    JSON.parse(bytes.toString('utf8'));
+    verified.push({hash, bytes});
+  }
+  mkdirSync(blobDirectory, {recursive:true});
+  for (const {hash, bytes} of verified) {
+    const target = resolve(blobDirectory, hash), temporary = `${target}.${process.pid}.tmp`;
+    writeFileSync(temporary, bytes);
+    renameSync(temporary, target);
   }
 }
 

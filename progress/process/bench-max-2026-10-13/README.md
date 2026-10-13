@@ -361,3 +361,25 @@ recorders preserved complete outcomes, changing only input provenance.
 Eight focused receipt/overlay/hard-rule checks, narrowed types and touched
 lint passed. Wrong source-tree identity, moved parent, changed outcomes,
 unbound receipts and native/source/config overlays refuse retention.
+
+## Publish pinned inert JSON after initial generation (sp-x5)
+
+CALL: publish completely verified JSON catalogue outputs to the existing
+content-addressed blob pool as soon as initial generation succeeds. A hook-
+local marker binds the original staged tree. Source guards independently
+check their own staged hashes and may start before dependent producers.
+Executable outputs never use this transport. Final verdicts and index writes
+still await every producer; final changes retain their existing guard rules.
+
+Matched same-source hooks on `e17e7bd6b` used distinct empty commit stores,
+with producer cache warmed before either measured leg. **32.83 -> 29.71 s**
+under load; inputs 22.872 / 20.697 s, terminal guard tail 9.39 / 8.44 s.
+This is a scheduling improvement, not a cold <=10 s qualification. The
+initial priming hook was 69.43 s, including genuine Nine layout generation.
+The earlier witness benchmark used different Map comments, so its repeated
+broad-root generation misses were expected, not a demonstrated cache bug.
+
+Fifteen focused checks plus narrowed types/touched lint passed: all 25 hard
+refusals still fire after early data, and wrong-tree/malformed markers,
+corrupt/missing/partial JSON publication and downstream producer failures
+refuse. No producer sequence, admission, source exemption or policy changed.

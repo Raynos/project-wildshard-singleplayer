@@ -68,6 +68,8 @@ it('publishes staged native outputs with an exact receipt and refuses producer f
   const root = mkdtempSync(join(tmpdir(), 'commit-producers-fixture-'));
   const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
   const output = 'src/shards/pine-hollow/runtime/physics.baked.json';
+  const previousDone=env['WS_PRECOMMIT_INPUTS_DONE'];
+  env['WS_PRECOMMIT_INPUTS_DONE']=join(root,'.early-inputs');
   try {
     git('init', '-q'); git('config', 'core.hooksPath', '/dev/null');
     for (const dir of ['src/shards/pine-hollow/runtime', 'lint', 'scripts']) mkdirSync(join(root, dir), { recursive: true });
@@ -77,12 +79,14 @@ it('publishes staged native outputs with an exact receipt and refuses producer f
     writeFileSync(join(root, 'lint/shard-words.generated.json'), '{}');
     writeFileSync(join(root, 'scripts/generation-jobs.json'), '{"jobs":[]}');
     writeFileSync(join(root, 'src/shards/pine-hollow/fixture.json'), '{}');
-    writeFileSync(join(root, 'scripts/generation-jobs.json'), JSON.stringify({ jobs: [{ inputRoots: [output], outputs: [] }] }));
+    writeFileSync(join(root, 'scripts/generation-jobs.json'), JSON.stringify({ jobs: [{ inputRoots: [output], outputs: [], buildOutputs: {'src/shards/pine-hollow/fixture.json':'44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a'} }] }));
     writeFileSync(join(root, 'scripts/gen.mjs'), `import {existsSync,readFileSync,writeFileSync} from 'node:fs';
 if(existsSync('${output}'))writeFileSync('src/native.generated.json',readFileSync('${output}'));`);
     writeFileSync(join(root, 'scripts/bake-loader.mjs'), '');
     writeFileSync(join(root, 'scripts/precommit-bakes.mjs'), `import {existsSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 export async function regenerateCheapBakes(root,product){
+if(!existsSync('${root}/.early-inputs.data'))throw Error('guard data not published before dependent producer');
+if(readFileSync('${root}/.git/commit-inputs/blobs/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a','utf8')!=='{}')throw Error('wrong early bytes');
 if(!product.stagedPaths.includes('src/value.ts'))throw Error('missing caller staged paths');
 const value=readFileSync('src/value.ts','utf8');
 if(value==='fail')throw Error('official producer refused');
@@ -111,7 +115,7 @@ export async function refreshRecordedCommitInputs(){return [];}`);
     expect(() => precommitInputs(root)).toThrow();
     expect(git('show', `:${output}`)).toBe('{"value":"staged"}');
     expect(verifyCommitProduced(root, git('write-tree'), [output])).toBe(false);
-  } finally { rmSync(root, { recursive: true, force: true }); }
+  } finally { if(previousDone===undefined)delete env['WS_PRECOMMIT_INPUTS_DONE'];else env['WS_PRECOMMIT_INPUTS_DONE']=previousDone; rmSync(root, { recursive: true, force: true }); }
 });
 
 it('reuses a verified second slot without touching live owners and falls back when both are held', () => {

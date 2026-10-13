@@ -65,10 +65,12 @@ it('refuses every hard rule through the mandatory commit guard, including all me
   try {
     for (const [file, code] of Object.values(refusals)) f.put(`src/${file}`, code);
     f.put('src/shards/fixture/generators/value.ts', 'export const value = 1;');
+    const dataHash='44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a';
+    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{buildOutputs:{'src/shards/fixture/data/rows.json':dataHash}}]}));
     const extensions = ['js', 'jsx', 'mjs', 'cjs', 'ts', 'tsx', 'mts', 'cts'];
     for (const extension of extensions) f.put(`src/engine/extension.${extension}`, "localStorage.getItem('unapproved');");
-    f.git('add', 'src');
-    const paths = f.git('diff', '--cached', '--name-only').split('\n');
+    f.git('add', 'src','scripts/generation-jobs.json');
+    const paths = f.git('diff', '--cached', '--name-only').split('\n').filter(path=>/^src\/.*\.[cm]?[jt]sx?$/u.test(path));
     const lint = spawnSync(execPath, [resolve('node_modules/oxlint/bin/oxlint'), '-c', '.oxlintrc.ratchet.json', '-f', 'json', ...paths], { cwd: f.root, encoding: 'utf8' });
     const output = JSON.parse(lint.stdout) as { diagnostics: { code: string; filename: string }[] };
     const debt: Record<string, Record<string, number>> = {};
@@ -86,10 +88,15 @@ it('refuses every hard rule through the mandatory commit guard, including all me
     const guard = spawn(execPath, ['scripts/precommit-guards.mjs', '--required-receipt', receipt], {
       cwd: f.root, env: { ...options, WS_PRECOMMIT_INPUTS_DONE: status }, stdio: ['ignore', 'pipe', 'pipe'],
     });
-    let stdout = '', stderr = '', measured = false;
+    let stdout = '', stderr = '', measured = false, published = false;
     let measurementError: unknown;
     guard.stdout.on('data', (chunk: Buffer) => {
       stdout += String(chunk);
+      if (!published && stdout.includes('waiting for pinned data')) {
+        published=true;
+        f.put(`.git/commit-inputs/blobs/${dataHash}`,'{}');
+        f.put('.inputs-status.data',JSON.stringify({tree:f.git('write-tree')}));
+      }
       if (!measured && stdout.includes('waiting for final inputs')) {
         measured = true;
         try {
@@ -104,6 +111,7 @@ it('refuses every hard rule through the mandatory commit guard, including all me
     guard.stderr.on('data', (chunk: Buffer) => { stderr += String(chunk); });
     const code = await new Promise<number | null>((_resolve, reject) => { guard.on('error', reject); guard.on('close', _resolve); });
     if (measurementError!==undefined) throw new Error('Commit measurement failed',{cause:measurementError});
+    expect(published).toBe(true);
     expect(measured).toBe(true); expect(code).toBe(1);
     for (const [rule, [file]] of Object.entries(refusals)) expect(stderr, rule).toContain(`src/${file}: wildshard(${rule})`);
     for (const extension of extensions) expect(stderr).toContain(`src/engine/extension.${extension}: wildshard(no-raw-save)`);
@@ -171,5 +179,34 @@ it('runs the actual shell hook with an explicit full-measurement guard setting',
     }});
     expect(result.status,result.stdout+result.stderr).toBe(0);
     expect(result.stderr).toContain('pre-commit: passed in');
+  } finally {rmSync(f.root,{recursive:true,force:true,maxRetries:3,retryDelay:50});}
+});
+
+
+it.each(['producer-failure','wrong-source','malformed'] as const)('early data never grants a verdict: %s', async failure => {
+  const f=fixture();
+  const options={...env};delete options['SKIP_ARCH_GUARDS'];
+  try {
+    f.put('src/engine/valid.ts','export const value = 2;');
+    f.put('scripts/generation-jobs.json',JSON.stringify({jobs:[{buildOutputs:{'src/shards/fixture/data/rows.json':'44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a'}}]}));
+    f.git('add','src','scripts/generation-jobs.json');
+    const source=f.git('write-tree'),status=join(f.root,'.inputs-status');
+    const child=spawn(execPath,['scripts/precommit-guards.mjs','--required-receipt',join(f.root,'.guard')],{cwd:f.root,env:{...options,WS_PRECOMMIT_INPUTS_DONE:status},stdio:['ignore','pipe','pipe']});
+    let output='',published=false;
+    child.stdout.on('data',(chunk:Buffer)=>{
+      output+=String(chunk);
+      if(!published&&output.includes('waiting for pinned data')) {
+        published=true;
+        f.put('.git/commit-inputs/blobs/44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a','{}');
+        f.put('.inputs-status.data',failure==='malformed'?'invalid':JSON.stringify({tree:failure==='wrong-source'?f.git('rev-parse','HEAD^{tree}'):source}));
+      }
+      if(failure==='producer-failure'&&output.includes('waiting for final inputs'))f.put('.inputs-status','1');
+    });
+    let errors='';child.stderr.on('data',(chunk:Buffer)=>{errors+=String(chunk);});
+    const code=await new Promise<number|null>((_resolve,reject)=>{child.once('error',reject);child.once('close',_resolve);});
+    expect(published).toBe(true);expect(code).toBe(1);
+    expect(()=>verifyGuardRequirement(f.root,join(f.root,'.guard'))).toThrow();
+    if(failure==='producer-failure')expect(errors).toContain('precommit-inputs.mjs failed');
+    if(failure==='wrong-source')expect(errors).toContain('another source tree');
   } finally {rmSync(f.root,{recursive:true,force:true,maxRetries:3,retryDelay:50});}
 });

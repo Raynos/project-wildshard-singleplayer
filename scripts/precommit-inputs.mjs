@@ -1,11 +1,12 @@
 // G367: build the exact temporary/private index, never an agent's working copy.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, globSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, globSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { inputKey, restoreCommitInputs, saveCommitInputs } from './commit-inputs.mjs';
 import { requiredGuardRules } from './guard-counts.mjs';
+import { publishGuardData } from './precommit-generated-data.mjs';
 import { recordCommitProduced } from './commit-produced.mjs';
 
 /** Top-level folders no generator reads; the export leaves them out (4 GB of mockups and receipts). */
@@ -118,6 +119,15 @@ if (paths.some(path => /^(src|scripts|lint|public|test|music|sfx)\//u.test(path)
       execFileSync(process.execPath, prepare ? ['scripts/precommit-generation.mjs', JSON.stringify(command)] : command, { cwd: scratch, stdio: 'inherit', env: producerEnv });
     }
     const generated = performance.now();
+    // Inert pinned JSON lets source guards start while later producers run.
+    // Final index publication and guard verdict still await every producer.
+    const inputsDone = process.env.WS_PRECOMMIT_INPUTS_DONE;
+    if (inputsDone) {
+      publishGuardData(scratch, resolve(common, 'commit-inputs/blobs'));
+      const dataReady = `${inputsDone}.data`;
+      writeFileSync(`${dataReady}.tmp`, JSON.stringify({tree:before}));
+      renameSync(`${dataReady}.tmp`, dataReady);
+    }
     if (guardRequirement!==undefined) requiredGuardRules(scratch,guardRequirement,paths);
     /** @type {string[]} */
     let produced = [];
