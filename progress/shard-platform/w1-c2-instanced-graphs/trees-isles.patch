@@ -84,9 +84,10 @@
    }
 --- a/src/shards/far-reach/data/skyIsleLook.ts
 +++ b/src/shards/far-reach/data/skyIsleLook.ts
-@@ -1,43 +1,46 @@
+@@ -1,43 +1,52 @@
 -import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
-+import { SKY, SKY_SUN, skyMapGraph, type SkyGraph } from './skyLook';
++import { skyMapGraph } from '../look/mapGraph';
++import { SKY, SKY_SUN, type SkyGraph } from './skyLook';
 +import { SKY_ISLE_HD } from './skyIsles';
  
  /**
@@ -116,7 +117,17 @@
 -  { vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.3, 0.59, 0.11));
 -    float turf = @{turf};
 -    vec3 stone = vec3(l) * vec3(1.02, 0.96, 0.88) * (0.75 + 0.35 * smoothstep(0.15, 0.6, l));
--    // (row 1, the lead: the canopies read olive-grey; the mockups' crowns are lush green lit warm by the low sun)
++/** An sRGB hex colour in linear space (the lit colour's space before the post chain). */
++function linear(hex: number): number[] {
++  return [16, 8, 0].map((shift) => { const v = ((hex >> shift) & 255) / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
++}
++
++/** A sky isle's look; `keel`: a playable island's keel, all rock, cut at its turf. */
++function skyIsleGraph(keel: boolean): SkyGraph {
++  const g = skyMapGraph({
++    t: { op: 'mul', in: ['c', SKY_ISLE_HD.tint] }, l: { op: 'dot', in: ['t', [0.3, 0.59, 0.11]] },
++    s0: { op: 'smoothstep', in: [0.15, 0.6, 'l'] }, s1: { op: 'mul', in: ['s0', 0.35] }, s2: { op: 'add', in: ['s1', 0.75] }, s3: { op: 'mul', in: ['l', [1.02, 0.96, 0.88]] }, stone: { op: 'mul', in: ['s3', 's2'] },
+     // (row 1, the lead: the canopies read olive-grey; the mockups' crowns are lush green lit warm by the low sun)
 -    vec3 leaf = mix(vec3(l), c, 1.35) * vec3(1.02, 1.12, 0.78) * 1.15;
 -    diffuseColor.rgb = mix(stone, clamp(leaf, 0.0, 1.0), turf); }` },
 -  { stage: 'fragment', find: '#include <dithering_fragment>', put: `#include <dithering_fragment>
@@ -132,24 +143,6 @@
 -    gl_FragColor.rgb = gl_FragColor.rgb * 0.95 + vec3(1.0, 0.7, 0.36) * farRim * 0.55; }
 -  gl_FragColor.rgb = mix(gl_FragColor.rgb, @{hazeColor}, clamp((length(vViewPosition) - @{hazeNear}) / @{hazeSpan}, 0.0, 1.0) * @{hazeMax});` },
 -];
-+/** An sRGB hex colour in linear space (the lit colour's space before the post chain). */
-+function linear(hex: number): number[] {
-+  return [16, 8, 0].map((shift) => { const v = ((hex >> shift) & 255) / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
-+}
- 
--/** A playable keel's clip: everything above its turf discarded (its deck draws the top). */
--export const SKY_ISLE_CLIP_EDITS: readonly ShaderEditRow[] = [
--  { stage: 'vertex', find: '#include <begin_vertex>', put: '#include <begin_vertex>\n  farLocalY = position.y;' },
--  { stage: 'vertex', find: '', put: 'varying float farLocalY;\n' },
--  { stage: 'fragment', find: '#include <clipping_planes_fragment>', put: '#include <clipping_planes_fragment>\n  if (farLocalY > 0.02) discard;' },
--  { stage: 'fragment', find: '', put: 'varying float farLocalY;\n' },
--];
-+/** A sky isle's look; `keel`: a playable island's keel, all rock, cut at its turf. */
-+export function skyIsleGraph(keel: boolean): SkyGraph {
-+  const g = skyMapGraph({
-+    t: { op: 'mul', in: ['c', SKY_ISLE_HD.tint] }, l: { op: 'dot', in: ['t', [0.3, 0.59, 0.11]] },
-+    s0: { op: 'smoothstep', in: [0.15, 0.6, 'l'] }, s1: { op: 'mul', in: ['s0', 0.35] }, s2: { op: 'add', in: ['s1', 0.75] }, s3: { op: 'mul', in: ['l', [1.02, 0.96, 0.88]] }, stone: { op: 'mul', in: ['s3', 's2'] },
-+    // (row 1, the lead: the canopies read olive-grey; the mockups' crowns are lush green lit warm by the low sun)
 +    tr: { op: 'swizzle', in: ['t'], mask: 'x' }, tg: { op: 'swizzle', in: ['t'], mask: 'y' }, tb: { op: 'swizzle', in: ['t'], mask: 'z' },
 +    rb: { op: 'max', in: ['tr', 'tb'] }, rb1: { op: 'mul', in: ['rb', 0.92] }, gx: { op: 'sub', in: ['tg', 'rb1'] }, turf: { op: 'smoothstep', in: [0.02, 0.12, 'gx'] },
 +    lf0: { op: 'mul', in: ['t', 1.35] }, lf1: { op: 'mul', in: ['l', 0.35] }, lf2: { op: 'sub', in: ['lf0', 'lf1'] }, lf3: { op: 'mul', in: ['lf2', [1.02 * 1.15, 1.12 * 1.15, 0.78 * 1.15]] },
@@ -168,6 +161,18 @@
 +  }, { colour: keel ? 'stone' : 'paint', emissive: 'glow', ...(keel ? { discard: 'cut' } : {}) });
 +  return { ...g, stages: { ...g.stages, lighting: { ...g.stages.lighting, grade: 'grade' } } };
 +}
+ 
+-/** A playable keel's clip: everything above its turf discarded (its deck draws the top). */
+-export const SKY_ISLE_CLIP_EDITS: readonly ShaderEditRow[] = [
+-  { stage: 'vertex', find: '#include <begin_vertex>', put: '#include <begin_vertex>\n  farLocalY = position.y;' },
+-  { stage: 'vertex', find: '', put: 'varying float farLocalY;\n' },
+-  { stage: 'fragment', find: '#include <clipping_planes_fragment>', put: '#include <clipping_planes_fragment>\n  if (farLocalY > 0.02) discard;' },
+-  { stage: 'fragment', find: '', put: 'varying float farLocalY;\n' },
+-];
++/** The decorative sky isles' look (`look.materials['sky-isle']`). */
++export const SKY_ISLE_GRAPH = skyIsleGraph(false);
++/** The playable islands' keels' look (`look.materials['sky-isle-keel']`). */
++export const SKY_ISLE_KEEL_GRAPH = skyIsleGraph(true);
 --- a/src/shards/far-reach/data/paintLook.ts
 +++ b/src/shards/far-reach/data/paintLook.ts
 @@ -4,9 +4,9 @@
@@ -206,7 +211,7 @@
  import { DECK_WOOD_GRAPH, HOVER_FRAME_GRAPH, POST_WEATHER_GRAPH } from './data/bridgeLook';
 -import { CROWN_DAIS_GRAPH, KEEPER_SCARF_GRAPH, LANTERN_GLOW_GRAPH } from './data/paintLook';
 +import { CROWN_DAIS_GRAPH, KEEPER_SCARF_GRAPH, LANTERN_GLOW_GRAPH, TREE_BARK_GRAPH } from './data/paintLook';
-+import { skyIsleGraph } from './data/skyIsleLook';
++import { SKY_ISLE_GRAPH, SKY_ISLE_KEEL_GRAPH } from './data/skyIsleLook';
  import { SHACK_GRAPHS } from './data/shackLook';
  import { CLUMP_GRAPH, FLOWER_GRAPH } from './data/dressingLook';
  import { FALL_GRAPH } from './data/fallLook';
@@ -220,7 +225,7 @@
    look: { ...base.look, materials: { ...base.look.materials, 'deck-wood': { family: 'graph', graph: DECK_WOOD_GRAPH }, 'hover-frame': { family: 'graph', graph: HOVER_FRAME_GRAPH },
      'dressing-clump': { family: 'graph', graph: CLUMP_GRAPH }, 'dressing-flower': { family: 'graph', graph: FLOWER_GRAPH }, falls: { family: 'graph', graph: FALL_GRAPH },
 -    ...Object.fromEntries(Object.entries({ 'crown-dais': CROWN_DAIS_GRAPH, 'lantern-glow': LANTERN_GLOW_GRAPH, 'keeper-scarf': KEEPER_SCARF_GRAPH, 'post-weather': POST_WEATHER_GRAPH })
-+    ...Object.fromEntries(Object.entries({ 'crown-dais': CROWN_DAIS_GRAPH, 'lantern-glow': LANTERN_GLOW_GRAPH, 'keeper-scarf': KEEPER_SCARF_GRAPH, 'post-weather': POST_WEATHER_GRAPH, 'tree-bark': TREE_BARK_GRAPH, 'sky-isle': skyIsleGraph(false), 'sky-isle-keel': skyIsleGraph(true) })
++    ...Object.fromEntries(Object.entries({ 'crown-dais': CROWN_DAIS_GRAPH, 'lantern-glow': LANTERN_GLOW_GRAPH, 'keeper-scarf': KEEPER_SCARF_GRAPH, 'post-weather': POST_WEATHER_GRAPH, 'tree-bark': TREE_BARK_GRAPH, 'sky-isle': SKY_ISLE_GRAPH, 'sky-isle-keel': SKY_ISLE_KEEL_GRAPH })
        .map(([id, graph]) => [id, { family: 'graph', graph }])),
      ...Object.fromEntries(Object.entries(SHACK_GRAPHS).map(([kind, graph]) => [`shack-${kind}`, { family: 'graph', graph }])) } },
    clientChannels: [...SKY_MOVER_VIEWS, ...SKY_LIFT_PROMPTS], modes: SKY_MODES, quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,

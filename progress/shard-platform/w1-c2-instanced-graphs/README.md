@@ -63,7 +63,8 @@ trees and +9 for the isles, which is what G407 refuses.
 
 ## Ready consumer change
 
-`trees-isles.patch` applies on cb9a9ad40. It adds the `tree-bark`, `sky-isle` and
+`trees-isles.patch` applies on 5dc2dc30e and passes the row-data rule: data/ exports only the graph
+rows, and the helpers stay private or in look/mapGraph.ts. It adds the `tree-bark`, `sky-isle` and
 `sky-isle-keel` graphs (data/paintLook.ts, data/skyIsleLook.ts), binds them through
 `skyMappedLook` in world/trees.ts and world/skyIsleHd.ts, and deletes TREE_BARK_EDITS,
 SKY_ISLE_ROCK_EDITS and SKY_ISLE_CLIP_EDITS. On a clean generated export it measures
@@ -74,3 +75,9 @@ triangles and programs (162 / 163) are equal. Shader sources go up by 4 and GPU 
 up by 32 KB on phone and 36 KB on desktop. The isles render about +20/255 brighter (the
 painted light, G410), and the instancing bug adds missing trees and isles. Re-run the
 parity and make the round-3 board after the back-end fix.
+
+## Step 1 frame floor
+
+[frame-floor-cb9a9ad40-desktop.json](frame-floor-cb9a9ad40-desktop.json) is cb9a9ad40,
+`skyMappedLook` on `bindMeshMap`. Desktop far-reach passes on every row: p95 at most
+16.8 ms and max 16.8 ms.
