@@ -7,7 +7,7 @@ import { expect, it, vi } from 'vitest';
 import { ZiplineDriver } from '../../../src/game/plugin/mover';
 import { DRIFTWOOD_MODES } from '../../../src/shards/driftwood-isle/data/modes';
 import { ZiplineLayout } from '../../fixtures/driftwood-zipline/shipping';
-import spots from '../../../src/shards/driftwood-isle/runtime/spots.baked.json';
+import spots from '../../../src/shards/driftwood-isle/data/spots.generated.json';
 import source from '../../fixtures/driftwood-zipline/ride.json';
 
 const row = DRIFTWOOD_MODES.traverse[0];

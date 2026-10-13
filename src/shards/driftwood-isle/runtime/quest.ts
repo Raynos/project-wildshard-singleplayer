@@ -14,7 +14,7 @@ import type { AchievementDef } from '@wildshard/game/achievements';
 import { SEA_GLASS_FLAG, SHARD_FLAGS } from '../data/interactables';
 import { DRIFTWOOD_GRAPH, DRIFTWOOD_ACTIONS } from '../data/questGraph';
 import { QUEST_DONE } from '../data/questStory';
-import baked from './spots.baked.json' with { type: 'json' };
+import baked from '../data/spots.generated.json' with { type: 'json' };
 import { DriftwoodPack } from './pack';
 import { ZiplineDriver } from '@wildshard/game/plugin/mover';
 import { DriftwoodReward } from './reward';
@@ -49,7 +49,7 @@ const Prompt = v.strictObject({ label: v.string(), ...xyz, radius: finite });
 const Spots = v.object({ version: v.literal(1), rows: v.array(Row), talk: Prompt, sword: Prompt, reward: v.strictObject({ ...xyz, yaw: finite, pitch: finite, phase: finite }),
   promptRegistrations: v.unknown(),
   zipline: v.strictObject({ top: v.strictObject(xyz), bottom: v.strictObject(xyz), sag: finite, prompt: v.strictObject({ ...xyz, radius: finite }) }) });
-/** The page's placements (src/shards/driftwood-isle/generators/bake-driftwood-spots.mjs), strictly. */
+/** The quest placements (generators/spots.ts, G350-DW), strictly. */
 export type DriftwoodSpots = Omit<v.InferOutput<typeof Spots>, 'promptRegistrations'> & { readonly promptRegistrations: readonly PromptRegistration[] };
 /** Driftwood's baked interactable spots, parsed strictly. */
 export function driftwoodSpots(): DriftwoodSpots {
