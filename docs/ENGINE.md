@@ -4459,3 +4459,9 @@ Direction is used as supplied; normalize it in the graph for metre distance.
 Card attributes or array rows can supply individual distances; ordinary
 graph arithmetic applies size, angle and pulse before passing coordinates.
 A zero direction gets a finite facing basis. No object origin is added.
+
+`bindRuntimePersistence(ctx, source, rows, flags?, instance?)` binds a
+declared reward state or flag, its read-only legacy boolean seed, an
+optional encounter record and the projected ledger. `bindProgress` drains
+all durable owners before the checkpoint completes. Sky and Signal
+consume this binding; their rows select the existing keys and owners.

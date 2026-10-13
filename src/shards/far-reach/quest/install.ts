@@ -3,7 +3,7 @@ import { Flags } from '@wildshard/engine/world/interact/flags';
 import { installDeclaredQuestNpc, installRewardedQuest } from '@wildshard/game/plugin/ui';
 import { bindSkyQuestStage } from '../runtime/quest';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
-import { bindRuntimeCoins } from '@wildshard/game/shardfile/hybridRows';
+import { bindRuntimePersistence, type RuntimePersistence, bindRuntimeCoins } from '@wildshard/game/shardfile/hybridRows';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Vector3 } from 'three';
 import { CROWN, HIGH, STEP, VANES } from '../data/layout';
@@ -13,7 +13,7 @@ import { skyHd } from '../world/meshes';
 import { skyMappedLook } from '../world/looks';
 import { SKY_PLACES } from '../data/places';
 import source from '../shard.config';
-import { bindSkyPersistence, type SkyPersistence } from '../runtime/persistence';
+import { SKY_PERSISTENCE } from '../data/persistence';
 
 export const REWARD = 10;
 /** The reward view: from the high step, the raised bridge running out to the storm crown (Driftwood's held beat). */
@@ -30,8 +30,8 @@ export const REWARD_VIEW = { at: new Vector3(STEP.x + 2, HIGH + 1.7, STEP.z - 4)
  *   2. clear the roost of drift rays · 3. turn the three wind vanes with GUST · 4. raise the bridge at the winch
  */
 export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share: number) => void):
-  { quest: QuestState; flags: Flags; burst: (count: number, toast: string) => void; view: QuestPresentation | null; finished: () => void; persistence: SkyPersistence } {
-  const flags = new Flags(ctx.manifest.slug), persistence = bindSkyPersistence(ctx, ctx.app.saves), { rewarded, facts } = persistence;
+  { quest: QuestState; flags: Flags; burst: (count: number, toast: string) => void; view: QuestPresentation | null; finished: () => void; persistence: RuntimePersistence & { readonly boss: NonNullable<RuntimePersistence['boss']> } } {
+  const flags = new Flags(ctx.manifest.slug), persistence = bindRuntimePersistence(ctx, source, SKY_PERSISTENCE), { rewarded, facts } = persistence;
   // The keeper at the spawn waves within 16 m and gestures while he talks; headless (tests, a node bake) the reward pays at once.
   const { quest, reward, view } = installRewardedQuest(ctx, source, { id: 'far.quest', rewardId: 'far.reward', strings: STRINGS, flags, facts, player,
     coins: onCoin ?? bindRuntimeCoins(ctx, null), paid: () => rewarded.read(), markPaid: () => { rewarded.write(true); }, unpaid: () => !rewarded.read(),

@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import { rigLibrary, type RigLibraryRows } from "./geometry";
 import { bossesSave } from '../saves';
 import { bossFlagRecord, parseBossRecord, type BossRecordRow, type BossRowFlags, type BossViewRows, type installBossOwnerRow } from '../shardfile/bossRow';
@@ -640,4 +641,44 @@ export function bindRuntimeBossRecord(ctx: Pick<ShardContext, 'app' | 'scope'> &
     const parsed: unknown = JSON.parse(saved); return parseBossRecord(parsed);
   }, write: saved => { if (!state.write(JSON.stringify(parseBossRecord(saved)))) throw new Error(row.writeError); },
   flush: () => state.write(state.read()) };
+}
+
+/** Authored persistence sources; legacy booleans are read only, never a second writer. */
+export interface RuntimePersistenceRows {
+  readonly reward: { readonly kind: 'state' | 'flag'; readonly key: string; readonly legacy: string };
+  readonly boss?: { readonly record: BossRecordRow; readonly defeated: { readonly fact: string; readonly entity: string } };
+}
+/** One reward owner and one projected ledger for browser continuation. */
+export interface RuntimePersistence {
+  readonly facts: RuntimeFacts;
+  readonly rewarded: { read: () => boolean; write: (value: boolean) => void };
+  readonly boss: ReturnType<typeof bindRuntimeBossRecord> | null;
+  readonly legacyPaid: boolean;
+  readonly bindProgress: (progress: Pick<Progress, 'bindLedger' | 'refreshLedger'> | undefined) => void;
+}
+export function bindRuntimePersistence(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile,
+  rows: RuntimePersistenceRows & { readonly boss: NonNullable<RuntimePersistenceRows['boss']> },
+  flags?: Pick<Flags, 'has' | 'set'>, instance?: string): RuntimePersistence & { readonly boss: ReturnType<typeof bindRuntimeBossRecord> };
+export function bindRuntimePersistence(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile,
+  rows: RuntimePersistenceRows, flags?: Pick<Flags, 'has' | 'set'>, instance?: string): RuntimePersistence;
+/** Bind declared reward/encounter persistence and drain every durable owner before checkpointing. */
+export function bindRuntimePersistence(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile,
+  rows: RuntimePersistenceRows, flags?: Pick<Flags, 'has' | 'set'>, instance = source.identity.slug): RuntimePersistence {
+  const row = rows.reward;
+  const legacy = ctx.app.saves.define({ key: row.legacy, scope: 'shard', version: 1, schema: v.boolean(), initial: () => false });
+  const state = row.kind === 'state' ? bindRuntimeState(ctx, source, row.key, () => legacy.read(source.identity.slug), instance) : null;
+  if (row.kind === 'flag' && flags === undefined) throw new Error('Declared reward needs its flag owner');
+  const rewarded = { read: (): boolean => {
+    const value = state === null ? flags?.has(row.key) : state.read();
+    if (typeof value !== 'boolean') throw new Error('Reward state must be boolean'); return value;
+  }, write: (value: boolean): void => {
+    if (state !== null) { if (!state.write(value)) throw new Error('Reward checkpoint is not durable'); }
+    else { if (flags === undefined) throw new Error('Missing reward flag owner'); flags.set(row.key, value); }
+  } };
+  const boss = rows.boss === undefined ? null : bindRuntimeBossRecord(ctx, source, rows.boss.record, flags, instance);
+  const facts = projectRuntimeFacts(bindRuntimeLedger(ctx, source, instance), undefined);
+  if (boss?.read().defeated === true && rows.boss !== undefined) facts(rows.boss.defeated.fact, rows.boss.defeated.entity);
+  return { facts, rewarded, boss, legacyPaid: legacy.read(instance), bindProgress: progress => {
+    facts.bindProgress(progress, () => { const reward = state === null || state.write(state.read()), encounter = boss?.flush() ?? true, ledger = facts.flush(); return reward && encounter && ledger; });
+  } };
 }
