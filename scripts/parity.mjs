@@ -100,6 +100,10 @@ export async function capture(browser,url,opts) {
     };
     if(errors.length > 0)return result;
     await page.waitForFunction(()=>!document.querySelector('.ws-load') && !document.getElementById('hud')?.classList.contains('intro'));
+    // G325 keeps the AudioContext for the player's first gesture; until 310110541 `?mute` built the muted graph during load
+    // (`audio.master.disconnect()`), and every walk/combat sound baseline was recorded with it. Build it the same way here,
+    // as the world appears, so sampled cues, beds and loops are recorded instead of their not-ready fallbacks.
+    if(opts.only!=='fingerprint+poses')await page.evaluate(()=>{window.__wildshard.requireWorld().audio.master.disconnect();});
     boot.hud=await within(page.evaluate(waitForToastIdle,opts.tier==='desktop'?60:30),11_000,'startup toast idle');
     const clockWitness=await page.evaluate(()=>{
       const clock=window.__wildshard.requireWorld().game.sky.dayNight;
