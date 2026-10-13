@@ -11,7 +11,7 @@ import { WHIP_ITEMS } from './data/items';
 import { SIGNAL_SPAWNS } from './data/spawns';
 import { SIGNAL_QUESTS } from './data/signalQuest';
 import sandMaps from './data/sandMaps.json' with { type: 'json' };
-import { sandEntry } from './data/familyLook';
+import { sandEntry } from './look/sandEntry';
 import { SAND_DUSK } from './data/dusk';
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
@@ -26,7 +26,7 @@ import { SAND_DUSK } from './data/dusk';
 // (`runtime.binds: ['terrain']`: the data client installs none of it). The edge rows are the same bake's, so seams,
 // collider and tiles agree exactly (within 8 cm of the old WSTR-read rows).
 // G345 (presentation-only data client): the tiles are no longer runtime-bound. The data client draws them in the look's sand
-// (data/familyLook.ts sandEntry: the PBR ground layer over the three single-level KTX2 maps, data/sandMaps.json, sampled as the
+// (look/sandEntry.ts: the PBR ground layer over the three single-level KTX2 maps, data/sandMaps.json, sampled as the
 // old DataTextures were), shading neither way (`terrain.shadow`), the fine ring following the viewer past 8 m, and the sand's
 // dusk terms move with the runtime's host field `shared.dusk` (`runtime.binds: state`, look/dusk.ts DUSK) through `look.curves`.
 // The ground draws before the engine horizon's ridge rings (`terrain.order: -1`), as the runtime's own sand did, so a far
