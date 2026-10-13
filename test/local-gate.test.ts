@@ -3,7 +3,7 @@ import { budgetTests } from '../scripts/local-gate-checks.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise the real bounded process owner in an isolated fixture.
 import { spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths belong to this test and are removed in finally.
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Place owned fixtures outside the shared checkout.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the actual gate helper rather than a mock.
@@ -60,4 +60,17 @@ it('retains strict diagnostics in a changed root', () => {
     expect(run.status).toBe(1);
     expect(run.stderr).toContain('not assignable to type');
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+it('retains Node declarations for narrowed SDK and test composition roots', () => {
+  const root = mkdtempSync(join(tmpdir(), 'local-gate-node-types-'));
+  try {
+    mkdirSync(join(root,'node_modules'));
+    symlinkSync(resolve('node_modules/@types'),join(root,'node_modules/@types'),'dir');
+    writeFileSync(join(root,'tsconfig.json'),JSON.stringify({compilerOptions:{strict:true,noEmit:true,skipLibCheck:true,target:'ES2022',module:'ESNext',moduleResolution:'bundler',types:[]},include:['*.ts']}));
+    writeFileSync(join(root,'changed.ts'),"import{readFileSync}from'node:fs'; export const value: Uint8Array = readFileSync('/dev/null');");
+    writeFileSync(join(root,'changed.json'),'["changed.ts"]');
+    const run = spawnSync('node',[resolve('scripts/local-gate-checks.mjs'),'types','changed.json'],{cwd:root,encoding:'utf8',timeout:5000});
+    expect(run.status,run.stdout+run.stderr).toBe(0);
+  } finally {rmSync(root,{recursive:true,force:true});}
 });

@@ -9,7 +9,7 @@ export function inputKey(root, tree) {
   const entries = execFileSync('git', ['ls-tree', '-rz', tree], { cwd: root, maxBuffer: 64 * 1024 * 1024 });
   const selected = entries.toString().split('\0').filter(entry => {
     const path = entry.slice(entry.indexOf('\t') + 1);
-    return !/^(docs|art|progress|sources)\//u.test(path);
+    return /^(src|scripts|lint|public|test|music|sfx)\//u.test(path) || /^(package|pnpm|vite|vitest|tsconfig|\.oxlint)/u.test(path);
   });
   return createHash('sha256').update(selected.join('\0')).digest('hex');
 }

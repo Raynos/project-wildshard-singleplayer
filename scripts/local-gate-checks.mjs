@@ -17,7 +17,10 @@ export async function checkChangedTypes(changed) {
     const roots = changed.map(path => resolve(path)).filter(path => members.has(path) && existsSync(path));
     if (roots.length === 0) continue;
     const ambient = parsed.fileNames.filter(path => /\.d\.[cm]?ts$/u.test(path) || /\bdeclare\s+global\s*\{/u.test(readFileSync(path, 'utf8')));
-    const program = ts.createProgram([...new Set([...roots, ...ambient])], { ...parsed.options, noEmit: true });
+    // The composition project includes Node tests and SDK authoring roots.
+    // Full-program imports supply Node declarations; narrowed roots need them explicitly.
+    const types = config === 'tsconfig.json' ? [...new Set([...(parsed.options.types ?? []), 'node'])] : parsed.options.types;
+    const program = ts.createProgram([...new Set([...roots, ...ambient])], { ...parsed.options, types, noEmit: true });
     diagnostics.push(...parsed.errors, ...ts.getPreEmitDiagnostics(program));
   }
   if (diagnostics.length > 0) throw new Error(ts.formatDiagnosticsWithColorAndContext(diagnostics, {
