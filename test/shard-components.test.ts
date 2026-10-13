@@ -79,3 +79,15 @@ it('keeps effect shader and primitive spans with the effect owner and registers 
     expect(row.counts.C3).toBe(3);expect(row.counts.C6).toBe(2);expect(row.unknown).toEqual([]);
   }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+it('keeps typed arrays and subarray calls with their owner rather than treating Array as a ray',()=>{
+  const root=mkdtempSync(resolve(tmpdir(),'wave-array-role-')),file='src/shards/far-reach/runtime/index.ts';
+  const source='const bytes = new Uint8Array(8);\nconst positions = new Float32Array(8);\nconst slice = bytes.subarray(0, 4);\nconst copy = Array.from(positions);\nconst ray = body;';
+  try{
+    mkdirSync(dirname(resolve(root,file)),{recursive:true});writeFileSync(resolve(root,file),source);
+    const lines=codeLines(source,file), row=componentInventory(root,'far-reach',[{path:file,kind:'runtime-ts',lines}],lines);
+    expect(row.counts.C4).toBe(1);expect(row.counts.C9).toBe(4);expect(row.total).toBe(5);
+    expect(row.spans.filter(span=>span.component==='C4').map(span=>span.start)).toEqual([5]);
+    expect(row.unknown).toEqual([]);
+  }finally{rmSync(root,{recursive:true,force:true});}
+});
