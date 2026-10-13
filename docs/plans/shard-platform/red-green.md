@@ -136,3 +136,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | **Nine boot hits a memory admission cap** (Developer warning; public build refuses the admission) | `9c2ce3013` | pending (sp-o113) | sp-o113 |
 | 2026-10-13 | commit ratchet false ROSE on `1a8eacadc`: ratchet export lacks `scripts/guard-index-tree.mjs` (ERR_MODULE_NOT_FOUND) | `df983a6de` | `7995d89e7` (helper + declaration in the committed export; real import fixture) | sp-x5 |
 | 2026-10-13 | Nine tests red at HEAD `725a930f4` (darwin): grid-admission wire cap, ledger, replay ×2 | `9c2ce3013` (fixtures not refreshed with the approved recapture: compatibility.json, ledger, grid mock; gameplay itself compatible) | `e72e25d31` | sp-x8 |
+| 2026-10-13 | push gate: `test/shards/pine-hollow/pine-crags.test.ts` "Cannot destructure property 'normalAt' of 'ground'" | `d9529723b` | pending (sp-x4) | sp-x4 |
