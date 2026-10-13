@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "tilesHash": "d3e5818552b9d856a6600f97ceb1f142f51e04ce8adbdae8fd7a8390e32687d8",
+  "tilesHash": "31405e75cb8d576e356c2c1ac00b275386764dabcf94688b5e7a68c3b78a6c77",
+  "pixelHash": "36914bde574b03664c99f94a87fe83aa1d4ff023d1063b68f9b6add1e44ae306",
   "image": "/assets/_template/map/top.webp",
   "size": 1000,
   "metres": 500,
   "north": "+z",
   "east": "-x",
   "style": "stylized:ground",
-  "bytes": 26954,
-  "pixelHash": "36914bde574b03664c99f94a87fe83aa1d4ff023d1063b68f9b6add1e44ae306"
+  "bytes": 26954
 }
