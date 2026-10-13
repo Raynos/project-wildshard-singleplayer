@@ -17,12 +17,14 @@ for (const look of [SKY_GOAT_LOOK, DRIFT_RAY_LOOK, GALE_WISP_LOOK]) {
 const restoreTerrain = overrideTerrain({ heightAt: () => 0, normalAt: (): [number, number, number] => [0, 1, 0], waterLevel: () => -100, streamAt: () => null });
 afterAll(restoreTerrain);
 const HOME = { x: 0, z: 0, r: 7, y: 3 };
-function fixture(kind: string, next: boolean) {
+function fixture(kind: string, next: boolean, useCatalogue = false) {
   const brains = admitSpeciesBrains(SKY_SPECIES_BRAINS, [RAM_DATA, DIVE_DATA, BURST_DATA].map(row => strike(row)));
   const pushes: number[][] = [], shove = (yaw: number, speed: number, lift: number): void => { pushes.push([yaw, speed, lift]); };
   let actual = HOME;
   // Independent original page adapters, with their actual home and shove authorities.
-  const bound = next ? brains.bind(kind, undefined, () => HOME, { shove }) : brains.bind(kind, (_actor, decision) => {
+  const metadata = SKY_SPECIES_BRAINS.find(row => row.kind === kind); if (metadata === undefined) throw new Error('Missing authored metadata');
+  const bound = useCatalogue ? brains.catalogue([metadata], { homes: { [kind]: HOME }, held: { shove } }).rows[0]
+    : next ? brains.bind(kind, undefined, () => HOME, { shove }) : brains.bind(kind, (_actor, decision) => {
     if (decision.archetype === 'ram-grazer') return {
       think: context => { decision.policy.think({ ...context, home: actual }); },
       act: context => { decision.policy.act({ ...context, home: actual }); },
@@ -36,13 +38,14 @@ function fixture(kind: string, next: boolean) {
     };
     throw new Error('Missing original page adapter');
   }, () => actual);
+  if (bound === undefined) throw new Error('Missing declared binding');
   const body = creature(kind, kind === 'skyGoat' ? 'cloud' : kind === 'driftRay' ? 'dusk' : 'gale', {}, undefined, bound.think, bound.act);
   body.animal.position.set(kind === 'skyGoat' ? 0 : 7, kind === 'skyGoat' ? 0 : 3, 0);
   return { ...body, brains, pushes, home: (home: typeof HOME): void => { actual = home; if (next) brains.home(kind, body.animal, home); } };
 }
 
-it.each(['skyGoat', 'driftRay', 'galeWisp'])('keeps the actual %s page body, RNG, contacts and home authority exact', kind => {
-  const before = fixture(kind, false), after = fixture(kind, true);
+it.each(['skyGoat', 'driftRay', 'galeWisp'].flatMap(kind => ['callbacks', 'catalogue'].map(route => [kind, route] as const)))('keeps the actual %s page body, RNG, contacts and home authority exact through %s', (kind, route) => {
+  const before = fixture(kind, false), after = fixture(kind, true, route === 'catalogue');
   for (const body of [before, after]) body.home({ ...HOME, r: 12 });
   for (let tick = 0; tick < 900; tick++) {
     for (const body of [before, after]) {

@@ -3,10 +3,7 @@ import { bindDirectorActions } from '@wildshard/game/plugin/director';
 import signalStages from './data/signalStages.json' with { type: 'json' };
 import { standaloneEntry } from './runtime/standalone';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
-import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from './data/brains';
-import { SKITTERER_DATA } from './data/species/skitterer';
-import { DUNE_RAY } from './data/species/duneRay';
-import { DUNE_STRIDER } from './data/species/strider';
+import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_PAGE_ROWS } from './data/brains';
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardPlugin } from '@wildshard/game/shard/plugin';
@@ -29,7 +26,6 @@ import { FACT, MATRIARCH_FLAG } from './data/signalQuest';
 import { FLAG, SCOUT_FLAG } from './data/flags';
 import { installSunscarCues } from './runtime/audio/cues';
 import { installCreatures } from './combat/creatures';
-import { MATRIARCH_DATA as DUNE_MATRIARCH } from './data/species/matriarch';
 import { installMatriarch } from './combat/matriarch';
 import type { MarkedBoss } from './runtime/shardfile/markedBoss';
 import { SAND, SKIRT } from './look/render';
@@ -55,7 +51,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   protected readonly rows: HybridRuntimeRows = { expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }], complete: 'sunscar.complete',
     audio: source.audio, cues: installSunscarCues, species: () => {
       const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES);
-      return { rows: [{ ...DUNE_RAY, ...brains.bind(DUNE_RAY.kind) }, { ...SKITTERER_DATA, ...brains.bind(SKITTERER_DATA.kind) }, { ...DUNE_STRIDER, ...brains.bind(DUNE_STRIDER.kind) }, { ...DUNE_MATRIARCH, ...brains.bind(DUNE_MATRIARCH.kind) }],
+      return { rows: brains.catalogue(SIGNAL_PAGE_ROWS).rows,
         looks: DUNE_CREATURE_LOOKS, witness: brains.witness };
     } };
   /**

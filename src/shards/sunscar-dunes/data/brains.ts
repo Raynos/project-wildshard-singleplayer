@@ -58,3 +58,6 @@ export const SIGNAL_BODY_ROWS = {
 export const SIGNAL_SPECIES: readonly BrainedSpecies[] = [{ ...DUNE_RAY, body: SIGNAL_BODY_ROWS.duneRay, brain: RAY_BRAIN }, { ...SKITTERER_DATA, body: SIGNAL_BODY_ROWS.skitterer, brain: SKITTERER_BRAIN }, { ...DUNE_STRIDER, body: SIGNAL_BODY_ROWS.duneStrider, brain: STRIDER_BRAIN }, { ...MATRIARCH_DATA, body: SIGNAL_BODY_ROWS.matriarch, brain: MATRIARCH_BRAIN }];
 /** Every strike row the catalogue's creatures use. */
 export const SIGNAL_STRIKES: readonly StrikeData[] = [SWOOP_DATA, CHARGE_DATA, HORNS_DATA, BITE_DATA, MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA];
+
+/** Original page metadata order, without adding native body or brain fields. */
+export const SIGNAL_PAGE_ROWS = [DUNE_RAY, SKITTERER_DATA, DUNE_STRIDER, MATRIARCH_DATA];

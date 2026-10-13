@@ -60,13 +60,12 @@ export const SKY_BODY_ROWS = {
 } as const;
 
 /** Canonical gameplay profiles; each native body binds its actual island home and existing authority. */
-export const SKY_SPECIES_BRAINS: readonly BrainedSpecies[] = [
-  { ...SKY_GOAT_DATA, body: SKY_BODY_ROWS.ground, brain: { archetype: 'grazer' as const, data: { ...GOAT_BRAIN, kind: 'grazer' as const, pattern: 'wander-ram' as const } } },
-  { ...DRIFT_RAY_DATA, body: SKY_BODY_ROWS.flight, brain: { archetype: 'diver' as const, data: { ...RAY_BRAIN, kind: 'diver' as const, pattern: 'orbit' as const,
-    home: RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: DECK + 14 } } } },
-  { ...GALE_WISP_DATA, body: SKY_BODY_ROWS.flight, brain: { archetype: 'diver' as const, data: { ...WISP_BRAIN, kind: 'diver' as const, pattern: 'burst' as const,
-    home: { x: KEEPER.x, z: KEEPER.z, r: 7, y: KEEPER.y + 3 } } } },
-];
+const SKY_GOAT_PROFILE: BrainedSpecies = { ...SKY_GOAT_DATA, body: SKY_BODY_ROWS.ground, brain: { archetype: 'grazer' as const, data: { ...GOAT_BRAIN, kind: 'grazer' as const, pattern: 'wander-ram' as const } } };
+const DRIFT_RAY_PROFILE: BrainedSpecies = { ...DRIFT_RAY_DATA, body: SKY_BODY_ROWS.flight, brain: { archetype: 'diver' as const, data: { ...RAY_BRAIN, kind: 'diver' as const, pattern: 'orbit' as const,
+    home: RAY_HOMES[0] ?? { x: 0, z: -24, r: 22, y: DECK + 14 } } } };
+const GALE_WISP_PROFILE: BrainedSpecies = { ...GALE_WISP_DATA, body: SKY_BODY_ROWS.flight, brain: { archetype: 'diver' as const, data: { ...WISP_BRAIN, kind: 'diver' as const, pattern: 'burst' as const,
+    home: { x: KEEPER.x, z: KEEPER.z, r: 7, y: KEEPER.y + 3 } } } };
+export const SKY_SPECIES_BRAINS: readonly BrainedSpecies[] = [SKY_GOAT_PROFILE, DRIFT_RAY_PROFILE, GALE_WISP_PROFILE];
 
 const tallest = CROWN_STONES.reduce((best, stone) => stone.h > best.h ? stone : best);
 const perch = { x: tallest.x, y: CROWN.y + tallest.h + 0.6, z: tallest.z };
@@ -75,10 +74,11 @@ const spin = Math.sign(STORM.layers[0].spin), dx = perch.x - CROWN.x, dz = perch
 export const ROC_PROFILE = { ...ROC_BRAIN, perch: { ...perch, yaw: Math.atan2(-spin * dz, spin * dx) } };
 
 /** Every native body declares its policy; the held encounter accesses the Roc through its catalogue. */
-export const SKY_CREATURE_ROWS: readonly BrainedSpecies[] = [...SKY_SPECIES_BRAINS,
-  { ...STORM_ROC_DATA, body: SKY_BODY_ROWS.flight, brain: { archetype: 'raptor', data: ROC_PROFILE } }];
+const STORM_ROC_PROFILE: BrainedSpecies = { ...STORM_ROC_DATA, body: SKY_BODY_ROWS.flight, brain: { archetype: 'raptor', data: ROC_PROFILE } };
+export const SKY_CREATURE_ROWS: readonly BrainedSpecies[] = [...SKY_SPECIES_BRAINS, STORM_ROC_PROFILE];
 /** Existing page registration order, independently of the native roster's spawn order. */
 export const SKY_PAGE_SPECIES = ['driftRay', 'skyGoat', 'galeWisp', 'stormRoc'] as const;
+export const SKY_PAGE_ROWS = [DRIFT_RAY_PROFILE, SKY_GOAT_PROFILE, GALE_WISP_PROFILE, STORM_ROC_PROFILE];
 export const SKY_CREATURE_STRIKES = [RAM_DATA, DIVE_DATA, BURST_DATA, ...ROC_STRIKES];
 /** Original page fallbacks; the owning catalogue lends each materialized body's actual home. */
 export const SKY_PAGE_HOMES = {

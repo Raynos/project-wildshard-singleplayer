@@ -4126,3 +4126,18 @@ Each row lends a body key, the unchanged baked look metadata and its
 clip rows. Every spawn still obtains its own cloned body and animation
 state through the original loader and `bakedLook`; no rig fitting,
 material, palette or clip arithmetic is added by catalogue assembly.
+
+**Ordered species metadata binding (W1 C4).**
+`SpeciesBrains.catalogue(rows, { homes?, held? })` binds a declared
+catalogue to original page metadata in authored order. It refuses
+unknown/duplicate kinds, more than 1,024 rows and missing home/body
+protocol authority before creating callback tables. Homes validate
+strictly and retain their authored values. It never allocates an actor,
+consumes RNG or runs a decision. Self-contained protocols and the
+existing automatic body protocols share the original `bind` callbacks.
+
+The returned `prepareHeld(kind, actualBody)` obtains the same held
+controller as that row's binding. It is explicit and idempotent, with
+no perception or movement tick; unknown/foreign kinds refuse. Ordinary
+kinds return null without constructing their decision policy. Existing
+`bind`, native body and quiet controller lookup paths stay unchanged.

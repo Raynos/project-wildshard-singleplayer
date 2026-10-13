@@ -519,6 +519,14 @@ type Admitted =
 /** A stable small integer per actor (its seed hashed) in `[0, n)`: the slot a pack member takes round a ring. */
 export function seedSlot(seed: number, n: number): number { return Math.floor(Math.abs(Math.sin(seed * 12.9898 + 1.7) * 43758.5)) % n; }
 
+/** Ordered browser metadata bindings; held preparation uses the same admitted binding and actual body. */
+export interface SpeciesPageCatalogue {
+  readonly rows: readonly SpeciesRow[];
+  prepareHeld: (kind: string, actor: Animal) => HeldSpeciesControl | null;
+}
+/** Browser catalogue authority, lent by its existing owner. Actual body homes supersede these fallbacks. */
+export interface SpeciesCataloguePorts { readonly homes?: Readonly<Record<string, SpeciesBodyHome>>; readonly held?: SpeciesHeldPorts }
+
 /** The admitted brains of a species catalogue, by kind: the browser rows, the live witness and the headless policies. */
 export interface SpeciesBrains {
   /** The kinds that run a declared brain. */
@@ -528,6 +536,8 @@ export interface SpeciesBrains {
    * row (`{ ...ROW, ...brains.bind(kind) }`). Each call binds a fresh policy table; a kind without a brain refuses.
    */
   bind: (kind: string, native?: SpeciesNativeFactory, homes?: SpeciesBodyHomes, held?: SpeciesHeldPorts) => SpeciesBinding;
+  /** Bind original metadata in authored order without constructing a body or advancing its policy. */
+  catalogue: (rows: readonly SpeciesRow[], ports?: SpeciesCataloguePorts) => SpeciesPageCatalogue;
   /** Lend a browser body's actual finite home before its first decision; no policy or random draw is created. */
   home: (kind: string, actor: Animal, at: SpeciesBodyHome) => void;
   /** The controller prepared by this catalogue's body binding; lookup never advances perception, movement or RNG. */
@@ -796,9 +806,7 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
     if (actor.kind !== kind || heldControls.has(actor)) throw new Error('Held species already has an owning controller');
     heldControls.set(actor, { kind, controller });
   };
-  return {
-    kinds: new Set(admitted.keys()),
-    bind: (kind, native, homes, held) => {
+  const bind: SpeciesBrains['bind'] = (kind, native, homes, held) => {
       const brain = admitted.get(kind);
       if (brain === undefined) throw new Error(`Species ${kind} declares no brain`);
       const resolveHome = homes === undefined ? undefined : (actor: Animal): SpeciesBodyHome => bodyHomes.get(actor) ?? homes(actor);
@@ -806,6 +814,30 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
         occupied: actor => heldControls.has(actor),
         register: (actor, controller) => { registerHeld(kind, actor, controller); } });
       witnesses.push({ archetype: brain.archetype, live: bound.live }); return bound.callbacks;
+  };
+  return {
+    kinds: new Set(admitted.keys()), bind,
+    catalogue: (rows, ports = {}) => {
+      if (rows.length > 1024 || new Set(rows.map(row => row.kind)).size !== rows.length) throw new Error('Invalid species catalogue order');
+      for (const row of rows) {
+        const brain = admitted.get(row.kind), home = ports.homes?.[row.kind];
+        if (brain === undefined) throw new Error(`Species ${row.kind} declares no brain`);
+        if (home !== undefined) v.parse(CreatureHomeSchema, home);
+        if (brain.archetype === 'raptor' && ports.held === undefined) throw new Error('Held species requires its trusted body authority');
+        if ((brain.archetype === 'ram-grazer' || brain.archetype === 'orbit-diver' || brain.archetype === 'burst-flyer')
+          && (home === undefined || (brain.archetype === 'burst-flyer' && ports.held === undefined))) throw new Error('Species requires its trusted home and body authority');
+        if (brain.archetype === 'skirmisher' || brain.archetype === 'guardian' || brain.archetype === 'perch-hunter') throw new Error('Species catalogue requires declared body authority');
+      }
+      const bindings = new Map<string, SpeciesBinding>();
+      const bound = rows.map(row => {
+        const home = ports.homes?.[row.kind], binding = bind(row.kind, undefined, home === undefined ? undefined : () => home, ports.held);
+        bindings.set(row.kind, binding); return { ...row, ...binding };
+      });
+      return { rows: bound, prepareHeld: (kind, actor) => {
+        const binding = bindings.get(kind);
+        if (binding === undefined || actor.kind !== kind) throw new Error('Held species requires its declared live body');
+        return binding.control?.(actor) ?? null;
+      } };
     },
     home: (kind, actor, at) => {
       if (!admitted.has(kind) || actor.kind !== kind || ![at.x, at.y, at.z, at.r].every(Number.isFinite) || at.r <= 0)

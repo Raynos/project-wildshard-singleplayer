@@ -1,5 +1,5 @@
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
-import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES, SKY_PAGE_SPECIES, SKY_PAGE_HOMES, ROC_STRIKES } from '../data/brains';
+import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES, SKY_PAGE_ROWS, SKY_PAGE_HOMES, ROC_STRIKES } from '../data/brains';
 import stages from '../data/bossStages.json' with { type: 'json' };
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -84,7 +84,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   private creatureBrains: ReturnType<typeof speciesBrains> | null = null;
   private creaturePush: ((yaw: number, speed: number, lift: number) => void) | null = null;
   private creatureControl: ReturnType<ReturnType<typeof speciesBrains>['held']> = null;
-  private prepareHeld: NonNullable<ReturnType<ReturnType<typeof speciesBrains>['bind']>['control']> | null = null;
+  private creatureCatalogue: ReturnType<ReturnType<typeof speciesBrains>['catalogue']> | null = null;
   built: BuiltWorld | null = null; fan: WarFanWeapon | null = null; boss: RowBossView | null = null;
   /** The 13 declared bodies (data/spawns.ts), held by the platform's home keeper in their shipping allocation order. */
   private kept: RuntimeHomes | null = null;
@@ -107,16 +107,10 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   protected readonly rows: HybridRuntimeRows = { expose: 'farReach', strings: STRINGS, weapon: FAN_ROW, encounters: { id: ROC_ID, displayName: STRINGS.roc }, complete: FLAGS.complete,
     audio: source.audio, cues: installSkyCues, species: () => {
       const brains = speciesBrains(SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES); this.creatureBrains = brains;
-      const rows: ((typeof SKY_CREATURE_ROWS)[number] & ReturnType<ReturnType<typeof speciesBrains>['bind']>)[] = [];
-      for (let index = 0; index < MAX_RUNTIME_ROWS; index++) {
-        const kind = SKY_PAGE_SPECIES[index]; if (kind === undefined) break;
-        const row = SKY_CREATURE_ROWS.find(value => value.kind === kind); if (row === undefined) throw new Error('Missing authored creature');
-        const home = kind === 'stormRoc' ? undefined : () => SKY_PAGE_HOMES[kind];
-        const bound = brains.bind(kind, undefined, home, { shove: (yaw, speed, lift) => { this.creaturePush?.(yaw, speed, lift); } });
-        if (kind === 'stormRoc') this.prepareHeld = bound.control ?? null;
-        rows.push({ ...row, ...bound });
-      }
-      return { rows, looks: SKY_CREATURE_LOOKS, witness: brains.witness };
+      const catalogue = brains.catalogue(SKY_PAGE_ROWS, { homes: SKY_PAGE_HOMES,
+        held: { shove: (yaw, speed, lift) => { this.creaturePush?.(yaw, speed, lift); } } });
+      this.creatureCatalogue = catalogue;
+      return { rows: catalogue.rows, looks: SKY_CREATURE_LOOKS, witness: brains.witness };
     } };
 
   protected override async build(ctx: ShardContext): Promise<void> {
@@ -326,7 +320,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     ctx.system({ id: 'far.roost', phase: 'update', run: roostStage.advance });
 
     // The boss: the Storm Roc on the crown, the shared BossBar, 25 coins once.
-    const heldRoc = this.roc; this.creatureControl = heldRoc === null ? null : this.prepareHeld?.(heldRoc) ?? null;
+    const heldRoc = this.roc; this.creatureControl = heldRoc === null ? null : this.creatureCatalogue?.prepareHeld(heldRoc.kind, heldRoc) ?? null;
     // Prepare the held controller before the encounter, without a decision or a clock tick.
     if (heldRoc !== null && this.creatureControl === null) {
       throw new Error('Held creature controller must be prepared by its species binding');
