@@ -8,7 +8,7 @@
 | Sky Reach | 78.4 % → **54.4 %** | ≤ 1355 lines | 0 (island tiles: sp-o65) / **0** ✔ |
 
 **Signal meets Jake's port bar (tiles + 0 private binaries)**; Sky has 0 private binaries, tiles pending. Physics from authored rows (G350, `e6f5078d8`, `3ed995b80`), navigation as format rows (`c9f6e59be`); content-gate issue left: "trusted runtime owns simulation". `plugin/` 20 → 14.
-**Full CI GREEN again** (run 38350364280 on `b7656034b`, incl. the NE-b hero); exact-SHA smoke 38351115302 next, then the hourly release replaces `957b05e6`. Push: debt shrink-only at commit; generated files + native/maps made at commit (`9c57a9808`), never at push; local gate ≤ 2 min; pre-commit warm ~10 s, cold 15 s open (sp-x5). Never stop the line.
+**BOTH PROOFS GREEN on `b7656034b`** (CI 38350364280 + exact boot smoke 38351115302, road→Signal incl.); release job ran, replacing `957b05e6` (incl. NE-b hero). Push: debt shrink-only at commit; generated files + native/maps made at commit (`9c57a9808`), never at push; local gate ≤ 2 min; pre-commit warm ~10 s, cold 15 s open (sp-x5). Never stop the line.
 
 **Fleet (4 Opus + 3 Codex):** Codex sp-x7 CI/push, sp-x6 navigation, sp-x5 bench-max. Opus sp-o65 Sky island tiles, sp-o81 looks (all 9 shards have near views, `17279180a`), sp-o80 G350: Pine `49a5f4abd` + Nalati `35e6c10ba` done (all six shards' physics from authored rows; Pine King bake follow-up), sp-o79 lash/tassel bakes + Sky one-shard exports. Weapons → shared rows: no honest two-user cut (sp-o78; design §4.5 keeps lash and cone as trusted one-user families).
 
