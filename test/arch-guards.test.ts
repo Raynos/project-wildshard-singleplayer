@@ -207,6 +207,19 @@ describe('AG20 staged content isolation', () => {
     put(f.root, 'src/engine/example.ts', 'const = ;'); put(f.root, 'src/engine/unrelated.ts', 'const = ;');
     const result = f.run(); expect(result.status, String(result.stderr)).toBe(0);
   });
+  it('derives missing vocabulary for both immutable source snapshots before lint', () => {
+    const f = repo();
+    put(f.root, 'src/shards/sample/manifest.ts', "export default { slug: 'sample', name: 'Sample', ids: [] };");
+    f.git('add', '--', 'src/shards/sample/manifest.ts');
+    f.git('rm', '--', 'lint/shard-words.generated.json');
+    f.git('commit', '-qm', 'build-derived vocabulary');
+    put(f.root, 'src/engine/example.ts', 'export const value = 2;');
+    f.git('add', '--', 'src/engine/example.ts');
+    put(f.root, 'lint/shard-words.generated.json', 'foreign invalid JSON');
+    const result = f.run();
+    expect(result.status, String(result.stderr)).toBe(0);
+    expect(readFileSync(join(f.root, 'lint/shard-words.generated.json'), 'utf8')).toBe('foreign invalid JSON');
+  });
   it('rejects a staged hard violation even when the working file is clean', () => {
     const f = repo(); put(f.root, 'src/engine/example.ts', "export const value = localStorage.getItem('x');"); f.git('add', '--', 'src/engine/example.ts');
     put(f.root, 'src/engine/example.ts', 'export const value = 2;');

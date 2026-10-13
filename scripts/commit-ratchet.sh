@@ -34,7 +34,7 @@ fi
 
 # the ratchet reads both oxlint configs and (since E362 AG16/17) scripts/guard-counts.mjs; archive only what the commit has
 paths="src lint .oxlintrc.ratchet.json package.json"
-for extra in .oxlintrc.json scripts/guard-counts.mjs scripts/guard-index-tree.mjs scripts/guard-index-tree.d.mts scripts/legacy-shards.mjs scripts/generation-jobs.json scripts/precommit-generated-data.mjs scripts/link-node-modules.mjs; do git -C "$repo" cat-file -e "$sha:$extra" 2>/dev/null && paths="$paths $extra"; done
+for extra in .oxlintrc.json scripts/guard-counts.mjs scripts/guard-index-tree.mjs scripts/guard-index-tree.d.mts scripts/legacy-shards.mjs scripts/gen-shard-words.mjs scripts/generation-jobs.json scripts/precommit-generated-data.mjs scripts/link-node-modules.mjs; do git -C "$repo" cat-file -e "$sha:$extra" 2>/dev/null && paths="$paths $extra"; done
 tmp="$(cd "$(mktemp -d /tmp/ratchet-commit.XXXXXX)" && pwd -P)" || exit 0 # canonical: /tmp is a symlink on macOS (E432)
 trap 'rm -rf "$tmp"' EXIT
 t0=$SECONDS
@@ -44,6 +44,14 @@ if ! git -C "$repo" archive "$sha" -- $paths | tar -x -C "$tmp" 2>/dev/null; the
 fi
 if ! node "$tmp/scripts/link-node-modules.mjs" "$repo" "$tmp"; then
   refuse "committed dependency linking failed"; exit 0
+fi
+# G405: source vocabulary is cheap derived data, absent from new Git trees.
+# Run this commit's official parser before the plugin is loaded, never a WT list.
+if [ -f "$tmp/lint/wildshard-plugin.js" ] && [ ! -f "$tmp/lint/shard-words.generated.json" ]; then
+  if [ ! -f "$tmp/scripts/gen-shard-words.mjs" ] || ! out="$(cd "$tmp" && node scripts/gen-shard-words.mjs 2>&1)"; then
+    refuse "immutable shard vocabulary unavailable before measurement: ${out:-missing producer}"
+    exit 0
+  fi
 fi
 # Source-only trees omit cached JSON. Use this commit's catalogue and helper, never unpinned working data.
 if [ -f "$tmp/scripts/precommit-generated-data.mjs" ]; then

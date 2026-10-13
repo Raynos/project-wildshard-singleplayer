@@ -1,7 +1,7 @@
 // E362 AG20: inspect the commit's index tree, never the shared working copy.
 import { spawn, spawnSync } from 'node:child_process';
 import { once } from 'node:events';
-import { appendFileSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
@@ -167,9 +167,12 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
     extractGuardArchive(root, 'HEAD', [...predecessorLists, ...(changed.includes('lint/runtime-performance.json') || changed.includes('lint/class-moves.json') ? ['src/game', 'src/sdk', 'src/engine', 'src/shards'] : [])], predecessor);
     const snapshot = guardSnapshot(root, tree, scratch, paths);
     // Layout, legacy and manifest checks observe every shard. A manifest change also needs the generator scripts.
-    extractGuardArchive(root, tree, ['src', 'scripts/generation-jobs.json', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json', ...(manifest ? ['scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'] : [])], scratch);
+    extractGuardArchive(root, tree, ['src', 'scripts/generation-jobs.json', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'scripts/gen-shard-words.mjs', 'lint/legacy-shards.json', ...(manifest ? ['scripts/gen-shards.mjs'] : [])], scratch);
     await materialize(scratch); // Only staged hash-pinned JSON bytes may supplement the immutable source tree.
     linkNodeModules(root, scratch); // E432: @wildshard/* resolve to the snapshot, not the working tree
+    // G405: the plugin reads build-derived vocabulary. Derive it from this
+    // immutable source tree; a shared working list cannot supply either side.
+    if (!existsSync(join(scratch, 'lint/shard-words.generated.json'))) run(scratch, process.execPath, ['scripts/gen-shard-words.mjs']);
     const configFile = join(scratch, '.oxlintrc.json'), hard = hardRules(configFile);
     const config = readLintConfig(configFile);
     // No type info here, so type-aware rules never fire and their disable comments would read as unused: the full
@@ -184,9 +187,10 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
     const debtStarted = performance.now(), beforeRoot = join(scratch, 'before');
     mkdirSync(beforeRoot);
     const beforeSnapshot = guardSnapshot(root, 'HEAD', beforeRoot, paths);
-    extractGuardArchive(root, 'HEAD', ['scripts/generation-jobs.json'], beforeRoot);
+    extractGuardArchive(root, 'HEAD', ['src', 'scripts/generation-jobs.json', 'scripts/gen-shard-words.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json'], beforeRoot);
     await materialize(beforeRoot);
     linkNodeModules(root, beforeRoot);
+    if (!existsSync(join(beforeRoot, 'lint/shard-words.generated.json'))) run(beforeRoot, process.execPath, ['scripts/gen-shard-words.mjs']);
     const beforeConfig = join(beforeRoot, '.oxlintrc.precommit.json');
     writeFileSync(beforeConfig, JSON.stringify(config));
     const beforePaths = paths.filter(path => beforeSnapshot.paths.includes(path));

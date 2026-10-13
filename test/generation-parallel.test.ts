@@ -31,6 +31,11 @@ writeFileSync(${JSON.stringify(output)},${id === 'gamma' ? "readFileSync('src/sh
     put('scripts/generation-jobs.json', JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT: parallel fixture', jobs }));
     await prepareGeneration(root, { concurrency: 4, cacheDir: join(root, 'cache') });
     for (const job of jobs) expect(readFileSync(join(root, job.outputs[0] ?? ''), 'utf8')).toBe(JSON.stringify(job.id === 'gamma' ? 'alpha' : job.id));
+    // Build outputs from an older source export cannot override the verified
+    // current pin. Restore the actual current producer bytes before readers.
+    put('src/shards/alpha/data/alpha.generated.json', '"old build output"');
+    await prepareGeneration(root, { concurrency: 4, cacheDir: join(root, 'cache') });
+    expect(readFileSync(join(root, 'src/shards/alpha/data/alpha.generated.json'), 'utf8')).toBe('"alpha"');
     await expect(prepareGeneration(root, { concurrency: 0 })).rejects.toThrow('Generation concurrency');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

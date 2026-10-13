@@ -59,6 +59,23 @@ it('reads committed source and helper bytes after clearing inherited private Git
   });
 });
 
+it('derives missing vocabulary through the committed helper before measurement', () => {
+  fixture((root, put, git) => {
+    put('scripts/gen-shard-words.mjs', `import{readFileSync,writeFileSync}from'node:fs';writeFileSync('lint/shard-words.generated.json',JSON.stringify({source:readFileSync('src/engine/value.ts','utf8')}));`);
+    put('lint/wildshard-plugin.js', '// This plugin consumes the generated vocabulary.');
+    put('lint/ratchet.mjs', `import{readFileSync}from'node:fs';const words=JSON.parse(readFileSync('lint/shard-words.generated.json','utf8'));if(!words.source.includes('committed'))throw Error('wrong vocabulary');console.log('immutable vocabulary passed');`);
+    git(['add', '--', 'scripts/gen-shard-words.mjs', 'lint/ratchet.mjs', 'lint/wildshard-plugin.js']);
+    git(['commit', '-qm', 'build-derived vocabulary']);
+    const sha = git(['rev-parse', 'HEAD']);
+    put('scripts/gen-shard-words.mjs', "throw Error('working helper must not execute');");
+    put('lint/shard-words.generated.json', 'foreign invalid JSON');
+    const result = spawnSync('bash', [resolve('scripts/commit-ratchet.sh'), sha], { cwd: root, encoding: 'utf8', env: { ...env, COMMIT_RATCHET_LOCKED: '1' } });
+    expect(result.status, result.stderr).toBe(0);
+    expect(readFileSync(join(root, '.git/ratchet-last.txt'), 'utf8')).toContain(`${sha} ok`);
+    expect(readFileSync(join(root, 'lint/shard-words.generated.json'), 'utf8')).toBe('foreign invalid JSON');
+  });
+});
+
 it('imports the defining guard reader and declarations through the real narrowed commit export',()=>{
   fixture((root,put,git)=>{
     for(const file of ['scripts/guard-counts.mjs','scripts/guard-index-tree.mjs','scripts/guard-index-tree.d.mts'])put(file,readFileSync(file,'utf8'));
