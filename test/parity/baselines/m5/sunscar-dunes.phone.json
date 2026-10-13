@@ -482,7 +482,7 @@
           "n": 0
         },
         {
-          "path": "HUD + Weapon Explorer · grid arena",
+          "path": "HUD + Weapon Explorer \u00b7 grid arena",
           "type": "Group",
           "n": 9
         },
@@ -508,11 +508,11 @@
       "programKeys": "0685b453cbfe5caa46d50a33564f4318aaa702fa87c98728132eb6f9f8831e5b",
       "memory": {
         "geometries": 97,
-        "textures": 58
+        "textures": 59
       }
     },
     "gpuBytes": {
-      "textures": 131425944,
+      "textures": 148786648,
       "renderbuffers": 0,
       "buffers": 11399132,
       "total": 142825076
@@ -2261,12 +2261,12 @@
     "spawn": {
       "name": "spawn",
       "pos": [
-        0.0026997821260010824,
-        21.365508601291797,
-        69.99046689533134
+        0.0022371762634065817,
+        21.302330247730854,
+        69.9960081200752
       ],
       "calls": 73,
-      "tris": 269475,
+      "tris": 162467,
       "fps": 264.0439483883459,
       "frameP95Ms": 5.099999904632568,
       "cpuP50Ms": 3.4000000953674316,
@@ -2283,19 +2283,19 @@
           58,
           433,
           90,
-          499
+          498
         ],
         [
           63,
           432,
           93,
-          497
+          496
         ],
         [
           90,
           434,
           119,
-          498
+          497
         ],
         [
           84,
@@ -2310,12 +2310,12 @@
     "whip": {
       "name": "whip",
       "pos": [
-        0.0024026404207688756,
-        20.34722944864622,
-        65.98766284396334
+        0.00240124156107413,
+        20.346034486127582,
+        65.9876666242053
       ],
       "calls": 70,
-      "tris": 243487,
+      "tris": 137375,
       "fps": 259.0403336680945,
       "frameP95Ms": 5.300000190734863,
       "cpuP50Ms": 3.5,
@@ -2324,7 +2324,7 @@
       "boxes": [
         [
           110,
-          385,
+          384,
           151,
           460
         ],
@@ -2344,7 +2344,7 @@
           259,
           367,
           291,
-          434
+          433
         ],
         [
           263,
@@ -2362,7 +2362,7 @@
           285,
           369,
           317,
-          434
+          435
         ]
       ],
       "shot": "/private/tmp/wildshard-serve/20261009-073025-4403/src/test/parity/baselines/m5/sunscar-dunes.phone.whip.jpg",
@@ -2371,12 +2371,12 @@
     "ray": {
       "name": "ray",
       "pos": [
-        0.0026997821260010824,
-        21.365508601291797,
-        69.99046689533134
+        0.0022371762634065817,
+        21.302330247730854,
+        69.9960081200752
       ],
       "calls": 76,
-      "tris": 270099,
+      "tris": 161299,
       "fps": 255.00598999034995,
       "frameP95Ms": 5.299999713897705,
       "cpuP50Ms": 3.5999999046325684,
@@ -2391,9 +2391,9 @@
         ],
         [
           88,
-          506,
+          505,
           120,
-          572
+          571
         ],
         [
           92,
@@ -2409,7 +2409,7 @@
         ],
         [
           114,
-          507,
+          506,
           145,
           572
         ]
@@ -2420,12 +2420,12 @@
     "quest": {
       "name": "quest",
       "pos": [
-        3.9994895400212727,
-        18.962891171230737,
-        -62.9868300166745
+        3.9993242727454117,
+        18.933772053321306,
+        -62.986949463551355
       ],
       "calls": 58,
-      "tris": 259423,
+      "tris": 151391,
       "fps": 259.2657039315313,
       "frameP95Ms": 5.099999904632568,
       "cpuP50Ms": 3.5999999046325684,
@@ -2433,10 +2433,10 @@
       "creatureBoxes": 1,
       "boxes": [
         [
-          21,
+          20,
           0,
           390,
-          400
+          402
         ]
       ],
       "shot": "/private/tmp/wildshard-serve/20261009-073025-4403/src/test/parity/baselines/m5/sunscar-dunes.phone.quest.jpg",
@@ -2541,15 +2541,15 @@
           }
         },
         "source": "budgets/calibration.json (scripts/calibrate.mjs)",
-        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs \u00d7 10; no phone calibration was run (decision 99)",
         "expressions": {
           "frame": "1000 / 30 / 1.3",
           "gpu": "25.641025641025642 - 9.6",
-          "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 × 10))",
-          "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
-          "programs": "floor(1000 / (0.6720833336313565 × 10))",
+          "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 \u00d7 10))",
+          "tris": "floor(16.04102564102564 \u00d7 0.5 / (4.2708022548417234e-8 \u00d7 10))",
+          "programs": "floor(1000 / (0.6720833336313565 \u00d7 10))",
           "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
-          "downloadBytes": "(null - 0 × 2) × 1125000"
+          "downloadBytes": "(null - 0 \u00d7 2) \u00d7 1125000"
         }
       },
       "systemMs": {
@@ -2661,15 +2661,15 @@
           }
         },
         "source": "budgets/calibration.json (scripts/calibrate.mjs)",
-        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs \u00d7 10; no phone calibration was run (decision 99)",
         "expressions": {
           "frame": "1000 / 30 / 1.3",
           "gpu": "25.641025641025642 - 9.6",
-          "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 × 10))",
-          "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
-          "programs": "floor(1000 / (0.6720833336313565 × 10))",
+          "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 \u00d7 10))",
+          "tris": "floor(16.04102564102564 \u00d7 0.5 / (4.2708022548417234e-8 \u00d7 10))",
+          "programs": "floor(1000 / (0.6720833336313565 \u00d7 10))",
           "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
-          "downloadBytes": "(null - 0 × 2) × 1125000"
+          "downloadBytes": "(null - 0 \u00d7 2) \u00d7 1125000"
         }
       },
       "systemMs": {
@@ -2781,15 +2781,15 @@
           }
         },
         "source": "budgets/calibration.json (scripts/calibrate.mjs)",
-        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs \u00d7 10; no phone calibration was run (decision 99)",
         "expressions": {
           "frame": "1000 / 30 / 1.3",
           "gpu": "25.641025641025642 - 9.6",
-          "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 × 10))",
-          "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
-          "programs": "floor(1000 / (0.6720833336313565 × 10))",
+          "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 \u00d7 10))",
+          "tris": "floor(16.04102564102564 \u00d7 0.5 / (4.2708022548417234e-8 \u00d7 10))",
+          "programs": "floor(1000 / (0.6720833336313565 \u00d7 10))",
           "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
-          "downloadBytes": "(null - 0 × 2) × 1125000"
+          "downloadBytes": "(null - 0 \u00d7 2) \u00d7 1125000"
         }
       },
       "systemMs": {
@@ -2901,15 +2901,15 @@
           }
         },
         "source": "budgets/calibration.json (scripts/calibrate.mjs)",
-        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs \u00d7 10; no phone calibration was run (decision 99)",
         "expressions": {
           "frame": "1000 / 30 / 1.3",
           "gpu": "25.641025641025642 - 9.6",
-          "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 × 10))",
-          "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
-          "programs": "floor(1000 / (0.6720833336313565 × 10))",
+          "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 \u00d7 10))",
+          "tris": "floor(16.04102564102564 \u00d7 0.5 / (4.2708022548417234e-8 \u00d7 10))",
+          "programs": "floor(1000 / (0.6720833336313565 \u00d7 10))",
           "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
-          "downloadBytes": "(null - 0 × 2) × 1125000"
+          "downloadBytes": "(null - 0 \u00d7 2) \u00d7 1125000"
         }
       },
       "systemMs": {
@@ -3021,15 +3021,15 @@
           }
         },
         "source": "budgets/calibration.json (scripts/calibrate.mjs)",
-        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs \u00d7 10; no phone calibration was run (decision 99)",
         "expressions": {
           "frame": "1000 / 30 / 1.3",
           "gpu": "25.641025641025642 - 9.6",
-          "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 × 10))",
-          "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
-          "programs": "floor(1000 / (0.6720833336313565 × 10))",
+          "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 \u00d7 10))",
+          "tris": "floor(16.04102564102564 \u00d7 0.5 / (4.2708022548417234e-8 \u00d7 10))",
+          "programs": "floor(1000 / (0.6720833336313565 \u00d7 10))",
           "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
-          "downloadBytes": "(null - 0 × 2) × 1125000"
+          "downloadBytes": "(null - 0 \u00d7 2) \u00d7 1125000"
         }
       },
       "systemMs": {
@@ -3147,15 +3147,15 @@
           }
         },
         "source": "budgets/calibration.json (scripts/calibrate.mjs)",
-        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs × 10; no phone calibration was run (decision 99)",
+        "assumption": "ASSUMPTION: hot iPhone costs equal measured M5 costs \u00d7 10; no phone calibration was run (decision 99)",
         "expressions": {
           "frame": "1000 / 30 / 1.3",
           "gpu": "25.641025641025642 - 9.6",
-          "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 × 10))",
-          "tris": "floor(16.04102564102564 × 0.5 / (4.2708022548417234e-8 × 10))",
-          "programs": "floor(1000 / (0.6720833336313565 × 10))",
+          "draws": "floor((9.6 - 1.5 - 0.3) / (0.0004257812537252903 \u00d7 10))",
+          "tris": "floor(16.04102564102564 \u00d7 0.5 / (4.2708022548417234e-8 \u00d7 10))",
+          "programs": "floor(1000 / (0.6720833336313565 \u00d7 10))",
           "gpuMB": "GL bytes retain measured baseline ceiling; native footprint is a separate Simulator gate",
-          "downloadBytes": "(null - 0 × 2) × 1125000"
+          "downloadBytes": "(null - 0 \u00d7 2) \u00d7 1125000"
         }
       },
       "systemMs": {
@@ -4750,7 +4750,7 @@
     "poses.ray.fps": 1.6907912043790247,
     "poses.ray.frameP95Ms": 0.09999990463256836,
     "poses.ray.cpuP50Ms": 0.09999990463256836,
-    "poses.ray.cpuP95Ms": 4.76837158203125e-7,
+    "poses.ray.cpuP95Ms": 4.76837158203125e-07,
     "poses.ray.creatureBoxes": 0,
     "poses.ray.ssim": 0,
     "poses.quest.pos": [
@@ -5257,13 +5257,13 @@
     "leak.gpu.retained.programs": 0
   },
   "selfMin": {
-    "spawn": 0.9999734377648661,
-    "whip": 0.9999712710830001,
-    "ray": 0.9999546475070868,
-    "quest": 0.9994098286827666
+    "spawn": 0.9999854323023604,
+    "whip": 0.9999506749182174,
+    "ray": 0.9999863095755711,
+    "quest": 0.9993198069490392
   },
   "harness": 2,
-  "sha": "f983de200b2b54ccde9cb551cc41188c24445222",
-  "recorded": "2026-10-09T12:46:55.302Z",
+  "sha": "fe6335c0801806d217c141b1aa5da4b6b385dde8",
+  "recorded": "2026-10-13T12:58:24.183Z",
   "browser": "153.0.8010.12"
 }
