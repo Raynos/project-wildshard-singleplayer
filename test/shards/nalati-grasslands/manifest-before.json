@@ -751,8 +751,7 @@
         "terrain": [],
         "trees": [],
         "physics": [
-          "/assets/physics/rapier.wasm",
-          "/assets/baked/nalati-grasslands/navmesh.bin"
+          "/assets/physics/rapier.wasm"
         ],
         "cabins": [],
         "props": [
@@ -818,8 +817,7 @@
         "terrain": [],
         "trees": [],
         "physics": [
-          "/assets/physics/rapier.wasm",
-          "/assets/baked/nalati-grasslands/navmesh.bin"
+          "/assets/physics/rapier.wasm"
         ],
         "cabins": [],
         "props": [
@@ -887,8 +885,7 @@
         "terrain": [],
         "trees": [],
         "physics": [
-          "/assets/physics/rapier.wasm",
-          "/assets/baked/nalati-grasslands/navmesh.bin"
+          "/assets/physics/rapier.wasm"
         ],
         "cabins": [],
         "props": [
@@ -954,8 +951,7 @@
         "terrain": [],
         "trees": [],
         "physics": [
-          "/assets/physics/rapier.wasm",
-          "/assets/baked/nalati-grasslands/navmesh.bin"
+          "/assets/physics/rapier.wasm"
         ],
         "cabins": [],
         "props": [
