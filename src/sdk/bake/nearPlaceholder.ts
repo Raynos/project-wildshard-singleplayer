@@ -30,6 +30,9 @@ export interface NearPlaceholderOptions {
   readonly minSize?: number;
   /** fewest triangles a kept prototype is simplified to */
   readonly minTriangles?: number;
+  /** a higher floor for named prototypes (the shard's `placeholder.near.floors`): one is simplified to at least its
+   *  floor, on top of `triangles`, so every other prototype keeps its share */
+  readonly floors?: readonly { readonly prototype: string; readonly triangles: number }[];
 }
 /**
  * What a near-placeholder reduction kept and dropped, for the bake's `--report`: each kept prototype with its placed
@@ -88,7 +91,8 @@ export async function nearPlaceholderParts(prototypes: readonly NearPrototype[],
   const { half } = options, minSize = options.minSize ?? 1.2, minTriangles = options.minTriangles ?? 6;
   if (!Number.isFinite(options.triangles) || options.triangles <= 0 || !Number.isFinite(half) || half <= 0) throw new RangeError('Invalid near-placeholder budget');
   const dropped: { name: string; why: string }[] = [];
-  const live: { name: string; mesh: ReturnType<typeof weld>; copies: (readonly number[])[]; source: number }[] = [];
+  const live: { name: string; mesh: ReturnType<typeof weld>; copies: (readonly number[])[]; source: number; floor: number }[] = [];
+  const floors = new Map((options.floors ?? []).map(f => [f.prototype, f.triangles]));
   for (const p of prototypes) {
     if (p.positions.length % 3 !== 0 || p.colours.length !== p.positions.length || p.index.length % 3 !== 0 || p.index.length === 0) { dropped.push({ name: p.name, why: 'malformed' }); continue; }
     // a two-triangle card is a sprite (a decal, an impostor, a light shaft): untextured it draws as a grey slab
@@ -106,9 +110,10 @@ export async function nearPlaceholderParts(prototypes: readonly NearPrototype[],
       copies.push(m);
     }
     if (copies.length === 0) { dropped.push({ name: p.name, why: small > 0 ? 'small' : 'outside' }); continue; }
-    live.push({ name: p.name, mesh: weld(p), copies, source: p.index.length / 3 });
+    live.push({ name: p.name, mesh: weld(p), copies, source: p.index.length / 3, floor: Math.max(minTriangles, floors.get(p.name) ?? 0) });
   }
-  // one scale for every prototype's share of its own triangles, bisected to the budget
+  // one scale for every prototype's share of its own triangles, bisected to the budget; a declared floor is applied after
+  // it, on top of the budget, so every other prototype keeps exactly the share it has without the floors
   const total = (s: number): number => live.reduce((sum, l) => sum + Math.min(l.source, Math.max(minTriangles, Math.floor(l.source * s))) * l.copies.length, 0);
   let lo = 0, hi = 1;
   if (total(1) > options.triangles) { for (let k = 0; k < 40; k++) { const mid = (lo + hi) / 2; if (total(mid) <= options.triangles) lo = mid; else hi = mid; } } else lo = 1;
@@ -117,7 +122,7 @@ export async function nearPlaceholderParts(prototypes: readonly NearPrototype[],
   let triangles = 0;
   const size = (2 * half) / REGIONS, cell = (u: number): number => Math.min(REGIONS - 1, Math.max(0, Math.floor((u + half) / size)));
   for (const l of live) {
-    const want = Math.min(l.source, Math.max(minTriangles, Math.floor(l.source * lo)));
+    const want = Math.min(l.source, Math.max(l.floor, Math.floor(l.source * lo)));
     const index = simplify(l.mesh, want), used = new Map<number, number>(), order: number[] = [];
     for (const i of index) if (!used.has(i)) { used.set(i, order.length); order.push(i); }
     const local = Uint32Array.from(index, i => used.get(i) ?? 0);

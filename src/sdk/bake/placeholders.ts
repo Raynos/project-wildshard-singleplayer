@@ -10,7 +10,7 @@ import { placeholderGeometry, type PlaceholderGrid, type PlaceholderLook, type P
 import { parseGlb } from '../assets';
 import { encodeCanonicalJson, hashImmutableBytes } from '../immutable';
 import { staticGlb } from './glb';
-import { nearGroundReducer, nearPlaceholderParts, type NearPlaceholderReport, type NearPrototype } from './nearPlaceholder';
+import { nearGroundReducer, nearPlaceholderParts, type NearPlaceholderOptions, type NearPlaceholderReport, type NearPrototype } from './nearPlaceholder';
 
 /**
  * G348 (Jake: *"near and far placeholders are generic things that we're doing inside the engine for arbitrary shards
@@ -148,6 +148,8 @@ export interface NearPlaceholderInput {
   readonly stands?: readonly PlaceholderTree[] | undefined;
   /** the ground's geometric error (m) and the cell's resident ceiling (bytes); default `NEAR_BAKE`'s */
   readonly groundError?: number; readonly residentBytes?: number;
+  /** the shard's declared prototype floors (`placeholder.near.floors`), on top of the content budget */
+  readonly floors?: NearPlaceholderOptions['floors'];
   /** progress lines (the runners print them) */
   readonly log?: (line: string) => void;
 }
@@ -173,7 +175,7 @@ export async function bakeNearPlaceholder(input: NearPlaceholderInput): Promise<
   }
   let budget: number = NEAR_BAKE.contentTriangles;
   for (;;) {
-    const { parts, report: reduced } = await nearPlaceholderParts(input.prototypes, { triangles: budget, half: HALF });
+    const { parts, report: reduced } = await nearPlaceholderParts(input.prototypes, { triangles: budget, half: HALF, ...(input.floors === undefined ? {} : { floors: input.floors }) });
     const bytes = oneDraw(placeholderGeometry(grid, nearLook, [...parts, ...treeParts.parts], NEAR_BAKE.triangles + treeParts.report.triangles, reduceGround), 'near-placeholder');
     const file = fileRow(bytes);
     if (file.decoded + file.gpu <= residentCeiling) {

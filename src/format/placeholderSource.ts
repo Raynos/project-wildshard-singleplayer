@@ -51,6 +51,15 @@ export const PlaceholderSourceSchema = v.strictObject({
   trees: v.optional(v.pipe(v.array(PlaceholderTreeSchema), v.minLength(1), v.maxLength(16))),
   /** the far proxy's look, and its grid or model parts when its land is not a height field */
   far: v.optional(PlaceholderFarSchema),
+  /** the near placeholder's steer: `floors`, the fewest triangles a named prototype (a placed model's id, as the bake's
+   *  `--report` lists it) is simplified to, on top of the cell's content budget (a palm whose trunk the common ratio
+   *  removes keeps its silhouette) */
+  near: v.optional(v.strictObject({
+    floors: v.pipe(v.array(v.strictObject({
+      prototype: v.pipe(v.string(), v.regex(/^[A-Za-z0-9][A-Za-z0-9_./-]{0,63}$/u)),
+      triangles: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(4096)),
+    })), v.minLength(1), v.maxLength(16)),
+  })),
 });
 /** One admitted stand-in tree shape (`PlaceholderTreeSchema`): species, optional stem, crown rings and colour, unit high. */
 export type PlaceholderTree = v.InferOutput<typeof PlaceholderTreeSchema>;
