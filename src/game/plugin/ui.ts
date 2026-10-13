@@ -477,6 +477,8 @@ export function createClientChannels(input: unknown): {
 } {
   const program = parseClientChannels([input])[0]; if (program === undefined) throw new Error('Missing client channel program');
   const nodes = structuredClone(program.nodes), scratch = new Float64Array(nodes.length), published = new Float64Array(nodes.length), reads = new Float64Array(program.reads.length);
+  const slots = structuredClone(program.locals ?? []), locals = new Float64Array(slots.length), previous = new Float64Array(slots.length), next = new Float64Array(slots.length);
+  let initialized = false;
   const frame: Partial<Record<ClientChannelProperty, number>> = {};
   for (const channel of program.channels) Object.defineProperty(frame, channel.property, { enumerable: true, get: () => published[channel.value] });
   Object.freeze(frame);
@@ -484,6 +486,10 @@ export function createClientChannels(input: unknown): {
     const { time, delta, values } = observation;
     if (!Number.isFinite(time) || !Number.isFinite(delta) || delta < 0 || Math.abs(time) > 1e12 || delta > 1e12 || values.length !== reads.length) throw new Error('Invalid copied client observation');
     for (let i = 0; i < reads.length; i++) { const value = values[i]; if (value === undefined || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error('Invalid copied client state'); reads[i] = value; }
+    for (let i = 0; i < slots.length; i++) {
+      const slot = slots[i]; if (slot === undefined) throw new Error('Missing private client slot');
+      previous[i] = initialized ? locals[i] ?? Number.NaN : slot.initial.op === 'constant' ? slot.initial.value : reads[slot.initial.index] ?? Number.NaN;
+    }
     for (let i = 0; i < nodes.length; i++) {
       const node = nodes[i]; if (node === undefined) throw new Error('Missing client expression');
       const a = 'a' in node ? scratch[node.a] ?? Number.NaN : 0, b = 'b' in node ? scratch[node.b] ?? Number.NaN : 0;
@@ -492,6 +498,7 @@ export function createClientChannels(input: unknown): {
         case 'constant': value = node.value; break;
         case 'clock': value = node.value === 'time' ? time : delta; break;
         case 'read': value = reads[node.index] ?? Number.NaN; break;
+        case 'local': value = previous[node.index] ?? Number.NaN; break;
         case 'neg': value = -a; break;
         case 'sin': value = Math.sin(a); break;
         case 'cos': value = Math.cos(a); break;
@@ -513,7 +520,11 @@ export function createClientChannels(input: unknown): {
       if (!Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error('Non-finite or excessive client expression');
       scratch[i] = value;
     }
-    published.set(scratch);
+    for (let i = 0; i < slots.length; i++) {
+      const slot = slots[i]; if (slot === undefined) throw new Error('Missing private client slot');
+      next[i] = scratch[slot.next] ?? Number.NaN;
+    }
+    published.set(scratch); locals.set(next); initialized = true;
   };
   return Object.freeze({ reads: Object.freeze([...program.reads]), frame, evaluate });
 }

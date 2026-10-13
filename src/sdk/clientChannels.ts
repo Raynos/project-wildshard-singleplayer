@@ -7,6 +7,7 @@ type Binary = Extract<Node, { b: number }>['op'];
 export class ClientChannels {
   private readonly nodes: Node[] = [];
   private readonly reads: string[] = [];
+  private readonly locals: NonNullable<ClientChannelProgram['locals']> = [];
   private readonly channels: ClientChannelProgram['channels'] = [];
   private readonly id: string;
   constructor(id: string) { this.id = id; }
@@ -20,6 +21,27 @@ export class ClientChannels {
     let index = this.reads.indexOf(name); if (index < 0) { index = this.reads.length; this.reads.push(name); }
     return this.append({ op: 'read', index });
   }
+  /** Read a private previous-frame scalar, initially a literal or a copied first-frame observation. */
+  local(initial: number | { readonly read: string }): number {
+    let seed: NonNullable<ClientChannelProgram['locals']>[number]['initial'];
+    if (typeof initial === 'number') seed = { op: 'constant', value: initial };
+    else {
+      let index = this.reads.indexOf(initial.read);
+      if (index < 0) { index = this.reads.length; this.reads.push(initial.read); }
+      seed = { op: 'read', index };
+    }
+    const index = this.locals.length, at = this.append({ op: 'local', index });
+    this.locals.push({ initial: seed, next: at });
+    return at;
+  }
+  /** Commit a finite node to this private slot after every frame calculation succeeds. */
+  retain(local: number, next: number): void {
+    const node = this.nodes[local];
+    if (node?.op !== 'local') throw new Error('Expected a private client slot');
+    const slot = this.locals[node.index];
+    if (slot === undefined) throw new Error('Missing private client slot');
+    slot.next = next;
+  }
   /** One admitted unary arithmetic/trigonometric operation. */
   unary(op: Exclude<Unary, Binary>, a: number): number { return this.append({ op, a }); }
   /** One admitted binary arithmetic/trigonometric operation, preserving operand order. */
@@ -30,7 +52,7 @@ export class ClientChannels {
   output(property: ClientChannelProperty, value: number): void { this.channels.push({ property, value }); }
   /** Validate and detach the authored program. */
   build(): ClientChannelProgram {
-    const result = parseClientChannels([{ id: this.id, reads: this.reads, nodes: this.nodes, channels: this.channels }])[0];
+    const result = parseClientChannels([{ id: this.id, reads: this.reads, nodes: this.nodes, channels: this.channels, ...(this.locals.length === 0 ? {} : { locals: this.locals }) }])[0];
     if (result === undefined) throw new Error('Missing client channel program'); return result;
   }
 }

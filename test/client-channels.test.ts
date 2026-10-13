@@ -102,3 +102,63 @@ it('emits closed bounded JSON Schema with the defining backward-reference and ag
   expect(JSON.stringify(roots['clientChannels.ClientChannels'])).toContain('@wildshard/format/clientChannels#');
   expect(JSON.stringify(programSchema)).not.toContain('writeShared');
 });
+
+it('executes the documented variable-frame ramp with isolated private recurrence', () => {
+  const ramp = new ClientChannels('ramp'), progress = ramp.local(0);
+  const next = ramp.binary('min', ramp.constant(1), ramp.binary('add', progress,
+    ramp.binary('div', ramp.clock('delta'), ramp.constant(1.2))));
+  ramp.retain(progress, next); ramp.output('value', next);
+  const a = createClientChannels(ramp.build()), b = createClientChannels(ramp.build());
+  let expected = 0, time = 0;
+  for (const delta of [0, 0.003, 0.12, 0.017, 0.3, 0.012, 0.61, 1.4, 0.01]) {
+    expected = Math.min(1, expected + delta / 1.2); time += delta;
+    a.evaluate({ time, delta, values: [] });
+    expect(Object.is(a.frame.value, expected)).toBe(true);
+  }
+  b.evaluate({ time: 0.1, delta: 0.1, values: [] });
+  expect(b.frame.value).toBe(0.1 / 1.2);
+  expect(Reflect.set(a.frame, 'shared.score', 3)).toBe(false);
+  expect(Reflect.set(a, 'locals', [100])).toBe(false);
+});
+
+it('seeds once from detached observations and updates all slots simultaneously', () => {
+  const row = new ClientChannels('exchange'), a = row.local({ read: 'seed' }), b = row.local(2);
+  row.retain(a, b); row.retain(b, a); row.output('x', a); row.output('y', b);
+  const source = row.build(), view = createClientChannels(source), values = [7];
+  view.evaluate({ time: 0, delta: 0, values });
+  expect(view.frame).toMatchObject({ x: 7, y: 2 });
+  values[0] = 999;
+  if (source.locals === undefined) throw new Error('Missing fixture slots');
+  source.locals[0] = { initial: { op: 'constant', value: 99 }, next: 0 };
+  view.evaluate({ time: 1, delta: 1, values });
+  expect(view.frame).toMatchObject({ x: 2, y: 7 });
+  view.evaluate({ time: 2, delta: 1, values });
+  expect(view.frame).toMatchObject({ x: 7, y: 2 });
+});
+
+it('does not initialize or advance private slots when any frame calculation fails', () => {
+  const row = new ClientChannels('private.atomic'), count = row.local({ read: 'seed' });
+  const next = row.binary('add', count, row.constant(1)); row.retain(count, next);
+  row.output('x', next); row.output('y', row.binary('div', row.constant(1), row.read('divisor')));
+  const view = createClientChannels(row.build());
+  expect(() => view.evaluate({ time: 0, delta: 0, values: [20, 0] })).toThrow();
+  view.evaluate({ time: 1, delta: 1, values: [2, 1] });
+  expect(view.frame.x).toBe(3);
+  expect(() => view.evaluate({ time: 2, delta: 1, values: [99, 0] })).toThrow();
+  expect(view.frame.x).toBe(3);
+  view.evaluate({ time: 3, delta: 1, values: [99, 1] });
+  expect(view.frame.x).toBe(4);
+});
+
+it('refuses invalid private seeds, slot references and per-program or aggregate storage', () => {
+  const row = program(), slot = { initial: { op: 'constant', value: 0 }, next: 0 };
+  for (const locals of [[{ ...slot, next: 1 }], [{ ...slot, initial: { op: 'read', index: 0 } }],
+    [{ ...slot, initial: { op: 'constant', value: Infinity } }], [], Array.from({ length: 9 }, () => slot)]) {
+    expect(() => createClientChannels({ ...row, locals })).toThrow();
+  }
+  expect(() => createClientChannels({ ...row, nodes: [{ op: 'local', index: 0 }] })).toThrow();
+  expect(() => createClientChannels({ ...row, locals: [slot], nodes: [{ op: 'local', index: 1 }] })).toThrow();
+  expect(() => parseClientChannels(Array.from({ length: 129 }, (_, n) => ({ ...row, id: `local.${n}`, locals: Array.from({ length: 8 }, () => slot) })))).toThrow();
+  const roots = formatJsonSchemas(), schema = roots['clientChannels.ClientChannelProgram'];
+  expect(schema?.properties?.['locals']).toMatchObject({ maxItems: 8, minItems: 1 });
+});

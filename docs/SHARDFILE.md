@@ -499,6 +499,31 @@ const rows = [orbit.build()];
 1000.1234567 and requires bit-identical `8 + Math.cos(time * 0.045) * 22` and
 `-(time * 0.045)`. Neither clock quantization nor yaw wrapping is applied.
 
+Optional `locals` retain at most eight **private visual** scalars per program
+(1,024 across the shard). A slot starts with a literal or one copied observation
+from the first successful evaluation. A `local` node reads the previous frame;
+`next` names a finite node to retain after the entire frame succeeds. All slots
+update simultaneously. This is bounded frame-to-frame recurrence, not a node
+loop or an authoritative state setter. Failure changes neither the published
+frame nor the retained scalars. Separate view instances share no storage.
+Absent slots leave existing programs and their continuous clock math unchanged.
+
+For a variable-frame ramp, the builder emits ordinary admitted rows:
+
+```ts
+const ramp = new ClientChannels('ramp');
+const progress = ramp.local(0);
+const next = ramp.binary('min', ramp.constant(1),
+  ramp.binary('add', progress,
+    ramp.binary('div', ramp.clock('delta'), ramp.constant(1.2))));
+ramp.retain(progress, next);
+ramp.output('value', next);
+```
+
+`test/client-channels.test.ts` executes this ramp with unequal frame intervals,
+checks simultaneous recurrence and boot-only copied seeds, and proves failed
+frames do not advance it. Its outputs still cannot write shared/player state.
+
 Named hook conditions resolve a stable numeric field ID and a typed equality value.
 Shared conditions read public fields; player conditions may read the owning actor's
 fields. Host-only fields stay private. Scene hooks declare a numeric event type and
