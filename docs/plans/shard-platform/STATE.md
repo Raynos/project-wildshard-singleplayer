@@ -13,7 +13,7 @@
 **Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 bench, x6 SF87, x4 Pine, x1 Driftwood, x8 Nine. Opus: o112 Nine P0, o115 desktop parity drift, o114 Pine build slicing (1 free).
 
 **Jake ask (Nalati places):** port or freeze; recommend port later.
-**Jake ask (Sky movers):** Sky headless onto the generic mover driver deletes one-user code but re-records the gameplay hash. Recommend yes, after the sprint.
+**Jake ask (Sky movers):** generic mover driver deletes one-user code but re-records the gameplay hash; recommend yes.
 
 **Jake ask (S2):** Graph materials default-off pending an iPhone reading. Recommend accepting Sim + desktop. Near boards `art/near-tier/round-6/`.
 **Jake ask (Sim):** Pine phone tier `textures: 'ktx2'` (board `art/pine-ktx2/round-1-variant/`; existing Debug ▸ GPU textures row): Sim travel 52–58 → 38 ms, GPU 526 → ~260 MB, download 31 → 61–96 MB. Recommend B.
