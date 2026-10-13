@@ -30,6 +30,8 @@ const collider = v.strictObject({ id, panel: v.nullable(id), initialActive: v.bo
 /** Declared self-contained GLBs: merged tile meshes, EXT_mesh_gpu_instancing lists, far proxy and script-addressable panels. */
 export const PropsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only props'), v.strictObject({ version: v.literal(1), family: id,
   materials: v.exactOptional(PropMaterialsSchema),
+  /** Explicit visual-only edge allowance in metres; absent preserves the fixed-cell refusal. */
+  overhang: v.exactOptional(v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1))),
   /** Exact whole source draws in ordinary library GLBs, installed only by a props-bound runtime. */
   wholeLibrary: v.exactOptional(v.pipe(v.array(ref), v.minLength(1), v.maxLength(512), v.check(rows => new Set(rows).size === rows.length, 'unique whole library refs'))),
   splat: v.exactOptional(SplatTerrainSchema),

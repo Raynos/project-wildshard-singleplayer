@@ -31,6 +31,8 @@ export interface PropWhole {
   nativeAttributes?: true;
   /** Assign each unchanged triangle to its world-space centroid's tile; extras retain exact assembly ordinals. */
   partition?: true;
+  /** Declared visual edge allowance; default zero, hard capped at one metre. No vertex is clipped. */
+  overhang?: number;
 }
 
 /** One exact subset of a whole geometry. Ordinals address the original vertices and triangles, not clipped fragments. */
@@ -51,7 +53,8 @@ function subsetAttribute(attribute: BufferAttribute, selected: readonly number[]
 }
 
 /** Partition triangles without clipping or rounding any source channel; world transforms affect ownership only. */
-export function partitionWholeGeometry(sourceGeometry: BufferGeometry, transform = new Matrix4()): WholeGeometryPart[] {
+export function partitionWholeGeometry(sourceGeometry: BufferGeometry, transform = new Matrix4(), overhang = 0): WholeGeometryPart[] {
+  if (!Number.isFinite(overhang) || overhang < 0 || overhang > 1) throw new Error('Invalid whole overhang');
   const position = sourceGeometry.getAttribute('position'), index = sourceGeometry.getIndex(), count = index?.count ?? position.count;
   if (count % 3 !== 0) throw new Error('Whole geometry requires triangles');
   const groups = new Map<string, { x: number; z: number; vertices: number[]; triangles: number[]; indices: number[]; lookup: Map<number, number> }>();
@@ -62,8 +65,9 @@ export function partitionWholeGeometry(sourceGeometry: BufferGeometry, transform
     centroid.set(0, 0, 0);
     for (const vertex of ids) centroid.add(point.fromBufferAttribute(position, vertex).applyMatrix4(transform));
     centroid.multiplyScalar(1 / 3);
-    const x = Math.min(7, Math.floor((centroid.x + 250) / 62.5)), z = Math.min(7, Math.floor((centroid.z + 250) / 62.5));
-    if (!Number.isFinite(centroid.x) || !Number.isFinite(centroid.z) || x < 0 || z < 0 || centroid.x > 250 || centroid.z > 250) throw new Error('Whole triangle centroid outside the cell');
+    const ownedAddress = (value: number): number => overhang === 0 ? Math.min(7, Math.floor((value + 250) / 62.5)) : Math.max(0, Math.min(7, Math.floor((value + 250) / 62.5)));
+    const x = ownedAddress(centroid.x), z = ownedAddress(centroid.z);
+    if (!Number.isFinite(centroid.x) || !Number.isFinite(centroid.z) || x < 0 || z < 0 || Math.abs(centroid.x) > 250 + overhang || Math.abs(centroid.z) > 250 + overhang) throw new Error('Whole triangle centroid outside the cell');
     const address = `${x}/${z}`;
     let segment = active.get(address) ?? 0;
     if ((groups.get(`${address}/${segment}`)?.triangles.length ?? 0) >= 10000) { segment++; active.set(address, segment); }
@@ -198,6 +202,9 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     if (texture !== null) { row.dependencies = [texture.hash]; const prior = files.find((f) => f.hash === row.hash); if (prior !== undefined) prior.dependencies = row.dependencies; section.textures.push({ model: row.hash, colour: texture.hash }); }
     return row;
   };
+  const overhang = Math.max(0, ...(source.whole ?? []).map(entry => entry.overhang ?? 0));
+  if (!Number.isFinite(overhang) || overhang > 1 || (source.whole ?? []).some(entry => !Number.isFinite(entry.overhang ?? 0) || (entry.overhang ?? 0) < 0)) throw new Error('Invalid whole overhang');
+  if (overhang > 0) section.overhang = overhang;
   const whole = (source.whole ?? []).flatMap((entry): PreparedWhole[] => {
     const { mesh } = entry, at = new Vector3().setFromMatrixPosition(entry.transform), m = mesh.material;
     if (!(at.x >= -250 && at.x < 250 && at.z >= -250 && at.z < 250)) throw new Error(`Whole prop ${entry.id} origin outside the cell`);
@@ -210,7 +217,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
       if (!(position instanceof BufferAttribute) || position.itemSize !== 3 || (index?.count ?? position.count) % 3 !== 0) throw new Error('Whole prop needs triangle positions');
       for (let vertex = 0; vertex < position.count; vertex++) {
         point.fromBufferAttribute(position, vertex).applyMatrix4(entry.transform);
-        if (![point.x, point.y, point.z].every(Number.isFinite) || Math.abs(point.x) > 250 || Math.abs(point.z) > 250 || point.y < -CELL_BELOW || point.y > CELL_ABOVE) throw new Error('Prop outside the cell');
+        if (![point.x, point.y, point.z].every(Number.isFinite) || Math.abs(point.x) > 250 + (entry.overhang ?? 0) || Math.abs(point.z) > 250 + (entry.overhang ?? 0) || point.y < -CELL_BELOW || point.y > CELL_ABOVE) throw new Error('Prop outside the cell');
       }
     } else {
       const placed = new Mesh(mesh.geometry, m); placed.applyMatrix4(entry.transform); vertices(placed, new Matrix4(), false); // refuses a shape outside the cell
@@ -228,7 +235,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
       nativeAttributes: entry.partition === true ? true as const : entry.nativeAttributes };
     if (entry.partition !== true) return [{ ...base, owner: null, extras: undefined }];
     const preparedParts: PreparedWhole[] = [];
-    for (const part of partitionWholeGeometry(g, entry.transform)) {
+    for (const part of partitionWholeGeometry(g, entry.transform, entry.overhang ?? 0)) {
       const prepared: PreparedWhole = { ...base, id: `${entry.id}_p${part.x}_${part.z}_n${preparedParts.length}`, geometry: part.geometry,
       owner: { x: part.x, z: part.z }, extras: { wholePartition: { id: entry.id, vertices: part.vertices, triangles: part.triangles,
         vertexCount: g.getAttribute('position').count, indexCount: g.getIndex()?.count ?? 0,
@@ -280,9 +287,15 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
       const cost = tileFiles.reduce((sum, part) => ({ decoded: sum.decoded + part.decoded, gpu: sum.gpu + part.gpu, triangles: sum.triangles + part.triangles, draws: sum.draws + part.draws }), { decoded: 0, gpu: 0, triangles: 0, draws: 0 });
       if (texture !== null) { cost.gpu += texture.gpu; cost.decoded += texture.decoded; }
       const prior = tiles.find((t) => t.lod === lod && t.x === x && t.z === z), row: Shardfile['tiles'][number] = prior ?? { lod, x, z, bounds: { min: [x0, 0, z0], max: [x0 + size, 0, z0 + size] }, geometricError: 0, files: [], compressed: 0, decoded: 0, gpu: 0, triangles: 0, draws: 0 };
+      if (overhang > 0) row.drawBounds = { min: [...row.bounds.min], max: [...row.bounds.max] };
       row.files.push(...tileFiles.map(part => part.hash)); row.compressed += tileFiles.reduce((sum, part) => sum + part.compressed, 0) + (texture?.compressed ?? 0); row.decoded += cost.decoded; row.gpu += cost.gpu; row.triangles += cost.triangles; row.draws += cost.draws;
       for (const primitive of primitives) { primitive.geometry.computeBoundingBox(); const box = primitive.geometry.boundingBox; if (box === null) continue;
-        for (const matrix of primitive.instances ?? [primitive.transform ?? new Matrix4()]) { const world = box.clone().applyMatrix4(matrix); row.bounds.min[1] = Math.min(row.bounds.min[1], world.min.y); row.bounds.max[1] = Math.max(row.bounds.max[1], world.max.y); }
+        for (const matrix of primitive.instances ?? [primitive.transform ?? new Matrix4()]) { const world = box.clone().applyMatrix4(matrix); row.bounds.min[1] = Math.min(row.bounds.min[1], world.min.y); row.bounds.max[1] = Math.max(row.bounds.max[1], world.max.y);
+          if (row.drawBounds !== undefined) for (const axis of [0, 1, 2] as const) {
+            const coordinate = axis === 0 ? 'x' : axis === 1 ? 'y' : 'z';
+            row.drawBounds.min[axis] = Math.min(row.drawBounds.min[axis], world.min[coordinate]);
+            row.drawBounds.max[axis] = Math.max(row.drawBounds.max[axis], world.max[coordinate]);
+          } }
       }
       if (lod === 0) for (const panel of panelFiles) { const box = panel.bounds; if (box === null || box.max.x < x0 || box.min.x > x0 + size || box.max.z < z0 || box.min.z > z0 + size) continue; row.files.push(panel.file.hash); row.triangles += panel.file.triangles; row.draws += panel.file.draws; row.bounds.min[1] = Math.min(row.bounds.min[1], box.min.y); row.bounds.max[1] = Math.max(row.bounds.max[1], box.max.y); }
       const cap = lod === 0 ? CONTENT_CAPS.l0 : CONTENT_CAPS.l1;

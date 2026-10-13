@@ -3712,3 +3712,15 @@ existing renderer and collision authority. The compatibility collider
 reference names that same query root. Heights and splat bytes remain
 exact, and native placement logs stay outside the query payload. Omitted
 use leaves existing `bakeTerrain` products unchanged.
+
+### Exact whole-draw edge overhang
+
+`WholeShape` / `PropWhole` can declare `overhang` from 0 to 1 metre. The
+default is zero and preserves the fixed-cell refusal. The compiler keeps
+every source vertex and triangle. An outside centroid within the declared
+allowance belongs to the nearest edge tile; source geometry is never
+clamped. `props.overhang` and each optional tile `drawBounds` charge and
+cull the actual geometry. Admission checks transformed triangle bytes
+against both the allowance and the declared draw bounds. Collider bounds
+and physics are unaffected. Reconstruct each original source draw through
+the existing whole-geometry reader; do not draw its subsets separately.

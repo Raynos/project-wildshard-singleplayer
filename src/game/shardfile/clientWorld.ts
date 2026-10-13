@@ -83,7 +83,7 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
   } } catch (error) { tileLifetime.dispose(); throw error; }
   let chain = Promise.resolve();
   const refresh = (x: number, z: number): Promise<void> => {
-    const selection = terrainResidency(x, z);
+    const selection = terrainResidency(x, z, source.props?.overhang ?? 0);
     chain = chain.then(async () => {
       if (ports.scope.disposed) return undefined;
       for (const [key, scope] of fine) if (!selection.fine.has(key)) { scope.dispose(); fine.delete(key); fineTiles.delete(key); }

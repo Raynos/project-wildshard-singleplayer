@@ -39,7 +39,7 @@ function locationModels(shard: Shardfile, commons: number): ((x: number, z: numb
       const ownActive = distance2(x, z, -250, -250, 250, 250) <= RADIUS2;
       // Eight heading lookahead slots charged at target, even when the project is empty.
       let l0 = 8 * C.l0.resident;
-      for (const tile of own) if (distance2(x, z, tile.bounds.min[0], tile.bounds.min[2], tile.bounds.max[0], tile.bounds.max[2]) <= RADIUS2) l0 += tile.decoded + tile.gpu;
+      for (const tile of own) if (distance2(x, z, (tile.drawBounds ?? tile.bounds).min[0], (tile.drawBounds ?? tile.bounds).min[2], (tile.drawBounds ?? tile.bounds).max[0], (tile.drawBounds ?? tile.bounds).max[2]) <= RADIUS2) l0 += tile.decoded + tile.gpu;
       for (const tile of tiles) if (distance2(x, z, tile.x0, tile.z0, tile.x0 + 62.5, tile.z0 + 62.5) <= RADIUS2) l0 += C.l0.resident;
       const cost = contentCost({ l0, l1: C.l1Count * C.l1.resident + coarseExcess, far: (C.farCount - 1) * C.far.resident + (shard.far === null ? 0 : shard.far.decoded + shard.far.gpu), libraries: (ownActive ? shard.budgets.library.resident : 0) + active * C.library.resident, sims: Math.max(shard.budgets.sim.resident, shard.serverBudget.memory) + 3 * C.sim.resident, commons, near: nearBytes, overlap: Math.max(C.overlap, shard.budgets.overlap) });
       return { ...cost, location: [x, z] };
@@ -60,7 +60,7 @@ const worstCache = new Map<string, LocationCost>();
 
 /** Worst disc with three synthetic neighbours at the platform targets; grid padding covers unsampled gaps. */
 export function worstContentCost(shard: Shardfile, commons = 0): LocationCost {
-  const key = JSON.stringify([shard.tiles.map(tile => [tile.lod, tile.decoded, tile.gpu, tile.bounds.min[0], tile.bounds.min[2], tile.bounds.max[0], tile.bounds.max[2]]), shard.far === null ? null : [shard.far.decoded, shard.far.gpu], shard.budgets.library.resident, shard.budgets.sim.resident, shard.budgets.overlap, shard.serverBudget.memory, commons,
+  const key = JSON.stringify([shard.tiles.map(tile => [tile.lod, tile.decoded, tile.gpu, (tile.drawBounds ?? tile.bounds).min[0], (tile.drawBounds ?? tile.bounds).min[2], (tile.drawBounds ?? tile.bounds).max[0], (tile.drawBounds ?? tile.bounds).max[2]]), shard.far === null ? null : [shard.far.decoded, shard.far.gpu], shard.budgets.library.resident, shard.budgets.sim.resident, shard.budgets.overlap, shard.serverBudget.memory, commons,
     shard.near === undefined ? 0 : nearPlaceholderCost(shard.near, shard).total.resident]);
   const cached = worstCache.get(key);
   if (cached !== undefined) return { ...cached, location: [...cached.location] };

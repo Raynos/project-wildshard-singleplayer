@@ -170,6 +170,10 @@ export function shardfileRules(s: Shardfile): string[] {
     if (seen.has(id)) errors.push('unique tile addresses'); seen.add(id);
     const n = 500 / cap.size;
     if (t.x >= n || t.z >= n || t.bounds.min[0] !== -250 + t.x * cap.size || t.bounds.max[0] !== -250 + (t.x + 1) * cap.size || t.bounds.min[2] !== -250 + t.z * cap.size || t.bounds.max[2] !== -250 + (t.z + 1) * cap.size) errors.push('tile grid bounds');
+    if (t.drawBounds !== undefined) {
+      const b = t.drawBounds, margin = s.props?.overhang;
+      if (margin === undefined || b.min[0] < -250 - margin || b.max[0] > 250 + margin || b.min[2] < -250 - margin || b.max[2] > 250 + margin || b.min.some((coordinate, i) => coordinate > (t.bounds.min[i] ?? -Infinity)) || b.max.some((coordinate, i) => coordinate < (t.bounds.max[i] ?? Infinity))) errors.push('declared prop draw bounds');
+    }
     if (t.lod === 1 && t.files.some((r) => s.library.includes(r))) errors.push('self-contained coarse tile');
   }
   for (const f of s.files) if (f.critical !== s.critical.includes(f.hash)) errors.push('critical flags match roots');

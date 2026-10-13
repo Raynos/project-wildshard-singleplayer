@@ -25,8 +25,10 @@ export const ShardNamesSchema = v.pipe(v.array(name), v.maxLength(limits.files))
 const vec3 = v.tuple([ShardFiniteSchema, ShardFiniteSchema, ShardFiniteSchema]);
 /** Ordered local bounds inside the fixed shard cell. */
 export const CellBoundsSchema = v.pipe(v.strictObject({ min: vec3, max: vec3 }), v.check((b) => b.min.every((n, i) => n <= (b.max[i] ?? -Infinity)), 'ordered bounds'), v.check((b) => b.min[0] >= -CHUNK_HALF && b.max[0] <= CHUNK_HALF && b.min[2] >= -CHUNK_HALF && b.max[2] <= CHUNK_HALF && b.min[1] >= -CELL_BELOW && b.max[1] <= CELL_ABOVE, 'cell bounds'));
+const drawBounds = v.pipe(v.strictObject({ min: vec3, max: vec3 }),
+  v.check(b => b.min.every((n, i) => n <= (b.max[i] ?? -Infinity)) && b.min[0] >= -CHUNK_HALF - 1 && b.max[0] <= CHUNK_HALF + 1 && b.min[2] >= -CHUNK_HALF - 1 && b.max[2] <= CHUNK_HALF + 1 && b.min[1] >= -CELL_BELOW && b.max[1] <= CELL_ABOVE, 'bounded visual draw extent'));
 const costs = { compressed: ShardNaturalSchema, decoded: ShardNaturalSchema, gpu: ShardNaturalSchema, triangles: ShardNaturalSchema, draws: ShardNaturalSchema };
-const tile = v.strictObject({ lod: v.picklist([0, 1]), x: ShardNaturalSchema, z: ShardNaturalSchema, bounds: CellBoundsSchema, geometricError: v.pipe(ShardFiniteSchema, v.minValue(0)), files: ShardReferencesSchema, ...costs });
+const tile = v.strictObject({ lod: v.picklist([0, 1]), x: ShardNaturalSchema, z: ShardNaturalSchema, bounds: CellBoundsSchema, drawBounds: v.exactOptional(drawBounds), geometricError: v.pipe(ShardFiniteSchema, v.minValue(0)), files: ShardReferencesSchema, ...costs });
 const file = v.strictObject({ hash: ShardHashSchema, kind: v.picklist(['glb', 'ktx2', 'audio', 'json', 'wasm', 'binary', 'image']), ...costs, dependencies: ShardReferencesSchema, critical: v.boolean() });
 const tileCount = (2 * CHUNK_HALF / WIRE_TILE_SIZES.l0) ** 2 + (2 * CHUNK_HALF / WIRE_TILE_SIZES.l1) ** 2;
 

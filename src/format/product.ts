@@ -463,7 +463,7 @@ function totals(source: Shardfile, refs: Iterable<string>): { bytes: number; dra
   return { bytes, draws, triangles };
 }
 const near = (tile: Shardfile['tiles'][number], x: number, z: number): boolean => {
-  const dx = Math.max(tile.bounds.min[0] - x, x - tile.bounds.max[0], 0), dz = Math.max(tile.bounds.min[2] - z, z - tile.bounds.max[2], 0);
+  const dx = Math.max((tile.drawBounds ?? tile.bounds).min[0] - x, x - (tile.drawBounds ?? tile.bounds).max[0], 0), dz = Math.max((tile.drawBounds ?? tile.bounds).min[2] - z, z - (tile.drawBounds ?? tile.bounds).max[2], 0);
   return dx * dx + dz * dz <= C.nearRadius ** 2;
 };
 
@@ -485,6 +485,23 @@ export function performanceTargetIssues(source: Shardfile, policy: 'refuse' | 'w
     check('far download bytes', source.far.compressed, C.far.compressed); check('far draws', source.far.draws, C.far.draws); check('far triangles', source.far.triangles, C.far.triangles);
   }
   return issues;
+}
+
+/** Refuse forged visual overhang or draw extents using actual transformed triangle bytes, never accessor bounds. */
+export function validatePropDrawBounds(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>): void {
+  const props = source.props; if (props?.overhang === undefined) return;
+  const limit = 250 + props.overhang;
+  for (const row of props.tiles) {
+    const tile = source.tiles.find(candidate => candidate.lod === row.lod && candidate.x === row.x && candidate.z === row.z);
+    if (tile === undefined) throw new Error('Missing prop draw tile');
+    const bounds = tile.drawBounds ?? tile.bounds;
+    for (const ref of [row.file, ...row.additionalFiles ?? []]) {
+      const bytes = assets.get(ref); if (bytes === undefined) throw new Error('Missing prop draw bytes');
+      visitGlbTriangles(bytes, triangle => {
+        for (const point of triangle) if (Math.abs(point.x) > limit || Math.abs(point.z) > limit || point.x < bounds.min[0] || point.x > bounds.max[0] || point.y < bounds.min[1] || point.y > bounds.max[1] || point.z < bounds.min[2] || point.z > bounds.max[2]) throw new Error('Prop exceeds declared visual draw bounds');
+      });
+    }
+  }
 }
 
 /** Report deterministic declared bounds and measured native execution; the caller supplies trusted provenance policy. */
