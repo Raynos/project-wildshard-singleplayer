@@ -2,7 +2,7 @@ import { BufferGeometry, Mesh, MeshStandardMaterial, type Object3D, type Texture
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
-import { ISLE_PAINT, ISLE_PAINT_EDITS, isleNode } from '../data/isleLook';
+import { ISLE_PAINT, ISLE_PAINT_EDITS } from '../data/isleLook';
 import isleRows from '../data/isles.json' with { type: 'json' };
 import { onPaintedDispose } from '../look/image';
 
@@ -34,6 +34,8 @@ export function islandMesh(id: string): Mesh<BufferGeometry, MeshStandardMateria
   return new Mesh(g, isleMaterial());
 }
 
+/** A static island's node in its props tile (generators/isleProps.ts; `gate.north` → `isle_gate-north`), by which it is found. */
+export const isleNode = (id: string): string => `isle_${id.replace('.', '-')}`;
 /** The static islands drawn from their props tiles (generators/isleProps.ts), by island id; the world build paints each. */
 export type IsleMeshes = ReadonlyMap<string, Mesh>;
 /** The runtime's props view: take a tile's islands (each at its own position, its baked triangles and paint as built). */

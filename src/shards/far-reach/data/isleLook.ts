@@ -7,9 +7,6 @@ import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
  * much of the rock texture replaces the vertex colour.
  */
 
-/** A static island's node in its props tile (generators/isleProps.ts; `gate.north` → `isle_gate-north`), by which world/isle.ts finds it. */
-export const isleNode = (id: string): string => `isle_${id.replace('.', '-')}`;
-
 /** The defines and samplers a loaded rock or meadow texture adds. */
 export const ISLE_PAINT = {
   rockTex: '#define FAR_ROCK_TEX\nuniform sampler2D farRock;\n',
