@@ -5,7 +5,7 @@ Kept in the repo because `/tmp` (scratchpads, old briefs) is wiped on a reboot.
 
 ## The goal (Jake, standing)
 
-Finish SHARD-PLATFORM (`docs/plans/SHARD-PLATFORM.md`; route `design-system.md`; queue `open-x-queue.md`). At all moments
+Finish SHARD-PLATFORM. Read the compacted plan `docs/plans/SHARD-PLATFORM.md` (40 KB: §0, measures, live rules, open-rows index) and `docs/plans/shard-platform/STATE.md`; open `decisions.md` (G-rows) and `rows.md` (full row text) only for what you need (route `design-system.md`; queue `open-x-queue.md`). At all moments
 the game holds **60–120 fps on desktop/laptop and 30–60 fps on the iOS Simulator** (gates: desktop max ≤ 100 ms,
 p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may regress them.
 
@@ -24,6 +24,8 @@ p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may 
 - **Private-index commits must be built on the CURRENT HEAD.** `GIT_INDEX_FILE=x git read-tree HEAD` then commit
   immediately and verify the new commit's parent is the HEAD you read. If HEAD moved in between, your index silently
   reverts the newer landings (bb6291f57 reverted ae7304f04). Re-read the tree and retry rather than committing a stale index.
+  **After a private-index commit, reset only the shared INDEX for your own paths; never write HEAD bytes over working-tree
+  files you did not author** (sp-x8's uncommitted geometry.ts work was wiped that way, 2026-10-13).
   **Generated files are made by pre-commit (G367):** a private-index helper must run pre-commit FIRST and `git write-tree`
   AFTER it, so the regenerated outputs are in the commit; the push regenerates nothing.
 - **Silent-revert guard (`afad1ea04`):** both commit hooks refuse a commit that puts a path back to bytes/modes from an
