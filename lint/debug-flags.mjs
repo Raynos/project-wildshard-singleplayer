@@ -1,5 +1,7 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { relative, resolve } from 'node:path';
+import { createHash } from 'node:crypto';
+import { serialize, deserialize } from 'node:v8';
 import { parseSync } from 'vite';
 
 const object = (value) => value !== null && typeof value === 'object';
@@ -37,8 +39,22 @@ export function declaredDebugRows(program) {
   });
   return rows;
 }
-/** Read authored rows without executing the game or loading its renderer. */
-export function debugFlags(root) {
+/** Read authored rows without executing the game or loading its renderer.
+ * @param {string} root @param {string} [cacheDir] Verified per-file facts only; the file inventory stays fresh. */
+export function debugFlags(root, cacheDir) {
+  const hash = value => createHash('sha256').update(value).digest('hex');
+  const recipe = cacheDir === undefined ? null : hash(JSON.stringify([
+    process.version, process.versions.v8, process.platform, process.arch,
+    hash(readFileSync(new URL('debug-flags.mjs', import.meta.url))),
+    ...[resolve(root, 'pnpm-lock.yaml'), new URL('../node_modules/vite/package.json', import.meta.url)]
+      .map(file => existsSync(file) ? hash(readFileSync(file)) : null),
+  ]));
+  const supported = values => Array.isArray(values) && values.every(value => value !== null
+    && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype
+    && Object.keys(value).every(key => ['id', 'ask', 'reviewBy', 'purpose'].includes(key))
+    && Object.values(value).every(item => item === null || ['undefined', 'string', 'number', 'boolean', 'bigint'].includes(typeof item)));
+  let parsedFiles = 0, reusedFiles = 0;
+
   const rows = [];
   function scan(dir) {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -46,7 +62,21 @@ export function debugFlags(root) {
       // The SDK ships copied clients and author templates here; their defining sources are inventoried instead.
       if (entry.isDirectory()) { if (file !== resolve(root, 'src/sdk/dist')) scan(file); continue; }
       if (!/\.[cm]?[jt]sx?$/u.test(file)) continue;
-      const parsed = parseSync(file, readFileSync(file, 'utf8'));
+      const source = readFileSync(file, 'utf8');
+      const key = recipe === null ? null : hash(JSON.stringify([recipe, relative(root, file), source]));
+      const receipt = key === null ? null : resolve(cacheDir, 'debug-file-facts', `${key}.json`);
+      if (receipt !== null) {
+        try {
+          const saved = JSON.parse(readFileSync(receipt, 'utf8'));
+          if (saved.key !== key || typeof saved.payload !== 'string' || saved.digest !== hash(JSON.stringify([key, saved.payload]))) throw new Error('Corrupt Debug facts');
+          const facts = deserialize(Buffer.from(saved.payload, 'base64'));
+          if (!supported(facts)) throw new Error('Invalid Debug facts');
+          for (const value of facts) rows.push({ ...value, file });
+          reusedFiles++; continue;
+        } catch { /* Missing or corrupt evidence requires actual parsing. */ }
+      }
+      const parsed = parseSync(file, source), fileRows = [];
+      parsedFiles++;
       if (parsed.errors.length > 0) throw new Error(`Cannot inventory Debug rows in ${file}`);
       const program = parsed.program, definitions = new Map();
       walk(program, (node) => { if (node.type === 'VariableDeclarator') definitions.set(node.id?.name, node.init); });
@@ -68,18 +98,27 @@ export function debugFlags(root) {
         }
         throw new Error(`Unresolvable Debug row in ${file}`);
       };
-      for (const value of declaredDebugRows(program)) rows.push({ ...row(value), file });
+      for (const value of declaredDebugRows(program)) fileRows.push(row(value));
       walk(program, (node) => {
         if (node.type === 'VariableDeclarator' && node.id?.name === 'DEBUG_ROWS') {
           const array = unwrap(node.init);
           if (array?.type !== 'ArrayExpression' || array.elements.some((element) => !element || element.type === 'SpreadElement')) throw new Error(`DEBUG_ROWS must be a literal row array: ${file}`);
-          for (const value of array.elements) rows.push({ ...row(value), file });
+          for (const value of array.elements) fileRows.push(row(value));
         }
-        if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' && node.callee.property?.name === 'debugRow' && node.callee.object?.name !== 'adapters') rows.push({ ...row(node.arguments[0]), file });
+        if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' && node.callee.property?.name === 'debugRow' && node.callee.object?.name !== 'adapters') fileRows.push(row(node.arguments[0]));
       });
+      // Preserve undefined fields exactly; unsupported values stay uncached.
+      if (receipt !== null && supported(fileRows)) {
+        const payload = serialize(fileRows).toString('base64');
+        mkdirSync(resolve(receipt, '..'), { recursive: true });
+        writeFileSync(receipt, JSON.stringify({ key, payload, digest: hash(JSON.stringify([key, payload])) }));
+      }
+      for (const value of fileRows) rows.push({ ...value, file });
     }
   }
-  scan(resolve(root, 'src')); return rows;
+  scan(resolve(root, 'src'));
+  if (cacheDir !== undefined) console.log(`Debug facts: ${parsedFiles} parsed, ${reusedFiles} verified`);
+  return rows;
 }
 export function validateFlags(rows, { today, max, raisedBy = [], askExists: hasAsk }) {
   const errors = [], overdue = [], now = Date.parse(`${today}T00:00:00Z`);

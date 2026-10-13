@@ -154,3 +154,22 @@ narrowed gate types and touched lint pass. The refused 19.77 s source run earns
 no timing credit; the test-input cold run passes in 6.22 s on 713cad033.
 CALL: verified content-addressed outputs are authoritative; absent evidence
 waits for the writer, never falls back to guessed data.
+
+
+## Per-file Debug facts (G384, sp-x7 ownership release)
+
+Each completed file inventory caches by source bytes/path, parser/helper/lock
+and Node/V8/host metadata. Files are enumerated fresh; additions, deletions,
+corruption and opaque AST remain checked. Undefined metadata fields survive
+exactly. The complete-census receipt and current ceiling checks remain intact;
+full CI still parses uncached. No failed file publishes facts.
+
+Complete 18-row inventory: 5.663 s uncached, 5.993 s first fill, 0.213 s
+verified reuse, with exact object equality. A changed source parsed one file
+and reused 3,731. 114 focused checks, narrowed gate types and lint pass.
+The source hook remains OPEN at 17.56 s: generation 8.348 s, measurements
+3.682 s, final guards 17.37 s including their wait. Pine cabins, Nalati bodies,
+Sky rigs and Signal sand still declare whole engine/game/SDK trees, so an
+engine UI edit rebuilds all four under the existing input contract.
+CALL: keep every declared generation input and every fresh policy check;
+reuse only parsed facts, never treat cached counts as permission.

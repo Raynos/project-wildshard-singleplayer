@@ -89,7 +89,7 @@ function debugCount(root, cacheDir) {
     } catch { /* a missing or corrupt receipt requires the actual AST census */ }
   }
   const frozen = legacyInventory(root);
-  const count=debugFlags(root).filter((row) => row.purpose !== 'developer' && !registeredLegacyFile(frozen, relative(root, row.file).replaceAll('\\', '/'))).length;
+  const count=debugFlags(root, cacheDir).filter((row) => row.purpose !== 'developer' && !registeredLegacyFile(frozen, relative(root, row.file).replaceAll('\\', '/'))).length;
   if (receipt!==undefined) {
     mkdirSync(resolve(cacheDir,'debug-census'),{recursive:true});
     save(receipt,{key,count,digest:createHash('sha256').update(JSON.stringify([key,count])).digest('hex')});
