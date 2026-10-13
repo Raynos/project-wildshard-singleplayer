@@ -55,7 +55,7 @@ it('rebuilds all migrated documents byte-identically without committing generate
     const directory = join(root, '.wildshard/format');
     const files = readdirSync(directory).sort();
     expect(files).toEqual(Object.keys(formatJsonSchemas()).map(name => `${name}.schema.json`).sort());
-    expect(files.length).toBe(128);
+    expect(files.length).toBe(129);
     expect(files).toContain('navigation.Navigation.schema.json');
     expect(files).toContain('weaponProfiles.LashWeaponProfile.schema.json');
     expect(files).toContain('weaponProfiles.ConeWeaponProfile.schema.json');

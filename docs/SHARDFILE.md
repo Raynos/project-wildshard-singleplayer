@@ -1151,6 +1151,39 @@ every dialogue flag and observed met flag must be declared in `quests.flags`.
 `installDeclaredQuestNpc` binds one admitted row by NPC id and refuses a missing
 id before borrowing resources. Absent `questNpcs` preserves existing wire bytes;
 the native owner still supplies the models, materials and resource dressing.
+
+The optional `questHost` root composes native quest graphs without author
+callbacks. `@wildshard/format/questHost` admits its interactions, NPC spots,
+required body ids, bounded command routes and ordered data-only directors.
+Every durable flag must occur in `quests.flags`; it requires a hybrid bound
+quest owner. Omission preserves existing shardfile bytes. For example, with
+`quest.notes` declared, a borrowed native host may use:
+
+```ts
+questHost: {
+  version: 1,
+  graph: { actor: 'quest.interact', step: 'quest.marks', actions: [] },
+  interactions: { marks: [], rows: [
+    { id: 'notes', act: 0, at: 'notes', sets: ['quest.notes'] },
+  ] },
+  npcs: [], drive: 'external',
+  actors: { ids: [], error: 'Missing quest body' },
+  observations: [], stages: [], summons: [],
+  commands: { step: 'quest.native', inputs: {}, routes: [
+    { value: 0, spot: 'notes', when: 'true',
+      action: { kind: 'row', id: 'notes' } },
+  ] },
+}
+```
+
+`installDeclaredQuestHost` in `@wildshard/game/plugin/quests` receives the
+actual commands, spots, effect ports and owner maps. Command conditions use
+the existing bounded director when-language. `all-dead` observations read
+only declared installed bodies; `owner` observations borrow actual boolean
+ports. Native actions refuse when unbound. Quiet seeds select original
+loaded observations; only explicitly named continuations add saved state.
+Transient flag stages do not invent a cursor. The data-client projection
+clears a bound host so it cannot install native quests a second time.
 `parseNpcRow` declares a quest-giver (where it stands, its talk,
 its figure metadata and dialogue). Native figure placement stays with the trusted
 owner; there is no public SDK pivot-NPC installer. Sky's phased-raptor remains a

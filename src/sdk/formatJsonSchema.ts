@@ -40,6 +40,7 @@ import { TargetsSchema } from '@wildshard/format/targets';
 import { QuestDataSchema } from '@wildshard/format/quests';
 import { QuestGraphSchema } from '@wildshard/format/questGraph';
 import { InteractionRowsSchema } from '@wildshard/format/questInteractions';
+import { QuestHostSchema } from '@wildshard/format/questHost';
 
 import { RowsSchema } from '@wildshard/format/rows';
 import { MoversSchema } from '@wildshard/format/movers';
@@ -112,6 +113,7 @@ const finiteNumbers = new Set<object>([
 // Only the exact retained defining roots grant action bridges. A caller's new check or transform never joins.
 const wireRoots = {
   'npcs.QuestNpcBinding': QuestNpcBindingSchema,
+  'questHost.QuestHost': QuestHostSchema,
   'npcs.QuestNpcBindings': QuestNpcBindingsSchema,
   'npcs.NpcRow': NpcRowSchema,
   'npcs.NpcMotion': NpcMotionSchema,

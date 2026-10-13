@@ -117,7 +117,8 @@
     "./navigationBytes": "./navigationBytes.ts",
     "./npcs": "./npcs.ts",
     "./questGraph": "./questGraph.ts",
-    "./questInteractions": "./questInteractions.ts"
+    "./questInteractions": "./questInteractions.ts",
+    "./questHost": "./questHost.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

@@ -24,6 +24,7 @@ import { groupBrainRules } from '@wildshard/format/groupBrains';
 import { EncountersSchema, encounterRules } from '@wildshard/format/encounters';
 import { QuestDataSchema } from '@wildshard/format/quests';
 import { QuestNpcBindingsSchema, questNpcBindingRules } from '@wildshard/format/npcs';
+import { QuestHostSchema, questHostBindingRules } from '@wildshard/format/questHost';
 import { AudioDataSchema } from '@wildshard/format/audio';
 import { LedgerRulesSchema } from '@wildshard/format/ledger';
 import { HooksSchema, hookRules } from '@wildshard/format/hooks';
@@ -91,6 +92,7 @@ const rawSchema = v.strictObject({
   directors: v.exactOptional(DirectorsSchema),
   quests: v.optional(QuestDataSchema, { flags: [], quests: [], triggers: [], dialogue: [] }),
   questNpcs: v.exactOptional(QuestNpcBindingsSchema),
+  questHost: v.exactOptional(v.nullable(QuestHostSchema)),
   audio: v.optional(AudioDataSchema, { cues: [], ambience: null, score: 'silent' }),
   ledger: v.optional(LedgerRulesSchema, []),
   hooks: v.optional(HooksSchema, { conditions: [], scenes: [] }),
@@ -112,6 +114,7 @@ export type Shardfile = v.InferOutput<typeof rawSchema>;
 export function shardfileRules(s: Shardfile): string[] {
   const errors: string[] = [];
   errors.push(...questNpcBindingRules(s.questNpcs ?? [], s.quests.flags, s.runtime?.binds?.includes('quests') === true));
+  errors.push(...questHostBindingRules(s.questHost, s.quests.flags, s.runtime?.binds?.includes('quests') === true));
   errors.push(...entrywayRules(s));
   errors.push(...socketLiftRules(socketLiftEntries(s.entryways), s.movers, s));
   errors.push(...portalLinkRules(portalLinkEntries(s.entryways), s));

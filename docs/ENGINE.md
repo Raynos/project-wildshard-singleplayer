@@ -2659,6 +2659,22 @@ installing native or presentation owners. Their JSON Schema roots are
 `questGraph.QuestGraph` and `questInteractions.InteractionRows`; the existing
 game and SDK parsers preserve the defining schema identities and verdicts.
 
+The pure `@wildshard/format/questHost` module declares `QuestHostRow`, the
+`QuestHostSchema` admission contract, `parseQuestHost` and its semantic
+`questHostRules`. It bounds external command routes, body and owner
+observations, ordered data-only directors and individual continuations.
+`installQuestHost` in `@wildshard/game/plugin/quests` borrows actual
+`QuestHostPorts`: native observation/action maps and the existing director
+action bindings. Quiet initial observations preserve saved flag ownership;
+optional seeds choose the original loaded state without replaying effects.
+No body, mover, encounter or new clock is created by the quest composition.
+Root `questHost` is optional and names `questHost.QuestHost` in JSON
+Schema discovery. `questHostBindingRules` requires native quest ownership
+and declares every durable flag; transient marks keep their existing
+limits. `installDeclaredQuestHost` selects that admitted composition before
+borrowing native ports. Bound presentation projections retain no quest host;
+omission leaves the previous serialized bytes unchanged.
+
 `installDeclaredQuestNpc(ctx, source, id, ports)` selects the root's `questNpcs`
 binding by NPC identity. Missing identities refuse before resource lookup. Root
 admission requires native quest ownership, declared dialogue/met flags and unique
