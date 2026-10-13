@@ -1,3 +1,4 @@
+import { PREPARED_MODELS_URL } from '../../../src/shards/far-reach/data/modelFrames';
 import { FAN_GUST_MODULE } from '../../../src/shards/far-reach/data/fanGustModule';
 import { bindMeleeContacts } from '../../../src/game/plugin/simulation';
 // @vitest-environment happy-dom
@@ -67,11 +68,13 @@ async function boot(retain = false): Promise<{ app: App; plugin: SkyReachPlugin;
   const modules = [BRIDGE_MODULE.hash, LIFT_MODULE.hash];
   vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    if (url.endsWith(`/${FAN_GUST_MODULE.hash}`)) {
+    const path = new URL(url, 'http://localhost:3000').pathname;
+    if (path === PREPARED_MODELS_URL) return Promise.resolve(new Response(Uint8Array.from(readFileSync(`public${PREPARED_MODELS_URL}`))));
+    if (path === `/shardfiles/far-reach/${FAN_GUST_MODULE.hash}` || path === `/assets/${FAN_GUST_MODULE.hash}`) {
       itemFetches.push(FAN_GUST_MODULE.hash);
       return Promise.resolve(new Response(Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${FAN_GUST_MODULE.hash}`))));
     }
-    const module = modules.find((hash) => url.endsWith(`/${hash}`));
+    const module = modules.find((hash) => path === `/shardfiles/far-reach/${hash}` || path === `/assets/${hash}`);
     if (module !== undefined) moduleFetches.push(module);
     if (module !== undefined) return Promise.resolve(new Response(Uint8Array.from(readFileSync(`src/shards/far-reach/assets/${module}`))));
     return originalFetch(input, init);
