@@ -10,16 +10,18 @@ import { manager } from '../fake/manager';
 import { Physics } from '../../src/engine/physics/Physics';
 import { CreatureBodies } from '../../src/engine/physics/creatures';
 import { loadRapier } from '../../src/engine/physics/rapier';
+import { tap } from '../../src/engine/core/harnessTap';
+import type { DamageRequest } from '../../src/engine/combat/pipeline';
 
 let rapier: Awaited<ReturnType<typeof loadRapier>>;
 beforeAll(async () => { rapier = await loadRapier(new Uint8Array(readFileSync('public/assets/physics/rapier.wasm')).buffer); });
 
-function fixture() {
+function fixture(hit?: (req: DamageRequest) => { req: DamageRequest; dealt: number; killed: boolean }) {
   const world = fakeWorld(), factory = new AnimalFactory(world.sky, { style: 'toon', render: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true } });
   const model = factory.model('boar', 'boar'), rig = factory.instantiate(model, 1);
   const view = new Animal(rig, model, 1, 1, 'fixture:1');
   const sim = new AnimalSim({ kind: 'boar', label: 'Boar', variant: 'boar', rarity: 'common', hp: 60, aggressive: false,
-    dims: model.dims, mods: { speed: 1, chargeDist: 1, chargeDamage: 25, damageTaken: 1, relentless: false } }, 1, 1, 'fixture:1', { heightAt: () => 0, random: () => 0.5 });
+    dims: model.dims, mods: { speed: 1, chargeDist: 1, chargeDamage: 25, damageTaken: 1, relentless: false } }, 1, 1, 'fixture:1', { heightAt: () => 0, random: () => 0.5, ...(hit === undefined ? {} : { hit }) });
   return { sim, view, rig, model };
 }
 describe('creature rig over one authoritative simulation', () => {
@@ -64,6 +66,20 @@ describe('creature rig over one authoritative simulation', () => {
       bodies.sync([view], new Vector3(100, 0, 100)); bodies.remove(view);
       expect(dispose).not.toHaveBeenCalled(); expect(sim.motor).not.toBe(null);
     } finally { physics.dispose(); }
+  });
+  it('the harness counts hits and kills on the host creature a bound view forwards its combat to', () => {
+    const hits: { kind: string; amount: number }[] = [], kills: string[] = [];
+    tap.hit = (kind, amount) => { hits.push({ kind, amount }); }; tap.kill = (kind) => { kills.push(kind); };
+    try {
+      const { sim, view } = fixture((req) => { req.target.onDamageRequest?.(req); const killed = req.target.applyDamage(req); return { req, dealt: req.amount, killed }; });
+      view.bindSimulation(sim);
+      for (let i = 0; i < 3; i++) view.applyDamage(25, new Vector3(), new Vector3(0, 0, 1));
+      expect(sim.alive).toBe(false);
+      expect(hits).toEqual([{ kind: 'boar', amount: 25 }, { kind: 'boar', amount: 25 }, { kind: 'boar', amount: 25 }]);
+      expect(kills).toEqual(['boar']);
+      const legacy = fixture().view; legacy.applyFinalDamage(legacy.hp, new Vector3(), new Vector3(0, 0, 1));
+      expect(kills).toEqual(['boar', 'boar']);
+    } finally { tap.hit = null; tap.kill = null; }
   });
   it('refuses rebinding and mismatched instance identities', () => {
     const { sim, view } = fixture(); expect(() => view.bindSimulation(view)).toThrow();

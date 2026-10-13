@@ -3,6 +3,7 @@ import type { AnimalPoseLaw } from './animalPose';
 import { FlightMotion, type SpeciesFlight } from '../ai/flight';
 import type { Actor, DamageRequest, DamageDealt } from '../combat/pipeline';
 import type { AnimalDims, Rarity, VariantMods } from './species/registry';
+import { tap } from '../core/harnessTap';
 
 /** Shared behaviour state consumed by simulation and pose adapters. */
 export type AnimalState = 'idle' | 'graze' | 'wander' | 'alert' | 'flee' | 'charge' | 'stalk' | 'dead' | 'attack' | 'perch' | 'rise' | 'hide' | 'sidestep';
@@ -252,7 +253,7 @@ export class AnimalSim {
     this.flinchPitch = -lz * 0.12 + (hitPoint.y - this.position.y > this.dims.bodyY ? 0.05 : -0.03);
     if (this.hp <= 0) {
       this.hp = 0; this.alive = false; this.state = 'dead'; this.deathT = 0; this.deathSide = lx >= 0 ? -1 : 1;
-      this.desiredSpeed = 0; this.died(dealt, hitPoint, dir);
+      this.desiredSpeed = 0; tap.kill?.(this.kind); this.died(dealt, hitPoint, dir);
       this.damaged(dealt, hitPoint, dir, true); return true;
     }
     this.damaged(dealt, hitPoint, dir, false); return false;
@@ -268,7 +269,9 @@ export class AnimalSim {
   }
   protected attackStarted(_dur: number): void { /* The view may emit a cue. */ }
   protected hitTime(): number { return this.simPorts.now?.() ?? this.elapsed * 1000; }
-  protected damageRequested(_req: DamageRequest): void { /* The view may record a harness hit. */ }
+  /** The harness observes every requested hit and every death here, on the authoritative creature: a view bound to a
+   *  host creature (SF3b) forwards its combat to that creature, so a view-side observer would never fire. */
+  protected damageRequested(req: DamageRequest): void { tap.hit?.(this.kind, req.amount); }
   protected hasDamageMultiplier(): boolean { return false; }
   protected damageMultiplier(_req: DamageRequest): number { return 1; }
   protected died(_dealt: number, _point: Vector3, _dir: Vector3): void { /* The view may start a corpse pose. */ }

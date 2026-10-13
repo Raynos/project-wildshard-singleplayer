@@ -1,7 +1,6 @@
 import { AnimalPoseLaw } from './animalPose';
 import { QuadrupedRigPose, applyAnimalRoot } from './animalRig';
 import { diagnosticNow } from '../core/clock';
-import { tap } from '../core/harnessTap';
 import * as THREE from 'three';
 import type { CharacterMotor } from '../physics/CharacterMotor';
 import { ragdollsFor, type Ragdoll } from '../physics/ragdoll';
@@ -378,7 +377,6 @@ constructor(rig: AnimalRig, model: AnimalModel, seed: number, scale = 1, entityI
     if (frameCost.on) frameCost.sub('motor', t0);
   }
   protected override attackStarted(dur: number): void { this.onAttack?.(this, dur); }
-  protected override damageRequested(req: DamageRequest): void { tap.hit?.(this.kind, req.amount); }
   protected override hasDamageMultiplier(): boolean { return this.model.species.damageMul !== undefined; }
   protected override damageMultiplier(req: DamageRequest): number { return this.model.species.damageMul?.(this, req.point, req.dir, req) ?? 1; }
   protected override died(dealt: number, point: THREE.Vector3, dir: THREE.Vector3): void {

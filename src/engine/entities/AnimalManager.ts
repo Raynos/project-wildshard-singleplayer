@@ -2,7 +2,6 @@ import { clearBody as clearNativeBody } from './bodyClear';
 import { EntityIds } from './ids';
 import { app } from '../app/runtime';
 import { ParticlePool } from '../fx/ParticlePool';
-import { tap } from '../core/harnessTap';
 import * as THREE from 'three';
 import { canReach } from '../ai/reach';
 import { brainPinned, inspectTick } from '../ai/inspect';
@@ -813,7 +812,7 @@ export class AnimalManager {
     a.headWorld(_p);
     const headshot = _p.distanceToSquared(hitPoint) < (a.dims.headRadius * a.scale + 0.06) ** 2;
     this.onDamage?.(a, amount, hitPoint, headshot, died);
-    if (died) { tap.kill?.(a.kind); this.onKill?.(a); this.hunt.died(a); return; }
+    if (died) { this.onKill?.(a); this.hunt.died(a); return; }
     if (sp.think !== undefined) return;   // a self-thinking species reads animal.lastHitT / hp in its own tick
     this.hunt.hurt(a);   // the hunting brain's hit reaction (hunt.ts): bolt, turn on you, or come for you
     this.interrupt(a, 'hit');
