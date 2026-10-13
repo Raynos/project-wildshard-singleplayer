@@ -4,9 +4,8 @@ import { skyMapGraph } from '../look/mapGraph';
 /**
  * Sky Reach's smaller paint corrections, each pulling a generated model's paint toward the mockups: SF59 material graphs
  * over the model's own map (the shardfile's `look.materials`, bound by world/looks.ts `skyMappedLook` in world/crown.ts,
- * world/bookStand.ts, quest/keeper.ts, world/trees.ts; one program per graph, a material per map), and shader edit rows
- * (applied with `editShader` in weapons/fanModel.ts, world/build.ts, runtime/index.ts): the fan's map arrives late, a keel
- * has none, a creature wears the Roc's.
+ * world/bookStand.ts, quest/keeper.ts, world/trees.ts, weapons/fanModel.ts; one program per graph, a material per map), and shader edit rows
+ * (applied with `editShader` in runtime/index.ts): a creature wears the Roc's.
  */
 
 const LUMA = [0.2126, 0.7152, 0.0722];
@@ -27,11 +26,14 @@ export const TREE_BARK_GRAPH = skyMapGraph({ rg: { op: 'sub', in: ['cr', 'cg'] }
 export const KEEPER_SCARF_GRAPH = skyMapGraph({ gb: { op: 'max', in: ['cg', 'cb'] }, gb1: { op: 'mul', in: ['gb', 1.1] }, rd: { op: 'sub', in: ['cr', 'gb1'] }, r1: { op: 'smoothstep', in: [0.08, 0.25, 'rd'] },
   red: { op: 'mul', in: ['r1', 0.8] }, rust: { op: 'mul', in: ['cr', [0.72, 0.42, 0.24]] }, colour: { op: 'mix', in: ['c', 'rust', 'red'] } }, { colour: 'colour' });
 
-/** The painted silk toward the mockups' muted, lighter teal (E399 round 6): `@{saturation}` of its colour kept, `@{lift}` and `@{tint}` over it. */
-export const FAN_SILK_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'fragment', find: '#include <map_fragment>', put: `#include <map_fragment>
-  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))), diffuseColor.rgb, @{saturation}) * @{lift} * vec3(@{tint});` },
-];
+/** The war fan's painted silk (`look.materials['fan-silk']`, over the leaf map; weapons/fanModel.ts `paintFanLeaf`): the leaf in
+ *  its pale sea-green tint, toward the mockups' muted, lighter teal (E399 round 6: 80 % of its saturation kept, lifted 2.6x and
+ *  tinted toward blue, measured against the mockups' leaf where blue >= green), then the pleats' vertex shade; faintly
+ *  self-lit, two-sided. */
+export const FAN_SILK_GRAPH = { ...skyMapGraph({ tint: { op: 'param', param: 'tint' }, glow: { op: 'param', param: 'glow' }, vc: { op: 'vertexColour' },
+  t: { op: 'mul', in: ['c', 'tint'] }, l: { op: 'dot', in: ['t', LUMA] }, s: { op: 'mix', in: ['l', 't', 0.8] }, lift: { op: 'mul', in: ['s', [0.94 * 2.6, 2.6, 1.16 * 2.6]] },
+  colour: { op: 'mul', in: ['lift', 'vc'] } }, { colour: 'colour', emissive: 'glow', roughness: 0.8 }),
+  params: { tint: { type: 'colour', value: [0xdf / 255, 0xec / 255, 0xe6 / 255] }, glow: { type: 'colour', value: [0x04 / 255, 0x12 / 255, 0x12 / 255] } }, doubleSided: true } as const;
 
 /** The Roc's plumage to mockup D's slate / white split (E399, E410): its browns slate grey in the paint and in the emission fed back from it; the white head and belly and the gold beak and talons kept. */
 export const ROC_SLATE_EDITS: readonly ShaderEditRow[] = [

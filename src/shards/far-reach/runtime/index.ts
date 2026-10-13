@@ -95,14 +95,14 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const leaf = await loadPainted(FAN_LEAF_URL, 'far.fan-leaf');
     if (leaf !== null) { this.leaf = leaf; ctx.scope.own(leaf); }
     this.board = () => ctx.app.player?.mode === 'board';
-    // the windmill's stone, canvas and ivy (world/mill.ts; the islands' rock and meadow are library maps of their graphs)
-    const [millStone = null, millCanvas = null, millIvy = null, vortex = null] = await Promise.all(SKY_WORLD_TEXTURES.map(row => loadPainted(row.url, row.name, row.tile)));
-    const textures = [millStone, millCanvas, millIvy, vortex];
-    for (let i = 0; i < 4; i++) { const texture = textures[i]; if (texture !== null && texture !== undefined) ctx.scope.own(texture); }
+    // the windmill's stone (world/mill.ts; the islands' rock and meadow and the mill's canvas are library maps of their graphs)
+    const [millStone = null, vortex = null] = await Promise.all(SKY_WORLD_TEXTURES.map(row => loadPainted(row.url, row.name, row.tile)));
+    const textures = [millStone, vortex];
+    for (let i = 0; i < 2; i++) { const texture = textures[i]; if (texture !== null && texture !== undefined) ctx.scope.own(texture); }
     // the storm's painted underside (E399, mockup D's vortex seen from below), mirrored past its edge
     if (vortex !== null) { vortex.wrapS = MirroredRepeatWrapping; vortex.wrapT = MirroredRepeatWrapping; vortex.needsUpdate = true; }
     setStormPaint(vortex);
-    setMillTextures({ stone: millStone, canvas: millCanvas, ivy: millIvy });
+    setMillTextures({ stone: millStone });
     // op-hitch41: in work slices (a grid cell builds Sky Reach on the road, in play: one 366 ms task on the Simulator,
     // then the meadow's 59 ms in the same frame); the meadow starts on a task of its own
     // the static islands from the shardfile's props tiles (runtime.binds props; generators/isleProps.ts), every tile resident

@@ -1,7 +1,7 @@
 import { Group, Mesh, MeshStandardMaterial, DoubleSide, type InstancedMesh, type Material, type Object3D, type Texture } from 'three';
 import { GeometryPack, fetchDeflated, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import { hdMaterial, skyHd } from './meshes';
-import { skyMappedLook } from './looks';
+import { skyLook, skyMappedLook } from './looks';
 import { onPaintedDispose } from '../look/image';
 import millModel from '../data/millModel.json' with { type: 'json' };
 import { MILL_MODEL_URL } from '../data/files';
@@ -22,21 +22,17 @@ import { skyBakedPiece } from './baked';
  * - four lattice sails: the stock, four laths and fifteen sail bars in weathered timber, the worn canvas
  *   (`tex/mill-canvas.webp`: stains, patches, seams) billowing behind the bars, frayed at its edges, two sails torn.
  * SF72: the code set is built offline (`generators/mill.ts` → `baked/mill.glb`) and drawn here in its own materials.
- * The textures load lazily here (the mill keeps its plain paint until they land); without them the tower is cream and
- * the ivy hidden. The hub turns (the plugin spins it). Local frame: base at y 0, the sails face +z.
+ * The hub turns (the plugin spins it). Local frame: base at y 0, the sails face +z.
  */
 /**
- * The windmill's painted textures (`public/assets/far-reach/tex/mill-*.webp`; the boot downloads them, boot/files.ts): the
- * plugin loads them behind the loading screen and owns them (`setMillTextures`), so the first frame already has the
- * stone, the ivy and the canvas; without one (offline, a test page) its part keeps the code look.
+ * The windmill's painted stone (`public/assets/far-reach/tex/mill-stone.webp`; the boot downloads it, boot/files.ts): the
+ * plugin loads it behind the loading screen and owns it (`setMillTextures`), so the first frame already has the courses;
+ * without it (offline, a test page) the tower keeps its paint unbumped. The canvas is the `mill-canvas` look's library map.
  */
-const MILL_TEX: { stone: Texture | null; canvas: Texture | null; ivy: Texture | null } = { stone: null, canvas: null, ivy: null };
-export function setMillTextures(t: { stone: Texture | null; canvas: Texture | null; ivy: Texture | null }): void {
-  Object.assign(MILL_TEX, t);
-  for (const key of ['stone', 'canvas', 'ivy'] as const) {
-    const texture = t[key];
-    onPaintedDispose(texture, () => { if (MILL_TEX[key] === texture) MILL_TEX[key] = null; });
-  }
+const MILL_TEX: { stone: Texture | null } = { stone: null };
+export function setMillTextures(t: { stone: Texture | null }): void {
+  const texture = t.stone; MILL_TEX.stone = texture;
+  onPaintedDispose(texture, () => { if (MILL_TEX.stone === texture) MILL_TEX.stone = null; });
 }
 
 interface Made { readonly meshes: Mesh[]; readonly hubAt: { y: number; z: number } }
@@ -85,10 +81,9 @@ export function towerMill(nodes?: ReadonlyMap<string, InstancedMesh>): { group: 
   if (made !== null) group.add(...made.meshes);
   hub.position.set(0, hubAt.y, hubAt.z); group.add(hub);
   put(hub, 'boss', timber);
-  // the worn canvas: the `mill-canvas` look over the painted cloth (frayed, two sails torn, a faint warm glow); plain cream
-  // cloth when the painted one did not load
-  const canvas = MILL_TEX.canvas;
-  const clothMat = canvas === null ? new MeshStandardMaterial({ color: 0xece0c6, roughness: 0.95, metalness: 0, side: DoubleSide }) : skyMappedLook('mill-canvas', canvas);
+  // the worn canvas: the `mill-canvas` look (the library's painted cloth: frayed, two sails torn, a faint warm glow); plain
+  // cream cloth before the looks are set
+  const clothMat = skyLook('mill-canvas') ?? new MeshStandardMaterial({ color: 0xece0c6, roughness: 0.95, metalness: 0, side: DoubleSide });
   // the four lattice frames (one kind, an instance per arm) and the four canvases, each turned to its arm
   put(hub, 'frame', new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0 }));
   for (let i = 0; i < 4; i++) put(hub, `cloth-${String(i)}`, clothMat);

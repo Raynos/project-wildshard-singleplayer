@@ -213,8 +213,7 @@
         "metalness": 0,
         "side": 2,
         "emissive": 266770
-      },
-      "decorate": "silk"
+      }
     },
     {
       "kind": "standard",
