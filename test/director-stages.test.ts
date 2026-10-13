@@ -4,6 +4,7 @@ import { parseDirectorStages, DirectorStagesSchema } from '../src/format/directo
 import { Director } from '../src/sdk/director';
 import { DirectorStageLane } from '../src/game/plugin/director';
 import { formatJsonSchema } from '../src/sdk/formatJsonSchema';
+import { QuestHostSchema } from '../src/format/questHost';
 
 const declaration = {
   id: 'fixture.finale', inputs: { altarLit: 'flag:fixture.altar', captainDead: 'actor:captain.dead', atCove: 'zone:cove' },
@@ -110,6 +111,8 @@ it('publishes structural JSON Schema with mandatory defining semantic checks', (
   const schema = formatJsonSchema(DirectorStagesSchema);
   expect(schema.properties?.['version']).toEqual({ const: 2 });
   expect(schema['x-wildshard-checks']).toContain('@wildshard/format/directorStages#DirectorStagesSchema.pipe.1');
+  expect(JSON.stringify(formatJsonSchema(QuestHostSchema))).toContain('"@wildshard/format/directorStages#DirectorStagesSchema.pipe.1"');
+  expect(() => parseDirectorStages({ ...row(), stages: [{ id: 'duplicate' }, { id: 'duplicate' }] })).toThrow('Valid director stages');
 });
 
 

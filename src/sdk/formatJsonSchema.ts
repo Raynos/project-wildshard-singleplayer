@@ -259,6 +259,8 @@ for (const [key, schema] of Object.entries(wireRoots)) {
   const module = key.slice(0, key.indexOf('.')), binding = key.slice(key.indexOf('.') + 1);
   rememberActions(schema, `@wildshard/format/${module}#${binding}Schema`, new WeakSet());
 }
+// A composed quest host shares this exact check object; its nested path must not rename the defining public check.
+wireChecks.set(DirectorStagesSchema.pipe[1], '@wildshard/format/directorStages#DirectorStagesSchema.pipe.1');
 
 /**
  * Convert an author schema with the official converter, refusing every unrecognised custom check or transform.
