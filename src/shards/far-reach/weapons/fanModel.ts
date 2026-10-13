@@ -2,15 +2,16 @@ import { CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, To
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { FAN_SILK_EDITS } from '../data/paintLook';
-import { gloveHand, heroHand } from './glove';
+import fanRows from '../data/fan.json' with { type: 'json' };
+import { skyHd } from '../world/meshes';
 import { fanShape } from './fanShapes';
 
 /**
  * The war fan to mockup C (round-18-council-mockups; E399 seats: "the fan is plain and bright, thin gold ribs on flat
  * teal"): a folding fan whose cloud-silk leaf (nine pleats) covers only its outer part; below it the bare dark-lacquered
  * sticks fan out to a bronze pivot; two heavy dark guard sticks with ornate bronze end plates and studs; a wrapped grip;
- * a red silk tassel with a knot and a bead; held in the gloved hand (weapons/glove.ts). The built shapes are baked offline
- * (generators/fan.ts, `scripts/bake-sky-world.mjs` → `baked/fan.bin` + `data/fan.json`); here they take their materials.
+ * a red silk tassel with a knot and a bead; held in the textured hero hand. The built shapes and the hand's fit are baked
+ * offline (generators/fan.ts, `scripts/bake-sky-world.mjs` → `baked/fan.bin` + `data/fan.json`); here they take their materials.
  *
  * Local frame: the pivot at the origin, the fan opens up (+Y) in the XY plane facing +Z (the camera); the grip runs down
  * −Y into the fist.
@@ -39,7 +40,6 @@ export function fanParts(): FanParts {
   }, { key: (prior) => `${prior}|far.fan-silk` });
   const lacquer = new MeshStandardMaterial({ vertexColors: true, roughness: 0.36, metalness: 0.1, side: 2 });
   const bronze = new MeshStandardMaterial({ color: 0x7a5c32, roughness: 0.42, metalness: 0.55, emissive: 0x0a0602 });
-  const wrap = new MeshStandardMaterial({ color: 0x2c1c14, roughness: 0.85, metalness: 0 });
   const red = new MeshStandardMaterial({ color: 0xa8201a, roughness: 0.75, metalness: 0, emissive: 0x1e0403 });
   fan.add(new Mesh(fanShape('panels'), silk), new Mesh(fanShape('sticks'), lacquer));
   // the guards (row 3, E407): dark lacquered wood on bronze-edged iron backings, riveted, angular bronze plates (the bake's)
@@ -51,10 +51,10 @@ export function fanParts(): FanParts {
   fan.add(new Mesh(fanShape('rim'), new MeshStandardMaterial({ color: 0xc49a52, roughness: 0.35, metalness: 0.6, emissive: 0x1a1006 })));
   // the plates, the studs, the pivot's bronze boss and its rivet
   fan.add(new Mesh(fanShape('plates'), bronze));
-  const grip = new Mesh(new CylinderGeometry(0.016, 0.018, FAN.grip, 10), wrap); grip.position.y = -FAN.grip / 2; fan.add(grip);
-  const ring = new Mesh(new TorusGeometry(0.009, 0.0025, 5, 12), bronze); ring.position.y = -FAN.grip - 0.006; fan.add(ring);
-  // the tassel (mockup C): a red cord, a knot, a bronze bead and cap, and a long silk fringe
-  const tassel = new Group(); tassel.position.set(0, -FAN.grip - 0.012, 0); fan.add(tassel);
+  // the ring at the hand's handle foot; the tassel (mockup C; row 3: from the pivot boss in front of the fist): a red cord,
+  // a knot, a bronze bead and cap, and a long silk fringe
+  const ring = new Mesh(new TorusGeometry(0.009, 0.0025, 5, 12), bronze); ring.position.y = -fanRows.grip - 0.006; fan.add(ring);
+  const tassel = new Group(); tassel.position.set(0, -0.004, 0.028); fan.add(tassel);
   const cord = new Mesh(new CylinderGeometry(0.0022, 0.0022, 0.04, 4), red); cord.position.y = -0.02; tassel.add(cord);
   const knot = new Mesh(new SphereGeometry(0.009, 8, 6), red); knot.scale.set(1.2, 0.8, 0.7); knot.position.y = -0.042; tassel.add(knot);
   const loops = new Mesh(new TorusGeometry(0.008, 0.0025, 4, 10), red); loops.position.y = -0.042; loops.scale.set(1.6, 1, 1); tassel.add(loops);
@@ -62,15 +62,10 @@ export function fanParts(): FanParts {
   const cap = new Mesh(new CylinderGeometry(0.0045, 0.007, 0.012, 8), bronze); cap.position.y = -0.07; tassel.add(cap);
   tassel.add(new Mesh(fanShape('strands'), red));
   group.add(fan);
-  // the gloved hand closes round the grip (weapons/glove.ts: the textured hero hand when it loaded, else the code hand);
-  // the forearm runs out to the frame's right edge (E399 seats: 'a long cylinder up through the GUST / JUMP / LOOK buttons')
-  const hero = heroHand();
-  if (hero === null) { const hand = gloveHand(); hand.position.y = -FAN.grip * 0.35; group.add(hand); }
-  else {
-    // the hero hand brings its own wrapped handle with bronze caps: the code grip goes, the tassel hangs from its foot
-    // row 3 (mockup C): the tassel hangs from the pivot boss in front of the fist (it hung below the fist, off the frame)
-    group.add(hero.group); grip.visible = false; ring.position.y = -hero.grip - 0.006; tassel.position.set(0, -0.004, 0.028);
-  }
+  // the textured hero hand round its own wrapped handle (E392/E399, row 3), fitted offline (generators/fan.ts), in its
+  // model's paint; undrawn when the model did not load
+  const hand = skyHd('hand-hd');
+  if (hand !== null) { hand.geometry.dispose(); group.add(new Mesh(fanShape('hand'), new MeshStandardMaterial({ map: hand.map, roughness: 0.78, metalness: 0 }))); }
   return { group, fan, pendant: tassel, silk };
 }
 

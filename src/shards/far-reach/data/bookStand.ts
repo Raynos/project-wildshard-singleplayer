@@ -1,10 +1,8 @@
 /**
- * The keeper's book stand (world/bookStand.ts draws it, generators/bookStand.ts builds its code parts): `height` its height
- * and `footprint` its collider half-size (metres); `bookTilt` the code stand's reading box's tilt (radians about x): its
- * reader's (+z) edge low, so the open pages face the reader (round 8: at -0.42 the reader's edge stood high and mockup B's
- * view saw the book's back).
+ * The keeper's book stand (world/bookStand.ts draws it, generators/bookStand.ts builds its book): `height` its height
+ * and `footprint` its collider half-size (metres).
  */
-export const BOOK_STAND = { height: 1.12, footprint: 0.3, bookTilt: 0.42 } as const;
+export const BOOK_STAND = { height: 1.12, footprint: 0.3 } as const;
 /**
  * The modelled lectern and lantern (E410 row 8, mockup B; `art/far-reach/round-33-keeper/`, Hunyuan3D-2 from codex refs):
  * metres once fitted to `height`, front (the desk's low lip) toward +z. Measured on the fitted model: the desk's top at

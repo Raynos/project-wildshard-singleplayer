@@ -1,44 +1,6 @@
 {
-  "glb": "fc2fe3f550122f2186906915244c1dce6e5ed425f0a48a5d9f94215eab936487",
+  "glb": "1cb9c09a391ec1cf3282f3d9ce08938c0fc054694c8cbef8dad7b8f1c8866fcb",
   "kinds": [
-    {
-      "name": "stone",
-      "count": 1,
-      "color": 16777215,
-      "roughness": 0.95,
-      "metalness": 0,
-      "flat": true,
-      "emissive": 0,
-      "emissiveIntensity": 1,
-      "vertexColors": true,
-      "doubleSided": false,
-      "paint": 0.7
-    },
-    {
-      "name": "glyph",
-      "count": 1,
-      "color": 11840926,
-      "roughness": 0.95,
-      "metalness": 0,
-      "flat": false,
-      "emissive": 10479346,
-      "emissiveIntensity": 0.04,
-      "vertexColors": false,
-      "doubleSided": false
-    },
-    {
-      "name": "dais",
-      "count": 1,
-      "color": 16777215,
-      "roughness": 0.9,
-      "metalness": 0,
-      "flat": true,
-      "emissive": 0,
-      "emissiveIntensity": 1,
-      "vertexColors": true,
-      "doubleSided": true,
-      "paint": 0.18
-    },
     {
       "name": "rope",
       "count": 1,
