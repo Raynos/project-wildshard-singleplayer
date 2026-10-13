@@ -76,7 +76,7 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) 
         heavy.targetId = released.target;
         return held;
       } });
-    const signal = bindDirectorActions(signalStages, { read: () => ({ lit: host.flags.has(FLAG.lit) }),
+    const signal = bindDirectorActions(signalStages, { flags: host.flags,
       bindings: [{ action: { spawn: 'sunscar.matriarch' }, run: encounter.summon }],
       initial: host.flags.has(FLAG.lit) ? [{ lit: false }, { lit: true }] : [{ lit: false }] });
     host.onStep('sunscar.signal-fire', () => undefined, {

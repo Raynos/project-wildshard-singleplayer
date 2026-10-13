@@ -52,6 +52,7 @@ import { StormRocBoss } from '../combat/stormRoc';
 import { installBossView } from '@wildshard/game/plugin/ui';
 import { BOSS_REWARD, ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
+import { bindSkyQuestStage } from './quest';
 import { FLAGS, vaneFlag } from '../quest/flags';
 import { installSkyCues } from './audio/cues';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
@@ -190,9 +191,10 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     built.winch.onInteract = () => { if (built.state.raised) return; if (unlocked()) this.movers?.command('far.winch.bridge', 1); else toast(STRINGS.winchLocked); };
     // the world pins, chip, map and minimap marks are the quest presentation's (quest/install.ts)
     if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');
+    const raised = bindSkyQuestStage('raised', flags, () => true);
     this.movers = await installDeclaredMovers(ctx, rt.world, skyMoverViews(built, () => Number(flags.has(FLAGS.roost)) + Number(flags.has(FLAGS.vanes)) * 2, () => {
       built.winch.label = STRINGS.raised;
-      if (!flags.has(FLAGS.raised)) { flags.set(FLAGS.raised); toast(STRINGS.raised); }
+      if (!flags.has(FLAGS.raised)) { raised.advance(); toast(STRINGS.raised); }
     }, () => { this.movers = null; }));
     if (flags.has(FLAGS.raised)) this.movers.command('far.winch.bridge', 3);
     // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
@@ -273,10 +275,9 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     }
     }
     // Step 2: the roost is clear when its three rays are down.
-    const isDead = (animal: Animal): boolean => !animal.alive, roost = this.bodies(SKY_FLOCK_GROUPS.roost);
-    ctx.system({ id: 'far.roost', phase: 'update', run: () => {
-      if (flags.has(FLAGS.notes) && !flags.has(FLAGS.roost) && roost.length > 0 && roost.every(isDead)) flags.set(FLAGS.roost);
-    } });
+    const roost = this.bodies(SKY_FLOCK_GROUPS.roost);
+    const roostStage = bindSkyQuestStage('roost', flags, () => roost.length > 0 && roost.every(animal => !animal.alive));
+    ctx.system({ id: 'far.roost', phase: 'update', run: roostStage.advance });
 
     // The boss: the Storm Roc on the crown, the shared BossBar, 25 coins once.
     const boss = new StormRocBoss(ctx, position, this.roc, () => {

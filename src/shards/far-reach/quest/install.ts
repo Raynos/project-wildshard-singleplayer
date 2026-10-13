@@ -1,6 +1,7 @@
 import type { QuestState } from '@wildshard/engine/quest/core';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { installRewardedQuest } from '@wildshard/game/plugin/ui';
+import { bindSkyQuestStage } from '../runtime/quest';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
 import { bindRuntimeCoins } from '@wildshard/game/shardfile/hybridRows';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -40,9 +41,8 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
       ctx.system({ id: 'far.keeper', phase: 'update', run: (dt, t) => { npc.update(dt, t, player, false); } });
       return { row: KEEPER_ROW, figure: npc, label: STRINGS.talkKeeper };
     } });
-  ctx.system({ id: 'far.vanes', phase: 'update', run: () => {
-    if (!flags.has(FLAGS.vanes) && VANES.every((vane) => flags.has(vaneFlag(vane.id)))) flags.set(FLAGS.vanes);
-  } });
+  const vanes = bindSkyQuestStage('vanes', flags);
+  ctx.system({ id: 'far.vanes', phase: 'update', run: vanes.advance });
   /**
    * The quest as a player has it by the time they stand in the arena (E399 capture staging, the council's should-fix: the
    * tracker read TALK TO THE KEEPER at the crown): the notes read, the roost cleared, the vanes turned, the bridge raised,

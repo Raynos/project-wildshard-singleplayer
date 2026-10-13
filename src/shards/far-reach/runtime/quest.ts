@@ -2,7 +2,8 @@ import { installQuestGraph } from '@wildshard/game/plugin/quests';
 import { SKY_ACTIONS, SKY_GRAPH } from '../data/questGraph';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { QuestData } from '@wildshard/format/quests';
-import type { DeclaredQuests } from '@wildshard/game/quest/declared';
+import { bindDirectorActions } from '@wildshard/game/plugin/director';
+import { SKY_QUEST_STAGES, SKY_QUEST_STAGE_INITIAL } from '../data/questStages';
 import { QUEST_STEP, ROOST_IDS, SKY_ACT, SKY_INTERACT, SKY_SPOTS } from '../data/questPrompts';
 import { FLAGS } from '../quest/flags';
 
@@ -27,6 +28,11 @@ export function skyWinchPermission(flags: Pick<SimHost['flags'], 'has'>): number
   return Number(flags.has(FLAGS.roost)) + Number(flags.has(FLAGS.vanes)) * 2;
 }
 
+/** Bind the declared flag effects; native observations still come from the existing body or mover owner. */
+export function bindSkyQuestStage(id: keyof typeof SKY_QUEST_STAGES, flags: Pick<SimHost['flags'], 'has' | 'set'>, observe?: (binding: string) => boolean): ReturnType<typeof bindDirectorActions> {
+  return bindDirectorActions(SKY_QUEST_STAGES[id], { flags, ...(observe === undefined ? {} : { observe }), bindings: [], initial: SKY_QUEST_STAGE_INITIAL[id] });
+}
+
 /**
  * "The crown bridge" in the renderer-free host (SF72): the declared quest rows through the game's declared quest path
  * (`DeclaredQuests` on `host.flags`, its `far-reach.quest` fact and 10 coins once through the platform's effect ports), and
@@ -36,7 +42,7 @@ export function skyWinchPermission(flags: Pick<SimHost['flags'], 'has'>): number
  * the roost quiet and the vanes turning, and the step completes when the winch bridge's pose comes up. Prompts are `script`
  * commands at the browser's radii from the player's eye; their line-of-sight check is not modelled (they stand in the open).
  */
-export function installSkyQuest(host: SimHost, ports: SkyQuestPorts): DeclaredQuests {
+export function installSkyQuest(host: SimHost, ports: SkyQuestPorts): ReturnType<typeof installQuestGraph>['quests'] {
   if (ROOST_IDS.some(id => host.entities.get(id) === undefined)) throw new Error('Sky Reach installs its quest after the roost rays');
   const graph = installQuestGraph(host, { quests: ports.quests, interactions: SKY_ACTIONS, npcs: [], graph: SKY_GRAPH },
     { spots: { interact: SKY_SPOTS, crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins, drive: 'external' });
@@ -53,15 +59,16 @@ export function installSkyQuest(host: SimHost, ports: SkyQuestPorts): DeclaredQu
     for (let i = 0; i < MAX_ROWS; i++) { const id = ROOST_IDS[i]; if (id === undefined) break; if (host.entities.get(id)?.alive !== false) return false; }
     return true;
   };
+  const roost = bindSkyQuestStage('roost', flags, roostDown);
+  const vanes = bindSkyQuestStage('vanes', flags);
+  const raised = bindSkyQuestStage('raised', flags, ports.winch.raised);
   host.onStep(QUEST_STEP, () => {
     const list = ports.commands();
     for (let i = 0; i < MAX_COMMANDS; i++) {
       const command = list[i]; if (command === undefined) break;
       if (command.actorId === SKY_INTERACT) act(command.value);
     }
-    if (graph.rules.check('roost').ok && roostDown()) graph.run('roost');
-    graph.run('vanes');
-    if (!flags.has(FLAGS.raised) && ports.winch.raised()) graph.run('raised');
+    roost.advance(); vanes.advance(); raised.advance();
   });
   return graph.quests;
 }

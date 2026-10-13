@@ -182,7 +182,12 @@ export class DirectorStageLane {
 export interface DirectorActionBinding { readonly action: DirectorAction; readonly run: () => void }
 /** External observations and quiet installation; advancing never owns another clock. */
 export interface DirectorActionHostSpec {
-  readonly read: () => Readonly<Record<string, boolean>>;
+  /** Explicit native observations retain precedence over declaration-based lookup. */
+  readonly read?: () => Readonly<Record<string, boolean>>;
+  /** The actual flags owner supplies declared flag observations and actions. */
+  readonly flags?: { readonly has: (key: string) => boolean; readonly set: (key: string, value: boolean) => void };
+  /** Actor, zone and event bindings still require their real native observation owner. */
+  readonly observe?: (binding: string) => boolean;
   readonly bindings: readonly DirectorActionBinding[];
   readonly initial: readonly Readonly<Record<string, boolean>>[];
 }
@@ -205,16 +210,29 @@ function actionIdentity(action: DirectorAction): string {
  */
 export function bindDirectorActions(data: unknown, spec: DirectorActionHostSpec): BoundDirectorActions {
   const lane = new DirectorStageLane(data), hooks = new Map<string, () => void>();
+  const definition = lane.data, flags = spec.flags, observe = spec.observe;
+  if (spec.read === undefined && Object.values(definition.inputs).some(binding => binding.startsWith('flag:') ? flags === undefined : observe === undefined)) {
+    throw new Error('Unbound native director observation');
+  }
+  const read = spec.read ?? (() => Object.fromEntries(Object.entries(definition.inputs).map(([name, binding]) => {
+    if (binding.startsWith('flag:') && flags !== undefined) return [name, flags.has(binding.slice(5))];
+    if (observe !== undefined) return [name, observe(binding)];
+    throw new Error('Unbound native director observation');
+  })));
   for (const binding of spec.bindings) {
     const key = actionIdentity(binding.action);
     if (hooks.has(key)) throw new Error('Duplicate director action binding');
     hooks.set(key, binding.run);
   }
-  if (lane.data.stages.some(stage => stage.do.some(action => !hooks.has(actionIdentity(action))))) throw new Error('Unbound native director action');
+  if (flags !== undefined) for (const stage of definition.stages) for (const action of stage.do) {
+    const key = actionIdentity(action);
+    if ('flag' in action && !hooks.has(key)) hooks.set(key, () => { flags.set(action.flag.key, action.flag.value); });
+  }
+  if (definition.stages.some(stage => stage.do.some(action => !hooks.has(actionIdentity(action))))) throw new Error('Unbound native director action');
   for (const observation of spec.initial) lane.step(lane.tick + 1, observation);
   return {
     advance: () => {
-      for (const action of lane.step(lane.tick + 1, spec.read())) {
+      for (const action of lane.step(lane.tick + 1, read())) {
         const run = hooks.get(actionIdentity(action));
         if (run === undefined) throw new Error('Unbound native director action');
         run();
