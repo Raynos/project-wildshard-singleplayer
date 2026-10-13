@@ -1,6 +1,5 @@
-import { bakedSpots } from './rowsHeadless';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
-import { prepareSignalRuntime } from './signalPlan';
+import { bakedSpots, prepareSignalRuntime } from './signalPlan';
 import baked from './physics.baked.json' with { type: 'json' };
 
 /** The built world's prompt spots and crack targets, in actual world/build.ts registration order. */
