@@ -8,7 +8,7 @@
 // Math.random and runs the page on the capture clock (30 fps), so the one frame drawn before the harness gate holds the
 // world advances 1/30 s, not the wall-clock gap (Nalati's ed70f77d1). `--raw=<dir>` keeps each frame's RGBA so
 // `--compare` can count the differing pixels.
-//   scripts/browser-lane.sh node scripts/proof-pine-look-parity.mjs --url=<preview> --output=<summary.json> [--raw=<dir>]
+//   scripts/browser-lane.sh node scripts/proof-pine-look-parity.mjs --url=<preview> --output=<summary.json> [--raw=<dir>] [--textures=ktx2|img]
 //   node scripts/proof-pine-look-parity.mjs --compare=<base.json>,<candidate.json>
 import { chromium, devices } from 'playwright';
 import { createHash } from 'node:crypto';
@@ -16,6 +16,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { installInit } from './parity/init.mjs';
 import { creatureKinds, creatureShot } from './look-parity-creatures.mjs';
+import { harnessPins } from './debug-settings.mjs';
 
 /** Fixed world poses; x / z in metres, yaw 0 looks −z and +π/2 looks −x */
 const POSES = [
@@ -50,7 +51,8 @@ if (compare !== undefined) {
   console.log(diffs.length === 0 ? `pine-look-parity: ${a.build} = ${b.build} on ${a.rows.length} poses (draws, triangles), GPU bytes, programs, shader sources and colliders` : diffs.join('\n'));
   process.exit(diffs.length === 0 ? 0 : 1);
 }
-const url = arg('url'), output = arg('output'), raw = arg('raw');
+const url = arg('url'), output = arg('output'), raw = arg('raw'), textures = arg('textures');
+if (textures !== undefined && textures !== 'ktx2' && textures !== 'img') throw new Error('--textures=ktx2|img');
 if (url === undefined || output === undefined) throw new Error('Requires --url=<DEVSERVER preview> --output=<summary.json> (or --compare=a,b)');
 if (raw !== undefined) mkdirSync(raw, { recursive: true });
 const version = await (await fetch(new URL('/version.json', url))).json();
@@ -62,6 +64,8 @@ try {
   for (const tier of ['phone', 'desktop']) {
     const context = await browser.newContext({ ...devices['iPhone 16 Pro'], deviceScaleFactor: 2 });
     await installInit(context, { lane: 'pine-look-parity', sha: version.build, browser: 'chromium', capture: 30, tier });
+    // G386: --textures=ktx2|img pins the textures (a harness pin after the init's pins, never a setting or URL switch)
+    if (textures !== undefined) await harnessPins(context, { textures });
     // every shader source the page compiles, hashed (a byte that moved in any program shows here)
     await context.addInitScript(() => {
       const seen = new Set();
