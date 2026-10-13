@@ -1,22 +1,15 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-13 09:30Z. G345 sprint ENDED: target missed (Signal 44.6 %, Sky 51.0 %).** G349–G352: queue Part D.
-
-| Shard (per-export G294) | 21:40Z → 09:30Z | Target | Tiles / private bins |
-|---|---|---|---|
-| Signal Dunes | 70.7 % → **44.6 %** | ≤ 824 lines | **80 / 0** ✔ |
-| Sky Reach | 78.4 % → **51.0 %** | ≤ 1355 lines | **11 / 0** ✔ (`fd1b0a9a4`) |
+**2026-10-13 11:50Z. PORT % (G390): avg ≈ 44 %** (Template 100, Signal 76, Sky 70, Nine 49, Nalati 10, Driftwood 0, Pine 0). Finish line: 0 of 7 at 80/20. G345 sprint ended (target missed).
 
 **Signal and Sky meet Jake's port bar (tiles + 0 private bins).** **Nine ported** (34 L0 tiles, 0 private bins, Linux-exact). **Nalati 0 private bins** (`d3bdac368`); ground + nav one fetch (Nalati, Sky, Signal).
-**RELEASE HOLD until CI + public-Nine smoke pass on ≥ `1b39cec67` (Nine memory fixed: 1006 → 990 MB).** **LIVE `ad30fba68-mv6izhvz` (10:16Z, clean)**. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: Sim Nine max fixed (`77bfbba70`: ~100 ms), Pine desktop PASS; Sim travel still fails Pine 57–63, Driftwood 42–50, Far 40–47 (Nalati 34–35); left = texture uploads (KTX2 ask) + unsplit shard builds. **Whole products: Template, Pastel (Linux-exact), Signal (all Linux-exact).**
+**RELEASE HOLD until CI + public-Nine smoke pass on ≥ `77bfbba70` (Nine memory + frame fixed; CI red only on Pine crags.json Linux, sp-x4).** **LIVE `ad30fba68-mv6izhvz` (10:16Z, clean)**. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: Sim Nine max fixed (`77bfbba70`: ~100 ms), Pine desktop PASS; Sim travel still fails Pine 57–63, Driftwood 42–50, Far 40–47 (Nalati 34–35); left = texture uploads (KTX2 ask) + unsplit shard builds. **Whole products: Template, Pastel (Linux-exact), Signal (all Linux-exact).**
 
-**Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 bench, x6 SF87, x4 Pine, x1 Driftwood, x8 Nine. Opus: o115 desktop parity drift, o114 Pine build slicing (1 free).
+**Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 G388 Sky movers, x6 SF77 ratchet + G390 metric, x4 Pine, x1 Driftwood, x8 Nine. Opus: o117 G385 near B, o116 Nine world-hook work, o114 Pine build slicing, o115 desktop parity drift; G386/G387 queued.
 
-**Jake ask (Nalati places):** port or freeze; recommend port later.
-**Jake ask (Sky movers):** generic mover driver deletes one-user code but re-records the gameplay hash; recommend yes.
+**Decided:** G385 near B (o117), G386 Pine KTX2, G387 graphs with boards, G388 Sky movers yes, G389 Nalati places port later (bridge stays).
 
-**Jake ask (S2):** Graph materials default-off pending an iPhone reading. Recommend accepting Sim + desktop. Near boards `art/near-tier/round-6/`.
-**Jake ask (Sim):** Pine phone tier `textures: 'ktx2'` (board `art/pine-ktx2/round-1-variant/`; existing Debug ▸ GPU textures row): Sim travel 52–58 → 38 ms, GPU 526 → ~260 MB, download 31 → 61–96 MB. Recommend B.
+**G387 boards for wildshard-v (per shard, BEFORE/AFTER graphs):** pending, paths land here.
 
 **Calls for Jake (2026-10-13; reverse any):**
 6–22. Ground loader; Sky prop tiles; commons 0 packs; literal physics rows; Signal navmesh kept; query terrain; Pine cabin shapes; `props.wholeLibrary`; ≤ 1 m tile overhang; Nine portable math (≤ 9e-16); boat hull shared; Debug rows 7 → 4; bake host online; Driftwood/Nalati ground readers; Sky placements baked; Pine helper copies (closed `c757e98b8`).
