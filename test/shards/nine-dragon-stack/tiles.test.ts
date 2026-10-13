@@ -32,7 +32,7 @@ describe('Nine static scene through bake()', () => {
   it('admits whole L0 fabric without double-binding its runtime draws', () => {
     expect(source.tiles.filter(tile => tile.lod === 0)).toHaveLength(34);
     expect(source.runtime?.binds).toContain('props');
-    expect(source.files.filter(file => file.kind === 'glb')).toHaveLength(384);
+    expect(source.files.filter(file => file.kind === 'glb')).toHaveLength(383);
     expect(source.files.every(file => file.compressed <= 25_000_000 && file.decoded <= 25_000_000 && file.gpu <= 25_000_000)).toBe(true);
   });
   it('reconstructs 122 source draws exactly, with the approved portable near-zero normals', async () => {

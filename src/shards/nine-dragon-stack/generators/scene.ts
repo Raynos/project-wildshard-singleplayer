@@ -1,7 +1,7 @@
 import { withPortableMath } from '@wildshard/commons/bake/portableMath';
 import { InstancedMesh, Mesh, MeshStandardMaterial, Scene, type BufferGeometry } from 'three';
 import { bake, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
-import { partitionWholeGeometry } from '@wildshard/sdk/bake/props';
+import { partitionWholeGeometry, wholePartitionRuns } from '@wildshard/sdk/bake/props';
 import { nineLayoutSource } from './layout';
 import { bootSpecimen, specimenRecipes } from './specimens';
 import { banyanOut } from '../world/banyanPlan';
@@ -23,14 +23,14 @@ function buildNineScene(project?: string): { baked: BakedScene; layout: ReturnTy
   for (const [i, geometry] of layout.geometries.entries()) {
     if (local.has(i)) continue;
     const mesh = new Mesh(geometry, material); mesh.name = `layout_${i}`;
-    scene.add(new WholeShape(mesh.name, mesh, { customAttributes: nineChannels(geometry), nativeAttributes: true, partition: true }));
+    scene.add(new WholeShape(mesh.name, mesh, { customAttributes: nineChannels(geometry), nativeAttributes: true, partition: 'runs' }));
   }
   const keys: { boot: string[]; explorer: string[] } = { boot: [], explorer: [] };
   let library = 0; const boxes: Record<string, boolean> = {};
   const part = (name: string, entries: readonly (readonly [string, BufferGeometry])[]): void => {
     for (const [key, geometry] of entries) for (const subset of partitionWholeGeometry(geometry)) {
       const mesh = new InstancedMesh(subset.geometry, material, 1), id = `${name}_${library++}`;
-      const metadata = { id: key, vertices: subset.vertices, triangles: subset.triangles,
+      const metadata = { id: key, vertices: wholePartitionRuns(subset.vertices), triangles: wholePartitionRuns(subset.triangles),
         vertexCount: geometry.getAttribute('position').count, indexCount: geometry.getIndex()?.count ?? 0,
         index: geometry.getIndex() === null ? 'none' : geometry.getIndex()?.array instanceof Uint16Array ? 'u16' : 'u32' };
       scene.add(new BakedPiece(id, [[id, mesh]], [], { attributes: nineChannels(subset.geometry), nativeAttributes: true, compactIndex: true,

@@ -29,8 +29,9 @@ export interface PropWhole {
   customAttributes?: GlbPrimitive['customAttributes'];
   /** Preserve typed channels and source transform doubles in GLB node extras (see staticGlb). */
   nativeAttributes?: true;
-  /** Assign each unchanged triangle to its world-space centroid's tile; extras retain exact assembly ordinals. */
-  partition?: true;
+  /** Assign each unchanged triangle to its world-space centroid's tile; extras retain exact assembly ordinals.
+   *  `'runs'` writes those ordinals as `{ runs }` (`wholePartitionRuns`): the same assembly, far fewer JSON bytes. */
+  partition?: true | 'runs';
   /** Declared visual edge allowance; default zero, hard capped at one metre. No vertex is clipped. */
   overhang?: number;
 }
@@ -50,6 +51,19 @@ function subsetAttribute(attribute: BufferAttribute, selected: readonly number[]
   for (const [i, vertex] of selected.entries()) array.set(attribute.array.subarray(vertex * attribute.itemSize, (vertex + 1) * attribute.itemSize), i * attribute.itemSize);
   return attribute instanceof Float16BufferAttribute ? new Float16BufferAttribute(array, attribute.itemSize, attribute.normalized)
     : new BufferAttribute(array, attribute.itemSize, attribute.normalized);
+}
+
+/** Run-length form of whole-partition ordinals: `[start, length, …]` for each ascending run of consecutive ordinals.
+ *  The game's whole-geometry reader expands it to the identical list (`assembleWholeGeometryViews`). */
+export function wholePartitionRuns(list: readonly number[]): { runs: number[] } {
+  const runs: number[] = [];
+  for (let at = 0; at < list.length;) {
+    const start = list[at]; if (start === undefined) break;
+    let length = 1;
+    while (list[at + length] === start + length) length++;
+    runs.push(start, length); at += length;
+  }
+  return { runs };
 }
 
 /** Partition triangles without clipping or rounding any source channel; world transforms affect ownership only. */
@@ -209,7 +223,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     const { mesh } = entry, at = new Vector3().setFromMatrixPosition(entry.transform), m = mesh.material;
     if (!(at.x >= -250 && at.x < 250 && at.z >= -250 && at.z < 250)) throw new Error(`Whole prop ${entry.id} origin outside the cell`);
     if (!(m instanceof MeshStandardMaterial) || m.transparent || m.metalness !== 0 || m.map !== null || m.color.getHex() !== 0xffffff) throw new Error(`Whole prop ${entry.id} needs one opaque untextured nonmetal white surface`);
-    if (entry.nativeAttributes === true || entry.partition === true) {
+    if (entry.nativeAttributes === true || entry.partition !== undefined) {
       // Native whole draws can be unlit, so normals are not a required source channel. Inspect bounds without
       // constructing lit merge vertices or inventing shader attributes; the original channels reach the GLB unchanged.
       if (mesh instanceof SkinnedMesh) throw new Error('Whole prop must be static');
@@ -224,7 +238,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     }
     // the shape's own attributes and index, untouched: the runtime draws exactly the triangles it built
     const g = new BufferGeometry();
-    const retain = entry.partition === true || entry.nativeAttributes === true;
+    const retain = entry.partition !== undefined || entry.nativeAttributes === true;
     const channels = retain ? Object.keys(mesh.geometry.attributes) : ['position', 'normal', 'color', ...Object.values(entry.customAttributes ?? {})];
     for (const key of channels) if (mesh.geometry.hasAttribute(key)) g.setAttribute(key, mesh.geometry.getAttribute(key));
     g.setIndex(mesh.geometry.getIndex());
@@ -232,12 +246,13 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
       .filter(key => !['position', 'normal', 'color', 'uv', 'tangent'].includes(key) && !Object.values(entry.customAttributes ?? {}).includes(key)).map((key, i) => [`_WS_CHANNEL_${i}`, key]));
     const customAttributes = retain ? { ...automatic, ...entry.customAttributes } : entry.customAttributes;
     const base = { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness }), transform: entry.transform, customAttributes,
-      nativeAttributes: entry.partition === true ? true as const : entry.nativeAttributes };
-    if (entry.partition !== true) return [{ ...base, owner: null, extras: undefined }];
+      nativeAttributes: entry.partition !== undefined ? true as const : entry.nativeAttributes };
+    if (entry.partition === undefined) return [{ ...base, owner: null, extras: undefined }];
+    const ordinals = entry.partition === 'runs' ? wholePartitionRuns : (list: number[]): number[] => list;
     const preparedParts: PreparedWhole[] = [];
     for (const part of partitionWholeGeometry(g, entry.transform, entry.overhang ?? 0)) {
       const prepared: PreparedWhole = { ...base, id: `${entry.id}_p${part.x}_${part.z}_n${preparedParts.length}`, geometry: part.geometry,
-      owner: { x: part.x, z: part.z }, extras: { wholePartition: { id: entry.id, vertices: part.vertices, triangles: part.triangles,
+      owner: { x: part.x, z: part.z }, extras: { wholePartition: { id: entry.id, vertices: ordinals(part.vertices), triangles: ordinals(part.triangles),
         vertexCount: g.getAttribute('position').count, indexCount: g.getIndex()?.count ?? 0,
         index: g.getIndex() === null ? 'none' : g.getIndex()?.array instanceof Uint16Array ? 'u16' : 'u32' } } };
       preparedParts.push(prepared);
@@ -271,7 +286,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
       const hasPanel = lod === 0 && panelFiles.some((p) => p.bounds !== null && p.bounds.max.x >= x0 && p.bounds.min.x <= x0 + size && p.bounds.max.z >= z0 && p.bounds.min.z <= z0 + size);
       if (primitives.length === 0 && !hasPanel) continue;
       const batches: GlbPrimitive[][] = [];
-      if ((source.whole ?? []).some(entry => entry.partition === true)) {
+      if ((source.whole ?? []).some(entry => entry.partition !== undefined)) {
         let batch: GlbPrimitive[] = [];
         for (const primitive of primitives) {
           try { staticGlb([...batch, primitive], `props.${lod}.${x}.${z}`); batch.push(primitive); }

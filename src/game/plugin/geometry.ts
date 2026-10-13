@@ -1272,7 +1272,15 @@ export function installPivotNpc(ctx: PivotNpcLevel, row: NpcRow, ports: PivotNpc
 
 const WholeAttribute = wholeV.strictObject({ semantic: wholeV.string(), storage: wholeV.picklist(['Float32Array', 'Float16Array', 'Uint16Array', 'Uint32Array', 'Int16Array', 'Int8Array', 'Uint8Array']), normalized: wholeV.boolean(), itemSize: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1), wholeV.maxValue(4)) });
 const WholeNative = wholeV.record(wholeV.string(), WholeAttribute);
-const WholePartition = wholeV.strictObject({ id: wholeV.string(), vertices: wholeV.array(wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0))), triangles: wholeV.array(wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0))), vertexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1)), indexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0)), index: wholeV.picklist(['none', 'u16', 'u32']) });
+/** A run list expands to at most this many ordinals (a 2 MB GLB JSON chunk cannot otherwise bound it). */
+const WHOLE_ORDINALS_MAX = 1 << 24;
+const WholeOrdinal = wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0));
+/** Ordinals as a plain list, or the baker's run-length form `{ runs: [start, length, …] }` (sdk/bake/props `wholePartitionRuns`). */
+const WholeOrdinals = wholeV.union([wholeV.array(WholeOrdinal), wholeV.pipe(wholeV.strictObject({ runs: wholeV.array(WholeOrdinal) }),
+  wholeV.check(row => row.runs.length % 2 === 0 && row.runs.every((ordinal, i) => i % 2 === 0 || ordinal > 0)
+    && row.runs.reduce((sum, ordinal, i) => sum + (i % 2 === 1 ? ordinal : 0), 0) <= WHOLE_ORDINALS_MAX, 'whole ordinal runs are bounded start/length pairs'),
+  wholeV.transform(row => { const list: number[] = []; for (let i = 0; i < row.runs.length; i += 2) { const start = row.runs[i] ?? 0, length = row.runs[i + 1] ?? 0; for (let k = 0; k < length; k++) list.push(start + k); } return list; }))]);
+const WholePartition = wholeV.strictObject({ id: wholeV.string(), vertices: WholeOrdinals, triangles: WholeOrdinals, vertexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1)), indexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0)), index: wholeV.picklist(['none', 'u16', 'u32']) });
 function isWholeMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
 const WHOLE_SEMANTICS: Readonly<Record<string, string>> = { POSITION: 'position', NORMAL: 'normal', COLOR_0: 'color', TEXCOORD_0: 'uv', TANGENT: 'tangent' };
 
