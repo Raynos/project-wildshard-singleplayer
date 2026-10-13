@@ -83,9 +83,9 @@ export function skyKnollHulls(): ReadonlyMap<string, ColliderDesc> {
 
 /**
  * One of the baked shapes Sky Reach instances itself (`generators/geometries.ts`: the grass clump, the daisy, the boulder,
- * the code pine, the fir): a copy its caller owns, unindexed as built; empty when the bake did not load.
+ * the code pine, the fir, the falls' sheet): a copy its caller owns, unindexed as built; empty when the bake did not load.
  */
-export function skyBakedGeometry(kind: 'clump' | 'flower' | 'boulder' | 'pine' | 'fir'): BufferGeometry {
+export function skyBakedGeometry(kind: 'clump' | 'flower' | 'boulder' | 'pine' | 'fir' | 'fall'): BufferGeometry {
   const node = loaded.get('geometries')?.get(kind); if (node === undefined) return new BufferGeometry();
   const g = node.geometry.clone(), index = g.getIndex();
   if (index !== null && Array.from(index.array).every((n, i) => n === i)) g.setIndex(null);

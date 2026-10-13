@@ -1,30 +1,8 @@
-import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, Group, InstancedMesh, Matrix4, Quaternion, ShaderMaterial, Vector3 } from 'three';
+import { DoubleSide, Group, InstancedMesh, Matrix4, Quaternion, ShaderMaterial, Vector3 } from 'three';
 import type { Isle } from '../data/layout';
 import { SKY_ISLES, type SkyIsle } from '../data/skyIsles';
-
-/**
- * The falls (loop 5): waterfalls off the playable isles' rims into the cloud sea (the targets have them; council R1C-9).
- * Loop 2's fourteen 3-D skyline islands are gone (council R1C-12 / R1B-7: bare cones in front of the painted matte's
- * finished islands); the panorama (look/sky.ts) carries every far island now. Each fall is [isle, the rim angle in
- * radians (0 = +x), length].
- */
-const FALLS: readonly (readonly [isle: string, angle: number, length: number])[] = [
-  ['windmill', Math.PI, 60], ['windmill', Math.PI * 0.25, 46], ['grove', Math.PI * 0.75, 44], ['grove', Math.PI * 1.6, 38], ['ruin', 0.2, 50], ['ruin', Math.PI * 1.3, 40],
-  ['keeper', Math.PI * 1.15, 40], ['keeper', Math.PI * 0.4, 34], ['crown', Math.PI * 1.55, 70], ['crown', Math.PI * 0.9, 60], ['roost', Math.PI * 0.35, 42], ['step', Math.PI * 1.05, 50], ['sunrest', Math.PI * 1.25, 46],
-];
-
-/** A falling sheet: white at the lip fading to nothing far below (vertex alpha), a slight outward bow. */
-export function fallGeometry(length: number, width: number): BufferGeometry {
-  const pos: number[] = [], col: number[] = [], rows = 6, c = new Color();
-  for (let r = 0; r < rows; r++) {
-    const t0 = r / rows, t1 = (r + 1) / rows, y0 = -t0 * length, y1 = -t1 * length, b0 = Math.sin(t0 * 1.4) * 1.5, b1 = Math.sin(t1 * 1.4) * 1.5;
-    const a0 = 1 - t0, a1 = 1 - t1;
-    const quad: [number, number, number, number][] = [[-width / 2, y0, b0, a0], [width / 2, y0, b0, a0], [width / 2, y1, b1, a1], [-width / 2, y0, b0, a0], [width / 2, y1, b1, a1], [-width / 2, y1, b1, a1]];
-    for (const [x, y, z, a] of quad) { pos.push(x, y, z); c.setRGB(0.95, 0.97, 1); col.push(c.r, c.g, c.b, a * 0.8); }
-  }
-  const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 4));
-  return g;
-}
+import { FALLS } from '../data/falls';
+import { skyBakedGeometry } from './baked';
 
 /** The falls' clock (the plugin advances it): the streaks run down the sheet. */
 export const FALL_TIME = { value: 0 };
@@ -71,7 +49,8 @@ export function skyline(isles: readonly Isle[], lip: (isle: Isle, a: number) => 
   const group = new Group(), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
   const sky = skyIsles.flatMap((s) => s.fall === null ? [] : [{ isle: s, a: s.fall, length: s.keel * 1.3 }]);
   const at = [...FALLS.flatMap(([id, a, length]) => { const isle = isles.find((i) => i.id === id); return isle === undefined ? [] : [{ isle, a, length }]; }), ...sky];
-  const fall = fallGeometry(1, 1), falls = new InstancedMesh(fall, fallMaterial(), at.length);
+  // the sheet's geometry is baked (generators/geometries.ts `fall`, 1 m by 1 m): each instance scales it
+  const fall = skyBakedGeometry('fall'), falls = new InstancedMesh(fall, fallMaterial(), at.length);
   at.forEach(({ isle, a, length }, k) => {
     const r = (lip(isle, a) ?? isle.r * Math.cos(Math.PI / 12)) * 0.9, width = 1.8 + isle.r * 0.04;
     q.setFromAxisAngle(up, Math.atan2(Math.cos(a), Math.sin(a)));

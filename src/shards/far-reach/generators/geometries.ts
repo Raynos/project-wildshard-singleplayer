@@ -8,7 +8,8 @@ import { PALETTE } from '../world/shapes';
  *
  * The shared one-geometry shapes Sky Reach instances at runtime: the meadow's grass clump, daisy and boulder (world/dressing.ts
  * places them over the islands), the code pine (world/shapes.ts, the last fallback for the trees) and the card-branch fir
- * (world/fir.ts, the trees' fallback while the branch sheet loaded). Each is one kind with one identity instance.
+ * (world/fir.ts, the trees' fallback while the branch sheet loaded), and the falls' sheet (world/distant.ts, 1 m by 1 m, each
+ * instance scaled to its fall). Each is one kind with one identity instance.
  */
 
 /** One clump: five bent blades fanned round the centre, 1 m tall before scaling. */
@@ -172,10 +173,24 @@ function firGeometry(): BufferGeometry {
   return g;
 }
 
+/** A falling sheet: white at the lip fading to nothing far below (vertex alpha), a slight outward bow. */
+function fallGeometry(length: number, width: number): BufferGeometry {
+  const pos: number[] = [], col: number[] = [], rows = 6, c = new Color();
+  for (let r = 0; r < rows; r++) {
+    const t0 = r / rows, t1 = (r + 1) / rows, y0 = -t0 * length, y1 = -t1 * length, b0 = Math.sin(t0 * 1.4) * 1.5, b1 = Math.sin(t1 * 1.4) * 1.5;
+    const a0 = 1 - t0, a1 = 1 - t1;
+    const quad: [number, number, number, number][] = [[-width / 2, y0, b0, a0], [width / 2, y0, b0, a0], [width / 2, y1, b1, a1], [-width / 2, y0, b0, a0], [width / 2, y1, b1, a1], [-width / 2, y1, b1, a1]];
+    for (const [x, y, z, a] of quad) { pos.push(x, y, z); c.setRGB(0.95, 0.97, 1); col.push(c.r, c.g, c.b, a * 0.8); }
+  }
+  const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 4));
+  return g;
+}
+
 /** The shapes as named kinds (one identity instance each), in plain standard materials: the client draws them in its own. */
 export function buildGeometries(): (readonly [string, InstancedMesh])[] {
   const one = (geometry: BufferGeometry): InstancedMesh => { const mesh = new InstancedMesh(geometry, new MeshStandardMaterial({ vertexColors: true }), 1); mesh.setMatrixAt(0, new Matrix4()); return mesh; };
-  return [['clump', one(clumpGeometry())], ['flower', one(flowerGeometry())], ['boulder', one(stoneGeometry())], ['pine', one(pineGeometry())], ['fir', one(firGeometry())]];
+  return [['clump', one(clumpGeometry())], ['flower', one(flowerGeometry())], ['boulder', one(stoneGeometry())], ['pine', one(pineGeometry())], ['fir', one(firGeometry())],
+    ['fall', one(fallGeometry(1, 1))]];
 }
 
 /** The shapes baked (no colliders). */
