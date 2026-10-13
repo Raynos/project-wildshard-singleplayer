@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { MarmotContinuation, type MarmotSnapshot } from '../creatures/marmotBrain';
-import baked from './physics.baked.json' with { type: 'json' };
+import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** The baked floor's lattice: Rapier's own 256² heightfield over the 500 m chunk, as the page built it. */
 export const NALATI_GROUND_RES = 256, NALATI_GROUND_SIZE = 500;
@@ -37,7 +37,7 @@ export interface NalatiSolid {
 }
 /** A baked body at load: the manager's id, kind / variant, herd slot (−1: none), native spec, seed, scale, `scripted` flag. */
 export interface NalatiBakedActor { readonly id: string; readonly kind: string; readonly variant: string; readonly herd: number; readonly spec: AnimalSimSpec; readonly seed: number; readonly scale: number; readonly scripted: boolean }
-/** The trusted browser bake (scripts/bake-nalati-physics.mjs), parsed strictly and decoded once. */
+/** Nalati's physics product (generators/physics.ts, G350-NA), parsed strictly and decoded once. */
 export interface NalatiBake {
   readonly ground: { readonly heights: Float32Array; readonly friction: number; readonly groups: number; readonly scale: { x: number; y: number; z: number }; readonly at: { x: number; y: number; z: number } };
   readonly solids: readonly NalatiSolid[];

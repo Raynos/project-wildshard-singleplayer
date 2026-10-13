@@ -79,7 +79,7 @@ export class NalatiPlugin extends ShardPlugin {
     Object.assign(shell.objects, { nalati: rt, grass, particles });
     // the probe's `shard` handles (E405 AG25), read when the probe installs (ride and wildlife arrive in later hooks)
     // `coats`: the baked coats' source (scripts/bake-coats.mjs --shard=nalati-grasslands); `grassBase`: the grass before
-    // trampling the senses read (scripts/bake-nalati-physics.mjs samples it for the renderer-free field's check)
+    // trampling the senses read (the authored physics rows sample it for the renderer-free field's check)
     ctx.debug.expose(`harness.shard.${ctx.manifest.slug}`, Object.defineProperties({ coats: () => creatureRigs.coatSources(), grassBase: (x: number, z: number) => grassField.grassBaseHeightAt(x, z) }, Object.fromEntries(['nalati', 'ride', 'wildlife'].map((key) => [key, { enumerable: true, get: () => shell.objects[key] }]))));
     installEnteredRuntimeService(ctx, (scope) => { ctx.app.registerDayCycle(rt.weather.clock, scope); });
     if (!world.params.has('time')) rt.weather.clock.setTime(setting('time'));

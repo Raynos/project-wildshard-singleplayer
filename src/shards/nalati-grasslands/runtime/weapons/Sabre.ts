@@ -210,8 +210,7 @@ export const SABRE_PROFILE: MeleeProfile & { mounted: { reach: number; cooldown:
 export type SabreProfile = typeof SABRE_PROFILE;
 /** A built sabre (Naizagai included): the type the riding, skin and Titan code hold. */
 export type SabreWeapon = MountedSwordWeapon<SabreProfile>;
-/** The same built sabre under the class's old type name: combat/stormTitan.ts holds it, and that file is a Nalati
- *  physics-bake input (scripts/nalati-physics-inputs.mjs), so a rename there would force a rebake for no behaviour. */
+/** The same built sabre under the class's old type name: combat/stormTitan.ts holds it. */
 // oxlint-disable-next-line no-redeclare -- TypeScript keeps a type alias and a const apart (type vs value space); this is the class's old type name
 export type Sabre = SabreWeapon;
 /** the B7 riding hook: the horse's ground speed (m/s) and heading (rad, the player's yaw convention) */

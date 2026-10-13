@@ -1474,29 +1474,33 @@
     {
       "id": "nalati-physics",
       "shard": "nalati-grasslands",
-      "entry": "src/shards/nalati-grasslands/generators/bake-nalati-physics.mjs",
+      "entry": "src/shards/nalati-grasslands/generators/physics.ts",
       "command": [
-        "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/nalati-grasslands/generators/bake-nalati-physics.mjs"
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/nalati-grasslands/generators/physics.ts",
+        "nalatiPhysics",
+        "src/shards/nalati-grasslands/data/physics.generated.json"
       ],
       "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/nalati-grasslands",
-        "scripts",
-        "public",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "src/format/package.json",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/nalati-grasslands/data/physicsRows.json",
+        "src/shards/nalati-grasslands/generators/physics.ts"
       ],
       "outputs": [
-        "src/shards/nalati-grasslands/runtime/physics.baked.json"
+        "src/shards/nalati-grasslands/data/physics.generated.json"
       ],
-      "platform": "portable"
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/nalati-grasslands/data/physics.generated.json": "f0d0557c6b6e25c32db367ace55fc25b55f6a64aecab964ee80df1da79abd4ab"
+      },
+      "seedOutputs": []
     },
     {
       "id": "sky-rigs",

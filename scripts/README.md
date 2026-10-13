@@ -336,8 +336,6 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [nalati-paintover.mjs](./nalati-paintover.mjs)
 - [nalati-panorama.py](./nalati-panorama.py)
 - [nalati-parity.mjs](./nalati-parity.mjs)
-- [nalati-physics-inputs.d.mts](./nalati-physics-inputs.d.mts)
-- [nalati-physics-inputs.mjs](./nalati-physics-inputs.mjs)
 - [nalati-poses.mjs](./nalati-poses.mjs)
 - [nalati-reach.mjs](./nalati-reach.mjs)
 - [nalati-ride-b1.mjs](./nalati-ride-b1.mjs)

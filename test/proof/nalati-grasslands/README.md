@@ -27,3 +27,5 @@ SF81 DIR-4 raid clock: the page and native headless keeper now advance identical
 
 
 SF81 ghost-volley timing now runs through one in-shard authored owner for the live page and renderer-free roster keeper. Three seeds x10k mixed-rate reverse firing clocks/shots/RNG, strict distance boundaries, long negative timers and quiet restore/refusal match the frozen shipping law; real native body roster and ballistic oracles remain exact. The roster continuation deliberately becomes v2 with its complete v3 AS/stage cursor. Full existing whole-host boot/120/180 snapshots, codec restore/suffix, witness and Ledger reports stay byte-identical, as do physics and official map pixels. This closes only the DIR-4 firing-clock port; the whole-shard native night-roster/Qara requirement remains open and compatible:false is unchanged.
+
+G350-NA: Nalati's physics product is now `data/physics.generated.json`, made from authored rows only (`data/physicsRows.json`) by `generators/physics.ts` under the SDK source loader. Every physics gameplay field is byte-equal to the retired DS1.5 Node bake; no world or runtime code runs to make it.

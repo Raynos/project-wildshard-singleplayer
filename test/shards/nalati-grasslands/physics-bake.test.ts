@@ -1,11 +1,9 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Trusted-bake freshness is checked against the test checkout.
-import process from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The native physics module is read from the in-tree wasm.
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import { nalatiPhysicsInputs } from '../../../scripts/nalati-physics-inputs.mjs';
 import * as v from 'valibot';
-import bakedJson from '../../../src/shards/nalati-grasslands/runtime/physics.baked.json';
+import bakedJson from '../../../src/shards/nalati-grasslands/data/physics.generated.json';
+import { nalatiPhysics } from '../../../src/shards/nalati-grasslands/generators/physics';
 import { nalatiBake, NALATI_GROUND_RES, NALATI_GROUND_SIZE } from '../../../src/shards/nalati-grasslands/runtime/baked';
 import { NALATI_WILDLIFE } from '../../../src/shards/nalati-grasslands/data/fauna';
 import { TERRAIN } from '../../../src/shards/nalati-grasslands/world/terrain';
@@ -13,15 +11,12 @@ import { loadRapier } from '../../../src/engine/physics/rapier';
 import { GROUP } from '../../../src/engine/physics/groups';
 
 /** The bake's provenance fields (the strict body is runtime/baked.ts's). */
-const baked = v.parse(v.object({ version: v.literal(1), revision: v.string(), inputs: v.record(v.string(), v.string()), profile: v.string(), build: v.string(), notice: v.string() }), bakedJson);
+const baked = v.parse(v.object({ version: v.literal(1), profile: v.string(), notice: v.string() }), bakedJson);
 
-it('refuses stale source or model bytes before the trusted Nalati physics bake is used', () => {
-  expect(baked.inputs).toEqual(nalatiPhysicsInputs(process.cwd()));
-  expect(baked.profile).toBe('Node / phone / no renderer');
-  expect(baked.build).toMatch(/^node-[a-f0-9]{64}$/u);
+it('is the fresh product of the authored rows (G350-NA: generators/physics.ts, no runtime run)', () => {
+  expect(JSON.stringify(nalatiPhysics())).toBe(JSON.stringify(bakedJson));
+  expect(baked.profile).toBe('authored rows');
   expect(baked.notice).toContain('DO NOT EDIT');
-  expect(baked.revision).toMatch(/^[a-f0-9]{7,40}$/u);
-  expect(Object.keys(baked.inputs).some(path => path.endsWith('/wolf.phone.rigged.glb'))).toBe(true);
 });
 
 it('captures the native floor: Nalati\'s own terrain recipe at every lattice vertex', () => {
