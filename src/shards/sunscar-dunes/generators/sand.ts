@@ -1,4 +1,6 @@
 import { Vector3 } from 'three';
+import { parseKtx2 } from '@wildshard/sdk/assets';
+import { contentHash } from '@wildshard/sdk/project';
 import { GROUND_HALF } from '../data/layout';
 import { GRAIN_TILE, KEY_DIR, SAND_MAP, SHADOW_HALF, SKIRT_SWELL } from '../data/sand';
 import { swellSkirtAt } from './skirt';
@@ -88,4 +90,39 @@ function grainTile(): { data: Uint8Array; meanR: number; meanGlint: number } {
 export function bakeSignalSand(): { shadow: Uint8Array; trail: Uint8Array; grain: Uint8Array; meanR: number; meanGlint: number } {
   const ground = signalDunesField(), sampled = sampledGround((x, z) => ground.heightAt(x, z)), grain = grainTile();
   return { shadow: duneShadow((x, z) => swellSkirtAt(SKIRT_SWELL, sampled, x, z)), trail: trailMask((x, z) => ground.trailDistance(x, z)), grain: grain.data, meanR: grain.meanR, meanGlint: grain.meanGlint };
+}
+
+/** A zstd compressor (the bake passes Node's `zstdCompressSync` at `SAND_ZSTD_LEVEL`): KTX2's supercompression scheme 2. */
+export type Zstd = (bytes: Uint8Array) => Uint8Array;
+/** The maps' zstd level (the wire is the KTX2's supercompressed level 0; decoded, it is the bake byte for byte). */
+export const SAND_ZSTD_LEVEL = 19;
+
+/**
+ * A map as a single-level KTX2 (R8 or RGBA8 UNORM, linear) whose level 0 is zstd-supercompressed (scheme 2): decoded, it is
+ * `data` byte for byte, which three's KTX2 loader hands the data client as the same DataTexture the old client built
+ * (`look.samplers` set its wrap, filter and GPU mips), at the wire size of the old zlib streams.
+ */
+export function rawKtx2(size: number, channels: 1 | 4, data: Uint8Array, zstd: Zstd): Uint8Array {
+  const packed = zstd(data), dfdSize = 28 + 16 * channels, at = 104 + dfdSize, out = new Uint8Array(at + packed.length), view = new DataView(out.buffer);
+  out.set([171, 75, 84, 88, 32, 50, 48, 187, 13, 10, 26, 10]);
+  // header: vkFormat, typeSize, width, height, depth, layers, faces, levels, supercompression (2: zstd), dfd, (no key/values or global data)
+  [channels === 1 ? 9 : 37, 1, size, size, 0, 0, 1, 1, 2, 104, dfdSize].forEach((value, i) => { view.setUint32(12 + i * 4, value, true); });
+  view.setBigUint64(80, BigInt(at), true); view.setBigUint64(88, BigInt(packed.length), true); view.setBigUint64(96, BigInt(data.length), true);
+  // the basic data format descriptor: RGBSDA, BT.709 primaries, linear transfer, one byte a channel (R, G, B, A); bytesPlane0
+  // stays 0, as a supercompressed level requires
+  view.setUint32(104, dfdSize, true); view.setUint16(112, 2, true); view.setUint16(114, dfdSize - 4, true); out.set([1, 1, 1, 0], 116);
+  for (let c = 0; c < channels; c++) { const s = 132 + c * 16; view.setUint16(s, c * 8, true); out[s + 2] = 7; out[s + 3] = c === 3 ? 15 : c; view.setUint32(s + 12, 255, true); }
+  out.set(packed, at);
+  return out;
+}
+
+/** The three maps as the shardfile's library files (`data/sandMaps.json` rows, `assets/<sha256>` bytes) the look's sand names. */
+export function bakeSandFiles(sand: Pick<ReturnType<typeof bakeSignalSand>, 'grain' | 'trail' | 'shadow'>, zstd: Zstd): { rows: Record<'grain' | 'trail' | 'shadow', { hash: string; kind: 'ktx2'; compressed: number; decoded: number; gpu: number; triangles: number; draws: number; dependencies: string[]; critical: false }>; bytes: Map<string, Uint8Array> } {
+  const bytes = new Map<string, Uint8Array>();
+  const file = (data: Uint8Array, size: number, channels: 1 | 4) => {
+    const wire = rawKtx2(size, channels, data, zstd), hash = contentHash(wire);
+    bytes.set(hash, wire);
+    return { hash, kind: 'ktx2' as const, compressed: wire.length, ...parseKtx2(wire), dependencies: [], critical: false as const };
+  };
+  return { rows: { grain: file(sand.grain, GRAIN_TILE, 4), trail: file(sand.trail, SAND_MAP, 1), shadow: file(sand.shadow, SAND_MAP, 1) }, bytes };
 }

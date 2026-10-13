@@ -1,0 +1,35 @@
+{
+  "grain": {
+    "hash": "f06ce9c2086da2cfe2341cfaaa4b8e22aabd8f40c05824598748b3896c2b8264",
+    "kind": "ktx2",
+    "compressed": 206243,
+    "decoded": 0,
+    "gpu": 262144,
+    "triangles": 0,
+    "draws": 0,
+    "dependencies": [],
+    "critical": false
+  },
+  "trail": {
+    "hash": "823d66c32f8f945fc8f5ce7fad63307fd58530b5ad4036af05bb62d6a791efb3",
+    "kind": "ktx2",
+    "compressed": 2923,
+    "decoded": 0,
+    "gpu": 3211264,
+    "triangles": 0,
+    "draws": 0,
+    "dependencies": [],
+    "critical": false
+  },
+  "shadow": {
+    "hash": "a379e021cf8f6d7f141f29f554b6524ba0a0c2ff067dc5c0adb4ca12cc363700",
+    "kind": "ktx2",
+    "compressed": 8301,
+    "decoded": 0,
+    "gpu": 3211264,
+    "triangles": 0,
+    "draws": 0,
+    "dependencies": [],
+    "critical": false
+  }
+}

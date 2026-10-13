@@ -1884,7 +1884,11 @@
         "public/assets/sunscar-dunes/sand/grain.bin",
         "public/assets/sunscar-dunes/sand/skirt.bin",
         "src/shards/sunscar-dunes/data/sand.json",
-        "src/shards/sunscar-dunes/data/skirt.json"
+        "src/shards/sunscar-dunes/data/skirt.json",
+        "src/shards/sunscar-dunes/data/sandMaps.json",
+        "src/shards/sunscar-dunes/assets/f06ce9c2086da2cfe2341cfaaa4b8e22aabd8f40c05824598748b3896c2b8264",
+        "src/shards/sunscar-dunes/assets/823d66c32f8f945fc8f5ce7fad63307fd58530b5ad4036af05bb62d6a791efb3",
+        "src/shards/sunscar-dunes/assets/a379e021cf8f6d7f141f29f554b6524ba0a0c2ff067dc5c0adb4ca12cc363700"
       ],
       "platform": "native",
       "seedOutputs": [

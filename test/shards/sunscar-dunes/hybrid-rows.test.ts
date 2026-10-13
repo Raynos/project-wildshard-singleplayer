@@ -20,7 +20,7 @@ const whipFamily = (app: App): ReadonlyMap<string, ItemFamily> => new Map([['sun
 
 describe('Signal Dunes declares runtime-bound rows (SHARD-PLATFORM M3, the runtime-owner binding)', () => {
   it('declares its quest, ledger and whip in shard.config.ts as sections its trusted runtime binds', () => {
-    expect(source.runtime?.binds).toEqual(['quests', 'ledger', 'items', 'spawns', 'terrain']);
+    expect(source.runtime?.binds).toEqual(['quests', 'ledger', 'items', 'spawns', 'state']);
     expect(source.quests.quests.map((quest) => quest.id)).toEqual(['sunscar.signal']);
     expect(source.ledger.map((rule) => rule.fact)).toEqual([FACT.signal, FACT.matriarch]);
     expect(source.items.rows.map((row) => [row.id, row.family])).toEqual([['weapon.sunscar-whip', 'sunscar-dunes.whip']]);
@@ -28,11 +28,10 @@ describe('Signal Dunes declares runtime-bound rows (SHARD-PLATFORM M3, the runti
     const data = withoutRuntimeRows(source);
     expect([data.quests.quests.length, data.quests.flags.length, data.ledger.length, data.items.rows.length, data.items.contexts.length]).toEqual([0, 0, 0, 0, 0]);
     expect(data.audio).toBe(source.audio); expect(data.edge).toBe(source.edge);
-    // Bound terrain stays absent; the engine-owned navigation asset stays admitted.
-    expect([data.terrain, data.tiles.length]).toEqual([null, 0]);
+    // G345: the compiled terrain tiles, the sand maps and the bound dusk field are the presentation-only data client's; the
+    // engine-owned navigation asset stays admitted
+    expect([data.terrain, data.tiles.length, data.files.length, data.critical.length, data.state.shared.length]).toEqual([source.terrain, 80, 85, 2, 0]);
     expect(data.navigation).toEqual(source.navigation);
-    expect(data.files.map(file=>file.hash)).toEqual([source.navigation?.file]);
-    expect(data.critical).toEqual([source.navigation?.file]);
   });
   it('the whip row drives the bullwhip and its equipment row: the same numbers, slot and context as before', () => {
     expect([CRACK.reach, CRACK.heavyReach, CRACK.width, CRACK.light, CRACK.heavy, CRACK.cooldown, CRACK.heavyCooldown, CRACK.charge]).toEqual([7, 8, 0.9, 18, 16, 0.45, 0.9, 0.6]);
@@ -55,7 +54,7 @@ describe('Signal Dunes declares runtime-bound rows (SHARD-PLATFORM M3, the runti
     const { app } = services(), runtime = source.runtime;
     if (runtime === null) throw new Error('Signal Dunes declares its runtime');
     const { spawns, ...rest } = runtime;
-    const unbound = parseShardfile({ ...source, runtime: { ...rest, binds: ['items'] } });
+    const unbound = parseShardfile({ ...source, runtime: { ...rest, binds: ['items', 'state'] } });
     expect(() => parseShardfile({ ...source, runtime: { ...rest, spawns, binds: ['items'] } })).toThrow(); // rows the runtime does not bind
     expect(() => parseShardfile({ ...source, runtime: { ...rest, binds: ['items', 'spawns'] } })).toThrow(); // a bind with no rows
     try {

@@ -19,7 +19,7 @@ import { STRINGS } from './data/strings';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
 import { ownPrimitives } from './world/resources';
 import { lastLightAll } from './look/light';
-import { setDusk, stepDusk } from './look/dusk';
+import { DUSK, setDusk, stepDusk } from './look/dusk';
 import { preloadDuneMeshes } from './world/meshes';
 import { loadBakedWorld } from './world/baked';
 import { DUNE_RAY_LOOK } from './species/duneRay';
@@ -35,7 +35,8 @@ import { DUNE_STRIDER_LOOK } from './species/strider';
 import { DUNE_MATRIARCH, DUNE_MATRIARCH_LOOK } from './species/matriarch';
 import { installMatriarch } from './combat/matriarch';
 import type { MarkedBoss } from './runtime/shardfile/markedBoss';
-import { SAND_TILES, SKIRT } from './look/render';
+import { SAND, SKIRT } from './look/render';
+import { lentMaterial } from './runtime/looks/bakedGround';
 
 /** The dusk a quest step has reached (look/dusk.ts): 0 at the start, deeper with each step, 1 once the signal burns. */
 function duskOf(places: SignalWorld): number {
@@ -85,6 +86,15 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
     const [, baked] = await Promise.all([preloadDuneMeshes(), loadBakedWorld()]);
     this.places = buildWorld(ctx, new Flags(ctx.manifest.slug), baked); this.fire = this.places.fire;
+    // G345: the data client draws the tiles in the look's sand and lends it: the skirt wears it, the fires light it, and
+    // its dusk curves read DUSK (the host field shared.dusk). In a grid cell the region lends it the same way.
+    const sand = lentMaterial(source, 'pbr', ctx.scope, (scope, name) => (scope === 'shared' && name === 'dusk' ? DUSK.value : undefined));
+    if (sand !== null) {
+      // the sky's cascades on the sand, as the level painter's terrain group had them (the data client's tiles have none)
+      ctx.game.runtime?.world?.sky.setupMaterial(sand);
+      SAND.material = sand; SKIRT.wear(sand, source.terrain?.order);
+      ctx.scope.onDispose(() => { if (SAND.material === sand) SAND.material = null; });
+    }
     // G99: in a grid cell nothing draws past the cube (the dune skirt stops at its edge; the platform drops the ranges)
     if (ctx.cube !== null) SKIRT.fit(ctx.cube.half);
   }
@@ -117,7 +127,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     // The dusk deepens with the quest (E399, look/dusk.ts): a save loads at its step's light, play eases to each new one.
     if (places) {
       installEnteredRuntimeService(ctx, scope => { setDusk(duskOf(places), true); scope.onDispose(() => { setDusk(0, true); }); });
-      ctx.system({ id: 'sunscar.dusk', phase: 'update', run: (dt) => { setDusk(duskOf(places)); stepDusk(dt); SAND_TILES.follow(position.x, position.z); } });
+      ctx.system({ id: 'sunscar.dusk', phase: 'update', run: (dt) => { setDusk(duskOf(places)); stepDusk(dt); } });
     }
   }
 }

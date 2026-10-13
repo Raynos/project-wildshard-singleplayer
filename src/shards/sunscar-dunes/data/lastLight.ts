@@ -2,7 +2,7 @@ import { SAND_TINT } from './duneField';
 import type { DayClockRow } from '@wildshard/format/dayCycle';
 import { DUSK_CURVES } from './dusk';
 import { KEY_DIR, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from './sand';
-import { SAND_LOOK, SKY_LOOK, type DuskSandRow, type DuskSkyRow } from './familyLook';
+import { SKY_LOOK, type DuskSkyRow } from './familyLook';
 import { PAINTED_STAGES, PAINTED_URLS } from './files';
 
 type Rgb = readonly [number, number, number];
@@ -24,7 +24,6 @@ export interface DuskLookRow {
   readonly curves: typeof DUSK_CURVES;
   readonly tint: DuskTintRow;
   readonly skirt: { readonly grid: SkirtGridRow; readonly swell: SwellSkirtRow };
-  readonly sand: DuskSandRow;
   readonly sky: DuskSkyRow;
   readonly painted: { readonly stages: readonly string[]; readonly urls: Readonly<Record<string, string>>; readonly tag: string; readonly fault: string; readonly scope: string };
 }
@@ -65,6 +64,6 @@ export const DUSK_CLOCK = { units: 'hour', start: 19,
 export const SIGNAL_DUSK_LOOK: DuskLookRow = {
   fog: FOG, key: { dir: KEY_DIR, color: KEY_LIGHT.color, deep: DEEP_KEY, intensity: KEY_LIGHT.intensity }, clock: DUSK_CLOCK,
   curves: DUSK_CURVES,
-  tint: SAND_TINT, skirt: { grid: SKIRT_GRID, swell: SKIRT_SWELL }, sand: SAND_LOOK, sky: SKY_LOOK,
+  tint: SAND_TINT, skirt: { grid: SKIRT_GRID, swell: SKIRT_SWELL }, sky: SKY_LOOK,
   painted: { stages: PAINTED_STAGES, urls: PAINTED_URLS, tag: 'sunscar.sky', fault: '[sunscar-dunes] painted sky', scope: 'sunscar-dunes.sky' },
 };

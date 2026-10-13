@@ -27,6 +27,10 @@
  *   runtime grows its own grass, never the page look's or the engine carpet reading its splat wrongly; and (G232)
  *   its level's light model and fog (`LookStrategy.lighting` / `fog`) scoped to its own
  *   materials as region-keyed program variants (`render/regionLook.ts`), freed with the resident scope.
+ * - a presentation-only hybrid's ground (G345): when its runtime leaves the terrain to its data client, which a region
+ *   does not run, the region draws the tiles in the look's materials exactly as that client does standalone (the same
+ *   calls), lends them to its runtime under its own scope (`lendHybridPresentation`), and ticks the materials and
+ *   follows the viewer while entered.
  * - its own post composite (SF63 / G158, op-frame21): where its look declares one (`ExtendLook.cell`; Jake G322: always),
  *   it is built once its world exists and run by the frame owner while it carries the
  *   frame (`FrameLookPort.composite`); a composite that is its whole chain carries a neutral engine chain beside it.
@@ -73,7 +77,15 @@ import { frameLookOf, lookChainKind, regionChain, regionGrade, replacedKnobs, wh
 import { applyLevelLight, holdPageLight, regionLightSwap } from './regionLight';
 import { buildRegionSky, type RegionBackdrop, type RegionSkyOutcome } from './regionSky';
 import { imagesFirstPlayingBytes } from './runtimeCost';
-import { provideRuntimeProduct } from '../shardfile/runtimeProduct';
+import { provideRuntimeProduct, runtimeProduct } from '../shardfile/runtimeProduct';
+import type { AdmittedProduct } from '../shardfile/product';
+import { clientMaterials } from '../shardfile/clientMaterials';
+import { clientWorld } from '../shardfile/clientWorld';
+import { clientViews } from '../shardfile/clientViews';
+import { clientGround } from '../shardfile/clientGround';
+import { lendHybridPresentation } from '../shardfile/hybridPresentation';
+import { withoutRuntimeRows } from '../plugin/headless';
+import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { shardfileLook } from '../shardfile/look';
 import { findShard } from '../shard/registry';
 import { cellClip } from './cellClip';
@@ -115,6 +127,35 @@ export async function regionalTerrain(level: LevelSpec, scope: Scope, binding: L
   if (look === undefined) scope.onDispose(() => { resolved?.dispose?.(); });
   if (scope.disposed) throw new Error('Regional terrain left while loading its look');
   return new Terrain().build(level.ground, resolved?.terrainPainter, scope, binding);
+}
+
+/**
+ * G345: the ground of a trusted hybrid whose runtime leaves its terrain to the data client (presentation-only), which an
+ * entered region does not run: its tiles drawn under `root` in the look's materials through the shardfile's residency, lit
+ * from the collider lattice, with the materials and the ground lent to its runtime while `scope` lives, exactly as the data
+ * client's presentation mode draws them standalone (the residency starting at `start`, the level's spawn). Null when the
+ * runtime binds its terrain (or it has no tiles). The caller
+ * ticks the materials and moves the residency with the viewer (`follow`, region-local metres) while entered.
+ */
+async function regionalPresentation(admitted: AdmittedProduct, start: { readonly x: number; readonly z: number }, root: Object3D, renderer: Parameters<typeof clientMaterials>[2], scope: Scope, hour: () => number | null): Promise<{ tick: (dt: number) => void; follow: (x: number, z: number) => void } | null> {
+  const full = admitted.source, data = withoutRuntimeRows(full), terrain = data.terrain;
+  if (full.runtime === null || terrain === null || terrain.tiles.length === 0) return null;
+  // the region's product reader (`provideRuntimeProduct`): the admitted files, and the collider read through it when the
+  // admission left it to the required-ground loader
+  const assets = runtimeProduct(full).assets, collider = await assets.read(terrain.collider);
+  if (scope.disposed) throw new Error('Regional world left while reading its presentation collider');
+  // a runtime-bound host field keeps its declared default for the look's curves until the runtime answers (bindState)
+  const presentation = await clientMaterials({ ...data, state: full.state }, assets.retained, renderer, scope);
+  const host = lendHybridPresentation(full.identity.slug, presentation, clientGround(data, assets.retained), scope);
+  presentation.graphs.bind({ hour, state: host });
+  const tiles = await clientWorld({ ...data, props: null }, assets, { scope, x: start.x, z: start.z,
+    views: clientViews({ root, terrain: terrain.family, terrainShadow: terrain.shadow, terrainOrder: terrain.order, ...presentation, lattice: decodeTerrainTile(collider) }) });
+  const distance = terrain.follow ?? 5;
+  let priorX = start.x, priorZ = start.z;
+  return { tick: presentation.tick, follow: (x, z) => {
+    if (Math.hypot(x - priorX, z - priorZ) < distance) return;
+    priorX = x; priorZ = z; void tiles.refresh(x, z);
+  } };
 }
 
 /** What a leak check reads from a prepared region, beside the view's own census. */
@@ -221,6 +262,8 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       const terrain = ports.terrain === undefined ? await regionalTerrain(level, resident, frame.terrain, levelLook) : await ports.terrain(level, resident, frame.terrain);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its terrain');
+      const presented = await regionalPresentation(request.admitted, request.manifest.spawn, scene, game.renderer, resident, () => game.sky.dayNight?.hour ?? null);
+      if (left()) throw new Error('Regional world left while drawing its presentation ground');
       // a painter that bound its own ground (its compiled collider) moves the collision built above onto it
       if (terrain.groundBound) frame.run(app, () => { resampleTerrain(host.physics); });
       terrain.group.traverse((node: Object3D) => { const material: unknown = node instanceof Mesh ? node.material : null; if (isMaterial(material)) sky.setupMaterial(material); });
@@ -370,6 +413,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
           const leaveScene = game.bindScene(scene, entry); bound++;
           entry.onDispose(() => { leaveScene(); bound--; });
           app.addSystem({ id: `grid.runtime.${cell.instance}.forest`, phase: 'update', run: (dt) => { forest.update(dt, home.player.position); } }, entry);
+          if (presented !== null) app.addSystem({ id: `grid.runtime.${cell.instance}.presentation`, phase: 'update', run: (dt) => { presented.tick(dt); presented.follow(home.player.position.x, home.player.position.z); } }, entry);
           // its look's per-frame parts (its sky dressing's update, its frame hook) while entered: they write its own uniforms only
           const scopedLook = regionLook;
           if (scopedLook !== null) app.addSystem({ id: `grid.look.${cell.instance}.frame`, phase: 'update', run: (dt, t) => { scopedLook.frame(dt, t); } }, entry);

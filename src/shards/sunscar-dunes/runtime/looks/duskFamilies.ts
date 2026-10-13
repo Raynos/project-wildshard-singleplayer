@@ -1,11 +1,8 @@
-import { MeshStandardMaterial, type Material, type Texture } from 'three';
+import type { Material, Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { EmissiveLook } from '@wildshard/engine/render/families/emissive';
-import { setGroundPools, updateGround, type GroundPool } from '@wildshard/engine/render/families/ground';
-import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
-import { curvedParams } from '@wildshard/format/materials';
 import { mappedFamilyMaterial } from './bakedGround';
-import type { DuskSandRow, DuskSkyRow } from '../../data/familyLook';
+import type { DuskSkyRow } from '../../data/familyLook';
 
 /**
  * Dusk family surfaces (SHARD-PLATFORM M3; ex a dune shard's sky and sand): a sand that is the PBR family's ground layer
@@ -15,25 +12,6 @@ import type { DuskSandRow, DuskSkyRow } from '../../data/familyLook';
  * fires are the ground layer's light pools. Nothing here knows a shard: the maps' names and numbers come in as rows.
  */
 
-/** The live sand: its material and the adapter that moves it with the dusk and the fires. */
-export interface DuskSand {
-  readonly material: MeshStandardMaterial;
-  /** feed the dusk (uniforms, only when it moved) and the burning fires */
-  readonly update: (dusk: number, fires: readonly GroundPool[]) => void;
-}
-
-/** A dusk sand as a PBR family material over its baked maps (keyed by the row's map names), at `dusk`; freed with `scope`. */
-export function duskSand(row: DuskSandRow, maps: Readonly<Record<string, Texture>>, dusk: number, scope: Scope): DuskSand {
-  let fed = dusk;
-  const base = parseFamilyMaterial(row.entry), fedDusk = (): number => fed;
-  const material = mappedFamilyMaterial(curvedParams(base, row.curves, fedDusk), maps, scope, row.name);
-  if (!(material instanceof MeshStandardMaterial)) throw new Error(`${row.name}: the PBR family compiles to a MeshStandardMaterial`);
-  return { material, update: (next, fires) => {
-    if (next !== fed) { fed = next; const moved = curvedParams(base, row.curves, fedDusk); if (moved.family === 'pbr' && moved.ground !== null) updateGround(material, moved.ground); }
-    setGroundPools(material, fires);
-  } };
-}
-
 /** A painted dusk sky's family entry: the emissive family's sky over its two stages. */
 export function duskSkyEntry(row: DuskSkyRow): unknown {
   return { family: 'emissive', sky: { maps: row.maps, elevation: row.elevation, window: row.window, firstGain: row.firstGain, hold: row.hold } };
@@ -42,7 +20,7 @@ export function duskSkyEntry(row: DuskSkyRow): unknown {
 /** The live sky: the dome's material and the adapter that feeds the dusk as its look's blend. */
 export interface DuskSky {
   readonly material: Material;
-  readonly update: (dusk: number) => void;
+  readonly blend: (dusk: number) => void;
 }
 
 /** A painted dusk sky as an emissive family sky over its two stages; freed with `scope`. */
@@ -50,7 +28,7 @@ export function duskSky(row: DuskSkyRow, stages: readonly [Texture, Texture], du
   const look = new EmissiveLook({ blend: Math.min(1, Math.max(0, dusk)) });
   const material = mappedFamilyMaterial(duskSkyEntry(row), { [row.maps[0]]: stages[0], [row.maps[1]]: stages[1] }, scope, row.name, look);
   let fed = look.params.blend;
-  return { material, update: (next) => {
+  return { material, blend: (next) => {
     const blend = Math.min(1, Math.max(0, next));
     if (blend !== fed) { fed = blend; look.set({ blend }); }
   } };

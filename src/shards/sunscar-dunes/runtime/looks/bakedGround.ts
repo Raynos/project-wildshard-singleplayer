@@ -2,67 +2,23 @@
  * A baked ground (SHARD-PLATFORM M3; ex a dune shard's sand): the pieces a level whose ground is its compiled shardfile
  * terrain tiles draws round them, each driven by rows. Nothing here knows a shard.
  *
- * - `loadBakedMaps`: a set of offline-baked maps (each a zlib stream of the map's raw bytes) uploaded as DataTextures; a
- *   map that fails to load is a page fault (`console.error`) and stands in as one constant byte.
- * - `CubeSkirt`: the baked skirt past the ground's edge (a geometry pack), cut back to a grid cell's cube.
- * - `TintedTileGround`: the runtime-bound terrain tiles drawn in the caller's material with their baked vertex tint, the
- *   ground's queries and collider bound from the tiles' collider, the fine ring following the player.
+ * - `CubeSkirt`: the baked skirt past the ground's edge (a geometry pack), cut back to a grid cell's cube, worn in the
+ *   ground's material once the data client lends it.
+ * - `bindColliderGround`: the level frame's ground (its queries and collider) from the shardfile's terrain collider; the
+ *   data client draws the tiles (G345, presentation-only).
+ * - `lentMaterial`: the data client's built ground material, its curves reading the runtime's host fields.
  * - `mappedFamilyMaterial`: an engine family material whose texture refs name the caller's maps.
  */
-import { ClampToEdgeWrapping, DataTexture, LinearFilter, LinearMipmapLinearFilter, RedFormat, RepeatWrapping, RGBAFormat, UnsignedByteType, type BufferGeometry, type Material, type Mesh, type Texture } from 'three';
+import { Mesh, type BufferGeometry, type Material, type Object3D, type Texture } from 'three';
 import { GeometryPack, fetchDeflated, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { PainterField } from '@wildshard/engine/render/look';
-import type { Terrain } from '@wildshard/engine/world/Terrain';
-import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
-import { installTerrainTile, maskTerrainTile } from '@wildshard/engine/world/terrainTileView';
+import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import type { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { familyMaterial } from '@wildshard/engine/render/families/registry';
-import { bindRuntimeProductTerrain } from '@wildshard/game/shardfile/runtimeProduct';
+import { runtimePresentation, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
-
-/** One baked map: its file (a zlib stream of `size`² × `channels` raw bytes), the byte a failed load stands in with, its sampling. */
-export interface BakedMapRow {
-  readonly url: string;
-  readonly size: number;
-  /** 1: a red mask (linear, clamped); 4: an RGBA tile (repeated, mipmapped) */
-  readonly channels: 1 | 4;
-  readonly standIn: number;
-  /** the RGBA tile's anisotropy */
-  readonly anisotropy?: number;
-}
-
-async function mapBytes(url: string, length: number, standIn: number, fault: string): Promise<Uint8Array> {
-  try {
-    const bytes = await fetchDeflated(url);
-    if (bytes.length !== length) throw new Error(`${url}: ${String(bytes.length)} bytes, ${String(length)} baked`);
-    return bytes;
-  } catch (error: unknown) {
-    console.error(fault, error);
-    return new Uint8Array(length).fill(standIn);
-  }
-}
-
-/** Every baked map of `rows`, uploaded; `fault` opens the page fault a failed map logs. */
-export async function loadBakedMaps<K extends string>(rows: Readonly<Record<K, BakedMapRow>>, fault: string): Promise<Record<K, DataTexture>> {
-  const keys = Object.keys(rows) as K[];
-  const textures = await Promise.all(keys.map(async (key) => {
-    const row = rows[key], bytes = await mapBytes(row.url, row.size * row.size * row.channels, row.standIn, fault);
-    if (row.channels === 1) {
-      const tex = new DataTexture(bytes, row.size, row.size, RedFormat, UnsignedByteType);
-      tex.magFilter = LinearFilter; tex.minFilter = LinearFilter; tex.wrapS = ClampToEdgeWrapping; tex.wrapT = ClampToEdgeWrapping; tex.needsUpdate = true;
-      return tex;
-    }
-    const tex = new DataTexture(bytes, row.size, row.size, RGBAFormat, UnsignedByteType);
-    tex.wrapS = RepeatWrapping; tex.wrapT = RepeatWrapping; tex.magFilter = LinearFilter; tex.minFilter = LinearMipmapLinearFilter;
-    tex.generateMipmaps = true; tex.anisotropy = row.anisotropy ?? 1; tex.needsUpdate = true;
-    return tex;
-  }));
-  const out: Partial<Record<K, DataTexture>> = {};
-  keys.forEach((key, i) => { const tex = textures[i]; if (tex !== undefined) out[key] = tex; });
-  return out as Record<K, DataTexture>;
-}
 
 /** What owns the skirt's geometry: the look's level scope (only the verbs used here). */
 export interface SkirtOwner { readonly disposed: boolean; own: (geometry: BufferGeometry) => BufferGeometry; onDispose: (fn: () => void) => void }
@@ -72,8 +28,9 @@ export interface SkirtOwner { readonly disposed: boolean; own: (geometry: Buffer
  * skirt, geometry 1 cut to the cube's `cubeHalf`). The look loads it and holds the mesh, so the plugin can swap in the cube's
  * cut in a grid cell (`fit`, once); released with its scope. A pack that fails to load is a page fault: no skirt draws.
  */
+interface HeldSkirt { readonly parent: Object3D; readonly mesh: Mesh; readonly cube: BufferGeometry; readonly half: number; readonly scope: SkirtOwner; fitted: boolean; worn: boolean }
 export class CubeSkirt {
-  private held: { readonly mesh: Mesh; readonly cube: BufferGeometry; readonly half: number; readonly scope: SkirtOwner; fitted: boolean } | null = null;
+  private held: HeldSkirt | null = null;
   /** The look: load the pack (`fault` opens its page fault); the standalone skirt, or null when it did not load. */
   async load(url: string, rows: PackedGeometryJson & { readonly cubeHalf: number }, fault: string): Promise<{ standalone: BufferGeometry; cube: BufferGeometry; half: number } | null> {
     try {
@@ -81,11 +38,22 @@ export class CubeSkirt {
       return { standalone: pack.geometry(0), cube: pack.geometry(1), half: rows.cubeHalf };
     } catch (error: unknown) { console.error(fault, error); return null; }
   }
-  /** The look: this level's skirt mesh and its cube cut (`half` its half width). */
-  hold(mesh: Mesh, cube: BufferGeometry, half: number, scope: SkirtOwner): void {
-    const entry = { mesh, cube, half, scope, fitted: false };
+  /**
+   * The look: this level's skirt (its standalone geometry and cube cut, `half` its half width), drawn under `parent` once
+   * worn. Its mesh is made here, before the ground's tiles: where the skirt and a tile lie at the same depth and distance,
+   * the renderer orders them by creation, so the skirt keeps drawing first, as it always has.
+   */
+  hold(parent: Object3D, geometry: BufferGeometry, cube: BufferGeometry, half: number, scope: SkirtOwner): void {
+    const mesh = new Mesh(scope.own(geometry), []); mesh.receiveShadow = false;
+    const entry: HeldSkirt = { parent, mesh, cube, half, scope, fitted: false, worn: false };
     this.held = entry;
-    scope.onDispose(() => { cube.dispose(); if (this.held === entry) this.held = null; });
+    scope.onDispose(() => { mesh.removeFromParent(); cube.dispose(); if (this.held === entry) this.held = null; });
+  }
+  /** The runtime: draw the held skirt in the ground's material (the data client's lent sand) at the tiles' draw `order`; once. */
+  wear(material: Material, order = 0): void {
+    const entry = this.held;
+    if (entry === null || entry.scope.disposed || entry.worn) return;
+    entry.mesh.material = material; entry.mesh.renderOrder = order; entry.worn = true; entry.parent.add(entry.mesh);
   }
   /** The plugin, in a grid cell: the skirt ends at the cube's edge (the baked cut's half width). */
   fit(half: number): void {
@@ -107,46 +75,32 @@ export class CubeSkirt {
   }
 }
 
-/** Which runtime's tiles, where residency starts, how far (m) the player moves before the fine ring follows, the names its faults use. */
-export interface TintedTileOptions { readonly source: Shardfile; readonly x: number; readonly z: number; readonly follow: number; readonly name: string; readonly tag: string }
-type Bound = Awaited<ReturnType<typeof bindRuntimeProductTerrain>>;
+/**
+ * The level frame's ground from the shardfile's terrain collider (G227: its heights, normals and splat as the platform's
+ * client ground reads them), through the runtime's product reader (standalone the canonical product, in a grid cell the
+ * admitted one), so the frame's collider stands on the same lattice the data client draws.
+ */
+export async function bindColliderGround(source: Shardfile, field: PainterField, scope: Scope, name: string): Promise<void> {
+  const terrain = source.terrain; if (terrain === null) throw new Error(`${name} declares no terrain collider`);
+  const data = decodeTerrainTile(await runtimeProduct(source).assets.read(terrain.collider));
+  if (scope.disposed) throw new Error(`${name} left while reading its terrain collider`);
+  if (field.bindGround === undefined) throw new Error(`${name} ground needs a live level frame (PainterField.bindGround)`);
+  const heightAt = (x: number, z: number): number => (x < -250 || x > 250 || z < -250 || z > 250 ? 0 : terrainTileHeight(data, x, z));
+  field.bindGround({ heightAt, splatAt: () => [1, 0, 0, 0], normalAt: (x, z, eps = 0.25) => {
+    const dx = heightAt(x - eps, z) - heightAt(x + eps, z), dz = heightAt(x, z - eps) - heightAt(x, z + eps), length = Math.hypot(dx, 2 * eps, dz);
+    return [dx / length, 2 * eps / length, dz / length];
+  } });
+}
 
 /**
- * A ground drawn from its compiled shardfile terrain tiles and stood on from their collider, through the platform's
- * runtime-bound terrain (the same product reader standalone and in a grid cell, the shardfile's own residency rings). Each
- * tile is the engine's terrain tile view in the caller's material, its vertex tint the bake's; its normals are the shared
- * collider lattice's, so a tile edge across a crest lights as one surface. The tiles cast and receive no shadow.
+ * The runtime's world stage: the built material `id` its data client lends (G345, `runtimePresentation`; in a grid cell the
+ * region lends it), its look's curves reading the runtime's host fields through `state` while `scope` lives; null when
+ * nothing lends this shard's presentation.
  */
-export class TintedTileGround {
-  private live: { bound: Bound; x: number; z: number; busy: boolean } | null = null;
-  constructor(private readonly options: TintedTileOptions) {}
-  /** Bind the tiles under `scope` and hand their ground to the level frame (`field.bindGround`). */
-  async bind(terrain: Terrain, field: PainterField, material: Material, scope: Scope): Promise<void> {
-    const o = this.options;
-    const bound = await bindRuntimeProductTerrain(scope, o.source, { x: o.x, z: o.z, terrain: (bytes, tileScope, _shadow, lattice) => {
-      const mesh = installTerrainTile(decodeTerrainTile(bytes), { root: terrain.group, scope: tileScope, material, shadow: false, lattice });
-      mesh.receiveShadow = false;
-      return { mask: (excluded) => { maskTerrainTile(mesh, excluded); }, shadow: () => undefined };
-    } });
-    if (scope.disposed) throw new Error(`${o.name} left while binding its ground tiles`);
-    if (field.bindGround === undefined) throw new Error(`${o.name} ground tiles need a live level frame (PainterField.bindGround)`);
-    field.bindGround(bound.ground);
-    const entry = { bound, x: o.x, z: o.z, busy: false };
-    this.live = entry;
-    scope.onDispose(() => { if (this.live === entry) this.live = null; });
-  }
-  /** Move the fine ring with the player (shard-local metres); a no-op unless the tiles are bound. */
-  follow(x: number, z: number): void {
-    const entry = this.live;
-    if (entry === null || entry.busy || Math.hypot(x - entry.x, z - entry.z) < this.options.follow) return;
-    entry.busy = true; entry.x = x; entry.z = z;
-    void this.refresh(entry, x, z);
-  }
-  private async refresh(entry: { bound: Bound; busy: boolean }, x: number, z: number): Promise<void> {
-    try { await entry.bound.refresh(x, z); }
-    catch (error: unknown) { console.warn(`[${this.options.tag}] ground tiles refresh failed`, error); }
-    finally { entry.busy = false; }
-  }
+export function lentMaterial(source: Shardfile, id: string, scope: Scope, state: (scope: 'shared' | 'player', name: string) => number | undefined): Material | null {
+  const lent = runtimePresentation(source); if (lent === null) return null;
+  scope.onDispose(lent.bindState(state));
+  return lent.material(id);
 }
 
 /** An engine family material from `entry` whose texture refs name `maps`, freed with `scope`; `name` opens its missing-map error. */

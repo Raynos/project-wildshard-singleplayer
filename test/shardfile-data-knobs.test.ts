@@ -82,7 +82,7 @@ describe('look texture samplers (look.samplers)', () => {
 
 const entry = 'runtime/index.ts';
 /** A presentation-only hybrid (a baked terrain in one PBR look material) standing at x 38, with the given terrain rows. */
-function fixture(rows: { shadow?: { cast: boolean; receive: boolean }; follow?: number }): { source: Shardfile; bytes: ReadonlyMap<string, Uint8Array> } {
+function fixture(rows: { shadow?: { cast: boolean; receive: boolean }; follow?: number; order?: number }): { source: Shardfile; bytes: ReadonlyMap<string, Uint8Array> } {
   const baked = bakeTerrain({ heightAt: (x, z) => Math.max(0, 6 - Math.hypot(x - 40, z + 30) / 10), colourAt: () => [0.6, 0.5, 0.4], family: 'pbr' });
   const data = emptyShardfile({ slug: 'knob-fixture', name: 'Knob fixture', author: 'Fixture', seed: 1, revision: 1 });
   Object.assign(data, { terrain: { ...baked.terrain, ...rows }, tiles: baked.tiles, files: baked.files, critical: baked.critical, edge: baked.edge, runtime: { entry }, spawn: { x: 38, y: 2, z: 10, yaw: 0 } });
@@ -121,12 +121,14 @@ async function drawn(source: Shardfile, bytes: ReadonlyMap<string, Uint8Array>, 
 /** Does the fine tile at x 125 (z 0 … 62.5) cast? It enters the 80 m shadow disc once the viewer passes x 45. */
 const edgeCasts = (meshes: readonly THREE.Mesh[]): boolean => meshes.some((mesh) => mesh.name === 'terrain:125,0' && mesh.castShadow);
 
-describe('terrain draw rows (terrain.shadow, terrain.follow)', () => {
+describe('terrain draw rows (terrain.shadow, terrain.follow, terrain.order)', () => {
   it('admits the rows, leaves them absent when undeclared, and the templates write the defaults out', () => {
     const { source } = fixture({});
-    expect(source.terrain === null ? null : ['shadow' in source.terrain, 'follow' in source.terrain]).toEqual([false, false]);
+    expect(source.terrain === null ? null : ['shadow' in source.terrain, 'follow' in source.terrain, 'order' in source.terrain]).toEqual([false, false, false]);
     expect(v.safeParse(TerrainSchema, { ...source.terrain, shadow: { cast: false, receive: true }, follow: 8 }).success).toBe(true);
     for (const follow of [0.5, 63, Number.NaN]) expect(v.safeParse(TerrainSchema, { ...source.terrain, follow }).success).toBe(false);
+    expect(v.safeParse(TerrainSchema, { ...source.terrain, order: -1 }).success).toBe(true);
+    for (const order of [0.5, -101, 101, Number.NaN]) expect(v.safeParse(TerrainSchema, { ...source.terrain, order }).success).toBe(false);
     expect(v.safeParse(TerrainSchema, { ...source.terrain, shadow: { cast: false } }).success).toBe(false);
     for (const shard of [template, ink]) expect([shard.terrain?.shadow, shard.terrain?.follow]).toEqual([{ cast: true, receive: true }, 5]);
   });
@@ -149,6 +151,17 @@ describe('terrain draw rows (terrain.shadow, terrain.follow)', () => {
       await walk(46.5);
       expect(meshes().some((mesh) => mesh.receiveShadow || mesh.castShadow)).toBe(false);
     });
+  });
+
+  it('draws every tile at the declared order, and at 0 without it (terrain.order)', async () => {
+    for (const [rows, order] of [[{}, 0], [{ order: -1 }, -1]] as const) {
+      const { source, bytes } = fixture(rows);
+      await drawn(source, bytes, async ({ meshes, walk }) => {
+        await walk(46.5);
+        expect(meshes().length).toBeGreaterThan(16);
+        expect(meshes().every((mesh) => mesh.renderOrder === order)).toBe(true);
+      });
+    }
   });
 
   it('re-centres the residency only past the declared follow', async () => {

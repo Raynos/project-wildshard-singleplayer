@@ -4,7 +4,7 @@ import * as v from 'valibot';
 import { playerModes } from '@wildshard/engine/player/modes';
 import { enteredOwner, withOwner } from '@wildshard/engine/app/ownership';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { Mesh, Points, Object3D, Vector3 } from 'three';
+import { Mesh, Object3D, Vector3 } from 'three';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Actor, CombatTarget } from '@wildshard/engine/combat/pipeline';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
@@ -35,7 +35,7 @@ import { compendiumSketches } from '@wildshard/format/compendiumSketches';
 import { clientMaterials } from './clientMaterials';
 import type { GraphSources } from './clientGraphs';
 import { clientGround } from './clientGround';
-import { publishHybridPresentation } from './hybridPresentation';
+import { lendHybridPresentation } from './hybridPresentation';
 import { materialTextureRefs } from '@wildshard/format/materials';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { clientPostStack, type ClientPost } from './clientPost';
@@ -131,7 +131,8 @@ function emptyHybridData(source: Shardfile, audioOwner: ShardfileClientBindings[
  * is presentation-only: its runtime keeps the simulation and the data client only draws.
  */
 function withoutPresentation(source: Shardfile): Shardfile {
-  const files = new Set([...(source.terrain === null ? [] : [source.terrain.collider, ...source.terrain.tiles.map((tile) => tile.file)]), ...materialTextureRefs(source.look.materials)]);
+  const files = new Set([...(source.terrain === null ? [] : [source.terrain.collider,
+    ...(source.terrain.sampling === undefined ? [] : [source.terrain.sampling.file]), ...source.terrain.tiles.map((tile) => tile.file)]), ...materialTextureRefs(source.look.materials)]);
   const keep = (ref: string): boolean => !files.has(ref);
   return { ...source, terrain: null, files: source.files.filter((file) => keep(file.hash)), critical: source.critical.filter(keep), library: source.library.filter(keep),
     tiles: source.tiles.flatMap((tile) => { const kept = tile.files.filter(keep); return kept.length === 0 ? [] : [kept.length === tile.files.length ? tile : { ...tile, files: kept }]; }),
@@ -197,7 +198,7 @@ export class ShardfileClient {
     installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials, outline: presentation.outline });
     this.worldTiles = await clientWorld(this.source, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z,
       ...(this.bindings.residency !== undefined && this.source.runtime === null ? { residency: { allocator, owner: this.bindings.instance } } : {}),
-      views: clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, terrainShadow: this.source.terrain?.shadow, ...presentation }),
+      views: clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, terrainShadow: this.source.terrain?.shadow, terrainOrder: this.source.terrain?.order, ...presentation }),
     });
     const tiles = this.worldTiles;
     this.followViewer(ctx, runtime, tiles, presentation);
@@ -215,9 +216,12 @@ export class ShardfileClient {
     ctx.debug.expose('shardfileResidency', { tiles, allocator, mode: 'standalone', workers: false });
   }
 
-  /** The tiles' residency follows the viewer past the terrain's follow distance (`terrain.follow`, `FOLLOW` by default); the materials' looks, graphs and curves tick each frame. */
-  private followViewer(ctx: ShardContext, runtime: NonNullable<ShardContext['game']['runtime']>, tiles: { refresh: (x: number, z: number) => Promise<void> }, presentation: Awaited<ReturnType<typeof clientMaterials>>): void {
-    let priorX = this.source.spawn.x, priorZ = this.source.spawn.z;
+  /**
+   * The tiles' residency follows the viewer past the terrain's follow distance (`terrain.follow`, `FOLLOW` by default) from
+   * where it started (`from`, the shardfile's spawn by default); the materials' looks, graphs and curves tick each frame.
+   */
+  private followViewer(ctx: ShardContext, runtime: NonNullable<ShardContext['game']['runtime']>, tiles: { refresh: (x: number, z: number) => Promise<void> }, presentation: Awaited<ReturnType<typeof clientMaterials>>, from: { readonly x: number; readonly z: number } = this.source.spawn): void {
+    let priorX = from.x, priorZ = from.z;
     const follow = this.source.terrain?.follow ?? FOLLOW;
     ctx.system({ id: 'game.shardfile.residency', phase: 'fixed.post', after: ['player.step'], run: () => {
       const position = runtime.viewer();
@@ -231,23 +235,7 @@ export class ShardfileClient {
   /** A trusted hybrid's runtime reads the built materials, the drawn terrain's queries and the curves' host-state port. */
   private lend(ctx: ShardContext, presentation: Awaited<ReturnType<typeof clientMaterials>>, ground: TerrainField | null): void {
     if (this.bindings.trustedRuntime !== true) return;
-    const bound = new WeakSet<Mesh | Points>();
-    publishHybridPresentation(this.source.identity.slug, { ground,
-      bindMaterial: (id, object, scope) => {
-        if (ctx.scope.disposed || scope.disposed || bound.has(object)) throw new Error('Material lending needs live scopes and an unbound object');
-        const material = presentation.materials.get(id);
-        if (material === undefined) throw new Error(`Hybrid presentation has no material ${id}`);
-        if ((material.userData['graphPrimitive'] === 'points') !== (object instanceof Points)) throw new Error('Graph primitive does not match runtime object');
-        const prior = object.material, lease = scope.child(`material:${id}`);
-        ctx.scope.onDispose(() => { lease.dispose(); });
-        bound.add(object); object.material = material;
-        lease.onDispose(() => { bound.delete(object); if (object.material === material) object.material = prior; });
-        try { presentation.outline(object, material, lease, true); } catch (error) { lease.dispose(); throw error; }
-        return () => { lease.dispose(); };
-      },
-      material: (id) => { const material = presentation.materials.get(id); if (material === undefined) throw new Error(`Hybrid presentation has no material ${id}`); return material; },
-      bindState: (read) => { this.hostState = read; return () => { if (this.hostState === read) this.hostState = undefined; }; },
-    }, ctx.scope);
+    this.hostState = lendHybridPresentation(this.source.identity.slug, presentation, ground, ctx.scope);
   }
 
   /**
@@ -260,11 +248,13 @@ export class ShardfileClient {
     if (terrain !== null && collider === undefined) throw new Error('Missing admitted terrain collider');
     this.lend(ctx, presentation, terrain === null ? null : clientGround(this.source, this.assets.retained));
     presentation.graphs.bind({ hour: () => world.game.sky.dayNight?.hour ?? null, state: (scope, name) => this.hostState?.(scope, name) });
-    // the runtime's reviewed claim covers its whole home (as for every hybrid's tiles): no per-tile residency charge
-    const tiles = terrain === null ? { refresh: () => Promise.resolve() } : await clientWorld({ ...this.source, props: null }, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z,
-      views: clientViews({ root: ctx.root, terrain: terrain.family, terrainShadow: terrain.shadow, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) }),
+    // the runtime's reviewed claim covers its whole home (as for every hybrid's tiles): no per-tile residency charge. The
+    // runtime owns the level, so the residency starts at its level's spawn (the trusted manifest's), not the shardfile's
+    const start = ctx.manifest.spawn;
+    const tiles = terrain === null ? { refresh: () => Promise.resolve() } : await clientWorld({ ...this.source, props: null }, this.assets, { scope: ctx.scope, x: start.x, z: start.z,
+      views: clientViews({ root: ctx.root, terrain: terrain.family, terrainShadow: terrain.shadow, terrainOrder: terrain.order, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) }),
     });
-    this.followViewer(ctx, runtime, tiles, presentation);
+    this.followViewer(ctx, runtime, tiles, presentation, start);
   }
 
   kit(ctx: ShardContext): void {

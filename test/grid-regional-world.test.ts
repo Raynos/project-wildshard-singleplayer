@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The synthetic product's collider is content-addressed.
 import { createHash } from 'node:crypto';
 import { afterEach, beforeAll, expect, it, vi } from 'vitest';
-import { DataTexture, Fog, Group, Mesh, MeshLambertMaterial, PlaneGeometry, Scene, Vector3, PerspectiveCamera, WebGLRenderTarget } from 'three';
+import { DataTexture, Fog, Group, Mesh, MeshLambertMaterial, MeshStandardMaterial, PlaneGeometry, Scene, Vector3, PerspectiveCamera, WebGLRenderTarget } from 'three';
 import { ownSceneResource } from '../src/engine/app/sceneOwnership';
 import { registerSpecies, speciesDef } from '../src/engine/entities/species/registry';
 import { App } from '../src/engine/app/app';
@@ -45,6 +45,11 @@ import { Inventory } from '../src/game/Inventory';
 import { PINE_HOLLOW } from '../src/shards/pine-hollow/manifest';
 import pineSource from '../src/shards/pine-hollow/shard.config';
 import { fakeWorld } from './fake/world';
+import { emptyShardfile } from '../src/sdk/author';
+import { bakeTerrain } from '../src/sdk/bake/terrain';
+import { contentHash } from '../src/sdk/project';
+import { validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { runtimePresentation } from '../src/game/shardfile/runtimeProduct';
 
 let rapier: Rapier;
 beforeAll(async () => { rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm')); });
@@ -450,4 +455,35 @@ it.each(['missing', 'wrong-seed', 'no-loader'] as const)('refuses %s required pr
     expect(() => required.heightAt(0, 0)).toThrow('not ready');
     expect(terrain).not.toHaveBeenCalled();
   } finally { restore(); online(); vi.restoreAllMocks(); f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
+});
+
+/** G345: a hybrid whose runtime leaves its terrain to the data client: a baked hill, one PBR look material on a host-bound curve. */
+function presentationHybrid(): { source: Shardfile; bytes: ReadonlyMap<string, Uint8Array> } {
+  const baked = bakeTerrain({ heightAt: (x, z) => Math.max(0, 6 - Math.hypot(x - 40, z + 30) / 10), colourAt: () => [0.6, 0.5, 0.4], family: 'pbr' });
+  const data = emptyShardfile({ slug: 'pine-hollow', name: 'Presentation region', author: 'Fixture', seed: 435, revision: 1 });
+  Object.assign(data, { terrain: { ...baked.terrain, follow: 8 }, tiles: baked.tiles, files: baked.files, critical: baked.critical, edge: baked.edge,
+    runtime: { entry: 'runtime/index.ts', binds: ['state'] }, state: { ...data.state, shared: [{ id: 1, name: 'dusk', type: 'f64', privacy: 'host', default: 0.25, min: 0, max: 1 }] },
+    look: { ...data.look, families: ['pbr'], materials: { pbr: { family: 'pbr', vertexColours: true, metalness: 0, roughness: 0.5 } },
+      curves: { pbr: [{ param: 'roughness', state: 'shared.dusk', curve: { mix: [0.2, 0.9] } }] } } });
+  data.budgets.sim = { resident: 16_000_000, compressed: 2_000_000 };
+  return { source: validateShardfileAssets(data, baked.assets, contentHash), bytes: baked.assets };
+}
+
+it('draws a presentation-only hybrid\'s tiles in its look\'s material and lends them to its runtime while resident (G345)', async () => {
+  const f = fixture(), { source, bytes } = presentationHybrid(), scope = f.scope.child('grid.runtime:pine-hollow');
+  try {
+    const prepared = await f.foundation({ ...f.request, scope, admitted: { source, assets: bytes, cached: false } });
+    // the runtime's world stage finds the material and the drawn ground the data client would lend it standalone
+    const lent = runtimePresentation(source); if (lent === null) throw new Error('The region lends no presentation');
+    const sand = lent.material('pbr');
+    expect(sand instanceof MeshStandardMaterial ? sand.roughness : null).toBeCloseTo(0.375, 6); // the host field's default
+    expect([(lent.ground?.heightAt(40, -30) ?? 0) > 5, lent.ground?.heightAt(-200, 200)]).toEqual([true, 0]); // the hill, the plain
+    const view = createRegionalView({ cell: f.request.cell, home: { x: 0, z: 0 }, scene: f.game.rootScene, physics: prepared.region.host.physics, slot: f.app,
+      assets: f.app.assets, allocator: f.allocator, claim: f.claim, scope, ground: prepared.ground });
+    prepared.world(view);
+    const tiles = (): number => { let n = 0; view.root.traverse((node) => { if (node instanceof Mesh && node.material === sand) n++; }); return n; };
+    expect(tiles()).toBeGreaterThan(0);
+    prepared.region.dispose();
+    expect([runtimePresentation(source), tiles()]).toEqual([null, 0]);
+  } finally { scope.dispose(); f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
 });

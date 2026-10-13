@@ -12,17 +12,8 @@ export const SHADOW_HALF = 520;
 export const SAND_MAP = 896;
 /** The sand grain tile's texels a side (1.8 m a tile, RGBA: albedo, bump x, bump z, 255). */
 export const GRAIN_TILE = 256;
-/** The baked maps the client reads (each a zlib stream of the map's raw bytes), and the baked dune skirt (a zlib geometry pack, `generators/skirt.ts`). */
-export const SAND_FILES = { shadow: '/assets/sunscar-dunes/sand/shadow.bin', trail: '/assets/sunscar-dunes/sand/trail.bin', grain: '/assets/sunscar-dunes/sand/grain.bin', skirt: '/assets/sunscar-dunes/sand/skirt.bin' } as const;
-/**
- * The baked maps as the client uploads them (`@wildshard/sdk/looks/bakedGround` loadBakedMaps): a failed shadow stands in
- * fully lit, a failed trail as no trail, a failed grain as flat grain (round 5: anisotropic, so the grazing near view keeps it).
- */
-export const SAND_MAPS = {
-  shadow: { url: SAND_FILES.shadow, size: SAND_MAP, channels: 1, standIn: 255 },
-  trail: { url: SAND_FILES.trail, size: SAND_MAP, channels: 1, standIn: 0 },
-  grain: { url: SAND_FILES.grain, size: GRAIN_TILE, channels: 4, standIn: 128, anisotropy: 8 },
-} as const;
+/** The baked dune skirt (a zlib geometry pack, `generators/skirt.ts`); the maps are the shardfile's library files (data/sandMaps.json). */
+export const SAND_FILES = { skirt: '/assets/sunscar-dunes/sand/skirt.bin' } as const;
 /**
  * The skirt's swells past the ground's square edge (half width `edge`): inside (`out < inside`) the ground's own height;
  * outside, the clamped edge height eased over `ease` metres into `base + swell · sin(2π (u + sin(v) · wobble))` along the

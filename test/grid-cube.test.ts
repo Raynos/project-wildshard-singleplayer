@@ -1,5 +1,5 @@
 import { afterAll, afterEach, expect, it, vi } from 'vitest';
-import { Mesh, PlaneGeometry, Vector3, type Material } from 'three';
+import { Group, Mesh, MeshBasicMaterial, PlaneGeometry, Vector3, type Material } from 'three';
 import { gridLevel } from '../src/game/grid/session';
 import { setPageMode } from '../src/game/grid/pageMode';
 import { shardContext, type GameServices } from "../src/game/plugin/context";
@@ -47,14 +47,21 @@ it('gives a shard its cube only in a grid cell', () => {
 });
 
 it('cuts Signal Dunes\' skirt back to the cube once, and frees the standalone geometry', () => {
-  const scope = new Scope('test'), standalone = new PlaneGeometry(1040, 1040, 4, 4), mesh = new Mesh(standalone);
+  const scope = new Scope('test'), standalone = new PlaneGeometry(1040, 1040, 4, 4), parent = new Group();
   const disposed = vi.fn<() => void>(); standalone.addEventListener('dispose', disposed);
-  SKIRT.hold(mesh, new PlaneGeometry(500, 500, 2, 2), 250, scope);
+  const cube = new PlaneGeometry(500, 500, 2, 2);
+  SKIRT.hold(parent, standalone, cube, 250, scope);
   expect(SKIRT.reach()).toBe(520);
   expect(() => { SKIRT.fit(300); }).toThrow(/250 m cube/u);
   SKIRT.fit(250); SKIRT.fit(250);
   expect(SKIRT.reach()).toBe(250);
   expect(disposed).toHaveBeenCalledOnce();
+  // G345: worn in the lent ground material once, drawn under its parent with the cube cut
+  const sand = new MeshBasicMaterial(); SKIRT.wear(sand); SKIRT.wear(sand);
+  expect(parent.children).toHaveLength(1);
+  const worn = parent.children[0];
+  expect(worn instanceof Mesh && worn.material === sand && worn.geometry === cube).toBe(true);
   scope.dispose();
+  expect(parent.children).toHaveLength(0);
   expect(SKIRT.reach()).toBeNull();
 });

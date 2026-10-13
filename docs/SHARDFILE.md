@@ -123,7 +123,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 | `clientScripts` | Optional/default-empty presentation lane: cadence dividing 60, named creature/panel/prop/particle targets, selected public/owner numeric fields, bounded pose and emitters. |
 | `clientChannels` | Optional trusted-runtime presentation programs: bounded straight-line numeric expressions over copied clock/state observations, publishing only private visual transforms/scalars. Requires `runtime.binds: ["clientChannels"]`. |
 | `rows` | Optional/default-empty numeric strikes, weather output tables, day schedules, species/variants, registered look recipes, compendium and loot presentation data. |
-| `terrain`, `water` | Optional/null bounded baked terrain binding, with optional draw rows `shadow: {cast, receive}` (absent: both on; `cast` still needs the client's shadow disc) and `follow` (1–62.5 m the viewer moves before the tile residency re-centres; absent: 5 m); optional/default-empty declared pools, sea and streams. |
+| `terrain`, `water` | Optional/null bounded baked terrain binding, with optional draw rows `shadow: {cast, receive}` (absent: both on; `cast` still needs the client's shadow disc) `follow` (1–62.5 m the viewer moves before the tile residency re-centres; absent: 5 m) and `order` (an integer −100–100, the tiles' draw order among opaque surfaces, so a same-depth tie with a far horizon ring resolves one way; absent: 0); optional/default-empty declared pools, sea and streams. |
 | `meshCollision` | Optional/null exact WMC1 critical triangle tiles and interactive panel colliders; mutually exclusive with terrain. Runtime integration is pending (SF55a). |
 | `nativeGround` | Optional/null `{version:1,file}` retaining the original critical WSTR256 binary of a trusted runtime world. Mutually exclusive with compiled terrain and mesh collision; no second collider is installed. |
 | `creatures`, `encounters` | Optional/default-empty individual brains, ordered pack/herd groups, stable spawns and phase tables; each actor has one controller and resolves declared species/variant/strike and boss panel references. |
@@ -2079,24 +2079,3 @@ The game supplies admitted bytes to ordinary level and grid boot. A
 trusted manifest can declare the same row with an immutable URL; hash or
 layout failure is fatal. Manifests without a row retain the older optional
 navmesh lookup while they migrate.
-
-Exact optional GLB instances use `EXT_mesh_gpu_instancing.attributes._MATRIX`:
-packed, unnormalized FLOAT MAT4 accessors (64-byte stride, aligned to 4 bytes),
-column-major as Three's `instanceMatrix`. They cannot coexist with TRANSLATION,
-ROTATION or SCALE. Each matrix is finite and affine (last row 0, 0, 0, 1), has
-positive determinant, and preserves the existing 1000 scale bound with float32
-rounding tolerance (squared basis-column length at most 1,000,000.25).
-`_COLOR_0` optionally supplies packed unnormalized FLOAT VEC3 linear RGB in 0 … 1
-(12-byte stride). Counts match across all instance attributes, still 1 … 10,000.
-Matrices and colours are admitted and charged before the loader allocates them;
-all old TRS admission and bytes stay unchanged when the attributes are absent.
-
-SDK `staticGlb` opts in with `exactInstances: true` and optional
-`instanceColours: readonly Color[]`; `bakeKinds(..., { exactInstances: true })`
-keeps the original float32 matrices and any instance colour buffer. Omitted options
-retain the old TRS writer and its refusal of coloured kinds. The engine's
-`applyExactInstanceMatrices(root)` copies the admitted matrix attribute into
-`instanceMatrix` before upload, without decomposition, and drops the unused custom
-geometry attribute. GLTFLoader already copies `_COLOR_0` without colour conversion.
-The normal rig loader and declared runtime-props reader apply this step. There is
-no shard adoption or new SDK runtime facade in this addition.

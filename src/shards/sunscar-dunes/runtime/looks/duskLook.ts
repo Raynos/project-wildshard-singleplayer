@@ -1,25 +1,25 @@
-import { BackSide, Color, Fog, Mesh, MeshBasicMaterial, SphereGeometry, Vector3, type DataTexture, type HemisphereLight, type Material, type Texture } from 'three';
+import { BackSide, Color, Fog, Mesh, MeshBasicMaterial, SphereGeometry, Vector3, type HemisphereLight, type Material, type Texture } from 'three';
 import type { LookStrategy, PainterField } from '@wildshard/engine/render/look';
 import { Scope } from '@wildshard/engine/app/scope';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Terrain } from '@wildshard/engine/world/Terrain';
-import type { GroundPool } from '@wildshard/engine/render/families/ground';
+import { setGroundPools, type GroundPool } from '@wildshard/engine/render/families/ground';
 import { curveAt } from '@wildshard/format/materials';
-import { duskSand, duskSky, type DuskSand, type DuskSky } from './duskFamilies';
+import { duskSky, type DuskSky } from './duskFamilies';
 import { loadPaintedStrips } from './paintedStrips';
-import type { CubeSkirt, TintedTileGround } from './bakedGround';
+import type { CubeSkirt } from './bakedGround';
 import type { PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import type { DuskLookRow } from '../../data/lastLight';
 
-/** The sand's three baked maps a dusk look draws with. */
-export type DuskSandMaps = Record<'shadow' | 'trail' | 'grain', DataTexture>;
-
-/** What a dusk look reads live: the quest's dusk and the fires' light uniforms, the baked sand maps, the tile ground and the held skirt with its baked pack. */
+/**
+ * What a dusk look reads live: the quest's dusk and the fires' light uniforms, the sand the data client lends (null until
+ * lent), the binding of the level frame's ground and the held skirt with its baked pack.
+ */
 export interface DuskLookParts {
   readonly dusk: { readonly value: number };
   readonly fires: { readonly value: readonly GroundPool[] };
-  readonly maps: () => Promise<DuskSandMaps>;
-  readonly tiles: TintedTileGround;
+  readonly sand: { material: Material | null };
+  readonly ground: (field: PainterField, scope: Scope) => Promise<void>;
   readonly skirt: CubeSkirt;
   readonly skirtPack: { readonly url: string; readonly rows: PackedGeometryJson & { readonly cubeHalf: number }; readonly fault: string };
 }
@@ -27,8 +27,9 @@ export interface DuskLookParts {
 /**
  * A dusk look (`extend`): the engine's clean chain, the painted sky family on its dome (a strip that fails to load is a
  * page fault: the dome stands in the fog's colour), the scene's fog edited in place, a low key light that dims and deepens with the dusk, the sky fill, the fog's sun
- * tint, the far rings' haze and the aerial fog on their curves, and the sand family over the tile ground with its skirt
- * (cut back to a grid cell's cube through `parts.skirt`), each tile in its baked height tint.
+ * tint, the far rings' haze and the aerial fog on their curves, the level frame's ground bound and the skirt held (cut back to
+ * a grid cell's cube through `parts.skirt`). The data client draws the tiles in the look's sand (G345); the skirt wears it
+ * once lent, and the burning fires' light pools are fed to it each frame.
  */
 export function duskLook(row: DuskLookRow, parts: DuskLookParts): LookStrategy {
   const key = { dir: new Vector3(...row.key.dir).normalize(), color: new Color(...row.key.color), intensity: row.key.intensity }, deepKey = new Color(...row.key.deep);
@@ -37,19 +38,12 @@ export function duskLook(row: DuskLookRow, parts: DuskLookParts): LookStrategy {
   const dome = new Mesh<SphereGeometry, Material>(new SphereGeometry(120, 48, 24), new MeshBasicMaterial({ color: row.fog.color, side: BackSide, depthTest: false, depthWrite: false, fog: false }));
   dome.renderOrder = -1000; dome.frustumCulled = false;
   let painted: { scope: Scope; sky: DuskSky; textures: readonly Texture[] } | null = null;
-  let sand: DuskSand | null = null;
   const buildSand = async (terrain: Terrain, field: PainterField, scope: Scope): Promise<void> => {
-    const [{ shadow, trail, grain }, skirt] = await Promise.all([parts.maps(), parts.skirt.load(parts.skirtPack.url, parts.skirtPack.rows, parts.skirtPack.fault)]);
-    scope.own(shadow); scope.own(trail); scope.own(grain);
-    const familyGround = duskSand(row.sand, { [row.sand.maps.grain]: grain, [row.sand.maps.trail]: trail, [row.sand.maps.shadow]: shadow }, dusk.value, scope); sand = familyGround;
-    scope.onDispose(() => { if (sand === familyGround) sand = null; });
-    const material = familyGround.material; terrain.material = material;
-    const skirtMesh = skirt === null ? null : new Mesh(scope.own(skirt.standalone), material);
-    if (skirtMesh !== null) { skirtMesh.receiveShadow = false; terrain.group.add(skirtMesh); }
-    // the tiles' collider is the level's ground (its required ground counts as loaded once bound), so it binds before ready()
-    await parts.tiles.bind(terrain, field, material, scope);
+    const skirt = await parts.skirt.load(parts.skirtPack.url, parts.skirtPack.rows, parts.skirtPack.fault);
+    if (skirt !== null) parts.skirt.hold(terrain.group, skirt.standalone, skirt.cube, skirt.half, scope);
+    // the collider is the level's ground (its required ground counts as loaded once bound), so it binds before ready()
+    await parts.ground(field, scope);
     await field.ready();
-    if (skirt !== null && skirtMesh !== null) parts.skirt.hold(skirtMesh, skirt.cube, skirt.half, scope);
   };
   const fog = row.fog;
   // the clean chain is declared as well as composed, so a grid cell carries it without composing (absent: cinematic)
@@ -89,8 +83,8 @@ export function duskLook(row: DuskLookRow, parts: DuskLookParts): LookStrategy {
         },
         update: () => {
           sky.setKeyLight(key.dir, keyColor.copy(key.color).lerp(deepKey, dusk.value), key.intensity * curveAt(curves.key, dusk.value));
-          painted?.sky.update(dusk.value);
-          sand?.update(dusk.value, parts.fires.value);
+          painted?.sky.blend(dusk.value);
+          if (parts.sand.material !== null) setGroundPools(parts.sand.material, parts.fires.value);
           if (hemi) hemi.intensity = hemiBase * curveAt(curves.fill, dusk.value);
           fogOf?.().color.set(fog.color);
           fogSun?.copy(fogSunBase).multiplyScalar(curveAt(curves.fogSun, dusk.value));

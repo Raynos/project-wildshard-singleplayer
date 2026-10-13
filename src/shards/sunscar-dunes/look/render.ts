@@ -1,10 +1,10 @@
 import { DUSK } from './dusk';
+import type { Material } from 'three';
 import type { LookStrategy } from '@wildshard/engine/render/look';
-import { CubeSkirt, TintedTileGround, loadBakedMaps } from '../runtime/looks/bakedGround';
-import { duskLook, type DuskSandMaps } from '../runtime/looks/duskLook';
-import { SPAWN } from '../data/layout';
+import { CubeSkirt, bindColliderGround } from '../runtime/looks/bakedGround';
+import { duskLook } from '../runtime/looks/duskLook';
 import { SIGNAL_DUSK_LOOK } from '../data/lastLight';
-import { SAND_FILES, SAND_MAPS } from '../data/sand';
+import { SAND_FILES } from '../data/sand';
 import skirtRows from '../data/skirt.json' with { type: 'json' };
 import { FIRE_LIGHTS } from '../world/fireFx';
 import source from '../shard.config';
@@ -16,19 +16,13 @@ import source from '../shard.config';
  * the crests catch the light and the ripples graze; the crests run diagonally across the view (`data/duneField.ts` wind).
  */
 
-/**
- * The sand's three baked maps (SF72, `generators/sand.ts` → `scripts/bake-signal-sand.mjs`, uploaded from data/sand.ts
- * SAND_MAPS): the dune-shadow map (R1, E407 row 3), the trail mask (round 2) and the grain tile (loop 2; its means, round 17,
- * are in the sand's family entry). A map that fails to load is a page fault: the sand draws without it.
- */
-export const loadSandMaps = (): Promise<DuskSandMaps> => loadBakedMaps(SAND_MAPS, '[sunscar-dunes] the baked sand map did not load:');
-/** The sand's tiles (G227 M3; the only ground since Jake's G266), their fine ring following the player past 8 m. */
-export const SAND_TILES = new TintedTileGround({ source, x: SPAWN.x, z: SPAWN.z, follow: 8, name: 'Signal Dunes', tag: 'sunscar-dunes' });
+/** The sand the data client lends (G345: its tiles drawn in the look's sand; null until the runtime's world stage reads it). */
+export const SAND: { material: Material | null } = { material: null };
 /** The skirt (baked, `generators/skirt.ts`), held so the plugin can cut it back to a grid cell's cube (G99). */
 export const SKIRT = new CubeSkirt();
 
-/** Signal Dunes' look: the dusk look over the quest's dusk (look/dusk.ts), the fires' light pools and the analytic dune field. */
+/** Signal Dunes' look: the dusk look over the quest's dusk (look/dusk.ts), the fires' light pools on the lent sand and the collider ground. */
 export function signalDunesLook(): LookStrategy {
-  return duskLook(SIGNAL_DUSK_LOOK, { dusk: DUSK, fires: FIRE_LIGHTS, maps: loadSandMaps, tiles: SAND_TILES, skirt: SKIRT,
+  return duskLook(SIGNAL_DUSK_LOOK, { dusk: DUSK, fires: FIRE_LIGHTS, sand: SAND, ground: (field, scope) => bindColliderGround(source, field, scope, 'Signal Dunes'), skirt: SKIRT,
     skirtPack: { url: SAND_FILES.skirt, rows: skirtRows, fault: '[sunscar-dunes] the baked dune skirt did not load:' } });
 }

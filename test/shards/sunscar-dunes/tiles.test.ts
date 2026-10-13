@@ -3,15 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate reads the committed bake the product ships.
 import { readdirSync, readFileSync } from 'node:fs';
-import { Group, MeshStandardMaterial } from 'three';
 import { Scope } from '../../../src/engine/app/scope';
 import { ClientAssets } from '../../../src/game/shardfile/clientAssets';
-import { clientViews } from '../../../src/game/shardfile/clientViews';
 import { runtimeBoundWorldFiles, withoutRuntimeRows } from "../../../src/game/plugin/headless";
 import { bindRuntimeTerrain } from '../../../src/game/shardfile/runtimeWorld';
-import { parseShardfile } from '@wildshard/format/shardSchema';
-import { signalDunesTiles, signalDunesField } from '../../../src/shards/sunscar-dunes/generators/tiles';
-import { SPAWN, TOWER } from '../../../src/shards/sunscar-dunes/data/layout';
+import { signalDunesTiles } from '../../../src/shards/sunscar-dunes/generators/tiles';
 import tiles from '../../../src/shards/sunscar-dunes/data/tiles.json' with { type: 'json' };
 import source from '../../../src/shards/sunscar-dunes/shard.config';
 
@@ -35,46 +31,19 @@ describe('Signal Dunes compiles its dune field into shardfile terrain tiles (SHA
     expect([tiles.tiles.length, assets.size, tiles.critical]).toEqual([80, 81, [tiles.terrain.collider]]);
   });
 
-  it('declares the tiles bound by its runtime: the data client sees none of them, and the edge rows are the bake\'s', () => {
-    expect(source.runtime?.binds).toContain('terrain');
+  it('declares the tiles unbound (G345): the data client draws them presentation-only, and the edge rows are the bake\'s', () => {
+    expect(source.runtime?.binds).not.toContain('terrain');
     expect(source.terrain?.tiles).toHaveLength(80);
+    expect([source.terrain?.shadow, source.terrain?.follow, source.terrain?.order]).toEqual([{ cast: false, receive: false }, 8, -1]);
     expect(source.edge).toEqual(tiles.edge);
-    expect(runtimeBoundWorldFiles(source).size).toBe(81);
-    const data = withoutRuntimeRows(source);
-    expect([data.terrain, data.tiles.length, data.library.length]).toEqual([null,0,0]);
-    expect(data.navigation).toEqual(source.navigation);
-    expect(data.files.map(file=>file.hash)).toEqual([source.navigation?.file]);
-    expect(data.critical).toEqual([source.navigation?.file]);
-    // unbound, the same terrain stays the data client's
-    const runtime = source.runtime; if (runtime === null) throw new Error('Signal Dunes declares its runtime');
-    const unbound = parseShardfile({ ...source, runtime: { ...runtime, binds: (runtime.binds ?? []).filter((section) => section !== 'terrain') } });
-    expect(runtimeBoundWorldFiles(unbound).size).toBe(0);
-    expect(withoutRuntimeRows(unbound).terrain).toBe(unbound.terrain);
+    expect(runtimeBoundWorldFiles(source).size).toBe(0);
+    expect(withoutRuntimeRows(source).terrain).toBe(source.terrain);
   });
 
-  it('the runtime binds the tiles through the shardfile residency; its collider reads the ground the runtime builds today', async () => {
-    const scope = new Scope('sunscar-tiles'), root = new Group(), material = scope.own(new MeshStandardMaterial({ vertexColors: true }));
-    try {
-      const views = clientViews({ root, terrain: 'pbr', materials: new Map([['pbr', material]]), textures: new Map() });
-      const terrain = await bindRuntimeTerrain({ scope }, source, { assets: new ClientAssets(source, committed, options), terrain: views.terrain, x: SPAWN.x, z: SPAWN.z });
-      expect(terrain.fine.size).toBeGreaterThan(0);
-      const field = signalDunesField();
-      // on the 1.95 m lattice the collider is exact; between lattice points it is the bilinear of the same samples
-      for (const [x, z] of [[-250, -250], [0, 250], [250, 0]] as const) expect(terrain.ground.heightAt(x, z)).toBeCloseTo(field.heightAt(x, z), 4);
-      for (const at of [SPAWN, TOWER]) expect(Math.abs(terrain.ground.heightAt(at.x, at.z) - field.heightAt(at.x, at.z))).toBeLessThan(0.15);
-      const near = terrain.fine;
-      await terrain.refresh(TOWER.x, TOWER.z);
-      expect(terrain.fine).not.toEqual(near);
-    } finally { scope.dispose(); }
-    expect(root.children.filter((child) => child.children.length > 0 || child.name.startsWith('terrain:'))).toHaveLength(0);
-  });
-
-  it('refuses a runtime that does not bind the terrain', async () => {
-    const runtime = source.runtime; if (runtime === null) throw new Error('Signal Dunes declares its runtime');
-    const unbound = parseShardfile({ ...source, runtime: { ...runtime, binds: (runtime.binds ?? []).filter((section) => section !== 'terrain') } });
+  it('refuses the runtime-bound tile path now the terrain is the data client\'s', async () => {
     const scope = new Scope('unbound');
     try {
-      await expect(bindRuntimeTerrain({ scope }, unbound, { assets: new ClientAssets(unbound, committed, options), terrain: () => ({ mask: () => undefined, shadow: () => undefined }), x: 0, z: 0 })).rejects.toThrow('not bound by its runtime');
+      await expect(bindRuntimeTerrain({ scope }, source, { assets: new ClientAssets(source, committed, options), terrain: () => ({ mask: () => undefined, shadow: () => undefined }), x: 0, z: 0 })).rejects.toThrow('not bound by its runtime');
     } finally { scope.dispose(); }
   });
 });

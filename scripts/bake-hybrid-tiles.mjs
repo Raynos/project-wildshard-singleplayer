@@ -4,7 +4,7 @@
 // to src/shards/<slug>/assets/<sha256> and the numeric rows to src/shards/<slug>/data/tiles.json, which shard.config.ts
 // declares. test/shards/<slug>/tiles-bake.test.ts is the byte-exact stale gate (it re-runs the generator).
 // Usage: node --import ./scripts/sim-node-loader.mjs scripts/bake-hybrid-tiles.mjs sunscar-dunes
-import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -16,9 +16,11 @@ const generator = await import(pathToFileURL(resolve(project, 'generators/tiles.
 const baked = generator[name]();
 const assets = resolve(project, 'assets');
 mkdirSync(assets, { recursive: true });
-// the folder holds only this bake's files: remove stale hashes so a rebake never leaves orphans behind
-const keep = new Set(baked.assets.keys());
-if (existsSync(assets)) for (const file of readdirSync(assets)) if (/^[a-f0-9]{64}$/u.test(file) && !keep.has(file)) rmSync(resolve(assets, file));
+// remove the hashes the previous bake declared and this one drops, so a rebake leaves no orphans; the folder also holds
+// other bakes' library files (Signal's sand maps, data/sandMaps.json), which are not this bake's to remove
+const keep = new Set(baked.assets.keys()), declared = resolve(project, 'data/tiles.json');
+const previous = existsSync(declared) ? JSON.parse(readFileSync(declared, 'utf8')).files.map((file) => file.hash) : [];
+for (const hash of previous) if (!keep.has(hash) && existsSync(resolve(assets, hash))) rmSync(resolve(assets, hash));
 for (const [hash, bytes] of baked.assets) writeFileSync(resolve(assets, hash), bytes);
 const { assets: _assets, ...metadata } = baked;
 writeFileSync(resolve(project, 'data/tiles.json'), `${JSON.stringify(metadata)}\n`);
