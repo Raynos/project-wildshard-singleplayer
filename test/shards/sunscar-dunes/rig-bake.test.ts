@@ -5,9 +5,10 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { FileLoader, type BufferGeometry } from 'three';
 import { bakeSignalSkitterer, skittererGeometry } from '../../../src/shards/sunscar-dunes/generators/species';
-import { bakeSignalStrider, quadrupedHull } from '../../../src/shards/sunscar-dunes/generators/hulls';
+import { bakeSignalManta, bakeSignalStrider, bandSkin, quadrupedHull } from '../../../src/shards/sunscar-dunes/generators/hulls';
 import { DUNE_MODELS, DUNE_RIGS } from '../../../src/shards/sunscar-dunes/data/files';
-import { STRIDER_HULL } from '../../../src/shards/sunscar-dunes/data/hulls';
+import { MANTA_HULL, RAY_TINT, STRIDER_HULL } from '../../../src/shards/sunscar-dunes/data/hulls';
+import { RAY_BODY } from '../../../src/shards/sunscar-dunes/data/species/duneRay';
 import { STRIDER_BODY } from '../../../src/shards/sunscar-dunes/data/striderRig.baked';
 import { SKITTERER_BODY } from '../../../src/shards/sunscar-dunes/data/species/skitterer';
 import { STRIDER_LOOK } from '../../../src/shards/sunscar-dunes/data/species/strider';
@@ -35,7 +36,7 @@ describe('Signal Dunes bakes its code-built creature bodies offline (SHARD-PLATF
       return Promise.resolve(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
     });
     return { restore: () => {
-      expect(errors.mock.calls.map(([message]) => String(message)).filter((m) => m.includes('baked creature') || m.includes('dune-strider'))).toEqual([]);
+      expect(errors.mock.calls.map(([message]) => String(message)).filter((m) => m.includes('baked creature') || m.includes('dune-strider') || m.includes('dune-matriarch'))).toEqual([]);
       loaded.mockRestore(); files.mockRestore(); errors.mockRestore();
     } };
   };
@@ -78,6 +79,24 @@ describe('Signal Dunes bakes its code-built creature bodies offline (SHARD-PLATF
       want.computeVertexNormals();
       same(got, want, ['position', 'color', 'normal', 'skinIndex', 'skinWeight']);
       expect([body.bones, body.dims]).toEqual([hull.bones, { ...dims, feet: [] }]);
+    } finally { io.restore(); }
+  });
+
+  it('the ray and Matriarch rigs are byte-exact against the manta band-skinned over the client intake, and the client reads them as skinned (G345)', async () => {
+    const io = fromPublic();
+    try {
+      const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['dune-matriarch'], hd: [] }, '[test]');
+      await library.preload();
+      const source = (): BufferGeometry => { const g = library.mesh('dune-matriarch'); if (g === null) throw new Error('dune-matriarch missing'); return g; };
+      await preloadDuneMeshes();
+      for (const [name, tint] of [['ray', RAY_TINT], ['matriarch', null]] as const) {
+        expect(new Uint8Array(readFileSync(new URL(`${name}.glb`, folder)))).toEqual(bakeSignalManta(`sunscar.${name}`, source(), MANTA_HULL, tint).glb);
+        const body = duneBakedBody(name), got = body?.hardParts[0], want = bandSkin(source(), MANTA_HULL, tint);
+        if (body === null || got === undefined) throw new Error(`${name} rig missing`);
+        want.deleteAttribute('normal'); want.computeVertexNormals();
+        same(got, want, ['position', 'color', 'normal', 'skinIndex', 'skinWeight']);
+        expect([body.bones, body.dims]).toEqual([RAY_BODY.bones, { ...RAY_BODY.dims, feet: [] }]);
+      }
     } finally { io.restore(); }
   });
 });

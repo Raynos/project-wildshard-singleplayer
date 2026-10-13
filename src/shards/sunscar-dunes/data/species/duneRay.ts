@@ -18,3 +18,14 @@ export const RAY_CLIPS: SpeciesClips = [
   { bone: 'wingR', channel: 'rotation.z', cases: [{ when: { alive: true }, sum: [{ of: [{ wave: 't', rate: 2.4 }, 0.32] }] }, { sum: [-0.5] }] },
   { bone: 'tail', channel: 'rotation.y', cases: [{ when: { alive: true }, sum: [{ of: [{ wave: 't', rate: 1.7 }, 0.25] }] }, { sum: [0] }] },
 ];
+
+/** The ray's look rows (species/duneRay.ts): its rig contract. The Matriarch's body rides the same skeleton. */
+export const RAY_LOOK = { id: 'sunscar.look.duneRay', species: DUNE_RAY.id, kind: 'duneRay', skeleton: 'sunscar.duneRay',
+  sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clipNames: ['idle', 'fly', 'attack', 'hit', 'die'] } as const;
+/** The ray's skeleton (absolute bind space, +Z forward: body first, then head, the two wings and the tail) and size: baked
+ *  beside the manta's skin (generators/hulls.ts) for the ray and the Matriarch, and their stand-in when a rig did not load. */
+export const RAY_BODY = {
+  bones: [{ name: 'body', parent: null, pos: [0, 0.3, 0] }, { name: 'head', parent: 'body', pos: [0, 0.3, 1.2] },
+    { name: 'wingL', parent: 'body', pos: [-0.9, 0.3, 0] }, { name: 'wingR', parent: 'body', pos: [0.9, 0.3, 0] }, { name: 'tail', parent: 'body', pos: [0, 0.3, -1.0] }],
+  dims: { bodyY: 0.3, bodyHalfLen: 1.1, bodyRadius: 0.8, headRadius: 0.4, legLen: 0, halfWidth: 2.6 },
+} as const;

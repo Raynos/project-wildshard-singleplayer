@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // SHARD-PLATFORM SF72 (SF67 fix 3, "bake the code-built worlds"): Signal Dunes' code-built creature bodies baked offline,
-// and (G345) the generated strider fitted and skinned from its rows (generators/hulls.ts) through the client's own model intake.
+// and (G345) the generated strider fitted and skinned from its rows (generators/hulls.ts) through the client's own model intake,
+// and the generated manta band-skinned twice: the dune ray in its tint and the Matriarch untinted.
 // The generators run here only; each body's skinned GLB goes to public/assets/sunscar-dunes/rigs/<name>.glb, which the
 // client reads (world/meshes.ts duneRig); the strider's skeleton goes to data/striderRig.baked.ts.
 // test/shards/sunscar-dunes/rig-bake.test.ts is the byte-exact stale gate (it re-runs the generator).
@@ -32,9 +33,9 @@ for (const [name, file, bake] of RIGS) {
   const { installBakeEnvironment } = await import(pathToFileURL(resolve(root, 'scripts/bake/environment.mjs')).href);
   const environment = installBakeEnvironment(root);
   try {
-    const [{ createModelLibrary }, { DUNE_MODELS }, { STRIDER_HULL }, { bakeSignalStrider }] = await Promise.all([
+    const [{ createModelLibrary }, { DUNE_MODELS }, { STRIDER_HULL, MANTA_HULL, RAY_TINT }, { bakeSignalStrider, bakeSignalManta }] = await Promise.all([
       import(pathToFileURL(resolve(root, 'src/sdk/looks/modelLibrary.ts')).href), at('data/files.ts'), at('data/hulls.ts'), at('generators/hulls.ts')]);
-    const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['dune-strider'], hd: [] }, '[sunscar-dunes bake]');
+    const library = createModelLibrary({ ...DUNE_MODELS, meshes: ['dune-strider', 'dune-matriarch'], hd: [] }, '[sunscar-dunes bake]');
     await library.preload();
     const source = library.mesh('dune-strider');
     if (source === null) throw new Error('dune-strider did not load');
@@ -42,6 +43,13 @@ for (const [name, file, bake] of RIGS) {
     emit(resolve(out, 'strider.glb'), glb); keep.add('strider.glb');
     emit(resolve(project, 'data/striderRig.baked.ts'), new TextEncoder().encode(rig));
     console.info(`sunscar-dunes strider: ${String(glb.length)} bytes → rigs/strider.glb`);
+    for (const [name, tint] of [['ray', RAY_TINT], ['matriarch', null]]) {
+      const manta = library.mesh('dune-matriarch');
+      if (manta === null) throw new Error('dune-matriarch did not load');
+      const { glb: bytes } = bakeSignalManta(`sunscar.${name}`, manta, MANTA_HULL, tint);
+      emit(resolve(out, `${name}.glb`), bytes); keep.add(`${name}.glb`);
+      console.info(`sunscar-dunes ${name}: ${String(bytes.length)} bytes → rigs/${name}.glb`);
+    }
   } finally { environment.dispose(); }
 }
 // the folder holds exactly this bake: no orphan GLB from an older bake ships

@@ -1,11 +1,11 @@
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
-import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
+import { bakedLook } from '@wildshard/sdk/species/clips';
 import { skyBodyOrStandIn } from './bodies';
 import { stormRocBrain, type StormRocBrain } from '../runtime/stormRocBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import { STORM_ROC_DATA } from '../data/species';
+import { STORM_ROC_DATA, STORM_ROC_LOOK_ROW } from '../data/species';
 
 const brains = new WeakMap<Animal, StormRocBrain>();
 export const rocBrain = (a: Animal): StormRocBrain => { let value = brains.get(a); if (!value) { value = stormRocBrain(a); brains.set(a, value); } return value; };
@@ -20,9 +20,8 @@ export const STORM_ROC: SpeciesRow = { ...STORM_ROC_DATA,
 export const rocBody = (): AnimalSpecies => skyBodyOrStandIn('storm-roc');
 /** The soaring wings' raised V (radians): level, from the arena they read edge-on; raised, their undersides face a viewer below. */
 const ROC_DIHEDRAL = 0.1;
-export const STORM_ROC_LOOK: SpeciesLook = { id: 'far.look.stormRoc', species: STORM_ROC.id, kind: 'stormRoc', rig: 'custom', fur: NO_FUR,
-  rigContract: { skeleton: 'far.stormRoc', sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clips: ['idle', 'fly', 'attack', 'hit', 'die'] },
-  build: () => rocBody(),
+/** Its own soaring animation over the baked look (its rows: data/species.ts STORM_ROC_LOOK_ROW). */
+export const STORM_ROC_LOOK: SpeciesLook = { ...bakedLook(STORM_ROC_LOOK_ROW, rocBody, []),
   animate: ({ bones, t, dt, alive, mem }) => {
     // a 19 m raptor soars (round 7: a steady beat caught the wings raised edge-on in half the frames; mockup D's eagle glides,
     // wings spread): a slow flex, with a few strong beats in a short burst every ~6 s

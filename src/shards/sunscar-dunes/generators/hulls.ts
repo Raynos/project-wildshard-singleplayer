@@ -1,17 +1,19 @@
-import { MeshStandardMaterial, type BufferGeometry } from 'three';
+import { Float32BufferAttribute, MeshStandardMaterial, Uint16BufferAttribute, type BufferGeometry } from 'three';
 import { skinnedGlb } from '@wildshard/sdk/bake/skinned';
 import { STRIDER_LOOK } from '../data/species/strider';
+import { RAY_BODY } from '../data/species/duneRay';
 import { bindRigid, fitGeometry } from '@wildshard/sdk/looks/modelLibrary';
-import type { HullBone, QuadrupedHullRow } from '../data/hulls';
+import type { BandSkinRow, HullBone, HullTint, QuadrupedHullRow } from '../data/hulls';
 
-/** A fitted hull (runtime/looks/fittedHull.ts FittedHull): its skeleton, its skinned geometry and its height. */
+/** A fitted hull: its skeleton, its skinned geometry and its height. */
 interface FittedHull { bones: HullBone[]; geometry: BufferGeometry; h: number }
 
 /**
  * Build-time only (SHARD-PLATFORM G345): Signal Dunes' generated strider fitted and rigidly skinned from its rows, baked
  * offline (`bake-signal-rigs.mjs` → `rigs/strider.glb` + `data/striderRig.baked.ts`) so the client only loads it
- * (`world/meshes.ts` duneBody), as the skitterer's rig is. The source is the client's own intake of `dune-strider.glb`
- * (the model library's `mesh`), so the bake is the geometry the client used to build.
+ * (`world/meshes.ts` duneBody), as the skitterer's rig is; and the generated manta, band-skinned twice: the dune ray in its
+ * tint (`rigs/ray.glb`) and the Matriarch untinted (`rigs/matriarch.glb`). Each source is the client's own intake of its
+ * model (the model library's `mesh`), so the bake is the geometry the client used to build.
  */
 
 /**
@@ -51,4 +53,47 @@ export function bakeSignalStrider(source: BufferGeometry, row: QuadrupedHullRow)
     + `/** The baked strider's skeleton (absolute bind space) and dims, beside rigs/strider.glb: its stand-in when the rig did not load. */\n`
     + `export const STRIDER_BODY = ${JSON.stringify({ bones: hull.bones, dims })} as const;\n`;
   return { glb, rig };
+}
+
+const smooth = (t: number): number => { const c = Math.min(1, Math.max(0, t)); return c * c * (3 - 2 * c); };
+
+/**
+ * A flat winged body (a ray, a manta) fitted and skinned per vertex with smooth bands, so a shared corner never splits:
+ * the wings by |x|, the head forward of an edge, the tail behind one, the body the rest (bones body, head, left / right
+ * wing, tail); optionally tinted, the back by a factor and the underside toward a belly colour.
+ */
+export function bandSkin(source: BufferGeometry, row: BandSkinRow, tint: HullTint | null = null): BufferGeometry {
+  const g = fitGeometry(source, row.fit), b = g.boundingBox;
+  if (b !== null) g.translate(0, 0, row.nose - b.max.z);
+  const p = g.getAttribute('position'), n = p.count, index = new Uint16Array(n * 4), weight = new Float32Array(n * 4);
+  for (let i = 0; i < n; i++) {
+    const x = p.getX(i), z = p.getZ(i), wing = smooth((Math.abs(x) - row.wing.from) / row.wing.over), tail = smooth((-row.tail.from - z) / row.tail.over) * (1 - wing);
+    const head = smooth((z - row.head.from) / row.head.over) * (1 - wing), body = Math.max(0, 1 - wing - tail - head);
+    index.set([0, 1, x < 0 ? 2 : 3, 4], i * 4); weight.set([body, head, wing, tail], i * 4);
+  }
+  g.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(weight, 4));
+  if (tint !== null && g.hasAttribute('color')) {
+    const col = g.getAttribute('color');
+    if (!g.hasAttribute('normal')) g.computeVertexNormals();
+    const nrm = g.getAttribute('normal');
+    for (let i = 0; i < n; i++) {
+      const under = smooth((-nrm.getY(i) - 0.1) / 0.5) * tint.bellyMix;
+      for (let c = 0; c < 3; c++) {
+        const v = (c === 0 ? col.getX(i) : c === 1 ? col.getY(i) : col.getZ(i)) * (tint.top[c] ?? 1);
+        const out = v + ((tint.belly[c] ?? v) - v) * under;
+        if (c === 0) col.setX(i, out); else if (c === 1) col.setY(i, out); else col.setZ(i, out);
+      }
+    }
+    col.needsUpdate = true;
+  }
+  return g;
+}
+
+/** A manta rig file (the ray's or the Matriarch's): the band-skinned soup without normals (the client computes its flat
+ *  normals per copy) on the ray's skeleton and dims (data/species/duneRay.ts RAY_BODY). */
+export function bakeSignalManta(name: string, source: BufferGeometry, row: BandSkinRow, tint: HullTint | null): { glb: Uint8Array } {
+  const geometry = bandSkin(source, row, tint);
+  if (geometry.hasAttribute('normal')) geometry.deleteAttribute('normal');
+  const material = new MeshStandardMaterial({ name, vertexColors: true });
+  return skinnedGlb({ name, bones: RAY_BODY.bones, parts: [{ geometry, material }], extras: { dims: { ...RAY_BODY.dims } } });
 }

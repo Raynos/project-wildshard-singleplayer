@@ -4,9 +4,6 @@ import { buildWhipModel } from '../weapons/whipModel';
 import { buildTower } from '../world/tower';
 import { lastBakedWorld } from '../world/baked';
 import { buildBrazier, buildCaravan, buildWell } from '../world/places';
-import { mantaBody } from '../species/duneRay';
-import { RAY_TINT } from '../data/hulls';
-import { matriarchBody } from '../species/matriarch';
 import { pivotNpcParts } from '@wildshard/game/plugin/geometry';
 import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
 import { duneBodyGeometry, duneMesh } from '../world/meshes';
@@ -43,13 +40,13 @@ export const brazierModel = defineModel({ id: 'sunscar-dunes/waymark-brazier', n
   } });
 /** The dune ray: the generated manta in its tint, as it flies (species/duneRay.ts). */
 export const rayModel = defineModel({ id: 'sunscar-dunes/dune-ray', name: STRINGS.ray, category: 'creatures', pipeline: ['hunyuan'], file: FILE, defaults: {},
-  build: () => creature(mantaBody(RAY_TINT)) });
+  build: () => creature(duneBodyGeometry('ray')) });
 export const skittererModel = defineModel({ id: 'sunscar-dunes/sand-skitterer', name: STRINGS.skitterer, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
   build: () => creature(duneBodyGeometry('skitterer')) });
 export const striderModel = defineModel({ id: 'sunscar-dunes/dune-strider', name: STRINGS.strider, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
   build: () => creature(duneBodyGeometry('strider')) });
 export const matriarchModel = defineModel({ id: 'sunscar-dunes/dune-matriarch', name: STRINGS.matriarch, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
-  build: () => creature(matriarchBody(), 3.6) });
+  build: () => creature(duneBodyGeometry('matriarch'), 3.6) });
 /** Sefa, the caravan scout who gives the quest (loop 2): the generated figure at her own origin. */
 export const scoutModel = defineModel({ id: 'sunscar-dunes/caravan-scout', name: STRINGS.scoutName, category: 'people', pipeline: ['hunyuan'], file: FILE, defaults: {},
   build: () => { const source = duneMesh(SCOUT_MODEL); return source === null ? new Group() : pivotNpcParts(SCOUT_NPC, source).root; } });

@@ -2,6 +2,7 @@ import { createModelLibrary, undrawnRig } from '@wildshard/sdk/looks/modelLibrar
 import { creatureBodies } from '@wildshard/game/plugin/geometry';
 import { SKITTERER_BODY } from '../data/species/skitterer';
 import { STRIDER_BODY } from '../data/striderRig.baked';
+import { RAY_BODY } from '../data/species/duneRay';
 import { applySurfaceLooks } from '@wildshard/game/systems/looks/surfaceLooks';
 import type { SurfaceLook } from '@wildshard/format/surfaceLooks';
 import { FIRE_LIGHTS } from './fireFx';
@@ -20,7 +21,7 @@ import type { BufferGeometry, MeshStandardMaterial } from 'three';
 /** The live inputs Signal's surface rows read: the fires' light slots and the dusk. */
 const SURFACE_INPUTS = { lights: FIRE_LIGHTS, dusk: DUSK };
 const MODELS = createModelLibrary(DUNE_MODELS, '[sunscar-dunes]', SURFACE_INPUTS);
-const BODIES = creatureBodies({ creatures: DUNE_RIGS, urls: DUNE_RIG_URLS, standIns: { skitterer: SKITTERER_BODY, strider: STRIDER_BODY }, fault: '[sunscar-dunes]' });
+const BODIES = creatureBodies({ creatures: DUNE_RIGS, urls: DUNE_RIG_URLS, standIns: { skitterer: SKITTERER_BODY, strider: STRIDER_BODY, ray: RAY_BODY, matriarch: RAY_BODY }, fault: '[sunscar-dunes]' });
 
 /** Load every generated model and baked creature body once (a failed one is skipped and faulted). */
 export const preloadDuneMeshes = (): Promise<void> => Promise.all([MODELS.preload(), BODIES.preload()]).then(() => undefined);

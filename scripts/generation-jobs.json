@@ -1291,7 +1291,9 @@
         "lint/runtime-performance.mjs"
       ],
       "outputs": [
-        "public/assets/sunscar-dunes/rigs/skitterer.glb"
+        "public/assets/sunscar-dunes/rigs/skitterer.glb",
+        "public/assets/sunscar-dunes/rigs/ray.glb",
+        "public/assets/sunscar-dunes/rigs/matriarch.glb"
       ],
       "platform": "native",
       "seedOutputs": []

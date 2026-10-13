@@ -23,3 +23,13 @@ export const GALE_WISP_DATA: SpeciesData = { id: 'far.creature.galeWisp', kind: 
 export const STORM_ROC_DATA: SpeciesData = { id: 'far.creature.stormRoc', kind: 'stormRoc', label: STRINGS.roc, aggressive: true, blood: false,
   flight: { altitude: ROC.y, above: 'world', climbRate: 9, diveRate: 24, lockRange: 40, bank: 0.35 },
   variants: STORM_ROC_VARIANTS };
+
+/** The creatures' look rows (species/*.ts): each one's rig contract on its baked body (generators/creatures.ts). */
+export const DRIFT_RAY_LOOK_ROW = { id: 'far.look.driftRay', species: DRIFT_RAY_DATA.id, kind: 'driftRay', skeleton: 'far.driftRay',
+  sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clipNames: ['idle', 'fly', 'attack', 'hit', 'die'] } as const;
+export const SKY_GOAT_LOOK_ROW = { id: 'far.look.skyGoat', species: SKY_GOAT_DATA.id, kind: 'skyGoat', skeleton: 'far.skyGoat',
+  sockets: ['body', 'head', 'legFL', 'legFR', 'legBL', 'legBR'], clipNames: ['idle', 'walk', 'attack', 'hit', 'die'] } as const;
+export const GALE_WISP_LOOK_ROW = { id: 'far.look.galeWisp', species: GALE_WISP_DATA.id, kind: 'galeWisp', skeleton: 'far.galeWisp',
+  sockets: ['body', 'head', 'swirl'], clipNames: ['idle', 'fly', 'attack', 'hit', 'die'] } as const;
+export const STORM_ROC_LOOK_ROW = { id: 'far.look.stormRoc', species: STORM_ROC_DATA.id, kind: 'stormRoc', skeleton: 'far.stormRoc',
+  sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clipNames: ['idle', 'fly', 'attack', 'hit', 'die'] } as const;

@@ -40,3 +40,7 @@ export const MATRIARCH_CLIPS: SpeciesClips = [
     { when: { alive: true }, sum: [{ of: [{ wave: 't', rate: 1.2 }, 0.3] }] }, { sum: [0] }] },
   { bone: 'tail', channel: 'rotation.x', cases: [{ when: { ...GROUNDED, ...BUFFET }, sum: [{ of: [{ attack: true }, -0.7] }] }, { sum: [0] }] },
 ];
+
+/** Her look rows (species/matriarch.ts): the ray's rig contract on her own skeleton name; her body is the manta untinted. */
+export const MATRIARCH_LOOK = { id: 'sunscar.look.duneMatriarch', species: MATRIARCH_DATA.id, kind: 'duneMatriarch', skeleton: 'sunscar.duneMatriarch',
+  sockets: ['body', 'head', 'wingL', 'wingR', 'tail'], clipNames: ['idle', 'fly', 'attack', 'hit', 'die'] } as const;

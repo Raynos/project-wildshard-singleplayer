@@ -11,9 +11,9 @@ import { FACET_AO_FLOOR, HD_LOOKS } from './surfaces';
  * facet-painted caravan and waymark brazier stay on disk, unloaded: the camp draws wagon-hd2 and every brazier brazier-hd.
  */
 export type DuneMeshName = 'dry-well' | 'dune-strider' | 'dune-matriarch' | 'caravan-scout' | 'whip-glove';
-// G345: the strider's model is its rig's bake source (generators/hulls.ts → rigs/strider.glb), and the whip glove the lash's
-// (generators/lash.ts: where the lash leaves the hand); the client loads neither
-export const DUNE_MESHES: readonly DuneMeshName[] = ['dry-well', 'dune-matriarch', 'caravan-scout'];
+// G345: the strider's and the manta's models are their rigs' bake sources (generators/hulls.ts → rigs/strider.glb, ray.glb,
+// matriarch.glb), and the whip glove the lash's (generators/lash.ts: where the lash leaves the hand); the client loads none
+export const DUNE_MESHES: readonly DuneMeshName[] = ['dry-well', 'caravan-scout'];
 /**
  * The hero models kept TEXTURED (loop 6, toward the mockups B-D): Hunyuan3D-2 shape + 2048 paint, decimated, the paint
  * kept as a 1024 WebP map on its UVs (the facet-colour path above reads low-poly and blotchy up close).
@@ -60,9 +60,10 @@ export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = {
   lash: '/assets/sunscar-dunes/baked/lash.glb',
 };
 /** The creature bodies baked offline as skinned rig files (SF72: `generators/species.ts`, G345 `generators/hulls.ts` → `generators/bake-signal-rigs.mjs`), loaded by `world/meshes.ts` (the game's `creatureBodies`). */
-export const DUNE_RIGS = ['skitterer', 'strider'] as const;
+export const DUNE_RIGS = ['skitterer', 'strider', 'ray', 'matriarch'] as const;
 export type DuneRigName = (typeof DUNE_RIGS)[number];
-export const DUNE_RIG_URLS: Readonly<Record<DuneRigName, string>> = { skitterer: '/assets/sunscar-dunes/rigs/skitterer.glb', strider: '/assets/sunscar-dunes/rigs/strider.glb' };
+export const DUNE_RIG_URLS: Readonly<Record<DuneRigName, string>> = { skitterer: '/assets/sunscar-dunes/rigs/skitterer.glb', strider: '/assets/sunscar-dunes/rigs/strider.glb',
+  ray: '/assets/sunscar-dunes/rigs/ray.glb', matriarch: '/assets/sunscar-dunes/rigs/matriarch.glb' };
 /** The model library `world/meshes.ts` loads (`@wildshard/sdk/looks/modelLibrary`): the lists above, the AO floor, the hero dressing. */
 export const DUNE_MODELS: ModelLibraryRows<DuneMeshName, DuneHdName> = {
   meshes: DUNE_MESHES, meshUrls: DUNE_MESH_URLS, hd: DUNE_HD, hdUrls: DUNE_HD_URLS,
