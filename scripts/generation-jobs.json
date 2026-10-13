@@ -1201,6 +1201,7 @@
         "src/shards/far-reach/data/skyCards.ts",
         "src/shards/far-reach/data/dressing.json",
         "src/shards/far-reach/data/bridges.json",
+        "src/shards/far-reach/data/isles.json",
         "src/shards/far-reach/data/fan.json",
         "src/shards/far-reach/data/skyIsleFrames.json",
         "src/shards/far-reach/data/millModel.json",
@@ -1208,6 +1209,7 @@
         "src/shards/far-reach/data/isletRig.json",
         "public/assets/far-reach/baked/dressing.bin",
         "public/assets/far-reach/baked/bridges.bin",
+        "public/assets/far-reach/baked/isles.bin",
         "public/assets/far-reach/baked/fan.bin",
         "public/assets/far-reach/baked/mill-model.bin",
         "public/assets/far-reach/baked/sward-atlas.bin"
@@ -1226,6 +1228,7 @@
         "src/shards/far-reach/data/skyCards.ts",
         "src/shards/far-reach/data/dressing.json",
         "src/shards/far-reach/data/bridges.json",
+        "src/shards/far-reach/data/isles.json",
         "src/shards/far-reach/data/fan.json",
         "src/shards/far-reach/data/skyIsleFrames.json",
         "src/shards/far-reach/data/millModel.json",
