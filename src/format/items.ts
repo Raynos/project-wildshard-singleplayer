@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { MeleeContactsSchema, WeaponProfileSchema } from './weaponProfiles';
+import { MeleeContactsSchema, WeaponProfileSchema, type MeleeContactRow } from './weaponProfiles';
 import { isJsonData } from './json';
 
 /** The bounded authored family/context name, also checked by the trusted family installer. */
@@ -35,6 +35,12 @@ const raw = v.strictObject({ version: v.literal(1), rows: v.pipe(v.array(v.varia
   contexts: v.pipe(v.array(context), v.maxLength(64)),
   runtimeContexts: v.exactOptional(v.pipe(v.array(name), v.maxLength(64))),
   loadout: v.strictObject({ primary: v.nullable(weaponId), secondary: v.nullable(weaponId), tools: v.pipe(v.array(toolId), v.maxLength(16)) }) });
+/** Admit an item's JSON-only contacts without copying its original event-lifetime tag arrays. */
+export function parseMeleeContacts(input: unknown): readonly MeleeContactRow[] {
+  v.assert(v.custom(isJsonData, 'JSON-only melee contacts'), input);
+  v.assert(MeleeContactsSchema, input);
+  return input;
+}
 /** Declared item families, numeric contacts, input contexts, script hooks and initial loadout. */
 export type ShardItems = v.InferOutput<typeof raw>;
 /** Local references plus optional script catalogue checks; global format composition supplies admitted module ids. */

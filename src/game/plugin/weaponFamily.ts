@@ -1,11 +1,9 @@
 import * as v from 'valibot';
-import { ItemFamilyNameSchema } from '@wildshard/format/items';
+import { ItemFamilyNameSchema, parseMeleeContacts } from '@wildshard/format/items';
 import { Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import type { App } from "@wildshard/engine/app/app";
 import { blocks } from "@wildshard/engine/blocks";
 import { HeldWeaponClock, ContactFamily, type ContactFamilyPorts, type ContactScanTarget } from "@wildshard/engine/combat/contactWeapon";
-import type { Actor } from '@wildshard/engine/combat/pipeline';
-import { parseMeleeContacts, type MeleeContactRow } from '@wildshard/format/weaponProfiles';
 import { Weapon, type WeaponState, type AimInfo } from "@wildshard/engine/combat/Weapon";
 import { Tool } from "@wildshard/engine/combat/Tool";
 import type { EquipmentRow, EquipContext } from "@wildshard/engine/combat/Equipment";
@@ -19,16 +17,15 @@ import type { LevelContext } from "@wildshard/engine/level/context";
 import { directorVariant } from "../shardfile/directorClient";
 
 /** Native/page owners inject their existing actor and contact ports; binding never advances a clock or aim. */
-export interface MeleeContactPorts<T extends ContactScanTarget> extends ContactFamilyPorts<T> { readonly owner: Actor | 'env' }
+export interface MeleeContactPorts<T extends ContactScanTarget> extends ContactFamilyPorts<T> { readonly owner: Parameters<ContactFamilyPorts<T>['hit']>[0]['source'] }
 /** Admit ordered numeric contacts and bind one existing shared controller, preserving source and event ownership. */
-export function bindMeleeContacts<T extends ContactScanTarget>(weaponId: string, rows: readonly MeleeContactRow[], ports: MeleeContactPorts<T>): ContactFamily<T> {
+export function bindMeleeContacts<T extends ContactScanTarget>(weaponId: string, rows: unknown, ports: MeleeContactPorts<T>): ContactFamily<T> {
   if (!/^weapon\.[a-z][a-zA-Z0-9.-]*$/u.test(weaponId) || weaponId.length > 128) throw new Error('Bound melee weapon identity required');
   const admitted = parseMeleeContacts(rows);
-  return new ContactFamily(admitted.map((row, i) => ({ lane: row.lane, heavy: row.heavy, cooldown: row.cooldown,
+  return new ContactFamily(admitted.map(row => ({ lane: row.lane, heavy: row.heavy, cooldown: row.cooldown,
     shape: row.shape, reach: row.reach, size: row.size, height: row.height, allowance: row.allowance,
-    lands: row.lands, show: row.show, reports: row.reports, hits: row.hits.map((hit, k) => ({
-    // Retain the original tag array when copyTags=false; the parser only admits it, never owns events.
-    tags: rows[i]?.hits[k]?.tags ?? hit.tags, weaponId, source: hit.source === 'owner' ? ports.owner : 'env',
+    lands: row.lands, show: row.show, reports: row.reports, hits: row.hits.map(hit => ({
+    tags: hit.tags, weaponId, source: hit.source === 'owner' ? ports.owner : 'env',
     damage: hit.damage, moveId: hit.moveId, copyVectors: hit.copyVectors, copyTags: hit.copyTags, reactions: hit.reactions,
   })) })), ports);
 }

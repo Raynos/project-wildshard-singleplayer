@@ -93,10 +93,6 @@ type AuthoredContact<T> = T extends readonly (infer U)[] ? readonly AuthoredCont
 export type MeleeContactRow = AuthoredContact<v.InferOutput<typeof MeleeContactRowSchema>>;
 /** Optional item attachment, bounded before the shared contact controller allocates its moves. */
 export const MeleeContactsSchema = v.pipe(v.array(MeleeContactRowSchema), v.minLength(1), v.maxLength(16));
-/** Admit JSON-only contact rows without clocks, commands or actor authority. */
-export function parseMeleeContacts(input: unknown): readonly MeleeContactRow[] {
-  return v.parse(v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only melee contacts'), MeleeContactsSchema), input);
-}
 /** Cone contacts read slash damage/cooldowns from the item; this profile declares the reach allowance and gust. */
 export const ConeWeaponProfileSchema = v.strictObject({
   family: v.literal('cone'), slash: v.strictObject({ reachAllowance: v.pipe(scalar, v.maxValue(20)) }),

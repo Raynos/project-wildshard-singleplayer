@@ -3827,7 +3827,7 @@ under the headline. A declaration-only `shard.config.ts` adds no custom
 lines; a function body or computation in it remains custom.
 
 G394 shared ordered melee contacts: a declared weapon may attach `contacts`,
-a bounded array of `MeleeContactRow` values from `@wildshard/sdk/weapons/meleeProfile`.
+a bounded array of `MeleeContactRow` values from `@wildshard/format/weaponProfiles`.
 Each move declares its cooldown lane, cone/lane shape, immediate or ordered
 delayed landings, contact damage/tags and ordered before/survived reactions.
 The defining `@wildshard/game/plugin/weaponFamily.bindMeleeContacts(weaponId,

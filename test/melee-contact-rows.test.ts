@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { Vector3 } from 'three';
 // oxlint-disable-next-line import/no-nodejs-modules -- Byte fixtures bind the independent pre-attachment parser.
 import { createHash } from 'node:crypto';
-import { parseItems } from '../src/format/items';
-import { parseMeleeContacts, type MeleeContactRow } from '../src/format/weaponProfiles';
+import { parseItems, parseMeleeContacts } from '../src/format/items';
+import type { MeleeContactRow } from '../src/format/weaponProfiles';
 import { bindMeleeContacts } from '../src/game/plugin/weaponFamily';
 import type { Actor, DamageRequest } from '../src/engine/combat/pipeline';
 import { ITEMS } from '../src/shards/_template/data/items';
