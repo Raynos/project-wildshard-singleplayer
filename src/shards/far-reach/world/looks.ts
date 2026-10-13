@@ -9,15 +9,9 @@ import { hdMaterial } from './meshes';
  */
 let looks: ReadonlyMap<string, Material> = new Map();
 let bind: ((id: string, map: Texture) => Material) | null = null;
-const bound = new Map<string, WeakMap<Texture, Material>>();
-/** Hand over the compiled look materials and the compile of a `meshMap` look bound to a model's map (runtime/index.ts, before the world is built). */
-export function setSkyLooks(materials: ReadonlyMap<string, Material>, mapped?: (id: string, map: Texture) => Material): void { looks = materials; bind = mapped ?? null; bound.clear(); }
+/** Hand over the compiled look materials and the binding of a `meshMap` look to a model's map (runtime/index.ts, before the world is built). */
+export function setSkyLooks(materials: ReadonlyMap<string, Material>, mapped?: (id: string, map: Texture) => Material): void { looks = materials; bind = mapped ?? null; }
 /** A compiled look material by its `look.materials` id; undefined before the looks are set. */
 export function skyLook(id: string): Material | undefined { return looks.get(id); }
-/** A `meshMap` look (`look.materials.<id>`) over a model's own `map`, one material (and program) per look and map; its plain painted material before the looks are set. */
-export function skyMappedLook(id: string, map: Texture): Material {
-  if (bind === null || !looks.has(id)) return hdMaterial(map);
-  let maps = bound.get(id); if (maps === undefined) { maps = new WeakMap(); bound.set(id, maps); }
-  const known = maps.get(map); if (known !== undefined) return known;
-  const material = bind(id, map); maps.set(map, material); return material;
-}
+/** A `meshMap` look (`look.materials.<id>`) over a model's own `map`: one cached material per look and map, one program per look (the catalogue's `bindMeshMap`); its plain painted material before the looks are set. */
+export function skyMappedLook(id: string, map: Texture): Material { return bind === null || !looks.has(id) ? hdMaterial(map) : bind(id, map); }

@@ -136,10 +136,10 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       .catch((e: unknown) => { console.error('[far-reach] the island tiles did not load; they stand undrawn:', e); });
     // the shard's look materials (look.materials, material graphs switched on for Sky, G387): the rope decks, the hover frames,
     // the shacks' kinds, the dressing's clumps and flowers, the falls (world/looks.ts)
-    // and the looks over a model's own map (meshMap: the crown dais, the lantern, the keeper, the posts), each compiled bound to it
+    // and the looks over a model's own map (meshMap: the crown dais, the lantern, the keeper, the posts), each bound to it on its one compiled graph
     const compiled = await runtimeLookMaterials(ctx, source, true), looks = compiled.materials, deck = looks.get('deck-wood'), frame = looks.get('hover-frame');
     if (deck === undefined || frame === undefined) throw new Error('Sky Reach: look.materials lacks deck-wood or hover-frame');
-    setSkyLooks(looks, (id, map) => compiled.compile(source.look.materials[id], map));
+    setSkyLooks(looks, compiled.bindMeshMap);
     this.built = await buildWorld(ctx, () => worldBuildYield(ctx), isles, { deck, frame });
     await worldBuildYield(ctx);
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
