@@ -6,6 +6,10 @@
  * --round=near (G342): the near-tier A / B, raw and unlabelled: Debug Neighbour detail A (far proxy) and B (near
  *   placeholder), four road views from the roundabout to each crossroads cell plus SQ-c, on iPhone 16 Pro portrait and
  *   1920×1080 desktop; files <A|B>-<pose>-<device>.png.
+ * --round=near also shoots the shipped hero (round 4's SQ-NA-a, entered with --enter, after the road views). Every
+ *   frame records each cell's real tier (grid.state().cells[].shows / drawn: near, far proxy, tiles, playing) and the
+ *   near tier's own readout (frame.near), for the labels.
+ * --round=5 (G372): round5HeroPlan (above Nalati's centre looking toward Driftwood) with Neighbour detail B on.
  * --round=4 (G343): round4HeroPlan (above Driftwood, Nalati and Pine, aimed across the roundabout; never the template)
  *   with Debug Neighbour detail B (near placeholders) on; the square round's sizes and lenses.
  *   --enter stands the player in the cell under the eye first (enterOver); --only=<ids> / --sessions=<keys> narrow a re-shoot.
@@ -27,7 +31,8 @@ const flag = (name, fallback) => args.find(value => value.startsWith(`--${name}=
 const out = resolvePath(flag('out', join(tmpdir(), `main-menu-hero-${process.pid}`)));
 const script = import.meta.filename;
 const round = flag('round', '1');
-if (!['1', 'aerial', 'landscape', 'square', 'near', '4'].includes(round)) throw new Error('Capture round must be 1, aerial, landscape, square, near or 4');
+if (!['1', 'aerial', 'landscape', 'square', 'near', '4', '5'].includes(round)) throw new Error('Capture round must be 1, aerial, landscape, square, near, 4 or 5');
+const serveOwner = process.env.SERVE_OWNER ?? 'sp-x2-g332';
 
 function requireNoQuiet() {
   const quiet = join(root, '.git/quiet');
@@ -206,7 +211,7 @@ async function capture(base) {
 async function captureAerial(base) {
   requireNoQuiet();
   const plan = JSON.parse(await command(process.execPath,
-    ['--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs'), round === 'near' ? 'square' : round], root));
+    ['--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs'), round === 'near' ? '4' : round], root));
   // --only=<pose id,…> and --sessions=<key,…> (e.g. 2048x2048) narrow a re-shoot; sessions left with no pose are skipped
   const only = flag('only', ''), keys = flag('sessions', '');
   // --enter (round 4): stand the player in the cell under the eye first (its runtime draws at full quality; the
@@ -214,16 +219,16 @@ async function captureAerial(base) {
   const enter = args.includes('--enter');
   if (only !== '') plan.poses = plan.poses.filter(p => only.split(',').includes(p.id));
   // G343 round 4: the square round's sessions over round4HeroPlan, with the near-placeholder tier on (G342)
-  const near = round === 'near', round4 = round === '4', square = round === 'square' || round4, landscape = round === 'landscape' || square || near;
+  const near = round === 'near', round4 = round === '4' || round === '5', square = round === 'square' || round4, landscape = round === 'landscape' || square || near;
   // Aerial: one phone context per Debug time pick. Landscape: one desktop context per resolution, desktop tier, DSF 1.
   // Square (G344): the same desktop contexts, square resolutions for the square poses and 16:9 for the landscape ones.
   const desktop = (width, height, poses) => ({ key: `${width}x${height}`, poses,
     context: { ...devices['Desktop Chrome'], viewport: { width, height }, deviceScaleFactor: 1 },
     settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0, ...(round4 ? { nearTier: 'near' } : {}) }, gfx: { dpr: 'native', aa: 'auto' } });
-  // G342: from the roundabout to each of the four crossroads cells (the game's own lens), then the square hero over them
-  const centre0 = plan.poses[0].target, nearPoses = [...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => ({ id: `road-${i}`, name: `Road view ${i}`,
+  // G342: from the roundabout to each of the four crossroads cells (the game's own lens), then the shipped hero (NA-a)
+  const centre0 = plan.road ?? plan.poses[0].target, nearPoses = [...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => ({ id: `road-${i}`, name: `Road view ${i}`,
     eye: { x: centre0.x - sx * 30, y: 22, z: centre0.z - sz * 30 }, target: { x: centre0.x + sx * 240, y: 0, z: centre0.z + sz * 240 } })),
-  ...plan.poses.filter(p => p.id === 'SQ-c')];
+  ...plan.poses.filter(p => p.id === 'SQ-NA-a')];
   const sessions = (near
     ? ['far', 'near'].flatMap(nearTier => [
       { key: `${nearTier === 'far' ? 'A' : 'B'}-iphone`, poses: nearPoses, context: { ...devices['iPhone 16 Pro'] },
@@ -271,7 +276,7 @@ async function captureAerial(base) {
         await page.evaluate(() => window.__wildshard.requireWorld().hud.enterNow());
         await page.waitForTimeout(8000);
         const identity = await page.evaluate(gridFloorDocumentIdentity);
-        const centre = plan.poses[0].target;
+        const centre = centre0;
         await page.evaluate(async p => {
           const api = window.__wildshard, w = api.requireWorld(), live = api.shard.grid.state().live.live;
           const offset = { x: live.worldFeet.x - w.player.position.x, z: live.worldFeet.z - w.player.position.z };
@@ -309,11 +314,14 @@ async function captureAerial(base) {
           report.shots.push(row); save();
           try {
             // G343: stand the player in the cell the eye is over, so that shard draws its own runtime (not a placeholder)
-            if (enter && shot.over !== undefined && shot.over.instance !== entered?.instance) {
-              entered = await enterOver(page, { ...shot.over, road: plan.poses[0].target });
+            // the near round's iPhone sessions never enter (the phone-tier entry from the air times out): the hero view's
+            // cell then draws its near placeholder, and the label's tier readout says so
+            const enterHere = enter && shot.over !== undefined && !(near && session.key.endsWith('-iphone'));
+            if (enterHere && shot.over.instance !== entered?.instance) {
+              entered = await enterOver(page, { ...shot.over, road: centre0 });
               console.log(`entered ${shot.over.slug} for ${session.key}: ${JSON.stringify(entered.tiles)}`);
             }
-            if (enter && shot.over !== undefined) row.entered = entered;
+            if (enterHere) row.entered = entered;
             await page.evaluate(p => { window.__heroAerialPose = p; }, shot);
             await page.waitForTimeout(3500);
             const current = await page.evaluate(gridFloorDocumentIdentity);
@@ -324,12 +332,12 @@ async function captureAerial(base) {
               const live = grid.live.live, dx = live.worldFeet.x - w.player.position.x - grid.live.renderOrigin.x, dz = live.worldFeet.z - w.player.position.z - grid.live.renderOrigin.z;
               const p = w.game.camera.position, direction = w.game.camera.getWorldDirection(p.clone());
               return { cameraWorld: [p.x + dx, p.y, p.z + dz], direction: direction.toArray(), playerWorld: live.worldFeet,
-                freeCamera: w.freeCamera, viewmodelVisible: w.game.viewmodel.visible, cells: grid.cells,
+                freeCamera: w.freeCamera, viewmodelVisible: w.game.viewmodel.visible, cells: grid.cells, near: grid.near,
                 renderScale: w.game.renderer.getPixelRatio(), frameCount: w.game.frameCount, fov: w.game.camera.fov, aspect: w.game.camera.aspect,
                 dayClock: w.sky.dayNight?.snapshot() ?? null, clock: w.game.app.clock.mode };
             });
             if (!row.frame.freeCamera || row.frame.viewmodelVisible) throw new Error('Detached-camera / no-viewmodel witness failed');
-            if (enter && shot.over !== undefined && row.frame.cells.find(cell => cell.instance === shot.over.instance)?.shows !== 'playing') throw new Error(`${shot.over.instance} is not the playing cell under the eye`);
+            if (enterHere && row.frame.cells.find(cell => cell.instance === shot.over.instance)?.shows !== 'playing') throw new Error(`${shot.over.instance} is not the playing cell under the eye`);
             if (Math.hypot(...row.frame.cameraWorld.map((v, i) => v - [shot.eye.x, shot.eye.y, shot.eye.z][i])) > 0.01) throw new Error('Actual aerial camera differs from requested pose');
             if (typeof shot.fovDegrees === 'number' && Math.abs(row.frame.fov - shot.fovDegrees) > 0.01) throw new Error(`Camera FOV ${row.frame.fov} is not the requested ${shot.fovDegrees}`);
             // a road view is named for the shard it looks at (Jake: every neighbour obvious, e.g. A-road-nalati-iphone)
@@ -351,20 +359,20 @@ async function captureAerial(base) {
 mkdirSync(out, { recursive: true });
 if (args.includes('--worker')) {
   if (process.env.HERO_CAPTURE_LANE !== '1') throw new Error('Run through this command’s browser-lane launcher');
-  await (round === 'aerial' || round === 'landscape' || round === 'square' || round === 'near' || round === '4' ? captureAerial(flag('base', '')) : capture(flag('base', '')));
+  await (round === 'aerial' || round === 'landscape' || round === 'square' || round === 'near' || round === '4' || round === '5' ? captureAerial(flag('base', '')) : capture(flag('base', '')));
 } else {
   requireNoQuiet();
   const scratch = join(out, 'build'); mkdirSync(scratch, { recursive: true });
   let base;
   try {
     base = (await command(join(root, 'scripts/serve-build.sh'), [...(args.includes('--tree') ? [] : ['--head']), '--name', 'main-menu-hero', '--hours', '1'], scratch,
-      { ...process.env, SERVE_OWNER: 'sp-x2-g332' })).split('\n').at(-1);
+      { ...process.env, SERVE_OWNER: serveOwner })).split('\n').at(-1);
     requireNoQuiet();
     await command(join(root, 'scripts/browser-lane.sh'), ['--max', '20', process.execPath, script, '--worker', `--round=${round}`, `--base=${base}`, `--out=${out}`,
       ...args.filter(value => /^--(?:only=|sessions=|enter$)/u.test(value))], root,
       { ...process.env, HERO_CAPTURE_LANE: '1' });
     console.log(`Canvas candidates and pinned capture.json: ${out}`);
   } finally {
-    if (base) await command(join(root, 'scripts/serve-build.sh'), ['stop', new URL(base).port], root, { ...process.env, SERVE_OWNER: 'sp-x2-g332' });
+    if (base) await command(join(root, 'scripts/serve-build.sh'), ['stop', new URL(base).port], root, { ...process.env, SERVE_OWNER: serveOwner });
   }
 }

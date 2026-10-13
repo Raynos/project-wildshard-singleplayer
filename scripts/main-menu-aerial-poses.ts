@@ -187,3 +187,35 @@ export function round4HeroPlan(): { junction: string; surrounding: readonly stri
   }
   return { junction: round3.junction, surrounding: round3.surrounding, poses };
 }
+
+/**
+ * G372 hero round 5 (Jake: "above the center of Nalati, looking at Driftwood, so that we can see far more of the 3x3
+ * grid … when you're above Nalati looking at Pine, you just see a small fraction of the 3x3 and the infinite void
+ * beyond"): the eye over Nalati's centre, aimed west across the grid at Driftwood, the near tier on (G371: the cells
+ * nearest the eye, diagonals included). Three heights / tilts: `a` 260 m at Driftwood's centre (round 4's NA-a height),
+ * `b` 420 m steeper at the same point, `c` 340 m aimed past Driftwood at the far roundabout row; each square (62°) and
+ * landscape (43° vertical). The player stands in Nalati a third of the way toward Driftwood (entered, its own runtime).
+ */
+export function round5HeroPlan(): { junction: string; surrounding: readonly string[]; road: LandscapeHeroPose['target']; poses: LandscapeHeroPose[] } {
+  const round3 = landscapeHeroPlan(), road = round3.poses.at(0)?.target;
+  if (road === undefined) throw new Error('Round 5 starts from round 3’s roundabout');
+  const grid = new GridAssembly({ developer: true, devserver: false });
+  const nalati = grid.cells.find(c => c.slug === 'nalati-grasslands'), driftwood = grid.cells.find(c => c.slug === 'driftwood-isle');
+  if (nalati === undefined || driftwood === undefined) throw new Error('Round 5 stands over Nalati looking at Driftwood');
+  const placed = grid.cells.filter(cell => Math.abs(cell.origin.x - nalati.origin.x) <= 2 * grid.pitch && Math.abs(cell.origin.z - nalati.origin.z) <= 2 * grid.pitch);
+  const over = { instance: nalati.instance, slug: nalati.slug, stand: { x: Math.round(nalati.origin.x + (driftwood.origin.x - nalati.origin.x) / 3),
+    z: Math.round(nalati.origin.z + (driftwood.origin.z - nalati.origin.z) / 3) } };
+  const toward = { x: driftwood.origin.x - nalati.origin.x, z: driftwood.origin.z - nalati.origin.z }, span = Math.hypot(toward.x, toward.z);
+  const poses: LandscapeHeroPose[] = [];
+  for (const [variant, label, height, reach] of [
+    ['a', 'over its centre, at Driftwood', 260, 1], ['b', 'over its centre, higher and steeper', 420, 1], ['c', 'over its centre, aimed past Driftwood', 340, 1.5],
+  ] as const) {
+    const target = { x: nalati.origin.x + toward.x * reach, y: 0, z: nalati.origin.z + toward.z * reach };
+    const headingDegrees = Math.atan2(nalati.origin.x - target.x, nalati.origin.z - target.z) * 180 / Math.PI;
+    for (const aspect of ['square', 'landscape'] as const) {
+      poses.push({ ...aimedPose(target, placed, { id: `${aspect === 'square' ? 'SQ' : 'LS'}-NW-${variant}`, name: `Above Nalati toward Driftwood, ${label}`,
+        headingDegrees, height, distance: Math.round(span * reach), aspect, fovDegrees: HERO_1X_FOV[aspect] }), over });
+    }
+  }
+  return { junction: round3.junction, surrounding: round3.surrounding, road, poses };
+}
