@@ -21,7 +21,7 @@ it('charges Sky model sources once, preserves live map users, and reconstructs e
         mesh.geometry.computeBoundingSphere();
         const sphere = mesh.geometry.boundingSphere;
         if (sphere === null) throw new Error('Missing fixture sphere');
-        mesh.userData['sphere'] = [...sphere.center.toArray(), sphere.radius];
+        mesh.userData['sphere'] = [sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius];
         scene.add(mesh);
       }
     }
