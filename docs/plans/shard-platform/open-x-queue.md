@@ -62,3 +62,12 @@ S5 restricted shader-source compiler · S8 director stem / reverb zones · S9 sa
 persistence · S11 sign author metadata · S12 phone QR in wildshard dev · S13 one-click Vercel preview · S14 objective /
 stuck-route bot · S15 AI playtester · S16 npm create wildshard · S17 quickstart skill · S18 wildshard upgrade · S19
 outside-author battery · S20 grid-wide director events · S22 commons quest / dialogue / encounter generators.
+
+## Part D: Jake's 48-hour review picks (2026-10-13; G349–G352, review `docs/reviews/shardfile-48h-review-2026-10-12.md`)
+
+| Row | What remains | Done when | Lane |
+|---|---|---|---|
+| G349 ratchets | Standing debt rule deleted and the approval sweeper stopped (02:25Z). Every debt count is shrink-only; a rise needs a plan row naming the deletion that pays it back; the coordinator never approves its own rises | No rise lands without a pay-back row | all lanes |
+| G350-DW / -PH / -NA / -SD / -FR / -ND | **Exit row per shard** (Driftwood, Pine, Nalati, Signal, Sky, Nine): physics, spots and near bakes read authored collider / placement rows only (G320), no runtime code in Node | Clean-room rebuild with runtime + legacy deleted reproduces the bakes; that shard's runtime may then be deleted | open (before any SF73 deletion) |
+| SF81–SF85 reopened | Directors, brains, movers, modes, weapons stay open until the shard runtime they replace is deleted in the same series (net-negative shard `runtime/` diff) | Platform row + runtime deletion landed together | sprint lanes |
+| SF80 `bake(scene, identity)` | Build the design's central call: generator → real three.js `Scene` → `bake()` → tiles + `scene.json`; push Signal's port through it | **Signal done = tiles + 0 private binaries** (not only a line count) | next Opus lane |

@@ -37,11 +37,12 @@ p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may 
   engine/game/SDK module still counts (G294, G306); only real rows/data, baked outputs or ≥ 2-user modules reduce custom %.
 - **Strict TS:** no `any`, `!`, `@ts-ignore`, `as unknown as`, blanket disables. Fix the type, never the gate. Never
   disable a lint guard. No `?foo=` URL switches (Debug rows only, DEBUG-TOGGLES.md). Never edit frozen `*-legacy` folders.
-- **Debt-row approvals:** a push refused for a generated rise under `src/shards/` (shard-engine-imports,
-  shard-game-imports, shard-game-plugins, generator-imports, shard-services, shard-sandbox, public-index) → write the rows
-  as a JSON list `[{"kind":"debt","key":"wildshard/…","file":"src/shards/…","before":n,"after":m}]` to
-  `.git/approval-requests/<lane>-<n>.json`; the coordinator's sweeper merges them within 2 min (rejects land in
-  `.git/approval-requests/rejected/` with a `.why`). Anything else (graph rows, non-shard files): ask wildshard-new.
+- **Debt counts are shrink-only (Jake, G349).** No standing approvals and no coordinator sweeper. A generated rise
+  (shard-engine-imports, shard-game-imports, shard-game-plugins, generator-imports, sdk-no-facade, shards → engine/game
+  graph edges) is refused: restructure so it doesn't rise. If a rise is truly unavoidable, stop and tell wildshard-new;
+  it needs a plan row naming the deletion that pays it back, approved by Jake, never by the coordinator.
+- **Log every call (Jake, G352).** Each trade-off you decide alone goes in your report as `CALL: …`; the coordinator
+  lists it in STATE.md's daily 'Calls for Jake'. Anything touching an approved G-row asks first.
 - **Machine (MACHINE.md):** ≤ 4 game browsers machine-wide via `scripts/browser-lane.sh`; mute them; capture as
   "iPhone 16 Pro" unless your row says desktop. No vite dev servers (`scripts/serve-build.sh` from your own scratch dir).
   One Simulator via `scripts/sim-lane.sh`. Full suite / app build only through `python3 scripts/heavy-lane.py`; lanes run
