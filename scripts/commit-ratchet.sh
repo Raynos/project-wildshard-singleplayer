@@ -33,8 +33,8 @@ if [ "${COMMIT_RATCHET_LOCKED:-}" != 1 ]; then
 fi
 
 # the ratchet reads both oxlint configs and (since E362 AG16/17) scripts/guard-counts.mjs; archive only what the commit has
-paths="src lint .oxlintrc.ratchet.json package.json"
-for extra in .oxlintrc.json scripts/guard-counts.mjs scripts/guard-index-tree.mjs scripts/guard-index-tree.d.mts scripts/legacy-shards.mjs scripts/gen-shard-words.mjs scripts/generation-jobs.json scripts/precommit-generated-data.mjs scripts/link-node-modules.mjs; do git -C "$repo" cat-file -e "$sha:$extra" 2>/dev/null && paths="$paths $extra"; done
+paths="src lint scripts .oxlintrc.ratchet.json package.json"
+for extra in .oxlintrc.json pnpm-lock.yaml pnpm-workspace.yaml; do git -C "$repo" cat-file -e "$sha:$extra" 2>/dev/null && paths="$paths $extra"; done
 tmp="$(cd "$(mktemp -d /tmp/ratchet-commit.XXXXXX)" && pwd -P)" || exit 0 # canonical: /tmp is a symlink on macOS (E432)
 trap 'rm -rf "$tmp"' EXIT
 t0=$SECONDS
@@ -50,6 +50,14 @@ fi
 if [ -f "$tmp/lint/wildshard-plugin.js" ] && [ ! -f "$tmp/lint/shard-words.generated.json" ]; then
   if [ ! -f "$tmp/scripts/gen-shard-words.mjs" ] || ! out="$(cd "$tmp" && node scripts/gen-shard-words.mjs 2>&1)"; then
     refuse "immutable shard vocabulary unavailable before measurement: ${out:-missing producer}"
+    exit 0
+  fi
+fi
+# Cheap behaviour JSON remains outside Git. Its defining producers and loaders
+# come from this same archive, and produce data before the closure reader runs.
+if [ -f "$tmp/scripts/hydrate-cheap-guard.mjs" ]; then
+  if ! out="$(cd "$tmp" && node scripts/hydrate-cheap-guard.mjs "$tmp" 2>&1)"; then
+    refuse "immutable cheap guard data unavailable before measurement: $out"
     exit 0
   fi
 fi
