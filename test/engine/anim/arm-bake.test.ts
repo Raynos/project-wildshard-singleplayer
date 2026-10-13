@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 import { ARM_CLIPS, SWIM_CLIPS } from '../../../src/game/systems/viewmodel/armClips';
 
 interface Glb {
-  nodes: { name?: string; extras?: { rig?: string; clips?: Record<string, { loop: boolean }> } }[];
+  nodes: { name?: string; mesh?: number; extras?: { rig?: string; clips?: Record<string, { loop: boolean }> } }[];
+  meshes: { primitives: unknown[] }[];
   animations: { name: string }[];
   skins: { joints: number[] }[];
 }
@@ -34,4 +35,11 @@ describe('authored viewmodel clip aliases', () => {
     const actual = [...new Map(glb.skins.map((skin) => { const names = skin.joints.map((i) => glb.nodes[i]?.name); return [JSON.stringify(names), names]; })).values()];
     expect(actual).toEqual(expected);
   });
+});
+
+it('binds the toon material loop to the three actual Driftwood rig meshes', () => {
+  const glb = json('public/assets/models/driftwood-fp/fp-arms.glb');
+  const meshes = glb.nodes.filter(node => node.mesh !== undefined);
+  expect(meshes.map(node => node.name)).toEqual(['arms', 'sword_wood', 'sword_iron']);
+  expect(meshes.map(node => node.mesh === undefined ? undefined : glb.meshes[node.mesh]?.primitives.length)).toEqual([1, 1, 1]);
 });

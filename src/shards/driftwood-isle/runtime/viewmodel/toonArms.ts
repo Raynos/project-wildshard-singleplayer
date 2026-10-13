@@ -165,7 +165,14 @@ export class ToonArms {
       root: rig.root,
       setup: (sky) => {
         const m = this.swimMaterial(sky, water);
-        for (const mesh of rig.meshes()) { mesh.material = m; mesh.castShadow = false; mesh.receiveShadow = true; }
+        // The shipped rig has arms, sword_wood and sword_iron (one primitive each).
+        const meshes = rig.meshes();
+        if (meshes.length !== 3) throw new Error('Unexpected Driftwood arm mesh count');
+        for (let i = 0; i < 3; i++) {
+          const mesh = meshes[i];
+          if (mesh === undefined) throw new Error('Missing Driftwood arm mesh');
+          mesh.material = m; mesh.castShadow = false; mesh.receiveShadow = true;
+        }
       },
       update: (dt, s: { stroke: number; phase: number; camera: PerspectiveCamera; eyeAbove: number }) => {
         const k = vmScale(s.camera.fov);
@@ -228,7 +235,11 @@ export class ToonArms {
 
 /** the arms' and the two swords' materials on a rig */
 function dress(rig: RigArms, m: Dress): void {
-  for (const mesh of rig.meshes()) {
+  const meshes = rig.meshes();
+  if (meshes.length !== 3) throw new Error('Unexpected Driftwood arm mesh count');
+  for (let i = 0; i < 3; i++) {
+    const mesh = meshes[i];
+    if (mesh === undefined) throw new Error('Missing Driftwood arm mesh');
     mesh.material = mesh.name === 'sword_iron' ? m.iron : mesh.name === 'sword_wood' ? m.wood : m.arms;
     mesh.castShadow = false;
     mesh.receiveShadow = true;
