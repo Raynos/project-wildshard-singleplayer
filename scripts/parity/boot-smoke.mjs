@@ -95,8 +95,10 @@ export function bootSignalRoadPlan(state) {
     !('cell' in target) || !Array.isArray(target.cell) || target.cell.length !== 2) throw new Error('Signal grid cell is missing or ambiguous');
   const x = /** @type {unknown} */ (target.cell[0]), z = /** @type {unknown} */ (target.cell[1]);
   if (typeof x !== 'number' || typeof z !== 'number' || !Number.isSafeInteger(x) || !Number.isSafeInteger(z)) throw new Error('Invalid Signal grid address');
+  // Let the owned home checkpoint and leave commit on the neutral road midpoint
+  // before approaching Signal. The nearby border can already select Signal.
   return { name: 'boot-signal-road-entry', from: null, to: target.instance, movement: 'road-hover',
-    start: { x: x * 555, z: z * 555 + 251.5 }, waypoints: [{ x: x * 555, z: z * 555 + 245 }],
+    start: { x: x * 555, z: z * 555 + 277.5 }, waypoints: [{ x: x * 555, z: z * 555 + 245 }],
     requiredResidents: [target.instance], finishOnArrival: true };
 }
 

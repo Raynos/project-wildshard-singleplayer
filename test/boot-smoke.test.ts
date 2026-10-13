@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Browser callback fixture keeps production services out of the unit test.
 import { runInNewContext } from 'node:vm';
 import { expect, it } from 'vitest';
-import type { FloorGridState, FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
+import { gridFloorPlans, type FloorGridState, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
 import { bootCases, bootCatalogue, bootSignalRoadPlan, verifyBootSignalRoad } from '../scripts/parity/boot-smoke.mjs';
 
 const source = readFileSync('scripts/parity/boot-smoke.mjs', 'utf8');
@@ -111,7 +111,7 @@ it('requires an actual entered Signal road crossing, not a prepared cell or read
     { slug: 'sunscar-dunes', instance: 'signal', cell: [2, -1] },
   ];
   const plan = bootSignalRoadPlan({ cells });
-  expect(plan.start).toEqual({ x: 1110, z: -303.5 });
+  expect(plan.start).toEqual({ x: 1110, z: -277.5 });
   expect(plan.waypoints).toEqual([{ x: 1110, z: -310 }]);
   expect(plan).toMatchObject({ from: null, to: 'signal', requiredResidents: ['signal'], finishOnArrival: true });
   expect(() => bootSignalRoadPlan({ cells: [cells[0]] })).toThrow('missing');
@@ -123,7 +123,8 @@ it('requires an actual entered Signal road crossing, not a prepared cell or read
       worldFeet: { x: 1110, y: 0.55, z }, gameplayReady: true,
       residents: current === null ? [] : [current], transitions: current === null ? [] : [{ from: null, to: current }] } },
   });
-  const witness: FloorGridWitness = { plan, before: state(null, 0, -303.5), after: state('signal', 1, -310),
+  expect(plan.start).toEqual(gridFloorPlans(state('home', 0, 0), 'sun-entry')[0]?.start);
+  const witness: FloorGridWitness = { plan, before: state(null, 0, -277.5), after: state('signal', 1, -310),
     elapsedSeconds: 1, trace: [{ seconds: 0.25, x: 1110, y: 0.55, z: -304, current: null, gameplayReady: true }] };
   expect(() => verifyBootSignalRoad(witness)).not.toThrow();
   expect(() => verifyBootSignalRoad({ ...witness, after: state('home', 1, 0) })).toThrow('Destination');
