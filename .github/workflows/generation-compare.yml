@@ -70,7 +70,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          # Keep every prerequisite commit, without downloading historical asset bytes.
+          # The checkout and exact candidate import still materialize their own blobs.
           fetch-depth: 0
+          filter: blob:none
           persist-credentials: false
       - name: Verify private bundle and remove its draft release
         env:
