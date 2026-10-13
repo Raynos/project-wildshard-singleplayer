@@ -10,7 +10,7 @@ import { dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const check = process.argv.includes('--check'), args = process.argv.slice(2).filter(arg => arg !== '--check');
-const [entry, binding, lattice, metadata, assets] = args;
+const entry = args.at(0), binding = args.at(1), lattice = args.at(2), metadata = args.at(3), assets = args.at(4);
 if (args.length !== 5 || entry === undefined || binding === undefined || lattice === undefined || metadata === undefined || assets === undefined) {
   throw new Error('bake-query-terrain: entry, function, lattice, metadata and asset folder required');
 }
