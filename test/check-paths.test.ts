@@ -58,6 +58,26 @@ describe('check-paths CLI on a temporary repository', () => {
     expect(scan({ ...files, 'scripts/generation-jobs.json': catalogue({ ...job, comparisonOutputs: { [output]: 'invalid' } }) }).status).toBe(1);
     expect(scan({ 'scripts/generation-jobs.json': catalogue(job) }).status).toBe(1);
   });
+  it('keeps only exact registered product transports outside the disk source layout', () => {
+    const entry = 'src/shards/alpha/generators/bake.mjs';
+    const output = 'src/shards/alpha/.wildshard/product/shard.json';
+    const job = { id: 'alpha-product', shard: 'alpha', entry, command: [entry], inputRoots: [entry],
+      outputs: [output], platform: 'portable', comparisonOutputs: { [output]: 'a'.repeat(64) } };
+    const files = { [entry]: '', [output]: '{}',
+      'scripts/generation-jobs.json': JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT', jobs: [job] }),
+      'lint/shard-layout.json': JSON.stringify({ requiredFiles: [], allowedFiles: [], folders: ['generators'], legacy: {} }),
+      'lint/shard-platform.json': JSON.stringify({ baseline: {} }) };
+    const admitted = scan(files);
+    expect(admitted.status, admitted.output).toBe(0);
+    for (const path of ['src/shards/alpha/.wildshard/private.ts', 'src/shards/alpha/.wildshard/product/unknown.json']) {
+      const out = scan({ ...files, [path]: '' });
+      expect(out.status).toBe(1);
+      expect(out.output).toContain('alpha/.wildshard/: outside the canonical shard layout');
+    }
+    const unregistered = scan({ ...files, 'scripts/generation-jobs.json': JSON.stringify({ schema: 'generation-jobs/1', notice: 'DO NOT EDIT', jobs: [] }) });
+    expect(unregistered.status).toBe(1);
+    expect(unregistered.output).toContain('alpha/.wildshard/: outside the canonical shard layout');
+  });
   it('checks relocated Blender Node and Python source paths', () => {
     for (const extension of ['mjs', 'py']) {
       const out = scan({ [`src/shards/alpha/blender/rig/gate.${extension}`]: "path = 'src/planted-missing.ts'" });

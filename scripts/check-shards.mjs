@@ -68,13 +68,41 @@ export function shardEntries(paths, selected, homes = []) {
   return Object.fromEntries(Object.entries(entries).map(([slug, names]) => [slug, [...names].sort((a, b) => a.localeCompare(b))]));
 }
 
+// Only the registered, flat content-addressed product transport is generated
+// storage. Unknown files, source modules, symlinks and other hidden folders still
+// belong to the source layout check. Staged paths retain the pure layout policy.
+function generatedProduct(root, slug) {
+  if (!existsSync(resolve(root, 'scripts/generation-jobs.json'))) return false;
+  const base = `src/shards/${slug}/.wildshard`;
+  const homes = readdirSync(resolve(root, base), { withFileTypes: true });
+  const home = homes.find(entry => entry.name === 'product');
+  if (homes.length !== 1 || home?.isDirectory() !== true) return false;
+  const prefix = `${base}/product/`;
+  const files = readdirSync(resolve(root, prefix), { withFileTypes: true });
+  if (files.length === 0 || files.some(file => !file.isFile() || !/^(?:[a-f0-9]{64}|shard\.json)$/u.test(file.name))) return false;
+  const catalog = JSON.parse(readFileSync(resolve(root, 'scripts/generation-jobs.json'), 'utf8'));
+  if (catalog.schema !== 'generation-jobs/1' || !Array.isArray(catalog.jobs)) return false;
+  const outputs = new Set();
+  for (const job of catalog.jobs) {
+    if (job.shard !== slug || typeof job.entry !== 'string' ||
+        !job.entry.startsWith(`src/shards/${slug}/generators/`) || !existsSync(resolve(root, job.entry)) ||
+        !Array.isArray(job.command) || !job.command.includes(job.entry) || !Array.isArray(job.outputs)) continue;
+    const pins = job.buildOutputs ?? job.comparisonOutputs ?? {};
+    for (const [file, hash] of Object.entries(pins)) if (file.startsWith(prefix) &&
+        job.outputs.includes(file) && typeof hash === 'string' && /^[a-f0-9]{64}$/u.test(hash)) outputs.add(file);
+  }
+  return files.every(file => outputs.has(prefix + file.name));
+}
+
 /** @param {string} root @param {Set<string>} [selected] */
 export function checkShards(root, selected) {
   const config = JSON.parse(readFileSync(resolve(root, 'lint/shard-layout.json'), 'utf8'));
   const entries = {};
   for (const dir of readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })) {
     if (!dir.isDirectory() || (selected && !selected.has(dir.name))) continue;
-    entries[dir.name] = readdirSync(resolve(root, 'src/shards', dir.name), { withFileTypes: true }).map((entry) => entry.name + (entry.isDirectory() ? '/' : ''));
+    entries[dir.name] = readdirSync(resolve(root, 'src/shards', dir.name), { withFileTypes: true })
+      .filter(entry => entry.name !== '.wildshard' || !entry.isDirectory() || !generatedProduct(root, dir.name))
+      .map(entry => entry.name + (entry.isDirectory() ? '/' : ''));
     for (const home of Object.values(config.dataHomes ?? {})) if (existsSync(resolve(root, 'src/shards', dir.name, home))) entries[dir.name].push(home);
   }
   return checkShardLayout(entries, config, (file) => readFileSync(resolve(root, file), 'utf8'), JSON.parse(readFileSync(resolve(root, 'lint/shard-platform.json'), 'utf8')).baseline, legacyInventory(root));
