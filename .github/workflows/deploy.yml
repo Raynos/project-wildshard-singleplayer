@@ -7,8 +7,8 @@
 name: deploy
 
 on:
-  # SF74 W16: a push or PR that only touches what CI's sparse checkout leaves out (docs/, progress/, art/, sources/) runs
-  # nothing: every job here would test the parent's exact tree (14 % of pushes on 2026-10-09). Such a SHA gets no push
+  # SF74 W16: documentation/capture-only changes run nothing: jobs would test the parent's code
+  # (14 % of pushes on 2026-10-09). Manuals remain available to contract tests. Such a SHA gets no push
   # CI run, so newest-ci-green keeps releasing its newest code ancestor, which builds the same game.
   push:
     branches: [main]
@@ -69,7 +69,6 @@ jobs:
             !/progress/
             !/art/
             !/sources/
-            !/docs/
           sparse-checkout-cone-mode: false
 
       # Resolve the current pin policy, including newest CI + exact-SHA smoke for newest-ci-green.
@@ -220,7 +219,6 @@ jobs:
             !/progress/
             !/art/
             !/sources/
-            !/docs/
           sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
         with:
@@ -259,7 +257,6 @@ jobs:
             !/progress/
             !/art/
             !/sources/
-            !/docs/
           sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
         with:

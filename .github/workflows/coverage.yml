@@ -34,7 +34,6 @@ jobs:
             !/progress/
             !/art/
             !/sources/
-            !/docs/
           sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
         with:

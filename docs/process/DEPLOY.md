@@ -16,8 +16,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   milestones** (`.github/workflows/coverage.yml`: 09:23 UTC, or `gh workflow run coverage [-f sha=<candidate>]`): the
   same 8 shards under `--coverage`, merged with `scripts/coverage-merge.mjs` (the same numbers as one unsharded run),
   then `scripts/coverage-ratchet.mjs`; it holds no release, and a coverage drop is found there, not per push. **A push that only touches
-  `docs/`, `progress/`, `art/` or `sources/` runs no push CI** (`paths-ignore`; CI's sparse checkout drops those
-  paths, so it would re-test the parent's tree): that SHA never becomes a release candidate, and production's
+  `docs/`, `progress/`, `art/` or `sources/` runs no push CI** (`paths-ignore`; it would re-test the parent's code): that SHA never becomes a release candidate, and production's
   "newest proven main" is its newest code ancestor, so compare `version.json` with the newest CI-green SHA, not the
   tip. Releases reuse that complete test proof when the
   selected exact SHA has a successful main push-CI run (SF74 W0); they still build and check chunks and verify
