@@ -69,7 +69,7 @@ describe('declared prop baker', () => {
     expect(() => validatePropsReferences(result.props, input)).not.toThrow(); expect(() => validateProject(input, assets)).not.toThrow();
     expect(Math.max(...result.report.filter((t) => t.lod === 0).map((t) => t.draws))).toBeLessThanOrEqual(8);
     expect(Math.max(...result.report.filter((t) => t.lod === 1).map((t) => t.draws))).toBe(2);
-    expect(result.far.draws).toBe(1); expect(result.props.panels[0]?.id).toBe('template.door'); expect(result.props.models[0]?.id).toBe('template.lantern');
+    expect(result.far?.draws).toBe(1); expect(result.props.panels[0]?.id).toBe('template.door'); expect(result.props.models[0]?.id).toBe('template.lantern');
     for (const [hash, bytes] of result.assets) expect(contentHash(bytes)).toBe(hash);
   });
   it('is deterministic and the real loader reconstructs instance matrices, geometry and panel ports, then scope disposal removes roots', async () => {

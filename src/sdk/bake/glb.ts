@@ -9,6 +9,10 @@ export interface GlbPrimitive {
   name?: string;
   /** Explicit glTF application semantic → geometry channel, e.g. `_SPLAT: 'splat'`; absent preserves old bytes. */
   customAttributes?: Readonly<Record<string, string>>;
+  /** Optional node transform (a finite positive TRS; not with `instances`); absent preserves the old byte path. */
+  transform?: Matrix4;
+  /** `true` writes the index as built: none for a non-indexed geometry, 16-bit when it is 16-bit; absent always writes a 32-bit index (the old byte path). */
+  compactIndex?: true;
 }
 /** A deterministic self-contained static GLB; names and vertex colours survive the ordinary engine GLTFLoader. */
 export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): Uint8Array {
@@ -19,16 +23,24 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
   }
   const chunks: Uint8Array[] = [], views: Json[] = [], accessors: Json[] = [], meshes: Json[] = [], nodes: Json[] = [], materials: Json[] = [];
   let offset = 0;
-  const accessor = (values: readonly number[], width: number, type: string, integer = false, bounds = false): number => {
+  const accessor = (values: readonly number[], width: number, type: string, integer = false, bounds = false, short = false): number => {
     if (values.length === 0 || values.length % width !== 0 || values.some((n) => !Number.isFinite(n))) throw new Error('Invalid GLB attribute');
-    const bytes = new Uint8Array(values.length * 4), v = new DataView(bytes.buffer);
-    values.forEach((n, i) => integer ? v.setUint32(i * 4, n, true) : v.setFloat32(i * 4, n, true));
-    const view = views.length; views.push({ buffer: 0, byteOffset: offset, byteLength: bytes.length }); chunks.push(bytes); offset += bytes.length;
-    const a: Record<string, Json> = { bufferView: view, componentType: integer ? 5125 : 5126, count: values.length / width, type };
+    // a 16-bit index's view is padded to 4 bytes so every later view stays aligned
+    const size = short ? 2 : 4, bytes = new Uint8Array(Math.ceil(values.length * size / 4) * 4), v = new DataView(bytes.buffer);
+    values.forEach((n, i) => short ? v.setUint16(i * 2, n, true) : integer ? v.setUint32(i * 4, n, true) : v.setFloat32(i * 4, n, true));
+    const view = views.length; views.push({ buffer: 0, byteOffset: offset, byteLength: values.length * size }); chunks.push(bytes); offset += bytes.length;
+    const a: Record<string, Json> = { bufferView: view, componentType: short ? 5123 : integer ? 5125 : 5126, count: values.length / width, type };
     if (bounds) { a['min'] = Array.from({ length: width }, (_, c) => values.reduce((n, sample, i) => i % width === c ? Math.min(n, sample) : n, Infinity)); a['max'] = Array.from({ length: width }, (_, c) => values.reduce((n, sample, i) => i % width === c ? Math.max(n, sample) : n, -Infinity)); }
     accessors.push(a); return accessors.length - 1;
   };
-  for (const { geometry, material, instances, castShadow = true, customAttributes = {}, name: nodeName = name } of primitives) {
+  const trs = (matrix: Matrix4): { position: Vector3; rotation: Quaternion; scale: Vector3 } => {
+    const position = new Vector3(), scale = new Vector3(), rotation = new Quaternion();
+    matrix.decompose(position, rotation, scale);
+    const composed = new Matrix4().compose(position, rotation, scale);
+    if (matrix.elements.some((n, i) => !Number.isFinite(n) || Math.abs(n - (composed.elements[i] ?? Infinity)) > 1e-5) || scale.x <= 0 || scale.y <= 0 || scale.z <= 0) throw new Error('Instance must be a finite positive TRS transform');
+    return { position, rotation, scale };
+  };
+  for (const { geometry, material, instances, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex } of primitives) {
     if (material.map !== null || material.normalMap !== null || material.roughnessMap !== null || material.metalnessMap !== null || material.alphaMap !== null) throw new Error('GLB textures must be external KTX2 declarations');
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
@@ -54,19 +66,22 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
       ...(material.alphaTest > 0 ? { alphaCutoff: material.alphaTest } : {}),
       ...(material.emissive.r !== 0 || material.emissive.g !== 0 || material.emissive.b !== 0 ? { emissiveFactor: [...material.emissive].map(value => value * material.emissiveIntensity) } : {}),
     });
-    meshes.push({ name: nodeName, primitives: [{ attributes, indices: accessor(indices, 1, 'SCALAR', true), material: materialIndex }] });
+    const compact = compactIndex === true, short = compact && index !== null && index.array instanceof Uint16Array;
+    meshes.push({ name: nodeName, primitives: [{ attributes, ...(compact && index === null ? {} : { indices: accessor(indices, 1, 'SCALAR', true, false, short) }), material: materialIndex }] });
     const node: Record<string, Json> = { name: nodeName, mesh: meshes.length - 1, extras: { castShadow } };
     if (instances !== undefined) {
       if (instances.length === 0 || instances.length > 10_000) throw new Error('Invalid instance count');
       const t: number[] = [], r: number[] = [], s: number[] = [];
-      for (const matrix of instances) {
-        const position = new Vector3(), scale = new Vector3(), rotation = new Quaternion();
-        matrix.decompose(position, rotation, scale);
-        const composed = new Matrix4().compose(position, rotation, scale);
-        if (matrix.elements.some((n, i) => !Number.isFinite(n) || Math.abs(n - (composed.elements[i] ?? Infinity)) > 1e-5) || scale.x <= 0 || scale.y <= 0 || scale.z <= 0) throw new Error('Instance must be a finite positive TRS transform');
-        t.push(...position); r.push(...rotation); s.push(...scale);
-      }
+      for (const matrix of instances) { const { position, rotation, scale } = trs(matrix); t.push(...position); r.push(...rotation); s.push(...scale); }
       node['extensions'] = { EXT_mesh_gpu_instancing: { attributes: { TRANSLATION: accessor(t, 3, 'VEC3'), ROTATION: accessor(r, 4, 'VEC4'), SCALE: accessor(s, 3, 'VEC3') } } };
+    }
+    if (transform !== undefined) {
+      if (instances !== undefined) throw new Error('A GLB node takes a transform or instances, not both');
+      const { position, rotation, scale } = trs(transform);
+      // only what differs from the identity, so a translated node keeps its exact translation
+      if (position.x !== 0 || position.y !== 0 || position.z !== 0) node['translation'] = [position.x, position.y, position.z];
+      if (rotation.x !== 0 || rotation.y !== 0 || rotation.z !== 0 || rotation.w !== 1) node['rotation'] = [rotation.x, rotation.y, rotation.z, rotation.w];
+      if (scale.x !== 1 || scale.y !== 1 || scale.z !== 1) node['scale'] = [scale.x, scale.y, scale.z];
     }
     nodes.push(node);
   }
