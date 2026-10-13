@@ -44,6 +44,7 @@ import { planeBiasShadowFilter } from './planeBiasShadowFilter';
 import { EngineDirectionalLightNode } from './cascadeLightNode';
 import { isCascadeGhost } from '../../world/cascadeLights';
 import { diagnosticNow } from '../../core/clock';
+import { worldTime } from '../../core/time';
 import type { Renderer } from '../renderer';
 import { NodeUniformBuffers, type BlockGroup } from './nodeUniformBuffers';
 import { installNodeCoarseMask, type NodeCoarseMask } from '../nodeCoarseMask';
@@ -249,9 +250,18 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     return engine;
   }
 
-  /** a render begins: three's stock fog node is dropped wherever the engine epilogue fogs */
+  /**
+   * a render begins: the node frame's clock is the game's frame time where the game's loop runs (`worldTime.t`;
+   * three's stock frame reads `performance.now()`, so a graph's `time` drew wherever the wall clock had it and two map
+   * bakes of one build differed); three's stock fog node is dropped wherever the engine epilogue fogs
+   */
   override renderStart(scene: THREE.Object3D, camera: THREE.Camera, targetScene?: THREE.Object3D): void {
     super.renderStart(scene, camera, targetScene);
+    const frame: unknown = Reflect.get(this, 'nodeFrame');
+    if (worldTime.t !== null && typeof frame === 'object' && frame !== null) {
+      Reflect.set(frame, 'time', worldTime.t);
+      Reflect.set(frame, 'deltaTime', worldTime.realDt);
+    }
     // the engine epilogue fogs node materials; three's stock fog node would fog them a second time
     if (this.engineFogOn()) {
       const top = internals(this).renderStack.at(-1);

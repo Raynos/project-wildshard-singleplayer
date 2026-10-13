@@ -910,7 +910,7 @@ export class Game {
       if (this.stopLeft > 0) { this.stopLeft -= realDt; scale = HIT_STOP_SCALE; }
       this.app.clock.timeScale = 1;
       this.app.clock.tick(liveDt);
-      worldTime.scale = scale; worldTime.realDt = realDt;
+      worldTime.scale = scale; worldTime.realDt = realDt; worldTime.t = t;
       const dt = realDt;
       this._frameTime += dt;
       this.frameNo++;
