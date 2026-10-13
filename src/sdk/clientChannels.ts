@@ -46,11 +46,15 @@ export class ClientChannels {
     slot.next = next;
   }
   /** One admitted unary arithmetic/trigonometric operation. */
-  unary(op: Exclude<Unary, Binary | 'hypot3'>, a: number): number { return this.append({ op, a }); }
+  unary(op: Exclude<Unary, Binary | 'hypot3' | 'sample'>, a: number): number { return this.append({ op, a }); }
   /** One admitted binary arithmetic/trigonometric operation, preserving operand order. */
   binary(op: Binary, a: number, b: number): number { return this.append({ op, a, b }); }
   /** The original three-axis Math.hypot operation, without nested binary rounding. */
   hypot3(a: number, b: number, c: number): number { return this.append({ op: 'hypot3', a, b, c }); }
+  /** Sample bounded ordered keys, retaining the original linear or smoothstep arithmetic. */
+  sample(a: number, keys: readonly (readonly [number, number])[], interpolation: 'linear' | 'smoothstep'): number {
+    return this.append({ op: 'sample', a, keys: keys.map(key => [key[0], key[1]]), interpolation });
+  }
   /** Declare a normal input prompt; channel evaluation never dispatches its separate trusted action. */
   prompt(row: NonNullable<ClientChannelProgram['prompt']>): void { this.promptRow = structuredClone(row); }
   /** Select already evaluated scalar nodes without a call, loop or side effect. */

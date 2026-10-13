@@ -1,8 +1,9 @@
 import type { ContactFamily, ContactFamilyPorts, ContactScanTarget } from '@wildshard/engine/combat/contactWeapon';
 import type { EquipContext, EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { DeclaredAction } from '@wildshard/engine/input/InputService';
-import { HeldContactWeapon } from '@wildshard/game/plugin/weaponFamily';
-import { Vector3, type Group, type Object3D } from 'three';
+import { HeldContactWeapon, HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
+import playback from '../../data/heldPlayback.generated.json' with { type: 'json' };
+import { Vector3, Object3D, type Group } from 'three';
 
 type App = ConstructorParameters<typeof HeldContactWeapon>[0];
 /** The shared body's contact position, combat actor and optional impulse port. */
@@ -55,18 +56,6 @@ export interface ConeFanView {
 /** The viewmodel's parts a cone fan moves: the root, and a pendant that hangs plumb (null: none). */
 export interface ConeFanParts { readonly group: Group; readonly pendant: Object3D | null }
 
-const REST: ConeFanPose = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0 };
-/** The pose `k` (0…1) of the way through a move, eased between its keys. */
-export function coneFanPose(move: ConeFanMoveView, k: number): ConeFanPose {
-  const keys = move.keys;
-  for (let i = 1; i < keys.length; i++) {
-    const a = keys[i - 1], b = keys[i]; if (a === undefined || b === undefined || k > b[0]) continue;
-    const u = Math.max(0, Math.min(1, (k - a[0]) / Math.max(1e-6, b[0] - a[0]))), e = u * u * (3 - 2 * u), A = a[1], B = b[1];
-    return { x: A.x + (B.x - A.x) * e, y: A.y + (B.y - A.y) * e, z: A.z + (B.z - A.z) * e, yaw: A.yaw + (B.yaw - A.yaw) * e, pitch: A.pitch + (B.pitch - A.pitch) * e, roll: A.roll + (B.roll - A.roll) * e };
-  }
-  return REST;
-}
-
 /** A cone fan's construction: its equipment row, strikes, view, the input action of its GUST and its parts' builder. */
 export interface ConeFanOptions<P extends ConeFanParts> {
   readonly row: EquipmentRow;
@@ -82,7 +71,8 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends HeldContactW
   /** the model's parts (a shard dresses them, e.g. paints a leaf) */
   readonly parts: P;
   override readonly model: Group;
-  private time = 0;
+  private readonly playback: HeldPlayback;
+  private readonly observed = { phase: 1, charge: 0, spring: 0, holster: 0, stowed: 0 };
   /** told of every gust that leaves, with its origin and direction */
   onGust: ((from: Vector3, dir: Vector3) => void) | null = null;
   /** True while the fan is put away (e.g. riding a board): it hides and neither swings nor gusts. */
@@ -98,6 +88,7 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends HeldContactW
     super(app, o.row, o.view.spring, o.view.charge);
     this.parts = o.parts(); this.model = this.parts.group;
     this.targets = targets; this.view = o.view; this.gustAction = o.gustAction;
+    this.playback = new HeldPlayback(playback, new Map([['root', this.model], ['pendant', this.parts.pendant ?? new Object3D()]]));
     this.moves = contacts({ hit: (req) => this.contact.hit(req), targets: () => this.targets(), struck: (id, killed) => { this.onHit?.(id, false, killed); } });
     const hold = o.view.hold;
     this.model.position.set(hold.x, hold.y, hold.z); this.model.rotation.set(hold.pitch, hold.yaw, hold.roll); this.model.scale.setScalar(hold.scale);
@@ -138,17 +129,11 @@ export class ConeFan<P extends ConeFanParts = ConeFanParts> extends HeldContactW
   private play(motion: ConeFanMotion): void { this.motion = motion; this.motionK = 0; }
   override update(dt: number): void {
     this.stepHeld(dt);
-    const view = this.view, hold = view.hold, draw = view.draw;
-    this.motionK = Math.min(1, this.motionK + dt / view.motions[this.motion].seconds);
-    // idle: a slow breath and the pendant swinging; a move plays its key poses; holding for HEAVY draws the fan up and back
-    this.time += dt; const pose = coneFanPose(view.motions[this.motion], this.motionK), c = this.motionK >= 1 ? this.charge : 0, breath = Math.sin(this.time * view.breath.rate);
-    this.model.position.set(hold.x + pose.x + c * draw.x, hold.y + pose.y + breath * view.breath.lift + c * draw.y, hold.z + pose.z + c * draw.z);
-    this.model.rotation.set(hold.pitch + pose.pitch + breath * view.breath.pitch + c * draw.pitch, hold.yaw + this.spring.yaw + pose.yaw + c * draw.yaw, hold.roll + pose.roll - c * draw.roll);
-    const swish = this.motionK < 1 ? Math.sin(this.motionK * Math.PI) : 0;
-    // the pendant hangs plumb (the hold's and the move's roll taken back out), swaying
-    const pendant = this.parts.pendant;
-    if (pendant !== null) pendant.rotation.z = -(hold.roll + pose.roll - c * draw.roll) + Math.sin(this.time * view.pendant.rate) * view.pendant.sway + swish * (this.motion === 'swing' ? -view.pendant.swish : view.pendant.swish);
-    this.model.visible = this.holster < view.hideAt && !this.stowed();
+    this.motionK = Math.min(1, this.motionK + dt / this.view.motions[this.motion].seconds);
+    this.playback.beginFrame(dt);
+    const observed = this.observed;
+    observed.phase = this.motionK; observed.charge = this.charge; observed.spring = this.spring.yaw; observed.holster = this.holster; observed.stowed = Number(this.stowed());
+    this.playback.apply(this.motion, observed);
   }
 }
 

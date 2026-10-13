@@ -1,3 +1,5 @@
+// oxlint-disable-next-line import/no-nodejs-modules -- Exact automated geometry/pose proof hashes retained bytes.
+import { createHash } from 'node:crypto';
 import * as THREE from 'three';
 import { vi } from 'vitest';
 import { legacyDouble } from './FakeGame';
@@ -68,3 +70,50 @@ export function mockCanvas(): void {
     return legacyDouble<CanvasRenderingContext2D>(context);
   });
 }
+
+/** Exact 390×844 portrait projection, hierarchy and raw geometry bytes of held parts.
+ * This is pose/geometry parity; happy-dom supplies no raster backend. */
+const portraitCamera = new THREE.PerspectiveCamera(72, 390 / 844, .08, 2600);
+const portraitGeometry = new WeakMap<object, { versions: string; digest: string }>();
+export function portraitHeldFrame(roots: readonly THREE.Object3D[]): string {
+  const hash = createHash('sha256'), projection = new THREE.Matrix4();
+  for (const root of roots) {
+    root.updateWorldMatrix(true, true);
+    root.traverse(object => {
+      hash.update(JSON.stringify([object.type, object.visible, object.renderOrder, object.frustumCulled]));
+      hash.update(new Uint8Array(Float64Array.from(object.matrixWorld.elements).buffer));
+      projection.multiplyMatrices(portraitCamera.projectionMatrix, object.matrixWorld);
+      hash.update(new Uint8Array(Float64Array.from(projection.elements).buffer));
+      if (!(object instanceof THREE.Mesh)) return;
+      const geometry: unknown = object.geometry, material: unknown = object.material;
+      if (!(geometry instanceof THREE.BufferGeometry)) throw new Error('Missing portrait geometry');
+      if (!(material instanceof THREE.Material) && !(Array.isArray(material) && material.every(item => item instanceof THREE.Material))) throw new Error('Missing portrait material');
+      const input: unknown = geometry.attributes;
+      if (input === null || typeof input !== 'object') throw new Error('Missing portrait attributes');
+      const attributes = Object.entries(input).map(([name, attr]) => {
+        if (!(attr instanceof THREE.BufferAttribute) && !(attr instanceof THREE.InterleavedBufferAttribute)) throw new Error('Missing raw geometry attribute');
+        return [name, attr] as const;
+      });
+      const versions = attributes.map(([name, attr]) => `${name}:${attr instanceof THREE.InterleavedBufferAttribute ? attr.data.version : attr.version}`).join(',');
+      let cached = portraitGeometry.get(geometry);
+      if (cached === undefined || cached.versions !== versions) {
+        const bytes = createHash('sha256');
+        for (const [name, attr] of attributes) {
+          bytes.update(JSON.stringify([name, attr.itemSize, attr.normalized]));
+          const raw = attr instanceof THREE.InterleavedBufferAttribute ? attr.data.array : attr.array;
+          bytes.update(new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength));
+        }
+        const index = geometry.index;
+        if (index !== null) bytes.update(new Uint8Array(index.array.buffer, index.array.byteOffset, index.array.byteLength));
+        bytes.update(JSON.stringify([geometry.drawRange, geometry.groups]));
+        cached = { versions, digest: bytes.digest('hex') }; portraitGeometry.set(geometry, cached);
+      }
+      hash.update(cached.digest);
+      hash.update(JSON.stringify(materialRow(material)));
+    });
+  }
+  return hash.digest('hex');
+}
+
+/** Full sequence digest of exact portrait frame hashes. */
+export function portraitSequenceHash(frames: readonly string[]): string { return createHash('sha256').update(JSON.stringify(frames)).digest('hex'); }

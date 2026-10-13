@@ -8434,6 +8434,68 @@
       "buildTimeOutputs": [
         "public/assets/far-reach/baked/prepared-models.glb"
       ]
+    },
+    {
+      "id": "sky-held-playback",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/heldPlayback.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/heldPlayback.ts",
+        "heldPlayback",
+        "src/shards/far-reach/data/heldPlayback.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk/package.json",
+        "src/sdk/clientChannels.ts",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/format/clientChannels.ts",
+        "src/shards/far-reach/generators/heldPlayback.ts",
+        "src/shards/far-reach/data/fanView.ts"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/heldPlayback.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/heldPlayback.generated.json"
+      ]
+    },
+    {
+      "id": "signal-held-playback",
+      "shard": "sunscar-dunes",
+      "entry": "src/shards/sunscar-dunes/generators/heldPlayback.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/sunscar-dunes/generators/heldPlayback.ts",
+        "heldPlayback",
+        "src/shards/sunscar-dunes/data/heldPlayback.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk/package.json",
+        "src/sdk/clientChannels.ts",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/format/clientChannels.ts",
+        "src/shards/sunscar-dunes/generators/heldPlayback.ts",
+        "src/shards/sunscar-dunes/data/whip.ts"
+      ],
+      "outputs": [
+        "src/shards/sunscar-dunes/data/heldPlayback.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/sunscar-dunes/data/heldPlayback.generated.json"
+      ]
     }
   ]
 }

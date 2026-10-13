@@ -14,7 +14,7 @@ import { WarFan } from '../../src/shards/far-reach/weapons/WarFan';
 import { loadSkyFan } from '../../src/shards/far-reach/weapons/fanShapes';
 import { preloadSkyMeshes, skyHd } from '../../src/shards/far-reach/world/meshes';
 import { legacyDouble } from '../fake/FakeGame';
-import { digest, geometrySum, isMesh, materialRow, mockCanvas, objectRow, round, v3 } from '../fake/weaponParity';
+import { digest, geometrySum, isMesh, materialRow, mockCanvas, objectRow, portraitHeldFrame, portraitSequenceHash, round, v3 } from '../fake/weaponParity';
 
 /**
  * SHARD-PLATFORM M3: Sky Reach's war fan as a row over the platform's cone fan (a cone-gust + arc-slash family). The
@@ -92,7 +92,7 @@ async function trace(): Promise<{ row: unknown; events: unknown[] }> {
     expect(Number.isFinite(geometrySum(o.geometry))).toBe(true);
     built.meshes.push({ order: o.renderOrder, mat: materialRow(o.material) });
   });
-  const frames: unknown[] = [];
+  const frames: unknown[] = [], portrait: string[] = [];
   const dt = 1 / 60;
   for (let i = 0; i < 1200; i++) {
     lane.step(i + 1);
@@ -109,6 +109,7 @@ async function trace(): Promise<{ row: unknown; events: unknown[] }> {
     if (i === 320 || i === 340 || i === 905 || i === 1100) fan.swing(true);
     if ((i >= 380 && i < 560 && i % 40 === 0) || i === 730 || i === 840 || i === 885 || i === 960 || i === 1150) fan.gust();
     fan.update(dt);
+    portrait.push(portraitHeldFrame([fan.model]));
     frames.push({ i, motion: fan.motion, k: round(fan.motionK), charge: round(fan.charge), visible: fan.model.visible,
       model: objectRow(fan.model) });
   }
@@ -117,6 +118,7 @@ async function trace(): Promise<{ row: unknown; events: unknown[] }> {
   const windows: string[] = [];
   for (let w = 0; w < frames.length; w += 30) windows.push(digest(JSON.stringify(frames.slice(w, w + 30))));
   expect(lane.host.failureCount).toBe(0);
+  expect(portraitSequenceHash(portrait)).toBe('84898c52936884c1fff1c27e557441993ade7fa1b7269551b53ab9b2fb9d009c');
   return { row: { built, events: digest(JSON.stringify(events)), eventCount: events.length, direct, last: frames.at(-1), windows }, events };
 }
 

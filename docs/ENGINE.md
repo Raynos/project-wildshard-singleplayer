@@ -4044,3 +4044,27 @@ metadata. Unsupported/raw/HDR sources retain the full RGBA charge. File rows
 and conservative pre-read ceilings keep their RGBA fallback; actual byte
 admission and library allocator claims use the selected footprint. The
 25 MB library target and complete 1.0/1.8 GB memory limits do not change.
+
+
+### Bounded held playback
+
+`@wildshard/sdk/clientChannels.ClientChannels.sample(a, keys, interpolation)`
+compiles 2–32 finite, strictly ordered scalar keys into the existing visual
+DAG. `linear` and `smoothstep` retain the original segment arithmetic, including
+the 1e-6 interval denominator floor. The first and final endpoints clamp the
+sample outside its key range. Inputs and backward references use the existing
+DAG admission limits.
+
+`@wildshard/game/plugin/weaponFamily.HeldPlayback(rows, parts)` binds named
+groups of admitted client-channel programs to privately owned model parts.
+`beginFrame(dt)` advances one presentation clock; `apply(group, observations)`
+copies named numeric observations into that group's reusable buffers and
+evaluates its visual bindings. Admission allows 1–16 groups and 1–8 programs
+per group, within the existing aggregate expression/slot budgets. Contacts and
+held-action clocks keep their caller's original phase order.
+
+Signal's root/grip flick and Sky's eased root/pendant poses use this owner. Their
+retained authoring recipes emit cheap build-only JSON, using the generic SDK
+JSON writer. Runtime does not interpret the authoring recipe or allocate
+observation objects per frame. Cord deformation and caught-wrap lifecycle remain
+the separate open C6 tail.

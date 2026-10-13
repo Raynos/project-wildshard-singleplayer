@@ -517,6 +517,19 @@ export function createClientChannels(input: unknown): {
         case 'atan2': value = Math.atan2(a, b); break;
         case 'hypot': value = Math.hypot(a, b); break;
         case 'hypot3': value = Math.hypot(a, b, scratch[node.c] ?? Number.NaN); break;
+        case 'sample': {
+          const last = node.keys.at(-1); if (last === undefined) throw new Error('Missing keyframe endpoint');
+          value = last[1];
+          for (let segment = 1; segment < node.keys.length; segment++) {
+            const start = node.keys[segment - 1], end = node.keys[segment];
+            if (start === undefined || end === undefined) throw new Error('Missing keyframe segment');
+            if (a > end[0]) continue;
+            const u = Math.max(0, Math.min(1, (a - start[0]) / Math.max(1e-6, end[0] - start[0])));
+            const eased = node.interpolation === 'smoothstep' ? u * u * (3 - 2 * u) : u;
+            value = start[1] + (end[1] - start[1]) * eased; break;
+          }
+          break;
+        }
         case 'gt': value = Number(a > b); break;
         case 'select': value = (scratch[node.test] ?? Number.NaN) !== 0 ? scratch[node.yes] ?? Number.NaN : scratch[node.no] ?? Number.NaN; break;
         default: throw new Error('Unknown client operation');

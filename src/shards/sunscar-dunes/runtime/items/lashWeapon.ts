@@ -3,7 +3,8 @@ import type { App } from '@wildshard/engine/app/app';
 import type { EquipContext, EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { CombatTarget } from '@wildshard/engine/combat/pipeline';
 import type { Targets } from '@wildshard/engine/combat/types';
-import { HeldContactWeapon } from '@wildshard/game/plugin/weaponFamily';
+import { HeldContactWeapon, HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
+import playback from '../../data/heldPlayback.generated.json' with { type: 'json' };
 import { Vector3, type Group, type Mesh, type Object3D } from 'three';
 import { lashRuntime, type LashRuntime, type LashSpec, type LashWorldTarget } from './lash';
 import type { LashCord } from './lashView';
@@ -43,7 +44,8 @@ export class LashWeapon extends HeldContactWeapon<CombatTarget> {
   readonly parts: LashParts;
   private readonly targets: Targets | null;
   private readonly spec: LashSpec; private readonly view: LashView;
-  private time = 0;
+  private readonly playback: HeldPlayback;
+  private readonly observed = { holster: 0, spring: 0, ext: 0, slack: 0 };
   private readonly from = new Vector3(); private readonly end = new Vector3();
   /** What the lash reacts to in the world when it hits no creature. */
   private crackables: readonly LashWorldTarget[] = [];
@@ -64,6 +66,7 @@ export class LashWeapon extends HeldContactWeapon<CombatTarget> {
       fired: () => { this.onFire?.(); }, struck: (id, killed) => { this.onHit?.(id, false, killed); },
       caught: caught => { if (this.moves.move === 1) this.wrap(caught.at); } });
     this.parts = o.parts; this.model = o.parts.root;
+    this.playback = new HeldPlayback(playback, new Map([['root', this.model], ['grip', this.parts.grip]]));
     this.model.position.set(...(o.parts.hero ? o.view.hold.hero : o.view.hold.code));
   }
   /** The world things the lash can crack. */
@@ -92,20 +95,22 @@ export class LashWeapon extends HeldContactWeapon<CombatTarget> {
   /** Damage through the pipeline; the heavy's first lash yanks a small creature in, its second staggers a big one (ENGINE §18, §19). */
   strike(target: WeaponContactTarget, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean { return this.moves.strike(target, heavy ? 1 : 0, second ? 1 : 0, point, dir, from); }
   override update(dt: number): void {
-    this.time += dt; this.stepHeld(dt);
-    this.model.visible = this.holster < 0.5; this.model.rotation.y = this.spring.yaw;
+    this.playback.beginFrame(dt); this.stepHeld(dt);
+    this.observed.holster = this.holster; this.observed.spring = this.spring.yaw;
+    this.playback.apply('root', this.observed);
     this.animate(dt);
   }
   private animate(dt: number): void {
     const { grip, coil, lash, tip } = this.parts, spec = this.spec, k = this.view.flick;
     if (this.wrapT > 0) { this.wrapT -= dt; if (this.wrapT <= 0 && this.wrapCoil) this.wrapCoil.visible = false; }
-    if (this.moves.t < 0) { lash.mesh.visible = false; coil.visible = this.parts.restCoil; grip.position.set(0, 0, 0); return; }
+    if (this.moves.t < 0) { lash.mesh.visible = false; coil.visible = this.parts.restCoil; this.playback.apply('rest', this.observed); return; }
     const t = this.moves.advance(dt), double = this.moves.move === 1;
     if (t < 0) return;
     // the flick: the hand snaps forward on each lash, the lash unrolls to the crosshair, then falls slack
     const local = double && t > spec.second - k.overlap ? t - (spec.second - spec.unroll) : t;
     const ext = Math.min(1, local / spec.unroll), slack = Math.max(0, (local - spec.unroll) / (spec.show - spec.unroll));
-    grip.position.set(0, ext < 1 ? k.lift * ext : k.lift * (1 - slack), ext < 1 ? k.push * ext : k.push * (1 - slack));
+    this.observed.ext = ext; this.observed.slack = slack;
+    this.playback.apply('active', this.observed);
     coil.visible = false; lash.mesh.visible = true;
     this.from.copy(tip).add(grip.position);
     const reach = double ? spec.heavyReach : spec.reach;
@@ -114,6 +119,6 @@ export class LashWeapon extends HeldContactWeapon<CombatTarget> {
     // caught on a lever: the far end stays on it, taut (the world point through the viewmodel)
     if (this.wrapT > 0 && this.wrapAt !== null) { this.model.updateWorldMatrix(true, false); this.end.copy(this.wrapAt); this.model.worldToLocal(this.end); }
     const taut = this.wrapT > 0;
-    lash.shape(this.from, this.end, taut ? 1 : Math.min(1, ext * (1 - slack * k.loosen)), taut ? k.tautSag : k.sag[0] + slack * k.sag[1], this.time);
+    lash.shape(this.from, this.end, taut ? 1 : Math.min(1, ext * (1 - slack * k.loosen)), taut ? k.tautSag : k.sag[0] + slack * k.sag[1], this.playback.time);
   }
 }

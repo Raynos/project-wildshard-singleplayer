@@ -27,6 +27,10 @@ const node = v.variant('op', [
   v.strictObject({ op: v.picklist(['neg', 'sin', 'cos', 'sqrt', 'abs']), a: index }),
   v.strictObject({ op: v.picklist(['add', 'sub', 'mul', 'div', 'mod', 'min', 'max', 'atan2', 'hypot', 'gt']), a: index, b: index }),
   v.strictObject({ op: v.literal('hypot3'), a: index, b: index, c: index }),
+  v.pipe(v.strictObject({ op: v.literal('sample'), a: index, interpolation: v.picklist(['linear', 'smoothstep']),
+    keys: v.pipe(v.array(v.tuple([v.pipe(v.number(), v.finite(), v.minValue(-1e12), v.maxValue(1e12)),
+      v.pipe(v.number(), v.finite(), v.minValue(-1e12), v.maxValue(1e12))])), v.minLength(2), v.maxLength(32)),
+  }), v.check(row => row.keys.every((key, at) => at === 0 || key[0] > (row.keys[at - 1]?.[0] ?? Infinity)), 'strictly ordered keyframe samples')),
   v.strictObject({ op: v.literal('select'), test: index, yes: index, no: index }),
 ]);
 const initial = v.variant('op', [

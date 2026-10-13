@@ -1,3 +1,4 @@
+import { createClientChannelView } from './ui';
 import { Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
 import { HeldWeaponClock, type ContactFamily, type ContactScanTarget } from "@wildshard/engine/combat/contactWeapon";
@@ -330,4 +331,41 @@ export async function installWeaponHooks(context: Pick<LevelContext, 'scope' | '
   for (const { weapon, hooks } of hooked) weapon.hooks = hooks;
   context.scope.onDispose(() => { for (const { weapon, hooks } of hooked) if (weapon.hooks === hooks) weapon.hooks = null; });
   return lane;
+}
+
+/** One presentation clock and the admitted numeric views of privately owned held-model parts.
+ * The owner cannot write simulation state, issue contacts or choose a gameplay action. */
+export class HeldPlayback {
+  private elapsed = 0;
+  private delta = 0;
+  private readonly groups = new Map<string, { lane: ReturnType<typeof createClientChannelView>; copied: number[] }[]>();
+  constructor(rows: Readonly<Record<string, readonly unknown[]>>, parts: ReadonlyMap<string, unknown>) {
+    const groups = Object.entries(rows);
+    if (groups.length === 0 || groups.length > 16) throw new RangeError('Held playback groups exceed admission');
+    for (const [id, programs] of groups) {
+      if (!/^[a-z][a-zA-Z0-9.-]*$/u.test(id) || id.length > 128 || !Array.isArray(programs) || programs.length === 0 || programs.length > 8) throw new Error('Invalid held playback group');
+      this.groups.set(id, programs.map(program => {
+        const lane = createClientChannelView(program, parts);
+        return { lane, copied: Array.from({ length: lane.reads.length }, () => 0) };
+      }));
+    }
+  }
+  /** Presentation time only; callers retain their original contact/hold phase ordering. */
+  beginFrame(dt: number): void {
+    if (!Number.isFinite(dt) || dt < 0 || dt > 1e12 || this.elapsed + dt > 1e12) throw new RangeError('Invalid held playback frame');
+    this.delta = dt; this.elapsed += dt;
+  }
+  get time(): number { return this.elapsed; }
+  /** Copy a bounded observation into one selected view group; never lends authoritative objects. */
+  apply(group: string, values: Readonly<Record<string, number>>): void {
+    const views = this.groups.get(group); if (views === undefined) throw new Error('Missing held playback group');
+    for (const { lane, copied } of views) {
+      for (let i = 0; i < lane.reads.length; i++) {
+        const key = lane.reads[i]; if (key === undefined) throw new Error('Missing held playback read');
+        const value = values[key]; if (value === undefined) throw new Error(`Missing held playback observation ${key}`);
+        copied[i] = value;
+      }
+      lane.evaluate({ time: this.elapsed, delta: this.delta, values: copied });
+    }
+  }
 }
