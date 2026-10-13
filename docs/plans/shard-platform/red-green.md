@@ -109,3 +109,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | CI 38360704970: whole-geometry partition fixture hit its 20 s timeout (126k-vertex 13-channel matcher fixture) | `8dbd7c025` | `9f35dd3f2` (108k vertices, still > 25 MB; byte-exact; deadline unchanged) | sp-x8 |
 | 2026-10-13 | CI 38360704970 row-data: function `sandEntry` exported from Signal `data/familyLook.ts` | `7e4ee3740` | `4ffefcd05` (moved verbatim to `look/sandEntry.ts`; JSON identical, map pixels identical) | sp-o90 |
 | 2026-10-13 | push gate: oxlint import/newline-after-import in `test/bake-kinds-native.test.ts` | `b8279e643` | `2c2aa3c71` | sp-x8 |
+| 2026-10-13 | auto-push stuck: cached refusal for `b8279e643` lint suppressed retries after the real fix `2c2aa3c71` (native oxlint reads invisible to the Node trace) | `e1bacdb3b` | `595a7bded` | sp-x7 |
