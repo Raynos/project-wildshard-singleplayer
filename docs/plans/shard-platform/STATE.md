@@ -27,11 +27,12 @@
 16. Driftwood boat hull equation shared by generator + live, not a cut.
 17. Debug rows 7 → 4.
 18. Node bake host with filesystem fetch reports online.
-19. Driftwood ground reads its original 256 query lattice; runtime owns render/collision.
+19. Driftwood ground reads its original query lattice.
 20. Nalati ground: new engine samples-reader hook; analytic terrain kept for bake/dev poses.
-21. Sky static placements baked per cube (`a77443f19`). 22. Pine timber/lookout authoring copies Pine helpers until the live copy goes.
+21. Sky static placements baked per cube. 22. Pine authoring copies helpers until the live copy goes.
 23. Whole-product producers: author-only writer, frozen map bytes, comparison-only pins.
 24. Driftwood stops its duplicate legacy terrain/nav/GLB prefetch.
 25. Pine bridge yaw keeps a tiny runtime atan2 adapter (libm, ≤ 4.5e-16).
+26. Data client drops runtime-bound tile transports it no longer needs (Driftwood +11 MB RAM).
 
 Paused: SF22, SF57, SF67.
