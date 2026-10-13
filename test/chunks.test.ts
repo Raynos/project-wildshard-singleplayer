@@ -1,12 +1,16 @@
 import { terrainFor, type ShardManifest } from '../src/game/shard/manifest';
 // Every authored shard satisfies the ShardManifest contract; the original world-grid shards retain their entry roads.
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 import { loadSpecies } from './species';
 import { SHARDS } from '../src/shards.generated';
 import { playable, chunkSlugFromUrl, chunkUrl, findChunk, getActiveChunk, onActiveChunkChange, setActiveChunk, defaultChunk } from '../src/game/shard/registry';
 import { landscapeHash } from '../src/engine/world/terrainField';
 import { hasSpecies, speciesDef } from '../src/engine/entities/species/registry';
 import * as config from '../src/engine/core/config';
+
+import { prepareBakedManifestGround } from './fixtures/baked-manifest-ground';
+
+beforeAll(() => { for (const manifest of SHARDS) prepareBakedManifestGround(manifest); });
 
 const PLAYABLE_SHARDS = SHARDS.filter(playable);
 /** G23: a structures-only world authors no terrain; the terrain checks below are for shards that do */

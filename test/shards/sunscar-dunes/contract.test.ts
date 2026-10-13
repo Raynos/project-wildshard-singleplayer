@@ -33,6 +33,8 @@ import { FakeGame } from '../../fake/FakeGame';
 import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
 import { DUSK, setDusk } from '../../../src/shards/sunscar-dunes/look/dusk';
 
+import { prepareBakedManifestGround } from '../../fixtures/baked-manifest-ground';
+
 const SWOOP = strikeFromData(strike(SWOOP_DATA));
 const noop = (): void => undefined;
 const ledger = (app: App): Ledger => new Ledger(app.saves, [{ id: manifest.slug, shard: source.identity.slug }], [{ shard: source.identity.slug, revision: source.identity.revision, rules: SIGNAL_LEDGER }], []);
@@ -68,7 +70,7 @@ const target = (health = 70): Actor => { const actor: Actor = { id: 'sunscar.tar
 describe('Signal Dunes plugin contract', () => {
   // No asset server exists in Node: refuse network fetches at once, so a failed optional load settles inside its test instead of
   // retrying localhost and logging after the worker has torn down (the EnvironmentTeardownError the push gate saw).
-  beforeEach(() => { localStorage.clear(); sessionStorage.clear(); vi.stubGlobal('fetch', () => Promise.reject(new TypeError('offline contract test: no asset server'))); });
+  beforeEach(() => { prepareBakedManifestGround(manifest); localStorage.clear(); sessionStorage.clear(); vi.stubGlobal('fetch', () => Promise.reject(new TypeError('offline contract test: no asset server'))); });
   afterEach(() => { vi.unstubAllGlobals(); });
   it('retains authored quest state while parked input and dusk callbacks disappear through two re-entries', async () => {
     const { app, plugin, fake, hooks } = await boot(true);

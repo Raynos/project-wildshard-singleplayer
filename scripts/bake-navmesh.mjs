@@ -204,7 +204,7 @@ for (const def of SHARDS.filter(registry.playable)) {
     const buf = readFileSync(bakedFile);
     const grid = BT.parseBakedTerrain(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
     if (!grid) throw new Error(`bake-navmesh: ${def.slug}/terrain.bin does not parse`);
-    HF._installBakedTerrain(BT.bakedSamplers(grid));
+    BT.installBakedGrid(grid); // Admit required manifest ground as well as the selected Heightfield.
   }
   const { colliders, ground, counts } = await shardColliders(def);
   if (process.env.NAVMESH_DUMP) { // debugging: NAVMESH_DUMP=x,z,r prints the colliders centred within r m of (x, z)

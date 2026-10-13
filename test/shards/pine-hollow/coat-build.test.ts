@@ -14,7 +14,8 @@ const job = catalog.jobs.find(row => row.id === 'pine-coat-pages');
 
 it('rebuilds Pine coats only from retained authoring code/assets, before any job can read their generated metadata', () => {
   if (job === undefined) throw new Error('Pine coat job missing');
-  expect(catalog.jobs[0]?.id).toBe(job.id);
+  const earlier = catalog.jobs.slice(0, catalog.jobs.indexOf(job));
+  expect(earlier.filter(row => row.inputRoots.some(root => job.outputs.some(file => file === root || file.startsWith(`${root}/`))))).toEqual([]);
   expect(auditAuthoringInputs(cwd(), 'pine-hollow', job.entry).issues).toEqual([]);
   expect(job.command).toEqual([job.entry]);
   expect(job.inputRoots.filter(file => !isAuthoringInput(file, 'pine-hollow') && !['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml'].includes(file))).toEqual([]);

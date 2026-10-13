@@ -1,11 +1,15 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Reads the committed exemption list.
 import { readFileSync } from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { CELL_ABOVE, CELL_BELOW, CELL_HEIGHT, CHUNK_HALF, ROAD_LENGTH, ROAD_WIDTH } from '../../src/engine/core/config';
 import { toLevelSpec } from '../../src/game/shard/spec';
 import type { ShardManifest } from '../../src/game/shard/manifest';
 import { TEMPLATE } from '../../src/shards/_template/manifest';
 import { SHARDS } from '../../src/shards.generated';
+
+import { prepareBakedManifestGround } from '../fixtures/baked-manifest-ground';
+
+beforeAll(() => { for (const manifest of SHARDS) prepareBakedManifestGround(manifest); });
 
 // SHARD-PLATFORM SP4: the world contract (MMO-REQUIREMENTS W1, W4). Every level fits the 500 × 500 × 500 m cell, and
 // its height field is level with the highway (y = 0) across the 15 m road at each edge midpoint, at least 50 m in.

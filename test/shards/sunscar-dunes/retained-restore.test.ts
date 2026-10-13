@@ -35,7 +35,10 @@ import { MemoryStorage } from '../../setup';
 import { fakeWorld } from '../../fake/world';
 import { legacyDouble } from '../../fake/FakeGame';
 
+import { prepareBakedManifestGround } from '../../fixtures/baked-manifest-ground';
+
 it('restores a cold lit save after home respawn and boss retry without changing identities or keeping native bodies', async () => {
+  prepareBakedManifestGround(SUNSCAR_DUNES);
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
   const previousScope = app.levelScope, previousLevel = activeLevel();
   const storage = new MemoryStorage();
