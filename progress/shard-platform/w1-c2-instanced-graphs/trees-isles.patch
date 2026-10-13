@@ -1,0 +1,246 @@
+--- a/src/shards/far-reach/world/trees.ts
++++ b/src/shards/far-reach/world/trees.ts
+@@ -1,11 +1,8 @@
+ import { Group, InstancedMesh } from 'three';
+-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+-import { editShader } from '@wildshard/sdk/looks/shaderEdits';
+-import { TREE_BARK_EDITS } from '../data/paintLook';
+ import { TREE_MODELS, type TreeModel as AuthoredTreeModel } from '../data/trees';
++import { skyMappedLook } from './looks';
++import { skyHd } from './meshes';
+ 
+-import { hdMaterial, skyHd } from './meshes';
+-
+ /** The authored tree model identity used by placements. */
+ export type TreeModel = AuthoredTreeModel;
+ 
+@@ -22,12 +19,8 @@
+   for (const { model, m } of placed) {
+     const name = TREE_MODELS.find((n) => n === model), made = name === undefined ? null : skyHd(name); if (name === undefined || made === null) return null;
+     const g = made.geometry;
+-    const material = hdMaterial(made.map);
+-    // the paint's bark came out magenta-red: toward a warm grey-brown; the foliage kept
+-    patchShader(material, 'far.tree-bark', PATCH_ORDER.decorate, (shader) => {
+-      editShader(shader, TREE_BARK_EDITS);
+-    }, { key: (prior) => `${prior}|far.tree-bark` });
+-    const mesh = new InstancedMesh(g, material, m.length / 16); mesh.name = `far.trees.${name}`;
++    // the paint's bark came out magenta-red: toward a warm grey-brown, the foliage kept (look.materials 'tree-bark')
++    const mesh = new InstancedMesh(g, skyMappedLook('tree-bark', made.map), m.length / 16); mesh.name = `far.trees.${name}`;
+     mesh.instanceMatrix.array.set(m); mesh.computeBoundingSphere(); group.add(mesh);
+   }
+   return group;
+--- a/src/shards/far-reach/world/skyIsleHd.ts
++++ b/src/shards/far-reach/world/skyIsleHd.ts
+@@ -1,14 +1,8 @@
+-import { Color, Group, InstancedMesh, type MeshStandardMaterial } from 'three';
+-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+-import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
+-import { SKY_ISLE_CLIP_EDITS, SKY_ISLE_ROCK, SKY_ISLE_ROCK_EDITS } from '../data/skyIsleLook';
+-import { SKY_ISLE_HD, SKY_ISLE_MODELS } from '../data/skyIsles';
+-import { hdMaterial, skyHd } from './meshes';
+-import { SKY, SKY_SUN } from '../data/skyLook';
++import { Group, InstancedMesh } from 'three';
++import { SKY_ISLE_MODELS } from '../data/skyIsles';
++import { skyMappedLook } from './looks';
++import { skyHd } from './meshes';
+ 
+-/** A hex colour as a linear-space GLSL vec3 (the shader's output space before the post chain). */
+-function linear(hex: number): string { const c = new Color(hex); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; }
+-
+ /**
+  * The textured floating islands for the decorative sky isles (E392/E399, `art/far-reach/round-21-sky-isles/`): every
+  * council seat read the code isles as "dark bare rock islands" from below, where the mockups' are lush (a thick mossy
+@@ -19,12 +13,6 @@
+  * (placed offline, generators/placements.ts). No trees in the models: the firs stand on the turf. A model that failed to load leaves its isles undrawn.
+  */
+ /**
+- * The aerial haze on the sky isles (E399 round 6, measured on mockup A's isle band, x 0.1-0.9, y 0.27-0.42: its darkest
+- * isle rock is a hazed mauve, 107,81,77, where ours read dark brown, 75,58,38): toward the warm haze over `near`..`far` metres, at most `max`.
+- */
+-export const SKY_ISLE_HAZE = { color: SKY.fog, near: 60, far: 320, max: 0.22 } as const;
+-
+-/**
+  * A model's unit frame as baked (generators/skyIsleFrames.ts, `data/skyIsleFrames.json`): the move (its top's centre and
+  * turf level, `tx` / `deck` / `tz`) and the scale (`k`, its rim's median radius to 1) that bring it there, its rim radius
+  * per angle bin and its widest reach under the turf, both in unit radii (the bakes' poses read those).
+@@ -42,15 +30,9 @@
+     const name = SKY_ISLE_MODELS.find((n) => n === model); if (name === undefined) throw new Error(`far-reach: no sky isle model ${model}`);
+     const made = skyHd(name); if (made === null) continue;
+     const g = made.geometry;
+-    const material: MeshStandardMaterial = hdMaterial(made.map);
+-    material.color.setScalar(SKY_ISLE_HD.tint); material.emissiveMap = made.map; material.emissive.setScalar(1); material.emissiveIntensity = SKY_ISLE_HD.selfLight;
+-    // the rock grey-brown, the turf kept green (E399: from below the paint read olive-yellow; the mockups' undersides are
+-    // sandy-grey stone with darker crevices)
+-    patchShader(material, 'far.sky-isle-rock', PATCH_ORDER.decorate, (shader) => {
+-      editShader(shader, spliceEdits(clipTop ? [...SKY_ISLE_ROCK_EDITS, ...SKY_ISLE_CLIP_EDITS] : SKY_ISLE_ROCK_EDITS, { turf: clipTop ? '0.0' : SKY_ISLE_ROCK.turf,
+-        sunX: SKY_SUN[0].toFixed(4), sunY: SKY_SUN[1].toFixed(4), sunZ: SKY_SUN[2].toFixed(4), shadeLo: SKY_ISLE_HD.shade[0].toFixed(2), shadeHi: SKY_ISLE_HD.shade[1].toFixed(2),
+-        hazeColor: linear(SKY_ISLE_HAZE.color), hazeNear: SKY_ISLE_HAZE.near.toFixed(1), hazeSpan: (SKY_ISLE_HAZE.far - SKY_ISLE_HAZE.near).toFixed(1), hazeMax: SKY_ISLE_HAZE.max.toFixed(2) }));
+-    }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim-sun${clipTop ? '|clip' : ''}` });
++    // the rock grey-brown, the turf kept green, the sun's turn and rim, the haze (look.materials 'sky-isle' / 'sky-isle-keel',
++    // data/skyIsleLook.ts; E399: from below the paint read olive-yellow, the mockups' undersides are sandy-grey stone)
++    const material = skyMappedLook(clipTop ? 'sky-isle-keel' : 'sky-isle', made.map);
+     const mesh = new InstancedMesh(g, material, m.length / 16); mesh.name = `far.sky-isles.${name}`;
+     mesh.instanceMatrix.array.set(m); mesh.computeBoundingSphere(); group.add(mesh);
+   }
+--- a/src/shards/far-reach/data/skyIsleLook.ts
++++ b/src/shards/far-reach/data/skyIsleLook.ts
+@@ -1,43 +1,46 @@
+-import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
++import { SKY, SKY_SUN, skyMapGraph, type SkyGraph } from './skyLook';
++import { SKY_ISLE_HD } from './skyIsles';
+ 
+ /**
+- * The textured sky isles' material edits (E399; SHARD-PLATFORM M3: shader edit rows, applied by world/skyIsleHd.ts with
+- * `editShader`): the rock grey-brown with the turf kept green, the low sun's gold rim and its turn of the masses, the
+- * isles' own haze. The splices are the caller's numbers: `@{turf}` (the turf mask, `0.0` on a playable keel cut at its
+- * turf), `@{sunX}` / `@{sunY}` / `@{sunZ}` the sun's direction, `@{shadeLo}` / `@{shadeHi}` the shade across the sun's
+- * turn, and `@{hazeColor}`, `@{hazeNear}`, `@{hazeSpan}`, `@{hazeMax}` the haze.
++ * The textured sky isles' looks (E399; SF59 `meshMap` graphs in the shardfile's `look.materials`, bound per model map by
++ * world/looks.ts `skyMappedLook` in world/skyIsleHd.ts): the rock grey-brown with the turf kept green, the paint fed back as
++ * a little light (`SKY_ISLE_HD.selfLight`), lit by the painted light; then, on the lit colour (the lighting stage's
++ * `grade`), the low sun's turn of the masses and its gold rim, and the isles' own haze. A playable keel (`keel`) is all
++ * rock and drops everything above its turf (its deck draws the top).
+  */
+ 
+-/** The turf mask on a decorative isle (green over red and blue). */
+-export const SKY_ISLE_ROCK = { turf: 'smoothstep(0.02, 0.12, c.g - max(c.r, c.b) * 0.92)' } as const;
++/**
++ * The aerial haze on the sky isles (E399 round 6, measured on mockup A's isle band, x 0.1-0.9, y 0.27-0.42: its darkest
++ * isle rock is a hazed mauve, 107,81,77, where ours read dark brown, 75,58,38): toward the warm haze over `near`..`far` metres, at most `max`.
++ */
++export const SKY_ISLE_HAZE = { color: SKY.fog, near: 60, far: 320, max: 0.22 } as const;
+ 
+-/** The rock and turf paint, then the sun's rim and turn and the haze over the lit colour. */
+-export const SKY_ISLE_ROCK_EDITS: readonly ShaderEditRow[] = [
+-  { stage: 'fragment', find: '#include <map_fragment>', put: `#include <map_fragment>
+-  { vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.3, 0.59, 0.11));
+-    float turf = @{turf};
+-    vec3 stone = vec3(l) * vec3(1.02, 0.96, 0.88) * (0.75 + 0.35 * smoothstep(0.15, 0.6, l));
+-    // (row 1, the lead: the canopies read olive-grey; the mockups' crowns are lush green lit warm by the low sun)
+-    vec3 leaf = mix(vec3(l), c, 1.35) * vec3(1.02, 1.12, 0.78) * 1.15;
+-    diffuseColor.rgb = mix(stone, clamp(leaf, 0.0, 1.0), turf); }` },
+-  { stage: 'fragment', find: '#include <dithering_fragment>', put: `#include <dithering_fragment>
+-  // the low sun behind them catches their edges gold (round 9, the seats: 'pale flat mesas'; mockup A's crags are dark
+-  // masses with sunlit gold rims)
+-  // strongest on the sun's side (round 10, seat B: every edge lit alike), a share on the rest (round 12: sun-side only
+-  // left the crags facing the spawn dark)
+-  { float farRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 3.0) * (0.4 + 0.6 * smoothstep(-0.1, 0.5, dot(normalize(normal), normalize((viewMatrix * vec4(@{sunX}, @{sunY}, @{sunZ}, 0.0)).xyz))));
+-    // (top-10 row 9: the mockups light their isles from behind: the masses turned from the low sun fall into a soft
+-    // shade, the faces toward it brighten, so each reads as a lit volume, not a flat beige cut-out)
+-    float farSunTurn = smoothstep(-0.45, 0.65, dot(normalize(normal), normalize((viewMatrix * vec4(@{sunX}, @{sunY}, @{sunZ}, 0.0)).xyz)));
+-    gl_FragColor.rgb *= mix(@{shadeLo}, @{shadeHi}, farSunTurn);
+-    gl_FragColor.rgb = gl_FragColor.rgb * 0.95 + vec3(1.0, 0.7, 0.36) * farRim * 0.55; }
+-  gl_FragColor.rgb = mix(gl_FragColor.rgb, @{hazeColor}, clamp((length(vViewPosition) - @{hazeNear}) / @{hazeSpan}, 0.0, 1.0) * @{hazeMax});` },
+-];
++/** An sRGB hex colour in linear space (the lit colour's space before the post chain). */
++function linear(hex: number): number[] {
++  return [16, 8, 0].map((shift) => { const v = ((hex >> shift) & 255) / 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; });
++}
+ 
+-/** A playable keel's clip: everything above its turf discarded (its deck draws the top). */
+-export const SKY_ISLE_CLIP_EDITS: readonly ShaderEditRow[] = [
+-  { stage: 'vertex', find: '#include <begin_vertex>', put: '#include <begin_vertex>\n  farLocalY = position.y;' },
+-  { stage: 'vertex', find: '', put: 'varying float farLocalY;\n' },
+-  { stage: 'fragment', find: '#include <clipping_planes_fragment>', put: '#include <clipping_planes_fragment>\n  if (farLocalY > 0.02) discard;' },
+-  { stage: 'fragment', find: '', put: 'varying float farLocalY;\n' },
+-];
++/** A sky isle's look; `keel`: a playable island's keel, all rock, cut at its turf. */
++export function skyIsleGraph(keel: boolean): SkyGraph {
++  const g = skyMapGraph({
++    t: { op: 'mul', in: ['c', SKY_ISLE_HD.tint] }, l: { op: 'dot', in: ['t', [0.3, 0.59, 0.11]] },
++    s0: { op: 'smoothstep', in: [0.15, 0.6, 'l'] }, s1: { op: 'mul', in: ['s0', 0.35] }, s2: { op: 'add', in: ['s1', 0.75] }, s3: { op: 'mul', in: ['l', [1.02, 0.96, 0.88]] }, stone: { op: 'mul', in: ['s3', 's2'] },
++    // (row 1, the lead: the canopies read olive-grey; the mockups' crowns are lush green lit warm by the low sun)
++    tr: { op: 'swizzle', in: ['t'], mask: 'x' }, tg: { op: 'swizzle', in: ['t'], mask: 'y' }, tb: { op: 'swizzle', in: ['t'], mask: 'z' },
++    rb: { op: 'max', in: ['tr', 'tb'] }, rb1: { op: 'mul', in: ['rb', 0.92] }, gx: { op: 'sub', in: ['tg', 'rb1'] }, turf: { op: 'smoothstep', in: [0.02, 0.12, 'gx'] },
++    lf0: { op: 'mul', in: ['t', 1.35] }, lf1: { op: 'mul', in: ['l', 0.35] }, lf2: { op: 'sub', in: ['lf0', 'lf1'] }, lf3: { op: 'mul', in: ['lf2', [1.02 * 1.15, 1.12 * 1.15, 0.78 * 1.15]] },
++    leaf: { op: 'saturate', in: ['lf3'] }, paint: { op: 'mix', in: ['stone', 'leaf', 'turf'] }, glow: { op: 'mul', in: ['c', SKY_ISLE_HD.selfLight] },
++    // the low sun behind them catches their edges gold (round 9, the seats: 'pale flat mesas'; mockup A's crags are dark
++    // masses with sunlit gold rims), strongest on the sun's side (round 10), a share on the rest (round 12); the masses
++    // turned from the low sun fall into a soft shade, the faces toward it brighten (top-10 row 9: a lit volume, not a cut-out)
++    gN: { op: 'normalView' }, gW: { op: 'viewToWorld', in: ['gN'] }, gS: { op: 'dot', in: ['gW', [...SKY_SUN]] }, gP: { op: 'positionWorld' }, gE: { op: 'cameraPosition' },
++    gD: { op: 'sub', in: ['gE', 'gP'] }, gV: { op: 'normalize', in: ['gD'] }, gNV: { op: 'dot', in: ['gW', 'gV'] }, gNVa: { op: 'abs', in: ['gNV'] }, gR0: { op: 'oneMinus', in: ['gNVa'] },
++    gR1: { op: 'pow', in: ['gR0', 3] }, gR2: { op: 'smoothstep', in: [-0.1, 0.5, 'gS'] }, gR3: { op: 'mul', in: ['gR2', 0.6] }, gR4: { op: 'add', in: ['gR3', 0.4] }, gRim: { op: 'mul', in: ['gR1', 'gR4'] },
++    gT: { op: 'smoothstep', in: [-0.45, 0.65, 'gS'] }, gSh: { op: 'mix', in: [SKY_ISLE_HD.shade[0], SKY_ISLE_HD.shade[1], 'gT'] }, gSh1: { op: 'mul', in: ['gSh', 0.95] },
++    gLit: { op: 'litColour' }, gC0: { op: 'mul', in: ['gLit', 'gSh1'] }, gC1: { op: 'mul', in: ['gRim', 0.55] }, gC2: { op: 'mul', in: ['gC1', [1, 0.7, 0.36]] }, gC3: { op: 'add', in: ['gC0', 'gC2'] },
++    gH0: { op: 'length', in: ['gD'] }, gH1: { op: 'sub', in: ['gH0', SKY_ISLE_HAZE.near] }, gH2: { op: 'div', in: ['gH1', SKY_ISLE_HAZE.far - SKY_ISLE_HAZE.near] }, gH3: { op: 'saturate', in: ['gH2'] },
++    gH4: { op: 'mul', in: ['gH3', SKY_ISLE_HAZE.max] }, grade: { op: 'mix', in: ['gC3', linear(SKY_ISLE_HAZE.color), 'gH4'] },
++    ...(keel ? { kP: { op: 'positionGeometry' }, kY: { op: 'swizzle', in: ['kP'], mask: 'y' }, kV: { op: 'varying', in: ['kY'] }, cut: { op: 'gt', in: ['kV', 0.02] } } : {}),
++  }, { colour: keel ? 'stone' : 'paint', emissive: 'glow', ...(keel ? { discard: 'cut' } : {}) });
++  return { ...g, stages: { ...g.stages, lighting: { ...g.stages.lighting, grade: 'grade' } } };
++}
+--- a/src/shards/far-reach/data/paintLook.ts
++++ b/src/shards/far-reach/data/paintLook.ts
+@@ -4,9 +4,9 @@
+ /**
+  * Sky Reach's smaller paint corrections, each pulling a generated model's paint toward the mockups: SF59 material graphs
+  * over the model's own map (the shardfile's `look.materials`, bound by world/looks.ts `skyMappedLook` in world/crown.ts,
+- * world/bookStand.ts, quest/keeper.ts), and shader edit rows (applied with `editShader` in world/trees.ts,
+- * weapons/fanModel.ts, world/build.ts, runtime/index.ts): the trees wear five maps (a graph per map is a program each until
+- * a meshMap graph can share one), the fan's map arrives late, a keel has none, a creature wears the Roc's.
++ * world/bookStand.ts, quest/keeper.ts, world/trees.ts; one program per graph, a material per map), and shader edit rows
++ * (applied with `editShader` in weapons/fanModel.ts, world/build.ts, runtime/index.ts): the fan's map arrives late, a keel
++ * has none, a creature wears the Roc's.
+  */
+ 
+ const LUMA = [0.2126, 0.7152, 0.0722];
+@@ -19,11 +19,9 @@
+   amber: { op: 'mul', in: ['a1', 'a2'] }, warm: { op: 'mul', in: ['c', [1.6, 1.15, 0.7]] }, glow: { op: 'mul', in: ['warm', 'amber'] } }, { colour: 'c', emissive: 'glow' });
+ 
+ /** The trees' bark (the paint's came out magenta-red) toward a warm grey-brown; the foliage kept. */
+-export const TREE_BARK_EDITS: readonly ShaderEditRow[] = [
+-  { stage: 'fragment', find: '#include <map_fragment>', put: `#include <map_fragment>
+-  { vec3 c = diffuseColor.rgb; float bark = smoothstep(0.0, 0.06, c.r - c.g) * smoothstep(-0.02, 0.04, c.b - c.g * 0.8);
+-    float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); diffuseColor.rgb = mix(c, vec3(l) * vec3(1.35, 1.0, 0.72), bark * 0.85); }` },
+-];
++export const TREE_BARK_GRAPH = skyMapGraph({ rg: { op: 'sub', in: ['cr', 'cg'] }, b1: { op: 'smoothstep', in: [0, 0.06, 'rg'] }, g8: { op: 'mul', in: ['cg', 0.8] }, bg: { op: 'sub', in: ['cb', 'g8'] },
++  b2: { op: 'smoothstep', in: [-0.02, 0.04, 'bg'] }, b3: { op: 'mul', in: ['b1', 'b2'] }, bark: { op: 'mul', in: ['b3', 0.85] }, l: { op: 'dot', in: ['c', LUMA] },
++  brown: { op: 'mul', in: ['l', [1.35, 1, 0.72]] }, colour: { op: 'mix', in: ['c', 'brown', 'bark'] } }, { colour: 'colour' });
+ 
+ /** The keeper's scarf and sash a warm rust-brown, not a loud red: strongly red texels pulled toward brown. */
+ export const KEEPER_SCARF_GRAPH = skyMapGraph({ gb: { op: 'max', in: ['cg', 'cb'] }, gb1: { op: 'mul', in: ['gb', 1.1] }, rd: { op: 'sub', in: ['cr', 'gb1'] }, r1: { op: 'smoothstep', in: [0.08, 0.25, 'rd'] },
+--- a/src/shards/far-reach/shard.config.ts
++++ b/src/shards/far-reach/shard.config.ts
+@@ -21,7 +21,8 @@
+ import { ISLET_LIFTS } from './data/isletLift';
+ import isleProps from './data/props.json' with { type: 'json' };
+ import { DECK_WOOD_GRAPH, HOVER_FRAME_GRAPH, POST_WEATHER_GRAPH } from './data/bridgeLook';
+-import { CROWN_DAIS_GRAPH, KEEPER_SCARF_GRAPH, LANTERN_GLOW_GRAPH } from './data/paintLook';
++import { CROWN_DAIS_GRAPH, KEEPER_SCARF_GRAPH, LANTERN_GLOW_GRAPH, TREE_BARK_GRAPH } from './data/paintLook';
++import { skyIsleGraph } from './data/skyIsleLook';
+ import { SHACK_GRAPHS } from './data/shackLook';
+ import { CLUMP_GRAPH, FLOWER_GRAPH } from './data/dressingLook';
+ import { FALL_GRAPH } from './data/fallLook';
+@@ -41,10 +42,11 @@
+ export default parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'props', 'clientChannels'], spawns: SKY_SPAWNS }, audio: AUDIO, directors: [bossStages],
+   // the material graphs the runtime draws its own meshes in (runtime/index.ts): the rope decks' wood, the hover frames' glow,
+   // the shacks' four kinds, the dressing's clumps and flowers, the falls; and the looks over a model's own map (meshMap, bound per model by
+-  // world/looks.ts skyMappedLook): the crown dais, the lantern, the keeper's scarf, the anchor posts
++  // world/looks.ts skyMappedLook): the crown dais, the lantern, the keeper's scarf, the anchor posts, the trees' bark,
++  // the sky isles and the playable islands' keels
+   look: { ...base.look, materials: { ...base.look.materials, 'deck-wood': { family: 'graph', graph: DECK_WOOD_GRAPH }, 'hover-frame': { family: 'graph', graph: HOVER_FRAME_GRAPH },
+     'dressing-clump': { family: 'graph', graph: CLUMP_GRAPH }, 'dressing-flower': { family: 'graph', graph: FLOWER_GRAPH }, falls: { family: 'graph', graph: FALL_GRAPH },
+-    ...Object.fromEntries(Object.entries({ 'crown-dais': CROWN_DAIS_GRAPH, 'lantern-glow': LANTERN_GLOW_GRAPH, 'keeper-scarf': KEEPER_SCARF_GRAPH, 'post-weather': POST_WEATHER_GRAPH })
++    ...Object.fromEntries(Object.entries({ 'crown-dais': CROWN_DAIS_GRAPH, 'lantern-glow': LANTERN_GLOW_GRAPH, 'keeper-scarf': KEEPER_SCARF_GRAPH, 'post-weather': POST_WEATHER_GRAPH, 'tree-bark': TREE_BARK_GRAPH, 'sky-isle': skyIsleGraph(false), 'sky-isle-keel': skyIsleGraph(true) })
+       .map(([id, graph]) => [id, { family: 'graph', graph }])),
+     ...Object.fromEntries(Object.entries(SHACK_GRAPHS).map(([kind, graph]) => [`shack-${kind}`, { family: 'graph', graph }])) } },
+   clientChannels: [...SKY_MOVER_VIEWS, ...SKY_LIFT_PROMPTS], modes: SKY_MODES, quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,
+--- a/test/shards/far-reach/look-graphs.test.ts
++++ b/test/shards/far-reach/look-graphs.test.ts
+@@ -8,7 +8,7 @@
+   it('every look material is an SF59 graph inside the default per-program budget', () => {
+     const entries = Object.entries(source.look.materials);
+     expect(entries.map(([id]) => id).sort()).toEqual(['crown-dais', 'deck-wood', 'dressing-clump', 'dressing-flower', 'falls', 'hover-frame', 'keeper-scarf', 'lantern-glow', 'post-weather', 'shack-beam', 'shack-plank', 'shack-shingle',
+-      'shack-stone']);
++      'shack-stone', 'sky-isle', 'sky-isle-keel', 'tree-bark']);
+     for (const [id, entry] of entries) {
+       const checked = validateGraph(Reflect.get(entry, 'graph'), { dayKeys: [], stateFields: [], budget: DEFAULT_GRAPH_BUDGET });
+       expect(checked.ok ? id : `${id}: ${checked.errors.join('; ')}`).toBe(id);
+@@ -16,7 +16,7 @@
+   });
+ 
+   it('the looks over a model map read it once (meshMap: one sampler)', () => {
+-    for (const id of ['crown-dais', 'keeper-scarf', 'lantern-glow', 'post-weather']) {
++    for (const id of ['crown-dais', 'keeper-scarf', 'lantern-glow', 'post-weather', 'sky-isle', 'sky-isle-keel', 'tree-bark']) {
+       const checked = validateGraph(Reflect.get(source.look.materials[id] ?? {}, 'graph'));
+       expect(checked.ok && graphUsesMeshMap(checked.graph) && checked.cost.samplers === 1 ? id : `${id}: not one meshMap sampler`).toBe(id);
+     }
