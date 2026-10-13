@@ -3,10 +3,10 @@
  * --round=landscape (G336 round 3): the five landscapeHeroPlan poses at 2560×1440 and 1920×1080, desktop tier, DSF 1.
  * --round=square (G344): squareHeroPlan at a phone-1x lens, the square poses at 2048×2048 and 1440×1440 and the
  *   landscape ones at 2560×1440 and 1920×1080, desktop tier, DSF 1; each pose's fovDegrees is the capture camera's only.
- * --round=near (G342): the near-tier A / B, raw and unlabelled: Debug Neighbour detail A (far proxy) and B (near
- *   placeholder), four road views from the roundabout to each crossroads cell plus SQ-c, on iPhone 16 Pro portrait and
- *   1920×1080 desktop; files <A|B>-<pose>-<device>.png.
- * --round=near also shoots the shipped hero (round 4's SQ-NA-a, entered with --enter, after the road views). Every
+ * --round=near (G342): the near-tier A / B / C, raw and unlabelled: Debug Neighbour detail A (far proxy), B (near
+ *   placeholder, the four nearest cells) and C (every cell near, capture-only), four road views from the roundabout to
+ *   each crossroads cell, on iPhone 16 Pro portrait and 1920×1080 desktop; files <A|B|C>-<pose>-<device>.png.
+ * --round=near also shoots the shipped hero (round 5's SQ-NW-b, G378, entered with --enter, after the road views). Every
  *   frame records each cell's real tier (grid.state().cells[].shows / drawn: near, far proxy, tiles, playing) and the
  *   near tier's own readout (frame.near), for the labels.
  * --round=5 (G372): round5HeroPlan (above Nalati's centre looking toward Driftwood) with Neighbour detail B on.
@@ -213,7 +213,7 @@ async function capture(base) {
 async function captureAerial(base) {
   requireNoQuiet();
   const plan = JSON.parse(await command(process.execPath,
-    ['--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs'), round === 'near' ? '4' : round], root));
+    ['--import', join(root, 'scripts/sim-node-loader.mjs'), join(root, 'scripts/main-menu-aerial-plan.mjs'), round === 'near' ? '5' : round], root));
   // --only=<pose id,…> and --sessions=<key,…> (e.g. 2048x2048) narrow a re-shoot; sessions left with no pose are skipped
   const only = flag('only', ''), keys = flag('sessions', '');
   // --enter (round 4): stand the player in the cell under the eye first (its runtime draws at full quality; the
@@ -227,15 +227,15 @@ async function captureAerial(base) {
   const desktop = (width, height, poses) => ({ key: `${width}x${height}`, poses,
     context: { ...devices['Desktop Chrome'], viewport: { width, height }, deviceScaleFactor: 1 },
     settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0, ...(round4 ? { nearTier: round === '6' ? 'all' : 'near' } : {}) }, gfx: { dpr: 'native', aa: 'auto' } });
-  // G342: from the roundabout to each of the four crossroads cells (the game's own lens), then the shipped hero (NA-a)
+  // G342: from the roundabout to each of the four crossroads cells (the game's own lens), then the shipped hero (NW-b, G378)
   const centre0 = plan.road ?? plan.poses[0].target, nearPoses = [...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => ({ id: `road-${i}`, name: `Road view ${i}`,
     eye: { x: centre0.x - sx * 30, y: 22, z: centre0.z - sz * 30 }, target: { x: centre0.x + sx * 240, y: 0, z: centre0.z + sz * 240 } })),
-  ...plan.poses.filter(p => p.id === 'SQ-NA-a')];
+  ...plan.poses.filter(p => p.id === 'SQ-NW-b')];
   const sessions = (near
-    ? ['far', 'near'].flatMap(nearTier => [
-      { key: `${nearTier === 'far' ? 'A' : 'B'}-iphone`, poses: nearPoses, context: { ...devices['iPhone 16 Pro'] },
+    ? ['far', 'near', 'all'].flatMap(nearTier => [
+      { key: `${{ far: 'A', near: 'B', all: 'C' }[nearTier]}-iphone`, poses: nearPoses, context: { ...devices['iPhone 16 Pro'] },
         settings: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, nearTier }, gfx: { dpr: '2', aa: 'auto' } },
-      { key: `${nearTier === 'far' ? 'A' : 'B'}-desktop`, poses: nearPoses, context: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 },
+      { key: `${{ far: 'A', near: 'B', all: 'C' }[nearTier]}-desktop`, poses: nearPoses, context: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 },
         settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0, nearTier }, gfx: { dpr: 'native', aa: 'auto' } }])
     : square
     ? [[2048, 2048, 'square'], [1440, 1440, 'square'], [2560, 1440, 'landscape'], [1920, 1080, 'landscape']]

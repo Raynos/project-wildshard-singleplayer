@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Label real near-tier / hero captures with each cell's drawn tier and compose the boards; no image synthesis.
 
-python3 scripts/near-tier-board.py <capture directory> <art directory>
+python3 scripts/near-tier-board.py <capture directory> <art directory> [<round label, e.g. 5 or 6b>]
 
 Reads capture.json from scripts/capture-main-menu-hero.mjs (round 'near', '5' or '6'). Every panel gets a label band burned
 in: what it is (A / B, the view, the device or aspect) and each cell's real tier from that frame's readout
 (grid.state().cells[].shows: entered, near, far proxy, tiles). Writes every labelled panel as JPEG (<= 500 KB) and:
-  round 'near': board-desktop.jpg and board-iphone.jpg (A beside B, one row a view);
+  round 'near': board-desktop.jpg and board-iphone.jpg (A beside B beside C when shot, one row a view);
   round '5'/'6': board.jpg (each pose, square beside landscape).
 """
 import json
@@ -21,7 +21,10 @@ TIERS = [('playing', 'entered'), ('frozen', 'home (frozen)'), ('near', 'NEAR'), 
          ('far proxy', 'far proxy'), ('loading', 'loading')]
 VIEWS = {'road-driftwood': 'road view toward Driftwood', 'road-pine': 'road view toward Pine',
          'road-nalati': 'road view toward Nalati', 'road-template': 'road view toward the template',
-         'SQ-NA-a': 'shipped hero SQ-NA-a (over Nalati, toward Pine)'}
+         'SQ-NA-a': 'shipped hero SQ-NA-a (over Nalati, toward Pine)',
+         'SQ-NW-b': 'shipped hero SQ-NW-b (over Nalati, toward Driftwood)'}
+MODES = {'A': ('today (far proxy)', (255, 196, 64)), 'B': ('near tier (4 nearest)', (120, 210, 255)),
+         'C': ('every cell near (capture-only)', (150, 240, 170))}
 AMBER, CYAN, WHITE, GREY, INK = (255, 196, 64), (120, 210, 255), (240, 240, 240), (170, 176, 186), (16, 18, 24)
 
 
@@ -118,7 +121,7 @@ def board(tiles, columns, heading, sub, path, cell_width):
     jpeg(out, path)
 
 
-def main(source, output):
+def main(source, output, tag=None):
     source, output = Path(source), Path(output)
     output.mkdir(parents=True, exist_ok=True)
     report = json.loads((source / 'capture.json').read_text())
@@ -128,9 +131,9 @@ def main(source, output):
         image = Image.open(source / row['file']).convert('RGB')
         if report['round'] == 'near':
             ab, device = row['session'].split('-')
-            title = (f"{ab} · {'today (far proxy)' if ab == 'A' else 'near tier'} · {view_name(row)} · "
+            title = (f"{ab} · {MODES[ab][0]} · {view_name(row)} · "
                      f"{'iPhone 16 Pro' if device == 'iphone' else 'desktop'}")
-            colour = AMBER if ab == 'A' else CYAN
+            colour = MODES[ab][1]
         else:
             aspect = 'square, phone band' if row['id'].startswith('SQ') else 'landscape, desktop'
             where = "over Nalati's far edge" if report['round'] == '6' else 'over Nalati'
@@ -145,21 +148,22 @@ def main(source, output):
         row['labelledFile'] = name
         labelled[row['file']] = tile
     if report['round'] == 'near':
+        modes = [ab for ab in MODES if any(s['session'] == f'{ab}-desktop' or s['session'] == f'{ab}-iphone' for s in shots)]
         for device in ('desktop', 'iphone'):
             order = []
             for view in VIEWS:
-                for ab in ('A', 'B'):
+                for ab in modes:
                     match = [s for s in shots if s['session'] == f'{ab}-{device}' and view in Path(s['file']).stem]
                     order += [labelled[m['file']] for m in match]
-            board(order, 2, f'Near tier · round 4 · A today vs B near · {device}',
-                  'Debug > Look > Neighbour detail · real build · each label lists every cell’s drawn tier from that frame',
+            board(order, len(modes), f"Near tier · round {tag or '4'} · {' / '.join(modes)} · {device}",
+                  ' · '.join(f'{ab} {MODES[ab][0]}' for ab in modes) + ' · real build · each label lists every cell’s drawn tier',
                   output / f'board-{device}.jpg', 900 if device == 'desktop' else 560)
     else:
         order, six = [], report['round'] == '6'
         for variant in ('a', 'b', 'c'):
             for aspect in ('SQ', 'LS'):
                 order += [labelled[s['file']] for s in shots if s['id'] == f"{aspect}-{'NE' if six else 'NW'}-{variant}"]
-        board(order, 2, 'Main-menu hero · round 6 · above Nalati’s far edge, toward Driftwood' if six else 'Main-menu hero · round 5 · above Nalati, toward Driftwood',
+        board(order, 2, f"Main-menu hero · round {tag or '6'} · above Nalati’s far edge, toward Driftwood" if six else 'Main-menu hero · round 5 · above Nalati, toward Driftwood',
               ('Neighbour detail C (every cell near) · Nalati entered · phone-1x lens · each label lists every cell’s drawn tier' if six
                else 'Neighbour detail B · Nalati entered · phone-1x lens · each label lists every cell’s drawn tier'),
               output / 'board.jpg', 900)
@@ -167,6 +171,6 @@ def main(source, output):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
+    if len(sys.argv) not in (3, 4):
         raise SystemExit(__doc__)
-    main(sys.argv[1], sys.argv[2])
+    main(sys.argv[1], sys.argv[2], sys.argv[3] if len(sys.argv) == 4 else None)
