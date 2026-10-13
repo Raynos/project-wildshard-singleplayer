@@ -15,7 +15,7 @@ push gate only; frame floor / Simulator / soak / boards / quiet windows paused. 
 
 **LOOKS LINE (Jake: "I don't want to forget this main hero thing and the near look and feel"):** a dedicated Opus subagent always carries G342 near tier → G343/G344 hero round 4 (above Driftwood/Nalati/Pine, 1x lens, square + landscape) → the pick ships via G341.
 
-**Live:** `957b05e6-mv5vop4l` (23:23Z): the sprint's first 220 commits incl. G341 hero SQ-c/LS-c, near tier (Debug B), G321 skies, DS1.4. Reds: `red-green.md`.
+**Live:** `957b05e6-mv5vop4l`; **origin `c67a6fff9` (00:23Z, +80 commits, gate green)**, release unpinned (`0b40f6939`); the Signal-load P0 (`677bd1cf1` → `54603cb17`) was caught before shipping; exact-SHA smoke now covers every primary shard (`b6ea23f72`). Reds: `red-green.md`.
 
 **Before the sprint (paused, not dropped):** frame floor (desktop Pine p95 33.4; Simulator Driftwood 59, Pine 58,
 Sky 37, Nalati 36; fixes `38ea143c5`, `512bb3d16`, `dc4dfb106` unproven; task clock `99b0866c0`; leads: Driftwood unsliced world builders + late sailor light), SF22 assembled routes, SF57 re-entry, SF67.
