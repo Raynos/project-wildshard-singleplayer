@@ -207,11 +207,13 @@ const FarRow = v.object({ far: v.object({ gpu: num, decoded: num }),
     grade: v.optional(v.object({ exposure: num, saturation: num, contrast: num, tint: v.optional(v.tuple([num, num, num])) })),
     band: v.optional(v.object({ colour: v.tuple([num, num, num]), height: num, opacity: num, own: num })) }) });
 /** The part of `near.json` the client reads. */
-const NearRow = v.object({ near: v.object({ gpu: num, decoded: num, content: v.optional(num) }), look: FarRow.entries.look });
+const NearRow = v.object({ near: v.object({ gpu: num, decoded: num, content: v.optional(num), tiles: v.optional(v.literal(true)) }), look: FarRow.entries.look });
 /**
  * G342 / G348: a shard's near placeholder. Its admitted shardfile's own `near` row first (`wildshard build` bakes one for
  * any terrain shardfile, so an unknown uploaded shard draws its own); else its baked folder like the far proxy
- * (`scripts/bake/near-placeholder.mjs`, the first-party shards until their shardfiles carry the row).
+ * (`scripts/bake/near-placeholder.mjs`, the first-party shards until their shardfiles carry the row). A baked view whose
+ * world carries the shard's own props owns its cell; one built from the shard's own coarse tiles (`near.tiles`) never does,
+ * as a shardfile's own near row never does: those tiles keep refining over it.
  */
 async function loadNear(slug: string, owner: Parameters<typeof gridShardfileProduct>[1]): Promise<{ prepared: FarPrepared; bytes: number; owns: boolean }> {
   const product = gridShardfileProduct(slug, owner);
@@ -233,7 +235,7 @@ async function loadNear(slug: string, owner: Parameters<typeof gridShardfileProd
   let geometry: BufferGeometry | undefined;
   gltf.scene.traverse((node) => { if (geometry === undefined && node instanceof Mesh) { const found: unknown = node.geometry; if (found instanceof BufferGeometry) geometry = found as BufferGeometry; } });
   if (geometry === undefined) throw new Error(`near.glb ${slug}: no mesh`);
-  return { prepared: { geometry, look: row.look }, bytes: Math.round(row.near.gpu + row.near.decoded), owns: (row.near.content ?? 0) > 0 };
+  return { prepared: { geometry, look: row.look }, bytes: Math.round(row.near.gpu + row.near.decoded), owns: (row.near.content ?? 0) > 0 && row.near.tiles !== true };
 }
 function farLook(row: unknown): FarLookRuntime { return v.parse(FarRow, row).look; }
 function farBytes(row: unknown): number { const { far } = v.parse(FarRow, row); return Math.round(far.gpu + far.decoded); }
@@ -530,7 +532,7 @@ export class GridSession {
             if (scope.disposed) throw new Error('Grid product view disposed during admission');
             scope.onDispose(retained.release);
             const presentation = await clientMaterials(source, admitted.assets, renderer, scope);
-            return { source, assets: new ClientAssets(source, admitted.assets, options), views: clientTileViews({ terrain: source.terrain?.family ?? null, terrainShadow: source.terrain?.shadow, ...presentation }), bytes: admitted.assets, compile: presentation.compile };
+            return { source, assets: new ClientAssets(source, admitted.assets, options), views: clientTileViews({ terrain: source.terrain?.family ?? null, terrainShadow: source.terrain?.shadow, terrainOrder: source.terrain?.order, ...presentation }), bytes: admitted.assets, compile: presentation.compile };
           } catch (error) { retained.release(); throw error; }
         })();
         shared.set(cell.slug, loading);

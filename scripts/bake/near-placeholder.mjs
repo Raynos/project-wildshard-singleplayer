@@ -226,8 +226,10 @@ if (source.far === undefined && project === null) throw new Error(`${slug}: no f
 const look = source.far === undefined ? sdk.shardfileLook(project.shard) : await exported(source.far.look);
 // a shard whose world lives in its shardfile tiles (Signal's sand and tower, a template's props, the Blender template's
 // authored mesh world) has nothing the authored host builds: its coarse (L1) tiles' meshes are its world, harvested as
-// `wildshard build` harvests them (`shardfileWorld`)
-if (prototypes.length === 0 && project !== null) {
+// `wildshard build` harvests them (`shardfileWorld`), in their own catalogue's colours; those tiles keep refining over it, so it never owns its cell (as `wildshard build`'s
+// shardfile near row never does, `loadShardfileNear`)
+const fromTiles = prototypes.length === 0 && project !== null;
+if (fromTiles) {
   prototypes.push(...await sdk.shardfileWorld(project.shard, project.assets));
   console.log(`${slug}: ${prototypes.length} shardfile L1 tile meshes`);
 }
@@ -241,8 +243,9 @@ const ground = source.far?.grid !== undefined || flat ? null : placeholderGridBy
 const grid = flat ? null : ground === null ? (await exported(source.far.grid))() : ground.kind === 'baked' ? sdk.bakedTerrainGrid(ground.bytes) : sdk.colliderGrid(ground.bytes);
 // round 3: the ground at the height field's own density, reduced by geometric error (--ground-error=<m> to measure)
 const arg = (name) => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
-const { bytes, manifest: row, reduced } = await sdk.bakeNearPlaceholder({ grid, look, prototypes, parts: land, trees: forestTrees, stands: source.trees, floors: source.near?.floors,
+const { bytes, manifest: baked, reduced } = await sdk.bakeNearPlaceholder({ grid, look, prototypes, parts: land, trees: forestTrees, stands: source.trees, floors: source.near?.floors,
   groundError: Number(arg('ground-error') ?? sdk.NEAR_BAKE.groundError), residentBytes: Number(arg('resident') ?? sdk.NEAR_BAKE.residentBytes), log: line => console.log(`${slug}: ${line}`) });
+const row = fromTiles && prototypes.length > 0 ? { ...baked, near: { ...baked.near, tiles: true } } : baked;
 const { file } = row, resident = file.decoded + file.gpu;
 if (report) { console.log(`  error ${reduced.error === undefined ? 'none (common ratio)' : `${reduced.error.toFixed(3)} m`}`); for (const k of reduced.kept) console.log(`  keep ${k.name}: ${k.copies} x ${k.triangles}/${k.source}`); for (const d of reduced.dropped) console.log(`  drop ${d.name}: ${d.why}`); }
 const dir = resolve(root, 'public/assets/baked', slug);

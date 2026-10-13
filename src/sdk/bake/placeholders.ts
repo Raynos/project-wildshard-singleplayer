@@ -8,6 +8,7 @@ import { parseBakedTerrain } from '@wildshard/engine/world/BakedTerrain';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import type { PlaceholderTree } from '@wildshard/format/placeholderSource';
 import { NEAR_PLACEHOLDER_LIMITS } from '@wildshard/format/nearPlaceholder';
+import { MEASURE_SLOT, parseFamilyMaterial, type FamilyMaterialParams } from '@wildshard/format/materialFamilies';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { placeholderGeometry, placeholderLeanDrop, type PlaceholderGrid, type PlaceholderLook, type PlaceholderLookRuntime, type PlaceholderPart } from '@wildshard/game/plugin/animation';
 import { parseGlb } from '../assets';
@@ -120,7 +121,9 @@ export type PlaceholderFile = Shardfile['files'][number];
 export interface FarManifest { far: NonNullable<Shardfile['far']>; file: PlaceholderFile; look: PlaceholderLookRuntime }
 /** near.json: the near GLB's cost row (with its content and forest counts), its file row and the runtime look. */
 export interface NearManifest {
-  near: { files: string[]; compressed: number; decoded: number; gpu: number; triangles: number; draws: number; content: number; trees?: number; treeTriangles?: number };
+  near: { files: string[]; compressed: number; decoded: number; gpu: number; triangles: number; draws: number; content: number; trees?: number; treeTriangles?: number;
+    /** its world is the shard's own coarse tiles (`shardfileWorld`): those tiles keep refining over it, so it never owns its cell */
+    tiles?: true };
   file: PlaceholderFile; look: PlaceholderLookRuntime;
 }
 
@@ -376,12 +379,53 @@ export function shardfileLook(shard: Shardfile): PlaceholderLook {
   };
 }
 
+/** A bare family ID's entry, as the client's implicit family surfaces: plain, vertex-coloured, PBR dielectric. */
+const familyDefault = (family: string): Record<string, unknown> => ({ family, vertexColours: true, ...(family === 'pbr' ? { metalness: 0 } : {}) });
+/** sRGB to linear, one channel (the catalogue's colours are sRGB; the near bake's vertex colours linear). */
+const srgbLinear = (c: number): number => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+/**
+ * A coarse tile's surface as the client draws it by default (`installDeclaredProps`): the catalogue entry its GLB
+ * material's name binds (`props.materials[name].id`, else `props.family`) tints the GLB's own colour and vertex colours.
+ * A graph draws its preset, or its plain fallback, while Settings ▸ Debug ▸ Look ▸ "Graph materials" is off (its
+ * default). Returns the linear colour of one vertex from its GLB colour (base colour factor times vertex colour) and first
+ * UV: the entry's colour times it; a measure layer (SF56, the template's dev map) paints its role's flat colour from the
+ * measure UVs instead (structure orange, trim grey, floor light grey), as its shader does under the grid lines. Colour
+ * maps are not sampled.
+ */
+function tileSurfaces(shard: Shardfile): (name: string) => (colour: readonly number[], uv: readonly number[] | null) => [number, number, number] {
+  const entryOf = (id: string): FamilyMaterialParams => {
+    const entry = shard.look.materials[id];
+    if (entry === undefined) return parseFamilyMaterial(familyDefault(id));
+    if (entry.family !== 'graph') return entry;
+    if ('preset' in entry) return entry.preset;
+    return parseFamilyMaterial('graph' in entry && entry.graph.model === 'unlit' ? { family: 'emissive', vertexColours: true } : familyDefault('pbr'));
+  };
+  const surfaces = new Map<string, (colour: readonly number[], uv: readonly number[] | null) => [number, number, number]>();
+  return (name) => {
+    const id = shard.props?.materials?.[name]?.id ?? shard.props?.family ?? 'pbr', known = surfaces.get(id);
+    if (known !== undefined) return known;
+    const entry = entryOf(id), tint = entry.colour.map(srgbLinear);
+    const measure = entry.family === 'pbr' ? entry.measure : null;
+    const roles = measure === null ? null : [measure.floor, measure.structure, measure.trim, measure.floor].map(rgb => rgb.map(srgbLinear));
+    const surface = (colour: readonly number[], uv: readonly number[] | null): [number, number, number] => {
+      if (roles !== null) {
+        const role = roles[uv === null ? 0 : Math.floor((uv[0] ?? 0) / MEASURE_SLOT) % 4] ?? roles[0] ?? [1, 1, 1];
+        return [role[0] ?? 1, role[1] ?? 1, role[2] ?? 1];
+      }
+      const at = (k: number): number => (tint[k] ?? 1) * (colour[k] ?? 1);
+      return [at(0), at(1), at(2)];
+    };
+    surfaces.set(id, surface);
+    return surface;
+  };
+}
+
 /**
  * A shardfile's drawn static world as near-placeholder prototypes: every mesh of its coarse (L1) tiles' GLBs, each
- * primitive one prototype at its node's world matrix, coloured by its base colour factor times its vertex colours.
+ * primitive one prototype at its node's world matrix, coloured as the shard's own catalogue draws it (`tileSurfaces`).
  */
 export async function shardfileWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): Promise<NearPrototype[]> {
-  const glbs = new Set(shard.files.filter(file => file.kind === 'glb').map(file => file.hash)), io = new NodeIO(), out: NearPrototype[] = [];
+  const glbs = new Set(shard.files.filter(file => file.kind === 'glb').map(file => file.hash)), io = new NodeIO(), out: NearPrototype[] = [], surfaceOf = tileSurfaces(shard);
   for (const tile of shard.tiles) {
     if (tile.lod !== 1) continue;
     for (const ref of tile.files) {
@@ -392,14 +436,16 @@ export async function shardfileWorld(shard: Shardfile, assets: ReadonlyMap<strin
         const mesh = node.getMesh(); if (mesh === null) continue;
         const matrix = Array.from(node.getWorldMatrix());
         for (const [i, primitive] of mesh.listPrimitives().entries()) {
-          const position = primitive.getAttribute('POSITION'), indices = primitive.getIndices(), colour = primitive.getAttribute('COLOR_0');
+          const position = primitive.getAttribute('POSITION'), indices = primitive.getIndices(), colour = primitive.getAttribute('COLOR_0'), uv = primitive.getAttribute('TEXCOORD_0');
           if (position === null || primitive.getMode() !== 4) continue;
-          const factor = primitive.getMaterial()?.getBaseColorFactor() ?? [1, 1, 1, 1], count = position.getCount(), p = [0, 0, 0], c = [1, 1, 1, 1];
+          const material = primitive.getMaterial(), surface = surfaceOf(material?.getName() ?? ''), factor = material?.getBaseColorFactor() ?? [1, 1, 1, 1];
+          const count = position.getCount(), p = [0, 0, 0], c = [1, 1, 1, 1], t = [0, 0];
           const positions = new Float32Array(count * 3), colours = new Float32Array(count * 3);
           for (let v = 0; v < count; v++) {
             position.getElement(v, p); positions.set([p[0] ?? 0, p[1] ?? 0, p[2] ?? 0], v * 3);
             if (colour !== null) colour.getElement(v, c);
-            colours.set([factor[0] * (c[0] ?? 1), factor[1] * (c[1] ?? 1), factor[2] * (c[2] ?? 1)], v * 3);
+            if (uv !== null) uv.getElement(v, t);
+            colours.set(surface([factor[0] * (c[0] ?? 1), factor[1] * (c[1] ?? 1), factor[2] * (c[2] ?? 1)], uv === null ? null : t), v * 3);
           }
           const index = indices === null ? Uint32Array.from({ length: count }, (_, k) => k) : Uint32Array.from({ length: indices.getCount() }, (_, k) => indices.getScalar(k));
           out.push({ name: `${ref.slice(0, 8)}:${node.getName()}:${String(i)}`, positions, colours, index, transforms: [matrix] });

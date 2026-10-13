@@ -4,6 +4,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symli
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve the source template and SDK-only workspace link.
 import { join, resolve } from 'node:path';
+import { NodeIO } from '@gltf-transform/core';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import { buildProject, readProjectAssets } from '@wildshard/sdk/project';
 import { parseGlb } from '@wildshard/sdk/assets';
@@ -48,7 +49,7 @@ it('wildshard build (placeholders on, the CLI default) bakes a near placeholder 
 it('a shardfile that ships no far proxy gets one, and the bake is deterministic', async () => {
   const { shard, assets } = await readProjectAssets(project);
   const bare = { ...shard, far: null, props: shard.props === null ? null : { ...shard.props, far: null } };
-  const a = await projectPlaceholders(bare, new Map(assets)), b = await projectPlaceholders(bare, new Map(assets));
+  const written = new Map(assets), a = await projectPlaceholders(bare, written), b = await projectPlaceholders(bare, new Map(assets));
   expect(a.far).not.toBeNull(); expect(a.far?.draws).toBe(1); expect(a.near?.content).toHaveLength(1);
   expect(JSON.stringify(a.far)).toBe(JSON.stringify(b.far)); expect(a.near).toEqual(b.near);
   // G380: a shard without a height field (an authored mesh world) keeps its far as it is and gets a near view from its
@@ -57,6 +58,12 @@ it('a shardfile that ships no far proxy gets one, and the bake is deterministic'
   expect(flat.far).toBeNull(); expect(flat.near?.content).toHaveLength(1); expect(flat.near?.terrain).toEqual([]);
   const ref = flat.near?.content[0] ?? '', glb = flat.files.find(file => file.hash === ref);
   expect(glb?.draws).toBe(1); expect(glb?.triangles).toBeGreaterThan(100);
+  // its tiles' own surfaces: the template's one PBR material draws the measure layer (SF56), so the near view's props take
+  // its role colours from the measure UVs (structure orange, trim grey), as the client draws its tiles, not grey boxes
+  const document = await new NodeIO().readBinary(Uint8Array.from(written.get(a.near?.content[0] ?? '') ?? []));
+  const colour = document.getRoot().listMeshes()[0]?.listPrimitives()[0]?.getAttribute('COLOR_0'), seen = new Set<string>(), c = [0, 0, 0];
+  for (let v = 0; v < (colour?.getCount() ?? 0); v++) { colour?.getElement(v, c); seen.add(c.map(x => x.toFixed(2)).join(',')); }
+  expect(seen).toContain('1.00,0.30,0.01'); expect(seen).toContain('0.17,0.17,0.18');
   const tileless = { ...bare, terrain: null, tiles: [] };
   expect(await projectPlaceholders(tileless, new Map(assets))).toEqual(tileless);
 }, 120_000);
