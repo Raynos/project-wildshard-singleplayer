@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { expect, it } from 'vitest';
 import { bakeKinds } from '../src/sdk/bake/kinds';
 import { nativeWholeGeometry } from '../src/game/plugin/geometry';
+
 function isMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
 it('keeps every native kind channel, with explicit semantics taking precedence', async () => {
   const geometry = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3))
