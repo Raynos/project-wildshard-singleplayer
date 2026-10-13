@@ -39,3 +39,7 @@ export function verifyCommitProduced(root, tree, wanted) {
   if (JSON.stringify(actual) !== JSON.stringify(receipt.paths) || actual.some(path => !permitted(root,receipt.sourceTree,path))) return false;
   return wanted.every(path => actual.includes(path));
 }
+if (process.argv[2] === '--verify-extra') {
+  try { process.exitCode = verifyCommitProduced(process.cwd(),process.argv[3],JSON.parse(process.argv[4])) ? 0 : 1; }
+  catch { process.exitCode = 1; }
+}

@@ -2,13 +2,15 @@ import { expect, it } from 'vitest';
 import { recordCommitProduced, verifyCommitProduced } from '../scripts/commit-produced.mjs';
 import { precommitGenerated } from '../scripts/precommit-generated.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Check the actual private-tree admission in an owned Git fixture.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only fixture-owned files are written and removed.
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Place the isolated repository outside main.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture paths.
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Give the real fixture guard an exact source intent.
+import process from 'node:process';
 
 it('admits only produced outputs of the exact source/index/parent and keeps source guards intact', () => {
   const root = mkdtempSync(join(tmpdir(), 'commit-produced-'));
@@ -30,8 +32,11 @@ it('admits only produced outputs of the exact source/index/parent and keeps sour
     expect(verifyCommitProduced(root,produced,[manifest])).toBe(true);
     expect(verifyCommitProduced(root,produced,['src/game/source.ts'])).toBe(false);
     expect(() => precommitGenerated(root)).not.toThrow();
+    const guard = () => spawnSync('python3',[resolve('scripts/check-commit-index.py')],{cwd:root,encoding:'utf8',env:{...process.env,WS_COMMIT_INTENT:JSON.stringify({base,paths:['src/game/source.ts']})}});
+    expect(guard().status).toBe(0);
     put('src/game/source.ts','foreign later edit'); git('add','src/game/source.ts');
     expect(verifyCommitProduced(root,git('write-tree'),[manifest])).toBe(false);
+    expect(guard().status).toBe(1);
     expect(() => recordCommitProduced(root,source,[manifest,'src/game/source.ts'],base)).toThrow('cannot cover source');
     git('read-tree',produced);
     const next = git('-c','user.name=Fixture','-c','user.email=fixture@example.com','commit-tree',git('rev-parse',`${base}^{tree}`),'-p',base,'-m','fixture');
