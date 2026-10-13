@@ -1024,35 +1024,48 @@
       "command": [
         "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
-        "--import",
-        "./scripts/generation-level.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
-        "--generation-shard=pine-hollow"
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-lookout.mjs"
       ],
       "inputRoots": [
-        "src/engine",
-        "src/game",
         "src/sdk",
+        "src/format",
         "src/commons",
-        "src/shards/pine-hollow",
-        "scripts/bake-loader.mjs",
-        "scripts/bake",
+        "src/shards/pine-hollow/generators/timberKit.ts",
+        "src/shards/pine-hollow/generators/timberBake.ts",
+        "src/shards/pine-hollow/generators/siteTimbers.ts",
+        "src/shards/pine-hollow/generators/fireLookout.ts",
+        "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-lookout.d.mts",
+        "src/shards/pine-hollow/generators/bake-pine-site-timbers.d.mts",
+        "src/shards/pine-hollow/generators/timberRows.ts",
+        "src/shards/pine-hollow/generators/timberPlacement.ts",
+        "src/shards/pine-hollow/generators/timberScene.ts",
+        "src/shards/pine-hollow/generators/cabinShapes.ts",
+        "src/shards/pine-hollow/generators/seedStream.ts",
+        "src/shards/pine-hollow/generators/wildlifeWords.ts",
+        "src/shards/pine-hollow/data/layout.ts",
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "public/assets/baked/pine-hollow/terrain.bin",
-        "public/assets/models/pine-hollow-crags",
-        "scripts/generation-level.mjs"
+        "public/assets/baked/pine-hollow/terrain.bin"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/lookout.bin",
-        "src/shards/pine-hollow/data/lookout.json"
+        "src/shards/pine-hollow/data/lookout.json",
+        "src/shards/pine-hollow/data/lookoutScene.generated.json",
+        "public/assets/pine-hollow/baked/lookout/56be63fc8588d81d241461912f256a0d3a93a29a9ab63319cf2fe39d12fcc9a0.glb"
       ],
       "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/lookout.json"
-      ]
+      ],
+      "buildOutputs": {
+        "public/assets/pine-hollow/baked/lookout.bin": "408530df91ac60ee5610d373d11c26d5a968b5750589341a473f0e671073f4d9",
+        "src/shards/pine-hollow/data/lookoutScene.generated.json": "9b907741a5918ff80d88987aa5945d45d28bbb18701e098c98a8447902c6ac03",
+        "public/assets/pine-hollow/baked/lookout/56be63fc8588d81d241461912f256a0d3a93a29a9ab63319cf2fe39d12fcc9a0.glb": "56be63fc8588d81d241461912f256a0d3a93a29a9ab63319cf2fe39d12fcc9a0"
+      }
     },
     {
       "id": "pine-props",
@@ -1099,35 +1112,54 @@
       "command": [
         "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
-        "--import",
-        "./scripts/generation-level.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs",
-        "--generation-shard=pine-hollow"
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs"
       ],
       "inputRoots": [
-        "src/engine",
-        "src/game",
         "src/sdk",
+        "src/format",
         "src/commons",
-        "src/shards/pine-hollow",
-        "scripts/bake-loader.mjs",
-        "scripts/bake",
+        "src/shards/pine-hollow/generators/timberKit.ts",
+        "src/shards/pine-hollow/generators/timberBake.ts",
+        "src/shards/pine-hollow/generators/siteTimbers.ts",
+        "src/shards/pine-hollow/generators/fireLookout.ts",
+        "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-lookout.d.mts",
+        "src/shards/pine-hollow/generators/bake-pine-site-timbers.d.mts",
+        "src/shards/pine-hollow/generators/timberRows.ts",
+        "src/shards/pine-hollow/generators/timberPlacement.ts",
+        "src/shards/pine-hollow/generators/timberScene.ts",
+        "src/shards/pine-hollow/generators/cabinShapes.ts",
+        "src/shards/pine-hollow/generators/seedStream.ts",
+        "src/shards/pine-hollow/generators/wildlifeWords.ts",
+        "src/shards/pine-hollow/data/layout.ts",
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "public/assets/baked/pine-hollow/terrain.bin",
-        "public/assets/models/pine-hollow-crags",
-        "scripts/generation-level.mjs"
+        "public/assets/baked/pine-hollow/terrain.bin"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/site-timbers.bin",
-        "src/shards/pine-hollow/data/siteTimbers.json"
+        "src/shards/pine-hollow/data/siteTimbers.json",
+        "src/shards/pine-hollow/data/siteTimbersScene.generated.json",
+        "public/assets/pine-hollow/baked/site-timbers/43dfc490473e78eaf22a345e030d83c6d721d0402aedba5a6fe556879daafe8e.glb",
+        "public/assets/pine-hollow/baked/site-timbers/486bfc32048920699c9f3f1a8d0c3cf8987beb4c544a3e973f0602f8829d9d39.glb",
+        "public/assets/pine-hollow/baked/site-timbers/84f53529b140d433833f128607eda32ff61f45289d9a369738fdb04cc0f07e44.glb",
+        "public/assets/pine-hollow/baked/site-timbers/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e.glb"
       ],
       "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/siteTimbers.json"
-      ]
+      ],
+      "buildOutputs": {
+        "public/assets/pine-hollow/baked/site-timbers.bin": "c187a13f473c3a1ceacfc644b82bd56d57c973b1c39b7d4cdaed33c34613063e",
+        "src/shards/pine-hollow/data/siteTimbersScene.generated.json": "ba3802cb524006576d1b4525937c8c8ac978cc9711a201a842863a9dff78af4a",
+        "public/assets/pine-hollow/baked/site-timbers/43dfc490473e78eaf22a345e030d83c6d721d0402aedba5a6fe556879daafe8e.glb": "43dfc490473e78eaf22a345e030d83c6d721d0402aedba5a6fe556879daafe8e",
+        "public/assets/pine-hollow/baked/site-timbers/486bfc32048920699c9f3f1a8d0c3cf8987beb4c544a3e973f0602f8829d9d39.glb": "486bfc32048920699c9f3f1a8d0c3cf8987beb4c544a3e973f0602f8829d9d39",
+        "public/assets/pine-hollow/baked/site-timbers/84f53529b140d433833f128607eda32ff61f45289d9a369738fdb04cc0f07e44.glb": "84f53529b140d433833f128607eda32ff61f45289d9a369738fdb04cc0f07e44",
+        "public/assets/pine-hollow/baked/site-timbers/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e.glb": "f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e"
+      }
     },
     {
       "id": "pine-streams",

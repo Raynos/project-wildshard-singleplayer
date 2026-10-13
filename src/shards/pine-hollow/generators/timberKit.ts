@@ -5,12 +5,10 @@
  * page finishes the baked parts on the cabins' materials (../world/timber.ts `Timber.baked`, `finish`).
  */
 import * as THREE from 'three';
-import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import type { MatKey } from '../world/homestead';
-import { logGeo, boxUV } from '../world/logKit';
-import type { Floor, TimberFacts } from '../world/timber';
+import { PINE_TIMBER_SEED as SEED, type ColliderRow as ColliderDesc, type TimberFacts } from './timberRows';
+import { PineSeedStream as Rng } from './seedStream';
+
+import { logGeo, boxUV, type KitMat as MatKey, type Floor } from './cabinShapes';
 
 type V3 = THREE.Vector3;
 export const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);

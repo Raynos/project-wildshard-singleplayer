@@ -13,11 +13,10 @@
  * road), the origin midway between its ends. Each fits its site: `g` is the ground under own (x, z), relative to the origin.
  */
 import type * as THREE from 'three';
-import { SEED } from '@wildshard/engine/core/config';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { PINE_TIMBER_SEED as SEED, type SiteTimberRows } from './timberRows';
 import { ZIPLINE } from '../data/layout';
 import { TimberBuilder, V } from './timberKit';
-import { BRIDGE, BRIDGE_HALF, LANDING, bridgeSite, landingSite, type SiteTimberRows } from '../world/timberSites';
+import { BRIDGE, BRIDGE_HALF, LANDING, bridgeSite, landingSite } from './timberPlacement';
 import { TimberRecorder } from './timberBake';
 
 type V3 = THREE.Vector3;
@@ -110,20 +109,19 @@ function buildBridge(t: TimberBuilder, half: number, g: (lx: number, lz: number)
 }
 
 /** the ground under a timber's own (x, z), relative to its frame's height (the page's heights at the site) */
-function siteGround(frame: THREE.Matrix4, y: number): Ground {
+function siteGround(frame: THREE.Matrix4, y: number, heightAt: (x: number, z: number) => number): Ground {
   return (lx, lz) => { const w = V(lx, 0, lz).applyMatrix4(frame); return heightAt(w.x, w.z) - y; };
 }
 
 /** The bake: each timber at its site and on the turntable (the landing on flat ground, the bridge 1.2 m over its gully). */
-export function bakeSiteTimbers(): { bin: Uint8Array; rows: Omit<SiteTimberRows, 'bin' | 'bytes'> } {
-  const recorder = new TimberRecorder();
+export function bakeSiteTimbers(heightAt: (x: number, z: number) => number, recorder = new TimberRecorder()): { bin: Uint8Array; rows: Omit<SiteTimberRows, 'bin' | 'bytes'> } {
   const landing = (g: Ground): ReturnType<TimberRecorder['record']> => { const t = new TimberBuilder(LANDING.seed); buildLanding(t, g); return recorder.record(t); };
   const bridge = (g: Ground): ReturnType<TimberRecorder['record']> => { const t = new TimberBuilder(BRIDGE.seed); buildBridge(t, BRIDGE_HALF, g); return recorder.record(t); };
-  const ls = landingSite(), bs = bridgeSite();
+  const ls = landingSite(heightAt), bs = bridgeSite(heightAt);
   const rows = {
     seed: SEED,
-    landing: { world: landing(siteGround(ls.at, ls.y)), turntable: landing(() => 0) },
-    bridge: { world: bridge(siteGround(bs.at, bs.y)), turntable: bridge(() => -1.2) },
+    landing: { world: landing(siteGround(ls.at, ls.y, heightAt)), turntable: landing(() => 0) },
+    bridge: { world: bridge(siteGround(bs.at, bs.y, heightAt)), turntable: bridge(() => -1.2) },
   };
   return { bin: recorder.bin(), rows };
 }

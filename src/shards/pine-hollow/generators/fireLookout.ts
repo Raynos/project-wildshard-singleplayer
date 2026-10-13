@@ -12,11 +12,10 @@
  * the origin on the crag-top pad.
  */
 import * as THREE from 'three';
-import { SEED } from '@wildshard/engine/core/config';
-import { boxUV } from '../world/logKit';
+import { PINE_TIMBER_SEED as SEED, LOOKOUT_SEED, type LookoutRows } from './timberRows';
+import { boxUV } from './cabinShapes';
 import { ZIPLINE } from '../data/layout';
 import { TimberBuilder, V } from './timberKit';
-import { LOOKOUT_SEED, type LookoutRows } from '../models/fireLookout';
 import { TimberRecorder } from './timberBake';
 
 type V3 = THREE.Vector3;
@@ -212,10 +211,9 @@ function buildLookout(t: TimberBuilder): void {
 }
 
 /** The bake: the lookout built at the level seed, its parts' and glass's attribute blocks in one binary, the rest as rows. */
-export function bakeFireLookout(): { bin: Uint8Array; rows: Omit<LookoutRows, 'bin' | 'bytes'> } {
+export function bakeFireLookout(recorder = new TimberRecorder()): { bin: Uint8Array; rows: Omit<LookoutRows, 'bin' | 'bytes'> } {
   const t = new TimberBuilder(LOOKOUT_SEED);
   buildLookout(t);
-  const recorder = new TimberRecorder();
   const row = recorder.record(t);
   return { bin: recorder.bin(), rows: { seed: SEED, ...row } };
 }

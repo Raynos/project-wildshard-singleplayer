@@ -5,19 +5,17 @@
  * (../world/timberBake.ts `TimberBlocks`).
  */
 import type * as THREE from 'three';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { TimberBuilder } from './timberKit';
-import { TIMBER_ATTRS, type ColliderRow, type TimberRow } from '../world/timberBake';
+import { TIMBER_ATTRS, type ColliderRow, type TimberRow } from './timberRows';
 
 /** +0 for -0 (JSON writes both as 0; a quaternion's -0 turns nothing) */
 const z0 = (n: number): number => n + 0;
 
 /** a collider as its row: the timber kit's boxes (turned by a yaw or a quaternion) and treads, wood or stone */
-function colliderRow(c: ColliderDesc): ColliderRow {
+function colliderRow(c: ColliderRow): ColliderRow {
   const surface = c.surface === 'wood' || c.surface === 'stone' ? { surface: c.surface } : {};
   if (c.surface !== undefined && !('surface' in surface)) throw new Error(`[timber] a collider of ${c.surface}`);
   if (c.kind === 'treads') return { kind: 'treads', from: { ...c.from }, to: { ...c.to }, width: c.width, count: c.count, ...surface };
-  if (c.kind !== 'box') throw new Error(`[timber] a ${c.kind} collider`);
   return { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, ...(c.yaw === undefined ? {} : { yaw: c.yaw }),
     ...(c.rot === undefined ? {} : { rot: { x: z0(c.rot.x), y: z0(c.rot.y), z: z0(c.rot.z), w: z0(c.rot.w) } }), ...surface };
 }
@@ -25,6 +23,9 @@ function colliderRow(c: ColliderDesc): ColliderRow {
 /** The bake's binary, timber by timber, and each timber's row. */
 export class TimberRecorder {
   private readonly blocks: Float32Array[] = [];
+  private readonly authored: ((timber: TimberBuilder, row: TimberRow, ordinal: number) => void) | undefined;
+  private ordinal = 0;
+  constructor(authored?: (timber: TimberBuilder, row: TimberRow, ordinal: number) => void) { this.authored = authored; }
 
   private counts(list: readonly THREE.BufferGeometry[]): number[] {
     return list.map((g0) => {
@@ -47,7 +48,8 @@ export class TimberRecorder {
     const facts = t.facts();
     const xyz = (p: THREE.Vector3): [number, number, number] => [p.x, p.y, p.z];
     const anchors = Object.fromEntries(Object.entries(facts.anchors).map(([k, p]) => [k, xyz(p)]));
-    return { parts: partRows, glass: glassRow, colliders: facts.colliders.map(colliderRow), floors: [...facts.floors], anchors };
+    const row = { parts: partRows, glass: glassRow, colliders: facts.colliders.map(colliderRow), floors: [...facts.floors], anchors };
+    this.authored?.(t, row, this.ordinal++); return row;
   }
 
   /** every recorded block, in order */

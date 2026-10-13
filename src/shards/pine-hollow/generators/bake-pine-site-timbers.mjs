@@ -7,31 +7,38 @@
 // public/assets/pine-hollow/baked/site-timbers.bin and the rows to src/shards/pine-hollow/data/siteTimbers.json, which the
 // page finishes the timbers from (src/shards/pine-hollow/world/timberSites.ts).
 // test/shards/pine-hollow/site-timbers-bake.test.ts is the stale gate (it re-runs the generator).
-// Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs
+// Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs
 import { createHash } from 'node:crypto';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { bakeSiteTimbers } from './siteTimbers.ts';
-import { shuffleLanes } from './crags.ts';
-import { installPineGround } from './bake-pine-crags.mjs';
+import { pineSiteTimberBake } from './timberScene.ts';
+import { wildlifeWordLanes as shuffleLanes } from './wildlifeWords.ts';
+import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 
 const root = resolve(import.meta.dirname, '../../../..');
 
 /** the bake: the rows and the raw binary, over the page's ground */
 export function bakeSiteTimberRows() {
-  installPineGround();
-  const { bin, rows } = bakeSiteTimbers();
+  const { bin, rows } = bakeSiteTimbers(pineTimberGround().heightAt);
   return { rows: { bin: createHash('sha256').update(bin).digest('hex'), bytes: bin.length, ...rows }, bin };
 }
 
+/** Original renderer lattice, read explicitly with no active world or engine service. */
+export function pineTimberGround() { return readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin'))); }
+
 if (import.meta.main) {
   const { rows, bin } = bakeSiteTimberRows();
+  const authored = pineSiteTimberBake(pineTimberGround().heightAt, root);
   const out = resolve(root, 'public/assets/pine-hollow/baked');
   mkdirSync(out, { recursive: true });
   const packed = deflateSync(shuffleLanes(bin), { level: 9 });
   writeFileSync(resolve(out, 'site-timbers.bin'), packed);
   writeFileSync(resolve(root, 'src/shards/pine-hollow/data/siteTimbers.json'), `${JSON.stringify(rows)}\n`);
+  const assets = resolve(out, 'site-timbers'); mkdirSync(assets, { recursive: true });
+  for (const [hash, asset] of authored.assets) writeFileSync(resolve(assets, `${hash}.glb`), asset);
+  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/siteTimbersScene.generated.json'), `${JSON.stringify({ scene: authored.sceneHash, props: authored.props?.props, shardfile: authored.shardfile })}\n`);
   const parts = (r) => r.parts.reduce((n, p) => n + p.counts.length, 0);
   console.info(`pine-hollow site timbers: landing ${String(parts(rows.landing.world))} / ${String(parts(rows.landing.turntable))} parts, bridge ${String(parts(rows.bridge.world))} / ${String(parts(rows.bridge.turntable))}; ${String(bin.length)} → ${String(packed.length)} zlib (baked/site-timbers.bin)`);
 }

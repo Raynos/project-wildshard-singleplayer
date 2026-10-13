@@ -163,3 +163,5 @@ src/**/*.generated.*
 /public/assets/pine-hollow/baked/cabins.glb
 /public/assets/pine-hollow/baked/streams.glb
 /public/assets/pine-hollow/baked/streams/
+/public/assets/pine-hollow/baked/lookout/
+/public/assets/pine-hollow/baked/site-timbers/
