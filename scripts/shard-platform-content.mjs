@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+import { readNavigation, navigationRules } from '@wildshard/format/navigation';
 // G304: report the built world envelope separately from the source-code ratio.
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
@@ -19,7 +21,7 @@ const present = value => value !== undefined && value !== null;
 /** Read only an emitted shard.json; a missing/invalid product never masquerades as zero world content. */
 export function shardContent(slug, root, products = resolve(root, 'public/shardfiles')) {
   const path = resolve(products, slug, 'shard.json');
-  const privateBinaries = [...privateFiles(resolve(root, 'src/shards', slug), root), ...privateFiles(resolve(root, 'public/assets/baked', slug), root)].sort((a, b) => a.localeCompare(b));
+  let privateBinaries = [...privateFiles(resolve(root, 'src/shards', slug), root), ...privateFiles(resolve(root, 'public/assets/baked', slug), root)].sort((a, b) => a.localeCompare(b));
   const absent = status => ({ status, product: relative(root, path), privateBinaries, tiles: null, files: null, colliders: null, trustedSimulation: null, structuralWorld: null, gate: { enforcement: 'report-only', status: 'unavailable', issues: [`product ${status}`] } });
   if (!existsSync(path)) return absent('missing');
   let source;
@@ -33,10 +35,27 @@ export function shardContent(slug, root, products = resolve(root, 'public/shardf
       || source.terrain.tiles.some(tile => typeof tile.file !== 'string')))
     || (present(source.nativeGround) && (!record(source.nativeGround) || typeof source.nativeGround.file !== 'string'))
     || (present(source.runtime) && (!record(source.runtime) || typeof source.runtime.entry !== 'string'))) return absent('invalid');
+  // Only a fully declared, admitted WSNM payload owns legacy aliases. A filename or plain binary row never does.
+  if (present(source.navigation)) {
+    try {
+      if (navigationRules({ ...source, navigation: source.navigation }).length > 0) return absent('invalid');
+      const file = source.files.find(row => row.hash === source.navigation.file);
+      const candidates = [resolve(products, slug, 'assets', source.navigation.file), resolve(root, 'src/shards', slug, 'assets', source.navigation.file)];
+      const payload = candidates.find(candidate => existsSync(candidate));
+      if (payload === undefined || file === undefined) return absent('invalid');
+      const bytes = readFileSync(payload);
+      if (bytes.length !== file.compressed || createHash('sha256').update(bytes).digest('hex') !== source.navigation.file) return absent('invalid');
+      readNavigation(source.navigation, bytes);
+      privateBinaries = privateBinaries.filter(alias => {
+        const legacy = readFileSync(resolve(root, alias));
+        return createHash('sha256').update(legacy).digest('hex') !== source.navigation.file;
+      });
+    } catch { return absent('invalid'); }
+  }
   // Binaries a schema row hands to the platform's own decoder are tiles, not shard-private: mesh collision chunks and panels
   // (game shardfile/meshCollision), the heightfield's collider and tile payloads (shardfile/terrain), the look's LUT.
   const platformDecoded = new Set([...(source.meshCollision?.tiles ?? []), ...(source.meshCollision?.panels ?? []), ...(source.terrain?.tiles ?? [])]
-    .map(row => row.file).concat(source.terrain?.collider ?? [], source.look?.grade?.lut ?? []).filter(file => typeof file === 'string'));
+    .map(row => row.file).concat(source.terrain?.collider ?? [], source.look?.grade?.lut ?? [], source.navigation?.file ?? []).filter(file => typeof file === 'string'));
   const kinds = new Map();
   let platformBinaries = 0;
   for (const file of source.files) {

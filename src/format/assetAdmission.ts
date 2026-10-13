@@ -6,6 +6,7 @@ import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { assetCost, validateTerrainAssets, preflightAssetGraph, type MemoryAdmission } from "@wildshard/format/product";
 
 import { validateMeshCollisionAssets } from '@wildshard/format/meshCollisionAssets';
+import { validateNavigationAssets } from '@wildshard/format/navigation';
 import { validateNativeGround } from '@wildshard/format/nativeGroundAssets';
 import { validateMeshEntryways } from '@wildshard/format/meshEntryways';
 import { glbMaterialNames, validatePropMaterials, type PropMaterials } from '@wildshard/format/propMaterials';
@@ -187,6 +188,7 @@ export function validateShardfileAssets(input: unknown, assets: ReadonlyMap<stri
   if (libraryResident + sketchResident > s.budgets.library.resident) throw new Error('compendium sketch raster budget understated');
   const cost = worstContentCost(s, commons);
   if (!acceptsTotal(memory, s, 'actual', cost)) throw new Error(`worst-location total exceeds envelope: ${cost.playing}`);
+  validateNavigationAssets(s, assets);
   validateNativeGround(s, assets);
   validateEntrywayTerrain(s, assets);
   validateEntrywayClearance(s, assets);

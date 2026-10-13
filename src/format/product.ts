@@ -18,6 +18,8 @@ import type { ContentCostInput } from "@wildshard/format/contentCost";
 import { nearPlaceholderRoots } from '@wildshard/format/nearPlaceholder';
 
 /** Actual costs derived from a bounded parser, never trusted from the author declaration. */
+import { isNavigationData, navigationCost } from '@wildshard/format/navigationBytes';
+
 export interface AssetCost { decoded: number; gpu: number; triangles: number; draws: number }
 const MAX_BYTES = 25_000_000;
 const MAX_ELEMENTS = 4_000_000;
@@ -278,6 +280,7 @@ export function assetCost(requestedKind: string, bytes: Uint8Array): AssetCost {
   if (kind === 'ktx2') return parseKtx2(bytes);
   if (kind === 'audio') return parseAudio(bytes);
   if (bytes.length > MAX_BYTES) throw new Error('asset byte cap');
+  if (kind === 'binary' && isNavigationData(bytes)) return navigationCost(bytes);
   if (kind === 'binary' && isTerrainTileData(bytes)) return terrainTileCost(decodeTerrainTile(bytes));
   if (kind === 'binary' && isMeshCollisionData(bytes)) return meshCollisionCost(decodeMeshCollision(bytes));
   if (kind === 'json') { json(bytes); return { decoded: bytes.length, gpu: 0, triangles: 0, draws: 0 }; }

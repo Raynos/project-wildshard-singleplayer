@@ -45,6 +45,7 @@ import { MoverMotionSchema, MoverTrackSchema, MoverTriggerSchema, MoverDriverSch
 import { SocketLiftSchema } from '@wildshard/format/socketLift';
 import { PortalLinkSchema } from '@wildshard/format/portalLink';
 import { EntrywaysSchema } from '@wildshard/format/entryways';
+import { NavigationSchema } from '@wildshard/format/navigation';
 import { NativeGroundSchema } from '@wildshard/format/nativeGround';
 import { UiSchema } from '@wildshard/format/ui';
 import { ClientScriptsSchema } from '@wildshard/format/clientScripts';
@@ -182,6 +183,7 @@ const wireRoots = {
   'socketLift.SocketLift': SocketLiftSchema,
   'portalLink.PortalLink': PortalLinkSchema,
   'entryways.Entryways': EntrywaysSchema,
+  'navigation.Navigation': NavigationSchema,
   'nativeGround.NativeGround': NativeGroundSchema,
   'ui.Ui': UiSchema,
   'clientScripts.ClientScripts': ClientScriptsSchema,

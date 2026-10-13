@@ -6,6 +6,8 @@ import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from
 import { dirname, resolve, sep } from 'node:path';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { Collider } from './physics';
+import { declareNavigation } from './bake/navigationAsset';
+import type { Navigation } from '@wildshard/format/navigation';
 import { bakeTerrain, type BakedTerrain, type TerrainBakeSource } from './bake/terrain';
 import { bakeProps, type BakedProps, type PropScatter, type PropsBakeSource } from './bake/props';
 import { bakeKinds, type KindBakeOptions, type KindCollider, type PieceBake } from './bake/kinds';
@@ -92,6 +94,8 @@ export class Scatter extends Group {
 export interface BakeInputs {
   /** Repository / author-project root: `scene.json` goes to `<project>/.wildshard/cache/<slug>/`. Omitted: nothing is written. */
   project?: string;
+  /** Original WSNM bytes, declared and charged without resampling or changing queries. */
+  navigation?: Uint8Array;
   /** The ground's recipe (closures run here only). Omitted: the shardfile has no terrain. */
   terrain?: TerrainBakeSource;
   /** Props options the graph does not express yet: panels, library models, coarse / far proxies, family, colour texture. */
@@ -110,7 +114,7 @@ export interface BakedScene {
   props: BakedProps | null;
   pieces: BakedSceneParts[];
   /** Shardfile rows in the product's canonical order (tiles by lod, x, z; files by hash). */
-  shardfile: Pick<BakedTerrain, 'tiles' | 'files' | 'critical'> & Partial<Pick<BakedTerrain, 'edge' | 'terrain'> & Pick<BakedProps, 'far' | 'library'>>;
+  shardfile: Pick<BakedTerrain, 'tiles' | 'files' | 'critical'> & Partial<Pick<BakedTerrain, 'edge' | 'terrain'> & Pick<BakedProps, 'far' | 'library'>> & { navigation?: Navigation };
   colliders: { scene: SceneDescription['colliders']; props: BakedProps['props']['colliders']; pieces: { piece: string; colliders: PieceBake['colliders'] }[] };
   assets: Map<string, Uint8Array>;
 }
@@ -163,16 +167,18 @@ export function bake(scene: Object3D, identity: BakeIdentity, inputs: BakeInputs
   });
   const published = inputs.project === undefined ? null : publishScene(description, inputs.project, identity.slug);
 
+  const navigation = inputs.navigation === undefined ? null : declareNavigation(inputs.navigation);
   const terrain = inputs.terrain === undefined ? null : bakeTerrain(inputs.terrain);
   if (terrain !== null) { terrain.tiles.sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z); terrain.files.sort((a, b) => a.hash.localeCompare(b.hash)); }
   const hasProps = statics.children.length > 0 || scatter.length > 0 || (inputs.props?.panels?.length ?? 0) > 0;
   const props = hasProps ? bakeProps({ ...inputs.props, static: statics, scatter }, terrain?.tiles ?? []) : null;
   const baked = pieces.map((piece): BakedSceneParts => Object.assign(bakeKinds(piece.name, piece.kinds(), piece.colliders, piece.options), { name: piece.name, rows: piece.rows }));
 
-  const assets = new Map([...terrain?.assets ?? [], ...props?.assets ?? []]);
+  const assets = new Map([...terrain?.assets ?? [], ...props?.assets ?? [], ...navigation?.assets ?? []]);
   const tiles = (props?.tiles ?? terrain?.tiles ?? []).slice().sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);
-  const files = [...terrain?.files ?? [], ...props?.files ?? []].sort((a, b) => a.hash.localeCompare(b.hash));
-  const shardfile: BakedScene['shardfile'] = { tiles, files, critical: terrain?.critical ?? [],
+  const files = [...terrain?.files ?? [], ...props?.files ?? [], ...navigation?.files ?? []].sort((a, b) => a.hash.localeCompare(b.hash));
+  const shardfile: BakedScene['shardfile'] = { tiles, files, critical: [...terrain?.critical ?? [], ...navigation?.critical ?? []],
+    ...(navigation === null ? {} : { navigation: navigation.navigation }),
     ...(terrain === null ? {} : { terrain: terrain.terrain, edge: terrain.edge }), ...(props === null ? {} : { far: props.far, library: props.library }) };
   return { identity, scene: description, sceneHash: published?.hash ?? null, scenePath: published?.path ?? null, terrain, props, pieces: baked, shardfile,
     colliders: { scene: description.colliders, props: props?.props.colliders ?? inputs.props?.colliders ?? [], pieces: baked.map((p) => ({ piece: p.name, colliders: p.colliders })) }, assets };

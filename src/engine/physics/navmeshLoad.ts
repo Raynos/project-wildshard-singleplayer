@@ -1,3 +1,4 @@
+import { parseNavigation, readNavigation, type NavigationContent } from '@wildshard/format/navigation';
 import { app } from '../app/runtime';
 /**
  * The app's binding of the baked navmesh (SF72 split it from the renderer-free src/engine/physics/navmesh.ts, which holds
@@ -20,7 +21,21 @@ export function setActiveNavmesh(levelId: string, navmesh: Navmesh | null): void
  * build has none or it doesn't parse: the creatures then steer as they did before the navmesh.
  * `bakedId` selects an authored offline folder; cache ownership remains the independent `levelId`.
  */
-export async function loadNavmesh(levelId: string, bakedId = levelId): Promise<Navmesh | null> {
+export async function loadNavmesh(levelId: string, bakedId = levelId, content?: NavigationContent): Promise<Navmesh | null> {
+  if (content !== undefined) {
+    const row = parseNavigation(content.row);
+    const bytes = 'bytes' in content ? content.bytes : await fetch(content.url).then(async response => {
+      if (!response.ok) throw new Error('Required navigation bytes are unavailable');
+      return new Uint8Array(await response.arrayBuffer());
+    });
+    const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', Uint8Array.from(bytes)));
+    const hash = [...digest].map(byte => byte.toString(16).padStart(2, '0')).join('');
+    if (hash !== row.file) throw new Error('Required navigation hash differs');
+    readNavigation(row, bytes);
+    const navmesh = parseNavmesh(Uint8Array.from(bytes).buffer);
+    if (navmesh === null) throw new Error('Required navigation could not construct its query mesh');
+    navmesh.costSink = ms => frameCost.nav(ms); setActiveNavmesh(levelId, navmesh); return navmesh;
+  }
   if (app.navmeshId === levelId) return app.navmesh;
   const url = navmeshUrl(bakedId);
   if (url === null) return null;

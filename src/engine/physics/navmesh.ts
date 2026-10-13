@@ -16,8 +16,9 @@ import * as THREE from 'three';
 import {
   addTile, buildTile, createFindNearestPolyResult, createNavMesh, createSlicedNodePathQuery, DEFAULT_QUERY_FILTER, finalizeSlicedFindNodePath,
   findNearestPoly, findRandomPointAroundCircle, findStraightPath, initSlicedFindNodePath, raycast, SlicedFindNodePathStatusFlags, updateSlicedFindNodePath,
-  type Box3, type NavMesh, type NavMeshPoly, type NavMeshPolyDetail, type Vec3,
+  type NavMesh, type Vec3,
 } from 'navcat';
+import { decodeNavigation, type NavigationLayerData } from '@wildshard/format/navigationBytes';
 import { terrainDatum } from '../world/terrainHeight';
 
 
@@ -26,74 +27,17 @@ export interface NavLayer { radius: number; height: number; climb: number; mesh:
 
 interface XYZ { x: number; y: number; z: number }
 
-const MAGIC = 0x4d4e5357; // 'WSNM' little-endian
-const VERSION = 1;
-const Q = 100; // detail vertices: 1 cm steps
-const NEI_EXT = 248; // a one-byte neighbour ≥ this is a portal: 0x8000 | (byte − NEI_EXT)
-
 /** Search box for snapping a point onto the mesh: ±2 m across, ±3 m up and down (a deck over the ground stays apart). */
 const SNAP: Vec3 = [2, 3, 2];
 /** A path search visits at most this many polys (~0.3 ms); past it the path runs to the poly nearest the goal so far. */
 export const MAX_SEARCH_NODES = 1024;
 
-class Reader {
-  private at = 0;
-  private readonly dv: DataView;
-  constructor(buf: ArrayBuffer) { this.dv = new DataView(buf); }
-  get done(): boolean { return this.at === this.dv.byteLength; }
-  private need(n: number): void { if (this.at + n > this.dv.byteLength) throw new RangeError('navmesh: truncated'); }
-  u8(): number { this.need(1); return this.dv.getUint8(this.at++); }
-  u16(): number { this.need(2); const v = this.dv.getUint16(this.at, true); this.at += 2; return v; }
-  u32(): number { this.need(4); const v = this.dv.getUint32(this.at, true); this.at += 4; return v; }
-  i32(): number { this.need(4); const v = this.dv.getInt32(this.at, true); this.at += 4; return v; }
-  f32(): number { this.need(4); const v = this.dv.getFloat32(this.at, true); this.at += 4; return v; }
-  u8s(n: number): number[] { const out: number[] = []; for (let i = 0; i < n; i++) out.push(this.u8()); return out; }
-  u16s(n: number): number[] { const out: number[] = []; for (let i = 0; i < n; i++) out.push(this.u16()); return out; }
-}
-
-function readLayer(r: Reader): NavLayer {
-  const radius = r.f32(), height = r.f32(), climb = r.f32(), cellSize = r.f32(), cellHeight = r.f32();
+function readLayer(layer: NavigationLayerData): NavLayer {
   const mesh = createNavMesh();
-  mesh.origin = [r.f32(), r.f32(), r.f32()];
-  mesh.tileWidth = mesh.tileHeight = r.f32();
-  const tiles = r.u32();
-  for (let t = 0; t < tiles; t++) {
-    const tileX = r.i32(), tileY = r.i32();
-    const bounds: Box3 = [r.f32(), r.f32(), r.f32(), r.f32(), r.f32(), r.f32()];
-    const nv = r.u16(), np = r.u16(), nd = r.u16();
-    // polygon vertices sit on the voxel grid: x / z in cells, y in cell heights, above the tile's min corner
-    const gx = r.u8s(nv), gz = r.u8s(nv), gy = r.u16s(nv);
-    const vertices: number[] = [];
-    for (let i = 0; i < nv; i++) vertices.push(bounds[0] + (gx[i] ?? 0) * cellSize, bounds[1] + (gy[i] ?? 0) * cellHeight, bounds[2] + (gz[i] ?? 0) * cellSize);
-    const counts = r.u8s(np), areas = r.u8s(np), flags = r.u8s(np);
-    const total = counts.reduce((a, b) => a + b, 0);
-    const idx = nv <= 256 ? r.u8s(total) : r.u16s(total);
-    const neis = np < NEI_EXT ? r.u8s(total).map((n) => (n >= NEI_EXT ? 0x8000 | (n - NEI_EXT) : n)) : r.u16s(total);
-    const polys: NavMeshPoly[] = [];
-    let k = 0;
-    for (let p = 0; p < np; p++) {
-      const n = counts[p] ?? 0;
-      polys.push({ vertices: idx.slice(k, k + n), neis: neis.slice(k, k + n), flags: flags[p] ?? 0, area: areas[p] ?? 0 });
-      k += n;
-    }
-    const detailVerts = r.u8s(np), detailTris = r.u8s(np);
-    const detailVertices: number[] = [];
-    for (let i = 0; i < nd * 3; i++) detailVertices.push((bounds[i % 3] ?? 0) + r.u16() / Q);
-    // a poly with its own height samples brings its triangles; one without is fanned from its vertices (as
-    // navcat's polysToTileDetailMesh does)
-    const detailMeshes: NavMeshPolyDetail[] = [], detailTriangles: number[] = [];
-    let vb = 0;
-    for (let p = 0; p < np; p++) {
-      const dv = detailVerts[p] ?? 0, stored = detailTris[p] ?? 0, n = counts[p] ?? 0;
-      const trianglesBase = detailTriangles.length / 4;
-      if (stored > 0) detailTriangles.push(...r.u8s(stored * 4));
-      else for (let j = 2; j < n; j++) detailTriangles.push(0, j - 1, j, (1 << 2) | (j === 2 ? 1 : 0) | (j === n - 1 ? 1 << 4 : 0));
-      detailMeshes.push({ verticesBase: vb, verticesCount: dv, trianglesBase, trianglesCount: detailTriangles.length / 4 - trianglesBase });
-      vb += dv;
-    }
-    addTile(mesh, buildTile({ bounds, vertices, polys, detailMeshes, detailVertices, detailTriangles, tileX, tileY, tileLayer: 0, cellSize, cellHeight, walkableHeight: height, walkableRadius: radius, walkableClimb: climb }));
-  }
-  return { radius, height, climb, mesh };
+  mesh.origin = layer.origin; mesh.tileWidth = mesh.tileHeight = layer.tileSize;
+  for (const tile of layer.tiles) addTile(mesh, buildTile({ ...tile, cellSize: layer.cellSize, cellHeight: layer.cellHeight,
+    walkableHeight: layer.height, walkableRadius: layer.radius, walkableClimb: layer.climb }));
+  return { radius: layer.radius, height: layer.height, climb: layer.climb, mesh };
 }
 
 /** a world point into the navmesh's frame: the bake is the level's authored frame, so a level shifted at runtime (its
@@ -218,11 +162,7 @@ export class Navmesh {
 /** Parse a navmesh.bin (scripts/bake-navmesh.mjs's format); null when it isn't one of this version. */
 export function parseNavmesh(buf: ArrayBuffer): Navmesh | null {
   try {
-    const r = new Reader(buf);
-    if (r.u32() !== MAGIC || r.u32() !== VERSION) return null;
-    const n = r.u32(), layers: NavLayer[] = [];
-    for (let i = 0; i < n; i++) layers.push(readLayer(r));
-    return r.done && layers.length > 0 ? new Navmesh(layers, buf.byteLength) : null;
+    return new Navmesh(decodeNavigation(new Uint8Array(buf)).map(readLayer), buf.byteLength);
   } catch (e) {
     if (e instanceof RangeError) return null;
     throw e;

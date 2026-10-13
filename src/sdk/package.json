@@ -113,7 +113,8 @@
     "./compileMovers": "./compileMovers.ts",
     "./modes": "./modes.ts",
     "./bake/navigation": "./bake/navigation.ts",
-    "./bake": "./bake.ts"
+    "./bake": "./bake.ts",
+    "./bake/navigationAsset": "./bake/navigationAsset.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -592,6 +593,10 @@
       "./bake": {
         "types": "./dist/types/sdk/bake.d.ts",
         "default": "./dist/bake.js"
+      },
+      "./bake/navigationAsset": {
+        "types": "./dist/types/sdk/bake/navigationAsset.d.ts",
+        "default": "./dist/bake/navigationAsset.js"
       }
     }
   }

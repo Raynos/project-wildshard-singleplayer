@@ -31,12 +31,15 @@ export async function prepareTrustedRuntime(declaration: RuntimeDeclaration, slu
 /** Pure catalogue/level mapping from parsed data and already admitted immutable image bytes.
  * No fetch, browser decode, world allocation or service installation occurs here. Absent presentation keeps the empty card.
  * The caller owns asset admission and the library lease; the returned hooks enter the ordinary session later. */
-export function sourceManifest(source: Pick<Shardfile, 'identity' | 'accent' | 'spawn' | 'look' | 'presentation' | 'map'>, assets: ReadonlyMap<string, Uint8Array> = new Map()): ShardManifest {
+export function sourceManifest(source: Pick<Shardfile, 'identity' | 'accent' | 'spawn' | 'look' | 'presentation' | 'map'> & Partial<Pick<Shardfile, 'navigation'>>, assets: ReadonlyMap<string, Uint8Array> = new Map()): ShardManifest {
   const presentation = source.presentation;
+  const navigation = source.navigation === null || source.navigation === undefined ? undefined : assets.get(source.navigation.file);
+  if (source.navigation !== null && source.navigation !== undefined && navigation === undefined) throw new Error('Navigation is missing admitted bytes');
   const map = source.map === undefined ? undefined : assets.get(source.map.image);
   if (source.map !== undefined && map === undefined) throw new Error('Map image is missing admitted bytes');
   const card = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="1" height="1"/%3E';
   return {
+    ...(source.navigation === null || source.navigation === undefined || navigation === undefined ? {} : { navigation: { row: source.navigation, bytes: navigation } }),
     api: 1, accent: source.accent, slug: parseShardSlug(source.identity.slug), name: source.identity.name, seed: source.identity.seed,
     order: 0, status: 'live', label: '(0, 0)', biome: presentation?.biome ?? 'Empty world', blurb: presentation?.blurb ?? 'An empty shardfile world.',
     card: presentation === undefined ? { thumb: card, portrait: card, landscape: card } : presentationCard(presentation, assets), style: 'greybox', kitLook: 'toon', hands: 'toon', weapon: 'custom',

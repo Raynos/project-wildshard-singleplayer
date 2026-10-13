@@ -112,7 +112,9 @@
     "./liftApproach": "./liftApproach.ts",
     "./surfaceLooks": "./surfaceLooks.ts",
     "./minimap": "./minimap.ts",
-    "./dayCycle": "./dayCycle.ts"
+    "./dayCycle": "./dayCycle.ts",
+    "./navigation": "./navigation.ts",
+    "./navigationBytes": "./navigationBytes.ts"
   },
   "dependencies": {
     "valibot": "1.5.0"

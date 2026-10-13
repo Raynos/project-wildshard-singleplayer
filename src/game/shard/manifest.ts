@@ -472,6 +472,8 @@ export interface ShardManifest {
   world?: LevelSpec['world'];
   /** Optional offline creature-navigation mask; water bodies remain the default. */
   navmesh?: LevelSpec['navmesh'];
+  /** Required admitted creature navigation, independent of the offline bake exclusion mask. */
+  navigation?: LevelSpec['navigation'];
   debugOptions?: LevelSpec['debugOptions'];
   uses?: readonly (EngineMechanism | 'coins' | 'loot' | 'compendium' | 'feats' | 'bag.pack')[];
   tiers?: TierOverrides;

@@ -1,3 +1,4 @@
+import type { NavigationContent } from '@wildshard/format/navigation';
 import type { SetName } from '../player/viewmodelTextures';
 import type { FallCause } from '../combat/pipeline';
 import type { HorizonStrips } from '../world/HorizonMatte';
@@ -63,6 +64,8 @@ export interface LoadoutSpec {
 
 /** The engine consumes opaque level data; game presentation and discovery stay above this boundary. */
 export interface LevelSpec {
+  /** Required platform navigation: declared original bytes, validated before path queries. */
+  navigation?: NavigationContent;
   blender?: { area: { x0: number; x1: number; z0: number; z1: number }; models: readonly string[] };
   id: string;
   /** Optional offline asset folder; level/save identity stays `id`. Omit for the ordinary same-folder path. */

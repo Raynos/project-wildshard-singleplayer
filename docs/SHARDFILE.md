@@ -2023,3 +2023,24 @@ game or engine code and installs no renderer. The transitional shared
 navmesh CLI still collects trusted world colliders; extracting its CPU
 compiler does not qualify that CLI as a complete author-only product or
 permit any output deletion.
+
+### Declared navigation (WSNM v1)
+
+`navigation` is an optional shardfile root with `version: 1`, a SHA-256
+`file`, `layout: "wsnm-v1-le-quantized"`, six global `bounds`, and ordered
+agent `layers`. Each layer declares radius, height, climb, voxel cell size
+and height, origin, tile size and its ordered `[tileX, tileZ]` grid. The
+file is an independent critical binary root, charged for decoded CPU
+navigation data. Admission verifies its hash, complete bounded stream and
+every bound/grid declaration before creating a runtime mesh.
+
+`bake(scene, identity, { navigation: originalBytes })` emits that row, its
+critical file and immutable asset without re-encoding. The format reader
+owns the original little-endian WSNM header, quantized voxel/detail vertex
+layout, polygon neighbour encoding and detail triangles. The engine
+constructs its existing navcat mesh from those same decoded arrays; path,
+wander, snap, radius selection and vertical-datum laws remain unchanged.
+The game supplies admitted bytes to ordinary level and grid boot. A
+trusted manifest can declare the same row with an immutable URL; hash or
+layout failure is fatal. Manifests without a row retain the older optional
+navmesh lookup while they migrate.
