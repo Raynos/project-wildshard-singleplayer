@@ -24,15 +24,17 @@ const emit = (file, bytes) => {
   } else writeFileSync(file, bytes);
 };
 if (!check) mkdirSync(out, { recursive: true });
-// the retired zlib map streams stay produced: G320 keeps a tracked output until its removal is proven (nothing reads them)
-const maps = { shadow, trail, grain, skirt: skirt.bytes };
+// only the skirt ships as a zlib stream; the maps are the KTX2 library files below
+const maps = { skirt: skirt.bytes };
+// G320 two-step: the retired zlib shadow / trail maps stay tracked until the next commit deletes them (nothing reads them)
+const retiring = new Set(['shadow.bin', 'trail.bin']);
 for (const [name, bytes] of Object.entries(maps)) {
   const packed = zlibSync(bytes, { level: 9 });
   emit(resolve(out, `${name}.bin`), packed);
   console.info(`sunscar-dunes sand ${name}: ${String(bytes.length)} bytes → sand/${name}.bin (${String(packed.length)})`);
 }
 // the folder holds exactly this bake: no orphan map from an older bake ships
-for (const entry of readdirSync(out)) if (!Object.hasOwn(maps, entry.replace(/\.bin$/u, ''))) { if (check) throw new Error(`Orphan bake ${entry}`); rmSync(resolve(out, entry)); }
+for (const entry of readdirSync(out)) if (!retiring.has(entry) && !Object.hasOwn(maps, entry.replace(/\.bin$/u, ''))) { if (check) throw new Error(`Orphan bake ${entry}`); rmSync(resolve(out, entry)); }
 // the maps as single-level zstd-supercompressed KTX2 library files the look's sand names (data/sandMaps.json, assets/<sha256>)
 const zstd = (bytes) => new Uint8Array(zstdCompressSync(bytes, { params: { [constants.ZSTD_c_compressionLevel]: SAND_ZSTD_LEVEL } }));
 const files = bakeSandFiles({ shadow, trail, grain }, zstd);

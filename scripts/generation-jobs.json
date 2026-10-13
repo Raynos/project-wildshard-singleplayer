@@ -1879,9 +1879,6 @@
         "lint/runtime-performance.mjs"
       ],
       "outputs": [
-        "public/assets/sunscar-dunes/sand/shadow.bin",
-        "public/assets/sunscar-dunes/sand/trail.bin",
-        "public/assets/sunscar-dunes/sand/grain.bin",
         "public/assets/sunscar-dunes/sand/skirt.bin",
         "src/shards/sunscar-dunes/data/sand.json",
         "src/shards/sunscar-dunes/data/skirt.json",
@@ -1894,10 +1891,7 @@
       "seedOutputs": [
         "src/shards/sunscar-dunes/data/sand.json",
         "src/shards/sunscar-dunes/data/skirt.json"
-      ],
-      "buildOutputs": {
-        "public/assets/sunscar-dunes/sand/grain.bin": "69aad1286ef4fea28573fb9717b748de24663ad21169bf1480b1b93565f672b9"
-      }
+      ]
     },
     {
       "id": "signal-world",
