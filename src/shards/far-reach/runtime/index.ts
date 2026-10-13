@@ -40,7 +40,7 @@ import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow, type Meadow } from '../world/meadow';
 import { heroStoneDiscs } from '../world/dressing';
 import { SKY_SUN } from '../data/skyLook';
-import { bindDeclaredFight, moverChannelViews, moverChannelPrompts } from '@wildshard/game/plugin/ui';
+import { bindDeclaredFight, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
 import { bindSkyQuestStage } from './quest';
@@ -80,7 +80,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   private questFinished: (() => void) | null = null;
   private movers: MoverRuntime | null = null;
   /** SF8c: the Rising Islets' RIDE / CALL prompts (world/risingIslet.ts). */
-  private isletCalls: ReturnType<typeof moverChannelPrompts> | null = null;
+  private isletCalls: ReturnType<typeof bindClientChannels> | null = null;
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
   /** The near meadow that travels with the camera (loop 4). */
@@ -175,7 +175,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const raised = bindSkyQuestStage('raised', flags, () => true);
     const channelRows = source.clientChannels;
     if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
-    const moverViews = moverChannelViews(channelRows, new Map([['winch', built.fallen]]), SKY_NATIVE_MOVER_OWNERS, (_id, frame) => {
+    const channels = bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_MOVER_OWNERS, observed: (_id, frame) => {
       const previouslyRaised = built.state.raised;
       if (frame.value === undefined || frame.turn === undefined) throw new Error('Missing winch channel observations');
       built.state.raised = frame.value !== 0; built.state.raising = frame.turn === 1;
@@ -183,7 +183,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
         built.winch.label = STRINGS.raised;
         if (!flags.has(FLAGS.raised)) { raised.advance(); toast(STRINGS.raised); }
       }
-    });
+    } });
     const product = runtimeProduct(source);
     const itemAssets = new Map<string, Uint8Array>();
     for (let index = 0; index < 64; index++) {
@@ -191,7 +191,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       if (item.hook !== null && !itemAssets.has(item.hook.module)) itemAssets.set(item.hook.module, await product.assets.read(item.hook.module));
     }
     const items = await createMeleeScriptDriver(source.items, 'actor.player', itemAssets, source.identity.seed);
-    this.movers = await installDeclaredMovers(ctx, rt.world, { data: source.movers, modules: new Map(), views: moverViews,
+    this.movers = await installDeclaredMovers(ctx, rt.world, { data: source.movers, modules: new Map(), views: channels.movers,
       admitted: product.assets.retained, read: hash => product.assets.read(hash), systemId: SKY_MOVER_BINDING.systemId,
       composition: { modules: items.modules, roles: [items.role()], seed: items.seed },
       permissions: () => new Map([[SKY_MOVER_BINDING.winch, Number(flags.has(FLAGS.roost)) + Number(flags.has(FLAGS.vanes)) * 2]]),
@@ -205,12 +205,12 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     if (flags.has(FLAGS.raised)) this.movers.command('far.winch.bridge', 3);
     // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
     const lifts = new Map(source.entryways.flatMap((row) => (row.kind === 'socketLift' && row.lift !== undefined ? [[row.edge, row.lift] as const] : [])));
-    const calls = moverChannelPrompts(channelRows, action => {
+    channels.bindPrompts(action => {
       if (action.kind !== 'socketLift') throw new Error('Sky prompt needs its declared lift action');
       const lift = lifts.get(action.edge); if (lift === undefined) throw new Error('Unknown Sky lift entry');
       return () => { const movers = this.movers; if (movers !== null) commandSocketLift(movers, lift, action.action); };
     });
-    rt.interactables.push(...calls.interactables); this.isletCalls = calls;
+    rt.interactables.push(...channels.interactables); this.isletCalls = channels;
     // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
     // like an animal's, so a constant feed holds about updraft.lift / 3.5 m/s) floats you off the ramp to the high step.
     const updraft = source.modes?.traverse.find(row => row.id === 'far.updraft');
@@ -236,7 +236,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       // render offset and the page camera in the page's frame; standalone the root is the origin and this is the camera's own
       const cam = rt.world?.game.camera; if (cam && this.meadow) this.meadow.update(this.meadow.mesh.worldToLocal(cam.getWorldPosition(eye)), t);
       // SF49-g (G183): the Rising Islets ride their movers (fixed ride driver, in the fixed step); draw them and their chains
-      const movers = this.movers; if (movers !== null) { built.islets.update(moverPose); this.isletCalls?.update(moverPose); }
+      const movers = this.movers; if (movers !== null) { built.islets.update(moverPose); this.isletCalls?.updateMovers(moverPose); }
       built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t); built.wind.update(t);
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
         const row = vanes[i]; if (row === undefined) break;

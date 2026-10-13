@@ -4320,3 +4320,23 @@ an explicit bounded worker owner over the original `ContentCache`.
 unneeded byte array. `close()` drains, flushes and terminates its worker.
 Failed workers terminate before one shared checked fallback takes over;
 its refcounted leases survive. Importing the module starts no worker.
+
+### Paired visual channels and prompts
+
+`plugin/ui.bindClientChannels(programs, ports)` binds named private scene
+targets once. Its borrowed `movers` map publishes the existing native
+pose and field observations, without creating a body or clock. Direct
+`evaluate(id, observation)` retains a caller's own time, delta and copied
+values. Sky uses native winch and lift observations; Signal uses its
+original frame-delta bucket ramp and boot-only oil initialization.
+
+Call `bindPrompts(bind)` in the original input-binding phase. It creates
+the ordered `interactables`; `prompt(id)` returns their actual spots.
+`updateMovers(pose)` evaluates only copied-pose prompts. Native views
+remain driven by the existing mover callback. `view(id)` lends the
+original view lane. Unknown identities and repeated prompt binding
+refuse; native owner, target, clock and authority checks remain intact.
+
+The former single-user `moverChannelView`, `moverChannelViews` and
+`moverChannelPrompts` exports are retired; both shards use the defining
+`bindClientChannels` export directly.

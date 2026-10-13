@@ -622,30 +622,56 @@ function moverChannelValues(reads: readonly string[], pose: MoverPose, fields: R
   });
 }
 
-/** Project copied mover observations through an admitted visual program; native bodies and script clocks stay external. */
-export function moverChannelView(program: ClientChannelProgram, targets: ReadonlyMap<string, unknown>,
-  observed?: (frame: ClientChannelFrame) => void): MoverView {
-  if (program.mover === undefined) throw new Error('Missing declared mover channel source');
-  const view = createClientChannelView(program, targets);
-  return { pose: (pose, fields) => {
-    const values = moverChannelValues(view.reads, pose, fields);
-    view.evaluate({ time: 0, delta: 0, values }); observed?.(view.frame);
-  } };
-}
-
-/** Bind declared visual programs to borrowed native movers without allocating bodies, clocks or authority. */
-export function moverChannelViews(programs: readonly ClientChannelProgram[], targets: ReadonlyMap<string, unknown>,
-  nativeOwners: readonly string[], observed?: (id: string, frame: ClientChannelFrame) => void): ReadonlyMap<string, MoverView> {
-  if (nativeOwners.length > 32 || new Set(nativeOwners).size !== nativeOwners.length) throw new Error('Invalid native mover view owners');
-  const views = new Map<string, MoverView>(nativeOwners.map(id => [id, { pose: () => undefined }]));
-  const bound = new Set<string>();
-  for (const program of programs) {
-    const id = program.mover;
-    if (id === undefined || program.bindings === undefined) continue;
-    if (!views.has(id) || bound.has(id)) throw new Error('Mover channels require one borrowed native owner');
-    bound.add(id); views.set(id, moverChannelView(program, targets, frame => { observed?.(id, frame); }));
+/** Declared visual channels and input prompts, with clocks lent by their existing owners. */
+export function bindClientChannels(programs: readonly ClientChannelProgram[], ports: {
+  readonly targets: ReadonlyMap<string, unknown>; readonly nativeOwners?: readonly string[];
+  readonly kernels?: ClientGeometryKernels; readonly observed?: (id: string, frame: ClientChannelFrame) => void;
+}): {
+  readonly movers: ReadonlyMap<string, MoverView>; readonly interactables: readonly Interactable[];
+  readonly evaluate: (id: string, observation: ClientChannelObservation) => void;
+  readonly view: (id: string) => ReturnType<typeof createClientChannelView>;
+  readonly prompt: (id: string) => Interactable;
+  readonly bindPrompts: (bind: Parameters<typeof createClientChannelPrompt>[1]) => void;
+  readonly updateMovers: (pose: (id: string) => MoverPose) => void;
+} {
+  const owners = ports.nativeOwners ?? [];
+  if (owners.length > 32 || new Set(owners).size !== owners.length) throw new Error('Invalid native mover view owners');
+  const rows = parseClientChannels(programs), movers = new Map<string, MoverView>(owners.map(id => [id, { pose: () => undefined }]));
+  const views = new Map<string, ReturnType<typeof createClientChannelView>>(), bound = new Set<string>();
+  for (const row of rows) {
+    if (row.bindings === undefined && row.geometry === undefined) continue;
+    const view = createClientChannelView(row, ports.targets, ports.kernels); views.set(row.id, view);
+    if (row.mover === undefined) continue;
+    const id = row.mover;
+    if (!movers.has(id) || bound.has(id)) throw new Error('Mover channels require one borrowed native owner');
+    bound.add(id); movers.set(id, { pose: (pose, fields) => {
+      view.evaluate({ time: 0, delta: 0, values: moverChannelValues(view.reads, pose, fields) }); ports.observed?.(id, view.frame);
+    } });
   }
-  return views;
+  const prompts = new Map<string, ReturnType<typeof createClientChannelPrompt>>();
+  let promptRows: readonly { id: string; lane: ReturnType<typeof createClientChannelPrompt> }[] = [];
+  let interactables: readonly Interactable[] = Object.freeze([]), promptsBound = false;
+  return Object.freeze({ movers, get interactables() { return interactables; },
+    view: (id: string) => { const view = views.get(id); if (view === undefined) throw new Error('Unknown declared visual channel'); return view; },
+    prompt: (id: string) => { const prompt = prompts.get(id); if (prompt === undefined) throw new Error('Unknown declared prompt channel'); return prompt.spot; },
+    evaluate: (id: string, observation: ClientChannelObservation) => {
+      const view = views.get(id), prompt = prompts.get(id);
+      if (view === undefined && prompt === undefined) throw new Error('Unknown declared client channel');
+      view?.evaluate(observation); prompt?.evaluate(observation);
+    },
+    // Bind in the caller's original phase: no service, input, body or clock is installed here.
+    bindPrompts: (bind: Parameters<typeof createClientChannelPrompt>[1]) => {
+      if (promptsBound) throw new Error('Declared prompts are already bound');
+      const next = rows.flatMap(row => row.prompt === undefined ? [] : [{ row, lane: createClientChannelPrompt(row, bind) }]);
+      for (const { row, lane } of next) prompts.set(row.id, lane);
+      promptRows = next.flatMap(({ row, lane }) => row.mover === undefined ? [] : [{ id: row.mover, lane }]);
+      interactables = Object.freeze(next.map(({ lane }) => lane.spot)); promptsBound = true;
+    },
+    // Native views are published by the existing mover callback; only copied-pose prompts evaluate here.
+    updateMovers: (pose: (id: string) => MoverPose) => {
+      for (const row of promptRows) row.lane.evaluate({ time: 0, delta: 0, values: moverChannelValues(row.lane.reads, pose(row.id), {}) });
+    },
+  });
 }
 
 /** A channel-owned prompt: copied coordinates plus a separately bound real input action. */
@@ -668,20 +694,6 @@ export function createClientChannelPrompt(input: unknown,
   };
   return Object.freeze({ spot, reads: lane.reads, evaluate });
 }
-/** Normal input prompts driven only by admitted copied mover poses; evaluating them never commands a mover. */
-export function moverChannelPrompts(programs: readonly ClientChannelProgram[],
-  bind: (action: NonNullable<ClientChannelProgram['prompt']>['action']) => (spot: Interactable) => void): {
-    readonly interactables: readonly Interactable[]; readonly update: (pose: (id: string) => MoverPose) => void;
-  } {
-  const rows = parseClientChannels(programs).flatMap(program => {
-    if (program.prompt === undefined || program.mover === undefined) return [];
-    return [{ id: program.mover, lane: createClientChannelPrompt(program, bind) }];
-  });
-  return Object.freeze({ interactables: Object.freeze(rows.map(row => row.lane.spot)), update: (pose: (id: string) => MoverPose) => {
-    for (const row of rows) row.lane.evaluate({ time: 0, delta: 0, values: moverChannelValues(row.lane.reads, pose(row.id), {}) });
-  } });
-}
-
 /** A quest's coin reward: the burst that flies the coins to the player, `pay`, which pays once per save, and `spawn`, any other coins through the same burst. */
 export interface QuestReward { readonly burst: CoinBurst; readonly pay: () => undefined; readonly spawn: (amount: number, toast: string) => void }
 

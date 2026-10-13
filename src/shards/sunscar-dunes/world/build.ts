@@ -2,7 +2,7 @@ import { InteractionRules } from '@wildshard/game/quest/interactionRows';
 import { PointLight, type Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { createClientChannelView, createClientChannelPrompt } from '@wildshard/game/plugin/ui';
+import { bindClientChannels } from '@wildshard/game/plugin/ui';
 import type { SignalDunesPlugin } from '../plugin';
 import source from '../runtime/source';
 
@@ -64,9 +64,9 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   // The well: a heavy crack on the crank hauls the bucket up; then take the oil jar.
   const programs = source.clientChannels;
   if (programs?.length !== 2) throw new Error('Missing declared bucket motion');
-  const lift = createClientChannelView(programs[0], new Map<string, unknown>([['bucket', wellParts.bucket], ['rope', wellParts.rope]]));
-  lift.evaluate({ time: 0, delta: 0, values: [Number(flags.has(FLAG.oil)), Number(rules.has('raised')), wellParts.drop] });
-  const prompt = createClientChannelPrompt(programs[1], action => {
+  const channels = bindClientChannels(programs, { targets: new Map<string, unknown>([['bucket', wellParts.bucket], ['rope', wellParts.rope]]) });
+  channels.evaluate(programs[0]?.id ?? '', { time: 0, delta: 0, values: [Number(flags.has(FLAG.oil)), Number(rules.has('raised')), wellParts.drop] });
+  channels.bindPrompts(action => {
     if (action.kind !== 'named' || action.name !== 'sunscar.well.take') throw new Error('Unknown well prompt action');
     return spot => {
       const result = rules.run('well');
@@ -74,8 +74,8 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
       wellParts.jar.visible = false; spot.label = STRINGS.oilTaken; toast(ctx, STRINGS.oilGot);
     };
   });
-  prompt.evaluate({ time: 0, delta: 0, values: [wellParts.jarAt.x, wellParts.jarAt.y, wellParts.jarAt.z] });
-  const wellSpot = prompt.spot;
+  channels.evaluate(programs[1]?.id ?? '', { time: 0, delta: 0, values: [wellParts.jarAt.x, wellParts.jarAt.y, wellParts.jarAt.z] });
+  const wellSpot = channels.prompt(programs[1]?.id ?? '');
   const well: SignalWorld['well'] = { ...wellParts, get raised() { return rules.has('raised'); }, spot: wellSpot, pull: () => {
     if (!rules.run('crank').ok) return false; wellSpot.label = STRINGS.takeOil; return true;
   } };
@@ -151,7 +151,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
     // round 21 (seat C: the fire's orange turned the violet sand under B's wagon red-pink): the lantern's light amber-yellow
     wayLight.color.setHex(gain === WAY_LIGHT ? 0xff7a30 : 0xffd27a); // round 23: yellower (seat B: B's pool still h356)
     if (near) { wayLight.position.copy(near).setY(near.y + (gain === WAY_LIGHT ? 0.5 : 0)); wayLight.intensity = gain * (1 + Math.sin(t * 11) * 0.07 + Math.sin(t * 23 + 0.7) * 0.05); } else wayLight.intensity = 0;
-    lift.evaluate({ time: t, delta: dt, values: [Number(flags.has(FLAG.oil)), Number(well.raised), wellParts.drop] });
+    channels.evaluate(programs[0]?.id ?? '', { time: t, delta: dt, values: [Number(flags.has(FLAG.oil)), Number(well.raised), wellParts.drop] });
       if (!fire.lit) return;
     const flick = 1 + Math.sin(t * 13) * 0.06 + Math.sin(t * 29 + 1.3) * 0.04;
     tower.light.intensity = TOWER_LIGHT * flick;

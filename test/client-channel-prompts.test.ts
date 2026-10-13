@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { Vector3 } from 'three';
 import { ClientChannels } from '../src/sdk/clientChannels';
-import { createClientChannelPrompt, moverChannelPrompts } from '../src/game/plugin/ui';
+import { createClientChannelPrompt, bindClientChannels } from '../src/game/plugin/ui';
 import { parseClientChannels } from '@wildshard/format/clientChannels';
 import { SKY_LIFT_PROMPTS } from '../src/shards/far-reach/data/liftPrompts';
 import entries from '../src/shards/far-reach/data/islets.generated.json';
@@ -10,7 +10,8 @@ import { APOTHEM } from '../src/shards/far-reach/data/layout';
 import { SIGNAL_BUCKET_CHANNELS } from '../src/shards/sunscar-dunes/data/bucketMotion';
 
 it('projects all original lift prompts exactly at both stops, mid-travel and the strict distance boundary', () => {
-  const actions: unknown[] = [], calls = moverChannelPrompts(SKY_LIFT_PROMPTS, action => () => { actions.push(action); });
+  const actions: unknown[] = [], calls = bindClientChannels(SKY_LIFT_PROMPTS, { targets: new Map() });
+  calls.bindPrompts(action => () => { actions.push(action); });
   expect(calls.interactables).toHaveLength(12);
   for (const [index, entry] of entries.entries.entries()) {
     const h = new Vector3(entry.dock.x - entry.rest.x, 0, entry.dock.z - entry.rest.z).normalize();
@@ -20,7 +21,7 @@ it('projects all original lift prompts exactly at both stops, mid-travel and the
     expect([ride.radius, down.radius, up.radius]).toEqual([ISLET.islet.r * APOTHEM + 0.05, 3, 3]);
     for (const p of [entry.rest, entry.dock, { x: entry.rest.x, y: (entry.rest.y + entry.dock.y) / 2, z: entry.rest.z },
       ...[0.000999999999, 0.001, 0.001000000001].map(delta => ({ x: entry.rest.x + delta, y: entry.rest.y, z: entry.rest.z }))]) {
-      calls.update(id => ({ position: id === `far.islet.${entry.edge}` ? p : entries.entries[0]?.rest ?? p, euler: { x: 0, y: 0, z: 0 }, enabled: true }));
+      calls.updateMovers(id => ({ position: id === `far.islet.${entry.edge}` ? p : entries.entries[0]?.rest ?? p, euler: { x: 0, y: 0, z: 0 }, enabled: true }));
       const atRoad = Math.hypot(p.x - entry.rest.x, p.y - entry.rest.y, p.z - entry.rest.z) < 0.001;
       const atTop = Math.hypot(p.x - entry.dock.x, p.y - entry.dock.y, p.z - entry.dock.z) < 0.001;
       expect(ride.position.toArray()).toEqual([p.x, atRoad || atTop ? p.y + 1 : -1e5, p.z]);
