@@ -7,7 +7,7 @@
 | Signal Dunes | 70.7 % → **47.9 %** | ≤ 824 lines | **80 / 0** ✔ |
 | Sky Reach | 78.4 % → **54.4 %** | ≤ 1355 lines | 0 (island tiles: sp-o65) / **0** ✔ |
 
-**Signal meets Jake's port bar (tiles + 0 private binaries)**; Sky has 0 private binaries, tiles pending. Physics from authored rows (G350, `e6f5078d8`, `3ed995b80`), navigation as format rows (`c9f6e59be`); content-gate issue left: "trusted runtime owns simulation". Game exports 104 (from 328); `plugin/` 20 → 14.
+**Signal meets Jake's port bar (tiles + 0 private binaries)**; Sky has 0 private binaries, tiles pending. Physics from authored rows (G350, `e6f5078d8`, `3ed995b80`), navigation as format rows (`c9f6e59be`); content-gate issue left: "trusted runtime owns simulation". `plugin/` 20 → 14.
 **CI red since 02:01Z, prod stale (`957b05e6`): sp-x7 fixes first** (Jake `9699623e2`). Push: debt shrink-only at commit; generated files + native/maps made at commit (`9c57a9808`), never at push; local gate ≤ 2 min; pre-commit warm ~10 s, cold 15 s open (sp-x5). Never stop the line.
 
 **Fleet (4 Opus + 3 Codex):** Codex sp-x7 CI/push, sp-x6 navigation, sp-x5 bench-max. Opus sp-o65 Sky island tiles, sp-o75 looks (all 9 shards now have near views, `17279180a`), sp-o80 G350 Pine/Nalati (Nine `b54b181de` + Driftwood `37a702bdc` done), sp-o79 lash/tassel bakes + Sky one-shard exports. Weapons → shared rows: no honest two-user cut (sp-o78; design §4.5 keeps lash and cone as trusted one-user families).
