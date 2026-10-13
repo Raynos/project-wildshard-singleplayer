@@ -1,9 +1,9 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**W1 (Sky + Signal, 90/10; G403/G404): components closed 1 of 9 (C4).** Custom lines Sky/Signal (clean generated `cfea55867`, 22:20Z): C1 675/364 · C2 564/277 · C3 224/115 · C4 0/0 · C5 128/68 · C6 221/340 · C7 216/0 · C8 16/21 · C9 306/114. **Sky 34.7 %, Signal 31.5 %**; 22:00Z forecast was ~33/32 (Sky behind, Signal ahead).
-**22:20Z. PORT % (G390, `351e3f8bc`): avg 44.7 %** (Template 100, Signal 74.9, Sky 69.7, Nine 48.3, Nalati 10, Pine 10, Driftwood 0). Finish line: 0 of 7 at 80/20.
+**W1 (Sky + Signal, 90/10; G403/G404): components closed 1 of 9 (C4).** Custom lines Sky/Signal (clean generated `a345b6d6b`, 22:51Z): C1 666/362 · C2 565/275 · C3 224/115 · C4 0/0 · C5 128/68 · C6 137/257 · C7 212/0 · C8 16/21 · C9 306/114. **Sky 33.3 %, Signal 29.4 %** (22:00Z forecast ~33/32 met).
+**22:51Z. PORT % (G390, `351e3f8bc`): avg 44.7 %** (Template 100, Signal 74.9, Sky 69.7, Nine 48.3, Nalati 10, Pine 10, Driftwood 0).
 
-**Nine ported** (34 L0 tiles, 0 private bins). **Nalati 0 private bins** (`d3bdac368`).
+**Waves (G413):** W1 Sky + Signal (now) → W2 Pine + Driftwood (after W1 at 90/10) → W3 Nalati + Nine (after W2 at 80/20); M2 3×3 grid closes with W3.
 **G405 landed `95528caef`:** 6 cheap jobs / 15 files build in CI + deploy; switches ship straight to public.
 **FPS RED: main Sky road travel p95 41/36 on `3afdcb608` (was 34/34 on `7ca8b75f8`), bisect sp-o141; Sky library held.** **LIVE `a399c36f3-mv750iu1` (20:32Z; full CI + exact four-leg smoke green; newest CI-green selector advancing on its own).** Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: Sim Nine max fixed (`77bfbba70`: ~100 ms), Pine desktop PASS (`4b239382f`…`65e123136`); Sim travel still fails Pine 57–63, Driftwood 42–50, Far 40–47 (Nalati 34–35); left = texture uploads (KTX2 ask) + unsplit shard builds. **Whole products: Template, Pastel (Linux-exact), Signal (all Linux-exact).**
 

@@ -204,3 +204,5 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | push gate typecheck: effectState.singlePass read through the raw graph type's index signature (TS4111 ×3) | `dc8b4a0f8` | fixed `a891c520f` | wildshard-new |
 | 2026-10-13 | Sky map stamp stale on HEAD: `59f1a1e69` changed map inputs (map.json, crownInstances) but kept stamp 634eed65 (key is now b9e195d2); no hook caught a source-side key change without a stamp change | `59f1a1e69` | stamp fixed in `c1bdc0ff0`; guard gap fixed `98d74336b` | sp-x8, sp-x7 |
 | 2026-10-13 | fps: main Sky road travel regressed: `3afdcb608` plain Sim travel p95 41 / 36 at load ≤ 8 (FAIL), was 34 / 34 on `7ca8b75f8`; long hooks activate 103, afterPlay 78, world 71 | one of `7ca8b75f8..3afdcb608` | pending: bisect (Opus sp-o141) | sp-o141 |
+| 2026-10-13 | 7 Signal contract tests fail at prepareFireFx (fixture has no runtime world) | `cfea55867` | fixed `c653ad56b` | sp-x6 |
+| 2026-10-13 | hybrid inventory test expects 85, gets 86 (the fire flipbook KTX2 is a new product output) | `cfea55867` | fixed `960e132ee` | sp-x5 |
