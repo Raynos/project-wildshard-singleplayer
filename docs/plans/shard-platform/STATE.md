@@ -20,7 +20,6 @@
 3. Parity rename `far.boss`→`far.roc` (`586f62fa2`).
 4. Missing Sky models stand undrawn, no code stand-ins (`d5267c284`).
 5. Metric per-export (`ddf5c4dea`).
-7. Viewmodel ≤ 33 px / 1.1 M diffs accepted (`0e00aa4e7`).
 8. Entryway proof (`add1035d6`) credits Sky's lift proof to Nine: Sky −120 is ~−20.
 11. Signal dusk proven by uniforms at 11 values (`d9112c821`); host state may drive `look.curves`.
 10. New SDK export `./bake` (`6d2161e6f`); Signal pieces stay GLBs.
@@ -37,4 +36,4 @@
 
 **Jake picks waiting:** 80/20 reach: **S1** quest state machines as AssemblyScript hooks / **S2** shaders as graph rows / **S3** accept ~25–30 % Signal, ~35 % Sky; recommend S1 + S3. Signal look A/B (`art/signal-look/round-1/`), recommend A. Near `art/near-tier/round-3/`; hero r4 `art/main-menu-hero/round-4/board.jpg` (recommend SQ-DW-a + LS-DW-c; LOOKS LINE, Jake: "I don't want to forget this main hero thing"). 
 
-Paused: frame floor, SF22, SF57, SF67. Reds: `red-green.md`.
+Paused: frame floor, SF22, SF57, SF67.
