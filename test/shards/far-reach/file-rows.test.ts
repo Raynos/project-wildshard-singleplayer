@@ -5,9 +5,8 @@ import * as files from '../../../src/shards/far-reach/data/files';
 import manifest from '../../../src/shards/far-reach/manifest';
 import { BOOT_SOURCES, BOOT_FILES, LATE_READS } from '../../../src/shards/far-reach/data/boot';
 import { bootSourceFiles, bootFileList } from '../../../src/engine/boot/filePolicy';
+import inventory from '../../fixtures/sky-vane-boot-inventory.json' with { type: 'json' };
 import { PREPARED_MODELS_URL } from '../../../src/shards/far-reach/data/modelFrames';
-
-const withoutPrepared = (source: ReturnType<typeof bootSourceFiles>): ReturnType<typeof bootSourceFiles> => ({ ...source, props: source.props.filter(url => url !== PREPARED_MODELS_URL) });
 
 it('declares the empty boot audio inventory as serializable data', () => {
   expect(manifest.boot?.audio).toEqual([]);
@@ -19,10 +18,16 @@ it('retains every ordered desktop/phone image/KTX2 boot URL and late read', () =
   const boot = bootFileList(BOOT_FILES, 'phone');
   for (const source of sources) expect(source.props.filter(url => url === PREPARED_MODELS_URL)).toEqual([PREPARED_MODELS_URL]);
   expect(boot.filter(url => url === PREPARED_MODELS_URL)).toEqual([PREPARED_MODELS_URL]);
-  // The only addition is the retained geometry bake; every original URL keeps its exact order and GPU policy.
-  const original = sources.map(withoutPrepared);
-  const digest = createHash('sha256').update(JSON.stringify({ sources: original, boot: boot.filter(url => url !== PREPARED_MODELS_URL), late: LATE_READS })).digest('hex');
-  expect(digest).toBe('e3fa0ea8057493831588a0d385bad4ea7ae891156318dc7ebaa4571bef08b288');
+  // b89675ebe replaces the raw vane/unused keeper with final post/rotor GLBs.
+  // Pin the current full inventory and order; never substitute retired URLs.
+  for (const source of sources) {
+    expect(source.props.slice(0, 2)).toEqual([files.MODEL_URLS['vane-post'], files.MODEL_URLS['vane-rotor']]);
+    expect(source.props).not.toContain(files.MODEL_URLS['wind-vane']);
+    expect(source.props).not.toContain(files.MODEL_URLS.keeper);
+  }
+  const current = { sources, boot, late: LATE_READS };
+  expect(current).toStrictEqual(inventory);
+  expect(createHash('sha256').update(JSON.stringify(current)).digest('hex')).toBe('bd2174b9db675ff041e752514c95a951dfd5ee2edffd70e25dd8330844dfaf38');
 });
 it('publishes only finite JSON data and resolves every model, rig and generated piece name', () => {
   for (const value of Object.values(files)) {
