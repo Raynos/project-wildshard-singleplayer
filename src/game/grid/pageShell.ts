@@ -1,4 +1,5 @@
 import type { LevelSpec } from '@wildshard/engine/level/spec';
+import { configureLevel, selectedLevel } from '@wildshard/engine/level/selection';
 import { type ShardContext, type PageMode, ShardPlugin } from '../plugin/context';
 
 import type { ShardManifest } from '../shard/manifest';
@@ -38,6 +39,14 @@ export function gridPageShell(source: ShardManifest): ShardManifest {
 /** The neutral page cannot read a home terrain/navmesh bake merely because it keeps the picker's identity. */
 export function gridPageShellLevel(shell: ShardManifest): LevelSpec {
   return { ...toLevelSpec(shell), id: 'platform.grid', boundary: { visible: false, walls: false } };
+}
+
+/** Select the neutral engine level before its staged boot; catalogue identity and each resident's frame stay separate. */
+export function selectGridPageShell(shell: ShardManifest): () => void {
+  const previous = selectedLevel(), level = gridPageShellLevel(shell);
+  if (previous === null) throw new Error('Grid shell requires a configured page level');
+  configureLevel(level);
+  return () => { if (selectedLevel() === level) configureLevel(previous); };
 }
 
 /** Mandatory shell equipment is inert; actual shard equipment lives only in the owned region's kit scope. */

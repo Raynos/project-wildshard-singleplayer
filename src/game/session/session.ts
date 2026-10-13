@@ -42,7 +42,7 @@ import { installProductNavigation } from '../shardfile/productNavigation';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';
 import type { MemoryAdmission } from '@wildshard/format/product';
-import { gridPageShell, gridPageShellLevel, GridPageShellPlugin, useOwnedGridHome } from '../grid/pageShell';
+import { gridPageShell, gridPageShellLevel, selectGridPageShell, GridPageShellPlugin, useOwnedGridHome } from '../grid/pageShell';
 
 declare const __BUILD_ID__: string;
 
@@ -77,6 +77,7 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
       }
     }
     const scope = new Scope('level');
+    if (session.ownedGridHome) scope.onDispose(selectGridPageShell(pageManifest));
     // Register first: the scope's later consumer cleanup runs before the final early boot reference is released.
     if (options.residency !== undefined) scope.onDispose(() => { options.residency?.dispose(); });
     if (options.memory !== undefined) scope.onDispose(() => { options.memory?.dispose(); });
