@@ -23,3 +23,17 @@ it('cannot overlay native outputs, source or configuration under a generated tab
   expect(canOverlayGuardTable('scripts/README.md', 'old', 'new')).toBe(true);
   expect(canOverlayGuardTable('lint/shard-words.generated.json', '{}', '{"new":true}')).toBe(true);
 });
+
+it('retains only bound existing witness headers with an identical complete outcome', () => {
+  const path='test/proof/fixture/checkpoints/manifest.json';
+  const before=JSON.stringify({inputs:'abc1',outcome:{health:7,events:['hit']},checkpoint:'same'},null,2);
+  const after=before.replace('abc1','abc2');
+  expect(canOverlayGuardTable(path,before,after)).toBe(false);
+  expect(canOverlayGuardTable(path,before,after,true)).toBe(true);
+  expect(canOverlayGuardTable(path,before,after.replace('"health": 7','"health": 6'),true)).toBe(false);
+  expect(canOverlayGuardTable(path,before,after.replace('abc2','invalid hash'),true)).toBe(false);
+  expect(canOverlayGuardTable(path,before,'{}',true)).toBe(false);
+  for(const other of ['test/proof/fixture/compatibility.json','src/shards/pine-hollow/runtime/physics.baked.json','src/engine/source.ts','.oxlintrc.json']) {
+    expect(canOverlayGuardTable(other,before,after,true)).toBe(false);
+  }
+});

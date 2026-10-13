@@ -29,11 +29,12 @@ export function recordCommitProduced(root, sourceTree, outputs, base) {
   writeFileSync(file,JSON.stringify({base,sourceTree,tree,paths}));
 }
 /** Admit only exactly produced outputs of this same parent and complete index tree.
- * @param {string} root @param {string} tree @param {string[]} wanted */
-export function verifyCommitProduced(root, tree, wanted) {
+ * @param {string} root @param {string} tree @param {string[]} wanted @param {string} [expectedSourceTree] */
+export function verifyCommitProduced(root, tree, wanted, expectedSourceTree) {
   const file = location(root,tree);
   if (!existsSync(file)) return false;
   const receipt = JSON.parse(readFileSync(file,'utf8'));
+  if (expectedSourceTree !== undefined && receipt.sourceTree !== expectedSourceTree) return false;
   if (receipt.tree !== tree || receipt.base !== git(root,['rev-parse','HEAD']) || !/^[a-f0-9]{40}$/u.test(receipt.sourceTree) || !Array.isArray(receipt.paths)) return false;
   const actual = git(root,['diff','--name-only','--no-renames',receipt.sourceTree,tree]).split('\n').filter(Boolean);
   if (JSON.stringify(actual) !== JSON.stringify(receipt.paths) || actual.some(path => !permitted(root,receipt.sourceTree,path))) return false;

@@ -10,6 +10,8 @@ import { isDeepStrictEqual } from 'node:util';
 import { beginGuardRequirement, completeGuardRequirement, compareCounts, hardRules, readLintConfig } from './guard-counts.mjs';
 import { checkShardLayout, shardEntries } from './check-shards.mjs';
 import { checkPlatformRatchets, PLATFORM_LISTS } from './check-platform-ratchets.mjs';
+import { verifyCommitProduced } from './commit-produced.mjs';
+import { isWitnessManifest, manifestOutcome } from './witness-manifests.mjs';
 import { guardSnapshot } from './guard-snapshot.mjs';
 import { materializeGuardData } from './precommit-generated-data.mjs';
 import { checkLegacyInventory, legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
@@ -50,7 +52,14 @@ export function extractGuardArchive(root, tree, paths, destination) {
 const STAGED_TABLES = new Set(['lint/ask-ids.json', 'lint/shard-words.generated.json', 'scripts/README.md']);
 
 /** Source analysis can survive generated debt reductions, never policy or source changes. */
-export function canOverlayGuardTable(path, before, after) {
+export function canOverlayGuardTable(path, before, after, producedWitness = false) {
+  if (producedWitness && isWitnessManifest(path)) {
+    try {
+      const inputs = JSON.parse(after).inputs;
+      return typeof inputs === 'string' && /^[a-f0-9]+$/u.test(inputs)
+        && manifestOutcome(before) === manifestOutcome(after);
+    } catch { return false; }
+  }
   if (STAGED_TABLES.has(path)) return true;
   if (path !== 'lint/ratchet.json') return false;
   try {
@@ -193,11 +202,15 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
       const final = run(root, 'git', ['write-tree']).trim();
       if (final !== tree) {
         const moved = run(root, 'git', ['diff-tree', '-r', '--no-renames', '--name-only', '-z', tree, final]).split('\0').filter(Boolean);
+        const witnesses = moved.filter(isWitnessManifest);
+        let producedWitness = false;
+        try { producedWitness = witnesses.length > 0 && verifyCommitProduced(root, final, witnesses, tree); }
+        catch { /* Unbound/corrupt receipts require the full final-tree guard. */ }
         const overlay = moved.every(path => {
-          if (!STAGED_TABLES.has(path) && path !== 'lint/ratchet.json') return false;
+          if (!STAGED_TABLES.has(path) && path !== 'lint/ratchet.json' && !(producedWitness && isWitnessManifest(path))) return false;
           if (spawnSync('git', ['cat-file', '-e', `${tree}:${path}`], { cwd: root }).status !== 0
             || spawnSync('git', ['cat-file', '-e', `${final}:${path}`], { cwd: root }).status !== 0) return false;
-          return canOverlayGuardTable(path, run(root, 'git', ['show', `${tree}:${path}`]), run(root, 'git', ['show', `${final}:${path}`]));
+          return canOverlayGuardTable(path, run(root, 'git', ['show', `${tree}:${path}`]), run(root, 'git', ['show', `${final}:${path}`]), producedWitness);
         });
         if (!overlay) {
           await Promise.allSettled(children);
@@ -211,6 +224,9 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
         if (vocabularyChanged) await Promise.allSettled([lint]);
         console.log(`precommit-guards: overlay ${moved.length} final tables; source analysis retained`);
         for (const path of moved) {
+          // Witness outcomes are unchanged and outside guardSnapshot's source
+          // inventory. Their exact produced headers need no source materialization.
+          if (isWitnessManifest(path)) continue;
           const target = join(scratch, path), present = spawnSync('git', ['cat-file', '-e', `${final}:${path}`], { cwd: root }).status === 0;
           if (present) writeFileSync(target, spawnSync('git', ['show', `${final}:${path}`], { cwd: root, maxBuffer: 64 * 1024 * 1024 }).stdout);
           else rmSync(target, { force: true });

@@ -343,3 +343,21 @@ Fifteen focused checks plus narrowed types/touched lint passed: final added,
 changed and generated rows still hit the ceiling, opaque rows still refuse,
 both failing children settle, no-cache generation works, and real isolated
 runner/index/environment/foreign-byte cases stay exact.
+
+## Retain source analysis after a bound witness header (sp-x5)
+
+CALL: reuse completed source analysis only for an existing input-only
+witness manifest whose full outcome is identical and whose producer receipt
+binds the runner's original staged source tree, complete final tree and
+unchanged parent. Missing/corrupt receipts and source/config/native/map
+changes still rerun the final-tree guard. All final policies remain mandatory.
+
+Matched private hooks on `95250dba7`: **70.57 -> 48.92 s** under load; source
+lint ran twice before and once after. Inputs took 51.110 / 47.242 s, dominated
+by repeated Nine layout generation (30.830 / 31.724 s). This removes duplicate
+guard work; the cold <=10 s target remains OPEN. Both real Far witness
+recorders preserved complete outcomes, changing only input provenance.
+
+Eight focused receipt/overlay/hard-rule checks, narrowed types and touched
+lint passed. Wrong source-tree identity, moved parent, changed outcomes,
+unbound receipts and native/source/config overlays refuse retention.

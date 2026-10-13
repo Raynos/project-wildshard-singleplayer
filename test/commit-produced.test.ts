@@ -30,6 +30,8 @@ it('admits only produced outputs of the exact source/index/parent and keeps sour
     recordCommitProduced(root,source,[manifest],base);
     const produced = git('write-tree');
     expect(verifyCommitProduced(root,produced,[manifest])).toBe(true);
+    expect(verifyCommitProduced(root,produced,[manifest],source)).toBe(true);
+    expect(verifyCommitProduced(root,produced,[manifest],git('rev-parse',`${base}^{tree}`))).toBe(false);
     expect(verifyCommitProduced(root,produced,['src/game/source.ts'])).toBe(false);
     expect(() => precommitGenerated(root)).not.toThrow();
     const guard = () => spawnSync('python3',[resolve('scripts/check-commit-index.py')],{cwd:root,encoding:'utf8',env:{...process.env,WS_COMMIT_INTENT:JSON.stringify({base,paths:['src/game/source.ts']})}});
@@ -42,5 +44,6 @@ it('admits only produced outputs of the exact source/index/parent and keeps sour
     const next = git('-c','user.name=Fixture','-c','user.email=fixture@example.com','commit-tree',git('rev-parse',`${base}^{tree}`),'-p',base,'-m','fixture');
     git('update-ref','HEAD',next,base);
     expect(verifyCommitProduced(root,produced,[manifest])).toBe(false);
+    expect(verifyCommitProduced(root,produced,[manifest],source)).toBe(false);
   } finally {rmSync(root,{recursive:true,force:true});}
 });

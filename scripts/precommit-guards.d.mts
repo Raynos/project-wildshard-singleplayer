@@ -4,4 +4,4 @@ export function extractGuardArchive(root: string, tree: string, paths: readonly 
 export function precommitGuards(root?: string, inputsDone?: string): Promise<void>;
 
 /** Permit source-independent final tables; measured debt may only shrink with identical policy. */
-export function canOverlayGuardTable(path: string, before: string, after: string): boolean;
+export function canOverlayGuardTable(path: string, before: string, after: string, producedWitness?: boolean): boolean;
