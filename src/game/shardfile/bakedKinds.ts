@@ -1,7 +1,7 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import type { Material } from '@wildshard/engine/physics/surface';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { DoubleSide, FrontSide, Group, InstancedBufferAttribute, InstancedMesh, MeshStandardMaterial, type Material as DrawMaterial, type Object3D } from 'three';
+import type { ColliderDesc, Piece, PieceCategory } from '@wildshard/engine/world/registry';
+import { DoubleSide, FrontSide, Group, InstancedBufferAttribute, InstancedMesh, MeshStandardMaterial, Object3D, type Material as DrawMaterial } from 'three';
 
 /**
  * SHARD-PLATFORM SF72 (SF67 fix 3, "bake the code-built worlds"): the client side of a shard's instanced-kinds bake
@@ -143,3 +143,47 @@ export function bakedWorld<P extends string, K extends BakedKindRow>(pieces: Rea
     },
   };
 }
+
+/**
+ * A world piece as a row (G345): the registry's id, name, catalog tab, source file and surface, and optionally where its
+ * object stands (`at`, turned `yaw` about Y, named `node`), its player mode, and the bake's piece it is drawn from.
+ */
+export interface WorldPieceRow<B extends string = string> {
+  readonly id: string; readonly name: string; readonly category: PieceCategory; readonly file: string;
+  readonly surface?: Material; readonly mode?: Piece['mode']; readonly baked?: B;
+  readonly at?: readonly [number, number, number]; readonly yaw?: number; readonly node?: string;
+}
+/** What a builder hands a row: its object, or a part set with its root and colliders. */
+export type BuiltPiece = Object3D | { readonly root: Object3D; readonly colliders?: ColliderDesc[] };
+/** A piece drawn from a bake: its root and its baked colliders. */
+export interface BakedPart { readonly root: Object3D; readonly colliders: ColliderDesc[] }
+/** A shard's world pieces placed from their rows. */
+export interface WorldPieces {
+  /** Place row `id`'s built object (at its row's pose), add it under the root and register it; `extra` adds fields (colliders, active). */
+  readonly add: <T extends BuiltPiece>(id: string, built: T, extra?: Pick<Piece, 'colliders' | 'active'>) => T;
+  /** Place a row drawn straight from the bake (`baked`): its kinds and its baked colliders. */
+  readonly baked: (id: string) => BakedPart;
+}
+/**
+ * Place world pieces from rows, shared by Signal Dunes and Sky Reach (G345): each row poses its object, adds it under `root`
+ * and registers it with the level's one world registry (`register`, the level's `ctx.piece`), in the order the shard calls.
+ */
+export function worldPieces<B extends string>(register: (piece: Piece) => void, root: Object3D, rows: readonly WorldPieceRow<B>[], bake?: (piece: B) => BakedPart): WorldPieces {
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  const row = (id: string): WorldPieceRow<B> => { const found = byId.get(id); if (found === undefined) throw new Error(`world piece ${id}: no row`); return found; };
+  const add = <T extends BuiltPiece>(id: string, built: T, extra: Pick<Piece, 'colliders' | 'active'> = {}): T => {
+    const r = row(id), object = built instanceof Object3D ? built : built.root, colliders = extra.colliders ?? (built instanceof Object3D ? undefined : built.colliders);
+    if (r.at !== undefined) object.position.set(r.at[0], r.at[1], r.at[2]);
+    if (r.yaw !== undefined) object.rotation.y = r.yaw;
+    if (r.node !== undefined) object.name = r.node;
+    root.add(object);
+    register({ id, name: r.name, category: r.category, file: r.file, object, ...(colliders === undefined ? {} : { colliders }),
+      ...(r.surface === undefined ? {} : { surface: r.surface }), ...(r.mode === undefined ? {} : { mode: r.mode }), ...(extra.active === undefined ? {} : { active: extra.active }) });
+    return built;
+  };
+  return { add, baked: (id) => {
+    const piece = row(id).baked; if (piece === undefined || bake === undefined) throw new Error(`world piece ${id}: not baked`);
+    return add(id, bake(piece));
+  } };
+}
+

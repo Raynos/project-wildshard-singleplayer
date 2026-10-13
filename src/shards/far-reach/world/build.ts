@@ -6,7 +6,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Group, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, STEP, SUNREST, UPDRAFT, VANES, WINCH, WINCH_HOUSE, type Span } from '../data/layout';
+import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, NOTES, PINES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, type Span } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
@@ -18,13 +18,13 @@ import BRIDGE_PHYSICS from '../data/bridgePhysics.generated.json' with { type: '
 import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type: 'json' };
 import { inCube, skyIslesIn } from './skyIsles';
 import { keelIsles, skyIsleModels } from './skyIsleHd';
-import { skyBakedPiece, skyKnollHulls } from './baked';
+import { skyBakedPiece, skyKnollHulls, skyPieces } from './baked';
+import { ownPrimitives } from './resources';
 import { skyline } from './distant';
 import { PALETTE, flat, hoverBridge, ropeBridge, vane, windmill, winch } from './shapes';
 import { bookStand } from './bookStand';
 import { BOOK_STAND } from '../data/bookStand';
 import { KEEPER_STAND } from '../quest/keeper';
-import { ownPrimitives } from './resources';
 import { crownStorm, type CrownStorm } from './storm';
 import { STORM } from '../data/storm';
 import { updraftFx, type UpdraftFx } from '../runtime/looks/windFx';
@@ -109,6 +109,7 @@ const CUT = ISLE_KEEL_CUT;
  */
 export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>): Promise<BuiltWorld> {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
+  const pieces = skyPieces(ctx.piece, root);
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
     keeper: STRINGS.keeper, ruin: STRINGS.ruin, step: STRINGS.step, crown: STRINGS.crown };
   // SF49-g (G183): the four gate isles join the islands (every shape baked, generators/isles.ts); a playable island still
@@ -154,15 +155,12 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>):
   const SKY_ISLE_PINES: Readonly<Record<string, readonly { x: number; z: number; size: number; y: number | null }[]>> = skyIslePines;
   // the firs placed offline (generators/skyIslePines.ts): on a model's turf or not at all
   for (const s of SKY_ISLES) if (half === null || inCube(s, half)) for (const p of SKY_ISLE_PINES[s.id] ?? []) if (p.y !== null) pineAt.push([p.x, p.y, p.z, p.size]);
-  root.add(skyGroup);
-  ctx.piece({ id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE, object: skyGroup });
+  pieces.add('far.sky-isles', skyGroup);
   // the modelled trees (top-10 row 2; none stand when a model did not load)
-  const forest = trees(pineAt) ?? new Group(); root.add(forest);
-  ctx.piece({ id: 'far.pines', name: STRINGS.pines, category: 'props', file: FILE, object: forest });
+  pieces.add('far.pines', trees(pineAt) ?? new Group());
   await pause();
   // the meadow and the roots (loop 2): grass clumps, flowers, stones, hanging roots; no colliders
-  const dress = dressIslands(); root.add(dress.group);
-  ctx.piece({ id: 'far.dressing', name: STRINGS.meadow, category: 'props', file: FILE, object: dress.group });
+  pieces.add('far.dressing', dressIslands().group);
   await pause();
   // the skyline: decorative 3-D islands and waterfalls out past the archipelago, and the windmill isle's fall
   const sky = skyline(ISLES, (isle, a) => skyHd.lipAt(isle, a), skyIsles); root.add(sky);
@@ -191,65 +189,53 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>):
 
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
   const ramp = hoverBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck);
-  ramp.position.set(UPDRAFT.x0, UPDRAFT.y, UPDRAFT.z0); ramp.rotation.set(UPDRAFT_ANGLE, spanYaw(UPDRAFT), 0, 'YXZ'); root.add(ramp);
+  ramp.position.set(UPDRAFT.x0, UPDRAFT.y, UPDRAFT.z0); ramp.rotation.set(UPDRAFT_ANGLE, spanYaw(UPDRAFT), 0, 'YXZ');
+  pieces.add('far.updraft', ramp, { colliders: spanColliders('far.updraft') });
   // the wind column: a spiral of streaks and leaves up the ramp (loop 3; the plugin turns it)
   const wind = updraftFx(UPDRAFT_FX, new Vector3(UPDRAFT.x0, UPDRAFT.y + 2.2, UPDRAFT.z0), new Vector3(UPDRAFT.x1, UPDRAFT.y1 + 2.2, UPDRAFT.z1));
   for (const o of wind.objects) root.add(o); wind.update(0);
   await pause();
-  ctx.piece({ id: 'far.updraft', name: STRINGS.updraft, category: 'buildings', file: FILE, object: ramp, colliders: spanColliders('far.updraft'), surface: 'wood', mode: 'board' });
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
   const state = { raised: false, raising: false };
   const fallen = new Group(), deck = ropeBridge(FALLEN_BRIDGE.id, rope);
-  fallen.add(deck); fallen.position.set(FALLEN_BRIDGE.x0, FALLEN_BRIDGE.y, FALLEN_BRIDGE.z0); fallen.rotation.set(FALLEN_ANGLE, spanYaw(FALLEN_BRIDGE), 0, 'YXZ'); root.add(fallen);
-  ctx.piece({ id: FALLEN_BRIDGE.id, name: STRINGS.fallen, category: 'buildings', file: FILE, object: fallen,
-    colliders: spanColliders(FALLEN_BRIDGE.id), surface: 'wood', active: () => state.raised });
+  fallen.add(deck); fallen.position.set(FALLEN_BRIDGE.x0, FALLEN_BRIDGE.y, FALLEN_BRIDGE.z0); fallen.rotation.set(FALLEN_ANGLE, spanYaw(FALLEN_BRIDGE), 0, 'YXZ');
+  pieces.add(FALLEN_BRIDGE.id, fallen, { colliders: spanColliders(FALLEN_BRIDGE.id), active: () => state.raised });
 
   await pause();
-  const mill = windmill(); mill.group.position.set(MILL.x, 30, MILL.z); mill.group.rotation.y = MILL.yaw; root.add(mill.group);
-  ctx.piece({ id: 'far.windmill', name: STRINGS.mill, category: 'buildings', file: FILE, object: mill.group,
-    colliders: propColliders('far.windmill'), surface: 'stone' });
+  const mill = windmill(); pieces.add('far.windmill', mill.group, { colliders: propColliders('far.windmill') });
 
   await pause();
-  const drum = winch(); drum.position.set(WINCH.x, WINCH.y, WINCH.z); root.add(drum);
-  ctx.piece({ id: 'far.winch', name: STRINGS.winch, category: 'props', file: FILE, object: drum,
-    colliders: propColliders('far.winch'), surface: 'wood' });
+  pieces.add('far.winch', winch(), { colliders: propColliders('far.winch') });
   const winchAt = new Vector3(WINCH.x, WINCH.y + 1.2, WINCH.z);
   const handle: Interactable = { label: STRINGS.turnWinch, position: winchAt, radius: 3, onInteract: () => { if (!state.raised) state.raising = true; } };
 
-  const page = bookStand(false); page.position.set(NOTES.x, NOTES.y, NOTES.z); page.rotation.y = 0.6; root.add(page);
-  ctx.piece({ id: 'far.notes', name: STRINGS.notesName, category: 'props', file: FILE, object: page,
-    colliders: propColliders('far.notes'), surface: 'wood' });
+  pieces.add('far.notes', bookStand(false), { colliders: propColliders('far.notes') });
   // the keeper's own book stand and lantern beside him at the spawn (E399, mockup B)
-  const stand = bookStand(true); stand.position.set(KEEPER_STAND.x, SUNREST.y, KEEPER_STAND.z); stand.rotation.y = KEEPER_STAND.yaw; root.add(stand);
-  ctx.piece({ id: 'far.keeper.stand', name: STRINGS.notesName, category: 'props', file: FILE, object: stand,
-    colliders: [boxDesc({ x: KEEPER_STAND.x, z: KEEPER_STAND.z, hw: BOOK_STAND.footprint, hd: BOOK_STAND.footprint, rot: KEEPER_STAND.yaw, yBottom: stand.position.y, yTop: stand.position.y + BOOK_STAND.height }, 'wood')], surface: 'wood' });
+  const stand = bookStand(true); stand.position.set(KEEPER_STAND.x, SUNREST.y, KEEPER_STAND.z); stand.rotation.y = KEEPER_STAND.yaw;
+  pieces.add('far.keeper.stand', stand, { colliders: [boxDesc({ x: KEEPER_STAND.x, z: KEEPER_STAND.z, hw: BOOK_STAND.footprint, hd: BOOK_STAND.footprint, rot: KEEPER_STAND.yaw, yBottom: stand.position.y, yTop: stand.position.y + BOOK_STAND.height }, 'wood')] });
   const notesAt = new Vector3(NOTES.x, NOTES.y + 1.3, NOTES.z);
   const notes: Interactable = { label: STRINGS.readNotes, position: notesAt, radius: 2.6, onInteract: () => undefined };
 
   await pause();
   const vanes: BuiltWorld['vanes'][number][] = [];
   for (const v of VANES) {
-    const built = vane(); built.group.position.set(v.x, v.y, v.z); root.add(built.group);
-    ctx.piece({ id: `far.vane.${v.id}`, name: STRINGS.vane, category: 'props', file: FILE, object: built.group,
-      colliders: propColliders(`far.vane.${v.id}`), surface: 'wood' });
+    const built = vane(); pieces.add(`far.vane.${v.id}`, built.group, { colliders: propColliders(`far.vane.${v.id}`) });
     vanes.push({ id: v.id, at: new Vector3(v.x, v.y + 3.3, v.z), rotor: built.rotor });
     await pause();
   }
 
   // the arena (loop 4, mockup D): standing stones with wind glyphs, pennant ropes, the compass-rose dais
   // (SF72: built offline, generators/crown.ts → baked/crown.glb; its colliders, the dais and each stone, are the rows')
-  const arena = crownArena(); root.add(arena.group);
+  const arena = crownArena();
   await pause();
-  ctx.piece({ id: 'far.crown.ruin', name: STRINGS.crown, category: 'buildings', file: FILE, object: arena.group, surface: 'stone', colliders: arena.colliders });
+  pieces.add('far.crown.ruin', arena.group, { colliders: arena.colliders });
   // the winch house on the high step (loop 5): the updraft view's landmark
   // (SF72: built offline, generators/winchHouse.ts → baked/winch-house.glb; drawn from the bake)
-  const house = skyBakedPiece('winch-house'); house.root.name = 'far.step.winch-house'; house.root.position.set(WINCH_HOUSE.x, STEP.y, WINCH_HOUSE.z); root.add(house.root);
-  ctx.piece({ id: 'far.step.winch-house', name: STRINGS.winch, category: 'buildings', file: FILE, object: house.root, colliders: house.colliders, surface: 'stone' });
+  pieces.baked('far.step.winch-house');
   // the Roost's nest and spires (loop 4, review H2): the drift rays' island gets its subject
   // (SF72: built offline, generators/roost.ts → baked/roost.glb; drawn from the bake, the sticks' and feathers' tints restored)
-  const nest = skyBakedPiece('roost'); nest.root.name = 'far.roost.nest'; root.add(nest.root);
-  ctx.piece({ id: 'far.roost.nest', name: STRINGS.roost, category: 'props', file: FILE, object: nest.root, colliders: nest.colliders, surface: 'wood' });
+  pieces.baked('far.roost.nest');
   // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
   await pause();
   const stormTex = seaTexture(); ctx.scope.own(stormTex);

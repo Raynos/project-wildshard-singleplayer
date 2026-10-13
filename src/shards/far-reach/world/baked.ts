@@ -1,6 +1,7 @@
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { bakedWorld, type BakedKindRow, type DrawnBakedPiece } from '@wildshard/game/shardfile/bakedKinds';
-import { BufferGeometry, DataTexture, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, UnsignedByteType, type InstancedMesh } from 'three';
+import { bakedWorld, worldPieces, type BakedKindRow, type DrawnBakedPiece, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
+import { BufferGeometry, DataTexture, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, UnsignedByteType, type InstancedMesh, type Object3D } from 'three';
+import { SKY_PIECES } from '../data/pieces';
 import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
 import winchHouse from '../data/winchHouse.json' with { type: 'json' };
 import roost from '../data/roost.json' with { type: 'json' };
@@ -78,3 +79,6 @@ export function skyBakedGeometry(kind: 'clump' | 'flower' | 'boulder' | 'pine' |
   if (index !== null && Array.from(index.array).every((n, i) => n === i)) g.setIndex(null);
   return g;
 }
+
+/** Sky's world pieces (data/pieces.ts) placed under `root` and registered, the baked ones drawn from the loaded bake. */
+export const skyPieces = (register: Parameters<typeof worldPieces>[0], root: Object3D): WorldPieces => worldPieces(register, root, SKY_PIECES, (piece) => skyBakedPiece(piece));

@@ -1,6 +1,7 @@
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { bakedWorld, type BakedKindRow, type LoadedBake } from '@wildshard/game/shardfile/bakedKinds';
-import type { Group, MeshStandardMaterial } from 'three';
+import { bakedWorld, worldPieces, type BakedKindRow, type LoadedBake, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
+import type { Group, MeshStandardMaterial, Object3D } from 'three';
+import { SIGNAL_PIECES } from '../data/pieces';
 import rocks from '../data/rocks.json' with { type: 'json' };
 import dressing from '../data/dressing.json' with { type: 'json' };
 import tower from '../data/tower.json' with { type: 'json' };
@@ -32,3 +33,5 @@ export const lastBakedWorld = WORLD.last;
 export function bakedPiece(baked: BakedWorld, piece: BakedPiece, only?: (kind: KindRow) => boolean, each?: (material: MeshStandardMaterial) => void): { root: Group; colliders: ColliderDesc[] } {
   return WORLD.piece(piece, { nodes: baked.get(piece) ?? new Map(), only, each });
 }
+/** Signal's world pieces (data/pieces.ts) placed under `root` and registered, the baked ones drawn from `baked`. */
+export const signalPieces = (register: Parameters<typeof worldPieces>[0], root: Object3D, baked: BakedWorld): WorldPieces => worldPieces(register, root, SIGNAL_PIECES, (piece) => bakedPiece(baked, piece));
