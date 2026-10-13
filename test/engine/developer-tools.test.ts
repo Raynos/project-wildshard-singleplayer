@@ -1,12 +1,11 @@
 // @vitest-environment happy-dom
 import { afterEach, expect, it } from 'vitest';
 import { Scope } from '../../src/engine/app/scope';
-import { isDev, setDev } from '../../src/engine/core/devMode';
+import { setDev } from '../../src/engine/core/devMode';
 import { jsonSlot } from '../../src/engine/saves/slots';
 import { buildDebugMenu } from '../../src/engine/ui/DebugMenu';
 import { levelDebugRows, registerLevelDebugRow } from '../../src/engine/ui/debugOptions';
 import type { DebugRowSpec } from '../../src/engine/level/context';
-import { pineOption } from '../../src/shards/pine-hollow/debug/options';
 
 const disposers: (() => void)[] = [];
 afterEach(() => { for (const off of disposers.splice(0)) off(); setDev(false); document.body.replaceChildren(); });
@@ -35,11 +34,4 @@ it('renders Developer tools separately from comparison rows with the same regist
   expect(comparison.row('fixture.comparison')).toBeDefined(); expect(tools.row('fixture.comparison')).toBeUndefined();
   expect(tools.row('sfxSet')).toBeUndefined(); expect(comparison.row('sfxSet')).toBeUndefined();
   expect(tools.row('time')).toBeDefined(); expect(comparison.row('time')).toBeUndefined();
-});
-
-it('retains the owners Pine memory-trim choice independently of Developer tools', () => {
-  setDev(false);
-  jsonSlot('debug.plugin.pine-hollow.pineMemoryTrim', 'device').write('on');
-  expect(pineOption('pineMemoryTrim')).toBe('on');
-  setDev(true); expect(isDev()).toBe(true); expect(pineOption('pineMemoryTrim')).toBe('on');
 });

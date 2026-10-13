@@ -4,7 +4,7 @@
  * lo / twig bands, the cabins' detail meshes, the animals' draw, eye and shadow bands, the sun's shadow reach and the
  * pickup orbs. −6.5 MB of GL on the board (the cabin detail meshes that never build); the fog already hides the reach it cuts.
  * The numbers are 0.75 × the phone tier's own (Pine's row where it sets one, else the engine's phone row, render/tiers.ts).
- * Trim off keeps today's reach (the Debug variant).
+ * Trim off (standalone) keeps the phone row's reach.
  */
 const VIEW_B = {
   treeHiDist: 45, treeLoDist: 97.5, treeTwigDist: 18, cabinDetailDist: 52.5,
@@ -13,7 +13,7 @@ const VIEW_B = {
 } as const;
 
 let trimmed: () => boolean = () => false;
-/** Bind the memory trim's pick (debug/options.ts `pineMemoryTrim`). The plugin binds it when it is constructed, before its
+/** Bind the memory trim (debug/options.ts `pineMemoryTrim`). The plugin binds it when it is constructed, before its
  *  level boots, so the manifest's cold closure stays free of the save slots; unbound keeps today's reach */
 export function bindPineViewTrim(read: () => boolean): void { trimmed = read; }
 

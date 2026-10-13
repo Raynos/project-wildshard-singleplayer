@@ -7,7 +7,6 @@ import { bindPineItems } from './items';
 import { installPineLandmarkUpdate } from './landmarkLifetime';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
-import { installPineDebug } from '../debug/options';
 import { PINE_SPAWNS } from '../combat/spawns';
 import { PINE_SPECIES, pineElk } from '../species/rows';
 import { pineLooks } from '../species/looks';
@@ -74,7 +73,6 @@ export class PineHollow extends ShardPlugin {
 
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(STRINGS);
-    installPineDebug(ctx);
     const rt = runtime(ctx), world = rt.world, step = rt.step;
     if (world === null || step === null) throw new Error('Pine world builder needs staged services');
     const { game, sky, forest, player, registry } = world;
