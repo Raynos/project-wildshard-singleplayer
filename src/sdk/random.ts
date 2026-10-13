@@ -12,7 +12,7 @@ function continuation(rng: Rng): RngState {
   if (current === undefined) throw new Error('Author RNG has no continuation');
   return current;
 }
-// Deterministic PRNG (mulberry32) so every playtest sees the same chunk.
+/** Build-only Mulberry32 with draws, forks and saved continuations identical to the engine RNG. */
 export class Rng {
   constructor(seed: number) { const initial = seed >>> 0; states.set(this, { version: 1, state: initial, initial, scrambledFork: false }); }
   snapshot(): RngState { const current = continuation(this); return { version: 1, state: current.state, initial: current.initial, scrambledFork: current.scrambledFork }; }
