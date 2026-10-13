@@ -1095,6 +1095,10 @@ The rows in §4 build these answers; each row names the ones it builds.
 | G350 | Bakes that run runtime code in Node (physics, spots, near tier) | **A bridge with an exit row per shard** (Jake, 2026-10-12, on the 48-hour review `docs/reviews/shardfile-48h-review-2026-10-12.md`): they keep working now; each shard gets a row that moves its bakes onto authoring inputs only (G320) before its runtime code is deleted, proven by the clean-room rebuild |
 | G351 | Game's export target | **The coordinator's rewording stands; both numbers are reported** (Jake, 2026-10-12, on the 48-hour review `docs/reviews/shardfile-48h-review-2026-10-12.md`): every status reports the shard-facing plugin modules and game's total exports (103 today, from 328) |
 | G352 | Calls the builders make alone | **Keep deciding, but list every call daily** (Jake, 2026-10-12, on the 48-hour review `docs/reviews/shardfile-48h-review-2026-10-12.md`): lanes stay fast; every trade-off they make goes on a daily 'calls for Jake' list in `docs/plans/shard-platform/STATE.md`, which the plan agent brings to him; anything touching an approved G-row asks first |
+| G353 | Push queue green | **Debt checked at commit time, allowed-direction counts report-only, green-prefix on** (Jake, 2026-10-13: *"what's the shortest path to push green?"*, picked all three): (1) the pre-commit hook checks the shrink-only debts (sdk-no-facade, generator-imports, shard-engine-imports, ratchets) for the files a lane commits, so a rise is refused at that lane's commit and never reaches the queue; (2) graph counts in allowed directions (game → engine and other downward edges) are report-only and never block a push or need a receipt; (3) green-prefix pushes keep the queue moving past one red commit; real debt stays shrink-only (G349) |
+| G354 | Sky Reach's Roc fight | **Keep the longer fight** (Jake, 2026-10-13): the re-recorded 26,469-tick fight (was 21,134) stands |
+| G355 | Commons packs | **Two real shards first** (Jake, 2026-10-13): a commons pack lands only in the commit where two real shards use it (G310, G312); the 8 packs with no real-shard user move into the shard that needs them or are deleted |
+| G356 | Process | **Faster, less ceremony, greener and stabler** (Jake, 2026-10-13: *"We need to move faster, less process porn, less ceremony, less fucking around, green, stabler"*): no new git or push tooling except to fix a red; lanes spend their time on ports; the push lane's only job is a green queue |
 
 ## Handoff (shard-platform)
 
@@ -1210,7 +1214,7 @@ deck climb, landings outside the grid, item art) is `shard-platform/mockup-wave-
 (the cell edge), the entry width (two lanes, ≈ 8 m) and FINISH-LINE M1 (inside SHARD SELECT). The double jump exists
 (`Player.ts` jumpsLeft).
 
-**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §6 (the ordered M2-ready path), §9 (how it is built), §10 (G1–G352,
+**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §6 (the ordered M2-ready path), §9 (how it is built), §10 (G1–G356,
 Jake's words verbatim) and this Handoff → `docs/plans/shard-platform/reviews/register.md`, `council-2/register.md` and `council-3/register.md` (closed), `council-4/register.md` (closed) →
 `docs/reviews/shard-platform-mockups.md` + `art/README.md` (the boards Jake picked) → `herdr agent list` (the Codex panes) →
 `git log --oneline -30` → `node scripts/asks.mjs`. The coordinator is the only pusher; builders commit and reply with the
