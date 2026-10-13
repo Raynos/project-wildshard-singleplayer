@@ -313,6 +313,7 @@ The layout check (`scripts/check-shards.mjs`, from `lint/shard-layout.json`) run
 | `behaviour/` | AssemblyScript entity and director scripts |
 | `quests/` | serialisable quest graphs and dialogue trees |
 | `assets/` | source assets consumed by the build |
+| `blender/` | the shard's retained Blender build sources and offline rig checks (build-time only; optional) |
 <!-- /generated:shard-layout -->
 
 One name per concept: `quest/` or `quest.ts`, never both.
