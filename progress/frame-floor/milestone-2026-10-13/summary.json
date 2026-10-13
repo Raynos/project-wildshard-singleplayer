@@ -1,0 +1,3456 @@
+{
+ "schema": 1,
+ "gate": {
+  "desktop": {
+   "p95Ms": 17.5,
+   "maxMs": 100
+  },
+  "sim": {
+   "p95Ms": 35,
+   "maxMs": 200
+  }
+ },
+ "runs": [
+  {
+   "label": "desktop-grid-H1",
+   "file": "fea49ae28-35700-1791875787250.json",
+   "sha": "fea49ae283191183b33be5371eda7d0c658632b4",
+   "when": "2026-10-13T07:23:11.499Z",
+   "surface": "desktop",
+   "shards": [
+    "grid"
+   ],
+   "gridScenario": "milestone",
+   "gridRoutes": [],
+   "build": "devserver",
+   "developer": "on",
+   "elapsedSeconds": 404.261,
+   "complete": true,
+   "pass": false,
+   "rows": [
+    {
+     "shard": "grid",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 6.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-crossroads",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 2.4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-deck-north",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 2.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 6.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 133.4,
+     "workP95Ms": 4.5,
+     "pass": false,
+     "miss": "long frame: max 133.4 ms > 100 ms",
+     "longFrameHooks": [
+      {
+       "hook": "nalati-grasslands:afterPlay",
+       "frames": 3,
+       "maxMs": 133
+      },
+      {
+       "hook": "between hooks",
+       "frames": 2,
+       "maxMs": 133
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 3.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 100,
+     "workP95Ms": 4.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 100,
+     "workP95Ms": 7.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "between hooks",
+       "frames": 2,
+       "maxMs": 100
+      },
+      {
+       "hook": "driftwood-isle:world",
+       "frames": 1,
+       "maxMs": 67
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 9.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 100,
+     "workP95Ms": 3.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 266.7,
+     "workP95Ms": 5.2,
+     "pass": false,
+     "miss": "long frame: max 266.7 ms > 100 ms",
+     "longFrameHooks": [
+      {
+       "hook": "nine-dragon-stack:afterPlay",
+       "frames": 3,
+       "maxMs": 267
+      },
+      {
+       "hook": "between hooks",
+       "frames": 2,
+       "maxMs": 217
+      },
+      {
+       "hook": "nine-dragon-stack:world",
+       "frames": 2,
+       "maxMs": 100
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 4.8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 66.8,
+     "workP95Ms": 3.8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 150,
+     "workP95Ms": 5.9,
+     "pass": false,
+     "miss": "long frame: max 150 ms > 100 ms",
+     "longFrameHooks": [
+      {
+       "hook": "far-reach:play",
+       "frames": 1,
+       "maxMs": 150
+      },
+      {
+       "hook": "far-reach:afterPlay",
+       "frames": 2,
+       "maxMs": 67
+      },
+      {
+       "hook": "between hooks",
+       "frames": 1,
+       "maxMs": 67
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 5.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 3.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 250,
+     "workP95Ms": 7.7,
+     "pass": false,
+     "miss": "long frame: max 250 ms > 100 ms",
+     "longFrameHooks": [
+      {
+       "hook": "between hooks",
+       "frames": 2,
+       "maxMs": 250
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 6.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 33.3,
+     "maxMs": 83.4,
+     "workP95Ms": 4.8,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.4,
+     "workP95Ms": 13.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "pine-hollow:afterPlay",
+       "frames": 1,
+       "maxMs": 83
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 10.4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 33.3,
+     "maxMs": 83.3,
+     "workP95Ms": 4.7,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 133.3,
+     "workP95Ms": 5,
+     "pass": false,
+     "miss": "long frame: max 133.3 ms > 100 ms",
+     "longFrameHooks": [
+      {
+       "hook": "sunscar-dunes:afterPlay",
+       "frames": 3,
+       "maxMs": 83
+      },
+      {
+       "hook": "between hooks",
+       "frames": 1,
+       "maxMs": 133
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 4.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.4,
+     "workP95Ms": 5.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.4,
+     "workP95Ms": 10.9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "driftwood-isle:world",
+       "frames": 1,
+       "maxMs": 83
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 9.9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    }
+   ],
+   "errors": []
+  },
+  {
+   "label": "desktop-shards",
+   "file": "fea49ae28-65007-1791876211377.json",
+   "sha": "fea49ae283191183b33be5371eda7d0c658632b4",
+   "when": "2026-10-13T07:27:08.861Z",
+   "surface": "desktop",
+   "shards": [
+    "_template",
+    "driftwood-isle",
+    "pine-hollow",
+    "nalati-grasslands",
+    "sunscar-dunes",
+    "far-reach",
+    "nine-dragon-stack"
+   ],
+   "gridScenario": "baseline",
+   "gridRoutes": [],
+   "build": "production",
+   "developer": "on",
+   "elapsedSeconds": 217.497,
+   "complete": true,
+   "pass": true,
+   "rows": [
+    {
+     "shard": "_template",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 2.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "_template",
+     "row": "spawn-reverse",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 1.9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "driftwood-isle",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 6.6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "driftwood-isle",
+     "row": "beach",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 6.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "driftwood-isle",
+     "row": "pier",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 6.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "pine-hollow",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 9.4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "pine-hollow",
+     "row": "pond",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 9.9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "pine-hollow",
+     "row": "cabin",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 12.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "nalati-grasslands",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 5.7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "nalati-grasslands",
+     "row": "bridge",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 5.4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "nalati-grasslands",
+     "row": "plains",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 5.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "sunscar-dunes",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 2.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "sunscar-dunes",
+     "row": "quest",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 2.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "sunscar-dunes",
+     "row": "whip",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 2.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "far-reach",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 4.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "far-reach",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 3.7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "far-reach",
+     "row": "hover",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 3.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "nine-dragon-stack",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 3.9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "nine-dragon-stack",
+     "row": "spawn-rail",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 3.7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "nine-dragon-stack",
+     "row": "stair-street",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 3.6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    }
+   ],
+   "errors": []
+  },
+  {
+   "label": "sim-grid-H1",
+   "file": "fea49ae28-83958-1791876436880.json",
+   "sha": "fea49ae283191183b33be5371eda7d0c658632b4",
+   "when": "2026-10-13T07:34:56.770Z",
+   "surface": "sim",
+   "shards": [
+    "grid"
+   ],
+   "gridScenario": "milestone",
+   "gridRoutes": [],
+   "build": "devserver",
+   "developer": "on",
+   "elapsedSeconds": 459.902,
+   "complete": true,
+   "pass": false,
+   "rows": [
+    {
+     "shard": "grid",
+     "row": "spawn",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-deck-east",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-crossroads",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior-travel",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 42,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 237,
+     "workP95Ms": 7,
+     "pass": false,
+     "miss": "long frame: max 237 ms > 200 ms",
+     "longFrameHooks": [
+      {
+       "hook": "nalati-grasslands:world",
+       "frames": 8,
+       "maxMs": 237
+      },
+      {
+       "hook": "nalati-grasslands:afterPlay",
+       "frames": 7,
+       "maxMs": 154
+      },
+      {
+       "hook": "nalati-grasslands:afterKit",
+       "frames": 4,
+       "maxMs": 78
+      },
+      {
+       "hook": "between hooks",
+       "frames": 3,
+       "maxMs": 115
+      },
+      {
+       "hook": "nalati-grasslands:play",
+       "frames": 2,
+       "maxMs": 63
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 74,
+     "workP95Ms": 9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return-travel",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 158,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 158,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "between hooks",
+       "frames": 3,
+       "maxMs": 158
+      },
+      {
+       "hook": "driftwood-isle:world",
+       "frames": 3,
+       "maxMs": 89
+      },
+      {
+       "hook": "driftwood-isle:afterKit",
+       "frames": 1,
+       "maxMs": 81
+      },
+      {
+       "hook": "driftwood-isle:activate",
+       "frames": 1,
+       "maxMs": 78
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 10,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 161,
+     "workP95Ms": 4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 35,
+     "maxMs": 453,
+     "workP95Ms": 7,
+     "pass": false,
+     "miss": "long frame: max 453 ms > 200 ms",
+     "longFrameHooks": [
+      {
+       "hook": "nine-dragon-stack:afterPlay",
+       "frames": 7,
+       "maxMs": 269
+      },
+      {
+       "hook": "nine-dragon-stack:world",
+       "frames": 5,
+       "maxMs": 161
+      },
+      {
+       "hook": "nine-dragon-stack:activate",
+       "frames": 1,
+       "maxMs": 453
+      },
+      {
+       "hook": "nine-dragon-stack:constructor",
+       "frames": 1,
+       "maxMs": 64
+      },
+      {
+       "hook": "between hooks",
+       "frames": 1,
+       "maxMs": 54
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 53,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 43,
+     "maxMs": 221,
+     "workP95Ms": 6,
+     "pass": false,
+     "miss": "long frame: max 221 ms > 200 ms",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 221,
+     "workP95Ms": 8,
+     "pass": false,
+     "miss": "long frame: max 221 ms > 200 ms",
+     "longFrameHooks": [
+      {
+       "hook": "far-reach:afterPlay",
+       "frames": 4,
+       "maxMs": 221
+      },
+      {
+       "hook": "far-reach:world",
+       "frames": 5,
+       "maxMs": 92
+      },
+      {
+       "hook": "far-reach:play",
+       "frames": 1,
+       "maxMs": 109
+      },
+      {
+       "hook": "far-reach:activate",
+       "frames": 1,
+       "maxMs": 101
+      },
+      {
+       "hook": "between hooks",
+       "frames": 1,
+       "maxMs": 51
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 37,
+     "maxMs": 59,
+     "workP95Ms": 5,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 37,
+     "maxMs": 279,
+     "workP95Ms": 10,
+     "pass": false,
+     "miss": "long frame: max 279 ms > 200 ms",
+     "longFrameHooks": [
+      {
+       "hook": "nalati-grasslands:activate",
+       "frames": 1,
+       "maxMs": 279
+      },
+      {
+       "hook": "nalati-grasslands:afterKit",
+       "frames": 4,
+       "maxMs": 81
+      },
+      {
+       "hook": "nalati-grasslands:world",
+       "frames": 3,
+       "maxMs": 63
+      },
+      {
+       "hook": "between hooks",
+       "frames": 2,
+       "maxMs": 76
+      },
+      {
+       "hook": "nalati-grasslands:play",
+       "frames": 2,
+       "maxMs": 56
+      },
+      {
+       "hook": "nalati-grasslands:afterWorld",
+       "frames": 1,
+       "maxMs": 56
+      },
+      {
+       "hook": "nalati-grasslands:afterPlay",
+       "frames": 1,
+       "maxMs": 55
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 39,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry-travel",
+     "medianFps": 29.412,
+     "p95Ms": 62,
+     "maxMs": 144,
+     "workP95Ms": 7,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 44,
+     "maxMs": 144,
+     "workP95Ms": 10,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": [
+      {
+       "hook": "pine-hollow:play",
+       "frames": 7,
+       "maxMs": 64
+      },
+      {
+       "hook": "pine-hollow:world",
+       "frames": 5,
+       "maxMs": 144
+      },
+      {
+       "hook": "pine-hollow:afterKit",
+       "frames": 3,
+       "maxMs": 69
+      },
+      {
+       "hook": "between hooks",
+       "frames": 2,
+       "maxMs": 57
+      },
+      {
+       "hook": "pine-hollow:activate",
+       "frames": 1,
+       "maxMs": 102
+      },
+      {
+       "hook": "pine-hollow:constructor",
+       "frames": 1,
+       "maxMs": 77
+      },
+      {
+       "hook": "pine-hollow:afterPlay",
+       "frames": 1,
+       "maxMs": 51
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 37,
+     "workP95Ms": 9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 85,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 85,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "sunscar-dunes:world",
+       "frames": 2,
+       "maxMs": 81
+      },
+      {
+       "hook": "sunscar-dunes:afterPlay",
+       "frames": 1,
+       "maxMs": 85
+      },
+      {
+       "hook": "sunscar-dunes:activate",
+       "frames": 1,
+       "maxMs": 63
+      },
+      {
+       "hook": "between hooks",
+       "frames": 1,
+       "maxMs": 60
+      },
+      {
+       "hook": "sunscar-dunes:beforeWorld",
+       "frames": 1,
+       "maxMs": 56
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 49,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 44,
+     "maxMs": 100,
+     "workP95Ms": 9,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 35,
+     "maxMs": 100,
+     "workP95Ms": 10,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "driftwood-isle:world",
+       "frames": 3,
+       "maxMs": 100
+      },
+      {
+       "hook": "driftwood-isle:afterKit",
+       "frames": 1,
+       "maxMs": 99
+      },
+      {
+       "hook": "driftwood-isle:activate",
+       "frames": 1,
+       "maxMs": 87
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 38,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    }
+   ],
+   "errors": []
+  },
+  {
+   "label": "sim-shards",
+   "file": "fea49ae28-26608-1791876909453.json",
+   "sha": "fea49ae283191183b33be5371eda7d0c658632b4",
+   "when": "2026-10-13T07:40:52.234Z",
+   "surface": "sim",
+   "shards": [
+    "_template",
+    "driftwood-isle",
+    "pine-hollow",
+    "nalati-grasslands",
+    "sunscar-dunes",
+    "far-reach",
+    "nine-dragon-stack"
+   ],
+   "gridScenario": "baseline",
+   "gridRoutes": [],
+   "build": "production",
+   "developer": "on",
+   "elapsedSeconds": 342.793,
+   "complete": true,
+   "pass": true,
+   "rows": [
+    {
+     "shard": "_template",
+     "row": "spawn",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "_template",
+     "row": "spawn-reverse",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "driftwood-isle",
+     "row": "spawn",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "driftwood-isle",
+     "row": "wreck",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "driftwood-isle",
+     "row": "beach",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "pine-hollow",
+     "row": "spawn",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "pine-hollow",
+     "row": "cabin",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "pine-hollow",
+     "row": "gate",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "nalati-grasslands",
+     "row": "spawn",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 39,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "nalati-grasslands",
+     "row": "plains",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "nalati-grasslands",
+     "row": "bridge",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "sunscar-dunes",
+     "row": "spawn",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "sunscar-dunes",
+     "row": "ray",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "sunscar-dunes",
+     "row": "spawn",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "far-reach",
+     "row": "spawn",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 36,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "far-reach",
+     "row": "spawn",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 41,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "far-reach",
+     "row": "hover",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "nine-dragon-stack",
+     "row": "spawn",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "nine-dragon-stack",
+     "row": "spawn-rail",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "nine-dragon-stack",
+     "row": "well-edge",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    }
+   ],
+   "errors": []
+  },
+  {
+   "label": "desktop-subset-old",
+   "file": "c66b5b324-67224-1791877267060.json",
+   "sha": "c66b5b324e5de37195db4c7921e742243bc06580",
+   "when": "2026-10-13T07:46:11.508Z",
+   "surface": "desktop",
+   "shards": [
+    "grid"
+   ],
+   "gridScenario": "milestone",
+   "gridRoutes": [
+    "nine-dragon-stack-road-entry",
+    "nalati-grasslands-road-entry",
+    "far-reach-road-entry",
+    "sunscar-dunes-road-entry"
+   ],
+   "build": "devserver",
+   "developer": "on",
+   "elapsedSeconds": 304.459,
+   "complete": true,
+   "pass": true,
+   "rows": [
+    {
+     "shard": "grid",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-deck-east",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 2.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-crossroads",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 2.4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.3,
+     "workP95Ms": 2.6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.3,
+     "workP95Ms": 3.8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nine-dragon-stack:world",
+       "frames": 2,
+       "maxMs": 83
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 3.6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 66.6,
+     "workP95Ms": 3.4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 66.6,
+     "workP95Ms": 5.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "far-reach:afterPlay",
+       "frames": 1,
+       "maxMs": 67
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 4.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 2.9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.4,
+     "workP95Ms": 7.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nalati-grasslands:afterKit",
+       "frames": 1,
+       "maxMs": 83
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 5.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 3.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 3.9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 3.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    }
+   ],
+   "errors": []
+  },
+  {
+   "label": "desktop-subset-H",
+   "file": "fea49ae28-95960-1791877577051.json",
+   "sha": "fea49ae283191183b33be5371eda7d0c658632b4",
+   "when": "2026-10-13T07:49:41.248Z",
+   "surface": "desktop",
+   "shards": [
+    "grid"
+   ],
+   "gridScenario": "milestone",
+   "gridRoutes": [
+    "nine-dragon-stack-road-entry",
+    "nalati-grasslands-road-entry",
+    "far-reach-road-entry",
+    "sunscar-dunes-road-entry"
+   ],
+   "build": "devserver",
+   "developer": "on",
+   "elapsedSeconds": 204.21,
+   "complete": true,
+   "pass": true,
+   "rows": [
+    {
+     "shard": "grid",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 6.6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-deck-east",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 2.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-crossroads",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 2.4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.3,
+     "workP95Ms": 2.8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.3,
+     "workP95Ms": 4.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nine-dragon-stack:world",
+       "frames": 2,
+       "maxMs": 83
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 4.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 33.4,
+     "workP95Ms": 3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.3,
+     "workP95Ms": 5.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "far-reach:afterPlay",
+       "frames": 1,
+       "maxMs": 83
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 4.4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 2.6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.2,
+     "workP95Ms": 6.7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nalati-grasslands:afterKit",
+       "frames": 1,
+       "maxMs": 83
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 5.9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 3.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 4.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 3.7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    }
+   ],
+   "errors": []
+  },
+  {
+   "label": "desktop-grid-old",
+   "file": "c66b5b324-15823-1791877796508.json",
+   "sha": "c66b5b324e5de37195db4c7921e742243bc06580",
+   "when": "2026-10-13T07:56:02.200Z",
+   "surface": "desktop",
+   "shards": [
+    "grid"
+   ],
+   "gridScenario": "milestone",
+   "gridRoutes": [],
+   "build": "devserver",
+   "developer": "on",
+   "elapsedSeconds": 365.708,
+   "complete": true,
+   "pass": false,
+   "rows": [
+    {
+     "shard": "grid",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 7.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-crossroads",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 2.4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-deck-east",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 2.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 5.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 66.7,
+     "workP95Ms": 4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nalati-grasslands:afterPlay",
+       "frames": 1,
+       "maxMs": 67
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 3.4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 100.1,
+     "workP95Ms": 4.1,
+     "pass": false,
+     "miss": "long frame: max 100.1 ms > 100 ms",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 100.1,
+     "workP95Ms": 5.7,
+     "pass": false,
+     "miss": "long frame: max 100.1 ms > 100 ms",
+     "longFrameHooks": [
+      {
+       "hook": "between hooks",
+       "frames": 2,
+       "maxMs": 100
+      },
+      {
+       "hook": "driftwood-isle:afterPlay",
+       "frames": 1,
+       "maxMs": 50
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.4,
+     "workP95Ms": 2.6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.4,
+     "workP95Ms": 4.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nine-dragon-stack:world",
+       "frames": 2,
+       "maxMs": 83
+      },
+      {
+       "hook": "nine-dragon-stack:afterPlay",
+       "frames": 1,
+       "maxMs": 50
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 4.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 66.6,
+     "workP95Ms": 3.4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 66.6,
+     "workP95Ms": 5.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "far-reach:afterPlay",
+       "frames": 1,
+       "maxMs": 67
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 4.7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 33.3,
+     "workP95Ms": 3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 6.8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 33.3,
+     "maxMs": 50.1,
+     "workP95Ms": 4.5,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 50.1,
+     "workP95Ms": 11.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "pine-hollow:afterKit",
+       "frames": 1,
+       "maxMs": 50
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 10.9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 4.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 4.6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 3.8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 49.9,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 50.1,
+     "workP95Ms": 8.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "driftwood-isle:world",
+       "frames": 1,
+       "maxMs": 50
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 7.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    }
+   ],
+   "errors": []
+  },
+  {
+   "label": "desktop-grid-H2",
+   "file": "fea49ae28-60376-1791878172182.json",
+   "sha": "fea49ae283191183b33be5371eda7d0c658632b4",
+   "when": "2026-10-13T08:02:42.116Z",
+   "surface": "desktop",
+   "shards": [
+    "grid"
+   ],
+   "gridScenario": "milestone",
+   "gridRoutes": [],
+   "build": "devserver",
+   "developer": "on",
+   "elapsedSeconds": 389.946,
+   "complete": true,
+   "pass": false,
+   "rows": [
+    {
+     "shard": "grid",
+     "row": "spawn",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 6.7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-crossroads",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 2.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-deck-north",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 2.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 5.8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 66.7,
+     "workP95Ms": 4.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nalati-grasslands:afterPlay",
+       "frames": 1,
+       "maxMs": 67
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 3.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 100,
+     "workP95Ms": 4.4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 100,
+     "workP95Ms": 7.7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "between hooks",
+       "frames": 1,
+       "maxMs": 100
+      },
+      {
+       "hook": "driftwood-isle:world",
+       "frames": 1,
+       "maxMs": 67
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 8.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 100,
+     "workP95Ms": 3.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 100,
+     "workP95Ms": 4.7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nine-dragon-stack:world",
+       "frames": 1,
+       "maxMs": 100
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 33.4,
+     "workP95Ms": 3.3,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 5.8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 3.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 66.6,
+     "workP95Ms": 7.8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nalati-grasslands:afterPlay",
+       "frames": 1,
+       "maxMs": 67
+      },
+      {
+       "hook": "nalati-grasslands:play",
+       "frames": 1,
+       "maxMs": 50
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 8.7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 33.3,
+     "maxMs": 100,
+     "workP95Ms": 7,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 33.4,
+     "maxMs": 100,
+     "workP95Ms": 17.9,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": [
+      {
+       "hook": "pine-hollow:afterPlay",
+       "frames": 3,
+       "maxMs": 100
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 33.3,
+     "maxMs": 33.4,
+     "workP95Ms": 17,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 4.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 4.6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 3.5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry-travel",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.4,
+     "workP95Ms": 5.1,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry-drive",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 83.4,
+     "workP95Ms": 9.2,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "driftwood-isle:world",
+       "frames": 1,
+       "maxMs": 83
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry",
+     "medianFps": 59.88,
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 7.9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    }
+   ],
+   "errors": []
+  },
+  {
+   "label": "sim-grid-H2",
+   "file": "fea49ae28-94857-1791878575334.json",
+   "sha": "fea49ae283191183b33be5371eda7d0c658632b4",
+   "when": "2026-10-13T08:10:54.082Z",
+   "surface": "sim",
+   "shards": [
+    "grid"
+   ],
+   "gridScenario": "milestone",
+   "gridRoutes": [],
+   "build": "devserver",
+   "developer": "on",
+   "elapsedSeconds": 478.762,
+   "complete": true,
+   "pass": false,
+   "rows": [
+    {
+     "shard": "grid",
+     "row": "spawn",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-deck-east",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-crossroads",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior-travel",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 88,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nalati-grasslands:world",
+       "frames": 5,
+       "maxMs": 70
+      },
+      {
+       "hook": "between hooks",
+       "frames": 3,
+       "maxMs": 88
+      },
+      {
+       "hook": "nalati-grasslands:afterKit",
+       "frames": 3,
+       "maxMs": 62
+      },
+      {
+       "hook": "nalati-grasslands:afterPlay",
+       "frames": 2,
+       "maxMs": 58
+      },
+      {
+       "hook": "nalati-grasslands:play",
+       "frames": 1,
+       "maxMs": 60
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 66,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return-travel",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 151,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 151,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "driftwood-isle:world",
+       "frames": 3,
+       "maxMs": 99
+      },
+      {
+       "hook": "between hooks",
+       "frames": 1,
+       "maxMs": 151
+      },
+      {
+       "hook": "driftwood-isle:activate",
+       "frames": 1,
+       "maxMs": 74
+      },
+      {
+       "hook": "driftwood-isle:play",
+       "frames": 1,
+       "maxMs": 61
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 35,
+     "maxMs": 241,
+     "workP95Ms": 4,
+     "pass": false,
+     "miss": "long frame: max 241 ms > 200 ms",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 241,
+     "workP95Ms": 6,
+     "pass": false,
+     "miss": "long frame: max 241 ms > 200 ms",
+     "longFrameHooks": [
+      {
+       "hook": "nine-dragon-stack:world",
+       "frames": 3,
+       "maxMs": 241
+      },
+      {
+       "hook": "nine-dragon-stack:activate",
+       "frames": 1,
+       "maxMs": 99
+      },
+      {
+       "hook": "nine-dragon-stack:afterPlay",
+       "frames": 1,
+       "maxMs": 97
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 47,
+     "maxMs": 113,
+     "workP95Ms": 7,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 136,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "far-reach:world",
+       "frames": 7,
+       "maxMs": 136
+      },
+      {
+       "hook": "far-reach:play",
+       "frames": 1,
+       "maxMs": 113
+      },
+      {
+       "hook": "far-reach:activate",
+       "frames": 1,
+       "maxMs": 64
+      },
+      {
+       "hook": "far-reach:afterPlay",
+       "frames": 1,
+       "maxMs": 60
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 40,
+     "maxMs": 50,
+     "workP95Ms": 4,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 38,
+     "maxMs": 96,
+     "workP95Ms": 9,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": [
+      {
+       "hook": "nalati-grasslands:afterKit",
+       "frames": 3,
+       "maxMs": 70
+      },
+      {
+       "hook": "nalati-grasslands:world",
+       "frames": 3,
+       "maxMs": 63
+      },
+      {
+       "hook": "nalati-grasslands:afterPlay",
+       "frames": 2,
+       "maxMs": 60
+      },
+      {
+       "hook": "nalati-grasslands:activate",
+       "frames": 1,
+       "maxMs": 96
+      },
+      {
+       "hook": "nalati-grasslands:play",
+       "frames": 1,
+       "maxMs": 89
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 36,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 55,
+     "maxMs": 103,
+     "workP95Ms": 7,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 39,
+     "maxMs": 109,
+     "workP95Ms": 11,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": [
+      {
+       "hook": "pine-hollow:world",
+       "frames": 4,
+       "maxMs": 103
+      },
+      {
+       "hook": "between hooks",
+       "frames": 3,
+       "maxMs": 68
+      },
+      {
+       "hook": "pine-hollow:afterKit",
+       "frames": 2,
+       "maxMs": 68
+      },
+      {
+       "hook": "pine-hollow:play",
+       "frames": 2,
+       "maxMs": 59
+      },
+      {
+       "hook": "pine-hollow:activate",
+       "frames": 1,
+       "maxMs": 109
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 64,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 89,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "sunscar-dunes:world",
+       "frames": 1,
+       "maxMs": 89
+      },
+      {
+       "hook": "sunscar-dunes:activate",
+       "frames": 1,
+       "maxMs": 64
+      },
+      {
+       "hook": "sunscar-dunes:afterPlay",
+       "frames": 1,
+       "maxMs": 58
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-sunscar-dunes-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 39,
+     "maxMs": 93,
+     "workP95Ms": 9,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 93,
+     "workP95Ms": 10,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "driftwood-isle:world",
+       "frames": 3,
+       "maxMs": 93
+      },
+      {
+       "hook": "driftwood-isle:activate",
+       "frames": 1,
+       "maxMs": 80
+      },
+      {
+       "hook": "driftwood-isle:play",
+       "frames": 1,
+       "maxMs": 70
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-driftwood-isle-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    }
+   ],
+   "errors": []
+  },
+  {
+   "label": "sim-grid-old",
+   "file": "c66b5b324-34587-1791879068083.json",
+   "sha": "c66b5b324e5de37195db4c7921e742243bc06580",
+   "when": "2026-10-13T08:21:37.794Z",
+   "surface": "sim",
+   "shards": [
+    "grid"
+   ],
+   "gridScenario": "milestone",
+   "gridRoutes": [],
+   "build": "devserver",
+   "developer": "on",
+   "elapsedSeconds": 629.723,
+   "complete": false,
+   "pass": false,
+   "rows": [
+    {
+     "shard": "grid",
+     "row": "spawn",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-crossroads",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-deck-east",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior-travel",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 38,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 122,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nalati-grasslands:afterPlay",
+       "frames": 3,
+       "maxMs": 122
+      },
+      {
+       "hook": "nalati-grasslands:world",
+       "frames": 4,
+       "maxMs": 63
+      },
+      {
+       "hook": "between hooks",
+       "frames": 1,
+       "maxMs": 77
+      },
+      {
+       "hook": "nalati-grasslands:afterKit",
+       "frames": 1,
+       "maxMs": 53
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-interior",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 72,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return-travel",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 133,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 133,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "driftwood-isle:world",
+       "frames": 3,
+       "maxMs": 97
+      },
+      {
+       "hook": "between hooks",
+       "frames": 1,
+       "maxMs": 133
+      },
+      {
+       "hook": "driftwood-isle:afterKit",
+       "frames": 1,
+       "maxMs": 64
+      },
+      {
+       "hook": "driftwood-isle:activate",
+       "frames": 1,
+       "maxMs": 62
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-template-return",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 38,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 169,
+     "workP95Ms": 4,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 169,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nine-dragon-stack:world",
+       "frames": 2,
+       "maxMs": 169
+      },
+      {
+       "hook": "nine-dragon-stack:activate",
+       "frames": 1,
+       "maxMs": 97
+      },
+      {
+       "hook": "nine-dragon-stack:beforeWorld",
+       "frames": 1,
+       "maxMs": 82
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nine-dragon-stack-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 42,
+     "maxMs": 90,
+     "workP95Ms": 5,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 90,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "far-reach:world",
+       "frames": 5,
+       "maxMs": 82
+      },
+      {
+       "hook": "far-reach:play",
+       "frames": 1,
+       "maxMs": 90
+      },
+      {
+       "hook": "far-reach:afterPlay",
+       "frames": 1,
+       "maxMs": 64
+      },
+      {
+       "hook": "far-reach:activate",
+       "frames": 1,
+       "maxMs": 52
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-far-reach-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 7,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 35,
+     "maxMs": 61,
+     "workP95Ms": 5,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 35,
+     "maxMs": 197,
+     "workP95Ms": 8,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": [
+      {
+       "hook": "nalati-grasslands:activate",
+       "frames": 1,
+       "maxMs": 197
+      },
+      {
+       "hook": "nalati-grasslands:afterKit",
+       "frames": 2,
+       "maxMs": 67
+      },
+      {
+       "hook": "nalati-grasslands:world",
+       "frames": 2,
+       "maxMs": 56
+      },
+      {
+       "hook": "nalati-grasslands:kit",
+       "frames": 1,
+       "maxMs": 72
+      },
+      {
+       "hook": "between hooks",
+       "frames": 1,
+       "maxMs": 61
+      },
+      {
+       "hook": "nalati-grasslands:play",
+       "frames": 1,
+       "maxMs": 61
+      },
+      {
+       "hook": "nalati-grasslands:afterPlay",
+       "frames": 1,
+       "maxMs": 52
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-nalati-grasslands-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 6,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry-travel",
+     "medianFps": 30.303,
+     "p95Ms": 57,
+     "maxMs": 90,
+     "workP95Ms": 5,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": []
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry-drive",
+     "medianFps": 30.303,
+     "p95Ms": 39,
+     "maxMs": 100,
+     "workP95Ms": 9,
+     "pass": false,
+     "miss": "frame cost / scheduling",
+     "longFrameHooks": [
+      {
+       "hook": "pine-hollow:world",
+       "frames": 5,
+       "maxMs": 90
+      },
+      {
+       "hook": "between hooks",
+       "frames": 3,
+       "maxMs": 65
+      },
+      {
+       "hook": "pine-hollow:afterKit",
+       "frames": 2,
+       "maxMs": 71
+      },
+      {
+       "hook": "pine-hollow:activate",
+       "frames": 1,
+       "maxMs": 100
+      },
+      {
+       "hook": "pine-hollow:play",
+       "frames": 1,
+       "maxMs": 57
+      }
+     ]
+    },
+    {
+     "shard": "grid",
+     "row": "grid-pine-hollow-road-entry",
+     "medianFps": 30.303,
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 9,
+     "pass": true,
+     "miss": null,
+     "longFrameHooks": []
+    }
+   ],
+   "errors": []
+  }
+ ]
+}
