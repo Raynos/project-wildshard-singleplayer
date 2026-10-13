@@ -229,6 +229,42 @@
    ]
   },
   {
+   "sha": "928d6a44e",
+   "label": "HEAD after",
+   "surface": "sim",
+   "when": "2026-10-13T08:54:40.685Z",
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 53,
+     "maxMs": 101,
+     "workP95Ms": 8,
+     "framesOver20Ms": 115,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 36,
+     "maxMs": 101,
+     "workP95Ms": 9,
+     "framesOver20Ms": 715,
+     "frames": 720,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 9,
+     "framesOver20Ms": 120,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
    "sha": "bda180fc4",
    "label": "HEAD before (plain)",
    "surface": "desktop",

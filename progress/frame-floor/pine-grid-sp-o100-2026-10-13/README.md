@@ -59,5 +59,24 @@ Pine's `world` hook: a 60 ms synchronous `getProgramParameter` on a
 ShaderMaterial. Safari profiling is needed to name the builders. That work
 remains open.
 
+A second Simulator run at `928d6a44e`, with `--safari-profile`, read travel
+53 ms and drive max 101 ms, still a FAIL. Its Safari samples over the whole
+drive, as a share of 4,743 (untimed, so weights only):
+
+- The entered frame's warm-up: 9.3 %, almost all `texSubImage2D` image
+  uploads.
+- The grid session's update: 6.5 %.
+- The cell screens: about 7 %. The once-a-second canvas re-upload of the
+  loading clock was 3.7 %, painting 3 %, and rebuilding and stringifying the
+  unchanged content every frame was 1.4 %. That last part is removed by
+  `1682e5ec9`.
+- Parked draws: 2.7 %.
+- Pine's builders, each about 1 %: the kit, the herds, the quest and the
+  cabins.
+
+The next owned Simulator step is the warm-up's image uploads. Pine's desktop
+images are 1024² and 2048² bitmaps. On the phone tier they go through the
+8 ms `LIVE_UPLOAD_BUDGET`, one painted frame each.
+
 [summary.json](summary.json) holds every run's Pine rows. Raw results and
 profiles stayed in scratch and were deleted.
