@@ -1,0 +1,388 @@
+{
+ "measured": {
+  "date": "2026-10-13",
+  "head": "94810465f",
+  "unchanged_through": "c5e234a82",
+  "script": "scripts/shard-platform.mjs",
+  "custom": 1860,
+  "shard_ts": 1741,
+  "additional_glsl": 6,
+  "g294_attributed": 113,
+  "raw_glsl_total": 177,
+  "assemblyscript": 67,
+  "legacy": 4122,
+  "bar_20pct": 824,
+  "bar_10pct": 412,
+  "percent": 45.1,
+  "working_tree_note": "STATE.md's 43.9 % (1,808) was read on the shared working tree: Driftwood's uncommitted manifest and NPC edits make 56 G294 lines shared (createBakedTerrainField 22, game/plugin/geometry 34); the committed number is 45.1 %"
+ },
+ "parts": [
+  {
+   "key": "glue",
+   "name": "Shard glue outside data/",
+   "lines": 99,
+   "files": [
+    "manifest.ts 48",
+    "boot/files.ts 9",
+    "look/sandEntry.ts 8",
+    "explore/art.ts 5",
+    "thumbs/card.ts 4",
+    "runtime/source.ts 3",
+    "src/engine/world/bakedTerrainField.ts 22 (G294)"
+   ],
+   "what": "The shard's ID card: name, cards, spawn, bounds, minimap, the boot download list, the Explore pictures, the debug camera poses and the ground field. Most fields are already rows (data/manifestRows.ts, data/manifestLook.ts), but manifest.ts is the legacy form outside data/ with small functions, and it builds the ground with createBakedTerrainField, engine code only Signal calls (G294).",
+   "way_out": "Fields move into shard.config.ts as pure declarations (not custom, call 36); the boot list comes from the product's file list; pictures become asset rows; poses become numbers (heights already in data/manifestGround.generated.json); look/sandEntry.ts moves to generators/; the ground is read from the shardfile's terrain collider (as headless admittedTerrain does), or becomes shared when Driftwood's pending manifest lands.",
+   "mechanism": "SDK defineShard declarations + data rows",
+   "lines_removed": 85,
+   "lines_left": 14,
+   "effort": "S",
+   "lane": "sp-x6",
+   "blocker": "defineShard lacks boot, tier and pose fields; data modules may export no functions (same as Sky)",
+   "order": 1
+  },
+  {
+   "key": "lash",
+   "name": "The bullwhip (lash family, headless copy, view)",
+   "lines": 434,
+   "files": [
+    "runtime/items/lashWeapon.ts 86",
+    "runtime/items/lashHost.ts 79",
+    "runtime/items/lash.ts 74",
+    "runtime/items/lashHold.ts 41",
+    "runtime/items/lashView.ts 37",
+    "runtime/lashInput.ts 31",
+    "runtime/items.ts 20",
+    "runtime/audio/cues.ts 19",
+    "weapons/Bullwhip.ts 15",
+    "weapons/whipModel.ts 13",
+    "weapons/rows.ts 11",
+    "src/game/plugin/headless.ts 8 (G294)"
+   ],
+   "what": "Everything the whip does: the light crack (one 7 m narrow lash 0.12 s after the press), the heavy double crack (the first lash yanks a creature of 40 hp or less in, the second staggers a big one), cracking the well crank or lighting a brazier, the touch charge, the renderer-free copy for replays, and the glove, coil and braided cord that unrolls on screen. Its numbers are rows (format/weaponProfiles.ts lash), its code is Signal TypeScript.",
+   "way_out": "As G394 does for Sky's fan: the light crack and heavy become moves on the shared melee row (7 m reach, one narrow sweep ray, 0.12 s windup, heavy stagger); the yank, second lash and world cracks become an AssemblyScript hook on the melee host's secondary actions (Signal is that seam's second user); world cracks route through the quest interaction rows the headless quest graph already reads; glove and coil a view row; cues SF29 audio rows.",
+   "mechanism": "shared melee row + AS weapon hook + view and audio rows",
+   "lines_removed": 360,
+   "lines_left": 74,
+   "effort": "L",
+   "lane": "sp-x1",
+   "blocker": "melee host AS secondary actions (G394) not built; hit test differs (rays vs chest lane) so combat replays are re-recorded with a clip check; the cord needs a clip-playing item view. TRAP: if Sky's fan leaves the contact family first, 225 engine/game lines become Signal-only (measured: 2,085 lines, 50.6 %), so the lash must leave with or before the fan",
+   "order": 4
+  },
+  {
+   "key": "fire",
+   "name": "Fire, embers and smoke",
+   "lines": 294,
+   "files": [
+    "runtime/looks/fireFx.ts 262 (glsl 137)",
+    "world/drapeGround.ts 17",
+    "world/fireFx.ts 7",
+    "src/engine/render/materialPreparation.ts 8 (G294)"
+   ],
+   "what": "Five fires and two lamp halos from one effect: flipbook flame cards, glow, rising embers, smoke column or wisp, a warm disc draped on the sand, and a list of up to four burning fires the sand and camp materials read. Seven hand-written GLSL programs (G306).",
+   "way_out": "G382/G397: each program becomes an SF59 graph, look kept, before/after board (the IR has viewBillboard, points size, pointCoord, additive/premultiplied blend, time, attribute and texture); b8d7d8f0e lets runtime meshes wear look graphs now. With the world bake, the generator bakes each fire into the scene (the disc draped at bake time), lit becomes a targets panel shown by flag, firelight positions graph values bound to the lit flags.",
+   "mechanism": "SF59 shader graphs (G382, G397) + baked prop tiles + targets panels",
+   "lines_removed": 264,
+   "lines_left": 30,
+   "effort": "L",
+   "lane": "sp-o121 (graphs), sp-o123 (bake)",
+   "blocker": "points with a graph material in a prop tile and state-bound panels in a hybrid shard need checking on the data client; boards (G387); sp-o122 card-field move (G395) is uncommitted and adds ~9 lines for now",
+   "order": 7
+  },
+  {
+   "key": "look",
+   "name": "Dusk sky, sand and light",
+   "lines": 243,
+   "files": [
+    "runtime/looks/duskLook.ts 78",
+    "runtime/looks/bakedGround.ts 73",
+    "runtime/looks/duskFamilies.ts 21",
+    "look/light.ts 16",
+    "look/render.ts 16",
+    "look/dusk.ts 11",
+    "runtime/looks/paintedStrips.ts 10",
+    "data/lightLook.ts 6 (glsl 6)",
+    "src/engine/render/families/ground.ts 12 (G294)"
+   ],
+   "what": "The 'Last Light' look as a runtime program: a painted dome blending two dusk strips, fog, a key light that dims and reddens with the quest's dusk (each quest step sets a darker target, eased over ~50 s), fill, haze and aerial fog on curves, the rim and shade floor patched into every prop's shader, the dune skirt, binding the ground collider and the fires' light pools on the sand.",
+   "way_out": "The shardfile look section: the painted sky as the emissive family's sky entry (already a row), key/fill/fog/haze as look keys on curves bound to shared.dusk (the sand's curves already are), the rim as a graph lighting stage, the skirt as terrain ring tiles, the ground binding the platform's. Pair with Sky: one shared painted look replacing Sky's paintedLook (148 lines charged to Sky) and Signal's duskLook makes it public for both.",
+   "mechanism": "look rows + one shared painted look (with Sky)",
+   "lines_removed": 203,
+   "lines_left": 40,
+   "effort": "M",
+   "lane": "sp-o121",
+   "blocker": "format look needs a two-stage painted sky blended by state, look keys on state curves and an eased state field; look change needs a board; Opus-only",
+   "order": 8
+  },
+  {
+   "key": "world",
+   "name": "World places, client half (world/)",
+   "lines": 292,
+   "files": [
+    "world/build.ts 112",
+    "world/places.ts 78",
+    "world/baked.ts 29",
+    "world/meshes.ts 24",
+    "world/tower.ts 24",
+    "world/resources.ts 10",
+    "src/game/plugin/geometry.ts 10 (G294)",
+    "src/sdk/looks/modelLibrary.ts 5 (G294)"
+   ],
+   "what": "Loads the baked pieces (tower, rocks, dressing, caravan camp, well, braziers) and the generated models (wagon, crates, sacks, horse, braziers, well), sets them on their anchors, adds the live bits (lantern glass, keeper lamp, the well's bucket, rope, crank and jar, the brazier oil, the tower light, the one light that hops to the nearest lit waymark) and wires the interactions (logbook, oil, pour, light) with toasts, prompts and crack targets.",
+   "way_out": "G311 + SF80: every static piece and model goes into the generator's three.js scene and bake(scene) ships L0 prop and collider tiles the generic client draws (as Sky's islands, fd1b0a9a4). Bucket, rope and crank become one mover track triggered by the raised flag; oil, jar and lit fires targets panels shown by flag; the tower light a light row; the interactions the same rows the headless quest graph already runs (installQuestGraph with baked spots and prompt registrations).",
+   "mechanism": "bake(scene) to tiles + mover rows + targets panels + light rows",
+   "lines_removed": 242,
+   "lines_left": 50,
+   "effort": "L",
+   "lane": "sp-o123 (bake), sp-x1 (well mover)",
+   "blocker": "SF80 bake for these pieces; the data client must show panels and run movers in a hybrid shard; Opus parity captures; the hopping waymark light stays unless Jake accepts three fixed light rows (shader light count)",
+   "order": 5
+  },
+  {
+   "key": "models",
+   "name": "Model Explorer entries (models/gear.ts)",
+   "lines": 54,
+   "files": [
+    "models/gear.ts 46",
+    "roster.ts 8"
+   ],
+   "what": "The ten Model Explorer entries (bullwhip, ray, skitterer, strider, Matriarch, Sefa, tower, caravan, well, brazier), each a legacy builder assembling the model from runtime parts: the 10 left in generator-inventory.md (Signal 8 ported / 10 left).",
+   "way_out": "G391: once the places are baked (the creature bodies already are, generators/species.ts and hulls.ts), the Explorer lists the generator outputs as it does for the World entries; gear.ts and roster.ts go.",
+   "mechanism": "generator outputs (G391)",
+   "lines_removed": 54,
+   "lines_left": 0,
+   "effort": "S",
+   "lane": "sp-o123",
+   "blocker": "needs part 5 baked first",
+   "order": 6
+  },
+  {
+   "key": "creatures",
+   "name": "Creatures and the Matriarch",
+   "lines": 151,
+   "files": [
+    "runtime/shardfile/markedBoss.ts 43",
+    "runtime/looks/stormShell.ts 40 (glsl 34)",
+    "combat/matriarch.ts 20",
+    "combat/creatures.ts 11",
+    "species/matriarch.ts 8",
+    "species/duneRay.ts 3",
+    "species/skitterer.ts 3",
+    "species/strider.ts 3",
+    "runtime/species/skitterer.ts 2",
+    "src/engine/world/Atmosphere.ts 14 (G294)",
+    "src/game/saves.ts 3 (G294)",
+    "src/sdk/speciesBrains.ts 1 (G294)"
+   ],
+   "what": "Look calls per species, the homes (already rows), the ray held from striking until Sefa is met, the Matriarch (already the platform's RowBossView), her old save carried over once, and her phase-two sand storm: fog to 8-62 m and two blown-sand shells (34 lines GLSL, weatherFog G294).",
+   "way_out": "BR rows: the platform reads species look rows directly; the hold row already exists in data/headlessOwners.ts and the browser uses it; the storm becomes a weather row on the boss presentation (presentation.storm is already a row) drawn by the platform boss view, the shell a graph.",
+   "mechanism": "brain / boss rows + weather row + SF59 graph",
+   "lines_removed": 116,
+   "lines_left": 35,
+   "effort": "M",
+   "lane": "sp-x6 (rows), sp-o121 (shell graph)",
+   "blocker": "old-save carry-over (C26) waits for SF73; weather code counts to Signal until a second boss uses it (G294)",
+   "order": 3
+  },
+  {
+   "key": "quest",
+   "name": "Quest wiring",
+   "lines": 83,
+   "files": [
+    "quest/install.ts 48",
+    "runtime/persistence.ts 7",
+    "quests/scout.ts 4",
+    "src/game/plugin/geometry.ts 24 (G294)"
+   ],
+   "what": "The quest graph, director stage and interaction rules are already rows. Left: placing markers on built pieces, Sefa's ground check, standing Sefa up as a turning NPC (installPivotNpc, G294), the old reward save carry-over, the ledger projection.",
+   "way_out": "The generator writes marker positions into the quest rows; Sefa's row (SCOUT_ROW) is drawn by the platform; installPivotNpc becomes shared when Driftwood's pending Wendell change lands; persistence through the platform ledger.",
+   "mechanism": "quest marker and NPC rows",
+   "lines_removed": 68,
+   "lines_left": 15,
+   "effort": "S",
+   "lane": "sp-x6",
+   "blocker": "legacy save key waits for SF73",
+   "order": 2
+  },
+  {
+   "key": "installers",
+   "name": "Installers (browser + headless)",
+   "lines": 210,
+   "files": [
+    "plugin.ts 110",
+    "runtime/signalPlan.ts 83",
+    "runtime/headless.ts 5",
+    "runtime/standalone.ts 4",
+    "runtime/index.ts 2",
+    "src/game/plugin/simulation.ts 6 (G294)"
+   ],
+   "what": "plugin.ts starts the browser level (loads models and bake, builds the world, lends the sand, the capture stage() hook, installs quest, Matriarch, director, creatures, dusk); runtime/signalPlan.ts does the same for the headless proof.",
+   "way_out": "Shrinks as parts 1-8 land; design section 5.2 deletes the trusted runtime in the passing commit and Signal runs on the data client like the Template. signalPlan.ts is generic composition, as is Sky's runtime/headless.ts: one declared headless composer used by both is public. Capture hooks move to a generic capture API.",
+   "mechanism": "deleted with the trusted runtime; shared headless composer (with Sky)",
+   "lines_removed": 170,
+   "lines_left": 40,
+   "effort": "M",
+   "lane": "sp-x6, sp-x1",
+   "blocker": "generic capture API; every other part first",
+   "order": 9
+  }
+ ],
+ "path": [
+  {
+   "order": 1,
+   "part": "Shard glue outside data/",
+   "lane": "sp-x6",
+   "removed": 85,
+   "custom_after": 1775,
+   "percent_after": 43.1
+  },
+  {
+   "order": 2,
+   "part": "Quest wiring",
+   "lane": "sp-x6",
+   "removed": 68,
+   "custom_after": 1707,
+   "percent_after": 41.4
+  },
+  {
+   "order": 3,
+   "part": "Creatures and the Matriarch",
+   "lane": "sp-x6 (rows), sp-o121 (shell graph)",
+   "removed": 116,
+   "custom_after": 1591,
+   "percent_after": 38.6
+  },
+  {
+   "order": 4,
+   "part": "The bullwhip (lash family, headless copy, view)",
+   "lane": "sp-x1",
+   "removed": 360,
+   "custom_after": 1231,
+   "percent_after": 29.9
+  },
+  {
+   "order": 5,
+   "part": "World places, client half (world/)",
+   "lane": "sp-o123 (bake), sp-x1 (well mover)",
+   "removed": 242,
+   "custom_after": 989,
+   "percent_after": 24.0
+  },
+  {
+   "order": 6,
+   "part": "Model Explorer entries (models/gear.ts)",
+   "lane": "sp-o123",
+   "removed": 54,
+   "custom_after": 935,
+   "percent_after": 22.7
+  },
+  {
+   "order": 7,
+   "part": "Fire, embers and smoke",
+   "lane": "sp-o121 (graphs), sp-o123 (bake)",
+   "removed": 264,
+   "custom_after": 671,
+   "percent_after": 16.3
+  },
+  {
+   "order": 8,
+   "part": "Dusk sky, sand and light",
+   "lane": "sp-o121",
+   "removed": 203,
+   "custom_after": 468,
+   "percent_after": 11.4
+  },
+  {
+   "order": 9,
+   "part": "Installers (browser + headless)",
+   "lane": "sp-x6, sp-x1",
+   "removed": 170,
+   "custom_after": 298,
+   "percent_after": 7.2
+  }
+ ],
+ "crossings": {
+  "bar_20pct": {
+   "step": 7,
+   "custom_after": 671
+  },
+  "bar_10pct": {
+   "step": 9,
+   "custom_after": 298
+  }
+ },
+ "trap": {
+  "what": "Sky's fan leaving the engine contact family before Signal's lash",
+  "measured_custom": 2085,
+  "measured_percent": 50.6,
+  "lines": 225,
+  "exports": [
+   "ContactFamily 92",
+   "HeldContactWeapon 36",
+   "ContactWeaponHost 32",
+   "weaponContactDistance 14",
+   "ContactFamilyPorts 11",
+   "HeldWeaponClock 10",
+   "ContactMoveRow 6",
+   "registerWeaponFamily 6",
+   "others 18"
+  ]
+ },
+ "in_flight": [
+  {
+   "lane": "sp-x6",
+   "job": "inventory G396, glue, quest, creatures",
+   "steps": [
+    1,
+    2,
+    3,
+    9
+   ],
+   "landed": "6d346ac03 per-file checklist (same 1,860); no lines cut yet"
+  },
+  {
+   "lane": "sp-x1",
+   "job": "lash -> melee, movers",
+   "steps": [
+    4,
+    5
+   ],
+   "landed": "nothing yet"
+  },
+  {
+   "lane": "sp-o121",
+   "job": "graphs",
+   "steps": [
+    3,
+    4,
+    7
+   ],
+   "landed": "b8d7d8f0e lets a runtime's own meshes wear look graphs (unblocks)"
+  },
+  {
+   "lane": "sp-o123",
+   "job": "world -> tiles",
+   "steps": [
+    5,
+    6,
+    7
+   ],
+   "landed": "nothing yet"
+  },
+  {
+   "lane": "sp-o122 (Sky)",
+   "job": "G395 effects pairing",
+   "steps": [
+    7
+   ],
+   "landed": "uncommitted: Signal fire cards on the SDK card field (+9 lines to Signal for now)"
+  }
+ ],
+ "missing": [
+  "melee host AS secondary actions (G394)",
+  "held-item view that plays a baked clip or binds a graph value to the swing",
+  "look rows: two-stage painted sky blended by state, look keys on state curves, eased state field",
+  "defineShard boot, tier and pose fields",
+  "data client in a hybrid shard drawing prop panels by flag and running movers",
+  "SF73 legacy save keys"
+ ]
+}
