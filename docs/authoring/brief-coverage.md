@@ -26,7 +26,7 @@ grid continuation, quest facts and Ledger filing. This is functional brief cover
 looks grade. A successful report cannot claim those separate grades.
 
 `test/fixtures/author-mesa.ts` is a retained mechanical positive fixture using the documented herd/diver, a compiled scene hook
-and the generated commons spear. It does not implement the full mesa art or dusk quest. The test
+and the template's generated spear. It does not implement the full mesa art or dusk quest. The test
 `scripts/test-author-brief.mjs <built-client-directory>` builds that fixture with the retained authored floor and
 runs every mandatory coverage check against the actual native worker and a muted portrait client. Run it through
 `scripts/browser-lane.sh` and respect `.git/quiet`.

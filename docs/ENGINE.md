@@ -3401,7 +3401,7 @@ Data-only interaction commands use the shipping prompt law (distance, nearest pr
 
 ## Mandatory author brief proof (OS-F9)
 
-SDK headless.proveMesaNative runs a bounded native approach, proves all three goats flee and the hawk dives and lands damage, controls the beacon interaction against an unlit replay, and restores an exact suffix. headless.proveEquippedItemClient checks actual mounted visible geometry from the admitted asset lease. The retained author-template/prove-mesa.ts combines these with scene proof and the exact commons spear catalogue. See [mandatory brief coverage](authoring/brief-coverage.md).
+SDK headless.proveMesaNative runs a bounded native approach, proves all three goats flee and the hawk dives and lands damage, controls the beacon interaction against an unlit replay, and restores an exact suffix. headless.proveEquippedItemClient checks actual mounted visible geometry from the admitted asset lease. The retained author-template/prove-mesa.ts combines these with scene proof and the exact catalogue of the template's own spear (`generators/spear.ts`). See [mandatory brief coverage](authoring/brief-coverage.md).
 
 G320 pure contract boundary: `@wildshard/format` is the bottom layer and imports only Valibot and its own defining modules. The engine may import these pure data contracts. `@wildshard/format/materialGraph` now defines the unchanged graph IR, admission limits, node vocabulary, cost calculation and `validateGraph`. Engine graph compilation and game material/post admission consume that one definition; material creation and rendered output are unchanged.
 

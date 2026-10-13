@@ -69,7 +69,7 @@ scripts/browser-lane.sh --max 10 node scripts/test-oneshot-browser.mjs \
   /absolute/seat /absolute/seat/project/dist /absolute/original-isolation.sb
 ```
 
-This retained Mesa fixture proof checks real client views and equipped commons spear
+This retained Mesa fixture proof checks real client views and the equipped template spear
 through SDK calls executed inside the original sandbox. It also checks denied checkout
 reads, direct Internet and loopback network attempts, a forbidden renderer request,
 arbitrary page evaluation, real key delivery and owned-browser cleanup. The product
