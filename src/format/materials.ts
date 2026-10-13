@@ -105,14 +105,15 @@ function familyTextureRefs(material: FamilyMaterialParams): string[] {
   return [material.map, material.tube?.field, ...(material.sky?.maps ?? [])].filter((ref): ref is string => typeof ref === 'string');
 }
 
-/** A graph binding's admitted sources: the day-key channels the look's keys carry (with their value type) and the public numeric state fields. */
+/** A graph binding's admitted sources: the day-key channels the look's keys carry (with their value type) and the readable numeric state fields. */
 export interface GraphBindingSources { readonly day: ReadonlyMap<string, 'float' | 'vec3'>; readonly state: readonly string[] }
 /**
  * The admitted binding names of a shardfile (SF59): the canonical dotted day-key channels its look keys carry and its
- * declared public i32 / f64 state fields as `shared.<field>` / `player.<field>`. Admission and the client's compile both
- * use these lists, never a compiler default that allows any name.
+ * declared public i32 / f64 state fields as `shared.<field>` / `player.<field>`, plus, as for material curves
+ * (`curveStateFields`), its host-owned numeric fields when a trusted runtime binds `state` (the runtime hands the client
+ * their live values). Admission and the client's compile both use these lists, never a compiler default that allows any name.
  */
-export function graphBindingSources(source: Pick<Shardfile, 'look' | 'state'>): GraphBindingSources {
+export function graphBindingSources(source: Pick<Shardfile, 'look' | 'state'> & { readonly runtime?: Shardfile['runtime'] }): GraphBindingSources {
   const day = new Map<string, 'float' | 'vec3'>();
   if (source.look.keys.length > 0) {
     for (const path of ['sky.zenith', 'sky.horizon', 'fog.colour', 'sun.colour', 'ambient.sky', 'ambient.ground']) day.set(path, 'vec3');
@@ -121,7 +122,7 @@ export function graphBindingSources(source: Pick<Shardfile, 'look' | 'state'>): 
       day.set('fog.near', 'float'); day.set('fog.far', 'float');
     }
   }
-  return { day, state: numericFields(source.state, 'public') };
+  return { day, state: [...curveStateFields({ state: source.state, runtime: source.runtime ?? null })] };
 }
 /** The `<scope>.<name>` keys of the numeric state fields of one privacy. */
 function numericFields(state: Shardfile['state'], privacy: 'public' | 'host'): string[] {
@@ -134,7 +135,7 @@ function numericFields(state: Shardfile['state'], privacy: 'public' | 'host'): s
  * programs are held to `PRESET_GRAPH_BUDGET` by the engine's own tests, never the author caps); a graph file must be a
  * JSON file of the library closure (`files` / `library` given: its bytes are validated by product admission, `graphFileRules`).
  */
-export function materialGraphRules(source: Pick<Shardfile, 'look' | 'state'> & Partial<Pick<Shardfile, 'files' | 'library'>>): string[] {
+export function materialGraphRules(source: Pick<Shardfile, 'look' | 'state'> & Partial<Pick<Shardfile, 'files' | 'library' | 'runtime'>>): string[] {
   const errors: string[] = [];
   const { day: dayChannels, state: stateFields } = graphBindingSources(source);
   const files = new Map((source.files ?? []).map((row) => [row.hash, row])), closure = new Set<string>(), pending = [...source.library ?? []];
@@ -157,7 +158,7 @@ export function materialGraphRules(source: Pick<Shardfile, 'look' | 'state'> & P
  * one `kind: "material"` graph that validates under the author caps against the shard's admitted bindings, and every
  * texture param names a KTX2 file its row declares as a direct dependency (so the texture is charged with the closure).
  */
-export function graphFileRules(source: Pick<Shardfile, 'look' | 'state' | 'files'>, bytes: (hash: string) => Uint8Array | undefined): string[] {
+export function graphFileRules(source: Pick<Shardfile, 'look' | 'state' | 'files'> & Partial<Pick<Shardfile, 'runtime'>>, bytes: (hash: string) => Uint8Array | undefined): string[] {
   const errors: string[] = [];
   const { day: dayChannels, state: stateFields } = graphBindingSources(source);
   const files = new Map(source.files.map((row) => [row.hash, row]));

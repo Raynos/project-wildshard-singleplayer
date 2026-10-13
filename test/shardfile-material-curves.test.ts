@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
-import { curvedParams, materialCurveRules } from '@wildshard/format/materials';
+import { curvedParams, graphBindingSources, materialCurveRules, materialGraphRules } from '@wildshard/format/materials';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { Scope } from '../src/engine/app/scope';
 import { familyMaterial, moveFamilyMaterial } from '../src/engine/render/families/registry';
 import { ToonLook } from '../src/engine/render/families/toon';
 import { clientMaterials } from '../src/game/shardfile/clientMaterials';
 import { SAND_DUSK } from '../src/shards/sunscar-dunes/data/dusk';
+import { STORM_FIELD, STORM_GRAPHS } from '../src/shards/sunscar-dunes/data/stormLook';
 import template from '../src/shards/_template/shard.config';
 
 /** clientMaterials reads the renderer only for KTX2 and graph compiles; these entries need neither. */
@@ -76,5 +77,16 @@ describe('state-bound curves on family materials (look.curves)', () => {
       'curves pbr: shared.missing is not a declared public numeric state field (or a host one its runtime binds)',
       'curves pbr: ground.albedo is not a number of the entry',
     ]);
+  });
+
+  it('lets a graph bind a host field exactly where a curve may: when its trusted runtime binds state (Signal\'s storm, G397)', () => {
+    const base = emptyShardfile({ slug: 'storm-graph', name: 'Storm graph', author: 'Local', seed: 1, revision: 1 });
+    const shard = parseShardfile({ ...base, state: { ...base.state, shared: [STORM_FIELD] }, runtime: { entry: 'runtime/index.ts', binds: ['state'] },
+      look: { ...base.look, materials: Object.fromEntries(Object.entries(STORM_GRAPHS).map(([id, graph]) => [id, { family: 'graph', graph }])) } });
+    expect(graphBindingSources(shard).state).toEqual(['shared.storm']);
+    expect(materialGraphRules(shard)).toEqual([]);
+    const unbound = { ...shard, runtime: null };
+    expect(graphBindingSources(unbound).state).toEqual([]);
+    expect(materialGraphRules(unbound)).toHaveLength(2);
   });
 });

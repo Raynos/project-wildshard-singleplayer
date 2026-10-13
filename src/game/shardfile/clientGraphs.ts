@@ -167,7 +167,7 @@ export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided'>
  * The graph side of a shardfile's materials. `compiler` is null while the Debug row is off (every graph falls back);
  * `fallback` compiles a family entry on the family looks; `textures` resolves an admitted texture reference.
  */
-export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'>, options: { compiler: GraphCompiler | null; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string) => Texture; file?: (hash: string) => Uint8Array | undefined }): {
+export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial<Pick<Shardfile, 'runtime'>>, options: { compiler: GraphCompiler | null; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string) => Texture; file?: (hash: string) => Uint8Array | undefined }): {
   compile: (entry: GraphMaterialEntry) => Material; tick: (dt: number) => void; bind: (sources: GraphSources) => void; readout: GraphReadout;
   /** the outline stage of a material this compiled (null: no `stages.outline`, a fallback preset, or not a graph) */
   outline: (material: Material) => GraphOutline | null;

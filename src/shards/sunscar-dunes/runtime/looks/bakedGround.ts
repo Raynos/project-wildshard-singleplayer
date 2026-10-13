@@ -8,6 +8,7 @@
  *   data client draws the tiles (G345, presentation-only).
  * - `lentMaterial`: the data client's built ground material, its curves reading the runtime's host fields.
  * - `mappedFamilyMaterial`: an engine family material whose texture refs name the caller's maps.
+ * - `ownLookMaterials`: the runtime's own meshes' look.materials entries, graphs switched on (G387).
  */
 import { Mesh, type BufferGeometry, type Material, type Object3D, type Texture } from 'three';
 import { GeometryPack, fetchDeflated, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
@@ -17,7 +18,7 @@ import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainT
 import { ToonLook } from '@wildshard/engine/render/families/toon';
 import type { EmissiveLook } from '@wildshard/engine/render/families/emissive';
 import { familyMaterial } from '@wildshard/engine/render/families/registry';
-import { runtimePresentation, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { runtimeLookMaterials, runtimePresentation, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** What owns the skirt's geometry: the look's level scope (only the verbs used here). */
@@ -112,4 +113,9 @@ export function mappedFamilyMaterial(entry: unknown, maps: Readonly<Record<strin
   } });
   scope.own(material);
   return material;
+}
+
+/** The runtime's own meshes' `ids` from its look.materials, graphs switched on (G387, G397), on its world's renderer. */
+export function ownLookMaterials(ctx: Parameters<typeof runtimeLookMaterials>[0], source: Shardfile, ids: readonly string[]): ReturnType<typeof runtimeLookMaterials> {
+  return runtimeLookMaterials(ctx, source, true, ids);
 }

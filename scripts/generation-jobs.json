@@ -7954,6 +7954,9 @@
         "src/shards/sunscar-dunes/data/items.ts",
         "src/shards/sunscar-dunes/data/layout.ts",
         "src/shards/sunscar-dunes/data/ledger.ts",
+        "src/shards/sunscar-dunes/data/matriarchBoss.ts",
+        "src/shards/sunscar-dunes/data/matriarchEncounter.ts",
+        "src/shards/sunscar-dunes/data/matriarchPresentation.ts",
         "src/shards/sunscar-dunes/data/navigation.generated.json",
         "src/shards/sunscar-dunes/data/runtimeCost.ts",
         "src/shards/sunscar-dunes/data/sand.json",
@@ -7964,6 +7967,7 @@
         "src/shards/sunscar-dunes/data/signalStages.json",
         "src/shards/sunscar-dunes/data/sky.ts",
         "src/shards/sunscar-dunes/data/spawns.ts",
+        "src/shards/sunscar-dunes/data/stormLook.ts",
         "src/shards/sunscar-dunes/data/strings.ts",
         "src/shards/sunscar-dunes/data/tiles.json",
         "src/shards/sunscar-dunes/generators/product.ts"
@@ -7973,7 +7977,7 @@
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/sunscar-dunes/data/product.generated.json": "1a765fbedc5bd3cdf1bd894467735bfa5e0ffe61df3961e81d0f0b6c31061246"
+        "src/shards/sunscar-dunes/data/product.generated.json": "1b6246442037b318529d2a9211d1634a04018a496025464d2f4c8bb931686b37"
       }
     },
     {
@@ -8113,6 +8117,9 @@
         "src/shards/sunscar-dunes/data/items.ts",
         "src/shards/sunscar-dunes/data/layout.ts",
         "src/shards/sunscar-dunes/data/ledger.ts",
+        "src/shards/sunscar-dunes/data/matriarchBoss.ts",
+        "src/shards/sunscar-dunes/data/matriarchEncounter.ts",
+        "src/shards/sunscar-dunes/data/matriarchPresentation.ts",
         "src/shards/sunscar-dunes/data/navigation.generated.json",
         "src/shards/sunscar-dunes/data/productMap.json",
         "src/shards/sunscar-dunes/data/runtimeCost.ts",
@@ -8124,6 +8131,7 @@
         "src/shards/sunscar-dunes/data/signalStages.json",
         "src/shards/sunscar-dunes/data/sky.ts",
         "src/shards/sunscar-dunes/data/spawns.ts",
+        "src/shards/sunscar-dunes/data/stormLook.ts",
         "src/shards/sunscar-dunes/data/strings.ts",
         "src/shards/sunscar-dunes/data/tiles.json",
         "src/shards/sunscar-dunes/generators/build-product.mjs",

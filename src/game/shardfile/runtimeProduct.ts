@@ -139,13 +139,22 @@ export function bindRuntimeProductProps(scope: Scope, source: Shardfile, ports: 
  * A trusted runtime's own look materials (`look.materials`, graph entries included) compiled on its world's renderer under
  * its scope, from its product reader (`runtimeProduct`), for the meshes it still builds itself (read from its world stage).
  * `graphs` is the shard's switch (G387): true compiles its graphs whatever the Debug row says; absent, the row decides
- * (off: each graph's family preset).
+ * (off: each graph's family preset). `ids` compiles only those catalogue entries (no props, curves or terrain maps), so a
+ * runtime whose data client already draws the textured rest compiles just its own meshes' materials.
  */
-export function runtimeLookMaterials(ctx: Pick<ShardContext, 'scope' | 'game'>, source: Shardfile, graphs?: boolean): ReturnType<typeof clientMaterials> {
+export function runtimeLookMaterials(ctx: Pick<ShardContext, 'scope' | 'game'>, source: Shardfile, graphs?: boolean, ids?: readonly string[]): ReturnType<typeof clientMaterials> {
   const world = ctx.game.runtime?.world;
   if (world === null || world === undefined) throw new Error('Runtime look materials need the world stage');
   const product = runtimeProduct(source);
-  return clientMaterials(product.source, product.assets.retained, world.game.renderer, ctx.scope, graphs === undefined ? {} : { graphs });
+  let shard = product.source;
+  if (ids !== undefined) {
+    const { curves: _curves, ...look } = shard.look, materials = Object.fromEntries(ids.map((id) => {
+      const entry = look.materials[id]; if (entry === undefined) throw new Error(`Runtime look materials: no look.materials entry ${id}`);
+      return [id, entry];
+    }));
+    shard = { ...shard, look: { ...look, families: [], materials }, terrain: null, props: null };
+  }
+  return clientMaterials(shard, product.assets.retained, world.game.renderer, ctx.scope, graphs === undefined ? {} : { graphs });
 }
 
 /**
