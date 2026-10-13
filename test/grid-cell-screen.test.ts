@@ -49,8 +49,9 @@ it('keeps the same painted canvas, shares the post-paint upload budget, and canc
     paint(); expect(uploaded).toHaveLength(1); expect(frames.size).toBe(1); // the first ~5ms upload spends this frame's shared budget
     lost = true; paint(); expect(uploaded).toHaveLength(1); expect(frames.size).toBe(1); // recovery never issues a GPU upload
     lost = false; paint(); expect(uploaded).toHaveLength(2); expect(frames.size).toBe(0);
-    expect(uploaded.map(texture => texture.source.data)).toEqual(canvases); // no bitmap, rescale, conversion or replacement
-    expect(canvases.map(canvas => [canvas.width, canvas.height])).toEqual([[1024, 640], [1024, 640]]);
+    const screenCanvases = canvases.filter(canvas => canvas.width === 1024); // each slot also holds its clock's small canvas (sp-o105)
+    expect(uploaded.map(texture => texture.source.data)).toEqual(screenCanvases); // no bitmap, rescale, conversion or replacement
+    expect(canvases.map(canvas => [canvas.width, canvas.height])).toEqual([[1024, 640], [136, 46], [1024, 640], [136, 46]]);
     elapsed = 3.2; for (let i = 0; i < 6; i++) screens.step();
     expect(frames.size).toBe(2); scope.dispose(); expect(frames.size).toBe(0);
     paint(); expect(uploaded).toHaveLength(2); expect(scope.census).toMatchObject({ rafs: 0, timers: 0 });
@@ -153,7 +154,7 @@ describe('G217: the panels in the world', () => {
     try {
       const screens = installCellScreens({ cells, wall: 256, scene, admission, time: () => now, build: 'b', tier: 'desktop', slots: 2, ports: { read: () => snapshot, ready: id => ready.has(id), feet: () => feet } });
       expect(plans).toEqual([{ id: 'cell-screens', jsBytes: 140, gpuBytes: 140 }]);
-      expect(cellScreenBytes(2)).toEqual({ jsBytes: 2 * 1024 * 640 * 4, gpuBytes: 2 * Math.ceil(1024 * 640 * 4 * 4 / 3) });
+      expect(cellScreenBytes(2)).toEqual({ jsBytes: 2 * (1024 * 640 + 136 * 46) * 4, gpuBytes: 2 * Math.ceil(1024 * 640 * 4 * 4 / 3) });
       screens.step();
       expect(plans.slice(1)).toEqual([{ id: 'cell-screens.slot-0', ...cellScreenBytes(1) }, { id: 'cell-screens.slot-1', ...cellScreenBytes(1) }]);
       expect(screens.state().shown.map((s) => s.instance).sort()).toEqual(['east', 'north']); // the far corner is out of the two slots
@@ -214,7 +215,7 @@ it('charges only live screen canvases, frees them before releasing bytes, and re
     feet = { x: 270, z: 0 }; screens.step();
     const one = cellScreenBytes(1);
     expect(allocator.cost().accounted).toBe(shared + one.jsBytes + one.gpuBytes);
-    expect(canvases).toHaveLength(1); expect(screens.state().shown).toHaveLength(1);
+    expect(canvases).toHaveLength(2); expect(screens.state().shown).toHaveLength(1); // the screen's canvas and its clock's
     expect(images).toHaveLength(1); expect(images[0]?.src).toBe('/card.png'); images[0]?.onload?.();
     const atOne = scope.census.disposers;
     feet = { x: 2000, z: 0 }; screens.step();
@@ -222,7 +223,7 @@ it('charges only live screen canvases, frees them before releasing bytes, and re
     expect(screens.state().shown).toEqual([]); expect(scene.getObjectByName('grid-cell-screen')).toBeUndefined();
     expect(images[0]).toMatchObject({ src: '', onload: null });
     feet = { x: 270, z: 0 }; screens.step();
-    expect(canvases).toHaveLength(2); expect(allocator.cost().accounted).toBe(shared + one.jsBytes + one.gpuBytes);
+    expect(canvases).toHaveLength(4); expect(allocator.cost().accounted).toBe(shared + one.jsBytes + one.gpuBytes);
     expect(scope.census.disposers).toBe(atOne); // repeated turns retain no old slot cleanup or canvas
     scope.dispose(); expect(allocator.entries()).toEqual([]);
     expect(canvases.every(canvas => canvas.width === 0 && canvas.height === 0)).toBe(true);
@@ -240,7 +241,7 @@ it('does not allocate or throw on an unaffordable screen slot, and retries once 
       scene: new Group(), admission: new PlatformRenderResidency(allocator, scope), time: () => 0, build: 'b', tier: 'phone',
       ports: { read: () => new Map([['east', { ...base, instance: 'east' }]]), feet: () => ({ x: 270, z: 0 }) } });
     expect(() => screens.step()).not.toThrow(); expect(canvases).toBe(0); expect(screens.state().shown).toEqual([]);
-    blocker.release(); screens.step(); expect(canvases).toBe(1); expect(screens.state().shown).toHaveLength(1);
+    blocker.release(); screens.step(); expect(canvases).toBe(2); expect(screens.state().shown).toHaveLength(1);
   } finally { scope.dispose(); blocker.release(); restoreGlobals(); }
   expect(allocator.entries()).toEqual([]);
 });

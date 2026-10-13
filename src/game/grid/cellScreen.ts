@@ -12,7 +12,7 @@
  * cell's clock ticks in whole seconds), never per frame. Each live slot is admitted before allocation and freed outside
  * the existing nearest-cell/distance selection; hidden canvases never remain as an unbounded cache.
  */
-import { CanvasTexture, Group, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace, type Object3D } from 'three';
+import { CanvasTexture, ColorManagement, Group, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace, Texture, Vector2, type Object3D } from 'three';
 import { frameBudgetSpent, presenting } from '@wildshard/engine/core/framePacing';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import { PlatformRenderAdmissionError, type PlatformRenderAdmission } from './renderResidency';
@@ -142,7 +142,26 @@ const DISPLAY = "'Rajdhani', 'Bahnschrift', 'DIN Alternate', 'Helvetica Neue', A
 /** The 2D calls the painter uses (a browser canvas context, or a test's recorder). */
 export type ScreenContext = Pick<CanvasRenderingContext2D, 'fillRect' | 'strokeRect' | 'fillText' | 'measureText' | 'save' | 'restore' | 'translate' | 'scale' | 'beginPath' | 'moveTo' | 'lineTo' | 'stroke' | 'drawImage'>
   & { fillStyle: CanvasRenderingContext2D['fillStyle']; strokeStyle: CanvasRenderingContext2D['strokeStyle']; lineWidth: number; font: string; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline; globalAlpha: number;
-    createLinearGradient?: CanvasRenderingContext2D['createLinearGradient']; createRadialGradient?: CanvasRenderingContext2D['createRadialGradient'] };
+    createLinearGradient?: CanvasRenderingContext2D['createLinearGradient']; createRadialGradient?: CanvasRenderingContext2D['createRadialGradient'];
+    rect?: CanvasRenderingContext2D['rect']; clip?: () => void };
+
+/**
+ * sp-o105: the canvas rectangle (px, top-left origin) that holds the full layout's clock and nothing that changes with it.
+ * A loading cell's clock ticks every second while the rest of its screen holds: Safari's whole-canvas re-upload (~4 ms)
+ * and repaint of all three screens were ~7 % of Pine's Simulator road samples. The clock (`400 24px`, right-aligned at
+ * x 966, baseline 136, at most 120 px wide) lies inside it with margin.
+ */
+export const SCREEN_CLOCK = { x: 840, y: 104, w: 136, h: 46 } as const;
+
+/** Repaint only the clock rectangle (the whole painter, clipped: the same pixels a full paint gives there).
+ * False: the context cannot clip (a test's recorder), so the whole screen was painted instead. */
+export function drawCellScreenClock(g: ScreenContext, screen: CellScreen, art: CanvasImageSource | null): boolean {
+  if (g.rect === undefined || g.clip === undefined) { drawCellScreen(g, screen, art, false); return false; }
+  g.save(); g.beginPath(); g.rect(SCREEN_CLOCK.x, SCREEN_CLOCK.y, SCREEN_CLOCK.w, SCREEN_CLOCK.h); g.clip();
+  drawCellScreen(g, screen, art, false);
+  g.restore();
+  return true;
+}
 
 /** Exactly the facts painted by the close-up layout; hidden diagnostics must not invalidate its canvas. */
 function nearScreenFacts(screen: CellScreen) {
@@ -262,7 +281,10 @@ export interface CellScreensState { readonly shown: readonly { readonly instance
 
 interface Slot {
   readonly mesh: Mesh; readonly material: MeshBasicMaterial; readonly canvas: HTMLCanvasElement; readonly context: CanvasRenderingContext2D | null; readonly texture: CanvasTexture;
-  readonly ordinal: number; readonly dispose: () => void; readonly upload: () => void; instance: string | null; key: string; along: number; sliding: boolean; status: CellScreenStatus | null; since: number;
+  /** `clock`: only SCREEN_CLOCK changed since the last upload; `full`: anything else (or both) */
+  readonly ordinal: number; readonly dispose: () => void; readonly upload: (kind: 'full' | 'clock') => void; instance: string | null; key: string; along: number; sliding: boolean; status: CellScreenStatus | null; since: number;
+  /** the clock text painted now; `key` covers everything else on the screen */
+  clock: string;
   /** sp-o100: the inputs the key was last built from (the snapshot's row, the whole seconds, near, the art's readiness):
    *  the screen is a pure function of them, so an unchanged frame skips building and stringifying its content */
   inputs: { readonly state: CellScreenInput; readonly elapsedS: number | null; readonly near: boolean; readonly art: boolean } | null;
@@ -271,18 +293,21 @@ const RANGE = 320, REFRESH = 6, DEAD_ZONE = 6;
 // Screens stay inside the closed cell, beyond a 20 m glide, leaving the entire road and soft wall clear.
 const SETBACK = 24, NEAR = 55, NEAR_SCALE = 2;
 
-/** The byte plan of `slots` screens: each a canvas (JS) and its texture with mips (GPU). */
+/** The byte plan of `slots` screens: each a canvas and its clock's small canvas (JS) and its texture with mips (GPU). */
 export function cellScreenBytes(slots: number): { jsBytes: number; gpuBytes: number } {
   const bytes = SCREEN_PX.w * SCREEN_PX.h * 4;
-  return { jsBytes: slots * bytes, gpuBytes: slots * Math.ceil(bytes * 4 / 3) };
+  return { jsBytes: slots * (bytes + SCREEN_CLOCK.w * SCREEN_CLOCK.h * 4), gpuBytes: slots * Math.ceil(bytes * 4 / 3) };
 }
+// WebGL's pixel-store enum and its values (fixed by the spec), set the way three sets them for this texture's full upload.
+const UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243, GL_NONE = 0, BROWSER_DEFAULT_WEBGL = 0x9244;
 
 /** Stand the screens on the unenterable neighbours; `step` runs each fixed step. Disposed with the scope. */
 export function installCellScreens(input: {
   readonly cells: readonly CellScreenCell[]; readonly wall: number; readonly ports: CellScreenPorts; readonly scene: Object3D;
   readonly admission: PlatformRenderAdmission; readonly time: () => number; readonly build: string; readonly tier: string; readonly slots?: number;
-  /** Reupload changed canvases after paint under the existing shared build budget; absent, retain the ordinary draw upload. */
-  readonly renderer?: Pick<Renderer, 'initTexture'> & { readonly getContext: () => Pick<WebGL2RenderingContext, 'isContextLost'> };
+  /** Reupload changed canvases after paint under the existing shared build budget; absent, retain the ordinary draw upload.
+   * With `copyTextureToTexture` and `state`, a clock-only change uploads just SCREEN_CLOCK (sp-o105). */
+  readonly renderer?: Pick<Renderer, 'initTexture'> & { readonly copyTextureToTexture?: Renderer['copyTextureToTexture']; readonly state?: Pick<Renderer['state'], 'pixelStorei'> } & { readonly getContext: () => Pick<WebGL2RenderingContext, 'isContextLost'> };
 }): { step: () => void; state: () => CellScreensState } {
   const { cells, ports, wall, time } = input, count = input.slots ?? 3, byInstance = new Map(cells.map((cell) => [cell.instance, cell]));
   // Four plane vertices: position, normal and UV, plus six uint16 indices, retained on both CPU and GPU.
@@ -305,21 +330,41 @@ export function installCellScreens(input: {
         const mesh = new Mesh(geometry, material); mesh.name = 'grid-cell-screen'; mesh.visible = false; mesh.matrixAutoUpdate = false;
         slotOwner.onDispose(() => { mesh.removeFromParent(); texture.dispose(); material.dispose(); canvas.width = 0; canvas.height = 0; });
         group.add(mesh);
-        let firstPaint = true, queued = false;
+        // sp-o105: the clock's rectangle, copied out of the painted canvas at send time and uploaded into the texture alone
+        const clockCanvas = document.createElement('canvas'); clockCanvas.width = SCREEN_CLOCK.w; clockCanvas.height = SCREEN_CLOCK.h;
+        const clockContext = clockCanvas.getContext('2d'), clockTexture = new Texture(clockCanvas);
+        const clockAt = new Vector2(SCREEN_CLOCK.x, SCREEN_PX.h - SCREEN_CLOCK.y - SCREEN_CLOCK.h); // GL rows count up from the flipped canvas's foot
+        slotOwner.onDispose(() => { clockCanvas.width = 0; clockCanvas.height = 0; });
+        let firstPaint = true, pending: 'full' | 'clock' | null = null;
+        const sendClock = (): boolean => {
+          const renderer = input.renderer;
+          if (renderer?.copyTextureToTexture === undefined || renderer.state === undefined || clockContext === null) return false;
+          clockContext.drawImage(canvas, SCREEN_CLOCK.x, SCREEN_CLOCK.y, SCREEN_CLOCK.w, SCREEN_CLOCK.h, 0, 0, SCREEN_CLOCK.w, SCREEN_CLOCK.h);
+          // copyTextureToTexture sets the flip, premultiply and alignment from the screen's texture; the colour conversion
+          // follows three's full-upload rule. A stale texture uploads whole first; level 0 then regenerates every mip.
+          const same = ColorManagement.getPrimaries(ColorManagement.workingColorSpace) === ColorManagement.getPrimaries(texture.colorSpace);
+          renderer.state.pixelStorei(UNPACK_COLORSPACE_CONVERSION_WEBGL, same ? GL_NONE : BROWSER_DEFAULT_WEBGL);
+          renderer.copyTextureToTexture(clockTexture, texture, null, clockAt);
+          return true;
+        };
         const send = (): void => {
           if (input.renderer?.getContext().isContextLost() === true || frameBudgetSpent(1000 / 240)) { slotOwner.raf(() => { slotOwner.timeout(0, send); }); return; }
-          queued = false; texture.needsUpdate = true; input.renderer?.initTexture(texture);
+          const kind = pending; pending = null;
+          if (kind === 'clock' && sendClock()) return;
+          texture.needsUpdate = true; input.renderer?.initTexture(texture);
         };
         const later = (): void => { slotOwner.raf(() => { slotOwner.timeout(0, send); }); };
-        const upload = (): void => {
+        const upload = (kind: 'full' | 'clock'): void => {
           // First appearance is unchanged. Subsequent HTMLCanvasElement uploads cost ~4ms on Safari;
           // keep them out of the depth/render pass, coalesce to the current canvas, and share the
           // existing quarter-frame budget across slots. Slot disposal cancels both scheduling stages.
           if (firstPaint || input.renderer === undefined || !presenting()) { firstPaint = false; texture.needsUpdate = true; return; }
-          if (!queued) { queued = true; later(); }
+          const queued = pending !== null;
+          pending = kind === 'full' || pending === 'full' ? 'full' : 'clock';
+          if (!queued) later();
         };
         return { ordinal, dispose: () => { slotOwner.dispose(); }, upload, mesh, material, canvas, context: canvas.getContext('2d'), texture,
-          instance: null, key: '', along: 0, sliding: false, status: null, since: 0, inputs: null };
+          instance: null, key: '', clock: '', along: 0, sliding: false, status: null, since: 0, inputs: null };
       });
     };
     input.scene.add(group);
@@ -376,7 +421,7 @@ export function installCellScreens(input: {
           }
           if (s === undefined) continue;
           if (!slots.includes(s)) slots.push(s);
-          s.instance = cell.instance; s.key = ''; s.inputs = null; s.status = null; s.sliding = false;
+          s.instance = cell.instance; s.key = ''; s.clock = ''; s.inputs = null; s.status = null; s.sliding = false;
           const dx = feet.x - cell.x, dz = feet.z - cell.z; s.along = Math.abs(dx) >= Math.abs(dz) ? dz : dx;
         }
         const state = snapshot.get(cell.instance); if (state === undefined) continue;
@@ -389,8 +434,11 @@ export function installCellScreens(input: {
         const last = s.inputs;
         if (last?.state === state && last.elapsedS === frame.elapsedS && last.near === near && last.art === (picture !== null)) continue;
         s.inputs = { state, elapsedS: frame.elapsedS, near, art: picture !== null };
-        const screen = cellScreenContent(state, frame), key = `${near ? 1 : 0}${picture === null ? 0 : 1}${JSON.stringify(near ? nearScreenFacts(screen) : screen)}`;
-        if (key !== s.key && s.context !== null) { s.key = key; drawCellScreen(s.context, screen, picture, near); s.upload(); draws++; }
+        // the near layout paints no clock; the full layout's clock alone repaints and uploads only its rectangle
+        const screen = cellScreenContent(state, frame), key = `${near ? 1 : 0}${picture === null ? 0 : 1}${JSON.stringify(near ? nearScreenFacts(screen) : { ...screen, clock: '' })}`;
+        if (s.context === null) continue;
+        if (key !== s.key) { s.key = key; s.clock = screen.clock; drawCellScreen(s.context, screen, picture, near); s.upload('full'); draws++; }
+        else if (!near && screen.clock !== s.clock) { s.clock = screen.clock; s.upload(drawCellScreenClock(s.context, screen, picture) ? 'clock' : 'full'); draws++; }
       }
       const liveArt = new Set(slots.flatMap(s => {
         const url = s.instance === null ? null : byInstance.get(s.instance)?.art;
