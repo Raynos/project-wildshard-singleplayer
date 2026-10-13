@@ -1,5 +1,4 @@
 import { InteractionRules } from '@wildshard/game/quest/interactionRows';
-import { runtimeVariantEnabled } from '@wildshard/game/shard/runtimeVariant';
 import { PointLight, type Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -11,7 +10,7 @@ import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellPart
 import { drapeGroundAt } from './drapeGround';
 import { signalPieces, type BakedWorld } from './baked';
 import { ownPrimitives } from './resources';
-import { fireGeometries, fireLight, fireResources, loadFireBook, resetFireLights, tickFires, useBakedFire } from './fireFx';
+import { fireGeometries, fireLight, fireResources, loadFireBook, resetFireLights, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
 import { SIGNAL_INTERACTIONS } from '../data/signalInteractions';
@@ -43,9 +42,6 @@ const WAY_LIGHT = 9;
 const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales the point lights on flat sand (x0.55 of round 24's)
 
 export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): SignalWorld {
-  // G345: Jake's taste pick between the current look (A) and the baked one on standard materials (B), read once per build
-  useBakedFire(runtimeVariantEnabled(ctx, { id: 'sunscar.look', group: 'look', label: STRINGS.lookRow, initial: 'off', reload: true, choices: [{ value: 'off', text: STRINGS.lookA }, { value: 'on', text: STRINGS.lookB }],
-    note: STRINGS.lookNote, ask: 'E435', reviewBy: '2026-12-30' }));
   // the pools drape over the original ground lattice's blocks round their sites (world/drapeGround.ts), not the live collider
   const groundAt = drapeGroundAt();
   // SF72: the tower's frame, the places' code-built parts and colliders, the rock field and its dressing are baked offline
