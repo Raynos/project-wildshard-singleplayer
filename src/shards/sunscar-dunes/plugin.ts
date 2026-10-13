@@ -37,11 +37,6 @@ import { installMatriarch } from './combat/matriarch';
 import type { MarkedBoss } from './runtime/shardfile/markedBoss';
 import { SAND_TILES, SKIRT } from './look/render';
 
-// the slot merges through @wildshard/engine (deep engine paths do not resolve); a program sees it only when it includes this file
-declare module '@wildshard/engine/combat/Equipment' {
-  interface EquipmentSlotMap { 'sunscar-whip': true }
-}
-
 /** The dusk a quest step has reached (look/dusk.ts): 0 at the start, deeper with each step, 1 once the signal burns. */
 function duskOf(places: SignalWorld): number {
   const f = places.flags;
