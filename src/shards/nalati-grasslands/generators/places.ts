@@ -19,7 +19,7 @@ import { Smoke } from '../world/Smoke';
 import { CAMP, CORRAL, HITCHING_RAIL, SUMMER_CAMP, BRIDGE } from '../world/layout';
 import type { Box } from '../world/solid';
 import type { Ground } from '../world/types';
-import { specimenKey, type DeckRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceGeometryRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
+import { specimenKey, type DeckRow, type DressingGeoRow, type EffectRow, type MemberRow, type PlaceMeshRow, type PlaceRow, type SpecimenRow } from '../world/placeBake';
 import { kazan, chest, firewood, kumisChurn, groundSaddle, perchedEagle } from '../models/campGenerated';
 import { EAGLE_PERCH_H } from '../models/campProps';
 import { yurtPainted } from './yurt';
@@ -30,7 +30,8 @@ import {
   hitchingRailPainted, waterTroughPainted, saddleRackPainted, corralPainted, hayPilePainted, feedTroughPainted, rugLinePainted,
   choppingBlockPainted, milkCansPainted, tetherLinePainted, kurtBoardPainted, ribbonPostPainted,
 } from './campProps';
-import { DRESSING_GEOS } from './dressingGeos';
+import { bakeDressing } from './dressingBake';
+import { writeGeometry, join } from './geometryWriter';
 
 // ── the cloth and smoke a place makes, recorded in order ──────────────────────────────────────────────────────────────
 
@@ -254,57 +255,6 @@ function summerCamp(ctx: PaintCtx, effects: EffectRow[]): BuiltPlace {
 
 // ── the bake's binary: each geometry's attributes as their own bytes, welded ──────────────────────────────────────────
 
-const pad = (bytes: Uint8Array): Uint8Array => { if (bytes.length % 4 === 0) return bytes; const out = new Uint8Array(Math.ceil(bytes.length / 4) * 4); out.set(bytes); return out; };
-const f32 = (a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute, what: string): Float32Array => {
-  const array: unknown = 'array' in a ? a.array : null;
-  if (!(array instanceof Float32Array) || a.normalized || array.length !== a.count * a.itemSize) throw new Error(`[nalati places] ${what} is not plain float32`);
-  return array;
-};
-
-/** a geometry's row and blocks: float32 attributes in their order; a non-indexed one welded (each distinct vertex once) */
-function writeGeometry(g: THREE.BufferGeometry, blocks: Uint8Array[], what: string): PlaceGeometryRow {
-  if (Object.keys(g.morphAttributes).length > 0 || g.groups.length > 0) throw new Error(`[nalati places] ${what} has morphs / groups`);
-  const names = Object.keys(g.attributes), arrays = names.map((n) => f32(g.getAttribute(n), `${what}.${n}`));
-  const sizes = names.map((n) => g.getAttribute(n).itemSize), n = g.getAttribute('position').count, box = g.boundingBox !== null;
-  const attrs = names.map((name, i): readonly [string, 'f32', number, boolean] => [name, 'f32', sizes[i] ?? 0, false]);
-  const index = g.index;
-  if (index !== null) {
-    for (const a of arrays) blocks.push(pad(new Uint8Array(a.buffer, a.byteOffset, a.byteLength).slice()));
-    const deltas = new Int32Array(index.count);
-    let last = 0;
-    for (let i = 0; i < index.count; i++) { const x = index.getX(i); deltas[i] = x - last; last = x; }
-    blocks.push(new Uint8Array(deltas.buffer));
-    return { attrs, count: n, index: index.array instanceof Uint16Array ? 'u16' : 'u32', indexCount: index.count, box, expand: false };
-  }
-  // weld: a vertex is its attributes' exact bits
-  const words = arrays.map((a) => new Uint32Array(a.buffer, a.byteOffset, a.length));
-  const seen = new Map<string, number>(), order: number[] = [], idx = new Int32Array(n);
-  for (let v = 0; v < n; v++) {
-    let key = '';
-    for (const [k, w] of words.entries()) { const s = sizes[k] ?? 0; for (let c = 0; c < s; c++) key += `${String(w[v * s + c] ?? 0)},`; }
-    let at = seen.get(key);
-    if (at === undefined) { at = order.length; seen.set(key, at); order.push(v); }
-    idx[v] = at;
-  }
-  for (const [k, a] of arrays.entries()) {
-    const s = sizes[k] ?? 0, out = new Float32Array(order.length * s);
-    for (const [j, v] of order.entries()) for (let c = 0; c < s; c++) out[j * s + c] = a[v * s + c] ?? 0;
-    blocks.push(new Uint8Array(out.buffer));
-  }
-  const deltas = new Int32Array(n);
-  let last = 0;
-  for (let i = 0; i < n; i++) { const x = idx[i] ?? 0; deltas[i] = x - last; last = x; }
-  blocks.push(new Uint8Array(deltas.buffer));
-  return { attrs, count: order.length, index: 'u32', indexCount: n, box, expand: true };
-}
-
-const join = (blocks: readonly Uint8Array[]): Uint8Array => {
-  const out = new Uint8Array(blocks.reduce((s, b) => s + b.length, 0));
-  let at = 0;
-  for (const b of blocks) { out.set(b, at); at += b.length; }
-  return out;
-};
-
 const descRow = (d: MemberData['solid'][number]): MemberRow['solid'][number] => (d.kind === 'hull' ? { ...d, points: Array.from(d.points) } : { ...d });
 const deckOf = (f: MemberData['floors'][number]): DeckRow => {
   if (!('row' in f)) throw new Error('[nalati places] a floor the bake cannot keep (only deckFloor floors are data)');
@@ -361,9 +311,7 @@ export function bakeNalatiPlaces(ground: Ground, specimenScope: SpecimenScope = 
   // Native V8 trig differs on arm64/x64; even a final float32 UV can cross its rounding midpoint.
   const specimens = specimenScope(() => specimenJobs().flatMap((run) => run(specimenBlocks)));
   // the dressing's scatter shapes (generators/dressingGeos.ts): ground-free, indexed, kept as built
-  const dressingBlocks: Uint8Array[] = [];
-  const dressing = DRESSING_GEOS.map(([key, build]): DressingGeoRow => ({ key, geometry: writeGeometry(build(), dressingBlocks, `dressing ${key}`) }));
-  return { places, specimens: { rows: specimens, bin: join(specimenBlocks) }, dressing: { rows: dressing, bin: join(dressingBlocks) } };
+  return { places, specimens: { rows: specimens, bin: join(specimenBlocks) }, dressing: bakeDressing() };
 }
 
 /** the bake over the page's baked terrain grid (public/assets/baked/nalati-grasslands/terrain.bin), as the page samples it */

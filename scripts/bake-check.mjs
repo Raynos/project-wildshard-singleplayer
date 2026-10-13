@@ -31,7 +31,7 @@ for (const baker of NODE_BAKERS) if (only === undefined || only === baker) {
   } else if (baker === 'driftwood-fixed-models' && process.platform !== 'darwin') {
     console.info('bake-check: driftwood-fixed-models skipped (byte-exact on macOS, where the bake is made)');
   } else {
-    const entry = baker === 'driftwood-fixed-models' ? 'src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs' : baker.startsWith('nalati-') ? `src/shards/nalati-grasslands/generators/bake-${baker}.mjs` : `scripts/bake-${baker}.mjs`;
+    const entry = baker === 'driftwood-fixed-models' ? 'src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs' : baker.startsWith('nalati-') ? `src/shards/nalati-grasslands/generators/bake-${baker === 'nalati-places' ? 'nalati-painted' : baker}.mjs` : `scripts/bake-${baker}.mjs`;
     run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', entry, '--check']);
   }
 }

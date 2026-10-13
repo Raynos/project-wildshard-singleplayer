@@ -3,11 +3,9 @@
 // Normal generation and --check use the same exact row/float bytes and zlib lanes on every platform.
 // Regenerate: node --experimental-transform-types --import ./scripts/bake-loader.mjs generators/bake-nalati-places.mjs
 import { createHash } from 'node:crypto';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { deflateSync, inflateSync } from 'node:zlib';
-import { byteWriter } from '../../../../scripts/bake-output.mjs';
-import { withPortableMath } from '../../../../test/fake/portableMath.ts';
 
 const root = resolve(import.meta.dirname, '../../../..');
 const OUT = resolve(root, 'public/assets/nalati/baked');
@@ -75,21 +73,32 @@ export function bakeDifference(file, committed, made, geos) {
   return null;
 }
 
-if (import.meta.main) {
-  const { bakeNalatiPlacesOnTerrain } = await import('./places.ts');
-  const baked = bakeNalatiPlacesOnTerrain(terrainBuffer(), withPortableMath);
-  const check = process.argv.includes('--check');
-  const forceWrite = !check && process.argv.includes('--force-write');
-  const writer = byteWriter(check, 'bake-nalati-places');
-  mkdirSync(OUT, { recursive: true });
-  for (const { name, json, part } of [{ name: 'places', json: 'places.json', part: baked.places }, { name: 'specimens', json: 'placeSpecimens.json', part: baked.specimens }, { name: 'dressing', json: 'dressingGeos.json', part: baked.dressing }]) {
-    const packed = deflateSync(shuffle(part.bin), { level: 9 });
-    writer.put(resolve(OUT, `${name}.bin`), packed);
-    const rows = `${JSON.stringify(stamp(part.bin, part.rows))}\n`;
-    writer.put(resolve(DATA, json), rows);
-    // Isolated cache regeneration must prove that imported schema seeds were actually produced.
-    if (forceWrite) writeFileSync(resolve(DATA, json), rows);
-    console.info(`nalati ${name}: ${part.bin.length} raw bytes, ${packed.length} zlib, Node canonical`);
+/** Read the actual native terrain bytes; the painted recipe receives this explicit input. */
+export function readNalatiTerrain() { return terrainBuffer(); }
+
+/** Publish/check the unchanged Nalati wire envelopes, at the existing Node I/O boundary. */
+export function writeNalatiParts(parts, check = false) {
+  let changed = 0;
+  const put = (path, bytes) => {
+    const buffer = Buffer.from(bytes);
+    if (check) {
+      if (!existsSync(path) || !readFileSync(path).equals(buffer)) { changed++; console.error(`nalati bake: STALE ${path}`); }
+    } else { mkdirSync(resolve(path, '..'), { recursive: true }); writeFileSync(path, buffer); }
+  };
+  for (const { name, json, part } of parts) {
+    if (!['places', 'specimens', 'dressing'].includes(name) || !['places.json', 'placeSpecimens.json', 'dressingGeos.json'].includes(json)) throw new Error('Unknown Nalati bake output');
+    put(resolve(OUT, `${name}.bin`), deflateSync(shuffle(part.bin), { level: 9 }));
+    put(resolve(DATA, json), `${JSON.stringify(stamp(part.bin, part.rows))}\n`);
   }
-  writer.finish();
+  if (changed !== 0) throw new Error(`Nalati bake has ${changed} stale outputs`);
 }
+
+/** Publish/check the standard dressing Scene, using the same retained file boundary. */
+export function writeDressingScene(scene, check = false) {
+  const path = resolve(DATA, 'dressing.scene.generated.json'), bytes = Buffer.from(`${JSON.stringify(scene)}\n`);
+  if (check) {
+    if (!existsSync(path) || !readFileSync(path).equals(bytes)) throw new Error('Nalati dressing Scene is stale');
+  } else { mkdirSync(DATA, { recursive: true }); writeFileSync(path, bytes); }
+}
+
+if (import.meta.main) throw new Error('Run bake-nalati-painted.mjs for places or bake-nalati-dressing.mjs for dressing');

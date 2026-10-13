@@ -20,7 +20,7 @@ supply primary entries. Unresolved registry expressions are reported below.
 | driftwood-isle | 55 | 9 | 6 | 0 | 70 | 0 | 3271 |
 | far-reach | 8 | 0 | 19 | 0 | 27 | 0 | 334 |
 | ink-cel-valley | 0 | 0 | 3 | 0 | 3 | 0 | 35 |
-| nalati-grasslands | 91 | 17 | 17 | 0 | 125 | 0 | 3412 |
+| nalati-grasslands | 91 | 17 | 17 | 9 | 116 | 290 | 3122 |
 | nine-dragon-stack | 33 | 6 | 8 | 0 | 47 | 0 | 1120 |
 | pastel-plain | 0 | 0 | 3 | 0 | 3 | 0 | 35 |
 | pine-hollow | 52 | 19 | 18 | 0 | 89 | 0 | 1515 |
@@ -140,7 +140,7 @@ supply primary entries. Unresolved registry expressions are reported below.
 | nalati-grasslands | Model | Balbal (nalati-grasslands/balbal) | src/shards/nalati-grasslands/models/balbal.ts | 143 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | nalati-grasslands/balbal-warrior (nalati-grasslands/balbal-warrior) | src/shards/nalati-grasslands/models/creatures.ts | 74 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Barrel (nalati-grasslands/barrel) | src/shards/nalati-grasslands/generators/campProps.ts | 345 | runtime-in-Node bake | sp-x5 |
-| nalati-grasslands | Model | Boulder (nalati-grasslands/boulder) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | runtime-in-Node bake | sp-x5 |
+| nalati-grasslands | Model | Boulder (nalati-grasslands/boulder) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | generator in shard folder | sp-x5 |
 | nalati-grasslands | Model | Composite bow (nalati-grasslands/bow) | src/shards/nalati-grasslands/models/gear.ts | 99 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Butterfly (nalati-grasslands/butterfly) | src/shards/nalati-grasslands/models/ambientLife.ts | 86 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Camp bench (nalati-grasslands/camp-bench) | src/shards/nalati-grasslands/generators/campProps.ts | 345 | runtime-in-Node bake | sp-x5 |
@@ -152,8 +152,8 @@ supply primary entries. Unresolved registry expressions are reported below.
 | nalati-grasslands | Model | Pole corral (nalati-grasslands/corral) | src/shards/nalati-grasslands/generators/campProps.ts | 345 | runtime-in-Node bake | sp-x5 |
 | nalati-grasslands | Model | Crag ledge (nalati-grasslands/crag-ledge) | src/shards/nalati-grasslands/models/cragLedge.ts | 27 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Crag rock (nalati-grasslands/crag-rock) | src/shards/nalati-grasslands/models/cragRock.ts | 129 | legacy three.js builder | sp-x5 |
-| nalati-grasslands | Model | Edelweiss / buttercup drift (nalati-grasslands/daisy) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | runtime-in-Node bake | sp-x5 |
-| nalati-grasslands | Model | Dwarf willow (nalati-grasslands/dwarf-willow) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | runtime-in-Node bake | sp-x5 |
+| nalati-grasslands | Model | Edelweiss / buttercup drift (nalati-grasslands/daisy) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | generator in shard folder | sp-x5 |
+| nalati-grasslands | Model | Dwarf willow (nalati-grasslands/dwarf-willow) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | generator in shard folder | sp-x5 |
 | nalati-grasslands | Model | Eagle's perch (nalati-grasslands/eagle-perch) | src/shards/nalati-grasslands/generators/campProps.ts | 345 | runtime-in-Node bake | sp-x5 |
 | nalati-grasslands | Model | Eagle Rock (nalati-grasslands/eagle-rock) | src/shards/nalati-grasslands/models/eagleRock.ts | 106 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Fallen log (nalati-grasslands/fallen-log) | src/shards/nalati-grasslands/models/dressingProps.ts | 237 | legacy three.js builder | sp-x5 |
@@ -173,7 +173,7 @@ supply primary entries. Unresolved registry expressions are reported below.
 | nalati-grasslands | Model | Hitching rail (nalati-grasslands/hitching-rail) | src/shards/nalati-grasslands/generators/campProps.ts | 345 | runtime-in-Node bake | sp-x5 |
 | nalati-grasslands | Model | nalati-grasslands/horse (nalati-grasslands/horse) | src/shards/nalati-grasslands/models/creatures.ts | 74 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Javelin (nalati-grasslands/javelin) | src/shards/nalati-grasslands/models/gear.ts | 99 | legacy three.js builder | sp-x5 |
-| nalati-grasslands | Model | Juniper (nalati-grasslands/juniper) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | runtime-in-Node bake | sp-x5 |
+| nalati-grasslands | Model | Juniper (nalati-grasslands/juniper) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | generator in shard folder | sp-x5 |
 | nalati-grasslands | Model | Kazan on its tripod (nalati-grasslands/kazan) | src/shards/nalati-grasslands/models/campGenerated.ts | 66 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | nalati-grasslands/kokbori (nalati-grasslands/kokbori) | src/shards/nalati-grasslands/models/creatures.ts | 74 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Kokpar goal (nalati-grasslands/kokpar-goal) | src/shards/nalati-grasslands/models/kokparGoal.ts | 19 | legacy three.js builder | sp-x5 |
@@ -185,7 +185,7 @@ supply primary entries. Unresolved registry expressions are reported below.
 | nalati-grasslands | Model | Kurgan kerb stone (nalati-grasslands/kurgan-kerb) | src/shards/nalati-grasslands/models/kurganKerb.ts | 23 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Kurt drying board (nalati-grasslands/kurt-board) | src/shards/nalati-grasslands/generators/campProps.ts | 345 | runtime-in-Node bake | sp-x5 |
 | nalati-grasslands | Model | Leopard's cave (nalati-grasslands/leopard-cave) | src/shards/nalati-grasslands/models/leopardCave.ts | 78 | legacy three.js builder | sp-x5 |
-| nalati-grasslands | Model | Sage / lupin drift (nalati-grasslands/lupin) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | runtime-in-Node bake | sp-x5 |
+| nalati-grasslands | Model | Sage / lupin drift (nalati-grasslands/lupin) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | generator in shard folder | sp-x5 |
 | nalati-grasslands | Model | Grey marmot (nalati-grasslands/marmot) | src/shards/nalati-grasslands/models/creatures.ts | 74 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Milk cans (nalati-grasslands/milk-cans) | src/shards/nalati-grasslands/generators/campProps.ts | 345 | runtime-in-Node bake | sp-x5 |
 | nalati-grasslands | Model | Naizagai (nalati-grasslands/naizagai) | src/shards/nalati-grasslands/models/gear.ts | 99 | legacy three.js builder | sp-x5 |
@@ -193,7 +193,7 @@ supply primary entries. Unresolved registry expressions are reported below.
 | nalati-grasslands | Model | Golden eagle on its perch (nalati-grasslands/perched-eagle) | src/shards/nalati-grasslands/models/campGenerated.ts | 66 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | nalati-grasslands/qyran (nalati-grasslands/qyran) | src/shards/nalati-grasslands/models/creatures.ts | 74 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Raptor (nalati-grasslands/raptor) | src/shards/nalati-grasslands/models/ambientLife.ts | 86 | legacy three.js builder | sp-x5 |
-| nalati-grasslands | Model | Reeds (nalati-grasslands/reed) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | runtime-in-Node bake | sp-x5 |
+| nalati-grasslands | Model | Reeds (nalati-grasslands/reed) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | generator in shard folder | sp-x5 |
 | nalati-grasslands | Model | Reins (nalati-grasslands/reins) | src/shards/nalati-grasslands/models/reins.ts | 30 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Yard ribbon pole (nalati-grasslands/ribbon-pole) | src/shards/nalati-grasslands/generators/campProps.ts | 345 | runtime-in-Node bake | sp-x5 |
 | nalati-grasslands | Model | Ribbon post (nalati-grasslands/ribbon-post) | src/shards/nalati-grasslands/generators/campProps.ts | 345 | runtime-in-Node bake | sp-x5 |
@@ -208,10 +208,10 @@ supply primary entries. Unresolved registry expressions are reported below.
 | nalati-grasslands | Model | The mounted shepherd (nalati-grasslands/shepherd) | src/shards/nalati-grasslands/models/people.ts | 60 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Carved signpost (nalati-grasslands/signpost) | src/shards/nalati-grasslands/models/signpost.ts | 117 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Sky road gateway (nalati-grasslands/sky-gateway) | src/shards/nalati-grasslands/models/dressingProps.ts | 237 | legacy three.js builder | sp-x5 |
-| nalati-grasslands | Model | Outcrop slab (nalati-grasslands/slab) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | runtime-in-Node bake | sp-x5 |
+| nalati-grasslands | Model | Outcrop slab (nalati-grasslands/slab) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | generator in shard folder | sp-x5 |
 | nalati-grasslands | Model | Snow lotus (nalati-grasslands/snow-lotus) | src/shards/nalati-grasslands/models/snowLotus.ts | 9 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Spear (nalati-grasslands/spear) | src/shards/nalati-grasslands/models/gear.ts | 99 | legacy three.js builder | sp-x5 |
-| nalati-grasslands | Model | Fieldstone / cobble (nalati-grasslands/stone) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | runtime-in-Node bake | sp-x5 |
+| nalati-grasslands | Model | Fieldstone / cobble (nalati-grasslands/stone) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | generator in shard folder | sp-x5 |
 | nalati-grasslands | Model | Stone step (nalati-grasslands/stone-step) | src/shards/nalati-grasslands/models/stoneStep.ts | 23 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Jel Ata, the Storm Titan (nalati-grasslands/storm-titan) | src/shards/nalati-grasslands/models/creatures.ts | 74 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Camp stove (nalati-grasslands/stove) | src/shards/nalati-grasslands/generators/campProps.ts | 345 | runtime-in-Node bake | sp-x5 |
@@ -220,7 +220,7 @@ supply primary entries. Unresolved registry expressions are reported below.
 | nalati-grasslands | Model | Viewpoint ribbon pole (nalati-grasslands/viewpoint-pole) | src/shards/nalati-grasslands/models/dressingProps.ts | 237 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Watchtower (nalati-grasslands/watchtower) | src/shards/nalati-grasslands/models/watchtower.ts | 14 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Water trough (nalati-grasslands/water-trough) | src/shards/nalati-grasslands/generators/campProps.ts | 345 | runtime-in-Node bake | sp-x5 |
-| nalati-grasslands | Model | Wild rose (nalati-grasslands/wild-rose) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | runtime-in-Node bake | sp-x5 |
+| nalati-grasslands | Model | Wild rose (nalati-grasslands/wild-rose) | src/shards/nalati-grasslands/generators/dressingGeos.ts | 290 | generator in shard folder | sp-x5 |
 | nalati-grasslands | Model | Wind Cairn (nalati-grasslands/wind-cairn) | src/shards/nalati-grasslands/models/windCairn.ts | 96 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | nalati-grasslands/wolf (nalati-grasslands/wolf) | src/shards/nalati-grasslands/models/creatures.ts | 74 | legacy three.js builder | sp-x5 |
 | nalati-grasslands | Model | Yurt (nalati-grasslands/yurt) | src/shards/nalati-grasslands/generators/yurt.ts | 217 | runtime-in-Node bake | sp-x5 |

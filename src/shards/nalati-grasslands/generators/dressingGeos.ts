@@ -22,9 +22,9 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Noise2D, smoothstep, clamp } from '@wildshard/engine/core/noise';
-import { Rng } from '@wildshard/engine/core/rng';
-import { blob, mergeVerticesByPos } from '@wildshard/engine/world/geometryKit';
+import { Noise2D, smoothstep, clamp } from './dressingNoise';
+import { Rng } from '@wildshard/sdk/random';
+import { blob, mergeVerticesByPos } from './dressingGeometry';
 
 const c = (hex: string): THREE.Color => new THREE.Color(hex);
 
