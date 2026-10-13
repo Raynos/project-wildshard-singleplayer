@@ -47,7 +47,14 @@ if ! node "$tmp/scripts/link-node-modules.mjs" "$repo" "$tmp"; then
 fi
 # Source-only trees omit cached JSON. Use this commit's catalogue and helper, never unpinned working data.
 if [ -f "$tmp/scripts/precommit-generated-data.mjs" ]; then
-  if ! out="$(node "$tmp/scripts/precommit-generated-data.mjs" "$repo" "$tmp" 2>&1)"; then
+  if ! out="$(node --input-type=module - "$repo" "$tmp" "$common/commit-inputs/blobs" 2>&1 <<'JS'
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const [repo, snapshot, blobs] = process.argv.slice(2);
+const { materializeGuardData } = await import(pathToFileURL(resolve(snapshot, 'scripts/precommit-generated-data.mjs')).href);
+materializeGuardData(repo, snapshot, blobs);
+JS
+)"; then
     refuse "generated guard data unavailable before measurement: $out"
     exit 0
   fi
