@@ -2,7 +2,7 @@ import { installRequiredGroundLoader } from '@wildshard/engine/world/bakedTerrai
 import { installBakedSamplesReader } from '@wildshard/engine/world/BakedTerrain';
 import { bilinearTerrainSamplers, decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { clientGround } from './clientGround';
-import { admittedRuntimeProduct, firstPartyDescriptor, runtimeProduct, slugRuntimeProduct, type RuntimeProduct } from './runtimeProduct';
+import { firstPartyDescriptor, runtimeProduct, slugRuntimeProduct, type RuntimeProduct } from './runtimeProduct';
 import { selectedLevel } from '@wildshard/engine/level/selection';
 import { findShard } from '../shard/registry';
 import { shardEntry } from '../shard/entryMode';
@@ -16,7 +16,7 @@ import { shardEntry } from '../shard/entryMode';
  */
 export function installProductGround(): () => void {
   return installRequiredGroundLoader(async (declared) => {
-    const product = admittedRuntimeProduct(declared.key);
+    const product = slugRuntimeProduct(declared.key) ?? await standaloneHybrid(declared.key);
     if (product === null) throw new Error(`Required ground ${declared.key} has no admitted product`);
     const terrain = product.source.terrain;
     if (terrain === null) throw new Error(`Required ground ${declared.key}: its product declares no terrain collider`);
