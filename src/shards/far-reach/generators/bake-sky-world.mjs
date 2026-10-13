@@ -62,6 +62,14 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
   emit(resolve(project, 'data/bridges.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
   console.info(`far-reach bridges: ${String(bin.length)} bytes → baked/bridges.bin (${String(packed.length)} deflated), ${String(rows.spans.length)} spans, ${String(rows.geometries.length)} geometries`);
 }
+// every island the page draws from the builder, as a deflated geometry pack (world/isle.ts islandMesh)
+{
+  const { bakeSkyIsles } = await import(pathToFileURL(resolve(project, 'generators/isles.ts')).href);
+  const { bin, rows } = bakeSkyIsles(), packed = deflateSync(bin, { level: 9 });
+  emit(resolve(out, 'isles.bin'), packed);
+  emit(resolve(project, 'data/isles.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
+  console.info(`far-reach isles: ${String(bin.length)} bytes → baked/isles.bin (${String(packed.length)} deflated), ${String(rows.isles.length)} islands`);
+}
 // the war fan's built shapes, as a deflated geometry pack (weapons/fanModel.ts fanParts)
 {
   const { bakeSkyFan } = await import(pathToFileURL(resolve(project, 'generators/fan.ts')).href);

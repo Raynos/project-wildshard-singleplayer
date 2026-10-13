@@ -16,9 +16,9 @@ import ISLET_RIG from '../data/isletRig.json' with { type: 'json' };
 /**
  * SF49-g (G183): the shared Rising Islet builder. Every entry in world/islets.ts gets the same parts:
  * - the static stone lip at road height (the shardfile's declared landing, installed exactly);
- * - the gate isle, an ordinary island of the shard's own builder (islandMesh + the island strip colliders);
+ * - the gate isle, an ordinary island (its baked shape, islandMesh, + the island strip colliders);
  * - the moving islet: one SF30 kinematic mover row (the fixed ride driver moves it in the fixed step; the engine's
- *   KinematicMover carries the rider), drawn as a small island of the same builder that follows the published pose;
+ *   KinematicMover carries the rider), drawn as a small baked island that follows the published pose;
  * - four chains from the islet up to two lantern posts on the gate isle's rim: one InstancedMesh of links for all four
  *   entries (no facade multi-draw), relaid only while an islet moves.
  * The rope bridge from the gate isle is one more rope span in world/build.ts (the shard's own bridge builder).
@@ -57,9 +57,8 @@ const LINK = { r: 0.3, tube: 0.075, pitch: 0.46 } as const;
 export interface IsletViews { readonly group: Group; readonly ids: readonly string[]; update: (pose: (id: string) => MoverPose) => void }
 export function isletViews(): IsletViews {
   const group = new Group(); group.name = 'far.islets';
-  let seed = 4183; const rnd = (): number => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
   const rigs = ISLET_RIG.rigs.map((r) => ({ tops: r.tops.map(([x, y, z]) => new Vector3(x, y, z)), local: r.local.map(([x, y, z]) => new Vector3(x, y, z)) })), islets = RISING_ISLETS.map((entry) => {
-    const g = new Group(), mesh = islandMesh(ISLET_ISLE, rnd); g.name = isletId(entry); g.add(mesh); g.position.set(entry.rest.x, entry.rest.y, entry.rest.z); group.add(g); return g;
+    const g = new Group(), mesh = islandMesh(`islet.${entry.edge}`); g.name = isletId(entry); g.add(mesh); g.position.set(entry.rest.x, entry.rest.y, entry.rest.z); group.add(g); return g;
   });
   // the most links a chain needs: its length with the islet at rest
   const most = RISING_ISLETS.map((entry, i) => Math.max(...(rigs[i]?.local ?? []).map((l, k) => {

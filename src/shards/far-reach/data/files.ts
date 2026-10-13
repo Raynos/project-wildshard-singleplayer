@@ -69,6 +69,8 @@ export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { 'winch-house':
 export const DRESSING_URL = '/assets/far-reach/baked/dressing.bin';
 /** The sward's tuft atlas texels, deflated RGBA (world/meadow.ts; SHARD-PLATFORM M3, generators/swardAtlas.ts). */
 export const SWARD_ATLAS_URL = '/assets/far-reach/baked/sward-atlas.bin';
+/** Every island's baked shape (world/isle.ts `islandMesh`; SHARD-PLATFORM M3, generators/isles.ts). */
+export const ISLES_URL = '/assets/far-reach/baked/isles.bin';
 /** The rope bridges' baked geometry pack (world/shapes.ts `ropeBridge`; SHARD-PLATFORM M3, generators/bridges.ts). */
 export const BRIDGES_URL = '/assets/far-reach/baked/bridges.bin';
 /** The war fan's baked shapes (weapons/fanModel.ts `fanParts`; SHARD-PLATFORM M3, generators/fan.ts). */

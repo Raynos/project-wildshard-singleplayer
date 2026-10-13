@@ -18,8 +18,7 @@ function linear(hex: number): string { const c = new Color(hex); return `vec3(${
  * references on white → BiRefNet cutout → Hunyuan3D-2 turbo shape + 2048 paint → decimated, a 1024 WebP map, meshopt.
  * Each model is brought to a unit frame once (its turf level at y 0, its rim's median radius 1, centred on its top: found
  * offline, generators/skyIsleFrames.ts), then every isle that uses it is one instance, scaled to its rim radius and keel depth and turned to its own yaw.
- * No trees in the models: the card firs stand on the turf (`topAt`). A model that failed to load leaves its isles to
- * the code builder (`world/isle.ts`).
+ * No trees in the models: the card firs stand on the turf (`topAt`). A model that failed to load leaves its isles undrawn.
  */
 /**
  * The aerial haze on the sky isles (E399 round 6, measured on mockup A's isle band, x 0.1-0.9, y 0.27-0.42: its darkest
@@ -73,8 +72,6 @@ const rimAt = (u: Unit, a: number): number => {
 export interface SkyIsleHd {
   /** One instanced draw per model. */
   readonly group: Group;
-  /** The isles no model covers (their model did not load): the code builder makes them. */
-  readonly fallback: readonly SkyIsle[];
   /** The rim's radius at a world angle round an isle the models cover (null: a code isle): where its waterfall hangs. */
   readonly lipAt: (isle: Isle, a: number) => number | null;
 }
@@ -87,11 +84,11 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
     const m = skyHd(name), frame = FRAMES.find((f) => f.model === name);
     if (m !== null && frame !== undefined) units.set(name, { ...skyIsleUnit(m.geometry, frame), map: m.map });
   }
-  const group = new Group(), fallback: SkyIsle[] = [], placed = new Map<string, { u: Unit; yaw: number }>();
+  const group = new Group(), placed = new Map<string, { u: Unit; yaw: number }>();
   const byModel = new Map<SkyIsleModel, SkyIsle[]>();
   isles.forEach((s, i) => {
     const name = skyIsleWear(s, i);
-    if (!units.has(name)) { fallback.push(s); return; }
+    if (!units.has(name)) return;
     byModel.set(name, [...(byModel.get(name) ?? []), s]);
   });
   const m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
@@ -116,7 +113,7 @@ export function skyIsleModels(isles: readonly SkyIsle[], clipTop = false): SkyIs
   }
   const local = new Vector3();
   return {
-    group, fallback,
+    group,
     lipAt: (isle, a) => {
       const at = placed.get(isle.id); if (at === undefined) return null;
       local.set(Math.cos(a), 0, Math.sin(a)).applyAxisAngle(up, -at.yaw);

@@ -20,7 +20,7 @@ import { skyIsleFrame } from './skyIsleFrames';
 import { skyIslesIn } from '../world/skyIsles';
 import { ISLES, MILL, PINES, WINDMILL, type Isle } from '../data/layout';
 import { apothem } from '../layout';
-import { islandMesh } from '../world/isle';
+import { builtIsleGeometry } from './isles';
 import { RISING_ISLETS } from '../world/islets';
 import { ISLET, type RisingIslet } from '../data/isletDesign';
 import { PALETTE } from '../world/shapes';
@@ -136,9 +136,9 @@ function decks(): FarPart {
   return part();
 }
 
-/** An island of the shard's own code builder (world/isle.ts) welded by position, decimated, recoloured, hung at `at`. */
+/** An island of the shard's own builder (generators/isles.ts) welded by position, decimated, recoloured, hung at `at`. */
 function builtIsle(isle: Isle, at: { x: number; y: number; z: number }, random: () => number, triangles: number, tools: FarModelTools): FarPart {
-  const geometry = islandMesh(isle, random).geometry, position = geometry.getAttribute('position'), colour = geometry.getAttribute('color'), source = geometry.getIndex();
+  const geometry = builtIsleGeometry(isle, random), position = geometry.getAttribute('position'), colour = geometry.getAttribute('color'), source = geometry.getIndex();
   if (source === null) throw new Error('Sky Reach island mesh is indexed');
   const slot = new Map<string, number>(), remap = new Uint32Array(position.count), pos: number[] = [], sum: number[] = [], count: number[] = [];
   for (let v = 0; v < position.count; v++) {

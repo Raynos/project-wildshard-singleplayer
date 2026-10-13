@@ -11,10 +11,10 @@ import bookStand from '../data/bookStand.json' with { type: 'json' };
 import knolls from '../data/knolls.json' with { type: 'json' };
 import geometries from '../data/geometries.json' with { type: 'json' };
 import isletRig from '../data/isletRig.json' with { type: 'json' };
-import { BAKED_PIECES, BAKED_URLS, SWARD_ATLAS_URL, type BakedPiece } from '../data/files';
+import { BAKED_PIECES, BAKED_URLS, ISLES_URL, SWARD_ATLAS_URL, type BakedPiece } from '../data/files';
 import { SWARD_ATLAS } from '../data/swardAtlas';
 import { shackMaterial, type ShackKind } from './shack';
-import { paintIsleMaterial } from './isle';
+import { paintIsleMaterial, setIslePack } from './isle';
 
 /**
  * SHARD-PLATFORM SF72: Sky Reach's world pieces drawn from their offline bake. The shapes are built at build time
@@ -33,12 +33,13 @@ const shackKind = (kind: object): ShackKind | undefined => {
 
 let loaded: ReadonlyMap<BakedPiece, ReadonlyMap<string, InstancedMesh>> = new Map();
 let sward: Uint8Array | null = null;
-/** Load every baked piece and the sward atlas (the plugin's `world` hook, before the world is built); a piece that fails to load is empty. */
+/** Load every baked piece, the islands and the sward atlas (the plugin's `world` hook, before the world is built); a piece that fails to load is empty. */
 export async function loadSkyBaked(): Promise<void> {
-  const [meshes, atlas] = await Promise.all([Promise.all(BAKED_PIECES.map((piece) => loadBakedKinds(BAKED_URLS[piece], PIECES[piece].kinds, `far-reach ${piece}`))),
-    fetchDeflated(SWARD_ATLAS_URL).catch((e: unknown) => { console.warn('[far-reach] the sward atlas did not load; the meadow stands bare:', e); return null; })]);
+  const [meshes, atlas, isles] = await Promise.all([Promise.all(BAKED_PIECES.map((piece) => loadBakedKinds(BAKED_URLS[piece], PIECES[piece].kinds, `far-reach ${piece}`))),
+    fetchDeflated(SWARD_ATLAS_URL).catch((e: unknown) => { console.warn('[far-reach] the sward atlas did not load; the meadow stands bare:', e); return null; }),
+    fetchDeflated(ISLES_URL).catch((e: unknown) => { console.error('[far-reach] the baked islands did not load; they stand undrawn:', e); return null; })]);
   loaded = new Map(BAKED_PIECES.map((piece, i) => [piece, meshes[i] ?? new Map<string, InstancedMesh>()]));
-  sward = atlas;
+  sward = atlas; setIslePack(isles);
 }
 
 /**

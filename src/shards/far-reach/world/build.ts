@@ -1,6 +1,7 @@
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { ISLE_CUT_EDITS } from '../data/paintLook';
+import { ISLE_DRAWS } from '../data/isleLook';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -111,11 +112,11 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>):
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
     keeper: STRINGS.keeper, ruin: STRINGS.ruin, step: STRINGS.step, crown: STRINGS.crown };
-  // SF49-g (G183): the four gate isles join the islands, drawn on their own seeded stream (the off path's look is untouched)
-  let gateSeed = 1830;
-  const gateRnd = (): number => { gateSeed = (gateSeed * 16807) % 2147483647; return gateSeed / 2147483647; };
+  // SF49-g (G183): the four gate isles join the islands (every shape baked, generators/isles.ts); a playable island still
+  // takes its ISLE_DRAWS cosmetic values, so every draw after the islands is unchanged
   for (const isle of [...ISLES, ...GATE_ISLES]) {
-    const gate = GATE_ISLES.includes(isle), mesh = islandMesh(isle, gate ? gateRnd : rnd); mesh.position.set(isle.x, isle.y, isle.z); root.add(mesh);
+    const gate = GATE_ISLES.includes(isle), mesh = islandMesh(isle.id); mesh.position.set(isle.x, isle.y, isle.z); root.add(mesh);
+    if (!gate) for (let i = 0; i < ISLE_DRAWS; i++) rnd();
     // the code keel ends a little under the lip (E399 round 3, item 2: 'under the bridge a grey-green cliff wall where the
     // mockups show open cloud'): the textured keel model below (far.isle-keels) is the rock you see, narrower, with sky
     // round it; the top, the lip and every collider are unchanged (a gate isle has no keel model: its code keel stays whole)
@@ -139,10 +140,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>):
   for (const isle of ISLES) for (const [dx, dz, s] of PINES[isle.id] ?? []) pineAt.push([isle.x + dx, isle.y, isle.z + dz, s]);
   // a pine on each gate isle beside the chain posts (the board's tree over the islet)
   for (const isle of GATE_ISLES) pineAt.push([isle.x + 3, isle.y, isle.z - 3, 0.9]);
-  // the sky around the archipelago (E392): decorative isles from the same builder (a model's fallback), their own seeded stream
-  let skySeed = 9001;
-  const skyRnd = (): number => { skySeed = (skySeed * 16807) % 2147483647; return skySeed / 2147483647; };
-  // E392/E399: the textured floating-island models (world/skyIsleHd.ts) where they loaded, the code builder for the rest
+  // E392/E399: the sky around the archipelago, the textured floating-island models (world/skyIsleHd.ts; one that did not load stands undrawn)
   const skyGroup = new Group(); skyGroup.name = 'far.sky-isles';
   // G99: in a grid cell only the isles inside the 500 m cube (ctx.cube); standalone every one
   const skyIsles = skyIslesIn(ctx.cube), half = ctx.cube?.half ?? null;
@@ -155,13 +153,8 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>):
   keels.group.name = 'far.isle-keels'; skyGroup.add(keels.group);
   await pause();
   const SKY_ISLE_PINES: Readonly<Record<string, readonly { x: number; z: number; size: number; y: number | null }[]>> = skyIslePines;
-  for (const s of SKY_ISLES) {
-    const kept = half === null || inCube(s, half), code = kept && skyHd.fallback.includes(s);
-    if (code) { const mesh = islandMesh(s, skyRnd); mesh.position.set(s.x, s.y, s.z); skyGroup.add(mesh); }
-    // the firs placed offline (generators/skyIslePines.ts): on a model, on its turf or not at all; on a code isle, on its top
-    if (kept) for (const p of SKY_ISLE_PINES[s.id] ?? []) { if (code) pineAt.push([p.x, s.y, p.z, p.size]); else if (p.y !== null) pineAt.push([p.x, p.y, p.z, p.size]); }
-    if (code) await pause();
-  }
+  // the firs placed offline (generators/skyIslePines.ts): on a model's turf or not at all
+  for (const s of SKY_ISLES) if (half === null || inCube(s, half)) for (const p of SKY_ISLE_PINES[s.id] ?? []) if (p.y !== null) pineAt.push([p.x, p.y, p.z, p.size]);
   root.add(skyGroup);
   ctx.piece({ id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE, object: skyGroup });
   // the card-branch firs when the branch sheet loaded (E392), else the code pines

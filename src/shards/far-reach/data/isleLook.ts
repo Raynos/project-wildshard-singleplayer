@@ -66,3 +66,7 @@ float farMN(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.
 #endif
 ` },
 ];
+
+/** How many values each playable island takes from the level's cosmetic stream (the old 12-gon island's 122; the last seeds
+ *  its baked shape, generators/isles.ts), so every piece built after the islands keeps its draws. */
+export const ISLE_DRAWS = 122;
