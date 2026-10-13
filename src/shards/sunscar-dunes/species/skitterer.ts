@@ -1,4 +1,4 @@
-import { bakedLook } from '@wildshard/sdk/species/clips';
+import { bakedLook } from '@wildshard/sdk/looks/modelLibrary';
 import { SKITTERER_CLIPS, SKITTERER_LOOK } from '../data/species/skitterer';
 import { duneBody } from '../world/meshes';
 

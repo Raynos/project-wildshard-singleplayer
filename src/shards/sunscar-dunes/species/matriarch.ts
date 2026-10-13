@@ -1,4 +1,4 @@
-import { bakedLook } from '@wildshard/sdk/species/clips';
+import { bakedLook } from '@wildshard/sdk/looks/modelLibrary';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import { MATRIARCH_DATA, MATRIARCH_CLIPS, MATRIARCH_LOOK, MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA } from '../data/species/matriarch';
 import { MATRIARCH_BRAIN } from '../data/brains';

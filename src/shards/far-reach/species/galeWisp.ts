@@ -1,4 +1,4 @@
-import { bakedLook } from '@wildshard/sdk/species/clips';
+import { bakedLook } from '@wildshard/sdk/looks/modelLibrary';
 import { GALE_WISP_CLIPS } from '../data/creatureClips';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import { GALE_WISP_DATA, GALE_WISP_LOOK_ROW } from '../data/species';

@@ -1,4 +1,4 @@
-import { bakedLook } from '@wildshard/sdk/species/clips';
+import { bakedLook } from '@wildshard/sdk/looks/modelLibrary';
 import { STRIDER_CLIPS, STRIDER_LOOK } from '../data/species/strider';
 import { duneBody } from '../world/meshes';
 

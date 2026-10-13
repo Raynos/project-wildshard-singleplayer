@@ -1,4 +1,4 @@
-import { bakedLook } from '@wildshard/sdk/species/clips';
+import { bakedLook } from '@wildshard/sdk/looks/modelLibrary';
 import { SKY_GOAT_CLIPS } from '../data/creatureClips';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';

@@ -1,4 +1,4 @@
-import { bakedLook } from '@wildshard/sdk/species/clips';
+import { bakedLook } from '@wildshard/sdk/looks/modelLibrary';
 import { RAY_CLIPS, RAY_LOOK } from '../data/species/duneRay';
 import { duneBody } from '../world/meshes';
 

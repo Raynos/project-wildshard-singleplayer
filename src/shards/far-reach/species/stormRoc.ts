@@ -1,6 +1,6 @@
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
-import { bakedLook } from '@wildshard/sdk/species/clips';
+import { bakedLook } from '@wildshard/sdk/looks/modelLibrary';
 import { skyBodyOrStandIn } from './bodies';
 import { stormRocBrain, type StormRocBrain } from '../runtime/stormRocBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';

@@ -1,4 +1,4 @@
-import { loadRigFile } from "@wildshard/engine/anim/rig";
+import { loadRigFile, type ClipName, type SocketName } from "@wildshard/engine/anim/rig";
 import { cacheUntilDisposed, retainCachedResources } from "@wildshard/engine/app/cachedAssets";
 import { releaseOnUpload } from "@wildshard/engine/render/memorySaver";
 import { Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, type Wrapping, type MinificationTextureFilter, type MagnificationTextureFilter, Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, InterleavedBufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material, InstancedMesh, InstancedBufferAttribute } from "three";
@@ -6,6 +6,9 @@ import { applySurfaceLooks, type SurfaceInputs } from "../systems/looks/surfaceL
 import type { SurfaceLook } from "@wildshard/format/surfaceLooks";
 import { Rng } from "@wildshard/engine/core/rng";
 import type { AnimalSpecies } from "@wildshard/engine/entities/species/registry";
+import type { SpeciesLook } from "@wildshard/engine/entities/species/look";
+import { NO_FUR } from "@wildshard/engine/entities/species/rigs";
+import { clipAnimate, type SpeciesClips } from "./animation";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { NpcMotion, NpcRow } from "./quests";
 
@@ -397,6 +400,18 @@ export function creatureBodies<C extends string>(rows: CreatureBodyRows<C>): Cre
         hardParts: [undrawnRig()], dims: { ...stand.dims, feet: [] } };
     },
   };
+}
+
+/** A baked body's species look as rows: its ids and rig contract (its dims ride in the baked body). */
+export interface BakedLookRow {
+  readonly id: string; readonly species: string; readonly kind: string;
+  readonly skeleton: string; readonly sockets: readonly SocketName[]; readonly clipNames: readonly ClipName[];
+}
+/** A species look on a baked creature body (`build`: a fresh copy each time, `creatureBodies(...).bodyOrStandIn`), animated
+ *  by its clip rows. Signal Dunes' and Sky Reach's creatures declare their looks this way. */
+export function bakedLook(row: BakedLookRow, build: () => AnimalSpecies, clips: SpeciesClips): SpeciesLook {
+  return { id: row.id, species: row.species, kind: row.kind, rig: 'custom', fur: NO_FUR,
+    rigContract: { skeleton: row.skeleton, sockets: [...row.sockets], clips: [...row.clipNames] }, build, animate: clipAnimate(clips) };
 }
 
 /** Fit a geometry into a frame (turned `yaw` radians about +Y first): centred on x / z, its lowest point at `floor`, scaled to `size`. */

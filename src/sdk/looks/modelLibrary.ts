@@ -1,4 +1,4 @@
-import { bindRigid as platformBindRigid, createModelLibrary as platformCreateModelLibrary, facetMaterial as platformFacetMaterial, fitGeometry as platformFitGeometry, smoothColors as platformSmoothColors, undrawnRig as platformUndrawnRig, withoutTriangles as platformWithoutTriangles, type HdLookRow as PlatformHdLookRow, type ModelFit as PlatformModelFit, type ModelLibrary as PlatformModelLibrary, type ModelLibraryRows as PlatformModelLibraryRows } from '@wildshard/game/plugin/geometry';
+import { bakedLook as platformBakedLook, bindRigid as platformBindRigid, createModelLibrary as platformCreateModelLibrary, facetMaterial as platformFacetMaterial, fitGeometry as platformFitGeometry, smoothColors as platformSmoothColors, undrawnRig as platformUndrawnRig, withoutTriangles as platformWithoutTriangles, type BakedLookRow as PlatformBakedLookRow, type HdLookRow as PlatformHdLookRow, type ModelFit as PlatformModelFit, type ModelLibrary as PlatformModelLibrary, type ModelLibraryRows as PlatformModelLibraryRows } from '@wildshard/game/plugin/geometry';
 
 /** How a hero model's materials are dressed after the matte base (tint, roughness, fog, user flags, surface rows). */
 export type HdLookRow = PlatformHdLookRow;
@@ -22,3 +22,7 @@ export const withoutTriangles: typeof platformWithoutTriangles = platformWithout
 export const bindRigid: typeof platformBindRigid = platformBindRigid;
 /** Average a facet model's painted colour per vertex position. */
 export const smoothColors: typeof platformSmoothColors = platformSmoothColors;
+/** A baked body's species look as rows: its ids and rig contract. */
+export type BakedLookRow = PlatformBakedLookRow;
+/** A species look on a baked creature body, animated by its clip rows. */
+export const bakedLook: typeof platformBakedLook = platformBakedLook;
