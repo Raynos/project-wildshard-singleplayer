@@ -3996,6 +3996,7 @@
         "src/shards/nine-dragon-stack/assets/fe23b1c13f7c6aa0254b74617dc17a7e427df78908184df12ed98d561d5e6fa4",
         "src/shards/nine-dragon-stack/assets/fec148b3a62b9a922fa24f6b37c2cd7088277ee426d1bcde054a69c64a32ed1d",
         "src/shards/nine-dragon-stack/assets/fede5c4496ad819061dfa2b9ed61cda1f9ec0e330c28cf6cf81f212873419172",
+        "src/shards/nine-dragon-stack/data/layout.generated.json",
         "src/shards/nine-dragon-stack/data/world.generated.json"
       ],
       "platform": "native",
@@ -4383,7 +4384,8 @@
         "src/shards/nine-dragon-stack/assets/fe23b1c13f7c6aa0254b74617dc17a7e427df78908184df12ed98d561d5e6fa4": "fe23b1c13f7c6aa0254b74617dc17a7e427df78908184df12ed98d561d5e6fa4",
         "src/shards/nine-dragon-stack/assets/fec148b3a62b9a922fa24f6b37c2cd7088277ee426d1bcde054a69c64a32ed1d": "fec148b3a62b9a922fa24f6b37c2cd7088277ee426d1bcde054a69c64a32ed1d",
         "src/shards/nine-dragon-stack/assets/fede5c4496ad819061dfa2b9ed61cda1f9ec0e330c28cf6cf81f212873419172": "fede5c4496ad819061dfa2b9ed61cda1f9ec0e330c28cf6cf81f212873419172",
-        "src/shards/nine-dragon-stack/data/world.generated.json": "0f691d201bede27cd84667c51f6a91d29f397cce14487cf4e62a45bcc6139e95"
+        "src/shards/nine-dragon-stack/data/layout.generated.json": "f673452769efdc7627296cb2a25de7f7561cbcd1166027ad7b13963dfaa41481",
+        "src/shards/nine-dragon-stack/data/world.generated.json": "6dcfd190a3869472a025969305017ecb703becb0d82a0173f59723cc130be4b6"
       },
       "catalogueDependencies": []
     },

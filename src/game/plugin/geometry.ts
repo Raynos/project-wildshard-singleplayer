@@ -924,6 +924,17 @@ export async function fetchDeflated(url: string): Promise<Uint8Array> {
   return new Uint8Array(await new Response(response.body.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
 }
 
+/**
+ * Fetch a trusted runtime's own build file (its generator's output, imported with Vite's `?url`) as its bytes, for a runtime
+ * that decodes it in its own slices rather than evaluating it as module data (Nine Dragon's 6.8 MB layout). A failed fetch
+ * throws.
+ */
+export async function fetchBuildFile(url: string): Promise<Uint8Array> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`${String(response.status)} ${url}`);
+  return new Uint8Array(await response.arrayBuffer());
+}
+
 // Lane-shuffled bakes (SHARD-PLATFORM M3; Pine Hollow's crags, streams, timbers, lookout and wildlife): a binary of 4-byte
 // words whose bytes are split into four lanes (every word's first bytes, then its second …: floats compress ~30 % better
 // so), deflated. A shard's generator writes them; the page reads them here.
@@ -1333,27 +1344,39 @@ class WholeGeometryAssembler {
         this.groups.set(row.id, group);
       }
       if (signature !== group.layout || !group.matrix.equals(new Matrix4().fromArray(values)) || row.vertexCount !== group.seen.length || row.indexCount !== (group.output.index?.count ?? 0)) throw new Error('Whole source layout or transform differs');
-      for (const [local, vertex] of row.vertices.entries()) {
-        if (vertex >= group.seen.length) throw new Error('Whole vertex ordinal outside source');
-        for (const [name, destination] of Object.entries(group.output.attributes)) {
-          const source = input.getAttribute(name);
-          if (!(source instanceof BufferAttribute) || !(destination instanceof BufferAttribute) || local >= source.count) throw new Error('Whole channel layout differs');
-          const bytes = source.array.subarray(local * source.itemSize, (local + 1) * source.itemSize);
-          if (group.seen[vertex] === 1) for (const [i, component] of bytes.entries()) if (!Object.is(component, destination.array[vertex * destination.itemSize + i])) throw new Error('Whole shared vertex differs');
-          destination.array.set(bytes, vertex * destination.itemSize);
+      // The channels are resolved once per node and copied in plain index loops: the per-vertex entries / getAttribute /
+      // subarray walk was one ~600 ms desktop (~1.5 s iOS Simulator) task for a Nine Dragon tile when a grid cell builds it
+      // on the road (sp-o112). The bytes written, the shared-vertex check and every refusal are unchanged.
+      const copies = row.vertices.length === 0 ? [] : Object.entries(group.output.attributes).map(([name, destination]) => {
+        const source = input.getAttribute(name);
+        if (!(source instanceof BufferAttribute) || !(destination instanceof BufferAttribute)) throw new Error('Whole channel layout differs');
+        return { from: source.array, fromSize: source.itemSize, count: source.count, to: destination.array, toSize: destination.itemSize };
+      });
+      const seen = group.seen, vertices = row.vertices;
+      for (let local = 0; local < vertices.length; local++) {
+        const vertex = vertices[local] ?? Number.NaN;
+        if (!(vertex < seen.length)) throw new Error('Whole vertex ordinal outside source');
+        const shared = seen[vertex] === 1;
+        for (const { from, fromSize, count, to, toSize } of copies) {
+          if (local >= count) throw new Error('Whole channel layout differs');
+          const read = local * fromSize, write = vertex * toSize;
+          if (write + fromSize > to.length) throw new RangeError('Whole channel write outside source');
+          if (shared) for (let i = 0; i < fromSize; i++) if (!Object.is(from[read + i], to[write + i])) throw new Error('Whole shared vertex differs');
+          for (let i = 0; i < fromSize; i++) to[write + i] = from[read + i] ?? 0;
         }
-        group.seen[vertex] = 1;
+        seen[vertex] = 1;
       }
-      const index = input.getIndex();
-      for (const [local, triangle] of row.triangles.entries()) {
-        if (triangle >= group.triangles.length || group.triangles[triangle] === 1) throw new Error('Whole duplicate or invalid triangle');
+      const index = input.getIndex()?.array ?? null, output = group.output.index?.array ?? null, done = group.triangles, triangles = row.triangles;
+      for (let local = 0; local < triangles.length; local++) {
+        const triangle = triangles[local] ?? Number.NaN;
+        if (!(triangle < done.length) || done[triangle] === 1) throw new Error('Whole duplicate or invalid triangle');
         for (let corner = 0; corner < 3; corner++) {
-          const vertex = row.vertices[index?.getX(local * 3 + corner) ?? local * 3 + corner];
+          const vertex = vertices[index === null ? local * 3 + corner : index[local * 3 + corner] ?? local * 3 + corner];
           if (vertex === undefined) throw new Error('Whole missing triangle vertex');
-          if (group.output.index !== null) group.output.index.setX(triangle * 3 + corner, vertex);
+          if (output !== null) output[triangle * 3 + corner] = vertex;
           else if (vertex !== triangle * 3 + corner) throw new Error('Whole non-indexed topology differs');
         }
-        group.triangles[triangle] = 1;
+        done[triangle] = 1;
       }
     } finally { input.dispose(); }
   }
@@ -1373,8 +1396,11 @@ export function assembleWholeGeometryViews(nodes: readonly Mesh[]): Map<string, 
   try { for (const node of nodes) assembler.add(node); return assembler.finish(); }
   catch (error) { assembler.dispose(); throw error; }
 }
-/** Read verified tile/library GLBs and assemble original draws; temporary decodes are freed after each bounded file. */
-export async function readWholeGeometry(scope: ResourceScope, source: Shardfile, refs?: readonly string[]): Promise<Map<string, WholeGeometryView>> {
+/**
+ * Read verified tile/library GLBs and assemble original draws; temporary decodes are freed after each bounded file.
+ * `pause` (optional) runs after each assembled mesh, so a runtime building in play can end its frame between them.
+ */
+export async function readWholeGeometry(scope: ResourceScope, source: Shardfile, refs?: readonly string[], pause?: () => Promise<void>): Promise<Map<string, WholeGeometryView>> {
   const { runtimeProduct } = await import('../shardfile/runtimeProduct');
   const product = runtimeProduct(source), hashes = refs ?? source.props?.tiles.flatMap(row => [row.file, ...row.additionalFiles ?? []]) ?? [];
   const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js'), assembler = new WholeGeometryAssembler();
@@ -1382,13 +1408,18 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile,
     for (const hash of hashes) {
       const bytes = await product.assets.read(hash), gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, ''), cleanup: (() => void)[] = [];
       try {
+        const meshes: Mesh[] = [];
         gltf.scene.traverse(object => {
           if (!isWholeMesh(object)) return;
           const original: unknown = object.geometry;
           if (!(original instanceof BufferGeometry)) throw new Error('Whole shape needs geometry');
           cleanup.push(() => { original.dispose(); for (const material of Array.isArray(object.material) ? object.material : [object.material]) material.dispose(); });
-          assembler.add(object);
+          meshes.push(object);
         });
+        for (const mesh of meshes) {
+          assembler.add(mesh);
+          if (pause !== undefined) { await pause(); if (scope.disposed) throw new Error('Whole geometry unloaded while reading'); }
+        }
         if (scope.disposed) throw new Error('Whole geometry unloaded while reading');
       } finally { for (const dispose of cleanup) dispose(); }
     }

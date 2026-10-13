@@ -46,8 +46,8 @@ export class SpecimenBake {
   }
 }
 
-/** Read standard declared GLBs through the shared exact whole-geometry assembler. */
-export async function loadSpecimens(part: SpecimenPart): Promise<SpecimenBake> {
+/** Read standard declared GLBs through the shared exact whole-geometry assembler, with `pause` between its meshes. */
+export async function loadSpecimens(part: SpecimenPart, pause?: () => Promise<void>): Promise<SpecimenBake> {
   const { readNineSpecimens } = await import('../runtime/geometry');
-  return readNineSpecimens(part);
+  return readNineSpecimens(part, pause);
 }

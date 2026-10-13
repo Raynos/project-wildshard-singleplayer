@@ -43,16 +43,22 @@ export async function writeNineScene() {
     const section = part.name.startsWith('layout_sets_') ? 'layout' : part.name.startsWith('specimens_boot_') ? 'boot' : 'explorer';
     libraries[section].push(hash);
   }
+  const replacer = (_key, value) => typeof value === 'number' && Object.is(value, -0) ? '-0'
+    : value === Infinity ? 'Infinity' : value === -Infinity ? '-Infinity' : value;
+  // The layout's author rows and float64 records are the runtime's own build file, not module data (sp-o109): imported,
+  // the 7 MB was one module evaluation when a grid cell builds Nine on the road (a ~1.8 s iOS Simulator frame); fetched,
+  // the runtime decodes it in slices (runtime/geometry.ts `decodeNineLayout`). Plain JSON: the count leads and the records
+  // precede the rows so the reader finds them without parsing the whole text.
+  const layoutPath = 'src/shards/nine-dragon-stack/data/layout.generated.json';
+  writeFileSync(resolve(root, layoutPath), JSON.stringify({ version: 1, count: product.layout.records.length, records: product.layout.records, rows: product.layout.rows }, replacer));
   for (const [hash, bytes] of assets) writeFileSync(resolve(out, hash), bytes);
   files.sort((a, b) => a.hash.localeCompare(b.hash));
   const metadata = { version: 1, notice: 'DO NOT EDIT: generators/bake-nine-layout.mjs through bake(scene, identity).',
-    layout: { rows: product.layout.rows, records: product.layout.records }, libraries, specimenBoxes: product.boxes,
+    libraries, specimenBoxes: product.boxes,
     shardfile: { ...baked.shardfile, files, library: [...libraries.layout, ...libraries.boot, ...libraries.explorer].sort((a, b) => a < b ? -1 : a > b ? 1 : 0) }, props: baked.props?.props, report: baked.props?.report };
-  const replacer = (_key, value) => typeof value === 'number' && Object.is(value, -0) ? '-0'
-    : value === Infinity ? 'Infinity' : value === -Infinity ? '-Infinity' : value;
   const metadataPath = 'src/shards/nine-dragon-stack/data/world.generated.json';
   writeFileSync(resolve(root, metadataPath), `${JSON.stringify(metadata, replacer)}\n`);
-  const outputs = [metadataPath, ...[...assets.keys()].map(hash => `src/shards/nine-dragon-stack/assets/${hash}`)].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
+  const outputs = [metadataPath, layoutPath, ...[...assets.keys()].map(hash => `src/shards/nine-dragon-stack/assets/${hash}`)].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   console.info(`Nine scene: ${baked.shardfile.tiles.length} L0 tiles, ${files.length} bounded GLBs, ${assets.size} files, scene.json ${baked.scenePath}`);
   return { metadata, outputs };
 }

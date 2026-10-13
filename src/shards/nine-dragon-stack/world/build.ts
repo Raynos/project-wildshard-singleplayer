@@ -140,7 +140,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   progress(0, 'paint + fonts');
   const layoutReady = loadLayoutBake(() => slice());
   // G285: the code-built models' geometry and the canopy's (world/specimens.ts), fetched with the layout
-  const specimensReady = loadSpecimens('boot');
+  const specimensReady = loadSpecimens('boot', () => slice());
   const paintStart = performance.now();
   const paintReady = loadPaint('/assets/nine-dragon/paint', Math.min(8, renderer.capabilities.getMaxAnisotropy()), tier, (f) => { progress(f * 0.15, 'paint + fonts'); })
     .then((paint) => { phaseDone('paint', paintStart); return paint; });
