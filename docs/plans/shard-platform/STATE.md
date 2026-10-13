@@ -10,8 +10,8 @@
 **Game exports (G351):** 104 (from 328); `plugin/` 20 → **14** (`1a513ba40`).
 **Push (Jake `a44511f05`, `193a7e998`, `ef0eb5e04`, `267504b5a`; sp-x7 building):** debt shrink-only, refused per file at commit; generated files made at commit, never at push (regen bot goes); pre-commit ≤ 10 s, local gate ≤ 2 min, full suite/bakes in CI with fix-forward; no repeat retries; allowed graph counts report-only; exact-number tests → limits (sp-o66). **Origin stuck at `53d4b7aa0`** while the gate is rebuilt; live `957b05e6`, unpin `e6eeefc1e` queued.
 
-**Sprint = S1 + S3 (Jake `fd841c551`). For wildshard-v: S1 is net-zero on Signal/Sky** (quest machines are already data rows). The counted mass is looks (fire, ground, dusk, Sky wind, 614 GLSL) and weapons. S1 dropped for these two shards; sp-o69 moved to Signal's ground switch. Recommend Jake re-weigh S2 (shader rows). **Never stop the line:** no holds; lanes CAS-retry.
-**Fleet: 4 Opus + 3 Codex.** Codex: sp-x7 push, sp-x6 navigation, sp-x5 **bench-max** (warm ~10 s, cold 13.8 s open). Opus: sp-o65 Sky island tiles, sp-o75 looks (Sky/Blender near, near round 5), sp-o76 G350 exit rows for Nine/Driftwood. Pre-commit 26 → 9.4 s (`91cf2cdb7`).
+**Next for Signal + Sky (Jake `9699623e2`) = S2:** raw GLSL looks (fire, ground, dusk, Sky wind, 614 lines) → public shader graphs with the look kept (G377), weapons → shared weapon rows; S1 dropped (quests already rows). **CI red since 02:01Z, prod stale: sp-x7 fixes first.** Fleet stays 4 + 3. **Never stop the line.**
+**Fleet: 4 Opus + 3 Codex.** Codex: sp-x7 push, sp-x6 navigation, sp-x5 **bench-max** (warm ~10 s, cold 13.8 s open). Opus: sp-o65 Sky island tiles, sp-o75 looks, sp-o76 G350 Nine/Driftwood, sp-o77 S2 Signal fire graph. Pre-commit 26 → 9.4 s (`91cf2cdb7`).
 
 **For wildshard-v, Jake pick:** hero round 6 over Nalati's far edge toward Driftwood, `art/main-menu-hero/round-6/board.jpg` (7 near + Nalati entered; Sky + Blender still far), **recommend SQ-NE-b + LS-NE-b**. NW-b ships (`53ba19d09`). Navigation switch (sp-x6) takes both shards to **0 private binaries**; Signal ground switch parked (`5449941c9`).
 
