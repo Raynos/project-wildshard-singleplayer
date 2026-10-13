@@ -748,9 +748,7 @@
         "baked": [
           "/assets/baked/common/cloud-field.bin"
         ],
-        "terrain": [
-          "/assets/baked/nalati-grasslands/terrain.bin"
-        ],
+        "terrain": [],
         "trees": [],
         "physics": [
           "/assets/physics/rapier.wasm",
@@ -817,9 +815,7 @@
         "baked": [
           "/assets/baked/common/cloud-field.bin"
         ],
-        "terrain": [
-          "/assets/baked/nalati-grasslands/terrain.bin"
-        ],
+        "terrain": [],
         "trees": [],
         "physics": [
           "/assets/physics/rapier.wasm",
@@ -888,9 +884,7 @@
         "baked": [
           "/assets/baked/common/cloud-field.bin"
         ],
-        "terrain": [
-          "/assets/baked/nalati-grasslands/terrain.bin"
-        ],
+        "terrain": [],
         "trees": [],
         "physics": [
           "/assets/physics/rapier.wasm",
@@ -957,9 +951,7 @@
         "baked": [
           "/assets/baked/common/cloud-field.bin"
         ],
-        "terrain": [
-          "/assets/baked/nalati-grasslands/terrain.bin"
-        ],
+        "terrain": [],
         "trees": [],
         "physics": [
           "/assets/physics/rapier.wasm",

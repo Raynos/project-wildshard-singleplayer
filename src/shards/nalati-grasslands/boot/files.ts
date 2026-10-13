@@ -29,10 +29,11 @@ export function worldFiles(tier: Tier): string[] {
 export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
   const { gpu } = filePolicy(tier, tex, GPU_FILES);
   const root = '/assets/baked/nalati-grasslands/';
-  const terrain = `${root}terrain.bin`, navmesh = `${root}navmesh.bin`;
+  const navmesh = `${root}navmesh.bin`;
   return {
     sky: [], baked: [...Object.keys(publicBytes()).filter((url) => url.startsWith(`${root}tex/`) && !url.includes('.phone.')).map(gpu), ...(CLOUD_FIELD_URL in publicBytes() ? [CLOUD_FIELD_URL] : [])],
-    terrain: terrain in publicBytes() ? [gpu(terrain)] : [], trees: [],
+    // the ground's lattice is the shardfile's admitted query terrain (G384), read once from the product, never the pack
+    terrain: [], trees: [],
     physics: ['/assets/physics/rapier.wasm', ...(navmesh in publicBytes() ? [navmesh] : [])], cabins: [],
     props: worldFiles(tier).map(gpu), art: [], music: [], sfx: [],
   };
