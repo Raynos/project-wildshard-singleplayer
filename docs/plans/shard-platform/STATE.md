@@ -16,7 +16,7 @@
 
 **For wildshard-v, Jake ask (S2):** sp-x6 is building an additive SF59 effect-state block (fog off, additive/premultiplied, depth bias, points, billboards; old graphs unchanged). Still Jake's: **Graph materials default-off pending a physical-iPhone reading**, so the GLSL stays as fallback (no cut). Recommend accepting the Simulator + desktop frame-floor reading (or one normal playtest with Debug ▸ Graph materials on).
 
-**Hero NE-b SHIPPED, re-shot with all nine near** (`77529adfb`, G383; call: shipped the re-shoot Jake asked for). **For wildshard-v:** near round 5 boards `art/near-tier/round-5/` (A/B/C, 4 road views). Signal ground switch parked.
+**Hero NE-b SHIPPED, re-shot with all nine near** (`77529adfb`, G383; call: shipped the re-shoot Jake asked for). **For wildshard-v:** near round 6 boards `art/near-tier/round-6/` (A/B/C, 4 road views + NE-b; ridges kept, `2d4b6b8a0`); **Jake pick needed:** template near refresh changes its look (grey L1-tile meshes replace the orange plaza), before/after `template-near-refresh-*.jpg`, held. Signal ground switch parked.
 
 **Calls for Jake (2026-10-13; reverse any):**
 1. Bosses never shrink on phone (`30dc4c9ae`).
