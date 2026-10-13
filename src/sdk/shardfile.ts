@@ -4,8 +4,9 @@ import { assertStateCompatibility as assertCompatibility } from '@wildshard/form
 
 /** Author-facing serialisable renderer-neutral shardfile contract. */
 export type Shardfile = GameShardfile;
-/** Author-facing strict schema, sharing the client's validator without a barrel. */
-export const ShardfileSchema = v.pipe(GameSchema);
+/** Author-facing strict schema, sharing the client's validator without a barrel.
+ * Its explicit contract also bounds composite declaration emission as new sections are added. */
+export const ShardfileSchema: v.GenericSchema<unknown, Shardfile> = v.pipe(GameSchema);
 /** Parse untrusted author output using the same contract as the client. */
 export function parseShardfile(input: unknown): Shardfile { return parse(input); }
 /** Inspect semantic author errors using the client contract. */

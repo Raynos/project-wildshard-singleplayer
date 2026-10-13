@@ -68,7 +68,9 @@ export function itemRules(items: ShardItems, modules?: readonly string[]): strin
   if (modules !== undefined && items.rows.some((r) => r.hook !== null && !modules.includes(r.hook.module))) errors.push('item script module declared');
   return [...new Set(errors)];
 }
-/** JSON-only admission rejects closures before serialisation and checks all item/loadout references. */
-export const ItemsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only items'), raw, v.check((data) => itemRules(data).length === 0, 'valid item references'));
+const items = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only items'), raw, v.check((data) => itemRules(data).length === 0, 'valid item references'));
+/** JSON-only admission rejects closures before serialisation and checks all item/loadout references.
+ * The named output bounds root-schema inference; pipe identities remain available to the JSON Schema bridge. */
+export const ItemsSchema: v.GenericSchema<unknown, ShardItems> & Pick<typeof items, 'pipe'> = items;
 /** Validate authored item rows at both SDK and browser boundaries. */
 export function parseItems(input: unknown): ShardItems { return v.parse(ItemsSchema, input); }

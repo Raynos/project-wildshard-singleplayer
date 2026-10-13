@@ -33,8 +33,7 @@ const initial = v.variant('op', [
   v.strictObject({ op: v.literal('constant'), value: v.pipe(v.number(), v.finite(), v.minValue(-1e12), v.maxValue(1e12)) }),
   v.strictObject({ op: v.literal('read'), index: v.pipe(index, v.maxValue(31)) }),
 ]);
-/** A straight-line DAG: every reference names an earlier node, never a loop, call or recursive expression. */
-export const ClientChannelProgramSchema = v.pipe(v.strictObject({
+const program = v.strictObject({
   id: name,
   prompt: v.exactOptional(prompt),
   bindings: v.exactOptional(v.pipe(v.array(binding), v.minLength(1), v.maxLength(CLIENT_CHANNEL_LIMITS.channels))),
@@ -43,7 +42,11 @@ export const ClientChannelProgramSchema = v.pipe(v.strictObject({
   locals: v.exactOptional(v.pipe(v.array(v.strictObject({ initial, next: index })), v.minLength(1), v.maxLength(CLIENT_CHANNEL_LIMITS.locals))),
   nodes: v.pipe(v.array(node), v.minLength(1), v.maxLength(CLIENT_CHANNEL_LIMITS.nodes)),
   channels: v.pipe(v.array(v.strictObject({ property: ClientChannelPropertySchema, value: index })), v.minLength(1), v.maxLength(CLIENT_CHANNEL_LIMITS.channels)),
-}), v.check(row => new Set(row.reads).size === row.reads.length
+});
+/** Data-only client programme, with selected copied observations and visual outputs. */
+export type ClientChannelProgram = v.InferOutput<typeof program>;
+/** A straight-line DAG: every reference names an earlier node, never a loop, call or recursive expression. */
+export const ClientChannelProgramSchema: v.GenericSchema<v.InferInput<typeof program>, ClientChannelProgram> = v.pipe(program, v.check(row => new Set(row.reads).size === row.reads.length
   && new Set(row.channels.map(channel => channel.property)).size === row.channels.length
   && new Set((row.bindings ?? []).map(item => `${item.target}:${item.property}`)).size === (row.bindings?.length ?? 0)
   && (row.bindings ?? []).every(item => row.channels.some(channel => channel.property === item.property) && (item.order === undefined || ['yaw', 'pitch', 'roll'].includes(item.property)))
@@ -58,15 +61,13 @@ export const ClientChannelProgramSchema = v.pipe(v.strictObject({
     return (!('c' in value) || value.c < at) && (!('a' in value) || value.a < at) && (!('b' in value) || value.b < at);
   }), 'unique visual channels and reads; backward-only nodes and bounded private slots'));
 /** Admitted visual programs; aggregate caps apply before any expression storage is allocated. */
-export const ClientChannelsSchema = v.pipe(v.array(ClientChannelProgramSchema), v.maxLength(CLIENT_CHANNEL_LIMITS.programs),
+export const ClientChannelsSchema: v.GenericSchema<ClientChannelProgram[], ClientChannelProgram[]> = v.pipe(v.array(ClientChannelProgramSchema), v.maxLength(CLIENT_CHANNEL_LIMITS.programs),
   v.check(rows => new Set(rows.map(row => row.id)).size === rows.length
     && new Set(rows.flatMap(row => row.prompt === undefined ? [] : [row.prompt.id])).size === rows.filter(row => row.prompt !== undefined).length
     && rows.filter(row => row.prompt !== undefined).length <= CLIENT_CHANNEL_LIMITS.prompts
     && rows.reduce((sum, row) => sum + row.nodes.length, 0) <= CLIENT_CHANNEL_LIMITS.totalNodes
     && rows.reduce((sum, row) => sum + (row.locals?.length ?? 0), 0) <= CLIENT_CHANNEL_LIMITS.totalLocals
     && rows.reduce((sum, row) => sum + row.channels.length, 0) <= CLIENT_CHANNEL_LIMITS.totalChannels, 'unique bounded client channel programs'));
-/** Data-only client programme, with selected copied observations and visual outputs. */
-export type ClientChannelProgram = v.InferOutput<typeof ClientChannelProgramSchema>;
 /** Visual property identity, never an authoritative player or shared field. */
 export type ClientChannelProperty = v.InferOutput<typeof ClientChannelPropertySchema>;
 /** Strictly parse detached author data before the trusted view owner binds it. */
