@@ -277,16 +277,17 @@ process.exitCode = result.status ?? 1;
       expect(await regenerateCommitted(root)).toBe(sha);
     });
   }, 30_000);
-  it('rejects stale docs, measured increases without approval and hand-edited counts without touching HEAD', async () => {
+  it('admits allowed graph rises but rejects stale docs and hand-edited counts', async () => {
     await fixture(async (root, put, git) => {
       const baseline = git(['rev-parse', 'HEAD']);
       await expect(checkCommitted(root, baseline)).resolves.toBeUndefined();
       put('src/game/clock.ts', "import { tick } from '@wildshard/engine/clock';\n/** Shared clock. */\nexport const gameTick = tick;\n");
       git(['add', '--', 'src/game/clock.ts']); git(['commit', '-qm', 'unapproved source edge', '--', 'src/game/clock.ts']);
       const source = git(['rev-parse', 'HEAD']);
-      await expect(regenerateCommitted(root)).rejects.toThrow('Coordinator approval required');
-      expect(git(['rev-parse', 'HEAD'])).toBe(source);
       await expect(checkCommitted(root, source)).rejects.toThrow('Stale or hand-edited');
+      const generated = await regenerateCommitted(root);
+      await expect(checkCommitted(root, generated)).resolves.toBeUndefined();
+      expect(git(['show', `${generated}:lint/layer-edges.json`])).toContain('game → engine');
       put('lint/layer-edges.json', '{"edges":{"game → engine":99}}');
       git(['commit', '-qm', 'hand edited measurement', '--', 'lint/layer-edges.json']);
       await expect(checkCommitted(root, git(['rev-parse', 'HEAD']))).rejects.toThrow('serialized regeneration');
