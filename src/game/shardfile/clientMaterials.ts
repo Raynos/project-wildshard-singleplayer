@@ -4,7 +4,7 @@
  * transcoded once (its mips dropped from JS after upload). A family named by the look, the terrain or the props without
  * its own entry gets the family's plain default, vertex-coloured (PBR's dielectric). No URL, no shader source and no callback comes from the shard.
  */
-import { CompressedTexture, SRGBColorSpace, NoColorSpace, type Texture, type Material } from 'three';
+import { ClampToEdgeWrapping, CompressedTexture, LinearFilter, LinearMipmapLinearFilter, MirroredRepeatWrapping, NearestFilter, NearestMipmapNearestFilter, RepeatWrapping, SRGBColorSpace, NoColorSpace, type Texture, type Material } from 'three';
 import { KTX2Loader } from 'three/examples/jsm/loaders/KTX2Loader.js';
 import { BASIS_PATH, releaseAfterUpload } from '@wildshard/engine/core/ktx2';
 import { ToonLook } from '@wildshard/engine/render/families/toon';
@@ -26,6 +26,27 @@ import { propMaterialTextureRefs, propMaterialsOf } from '@wildshard/format/prop
 import { propSurfaces } from './clientPropMaterials';
 import { splatSurface, withSplatSurface } from './clientSplatTerrain';
 import { splatTerrainOf, splatTextureRefs } from '@wildshard/format/splatTerrain';
+
+const WRAPS = { repeat: RepeatWrapping, clamp: ClampToEdgeWrapping, mirror: MirroredRepeatWrapping } as const;
+/**
+ * A look sampler row on a just-transcoded texture, before its first upload: wrap, anisotropy (three caps it at the device's),
+ * filter and mips. `mips: 'gpu'` keeps level 0 of a raw KTX2 (a data texture) and lets the GPU build the chain at upload;
+ * a transcoded (compressed) texture cannot be mipmapped by the GPU, so the row refuses it.
+ */
+export function applyTextureSampler(texture: Texture, row: NonNullable<Shardfile['look']['samplers']>[string]): void {
+  if (row.wrap !== undefined) { texture.wrapS = WRAPS[row.wrap]; texture.wrapT = WRAPS[row.wrap]; }
+  if (row.anisotropy !== undefined) texture.anisotropy = row.anisotropy;
+  const gpu = row.mips === 'gpu';
+  if (gpu) {
+    if (texture instanceof CompressedTexture) throw new Error(`Sampler ${texture.name}: GPU mips need a raw (uncompressed) KTX2`);
+    texture.mipmaps = []; texture.generateMipmaps = true;
+  }
+  const filter = row.filter ?? (gpu ? 'linear' : undefined);
+  if (filter === undefined) return;
+  const mipped = gpu || texture.mipmaps.length > 1;
+  texture.magFilter = filter === 'linear' ? LinearFilter : NearestFilter;
+  texture.minFilter = filter === 'linear' ? (mipped ? LinearMipmapLinearFilter : LinearFilter) : (mipped ? NearestMipmapNearestFilter : NearestFilter);
+}
 
 /** Does the shard carry a graph material, in its catalogue or in an admitted skin binding? */
 function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>): boolean {
@@ -67,7 +88,9 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
       const texture = await new Promise<Texture>((resolve, reject) => { loader.parse(Uint8Array.from(bytes).buffer, resolve, reject); });
       if (scope.disposed) { texture.dispose(); throw new Error('Material scope unloaded during transcode'); }
       // a splat layer is copied into its array, never uploaded itself (clientSplatTerrain)
-      texture.flipY = false; texture.name = `shardfile:${ref}`; if (texture instanceof CompressedTexture && !splatRefs.has(ref)) releaseAfterUpload(texture);
+      texture.flipY = false; texture.name = `shardfile:${ref}`;
+      const sampler = shard.look.samplers?.[ref]; if (sampler !== undefined) applyTextureSampler(texture, sampler);
+      if (texture instanceof CompressedTexture && !splatRefs.has(ref)) releaseAfterUpload(texture);
       scope.own(texture); textures.set(ref, texture);
     }
   }

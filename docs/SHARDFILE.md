@@ -123,7 +123,7 @@ does not establish the clip. Render adapters consume the same exclusion data.
 | `clientScripts` | Optional/default-empty presentation lane: cadence dividing 60, named creature/panel/prop/particle targets, selected public/owner numeric fields, bounded pose and emitters. |
 | `clientChannels` | Optional trusted-runtime presentation programs: bounded straight-line numeric expressions over copied clock/state observations, publishing only private visual transforms/scalars. Requires `runtime.binds: ["clientChannels"]`. |
 | `rows` | Optional/default-empty numeric strikes, weather output tables, day schedules, species/variants, registered look recipes, compendium and loot presentation data. |
-| `terrain`, `water` | Optional/null bounded baked terrain binding; optional/default-empty declared pools, sea and streams. |
+| `terrain`, `water` | Optional/null bounded baked terrain binding, with optional draw rows `shadow: {cast, receive}` (absent: both on; `cast` still needs the client's shadow disc) and `follow` (1–62.5 m the viewer moves before the tile residency re-centres; absent: 5 m); optional/default-empty declared pools, sea and streams. |
 | `meshCollision` | Optional/null exact WMC1 critical triangle tiles and interactive panel colliders; mutually exclusive with terrain. Runtime integration is pending (SF55a). |
 | `nativeGround` | Optional/null `{version:1,file}` retaining the original critical WSTR256 binary of a trusted runtime world. Mutually exclusive with compiled terrain and mesh collision; no second collider is installed. |
 | `creatures`, `encounters` | Optional/default-empty individual brains, ordered pack/herd groups, stable spawns and phase tables; each actor has one controller and resolves declared species/variant/strike and boss panel references. |
@@ -201,6 +201,11 @@ PBR ground layers). PBR `faceted` defaults to false; true selects flat shading.
 names or shader fields. Terrain and prop `family` bindings select a material ID;
 the four family names also select platform defaults. Creature look rows may name a
 `material` ID. Texture references resolve admitted files through the loader.
+Optional `look.samplers` keys a catalogue texture ref to its sampler: `wrap`
+(`repeat` / `clamp` / `mirror`, absent: clamp), `anisotropy` (1–16, device-capped,
+absent: 1), `filter` (`linear` / `nearest`, absent: the file's own) and `mips`
+(`gpu`: upload level 0 of a raw, uncompressed KTX2 and let the GPU build the chain;
+absent or `file`: the file's levels). A row for any other ref refuses admission.
 
 An additive material entry `{ family: "graph", graph: GraphIr }` carries engine
 IR version 1 data. `validateGraph` checks node types, cycles, stage placement,

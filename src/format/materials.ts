@@ -65,6 +65,23 @@ export function graphFileTextureRefs(materials: Readonly<v.InferOutput<typeof Ma
 }
 /** Optional per-shard family looks use the renderer-neutral engine schemas. */
 export const FamilyLooksSchema = v.strictObject({ toon: v.exactOptional(ToonLookSchema), painterly: v.exactOptional(PainterlyLookSchema), emissive: v.exactOptional(EmissiveLookSchema) });
+/**
+ * A look texture's sampler, one row per texture ref of the material catalogue (absent row: the loader's sampler, as before).
+ * `wrap` its S and T addressing (absent: clamp); `anisotropy` its anisotropic samples, 1 (off) to 16, capped by the device
+ * (absent: 1); `filter` linear or nearest (absent: the file's own, a transcoded file's linear and a raw file's nearest;
+ * with GPU mips, linear); `mips` `'gpu'` uploads only level 0 of a raw (uncompressed) KTX2 and lets the GPU build the
+ * chain, as a data texture's driver mips (a baked chain is not bit-equal to them), `'file'` (absent) samples the file's
+ * own levels.
+ */
+export const TextureSamplersSchema = v.pipe(v.record(v.pipe(v.string(), v.regex(/^(?:commons:)?[a-f0-9]{64}$/u)), v.strictObject({
+  wrap: v.exactOptional(v.picklist(['repeat', 'clamp', 'mirror'])), anisotropy: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(16))),
+  filter: v.exactOptional(v.picklist(['linear', 'nearest'])), mips: v.exactOptional(v.picklist(['file', 'gpu'])),
+})), v.check((rows) => Object.keys(rows).length <= 256, 'bounded texture samplers'));
+/** Each sampler row names a texture of the look's material catalogue. */
+export function textureSamplerRules(look: Pick<Shardfile['look'], 'materials' | 'samplers'>): string[] {
+  const refs = new Set(materialTextureRefs(look.materials));
+  return Object.keys(look.samplers ?? {}).flatMap((ref) => (refs.has(ref) ? [] : [`samplers ${ref}: not a texture of the look's material catalogue`]));
+}
 /** Resolve authored surface IDs or the four platform default material IDs. */
 export function materialExists(materials: Readonly<Record<string, unknown>>, idValue: string): boolean {
   return Object.hasOwn(materials, idValue) || FAMILY_IDS.some((family) => family === idValue);

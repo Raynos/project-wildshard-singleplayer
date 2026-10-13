@@ -145,6 +145,8 @@ function withoutPresentation(source: Shardfile): Shardfile {
  * their curves moved and both lent to the runtime (`HybridPresentation`), with no kit, play stage, simulation or hook.
  */
 type DataMode = 'full' | 'empty' | 'presentation';
+/** How far (m) the viewer moves before the tile residency re-centres, when the terrain declares no `follow`. */
+const FOLLOW = 5;
 
 /** The existing Game's world/kit/play stages install one authored level, one borrowed simulation and the normal equipment/HUD. */
 export class ShardfileClient {
@@ -195,7 +197,7 @@ export class ShardfileClient {
     installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials, outline: presentation.outline });
     this.worldTiles = await clientWorld(this.source, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z,
       ...(this.bindings.residency !== undefined && this.source.runtime === null ? { residency: { allocator, owner: this.bindings.instance } } : {}),
-      views: clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, ...presentation }),
+      views: clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, terrainShadow: this.source.terrain?.shadow, ...presentation }),
     });
     const tiles = this.worldTiles;
     this.followViewer(ctx, runtime, tiles, presentation);
@@ -213,12 +215,13 @@ export class ShardfileClient {
     ctx.debug.expose('shardfileResidency', { tiles, allocator, mode: 'standalone', workers: false });
   }
 
-  /** The tiles' residency follows the viewer past 5 m; the materials' looks, graphs and curves tick each frame. */
+  /** The tiles' residency follows the viewer past the terrain's follow distance (`terrain.follow`, `FOLLOW` by default); the materials' looks, graphs and curves tick each frame. */
   private followViewer(ctx: ShardContext, runtime: NonNullable<ShardContext['game']['runtime']>, tiles: { refresh: (x: number, z: number) => Promise<void> }, presentation: Awaited<ReturnType<typeof clientMaterials>>): void {
     let priorX = this.source.spawn.x, priorZ = this.source.spawn.z;
+    const follow = this.source.terrain?.follow ?? FOLLOW;
     ctx.system({ id: 'game.shardfile.residency', phase: 'fixed.post', after: ['player.step'], run: () => {
       const position = runtime.viewer();
-      if (Math.hypot(position.x - priorX, position.z - priorZ) < 5) return;
+      if (Math.hypot(position.x - priorX, position.z - priorZ) < follow) return;
       void tiles.refresh(position.x, position.z);
       priorX = position.x; priorZ = position.z;
     } });
@@ -246,7 +249,7 @@ export class ShardfileClient {
     presentation.graphs.bind({ hour: () => world.game.sky.dayNight?.hour ?? null, state: (scope, name) => this.hostState?.(scope, name) });
     // the runtime's reviewed claim covers its whole home (as for every hybrid's tiles): no per-tile residency charge
     const tiles = terrain === null ? { refresh: () => Promise.resolve() } : await clientWorld({ ...this.source, props: null }, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z,
-      views: clientViews({ root: ctx.root, terrain: terrain.family, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) }),
+      views: clientViews({ root: ctx.root, terrain: terrain.family, terrainShadow: terrain.shadow, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) }),
     });
     this.followViewer(ctx, runtime, tiles, presentation);
   }

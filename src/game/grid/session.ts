@@ -529,7 +529,7 @@ export class GridSession {
             if (scope.disposed) throw new Error('Grid product view disposed during admission');
             scope.onDispose(retained.release);
             const presentation = await clientMaterials(source, admitted.assets, renderer, scope);
-            return { source, assets: new ClientAssets(source, admitted.assets, options), views: clientTileViews({ terrain: source.terrain?.family ?? null, ...presentation }), bytes: admitted.assets, compile: presentation.compile };
+            return { source, assets: new ClientAssets(source, admitted.assets, options), views: clientTileViews({ terrain: source.terrain?.family ?? null, terrainShadow: source.terrain?.shadow, ...presentation }), bytes: admitted.assets, compile: presentation.compile };
           } catch (error) { retained.release(); throw error; }
         })();
         shared.set(cell.slug, loading);

@@ -41,7 +41,9 @@ export interface ClientTileViews {
  */
 interface ViewPorts { terrain: string | null; materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; outline?: GraphOutlineHook; surfaces?: ((name: string) => PropSurfaceBinding) | null;
   /** The decoded terrain collider every tile was cut from: each tile's normals come from it, so tile edges light alike (absent: each tile's own grid). */
-  lattice?: TerrainTileData }
+  lattice?: TerrainTileData;
+  /** The terrain's shadow flags (`terrain.shadow`): a tile casts only when `cast` (and the shadow disc says so), receives only when `receive` (absent: both). */
+  terrainShadow?: NonNullable<Shardfile['terrain']>['shadow'] | undefined }
 
 /**
  * Outline what a props root draws: with named surfaces each mesh by its own material (a graph that declares
@@ -59,14 +61,16 @@ const surfacePort = (ports: ViewPorts): { surfaces?: (name: string) => PropSurfa
 export function clientTileViews(ports: ViewPorts): ClientTileViews {
   const material = ports.terrain === null ? null : ports.materials.get(ports.terrain);
   if (material === undefined) throw new Error('shardfile views: the terrain family has no resolved material');
+  const cast = ports.terrainShadow?.cast ?? true, receive = ports.terrainShadow?.receive ?? true;
   return {
     terrain: (input, root, scope, shadow) => {
       if (material === null) throw new Error('shardfile views: a terrain tile in a shard without terrain');
-      const mesh = installTerrainTile(input, { root, scope, material, shadow, ...(ports.lattice === undefined ? {} : { lattice: ports.lattice }) });
+      const mesh = installTerrainTile(input, { root, scope, material, shadow: cast && shadow, ...(ports.lattice === undefined ? {} : { lattice: ports.lattice }) });
+      if (!receive) mesh.receiveShadow = false;
       const hulls = ports.outline?.(mesh, material, scope) ?? [];
       // a coarse tile's mask moves its draw range; its hull (a shallow geometry copy) follows
       const mask = (excluded: ReadonlySet<number>): void => { maskTerrainTile(mesh, excluded); for (const hull of hulls) hull.geometry.setDrawRange(mesh.geometry.drawRange.start, mesh.geometry.drawRange.count); };
-      return { mask, shadow: (enabled) => { mesh.castShadow = enabled; } };
+      return { mask, shadow: cast ? (enabled) => { mesh.castShadow = enabled; } : () => undefined };
     },
     props: async (props, key, bytes, scene, scope): Promise<ResidentTile | null> => {
       const row = props.tiles.find((tile) => `${tile.lod}/${tile.x}/${tile.z}` === key);
