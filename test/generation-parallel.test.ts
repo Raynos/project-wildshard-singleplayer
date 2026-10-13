@@ -34,3 +34,20 @@ writeFileSync(${JSON.stringify(output)},${id === 'gamma' ? "readFileSync('src/sh
     await expect(prepareGeneration(root, { concurrency: 0 })).rejects.toThrow('Generation concurrency');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
+
+it('rebuilds cheap outputs from current source without a committed byte baseline', async () => {
+  const root=realpathSync(mkdtempSync(join(tmpdir(),'cheap-generation-')));
+  const output='src/shards/sample/data/value.json',entry='src/shards/sample/generators/bake-value.mjs';
+  const put=(file:string,text:string):void=>{mkdirSync(dirname(join(root,file)),{recursive:true});writeFileSync(join(root,file),text);};
+  try {
+    put('package.json','{"name":"cheap-fixture"}');
+    put(entry,`import{writeFileSync}from'node:fs';writeFileSync('${output}','{"current":true}');`);
+    put(output,'{"obsolete":true}');
+    const job={id:'sample',shard:'sample',entry,command:[entry],inputRoots:['package.json',entry],outputs:[output],platform:'portable',buildTimeOutputs:[output]};
+    put('scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT',jobs:[job]}));
+    await prepareGeneration(root,{cacheDir:join(root,'cache')});
+    expect(JSON.parse(readFileSync(join(root,output),'utf8'))).toEqual({current:true});
+    put('scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT',jobs:[{...job,seedOutputs:[output]}]}));
+    await expect(prepareGeneration(root)).rejects.toThrow('Invalid cheap build outputs');
+  } finally {rmSync(root,{recursive:true,force:true});}
+});

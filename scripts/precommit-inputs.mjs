@@ -150,7 +150,7 @@ writeFileSync(process.argv[1],JSON.stringify([...files,...recorded]));`;
     const baked = performance.now();
     const tracked = new Set(git(['ls-tree', '-r', '--name-only', before], undefined).split('\n'));
     // Only these declared tracked tables are written by the boot generator.
-    const tables = ['lint/ask-ids.json', 'lint/shard-words.generated.json', ...(existsSync(resolve(scratch, 'docs/plans/shard-platform/generator-inventory.md')) ? ['docs/plans/shard-platform/generator-inventory.md'] : [])];
+    const tables = ['lint/ask-ids.json'];
     for (const file of new Set([...tables, ...produced])) {
       const bytes = readFileSync(resolve(scratch, file));
       const previous = spawnSync('git', ['show', `${before}:${file}`], { cwd: root, maxBuffer: 64 * 1024 * 1024 });
@@ -161,9 +161,10 @@ writeFileSync(process.argv[1],JSON.stringify([...files,...recorded]));`;
       git(['update-index', '--add', '--cacheinfo', '100644', blob, file], undefined);
     }
     const files = globSync('src/**/*.generated.*', { cwd: scratch }).map(String).filter(path => !tracked.has(path));
-    /** @type {{jobs: {buildOutputs?: Record<string,string>}[]}} */
+    files.push('lint/shard-words.generated.json');
+    /** @type {{jobs: {buildOutputs?: Record<string,string>, buildTimeOutputs?: string[]}[]}} */
     const catalogue = JSON.parse(readFileSync(resolve(scratch, 'scripts/generation-jobs.json'), 'utf8'));
-    for (const job of catalogue.jobs) for (const file of Object.keys(job.buildOutputs ?? {})) if (existsSync(resolve(scratch, file)) && !tracked.has(file)) files.push(file);
+    for (const job of catalogue.jobs) for (const file of [...Object.keys(job.buildOutputs ?? {}), ...(job.buildTimeOutputs ?? [])]) if (existsSync(resolve(scratch, file)) && !tracked.has(file)) files.push(file);
     const final = git(['write-tree'], undefined);
     // An idempotent retry must retain the original source-to-output receipt.
     if (final !== before) recordCommitProduced(root, before, [...tables, ...produced], base);

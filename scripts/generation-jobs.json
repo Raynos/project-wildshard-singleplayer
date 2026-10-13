@@ -5836,7 +5836,11 @@
         "src/shards/driftwood-isle/assets/25121a8616589da2265bc6d0537c86eabec4d64d26d0bd757268d80dac2cba1b",
         "src/shards/driftwood-isle/behaviour/director.json"
       ],
-      "platform": "portable"
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/assets/25121a8616589da2265bc6d0537c86eabec4d64d26d0bd757268d80dac2cba1b",
+        "src/shards/driftwood-isle/behaviour/director.json"
+      ]
     },
     {
       "id": "pine-clock-director",
@@ -5872,7 +5876,11 @@
         "src/shards/pine-hollow/assets/4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251",
         "src/shards/pine-hollow/behaviour/director.json"
       ],
-      "platform": "portable"
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/assets/4bca3aaa1d0e5b78ef167939efa53c7a67c50377529cff637044aae9c5c84251",
+        "src/shards/pine-hollow/behaviour/director.json"
+      ]
     },
     {
       "id": "signal-skitterer-behaviour",
@@ -5906,7 +5914,10 @@
       "outputs": [
         "src/shards/sunscar-dunes/behaviour/skitterer.json"
       ],
-      "platform": "portable"
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/sunscar-dunes/behaviour/skitterer.json"
+      ]
     },
     {
       "id": "nalati-qara",
@@ -5976,7 +5987,13 @@
         "src/shards/pine-hollow/behaviour/blackpaw.json",
         "src/shards/pine-hollow/behaviour/imperialBull.json"
       ],
-      "platform": "portable"
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/behaviour/ironhide.json",
+        "src/shards/pine-hollow/behaviour/ghostStag.json",
+        "src/shards/pine-hollow/behaviour/blackpaw.json",
+        "src/shards/pine-hollow/behaviour/imperialBull.json"
+      ]
     },
     {
       "id": "nalati-weapon-hooks",
@@ -6018,7 +6035,11 @@
         "src/shards/nalati-grasslands/assets/141ad375895d4f14fc900f0954c566ff077d1621741aed238edffa672f41a9ac",
         "src/shards/nalati-grasslands/behaviour/weapons.json"
       ],
-      "platform": "portable"
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "src/shards/nalati-grasslands/assets/141ad375895d4f14fc900f0954c566ff077d1621741aed238edffa672f41a9ac",
+        "src/shards/nalati-grasslands/behaviour/weapons.json"
+      ]
     },
     {
       "id": "nine-physics-placements",
@@ -6429,10 +6450,10 @@
         "public/assets/baked/driftwood-isle/terrain.bin"
       ],
       "platform": "portable",
-      "buildOutputs": {
-        "public/assets/baked/driftwood-isle/terrain.bin": "7ee9dec5bd542063dce4c19d70d3e2fe9c3f61b54eff23387c0aec5629346c43"
-      },
-      "seedOutputs": []
+      "seedOutputs": [],
+      "buildTimeOutputs": [
+        "public/assets/baked/driftwood-isle/terrain.bin"
+      ]
     },
     {
       "id": "driftwood-entry-floors",

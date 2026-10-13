@@ -14,7 +14,7 @@ import { outputPolicy } from './generation-inventory.mjs';
 
 const path = v.pipe(v.string(),v.check(value=>value.length>0 && !isAbsolute(value) && !value.includes('\\') && value.split('/').every(part=>part!=='' && part!=='.' && part!=='..')));
 const jobIdSchema = v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u));
-const Descriptor = v.strictObject({id:jobIdSchema,catalogueDependencies:v.optional(v.array(jobIdSchema)),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),comparisonOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false),browser:v.optional(v.boolean(),false),preview:v.optional(v.boolean(),false),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
+const Descriptor = v.strictObject({id:jobIdSchema,catalogueDependencies:v.optional(v.array(jobIdSchema)),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildTimeOutputs:v.optional(v.array(path),[]),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),comparisonOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false),browser:v.optional(v.boolean(),false),preview:v.optional(v.boolean(),false),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
 const Catalog = v.strictObject({schema:v.literal('generation-jobs/1'),notice:v.pipe(v.string(),v.includes('DO NOT EDIT')),jobs:v.array(Descriptor)});
 const infrastructure=['src/format','scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs','scripts/generation-inventory.mjs'];
 // These are loader/check/hash/write helpers, not output producers. New bake entry points default to undeclared.
@@ -31,6 +31,7 @@ function validateProducer(job) {
   if(!job.preview && job.command.some(arg=>arg.includes('<preview-url>'))) throw new Error(`Undeclared preview command: ${job.id}`);
   const comparisons=Object.keys(job.comparisonOutputs ?? {});
   if(comparisons.some(file=>!job.outputs.includes(file)) || comparisons.some(file=>Object.hasOwn(job.buildOutputs ?? {},file))) throw new Error(`Invalid comparison-only outputs: ${job.id}`);
+  if (job.buildTimeOutputs.length > 0 && (job.seedOutputs.length > 0 || job.capture || job.browser || job.recordedInputs || job.platform === 'darwin' || job.buildTimeOutputs.some(file => !job.outputs.includes(file)) || Object.keys(job.buildOutputs).length > 0 || Object.keys(job.comparisonOutputs).length > 0)) throw new Error(`Invalid cheap build outputs: ${job.id}`);
   const buildOutputs=Object.keys(job.buildOutputs ?? {});
   if(buildOutputs.some(file=>!job.outputs.includes(file) || job.seedOutputs?.includes(file)) ||
     (buildOutputs.length>0 && (job.platform==='darwin' || job.capture || job.browser || job.recordedInputs))) throw new Error(`Invalid build-time outputs: ${job.id}`);
@@ -178,8 +179,8 @@ export async function generateShardJob(root,descriptor,options={}) {
     if(expectedHash===undefined || generatedHash===undefined) throw new Error(`Missing verified output hash: ${file}`);
     return {file,expectedHash,generatedHash,rawExact:expectedHash===null?null:expectedHash===generatedHash,equivalent:expectedHash===null?null:!different.includes(file),comparison:job.capture?'capture-provenance':job.recordedInputs?'recorded-inputs':'raw'};
   }));
-  if(different.length>0) throw new Error(`Committed generated output differs: ${different.join(', ')}. No source output was overwritten.`);
-  if(options.restore===true) for(const file of restoreOutputs) if(!existsSync(resolve(root,file))) {mkdirSync(dirname(resolve(root,file)),{recursive:true});copyFileSync(resolve(result.directory,file),resolve(root,file));}
+  if(job.buildTimeOutputs.length === 0 && different.length>0) throw new Error(`Committed generated output differs: ${different.join(', ')}. No source output was overwritten.`);
+  if(options.restore===true) for(const file of restoreOutputs) if(job.buildTimeOutputs.includes(file) || !existsSync(resolve(root,file))) {mkdirSync(dirname(resolve(root,file)),{recursive:true});copyFileSync(resolve(result.directory,file),resolve(root,file));}
   return {...result,retention:generationRetention(result.directory,job.outputs,coldSeconds)};
 }
 
@@ -198,7 +199,7 @@ export function reportGeneration(root) {
 export async function prepareGeneration(root,options={}) {
   const concurrency=options.concurrency ?? 1;
   if(!Number.isSafeInteger(concurrency) || concurrency<1 || concurrency>4) throw new Error('Generation concurrency must be 1..4');
-  const report=reportGeneration(root), jobs=report.jobs.filter(job=>Object.keys(job.buildOutputs).length>0), completed=new Set();
+  const report=reportGeneration(root), jobs=report.jobs.filter(job=>Object.keys(job.buildOutputs).length>0 || job.buildTimeOutputs.length>0), completed=new Set();
   // Preserve catalogue order for every declared read/write conflict, including broad directory inputs.
   // Producers use private exports; only verified declared outputs are published into the shared staged export.
   /** @param {import('./generate.mjs').ShardGenerationJob} job @param {string} file */
@@ -212,7 +213,7 @@ export async function prepareGeneration(root,options={}) {
       if(completed.has(index) || running.has(index) || jobs.slice(0,index).some((prior,position)=>!completed.has(position) && conflicts(prior,job))) continue;
       const work=async()=>{
         try {
-        const started=performance.now(), outputs=Object.keys(job.buildOutputs);
+        const started=performance.now(), outputs=[...Object.keys(job.buildOutputs), ...job.buildTimeOutputs];
         const result=await generateShardJob(root,job,{...options,restore:true,restoreOutputs:outputs});
         console.info(`generate: ${job.id}, ${result.hit?'verified cache':'generated'}, ${String(outputs.length)} admitted build outputs, ${((performance.now()-started)/1000).toFixed(3)}s`);
         return {index};

@@ -175,3 +175,15 @@ it('refuses a warm proof when the caller parent or staged tree moves, and still 
     } finally {log.mockRestore();f.close();}
   }
 });
+
+it('admits cheap deletion only after the retained complete producer runs cold',async()=>{
+  const f=fixture();
+  try {
+    f.stage([{...f.component,buildTimeOutputs:[output]}]);
+    const plan=await precommitGenerationRemovals(f.root);
+    expect(plan?.cheapJobIds).toEqual(['component']);
+    expect(plan?.outputs).toEqual([]);
+    expect(existsSync(resolve(f.root,output))).toBe(false);
+    expect(()=>planGenerationRemovals([f.component],[{...f.component,buildTimeOutputs:[output],seedOutputs:[output]}],[output],()=>digest)).toThrow('self-contained');
+  } finally {f.close();}
+});

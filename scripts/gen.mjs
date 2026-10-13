@@ -7,6 +7,7 @@ import { genPortShares } from './gen-port-shares.mjs';
 import { genStarterArmClips } from './gen-starter-arm-clips.mjs';
 import { genStarterWeapons } from './gen-starter-weapons.mjs';
 import { writeGeneratorInventory } from './generator-inventory.mjs';
+import { execFileSync } from 'node:child_process';
 
 const buildInputs = process.argv.includes('--build-inputs');
 async function step(name, run) {
@@ -46,5 +47,6 @@ if (!process.argv.includes('--build-inputs')) {
   writeApiDocs();
 }
 
-// G391: the explorers' checklist is a deterministic committed producer output.
+// G405: derived documentation is fresh build output, never commit payload.
+if (!buildInputs) execFileSync(process.execPath, ['scripts/normalize/liveness.mjs', '--readme'], {cwd: `${import.meta.dirname}/..`, stdio: 'inherit'});
 await step('generator-inventory', () => writeGeneratorInventory(`${import.meta.dirname}/..`));

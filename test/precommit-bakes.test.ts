@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve only fixture-owned directories.
 import { join } from 'node:path';
 
-it('skips exact inputs and rebakes every affected shard plus spots when a shared input changes', async () => {
+it('plans changed native inputs but never stages cheap build outputs at commit', async () => {
   const root = mkdtempSync(join(tmpdir(), 'precommit-native-'));
   try {
     mkdirSync(join(root, 'scripts')); mkdirSync(join(root, 'lint'));
@@ -37,8 +37,8 @@ it('skips exact inputs and rebakes every affected shard plus spots when a shared
     writeFileSync(join(root, 'input.json'), JSON.stringify({ 'src/game/shared.ts': 'after' }));
     expect((await nativeBakePlan(root)).map(job => job.file)).toHaveLength(8);
     const outputs = await regenerateCheapBakes(root);
-    expect(outputs).toHaveLength(8);
-    expect(await nativeBakePlan(root)).toEqual([]);
+    expect(outputs).toEqual([]);
+    expect(await nativeBakePlan(root)).toHaveLength(8);
     for (const file of outputs) expect(JSON.parse(readFileSync(join(root, file), 'utf8'))).toMatchObject({pieces:[1,2,3]});
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
@@ -92,7 +92,7 @@ if(JSON.stringify(paths)!=='["src/staged.ts"]')throw Error('wrong staged paths')
 writeFileSync('lint/ratchet.json','{"measured":true}');`);
     writeFileSync(join(root,'scripts/normalize/liveness.mjs'),`import{writeFileSync}from'node:fs';writeFileSync('scripts/README.md','after');`);
     await expect(refreshCommitMeasurements(root,undefined)).rejects.toThrow('caller staged paths');
-    expect(await refreshCommitMeasurements(root,['src/staged.ts','scripts/other.mjs'])).toEqual(['lint/ratchet.json','scripts/README.md']);
+    expect(await refreshCommitMeasurements(root,['src/staged.ts','scripts/other.mjs'])).toEqual(['lint/ratchet.json']);
     expect(await refreshCommitMeasurements(root,['src/staged.ts'])).toEqual([]);
   } finally {rmSync(root,{recursive:true,force:true});}
 });

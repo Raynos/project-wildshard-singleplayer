@@ -73,3 +73,9 @@ describe('SF6b generated counts and their approvals', () => {
     expect(output.endsWith(APPENDIX_END)).toBe(true);
   });
 });
+
+it('allows cheap doc removal and refuses putting build-only docs back in Git',()=>{
+  const file='scripts/README.md';
+  expect(builderGeneratedChanges([file],()=> 'old generated index',()=> '')).toEqual([]);
+  expect(()=>builderGeneratedChanges([file],()=> '',()=> 'new generated index')).toThrow('belongs to the build');
+});

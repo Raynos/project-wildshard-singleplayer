@@ -41,7 +41,7 @@ export function restoreCommitInputs(root, tree, snapshot) {
   /** @type {Record<string,string>} */
   const outputs = JSON.parse(readFileSync(receipt, 'utf8'));
   for (const [file, digest] of Object.entries(outputs)) {
-    if (!/^(src|public)\//u.test(file) || file.split('/').some(part => part === '..' || part === '.' || part === '') || file.includes('\\') || !/^[a-f0-9]{64}$/u.test(digest)) throw new Error(`Invalid commit input: ${file}`);
+    if (!(file === 'lint/shard-words.generated.json' || /^(src|public)\//u.test(file)) || file.split('/').some(part => part === '..' || part === '.' || part === '') || file.includes('\\') || !/^[a-f0-9]{64}$/u.test(digest)) throw new Error(`Invalid commit input: ${file}`);
     const bytes = readFileSync(resolve(cache, 'blobs', digest));
     if (hash(bytes) !== digest) throw new Error(`Corrupt commit-time generation input: ${file}`);
     const target = resolve(snapshot, file);

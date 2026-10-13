@@ -25,7 +25,8 @@ if (only !== undefined && !nodeOnly) { console.error('bake-check: --only needs -
 for (const baker of NODE_BAKERS) if (only === undefined || only === baker) {
   // Fixed-model metadata retains unrounded doubles; libm can differ by a final ulp from the macOS-authored bake.
   if (baker === 'directors') {
-    for (const slug of ['driftwood-isle', 'nalati-grasslands', 'pine-hollow']) run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', `import { runCli } from './src/sdk/cli.ts'; await runCli(['build', 'src/shards/${slug}', '--behaviour-only', '--check']);`]);
+    run(['scripts/check-cheap-bakes.mjs']);
+    run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', `import { runCli } from './src/sdk/cli.ts'; await runCli(['build', 'src/shards/nalati-grasslands', '--behaviour-only', '--check']);`]);
   } else if (baker === 'pine-coat-pages') {
     run(['src/shards/pine-hollow/generators/bake-pine-coat-pages.mjs', '--check']);
   } else if (baker === 'driftwood-fixed-models' && process.platform !== 'darwin') {

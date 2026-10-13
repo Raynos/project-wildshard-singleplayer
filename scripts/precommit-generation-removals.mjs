@@ -1,14 +1,15 @@
 // Inspect the commit's immutable index; never remove, restore or generate in the shared working tree.
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { discoverGeneration } from './generate.mjs';
+import { discoverGeneration, generateShardJob } from './generate.mjs';
 import { proveGenerationRemoval } from './generation-removal-cache.mjs';
 import { guardIndexTree } from './guard-index-tree.mjs';
 import { planGenerationRemovals } from './generation-removals.mjs';
+import { linkNodeModules } from './link-node-modules.mjs';
 
 /** Hash exact Git blobs in one binary-safe batch, not one process per asset.
  * @param {string} root @param {string[]} objects */
@@ -66,6 +67,19 @@ export async function precommitGenerationRemovals(root = resolve(import.meta.dir
       if(hash===undefined)throw new Error(`Missing removal predecessor: ${file}`);
       return hash;
     });
+    if ((plan.cheapJobIds ?? []).length > 0) {
+      const source=resolve(temporary,'cheap-source');mkdirSync(source);
+      execFileSync('git',['archive',tree,`--output=${archive}`,'--','.',':!art',':!progress',':!sources',':!ios',':!android'],{cwd:root});
+      execFileSync('tar',['-xf',archive,'-C',source]);rmSync(archive);
+      linkNodeModules(root,source);
+      for (const job of after.filter(row=>plan.cheapJobIds?.includes(row.id))) {
+        const result=await generateShardJob(source,job,{cacheDir:resolve(temporary,'cheap-cache')});
+        if (result.elapsedMs >= 30_000) throw new Error(`Cheap removal exceeds G318 cold budget: ${job.id}`);
+        console.info(`Removal guard: ${job.id} regenerates ${job.outputs.length} complete outputs in ${(result.elapsedMs/1000).toFixed(3)}s; G405, no historical byte baseline`);
+      }
+      if(guardIndexTree(root)!==tree || git(['rev-parse','HEAD']).toString().trim()!==parent)throw new Error('Removal proof parent or staged tree changed');
+      if(plan.outputs.length===0)return plan;
+    }
     const selected=after.filter(job=>plan.jobIds.includes(job.id));
     const paths=objects.map(row=>row.slice(row.indexOf('\t')+1));
     const scope=new Set(['scripts','src/format','src/sdk','src/commons',

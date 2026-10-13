@@ -89,7 +89,9 @@ export function generatedPart(file, text) {
 
 /** Source commits may change ENGINE prose and ratchet policy, but cannot carry generated edits. */
 export function builderGeneratedChanges(paths, before, staged) {
-  return paths.filter((file) => GENERATED_FILES.includes(file) && generatedPart(file, before(file)) !== generatedPart(file, staged(file)));
+  const buildDocs = new Set(['scripts/README.md','docs/plans/shard-platform/generator-inventory.md']);
+  for (const file of paths.filter(path => buildDocs.has(path))) if (staged(file) !== '') throw new Error(`Cheap generated documentation belongs to the build, not Git: ${file}`);
+  return paths.filter((file) => !buildDocs.has(file) && GENERATED_FILES.includes(file) && generatedPart(file, before(file)) !== generatedPart(file, staged(file)));
 }
 
 /** The same appendix renderer serves the generator and its documentation check. */

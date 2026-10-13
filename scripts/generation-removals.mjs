@@ -10,11 +10,17 @@ export function planGenerationRemovals(before, after, deleted, previousHash) {
   const removed = new Set(deleted);
   /** @type {import('./generation-removals.mjs').GenerationRemoval[]} */
   const outputs = [];
+  const cheapJobs = new Set();
   const shards = new Set();
   for (const old of before) for (const file of old.outputs) {
     if (!removed.has(file)) continue;
     const job = after.find(row => row.outputs.includes(file));
     if (old.shard === null || job === undefined || job.shard !== old.shard) throw new Error(`Removal needs a retained shard-owned producer: ${file}`);
+    if (job.buildTimeOutputs?.includes(file)) {
+      if (job.seedOutputs?.length || job.platform === 'darwin' || job.capture || job.browser || job.preview || job.recordedInputs || job.buildTimeOutputs.some(output => !job.outputs.includes(output))) throw new Error(`Removal cheap producer is not self-contained: ${job.id}`);
+      cheapJobs.add(job.id);
+      continue;
+    }
     const expected = previousHash(file);
     if (job.buildOutputs?.[file] !== expected) throw new Error(`Removal needs the unchanged predecessor hash in buildOutputs: ${file}`);
     if (job.platform === 'darwin' || job.capture || job.browser || job.preview || job.recordedInputs || job.seedOutputs?.includes(file)) throw new Error(`Removal producer is not a cold build-time job: ${job.id}`);
@@ -23,7 +29,7 @@ export function planGenerationRemovals(before, after, deleted, previousHash) {
     outputs.push({file, job:job.id, shard:old.shard, expected});
     shards.add(old.shard);
   }
-  return {outputs, shards:[...shards], jobIds:after.filter(job => job.shard !== null && shards.has(job.shard)).map(job => job.id)};
+  return {...(cheapJobs.size > 0 ? {cheapJobIds:[...cheapJobs]} : {}), outputs, shards:[...shards], jobIds:after.filter(job => job.shard !== null && shards.has(job.shard)).map(job => job.id)};
 }
 
 /** Admit only the fresh pinned clean-room product and every exact deleted output, never an asset-only report.

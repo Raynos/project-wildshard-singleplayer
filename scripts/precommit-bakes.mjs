@@ -8,7 +8,6 @@ import { tmpdir } from 'node:os';
 import { inputValue, treeEntries } from './gate-cache.mjs';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
-import { mapSettings, mapShards, mapTilesHash } from './map-hash.mjs';
 import { refreshBakeInputs } from './bake-input-hashes.mjs';
 import { refreshWitnesses } from './witness-manifests.mjs';
 
@@ -57,33 +56,10 @@ async function producer(root, command) {
  * @param {string} root
  * @param {{url?: string, revision?: string, stagedPaths?: string[], guardRequirement?: string}} [product]
  * @returns {Promise<string[]>} */
-export async function regenerateCheapBakes(root, product = {}) {
-  const native = await nativeBakePlan(root), changed = native.map(job => job.file);
-  // A shard's physics/spots run in order; independent shards can run beside each other.
-  const results = await Promise.allSettled(NATIVE_BAKES.map(async ([slug]) => {
-    for (const job of native.filter(row => row.slug === slug)) await producer(root, job.command);
-  }));
-  const errors = results.filter(result => result.status === 'rejected');
-  if (errors.length > 0) throw new AggregateError(errors.map(result => result.reason), 'Commit-time native bakes failed');
-  const maps = mapShards(root).filter(({dir}) => {
-    const file = resolve(dir, 'look/map.baked.json');
-    return !existsSync(file) || JSON.parse(readFileSync(file, 'utf8')).tilesHash !== mapTilesHash(dir);
-  });
-  const page = maps.filter(({dir}) => mapSettings(dir).from === null);
-  if (page.length > 0) {
-    if (product.url === undefined || product.revision === undefined || !/^[a-f0-9]{40}$/u.test(product.revision)) throw new Error(`Commit-time maps require the exact staged product: ${page.map(row => row.slug).join(', ')}; no stamp-only refresh is permitted`);
-    // Use the shipping build-id protocol, shared with pinned generation
-    // captures; version.json contains build/time, not a revision field.
-    const {readPreviewBuild} = await import('./generation-capture.mjs');
-    const preview = {url:product.url,revision:product.revision};
-    const before = await readPreviewBuild(preview);
-    await producer(root, ['bash', 'scripts/browser-lane.sh', '--max', '4', process.execPath, 'scripts/bake-maps.mjs', `--url=${product.url}`, `--shards=${page.map(row => row.slug).join(',')}`]);
-    if ((await readPreviewBuild(preview)).build !== before.build) throw new Error('Commit-time map product changed during capture');
-  }
-  const glb = maps.filter(({dir}) => mapSettings(dir).from !== null);
-  if (glb.length > 0) await producer(root, [process.execPath, 'scripts/bake-map-glb.mjs', `--shards=${glb.map(row => row.slug).join(',')}`]);
-  for (const {slug} of maps) changed.push(`src/shards/${slug}/look/map.baked.json`, `public/assets/${slug}/map/top.webp`);
-  return [...changed, ...await refreshCommitMeasurements(root,product.stagedPaths,product.guardRequirement)];
+export function regenerateCheapBakes(root, product = {}) {
+  // G405: native physics/spots and maps are build outputs; no cheap output
+  // is captured or staged by this hook. Recorded/expensive inputs stay below.
+  return refreshCommitMeasurements(root,product.stagedPaths,product.guardRequirement);
 }
 /** Preserve the established byte-identical King/witness admission laws at commit.
  * Call after actual native outputs, before publishing index bytes.
@@ -144,7 +120,7 @@ if (process.argv[2] === '--recorded-uncached') {
  * @param {string} root @param {string[] | undefined} stagedPaths @param {string} [guardRequirement] @returns {Promise<string[]>} */
 export async function refreshCommitMeasurements(root,stagedPaths,guardRequirement) {
   if (!existsSync(resolve(root,'lint/ratchet.mjs'))) return [];
-  const files = ['lint/ratchet.json','scripts/README.md'];
+  const files = ['lint/ratchet.json'];
   const before = new Map(files.map(file => [file,existsSync(resolve(root,file)) ? readFileSync(resolve(root,file),'utf8') : '']));
   if (!Array.isArray(stagedPaths)) throw new Error('Commit measurements require the caller staged paths');
   const paths = stagedPaths.filter(file=>file.startsWith('src/'));
@@ -152,7 +128,6 @@ export async function refreshCommitMeasurements(root,stagedPaths,guardRequiremen
   try {
     writeFileSync(list,JSON.stringify(paths));
     await producer(root,[process.execPath,'lint/ratchet.mjs','--update','--files-from',list,...(guardRequirement===undefined ? [] : ['--guard-required',guardRequirement])]);
-    await producer(root,[process.execPath,'scripts/normalize/liveness.mjs','--readme']);
     return files.filter(file => before.get(file) !== readFileSync(resolve(root,file),'utf8'));
   } finally { rmSync(list,{force:true}); }
 }
