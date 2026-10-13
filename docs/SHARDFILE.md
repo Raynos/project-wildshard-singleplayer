@@ -1145,6 +1145,12 @@ Native quest bindings can also declare a `QuestNpcBindingSchema` row: NPC, talk 
 finite ground anchor (with an optional exact query point), source metadata, update system,
 met-flag policy and missing-model policy. `@wildshard/game/plugin/ui` `installQuestNpc`
 validates it before borrowing geometry/material/dressing from their existing owners.
+The optional `questNpcs` root holds up to 64 bindings with unique NPC ids, talk
+spots and update-system ids. Nonempty rows require `runtime.binds: ['quests']`;
+every dialogue flag and observed met flag must be declared in `quests.flags`.
+`installDeclaredQuestNpc` binds one admitted row by NPC id and refuses a missing
+id before borrowing resources. Absent `questNpcs` preserves existing wire bytes;
+the native owner still supplies the models, materials and resource dressing.
 `parseNpcRow` declares a quest-giver (where it stands, its talk,
 its figure metadata and dialogue). Native figure placement stays with the trusted
 owner; there is no public SDK pivot-NPC installer. Sky's phased-raptor remains a

@@ -87,3 +87,24 @@ export const QuestNpcBindingSchema: v.GenericSchema<v.InferInput<typeof questBin
 /** Admit the quest NPC's policy before constructing a figure or registering any system or collider. */
 export function parseQuestNpcBinding(input: unknown): QuestNpcBinding { return v.parse(QuestNpcBindingSchema, input); }
 
+const questBindings = v.pipe(v.array(QuestNpcBindingSchema), v.maxLength(64),
+  v.check(rows => ['id', 'spot', 'system'].every(key => {
+    const values = rows.map(binding => key === 'system' ? binding.system : key === 'spot' ? binding.npc.spot : binding.npc.id);
+    return new Set(values).size === values.length;
+  }), 'Quest NPC identities, talk spots and update systems must be unique'));
+/** Bounded native NPC placements; each row owns one identity, talk spot and update system. */
+export const QuestNpcBindingsSchema: v.GenericSchema<unknown, QuestNpcBinding[]> = questBindings;
+
+/** Root NPC rows require their native quest owner and declared dialogue/met flags. */
+export function questNpcBindingRules(rows: readonly QuestNpcBinding[], flags: readonly string[], owned: boolean): string[] {
+  if (rows.length === 0) return [];
+  const errors: string[] = [], declared = new Set(flags);
+  if (!owned) errors.push('quest NPCs require runtime.binds quests');
+  for (const binding of rows) {
+    const referenced = binding.npc.dialogue.flatMap(entry => [...entry.when?.all ?? [], ...entry.when?.any ?? [], ...entry.when?.none ?? [], ...entry.sets ?? []]);
+    if (binding.met === 'flag') referenced.push(binding.npc.metFlag);
+    for (const flag of referenced) if (!declared.has(flag)) errors.push(`undeclared quest NPC flag ${flag}`);
+  }
+  return errors;
+}
+

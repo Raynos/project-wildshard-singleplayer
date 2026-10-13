@@ -2649,6 +2649,10 @@ motion and collider registration; an omitted figure and an empty talk anchor
 remain distinct lifecycle choices.
 The geometry loan also accepts prepared `PivotNpcGeometry` local-frame parts;
 the binding forwards them without fitting or partitioning them again.
+`installDeclaredQuestNpc(ctx, source, id, ports)` selects the root's `questNpcs`
+binding by NPC identity. Missing identities refuse before resource lookup. Root
+admission requires native quest ownership, declared dialogue/met flags and unique
+NPC ids, talk spots and update-system ids; absent declarations add no wire field.
 
 Signal’s private `runtime/rowsHeadless.ts` `rowsHeadlessRuntime(manifest)` is a whole trusted
 `prepareHeadlessRuntime` from rows: the baked metadata (`bakedSpecs`, `bakedSpots`), the homes and their brains (with

@@ -722,6 +722,12 @@ export function installQuestNpc(ctx: PivotNpcLevel, input: unknown, ports: Quest
   if (resource === null && binding.update === 'always') ctx.system({ id: binding.system, phase: 'update', run: (dt, t) => { figure.update(dt, t, ports.player, met()); } });
   return { row: binding.npc, figure, label: binding.label };
 }
+/** Bind a root-declared NPC by identity; missing declarations refuse before any model or resource is borrowed. */
+export function installDeclaredQuestNpc(ctx: PivotNpcLevel, source: Pick<Shardfile, 'questNpcs'>, id: string, ports: QuestNpcPorts): ReturnType<typeof installQuestNpc> {
+  const binding = source.questNpcs?.find(row => row.npc.id === id);
+  if (binding === undefined) throw new Error(`Undeclared quest NPC ${id}`);
+  return installQuestNpc(ctx, binding, ports);
+}
 /** What `installRewardedQuest` is lent beyond the runtime quest's ports (flags, facts, marker places). */
 export interface RewardedQuestPorts extends RuntimeQuestPorts {
   /** The declared quest's id and the reward burst's system id. */
