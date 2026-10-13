@@ -195,9 +195,9 @@ work for M3; the shard rows below (SF46–SF51) keep their exits, each mapped to
 
 | Wave | Shards | Finish line | Status |
 |---|---|---|---|
-| **W1** | Sky Reach, Signal Dunes | 80/20 each, stretch 90/10 | **now** (started as Sprint 2, G400) |
-| **W2** | Driftwood Isle, Nalati Grasslands, Pine Hollow | 80/20 each | after W1 |
-| **W3** | Nine Dragon Stack | 80/20 | last |
+| **W1** | Sky Reach, Signal Dunes | **90/10 each** (G404) | **now** (started as Sprint 2, G400) |
+| **W2** | Driftwood Isle, Nalati Grasslands, Pine Hollow | 80/20 each (G404) | starts when W1 is at 90/10 |
+| **W3** | Nine Dragon Stack | 80/20 (G404) | starts when W2 is at 80/20 |
 
 **Rules inside a wave:**
 1. **The unit of work is a component across the wave's shards**, never all seven. A component closes when the format /
