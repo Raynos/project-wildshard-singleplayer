@@ -1,8 +1,36 @@
 # Plan: SHARD-PLATFORM — MMO-compatible shardfiles in the singleplayer game (E431, E435)
 
-**State:** `in progress` — the live status is [STATE.md](shard-platform/STATE.md) (the coordinator's, ≤ 3 KB, G275); this file holds the live rules and the open rows (G375) and the full State history is in [history.md](shard-platform/history.md). **Hard count first (G256): shards at 80/20: 1 of 7** (the template; on G291's custom ÷ frozen-legacy measure, 2026-10-13: Signal Dunes 51.3 %, Sky Reach 54.4 %, bar 20 %, G373). Ready-to-share checklist: no known P0; 30 fps on the Simulator met; every enterable shard fits 1.0 GB met (G257); three phone runs with no tab kill not yet (Jake's, G269). Then effort (coordinator, 2026-10-08 evening, not re-counted here; the newer recounts are `progress/shard-platform/effort-recount-*`): whole plan ≈ 57 %, Part A ≈ 74 %, M1 ≈ 99 %, M2 ≈ 92 %, M3 ≈ 51 %.
+**State:** `in progress`, worked in **waves** (G403–G408). **Now: W1 = Sky Reach + Signal Dunes to 90/10 each, grid-ready. Components closed: 0 of 9.** Custom on clean HEAD, 2026-10-13 ~14:00Z: Sky 47.6 %, Signal 44.3 % (bar 10 %). Shards at 80/20: 1 of 7 (the template). The live status, per-component lines and lanes are [STATE.md](shard-platform/STATE.md) (the coordinator's, ≤ 3 KB, G275); the full State history is [history.md](shard-platform/history.md). Lanes (G407): 2 Opus (visual only), 5 Codex + the pusher, no Fable.
 
 **Reviews:** [Wildshard MMO Review](../reviews/wildshard-mmo-review.md) (the clean-room audits, E435); [SHARD-PLATFORM mockups](../reviews/shard-platform-mockups.md) (Jake's E438 picks G72–G107, boards in `art/`).
+
+## Waves: how M3 is worked (G403–G408)
+
+Jake, 2026-10-13: *"Rather than refocusing one sprint at a time, we refocus permanently."* Input:
+`progress/process/m3-recut-2026-10-13/README.md`. Full rules and the W1 rows: [rows.md §C "M3 re-cut"](shard-platform/rows.md#m3-re-cut-g403-three-waves-of-component-milestones).
+
+| Wave | Shards | Done when (G404, G406) | Starts |
+|---|---|---|---|
+| **W1** | Sky Reach, Signal Dunes | each ≤ 10 % custom (90/10) **and** grid-ready | now |
+| **W2** | Driftwood Isle, Nalati Grasslands, Pine Hollow | each at 80/20 and grid-ready; M2 closes here | when W1 is done |
+| **W3** | Nine Dragon Stack | 80/20 and grid-ready; M3 closes here | when W2 is done |
+
+- **The unit of work is a component across the wave's shards**, closed at 100/0 for that wave (old path deleted in one
+  commit set). Shards stay valid at every step. Discovered work goes to its component's row or its wave, never built now.
+- **W1 components** (one lane each, all at once, G406; the lanes are in STATE.md): W1-M0 the per-component inventory ·
+  C1 static world (+ Sky's grid-ready travel frame time) · C2 looks (SF59 graphs, one shared painted look, G406) ·
+  C3 effects · C4 creatures · C5 NPCs and quests · C6 items and combat (the lash no later than the fan) · C7 movers ·
+  C8 audio · C9 boot glue.
+- **Codex builds, Opus looks** (G407): every non-visual piece goes to Codex; the 2 Opus lanes author graphs with
+  before / after boards and take parity and frame-time captures.
+- **Missing platform features are built in W1** (G405) by the component's lane, so W2 reuses them.
+- **A switch ships straight to public** once its check passes (a behaviour check, or Jake's board for a look; G405).
+- **CI builds the cheap derived outputs** (G405); expensive bakes stay committed and regenerate at commit.
+- **Paused until its wave** (G404): Nalati, Pine and Driftwood work (G391's generators, Pine KTX2, their grid travel
+  fixes) → W2; Nine → W3; Template 2, the dev-texture look, the main-menu hero and the near tier → after M3. Only the
+  pusher and red fixes run outside the wave.
+- **Headline** (G403, G405): components closed N of M and custom lines per component, beside each shard's custom %;
+  the plan agent reports it to Jake every 2 hours.
 
 ## 0. Read this first
 
@@ -188,6 +216,10 @@ Lanes (§9): **X** = Codex, **O** = Opus, **X+O** = Codex builds and Opus does t
 done-whens and evidence, is [rows.md](shard-platform/rows.md); statuses here are a first read of each row's done-when
 cell (the row text is the authority).
 
+**The current wave (G403–G408), first:**
+
+- **M3 re-cut (G403): three waves of component milestones.** W1 Sky + Signal (now): **W1-M0** component inventory — open; **W1-C1** static world, **W1-C2** looks, **W1-C3** effects, **W1-C4** creatures, **W1-C5** NPCs and quests, **W1-C6** items and combat (lash no later than fan), **W1-C7** movers, **W1-C8** audio, **W1-C9** boot glue — open (0 of 9 closed). W2 Driftwood + Nalati + Pine (SF46–SF48), W3 Nine (SF51): after W1.
+
 **[P0 — Guardrails and the metric (before any move)](shard-platform/rows.md#p0--guardrails-and-the-metric-before-any-move)**
 
 - **SP3** Rows are serialisable — ratchet done; the named-id conversion open
@@ -261,7 +293,6 @@ cell (the row text is the authority).
 
 **[C — The seven shards ported → M3 (from M1; all seven to 80/20, G49)](shard-platform/rows.md#c--the-seven-shards-ported--m3-from-m1-all-seven-to-8020-g49)**
 
-- **M3 re-cut (G403): three waves of component milestones.** W1 Sky + Signal (now): **W1-M0** component inventory — open; **W1-C1** static world, **W1-C2** looks, **W1-C3** effects, **W1-C4** creatures, **W1-C5** NPCs and quests, **W1-C6** items and combat (lash no later than fan), **W1-C7** movers, **W1-C8** audio, **W1-C9** boot glue — open (0 of 9 closed). W2 Driftwood + Nalati + Pine (SF46–SF48), W3 Nine (SF51): after W1.
 - **SF46** (X+O) Driftwood Isle — open
 - **SF47** (X+O) Pine Hollow — needs pick
 - **SF48** (X+O) Nalati Grasslands — open
@@ -335,7 +366,7 @@ Part A (this plan's goal):
   (`docs/reviews/shard-platform-for-jake.md`), their rows read `needs pick (date)`, and the
   grid is ready for SF22c. **Two reported outcomes** (C4-R1-A1, B6): **ready for playtest** (SF57's shipped leg and SF22 pass, every other buildable M2 item done, only unpicked boards and SF22c wait for Jake) or **needs content pick** (all independent M2 work done; SF57's per-shard cut board, measurements and recommended cut recorded; SF57 reads `needs pick (date)`, SF22 `open — blocked by SF57`, SF22c `open — blocked by SF22`; the grid stays Developer-only; never reported as a passed memory gate). Only Jake's yes turns M2-ready into M2. A -g row whose only open item is Jake's look approval counts as **prepared**: its
   new look stays behind its Debug row, and it unblocks the rows that depend on it (C2-R2-A1).
-- **M3:** all seven shards at **80/20 by both measures**, grid-ready, with their compatibility checks green (transitional
+- **M3:** worked in three waves (G403, G404): W1 Sky + Signal at **90/10**, then W2 Driftwood + Nalati + Pine at 80/20, then W3 Nine at 80/20; all seven shards at **80/20 by both measures** (W1's at 90/10), grid-ready, with their compatibility checks green (transitional
   runtime listed per shard).
 - **Part A also needs** (C3-R1-A8, B2, C8): SF55a and SF55 (the Blender Template; it gates neither M2 nor M3), SF56
   with Jake's pick, SF57, SF58 and SF59. The original seven keep their 80/20 target; the Blender Template is

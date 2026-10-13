@@ -186,3 +186,7 @@ SHA. An Opus subagent you can't reach: check `git log --grep '<row>' --since=90.
 so redispatch. Times in this plan are UTC unless marked. Boards waiting for Jake: `docs/reviews/shard-platform-for-jake.md`
 (C2-R1-C18). The coordinator's scratch helpers (`setrows.py`, `donecells.py`,
 which append evidence and never overwrite acceptance) are in its session scratchpad and are optional.
+
+## State line before the wave re-cut (replaced 2026-10-13, G403)
+
+**State:** `in progress` — the live status is [STATE.md](shard-platform/STATE.md) (the coordinator's, ≤ 3 KB, G275); this file holds the live rules and the open rows (G375) and the full State history is in [history.md](shard-platform/history.md). **Hard count first (G256): shards at 80/20: 1 of 7** (the template; on G291's custom ÷ frozen-legacy measure, 2026-10-13: Signal Dunes 51.3 %, Sky Reach 54.4 %, bar 20 %, G373). Ready-to-share checklist: no known P0; 30 fps on the Simulator met; every enterable shard fits 1.0 GB met (G257); three phone runs with no tab kill not yet (Jake's, G269). Then effort (coordinator, 2026-10-08 evening, not re-counted here; the newer recounts are `progress/shard-platform/effort-recount-*`): whole plan ≈ 57 %, Part A ≈ 74 %, M1 ≈ 99 %, M2 ≈ 92 %, M3 ≈ 51 %.
