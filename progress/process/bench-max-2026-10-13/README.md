@@ -245,3 +245,36 @@ existing diagnostics agree field-for-field. Median3.024 ->2.568 s.
 The cold-source hook remains above10 s; this is a bounded0.456 s cut,
 not qualification. Four broad generation jobs still recapture for an
 unrelated engine source edit. Their declared input contracts stay intact.
+
+## Required final guard (sp-x5, 2026-10-13)
+
+CALL: coordinator approved skipping duplicate hard rules only during
+commit-scoped measurement, with an actual mandatory final architecture
+guard, extension-complete coverage, refusal fixtures and unchanged full CI.
+The guard publishes its live PID, original tree/parent, staged source hashes
+and exact runner/config/guard definitions. Measurement validates those bytes.
+The hook waits for the actual guard and verifies its success receipt against
+the final index tree and parent. Missing, failed, stale or skipped guards
+refuse credit. `SKIP_ARCH_GUARDS` retains the original full measurement.
+The full/standalone ratchet CLI continues checking every configured rule.
+
+The indexed guard now covers JS, JSX, MJS, CJS, TS, TSX, MTS and CTS. The
+aggregate negative fixture requires all 25 current hard-rule refusals,
+including files the old extension filter omitted. It also proves full
+measurement still refuses with the guard skipped. A script-only initial
+scope waits for production and checks newly produced source before success.
+Corrupt receipts, changed source/config/scope/parent, missing success and
+later index edits refuse. Existing 13 staged-isolation fixtures pass.
+
+| Actual source hook | Total | Export | Generation | Producers | Save |
+|---|---:|---:|---:|---:|---:|
+| Full measurement, generation miss | 15.22 s | 0.428 s | 8.371 s | 4.578 s | 0.448 s |
+| Required guard, generation hit | 10.24 s | 0.321 s | 0.562 s | 0.975 s | 0.470 s |
+| Required guard, unique cold source, busy export fallback | 21.39 s | 5.130 s | 8.066 s | 4.351 s | 0.664 s |
+
+These totals have different cache/lease states, so they are **not a matched
+cold-path speedup**. The serial scoped measurement itself fell from 4.234 s
+to 0.600 s. Every hook passed, including final-tree guard verification.
+**Cold pre-commit <=10 s remains OPEN; green pre-push <=120 s unqualified.**
+No full suite, build, browser, Simulator, cap or policy change accompanied
+this cut. All hook runs used an isolated worktree and private index.

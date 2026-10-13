@@ -1,1 +1,1 @@
-export function precommitInputs(root?: string): void;
+export function precommitInputs(root?: string, options?: {guardRequirement?: string}): void;

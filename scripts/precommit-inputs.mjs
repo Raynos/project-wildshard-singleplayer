@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { inputKey, restoreCommitInputs, saveCommitInputs } from './commit-inputs.mjs';
+import { requiredGuardRules } from './guard-counts.mjs';
 import { recordCommitProduced } from './commit-produced.mjs';
 
 /** Top-level folders no generator reads; the export leaves them out (4 GB of mockups and receipts). */
@@ -87,7 +88,8 @@ function stagedExport(root, tree) {
   } catch (error) { release(); throw error; }
 }
 
-export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
+export function precommitInputs(root = resolve(import.meta.dirname, '..'), /** @type {{guardRequirement?: string}} */ options = {}) {
+const {guardRequirement}=options;
 const git = (/** @type {string[]} */ args, /** @type {Uint8Array | undefined} */ input) => gitIn(root, args, { input });
 const paths = git(['diff', '--cached', '--name-only'], undefined).split('\n').filter(Boolean);
 if (paths.some(path => /^(src|scripts|lint|public|test|music|sfx)\//u.test(path) || /^(package|pnpm|vite|vitest|tsconfig|\.oxlint)/u.test(path))) {
@@ -107,6 +109,7 @@ if (paths.some(path => /^(src|scripts|lint|public|test|music|sfx)\//u.test(path)
     } else execFileSync(process.execPath, [...(existsSync(resolve(scratch, 'scripts/gen-boot-cache.mjs')) ? ['--import', './scripts/bake-loader.mjs', '--import', './scripts/gen-boot-cache.mjs'] : []), 'scripts/gen.mjs', '--build-inputs'], { cwd: scratch, stdio: 'inherit',
       env: producerEnv });
     const generated = performance.now();
+    if (guardRequirement!==undefined) requiredGuardRules(scratch,guardRequirement,paths);
     /** @type {string[]} */
     let produced = [];
     if (existsSync(resolve(scratch, 'src/shards'))) {
@@ -114,13 +117,13 @@ if (paths.some(path => /^(src|scripts|lint|public|test|music|sfx)\//u.test(path)
       const producer = `import {existsSync,readFileSync,writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {regenerateCheapBakes,refreshRecordedCommitInputs} from './scripts/precommit-bakes.mjs';
-const files=await regenerateCheapBakes(process.cwd(),{url:process.env.WS_STAGED_MAP_URL,revision:process.env.WS_STAGED_MAP_REVISION,stagedPaths:JSON.parse(process.argv[2])});
+const files=await regenerateCheapBakes(process.cwd(),{url:process.env.WS_STAGED_MAP_URL,revision:process.env.WS_STAGED_MAP_REVISION,stagedPaths:JSON.parse(process.argv[2]),guardRequirement:process.argv[3]||undefined});
 const catalogue=JSON.parse(readFileSync('scripts/generation-jobs.json','utf8'));
 if(catalogue.jobs.some(job=>(job.inputRoots??[]).some(root=>files.some(file=>file===root||file.startsWith(root+'/')))))
 execFileSync(process.execPath,[...(existsSync('scripts/gen-boot-cache.mjs')?['--import','./scripts/bake-loader.mjs','--import','./scripts/gen-boot-cache.mjs']:[]),'scripts/gen.mjs','--build-inputs'],{stdio:'inherit'});
 const recorded=await refreshRecordedCommitInputs(process.cwd(),process.env.WS_COMMIT_WITNESS_CACHE);
 writeFileSync(process.argv[1],JSON.stringify([...files,...recorded]));`;
-      execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', producer, result, JSON.stringify(paths)], { cwd: scratch, stdio: 'inherit',
+      execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', producer, result, JSON.stringify(paths), guardRequirement ?? ''], { cwd: scratch, stdio: 'inherit',
         env: producerEnv });
       produced = JSON.parse(readFileSync(result, 'utf8'));
       if (!Array.isArray(produced) || produced.some(file => typeof file !== 'string' || file.includes('\\') || file.split('/').some(part => part === '' || part === '.' || part === '..'))) throw new Error('Invalid commit producer paths');
@@ -153,6 +156,6 @@ writeFileSync(process.argv[1],JSON.stringify([...files,...recorded]));`;
 
 }
 if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
-  try { precommitInputs(); }
+  try { precommitInputs(undefined,{guardRequirement:process.argv[2]==='--guard-required' ? process.argv[3] : undefined}); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

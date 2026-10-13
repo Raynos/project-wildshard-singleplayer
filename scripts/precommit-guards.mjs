@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { pathToFileURL } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
-import { compareCounts, hardRules, readLintConfig } from './guard-counts.mjs';
+import { beginGuardRequirement, completeGuardRequirement, compareCounts, hardRules, readLintConfig } from './guard-counts.mjs';
 import { checkShardLayout, shardEntries } from './check-shards.mjs';
 import { checkPlatformRatchets, PLATFORM_LISTS } from './check-platform-ratchets.mjs';
 import { guardSnapshot } from './guard-snapshot.mjs';
@@ -101,10 +101,18 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
     return;
   }
   const changed = run(root, 'git', ['diff', '--cached', '--name-only', '--diff-filter=ACMRD', '-z']).split('\0').filter(Boolean);
-  const paths = changed.filter((p) => /^src\/.*\.[jt]s$/u.test(p) && !p.endsWith('.generated.ts'));
+  const paths = changed.filter((p) => /^src\/.*\.[cm]?[jt]sx?$/u.test(p) && !p.endsWith('.generated.ts'));
   const slugs = new Set(changed.flatMap((p) => /^src\/shards\/([^/]+)\//u.exec(p)?.[1] ?? []));
   const platform = changed.some((p) => PLATFORM_LISTS.includes(p));
-  if (paths.length === 0 && slugs.size === 0 && !platform) return;
+  if (paths.length === 0 && slugs.size === 0 && !platform) {
+    if (inputsDone!==undefined && inputsDone!=='') {
+      const initial=run(root,'git',['write-tree']).trim();
+      console.log('precommit-guards: waiting for final inputs');
+      if (await inputsStatus(inputsDone)!==0) throw new Error('Architecture guards stopped: scripts/precommit-inputs.mjs failed');
+      if (run(root,'git',['write-tree']).trim()!==initial) await precommitGuards(root,'');
+    }
+    return;
+  }
   // macOS /var aliases /private/var; oxlint override globs must share the canonical cwd/config path.
   const scratch = realpathSync(mkdtempSync(join(tmpdir(), 'wildshard-precommit-')));
   /** @type {Promise<unknown>[]} children that must settle before the scratch export is removed */
@@ -274,6 +282,11 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
   }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
-  try { await precommitGuards(); }
+  try {
+    const requirement=process.argv[2]==='--required-receipt' ? process.argv[3] : undefined;
+    if (requirement!==undefined) beginGuardRequirement(resolve(import.meta.dirname,'..'),requirement);
+    await precommitGuards();
+    if (requirement!==undefined) completeGuardRequirement(resolve(import.meta.dirname,'..'),requirement);
+  }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

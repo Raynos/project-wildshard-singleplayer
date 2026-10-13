@@ -7,7 +7,7 @@ import { debugFlags } from './debug-flags.mjs';
 import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TIME_ALLOW } from './wildshard-plugin.js';
-import { compareCounts, hardRules } from '../scripts/guard-counts.mjs';
+import { compareCounts, hardRules, requiredGuardRules } from '../scripts/guard-counts.mjs';
 import { legacyInventory, registeredLegacyFile } from '../scripts/legacy-shards.mjs';
 
 const REPO = fileURLToPath(new URL('../', import.meta.url));
@@ -34,7 +34,10 @@ function validate(baseline) {
 }
 
 /** @param {string} root @param {string} baselineFile @param {string[] | null} files */
-function counts(root, baselineFile, files = null) {
+function counts(root, baselineFile, files = null, /** @type {{guardRequirement?: string}} */ options = {}) {
+  const {guardRequirement}=options;
+  if (guardRequirement!==undefined && files===null) throw new Error('Required guard only applies to scoped commit measurement');
+  const guardedHard=guardRequirement===undefined ? null : requiredGuardRules(root,guardRequirement,files ?? []);
   const measuredFiles = files === null ? null : files.filter(file => existsSync(resolve(root,file)));
   // Oxlint with no path arguments scans cwd. An empty staged scope must
   // measure no files, while main still prunes deleted rows and checks policy.
@@ -42,7 +45,15 @@ function counts(root, baselineFile, files = null) {
   const frozen = legacyInventory(root), hard = hardRules(resolve(REPO, '.oxlintrc.json')); 
   if (!existsSync(resolve(root, 'src'))) throw new Error(`Missing source directory: ${root}/src`);
   if (files !== null && !files.some(file => existsSync(resolve(root,file)))) return {};
-  const result = spawnSync(process.execPath, [resolve(REPO, 'node_modules/oxlint/bin/oxlint'), '-c', configFile, '-f', 'json', ...(measuredFiles ?? ['src'])], {
+  let measuredConfig = configFile;
+  if (guardRequirement!==undefined) {
+    if (guardedHard===null) throw new Error('Missing required guard rules');
+    const config=readJSON(configFile);
+    for (const key of guardedHard) if (Object.hasOwn(config.rules,key)) config.rules[key]='off';
+    measuredConfig=resolve(root,'.commit-debt-lint.json');
+    save(measuredConfig,config);
+  }
+  const result = spawnSync(process.execPath, [resolve(REPO, 'node_modules/oxlint/bin/oxlint'), '-c', measuredConfig, '-f', 'json', ...(measuredFiles ?? ['src'])], {
     cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
     env: { ...process.env, WILDSHARD_RATCHET_FILE: baselineFile, WS_HTML_LINT_FILES: measuredFiles === null ? undefined : JSON.stringify(measuredFiles) },
   });
@@ -101,10 +112,13 @@ function main() {
   let root = REPO, baselineFile = resolve(REPO, 'lint/ratchet.json'), mode = 'check', addRule = null, deferReductions = false;
   /** @type {string[] | null} */
   let scopedPaths = null;
+  let guardRequirement;
   const args = process.argv.slice(2);
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
-    if (arg === '--files-from') {
+    if (arg==='--guard-required') {
+      guardRequirement=args[++i]; if (!guardRequirement) throw new Error('Missing required guard receipt');
+    } else if (arg === '--files-from') {
       const value = args[++i];
       if (!value) throw new Error('Missing path list');
       scopedPaths = readJSON(resolve(value));
@@ -130,7 +144,8 @@ function main() {
   const baseline = mode === 'init' ? { allow: { 'wildshard/no-raw-random-time': TIME_ALLOW }, budgets: {} } : readJSON(baselineFile);
   validate(baseline);
   if (scopedPaths !== null && mode !== 'update') throw new Error('--files-from is a shrink-only update mode');
-  const measured = counts(root, baselineFile, scopedPaths);
+  if (guardRequirement!==undefined && (mode!=='update' || scopedPaths===null)) throw new Error('Required guard is commit-only');
+  const measured = counts(root, baselineFile, scopedPaths,{guardRequirement});
   const current = scopedPaths === null ? measured : Object.fromEntries(Object.entries(baseline).filter(([key]) => !NON_FILE.has(key)).map(([key, values]) => [key, { ...values }]));
   if (scopedPaths !== null) {
     for (const values of Object.values(current)) for (const file of Object.keys(values)) if (scopedPaths.includes(file) || !existsSync(resolve(root,file))) delete values[file];

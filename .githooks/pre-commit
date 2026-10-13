@@ -82,8 +82,18 @@ step() { # step <name> <command...>: run one check, then print its wall time
   return "$rc"
 }
 # E362 AG20: the commit's temporary/private index, so unrelated agents' WIP never participates.
-(export WS_PRECOMMIT_INPUTS_DONE="$state/inputs"; step guards node scripts/precommit-guards.mjs) & guards=$!
-step inputs node scripts/precommit-inputs.mjs; echo "$?" > "$state/inputs.tmp"; mv "$state/inputs.tmp" "$state/inputs"
+guard_args=()
+input_args=()
+required_guard=0
+# The actual guard publishes coverage; a successful final-tree receipt is
+# mandatory whenever commit measurement borrows its hard-rule checks.
+if [ -z "${SKIP_ARCH_GUARDS:-}" ]; then
+  required_guard=1
+  guard_args=(--required-receipt "$state/guard")
+  input_args=(--guard-required "$state/guard")
+fi
+(export WS_PRECOMMIT_INPUTS_DONE="$state/inputs"; step guards node scripts/precommit-guards.mjs ${guard_args[@]+"${guard_args[@]}"}) & guards=$!
+step inputs node scripts/precommit-inputs.mjs ${input_args[@]+"${input_args[@]}"}; echo "$?" > "$state/inputs.tmp"; mv "$state/inputs.tmp" "$state/inputs"
 if [ "$(cat "$state/inputs")" != 0 ]; then wait "$guards"; exit 1; fi
 pids=("$guards")
 # SF6b: builders land source only; the serialized pusher owns generated measurements and docs.
@@ -97,4 +107,7 @@ step graph node scripts/check-graph.mjs --source-only --paths $(git diff --cache
 step asks node scripts/asks.mjs check & pids+=($!)
 rc=0
 for pid in "${pids[@]}"; do wait "$pid" || rc=1; done
+if [ "$rc" = 0 ] && [ "$required_guard" = 1 ]; then
+  node scripts/guard-counts.mjs --verify-guard "$state/guard" || rc=1
+fi
 exit "$rc"
