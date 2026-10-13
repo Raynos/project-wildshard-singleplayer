@@ -113,7 +113,7 @@ def compare(spec, evidence):
             identity['platform'] != 'linux' or identity['arch'] != 'x64'):
         raise ValueError('Wrong candidate, Node version or Linux x64 host')
     outputs = expected_outputs(pathlib.Path.cwd().resolve(), spec)
-    env = dict(os.environ, GITHUB_SHA=identity['sha'], NINE_PROOF_CACHE=str(evidence / 'cold-cache'))
+    env = dict(os.environ, GITHUB_SHA=identity['sha'], NINE_PROOF_CACHE=str(evidence.parent / 'candidate-cold-cache'))
     # Workflow main's GITHUB_SHA must never label this private checkout.
     with (evidence / 'compare.log').open('w') as log:
         process = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', spec['command']],
