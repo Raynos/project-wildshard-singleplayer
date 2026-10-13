@@ -14,7 +14,7 @@ import { FACET_AO_FLOOR } from './facets';
 export type DuneMeshName = 'dry-well' | 'dune-strider' | 'dune-matriarch' | 'caravan-scout' | 'whip-glove';
 // G345: the strider's and the manta's models are their rigs' bake sources (generators/hulls.ts → rigs/strider.glb, ray.glb,
 // matriarch.glb), and the whip glove the lash's (generators/lash.ts: where the lash leaves the hand); the client loads none
-export const DUNE_MESHES: readonly DuneMeshName[] = ['dry-well', 'caravan-scout'];
+export const DUNE_MESHES: readonly DuneMeshName[] = ['caravan-scout'];
 /**
  * The hero models kept TEXTURED (loop 6, toward the mockups B-D): Hunyuan3D-2 shape + 2048 paint, decimated, the paint
  * kept as a 1024 WebP map on its UVs (the facet-colour path above reads low-poly and blotchy up close).

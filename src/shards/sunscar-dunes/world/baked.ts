@@ -1,5 +1,5 @@
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { bakedWorld, worldPieces, type BakedKindRow, type LoadedBake, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
+import { bakedMeshWorld, worldPieces, type BakedMeshKindRow, type LoadedMeshBake, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
 import type { Group, MeshStandardMaterial, Object3D } from 'three';
 import { SIGNAL_PIECES } from '../data/pieces';
 import rocks from '../data/rocks.json' with { type: 'json' };
@@ -19,12 +19,12 @@ import { warmByFire } from './meshes';
  * static GLB and its rows through the game's baked-world rows (`@wildshard/game/shardfile/bakedKinds`) and only adds its
  * own lighting: a kind marked `warm` is lit by the fires. The colliders never wait on the GLB.
  */
-interface KindRow extends BakedKindRow { readonly warm?: boolean; readonly brazier?: number }
-const WORLD = bakedWorld<BakedPiece, KindRow>({ rocks, dressing, tower, caravan, well, braziers, lash }, BAKED_URLS, 'sunscar-dunes',
+interface KindRow extends BakedMeshKindRow { readonly warm?: boolean; readonly brazier?: number }
+const WORLD = bakedMeshWorld<BakedPiece, KindRow>({ rocks, dressing, tower, caravan, well, braziers, lash }, BAKED_URLS, 'sunscar-dunes',
   { decorate: (material, kind) => { if (kind.warm === true) warmByFire(material); } });
 
 /** A loaded bake: each piece's instanced meshes (their geometry and transforms), keyed by the kind's name. */
-export type BakedWorld = LoadedBake<BakedPiece>;
+export type BakedWorld = LoadedMeshBake<BakedPiece>;
 let plait: Uint8Array | null = null;
 /** Load every baked piece and the lash's plait texels behind the loading screen (the plugin's `world` hook); a piece that fails to load is empty. */
 export async function loadBakedWorld(): Promise<BakedWorld> {

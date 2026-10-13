@@ -1,5 +1,5 @@
 {
-  "glb": "6f4b06b585daedec9344c4c13ce51e9178e8bf1080ed6192c6840f60c81d60a7",
+  "glb": "3200bd2f7802608da58aebb9b2f2227231eca460ff540bd318331cfe829b88ea",
   "kinds": [
     {
       "name": "0-CylinderGeometry",
@@ -98,6 +98,23 @@
       "emissiveIntensity": 1,
       "vertexColors": false,
       "doubleSided": false
+    },
+    {
+      "name": "glass",
+      "count": 1,
+      "color": 16777089,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false,
+      "mesh": true,
+      "colorR": 3.2,
+      "colorG": 1.4246438224203946,
+      "colorB": 0.21913014347720838,
+      "unlit": true
     }
   ],
   "colliders": [

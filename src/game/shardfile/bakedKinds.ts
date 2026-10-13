@@ -198,7 +198,7 @@ export interface DrawnBakedMeshPiece { readonly root: Group; readonly colliders:
 export interface BakedMeshWorld<P extends string, K extends BakedMeshKindRow> {
   readonly load: () => Promise<LoadedMeshBake<P>>;
   readonly last: () => LoadedMeshBake<P> | null;
-  readonly piece: (piece: P, call?: { readonly nodes?: ReadonlyMap<string, Mesh>; readonly only?: (kind: K) => boolean; readonly each?: (material: MeshStandardMaterial) => void }) => DrawnBakedMeshPiece;
+  readonly piece: (piece: P, call?: { readonly nodes?: ReadonlyMap<string, Mesh> | undefined; readonly only?: ((kind: K) => boolean) | undefined; readonly each?: ((material: MeshStandardMaterial) => void) | undefined }) => DrawnBakedMeshPiece;
 }
 
 /** The ordinary-mesh counterpart of bakedWorld: the same piece rows, collider law and material hooks, with no instancing conversion. */

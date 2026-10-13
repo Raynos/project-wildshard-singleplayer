@@ -10,6 +10,8 @@ import { bakeSignalRocks, buildRocks } from '../../../src/shards/sunscar-dunes/g
 import { bakeSignalDressing, buildDressing } from '../../../src/shards/sunscar-dunes/generators/dressing';
 import { bakeSignalTower, buildTowerFrame } from '../../../src/shards/sunscar-dunes/generators/tower';
 import { bakeSignalBraziers, bakeSignalCaravan, bakeSignalWell, buildCaravanFrame, buildWellFrame, waymarkCrown } from '../../../src/shards/sunscar-dunes/generators/places';
+import { facetModel, wellShell } from '../../../src/shards/sunscar-dunes/generators/facets';
+import { FACET_AO_FLOOR } from '../../../src/shards/sunscar-dunes/data/facets';
 import { TOWER } from '../../../src/shards/sunscar-dunes/data/layout';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakedPiece, type BakedWorld } from '../../../src/shards/sunscar-dunes/world/baked';
@@ -28,13 +30,14 @@ const isMesh = (node: Object3D): node is Mesh => node instanceof Mesh;
 const sha = (bytes: Uint8Array): string => createHash('sha256').update(bytes).digest('hex');
 const ROWS: Record<BakedPiece, { glb: string; kinds: readonly { name: string }[] }> = { rocks, dressing, tower, caravan, well, braziers, lash };
 // the held lash bakes over the generated glove's intake: its stale gate is whip-view.test.ts
-const BAKES: Record<Exclude<BakedPiece, 'lash'>, () => PieceBake> = { rocks: bakeSignalRocks, dressing: bakeSignalDressing, tower: bakeSignalTower, caravan: bakeSignalCaravan, well: bakeSignalWell, braziers: bakeSignalBraziers };
+const shell = facetModel(new Uint8Array(readFileSync(new URL('../../../src/shards/sunscar-dunes/assets/models/dry-well.glb', import.meta.url))), FACET_AO_FLOOR).then(wellShell);
+const BAKES: Record<Exclude<BakedPiece, 'lash'>, () => PieceBake | Promise<PieceBake>> = { rocks: bakeSignalRocks, dressing: bakeSignalDressing, tower: bakeSignalTower, caravan: bakeSignalCaravan, well: async () => bakeSignalWell((await shell).clone()), braziers: bakeSignalBraziers };
 
 async function loadBaked(): Promise<BakedWorld> {
-  const world = new Map<BakedPiece, Map<string, InstancedMesh>>();
+  const world = new Map<BakedPiece, Map<string, Mesh>>();
   for (const piece of BAKED_PIECES) {
     const bytes = readFileSync(new URL(`${piece}.glb`, folder)), gltf = await new GLTFLoader().parseAsync(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength), '');
-    const nodes: InstancedMesh[] = []; gltf.scene.traverse((node) => { if (instanced(node)) nodes.push(node); });
+    const nodes: Mesh[] = []; gltf.scene.traverse((node) => { if (isMesh(node)) nodes.push(node); });
     world.set(piece, new Map(ROWS[piece].kinds.map((kind, i) => { const node = nodes[i]; if (node === undefined) throw new Error('missing node'); return [kind.name, node]; })));
   }
   return world;
@@ -48,10 +51,10 @@ const near = (got: InstancedMesh, want: InstancedMesh): void => {
 };
 
 describe('Signal Dunes bakes its code-built world offline (SHARD-PLATFORM SF72, SF67 fix 3)', () => {
-  it('every committed piece is byte-exact against its generator (the stale gate: rerun src/shards/sunscar-dunes/generators/bake-signal-world.mjs)', () => {
+  it('every committed piece is byte-exact against its generator (the stale gate: rerun src/shards/sunscar-dunes/generators/bake-signal-world.mjs)', async () => {
     for (const piece of BAKED_PIECES) {
       if (piece === 'lash') continue;
-      const { glb, ...rows } = BAKES[piece]();
+      const { glb, ...rows } = await BAKES[piece]();
       expect({ glb: sha(glb), ...rows }).toEqual(ROWS[piece]);
       expect(sha(new Uint8Array(readFileSync(new URL(`${piece}.glb`, folder))))).toBe(ROWS[piece].glb);
     }
@@ -87,7 +90,9 @@ describe('Signal Dunes bakes its code-built world offline (SHARD-PLATFORM SF72, 
     expect(drawn.colliders).toEqual(bakeSignalTower().colliders);
     expect(drawn.colliders.length).toBe(frame.colliders.length);
     expect(tower.anchors).toEqual(frame.anchors);
-    expect(drawn.root.children.length).toBe(8);
+    expect(drawn.root.children.filter(instanced).length).toBe(8);
+    expect(drawn.root.children.length).toBe(9);
+    expect(drawn.root.children.at(-1)?.type).toBe('Mesh');
     expect(drawn.root.children.reduce((n, m) => n + (instanced(m) ? m.count : 0), 0)).toBe(frame.root.children.length);
     // each kind's instances world-transform the unit box onto the builder's own box corners (≤ 1e-4 m after the TRS round trip)
     const corner = new Vector3(), got = new Vector3(), m = new Matrix4();
@@ -105,9 +110,9 @@ describe('Signal Dunes bakes its code-built world offline (SHARD-PLATFORM SF72, 
 
   it('the caravan and the well draw every built mesh as one instance of a kind, on the builder\'s own transforms', async () => {
     const baked = await loadBaked(), field = signalDunesField();
-    for (const [piece, frame, bake] of [['caravan', buildCaravanFrame(field.heightAt), bakeSignalCaravan], ['well', buildWellFrame(field.heightAt), bakeSignalWell]] as const) {
+    for (const [piece, frame, bake] of [['caravan', buildCaravanFrame(field.heightAt), bakeSignalCaravan], ['well', buildWellFrame(field.heightAt), BAKES.well]] as const) {
       const drawn = bakedPiece(baked, piece), meshes: Mesh[] = [];
-      expect(drawn.colliders).toEqual(bake().colliders);
+      expect(drawn.colliders).toEqual((await bake()).colliders);
       expect(drawn.colliders.length).toBe(frame.colliders.length);
       frame.root.updateMatrixWorld(true); frame.root.traverse((o) => { if (isMesh(o)) meshes.push(o); });
       expect(drawn.root.children.reduce((n, m) => n + (instanced(m) ? m.count : 0), 0)).toBe(meshes.length);

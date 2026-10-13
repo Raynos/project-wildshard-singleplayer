@@ -1,0 +1,200 @@
+{
+  "signal/phone/spawn-tower": {
+    "differ": 0,
+    "base": {
+      "calls": 66,
+      "triangles": 137658
+    },
+    "candidate": {
+      "calls": 66,
+      "triangles": 137658
+    }
+  },
+  "signal/phone/spawn-back": {
+    "differ": 0,
+    "base": {
+      "calls": 42,
+      "triangles": 87782
+    },
+    "candidate": {
+      "calls": 42,
+      "triangles": 87782
+    }
+  },
+  "signal/phone/caravan": {
+    "differ": 0,
+    "base": {
+      "calls": 49,
+      "triangles": 134128
+    },
+    "candidate": {
+      "calls": 49,
+      "triangles": 134128
+    }
+  },
+  "signal/phone/well": {
+    "differ": 0,
+    "base": {
+      "calls": 44,
+      "triangles": 76899
+    },
+    "candidate": {
+      "calls": 44,
+      "triangles": 76899
+    }
+  },
+  "signal/phone/basin": {
+    "differ": 0,
+    "base": {
+      "calls": 36,
+      "triangles": 70374
+    },
+    "candidate": {
+      "calls": 36,
+      "triangles": 70374
+    }
+  },
+  "signal/phone/edge-out": {
+    "differ": 0,
+    "base": {
+      "calls": 29,
+      "triangles": 61618
+    },
+    "candidate": {
+      "calls": 29,
+      "triangles": 61618
+    }
+  },
+  "signal/phone/c1-well": {
+    "differ": 0,
+    "base": {
+      "calls": 44,
+      "triangles": 77155
+    },
+    "candidate": {
+      "calls": 44,
+      "triangles": 77155
+    }
+  },
+  "signal/phone/c1-caravan-lamp": {
+    "differ": 0,
+    "base": {
+      "calls": 49,
+      "triangles": 134128
+    },
+    "candidate": {
+      "calls": 49,
+      "triangles": 134128
+    }
+  },
+  "signal/phone/c1-tower-deck": {
+    "differ": 0,
+    "base": {
+      "calls": 52,
+      "triangles": 123962
+    },
+    "candidate": {
+      "calls": 52,
+      "triangles": 123962
+    }
+  },
+  "signal/desktop/spawn-tower": {
+    "differ": 0,
+    "base": {
+      "calls": 72,
+      "triangles": 138906
+    },
+    "candidate": {
+      "calls": 72,
+      "triangles": 138906
+    }
+  },
+  "signal/desktop/spawn-back": {
+    "differ": 0,
+    "base": {
+      "calls": 51,
+      "triangles": 89654
+    },
+    "candidate": {
+      "calls": 51,
+      "triangles": 89654
+    }
+  },
+  "signal/desktop/caravan": {
+    "differ": 0,
+    "base": {
+      "calls": 49,
+      "triangles": 134128
+    },
+    "candidate": {
+      "calls": 49,
+      "triangles": 134128
+    }
+  },
+  "signal/desktop/well": {
+    "differ": 0,
+    "base": {
+      "calls": 45,
+      "triangles": 78499
+    },
+    "candidate": {
+      "calls": 45,
+      "triangles": 78499
+    }
+  },
+  "signal/desktop/basin": {
+    "differ": 0,
+    "base": {
+      "calls": 42,
+      "triangles": 71622
+    },
+    "candidate": {
+      "calls": 42,
+      "triangles": 71622
+    }
+  },
+  "signal/desktop/edge-out": {
+    "differ": 0,
+    "base": {
+      "calls": 29,
+      "triangles": 61618
+    },
+    "candidate": {
+      "calls": 29,
+      "triangles": 61618
+    }
+  },
+  "signal/desktop/c1-well": {
+    "differ": 0,
+    "base": {
+      "calls": 45,
+      "triangles": 78755
+    },
+    "candidate": {
+      "calls": 45,
+      "triangles": 78755
+    }
+  },
+  "signal/desktop/c1-caravan-lamp": {
+    "differ": 0,
+    "base": {
+      "calls": 49,
+      "triangles": 134128
+    },
+    "candidate": {
+      "calls": 49,
+      "triangles": 134128
+    }
+  },
+  "signal/desktop/c1-tower-deck": {
+    "differ": 0,
+    "base": {
+      "calls": 58,
+      "triangles": 125210
+    },
+    "candidate": {
+      "calls": 58,
+      "triangles": 125210
+    }
+  }
+}

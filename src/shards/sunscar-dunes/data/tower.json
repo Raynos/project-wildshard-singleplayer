@@ -1,5 +1,5 @@
 {
-  "glb": "921599df1a0d89f2dacb5214c7dd203d2a37e7e76193132b32fab15d33f08cd8",
+  "glb": "4d937a502808a271475f76f820dcefd074a4baf21a56cd71f2db0b52b23bd372",
   "kinds": [
     {
       "name": "wood",
@@ -96,6 +96,23 @@
       "emissiveIntensity": 1.6,
       "vertexColors": false,
       "doubleSided": false
+    },
+    {
+      "name": "glass",
+      "count": 1,
+      "color": 16777131,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false,
+      "mesh": true,
+      "colorR": 3.5,
+      "colorG": 1.6776206408196908,
+      "colorB": 0.4093973371221298,
+      "unlit": true
     }
   ],
   "colliders": [

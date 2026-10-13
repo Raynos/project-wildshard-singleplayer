@@ -1,4 +1,4 @@
-import { Scene } from 'three';
+import { Scene, type BufferGeometry } from 'three';
 import { bake, type BakedScene } from '@wildshard/sdk/bake';
 import { signalTerrainSource } from './tiles';
 import { signalRocksPiece } from './rocks';
@@ -7,10 +7,10 @@ import { signalTowerPiece } from './tower';
 import { signalBraziersPiece, signalCaravanPiece, signalWellPiece } from './places';
 
 /** Signal Dunes' static world as one three.js scene: the code-built pieces, each a `BakedPiece` of instanced kinds. */
-export function signalDunesScene(): Scene {
+export function signalDunesScene(shell: BufferGeometry): Scene {
   const scene = new Scene();
   scene.name = 'sunscar-dunes';
-  scene.add(signalRocksPiece(), signalDressingPiece(), signalTowerPiece(), signalCaravanPiece(), signalWellPiece(), signalBraziersPiece());
+  scene.add(signalRocksPiece(), signalDressingPiece(), signalTowerPiece(), signalCaravanPiece(), signalWellPiece(shell), signalBraziersPiece());
   return scene;
 }
 
@@ -20,5 +20,5 @@ export function signalDunesScene(): Scene {
  * `<project>/.wildshard/cache/sunscar-dunes/` when a project root is given. Run by `bake-signal-world.mjs` and
  * `scripts/bake-hybrid-tiles.mjs`.
  */
-export const signalDunesBake = (project?: string): BakedScene =>
-  bake(signalDunesScene(), { slug: 'sunscar-dunes', name: 'Signal Dunes' }, { terrain: signalTerrainSource(), ...(project === undefined ? {} : { project }) });
+export const signalDunesBake = (shell: BufferGeometry, project?: string): BakedScene =>
+  bake(signalDunesScene(shell), { slug: 'sunscar-dunes', name: 'Signal Dunes' }, { terrain: signalTerrainSource(), ...(project === undefined ? {} : { project }) });

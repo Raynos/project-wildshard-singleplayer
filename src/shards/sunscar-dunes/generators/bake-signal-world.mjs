@@ -12,6 +12,8 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { signalDunesBake } from './scene.ts';
+import { facetModel, wellShell } from './facets.ts';
+import { FACET_AO_FLOOR } from '../data/facets.ts';
 import { pieceRows } from './kinds.ts';
 import { bakeSignalLash, plaitTexels } from './lash.ts';
 
@@ -27,7 +29,8 @@ if (!check) mkdirSync(out, { recursive: true });
 const keep = new Set();
 // SF80: the pieces are one three.js scene through the SDK's `bake(scene, identity)` (generators/scene.ts), which also writes
 // the inspectable .wildshard/cache/sunscar-dunes/scene.json (never committed)
-const baked = signalDunesBake(root);
+const source = readFileSync(new URL('../assets/models/dry-well.glb', import.meta.url));
+const baked = signalDunesBake(wellShell(await facetModel(source, FACET_AO_FLOOR)), root);
 for (const part of baked.pieces) {
   const piece = part.name.replace(/^sunscar\./u, ''), { glb, ...rows } = pieceRows(part);
   const hash = createHash('sha256').update(glb).digest('hex');

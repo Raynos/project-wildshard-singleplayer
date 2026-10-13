@@ -1,4 +1,4 @@
-import { Color, BoxGeometry, BufferAttribute, BufferGeometry, DoubleSide, InstancedMesh, Matrix4, Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D } from 'three';
+import { Color, BoxGeometry, BufferAttribute, BufferGeometry, DoubleSide, InstancedMesh, Matrix4, Material, NormalBlending, LessEqualDepth, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D } from 'three';
 import { staticGlb, type GlbPrimitive } from './glb';
 
 /**
@@ -59,10 +59,12 @@ export function bakeKinds<C extends KindCollider>(name: string, meshes: readonly
     const instanceColours = instanced && options.exactInstances === true && mesh.instanceColor !== null ? Array.from({ length: count }, (_, i) => { const colour = new Color(); mesh.getColorAt(i, colour); return colour; }) : undefined;
     const material = Array.isArray(mesh.material) ? undefined : mesh.material;
     if (!(material instanceof MeshStandardMaterial) && !(material instanceof MeshBasicMaterial)) throw new Error(`${name}.${kind}: one standard or basic material per kind`);
-    if (!instanced && (options.nativeAttributes !== true || options.compactIndex !== true)) throw new Error(`${name}.${kind}: ordinary meshes require native attributes and compact indices`);
+    const nativeAttributes = instanced ? options.nativeAttributes : true, compactIndex = instanced ? options.compactIndex : true;
     if (material instanceof MeshBasicMaterial && instanced) throw new Error(`${name}.${kind}: unlit kinds require ordinary meshes`);
     if (!instanced && (material.transparent || material.opacity !== 1 || material.alphaTest !== 0 || material.wireframe || !material.depthTest || !material.depthWrite || !material.toneMapped || !material.fog)) throw new Error(`${name}.${kind}: unsupported ordinary material state`);
     if (!instanced) {
+      if (mesh.type !== 'Mesh' || !mesh.visible || mesh.castShadow || mesh.receiveShadow || mesh.renderOrder !== 0 || mesh.layers.mask !== 1 || mesh.animations.length > 0 || Object.keys(mesh.geometry.morphAttributes).length > 0 || mesh.geometry.drawRange.start !== 0 || mesh.geometry.drawRange.count !== Infinity) throw new Error(`${name}.${kind}: unsupported ordinary mesh state`);
+      if (!['MeshStandardMaterial', 'MeshBasicMaterial'].includes(material.type) || !material.colorWrite || material.blending !== NormalBlending || material.depthFunc !== LessEqualDepth || material.alphaHash || material.alphaToCoverage || material.premultipliedAlpha || material.dithering || material.polygonOffset || material.stencilWrite || material.clippingPlanes !== null || material.precision !== null || material.side !== 0 && material.side !== DoubleSide) throw new Error(`${name}.${kind}: unsupported ordinary material state`);
       if (material.onBeforeCompile !== Material.prototype.onBeforeCompile) throw new Error(`${name}.${kind}: material callbacks are runtime code`);
       for (const [channel, attribute] of Object.entries(mesh.geometry.attributes)) {
         if (!['position', 'normal', 'color', 'uv', 'tangent'].includes(channel) || !(attribute instanceof BufferAttribute) || !(attribute.array instanceof Float32Array) || attribute.normalized) throw new Error(`${name}.${kind}: ordinary kinds require portable float32 channels`);
@@ -72,7 +74,7 @@ export function bakeKinds<C extends KindCollider>(name: string, meshes: readonly
     }
     mesh.updateWorldMatrix(true, false);
     const explicit = custom(mesh.geometry, options.attributes);
-    const automatic = options.nativeAttributes === true ? Object.fromEntries(Object.keys(mesh.geometry.attributes)
+    const automatic = nativeAttributes === true ? Object.fromEntries(Object.keys(mesh.geometry.attributes)
       .filter(key => !['position', 'normal', 'color', 'uv', 'tangent'].includes(key) && !Object.values(explicit ?? {}).includes(key))
       .map((key, index) => [`_WS_CHANNEL_${index}`, key])) : undefined;
     const customAttributes = automatic === undefined ? explicit : { ...automatic, ...explicit };
@@ -80,8 +82,8 @@ export function bakeKinds<C extends KindCollider>(name: string, meshes: readonly
     primitives.push({ geometry: mesh.geometry, material, ...(instances === undefined ? { transform: mesh.matrixWorld } : { instances }), castShadow: false,
       ...(!instanced || options.exactInstances === undefined ? {} : { exactInstances: options.exactInstances }),
       ...(instanceColours === undefined ? {} : { instanceColours }),
-      ...(options.nativeAttributes === undefined ? {} : { nativeAttributes: options.nativeAttributes }),
-      ...(options.compactIndex === undefined ? {} : { compactIndex: options.compactIndex }),
+      ...(nativeAttributes === undefined ? {} : { nativeAttributes }),
+      ...(compactIndex === undefined ? {} : { compactIndex }),
       ...(extras === undefined ? {} : { extras }),
       ...(customAttributes === undefined ? {} : { customAttributes }) });
     kinds.push({ name: kind, count, color: material.color.getHex(), roughness: material instanceof MeshStandardMaterial ? material.roughness : 1, metalness: material instanceof MeshStandardMaterial ? material.metalness : 0, flat: material instanceof MeshStandardMaterial && material.flatShading,

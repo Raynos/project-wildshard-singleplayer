@@ -53,9 +53,9 @@ it('bakes basic material declarations and round-trips scene JSON without quantiz
   const description = readScene(scene); expect(readScene(restoreSceneGraph(description))).toStrictEqual(description);
 });
 
-it('refuses lossy ordinary storage, unsupported material state and a missing exact transform', () => {
+it('refuses unsupported ordinary storage/state and a missing exact transform', () => {
   const mesh = new Mesh(new BoxGeometry(), new MeshBasicMaterial());
-  expect(() => bakeKinds('glass', [['glass', mesh]], [])).toThrow('ordinary meshes require');
+  expect(bakeKinds('glass', [['glass', mesh]], []).kinds[0]?.['mesh']).toBe(true);
   mesh.material.transparent = true;
   expect(() => bakeKinds('glass', [['glass', mesh]], [], { nativeAttributes: true, compactIndex: true })).toThrow('unsupported ordinary material state');
   mesh.material.transparent = false; mesh.material.map = new Texture();
@@ -65,4 +65,20 @@ it('refuses lossy ordinary storage, unsupported material state and a missing exa
   expect(() => bakedMeshKindsGroup(new Map([['glass', mesh]]), [{ name: 'glass', mesh: true, unlit: true, count: 1, color: 0xffffff,
     roughness: 1, metalness: 0, flat: false, emissive: 0, emissiveIntensity: 1, vertexColors: false, doubleSided: false,
     colorR: 1, colorG: 1, colorB: 1 }])).toThrow('missing exact transform');
+});
+
+
+it('refuses state that ordinary rows cannot represent, instead of silently changing a draw', () => {
+  const make = (): Mesh<BoxGeometry, MeshBasicMaterial> => new Mesh(new BoxGeometry(), new MeshBasicMaterial());
+  for (const change of [
+    (mesh: Mesh<BoxGeometry, MeshBasicMaterial>) => { mesh.visible = false; },
+    (mesh: Mesh<BoxGeometry, MeshBasicMaterial>) => { mesh.castShadow = true; },
+    (mesh: Mesh<BoxGeometry, MeshBasicMaterial>) => { mesh.geometry.setDrawRange(0, 3); },
+    (mesh: Mesh<BoxGeometry, MeshBasicMaterial>) => { mesh.material.colorWrite = false; },
+    (mesh: Mesh<BoxGeometry, MeshBasicMaterial>) => { mesh.material.alphaHash = true; },
+    (mesh: Mesh<BoxGeometry, MeshBasicMaterial>) => { mesh.material.onBeforeCompile = () => undefined; },
+  ]) {
+    const mesh = make(); change(mesh);
+    expect(() => bakeKinds('glass', [['glass', mesh]], [])).toThrow(/unsupported ordinary|callbacks/u);
+  }
 });

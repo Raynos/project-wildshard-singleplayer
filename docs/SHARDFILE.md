@@ -2210,8 +2210,7 @@ admission and library allocator claims use the selected footprint. The
 ### Exact ordinary meshes in a baked piece
 
 `BakedPiece` (`@wildshard/sdk/bake`) accepts named `Mesh` children as well
-as `InstancedMesh` kinds. Use `{ nativeAttributes: true, compactIndex: true }`
-for ordinary meshes: their float32 position/normal/colour/uv/tangent channels,
+as `InstancedMesh` kinds. Ordinary meshes always use native attributes and compact indices: their float32 position/normal/colour/uv/tangent channels,
 original index type and double-precision world matrix survive the bake.
 `MeshBasicMaterial` is emitted with `KHR_materials_unlit`; its linear HDR colour
 is preserved, rather than reduced to an RGB hex value. Ordinary standard

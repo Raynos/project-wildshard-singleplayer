@@ -1,6 +1,6 @@
 import { addFire, addLampGlow } from './fireFx';
 import { KEEPER_LAMP, SIGNAL_FIRE } from '../data/fire';
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PointLight, Vector3 } from 'three';
+import { Group, PointLight, Vector3 } from 'three';
 import { TOWER } from '../data/layout';
 import tower from '../data/tower.json' with { type: 'json' };
 import { placeHd } from './places';
@@ -20,8 +20,6 @@ export function buildTower(baked: BakedWorld): TowerParts {
   // empty cage): a lit glass in the baked iron cage, its small halo (fireFx addLampGlow)
   // (round 8 first cut: a 0.3 m glass under the frame read as a pale dot against the bright afterglow at 145 m)
   const keeperLamp = new Group(); keeperLamp.position.set(cx, lampY, cz); root.add(keeperLamp);
-  const glass = new MeshBasicMaterial({ color: 0xffb860 }); glass.color.multiplyScalar(3.5); // past 1: the tone mapper whites its core
-  keeperLamp.add(new Mesh(new BoxGeometry(0.6, 0.75, 0.6), glass));
   addLampGlow(keeperLamp, 1.1, () => deckY - lampY); // round 12: 2.6 m read as a wash, not a lamp
   { const flame = new Group(); flame.position.y = 0.5; keeperLamp.add(flame); addFire(flame, KEEPER_LAMP); } // round 10 (R9B-8): the open flame over the cap (inside the glass it read as a pale box) // its flame (a lit glass alone read as a pale dot)
   // The brazier (round 1, R1C-1 / R1B-12: the H4 view's subject): the generated one, deck-sized, its fire hidden until

@@ -64,3 +64,17 @@ export function bindRigid(g: BufferGeometry, boneOf: (x: number, y: number, z: n
   g.setAttribute('skinIndex', new Uint16BufferAttribute(index, 4)); g.setAttribute('skinWeight', new Float32BufferAttribute(weight, 4));
   return g;
 }
+
+
+/** The dry well's retained triangles: same centroid cut and float32 normal reconstruction as the released native builder. */
+export function wellShell(source: BufferGeometry): BufferGeometry {
+  const fitted = fitGeometry(source, { size: 3.4, by: 'span' }), maxX = fitted.boundingBox?.max.x ?? 2;
+  const p = fitted.getAttribute('position'), c = fitted.getAttribute('color'), pos: number[] = [], col: number[] = [];
+  for (let t = 0; t + 2 < p.count; t += 3) {
+    const x = (p.getX(t) + p.getX(t + 1) + p.getX(t + 2)) / 3, y = (p.getY(t) + p.getY(t + 1) + p.getY(t + 2)) / 3, z = (p.getZ(t) + p.getZ(t + 1) + p.getZ(t + 2)) / 3;
+    if (x > maxX - 0.3 || (Math.hypot(x, z) < 0.5 && y > 0.75 && y < 1.95)) continue;
+    for (let v = t; v < t + 3; v++) { pos.push(p.getX(v), p.getY(v), p.getZ(v)); col.push(c.getX(v), c.getY(v), c.getZ(v)); }
+  }
+  const result = new BufferGeometry().setAttribute('position', new Float32BufferAttribute(pos, 3)).setAttribute('color', new Float32BufferAttribute(col, 3));
+  result.computeVertexNormals(); result.computeBoundingBox(); result.computeBoundingSphere(); fitted.dispose(); return result;
+}

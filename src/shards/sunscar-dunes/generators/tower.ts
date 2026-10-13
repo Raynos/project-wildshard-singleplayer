@@ -1,4 +1,4 @@
-import { BoxGeometry, CylinderGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Vector3, type Material } from 'three';
+import { BoxGeometry, CylinderGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, Vector3, type Material } from 'three';
 import { TOWER } from '../data/layout';
 import { signalDunesField } from './tiles';
 import { bakePiece, signalPiece, type SignalPieceBake, boxDesc, type ColliderDesc } from './kinds';
@@ -179,6 +179,8 @@ function towerKinds(root: Group): (readonly [string, InstancedMesh])[] {
 /** The tower baked on the manifest's own dune field: its kinds (`generators/kinds.ts`), colliders and live-part anchors. */
 export function signalTowerPiece(): BakedPiece<ColliderDesc> {
   const field = signalDunesField(), frame = buildTowerFrame(field.heightAt(TOWER.x, TOWER.z), field.heightAt);
-  return signalPiece('tower', towerKinds(frame.root), frame.colliders, { anchors: frame.anchors });
+  const material = new MeshBasicMaterial({ color: 0xffb860 }); material.color.multiplyScalar(3.5);
+  const glass = new Mesh(new BoxGeometry(0.6, 0.75, 0.6), material); glass.position.set(TOWER.x, frame.anchors.lampY, TOWER.z); glass.name = 'glass';
+  const piece = signalPiece('tower', towerKinds(frame.root), frame.colliders, { anchors: frame.anchors }); piece.add(glass); return piece;
 }
 export const bakeSignalTower = (): SignalPieceBake => bakePiece(signalTowerPiece());

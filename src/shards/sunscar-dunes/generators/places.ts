@@ -1,4 +1,4 @@
-import { BoxGeometry, BufferGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, TorusGeometry, Vector3, type Material } from 'three';
+import { BoxGeometry, BufferGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, TorusGeometry, Vector3, type Material } from 'three';
 import { BRAZIERS, CARAVAN, WELL } from '../data/layout';
 import { COOK, CRATES, HD, HORSE, LANTERN, WELL_RIG } from '../data/places';
 import { DUNE_FIELD } from '../data/duneField';
@@ -134,15 +134,24 @@ export function waymarkFrame(x: number, z: number, groundAt: Ground): { y: numbe
 /** The caravan baked on the manifest's own dune field: its kinds, colliders and live-part anchors. */
 export function signalCaravanPiece(): BakedPiece<ColliderDesc> {
   const field = signalDunesField(), frame = buildCaravanFrame(field.heightAt);
-  return signalPiece('caravan', foldKinds(frame.root), frame.colliders, { anchors: frame.anchors });
+  const glass = new MeshBasicMaterial({ color: 0xffb24a }); glass.color.multiplyScalar(3.2);
+  const pane = box(0.13, 0.28, 0.13, glass), lamp = new Group(); lamp.position.set(LANTERN.x, LANTERN.y, LANTERN.z);
+  frame.root.add(lamp); at(pane, -0.22, 0.01, 0, lamp); pane.updateWorldMatrix(true, false);
+  const matrix = pane.matrixWorld.clone(); lamp.remove(pane); frame.root.remove(lamp); pane.matrix.copy(matrix); pane.matrix.decompose(pane.position, pane.quaternion, pane.scale); pane.matrixAutoUpdate = false;
+  const piece = signalPiece('caravan', foldKinds(frame.root), frame.colliders, { anchors: frame.anchors }); pane.name = 'glass'; piece.add(pane); return piece;
 }
 export const bakeSignalCaravan = (): SignalPieceBake => bakePiece(signalCaravanPiece());
 /** The well baked on the manifest's own dune field. */
-export function signalWellPiece(): BakedPiece<ColliderDesc> {
+export function signalWellPiece(shell: BufferGeometry): BakedPiece<ColliderDesc> {
   const field = signalDunesField(), frame = buildWellFrame(field.heightAt);
-  return signalPiece('well', foldKinds(frame.root), frame.colliders, { anchors: frame.anchors });
+  const material = new MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0, flatShading: true });
+  material.color.setRGB(4.2, 3.7, 3.2); material.emissive.setRGB(0.07, 0.045, 0.03);
+  const wall = new Mesh(shell, material); wall.position.set(WELL.x, frame.anchors.y, WELL.z); wall.name = 'shell';
+  const disc = new Mesh(new CylinderGeometry(WELL_RIG.r - 0.3, WELL_RIG.r - 0.3, 0.05, 16), new MeshBasicMaterial({ color: 0x0a0605 }));
+  disc.position.set(WELL.x, frame.anchors.y + 0.62, WELL.z); disc.name = 'shaft';
+  const piece = signalPiece('well', foldKinds(frame.root), frame.colliders, { anchors: frame.anchors }); piece.add(wall, disc); return piece;
 }
-export const bakeSignalWell = (): SignalPieceBake => bakePiece(signalWellPiece());
+export const bakeSignalWell = (shell: BufferGeometry): SignalPieceBake => bakePiece(signalWellPiece(shell));
 /**
  * Waymark `i`'s charred log crown in its bowl (E399, mockup C: the hero brazier's log fire; round 1: the unlit bowls read
  * empty and black), in the brazier's own frame: seven ends splayed out over the rim and four logs laid low across the bowl

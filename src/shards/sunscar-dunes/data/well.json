@@ -1,5 +1,5 @@
 {
-  "glb": "20232a7e607c1c6be3cf03e6a472a21a4eabc3d42ffb4654b1a41fc95f5b1770",
+  "glb": "51d36e84d4f99f00400d62093f9b2bd9f66ec2f928a759907f6f51acdad650c8",
   "kinds": [
     {
       "name": "0-BoxGeometry",
@@ -24,6 +24,42 @@
       "emissiveIntensity": 1,
       "vertexColors": false,
       "doubleSided": true
+    },
+    {
+      "name": "shell",
+      "count": 1,
+      "color": 16777215,
+      "roughness": 0.7,
+      "metalness": 0,
+      "flat": true,
+      "emissive": 4930608,
+      "emissiveIntensity": 1,
+      "vertexColors": true,
+      "doubleSided": false,
+      "mesh": true,
+      "colorR": 4.2,
+      "colorG": 3.7,
+      "colorB": 3.2,
+      "emissiveR": 0.07,
+      "emissiveG": 0.045,
+      "emissiveB": 0.03
+    },
+    {
+      "name": "shaft",
+      "count": 1,
+      "color": 656901,
+      "roughness": 1,
+      "metalness": 0,
+      "flat": false,
+      "emissive": 0,
+      "emissiveIntensity": 1,
+      "vertexColors": false,
+      "doubleSided": false,
+      "mesh": true,
+      "colorR": 0.0030352698352941175,
+      "colorG": 0.0018211619011764706,
+      "colorB": 0.0015176349176470587,
+      "unlit": true
     }
   ],
   "colliders": [

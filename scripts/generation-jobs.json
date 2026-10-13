@@ -2748,6 +2748,7 @@
         "src/sdk/bake/kinds.ts",
         "src/sdk/bake/navigationAsset.ts",
         "src/sdk/bake/props.ts",
+        "src/sdk/bake/skinned.ts",
         "src/sdk/bake/source-loader.mjs",
         "src/sdk/bake/terrain.ts",
         "src/sdk/director.ts",
@@ -2765,14 +2766,18 @@
         "src/sdk/sceneDeclarations.ts",
         "src/sdk/sceneTransform.ts",
         "src/sdk/spawns.ts",
+        "src/shards/sunscar-dunes/assets/models/dry-well.glb",
         "src/shards/sunscar-dunes/data/duneField.ts",
+        "src/shards/sunscar-dunes/data/facets.ts",
         "src/shards/sunscar-dunes/data/flags.ts",
+        "src/shards/sunscar-dunes/data/hulls.ts",
         "src/shards/sunscar-dunes/data/layout.ts",
         "src/shards/sunscar-dunes/data/places.ts",
         "src/shards/sunscar-dunes/data/whip.ts",
         "src/shards/sunscar-dunes/generators/bake-signal-world.mjs",
         "src/shards/sunscar-dunes/generators/dressing.ts",
         "src/shards/sunscar-dunes/generators/duneField.ts",
+        "src/shards/sunscar-dunes/generators/facets.ts",
         "src/shards/sunscar-dunes/generators/kinds.ts",
         "src/shards/sunscar-dunes/generators/landscape.ts",
         "src/shards/sunscar-dunes/generators/landscapeNoise.ts",
@@ -8371,7 +8376,7 @@
         "src/shards/sunscar-dunes/.wildshard/product/f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef": "f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef",
         "src/shards/sunscar-dunes/.wildshard/product/f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb": "f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb",
         "src/shards/sunscar-dunes/.wildshard/product/fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd": "fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd",
-        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "13dd9020d1ec7865424f2ef70e10d7235d23aa31240e802633dec5c575b0f125"
+        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "fc613519bf06c1207e52de058c4819c8fcd958d770c4a21c282f2792fde2bedd"
       }
     },
     {

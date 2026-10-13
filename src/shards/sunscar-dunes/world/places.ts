@@ -1,6 +1,6 @@
 import { addFire, addLampGlow, fireLight } from './fireFx';
 import { COOKFIRE, WAYMARK_FIRE } from '../data/fire';
-import { BoxGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, SphereGeometry, Vector3, type Material, type Object3D } from 'three';
+import { CylinderGeometry, DoubleSide, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3, type Object3D } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BRAZIERS, CARAVAN, WELL } from '../data/layout';
 import { CAMP_HD, COOK, HD, LANTERN, WAYMARK_HD, WELL_RIG, type HdPlacement } from '../data/places';
@@ -9,8 +9,7 @@ import wellRows from '../data/well.json' with { type: 'json' };
 import brazierRows from '../data/braziers.json' with { type: 'json' };
 import { bakedColliders } from '@wildshard/game/shardfile/bakedKinds';
 import { bakedPiece, type BakedWorld } from './baked';
-import { facetMaterial, fitGeometry, withoutTriangles } from '@wildshard/sdk/looks/modelLibrary';
-import { duneHd, duneMesh } from './meshes';
+import { duneHd } from './meshes';
 
 /**
  * Signal Dunes' places (SHARD-PLATFORM SF72): the caravan's and the well's code-built parts and every place's colliders
@@ -23,12 +22,6 @@ import { duneHd, duneMesh } from './meshes';
 const WOOD = 0xa07656, CLAY = 0x7a3a22;
 const mat = (color: number, extra: Partial<{ metalness: number; side: typeof DoubleSide; emissive: number }> = {}): MeshStandardMaterial =>
   new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true, ...extra });
-/** A generated model's painted material a step lighter (round 2, R1C-2: the iron brazier and the well read black at dusk). */
-export const litDune = (): MeshStandardMaterial => {
-  // the bowls measured 2 against the sand's 31 (check pass): lifted paint and a faint warm self-light, never black on lit sand
-  const m = facetMaterial(); m.color.setRGB(4.2, 3.7, 3.2); m.emissive.setRGB(0.07, 0.045, 0.03); m.roughness = 0.7; return m;
-};
-const box = (w: number, h: number, d: number, material: Material): Mesh => new Mesh(new BoxGeometry(w, h, d), material);
 const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh => { mesh.position.set(x, y, z); parent.add(mesh); return mesh; };
 const vec = ([x = 0, y = 0, z = 0]: readonly number[]): Vector3 => new Vector3(x, y, z);
 /** Place the rows' hero models under `parent` (a model that did not load stands undrawn, a page fault in world/meshes.ts). */
@@ -49,7 +42,6 @@ export function buildCaravan(baked: BakedWorld, groundAt: (x: number, z: number)
   placeHd(camp, CAMP_HD); // the wagon, the crates, the sacks and the pack horse (data/places.ts CAMP_HD)
   // The lantern's glass in its baked iron (loop 4, mockup B), the logbook's warm light in the dusk.
   const lamp = new Group(); lamp.position.set(LANTERN.x, LANTERN.y, LANTERN.z); camp.add(lamp);
-  { const glass = new MeshBasicMaterial({ color: 0xffb24a }); glass.color.multiplyScalar(3.2); at(box(0.13, 0.28, 0.13, glass), -0.22, 0.01, 0, lamp); } // round 10 (R9B-9: the lantern peaked at 183, the mockup's 252): a hot centre
   const cosY = Math.cos(CARAVAN.yaw), sinY = Math.sin(CARAVAN.yaw);
   addLampGlow(lamp, 0.5, (lx, lz) => { // round 10: drawn over the canvas, 2.4 washed the whole wagon
     const x = LANTERN.x + lx, z = LANTERN.z + lz; // the lamp's frame → the caravan's → the world (three's Ry)
@@ -62,9 +54,6 @@ export function buildCaravan(baked: BakedWorld, groundAt: (x: number, z: number)
   return { root, colliders, logbookAt: vec(caravanRows.anchors.logbook), lampAt: vec(caravanRows.anchors.lamp) };
 }
 
-/** The generated well's span (metres, the crank end to the far post): its ring then sits on the stones' colliders. */
-const WELL_FIT = 3.4;
-
 export interface WellParts { root: Group; colliders: ColliderDesc[]; bucket: Group; rope: Mesh; jar: Mesh; crankAt: Vector3; jarAt: Vector3; drop: number }
 
 /**
@@ -75,13 +64,6 @@ export interface WellParts { root: Group; colliders: ColliderDesc[]; bucket: Gro
 export function buildWell(baked: BakedWorld): WellParts {
   const { root, colliders } = bakedPiece(baked, 'well'), { y } = wellRows.anchors, { r: R, axleY, drop } = WELL_RIG, wood = mat(WOOD);
   const well = new Group(); well.position.set(WELL.x, y, WELL.z); root.add(well);
-  const generated = duneMesh('dry-well');
-  if (generated) {
-    const fitted = fitGeometry(generated, { size: WELL_FIT, by: 'span' }), maxX = fitted.boundingBox?.max.x ?? 2;
-    well.add(new Mesh(withoutTriangles(fitted, (cx, cy, cz) => cx > maxX - 0.3 || (Math.hypot(cx, cz) < 0.5 && cy > 0.75 && cy < 1.95)), litDune()));
-  }
-  // The shaft: a dark disc inside the ring.
-  at(new Mesh(new CylinderGeometry(R - 0.3, R - 0.3, 0.05, 16), new MeshBasicMaterial({ color: 0x0a0605 })), 0, 0.62, 0, well);
   const bucket = new Group(); bucket.position.set(0, axleY - drop, 0); well.add(bucket);
   const ropeGeo = new CylinderGeometry(0.02, 0.02, drop, 4); ropeGeo.translate(0, drop / 2, 0);
   const rope = new Mesh(ropeGeo, mat(0x6b5236)); bucket.add(rope); // grows from the bucket up to the axle; scaled down as it winds
