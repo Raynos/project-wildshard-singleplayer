@@ -78,3 +78,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | gate `3ebe17265`: 14 tests (Signal ground not primed in 4 harnesses; Pine coat assumed catalogue order) + bake-navmesh (manifest base not installed) | `b60dde094` | `41ce25a91` | sp-x6 |
 | 2026-10-13 | Linux CI 38327006887 / admin 38327006884: generation fails, `sunscar-dunes/ground/ring-mean.bin` pin differs on Linux x64 (native f64 trig) | `b60dde094` | pending: portable math + deliberate canonical re-pin (sp-x6) | sp-x6 |
 | 2026-10-13 | gate `28f6a8f2c`: Driftwood physics + spots freshness (palm near floor edited a physics input) | `7caf1411f` | `6276fbf1f` | sp-x7 |
+| 2026-10-13 | **LIVE-GAME P0 (caught pre-release): Signal not enterable from the grid** (required baked terrain read before install on the grid path); smoke's grid leg only proved home handoff | `b60dde094` | pending (sp-x6); release re-pinned to 957; road-entry smoke leg being added (sp-x7) | sp-x6, sp-x7 |
