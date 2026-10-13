@@ -70,8 +70,6 @@ export const GAME_STRINGS = {
   /** Infinite Wildshard, the 3 × 3 grid (SHARD-PLATFORM §3.3, G58, G79; SF21a) */
   grid: {
     ended: 'Infinite Wildshard ended unexpectedly last time.',
-    devserverCell: (x: number, z: number): string => `Infinite Wildshard (${x < 0 ? '−' : '+'}${Math.abs(x)}, ${z < 0 ? '−' : '+'}${Math.abs(z)})`,
-    template: 'Template',
     waiting: (name: string): string => `${name} · NOT READY FOR GRID`,
     waitingSelect: 'ENTER THROUGH SHARD SELECT',
     /** G217: the Developer loading screen drawn in 3D on a cell you can't enter (loading, waiting or refused), for everyone */
@@ -112,7 +110,6 @@ export const GAME_STRINGS = {
         'desert-ruin': 'DESERT RUIN', 'ink-valley': 'INK VALLEY',
       },
     },
-    devserverCellNote: 'SF21a (G46): the DEVSERVER cell of Infinite Wildshard, or the template it replaces. Applies at the next grid start.',
     reveal: (home: string): string => `Arriving at ${home}`,
     revealSkip: 'Tap to skip',
     /** G78: the chip above ATTACK on the road and in no-man's land (the weapon is stowed there, G68) */

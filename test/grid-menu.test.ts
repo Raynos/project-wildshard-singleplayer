@@ -10,8 +10,6 @@ import { gridIntents } from '../src/game/grid/intent';
 import { DEVSERVER, gridEntryShown, gridMode, selectEnters, selectExplores, type MenuMode } from '../src/game/grid/menu';
 import { GridCellEvents } from '../src/game/plugin/context';
 import { gridHome } from '../src/game/plugin/ui';
-import { devserverCellOn, installGridDebug } from '../src/game/grid/debug';
-import { levelDebugRows } from '../src/engine/ui/debugOptions';
 import { ordinaryShardManifests } from '../src/game/shard/legacy';
 import { shards } from '../src/game/shard/list';
 import { buildTitleDeck, titleCards } from '../src/game/titleDeck';
@@ -211,28 +209,10 @@ describe('a DEVSERVER build (§3.3)', () => {
     expect(menu.root.querySelector('.ws-main-grid')?.textContent.trim()).toBe('INFINITE WILDSHARD');
     menu.dispose();
   });
-  it('the DEVSERVER cell row: on by default, swapped to the template at the next grid start, gone when uninstalled', () => {
-    installGridDebug(false)(); // a production build installs no DEVSERVER cell row
-    expect(levelDebugRows().some((entry) => entry.id === 'gridDevserverCell')).toBe(false);
-    const remove = installGridDebug(true);
-    const row = levelDebugRows().find((entry) => entry.id === 'gridDevserverCell');
-    expect(row?.group).toBe('tools');
-    expect(row?.choices().map((choice) => choice.text)).toEqual(['Nine Dragon Stack', 'Template']);
-    expect(row?.label).toBe('Infinite Wildshard (+1, −1)');
-    expect(row?.get()).toBe('on');
+  it('the DEVSERVER cell: a DEVSERVER build places its shard where the template sits otherwise', () => {
     const at = (on: boolean) => new GridAssembly(gridMode(on, MODES.both)).cells.find((cell) => cell.cell[0] === 1 && cell.cell[1] === -1)?.slug;
-    expect(at(devserverCellOn(true))).toBe('nine-dragon-stack');
-    row?.set('off');
-    expect(at(devserverCellOn(true))).toBe('ink-cel-valley'); // the Developer cell it replaces (SF59's Ink & Cel Valley, on the G198 open plot)
-    expect(devserverCellOn(false)).toBe(false);
-    row?.set('on');
-    remove();
-    expect(levelDebugRows().some((entry) => entry.id === 'gridDevserverCell')).toBe(false);
-  });
-  it('retires the memory-admission toggle after both catalogues admit under the unchanged cap', () => {
-    const remove = installGridDebug(false);
-    try { expect(levelDebugRows().some((entry) => entry.id === 'gridMemoryAdmission')).toBe(false); }
-    finally { remove(); }
+    expect(at(true)).toBe('nine-dragon-stack');
+    expect(at(false)).toBe('ink-cel-valley'); // the Developer cell it replaces (SF59's Ink & Cel Valley, on the G198 open plot)
   });
 
 });

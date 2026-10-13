@@ -37,8 +37,7 @@ import type { Actor } from '@wildshard/engine/combat/pipeline';
 import { StatusIcons } from '../systems/effects/view';
 import { GridAssembly, type GridCell } from '../grid/assembly';
 import { pageGridIntents } from '../grid/intent';
-import { gridMode, type MenuMode } from '../grid/menu';
-import { devserverCellOn } from '../grid/debug';
+import { DEVSERVER, gridMode, type MenuMode } from '../grid/menu';
 import { findShard, game } from '../shard/registry';
 import { chooseShardEntry, shardEntries } from '../shard/entryMode';
 import { travel } from '../travel/travel';
@@ -760,9 +759,9 @@ export function installStarterEffects(ctx: StarterContext, host: { player: Statu
  */
 
 
-/** the home cell of the grid this device would assemble now (Developer, DEVSERVER and its Debug row apply at grid start) */
+/** the home cell of the grid this device would assemble now (Developer and DEVSERVER apply at grid start) */
 export function gridHome(mode?: MenuMode): GridCell {
-  const assembly = new GridAssembly(gridMode(devserverCellOn(), mode));
+  const assembly = new GridAssembly(gridMode(DEVSERVER, mode));
   const home = assembly.at(0, 0);
   if (home === undefined) throw new Error('The grid catalogue has no home cell at (0, 0)');
   return home;
@@ -820,7 +819,7 @@ export function safeGridRecovery(assembly: GridAssembly, now: number): NonNullab
 
 /** Consume recovery metadata before routing/hydration; ordinary boot and unsupported future records select nothing. */
 export function consumeGridRecovery(options: { assembly?: GridAssembly; saves?: SaveStore; now?: () => number; unexpected?: boolean } = {}): NonNullable<GridRecoveryRecord> | null {
-  const assembly = options.assembly ?? new GridAssembly(gridMode(devserverCellOn()));
+  const assembly = options.assembly ?? new GridAssembly(gridMode(DEVSERVER));
   const now = options.now ?? Date.now;
   const result = gridRecovery(options.saves ?? pageApp.saves, now).consume(assembly, options.unexpected);
   loop = result.kind === 'loop';

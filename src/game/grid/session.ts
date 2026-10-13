@@ -39,8 +39,7 @@ import type { Renderer } from '@wildshard/engine/render/renderer';
 import { generatePlatform, generatePlatformSliced, type GeneratedStrip, type PlatformCell, type StripProfile } from '@wildshard/engine/sim/strips';
 import { GridAssembly, type GridCell } from './assembly';
 import { yieldGridAdmission } from './admissionYield';
-import { gridMode } from './menu';
-import { devserverCellOn } from './debug';
+import { DEVSERVER, gridMode } from './menu';
 import { gridCells, pageGridInstance, pageMode } from '../plugin/context';
 import type { ResidencyAllocator } from './allocator';
 import type { PageResidency } from './pageResidency';
@@ -303,7 +302,7 @@ export class GridSession {
   static async create(host: GridSessionHost): Promise<GridSession> {
     if (host.residency === undefined) throw new Error('Grid session requires the early page residency owner');
     const allocator = host.residency.allocator;
-    const assembly = new GridAssembly(gridMode(devserverCellOn())), empty = assembly.emptyNeighbour.edge;
+    const assembly = new GridAssembly(gridMode(DEVSERVER)), empty = assembly.emptyNeighbour.edge;
     const edges = await loadGridEdgeProfiles(assembly.cells, async (cell) => {
       try {
         const edge = await readGridEdges(cell, { product: slug => gridShardfileProduct(slug, { allocator, scope: host.scope }), fetch: url => fetch(url) });
@@ -345,7 +344,7 @@ export class GridSession {
     if (allocator !== undefined && allocator !== residency.allocator) throw new Error('Grid session must share the page allocator');
     this.allocator = residency.allocator;
     const instance = pageGridInstance();
-    this.assembly = new GridAssembly(gridMode(devserverCellOn()));
+    this.assembly = new GridAssembly(gridMode(DEVSERVER));
     if (instance === null) throw new Error('A grid session needs a grid page');
     this.home = this.assembly.cell(instance);
     const home = this.home;

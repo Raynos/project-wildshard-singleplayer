@@ -16,7 +16,6 @@ import { buildTitleDeck, titleCards, type TitleDeck, type TitleDeckOptions } fro
 import { gridEntryShown, menuMode } from './grid/menu';
 import { dropGridIntent, enterGrid, gridRecoveryLoop } from './plugin/ui';
 
-import { installGridDebug } from './grid/debug';
 import { GAME_STRINGS } from './strings';
 import { WHATS_NEW, type WhatsNew } from './whatsNew';
 import { buildWhatsNewBanner, type HiddenStore } from './whatsNewBanner';
@@ -158,13 +157,11 @@ export function buildTitleMenu(opts: TitleMenuOptions): TitleMenu {
 /**
  * The cold title's Infinite Wildshard wiring (SF21a), one call for the composition root (src/entry.ts):
  *   - a stale one-shot intent is consumed here, so nothing but a new tap boots the grid (R3-C5);
- *   - the DEVSERVER cell's Debug row is installed (a DEVSERVER build only);
  *   - when the previous page was the grid and it ended unexpectedly (iOS's memory kill), the title only adds one line.
  */
 export interface GridTitle { readonly onGrid: () => void; readonly note: string; readonly screen?: MainMenuScreen }
 export function installGridTitle(): GridTitle {
   dropGridIntent();
-  installGridDebug();
   const end = lastEnd();
   const loop = gridRecoveryLoop();
   return { onGrid: enterGrid, note: loop || (end.kind === 'unexpected' && end.mode === 'grid') ? GAME_STRINGS.grid.ended : '',

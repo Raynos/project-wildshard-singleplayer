@@ -9,7 +9,7 @@ declare const __DEVSERVER__: boolean;
  *   | mode      | Select a shard enters                        | Infinite Wildshard           |
  *   | shipped   | the live and early-access shards             | hidden until SF22's gates pass   |
  *   | developer | every shard, as today (Jake, G58: Select a shard is the existing flow) | shown: 5 shards + 4 templates |
- *   | DEVSERVER | every shard                                  | + the `devserver` cell, its Debug row |
+ *   | DEVSERVER | every shard                                  | + the `devserver` cell           |
  *
  * The grid's shard lists come from the grid catalogue (`singleplayer.json`), never from a shard name here.
  */
@@ -41,7 +41,8 @@ export function selectExplores(slug: string, restricted: boolean, mode: MenuMode
   return (mode.developer || mode.devserver) && selectEnters(slug, restricted, mode);
 }
 
-/** The grid's assembly switches at the next grid start (A17, C23): Developer, DEVSERVER and the DEVSERVER cell's row */
+/** The grid's assembly switches at the next grid start (A17, C23): Developer, DEVSERVER and the DEVSERVER cell (on in a
+ *  DEVSERVER build; SF61 retired its Debug row) */
 export function gridMode(devserverCell: boolean, mode: MenuMode = menuMode()): GridMode {
   return { developer: mode.developer, devserver: mode.devserver, nineDragon: devserverCell };
 }

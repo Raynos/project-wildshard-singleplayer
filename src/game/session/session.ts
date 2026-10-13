@@ -37,7 +37,6 @@ import { registerLevelDebugRow } from '@wildshard/engine/ui/debugOptions';
 import { showLoadFailure } from '@wildshard/engine/ui/errorScreen';
 import { installWorldRegistry } from '@wildshard/engine/world/registry';
 
-import { installGridDebug } from '../grid/debug';
 import { installProductGround } from '../shardfile/productGround';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';
@@ -67,7 +66,6 @@ export async function startSession(manifest: ShardManifest, kit: KitPorts, optio
     const pageManifest = session.ownedGridHome ? gridPageShell(manifest) : manifest;
     if (mode === 'grid' && options.residency === undefined) throw new Error('Grid boot requires residency admission before hydration');
     setAliveSource((): AliveInfo<PageMode> => ({ slug: selected, resident: '', mode }));
-    installGridDebug();
     if (matchMedia('(display-mode: fullscreen)').matches || matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true) {
       const home = new URL(location.href);
       if (home.searchParams.has('chunk') || home.searchParams.has('v')) {
