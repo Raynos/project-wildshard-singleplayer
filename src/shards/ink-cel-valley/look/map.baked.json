@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "tilesHash": "067b58260f0236fc1e3f14ee89b905b4f7af0316835b2998ba586600f54ba848",
+  "tilesHash": "1883528cad77ba216dc2f990111c495a3643f46aa2a96934a90df8470056d853",
+  "pixelHash": "6affda065a1c6aff1a38966680cebb26f0d74f0777f4722988d3d9e7b1eccbe6",
   "image": "/assets/ink-cel-valley/map/top.webp",
   "size": 1000,
   "metres": 500,
   "north": "+z",
   "east": "-x",
   "style": "stylized:ground",
-  "bytes": 35184,
-  "pixelHash": "6affda065a1c6aff1a38966680cebb26f0d74f0777f4722988d3d9e7b1eccbe6"
+  "bytes": 35184
 }
