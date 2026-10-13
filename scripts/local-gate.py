@@ -27,7 +27,8 @@ def bounded(command, cwd, deadline, output=None, env=None):
 
 def main():
     started = time.monotonic()
-    deadline = started + CAP_SECONDS
+    # Reserve cleanup/receipt time inside the hard 120s cap.
+    deadline = started + CAP_SECONDS - 2
     root = pathlib.Path(subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], text=True).strip())
     sha = subprocess.check_output(['git', 'rev-parse', '--verify', sys.argv[1] + '^{commit}'], cwd=root, text=True).strip()
     common = pathlib.Path(subprocess.check_output(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], cwd=root, text=True).strip())

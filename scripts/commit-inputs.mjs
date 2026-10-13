@@ -1,7 +1,7 @@
 // G367: build inputs are produced at commit; pushes restore verified bytes only.
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, globSync, mkdirSync, readFileSync, lstatSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 /** @param {string} root @param {string} tree */
@@ -19,8 +19,13 @@ export function saveCommitInputs(root, tree, snapshot, files) {
   const common = execFileSync('git', ['rev-parse', '--path-format=absolute', '--git-common-dir'], { cwd: root, encoding: 'utf8' }).trim();
   const cache = resolve(common, 'commit-inputs'), blobs = resolve(cache, 'blobs');
   mkdirSync(blobs, { recursive: true });
+  const tracked = new Set(execFileSync('git', ['ls-tree', '-r', '--name-only', tree], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).split('\n'));
+  // The immutable producer export contains no foreign untracked working files.
+  // Include runtime assets (Rapier/Basis), packs and generated source tables.
+  const produced = globSync(['src/**/*', 'public/**/*'], { cwd: snapshot }).map(String)
+    .filter(file => !tracked.has(file) && lstatSync(resolve(snapshot, file)).isFile());
   const outputs = {};
-  for (const file of files) {
+  for (const file of new Set([...files, ...produced])) {
     const bytes = readFileSync(resolve(snapshot, file)), digest = hash(bytes), object = resolve(blobs, digest);
     if (!existsSync(object)) writeFileSync(object, bytes);
     outputs[file] = digest;

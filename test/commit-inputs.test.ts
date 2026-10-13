@@ -21,7 +21,8 @@ it('generates from staged bytes, includes tracked tables and refuses corrupt cac
     writeFileSync(join(root, 'lint/ask-ids.json'), '[]');
     writeFileSync(join(root, 'lint/shard-words.generated.json'), '{}');
     writeFileSync(join(root, 'scripts/generation-jobs.json'), '{"jobs":[]}');
-    writeFileSync(join(root, 'scripts/gen.mjs'), `import {readFileSync,writeFileSync} from 'node:fs';
+    writeFileSync(join(root, 'scripts/gen.mjs'), `import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+mkdirSync('public/assets/physics',{recursive:true});writeFileSync('public/assets/physics/rapier.wasm',new Uint8Array([0,97,115,109]));
 const value=readFileSync('src/value.ts','utf8');
 writeFileSync('src/value.generated.json',JSON.stringify({value}));
 writeFileSync('lint/ask-ids.json',JSON.stringify([value]));`);
@@ -34,6 +35,7 @@ writeFileSync('lint/ask-ids.json',JSON.stringify([value]));`);
     const tree = git('write-tree'), target = join(root, 'restore');
     mkdirSync(target);
     restoreCommitInputs(root, tree, target);
+    expect([...readFileSync(join(target, 'public/assets/physics/rapier.wasm'))]).toEqual([0,97,115,109]);
     expect(readFileSync(join(target, 'src/value.generated.json'), 'utf8')).toBe('{"value":"staged"}');
     const hash = execFileSync('node', ['--input-type=module', '-e', "import{createHash}from'node:crypto';console.log(createHash('sha256').update('{\"value\":\"staged\"}').digest('hex'))"], { encoding: 'utf8' }).trim();
     writeFileSync(join(root, '.git/commit-inputs/blobs', hash), 'corrupt');
