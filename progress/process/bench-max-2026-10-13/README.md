@@ -103,3 +103,24 @@ The cold recovery remains over 10 s. Four focused tests, root strict, scoped JS
 strict and touched lint pass, including staged/foreign isolation and failures.
 The observed push gate was 18.35 s/120 s, refused by then-stale Template/Ink maps;
 the official map repair is separate. No green timing credit is claimed for it.
+
+
+## Final boot-table cache cut (sp-x5)
+
+Commit-only boot generation now traces its defining modules and filesystem
+reads before imports. A receipt binds source/resolution, Node/host/environment,
+output inventory and every output byte. A miss invokes the same producer in
+process; corruption, edits or failure cannot earn a hit. Ordinary builds keep
+running the producer directly. No guard or native/witness law is skipped.
+
+On the scratch worktree: one original boot-table run took 1.089 s; a traced
+cold miss took 1.279 s; exact reuse took 0.539 s. One miss plus reuse is
+1.818 s versus 2.177 s for two original runs. All 155 generated files and
+packs remained byte-identical. Eleven focused tests, root strict, scoped JS
+strict and touched lint passed; fixtures include untraced calls, source/input
+changes, output/inventory corruption, damaged receipts and repeated failure.
+
+CALL: keep this cache commit-only and reuse only verified bytes; do not bypass
+real cold native or continuation proofs to meet the stopwatch. Warm complete
+hooks are below 10 s (sp-x7: 2.177 s); the complete cold-hook cap remains OPEN.
+No new pre-push timing credit is claimed. sp-x5 parks after this cut.

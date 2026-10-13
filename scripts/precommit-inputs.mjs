@@ -100,24 +100,24 @@ if (paths.some(path => /^(src|scripts|lint|public|test|music|sfx)\//u.test(path)
     if (existsSync(resolve(common, 'commit-inputs', `${inputKey(root, before)}.json`))) {
       restoreCommitInputs(root, before, scratch);
       console.log('precommit-inputs: verified generation cache');
-    } else execFileSync(process.execPath, ['scripts/gen.mjs', '--build-inputs'], { cwd: scratch, stdio: 'inherit',
-      env: { ...process.env, WS_SHARD_PARSE_CACHE: resolve(common, 'commit-inputs/parse') } });
+    } else execFileSync(process.execPath, [...(existsSync(resolve(scratch, 'scripts/gen-boot-cache.mjs')) ? ['--import', './scripts/bake-loader.mjs', '--import', './scripts/gen-boot-cache.mjs'] : []), 'scripts/gen.mjs', '--build-inputs'], { cwd: scratch, stdio: 'inherit',
+      env: { ...process.env, WS_COMMIT_WITNESS_CACHE: resolve(common, 'commit-inputs/witnesses'), WS_PRECOMMIT_BOOT_CACHE: resolve(common, 'commit-inputs/boot'), WS_SHARD_PARSE_CACHE: resolve(common, 'commit-inputs/parse') } });
     const generated = performance.now();
     /** @type {string[]} */
     let produced = [];
     if (existsSync(resolve(scratch, 'src/shards'))) {
       const result = resolve(scratch, '.commit-produced-paths.json');
-      const producer = `import {readFileSync,writeFileSync} from 'node:fs';
+      const producer = `import {existsSync,readFileSync,writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {regenerateCheapBakes,refreshRecordedCommitInputs} from './scripts/precommit-bakes.mjs';
 const files=await regenerateCheapBakes(process.cwd(),{url:process.env.WS_STAGED_MAP_URL,revision:process.env.WS_STAGED_MAP_REVISION});
 const catalogue=JSON.parse(readFileSync('scripts/generation-jobs.json','utf8'));
 if(catalogue.jobs.some(job=>(job.inputRoots??[]).some(root=>files.some(file=>file===root||file.startsWith(root+'/')))))
-execFileSync(process.execPath,['scripts/gen.mjs','--build-inputs'],{stdio:'inherit'});
+execFileSync(process.execPath,[...(existsSync('scripts/gen-boot-cache.mjs')?['--import','./scripts/bake-loader.mjs','--import','./scripts/gen-boot-cache.mjs']:[]),'scripts/gen.mjs','--build-inputs'],{stdio:'inherit'});
 const recorded=await refreshRecordedCommitInputs(process.cwd(),process.env.WS_COMMIT_WITNESS_CACHE);
 writeFileSync(process.argv[1],JSON.stringify([...files,...recorded]));`;
       execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', producer, result], { cwd: scratch, stdio: 'inherit',
-        env: { ...process.env, WS_SHARD_PARSE_CACHE: resolve(common, 'commit-inputs/parse'), WS_COMMIT_WITNESS_CACHE: resolve(common, 'commit-inputs/witnesses') } });
+        env: { ...process.env, WS_PRECOMMIT_BOOT_CACHE: resolve(common, 'commit-inputs/boot'), WS_SHARD_PARSE_CACHE: resolve(common, 'commit-inputs/parse'), WS_COMMIT_WITNESS_CACHE: resolve(common, 'commit-inputs/witnesses') } });
       produced = JSON.parse(readFileSync(result, 'utf8'));
       if (!Array.isArray(produced) || produced.some(file => typeof file !== 'string' || file.includes('\\') || file.split('/').some(part => part === '' || part === '.' || part === '..'))) throw new Error('Invalid commit producer paths');
     }

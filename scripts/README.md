@@ -248,6 +248,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [gen-api.d.mts](./gen-api.d.mts)
 - [gen-api.mjs](./gen-api.mjs)
 - [gen-ask-ids.mjs](./gen-ask-ids.mjs)
+- [gen-boot-cache.d.mts](./gen-boot-cache.d.mts)
+- [gen-boot-cache.mjs](./gen-boot-cache.mjs)
 - [gen-budget-derivations.d.mts](./gen-budget-derivations.d.mts)
 - [gen-budget-derivations.mjs](./gen-budget-derivations.mjs)
 - [gen-format-schema.d.mts](./gen-format-schema.d.mts)

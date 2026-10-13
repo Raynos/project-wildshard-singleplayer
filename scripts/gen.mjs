@@ -27,7 +27,12 @@ const shard = process.argv.find((arg) => arg.startsWith('--shard='))?.slice(8);
 await step('shards', () => genShards(undefined, false, false, shard));
 await step('ask-ids', () => genAskIds());
 const { generateBootTables } = await import('../vite/gen.ts');
-await step('boot-tables', () => generateBootTables());
+await step('boot-tables', async () => {
+  if (buildInputs && process.env.WS_PRECOMMIT_BOOT_CACHE) {
+    const { generateBootTablesCached } = await import('./gen-boot-cache.mjs');
+    generateBootTablesCached(`${import.meta.dirname}/..`, process.env.WS_PRECOMMIT_BOOT_CACHE, generateBootTables);
+  } else generateBootTables();
+});
 await step('budgets', () => genBudgetDerivations(undefined, process.argv.includes('--check-budgets'), shard));
 // Boot tables add static imports; derive the closure from the completed graph.
 await step('shards', () => genShards(undefined, false, false, shard));
