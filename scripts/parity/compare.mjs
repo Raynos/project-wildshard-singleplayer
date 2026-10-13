@@ -5,6 +5,16 @@ import { budgetChecks } from './budgets.mjs';
 /** @typedef {{field:string, baseline:Value|undefined, now:Value|undefined, band:string, verdict:string, class:string}} Verdict */
 /** @typedef {{pending?:RecordValue[], quarantine?:RecordValue[], renames?:RecordValue[], ambientInfo?:string[], lanePending?:boolean, now?:string, ignore?:string[]}} CompareOptions */
 
+/** Partial captures do not share the full sequence's scheduler frame boundaries.
+ * Keep their sound observations in artifacts, but compare them only on complete
+ * captures. Gameplay, audio ownership and disposal checks retain their gates.
+ * @param {string|undefined} only @param {boolean} [fast] @returns {string[]} */
+export function captureIgnore(only, fast = false) {
+  const ignored = only === 'fingerprint+poses' ? ['walk', 'combat', 'pauseResume', 'leak'] :
+    only === 'walk+combat+leak' ? ['poses'] : [];
+  if (only !== undefined || fast) ignored.push('walk.sounds', 'combat.sounds');
+  return ignored;
+}
 /** @param {string} pattern @param {string} path */
 export function matches(pattern, path) {
   const re = pattern.split('*').map((p) => p.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`)).join('.*');

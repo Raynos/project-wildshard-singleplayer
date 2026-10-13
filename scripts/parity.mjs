@@ -8,7 +8,7 @@ import { developerSettings, hideDeveloperOverlays } from './debug-settings.mjs';
 import { installInit } from './parity/init.mjs';
 import { cachedTree, exportTree, readJson, serve } from './parity/serve.mjs';
 import { evictBuildCache } from './parity/cache.mjs';
-import { compare, matches, normalize } from './parity/compare.mjs';
+import { captureIgnore, compare, matches, normalize } from './parity/compare.mjs';
 import { compareOffline, failureReasons } from './parity/offline.mjs';
 import { assertMetal, relevantError } from './parity/fingerprint.mjs';
 import { poses } from './parity/poses.mjs';
@@ -269,7 +269,7 @@ async function main(opts) {
       const audioRuns=[...rawRuns];
       const baselineFile=join(fixtureRoot,`test/parity/baselines/${lane}/${shard}.${tier}.json`),baseline=object(readJson(baselineFile));
       const current=isRecord?await aggregate(scorePage,rawRuns,{sha,browser:browser.version()}):rawRuns[0]??{};
-      const ignore=opts.only==='fingerprint+poses'?['walk','combat','pauseResume','leak']:opts.only==='walk+combat+leak'?['poses']:[];
+      const ignore=captureIgnore(opts.only,Boolean(opts.fast));
       if(opts.fast)ignore.push(...Object.keys(object(normalize(baseline).poses)).filter((name)=>!Object.hasOwn(object(normalize(current).poses),name)).map((name)=>`poses.${name}`));
       if(opts.full)ignore.push(...Object.keys(object(get(normalize(current),'walk.legs'))).filter((name)=>get(normalize(baseline),`walk.legs.${name}`)===undefined).map((name)=>`walk.legs.${name}`));
       const fields=selected.filter((p)=>p.shard===shard).flatMap((p)=>array(p.fields).map(string));

@@ -1,6 +1,6 @@
 import baselineFixture from './fixtures/parity/baseline.json';
 import { describe, expect, it } from 'vitest';
-import { compare, validateQuarantine } from '../scripts/parity/compare.mjs';
+import { captureIgnore, compare, validateQuarantine } from '../scripts/parity/compare.mjs';
 import { object, type RecordValue } from '../scripts/parity/value.mjs';
 
 const fixture: RecordValue = baselineFixture;
@@ -79,6 +79,28 @@ describe('parity comparison', () => {
     n['walk'] = {...n['walk'],sounds:{event:{step:6},ambient:[]}};
     expect(rows(fixture,n).rows.filter((r) => r.verdict === 'red').map((r) => r.field)).toEqual(['walk.sounds.event','walk.sounds.ambient']);
     expect(rows(fixture,n,{ambientInfo:['forest.thrall']}).rows.find((r)=>r.field === 'walk.sounds.ambient')?.verdict).toBe('green');
+  });
+  it('gates sound schedulers on complete captures and keeps partial gameplay strict', () => {
+    const b = clone(), n = clone();
+    b['combat'] = { sounds: { event: { marmot_whistle: 1 }, ambient: ['steppe.herd'] } };
+    n['combat'] = { sounds: { event: { marmot_whistle: 2 }, ambient: [] } };
+    n['walk'] = { ...object(n['walk']), sounds: { event: { step: 6 }, ambient: [] } };
+    const soundReds = (ignore: string[]) => rows(b, n, { ignore }).rows
+      .filter(row => row.verdict === 'red' && /^(walk|combat)\.sounds/.test(row.field));
+    expect(soundReds(captureIgnore(undefined)).map(row => row.field)).toEqual([
+      'walk.sounds.event', 'combat.sounds.event', 'walk.sounds.ambient', 'combat.sounds.ambient',
+    ]);
+    for (const [only, fast] of [["walk+combat+leak", false], [undefined, true]] as const) {
+      const ignore = captureIgnore(only, fast);
+      expect(soundReds(ignore)).toEqual([]);
+      n['walk'] = { ...object(n['walk']), stuck: 1 };
+      n['leak'] = { before: { sounds: 0 }, after: { sounds: 1 } };
+      const red = rows(b, n, { ignore }).rows.filter(row => row.verdict === 'red').map(row => row.field);
+      expect(red).toContain('walk.stuck');
+      expect(red).toContain('leak.sounds');
+    }
+    expect(captureIgnore(undefined)).toEqual([]);
+    expect(captureIgnore('fingerprint+poses')).toContain('walk.sounds');
   });
   it('checks filled pending values on m5 and leaves runner pending', () => {
     const n=clone(); n['poses']=[{name:'gate',calls:200,tris:10000,pos:[0,1,0],ssim:1}];
