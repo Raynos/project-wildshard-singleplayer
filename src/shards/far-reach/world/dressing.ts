@@ -1,9 +1,5 @@
-import { MeshStandardMaterial, type Material } from 'three';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { paintIsleMaterial } from './isle';
+import type { Material } from 'three';
 import dressing from '../data/dressing.json' with { type: 'json' };
-import { BOULDER_EDITS } from '../data/dressingLook';
 import { skyLook } from './looks';
 
 /**
@@ -27,8 +23,6 @@ export function heroStoneDiscs(): [number, number, number][] {
 export function dressingMaterial(kind: string): Material | undefined {
   if (kind === 'clump' || kind === 'lip') return skyLook('dressing-clump');
   if (kind === 'flower') return skyLook('dressing-flower');
-  if (kind !== 'stone') return undefined;
-  const stones = paintIsleMaterial(new MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 }));
-  patchShader(stones, 'far.boulder-detail', PATCH_ORDER.decorate + 10, (shader) => { editShader(shader, BOULDER_EDITS); }, { key: (prior) => `${prior}|far.boulder-detail` });
-  return stones;
+  if (kind === 'stone') return skyLook('dressing-stone');
+  return undefined;
 }

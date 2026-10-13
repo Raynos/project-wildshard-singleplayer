@@ -1,71 +1,77 @@
-import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
+import skyMapSources from './skyMapSources.json' with { type: 'json' };
+import { SKY_PAINTER_GRAPH } from './skyLook';
+import { ISLE_CUT, ISLE_KEEL_CUT } from './skyIsles';
 
 /**
- * The islands' paint (E392; SHARD-PLATFORM M3: shader edit rows, applied by world/isle.ts `paintIsleMaterial` with
- * `editShader`): green faces get the painted meadow, tonal patches and daisies; the rest the painted cliff rock, triplanar in
- * world space. `@{textures}` splices the defines and samplers of the textures that loaded (`ISLE_PAINT`), `@{rockMix}` how
- * much of the rock texture replaces the vertex colour.
+ * The islands' paint (E392; SHARD-PLATFORM W1 C2: an SF59 material graph, the shardfile's `look.materials['isle-paint']`,
+ * worn by the islands, the islets and the knolls): green faces get the painted meadow (the library's `meadow` map, two
+ * scales so no repeat reads from above), sunlit swells, tufts and far daisies; the rest the painted cliff rock (`rock`),
+ * triplanar in world space, toned grey-green with moss on every ledge that faces up. Faceted, matte, in the painted light.
+ * The old program's value noise is the graph's gradient noise (`soft`): the same scales, a near-identical field.
  */
 
-/** The defines and samplers a loaded rock or meadow texture adds. */
-export const ISLE_PAINT = {
-  rockTex: '#define FAR_ROCK_TEX\nuniform sampler2D farRock;\n',
-  meadowTex: '#define FAR_MEADOW_TEX\nuniform sampler2D farMeadow;\n',
-} as const;
+type GraphInput = string | number | readonly number[];
+interface GraphNodeRow { readonly op: string; readonly in?: readonly GraphInput[]; readonly mask?: string; readonly param?: string }
+/** A graph builder: each `op` adds one node (prefixed `prefix`) and returns its id. */
+function graphNodes(prefix: string): { nodes: Record<string, GraphNodeRow>; op: (name: string, inputs?: readonly GraphInput[], extra?: { mask?: string; param?: string }) => string } {
+  const nodes: Record<string, GraphNodeRow> = {};
+  let next = 0;
+  return { nodes, op: (name, inputs, extra) => {
+    const id = `${prefix}${String(next++)}`;
+    nodes[id] = { op: name, ...(inputs === undefined ? {} : { in: inputs }), ...extra };
+    return id;
+  } };
+}
 
-/** The paint over the vertex colour; then its header (the loaded textures and the value noise) put before the stage's source. */
-export const ISLE_PAINT_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'fragment', find: '#include <color_fragment>', put: `#include <color_fragment>
-  // the fragment's world position (the fog's varying is not in every program: computed from the view position)
-  vec3 farWP = (inverse(viewMatrix) * vec4(-vViewPosition, 1.0)).xyz;
-  if (diffuseColor.g > diffuseColor.r * 1.05 && diffuseColor.g > diffuseColor.b * 1.3) {
-    vec2 q = farWP.xz;
-    diffuseColor.rgb *= 0.8 + 0.38 * farMN(q * 0.22) + 0.12 * farMN(q * 1.3);
-#ifdef FAR_MEADOW_TEX
-    // the painted meadow, a 5 m tile, keeping the vertex colour's broad tone
-    // two scales of the painted meadow (3 m and 11 m tiles) so no repeat reads from above; sunlit swells and shaded hollows
-    vec3 mt = texture2D(farMeadow, q * 0.33).rgb * 0.6 + texture2D(farMeadow, q * 0.09 + 0.37).rgb * 0.4;
-    float swell = farMN(q * 0.12) * 0.7 + farMN(q * 0.4) * 0.3;
-    // loop 20 (the aerial targets: lumpy sunlit tops, warm yellow-green, dark tuft shadows): stronger swells, a warmer tint
-    float tuft = farMN(q * 3.1);
-    // E399 (the council: 'sparse blades on a flat yellow plane'): the ground between the blades is the shade down in the
-    // sward, a deeper green, so the gaps read as depth in the grass, not bare yellow ground
-    // (round 6: between the tufts its pale patches read as the crudest surface at the bottom of C, D and proposal B)
-    diffuseColor.rgb = mix(diffuseColor.rgb, mt * (0.5 + 0.45 * swell) * (0.85 + 0.2 * tuft) * vec3(0.5, 0.58, 0.4), 0.9);
-#endif
-    // the ground lies in the sward's shade, so its gaps read as depth in the grass (the mockups' dark roots): one shade
-    // at every distance (round 13, seat C: row 4's darkening by distance from the camera was round 12's glowNear again)
-    diffuseColor.rgb *= 0.86;
-    vec2 cell = floor(q * 2.2); float pick = farMH(cell);
-    float dot2 = 1.0 - smoothstep(0.12, 0.3, length(fract(q * 2.2) - 0.5));
-    // painted daisies for the far view only: near the camera the meadow draws real flowers, and these read as bare tan discs
-    float farDots = smoothstep(14.0, 26.0, length(farWP - cameraPosition));
-    if (pick > 0.93) diffuseColor.rgb = mix(diffuseColor.rgb, pick > 0.975 ? vec3(0.95, 0.78, 0.25) : vec3(0.95, 0.94, 0.9), dot2 * 0.85 * farDots);
-  } else {
-    // the rock: toward a cool grey-brown (E392 targets), keeping a little of its warm strata
-    float lum = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(lum) * vec3(1.0, 0.96, 0.93), 0.45);
-#ifdef FAR_ROCK_TEX
-    // triplanar mossy rock, its facet normal from the world position's derivatives (flat shading)
-    vec3 fn = normalize(cross(dFdx(farWP), dFdy(farWP)));
-    vec3 tw = pow(abs(fn), vec3(4.0)); tw /= (tw.x + tw.y + tw.z);
-    vec3 wq = farWP * 0.13;
-    vec3 tex = texture2D(farRock, wq.zy).rgb * tw.x + texture2D(farRock, wq.xz).rgb * tw.y + texture2D(farRock, wq.xy).rgb * tw.z;
-    diffuseColor.rgb = mix(diffuseColor.rgb, tex * (0.55 + 1.3 * dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))), @{rockMix});
-    // grey-green cliff (the targets): less brown, moss on every ledge that faces up
-    float rl = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(rl) * vec3(0.98, 1.0, 0.97), 0.55);
-    diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.33, 0.42, 0.2) * (0.7 + 0.6 * rl), smoothstep(0.2, 0.65, fn.y) * 0.65);
-#endif
-  }` },
-  { stage: 'fragment', find: '', put: `#ifndef FAR_MEADOW_PAINT
-#define FAR_MEADOW_PAINT
-@{textures}float farMH(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-float farMN(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(farMH(i), farMH(i + vec2(1.0, 0.0)), u.x), mix(farMH(i + vec2(0.0, 1.0)), farMH(i + vec2(1.0, 1.0)), u.x), u.y); }
-#endif
-` },
-];
+/** The library maps the island looks sample (data/skyMapSources.json: the KTX2 file each tiling map was admitted as). */
+export const ISLE_MAPS = { rock: skyMapSources.rock.asset, meadow: skyMapSources.meadow.asset } as const;
+
+const { nodes, op } = graphNodes('i');
+const add = (a: GraphInput, b: GraphInput): string => op('add', [a, b]), mul = (a: GraphInput, b: GraphInput): string => op('mul', [a, b]);
+const mix = (a: GraphInput, b: GraphInput, t: GraphInput): string => op('mix', [a, b, t]), swz = (a: string, mask: string): string => op('swizzle', [a], { mask });
+const smooth = (e0: GraphInput, e1: GraphInput, x: GraphInput): string => op('smoothstep', [e0, e1, x]);
+const lum = (c: string): string => op('dot', [c, [0.3, 0.59, 0.11]]);
+const soft = (p: string): string => add(mul(op('noise', [p]), 0.6), 0.5);
+const tex = (map: 'rock' | 'meadow', at: string): string => swz(op('texture', [at], { param: map }), 'xyz');
+
+const col = op('vertexColour'), wp = op('positionWorld'), q = swz(wp, 'xz');
+const cr = swz(col, 'x'), cg = swz(col, 'y'), cb = swz(col, 'z');
+// 1 on the green faces (a float, so both sides run and every texture tap stays in uniform control flow)
+const green = mul(op('step', [mul(cr, 1.05), cg]), op('step', [mul(cb, 1.3), cg]));
+// the meadow: two scales of the painted meadow (3 m and 11 m tiles), sunlit swells and shaded hollows, dark tuft shadows,
+// the ground between the blades the shade down in the sward (E399), one shade at every distance (round 13)
+const mt = add(mul(tex('meadow', mul(q, 0.33)), 0.6), mul(tex('meadow', add(mul(q, 0.09), 0.37)), 0.4));
+const swell = add(mul(soft(mul(q, 0.12)), 0.7), mul(soft(mul(q, 0.4)), 0.3)), tuft = soft(mul(q, 3.1));
+const sward = mul(mul(mul(mt, add(0.5, mul(swell, 0.45))), add(0.85, mul(tuft, 0.2))), [0.5, 0.58, 0.4]);
+const lawn = mul(mix(mul(col, 1.05), sward, 0.9), 0.86);
+// painted daisies for the far view only (near the camera the meadow draws real flowers)
+const cells = mul(q, 2.2), pick = op('fract', [mul(op('sin', [op('dot', [op('floor', [cells]), [127.1, 311.7]])]), 43758.5453)]);
+const disc = op('oneMinus', [smooth(0.12, 0.3, op('length', [op('sub', [op('fract', [cells]), 0.5])]))]);
+const farDots = smooth(14, 26, op('length', [op('sub', [wp, op('cameraPosition')])]));
+const daisy = op('select', [op('gt', [pick, 0.975]), [0.95, 0.78, 0.25], [0.95, 0.94, 0.9]]);
+const meadow = mix(lawn, daisy, mul(mul(mul(disc, 0.85), farDots), op('step', [0.93, pick])));
+// the rock: toward a cool grey-brown, then the triplanar mossy rock over it (rockMix 0.85), grey-green, moss on the ledges
+const grey = mix(col, mul(lum(col), [1, 0.96, 0.93]), 0.45);
+const n = op('normalWorld'), w0 = op('pow', [op('abs', [n]), 4]), tw = op('div', [w0, op('dot', [w0, [1, 1, 1]])]);
+const wq = mul(wp, 0.13);
+const rockTex = add(add(mul(tex('rock', swz(wq, 'zy')), swz(tw, 'x')), mul(tex('rock', swz(wq, 'xz')), swz(tw, 'y'))), mul(tex('rock', swz(wq, 'xy')), swz(tw, 'z')));
+const r1 = mix(grey, mul(rockTex, add(0.55, mul(lum(grey), 1.3))), 0.85), rl = lum(r1);
+const r2 = mix(r1, mul(rl, [0.98, 1, 0.97]), 0.55);
+const rock = mix(r2, mul([0.33, 0.42, 0.2], add(0.7, mul(rl, 0.6))), mul(smooth(0.2, 0.65, swz(n, 'y')), 0.65));
+const paint = mix(rock, meadow, green);
+
+/** The islands' paint; `cut`: a playable island's code keel ends `cut` metres under its top (E399 round 3, item 2: the
+ *  textured keel model below is the rock you see), its fragments below that discarded (the island stands at its top). */
+const islePaint = (cut?: number): Readonly<Record<string, unknown>> => {
+  const keel = cut === undefined ? {} : { kY: { op: 'swizzle', in: ['kP'], mask: 'y' }, kP: { op: 'positionLocal' }, kCut: { op: 'lt', in: ['kY', -cut] } };
+  return { version: 1, kind: 'material', model: 'standard', flatShading: true,
+    params: { rock: { type: 'texture', value: ISLE_MAPS.rock }, meadow: { type: 'texture', value: ISLE_MAPS.meadow } },
+    nodes: { ...SKY_PAINTER_GRAPH.nodes, ...nodes, ...keel },
+    stages: { surface: { colour: paint, roughness: 0.95, metalness: 0, ...(cut === undefined ? {} : { discard: 'kCut' }) }, lighting: SKY_PAINTER_GRAPH.lighting } };
+};
+/** The islands' looks: whole (`isle-paint`: the gate isles, the islets, the knolls), cut over the keel models (`isle-paint-cut`,
+ *  1.4 m: data/skyIsles.ts ISLE_CUT) and the windmill's (`isle-paint-cut-mill`, 0.8 m: its ISLE_KEEL_CUT). */
+export const ISLE_GRAPHS = { 'isle-paint': islePaint(), 'isle-paint-cut': islePaint(ISLE_CUT), 'isle-paint-cut-mill': islePaint(ISLE_KEEL_CUT['windmill']?.cut ?? ISLE_CUT) } as const;
 
 /** How many values each playable island takes from the level's cosmetic stream (the old 12-gon island's 122; the last seeds
  *  its baked shape, generators/isles.ts), so every piece built after the islands keeps its draws. */

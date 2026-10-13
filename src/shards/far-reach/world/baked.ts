@@ -16,7 +16,7 @@ import dressing from '../data/dressing.json' with { type: 'json' };
 import { BAKED_URLS, ISLES_URL, SWARD_ATLAS_URL, type BakedPiece } from '../data/files';
 import { SWARD_ATLAS } from '../data/swardAtlas';
 import { shackMaterial, type ShackKind } from './shack';
-import { paintIsleMaterial, setIslePack } from './isle';
+import { isleMaterial, setIslePack } from './isle';
 import { dressingMaterial } from './dressing';
 
 /**
@@ -24,7 +24,7 @@ import { dressingMaterial } from './dressing';
  * (`generators/*.ts`, `scripts/bake-sky-world.mjs`) and folded into instanced kinds (`@wildshard/sdk/bake/kinds`); the
  * client loads each piece's GLB behind the loading screen and draws it in its own materials: a shack part in its kind's
  * material graph (`world/shack.ts`), a dressing kind in its own (`world/dressing.ts`), anything else in its row's standard material (a kind with a `paint` in the islands'
- * painted rock, `paintIsleMaterial`). The colliders are the rows'.
+ * paint, `isleMaterial`). The colliders are the rows'.
  */
 const PIECES = { 'winch-house': winchHouse, roost, docks, crown, mill, 'book-stand': bookStand, knolls, geometries, 'islet-rig': isletRig, dressing } as const satisfies Readonly<Record<BakedPiece, unknown>>;
 
@@ -37,8 +37,7 @@ const shackKind = (kind: object): ShackKind | undefined => {
 let sward: Uint8Array | null = null;
 const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(PIECES, BAKED_URLS, 'far-reach', {
   material: (kind) => { const shack = shackKind(kind), dressed: unknown = 'dressing' in kind ? kind.dressing : undefined;
-    return shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : undefined; },
-  decorate: (material, kind) => { const rockMix: unknown = 'paint' in kind ? kind.paint : undefined; if (typeof rockMix === 'number') paintIsleMaterial(material, rockMix); },
+    return shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : 'paint' in kind ? isleMaterial() : undefined; },
   attributes: { _shk: 'aShk', _farcloth: 'aFarCloth' },
 });
 /** Load every baked piece, the islands and the sward atlas (the plugin's `world` hook, before the world is built); a piece that fails to load is empty. */

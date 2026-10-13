@@ -27,7 +27,8 @@ import { DECK_WOOD_GRAPH, HOVER_FRAME_GRAPH, POST_WEATHER_GRAPH } from './data/b
 import { CROWN_DAIS_GRAPH, KEEPER_SCARF_GRAPH, LANTERN_GLOW_GRAPH, TREE_BARK_GRAPH } from './data/paintLook';
 import { SKY_ISLE_GRAPH, SKY_ISLE_KEEL_GRAPH } from './data/skyIsleLook';
 import { SHACK_GRAPHS } from './data/shackLook';
-import { CLUMP_GRAPH, FLOWER_GRAPH } from './data/dressingLook';
+import { BOULDER_GRAPH, CLUMP_GRAPH, FLOWER_GRAPH } from './data/dressingLook';
+import { ISLE_GRAPHS, ISLE_MAPS } from './data/isleLook';
 import { FALL_GRAPH } from './data/fallLook';
 import { MILL_CANVAS_GRAPH, MILL_TOWER_GRAPH } from './data/millLook';
 import { RAY_WAKE_GRAPH } from './data/rayWakeLook';
@@ -47,14 +48,17 @@ const wasm = (module: { hash: string; bytes: number }) => ({ hash: module.hash, 
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'props', 'clientChannels'], spawns: SKY_SPAWNS }, audio: AUDIO, directors: SKY_DIRECTORS,
   // the material graphs the runtime draws its own meshes in (runtime/index.ts): the rope decks' wood, the hover frames' glow,
-  // the shacks' four kinds, the dressing's clumps and flowers, the falls; and the looks over a model's own map (meshMap, bound per model by
+  // the shacks' four kinds, the dressing's clumps, flowers and boulders, the islands' paint, the falls; and the looks over a model's own map (meshMap, bound per model by
   // world/looks.ts skyMappedLook): the crown dais, the lantern, the keeper's scarf, the anchor posts, the trees' bark,
   // the sky isles and the playable islands' keels
   look: { ...base.look, materials: { ...base.look.materials, 'deck-wood': { family: 'graph', graph: DECK_WOOD_GRAPH }, 'hover-frame': { family: 'graph', graph: HOVER_FRAME_GRAPH },
-    'dressing-clump': { family: 'graph', graph: CLUMP_GRAPH }, 'dressing-flower': { family: 'graph', graph: FLOWER_GRAPH }, falls: { family: 'graph', graph: FALL_GRAPH },
+    'dressing-clump': { family: 'graph', graph: CLUMP_GRAPH }, 'dressing-flower': { family: 'graph', graph: FLOWER_GRAPH }, 'dressing-stone': { family: 'graph', graph: BOULDER_GRAPH }, falls: { family: 'graph', graph: FALL_GRAPH },
+    ...Object.fromEntries(Object.entries(ISLE_GRAPHS).map(([id, graph]) => [id, { family: 'graph', graph }])),
     ...Object.fromEntries(Object.entries({ 'crown-dais': CROWN_DAIS_GRAPH, 'lantern-glow': LANTERN_GLOW_GRAPH, 'keeper-scarf': KEEPER_SCARF_GRAPH, 'post-weather': POST_WEATHER_GRAPH, 'tree-bark': TREE_BARK_GRAPH, 'sky-isle': SKY_ISLE_GRAPH, 'sky-isle-keel': SKY_ISLE_KEEL_GRAPH, 'mill-tower': MILL_TOWER_GRAPH, 'mill-canvas': MILL_CANVAS_GRAPH, 'ray-wake': RAY_WAKE_GRAPH, 'wind-streak': WIND_STREAK_GRAPH })
       .map(([id, graph]) => [id, { family: 'graph', graph }])),
-    ...Object.fromEntries(Object.entries(SHACK_GRAPHS).map(([kind, graph]) => [`shack-${kind}`, { family: 'graph', graph }])) } },
+    ...Object.fromEntries(Object.entries(SHACK_GRAPHS).map(([kind, graph]) => [`shack-${kind}`, { family: 'graph', graph }])) },
+    // the islands' and boulders' library maps tile (data/skyMapSources.json's sampler rows)
+    samplers: { ...base.look.samplers, [ISLE_MAPS.rock]: { wrap: 'repeat', anisotropy: 4 }, [ISLE_MAPS.meadow]: { wrap: 'repeat', anisotropy: 4 } } },
   clientChannels: [...SKY_MOVER_VIEWS, ...SKY_LIFT_PROMPTS], modes: SKY_MODES, quests: SKY_QUESTS, questNpcs: [QUEST_NPC], questHost: QUEST_HOST, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,
   entryways: base.entryways.map(({ edge, at, width }) => {
     const lift = lifts.get(edge); if (lift === undefined) throw new Error(`Sky Reach entry ${edge} has no Rising Islet`);

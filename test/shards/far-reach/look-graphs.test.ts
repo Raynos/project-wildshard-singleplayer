@@ -7,8 +7,8 @@ import { PANO_SUN } from '../../../src/shards/far-reach/look/panoramaData';
 describe('Sky Reach look graphs (SHARD-PLATFORM G382 / G387)', () => {
   it('every look material is an SF59 graph inside the default per-program budget', () => {
     const entries = Object.entries(source.look.materials);
-    expect(entries.map(([id]) => id).sort()).toEqual(['crown-dais', 'deck-wood', 'dressing-clump', 'dressing-flower', 'falls', 'hover-frame', 'keeper-scarf', 'lantern-glow', 'mill-canvas', 'mill-tower', 'post-weather', 'ray-wake', 'shack-beam', 'shack-plank', 'shack-shingle',
-      'shack-stone', 'sky-isle', 'sky-isle-keel', 'tree-bark', 'wind-streak']);
+    expect(entries.map(([id]) => id).sort()).toEqual(['crown-dais', 'deck-wood', 'dressing-clump', 'dressing-flower', 'dressing-stone', 'falls', 'hover-frame', 'isle-paint', 'isle-paint-cut', 'isle-paint-cut-mill',
+      'keeper-scarf', 'lantern-glow', 'mill-canvas', 'mill-tower', 'post-weather', 'ray-wake', 'shack-beam', 'shack-plank', 'shack-shingle', 'shack-stone', 'sky-isle', 'sky-isle-keel', 'tree-bark', 'wind-streak']);
     for (const [id, entry] of entries) {
       const checked = validateGraph(Reflect.get(entry, 'graph'), { dayKeys: [], stateFields: [], budget: DEFAULT_GRAPH_BUDGET });
       expect(checked.ok ? id : `${id}: ${checked.errors.join('; ')}`).toBe(id);

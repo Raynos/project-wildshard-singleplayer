@@ -33,13 +33,6 @@ export const FAN_SILK_EDITS: readonly ShaderEditRow[] = [
   diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))), diffuseColor.rgb, @{saturation}) * @{lift} * vec3(@{tint});` },
 ];
 
-/** A code keel cut a little under its lip (E399 round 3): every fragment below the `farCut` height discarded. */
-export const ISLE_CUT_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'fragment', find: '#include <clipping_planes_fragment>', put: `#include <clipping_planes_fragment>
-  if ((inverse(viewMatrix) * vec4(-vViewPosition, 1.0)).y < farCut) discard;` },
-  { stage: 'fragment', find: '', put: 'uniform float farCut;\n' },
-];
-
 /** The Roc's plumage to mockup D's slate / white split (E399, E410): its browns slate grey in the paint and in the emission fed back from it; the white head and belly and the gold beak and talons kept. */
 export const ROC_SLATE_EDITS: readonly ShaderEditRow[] = [
   { stage: 'fragment', find: '#include <map_fragment>', put: '#include <map_fragment>\n  diffuseColor.rgb = farSlate(diffuseColor.rgb);' },

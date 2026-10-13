@@ -2,14 +2,12 @@ import { afterEach, beforeAll, expect, it, vi } from 'vitest';
 // oxlint-disable-next-line import/no-nodejs-modules -- Reads the committed mill bake the client draws.
 import { readFileSync } from 'node:fs';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { InstancedMesh, Mesh, MeshStandardMaterial, ShaderMaterial, Texture, Vector3, type Object3D, type WebGLRenderer } from 'three';
+import { InstancedMesh, Mesh, MeshStandardMaterial, ShaderMaterial, Texture, Vector3, type Object3D } from 'three';
 import millRows from '../../../src/shards/far-reach/data/mill.json' with { type: 'json' };
 import { sceneResources } from '../../../src/engine/app/sceneOwnership';
 import { loadPainted } from '../../../src/shards/far-reach/look/image';
-import { paintIsleMaterial, setIsleTextures } from '../../../src/shards/far-reach/world/isle';
 import { setMillTextures, towerMill } from '../../../src/shards/far-reach/world/mill';
 import { crownStorm, setStormPaint } from '../../../src/shards/far-reach/world/storm';
-import { legacyDouble } from '../../fake/FakeGame';
 
 // the mill's baked code set (world/mill.ts draws it), parsed as the client loads it
 const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
@@ -43,19 +41,12 @@ it('closes each painted bitmap exactly once at retirement and reconstructs a fre
   }
 });
 
-it('forgets all three real builder sampler globals without an older retirement clearing newer assignments', () => {
+it('forgets both real builder sampler globals without an older retirement clearing newer assignments', () => {
   const old = new Texture(), current = new Texture(), noise = new Texture();
   const assign = (texture: Texture): void => {
-    setIsleTextures({ rock: texture, meadow: texture });
     setMillTextures({ stone: texture, canvas: texture, ivy: texture }); setStormPaint(texture);
   };
   const read = (expected: Texture | null): void => {
-    const material = paintIsleMaterial(new MeshStandardMaterial());
-    const shader = legacyDouble<Parameters<typeof material.onBeforeCompile>[0]>({ vertexShader: '', fragmentShader: '#include <color_fragment>', uniforms: {} });
-    material.onBeforeCompile(shader, legacyDouble<WebGLRenderer>({}));
-    expect(shader.uniforms['farRock']?.value ?? null).toBe(expected);
-    expect(shader.uniforms['farMeadow']?.value ?? null).toBe(expected);
-    material.dispose();
     const mill = towerMill(millNodes), storm = crownStorm(new Vector3(0, 1, 0), noise, () => 0.5);
     const maps = new Set<Texture>();
     mill.group.traverse(node => { if (node instanceof Mesh && node.material instanceof MeshStandardMaterial && node.material.map !== null) maps.add(node.material.map); });

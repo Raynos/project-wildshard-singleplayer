@@ -1,9 +1,9 @@
-import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
+import { ISLE_MAPS } from './isleLook';
 import { SKY_PAINTER_GRAPH } from './skyLook';
 
 /**
  * The island dressing's looks: the clumps' and flowers' hand-offs are SF59 material graphs (the shardfile's
- * `look.materials`), the boulders' detail a shader edit row (world/dressing.ts applies it with `editShader`). The clumps carry the meadow beyond the near field and shrink away inside it
+ * `look.materials`), the boulders' rock and lichen another (`BOULDER_GRAPH`). The clumps carry the meadow beyond the near field and shrink away inside it
  * (between 15 and 22 m from the camera: world/meadow.ts's blades own the foreground); the flowers grow in past 9-13 m, a
  * little larger far off; the boulders wear the islands' painted rock with cracks, lichen flecks and a moss cap at a
  * boulder's own scale.
@@ -37,34 +37,36 @@ export const FLOWER_GRAPH = { version: 1, kind: 'material', model: 'standard', d
     c: { op: 'vertexColour' }, warm: { op: 'param', param: 'warm' } },
   stages: { 'vertex.offset': { offset: 'offset' }, surface: { colour: 'c', emissive: 'warm', roughness: 1, metalness: 0 }, lighting: SKY_PAINTER_GRAPH.lighting } } as const;
 
-/** The boulders' near detail over the islands' paint (E392 foreground, E407 row 4: grey rocks with pale lichen). */
-export const BOULDER_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'fragment', find: '#include <roughnessmap_fragment>', put: `{
-      vec3 bw = (inverse(viewMatrix) * vec4(-vViewPosition, 1.0)).xyz;
-      vec3 bn = normalize(cross(dFdx(bw), dFdy(bw)));
-      vec3 bq = bw * 2.6;
-      float n1 = sin(bq.x * 1.7 + bq.z * 2.9) * sin(bq.y * 3.3 - bq.x * 1.1) * 0.5 + 0.5;
-      float n2 = sin(bw.x * 7.3 + bw.y * 5.1) * sin(bw.z * 6.7 - bw.y * 4.3) * 0.5 + 0.5;
-      float n3 = sin(bw.x * 19.0 - bw.z * 13.0 + bw.y * 7.0) * sin(bw.z * 17.0 + bw.x * 11.0) * 0.5 + 0.5;
-      float crack = 1.0 - smoothstep(0.0, 0.07, abs(sin(bw.x * 3.1 + bw.z * 2.3 + sin(bw.y * 4.0) * 1.5)));
-      // grey stone from the paint's light and dark (its tint dropped: the paint's moss covers every up face), darker below
-      float bl = dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11));
-      // (linear values: a mid grey is 0.2, not 0.5)
-      vec3 rockC = vec3(0.2, 0.195, 0.185) * (0.55 + 0.9 * bl) * (0.75 + 0.4 * n2) * (0.92 + 0.16 * n1) * (1.0 - 0.5 * crack);
-#ifdef FAR_ROCK_TEX
-      // the painted cliff rock again, triplanar at a boulder's scale (a 1.4 m tile, not the cliffs' 8 m)
-      vec3 btw = pow(abs(bn), vec3(4.0)); btw /= (btw.x + btw.y + btw.z);
-      vec3 bt = texture2D(farRock, bw.zy * 0.7).rgb * btw.x + texture2D(farRock, bw.xz * 0.7).rgb * btw.y + texture2D(farRock, bw.xy * 0.7).rgb * btw.z;
-      rockC = vec3(dot(bt, vec3(0.3, 0.59, 0.11))) * vec3(1.0, 0.98, 0.94) * (0.8 + 0.4 * n2) * (1.0 - 0.5 * crack);
-#endif
-      rockC *= 1.0 - 0.35 * smoothstep(0.0, -0.6, bn.y);
-      // pale lichen flecks (round 6, seat A: 'lichened rocks'; the mockups' boulders are grey with pale lichen, little moss)
-      // (E407 row 4: grey rocks with pale lichen patches standing out of the green; a dark moss cap read as more grass)
-      rockC = mix(rockC, vec3(0.42, 0.4, 0.3), smoothstep(0.8, 0.93, n3 * (0.7 + 0.6 * n1)) * 0.4);
-      // a moss cap on the flattest tops, its edge broken by noise
-      float mossK = smoothstep(0.88, 0.99, bn.y + 0.35 * (n2 - 0.5) + 0.2 * (n1 - 0.5)) * 0.3;
-      vec3 mossC = vec3(0.1, 0.12, 0.05) * (0.75 + 0.5 * n3);
-      diffuseColor.rgb = mix(rockC, mossC, mossK);
-    }
-    #include <roughnessmap_fragment>` },
-];
+/** A graph builder for the boulders: each `op` adds one node and returns its id. */
+type GraphInput = string | number | readonly number[];
+const boulderNodes: Record<string, { readonly op: string; readonly in?: readonly GraphInput[]; readonly mask?: string; readonly param?: string }> = {};
+let nextBoulder = 0;
+const op = (name: string, inputs?: readonly GraphInput[], extra?: { mask?: string; param?: string }): string => {
+  const id = `b${String(nextBoulder++)}`; boulderNodes[id] = { op: name, ...(inputs === undefined ? {} : { in: inputs }), ...extra }; return id;
+};
+const add = (a: GraphInput, b: GraphInput): string => op('add', [a, b]), mul = (a: GraphInput, b: GraphInput): string => op('mul', [a, b]);
+const swz = (a: string, mask: string): string => op('swizzle', [a], { mask }), smooth = (e0: GraphInput, e1: GraphInput, x: GraphInput): string => op('smoothstep', [e0, e1, x]);
+const half = (x: string): string => add(mul(x, 0.5), 0.5), sinDot = (p: string, k: readonly number[]): string => op('sin', [op('dot', [p, k])]);
+const rockAt = (at: string): string => swz(op('texture', [mul(at, 0.7)], { param: 'rock' }), 'xyz');
+
+// the boulder's world position and facet normal (flat shading), three sine fields at a boulder's scale and a crack line
+const bw = op('positionWorld'), bn = op('normalWorld'), bny = swz(bn, 'y');
+const n1 = half(mul(sinDot(bw, [4.42, 0, 7.54]), sinDot(bw, [-2.86, 8.58, 0])));
+const n2 = half(mul(sinDot(bw, [7.3, 5.1, 0]), sinDot(bw, [0, -4.3, 6.7])));
+const n3 = half(mul(sinDot(bw, [19, 7, -13]), sinDot(bw, [11, 0, 17])));
+const crack = op('oneMinus', [smooth(0, 0.07, op('abs', [op('sin', [add(op('dot', [bw, [3.1, 0, 2.3]]), mul(op('sin', [mul(swz(bw, 'y'), 4)]), 1.5))])]))]);
+// the painted cliff rock again, triplanar at a boulder's scale (a 1.4 m tile, not the cliffs' 8 m), grey, darker below
+const w0 = op('pow', [op('abs', [bn]), 4]), tw = op('div', [w0, op('dot', [w0, [1, 1, 1]])]);
+const bt = add(add(mul(rockAt(swz(bw, 'zy')), swz(tw, 'x')), mul(rockAt(swz(bw, 'xz')), swz(tw, 'y'))), mul(rockAt(swz(bw, 'xy')), swz(tw, 'z')));
+const stone = mul(mul(mul(op('dot', [bt, [0.3, 0.59, 0.11]]), [1, 0.98, 0.94]), add(0.8, mul(n2, 0.4))), op('oneMinus', [mul(crack, 0.5)]));
+const shaded = mul(stone, op('oneMinus', [mul(smooth(0, -0.6, bny), 0.35)]));
+// pale lichen flecks (round 6, E407 row 4), then a moss cap on the flattest tops, its edge broken by noise
+const lichen = op('mix', [shaded, [0.42, 0.4, 0.3], mul(smooth(0.8, 0.93, mul(n3, add(0.7, mul(n1, 0.6)))), 0.4)]);
+const mossK = mul(smooth(0.88, 0.99, add(add(bny, mul(op('sub', [n2, 0.5]), 0.35)), mul(op('sub', [n1, 0.5]), 0.2))), 0.3);
+const boulder = op('mix', [lichen, mul([0.1, 0.12, 0.05], add(0.75, mul(n3, 0.5))), mossK]);
+
+/** The boulders' look (`look.materials['dressing-stone']`, E392 foreground, E407 row 4): grey rocks with pale lichen and a
+ *  moss cap over the islands' painted rock (the library's `rock` map), faceted, matte, in the painted light. */
+export const BOULDER_GRAPH = { version: 1, kind: 'material', model: 'standard', flatShading: true,
+  params: { rock: { type: 'texture', value: ISLE_MAPS.rock } },
+  nodes: { ...SKY_PAINTER_GRAPH.nodes, ...boulderNodes }, stages: { surface: { colour: boulder, roughness: 0.95, metalness: 0 }, lighting: SKY_PAINTER_GRAPH.lighting } } as const;

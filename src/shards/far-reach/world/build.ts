@@ -1,6 +1,3 @@
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { ISLE_CUT_EDITS } from '../data/paintLook';
 import { ISLE_DRAWS } from '../data/isleLook';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
@@ -16,7 +13,7 @@ import { STRINGS } from '../data/strings';
 import { staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
 import { trees } from './trees';
-import { ISLE_CUT, ISLE_KEEL_CUT } from '../data/skyIsles';
+import { ISLE_KEEL_CUT } from '../data/skyIsles';
 import PLACEMENTS_BAKED from '../data/placements.json' with { type: 'json' };
 import BRIDGE_PHYSICS from '../data/bridgePhysics.generated.json' with { type: 'json' };
 import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type: 'json' };
@@ -118,15 +115,11 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   // generators/isleProps.ts, each at its own position); a playable island still takes its ISLE_DRAWS cosmetic values, so
   // every draw after the islands is unchanged
   for (const isle of [...ISLES, ...GATE_ISLES]) {
-    const gate = GATE_ISLES.includes(isle), mesh = staticIsle(isles, isle.id); root.add(mesh);
-    if (!gate) for (let i = 0; i < ISLE_DRAWS; i++) rnd();
     // the code keel ends a little under the lip (E399 round 3, item 2: 'under the bridge a grey-green cliff wall where the
     // mockups show open cloud'): the textured keel model below (far.isle-keels) is the rock you see, narrower, with sky
     // round it; the top, the lip and every collider are unchanged (a gate isle has no keel model: its code keel stays whole)
-    if (!gate) patchShader(mesh.material, 'far.isle-cut', PATCH_ORDER.decorate, (shader) => {
-      shader.uniforms['farCut'] = { value: isle.y - (CUT[isle.id]?.cut ?? ISLE_CUT) };
-      editShader(shader, ISLE_CUT_EDITS);
-    }, { key: (prior) => `${prior}|far.isle-cut` });
+    const gate = GATE_ISLES.includes(isle), mesh = staticIsle(isles, isle.id, gate ? 'isle-paint' : CUT[isle.id] === undefined ? 'isle-paint-cut' : 'isle-paint-cut-mill'); root.add(mesh);
+    if (!gate) for (let i = 0; i < ISLE_DRAWS; i++) rnd();
     ctx.piece({ id: `far.isle.${isle.id}`, name: names[isle.id] ?? (gate ? STRINGS.gateIsle : isle.id), category: 'ground', file: FILE, object: mesh, colliders: bakedColliders(PLACEMENTS, `far.isle.${isle.id}`, 'grass'), surface: 'grass' });
     await pause();
   }
