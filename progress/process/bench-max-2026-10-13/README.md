@@ -304,3 +304,22 @@ file was touched. After filling the reusable slots:
 Those first-fill cases and both-held fallback remain **OPEN**, so this is
 not an unconditional pre-commit or pre-push qualification. No numerical
 limit, guard, producer or receipt was weakened.
+
+## Single Debug syntax walk (sp-x5)
+
+CALL: collect syntax once, then evaluate declarations in the original order.
+Every eligible file still parses; opaque arrays, unresolved rows and syntax
+errors still refuse. Import aliases and late definitions resolve over the
+whole program. No producer sequencing, API or policy changes.
+
+The same full corpus (3,741 files, 16 rows) took **5.760 -> 2.919 s** without
+fact-cache hits. Its ordered JSON SHA-256 was identical:
+`ff974a3b1d5e3a76ad4af32f39817853f5cd5c82487ff5d37fa9eb7d720c809e`.
+Eight focused checks, narrowed types and touched lint passed, including
+late aliases/definitions, original row order and first-error precedence.
+
+Fresh private-cache hooks on `2ff13ce6f` remained **38.94 / 38.37 s**.
+Measured debt producer fell **12.671 -> 4.763 s**, while export/gen costs
+rose (2.142/11.619 -> 5.445/15.150 s) under concurrent machine work.
+These are observations, not an end-to-end qualification. Cold <=10 s stays
+OPEN; generation, first export and the final source guard remain targets.

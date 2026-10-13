@@ -16,28 +16,43 @@ function walk(node, visit) {
     else if (object(value)) walk(value, visit);
   }
 }
-/** Literal rows in admitted plumbing data are inventoried instead of the generic adapter's callback argument. */
-export function declaredDebugRows(program) {
-  const names = new Set(['parsePlumbing']), directors = new Set(['directorVariant']), variants = new Set(['runtimeVariantEnabled']), actions = new Set(['registerGlobalDebugAction']), rows = [];
-  walk(program, (node) => {
-    if (node.type === 'ImportSpecifier' && node.imported?.name === 'parsePlumbing') names.add(node.local.name);
-    if (node.type === 'ImportSpecifier' && node.imported?.name === 'directorVariant') directors.add(node.local.name);
-    if (node.type === 'ImportSpecifier' && node.imported?.name === 'runtimeVariantEnabled') variants.add(node.local.name);
-    if (node.type === 'ImportSpecifier' && node.imported?.name === 'registerGlobalDebugAction') actions.add(node.local.name);
+// Collect syntax once; evaluate after traversal so imports/definitions retain
+// their original whole-program resolution, including declarations after calls.
+function debugSyntax(program) {
+  const names = new Set(['parsePlumbing']), directors = new Set(['directorVariant']), variants = new Set(['runtimeVariantEnabled']), actions = new Set(['registerGlobalDebugAction']);
+  const definitions = new Map(), calls = [], authored = [];
+  const aliases = new Map([['parsePlumbing', names], ['directorVariant', directors], ['runtimeVariantEnabled', variants], ['registerGlobalDebugAction', actions]]);
+  walk(program, node => {
+    if (node.type === 'ImportSpecifier') aliases.get(node.imported?.name)?.add(node.local.name);
+    if (node.type === 'VariableDeclarator') {
+      definitions.set(node.id?.name, node.init);
+      if (node.id?.name === 'DEBUG_ROWS') authored.push(node);
+    }
+    if (node.type === 'CallExpression') {
+      if (node.callee?.type === 'Identifier') calls.push(node);
+      if (node.callee?.type === 'MemberExpression' && node.callee.property?.name === 'debugRow' && node.callee.object?.name !== 'adapters') authored.push(node);
+    }
   });
-  walk(program, (node) => {
-    if (node.type !== 'CallExpression' || node.callee?.type !== 'Identifier') return;
-    if (directors.has(node.callee.name)) { if (node.arguments[1] !== undefined) rows.push(node.arguments[1]); return; }
+  return {names, directors, variants, actions, definitions, calls, authored};
+}
+function declaredFromSyntax({names, directors, variants, actions, calls}) {
+  const rows = [];
+  for (const node of calls) {
+    if (directors.has(node.callee.name)) { if (node.arguments[1] !== undefined) rows.push(node.arguments[1]); continue; }
     // DEBUG_ROWS is already counted at its defining declaration; inline runtime variants need their own inventory.
-    if (variants.has(node.callee.name)) { if (unwrap(node.arguments[1])?.type === 'ObjectExpression') rows.push(node.arguments[1]); return; }
-    if (actions.has(node.callee.name)) { if (unwrap(node.arguments[0])?.type === 'ObjectExpression') rows.push(node.arguments[0]); return; }
-    if (!names.has(node.callee.name)) return;
+    if (variants.has(node.callee.name)) { if (unwrap(node.arguments[1])?.type === 'ObjectExpression') rows.push(node.arguments[1]); continue; }
+    if (actions.has(node.callee.name)) { if (unwrap(node.arguments[0])?.type === 'ObjectExpression') rows.push(node.arguments[0]); continue; }
+    if (!names.has(node.callee.name)) continue;
     const declared = unwrap(field(node.arguments[0], 'debug'));
-    if (declared === undefined) return;
+    if (declared === undefined) continue;
     if (declared.type !== 'ArrayExpression' || declared.elements.some((value) => value === null || value.type === 'SpreadElement')) throw new Error('Declared Debug rows must be a literal array');
     rows.push(...declared.elements);
-  });
+  }
   return rows;
+}
+/** Literal rows in admitted plumbing data are inventoried instead of the generic adapter's callback argument. */
+export function declaredDebugRows(program) {
+  return declaredFromSyntax(debugSyntax(program));
 }
 /** Read authored rows without executing the game or loading its renderer.
  * @param {string} root @param {string} [cacheDir] Verified per-file facts only; the file inventory stays fresh. */
@@ -78,8 +93,7 @@ export function debugFlags(root, cacheDir) {
       const parsed = parseSync(file, source), fileRows = [];
       parsedFiles++;
       if (parsed.errors.length > 0) throw new Error(`Cannot inventory Debug rows in ${file}`);
-      const program = parsed.program, definitions = new Map();
-      walk(program, (node) => { if (node.type === 'VariableDeclarator') definitions.set(node.id?.name, node.init); });
+      const syntax = debugSyntax(parsed.program), definitions = syntax.definitions;
       const row = (value) => {
         const node = unwrap(value);
         if (node?.type === 'Identifier') return row(definitions.get(node.name));
@@ -98,15 +112,15 @@ export function debugFlags(root, cacheDir) {
         }
         throw new Error(`Unresolvable Debug row in ${file}`);
       };
-      for (const value of declaredDebugRows(program)) fileRows.push(row(value));
-      walk(program, (node) => {
+      for (const value of declaredFromSyntax(syntax)) fileRows.push(row(value));
+      for (const node of syntax.authored) {
         if (node.type === 'VariableDeclarator' && node.id?.name === 'DEBUG_ROWS') {
           const array = unwrap(node.init);
           if (array?.type !== 'ArrayExpression' || array.elements.some((element) => !element || element.type === 'SpreadElement')) throw new Error(`DEBUG_ROWS must be a literal row array: ${file}`);
           for (const value of array.elements) fileRows.push(row(value));
         }
         if (node.type === 'CallExpression' && node.callee?.type === 'MemberExpression' && node.callee.property?.name === 'debugRow' && node.callee.object?.name !== 'adapters') fileRows.push(row(node.arguments[0]));
-      });
+      }
       // Preserve undefined fields exactly; unsupported values stay uncached.
       if (receipt !== null && supported(fileRows)) {
         const payload = serialize(fileRows).toString('base64');

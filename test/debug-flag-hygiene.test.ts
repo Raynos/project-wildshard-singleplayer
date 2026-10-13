@@ -1,7 +1,9 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- This Node fixture inventories authored files and writes the required overdue cache.
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Node-side repository inventory resolves fixture paths.
 import { relative, resolve } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Keep syntax/order fixtures outside the shared checkout.
+import { tmpdir } from 'node:os';
 import { describe, expect, it } from 'vitest';
 import { askExists, debugFlags, declaredDebugRows, validateFlags } from '../lint/debug-flags.mjs';
 import { legacyInventory, registeredLegacyFile } from '../scripts/legacy-shards.mjs';
@@ -62,4 +64,40 @@ describe('Debug flag ownership and review dates', () => {
     expect(validateFlags([{ ...row, reviewBy: '2026-02-30' }], options).errors).toHaveLength(1);
     expect(validateFlags([row, row], options).errors).toHaveLength(1);
   });
+});
+
+it('preserves whole-program aliases, definitions and declared-before-authored row order', () => {
+  const root=mkdtempSync(resolve(tmpdir(), 'debug-syntax-order-'));
+  try {
+    mkdirSync(resolve(root, 'src'));
+    const file=resolve(root, 'src/rows.ts');
+    writeFileSync(file, `ctx.debugRow(late);
+const DEBUG_ROWS=[{id:'table',ask:'E435',reviewBy:'2026-12-01'}];
+compile({debug:[{id:'declared',ask:'E435',reviewBy:'2026-12-01'}]});
+choose(ctx,{id:'director',ask:'E435',reviewBy:'2026-12-01'});
+import{parsePlumbing as compile,directorVariant as choose}from'fixture';
+const late={id:'late',ask:'E435',reviewBy:'2026-12-01'};
+adapters.debugRow(opaque);
+ctx.debugRow({id:'last',ask:'E435',reviewBy:'2026-12-01'});`);
+    const rows=debugFlags(root);
+    expect(rows.map(row => row.id)).toEqual(['declared','director','late','table','last']);
+    expect(rows.every(row => row.file === file)).toBe(true);
+    expect(debugFlags(root, resolve(root, 'cache'))).toEqual(rows);
+    expect(debugFlags(root, resolve(root, 'cache'))).toEqual(rows);
+  } finally {rmSync(root, {recursive:true, force:true});}
+});
+
+it('retains syntax, opaque-array and original first-error refusals', () => {
+  const root=mkdtempSync(resolve(tmpdir(), 'debug-syntax-refusal-'));
+  try {
+    mkdirSync(resolve(root, 'src'));const file=resolve(root, 'src/rows.ts');
+    writeFileSync(file, 'const broken = ;');
+    expect(() => debugFlags(root)).toThrow('Cannot inventory Debug rows');
+    writeFileSync(file, 'ctx.debugRow(opaque); parsePlumbing({debug:[...unknown]});');
+    expect(() => debugFlags(root)).toThrow('Declared Debug rows must be a literal array');
+    writeFileSync(file, 'const DEBUG_ROWS=[...unknown];');
+    expect(() => debugFlags(root)).toThrow('DEBUG_ROWS must be a literal row array');
+    writeFileSync(file, 'ctx.debugRow(opaque);');
+    expect(() => debugFlags(root)).toThrow('Unresolvable Debug row');
+  } finally {rmSync(root, {recursive:true, force:true});}
 });
