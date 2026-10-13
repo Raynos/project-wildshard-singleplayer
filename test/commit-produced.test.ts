@@ -1,0 +1,41 @@
+import { expect, it } from 'vitest';
+import { recordCommitProduced, verifyCommitProduced } from '../scripts/commit-produced.mjs';
+import { precommitGenerated } from '../scripts/precommit-generated.mjs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Check the actual private-tree admission in an owned Git fixture.
+import { execFileSync } from 'node:child_process';
+// oxlint-disable-next-line import/no-nodejs-modules -- Only fixture-owned files are written and removed.
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Place the isolated repository outside main.
+import { tmpdir } from 'node:os';
+// oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture paths.
+import { dirname, join } from 'node:path';
+
+it('admits only produced outputs of the exact source/index/parent and keeps source guards intact', () => {
+  const root = mkdtempSync(join(tmpdir(), 'commit-produced-'));
+  const git = (...args:string[]) => execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
+  const manifest = 'test/proof/fixture/checkpoints/manifest.json';
+  const put = (file:string, value:string) => {mkdirSync(dirname(join(root,file)),{recursive:true});writeFileSync(join(root,file),value);};
+  try {
+    git('init','-q'); git('config','core.hooksPath','/dev/null');
+    put('src/game/source.ts','before'); put('scripts/generation-jobs.json','{"jobs":[]}');
+    put(manifest,JSON.stringify({inputs:'abc1',outcome:'unchanged'},null,2));
+    git('add','.'); git('-c','user.name=Fixture','-c','user.email=fixture@example.com','commit','-qm','fixture');
+    const base = git('rev-parse','HEAD');
+    put('src/game/source.ts','after'); git('add','src/game/source.ts');
+    const source = git('write-tree');
+    put(manifest,JSON.stringify({inputs:'abc2',outcome:'unchanged'},null,2)); git('add',manifest);
+    expect(() => precommitGenerated(root)).toThrow('exact commit-time producer receipt');
+    recordCommitProduced(root,source,[manifest],base);
+    const produced = git('write-tree');
+    expect(verifyCommitProduced(root,produced,[manifest])).toBe(true);
+    expect(verifyCommitProduced(root,produced,['src/game/source.ts'])).toBe(false);
+    expect(() => precommitGenerated(root)).not.toThrow();
+    put('src/game/source.ts','foreign later edit'); git('add','src/game/source.ts');
+    expect(verifyCommitProduced(root,git('write-tree'),[manifest])).toBe(false);
+    expect(() => recordCommitProduced(root,source,[manifest,'src/game/source.ts'],base)).toThrow('cannot cover source');
+    git('read-tree',produced);
+    const next = git('-c','user.name=Fixture','-c','user.email=fixture@example.com','commit-tree',git('rev-parse',`${base}^{tree}`),'-p',base,'-m','fixture');
+    git('update-ref','HEAD',next,base);
+    expect(verifyCommitProduced(root,produced,[manifest])).toBe(false);
+  } finally {rmSync(root,{recursive:true,force:true});}
+});

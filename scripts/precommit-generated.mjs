@@ -7,6 +7,7 @@ import { isDeepStrictEqual } from 'node:util';
 import { GENERATED_FILES, builderGeneratedChanges, replaceDebt } from './generated-policy.mjs';
 import { isWitnessManifest, manifestOutcome } from './witness-manifests.mjs';
 import { bakeOutcome, isRecordedBake } from './bake-input-hashes.mjs';
+import { verifyCommitProduced } from './commit-produced.mjs';
 
 /** Check Git's current (including pathspec/private) index rather than another builder's disk files. */
 export function precommitGenerated(root = resolve(import.meta.dirname, '..')) {
@@ -24,8 +25,13 @@ export function precommitGenerated(root = resolve(import.meta.dirname, '..')) {
     const before = read(head, file), after = read('', file);
     try { return before !== '' && after !== '' && before !== after && bakeOutcome(before) === bakeOutcome(after); } catch { return false; }
   }));
-  if (inputOnly.length > 0 && process.env.WILDSHARD_GENERATED_SOURCE !== head) throw new Error(`Builders leave witness input hashes to scripts/push-main.sh, which re-records them on clean HEAD; drop the input-only refresh of ${inputOnly.join(', ')} from this commit (a behaviour change commits its rebaked payloads with the manifest)`);
   const changed = builderGeneratedChanges(paths, (file) => read(head, file), (file) => read('', file));
+  const produced = [...changed,...inputOnly,...bakeInputOnly];
+  if (produced.length > 0 && verifyCommitProduced(root,git(['write-tree']),produced)) {
+    for (const file of changed) if (file === 'lint/ratchet.json' && !isDeepStrictEqual(replaceDebt(JSON.parse(read(head,file)),{}),replaceDebt(JSON.parse(read('',file)),{}))) throw new Error('Commit-time generation cannot modify ratchet policy');
+    return;
+  }
+  if (inputOnly.length > 0 && process.env.WILDSHARD_GENERATED_SOURCE !== head) throw new Error(`Witness input refresh needs the exact commit-time producer receipt: ${inputOnly.join(', ')}`);
   if (changed.length === 0 && (process.env.WILDSHARD_GENERATED_SOURCE !== head || inputOnly.length === 0)) return;
   if (process.env.WILDSHARD_GENERATED_SOURCE !== head) throw new Error(`Builders commit source only; leave generated parts to scripts/push-main.sh: ${changed.join(', ')}`);
   if (paths.some((file) => !GENERATED_FILES.includes(file) && !inputOnly.includes(file) && !bakeInputOnly.has(file))) throw new Error('Regeneration may only commit generated outputs and witness input hashes');
