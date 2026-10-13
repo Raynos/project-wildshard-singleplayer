@@ -23,7 +23,8 @@ import * as v from 'valibot';
 import streamJson from '../data/streams.json' with { type: 'json' };
 import { SPRAY_ANCHORS, SPRAY_PROGRAMS } from '../runtime/looks/streamLook';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
+import { loadSiteTimbers } from './timberSites';
+import { pineModels } from './context';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -35,29 +36,8 @@ const num = v.pipe(v.number(), v.finite()), xyz = v.tuple([num, num, num]);
 const StreamRows = v.strictObject({ bin: v.string(), bytes: num, vertices: num, indices: num, wide: v.boolean(), plunge: xyz, faceFoot: xyz });
 /** the bake's rows, parsed strictly once */
 export const STREAM_ROWS = v.parse(StreamRows, streamJson);
-/** the bake's binary (`src/shards/pine-hollow/generators/bake-pine-streams.mjs`); listed in the boot's world reads (../boot/files.ts) */
-export const STREAM_BAKE_URL = '/assets/pine-hollow/baked/streams.bin';
 /** the spray's program rows, spliced with the fog GLSL (data/streamLook.ts) */
 const SPRAY_FAMILY = new ShaderFamily({ fog: fogGLSL }, SPRAY_PROGRAMS);
-
-/** the water mesh from the bake's blocks, as the builder finished it: its index, smoothed normals and bounds */
-export function streamGeometry(bytes: Uint8Array): THREE.BufferGeometry {
-  if (bytes.length !== STREAM_ROWS.bytes) throw new Error(`[streams] the bake holds ${String(bytes.length)} bytes, its rows ${String(STREAM_ROWS.bytes)}`);
-  const buffer = new ArrayBuffer(bytes.length); new Uint8Array(buffer).set(bytes);
-  const n = STREAM_ROWS.vertices, pad4 = (b: number): number => Math.ceil(b / 4) * 4;
-  let at = 0;
-  const floats = (count: number): Float32Array => { const a = new Float32Array(buffer, at, count); at += pad4(count * 4); return a; };
-  const pos = floats(n * 3), uv = floats(n * 2), aw = floats(n * 4);
-  const index = STREAM_ROWS.wide ? new Uint32Array(buffer, at, STREAM_ROWS.indices) : new Uint16Array(buffer, at, STREAM_ROWS.indices);
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  g.setAttribute('aWater', new THREE.Float32BufferAttribute(aw, 4));
-  g.setIndex(new THREE.BufferAttribute(index, 1));
-  g.computeVertexNormals();
-  g.computeBoundingSphere();
-  return g;
-}
 
 export class PineStreams {
   readonly group = new THREE.Group();
@@ -73,11 +53,15 @@ export class PineStreams {
 
   /** the water from its bake (a bake that fails to load is a page fault, `console.error`: the spray stands alone), the spray */
   async build(): Promise<this> {
-    const bytes = await fetchLaneBake(STREAM_BAKE_URL).catch((error: unknown) => { console.error('[pine-hollow] the baked streams did not load:', error); return null; });
-    if (bytes) {
+    const geometry = await loadSiteTimbers(pineModels(this.sky)).then(views => {
+      const original = views.get('pine-streams')?.geometry;
+      if (original === undefined) throw new Error('[streams] original water draw missing from admitted world');
+      return original;
+    }).catch((error: unknown) => { console.error('[pine-hollow] the baked streams did not load:', error); return null; });
+    if (geometry !== null) {
       // the gully's banks and the forest over them fill the low reflections (sin 0.3 ≈ 17°)
       const { material } = createWaterMaterial(this.sky, { skyline: null, forestSinEl: 0.3 });
-      const water = this.water = new THREE.Mesh(streamGeometry(bytes), material);
+      const water = this.water = new THREE.Mesh(geometry, material);
       water.name = 'creek-waterfall';
       water.receiveShadow = true;
       water.renderOrder = 6; // after the pond: the plunge ring lies on it

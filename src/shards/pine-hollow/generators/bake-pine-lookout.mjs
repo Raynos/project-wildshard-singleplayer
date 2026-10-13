@@ -35,7 +35,7 @@ export function pineTimberGround() { return readNativeTerrain(readFileSync(resol
 /** Write the admitted world tiles and Explorer library through the same confined launcher. */
 async function writeTimberWorld() {
   const crags = await bakeCragRows(), ground = pineTimberGround();
-  const baked = pineTimberWorldBake(ground.heightAt, root, { phone: { bin: crags.bins.phone, tiles: crags.rows.skin.phone.tiles }, desktop: { bin: crags.bins.desktop, tiles: crags.rows.skin.desktop.tiles } });
+  const baked = pineTimberWorldBake(ground.heightAt, root, { phone: { bin: crags.bins.phone, tiles: crags.rows.skin.phone.tiles }, desktop: { bin: crags.bins.desktop, tiles: crags.rows.skin.desktop.tiles } }, ground);
   const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer');
   if (piece === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
   const hash = createHash('sha256').update(piece.glb).digest('hex');

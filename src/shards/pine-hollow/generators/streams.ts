@@ -12,6 +12,7 @@ import { creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt } from '../behaviou
 import * as THREE from 'three';
 import { bake, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
+import { streamGeometry } from './streamCodec';
 
 /** Original renderer queries, supplied explicitly instead of installing a mutable page field. */
 export type PineStreamGround = Pick<NativeTerrainSource, 'heightAt' | 'normalAt'>;
@@ -179,15 +180,8 @@ export function bakePineStreams(ground: PineStreamGround): { bin: Uint8Array; ro
 
 /** Original positions, UVs, water shader channel and native smooth normals, in the original draw's frame. */
 export function pineStreamGeometry(ground: PineStreamGround): THREE.BufferGeometry {
-  const { bin, rows } = bakePineStreams(ground), buffer = Uint8Array.from(bin).buffer;
-  const n = rows.vertices, pos = new Float32Array(buffer, 0, n * 3), uv = new Float32Array(buffer, n * 12, n * 2);
-  const water = new Float32Array(buffer, n * 20, n * 4);
-  const index = rows.wide ? new Uint32Array(buffer, n * 36, rows.indices) : new Uint16Array(buffer, n * 36, rows.indices);
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  geometry.setAttribute('aWater', new THREE.Float32BufferAttribute(water, 4));
-  geometry.setIndex(new THREE.BufferAttribute(index, 1)); geometry.computeVertexNormals();
+  const { bin, rows } = bakePineStreams(ground);
+  const geometry = streamGeometry(bin, { ...rows, bytes: bin.length });
   geometry.computeBoundingBox(); geometry.computeBoundingSphere(); return geometry;
 }
 
