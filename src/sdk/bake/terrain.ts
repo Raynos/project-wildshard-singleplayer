@@ -1,5 +1,5 @@
 import { CELL_ABOVE, CELL_BELOW, CONTENT_CAPS } from '@wildshard/format/contentBounds';
-import { encodeTerrainTile, terrainTileCost, terrainTileHeight, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
+import { bilinearTerrainSamplers, encodeTerrainTile, terrainTileCost, terrainTileHeight, type TerrainTileData } from '@wildshard/format/terrainTileBytes';
 import { validateTerrainAssets } from '@wildshard/format/product';
 import { TerrainSchema, type ShardTerrain } from '@wildshard/format/terrain';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -25,6 +25,30 @@ export function readNativeTerrain(bytes: Uint8Array): NativeTerrainSource {
   if (grid === null || grid.heights.some(height => !Number.isFinite(height) || height < -CELL_BELOW || height > CELL_ABOVE)
     || (grid.undergrowth !== null && !Number.isFinite(grid.undergrowth.checksum.sum))) throw new Error('Invalid native terrain lattice');
   return { grid, ...bakedSamplers(grid) };
+}
+
+/** Original-lattice query metadata; no render or collision mesh is generated. */
+export interface QueryTerrainBakeOptions { normalEpsilon?: number; datum?: number; family?: string }
+/** One critical, charged WTT query root; its runtime owner keeps rendering and collision. */
+export interface BakedQueryTerrain {
+  terrain: ShardTerrain; files: Shardfile['files']; critical: string[]; assets: Map<string, Uint8Array>;
+}
+
+/** Encode the original native lattice directly, without sampling, patches, colours or render tiles.
+ * The query-only form requires runtime.binds terrain. Its compatibility collider reference names
+ * this same query root and never installs collision. Native placement logs are not query data. */
+export function bakeQueryTerrain(source: NativeTerrainSource, options: QueryTerrainBakeOptions = {}): BakedQueryTerrain {
+  const { grid } = source;
+  if ((grid.res !== 256 && grid.res !== 257) || grid.size !== 500) throw new Error('Native query terrain needs its original 500 m grid');
+  const data: TerrainTileData = { resolution: grid.res, x: -grid.size / 2, z: -grid.size / 2,
+    size: grid.size, heights: grid.heights, splat: grid.splat };
+  const bytes = encodeTerrainTile(data), hash = contentHash(bytes);
+  const terrain = v.parse(TerrainSchema, { version: 1, form: 'query', family: options.family ?? 'toon', tiles: [],
+    sampling: { law: 'bilinear', file: hash, normalEpsilon: options.normalEpsilon ?? 0.6, datum: options.datum ?? 0 } });
+  const result: BakedQueryTerrain = { terrain, files: [{ hash, kind: 'binary', compressed: bytes.length,
+    ...terrainTileCost(data), dependencies: [], critical: true }], critical: [hash], assets: new Map([[hash, bytes]]) };
+  bilinearTerrainSamplers(data, options.normalEpsilon ?? 0.6, options.datum ?? 0);
+  return result;
 }
 
 /** An ordered build-time patch, blended across a circular footprint; it changes rendering and collision together. */

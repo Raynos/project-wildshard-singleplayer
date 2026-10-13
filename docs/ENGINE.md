@@ -3702,3 +3702,13 @@ The executed admission and exact-query example is
 copying or adopting it into an existing render owner, the caller forgets
 the temporary assembler registration. The scope disposes draws that
 have not been adopted.
+
+`bakeQueryTerrain(source, { normalEpsilon: 0.6, datum: -0.8 })` in
+`@wildshard/sdk/bake/terrain` encodes the original 256/257 native lattice
+as one charged critical WTT root. It evaluates no landscape, performs no
+resampling and creates no render tiles or colliders. Its query-only
+terrain requires `runtime.binds: ['terrain']`; the runtime keeps its
+existing renderer and collision authority. The compatibility collider
+reference names that same query root. Heights and splat bytes remain
+exact, and native placement logs stay outside the query payload. Omitted
+use leaves existing `bakeTerrain` products unchanged.
