@@ -5,7 +5,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Group, Vector3, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, DECK, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, STEP, SUNREST, UPDRAFT, VANES, WINCH, WINCH_HOUSE, type Span } from '../data/layout';
+import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, MILL, NOTES, PINES, SPANS, STEP, SUNREST, UPDRAFT, VANES, WINCH, WINCH_HOUSE, type Span } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
@@ -23,7 +23,6 @@ import { skyline } from './distant';
 import { PALETTE, flat, hoverBridge, pines, ropeBridge, vane, windmill, winch } from './shapes';
 import { bookStand } from './bookStand';
 import { BOOK_STAND } from '../data/bookStand';
-import { MILL_DRUM } from './mill';
 import { KEEPER_STAND } from '../quest/keeper';
 import { ownPrimitives } from './resources';
 import { crownStorm, type CrownStorm } from './storm';
@@ -48,31 +47,30 @@ export const spanPitch = (span: Span): number => Math.atan2(span.y1 - span.y, Ma
 /** The updraft's climb (radians; under the 40° walk limit) and its run along the slope. */
 export const UPDRAFT_ANGLE = spanPitch(UPDRAFT);
 export const UPDRAFT_LENGTH = spanLength(UPDRAFT);
-/** A baked row's box colliders (data/*.generated.json, compiled by the shard's generators), by piece id. */
-interface BakedBox { readonly kind: string; readonly x: number; readonly y: number; readonly z: number; readonly hx: number; readonly hy: number; readonly hz: number; readonly yaw?: number; readonly rot?: { readonly x: number; readonly y: number; readonly z: number; readonly w: number }; readonly surface: string }
-function bakedColliders(rows: readonly { readonly id: string; readonly colliders: readonly BakedBox[] }[], id: string, surface: 'wood' | 'grass'): ColliderDesc[] {
+/** A baked row's colliders (data/*.generated.json, compiled by the shard's generators): boxes and hulls, by piece id. */
+interface BakedCollider {
+  readonly kind: string; readonly x: number; readonly y: number; readonly z: number; readonly surface: string;
+  readonly hx?: number; readonly hy?: number; readonly hz?: number; readonly yaw?: number;
+  readonly rot?: { readonly x: number; readonly y: number; readonly z: number; readonly w: number }; readonly points?: readonly number[];
+}
+const SURFACES = ['wood', 'grass', 'stone'] as const;
+/** The row's colliders; `surface` (when set) is the one surface every collider must have. */
+function bakedColliders(rows: readonly { readonly id: string; readonly colliders: readonly BakedCollider[] }[], id: string, surface?: typeof SURFACES[number]): ColliderDesc[] {
   const row = rows.find((p) => p.id === id);
   if (row === undefined) throw new Error(`far-reach: no baked colliders for ${id}`);
   return row.colliders.map((c): ColliderDesc => {
-    if (c.kind !== 'box' || c.surface !== surface) throw new Error(`far-reach: ${id} holds a ${c.kind} ${c.surface} collider`);
-    return c.rot === undefined ? { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, yaw: c.yaw ?? 0, surface }
-      : { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, rot: { x: c.rot.x, y: c.rot.y, z: c.rot.z, w: c.rot.w }, surface };
+    const own = SURFACES.find((k) => k === c.surface);
+    if (own === undefined || (surface !== undefined && own !== surface)) throw new Error(`far-reach: ${id} holds a ${c.kind} ${c.surface} collider`);
+    if (c.kind === 'hull' && c.points !== undefined) return { kind: 'hull', x: c.x, y: c.y, z: c.z, points: new Float32Array(c.points), surface: own };
+    if (c.kind !== 'box' || c.hx === undefined || c.hy === undefined || c.hz === undefined) throw new Error(`far-reach: ${id} holds a ${c.kind} collider`);
+    return c.rot === undefined ? { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, yaw: c.yaw ?? 0, surface: own }
+      : { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, rot: { x: c.rot.x, y: c.rot.y, z: c.rot.z, w: c.rot.w }, surface: own };
   });
 }
 /** The rope spans' sagged decks and rails, the hover decks, the updraft and the fallen bridge (generators/bridgeColliders.ts). */
 const spanColliders = (id: string): ColliderDesc[] => bakedColliders(BRIDGE_PHYSICS, id, 'wood');
-/**
- * A vane's colliders, measured off the generated shrine (C6, fitted 3.6 m tall on its footing): the stone plinth
- * (0.9 × 0.85 m up to 0.8 m), the shrine box above it (1.25 × 0.6 m to 1.5 m), then the 0.3 m post to the rotor.
- */
-export function vaneColliders(x: number, z: number, y: number): ColliderDesc[] {
-  return [
-    boxDesc({ x, z: z - 0.02, hw: 0.45, hd: 0.43, rot: 0, yBottom: y, yTop: y + 0.8 }, 'stone'),
-    boxDesc({ x: x + 0.04, z: z - 0.03, hw: 0.62, hd: 0.3, rot: 0, yBottom: y + 0.8, yTop: y + 1.5 }, 'stone'),
-    boxDesc({ x, z, hw: 0.15, hd: 0.15, rot: 0, yBottom: y + 1.5, yTop: y + 3.2 }, 'wood'),
-  ];
-}
-
+/** The windmill (its tower and rock drum), the winch, the notes and the vanes (generators/physicsPlacements.ts). */
+const propColliders = (id: string): ColliderDesc[] => bakedColliders(PLACEMENTS, id);
 export interface BuiltWorld {
   /** The hover decks' shared material: the plugin brightens it while the player rides the board. */
   readonly hoverDeck: MeshStandardMaterial;
@@ -102,15 +100,6 @@ export interface BuiltWorld {
 // (round 13, seat A 5: 'the broad faceted apron below the deck': the code band was 3.2 m, 1.6 on the mill isle; the
 // modelled rock now starts just under the turf)
 const CUT = ISLE_KEEL_CUT;
-/** The rock drum under the mill (mill.ts MILL_DRUM): a convex ring of stone, MILL_DRUM.h proud of the deck. */
-function millDrum(): ColliderDesc {
-  const n = MILL_DRUM.sides, points = new Float32Array(n * 2 * 3);
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * Math.PI * 2, x = Math.cos(a) * MILL_DRUM.r, z = Math.sin(a) * MILL_DRUM.r;
-    points.set([x, -0.2, z, x, MILL_DRUM.h, z], i * 6);
-  }
-  return { kind: 'hull', x: MILL.x, y: DECK, z: MILL.z, points, surface: 'stone' };
-}
 /**
  * The world, with SF49-g's four Rising Islet entries (G183; the only way in since G194), built a piece (or a few small
  * ones) per task (op-hitch41: a grid cell builds it on the road, in play, where the whole build was one 366 ms task on
@@ -228,18 +217,18 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>):
   await pause();
   const mill = windmill(); mill.group.position.set(MILL.x, 30, MILL.z); mill.group.rotation.y = MILL.yaw; root.add(mill.group);
   ctx.piece({ id: 'far.windmill', name: STRINGS.mill, category: 'buildings', file: FILE, object: mill.group,
-    colliders: [boxDesc({ x: MILL.x, z: MILL.z, hw: 2.3, hd: 2.3, rot: -MILL.yaw, yBottom: 30, yTop: 39 }, 'stone'), millDrum()], surface: 'stone' });
+    colliders: propColliders('far.windmill'), surface: 'stone' });
 
   await pause();
   const drum = winch(); drum.position.set(WINCH.x, WINCH.y, WINCH.z); root.add(drum);
   ctx.piece({ id: 'far.winch', name: STRINGS.winch, category: 'props', file: FILE, object: drum,
-    colliders: [boxDesc({ x: WINCH.x, z: WINCH.z, hw: 0.8, hd: 0.2, rot: 0, yBottom: WINCH.y, yTop: WINCH.y + 1.2 }, 'wood')], surface: 'wood' });
+    colliders: propColliders('far.winch'), surface: 'wood' });
   const winchAt = new Vector3(WINCH.x, WINCH.y + 1.2, WINCH.z);
   const handle: Interactable = { label: STRINGS.turnWinch, position: winchAt, radius: 3, onInteract: () => { if (!state.raised) state.raising = true; } };
 
   const page = bookStand(false); page.position.set(NOTES.x, NOTES.y, NOTES.z); page.rotation.y = 0.6; root.add(page);
   ctx.piece({ id: 'far.notes', name: STRINGS.notesName, category: 'props', file: FILE, object: page,
-    colliders: [boxDesc({ x: NOTES.x, z: NOTES.z, hw: 0.3, hd: 0.3, rot: 0.6, yBottom: NOTES.y, yTop: NOTES.y + 1.1 }, 'wood')], surface: 'wood' });
+    colliders: propColliders('far.notes'), surface: 'wood' });
   // the keeper's own book stand and lantern beside him at the spawn (E399, mockup B)
   const stand = bookStand(true); stand.position.set(KEEPER_STAND.x, SUNREST.y, KEEPER_STAND.z); stand.rotation.y = KEEPER_STAND.yaw; root.add(stand);
   ctx.piece({ id: 'far.keeper.stand', name: STRINGS.notesName, category: 'props', file: FILE, object: stand,
@@ -252,7 +241,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>):
   for (const v of VANES) {
     const built = vane(); built.group.position.set(v.x, v.y, v.z); root.add(built.group);
     ctx.piece({ id: `far.vane.${v.id}`, name: STRINGS.vane, category: 'props', file: FILE, object: built.group,
-      colliders: vaneColliders(v.x, v.z, v.y), surface: 'wood' });
+      colliders: propColliders(`far.vane.${v.id}`), surface: 'wood' });
     vanes.push({ id: v.id, at: new Vector3(v.x, v.y + 3.3, v.z), rotor: built.rotor });
     await pause();
   }

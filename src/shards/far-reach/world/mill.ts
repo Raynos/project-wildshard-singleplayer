@@ -43,9 +43,6 @@ export function setMillTextures(t: { stone: Texture | null; canvas: Texture | nu
 }
 function painted(t: Texture | null, apply: (t: Texture) => void): void { if (t !== null) apply(t); }
 
-/** The stone drum the tower stands on (E410, plan row 6: mockups C and proposal B stand the mill on a rock outcrop): its
- * radius and height over the deck; world/build.ts gives it a collider, so you walk round it, not through it. */
-export const MILL_DRUM = { r: 3.0, h: 1.2, sides: 16 } as const;
 
 interface Made { readonly meshes: Mesh[]; readonly hubAt: { y: number; z: number } }
 /**

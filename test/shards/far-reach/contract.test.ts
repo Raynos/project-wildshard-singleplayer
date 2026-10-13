@@ -34,7 +34,8 @@ import { VANE_HUB } from '../../../src/shards/far-reach/quest/vanes';
 import { DIVE } from '../../../src/shards/far-reach/runtime/strikes';
 import { DECK, HOVER_GAP, ISLES, SPANS, UPDRAFT, VANES, FALLEN_BRIDGE } from '../../../src/shards/far-reach/data/layout';
 import { apothem } from '../../../src/shards/far-reach/layout';
-import { UPDRAFT_ANGLE, vaneColliders } from '../../../src/shards/far-reach/world/build';
+import { UPDRAFT_ANGLE } from '../../../src/shards/far-reach/world/build';
+import { skyPhysicsPlacements } from '../../../src/shards/far-reach/generators/physicsPlacements';
 import { SKY_GOAT } from '../../../src/shards/far-reach/species/skyGoat';
 import { warmCoat } from '../../../src/shards/far-reach/generators/creatures';
 import { REWARD } from '../../../src/shards/far-reach/quest/install';
@@ -263,8 +264,8 @@ describe('Sky Reach contract', () => {
     const c = g.getAttribute('color');
     expect(c.getZ(0)).toBeLessThan(c.getY(0)); expect(c.getX(0)).toBeGreaterThan(0.22);
     expect(c.getX(1)).toBeLessThan(0.02);
-    const [plinth] = vaneColliders(0, 0, DECK);
-    // E388: no size bar here. The ≥ 0.45 / 0.4 m restated build.ts's own constants; build.ts measured them off the generated
+    const [plinth] = skyPhysicsPlacements().find((row) => row.id === `far.vane.${VANES[0]?.id ?? ''}`)?.colliders ?? [];
+    // E388: no size bar here. The ≥ 0.45 / 0.4 m restated the generator's own constants; it measured them off the generated
     // shrine (wind-vane.glb fitted 3.6 m tall: below 0.8 m it spans ±0.458 m in x and −0.424…0.412 m in z).
     expect(plinth?.kind).toBe('box');
   });

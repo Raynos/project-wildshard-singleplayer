@@ -88,6 +88,9 @@ export const FALLEN_BRIDGE: Span = along('far.bridge.crown', 'rope', STEP, CROWN
 export const WINCH = { x: STEP.x + 3.2, z: STEP.z - apothem(STEP) + 2.2, y: HIGH };
 /** The windmill (loop 5: east of the isle's middle, off the high-step view's line; its sails face the spawn; round 2: back from the h2 view so the sails fit). */
 export const MILL = { x: 0, z: WINDMILL.z - 6, yaw: 0 };
+/** The stone drum the tower stands on (E410, plan row 6: mockups C and proposal B stand the mill on a rock outcrop): its
+ * radius and height over the deck and its sides; generators/physicsPlacements.ts collides it, so you walk round it. */
+export const MILL_DRUM = { r: 3.0, h: 1.2, sides: 16 } as const;
 /** The bridge-keeper's notes (quest step 1), on the broken-bridge isle. */
 export const NOTES = { x: KEEPER.x - 3, z: KEEPER.z - 2, y: KEEPER.y };
 /** The three wind vanes (quest step 3): GUST each one to set it turning. */

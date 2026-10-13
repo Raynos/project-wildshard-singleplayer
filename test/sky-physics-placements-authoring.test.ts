@@ -6,14 +6,14 @@ import { discoverGeneration } from '../scripts/generate.mjs';
 import { skyPhysicsPlacements } from '../src/shards/far-reach/generators/physicsPlacements';
 import native from '../src/shards/far-reach/runtime/physics.baked.json' with { type: 'json' };
 
-it('compiles the exact sixteen native island/lip placements without running a world, model or registry constructor', () => {
+it('compiles the exact native island/lip/prop placements without running a world, model or registry constructor', () => {
   const rows = skyPhysicsPlacements(), ids = new Set(rows.map(row => row.id));
-  expect(rows).toHaveLength(16);
+  expect(rows).toHaveLength(22);
   expect(rows).toEqual(native.pieces.filter(piece => ids.has(piece.id)));
   // Preserve the existing byte transport's property order as well as its geometry and ownership fields.
   expect(JSON.stringify(rows)).toBe(JSON.stringify(native.pieces.filter(piece => ids.has(piece.id))));
   expect(rows.filter(row => row.category === 'ground')).toHaveLength(12);
-  expect(rows.reduce((sum, row) => sum + row.colliders.length, 0)).toBe(76);
+  expect(rows.reduce((sum, row) => sum + row.colliders.length, 0)).toBe(89);
   expect(rows.filter(row => row.category === 'ground').every(row => row.colliders.length === 6)).toBe(true);
   expect(rows.filter(row => row.id.startsWith('far.islet.lip.')).map(row => row.id)).toEqual([
     'far.islet.lip.north', 'far.islet.lip.east', 'far.islet.lip.south', 'far.islet.lip.west',
@@ -38,6 +38,6 @@ it('keys a complete portable component without runtime, legacy, generated seeds 
   expect(job.inputRoots.filter(file => !isAuthoringInput(file, 'far-reach') && !['package.json', 'pnpm-lock.yaml'].includes(file))).toEqual([]);
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['src/shards/far-reach/data/physicsPlacements.generated.json']);
-  expect(job.buildOutputs).toEqual({ 'src/shards/far-reach/data/physicsPlacements.generated.json': 'cc7ce2378d56f43ad1b40f9ab90518bc618110494de9a2456628070d88a68473' });
+  expect(job.buildOutputs).toEqual({ 'src/shards/far-reach/data/physicsPlacements.generated.json': '12f4de8259d2a8589352afe3229cd9f90f9f4e94d09ba845dcb420f255b849b4' });
   expect(job.outputs).not.toContain('src/shards/far-reach/runtime/physics.baked.json');
 });
