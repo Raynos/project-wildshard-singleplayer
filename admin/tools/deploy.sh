@@ -38,7 +38,11 @@ done
 # the Progress card: every committed effort recount folder (the newest is read), and what the share script measures
 # (scripts/admin-data.mjs SHARE_INPUTS: it runs `node scripts/shard-platform.mjs --json` inside this export)
 while IFS= read -r folder; do reports+=("$folder"); done < <(git ls-tree -d --name-only "$full" -- progress/shard-platform/ | grep '^progress/shard-platform/effort-recount-' || true)
-share=(src scripts lint public music sfx pnpm-lock.yaml pnpm-workspace.yaml test)
+share=(src scripts lint public pnpm-lock.yaml pnpm-workspace.yaml test)
+# Retired content roots may be absent; include them only from the resolved commit.
+for optional in music sfx; do
+  if git cat-file -e "$full:$optional" 2>/dev/null; then share+=("$optional"); fi
+done
 git archive "$full" admin tsconfig.json package.json "${share[@]}" "${reports[@]}" | tar -x -C "$work"
 node scripts/link-node-modules.mjs "$repo" "$work"
 
