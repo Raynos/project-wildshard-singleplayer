@@ -114,7 +114,9 @@
     "./modes": "./modes.ts",
     "./bake/navigation": "./bake/navigation.ts",
     "./bake": "./bake.ts",
-    "./bake/navigationAsset": "./bake/navigationAsset.ts"
+    "./bake/navigationAsset": "./bake/navigationAsset.ts",
+    "./productOutput": "./productOutput.ts",
+    "./projectMap": "./projectMap.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
@@ -597,6 +599,14 @@
       "./bake/navigationAsset": {
         "types": "./dist/types/sdk/bake/navigationAsset.d.ts",
         "default": "./dist/bake/navigationAsset.js"
+      },
+      "./productOutput": {
+        "types": "./dist/types/sdk/productOutput.d.ts",
+        "default": "./dist/productOutput.js"
+      },
+      "./projectMap": {
+        "types": "./dist/types/sdk/projectMap.d.ts",
+        "default": "./dist/projectMap.js"
       }
     }
   }

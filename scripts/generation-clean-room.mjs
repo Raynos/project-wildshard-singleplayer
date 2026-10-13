@@ -49,7 +49,7 @@ export async function cleanRoomGeneration(root, options) {
     const discovery = discoverGeneration(tree);
     if (options.jobIds?.some(id => !discovery.jobs.some(job => job.id === id))) throw new Error('Unknown clean-room job');
     report.unregistered = discovery.unregistered;
-    const retained = new Map(discovery.jobs.map(job => [job.id, Object.fromEntries(job.outputs.map(file => [file, sha(tree, file) ?? job.buildOutputs?.[file] ?? null]))]));
+    const retained = new Map(discovery.jobs.map(job => [job.id, Object.fromEntries(job.outputs.map(file => [file, sha(tree, file) ?? job.buildOutputs?.[file] ?? job.comparisonOutputs?.[file] ?? null]))]));
     removeTrusted(resolve(tree, 'src'), 'src', report.removed);
     // Delete ALL generated outputs before the first producer: one job cannot consume another job's retained bytes.
     for (const job of discovery.jobs) for (const file of job.outputs) rmSync(resolve(tree, file), {force: true});

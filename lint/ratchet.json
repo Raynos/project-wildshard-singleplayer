@@ -269,7 +269,6 @@
     "src/sdk/phasedBoss.ts": 9,
     "src/sdk/playerModeData.ts": 1,
     "src/sdk/questGraph.ts": 2,
-    "src/sdk/rows.ts": 2,
     "src/sdk/runtime/audio/combatCues.ts": 1,
     "src/sdk/runtime/audio/silentScore.ts": 1,
     "src/sdk/runtime/audio/weaponVoices.ts": 3,

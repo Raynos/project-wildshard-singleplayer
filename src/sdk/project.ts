@@ -7,8 +7,8 @@ import { resolve, sep } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { build } from 'vite';
 import { parseShardfile, type Shardfile } from './shardfile';
-import { validationRevision, validationSourceBytes, preflightAssetGraph, MemoryAdmission } from "@wildshard/format/product";
-import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
+import { preflightAssetGraph, MemoryAdmission } from "@wildshard/format/product";
+import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
 import { preflightShardfile } from '@wildshard/format/preflight';
 
 import { readBoundedFile } from './sourceReader';
@@ -16,7 +16,7 @@ import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 
 import { projectPerformancePolicy } from './performancePolicy';
 import { checkProjectRuntime } from './runtimePerformance';
-import { performanceReport, performanceReportLines, performanceTargetIssues } from './reportCard';
+import { admitProduct, assertProductTargets, writeProduct } from './productOutput';
 import { bakeAuthoredWorld } from './bake/authoredWorld';
 import { parseWorldSource } from './worldSource';
 import { compileBehaviourSource } from './behaviourSource';
@@ -31,17 +31,10 @@ export function contentHash(bytes: Uint8Array): string { return hashImmutableByt
 
 /** Validate graph closure costs and actual bytes through the same admission used by the browser loader. */
 export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint8Array>, project?: string): Shardfile {
-  const source = parseShardfile(input), policy = projectPerformancePolicy(project, source);
-  preflightDeclaredCosts(source, offlineMemory(policy));
-  enforceTargets(source, policy);
-  return validateShardfileAssets(source, assets, contentHash, offlineMemory(policy));
+  const source = parseShardfile(input);
+  return admitProduct(source, assets, projectPerformancePolicy(project, source));
 }
 function offlineMemory(policy: 'warn' | 'refuse'): MemoryAdmission | undefined { return policy === 'warn' ? new MemoryAdmission(() => true) : undefined; }
-function enforceTargets(source: Shardfile, policy: 'warn' | 'refuse'): void {
-  if (!performanceTargetIssues(source, policy).some(issue => issue.severity === 'refusal')) return;
-  const unmeasured = { scripts: { p95Micros: 0, maxMicros: 0, samples: 0 }, fuel: { p95: 0, max: 0, samples: 0 } };
-  throw new Error(performanceReportLines(performanceReport(source, unmeasured, policy)).join('\n'));
-}
 
 async function projectModule(project: string): Promise<{ shard: Shardfile; commons: unknown; baked?: ReadonlyMap<string, Uint8Array> }> {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false, lib: { entry: resolve(project, 'shard.config.ts'), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'] } } });
@@ -105,7 +98,7 @@ function pinnedCommons(input: unknown, source: Shardfile, project: string): Read
 export function projectAssets(project: string, shard: Shardfile, layout: 'project' | 'product' = 'project', pinned?: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Array> {
   preflightShardfile(shard); preflightAssetGraph(shard);
   preflightDeclaredCosts(shard, offlineMemory(projectPerformancePolicy(project, shard)));
-  enforceTargets(shard, projectPerformancePolicy(project, shard));
+  assertProductTargets(shard, projectPerformancePolicy(project, shard));
   const read = (hash: string, size: number, folder: string): Uint8Array => {
     const bytes = pinned?.get(hash) ?? readBoundedFile(resolve(project, layout === 'project' ? folder : '.', hash), size);
     if (bytes.length !== size) throw new Error('Project asset differs from its declared wire size'); return bytes;
@@ -123,19 +116,10 @@ export async function buildProject(project: string, output?: string, options: { 
   // build` asks for them; the first-party product builds keep theirs in the repo bake until the grid reads `near`)
   // a static import: the author CLI must bundle to one module (scripts/wildshard.mjs); the bakers' closure stays
   // renderer-free (the Node sim proofs import this module under the renderer-denying loader)
-  const shard = validateProject(options.placeholders === true ? await projectPlaceholders(loaded.shard, assets) : loaded.shard, assets, project);
+  let shard = validateProject(options.placeholders === true ? await projectPlaceholders(loaded.shard, assets) : loaded.shard, assets, project);
   await options.admit?.(shard, assets, projectPerformancePolicy(project, shard));
   const destination = output ?? resolve(project, 'public/shardfiles', shard.identity.slug);
-  shard.files.sort((a, b) => a.hash.localeCompare(b.hash)); shard.tiles.sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);
-  mkdirSync(destination, { recursive: true });
-  const emitted = new Set<string>();
-  for (const [ref, bytes] of assets) {
-    const hash = ref.replace('commons:', ''); if (emitted.has(hash)) continue;
-    writeFileSync(resolve(destination, hash), bytes); emitted.add(hash);
-  }
-  writeFileSync(resolve(destination, 'shard.json'), canonicalJson(shard));
-  // Informational for arbitrary SDK products; the first-party client pins its own build's receipts.
-  writeFileSync(resolve(destination, 'validation.json'), canonicalJson({ revision: validationRevision(), sourceHash: contentHash(validationSourceBytes(shard)), worst: preflightDeclaredCosts(shard, offlineMemory(projectPerformancePolicy(project, shard))).worst }));
+  shard = writeProduct(shard, assets, destination, projectPerformancePolicy(project, shard));
   const directory = import.meta.dirname;
   const clientFolder = options.devserver === true ? 'client-devserver' : 'client';
   const client = options.client === null ? undefined : options.client ?? [resolve(directory, clientFolder), resolve(directory, 'dist', clientFolder)].find((path) => existsSync(resolve(path, 'index.html')));

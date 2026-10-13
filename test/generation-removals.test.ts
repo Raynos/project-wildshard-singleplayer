@@ -60,6 +60,7 @@ it('refuses missing, wrong or changed predecessor hashes and removed producer ow
     for(const after of [f.component,{...f.component,buildOutputs:{[output]:'0'.repeat(64)}},{...f.component,shard:'different',buildOutputs:{[output]:digest}}]) expect(()=>planGenerationRemovals([f.component],[after,f.product],[output],()=>digest)).toThrow(/hash|shard-owned/u);
     expect(()=>planGenerationRemovals([f.component],[f.product],[output],()=>digest)).toThrow('shard-owned');
     expect(()=>planGenerationRemovals([f.component],[{...f.component,buildOutputs:{[output]:digest}}],[output],()=>digest)).toThrow('complete shard.json producer');
+    expect(()=>planGenerationRemovals([f.component],[{...f.component,buildOutputs:{[output]:digest}},{...f.product,comparisonOutputs:Object.fromEntries(f.product.outputs.map(file=>[file,digest]))}],[output],()=>digest)).toThrow('complete shard.json producer');
     for(const restriction of [{platform:'darwin' as const},{browser:true},{preview:true},{capture:true},{recordedInputs:true},{seedOutputs:[output]}]) expect(()=>planGenerationRemovals([f.component],[{...f.component,...restriction,buildOutputs:{[output]:digest}},f.product],[output],()=>digest)).toThrow('cold build-time');
   } finally {f.close();}
 });

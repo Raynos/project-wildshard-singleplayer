@@ -3724,3 +3724,20 @@ cull the actual geometry. Admission checks transformed triangle bytes
 against both the allowance and the declared draw bounds. Collider bounds
 and physics are unaffected. Reconstruct each original source draw through
 the existing whole-geometry reader; do not draw its subsets separately.
+
+### Author-only complete product jobs (SF87)
+
+`@wildshard/sdk/productOutput` shares deterministic admission and emission
+with `wildshard build`: `admitProduct` checks actual immutable asset bytes
+and costs; `assertProductTargets` applies the same target policy;
+`writeProduct` writes canonical `shard.json`, every charged asset, and an
+informational validation receipt. It reads no config, runtime or retained
+product. `@wildshard/sdk/projectMap` supplies `packProjectMap` and its
+`ProjectMap` input to retain the exact bounded map raster in the library.
+
+A registered complete product job lists `shard.json` and every charged
+asset as outputs. Its `comparisonOutputs` pins are report-only: clean-room
+CI removes runtime/legacy directories and generated outputs, then compares
+all cold bytes. These pins never activate `prepareGeneration`, restore an
+output, or authorize a tracked-output removal. Promotion to `buildOutputs`
+remains a separate G318 change, requiring the complete product fixtures.

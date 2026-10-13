@@ -8,7 +8,7 @@ import { tmpdir } from 'node:os';
 import { dirname, resolve as absolutePath } from 'node:path';
 import { expect, it } from 'vitest';
 import { cleanRoomGeneration } from '../scripts/generation-clean-room.mjs';
-import type { ShardGenerationJob } from '../scripts/generate.mjs';
+import { generateShardJob, prepareGeneration, type ShardGenerationJob } from '../scripts/generate.mjs';
 
 function fixture(change?:(job:ShardGenerationJob,put:(file:string,text:string)=>void)=>void):{root:string;pin:string;job:ShardGenerationJob;close:()=>void} {
   const root = realpathSync(mkdtempSync(absolutePath(tmpdir(),'clean-room-test-')));
@@ -78,4 +78,25 @@ it('refuses an unknown selected job instead of returning empty evidence',async()
   const f=fixture();
   try {await expect(cleanRoomGeneration(f.root,{pin:f.pin,jobIds:['missing']})).rejects.toThrow('Unknown clean-room job');}
   finally {f.close();}
+});
+
+it('compares an absent report-only output without restoring it or activating its job',async()=>{
+  const f=fixture((job)=>{job.comparisonOutputs={'public/out/value.bin':'0'.repeat(64)};});
+  try {
+    const report=await cleanRoomGeneration(f.root,{pin:f.pin});
+    expect(report.jobs[0]?.status).toBe('failed');
+    expect(report.jobs[0]?.reasons.join('\n')).toContain('Comparison output hash differs');
+    expect(readFileSync(absolutePath(f.root,'public/out/value.bin'),'utf8')).toBe('exact bytes');
+  } finally {f.close();}
+});
+
+it('never activates or restores a comparison-only job',async()=>{
+  const f=fixture((job,put)=>{
+    job.comparisonOutputs={'public/out/value.bin':'0'.repeat(64)};
+    put(job.entry,"throw new Error('report-only producer must not be activated');");
+  });
+  try {
+    expect((await prepareGeneration(f.root)).jobs).toHaveLength(1);
+    await expect(generateShardJob(f.root,f.job,{restore:true})).rejects.toThrow('Comparison-only job cannot restore');
+  } finally {f.close();}
 });

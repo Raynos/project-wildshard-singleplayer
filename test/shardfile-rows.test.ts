@@ -1,7 +1,8 @@
+import { speciesResolver, simStrikes } from '@wildshard/game/plugin/brain';
 // oxlint-disable-next-line import/no-nodejs-modules -- Read committed JSON author rows.
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import { isJsonData, parseRows, speciesResolver, simStrikes } from '@wildshard/sdk/rows';
+import { isJsonData, parseRows } from '@wildshard/sdk/rows';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { declaredDay, declaredWeather, declaredCompendium, declaredLootPresentation } from '../src/game/shard/declaredRows';

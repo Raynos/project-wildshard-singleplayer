@@ -18,7 +18,7 @@ export function planGenerationRemovals(before, after, deleted, previousHash) {
     const expected = previousHash(file);
     if (job.buildOutputs?.[file] !== expected) throw new Error(`Removal needs the unchanged predecessor hash in buildOutputs: ${file}`);
     if (job.platform === 'darwin' || job.capture || job.browser || job.preview || job.recordedInputs || job.seedOutputs?.includes(file)) throw new Error(`Removal producer is not a cold build-time job: ${job.id}`);
-    const products = after.filter(row => row.shard === job.shard && row.outputs.some(output => output.endsWith('/shard.json')));
+    const products = after.filter(row => row.shard === job.shard && Object.keys(row.comparisonOutputs ?? {}).length === 0 && row.outputs.some(output => output.endsWith('/shard.json')));
     if (products.length === 0) throw new Error(`Removal needs a registered complete shard.json producer: ${job.shard}`);
     outputs.push({file, job:job.id, shard:old.shard, expected});
     shards.add(old.shard);

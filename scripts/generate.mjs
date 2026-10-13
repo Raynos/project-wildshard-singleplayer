@@ -13,7 +13,7 @@ import { linkNodeModules } from './link-node-modules.mjs';
 import { outputPolicy } from './generation-inventory.mjs';
 
 const path = v.pipe(v.string(),v.check(value=>value.length>0 && !isAbsolute(value) && !value.includes('\\') && value.split('/').every(part=>part!=='' && part!=='.' && part!=='..')));
-const Descriptor = v.strictObject({id:v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false),browser:v.optional(v.boolean(),false),preview:v.optional(v.boolean(),false),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
+const Descriptor = v.strictObject({id:v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),comparisonOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false),browser:v.optional(v.boolean(),false),preview:v.optional(v.boolean(),false),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
 const Catalog = v.strictObject({schema:v.literal('generation-jobs/1'),notice:v.pipe(v.string(),v.includes('DO NOT EDIT')),jobs:v.array(Descriptor)});
 const infrastructure=['src/format','scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs','scripts/generation-inventory.mjs'];
 // These are loader/check/hash/write helpers, not output producers. New bake entry points default to undeclared.
@@ -28,6 +28,8 @@ function validateProducer(job) {
   if(!owned || !job.command.includes(job.entry)) throw new Error(`Generator must be owned by ${job.shard ?? 'shared tooling'}: ${job.entry}`);
   if(job.preview && (job.capture || !job.browser || !job.command.some(arg=>arg.includes('<preview-url>')))) throw new Error(`Preview command must name its fenced URL: ${job.id}`);
   if(!job.preview && job.command.some(arg=>arg.includes('<preview-url>'))) throw new Error(`Undeclared preview command: ${job.id}`);
+  const comparisons=Object.keys(job.comparisonOutputs ?? {});
+  if(comparisons.some(file=>!job.outputs.includes(file)) || comparisons.some(file=>Object.hasOwn(job.buildOutputs ?? {},file))) throw new Error(`Invalid comparison-only outputs: ${job.id}`);
   const buildOutputs=Object.keys(job.buildOutputs ?? {});
   if(buildOutputs.some(file=>!job.outputs.includes(file) || job.seedOutputs?.includes(file)) ||
     (buildOutputs.length>0 && (job.platform==='darwin' || job.capture || job.browser || job.recordedInputs))) throw new Error(`Invalid build-time outputs: ${job.id}`);
@@ -100,6 +102,7 @@ export function generationRetention(directory, outputs, coldSeconds) {
 export async function generateShardJob(root,descriptor,options={}) {
   const job=v.parse(Descriptor,descriptor), catalog=options.catalogPath ?? 'scripts/generation-jobs.json';
   validateProducer(job);
+  if(options.restore===true && Object.keys(job.comparisonOutputs).length>0) throw new Error(`Comparison-only job cannot restore outputs: ${job.id}`);
   const restoreOutputs=options.restoreOutputs ?? job.outputs;
   if(restoreOutputs.some(file=>!job.outputs.includes(file))) throw new Error(`Undeclared restore output: ${job.id}`);
   if(job.recordedInputs && (job.capture || job.outputs.some(file=>!isRecordedBake(file)))) throw new Error(`Recorded-input comparison is not registered: ${job.id}`);
@@ -143,6 +146,7 @@ export async function generateShardJob(root,descriptor,options={}) {
     }
   });
   for(const [file,expectedHash] of Object.entries(job.buildOutputs)) if(result.hashes[file]!==expectedHash) throw new Error(`Build output hash differs: ${file}. No source output was overwritten.`);
+  for(const [file,expectedHash] of Object.entries(job.comparisonOutputs)) if(result.hashes[file]!==expectedHash) throw new Error(`Comparison output hash differs: ${file}. No source output was overwritten.`);
   const present=job.outputs.filter(file=>existsSync(resolve(root,file)));
   const expected=generationOutputHashes(root,present);
   const different=present.filter(file=>job.capture ? captureOutcome(readFileSync(resolve(root,file),'utf8'))!==captureOutcome(readFileSync(resolve(result.directory,file),'utf8')) : job.recordedInputs ? bakeOutcome(readFileSync(resolve(root,file),'utf8'))!==bakeOutcome(readFileSync(resolve(result.directory,file),'utf8')) : expected[file]!==result.hashes[file]);
