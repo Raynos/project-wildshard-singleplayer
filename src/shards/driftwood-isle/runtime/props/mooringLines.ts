@@ -13,6 +13,11 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
  *   lines.lift(hull.position.y - waterY, Math.sin(hull.rotation.x));   // after the hull rides the swell
  */
 
+// The shipped boat has two 8-segment, 4-sided lines: 192 non-indexed vertices each.
+const LINE_VERTICES = 192;
+const TOTAL_VERTICES = 384;
+const CLEATS = 2;
+
 /** Mooring lines' numbers as data. */
 export interface MooringLinesRow {
   /** the rope's colour, its post end's height over the still water (m), the sag at the middle (m), the tube's length
@@ -51,17 +56,19 @@ export class MooringLines {
       const g = new THREE.TubeGeometry(curve, row.segments, row.radius, row.radial, false);
       g.deleteAttribute('uv'); g.deleteAttribute('normal');
       const ni = g.toNonIndexed(); const n = ni.getAttribute('position').count, c = new Float32Array(n * 3);
-      for (let k = 0; k < n; k++) { c[k * 3] = color.r; c[k * 3 + 1] = color.g; c[k * 3 + 2] = color.b; }
+      if (n > LINE_VERTICES) throw new Error('Mooring line exceeds shipped vertex bound');
+      for (let k = 0; k < Math.min(n, LINE_VERTICES); k++) { c[k * 3] = color.r; c[k * 3 + 1] = color.g; c[k * 3 + 2] = color.b; }
       ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
       parts.push(ni);
     });
     const geo = mergeGeometries(parts, false);
     const rp = geo.getAttribute('position');
+    if (rp.count > TOTAL_VERTICES || cleatZ.length > CLEATS) throw new Error('Mooring lines exceed shipped boat bounds');
     this.rest = new Float32Array(rp.array);
     this.weight = new Float32Array(rp.count);
     this.which = new Uint8Array(rp.count);
     const perLine = rp.count / parts.length;
-    for (let k = 0; k < rp.count; k++) {
+    for (let k = 0; k < Math.min(rp.count, TOTAL_VERTICES); k++) {
       const which = Math.min(parts.length - 1, Math.floor(k / perLine)), a = cleats[which], post = posts[which];
       if (a === undefined || post === undefined) continue;
       const dx = post.x - a.x, dz = post.z - a.z, len2 = dx * dx + dz * dz || 1;
@@ -76,11 +83,11 @@ export class MooringLines {
 
   /** Lift each line's cleat end by the hull's heave (m over the still water) less its cleat's z times sin(pitch). */
   lift(heave: number, sinPitch: number): void {
-    for (let i = 0; i < this.cleatDy.length; i++) this.cleatDy[i] = heave - (this.cleatZ[i] ?? 0) * sinPitch;
+    for (let i = 0; i < Math.min(this.cleatDy.length, CLEATS); i++) this.cleatDy[i] = heave - (this.cleatZ[i] ?? 0) * sinPitch;
     const pos = this.mesh.geometry.getAttribute('position');
     if (!(pos instanceof THREE.BufferAttribute) || !(pos.array instanceof Float32Array)) return;
     const arr = pos.array, rest = this.rest;
-    for (let k = 0; k < this.weight.length; k++) arr[k * 3 + 1] = (rest[k * 3 + 1] ?? 0) + (this.cleatDy[this.which[k] ?? 0] ?? 0) * (this.weight[k] ?? 0);
+    for (let k = 0; k < Math.min(this.weight.length, TOTAL_VERTICES); k++) arr[k * 3 + 1] = (rest[k * 3 + 1] ?? 0) + (this.cleatDy[this.which[k] ?? 0] ?? 0) * (this.weight[k] ?? 0);
     pos.needsUpdate = true;
   }
 }
