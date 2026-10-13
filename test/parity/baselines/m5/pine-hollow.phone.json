@@ -2123,17 +2123,17 @@
     },
     "render": {
       "programs": 109,
-      "programKeys": "423c2539211271b2554dcd2989c1e733e1db729dad881731ca5bbcd0ee06e843",
+      "programKeys": "1c5a45bd1a348520452d21706e86a053c2c7b5bd28a38758d1f6cccfe9b847d0",
       "memory": {
         "geometries": 225,
-        "textures": 406
+        "textures": 409
       }
     },
     "gpuBytes": {
-      "textures": 236154644,
+      "textures": 256311604,
       "renderbuffers": 0,
       "buffers": 42326014,
-      "total": 278480658
+      "total": 298637618
     },
     "audio": {
       "requests": [
@@ -35050,7 +35050,7 @@
     "pond": 0.9998041856700087
   },
   "harness": 2,
-  "sha": "f983de200b2b54ccde9cb551cc41188c24445222",
-  "recorded": "2026-10-09T12:58:58.625Z",
+  "sha": "6fe38fc08e13bfd9282d0d8786dcfa7506c83f23",
+  "recorded": "2026-10-13T09:43:34.212Z",
   "browser": "153.0.8010.12"
 }
