@@ -183,15 +183,15 @@ export type CurveTerm =
   | { readonly gain: number; readonly edges: readonly [number, number] }
   | { readonly gain: number; readonly ramp: readonly [number, number]; readonly fold?: boolean }
   | { readonly gain: number; readonly linear: readonly [number, number] };
-/** A curve of d (see `CurveTerm`). */
+/** A curve of d (see `CurveTerm`; the evaluator takes any depth of `times`, the schema one). */
 export interface Curve { readonly base?: number; readonly terms?: readonly CurveTerm[]; readonly times?: Curve; readonly scale?: number; readonly mix?: readonly [number, number] }
 const finite = v.pipe(v.number(), v.finite());
 const pair = v.tuple([finite, finite]);
 const CurveTermSchema = v.union([v.strictObject({ gain: finite, pow: finite }), v.strictObject({ gain: finite, edges: pair }),
   v.strictObject({ gain: finite, ramp: pair, fold: v.exactOptional(v.boolean()) }), v.strictObject({ gain: finite, linear: pair })]);
-/** A curve row (bounded: eight terms a level). */
-export const CurveSchema: v.GenericSchema<Curve> = v.lazy(() => v.strictObject({ base: v.exactOptional(finite), terms: v.exactOptional(v.pipe(v.array(CurveTermSchema), v.maxLength(8))),
-  times: v.exactOptional(CurveSchema), scale: v.exactOptional(finite), mix: v.exactOptional(pair) }));
+const curveCore = { base: v.exactOptional(finite), terms: v.exactOptional(v.pipe(v.array(CurveTermSchema), v.maxLength(8))), scale: v.exactOptional(finite), mix: v.exactOptional(pair) };
+/** A curve row (bounded: eight terms; `times` is a curve one level deep, no further `times`). */
+export const CurveSchema = v.strictObject({ ...curveCore, times: v.exactOptional(v.strictObject(curveCore)) });
 
 const clamp01 = (t: number): number => Math.min(1, Math.max(0, t));
 const smooth = (t: number): number => t * t * (3 - 2 * t);
