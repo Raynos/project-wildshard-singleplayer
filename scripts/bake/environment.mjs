@@ -35,7 +35,7 @@ export function installBakeEnvironment(ROOT) {
     createImageBitmap: () => Promise.resolve({ width: 1, height: 1, close: noop }), // textures are never drawn here
     ProgressEvent: class extends Event { constructor(type, init = {}) { super(type); Object.assign(this, init); } },
   });
-  Object.defineProperty(globalThis, 'navigator', { value: { userAgent: 'node', maxTouchPoints: 0, hardwareConcurrency: 8 }, configurable: true });
+  Object.defineProperty(globalThis, 'navigator', { value: { userAgent: 'node', onLine: true, maxTouchPoints: 0, hardwareConcurrency: 8 }, configurable: true });
 
   active = true;
   let disposed = false;
