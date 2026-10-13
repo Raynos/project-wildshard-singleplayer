@@ -1,8 +1,8 @@
 import type { Progress } from "../Progress";
-import { Vector3 } from 'three';
+import { Vector3, type Object3D } from 'three';
 import { shardContentIdentity, legacyContentIdentity } from "../shard/list";
 import type { Actor } from '@wildshard/engine/combat/pipeline';
-import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
+import type { EquipmentIcon, EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import { QuestState, type QuestMarker, type QuestStep } from '@wildshard/engine/quest/core';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
@@ -15,6 +15,9 @@ import type { RuntimeBoundSection } from "@wildshard/format/runtimeBinds";
 import type { RuntimeActorRow, RuntimeBossRow, RuntimeHomeRow } from "@wildshard/format/runtimeSpawns";
 import type { Shardfile } from "@wildshard/format/shardSchema";
 import { installRuntimeState, type RuntimeState, type RuntimeStateValue } from "../shardfile/runtimeState";
+import { ShardPlugin } from "./shardPlugin";
+import { installRuntimeAudio } from "./audio";
+import { installRuntimeLoot, type ScopedLoot } from "../loot/runtime";
 
 /**
  * The runtime-owner binding (SHARD-PLATFORM M3, E435). A hybrid shard's trusted runtime owns its world and its play scope;
@@ -332,4 +335,89 @@ export function bindRuntimeActor(ctx: ShardContext, source: Pick<Shardfile, 'run
     if (animal !== null) spawned?.(animal);
     return animal;
   }, retire: (animal) => { animals?.retire(animal); } };
+}
+
+type InputDefinition = Parameters<ShardContext['inputContext']>[0];
+type BuildEquipment = NonNullable<NonNullable<ShardContext['game']['runtime']>['buildEquipment']>;
+type AnimalBody = NonNullable<Animal>;
+/** The combat targets `buildEquipment` lends a hybrid runtime's weapon. */
+export type HybridTargets = Parameters<BuildEquipment>[0];
+type InputDescription = Parameters<ShardContext['app']['input']['bindings']['describe']>[0];
+/** What a hybrid runtime declares (G345; Signal Dunes and Sky Reach): the host installs it in one fixed order. */
+export interface HybridRuntimeRows {
+  /** the debug name captures read it under (`__wildshard.shard.<expose>`) */
+  readonly expose: string;
+  readonly strings: Parameters<ShardContext['strings']>[0];
+  /** the held weapon's row: its content row and the cues its swings play */
+  readonly weapon: EquipmentRow;
+  readonly encounters: Parameters<ShardContext['rows']['encounter']>[0];
+  readonly audio: Parameters<typeof installRuntimeAudio>[1];
+  readonly cues: Parameters<typeof installRuntimeAudio>[2];
+  /** Build the brain catalogue (in kit, as the rows enter): the brained species rows, their looks and the live witness. */
+  readonly species: () => { readonly rows: Parameters<ShardContext['rows']['species']>[0]; readonly looks: Parameters<ShardContext['rows']['speciesLook']>[0]; readonly witness: (actor: AnimalBody) => string | null };
+}
+/** A held weapon the host wires: its viewmodel and its swing cues. */
+export type HybridWeapon = Awaited<ReturnType<BuildEquipment>>['primary'] & { onSwing: ((heavy: boolean) => void) | null; readonly model: Object3D };
+
+/**
+ * The shared host of a hybrid shard's trusted plugin (G345). The shard declares `rows` and keeps only what genuinely
+ * differs in its hooks; the host runs every stage in one order. world: strings, then `build`. kit: the weapon row, the
+ * species catalogue (rows, looks), the encounters, `prepare`, then `buildEquipment` (`arm`, with the swing cues wired).
+ * play: the weapon into the viewmodel and `dress`, `enter`, the declared audio, the coin loot, `run`, then the debug name.
+ */
+export abstract class HybridRuntimePlugin extends ShardPlugin {
+  protected abstract readonly rows: HybridRuntimeRows;
+  private witness: ((actor: AnimalBody) => string | null) | null = null;
+  /** The world, behind the loading screen (after the strings). */
+  protected abstract build(ctx: ShardContext): Promise<void> | void;
+  /** The primary weapon for `buildEquipment`. */
+  protected abstract arm(ctx: ShardContext, targets: HybridTargets): HybridWeapon;
+  /** The weapon now built (null before `buildEquipment`). */
+  protected abstract armed(): HybridWeapon | null;
+  /** The bodies the SF27 activation receipt reports. */
+  protected abstract witnessed(): readonly AnimalBody[];
+  /** Everything after the loot, in the shard's own order. */
+  protected abstract run(ctx: ShardContext, loot: ScopedLoot | null): Promise<void> | void;
+  /** Kit work after the rows, before `buildEquipment`. */
+  protected prepare(_ctx: ShardContext): void { /* none by default */ }
+  /** The weapon's look once it is in the viewmodel. */
+  protected dress(_ctx: ShardContext, _weapon: HybridWeapon): void { /* none by default */ }
+  /** Play work before the audio. */
+  protected enter(_ctx: ShardContext): void { /* none by default */ }
+
+  override async world(ctx: ShardContext): Promise<void> { ctx.strings(this.rows.strings); await this.build(ctx); }
+  override kit(ctx: ShardContext): void {
+    const rows = this.rows, rt = ctx.game.runtime;
+    ctx.rows.weapon(rows.weapon);
+    const species = rows.species(); this.witness = species.witness; ctx.rows.species(species.rows); ctx.rows.speciesLook(species.looks);
+    ctx.rows.encounter(rows.encounters);
+    this.prepare(ctx);
+    if (rt) rt.buildEquipment = (targets) => {
+      const primary = this.arm(ctx, targets);
+      primary.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(rows.weapon, 'heavy'); else rt.play?.cues.fire(rows.weapon); };
+      return Promise.resolve({ primary, secondary: null, rifle: null, install: () => undefined });
+    };
+  }
+  override async play(ctx: ShardContext): Promise<void> {
+    const host = ctx.app.equipmentHost, weapon = this.armed(), rt = ctx.game.runtime;
+    if (host !== null && weapon !== null) { host.viewmodel.add(weapon.model); this.dress(ctx, weapon); }
+    this.enter(ctx);
+    installRuntimeAudio(ctx, this.rows.audio, this.rows.cues);
+    const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
+    await this.run(ctx, loot);
+    ctx.debug.expose(this.rows.expose, this);
+  }
+  /** Actual instantiated declared policies, for the SF27 activation receipt; no actor state is changed. */
+  brainWitness(): { id: string; kind: string; family: string | null }[] {
+    return this.witnessed().map(actor => ({ id: actor.entityId, kind: actor.kind, family: this.witness?.(actor) ?? null }));
+  }
+  /** A runtime's own input definition and key-binding rows: resolved in a retained home, else on the level scope. */
+  protected input(ctx: ShardContext, definition: InputDefinition, description: InputDescription): void {
+    if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, definition, description);
+    else { ctx.inputContext(definition); ctx.app.input.bindings.describe(description, ctx.scope); }
+  }
+  /** Spawn finite declared bodies in row order into `into` (their identity order is the rows'). */
+  protected spawnAll(actors: readonly RuntimeActor[], into: AnimalBody[]): void {
+    for (const actor of actors) { const animal = actor.spawn(); if (animal) into.push(animal); }
+  }
 }

@@ -1,18 +1,17 @@
-import { installRuntimeAudio } from '@wildshard/game/plugin/audio';
 import { bindSignalItems } from './runtime/items';
 import { bindDirectorActions } from '@wildshard/game/plugin/director';
 import signalStages from './data/signalStages.json' with { type: 'json' };
 import { standaloneEntry } from './runtime/standalone';
-import { speciesBrains, type SpeciesBrains } from '@wildshard/sdk/speciesBrains';
+import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from './data/brains';
 import { SKITTERER_DATA } from './data/species/skitterer';
 import { DUNE_RAY } from './data/species/duneRay';
 import { DUNE_STRIDER } from './data/species/strider';
-import { installRuntimeLoot } from '@wildshard/game/loot/runtime';
+import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { ShardPlugin } from '@wildshard/game/shard/plugin';
+import type { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
-import { bindRuntimeCoins, bindRuntimeItemContexts } from '@wildshard/game/shardfile/hybridRows';
+import { HybridRuntimePlugin, bindRuntimeCoins, bindRuntimeItemContexts, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/shardfile/hybridRows';
 import source from './shard.config';
 import { Vector3 } from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -55,12 +54,19 @@ function duskOf(places: SignalWorld): number {
   return f.has(FLAG.oil) ? 0.56 : f.has(FLAG.logbook) ? 0.52 : f.has(SCOUT_FLAG) ? 0.5 : 0;
 }
 
-export class SignalDunesPlugin extends ShardPlugin {
+export class SignalDunesPlugin extends HybridRuntimePlugin {
   readonly player = new Vector3(); whip: Bullwhip | null = null; quest: QuestState | null = null;
   fire: SignalFire | null = null; places: SignalWorld | null = null; creatures: ReturnType<typeof installCreatures> | null = null;
   matriarch: MarkedBoss | null = null;
   /** The dune ray now flying (captures drive it). */
   get ray(): Animal | null { return this.creatures?.ray() ?? null; }
+  // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
+  protected readonly rows: HybridRuntimeRows = { expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }],
+    audio: source.audio, cues: installSunscarCues, species: () => {
+      const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES);
+      return { rows: [{ ...DUNE_RAY, ...brains.bind(DUNE_RAY.kind) }, { ...SKITTERER_DATA, ...brains.bind(SKITTERER_DATA.kind) }, { ...DUNE_STRIDER, ...brains.bind(DUNE_STRIDER.kind) }, DUNE_MATRIARCH],
+        looks: [DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK], witness: brains.witness };
+    } };
   /**
    * Quest state for a capture (E399; council round 1: run the player's own path, every side effect with it). Each step is
    * what play does: Sefa's first talk sets her flag (her dialogue's only effect), the logbook's interact, the crank's
@@ -82,45 +88,23 @@ export class SignalDunesPlugin extends ShardPlugin {
     setDusk(duskOf(places), true);
     if (last) { last.spot.onInteract(); last.light(); }
   }
-  override async world(ctx: ShardContext): Promise<void> {
-    ctx.strings(STRINGS);
+  protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
     const [, baked] = await Promise.all([preloadDuneMeshes(), loadBakedWorld()]);
     this.places = buildWorld(ctx, new Flags(ctx.manifest.slug), baked); this.fire = this.places.fire;
     // G99: in a grid cell nothing draws past the cube (the dune skirt stops at its edge; the platform drops the ranges)
     if (ctx.cube !== null) SKIRT.fit(ctx.cube.half);
   }
-  private brains: SpeciesBrains | null = null;
-  /** Actual instantiated declared policies, for the SF27 activation receipt; no actor state is changed. */
-  brainWitness(): { id: string; kind: string; family: string | null }[] {
-    return (this.creatures?.all() ?? []).filter(actor => actor.kind === 'duneRay' || actor.kind === 'duneStrider').map(actor => ({ id: actor.entityId, kind: actor.kind, family: this.brains?.witness(actor) ?? null }));
-  }
-  override kit(ctx: ShardContext): void {
-    ctx.rows.weapon(WHIP_ROW);
-    // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
-    const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES); this.brains = brains;
-    ctx.rows.species([{ ...DUNE_RAY, ...brains.bind(DUNE_RAY.kind) }, { ...SKITTERER_DATA, ...brains.bind(SKITTERER_DATA.kind) }, { ...DUNE_STRIDER, ...brains.bind(DUNE_STRIDER.kind) }, DUNE_MATRIARCH]); ctx.rows.speciesLook([DUNE_RAY_LOOK, SAND_SKITTERER_LOOK, DUNE_STRIDER_LOOK, DUNE_MATRIARCH_LOOK]);
-    ctx.rows.encounter([{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }]);
-    const rt = ctx.game.runtime;
-    // SF50-p / M3: the whip is its shardfile's declared item row; the platform installs it, resolving this runtime's own family.
-    if (rt) rt.buildEquipment = (targets) => {
-      const primary = bindSignalItems(ctx, targets, (whip) => {
-        this.whip = whip;
-        whip.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(WHIP_ROW, 'heavy'); else rt.play?.cues.fire(WHIP_ROW); };
-      });
-      return Promise.resolve({ primary, secondary: null, rifle: null, install: () => undefined });
-    };
-  }
-  override play(ctx: ShardContext): void {
-    const host = ctx.app.equipmentHost, whip = this.whip;
-    // loop 4: the style bible's dusk rim on the whip and glove too, so the weapon separates from the sand behind it
-    if (host !== null && whip !== null) { host.viewmodel.add(whip.model); lastLightAll(whip.model, ctx.scope); ownPrimitives(whip.model, ctx.scope); }
-    // the whip's declared input context (shard.config.ts items.contexts): while the cell is entered for a retained home
-    bindRuntimeItemContexts(ctx, source);
-    const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player;
-    installRuntimeAudio(ctx, source.audio, installSunscarCues);
-    const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
-    const places = this.places;
+  protected override witnessed(): Animal[] { return (this.creatures?.all() ?? []).filter(actor => actor.kind === 'duneRay' || actor.kind === 'duneStrider'); }
+  // SF50-p / M3: the whip is its shardfile's declared item row; the platform installs it, resolving this runtime's own family.
+  protected override arm(ctx: ShardContext, targets: HybridTargets): Bullwhip { return bindSignalItems(ctx, targets, (whip) => { this.whip = whip; }); }
+  protected override armed(): Bullwhip | null { return this.whip; }
+  // loop 4: the style bible's dusk rim on the whip and glove too, so the weapon separates from the sand behind it
+  protected override dress(ctx: ShardContext): void { const whip = this.whip; if (whip !== null) { lastLightAll(whip.model, ctx.scope); ownPrimitives(whip.model, ctx.scope); } }
+  // the whip's declared input context (shard.config.ts items.contexts): while the cell is entered for a retained home
+  protected override enter(ctx: ShardContext): void { bindRuntimeItemContexts(ctx, source); }
+  protected override run(ctx: ShardContext, loot: ScopedLoot | null): void {
+    const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player, places = this.places;
     // SF50-p: every coin the runtime pays goes through the platform purse (the level's loot purse; headless, the shard's).
     const coins = bindRuntimeCoins(ctx, loot?.purse ?? null);
     if (places) {
@@ -143,7 +127,6 @@ export class SignalDunesPlugin extends ShardPlugin {
       installEnteredRuntimeService(ctx, scope => { setDusk(duskOf(places), true); scope.onDispose(() => { setDusk(0, true); }); });
       ctx.system({ id: 'sunscar.dusk', phase: 'update', run: (dt) => { setDusk(duskOf(places)); stepDusk(dt); SAND_TILES.follow(position.x, position.z); } });
     }
-    ctx.debug.expose('sunscar', this);
   }
 }
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.
