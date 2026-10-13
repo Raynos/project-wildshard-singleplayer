@@ -1,8 +1,7 @@
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { castRay } from '@wildshard/engine/physics/query';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
-import { installHomeKeeper } from '@wildshard/game/shardfile/homeKeeper';
+import { creatureFloor, installHomeKeeper } from '@wildshard/game/shardfile/homeKeeper';
 import { SKY_FLOCK_ROWS } from '../data/spawns';
 import { DECK } from '../data/layout';
 import { ROC_ID } from '../data/rocFight';
@@ -44,12 +43,7 @@ export function installSkyFlock(host: SimHost, ports: SkyFlockPorts, saved?: Rea
   const brains = skyBrainCatalogue();
   const rows = new Map(SKY_FLOCK_ROWS.map(row => [row.id, row]));
   /** creatureFloor: the first WORLD hit under the ray's start (a structure), else the analytic floor. */
-  const origin = { x: 0, y: 0, z: 0 }, down = { x: 0, y: -1, z: 0 }, sees = ['WORLD'] as const;
-  const floor = (x: number, z: number, fromY: number): { y: number; structure: boolean } => {
-    origin.x = x; origin.y = fromY; origin.z = z;
-    const hit = castRay(host.physics, origin, down, Math.max(201, fromY - SKY_ANALYTIC_FLOOR + 1), sees);
-    return hit === null ? { y: SKY_ANALYTIC_FLOOR, structure: false } : { y: hit.point.y, structure: true };
-  };
+  const floor = creatureFloor(host, () => SKY_ANALYTIC_FLOOR);
   const groundHeight = (x: number, z: number, fromY: number): number => floor(x, z, fromY).y;
   const held: { roc: { actor: AnimalSim; body: StormRocBrain<AnimalSim> } | null } = { roc: null };
   const keeper = installHomeKeeper(host, { step: FLOCK_STEP, seed: ports.seed, specs: ports.specs, scales: ports.ranges, attackers: Infinity,

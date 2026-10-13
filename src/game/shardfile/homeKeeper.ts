@@ -4,6 +4,23 @@ import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/Animal
 import { killBelowWorld } from '@wildshard/engine/entities/killHeight';
 import type { SimBodyBands, SimHost, SimSpawn, SimValue } from '@wildshard/engine/sim';
 import type { SimSnapshot } from '@wildshard/engine/sim/snapshot';
+import { castRay } from '@wildshard/engine/physics/query';
+
+/**
+ * A creature's floor in a renderer-free host (the creature manager's `creatureFloor`; Pine Hollow, Sky Reach): the first
+ * WORLD hit under `fromY` at (x, z), else `terrainAt` (also when the hit is the ground's heightfield), and whether it
+ * stands on a structure.
+ */
+export function creatureFloor(host: Pick<SimHost, 'physics'>, terrainAt: (x: number, z: number) => number): (x: number, z: number, fromY: number) => { y: number; structure: boolean } {
+  const origin = { x: 0, y: 0, z: 0 }, down = { x: 0, y: -1, z: 0 }, sees = ['WORLD'] as const;
+  return (x, z, fromY) => {
+    const terrain = terrainAt(x, z);
+    origin.x = x; origin.y = fromY; origin.z = z;
+    const hit = castRay(host.physics, origin, down, Math.max(201, fromY - terrain + 1), sees);
+    if (hit === null || (hit.material === 'ground' && hit.collider.shape.type === host.physics.R.ShapeType.HeightField)) return { y: terrain, structure: false };
+    return { y: hit.point.y, structure: true };
+  };
+}
 
 /** A declared home the keeper refills (`runtime.spawns.homes`): `respawn` seconds after its body falls, a fresh one (0: never
  *  refilled, the fallen body stays). A `late` home spawns on the keeper's first step instead of at install, after every

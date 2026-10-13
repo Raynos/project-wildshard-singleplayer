@@ -5,7 +5,7 @@ import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/Animal
 import { spawnRolls, type HuntBody, type HuntMemory, type HuntNav } from '@wildshard/engine/ai/hunt';
 import { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { canReach } from '@wildshard/engine/ai/reach';
-import { castRay } from '@wildshard/engine/physics/query';
+import { creatureFloor as structureFloor } from '@wildshard/game/shardfile/homeKeeper';
 import type { BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
 import { isEliteVariant, PINE_ELITE_ANIMALS, PINE_ELITE_DEFS, swapRolledElites } from '../combat/eliteRoster';
@@ -158,15 +158,8 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     if (row === undefined) throw new Error(`Pine bake has no ${kind} '${variant}' to spawn live`);
     return row.spec;
   };
-  const origin = { x: 0, y: 0, z: 0 }, down = { x: 0, y: -1, z: 0 }, sees = ['WORLD'] as const;
   /** creatureFloor: the first WORLD hit under `fromY`; the terrain when it is the ground's heightfield (or nothing). */
-  const creatureFloor = (x: number, z: number, fromY: number): { y: number; structure: boolean } => {
-    const terrain = heightAt(x, z);
-    origin.x = x; origin.y = fromY; origin.z = z;
-    const hit = castRay(host.physics, origin, down, Math.max(201, fromY - terrain + 1), sees);
-    if (hit === null || (hit.material === 'ground' && hit.collider.shape.type === host.physics.R.ShapeType.HeightField)) return { y: terrain, structure: false };
-    return { y: hit.point.y, structure: true };
-  };
+  const creatureFloor = structureFloor(host, heightAt);
   const rolls = (kind: string, variant: string | string[] | undefined): { id: string; spec: AnimalSimSpec; seed: number; scale: number; variant: string } => {
     const r = spawnRolls(rng, kind, variant, list.some(b => b.actor.kind === kind && b.actor.rarity === 'legendary' && b.actor.alive), species);
     const id = `creature:${String(next++)}`;
