@@ -23,9 +23,12 @@ export async function creatureShot(kind) {
     for (const child of o.children) hide(child);
   };
   hide(scene);
-  // a creature the level keeps hidden for now (a dormant boss, a far LOD) is shown for its shot
-  const shown = [];
+  // a creature the level keeps hidden for now (a dormant boss, a far LOD) is shown for its shot, at its own size: past
+  // the tier's animal draw distance the manager shrinks the rig to scale 0 as well as hiding it (AnimalManager's fade;
+  // the phone's 150 m hid the Roc and the strider, and their shots came out black)
+  const shown = [], size = mesh.scale.clone();
   for (let o = mesh; o !== null; o = o.parent) if (!o.visible) { o.visible = true; shown.push(o); }
+  mesh.scale.setScalar(a.scale);
   for (const child of cam.children) if (child.visible) { child.visible = false; saved.push(child); }
   const pose = { position: mesh.position.clone(), quaternion: mesh.quaternion.clone() };
   const bones = mesh.skeleton.bones.map(b => ({ b, p: b.position.clone(), q: b.quaternion.clone(), s: b.scale.clone() }));
@@ -59,7 +62,7 @@ export async function creatureShot(kind) {
   for (const o of saved) o.visible = true;
   for (const o of shown) o.visible = false;
   for (const { b, p, q, s } of bones) { b.position.copy(p); b.quaternion.copy(q); b.scale.copy(s); }
-  mesh.position.copy(pose.position); mesh.quaternion.copy(pose.quaternion); mesh.updateMatrixWorld(true);
+  mesh.position.copy(pose.position); mesh.quaternion.copy(pose.quaternion); mesh.scale.copy(size); mesh.updateMatrixWorld(true);
   let lit = 0; for (let i = 0; i < pixels.length; i += 4) if (pixels[i] + pixels[i + 1] + pixels[i + 2] > 0) lit++;
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', pixels));
   let bin = ''; for (let i = 0; i < pixels.length; i += 0x8000) bin += String.fromCodePoint(...pixels.subarray(i, i + 0x8000));
