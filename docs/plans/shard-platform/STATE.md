@@ -7,10 +7,10 @@
 | Signal Dunes | 70.7 % → **45.6 %** | ≤ 824 lines | **80 / 0** ✔ |
 | Sky Reach | 78.4 % → **51.0 %** | ≤ 1355 lines | **11 / 0** ✔ (`fd1b0a9a4`) |
 
-**Signal and Sky both meet Jake's port bar (tiles + 0 private binaries).** Authored physics (G350), navigation rows; gate issue left: "trusted runtime owns simulation". `plugin/` 20 → 14. Nine: Linux proof exact (385/385), landing. **Nalati 0 private bins** (`d3bdac368`; one-fetch ground: sp-o98).
-**LIVE `2f7cc5e25-mv6dko3t` (07:44Z)**: Sky island tiles, NE-b hero, fire A, nav rows, authored physics. Desktop frame floor at `fea49ae28` RED (worst 133–267 ms): sp-o93. CI `595a7bded` red: author-closure terrain keys (sp-x6).
+**Signal and Sky both meet Jake's port bar (tiles + 0 private binaries).** Gate issue left: "trusted runtime owns simulation". Nine: Linux proof exact (385/385), landing. **Nalati 0 private bins** (`d3bdac368`; one-fetch ground: sp-o98).
+**LIVE `2f7cc5e25-mv6dko3t` (07:44Z)** with Sky island tiles. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: Sim Nine entry 241–453 ms (new, sp-o101), Pine desktop travel 33 ms (old, sp-o100), Sim Far/Nalati/Pine/Driftwood travel 37–62 ms. CI closure red fixed `8acd18700`/`2e24ff5bf`.
 
-**Fleet (G384): 4 Opus + 6 Codex.** Codex: sp-x7 pusher; sp-x5 bench-max; sp-x6 SF87 clean room; sp-x4 Pine; sp-x1 Driftwood; sp-x8 Nine. Opus: sp-o93 frame floor, sp-o98 Nalati one ground fetch, sp-o97 sound diffs.
+**Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 bench, x6 SF87, x4 Pine, x1 Driftwood, x8 Nine. Opus: o100 Pine grid frame, o101 Nine Sim entry, o98 Nalati ground fetch, o97 sounds.
 
 **For wildshard-v, Jake ask (G350 Nalati places):** bake runs 22k engine lines for 4.2 MB. **Port** to authored generators (big) or **freeze** bins + rows (cheap, not regenerable). Recommend port later; bridge stays.
 **Jake ask (Sky movers):** Sky headless onto the generic mover driver deletes one-user code but re-records the gameplay hash. Recommend yes, after the sprint.
