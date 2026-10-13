@@ -18,19 +18,13 @@
 **For wildshard-v, Jake ask (S2):** Graph materials stay default-off pending a physical-iPhone reading, so the GLSL stays as fallback (no cut). Recommend accepting the Simulator + desktop reading. Near boards: `art/near-tier/round-6/`.
 
 **Calls for Jake (2026-10-13; reverse any):**
-6–13. Ground loader; Sky prop tiles; commons 0 packs; literal physics rows; Signal navmesh kept; query terrain; Pine cabin shape library; `props.wholeLibrary`.
-14. Tile subsets may declare ≤ 1 m edge overhang.
-15. Nine authoring uses portable math; collider delta ≤ 9e-16, look exact.
-16. Driftwood boat hull equation shared by generator + live, not a cut.
-17. Debug rows 7 → 4.
-18. Node bake host with filesystem fetch reports online.
-19. Driftwood ground reads its original query lattice.
-20. Nalati ground: new engine samples-reader hook; analytic terrain kept for bake/dev poses.
-21. Sky static placements baked per cube. 22. Pine authoring copies helpers until the live copy goes.
+6–22. Ground loader; Sky prop tiles; commons 0 packs; literal physics rows; Signal navmesh kept; query terrain; Pine cabin shapes; `props.wholeLibrary`; ≤ 1 m tile overhang; Nine portable math (≤ 9e-16); boat hull shared; Debug rows 7 → 4; bake host online; Driftwood/Nalati ground readers; Sky placements baked; Pine helper copies (temporary).
 23. Whole-product producers: author-only writer, frozen map bytes, comparison-only pins.
 24. Driftwood stops its duplicate legacy terrain/nav/GLB prefetch.
 25. Pine bridge yaw keeps a tiny runtime atan2 adapter (libm, ≤ 4.5e-16).
 26. Data client drops runtime-bound tile transports it no longer needs (Driftwood +11 MB RAM).
 27. Grid session start configures the engine to the shell's own level spec first (no eager home queries).
+28. Shared SDK authoring RNG (Mulberry32) with an engine equality test.
+29. G318: Template/Pastel's 332 CPU outputs (< 1.04 s each) move to cache; quickstart says `pnpm gen` first.
 
 Paused: SF22, SF57, SF67.
