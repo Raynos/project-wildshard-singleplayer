@@ -1,22 +1,21 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-13 00:45Z. G345 SPRINT (Jake, `34527bde0`): Signal Dunes + Sky Reach to 80/20 by ~09:30Z.** Quick checks +
+**2026-10-13 01:45Z. G345 SPRINT (Jake, `34527bde0`): Signal Dunes + Sky Reach to 80/20 by ~09:30Z.** Quick checks +
 push gate only; frame floor / Simulator / soak / boards / quiet windows paused. Lanes: `lanes/README.md` (sprint table).
 
 **80/20 (custom / legacy, `scripts/shard-platform.mjs`; ≤ 20 % = done)**
 
-| Shard | 21:40Z → 00:45Z (metric `f36d2a239`, authored `baked.ts` now counted) | Target lines |
+| Shard | 21:40Z → 01:45Z (metric `f36d2a239`; code moved into `data/` doesn't count) | Target lines |
 |---|---|---|
-| Signal Dunes | 70.7 % → **57.4 %** (2359 / 4122) | ≤ 824 |
-| Sky Reach | 78.4 % → **56.4 %** (3201 / 6777) | ≤ 1355 |
+| Signal Dunes | 70.7 % → **50.9 %** (2091 / 4122) | ≤ 824 |
+| Sky Reach | 78.4 % → **50.3 %** (2793 / 6777) | ≤ 1355 |
 | Nine | 69.5 % | — (graph rollout blocked) |
 
-**Fleet:** Codex sp-x7 push/deploy, sp-x6 Signal portable ground + grid-entry P0; sp-x1/x4/x5 PARKED. Opus: Sky colliders sp-o38, shared host cuts sp-o39.
+**Fleet:** Codex sp-x7 push/deploy; sp-x1/x4/x5/x6 PARKED (Codex 7 %). Opus: Sky host sp-o45, Signal ground as rows sp-o46, shared headless plans sp-o48. **Honest read:** each cut now yields 20–200 lines; 80/20 for both by 09:30Z is unlikely. Sky's new `dataLook` knobs (`dc986514b`) have one shard user so far.
 
-**Live:** `957b05e6-mv5vop4l`; origin `d3090860c`; **releases RE-PINNED to 957 (`3ebbf12bb`)**: Signal can't be entered from the grid since `b60dde094` (P0, sp-x6; road→Signal smoke leg being added, sp-x7) and Linux ring-mean.bin red. Reds: `red-green.md`.
+**Live:** `957b05e6-mv5vop4l`; origin `de0130e95` (gate green with the Signal grid fix `96366f3e6`, road smoke `c0f31b6af`, recaptures `5c610fe90`); release still pinned to 957 (`3ebbf12bb`) until Linux CI + remote road smoke are green. Reds: `red-green.md`.
 
-**Paused:** frame floor (desktop Pine p95 33.4; Simulator Driftwood 59, Pine 58,
-Sky 37, Nalati 36; fixes `38ea143c5`, `512bb3d16`, `dc4dfb106` unproven; task clock `99b0866c0`), SF22 assembled routes, SF57 re-entry, SF67.
+**Paused:** frame floor (desktop Pine p95 33.4; Sim Driftwood 59, Pine 58, Sky 37, Nalati 36; fixes `38ea143c5`, `512bb3d16`, `dc4dfb106` unproven; task clock `99b0866c0`), SF22 assembled routes, SF57 re-entry, SF67.
 
 **LOOKS LINE (Jake: "I don't want to forget this main hero thing and the near look and feel"):** both boards wait on Jake; the winner ships via G341.
 
@@ -28,4 +27,4 @@ Sky 37, Nalati 36; fixes `38ea143c5`, `512bb3d16`, `dc4dfb106` unproven; task cl
 
 **For wildshard-v, Jake pick (Signal look, Debug ▸ Look ▸ Signal look):** raw A/B in `art/signal-look/round-1/`. A = hand-written fire shaders; B = baked fires on standard materials, ~270 fewer Signal lines (the biggest single Signal cut left), but B loses A's white core, the smoke's lean/curl and the ember streaks (round dots instead), visible at phone size. Recommend **A** (looks better); the 80/20 cut then comes from elsewhere.
 
-**Jake open picks:** `docs/reviews/shard-platform-open-picks.md`.
+**Open picks:** `docs/reviews/shard-platform-open-picks.md`.
