@@ -10,6 +10,7 @@ import { dirname, join, resolve } from 'node:path';
 import { env, execPath } from 'node:process';
 import { expect, it } from 'vitest';
 import { beginGuardRequirement, completeGuardRequirement, hardRules, requiredGuardRules, verifyGuardRequirement } from '../scripts/guard-counts.mjs';
+import {precommitGuards} from '../scripts/precommit-guards.mjs';
 
 const refusals: Record<string, [string, string]> = {
   'no-url-switch': ['engine/check.ts', "new URLSearchParams(location.search).get('unapproved');"],
@@ -208,5 +209,27 @@ it.each(['producer-failure','wrong-source','malformed'] as const)('early data ne
     expect(()=>verifyGuardRequirement(f.root,join(f.root,'.guard'))).toThrow();
     if(failure==='producer-failure')expect(errors).toContain('precommit-inputs.mjs failed');
     if(failure==='wrong-source')expect(errors).toContain('another source tree');
+  } finally {rmSync(f.root,{recursive:true,force:true,maxRetries:3,retryDelay:50});}
+});
+
+it('refuses a foreign initial tree rather than accepting its cached source checks',async()=>{
+  const f=fixture();
+  try {
+    const before=f.git('write-tree');f.put('src/engine/valid.ts','export const value=2;');f.git('add','src');
+    await expect(precommitGuards(f.root,'',before)).rejects.toThrow('Initial guard snapshot changed');
+  } finally {rmSync(f.root,{recursive:true,force:true,maxRetries:3,retryDelay:50});}
+});
+
+it('refuses guard startup before any input producer and drains before transport cleanup',()=>{
+  const f=fixture();
+  const options={...env};delete options['SKIP_ARCH_GUARDS'];
+  try {
+    f.put('scripts/candidate.mjs','export const candidate=1;');f.git('add','scripts/candidate.mjs');
+    f.put('scripts/guard-counts.mjs',`${readFileSync(join(f.root,'scripts/guard-counts.mjs'),'utf8')}\n// Unstaged implementation must refuse.\n`);
+    const result=spawnSync('/bin/bash',['.githooks/pre-commit'],{cwd:f.root,encoding:'utf8',env:{...options,WS_COMMIT_INTENT:JSON.stringify({base:f.git('rev-parse','HEAD'),paths:['scripts/candidate.mjs']})}});
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain('Required guard is not the staged implementation');
+    expect(result.stderr).not.toContain('pre-commit step inputs:');
+    expect(result.stderr).toContain('pre-commit: failed in');
   } finally {rmSync(f.root,{recursive:true,force:true,maxRetries:3,retryDelay:50});}
 });

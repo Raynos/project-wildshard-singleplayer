@@ -12,6 +12,7 @@ import { checkShardLayout, shardEntries } from './check-shards.mjs';
 import { checkPlatformRatchets, PLATFORM_LISTS } from './check-platform-ratchets.mjs';
 import { verifyCommitProduced } from './commit-produced.mjs';
 import { isWitnessManifest, manifestOutcome } from './witness-manifests.mjs';
+import { guardIndexTree } from './guard-index-tree.mjs';
 import { guardSnapshot } from './guard-snapshot.mjs';
 import { materializeGuardData } from './precommit-generated-data.mjs';
 import { checkLegacyInventory, legacyInventory, registeredLegacyFile } from './legacy-shards.mjs';
@@ -109,23 +110,25 @@ async function inputsStatus(file, dataReady, expectedTree) {
  * WS_PRECOMMIT_INPUTS_DONE. Everything that cannot read the staged tables (exports, shard-coupling, HEAD's lint) runs
  * on the tree before the tables; once the index is final the tables are overlaid from it. Source lint runs concurrently;
  * changed lint vocabulary reruns it, and every list check reads the final tree. Any other difference reruns the whole guard on the final tree.
+ * @param {string} root @param {string} [inputsDone] @param {string} [initialTree]
  */
-export async function precommitGuards(root = resolve(import.meta.dirname, '..'), inputsDone = process.env.WS_PRECOMMIT_INPUTS_DONE) {
+export async function precommitGuards(root = resolve(import.meta.dirname, '..'), inputsDone = process.env.WS_PRECOMMIT_INPUTS_DONE, initialTree = undefined) {
   if (process.env.SKIP_ARCH_GUARDS === '1') {
     appendFileSync(resolve(root, 'project/sweepguard-ledger.md'), `\n- ${new Date().toISOString()} SKIP_ARCH_GUARDS=1: architecture pre-commit checks bypassed.\n`);
     console.warn('Architecture guards skipped; recorded in project/sweepguard-ledger.md');
     return;
   }
+  if (initialTree !== undefined && guardIndexTree(root) !== initialTree) throw new Error('Initial guard snapshot changed');
   const changed = run(root, 'git', ['diff', '--cached', '--name-only', '--diff-filter=ACMRD', '-z']).split('\0').filter(Boolean);
   const paths = changed.filter((p) => /^src\/.*\.[cm]?[jt]sx?$/u.test(p) && !p.endsWith('.generated.ts'));
   const slugs = new Set(changed.flatMap((p) => /^src\/shards\/([^/]+)\//u.exec(p)?.[1] ?? []));
   const platform = changed.some((p) => PLATFORM_LISTS.includes(p));
   if (paths.length === 0 && slugs.size === 0 && !platform) {
     if (inputsDone!==undefined && inputsDone!=='') {
-      const initial=run(root,'git',['write-tree']).trim();
+      const initial=initialTree ?? guardIndexTree(root);
       console.log('precommit-guards: waiting for final inputs');
       if (await inputsStatus(inputsDone)!==0) throw new Error('Architecture guards stopped: scripts/precommit-inputs.mjs failed');
-      if (run(root,'git',['write-tree']).trim()!==initial) await precommitGuards(root,'');
+      if (guardIndexTree(root)!==initial) await precommitGuards(root,'');
     }
     return;
   }
@@ -134,7 +137,7 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
   /** @type {Promise<unknown>[]} children that must settle before the scratch export is removed */
   const children = [];
   try {
-    const tree = run(root, 'git', ['write-tree']).trim();
+    const tree = initialTree ?? guardIndexTree(root);
     const blobDirectory = join(run(root, 'git', ['rev-parse', '--path-format=absolute', '--git-common-dir']).trim(), 'commit-inputs', 'blobs');
     const materialize = async destination => {
       try { materializeGuardData(root, destination, blobDirectory); }
@@ -206,7 +209,7 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
       console.log('precommit-guards: waiting for final inputs');
       const status = await inputsStatus(inputsDone);
       if (status !== 0) throw new Error('Architecture guards stopped: scripts/precommit-inputs.mjs failed');
-      const final = run(root, 'git', ['write-tree']).trim();
+      const final = guardIndexTree(root);
       if (final !== tree) {
         const moved = run(root, 'git', ['diff-tree', '-r', '--no-renames', '--name-only', '-z', tree, final]).split('\0').filter(Boolean);
         const witnesses = moved.filter(isWitnessManifest);
@@ -307,8 +310,11 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   try {
     const requirement=process.argv[2]==='--required-receipt' ? process.argv[3] : undefined;
-    if (requirement!==undefined) beginGuardRequirement(resolve(import.meta.dirname,'..'),requirement);
-    await precommitGuards();
+    const root=resolve(import.meta.dirname,'..');
+    const initial=requirement!==undefined ? beginGuardRequirement(root,requirement) : undefined;
+    const ready=process.argv.find(arg=>arg.startsWith('--ready='))?.slice(8);
+    if(ready!==undefined) {if(requirement===undefined)throw new Error('Guard readiness requires bound coverage');writeFileSync(ready,'ready',{flag:'wx'});}
+    await precommitGuards(root,undefined,initial);
     if (requirement!==undefined) completeGuardRequirement(resolve(import.meta.dirname,'..'),requirement);
   }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }

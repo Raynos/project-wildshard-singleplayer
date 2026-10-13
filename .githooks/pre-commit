@@ -12,7 +12,12 @@ hook_locked=0
 state=""
 finish() {
   local hook_rc=$?
-  if [ -n "$state" ]; then rm -rf "$state"; fi
+  if [ -n "$state" ]; then
+    # A failed startup cannot leave a reader waiting on deleted transport.
+    if [ ! -e "$state/inputs" ]; then printf '1\n' > "$state/inputs"; fi
+    if [ -n "${guards:-}" ]; then wait "$guards" || true; fi
+    rm -rf "$state"
+  fi
   if [ "$hook_locked" = 1 ]; then python3 scripts/commit-message-lock.py --record "$PPID" "$hook_rc"; fi
   echo "pre-commit: $([ "$hook_rc" = 0 ] && echo passed || echo failed) in $(since "$hook_started")s" >&2
   exit "$hook_rc"
@@ -89,10 +94,17 @@ required_guard=0
 # mandatory whenever commit measurement borrows its hard-rule checks.
 if [ -z "${SKIP_ARCH_GUARDS:-}" ]; then
   required_guard=1
-  guard_args=(--required-receipt "$state/guard")
+  guard_args=(--required-receipt "$state/guard" --ready="$state/guard-ready")
   input_args=(--guard-required "$state/guard")
 fi
 (export WS_PRECOMMIT_INPUTS_DONE="$state/inputs"; step guards node scripts/precommit-guards.mjs ${guard_args[@]+"${guard_args[@]}"}) & guards=$!
+if [ "$required_guard" = 1 ]; then
+  # The required guard must create exact coverage before any costly producer.
+  while [ ! -e "$state/guard-ready" ]; do
+    if ! kill -0 "$guards" 2>/dev/null; then wait "$guards" || exit 1; exit 1; fi
+    sleep 0.01
+  done
+fi
 step inputs node scripts/precommit-inputs.mjs ${input_args[@]+"${input_args[@]}"}; echo "$?" > "$state/inputs.tmp"; mv "$state/inputs.tmp" "$state/inputs"
 if [ "$(cat "$state/inputs")" != 0 ]; then wait "$guards"; exit 1; fi
 pids=("$guards")

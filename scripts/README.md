@@ -303,6 +303,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [grid-approach-regression.mjs](./grid-approach-regression.mjs)
 - [guard-counts.d.mts](./guard-counts.d.mts)
 - [guard-counts.mjs](./guard-counts.mjs)
+- [guard-index-tree.d.mts](./guard-index-tree.d.mts)
+- [guard-index-tree.mjs](./guard-index-tree.mjs)
 - [guard-snapshot.mjs](./guard-snapshot.mjs)
 - [herdr-prompt.sh](./herdr-prompt.sh)
 - [herdr-question-open.sh](./herdr-question-open.sh)

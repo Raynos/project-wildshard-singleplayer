@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { guardIndexTree } from './guard-index-tree.mjs';
 import { parseSync } from 'vite';
 
 /** Read JSONC as data, never as executable configuration. */
@@ -56,7 +57,7 @@ export function compareCounts(baseline, current, hard, paths, update = false, de
 // A commit-only obligation, published by the actual guard process. The runner
 // waits for that process AND verifies its success against the final index.
 const GUARD_DEFINITIONS = ['.githooks/pre-commit', '.oxlintrc.json', '.oxlintrc.ratchet.json',
-  'scripts/precommit-guards.mjs', 'scripts/guard-counts.mjs'];
+  'scripts/precommit-guards.mjs', 'scripts/guard-counts.mjs','scripts/guard-index-tree.mjs'];
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const git = (root, args) => execFileSync('git', args, {cwd:root,encoding:'utf8'}).trim();
 const sourcePath = path => /^src\/.*\.[cm]?[jt]sx?$/u.test(path) && !path.endsWith('.generated.ts');
@@ -76,7 +77,7 @@ const readRequirement = file => {
 /** Publish exact staged coverage before the mandatory architecture guard starts. */
 export function beginGuardRequirement(root, file) {
   if (process.env.SKIP_ARCH_GUARDS) throw new Error('Required architecture guard cannot be skipped');
-  const tree=git(root,['write-tree']);
+  const tree=guardIndexTree(root);
   const files=git(root,['diff','--cached','--name-only','--diff-filter=ACMRD','-z']).split('\0').filter(sourcePath);
   const hashes = paths => Object.fromEntries(paths.map(path => {
     const bytes=stagedBytes(root,tree,path); return [path,bytes===null ? null : sha(bytes)];
@@ -87,6 +88,7 @@ export function beginGuardRequirement(root, file) {
   }
   writeFileSync(file,JSON.stringify(seal({version:1,pid:process.pid,tree,parent:git(root,['rev-parse','HEAD']),
     files:hashes(files),definitions})),{flag:'wx'});
+  return tree;
 }
 /** Refuse absent/stale coverage; only a live exact-source guard permits debt-only measurement. */
 export function requiredGuardRules(root, file, paths) {
@@ -112,14 +114,14 @@ export function completeGuardRequirement(root,file) {
   const value=readRequirement(file);
   if (value.pid!==process.pid || value.parent!==git(root,['rev-parse','HEAD'])) throw new Error('Required guard owner changed');
   writeFileSync(`${file}.passed`,JSON.stringify(seal({version:1,requirement:sha(readFileSync(file)),
-    tree:git(root,['write-tree']),parent:value.parent})),{flag:'wx'});
+    tree:guardIndexTree(root),parent:value.parent})),{flag:'wx'});
 }
 /** The runner refuses missing/error/skipped guards or any later index/parent change. */
 export function verifyGuardRequirement(root,file) {
   if (process.env.SKIP_ARCH_GUARDS) throw new Error('Required architecture guard cannot be skipped');
   const {digest,...value}=JSON.parse(readFileSync(`${file}.passed`,'utf8'));
   if (digest!==sha(JSON.stringify(value)) || value.version!==1
-    || value.requirement!==sha(readFileSync(file)) || value.tree!==git(root,['write-tree'])
+    || value.requirement!==sha(readFileSync(file)) || value.tree!==guardIndexTree(root)
     || value.parent!==git(root,['rev-parse','HEAD'])) throw new Error('Final architecture guard did not pass this tree');
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href && process.argv[2]==='--verify-guard') {

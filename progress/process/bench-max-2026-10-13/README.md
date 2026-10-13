@@ -383,3 +383,22 @@ Fifteen focused checks plus narrowed types/touched lint passed: all 25 hard
 refusals still fire after early data, and wrong-tree/malformed markers,
 corrupt/missing/partial JSON publication and downstream producer failures
 refuse. No producer sequence, admission, source exemption or policy changed.
+
+## Read-only guard index snapshots (sp-x5)
+
+CALL: guard tree reads use a private copy of the actual caller index, so Git
+writes cache-tree metadata only in that copy. Previously the initial guard
+and producer both ran write-tree against the same private index: the guard
+could fail on index.lock before creating its required receipt, while the
+producer continued until that missing receipt refused.
+
+The bound initial snapshot is shared with source analysis and checked against
+the current index; final receipts still bind the complete final tree and
+parent. The runner waits for bound guard readiness before costly inputs and
+drains its started guard before deleting transport. No lock retry, source
+exemption, skipped check or stale-index fallback was added.
+
+Fourteen focused checks, narrowed types and touched lint cover regular,
+split and private indexes while the caller lock is held, unchanged caller
+bytes, corrupt indexes, foreign initial trees and early guard failure.
+Every existing hard-rule/refusal and final producer-receipt test remains.
