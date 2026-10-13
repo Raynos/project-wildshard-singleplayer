@@ -419,6 +419,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [sf22-shaders.mjs](./sf22-shaders.mjs)
 - [shard-coupling.d.mts](./shard-coupling.d.mts)
 - [shard-coupling.mjs](./shard-coupling.mjs)
+- [shard-custom-inventory.d.mts](./shard-custom-inventory.d.mts)
+- [shard-custom-inventory.mjs](./shard-custom-inventory.mjs)
 - [shard-platform-content.d.mts](./shard-platform-content.d.mts)
 - [shard-platform-content.mjs](./shard-platform-content.mjs)
 - [shard-platform.d.mts](./shard-platform.d.mts)

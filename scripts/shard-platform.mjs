@@ -350,7 +350,7 @@ function cachedSourceInfo(source, path, directory, recipe) {
   return facts;
 }
 
-export function shardLines(root = ROOT) {
+export function shardLines(root = ROOT, includeSources = false) {
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const probes = new Map(), targets = new Map(), edges = new Map();
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
@@ -548,6 +548,7 @@ export function shardLines(root = ROOT) {
   for (const [slug, files] of Object.entries(shardFiles)) {
     const row = { publicLines: 0, customLines: 0, runtimeLines: 0, trustedRuntimeLines: 0, assemblyScriptLines: 0, publicShare: 0, legacy: { generators: 0, data: 0, runtime: 0 }, legacyShare: 0, conversion: null };
     let shardRuntimeLines = 0, rawGlslLines = 0, additionalGlslLines = 0;
+    const customSources = [];
     for (const path of files) {
       const local = path.slice(`src/shards/${slug}/`.length), top = local.split('/')[0];
       // Keep the historical physical TS-only comparison explicitly separate from the current authored measure.
@@ -556,10 +557,16 @@ export function shardLines(root = ROOT) {
       // G315: authored AS is reported separately, without a cap or an effect on the G291 TS ratio.
       if (path.endsWith('.as') && !RULES.tests.test(local)) row.assemblyScriptLines += lines;
       if (RULES.typescript.test(path) && !RULES.runtimeExcludedFolders.has(top) && !RULES.tests.test(local)
-        && !(local === 'shard.config.ts' && declarationOnlyConfig(text(path), path))) shardRuntimeLines += lines;
+        && !(local === 'shard.config.ts' && declarationOnlyConfig(text(path), path))) {
+        shardRuntimeLines += lines;
+        if (includeSources && lines > 0) customSources.push({path, kind:'runtime-ts', lines});
+      }
       const shaderLines = RULES.tests.test(local) ? 0 : shaders(path);
       rawGlslLines += shaderLines;
-      if (!RULES.typescript.test(path) || RULES.runtimeExcludedFolders.has(top)) additionalGlslLines += shaderLines;
+      if (!RULES.typescript.test(path) || RULES.runtimeExcludedFolders.has(top)) {
+        additionalGlslLines += shaderLines;
+        if (includeSources && shaderLines > 0) customSources.push({path, kind:'additional-glsl', lines:shaderLines});
+      }
       const category = shaderLines > 0 ? { publicCode: false, trusted: false } : classify(slug, path);
       row[category.publicCode ? 'publicLines' : 'customLines'] += lines;
       if (!path.endsWith('.as') && category.trusted) row.trustedRuntimeLines += lines;
@@ -586,6 +593,11 @@ export function shardLines(root = ROOT) {
       passed: legacyLines === null ? null : customRuntimeLines <= legacyLines * 0.2,
       gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: attributedLines, modules, exports },
     };
+    if (includeSources) {
+      for (const module of modules) customSources.push({path:module.path, lines:module.lines, kind:'sole-module'});
+      for (const entry of exports) customSources.push({path:entry.path, lines:entry.lines, name:entry.name, kind:'sole-export'});
+      row.customSources = customSources;
+    }
     out[slug] = row;
   }
   return out;

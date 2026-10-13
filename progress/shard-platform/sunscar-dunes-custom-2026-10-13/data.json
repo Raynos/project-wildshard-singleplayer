@@ -1,0 +1,862 @@
+{
+  "date": "2026-10-13",
+  "revision": "aa0007f30cb89b7abcc1f766184625187dd8a266",
+  "shard": "sunscar-dunes",
+  "measured": {
+    "metric": "runtime-vs-legacy",
+    "customRuntimeLines": 1860,
+    "shardRuntimeLines": 1741,
+    "rawGlslLines": 177,
+    "additionalGlslLines": 6,
+    "legacyLines": 4122,
+    "legacyFolder": "sunscar-dunes-legacy",
+    "legacyRevision": "8e297137b940f50da7f1949106d5576f80f238ca",
+    "runtimeShare": 0.4512372634643377,
+    "passed": false,
+    "gameSystemAttribution": {
+      "status": "import-graph",
+      "review": "G294-primary-reach",
+      "lines": 113,
+      "modules": [],
+      "exports": [
+        {
+          "path": "src/engine/render/families/ground.ts",
+          "name": "GroundPool",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/engine/render/families/ground.ts",
+          "name": "setGroundPools",
+          "exported": true,
+          "lines": 11
+        },
+        {
+          "path": "src/engine/render/materialPreparation.ts",
+          "name": "registerMaterialPreparation",
+          "exported": true,
+          "lines": 8
+        },
+        {
+          "path": "src/engine/world/Atmosphere.ts",
+          "name": "WeatherFogSpec",
+          "exported": true,
+          "lines": 5
+        },
+        {
+          "path": "src/engine/world/Atmosphere.ts",
+          "name": "WeatherFog",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/engine/world/Atmosphere.ts",
+          "name": "weatherFog",
+          "exported": true,
+          "lines": 8
+        },
+        {
+          "path": "src/engine/world/bakedTerrainField.ts",
+          "name": "BakedTerrainMetadata",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/engine/world/bakedTerrainField.ts",
+          "name": "createBakedTerrainField",
+          "exported": true,
+          "lines": 21
+        },
+        {
+          "path": "src/game/plugin/geometry.ts",
+          "name": "facetMaterial",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/game/plugin/geometry.ts",
+          "name": "withoutTriangles",
+          "exported": true,
+          "lines": 9
+        },
+        {
+          "path": "src/game/plugin/geometry.ts",
+          "name": "PivotNpcPorts",
+          "exported": true,
+          "lines": 9
+        },
+        {
+          "path": "src/game/plugin/geometry.ts",
+          "name": "NpcSurface",
+          "exported": false,
+          "lines": 1
+        },
+        {
+          "path": "src/game/plugin/geometry.ts",
+          "name": "PivotNpcLevel",
+          "exported": true,
+          "lines": 6
+        },
+        {
+          "path": "src/game/plugin/geometry.ts",
+          "name": "installPivotNpc",
+          "exported": true,
+          "lines": 8
+        },
+        {
+          "path": "src/game/plugin/headless.ts",
+          "name": "bindRuntimeItemContexts",
+          "exported": true,
+          "lines": 8
+        },
+        {
+          "path": "src/game/plugin/simulation.ts",
+          "name": "admittedTerrain",
+          "exported": true,
+          "lines": 6
+        },
+        {
+          "path": "src/game/saves.ts",
+          "name": "shardSave",
+          "exported": true,
+          "lines": 3
+        },
+        {
+          "path": "src/sdk/looks/modelLibrary.ts",
+          "name": "HdLookRow",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/looks/modelLibrary.ts",
+          "name": "ModelLibraryRows",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/looks/modelLibrary.ts",
+          "name": "undrawnRig",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/looks/modelLibrary.ts",
+          "name": "facetMaterial",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/looks/modelLibrary.ts",
+          "name": "withoutTriangles",
+          "exported": true,
+          "lines": 1
+        },
+        {
+          "path": "src/sdk/speciesBrains.ts",
+          "name": "SpeciesBrain",
+          "exported": true,
+          "lines": 1
+        }
+      ]
+    }
+  },
+  "parts": [
+    {
+      "name": "Additional raw GLSL",
+      "lines": 6
+    },
+    {
+      "name": "boot",
+      "lines": 9
+    },
+    {
+      "name": "combat",
+      "lines": 31
+    },
+    {
+      "name": "explore",
+      "lines": 5
+    },
+    {
+      "name": "Installers",
+      "lines": 7
+    },
+    {
+      "name": "look",
+      "lines": 51
+    },
+    {
+      "name": "models",
+      "lines": 46
+    },
+    {
+      "name": "quest",
+      "lines": 48
+    },
+    {
+      "name": "quests",
+      "lines": 4
+    },
+    {
+      "name": "runtime",
+      "lines": 1013
+    },
+    {
+      "name": "Shard declarations",
+      "lines": 166
+    },
+    {
+      "name": "Sole-user platform (G294)",
+      "lines": 113
+    },
+    {
+      "name": "species",
+      "lines": 17
+    },
+    {
+      "name": "thumbs",
+      "lines": 4
+    },
+    {
+      "name": "weapons",
+      "lines": 39
+    },
+    {
+      "name": "world",
+      "lines": 301
+    }
+  ],
+  "files": [
+    {
+      "path": "src/shards/sunscar-dunes/data/lightLook.ts",
+      "kind": "additional-glsl",
+      "lines": 6,
+      "group": "Additional raw GLSL",
+      "bytes": 972,
+      "longestLine": 134
+    },
+    {
+      "path": "src/shards/sunscar-dunes/boot/files.ts",
+      "kind": "runtime-ts",
+      "lines": 9,
+      "group": "boot",
+      "bytes": 1372,
+      "longestLine": 382
+    },
+    {
+      "path": "src/shards/sunscar-dunes/combat/creatures.ts",
+      "kind": "runtime-ts",
+      "lines": 11,
+      "group": "combat",
+      "bytes": 1276,
+      "longestLine": 170
+    },
+    {
+      "path": "src/shards/sunscar-dunes/combat/matriarch.ts",
+      "kind": "runtime-ts",
+      "lines": 20,
+      "group": "combat",
+      "bytes": 2460,
+      "longestLine": 204
+    },
+    {
+      "path": "src/shards/sunscar-dunes/explore/art.ts",
+      "kind": "runtime-ts",
+      "lines": 5,
+      "group": "explore",
+      "bytes": 633,
+      "longestLine": 125
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/headless.ts",
+      "kind": "runtime-ts",
+      "lines": 5,
+      "group": "Installers",
+      "bytes": 717,
+      "longestLine": 112
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/index.ts",
+      "kind": "runtime-ts",
+      "lines": 2,
+      "group": "Installers",
+      "bytes": 324,
+      "longestLine": 125
+    },
+    {
+      "path": "src/shards/sunscar-dunes/look/dusk.ts",
+      "kind": "runtime-ts",
+      "lines": 11,
+      "group": "look",
+      "bytes": 1234,
+      "longestLine": 121
+    },
+    {
+      "path": "src/shards/sunscar-dunes/look/light.ts",
+      "kind": "runtime-ts",
+      "lines": 16,
+      "group": "look",
+      "bytes": 1285,
+      "longestLine": 157
+    },
+    {
+      "path": "src/shards/sunscar-dunes/look/render.ts",
+      "kind": "runtime-ts",
+      "lines": 16,
+      "group": "look",
+      "bytes": 1867,
+      "longestLine": 179
+    },
+    {
+      "path": "src/shards/sunscar-dunes/look/sandEntry.ts",
+      "kind": "runtime-ts",
+      "lines": 8,
+      "group": "look",
+      "bytes": 545,
+      "longestLine": 119
+    },
+    {
+      "path": "src/shards/sunscar-dunes/models/gear.ts",
+      "kind": "runtime-ts",
+      "lines": 46,
+      "group": "models",
+      "bytes": 4885,
+      "longestLine": 184
+    },
+    {
+      "path": "src/shards/sunscar-dunes/quest/install.ts",
+      "kind": "runtime-ts",
+      "lines": 48,
+      "group": "quest",
+      "bytes": 5284,
+      "longestLine": 231
+    },
+    {
+      "path": "src/shards/sunscar-dunes/quests/scout.ts",
+      "kind": "runtime-ts",
+      "lines": 4,
+      "group": "quests",
+      "bytes": 408,
+      "longestLine": 102
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/audio/cues.ts",
+      "kind": "runtime-ts",
+      "lines": 19,
+      "group": "runtime",
+      "bytes": 1350,
+      "longestLine": 150
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/items.ts",
+      "kind": "runtime-ts",
+      "lines": 20,
+      "group": "runtime",
+      "bytes": 1386,
+      "longestLine": 128
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/items/lash.ts",
+      "kind": "runtime-ts",
+      "lines": 74,
+      "group": "runtime",
+      "bytes": 8808,
+      "longestLine": 216
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/items/lashHold.ts",
+      "kind": "runtime-ts",
+      "lines": 41,
+      "group": "runtime",
+      "bytes": 4310,
+      "longestLine": 238
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/items/lashHost.ts",
+      "kind": "runtime-ts",
+      "lines": 79,
+      "group": "runtime",
+      "bytes": 6869,
+      "longestLine": 192
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/items/lashView.ts",
+      "kind": "runtime-ts",
+      "lines": 37,
+      "group": "runtime",
+      "bytes": 3563,
+      "longestLine": 171
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/items/lashWeapon.ts",
+      "kind": "runtime-ts",
+      "lines": 86,
+      "group": "runtime",
+      "bytes": 8254,
+      "longestLine": 210
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/lashInput.ts",
+      "kind": "runtime-ts",
+      "lines": 31,
+      "group": "runtime",
+      "bytes": 2739,
+      "longestLine": 134
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/looks/bakedGround.ts",
+      "kind": "runtime-ts",
+      "lines": 73,
+      "group": "runtime",
+      "bytes": 7666,
+      "longestLine": 184
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/looks/duskFamilies.ts",
+      "kind": "runtime-ts",
+      "lines": 21,
+      "group": "runtime",
+      "bytes": 2021,
+      "longestLine": 145
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/looks/duskLook.ts",
+      "kind": "runtime-ts",
+      "lines": 78,
+      "group": "runtime",
+      "bytes": 6702,
+      "longestLine": 197
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/looks/fireFx.ts",
+      "kind": "runtime-ts",
+      "lines": 262,
+      "group": "runtime",
+      "bytes": 18793,
+      "longestLine": 297
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/looks/paintedStrips.ts",
+      "kind": "runtime-ts",
+      "lines": 10,
+      "group": "runtime",
+      "bytes": 1479,
+      "longestLine": 178
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/looks/stormShell.ts",
+      "kind": "runtime-ts",
+      "lines": 40,
+      "group": "runtime",
+      "bytes": 2876,
+      "longestLine": 131
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/persistence.ts",
+      "kind": "runtime-ts",
+      "lines": 7,
+      "group": "runtime",
+      "bytes": 588,
+      "longestLine": 147
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/shardfile/markedBoss.ts",
+      "kind": "runtime-ts",
+      "lines": 43,
+      "group": "runtime",
+      "bytes": 3328,
+      "longestLine": 189
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/signalPlan.ts",
+      "kind": "runtime-ts",
+      "lines": 83,
+      "group": "runtime",
+      "bytes": 7209,
+      "longestLine": 182
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/source.ts",
+      "kind": "runtime-ts",
+      "lines": 3,
+      "group": "runtime",
+      "bytes": 290,
+      "longestLine": 114
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/species/skitterer.ts",
+      "kind": "runtime-ts",
+      "lines": 2,
+      "group": "runtime",
+      "bytes": 317,
+      "longestLine": 140
+    },
+    {
+      "path": "src/shards/sunscar-dunes/runtime/standalone.ts",
+      "kind": "runtime-ts",
+      "lines": 4,
+      "group": "runtime",
+      "bytes": 461,
+      "longestLine": 111
+    },
+    {
+      "path": "src/shards/sunscar-dunes/manifest.ts",
+      "kind": "runtime-ts",
+      "lines": 48,
+      "group": "Shard declarations",
+      "bytes": 4400,
+      "longestLine": 213
+    },
+    {
+      "path": "src/shards/sunscar-dunes/plugin.ts",
+      "kind": "runtime-ts",
+      "lines": 110,
+      "group": "Shard declarations",
+      "bytes": 10412,
+      "longestLine": 222
+    },
+    {
+      "path": "src/shards/sunscar-dunes/roster.ts",
+      "kind": "runtime-ts",
+      "lines": 8,
+      "group": "Shard declarations",
+      "bytes": 965,
+      "longestLine": 196
+    },
+    {
+      "path": "src/engine/render/families/ground.ts",
+      "lines": 1,
+      "name": "GroundPool",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 20241,
+      "longestLine": 243
+    },
+    {
+      "path": "src/engine/render/families/ground.ts",
+      "lines": 11,
+      "name": "setGroundPools",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 20241,
+      "longestLine": 243
+    },
+    {
+      "path": "src/engine/render/materialPreparation.ts",
+      "lines": 8,
+      "name": "registerMaterialPreparation",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 1311,
+      "longestLine": 120
+    },
+    {
+      "path": "src/engine/world/Atmosphere.ts",
+      "lines": 8,
+      "name": "weatherFog",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 13593,
+      "longestLine": 232
+    },
+    {
+      "path": "src/engine/world/Atmosphere.ts",
+      "lines": 1,
+      "name": "WeatherFog",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 13593,
+      "longestLine": 232
+    },
+    {
+      "path": "src/engine/world/Atmosphere.ts",
+      "lines": 5,
+      "name": "WeatherFogSpec",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 13593,
+      "longestLine": 232
+    },
+    {
+      "path": "src/engine/world/bakedTerrainField.ts",
+      "lines": 1,
+      "name": "BakedTerrainMetadata",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 4247,
+      "longestLine": 166
+    },
+    {
+      "path": "src/engine/world/bakedTerrainField.ts",
+      "lines": 21,
+      "name": "createBakedTerrainField",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 4247,
+      "longestLine": 166
+    },
+    {
+      "path": "src/game/plugin/geometry.ts",
+      "lines": 1,
+      "name": "facetMaterial",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 94226,
+      "longestLine": 610
+    },
+    {
+      "path": "src/game/plugin/geometry.ts",
+      "lines": 8,
+      "name": "installPivotNpc",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 94226,
+      "longestLine": 610
+    },
+    {
+      "path": "src/game/plugin/geometry.ts",
+      "lines": 1,
+      "name": "NpcSurface",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 94226,
+      "longestLine": 610
+    },
+    {
+      "path": "src/game/plugin/geometry.ts",
+      "lines": 6,
+      "name": "PivotNpcLevel",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 94226,
+      "longestLine": 610
+    },
+    {
+      "path": "src/game/plugin/geometry.ts",
+      "lines": 9,
+      "name": "PivotNpcPorts",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 94226,
+      "longestLine": 610
+    },
+    {
+      "path": "src/game/plugin/geometry.ts",
+      "lines": 9,
+      "name": "withoutTriangles",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 94226,
+      "longestLine": 610
+    },
+    {
+      "path": "src/game/plugin/headless.ts",
+      "lines": 8,
+      "name": "bindRuntimeItemContexts",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 31785,
+      "longestLine": 271
+    },
+    {
+      "path": "src/game/plugin/simulation.ts",
+      "lines": 6,
+      "name": "admittedTerrain",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 56699,
+      "longestLine": 304
+    },
+    {
+      "path": "src/game/saves.ts",
+      "lines": 3,
+      "name": "shardSave",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 2156,
+      "longestLine": 215
+    },
+    {
+      "path": "src/sdk/looks/modelLibrary.ts",
+      "lines": 1,
+      "name": "facetMaterial",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 2334,
+      "longestLine": 491
+    },
+    {
+      "path": "src/sdk/looks/modelLibrary.ts",
+      "lines": 1,
+      "name": "HdLookRow",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 2334,
+      "longestLine": 491
+    },
+    {
+      "path": "src/sdk/looks/modelLibrary.ts",
+      "lines": 1,
+      "name": "ModelLibraryRows",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 2334,
+      "longestLine": 491
+    },
+    {
+      "path": "src/sdk/looks/modelLibrary.ts",
+      "lines": 1,
+      "name": "undrawnRig",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 2334,
+      "longestLine": 491
+    },
+    {
+      "path": "src/sdk/looks/modelLibrary.ts",
+      "lines": 1,
+      "name": "withoutTriangles",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 2334,
+      "longestLine": 491
+    },
+    {
+      "path": "src/sdk/speciesBrains.ts",
+      "lines": 1,
+      "name": "SpeciesBrain",
+      "kind": "sole-export",
+      "group": "Sole-user platform (G294)",
+      "bytes": 1490,
+      "longestLine": 214
+    },
+    {
+      "path": "src/shards/sunscar-dunes/species/duneRay.ts",
+      "kind": "runtime-ts",
+      "lines": 3,
+      "group": "species",
+      "bytes": 314,
+      "longestLine": 138
+    },
+    {
+      "path": "src/shards/sunscar-dunes/species/matriarch.ts",
+      "kind": "runtime-ts",
+      "lines": 8,
+      "group": "species",
+      "bytes": 998,
+      "longestLine": 138
+    },
+    {
+      "path": "src/shards/sunscar-dunes/species/skitterer.ts",
+      "kind": "runtime-ts",
+      "lines": 3,
+      "group": "species",
+      "bytes": 335,
+      "longestLine": 121
+    },
+    {
+      "path": "src/shards/sunscar-dunes/species/strider.ts",
+      "kind": "runtime-ts",
+      "lines": 3,
+      "group": "species",
+      "bytes": 344,
+      "longestLine": 144
+    },
+    {
+      "path": "src/shards/sunscar-dunes/thumbs/card.ts",
+      "kind": "runtime-ts",
+      "lines": 4,
+      "group": "thumbs",
+      "bytes": 459,
+      "longestLine": 118
+    },
+    {
+      "path": "src/shards/sunscar-dunes/weapons/Bullwhip.ts",
+      "kind": "runtime-ts",
+      "lines": 15,
+      "group": "weapons",
+      "bytes": 1580,
+      "longestLine": 224
+    },
+    {
+      "path": "src/shards/sunscar-dunes/weapons/rows.ts",
+      "kind": "runtime-ts",
+      "lines": 11,
+      "group": "weapons",
+      "bytes": 1042,
+      "longestLine": 194
+    },
+    {
+      "path": "src/shards/sunscar-dunes/weapons/whipModel.ts",
+      "kind": "runtime-ts",
+      "lines": 13,
+      "group": "weapons",
+      "bytes": 1647,
+      "longestLine": 250
+    },
+    {
+      "path": "src/shards/sunscar-dunes/world/baked.ts",
+      "kind": "runtime-ts",
+      "lines": 29,
+      "group": "world",
+      "bytes": 3463,
+      "longestLine": 222
+    },
+    {
+      "path": "src/shards/sunscar-dunes/world/build.ts",
+      "kind": "runtime-ts",
+      "lines": 112,
+      "group": "world",
+      "bytes": 10834,
+      "longestLine": 251
+    },
+    {
+      "path": "src/shards/sunscar-dunes/world/drapeGround.ts",
+      "kind": "runtime-ts",
+      "lines": 17,
+      "group": "world",
+      "bytes": 1552,
+      "longestLine": 209
+    },
+    {
+      "path": "src/shards/sunscar-dunes/world/fireFx.ts",
+      "kind": "runtime-ts",
+      "lines": 7,
+      "group": "world",
+      "bytes": 1162,
+      "longestLine": 165
+    },
+    {
+      "path": "src/shards/sunscar-dunes/world/meshes.ts",
+      "kind": "runtime-ts",
+      "lines": 24,
+      "group": "world",
+      "bytes": 3452,
+      "longestLine": 203
+    },
+    {
+      "path": "src/shards/sunscar-dunes/world/places.ts",
+      "kind": "runtime-ts",
+      "lines": 78,
+      "group": "world",
+      "bytes": 10135,
+      "longestLine": 231
+    },
+    {
+      "path": "src/shards/sunscar-dunes/world/resources.ts",
+      "kind": "runtime-ts",
+      "lines": 10,
+      "group": "world",
+      "bytes": 536,
+      "longestLine": 111
+    },
+    {
+      "path": "src/shards/sunscar-dunes/world/tower.ts",
+      "kind": "runtime-ts",
+      "lines": 24,
+      "group": "world",
+      "bytes": 2915,
+      "longestLine": 250
+    }
+  ]
+}

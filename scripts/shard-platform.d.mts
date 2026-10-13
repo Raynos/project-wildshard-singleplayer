@@ -11,14 +11,16 @@ export interface ConversionMeasure {
   gameSystemAttribution: { status: 'import-graph'; review: 'G294-primary-reach'; lines: number; modules: { path: string; lines: number }[];
     exports: { path: string; name: string; exported: boolean; lines: number }[] };
 }
+export interface CustomSource {path:string;kind:'runtime-ts'|'additional-glsl'|'sole-module'|'sole-export';lines:number;name?:string}
 export interface ShardLines {
+  customSources?:CustomSource[];
   publicLines: number; customLines: number; runtimeLines: number; trustedRuntimeLines: number; assemblyScriptLines: number; publicShare: number; legacyShare: number; conversion: ConversionMeasure;
   legacy: { generators: number; data: number; runtime: number };
 }
 export interface ShardPlatformList { baseline: Record<string, number>; enforced: Record<string, number> }
 export interface MilestoneFlags { boot: boolean; headless: boolean; replay: boolean; ledger: boolean; gridReady: boolean; compatible: boolean; transitional: boolean; witnessCompatible: boolean }
 export function codeLines(source: string, path?: string): number;
-export function shardLines(root?: string): Record<string, ShardLines>;
+export function shardLines(root?: string, includeSources?: boolean): Record<string, ShardLines>;
 export function milestoneFlags(slug: string, row: ShardLines, root?: string): MilestoneFlags;
 export function checkShares(recorded: ShardPlatformList, lines: Record<string, ShardLines>): string[];
 
