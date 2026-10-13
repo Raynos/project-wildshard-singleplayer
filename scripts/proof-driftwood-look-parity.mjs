@@ -31,6 +31,7 @@ const compare = arg('compare');
 if (compare !== undefined) {
   const [a, b] = compare.split(',').map(path => JSON.parse(readFileSync(path, 'utf8')));
   const diffs = [];
+  if (a.rows.length !== b.rows.length) diffs.push(`Pose count ${a.rows.length} ≠ ${b.rows.length}`);
   for (const [i, row] of a.rows.entries()) {
     const other = b.rows[i];
     for (const key of ['tier', 'pose', 'calls', 'triangles', 'width', 'height']) if (row[key] !== other?.[key]) diffs.push(`${row.tier}/${row.pose}: ${key} ${row[key]} ≠ ${other?.[key]}`);
@@ -40,9 +41,10 @@ if (compare !== undefined) {
       if (fa !== null && fb !== null && existsSync(fa) && existsSync(fb)) {
         const pa = readFileSync(fa), pb = readFileSync(fb);
         let n = 0;
-        for (let p = 0; p < pa.length; p += 4) if (pa[p] !== pb[p] || pa[p + 1] !== pb[p + 1] || pa[p + 2] !== pb[p + 2]) n++;
+        for (let p = 0; p < pa.length; p += 4) if (pa[p] !== pb[p] || pa[p + 1] !== pb[p + 1] || pa[p + 2] !== pb[p + 2] || pa[p + 3] !== pb[p + 3]) n++;
         console.log(`${row.tier}/${row.pose}: ${n} of ${pa.length / 4} pixels differ`);
-      } else diffs.push(`${row.tier}/${row.pose}: pixels differ`);
+      }
+      diffs.push(`${row.tier}/${row.pose}: pixels differ`);
     }
   }
   for (const key of ['gpuBytes', 'colliders', 'pieces', 'colliderCount', 'programs', 'shaders']) for (const tier of Object.keys(a.tiers)) if (a.tiers[tier][key] !== b.tiers[tier]?.[key]) diffs.push(`${tier}: ${key} ${a.tiers[tier][key]} ≠ ${b.tiers[tier]?.[key]}`);
