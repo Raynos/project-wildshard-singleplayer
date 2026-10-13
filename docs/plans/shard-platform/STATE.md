@@ -4,10 +4,10 @@
 **2026-10-13 13:00Z. PORT % (G390, `351e3f8bc`): avg 44.7 %** (Template 100, Signal 74.9, Sky 69.7, Nine 48.3, Nalati 10, Pine 10, Driftwood 0). Finish line: 0 of 7 at 80/20.
 
 **Nine ported** (34 L0 tiles, 0 private bins, Linux-exact). **Nalati 0 private bins** (`d3bdac368`); ground + nav one fetch (Nalati, Sky, Signal).
-**G405:** cheap derived outputs leave git (CI/deploy build them; sp-x7 P0; 45/60 deploys red); W1 builds missing platform features; component switches ship straight to public.
+**G405:** cheap derived outputs leave git (sp-x7 P0; 45/60 deploys red); switches ship straight to public.
 **RELEASE HOLD until CI + public-Nine smoke pass on ≥ `77bfbba70` (Pine Linux fixed `84eb0f68f`; last CI reds: Signal chunk sp-x6, two Nine fixtures sp-x8).** **LIVE `ad30fba68-mv6izhvz` (10:16Z, clean)**. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: Sim Nine max fixed (`77bfbba70`: ~100 ms), Pine desktop PASS (`4b239382f`…`65e123136`); Sim travel still fails Pine 57–63, Driftwood 42–50, Far 40–47 (Nalati 34–35); left = texture uploads (KTX2 ask) + unsplit shard builds. **Whole products: Template, Pastel (Linux-exact), Signal (all Linux-exact).**
 
-**Lanes by component (W1, both shards):** C1 world o123 · C2 looks o124 (Signal), o125 (Sky), o126 (sky+grade) · C3 effects open · C4 creatures + C5 quests x6 (after W1-M0) · C6 combat x1+x8 · C7 movers x4 · C8 audio open · C9 boot glue x5. x7 pusher. Non-wave work paused.
+**Lanes by component (G406, all 9 at once, both shards):** C1 world + Sky grid-ready o123 · C2 looks + shared painted look o124 · C3 effects o125 (after map P0 + G402) · C4 creatures x8 (after fan) · C5 NPCs/quests x6 (after W1-M0) · C6 combat x1 · C7 movers x4 · C8 audio o126 · C9 boot glue x5 · x7 pusher.
 
 **Decided:** G385 near B (shipped `45a8bd0e3`), G386 Pine KTX2, G387 graphs with boards, G388 Sky movers yes, G391 (supersedes G389): Nalati port NOW (sp-x5) and every legacy three.js builder/model/set becomes a generator, all shards.
 **Explorer inventory (G391, `generator-inventory.md`):** ported/total Signal 8/10, Sky 0/27 (W1).
