@@ -24,10 +24,12 @@
 8. Shared entryway proof (`add1035d6`) credits Sky's socket-lift proof to Nine (no lifts): Sky's −120 is really ~−20.
 9. Rope/tie bake skipped (+208 KB for −10 lines).
 11. Signal dusk proven by uniforms at 11 values (`d9112c821`); host state may drive `look.curves`.
-10. New SDK export `./bake` (`6d2161e6f`, the design's call); Signal pieces stay piece GLBs (tile merge would change materials).
+10. New SDK export `./bake` (`6d2161e6f`); Signal pieces stay GLBs.
 
-13. War-fan test snapshot re-accepted after proving the in-game viewmodel 0 px different (`5dc782337`).
-12. World rows host shares only kinds both shards use (`158f102ee`); ramp collider registers one task earlier.
+13. Fan test snapshot re-accepted; game viewmodel 0 px diff (`5dc782337`).
+12. World rows share only two-shard kinds (`158f102ee`).
+
+14. Plugin trim folds effects/prompts/placeholder/loader into existing modules (SDK callers block full internalisation).
 
 **Jake picks waiting:** 80/20 reach: **S1** quest state machines as AssemblyScript hooks / **S2** shaders as graph rows / **S3** accept ~25–30 % Signal, ~35 % Sky; recommend S1 + S3. Signal look A/B (`art/signal-look/round-1/`), recommend A. Near `art/near-tier/round-3/`; hero r4 `art/main-menu-hero/round-4/board.jpg` (recommend SQ-DW-a + LS-DW-c; LOOKS LINE, Jake: "I don't want to forget this main hero thing"). More: `docs/reviews/shard-platform-open-picks.md`.
 
