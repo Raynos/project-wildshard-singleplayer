@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { WeaponProfileSchema } from './weaponProfiles';
+import { MeleeContactsSchema, WeaponProfileSchema } from './weaponProfiles';
 import { isJsonData } from './json';
 
 /** The bounded authored family/context name, also checked by the trusted family installer. */
@@ -20,7 +20,8 @@ const ui = v.strictObject({ name: text, icon: name, swapIcon: v.pipe(text, v.max
 const attack = v.strictObject({ id: name, damage: v.pipe(finite, v.minValue(0), v.maxValue(10000)), cooldown: duration,
   range: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), width: v.pipe(finite, v.minValue(0.01), v.maxValue(20)), tags: v.pipe(v.array(tag), v.maxLength(32)), effect: v.nullable(effect) });
 const weapon = v.strictObject({ id: weaponId, kind: v.literal('weapon'), family: name, slot, context: name, ui, view, hook,
-  profile: v.exactOptional(WeaponProfileSchema), light: attack, heavy: attack, charge: v.pipe(duration, v.maxValue(5)) });
+  profile: v.exactOptional(WeaponProfileSchema), contacts: v.exactOptional(MeleeContactsSchema),
+  light: attack, heavy: attack, charge: v.pipe(duration, v.maxValue(5)) });
 const tool = v.strictObject({ id: toolId, kind: v.literal('tool'), family: name, ui, view, hook, action: v.nullable(v.custom<`${string}.${string}`>((value) => typeof value === 'string' && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value))),
   fuelSeconds: duration, intensity: v.pipe(finite, v.minValue(0), v.maxValue(10)) });
 const context = v.variant('keysFrom', [

@@ -68,6 +68,35 @@ export const LashWeaponProfileSchema = v.pipe(v.strictObject({
 
 const contactTag = v.custom<`${string}.${string}`>((value) => typeof value === 'string'
   && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.-]+$/u.test(value) && value.length <= 128);
+const reaction = v.variant('kind', [
+  v.strictObject({ when: v.picklist(['before', 'survived']), kind: v.literal('impulse'),
+    direction: v.picklist(['radial-away', 'aim-backward']), speed: scalar,
+    lift: v.pipe(v.number(), v.finite(), v.minValue(-10000), v.maxValue(10000)), maxHealth: v.exactOptional(scalar) }),
+  v.strictObject({ when: v.picklist(['before', 'survived']), kind: v.literal('stagger'),
+    strength: scalar, aboveHealth: v.exactOptional(scalar) }),
+]);
+/** Ordered cone/lane contacts, with authority supplied by the trusted owner rather than JSON. */
+export const MeleeContactRowSchema = v.pipe(v.strictObject({
+  lane: v.picklist(['primary', 'secondary']), heavy: v.boolean(), cooldown: seconds,
+  shape: v.picklist(['cone', 'lane']), reach: v.pipe(positive, v.maxValue(20)),
+  size: v.pipe(positive, v.maxValue(20)), height: v.pipe(scalar, v.maxValue(20)), allowance: v.pipe(scalar, v.maxValue(20)),
+  lands: v.pipe(v.array(seconds), v.maxLength(16)), show: seconds, reports: v.boolean(),
+  hits: v.pipe(v.array(v.strictObject({ source: v.picklist(['owner', 'env']), damage: scalar,
+    tags: v.pipe(v.array(contactTag), v.maxLength(32)), moveId: v.pipe(v.string(), v.minLength(1), v.maxLength(128)),
+    copyVectors: v.boolean(), copyTags: v.boolean(), reactions: v.pipe(v.array(reaction), v.maxLength(16)) })), v.minLength(1), v.maxLength(16)),
+}), v.check(row => row.lands.length === 0 ? row.hits.length === 1
+  : row.lands.length === row.hits.length && row.lands.every((at, i) => at <= row.show && (i === 0 || at > (row.lands[i - 1] ?? Infinity))),
+  'Immediate contact or ordered one-hit-per-landing contacts'));
+type AuthoredContact<T> = T extends readonly (infer U)[] ? readonly AuthoredContact<U>[]
+  : T extends object ? { readonly [K in keyof T]: AuthoredContact<T[K]> } : T;
+/** Literal authored rows accept readonly arrays; the engine retains their declared vector/tag ownership. */
+export type MeleeContactRow = AuthoredContact<v.InferOutput<typeof MeleeContactRowSchema>>;
+/** Optional item attachment, bounded before the shared contact controller allocates its moves. */
+export const MeleeContactsSchema = v.pipe(v.array(MeleeContactRowSchema), v.minLength(1), v.maxLength(16));
+/** Admit JSON-only contact rows without clocks, commands or actor authority. */
+export function parseMeleeContacts(input: unknown): readonly MeleeContactRow[] {
+  return v.parse(v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only melee contacts'), MeleeContactsSchema), input);
+}
 /** Cone contacts read slash damage/cooldowns from the item; this profile declares the reach allowance and gust. */
 export const ConeWeaponProfileSchema = v.strictObject({
   family: v.literal('cone'), slash: v.strictObject({ reachAllowance: v.pipe(scalar, v.maxValue(20)) }),

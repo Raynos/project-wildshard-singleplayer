@@ -3825,3 +3825,18 @@ The admin export generates and packs its own admitted products before
 measurement; it builds no game application. The 80/20 finish count remains
 under the headline. A declaration-only `shard.config.ts` adds no custom
 lines; a function body or computation in it remains custom.
+
+G394 shared ordered melee contacts: a declared weapon may attach `contacts`,
+a bounded array of `MeleeContactRow` values from `@wildshard/sdk/weapons/meleeProfile`.
+Each move declares its cooldown lane, cone/lane shape, immediate or ordered
+delayed landings, contact damage/tags and ordered before/survived reactions.
+The defining `@wildshard/game/plugin/weaponFamily.bindMeleeContacts(weaponId,
+rows, { owner, ...ports })` admits JSON and constructs the existing engine
+`ContactFamily`. `owner` supplies the native player actor or page environment
+for `source: owner`; `source: env` always remains environmental. Identity,
+aim, body/chest/world queries, reaction ports and update phases stay trusted.
+Binding does not advance clocks, enqueue commands or change continuation.
+The declared vector/tag copy flags retain their event-lifetime semantics;
+health predicates run after the accepted hit and its callback. Signal's lash
+and Sky's fan use the same controller and keep their original held release.
+Absent `contacts` leaves existing item admission and serialised bytes unchanged.
