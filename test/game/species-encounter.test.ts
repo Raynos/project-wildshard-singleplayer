@@ -5,14 +5,16 @@ import { loadRapier, type Rapier } from '../../src/engine/physics/rapier';
 import { createSimHost } from '../../src/engine/sim';
 import { snapshotSimHost, serializeSimSnapshot } from '../../src/engine/sim/snapshot';
 import { bakedSpecs, installSpeciesHomes, type SpeciesHomesSpec } from '../../src/game/plugin/brain';
-import { installBossOwnerRow, installSpeciesEncounter, type BossOwnerBody } from '../../src/game/shardfile/bossRow';
+import { installBossOwnerRow, installSpeciesEncounter, prepareNativePopulation, type BossOwnerBody } from '../../src/game/shardfile/bossRow';
 import { speciesBrains } from '../../src/sdk/speciesBrains';
 import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES } from '../../src/shards/far-reach/data/brains';
 import { ROC_OWNER } from '../../src/shards/far-reach/data/rocFight';
 import { SKY_FLOCK_ROWS } from '../../src/shards/far-reach/data/spawns';
+import { SKY_NATIVE_POPULATION } from '../../src/shards/far-reach/data/population';
 import skyBake from '../../src/shards/far-reach/data/physics.generated.json' with { type: 'json' };
 import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../../src/shards/sunscar-dunes/data/brains';
 import { SIGNAL_HEADLESS, SIGNAL_BOSS_OWNER } from '../../src/shards/sunscar-dunes/data/headlessOwners';
+import { SIGNAL_NATIVE_POPULATION } from '../../src/shards/sunscar-dunes/data/population';
 import signalBake from '../../src/shards/sunscar-dunes/data/physics.generated.json' with { type: 'json' };
 import { SIM_LEVEL } from '../fixtures/sim-level/level';
 
@@ -74,4 +76,30 @@ it.each(['held', 'spawned'] as const)('%s foreign population address refuses bef
     expect(() => installSpeciesEncounter(host, wrong, row, { fact: () => undefined, coins: () => undefined })).toThrow('declared species population');
     expect(serializeSimSnapshot(snapshotSimHost(host))).toBe(saved);
   } finally { host.dispose(); }
+});
+
+it.each(['held', 'spawned'] as const)('%s authored preparation preserves full shipping roster and every native snapshot byte', pattern => {
+  const rows = pattern === 'held' ? SKY_NATIVE_POPULATION : SIGNAL_NATIVE_POPULATION;
+  const bake = pattern === 'held' ? skyBake.actors : [...signalBake.actors, ...signalBake.bosses];
+  const owner = pattern === 'held' ? ROC_OWNER : SIGNAL_BOSS_OWNER;
+  const prepared = prepareNativePopulation(rows, bake, owner), specs = bakedSpecs(bake);
+  const make = (next: boolean) => {
+    const host = createSimHost({ ...SIM_LEVEL, entities: [], quests: [] }, { rapier });
+    const ports = { fact: () => undefined, coins: () => undefined };
+    const installed = next ? prepared.install(host, ports) : installSpeciesEncounter(host, {
+      ...rows, homes: rows.homes.map(row => ({ ...row, late: 'late' in row ? specs.get(row.kind)?.flight === undefined : false })),
+      specs, species: rows.program.species, brains: speciesBrains(rows.program.species, rows.program.strikes,
+        'modules' in rows.program ? rows.program.modules : {}),
+      attackers: rows.attackers ?? Infinity, think: rows.think === 'legacy' ? { bands: { rate: () => 'legacy' } } : rows.think,
+    }, owner, ports);
+    installed.keeper.settle(); return { host, ...installed };
+  };
+  const before = make(false), after = make(true);
+  try {
+    expect(serializeSimSnapshot(snapshotSimHost(after.host))).toBe(serializeSimSnapshot(snapshotSimHost(before.host)));
+    for (let tick = 0; tick < 240; tick++) {
+      before.host.step(); after.host.step();
+      expect(serializeSimSnapshot(snapshotSimHost(after.host)), `tick ${String(tick)}`).toBe(serializeSimSnapshot(snapshotSimHost(before.host)));
+    }
+  } finally { before.host.dispose(); after.host.dispose(); }
 });

@@ -1,3 +1,4 @@
+import { admitSpeciesProgram, type SpeciesProgramRows, type SpeciesBrains, type SpeciesPageCatalogue, type SpeciesCataloguePorts } from "./brain";
 import type { Progress } from "../Progress";
 import { Vector3, type Object3D } from 'three';
 import { shardContentIdentity, legacyContentIdentity } from "../shard/list";
@@ -7,7 +8,7 @@ import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import { QuestState, type QuestMarker, type QuestStep } from '@wildshard/engine/quest/core';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { type ShardContext, ShardPlugin } from './context';
-import { installEnteredRuntimeInput, retainsRuntimeServices } from "../shard/retainedHooks";
+import { installEnteredRuntimeInput, installEnteredRuntimeService, retainsRuntimeServices } from "../shard/retainedHooks";
 import { Ledger, LedgerEmitter, type LedgerReceipt } from "../ledger";
 import { Purse } from "../loot/Purse";
 import { installDeclaredItems, type DeclaredItems, type DeclaredItemPorts } from "../shardfile/items";
@@ -446,7 +447,10 @@ export interface HybridRuntimeRows {
   readonly audio: Parameters<typeof installRuntimeAudio>[1];
   readonly cues: Parameters<typeof installRuntimeAudio>[2];
   /** Build the brain catalogue (in kit, as the rows enter): the brained species rows, their looks and the live witness. */
-  readonly species: () => { readonly rows: Parameters<ShardContext['rows']['species']>[0]; readonly looks: Parameters<ShardContext['rows']['speciesLook']>[0]; readonly witness: (actor: AnimalBody) => string | null };
+  readonly species: (() => { readonly rows: Parameters<ShardContext['rows']['species']>[0]; readonly looks: Parameters<ShardContext['rows']['speciesLook']>[0]; readonly witness: (actor: AnimalBody) => string | null }) | {
+    readonly program: SpeciesProgramRows; readonly page: Parameters<SpeciesBrains['catalogue']>[0];
+    readonly looks: Parameters<ShardContext['rows']['speciesLook']>[0]; readonly homes?: SpeciesCataloguePorts['homes']; readonly shove?: boolean;
+  };
 }
 /** A held weapon the host wires: its viewmodel and its swing cues. */
 export type HybridWeapon = Awaited<ReturnType<BuildEquipment>>['primary'] & { onSwing: ((heavy: boolean) => void) | null; readonly model: Object3D };
@@ -465,6 +469,10 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   /** The runtime's quest, once `install` has made it. */
   quest: QuestState | null = null;
   private witness: ((actor: AnimalBody) => string | null) | null = null;
+  protected populationBrains: SpeciesBrains | null = null;
+  protected populationCatalogue: SpeciesPageCatalogue | null = null;
+  protected populationControl: ReturnType<SpeciesBrains['held']> = null;
+  private populationPush: ((yaw: number, speed: number, lift: number) => void) | null = null;
   /** The world, behind the loading screen (after the strings). */
   protected abstract build(ctx: ShardContext): Promise<void> | void;
   /** The primary weapon for `buildEquipment`. */
@@ -486,7 +494,16 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   override kit(ctx: ShardContext): void {
     const rows = this.rows, rt = ctx.game.runtime;
     ctx.rows.weapon(rows.weapon);
-    const species = rows.species(); this.witness = species.witness; ctx.rows.species(species.rows); ctx.rows.speciesLook(species.looks);
+    let species: { rows: Parameters<ShardContext['rows']['species']>[0]; looks: Parameters<ShardContext['rows']['speciesLook']>[0]; witness: (actor: AnimalBody) => string | null };
+    if (typeof rows.species === 'function') species = rows.species();
+    else {
+      const program = rows.species, brains = admitSpeciesProgram(program.program);
+      this.populationBrains = brains;
+      const catalogue = brains.catalogue(program.page, { ...(program.homes === undefined ? {} : { homes: program.homes }),
+        ...(program.shove === true ? { held: { shove: (yaw, speed, lift) => { this.populationPush?.(yaw, speed, lift); } } } : {}) });
+      this.populationCatalogue = catalogue; species = { rows: catalogue.rows, looks: program.looks, witness: brains.witness };
+    }
+    this.witness = species.witness; ctx.rows.species(species.rows); ctx.rows.speciesLook(species.looks);
     ctx.rows.encounter(rows.encounters);
     this.prepare(ctx);
     if (rt) rt.buildEquipment = (targets) => {
@@ -498,6 +515,12 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   override async play(ctx: ShardContext): Promise<void> {
     const host = ctx.app.equipmentHost, weapon = this.armed(), rt = ctx.game.runtime;
     if (host !== null && weapon !== null) { host.viewmodel.add(weapon.model); ctx.scope.onDispose(() => { weapon.model.removeFromParent(); }); this.dress(ctx, weapon); }
+    if (typeof this.rows.species !== 'function' && this.rows.species.shove === true) {
+      const velocity = new Vector3(), push = (yaw: number, speed: number, lift: number): void => {
+        ctx.app.player?.impulse(velocity.set(Math.sin(yaw) * speed, lift, Math.cos(yaw) * speed));
+      };
+      installEnteredRuntimeService(ctx, scope => { this.populationPush = push; scope.onDispose(() => { if (this.populationPush === push) this.populationPush = null; }); });
+    }
     this.enter(ctx);
     installRuntimeAudio(ctx, this.rows.audio, this.rows.cues);
     const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });

@@ -7,7 +7,6 @@ import { dirname, resolve, sep } from 'node:path';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { Collider } from './physics';
 import { declareNavigation } from './bake/navigationAsset';
-import type { Navigation } from '@wildshard/format/navigation';
 import { bakeTerrain, type BakedTerrain, type TerrainBakeSource } from './bake/terrain';
 import { bakeProps, type BakedProps, type PropScatter, type PropsBakeSource, type PropWhole } from './bake/props';
 import { bakeKinds, type KindBakeOptions, type KindCollider, type PieceBake } from './bake/kinds';
@@ -125,7 +124,7 @@ export interface BakedScene {
   props: BakedProps | null;
   pieces: BakedSceneParts[];
   /** Shardfile rows in the product's canonical order (tiles by lod, x, z; files by hash). */
-  shardfile: Pick<BakedTerrain, 'tiles' | 'files' | 'critical'> & Partial<Pick<BakedTerrain, 'edge' | 'terrain'> & Pick<BakedProps, 'far' | 'library'>> & { navigation?: Navigation };
+  shardfile: Pick<BakedTerrain, 'tiles' | 'files' | 'critical'> & Partial<Pick<BakedTerrain, 'edge' | 'terrain'> & Pick<BakedProps, 'far' | 'library'>> & { navigation?: ReturnType<typeof declareNavigation>['navigation'] };
   colliders: { scene: SceneDescription['colliders']; props: BakedProps['props']['colliders']; pieces: { piece: string; colliders: PieceBake['colliders'] }[] };
   assets: Map<string, Uint8Array>;
 }

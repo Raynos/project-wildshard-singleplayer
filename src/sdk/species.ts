@@ -1,35 +1,14 @@
 import * as v from 'valibot';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import type { CombatTag } from '@wildshard/engine/combat/pipeline';
+import { CreatureStrikeSchema } from '@wildshard/format/creatures';
 
 const finite = v.pipe(v.number(), v.finite(), v.minValue(-10000000), v.maxValue(10000000));
 const nonnegative = v.pipe(finite, v.minValue(0));
 const positive = v.pipe(nonnegative, v.check(n => n > 0, 'positive number'));
 const text = v.pipe(v.string(), v.maxLength(4096));
 const id = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
-const angle = v.pipe(nonnegative, v.maxValue(Math.PI));
-const shape = v.variant('kind', [
-  v.strictObject({ kind: v.literal('arc'), radius: nonnegative, halfAngle: angle, yawOffset: v.exactOptional(finite) }),
-  v.strictObject({ kind: v.literal('lane'), length: nonnegative, width: positive }),
-  v.pipe(v.strictObject({ kind: v.literal('ring'), inner: finite, outer: finite }), v.check(r => r.inner <= r.outer, 'ordered ring')),
-  v.strictObject({ kind: v.literal('wedge'), length: nonnegative, halfAngle: angle }),
-  v.strictObject({ kind: v.literal('point'), radius: nonnegative, exclusive: v.exactOptional(v.boolean()) }),
-  v.strictObject({ kind: v.literal('sphere'), radius: nonnegative }),
-]);
-const weight = v.variant('kind', [
-  v.strictObject({ kind: v.literal('constant'), value: finite }),
-  v.strictObject({ kind: v.literal('horizontal-distance'), above: nonnegative, far: finite, near: finite }),
-]);
-const tag = v.custom<CombatTag>(value => typeof value === 'string' && value.length <= 128 && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.*-]+$/u.test(value));
-/** Full native strike data, including its finite score program; no author callback is admitted. */
-export const StrikeSchema = v.strictObject({
-  id, shape, windup: nonnegative, active: nonnegative, recover: nonnegative, cooldown: nonnegative,
-  range: v.nullable(nonnegative), damage: nonnegative, tags: v.pipe(v.array(tag), v.maxLength(32)), weight,
-  units: v.exactOptional(v.picklist(['world', 'actor'])), alternatives: v.exactOptional(v.pipe(v.array(shape), v.maxLength(16))),
-  motion: v.exactOptional(v.strictObject({ speed: v.exactOptional(nonnegative), delay: v.exactOptional(nonnegative),
-    track: v.exactOptional(v.picklist(['none', 'lead', 'follow'])), overshoot: v.exactOptional(finite), skid: v.exactOptional(nonnegative) })),
-  eligibility: v.exactOptional(v.strictObject({ maxDy: v.exactOptional(nonnegative), jumpDodges: v.exactOptional(v.boolean()) })),
-});
+/** The same strict portable strike admission used by native and page population rows. */
+export const StrikeSchema = CreatureStrikeSchema;
 /** Serializable native strike accepted by the SDK, without an authored callback. */
 export type StrikeData = v.InferOutput<typeof StrikeSchema>;
 /** Validate a serializable native strike before its trusted engine adapter is constructed. */

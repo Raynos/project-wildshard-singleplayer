@@ -9,10 +9,9 @@ import { installDeclaredPropColliders } from '@wildshard/engine/physics/declared
 import { propColliderDescriptors } from '@wildshard/game/shardfile/props';
 import { addBakedWorld, ledgerPorts, proveEntryways, pickCommands, trustedLevel, weaponRow, createMeleeScriptDriver, MeleeScriptDriver, installNativeMelee, type NativeMeleeCommand } from '@wildshard/game/plugin/simulation';
 import { DECK, SPAWN, VANES } from '../data/layout';
-import { SKY_FLOCK_ROWS, SKY_FLOCK_PLACEMENT, SKY_ANALYTIC_FLOOR, SKY_KILL_Y, FLOCK_STEP } from '../data/spawns';
-import { speciesBrains } from '@wildshard/sdk/speciesBrains';
-import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES } from '../data/brains';
-import { installSpeciesEncounter } from '@wildshard/game/shardfile/bossRow';
+import { SKY_ANALYTIC_FLOOR } from '../data/spawns';
+import { SKY_NATIVE_POPULATION } from '../data/population';
+import { prepareNativePopulation } from '@wildshard/game/shardfile/bossRow';
 import { ROC_OWNER } from '../data/rocFight';
 import { FAN_ID } from '../data/items';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM } from '../data/nativeMelee';
@@ -68,7 +67,7 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
       activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined } });
     return { runtime, failures: () => lane.host.failureCount, hook: items.hooks(lane.host).get(FAN_ID) ?? null, hookTick: () => lane.host.currentTick };
   };
-  const specs = skySpecs();
+  const population = prepareNativePopulation({ ...SKY_NATIVE_POPULATION, seed: shard.identity.seed }, baked.actors, ROC_OWNER);
   // the shipping spawn (manifest `spawn`, layout SPAWN) standing on Sunrest's deck, not the shardfile's grid datum; the
   // host's player strike is the zero-damage probe, never the War Fan (a declared item, data/items.ts)
   const level = trustedLevel(shard, { at: { x: SPAWN.x, y: DECK, z: SPAWN.z }, yaw: SPAWN.yaw, speed: 5 }, { size: 500, height: SKY_ANALYTIC_FLOOR });
@@ -79,12 +78,8 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
     if (!context.restoring) addBakedWorld(host, baked.pieces);
     host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
     const movers = installMovers(host, context.restoring, () => new Map([[SKY_MOVER_BINDING.winch, skyWinchPermission(host.flags)]]));
-    const brains = speciesBrains(SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES);
     const ledger = ledgerPorts(context.emit);
-    const { keeper, encounter } = installSpeciesEncounter(host, { step: FLOCK_STEP, seed: shard.identity.seed, specs, species: SKY_CREATURE_ROWS,
-      brains, attackers: Infinity, think: { bands: { rate: () => 'legacy' } }, killY: SKY_KILL_Y, placement: SKY_FLOCK_PLACEMENT,
-      homes: SKY_FLOCK_ROWS.map(home => ({ id: home.id, kind: home.kind, at: home.at, yaw: home.yaw, respawn: 0, late: specs.get(home.kind)?.flight === undefined })),
-    }, ROC_OWNER, ledger, context.snapshot);
+    const { keeper, encounter } = population.install(host, ledger, context.snapshot);
     const fan = pickCommands(context.commands, (command): NativeMeleeCommand | undefined => {
       if (command.kind === 'player') return command.attack === undefined ? undefined : { kind: 'move', action: 0, targetId: command.attack.targetId };
       if (command.kind === 'script' && command.actorId === FAN_AIM) return { kind: 'aim', pitch: command.value };

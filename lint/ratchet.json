@@ -1158,7 +1158,7 @@
     "src/shards/far-reach/quest/keeper.ts": 1,
     "src/shards/far-reach/roster.ts": 1,
     "src/shards/far-reach/runtime/headless.ts": 2,
-    "src/shards/far-reach/runtime/index.ts": 5,
+    "src/shards/far-reach/runtime/index.ts": 4,
     "src/shards/far-reach/runtime/persistence.ts": 4,
     "src/shards/far-reach/runtime/standalone.ts": 1,
     "src/shards/far-reach/species/bodies.ts": 1,

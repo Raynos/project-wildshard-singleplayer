@@ -2,8 +2,7 @@ import { bindSignalItems } from './runtime/items';
 import { bindDirectorActions } from '@wildshard/game/plugin/director';
 import signalStages from './data/signalStages.json' with { type: 'json' };
 import { standaloneEntry } from './runtime/standalone';
-import { speciesBrains } from '@wildshard/sdk/speciesBrains';
-import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_PAGE_ROWS } from './data/brains';
+import { SIGNAL_PAGE_PROGRAM } from './data/population';
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardPlugin } from '@wildshard/game/shard/plugin';
@@ -48,11 +47,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   get ray(): Animal | null { return this.creatures?.homes[0]?.animal ?? null; }
   // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
   protected readonly rows: HybridRuntimeRows = { expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }], complete: 'sunscar.complete',
-    audio: source.audio, cues: installSunscarCues, species: () => {
-      const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES);
-      return { rows: brains.catalogue(SIGNAL_PAGE_ROWS).rows,
-        looks: DUNE_CREATURE_LOOKS, witness: brains.witness };
-    } };
+    audio: source.audio, cues: installSunscarCues, species: { ...SIGNAL_PAGE_PROGRAM, looks: DUNE_CREATURE_LOOKS } };
   /**
    * Quest state for a capture (E399; council round 1: run the player's own path, every side effect with it). Each step is
    * what play does: Sefa's first talk sets her flag (her dialogue's only effect), the logbook's interact, the crank's

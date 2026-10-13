@@ -8,7 +8,7 @@ import { BossBrain, type BossContinuation, type BossDefinition, type BossSaved, 
 import { silentBossPresentation } from '@wildshard/engine/ai/phases';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
-import { installSpeciesHomes, type SpeciesHomesSpec } from '../plugin/brain';
+import { installSpeciesHomes, admitSpeciesProgram, bakedSpecs, type SpeciesHomesSpec, type SpeciesProgramRows } from '../plugin/brain';
 
 /** A boss row's two durable flags: beaten (its record's `defeated`) and paid (its record's `rewardTaken`). */
 export interface BossRowFlagNames { readonly defeated: string; readonly paid: string }
@@ -163,4 +163,35 @@ export function installSpeciesEncounter(host: SimHost, population: SpeciesHomesS
     body = { kind: 'held', actor, brain };
   }
   return { keeper, encounter: installBossOwnerRow(host, row, { body, ...ports }) };
+}
+
+/** Serializable native population policy. Ground-only deferred homes resolve
+ * against the actual baked flight recipe, preserving original roster order. */
+export interface NativePopulationRows {
+  readonly program: SpeciesProgramRows;
+  readonly step: string; readonly seed: number;
+  readonly homes: readonly (Omit<SpeciesHomesSpec['homes'][number], 'late'> & { readonly late?: boolean | 'ground' })[];
+  readonly boss?: SpeciesHomesSpec['boss'];
+  readonly attackers: number | null;
+  readonly think: SpeciesHomesSpec['think'] | 'legacy';
+  readonly killY?: number;
+  readonly placement?: SpeciesHomesSpec['placement'];
+  readonly holds?: SpeciesHomesSpec['holds'];
+  /** Original admission lifetime: per preparation or per host installation. */
+  readonly admission: 'prepare' | 'install';
+}
+/** Prepare original baked recipes and install the existing population/encounter
+ * in the caller's phase. No actor, RNG draw or step runs during preparation. */
+export function prepareNativePopulation(rows: NativePopulationRows, baked: Parameters<typeof bakedSpecs>[0], owner: unknown): {
+  readonly specs: ReturnType<typeof bakedSpecs>;
+  readonly install: (host: SimHost, ports: Omit<BossOwnerPorts, 'body'>, saved?: Parameters<typeof installSpeciesHomes>[2]) => ReturnType<typeof installSpeciesEncounter>;
+} {
+  const specs = bakedSpecs(baked), brains = rows.admission === 'prepare' ? admitSpeciesProgram(rows.program) : null;
+  const homes = rows.homes.map(row => ({ ...row, late: row.late === 'ground' ? specs.get(row.kind)?.flight === undefined : row.late ?? false }));
+  return { specs, install: (host, ports, saved) => installSpeciesEncounter(host, {
+    step: rows.step, seed: rows.seed, homes, specs, species: rows.program.species, brains: brains ?? admitSpeciesProgram(rows.program),
+    attackers: rows.attackers ?? Infinity, think: rows.think === 'legacy' ? { bands: { rate: () => 'legacy' } } : rows.think,
+    ...(rows.boss === undefined ? {} : { boss: rows.boss }), ...(rows.killY === undefined ? {} : { killY: rows.killY }),
+    ...(rows.placement === undefined ? {} : { placement: rows.placement }), ...(rows.holds === undefined ? {} : { holds: rows.holds }),
+  }, owner, ports, saved) };
 }

@@ -3,14 +3,12 @@ import signalStages from '../data/signalStages.json' with { type: 'json' };
 import { FLAG } from '../data/flags';
 import * as v from 'valibot';
 import { addBakedWorld, admittedTerrain, ledgerPorts, pickCommands, trustedLevel, weaponRow, installNativeMelee, type NativeMeleeCommand, type NativeMeleeWorld, type NativeMeleeOwner } from '@wildshard/game/plugin/simulation';
-import { bakedSpecs } from '@wildshard/game/plugin/brain';
-import { installSpeciesEncounter } from '@wildshard/game/shardfile/bossRow';
+import { prepareNativePopulation } from '@wildshard/game/shardfile/bossRow';
 import { installQuestGraph, type QuestGraphPorts } from '@wildshard/game/plugin/quests';
 import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
-import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import { parsePromptRegistrations } from '@wildshard/sdk/runtime/prompts';
 import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
-import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../data/brains';
+import { SIGNAL_NATIVE_POPULATION } from '../data/population';
 import { SIGNAL_HEADLESS, SIGNAL_BOSS_OWNER } from '../data/headlessOwners';
 import { SIGNAL_LEVEL } from '../data/headlessLevel';
 import baked from '../data/physics.generated.json' with { type: 'json' };
@@ -26,13 +24,13 @@ export function bakedSpots(input: unknown): QuestGraphPorts['spots'] { return v.
 
 /** The held whip input's quiet continuation; the existing lash adapter owns unroll, cooldown and both contacts. */
 export const SIGNAL_LASH_INPUT = 'sunscar.whip-input';
-const manifest = { ...SIGNAL_HEADLESS, baked, homes: { ...SIGNAL_HEADLESS.homes, species: SIGNAL_SPECIES, strikes: SIGNAL_STRIKES, modules: SIGNAL_MODULES } };
+const manifest = { ...SIGNAL_HEADLESS, baked };
 
 /** Compose Signal's existing native owners in-shard, preserving their install order and adding the shipping hold/release input. */
 export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
-  const rows = v.parse(Baked, baked), specs = bakedSpecs([...rows.actors, ...rows.bosses]), spots = rows.spots;
-  const { homes, boss, quest } = manifest, terrain = admittedTerrain(shard, assets), { heightAt } = terrain;
-  const brains = speciesBrains(homes.species, homes.strikes, homes.modules);
+  const rows = v.parse(Baked, baked), spots = rows.spots;
+  const { boss, quest } = manifest, terrain = admittedTerrain(shard, assets), { heightAt } = terrain;
+  const population = prepareNativePopulation(SIGNAL_NATIVE_POPULATION, [...rows.actors, ...rows.bosses], SIGNAL_BOSS_OWNER);
   const row = weaponRow(shard, manifest.lash.id);
   const cracks = quest.interactions.rows.flatMap((entry): NativeMeleeWorld[] => {
     if (entry.crack === undefined) return [];
@@ -45,9 +43,7 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) 
     proveEntries: host => proveTerrainEntries(host.physics, shard.entryways, heightAt, manifest.entries), install: (host, context) => {
     if (!context.restoring) addBakedWorld(host, baked.pieces, terrain.bytes);
     const ledger = ledgerPorts(context.emit);
-    const { keeper, encounter } = installSpeciesEncounter(host, { step: homes.step, seed: homes.seed, homes: homes.rows, boss: boss.row, specs,
-      species: homes.species, brains, attackers: homes.attackers, think: homes.think,
-      holds: homes.holds }, SIGNAL_BOSS_OWNER, ledger, context.snapshot);
+    const { keeper, encounter } = population.install(host, ledger, context.snapshot);
     const input = new SignalLashInput();
     let released = { released: false, target: null as string | null };
     host.onStep(SIGNAL_LASH_INPUT, dt => { released = input.sample(dt, context.commands(), !encounter.locked()); },

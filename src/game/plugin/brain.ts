@@ -24,7 +24,7 @@ import { ChallengeGrazerBrain } from "@wildshard/engine/ai/challengeGrazer";
 import { PatrolDiverBrain } from "@wildshard/engine/ai/patrolDiver";
 import { PhasedFlyerBrain } from "@wildshard/engine/ai/phasedFlyer";
 import { DiverBrain, readRaptorDiverSpec, type RaptorDiverSpec } from "@wildshard/engine/ai/diver";
-import { CreatureBodyRecipeSchema, CreatureHomeSchema, type CreatureBodyRecipe } from "@wildshard/format/creatures";
+import { CreatureBodyRecipeSchema, CreatureHomeSchema, CreatureStrikeSchema, type CreatureBodyRecipe } from "@wildshard/format/creatures";
 import { canReach } from "@wildshard/engine/ai/reach";
 import type { SimSnapshot } from "@wildshard/engine/sim/snapshot";
 import { parseGrazer, grazerPreset, type GrazerSchema, parseChallengeGrazer, type ChallengeGrazerSchema, type ShardChallengeGrazer, type ShardRamGrazer } from "@wildshard/format/grazers";
@@ -989,4 +989,16 @@ export function bakedSpecs(actors: readonly { readonly kind?: string; readonly s
     specs.set(kind, spec);
   }
   return specs;
+}
+
+/** A population's authored catalogue and verified script modules; admission creates no actor or tick. */
+export interface SpeciesProgramRows {
+  readonly species: readonly BrainedSpecies[];
+  readonly strikes: readonly unknown[];
+  readonly modules?: Readonly<Record<string, string>>;
+}
+/** Admit the same strict strike, brain and module rows for browser and native populations. */
+export function admitSpeciesProgram(rows: SpeciesProgramRows): SpeciesBrains {
+  return admitSpeciesBrains(rows.species, rows.strikes.map(row => v.parse(CreatureStrikeSchema, row)),
+    new Map(Object.entries(rows.modules ?? {}).map(([hash, base64]) => [hash, moduleBytes(base64)] as const)));
 }

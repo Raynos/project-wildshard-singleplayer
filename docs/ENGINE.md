@@ -4236,3 +4236,22 @@ keep their original order. Holds run in the page's original update phase;
 a null flag owner writes zero, retaining the original unheld state.
 Legacy callbacks and absent options retain their behaviour. These rows
 create neither a host nor a clock and consume no random values.
+
+### Declared page and native populations
+
+`HybridRuntimeRows.species` accepts a population program instead of a private
+callback: `program` contains the species, strict strike rows and hash-keyed
+base64 modules; `page` retains registration order, `looks` the existing catalogue,
+and optional `homes` and `shove` lend the existing actual-body authorities.
+The hybrid host admits it during kit, retains its catalogue and witness, and
+binds the player's shove port in the original entered lifetime before audio.
+The callback form retains existing behavior for other consumers.
+
+`prepareNativePopulation` in `game/shardfile/bossRow` resolves the same baked
+body recipes once. Its authored homes may select `late: 'ground'`, unlimited
+attackers use `null`, and `think: 'legacy'` selects the existing decision band.
+`admission` preserves preparation or per-host catalogue construction. Its
+`install` binds the existing population and encounter in the caller's phase;
+the caller still owns settle timing. Preparation allocates no actor or tick.
+Both page and native programs use the SDK's unchanged strict strike schema,
+now defined by `CreatureStrikeSchema` in `format/creatures`.

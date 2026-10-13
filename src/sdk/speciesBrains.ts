@@ -1,6 +1,6 @@
-import { admitSpeciesBrains, type BrainedSpecies as PlatformBrainedSpecies, type SpeciesBrain as PlatformSpeciesBrain, type SpeciesBrains as PlatformSpeciesBrains, moduleBytes } from "@wildshard/game/plugin/brain";
+import { admitSpeciesProgram, type BrainedSpecies as PlatformBrainedSpecies, type SpeciesBrain as PlatformSpeciesBrain, type SpeciesBrains as PlatformSpeciesBrains } from "@wildshard/game/plugin/brain";
 
-import { strike, type StrikeData } from './species';
+import type { StrikeData } from './species';
 
 /** A species row's declared brain (SHARD-PLATFORM SF27): `{ archetype, data }`, one platform archetype and its data. */
 export type SpeciesBrain = PlatformSpeciesBrain;
@@ -15,5 +15,5 @@ export type SpeciesBrains = PlatformSpeciesBrains;
  * ScriptHost.
  */
 export function speciesBrains(species: readonly BrainedSpecies[], strikes: readonly StrikeData[], modules: Readonly<Record<string, string>> = {}): SpeciesBrains {
-  return admitSpeciesBrains(species, strikes.map(row => strike(row)), new Map(Object.entries(modules).map(([hash, base64]) => [hash, moduleBytes(base64)] as const)));
+  return admitSpeciesProgram({ species, strikes, modules });
 }

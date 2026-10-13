@@ -54,3 +54,31 @@ export function creatureRules(content: { brains: readonly { id: string; kind?: s
   errors.push(...groupBrainRules(content.groups ?? [], content.spawns, content.brains.map((row) => row.id)));
   return errors;
 }
+
+const strikeFinite = v.pipe(v.number(), v.finite(), v.minValue(-10000000), v.maxValue(10000000));
+const strikeNonnegative = v.pipe(strikeFinite, v.minValue(0));
+const strikePositive = v.pipe(strikeNonnegative, v.check(n => n > 0, 'positive number'));
+const strikeId = v.pipe(v.string(), v.regex(/^[a-z][a-zA-Z0-9.:-]*$/u), v.maxLength(128));
+const strikeAngle = v.pipe(strikeNonnegative, v.maxValue(Math.PI));
+const strikeShape = v.variant('kind', [
+  v.strictObject({ kind: v.literal('arc'), radius: strikeNonnegative, halfAngle: strikeAngle, yawOffset: v.exactOptional(strikeFinite) }),
+  v.strictObject({ kind: v.literal('lane'), length: strikeNonnegative, width: strikePositive }),
+  v.pipe(v.strictObject({ kind: v.literal('ring'), inner: strikeFinite, outer: strikeFinite }), v.check(r => r.inner <= r.outer, 'ordered ring')),
+  v.strictObject({ kind: v.literal('wedge'), length: strikeNonnegative, halfAngle: strikeAngle }),
+  v.strictObject({ kind: v.literal('point'), radius: strikeNonnegative, exclusive: v.exactOptional(v.boolean()) }),
+  v.strictObject({ kind: v.literal('sphere'), radius: strikeNonnegative }),
+]);
+const strikeWeight = v.variant('kind', [
+  v.strictObject({ kind: v.literal('constant'), value: strikeFinite }),
+  v.strictObject({ kind: v.literal('horizontal-distance'), above: strikeNonnegative, far: strikeFinite, near: strikeFinite }),
+]);
+const strikeTag = v.custom<`${string}.${string}`>(value => typeof value === 'string' && value.length <= 128 && /^[a-z][a-zA-Z0-9.-]*\.[a-zA-Z0-9.*-]+$/u.test(value));
+/** Full native strike data, including its finite score program; no author callback is admitted. */
+export const CreatureStrikeSchema = v.strictObject({
+  id: strikeId, shape: strikeShape, windup: strikeNonnegative, active: strikeNonnegative, recover: strikeNonnegative, cooldown: strikeNonnegative,
+  range: v.nullable(strikeNonnegative), damage: strikeNonnegative, tags: v.pipe(v.array(strikeTag), v.maxLength(32)), weight: strikeWeight,
+  units: v.exactOptional(v.picklist(['world', 'actor'])), alternatives: v.exactOptional(v.pipe(v.array(strikeShape), v.maxLength(16))),
+  motion: v.exactOptional(v.strictObject({ speed: v.exactOptional(strikeNonnegative), delay: v.exactOptional(strikeNonnegative),
+    track: v.exactOptional(v.picklist(['none', 'lead', 'follow'])), overshoot: v.exactOptional(strikeFinite), skid: v.exactOptional(strikeNonnegative) })),
+  eligibility: v.exactOptional(v.strictObject({ maxDy: v.exactOptional(strikeNonnegative), jumpDodges: v.exactOptional(v.boolean()) })),
+});
