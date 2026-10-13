@@ -425,3 +425,22 @@ This removes global descriptor churn, not actual source dependencies. A
 source edit anywhere in Nine's declared engine/game/SDK/commons/shard roots
 still misses. Cold <=10 s stays OPEN; shrinking those roots requires a
 complete author/import/read closure, not guessing that a module is unused.
+
+
+Complete-product removal guard (CALL, coordinator approved): reuse only a
+successful cold rehearsal for the exact immutable source closure. The key
+keeps the entire selected shard source, SDK/format/commons, scripts, declared
+input roots, catalogue and package manifests, with every Git mode/blob/path.
+The actual controller, Node binary/host/options and declared tools are also
+bound. Every retained or pinned product byte remains evidence. A hit hashes
+all cached artifacts, validates the current deletion plan and refuses a moved
+parent/index; corruption and source/config changes run the cold proof again.
+Standalone clean-room/CI still use their fresh-cache rehearsal.
+
+Real private 332-output Template/Pastel candidate: previous guard 44.69 s;
+final verified hit 1.12 s. First fill 19.68 s; unconditional cold hook <=10 s
+remains OPEN. Both complete products and all deleted outputs stayed exact.
+Sixteen actual focused checks plus narrowed types and typed lint pass,
+including wrong predecessor, changed product, failed cold run, corrupt
+artifact, new source/helper, changed catalogue/package, quiet and crossed
+parent/tree refusals. Nine authoring closure remains with sp-x8.

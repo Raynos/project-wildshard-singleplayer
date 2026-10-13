@@ -33,7 +33,7 @@ function metadata(path) { return ['package.json', 'pnpm-lock.yaml', 'pnpm-worksp
 /** Rehearse every registered output from a pinned archive and fresh cache. Every blocked producer is explicit.
  * Darwin-only comparisons stay unavailable on Linux; report-only never grants a match to an unrun job.
  * @param {string} root
- * @param {{pin:string,jobIds?:readonly string[],onUpdate?:(report:import('./generation-clean-room.mjs').CleanRoomReport)=>void}} options
+ * @param {{pin:string,jobIds?:readonly string[],artifactDirectory?:string,onUpdate?:(report:import('./generation-clean-room.mjs').CleanRoomReport)=>void}} options
  * @returns {Promise<import('./generation-clean-room.mjs').CleanRoomReport>} */
 export async function cleanRoomGeneration(root, options) {
   const work = realpathSync(mkdtempSync(resolve(tmpdir(), 'wildshard-clean-room-')));
@@ -88,6 +88,10 @@ export async function cleanRoomGeneration(root, options) {
           if (row.status === 'matched') for (const file of job.outputs) {
             mkdirSync(dirname(resolve(tree, file)), {recursive: true});
             copyFileSync(resolve(result.directory, file), resolve(tree, file));
+            if (options.artifactDirectory !== undefined) {
+              const artifact=resolve(options.artifactDirectory,file);mkdirSync(dirname(artifact),{recursive:true});
+              copyFileSync(resolve(result.directory,file),artifact);
+            }
           }
         } catch (error) {row.status = 'failed'; row.reasons.push(error instanceof Error ? error.message : String(error));}
       }

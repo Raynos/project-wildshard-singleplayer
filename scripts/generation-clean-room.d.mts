@@ -4,4 +4,4 @@ export interface CleanRoomJob {id:string;entry:string;status:'blocked'|'matched'
 /** Report-only migration evidence; unsupported shardfile producers are explicit rather than implied by asset matches. */
 export interface CleanRoomReport {schema:'generation-clean-room/1';pin:string;reportOnly:true;platform:string;arch:string;node:string;removed:string[];jobs:CleanRoomJob[];unregistered:string[];sourceProbes:(AuthoringAudit & {shard:string})[];shardfiles:{shard:string;status:'matched'|'unavailable';reason:string}[]}
 /** Build a temporary pinned archive, delete its runtime/legacy/generated outputs, and use a fresh isolated cache. */
-export function cleanRoomGeneration(root:string,options:{pin:string;jobIds?:readonly string[];onUpdate?:(report:CleanRoomReport)=>void}):Promise<CleanRoomReport>;
+export function cleanRoomGeneration(root:string,options:{pin:string;jobIds?:readonly string[];/** Copy only matched cold outputs into this caller-owned proof directory. */artifactDirectory?:string;onUpdate?:(report:CleanRoomReport)=>void}):Promise<CleanRoomReport>;

@@ -3,12 +3,12 @@ import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The predecessor's exact output bytes are the required pin.
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Own fixture repositories are isolated from the shared tree.
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixtures use the canonical temporary directory.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- All writes remain inside the owned fixture root.
 import { dirname, resolve } from 'node:path';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { assertGenerationRemovalProof, planGenerationRemovals } from '../scripts/generation-removals.mjs';
 import { precommitGenerationRemovals } from '../scripts/precommit-generation-removals.mjs';
 import type { ShardGenerationJob } from '../scripts/generate.mjs';
@@ -96,5 +96,82 @@ it('refuses an actual changed cold output and a quiet-window rehearsal',async()=
       await expect(precommitGenerationRemovals(f.root)).rejects.toThrow(quiet?'Quiet window':'cold-regenerate');
       expect(existsSync(resolve(f.root,output))).toBe(false);
     } finally {f.close();}
+  }
+});
+
+it('reuses a verified complete cold proof across docs edits but misses source, catalogue and package changes',async()=>{
+  const f=fixture(),log=vi.spyOn(console,'info');
+  try {
+    f.stage([{...f.component,buildOutputs:{[output]:digest}},f.product]);
+    await precommitGenerationRemovals(f.root);
+    log.mockClear();f.put('README.md','new documentation');f.git(['add','README.md']);
+    await precommitGenerationRemovals(f.root);
+    expect(log.mock.calls.flat().join(' ')).toContain('verified cold-proof hit');
+    const changes: [string,string][] = [
+      [f.component.entry,`${readFileSync(resolve(f.root,f.component.entry),'utf8')}\n// source edit`],
+      ['src/shards/sample/data/added.json','{}'],
+      ['package.json','{"private":true}'],
+      ['scripts/helper-added.mjs','export const value=1;'],
+      ['scripts/generation-jobs.json',`${readFileSync(resolve(f.root,'scripts/generation-jobs.json'),'utf8')}\n`]
+    ];
+    for(const [file,text] of changes) {
+      log.mockClear();f.put(file,text);f.git(['add',file]);await precommitGenerationRemovals(f.root);
+      expect(log.mock.calls.flat().join(' ')).toContain('fresh cold rehearsal');
+    }
+  } finally {log.mockRestore();f.close();}
+});
+it('rehashes cached product artifacts and reruns the cold proof after corruption',async()=>{
+  const f=fixture(),log=vi.spyOn(console,'info');
+  try {
+    f.stage([{...f.component,buildOutputs:{[output]:digest}},f.product]);
+    await precommitGenerationRemovals(f.root);
+    const cache=resolve(f.root,'.git/commit-removal-cache/complete-removal-proof');
+    const key=readdirSync(cache).find(name=>/^[a-f0-9]{64}$/u.test(name));
+    if(key===undefined)throw new Error('Missing cold-proof cache');
+    writeFileSync(resolve(cache,key,f.product.outputs[0]??''),'corrupt product');
+    log.mockClear();await precommitGenerationRemovals(f.root);
+    expect(log.mock.calls.flat().join(' ')).toContain('fresh cold rehearsal');
+    expect(readFileSync(resolve(cache,key,f.product.outputs[0]??''),'utf8')).toBe('{"complete":"fixture product"}\n');
+  } finally {log.mockRestore();f.close();}
+});
+it('keeps cached proofs out of wrong predecessor, changed product and cold-failure admission',async()=>{
+  const f=fixture();
+  try {
+    f.stage([{...f.component,buildOutputs:{[output]:digest}},f.product]);
+    await precommitGenerationRemovals(f.root);
+    f.put('src/shards/sample/data/value.txt','different output');f.git(['add','src/shards/sample/data/value.txt']);
+    await expect(precommitGenerationRemovals(f.root)).rejects.toThrow('cold-regenerate');
+    await expect(precommitGenerationRemovals(f.root)).rejects.toThrow('cold-regenerate');
+    f.put('src/shards/sample/data/value.txt','exact bytes');f.git(['add','src/shards/sample/data/value.txt']);
+    f.put('src/shards/sample/data/product.txt','different complete product');f.git(['add','src/shards/sample/data/product.txt']);
+    await expect(precommitGenerationRemovals(f.root)).rejects.toThrow('complete product');
+    f.put('scripts/generation-jobs.json',JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT',jobs:[{...f.component,buildOutputs:{[output]:'0'.repeat(64)}},f.product]}));
+    f.git(['add','scripts/generation-jobs.json']);
+    await expect(precommitGenerationRemovals(f.root)).rejects.toThrow('predecessor hash');
+  } finally {f.close();}
+});
+
+it('refuses a warm proof when the caller parent or staged tree moves, and still honors quiet',async()=>{
+  for(const change of ['tree','parent','quiet']) {
+    const f=fixture();
+    const log=vi.spyOn(console,'info');
+    try {
+      f.stage([{...f.component,buildOutputs:{[output]:digest}},f.product]);
+      await precommitGenerationRemovals(f.root);
+      if(change==='quiet') {
+        f.put('.git/quiet','measurement');
+        await expect(precommitGenerationRemovals(f.root)).rejects.toThrow('Quiet window');
+      } else {
+        let changed=false;
+        log.mockImplementation(message=>{
+          if(typeof message!=='string' || !message.includes('verified cold-proof hit') || changed)return;
+          changed=true;
+          if(change==='tree') {f.put('README.md','crossed tree');f.git(['add','README.md']);}
+          else f.git(['-c','user.name=Fixture','-c','user.email=fixture@example.invalid','-c','commit.gpgsign=false','commit','-qm','crossed parent']);
+        });
+        await expect(precommitGenerationRemovals(f.root)).rejects.toThrow('parent or staged tree changed');
+        expect(changed).toBe(true);
+      }
+    } finally {log.mockRestore();f.close();}
   }
 });

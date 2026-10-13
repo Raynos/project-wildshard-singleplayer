@@ -293,6 +293,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [generation-linux.d.mts](./generation-linux.d.mts)
 - [generation-linux.mjs](./generation-linux.mjs)
 - [generation-registry.mjs](./generation-registry.mjs)
+- [generation-removal-cache.d.mts](./generation-removal-cache.d.mts)
+- [generation-removal-cache.mjs](./generation-removal-cache.mjs)
 - [generation-removals.d.mts](./generation-removals.d.mts)
 - [generation-removals.mjs](./generation-removals.mjs)
 - [generation-sources.d.mts](./generation-sources.d.mts)
