@@ -3797,3 +3797,10 @@ Subsequent reads still verify declared size and hash. The optional options
 use the admitting transport/cache; omitted options use the canonical
 first-party browser product. Standalone readers start without an
 admission Map and retain no decoded transports.
+
+`readWholeGeometry(scope, slug, refs?, pause?)` consumes that slug's
+already admitted or declared runtime reader and refuses unknown slugs.
+Its default reads the declared props tiles plus whole library. Passing
+a source object retains the original tile-only default. Explicit refs
+and per-mesh pauses work in both forms; neither form changes draws,
+source ordinals, attribute storage or decoder-release ownership.

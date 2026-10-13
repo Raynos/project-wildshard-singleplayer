@@ -1399,10 +1399,16 @@ export function assembleWholeGeometryViews(nodes: readonly Mesh[]): Map<string, 
 /**
  * Read verified tile/library GLBs and assemble original draws; temporary decodes are freed after each bounded file.
  * `pause` (optional) runs after each assembled mesh, so a runtime building in play can end its frame between them.
+ * A slug reads its already admitted/declared product's tiles and whole library by default; unknown slugs refuse.
+ * Source-object callers keep their existing tile-only default.
  */
-export async function readWholeGeometry(scope: ResourceScope, source: Shardfile, refs?: readonly string[], pause?: () => Promise<void>): Promise<Map<string, WholeGeometryView>> {
-  const { runtimeProduct } = await import('../shardfile/runtimeProduct');
-  const product = runtimeProduct(source), hashes = refs ?? source.props?.tiles.flatMap(row => [row.file, ...row.additionalFiles ?? []]) ?? [];
+export async function readWholeGeometry(scope: ResourceScope, source: Shardfile | string, refs?: readonly string[], pause?: () => Promise<void>): Promise<Map<string, WholeGeometryView>> {
+  const { runtimeProduct, slugRuntimeProduct } = await import('../shardfile/runtimeProduct');
+  const product = typeof source === 'string' ? slugRuntimeProduct(source) : runtimeProduct(source);
+  if (product === null) throw new Error('Whole geometry needs an admitted or declared product');
+  const props = typeof source === 'string' ? product.source.props : source.props;
+  const hashes = refs ?? [...props?.tiles.flatMap(row => [row.file, ...row.additionalFiles ?? []]) ?? [],
+    ...typeof source === 'string' ? props?.wholeLibrary ?? [] : []];
   const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js'), assembler = new WholeGeometryAssembler();
   try {
     for (const hash of hashes) {
