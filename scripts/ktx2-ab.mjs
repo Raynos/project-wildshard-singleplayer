@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { debugSettings } from './debug-settings.mjs';
-// ktx2-ab.mjs — the E157 A/B: the same poses in each shard with the images and the KTX2 textures (the saved `tex` setting),
+import { debugSettings, harnessPins } from './debug-settings.mjs';
+// ktx2-ab.mjs — the E157 A/B: the same poses in each shard with the images and the KTX2 textures (the `textures` harness pin, G386),
 // on the iPhone portrait the user judges on (iPhone 16 Pro UA, 390×844 @3, touch, the phone tier) — or, `--tier=desktop`
 // (E173), the desktop's 1600×900 @1 landscape, the desktop tier. Every DOM layer but the
 // game canvas is hidden, the clock is held (`tod` + a day of ~3 years), the weather clear; per pose the player is spawned,
@@ -67,8 +67,9 @@ try {
       const ctx = await browser.newContext(TIER === 'phone'
         ? { userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } }
         : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
-      // the textures are a saved setting (pause ▸ Settings ▸ Debug ▸ GPU textures), never a URL switch; no background prefetch
-      await debugSettings(ctx, { tex, prefetch: 'off' });
+      // the textures are a harness pin (`__wildshardHarness.textures`, G386), never a setting or URL switch; no background prefetch
+      await debugSettings(ctx, { prefetch: 'off' });
+      await harnessPins(ctx, { textures: tex });
       const page = await ctx.newPage();
       const errors = [];
       page.on('pageerror', (e) => errors.push(e.message.slice(0, 200)));

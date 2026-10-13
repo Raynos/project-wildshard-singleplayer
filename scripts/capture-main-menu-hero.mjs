@@ -143,7 +143,7 @@ async function capture(base) {
       try {
         await saveFixture(context, { scope: 'device', key: 'devMode', data: true });
         await saveFixture(context, { scope: 'global', key: 'settings', merge: true,
-          data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 } });
+          data: { tier: 'phone', fps: 'auto', volume: 0 } });
         await saveFixture(context, { scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } });
         await context.addInitScript(() => { window.__wildshardHarness = { seed: 357, capture: null }; });
         await context.route('**/api/errors', route => route.fulfill({ status: 204, body: '' }));
@@ -230,7 +230,7 @@ async function captureAerial(base) {
   // Square (G344): the same desktop contexts, square resolutions for the square poses and 16:9 for the landscape ones.
   const desktop = (width, height, poses) => ({ key: `${width}x${height}`, poses,
     context: { ...devices['Desktop Chrome'], viewport: { width, height }, deviceScaleFactor: 1 },
-    settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' }, nearEvery: round === '6' });
+    settings: { tier: 'desktop', fps: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' }, nearEvery: round === '6' });
   // G342: from the roundabout to each of the four crossroads cells (the game's own lens), then the shipped hero (NE-b, G383)
   const centre0 = plan.road ?? plan.poses[0].target, nearPoses = [...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => ({ id: `road-${i}`, name: `Road view ${i}`,
     eye: { x: centre0.x - sx * 30, y: 22, z: centre0.z - sz * 30 }, target: { x: centre0.x + sx * 240, y: 0, z: centre0.z + sz * 240 } })),
@@ -243,9 +243,9 @@ async function captureAerial(base) {
   const sessions = (near
     ? ['B', 'C'].flatMap(mode => [
       { key: `${mode}-iphone`, poses: nearPoses, context: { ...devices['iPhone 16 Pro'] }, nearEvery: mode === 'C',
-        settings: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 }, gfx: { dpr: '2', aa: 'auto' } },
+        settings: { tier: 'phone', fps: 'auto', volume: 0 }, gfx: { dpr: '2', aa: 'auto' } },
       { key: `${mode}-desktop`, poses: nearPoses, context: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 }, nearEvery: mode === 'C',
-        settings: { tier: 'desktop', fps: 'auto', tex: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' } }])
+        settings: { tier: 'desktop', fps: 'auto', volume: 0 }, gfx: { dpr: 'native', aa: 'auto' } }])
     : square
     ? [[2048, 2048, 'square'], [1440, 1440, 'square'], [2560, 1440, 'landscape'], [1920, 1080, 'landscape']]
       .map(([width, height, aspect]) => desktop(width, height, plan.poses.filter(p => p.aspect === aspect)))
@@ -253,7 +253,7 @@ async function captureAerial(base) {
       ? [[2560, 1440], [1920, 1080]].map(([width, height]) => desktop(width, height, plan.poses))
       : ['golden', 'midday', 'sunset'].map(timePick => ({ key: timePick, poses: plan.poses.filter(p => p.timePick === timePick),
         context: { ...devices['iPhone 16 Pro'] },
-        settings: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0, time: timePick }, gfx: { dpr: '2', aa: 'auto' } })))
+        settings: { tier: 'phone', fps: 'auto', volume: 0, time: timePick }, gfx: { dpr: '2', aa: 'auto' } })))
     .filter(session => session.poses.length > 0 && (keys === '' || keys.split(',').includes(session.key)));
   const expected = landscape ? sessions.reduce((sum, session) => sum + session.poses.length, 0) : 15;
   const report = { schema: 'engine-hero-capture/1', version: await (await fetch(new URL('version.json', base))).json(),

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { debugSettings, saveFixture } from './debug-settings.mjs';
+import { harnessPins, saveFixture } from './debug-settings.mjs';
 // Reproduce the phone's null precision result or the Simulator's shaderSource failure during boot.
 // Run after `pnpm build` with `pnpm exec vite preview --port 4184` up:
 // node scripts/test-nine-gpu-boot.mjs [--url=http://127.0.0.1:4184] [--only=webkit|chromium|all] [--fault=precision|shader|context|texture]
@@ -32,7 +32,7 @@ for (const [name, engine] of engines) {
       envelopes.push(route.request().postData() ?? '');
       await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
     });
-    if (fault === 'texture') await debugSettings(context, { tex: 'ktx2' });
+    if (fault === 'texture') await harnessPins(context, { textures: 'ktx2' });
     await context.addInitScript((selectedFault) => {
       if (selectedFault === 'texture') {
         // Ask the actual driver to reject one upload; do not fabricate getError's result.

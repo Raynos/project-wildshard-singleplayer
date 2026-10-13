@@ -154,7 +154,9 @@ export const PINE_HOLLOW: ShardManifest = {
   // G188 derives cold phone KTX2 from runtimeCost.imagesFirst before resolving boot files; no shard texture flag.
   // Pine's ASTC sets stay under 1.0 GB; its images-first measurement retains the RGBA8 cost. Explicit Debug picks win.
   // G187: with the memory trim on, the phone's reach is view distance B (75 %, look/viewDistance.ts)
-  tiers: pineTiers({ phone: { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40, slices: true, skipRaysOffscreen: true, envSteps: true, pointLightSkip: true }, desktop: { pointLightSkip: true } }),
+  // G386 (Jake, 2026-10-13): the phone loads Pine's KTX2 set from the first visit (GPU ~526 → ~260 MB, travel p95 52–58 → 38 ms
+  // on the Simulator), accepting the 31 → 61–96 MB download; art/pine-ktx2/round-1-variant/
+  tiers: pineTiers({ phone: { treeHiDist: 60, shadowFar: 60, animalShadowDist: 60, grassSlots: 40, slices: true, skipRaysOffscreen: true, envSteps: true, pointLightSkip: true, textures: 'ktx2' as const }, desktop: { pointLightSkip: true } }),
   atmosphere: {
     edgeHaze: true, wetSurfaces: true,
     fogHeight: -14.0,

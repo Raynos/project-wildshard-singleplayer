@@ -118,10 +118,6 @@ export const OPTION_VALUES = {
   time: ['live', 'midday', 'golden', 'sunset', 'night'], // the day / night clock (the level backdrop's) — live
   weather: ['live', 'clear', 'fog', 'rain'],           // Pine Hollow: the weather (PH-L10, src/shards/pine-hollow/world/weather.ts) — live: dawn fog + showers; clear = none (the before); fog / rain hold one — live
   fps: ['auto', '30', '60'],                           // frame cap (Game.start, tier.ts frameCapFps): mobile is locked at 30 whatever the pick (E193); desktop: auto = the display's rate — live
-  // E157: the textures — GPU-compressed KTX2 (ASTC / BC7, src/engine/boot/gpuFiles.ts) or the JPEG / WebP images; 'auto' = images until the shard's KTX2 set is cached, then KTX2 (E157 B).
-  // A load-time pick (pause ▸ Settings ▸ Debug saves and reloads); no URL switch (Jake: never) — the A/B scripts set it in
-  // the saved settings
-  tex: ['auto', 'ktx2', 'img'],
   // ── E162: the old URL switches, now pause ▸ Settings ▸ Debug rows only (declared with their group in src/engine/ui/debugOptions.ts).
   // The first value is the default. A test / capture script sets one in the saved settings before the page loads ──
   memorySaver: ['off', 'on'],                          // SF22d: the engine memory cuts (src/engine/render/memorySaver.ts) — a reload; off everywhere by default, a Developer tool turns it on (G271)
@@ -141,8 +137,6 @@ const OPTION_SPECS: { [K in OptionKey]: { def: OptionValue<K> | null; params: re
   time: { def: 'live', params: ['tod', 'clock'], url: (q) => (q.has('tod') || q.has('clock') ? 'live' : null) }, // ?tod= / ?clock= run the clock from the URL's phase / speed
   weather: { def: 'live', params: ['weather'], url: (q) => q.get('weather') },                         // ?weather=rain: a held shower (captures)
   fps: { def: 'auto', params: ['fps'], url: (q) => q.get('fps') },                                       // ?fps=60: the phone uncapped (a test); ?fps=30 caps any tier
-  tex: { def: 'auto', params: [], url: () => null },
-  
   memorySaver: DEBUG_ONLY, graphMaterials: DEBUG_ONLY, buildPacing: DEBUG_ONLY,
 };
 const OPTION_KEYS = Object.keys(OPTION_VALUES) as OptionKey[];
@@ -208,9 +202,6 @@ export function createSettings(savedStorage: Pick<Storage, 'getItem' | 'setItem'
   const options: { [K in OptionKey]: Choice<OptionValue<K>> } = {
     tier: option('tier'), touch: option('touch'), time: option('time'),
     weather: option('weather'), fps: option('fps'),
-    tex: option('tex'),
-    
-    
     memorySaver: option('memorySaver'), graphMaterials: option('graphMaterials'), buildPacing: option('buildPacing'),
   };
   const persist = (): void => {

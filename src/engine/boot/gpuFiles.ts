@@ -14,10 +14,11 @@
  * (src/engine/boot/bytes.ts), so three's loaders, the boot pack and the manifest all see the same file. Every lookup also takes
  * an explicit mode (`standIn(served, tex)`), so a list can be computed for the OTHER mode (the background download).
  *
- * WHICH mode a resident build loads with (G188 supersedes the universal E157 images-first rule):
- *   pause ▸ Settings ▸ Debug ▸ GPU textures = Images   never KTX2;
- *                                           = KTX2     always KTX2 (a set not cached yet downloads with the boot);
- *                                           = Auto     a measured over-cap phone estimate selects KTX2 immediately;
+ * WHICH mode a resident build loads with (G188 supersedes the universal E157 images-first rule; G386 retired the
+ * Debug ▸ GPU textures row, so only a test or capture pins a mode, through `__wildshardHarness.textures`):
+ *   harness pin textures = 'img'    never KTX2;
+ *                        = 'ktx2'   always KTX2 (a set not cached yet downloads with the boot);
+ *   no pin (every player)           a measured over-cap phone estimate selects KTX2 immediately;
  *                                                      otherwise the tier policy wins, or KTX2 once THIS shard's
  *                                                      whole KTX2 set for this tier is in the service
  *                                                      worker's cache — src/engine/boot/shardPrefetch.ts downloads it in the
@@ -25,12 +26,12 @@
  *                                                      every file, writes a marker (the set's hash) that the next page load
  *                                                      reads here. A half-downloaded set has no marker: images.
  * G188: a measured images-first playing estimate above the phone cap selects KTX2 on the first visit.
- * An explicit Debug pick still wins; desktop is unchanged.
+ * A harness pin still wins; desktop is unchanged.
  * Whatever picks KTX2, the KTX2 capability probe (src/engine/render/ktx2Probe.ts) runs once first and turns it into Images
  * when this GPU samples mipmapped compressed textures wrong in every compressed format the transcoder could target.
  * Resolved once per SHARD BUILD, on the build's first question (`texMode()`), and never changed inside it: no swap in a
  * running resident. A grid page can build multiple residents, each with its own TexturePolicyBinding.
- * The explicit Debug pick applies to that page's build. The
+ * The harness pin applies to that page's build. The
  * resolver that checks the marker is registered by shardPrefetch.ts (it owns the set's list); a page that never loads it
  * (dev pages, the bake scripts in Node) reads Auto as Images.
  */
@@ -38,7 +39,7 @@
 import { GPU_FILES as ENGINE_GPU_FILES } from './ktx2.generated';
 import { TIER } from '../core/tier';
 import { CONTENT_CAPS, PAGE_LEVEL } from '../core/config';
-import { setting } from '../ui/Settings';
+import { harnessPins } from '../app/identity';
 import { ktx2Probe, ktx2ProbeResult, type Ktx2Probe } from '../render/ktx2Probe';
 
 export interface Ktx2Table { readonly phone: Readonly<Record<string, string>>; readonly desktop: Readonly<Record<string, string>> }
@@ -67,9 +68,8 @@ interface TexturePolicyState {
 let pagePolicy: TexturePolicyState = { level: undefined, policy: undefined, resolved: null };
 const policyFrames: { state: TexturePolicyState }[] = [];
 const activePolicy = (): TexturePolicyState => policyFrames.at(-1)?.state ?? pagePolicy;
-/** a page that may load KTX2 in some build (Debug ▸ GPU textures is not Images): its model / texture caches are per shard
- *  (KTX2 drops a texture's mips once uploaded — another renderer could not upload a cached copy; E155) */
-export const MAY_KTX2 = setting('tex') !== 'img';
+/** the mode a test or capture pinned before the boot (`__wildshardHarness.textures`, G386), else 'auto': the shipped policy */
+export function texturePin(): TexMode | 'auto' { return harnessPins()?.textures ?? 'auto'; }
 
 let autoReady: ((slug: string) => boolean) | null = null;
 /** shardPrefetch.ts: how Auto learns that a shard's KTX2 set is cached (the marker check) */
@@ -111,15 +111,16 @@ export function texModeWhy(): { mode: TexMode; why: string } {
   if (resolving) throw new Error('texMode(): asked while it is being resolved — pass the mode explicitly');
   resolving = true;
   try {
-    const picked = setting('tex');
-    if (picked !== 'auto') state.resolved = { mode: picked, why: `picked (Settings ▸ Debug ▸ GPU textures: ${picked})` };
+    const picked = texturePin();
+    if (picked !== 'auto') state.resolved = { mode: picked, why: `pinned (harness textures: ${picked})` };
     else {
       const slug = state.level ?? PAGE_LEVEL;
       if (state.policy !== undefined) state.resolved = state.policy;
       else state.resolved = autoReady?.(slug) === true ? { mode: 'ktx2', why: `auto: ${slug}'s KTX2 set is cached` } : { mode: 'img', why: `auto: ${slug}'s KTX2 set is not cached (yet)` };
     }
-    // last, whatever picked KTX2 (the Debug pick included): a GPU that samples the transcoder's only compressed targets
-    // wrong when mipmapped loads images (render/ktx2Probe.ts — the iOS Simulator's zeroed sRGB ASTC / ETC2 mips)
+    // last, whatever picked KTX2 (a harness pin included): a GPU that samples the transcoder's only compressed targets
+    // wrong when mipmapped loads images (render/ktx2Probe.ts — the iOS Simulator's zeroed sRGB ASTC / ETC2 mips; a
+    // measurement-only harness pin skips the probe there, G386)
     if (state.resolved.mode === 'ktx2') {
       const veto = ktx2Probe().veto;
       if (veto !== null) state.resolved = { mode: 'img', why: `${state.resolved.why}; overruled: ${veto}` };

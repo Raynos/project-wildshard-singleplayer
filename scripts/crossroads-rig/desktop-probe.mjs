@@ -4,7 +4,7 @@
 //
 //   scripts/browser-lane.sh node scripts/crossroads-rig/desktop-probe.mjs --base=http://127.0.0.1:4400 \
 //     --shard=_template --shard=driftwood-isle … [--rig=<query>=<label> …] [--blank] [--settle=15] [--out=<file.json>]
-//   --setting=tex=ktx2 seeds and verifies the same global Settings pick as sim-memory.mjs.
+//   --setting=k=v seeds and verifies the same global Settings pick as sim-memory.mjs (the textures are a harness pin since G386).
 //
 // A shard target loads `/?chunk=<slug>&skipintro=1&nolock=1&mute=1&touch=1&tier=phone`, waits for the world (no loading
 // screen), settles --settle s, then samples 10 s. A rig target opens /crossroads-rig/index.html?<query> (stage.sh) and

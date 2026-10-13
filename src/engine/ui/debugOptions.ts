@@ -21,7 +21,6 @@ import { app } from '../app/runtime';
  */
 import type { LevelSpec } from '../level/spec';
 import { jsonSlot } from '../saves/slots';
-import { texMode } from '../boot/gpuFiles';
 import { clearDownloads, freedBytes, lastClear, mbText, storageUsed } from '../boot/clearDownloads';
 import { RELOAD_PARAM } from '../core/GpuRecovery';
 import { lastEndLine, markReload } from '../boot/lastEnd';
@@ -184,10 +183,6 @@ export const DEBUG_ROWS: readonly DebugRow[] = [
   opt('buildPacing', 'perf', engineString('s_build_pacing'), [['off', engineString('s_build_pacing_off')], ['on', engineString('s_build_pacing_on')], ['uploads', engineString('s_build_pacing_uploads')]], { purpose: 'developer', ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_build_pacing_note') }),
 
   // ── Loading & memory ──
-  {
-    ...opt('tex', 'loading', engineString('s_334a93884d13'), [['auto', engineString('s_0286249762f7')], ['ktx2', engineString('s_66270d61a105')], ['img', engineString('s_be7e2f201293')]], { reload: true, ask: 'E157', reviewBy: '2026-12-30', note: engineString('s_5c0f164512c8') }),
-    choices: () => [{ v: 'auto', text: engineString('s_7dc1f00169b6', [texMode() === 'ktx2' ? engineString('s_66270d61a105') : engineString('s_be7e2f201293')]) }, { v: 'ktx2', text: engineString('s_66270d61a105') }, { v: 'img', text: engineString('s_be7e2f201293') }],
-  },
   opt('memorySaver', 'loading', engineString('s_memory_saver'), [['off', engineString('s_ca7981b46ecf')], ['on', engineString('s_130011756125')]], { purpose: 'developer', reload: true, ask: 'E435', reviewBy: '2026-12-30', note: engineString('s_memory_saver_note') }),
   { purpose: 'developer', id: 'storage', group: 'loading', label: engineString('s_a69c4dece144'), choices: () => [], get: () => '', set: () => undefined, on: () => undefined, reload: false, when: always, ask: 'E357', reviewBy: '2026-12-30', note: engineString('s_281936523768') },
   clearDownloadsRow,

@@ -24,7 +24,7 @@ import { saveFixtureCode } from './debug-settings.mjs';
 //   --from=<game url>    load this shard first (to its playable state + settle), then switch to --url the way the game's
 //                        shard switch does (src/game/travel/switch.ts: a navigation in the same tab) — the E263 flow
 //   --nav=href|replace   how that navigation is made (default: what the game's switch does, href)
-//   --setting=k=v        save a pause ▸ Settings value (v2 global/settings) in the tab before the load, e.g. --setting=tex=img
+//   --setting=k=v        save a pause ▸ Settings value (v2 global/settings) in the tab before the load, e.g. --setting=memorySaver=on
 //                        (repeatable; the tab must already be on the game's origin — open /version.json first)
 //   --fps=60             seconds of world play to time the frame rate over (0 = none); it reports per-10-s windows, so
 //                        the thermal fall-off after 1–2 min shows

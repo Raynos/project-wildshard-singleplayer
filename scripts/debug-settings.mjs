@@ -50,6 +50,12 @@ export function hideDeveloperOverlays() {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true });
   else mount();
 }
+/** Harness pins (`window.__wildshardHarness`, src/engine/debug/probe.ts HarnessPins) for an init script, merged into any
+ * pins already set: test inputs that are never a setting, a Debug row or a URL switch (G386: `textures`, `ktx2Probe`).
+ * @param {Record<string, string | number | boolean>} pins */
+export function harnessPinCode(pins) { return `window.__wildshardHarness=Object.assign(window.__wildshardHarness??{},${JSON.stringify(pins)});`; }
+/** @param {{addInitScript: Function}} target @param {Record<string, string | number | boolean>} pins */
+export async function harnessPins(target, pins) { await target.addInitScript({ content: harnessPinCode(pins) }); }
 /** @param {{scope: string, key: string, data: unknown, merge?: boolean, once?: string}} fixture */
 export function saveFixtureCode(fixture) { return `(${writeSaveFixture.toString()})(${JSON.stringify(fixture)})`; }
 /** Browser-side raw JSON codec for script evaluators which cannot accept addInitScript callbacks. @param {string} scope */

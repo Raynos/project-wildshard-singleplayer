@@ -22,6 +22,8 @@
  * The result rides on `window.__wildshard.textures()` and the Developer perf panel's DEVICE section (ui/perfHud.ts).
  */
 
+import { harnessPins } from '../app/identity';
+
 /** a transcoder target family, as the KTX2 loader's worker config names its flags */
 export type Ktx2Family = 'astc' | 'etc2' | 'bptc' | 's3tc';
 const FLAG = { astc: 'astcSupported', etc2: 'etc2Supported', bptc: 'bptcSupported', s3tc: 'dxtSupported' } as const;
@@ -234,6 +236,8 @@ let result: Ktx2Probe | null = null;
 export function ktx2Probe(): Ktx2Probe {
   if (result !== null) return result;
   if (typeof document === 'undefined') { result = { ran: false, note: 'no page', families: {}, formats: [], veto: null }; return result; }
+  // G386: a measurement-only harness pin (the iOS Simulator's frame floor) skips the probe — no verdict, KTX2 as detected
+  if (harnessPins()?.ktx2Probe === 'skip') { result = { ran: false, note: 'skipped (harness pin, measurement only: pixels may be wrong)', families: {}, formats: [], veto: null }; return result; }
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = 1;
   let gl: WebGL2RenderingContext | null = null;

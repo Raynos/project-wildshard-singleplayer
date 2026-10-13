@@ -30,16 +30,15 @@ import { prepareBootAudio } from './audioInventory';
  * shard's first. When the worker has answered every file of a set with 'hit' or 'stored', its marker (`ktx2MarkerKey`,
  * the set's hash) is written; src/engine/boot/gpuFiles.ts reads it at the next page load and Auto boots that shard with KTX2.
  * A failed file removes the marker. It does not override G188's first-visit over-cap phone policy or explicit
- * tier/Debug choices (gpuFiles.ts). Skipped when Settings ▸ Debug ▸ GPU textures is Images.
+ * tier choices or a harness pin (gpuFiles.ts). Skipped when a test or capture pins the textures to images (G386).
  *
  * `window.__ws_prefetch` (the bench / tests): `{ state, done }` — `done` resolves with the final report.
  */
-import { setting } from '../ui/Settings';
 import { bootCatalog, type BootLevel } from './catalog';
 import { bootFiles } from './extras';
 import { bootParts, packFor } from './pack';
 import { gpuUrl, versionedUrl } from './bytes';
-import { isRegisteredGpuFile, registerGpuFiles, setAutoKtx2Check, texMode, texModeWhy, type TexMode } from './gpuFiles';
+import { isRegisteredGpuFile, registerGpuFiles, setAutoKtx2Check, texMode, texModeWhy, texturePin, type TexMode } from './gpuFiles';
 import { BASIS_PATH } from '../core/ktx2';
 import { ktx2ProbeResult } from '../render/ktx2Probe';
 import { TIER } from '../core/tier';
@@ -222,9 +221,9 @@ export function startShardPrefetch(active: BootLevel): PrefetchHandle {
     await Promise.all(order.filter((def) => def !== active).map((def) => prepareBootAudio(def.boot)));
     await Promise.all(order.map(async (def) => { if (def.ktx2 !== undefined) registerGpuFiles((await def.ktx2()).GPU_FILES); }));
     const jobs: { slug: string; url: string; set: 'boot' | 'ktx2' }[] = [];
-    // 1. (E158) every shard's boot files, in the textures its NEXT boot loads with: the pick, or Auto's — images until the
+    // 1. (E158) every shard's boot files, in the textures its NEXT boot loads with: the harness pin, or Auto's — images until the
     //    shard's KTX2 set is cached. The page's own shard first: what its boot fetched before the worker controlled it.
-    const picked = setting('tex');
+    const picked = texturePin();
     // a GPU the capability probe already turned to images (render/ktx2Probe.ts) loads images next time too: no KTX2 sets
     const vetoed = (ktx2ProbeResult()?.veto ?? null) !== null;
     const modeFor = (def: BootLevel): TexMode => (vetoed ? 'img' : picked !== 'auto' ? picked : ktx2Ready(def) ? 'ktx2' : 'img');

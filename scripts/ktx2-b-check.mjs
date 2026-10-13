@@ -1,15 +1,14 @@
 #!/usr/bin/env node
-import { fixtureStorageCode } from './debug-settings.mjs';
 // ktx2-b-check.mjs — E157 B's proof ("images on the first visit, KTX2 from the next launch"), end to end in one headless
 // Chromium context (service worker on; the phone tier: iPhone 16 Pro UA, 390×844 @3 — or `--tier=desktop`: 1600×900 @1,
-// E173), Settings ▸ Debug ▸ GPU textures on Auto (the default):
+// E173), the textures on Auto (the default; no harness pin):
 //
 //   1. cold visit of build A           the boot loads IMAGES; bytes over the network until playable; GPU texture MB
 //   2. the background download         window.__ws_prefetch.done: every shard's boot files, then every KTX2 set; this
 //                                      shard's set must be complete (its marker written); the worker's cache total
 //   3. reload                          the boot loads KTX2 (from the cache: network bytes ≈ 0); GPU texture MB
 //   4. offline reload                  still playable, still KTX2, no page error; then the same warm launch with Images
-//                                      picked, and with Auto again (warm time-to-play and GPU MB, like for like)
+//                                      pinned, and with Auto again (warm time-to-play and GPU MB, like for like)
 //   5. a deploy (build B on the same   the old worker serves A, B's worker installs, adopt (as the build pill does), B boots:
 //      origin: --b, a build of the     KTX2 still (the set is the same files, content-named, kept by the cache GC) and no
 //      same tree with a changed        byte under /assets/gpu/ or /basis/ crosses the network — at the boot or in B's
@@ -59,6 +58,8 @@ try {
     ? { userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 }, serviceWorkers: 'allow' }
     : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1, serviceWorkers: 'allow' });
   await ctx.addInitScript(ledger);
+  // G386: step 4b's Images is a harness pin (`__wildshardHarness.textures`), carried across reloads in sessionStorage
+  await ctx.addInitScript(() => { const pick = sessionStorage.getItem('ktx2-b-check.textures'); if (pick === 'img' || pick === 'ktx2') window.__wildshardHarness = Object.assign(window.__wildshardHarness ?? {}, { textures: pick }); });
   // every request that crossed the network: the page's own (not answered by the worker) and the worker's fetches
   const reqs = [];
   ctx.on('requestfinished', (req) => { void (async () => {
@@ -110,8 +111,8 @@ try {
   await ctx.setOffline(true);
   await launch('4-offline-reload');
   await ctx.setOffline(false);
-  // the same warm launch with Settings ▸ Debug ▸ GPU textures = Images (the comparison: everything cached either way)
-  const setTex = (texturePick) => page.evaluate(`(() => { const store = ${fixtureStorageCode('global')}; const settings = JSON.parse(store.getItem('settings') ?? '{}'); if (${JSON.stringify(texturePick)} === null) delete settings.tex; else settings.tex = ${JSON.stringify(texturePick)}; store.setItem('settings', JSON.stringify(settings)); })()`);
+  // the same warm launch with the textures pinned to Images (the comparison: everything cached either way)
+  const setTex = (texturePick) => page.evaluate((pick) => { if (pick === null) sessionStorage.removeItem('ktx2-b-check.textures'); else sessionStorage.setItem('ktx2-b-check.textures', pick); }, texturePick);
   await setTex('img');
   await launch('4b-warm-images-for-comparison');
   await setTex(null);

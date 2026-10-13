@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { saveFixtureCode } from './debug-settings.mjs';
+import { harnessPinCode } from './debug-settings.mjs';
 // load-mem-probe.mjs — where a shard's LOAD memory goes, on the desktop (NALATI-FINISH B8, E302). Indicative only: the
 // acceptance number is the iPhone's Web Inspector reading (scripts/webkit-mem-reading.mjs, docs/audits/).
 //
@@ -15,7 +15,7 @@ import { saveFixtureCode } from './debug-settings.mjs';
 //   scripts/browser-lane.sh node scripts/load-mem-probe.mjs --url=http://127.0.0.1:4419 --chunk=nalati-grasslands [--tag=base]
 //     --every=20         sample period (ms)
 //     --engine=webkit    JavaScriptCore (what iOS Safari runs): native footprints only
-//     --tex=img|ktx2     pin pause ▸ Settings ▸ Debug ▸ GPU textures (saved setting, never a URL switch)
+//     --tex=img|ktx2     pin the textures (harness pin `__wildshardHarness.textures`, G386; never a setting or URL switch)
 //     --alloc            every ArrayBuffer / typed array / ImageBitmap / AudioBuffer the page makes (≥ 4 KB) by call site and
 //                        step (a `vite build --minify=false` build names the sites)
 //     --sample           (chromium) V8's sampling heap profiler over the load, collected objects included: GC-heap churn by
@@ -103,7 +103,7 @@ const ALLOC_SCRIPT = String.raw`(() => {
   const gid = CanvasRenderingContext2D.prototype.getImageData; CanvasRenderingContext2D.prototype.getImageData = function (...a) { const r = gid.apply(this, a); note('getImageData', r.data.byteLength); return r; };
   const dad = BaseAudioContext.prototype.decodeAudioData; BaseAudioContext.prototype.decodeAudioData = function (buf, ...rest) { const pr = dad.call(this, buf, ...rest); pr.then((b) => { note('AudioBuffer', b.length * b.numberOfChannels * 4); }, () => undefined); return pr; };
 })();`;
-const texScript = (tex) => saveFixtureCode({ scope: 'global', key: 'settings', data: { tex }, merge: true });
+const texScript = (tex) => harnessPinCode({ textures: tex });
 
 const WK = ENGINE === 'webkit';
 const wkBefore = WK ? new Set([...wkPids('WebContent'), ...wkPids('GPU')]) : new Set();

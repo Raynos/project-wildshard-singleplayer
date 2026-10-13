@@ -333,7 +333,7 @@ function writeHelper(base, layout, traceUploads = false) {
   const record = readFileSync(join(process.env.HOME, '.dev-servers', new URL(base).port), 'utf8').trim().split(' ');
   const dist = join(record[2], 'dist'), html = readFileSync(join(dist, 'index.html'), 'utf8')
     .replaceAll(/<script data-sf57-fixture>[\s\S]*?<\/script>/gu, '');
-  const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 } }),
+  const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', volume: 0 } }),
     saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
     saveFixtureCode({ scope: 'device', key: 'devMode', data: layout === 'dev' }), soakGridEntry(layout).fixture].join(';');
   const pins = `${GL_INIT};(${installSoakWasm.toString()})();(${installResources.toString()})();window.__wildshardHarness={seed:357,capture:null,resources:()=>window.__parityResources(),gpuBytes:()=>window.__sc_gl().reduce((sum,c)=>sum+c.totalBytes,0)};window.__sf57Errors=[];{const error=console.error;console.error=(...args)=>{window.__sf57Errors.push(args.map(String).join(' '));error.apply(console,args);};}window.__sf57DocumentId=Date.now()+':'+Math.random();window.__sf57TraceUploads=${traceUploads};(${installSoakDiagnostics.toString()})();window.addEventListener('error',e=>window.__sf57Errors.push(String(e.message)));window.addEventListener('unhandledrejection',e=>window.__sf57Errors.push(String(e.reason)));(${installLoadingGlJournal.toString()})();(${installSoakGl.toString()})();${fixtures};`;

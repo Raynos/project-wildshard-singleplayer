@@ -61,6 +61,14 @@ export interface HarnessPins {
   gpuBytes?: () => GpuBytes;
   heapMB?: () => number;
   resources?: () => ResourceCounts;
+  /** G386: the textures a test or capture loads with, pinned before the boot (the GPU textures Debug row is retired);
+   *  unset = the shipped policy (src/engine/boot/gpuFiles.ts texModeWhy) */
+  textures?: 'ktx2' | 'img';
+  /** G386, measurement only: skip the KTX2 capability probe (src/engine/render/ktx2Probe.ts), so it neither vetoes KTX2
+   *  nor drops transcoder targets. The iOS Simulator samples the lower mips of sRGB ASTC / ETC2 as zero, so there the
+   *  probe vetoes the KTX2 path every real iPhone runs; a frame floor pins this to time that path on the Simulator. The
+   *  Simulator's pixels are wrong with it: never a look proof. */
+  ktx2Probe?: 'skip';
 }
 export type ProbeWorld = World & {
   animals: AnimalManager; weapons: EquipmentService; hud: HUD; audio: Audio; music: Music; arena: TrainingArena;

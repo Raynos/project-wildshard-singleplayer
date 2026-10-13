@@ -1,6 +1,6 @@
 /** E256: boot-only snapshots. Counts are observations, not estimates of iOS process memory. */
 import type { Pass } from 'postprocessing';
-import { setting } from '../ui/Settings';
+import { texturePin } from './gpuFiles';
 import { recordBootCheckpoint } from './bootTrace';
 import type { Renderer } from '../render/renderer';
 
@@ -15,7 +15,7 @@ export function recordGpuCheckpoint(renderer: Renderer, operation: string): void
       textures: renderer.info.memory.textures, geometries: renderer.info.memory.geometries,
       programs: renderer.info.programs?.length ?? 0,
       calls: renderer.info.render.calls, triangles: renderer.info.render.triangles,
-      contextLost: gl.isContextLost(), gpuTextures: setting('tex'),
+      contextLost: gl.isContextLost(), gpuTextures: texturePin(),
       multiDraw: renderer.extensions.has('WEBGL_multi_draw'),
       jsHeapBytes: typeof heap === 'number' && Number.isFinite(heap) ? heap : null,
       userAgent: navigator.userAgent.slice(0, 250),

@@ -2,8 +2,8 @@ import { imagesFirstPlayingBytes } from '../src/game/grid/runtimeCost';
 import { saveFixture } from './fake/saveFixture';
 /**
  * E157 B — "images on the first visit, KTX2 from the next launch" (src/engine/boot/gpuFiles.ts, src/engine/boot/shardPrefetch.ts).
- * Settings ▸ Debug ▸ GPU textures: Auto loads KTX2 only when the shard's whole KTX2 set for the tier is cached (the marker
- * the background download writes names the set's hash); the explicit picks override. Resolved once per page.
+ * No pin (every player): Auto loads KTX2 only when the shard's whole KTX2 set for the tier is cached (the marker
+ * the background download writes names the set's hash); a test or capture's harness pin overrides (G386 retired the Debug ▸ GPU textures row). Resolved once per page.
  */
 import { describe, expect, it } from 'vitest';
 import type { ShardManifest } from '../src/game/shard/manifest';
@@ -18,25 +18,24 @@ import { chunkFiles } from '../src/engine/boot/manifest';
 import { bootParts, packFor } from '../src/engine/boot/pack';
 import { bootFetches } from '../src/engine/boot/prefetch';
 import { setBootCatalog } from '../src/engine/boot/catalog';
-import { OPTION_VALUES, saveSetting } from '../src/engine/ui/Settings';
+import { pinTextures } from './fake/texturePin';
 
 type SP = typeof sp;
 // Unadmitted descriptors carry picker metadata. Their immutable KTX2 files enter the separate shardfile admission path.
 const LEGACY_SHARDS = SHARDS.filter((manifest) => manifest.shardfile === undefined);
 /** every frozen legacy copy's own KTX2 table (scripts/bake-ktx2.mjs output, kept with the frozen folder) */
 const FROZEN_GPU_FILES = import.meta.glob<{ GPU_FILES: { readonly phone: Readonly<Record<string, string>>; readonly desktop: Readonly<Record<string, string>> } }>('../src/shards/*-legacy/ktx2.generated.ts', { eager: true });
-const texPick = (v: string | undefined): (typeof OPTION_VALUES.tex)[number] => OPTION_VALUES.tex.find((x) => x === v) ?? 'auto';
 
 /**
- * A page load on a tier and a shard: the tier picked explicitly (initializeTier's named form), the GPU-textures pick saved
- * through Settings, the level selected, and the texture mode resolved afresh (setTexturePolicy) — not a module reload (E422).
+ * A page load on a tier and a shard: the tier picked explicitly (initializeTier's named form), the textures harness pin
+ * (G386), the level selected, and the texture mode resolved afresh (setTexturePolicy) — not a module reload (E422).
  */
 /** a shard whose phone tier sets no texture policy, so Auto's own rule shows (Pine's measured images-first phone cost forces KTX2, G188) */
 const AUTO_SHARD = 'driftwood-isle';
-async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: string; marker?: (prefetch: SP, playable: readonly ShardManifest[]) => [string, string] | null } = {}) {
+async function load(opts: { chunk?: string; tier?: 'phone' | 'desktop'; tex?: 'ktx2' | 'img'; marker?: (prefetch: SP, playable: readonly ShardManifest[]) => [string, string] | null } = {}) {
   const chunk = opts.chunk ?? AUTO_SHARD, tier = opts.tier ?? 'phone';
   localStorage.clear();
-  saveSetting('tex', texPick(opts.tex));
+  pinTextures(opts.tex);
   initializeTier(tier);
   await Promise.all(SHARDS.map((m) => prepareShardAssets(m, gf.registerGpuFiles)));
   // E405: the session installs the registry into the engine's boot catalog; so does the test
@@ -63,17 +62,17 @@ describe('Auto: images until the shard\'s KTX2 set is cached', () => {
     const desktop = await load({ chunk: 'nine-dragon-stack', tier: 'desktop' });
     expect(desktop.gf.texMode()).toBe('img');
   });
-  it('Pine Hollow\'s measured cost boots KTX2 cold without a tier flag (G188); desktop keeps Auto\'s rule', async () => {
+  it('Pine Hollow\'s phone boots KTX2 cold: its tier flag (G386) and its measured cost (G188); desktop keeps Auto\'s rule', async () => {
     const phone = await load({ chunk: 'pine-hollow', tier: 'phone' });
     expect(phone.gf.texModeWhy()).toMatchObject({ mode: 'ktx2' });
     expect(phone.gf.texModeWhy().why).toContain('images-first playing estimate');
-    expect(SHARDS.find(row => row.slug === 'pine-hollow')?.tiers?.phone?.textures).toBeUndefined();
+    expect(SHARDS.find(row => row.slug === 'pine-hollow')?.tiers?.phone?.textures).toBe('ktx2'); // G386: Jake picked KTX2 on the phone
     const desktop = await load({ chunk: 'pine-hollow', tier: 'desktop' });
     expect(desktop.gf.texMode()).toBe('img');
     const picked = await load({ chunk: 'pine-hollow', tier: 'phone', tex: 'img' });
     expect(picked.gf.texMode()).toBe('img');
   });
-  it('Sky Reach\'s phone loads its HD models as KTX2 from the first visit (G253); desktop keeps Auto\'s rule; a Debug pick wins', async () => {
+  it('Sky Reach\'s phone loads its HD models as KTX2 from the first visit (G253); desktop keeps Auto\'s rule; a harness pin wins', async () => {
     const phone = await load({ chunk: 'far-reach', tier: 'phone' });
     expect(phone.gf.texModeWhy()).toMatchObject({ mode: 'ktx2', why: 'auto: level tier texture policy' });
     const def = phone.def, sources = def?.boot?.sources;
@@ -130,7 +129,7 @@ describe('Auto: images until the shard\'s KTX2 set is cached', () => {
   });
 });
 
-describe('the explicit picks override Auto', () => {
+describe('a harness pin overrides Auto', () => {
   it('Images never loads KTX2, even with the set cached', async () => {
     await load({ tex: 'img', marker: current });
     expect(gf.texMode()).toBe('img');
@@ -154,11 +153,11 @@ describe('G188 measured phone admission policy', () => {
     gf.registerGpuFiles({ phone: { '/assets/measured-fixture.webp': '/assets/measured-fixture.ktx2' }, desktop: {} });
     expect(gf.gpuFile('/assets/measured-fixture.webp')).toBe('/assets/measured-fixture.ktx2');
   });
-  it.each(['img', 'ktx2'] as const)('the explicit %s Debug pick wins over the measured policy', async (tex) => {
+  it.each(['img', 'ktx2'] as const)('an explicit %s harness pin wins over the measured policy', async (tex) => {
     await load({ tex });
     gf.setTexturePolicy(undefined, 'authored-cost-fixture', 2_000_000_000);
     expect(gf.texMode()).toBe(tex);
-    expect(gf.texModeWhy().why).toContain('picked');
+    expect(gf.texModeWhy().why).toContain('pinned');
   });
   it.each(['phone', 'desktop'] as const)('bakes the exact %s default boot files with the same measured policy', async (tier) => {
     await load({ tier });

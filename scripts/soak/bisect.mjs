@@ -26,7 +26,7 @@ const cases = [
 const report = { purpose: 'Local Mac WebKit first-crossing instrumentation bisection; never a Simulator/cap/soak pass',
   version, harness: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(), cases: [] };
 const save = () => writeFileSync(out, `${JSON.stringify(report, null, 2)}\n`);
-const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', tex: 'auto', volume: 0 } }),
+const fixtures = [saveFixtureCode({ scope: 'global', key: 'settings', data: { tier: 'phone', fps: 'auto', volume: 0 } }),
   saveFixtureCode({ scope: 'global', key: 'gfx', data: { dpr: '2', aa: 'auto' } }),
   saveFixtureCode({ scope: 'device', key: 'devMode', data: true })].join(';');
 

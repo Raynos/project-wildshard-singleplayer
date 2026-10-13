@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { debugSettings } from './debug-settings.mjs';
+import { debugSettings, harnessPins } from './debug-settings.mjs';
 // gpu-texmem.mjs — how much GPU memory each shard's textures take (E157, KTX2 / Basis GPU compression).
 //
 // Counts at the WebGL call, not from three's bookkeeping: an init script wraps texStorage2D/3D, texImage2D/3D,
@@ -28,7 +28,7 @@ const URL_BASE = flag('url', 'http://localhost:4391');
 const CHUNK = flag('chunk', 'pine-hollow');
 const TIER = flag('tier', 'phone');
 const EXTRA = flag('query', '');
-/** --tex=ktx2|img: the textures (E157) — a saved setting (pause ▸ Settings ▸ Debug ▸ GPU textures), never a URL switch;
+/** --tex=ktx2|img: the textures (E157) — a harness pin (`__wildshardHarness.textures`, G386), never a setting or URL switch;
  * the background prefetch of the other shards (E158) is off either way, so it adds nothing to the ledger */
 const TEX = flag('tex', '');
 const TAG = flag('tag', 'latest');
@@ -46,7 +46,8 @@ try {
     ? { userAgent: iphone.userAgent, isMobile: true, hasTouch: true, deviceScaleFactor: 3, viewport: { width: 390, height: 844 } }
     : { viewport: { width: 1600, height: 900 }, deviceScaleFactor: 1 });
   await ctx.addInitScript(ledger);
-  await debugSettings(ctx, { prefetch: 'off', ...(TEX === '' ? {} : { tex: TEX }) });
+  await debugSettings(ctx, { prefetch: 'off' });
+  if (TEX !== '') await harnessPins(ctx, { textures: TEX });
   // G221: CLI-only fetch adapter; no in-game option, saved state or network error.
   // The engine's normal unavailable-part fallback fetches each original URL for the ledger.
   if (RECORD) await ctx.addInitScript(() => {

@@ -28,7 +28,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import { dirname, join, relative, resolve } from 'node:path';
 import { chromium, devices } from 'playwright';
-import { saveFixtureCode } from './debug-settings.mjs';
+import { harnessPinCode, saveFixtureCode } from './debug-settings.mjs';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const PUB = resolve(ROOT, 'public');
@@ -74,7 +74,8 @@ try {
     } else {
       if (browser === null) throw new Error('Nalati coat capture requires its browser');
       const context = await browser.newContext(tier === 'phone' ? { ...devices['iPhone 16 Pro'] } : { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 2 });
-      await context.addInitScript(saveFixtureCode({ scope: 'global', key: 'settings', data: { tier, fps: 'auto', tex: 'img' }, merge: true }));
+      await context.addInitScript(saveFixtureCode({ scope: 'global', key: 'settings', data: { tier, fps: 'auto' }, merge: true }));
+      await context.addInitScript({ content: harnessPinCode({ textures: tex }) }); // G386: the images, a harness pin (no Debug row)
       const page = await context.newPage();
       await page.goto(`${url}/?chunk=${slug}&mute=1&skipintro=1&nolock=1&sw=0`);
       await page.waitForFunction('Boolean(window.__wildshard?.world?.game) && !document.querySelector(".ws-load")', undefined, { timeout: 180000 });
