@@ -75,7 +75,7 @@ if (nativeTerrain !== undefined && !(nativeTerrain instanceof Uint8Array)) throw
 if (nativeTerrain === undefined && manifest.ground?.terrain !== undefined) {
   const { bakedTerrainSource, installDeclaredBakedTerrain } = await at('src/engine/world/bakedTerrainField.ts');
   const declared = bakedTerrainSource(manifest.ground.terrain), collider = declared === null ? null : placeholderGridBytes(root, resolve(root, 'src/shards', slug), slug);
-  if (collider !== null && collider.kind === 'collider') {
+  if (collider?.kind === 'collider') {
     const { clientGround } = await at('src/game/shardfile/clientGround.ts');
     const ground = clientGround({ terrain: { collider: 'collider' }, meshCollision: null }, new Map([['collider', collider.bytes]]));
     installDeclaredBakedTerrain(manifest.ground.terrain, { seed: declared.seed, heightAt: ground.heightAt, normalAt: ground.normalAt, splatAt: ground.splatAt });
