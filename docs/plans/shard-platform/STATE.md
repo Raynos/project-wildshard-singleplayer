@@ -16,7 +16,7 @@
 
 **For wildshard-v, Jake ask (S2):** sp-x6 is building an additive SF59 effect-state block (fog off, additive/premultiplied, depth bias, points, billboards; old graphs unchanged). Still Jake's: **Graph materials default-off pending a physical-iPhone reading**, so the GLSL stays as fallback (no cut). Recommend accepting the Simulator + desktop frame-floor reading (or one normal playtest with Debug ▸ Graph materials on).
 
-**Hero NE-b SHIPPED, re-shot with all nine near** (`77529adfb`, G383; call: shipped the re-shoot Jake asked for). **For wildshard-v:** near round 6 boards `art/near-tier/round-6/` (A/B/C, 4 road views + NE-b; ridges kept, `2d4b6b8a0`); template near refresh held (visible change; fix queued: tile-built near views keep tile materials and don't own the cell). Signal ground switch parked.
+**Hero NE-b SHIPPED, re-shot with all nine near** (`77529adfb`, G383; call: shipped the re-shoot Jake asked for). **For wildshard-v:** near round 6 boards `art/near-tier/round-6/` (A/B/C, 4 road views + NE-b; ridges kept, `2d4b6b8a0`); template near fixed: tile-built near views keep their tiles' materials and don't take the cell (`7a3735a3c`), proof `template-near-proof-*.jpg`. Signal ground switch parked.
 
 **Calls for Jake (2026-10-13; reverse any):**
 6. `terrain.bin` → session-installed ground loader (`5cfc5674b`).
