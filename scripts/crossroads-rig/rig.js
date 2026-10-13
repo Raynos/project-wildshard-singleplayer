@@ -1,4 +1,4 @@
-// crossroads rig: SF22a's synthetic 2 × 2 crossroads (docs/plans/SHARD-PLATFORM.md §3.2, §4 F0 SF22a).
+// crossroads rig: SF22a's synthetic 2 × 2 crossroads (docs/plans/shard-platform/contracts.md §3.2, rows.md F0 SF22a).
 //
 // A MEASUREMENT TOOL, NOT GAME CODE. Plain three.js, nothing from src/. It stands the camera where four shards meet and
 // makes everything the streaming design says is resident there, each unit sized EXACTLY at §3.2's caps:
