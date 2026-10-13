@@ -20,7 +20,7 @@ import { duneHd, duneMesh } from './meshes';
  */
 
 // round 2 (R1C-2): sun-greyed wood and worn iron a step lighter; at dusk the old near-black values read as black cut-outs
-const WOOD = 0xa07656, IRON = 0x6e5e56, CLAY = 0x7a3a22;
+const WOOD = 0xa07656, CLAY = 0x7a3a22;
 const mat = (color: number, extra: Partial<{ metalness: number; side: typeof DoubleSide; emissive: number }> = {}): MeshStandardMaterial =>
   new MeshStandardMaterial({ color, roughness: 0.92, flatShading: true, ...extra });
 /** A generated model's painted material a step lighter (round 2, R1C-2: the iron brazier and the well read black at dusk). */
@@ -65,7 +65,7 @@ export function buildCaravan(baked: BakedWorld, groundAt: (x: number, z: number)
 /** The generated well's span (metres, the crank end to the far post): its ring then sits on the stones' colliders. */
 const WELL_FIT = 3.4;
 
-export interface WellParts { root: Group; colliders: ColliderDesc[]; bucket: Group; rope: Mesh; jar: Mesh; crank: Mesh; crankAt: Vector3; jarAt: Vector3; drop: number }
+export interface WellParts { root: Group; colliders: ColliderDesc[]; bucket: Group; rope: Mesh; jar: Mesh; crankAt: Vector3; jarAt: Vector3; drop: number }
 
 /**
  * The dry well: the generated ring, posts and windlass (C6, Hunyuan3D-2 from `ref-well.jpg`; its bucket and crank cut
@@ -82,13 +82,12 @@ export function buildWell(baked: BakedWorld): WellParts {
   }
   // The shaft: a dark disc inside the ring.
   at(new Mesh(new CylinderGeometry(R - 0.3, R - 0.3, 0.05, 16), new MeshBasicMaterial({ color: 0x0a0605 })), 0, 0.62, 0, well);
-  const crank = box(0.07, 0.6, 0.07, mat(IRON, { metalness: 0.1 })); // matte: metal at dusk mirrored the dark sky to black
   const bucket = new Group(); bucket.position.set(0, axleY - drop, 0); well.add(bucket);
   const ropeGeo = new CylinderGeometry(0.02, 0.02, drop, 4); ropeGeo.translate(0, drop / 2, 0);
   const rope = new Mesh(ropeGeo, mat(0x6b5236)); bucket.add(rope); // grows from the bucket up to the axle; scaled down as it winds
   const pail = new Mesh(new CylinderGeometry(0.26, 0.2, 0.36, 8, 1, true), wood); pail.material.side = DoubleSide; bucket.add(pail);
   const jar = new Mesh(new SphereGeometry(0.17, 8, 6), mat(CLAY)); jar.scale.set(1, 1.3, 1); jar.position.y = 0.14; bucket.add(jar);
-  return { root, colliders, bucket, rope, jar, crank, crankAt: new Vector3(WELL.x + R + 0.32, y + axleY, WELL.z), jarAt: new Vector3(WELL.x, y + 1.0, WELL.z), drop };
+  return { root, colliders, bucket, rope, jar, crankAt: new Vector3(WELL.x + R + 0.32, y + axleY, WELL.z), jarAt: new Vector3(WELL.x, y + 1.0, WELL.z), drop };
 }
 
 export interface BrazierParts { root: Group; colliders: ColliderDesc[]; fire: Group; bowlAt: Vector3; oil: Mesh; glow: (lit: boolean) => void }

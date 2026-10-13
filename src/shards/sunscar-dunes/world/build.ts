@@ -2,7 +2,10 @@ import { InteractionRules } from '@wildshard/game/quest/interactionRows';
 import { PointLight, type Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import type { ShardContext } from '@wildshard/game/shard/context';
+import { createClientChannels } from '@wildshard/game/plugin/ui';
+import type { SignalDunesPlugin } from '../plugin';
+import source from '../runtime/source';
+
 import { BRAZIERS } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { buildTower, type TowerParts } from './tower';
@@ -14,6 +17,8 @@ import { fireGeometries, fireLight, fireResources, loadFireBook, resetFireLights
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
 import { SIGNAL_INTERACTIONS } from '../data/signalInteractions';
+
+type ShardContext = Parameters<SignalDunesPlugin['world']>[0];
 
 /** Something the whip's lash can crack: a lever to pull or a brazier to light. `crack` says whether it reacted. */
 export interface Crackable { at: Vector3; radius: number; crack: (heavy: boolean, second: boolean) => boolean }
@@ -58,7 +63,16 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   if (flags.has(FLAG.logbook)) logbook.label = STRINGS.logRead;
 
   // The well: a heavy crack on the crank hauls the bucket up; then take the oil jar.
-  const lift = { t: flags.has(FLAG.oil) ? 1 : 0 };
+  const programs = source.clientChannels;
+  if (programs?.length !== 1) throw new Error('Missing declared bucket motion');
+  const lift = createClientChannels(programs[0]);
+  const drawBucket = (): void => {
+    const { y, scaleY } = lift.frame;
+    if (y === undefined || scaleY === undefined) throw new Error('Incomplete bucket visual channels');
+    wellParts.bucket.position.y = y; wellParts.rope.scale.y = scaleY;
+  };
+  lift.evaluate({ time: 0, delta: 0, values: [Number(flags.has(FLAG.oil)), Number(rules.has('raised')), wellParts.drop] });
+  drawBucket();
   const wellSpot: Interactable = { label: STRINGS.wellDown, position: wellParts.jarAt, radius: 2.6, onInteract: () => {
     const result = rules.run('well');
     if (!result.ok) { if (result.reason === 'unraised') toast(ctx, STRINGS.wellHint); return; }
@@ -67,7 +81,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   const well: SignalWorld['well'] = { ...wellParts, get raised() { return rules.has('raised'); }, spot: wellSpot, pull: () => {
     if (!rules.run('crank').ok) return false; wellSpot.label = STRINGS.takeOil; return true;
   } };
-  if (flags.has(FLAG.oil)) { wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; wellParts.bucket.position.y = 1.85 - 0.5; wellParts.rope.scale.y = 0.2; }
+  if (flags.has(FLAG.oil)) { wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; }
 
   // The braziers: pour oil by hand, light with a crack.
   resetFireLights();
@@ -139,8 +153,8 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
     // round 21 (seat C: the fire's orange turned the violet sand under B's wagon red-pink): the lantern's light amber-yellow
     wayLight.color.setHex(gain === WAY_LIGHT ? 0xff7a30 : 0xffd27a); // round 23: yellower (seat B: B's pool still h356)
     if (near) { wayLight.position.copy(near).setY(near.y + (gain === WAY_LIGHT ? 0.5 : 0)); wayLight.intensity = gain * (1 + Math.sin(t * 11) * 0.07 + Math.sin(t * 23 + 0.7) * 0.05); } else wayLight.intensity = 0;
-    // The bucket rides up over 1.2 s once pulled.
-    if (well.raised && lift.t < 1) { lift.t = Math.min(1, lift.t + dt / 1.2); wellParts.bucket.position.y = 1.85 - wellParts.drop + (wellParts.drop - 0.5) * lift.t; wellParts.rope.scale.y = 1 - lift.t * 0.8; wellParts.crank.rotation.x = lift.t * 12; }
+    lift.evaluate({ time: t, delta: dt, values: [Number(flags.has(FLAG.oil)), Number(well.raised), wellParts.drop] });
+    drawBucket();
     if (!fire.lit) return;
     const flick = 1 + Math.sin(t * 13) * 0.06 + Math.sin(t * 29 + 1.3) * 0.04;
     tower.light.intensity = TOWER_LIGHT * flick;

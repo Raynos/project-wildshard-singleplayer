@@ -1137,7 +1137,7 @@
     "src/shards/sunscar-dunes/quest/install.ts": 6,
     "src/shards/sunscar-dunes/roster.ts": 1,
     "src/shards/sunscar-dunes/world/baked.ts": 1,
-    "src/shards/sunscar-dunes/world/build.ts": 3,
+    "src/shards/sunscar-dunes/world/build.ts": 2,
     "src/shards/sunscar-dunes/world/meshes.ts": 2,
     "src/shards/sunscar-dunes/world/places.ts": 1
   },
@@ -1330,7 +1330,7 @@
     "src/shards/sunscar-dunes/runtime/signalPlan.ts": 1,
     "src/shards/sunscar-dunes/runtime/standalone.ts": 1,
     "src/shards/sunscar-dunes/world/baked.ts": 1,
-    "src/shards/sunscar-dunes/world/build.ts": 3,
+    "src/shards/sunscar-dunes/world/build.ts": 2,
     "src/shards/sunscar-dunes/world/meshes.ts": 2,
     "src/shards/sunscar-dunes/world/places.ts": 1
   },
