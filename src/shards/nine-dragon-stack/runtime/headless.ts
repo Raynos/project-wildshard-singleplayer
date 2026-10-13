@@ -8,7 +8,7 @@ import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { bakedColliderDesc, bakedColliderSchemas } from './props/bakedColliders';
 import { portalLinkEntries } from '@wildshard/format/portalLinkAssets';
-import { provePortalLinks } from '@wildshard/game/shardfile/portalLinkProof';
+import { proveEntryways } from '@wildshard/game/plugin/simulation';
 import { entryCapColliders } from '../world/floorRows';
 import { installNineJian, JIAN_ID } from './jian';
 import { installNinePortals } from './portals';
@@ -73,7 +73,7 @@ export function addNinePieces(physics: Physics): { added: number; guard: number[
  * the page's own ride (runtime/portals.ts: walk into a ring, held through the fade, the checked transfer). The fragment declares no quest,
  * creature or encounter; its two ledger facts (data/ledger.ts) are emitted as `fact` effects by the ride and the Fei Zhua's
  * law as the player plays them (world/feats.ts). The entry proof is the format's own portal-link proof
- * (`provePortalLinks`): 23 capsule lanes across each deck's 8 m opening, then the bound ride to the square, the walked
+ * (`provePortalLinks`, by the platform's `proveEntryways`): 23 capsule lanes across each deck's 8 m opening, then the bound ride to the square, the walked
  * route to its exit and the ride back, through the host's own collision world, so `finish` answers with real lanes,
  * steps and transfers. The Fei Zhua is the page's own law (runtime/grapple.ts over grapple/sim.ts): a LOCK script press, the
  * JUMP that zips, the aim's pitch; its lifting crossing over the Well opens the safety cap's baked colliders while in flight.
@@ -89,10 +89,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = ({ shard, assets }
     player: { at: { x: shard.spawn.x, y: shard.spawn.y + 0.1, z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     // the host's player strike is a zero-damage probe, never the Jian: the Jian is its declared item row (runtime/jian.ts)
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
-  return { level, ports: { ground: false }, proveEntries: host => {
-    const proof = provePortalLinks(entries, shard, assets, { physics: host.physics });
-    return { lanes: proof.lanes, steps: proof.steps, portalTransfers: proof.transfers };
-  }, install: (host, context) => {
+  return { level, ports: { ground: false }, proveEntries: host => proveEntryways(shard, assets, { world: () => ({ physics: host.physics, fixedStep: () => undefined, dispose: () => undefined }) }), install: (host, context) => {
     const guard = context.restoring ? [] : addNinePieces(host.physics).guard;
     installNineJian(host, jian, () => context.commands().some(command => command.kind === 'player' && command.attack !== undefined),
       () => context.commands().some(command => command.kind === 'player' && command.heavy !== undefined));

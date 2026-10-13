@@ -445,33 +445,47 @@ export interface SocketLiftProofPorts {
 }
 /** Counts come from actual fixed steps and motor moves, including both stop calls and the automatic idle return. */
 export interface SocketLiftProof { steps: number; rides: number; calls: number; maximumDeckStep: number }
-/** Ordinary entries retain the full capsule walk; each lift instead proves its complete ride and 23 road-gate lanes. */
-export function proveShardfileEntries(source: Shardfile, sim: ShardfileSimulation, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): { lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number } {
-  const lifts = socketLiftEntries(source.entryways);
-  const portals = portalLinkEntries(source.entryways);
-  const result = walkEdgeEntries(sim.host.physics, (x, z) => sim.water.restAt(x, z), source.entryways.filter(entry => entry.kind !== 'socketLift' && entry.kind !== 'portalLink').map(entry => entry.edge));
-  let liftRides = 0, liftCalls = 0;
-  for (const entry of lifts) {
-    // Every ride starts at a freshly admitted road stop, independently of validation ticks or other lifts.
-    const fresh = createShardfileSim(source, assets, { ...ports, ground: false });
-    try {
-      const runtime = fresh.movers; if (runtime === undefined) throw new Error('Socket lift requires admitted mover runtime');
-      const proof = proveSocketLift(entry, { physics: fresh.host.physics, runtime,
-        fixedStep: () => { fresh.host.step(); if ((fresh.lane?.host.failureCount ?? 0) !== 0) throw new Error('Socket lift script call failed'); },
-        waterAt: (x, z) => fresh.water.restAt(x, z), approachSource: source,
-      });
-      result.lanes += 23; result.steps += proof.steps; liftRides += proof.rides; liftCalls += proof.calls;
-    } finally { fresh.dispose(); }
-  }
-  let portalTransfers = 0;
-  if (portals.length > 0) {
-    const fresh = createShardfileSim(source, assets, { ...ports, ground: false });
-    try {
-      const proof = provePortalLinks(portals, source, assets, { physics: fresh.host.physics, waterAt: (x, z) => fresh.water.restAt(x, z) });
-      result.lanes += proof.lanes; result.steps += proof.steps; portalTransfers = proof.transfers;
-    } finally { fresh.dispose(); }
-  }
+/** One world an entry ride walks: its collision, its admitted movers (a lift's deck and road gate), fixed step and water. */
+export interface EntryProofWorld {
+  physics: Physics; movers?: MoverRuntime | undefined; fixedStep: () => void;
+  waterAt?: (x: number, z: number) => number | null; dispose: () => void;
+}
+/** Real lanes and steps of every declared entryway, plus the lift rides and calls and the portal transfers it proved. */
+export interface EntryProof { lanes: number; steps: number; liftRides?: number; liftCalls?: number; portalTransfers?: number }
+/**
+ * Every declared entryway, proven by its kind: ordinary entries by the caller's `edges` walk (refused when it has none),
+ * each socket lift by its complete ride and 23 road-gate lanes on its own `world()`, and all portal links on one more.
+ * The untrusted shardfile host and the trusted runtimes share this one law; each brings only how its world is built.
+ */
+export function proveEntryways(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, ports: {
+  edges?: (sides: readonly Shardfile['entryways'][number]['edge'][]) => { lanes: number; steps: number };
+  world: () => EntryProofWorld;
+}): EntryProof {
+  const lifts = socketLiftEntries(source.entryways), portals = portalLinkEntries(source.entryways);
+  const sides = source.entryways.filter(entry => entry.kind !== 'socketLift' && entry.kind !== 'portalLink').map(entry => entry.edge);
+  if (ports.edges === undefined && sides.length > 0) throw new Error('Edge entries require an edge walk');
+  const result = ports.edges?.(sides) ?? { lanes: 0, steps: 0 };
+  const within = (prove: (world: EntryProofWorld) => void): void => { const world = ports.world(); try { prove(world); } finally { world.dispose(); } };
+  let liftRides = 0, liftCalls = 0, portalTransfers = 0;
+  // Every ride starts at a freshly admitted road stop, independently of validation ticks or other lifts.
+  for (const entry of lifts) within(({ physics, movers, fixedStep, waterAt }) => {
+    if (movers === undefined) throw new Error('Socket lift requires admitted mover runtime');
+    const proof = proveSocketLift(entry, { physics, runtime: movers, fixedStep, ...(waterAt === undefined ? {} : { waterAt }), approachSource: source });
+    result.lanes += 23; result.steps += proof.steps; liftRides += proof.rides; liftCalls += proof.calls;
+  });
+  if (portals.length > 0) within(({ physics, waterAt }) => {
+    const proof = provePortalLinks(portals, source, assets, { physics, ...(waterAt === undefined ? {} : { waterAt }) });
+    result.lanes += proof.lanes; result.steps += proof.steps; portalTransfers = proof.transfers;
+  });
   return { ...result, ...(lifts.length > 0 ? { liftRides, liftCalls } : {}), ...(portals.length > 0 ? { portalTransfers } : {}) };
+}
+/** The untrusted shardfile host: ordinary entries walk the live sim; each ride proof gets a freshly admitted one. */
+export function proveShardfileEntries(source: Shardfile, sim: ShardfileSimulation, assets: ReadonlyMap<string, Uint8Array>, ports: ShardfileSimPorts): EntryProof {
+  return proveEntryways(source, assets, { edges: sides => walkEdgeEntries(sim.host.physics, (x, z) => sim.water.restAt(x, z), sides), world: () => {
+    const fresh = createShardfileSim(source, assets, { ...ports, ground: false });
+    return { physics: fresh.host.physics, movers: fresh.movers, waterAt: (x, z) => fresh.water.restAt(x, z), dispose: () => { fresh.dispose(); },
+      fixedStep: () => { fresh.host.step(); if ((fresh.lane?.host.failureCount ?? 0) !== 0) throw new Error('Socket lift script call failed'); } };
+  } });
 }
 const distance = (a: { x: number; y: number; z: number }, b: readonly [number, number, number]) => Math.hypot(a.x - b[0], a.y - b[1], a.z - b[2]);
 const options = { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0.2, group: 'PLAYER', blockedBy: ['WORLD'] } as const;

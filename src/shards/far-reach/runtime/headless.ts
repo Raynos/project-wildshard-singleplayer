@@ -7,8 +7,7 @@ import { floorBelow } from '@wildshard/engine/physics/query';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { installDeclaredPropColliders } from '@wildshard/engine/physics/declaredProps';
 import { propColliderDescriptors } from '@wildshard/game/shardfile/props';
-import { socketLiftEntries } from '@wildshard/format/socketLiftAssets';
-import { addBakedWorld, ledgerPorts, proveSocketLift, pickCommands, trustedLevel, weaponRow } from '@wildshard/game/plugin/simulation';
+import { addBakedWorld, ledgerPorts, proveEntryways, pickCommands, trustedLevel, weaponRow } from '@wildshard/game/plugin/simulation';
 import { DECK, SPAWN } from '../data/layout';
 import { DRIFT_RAY_DATA, GALE_WISP_DATA, SKY_GOAT_DATA, STORM_ROC_DATA } from '../data/species';
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
@@ -96,29 +95,24 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
     flock.land();
     return movers;
   };
-  const plan: HeadlessRuntimePlan = { level, ports, install: (host, context) => { installSky(host, context); }, proveEntries: () => {
+  const plan: HeadlessRuntimePlan = { level, ports, install: (host, context) => { installSky(host, context); }, proveEntries: () => proveEntryways(shard, assets, { world: () => {
     // Every Rising Islet entry on a fresh host of this same world (the baked colliders, the movers), plus what the grid
     // adds around a cell: the road's entry socket decks and the shardfile's declared landing / gate-isle colliders. The
     // platform's socket-lift proof walks a real capsule in from the road, boards, rides, walks the onward route, calls both
     // stops and probes the closed road gate across all 23 lanes, on actual fixed steps of the host.
-    let lanes = 0, steps = 0, liftRides = 0, liftCalls = 0;
-    socketLiftEntries(shard.entryways).forEach(entry => {
-      const fresh = createSimHost(level, { ...ports, rapier });
-      try {
-        addBakedWorld(fresh, baked.pieces);
-        installEntrySockets(fresh.physics, fresh.scope, [{ x: 0, z: 0 }]);
-        installDeclaredPropColliders(shard.props === null ? [] : propColliderDescriptors(shard.props), () => fresh.physics, fresh.scope);
-        const movers = installHeadlessMovers(fresh, moverRows, modules, {
-          systemId: SKY_MOVER_BINDING.systemId, restoring: false,
-          initialPermissions: new Map([[SKY_MOVER_BINDING.winch, 0]]),
-          permissions: () => new Map([[SKY_MOVER_BINDING.winch, 0]]),
-        });
-        const proof = proveSocketLift(entry, { physics: fresh.physics, runtime: movers.runtime, approachSource: shard,
-          fixedStep: () => { fresh.step(); if (movers.failures() !== 0) throw new Error('Sky Reach mover script call failed'); } });
-        lanes += 23; steps += proof.steps; liftRides += proof.rides; liftCalls += proof.calls;
-      } finally { fresh.dispose(); }
-    });
-    return { lanes, steps, liftRides, liftCalls };
-  } };
+    const fresh = createSimHost(level, { ...ports, rapier });
+    try {
+      addBakedWorld(fresh, baked.pieces);
+      installEntrySockets(fresh.physics, fresh.scope, [{ x: 0, z: 0 }]);
+      installDeclaredPropColliders(shard.props === null ? [] : propColliderDescriptors(shard.props), () => fresh.physics, fresh.scope);
+      const movers = installHeadlessMovers(fresh, moverRows, modules, {
+        systemId: SKY_MOVER_BINDING.systemId, restoring: false,
+        initialPermissions: new Map([[SKY_MOVER_BINDING.winch, 0]]),
+        permissions: () => new Map([[SKY_MOVER_BINDING.winch, 0]]),
+      });
+      return { physics: fresh.physics, movers: movers.runtime, dispose: () => { fresh.dispose(); },
+        fixedStep: () => { fresh.step(); if (movers.failures() !== 0) throw new Error('Sky Reach mover script call failed'); } };
+    } catch (error) { fresh.dispose(); throw error; }
+  } }) };
   return { plan, installSky };
 }
