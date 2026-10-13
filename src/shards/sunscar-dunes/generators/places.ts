@@ -1,10 +1,9 @@
 import { BoxGeometry, BufferGeometry, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, TorusGeometry, Vector3, type Material } from 'three';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { BRAZIERS, CARAVAN, WELL } from '../data/layout';
 import { COOK, CRATES, HD, HORSE, LANTERN, WELL_RIG } from '../data/places';
 import { DUNE_FIELD } from '../data/duneField';
 import { signalDunesField } from './tiles';
-import { bakePiece, foldKinds, signalPiece, type SignalPieceBake } from './kinds';
+import { bakePiece, foldKinds, signalPiece, type SignalPieceBake, boxDesc, type ColliderDesc } from './kinds';
 import { colliderRows } from '@wildshard/sdk/bake/kinds';
 import type { BakedPiece } from '@wildshard/sdk/bake';
 

@@ -10,10 +10,10 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { LashCord } from '../../../src/shards/sunscar-dunes/runtime/items/lashView';
 import { buildLashHold } from '../../../src/shards/sunscar-dunes/runtime/items/lashHold';
-import { bakeSignalLash, braidColours, coilPoints, plaitTexels, wrapGeometry } from '../../../src/shards/sunscar-dunes/generators/lash';
+import { bakeSignalLash, braidColours, coilPoints, lashTip, plaitTexels, wrapGeometry } from '../../../src/shards/sunscar-dunes/generators/lash';
 import { createModelLibrary } from '../../../src/sdk/looks/modelLibrary';
 import { DUNE_MODELS } from '../../../src/shards/sunscar-dunes/data/files';
-import { LASH_CORD, LOOP, PLAIT, POPPER, RADIAL, STRAND_A, STRAND_B, WHIP_HOLD, WHIP_VIEW, type PlaitStyle } from '../../../src/shards/sunscar-dunes/data/whip';
+import { LASH_CORD, LASH_TIP, LOOP, PLAIT, POPPER, RADIAL, STRAND_A, STRAND_B, WHIP_HOLD, WHIP_VIEW, type PlaitStyle } from '../../../src/shards/sunscar-dunes/data/whip';
 import lash from '../../../src/shards/sunscar-dunes/data/lash.json' with { type: 'json' };
 // The bullwhip's cord, plait tile and held coil as Signal Dunes' own code built them before they became rows (HEAD d91bc1a63, weapons/whipModel.ts).
 import before from './whip-view.json' with { type: 'json' };
@@ -34,7 +34,13 @@ async function loadLash(): Promise<Map<string, BufferGeometry>> {
 }
 
 describe('the lash item\'s view draws a shard\'s cord from its bake and rows (SHARD-PLATFORM SF72, G345)', () => {
-  it('the committed lash bake is byte-exact over the client intake of the generated glove (the stale gate: rerun generators/bake-signal-world.mjs)', async () => {
+  it('the committed lash bake is byte-exact (the stale gate: rerun generators/bake-signal-world.mjs)', () => {
+    const { glb, ...rows } = bakeSignalLash();
+    expect({ glb: createHash('sha256').update(glb).digest('hex'), ...rows }).toEqual(lash);
+    expect(createHash('sha256').update(readFileSync('public/assets/sunscar-dunes/baked/lash.glb')).digest('hex')).toBe(lash.glb);
+  });
+
+  it('the frozen hand tip is the generated glove\'s fit, recomputed from the GLB through the client\'s own intake (G320)', async () => {
     const parser = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder), errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const loaded = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation((url) => {
       const bytes = readFileSync(`public${url}`);
@@ -45,9 +51,7 @@ describe('the lash item\'s view draws a shard\'s cord from its bake and rows (SH
       await library.preload();
       const glove = library.mesh('whip-glove');
       if (glove === null) throw new Error('whip-glove missing');
-      const { glb, ...rows } = bakeSignalLash(glove);
-      expect({ glb: createHash('sha256').update(glb).digest('hex'), ...rows }).toEqual(lash);
-      expect(createHash('sha256').update(readFileSync('public/assets/sunscar-dunes/baked/lash.glb')).digest('hex')).toBe(lash.glb);
+      expect(lashTip(WHIP_HOLD, glove)).toEqual([...LASH_TIP]);
     } finally { loaded.mockRestore(); errors.mockRestore(); }
   });
 

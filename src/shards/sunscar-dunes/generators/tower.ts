@@ -1,8 +1,7 @@
 import { BoxGeometry, CylinderGeometry, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Vector3, type Material } from 'three';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { TOWER } from '../data/layout';
 import { signalDunesField } from './tiles';
-import { bakePiece, signalPiece, type SignalPieceBake } from './kinds';
+import { bakePiece, signalPiece, type SignalPieceBake, boxDesc, type ColliderDesc } from './kinds';
 import type { BakedPiece } from '@wildshard/sdk/bake';
 
 /**

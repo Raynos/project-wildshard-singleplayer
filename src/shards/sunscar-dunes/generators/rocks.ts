@@ -1,10 +1,8 @@
-import { Group, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry } from 'three';
-import { Rng } from '@wildshard/engine/core/rng';
-import { rock } from '@wildshard/engine/world/geometryKit';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+import { Group, IcosahedronGeometry, InstancedMesh, Matrix4, MeshStandardMaterial, Quaternion, Vector3, type BufferGeometry } from 'three';
+import { Rng } from '@wildshard/sdk/random';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, WELL } from '../data/layout';
 import { signalDunesField } from './tiles';
-import { bakePiece, signalPiece, type SignalPieceBake } from './kinds';
+import { bakePiece, signalPiece, type SignalPieceBake, boxDesc, type ColliderDesc } from './kinds';
 import type { BakedPiece } from '@wildshard/sdk/bake';
 
 /**
@@ -20,6 +18,22 @@ export const SCATTER = { boulders: 0, bigBoulder: 1.1 } as const; // E399: clean
 export const SANDSTONE = 0x8c4c2e, SANDSTONE_DARK = 0x6a3826;
 
 export interface RockField { root: Group; colliders: ColliderDesc[]; ridges: InstancedMesh; boulders: InstancedMesh }
+
+/**
+ * A boulder: an icosahedron (detail 0 = 20 faces, 1 = 80) with every vertex pushed in/out by value noise, squashed
+ * vertically; shared vertices move together so the rock stays watertight. The engine kit's `rock`, authored here so the
+ * bake reads no engine module (G320); test/signal-world-authoring.test.ts keeps the two bit-equal.
+ */
+export function rock(r: number, detail: number, rng: Rng, squash = 0.7, rough = 0.28): BufferGeometry {
+  const g = new IcosahedronGeometry(r, detail), pos = g.getAttribute('position'), seen = new Map<string, number>();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), key = `${x.toFixed(3)},${y.toFixed(3)},${z.toFixed(3)}`;
+    let k = seen.get(key);
+    if (k === undefined) { k = 1 + rng.range(-rough, rough); seen.set(key, k); }
+    pos.setXYZ(i, x * k, y * k * squash, z * k);
+  }
+  return g;
+}
 
 /** The places every scatter keeps clear of (metres). */
 const KEEP_CLEAR: readonly { x: number; z: number; r: number }[] = [

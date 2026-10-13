@@ -1,6 +1,6 @@
 import { BufferAttribute, BufferGeometry, CatmullRomCurve3, InstancedMesh, MeshStandardMaterial, TubeGeometry, Vector3, Euler } from 'three';
 import { bakePiece, signalPiece, type SignalPieceBake } from './kinds';
-import { WHIP_HOLD, WHIP_VIEW, type CoilPath, type CordRgb, type CordStyle, type LashHoldRow, type LashView, type PlaitStyle } from '../data/whip';
+import { LASH_TIP, WHIP_HOLD, WHIP_VIEW, type CoilPath, type CordRgb, type CordStyle, type LashHoldRow, type LashView, type PlaitStyle } from '../data/whip';
 
 /**
  * Build-time only (G345, the lash's graphical port): the bullwhip's held geometry, baked offline
@@ -8,8 +8,8 @@ import { WHIP_HOLD, WHIP_VIEW, type CoilPath, type CordRgb, type CordStyle, type
  * reads four kinds, `coil` (the braided rest coil the Model Explorer shows), `loop` (the plaited coil in the hero
  * glove's frame), `cord` (the thrown cord's rings, its braid painted, its positions rewritten every frame by
  * `runtime/items/lashView.ts`) and `wrap` (the helix a heavy lash winds round a caught lever), and the two numbers the generated glove's fit gives: where the lash leaves the hand
- * (`tip`) and the plait tile's repeat along the loop (`along`). The generated glove is read through the client's own
- * model intake; the client no longer loads it. The plait tile's texels go beside it (`baked/plait.bin`, `plaitTexels`).
+ * (`tip`) and the plait tile's repeat along the loop (`along`). The glove's fit is a frozen row (`LASH_TIP`, which
+ * whip-view.test.ts recomputes from the generated glove); neither the bake nor the client loads the glove. The plait tile's texels go beside it (`baked/plait.bin`, `plaitTexels`).
  */
 
 /** Paints a tube's rings with two strands laid in a spiral (the plait), so the braid reads without a texture; the last `popperRings` are the popper. */
@@ -132,9 +132,9 @@ export function plaitTexels(p: PlaitStyle = WHIP_HOLD.plait): Uint8Array {
 
 const kind = (geometry: BufferGeometry): InstancedMesh => new InstancedMesh(geometry, new MeshStandardMaterial(), 1);
 
-/** The lash's bake: its four kinds (no colliders), the hand's `tip` from the generated glove and the loop's `along`. */
-export function bakeSignalLash(glove: BufferGeometry, row: LashHoldRow = WHIP_HOLD, view: LashView = WHIP_VIEW): SignalPieceBake {
+/** The lash's bake: its four kinds (no colliders), the hand's `tip` (the generated glove's fit, `LASH_TIP`) and the loop's `along`. */
+export function bakeSignalLash(tip: readonly [number, number, number] = LASH_TIP, row: LashHoldRow = WHIP_HOLD, view: LashView = WHIP_VIEW): SignalPieceBake {
   const loop = loopGeometry(row);
   return bakePiece(signalPiece('lash', [['coil', kind(restCoilGeometry(row))], ['loop', kind(loop.geometry)], ['cord', kind(cordGeometry(row.lash))], ['wrap', kind(wrapGeometry(view.wrap))]], [],
-    { tip: lashTip(row, glove), along: loop.along }));
+    { tip: [...tip], along: loop.along }));
 }

@@ -1,5 +1,4 @@
 import { Scene, type InstancedMesh, type MeshStandardMaterial, type Object3D } from 'three';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { foldKinds as foldSdkKinds, type KindExtra, type PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bake, BakedPiece, type BakedSceneParts } from '@wildshard/sdk/bake';
 
@@ -13,6 +12,21 @@ const warm = (material: MeshStandardMaterial): KindExtra => {
   const brazier: unknown = material.userData['brazier'];
   return { ...(material.userData['warm'] === true ? { warm: true } : {}), ...(typeof brazier === 'number' ? { brazier } : {}) };
 };
+
+/** The surfaces Signal's colliders name (a subset of the physics registry's materials). */
+export type SignalSurface = 'rock' | 'stone' | 'wood' | 'metal' | 'felt' | 'flesh';
+/** A box collider row as the physics registry reads it (centre, half-extents, yaw about +Y, surface), JSON key order fixed. */
+export interface SignalBox { readonly kind: 'box'; readonly x: number; readonly y: number; readonly z: number; readonly hx: number; readonly hy: number; readonly hz: number; readonly yaw?: number; readonly surface?: SignalSurface }
+/** Signal's collider rows: boxes only. */
+export type ColliderDesc = SignalBox;
+
+/**
+ * A box from a footprint (`hw` × `hd` half-extents turned by `rot`) between two heights: the physics registry's own
+ * `boxDesc` row (centre midway, `hy` at least 5 mm, `yaw = -rot`), authored here so the bake reads no engine module (G320).
+ */
+export function boxDesc(c: { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }, surface?: SignalSurface): SignalBox {
+  return { kind: 'box', x: c.x, y: (c.yTop + c.yBottom) / 2, z: c.z, hx: c.hw, hy: Math.max(0.005, (c.yTop - c.yBottom) / 2), hz: c.hd, yaw: -c.rot, ...(surface === undefined ? {} : { surface }) };
+}
 
 /** One Signal piece as a scene node (`@wildshard/sdk/bake`): its instanced kinds baked into `sunscar.<piece>`, its colliders and rows. */
 export const signalPiece = (piece: string, meshes: readonly (readonly [string, InstancedMesh])[], colliders: readonly ColliderDesc[], rows: Readonly<Record<string, unknown>> = {}): BakedPiece<ColliderDesc> =>
