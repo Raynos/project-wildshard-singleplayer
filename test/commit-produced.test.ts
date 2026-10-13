@@ -16,19 +16,19 @@ it('admits only produced outputs of the exact source/index/parent and keeps sour
   const root = mkdtempSync(join(tmpdir(), 'commit-produced-'));
   const git = (...args:string[]) => execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
   const manifest = 'test/proof/fixture/checkpoints/manifest.json';
-  const inventory = 'docs/plans/shard-platform/generator-inventory.md';
+  const inventory = 'lint/layer-edges.json';
   const put = (file:string, value:string) => {mkdirSync(dirname(join(root,file)),{recursive:true});writeFileSync(join(root,file),value);};
   try {
     git('init','-q'); git('config','core.hooksPath','/dev/null');
     put('src/game/source.ts','before'); put('scripts/generation-jobs.json','{"jobs":[]}');
     put(manifest,JSON.stringify({inputs:'abc1',outcome:'unchanged'},null,2));
-    put(inventory,'before inventory');
+    put(inventory,'{}');
     git('add','.'); git('-c','user.name=Fixture','-c','user.email=fixture@example.com','commit','-qm','fixture');
     const base = git('rev-parse','HEAD');
     put('src/game/source.ts','after'); git('add','src/game/source.ts');
     const source = git('write-tree');
     put(manifest,JSON.stringify({inputs:'abc2',outcome:'unchanged'},null,2)); git('add',manifest);
-    put(inventory,'produced inventory');git('add',inventory);
+    put(inventory,'{"game->format":1}');git('add',inventory);
     expect(() => precommitGenerated(root)).toThrow('exact commit-time producer receipt');
     recordCommitProduced(root,source,[manifest,inventory],base);
     const produced = git('write-tree');
@@ -37,6 +37,11 @@ it('admits only produced outputs of the exact source/index/parent and keeps sour
     expect(verifyCommitProduced(root,produced,[manifest],git('rev-parse',`${base}^{tree}`))).toBe(false);
     expect(verifyCommitProduced(root,produced,['src/game/source.ts'])).toBe(false);
     expect(() => precommitGenerated(root)).not.toThrow();
+    const cheapDoc = 'docs/plans/shard-platform/generator-inventory.md';
+    put(cheapDoc,'derived inventory');git('add',cheapDoc);
+    recordCommitProduced(root,source,[manifest,inventory,cheapDoc],base);
+    expect(() => precommitGenerated(root)).toThrow('Cheap generated documentation belongs to the build');
+    git('read-tree',produced);
     put('docs/unlisted.md','not a declared producer');git('add','docs/unlisted.md');
     expect(()=>recordCommitProduced(root,source,[manifest,inventory,'docs/unlisted.md'],base)).toThrow('cannot cover source or undeclared');
     git('read-tree',produced);

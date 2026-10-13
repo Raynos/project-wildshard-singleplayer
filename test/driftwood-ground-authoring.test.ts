@@ -65,6 +65,7 @@ it('keys the complete cold ground component from authoring sources, with no reta
   expect(job.inputRoots.filter(file => !isAuthoringInput(file, 'driftwood-isle') && !['package.json', 'pnpm-lock.yaml'].includes(file))).toEqual([]);
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['public/assets/baked/driftwood-isle/terrain.bin']);
-  expect(job.buildOutputs).toEqual({ 'public/assets/baked/driftwood-isle/terrain.bin': '7ee9dec5bd542063dce4c19d70d3e2fe9c3f61b54eff23387c0aec5629346c43' });
+  expect(job.buildOutputs).toEqual({});
+  expect(job.buildTimeOutputs).toEqual(job.outputs);
   expect(job.outputs).not.toContain('src/shards/driftwood-isle/runtime/navmesh.baked.json');
 });
