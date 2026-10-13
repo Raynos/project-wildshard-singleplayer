@@ -1,9 +1,9 @@
 import { addFire, addLampGlow, fireLight } from './fireFx';
 import { COOKFIRE, WAYMARK_FIRE } from '../data/fire';
-import { BoxGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, SphereGeometry, Vector3, type Material } from 'three';
+import { BoxGeometry, CylinderGeometry, DoubleSide, Group, Mesh, MeshBasicMaterial, MeshStandardMaterial, SphereGeometry, Vector3, type Material, type Object3D } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BRAZIERS, CARAVAN, WELL } from '../data/layout';
-import { COOK, CRATES, HD, HORSE, LANTERN, WELL_RIG } from '../data/places';
+import { CAMP_HD, COOK, HD, LANTERN, WAYMARK_HD, WELL_RIG, type HdPlacement } from '../data/places';
 import caravanRows from '../data/caravan.json' with { type: 'json' };
 import wellRows from '../data/well.json' with { type: 'json' };
 import brazierRows from '../data/braziers.json' with { type: 'json' };
@@ -31,6 +31,10 @@ export const litDune = (): MeshStandardMaterial => {
 const box = (w: number, h: number, d: number, material: Material): Mesh => new Mesh(new BoxGeometry(w, h, d), material);
 const at = (mesh: Mesh, x: number, y: number, z: number, parent: Group): Mesh => { mesh.position.set(x, y, z); parent.add(mesh); return mesh; };
 const vec = ([x = 0, y = 0, z = 0]: readonly number[]): Vector3 => new Vector3(x, y, z);
+/** Place the rows' hero models under `parent` (a model that did not load stands undrawn, a page fault in world/meshes.ts). */
+export const placeHd = (parent: Object3D, rows: readonly HdPlacement[]): void => { for (const { model, fit, at: [x, y, z] = [0, 0, 0], rot: [rx, ry, rz] = [0, 0, 0] } of rows) {
+  const made = duneHd(model, fit); if (made) { made.position.set(x, y, z); made.rotation.set(rx, ry, rz); parent.add(made); }
+} };
 
 export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookAt: Vector3; lampAt: Vector3 }
 
@@ -42,15 +46,7 @@ export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookA
 export function buildCaravan(baked: BakedWorld, groundAt: (x: number, z: number) => number): CaravanParts {
   const { root, colliders } = bakedPiece(baked, 'caravan'), { y } = caravanRows.anchors;
   const camp = new Group(); camp.position.set(CARAVAN.x, y, CARAVAN.z); camp.rotation.y = CARAVAN.yaw; root.add(camp);
-  // The wagon in its own frame (+Z is the front), tipped and sunk. The original top-10's row 7 (art/sunscar-dunes/round-28-camp):
-  // wagon-hd2 from mockup B, torn canvas over bare hoops, a planked tailboard, spoked wheels, its tailboard to the logbook's approach
-  const wagon = new Group(); wagon.position.set(0, -0.55, 0); wagon.rotation.set(-0.1, 0, 0.13); camp.add(wagon);
-  const hdWagon = duneHd('wagon-hd2', { size: HD.wagon, by: 'span', yaw: HD.wagonYaw }); if (hdWagon) wagon.add(hdWagon);
-  // row 7: the modelled crate pair (a crate stacked on a larger one, mockup B) and the sack pile (three tied burlap sacks and a strapped bedroll)
-  const cratesHd = duneHd('crates-hd', { size: 1.36, by: 'height', yaw: 0.25 }); if (cratesHd) { cratesHd.position.set(CRATES.x, -0.04, CRATES.z); camp.add(cratesHd); }
-  const sacksHd = duneHd('sacks-hd', { size: 0.78, by: 'height', yaw: 0.5 }); if (sacksHd) { sacksHd.position.set(2.0, -0.04, -3.85); camp.add(sacksHd); }
-  // The pack horse (E399, mockup B): the generated model (art/sunscar-dunes/round-19-horse), its head (model -X) turned along the wagon
-  const horse = duneHd('horse-hd', { size: HORSE.h, by: 'height', yaw: HORSE.yaw }); if (horse) { horse.position.set(HORSE.x, 0, HORSE.z); camp.add(horse); }
+  placeHd(camp, CAMP_HD); // the wagon, the crates, the sacks and the pack horse (data/places.ts CAMP_HD)
   // The lantern's glass in its baked iron (loop 4, mockup B), the logbook's warm light in the dusk.
   const lamp = new Group(); lamp.position.set(LANTERN.x, LANTERN.y, LANTERN.z); camp.add(lamp);
   { const glass = new MeshBasicMaterial({ color: 0xffb24a }); glass.color.multiplyScalar(3.2); at(box(0.13, 0.28, 0.13, glass), -0.22, 0.01, 0, lamp); } // round 10 (R9B-9: the lantern peaked at 183, the mockup's 252): a hot centre
@@ -105,7 +101,7 @@ export function buildBrazier(baked: BakedWorld, i: number, groundAt: (x: number,
   const spot = BRAZIERS[i], row = brazierRows.braziers[i]; if (spot === undefined || row === undefined) throw new Error(`no waymark ${String(i)}`);
   const { x, z } = spot, { y } = row, root = new Group(), bowl = HD.brazier * HD.bowlAt;
   root.position.set(x, y, z);
-  const hdBrazier = duneHd('brazier-hd', { size: HD.brazier, by: 'height', floor: 0 }); if (hdBrazier) root.add(hdBrazier);
+  placeHd(root, WAYMARK_HD);
   const oil = at(new Mesh(new CylinderGeometry(0.33, 0.33, 0.04, 8), new MeshStandardMaterial({ color: 0x1a120c, roughness: 0.2 })), 0, bowl, 0, root);
   // the baked charred log crown (generators/places.ts waymarkCrown), its ember lit with the fire
   const embers: MeshStandardMaterial[] = []; root.add(bakedPiece(baked, 'braziers', (kind) => kind.brazier === i, (m) => { embers.push(m); }).root);

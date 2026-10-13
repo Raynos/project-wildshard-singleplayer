@@ -3,7 +3,8 @@ import { KEEPER_LAMP, SIGNAL_FIRE } from '../data/fire';
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PointLight, Vector3 } from 'three';
 import { TOWER } from '../data/layout';
 import tower from '../data/tower.json' with { type: 'json' };
-import { duneHd } from './meshes';
+import { placeHd } from './places';
+import { DECK_BRAZIER } from '../data/places';
 import { bakedPiece, type BakedWorld } from './baked';
 
 export interface TowerParts { root: Group; colliders: ReturnType<typeof bakedPiece>['colliders']; fire: Group; light: PointLight; brazierAt: Vector3; deckY: number }
@@ -26,8 +27,7 @@ export function buildTower(baked: BakedWorld): TowerParts {
   // The brazier (round 1, R1C-1 / R1B-12: the H4 view's subject): the generated one, deck-sized, its fire hidden until
   // the signal is lit. A model that did not load stands undrawn (a page fault, world/meshes.ts), as the places' do.
   const brazierAt = new Vector3(cx - 0.4, deckY + 1.1, cz - 0.5);
-  const hdBrazier = duneHd('brazier-hd', { size: 1.15, by: 'height', floor: 0 });
-  if (hdBrazier) { hdBrazier.position.set(brazierAt.x, deckY, brazierAt.z); root.add(hdBrazier); }
+  placeHd(root, [{ ...DECK_BRAZIER, at: [brazierAt.x, deckY, brazierAt.z] }]);
   const fire = new Group(); fire.position.copy(brazierAt);
   // The signal fire: the brightest thing in the level, its column visible from the spawn (P2 #8, `fireFx.ts`).
   addFire(fire, SIGNAL_FIRE);
