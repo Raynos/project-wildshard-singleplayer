@@ -24,6 +24,7 @@ Jake, 2026-10-13: *"Rather than refocusing one sprint at a time, we refocus perm
 - **Codex builds, Opus looks** (G407): every non-visual piece goes to Codex; the 2 Opus lanes author graphs with
   before / after boards and take parity and frame-time captures.
 - **Missing platform features are built in W1** (G405) by the component's lane, so W2 reuses them.
+- **The port bar is similar, not identical** (G415): no graphical glitches, graphically similar, no major regressions; no byte-identical, pixel-exact or exact-replay checks, no Simulator / millisecond gating of port work (performance is a later effort); exact-number tests are deleted; idle lanes get work at once, stuck ones are rescued after ~45 min; committing never waits on pushing.
 - **A switch ships straight to public** once its check passes (a behaviour check, or Jake's board for a look; G405).
 - **CI builds the cheap derived outputs** (G405); expensive bakes stay committed and regenerate at commit.
 - **Paused until its wave** (G404, G413): Pine and Driftwood work (G391's generators, Pine KTX2, their grid travel
@@ -500,7 +501,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G414+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G415+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
