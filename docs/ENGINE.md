@@ -4029,3 +4029,10 @@ Explicit native adapters remain supported with their original behavior.
 kind declares its body policy. A kind without a body then refuses rather
 than constructing a default policy. Held controllers also expose their
 read-only `aim` for copied strike presentation.
+
+The graph material catalogue's `bindMeshMap(id, map)` borrows an original
+mesh colour map for an already compiled graph. Equal graph/map pairs share
+a scope-owned material variant; different maps share the graph program.
+The current draw supplies its material reference, including on later frames.
+Unknown catalogue IDs refuse. Maps retain their original sampler, UV transform
+and colour space and remain owned by their original asset scope.

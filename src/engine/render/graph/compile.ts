@@ -508,7 +508,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'meshMap': {
         return { t: 'vec4', n: Fn((builder: NodeBuilder): Node<'vec4'> => {
           const map: unknown = Reflect.get(builder.material, 'map');
-          return map instanceof THREE.Texture ? new ConvertNode<'vec4'>(materialReference('map', 'texture', builder.material), 'vec4') : vec4(1);
+          // No captured material: shared node programs read this draw's material, not the first builder's.
+          return map instanceof THREE.Texture ? new ConvertNode<'vec4'>(materialReference('map', 'texture'), 'vec4') : vec4(1);
         })() };
       }
       case 'texture': {

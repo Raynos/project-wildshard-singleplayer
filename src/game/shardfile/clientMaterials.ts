@@ -60,6 +60,7 @@ function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>)
 
 /**
  * Compile a shardfile's admitted material data on the game's renderer; `compile` adds one more entry (family or graph);
+ * `bindMeshMap(id, map)` borrows a mesh map for one already compiled catalogue entry, without recompiling its graph.
  * `tick` advances the family looks' clocks and moves the graph materials' bound params; `graphs.bind` hands the graph
  * params their live sources (the frame owner's hour, the shard state). A `family: "graph"` entry compiles through the
  * lazy graph back-end only while Settings ▸ Debug ▸ Look ▸ "Graph materials" is on (`options.graphs` overrides the row);
@@ -72,7 +73,7 @@ function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>)
  * the field's declared default.
  */
 export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, renderer: Renderer, scope: Scope, options: { graphs?: boolean; sources?: GraphSources } = {}): Promise<{
-  materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; tick: (dt: number) => void;
+  materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; bindMeshMap: (id: string, map: Texture) => Material; tick: (dt: number) => void;
   outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding) | null;
 }> {
   const textures = new Map<string, Texture>(), uses = new Map<string, 'colour' | 'data'>();
@@ -145,6 +146,11 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   const splatDrawn = splat === undefined ? null : splatSurface(splat, { scope, anisotropy: Math.min(16, renderer.capabilities.getMaxAnisotropy()), texture: (ref) => { const texture = textures.get(ref); if (texture === undefined) throw new Error('Unresolved admitted splat layer'); return texture; } });
   const surfaces = splat === undefined || splatDrawn === null ? propNamed : withSplatSurface({ name: splat.material, binding: splatDrawn.binding }, propNamed);
   // a further entry (an exported skin's binding, SF16) compiles on the same looks, compiler and admitted textures, scope-owned
-  return { materials, textures, compile, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); moveCurves(); },
+  const bindMeshMap = (id: string, map: Texture): Material => {
+    const material = materials.get(id);
+    if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
+    return bindGraphMeshMap(material, map, scope);
+  };
+  return { materials, textures, compile, bindMeshMap, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); moveCurves(); },
     graphs: { bind: (sources) => { if (sources.state !== undefined) stateOf = sources.state; graphs.bind(sources); moveCurves(); }, readout: graphs.readout }, surfaces };
 }

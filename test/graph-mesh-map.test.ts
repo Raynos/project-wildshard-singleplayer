@@ -11,6 +11,9 @@ import { installDeclaredProps } from '../src/engine/world/declaredProps';
 import { propSurfaces } from '../src/game/shardfile/clientPropMaterials';
 import { validatePropMaterials, PropMaterialsSchema } from '../src/format/propMaterials';
 import { namedMaterialsGlb, NAMES } from './fixtures/prop-materials/fixture';
+import { clientMaterials } from '../src/game/shardfile/clientMaterials';
+import type { Renderer } from '../src/engine/render/renderer';
+import { legacyDouble } from './fake/FakeGame';
 import { graph, meshMap } from '../src/sdk/materials';
 
 const mapped = (): GraphIr => ({ version: 1, kind: 'material', model: 'unlit', nodes: {
@@ -96,5 +99,18 @@ it('retains the compiled outline owner when a model receives its borrowed-map va
   expect(graphMeshMapBase(variant)).toBe(original);
   expect(graphs.outline(original)).not.toBeNull();
   expect(graphs.outline(variant)).toBe(graphs.outline(original));
+  scope.dispose();
+});
+
+it('binds maps to one compiled catalogue entry and refuses unknown IDs', async () => {
+  const scope = new Scope('mesh-map-catalogue'), source = emptyShardfile({ slug: 'map-test', name: 'Map test', author: 'test', seed: 1, revision: 1 });
+  source.look.materials['mapped'] = { family: 'graph', graph: mapped() };
+  const renderer = legacyDouble<Renderer>({ setNodesHandler: () => undefined });
+  const client = await clientMaterials(source, new Map(), renderer, scope, { graphs: true });
+  const first = new Texture(), second = new Texture();
+  expect(client.bindMeshMap('mapped', first)).not.toBe(client.bindMeshMap('mapped', second));
+  expect(client.bindMeshMap('mapped', first)).toBe(client.bindMeshMap('mapped', first));
+  expect(client.graphs.readout.compiled).toBe(1);
+  expect(() => client.bindMeshMap('unknown', first)).toThrow('Unknown catalogue material');
   scope.dispose();
 });
