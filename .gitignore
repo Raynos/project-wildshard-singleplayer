@@ -152,3 +152,4 @@ src/**/*.generated.*
 # Cold-authored Signal manifest queries (SHA256 pins in generation-jobs.json).
 /public/assets/sunscar-dunes/ground/ring-mean.bin
 /src/shards/sunscar-dunes/data/manifestGround.generated.json
+/public/assets/pine-hollow/baked/wildlife.glb

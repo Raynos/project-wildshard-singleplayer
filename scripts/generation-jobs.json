@@ -1200,34 +1200,33 @@
       "command": [
         "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
-        "--import",
-        "./scripts/generation-level.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-wildlife.mjs",
-        "--generation-shard=pine-hollow"
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-wildlife.mjs"
       ],
       "inputRoots": [
-        "src/engine",
-        "src/game",
         "src/sdk",
+        "src/format",
         "src/commons",
-        "src/shards/pine-hollow",
-        "scripts/bake-loader.mjs",
-        "scripts/bake",
+        "src/shards/pine-hollow/generators/wildlife.ts",
+        "src/shards/pine-hollow/generators/wildlifeWords.ts",
+        "src/shards/pine-hollow/data/wildlifeKinds.ts",
+        "src/shards/pine-hollow/generators/bake-pine-wildlife.mjs",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "public/assets/baked/pine-hollow/terrain.bin",
-        "scripts/generation-level.mjs"
+        "pnpm-workspace.yaml"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/wildlife.bin",
-        "src/shards/pine-hollow/data/wildlife.json"
+        "src/shards/pine-hollow/data/wildlife.json",
+        "public/assets/pine-hollow/baked/wildlife.glb"
       ],
       "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/wildlife.json"
-      ]
+      ],
+      "buildOutputs": {
+        "public/assets/pine-hollow/baked/wildlife.glb": "c37412994b7585e36ea9516bd2201bc15e620b3f9f8f239c8107107d6307df08"
+      }
     },
     {
       "id": "pine-physics",

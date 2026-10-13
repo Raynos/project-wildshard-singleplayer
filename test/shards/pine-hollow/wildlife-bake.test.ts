@@ -1,4 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { BufferAttribute, InstancedMesh, type Object3D } from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare the complete native byte blocks without matcher traversal.
+import { Buffer } from 'node:buffer';
 // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate reads the committed bake the page loads.
 import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The stale gate runs the byte-exact half where the bake was made.
@@ -9,16 +13,57 @@ import { unshuffleLanes } from '@wildshard/game/plugin/geometry';
 import { KIND, WILD_BAKE_KINDS, WILD_ROWS, WildlifeMesh, useWildShapes, wildShapes } from '../../../src/shards/pine-hollow/models/wildlife';
 import committed from '../../../src/shards/pine-hollow/data/wildlife.json' with { type: 'json' };
 import { bakeWildlifeRows } from '../../../src/shards/pine-hollow/generators/bake-pine-wildlife.mjs';
+import { pineWildlifeBake } from '../../../src/shards/pine-hollow/generators/wildlife';
+import * as identities from '../../../src/shards/pine-hollow/data/wildlifeKinds';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 
 const shipped = (): Uint8Array => unshuffleLanes(new Uint8Array(inflateSync(readFileSync(new URL('../../../public/assets/pine-hollow/baked/wildlife.bin', import.meta.url)))));
+const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
 
 describe('Pine Hollow bakes its procedural wildlife offline (G285)', () => {
   // Math.sin / hypot in the mottling and the ellipsoids: byte-exact where the bake was made (macOS)
   it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun src/shards/pine-hollow/generators/bake-pine-wildlife.mjs)', () => {
     const { rows, bin } = bakeWildlifeRows();
     expect(rows).toEqual(committed);
-    expect(shipped()).toEqual(bin);
+    expect(Buffer.from(shipped()).equals(bin)).toBe(true);
+  });
+
+  it('authors the four models through bake(scene) with every native channel and triangle byte-exact', async () => {
+    expect(identities.KIND).toEqual(KIND);
+    expect(identities.WILD_BAKE_KINDS).toEqual(WILD_BAKE_KINDS);
+    const baked = pineWildlifeBake(), part = baked.pieces[0];
+    if (part === undefined) throw new Error('Wildlife library omitted');
+    expect(baked.pieces).toHaveLength(1);
+    expect(part.name).toBe('pine.wildlife');
+    expect(part.kinds.map(row => row.name)).toEqual(WILD_BAKE_KINDS.map(kind => `wildlife-${String(kind)}`));
+    expect(baked.colliders).toEqual({ scene: [], props: [], pieces: [{ piece: 'pine.wildlife', colliders: [] }] });
+    // These are moving model-library shapes, not static placements or a substitute terrain tile.
+    expect(baked.shardfile.tiles).toHaveLength(0);
+    const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(part.glb).buffer, '');
+    const models: InstancedMesh[] = [];
+    loaded.scene.traverse(node => { if (instanced(node)) models.push(node); });
+    expect(models).toHaveLength(4);
+    const shapes = wildShapes(shipped());
+    for (const [i, kind] of WILD_BAKE_KINDS.entries()) {
+      const mesh = models[i], shape = shapes.get(kind);
+      if (mesh === undefined || shape === undefined) throw new Error('Missing wildlife kind');
+      expect(mesh.count).toBe(1);
+      for (const [name, expected] of [
+        ['position', shape.pos], ['normal', shape.nor], ['color', shape.col],
+        ['_pivot', shape.pivot], ['_info', shape.info], ['_tex', shape.tex],
+      ] as const) {
+        const attribute = mesh.geometry.getAttribute(name);
+        if (!(attribute instanceof BufferAttribute)) throw new Error(`Missing packed wildlife channel ${name}`);
+        expect(Buffer.from(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength).equals(
+          new Uint8Array(expected.buffer, expected.byteOffset, expected.byteLength)), `${String(kind)} ${name}`).toBe(true);
+      }
+      const index = mesh.geometry.getIndex();
+      if (index === null) throw new Error('Missing wildlife triangles');
+      expect(Buffer.from(index.array.buffer, index.array.byteOffset, index.array.byteLength).equals(
+        new Uint8Array(shape.idx.buffer, shape.idx.byteOffset, shape.idx.byteLength))).toBe(true);
+      mesh.geometry.dispose();
+      for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) material.dispose();
+    }
   });
 
   it('decodes into the four kinds in order, triangles in range, and the one shared draw holds them all', () => {

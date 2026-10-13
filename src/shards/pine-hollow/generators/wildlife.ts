@@ -7,7 +7,8 @@
  * `preloadPineWildlife`) and never runs this. test/shards/pine-hollow/wildlife-bake.test.ts is the stale gate.
  */
 import * as THREE from 'three';
-import { HARE_NECK, KIND, P, WILD_BAKE_KINDS, type V3, type WildKind, type WildRows } from '../models/wildlife';
+import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
+import { HARE_NECK, KIND, P, WILD_BAKE_KINDS, type V3, type WildKind, type WildRows } from '../data/wildlifeKinds';
 
 type Paint = (p: V3, n: V3) => THREE.Color;
 
@@ -79,19 +80,38 @@ class Builder {
     for (let i = 1; i + 1 < ids.length; i++) { const a = ids[0], b = ids[i], c = ids[i + 1]; if (a !== undefined && b !== undefined && c !== undefined) this.idx.push(a, b, c); }
   }
 
-  /** this kind's blocks as the page reads them (../models/wildlife.ts `WILD_LAYOUT`): position, normal, colour, pivot (3 a
-   *  vertex), the info and atlas vec4s (4 a vertex), as f32 words, then the triangles (local indices) as u32 words */
-  words(): { vertices: number; indices: number; bin: Uint8Array } {
+  /** Original typed channels, shared by the standard GLB and retained legacy transport. */
+  geometry(): THREE.BufferGeometry {
     const n = this.part.length, info: number[] = [], tex: number[] = [];
     for (let i = 0; i < n; i++) {
       info.push(this.part[i] ?? 0, this.kind[i] ?? 0, this.rough[i] ?? 0.8, this.emis[i] ?? 0);
       tex.push(0, 0, 0, -1); // no atlas (a modelled bird's alone), every pose
     }
-    const floats = Float32Array.from([...this.pos, ...this.nor, ...this.col, ...this.pivot, ...info, ...tex]);
-    const bin = new Uint8Array(floats.byteLength + this.idx.length * 4);
-    bin.set(new Uint8Array(floats.buffer));
-    bin.set(new Uint8Array(Uint32Array.from(this.idx).buffer), floats.byteLength);
-    return { vertices: n, indices: this.idx.length, bin };
+    const geometry = new THREE.BufferGeometry();
+    for (const [name, values, width] of [
+      ['position', this.pos, 3], ['normal', this.nor, 3], ['color', this.col, 3],
+      ['aPivot', this.pivot, 3], ['aInfo', info, 4], ['aTex', tex, 4],
+    ] as const) geometry.setAttribute(name, new THREE.Float32BufferAttribute(values, width));
+    geometry.setIndex(new THREE.BufferAttribute(Uint32Array.from(this.idx), 1));
+    return geometry;
+  }
+
+  /** Original word blocks, kept byte-exact for frozen legacy consumers. */
+  words(): { vertices: number; indices: number; bin: Uint8Array } {
+    const geometry = this.geometry();
+    try {
+      const blocks = ['position', 'normal', 'color', 'aPivot', 'aInfo', 'aTex'].map(name => {
+        const attribute = geometry.getAttribute(name);
+        if (!(attribute instanceof THREE.BufferAttribute)) throw new Error('Wildlife requires packed channels');
+        return new Uint8Array(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength);
+      });
+      const indices = Uint32Array.from(this.idx);
+      blocks.push(new Uint8Array(indices.buffer));
+      const bin = new Uint8Array(blocks.reduce((bytes, block) => bytes + block.length, 0));
+      let at = 0;
+      for (const block of blocks) { bin.set(block, at); at += block.length; }
+      return { vertices: this.part.length, indices: this.idx.length, bin };
+    } finally { geometry.dispose(); }
   }
 }
 
@@ -226,4 +246,37 @@ export function bakePineWildlife(): { rows: Omit<WildRows, 'bin' | 'bytes'>; bin
   let at = 0;
   for (const p of parts) { bin.set(p.bin, at); at += p.bin.length; }
   return { rows: { kinds: parts.map(({ kind, vertices, indices }) => ({ kind, vertices, indices })) }, bin };
+}
+
+/** Four named local-space models in one author scene; native controllers still own their live poses. */
+export function pineWildlifeScene(): THREE.Scene {
+  const scene = new THREE.Scene(); scene.name = 'pine-hollow.wildlife';
+  const material = new THREE.MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: 1, side: THREE.DoubleSide });
+  const kinds = WILD_BAKE_KINDS.map(kind => {
+    const builder = new Builder(); MODELS[kind](builder);
+    const mesh = new THREE.InstancedMesh(builder.geometry(), material, 1);
+    mesh.setMatrixAt(0, new THREE.Matrix4());
+    return [`wildlife-${String(kind)}`, mesh] as const;
+  });
+  scene.add(new BakedPiece('pine.wildlife', kinds, [], {
+    attributes: { _PIVOT: 'aPivot', _INFO: 'aInfo', _TEX: 'aTex' },
+  }));
+  return scene;
+}
+
+/** Bake the wildlife library through the scene pipeline without inventing static wildlife placements. */
+export function pineWildlifeBake(project?: string): BakedScene {
+  const scene = pineWildlifeScene();
+  try {
+    return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project });
+  } finally {
+    scene.traverse(node => {
+      if (!(node instanceof THREE.Mesh)) return;
+      const geometry: unknown = node.geometry, materials: unknown = node.material;
+      if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
+      for (const material of Array.isArray(materials) ? materials : [materials]) {
+        if (material instanceof THREE.Material) material.dispose();
+      }
+    });
+  }
 }
