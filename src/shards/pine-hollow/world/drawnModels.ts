@@ -16,7 +16,7 @@
  */
 import * as THREE from 'three';
 import type { Placement } from '@wildshard/engine/models/model';
-import { place } from '@wildshard/engine/models/place';
+import { placeSliced } from '@wildshard/engine/models/place';
 import type { Placement as UnderPlacement } from '@wildshard/engine/world/forest/placement';
 import { groundCoverCells, groundCoverMatrix as matrixOf } from '../runtime/looks/groundCover';
 import type { Undergrowth } from './undergrowth';
@@ -32,7 +32,10 @@ import { pebbles } from '../models/pebbles';
 import { moss } from '../models/moss';
 import { reeds } from '../models/reeds';
 
-export function placeDrawnModels(h: FieldModelsContext<Undergrowth>): void {
+/** Place the forest's trees and the floor's kinds, each in slices (`placeSliced` pausing on `due`, SF67): the same draws,
+ *  registrations and order as one `place` per model, with a frame let through between the pieces when the cell builds on
+ *  the road (the trees' and the ferns' placements were 20–50 ms stretches). */
+export async function placeDrawnModels(h: FieldModelsContext<Undergrowth>, due: () => Promise<void> | null): Promise<void> {
   const ctx = pineModels(h.sky, h.renderer);
   const { forest, under, registry } = h;
   if (forest && forest.trees.length > 0) {
@@ -49,8 +52,8 @@ export function placeDrawnModels(h: FieldModelsContext<Undergrowth>): void {
       const pls = forest.trees.map((t): Placement<ForestTreeParams> => ({ x: t.x, y: t.y, z: t.z, variant: TREE_SPECS_V2[t.variant]?.name ?? 'pine-a', color: t.tint,
         params: { height: t.height, r: t.r, scale: t.scale },
         matrix: new THREE.Matrix4().compose(at.set(t.x, t.y, t.z), q.setFromAxisAngle(up, t.rot), sc.set(t.scale, t.scale, t.scale)) }));
-      place(forestTree, pls, { ctx, draw: forest.path, registry, piece: { id: 'pine-hollow/forest-tree' }, sortObjects: false,
-        cull: { view: forest, test: forest.keeps, from: 'origin', flat: true }, parent: forest.group });
+      await placeSliced(forestTree, pls, { ctx, draw: forest.path, registry, piece: { id: 'pine-hollow/forest-tree' }, sortObjects: false,
+        cull: { view: forest, test: forest.keeps, from: 'origin', flat: true }, parent: forest.group }, due);
     }
   }
   if (under) {
@@ -60,8 +63,8 @@ export function placeDrawnModels(h: FieldModelsContext<Undergrowth>): void {
     for (const [model, kind] of kinds) {
       const items: readonly UnderPlacement[] = under.layout[kind];
       if (items.length === 0) continue;
-      place(model, items.map((it) => ({ x: it.x, y: it.y, z: it.z, matrix: matrixOf(it), color: new THREE.Color(it.r, it.g, it.b) })),
-        { ctx, draw: 'instanced', registry, piece: { id: model.id }, cull, parent: under.group });
+      await placeSliced(model, items.map((it) => ({ x: it.x, y: it.y, z: it.z, matrix: matrixOf(it), color: new THREE.Color(it.r, it.g, it.b) })),
+        { ctx, draw: 'instanced', registry, piece: { id: model.id }, cull, parent: under.group }, due);
     }
   }
 }

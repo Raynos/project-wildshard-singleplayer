@@ -59,7 +59,7 @@ import { SKINS, PINE_FINISHES } from '../loadout/skins';
 import { bindLoadoutDeath } from '../loadout/events';
 import { mottLine } from '../quest/trades';
 import { isPineItem } from '../items';
-import { KING_KIND, registerKing } from './antlerKing';
+import { KING_KIND, registerKing, thrallVariant } from './antlerKing';
 
 function runtime(ctx: ShardContext): ShardRuntime {
   const rt = ctx.game.runtime;
@@ -112,7 +112,7 @@ export class PineHollow extends ShardPlugin {
           } });
       }
       const landmarks = await installPineLandmarks({ sky, registry, cabins, onUpdate: (fn) => { installPineLandmarkUpdate(ctx, game, fn); } });
-      if (landmarks.crags) { cutTerrain(world.physics, landmarks.crags.terrainCuts()); world.terrain.punch(landmarks.crags.holeTest()); }
+      if (landmarks.crags) { cutTerrain(world.physics, landmarks.crags.terrainCuts()); await world.terrain.punchSliced(landmarks.crags.holeTest(), slicer(30).due); }
       for (const item of cabins.interactables) setSight(item, { slack: 0.75 });
       this.cabins = cabins; this.landmarks = landmarks;
     });
@@ -121,7 +121,7 @@ export class PineHollow extends ShardPlugin {
       await placed.build(registry, macrotask);
       return placed;
     });
-    placeDrawnModels({ sky, renderer: game.renderer, forest, under: carpet.under, registry });
+    await placeDrawnModels({ sky, renderer: game.renderer, forest, under: carpet.under, registry }, slicer(30).due);
     Object.assign(rt.objects, { cabins: this.cabins, props, streams, ...carpet });
     rt.hooks.worldUpdate = (dt, t) => {
       carpet.grass.update(dt, rt.viewer());
@@ -225,6 +225,9 @@ export class PineHollow extends ShardPlugin {
     if (retainsRuntimeServices(ctx)) installRetainedPlayerEffects(ctx, { movement: player, position: () => player.position });
     installStarterEffects(ctx, { player, health: ctx.app.player, effects: ctx.app.effects },
       retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
+    // SF67: the King's parked thralls' models, each in its own task before the combat install parks them (the same cached
+    // models its prewarm would build in one stretch; the factory builds each from its own key's seed)
+    for (const kind of ['elk', 'boar'] as const) { ctx.scope.run(() => animals.factory.model(kind, thrallVariant(kind).variant)); await macrotask(); }
     // SF57: after the play hook's first await the owner is the page's; the boss / elite bars and the Elites service end with
     // this runtime, not with the page (one set per visit used to stay for the page's life)
     const fights = ctx.scope.run(() => installPineCombat({ context: ctx, game, sky, player, animals, weapons, crossbow, rifle, skins, wearSkin, inventory, hud, audio, music, interactables: rt.interactables, params,

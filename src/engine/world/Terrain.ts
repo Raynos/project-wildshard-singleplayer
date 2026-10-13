@@ -313,6 +313,11 @@ export function canopyChannel(positions: { readonly count: number; readonly getX
   return canopy;
 }
 
+/** A walk-in space's test on one drawn triangle (its three corners), true to drop it (`Terrain.punch`). */
+export type TerrainHole = (ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number) => boolean;
+/** The triangles a `Terrain.punchSliced` stretch tests before it may pause. */
+const PUNCH_TRIANGLES_PER_STEP = 8192;
+
 /** what a level look's terrain painter samples: the live heightfield (its bindings swap when the bake lands) */
 function painterField(binding: HeightfieldBinding, onBound: () => void): PainterField {
   return {
@@ -351,7 +356,27 @@ export class Terrain {
    * through it; the cave's own hood covers the gap). The heights stay: `heightAt` and the physics are the caller's.
    * Returns the triangles dropped.
    */
-  punch(hole: (ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number) => boolean): number {
+  punch(hole: TerrainHole): number {
+    const steps = this.punchSteps(hole);
+    for (;;) { const r = steps.next(); if (r.done === true) return r.value; }
+  }
+
+  /**
+   * `punch` in slices (SF67): it awaits `due()`'s pause between runs of `PUNCH_TRIANGLES_PER_STEP` triangles (the hole test
+   * over the whole ground was a ~10–30 ms stretch when a grid cell builds on the road). The same triangles in the same
+   * order: the index it sets is `punch`'s, set once at the end.
+   */
+  async punchSliced(hole: TerrainHole, due: () => Promise<void> | null): Promise<number> {
+    const steps = this.punchSteps(hole);
+    for (;;) {
+      const r = steps.next();
+      if (r.done === true) return r.value;
+      const pause = due();
+      if (pause !== null) await pause;
+    }
+  }
+
+  private *punchSteps(hole: TerrainHole): Generator<void, number> {
     if (this.builtMesh === undefined) return 0;
     const geo = this.mesh.geometry, idx = geo.getIndex();
     if (!idx) return 0;
@@ -359,6 +384,7 @@ export class Terrain {
     const keep: number[] = [];
     let dropped = 0;
     for (let t = 0; t < idx.count; t += 3) {
+      if (t > 0 && t % (PUNCH_TRIANGLES_PER_STEP * 3) === 0) yield;
       const a = idx.getX(t), b = idx.getX(t + 1), c = idx.getX(t + 2);
       if (hole(pos.getX(a), pos.getY(a), pos.getZ(a), pos.getX(b), pos.getY(b), pos.getZ(b), pos.getX(c), pos.getY(c), pos.getZ(c))) { dropped++; continue; }
       keep.push(a, b, c);

@@ -93,7 +93,8 @@ export function registerKing(): void {
 const act = (k: Animal, move: number): void => { k.mem['act'] = move; };
 
 /** a thrall of `kind`: the creature lane's 'thrall' variant when it exists, else a moss-tinted stand-in */
-function thrallVariant(kind: 'elk' | 'boar'): { variant: string; tinted: boolean } {
+/** The variant a thrall of `kind` is spawned as (the registered 'thrall', else a tinted stand-in). */
+export function thrallVariant(kind: 'elk' | 'boar'): { variant: string; tinted: boolean } {
   if (variantDef(kind, 'thrall').id === 'thrall') return { variant: 'thrall', tinted: false };
   return { variant: kind === 'elk' ? 'bull' : 'black', tinted: true };
 }
