@@ -29,20 +29,19 @@ Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an own
 | SF50-p, SF49-p, SF51-p | Signal, Sky and Nine port X tails toward ≤ 20 % | L–XL | after BR rows |
 | SF73 | Per-shard legacy deletion and save migration after ≤ 20 % and the gates | S–M each | blocked by ports |
 
-## SF87 / G320 status (2026-10-11, sp-x6)
+## SF87 / G320 status (2026-10-13, sp-x6; clean-room pin `2e24ff5bf`)
 
-Author-only, cold clean-room exact: Template and Pastel (terrain, props, behaviour); Nine entries, fronts, floor boxes,
-portal floors and deck caps; Sky islets; Driftwood director; Pine night, clock and elites; Nalati raid, ghost, Qara and
-weapon hooks; Signal skitterer. Whole-product deletion stays guarded (`e6df68b43`).
-
-Still trusted / blocked:
-- **CPU, X:** the physics bakes (Driftwood, Pine, Nalati, Nine, Sky, Signal) and the Driftwood and Pine spots still run
-  trusted world, quest and species constructors; their placements are coupled to collider and rig recipes. Driftwood's
-  navmesh seeds from the public `navmesh.bin`, not a cold author source.
-- **Graphical, O (waits for Opus):** Nine's layout builds Square/Towers/Well meshes and neon/sign geometry; the static jobs
-  (Driftwood fixed models; Pine pond, cabins, crags, lookout, props, timbers, streams, undergrowth, wildlife, King
-  collision; Nalati bodies and places; Sky rigs and world; Signal rigs, sand and world) and every skin need geometry,
-  rig or pixel authoring owners.
+Darwin arm64, report-only: **44/66 jobs matched** (431 outputs byte-exact), 22 blocked, 0 different; 13 runtime/legacy
+roots and every registered output deleted; 17 entry points unregistered. All six authored physics jobs, Driftwood/Pine
+spots and Pine King collision now pass cold (the 10-11 CPU gap is closed); Signal/Sky navigation, ground, placements,
+tower, bridge and islet components pass; Template/Pastel terrain, props, behaviour and retained director/brain/weapon
+components pass. Fixes `8acd18700`, `2e24ff5bf`.
+- **Whole products: none registered** (no complete `shard.json` producer for any shard).
+- Blocked: Signal (trusted/seeded rigs, sand, world); Sky (rigs, world, browser textures); Driftwood (topology seeds
+  public `navmesh.bin`); Nine layout and Pine static jobs (trusted / terrain-seed edges); Nalati bodies/places (trusted)
+  and its terrain job reads the retained WSTR through a root script.
+- G318 cache activation / removals stay held where complete-product fixtures require it; Linux cold / whole-product
+  qualification open. Component matches are not whole-product permission.
 
 ## SF87 Pine: the O producers left after sp-x6's author ground (2026-10-12)
 
