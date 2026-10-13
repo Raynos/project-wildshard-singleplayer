@@ -358,6 +358,7 @@ shard's scope (`ctx.scope`), so a verb never takes a scope.
 
 | Method | Owns |
 |---|---|
+| `ownPrimitives(root, {instances?})` | a code-built mesh tree’s geometry/materials, optionally instanced meshes; detaches the root on disposal, leaves textures to their existing owners |
 | `own(resource)` | a geometry, material, texture, render target or InstancedMesh (`Disposable3`) |
 | `ownBody(handle)` | a Rapier body or collider (`PhysicsHandle`) |
 | `ownSound(handle)` | an audio node (`SoundHandle`); `ownAudioSource` wraps a source for you |
@@ -373,7 +374,7 @@ shard's scope (`ctx.scope`), so a verb never takes a scope.
 it asks for the current owner instead.
 
 The browser composition root calls `installBrowserScopeEnvironment()` from `app/view/scopeEnvironment` before
-registering presentation work. It supplies frame scheduling and diagnostic DOM target classification; a headless
+registering presentation work. It supplies exact Mesh/InstancedMesh primitive classification, frame scheduling and diagnostic DOM target classification; a headless
 scope owns callbacks and resources without importing browser globals.
 
 | Export | What it does |
@@ -404,18 +405,17 @@ through those after an `await` ends with the resident. Anything else that reads 
 `retainCachedResources` marks engine caches that survive a level.
 
 **The leak test.** The gate loads your shard, unloads it and checks the census is back to its title-screen value
-(geometries, textures, materials, bodies, listeners, audio nodes, timers). The template's helper is the pattern:
+(geometries, textures, materials, bodies, listeners, audio nodes, timers). Code-built trees use their explicit scope:
 
 ```ts
-export function ownPrimitives(root: Object3D, scope: Scope): void {
-  root.traverse((node) => {
-    if (!(node instanceof Mesh)) return;
-    scope.own(node.geometry);
-    for (const material of Array.isArray(node.material) ? node.material : [node.material]) scope.own(material);
-  });
-  scope.onDispose(() => { root.removeFromParent(); });
-}
+ctx.scope.ownPrimitives(root); // geometry and materials
+ctx.scope.ownPrimitives(root, { instances: true }); // also instance buffers
 ```
+
+This walks native meshes once at registration. It does not acquire textures,
+recapture late resources or change delegated scene/asset ownership. The pure
+native host has no presentation classifier; rendered Node world bakes install
+the same adapter explicitly.
 
 ## 5. Services
 

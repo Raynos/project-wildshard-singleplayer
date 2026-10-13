@@ -14,7 +14,6 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { STRINGS } from './data/strings';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
-import { ownPrimitives } from './world/resources';
 import { lastLightAll } from './look/light';
 import { DUSK, setDusk, stepDusk } from './look/dusk';
 import { preloadDuneMeshes, DUNE_CREATURE_LOOKS } from './world/meshes';
@@ -96,7 +95,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   protected override arm(ctx: ShardContext, targets: HybridTargets): Bullwhip { return bindSignalItems(ctx, targets, (whip) => { this.whip = whip; }); }
   protected override armed(): Bullwhip | null { return this.whip; }
   // loop 4: the style bible's dusk rim on the whip and glove too, so the weapon separates from the sand behind it
-  protected override dress(ctx: ShardContext): void { const whip = this.whip; if (whip !== null) { lastLightAll(whip.model, ctx.scope); ownPrimitives(whip.model, ctx.scope); } }
+  protected override dress(ctx: ShardContext): void { const whip = this.whip; if (whip !== null) { lastLightAll(whip.model, ctx.scope); ctx.scope.ownPrimitives(whip.model); } }
   // the whip's declared input context (shard.config.ts items.contexts): while the cell is entered for a retained home
   protected override enter(ctx: ShardContext): void { bindRuntimeItemContexts(ctx, source); }
   protected override install(ctx: ShardContext, loot: ScopedLoot | null): void {

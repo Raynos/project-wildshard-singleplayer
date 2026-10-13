@@ -8,7 +8,6 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { Vector3 } from 'three';
 import { CROWN, HIGH, STEP, VANES } from '../data/layout';
 import { STRINGS } from '../data/strings';
-import { ownPrimitives } from '../world/resources';
 import { FLAGS, vaneFlag } from './flags';
 import { skyHd } from '../world/meshes';
 import { skyMappedLook } from '../world/looks';
@@ -45,7 +44,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
         if (made.pivots === undefined) throw new Error('Missing authored keeper pivots');
         return { geometry: made.pivots, material: skyMappedLook('keeper-scarf', made.map) };
       },
-      dress: group => { ownPrimitives(group, ctx.scope); },
+      dress: group => { ctx.scope.ownPrimitives(group, { instances: true }); },
     }) });
   const vanes = bindSkyQuestStage('vanes', flags);
   ctx.system({ id: 'far.vanes', phase: 'update', run: vanes.advance });

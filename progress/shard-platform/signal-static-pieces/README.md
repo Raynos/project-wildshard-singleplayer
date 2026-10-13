@@ -27,5 +27,13 @@ only its source key changes. Focused tests retain the released fit/cut,
 all source attribute arrays, the original frame/stone colliders and
 instanced geometry coverage, plus ordinary material/state refusals.
 
-C1 remains open for the shared resource-owner tail and the remaining
-component inventory; this receipt closes these static construction calls.
+The shared resource owner now uses `ctx.scope.ownPrimitives(root)` on Signal
+and `{instances: true}` on Sky. Both shard-local helpers are deleted. A
+released-helper oracle proves identical native class tests, geometry/material
+and instance ownership, repeated-registration census, disposal order and root
+removal. Textures, delegated scene capture and asset acquisition stay with their
+existing owners. The explicit presentation adapter leaves pure native scopes
+renderer-free; the retained Node world host installs it before rendered builds.
+Both native headless/replay/ledger witnesses and both page lifecycle contracts
+pass. C1's remaining component inventory stays open; this receipt closes these
+static construction and primitive-ownership calls.

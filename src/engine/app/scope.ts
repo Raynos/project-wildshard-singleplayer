@@ -1,3 +1,4 @@
+import type { Object3D } from 'three';
 import { withOwner } from './ownership';
 import { scopeEnvironment } from './scopeEnvironment';
 import { scopedProperty } from './scopedProperty';
@@ -137,6 +138,13 @@ export class Scope {
   }
   own<T extends Disposable3>(resource: T): T {
     return this.ownHandle(resource, resourceKind(resource), () => resource.dispose());
+  }
+  /** Own a code-built tree's buffers/materials and detach it on disposal. Instanced meshes are optional; textures and delegated scene ownership stay separate. */
+  ownPrimitives(root: Object3D, options: { readonly instances?: boolean } = {}): void {
+    const capture = scopeEnvironment().primitives;
+    if (capture === undefined) throw new Error('Primitive ownership requires the presentation host');
+    capture(root, resource => { this.own(resource); }, options.instances === true);
+    this.onDispose(() => { root.removeFromParent(); });
   }
   ownBody<T extends PhysicsHandle>(body: T): T {
     return this.ownHandle(body, 'bodies', () => body.remove());

@@ -12,7 +12,6 @@ import { buildTower, type TowerParts } from './tower';
 import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellParts } from './places';
 import { drapeGroundAt } from './drapeGround';
 import { signalPieces, type BakedWorld } from './baked';
-import { ownPrimitives } from './resources';
 import { fireGeometries, fireLight, fireResources, loadFireBook, resetFireLights, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
@@ -132,7 +131,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
     ...braziers.map((b): Crackable => ({ at: b.parts.bowlAt, radius: 1.2, crack: () => b.light() })),
   ];
   lastLightAll(ctx.root, ctx.scope); // the style bible's rim and shade floor on every prop
-  ownPrimitives(ctx.root, ctx.scope);
+  ctx.scope.ownPrimitives(ctx.root);
   for (const r of fireResources()) ctx.scope.own(r);
   ctx.scope.onDispose(() => { for (const g of fireGeometries()) g.dispose(); });
   ctx.scope.onDispose(loadFireBook()); // E407 row 6: the flame's flipbook, freed with the shard

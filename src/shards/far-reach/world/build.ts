@@ -17,7 +17,6 @@ import BRIDGE_PHYSICS from '../data/bridgePhysics.generated.json' with { type: '
 import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type: 'json' };
 import { skyIsleModels } from './skyIsleHd';
 import { skyBakedPiece, skyKnollHulls, skyPieces } from './baked';
-import { ownPrimitives } from './resources';
 import { skyline } from './distant';
 import { PALETTE, flat, hoverBridge, ropeBridge, vane, windmill, winch } from './shapes';
 import { bookStand } from './bookStand';
@@ -242,6 +241,6 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   await pause();
   const islets = isletViews();
   root.add(islets.group);
-  ctx.root.add(root); ownPrimitives(root, ctx.scope);
+  ctx.root.add(root); ctx.scope.ownPrimitives(root, { instances: true });
   return { hoverDeck, wind, fallen, millHub: mill.hub, storm, vanes, winch: handle, winchAt, notes, notesAt, state, islets };
 }

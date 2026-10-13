@@ -8,7 +8,6 @@ import type { SignalWorld } from '../world/build';
 import { DISCOVERY_PLACES } from '../data/questPresentation';
 import { STRINGS } from '../data/strings';
 import { lastLightAll } from '../look/light';
-import { ownPrimitives } from '../world/resources';
 import { duneMesh } from '../world/meshes';
 import { FLAG } from '../data/flags';
 import { PAID_FLAG } from '../data/signalQuest';
@@ -53,7 +52,7 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
     place: (marker) => QUEST_MARKERS[marker.id], player, coins, paid: () => flags.has(PAID_FLAG), markPaid: () => { flags.set(PAID_FLAG); },
     presentation: { places: [...DISCOVERY_PLACES] }, npc: () => installDeclaredQuestNpc(ctx, source, 'sunscar.scout', { player, flags,
       model: id => { if (id !== 'caravan-scout') throw new Error('Unknown quest scout model'); const geometry = duneMesh(id); return geometry === null ? null : { geometry }; },
-      dress: group => { ownPrimitives(group, ctx.scope); lastLightAll(group, ctx.scope); },
+      dress: group => { ctx.scope.ownPrimitives(group); lastLightAll(group, ctx.scope); },
     }) });
   return { quest, burst: reward.burst, facts, get view() { return view(); } };
 }

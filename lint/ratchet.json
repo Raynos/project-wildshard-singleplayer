@@ -466,7 +466,6 @@
     "src/shards/far-reach/world/islets.ts": 1,
     "src/shards/far-reach/world/meshes.ts": 2,
     "src/shards/far-reach/world/mill.ts": 1,
-    "src/shards/far-reach/world/resources.ts": 1,
     "src/shards/far-reach/world/risingIslet.ts": 2,
     "src/shards/far-reach/world/skyDock.ts": 1,
     "src/shards/ink-cel-valley/budgetCeilings.ts": 1,
@@ -984,8 +983,7 @@
     "src/shards/sunscar-dunes/weapons/rows.ts": 1,
     "src/shards/sunscar-dunes/world/baked.ts": 1,
     "src/shards/sunscar-dunes/world/build.ts": 2,
-    "src/shards/sunscar-dunes/world/places.ts": 1,
-    "src/shards/sunscar-dunes/world/resources.ts": 1
+    "src/shards/sunscar-dunes/world/places.ts": 1
   },
   "wildshard/shard-game-imports": {
     "src/shards/_template/manifest.ts": 1,
