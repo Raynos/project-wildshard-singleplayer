@@ -6,8 +6,10 @@ export function bootErrorReport(url: string, method: string, body: string | null
 export function bootLifecycleDiagnostic(report: unknown, observedGridNavigation: boolean): boolean;
 /** Read the installed catalogue in the actual built title document. */
 export function bootCatalogue(): { slug: string; status: string; legacy: boolean }[];
+/** Public-policy admission observes a hydrated title, an unwaived public mode and a locked experimental card. */
+export function publicPolicyAdmission(observation: { shard:string; appState:string; entered?:boolean; playerValid:boolean; fatal:string[]; frame:number; renderFrame:number }): { admitted:boolean; developer:boolean; locked:boolean; frame:number; renderFrame:number };
 /** Required public and Developer cases; Nine also enters with Developer off. Hidden and frozen copies are excluded. */
-export function bootCases(catalogue: readonly { slug: string; status: string; legacy: boolean }[], group?: 'all' | 'public' | 'developer'): readonly (readonly ['standalone' | 'grid', string, boolean])[];
+export function bootCases(catalogue: readonly { slug: string; status: string; legacy: boolean }[], group?: 'all' | 'public' | 'developer'): readonly (readonly ['standalone' | 'grid' | 'public-policy', string, boolean])[];
 
 /** Plan the required real Signal road crossing from the running grid catalogue. */
 export function bootSignalRoadPlan(state: unknown): FloorGridPlan;

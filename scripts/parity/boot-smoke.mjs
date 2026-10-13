@@ -9,20 +9,34 @@ import { serve } from './serve.mjs';
 import { saveFixture } from '../debug-settings.mjs';
 import { gridFloorDocumentIdentity, runFloorGridRoute, gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
 
+/** A locked experimental card is not a public gameplay entry. Its direct chunk
+ * page must still hydrate under the unwaived public playing envelope (call44).
+ * @param {{shard:string,appState:string,entered?:boolean,playerValid:boolean,fatal:string[],frame:number,renderFrame:number}} observation */
+export function publicPolicyAdmission(observation) {
+  const developer = Object.hasOwn(document.documentElement.dataset, 'dev');
+  const play = document.querySelector('.ws-menu-play'), alternate = document.querySelector('.ws-menu-shardfile');
+  const locked = play !== null && play.hasAttribute('disabled') && /coming soon/iu.test(play.textContent) &&
+    (alternate === null || alternate.hasAttribute('hidden') || alternate.hasAttribute('disabled'));
+  const admitted = !developer && locked && observation.shard === 'nine-dragon-stack' && observation.appState === 'title' &&
+    observation.entered === false && observation.playerValid && Number.isFinite(observation.renderFrame) && observation.renderFrame > 0 && observation.frame > 0 && observation.fatal.length === 0 && document.querySelector('#hud') !== null;
+  return { admitted, developer, locked, frame: observation.frame, renderFrame: observation.renderFrame };
+}
+
 /** Browser-side observation; also exercised against fatal and incomplete boot fixtures. */
 export function bootObservation() {
   const fatal = [...document.querySelectorAll('#wserr,.ws-load-error,.ws-game-dev-alert,[data-boot-fatal]')].map(node => node.textContent || 'fatal');
   const probe = /** @type {import('../../src/engine/debug/probe').EngineProbe | undefined} */ (window.__wildshard);
-  if (!probe?.world) return { fatal, ready: false, frame: -1, shard: '', grid: null };
+  if (!probe?.world) return { fatal, ready: false, frame: -1, shard: '', grid: null, appState: 'unavailable', playerValid: false, renderFrame: -1 };
   const world = probe.requireWorld(), state = probe.state();
   const { grid: exposed } = world.game.app.debug.snapshot();
   const grid = typeof exposed === 'object' && exposed !== null && 'state' in exposed && typeof exposed.state === 'function' ? exposed.state() : null;
   const hud = document.querySelector('#hud');
   const revealing = document.querySelector('.ws-grid-reveal') !== null;
   const entered = world.hud.entered && !world.hud.paused, frameGate = world.game.frameGate();
+  const playerValid = [state.player.pos.x, state.player.pos.y, state.player.pos.z, state.player.health].every(Number.isFinite) && state.player.health > 0;
   const ready = state.appState === 'play' && entered && frameGate && hud !== null && !hud.classList.contains('intro') && !revealing &&
-    [state.player.pos.x, state.player.pos.y, state.player.pos.z, state.player.health].every(Number.isFinite) && state.player.health > 0;
-  return { fatal, ready, entered, revealing, frameGate, frame: probe.app.clock.frame, shard: probe.shard.slug, grid };
+    playerValid;
+  return { fatal, ready, entered, revealing, frameGate, frame: probe.app.clock.frame, shard: probe.shard.slug, grid, appState: state.appState, playerValid, renderFrame: world.game.renderer.info.render.frame };
 }
 
 /** @param {import('playwright').Page} page @param {string[]} faults @param {() => Promise<boolean>} condition @param {string} label @param {number} deadline */
@@ -67,7 +81,7 @@ export function bootCatalogue() {
 /** Every public primary enters through its real public button; experimental primaries enter with Developer on.
  * @param {readonly {slug:string,status:string,legacy:boolean}[]} catalogue
  * @param {'all'|'public'|'developer'} [group]
- * @returns {readonly (readonly ['standalone'|'grid',string,boolean])[]} */
+ * @returns {readonly (readonly ['standalone'|'grid'|'public-policy',string,boolean])[]} */
 export function bootCases(catalogue, group = 'all') {
   if (!['all', 'public', 'developer'].includes(group)) throw new Error('Unknown boot case group');
   const seen = new Set();
@@ -81,11 +95,11 @@ export function bootCases(catalogue, group = 'all') {
   const home = publicRows.at(0)?.slug;
   if (home === undefined) throw new Error('No public shard page-ready cases');
   if (!primary.some(row => row.slug === 'nine-dragon-stack')) throw new Error('Nine Developer-off page-ready case is missing from the built catalogue');
-  // Nine is experimental but direct public entry still admits its product. Its
-  // playing envelope must pass with Developer off, independently of the
-  // experimental entry below (Developer may waive that envelope).
+  // Direct Nine chunk hydration uses the public playing envelope even while
+  // its experimental picker card stays locked. The Developer case separately
+  // proves entered gameplay; admission is never labelled public gameplay.
   const publicCases = primary.filter(row => row.status !== 'experimental' || row.slug === 'nine-dragon-stack')
-    .map(row => /** @type {const} */ (['standalone', row.slug, false]));
+    .map(row => /** @type {const} */ ([row.status === 'experimental' ? 'public-policy' : 'standalone', row.slug, false]));
   const developerCases = [...primary.filter(row => row.status === 'experimental').map(row => /** @type {const} */ (['standalone', row.slug, true])), /** @type {const} */ (['grid', home, false])];
   return group === 'public' ? publicCases : group === 'developer' ? developerCases : [...publicCases, ...developerCases];
 }
@@ -162,11 +176,11 @@ export function spawnOverhead() {
 
 /** `developer`: a standalone case with Developer on, for a shard that is still Developer-only (Signal Dunes: SF57's composer
  * coverage broke its boot on main, 9fb0cca1d, and no public case could see it).
- * @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'} mode @param {string} out @param {string} [shard] @param {boolean} [developer] */
+ * @param {import('playwright').Browser} browser @param {string} base @param {'standalone'|'grid'|'public-policy'} mode @param {string} out @param {string} [shard] @param {boolean} [developer] */
 export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle', developer = false) {
   // CI's macOS runner renders the phone tier at ~0.3 fps, so a case needs more than a minute of wall clock.
   const started = Date.now(), deadline = started + 90000;
-  const receipt = mode === 'standalone' && shard !== 'driftwood-isle' ? shard : mode;
+  const receipt = mode !== 'grid' && shard !== 'driftwood-isle' ? shard : mode;
   /** @type {Record<string, number>} */ const phases = {};
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
   // Both ordinary documents read the same device choice. Standalone proves the public default too.
@@ -217,14 +231,27 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
   try {
     const url = new URL(base);
     for (const [key, value] of Object.entries({ tier: 'phone', touch: '1', mute: '1', nolock: '1', sw: '0' })) url.searchParams.set(key, value);
-    if (mode === 'standalone') url.searchParams.set('chunk', shard);
+    if (mode !== 'grid') url.searchParams.set('chunk', shard);
     await page.goto(url.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
     await until(page, faults, async () => await page.locator('.ws-main-logo').isVisible() && !(await page.locator('.ws-load').isVisible()), 'rendered usable title', deadline);
     phases.titleMs = Date.now() - started;
-    if (mode === 'standalone') {
+    if (mode !== 'grid') {
       await page.locator('.ws-main-select').click();
       // Admission enables the entry asynchronously. Developer cases prove the primary SHARDFILE,
       // while public cases use their sole ENTER WORLD; frozen LEGACY is a separate historical entry.
+      if (mode === 'public-policy') {
+        if (developer || shard !== 'nine-dragon-stack') throw new Error('Invalid public-policy admission case');
+        await until(page, faults, async () => {
+          const observed = await page.evaluate(bootObservation), admission = await page.evaluate(publicPolicyAdmission, observed);
+          return admission.admitted;
+        }, 'Developer-off Nine public-policy hydration and initial draw', deadline);
+        const observation = await page.evaluate(bootObservation), admission = await page.evaluate(publicPolicyAdmission, observation);
+        const result = { mode, phases, admission, telemetryPosts, lifecycleReports, gridNavigationObserved,
+          elapsedMs: Date.now() - started, ...observation, faults, reports };
+        if (!admission.admitted || faults.length > 0 || reports.length > 0) throw new Error(JSON.stringify(result));
+        writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify(result, null, 2)}\n`);
+        return result;
+      }
       const play = page.locator('.ws-menu-play'), shardfile = page.locator('.ws-menu-shardfile');
       await play.waitFor();
       await until(page, faults, async () => await play.isEnabled() || (await shardfile.isVisible() && await shardfile.isEnabled()), 'available shard entry', deadline);
@@ -290,7 +317,7 @@ async function main() {
     writeFileSync(join(out, 'cases.json'), `${JSON.stringify({ group, catalogue, cases }, null, 2)}\n`);
     for (const [mode, shard, developer] of cases) {
       const result = await bootCase(browser, base, mode, out, shard, developer);
-      console.log(`${mode}: gameplay PASS in ${result.elapsedMs}ms, frame=${result.frame}, faults=${result.faults.length}`);
+      console.log(`${mode}: ${mode === 'public-policy' ? 'public-policy admission' : 'gameplay'} PASS in ${result.elapsedMs}ms, frame=${result.frame}, faults=${result.faults.length}`);
     }
   } finally { try { await pool.close(); } finally { preview?.close(); } }
 }

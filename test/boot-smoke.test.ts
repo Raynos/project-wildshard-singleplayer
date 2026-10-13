@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { expect, it } from 'vitest';
 import { gridFloorPlans, type FloorGridState, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
-import { bootCases, bootCatalogue, bootSignalRoadPlan, verifyBootSignalRoad } from '../scripts/parity/boot-smoke.mjs';
+import { bootCases, bootCatalogue, publicPolicyAdmission, bootSignalRoadPlan, verifyBootSignalRoad } from '../scripts/parity/boot-smoke.mjs';
 
 const source = readFileSync('scripts/parity/boot-smoke.mjs', 'utf8');
 const observer = source.slice(source.indexOf('export function bootObservation()'), source.indexOf('/** @param')).replace('export ', '');
@@ -58,7 +58,7 @@ it('waits for the real entered HUD, frame gate and current grid reveal before cl
     document: { querySelectorAll: () => [], querySelector: (selector: string) => selector === '#hud'
       ? { classList: { contains: () => false } } : selector === '.ws-grid-reveal' && revealing ? {} : null },
     window: { __wildshard: {
-      world: {}, requireWorld: () => ({ hud: { entered, paused }, game: { frameGate: () => frameGate, app: { debug: { snapshot: () => ({}) } } } }),
+      world: {}, requireWorld: () => ({ hud: { entered, paused }, game: { renderer: { info: { render: { frame: 40 } } }, frameGate: () => frameGate, app: { debug: { snapshot: () => ({}) } } } }),
       state: () => ({ appState: 'play', player: { pos: { x: 0, y: 1, z: 0 }, health: 100 } }),
       app: { clock: { frame: 24 } }, shard: { slug: 'platform.grid' },
     } },
@@ -83,7 +83,7 @@ it('boots the entire actual public catalogue and experimental primaries without 
     { slug: 'future-public', status: 'live', legacy: false },
   ];
   const publicCases = bootCases(catalogue, 'public'), developerCases = bootCases(catalogue, 'developer');
-  expect(publicCases).toEqual(['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'future-public'].map(slug => ['standalone', slug, false]));
+  expect(publicCases).toEqual(['driftwood-isle', 'pine-hollow', 'nalati-grasslands', 'nine-dragon-stack', 'future-public'].map(slug => [slug === 'nine-dragon-stack' ? 'public-policy' : 'standalone', slug, false]));
   expect(developerCases).toEqual([['standalone', 'sunscar-dunes', true], ['standalone', 'far-reach', true], ['standalone', 'nine-dragon-stack', true], ['grid', 'driftwood-isle', false]]);
   expect(bootCases(catalogue)).toEqual([...publicCases, ...developerCases]);
   expect(() => bootCases(catalogue.filter(row => row.slug !== 'sunscar-dunes'))).toThrow('Signal');
@@ -186,4 +186,20 @@ it('keeps hourly/manual promotion and reuses only an exact successful push-CI pr
   expect(workflow).toContain('python3 scripts/heavy-lane.py build -- pnpm exec vite build');
   expect(workflow).toContain('node scripts/check-chunks.mjs dist');
   expect(workflow).toContain('node "$RUNNER_TEMP/deploy-version.mjs" verify');
+});
+
+it('requires unwaived Nine title hydration and keeps its experimental card locked', () => {
+  const observed: Parameters<typeof publicPolicyAdmission>[0] = { shard: 'nine-dragon-stack', appState: 'title', entered: false, playerValid: true, fatal: [], frame: 22, renderFrame: 40 };
+  const observe = (developer = false, locked = true, alternative = false, state = observed): unknown => runInNewContext(`(${publicPolicyAdmission.toString()})(observation)`, {
+    observation: state, document: { documentElement: { dataset: developer ? { dev: '' } : {} }, querySelector: (name: string) =>
+      name === '#hud' ? {} : name === '.ws-menu-shardfile' ? { hasAttribute: () => !alternative } : { textContent: 'Coming soon', hasAttribute: () => locked } },
+  });
+  expect(observe()).toEqual({ admitted: true, developer: false, locked: true, frame: 22, renderFrame: 40 });
+  expect(observe(true)).toMatchObject({ admitted: false });
+  expect(observe(false, false)).toMatchObject({ admitted: false });
+  expect(observe(false, true, true)).toMatchObject({ admitted: false });
+  for (const state of [{ ...observed, shard: 'other' }, { ...observed, appState: 'loading' }, { ...observed, entered: true },
+    { ...observed, playerValid: false }, { ...observed, frame: 0 }, { ...observed, renderFrame: 0 }, { ...observed, fatal: ['declared worst-location total exceeds envelope'] }]) {
+    expect(observe(false, true, false, state)).toMatchObject({ admitted: false });
+  }
 });
