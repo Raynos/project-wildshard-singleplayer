@@ -18,7 +18,7 @@ import { captureHeightfield, type HeightfieldBinding } from './Heightfield';
 import { SEED } from '../core/config';
 import type { TerrainField } from '../level/data';
 import { levelBakedId } from '../level/spec';
-import { bakedTerrainSource, installDeclaredBakedTerrain } from './bakedTerrainField';
+import { bakedTerrainSource, installDeclaredBakedTerrain, loadRequiredGround } from './bakedTerrainField';
 
 /** Existing runtime grid type is defined by the pure byte reader. */
 export type BakedGrid = terrainBytes.BakedGrid;
@@ -45,21 +45,31 @@ export function bakedUndergrowth(binding: HeightfieldBinding = captureHeightfiel
 /** Install original native samples and their placement decisions into one selected binding without fetching or rebuilding. */
 export function installBakedGrid(grid: BakedGrid, binding: HeightfieldBinding = captureHeightfield()): void {
   if (grid.seed !== ((binding.level.seed ?? SEED) >>> 0)) throw new Error('Baked terrain seed differs from selected level');
-  installDeclaredBakedTerrain(binding.base, grid);
   binding.install(bakedSamplers(grid));
   installed.set(binding, { placement: grid.undergrowth });
 }
 
-/** Fetch the active chunk's bake and install it; resolves either way. Idempotent per chunk. */
+/**
+ * Load the active chunk's ground and install it; idempotent per chunk. A required manifest ground (`createBakedTerrainField`)
+ * is admitted through the session's required-ground loader and refuses the level when it cannot be (missing bytes, wrong
+ * seed, no loader); an optional bake is fetched and falls back to the analytic field with a warning.
+ */
 export async function loadBakedTerrain(binding: HeightfieldBinding = captureHeightfield()): Promise<boolean> {
   const levelId = binding.level.id, seed = binding.level.seed ?? SEED;
   if (installed.has(binding)) return true;
   const required = bakedTerrainSource(binding.base);
-  if (required !== null && required.seed !== (seed >>> 0)) throw new Error('Declared baked terrain seed differs from selected level');
-  const url = required?.url ?? bakedTerrainUrl(levelBakedId(binding.level));
-  if (!url || (required === null && new URLSearchParams(location.search).has('nobake'))) return false; // ?nobake=1: A/B against the analytic field
+  if (required !== null) {
+    if (required.seed !== (seed >>> 0)) throw new Error('Declared baked terrain seed differs from selected level');
+    const ground = await loadRequiredGround(required);
+    if (installed.has(binding)) return true;
+    installDeclaredBakedTerrain(binding.base, ground);
+    binding.install({ heightAt: ground.heightAt, normalAt: ground.normalAt, splatAt: ground.splatAt });
+    installed.set(binding, { placement: null });
+    return true;
+  }
+  const url = bakedTerrainUrl(levelBakedId(binding.level));
+  if (!url || new URLSearchParams(location.search).has('nobake')) return false; // ?nobake=1: A/B against the analytic field
   try {
-    if (required !== null && !(url in publicBytes())) throw new Error('Required terrain is absent from the boot byte catalogue');
     const res = await fetch(url);
     if (!res.ok) throw new Error(`${res.status}`);
     const grid = parseBakedTerrain(await res.arrayBuffer());
@@ -67,8 +77,20 @@ export async function loadBakedTerrain(binding: HeightfieldBinding = captureHeig
     installBakedGrid(grid, binding);
     return true;
   } catch (e) {
-    if (required !== null) throw e;
     console.warn(`[baked] terrain for ${levelId} not used (${e instanceof Error ? e.message : String(e)}); computing at launch`);
     return false;
   }
+}
+
+/**
+ * A painter's own bound ground (`PainterField.bindGround`) is this frame's ground: it satisfies a required declaration as
+ * the loader would (same seed, its samples), so the frame never loads a second copy.
+ */
+export function installBoundGround(binding: HeightfieldBinding, ground: Pick<TerrainField, 'heightAt' | 'normalAt' | 'splatAt'>): void {
+  const required = bakedTerrainSource(binding.base);
+  if (required !== null && !installed.has(binding)) {
+    installDeclaredBakedTerrain(binding.base, { ...ground, seed: required.seed });
+    installed.set(binding, { placement: null });
+  }
+  binding.install(ground);
 }

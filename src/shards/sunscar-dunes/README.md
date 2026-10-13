@@ -72,11 +72,13 @@ fog from 70 to 330 m; the tower and the ray read as dark silhouettes. The baseli
 - E374 C6: Jake's look at the model board (`art/sunscar-dunes/round-7-models/`). The Matriarch and the tower stay code.
 - Leftovers: the whip crack and a wind bed generated locally (MOSS + Stable Audio), a dusk score (MiniMax).
 
-The manifest loads the required WSTR ground before height queries.
-`generators/bake-manifest-ground.mjs` cold-produces the unchanged native
-terrain bytes, original developer pose heights, and exact f64 tint ring means.
-The `signal-manifest-ground` cache job pins the new manifest queries; neither
-a retained grid nor runtime code seeds the producer. Tint/material equations
-and terrain tile bytes remain unchanged. Missing or malformed ground and tint
-bytes refuse. Native actor/prompt authoring retains its original analytic f64
-placement queries through `signalAuthorGround`; the client reads baked ground.
+The manifest declares a required ground (`createBakedTerrainField({ key })`)
+whose samples are the shardfile's own terrain collider: in a grid cell the
+session's loader reads it from the admitted product before collision, and
+standalone the look binds it before any height query. There is no WSTR
+`terrain.bin`. `generators/bake-manifest-ground.mjs` cold-produces the original
+developer pose heights; the `signal-manifest-ground` cache job pins them, and
+neither a retained grid nor runtime code seeds the producer. A missing
+collider, a product of another seed or no loader refuses entry. Native
+actor/prompt authoring retains its original analytic f64 placement queries
+through `signalAuthorGround`; the client reads the baked collider.

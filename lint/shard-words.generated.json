@@ -200,7 +200,6 @@
       "settings": [],
       "assets": [
         "public/assets/sunscar-dunes/**",
-        "public/assets/baked/sunscar-dunes/terrain.bin",
         "public/assets/lut/sunscar-dunes.bin"
       ]
     }

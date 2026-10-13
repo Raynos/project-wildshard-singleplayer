@@ -201,6 +201,9 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       resident.onDispose(() => { levelLook?.dispose?.(); });
       if (left()) throw new Error('Regional world left while loading its look');
       const frame = new LevelFrameBinding({ level, scope: resident, levelScope: request.scope, navmesh, water, textures, look: levelLook });
+      // M3 tiles-swap: the admitted product's reader for the resident runtime (a painter that binds its compiled tiles reads
+      // it), handed over first: a required manifest ground is that product's own collider (the session's loader reads it)
+      provideRuntimeProduct(request.admitted, resident);
       // Required manifest ground must enter before collision sampling or native home construction.
       if (bakedTerrainSource(frame.terrain.base) !== null) {
         await loadBakedTerrain(frame.terrain);
@@ -215,8 +218,6 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       ports.install?.(host, request);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its collision');
-      // M3 tiles-swap: the admitted product's reader for the resident runtime (a painter that binds its compiled tiles reads it)
-      provideRuntimeProduct(request.admitted, resident);
       const terrain = ports.terrain === undefined ? await regionalTerrain(level, resident, frame.terrain, levelLook) : await ports.terrain(level, resident, frame.terrain);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its terrain');

@@ -39,10 +39,15 @@ export function provideRuntimeProduct(admitted: AdmittedProduct, scope: Scope): 
   });
 }
 
+/** The product a grid cell of `slug` handed its resident runtime (`provideRuntimeProduct`), or null when none is resident. */
+export function admittedRuntimeProduct(slug: string): RuntimeProduct | null {
+  return provided.get(slug)?.at(-1) ?? null;
+}
+
 /** The reader for a trusted runtime's own declaration: its grid cell's admitted product while one is resident, else standalone. */
 export function runtimeProduct(source: Shardfile): RuntimeProduct {
-  const slug = source.identity.slug, admitted = provided.get(slug)?.at(-1);
-  if (admitted !== undefined) return admitted;
+  const slug = source.identity.slug, admitted = admittedRuntimeProduct(slug);
+  if (admitted !== null) return admitted;
   return { source, assets: new ClientAssets(source, new Map(), browserShardfileOptions(productBase(slug), true)) };
 }
 

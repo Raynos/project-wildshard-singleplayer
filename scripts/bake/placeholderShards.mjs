@@ -27,12 +27,15 @@ export async function placeholderOf(root, slug) {
 
 /**
  * The height grid a shard's placeholders stand on, when it declares no grid of its own: its baked `terrain.bin`, else its
- * shardfile terrain collider (`data/terrain.json`'s `terrain.collider`, a tile in its `assets/`).
+ * shardfile terrain collider (`data/terrain.json`'s or `data/tiles.json`'s `terrain.collider`, a tile in its `assets/`).
  */
 export function placeholderGridBytes(root, dir, slug) {
   const baked = join(root, 'public/assets/baked', slug, 'terrain.bin');
   if (existsSync(baked)) return { kind: 'baked', bytes: readFileSync(baked) };
-  const row = JSON.parse(readFileSync(join(dir, 'data/terrain.json'), 'utf8'));
+  // the shardfile's compiled terrain section: a template project's data/terrain.json, a hybrid's data/tiles.json
+  const file = ['data/terrain.json', 'data/tiles.json'].map(name => join(dir, name)).find(path => existsSync(path));
+  if (file === undefined) throw new Error(`${slug}: no terrain.bin and no shardfile terrain section`);
+  const row = JSON.parse(readFileSync(file, 'utf8'));
   const collider = row?.terrain?.collider;
   if (typeof collider !== 'string') throw new Error(`${slug}: no terrain.bin and no shardfile terrain collider`);
   return { kind: 'collider', bytes: readFileSync(join(dir, 'assets', collider)) };

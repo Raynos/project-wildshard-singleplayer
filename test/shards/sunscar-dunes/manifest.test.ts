@@ -3,21 +3,14 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Locate the private check export.
 import { cwd } from 'node:process';
 import { describe, expect, it, beforeAll } from 'vitest';
-import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
-import { installDeclaredBakedTerrain } from '@wildshard/engine/world/bakedTerrainField';
+import { prepareBakedManifestGround } from '../../fixtures/baked-manifest-ground';
 import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import { CUES } from '../../../src/shards/sunscar-dunes/data/cues';
 import { manifestClosure } from '../../../scripts/gen-shards.mjs';
 
 describe('node-safe Signal Dunes manifest', () => {
-  beforeAll(() => {
-    const terrain = manifest.ground.terrain;
-    if (terrain === undefined) throw new Error('Missing declared Signal ground');
-    const bytes = readFileSync(`${cwd()}/public/assets/baked/sunscar-dunes/terrain.bin`);
-    const grid = parseBakedTerrain(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
-    if (grid === null) throw new Error('Malformed required Signal ground');
-    installDeclaredBakedTerrain(terrain, grid);
-  });
+  // the required ground is the shardfile's own terrain collider, as the grid's loader and the standalone look admit it
+  beforeAll(() => { prepareBakedManifestGround(manifest); });
   it('declares the original weapon cue IDs as serializable data', () => {
     expect(manifest.audio?.cues).toEqual(CUES);
     expect(JSON.stringify(manifest.audio?.cues)).toBe(JSON.stringify(CUES));

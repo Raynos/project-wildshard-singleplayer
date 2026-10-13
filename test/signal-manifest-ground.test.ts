@@ -1,7 +1,3 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Compare the cold product with the actual retained byte corpus.
-import { readFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- The pre-adoption immutable corpus hash is independent of the producer.
-import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Audit this isolated source tree, without loading game services.
 import process from 'node:process';
 import { expect, it } from 'vitest';
@@ -11,17 +7,13 @@ import { SEED, SPAWN, TOWER, TRAIL } from '../src/shards/sunscar-dunes/data/layo
 import { SCOUT_AT } from '../src/shards/sunscar-dunes/data/flags';
 import { SAND_TINT } from '../src/shards/sunscar-dunes/data/duneField';
 import { signalManifestGround } from '../src/shards/sunscar-dunes/generators/manifestGround';
-import { signalNativeTerrain } from '../src/shards/sunscar-dunes/generators/nativeTerrain';
 import { signalDunesTiles } from '../src/shards/sunscar-dunes/generators/tiles';
 import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { duneHeight } from './fixtures/signal-dune-law';
 import { auditAuthoringInputs } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
 
-it('cold-compiles unchanged WSTR bytes and bakes every original Float32 tint vertex into the tiles', () => {
-  const product = signalNativeTerrain(), original = readFileSync('public/assets/baked/sunscar-dunes/terrain.bin');
-  expect(product.bytes).toEqual(new Uint8Array(original));
-  expect(createHash('sha256').update(product.bytes).digest('hex')).toBe('2565ac9a803b9f828292d1d088a437fade6c7419bdf8c1d25db91cf8a645d6bd');
+it('bakes every original Float32 tint vertex into the tiles and the original pose heights into the manifest', () => {
   const { metadata } = signalManifestGround();
   const native = buildTerrain(SEED, { landscape: duneHeight, trails: TRAIL, cabinSites: [] });
   // the tint the runtime once painted per tile (three's Color lerp over the f64 ring mean), against the baked L0 tile colours
@@ -56,6 +48,6 @@ it('declares the exact cold author closure with no retained seed or runtime impo
   const inputs = [...new Set([...audits.flatMap(audit => audit.files), 'src/sdk/package.json', 'src/format/package.json', 'src/commons/package.json', 'package.json', 'pnpm-lock.yaml'])].sort();
   expect(job.inputRoots).toEqual(inputs);
   expect(job.seedOutputs).toEqual([]);
-  expect(job.outputs).toHaveLength(3);
-  expect(Object.keys(job.buildOutputs)).toEqual(['src/shards/sunscar-dunes/data/manifestGround.generated.json']);
+  expect(job.outputs).toEqual(['src/shards/sunscar-dunes/data/manifestGround.generated.json', 'src/shards/sunscar-dunes/data/drapeGround.generated.json']);
+  expect(Object.keys(job.buildOutputs)).toEqual(['src/shards/sunscar-dunes/data/manifestGround.generated.json', 'src/shards/sunscar-dunes/data/drapeGround.generated.json']);
 });

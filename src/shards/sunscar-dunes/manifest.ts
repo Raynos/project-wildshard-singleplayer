@@ -15,7 +15,8 @@ import { SIGNAL_DUNES_MAP } from './data/minimap';
 import { SIGNAL_MANIFEST_ROWS } from './data/manifestRows';
 import { SIGNAL_ATMOSPHERE, SIGNAL_GRADE, SIGNAL_HORIZON, SIGNAL_SKY } from './data/manifestLook';
 
-const terrain = createBakedTerrainField({ url: '/assets/baked/sunscar-dunes/terrain.bin', seed: SEED },
+// the ground is the shardfile's own terrain collider (G227): the grid admits it before collision, the look binds it standalone
+const terrain = createBakedTerrainField({ key: 'sunscar-dunes', seed: SEED },
   buildTerrain(SEED, { landscape: () => 0, trails: TRAIL, cabinSites: [] }));
 const { spawnY, towerY, heights } = groundQueries;
 const eye = (x: number, z: number, height: number, lift = 1.6): [number, number, number] => [x, height + lift, z];

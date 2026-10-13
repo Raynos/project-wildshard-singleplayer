@@ -3501,15 +3501,19 @@ and restore emits nothing. Signal's fire edge and both native boss transition
 owners use this binding; it introduces no tick loop or independent clock.
 
 `@wildshard/engine/world/bakedTerrainField.createBakedTerrainField(source, metadata)`
-creates a manifest ground backed by required native WSTR bytes. `source` names a
-charged absolute asset URL and the level seed. `metadata` retains the existing
-trail, water, pond, cabin and datum laws; no landscape is evaluated. Construction
-never selects a level or fetches. Height/normal/splat reads refuse until the
-owning boot calls `loadBakedTerrain(binding)` (custom terrain painters use their
-`field.ready()` port). A missing, malformed, wrong-seed or uncharged source fails
-boot instead of falling back. The existing optional analytic bake path keeps its
-warning/fallback behavior. Installation shifts datum exactly once and targets
-the captured frame; quiet native bakes may install the verified grid directly.
+creates a required manifest ground. `source` is `{ key, seed }`: the key names it
+to the session's required-ground loader and the seed is the level's. `metadata`
+retains the existing trail, water, pond, cabin and datum laws; no landscape is
+evaluated. Construction never selects a level, loads or installs a service.
+Height/normal/splat reads refuse until the owning boot calls
+`loadBakedTerrain(binding)`, which admits the samples through the loader, or a
+custom terrain painter binds its own ground (`field.bindGround`, which counts as
+the required ground and may bring its splat). `installRequiredGroundLoader(loader)`
+installs that port and returns its restore (E434: the game session calls it; the
+game's `installProductGround` reads the shard's own admitted product collider).
+A missing loader, a rejected load or a wrong seed fails boot instead of falling
+back. The existing optional analytic bake path keeps its warning/fallback
+behavior. Installation shifts datum exactly once and targets the captured frame.
 
 ### Declared navigation (WSNM v1)
 

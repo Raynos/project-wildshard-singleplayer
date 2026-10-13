@@ -39,7 +39,6 @@ export function duskLook(row: DuskLookRow, parts: DuskLookParts): LookStrategy {
   let painted: { scope: Scope; sky: DuskSky; textures: readonly Texture[] } | null = null;
   let sand: DuskSand | null = null;
   const buildSand = async (terrain: Terrain, field: PainterField, scope: Scope): Promise<void> => {
-    await field.ready();
     const [{ shadow, trail, grain }, skirt] = await Promise.all([parts.maps(), parts.skirt.load(parts.skirtPack.url, parts.skirtPack.rows, parts.skirtPack.fault)]);
     scope.own(shadow); scope.own(trail); scope.own(grain);
     const familyGround = duskSand(row.sand, { [row.sand.maps.grain]: grain, [row.sand.maps.trail]: trail, [row.sand.maps.shadow]: shadow }, dusk.value, scope); sand = familyGround;
@@ -47,7 +46,9 @@ export function duskLook(row: DuskLookRow, parts: DuskLookParts): LookStrategy {
     const material = familyGround.material; terrain.material = material;
     const skirtMesh = skirt === null ? null : new Mesh(scope.own(skirt.standalone), material);
     if (skirtMesh !== null) { skirtMesh.receiveShadow = false; terrain.group.add(skirtMesh); }
+    // the tiles' collider is the level's ground (its required ground counts as loaded once bound), so it binds before ready()
     await parts.tiles.bind(terrain, field, material, scope);
+    await field.ready();
     if (skirt !== null && skirtMesh !== null) parts.skirt.hold(skirtMesh, skirt.cube, skirt.half, scope);
   };
   const fog = row.fog;

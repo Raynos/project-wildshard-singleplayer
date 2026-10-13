@@ -1,5 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- This lifecycle fixture uses the production native Rapier binary.
 import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- The synthetic product's collider is content-addressed.
+import { createHash } from 'node:crypto';
 import { afterEach, beforeAll, expect, it, vi } from 'vitest';
 import { DataTexture, Fog, Group, Mesh, MeshLambertMaterial, PlaneGeometry, Scene, Vector3, PerspectiveCamera, WebGLRenderTarget } from 'three';
 import { ownSceneResource } from '../src/engine/app/sceneOwnership';
@@ -19,8 +21,9 @@ import type { SimHost } from '../src/engine/sim';
 import { activeLevel, configureLevel } from '../src/engine/level/selection';
 import { heightAt } from '../src/engine/world/Heightfield';
 import { createBakedTerrainField } from '../src/engine/world/bakedTerrainField';
-import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
-import { bakedSamplers } from '@wildshard/format/bakedTerrainSampling';
+import { encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
+import type { Shardfile } from '@wildshard/format/shardSchema';
+import { installProductGround } from '../src/game/shardfile/productGround';
 import type { TerrainField } from '../src/engine/level/data';
 import type { LevelSpec } from '../src/engine/level/spec';
 import { WorldRegistry } from '../src/engine/world/registry';
@@ -387,44 +390,64 @@ it('keeps a custom thinker at its legacy cadence after regional async constructi
 });
 
 
-it('awaits required native ground before sampling collision or constructing its drawn world', async () => {
-  const f = fixture(), bytes = Uint8Array.from(readFileSync('public/assets/baked/sunscar-dunes/terrain.bin'));
-  const grid = parseBakedTerrain(bytes.buffer);
-  if (grid === null) throw new Error('Missing native terrain corpus');
-  const required = createBakedTerrainField({ url: '/assets/baked/sunscar-dunes/terrain.bin', seed: grid.seed }, field(30));
-  const region = { ...f.region, seed: grid.seed, ground: { terrain: required } };
+/** An online page for the product reader; returns the restore of the prior navigator. */
+function goOnline(): () => void {
+  const prior = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { onLine: true } });
+  return () => { if (prior === undefined) Reflect.deleteProperty(globalThis, 'navigator'); else Object.defineProperty(globalThis, 'navigator', prior); };
+}
+
+/** A synthetic product whose terrain collider is the required ground: a flat 12 m 9² tile, its file row declared (not admitted). */
+async function requiredProduct(seed: number) {
+  const bytes = encodeTerrainTile({ resolution: 9, x: -250, z: -250, size: 500, heights: new Float32Array(81).fill(12) });
+  const hash = createHash('sha256').update(bytes).digest('hex');
+  const source: Shardfile = { ...pineSource, identity: { ...pineSource.identity, seed },
+    terrain: { version: 1, family: 'pbr', collider: hash, tiles: [] },
+    files: [...pineSource.files, { hash, kind: 'binary', compressed: bytes.length, decoded: bytes.length, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true }] };
+  await Promise.resolve();
+  return { source, bytes, hash };
+}
+
+it('awaits required product ground before sampling collision or constructing its drawn world', async () => {
+  const f = fixture(), product = await requiredProduct(435), restore = installProductGround();
+  const online = goOnline(); // the product reader fetches a file it was not handed (not offline)
+  const required = createBakedTerrainField({ key: 'pine-hollow', seed: 435 }, field(30));
+  const region = { ...f.region, seed: 435, ground: { terrain: required } };
   let release: (response: Response) => void = () => { throw new Error('Missing deferred fetch'); };
   const pending = new Promise<Response>(resolve => { release = resolve; });
   const fetch = vi.spyOn(globalThis, 'fetch').mockReturnValue(pending), terrain = vi.fn(drawnGround);
   const foundation = createRegionalWorldFoundation({ rapier, level: () => region, terrain,
     pause: () => Promise.resolve(), checkpoint: () => true });
   try {
-    const building = foundation(f.request);
-    await vi.waitFor(() => { expect(fetch).toHaveBeenCalledWith('/assets/baked/sunscar-dunes/terrain.bin'); });
+    const building = foundation({ ...f.request, admitted: { source: product.source, assets: new Map(), cached: false } });
+    await vi.waitFor(() => { expect(fetch).toHaveBeenCalledWith(expect.stringMatching(new RegExp(`/shardfiles/pine-hollow/${product.hash}$`, 'u'))); });
     expect(() => required.heightAt(0, 0)).toThrow('not ready');
     expect(terrain).not.toHaveBeenCalled();
-    release(new Response(bytes));
+    release(new Response(Uint8Array.from(product.bytes).buffer));
     const prepared = await building;
-    expect(required.heightAt(0, 0)).toBe(bakedSamplers(grid).heightAt(0, 0));
+    expect(required.heightAt(0, 0)).toBe(12);
+    expect(required.splatAt(0, 0)).toEqual([1, 0, 0, 0]);
     expect(terrain).toHaveBeenCalledOnce();
     expect(prepared.region.host.hasPlayerMotor).toBe(false);
     prepared.region.dispose();
-  } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
+  } finally { restore(); online(); vi.restoreAllMocks(); f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
 });
 
-it.each(['missing', 'wrong-seed'] as const)('refuses %s required grid ground without constructing the world', async kind => {
-  const f = fixture(), bytes = Uint8Array.from(readFileSync('public/assets/baked/sunscar-dunes/terrain.bin'));
-  const grid = parseBakedTerrain(bytes.buffer);
-  if (grid === null) throw new Error('Missing native terrain corpus');
-  const required = createBakedTerrainField({ url: '/assets/baked/sunscar-dunes/terrain.bin', seed: grid.seed }, field(30));
-  const region = { ...f.region, seed: grid.seed, ground: { terrain: required } };
-  new DataView(bytes.buffer).setUint32(16, grid.seed + 1, true);
-  vi.spyOn(globalThis, 'fetch').mockResolvedValue(kind === 'missing' ? new Response(null, { status: 404 }) : new Response(bytes));
+it.each(['missing', 'wrong-seed', 'no-loader'] as const)('refuses %s required product ground without constructing the world', async kind => {
+  const f = fixture(), product = await requiredProduct(kind === 'wrong-seed' ? 436 : 435);
+  const restore = kind === 'no-loader' ? noop : installProductGround();
+  const online = goOnline();
+  const required = createBakedTerrainField({ key: 'pine-hollow', seed: 435 }, field(30));
+  const region = { ...f.region, seed: 435, ground: { terrain: required } };
+  vi.spyOn(globalThis, 'fetch').mockResolvedValue(kind === 'missing' ? new Response(null, { status: 404 }) : new Response(Uint8Array.from(product.bytes).buffer));
   const terrain = vi.fn(drawnGround), foundation = createRegionalWorldFoundation({ rapier, level: () => region, terrain,
     pause: () => Promise.resolve(), checkpoint: () => true });
   try {
-    await expect(foundation(f.request)).rejects.toThrow(kind === 'missing' ? '404' : 'bad header / seed');
+    // a wrong-seed or loader-less product is fully admitted (its collider handed over); a missing one must be fetched
+    const assets = new Map(kind === 'missing' ? [] : [[product.hash, product.bytes]]);
+    await expect(foundation({ ...f.request, admitted: { source: product.source, assets, cached: false } }))
+      .rejects.toThrow(kind === 'missing' ? 'Unavailable' : kind === 'wrong-seed' ? 'bad header / seed' : 'No required ground loader');
     expect(() => required.heightAt(0, 0)).toThrow('not ready');
     expect(terrain).not.toHaveBeenCalled();
-  } finally { f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
+  } finally { restore(); online(); vi.restoreAllMocks(); f.scope.dispose(); f.homePhysics.dispose(); f.claim.release(); }
 });

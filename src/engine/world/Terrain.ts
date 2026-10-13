@@ -4,7 +4,7 @@ import { captureHeightfield, type HeightfieldBinding } from './Heightfield';
 import { loadPBR, loadPBRArray, pbrMaterial } from '../core/assets';
 import { attachFogUniforms } from './Atmosphere';
 import { activeLevel } from '../level/selection';
-import { loadBakedTerrain } from './BakedTerrain';
+import { installBoundGround, loadBakedTerrain } from './BakedTerrain';
 import { macrotask } from '../boot/plan';
 import { groundSet } from './lookFlags';
 import type { PainterField, TerrainPainter } from '../render/look';
@@ -321,7 +321,7 @@ function painterField(binding: HeightfieldBinding, onBound: () => void): Painter
     normalAt: (x, z, eps) => binding.field.normalAt(x, z, eps),
     trails: () => binding.field.trails,
     trailDistance: (x, z) => binding.field.trailDistance(x, z),
-    bindGround: (ground) => { binding.install({ heightAt: ground.heightAt, normalAt: ground.normalAt, splatAt: binding.field.splatAt }); onBound(); },
+    bindGround: (ground) => { installBoundGround(binding, { heightAt: ground.heightAt, normalAt: ground.normalAt, splatAt: ground.splatAt ?? binding.field.splatAt }); onBound(); },
   };
 }
 

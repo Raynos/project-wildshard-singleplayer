@@ -6,16 +6,16 @@ import { CharacterMotor } from '../../../src/engine/physics/CharacterMotor';
 import { Physics } from '../../../src/engine/physics/Physics';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { addBakedTerrainCollider } from '../../../src/engine/physics/terrainTiles';
-import { decodeTerrainTile, encodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
+import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 
-it('walks all 92 Signal Dunes entry lanes on the unchanged native lattice, then releases every collider', async () => {
-  const original = readFileSync('public/assets/baked/sunscar-dunes/terrain.bin');
-  const view = new DataView(original.buffer, original.byteOffset, original.byteLength), resolution = view.getUint32(8, true);
-  expect([view.getUint32(0, true), view.getUint32(4, true), resolution, view.getFloat32(12, true)]).toEqual([0x52545357, 1, 256, 500]);
-  const heights = Float32Array.from({ length: resolution ** 2 }, (_, i) => view.getFloat32(24 + i * 4, true));
-  // Only the transport header changes; every original float32 height and native sample location survives.
-  const bytes = encodeTerrainTile({ resolution, x: -250, z: -250, size: 500, heights }), terrain = decodeTerrainTile(bytes);
-  expect(terrain.heights).toEqual(heights);
+it('walks all 92 Signal Dunes entry lanes on its shipped terrain collider, then releases every collider', async () => {
+  // the collider the grid's required-ground loader and the standalone look both admit (data/tiles.json → assets/<sha256>)
+  const tiles: unknown = JSON.parse(readFileSync('src/shards/sunscar-dunes/data/tiles.json', 'utf8'));
+  const collider = typeof tiles === 'object' && tiles !== null && 'terrain' in tiles && typeof tiles.terrain === 'object' && tiles.terrain !== null
+    && 'collider' in tiles.terrain && typeof tiles.terrain.collider === 'string' ? tiles.terrain.collider : null;
+  if (collider === null) throw new Error('Missing Signal terrain collider');
+  const bytes = Uint8Array.from(readFileSync(`src/shards/sunscar-dunes/assets/${collider}`)), terrain = decodeTerrainTile(bytes);
+  expect([terrain.resolution, terrain.x, terrain.z, terrain.size]).toEqual([257, -250, -250, 500]);
   const rapier = await loadRapier(Uint8Array.from(readFileSync('public/assets/physics/rapier.wasm')).buffer);
   const physics = new Physics(rapier), scope = new Scope('sunscar-native-entry');
   const motor = new CharacterMotor(physics, { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0.2, group: 'PLAYER', blockedBy: ['WORLD'] });

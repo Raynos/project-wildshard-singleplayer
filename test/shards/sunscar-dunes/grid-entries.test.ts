@@ -1,31 +1,30 @@
 import { expect, it } from 'vitest';
-// oxlint-disable-next-line import/no-nodejs-modules -- The proof reads the committed terrain bake the game installs.
+// oxlint-disable-next-line import/no-nodejs-modules -- The proof reads the committed terrain collider the game installs.
 import { readFileSync } from 'node:fs';
-import { encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
+import { decodeTerrainTile, encodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { validateEntrywayTerrain } from '@wildshard/format/entrywayAssets';
 import { entrywayRules } from '@wildshard/format/entryways';
 import { contentHash } from '../../../src/sdk/project';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
 import { farLook } from '../../../src/shards/sunscar-dunes/generators/farLook';
 
-// SF50-g (G93 / G99 / G103 / G131): Signal Dunes' declared boundary rows are its bake's, and the engine's entry roads make every
-// 8 m opening and 8 × 15 m socket footprint exactly road height.
-const bytes = readFileSync('public/assets/baked/sunscar-dunes/terrain.bin');
-const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-const res = view.getUint32(8, true);
-const heights = Float32Array.from({ length: res * res }, (_, i) => view.getFloat32(24 + i * 4, true));
+// SF50-g (G93 / G99 / G103 / G131): Signal Dunes' declared boundary rows are its terrain collider's (the ground the game
+// installs), and the engine's entry roads make every 8 m opening and 8 × 15 m socket footprint exactly road height.
+const collider = source.terrain?.collider;
+if (collider === undefined) throw new Error('Missing Signal terrain collider');
+const ground = decodeTerrainTile(Uint8Array.from(readFileSync(`src/shards/sunscar-dunes/assets/${collider}`)));
+const res = ground.resolution, heights = ground.heights;
 const at = (i: number, j: number): number => heights[j * res + i] ?? Number.NaN;
 
-it('declares the bake\'s four native boundary rows, the midpoints at road height', () => {
+it('declares the collider\'s four native boundary rows, the midpoints at road height', () => {
   const native = { north: (k: number) => at(k, res - 1), south: (k: number) => at(k, 0), east: (k: number) => at(res - 1, k), west: (k: number) => at(0, k) };
-  // M3 / G227: the rows are now the compiled terrain tiles' own (257 samples, the collider's edge exactly); they read the
-  // legacy WSTR bake's rows (res samples over the same 500 m) to within 8 cm, resampled onto the 257 lattice
-  const resample = (side: keyof typeof native, k: number): number => { const f = k * (res - 1) / 256, i = Math.min(res - 2, Math.floor(f)), u = f - i; return native[side](i) * (1 - u) + native[side](i + 1) * u; };
+  // M3 / G227: the rows are the compiled terrain tiles' own (257 samples, the collider's edge exactly)
+  expect(res).toBe(257);
   for (const side of ['north', 'east', 'south', 'west'] as const) {
     const row = source.edge[side];
     expect(row.heights).toHaveLength(257);
     expect(row.colours).toHaveLength(257);
-    expect(Math.max(...row.heights.map((h, k) => Math.abs(h - resample(side, k))))).toBeLessThanOrEqual(0.08);
+    expect(row.heights.map((h, k) => Math.fround(h) - native[side](k)).every(d => d === 0)).toBe(true);
     expect(Math.max(...row.heights)).toBeGreaterThan(5); // the dune field, not a flat substitute
   }
   expect(entrywayRules(source)).toEqual([]);

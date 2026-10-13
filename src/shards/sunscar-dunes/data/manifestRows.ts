@@ -11,7 +11,7 @@ export const SIGNAL_MANIFEST_ROWS = {
   style: 'dusk', kitLook: 'pbr', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'dunes' },
   boundary: { visible: false },
   uses: ['quests', 'coins', 'loot', 'hover'],
-  assetGlobs: ['public/assets/sunscar-dunes/**', 'public/assets/baked/sunscar-dunes/terrain.bin', 'public/assets/lut/sunscar-dunes.bin'],
+  assetGlobs: ['public/assets/sunscar-dunes/**', 'public/assets/lut/sunscar-dunes.bin'],
   loadout: { weapons: ['weapon.sunscar-whip'], tools: ['tool.hoverboard'], start: ['weapon.sunscar-whip', 'tool.hoverboard'], held: 'weapon.sunscar-whip' },
   species: ['duneRay', 'sandSkitterer', 'duneStrider', 'duneMatriarch'], fight: { attackers: 2, telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },

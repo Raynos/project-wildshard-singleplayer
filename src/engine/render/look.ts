@@ -104,11 +104,12 @@ export interface PainterField {
   trailDistance: (x: number, z: number) => number;
   /**
    * Replace this frame's ground with the painter's own sampled ground (a baked collider grid it streamed): every height /
-   * normal query reads it from now on (trails, splat and water stay the level's), and the terrain collider is sampled from it
-   * (a collider built before the painter ran is rebuilt: `Terrain.groundBound`, `resampleTerrain`). Absent on a field that is
-   * not a live level frame's (a bake script's).
+   * normal query reads it from now on, and its splat when it brings one (trails and water stay the level's, and the splat
+   * without one), and the terrain collider is sampled from it (a collider built before the painter ran is rebuilt:
+   * `Terrain.groundBound`, `resampleTerrain`). A required manifest ground counts as loaded once it is bound. Absent on a
+   * field that is not a live level frame's (a bake script's).
    */
-  bindGround?: (ground: { readonly heightAt: (x: number, z: number) => number; readonly normalAt: (x: number, z: number, eps?: number) => [number, number, number] }) => void;
+  bindGround?: (ground: { readonly heightAt: (x: number, z: number) => number; readonly normalAt: (x: number, z: number, eps?: number) => [number, number, number]; readonly splatAt?: (x: number, z: number) => [number, number, number, number] }) => void;
 }
 /** a level's own ground: it builds the terrain's mesh(es) into `t.group` and sets `t.mesh` / `t.material` (Terrain.build) */
 export interface TerrainPainter { build: (t: Terrain, field: PainterField, scope: Scope) => Promise<void> }

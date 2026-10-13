@@ -37,6 +37,7 @@ import { showLoadFailure } from '@wildshard/engine/ui/errorScreen';
 import { installWorldRegistry } from '@wildshard/engine/world/registry';
 
 import { installGridDebug } from '../grid/debug';
+import { installProductGround } from '../shardfile/productGround';
 import { gridLevel } from '../grid/session';
 import type { PageResidency } from '../grid/pageResidency';
 import type { MemoryAdmission } from '@wildshard/format/product';
@@ -50,6 +51,7 @@ export interface SessionOptions { readonly mode?: PageMode; readonly residency?:
 /** Game presentation and plugin discovery belong to the game adapter, after the root selects content. */
 export async function startSession(manifest: ShardManifest, kit: KitPorts, options: SessionOptions = {}): Promise<void> {
   installWorldRegistry(); // the level's pieces and colliders register here (before the boot builds anything)
+  installProductGround(); // a required manifest ground reads its shard's own admitted product (before any level loads)
   // the boot and the background download read the registry through the engine's catalog (E405: no engine → game import)
   setBootCatalog({ levels: shards(), playable: shards().filter(playable), find: findChunk, artBytes: ART_URL_BYTES });
   installErrorModal();
