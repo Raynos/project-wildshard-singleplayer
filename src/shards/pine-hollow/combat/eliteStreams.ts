@@ -15,3 +15,13 @@ export interface PineEliteStreams { readonly spawn: Rng; readonly fight: Rng }
 export function pineEliteStreams(id: string, seed: number = PINE_LEVEL_SEED): PineEliteStreams {
   return { spawn: new Rng(fnv1a32(`${String(seed)}:pine.elite.spawn.${id}`)), fight: new Rng(fnv1a32(`${String(seed)}:pine.elite.${id}`)) };
 }
+
+/**
+ * A pickup orb's cosmetic draws (its bob phase, motes and burst; engine WeaponPickup `random`) from the level seed, never
+ * `Math.random`: three.js draws four `Math.random` values for every uuid, so a boot that makes one more object (a GLB
+ * parsed for the timber tiles) moved the cabin rifle's motes in the look parity (sp-o107; Driftwood's iron sword, E435).
+ */
+export function pinePickupStream(id: string, seed: number = PINE_LEVEL_SEED): () => number {
+  const rng = new Rng(fnv1a32(`${String(seed)}:pine.pickup.${id}`));
+  return () => rng.next();
+}

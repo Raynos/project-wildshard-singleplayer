@@ -42,6 +42,7 @@ import { placeDrawnModels } from '../world/drawnModels';
 import { placePineHollowSets } from '../world/places';
 import { installPineLoadout } from '../loadout/loadout';
 import { installPineCombat } from '../combat/install';
+import { pinePickupStream } from '../combat/eliteStreams';
 import { installPineQuest } from '../quest/index';
 import { installPineLife } from '../life/index';
 import { preloadPineWildlife } from '../models/wildlife';
@@ -184,7 +185,7 @@ export class PineHollow extends ShardPlugin {
       clearSkin(pick.skin.weapon === 'rifle' ? rifle.model : crossbow.model);
       ctx.app.effects?.sync(weapons.get(pick.skin.weapon), []); skins.wear(pick.skin.weapon, null);
     };
-    const skinDrops: InstanceType<typeof WeaponPickup>[] = [];
+    const skinDrops: InstanceType<typeof WeaponPickup>[] = [], skinDropRandom = pinePickupStream('skin-drops');
     ctx.on('actor.died', ({ actor }) => {
       const animal = animals.animals.find((a) => a.combatActor() === actor);
       if (animal === undefined) return;
@@ -195,7 +196,7 @@ export class PineHollow extends ShardPlugin {
       const label = skin.weapon === 'rifle' ? 'lever-action' : 'crossbow';
       const toss = ctx.app.rng.stream('loot').next() * Math.PI * 2;
       const at = animal.position;
-      const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, Math.max(at.y, heightAt(at.x, at.z)), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1.35 : 1.6, toss: { x: Math.sin(toss) * 1.2, y: 3.5, z: Math.cos(toss) * 1.2 } });
+      const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, Math.max(at.y, heightAt(at.x, at.z)), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1.35 : 1.6, toss: { x: Math.sin(toss) * 1.2, y: 3.5, z: Math.cos(toss) * 1.2 }, random: skinDropRandom });
       rt.interactables.push(drop.interactable); skinDrops.push(drop);
       drop.onPickup = () => { skins.own(skin.id); wearSkin(skin); if (skin.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle'); } audio.hitMarker(); hud.toast(`${skin.name} ${label} — ${skin.blurb}`); skinDrops.splice(skinDrops.indexOf(drop), 1); };
     });
@@ -203,7 +204,7 @@ export class PineHollow extends ShardPlugin {
     const rifleDrop = (() => {
       const position = pineRifleFloor(cabins);
       if (position === null) return null;
-      const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position, tier: 'common', prompt: 'Take the lever-action', scale: 1.3 });
+      const drop = new WeaponPickup({ scene: game.scene, item: rifle.displayModel(), position, tier: 'common', prompt: 'Take the lever-action', scale: 1.3, random: pinePickupStream('cabin-rifle') });
       rt.interactables.push(drop.interactable);
       drop.onNear = (inside) => audio.pickupHum(inside);
       drop.onPickup = () => { weapons.unlock('rifle'); weapons.select('rifle'); audio.hitMarker(); music.sting('pickup'); hud.toast('Lever-action rifle acquired · 1/2 to switch, Q to swap, R feeds the tube'); };
