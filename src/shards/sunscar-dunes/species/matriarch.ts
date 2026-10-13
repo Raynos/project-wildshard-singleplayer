@@ -1,9 +1,8 @@
-import { bakedLook } from '@wildshard/sdk/looks/modelLibrary';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import { MATRIARCH_DATA, MATRIARCH_CLIPS, MATRIARCH_LOOK, MAW_DATA, TAIL_SWEEP_DATA, BUFFET_DATA } from '../data/species/matriarch';
 import { MATRIARCH_BRAIN } from '../data/brains';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import { duneBody } from '../world/meshes';
+import { duneLook } from '../world/meshes';
 
 /** Her species row: her gameplay data and her declared phased-flyer brain (data/brains.ts MATRIARCH_BRAIN, SF27). */
 export const DUNE_MATRIARCH: SpeciesRow = { ...MATRIARCH_DATA,
@@ -11,4 +10,4 @@ export const DUNE_MATRIARCH: SpeciesRow = { ...MATRIARCH_DATA,
 
 /** Her body: the generated manta untinted on the ray's skeleton, baked offline (generators/hulls.ts, G345), drawn at 3.6×; slower
  *  wingbeats; grounded, the wings drape on the sand, the head dips and the tail lifts to sweep. */
-export const DUNE_MATRIARCH_LOOK = bakedLook(MATRIARCH_LOOK, () => duneBody('matriarch'), MATRIARCH_CLIPS);
+export const DUNE_MATRIARCH_LOOK = duneLook(MATRIARCH_LOOK, 'matriarch', MATRIARCH_CLIPS);

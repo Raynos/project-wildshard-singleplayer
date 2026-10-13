@@ -1,5 +1,6 @@
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
-import { creatureBodies } from '@wildshard/game/plugin/geometry';
+import { bakedLook, creatureBodies, type BakedLookRow } from '@wildshard/game/plugin/geometry';
+import type { SpeciesClips } from '@wildshard/sdk/species/clips';
 import { SKY_CREATURES, SKY_CREATURE_RIGS, type SkyCreature } from '../data/files';
 import { releaseDecodedOnUpload } from '../look/image';
 import { SKY_STAND_INS } from '../data/standIns';
@@ -17,3 +18,5 @@ export const preloadSkyBodies = BODIES.preload;
 export const skyBody: (creature: SkyCreature) => AnimalSpecies | null = BODIES.body;
 /** A species look's body: the baked copy, else (not loaded) its undrawn stand-in on the authored skeleton. */
 export const skyBodyOrStandIn: (creature: SkyCreature) => AnimalSpecies = BODIES.bodyOrStandIn;
+/** A creature's look: its rows on its baked body (else its stand-in), animated by its clip rows. */
+export const skyLook = (row: BakedLookRow, creature: SkyCreature, clips: SpeciesClips): ReturnType<typeof bakedLook> => bakedLook(row, () => skyBodyOrStandIn(creature), clips);

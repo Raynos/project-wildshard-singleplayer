@@ -1,9 +1,8 @@
-import { bakedLook } from '@wildshard/sdk/looks/modelLibrary';
 import { DRIFT_RAY_CLIPS } from '../data/creatureClips';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
 import { DRIFT_RAY_DATA, DRIFT_RAY_LOOK_ROW } from '../data/species';
-import { skyBodyOrStandIn } from './bodies';
+import { skyBodyOrStandIn, skyLook } from './bodies';
 
 export const DRIFT_RAY: SpeciesRow = DRIFT_RAY_DATA;
 
@@ -12,4 +11,4 @@ export const DRIFT_RAY: SpeciesRow = DRIFT_RAY_DATA;
  * `generators/creatures.ts`; undrawn on its stand-in skeleton when the bake is not loaded.
  */
 export const rayBody = (): AnimalSpecies => skyBodyOrStandIn('drift-ray');
-export const DRIFT_RAY_LOOK = bakedLook(DRIFT_RAY_LOOK_ROW, rayBody, DRIFT_RAY_CLIPS);
+export const DRIFT_RAY_LOOK = skyLook(DRIFT_RAY_LOOK_ROW, 'drift-ray', DRIFT_RAY_CLIPS);

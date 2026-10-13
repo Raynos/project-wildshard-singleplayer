@@ -1,7 +1,6 @@
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry';
-import { bakedLook } from '@wildshard/sdk/looks/modelLibrary';
-import { skyBodyOrStandIn } from './bodies';
+import { skyBodyOrStandIn, skyLook } from './bodies';
 import { stormRocBrain, type StormRocBrain } from '../runtime/stormRocBrain';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
@@ -21,7 +20,7 @@ export const rocBody = (): AnimalSpecies => skyBodyOrStandIn('storm-roc');
 /** The soaring wings' raised V (radians): level, from the arena they read edge-on; raised, their undersides face a viewer below. */
 const ROC_DIHEDRAL = 0.1;
 /** Its own soaring animation over the baked look (its rows: data/species.ts STORM_ROC_LOOK_ROW). */
-export const STORM_ROC_LOOK: SpeciesLook = { ...bakedLook(STORM_ROC_LOOK_ROW, rocBody, []),
+export const STORM_ROC_LOOK: SpeciesLook = { ...skyLook(STORM_ROC_LOOK_ROW, 'storm-roc', []),
   animate: ({ bones, t, dt, alive, mem }) => {
     // a 19 m raptor soars (round 7: a steady beat caught the wings raised edge-on in half the frames; mockup D's eagle glides,
     // wings spread): a slow flex, with a few strong beats in a short burst every ~6 s

@@ -1,5 +1,6 @@
 import { createModelLibrary, undrawnRig } from '@wildshard/sdk/looks/modelLibrary';
-import { creatureBodies } from '@wildshard/game/plugin/geometry';
+import { bakedLook, creatureBodies, type BakedLookRow } from '@wildshard/game/plugin/geometry';
+import type { SpeciesClips } from '@wildshard/sdk/species/clips';
 import { SKITTERER_BODY } from '../data/species/skitterer';
 import { STRIDER_BODY } from '../data/striderRig.baked';
 import { RAY_BODY } from '../data/species/duneRay';
@@ -29,6 +30,8 @@ export const preloadDuneMeshes = (): Promise<void> => Promise.all([MODELS.preloa
 export const duneMesh = MODELS.mesh;
 /** A copy of a baked creature body (bones, skin, dims), else its undrawn stand-in on its skeleton (its load was faulted). */
 export const duneBody = BODIES.bodyOrStandIn;
+/** A creature's look: its rows on its baked body (else its stand-in), animated by its clip rows. */
+export const duneLook = (row: BakedLookRow, rig: DuneRigName, clips: SpeciesClips): ReturnType<typeof bakedLook> => bakedLook(row, () => duneBody(rig), clips);
 /** A copy of a baked creature body, or null (not loaded): the physics bake refuses the stand-in. */
 export const duneBakedBody = BODIES.body;
 /** A baked creature body's skin alone (the Model Explorer's specimen). */
