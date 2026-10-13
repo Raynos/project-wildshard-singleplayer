@@ -5,13 +5,14 @@ import { setActiveChunk } from '../../../src/game/shard/registry';
 import { placeCrags, skinWeight, skinTile } from '../../../src/shards/pine-hollow/generators/crags';
 import { caveLocal, caveWorld, skinGeometry, CRAG_IDS, CRAG_HERO, type CragId, type CragSize } from '../../../src/shards/pine-hollow/world/cragBake';
 import type { CaveMeta } from '../../../src/shards/pine-hollow/runtime/kit/caveInterior';
-import { trailDistance, normalAt } from '../../../src/engine/world/Heightfield';
+import { heightAt, trailDistance, normalAt, cabinMask } from '../../../src/engine/world/Heightfield';
 import { DEN, LOOKOUT } from '../../../src/shards/pine-hollow/data/layout';
 import kitJson from '../../../public/assets/models/pine-hollow-crags/crags.json?raw';
 import caveJson from '../../../public/assets/models/pine-hollow-crags/cave.json?raw';
 import kitBJson from '../../../public/assets/models/pine-hollow-crags/crags-b.json?raw';
 
 setActiveChunk('pine-hollow');
+const ground = { heightAt, normalAt, trailDistance, cabinMask };
 interface KitMeta { modules: Record<string, { lod0: number; lod1: number; min: number[]; max: number[] }> }
 const kitB = JSON.parse(kitBJson) as KitMeta;
 /** the kit as the game merges it (PineCrags.load): crags-b.glb's cliff bands, buttress, slab and hero over crags.glb's tors,
@@ -41,9 +42,9 @@ describe('the granite kit', () => {
     }
   });
 
-  const a = placeCrags({ sizes: sizes() });
+  const a = placeCrags({ sizes: sizes(), ground });
   it('places the same set every time (the bake is deterministic)', () => {
-    expect(placeCrags({ sizes: sizes() })).toEqual(a);
+    expect(placeCrags({ sizes: sizes(), ground })).toEqual(a);
     expect(a.length).toBeGreaterThan(80);
   });
 
@@ -60,16 +61,16 @@ describe('the granite kit', () => {
 
   it('the face skin stays off the trails and the lookout pad', () => {
     for (let x = -240; x <= 240; x += 7) for (let z = 120; z <= 245; z += 7) {
-      if (trailDistance(x, z) < 3) expect(skinWeight(x, z)).toBe(0);
+      if (trailDistance(x, z) < 3) expect(skinWeight(x, z, ground)).toBe(0);
     }
-    expect(skinWeight(LOOKOUT.x, LOOKOUT.z)).toBe(0);
+    expect(skinWeight(LOOKOUT.x, LOOKOUT.z, ground)).toBe(0);
   });
 });
 
 describe('the crags Jake picked (E322 F-L2 B)', () => {
   const hb = kitB.modules[CRAG_HERO];
   const hero: CragSize | undefined = hb ? { hw: Math.max(-(hb.min[0] ?? 0), hb.max[0] ?? 0), hd: Math.max(-(hb.min[1] ?? 0), hb.max[1] ?? 0), h: hb.max[2] ?? 0 } : undefined;
-  const b = placeCrags({ sizes: { ...sizes(), ...(hero ? { hero } : {}) } });
+  const b = placeCrags({ sizes: { ...sizes(), ...(hero ? { hero } : {}) }, ground });
 
   it('the fused modules keep the kit\'s budgets', () => {
     for (const [id, m] of Object.entries(kitB.modules)) {
@@ -93,7 +94,7 @@ describe('the crags Jake picked (E322 F-L2 B)', () => {
     const folded = (): number => {
       let area = 0, back = 0;
       for (const [x0, z0] of [[-64, 160], [0, 160], [-128, 160]] as const) {
-        const blocks = skinTile(x0, z0, 64, 1), g = blocks ? skinGeometry(blocks.pos, blocks.ao, blocks.index) : null;
+        const blocks = skinTile(x0, z0, 64, 1, ground), g = blocks ? skinGeometry(blocks.pos, blocks.ao, blocks.index) : null;
         const p = g?.getAttribute('position'), idx = g?.getIndex();
         if (!p || !idx) continue;
         for (let i = 0; i < idx.count; i += 3) {
