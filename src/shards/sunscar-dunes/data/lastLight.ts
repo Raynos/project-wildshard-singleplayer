@@ -3,7 +3,7 @@ import type { DayClockRow } from '@wildshard/format/dayCycle';
 import { DUSK_CURVES } from './dusk';
 import { KEY_DIR, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from './sand';
 import { SKY_LOOK, type DuskSkyRow } from './familyLook';
-import { PAINTED_STAGES, PAINTED_URLS } from './files';
+import { PAINTED_URLS } from './files';
 
 type Rgb = readonly [number, number, number];
 
@@ -12,10 +12,10 @@ type Rgb = readonly [number, number, number];
 export interface DuskTintRow { readonly sand: Rgb; readonly hollow: Rgb; readonly crest: Rgb; readonly ring: number; readonly span: number; readonly hollowGain: number; readonly crestGain: number; readonly skirtHollow: number }
 
 /**
- * One dusk look as data (SHARD-PLATFORM M3, Signal Dunes' "Last Light"; runtime/looks/duskLook.ts draws it): the scene
+ * One dusk look as data (SHARD-PLATFORM M3, Signal Dunes' "Last Light"; look/render.ts draws it on the engine's `paintedLook`): the scene
  * fog, the key light (direction, colour, its colour at the deepest dusk, intensity), the held day clock, the dusk curves
- * of the key, the sky fill, the fog's sun tint, the far rings' haze and the aerial fog, the sand tint, the skirt, the
- * sand and sky family rows and the painted sky stages on the dome.
+ * of the key, the sky fill, the fog's sun tint, the far rings' haze and the aerial fog, the sand tint, the skirt and the
+ * painted dusk sky on the dome (the sky family row and its two painted strips: the engine's `PaintedStripRow`).
  */
 export interface DuskLookRow {
   readonly fog: { readonly color: number; readonly near: number; readonly far: number };
@@ -24,8 +24,10 @@ export interface DuskLookRow {
   readonly curves: typeof DUSK_CURVES;
   readonly tint: DuskTintRow;
   readonly skirt: { readonly grid: SkirtGridRow; readonly swell: SwellSkirtRow };
-  readonly sky: DuskSkyRow;
-  readonly painted: { readonly stages: readonly string[]; readonly urls: Readonly<Record<string, string>>; readonly tag: string; readonly fault: string; readonly scope: string };
+  readonly sky: DuskSkyRow & {
+    readonly strips: readonly [{ readonly key: string; readonly url: string }, { readonly key: string; readonly url: string }];
+    readonly tag: string; readonly fault: string; readonly scope: string;
+  };
 }
 
 /**
@@ -55,7 +57,7 @@ export const DUSK_CLOCK = { units: 'hour', start: 19,
   fixed: { midday: 12, golden: 18, sunset: 19, night: 0 }, presets: { dawn: 6, noon: 12, dusk: 19, night: 0 } } as const;
 
 /**
- * "Last Light" as one dusk look row (SHARD-PLATFORM M3, runtime/looks/duskLook.ts; look/render.ts binds it): the
+ * "Last Light" as one dusk look row (SHARD-PLATFORM M3, G406: the engine's painted look; look/render.ts binds it): the
  * violet fog, the key from 20° left of north (data/sand.ts KEY_DIR; round 19: one global art-directed direction that
  * lights the faces the mockups light, the painted glow staying right of the tower) dimming and reddening toward DEEP_KEY
  * as the quest's dusk deepens, the held clock, the dusk curves (data/dusk.ts), the sand tint, the skirt, the sand and
@@ -64,6 +66,6 @@ export const DUSK_CLOCK = { units: 'hour', start: 19,
 export const SIGNAL_DUSK_LOOK: DuskLookRow = {
   fog: FOG, key: { dir: KEY_DIR, color: KEY_LIGHT.color, deep: DEEP_KEY, intensity: KEY_LIGHT.intensity }, clock: DUSK_CLOCK,
   curves: DUSK_CURVES,
-  tint: SAND_TINT, skirt: { grid: SKIRT_GRID, swell: SKIRT_SWELL }, sky: SKY_LOOK,
-  painted: { stages: PAINTED_STAGES, urls: PAINTED_URLS, tag: 'sunscar.sky', fault: '[sunscar-dunes] painted sky', scope: 'sunscar-dunes.sky' },
+  tint: SAND_TINT, skirt: { grid: SKIRT_GRID, swell: SKIRT_SWELL },
+  sky: { ...SKY_LOOK, strips: [{ key: 'early', url: PAINTED_URLS.early }, { key: 'late', url: PAINTED_URLS.late }], tag: 'sunscar.sky', fault: '[sunscar-dunes] painted sky', scope: 'sunscar-dunes.sky' },
 };

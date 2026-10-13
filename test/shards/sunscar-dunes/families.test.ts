@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { parseFamilyMaterial, parseGroundLayer, type GroundLayerParams } from '@wildshard/format/materialFamilies';
 import { curvedParams } from '@wildshard/format/materials';
-import { duskSkyEntry } from '../../../src/shards/sunscar-dunes/runtime/looks/duskFamilies';
-import { SAND_LOOK, SKY_LOOK } from '../../../src/shards/sunscar-dunes/data/familyLook';
+import { paintedStripEntry } from '../../../src/engine/render/dataLook';
+import { SAND_LOOK } from '../../../src/shards/sunscar-dunes/data/familyLook';
+import { SIGNAL_DUSK_LOOK } from '../../../src/shards/sunscar-dunes/data/lastLight';
 
 // SF50 (A10): Signal Dunes' sand and sky as family entries (data/familyLook.ts); the sand's dusk curves (`look.curves`
 // rows) reproduce the retired sand shader's dusk terms.
@@ -17,7 +18,7 @@ describe('Signal Dunes on the material families', () => {
     if (sand.family !== 'pbr' || sand.ground === null) throw new Error('the sand is a PBR ground');
     expect(sand.ground.pools).toEqual({ low: [1, 0.72, 0.32], high: [1, 0.42, 0.14], split: 0.5, radius: 10, gain: 0.17 });
     expect(sand.ground.keyShadow?.rect).toEqual([-520, -520, 520, 520]);
-    const sky = parseFamilyMaterial(duskSkyEntry(SKY_LOOK));
+    const sky = parseFamilyMaterial(paintedStripEntry(SIGNAL_DUSK_LOOK.sky));
     if (sky.family !== 'emissive' || sky.sky === null) throw new Error('the sky is an emissive dome');
     expect(sky.sky.window).toEqual([0.35, 0.95]);
   });

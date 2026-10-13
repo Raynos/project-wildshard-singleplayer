@@ -15,8 +15,8 @@ export interface DuskSkyRow {
 }
 
 /**
- * Signal Dunes' sky and sand on the engine's material families (SHARD-PLATFORM SF50 / SF10a, A10) as rows on the SDK's
- * dusk family surfaces (`@wildshard/sdk/looks/duskFamilies`): the sand is the PBR family's ground layer over the baked
+ * Signal Dunes' sky and sand on the engine's material families (SHARD-PLATFORM SF50 / SF10a, A10) as rows on the engine's
+ * painted look (`@wildshard/engine/render/dataLook` paintedLook): the sand is the PBR family's ground layer over the baked
  * maps `sd:grain` / `sd:trail` / `sd:shadow`, its dusk terms the SAND_DUSK curves (`look.curves` rows); the painted dusk
  * dome is the emissive family's sky over the two stages `sd:early` / `sd:late`. No shard shader source is left on either.
  */

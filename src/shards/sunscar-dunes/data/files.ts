@@ -73,7 +73,7 @@ export const DUNE_MODELS: ModelLibraryRows<DuneMeshName, DuneHdName> = {
   aoFloor: FACET_AO_FLOOR, hdLooks: HD_LOOKS,
 };
 
-/** The painted dusk skies, one per dusk stage (look/render.ts through @wildshard/sdk/looks/paintedStrips, art/sunscar-dunes/round-25-sky; E409 second top-10 row 2). */
+/** The painted dusk skies, one per dusk stage (the engine painted look's strip sky, data/lastLight.ts; art/sunscar-dunes/round-25-sky; E409 second top-10 row 2). */
 export const PAINTED_STAGES = ['early', 'late'] as const;
 export type PaintedStage = (typeof PAINTED_STAGES)[number];
 export const PAINTED_URLS: Readonly<Record<PaintedStage, string>> = { early: '/assets/sunscar-dunes/sky/dusk-early.webp', late: '/assets/sunscar-dunes/sky/dusk-late.webp' };

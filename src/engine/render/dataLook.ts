@@ -11,10 +11,14 @@
 import * as THREE from 'three';
 import { BlendFunction, Effect, LookupTexture, ToneMappingMode } from 'postprocessing';
 import { DEFAULT_NORMALIZED_DAY, normalizedDayClock, type DayCycle } from '../world/dayCycle';
-import type { LookStrategy, SkyBackdropTargets } from './look';
+import type { LookStrategy, SkyBackdropTargets, TerrainPainter } from './look';
 import { LUT_SIZE, fetchLut } from './lut';
 import { PATCH_ORDER, patchShader, setInheritedPatch, type ShaderSource } from './shaderPatches';
-import type { Scope } from '../app/scope';
+import { Scope } from '../app/scope';
+import { curveAt, type Curve } from '@wildshard/format/materials';
+import { EmissiveLook } from './families/emissive';
+import { familyMaterial } from './families/registry';
+import { ToonLook } from './families/toon';
 
 type Rgb = readonly [number, number, number];
 const mesh = (object: THREE.Object3D): object is THREE.Mesh => object instanceof THREE.Mesh;
@@ -350,100 +354,234 @@ export class NeutralToneEffect extends Effect {
   constructor() { super('NeutralToneEffect', NEUTRAL_FRAGMENT, { blendFunction: BlendFunction.NORMAL }); }
 }
 
-/** A painted look's dome (its sky layer) and the heading strip its haze reads. */
-export interface PaintedSky { readonly dome: THREE.Mesh<THREE.BufferGeometry, THREE.Material>; readonly strip: THREE.Texture }
+/** A painted look's dome (its sky layer) and the heading strip its haze reads (null on a painted-strip sky). */
+export interface PaintedSky { readonly dome: THREE.Mesh<THREE.BufferGeometry, THREE.Material>; readonly strip: THREE.Texture | null }
 /** A painted look's dressing: the sky pieces that stand in the world (a sea of cloud, the sun's glow) and their tick. */
 export interface PaintedDressing { readonly group: THREE.Group; readonly update: (dt: number) => void; /** its textures, freed with the look's */ readonly textures: readonly THREE.Texture[] }
 
-/** A painted look's rows and the two builders the level keeps (its dome and its dressing, each made once on first ask). */
-export interface PaintedLookSpec {
-  /** the textures the look loaded up front: the look frees them unless a compose takes them */
-  readonly textures: readonly THREE.Texture[];
-  /** the dome over its heading strip (made by the look from `haze`) */
-  readonly sky: (strip: THREE.Texture) => THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
-  readonly dressing: () => PaintedDressing;
-  readonly haze: HeadingHazeRow;
-  readonly light: PainterLightRow;
-  /** the key light (fixed: its direction, colour and intensity), the scene fog's and the horizon's colours */
-  readonly sun: { readonly dir: LookVec3; readonly colour: number; readonly intensity: number };
-  readonly fog: number;
-  readonly horizon: number;
-  /** the god rays' source (degrees, the engine compass): the painted sun, its disc kept out of the frame */
-  readonly rays: { readonly azimuth: number; readonly elevation: number };
-  readonly clock: () => DayCycle;
-  readonly lut: () => Promise<LookupTexture | null>;
+/** How a painted strip samples: wrapping in heading (no seam at heading 0), clamped in elevation, magnified so unmipped. */
+export interface PaintedStripSampler {
+  readonly wrapS: THREE.Wrapping; readonly wrapT: THREE.Wrapping; readonly mips: boolean;
+  readonly minFilter: THREE.MinificationTextureFilter; readonly magFilter: THREE.MagnificationTextureFilter;
+}
+/** Loads one painted image as an sRGB texture named `name`, sampled as `sampler`; null (after warning `warn`) when it cannot be had. */
+export type PaintedLoad = (url: string, name: string, warn: string, sampler: PaintedStripSampler) => Promise<THREE.Texture | null>;
+const STRIP_SAMPLER: PaintedStripSampler = { wrapS: THREE.RepeatWrapping, wrapT: THREE.ClampToEdgeWrapping, mips: false, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter };
+
+/**
+ * A painted-strip sky as rows: two seamless 360° strips (x = heading, each `{ key, url }`, its texture named
+ * `${tag}.${key}`, a failed one warning `${fault} ${key} not loaded:`) as the emissive family's sky (`name`; `maps` name
+ * the two stages in its entry) over the strip's `elevation`s, blended by the look's state across `window`, the first stage
+ * at `firstGain` and held `hold` s; the live sky is freed with a scope named `scope`.
+ */
+export interface PaintedStripRow {
+  readonly name: string; readonly maps: readonly [string, string];
+  readonly elevation: readonly [number, number]; readonly window: readonly [number, number]; readonly firstGain: readonly [number, number]; readonly hold: number;
+  readonly strips: readonly [{ readonly key: string; readonly url: string }, { readonly key: string; readonly url: string }];
+  readonly tag: string; readonly fault: string; readonly scope: string;
+}
+
+/** A painted-strip sky's family entry: the emissive family's sky over its two stages. */
+export function paintedStripEntry(row: PaintedStripRow): unknown {
+  return { family: 'emissive', sky: { maps: row.maps, elevation: row.elevation, window: row.window, firstGain: row.firstGain, hold: row.hold } };
+}
+
+/** Both strips decoded, or null when either cannot be had (the one that loaded is freed: the dome keeps its stand-in). */
+async function loadPaintedStrips(row: PaintedStripRow, load: PaintedLoad): Promise<readonly [THREE.Texture, THREE.Texture] | null> {
+  const [a, b] = await Promise.all(row.strips.map(({ key, url }) => load(url, `${row.tag}.${key}`, `${row.fault} ${key} not loaded:`, STRIP_SAMPLER)));
+  if (a && b) return [a, b];
+  a?.dispose(); b?.dispose();
+  return null;
+}
+
+/** The live strip sky: the emissive family material over the two strips (owned by `scope`) and the feed of its blend. */
+function paintedStripSky(row: PaintedStripRow, strips: readonly [THREE.Texture, THREE.Texture], state: number, scope: Scope): { readonly material: THREE.Material; readonly blend: (state: number) => void } {
+  const clamp = (n: number): number => Math.min(1, Math.max(0, n)), look = new EmissiveLook({ blend: clamp(state) });
+  const material = familyMaterial(paintedStripEntry(row), { toon: new ToonLook(), emissive: look, scope, textures: (ref) => {
+    const t = ref === row.maps[0] ? strips[0] : ref === row.maps[1] ? strips[1] : undefined;
+    if (t === undefined) throw new Error(`${row.name}: no texture ${ref}`);
+    return t;
+  } });
+  scope.own(material);
+  let fed = look.params.blend;
+  return { material, blend: (next) => {
+    const blend = clamp(next);
+    if (blend !== fed) { fed = blend; look.set({ blend }); }
+  } };
 }
 
 /**
- * A painted look (see above): the clean chain under the NEUTRAL curve (a grid cell carries its own NEUTRAL display), the
- * dome as the backdrop's sky layer, the dressing in the world, the heading haze patched into every scene material
- * (a grid cell's region's, as `worldPatch`), the painter's light and the fixed key light.
+ * A painted look's sky: a dome over a heading strip (`dome`, its haze `haze` patched into every world material, reading
+ * the same strip), or two painted strips (`strips`, decoded by `load`) on a sphere that stands in the fog's colour until
+ * they load (a strip that fails to load is a page fault: the stand-in stays).
+ */
+export type PaintedSkySpec =
+  | { readonly haze: HeadingHazeRow; readonly dome: (strip: THREE.Texture) => THREE.Mesh<THREE.BufferGeometry, THREE.Material> }
+  | { readonly strips: PaintedStripRow; readonly load: PaintedLoad };
+
+/**
+ * A state the look's light follows each frame (0 … 1: a quest's dusk), on the format's curves: the key's colour lerps to
+ * `deep` and its intensity rides `curves.key`, the sky fill `fill`, the fog's sun tint `fogSun`, the far rings' haze
+ * `farHaze`, the aerial fog per metre `aerialFog`; a painted-strip sky blends its stages by it.
+ */
+export interface PaintedState {
+  readonly value: { readonly value: number };
+  readonly deep: number | Rgb;
+  readonly curves: { readonly key: Curve; readonly fill: Curve; readonly fogSun: Curve; readonly farHaze: Curve; readonly aerialFog: Curve };
+}
+
+/** A painted look's rows and the builders the level keeps (its dome and its dressing, each made once on first ask). */
+export interface PaintedLookSpec {
+  /** the textures the look loaded up front: the look frees them unless a compose takes them (absent: none) */
+  readonly textures?: readonly THREE.Texture[];
+  readonly sky: PaintedSkySpec;
+  /** the sky pieces in the world (absent: none) */
+  readonly dressing?: () => PaintedDressing;
+  /** the painter's light on every lit material (absent: three's lights only) */
+  readonly light?: PainterLightRow;
+  /** the key light: its direction, its colour (an sRGB hex or linear rgb) and intensity */
+  readonly sun: { readonly dir: LookVec3; readonly colour: number | Rgb; readonly intensity: number };
+  /** the scene fog's colour, near and far (the scene's own fog edited in place: a new Fog would orphan the one the backdrop bound) */
+  readonly fog: { readonly color: number; readonly near: number; readonly far: number };
+  /** the horizon's colour (absent: the fog's) */
+  readonly horizon?: number;
+  /** the NEUTRAL tone curve, a grid cell carrying its own NEUTRAL display (absent: the engine's tone) */
+  readonly neutral?: boolean;
+  /** the god rays' source (degrees, the engine compass): the painted sun, its disc kept out of the frame (absent: none) */
+  readonly rays?: { readonly azimuth: number; readonly elevation: number };
+  readonly clock: () => DayCycle;
+  /** the clock is held, never advanced: the light is the state's, not the hour's */
+  readonly hold?: boolean;
+  /** the state the light follows (absent: a fixed key) */
+  readonly state?: PaintedState;
+  /** the shard grade (absent: none) */
+  readonly lut?: () => Promise<LookupTexture | null>;
+  /** the level's own ground painter, and its tick after the light each frame (absent: the engine's ground) */
+  readonly terrain?: { readonly build: TerrainPainter['build']; readonly update?: () => void };
+}
+
+const lookColour = (c: number | Rgb): THREE.Color => (typeof c === 'number' ? new THREE.Color(c) : new THREE.Color(c[0], c[1], c[2]));
+
+/**
+ * A painted look (see above): the clean chain (under the NEUTRAL curve when `neutral`), the dome as the backdrop's sky
+ * layer, the dressing in the world, a heading sky's haze patched into every scene material (a grid cell's region's, as
+ * `worldPatch`), the painter's light, the key light (fixed, or riding the state's curves with the fill, the fog's sun
+ * tint, the far haze and the aerial fog) and the level's own ground painter.
  */
 export function paintedLook(spec: PaintedLookSpec): LookStrategy {
-  const pending = new Set(spec.textures);
-  const sunDir = new THREE.Vector3(spec.sun.dir.x, spec.sun.dir.y, spec.sun.dir.z), haze = headingHaze(spec.haze, spec.sun.dir);
+  const pending = new Set(spec.textures), skySpec = spec.sky, state = spec.state;
+  const sunDir = new THREE.Vector3(spec.sun.dir.x, spec.sun.dir.y, spec.sun.dir.z), haze = 'haze' in skySpec ? headingHaze(skySpec.haze, spec.sun.dir) : null;
   let sky: PaintedSky | null = null, dressing: { readonly own: PaintedDressing; readonly meshes: ReadonlySet<THREE.Object3D> } | null = null;
+  let painted: { readonly scope: Scope; readonly blend: (state: number) => void; readonly textures: readonly THREE.Texture[] } | null = null;
   const makeSky = (): PaintedSky => {
-    const strip = headingStrip(spec.haze), dome = spec.sky(strip); pending.add(strip);
-    dome.renderOrder = -10; dome.frustumCulled = false;
-    sky = { dome, strip };
+    if ('haze' in skySpec) {
+      const strip = headingStrip(skySpec.haze), dome = skySpec.dome(strip); pending.add(strip);
+      dome.renderOrder = -10; dome.frustumCulled = false;
+      sky = { dome, strip };
+      return sky;
+    }
+    // 120 m: the dome draws first with no depth test, so its size never occludes; at 300 m the far plane clipped it (an arc)
+    const dome = new THREE.Mesh<THREE.BufferGeometry, THREE.Material>(new THREE.SphereGeometry(120, 48, 24), new THREE.MeshBasicMaterial({ color: spec.fog.color, side: THREE.BackSide, depthTest: false, depthWrite: false, fog: false }));
+    dome.renderOrder = -1000; dome.frustumCulled = false;
+    sky = { dome, strip: null };
     return sky;
   };
-  const makeDressing = (): NonNullable<typeof dressing> => {
+  // a painted-strip sky stands in from the start (its strips load with the backdrop)
+  if (!('haze' in skySpec)) makeSky();
+  const makeDressing = (): NonNullable<typeof dressing> | null => {
+    if (spec.dressing === undefined) return null;
     const own = spec.dressing(), meshes = new Set<THREE.Object3D>(); own.group.traverse((node) => { meshes.add(node); });
     for (const texture of own.textures) pending.add(texture);
     dressing = { own, meshes };
     return dressing;
   };
+  const freePainted = (): void => { if (painted) { painted.scope.dispose(); for (const t of painted.textures) t.dispose(); painted = null; } };
   const worldPatch: NonNullable<LookStrategy['worldPatch']> = (material, scope) => {
     // a node material (an SF59 graph) builds its own program: the haze is a classic fog-chunk patch, its fog the epilogue's
-    if (Reflect.get(material, 'isNodeMaterial') === true) return;
+    if (haze === null || !('haze' in skySpec) || Reflect.get(material, 'isNodeMaterial') === true) return;
     const { strip } = sky ?? makeSky();
-    patchShader(material, spec.haze.name, PATCH_ORDER.decorate, (shader) => { haze(shader, strip); }, { scope });
+    if (strip !== null) patchShader(material, skySpec.haze.name, PATCH_ORDER.decorate, (shader) => { haze(shader, strip); }, { scope });
   };
   const parts = (group: THREE.Object3D): { geometry: THREE.BufferGeometry; material: THREE.Material }[] => {
     const out: { geometry: THREE.BufferGeometry; material: THREE.Material }[] = [];
     group.traverse((node) => { if (mesh(node)) for (const material of Array.isArray(node.material) ? node.material : [node.material]) out.push({ geometry: node.geometry, material }); });
     return out;
   };
+  const rays = spec.rays === undefined ? {} : { rays: { azimuth: spec.rays.azimuth, elevation: spec.rays.elevation } };
   return { mode: 'extend', chain: 'clean',
-    cell: { replaces: 'tone', build: () => ({ display: new NeutralToneEffect() }) },
+    ...(spec.neutral === true ? { cell: { replaces: 'tone', build: () => ({ display: new NeutralToneEffect() }) } } as const : {}),
     dispose: () => { for (const texture of pending) texture.dispose(); pending.clear(); },
     // `c.fx` builds the cinematic chain when nothing is built yet: the clean chain is asked first, `fx` only after it
     compose: (c) => {
       const { scene, scope } = c, chain = c.engineChain('clean');
       for (const texture of pending) scope.own(texture);
       pending.clear();
-      c.fx.tone.mode = ToneMappingMode.NEUTRAL;
-      const { dome, strip } = sky ?? makeSky(); scope.own(strip);
-      scope.own(dome.geometry); scope.own(dome.material); scope.onDispose(() => { dome.removeFromParent(); });
-      scene.fog = new THREE.Fog(new THREE.Color(spec.fog), spec.haze.near, spec.haze.far);
-      const { own, meshes } = dressing ?? makeDressing();
-      if (own.group.parent === null) scene.add(own.group);
-      for (const part of parts(own.group)) { scope.own(part.geometry); scope.own(part.material); }
-      scope.onDispose(() => { own.group.removeFromParent(); });
-      scene.traverse((object) => {
-        if (!mesh(object) || object === dome || meshes.has(object)) return;
+      if (spec.neutral === true) c.fx.tone.mode = ToneMappingMode.NEUTRAL;
+      const { dome, strip } = sky ?? makeSky(); if (strip !== null) scope.own(strip);
+      scope.own(dome.geometry); scope.own(dome.material);
+      scope.onDispose(() => { dome.removeFromParent(); scene.fog = null; freePainted(); });
+      // the scene's own fog is edited in place: a new Fog would orphan the one the backdrop bound
+      if (scene.fog instanceof THREE.Fog) { scene.fog.color.set(spec.fog.color); scene.fog.near = spec.fog.near; scene.fog.far = spec.fog.far; }
+      else scene.fog = new THREE.Fog(new THREE.Color(spec.fog.color), spec.fog.near, spec.fog.far);
+      const pieces = dressing ?? makeDressing();
+      if (pieces !== null) {
+        if (pieces.own.group.parent === null) scene.add(pieces.own.group);
+        for (const part of parts(pieces.own.group)) { scope.own(part.geometry); scope.own(part.material); }
+        scope.onDispose(() => { pieces.own.group.removeFromParent(); });
+      }
+      if (haze !== null) scene.traverse((object) => {
+        if (!mesh(object) || object === dome || pieces?.meshes.has(object) === true) return;
         for (const material of Array.isArray(object.material) ? object.material : [object.material]) worldPatch(material, scope);
       });
       return { chain };
     },
-    lighting: painterLight(spec.light, spec.sun.dir),
-    worldPatch,
-    sky: { clouds: false, planet: false, sun: { disc: false, halo: false, rays: { azimuth: spec.rays.azimuth, elevation: spec.rays.elevation } } },
+    ...(spec.light === undefined ? {} : { lighting: painterLight(spec.light, spec.sun.dir) }),
+    ...(haze === null ? {} : { worldPatch }),
+    sky: { clouds: false, planet: false, sun: { disc: false, halo: false, ...rays } },
     backdrop: async ({ sky: rig }) => {
-      const clock = spec.clock(), key = new THREE.Color(spec.sun.colour), fog = new THREE.Color(spec.fog), lut = await spec.lut();
-      const own = sky ?? makeSky(), pieces = (dressing ?? makeDressing()).own;
-      let air: (() => THREE.Fog | null) | null = null;
-      return { clock, horizon: new THREE.Color(spec.horizon), lut, clouds: own.dome, dressing: pieces.group,
-        bind: (targets) => { air = () => (targets.underwater() ? null : targets.fog); },
-        update: (dt: number) => { clock.update(dt); rig.setKeyLight(sunDir, key, spec.sun.intensity); air?.()?.color.copy(fog); pieces.update(dt); },
+      const own = sky ?? makeSky();
+      if ('strips' in skySpec) {
+        const strips = await loadPaintedStrips(skySpec.strips, skySpec.load);
+        if (strips !== null) {
+          const standIn = own.dome.material, scope = new Scope(skySpec.strips.scope), live = paintedStripSky(skySpec.strips, strips, state?.value.value ?? 0, scope);
+          own.dome.material = live.material; standIn.dispose(); painted = { scope, blend: live.blend, textures: strips };
+        }
+      }
+      const clock = spec.clock(), key = lookColour(spec.sun.colour), fog = new THREE.Color(spec.fog.color), lut = spec.lut === undefined ? null : await spec.lut();
+      const pieces = (dressing ?? makeDressing())?.own ?? null, deep = state === undefined ? null : lookColour(state.deep), keyNow = new THREE.Color();
+      let air: (() => THREE.Fog | null) | null = null, live: SkyBackdropTargets | null = null;
+      const base = { hemi: 1, fogSun: new THREE.Color(), haze: new THREE.Color() };
+      return { clock, horizon: new THREE.Color(spec.horizon ?? spec.fog.color), lut, clouds: own.dome, ...(pieces === null ? {} : { dressing: pieces.group }),
+        // Hide the disc mesh too: `sun.disc: false` only hides its material, and three still uploads the geometry of a
+        // visible mesh whose material is hidden.
+        bind: (targets) => {
+          targets.disc.visible = false; air = () => (targets.underwater() ? null : targets.fog); live = targets;
+          base.hemi = targets.hemi.intensity; base.fogSun.copy(targets.fogU.fogSunColor.value); base.haze.copy(targets.far.uHazeCol.value);
+        },
+        update: (dt: number) => {
+          if (spec.hold !== true) clock.update(dt);
+          if (state === undefined || deep === null) rig.setKeyLight(sunDir, key, spec.sun.intensity);
+          else {
+            const s = state.value.value, curves = state.curves;
+            rig.setKeyLight(sunDir, keyNow.copy(key).lerp(deep, s), spec.sun.intensity * curveAt(curves.key, s));
+            painted?.blend(s);
+            if (live) {
+              live.hemi.intensity = base.hemi * curveAt(curves.fill, s);
+              live.fogU.fogSunColor.value.copy(base.fogSun).multiplyScalar(curveAt(curves.fogSun, s));
+              live.far.uHazeCol.value.copy(base.haze).multiplyScalar(curveAt(curves.farHaze, s));
+              live.fogU.fogDistDensity.value = curveAt(curves.aerialFog, s);
+            }
+          }
+          spec.terrain?.update?.();
+          air?.()?.color.copy(fog); pieces?.update(dt);
+        },
         rebuild: () => undefined, attachPost: () => undefined,
         // a grid cell's layer frees what it drew (standalone the compose owns the dome and its strip)
         dispose: () => {
-          own.dome.removeFromParent(); own.dome.geometry.dispose(); own.dome.material.dispose(); own.strip.dispose();
-          pieces.group.removeFromParent(); for (const part of parts(pieces.group)) { part.geometry.dispose(); part.material.dispose(); }
+          own.dome.removeFromParent(); own.dome.geometry.dispose(); own.dome.material.dispose(); own.strip?.dispose(); freePainted();
+          if (pieces !== null) { pieces.group.removeFromParent(); for (const part of parts(pieces.group)) { part.geometry.dispose(); part.material.dispose(); } }
         } };
     },
+    ...(spec.terrain === undefined ? {} : { terrainPainter: { build: spec.terrain.build } }),
   };
 }

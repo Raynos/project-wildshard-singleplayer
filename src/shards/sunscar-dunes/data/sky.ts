@@ -6,7 +6,7 @@
 export const SKY_SUN = [0.2, -0.07, -0.98] as const;
 
 /**
- * E407 row 5: the painted dusk sky at infinity (loaded by `@wildshard/sdk/looks/paintedStrips` in look/render.ts, drawn
+ * E407 row 5: the painted dusk sky at infinity (loaded by the engine painted look's strip sky, drawn
  * by the platform dusk look, data/renderLook.ts), one seamless 360° strip per dusk stage (art/sunscar-dunes/round-25-sky: pano.py
  * outpaints them with codex image_gen from the mockups' skies, prep.py crops and sizes them). x = heading (0 = the
  * spawn's forward view, -z; 90 = +x), the strip spans elevTop down to elevBottom degrees; above it the top row carries

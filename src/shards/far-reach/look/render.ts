@@ -47,7 +47,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
     return { group, textures: [seaTex], update: (dt) => { time.value += dt; glow.update(time.value); } };
   };
   const textures = [pano, cloudAtlas, seaPaint, vortex].filter((texture): texture is Texture => texture !== null);
-  return paintedLook({ textures, sky: (strip) => skyDome(pano, strip), dressing,
-    haze: { ...SKY_HAZE, ...SKY_FOG, strip: PANO_FOG_SRGB }, light: SKY_PAINTER_LIGHT, sun: { ...SKY_KEY, dir: SUN_DIR }, fog: SKY.fog, horizon: SKY.horizon,
-    rays: SKY_RAYS, clock: () => new DayCycle(SKY_DAY), lut: () => loadLUT('far-reach') });
+  return paintedLook({ textures, sky: { haze: { ...SKY_HAZE, ...SKY_FOG, strip: PANO_FOG_SRGB }, dome: (strip) => skyDome(pano, strip) }, dressing,
+    light: SKY_PAINTER_LIGHT, sun: { ...SKY_KEY, dir: SUN_DIR }, fog: { color: SKY.fog, near: SKY_FOG.near, far: SKY_FOG.far }, horizon: SKY.horizon,
+    neutral: true, rays: SKY_RAYS, clock: () => new DayCycle(SKY_DAY), lut: () => loadLUT('far-reach') });
 }
