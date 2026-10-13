@@ -16,7 +16,13 @@ const commands = [...checks, ...process.argv.slice(2)];
 
 const t0 = Date.now();
 if (spawnSync('pnpm', ['gen'], { stdio: 'inherit' }).status !== 0) process.exit(1);
-console.log(`ci-checks: gen ${((Date.now() - t0) / 1000).toFixed(0)} s; running ${commands.length} in parallel`);
+console.log(`ci-checks: gen ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+// Native world checks use the same canonical product URLs as the page. Source
+// generation alone does not publish those files; prepare the shipping products
+// before either their readers or Vite's public-directory copy can start.
+const productsStarted = Date.now();
+if (spawnSync(process.execPath, ['scripts/build-shardfiles.mjs'], { stdio: 'inherit' }).status !== 0) process.exit(1);
+console.log(`ci-checks: products ${((Date.now() - productsStarted) / 1000).toFixed(0)} s; running ${commands.length} in parallel`);
 
 /** @param {string} command @returns {Promise<{ command: string, code: number, sec: number, out: string }>} */
 function run(command) {
