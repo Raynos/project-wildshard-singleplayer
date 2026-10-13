@@ -56,3 +56,17 @@ it('keeps offline refusal and verifies filesystem transport size and hash', asyn
     await expect(reader.read(hash)).rejects.toThrow('hash or size mismatch');
   } finally { environment.dispose(); rmSync(root, { recursive: true, force: true }); }
 });
+
+it('serves generated source URLs as exact bytes and refuses traversal outside their source root', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'bake-source-')), directory = join(root, 'src/shards/fixture/data');
+  const bytes = new Uint8Array([91, 49, 50, 51, 93]);
+  mkdirSync(directory, { recursive: true }); writeFileSync(join(directory, 'layout.generated.json'), bytes);
+  writeFileSync(join(root, 'outside.json'), bytes);
+  const environment = installBakeEnvironment(root);
+  try {
+    const response = await fetch('/src/shards/fixture/data/layout.generated.json?url');
+    expect(response.ok).toBe(true); expect(new Uint8Array(await response.arrayBuffer())).toEqual(bytes);
+    expect((await fetch('/src/shards/fixture/data/missing.generated.json')).status).toBe(404);
+    expect((await fetch('/src/%2e%2e%2foutside.json')).status).toBe(404);
+  } finally { environment.dispose(); rmSync(root, { recursive: true, force: true }); }
+});

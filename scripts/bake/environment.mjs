@@ -1,6 +1,6 @@
 // The existing native-bake DOM/fetch adapter. Import is inert; one owned CLI installs it explicitly.
 import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { relative, resolve, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const noop = () => undefined;
@@ -29,7 +29,13 @@ export function installBakeEnvironment(ROOT) {
       // a module's own asset (`new URL('../assets/…', import.meta.url)`, a shard's declared mover scripts): the file itself
       if (url.protocol === 'file:') { const file = fileURLToPath(url); return Promise.resolve(existsSync(file) ? new Response(readFileSync(file)) : new Response(null, { status: 404 })); }
       if (url.origin !== new URL(HOST).origin) return nodeFetch(input, init);
-      const file = resolve(ROOT, 'public', decodeURIComponent(url.pathname).replace(/^\//, ''));
+      // Vite's ?url loader names generated source assets under /src/; keep
+      // their exact bytes available to the native world and its own admission.
+      const pathname = decodeURIComponent(url.pathname);
+      const base = resolve(ROOT, pathname.startsWith('/src/') ? 'src' : 'public');
+      const file = resolve(base, pathname.startsWith('/src/') ? pathname.slice(5) : pathname.replace(/^\//, ''));
+      const local = relative(base, file);
+      if (local === '..' || local.startsWith('../') || isAbsolute(local)) return Promise.resolve(new Response(null, { status: 404 }));
       return Promise.resolve(existsSync(file) ? new Response(readFileSync(file)) : new Response(null, { status: 404 }));
     },
     createImageBitmap: () => Promise.resolve({ width: 1, height: 1, close: noop }), // textures are never drawn here
