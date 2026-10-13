@@ -1,0 +1,304 @@
+{
+ "schema": 1,
+ "gate": {
+  "desktop": {
+   "p95Ms": 17.5,
+   "maxMs": 100
+  },
+  "sim": {
+   "p95Ms": 35,
+   "maxMs": 200
+  }
+ },
+ "command": "node scripts/frame-floor.mjs --rev=<sha> --shards=grid --surface=<desktop|sim> --grid-scenario=milestone --devserver --grid-routes=pine-hollow-road-entry --frame-timeline",
+ "runs": [
+  {
+   "sha": "0c0dc723d",
+   "label": "HEAD before (gl-time)",
+   "surface": "desktop",
+   "when": "2026-10-13T08:33:41.685Z",
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 33.3,
+     "maxMs": 50,
+     "workP95Ms": 4.9,
+     "framesOver20Ms": 14,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 9.6,
+     "framesOver20Ms": 19,
+     "frames": 960,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 10.7,
+     "framesOver20Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "3c852fcb7",
+   "label": "fix candidate",
+   "surface": "desktop",
+   "when": "2026-10-13T08:39:00.708Z",
+   "pass": true,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 7.8,
+     "framesOver20Ms": 3,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 8.7,
+     "framesOver20Ms": 8,
+     "frames": 990,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 8.2,
+     "framesOver20Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "3c852fcb7",
+   "label": "fix candidate",
+   "surface": "desktop",
+   "when": "2026-10-13T08:37:17.442Z",
+   "pass": true,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 16.8,
+     "maxMs": 33.4,
+     "workP95Ms": 4.8,
+     "framesOver20Ms": 4,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 16.8,
+     "maxMs": 49.9,
+     "workP95Ms": 9.6,
+     "framesOver20Ms": 9,
+     "frames": 990,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 11,
+     "framesOver20Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "6f634c96f",
+   "label": "landed fix",
+   "surface": "desktop",
+   "when": "2026-10-13T08:42:12.161Z",
+   "pass": true,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 5.9,
+     "framesOver20Ms": 5,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 9.9,
+     "framesOver20Ms": 9,
+     "frames": 990,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 8.7,
+     "framesOver20Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "6f634c96f",
+   "label": "landed fix",
+   "surface": "sim",
+   "when": "2026-10-13T08:46:03.913Z",
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 55,
+     "maxMs": 132,
+     "workP95Ms": 7,
+     "framesOver20Ms": 119,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 38,
+     "maxMs": 132,
+     "workP95Ms": 9,
+     "framesOver20Ms": 746,
+     "frames": 750,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 8,
+     "framesOver20Ms": 120,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "928d6a44e",
+   "label": "HEAD after",
+   "surface": "desktop",
+   "when": "2026-10-13T08:49:24.102Z",
+   "pass": true,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 16.8,
+     "maxMs": 33.4,
+     "workP95Ms": 5.4,
+     "framesOver20Ms": 4,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 9.8,
+     "framesOver20Ms": 10,
+     "frames": 990,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 9.6,
+     "framesOver20Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "bda180fc4",
+   "label": "HEAD before (plain)",
+   "surface": "desktop",
+   "when": "2026-10-13T08:27:22.284Z",
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 33.3,
+     "maxMs": 50.1,
+     "workP95Ms": 6.7,
+     "framesOver20Ms": null,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 16.8,
+     "maxMs": 50.1,
+     "workP95Ms": 11.9,
+     "framesOver20Ms": null,
+     "frames": 930,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 9.7,
+     "framesOver20Ms": null,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "f715af5fa",
+   "label": "HEAD before (cpu profile + task clock)",
+   "surface": "desktop",
+   "when": "2026-10-13T08:30:20.577Z",
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 33.3,
+     "maxMs": 50.1,
+     "workP95Ms": 5.7,
+     "framesOver20Ms": 10,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 16.8,
+     "maxMs": 66.6,
+     "workP95Ms": 9.9,
+     "framesOver20Ms": 23,
+     "frames": 960,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 9.3,
+     "framesOver20Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  }
+ ]
+}
