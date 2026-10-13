@@ -81,3 +81,24 @@ it('keeps both actual shard sinks usable without a Progress view', () => {
     } finally { app.engineScope.dispose(); }
   }
 });
+
+it('binds a later view and retains the caller checkpoint order without changing the emitting ledger', () => {
+  localStorage.clear(); const app = new App(), events: string[] = [];
+  const emit = bindRuntimeLedger({ app }, nine, nine.identity.slug), facts = projectRuntimeFacts(emit, undefined);
+  let projection: ProgressLedger | undefined;
+  const first: View = { bindLedger: view => { projection = view; }, refreshLedger: () => { events.push('first'); } };
+  const second: View = { bindLedger: view => { projection = view; }, refreshLedger: () => { events.push('second'); } };
+  try {
+    const row = nine.ledger[0]; if (row === undefined) throw new Error('Missing authored fact');
+    facts(row.fact, 'before-view'); expect(events).toEqual([]);
+    facts.bindProgress(first, () => { events.push('state', 'continuation', 'ledger'); return false; });
+    facts(row.fact, 'before-view'); expect(events).toEqual(['first']);
+    if (projection === undefined) throw new Error('Missing late view');
+    expect(projection.checkpoint()).toBe(false);
+    expect(events).toEqual(['first', 'state', 'continuation', 'ledger']);
+    facts.bindProgress(second); facts(row.fact, 'before-view');
+    expect(events.at(-1)).toBe('second'); expect(projection.checkpoint()).toBe(true);
+    expect(facts.flush).toBe(emit.flush); expect(facts.achievement).toBe(emit.achievement);
+    facts.bindProgress(undefined); facts(row.fact, 'before-view'); expect(events.at(-1)).toBe('second');
+  } finally { app.engineScope.dispose(); }
+});

@@ -4074,3 +4074,9 @@ Held species controllers preserve the existing `stageLap(angle)`,
 own admitted body. These do not construct another policy. The shipped
 page and native encounter both obtain that controller from their single
 species catalogue, while the boss stage rows retain their existing clock.
+
+`projectRuntimeFacts` also returns `bindProgress(view, checkpoint?)`. It attaches
+a later caller-owned Progress view or replaces the current view. Emissions
+refresh only that current view; absent views install nothing. The default
+checkpoint is the original ledger flush. A caller-owned checkpoint can retain
+its exact state/continuation write order before flushing that same ledger.

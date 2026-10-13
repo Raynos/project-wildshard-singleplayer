@@ -135,12 +135,19 @@ export function bindRuntimeLedger(ctx: Pick<ShardContext, 'app'>, source: Shardf
 /** Project an existing runtime ledger into its caller-owned Progress view. The emitter remains the sole grant/write
  * owner. Each successful or duplicate emission refreshes once; a thrown emission does not refresh. Pending-write
  * retries and achievement reads are the exact original ports, and an absent view installs no presentation. */
-export function projectRuntimeFacts(emit: RuntimeFacts, progress: Pick<Progress, 'bindLedger' | 'refreshLedger'> | undefined): RuntimeFacts {
+export function projectRuntimeFacts(emit: RuntimeFacts, progress: Pick<Progress, 'bindLedger' | 'refreshLedger'> | undefined): RuntimeFacts & {
+  /** Bind a later view or replace it; the caller can checkpoint its state before the ledger flush. */
+  readonly bindProgress: (view: Pick<Progress, 'bindLedger' | 'refreshLedger'> | undefined, checkpoint?: () => boolean) => void;
+} {
+  let current = progress;
   const facts = Object.assign((name: string, entity: string) => {
-    const receipt = emit(name, entity); progress?.refreshLedger(); return receipt;
-  }, { flush: emit.flush, achievement: emit.achievement });
-  progress?.bindLedger({ count: (id) => facts.achievement(id)?.count ?? 0,
-    earned: (id) => facts.achievement(id)?.earned ?? false, checkpoint: facts.flush });
+    const receipt = emit(name, entity); current?.refreshLedger(); return receipt;
+  }, { flush: emit.flush, achievement: emit.achievement, bindProgress: (view: Pick<Progress, 'bindLedger' | 'refreshLedger'> | undefined, checkpoint = emit.flush): void => {
+    current = view;
+    view?.bindLedger({ count: (id) => facts.achievement(id)?.count ?? 0,
+      earned: (id) => facts.achievement(id)?.earned ?? false, checkpoint });
+  } });
+  facts.bindProgress(progress);
   return facts;
 }
 
