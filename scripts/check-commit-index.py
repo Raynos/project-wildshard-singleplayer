@@ -61,16 +61,8 @@ def main():
         allowed = {os.fsencode(path) for path in paths}
         foreign = [os.fsdecode(path) for path, _, _ in staged if path not in allowed]
         if foreign:
-            # G367 adds only exact producer outputs after the original source
-            # intent. A full-tree/parent receipt never admits foreign source.
-            tree = git('write-tree').decode().strip()
-            receipt = subprocess.run(
-                ['node', str(Path(__file__).with_name('commit-produced.mjs')),
-                 '--verify-extra', tree, json.dumps(foreign)],
-                stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=5)
-            if receipt.returncode:
-                raise ValueError('Staged paths outside declared commit intent: '
-                                 + ', '.join(foreign))
+            raise ValueError('Staged paths outside declared commit intent: '
+                             + ', '.join(foreign))
         return
     # Git constructs a pathspec commit's next-index from its captured parent
     # and owns the ref CAS. Comparing that snapshot with a HEAD that moved

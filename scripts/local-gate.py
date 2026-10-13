@@ -1,160 +1,51 @@
 #!/usr/bin/env python3
-"""G363: immutable changed-file checks, one fail-closed two-minute deadline."""
-import concurrent.futures
-import hashlib
+"""G416: validate a real build, not historical outputs or process receipts."""
 import json
 import os
-import pathlib
-import signal
+from pathlib import Path
 import subprocess
 import sys
 import tempfile
-import time
-
-CAP_SECONDS = 120
-
-
-def bounded(command, cwd, deadline, output=None, env=None):
-    """A timeout kills only this command's owned process tree, including forks."""
-    child = subprocess.Popen(command, cwd=cwd, env=env, start_new_session=True,
-                             stdout=output, stderr=subprocess.STDOUT if output else None)
-    try:
-        return child.wait(timeout=max(0.001, deadline - time.monotonic()))
-    except subprocess.TimeoutExpired:
-        os.killpg(child.pid, signal.SIGKILL)
-        child.wait()
-        return 124
-
-
-def record_command_inputs(trace, tree, paths):
-    """Native tools bypass Node's reader trace; bind their literal operands too."""
-    trace.mkdir(parents=True, exist_ok=True)
-    (trace / 'command-inputs.trace').write_text(''.join('F ' + str(tree / path) + '\n' for path in paths))
 
 
 def main():
-    started = time.monotonic()
-    # Reserve cleanup/receipt time inside the hard 120s cap.
-    deadline = started + CAP_SECONDS - 2
-    root = pathlib.Path(subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], text=True).strip())
+    root = Path(subprocess.check_output(['git', 'rev-parse', '--show-toplevel'], text=True).strip())
     sha = subprocess.check_output(['git', 'rev-parse', '--verify', sys.argv[1] + '^{commit}'], cwd=root, text=True).strip()
-    common = pathlib.Path(subprocess.check_output(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], cwd=root, text=True).strip())
-    policy = hashlib.sha256(pathlib.Path(__file__).read_bytes() + (root / 'scripts/local-gate-checks.mjs').read_bytes()).hexdigest()
-    stamps = common / 'local-gate-g363-v2' / policy
-    steps = {}
-    failed = []
-    ok = False
+    common = Path(subprocess.check_output(['git', 'rev-parse', '--path-format=absolute', '--git-common-dir'], cwd=root, text=True).strip())
+    passed = common / 'build-gate-g416' / sha
+    if passed.exists():
+        print('vercel-gate: ' + sha[:9] + ' build already passed')
+        return 0
     try:
-        if (stamps / sha).exists():
-            ok = True
-            print('vercel-gate: ' + sha[:9] + ' already passed (exact SHA)')
-            return 0
-        with tempfile.TemporaryDirectory(prefix='wildshard-local-gate-') as tmp:
-            work = pathlib.Path(tmp).resolve()
-            tree = work / 'tree'
-            tree.mkdir()
-
-            def run(name, command, cwd=tree, env=None, observed=()):
-                before = time.monotonic()
-                log = work / (name + '.log')
-                trace = work / ('trace-' + name)
-                if cwd == tree:
-                    trace.mkdir()
-                    if observed:
-                        record_command_inputs(trace, tree, observed)
-                    env = dict(env or os.environ, GATE_TRACE_ROOT=str(tree), GATE_TRACE_DIR=str(trace))
-                    env['NODE_OPTIONS'] = env.get('NODE_OPTIONS', '') + ' --import=' + (root / 'scripts/gate-trace.mjs').as_uri()
-                with log.open('w') as stream:
-                    code = bounded(command, cwd, deadline, stream, env)
-                steps[name] = round(time.monotonic() - before, 3)
-                print(f'  {"✓" if code == 0 else "✗"} {name} ({steps[name]:.3f} s)', flush=True)
-                if code:
-                    failed.append(str(trace) if code != 124 else str(work / 'incomplete-trace'))
-                    if name not in ('typecheck', 'oxlint', 'vitest'):
-                        with (work / 'refusal.log').open('w') as receipt:
-                            bounded(['node', str(root / 'scripts/push-refusal.mjs'), '--record', str(root), sha, str(tree), json.dumps(failed)], root, started + CAP_SECONDS, receipt)
-                    print('── ' + name + ' ──', flush=True)
-                    print(log.read_text()[-12000:], flush=True)
-                    raise RuntimeError(name + (' exceeded 120s gate deadline' if code == 124 else ' failed'))
-
-            # Retain the original Vercel-ignore admission on this exact tree.
-            run('ignore-init', ['git', 'init', '-q', str(work / 'ign')], root)
-            ignore = subprocess.run(['git', 'show', sha + ':.vercelignore'], cwd=root, capture_output=True, check=False)
-            (work / 'ignore').write_bytes(ignore.stdout)
-            names = subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', sha], cwd=root)
-            ignored = subprocess.run(['git', '-C', str(work / 'ign'), '-c', 'core.excludesFile=' + str(work / 'ignore'), 'check-ignore', '--no-index', '--stdin'], input=names, capture_output=True, check=False)
-            if ignored.returncode not in (0, 1):
-                raise RuntimeError('Vercel ignore admission failed')
-            dropped = set(ignored.stdout.decode().splitlines())
-            bad = [p for p in dropped if p != '.vercelignore' and ('/' not in p or p.startswith(('src/', 'public/', 'api/', 'scripts/')))]
-            if bad:
-                raise RuntimeError('.vercelignore excludes build inputs: ' + ', '.join(sorted(bad)))
-            environment = dict(os.environ, GIT_INDEX_FILE=str(work / 'index'))
-            run('read-tree', ['git', 'read-tree', sha], root, environment)
-            keep = b'\0'.join(p for p in names.splitlines() if p.decode() not in dropped) + b'\0'
-            (work / 'keep').write_bytes(keep)
-            with (work / 'keep').open('rb') as source:
-                before = time.monotonic()
-                child = subprocess.Popen(['git', 'checkout-index', '-z', '--stdin', '--prefix=' + str(tree) + '/'], cwd=root, env=environment, stdin=source, start_new_session=True)
-                try:
-                    code = child.wait(timeout=max(0.001, deadline - time.monotonic()))
-                except subprocess.TimeoutExpired:
-                    os.killpg(child.pid, signal.SIGKILL)
-                    child.wait()
-                    raise RuntimeError('export exceeded 120s gate deadline')
-                if code:
-                    raise RuntimeError('export failed')
-                steps['export'] = round(time.monotonic() - before, 3)
-            run('workspace-links', ['node', str(root / 'scripts/link-node-modules.mjs'), str(root), str(tree)])
+        with tempfile.TemporaryDirectory(prefix='wildshard-build-gate-') as temporary:
+            tree = Path(temporary)
+            archive = tree / 'source.tar'
+            subprocess.run(['git', 'archive', sha, '--output', str(archive)], cwd=root, check=True)
+            subprocess.run(['tar', '-xf', str(archive), '-C', str(tree)], check=True)
+            archive.unlink()
+            subprocess.run(['node', str(root / 'scripts/link-node-modules.mjs'), str(root), str(tree)], check=True)
+            env = dict(os.environ, WS_VITEST_MAX_WORKERS='2')
+            for key in subprocess.check_output(['git', 'rev-parse', '--local-env-vars'], cwd=root, text=True).splitlines():
+                env.pop(key, None)
             base = subprocess.check_output(['git', 'merge-base', 'origin/main', sha], cwd=root, text=True).strip()
             changed = subprocess.check_output(['git', 'diff', '--name-only', '--no-renames', base, sha], cwd=root, text=True).splitlines()
-            (tree / '.local-gate-changed.json').write_text(json.dumps(changed))
-            present = [p for p in changed if (tree / p).is_file() and p.endswith(('.ts', '.tsx', '.js', '.mjs', '.cjs'))]
+            present = [path for path in changed if (tree / path).is_file() and path.endswith(('.ts', '.tsx', '.js', '.mjs', '.cjs'))]
+            source_list = tree / '.local-gate-changed.json'
+            source_list.write_text(json.dumps(present))
+            commands = [['pnpm', 'gen'], ['node', 'scripts/check-graph.mjs', '--source-only'],
+                        ['node', 'scripts/local-gate-checks.mjs', 'types', str(source_list)]]
             if present:
-                # These are ephemeral build inputs, not committed-output regeneration.
-                run('generation-inputs', ['node', str(tree / 'scripts/commit-inputs.mjs'), '--restore', str(root), sha, str(tree)], observed=('scripts/commit-inputs.mjs',))
-                run('affected-plan', ['node', str(root / 'scripts/local-gate-checks.mjs'), 'plan', str(tree / '.local-gate-changed.json'), str(common / 'gate-vitest-results')])
-                plan = json.loads((tree / '.local-gate-plan.json').read_text())
-                print((work / 'affected-plan.log').read_text(), flush=True)
-                jobs = [('typecheck', ['node', str(root / 'scripts/local-gate-checks.mjs'), 'types', str(tree / '.local-gate-changed.json')], present),
-                        ('oxlint', ['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *present], present)]
-                if plan['local']:
-                    jobs.append(('vitest', ['pnpm', 'exec', 'vitest', 'run', *plan['local']], plan['local']))
-                test_env = dict(os.environ, WS_VITEST_MAX_WORKERS=os.environ.get('WS_VITEST_MAX_WORKERS', '4'))
-                with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-                    futures = [executor.submit(run, name, command, tree, test_env, observed) for name, command, observed in jobs]
-                    errors = []
-                    for future in futures:
-                        try:
-                            future.result()
-                        except RuntimeError as error:
-                            errors.append(str(error))
-                    if errors:
-                        # Type-aware native lint also depends on the narrowed
-                        # program's imports and ambient roots, not just operands.
-                        lint_trace = str(work / 'trace-oxlint')
-                        type_trace = str(work / 'trace-typecheck')
-                        if lint_trace in failed and type_trace not in failed:
-                            failed.append(type_trace)
-                        # No producers: bind refusal to this exact commit's observed inputs.
-                        with (work / 'refusal.log').open('w') as stream:
-                            bounded(['node', str(root / 'scripts/push-refusal.mjs'), '--record', str(root), sha, str(tree), json.dumps(failed)], root, started + CAP_SECONDS, stream)
-                        raise RuntimeError(', '.join(errors))
-            if time.monotonic() > deadline:
-                raise RuntimeError('total exceeded 120s gate deadline')
-            stamps.mkdir(parents=True, exist_ok=True)
-            (stamps / sha).write_text(sha + '\n')
-            ok = True
-            print('vercel-gate: ' + sha[:9] + ' passed')
-            return 0
-    except (RuntimeError, subprocess.CalledProcessError) as error:
+                commands.append(['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *present])
+            commands.extend([['pnpm', 'test'], ['pnpm', 'build']])
+            for command in commands:
+                subprocess.run(command, cwd=tree, env=env, check=True)
+        passed.parent.mkdir(parents=True, exist_ok=True)
+        passed.write_text('build passed\n')
+        print('vercel-gate: ' + sha[:9] + ' passed')
+        return 0
+    except subprocess.CalledProcessError as error:
         print('vercel-gate: FAILED at ' + sha[:9] + ' — ' + str(error), file=sys.stderr)
         return 1
-    finally:
-        wall = round(time.monotonic() - started, 3)
-        print(f'vercel-gate: total {wall:.3f}s / 120s; ' + ('GREEN' if ok else 'RED'), flush=True)
-        with (common / 'gate-timings.jsonl').open('a') as stream:
-            stream.write(json.dumps(dict(at=int(time.time()), sha=sha, wall=wall, mode='changed', ok=ok, steps=steps)) + '\n')
 
 
 if __name__ == '__main__':

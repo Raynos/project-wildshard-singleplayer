@@ -97,18 +97,18 @@ export function bootCases(catalogue, group = 'all') {
     if (!/^[a-z0-9_-]+$/u.test(row.slug) || seen.has(row.slug) || !['live', 'earlyAccess', 'experimental', 'hidden'].includes(row.status)) throw new Error('Invalid or duplicate built title shard');
     seen.add(row.slug);
   }
-  const primary = catalogue.filter(row => !row.legacy && row.status !== 'hidden' && !row.slug.startsWith('_'));
+  const primary = catalogue.filter(row => !row.legacy);
   if (!primary.some(row => row.slug === 'sunscar-dunes')) throw new Error('Signal page-ready case is missing from the built catalogue');
-  const publicRows = primary.filter(row => row.status !== 'experimental');
+  const publicRows = primary.filter(row => row.status !== 'experimental' && row.status !== 'hidden');
   const home = publicRows.at(0)?.slug;
   if (home === undefined) throw new Error('No public shard page-ready cases');
   if (!primary.some(row => row.slug === 'nine-dragon-stack')) throw new Error('Nine Developer-off page-ready case is missing from the built catalogue');
   // Direct Nine chunk hydration uses the public playing envelope even while
   // its experimental picker card stays locked. The Developer case separately
   // proves entered gameplay; admission is never labelled public gameplay.
-  const publicCases = primary.filter(row => row.status !== 'experimental' || row.slug === 'nine-dragon-stack')
+  const publicCases = primary.filter(row => row.status !== 'hidden' && (row.status !== 'experimental' || row.slug === 'nine-dragon-stack'))
     .map(row => /** @type {const} */ ([row.status === 'experimental' ? 'public-policy' : 'standalone', row.slug, false]));
-  const developerCases = [...primary.filter(row => row.status === 'experimental').map(row => /** @type {const} */ (['standalone', row.slug, true])), /** @type {const} */ (['grid', home, false])];
+  const developerCases = [...primary.filter(row => row.status === 'experimental' || row.status === 'hidden').map(row => /** @type {const} */ (['standalone', row.slug, true])), /** @type {const} */ (['grid', home, false])];
   return group === 'public' ? publicCases : group === 'developer' ? developerCases : [...publicCases, ...developerCases];
 }
 

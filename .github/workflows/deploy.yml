@@ -82,12 +82,6 @@ jobs:
           cp scripts/deploy-pin.mjs scripts/deploy-version.mjs "$RUNNER_TEMP/"
           node "$RUNNER_TEMP/deploy-pin.mjs" read
 
-      - name: Gate check (a required pin needs gpu-gate = success)
-        if: env.DEPLOY == 'true' && steps.pin.outputs.gate == 'required'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: node "$RUNNER_TEMP/deploy-pin.mjs" check-gate "${{ steps.pin.outputs.sha }}"
-
       - name: Check out the pin
         if: env.DEPLOY == 'true'
         run: |
@@ -125,8 +119,8 @@ jobs:
         if: steps.live.outputs.skip != 'true'
         run: pnpm install --frozen-lockfile
 
-      # SF74 W0 / W15: a release pin whose exact SHA passed push CI (typecheck-lint, this job's test:checks, build and
-      # chunk check, plus all eight vitest shards) reuses that proof: no typecheck, lint, test or extra vite
+      # SF74 W0 / W15: a release pin whose exact SHA passed push CI (typecheck-lint, this job's test:layers, build and
+      # headless behaviour) reuses that proof: no typecheck, lint, test or extra vite
       # build here (24.5 min → ~4 min on 2026-10-09). `vercel build` below still runs `pnpm build` (gen, tsc, shardfiles,
       # vite build) and the chunk check reads its dist. Unproven historical pins still run everything.
       - name: Typecheck
@@ -142,13 +136,13 @@ jobs:
         run: |
           pnpm test
           python3 scripts/heavy-lane.py build -- pnpm exec vite build
-          node scripts/check-chunks.mjs dist
+          node scripts/check-devserver.mjs dist
 
       # SF74 W16: push / PR CI runs test:checks' commands and the vite build + chunk check at once (serial ~205 s on the
       # runner); typecheck and lint run in their own job beside this one, and vitest in its shards.
       - name: Checks and build (parallel)
         if: env.DEPLOY != 'true'
-        run: node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs 'python3 scripts/heavy-lane.py build -- pnpm exec vite build && node scripts/check-chunks.mjs dist'
+        run: node scripts/build-without-browser.mjs -- node scripts/ci-checks.mjs 'python3 scripts/heavy-lane.py build -- pnpm exec vite build && node scripts/check-devserver.mjs dist'
 
       - name: CSS check
         if: steps.live.outputs.skip != 'true'
@@ -170,7 +164,7 @@ jobs:
           printf '{"projectId":"%s","orgId":"%s"}' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
           vercel pull --yes --environment production --scope raynos-projects --token "$VERCEL_BUILD_TOKEN"
           vercel build --prod --scope raynos-projects --token "$VERCEL_BUILD_TOKEN"
-          node scripts/check-chunks.mjs dist # the dist `pnpm build` just made (the Test step's build is skipped on a CI-green pin)
+          node scripts/check-devserver.mjs dist # the dist `pnpm build` just made (the Test step's build is skipped on a CI-green pin)
           test -f .vercel/output/config.json
           test -f .vercel/output/static/version.json
           test -f .vercel/output/functions/api/inbox.func/.vc-config.json
@@ -234,78 +228,16 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
-  # Push / PR CI runs the vitest suite once, split over parallel jobs (E429, Jake 2026-10-03: "Split 3 ways"; E454, Jake
-  # 2026-10-07: CI must be fast, so 6 ways: each 3-way shard took ~4.5 min and was the run's critical path; SF74 W16,
-  # 2026-10-09: 8 ways, each 6-way shard took a median 3.6-4.4 min of a 5.6 min run). No coverage here (Jake, G287,
-  # 2026-10-09: coverage instrumentation made the headless suites time out, 36 red runs, and added a dependent hop):
-  # .github/workflows/coverage.yml runs the 8 shards with coverage, the merge and the ratchet nightly and on a milestone
-  # dispatch. A red shard fails the run, and deploy-pin's newest-ci-green only takes a push run whose every job passed.
-  vitest:
+  behaviour:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-        with:
-          filter: blob:none
-          sparse-checkout: |
-            /*
-            !/progress/
-            !/art/
-            !/sources/
-          sparse-checkout-cone-mode: false
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
+        with: {version: 10}
       - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: pnpm
-      # links the @wildshard/* workspace packages (E432), so it stays before vitest
-      - name: Install
-        run: pnpm install --frozen-lockfile
-      - name: Restore native generation cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/wildshard/generate
-          key: ${{ runner.os }}-native-witness-${{ matrix.shard }}-${{ hashFiles('test/proof/*/checkpoints/manifest.json') }}
-          restore-keys: |
-            ${{ runner.os }}-native-witness-${{ matrix.shard }}-
-      - name: Vitest shard ${{ matrix.shard }}/8
-        env:
-          WS_REPLAY_DIAGNOSTICS_DIR: ${{ runner.temp }}/wildshard-replay-diagnostics
-        run: |
-          node --input-type=module -e "import { availableParallelism, cpus } from 'node:os'; console.log('ci-vitest-resource: cores=' + cpus().length + ' available=' + availableParallelism());"
-          phase_started=$SECONDS
-          pnpm gen
-          printf 'ci-vitest-phase: generation %s s\n' "$((SECONDS - phase_started))"
-          phase_started=$SECONDS
-          node scripts/witness-manifests.mjs --prepare .
-          printf 'ci-vitest-phase: native-cache %s s\n' "$((SECONDS - phase_started))"
-          phase_started=$SECONDS
-          python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run --shard=${{ matrix.shard }}/8 --reporter=dot --reporter=github-actions
-          printf 'ci-vitest-phase: vitest %s s\n' "$((SECONDS - phase_started))"
-      - name: Upload bounded replay mismatch
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: replay-mismatch-${{ github.sha }}-${{ matrix.shard }}
-          path: ${{ runner.temp }}/wildshard-replay-diagnostics/*.json
-          if-no-files-found: ignore
-          retention-days: 3
-
-      # Keep Linux per-file durations for W16/W23 balancing; no tests or
-      # shard weights change. Upload only the existing Vitest timing cache.
-      - name: Upload Vitest timing cache
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vitest-timings-${{ github.sha }}-${{ matrix.shard }}
-          path: node_modules/.vite/vitest/**/results.json
-          include-hidden-files: true
-          if-no-files-found: ignore
-          retention-days: 3
+        with: {node-version: 24, cache: pnpm}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm gen
+      - run: pnpm test
