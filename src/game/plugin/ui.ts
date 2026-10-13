@@ -472,13 +472,17 @@ export function installEnteredQuestPresentation(context: ShardContext, quest: Qu
 }
 
 
+/** Detached coordinate outputs for a private geometry kernel. */
+export interface ClientTubeFrame { readonly fromX: number; readonly fromY: number; readonly fromZ: number;
+  readonly toX: number; readonly toY: number; readonly toZ: number; readonly extent: number; readonly wave: number }
+
 /** A detached visual observation; only these numeric values and the clock cross the presentation boundary. */
 export interface ClientChannelObservation { readonly time: number; readonly delta: number; readonly values: readonly number[] }
 /** Read-only visual output; property getters expose no writable storage or authoritative object. */
 export type ClientChannelFrame = Readonly<Partial<Record<ClientChannelProperty, number>>>;
 /** A capability-limited numeric lane; it has no state setter, physics port, event writer or player reference. */
 export function createClientChannels(input: unknown): {
-  readonly reads: readonly string[]; readonly frame: ClientChannelFrame; evaluate: (observation: ClientChannelObservation) => void;
+  readonly reads: readonly string[]; readonly frame: ClientChannelFrame; readonly geometry?: ClientTubeFrame; evaluate: (observation: ClientChannelObservation) => void;
 } {
   const program = parseClientChannels([input])[0]; if (program === undefined) throw new Error('Missing client channel program');
   const nodes = structuredClone(program.nodes), scratch = new Float64Array(nodes.length), published = new Float64Array(nodes.length), reads = new Float64Array(program.reads.length);
@@ -487,6 +491,12 @@ export function createClientChannels(input: unknown): {
   const frame: Partial<Record<ClientChannelProperty, number>> = {};
   for (const channel of program.channels) Object.defineProperty(frame, channel.property, { enumerable: true, get: () => published[channel.value] });
   Object.freeze(frame);
+  const tube = program.geometry;
+  const geometry: ClientTubeFrame | undefined = tube === undefined ? undefined : Object.freeze({
+    get fromX() { return published[tube.from[0]] ?? Number.NaN; }, get fromY() { return published[tube.from[1]] ?? Number.NaN; }, get fromZ() { return published[tube.from[2]] ?? Number.NaN; },
+    get toX() { return published[tube.to[0]] ?? Number.NaN; }, get toY() { return published[tube.to[1]] ?? Number.NaN; }, get toZ() { return published[tube.to[2]] ?? Number.NaN; },
+    get extent() { return published[tube.extent] ?? Number.NaN; }, get wave() { return published[tube.wave] ?? Number.NaN; },
+  });
   const evaluate = (observation: ClientChannelObservation): void => {
     const { time, delta, values } = observation;
     if (!Number.isFinite(time) || !Number.isFinite(delta) || delta < 0 || Math.abs(time) > 1e12 || delta > 1e12 || values.length !== reads.length) throw new Error('Invalid copied client observation');
@@ -545,21 +555,32 @@ export function createClientChannels(input: unknown): {
     }
     published.set(scratch); locals.set(next); initialized = true;
   };
-  return Object.freeze({ reads: Object.freeze([...program.reads]), frame, evaluate });
+  return Object.freeze({ reads: Object.freeze([...program.reads]), frame, evaluate, ...(geometry === undefined ? {} : { geometry }) });
 }
 
+/** A trusted private view supplies its own declared geometry kernel; admission never accepts a function. */
+export type ClientGeometryKernels = ReadonlyMap<string, (row: NonNullable<ClientChannelProgram['geometry']>, target: unknown) => (frame: ClientTubeFrame, time: number) => void>;
+
 /** Bind admitted numeric outputs only to named private scene objects; authoritative player/shared objects refuse. */
-export function createClientChannelView(input: unknown, targets: ReadonlyMap<string, unknown>): ReturnType<typeof createClientChannels> {
+export function createClientChannelView(input: unknown, targets: ReadonlyMap<string, unknown>, kernels?: ClientGeometryKernels): ReturnType<typeof createClientChannels> {
   const program = parseClientChannels([input])[0];
-  if (program?.bindings === undefined) throw new Error('Missing visual channel bindings');
-  const bindings = program.bindings.map(binding => {
+  if (program === undefined || program.bindings === undefined && program.geometry === undefined) throw new Error('Missing visual channel bindings');
+  let curve: ((frame: ClientTubeFrame, time: number) => void) | undefined;
+  if (program.geometry !== undefined) {
+    const target = targets.get(program.geometry.target), kernel = kernels?.get(program.geometry.target);
+    if (!(target instanceof Object3D)) throw new Error('Geometry target must be a private scene object');
+    if (kernel === undefined) throw new Error('Missing trusted private geometry kernel');
+    curve = kernel(program.geometry, target);
+  }
+  const bindings = (program.bindings ?? []).map(binding => {
     const object = targets.get(binding.target);
     if (!(object instanceof Object3D)) throw new Error('Client channel target must be a private scene object');
-    return { ...binding, object };
+    return { property: binding.property, target: binding.target, order: binding.order, object };
   });
   const lane = createClientChannels(program);
   const evaluate = (observation: ClientChannelObservation): void => {
     lane.evaluate(observation);
+    if (curve !== undefined) { if (lane.geometry === undefined) throw new Error('Missing tube outputs'); curve(lane.geometry, observation.time); }
     for (const binding of bindings) {
       const { object, property, order } = binding, value = lane.frame[property];
       if (value === undefined) throw new Error('Missing bound visual channel');

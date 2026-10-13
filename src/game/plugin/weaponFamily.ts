@@ -1,4 +1,4 @@
-import { createClientChannelView } from './ui';
+import { createClientChannelView, type ClientGeometryKernels } from './ui';
 import { Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
 import { HeldWeaponClock, type ContactFamily, type ContactScanTarget } from "@wildshard/engine/combat/contactWeapon";
@@ -339,13 +339,13 @@ export class HeldPlayback {
   private elapsed = 0;
   private delta = 0;
   private readonly groups = new Map<string, { lane: ReturnType<typeof createClientChannelView>; copied: number[] }[]>();
-  constructor(rows: Readonly<Record<string, readonly unknown[]>>, parts: ReadonlyMap<string, unknown>) {
+  constructor(rows: Readonly<Record<string, readonly unknown[]>>, parts: ReadonlyMap<string, unknown>, kernels?: ClientGeometryKernels) {
     const groups = Object.entries(rows);
     if (groups.length === 0 || groups.length > 16) throw new RangeError('Held playback groups exceed admission');
     for (const [id, programs] of groups) {
       if (!/^[a-z][a-zA-Z0-9.-]*$/u.test(id) || id.length > 128 || !Array.isArray(programs) || programs.length === 0 || programs.length > 8) throw new Error('Invalid held playback group');
       this.groups.set(id, programs.map(program => {
-        const lane = createClientChannelView(program, parts);
+        const lane = createClientChannelView(program, parts, kernels);
         return { lane, copied: Array.from({ length: lane.reads.length }, () => 0) };
       }));
     }

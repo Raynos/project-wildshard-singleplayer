@@ -4141,3 +4141,35 @@ controller as that row's binding. It is explicit and idempotent, with
 no perception or movement tick; unknown/foreign kinds refuse. Ordinary
 kinds return null without constructing their decision policy. Existing
 `bind`, native body and quiet controller lookup paths stay unchanged.
+
+
+### Declared private geometry kernels in held playback
+
+`ClientChannels.deformTube(row)` retains a `tubeCurve` descriptor on the
+admitted client-channel program. Its `from`, `to`, `extent` and `wave`
+fields refer to already evaluated scalar nodes; the bend, ripple, drop
+and radius tuples retain the author's original coefficients. Geometry
+programs may have no transform outputs; an ordinary empty program still
+refuses. Admission bounds the segments to 1–1024, radial sides to 3–64
+and their vertex product to 4096; every scalar reference is checked
+before a private target is bound. This is declaration and scalar
+evaluation, not a per-vertex DAG or simulation command.
+
+`HeldPlayback(groups, privateParts, kernels?)` forwards an optional map
+of trusted private geometry factories to `createClientChannelView`. The
+map keys name the declared private target. A factory receives the
+admitted descriptor and that private scene object, and returns its
+owned `(frame, time)` kernel. The frozen frame exposes eight detached
+scalar outputs; `time` is the existing presentation clock. No function
+arrives in shardfile data. Missing factories, non-private scene targets
+and invalid observations refuse; default transform-only callers remain
+unchanged. A geometry owner must validate its storage and preserve its
+original normal/bounds updates and lifetime.
+
+Signal's original ring loop stays in its private `LashCord.bindCurve`,
+where literal iteration caps enforce the admitted bounds. Only
+frame-invariant original arithmetic is cached; its vertex backing,
+animated arithmetic order and normal computation stay exact. The
+shared host does not copy the loop, and its relocation is not claimed
+as a custom-code cut. Both lash and fan still use the same held
+presentation owner; this private geometry law is an open Signal C6 tail.

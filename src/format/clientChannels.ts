@@ -37,20 +37,34 @@ const initial = v.variant('op', [
   v.strictObject({ op: v.literal('constant'), value: v.pipe(v.number(), v.finite(), v.minValue(-1e12), v.maxValue(1e12)) }),
   v.strictObject({ op: v.literal('read'), index: v.pipe(index, v.maxValue(31)) }),
 ]);
+const coefficient = v.pipe(v.number(), v.finite(), v.minValue(-1000), v.maxValue(1000));
+/** A bounded, private tube deformation kernel; scalar inputs name already computed DAG nodes. */
+const geometry = v.pipe(v.strictObject({ kind: v.literal('tubeCurve'), target: name,
+  segments: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(1024)),
+  radial: v.pipe(v.number(), v.integer(), v.minValue(3), v.maxValue(64)),
+  from: v.tuple([index, index, index]), to: v.tuple([index, index, index]), extent: index, wave: index,
+  bend: v.tuple([coefficient, coefficient]), ripple: v.tuple([coefficient, coefficient, coefficient]),
+  drop: v.tuple([coefficient, coefficient]),
+  radius: v.tuple([v.pipe(coefficient, v.minValue(0)), v.pipe(coefficient, v.minValue(0), v.maxValue(8)),
+    v.pipe(coefficient, v.minValue(0)), v.pipe(coefficient, v.minValue(0), v.maxValue(1)), v.pipe(coefficient, v.minValue(0))]),
+}), v.check(row => (row.segments + 1) * row.radial <= 4096, 'bounded tube vertices'));
 const program = v.strictObject({
   id: name,
+  geometry: v.exactOptional(geometry),
   prompt: v.exactOptional(prompt),
   bindings: v.exactOptional(v.pipe(v.array(binding), v.minLength(1), v.maxLength(CLIENT_CHANNEL_LIMITS.channels))),
   mover: v.exactOptional(name),
   reads: v.pipe(v.array(name), v.maxLength(CLIENT_CHANNEL_LIMITS.reads)),
   locals: v.exactOptional(v.pipe(v.array(v.strictObject({ initial, next: index })), v.minLength(1), v.maxLength(CLIENT_CHANNEL_LIMITS.locals))),
   nodes: v.pipe(v.array(node), v.minLength(1), v.maxLength(CLIENT_CHANNEL_LIMITS.nodes)),
-  channels: v.pipe(v.array(v.strictObject({ property: ClientChannelPropertySchema, value: index })), v.minLength(1), v.maxLength(CLIENT_CHANNEL_LIMITS.channels)),
+  channels: v.pipe(v.array(v.strictObject({ property: ClientChannelPropertySchema, value: index })), v.minLength(0), v.maxLength(CLIENT_CHANNEL_LIMITS.channels)),
 });
 /** Data-only client programme, with selected copied observations and visual outputs. */
 export type ClientChannelProgram = v.InferOutput<typeof program>;
 /** A straight-line DAG: every reference names an earlier node, never a loop, call or recursive expression. */
-export const ClientChannelProgramSchema: v.GenericSchema<v.InferInput<typeof program>, ClientChannelProgram> = v.pipe(program, v.check(row => new Set(row.reads).size === row.reads.length
+export const ClientChannelProgramSchema: v.GenericSchema<v.InferInput<typeof program>, ClientChannelProgram> = v.pipe(program, v.check(row => (row.channels.length > 0 || row.geometry !== undefined)
+  && (row.geometry === undefined || [...row.geometry.from, ...row.geometry.to, row.geometry.extent, row.geometry.wave].every(value => value < row.nodes.length))
+  && new Set(row.reads).size === row.reads.length
   && new Set(row.channels.map(channel => channel.property)).size === row.channels.length
   && new Set((row.bindings ?? []).map(item => `${item.target}:${item.property}`)).size === (row.bindings?.length ?? 0)
   && (row.bindings ?? []).every(item => row.channels.some(channel => channel.property === item.property) && (item.order === undefined || ['yaw', 'pitch', 'roll'].includes(item.property)))

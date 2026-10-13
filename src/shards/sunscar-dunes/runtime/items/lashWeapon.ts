@@ -45,8 +45,8 @@ export class LashWeapon extends HeldContactWeapon<CombatTarget> {
   private readonly targets: Targets | null;
   private readonly spec: LashSpec; private readonly view: LashView;
   private readonly playback: HeldPlayback;
-  private readonly observed = { holster: 0, spring: 0, ext: 0, slack: 0 };
-  private readonly from = new Vector3(); private readonly end = new Vector3();
+  private readonly observed = { holster: 0, spring: 0, ext: 0, slack: 0, tipX: 0, tipY: 0, tipZ: 0, gripX: 0, gripY: 0, gripZ: 0, modelX: 0, modelY: 0, reach: 0, taut: 0, caughtX: 0, caughtY: 0, caughtZ: 0 };
+  private readonly end = new Vector3();
   /** What the lash reacts to in the world when it hits no creature. */
   private crackables: readonly LashWorldTarget[] = [];
   protected readonly moves: LashRuntime;
@@ -66,7 +66,7 @@ export class LashWeapon extends HeldContactWeapon<CombatTarget> {
       fired: () => { this.onFire?.(); }, struck: (id, killed) => { this.onHit?.(id, false, killed); },
       caught: caught => { if (this.moves.move === 1) this.wrap(caught.at); } });
     this.parts = o.parts; this.model = o.parts.root;
-    this.playback = new HeldPlayback(playback, new Map([['root', this.model], ['grip', this.parts.grip]]));
+    this.playback = new HeldPlayback(playback, new Map([['root', this.model], ['grip', this.parts.grip], ['cord', this.parts.lash.mesh]]), new Map([['cord', (row, object) => this.parts.lash.bindCurve(row, object)]]));
     this.model.position.set(...(o.parts.hero ? o.view.hold.hero : o.view.hold.code));
   }
   /** The world things the lash can crack. */
@@ -112,13 +112,14 @@ export class LashWeapon extends HeldContactWeapon<CombatTarget> {
     this.observed.ext = ext; this.observed.slack = slack;
     this.playback.apply('active', this.observed);
     coil.visible = false; lash.mesh.visible = true;
-    this.from.copy(tip).add(grip.position);
-    const reach = double ? spec.heavyReach : spec.reach;
-    // the far end sits on the crosshair: the model's origin is offset from the eye, so aim back at the view axis
-    this.end.set(-this.model.position.x, -this.model.position.y - slack * k.drop, -reach + k.lead + slack * k.back);
-    // caught on a lever: the far end stays on it, taut (the world point through the viewmodel)
+    // The contact clock and world-space catch remain authoritative; the copied view observations are not.
+    this.observed.tipX = tip.x; this.observed.tipY = tip.y; this.observed.tipZ = tip.z;
+    this.observed.gripX = grip.position.x; this.observed.gripY = grip.position.y; this.observed.gripZ = grip.position.z;
+    this.observed.modelX = this.model.position.x; this.observed.modelY = this.model.position.y;
+    this.observed.reach = double ? spec.heavyReach : spec.reach;
     if (this.wrapT > 0 && this.wrapAt !== null) { this.model.updateWorldMatrix(true, false); this.end.copy(this.wrapAt); this.model.worldToLocal(this.end); }
-    const taut = this.wrapT > 0;
-    lash.shape(this.from, this.end, taut ? 1 : Math.min(1, ext * (1 - slack * k.loosen)), taut ? k.tautSag : k.sag[0] + slack * k.sag[1], this.playback.time);
+    this.observed.taut = Number(this.wrapT > 0);
+    this.observed.caughtX = this.end.x; this.observed.caughtY = this.end.y; this.observed.caughtZ = this.end.z;
+    this.playback.apply('cord', this.observed);
   }
 }
