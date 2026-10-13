@@ -156,6 +156,9 @@ export function newestCiGreen(query = ghApi, log = (line) => console.error(line)
     if (boot?.state === 'success') {
       if (pending === undefined) return sha;
       proven ??= sha;
+      // Earlier ancestors were delivered by this proven release; they cannot
+      // keep an expired chase timer alive in the next hourly slot.
+      if (proof.get('production-live')?.state === 'success') break;
       // Anchor to an unshipped older commit's actual BOTH-proof completion,
       // not to the newest pending commit. Continuous landings cannot reset it.
       const bootAt = Date.parse(boot.createdAt), bothAt = Math.max(completedAt,bootAt);

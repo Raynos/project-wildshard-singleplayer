@@ -190,3 +190,13 @@ it('starts the chase clock only when both proofs are green and ignores supersede
   statuses[b]=`boot-smoke\tfailure\tlatest refuses\t2026-10-13T12:31:00Z\n${statuses[b]}`;
   expect(()=>newestCiGreen(query,record,Date.parse('2026-10-13T13:00:00Z'))).toThrow(PendingBootSmokeError);
 });
+
+it('does not reuse a delivered ancestor to expire the next release chase', () => {
+  const statuses={
+    [a]:'boot-smoke\tpending\tnewest',
+    [b]:'boot-smoke\tsuccess\tcurrent shipped\t2026-10-13T12:00:00Z\nproduction-live\tsuccess\tverified\t2026-10-13T12:01:00Z',
+    [c]:'boot-smoke\tsuccess\tolder ancestor\t2026-10-13T11:00:00Z',
+  };
+  const query=fixture(statuses).query;
+  expect(()=>newestCiGreen(query,record,Date.parse('2026-10-13T13:00:00Z'))).toThrow(PendingBootSmokeError);
+});
