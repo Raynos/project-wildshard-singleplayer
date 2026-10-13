@@ -1105,6 +1105,9 @@ The rows in §4 build these answers; each row names the ones it builds.
 | G360 | Where pushes are gated | **Keep the local gate, just faster** (Jake, 2026-10-13): no CI merge queue; the local pre-push gate stays, held to 2 minutes (G359) |
 | G361 | The regeneration bot | **Keep it, but batch** (Jake, 2026-10-13): at most one regeneration commit per hour, not one per push |
 | G362 | Long coordinator and plan-agent sessions | **Keep them going** (Jake, 2026-10-13): *"Restarting is too hard"*; no scheduled restarts |
+| G363 | What the 2-minute local gate runs | **Fast local, full in CI** (Jake, 2026-10-13, on the 12-hour usage audit `progress/process/usage-audit-2026-10-13/README.md`): the pre-push gate runs the changed-file typecheck and lint plus only the tests the change affects, cut off at 2 minutes; the full vitest, the bakes and the receipts run in CI after the push; a red CI pings the committing lane, which fixes forward; production still ships only CI-green, smoke-green SHAs |
+| G364 | Committed bakes going stale | **Cheap bakes regenerate at commit** (Jake, 2026-10-13, on the 12-hour usage audit `progress/process/usage-audit-2026-10-13/README.md`): physics, spots and maps regenerate at commit for the shards whose inputs changed and ride in the same commit; slow bakes (navmesh, voxel AO) stay committed and are checked in CI (about 40 % of push reds) |
+| G365 | Tests that pin exact numbers | **Limits, behaviour tests stay** (Jake, 2026-10-13, on the 12-hour usage audit `progress/process/usage-audit-2026-10-13/README.md`): byte totals, closure counts and snapshots become limits (≤ budget, ± tolerance) or are deleted; tests that check behaviour stay exactly as they are (about 25 % of push reds) |
 
 ## Handoff (shard-platform)
 
@@ -1220,7 +1223,7 @@ deck climb, landings outside the grid, item art) is `shard-platform/mockup-wave-
 (the cell edge), the entry width (two lanes, ≈ 8 m) and FINISH-LINE M1 (inside SHARD SELECT). The double jump exists
 (`Player.ts` jumpsLeft).
 
-**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §6 (the ordered M2-ready path), §9 (how it is built), §10 (G1–G362,
+**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §6 (the ordered M2-ready path), §9 (how it is built), §10 (G1–G365,
 Jake's words verbatim) and this Handoff → `docs/plans/shard-platform/reviews/register.md`, `council-2/register.md` and `council-3/register.md` (closed), `council-4/register.md` (closed) →
 `docs/reviews/shard-platform-mockups.md` + `art/README.md` (the boards Jake picked) → `herdr agent list` (the Codex panes) →
 `git log --oneline -30` → `node scripts/asks.mjs`. The coordinator is the only pusher; builders commit and reply with the
