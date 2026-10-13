@@ -65,6 +65,37 @@ already draw this way (they were rebaked in round 5). Recommendation: a near vie
 not own its cell (as `wildshard build`'s shardfile near row already never does), and should take its tiles' look
 materials, before the template is rebaked.
 
+## The template's near view, refreshed (sp-o87)
+
+Fixed as recommended above, generically (SDK bake + grid, no shard code):
+
+- **No takeover.** A baked near view built from a shard's own coarse tiles carries `near.tiles: true` in its `near.json`
+  and never owns its cell, as a shardfile's own near row never does: its L1 / L0 tiles keep refining over it and the near
+  view is masked out wherever they draw. A view that carries the shard's authored props (Driftwood, Nalati, Pine, Sky
+  Reach's islands) still owns its cell.
+- **Tile materials.** `shardfileWorld` colours each tile mesh as the client draws it: the catalogue entry its material
+  name binds (else `props.family`) tints the GLB's colour and vertex colours; a graph draws its preset or its plain
+  fallback (the Graph materials row is off by default); a measure layer paints its role colours from the measure UVs
+  (structure orange, trim grey, floor light grey). Colour maps are not sampled.
+- **Ink-cel, Pastel and the Blender template** (also built from their tiles) rebake byte-identical GLBs (their tiles'
+  fallback materials are plain vertex colour); only `tiles: true` lands in their `near.json`. They stop owning their
+  cells, which no road view or hero frame shows: their rings plan no tiles at that range.
+- **The template** rebaked: 1.81 MB resident (was 1.19 MB), content 7662 triangles, under the 8.5 MB ceiling.
+
+**Proof:** [`template-near-proof-iphone.jpg`](template-near-proof-iphone.jpg) (iPhone 16 Pro portrait) and
+[`template-near-proof-desktop.jpg`](template-near-proof-desktop.jpg): one camera over the template's far corner. Panel 1
+shows its real tiles (player on its far roundabout, Debug B: 13 of 16 regions refined). Panel 2 shows the committed near
+view alone (player far away, Debug C): ground only. Panel 3 shows the refreshed near view in the same frame: the plaza,
+the tower and the trim in their tiles' colours.
+
+**The game's views do not change.** All 30 round-6 panels (A / B / C, four road views + NE-b, iPhone + desktop) were
+re-shot on one base (`fea6e01b6`) before and after. The pixel diff is noise: a mean of at most 0.03 / 255 and no
+changed area. From the roundabout the template's rings refine every region its props stand in, so no round 7 board.
+
+Left as it was: the near view's ground is the template's far look (mid grey), not its floor's light grey. The 42 m block
+district in its far corner shows in the near view. Its real tiles at that range sit beyond the template's own fog (far
+180 m), so they fade out.
+
 ## Sky Reach: near view and island tiles
 
 Since `fd1b0a9a4` Sky Reach draws its twelve static islands from props tiles (11 L0 tiles, bound by its runtime). Its

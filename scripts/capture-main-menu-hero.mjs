@@ -15,7 +15,10 @@
  * --round=4 (G343): round4HeroPlan (above Driftwood, Nalati and Pine, aimed across the roundabout; never the template)
  *   with Debug Neighbour detail B (near placeholders) on; the square round's sizes and lenses.
  *   --enter stands the player in the cell under the eye first (enterOver); --only=<ids> / --sessions=<keys> narrow a re-shoot.
+ *   --pose=<id>:<ex,ey,ez>:<tx,ty,tz>[:<px,pz>] (round near) shoots one view of your own instead of the road views and
+ *   the hero, the player standing on the roundabout or at <px,pz>.
  * --tree builds the working tree instead of a clean HEAD export (a change not yet committed, e.g. during a push freeze).
+ * --rev=<commit> builds a clean export of that commit instead (a before / after pair on one base, e.g. an unpushed commit object).
  * Owns one clean --head preview and one muted browser-lane capture, then stops both.
  * Entry and calibrated pose follow progress/shard-platform/look28/capture.mjs.
  */
@@ -231,6 +234,11 @@ async function captureAerial(base) {
   const centre0 = plan.road ?? plan.poses[0].target, nearPoses = [...[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sz], i) => ({ id: `road-${i}`, name: `Road view ${i}`,
     eye: { x: centre0.x - sx * 30, y: 22, z: centre0.z - sz * 30 }, target: { x: centre0.x + sx * 240, y: 0, z: centre0.z + sz * 240 } })),
   ...plan.poses.filter(p => p.id === 'SQ-NE-b')];
+  // --pose=<id>:<eye x,y,z>:<target x,y,z> (grid metres, the player still on the roundabout) shoots that one view instead
+  const custom = flag('pose', '').split(':'), [eyeX, eyeY, eyeZ] = (custom[1] ?? '').split(',').map(Number), [toX, toY, toZ] = (custom[2] ?? '').split(',').map(Number);
+  // and a fourth field <x,z> stands the player there instead (a road point: the rings and the near plan rank from the player)
+  const [standX, standZ] = (custom[3] ?? '').split(',').map(Number), stand = custom.length === 4 ? { x: standX, y: 0, z: standZ } : null;
+  if (custom.length >= 3) nearPoses.splice(0, nearPoses.length, { id: custom[0], name: custom[0], eye: { x: eyeX, y: eyeY, z: eyeZ }, target: { x: toX, y: toY, z: toZ } });
   const sessions = (near
     ? ['far', 'near', 'all'].flatMap(nearTier => [
       { key: `${{ far: 'A', near: 'B', all: 'C' }[nearTier]}-iphone`, poses: nearPoses, context: { ...devices['iPhone 16 Pro'] },
@@ -278,7 +286,7 @@ async function captureAerial(base) {
         await page.evaluate(() => window.__wildshard.requireWorld().hud.enterNow());
         await page.waitForTimeout(8000);
         const identity = await page.evaluate(gridFloorDocumentIdentity);
-        const centre = centre0;
+        const centre = near && stand !== null ? stand : centre0;
         await page.evaluate(async p => {
           const api = window.__wildshard, w = api.requireWorld(), live = api.shard.grid.state().live.live;
           const offset = { x: live.worldFeet.x - w.player.position.x, z: live.worldFeet.z - w.player.position.z };
@@ -367,11 +375,11 @@ if (args.includes('--worker')) {
   const scratch = join(out, 'build'); mkdirSync(scratch, { recursive: true });
   let base;
   try {
-    base = (await command(join(root, 'scripts/serve-build.sh'), [...(args.includes('--tree') ? [] : ['--head']), '--name', 'main-menu-hero', '--hours', '1'], scratch,
+    base = (await command(join(root, 'scripts/serve-build.sh'), [...(args.includes('--tree') ? [] : flag('rev', '') !== '' ? ['--rev', flag('rev', '')] : ['--head']), '--name', 'main-menu-hero', '--hours', '1'], scratch,
       { ...process.env, SERVE_OWNER: serveOwner })).split('\n').at(-1);
     requireNoQuiet();
     await command(join(root, 'scripts/browser-lane.sh'), ['--max', '20', process.execPath, script, '--worker', `--round=${round}`, `--base=${base}`, `--out=${out}`,
-      ...args.filter(value => /^--(?:only=|sessions=|enter$)/u.test(value))], root,
+      ...args.filter(value => /^--(?:only=|sessions=|pose=|enter$)/u.test(value))], root,
       { ...process.env, HERO_CAPTURE_LANE: '1' });
     console.log(`Canvas candidates and pinned capture.json: ${out}`);
   } finally {
