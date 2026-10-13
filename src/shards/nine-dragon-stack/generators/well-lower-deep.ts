@@ -9,7 +9,7 @@ import { IcosahedronGeometry, Vector3 } from 'three';
 import type { Ctx } from '../world/ctx';
 import { E, K, type Kit, type Look } from '../world/kit';
 import { SURF } from '../look/paint';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { FLOOR_H } from './well-galleries';
 import { figure, kitLantern, litLantern, lowWin } from './well-lower-life';
 

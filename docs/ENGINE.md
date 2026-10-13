@@ -270,6 +270,16 @@ const random = ctx.app.rng.stream('cosmetic');   // prop scatter: may stay unsee
 
 `Math.random` and `performance.now` are ratcheted (`wildshard/no-raw-random-time`): a new shard file starts at 0.
 
+
+
+The build-only `Rng` and `RngState` in `@wildshard/sdk/random` give shard
+generators Mulberry32 without an engine/runtime import. `new Rng(seed)`,
+`Rng.scrambled(seed)`, draws, snapshot/restore and numeric/string forks
+match `core/rng` exactly. The structural `Rng` instance shape also accepts the
+runtime oracle when a builder is exercised by parity tests. Never use
+this constructor for live gameplay; use `app.rng` there. The permanent
+`test/sdk-author-random.test.ts` fences both implementations' sequences.
+
 ## 3. Events, asks, tags
 
 `app.events` (class `Events`) carries typed events and asks. A shard uses the scoped verbs `ctx.on` and `ctx.answer`.

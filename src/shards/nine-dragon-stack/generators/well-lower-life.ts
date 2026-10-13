@@ -24,7 +24,7 @@ import { WORDS } from '../world/words';
 import { hungLine } from './props';
 import { laundryLine, laundryPole } from './wellParts';
 import { Y0 } from '../layout';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { FLOOR_H, type GalleryKits, type GalleryProfile } from './well-galleries';
 
 const UP = new Vector3(0, 1, 0);

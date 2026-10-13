@@ -116,7 +116,8 @@
     "./bake": "./bake.ts",
     "./bake/navigationAsset": "./bake/navigationAsset.ts",
     "./productOutput": "./productOutput.ts",
-    "./projectMap": "./projectMap.ts"
+    "./projectMap": "./projectMap.ts",
+    "./random": "./random.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"

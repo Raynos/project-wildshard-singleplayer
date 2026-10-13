@@ -12,7 +12,7 @@ import { GATE, PLAZA, STALL, STREET, Y0, walkable } from '../layout';
 import { dragonHook, scooter } from './props';
 import { WELL_RUNS, balustrade, mahjongTable } from './squareParts';
 import { BOOTH, WELL_BALUSTRADE_AT } from '../world/specimenDims';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 
 const UPV = new Vector3(0, 1, 0);
 /** a figure's placement on the square's floor */

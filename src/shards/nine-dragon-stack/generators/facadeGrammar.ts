@@ -18,7 +18,7 @@ import { type Builder, E, K, type Look } from '../world/facade/geo';
 import { Dressing, type SignSlot } from '../world/facade/dressing';
 import { CAGE_W, PAL, type PieceId } from '../world/facade/pieceIds';
 import { BALCONY_W } from './facadePieces';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 
 export interface TowerSpec {
   /** footprint centre (world) */

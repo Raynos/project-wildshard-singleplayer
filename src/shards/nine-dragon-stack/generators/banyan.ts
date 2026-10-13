@@ -15,7 +15,7 @@ import type { Ctx } from '../world/ctx';
 import { curvedRoof, relief } from './gate';
 import { E, K, type Kit, type Look } from '../world/kit';
 import { BANYAN, Y0 } from '../layout';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';
 import { type KitX, curve } from '../world/hero/kitx';
 import { type BanyanPlan, type CanopyLump, banyanOut } from '../world/banyanPlan';

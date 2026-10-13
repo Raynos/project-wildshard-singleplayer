@@ -2,7 +2,7 @@
 // TRELLIS sitters by `mahjongSeats`; the brushed figures themselves are ./heroFigures.ts's.
 import { Vector3 } from 'three';
 import { K, type Kit, type Look } from '../world/kit';
-import type { Rng } from '@wildshard/engine/core/rng';
+import type { Rng } from '@wildshard/sdk/random';
 import type { KitX } from '../world/hero/kitx';
 import { person } from './heroFigures';
 

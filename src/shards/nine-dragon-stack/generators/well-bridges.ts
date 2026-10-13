@@ -26,7 +26,7 @@ import { STEEL_DK, STONE, lampPostStone, lotusPost } from './wellParts';
 import { WORDS } from '../world/words';
 import { stand } from './well-galleries';
 import { NEON, clamp } from '../util';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 
 export type BridgeKind = 'stone' | 'timber' | 'steel' | 'covered' | 'gate';

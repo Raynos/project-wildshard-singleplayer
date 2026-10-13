@@ -10,7 +10,7 @@
  */
 import { type BufferGeometry, Vector3 } from 'three';
 import { type ModelDef, paramsOf } from '@wildshard/engine/models/model';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { HAWKER, STALL } from '../layout';
 import { Ctx } from '../world/ctx';
 import { Kit } from '../world/kit';

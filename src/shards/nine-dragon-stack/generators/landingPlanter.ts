@@ -4,7 +4,7 @@
 import { Color, IcosahedronGeometry, Vector3 } from 'three';
 import { K, type Kit, type Look } from '../world/kit';
 import { SURF } from '../look/paint';
-import type { Rng } from '@wildshard/engine/core/rng';
+import type { Rng } from '@wildshard/sdk/random';
 
 const UP = new Vector3(0, 1, 0);
 

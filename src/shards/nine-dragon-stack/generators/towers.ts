@@ -17,7 +17,7 @@ import { buildStairStreet } from './stairstreet';
 import { SQ_DEPTH } from '../world/stairPlan';
 import { buildStairUpper } from './stairstreet-upper';
 import { NEON, chars } from '../util';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 
 export const NEONS = [NEON.magenta, NEON.cyan, NEON.jade, NEON.red, NEON.amber, NEON.red, NEON.magenta, NEON.cyan, 0xff7a2a, 0xa8ff5a] as const;
 const hex = (n: number): string => `#${n.toString(16).padStart(6, '0')}`;

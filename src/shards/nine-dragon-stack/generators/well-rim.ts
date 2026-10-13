@@ -12,7 +12,7 @@ import { relief } from './gate';
 import { placeLion } from '../world/props3d';
 import type { KitX } from '../world/hero/kitx';
 import { NEON } from '../util';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { NEONS } from './towers';
 import { WORDS } from '../world/words';
 import { SURF } from '../look/paint';

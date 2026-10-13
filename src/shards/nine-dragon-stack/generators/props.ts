@@ -1,4 +1,4 @@
-import type { Rng } from '@wildshard/engine/core/rng';
+import type { Rng } from '@wildshard/sdk/random';
 // Small props, all ruled: people (brush-dark coats), mahjong tables, stools, scooters, the dragon hooks (the only gold in
 // reach, reserved for the grapple), laundry, pipes; plus the instanced lantern and air-con kit pieces.
 import { Box3, Vector3 } from 'three';

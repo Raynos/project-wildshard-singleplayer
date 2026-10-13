@@ -3,7 +3,7 @@
 // the banyan model's (public/assets/nine-dragon/baked/specimens.bin); the page draws them in its foliage program
 // (../world/canopy.ts `buildCanopy`).
 import { BufferGeometry, Float32BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 /** one lump of foliage: centre, radii (x, y, z; axis-aligned), how high it sits on its shelf, a seed */
 export interface Lump { c: Vector3; r: Vector3; up: number; seed: number; wash: number }
 

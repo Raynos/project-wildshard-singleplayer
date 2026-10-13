@@ -31,7 +31,7 @@ import { STAIR, Y0 } from '../layout';
 import { ASHLAR, COPING, FLOWER_COLS, ICO0, landingPlanter, leafBush, leafLook, leafQuad, tint } from './landingPlanter';
 import { PLANTER } from '../world/specimenDims';
 import { MIN, NEON } from '../util';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 
 // ── looks ──
 const STEP_TOP: Look = { wash: 0x51545a, kind: K.flag, wet: 1, line: 1.8 };

@@ -14,7 +14,7 @@ import { dragonHook } from './props';
 import { NEONS } from './towers';
 import { WORDS } from '../world/words';
 import { NEON } from '../util';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';
 import { FLOOR_H, stand } from './well-galleries';
 import { archDrop, bridge, net, station } from './well-bridges';

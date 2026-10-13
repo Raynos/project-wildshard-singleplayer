@@ -14,7 +14,7 @@ import { Vector3 } from 'three';
 import { E, K, type Kit, type Look } from '../world/kit';
 import type { SignSink } from '../look/signs';
 import { type KitX, type XLook, curve } from '../world/hero/kitx';
-import { Rng } from '@wildshard/engine/core/rng';
+import { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';
 import type { GateSpec } from '../world/specimenDims';
 
