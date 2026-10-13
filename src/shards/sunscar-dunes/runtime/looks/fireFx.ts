@@ -1,12 +1,14 @@
 import { registerMaterialPreparation } from '@wildshard/engine/render/materialPreparation';
 import { AdditiveBlending, BufferGeometry, CustomBlending, LinearFilter, LinearMipmapLinearFilter, OneFactor, OneMinusSrcAlphaFactor, Float32BufferAttribute, Mesh, NormalBlending, PlaneGeometry, Points, ShaderMaterial, Vector4, type Group, type Object3D, type Texture, type Vector3 } from 'three';
 import { loadPaintedTexture } from '@wildshard/game/plugin/geometry';
+import { cardGroup, type CardPrograms, type CardRow } from '@wildshard/sdk/looks/cardField';
 
 /**
  * Fire, embers and smoke as declared rows (SHARD-PLATFORM SF72, effect rows): a shard declares its fires' sizes and one
  * `FireStyle` (colours, gains, the breeze, an optional flipbook) as data, and `createFireFx` builds the shared GPU effect
  * from them. Every part is a shader on a few quads or points, animated on the GPU from one shared time uniform: no CPU
- * particles, no lights, ~4 draws a fire.
+ * particles, no lights, ~4 draws a fire. The billboards (flame tongues, glow, smoke, a lamp's halo) are placed on the SDK's
+ * card host (`@wildshard/sdk/looks/cardField` cardGroup, G395).
  *
  * - the flame: cylindrical billboards (they turn about Y to the camera) playing a flipbook of a fire render (one that
  *   did not load is a page fault: the flame stands undrawn, its glow, embers and smoke still burn);
@@ -248,6 +250,8 @@ void main() {
   /** The wisp's quad: 16 rows, so its sway curls it rather than tilting it. */
   const wispQuad = new PlaneGeometry(1, 1, 1, 16); wispQuad.translate(0, 0.5, 0);
   const glowQuad = new PlaneGeometry(2, 2);
+  /** the billboards' quads and materials, for the SDK card host (G395) */
+  const quads = { flame: quad, wisp: wispQuad, glow: glowQuad }, cards = { flame: flameMaterial, smoke: smokeMaterial, wisp: wispMaterial, glow: glowMaterial, lampGlow: lampGlowMaterial }, programs: CardPrograms<keyof typeof cards> = { material: (program) => cards[program] };
   const emberCache = new Map<number, BufferGeometry>();
   const embers = (n: number): BufferGeometry => {
     let g = emberCache.get(n);
@@ -268,14 +272,12 @@ void main() {
     addFire: (group, size, at) => {
       const parts: Object3D[] = [];
       const add = (o: Object3D): void => { o.frustumCulled = false; group.add(o); parts.push(o); };
-      const main = new Mesh(quad, flameMaterial); main.scale.set(size.flame * 0.56, size.flame, 1); main.position.y = -0.1; add(main);
-      const inner = new Mesh(quad, flameMaterial); inner.scale.set(size.flame * 0.34, size.flame * 0.8, 1); inner.position.set(0.05, -0.05, 0.05); add(inner);
-      // two narrower side tongues, offset and phase-shifted by their place
-      for (const k of [-1, 1]) { const side = new Mesh(quad, flameMaterial); side.scale.set(size.flame * 0.26, size.flame * (k > 0 ? 0.72 : 0.62), 1); side.position.set(k * size.flame * 0.11, -0.08, k * 0.07); add(side); }
-      const glow = new Mesh(glowQuad, glowMaterial); glow.scale.setScalar(size.glow); glow.position.y = size.flame * 0.4; glow.renderOrder = 2; add(glow);
-      const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(size.flame * 0.9); sparks.position.y = size.flame * 0.3; add(sparks);
-      const wisp = size.wisp === true;
-      const smoke = wisp ? new Mesh(wispQuad, wispMaterial) : new Mesh(quad, smokeMaterial); smoke.scale.set(size.smoke * (wisp ? 0.03 : 0.2), size.smoke, 1); smoke.position.y = size.flame * 0.7; smoke.renderOrder = 1; add(smoke);
+      const fh = size.flame, wisp = size.wisp === true, tongue = (sx: number, sy: number, off: readonly [number, number, number]): CardRow<keyof typeof cards> => ({ program: 'flame', quad: 'flame', scale: [fh * sx, fh * sy, 1], at: off });
+      // the main and inner tongues, then two narrower side tongues, offset and phase-shifted by their place; the glow round them
+      parts.push(...cardGroup(programs, { name: 'fire', order: 0, cards: [tongue(0.56, 1, [0, -0.1, 0]), tongue(0.34, 0.8, [0.05, -0.05, 0.05]), tongue(0.26, 0.62, [-fh * 0.11, -0.08, -0.07]), tongue(0.26, 0.72, [fh * 0.11, -0.08, 0.07]),
+        { program: 'glow', quad: 'glow', scale: size.glow, at: [0, fh * 0.4, 0], order: 2 }] }, {}, { quads, into: group }).meshes);
+      const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(fh * 0.9); sparks.position.y = fh * 0.3; add(sparks);
+      parts.push(...cardGroup(programs, { name: 'smoke', order: 1, cards: [{ program: wisp ? 'wisp' : 'smoke', quad: wisp ? 'wisp' : 'flame', scale: [size.smoke * (wisp ? 0.03 : 0.2), size.smoke, 1], at: [0, fh * 0.7, 0] }] }, {}, { quads, into: group }).meshes);
       if (at) {
         const r = Math.max(size.glow * 2.3, size.flame * 2.4), n = 16, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
         const p = g.getAttribute('position');
@@ -285,7 +287,7 @@ void main() {
       return parts;
     },
     addLampGlow: (group, glow, ground) => {
-      const halo = new Mesh(glowQuad, lampGlowMaterial); halo.scale.setScalar(glow); halo.renderOrder = 2; halo.frustumCulled = false; group.add(halo);
+      cardGroup(programs, { name: 'lamp', order: 2, cards: [{ program: 'lampGlow', quad: 'glow', scale: glow }] }, {}, { quads, into: group });
       const r = glow * 1.6, n = 10, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
       const p = g.getAttribute('position');
       for (let i = 0; i < p.count; i++) p.setY(i, ground(p.getX(i), p.getZ(i)) + 0.06);

@@ -8,7 +8,7 @@ import { loadPanorama, skyDome } from './sky';
 import { seaTexture } from './cloudSea';
 import { discLayer } from '../runtime/looks/discLayer';
 import { SEA_DISCS, SEA_PROGRAMS } from '../data/cloudSeaLook';
-import { cardField, cardGroup } from '../runtime/looks/cardField';
+import { cardField, cardGroup } from '@wildshard/sdk/looks/cardField';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { SKY_CARDS } from '../data/skyCards';
 import { SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS } from '../data/skyCardsLook';
