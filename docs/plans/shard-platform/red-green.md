@@ -121,3 +121,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | CI typed lint: `scripts/bake-query-terrain.mjs:14` no-overlap | `d3bdac368` | `ad30fba68` (Array.at; arity checks kept; Nalati hash exact) | sp-x7 |
 | 2026-10-13 | post-commit hang: a captured caller's stdout pipe held open by the background launcher (private-index helpers waited forever) | `321ac29ca` (+ ledger `93ec1c2fc`, ratchet `71e0d2752`) | `c47be4afa` (redirect + exec the whole launcher in all three branches) | sp-x7 |
 | 2026-10-13 | m5 parity boot fields red: Nalati meshes / programs / texture bytes; Driftwood update list / collider registry / GPU bytes | to attribute | pending (sp-o106: attribute per field, re-baseline intended ones only) | sp-o106 |
+| 2026-10-13 | push gate: oxlint (3 formatting / type-import issues) | `9c2ce3013` | `d8eb3af14` (385 portable pins unchanged) | sp-x8 |
