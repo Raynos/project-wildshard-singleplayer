@@ -11,16 +11,15 @@
  * is left out (its slot counted, so the rest of the scatter stands exactly where it was).
  */
 import * as THREE from 'three';
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { smoothstep } from '@wildshard/engine/core/noise';
-import { Rng } from '@wildshard/engine/core/rng';
-import { normalAt, trailDistance, cabinMask, inChunk, CABIN_SITES, TRAILS } from '@wildshard/engine/world/Heightfield';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { ROCK_SOLID_ABOVE } from '../models/mossyBoulder';
-import { inEntryLanes } from '../world/entryLanes';
-import type { PropPose, PropRows } from '../world/props';
-import source from '../shard.config';
-import { PINE_SEED } from './undergrowth';
+import { PineSeedStream as Rng } from './seedStream';
+import type { CragGround } from './cragGround';
+import { inEntryLanes, type EntryLaneSource, type PropPose, type PropRows } from './propRows';
+import { CABIN_SITES, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS } from '../data/layout';
+
+const CHUNK_HALF = 250, PINE_SEED = 1337, ROCK_SOLID_ABOVE = 0.35;
+const TRAILS = [S_ROAD, N_ROAD, W_ROAD, E_ROAD, ...Object.values(SPURS)];
+const inChunk = (x: number, z: number, margin = 0): boolean => Math.abs(x) <= CHUNK_HALF - margin && Math.abs(z) <= CHUNK_HALF - margin;
+const smoothstep = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /** the scans' footprints at scale 1: each rock's radius and height, the log's half-length and lowest point */
 export interface PropKit { rocks: readonly { radius: number; height: number }[]; log: { halfLen: number; bottom: number } }
@@ -40,7 +39,8 @@ export function propKit(rocks: readonly THREE.BufferGeometry[], log: THREE.Buffe
 /** a placement's pose: position, rotation and uniform scale (the page composes the same matrix from it) */
 function pose(p: THREE.Vector3, q: THREE.Quaternion, s: number): PropPose { return [p.x, p.y, p.z, q.x, q.y, q.z, q.w, s]; }
 
-export function bakePineProps(kit: PropKit, trunks: readonly Trunk[]): PropRows {
+export function bakePineProps(kit: PropKit, trunks: readonly Trunk[], ground: CragGround, entries: readonly EntryLaneSource[]): PropRows {
+  const { normalAt, heightAt, trailDistance, cabinMask } = ground;
   // the trunks in 16 m cells, as the forest's TreeGrid holds them ("which trunks are near")
   const cells = new Map<string, Trunk[]>();
   for (const t of trunks) { const k = `${String(Math.floor(t.x / 16))},${String(Math.floor(t.z / 16))}`; const b = cells.get(k); if (b) b.push(t); else cells.set(k, [t]); }
@@ -93,7 +93,7 @@ export function bakePineProps(kit: PropKit, trunks: readonly Trunk[]): PropRows 
     const at = sit(x, z, rockRng.range(0, Math.PI * 2), scale, sink, 0.85);
     const solid = shape.height * scale - sink > ROCK_SOLID_ABOVE;   // height showing above ground
     n++;
-    if (!(solid && inEntryLanes(source.entryways, CHUNK_HALF, x, z))) byShape[shape.k]?.push([shape.k, solid ? 1 : 0, ...at]);
+    if (!(solid && inEntryLanes(entries, CHUNK_HALF, x, z))) byShape[shape.k]?.push([shape.k, solid ? 1 : 0, ...at]);
   }
 
   // ── stumps: along the trails and around the cabins, as if cut for firewood ──
@@ -117,7 +117,7 @@ export function bakePineProps(kit: PropKit, trunks: readonly Trunk[]): PropRows 
     if (!treeFree(x, z, 1.2)) continue;
     const scale = stumpRng.range(0.8, 1.35), at = sit(x, z, stumpRng.range(0, Math.PI * 2), scale, 0.06 * scale, 0.7);
     // every stump collides: one standing in a declared entry's lanes is left out
-    if (inEntryLanes(source.entryways, CHUNK_HALF, x, z)) { gated++; continue; }
+    if (inEntryLanes(entries, CHUNK_HALF, x, z)) { gated++; continue; }
     stumps.push(at);
   }
 

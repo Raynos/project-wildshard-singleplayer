@@ -1,7 +1,8 @@
 import type * as THREE from 'three';
-import type { CragRows } from '../world/cragBake';
-/** Select the Pine level and install its baked terrain grid (the page's ground); returns the grid's seed. */
-export function installPineGround(): number;
+import type { CragRows } from './cragRows';
+import type { CragGround } from './cragGround';
+/** Explicit original renderer lattice and authored exclusion queries; no level is selected. */
+export function pineCragGround(): CragGround;
 /** The crag kit's nodes as the page loads them (src/shards/pine-hollow/generators/bake-pine-crags.mjs). */
 export function pineCragKit(): Promise<Map<string, THREE.BufferGeometry>>;
 /** The forest's trunks the crags step round (the physics bake's `trees`). */

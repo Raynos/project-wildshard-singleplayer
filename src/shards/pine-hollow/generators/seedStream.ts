@@ -14,4 +14,10 @@ export class PineSeedStream {
   range(a: number, b: number): number { return a + (b - a) * this.next(); }
   /** Original inclusive integer interval, consuming one native range sample. */
   int(a: number, b: number): number { return Math.floor(this.range(a, b + 1)); }
+  /** Original uniform choice and draw order; empty authored sets refuse instead of returning an absent shape. */
+  pick<T>(values: readonly T[]): T {
+    const value = values[Math.floor(this.next() * values.length)];
+    if (value === undefined) throw new Error('Pine author choice requires a nonempty set');
+    return value;
+  }
 }

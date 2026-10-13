@@ -9,12 +9,13 @@
  *     re-lays each vertex at the draining level against it).
  *   · `trickle`: a narrow running ribbon down the bed's channel, riffle to sluice, a few cm over the bed.
  */
-import { smoothstep } from '@wildshard/engine/core/noise';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { pondGrid } from '../world/pond';
-import { BEAVER_POOL, CREEK, CREEK_WATER, type XZ } from '../data/layout';
+import type { CragGround } from './cragGround';
+import { BEAVER_POOL, POND, CREEK, CREEK_WATER, type XZ } from '../data/layout';
 import { creekBedAt, creekSpan, inBeaverPool } from '../behaviour/layout';
-import type { PoolRows } from '../world/beaverPool';
+import type { PoolRows } from './poolRows';
+
+const smoothstep = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const pondGrid = (): { cell: number; x0: number; z0: number } => { const half = POND.r + 15; return { cell: (half * 2) / 128, x0: POND.x - half, z0: POND.z - half }; };
 
 /** the trickle's across-channel offsets (m) and its depth code there (0 at the edges: they fade into the mud) */
 const TRICKLE_ACROSS = [-0.9, -0.45, 0, 0.45, 0.9];
@@ -40,7 +41,7 @@ function creekAt(s: number): { x: number; z: number; tx: number; tz: number } {
 }
 
 /** the pool's cells on the pond surface's grid: those whose centre is in the pool's reach and not always above the water */
-function still(): PoolRows['still'] {
+function still(heightAt: CragGround['heightAt']): PoolRows['still'] {
   const { cell, x0, z0 } = pondGrid(), P = BEAVER_POOL, { dam } = creekSpan();
   // the reach's bounding box, from the creek's line ± 12 m
   let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
@@ -73,7 +74,7 @@ function still(): PoolRows['still'] {
 }
 
 /** the trickle: the channel's line from the riffle's crest to under the dam, a few cm over the bed, tumbling off the riffle */
-function trickle(): PoolRows['trickle'] {
+function trickle(heightAt: CragGround['heightAt']): PoolRows['trickle'] {
   const P = BEAVER_POOL, { dam } = creekSpan(), end = dam - CREEK_WATER.lead + 0.4, speed = 0.45;
   const pos: number[] = [], uv: number[] = [], aw: number[] = [], idx: number[] = [];
   let rows = 0;
@@ -97,4 +98,4 @@ function trickle(): PoolRows['trickle'] {
 }
 
 /** The bake: both meshes' blocks over the page's ground. */
-export function bakeBeaverPool(): PoolRows { return { still: still(), trickle: trickle() }; }
+export function bakeBeaverPool(heightAt: CragGround['heightAt']): PoolRows { return { still: still(heightAt), trickle: trickle(heightAt) }; }
