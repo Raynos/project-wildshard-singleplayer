@@ -57,7 +57,7 @@ import { portalTransitioning } from './portalTraversal';
 import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from './items';
-import { withoutRuntimeRows } from "../plugin/headless";
+import { runtimeBoundWorldFiles, withoutRuntimeRows } from "../plugin/headless";
 import { createShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from '../plugin/simulation';
 import { scriptDisabledNotice } from './scriptNotice';
 import type { DeclaredGroupPorts } from './groupRuntime';
@@ -174,6 +174,7 @@ export class ShardfileClient {
     }
     // M3: a trusted runtime's bound sections (runtime.binds) are its own to install (hybridRows.ts); the data client never installs them
     const data = bindings.trustedRuntime === true ? withoutRuntimeRows(source) : source;
+    if (bindings.trustedRuntime === true) assets.releaseTransport(runtimeBoundWorldFiles(source));
     this.source = data; this.assets = assets; this.bindings = bindings; this.curveState = source.state;
     this.mode = bindings.trustedRuntime !== true ? 'full' : emptyHybridData(data, bindings.audioOwner, bindings.worldOwner) ? 'empty'
       : emptyHybridData(withoutPresentation(data), bindings.audioOwner, bindings.worldOwner) ? 'presentation' : 'full';

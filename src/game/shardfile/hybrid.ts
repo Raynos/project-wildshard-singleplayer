@@ -297,8 +297,9 @@ export async function prepareHybridShard(declaredSource: Shardfile, options: Pro
   };
   const declaration = source.runtime;
   if (declaration === null) throw new Error('Built hybrid requires a trusted runtime entry');
-  const data = await shardfileSource(source, productOptions, { ...clientBindings, instance, trustedRuntime: true, audioOwner: clientBindings.audioOwner ?? 'runtime', worldOwner: clientBindings.worldOwner ?? 'runtime', onSimulationExpected, ...(onSimulation === undefined ? {} : { onSimulation }) });
-  const load = data.load; if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
+  const { load, mapImage } = await shardfileSource(source, productOptions, { ...clientBindings, instance, trustedRuntime: true, audioOwner: clientBindings.audioOwner ?? 'runtime', worldOwner: clientBindings.worldOwner ?? 'runtime', onSimulationExpected, ...(onSimulation === undefined ? {} : { onSimulation }) })
+    .then(data => ({ load: data.load, mapImage: data.minimap?.image }));
+  if (load === undefined) throw new Error('Missing admitted hybrid data plugin');
   const [installed, Runtime] = await Promise.all([stagesOwner === 'runtime' ? Promise.resolve(new class extends ShardPlugin {}) : load().then(({ default: Data }) => new Data()),
     prepareTrustedRuntime(declaration, source.identity.slug, productOptions.firstParty, entries)]);
   const mapped: ShardPlugin = source.map === undefined ? installed : {
@@ -306,7 +307,7 @@ export async function prepareHybridShard(declaredSource: Shardfile, options: Pro
       const allocator = clientBindings.residency?.allocator ?? clientBindings.allocator;
       if (allocator === undefined) throw new Error('Hybrid map requires its page allocator');
       reserveMapImage(source, allocator, ctx.scope);
-      const level = selectedLevel(), image = data.minimap?.image;
+      const level = selectedLevel(), image = mapImage;
       if (gridInstance === null && level !== null && image !== undefined) configureLevel({ ...level, minimap: { ...level.minimap, image } });
       await installed.world?.(ctx);
     },

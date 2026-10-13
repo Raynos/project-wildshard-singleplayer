@@ -48,6 +48,8 @@ export class ClientAssets {
     }
     return keep;
   }
+  /** Forget only decoded or runtime-owned transport copies; future reads still check immutable cache/network bytes. */
+  releaseTransport(refs: Iterable<string>): void { for (const ref of refs) this.wire.delete(ref); }
   /** Keep only authoritative and library roots while render tiles stream through temporary admitted maps. */
   releaseTiles(): void {
     const keep = this.closure(this.roots());
