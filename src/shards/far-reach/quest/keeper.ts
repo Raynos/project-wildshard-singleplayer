@@ -19,6 +19,10 @@ export const KEEPER_STAND = { x: STAND_X, z: STAND_Z, yaw: Math.atan2(SPAWN.x - 
  */
 export function keeper(y: number): PivotNpc {
   const made = skyHd('keeper-hd');
+  if (made !== null) {
+    made.geometry.dispose();
+    if (made.pivots === undefined) throw new Error('Missing authored keeper pivots');
+  }
   // his painted material, its scarf and sash a warm rust-brown (council: 'the keeper's red scarf reads louder than the mockup's brown one')
-  return pivotNpc(KEEPER_ROW, made?.geometry ?? null, () => y, made === null ? undefined : skyMappedLook('keeper-scarf', made.map));
+  return pivotNpc(KEEPER_ROW, made?.pivots ?? null, () => y, made === null ? undefined : skyMappedLook('keeper-scarf', made.map));
 }

@@ -125,7 +125,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
     // and the world pieces baked offline (SF72, world/baked.ts)
-    await Promise.all([preloadSkyMeshes(), loadSkyBaked(), loadSkyBridges(), loadSkyFan(), loadSkyMillModel()]);
+    await Promise.all([preloadSkyMeshes(() => worldBuildYield(ctx, 4)), loadSkyBaked(), loadSkyBridges(), loadSkyFan(), loadSkyMillModel()]);
     // the fan's painted silk; without it (offline, a test page) the fan keeps its plain teal, as the models keep their code stand-ins
     const leaf = await loadPainted(FAN_LEAF_URL, 'far.fan-leaf');
     if (leaf !== null) { this.leaf = leaf; ctx.scope.own(leaf); }
@@ -154,8 +154,8 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const compiled = await runtimeLookMaterials(ctx, source, true), looks = compiled.materials, deck = looks.get('deck-wood'), frame = looks.get('hover-frame');
     if (deck === undefined || frame === undefined) throw new Error('Sky Reach: look.materials lacks deck-wood or hover-frame');
     setSkyLooks(looks, compiled.bindMeshMap);
-    this.built = await buildWorld(ctx, () => worldBuildYield(ctx), isles, { deck, frame });
-    await worldBuildYield(ctx);
+    this.built = await buildWorld(ctx, () => worldBuildYield(ctx, 4), isles, { deck, frame });
+    await worldBuildYield(ctx, 4);
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
     ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
     const field = meadow(new Vector3(...SKY_SUN), ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades, ISLES, heroStoneDiscs());
@@ -190,6 +190,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const { quest, flags, burst, finished, persistence } = installQuest(ctx, position, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined);
     persistence.bindProgress(rt?.play?.progress);
     this.quest = quest; this.flags = flags; this.questFinished = finished;
+    await worldBuildYield(ctx, 4);
 
     const showGust = (): boolean => ctx.app.state === 'play' && !this.board();
     const fanInput: Parameters<ShardContext['inputContext']>[0] = { id: 'far.fan', actions: ['attack', 'heavy', 'lock', 'far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
@@ -198,6 +199,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // the gust in the key-bindings table, under Combat (E418: G worked but was listed nowhere), while the shard is loaded
     const gustRow: Parameters<ShardContext['app']['input']['bindings']['describe']>[0] = { rows: [{ group: 'combat', id: 'far.gust', label: STRINGS.gustBinding, actions: ['far.gust'] }] };
     this.input(ctx, fanInput, gustRow);
+    await worldBuildYield(ctx, 4);
 
     // Step 1: the keeper's notes.
     built.notes.onInteract = () => { flags.set(FLAGS.notes); toast(STRINGS.notesToast); };
@@ -230,6 +232,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       composition: { modules: items.modules, roles: [items.role()], seed: items.seed },
       permissions: () => new Map([[SKY_MOVER_BINDING.winch, Number(flags.has(FLAGS.roost)) + Number(flags.has(FLAGS.vanes)) * 2]]),
       onDispose: () => { this.movers = null; } });
+    await worldBuildYield(ctx, 4);
     const host = this.movers.scriptHost, hooks = items.hooks(host), fanRow = source.items.rows.find(item => item.id === 'weapon.far-reach.fan');
     if (fanRow?.kind !== 'weapon' || fanRow.secondary === undefined) throw new Error('Sky fan needs its admitted secondary');
     const secondary = fanRow.secondary, hook = hooks.get(fanRow.id);
@@ -254,6 +257,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       if (lift.y !== 0) ctx.app.player?.impulse(lift);
     } });
 
+    await worldBuildYield(ctx, 4);
     const moverPose = (id: string): ReturnType<MoverRuntime['pose']> => {
       const movers = this.movers; if (movers === null) throw new Error('Sky mover pose requested outside its installed lifetime');
       return movers.pose(id);
@@ -290,9 +294,10 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // Creatures: each one knows its home (an island or a flying circle). The goats walk their island's deck (G26): their
     // spawn ray lands them on the first WORLD floor under `fromY`, which finds the islands only once physics has stepped
     // (in `play` it hits nothing and the goat lands on the -1000 m analytic floor), so they land late, after the Roc.
-    this.kept = bindRuntimeHomes(ctx, source, { system: 'far.creatures', held: { order: SKY_FLOCK_ROWS.map(row => row.id), settle: 'far.goats',
+    await worldBuildYield(ctx, 4);
+    this.kept = await bindRuntimeHomes(ctx, source, { system: 'far.creatures', held: { order: SKY_FLOCK_ROWS.map(row => row.id), settle: 'far.goats',
       dress: (animal, id) => { const home = SKY_HOMES.get(id); if (home !== undefined) this.creatureBrains?.home(animal.kind, animal, home); },
-      late: id => GOAT_FLOORS.get(id) } });
+      late: id => GOAT_FLOORS.get(id) } }, () => worldBuildYield(ctx, 4));
     // each free ray trails its luminous wake (data/rayWakeLook.ts on @wildshard/sdk/looks/wakeRibbon; proposal B's ray beside the mill)
     const wakes = this.bodies(SKY_FLOCK_GROUPS.rays).map((ray) => { const w = wakeRibbon(RAY_WAKE); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
     boundedRows(wakes);
@@ -317,6 +322,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       }, { key: (prior) => `${prior}|far.roc-slate`, scope: ctx.scope });
     }
     }
+    await worldBuildYield(ctx, 4);
     // Step 2: the roost is clear when its three rays are down.
     const roost = this.bodies(SKY_FLOCK_GROUPS.roost);
     const roostStage = bindSkyQuestStage('roost', flags, () => roost.length > 0 && roost.every(animal => !animal.alive));

@@ -14,4 +14,4 @@ export type ShardPlugin = OwnedShardPlugin;
  * drawn frame: a grid cell builds its world on the road, and WebKit draws no frame between back-to-back timer tasks.
  * Rejects once the shard's scope has closed (an unloaded cell stops building).
  */
-export function worldBuildYield(ctx: Pick<ShardContext, 'scope'>): Promise<void> { return buildYield(ctx.scope); }
+export function worldBuildYield(ctx: Pick<ShardContext, 'scope'>, budgetMs?: number): Promise<void> { return buildYield(ctx.scope, budgetMs); }

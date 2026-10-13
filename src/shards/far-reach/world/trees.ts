@@ -17,7 +17,7 @@ export type TreeModel = AuthoredTreeModel;
  * generators/placements.ts).
  */
 /** The trees at their baked matrices, one instanced draw per model (generators/placements.ts), or null when a model failed to load. */
-export function trees(placed: readonly { readonly model: string; readonly m: readonly number[] }[]): Group | null {
+export async function trees(placed: readonly { readonly model: string; readonly m: readonly number[] }[], pause: () => Promise<void> = () => Promise.resolve()): Promise<Group | null> {
   const group = new Group(); group.name = 'far.trees';
   for (const { model, m } of placed) {
     const name = TREE_MODELS.find((n) => n === model), made = name === undefined ? null : skyHd(name); if (name === undefined || made === null) return null;
@@ -29,6 +29,7 @@ export function trees(placed: readonly { readonly model: string; readonly m: rea
     }, { key: (prior) => `${prior}|far.tree-bark` });
     const mesh = new InstancedMesh(g, material, m.length / 16); mesh.name = `far.trees.${name}`;
     mesh.instanceMatrix.array.set(m); mesh.computeBoundingSphere(); group.add(mesh);
+    await pause();
   }
   return group;
 }

@@ -145,17 +145,17 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   // G99: in a grid cell only the isles inside the 500 m cube (ctx.cube); standalone every one: each placed offline (generators/placements.ts)
   const skyGroup = new Group(); skyGroup.name = 'far.sky-isles';
   const placed = skyPlacements(ctx.cube);
-  skyGroup.add(skyIsleModels(placed.isles));
+  skyGroup.add(await skyIsleModels(placed.isles, false, pause));
   await pause();
   // the playable islands' keels in the same painted rock (E399 round 2, seat C: 'under the bridge a flat sage-green cliff
   // wall'): a model under each island, its turf 1.8 m under the walkable top (its turf mounds poked up through the arena floor at 0.7 m), so
   // the rock below are the textured ones; the code top and its colliders are unchanged, nothing here collides
-  const keels = skyIsleModels(PLACEMENTS_BAKED.keels, true);
+  const keels = await skyIsleModels(PLACEMENTS_BAKED.keels, true, pause);
   keels.name = 'far.isle-keels'; skyGroup.add(keels);
   await pause();
   pieces.add('far.sky-isles', skyGroup);
   // the modelled trees (top-10 row 2; none stand when a model did not load)
-  pieces.add('far.pines', trees(placed.trees) ?? new Group());
+  pieces.add('far.pines', await trees(placed.trees, pause) ?? new Group());
   await pause();
   // the meadow and the roots (loop 2): grass clumps, flowers, stones, hanging roots; no colliders
   pieces.add('far.dressing', skyBakedPiece('dressing').root);

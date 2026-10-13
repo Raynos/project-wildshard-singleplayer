@@ -282,7 +282,25 @@ export interface RuntimeHomes { readonly homes: readonly RuntimeHome[]; readonly
  * a portable cold restore that reapplies a dead body without replaying its death starts the authored delay. Standalone
  * spawns allocate ordinary identities, as before. Every body retires with the scope.
  */
-export function bindRuntimeHomes(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, ports: RuntimeHomePorts): RuntimeHomes {
+export function bindRuntimeHomes(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, ports: RuntimeHomePorts): RuntimeHomes;
+/** Construct the same roster in allocation order, yielding between bodies before publishing the completed keeper. */
+export function bindRuntimeHomes(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, ports: RuntimeHomePorts, pause: () => Promise<void>): Promise<RuntimeHomes>;
+export function bindRuntimeHomes(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, ports: RuntimeHomePorts, pause?: () => Promise<void>): RuntimeHomes | Promise<RuntimeHomes> {
+  const work = runtimeHomeWork(ctx, source, ports);
+  const advance = (): IteratorResult<void, RuntimeHomes> => work.next();
+  if (pause === undefined) { let step = advance(); while (!step.done) step = advance(); return step.value; }
+  return (async () => {
+    let step = advance();
+    while (!step.done) {
+      await pause();
+      if (ctx.scope.disposed) throw new Error('Runtime home preparation left its owner');
+      step = advance();
+    }
+    return step.value;
+  })();
+}
+
+function* runtimeHomeWork(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, ports: RuntimeHomePorts): Generator<void, RuntimeHomes, void> {
   const rows = runtimeSpawnRows(source).homes, animals: Animals | undefined = ctx.game.runtime?.play?.animals, retained = retainsRuntimeServices(ctx);
   const homes: RuntimeHome[] = rows.map((row: RuntimeHomeRow) => ({ id: row.id, kind: row.kind, x: row.at[0], z: row.at[1], yaw: row.yaw, respawn: row.respawn, animal: null, wait: 0 }));
   const look = new Map(rows.map((row) => [row.id, row.look]));
@@ -294,7 +312,10 @@ export function bindRuntimeHomes(ctx: ShardContext, source: Pick<Shardfile, 'run
     home.wait = 0;
     if (home.animal) ports.spawned?.(home.animal);
   };
-  for (const home of homes) spawn(home);
+  const held = new Map<string, NonNullable<Animal>>();
+  const cleanup = (): void => { for (const home of homes) if (home.animal) animals?.retire(home.animal); for (const body of held.values()) animals?.retire(body); };
+  const forget = ctx.scope.capture('disposers', cleanup);
+  for (const home of homes) { spawn(home); yield; }
   if (homes.length > 0) {
     ctx.on('actor.died', ({ actor }) => { const home = homes.find((h) => h.animal?.combatActor() === actor); if (home) home.wait = home.respawn; });
     ctx.system({ id: ports.system, phase: 'update', run: (dt) => {
@@ -306,24 +327,25 @@ export function bindRuntimeHomes(ctx: ShardContext, source: Pick<Shardfile, 'run
       }
     } });
   }
-  const held = holdBodies(ctx, source, ports.held, retained);
-  ctx.scope.onDispose(() => { for (const home of homes) if (home.animal) animals?.retire(home.animal); for (const body of held.values()) animals?.retire(body); });
+  yield* holdBodies(ctx, source, ports.held, retained, held);
+  forget(); ctx.scope.onDispose(cleanup);
+
   return { homes, all: () => homes.flatMap((h) => h.animal ? [h.animal] : []), held: (id) => held.get(id) ?? null };
 }
 
 /** Spawn the runtime's held one-shot bodies (`RuntimeHomePorts.held`): the early ones now, the late ones after them. */
-function holdBodies(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, hold: RuntimeHomePorts['held'], retained: boolean): Map<string, NonNullable<Animal>> {
-  const held = new Map<string, NonNullable<Animal>>(); if (hold === undefined) return held;
+function* holdBodies(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, hold: RuntimeHomePorts['held'], retained: boolean, held: Map<string, NonNullable<Animal>>): Generator<void, Map<string, NonNullable<Animal>>, void> {
+  if (hold === undefined) return held;
   const bosses = new Set(runtimeSpawnRows(source).bosses.map((row) => row.id)), native = { identity: 'runtime' } as const;
   const land = (id: string, placement?: { readonly y?: number; readonly fromY?: number }): void => {
     const animal = bosses.has(id) ? bindRuntimeBoss(ctx, source, id, undefined, native).spawn() : bindRuntimeActor(ctx, source, id, undefined, native).spawn(placement);
     if (animal) { held.set(id, animal); hold.dress?.(animal, id); }
   };
   const late = hold.order.flatMap((id) => { const at = hold.late?.(id); return at === undefined ? [] : [{ id, at }]; });
-  for (const id of hold.order) if (!late.some((row) => row.id === id)) land(id);
+  for (const id of hold.order) if (!late.some((row) => row.id === id)) { land(id); yield; }
   let due = !retained;
   ctx.system({ id: hold.settle, phase: 'fixed.post', run: () => { if (!due) return; due = false; for (const row of late) land(row.id, { fromY: row.at.fromY }); } });
-  if (retained) for (const row of late) land(row.id, { y: row.at.y });
+  if (retained) for (const row of late) { land(row.id, { y: row.at.y }); yield; }
   return held;
 }
 

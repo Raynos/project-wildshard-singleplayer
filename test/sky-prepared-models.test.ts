@@ -3,13 +3,16 @@ import { readFileSync } from 'node:fs';
 import { Mesh, type BufferGeometry, type BufferAttribute, type InterleavedBufferAttribute, type Object3D } from 'three';
 import { expect, it } from 'vitest';
 import { readSourceModel } from '../src/sdk/bake/skinned';
-import { fitGeometry } from '../src/game/plugin/geometry';
+import { fitGeometry, pivotNpcParts } from '../src/game/plugin/geometry';
 import { hdGeometry } from './fixtures/sky-native-model-intake';
 import { bakePreparedModels } from '../src/shards/far-reach/generators/preparedModels';
 import { HD_URLS, SKY_HD, type SkyHdName } from '../src/shards/far-reach/data/files';
 import { TREE_MODELS, TREES } from '../src/shards/far-reach/data/trees';
 import { LECTERN } from '../src/shards/far-reach/data/bookStand';
 import { DAIS } from '../src/shards/far-reach/data/layout';
+import { releasedPivotNpcParts } from './fixtures/pivot-npc-released';
+import { KEEPER_ROW } from '../src/shards/far-reach/data/keeperLook';
+import { bakeKeeperFigure } from '../src/shards/far-reach/generators/keeperFigure';
 import frames from '../src/shards/far-reach/data/skyIsleFrames.json' with { type: 'json' };
 
 const isMesh = (node: Object3D): node is Mesh => node instanceof Mesh;
@@ -51,5 +54,33 @@ it('emits every hero model with the exact native normalized and fitted vertex ch
     for (const channel of ['position', 'normal', 'uv']) expect(words(node.geometry.getAttribute(channel)), `${name}/${channel}`).toStrictEqual(words(expected.getAttribute(channel)));
     expect(node.geometry.getIndex()?.array, `${name}/index`).toStrictEqual(expected.getIndex()?.array);
     expect(node.geometry.getIndex()?.array).toBeInstanceOf(Uint32Array);
+  }
+}, 60_000);
+
+it('bakes keeper pivots with released local channels, bounds, hierarchy and native motion attachment', async () => {
+  const source = await readSourceModel(read(HD_URLS['keeper-hd']));
+  const native = hdGeometry(source.gltf.scene, material => source.texture(material) !== null);
+  if (native === null) throw new Error('Missing native keeper');
+  const expected = releasedPivotNpcParts(KEEPER_ROW, native.geometry.clone());
+  const parts = bakeKeeperFigure(native.geometry.clone());
+  const actual = pivotNpcParts(KEEPER_ROW, { body: parts[0], head: parts[1], arm: parts[2], fore: parts[3] });
+  const snapshot = (root: Object3D): unknown[] => {
+    const out: unknown[] = [];
+    root.traverse(node => { out.push({ position: node.position.toArray(), rotation: node.rotation.toArray(), scale: node.scale.toArray(),
+      ...(isMesh(node) ? { index: node.geometry.index, box: node.geometry.boundingBox, sphere: node.geometry.boundingSphere,
+        channels: Object.fromEntries(Object.entries(node.geometry.attributes).map(([name, attribute]) => [name, words(attribute)])) } : {}) }); });
+    return out;
+  };
+  expect(snapshot(actual.root)).toStrictEqual(snapshot(expected.root));
+  const glb = await readSourceModel(await bakePreparedModels(read));
+  for (const [index, geometry] of parts.entries()) {
+    const name = `keeper-pivot-${String(index)}`, node = glb.gltf.scene.getObjectByName(name);
+    if (geometry.getAttribute('position').count === 0) { expect(node).toBeUndefined(); continue; }
+    if (node === undefined || !isMesh(node)) throw new Error('Missing baked keeper pivot');
+    expect(node.geometry.index).toBeNull();
+    for (const [channel, attribute] of Object.entries(geometry.attributes)) expect(words(node.geometry.getAttribute(channel))).toStrictEqual(words(attribute));
+    const sphere = geometry.boundingSphere;
+    if (sphere === null) throw new Error('Missing native pivot sphere');
+    expect(node.userData['sphere']).toStrictEqual([sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius]);
   }
 }, 60_000);

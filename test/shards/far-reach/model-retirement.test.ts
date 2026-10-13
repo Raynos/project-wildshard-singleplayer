@@ -15,8 +15,9 @@ it('charges Sky model sources once, preserves live map users, and reconstructs e
     const scene = new Group().add(new Mesh(new BoxGeometry(), new MeshStandardMaterial({ map: new Texture() })));
     if (url === PREPARED_MODELS_URL) {
       scene.clear();
-      for (const name of SKY_HD) {
-        const mesh = new Mesh(new BoxGeometry(), new MeshStandardMaterial());
+      for (const name of [...SKY_HD, ...Array.from({ length: 4 }, (_, index) => `keeper-pivot-${String(index)}`)]) {
+        const mesh = new Mesh(name.startsWith('keeper-pivot-') ? new BoxGeometry().toNonIndexed() : new BoxGeometry(), new MeshStandardMaterial());
+        if (name === 'keeper-hd') mesh.userData['npcCounts'] = [36, 36, 36, 36];
         mesh.name = name;
         mesh.geometry.computeBoundingSphere();
         const sphere = mesh.geometry.boundingSphere;

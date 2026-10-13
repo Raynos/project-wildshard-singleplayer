@@ -1217,6 +1217,9 @@ function partition(source: BufferGeometry, parts: number, of: (x: number, y: num
   source.dispose(); return out;
 }
 
+/** A baked pivot figure's body/head/upper-arm/forearm geometries, each already in its own pivot's local frame. */
+export interface PivotNpcGeometry { readonly body: BufferGeometry; readonly head: BufferGeometry; readonly arm: BufferGeometry; readonly fore: BufferGeometry }
+
 /** A pivot NPC's figure on its pivots: the body under `root`, the head at the neck, the arm at the shoulder and its forearm at the elbow. */
 export interface PivotNpcParts { readonly root: Group; readonly head: Group; readonly arm: Group; readonly elbow: Group }
 /**
@@ -1224,17 +1227,22 @@ export interface PivotNpcParts { readonly root: Group; readonly head: Group; rea
  * (`NpcRowSchema`): the body, the head at the neck, the arm at the shoulder and its forearm at the elbow, in `material`
  * (else one vertex-coloured standard material). Feet on y 0, facing +Z, at its own origin (the Model Explorer shows it so).
  */
-export function pivotNpcParts(row: NpcRow, source: BufferGeometry, material?: Material): PivotNpcParts {
+export function pivotNpcParts(row: NpcRow, source: BufferGeometry | PivotNpcGeometry, material?: Material): PivotNpcParts {
   const fig = row.figure, neck = fig.neck, [sx, sy, sz] = fig.shoulder, top = fig.armTopY ?? (neck === undefined ? Infinity : neck[1] + 0.02);
   const slope = fig.armSlope ?? 0, cut = fig.elbow, [ex, ey, ez] = cut?.at ?? fig.shoulder;
-  const whole = fitGeometry(source, { size: fig.height, by: 'height', ...(fig.centre === undefined ? {} : { centre: fig.centre }) });
-  const [body, head, arm, fore] = partition(whole, 4, (x, y) => neck !== undefined && y >= neck[1] ? 1
-    : x < fig.armBelowX + slope * y && y > fig.armAboveY && y < top ? (cut !== undefined && (x - ex) * cut.axis[0] + (y - ey) * cut.axis[1] > 0 ? 3 : 2) : 0, fig.flat);
+  const prepared = !(source instanceof BufferGeometry);
+  let parts: readonly BufferGeometry[];
+  if (source instanceof BufferGeometry) {
+    const whole = fitGeometry(source, { size: fig.height, by: 'height', ...(fig.centre === undefined ? {} : { centre: fig.centre }) });
+    parts = partition(whole, 4, (x, y) => neck !== undefined && y >= neck[1] ? 1
+      : x < fig.armBelowX + slope * y && y > fig.armAboveY && y < top ? (cut !== undefined && (x - ex) * cut.axis[0] + (y - ey) * cut.axis[1] > 0 ? 3 : 2) : 0, fig.flat);
+  } else parts = [source.body, source.head, source.arm, source.fore];
+  const [body, head, arm, fore] = parts;
   const paint = material ?? new MeshStandardMaterial({ vertexColors: true, roughness: fig.roughness, metalness: 0, flatShading: fig.flat });
   const root = new Group(), headPivot = new Group(), armPivot = new Group(), elbow = new Group();
-  if (neck !== undefined) { headPivot.position.set(neck[0], neck[1], neck[2]); head?.translate(-neck[0], -neck[1], -neck[2]); }
+  if (neck !== undefined) { headPivot.position.set(neck[0], neck[1], neck[2]); if (!prepared) head?.translate(-neck[0], -neck[1], -neck[2]); }
   armPivot.position.set(sx, sy, sz); elbow.position.set(ex - sx, ey - sy, ez - sz);
-  for (const [g, pivot] of [[body, root], [head, headPivot], [arm?.translate(-sx, -sy, -sz), armPivot], [fore?.translate(-ex, -ey, -ez), elbow]] as const) {
+  for (const [g, pivot] of [[body, root], [head, headPivot], [prepared ? arm : arm?.translate(-sx, -sy, -sz), armPivot], [prepared ? fore : fore?.translate(-ex, -ey, -ez), elbow]] as const) {
     if (g === undefined) continue;
     if (g.getAttribute('position').count > 0) pivot.add(new Mesh(g, paint)); else g.dispose();
   }
@@ -1258,7 +1266,7 @@ const swingAt = (s: NpcMotion['rest']['lift'], t: number): number => s[0] + s[1]
  * its arm takes the talk pose while it talks, the wave pose within `waveRange` (until met, when the row says so), else
  * the rest pose, and it breathes. No source (its model did not load): no figure, the talk anchor and speaker still stand.
  */
-export function pivotNpc(row: NpcRow, source: BufferGeometry | null, groundAt: (x: number, z: number) => number, material?: Material): PivotNpc {
+export function pivotNpc(row: NpcRow, source: BufferGeometry | PivotNpcGeometry | null, groundAt: (x: number, z: number) => number, material?: Material): PivotNpc {
   const { x: ax, z: az } = row.at, y = groundAt(ax, az), m = row.motion ?? PIVOT_NPC_MOTION, group = new Group(), speaker = { talking: false };
   const head = new Vector3(ax, y + row.talkHeight, az), home = Math.atan2(row.faceHome.x - ax, row.faceHome.z - az);
   group.position.set(ax, y, az); group.rotation.y = home;

@@ -36,7 +36,7 @@ export type SkyIslePlacements = readonly { readonly model: string; readonly m: r
 
 /** The sky isles as textured models (see the module note), one instanced draw per model at its baked matrices. */
 /** `clipTop` (the playable islands' keels): everything above the model's turf is cut away, so its canopy never pokes through a deck. */
-export function skyIsleModels(placed: SkyIslePlacements, clipTop = false): Group {
+export async function skyIsleModels(placed: SkyIslePlacements, clipTop = false, pause: () => Promise<void> = () => Promise.resolve()): Promise<Group> {
   const group = new Group();
   for (const { model, m } of placed) {
     const name = SKY_ISLE_MODELS.find((n) => n === model); if (name === undefined) throw new Error(`far-reach: no sky isle model ${model}`);
@@ -53,6 +53,7 @@ export function skyIsleModels(placed: SkyIslePlacements, clipTop = false): Group
     }, { key: (prior) => `${prior}|far.sky-isle-rock|haze|rim-sun${clipTop ? '|clip' : ''}` });
     const mesh = new InstancedMesh(g, material, m.length / 16); mesh.name = `far.sky-isles.${name}`;
     mesh.instanceMatrix.array.set(m); mesh.computeBoundingSphere(); group.add(mesh);
+    await pause();
   }
   return group;
 }

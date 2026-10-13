@@ -8419,11 +8419,13 @@
         "src/sdk",
         "src/shards/far-reach/data/bookStand.ts",
         "src/shards/far-reach/data/files.ts",
+        "src/shards/far-reach/data/keeperFigure.ts",
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/modelFrames.ts",
         "src/shards/far-reach/data/skyIsleFrames.json",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/data/trees.ts",
+        "src/shards/far-reach/generators/keeperFigure.ts",
         "src/shards/far-reach/generators/modelIntake.ts",
         "src/shards/far-reach/generators/preparedModels.ts"
       ],

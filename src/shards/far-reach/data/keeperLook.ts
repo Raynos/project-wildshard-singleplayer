@@ -1,3 +1,4 @@
+import { KEEPER_FIGURE } from './keeperFigure';
 import { parseNpcRow } from '@wildshard/sdk/questGraph';
 import { FLAGS } from '../quest/flags';
 import { SPAWN } from './layout';
@@ -22,8 +23,7 @@ import { KEEPER_NPC } from './keeperDialogue';
 export const KEEPER_ROW = parseNpcRow({
   ...KEEPER_NPC, spot: 'keeper', at: { x: KEEPER_AT.x, z: KEEPER_AT.z }, faceHome: { x: SPAWN.x, z: SPAWN.z }, metFlag: FLAGS.notes,
   talkHeight: 1.8, talkRadius: 3.5, faceRange: 16, waveRange: 16,
-  figure: { model: 'keeper-hd', height: 1.95, centre: 'base', shoulder: [-0.25, 1.5, 0.03], armBelowX: -0.506, armSlope: 0.185, armAboveY: 0.85, armTopY: 1.6,
-    elbow: { at: [-0.5, 1.24, 0], axis: [-0.7, -0.71] }, roughness: 0.85, flat: false },
+  figure: KEEPER_FIGURE,
   motion: { turns: false, waveUntilMet: false, ease: 9, breathe: { yaw: [0.03, 0.6], scale: [0, 0] },
     rest: { lift: [0.3, 0, 0], forward: [0, 0, 0], bend: [0, 0, 0] },
     wave: { lift: [-0.1, -0.05, 3], forward: [0, 0, 0], bend: [-2.3, -0.25, 7] },
