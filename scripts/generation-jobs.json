@@ -1271,6 +1271,63 @@
       }
     },
     {
+      "id": "pine-timber-world",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
+        "--world"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/pine-hollow/terrain.bin",
+        "src/commons",
+        "src/format",
+        "src/sdk",
+        "src/shards/pine-hollow/data/layout.ts",
+        "src/shards/pine-hollow/generators/bake-pine-lookout.d.mts",
+        "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-site-timbers.d.mts",
+        "src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
+        "src/shards/pine-hollow/generators/cabinShapes.ts",
+        "src/shards/pine-hollow/generators/fireLookout.ts",
+        "src/shards/pine-hollow/generators/seedStream.ts",
+        "src/shards/pine-hollow/generators/siteTimbers.ts",
+        "src/shards/pine-hollow/generators/timberBake.ts",
+        "src/shards/pine-hollow/generators/timberKit.ts",
+        "src/shards/pine-hollow/generators/timberPlacement.ts",
+        "src/shards/pine-hollow/generators/timberRows.ts",
+        "src/shards/pine-hollow/generators/timberScene.ts",
+        "src/shards/pine-hollow/generators/timberWorld.ts",
+        "src/shards/pine-hollow/generators/wildlifeWords.ts"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/timberWorld.generated.json",
+        "src/shards/pine-hollow/assets/43dfc490473e78eaf22a345e030d83c6d721d0402aedba5a6fe556879daafe8e",
+        "src/shards/pine-hollow/assets/486bfc32048920699c9f3f1a8d0c3cf8987beb4c544a3e973f0602f8829d9d39",
+        "src/shards/pine-hollow/assets/56be63fc8588d81d241461912f256a0d3a93a29a9ab63319cf2fe39d12fcc9a0",
+        "src/shards/pine-hollow/assets/84f53529b140d433833f128607eda32ff61f45289d9a369738fdb04cc0f07e44",
+        "src/shards/pine-hollow/assets/8c945ab3ddbb7b07855fdbecb80c47d1f99cc14d0a4e691f327edc3be32705e1",
+        "src/shards/pine-hollow/assets/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e"
+      ],
+      "platform": "native",
+      "buildOutputs": {
+        "src/shards/pine-hollow/data/timberWorld.generated.json": "fa8bbcfe74f6bbc46230e50ffa96bdbfb91515cdd5006d64c65c58ba7a98a665",
+        "src/shards/pine-hollow/assets/43dfc490473e78eaf22a345e030d83c6d721d0402aedba5a6fe556879daafe8e": "43dfc490473e78eaf22a345e030d83c6d721d0402aedba5a6fe556879daafe8e",
+        "src/shards/pine-hollow/assets/486bfc32048920699c9f3f1a8d0c3cf8987beb4c544a3e973f0602f8829d9d39": "486bfc32048920699c9f3f1a8d0c3cf8987beb4c544a3e973f0602f8829d9d39",
+        "src/shards/pine-hollow/assets/56be63fc8588d81d241461912f256a0d3a93a29a9ab63319cf2fe39d12fcc9a0": "56be63fc8588d81d241461912f256a0d3a93a29a9ab63319cf2fe39d12fcc9a0",
+        "src/shards/pine-hollow/assets/84f53529b140d433833f128607eda32ff61f45289d9a369738fdb04cc0f07e44": "84f53529b140d433833f128607eda32ff61f45289d9a369738fdb04cc0f07e44",
+        "src/shards/pine-hollow/assets/8c945ab3ddbb7b07855fdbecb80c47d1f99cc14d0a4e691f327edc3be32705e1": "8c945ab3ddbb7b07855fdbecb80c47d1f99cc14d0a4e691f327edc3be32705e1",
+        "src/shards/pine-hollow/assets/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e": "f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e"
+      }
+    },
+    {
       "id": "pine-streams",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-pine-streams.mjs",
@@ -6952,63 +7009,6 @@
         "src/shards/pastel-plain/.wildshard/product/shard.json": "ba53cf6356f1ad36e6b2aa869b22b404bd786ef208ba9de9732b4b3a3211d086"
       },
       "platform": "portable"
-    },
-    {
-      "id": "pine-timber-world",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
-        "--world"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "public/assets/baked/pine-hollow/terrain.bin",
-        "src/commons",
-        "src/format",
-        "src/sdk",
-        "src/shards/pine-hollow/data/layout.ts",
-        "src/shards/pine-hollow/generators/bake-pine-lookout.d.mts",
-        "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-site-timbers.d.mts",
-        "src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
-        "src/shards/pine-hollow/generators/cabinShapes.ts",
-        "src/shards/pine-hollow/generators/fireLookout.ts",
-        "src/shards/pine-hollow/generators/seedStream.ts",
-        "src/shards/pine-hollow/generators/siteTimbers.ts",
-        "src/shards/pine-hollow/generators/timberBake.ts",
-        "src/shards/pine-hollow/generators/timberKit.ts",
-        "src/shards/pine-hollow/generators/timberPlacement.ts",
-        "src/shards/pine-hollow/generators/timberRows.ts",
-        "src/shards/pine-hollow/generators/timberScene.ts",
-        "src/shards/pine-hollow/generators/timberWorld.ts",
-        "src/shards/pine-hollow/generators/wildlifeWords.ts"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/data/timberWorld.generated.json",
-        "src/shards/pine-hollow/assets/43dfc490473e78eaf22a345e030d83c6d721d0402aedba5a6fe556879daafe8e",
-        "src/shards/pine-hollow/assets/486bfc32048920699c9f3f1a8d0c3cf8987beb4c544a3e973f0602f8829d9d39",
-        "src/shards/pine-hollow/assets/56be63fc8588d81d241461912f256a0d3a93a29a9ab63319cf2fe39d12fcc9a0",
-        "src/shards/pine-hollow/assets/84f53529b140d433833f128607eda32ff61f45289d9a369738fdb04cc0f07e44",
-        "src/shards/pine-hollow/assets/8c945ab3ddbb7b07855fdbecb80c47d1f99cc14d0a4e691f327edc3be32705e1",
-        "src/shards/pine-hollow/assets/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e"
-      ],
-      "platform": "native",
-      "buildOutputs": {
-        "src/shards/pine-hollow/data/timberWorld.generated.json": "fa8bbcfe74f6bbc46230e50ffa96bdbfb91515cdd5006d64c65c58ba7a98a665",
-        "src/shards/pine-hollow/assets/43dfc490473e78eaf22a345e030d83c6d721d0402aedba5a6fe556879daafe8e": "43dfc490473e78eaf22a345e030d83c6d721d0402aedba5a6fe556879daafe8e",
-        "src/shards/pine-hollow/assets/486bfc32048920699c9f3f1a8d0c3cf8987beb4c544a3e973f0602f8829d9d39": "486bfc32048920699c9f3f1a8d0c3cf8987beb4c544a3e973f0602f8829d9d39",
-        "src/shards/pine-hollow/assets/56be63fc8588d81d241461912f256a0d3a93a29a9ab63319cf2fe39d12fcc9a0": "56be63fc8588d81d241461912f256a0d3a93a29a9ab63319cf2fe39d12fcc9a0",
-        "src/shards/pine-hollow/assets/84f53529b140d433833f128607eda32ff61f45289d9a369738fdb04cc0f07e44": "84f53529b140d433833f128607eda32ff61f45289d9a369738fdb04cc0f07e44",
-        "src/shards/pine-hollow/assets/8c945ab3ddbb7b07855fdbecb80c47d1f99cc14d0a4e691f327edc3be32705e1": "8c945ab3ddbb7b07855fdbecb80c47d1f99cc14d0a4e691f327edc3be32705e1",
-        "src/shards/pine-hollow/assets/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e": "f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e"
-      }
     }
   ]
 }
