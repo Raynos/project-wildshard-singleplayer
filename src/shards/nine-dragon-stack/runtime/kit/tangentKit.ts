@@ -7,6 +7,7 @@
 import { type Box3, BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, type Matrix4, Matrix3, Uint16BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 import { appendGeometry } from '@wildshard/game/plugin/geometry';
 import { EDGE } from './ruledKit';
+import type { TangentRows, TangentSource } from '../../data/tangentRows';
 
 export interface TangentLook {
   /** the flat wash (sRGB hex) */
@@ -228,8 +229,14 @@ export class TangentKit {
     for (let k = 0; k + 2 < count; k += 3) this.tri(at(k), at(k + 1), at(k + 2), look);
   }
 
+  /** Borrow raw writer rows without packing or copying them; append consumes them synchronously. */
+  geometryRows(): TangentRows {
+    return { n: this.n, pos: this.pos, nor: this.nor, col: this.col, face: this.face, tan: this.tan, pat: this.pat, misc: this.misc, idx: this.idx };
+  }
+
   /** append another builder's geometry through a matrix (bakes an instance into a merged batch; aFace keeps metres) */
-  append(o: TangentKit, m: Matrix4, tint: Color | null = null): void {
+  append(source: TangentSource, m: Matrix4, tint: Color | null = null): void {
+    const o = source.geometryRows();
     const nm = new Matrix3().getNormalMatrix(m);
     const m3 = new Matrix3().setFromMatrix4(m);
     const p = new Vector3(), q = new Vector3(), t = new Vector3(), vd = new Vector3(), tw = new Vector3();
