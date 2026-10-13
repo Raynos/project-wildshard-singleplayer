@@ -46,8 +46,8 @@ import { beaverDam } from '../models/beaverDam';
 import { canoe } from '../models/canoe';
 import { contractBoard } from '../models/contractBoard';
 import { caveArch, openCaveArch } from '../models/caveArch';
-import { loadTimber, placeFloors, timberFrame, type Floor, type TimberFacts } from './timber';
-import { ZIP_YAW, bridgeSite, landingSite, loadSiteTimbers } from './timberSites';
+import { loadTimber, placeFloors, type Floor, type TimberFacts } from './timber';
+import { ZIP_YAW, bridgeSite, landingSite, lookoutSite, loadSiteTimbers } from './timberSites';
 import { fireLookout, fireLookoutFacts, loadFireLookout } from '../models/fireLookout';
 import { ziplineLanding, ziplineLandingFacts } from '../models/ziplineLanding';
 import { creekFootbridge, creekFootbridgeFacts } from '../models/creekFootbridge';
@@ -159,7 +159,7 @@ export class PineLandmarks implements PineLandmarksHandle {
     const ctx = pineModels(this.sky);
     await Promise.all([loadTimber(ctx), loadFireLookout(ctx), loadSiteTimbers(ctx)]);
     // the timber landmarks (models), one task each, at the frames their world-space builders used
-    const ly = ground(LOOKOUT.x, LOOKOUT.z), lookoutAt = timberFrame(LOOKOUT.x, ly, LOOKOUT.z, ZIP_YAW);
+    const lookoutAt = lookoutSite();
     this.placeTimber(fireLookout, lookoutAt, ZIP_YAW, undefined, () => fireLookoutFacts(ctx, fireLookout.defaults), 'pine-lookout', registry);
     const topAt = fireLookoutFacts(ctx, fireLookout.defaults).anchors;
     await macrotask();

@@ -21,11 +21,11 @@ export function landingSite(heightAt: (x: number, z: number) => number): { at: T
   return { at: timberFrame(ZIPLINE.to.x, y, ZIPLINE.to.z, ZIP_YAW), y };
 }
 /** Original road-aligned bridge frame, with its exact two-bank height arithmetic. */
-export function bridgeSite(heightAt: (x: number, z: number) => number): { at: THREE.Matrix4; y: number; yaw: number } {
+export function bridgeSite(heightAt: (x: number, z: number) => number): { at: THREE.Matrix4; y: number; yaw: number; turn: [number, number] } {
   const i = E_ROAD.findIndex(([x, z]) => x === CREEK_BRIDGE.x && z === CREEK_BRIDGE.z);
   const a = E_ROAD[i - 1] ?? E_ROAD[0], b = E_ROAD[i + 1] ?? E_ROAD[1];
   const dx = (b?.[0] ?? 1) - (a?.[0] ?? 0), dz = (b?.[1] ?? 0) - (a?.[1] ?? 0);
   const { x, z } = CREEK_BRIDGE, yaw = Math.atan2(-dz, dx);
   const y = (heightAt(x - BRIDGE_HALF, z) + heightAt(x + BRIDGE_HALF, z)) / 2;
-  return { at: timberFrame(x, y, z, yaw), y, yaw };
+  return { at: timberFrame(x, y, z, yaw), y, yaw, turn: [-dz, dx] };
 }

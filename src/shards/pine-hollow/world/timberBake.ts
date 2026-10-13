@@ -63,7 +63,7 @@ export class TimberBlocks {
 }
 
 /** a collider row as the timber kit made it */
-function colliderOf(c: ColliderRow): ColliderDesc {
+export function colliderOf(c: ColliderRow): ColliderDesc {
   const surface = c.surface === undefined ? {} : { surface: c.surface };
   if (c.kind === 'treads') return { kind: 'treads', from: c.from, to: c.to, width: c.width, count: c.count, ...surface };
   return { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, ...(c.yaw === undefined ? {} : { yaw: c.yaw }), ...(c.rot === undefined ? {} : { rot: c.rot }), ...surface };

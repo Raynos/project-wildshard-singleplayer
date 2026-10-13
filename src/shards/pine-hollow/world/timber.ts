@@ -110,15 +110,6 @@ export function timberFacts<P extends object>(make: (ctx: ModelContext, p: P) =>
   };
 }
 
-/** a placed timber's frame (the transform its old world-space builder used): position, then a turn about +Y */
-export function timberFrame(x: number, y: number, z: number, yaw: number): THREE.Matrix4 {
-  const root = new THREE.Object3D();
-  root.position.set(x, y, z);
-  root.rotation.y = yaw;
-  root.updateMatrixWorld(true);
-  return root.matrixWorld.clone();
-}
-
 /** own-space floors carried to a frame (world space, as `floorHeightAt` reads them) */
 export function placeFloors(floors: readonly Floor[], frame: THREE.Matrix4, yaw: number): Floor[] {
   return floors.map((f) => { const c = V(f.x, f.y, f.z).applyMatrix4(frame); return { x: c.x, z: c.z, rot: yaw + f.rot, hw: f.hw, hd: f.hd, y: c.y }; });

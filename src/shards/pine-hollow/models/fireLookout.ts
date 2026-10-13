@@ -7,23 +7,20 @@
  * handed to the ride. One merged mesh per material; the detail set drops past the cabins' detail distance.
  *
  * Built offline (G285, SF72 "bake the code-built worlds"): `../generators/fireLookout.ts` (`src/shards/pine-hollow/generators/bake-pine-lookout.mjs`)
- * leaves each material's parts and the glass in `public/assets/pine-hollow/baked/lookout.bin` and the colliders, floors and
- * anchors in `../data/lookout.json`; here the timber is finished from them (../world/timberBake.ts), as the builder's own was.
+ * leaves the native fact records unchanged. The combined author Scene (generators/timberWorld.ts) emits charged tile
+ * GLBs; the shared original-draw reader reconstructs their geometry before the native timber finisher applies materials.
  *
  *   await loadFireLookout(ctx);   // with loadTimber(ctx): place() is synchronous, the bake first
  */
 import * as v from 'valibot';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
-import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { timberFacts, timberMats } from '../world/timber';
-import { TIMBER_ROW, TimberBlocks } from '../world/timberBake';
+import { TIMBER_ROW } from '../world/timberBake';
+import { loadSiteTimbers, timberFromViews } from '../world/timberSites';
 import lookoutJson from '../data/lookout.json' with { type: 'json' };
 
-/** the timber's name and its stream (the level seed + this) */
+/** The retained native timber identity. */
 export const LOOKOUT_NAME = 'fire-lookout';
-export const LOOKOUT_SEED = 901;
-/** the bake's binary (`src/shards/pine-hollow/generators/bake-pine-lookout.mjs`); listed in the boot's world reads (../boot/files.ts) */
-export const LOOKOUT_BAKE_URL = '/assets/pine-hollow/baked/lookout.bin';
 
 const num = v.pipe(v.number(), v.finite());
 export const LookoutRowsSchema = v.strictObject({ bin: v.string(), bytes: num, seed: num, ...TIMBER_ROW });
@@ -31,18 +28,13 @@ export type LookoutRows = v.InferOutput<typeof LookoutRowsSchema>;
 /** the bake's rows, parsed strictly once */
 export const LOOKOUT_ROWS: LookoutRows = v.parse(LookoutRowsSchema, lookoutJson);
 
-const KEY = 'pine-hollow/fire-lookout:bake';
-
 /** Fetch the lookout's bake into this shard's context (once). */
 export async function loadFireLookout(ctx: ModelContext): Promise<void> {
-  const bytes = await fetchLaneBake(LOOKOUT_BAKE_URL);
-  ctx.once(KEY, () => bytes);
+  await loadSiteTimbers(ctx);
 }
 
 const tower = timberFacts<Record<string, never>>((ctx) => {
-  const blocks = new TimberBlocks(ctx.once<Uint8Array>(KEY, () => { throw new Error('[fire-lookout] loadFireLookout(ctx) first'); }), LOOKOUT_ROWS.bytes);
-  const t = blocks.timber(LOOKOUT_NAME, LOOKOUT_ROWS);
-  blocks.done();
+  const t = timberFromViews(ctx, LOOKOUT_NAME, LOOKOUT_NAME, LOOKOUT_ROWS);
   t.finish(timberMats(ctx), 6); // its detail distance from the tower's foot less 6 m (its size)
   return t;
 });

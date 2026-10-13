@@ -51,7 +51,7 @@ describe('Pine runtime-owned declarations (SF47-p, C26)', () => {
   });
 
   it('admits the shipping quest, three native item identities, facts and King body while leaving their runtime the owner', () => {
-    expect(source.runtime?.binds).toEqual(['quests', 'ledger', 'items', 'spawns', 'state']);
+    expect(source.runtime?.binds).toEqual(['props', 'quests', 'ledger', 'items', 'spawns', 'state']);
     const { onComplete, ...quest } = source.quests.quests[0] ?? {};
     expect(quest).toEqual(WARDENS_HOLLOW); expect(onComplete).toEqual({ fact: 'pine.feat.quest' });
     expect(source.items.rows.map(row => [row.id, row.family, row.kind === 'weapon' ? row.context : null])).toEqual([

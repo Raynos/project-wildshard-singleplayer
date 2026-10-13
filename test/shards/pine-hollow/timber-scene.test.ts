@@ -7,6 +7,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { assembleWholeGeometryViews } from '@wildshard/game/plugin/geometry';
 import { TimberBlocks } from '../../../src/shards/pine-hollow/world/timberBake';
 import { pineLookoutBake, pineSiteTimberBake } from '../../../src/shards/pine-hollow/generators/timberScene';
+import { pineTimberWorldBake } from '../../../src/shards/pine-hollow/generators/timberWorld';
 import { pineTimberGround, bakeLookoutRows } from '../../../src/shards/pine-hollow/generators/bake-pine-lookout.mjs';
 import { bakeSiteTimberRows } from '../../../src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs';
 import { timberFrame, ZIP_YAW, landingSite, bridgeSite } from '../../../src/shards/pine-hollow/generators/timberPlacement';
@@ -16,7 +17,7 @@ import type { TimberRow } from '../../../src/shards/pine-hollow/generators/timbe
 
 async function compare(authored: BakedScene, bin: Uint8Array, copies: readonly { id: string; row: TimberRow; frame: THREE.Matrix4 }[]): Promise<void> {
   const nodes: THREE.Mesh[] = [];
-  for (const bytes of authored.assets.values()) {
+  for (const bytes of [...authored.assets.values(), ...authored.pieces.map(piece => piece.glb)]) {
     const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
     const isMesh = (node: THREE.Object3D): node is THREE.Mesh => node instanceof THREE.Mesh;
     loaded.scene.traverse(node => { if (isMesh(node)) nodes.push(node); });
@@ -49,6 +50,20 @@ async function compare(authored: BakedScene, bin: Uint8Array, copies: readonly {
 it('reconstructs every original lookout draw and placement from its centroid-owned tiles', async () => {
   const ground = pineTimberGround(), { bin, rows } = bakeLookoutRows();
   await compare(pineLookoutBake(ground.heightAt), bin, [{ id: 'fire-lookout', row: rows, frame: timberFrame(LOOKOUT.x, ground.heightAt(LOOKOUT.x, LOOKOUT.z), LOOKOUT.z, ZIP_YAW) }]);
+});
+
+it('reconstructs all five native copies from one placed Scene and its non-world Explorer library', async () => {
+  const ground = pineTimberGround(), tower = bakeLookoutRows(), sites = bakeSiteTimberRows();
+  const binary = new Uint8Array(tower.bin.length + sites.bin.length); binary.set(tower.bin); binary.set(sites.bin, tower.bin.length);
+  const baked = pineTimberWorldBake(ground.heightAt);
+  expect(baked.pieces.map(piece => piece.name)).toEqual(['pine-timber-explorer']);
+  await compare(baked, binary, [
+    { id: 'fire-lookout', row: tower.rows, frame: timberFrame(LOOKOUT.x, ground.heightAt(LOOKOUT.x, LOOKOUT.z), LOOKOUT.z, ZIP_YAW) },
+    { id: 'zipline-landing', row: sites.rows.landing.world, frame: landingSite(ground.heightAt).at },
+    { id: 'zipline-landing-turntable', row: sites.rows.landing.turntable, frame: new THREE.Matrix4() },
+    { id: 'creek-footbridge', row: sites.rows.bridge.world, frame: bridgeSite(ground.heightAt).at },
+    { id: 'creek-footbridge-turntable', row: sites.rows.bridge.turntable, frame: new THREE.Matrix4() },
+  ]);
 });
 
 it('places only the real landing and bridge, retaining the four-copy oracle and every gameplay fact', async () => {

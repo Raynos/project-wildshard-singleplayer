@@ -3,44 +3,47 @@
  * they stand and their offline bake (G285, SF72 "bake the code-built worlds"). Each is fitted to the ground under it: the
  * landing's posts and stair foot, the bridge's deck from bank to bank and its trestles down to the gully's floor. Their
  * builders run at build time (`../generators/siteTimbers.ts`, `src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs`) over the page's own
- * baked terrain, once at their sites and once on the Model Explorer's flat turntable; the binary
- * (`public/assets/pine-hollow/baked/site-timbers.bin`) holds their parts in that order, `../data/siteTimbers.json` the rows.
+ * baked terrain. The combined timber Scene emits admitted world tiles and an Explorer-only library; the fact rows
+ * remain unchanged. The shared reader reconstructs each original draw before the native material/shadow finisher.
  */
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import * as v from 'valibot';
 import type { ModelContext } from '@wildshard/engine/models/model';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { CREEK_BRIDGE, E_ROAD, ZIPLINE } from '../data/layout';
-import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
-import { timberFrame, type Timber } from './timber';
-import { TimberBlocks, TimberRowSchema, type TimberRow } from './timberBake';
+import { resourceScope } from '@wildshard/engine/app/resources';
+import { readWholeGeometry, type WholeGeometryView } from '@wildshard/game/plugin/geometry';
+import { Timber } from './timber';
+import { colliderOf, TimberRowSchema, type TimberRow } from './timberBake';
 import siteJson from '../data/siteTimbers.json' with { type: 'json' };
+import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import source from '../shard.config';
 
 /** the tower / landing turn: local −Z points from the lookout down the cable to the landing (the ride and the vista bench, PH-C1 / C8) */
-export const ZIP_YAW = Math.atan2(ZIPLINE.from.x - ZIPLINE.to.x, ZIPLINE.from.z - ZIPLINE.to.z);
+export const ZIP_YAW = authored.placements.lookout.yaw;
 /** the footbridge's half length (m) */
 export const BRIDGE_HALF = 12;
 /** a site-fitted timber's copy: at its site in the world, or on the turntable's flat ground */
 export type TimberSite = 'world' | 'turntable';
-/** the timbers' names and streams (the level seed + these) */
-export const LANDING = { name: 'zipline-landing', seed: 902 } as const;
-export const BRIDGE = { name: 'creek-footbridge', seed: 903 } as const;
+/** Retained native identities; stream salts exist only in the author generator. */
+export const LANDING = { name: 'zipline-landing' } as const;
+export const BRIDGE = { name: 'creek-footbridge' } as const;
 
 /** the landing's frame: on the ground at the cable's foot, turned with the tower */
 export function landingSite(): { at: THREE.Matrix4; y: number } {
-  const y = heightAt(ZIPLINE.to.x, ZIPLINE.to.z);
-  return { at: timberFrame(ZIPLINE.to.x, y, ZIPLINE.to.z, ZIP_YAW), y };
+  const at = new THREE.Matrix4().fromArray(authored.placements.landing.matrix);
+  return { at, y: at.elements[13] };
 }
 
 /** the footbridge's frame: along the E road through the crossing (its previous vertex to its next), between its banks */
 export function bridgeSite(): { at: THREE.Matrix4; y: number; yaw: number } {
-  const i = E_ROAD.findIndex(([x, z]) => x === CREEK_BRIDGE.x && z === CREEK_BRIDGE.z);
-  const a = E_ROAD[i - 1] ?? E_ROAD[0], b = E_ROAD[i + 1] ?? E_ROAD[1];
-  const dx = (b?.[0] ?? 1) - (a?.[0] ?? 0), dz = (b?.[1] ?? 0) - (a?.[1] ?? 0);
-  const { x, z } = CREEK_BRIDGE, yaw = Math.atan2(-dz, dx);
-  const y = (heightAt(x - BRIDGE_HALF, z) + heightAt(x + BRIDGE_HALF, z)) / 2;
-  return { at: timberFrame(x, y, z, yaw), y, yaw };
+  // The shipping browser's atan2 has a different last ulp from Node. Keep native collision ownership exact.
+  const [numerator, denominator] = v.parse(v.tuple([v.number(), v.number()]), authored.placements.bridge.turn);
+  const yaw = Math.atan2(numerator, denominator), root = new THREE.Object3D();
+  root.position.fromArray(authored.placements.bridge.matrix, 12); root.rotation.y = yaw; root.updateMatrixWorld(true);
+  return { at: root.matrixWorld.clone(), y: root.position.y, yaw };
 }
+
+/** Declared double-precision lookout frame; native owners still install its floors, collider and ride. */
+export function lookoutSite(): THREE.Matrix4 { return new THREE.Matrix4().fromArray(authored.placements.lookout.matrix); }
 
 const num = v.pipe(v.number(), v.finite());
 const Copies = v.strictObject({ world: TimberRowSchema, turntable: TimberRowSchema });
@@ -49,30 +52,36 @@ export type SiteTimberRows = v.InferOutput<typeof SiteTimberRowsSchema>;
 /** the bake's rows, parsed strictly once */
 export const SITE_TIMBER_ROWS: SiteTimberRows = v.parse(SiteTimberRowsSchema, siteJson);
 
-/** the bake's binary (`src/shards/pine-hollow/generators/bake-pine-site-timbers.mjs`); listed in the boot's world reads (../boot/files.ts) */
-export const SITE_TIMBER_BAKE_URL = '/assets/pine-hollow/baked/site-timbers.bin';
-const KEY = 'pine-hollow/site-timbers:bake';
+const KEY = 'pine-hollow/timber:views';
 
 /** Fetch the site timbers' bake into this shard's context (once). */
 export async function loadSiteTimbers(ctx: ModelContext): Promise<void> {
-  const bytes = await fetchLaneBake(SITE_TIMBER_BAKE_URL);
-  ctx.once(KEY, () => bytes);
+  if (source.props === null) throw new Error('[timber] missing admitted props');
+  const refs = authored.shardfile.files.map(file => file.hash);
+  const pending = ctx.once(KEY, () => readWholeGeometry(resourceScope(), source,
+    refs));
+  const ready = await pending; ctx.once('pine-hollow/timber:ready', () => ready);
 }
 
-/** the binary's order: the landing's copies, then the bridge's */
-const ORDER = (rows: SiteTimberRows): [string, TimberSite, TimberRow][] => [
-  [LANDING.name, 'world', rows.landing.world], [LANDING.name, 'turntable', rows.landing.turntable],
-  [BRIDGE.name, 'world', rows.bridge.world], [BRIDGE.name, 'turntable', rows.bridge.turntable],
-];
+/** Recreate original draws and unchanged facts; the native timber material and shadow policy still finishes them. */
+export function timberFromViews(ctx: ModelContext, name: string, identity: string, row: TimberRow): Timber {
+  const ready = ctx.once<Map<string, WholeGeometryView>>('pine-hollow/timber:ready', () => { throw new Error('[timber] admitted views not ready'); });
+  const draw = (key: string): THREE.BufferGeometry => {
+    const view = ready.get(`${identity}-${key}`);
+    if (view === undefined) throw new Error(`[timber] missing original draw ${identity}-${key}`);
+    return view.geometry.clone();
+  };
+  const parts = new Map(row.parts.filter(part => part.counts.length > 0).map(part => [part.key, [draw(part.key)]]));
+  const glass = row.glass.length === 0 ? [] : [draw('glass')];
+  const anchors = Object.fromEntries(Object.entries(row.anchors).map(([key, point]) => [key, new THREE.Vector3(...point)]));
+  return Timber.baked(name, parts, glass, { colliders: row.colliders.map(colliderOf), floors: row.floors, anchors });
+}
 
 /** one copy's timber from the bake, unfinished */
 export function siteTimber(ctx: ModelContext, name: string, site: TimberSite, rows: SiteTimberRows = SITE_TIMBER_ROWS): Timber {
-  const blocks = new TimberBlocks(ctx.once<Uint8Array>(KEY, () => { throw new Error('[timber] loadSiteTimbers(ctx) first'); }), rows.bytes);
-  for (const [n, s, row] of ORDER(rows)) {
-    if (n === name && s === site) return blocks.timber(name, row);
-    blocks.skip(row);
-  }
-  throw new Error(`[timber] the bake has no ${name} (${site})`);
+  const copies = name === LANDING.name ? rows.landing : name === BRIDGE.name ? rows.bridge : undefined;
+  if (copies === undefined) throw new Error(`[timber] unknown copy ${name}`);
+  return timberFromViews(ctx, name, site === 'world' ? name : `${name}-turntable`, copies[site]);
 }
 
 /** the identity a copy's facts are kept by (`timberFacts` keys by object) */

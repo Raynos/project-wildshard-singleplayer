@@ -16,6 +16,10 @@ import { bakeFireLookout } from './fireLookout.ts';
 import { pineLookoutBake } from './timberScene.ts';
 import { wildlifeWordLanes as shuffleLanes } from './wildlifeWords.ts';
 
+import { parseGlb } from '@wildshard/sdk/assets';
+import { pineTimberWorldBake, pineTimberPlacements } from './timberWorld.ts';
+import { bakeSiteTimberRows } from './bake-pine-site-timbers.mjs';
+
 const root = resolve(import.meta.dirname, '../../../..');
 
 /** the bake: the rows and the raw binary, the Pine level selected (its seed is the engine SEED, as on the page) */
@@ -27,7 +31,24 @@ export function bakeLookoutRows() {
 /** Original renderer lattice, read explicitly with no active world or engine service. */
 export function pineTimberGround() { return readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin'))); }
 
-if (import.meta.main) {
+/** Write the admitted world tiles and Explorer library through the same confined launcher. */
+function writeTimberWorld() {
+  const ground = pineTimberGround(), baked = pineTimberWorldBake(ground.heightAt, root);
+  const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer');
+  if (piece === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
+  const hash = createHash('sha256').update(piece.glb).digest('hex');
+  const file = { hash, kind: 'glb', compressed: piece.glb.length, ...parseGlb(piece.glb), dependencies: [], critical: false };
+  baked.assets.set(hash, piece.glb);
+  const props = { ...baked.props.props, wholeLibrary: [hash] };
+  const shardfile = { ...baked.shardfile, library: [...baked.shardfile.library ?? [], hash], files: [...baked.shardfile.files, file].sort((a,b) => a.hash.localeCompare(b.hash)) };
+  const out = resolve(root, 'src/shards/pine-hollow/assets'); mkdirSync(out, { recursive: true });
+  for (const [ref, bytes] of baked.assets) writeFileSync(resolve(out, ref), bytes);
+  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, placements: pineTimberPlacements(ground.heightAt), lookout: bakeLookoutRows().rows, sites: bakeSiteTimberRows().rows })}\n`);
+  console.info(`Pine timber product: ${shardfile.tiles.length} tiles, ${shardfile.files.length} charged files, 3 world copies and 2 library copies`);
+}
+
+if (import.meta.main && process.argv.includes('--world')) writeTimberWorld();
+else if (import.meta.main) {
   const { rows, bin } = bakeLookoutRows();
   const authored = pineLookoutBake(pineTimberGround().heightAt, root);
   const out = resolve(root, 'public/assets/pine-hollow/baked');

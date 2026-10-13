@@ -1,15 +1,10 @@
 /**
- * The log kit's shared shapes and rows (G285): what both the offline cabin bake (`../generators/logCabin.ts`, which builds
+ * The live log kit's validated rows (G285): what both the offline cabin bake (`../generators/logCabin.ts`, which builds
  * every log building) and the page (the landmarks' timber, ./timber.ts; the fire lookout; the baked buildings,
- * ./cabinBake.ts) read. Pure three.js geometry and plain types: nothing here loads, draws or registers.
+ * ./cabinBake.ts) read. Shape helpers exist only in generators/cabinShapes.ts; the live path reads admitted geometry.
  */
-import * as THREE from 'three';
 import * as v from 'valibot';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { BuildingDoor, BuildingFloor, BuildingFlicker, BuildingLightAnchor, BuildingLightKind, BuildingRoom, BuildingSwing } from '../runtime/props/buildingLife';
-
-/** boards across the wood_trunk_wall texture, and its size (m) along the board grain */
-export const BOARDS = 7, BOARD_LEN = 1.25;
 
 /** a building part's material: the PBR sets (homestead.ts `Mats`) a baked part names */
 export type KitMat = 'log' | 'endGrain' | 'chink' | 'roof' | 'beam' | 'deck' | 'door' | 'stone' | 'bark' | 'iron' | 'cloth' | 'char';
@@ -96,42 +91,3 @@ export type BakedNode = v.InferOutput<typeof Node>;
 export type BakedLight = v.InferOutput<typeof Light>;
 export type BakedGeometry = v.InferOutput<typeof Geometry>;
 
-// ───────────────────────────── geometry helpers ─────────────────────────────
-
-/** planar UVs by dominant face normal, in the geometry's current space, metres / scale */
-export function boxUV<G extends THREE.BufferGeometry>(geo: G, scale: number, uOff = 0, vOff = 0): G {
-  const pos = geo.getAttribute('position'), nor = geo.getAttribute('normal');
-  const uv = geo.getAttribute('uv');
-  for (let i = 0; i < pos.count; i++) {
-    const nx = Math.abs(nor.getX(i)), ny = Math.abs(nor.getY(i)), nz = Math.abs(nor.getZ(i));
-    let pu: number, pv: number;
-    if (ny >= nx && ny >= nz) { pu = pos.getX(i); pv = pos.getZ(i); }
-    else if (nx >= nz) { pu = pos.getZ(i); pv = pos.getY(i); }
-    else { pu = pos.getX(i); pv = pos.getY(i); }
-    uv.setXY(i, pu / scale + uOff, pv / scale + vOff);
-  }
-  return geo;
-}
-export function swapUV<G extends THREE.BufferGeometry>(geo: G): G {
-  const uv = geo.getAttribute('uv');
-  for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getY(i), uv.getX(i));
-  return geo;
-}
-
-/** a horizontal log along +X of `len`, radius r, textured with one board of the log-wall set (or bark when `bark`) */
-export function logGeo(len: number, r: number, board: number, vOff: number, segs = 14, bark = false): { side: THREE.CylinderGeometry; caps: THREE.BufferGeometry } {
-  const side = new THREE.CylinderGeometry(r, r, len, segs, 1, true);
-  const pos = side.getAttribute('position'), uv = side.getAttribute('uv');
-  for (let i = 0; i < pos.count; i++) {
-    const th = Math.atan2(pos.getZ(i), pos.getX(i)) / (Math.PI * 2) + 0.5; // 0..1 around
-    if (bark) uv.setXY(i, th * (r * 6.283) * 0.5, (pos.getY(i) + vOff) * 0.5); // pine_bark is a 2 m tile
-    else {
-      const tri = th < 0.5 ? th * 2 : 2 - th * 2;                              // mirror so the board wraps front & back
-      uv.setXY(i, (board + 0.06 + tri * 0.88) / BOARDS, (pos.getY(i) + vOff) / BOARD_LEN);
-    }
-  }
-  side.rotateZ(-Math.PI / 2); // +Y → +X
-  const capA = new THREE.CircleGeometry(r, segs).rotateY(Math.PI / 2).translate(len / 2, 0, 0);
-  const capB = new THREE.CircleGeometry(r, segs).rotateY(-Math.PI / 2).translate(-len / 2, 0, 0);
-  return { side, caps: mergeGeometries([capA, capB]) };
-}

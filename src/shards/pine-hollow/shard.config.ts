@@ -8,18 +8,22 @@ import { PINE_RUNTIME_SPAWNS } from './data/spawns';
 import { PINE_STATE } from './data/state';
 import { PINE_EDGE_HEIGHTS } from './data/edges';
 import { PINE_RUNTIME_COST } from './data/runtimeCost';
+import timbers from './data/timberWorld.generated.json' with { type: 'json' };
 
 // The trusted legacy entry keeps the live world; SF29 binds its existing audio to these rows.
 // SF47-g edges (G93 / G99 / G103 / G131): the starter's four 8 m midpoint entryways (kind ground: Pine's terrain is the
 // floor, flat at y = 0 through each canyon gap) stand on Pine's real boundary rows (./data/edges.ts, the committed bake's).
 // The grid's terrain.bin reader paints no palette for Pine, so the colours stay its neutral grey.
+const base = emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: 1337 });
+const libraryFiles = timbers.shardfile.files.filter(file => timbers.shardfile.library.includes(file.hash));
 const row = (heights: readonly number[]): { heights: number[]; colours: [number, number, number][]; roadHeight: 0 } =>
   ({ heights: [...heights], colours: heights.map((): [number, number, number] => [0.25, 0.25, 0.25]), roadHeight: 0 });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({
-  ...emptyShardfile({ slug: 'pine-hollow', name: 'Pine Hollow', author: 'Wildshard', revision: 1, seed: 1337 }),
+  ...base, ...timbers.shardfile, props: timbers.props,
+  budgets: { ...base.budgets, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
   accent: 'moss',
   edge: { north: row(PINE_EDGE_HEIGHTS.north), east: row(PINE_EDGE_HEIGHTS.east), south: row(PINE_EDGE_HEIGHTS.south), west: row(PINE_EDGE_HEIGHTS.west) },
-  runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'state'], spawns: PINE_RUNTIME_SPAWNS },
+  runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['props', 'quests', 'ledger', 'items', 'spawns', 'state'], spawns: PINE_RUNTIME_SPAWNS },
   quests: PINE_QUESTS, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: PINE_AUDIO, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
 });

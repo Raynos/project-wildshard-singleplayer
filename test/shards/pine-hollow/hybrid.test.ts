@@ -39,7 +39,7 @@ it.each(['legacy', 'shardfile'])('enters Pine as %s from SHARD SELECT (SF65), wi
       expect(prepare).toHaveBeenCalledTimes(1);
       expect(prepare).toHaveBeenCalledWith(context);
     }
-    expect(source.runtime).toEqual({ entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'state'], spawns: PINE_RUNTIME_SPAWNS });
+    expect(source.runtime).toEqual({ entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['props', 'quests', 'ledger', 'items', 'spawns', 'state'], spawns: PINE_RUNTIME_SPAWNS });
   } finally { app.engineScope.dispose(); }
   expect(scope.census.disposers).toBe(0);
 });
