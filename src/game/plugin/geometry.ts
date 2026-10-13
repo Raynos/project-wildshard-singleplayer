@@ -5,7 +5,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 import { loadRigFile, type ClipName, type SocketName } from "@wildshard/engine/anim/rig";
 import { cacheUntilDisposed, retainCachedResources } from "@wildshard/engine/app/cachedAssets";
 import { releaseOnUpload } from "@wildshard/engine/render/memorySaver";
-import { Matrix4, Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, type Wrapping, type MinificationTextureFilter, type MagnificationTextureFilter, Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material, InstancedMesh } from "three";
+import { Matrix4, Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, type Wrapping, type MinificationTextureFilter, type MagnificationTextureFilter, Box3, Sphere, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material, InstancedMesh } from "three";
 import { applySurfaceLooks, type SurfaceInputs } from "../systems/looks/surfaceLooks";
 import type { SurfaceLook } from "@wildshard/format/surfaceLooks";
 import { Rng } from "@wildshard/engine/core/rng";
@@ -59,6 +59,8 @@ export interface ModelLibraryRows<M extends string, H extends string> {
   readonly meshes: readonly M[];
   /** One identity-space, non-indexed rest mesh with final float32 position/normal/colour channels; never refit or renormalize. */
   readonly preparedMeshes?: readonly M[];
+  /** Named ordinary rest primitives, with exact authored channels/index/groups; materials remain caller-owned ports. */
+  readonly geometryPools?: readonly { readonly url: string; readonly parts: readonly string[] }[];
   readonly meshUrls: Readonly<Record<M, string>>;
   /** the hero models preloaded, and every hero model's file */
   readonly hd: readonly H[];
@@ -83,6 +85,8 @@ export interface ModelLibrary<M extends string, H extends string> {
   preload: () => Promise<void>;
   /** A copy of a loaded facet model's geometry, or null (not loaded: the caller's code model stands in). */
   mesh: (name: M) => BufferGeometry | null;
+  /** An independent owned copy of a named rest primitive, without facet flattening or normal recomputation. */
+  geometry: (name: string) => BufferGeometry | null;
   /** A hero model fitted as `fit`, as a group sharing the loaded geometry and maps; null when it did not load. */
   hd: (name: H, fit: ModelFit) => Group | null;
   readonly rig: (name: string) => AnimalSpecies;
@@ -127,8 +131,66 @@ function dressHd(m: MeshStandardMaterial, look: HdLookRow | undefined, inputs: S
  */
 export function createModelLibrary<M extends string, H extends string>(rows: ModelLibraryRows<M, H>, fault: string, surfaceInputs: SurfaceInputs = {}): ModelLibrary<M, H> {
   const ready = new Map<M, BufferGeometry>(), hd = new Map<H, Object3D>();
+  const rest = new Map<string, BufferGeometry>();
   const rigs = rows.rigs === undefined ? null : rigLibrary(rows.rigs);
   let loading: Promise<void> | null = null;
+  const pools = rows.geometryPools ?? [], parts = pools.flatMap(pool => pool.parts);
+  if (pools.length > 16 || parts.length > 128 || new Set(parts).size !== parts.length) throw new Error('Model library requires unique bounded rest geometry parts');
+
+  async function loadPool(pool: { readonly url: string; readonly parts: readonly string[] }): Promise<void> {
+    try {
+      const gltf = await loadRigFile(pool.url), nodes: Mesh[] = [];
+      gltf.scene.updateMatrixWorld(true); gltf.scene.traverse(node => { if (isMesh(node)) nodes.push(node); });
+      if (nodes.length !== pool.parts.length || new Set(nodes.map(node => node.name)).size !== nodes.length) throw new Error('Rest pool part roster differs');
+      const prepared = new Map<string, BufferGeometry>();
+      for (const name of pool.parts) {
+        const node = nodes.find(candidate => candidate.name === name);
+        if (node?.type !== 'Mesh' || !node.matrixWorld.equals(new Matrix4())) throw new Error('Rest pool requires named identity-space ordinary meshes');
+        const geometry = node.geometry, position = geometry.getAttribute('position');
+        if (!(position instanceof BufferAttribute) || position.count === 0 || position.count > 400_000 || Object.keys(geometry.morphAttributes).length > 0) throw new Error('Rest pool requires bounded rigid positions');
+        for (const [channel, attribute] of Object.entries(geometry.attributes)) {
+          const width = channel === 'uv' ? 2 : channel === 'tangent' ? 4 : ['position', 'normal', 'color'].includes(channel) ? 3 : undefined;
+          if (width === undefined || !(attribute instanceof BufferAttribute) || !(attribute.array instanceof Float32Array)
+            || attribute.normalized || attribute.itemSize !== width || attribute.count !== position.count || attribute.array.some(value => !Number.isFinite(value))) throw new Error('Rest pool has incompatible Float32 channels');
+        }
+        const index = geometry.index;
+        if (index !== null && (!(index.array instanceof Uint16Array) && !(index.array instanceof Uint32Array)
+          || index.normalized || index.itemSize !== 1 || index.array.some(value => value >= position.count))) throw new Error('Rest pool has incompatible index words');
+        const groups: unknown = node.userData['restGroups'], sphere: unknown = node.userData['restSphere'], box: unknown = node.userData['restBox'];
+        if (!Array.isArray(groups) || groups.length > 32) throw new Error('Rest pool has no bounded original groups');
+        geometry.clearGroups();
+        for (const group of groups) {
+          if (!Array.isArray(group) || group.length !== 3) throw new Error('Rest pool group differs');
+          const start: unknown = group[0], count: unknown = group[1], material: unknown = group[2];
+          if (typeof start !== 'number' || !Number.isSafeInteger(start) || start < 0 || typeof count !== 'number' || !Number.isSafeInteger(count) || count < 0
+            || start + count > (index?.count ?? position.count) || typeof material !== 'number' || !Number.isSafeInteger(material) || material < 0 || material > 31) throw new Error('Rest pool group extent differs');
+          geometry.addGroup(start, count, material);
+        }
+        geometry.boundingBox = null;
+        if (box !== null) {
+          if (!Array.isArray(box) || box.length !== 6) throw new Error('Rest pool box differs');
+          const x: unknown = box[0], y: unknown = box[1], z: unknown = box[2], maxX: unknown = box[3], maxY: unknown = box[4], maxZ: unknown = box[5];
+          if (typeof x !== 'number' || !Number.isFinite(x) || typeof y !== 'number' || !Number.isFinite(y) || typeof z !== 'number' || !Number.isFinite(z)
+            || typeof maxX !== 'number' || !Number.isFinite(maxX) || typeof maxY !== 'number' || !Number.isFinite(maxY) || typeof maxZ !== 'number' || !Number.isFinite(maxZ)
+            || x > maxX || y > maxY || z > maxZ) throw new Error('Rest pool box differs');
+          geometry.boundingBox = new Box3(new Vector3(x,y,z),new Vector3(maxX,maxY,maxZ));
+        }
+        geometry.boundingSphere = null;
+        if (sphere !== null) {
+          if (!Array.isArray(sphere) || sphere.length !== 4) throw new Error('Rest pool sphere differs');
+          const x: unknown = sphere[0], y: unknown = sphere[1], z: unknown = sphere[2], radius: unknown = sphere[3];
+          if (typeof x !== 'number' || !Number.isFinite(x) || typeof y !== 'number' || !Number.isFinite(y) || typeof z !== 'number' || !Number.isFinite(z)
+            || typeof radius !== 'number' || !Number.isFinite(radius) || radius < 0) throw new Error('Rest pool sphere differs');
+          geometry.boundingSphere = new Sphere(new Vector3(x, y, z), radius);
+        }
+        prepared.set(name, geometry);
+      }
+      for (const [name, geometry] of prepared) {
+        retainCachedResources(geometry); rest.set(name, geometry);
+        cacheUntilDisposed(geometry, () => { if (rest.get(name) === geometry) { rest.delete(name); loading = null; } });
+      }
+    } catch (error: unknown) { console.error(`${fault} the rest geometry pool did not load:`, error); }
+  }
 
   async function load(name: M): Promise<void> {
     try {
@@ -168,7 +230,8 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
 
   return {
     preload: () => {
-      loading ??= Promise.all([...rows.meshes.filter(name => !ready.has(name)).map(load), ...rows.hd.filter(name => !hd.has(name)).map(loadHd)]).then(() => undefined);
+      loading ??= Promise.all([...rows.meshes.filter(name => !ready.has(name)).map(load), ...rows.hd.filter(name => !hd.has(name)).map(loadHd),
+        ...pools.filter(pool => pool.parts.some(name => !rest.has(name))).map(loadPool)]).then(() => undefined);
       return rigs === null || rows.rigLoad === 'manual' ? loading : Promise.all([loading, rigs.bodies.preload()]).then(() => undefined);
     },
     rig: name => { if (rigs === null) throw new Error('Model library has no declared rigs'); return rigs.bodies.bodyOrStandIn(name); },
@@ -177,6 +240,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
     preloadRigs: () => rigs?.bodies.preload() ?? Promise.resolve(),
     models: specimens => modelCatalogue(specimens, { rig: name => { if (rigs === null) throw new Error('Model library has no declared rigs'); return rigs.bodies.bodyOrStandIn(name); } }),
     mesh: name => ready.get(name)?.clone() ?? null,
+    geometry: name => rest.get(name)?.clone() ?? null,
     hd: (name, o) => {
       const src = hd.get(name); if (!src) return null;
       const inner = src.clone(true), holder = new Group(), turn = new Group();

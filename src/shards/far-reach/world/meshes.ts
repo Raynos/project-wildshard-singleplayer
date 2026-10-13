@@ -3,6 +3,7 @@ import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app
 import { releaseDecodedOnUpload } from '../look/image';
 import { SKY_RIG_LIBRARY } from '../data/rigLibrary';
 import { SKY_HD, SKY_MESHES, HD_URLS, MODEL_URLS, type SkyHdName, type SkyMeshName } from '../data/files';
+import REST_POOLS from '../data/restPools.generated.json' with { type: 'json' };
 import { PREPARED_MODELS_URL } from '../data/modelFrames';
 import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
 import { BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Sphere, Vector3, type Texture, type Object3D } from 'three';
@@ -20,7 +21,7 @@ import { BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Sph
 export const SKY_AO_FLOOR = 0.6;
 let loading: Promise<void> | null = null;
 /** The facet models, through the SDK model library (its facet intake is the bakes' `generators/modelIntake.ts`). */
-export const SKY_LIBRARY = createModelLibrary<SkyMeshName, never>({ meshes: SKY_MESHES, preparedMeshes: SKY_MESHES, meshUrls: MODEL_URLS, hd: [], hdUrls: {}, aoFloor: SKY_AO_FLOOR, hdLooks: {}, rigs: SKY_RIG_LIBRARY, rigLoad: 'manual' }, '[far-reach]');
+export const SKY_LIBRARY = createModelLibrary<SkyMeshName, never>({ meshes: SKY_MESHES, preparedMeshes: SKY_MESHES, meshUrls: MODEL_URLS, hd: [], hdUrls: {}, aoFloor: SKY_AO_FLOOR, hdLooks: {}, geometryPools: REST_POOLS, rigs: SKY_RIG_LIBRARY, rigLoad: 'manual' }, '[far-reach]');
 
 /** A textured hero model: one indexed geometry (float position, normal, uv in the file's frame) and its painted map. */
 export interface SkyHd { readonly geometry: BufferGeometry; readonly map: Texture; readonly pivots?: { readonly body: BufferGeometry; readonly head: BufferGeometry; readonly arm: BufferGeometry; readonly fore: BufferGeometry } }

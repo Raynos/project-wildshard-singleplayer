@@ -116,7 +116,7 @@ const sceneMaterial = v.variant('kind', [
   v.strictObject({ kind: v.literal('port'), id: name, source: name }),
   v.strictObject({ kind: v.literal('standard'), id: name,
     properties: v.strictObject({ color: v.exactOptional(sceneRgb), emissive: v.exactOptional(sceneRgb), roughness: v.exactOptional(unitScalar), metalness: v.exactOptional(unitScalar),
-      vertexColors: v.exactOptional(v.boolean()), fog: v.exactOptional(v.boolean()), transparent: v.exactOptional(v.boolean()), opacity: v.exactOptional(unitScalar),
+      vertexColors: v.exactOptional(v.boolean()), flatShading: v.exactOptional(v.boolean()), fog: v.exactOptional(v.boolean()), transparent: v.exactOptional(v.boolean()), opacity: v.exactOptional(unitScalar),
       depthWrite: v.exactOptional(v.boolean()), side: v.exactOptional(v.picklist([0, 1, 2])), normalScale: v.exactOptional(v.tuple([sceneCoordinate, sceneCoordinate])) }),
     maps: v.exactOptional(v.strictObject({ map: v.exactOptional(name), normalMap: v.exactOptional(name), roughnessMap: v.exactOptional(name) })),
     decorate: v.exactOptional(name),

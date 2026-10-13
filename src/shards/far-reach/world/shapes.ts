@@ -1,4 +1,4 @@
-import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, CylinderGeometry, Group, InstancedMesh, type Material, Mesh, MeshStandardMaterial, TubeGeometry, Vector3, type Object3D } from 'three';
+import { type BufferGeometry, CatmullRomCurve3, CylinderGeometry, Group, InstancedMesh, type Material, Mesh, MeshStandardMaterial, TubeGeometry, Vector3, type Object3D } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { GeometryPack, fetchDeflated, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import bridgeRows from '../data/bridges.json' with { type: 'json' };
@@ -15,28 +15,6 @@ export const PALETTE = {
 
 export const flat = (color = 0xffffff, extra: ConstructorParameters<typeof MeshStandardMaterial>[0] = {}): MeshStandardMaterial =>
   new MeshStandardMaterial({ color, flatShading: true, roughness: 0.95, metalness: 0, ...extra });
-
-/**
- * A hover deck (loop 5; the bible §5 glass, council R1C-10 / R1B-2): ONE half-transparent cyan slab, so nothing overlaps
- * itself into stripes, held in a solid glowing frame (two edge bars, the end bars) with a short pylon at each corner.
- * It reads as a built thing you ride, and as plainly not a floor. `glass` is the shared deck material (the plugin
- * brightens it while you ride); the frame and pylons are lit by their own emissive cyan (`frame`, a material graph).
- */
-function glassDeck(length: number, width: number, glass: MeshStandardMaterial, frameMat: Material): Mesh[] {
-  const slab = new Mesh(new BoxGeometry(width - 0.16, 0.05, length - 0.16), glass); slab.position.set(0, -0.05, -length / 2); slab.renderOrder = 4;
-  const bars: Mesh[] = [];
-  for (const side of [-1, 1]) { const bar = new Mesh(new BoxGeometry(0.1, 0.1, length), frameMat); bar.position.set(side * (width / 2 - 0.05), -0.04, -length / 2); bars.push(bar); }
-  for (const z of [0, -length]) {
-    const end = new Mesh(new BoxGeometry(width, 0.1, 0.1), frameMat); end.position.set(0, -0.04, z); bars.push(end);
-    for (const side of [-1, 1]) { const pylon = new Mesh(new CylinderGeometry(0.07, 0.1, 0.9, 6), frameMat); pylon.position.set(side * (width / 2 - 0.05), 0.4, z); bars.push(pylon); }
-  }
-  return [slab, ...bars];
-}
-
-/** A hover deck along a local -Z run of `length` metres, `width` wide, top at local y 0, in the shared `glass` and `frame`. */
-export function hoverBridge(length: number, width: number, glass: MeshStandardMaterial, frame: Material): Group {
-  const group = new Group(); group.add(...glassDeck(length, width, glass, frame)); return group;
-}
 
 let bridges: InstanceType<typeof GeometryPack> | null = null;
 const BRIDGE_ROWS = packedRows(bridgeRows);
@@ -91,15 +69,6 @@ export function bridgeKit(): Group { return ropeBridge('kit', flat(PALETTE.rope)
 export function windmill(): { group: Group; hub: Object3D } {
   const { group, hub } = towerMill();
   return { group, hub };
-}
-
-/** The bridge winch: a drum between two posts and a crank. */
-export function winch(): Group {
-  const group = new Group(), wood = flat(PALETTE.trunk);
-  for (const x of [-0.7, 0.7]) { const post = new Mesh(new BoxGeometry(0.2, 1.2, 0.2), wood); post.position.set(x, 0.6, 0); group.add(post); }
-  const drum = new Mesh(new CylinderGeometry(0.32, 0.32, 1.2, 8), flat(PALETTE.rope)); drum.rotation.z = Math.PI / 2; drum.position.y = 0.95; group.add(drum);
-  const crank = new Mesh(new BoxGeometry(0.1, 0.6, 0.1), wood); crank.position.set(0.85, 1.15, 0); group.add(crank);
-  return group;
 }
 
 /** The generated vane's rotor: every facet above this height (the cups and the arrow) turns. */

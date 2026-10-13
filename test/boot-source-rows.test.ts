@@ -13,9 +13,9 @@ afterEach(() => { Reflect.set(globalThis, slot, original); });
 it('pins every Signal tier/texture inventory and late read after the static well bake', () => {
   const sources = (['desktop', 'phone'] as const).flatMap(tier => (['img', 'ktx2'] as const).map(tex => bootSourceFiles(BOOT_SOURCES, tier, tex)));
   const value = { sources, files: bootFileList(BOOT_FILES, 'phone'), late: LATE_READS };
-  // 7c279ff1d moves the shell into baked/well.glb and retires the raw well preload.
+  // C1 rest-scene deletion adds the named exact hover/winch or bucket/oil pools.
   expect(value.files).toStrictEqual(EXPECTED_SIGNAL_FILES);
-  expect(createHash('sha256').update(JSON.stringify(value)).digest('hex')).toBe('a041c403af2bde8853ebc4395f59e6642297435e60a5c8f6e3eabad42a46d5a2');
+  expect(createHash('sha256').update(JSON.stringify(value)).digest('hex')).toBe('bc9b2ca13d4789e97123490c732ad36d711cdabbf78df05e645d20dd89e6a3c9');
   for (const source of sources) {
     expect(source.props).not.toContain('/assets/sunscar-dunes/models/dry-well/dry-well.glb');
     expect(source.props).toContain('/assets/sunscar-dunes/baked/well.glb');

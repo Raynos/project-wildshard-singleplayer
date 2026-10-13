@@ -1,10 +1,11 @@
+import REST_POOLS from './restPools.generated.json' with { type: 'json' };
 import { SAND_FILES } from './sand';
 import { BAKED_PIECES, BAKED_URLS, DUNE_HD, DUNE_MESHES, DUNE_RIGS, DUNE_HD_URLS, DUNE_MESH_URLS, DUNE_RIG_URLS, PAINTED_STAGES, PAINTED_URLS } from './files';
 
 /** The existing ordered painted sky, sand, model and rig inventory. */
 const sources = {
   sky: PAINTED_STAGES.map(key => PAINTED_URLS[key]), baked: [], terrain: Object.values(SAND_FILES), trees: [], physics: [], cabins: [],
-  props: [...DUNE_MESHES.map(key => DUNE_MESH_URLS[key]), ...DUNE_HD.map(key => DUNE_HD_URLS[key]), ...BAKED_PIECES.map(key => BAKED_URLS[key]), ...DUNE_RIGS.map(key => DUNE_RIG_URLS[key])],
+  props: [...DUNE_MESHES.map(key => DUNE_MESH_URLS[key]), ...DUNE_HD.map(key => DUNE_HD_URLS[key]), ...BAKED_PIECES.map(key => BAKED_URLS[key]), ...DUNE_RIGS.map(key => DUNE_RIG_URLS[key]), ...REST_POOLS.map(pool => pool.url)],
   art: [], music: [], sfx: [],
 };
 /** Both tiers intentionally share the same declared source URLs. */

@@ -934,3 +934,14 @@ src/shards/sunscar-dunes/data/heldPlayback.generated.json
 
 # Retained Sky Crown instance recipe, generated at build time.
 src/shards/far-reach/data/crownInstances.generated.json
+
+/src/shards/far-reach/data/restScenes.generated.json
+/src/shards/far-reach/data/restPools.generated.json
+/public/assets/far-reach/baked/rest-winch.glb
+/public/assets/far-reach/baked/rest-hover-0.glb
+/public/assets/far-reach/baked/rest-hover-1.glb
+/public/assets/far-reach/baked/rest-hover-2.glb
+/src/shards/sunscar-dunes/data/restScenes.generated.json
+/src/shards/sunscar-dunes/data/restPools.generated.json
+/public/assets/sunscar-dunes/baked/rest-well.glb
+/public/assets/sunscar-dunes/baked/rest-oil.glb

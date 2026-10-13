@@ -297,3 +297,11 @@ digits, underscore or hyphen; at most 128 characters). Duplicate or sanitized
 names refuse export. Unnamed existing exports retain their exact bytes.
 
 <!-- example: named-nodes -->
+
+The named-node example also emits an exact rest hierarchy with
+`clientSceneGlb`: the existing V1 scene rows and mesh-local GLB accessors are
+separate outputs. Materials are named client ports, not copies of shader
+code. A declared model-library geometry pool preserves original Float32
+channels, index width, groups and bounds; `geometry(id)` lends independent
+owned copies to `createClientScene`. Unsupported geometry refuses rather
+than converting or refitting it.

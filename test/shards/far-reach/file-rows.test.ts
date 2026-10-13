@@ -18,7 +18,7 @@ it('retains every ordered desktop/phone image/KTX2 boot URL and late read', () =
   const boot = bootFileList(BOOT_FILES, 'phone');
   for (const source of sources) expect(source.props.filter(url => url === PREPARED_MODELS_URL)).toEqual([PREPARED_MODELS_URL]);
   expect(boot.filter(url => url === PREPARED_MODELS_URL)).toEqual([PREPARED_MODELS_URL]);
-  // b89675ebe replaces the raw vane/unused keeper with final post/rotor GLBs.
+  // C1 rest-scene deletion adds the named exact hover/winch or bucket/oil pools.
   // Pin the current full inventory and order; never substitute retired URLs.
   for (const source of sources) {
     expect(source.props.slice(0, 2)).toEqual([files.MODEL_URLS['vane-post'], files.MODEL_URLS['vane-rotor']]);
@@ -27,7 +27,7 @@ it('retains every ordered desktop/phone image/KTX2 boot URL and late read', () =
   }
   const current = { sources, boot, late: LATE_READS };
   expect(current).toStrictEqual(inventory);
-  expect(createHash('sha256').update(JSON.stringify(current)).digest('hex')).toBe('bd2174b9db675ff041e752514c95a951dfd5ee2edffd70e25dd8330844dfaf38');
+  expect(createHash('sha256').update(JSON.stringify(current)).digest('hex')).toBe('d15a14e44572bf46e2a6c66cbfed33b65ab1335e8f5f8e9cae922f4183320fd9');
 });
 it('publishes only finite JSON data and resolves every model, rig and generated piece name', () => {
   for (const value of Object.values(files)) {

@@ -14,7 +14,13 @@
     "../../../public/assets/far-reach/models/wind-vane/post.glb",
     "../../../public/assets/far-reach/models/wind-vane/rotor.glb",
     "data/crownInstances.generated.json",
-    "data/rigLibrary.ts"
+    "data/rigLibrary.ts",
+    "data/restScenes.generated.json",
+    "data/restPools.generated.json",
+    "../../../public/assets/far-reach/baked/rest-hover-0.glb",
+    "../../../public/assets/far-reach/baked/rest-hover-1.glb",
+    "../../../public/assets/far-reach/baked/rest-hover-2.glb",
+    "../../../public/assets/far-reach/baked/rest-winch.glb"
   ],
   "hide": [
     "far.storm",

@@ -6,7 +6,11 @@
     "world",
     "generators",
     "models",
-    "data/rigLibrary.ts"
+    "data/rigLibrary.ts",
+    "data/restScenes.generated.json",
+    "data/restPools.generated.json",
+    "../../../public/assets/sunscar-dunes/baked/rest-oil.glb",
+    "../../../public/assets/sunscar-dunes/baked/rest-well.glb"
   ],
   "style": {
     "kind": "ground",

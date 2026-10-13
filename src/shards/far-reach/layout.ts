@@ -1,4 +1,4 @@
-import { KNOLLS, ROOST, ROPE_SAG, APOTHEM, type Isle, type Knoll, type SPIRES } from './data/layout';
+import { KNOLLS, ROOST, ROPE_SAG, APOTHEM, type Isle, type Knoll, type SPIRES, type Span } from './data/layout';
 
 /**
  * The maths over Sky Reach's coordinates (`data/layout.ts` holds the coordinates themselves, as pure data: a data module
@@ -40,3 +40,8 @@ export function rimAlong(isle: Isle, a: number): number {
 
 /** A Roost spire's foot (data/layout.ts SPIRES: its angle round the Roost's centre and distance from it). */
 export const spireAt = (s: (typeof SPIRES)[number]): { x: number; z: number } => ({ x: ROOST.x + Math.cos(s.a) * s.d, z: ROOST.z + Math.sin(s.a) * s.d });
+
+/** A span's local −Z run, yaw and pitch, shared by its authored mover and page placement. */
+export const spanLength = (span: Span): number => Math.hypot(span.x1 - span.x0, span.y1 - span.y, span.z1 - span.z0);
+export const spanYaw = (span: Span): number => Math.atan2(-(span.x1 - span.x0), -(span.z1 - span.z0));
+export const spanPitch = (span: Span): number => Math.atan2(span.y1 - span.y, Math.hypot(span.x1 - span.x0, span.z1 - span.z0));

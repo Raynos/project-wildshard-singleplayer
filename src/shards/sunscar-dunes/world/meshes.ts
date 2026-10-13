@@ -1,4 +1,5 @@
 import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
+import REST_POOLS from '../data/restPools.generated.json' with { type: 'json' };
 import { SIGNAL_RIG_LIBRARY } from '../data/rigLibrary';
 import { applySurfaceLooks } from '@wildshard/game/systems/looks/surfaceLooks';
 import type { SurfaceLook } from '@wildshard/format/surfaceLooks';
@@ -17,7 +18,7 @@ import type { MeshStandardMaterial } from 'three';
 
 /** The live inputs Signal's surface rows read: the fires' light slots and the dusk. */
 const SURFACE_INPUTS = { lights: FIRE_LIGHTS, dusk: DUSK };
-export const DUNE_LIBRARY = createModelLibrary({ ...DUNE_MODELS, rigs: SIGNAL_RIG_LIBRARY }, '[sunscar-dunes]', SURFACE_INPUTS);
+export const DUNE_LIBRARY = createModelLibrary({ ...DUNE_MODELS, geometryPools: REST_POOLS, rigs: SIGNAL_RIG_LIBRARY }, '[sunscar-dunes]', SURFACE_INPUTS);
 
 /** Load every generated model and baked creature body once (a failed one is skipped and faulted). */
 export const preloadDuneMeshes = DUNE_LIBRARY.preload;

@@ -4,9 +4,14 @@ import { ISLE_CUT_EDITS } from '../data/paintLook';
 import { ISLE_DRAWS } from '../data/isleLook';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
-import type { ShardContext } from '@wildshard/game/shard/context';
+import { createClientScene } from '@wildshard/game/plugin/ui';
+import type { SkyReachPlugin } from '../runtime/index';
+import { spanLength, spanYaw, spanPitch } from '../layout';
+import { FALLEN_ANGLE } from '../data/moverBindings';
+import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
+import { SKY_LIBRARY } from './meshes';
 import { Group, Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, NOTES, SPANS, SUNREST, UPDRAFT, VANES, WINCH, type Span } from '../data/layout';
+import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, NOTES, SPANS, SUNREST, UPDRAFT, VANES, WINCH } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
@@ -18,7 +23,7 @@ import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type: '
 import { skyIsleModels } from './skyIsleHd';
 import { skyBakedPiece, skyKnollHulls, skyPieces } from './baked';
 import { skyline } from './distant';
-import { PALETTE, flat, hoverBridge, ropeBridge, vane, windmill, winch } from './shapes';
+import { PALETTE, flat, ropeBridge, vane, windmill } from './shapes';
 import { bookStand } from './bookStand';
 import { BOOK_STAND } from '../data/bookStand';
 import { KEEPER_STAND } from '../quest/keeper';
@@ -32,15 +37,9 @@ import { GATE_ISLES, isletPieces, isletViews, type IsletViews } from './risingIs
 import { RISING_ISLETS } from './islets';
 import { skyDocksFor } from './skyDock';
 
+type ShardContext = Parameters<SkyReachPlugin['world']>[0];
+const HOVER_SCENES = new Map(REST_SCENES.hover.map(row => [row.id, row.scene]));
 const FILE = 'src/shards/far-reach/world/build.ts';
-/** How far the fallen bridge hangs below level (radians about its pivot). */
-export const FALLEN_ANGLE = -1.25;
-/** The updraft ramp's climb (radians); under the 40° walk limit. */
-
-/** A span's run: its horizontal heading (yaw, the bridge's local −Z) and its slope (pitch, raising the far end). */
-export const spanLength = (span: Span): number => Math.hypot(span.x1 - span.x0, span.y1 - span.y, span.z1 - span.z0);
-export const spanYaw = (span: Span): number => Math.atan2(-(span.x1 - span.x0), -(span.z1 - span.z0));
-export const spanPitch = (span: Span): number => Math.atan2(span.y1 - span.y, Math.hypot(span.x1 - span.x0, span.z1 - span.z0));
 /** The updraft's climb (radians; under the 40° walk limit) and its run along the slope. */
 export const UPDRAFT_ANGLE = spanPitch(UPDRAFT);
 export const UPDRAFT_LENGTH = spanLength(UPDRAFT);
@@ -170,7 +169,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   // SF49-g (G183): each gate isle's rope bridge to its island is one more rope span of the same builder
   const bridges: Piece[] = [];
   for (const span of [...SPANS, ...RISING_ISLETS.map((entry) => entry.bridge)]) {
-    const hover = span.kind === 'hover', length = spanLength(span), bridge = hover ? hoverBridge(length, span.width, hoverDeck, looks.frame) : ropeBridge(span.id, rope, looks.deck);
+    const hover = span.kind === 'hover', bridge = hover ? createClientScene(HOVER_SCENES.get(span.id), { geometry: SKY_LIBRARY.geometry, materials: new Map([['glass', hoverDeck], ['frame', looks.frame]]) }).root : ropeBridge(span.id, rope, looks.deck);
     bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.set(spanPitch(span), spanYaw(span), 0, 'YXZ');
     const piece: Piece = { id: span.id, name: hover ? STRINGS.hover : STRINGS.rope, category: 'buildings', file: FILE, object: bridge,
       colliders: spanColliders(span.id), surface: 'wood' };
@@ -185,7 +184,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   await pause();
 
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
-  const ramp = hoverBridge(UPDRAFT_LENGTH, UPDRAFT.width, hoverDeck, looks.frame);
+  const ramp = createClientScene(HOVER_SCENES.get(UPDRAFT.id), { geometry: SKY_LIBRARY.geometry, materials: new Map([['glass', hoverDeck], ['frame', looks.frame]]) }).root;
   ramp.position.set(UPDRAFT.x0, UPDRAFT.y, UPDRAFT.z0); ramp.rotation.set(UPDRAFT_ANGLE, spanYaw(UPDRAFT), 0, 'YXZ');
   pieces.add('far.updraft', ramp, { colliders: spanColliders('far.updraft') });
   // the wind column: a spiral of streaks and leaves up the ramp (loop 3; the plugin turns it)
@@ -203,7 +202,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   const mill = windmill(); pieces.add('far.windmill', mill.group, { colliders: propColliders('far.windmill') });
 
   await pause();
-  pieces.add('far.winch', winch(), { colliders: propColliders('far.winch') });
+  pieces.add('far.winch', createClientScene(REST_SCENES.winch, { geometry: SKY_LIBRARY.geometry }).root, { colliders: propColliders('far.winch') });
   const winchAt = new Vector3(WINCH.x, WINCH.y + 1.2, WINCH.z);
   const handle: Interactable = { label: STRINGS.turnWinch, position: winchAt, radius: 3, onInteract: () => { if (!state.raised) state.raising = true; } };
 

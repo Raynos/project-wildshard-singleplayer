@@ -8,3 +8,6 @@ export const SKY_MOVER_BINDING = {
 
 /** Borrow existing registered bridge pieces; islet bodies remain owned by the declared native mover runtime. */
 export const SKY_NATIVE_MOVER_OWNERS = ['far.rope.windmill', 'far.rope.grove', 'far.rope.ruin', 'far.winch.bridge'];
+
+/** Native hanging bridge rest pitch; shared by the authored mover and the page pivot. */
+export const FALLEN_ANGLE = -1.25;

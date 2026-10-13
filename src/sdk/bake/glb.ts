@@ -1,7 +1,62 @@
-import { BufferAttribute, Float16BufferAttribute, Box3, Matrix4, type Color, MeshBasicMaterial, type MeshStandardMaterial, Quaternion, Vector3, type Object3D, type BufferGeometry } from 'three';
+import { BufferAttribute, Float16BufferAttribute, Box3, Matrix4, type Color, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3, Group, Mesh, type Material, type Object3D, type BufferGeometry } from 'three';
 import { parseGlb } from '../assets';
+import { parsePrivateScene, type PrivateScene } from '@wildshard/format/clientChannels';
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
+
+/** Geometry GLB and the existing private-scene rows; actual materials remain owned client ports. */
+export interface ClientSceneBake { readonly glb: Uint8Array; readonly scene: PrivateScene }
+
+function ordinaryMesh(value: Object3D): value is Mesh { return value instanceof Mesh && value.type === 'Mesh'; }
+
+/** Bake named ordinary groups and meshes without fitting geometry or serializing shader/material owners. */
+export function clientSceneGlb(root: Group, ports: ReadonlyMap<Material, string>): ClientSceneBake {
+  const nodes: PrivateScene['nodes'] = [], materials: PrivateScene['materials'] = [], primitives: GlbPrimitive[] = [];
+  const identities = new Set<string>(), namedMaterials = new Map<string, Material>();
+  const geometryMaterial = new MeshStandardMaterial();
+  const visit = (object: Object3D): void => {
+    if (identities.size >= 128) throw new Error('Rest scene exceeds its bounded part roster');
+    if (!/^[a-z][a-zA-Z0-9-]{0,95}$/u.test(object.name) || identities.has(object.name)) throw new Error('Rest scene requires unique loader-safe part names');
+    if (object.layers.mask !== 1 || !object.matrixAutoUpdate || object.animations.length > 0) throw new Error('Rest scene requires ordinary transform owners');
+    identities.add(object.name);
+    const pose = { position: [object.position.x, object.position.y, object.position.z] as [number, number, number],
+      rotation: [object.rotation.x, object.rotation.y, object.rotation.z] as [number, number, number], order: object.rotation.order,
+      scale: [object.scale.x, object.scale.y, object.scale.z] as [number, number, number], children: object.children.map(child => child.name),
+      visible: object.visible, castShadow: object.castShadow, receiveShadow: object.receiveShadow, frustumCulled: object.frustumCulled, renderOrder: object.renderOrder };
+    if (ordinaryMesh(object)) {
+      if (Array.isArray(object.material) || Object.keys(object.geometry.morphAttributes).length > 0
+        || object.geometry.drawRange.start !== 0 || object.geometry.drawRange.count !== Infinity) throw new Error('Rest scene requires one owned material and complete rigid geometry');
+      const material = ports.get(object.material);
+      if (material === undefined) throw new Error('Rest scene material has no declared client port');
+      const prior = namedMaterials.get(material);
+      if (prior !== undefined && prior !== object.material) throw new Error('Rest scene material port aliases distinct owners');
+      if (prior === undefined) {
+        if (namedMaterials.size >= 32) throw new Error('Rest scene exceeds its bounded material roster');
+        namedMaterials.set(material, object.material); materials.push({ kind: 'port', id: material, source: material });
+      }
+      const geometry: BufferGeometry = object.geometry; const sphere = geometry.boundingSphere, box = geometry.boundingBox;
+      for (const [channel, attribute] of Object.entries(geometry.attributes)) {
+        const width = channel === 'uv' ? 2 : channel === 'tangent' ? 4 : ['position', 'normal', 'color'].includes(channel) ? 3 : undefined;
+        if (width === undefined || !(attribute instanceof BufferAttribute) || !(attribute.array instanceof Float32Array)
+          || attribute.normalized || attribute.itemSize !== width) throw new Error('Rest scene requires exact supported Float32 geometry channels');
+      }
+      const index = geometry.index;
+      if (index !== null && (!(index.array instanceof Uint16Array) && !(index.array instanceof Uint32Array)
+        || index.normalized || index.itemSize !== 1)) throw new Error('Rest scene requires exact uint16/uint32 indices');
+      const extras = { restBox: box === null ? null : [box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z], restGroups: geometry.groups.map(group => [group.start, group.count, group.materialIndex ?? 0]),
+        restSphere: sphere === null ? null : [sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius] };
+      primitives.push({ name: object.name, geometry, material: geometryMaterial, nativeAttributes: true, compactIndex: true, extras });
+      nodes.push({ kind: 'mesh', id: object.name, geometry: object.name, material, missing: 'empty', ...pose });
+    } else if (object instanceof Group && object.type === 'Group') nodes.push({ kind: 'group', id: object.name, ...pose });
+    else throw new Error('Rest scene supports ordinary Group and Mesh declarations only');
+    for (const child of object.children) visit(child);
+  };
+  try {
+    visit(root);
+    const scene = parsePrivateScene({ version: 1, root: root.name, nodes, materials });
+    return { scene, glb: staticGlb(primitives, root.name) };
+  } finally { geometryMaterial.dispose(); }
+}
 /** A primitive's geometry, material and optional instanced local transforms; textures are separate declared assets. */
 export interface GlbPrimitive {
   geometry: BufferGeometry; material: MeshStandardMaterial | MeshBasicMaterial; instances?: readonly Matrix4[]; castShadow?: boolean;

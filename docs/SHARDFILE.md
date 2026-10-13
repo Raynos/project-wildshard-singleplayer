@@ -2271,3 +2271,22 @@ the existing standard-material byte path. The trusted client draws mixed pieces
 with `bakedMeshWorld` in game's defining `shardfile/bakedKinds` module; ordinary
 kinds remain ordinary meshes, so the bake does not add an instancing shader
 variant. `scene.json` also restores the basic material declaration exactly.
+
+### Exact rest hierarchies and geometry pools
+
+`@wildshard/sdk/bake/glb.clientSceneGlb` emits an ordinary named three.js
+`Group`/`Mesh` hierarchy as the existing V1 client scene rows plus a standard
+GLB of its mesh-local geometry. The client lends the original materials by
+name; shader graphs and motion owners stay with those ports. The named-node
+example in the generated authoring guide shows the recipe.
+
+A model library's `geometryPools` declares each GLB URL and its exact named
+part roster. `preload()` admits the entire pool before publishing any part;
+`geometry(id)` returns an independent owned copy. This path preserves plain
+Float32 position/normal/UV/colour/tangent channels, the original uint16/uint32
+index or non-indexed layout, groups and bounding sphere. Unsupported or
+normalized channels, transformed/skinned parts and damaged metadata refuse
+without fitting, flattening or recomputing normals. Add the pool URLs to the
+boot file inventory and keep the generator and its output pins in the build
+catalogue. Assemble its scene rows with `createClientScene`, then bind the
+existing motion owner to the returned stable part IDs.

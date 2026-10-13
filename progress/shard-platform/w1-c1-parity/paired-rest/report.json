@@ -1,0 +1,398 @@
+{
+  "sky/phone/sunrest-sun": {
+    "differ": 0,
+    "base": {
+      "calls": 126,
+      "triangles": 2233916
+    },
+    "candidate": {
+      "calls": 126,
+      "triangles": 2233916
+    }
+  },
+  "sky/phone/sunrest-east": {
+    "differ": 0,
+    "base": {
+      "calls": 83,
+      "triangles": 2003751
+    },
+    "candidate": {
+      "calls": 83,
+      "triangles": 2003751
+    }
+  },
+  "sky/phone/sunrest-back": {
+    "differ": 0,
+    "base": {
+      "calls": 70,
+      "triangles": 1967640
+    },
+    "candidate": {
+      "calls": 70,
+      "triangles": 1967640
+    }
+  },
+  "sky/phone/windmill-sea": {
+    "differ": 0,
+    "base": {
+      "calls": 87,
+      "triangles": 2072913
+    },
+    "candidate": {
+      "calls": 87,
+      "triangles": 2072913
+    }
+  },
+  "sky/phone/crown": {
+    "differ": 0,
+    "base": {
+      "calls": 197,
+      "triangles": 2430304
+    },
+    "candidate": {
+      "calls": 197,
+      "triangles": 2430304
+    }
+  },
+  "sky/phone/roost": {
+    "differ": 0,
+    "base": {
+      "calls": 143,
+      "triangles": 2208671
+    },
+    "candidate": {
+      "calls": 143,
+      "triangles": 2208671
+    }
+  },
+  "sky/phone/c1-lectern": {
+    "differ": 0,
+    "base": {
+      "calls": 121,
+      "triangles": 2220164
+    },
+    "candidate": {
+      "calls": 121,
+      "triangles": 2220164
+    }
+  },
+  "sky/phone/c1-mill": {
+    "differ": 0,
+    "base": {
+      "calls": 104,
+      "triangles": 2066614
+    },
+    "candidate": {
+      "calls": 104,
+      "triangles": 2066614
+    }
+  },
+  "sky/phone/c1-lectern-west": {
+    "differ": 0,
+    "base": {
+      "calls": 56,
+      "triangles": 1966478
+    },
+    "candidate": {
+      "calls": 56,
+      "triangles": 1966478
+    }
+  },
+  "sky/desktop/sunrest-sun": {
+    "differ": 0,
+    "base": {
+      "calls": 132,
+      "triangles": 2930924
+    },
+    "candidate": {
+      "calls": 132,
+      "triangles": 2930924
+    }
+  },
+  "sky/desktop/sunrest-east": {
+    "differ": 0,
+    "base": {
+      "calls": 83,
+      "triangles": 2683751
+    },
+    "candidate": {
+      "calls": 83,
+      "triangles": 2683751
+    }
+  },
+  "sky/desktop/sunrest-back": {
+    "differ": 0,
+    "base": {
+      "calls": 74,
+      "triangles": 2651037
+    },
+    "candidate": {
+      "calls": 74,
+      "triangles": 2651037
+    }
+  },
+  "sky/desktop/windmill-sea": {
+    "differ": 0,
+    "base": {
+      "calls": 87,
+      "triangles": 2752913
+    },
+    "candidate": {
+      "calls": 87,
+      "triangles": 2752913
+    }
+  },
+  "sky/desktop/crown": {
+    "differ": 0,
+    "base": {
+      "calls": 203,
+      "triangles": 3116452
+    },
+    "candidate": {
+      "calls": 203,
+      "triangles": 3116452
+    }
+  },
+  "sky/desktop/roost": {
+    "differ": 0,
+    "base": {
+      "calls": 147,
+      "triangles": 2892645
+    },
+    "candidate": {
+      "calls": 147,
+      "triangles": 2892645
+    }
+  },
+  "sky/desktop/c1-lectern": {
+    "differ": 0,
+    "base": {
+      "calls": 127,
+      "triangles": 2917172
+    },
+    "candidate": {
+      "calls": 127,
+      "triangles": 2917172
+    }
+  },
+  "sky/desktop/c1-mill": {
+    "differ": 0,
+    "base": {
+      "calls": 108,
+      "triangles": 2750011
+    },
+    "candidate": {
+      "calls": 108,
+      "triangles": 2750011
+    }
+  },
+  "sky/desktop/c1-lectern-west": {
+    "differ": 0,
+    "base": {
+      "calls": 55,
+      "triangles": 2645391
+    },
+    "candidate": {
+      "calls": 55,
+      "triangles": 2645391
+    }
+  },
+  "signal/phone/spawn-tower": {
+    "differ": 0,
+    "base": {
+      "calls": 66,
+      "triangles": 137658
+    },
+    "candidate": {
+      "calls": 66,
+      "triangles": 137658
+    }
+  },
+  "signal/phone/spawn-back": {
+    "differ": 0,
+    "base": {
+      "calls": 39,
+      "triangles": 87158
+    },
+    "candidate": {
+      "calls": 39,
+      "triangles": 87158
+    }
+  },
+  "signal/phone/caravan": {
+    "differ": 0,
+    "base": {
+      "calls": 52,
+      "triangles": 142128
+    },
+    "candidate": {
+      "calls": 52,
+      "triangles": 142128
+    }
+  },
+  "signal/phone/well": {
+    "differ": 0,
+    "base": {
+      "calls": 51,
+      "triangles": 89827
+    },
+    "candidate": {
+      "calls": 48,
+      "triangles": 88547
+    }
+  },
+  "signal/phone/basin": {
+    "differ": 9071,
+    "base": {
+      "calls": 41,
+      "triangles": 90078
+    },
+    "candidate": {
+      "calls": 43,
+      "triangles": 90718
+    }
+  },
+  "signal/phone/edge-out": {
+    "differ": 4933,
+    "base": {
+      "calls": 45,
+      "triangles": 93046
+    },
+    "candidate": {
+      "calls": 46,
+      "triangles": 91766
+    }
+  },
+  "signal/phone/c1-well": {
+    "differ": 0,
+    "base": {
+      "calls": 50,
+      "triangles": 91107
+    },
+    "candidate": {
+      "calls": 50,
+      "triangles": 91107
+    }
+  },
+  "signal/phone/c1-caravan-lamp": {
+    "differ": 0,
+    "base": {
+      "calls": 55,
+      "triangles": 143280
+    },
+    "candidate": {
+      "calls": 55,
+      "triangles": 143280
+    }
+  },
+  "signal/phone/c1-tower-deck": {
+    "differ": 0,
+    "base": {
+      "calls": 58,
+      "triangles": 142306
+    },
+    "candidate": {
+      "calls": 61,
+      "triangles": 149218
+    }
+  },
+  "signal/desktop/spawn-tower": {
+    "differ": 0,
+    "base": {
+      "calls": 72,
+      "triangles": 138906
+    },
+    "candidate": {
+      "calls": 72,
+      "triangles": 138906
+    }
+  },
+  "signal/desktop/spawn-back": {
+    "differ": 0,
+    "base": {
+      "calls": 50,
+      "triangles": 89446
+    },
+    "candidate": {
+      "calls": 50,
+      "triangles": 89446
+    }
+  },
+  "signal/desktop/caravan": {
+    "differ": 0,
+    "base": {
+      "calls": 53,
+      "triangles": 143728
+    },
+    "candidate": {
+      "calls": 53,
+      "triangles": 143728
+    }
+  },
+  "signal/desktop/well": {
+    "differ": 0,
+    "base": {
+      "calls": 51,
+      "triangles": 89827
+    },
+    "candidate": {
+      "calls": 51,
+      "triangles": 89827
+    }
+  },
+  "signal/desktop/basin": {
+    "differ": 0,
+    "base": {
+      "calls": 42,
+      "triangles": 99078
+    },
+    "candidate": {
+      "calls": 42,
+      "triangles": 99078
+    }
+  },
+  "signal/desktop/edge-out": {
+    "differ": 861,
+    "base": {
+      "calls": 43,
+      "triangles": 84854
+    },
+    "candidate": {
+      "calls": 46,
+      "triangles": 91766
+    }
+  },
+  "signal/desktop/c1-well": {
+    "differ": 0,
+    "base": {
+      "calls": 51,
+      "triangles": 92707
+    },
+    "candidate": {
+      "calls": 53,
+      "triangles": 92963
+    }
+  },
+  "signal/desktop/c1-caravan-lamp": {
+    "differ": 0,
+    "base": {
+      "calls": 53,
+      "triangles": 143728
+    },
+    "candidate": {
+      "calls": 53,
+      "triangles": 143728
+    }
+  },
+  "signal/desktop/c1-tower-deck": {
+    "differ": 0,
+    "base": {
+      "calls": 62,
+      "triangles": 157562
+    },
+    "candidate": {
+      "calls": 65,
+      "triangles": 158842
+    }
+  }
+}
