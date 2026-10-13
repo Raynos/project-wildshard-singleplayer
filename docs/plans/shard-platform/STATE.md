@@ -1,11 +1,12 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-13 12:30Z. PORT % (G390): avg ≈ 44 %** (T 100, Signal 76, Sky 70, Nine 49, Nalati 10, DW 0, Pine 0). Finish line: 0 of 7 at 80/20.
+**SPRINT 2 (G400, 12:55Z → ~21:00Z): Signal + Sky below 20 % custom.** Custom 12:53Z: **Signal 43.9 % (1808 lines), Sky 48.3 % (3276)**; reported every 2 h. Driftwood/Pine/Nalati/Nine/near tier paused.
+**2026-10-13 13:00Z. PORT % (G390, `351e3f8bc`): avg 44.7 %** (Template 100, Signal 74.9, Sky 69.7, Nine 48.3, Nalati 10, Pine 10, Driftwood 0). Finish line: 0 of 7 at 80/20.
 
 **Nine ported** (34 L0 tiles, 0 private bins, Linux-exact). **Nalati 0 private bins** (`d3bdac368`); ground + nav one fetch (Nalati, Sky, Signal).
 **RELEASE HOLD until CI + public-Nine smoke pass on ≥ `77bfbba70` (Pine Linux fixed `84eb0f68f`; last CI reds: Signal chunk sp-x6, two Nine fixtures sp-x8).** **LIVE `ad30fba68-mv6izhvz` (10:16Z, clean)**. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: Sim Nine max fixed (`77bfbba70`: ~100 ms), Pine desktop PASS (`4b239382f`…`65e123136`); Sim travel still fails Pine 57–63, Driftwood 42–50, Far 40–47 (Nalati 34–35); left = texture uploads (KTX2 ask) + unsplit shard builds. **Whole products: Template, Pastel (Linux-exact), Signal (all Linux-exact).**
 
-**Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 Nalati port (G391), x6 SF77 + G390 + inventory, then G388, x4 Pine, x1 Driftwood, x8 Nine. Opus: o120 Sky steps 3–4, o122 G395 effects, o119 G386 Pine KTX2, o115 desktop parity drift; G387 queued.
+**Fleet (G384, Sprint 2):** Signal: x6 (inventory G396, glue/quest/creatures), x1 (lash → melee, movers), o121 (graphs), o119 (world → tiles). Sky: x5 (steps 1, 8), x4 (2 movers), x8 (6 fan, 7 Roc + clip check), o120 (3–5), o122 (9 effects). x7 pusher.
 
 **Decided:** G385 near B (shipped `45a8bd0e3`), G386 Pine KTX2, G387 graphs with boards, G388 Sky movers yes, G391 (supersedes G389): Nalati port NOW (sp-x5) and every legacy three.js builder/model/set becomes a generator, all shards.
 **Explorer inventory (G391, `generator-inventory.md` `15f01e335`), ported/total:** Template 0/3, Signal 8/10, Sky 0/27, Nine 0/47, Nalati 0/125, Driftwood 0/70, Pine 0/89.
