@@ -10,14 +10,13 @@
 **Game exports (G351):** 104 (from 328); `plugin/` 20 → **14** (`1a513ba40`).
 **Push (Jake `a44511f05`, `193a7e998`, `ef0eb5e04`, `267504b5a`; sp-x7 building):** debt shrink-only, refused per file at commit; generated files made at commit, never at push (regen bot goes); pre-commit ≤ 10 s, local gate ≤ 2 min, full suite/bakes in CI with fix-forward; no repeat retries; allowed graph counts report-only; exact-number tests → limits (sp-o66). **Origin stuck at `53d4b7aa0`** while the gate is rebuilt; live `957b05e6`, unpin `e6eeefc1e` queued.
 
-**Sprint = S1 + S3 (Jake `fd841c551`):** quest state machines → AssemblyScript hooks now (next free Opus); land Signal ~25–30 %, Sky ~35 %, keep porting to 20 %; S2 later. **Never stop the line:** no holds; lanes CAS-retry.
-**Fleet: 4 Opus + 3 Codex.** Codex: sp-x7 push, sp-x6 navigation, sp-x5 **bench-max** (pre-commit ≤ 10 s; today 13–25 s). Opus: sp-o67 looks, sp-o65 Sky island tiles, sp-o69 quests → AS (S1), sp-o70 far placeholder → SDK cache. Pre-commit 26 → 9.4 s (`91cf2cdb7`).
+**Sprint = S1 + S3 (Jake `fd841c551`). For wildshard-v: S1 is net-zero on Signal/Sky** (quest machines are already data rows). The counted mass is looks (fire, ground, dusk, Sky wind, 614 GLSL) and weapons. S1 dropped for these two shards; sp-o69 moved to Signal's ground switch. Recommend Jake re-weigh S2 (shader rows). **Never stop the line:** no holds; lanes CAS-retry.
+**Fleet: 4 Opus + 3 Codex.** Codex: sp-x7 push, sp-x6 navigation, sp-x5 **bench-max** (pre-commit ≤ 10 s; today 13–25 s). Opus: sp-o67 looks, sp-o65 Sky island tiles, sp-o69 Signal ground switch, sp-o70 far placeholder → SDK cache. Pre-commit 26 → 9.4 s (`91cf2cdb7`).
 
 **Looks (sp-o67):** hero **NA-a SHIPPED** (`8493cdba6`). Readout honest + distance/diagonals (`97bd944c2`, `8e2e24d7a`); B does hide far terrain (round 3's "far proxy" was the readout); near ground keeps paint/creases (`043a96789`). Next: re-shoot four road views + hero, and NA above Nalati's centre LOOKING TOWARD DRIFTWOOD (`fd841c551`; square + landscape, phone 1x lens, a few heights/tilts filling the 3×3, each labelled with per-cell tiers); round 4 on Nalati's hills + edges (don't ship). Signal ground switch queued (`12af98655`).
 
 **Calls for Jake (2026-10-13; reverse any):**
 1. Bosses never shrink on phone (`30dc4c9ae`).
-2. Signal road seam = drawn sand tint (`f54924aa3`).
 3. Missing Sky models stand undrawn, no stand-ins (`d5267c284`).
 4. Metric per-export (`ddf5c4dea`); entryway proof credits Sky's lift proof to Nine (`add1035d6`).
 6. New SDK export `./bake` (`6d2161e6f`).
