@@ -1,5 +1,5 @@
 import { expect, it, vi } from 'vitest';
-import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
+import { BoxGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { app } from '../../../src/engine/app/runtime';
 import { Scope } from '../../../src/engine/app/scope';
@@ -7,6 +7,7 @@ import { ownSceneTree, SceneOwnership } from '../../../src/engine/app/sceneOwner
 import { preloadSkyMeshes, skyHd, skyMesh } from '../../../src/shards/far-reach/world/meshes';
 import { SKY_HD, SKY_MESHES } from '../../../src/shards/far-reach/data/files';
 import { PREPARED_MODELS_URL } from '../../../src/shards/far-reach/data/modelFrames';
+import { createModelLibrary } from '../../../src/game/plugin/geometry';
 import { legacyDouble } from '../../fake/FakeGame';
 
 it('charges Sky model sources once, preserves live map users, and reconstructs evicted module caches on three cold admissions', async () => {
@@ -26,6 +27,11 @@ it('charges Sky model sources once, preserves live map users, and reconstructs e
         scene.add(mesh);
       }
     }
+    else if (url.endsWith('/post.glb') || url.endsWith('/rotor.glb')) {
+      scene.clear(); const geometry = new BoxGeometry().toNonIndexed();
+      geometry.setAttribute('color', new Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * 3).fill(0.7), 3));
+      scene.add(new Mesh(geometry, new MeshStandardMaterial()));
+    }
     return Promise.resolve({ scene, scenes: [scene], animations: [], cameras: [], asset: { version: '2.0' },
       parser: legacyDouble<GLTF['parser']>({}), userData: {} });
   });
@@ -36,8 +42,9 @@ it('charges Sky model sources once, preserves live map users, and reconstructs e
       const count = loaded.mock.calls.length;
       await preloadSkyMeshes(); expect(loaded).toHaveBeenCalledTimes(count);
       expect(count).toBe((visit + 1) * (SKY_MESHES.length + SKY_HD.length + 1));
-      const hero = skyHd('keeper-hd'), faceted = skyMesh('keeper');
+      const hero = skyHd('keeper-hd'), faceted = skyMesh('vane-post');
       if (hero === null || faceted === null) throw new Error('Missing actual parsed Sky models');
+      expect(faceted.boundingSphere).toBeNull(); // The renderer computes the native tight sphere, not the glTF box diagonal.
       expect(hero.map).not.toBe(previous); previous = hero.map;
       expect(app.assets.isAcquired(hero.map)).toBe(true);
       const dispose = vi.spyOn(hero.map, 'dispose'), consumer = new Scope(`sky.visit:${visit}`);
@@ -50,11 +57,30 @@ it('charges Sky model sources once, preserves live map users, and reconstructs e
       expect(skyHd('keeper-hd')).toBeNull();
       faceted.dispose();
       for (const row of app.assets.retained()) if (!initial.has(row.key)) expect(app.assets.evictCached(row.key)).toBe(true);
-      expect(skyMesh('keeper')).toBeNull();
+      expect(skyMesh('vane-post')).toBeNull();
       expect(app.assets.retained().map(row => row.key)).toEqual([...initial]);
     }
   } finally {
     loaded.mockRestore();
     for (const row of app.assets.retained()) if (!initial.has(row.key)) app.assets.evictCached(row.key);
   }
+});
+
+it.each(['indexed', 'missing-colour', 'normalized', 'transformed', 'multiple'])('refuses malformed prepared rest %s before caching a model', async invalid => {
+  const loaded = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(() => {
+    const geometry = invalid === 'indexed' ? new BoxGeometry() : new BoxGeometry().toNonIndexed();
+    if (invalid !== 'missing-colour') geometry.setAttribute('color', new Float32BufferAttribute(new Float32Array(geometry.getAttribute('position').count * 3).fill(0.7), 3, invalid === 'normalized'));
+    const mesh = new Mesh(geometry, new MeshStandardMaterial()), scene = new Group().add(mesh);
+    if (invalid === 'transformed') mesh.position.x = 1;
+    if (invalid === 'multiple') scene.add(mesh.clone());
+    return Promise.resolve({ scene, scenes: [scene], animations: [], cameras: [], asset: { version: '2.0' },
+      parser: legacyDouble<GLTF['parser']>({}), userData: {} });
+  });
+  const fault = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  try {
+    const library = createModelLibrary({ meshes: ['part'], preparedMeshes: ['part'], meshUrls: { part: '/part.glb' }, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 0.6 }, '[test]');
+    await library.preload();
+    expect(library.mesh('part')).toBeNull();
+    expect(fault).toHaveBeenCalledWith('[test] the generated model part did not load:', expect.objectContaining({ message: 'part: incompatible prepared facet channels' }));
+  } finally { loaded.mockRestore(); fault.mockRestore(); }
 });

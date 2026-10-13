@@ -1,7 +1,5 @@
 import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, CylinderGeometry, Group, InstancedMesh, type Material, Mesh, MeshStandardMaterial, TubeGeometry, Vector3, type Object3D } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { splitAbove } from '../runtime/looks/modelIntake';
-import { fitGeometry } from '@wildshard/sdk/looks/modelLibrary';
 import { GeometryPack, fetchDeflated, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import bridgeRows from '../data/bridges.json' with { type: 'json' };
 import { BRIDGES_URL } from '../data/files';
@@ -111,9 +109,9 @@ const VANE_ROTOR_Y = 2.2;
  * arrow split off as the rotor the plugin spins once a GUST hits it (empty while the model is not loaded).
  */
 export function vane(): { group: Group; rotor: Object3D } {
-  const group = new Group(), rotor = new Group(), model = skyMesh('wind-vane');
-  if (model === null) return { group, rotor };
-  const g = fitGeometry(model, { size: 3.6, by: 'height', floor: 0, centre: 'base' }), [post, top] = splitAbove(g, VANE_ROTOR_Y), mat = flat(0xffffff, { vertexColors: true });
-  group.add(new Mesh(post, mat)); top.translate(0, -VANE_ROTOR_Y, 0); rotor.add(new Mesh(top, mat)); rotor.position.y = VANE_ROTOR_Y; group.add(rotor);
+  const group = new Group(), rotor = new Group(), post = skyMesh('vane-post'), top = skyMesh('vane-rotor');
+  if (post === null || top === null) return { group, rotor };
+  const mat = flat(0xffffff, { vertexColors: true });
+  group.add(new Mesh(post, mat)); rotor.add(new Mesh(top, mat)); rotor.position.y = VANE_ROTOR_Y; group.add(rotor);
   return { group, rotor };
 }

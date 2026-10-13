@@ -4,7 +4,7 @@ import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMateria
  * The offline half of Sky Reach's model intake (SHARD-PLATFORM M3): the bakes (`generators/bridges.ts`, `creatures.ts`,
  * `millModel.ts`) turn loaded GLBs into plain geometry and fit it here. The page loads its facet models through the SDK
  * model library (`world/meshes.ts`); hero normalization and static fitting are emitted as plain GLB accessors.
- * Only the moving vane split remains native.
+ * The vane rest partition is baked too; only its rotor motion remains native.
  *
  * - `facetedGeometry`: every mesh of a scene as one flat non-indexed geometry in world space: position, the facet colour
  *   (rgb × the baked AO in COLOR_0's alpha, kept down to `aoFloor`) and flat normals (the SDK library's facet intake).

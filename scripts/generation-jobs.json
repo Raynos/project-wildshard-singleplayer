@@ -8556,7 +8556,8 @@
         "src/shards/far-reach/data/trees.ts",
         "src/shards/far-reach/generators/keeperFigure.ts",
         "src/shards/far-reach/generators/modelIntake.ts",
-        "src/shards/far-reach/generators/preparedModels.ts"
+        "src/shards/far-reach/generators/preparedModels.ts",
+        "src/shards/far-reach/generators/vane.ts"
       ],
       "outputs": [
         "public/assets/far-reach/baked/prepared-models.glb"
@@ -8626,6 +8627,132 @@
       "platform": "portable",
       "buildTimeOutputs": [
         "src/shards/sunscar-dunes/data/heldPlayback.generated.json"
+      ]
+    },
+    {
+      "id": "sky-vane-post",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/preparedModels.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/preparedModels.ts",
+        "bakeVanePost",
+        "public/assets/far-reach/models/wind-vane/post.glb",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/far-reach/fan/hand-hd.glb",
+        "public/assets/far-reach/models/crown/crown-dais.glb",
+        "public/assets/far-reach/models/crown/crown-stone-b.glb",
+        "public/assets/far-reach/models/crown/crown-stone.glb",
+        "public/assets/far-reach/models/isle-canopy-hd/isle-canopy-hd.glb",
+        "public/assets/far-reach/models/isle-falls-hd/isle-falls-hd.glb",
+        "public/assets/far-reach/models/isle-mass-hd/isle-mass-hd.glb",
+        "public/assets/far-reach/models/isle-shelf-hd/isle-shelf-hd.glb",
+        "public/assets/far-reach/models/isle-spire-hd/isle-spire-hd.glb",
+        "public/assets/far-reach/models/isle-twin-hd/isle-twin-hd.glb",
+        "public/assets/far-reach/models/keeper-hd/keeper-hd.glb",
+        "public/assets/far-reach/models/lantern-hd/lantern-hd.glb",
+        "public/assets/far-reach/models/lectern-hd/lectern-hd.glb",
+        "public/assets/far-reach/models/mill/mill-foot.glb",
+        "public/assets/far-reach/models/mill/mill-tower.glb",
+        "public/assets/far-reach/models/post-hd/post-hd.glb",
+        "public/assets/far-reach/models/trees/tree-bush.glb",
+        "public/assets/far-reach/models/trees/tree-oak.glb",
+        "public/assets/far-reach/models/trees/tree-pine-tall.glb",
+        "public/assets/far-reach/models/trees/tree-pine-wide.glb",
+        "public/assets/far-reach/models/trees/tree-pine-young.glb",
+        "public/assets/far-reach/models/wind-vane/wind-vane.glb",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/data/bookStand.ts",
+        "src/shards/far-reach/data/files.ts",
+        "src/shards/far-reach/data/keeperFigure.ts",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/modelFrames.ts",
+        "src/shards/far-reach/data/skyIsleFrames.json",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/data/trees.ts",
+        "src/shards/far-reach/generators/keeperFigure.ts",
+        "src/shards/far-reach/generators/modelIntake.ts",
+        "src/shards/far-reach/generators/preparedModels.ts",
+        "src/shards/far-reach/generators/vane.ts"
+      ],
+      "outputs": [
+        "public/assets/far-reach/models/wind-vane/post.glb"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "public/assets/far-reach/models/wind-vane/post.glb"
+      ]
+    },
+    {
+      "id": "sky-vane-rotor",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/preparedModels.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/preparedModels.ts",
+        "bakeVaneRotor",
+        "public/assets/far-reach/models/wind-vane/rotor.glb",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/far-reach/fan/hand-hd.glb",
+        "public/assets/far-reach/models/crown/crown-dais.glb",
+        "public/assets/far-reach/models/crown/crown-stone-b.glb",
+        "public/assets/far-reach/models/crown/crown-stone.glb",
+        "public/assets/far-reach/models/isle-canopy-hd/isle-canopy-hd.glb",
+        "public/assets/far-reach/models/isle-falls-hd/isle-falls-hd.glb",
+        "public/assets/far-reach/models/isle-mass-hd/isle-mass-hd.glb",
+        "public/assets/far-reach/models/isle-shelf-hd/isle-shelf-hd.glb",
+        "public/assets/far-reach/models/isle-spire-hd/isle-spire-hd.glb",
+        "public/assets/far-reach/models/isle-twin-hd/isle-twin-hd.glb",
+        "public/assets/far-reach/models/keeper-hd/keeper-hd.glb",
+        "public/assets/far-reach/models/lantern-hd/lantern-hd.glb",
+        "public/assets/far-reach/models/lectern-hd/lectern-hd.glb",
+        "public/assets/far-reach/models/mill/mill-foot.glb",
+        "public/assets/far-reach/models/mill/mill-tower.glb",
+        "public/assets/far-reach/models/post-hd/post-hd.glb",
+        "public/assets/far-reach/models/trees/tree-bush.glb",
+        "public/assets/far-reach/models/trees/tree-oak.glb",
+        "public/assets/far-reach/models/trees/tree-pine-tall.glb",
+        "public/assets/far-reach/models/trees/tree-pine-wide.glb",
+        "public/assets/far-reach/models/trees/tree-pine-young.glb",
+        "public/assets/far-reach/models/wind-vane/wind-vane.glb",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/data/bookStand.ts",
+        "src/shards/far-reach/data/files.ts",
+        "src/shards/far-reach/data/keeperFigure.ts",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/modelFrames.ts",
+        "src/shards/far-reach/data/skyIsleFrames.json",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/data/trees.ts",
+        "src/shards/far-reach/generators/keeperFigure.ts",
+        "src/shards/far-reach/generators/modelIntake.ts",
+        "src/shards/far-reach/generators/preparedModels.ts",
+        "src/shards/far-reach/generators/vane.ts"
+      ],
+      "outputs": [
+        "public/assets/far-reach/models/wind-vane/rotor.glb"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "public/assets/far-reach/models/wind-vane/rotor.glb"
       ]
     }
   ]

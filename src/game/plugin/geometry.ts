@@ -55,6 +55,8 @@ export interface HdLookRow {
 export interface ModelLibraryRows<M extends string, H extends string> {
   /** the facet models preloaded, and every facet model's file */
   readonly meshes: readonly M[];
+  /** One identity-space, non-indexed rest mesh with final float32 position/normal/colour channels; never refit or renormalize. */
+  readonly preparedMeshes?: readonly M[];
   readonly meshUrls: Readonly<Record<M, string>>;
   /** the hero models preloaded, and every hero model's file */
   readonly hd: readonly H[];
@@ -119,12 +121,22 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
     try {
       const gltf = await loadRigFile(rows.meshUrls[name]);
       gltf.scene.updateMatrixWorld(true);
+      let g: BufferGeometry;
+      if (rows.preparedMeshes?.includes(name) === true) {
+        const meshes: Mesh[] = []; gltf.scene.traverse(node => { if (isMesh(node)) meshes.push(node); });
+        const mesh = meshes[0], identity = new Matrix4();
+        if (meshes.length !== 1 || mesh === undefined || !mesh.matrixWorld.equals(identity) || mesh.geometry.index !== null
+          || ['position', 'normal', 'color'].some(channel => { const a = mesh.geometry.getAttribute(channel); return !(a instanceof Float32BufferAttribute || a instanceof BufferAttribute) || !(a.array instanceof Float32Array) || a.normalized || a.itemSize !== 3 || a.count !== mesh.geometry.getAttribute('position').count; })) throw new Error(`${name}: incompatible prepared facet channels`);
+        g = mesh.geometry.clone(); g.boundingSphere = null;
+      } else {
       const pos: number[] = [], col: number[] = [];
       gltf.scene.traverse((o) => { if (isMesh(o)) { const f = flatten(o, rows.aoFloor); pos.push(...f.pos); col.push(...f.col); } });
       if (pos.length === 0) throw new Error(`${name}: no mesh`);
-      const g = new BufferGeometry();
+        g = new BufferGeometry();
       g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('color', new Float32BufferAttribute(col, 3));
-      g.computeVertexNormals(); g.computeBoundingBox(); retainCachedResources(g); ready.set(name, g);
+      g.computeVertexNormals();
+      }
+      g.computeBoundingBox(); retainCachedResources(g); ready.set(name, g);
       cacheUntilDisposed(g, () => { if (ready.get(name) === g) { ready.delete(name); loading = null; } });
     } catch (e: unknown) { console.error(`${fault} the generated model ${name} did not load:`, e); }
   }

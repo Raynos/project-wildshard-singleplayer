@@ -6,9 +6,10 @@ import { Mesh, BufferAttribute, type BufferGeometry, type InterleavedBufferAttri
 import { expect, it } from 'vitest';
 import { readSourceModel } from '../src/sdk/bake/skinned';
 import { fitGeometry, pivotNpcParts } from '../src/game/plugin/geometry';
-import { hdGeometry } from './fixtures/sky-native-model-intake';
-import { bakePreparedModels } from '../src/shards/far-reach/generators/preparedModels';
-import { HD_URLS, SKY_HD, type SkyHdName } from '../src/shards/far-reach/data/files';
+import { hdGeometry, splitAbove } from './fixtures/sky-native-model-intake';
+import { facetedGeometry } from '../src/shards/far-reach/generators/modelIntake';
+import { bakePreparedModels, bakeVanePost, bakeVaneRotor } from '../src/shards/far-reach/generators/preparedModels';
+import { HD_URLS, MODEL_URLS, SKY_HD, type SkyHdName } from '../src/shards/far-reach/data/files';
 import { TREE_MODELS, TREES } from '../src/shards/far-reach/data/trees';
 import { LECTERN } from '../src/shards/far-reach/data/bookStand';
 import { DAIS } from '../src/shards/far-reach/data/layout';
@@ -119,5 +120,25 @@ it('bakes keeper pivots with released local channels, bounds, hierarchy and nati
     const sphere = geometry.boundingSphere;
     if (sphere === null) throw new Error('Missing native pivot sphere');
     expect(node.userData['sphere']).toStrictEqual([sphere.center.x, sphere.center.y, sphere.center.z, sphere.radius]);
+  }
+}, 60_000);
+
+it('bakes the vane rest partition without changing any native rotor vertex or normal', async () => {
+  const source = await readSourceModel(read(MODEL_URLS['wind-vane']));
+  const facets = facetedGeometry(source.gltf.scene, 0.6);
+  if (facets === null) throw new Error('Missing original vane');
+  const [post, rotor] = splitAbove(fitGeometry(facets, { size: 3.6, by: 'height', floor: 0, centre: 'base' }), 2.2);
+  rotor.translate(0, -2.2, 0);
+  for (const [index, geometry] of [post, rotor].entries()) {
+    const producer = index === 0 ? bakeVanePost : bakeVaneRotor;
+    const bytes = await producer(read);
+    expect(equalBytes(await producer(read), bytes), `vane/${index}/repeat`).toBe(true);
+    const ready = await readSourceModel(bytes);
+    const node = ready.gltf.scene.getObjectByName('vane');
+    if (node === undefined || !isMesh(node)) throw new Error('Missing baked vane part');
+    expect(node.geometry.index).toBeNull();
+    expect(Object.keys(node.geometry.attributes).sort()).toStrictEqual(Object.keys(geometry.attributes).sort());
+    for (const [channel, attribute] of Object.entries(geometry.attributes)) expectChannel(node.geometry.getAttribute(channel), attribute, `vane/${index}/${channel}`);
+
   }
 }, 60_000);

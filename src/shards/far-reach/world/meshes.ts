@@ -20,7 +20,7 @@ import { BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Sph
 export const SKY_AO_FLOOR = 0.6;
 let loading: Promise<void> | null = null;
 /** The facet models, through the SDK model library (its facet intake is the bakes' `generators/modelIntake.ts`). */
-const FACETS = createModelLibrary<SkyMeshName, never>({ meshes: SKY_MESHES, meshUrls: MODEL_URLS, hd: [], hdUrls: {}, aoFloor: SKY_AO_FLOOR, hdLooks: {} }, '[far-reach]');
+const FACETS = createModelLibrary<SkyMeshName, never>({ meshes: SKY_MESHES, preparedMeshes: SKY_MESHES, meshUrls: MODEL_URLS, hd: [], hdUrls: {}, aoFloor: SKY_AO_FLOOR, hdLooks: {} }, '[far-reach]');
 
 /** A textured hero model: one indexed geometry (float position, normal, uv in the file's frame) and its painted map. */
 export interface SkyHd { readonly geometry: BufferGeometry; readonly map: Texture; readonly pivots?: { readonly body: BufferGeometry; readonly head: BufferGeometry; readonly arm: BufferGeometry; readonly fore: BufferGeometry } }

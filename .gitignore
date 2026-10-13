@@ -927,3 +927,7 @@ src/shards/sunscar-dunes/data/heldPlayback.generated.json
 
 # G405: pure source-derived WebGPU inventory, emitted before CI checks.
 /docs/design/webgpu-port-inventory.md
+
+# Vane rest geometry is generated from the retained author-only recipe.
+/public/assets/far-reach/models/wind-vane/post.glb
+/public/assets/far-reach/models/wind-vane/rotor.glb

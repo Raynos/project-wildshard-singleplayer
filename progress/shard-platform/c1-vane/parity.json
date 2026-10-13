@@ -1,0 +1,200 @@
+{
+  "sky/phone/sunrest-sun": {
+    "differ": 0,
+    "base": {
+      "calls": 129,
+      "triangles": 2234176
+    },
+    "candidate": {
+      "calls": 129,
+      "triangles": 2234176
+    }
+  },
+  "sky/phone/sunrest-east": {
+    "differ": 0,
+    "base": {
+      "calls": 86,
+      "triangles": 2004011
+    },
+    "candidate": {
+      "calls": 86,
+      "triangles": 2004011
+    }
+  },
+  "sky/phone/sunrest-back": {
+    "differ": 0,
+    "base": {
+      "calls": 73,
+      "triangles": 1967900
+    },
+    "candidate": {
+      "calls": 73,
+      "triangles": 1967900
+    }
+  },
+  "sky/phone/windmill-sea": {
+    "differ": 0,
+    "base": {
+      "calls": 90,
+      "triangles": 2073173
+    },
+    "candidate": {
+      "calls": 90,
+      "triangles": 2073173
+    }
+  },
+  "sky/phone/crown": {
+    "differ": 0,
+    "base": {
+      "calls": 200,
+      "triangles": 2430564
+    },
+    "candidate": {
+      "calls": 200,
+      "triangles": 2430564
+    }
+  },
+  "sky/phone/roost": {
+    "differ": 0,
+    "base": {
+      "calls": 146,
+      "triangles": 2208931
+    },
+    "candidate": {
+      "calls": 146,
+      "triangles": 2208931
+    }
+  },
+  "sky/phone/c1-lectern": {
+    "differ": 0,
+    "base": {
+      "calls": 124,
+      "triangles": 2220424
+    },
+    "candidate": {
+      "calls": 124,
+      "triangles": 2220424
+    }
+  },
+  "sky/phone/c1-mill": {
+    "differ": 0,
+    "base": {
+      "calls": 107,
+      "triangles": 2066874
+    },
+    "candidate": {
+      "calls": 107,
+      "triangles": 2066874
+    }
+  },
+  "sky/phone/c1-lectern-west": {
+    "differ": 0,
+    "base": {
+      "calls": 59,
+      "triangles": 1966738
+    },
+    "candidate": {
+      "calls": 59,
+      "triangles": 1966738
+    }
+  },
+  "sky/desktop/sunrest-sun": {
+    "differ": 0,
+    "base": {
+      "calls": 135,
+      "triangles": 2931184
+    },
+    "candidate": {
+      "calls": 135,
+      "triangles": 2931184
+    }
+  },
+  "sky/desktop/sunrest-east": {
+    "differ": 0,
+    "base": {
+      "calls": 86,
+      "triangles": 2684011
+    },
+    "candidate": {
+      "calls": 86,
+      "triangles": 2684011
+    }
+  },
+  "sky/desktop/sunrest-back": {
+    "differ": 0,
+    "base": {
+      "calls": 77,
+      "triangles": 2651297
+    },
+    "candidate": {
+      "calls": 77,
+      "triangles": 2651297
+    }
+  },
+  "sky/desktop/windmill-sea": {
+    "differ": 0,
+    "base": {
+      "calls": 90,
+      "triangles": 2753173
+    },
+    "candidate": {
+      "calls": 90,
+      "triangles": 2753173
+    }
+  },
+  "sky/desktop/crown": {
+    "differ": 0,
+    "base": {
+      "calls": 206,
+      "triangles": 3116712
+    },
+    "candidate": {
+      "calls": 206,
+      "triangles": 3116712
+    }
+  },
+  "sky/desktop/roost": {
+    "differ": 0,
+    "base": {
+      "calls": 150,
+      "triangles": 2892905
+    },
+    "candidate": {
+      "calls": 150,
+      "triangles": 2892905
+    }
+  },
+  "sky/desktop/c1-lectern": {
+    "differ": 0,
+    "base": {
+      "calls": 130,
+      "triangles": 2917432
+    },
+    "candidate": {
+      "calls": 130,
+      "triangles": 2917432
+    }
+  },
+  "sky/desktop/c1-mill": {
+    "differ": 0,
+    "base": {
+      "calls": 111,
+      "triangles": 2750271
+    },
+    "candidate": {
+      "calls": 111,
+      "triangles": 2750271
+    }
+  },
+  "sky/desktop/c1-lectern-west": {
+    "differ": 0,
+    "base": {
+      "calls": 58,
+      "triangles": 2645651
+    },
+    "candidate": {
+      "calls": 58,
+      "triangles": 2645651
+    }
+  }
+}

@@ -1,11 +1,12 @@
 import { MeshStandardMaterial, type BufferGeometry } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { staticGlb, type GlbPrimitive } from '@wildshard/sdk/bake/glb';
-import { HD_URLS, SKY_HD, type SkyHdName } from '../data/files';
+import { HD_URLS, MODEL_URLS, SKY_HD, type SkyHdName } from '../data/files';
 import { CARVED, MODEL_FITS } from '../data/modelFrames';
 import frames from '../data/skyIsleFrames.json' with { type: 'json' };
-import { fitModel, hdGeometry } from './modelIntake';
+import { facetedGeometry, fitModel, hdGeometry } from './modelIntake';
 import { bakeKeeperFigure } from './keeperFigure';
+import { bakeVaneParts } from './vane';
 
 /** Apply each owner's static frame in the original operation order, before emitting immutable geometry. */
 export function prepareModelFrame(name: SkyHdName, geometry: BufferGeometry): BufferGeometry {
@@ -47,3 +48,13 @@ export async function bakePreparedModels(read: (url: string) => Uint8Array): Pro
   }
   return staticGlb(primitives, 'sky-prepared-models');
 }
+
+async function bakeVanePart(read: (url: string) => Uint8Array, part: 0 | 1): Promise<Uint8Array> {
+  const source = facetedGeometry((await readSourceModel(read(MODEL_URLS['wind-vane']))).gltf.scene, 0.6);
+  if (source === null) throw new Error('Missing vane source');
+  return staticGlb([{ name: 'vane', geometry: bakeVaneParts(source)[part], compactIndex: true, nativeAttributes: true, material: new MeshStandardMaterial() }], 'vane');
+}
+/** The authored vane post; flat channels stay exact through the standard facet library. */
+export const bakeVanePost = (read: (url: string) => Uint8Array): Promise<Uint8Array> => bakeVanePart(read, 0);
+/** The authored vane rotor in its local 2.2 metre pivot frame. */
+export const bakeVaneRotor = (read: (url: string) => Uint8Array): Promise<Uint8Array> => bakeVanePart(read, 1);
