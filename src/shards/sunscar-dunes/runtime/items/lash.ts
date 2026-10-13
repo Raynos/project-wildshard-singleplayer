@@ -1,5 +1,5 @@
-import { weaponContactDistance, type ContactFamily, type ContactFamilyPorts, type ContactWorldTarget } from '@wildshard/engine/combat/contactWeapon';
-import { Vector3 } from 'three';
+import type { ContactFamily, ContactFamilyPorts, ContactWorldTarget } from '@wildshard/engine/combat/contactWeapon';
+import type { Vector3 } from 'three';
 import { bindMeleeContacts } from '@wildshard/game/plugin/simulation';
 import { parseWeaponProfile, type WeaponProfile, type MeleeContactRow } from '@wildshard/format/weaponProfiles';
 import type { ItemSpec } from '@wildshard/engine/combat/items';
@@ -7,64 +7,6 @@ import type { Actor, CombatTag, CombatTarget } from '@wildshard/engine/combat/pi
 
 /** The admitted family's chest height and lane body allowance in metres. */
 export type LashContact = NonNullable<Extract<WeaponProfile, { family: 'lash' }>['contact']>;
-
-/** A creature's hit volumes in world space: the head ball and the body capsule (the shapes `CreatureBodies` poses). */
-export interface LashVolumes {
-  readonly head: Vector3; readonly headRadius: number;
-  readonly a: Vector3; readonly b: Vector3; readonly bodyRadius: number;
-}
-
-const oc = new Vector3(), ba = new Vector3(), oa = new Vector3(), closest = new Vector3();
-
-/** First non-negative hit of the ray on a ball, or null (the origin is outside it). */
-function ball(from: Vector3, dir: Vector3, centre: Vector3, radius: number): number | null {
-  oc.subVectors(from, centre);
-  const b = oc.dot(dir), c = oc.lengthSq() - radius * radius, h = b * b - c;
-  if (h < 0) return null;
-  const t = -b - Math.sqrt(h);
-  return t >= 0 ? t : null;
-}
-
-/**
- * The lash's first contact with a creature's volumes along `dir` (unit) within `reach`, in metres from `from`, or null:
- * the same test the browser's shared raycast runs against the posed head ball and body capsule. An origin inside a
- * volume touches it at once (Rapier's solid cast answers 0 there too).
- */
-export function lashVolumeHit(from: Vector3, dir: Vector3, reach: number, body: LashVolumes): number | null {
-  ba.subVectors(body.b, body.a); oa.subVectors(from, body.a);
-  const baba = ba.lengthSq(), along = baba > 1e-12 ? Math.min(1, Math.max(0, oa.dot(ba) / baba)) : 0;
-  closest.copy(body.a).addScaledVector(ba, along);
-  if (from.distanceToSquared(closest) <= body.bodyRadius ** 2 || from.distanceToSquared(body.head) <= body.headRadius ** 2) return 0;
-  let best = Infinity;
-  // the capsule's side: the infinite cylinder's entry, kept only between its two caps
-  const bard = ba.dot(dir), baoa = ba.dot(oa), rdoa = dir.dot(oa), a = baba - bard * bard;
-  if (a > 1e-12) {
-    const b = baba * rdoa - baoa * bard, c = baba * oa.lengthSq() - baoa * baoa - body.bodyRadius ** 2 * baba, h = b * b - a * c;
-    if (h >= 0) { const t = (-b - Math.sqrt(h)) / a, y = baoa + t * bard; if (t >= 0 && y > 0 && y < baba) best = t; }
-  }
-  // its two caps and the head
-  for (const t of [ball(from, dir, body.a, body.bodyRadius), ball(from, dir, body.b, body.bodyRadius), ball(from, dir, body.head, body.headRadius)]) if (t !== null && t < best) best = t;
-  return best <= reach ? best : null;
-}
-
-/**
- * The lash's lane: how far along `dir` a target's chest (`contact.chestHeight` over its feet) sits when it is inside the narrow
- * lane (`reach` + `contact.bodyAllowance` long, `width` + `contact.bodyAllowance` wide), or null. The lash lands at `min(forward, reach)`.
- */
-export function lashLane(from: Vector3, dir: Vector3, reach: number, width: number, feet: Vector3, contact: LashContact): number | null {
-  return weaponContactDistance(from, dir, feet, 'lane', reach, width, contact.chestHeight, contact.bodyAllowance);
-}
-
-/**
- * One lash's contact rule on one creature: the first hit on its head ball or body capsule inside the reach, else its
- * chest in the lane; the distance along the ray where it lands.
- */
-export function lashContact(from: Vector3, dir: Vector3, reach: number, width: number, body: LashVolumes, feet: Vector3, contact: LashContact): number | null {
-  const hit = lashVolumeHit(from, dir, reach, body);
-  if (hit !== null) return hit;
-  const lane = lashLane(from, dir, reach, width, feet, contact);
-  return lane === null ? null : Math.min(lane, reach);
-}
 
 /** The lash's own timing (seconds) and reactions: the unroll, the heavy's second lash, how long it shows, the stagger, the yank (m/s on ≤ `pullMaxHp`). */
 export type LashTiming = Extract<WeaponProfile, { family: 'lash' }>['timing'];
@@ -113,11 +55,3 @@ export function lashRuntime(spec: LashSpec, ports: LashPorts): LashRuntime {
       stagger: (dir: Vector3, strength: number): void => { port.target.stagger?.(dir, strength); } }) });
 }
 
-/** A lash's exact continuation. */
-export interface LashState { readonly cooldown: number; readonly crackT: number; readonly heavy: boolean; readonly landed: number }
-export function lashSnapshot(lash: LashRuntime): LashState { return { cooldown: lash.cooldown, crackT: lash.t, heavy: lash.move === 1, landed: lash.landed }; }
-export function lashRestore(lash: LashRuntime, saved: LashState): void {
-  if (!Number.isFinite(saved.cooldown) || saved.cooldown < 0 || !Number.isFinite(saved.crackT) || saved.crackT < -1
-    || ![0, 1, 2].includes(saved.landed) || (saved.landed === 2 && !saved.heavy)) throw new RangeError('Invalid lash snapshot');
-  lash.cooldown = saved.cooldown; lash.t = saved.crackT; lash.move = saved.heavy ? 1 : 0; lash.landed = saved.landed;
-}

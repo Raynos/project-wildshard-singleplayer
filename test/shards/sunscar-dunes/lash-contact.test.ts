@@ -4,10 +4,12 @@ import { loadRapier } from '../../../src/engine/physics/rapier';
 import { createSimHost } from '../../../src/engine/sim';
 import { SIM_LEVEL } from '../../fixtures/sim-level/level';
 import { WHIP_ITEM, WHIP_PROFILE } from '../../../src/shards/sunscar-dunes/data/items';
+import { nativeMeleeVolumeHit } from '../../../src/game/plugin/simulation';
+import { weaponContactDistance } from '../../../src/engine/combat/contactWeapon';
 import { lashLane as frozenLane } from '../../../src/game/systems/items/lash';
 import { Vector3 } from 'three';
-import { describe, expect, it } from 'vitest';
-import { lashRuntime, lashSpec, lashContact, lashLane, lashVolumeHit } from '../../../src/shards/sunscar-dunes/runtime/items/lash';
+import { describe, expect, it, vi } from 'vitest';
+import { lashRuntime, lashSpec } from '../../../src/shards/sunscar-dunes/runtime/items/lash';
 
 /** The grounded Matriarch at 3.6x (bodyY 0.3, half-length 1.1, radius 0.8, head 0.4), facing +z (the player at the origin). */
 function matriarch(at: Vector3) {
@@ -19,28 +21,26 @@ describe('the lash contact rule shared by the browser and headless whips', () =>
   it('lands on her skin, not her centre: grounded 9 m off, the 7 m lash reaches her head ball', () => {
     const body = matriarch(feet), centre = new Vector3(0, feet.y + 1.08, -9), dir = centre.clone().sub(eye).normalize();
     // she faces the player: her head ball's near surface is 9 - 3.96 - 1.44 m along the ground
-    const along = lashVolumeHit(eye, dir, 7, body);
+    const along = nativeMeleeVolumeHit(eye, dir, 7, body);
     expect(along).not.toBeNull(); expect(along ?? Infinity).toBeLessThan(4.5);
     expect(centre.distanceTo(eye)).toBeGreaterThan(7); // the old centre test refused this crack
   });
   it('misses a body wholly past the reach, and answers 0 from inside a volume', () => {
     const far = matriarch(new Vector3(0, 0.2, -30)), dir = new Vector3(0, 0, -1);
-    expect(lashVolumeHit(eye, dir, 7, far)).toBeNull();
+    expect(nativeMeleeVolumeHit(eye, dir, 7, far)).toBeNull();
     const over = matriarch(new Vector3(0, 0, 0));
-    expect(lashVolumeHit(new Vector3(0, 1.08, 0), dir, 7, over)).toBe(0);
+    expect(nativeMeleeVolumeHit(new Vector3(0, 1.08, 0), dir, 7, over)).toBe(0);
   });
   it('keeps the browser lane exactly: chest over the feet, reach and width widened by the body allowance', () => {
     const dir = new Vector3(0, 0, -1);
-    const inLane = (target: Vector3): number | null => lashLane(eye, dir, 7, 0.9, target, WHIP_PROFILE.contact);
+    const inLane = (target: Vector3): number | null => weaponContactDistance(eye, dir, target, 'lane', 7, 0.9, WHIP_PROFILE.contact.chestHeight, WHIP_PROFILE.contact.bodyAllowance);
     expect(WHIP_PROFILE.contact).toEqual({ chestHeight: 0.9, bodyAllowance: 0.7 });
     expect(inLane(new Vector3(0, 0.78, -7.6))).toBeCloseTo(7.6);
     expect(inLane(new Vector3(0, 0.78, -7.8))).toBeNull();
     expect(inLane(new Vector3(1.55, 0.78, -3))).toBeCloseTo(3);
     expect(inLane(new Vector3(1.65, 0.78, -3))).toBeNull();
     expect(inLane(new Vector3(0, 0.78, 1))).toBeNull();
-    // with no volume in reach the lash lands at min(forward, reach)
-    const tiny = { head: new Vector3(0, 99, 0), headRadius: 0.01, a: new Vector3(0, 99, 0), b: new Vector3(0, 99, 0.1), bodyRadius: 0.01 };
-    expect(lashContact(eye, dir, 7, 0.9, tiny, new Vector3(0, 0.78, -7.6), WHIP_PROFILE.contact)).toBe(7);
+
   });
 });
 
@@ -51,11 +51,11 @@ it('matches the retained native lane on 10000 deterministic contacts and consume
     dir.set(Math.cos(i * 0.47), Math.sin(i * 0.61), Math.cos(i * 0.79)).normalize();
     feet.set(Math.sin(i * 0.37) * 10, Math.cos(i * 0.23), Math.sin(i * 0.17) * 10);
     const reach = 1 + i % 11, width = 0.1 + (i % 9) * 0.2;
-    expect(lashLane(from, dir, reach, width, feet, WHIP_PROFILE.contact)).toBe(frozenLane(from, dir, reach, width, feet));
+    expect(weaponContactDistance(from, dir, feet, 'lane', reach, width, WHIP_PROFILE.contact.chestHeight, WHIP_PROFILE.contact.bodyAllowance)).toBe(frozenLane(from, dir, reach, width, feet));
   }
   const eye = new Vector3(0, 1.68, 0), ray = new Vector3(0, 0, -1), target = new Vector3(0, 0.78, -7.6);
-  expect(lashLane(eye, ray, 7, 0.9, target, WHIP_PROFILE.contact)).toBe(7.6);
-  expect(lashLane(eye, ray, 7, 0.9, target, { chestHeight: 0.9, bodyAllowance: 0.2 })).toBeNull();
+  expect(weaponContactDistance(eye, ray, target, 'lane', 7, 0.9, WHIP_PROFILE.contact.chestHeight, WHIP_PROFILE.contact.bodyAllowance)).toBe(7.6);
+  expect(weaponContactDistance(eye, ray, target, 'lane', 7, 0.9, 0.9, 0.2)).toBeNull();
 });
 
 it('accepts the bounded native roster and refuses an excessive contact scan before damage', async () => {
@@ -75,5 +75,24 @@ it('accepts the bounded native roster and refuses an excessive contact scan befo
       if (count === 1024) expect(() => lash.advance(WHIP_PROFILE.timing.unroll)).not.toThrow();
       else expect(() => lash.advance(WHIP_PROFILE.timing.unroll)).toThrow('admitted contact scan');
     }
+    // A missed posed-volume query uses the actual controller's chest lane and
+    // clamps its real damage point to the declared reach, not an unused helper.
+    const eye = new Vector3(0, 1.68, 0), direction = new Vector3(0, 0, -1);
+    const tiny = { head: new Vector3(0, 99, 0), headRadius: .01, a: new Vector3(0, 99, 0), b: new Vector3(0, 99, .1), bodyRadius: .01 };
+    actor.position.set(0, .78, -7.6);
+    const hit = vi.spyOn(host.combat, 'hit');
+    try {
+      const lash = lashRuntime(lashSpec(WHIP_ITEM, WHIP_PROFILE), {
+        source: host.player.health, hit: request => host.combat.hit(request), targets: () => [port], world: () => [],
+        aim: (from, dir) => { from.copy(eye); dir.copy(direction); return true; },
+        body: (from, dir, reach) => {
+          const distance = nativeMeleeVolumeHit(from, dir, reach, tiny);
+          return distance === null ? null : { port, point: from.clone().addScaledVector(dir, distance) };
+        },
+      });
+      expect(lash.swing(0)).toBe(true); lash.advance(WHIP_PROFILE.timing.unroll);
+      expect(hit).toHaveBeenCalledTimes(1);
+      expect(hit.mock.calls[0]?.[0].point.toArray()).toEqual([0, 1.68, -7]);
+    } finally { hit.mockRestore(); }
   } finally { host.dispose(); }
 });
