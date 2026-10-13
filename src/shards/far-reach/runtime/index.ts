@@ -39,7 +39,6 @@ import { preloadSkyMeshes } from '../world/meshes';
 import { loadSkyBaked } from '../world/baked';
 import { loadSkyBridges } from '../world/shapes';
 import { adoptIsleTile, setIsleTextures } from '../world/isle';
-import { setFirSheet } from '../world/fir';
 import { loadSkyMillModel, setMillTextures } from '../world/mill';
 import { FAN_LEAF_URL, TEX_URL } from '../data/files';
 import { loadPainted } from '../look/image';
@@ -119,16 +118,15 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     this.board = () => ctx.app.player?.mode === 'board';
     // the islands' painted rock and meadow (E392): sampled in world space by world/isle.ts
     // and the windmill's stone, canvas and ivy (world/mill.ts)
-    const [rock, meadowTex, branches, millStone, millCanvas, millIvy, vortex] = await Promise.all([loadPainted(TEX_URL.rock, 'far.rock', true), loadPainted(TEX_URL.meadow, 'far.meadow', true), loadPainted(TEX_URL.branches, 'far.branches'),
+    const [rock, meadowTex, millStone, millCanvas, millIvy, vortex] = await Promise.all([loadPainted(TEX_URL.rock, 'far.rock', true), loadPainted(TEX_URL.meadow, 'far.meadow', true),
       loadPainted(TEX_URL.millStone, 'far.mill-stone', true), loadPainted(TEX_URL.millCanvas, 'far.mill-canvas'), loadPainted(TEX_URL.millIvy, 'far.mill-ivy'),
       loadPainted(TEX_URL.stormeye, 'far.stormeye')]);
-    const textures = [rock, meadowTex, branches, millStone, millCanvas, millIvy, vortex];
-    for (let i = 0; i < 7; i++) { const texture = textures[i]; if (texture !== null && texture !== undefined) ctx.scope.own(texture); }
+    const textures = [rock, meadowTex, millStone, millCanvas, millIvy, vortex];
+    for (let i = 0; i < 6; i++) { const texture = textures[i]; if (texture !== null && texture !== undefined) ctx.scope.own(texture); }
     // the storm's painted underside (E399, mockup D's vortex seen from below), mirrored past its edge
     if (vortex !== null) { vortex.wrapS = MirroredRepeatWrapping; vortex.wrapT = MirroredRepeatWrapping; vortex.needsUpdate = true; }
     setStormPaint(vortex);
     setMillTextures({ stone: millStone, canvas: millCanvas, ivy: millIvy });
-    setFirSheet(branches);
     setIsleTextures({ rock, meadow: meadowTex });
     // op-hitch41: in work slices (a grid cell builds Sky Reach on the road, in play: one 366 ms task on the Simulator,
     // then the meadow's 59 ms in the same frame); the meadow starts on a task of its own

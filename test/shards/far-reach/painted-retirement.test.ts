@@ -6,7 +6,6 @@ import { InstancedMesh, Mesh, MeshStandardMaterial, ShaderMaterial, Texture, Vec
 import millRows from '../../../src/shards/far-reach/data/mill.json' with { type: 'json' };
 import { sceneResources } from '../../../src/engine/app/sceneOwnership';
 import { loadPainted } from '../../../src/shards/far-reach/look/image';
-import { firSheet, setFirSheet } from '../../../src/shards/far-reach/world/fir';
 import { paintIsleMaterial, setIsleTextures } from '../../../src/shards/far-reach/world/isle';
 import { setMillTextures, towerMill } from '../../../src/shards/far-reach/world/mill';
 import { crownStorm, setStormPaint } from '../../../src/shards/far-reach/world/storm';
@@ -44,14 +43,13 @@ it('closes each painted bitmap exactly once at retirement and reconstructs a fre
   }
 });
 
-it('forgets all four real builder sampler globals without an older retirement clearing newer assignments', () => {
+it('forgets all three real builder sampler globals without an older retirement clearing newer assignments', () => {
   const old = new Texture(), current = new Texture(), noise = new Texture();
   const assign = (texture: Texture): void => {
-    setFirSheet(texture); setIsleTextures({ rock: texture, meadow: texture });
+    setIsleTextures({ rock: texture, meadow: texture });
     setMillTextures({ stone: texture, canvas: texture, ivy: texture }); setStormPaint(texture);
   };
   const read = (expected: Texture | null): void => {
-    expect(firSheet()).toBe(expected);
     const material = paintIsleMaterial(new MeshStandardMaterial());
     const shader = legacyDouble<Parameters<typeof material.onBeforeCompile>[0]>({ vertexShader: '', fragmentShader: '#include <color_fragment>', uniforms: {} });
     material.onBeforeCompile(shader, legacyDouble<WebGLRenderer>({}));

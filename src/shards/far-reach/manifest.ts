@@ -14,7 +14,7 @@ import { mapPalette } from '@wildshard/format/minimap';
 // The HD models name their KTX2 stand-ins when this boot loads KTX2 (the phone's default, G253, manifest.ts): images otherwise.
 export const bootSources: NonNullable<NonNullable<ShardManifest['boot']>['sources']> = (tier, tex) => ({
   sky: [tier === 'phone' ? PANO_URL.phone : PANO_URL.desktop], baked: [], terrain: [], trees: [], physics: [], cabins: [], props: [...SKY_MESHES.map(name => MODEL_URLS[name]), ...SKY_HD.map((name) => filePolicy(tier, tex, GPU_FILES).gpu(HD_URLS[name])), ...BAKED_PIECES.map(piece => BAKED_URLS[piece]), BRIDGES_URL, ISLES_URL, FAN_URL, MILL_MODEL_URL, SWARD_ATLAS_URL,
-    ...SKY_CREATURES.map((creature) => filePolicy(tier, tex, GPU_FILES).gpu(SKY_CREATURE_RIGS[creature]))], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.branches, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
+    ...SKY_CREATURES.map((creature) => filePolicy(tier, tex, GPU_FILES).gpu(SKY_CREATURE_RIGS[creature]))], art: [FAN_LEAF_URL, TEX_URL.rock, TEX_URL.meadow, TEX_URL.clouds, TEX_URL.cloudsea, TEX_URL.maelstrom, TEX_URL.stormeye, TEX_URL.millStone, TEX_URL.millCanvas, TEX_URL.millIvy], music: [], sfx: [],
 });
 export const bootFiles = (): readonly string[] => Object.values(bootSources('phone', 'img')).flat();
 /** What the shard reads after its boot: the learned grade (look/render.ts loadLUT; art/far-reach/round-29-lut/). */
