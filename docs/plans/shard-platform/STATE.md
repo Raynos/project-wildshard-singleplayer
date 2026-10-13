@@ -24,8 +24,9 @@
 7. Viewmodel ≤ 33 px / 1.1 M differences accepted as identical (`0e00aa4e7`).
 8. One entryway proof for Sky, Nine and shardfiles (`add1035d6`): the metric now credits Sky's 110-line socket-lift proof to Nine too (Nine has no lifts), so Sky's −120 is really ~−20 lines.
 9. Rope/tie bake skipped (bridges.bin 19 → 227 KB for −10 lines; sp-o52).
-10. New SDK export `./bake` (`6d2161e6f`, the design's call); `BakedPiece` / `Scatter` nodes live in it; terrain stays a bake input, not a scene node; Signal pieces stay piece GLBs (merging into tiles would change materials).
+11. Signal dusk proven by uniform equality at 11 values, not captures (`d9112c821`); host-owned state may drive `look.curves` when a runtime binds `state`.
+10. New SDK export `./bake` (`6d2161e6f`, the design's call); Signal pieces stay piece GLBs (tile merge would change materials).
 
-**Jake picks waiting:** 80/20 reach: **S1** quest state machines as AssemblyScript hooks / **S2** shaders as graph rows / **S3** accept ~25–30 % Signal, ~35 % Sky; recommend S1 + S3. Signal look A/B (`art/signal-look/round-1/`), recommend A. Near board `art/near-tier/round-3/`; hero round 4 `art/main-menu-hero/round-4/board.jpg` (recommend SQ-DW-a + LS-DW-c; LOOKS LINE, Jake: "I don't want to forget this main hero thing"). Others: `docs/reviews/shard-platform-open-picks.md`.
+**Jake picks waiting:** 80/20 reach: **S1** quest state machines as AssemblyScript hooks / **S2** shaders as graph rows / **S3** accept ~25–30 % Signal, ~35 % Sky; recommend S1 + S3. Signal look A/B (`art/signal-look/round-1/`), recommend A. Near `art/near-tier/round-3/`; hero r4 `art/main-menu-hero/round-4/board.jpg` (recommend SQ-DW-a + LS-DW-c; LOOKS LINE, Jake: "I don't want to forget this main hero thing"). Others: `docs/reviews/shard-platform-open-picks.md`.
 
-**Paused (G345):** frame floor (Sim Sky 37, Nalati 36; fixes unproven), SF22, SF57, SF67. Reds: `red-green.md`.
+**Paused (G345):** frame floor, SF22, SF57, SF67. Reds: `red-green.md`.
