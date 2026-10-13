@@ -1,0 +1,16 @@
+{
+  "what": "G348 grid near tier reads a shardfile's own near row (8e2ac510c, 7aa781064, c187596ec). Desktop and iPhone 16 Pro portrait captures from scripts/capture-main-menu-hero.mjs --round=near (Debug Look > Neighbour detail A / B). Percent = pixels differing by more than 8 of 255.",
+  "pairs": {
+    "caca880f5 vs 8e2ac510c (only the grid change; built products then carried near rows for _template and sunscar-dunes)": {
+      "A": "all 10 shots 0.00-0.01 %",
+      "B first-party roads": "driftwood 0.00 %, nalati iphone 0.00 %, pine iphone 0.00 %; nalati / pine desktop 3.8 / 5.0 % = the template cell at the frame edge",
+      "B template / SQ-c": "template 5.6-12.4 %, SQ-c 21-38 %: the template's shardfile near row drew AND owned the cell, hiding its buildings (SQ-c-B-before-owns-fix.jpg) -> fixed in 7aa781064 (a shardfile near view never owns its cell)"
+    },
+    "caca880f5 vs a clean export of 7aa781064 + c187596ec with first-party products built WITH placeholders": {
+      "A": "all 10 shots 0.00-0.12 % (other grid commits landed in between)",
+      "B first-party roads": "driftwood 0.00 %, nalati 0.00-0.18 %, pine 0.00-0.46 %",
+      "B template / SQ-c": "template 0.96-1.05 %, SQ-c 0.00-1.03 %: the shardfile near row draws beyond the refined tiles, buildings kept",
+      "boot smoke": "scripts/parity/boot-smoke.mjs: every standalone case incl. sunscar-dunes (whose product carries near + far rows) and the grid case reach gameplay, 0 faults"
+    }
+  }
+}
