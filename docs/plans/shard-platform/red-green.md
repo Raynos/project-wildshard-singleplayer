@@ -88,3 +88,7 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | gate `868e6350f`: Signal + Sky physics and map freshness (shared `bakedWorld` loader changed both shards' inputs; only one recaptured) | `115831666` | `940949695` (Signal physics), `1539110d9` (Signal map, image identical), Sky by `d5267c284`; rule `81914f07b` | sp-x7, wildshard-new |
 | 2026-10-13 | gate `bd6653396`: `cone-fan-parity` viewmodel snapshot (test pinned the code-glove fallback; game viewmodel proven identical, 0 px) | `d5267c284` | `5dc782337` (test loads the hero hand; events unchanged) | sp-o58 |
 | 2026-10-13 | debt rises refused under G349: Signal generator-imports +3; sdk-no-facade `modelLibrary.ts` +2 | `d9112c821`, `7b2261d1b` | `4914d7403`, `db3edc137` (source fixes, no receipts) | sp-o55, sp-o54 |
+| 2026-10-13 | push gate: changed-root typecheck missing Node types (TS2591 `node:fs` …) | `233eae084` | `f0a3ade1d` | sp-x7 |
+| 2026-10-13 | push gate: generation-inputs stale on ledger-only commits (cache key ≠ commit-time trigger) | `e11091664` | `f0a3ade1d` | sp-x7 |
+| 2026-10-13 | push gate: Template / ink-cel / Signal map stamps stale (config + loader inputs) | `1441ef16f`, `8879ee194`, `115831666` | `8abc34dcf`, `45aa86743`, `1539110d9` (images identical) | wildshard-new |
+| 2026-10-13 | push gate: oxlint prefer-optional-chain in `scripts/bake/near-placeholder.mjs` | `a6424d8f8` | pending (sp-o72) | sp-o72 |
