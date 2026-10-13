@@ -1,0 +1,27 @@
+feat(sky): draw the static islands from props tiles
+
+Sky Reach ships honest tiles: its twelve static islands (eight
+playable, four gate isles) are compiled props tiles (11 L0 tiles, one
+named node per island, kept whole at its own position), bound by its
+runtime (runtime.binds props) and drawn in the painted island
+material as before. The four moving islets stay in baked/isles.bin.
+
+- game: bindRuntimeProps beside bindRuntimeTerrain (generic: streams
+  through the terrain residency when coarse tiles exist, else keeps
+  every tile resident), bindRuntimeProductProps on the product
+  reader; withoutRuntimeRows keeps a bound props section's collider
+  rows (the entry landings are platform data).
+- sky: generators/isleProps.ts bakes the tiles from the isles pack
+  (bake-sky-world writes data/props.json and assets/<hash>);
+  world/isle.ts adopts each tile's island, world/build.ts paints and
+  registers it in the old order.
+
+Proof on a clean export: scripts/proof-sky-look-parity.mjs identical
+on all 20 poses, phone and desktop (pixels, draws, triangles, GPU
+bytes, programs, shader sources, colliders); developer boot smoke
+PASS; official map bake keeps top.webp and pixelHash (tilesHash
+moves); Sky physics recaptured (inputs only, colliders unchanged);
+witness checkpoints re-recorded (payloads byte-identical); headless
+and ledger endpoint 26469/26349/2c62014c pass.
+
+Assisted-by: Claude Code:claude-opus-5-5
