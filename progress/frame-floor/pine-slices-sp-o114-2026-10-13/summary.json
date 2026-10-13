@@ -1,0 +1,473 @@
+{
+ "schema": 1,
+ "gate": {
+  "desktop": {
+   "p95Ms": 17.5,
+   "maxMs": 100
+  },
+  "sim": {
+   "p95Ms": 35,
+   "maxMs": 200
+  }
+ },
+ "command": "node scripts/frame-floor.mjs --rev=<sha> --shards=grid --surface=<desktop|sim> --grid-scenario=milestone --devserver --grid-routes=pine-hollow-road-entry [--task-clock | --frame-timeline --cpu-profile]",
+ "runs": [
+  {
+   "sha": "ddf8e4e24",
+   "label": "before 1 (task clock)",
+   "surface": "sim",
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 62,
+     "maxMs": 134,
+     "workP95Ms": 6,
+     "framesOver50Ms": 12,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 42,
+     "maxMs": 134,
+     "workP95Ms": 10,
+     "framesOver50Ms": 18,
+     "frames": 750,
+     "pass": false,
+     "longFrameHooks": [
+      {
+       "hook": "pine-hollow:world",
+       "frames": 4,
+       "maxMs": 134
+      },
+      {
+       "hook": "between hooks",
+       "frames": 5,
+       "maxMs": 73
+      },
+      {
+       "hook": "pine-hollow:afterKit",
+       "frames": 3,
+       "maxMs": 76
+      },
+      {
+       "hook": "pine-hollow:afterPlay",
+       "frames": 2,
+       "maxMs": 68
+      },
+      {
+       "hook": "pine-hollow:play",
+       "frames": 2,
+       "maxMs": 71
+      },
+      {
+       "hook": "pine-hollow:activate",
+       "frames": 1,
+       "maxMs": 104
+      },
+      {
+       "hook": "pine-hollow:constructor",
+       "frames": 1,
+       "maxMs": 56
+      }
+     ]
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 8,
+     "framesOver50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "ddf8e4e24",
+   "label": "before 2 (task clock)",
+   "surface": "sim",
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 63,
+     "maxMs": 102,
+     "workP95Ms": 6,
+     "framesOver50Ms": 8,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 35,
+     "maxMs": 102,
+     "workP95Ms": 9,
+     "framesOver50Ms": 12,
+     "frames": 720,
+     "pass": true,
+     "longFrameHooks": [
+      {
+       "hook": "pine-hollow:world",
+       "frames": 5,
+       "maxMs": 102
+      },
+      {
+       "hook": "between hooks",
+       "frames": 2,
+       "maxMs": 66
+      },
+      {
+       "hook": "pine-hollow:afterKit",
+       "frames": 2,
+       "maxMs": 74
+      },
+      {
+       "hook": "pine-hollow:activate",
+       "frames": 1,
+       "maxMs": 81
+      },
+      {
+       "hook": "pine-hollow:play",
+       "frames": 1,
+       "maxMs": 63
+      },
+      {
+       "hook": "pine-hollow:afterPlay",
+       "frames": 1,
+       "maxMs": 51
+      }
+     ]
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 8,
+     "framesOver50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "1b39cec67",
+   "label": "before, profiled",
+   "surface": "desktop",
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 33.3,
+     "maxMs": 50,
+     "workP95Ms": 5.9,
+     "framesOver50Ms": 0,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 11.3,
+     "framesOver50Ms": 0,
+     "frames": 1020,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 16.8,
+     "maxMs": 16.8,
+     "workP95Ms": 9.7,
+     "framesOver50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "4b804d070",
+   "label": "after 4: HEAD with the shared assembler fix 77bfbba70 (task clock)",
+   "surface": "sim",
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 51,
+     "maxMs": 145,
+     "workP95Ms": 6,
+     "framesOver50Ms": 7,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 37,
+     "maxMs": 145,
+     "workP95Ms": 9,
+     "framesOver50Ms": 11,
+     "frames": 750,
+     "pass": false,
+     "longFrameHooks": [
+      {
+       "hook": "pine-hollow:world",
+       "frames": 5,
+       "maxMs": 145
+      },
+      {
+       "hook": "between hooks",
+       "frames": 2,
+       "maxMs": 71
+      },
+      {
+       "hook": "pine-hollow:play",
+       "frames": 2,
+       "maxMs": 54
+      },
+      {
+       "hook": "pine-hollow:activate",
+       "frames": 1,
+       "maxMs": 104
+      },
+      {
+       "hook": "pine-hollow:afterPlay",
+       "frames": 1,
+       "maxMs": 61
+      }
+     ]
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 7,
+     "framesOver50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "65e123136",
+   "label": "after 3: all four commits (task clock)",
+   "surface": "sim",
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 63,
+     "maxMs": 199,
+     "workP95Ms": 8,
+     "framesOver50Ms": 12,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 41,
+     "maxMs": 199,
+     "workP95Ms": 9,
+     "framesOver50Ms": 16,
+     "frames": 750,
+     "pass": false,
+     "longFrameHooks": [
+      {
+       "hook": "pine-hollow:world",
+       "frames": 9,
+       "maxMs": 199
+      },
+      {
+       "hook": "between hooks",
+       "frames": 3,
+       "maxMs": 73
+      },
+      {
+       "hook": "pine-hollow:play",
+       "frames": 2,
+       "maxMs": 66
+      },
+      {
+       "hook": "pine-hollow:activate",
+       "frames": 1,
+       "maxMs": 108
+      },
+      {
+       "hook": "pine-hollow:afterPlay",
+       "frames": 1,
+       "maxMs": 57
+      }
+     ]
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 10,
+     "framesOver50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "6a6acd2a3",
+   "label": "after 1: the first two commits content on 1939737b3 (task clock)",
+   "surface": "sim",
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 50,
+     "maxMs": 138,
+     "workP95Ms": 6,
+     "framesOver50Ms": 6,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 39,
+     "maxMs": 138,
+     "workP95Ms": 10,
+     "framesOver50Ms": 11,
+     "frames": 780,
+     "pass": false,
+     "longFrameHooks": [
+      {
+       "hook": "pine-hollow:world",
+       "frames": 5,
+       "maxMs": 138
+      },
+      {
+       "hook": "between hooks",
+       "frames": 2,
+       "maxMs": 70
+      },
+      {
+       "hook": "pine-hollow:afterPlay",
+       "frames": 2,
+       "maxMs": 64
+      },
+      {
+       "hook": "pine-hollow:activate",
+       "frames": 1,
+       "maxMs": 111
+      },
+      {
+       "hook": "pine-hollow:constructor",
+       "frames": 1,
+       "maxMs": 53
+      }
+     ]
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 35,
+     "workP95Ms": 10,
+     "framesOver50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "b88736b9f",
+   "label": "after 2 (task clock)",
+   "surface": "sim",
+   "pass": false,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 57,
+     "maxMs": 226,
+     "workP95Ms": 7,
+     "framesOver50Ms": 8,
+     "frames": 120,
+     "pass": false
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 40,
+     "maxMs": 226,
+     "workP95Ms": 10,
+     "framesOver50Ms": 13,
+     "frames": 780,
+     "pass": false,
+     "longFrameHooks": [
+      {
+       "hook": "pine-hollow:world",
+       "frames": 6,
+       "maxMs": 226
+      },
+      {
+       "hook": "between hooks",
+       "frames": 3,
+       "maxMs": 75
+      },
+      {
+       "hook": "pine-hollow:afterPlay",
+       "frames": 2,
+       "maxMs": 60
+      },
+      {
+       "hook": "pine-hollow:activate",
+       "frames": 1,
+       "maxMs": 109
+      },
+      {
+       "hook": "pine-hollow:play",
+       "frames": 1,
+       "maxMs": 57
+      }
+     ]
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 34,
+     "maxMs": 34,
+     "workP95Ms": 9,
+     "framesOver50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  },
+  {
+   "sha": "b88736b9f",
+   "label": "after, profiled",
+   "surface": "desktop",
+   "pass": true,
+   "rows": [
+    {
+     "row": "grid-pine-hollow-road-entry-travel",
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 4.9,
+     "framesOver50Ms": 0,
+     "frames": 120,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry-drive",
+     "p95Ms": 16.8,
+     "maxMs": 50,
+     "workP95Ms": 11.4,
+     "framesOver50Ms": 0,
+     "frames": 1020,
+     "pass": true
+    },
+    {
+     "row": "grid-pine-hollow-road-entry",
+     "p95Ms": 16.7,
+     "maxMs": 16.8,
+     "workP95Ms": 13.7,
+     "framesOver50Ms": 0,
+     "frames": 120,
+     "pass": true
+    }
+   ]
+  }
+ ]
+}
