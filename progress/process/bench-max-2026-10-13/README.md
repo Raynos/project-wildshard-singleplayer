@@ -86,3 +86,20 @@ hooks: generator edit 7.67 s; shared edits 10.026 / 9.998 s at load 9.2; first c
 run 13.761 s. The 10 s cap remains OPEN; these are improvements, not full qualification.
 36 focused tests, root strict and touched lint passed. Native/map producer integration and
 the 120 s pre-push verdict remain open. No full suite or gameplay behavior changed.
+
+
+## Staged native and continuation producers
+
+Official native/map producers now run in the immutable staged export, followed by
+King/witness freshness laws. Dependent generation runs again after native output
+changes. Only declared output bytes enter the index; the complete tree and parent
+bind their receipt. An idempotent retry retains the original receipt. Existing
+build-input caches are reused only after every stored blob verifies.
+
+Scratch hook: full native recovery 27.01 s before cuts, 16.17 s after warm producer
+caches; exact-tree retry 7.35 s (load 8.3-9.4). Four native outputs and four witness
+manifests refreshed; all gameplay payloads and recorded outcomes stayed exact.
+The cold recovery remains over 10 s. Four focused tests, root strict, scoped JS
+strict and touched lint pass, including staged/foreign isolation and failures.
+The observed push gate was 18.35 s/120 s, refused by then-stale Template/Ink maps;
+the official map repair is separate. No green timing credit is claimed for it.

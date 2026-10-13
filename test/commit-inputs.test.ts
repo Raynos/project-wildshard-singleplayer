@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import { precommitInputs } from '../scripts/precommit-inputs.mjs';
 import { restoreCommitInputs } from '../scripts/commit-inputs.mjs';
+import { verifyCommitProduced } from '../scripts/commit-produced.mjs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Exercise an isolated real index and its immutable export.
 import { execFileSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Only this fixture's temporary files are written or removed.
@@ -45,5 +46,54 @@ writeFileSync('lint/ask-ids.json',JSON.stringify([value]));`);
     writeFileSync(join(root, '.git/commit-inputs/blobs', hash), 'corrupt');
     expect(() => restoreCommitInputs(root, tree, target)).toThrow('Corrupt commit-time');
     expect(() => restoreCommitInputs(root, 'HEAD', target)).toThrow('Missing commit-time');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+
+it('publishes staged native outputs with an exact receipt and refuses producer failure', () => {
+  const root = mkdtempSync(join(tmpdir(), 'commit-producers-fixture-'));
+  const git = (...args: string[]) => execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim();
+  const output = 'src/shards/pine-hollow/runtime/physics.baked.json';
+  try {
+    git('init', '-q'); git('config', 'core.hooksPath', '/dev/null');
+    for (const dir of ['src/shards/pine-hollow/runtime', 'lint', 'scripts']) mkdirSync(join(root, dir), { recursive: true });
+    writeFileSync(join(root, 'package.json'), '{"name":"fixture"}');
+    writeFileSync(join(root, 'src/value.ts'), 'before');
+    writeFileSync(join(root, 'lint/ask-ids.json'), '[]');
+    writeFileSync(join(root, 'lint/shard-words.generated.json'), '{}');
+    writeFileSync(join(root, 'scripts/generation-jobs.json'), '{"jobs":[]}');
+    writeFileSync(join(root, 'src/shards/pine-hollow/fixture.json'), '{}');
+    writeFileSync(join(root, 'scripts/generation-jobs.json'), JSON.stringify({ jobs: [{ inputRoots: [output], outputs: [] }] }));
+    writeFileSync(join(root, 'scripts/gen.mjs'), `import {existsSync,readFileSync,writeFileSync} from 'node:fs';
+if(existsSync('${output}'))writeFileSync('src/native.generated.json',readFileSync('${output}'));`);
+    writeFileSync(join(root, 'scripts/bake-loader.mjs'), '');
+    writeFileSync(join(root, 'scripts/precommit-bakes.mjs'), `import {existsSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
+export async function regenerateCheapBakes(){
+const value=readFileSync('src/value.ts','utf8');
+if(value==='fail')throw Error('official producer refused');
+const next=JSON.stringify({value});
+if(existsSync('${output}')&&readFileSync('${output}','utf8')===next)return [];
+mkdirSync('src/shards/pine-hollow/runtime',{recursive:true});
+writeFileSync('${output}',next);
+return ['${output}'];}
+export async function refreshRecordedCommitInputs(){return [];}`);
+    git('add', '.'); git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.com', 'commit', '-qm', 'fixture');
+    writeFileSync(join(root, 'src/value.ts'), 'staged'); git('add', 'src/value.ts');
+    writeFileSync(join(root, 'src/value.ts'), 'foreign working bytes');
+    writeFileSync(join(root, output), 'foreign output bytes');
+    precommitInputs(root);
+    expect(git('show', `:${output}`)).toBe('{"value":"staged"}');
+    expect(readFileSync(join(root, output), 'utf8')).toBe('foreign output bytes');
+    expect(readFileSync(join(root, 'src/value.ts'), 'utf8')).toBe('foreign working bytes');
+    expect(verifyCommitProduced(root, git('write-tree'), [output])).toBe(true);
+    const target = join(root, 'restore'); mkdirSync(target);
+    restoreCommitInputs(root, git('write-tree'), target);
+    expect(readFileSync(join(target, 'src/native.generated.json'), 'utf8')).toBe('{"value":"staged"}');
+    precommitInputs(root);
+    expect(verifyCommitProduced(root, git('write-tree'), [output])).toBe(true);
+    writeFileSync(join(root, 'src/value.ts'), 'fail'); git('add', 'src/value.ts');
+    expect(() => precommitInputs(root)).toThrow();
+    expect(git('show', `:${output}`)).toBe('{"value":"staged"}');
+    expect(verifyCommitProduced(root, git('write-tree'), [output])).toBe(false);
   } finally { rmSync(root, { recursive: true, force: true }); }
 });

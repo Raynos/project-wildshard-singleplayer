@@ -1,10 +1,11 @@
 // G367: build the exact temporary/private index, never an agent's working copy.
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, globSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
-import { saveCommitInputs } from './commit-inputs.mjs';
+import { inputKey, restoreCommitInputs, saveCommitInputs } from './commit-inputs.mjs';
+import { recordCommitProduced } from './commit-produced.mjs';
 
 /** Top-level folders no generator reads; the export leaves them out (4 GB of mockups and receipts). */
 const UNEXPORTED = new Set(['art', 'progress', 'sources', 'ios', 'android', '.claude']);
@@ -60,9 +61,11 @@ function stagedExport(root, tree) {
   if (release === null) return freshExport(root, exportTree(root, tree));
   try {
     const target = exportTree(root, tree);
+    /** @type {NodeJS.ProcessEnv} */
     const env = { ...process.env, GIT_INDEX_FILE: `${base}.index` };
     delete env.GIT_WORK_TREE;
-    const git = (/** @type {string[]} */ args, /** @type {string | undefined} */ input) => gitIn(root, ['--work-tree', base, ...args], { env, input });
+    /** @param {string[]} args @param {string} [input] */
+    const git = (args, input) => gitIn(root, ['--work-tree', base, ...args], { env, input });
     const rebuild = () => {
       rmSync(base, { recursive: true, force: true }); rmSync(`${base}.index`, { force: true }); rmSync(`${base}.index.lock`, { force: true });
       mkdirSync(base);
@@ -88,21 +91,46 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
 const git = (/** @type {string[]} */ args, /** @type {Uint8Array | undefined} */ input) => gitIn(root, args, { input });
 const paths = git(['diff', '--cached', '--name-only'], undefined).split('\n').filter(Boolean);
 if (paths.some(path => /^(src|scripts|lint|public|test|music|sfx)\//u.test(path) || /^(package|pnpm|vite|vitest|tsconfig|\.oxlint)/u.test(path))) {
-  const started = performance.now(), before = git(['write-tree'], undefined);
+  const started = performance.now(), before = git(['write-tree'], undefined), base = git(['rev-parse', 'HEAD'], undefined);
   const exported = stagedExport(root, before), scratch = exported.dir;
   const ready = performance.now();
   try {
     linkNodeModules(root, scratch);
     const common = git(['rev-parse', '--path-format=absolute', '--git-common-dir'], undefined);
-    execFileSync(process.execPath, ['scripts/gen.mjs', '--build-inputs'], { cwd: scratch, stdio: 'inherit',
+    if (existsSync(resolve(common, 'commit-inputs', `${inputKey(root, before)}.json`))) {
+      restoreCommitInputs(root, before, scratch);
+      console.log('precommit-inputs: verified generation cache');
+    } else execFileSync(process.execPath, ['scripts/gen.mjs', '--build-inputs'], { cwd: scratch, stdio: 'inherit',
       env: { ...process.env, WS_SHARD_PARSE_CACHE: resolve(common, 'commit-inputs/parse') } });
     const generated = performance.now();
+    /** @type {string[]} */
+    let produced = [];
+    if (existsSync(resolve(scratch, 'src/shards'))) {
+      const result = resolve(scratch, '.commit-produced-paths.json');
+      const producer = `import {readFileSync,writeFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+import {regenerateCheapBakes,refreshRecordedCommitInputs} from './scripts/precommit-bakes.mjs';
+const files=await regenerateCheapBakes(process.cwd(),{url:process.env.WS_STAGED_MAP_URL,revision:process.env.WS_STAGED_MAP_REVISION});
+const catalogue=JSON.parse(readFileSync('scripts/generation-jobs.json','utf8'));
+if(catalogue.jobs.some(job=>(job.inputRoots??[]).some(root=>files.some(file=>file===root||file.startsWith(root+'/')))))
+execFileSync(process.execPath,['scripts/gen.mjs','--build-inputs'],{stdio:'inherit'});
+const recorded=await refreshRecordedCommitInputs(process.cwd(),process.env.WS_COMMIT_WITNESS_CACHE);
+writeFileSync(process.argv[1],JSON.stringify([...files,...recorded]));`;
+      execFileSync(process.execPath, ['--import', './scripts/bake-loader.mjs', '--input-type=module', '-e', producer, result], { cwd: scratch, stdio: 'inherit',
+        env: { ...process.env, WS_SHARD_PARSE_CACHE: resolve(common, 'commit-inputs/parse'), WS_COMMIT_WITNESS_CACHE: resolve(common, 'commit-inputs/witnesses') } });
+      produced = JSON.parse(readFileSync(result, 'utf8'));
+      if (!Array.isArray(produced) || produced.some(file => typeof file !== 'string' || file.includes('\\') || file.split('/').some(part => part === '' || part === '.' || part === '..'))) throw new Error('Invalid commit producer paths');
+    }
+    const baked = performance.now();
     const tracked = new Set(git(['ls-tree', '-r', '--name-only', before], undefined).split('\n'));
     // Only these declared tracked tables are written by the boot generator.
     const tables = ['lint/ask-ids.json', 'lint/shard-words.generated.json'];
-    for (const file of tables) {
+    for (const file of new Set([...tables, ...produced])) {
       const bytes = readFileSync(resolve(scratch, file));
-      if (bytes.equals(execFileSync('git', ['show', `${before}:${file}`], { cwd: root }))) continue;
+      const previous = spawnSync('git', ['show', `${before}:${file}`], { cwd: root, maxBuffer: 64 * 1024 * 1024 });
+      if (previous.error) throw previous.error;
+      if (previous.status !== 0 && tracked.has(file)) throw new Error(`Cannot read staged producer output: ${file}`);
+      if (previous.status === 0 && bytes.equals(previous.stdout)) continue;
       const blob = git(['hash-object', '-w', '--stdin'], bytes);
       git(['update-index', '--add', '--cacheinfo', '100644', blob, file], undefined);
     }
@@ -111,9 +139,11 @@ if (paths.some(path => /^(src|scripts|lint|public|test|music|sfx)\//u.test(path)
     const catalogue = JSON.parse(readFileSync(resolve(scratch, 'scripts/generation-jobs.json'), 'utf8'));
     for (const job of catalogue.jobs) for (const file of Object.keys(job.buildOutputs ?? {})) if (existsSync(resolve(scratch, file)) && !tracked.has(file)) files.push(file);
     const final = git(['write-tree'], undefined);
+    // An idempotent retry must retain the original source-to-output receipt.
+    if (final !== before) recordCommitProduced(root, before, [...tables, ...produced], base);
     saveCommitInputs(root, final, scratch, [...new Set(files)]);
     const seconds = (/** @type {number} */ from, /** @type {number} */ to) => ((to - from) / 1000).toFixed(3);
-    console.log(`precommit-inputs: ${seconds(started, performance.now())}s (export ${seconds(started, ready)}s, gen ${seconds(ready, generated)}s, save ${seconds(generated, performance.now())}s); staged generation inputs cached`);
+    console.log(`precommit-inputs: ${seconds(started, performance.now())}s (export ${seconds(started, ready)}s, gen ${seconds(ready, generated)}s, bakes ${seconds(generated, baked)}s, save ${seconds(baked, performance.now())}s); staged generation inputs cached`);
   } finally { exported.release(); }
 }
 
