@@ -73,8 +73,15 @@ function trace(): { row: unknown; events: unknown[] } {
   fan.onGust = (from, dir) => { events.push(['gust', ...v3(from), ...v3(dir)]); };
   fan.onHit = (id, headshot, killed) => { events.push(['hit', id, headshot, killed]); };
   fan.onFire = () => { events.push(['fire']); };
+  // the built model's structure and materials are pinned; its geometry (vertex sums and counts) is the bake's and the hero
+  // hand's, not this trace's (usage audit 2026-10-13): every mesh only has to carry real, finite vertices
   const built = { children: fan.model.children.length, row: [fan.row.id, fan.meta.name], meshes: [] as unknown[] };
-  fan.model.traverse((o) => { if (isMesh(o)) built.meshes.push({ geo: geometrySum(o.geometry), verts: o.geometry.getAttribute('position').count, order: o.renderOrder, mat: materialRow(o.material) }); });
+  fan.model.traverse((o) => {
+    if (!isMesh(o)) return;
+    expect(o.geometry.getAttribute('position').count).toBeGreaterThan(0);
+    expect(Number.isFinite(geometrySum(o.geometry))).toBe(true);
+    built.meshes.push({ order: o.renderOrder, mat: materialRow(o.material) });
+  });
   const frames: unknown[] = [];
   const dt = 1 / 60;
   for (let i = 0; i < 1200; i++) {
