@@ -1,0 +1,263 @@
+diff --git a/src/engine/render/precompile.ts b/src/engine/render/precompile.ts
+index 085ac665e..fb25fda48 100644
+--- a/src/engine/render/precompile.ts
++++ b/src/engine/render/precompile.ts
+@@ -69,6 +69,14 @@ export interface CompileJob {
+   dispose?: () => void;
+   /** Diagnostic family of this job (scene, shadow, exterior…): new programs are counted per kind in the stage trace. */
+   kind?: string;
++  /** One pass of a two-pass material (transparent, DoubleSide, not forceSinglePass): compile() issues both side
++   * programs in one call, so a one-material job compiles each side alone, set and restored inside the job's task. */
++  side?: typeof THREE.BackSide | typeof THREE.FrontSide;
++}
++
++/** three's compile() and draw issue a back and a front program for this material (WebGLRenderer prepareMaterial). */
++function twoPass(material: THREE.Material): boolean {
++  return material.transparent && material.side === THREE.DoubleSide && !material.forceSinglePass;
+ }
+ 
+ export interface PrecompileReport { materials: number; jobs: number; programs: number; parallel: boolean }
+@@ -252,7 +260,8 @@ function standIn(mesh: MeshLike): MeshLike {
+ }
+ 
+ /**
+- * One detached clone per distinct (material, object-flags) pair, grouped `per` clones a job.
++ * One detached clone per distinct (material, object-flags) pair, grouped `per` clones a job; with `per` 1 a job
++ * holds exactly one material (an array-material mesh gets one clone per material).
+  * `clone(false)` keeps the instancing / skinning / morph flags and the geometry that pick the
+  * variant, without touching live visibility or parents (gauntlet's compileMaterials).
+  * `roots` restricts the borrowed inventory while retaining the target scene's lights, fog and environment.
+@@ -262,7 +271,7 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
+   excludedRoots?: ReadonlySet<THREE.Object3D>): { jobs: CompileJob[]; materials: number } {
+   const seen = new Set<string>();
+   const mats = new Set<THREE.Material>();
+-  const clones: THREE.Object3D[] = [];
++  const clones: { clone: THREE.Object3D; side?: typeof THREE.BackSide | typeof THREE.FrontSide }[] = [];
+   for (const root of roots) compileObjects(root, (o) => {
+     const mesh = o as MeshLike;
+     const list = materialsOf(mesh);
+@@ -271,15 +280,28 @@ export function sceneJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null
+     const wanted = list.filter((m) => { mats.add(m); const k = m.uuid + ok; if (seen.has(k)) return false; seen.add(k); return true; });
+     const first = wanted[0];
+     if (first === undefined) return;
++    // sp-o135: a one-material job (`per` 1, the live warm-ups) issues one program: an array-material mesh gets one
++    // stand-in per wanted material and a two-pass material one job per side. Program keys are per (material, side,
++    // object flags), never per group, so the programs are the same; one job issuing a MeshLambert pair held a
++    // 61 ms Simulator frame (sp-o134).
++    if (per === 1 && (wanted.length > 1 || twoPass(first))) {
++      for (const material of wanted) {
++        for (const side of twoPass(material) ? [THREE.BackSide, THREE.FrontSide] as const : [undefined]) {
++          const copy = standIn(mesh); copy.material = material; clones.push(side === undefined ? { clone: copy } : { clone: copy, side });
++        }
++      }
++      return;
++    }
+     const copy = standIn(mesh);
+     copy.material = Array.isArray(mesh.material) ? wanted : first;
+-    clones.push(copy);
++    clones.push({ clone: copy });
+   }, excludedRoots);
+   const jobs: CompileJob[] = [];
+   for (let i = 0; i < clones.length; i += per) {
+-    const root = new THREE.Group();
+-    for (const c of clones.slice(i, i + per)) root.add(c);
+-    jobs.push({ label: engineString('s_4bdf150dd0ed', [i]), root, target: scene, rt });
++    const root = new THREE.Group(), batch = clones.slice(i, i + per);
++    for (const c of batch) root.add(c.clone);
++    const side = per === 1 ? batch[0]?.side : undefined;
++    jobs.push({ label: engineString('s_4bdf150dd0ed', [i]), root, target: scene, rt, ...(side === undefined ? {} : { side }) });
+   }
+   return { jobs, materials: mats.size };
+ }
+@@ -691,13 +713,19 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
+   // Keep issue and first use on one painted slice when the driver has already finished linking.
+   // An incomplete link is queued; it never blocks issuing the next material or loses its owner fence.
+   const queued: ProgramLike[] = [], enqueued = new Set<ProgramLike>();
+-  let settled = 0;
++  // sp-o135: a live slice queries only programs issued before the drawn frame that released it. A completion or link
++  // query in the task that issued the compile waits on WebKit's GPU process for that compile (a 20 ms
++  // getProgramParameter inside the 61 ms Simulator frame, sp-o134). `polled` marks a slice that already queried one.
++  let settled = 0, drawnBefore = 0;
++  const slice = { polled: false };
+   const queue = (program: ProgramLike): void => {
+     if (!enqueued.has(program) && !resolvedPrograms.has(program)) { enqueued.add(program); queued.push(program); }
+   };
+   const settleOne = (): void => {
+-    const program = queued[settled];
+-    if (program === undefined || parallel && !program.isReady()) return;
++    const program = settled < drawnBefore ? queued[settled] : undefined;
++    if (program === undefined) return;
++    slice.polled = true;
++    if (parallel && !program.isReady()) return;
+     program.getUniforms(); resolvedPrograms.add(program); settled++;
+   };
+   const total = () => jobs.length + Math.max(created.length, 1) + textures.length;
+@@ -712,7 +740,13 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
+     const fog = job.target?.fog ?? null;
+     const environment = job.target?.environment ?? null;
+     const restoreDrawn = isolateImageUploads ? holdDrawnPrograms(renderer, job.root) : undefined;
++    const sided: THREE.Material[] = [];
+     try {
++      // One side of a two-pass material, exactly as three's prepareMaterial sets it; DoubleSide returns in this task.
++      if (job.side !== undefined) job.root.traverse(object => { for (const material of materialsOf(object)) {
++        if (!twoPass(material) || sided.includes(material)) continue;
++        sided.push(material); material.side = job.side ?? THREE.FrontSide; material.needsUpdate = true;
++      } });
+       if (job.fogOff && job.target) job.target.fog = null;
+       if (job.environment !== undefined && job.target) job.target.environment = job.environment;
+       if (job.toneMapping !== undefined) renderer.toneMapping = job.toneMapping;
+@@ -720,6 +754,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
+       renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
+       job.root.traverse(object => { for (const material of materialsOf(object)) jobPrograms.add(currentProgram(renderer, material)); });
+     } finally {
++      for (const material of sided) material.side = THREE.DoubleSide;
+       restoreDrawn?.();
+       renderer.setRenderTarget(prevRt); renderer.toneMapping = prevTone;
+       if (job.fogOff && job.target) job.target.fog = fog;
+@@ -735,8 +770,13 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
+     // queues compile/link to its GPU process, so the JS slice is cheap but the frame that presents it waits for all of
+     // them (Sky Reach's entry: 18 programs in one 217 ms Simulator frame of afterPlay).
+     const capped = isolateImageUploads && programCount(renderer) - programsAtFrame >= LIVE_PROGRAMS_PER_FRAME;
+-    // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above
+-    if (performance.now() - tFrame > sliceMs || capped || i === jobs.length - 1) { if (isolateImageUploads) settleOne(); await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
++    if (performance.now() - tFrame > sliceMs || capped || i === jobs.length - 1) {
++      drawnBefore = queued.length; await pause(); slice.polled = false;
++      // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above
++      tFrame = performance.now(); programsAtFrame = programCount(renderer);
++      // The settle opens the next slice (its time counts against it), before it issues anything: no new compile to cross.
++      if (isolateImageUploads) { checkCurrent(); settleOne(); }
++    }
+   }
+   created.push(...newProgramsSince(renderer, before));
+   for (const program of before) if (jobPrograms.has(program)) created.push(program);
+@@ -774,6 +814,8 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
+   // main thread, so the 12 ms box never closed, but the frame waited for every library they forced (Nine Dragon's entry:
+   // 759 uniforms resolved in one 699 ms Simulator frame of afterPlay).
+   let tSlice = performance.now(), resolvedInSlice = 0;
++  // The compile stage's last slice may have queried a program already: the first resolve waits for the next frame.
++  if (isolateImageUploads && slice.polled && pending.length > 0) { await pause(); tSlice = performance.now(); }
+   for (const [i, p] of pending.entries()) {
+     checkCurrent();
+     // A live slice settles one ready program. An incomplete link alone needs another poll.
+diff --git a/test/precompile-batching.test.ts b/test/precompile-batching.test.ts
+index 7ed756d86..e76194e8c 100644
+--- a/test/precompile-batching.test.ts
++++ b/test/precompile-batching.test.ts
+@@ -1,5 +1,5 @@
+ import { describe, expect, it, vi } from 'vitest';
+-import { BatchedMesh, BoxGeometry, Color, Group, Mesh, MeshDepthMaterial, MeshStandardMaterial, Scene, PerspectiveCamera, WebGLRenderer } from 'three';
++import { BackSide, BatchedMesh, BoxGeometry, Color, DoubleSide, FrontSide, Group, Mesh, MeshDepthMaterial, MeshStandardMaterial, Scene, PerspectiveCamera, WebGLRenderer } from 'three';
+ import { sceneJobs, shadowJobs, postJobs } from '../src/engine/render/precompile';
+ 
+ import { BloomEffect, EffectComposer, EffectPass, ToneMappingEffect, ToneMappingMode } from 'postprocessing';
+@@ -28,6 +28,30 @@ describe('shader preparation for shared plain and batched materials', () => {
+     expect(scene.children.map((mesh) => mesh.parent)).toEqual([scene, scene, scene]);
+   });
+ 
++  it('gives each material of an array-material mesh its own one-material job', () => {
++    const geometry = new BoxGeometry(), a = new MeshStandardMaterial(), b = new MeshStandardMaterial();
++    const scene = new Scene(), mesh = new Mesh(geometry, [a, b, a]);
++    scene.add(mesh);
++    try {
++      const single = sceneJobs(scene, null, 1);
++      expect(single.materials).toBe(2);
++      expect(single.jobs.map(job => job.root.children.map(clone => (clone as Mesh).material))).toEqual([[a], [b]]);
++      const batched = sceneJobs(scene, null).jobs.flatMap(job => job.root.children);
++      expect(batched.map(clone => (clone as Mesh).material)).toEqual([[a, b]]);
++      expect(mesh.material).toEqual([a, b, a]); expect(mesh.parent).toBe(scene);
++    } finally { geometry.dispose(); a.dispose(); b.dispose(); }
++  });
++
++  it('gives each side of a two-pass material its own one-program job', () => {
++    const geometry = new BoxGeometry(), glass = new MeshStandardMaterial({ transparent: true, side: DoubleSide });
++    const scene = new Scene(); scene.add(new Mesh(geometry, glass));
++    try {
++      expect(sceneJobs(scene, null, 1).jobs.map(job => job.side)).toEqual([BackSide, FrontSide]);
++      expect(sceneJobs(scene, null).jobs.map(job => job.side)).toEqual([undefined]);
++      expect(glass.side).toBe(DoubleSide);
++    } finally { geometry.dispose(); glass.dispose(); }
++  });
++
+   it('also prepares each caster variant before the first shadow draw', () => {
+     const jobs = shadowJobs(fixture(), null);
+     const root = new Group();
+diff --git a/test/precompile-live-programs.test.ts b/test/precompile-live-programs.test.ts
+index 7366bcb7f..ae1974bd9 100644
+--- a/test/precompile-live-programs.test.ts
++++ b/test/precompile-live-programs.test.ts
+@@ -1,6 +1,6 @@
+ import { afterEach, expect, it, vi } from 'vitest';
+ import * as THREE from 'three';
+-import { LIVE_PROGRAMS_PER_FRAME, runPrecompile, type CompileJob } from '../src/engine/render/precompile';
++import { LIVE_PROGRAMS_PER_FRAME, runPrecompile, sceneJobs, type CompileJob } from '../src/engine/render/precompile';
+ import { installScopeEnvironment, scopeEnvironment } from '../src/engine/app/scopeEnvironment';
+ 
+ afterEach(() => { vi.restoreAllMocks(); });
+@@ -38,7 +38,7 @@ it('reports scalar stage units without changing the live compile/link schedule',
+   expect(result.stages).toEqual([{ phase: 'compile', elapsedMs: 0, units: 5 }, { phase: 'link', elapsedMs: 0, units: 5 },
+     { phase: 'upload', elapsedMs: 0, units: 0 }, { phase: 'upload-kib', elapsedMs: 0, units: 0 }]);
+   expect(result.compiled).toEqual([0, 1, 2, 3, 4]);
+-  expect(result.resolved).toEqual(Array.from({ length: 10 }, (_, i) => i));
++  expect(result.resolved).toEqual(Array.from({ length: 10 }, (_, i) => i + 1));
+ });
+ 
+ it('a live WebKit warm-up separates jobs and resolves at most one ready link per painted slice', async () => {
+@@ -46,8 +46,9 @@ it('a live WebKit warm-up separates jobs and resolves at most one ready link per
+   const { compiled, resolved } = await slices(5, 2, true);
+   // A material may issue two side variants; no following job shares that slice.
+   expect(compiled).toEqual([0, 1, 2, 3, 4]);
+-  // Query resolution is bounded independently of the clock and compile-job count.
+-  expect(resolved).toEqual(Array.from({ length: 10 }, (_, i) => i));
++  // Query resolution is bounded independently of the clock and compile-job count, and never shares the task that
++  // issued the compile: the first query waits for the next drawn frame (sp-o135).
++  expect(resolved).toEqual(Array.from({ length: 10 }, (_, i) => i + 1));
+ });
+ 
+ it('pipelines ready older links while issuing new jobs without resolving an incomplete link', async () => {
+@@ -81,11 +82,11 @@ it('bounds parallel completion queries and never revisits resolved borrowed prog
+   const run = () => runPrecompile(renderer, new THREE.PerspectiveCamera(), [{ label: 'parallel', root, target: null, rt: null }], 1, undefined, [], () => true, true, () => { frame++; return Promise.resolve(); });
+   try {
+     await run();
+-    expect(reads).toEqual([0, 1, 2]);
+-    expect(resolutions).toEqual([0, 1, 2]);
++    expect(reads).toEqual([1, 2, 3]);
++    expect(resolutions).toEqual([1, 2, 3]);
+     await run();
+-    expect(reads).toEqual([0, 1, 2]);
+-    expect(resolutions).toEqual([0, 1, 2]);
++    expect(reads).toEqual([1, 2, 3]);
++    expect(resolutions).toEqual([1, 2, 3]);
+   } finally { material.dispose(); geometry.dispose(); installScopeEnvironment(prior); }
+ });
+ 
+@@ -104,7 +105,29 @@ it('waits for a pending parallel link before first use and fences a retired owne
+   try {
+     await expect(runPrecompile(renderer, new THREE.PerspectiveCamera(), [{ label: 'pending', root: new THREE.Group(), target: null, rt: null }], 0,
+       undefined, [], () => alive, true, () => { frame++; if (frame === 3) alive = false; return Promise.resolve(); })).rejects.toThrow('Shader warm-up owner left');
+-    expect(reads).toEqual([0, 1, 2]);
++    // One completion query a drawn frame, none in the task that issued the link.
++    expect(reads).toEqual([1, 2]);
+     expect(resolutions).toEqual([]);
+   } finally { installScopeEnvironment(prior); }
+ });
++
++it('compiles one side of a two-pass material per job and restores DoubleSide in the same task', async () => {
++  const prior = scopeEnvironment();
++  installScopeEnvironment({ targetKind: () => 'other', frame: paint => { queueMicrotask(() => { paint(0); }); return 0; }, cancelFrame: () => undefined });
++  const glass = new THREE.MeshLambertMaterial({ transparent: true, side: THREE.DoubleSide }), geometry = new THREE.PlaneGeometry();
++  const scene = new THREE.Scene(); scene.add(new THREE.Mesh(geometry, glass));
++  const sides: THREE.Side[] = [], programs: unknown[] = [];
++  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
++  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Renderer prototype');
++  const commands = { extensions: { has: () => false }, info: { programs }, getRenderTarget: () => null, setRenderTarget: () => undefined,
++    compile: () => { sides.push(glass.side); programs.push({ isReady: () => true, getUniforms: () => undefined }); } };
++  for (const [key, value] of Object.entries(commands)) Reflect.set(renderer, key, value);
++  const { jobs } = sceneJobs(scene, null, 1);
++  try {
++    await runPrecompile(renderer, new THREE.PerspectiveCamera(), jobs, 1, undefined, [], () => true, true, () => {
++      expect(glass.side).toBe(THREE.DoubleSide); return Promise.resolve();
++    });
++    expect(sides).toEqual([THREE.BackSide, THREE.FrontSide]);
++    expect(glass.side).toBe(THREE.DoubleSide);
++  } finally { glass.dispose(); geometry.dispose(); installScopeEnvironment(prior); }
++});
