@@ -48,6 +48,7 @@ import { worldTime } from '../../core/time';
 import type { Renderer } from '../renderer';
 import { NodeUniformBuffers, type BlockGroup } from './nodeUniformBuffers';
 import { installNodeCoarseMask, type NodeCoarseMask } from '../nodeCoarseMask';
+import { buildWithInstanceAttributes, instanceAttributeShader, nodeInstanceKey } from './nodeInstancing';
 
 /** what an epilogue stage is handed: the builder, its material, the scene's fog and the renderer */
 export interface EpilogueContext {
@@ -206,8 +207,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     };
     // the program follows the bound target and the material's tone-mapping flag, as classic programs do
     const stockKey = self.customProgramCacheKeyCallback;
+    const frame = (): unknown => Reflect.get(this, 'nodeFrame');
     self.customProgramCacheKeyCallback = function customProgramCacheKeyCallback(this: THREE.Material): string {
-      return `${stockKey.call(this)}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}`;
+      const current = frame();
+      const object: unknown = typeof current === 'object' && current !== null ? Reflect.get(current, 'object') : undefined;
+      return `${stockKey.call(this)}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}|${nodeInstanceKey(object)}`;
     };
     this.epilogue.push((out, ctx) => (this.engineFogOn() && Reflect.get(ctx.material, 'fog') === true ? engineFog(out, ctx.fog) : out));
   }
@@ -287,7 +291,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** build one node material's program (timed: `builds`, `buildMs`); the build waits to be paired with its program */
   override build(material: THREE.Material, object: THREE.Object3D, parameters: THREE.WebGLProgramParametersWithUniforms): void {
     const t0 = diagnosticNow();
-    super.build(material, object, parameters);
+    if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
+    else super.build(material, object, parameters);
+    parameters.vertexShader = instanceAttributeShader(parameters.vertexShader, object);
     // Three's classic node builder hardcodes GL_POINTS to one pixel. A compiler-owned
     // size property replaces only that epilogue; content still supplies no shader code.
     if (material.userData['graphPointSize'] === true) {
@@ -376,7 +382,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const entry = self.programCache.get(material)?.get(current);
       if (entry !== undefined) this.updateNodeList(entry.updateNodes);
     }
-    const hash = String(typeof object === 'object' && object !== null ? Reflect.get(object, 'receiveShadow') : undefined);
+    const hash = `${String(typeof object === 'object' && object !== null ? Reflect.get(object, 'receiveShadow') : undefined)}|${nodeInstanceKey(object)}`;
     if (Reflect.get(material, 'prevObjectHash') !== hash) { Reflect.set(material, 'prevObjectHash', hash); material.needsUpdate = true; }
     this.bindBlocks(material, null);
   }

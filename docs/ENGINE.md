@@ -4091,3 +4091,13 @@ a later caller-owned Progress view or replaces the current view. Emissions
 refresh only that current view; absent views install nothing. The default
 checkpoint is the original ledger flush. A caller-owned checkpoint can retain
 its exact state/continuation write order before flushing that same ledger.
+
+Node graphs on `InstancedMesh` use the classic renderer's reserved
+`instanceMatrix` and `instanceColor` attributes, bound from the current
+object for each draw. Instance count and object identity never enter the
+program key. Plain meshes, instanced meshes and coloured instances have
+separate feature keys; maps still share one compiled catalogue graph.
+Morph, skin, displacement, instance-normal and authored position order
+remain unchanged. The executed `scripts/graph-mesh-map/run.mjs` oracle
+checks three instanced meshes (3/5/2), shared geometry, two maps, map
+swaps and live matrix updates, alongside the original plain-mesh case.
