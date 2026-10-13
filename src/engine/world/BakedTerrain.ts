@@ -18,7 +18,7 @@ import { captureHeightfield, type HeightfieldBinding } from './Heightfield';
 import { SEED } from '../core/config';
 import type { TerrainField } from '../level/data';
 import { levelBakedId } from '../level/spec';
-import { bakedTerrainSource, installDeclaredBakedTerrain, loadRequiredGround } from './bakedTerrainField';
+import { bakedTerrainSource, installDeclaredBakedTerrain, loadRequiredGround, type BakedTerrainSource, type RequiredGround } from './bakedTerrainField';
 
 /** Existing runtime grid type is defined by the pure byte reader. */
 export type BakedGrid = terrainBytes.BakedGrid;
@@ -37,6 +37,25 @@ export const bakedSamplers: (g: BakedGrid) => Pick<TerrainField, 'heightAt' | 'n
 
 const installed = new WeakMap<HeightfieldBinding, { placement: BakedPlacement | null }>();
 
+/**
+ * The session's admitted-samples port for an optional bake: given the level's baked id (`levelBakedId`) and seed, it returns
+ * the samples its owner admits for that ground (the game reads a shard's admitted query terrain), or null (now, or once it
+ * has looked) when it holds none, which keeps the fetched `terrain.bin`. A rejection or a wrong seed falls back like a failed
+ * fetch. The engine names no source of bytes.
+ */
+export type BakedSamplesReader = (source: BakedTerrainSource) => Promise<RequiredGround | null> | null;
+let samplesReader: BakedSamplesReader | null = null;
+
+/**
+ * Install the session's admitted-samples reader (E434: the game session calls this; importing the module installs nothing).
+ * Returns the restore, which puts back the reader it replaced.
+ */
+export function installBakedSamplesReader(next: BakedSamplesReader): () => void {
+  const previous = samplesReader;
+  samplesReader = next;
+  return () => { if (samplesReader === next) samplesReader = previous; };
+}
+
 /** The active chunk's undergrowth decision log from its installed bake, if it has one (src/shards/pine-hollow/world/undergrowth.ts). */
 export function bakedUndergrowth(binding: HeightfieldBinding = captureHeightfield()): BakedPlacement | null {
   return installed.get(binding)?.placement ?? null;
@@ -52,7 +71,8 @@ export function installBakedGrid(grid: BakedGrid, binding: HeightfieldBinding = 
 /**
  * Load the active chunk's ground and install it; idempotent per chunk. A required manifest ground (`createBakedTerrainField`)
  * is admitted through the session's required-ground loader and refuses the level when it cannot be (missing bytes, wrong
- * seed, no loader); an optional bake is fetched and falls back to the analytic field with a warning.
+ * seed, no loader); an optional bake is installed from the samples the session's reader already admitted
+ * (`installBakedSamplesReader`), else fetched, and either falls back to the analytic field with a warning.
  */
 export async function loadBakedTerrain(binding: HeightfieldBinding = captureHeightfield()): Promise<boolean> {
   const levelId = binding.level.id, seed = binding.level.seed ?? SEED;
@@ -67,8 +87,28 @@ export async function loadBakedTerrain(binding: HeightfieldBinding = captureHeig
     installed.set(binding, { placement: null });
     return true;
   }
-  const url = bakedTerrainUrl(levelBakedId(binding.level));
-  if (!url || new URLSearchParams(location.search).has('nobake')) return false; // ?nobake=1: A/B against the analytic field
+  const key = levelBakedId(binding.level);
+  if ((samplesReader === null && bakedTerrainUrl(key) === null)
+    || (typeof location !== 'undefined' && new URLSearchParams(location.search).has('nobake'))) return false; // ?nobake=1: A/B against the analytic field
+  // an optional bake its owner already admitted (the session's reader) is installed from those samples, never fetched again
+  const reading = samplesReader?.({ key, seed: seed >>> 0 }) ?? null;
+  if (reading !== null) {
+    try {
+      const ground = await reading;
+      if (installed.has(binding)) return true;
+      if (ground !== null) {
+        if (ground.seed !== (seed >>> 0)) throw new Error('bad header / seed');
+        binding.install({ heightAt: ground.heightAt, normalAt: ground.normalAt, splatAt: ground.splatAt });
+        installed.set(binding, { placement: null });
+        return true;
+      }
+    } catch (e) {
+      console.warn(`[baked] admitted terrain for ${levelId} not used (${e instanceof Error ? e.message : String(e)}); computing at launch`);
+      return false;
+    }
+  }
+  const url = bakedTerrainUrl(key);
+  if (!url) return false;
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`${res.status}`);

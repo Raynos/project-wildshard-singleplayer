@@ -10,12 +10,12 @@ import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBindin
 import { RetainedRuntimeHooks } from "../shard/retainedHooks";
 
 import { browserShardfileOptions, shardfileSource } from '../plugin/ui';
-import { boundedResponse, type ProductOptions } from './product';
-import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
+import type { ProductOptions } from './product';
 import { configureLevel, selectedLevel } from '@wildshard/engine/level/selection';
 import { reserveMapImage } from './mapImage';
+import { provideHybridDeclaration, takeFirstPartyDescriptor } from './runtimeProduct';
 import type { ShardfileClientBindings } from './client';
-import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 
 import type { RuntimeDeclaration } from '@wildshard/format/runtime';
 import type { AudioData } from '@wildshard/format/audio';
@@ -259,6 +259,7 @@ export async function prepareHybridShard(declaredSource: Shardfile, options: Pro
   debug?: { context: ShardContext; row: Omit<Parameters<ShardContext['debugRow']>[0], 'change'> }): Promise<ShardPlugin> {
   let source = declaredSource;
   if (source.runtime === null) throw new Error('Hybrid requires a declared runtime entry');
+  provideHybridDeclaration(declaredSource);
   if (bindings.stagesOwner === 'runtime' && !options.firstParty) throw new Error('Runtime stage ownership requires a trusted first-party shard');
   if (debug !== undefined) {
     const choice = { hybrid: false };
@@ -278,10 +279,7 @@ export async function prepareHybridShard(declaredSource: Shardfile, options: Pro
   const productOptions = 'base' in options ? options : browserShardfileOptions(
     new URL(`shardfiles/${source.identity.slug}/`, document.baseURI || location.href).href, options.firstParty);
   if (!('base' in options)) {
-    const visited = productOptions.offline ? await productOptions.cache?.product(productOptions.base) : undefined;
-    if (productOptions.offline && visited?.firstParty !== true) throw new Error('First-party shardfile has not been visited offline');
-    const input: unknown = productOptions.offline ? visited?.source : JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(await productOptions.fetch(new URL('shard.json', productOptions.base).href), SHARDFILE_ADMISSION_LIMITS.sourceBytes)));
-    const published = parseShardfile(input);
+    const published = await takeFirstPartyDescriptor(productOptions);
     const { slug: publishedIdentity } = published.identity, { slug: expectedIdentity } = source.identity;
     if (publishedIdentity !== expectedIdentity || published.identity.revision !== source.identity.revision || published.runtime?.entry !== source.runtime.entry) throw new Error('Built hybrid descriptor differs from its trusted identity');
     source = published;

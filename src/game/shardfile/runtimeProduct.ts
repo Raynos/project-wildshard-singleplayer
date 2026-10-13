@@ -1,10 +1,11 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ClientAssets } from './clientAssets';
 import { browserShardfileOptions } from '../plugin/ui';
-import type { AdmittedProduct } from './product';
+import { boundedResponse, type AdmittedProduct, type ProductOptions } from './product';
 import { bindRuntimeProps, bindRuntimeTerrain, type RuntimePropsPorts, type RuntimeTerrain, type RuntimeTerrainPorts } from './runtimeWorld';
 import { hybridPresentation, type HybridPresentation } from './hybridPresentation';
-import type { Shardfile } from '@wildshard/format/shardSchema';
+import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
+import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 
 /**
  * The trusted runtime's product reader (SHARD-PLATFORM M3 tiles-swap, G227, E435): the same `ClientAssets` in both modes,
@@ -42,6 +43,56 @@ export function provideRuntimeProduct(admitted: AdmittedProduct, scope: Scope): 
 /** The product a grid cell of `slug` handed its resident runtime (`provideRuntimeProduct`), or null when none is resident. */
 export function admittedRuntimeProduct(slug: string): RuntimeProduct | null {
   return provided.get(slug)?.at(-1) ?? null;
+}
+
+const declared = new Map<string, Shardfile>();
+
+/**
+ * A trusted hybrid's own declaration, recorded when its page prepares it (`prepareHybridShard`), so a session reader that
+ * knows only the shard's slug (the baked-samples reader, `installProductSampling`) reaches the same product reader as its
+ * runtime (`runtimeProduct`). The declaration is its module's own constant, so recording it retains nothing new.
+ */
+export function provideHybridDeclaration(source: Shardfile): void {
+  declared.set(source.identity.slug, source);
+}
+
+const descriptors = new Map<string, Promise<Shardfile>>();
+
+/** Read a first-party product's built descriptor (`<base>shard.json`, or the visited copy offline) and parse it. */
+function readDescriptor(options: ProductOptions): Promise<Shardfile> {
+  return (async () => {
+    const visited = options.offline ? await options.cache?.product(options.base) : undefined;
+    if (options.offline && visited?.firstParty !== true) throw new Error('First-party shardfile has not been visited offline');
+    const input: unknown = options.offline ? visited?.source : JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await boundedResponse(await options.fetch(new URL('shard.json', options.base).href), SHARDFILE_ADMISSION_LIMITS.sourceBytes)));
+    return parseShardfile(input);
+  })();
+}
+
+/**
+ * A standalone first-party hybrid's built descriptor, read ahead of its hybrid boot by a session reader that needs the
+ * product before the boot prepares it (the baked-samples reader runs in the level's terrain step, before the plugin). The
+ * read is held only until the hybrid boot takes it (`takeFirstPartyDescriptor`), so the page fetches `shard.json` once.
+ */
+export function firstPartyDescriptor(slug: string): Promise<Shardfile> {
+  const options = browserShardfileOptions(productBase(slug), true), held = descriptors.get(options.base);
+  if (held !== undefined) return held;
+  const read = readDescriptor(options);
+  descriptors.set(options.base, read);
+  read.catch(() => { if (descriptors.get(options.base) === read) descriptors.delete(options.base); });
+  return read;
+}
+
+/** The hybrid boot's descriptor read (`prepareHybridShard`): one a session reader started ahead (released here), else a fresh read. */
+export function takeFirstPartyDescriptor(options: ProductOptions): Promise<Shardfile> {
+  const held = descriptors.get(options.base);
+  descriptors.delete(options.base);
+  return held ?? readDescriptor(options);
+}
+
+/** The product reader for `slug`: its runtime's (`runtimeProduct`) once its hybrid was prepared, else a resident grid cell's, else null. */
+export function slugRuntimeProduct(slug: string): RuntimeProduct | null {
+  const source = declared.get(slug);
+  return source === undefined ? admittedRuntimeProduct(slug) : runtimeProduct(source);
 }
 
 /** The reader for a trusted runtime's own declaration: its grid cell's admitted product while one is resident, else standalone. */
