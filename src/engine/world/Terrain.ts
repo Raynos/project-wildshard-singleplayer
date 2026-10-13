@@ -13,6 +13,7 @@ import type { LevelAssets, TerrainField } from '../level/data';
 import type { LevelSpec } from '../level/spec';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
 import { workSlice } from '../core/workSlice';
+import { enteredOwner, withOwner } from '../app/ownership';
 
 /**
  * The boreal ground (PINE-HOLLOW PH-L8, `ChunkAssets.boreal`; a shard without it builds the plain shader above). Over the same
@@ -368,8 +369,10 @@ export class Terrain {
    */
   async punchSliced(hole: TerrainHole, due: () => Promise<void> | null): Promise<number> {
     const steps = this.punchSteps(hole);
+    // every slice runs under the owner the call was made in, as one synchronous `punch` would (SF57: an await drops it)
+    const entered = enteredOwner();
     for (;;) {
-      const r = steps.next();
+      const r = entered === null ? steps.next() : withOwner(entered, () => steps.next());
       if (r.done === true) return r.value;
       const pause = due();
       if (pause !== null) await pause;
