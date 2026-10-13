@@ -138,7 +138,7 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   // between the synchronous phases): a ~30 ms task while loading, an 8 ms work slice when a grid cell builds it in play
   const slice = slicer(30);
   progress(0, 'paint + fonts');
-  const layoutReady = loadLayoutBake();
+  const layoutReady = loadLayoutBake(() => slice());
   // G285: the code-built models' geometry and the canopy's (world/specimens.ts), fetched with the layout
   const specimensReady = loadSpecimens('boot');
   const paintStart = performance.now();
@@ -177,6 +177,8 @@ export async function buildNineDragonWorld(renderer: Renderer, progress: (f: num
   const specimens = await specimensReady;
   nd.look.specimens = specimens;
   progress(0.2, 'layout: baked');
+  // the layout's geometry copies (with their bounds) are made in slices first: the restore then only takes them
+  await layout.prepare(() => slice());
   restoreLayout(layout, ctx);
   // SF51-g: the four landing decks at road height (world/entries.ts), each with its portal to the square (G224)
   // G200: played alone (no road beyond the decks) each deck's open end gets its balustrade and brazier

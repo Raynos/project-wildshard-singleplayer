@@ -84,10 +84,31 @@ export const LAYOUT_STAMP = v.parse(v.strictObject({ version: v.literal(1), bin:
 export class LayoutBake {
   readonly rows: LayoutRows;
   readonly f64: Float64Array;
-  constructor(rows: LayoutRows, records: readonly number[], private readonly geometries: Map<number, BufferGeometry>) {
-    this.rows = v.parse(LayoutRowsSchema, rows); this.f64 = Float64Array.from(records);
+  /** `records`: a Float64Array is taken as is (the runtime reader revives the rows into one), any other list is copied */
+  constructor(rows: LayoutRows, records: Float64Array | readonly number[], private readonly geometries: Map<number, BufferGeometry>) {
+    this.rows = v.parse(LayoutRowsSchema, rows); this.f64 = records instanceof Float64Array ? records : Float64Array.from(records);
   }
+  /** copies `prepare` made ahead, each handed out once by `geometry` */
+  private readonly ahead = new Map<number, BufferGeometry>();
   geometry(i: number): BufferGeometry {
+    const ready = this.ahead.get(i);
+    if (ready !== undefined) { this.ahead.delete(i); return ready; }
+    return this.copy(i);
+  }
+  /** Make every copy `restoreLayout` takes ahead of it, with `pause` between copies: the same copies, made earlier. In
+   *  one synchronous restore the copies and their bounds (1.16 M vertices) were a single ~150 ms iOS Simulator frame
+   *  when a grid cell builds Nine on the road (sp-o101). */
+  async prepare(pause: () => Promise<void>): Promise<void> {
+    const r = this.rows;
+    const used = [...r.kits.flatMap(k => (k.geo === null ? [] : [k.geo])), ...r.alphaKits.map(k => k.geo), ...r.kitxs.map(k => k.geo),
+      ...(r.shell === null ? [] : [r.shell])];
+    for (const i of used) {
+      if (this.ahead.has(i)) continue;
+      this.ahead.set(i, this.copy(i));
+      await pause();
+    }
+  }
+  private copy(i: number): BufferGeometry {
     const geometry = this.geometries.get(i), row = this.rows.geometries[i];
     if (geometry === undefined || row === undefined) throw new Error(`[nine-dragon] no layout geometry ${i}`);
     const result = geometry.clone(); result.computeBoundingSphere();
@@ -99,9 +120,9 @@ export class LayoutBake {
 }
 
 /** Read declared whole tiles through the game's verified product reader. */
-export async function loadLayoutBake(): Promise<LayoutBake> {
+export async function loadLayoutBake(pause: () => Promise<void> = () => Promise.resolve()): Promise<LayoutBake> {
   const { readNineLayout } = await import('../runtime/geometry');
-  return readNineLayout();
+  return readNineLayout(pause);
 }
 
 const vec = (a: readonly [number, number, number]): Vector3 => new Vector3(a[0], a[1], a[2]);

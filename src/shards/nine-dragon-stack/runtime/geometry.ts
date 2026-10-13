@@ -34,12 +34,15 @@ async function geometries(refs: readonly string[]): Promise<Map<string, BufferGe
 }
 
 /** Whole L0 fabric and the unchanged out-of-cube crown, rebuilt into the original source draws. */
-export async function readNineLayout(): Promise<LayoutBake> {
+export async function readNineLayout(pause: () => Promise<void> = () => Promise.resolve()): Promise<LayoutBake> {
   const refs = [...source.props?.tiles.flatMap(tile => [tile.file].concat(tile.additionalFiles ?? [])) ?? [], ...world.libraries.layout];
   const views = await geometries(refs), indexed = new Map<number, BufferGeometry>();
-  // JSON intentionally revives the encoded -0 and infinite floor/box values.
-  const revived: unknown = JSON.parse(JSON.stringify(world.layout), layoutReviver);
-  const layout = v.parse(v.strictObject({ rows: LayoutRowsSchema, records: v.array(v.number()) }), revived);
+  // JSON intentionally revives the encoded -0 and infinite floor/box values: the rows through a copy, the 689k float64
+  // records one by one into their array with `pause` between runs (the reviver over the whole layout was one ~0.3 s
+  // desktop task in the world hook, sp-o101)
+  const revived: unknown = JSON.parse(JSON.stringify(world.layout.rows), layoutReviver);
+  await pause();
+  const layout = { rows: v.parse(LayoutRowsSchema, revived), records: await reviveRecords(world.layout.records, pause) };
   if (layout.rows.geometries.length !== 36) throw new Error('Nine layout draw count differs');
   for (let index = 0; index < 36; index++) {
     const id = `layout_${index}`, geometry = views.get(id);
@@ -48,6 +51,22 @@ export async function readNineLayout(): Promise<LayoutBake> {
   }
   if (views.size !== indexed.size) throw new Error('Unexpected Nine layout source draw');
   return new LayoutBake(layout.rows, layout.records, indexed);
+}
+
+/** Records a layout may hold (689,416 today). */
+const RECORD_BOUND = 4_000_000;
+
+/** The layout's records as doubles, each revived as the JSON reviver would ('-0', 'Infinity', '-Infinity'), in runs. */
+async function reviveRecords(rows: readonly (number | string)[], pause: () => Promise<void>): Promise<Float64Array> {
+  if (rows.length > RECORD_BOUND) throw new Error('Nine layout record bound exceeded');
+  const out = new Float64Array(rows.length);
+  for (let i = 0; i < Math.min(rows.length, RECORD_BOUND); i++) {
+    const value = layoutReviver('', rows[i]);
+    if (typeof value !== 'number' || Number.isNaN(value)) throw new Error(`Nine layout record ${String(i)} is not a number`);
+    out[i] = value;
+    if ((i & 4095) === 4095) await pause();
+  }
+  return out;
 }
 
 /** Lazy Explorer library and mandatory boot specimens use the same bounded standard GLB reader. */
