@@ -247,17 +247,11 @@ so the shared cache downloads it once and leases it independently.
 
 <!-- example: commons -->
 
-Current packs include bag/effects data, starter weapon parameters, arm clip
-aliases and original arm motion/base joints, original score stings, practice
-scripts and species rest joints. `starterArmMotionPack(glb, provenance)` retains
-actual original curves; `scoreStingsPack(style, source, read, provenance)` reads
-original encoded audio without decoding; `speciesRestPack(kind, glb, provenance)`
-retains ordered model-space joints. These reusable generators run in Node and
-produce immutable partial content. Rest/alias/parameter packs do not replace
-figure geometry, animation controllers or rigs. Full shared figure-model
-adoption waits for the KTX2 graphical quality pass. Models, clips and sounds
-remain backed by retained authored inputs; generated output never substitutes
-for its generator.
+Current packs include bag/effects data, starter weapon parameters and arm clip
+aliases. These reusable generators run in Node and produce immutable partial
+content. Alias/parameter packs do not replace figure geometry, animation
+controllers or rigs. Models, clips and sounds remain backed by retained authored
+inputs; generated output never substitutes for its generator.
 
 ## Data-only herds and divers
 

@@ -3116,29 +3116,12 @@ SF81 DIR-2: `@wildshard/sdk/directorAbi` defines `generateDirectorAbi(declaratio
 
 `behaviour/build.json` modules may declare `director: "data/director.json"`. `wildshard build --behaviour-only` admits that confined declaration and supplies the generated `./wildshard-director` module to the pinned compiler in memory. The generated module is build-time source, never a runtime facade or manually maintained offset table. `compileBehaviourModule(source, maximumPages, virtualSources)` also accepts these named virtual AS sources. All declared modules compile before publishing outputs; `--check` compares existing immutable outputs without writing. Driftwood, Pine and Nalati now read named input getters; their original event/parameter writers and host bindings remain unchanged. Rebuilt metered Wasm bytes, hashes, fuel behavior and embedded declarations are byte-identical.
 
-### Shared score recordings (DS1.6)
-
-`@wildshard/commons/packs/sounds` defines `scoreStingsPack(style, source, read, provenance)`
-v1.0.0. This build-time generator reads the three named score stings in a style manifest,
-preserves every encoded byte and emits audio entries. Driftwood and Pine both consume
-these platform score banks; the template and frozen copies are not additional users.
-The caller supplies immutable file bytes and the original credit/licence. No mixer,
-decoder, playback timing or file-fetch service is installed by this pack.
+### AAC packet index
 
 `@wildshard/engine/audio/aacIndex` defines `indexAac(bytes)`, the renderer-free bounded
 48 kHz stereo AAC-LC packet reader shared by incremental playback and product admission.
 Unsupported/encrypted/fragmented layouts refuse; costs include priming and full final
-packet padding. PCM WAV admission remains unchanged. SF26 covers the shipped recordings:
-one fetch and one commons claim across two shard admissions, with independent leases.
-Native style-bank routing into emitted commons files remains a separate integration step.
-
-A TypeScript author config exports its compiled `commons` catalogue alongside the
-shard declaration. Select the sting entries with `commonsRequirements`, put their
-`commons:<hash>` references in the library, and `wildshard build` emits the exact
-encoded files and the validation receipt. The source reader remains build-only;
-no commons module is copied into client or simulation code. The real compiler
-fixture builds two products and compares every emitted recording to its source.
-This authoring proof does not imply the trusted native music bank has migrated.
+packet padding. PCM WAV admission remains unchanged.
 
 
 SF81 DIR-3: `DirectorStageLane` accepts ordered `next: [{ target, when }]` edges in addition to the unchanged string successor. The first edge whose own guard and target guard both admit wins; one step enters at most one stage. Guards use the same bounded when-language. `DirectorScriptStageLane(rows, nativeLane, {observe, publish}, restoring?)` binds every declared native AS output to an `event:<key>` boolean observation. It requires the exact immutable handler hash, preserves the owner's zero-dt dispatch and elapsed-time clock, and publishes authored fixed actions in native event order. It neither allocates actors nor grants flag, reward or presentation authority.
@@ -3153,31 +3136,10 @@ transform keys become standard Three `AnimationClip`, `VectorKeyframeTrack` and
 interpolation stay exact. Duplicate/unnamed targets, morphs, cubic splines, non-finite,
 normalized or integer keys refuse. This is a Node authoring reader, not a playback service.
 
-`@wildshard/commons/packs/arms` defines `starterArmMotionPack(glb, provenance)` v1.0.0.
-It emits canonical data for the sixteen original clips shared by Driftwood and Nine,
-plus `vm_root` and fourteen base arm transforms. Meshes, finger joints, weapon offsets
-and Driftwood's two swim clips stay in their shards. The retained GLB is the source;
-this readable TypeScript generator runs at build time, without resampling or optimization.
-The SF26 test admits both real consumers through one hash cache and independent leases.
-Runtime playback adoption is separate: binary pack residency describes retained data bytes,
-not an unmeasured decoded animation allocation or a claimed production network saving.
-
 `@wildshard/sdk/sceneAnimation` defines `readSceneAnimations` and
 `restoreSceneAnimations` for exact standard Three track data;
 `@wildshard/sdk/immutable` defines canonical JSON encoding and exact byte hashing.
-Commons generators import these defining author-only modules directly.
-
-`@wildshard/commons/packs/practice` defines `practiceMotionPack(glb, provenance)`
-v1.0.0: the original eighteen-clip UniMate GLB becomes one immutable `glb` entry.
-All three figures' idle and five named reactions must be present exactly once.
-The retained authored motion GLB stays byte-identical; input Buffers are copied.
-The SDK parser charges its actual binary/JSON/rig buffer residency, not a placeholder.
-Ordinary Driftwood and Pine sessions both construct TrainingArena and use this same
-motion library; template and frozen copies do not count. SF26 fetches and charges it
-once across independent admissions. Native optional-practice routing into emitted
-commons remains open. The three image-bearing Meshopt model GLBs still need lossless
-build-time normalization into the admitted mesh/texture contract; they are not priced
-as binary and no production saving or model-admission pass is claimed.
+Author generators import these defining author-only modules directly.
 
 `@wildshard/sdk/bake/normalizeRig` defines `normalizeRigSource(glb)`, an author-only
 compiler for embedded Meshopt/quantized glTF rigs. It decodes to ordinary accessor
@@ -3187,7 +3149,7 @@ GLTFLoader normalizes weights after loading. Hierarchy, inverse binds, topology,
 materials and samplers survive; unknown extensions refuse instead of disappearing.
 The returned glTF JSON/resource map is source for authoring, not an admission verdict.
 Current product/material-slot admission requires KTX2 textures; external WebP model
-textures still need an explicit contract before these figures can enter a commons pack.
+textures still need an explicit contract before these figures can enter product admission.
 The source marks Float32 skin weights normalized; clearing that no-op flag yields
 admitted geometry without changing a weight byte or relaxing the admission tolerance.
 `test/rig-normalization.test.ts` compares every decoded position, normal, UV, skin and
@@ -3203,23 +3165,6 @@ SF81 typed stage publication: `DirectorScriptStageLane` supplies the original ad
 
 
 SF81 Pine elite prelude: authored elitePreludeStages.json selects absent, home, fight and idle in the native priority order. Each live stage advances the original owner clock before its motor or admitted fight actions; the absent stage clears tells without advancing time. Pine retains the real actor, lair math, RNG and existing SF27 fight ABI. Four independent versioned cursors restore quietly; the native elite continuation is version 3 and refuses older snapshots.
-
-### Shared species rest-joint fragments
-
-`@wildshard/commons/packs/species` defines `speciesRestPack(kind, glb, provenance)`
-v1.0.0. It runs only during authoring and emits the ordered model-space joint names,
-parents and exact rest positions of one retained hull. Parents precede their children;
-ambiguous names, external parents, malformed GLBs and unbounded positions refuse.
-It does not emit meshes, coats, inverse binds, clips, behaviour or a runtime service.
-
-Qualification compares all twenty boar/bear joints to Driftwood's native toon builder
-and Pine's shared PBR builder, then to Pine's actual phone hulls (boar, black bear and
-brown bear). The rest fragments are exact; the meshes differ and remain shard-owned.
-The SF26 fixture admits both fragments for two primary shards, reads the original
-hash-addressed bytes through `ClientAssets`, charges each once, and releases the two
-leases independently. Native body/playback routing to these files is still open;
-qualification and product admission are not evidence of production adoption.
-
 
 ### Parametric grazers (SF82 BR-1)
 
