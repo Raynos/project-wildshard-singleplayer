@@ -15,6 +15,8 @@ export interface GlbPrimitive {
    * Half floats use uint16 bits (glTF has no float16); ordinary semantics remain portable float32. Also retains
    * double-precision source transforms in extras. Omitted: the existing byte path. */
   nativeAttributes?: true;
+  /** Plain application rows, charged inside the GLB; reserved storage/transform extras remain baker-owned. */
+  extras?: Readonly<Record<string, Json>>;
   /** `true` writes the index as built: none for a non-indexed geometry, 16-bit when it is 16-bit; absent always writes a 32-bit index (the old byte path). */
   compactIndex?: true;
 }
@@ -59,7 +61,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     if (matrix.elements.some((n, i) => !Number.isFinite(n) || Math.abs(n - (composed.elements[i] ?? Infinity)) > 1e-5) || scale.x <= 0 || scale.y <= 0 || scale.z <= 0) throw new Error('Instance must be a finite positive TRS transform');
     return { position, rotation, scale };
   };
-  for (const { geometry, material, instances, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes } of primitives) {
+  for (const { geometry, material, instances, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes, extras } of primitives) {
     if (material.map !== null || material.normalMap !== null || material.roughnessMap !== null || material.metalnessMap !== null || material.alphaMap !== null) throw new Error('GLB textures must be external KTX2 declarations');
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
@@ -104,7 +106,8 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     });
     const compact = compactIndex === true, short = compact && index !== null && index.array instanceof Uint16Array;
     meshes.push({ name: nodeName, primitives: [{ attributes, ...(compact && index === null ? {} : { indices: accessor(indices, 1, 'SCALAR', true, false, short) }), material: materialIndex }] });
-    const node: Record<string, Json> = { name: nodeName, mesh: meshes.length - 1, extras: { castShadow, ...(nativeAttributes === true ? { nativeAttributes: native,
+    if (extras !== undefined && ['castShadow', 'nativeAttributes', 'matrix64', 'instances64'].some(key => Object.hasOwn(extras, key))) throw new Error('GLB application extras use a reserved key');
+    const node: Record<string, Json> = { name: nodeName, mesh: meshes.length - 1, extras: { ...extras, castShadow, ...(nativeAttributes === true ? { nativeAttributes: native,
       ...(transform === undefined ? {} : { matrix64: transform.elements }),
       ...(instances === undefined ? {} : { instances64: instances.map(matrix => matrix.elements) }) } : {}) } };
     if (instances !== undefined) {

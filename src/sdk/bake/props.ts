@@ -1,4 +1,4 @@
-import { Box3, BufferGeometry, Float32BufferAttribute, Matrix3, Matrix4, Mesh, MeshStandardMaterial, SkinnedMesh, Vector3, type Object3D } from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Float16BufferAttribute, Float32BufferAttribute, Matrix3, Matrix4, Mesh, MeshStandardMaterial, SkinnedMesh, Vector3, type Object3D } from 'three';
 import { CONTENT_CAPS, CELL_ABOVE, CELL_BELOW } from '@wildshard/format/contentBounds';
 import { PropsSchema, type ShardProps } from '@wildshard/format/props';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -29,6 +29,103 @@ export interface PropWhole {
   customAttributes?: GlbPrimitive['customAttributes'];
   /** Preserve typed channels and source transform doubles in GLB node extras (see staticGlb). */
   nativeAttributes?: true;
+  /** Assign each unchanged triangle to its world-space centroid's tile; extras retain exact assembly ordinals. */
+  partition?: true;
+}
+
+/** One exact subset of a whole geometry. Ordinals address the original vertices and triangles, not clipped fragments. */
+export interface WholeGeometryPart { x: number; z: number; geometry: BufferGeometry; vertices: number[]; triangles: number[] }
+interface PreparedWhole {
+  id: string; at: Vector3; castShadow: boolean; geometry: BufferGeometry; material: MeshStandardMaterial; transform: Matrix4;
+  customAttributes: GlbPrimitive['customAttributes']; nativeAttributes: GlbPrimitive['nativeAttributes'];
+  owner: { x: number; z: number } | null; extras: GlbPrimitive['extras'];
+}
+
+function subsetAttribute(attribute: BufferAttribute, selected: readonly number[]): BufferAttribute {
+  const array = attribute.array.slice(0, selected.length * attribute.itemSize);
+  // slice above may be smaller than the requested size only if callers repeat vertices (partitioning deduplicates).
+  if (array.length !== selected.length * attribute.itemSize) throw new Error('Whole geometry subset exceeds source vertices');
+  for (const [i, vertex] of selected.entries()) array.set(attribute.array.subarray(vertex * attribute.itemSize, (vertex + 1) * attribute.itemSize), i * attribute.itemSize);
+  return attribute instanceof Float16BufferAttribute ? new Float16BufferAttribute(array, attribute.itemSize, attribute.normalized)
+    : new BufferAttribute(array, attribute.itemSize, attribute.normalized);
+}
+
+/** Partition triangles without clipping or rounding any source channel; world transforms affect ownership only. */
+export function partitionWholeGeometry(sourceGeometry: BufferGeometry, transform = new Matrix4()): WholeGeometryPart[] {
+  const position = sourceGeometry.getAttribute('position'), index = sourceGeometry.getIndex(), count = index?.count ?? position.count;
+  if (count % 3 !== 0) throw new Error('Whole geometry requires triangles');
+  const groups = new Map<string, { x: number; z: number; vertices: number[]; triangles: number[]; indices: number[]; lookup: Map<number, number> }>();
+  const point = new Vector3(), centroid = new Vector3();
+  for (let triangle = 0; triangle < count / 3; triangle++) {
+    const ids = [0, 1, 2].map(corner => index?.getX(triangle * 3 + corner) ?? triangle * 3 + corner);
+    centroid.set(0, 0, 0);
+    for (const vertex of ids) centroid.add(point.fromBufferAttribute(position, vertex).applyMatrix4(transform));
+    centroid.multiplyScalar(1 / 3);
+    const x = Math.min(7, Math.floor((centroid.x + 250) / 62.5)), z = Math.min(7, Math.floor((centroid.z + 250) / 62.5));
+    if (!Number.isFinite(centroid.x) || !Number.isFinite(centroid.z) || x < 0 || z < 0 || centroid.x > 250 || centroid.z > 250) throw new Error('Whole triangle centroid outside the cell');
+    const key = `${x}/${z}`, group = groups.get(key) ?? { x, z, vertices: [], triangles: [], indices: [], lookup: new Map<number, number>() };
+    group.triangles.push(triangle);
+    for (const vertex of ids) {
+      let local = group.lookup.get(vertex);
+      if (local === undefined) { local = group.vertices.length; group.lookup.set(vertex, local); group.vertices.push(vertex); }
+      group.indices.push(local);
+    }
+    groups.set(key, group);
+  }
+  // Unreferenced authored vertices still belong to the exact source layout; carry them in the first occupied tile.
+  const first = groups.values().next().value;
+  if (first !== undefined) {
+    const referenced = new Set([...groups.values()].flatMap(group => group.vertices));
+    for (let vertex = 0; vertex < position.count; vertex++) if (!referenced.has(vertex)) first.vertices.push(vertex);
+  }
+  return [...groups.values()].sort((a, b) => a.x - b.x || a.z - b.z).map(group => {
+    const part = new BufferGeometry();
+    for (const [name, attribute] of Object.entries(sourceGeometry.attributes)) {
+      if (!(attribute instanceof BufferAttribute)) throw new Error('Whole geometry requires non-interleaved channels');
+      part.setAttribute(name, subsetAttribute(attribute, group.vertices));
+    }
+    if (index !== null) part.setIndex(new BufferAttribute(index.array instanceof Uint16Array ? new Uint16Array(group.indices) : new Uint32Array(group.indices), 1));
+    return { x: group.x, z: group.z, geometry: part, vertices: group.vertices, triangles: group.triangles };
+  });
+}
+
+/** Reconstruct the original mesh from any ordering of exact subsets. `shape` supplies storage/layout, never vertex values. */
+export function assembleWholeGeometry(shape: BufferGeometry, parts: readonly WholeGeometryPart[]): BufferGeometry {
+  const result = new BufferGeometry(), count = shape.getAttribute('position').count, seen = new Uint8Array(count);
+  const originalIndex = shape.getIndex(), triangleCount = (originalIndex?.count ?? count) / 3, triangles = new Uint8Array(triangleCount);
+  for (const [name, attribute] of Object.entries(shape.attributes)) {
+    if (!(attribute instanceof BufferAttribute)) throw new Error('Whole geometry requires non-interleaved channels');
+    const copy = attribute.clone(); copy.array.fill(0); result.setAttribute(name, copy);
+  }
+  if (originalIndex !== null) { const copy = originalIndex.clone(); copy.array.fill(0); result.setIndex(copy); }
+  for (const part of parts) {
+    for (const [local, vertex] of part.vertices.entries()) {
+      if (!Number.isInteger(vertex) || vertex < 0 || vertex >= count) throw new Error('Whole assembly vertex ordinal outside source');
+      for (const [name, destination] of Object.entries(result.attributes)) {
+        const source = part.geometry.getAttribute(name);
+        if (!(source instanceof BufferAttribute) || !(destination instanceof BufferAttribute) || source.itemSize !== destination.itemSize || source.normalized !== destination.normalized || source.array.constructor !== destination.array.constructor) throw new Error('Whole assembly channel layout mismatch');
+        const values = source.array.subarray(local * source.itemSize, (local + 1) * source.itemSize);
+        if (seen[vertex] === 1) for (const [i, value] of values.entries()) if (!Object.is(value, destination.array[vertex * destination.itemSize + i])) throw new Error('Whole assembly shared vertex differs');
+        destination.array.set(values, vertex * destination.itemSize);
+      }
+      seen[vertex] = 1;
+    }
+    const index = part.geometry.getIndex();
+    for (const [local, triangle] of part.triangles.entries()) {
+      if (!Number.isInteger(triangle) || triangle < 0 || triangle >= triangleCount || triangles[triangle] === 1) throw new Error('Whole assembly duplicate or invalid triangle');
+      for (let corner = 0; corner < 3; corner++) {
+        const vertex = part.vertices[index?.getX(local * 3 + corner) ?? local * 3 + corner];
+        if (vertex === undefined) throw new Error('Whole assembly missing triangle vertex');
+        if (result.index !== null) result.index.setX(triangle * 3 + corner, vertex);
+        else if (vertex !== triangle * 3 + corner) throw new Error('Whole assembly non-indexed triangle mismatch');
+      }
+      triangles[triangle] = 1;
+    }
+  }
+  if (seen.some(value => value === 0) || triangles.some(value => value === 0)) throw new Error('Whole assembly incomplete');
+  result.groups = shape.groups.map(group => ({ ...group })); result.drawRange = { ...shape.drawRange };
+  result.boundingBox = shape.boundingBox?.clone() ?? null; result.boundingSphere = shape.boundingSphere?.clone() ?? null;
+  return result;
 }
 /** Content-addressed GLBs and tile rows, including actual budget numbers and an independent far proxy (none for whole shapes alone). */
 export interface BakedProps {
@@ -97,7 +194,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     if (texture !== null) { row.dependencies = [texture.hash]; const prior = files.find((f) => f.hash === row.hash); if (prior !== undefined) prior.dependencies = row.dependencies; section.textures.push({ model: row.hash, colour: texture.hash }); }
     return row;
   };
-  const whole = (source.whole ?? []).map((entry) => {
+  const whole = (source.whole ?? []).flatMap((entry): PreparedWhole[] => {
     const { mesh } = entry, at = new Vector3().setFromMatrixPosition(entry.transform), m = mesh.material;
     if (!(at.x >= -250 && at.x < 250 && at.z >= -250 && at.z < 250)) throw new Error(`Whole prop ${entry.id} origin outside the cell`);
     if (!(m instanceof MeshStandardMaterial) || m.transparent || m.metalness !== 0 || m.map !== null || m.color.getHex() !== 0xffffff) throw new Error(`Whole prop ${entry.id} needs one opaque untextured nonmetal white surface`);
@@ -105,7 +202,17 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     // the shape's own attributes and index, untouched: the runtime draws exactly the triangles it built
     const g = new BufferGeometry(); for (const key of ['position', 'normal', 'color', ...Object.values(entry.customAttributes ?? {})]) if (mesh.geometry.hasAttribute(key)) g.setAttribute(key, mesh.geometry.getAttribute(key));
     g.setIndex(mesh.geometry.getIndex());
-    return { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness }), transform: entry.transform, customAttributes: entry.customAttributes, nativeAttributes: entry.nativeAttributes };
+    const base = { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness }), transform: entry.transform, customAttributes: entry.customAttributes, nativeAttributes: entry.nativeAttributes };
+    if (entry.partition !== true) return [{ ...base, owner: null, extras: undefined }];
+    const preparedParts: PreparedWhole[] = [];
+    for (const part of partitionWholeGeometry(g, entry.transform)) {
+      const prepared: PreparedWhole = { ...base, id: `${entry.id}_p${part.x}_${part.z}`, geometry: part.geometry,
+      owner: { x: part.x, z: part.z }, extras: { wholePartition: { id: entry.id, vertices: part.vertices, triangles: part.triangles,
+        vertexCount: g.getAttribute('position').count, indexCount: g.getIndex()?.count ?? 0,
+        index: g.getIndex() === null ? 'none' : g.getIndex()?.array instanceof Uint16Array ? 'u16' : 'u32' } } };
+      preparedParts.push(prepared);
+    }
+    return preparedParts;
   });
   const base = vertices(source.static), spill: Vertex[][] = [], eligible = new Map<PropScatter, Matrix4[]>();
   for (const batch of source.scatter ?? []) {
@@ -130,7 +237,7 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
         // Scatter keeps a model in one owning tile; its conservative bounds may extend into its neighbours.
         const local = geometry(vertices(batch.model)); primitives.push({ geometry: local, material: mergedMaterial(), instances: transforms });
       }
-      for (const w of lod === 0 ? whole : []) if (w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.transform, compactIndex: true, ...(w.customAttributes === undefined ? {} : { customAttributes: w.customAttributes }), ...(w.nativeAttributes === undefined ? {} : { nativeAttributes: w.nativeAttributes }) });
+      for (const w of lod === 0 ? whole : []) if (w.owner === null ? w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size : w.owner.x === x && w.owner.z === z) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.transform, compactIndex: true, ...(w.customAttributes === undefined ? {} : { customAttributes: w.customAttributes }), ...(w.nativeAttributes === undefined ? {} : { nativeAttributes: w.nativeAttributes }), ...(w.extras === undefined ? {} : { extras: w.extras }) });
       const hasPanel = lod === 0 && panelFiles.some((p) => p.bounds !== null && p.bounds.max.x >= x0 && p.bounds.min.x <= x0 + size && p.bounds.max.z >= z0 && p.bounds.min.z <= z0 + size);
       if (primitives.length === 0 && !hasPanel) continue;
       const file = save(primitives, `props.${lod}.${x}.${z}`), cost = { ...parseGlb(assets.get(file.hash) ?? new Uint8Array()) };

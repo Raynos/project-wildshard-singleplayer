@@ -3566,3 +3566,19 @@ Product admission retains the hard playing/loading memory limits. Far and
 library checks remain unchanged. `BakedPiece` options `nativeAttributes`
 and `compactIndex` forward the corresponding static GLB options; omitted
 options preserve existing kind bytes.
+
+### Exact whole-geometry partitions
+
+`WholeShape(..., { partition: true })` and `PropWhole.partition` assign each
+triangle to its transformed centroid's 62.5 m tile. Nothing clips, rounds
+or decimates source attributes. Each GLB node's `wholePartition` extras
+retain its source id, vertex ordinals, triangle ordinals, source vertex and
+index counts and original index width. A trusted client can reconstruct the
+original draw from its tile subsets, retaining its material and draw count.
+`partitionWholeGeometry` and `assembleWholeGeometry` are defined in
+`@wildshard/sdk/bake/props`: assembly takes a storage/layout template,
+checks duplicate triangles and differing shared vertices, then restores
+attributes, index, groups, draw range and bounds. A missing subset refuses.
+An unreferenced authored vertex travels in the first occupied tile.
+Omitting partition keeps the original whole-shape byte path. Application
+GLB extras are charged bytes and cannot overwrite reserved storage keys.

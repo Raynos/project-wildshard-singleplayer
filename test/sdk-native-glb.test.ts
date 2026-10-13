@@ -2,7 +2,7 @@ import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Float32BufferA
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { describe, expect, it, vi } from 'vitest';
 import { staticGlb } from '../src/sdk/bake/glb';
-import { bakeProps } from '../src/sdk/bake/props';
+import { assembleWholeGeometry, bakeProps, partitionWholeGeometry } from '../src/sdk/bake/props';
 import { parseGlb } from '../src/sdk/assets';
 
 function geometry(): BufferGeometry {
@@ -138,4 +138,51 @@ it('reports provisional whole-tile caps while retaining exact admitted costs', (
     expect(parseGlb(bytes).draws).toBe(props.report[0]?.draws);
     expect(parseGlb(bytes).triangles).toBe(props.report[0]?.triangles);
   } finally { warn.mockRestore(); }
+});
+
+
+describe('exact whole geometry partitioning', () => {
+  it('owns each triangle once by transformed centroid and restores every raw source byte in any order', () => {
+    const source = new BufferGeometry()
+      .setAttribute('position', new Float32BufferAttribute([-80, 0, -80, -60, 0, -80, -80, 0, -60, 60, 0, 60, 80, 0, 60, 60, 0, 80, 0, -0, 0], 3))
+      .setAttribute('normal', new Float16BufferAttribute(new Uint16Array(21).fill(0x3c00), 3))
+      .setAttribute('color', new BufferAttribute(new Uint8Array(21).map((_, i) => i * 7), 3, true))
+      .setAttribute('ink', new BufferAttribute(new Int8Array([-128, 17, 127, -1, 0, 42, -7]), 1, true))
+      .setIndex(new BufferAttribute(new Uint16Array([0, 1, 2, 3, 4, 5]), 1));
+    source.computeBoundingBox(); source.computeBoundingSphere(); source.addGroup(0, 3, 0); source.addGroup(3, 3, 0);
+    const parts = partitionWholeGeometry(source, new Matrix4().makeTranslation(10, 0, 10));
+    expect(parts.map(part => [part.x, part.z, part.triangles])).toEqual([[2, 2, [0]], [5, 5, [1]]]);
+    const restored = assembleWholeGeometry(source, [...parts].reverse());
+    for (const [key, attribute] of Object.entries(source.attributes)) {
+      const actual = restored.getAttribute(key);
+      expect(actual.array.constructor).toBe(attribute.array.constructor);
+      expect(actual.normalized).toBe(attribute.normalized);
+      expect(new Uint8Array(actual.array.buffer, actual.array.byteOffset, actual.array.byteLength)).toEqual(new Uint8Array(attribute.array.buffer, attribute.array.byteOffset, attribute.array.byteLength));
+    }
+    expect(restored.index?.array).toEqual(source.index?.array);
+    expect(restored.groups).toEqual(source.groups);
+    expect(restored.boundingBox).toEqual(source.boundingBox);
+    expect(restored.boundingSphere).toEqual(source.boundingSphere);
+    expect(() => assembleWholeGeometry(source, parts.slice(0, 1))).toThrow('incomplete');
+    expect(() => assembleWholeGeometry(source, [...parts, ...parts])).toThrow('duplicate');
+  });
+  it('keeps non-indexed topology and puts actual whole GLB subsets in their owning tiles', async () => {
+    const source = new BufferGeometry()
+      .setAttribute('position', new Float32BufferAttribute([-80, 0, -80, -60, 0, -80, -80, 0, -60, 60, 0, 60, 80, 0, 60, 60, 0, 80], 3))
+      .setAttribute('normal', new Float32BufferAttribute(new Float32Array(18).fill(0.5), 3));
+    const parts = partitionWholeGeometry(source);
+    expect(assembleWholeGeometry(source, parts).index).toBeNull();
+    const props = bakeProps({ static: new Group(), whole: [{ id: 'trail', mesh: new Mesh(source, new MeshStandardMaterial()), transform: new Matrix4(), partition: true, nativeAttributes: true }] });
+    expect(props.props.tiles.map(tile => [tile.x, tile.z])).toEqual([[2, 2], [5, 5]]);
+    const owned: unknown[] = [];
+    for (const bytes of props.assets.values()) {
+      const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
+      owned.push(...loaded.scene.children.map(node => { const row: unknown = node.userData['wholePartition']; return row; }));
+    }
+    expect(owned).toEqual([
+      { id: 'trail', vertices: [0, 1, 2], triangles: [0], vertexCount: 6, indexCount: 0, index: 'none' },
+      { id: 'trail', vertices: [3, 4, 5], triangles: [1], vertexCount: 6, indexCount: 0, index: 'none' },
+    ]);
+    expect(props.report.reduce((total, row) => total + row.triangles, 0)).toBe(2);
+  });
 });
