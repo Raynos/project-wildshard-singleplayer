@@ -10,7 +10,7 @@
 Both shards' physics now come from authored rows (G350, `e6f5078d8`, `3ed995b80`); sp-x6's navigation switch takes both to 0 private binaries. Game exports 104 (from 328); `plugin/` 20 → 14.
 **CI red since 02:01Z, prod stale (`957b05e6`): sp-x7 fixes first** (Jake `9699623e2`). Push: debt shrink-only at commit; generated files + native/maps made at commit (`9c57a9808`), never at push; local gate ≤ 2 min; pre-commit warm ~10 s, cold 15 s open (sp-x5). Never stop the line.
 
-**Fleet (4 Opus + 3 Codex):** Codex sp-x7 CI/push, sp-x6 navigation, sp-x5 bench-max. Opus sp-o65 Sky island tiles, sp-o75 looks, sp-o76 G350 Nine/Driftwood, 4th → weapons onto shared rows.
+**Fleet (4 Opus + 3 Codex):** Codex sp-x7 CI/push, sp-x6 navigation, sp-x5 bench-max. Opus sp-o65 Sky island tiles, sp-o75 looks (all 9 shards now have near views, `17279180a`), sp-o76 G350 Nine/Driftwood, sp-o79 lash/tassel bakes + Sky one-shard exports. Weapons → shared rows: no honest two-user cut (sp-o78; design §4.5 keeps lash and cone as trusted one-user families).
 
 **For wildshard-v, Jake ask (S2 blocked, sp-o77):** SF59 graphs can't keep the fire look today: always fogged and alpha-only (fire needs fog off, additive/premultiplied, depthWrite off, depth bias, point embers, view billboards); graphs only compile from shardfile `look.materials`; and **Graph materials is default-off pending a physical-iPhone reading**, so the GLSL stays as fallback (no cut). Recommend: approve an **SF59 effect-state row** (users Signal fire + Sky wind) and accept the Simulator + desktop frame-floor reading (or one normal playtest with Debug ▸ Graph materials on) to default it on.
 
