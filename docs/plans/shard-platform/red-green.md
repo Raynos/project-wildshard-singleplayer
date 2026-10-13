@@ -91,4 +91,7 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | push gate: changed-root typecheck missing Node types (TS2591 `node:fs` …) | `233eae084` | `f0a3ade1d` | sp-x7 |
 | 2026-10-13 | push gate: generation-inputs stale on ledger-only commits (cache key ≠ commit-time trigger) | `e11091664` | `f0a3ade1d` | sp-x7 |
 | 2026-10-13 | push gate: Template / ink-cel / Signal map stamps stale (config + loader inputs) | `1441ef16f`, `8879ee194`, `115831666` | `8abc34dcf`, `45aa86743`, `1539110d9` (images identical) | wildshard-new |
-| 2026-10-13 | push gate: oxlint prefer-optional-chain in `scripts/bake/near-placeholder.mjs` | `a6424d8f8` | pending (sp-o72) | sp-o72 |
+| 2026-10-13 | push gate: oxlint prefer-optional-chain in `scripts/bake/near-placeholder.mjs` | `a6424d8f8` | `dd922e03b` | sp-o72 |
+| 2026-10-13 | CI 38344750048 / build: Signal navmesh `--check` and grid-edge fixture still read the deleted `terrain.bin` | `602f8136a` | `daa20f9f3` (recipe-generated 256 lattice, 65536 Float32 exact; navmesh 739 polys exact; map image identical) | sp-x7 |
+| 2026-10-13 | gate: Signal / Sky map stamps stale after authored physics rows | `e6f5078d8`, `3ed995b80` | `7fe8f1db8`, `c0f73d07d` (images identical) | wildshard-new |
+| 2026-10-13 | gate: oxlint prefer-optional-chain (near placeholder); near grain shader failed to compile (B/C drew nothing) | `a6424d8f8` | `dd922e03b`, `1837ef8a4` (+ compile test) | sp-o72 |
