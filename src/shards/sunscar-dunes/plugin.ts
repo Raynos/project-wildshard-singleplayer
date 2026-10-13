@@ -103,7 +103,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   protected override dress(ctx: ShardContext): void { const whip = this.whip; if (whip !== null) { lastLightAll(whip.model, ctx.scope); ownPrimitives(whip.model, ctx.scope); } }
   // the whip's declared input context (shard.config.ts items.contexts): while the cell is entered for a retained home
   protected override enter(ctx: ShardContext): void { bindRuntimeItemContexts(ctx, source); }
-  protected override run(ctx: ShardContext, loot: ScopedLoot | null): void {
+  protected override install(ctx: ShardContext, loot: ScopedLoot | null): void {
     const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player, places = this.places;
     // SF50-p: every coin the runtime pays goes through the platform purse (the level's loot purse; headless, the shard's).
     const coins = bindRuntimeCoins(ctx, loot?.purse ?? null);

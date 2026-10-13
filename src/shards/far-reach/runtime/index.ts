@@ -1,8 +1,7 @@
-import { installRuntimeAudio } from '@wildshard/game/plugin/audio';
 import { declaredSkyRows } from './brains';
-import { installRuntimeLoot } from '@wildshard/game/loot/runtime';
+import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { ShardPlugin, worldBuildYield } from '@wildshard/game/shard/plugin';
+import { worldBuildYield } from '@wildshard/game/shard/plugin';
 import source from '../shard.config';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { QuestState } from '@wildshard/engine/quest/core';
@@ -31,10 +30,10 @@ import type { ConeFanTarget } from './weapons/coneStrikes';
 import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
 import { FAN_ROW } from '../weapons/rows';
-import { DRIFT_RAY, DRIFT_RAY_LOOK } from '../species/driftRay';
-import { SKY_GOAT, SKY_GOAT_LOOK } from '../species/skyGoat';
-import { GALE_WISP, GALE_WISP_LOOK } from '../species/galeWisp';
-import { STORM_ROC, STORM_ROC_LOOK, rocBrain } from '../species/stormRoc';
+import { DRIFT_RAY_LOOK } from '../species/driftRay';
+import { SKY_GOAT_LOOK } from '../species/skyGoat';
+import { GALE_WISP_LOOK } from '../species/galeWisp';
+import { STORM_ROC_LOOK, rocBrain } from '../species/stormRoc';
 import { GALE_WALL } from './stormRocBrain';
 import { bindPlayerPush, setHome } from '../species/rig';
 import { preloadSkyMeshes } from '../world/meshes';
@@ -56,8 +55,8 @@ import { BOSS_REWARD, ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
 import { FLAGS, vaneFlag } from '../quest/flags';
 import { installSkyCues } from './audio/cues';
-import { installEnteredRuntimeInput, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
+import { HybridRuntimePlugin, bindRuntimeBoss, type HybridRuntimeRows } from '@wildshard/game/shardfile/hybridRows';
 import { bindSkyActor } from './spawns';
 import { bindSkyItems } from './items';
 import { spawnSkyGoats } from '../species/goats';
@@ -83,7 +82,7 @@ function boundedRows<T>(rows: readonly T[]): readonly T[] {
 }
 const WINCH_FLAGS = [FLAGS.notes, FLAGS.roost, FLAGS.vanes, ...VANES.map(v => vaneFlag(v.id))];
 
-export class SkyReachPlugin extends ShardPlugin {
+export class SkyReachPlugin extends HybridRuntimePlugin {
   readonly player = new Vector3();
   built: BuiltWorld | null = null; fan: WarFanWeapon | null = null; quest: QuestState | null = null; boss: StormRocBoss | null = null;
   rays: Animal[] = []; roostRays: Animal[] = []; goats: Animal[] = []; wisps: Animal[] = []; roc: Animal | null = null;
@@ -101,8 +100,13 @@ export class SkyReachPlugin extends ShardPlugin {
   /** The near meadow that travels with the camera (loop 4). */
   meadow: Meadow | null = null;
 
-  override async world(ctx: ShardContext): Promise<void> {
-    ctx.strings(STRINGS);
+  protected readonly rows: HybridRuntimeRows = { expose: 'farReach', strings: STRINGS, weapon: FAN_ROW, encounters: { id: ROC_ID, displayName: STRINGS.roc },
+    audio: source.audio, cues: installSkyCues, species: () => {
+      const policies = declaredSkyRows();
+      return { rows: policies.rows, looks: [DRIFT_RAY_LOOK, SKY_GOAT_LOOK, GALE_WISP_LOOK, STORM_ROC_LOOK], witness: policies.witness };
+    } };
+
+  protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
     // and the world pieces baked offline (SF72, world/baked.ts)
     await Promise.all([preloadSkyMeshes(), loadSkyBaked(), loadSkyDressing(), loadSkyBridges(), loadSkyFan(), loadSkyMillModel()]);
@@ -137,40 +141,26 @@ export class SkyReachPlugin extends ShardPlugin {
     if (runtime !== undefined) runtime.hooks.levelBounds = () => ({ x0: -250, x1: 250, z0: -250, z1: 250, floor: -8 });
     runtime?.interactables.push(this.built.winch, this.built.notes);
   }
-  private brainPolicies: ReturnType<typeof declaredSkyRows> | null = null;
-  /** Actual instantiated declared policies, for the SF27 activation receipt; no actor state is changed. */
-  brainWitness(): { id: string; kind: string; family: string | null }[] {
-    return [...this.rays, ...this.roostRays, ...this.goats, ...this.wisps].map(actor => ({ id: actor.entityId, kind: actor.kind, family: this.brainPolicies?.witness(actor) ?? null }));
-  }
-  override kit(ctx: ShardContext): void {
-    ctx.rows.weapon(FAN_ROW);
-    this.brainPolicies = declaredSkyRows();
-    ctx.rows.species([{ ...DRIFT_RAY, ...this.brainPolicies.rows[0] }, { ...SKY_GOAT, ...this.brainPolicies.rows[1] },
-      { ...GALE_WISP, ...this.brainPolicies.rows[2] }, STORM_ROC]); ctx.rows.speciesLook([DRIFT_RAY_LOOK, SKY_GOAT_LOOK, GALE_WISP_LOOK, STORM_ROC_LOOK]);
-    ctx.rows.encounter({ id: ROC_ID, displayName: STRINGS.roc });
-    const rt = ctx.game.runtime;
+  protected override witnessed(): Animal[] { return [...this.rays, ...this.roostRays, ...this.goats, ...this.wisps]; }
+  protected override prepare(ctx: ShardContext): void {
     // The shared combat-target query (ENGINE §19): world creatures in play, the Practice Arena's dummies while it is open.
     const targets = (): readonly ConeFanTarget[] => ctx.app.combat.targets().filter((t) => t.hittable);
     this.fan = new WarFan(ctx.app, targets);
     if (this.leaf !== null) paintFanLeaf(this.fan.parts, this.leaf);
-    if (rt) rt.buildEquipment = () => {
-      const fan = this.fan; if (fan === null) throw new Error('Sky Reach: the war fan was not built');
-      fan.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(FAN_ROW, 'heavy'); else rt.play?.cues.fire(FAN_ROW); };
-      return Promise.resolve({ primary: fan, secondary: null, rifle: null, install: () => undefined });
-    };
   }
-  override async play(ctx: ShardContext): Promise<void> {
-    const rt = ctx.game.runtime, built = this.built, fan = this.fan, position = rt?.world?.player.position ?? this.player;
-    if (built === null || fan === null) throw new Error('Sky Reach: world and kit must run before play');
-    const host = ctx.app.equipmentHost, toast = (text: string): void => { rt?.play?.hud.toast(text); };
-    if (host !== null) { host.viewmodel.add(fan.model); ctx.scope.onDispose(() => { fan.model.removeFromParent(); }); }
-    fan.stowed = () => this.board();
+  protected override arm(): WarFanWeapon { const fan = this.fan; if (fan === null) throw new Error('Sky Reach: the war fan was not built'); return fan; }
+  protected override armed(): WarFanWeapon | null { return this.fan; }
+  protected override dress(ctx: ShardContext, fan: WarFanWeapon): void { ctx.scope.onDispose(() => { fan.model.removeFromParent(); }); }
+  protected override enter(ctx: ShardContext): void {
+    if (this.fan !== null) this.fan.stowed = () => this.board();
     // G24: the wisp's burst and the Roc's gale wall shove the player (`app.player.impulse`).
     const push = (v: Vector3): void => { ctx.app.player?.impulse(v); };
     installEnteredRuntimeService(ctx, scope => { bindPlayerPush(push); scope.onDispose(() => { bindPlayerPush(null); }); });
-    installRuntimeAudio(ctx, source.audio, installSkyCues);
-    const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null,
-      charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
+  }
+  protected override async install(ctx: ShardContext, loot: ScopedLoot | null): Promise<void> {
+    const rt = ctx.game.runtime, built = this.built, fan = this.fan, position = rt?.world?.player.position ?? this.player;
+    if (built === null || fan === null) throw new Error('Sky Reach: world and kit must run before play');
+    const toast = (text: string): void => { rt?.play?.hud.toast(text); };
     const { quest, flags, burst, finished, persistence } = installQuest(ctx, position, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined);
     persistence.bindProgress(rt?.play?.progress);
     this.quest = quest; this.flags = flags; this.questFinished = finished;
@@ -182,8 +172,7 @@ export class SkyReachPlugin extends ShardPlugin {
         verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: GUST_ICON, show: showGust } } } };
     // the gust in the key-bindings table, under Combat (E418: G worked but was listed nowhere), while the shard is loaded
     const gustRow: Parameters<ShardContext['app']['input']['bindings']['describe']>[0] = { rows: [{ group: 'combat', id: 'far.gust', label: STRINGS.gustBinding, actions: ['far.gust'] }] };
-    if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, fanInput, gustRow);
-    else { ctx.inputContext(fanInput); ctx.app.input.bindings.describe(gustRow, ctx.scope); }
+    this.input(ctx, fanInput, gustRow);
 
     // Step 1: the keeper's notes.
     bindSkyItems(ctx, fan);
@@ -247,10 +236,7 @@ export class SkyReachPlugin extends ShardPlugin {
 
     // Creatures: each one knows its home (an island or a flying circle).
     const animals = rt.play?.animals;
-    const spawnGroup = (group: typeof SKY_FLOCK_GROUPS.rays, into: Animal[]): void => {
-      const rows = boundedRows(group);
-      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = rows[i]; if (row === undefined) break; const a = bindSkyActor(ctx, row.id, row.home).spawn(); if (a) into.push(a); }
-    };
+    const spawnGroup = (group: typeof SKY_FLOCK_GROUPS.rays, into: Animal[]): void => { this.spawnAll(boundedRows(group).map(row => bindSkyActor(ctx, row.id, row.home)), into); };
     spawnGroup(SKY_FLOCK_GROUPS.rays, this.rays);
     // each free ray trails its luminous wake (data/rayWakeLook.ts on @wildshard/sdk/looks/wakeRibbon; proposal B's ray beside the mill)
     const wakes = this.rays.map((ray) => { const w = wakeRibbon(RAY_WAKE); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
@@ -331,7 +317,6 @@ export class SkyReachPlugin extends ShardPlugin {
       // a faint veil that thickens over the windup (loop 5: at 0.42 a wall you stand in filled the frame with white)
       wall.rotation.y = body.aim; wall.material.opacity = 0.06 + 0.16 * k;
     } });
-    ctx.debug.expose('farReach', this);
   }
   /**
    * Fight state for a capture (E399, shard-progress `stage`, through `__wildshard.shard.farReach`): only what a player

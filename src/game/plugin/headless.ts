@@ -363,7 +363,7 @@ export type HybridWeapon = Awaited<ReturnType<BuildEquipment>>['primary'] & { on
  * The shared host of a hybrid shard's trusted plugin (G345). The shard declares `rows` and keeps only what genuinely
  * differs in its hooks; the host runs every stage in one order. world: strings, then `build`. kit: the weapon row, the
  * species catalogue (rows, looks), the encounters, `prepare`, then `buildEquipment` (`arm`, with the swing cues wired).
- * play: the weapon into the viewmodel and `dress`, `enter`, the declared audio, the coin loot, `run`, then the debug name.
+ * play: the weapon into the viewmodel and `dress`, `enter`, the declared audio, the coin loot, `install`, then the debug name.
  */
 export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected abstract readonly rows: HybridRuntimeRows;
@@ -377,7 +377,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   /** The bodies the SF27 activation receipt reports. */
   protected abstract witnessed(): readonly AnimalBody[];
   /** Everything after the loot, in the shard's own order. */
-  protected abstract run(ctx: ShardContext, loot: ScopedLoot | null): Promise<void> | void;
+  protected abstract install(ctx: ShardContext, loot: ScopedLoot | null): Promise<void> | void;
   /** Kit work after the rows, before `buildEquipment`. */
   protected prepare(_ctx: ShardContext): void { /* none by default */ }
   /** The weapon's look once it is in the viewmodel. */
@@ -404,7 +404,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
     this.enter(ctx);
     installRuntimeAudio(ctx, this.rows.audio, this.rows.cues);
     const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
-    await this.run(ctx, loot);
+    await this.install(ctx, loot);
     ctx.debug.expose(this.rows.expose, this);
   }
   /** Actual instantiated declared policies, for the SF27 activation receipt; no actor state is changed. */
