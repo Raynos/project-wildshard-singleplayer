@@ -35,7 +35,7 @@ function outcome(adopt: (root: Object3D, scope: Scope) => void) {
 }
 
 it('keeps both released buffer/material/instance ownership policies and disposal order exactly', () => {
-  const previous = scopeEnvironment(); installBrowserScopeEnvironment();
+  const previous = scopeEnvironment(); installBrowserScopeEnvironment({ Mesh, InstancedMesh });
   try {
     const signal = outcome((root, scope) => { scope.ownPrimitives(root); });
     const sky = outcome((root, scope) => { scope.ownPrimitives(root, { instances: true }); });
@@ -59,4 +59,16 @@ it('refuses presentation ownership in a pure host before registering resources o
     expect(Object.values(scope.census).every(value => value === 0)).toBe(true);
     scope.dispose(); expect(parent.children).toStrictEqual([root]);
   } finally { installScopeEnvironment(previous); }
+});
+
+it('keeps the pre-entry browser adapter free of primitive ownership until rendering is installed', () => {
+  const previous = scopeEnvironment(), scope = new Scope('pre-entry'), root = new Group();
+  installBrowserScopeEnvironment();
+  try {
+    expect(scopeEnvironment().primitives).toBeUndefined();
+    expect(() => { scope.ownPrimitives(root); }).toThrow('requires the presentation host');
+    expect(Object.values(scope.census).every(value => value === 0)).toBe(true);
+    installBrowserScopeEnvironment({ Mesh, InstancedMesh });
+    expect(() => { scope.ownPrimitives(root); }).not.toThrow();
+  } finally { scope.dispose(); installScopeEnvironment(previous); }
 });

@@ -25,7 +25,7 @@ export async function visitAuthoredWorld(manifest, options) {
   const { withModelPlacementVisitor } = await src('engine/models/model.ts');
   const build = async () => {
   const { app } = await src('engine/app/runtime.ts');
-  (await src('engine/app/view/scopeEnvironment.ts')).installBrowserScopeEnvironment();
+  (await src('engine/app/view/scopeEnvironment.ts')).installBrowserScopeEnvironment({ Mesh: THREE.Mesh, InstancedMesh: THREE.InstancedMesh });
   (await src('engine/world/registry.ts')).installWorldRegistry(); // the bake builds a level, as the session does (E434)
   const { toLevelSpec } = await src('game/shard/spec.ts');
   const { shardContext } = await src('game/plugin/context.ts');

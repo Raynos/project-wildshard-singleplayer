@@ -1,5 +1,6 @@
 import { app } from '../app/runtime';
 import { Scope } from '../app/scope';
+import { installBrowserScopeEnvironment } from '../app/view/scopeEnvironment';
 import { SceneOwnership, sceneResourceOwner } from '../app/sceneOwnership';
 import { UploadOwnership } from '../render/uploadOwnership';
 import { composerAllocations, cachedResourceAllocations, type ResourceAllocation } from '../render/textureBytes';
@@ -368,6 +369,7 @@ export class Game {
   readonly level: LevelSpec;
   public canvas: HTMLCanvasElement;
   constructor(canvas: HTMLCanvasElement, context: WebGL2RenderingContext, level: LevelSpec) {
+    installBrowserScopeEnvironment({ Mesh: THREE.Mesh, InstancedMesh: THREE.InstancedMesh });
     this.canvas = canvas;
     this.level = level;
     this.app.scene = this.rootScene;

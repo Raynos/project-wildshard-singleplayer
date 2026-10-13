@@ -54,11 +54,11 @@ function partition(source: BufferGeometry, parts: number, of: (x: number, y: num
 /** The keeper's exact four local pivot geometries; motion still belongs to the native NPC host. */
 export function bakeKeeperFigure(source: BufferGeometry): readonly [BufferGeometry, BufferGeometry, BufferGeometry, BufferGeometry] {
   const fig = KEEPER_FIGURE, neck = fig.neck, [sx, sy, sz] = fig.shoulder;
-  const top = fig.armTopY ?? (neck === undefined ? Infinity : neck[1] + 0.02), slope = fig.armSlope ?? 0, cut = fig.elbow;
-  const [ex, ey, ez] = cut?.at ?? fig.shoulder;
-  const whole = fitModel(source, { size: fig.height, by: 'height', ...(fig.centre === undefined ? {} : { centre: fig.centre }) });
+  const top = fig.armTopY, slope = fig.armSlope, cut = fig.elbow;
+  const [ex, ey, ez] = cut.at;
+  const whole = fitModel(source, { size: fig.height, by: 'height', centre: fig.centre });
   const [body, head, arm, fore] = partition(whole, 4, (x, y) => neck !== undefined && y >= neck[1] ? 1
-    : x < fig.armBelowX + slope * y && y > fig.armAboveY && y < top ? (cut !== undefined && (x - ex) * cut.axis[0] + (y - ey) * cut.axis[1] > 0 ? 3 : 2) : 0, fig.flat);
+    : x < fig.armBelowX + slope * y && y > fig.armAboveY && y < top ? ((x - ex) * cut.axis[0] + (y - ey) * cut.axis[1] > 0 ? 3 : 2) : 0, fig.flat);
   if (body === undefined || head === undefined || arm === undefined || fore === undefined) throw new Error('Incomplete keeper pivots');
   if (neck !== undefined) head.translate(-neck[0], -neck[1], -neck[2]);
   arm.translate(-sx, -sy, -sz); fore.translate(-ex, -ey, -ez);

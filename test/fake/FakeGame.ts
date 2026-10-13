@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Scope } from '../../src/engine/app/scope';
+import { installBrowserScopeEnvironment } from '../../src/engine/app/view/scopeEnvironment';
 import type { Game, FixedPhase } from '../../src/engine/core/Game';
 import { FIXED_STEP } from '../../src/engine/core/fixedStep';
 import { makeSystem, setLoopState, systemFault, type GameSystem } from '../../src/engine/core/faults';
@@ -11,6 +12,9 @@ type Update = (dt: number, t: number) => void;
 
 /** Manual, renderer-free counterpart of Game.start. F8 replaces the phase driver with the engine scheduler. */
 export class FakeGame {
+  constructor() {
+    installBrowserScopeEnvironment({ Mesh: THREE.Mesh, InstancedMesh: THREE.InstancedMesh });
+  }
   readonly playerScope = new Scope('fake-player');
   readonly rootScene = new THREE.Scene();
   readonly scene = this.rootScene;
