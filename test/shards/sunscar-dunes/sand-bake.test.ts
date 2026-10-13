@@ -36,8 +36,7 @@ describe('Signal Dunes bakes its sand maps offline (SHARD-PLATFORM SF72, RENDERI
     expect(unzlibSync(committed(SAND_FILES.skirt))).toEqual(skirt.bytes);
     expect(JSON.stringify(skirtRows)).toBe(JSON.stringify(skirt.rows));
     // the folder holds exactly this bake, and the boot fetches every map
-    // the retired zlib shadow / trail maps are no longer produced; they stay tracked until the G320 two-step deletes them
-    expect(readdirSync('public/assets/sunscar-dunes/sand').filter((name) => name !== 'shadow.bin' && name !== 'trail.bin')).toEqual(['skirt.bin']);
+    expect(readdirSync('public/assets/sunscar-dunes/sand')).toEqual(['skirt.bin']);
     for (const url of Object.values(SAND_FILES)) expect(bootFiles()).toContain(url);
   });
 
