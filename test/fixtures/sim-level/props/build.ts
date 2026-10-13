@@ -2,7 +2,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture artifact paths are local build products.
 import { join } from 'node:path';
-import { templateProps } from '../../../../src/shards/_template/generators/templatePropsSource';
+import { templateProps, templateScene } from '../../../../src/shards/_template/generators/templatePropsSource';
+import { bake } from '../../../../src/sdk/bake';
 import { bakeProps } from '../../../../src/sdk/bake/props';
 import { bakeTerrain } from '../../../../src/sdk/bake/terrain';
 import { canonicalJson } from '../../../../src/sdk/project';
@@ -24,6 +25,10 @@ export function buildPropsFixture(directory: string, count = 10): void {
 /** Write the template's immutable prop-only rows; SF16 merges these additive costs into its terrain rows. */
 export function writeTemplateProps(directory: string, declaration: string): void {
   mkdirSync(directory, { recursive: true });
-  const fixture = templateProps(20);
-  try { const result = bakeProps(fixture.source); for (const [hash, bytes] of result.assets) writeFileSync(join(directory, hash), bytes); writeFileSync(declaration, canonicalJson({ props: result.props, tiles: result.tiles, files: result.files, library: result.library, far: result.far, report: result.report })); } finally { fixture.dispose(); }
+  const fixture = templateScene(20);
+  try {
+    const result = bake(fixture.scene, { slug: 'template', name: 'Template shard' }, { props: fixture.props }).props;
+    if (result === null) throw new Error('template scene baked no props');
+    for (const [hash, bytes] of result.assets) writeFileSync(join(directory, hash), bytes); writeFileSync(declaration, canonicalJson({ props: result.props, tiles: result.tiles, files: result.files, library: result.library, far: result.far, report: result.report }));
+  } finally { fixture.dispose(); }
 }

@@ -1,4 +1,5 @@
-import { Group, type Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
+import { Group, type Matrix4, Mesh, MeshStandardMaterial, Scene, type Object3D } from 'three';
+import { Scatter, type BakeInputs } from '@wildshard/sdk/bake';
 import { templateHeightAt } from './landscape';
 import { templateScatterRandom } from './landscapeNoise';
 import { buildCellFill, cellCoarse, cellFar, CELL_PIECES } from './cell';
@@ -32,4 +33,13 @@ export function templateProps(count = 20): { source: PropsBakeSource; original: 
   const colliders: ShardProps['colliders'] = pieces.filter((p) => (p.colliders?.length ?? 0) > 0).map((p) => ({ id: p.id, panel: p.id === 'template.door' ? p.id : null, initialActive: true, shapes: p.colliders?.map((c) => { if (c.surface !== undefined && c.surface !== 'wood' && c.surface !== 'stone' && c.surface !== 'metal') throw new Error('Unsupported template surface'); const { surface, ...descriptor } = c; return { ...descriptor, ...(c.kind === 'box' && c.yaw !== undefined ? { yaw: c.yaw === 0 ? 0 : c.yaw } : {}), ...(surface === undefined ? {} : { surface }) }; }) ?? [] }));
   colliders.push({ id: 'template.jump', panel: 'template.jump', initialActive: false, shapes: course.children.map((pad) => ({ kind: 'box', x: pad.position.x, y: pad.position.y, z: pad.position.z === 0 ? 0 : pad.position.z, hx: 1.5, hy: 0.15, hz: 1.5 })) });
   return { source: { static: staticRoot, scatter: [{ model, transforms }, cell.posts], panels: [{ id: 'template.door', model: door }, { id: 'template.jump', model: course, visible: false }], colliders, models: [{ id: 'template.lantern', model: lampShapes }], coarse, far }, original, dispose: () => { for (const resource of resources) resource.dispose(); for (const cleanup of cleanups) cleanup(); model.geometry.dispose(); model.material.dispose(); } };
+}
+
+/** The template's props as one three.js scene for `bake(scene, identity)`: the merged static shapes, the crates and lamp posts
+ * as scatter; the library panels, lantern and proxies stay build inputs. Same triangles and order as `templateProps`. */
+export function templateScene(count = 20): { scene: Scene; props: NonNullable<BakeInputs['props']>; dispose: () => void } {
+  const fixture = templateProps(count), { static: shapes, scatter = [], ...props } = fixture.source, scene = new Scene();
+  scene.add(shapes);
+  scatter.forEach((batch, i) => { scene.add(new Scatter(i === 0 ? 'template.crates' : 'template.posts', batch.model, batch.transforms)); });
+  return { scene, props, dispose: fixture.dispose };
 }

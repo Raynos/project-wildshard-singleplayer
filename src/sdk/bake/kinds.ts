@@ -1,5 +1,4 @@
 import { BoxGeometry, BufferGeometry, DoubleSide, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { staticGlb, type GlbPrimitive } from './glb';
 
 /**
@@ -17,8 +16,10 @@ export interface BakedKind {
   vertexColors: boolean; doubleSided: boolean;
   readonly [extra: string]: string | number | boolean;
 }
+/** A collider row as a piece declares it (the physics registry's descriptor shape); the bake keeps it as given. */
+export interface KindCollider { readonly kind: string; readonly yaw?: number }
 /** A piece's bake: the GLB bytes and its rows (`data/<piece>.json`, with the GLB's content hash). */
-export interface PieceBake { glb: Uint8Array; kinds: BakedKind[]; colliders: ColliderDesc[] }
+export interface PieceBake<C extends KindCollider = KindCollider> { glb: Uint8Array; kinds: BakedKind[]; colliders: C[] }
 
 /** Optional immutable row metadata and custom vertex channels retained by the kind baker. */
 export interface KindBakeOptions {
@@ -29,7 +30,7 @@ export interface KindBakeOptions {
 }
 
 /** Colliders as the JSON rows keep them (a `-0` yaw is `0`). */
-export const colliderRows = (colliders: readonly ColliderDesc[]): ColliderDesc[] => colliders.map((c) => 'yaw' in c && c.yaw === 0 ? { ...c, yaw: 0 } : c);
+export const colliderRows = <C extends KindCollider>(colliders: readonly C[]): C[] => colliders.map((c) => c.yaw === 0 ? { ...c, yaw: 0 } : c);
 
 const custom = (geometry: BufferGeometry, attributes: Readonly<Record<string, string>> | undefined): Record<string, string> | undefined => {
   const kept = Object.entries(attributes ?? {}).filter(([, channel]) => geometry.hasAttribute(channel));
@@ -37,7 +38,7 @@ const custom = (geometry: BufferGeometry, attributes: Readonly<Record<string, st
 };
 
 /** Bake named instanced meshes into one GLB (`name` is its scene name, e.g. `sunscar.rocks`) and their kind rows. */
-export function bakeKinds(name: string, meshes: readonly (readonly [string, InstancedMesh])[], colliders: readonly ColliderDesc[], options: KindBakeOptions = {}): PieceBake {
+export function bakeKinds<C extends KindCollider>(name: string, meshes: readonly (readonly [string, InstancedMesh])[], colliders: readonly C[], options: KindBakeOptions = {}): PieceBake<C> {
   const kinds: BakedKind[] = [], primitives: GlbPrimitive[] = [];
   for (const [kind, mesh] of meshes) {
     if (mesh.count === 0) continue;

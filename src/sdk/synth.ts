@@ -1,8 +1,8 @@
 import { assertConfigBoundary } from './configBoundary';
-// oxlint-disable-next-line import/no-nodejs-modules -- The author CLI publishes its inspectable intermediate inside the author project.
-import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
-// oxlint-disable-next-line import/no-nodejs-modules -- Author inputs and cache destinations must remain within the project.
-import { dirname, resolve, sep } from 'node:path';
+// oxlint-disable-next-line import/no-nodejs-modules -- Author inputs must remain within the project.
+import { realpathSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Author inputs must remain within the project.
+import { resolve, sep } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- Encode an in-memory trusted author module, without writing executable cache files.
 import { Buffer } from 'node:buffer';
 import { build } from 'vite';
@@ -10,23 +10,7 @@ import { build } from 'vite';
 import { fileURLToPath } from 'node:url';
 import type { Object3D } from 'three';
 import { readScene, type SceneDescription } from './scene';
-import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
-
-/** An inspected author graph and the exact digest/path of its canonical JSON; neither is a finished shardfile. */
-export interface SynthResult {
-  scene: SceneDescription;
-  hash: string;
-  path: string;
-}
-
-function confined(root: string, path: string): string {
-  const destination = resolve(root, path);
-  let existing = destination;
-  while (!existsSync(existing)) existing = dirname(existing);
-  const actual = realpathSync(existing);
-  if (actual !== root && !actual.startsWith(root + sep)) throw new Error('Scene synth path resolves outside project');
-  return destination;
-}
+import { confined, publishScene, type SynthResult } from './bake';
 
 /** Inspect an ordinary three.js graph and publish canonical scene.json, with an immutable content-hash copy.
  * Graph generation still executes on each synth; expensive producers use the shared generation-job cache separately.
@@ -35,19 +19,6 @@ export function synthScene(scene: Object3D, project: string, slug: string): Synt
   if (!/^[a-z][a-z0-9-]{0,127}$/u.test(slug)) throw new Error('Scene synth requires a bounded shard slug');
   return publishScene(readScene(scene), project, slug);
 }
-function publishScene(description: SceneDescription, project: string, slug: string): SynthResult {
-  if (!/^[a-z][a-z0-9-]{0,127}$/u.test(slug)) throw new Error('Scene synth requires a bounded shard slug');
-  const root = realpathSync(project);
-  const bytes = new TextEncoder().encode(encodeCanonicalJson(description)), hash = hashImmutableBytes(bytes);
-  const cache = `.wildshard/cache/${slug}`, immutable = confined(root, `${cache}/${hash}/scene.json`);
-  const path = confined(root, `${cache}/scene.json`);
-  if (existsSync(immutable)) {
-    if (hashImmutableBytes(readFileSync(immutable)) !== hash) throw new Error('Scene synth cached bytes disagree with their content hash');
-  } else { mkdirSync(dirname(immutable), { recursive: true }); writeFileSync(immutable, bytes, { flag: 'wx' }); }
-  writeFileSync(path, bytes);
-  return { scene: description, hash, path };
-}
-
 /** Execute a local author config in Node and synthesize its named scene and identity exports.
  * This transitional declaration composes real three.js objects; the existing default shardfile declaration is optional.
  * Only the scene reader's supported features enter JSON; missing scenes refuse instead of synthesizing a fake world. */
