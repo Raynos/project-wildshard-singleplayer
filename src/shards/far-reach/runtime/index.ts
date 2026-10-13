@@ -12,7 +12,7 @@ import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrappin
 import { STRINGS } from '../data/strings';
 import { GUST_ICON, SWING_ICON } from '../data/icons';
 import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
-import { SKY_FLOCK_GROUPS } from '../data/spawns';
+import { SKY_FLOCK_GROUPS, SKY_FLOCK_ROWS } from '../data/spawns';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { skyMoverViews } from './movers';
 import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
@@ -50,15 +50,14 @@ import { meadow, type Meadow } from '../world/meadow';
 import { heroStoneDiscs, loadSkyDressing } from '../world/dressing';
 import { SUN_DIR } from '../look/sun';
 import { StormRocBoss } from '../combat/stormRoc';
+import { installBossView } from '@wildshard/game/plugin/ui';
 import { BOSS_REWARD, ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
 import { FLAGS, vaneFlag } from '../quest/flags';
 import { installSkyCues } from './audio/cues';
-import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import { HybridRuntimePlugin, bindRuntimeBoss, type HybridRuntimeRows } from '@wildshard/game/shardfile/hybridRows';
-import { bindSkyActor } from './spawns';
+import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
+import { HybridRuntimePlugin, bindRuntimeHomes, type HybridRuntimeRows, type RuntimeHomes } from '@wildshard/game/shardfile/hybridRows';
 import { bindSkyItems } from './items';
-import { spawnSkyGoats } from '../species/goats';
 
 declare module '@wildshard/engine/input/InputService' {
   interface ActionMap { 'far.gust': true }
@@ -72,6 +71,8 @@ declare module '@wildshard/engine/combat/Equipment' {
 
 /** How far above its island's deck a goat's spawn ray starts (metres): above the grass, below anything overhead. */
 export const GOAT_SPAWN_ABOVE = 2;
+const SKY_HOMES = new Map(SKY_FLOCK_ROWS.map(row => [row.id, row.home]));
+const GOAT_FLOORS = new Map(SKY_FLOCK_GROUPS.goats.map(row => [row.id, { fromY: row.home.y + GOAT_SPAWN_ABOVE, y: row.home.y }]));
 
 /** Every runtime collection is a finite authored roster; refuse overflow instead of silently dropping content. */
 const MAX_RUNTIME_ROWS = 64;
@@ -83,7 +84,10 @@ const WINCH_FLAGS = [FLAGS.notes, FLAGS.roost, FLAGS.vanes, ...VANES.map(v => va
 
 export class SkyReachPlugin extends HybridRuntimePlugin {
   built: BuiltWorld | null = null; fan: WarFanWeapon | null = null; boss: StormRocBoss | null = null;
-  rays: Animal[] = []; roostRays: Animal[] = []; goats: Animal[] = []; wisps: Animal[] = []; roc: Animal | null = null;
+  /** The 13 declared bodies (data/spawns.ts), held by the platform's home keeper in their shipping allocation order. */
+  private kept: RuntimeHomes | null = null;
+  private bodies(rows: readonly { readonly id: string }[]): Animal[] { return rows.flatMap(row => this.kept?.held(row.id) ?? []); }
+  get roc(): Animal | null { return this.kept?.held(ROC_ID) ?? null; }
   /** Is the player riding the hoverboard? The fan stows and the decks glow then; the hover decks and the updraft are
    *  `mode: 'board'` pieces, which collide only then (SF34, ENGINE §5 `app.player.mode`). */
   private board: () => boolean = () => false;
@@ -139,7 +143,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     if (runtime !== undefined) runtime.hooks.levelBounds = () => ({ x0: -250, x1: 250, z0: -250, z1: 250, floor: -8 });
     runtime?.interactables.push(this.built.winch, this.built.notes);
   }
-  protected override witnessed(): Animal[] { return [...this.rays, ...this.roostRays, ...this.goats, ...this.wisps]; }
+  protected override witnessed(): Animal[] { return this.bodies([...SKY_FLOCK_GROUPS.rays, ...SKY_FLOCK_GROUPS.roost, ...SKY_FLOCK_GROUPS.goats, ...SKY_FLOCK_GROUPS.wisps]); }
   protected override prepare(ctx: ShardContext): void {
     // The shared combat-target query (ENGINE §19): world creatures in play, the Practice Arena's dummies while it is open.
     const targets = (): readonly ConeFanTarget[] => ctx.app.combat.targets().filter((t) => t.hittable);
@@ -148,7 +152,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   }
   protected override arm(): WarFanWeapon { const fan = this.fan; if (fan === null) throw new Error('Sky Reach: the war fan was not built'); return fan; }
   protected override armed(): WarFanWeapon | null { return this.fan; }
-  protected override dress(ctx: ShardContext, fan: WarFanWeapon): void { ctx.scope.onDispose(() => { fan.model.removeFromParent(); }); }
   protected override enter(ctx: ShardContext): void {
     if (this.fan !== null) this.fan.stowed = () => this.board();
     // G24: the wisp's burst and the Roc's gale wall shove the player (`app.player.impulse`).
@@ -231,42 +234,20 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     };
     ctx.system({ id: 'far.gust', phase: 'update', run: (dt) => { gustView.update(dt); } });
 
-    // Creatures: each one knows its home (an island or a flying circle).
-    const animals = rt.play?.animals;
-    const spawnGroup = (group: typeof SKY_FLOCK_GROUPS.rays, into: Animal[]): void => { this.spawnAll(boundedRows(group).map(row => bindSkyActor(ctx, row.id, row.home)), into); };
-    spawnGroup(SKY_FLOCK_GROUPS.rays, this.rays);
+    // Creatures: each one knows its home (an island or a flying circle). The goats walk their island's deck (G26): their
+    // spawn ray lands them on the first WORLD floor under `fromY`, which finds the islands only once physics has stepped
+    // (in `play` it hits nothing and the goat lands on the -1000 m analytic floor), so they land late, after the Roc.
+    this.kept = bindRuntimeHomes(ctx, source, { system: 'far.creatures', held: { order: SKY_FLOCK_ROWS.map(row => row.id), settle: 'far.goats',
+      dress: (animal, id) => { const home = SKY_HOMES.get(id); if (home !== undefined) setHome(animal, home); },
+      late: id => GOAT_FLOORS.get(id) } });
     // each free ray trails its luminous wake (data/rayWakeLook.ts on @wildshard/sdk/looks/wakeRibbon; proposal B's ray beside the mill)
-    const wakes = this.rays.map((ray) => { const w = wakeRibbon(RAY_WAKE); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
+    const wakes = this.bodies(SKY_FLOCK_GROUPS.rays).map((ray) => { const w = wakeRibbon(RAY_WAKE); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
     boundedRows(wakes);
     ctx.system({ id: 'far.rayWake', phase: 'late', run: (dt) => {
       const cam = rt.world?.game.camera; if (!cam) return;
       // each wake in the level's own frame (it stands at the root), as the meadow's eye
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = wakes[i]; if (row === undefined) break; row.w.update(row.ray.position, row.ray.alive, row.w.mesh.worldToLocal(cam.getWorldPosition(eye)), dt); }
     } });
-    spawnGroup(SKY_FLOCK_GROUPS.roost, this.roostRays);
-    // The goats walk their island's deck (G26): the spawn lands them on the first WORLD floor under `fromY`. That ray
-    // finds the islands only once physics has stepped (in `play` it hits nothing and the goat lands on the −1000 m
-    // analytic floor), so they spawn on the first fixed step.
-    const goatSpawns = boundedRows(SKY_FLOCK_GROUPS.goats).map(row => ({
-      body: bindSkyActor(ctx, row.id, row.home), placement: { fromY: row.home.y + GOAT_SPAWN_ABOVE } }));
-    let goatsDue = !retainsRuntimeServices(ctx);
-    ctx.system({ id: 'far.goats', phase: 'fixed.post', run: () => {
-      if (!goatsDue) return; goatsDue = false;
-      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
-        const g = goatSpawns[i]; if (g === undefined) break;
-        const a = g.body.spawn(g.placement);
-        if (a) this.goats.push(a);
-      }
-    } });
-    spawnGroup(SKY_FLOCK_GROUPS.wisps, this.wisps);
-    this.roc = bindRuntimeBoss(ctx, source, ROC_ID, undefined, { identity: 'runtime' }).spawn();
-    if (this.roc !== null) setHome(this.roc, ROC);
-    // Preserve the shipping identity order: deferred goats follow the Roc. Retained restore runs before any tick;
-    // these flat island tops have an authored exact height, so initialization needs no physics step or quest update.
-    if (retainsRuntimeServices(ctx) && animals !== undefined) this.goats.push(...spawnSkyGoats(animals, (index, y) => {
-      const row = goatSpawns[index]; if (row === undefined) throw new Error('Missing Sky goat home');
-      return row.body.spawn({ y });
-    }));
     // the Roc's plumage to mockup D (E399 round 6, seat A: 'a slate / white split'; the generated texture's wings and back are
     // a warm brown): the browns turn slate grey, the white head and belly and the yellow beak and talons stay
     if (this.roc !== null) {
@@ -283,14 +264,10 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       }, { key: (prior) => `${prior}|far.roc-slate`, scope: ctx.scope });
     }
     }
-    ctx.scope.onDispose(() => {
-      const retiring = boundedRows([...this.rays, ...this.roostRays, ...this.goats, ...this.wisps, ...(this.roc ? [this.roc] : [])]);
-      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const animal = retiring[i]; if (animal === undefined) break; animals?.retire(animal); }
-    });
     // Step 2: the roost is clear when its three rays are down.
-    const isDead = (animal: Animal): boolean => !animal.alive;
+    const isDead = (animal: Animal): boolean => !animal.alive, roost = this.bodies(SKY_FLOCK_GROUPS.roost);
     ctx.system({ id: 'far.roost', phase: 'update', run: () => {
-      if (flags.has(FLAGS.notes) && !flags.has(FLAGS.roost) && this.roostRays.length > 0 && this.roostRays.every(isDead)) flags.set(FLAGS.roost);
+      if (flags.has(FLAGS.notes) && !flags.has(FLAGS.roost) && roost.length > 0 && roost.every(isDead)) flags.set(FLAGS.roost);
     } });
 
     // The boss: the Storm Roc on the crown, the shared BossBar, 25 coins once.
@@ -298,9 +275,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       if (flags.has(FLAGS.roc)) { toast(STRINGS.rocDown); return; }
       flags.set(FLAGS.roc); persistence.facts('far-reach.roc', ROC_ID); burst(BOSS_REWARD, STRINGS.bossReward);
     }, persistence.boss);
-    this.boss = ctx.app.encounters.boss(ROC_ID, boss, ctx.scope); this.boss.arm();
-    ctx.answer('death.checkpoint', (value) => boss.onPlayerDeath() || value === true);
-    ctx.system({ id: 'far.boss', phase: 'update', run: (dt, t) => { boss.update(dt, t); } });
+    this.boss = installBossView(ctx, ROC_ID, boss, true).boss;
     // Phase 2's gale wall: a pale sheet of wind that thickens over the windup along the lane it will sweep.
     const wall = new Mesh(new BoxGeometry(GALE_WALL.shape.kind === 'lane' ? GALE_WALL.shape.width : 6, 5, 0.4),
       new MeshBasicMaterial({ color: 0xc8f1f8, transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }));

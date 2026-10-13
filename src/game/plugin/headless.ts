@@ -252,9 +252,18 @@ export interface RuntimeHomePorts {
   readonly system: string;
   /** Each fresh body once spawned (the runtime's look on it). */
   readonly spawned?: (animal: Animal) => void;
+  /**
+   * One-shot bodies the runtime holds (`runtime.spawns.actors` and bosses whose encounter holds a body; Sky Reach): each
+   * spawned once under its runtime-allocated identity, in `order` (the shipping allocation order), then `dress`ed. A
+   * `late` body stands on a world floor (its spawn ray starts at `fromY`) and follows every other: standalone on the first
+   * `settle` fixed step, once physics has its floor; in a retained home at once, at its exact `y` (restore runs before any
+   * tick). The headless home keeper's `late` homes are the same rows.
+   */
+  readonly held?: { readonly order: readonly string[]; readonly settle: string; readonly dress?: (animal: NonNullable<Animal>, id: string) => void;
+    readonly late?: (id: string) => { readonly fromY: number; readonly y: number } | undefined };
 }
-/** The declared homes as kept: every home, and every creature alive in one. */
-export interface RuntimeHomes { readonly homes: readonly RuntimeHome[]; readonly all: () => Animal[] }
+/** The declared homes as kept: every home, every creature alive in one, and each held body by its row id. */
+export interface RuntimeHomes { readonly homes: readonly RuntimeHome[]; readonly all: () => Animal[]; readonly held: (id: string) => Animal | null }
 
 /**
  * Keep the declared homes (`runtime.spawns.homes`) in the runtime's play scope: one creature of the row's runtime species
@@ -276,17 +285,36 @@ export function bindRuntimeHomes(ctx: ShardContext, source: Pick<Shardfile, 'run
     if (home.animal) ports.spawned?.(home.animal);
   };
   for (const home of homes) spawn(home);
-  ctx.on('actor.died', ({ actor }) => { const home = homes.find((h) => h.animal?.combatActor() === actor); if (home) home.wait = home.respawn; });
-  ctx.system({ id: ports.system, phase: 'update', run: (dt) => {
-    for (const home of homes) {
-      if (retained && home.animal?.alive === false && home.wait <= 0) home.wait = home.respawn;
-      if (home.wait <= 0) continue;
-      home.wait -= dt;
-      if (home.wait <= 0) { if (home.animal) animals?.retire(home.animal); spawn(home); }
-    }
-  } });
-  ctx.scope.onDispose(() => { for (const home of homes) if (home.animal) animals?.retire(home.animal); });
-  return { homes, all: () => homes.flatMap((h) => h.animal ? [h.animal] : []) };
+  if (homes.length > 0) {
+    ctx.on('actor.died', ({ actor }) => { const home = homes.find((h) => h.animal?.combatActor() === actor); if (home) home.wait = home.respawn; });
+    ctx.system({ id: ports.system, phase: 'update', run: (dt) => {
+      for (const home of homes) {
+        if (retained && home.animal?.alive === false && home.wait <= 0) home.wait = home.respawn;
+        if (home.wait <= 0) continue;
+        home.wait -= dt;
+        if (home.wait <= 0) { if (home.animal) animals?.retire(home.animal); spawn(home); }
+      }
+    } });
+  }
+  const held = holdBodies(ctx, source, ports.held, retained);
+  ctx.scope.onDispose(() => { for (const home of homes) if (home.animal) animals?.retire(home.animal); for (const body of held.values()) animals?.retire(body); });
+  return { homes, all: () => homes.flatMap((h) => h.animal ? [h.animal] : []), held: (id) => held.get(id) ?? null };
+}
+
+/** Spawn the runtime's held one-shot bodies (`RuntimeHomePorts.held`): the early ones now, the late ones after them. */
+function holdBodies(ctx: ShardContext, source: Pick<Shardfile, 'runtime'>, hold: RuntimeHomePorts['held'], retained: boolean): Map<string, NonNullable<Animal>> {
+  const held = new Map<string, NonNullable<Animal>>(); if (hold === undefined) return held;
+  const bosses = new Set(runtimeSpawnRows(source).bosses.map((row) => row.id)), native = { identity: 'runtime' } as const;
+  const land = (id: string, placement?: { readonly y?: number; readonly fromY?: number }): void => {
+    const animal = bosses.has(id) ? bindRuntimeBoss(ctx, source, id, undefined, native).spawn() : bindRuntimeActor(ctx, source, id, undefined, native).spawn(placement);
+    if (animal) { held.set(id, animal); hold.dress?.(animal, id); }
+  };
+  const late = hold.order.flatMap((id) => { const at = hold.late?.(id); return at === undefined ? [] : [{ id, at }]; });
+  for (const id of hold.order) if (!late.some((row) => row.id === id)) land(id);
+  let due = !retained;
+  ctx.system({ id: hold.settle, phase: 'fixed.post', run: () => { if (!due) return; due = false; for (const row of late) land(row.id, { fromY: row.at.fromY }); } });
+  if (retained) for (const row of late) land(row.id, { y: row.at.y });
+  return held;
 }
 
 /** A declared boss body (`runtime.spawns.bosses`): the runtime's encounter script spawns and retires it. */
@@ -387,7 +415,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected abstract install(ctx: ShardContext, loot: ScopedLoot | null): Promise<void> | void;
   /** Kit work after the rows, before `buildEquipment`. */
   protected prepare(_ctx: ShardContext): void { /* none by default */ }
-  /** The weapon's look once it is in the viewmodel. */
+  /** The weapon's look once it is in the viewmodel (the host takes it out again with the scope). */
   protected dress(_ctx: ShardContext, _weapon: HybridWeapon): void { /* none by default */ }
   /** Play work before the audio. */
   protected enter(_ctx: ShardContext): void { /* none by default */ }
@@ -407,7 +435,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   }
   override async play(ctx: ShardContext): Promise<void> {
     const host = ctx.app.equipmentHost, weapon = this.armed(), rt = ctx.game.runtime;
-    if (host !== null && weapon !== null) { host.viewmodel.add(weapon.model); this.dress(ctx, weapon); }
+    if (host !== null && weapon !== null) { host.viewmodel.add(weapon.model); ctx.scope.onDispose(() => { weapon.model.removeFromParent(); }); this.dress(ctx, weapon); }
     this.enter(ctx);
     installRuntimeAudio(ctx, this.rows.audio, this.rows.cues);
     const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
@@ -423,9 +451,5 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected input(ctx: ShardContext, definition: InputDefinition, description: InputDescription): void {
     if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, definition, description);
     else { ctx.inputContext(definition); ctx.app.input.bindings.describe(description, ctx.scope); }
-  }
-  /** Spawn finite declared bodies in row order into `into` (their identity order is the rows'). */
-  protected spawnAll(actors: readonly RuntimeActor[], into: AnimalBody[]): void {
-    for (const actor of actors) { const animal = actor.spawn(); if (animal) into.push(animal); }
   }
 }
