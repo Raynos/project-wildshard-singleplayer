@@ -553,6 +553,16 @@ const resolvedPrograms = new WeakSet<ProgramLike>();
 /** The Developer tool's budget for other browsers' slices: under the 12 ms checked after the fact, and 64 MiB. */
 export const SLICED_UPLOAD_BUDGET: UploadBudget = { ms: 10, bytes: 64 * 1024 * 1024 };
 
+/** A slice's wall time, checked after each unit (a job's compile, a program's resolve, an image's upload): boot's bound. */
+const PRECOMPILE_SLICE_MS = 12;
+/**
+ * sp-o100: the bound for a live warm-up on a paced page that does not isolate its uploads (desktop Chromium's entered
+ * frame). The 12 ms boot bound is checked after the fact, so a slice ran 12 ms plus its last unit (a six-material job, a
+ * 15 ms first link query) on top of the frame's own 3-5 ms of game work: Pine's road entry drew five of its ten
+ * double-vsync travel frames in its warm-up. Live slices also issue one material a job.
+ */
+export const LIVE_PRECOMPILE_SLICE_MS = 6;
+
 /** Decoded bytes an uncompressed texture's upload moves (with a third more for generated mips); 0 when unknown. */
 export function imageUploadBytes(texture: THREE.Texture): number {
   const one = (image: unknown): number => {
@@ -644,6 +654,7 @@ export async function runPrecompile(
   pause: () => Promise<void> = frame,
   uploadBudget?: UploadBudget,
   onStage?: PrecompileStage,
+  sliceMs: number = PRECOMPILE_SLICE_MS,
 ): Promise<PrecompileReport> {
   // Page siblings can retire while a neighbour's preparation yields. The inventory is
   // borrowed: disposal cancels only that resource's upload, not the live neighbour.
@@ -654,14 +665,14 @@ export async function runPrecompile(
     watched.add(texture); observer.listenOnceEmitter(texture, 'dispose', () => { retired.add(texture); });
   };
   for (const texture of textures) watch(texture);
-  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause, uploadBudget, onStage); }
+  try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause, uploadBudget, onStage, sliceMs); }
   finally { observer.dispose(); }
 }
 
 async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
   onProgress: ((done: number, total: number, detail: string) => void) | undefined, textures: THREE.Texture[],
   current: () => boolean, retired: WeakSet<THREE.Texture>, watch: (texture: THREE.Texture) => void, isolateImageUploads: boolean, pause: () => Promise<void>,
-  uploadBudget: UploadBudget | undefined, onStage: PrecompileStage | undefined): Promise<PrecompileReport> {
+  uploadBudget: UploadBudget | undefined, onStage: PrecompileStage | undefined, sliceMs: number): Promise<PrecompileReport> {
   const checkCurrent = (): void => { if (!current()) throw new Error('Shader warm-up owner left'); };
   checkCurrent();
   const borrowed = new Set<THREE.Material>();
@@ -719,7 +730,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     // them (Sky Reach's entry: 18 programs in one 217 ms Simulator frame of afterPlay).
     const capped = isolateImageUploads && programCount(renderer) - programsAtFrame >= LIVE_PROGRAMS_PER_FRAME;
     // oxlint-disable-next-line eslint/no-useless-assignment -- read by the next iteration's guard; oxlint's flow analysis loses the loop back-edge across the try/finally above
-    if (performance.now() - tFrame > 12 || capped || i === jobs.length - 1) { if (isolateImageUploads) settleOne(); await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
+    if (performance.now() - tFrame > sliceMs || capped || i === jobs.length - 1) { if (isolateImageUploads) settleOne(); await pause(); tFrame = performance.now(); programsAtFrame = programCount(renderer); }
   }
   created.push(...newProgramsSince(renderer, before));
   for (const program of before) if (jobPrograms.has(program)) created.push(program);
@@ -763,7 +774,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     p.getUniforms(); resolvedPrograms.add(p); resolvedInSlice++;
     const linkedProgress = parallel ? (isolateImageUploads ? 2 * (i + 1) : n + i + 1) : i + 1;
     onProgress?.(jobs.length + linkedProgress, jobs.length + units + textures.length, `${i + 1} / ${n} programs resolved · ${mode}`);
-    if (performance.now() - tSlice > 12 || (isolateImageUploads && resolvedInSlice >= LIVE_PROGRAMS_PER_FRAME)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
+    if (performance.now() - tSlice > sliceMs || (isolateImageUploads && resolvedInSlice >= LIVE_PROGRAMS_PER_FRAME)) { await pause(); tSlice = performance.now(); resolvedInSlice = 0; }
   }
   // Compilation exposes samplers injected by shader callbacks; merge them before any draw.
   if (onStage !== undefined) { onStage('link', performance.now() - stageStart, pending.length); stageStart = performance.now(); }
@@ -794,7 +805,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
     onProgress?.(base + i + 1, base + uploadTextures.length, `${i + 1} / ${uploadTextures.length} textures uploaded`);
     if (compressed) { checkCurrent(); tSlice = performance.now(); batch?.reset(); }
     else if (batch !== undefined) { if (imageUpload) batch.add(bytes, performance.now() - tUpload); }
-    else if (isolateImageUploads ? imageUpload : performance.now() - tSlice > 12) { await pause(); checkCurrent(); tSlice = performance.now(); }
+    else if (isolateImageUploads ? imageUpload : performance.now() - tSlice > sliceMs) { await pause(); checkCurrent(); tSlice = performance.now(); }
   }
   // The batch's last uploads keep their own drawn frame before whatever follows warm-up, as isolation did.
   if (batch?.pending() === true) await pause();
@@ -831,7 +842,8 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     /** Yield after each image upload during live preparation; ordinary boot keeps batched uploads. */ isolateImageUploads?: boolean;
     /** A live presentation barrier; initial boot keeps the ordinary browser paint opportunity. */ pause?: () => Promise<void>;
     /** Batch image uploads per frame under this budget (op-hitch32): several when isolated, none started past it. */ uploadBudget?: UploadBudget;
-    /** Optional scalar stage timings, including painted waits. Does not retain materials or native handles. */ onStage?: PrecompileStage } = {}): Promise<number> {
+    /** Optional scalar stage timings, including painted waits. Does not retain materials or native handles. */ onStage?: PrecompileStage;
+    /** A live warm-up's slice bound (LIVE_PRECOMPILE_SLICE_MS): one material a job, each slice checked against it. */ sliceMs?: number } = {}): Promise<number> {
 
     if (options.current?.() === false) throw new Error('Shader warm-up owner left');
     if (options.futureLighting !== undefined) {
@@ -862,7 +874,8 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     const scene = game.rootScene;
     const rt = game.composer.inputBuffer;
     const policy = game.level.boot.shaders;
-    const per = options.isolateImageUploads === true ? 1 : 6;
+    const single = options.isolateImageUploads === true || options.sliceMs !== undefined;
+    const per = single ? 1 : 6;
     const excludedRoots = entryFrameExclusions(scene, options.futureLighting);
     const { jobs, materials } = policy?.scene === false ? { jobs: [], materials: 0 } : sceneJobs(scene, rt, per, [scene], excludedRoots);
     // material families (SF10a): live family programs the scene does not hold yet (none live: no jobs)
@@ -870,7 +883,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     if (policy?.shadows !== false) jobs.push(...shadowJobs(scene, rt, per, excludedRoots));
     const bg = backgroundJob(scene, rt);
     if (bg && policy?.background !== false) jobs.push(bg); else bg?.dispose?.();
-    if (policy?.post !== false) jobs.push(...postJobs(game.composer, rt, options.isolateImageUploads === true ? 1 : Number.POSITIVE_INFINITY));
+    if (policy?.post !== false) jobs.push(...postJobs(game.composer, rt, single ? 1 : Number.POSITIVE_INFINITY));
     // Three renders shadows before setupLights(), so the first entered shadow draw still uses the preceding
     // road frame's light state. Warm that depth variant too; the following shadow draw uses the future state.
     const previousShadows = policy?.shadows !== false && options.futureLighting !== undefined && options.futureLighting !== scene
@@ -880,7 +893,7 @@ export async function precompileLevel(game: Pick<Game, 'renderer' | 'camera' | '
     if (policy?.scene !== false) jobs.push(...exteriorJobs(scene, rt, policy?.shadows !== false, undefined, per));
     const owner = options.owner ?? resourceScope();
     for (const job of jobs) if (job.dispose !== undefined) owner.onDispose(job.dispose);
-    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage);
+    const report = await runPrecompile(game.renderer, game.camera, jobs, materials, onProgress, collectTextures(jobs), options.current, options.isolateImageUploads, options.pause, options.uploadBudget, options.onStage, options.sliceMs);
     if (tracedBoot) recordGpuCheckpoint(game.renderer, 'compile:after');
     return report.materials;
   
