@@ -1,8 +1,10 @@
 // G391: inventory the declarations read by Model/Set/World explorers without booting a world or renderer.
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseSync } from 'vite';
+import { componentMarkdown } from './shard-components.mjs';
 import { auditAuthoringInputs } from './authoring-inputs.mjs';
 import { discoverGeneration } from './generate.mjs';
 
@@ -153,10 +155,11 @@ export function generatorInventory(root) {
   return {rows,totals,gaps:[...new Set(gaps)].sort((a,b)=>a<b?-1:a>b?1:0)};
 }
 const cell=value=>String(value).replaceAll('|',String.raw`\|`).replaceAll('\n',' ');
-/** @param {string} root */
-export function writeGeneratorInventory(root) {
+/** @param {string} root @param {Record<string,import('./shard-platform.mjs').ShardLines>} [measures] */
+export function writeGeneratorInventory(root, measures = {}) {
   const inventory=generatorInventory(root);
   const lines=['# Explorer generator inventory','','Generated at commit time from the Model definitions, Set place-registration rows,','manifest World POIs and named World-piece registries. Rows count entry families,','not their placed copies. Registry and declared source paths remain auditable.','Only an author-only registered job reading the declared shard generator counts as','ported. Trusted imports in a Node producer remain `runtime-in-Node bake`; moving','a runtime builder or changing a display label never grants a port.','','Lines strip parser-identified comments. Totals count each source file once per','status; entry rows retain that file’s full line count. Frozen registries never','supply primary entries. Unresolved registry expressions are reported below.','','## Totals','','| Shard | Model | Set | World | Ported entries | Left entries | Ported lines | Left lines |','|---|---:|---:|---:|---:|---:|---:|---:|',...inventory.totals.map(row=>`| ${row.shard} | ${row.explorers.Model} | ${row.explorers.Set} | ${row.explorers.World} | ${row.ported} | ${row.left} | ${row.portedLines} | ${row.leftLines} |`),'','## Entries','','| Shard | Explorer | Entry name | Source file | Lines | Status | Owner lane |','|---|---|---|---|---:|---|---|',...inventory.rows.map(row=>`| ${[row.shard,row.explorer,`${row.name} (${row.id})`,row.source,row.lines,row.status,row.owner].map(cell).join(' | ')} |`),'','## Unresolved declarations','',...(inventory.gaps.length > 0?inventory.gaps.map(gap=>`- ${gap}`):['None.']),''];
+  lines.push(...componentMarkdown(measures), '');
   const path=resolve(root,GENERATOR_INVENTORY);mkdirSync(dirname(path),{recursive:true});writeFileSync(path,lines.join('\n'));return inventory;
 }
-if(process.argv[1] && import.meta.url===pathToFileURL(resolve(process.argv[1])).href){const report=writeGeneratorInventory(resolve(import.meta.dirname,'..'));console.log(JSON.stringify(report.totals));}
+if(process.argv[1] && import.meta.url===pathToFileURL(resolve(process.argv[1])).href){const root=resolve(import.meta.dirname,'..');const measures=JSON.parse(execFileSync(process.execPath,['--input-type=module','-e',"import{shardLines}from './scripts/shard-platform.mjs';console.log(JSON.stringify(shardLines()));"],{cwd:root,encoding:'utf8'}));const report=writeGeneratorInventory(root,measures);console.log(JSON.stringify(report.totals));}

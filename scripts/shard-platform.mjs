@@ -11,6 +11,7 @@ import { resolveSpecifier } from './check-graph.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { shardContent } from './shard-platform-content.mjs';
 import { discoverGeneration } from './generate.mjs';
+import { componentInventory, componentWave, W1_SHARDS } from './shard-components.mjs';
 import { generatorInventory } from './generator-inventory.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
@@ -548,7 +549,7 @@ export function shardLines(root = ROOT, includeSources = false) {
   for (const [slug, files] of Object.entries(shardFiles)) {
     const row = { publicLines: 0, customLines: 0, runtimeLines: 0, trustedRuntimeLines: 0, assemblyScriptLines: 0, publicShare: 0, legacy: { generators: 0, data: 0, runtime: 0 }, legacyShare: 0, conversion: null };
     let shardRuntimeLines = 0, rawGlslLines = 0, additionalGlslLines = 0;
-    const customSources = [];
+    const customSources = [], collectSources = includeSources || W1_SHARDS.includes(slug);
     for (const path of files) {
       const local = path.slice(`src/shards/${slug}/`.length), top = local.split('/')[0];
       // Keep the historical physical TS-only comparison explicitly separate from the current authored measure.
@@ -559,13 +560,13 @@ export function shardLines(root = ROOT, includeSources = false) {
       if (RULES.typescript.test(path) && !RULES.runtimeExcludedFolders.has(top) && !RULES.tests.test(local)
         && !(local === 'shard.config.ts' && declarationOnlyConfig(text(path), path))) {
         shardRuntimeLines += lines;
-        if (includeSources && lines > 0) customSources.push({path, kind:'runtime-ts', lines});
+        if (collectSources && lines > 0) customSources.push({path, kind:'runtime-ts', lines});
       }
       const shaderLines = RULES.tests.test(local) ? 0 : shaders(path);
       rawGlslLines += shaderLines;
       if (!RULES.typescript.test(path) || RULES.runtimeExcludedFolders.has(top)) {
         additionalGlslLines += shaderLines;
-        if (includeSources && shaderLines > 0) customSources.push({path, kind:'additional-glsl', lines:shaderLines});
+        if (collectSources && shaderLines > 0) customSources.push({path, kind:'additional-glsl', lines:shaderLines});
       }
       const category = shaderLines > 0 ? { publicCode: false, trusted: false } : classify(slug, path);
       row[category.publicCode ? 'publicLines' : 'customLines'] += lines;
@@ -593,10 +594,11 @@ export function shardLines(root = ROOT, includeSources = false) {
       passed: legacyLines === null ? null : customRuntimeLines <= legacyLines * 0.2,
       gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: attributedLines, modules, exports },
     };
-    if (includeSources) {
+    if (collectSources) {
       for (const module of modules) customSources.push({path:module.path, lines:module.lines, kind:'sole-module'});
       for (const entry of exports) customSources.push({path:entry.path, lines:entry.lines, name:entry.name, kind:'sole-export'});
-      row.customSources = customSources;
+      if (includeSources) row.customSources = customSources;
+      if (W1_SHARDS.includes(slug)) row.components = componentInventory(root, slug, customSources, customRuntimeLines);
     }
     out[slug] = row;
   }
@@ -648,10 +650,13 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
       port: portHeadline(customPercent, content), generators: inventory.totals.find(total => total.shard === slug) }];
   }));
   const average = portAverage(report);
-  if (process.argv.includes('--json')) console.log(JSON.stringify({ ...report, _summary: { portAverage: average, shards: HEADLINE_SHARDS } }, null, 2));
+  if (process.argv.includes('--json')) console.log(JSON.stringify({ ...report, _summary: { portAverage: average, shards: HEADLINE_SHARDS, wave: componentWave(lines) } }, null, 2));
   else {
     console.log(`PORT average (7 shards): ${average === null ? 'unavailable; build admitted products first' : `${average.toFixed(1)} %`}`);
     for (const slug of HEADLINE_SHARDS) { const row = report[slug]; console.log(`  ${slug}: PORT ${row.port.percent === null ? 'unavailable' : `${row.port.percent.toFixed(1)} %`}; world ${row.port.world}; generators ${row.generators.ported} ported / ${row.generators.left} left (${row.generators.portedLines} / ${row.generators.leftLines} lines)`); }
+    const wave = componentWave(lines);
+    console.log(`W1 components closed ${wave.closed} of ${wave.total}`);
+    for (const [key, row] of Object.entries(wave.components)) console.log(`  ${key}: Sky ${row.lines['far-reach'] ?? 'unavailable'}, Signal ${row.lines['sunscar-dunes'] ?? 'unavailable'}; ${row.closed ? 'closed' : 'open'}`);
     console.log('shard                  shard TS  sole SDK/game  frozen TS  custom / frozen  80/20       legacy-share  enforcement');
     for (const [slug, row] of Object.entries(lines)) {
       const base = recorded.baseline[slug], ceiling = recorded.enforced[slug] ?? Math.floor(base * 0.2);

@@ -13,6 +13,7 @@ export interface ConversionMeasure {
 }
 export interface CustomSource {path:string;kind:'runtime-ts'|'additional-glsl'|'sole-module'|'sole-export';lines:number;name?:string}
 export interface ShardLines {
+  components?:import('./shard-components.mjs').ComponentInventory;
   customSources?:CustomSource[];
   publicLines: number; customLines: number; runtimeLines: number; trustedRuntimeLines: number; assemblyScriptLines: number; publicShare: number; legacyShare: number; conversion: ConversionMeasure;
   legacy: { generators: number; data: number; runtime: number };

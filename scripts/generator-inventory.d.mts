@@ -4,4 +4,4 @@ export interface GeneratorTotal {shard:string;ported:number;left:number;portedLi
 export interface GeneratorInventory {rows:GeneratorEntry[];totals:GeneratorTotal[];gaps:string[]}
 export const GENERATOR_INVENTORY:'docs/plans/shard-platform/generator-inventory.md';
 export function generatorInventory(root:string):GeneratorInventory;
-export function writeGeneratorInventory(root:string):GeneratorInventory;
+export function writeGeneratorInventory(root:string,measures?:Record<string,import('./shard-platform.mjs').ShardLines>):GeneratorInventory;
