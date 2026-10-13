@@ -1,6 +1,7 @@
 import { loadRigFile } from "@wildshard/engine/anim/rig";
 import { cacheUntilDisposed, retainCachedResources } from "@wildshard/engine/app/cachedAssets";
-import { Bone, FileLoader, SkinnedMesh, type AnimationClip, type Texture, Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, InterleavedBufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material, InstancedMesh, InstancedBufferAttribute } from "three";
+import { releaseOnUpload } from "@wildshard/engine/render/memorySaver";
+import { Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, type Wrapping, type MinificationTextureFilter, type MagnificationTextureFilter, Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, InterleavedBufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material, InstancedMesh, InstancedBufferAttribute } from "three";
 import { applySurfaceLooks, type SurfaceInputs } from "../systems/looks/surfaceLooks";
 import type { SurfaceLook } from "@wildshard/format/surfaceLooks";
 import { Rng } from "@wildshard/engine/core/rng";
@@ -148,6 +149,45 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
       return out;
     },
   };
+}
+
+/** How a painted image samples (each field optional: three's texture default otherwise) and whether it frees its decode. */
+export interface PaintedSampler {
+  readonly wrapS?: Wrapping;
+  readonly wrapT?: Wrapping;
+  readonly mips?: boolean;
+  readonly minFilter?: MinificationTextureFilter;
+  readonly magFilter?: MagnificationTextureFilter;
+  readonly anisotropy?: number;
+  /** Memory saver: the decoded image goes at its upload (nothing reads it on the CPU) or when the texture retires */
+  readonly release?: boolean;
+}
+
+/**
+ * A painted image as an sRGB texture named `name`, fetched and decoded off the main thread (an ImageBitmap, flipped at
+ * decode as the engine's own loader does, so its v runs up like a TextureLoader image's), sampled as `sampler`; null when
+ * it cannot be had (offline, a test page), with `console.warn(warn, error)`: the caller keeps its stand-in. A plain fetch
+ * fails fast where an <img> would hang a headless test.
+ */
+export async function loadPaintedTexture(url: string, name: string, warn: string, sampler: PaintedSampler = {}): Promise<Texture | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`${String(response.status)} ${url}`);
+    const bitmap = await createImageBitmap(await response.blob(), { imageOrientation: 'flipY' });
+    const tex = new Texture(bitmap); tex.colorSpace = SRGBColorSpace; tex.name = name;
+    if (sampler.release === true) { cacheUntilDisposed(tex, () => { bitmap.close(); }); releaseOnUpload(tex.source, () => { bitmap.close(); }); }
+    if (sampler.wrapS !== undefined) tex.wrapS = sampler.wrapS;
+    if (sampler.wrapT !== undefined) tex.wrapT = sampler.wrapT;
+    if (sampler.mips !== undefined) tex.generateMipmaps = sampler.mips;
+    if (sampler.minFilter !== undefined) tex.minFilter = sampler.minFilter;
+    if (sampler.magFilter !== undefined) tex.magFilter = sampler.magFilter;
+    if (sampler.anisotropy !== undefined) tex.anisotropy = sampler.anisotropy;
+    tex.needsUpdate = true;
+    return tex;
+  } catch (error: unknown) {
+    console.warn(warn, error);
+    return null;
+  }
 }
 
 /** A creature that did not load stands undrawn: one zero-area triangle on bone 0 (a species needs a geometry part). */

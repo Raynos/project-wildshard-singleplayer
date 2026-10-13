@@ -1,5 +1,6 @@
 import { registerMaterialPreparation } from '@wildshard/engine/render/materialPreparation';
-import { AdditiveBlending, BufferGeometry, CustomBlending, LinearFilter, LinearMipmapLinearFilter, OneFactor, OneMinusSrcAlphaFactor, Float32BufferAttribute, Mesh, NormalBlending, PlaneGeometry, Points, ShaderMaterial, SRGBColorSpace, Texture, Vector4, type Group, type Object3D, type Vector3 } from 'three';
+import { AdditiveBlending, BufferGeometry, CustomBlending, LinearFilter, LinearMipmapLinearFilter, OneFactor, OneMinusSrcAlphaFactor, Float32BufferAttribute, Mesh, NormalBlending, PlaneGeometry, Points, ShaderMaterial, Vector4, type Group, type Object3D, type Texture, type Vector3 } from 'three';
+import { loadPaintedTexture } from '@wildshard/game/plugin/geometry';
 
 /**
  * Fire, embers and smoke as declared rows (SHARD-PLATFORM SF72, effect rows): a shard declares its fires' sizes and one
@@ -16,6 +17,9 @@ import { AdditiveBlending, BufferGeometry, CustomBlending, LinearFilter, LinearM
  *
  * `FireFx.lights` is a uniform of up to four burning fires (xyz the flame, w the gain) a shard's own materials can read.
  */
+
+/** the flipbook's sampler: trilinear mips, linear magnification */
+const FLIPBOOK = { mips: true, minFilter: LinearMipmapLinearFilter, magFilter: LinearFilter } as const;
 
 /** RGB, linear. */
 export type FireRgb = readonly [number, number, number];
@@ -297,17 +301,10 @@ void main() {
     loadBook: () => {
       const gen = ++bookGen, source = style.book;
       registerMaterialPreparation(flameMaterial, (async () => {
-        try {
-          const response = await fetch(source.url);
-          if (!response.ok) throw new Error(`${String(response.status)} ${source.url}`);
-          const bitmap = await createImageBitmap(await response.blob(), { imageOrientation: 'flipY' });
-          const tex = new Texture(bitmap); tex.colorSpace = SRGBColorSpace; tex.name = source.name;
-          tex.generateMipmaps = true; tex.minFilter = LinearMipmapLinearFilter; tex.magFilter = LinearFilter; tex.needsUpdate = true;
-          if (gen !== bookGen) { tex.dispose(); return; }
-          book.value = tex; hasBook.value = 1;
-        } catch (error: unknown) {
-          console.warn('[fireFx] fire flipbook not loaded:', error);
-        }
+        const tex = await loadPaintedTexture(source.url, source.name, '[fireFx] fire flipbook not loaded:', FLIPBOOK);
+        if (tex === null) return;
+        if (gen !== bookGen) { tex.dispose(); return; }
+        book.value = tex; hasBook.value = 1;
       })());
       return () => { bookGen++; book.value?.dispose(); book.value = null; hasBook.value = 0; };
     },

@@ -1,6 +1,7 @@
-import { LinearMipmapLinearFilter, RepeatWrapping, SRGBColorSpace, Texture } from 'three';
+import { LinearMipmapLinearFilter, RepeatWrapping, type Texture } from 'three';
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { releaseOnUpload } from '@wildshard/engine/render/memorySaver';
+import { loadPaintedTexture } from '@wildshard/game/plugin/geometry';
 
 /** Drop a borrowed sampler assignment when its owning texture retires, without touching a newer assignment. */
 export function onPaintedDispose(texture: Texture | null, forget: () => void): void {
@@ -11,26 +12,13 @@ export function onPaintedDispose(texture: Texture | null, forget: () => void): v
 /** Memory saver: a decoded image nothing on the CPU reads again goes at its upload (the engine's `releaseOnUpload`). */
 export function releaseDecodedOnUpload(texture: Texture, close: () => void): void { releaseOnUpload(texture.source, close); }
 
-/**
- * A painted image as an sRGB texture, fetched and decoded off the main thread (an ImageBitmap, flipped at decode as the
- * engine's own loader does, so its v runs up like a TextureLoader image's), or null when it cannot be had (offline, a
- * test page): the caller keeps its stand-in. A plain fetch fails fast where an <img> would hang a headless test.
- */
-export async function loadPainted(url: string, name: string, tile = false): Promise<Texture | null> {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`${response.status} ${url}`);
-    const bitmap = await createImageBitmap(await response.blob(), { imageOrientation: 'flipY' });
-    const tex = new Texture(bitmap); tex.colorSpace = SRGBColorSpace; tex.name = name;
-    onPaintedDispose(tex, () => { bitmap.close(); });
-    // Memory saver (on with Developer, so wherever Sky Reach is reachable): the decoded RGBA copy goes at its upload.
-    // Nothing reads these pixels on the CPU and every clone keeps the sampler key (the mill's bump channel is not in it).
-    releaseDecodedOnUpload(tex, () => { bitmap.close(); });
-    if (tile) { tex.wrapS = RepeatWrapping; tex.wrapT = RepeatWrapping; tex.generateMipmaps = true; tex.minFilter = LinearMipmapLinearFilter; tex.anisotropy = 4; }
-    tex.needsUpdate = true;
-    return tex;
-  } catch (error: unknown) {
-    console.warn(`[far-reach] ${name} not loaded:`, error);
-    return null;
-  }
-}
+/** Memory saver (on with Developer, so wherever Sky Reach is reachable): every decoded copy goes at its upload; nothing
+ * reads these pixels on the CPU and every clone keeps the sampler key (the mill's bump channel is not in it). A tiled
+ * image repeats with trilinear mips and 4x anisotropy. */
+const PAINTED = { release: true } as const;
+const PAINTED_TILE = { release: true, wrapS: RepeatWrapping, wrapT: RepeatWrapping, mips: true, minFilter: LinearMipmapLinearFilter, anisotropy: 4 } as const;
+
+/** A painted image as an sRGB texture (the game's `loadPaintedTexture`), tiled or not; null when it cannot be had: the
+ * caller keeps its stand-in. */
+export const loadPainted = (url: string, name: string, tile = false): Promise<Texture | null> =>
+  loadPaintedTexture(url, name, `[far-reach] ${name} not loaded:`, tile ? PAINTED_TILE : PAINTED);
