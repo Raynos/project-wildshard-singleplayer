@@ -56,7 +56,7 @@ export const bakedUrl = (piece: BakedPiece): string => BAKED_URLS[piece];
 /** The code-built creature bodies baked offline as skinned rig files (SF72: `generators/species.ts` → `scripts/bake-signal-rigs.mjs`), read by `world/meshes.ts`. */
 export const DUNE_RIGS = ['skitterer'] as const;
 export type DuneRigName = (typeof DUNE_RIGS)[number];
-const RIG_URLS: Readonly<Record<DuneRigName, string>> = { skitterer: '/assets/sunscar-dunes/rigs/skitterer.glb' };
+const RIG_URLS: Readonly<Record<DuneRigName, string>> = { skitterer: '/assets/sunscar-dunes-legacy/rigs/skitterer.glb' };
 export const duneRigUrl = (name: DuneRigName): string => RIG_URLS[name];
 
 /** The flame's flipbook (world/fireFx.ts loadFireBook; art/sunscar-dunes/round-26-fire; E407 row 6). */

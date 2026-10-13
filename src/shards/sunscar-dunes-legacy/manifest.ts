@@ -60,7 +60,7 @@ export const SUNSCAR_DUNES: ShardManifest = {
   minimap: { image: '/assets/sunscar-dunes/map/top.webp', palette: SIGNAL_DUNES_MINIMAP }, // the map baked from the world (SF66); the palette paints the grid's edges (look/minimap.ts)
   render: async () => (await import('./look/render')).signalDunesLook(),
   uses: ['quests', 'coins', 'loot', 'hover'],
-  assetGlobs: ['public/assets/sunscar-dunes/**', 'public/assets/lut/sunscar-dunes.bin'],
+  assetGlobs: ['public/assets/sunscar-dunes/**', 'public/assets/sunscar-dunes-legacy/rigs/**', 'public/assets/lut/sunscar-dunes.bin'],
   loadout: { weapons: ['weapon.sunscar-whip'], tools: ['tool.hoverboard'], start: ['weapon.sunscar-whip', 'tool.hoverboard'], held: 'weapon.sunscar-whip' },
   species: ['duneRay', 'sandSkitterer', 'duneStrider', 'duneMatriarch'], spawns: [], fight: { attackers: 2, telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
   creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },

@@ -937,7 +937,7 @@
         "assets/fa09d53a0237c6f27b8dfbd4d8a9f93fe9a767f53a3d03f8241b2a302cb27a6f": "fa09d53a0237c6f27b8dfbd4d8a9f93fe9a767f53a3d03f8241b2a302cb27a6f",
         "assets/fb1717b67323ab3c5ebd5646365c79fc756698f73c465845f8326f425b1a2d6d": "fb1717b67323ab3c5ebd5646365c79fc756698f73c465845f8326f425b1a2d6d",
         "assets/fddb52d3f6f5a175f74e7b5e6269dc0a070ba87453df526c7ffbbff35ab40ef4": "fddb52d3f6f5a175f74e7b5e6269dc0a070ba87453df526c7ffbbff35ab40ef4",
-        "boot/files.ts": "44f56b205c8fbf948c54b59642bc02745e9165e23377919c526931d9caa59659",
+        "boot/files.ts": "32577c957ee65a0a9e0024cb2882bdc83c8496eb8134d4ea7130fb22c2f77cfd",
         "budgetCeilings.ts": "10866bb8a4c730edd396669b7c5e50db4a15e5c47ac503febf6a5c33e1430ef7",
         "budgets.ts": "5d2d4d5b69224555c574fd66c066a94b5b80a2144d6b7260b4374434ac56e3ae",
         "combat/creatures.ts": "f94f7f4feb1da4b7351a64305e59bae2ee639cf7149ee5511c97f9e058b9bac5",
@@ -988,7 +988,7 @@
         "look/painted.ts": "5c849dcd58383ecbdf59e88a9d188d898dbc947ced68ec8474ce3563a5f8157b",
         "look/render.ts": "705ee8b789aa178cc0024f77cc57a5702ddb71fbe03dd5fb34bf08075809f8c9",
         "look/sky.ts": "0dadf850efbe01a83e3678b595915cae316defceb76e48f9122f00f5b409fdd4",
-        "manifest.ts": "0d74264fd9696281fe388a46251584e49d8ebbe11c32005b56604f7dc4389712",
+        "manifest.ts": "2f760561233be2d22a8a2f21a998fd4a072d4cb9f49cdb3059f9a330ff175e74",
         "models/gear.ts": "aa6d0d89b506348a09c9c7c5497ca8b2beadf555c8162e9d21beaa7c8b8469cd",
         "plugin.ts": "4f6ccb1da2110866669383ce86dbc879d854f0aa05bf66f2a421ad07ba3ab373",
         "quest/install.ts": "8b2d600b06877b1b62e743afe7f1b29ad218e9c30e43d0ab2340af42ed662c23",
@@ -1042,6 +1042,16 @@
           "original": "e46afe7dca82c0b6b9e5d63d614a481c741366b4024d6f260b504c37b46ef4fe",
           "current": "e6329d5de09b0c98efb80b86ff0d43127478301dd1075bc1ffa5570f5a4adc0a",
           "reason": "G320 defining contract import repair only: the erased GroundLayerParams type now lives in format; all runtime source expressions remain exact."
+        },
+        "boot/files.ts": {
+          "original": "44f56b205c8fbf948c54b59642bc02745e9165e23377919c526931d9caa59659",
+          "current": "32577c957ee65a0a9e0024cb2882bdc83c8496eb8134d4ea7130fb22c2f77cfd",
+          "reason": "Restore the frozen custom _JOINTS/_WEIGHTS skitterer rig after 02e371386 rewrote the primary rig as a standard skinned GLB; only the legacy URL and its asset declaration change."
+        },
+        "manifest.ts": {
+          "original": "0d74264fd9696281fe388a46251584e49d8ebbe11c32005b56604f7dc4389712",
+          "current": "2f760561233be2d22a8a2f21a998fd4a072d4cb9f49cdb3059f9a330ff175e74",
+          "reason": "Restore the frozen custom _JOINTS/_WEIGHTS skitterer rig after 02e371386 rewrote the primary rig as a standard skinned GLB; only the legacy URL and its asset declaration change."
         }
       }
     },
