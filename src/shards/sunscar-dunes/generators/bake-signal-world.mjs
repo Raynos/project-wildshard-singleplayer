@@ -12,8 +12,6 @@ import { pathToFileURL } from 'node:url';
 
 const root = resolve(import.meta.dirname, '../../../..'), project = resolve(root, 'src/shards/sunscar-dunes');
 const out = resolve(root, 'public/assets/sunscar-dunes/baked');
-const PIECES = [['rocks', 'generators/rocks.ts', 'bakeSignalRocks'], ['dressing', 'generators/dressing.ts', 'bakeSignalDressing'], ['tower', 'generators/tower.ts', 'bakeSignalTower'],
-  ['caravan', 'generators/places.ts', 'bakeSignalCaravan'], ['well', 'generators/places.ts', 'bakeSignalWell'], ['braziers', 'generators/places.ts', 'bakeSignalBraziers']];
 const check = process.argv.includes('--check');
 const emit = (file, bytes) => {
   if (check) {
@@ -22,14 +20,19 @@ const emit = (file, bytes) => {
 };
 if (!check) mkdirSync(out, { recursive: true });
 const keep = new Set();
-for (const [piece, file, name] of PIECES) {
-  const generator = await import(pathToFileURL(resolve(project, file)).href);
-  const { glb, ...rows } = generator[name]();
+// SF80: the pieces are one three.js scene through the SDK's `bake(scene, identity)` (generators/scene.ts), which also writes
+// the inspectable .wildshard/cache/sunscar-dunes/scene.json (never committed)
+const [{ signalDunesBake }, { pieceRows }] = await Promise.all([import(pathToFileURL(resolve(project, 'generators/scene.ts')).href),
+  import(pathToFileURL(resolve(project, 'generators/kinds.ts')).href)]);
+const baked = signalDunesBake(root);
+for (const part of baked.pieces) {
+  const piece = part.name.replace(/^sunscar\./u, ''), { glb, ...rows } = pieceRows(part);
   const hash = createHash('sha256').update(glb).digest('hex');
   emit(resolve(out, `${piece}.glb`), glb); keep.add(`${piece}.glb`);
   emit(resolve(project, `data/${piece}.json`), `${JSON.stringify({ glb: hash, ...rows }, null, 2)}\n`);
   console.info(`sunscar-dunes ${piece}: ${String(glb.length)} bytes → baked/${piece}.glb (${hash}), ${String(rows.colliders.length)} colliders`);
 }
+console.info(`sunscar-dunes scene.json: ${String(baked.scene.nodes.length)} nodes → ${String(baked.scenePath)}`);
 // the held lash (G345, generators/lash.ts): its tubes, and where the lash leaves the hand from the client's own intake of the
 // generated glove (the model library, reading public/ through the bake fetch); the client no longer loads the glove
 {

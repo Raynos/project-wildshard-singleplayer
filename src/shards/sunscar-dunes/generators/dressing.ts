@@ -5,8 +5,8 @@ import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, TRAIL, WELL } from '../data/layout';
 import { DUNE_FIELD } from '../data/duneField';
 import { signalDunesField } from './tiles';
-import { bakeKinds } from './kinds';
-import type { PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bakePiece, signalPiece, type SignalPieceBake } from './kinds';
+import type { BakedPiece } from '@wildshard/sdk/bake';
 
 /**
  * The desert's dressing (loop 4; review #13 "something every few metres on the trails", mockups A–C): saltbush shrubs
@@ -353,7 +353,8 @@ export function buildDressing(groundAt: (x: number, z: number) => number, trailD
 }
 
 /** The dressing baked on the manifest's own dune field: each non-empty kind one GLB node, the builder's own colliders. */
-export function bakeSignalDressing(): PieceBake {
+export function signalDressingPiece(): BakedPiece<ColliderDesc> {
   const field = signalDunesField(), built = buildDressing(field.heightAt, field.trailDistance);
-  return bakeKinds('dressing', DRESSING_KINDS.map((kind) => [kind, built.meshes[kind]] as const), built.colliders);
+  return signalPiece('dressing', DRESSING_KINDS.map((kind) => [kind, built.meshes[kind]] as const), built.colliders);
 }
+export const bakeSignalDressing = (): SignalPieceBake => bakePiece(signalDressingPiece());

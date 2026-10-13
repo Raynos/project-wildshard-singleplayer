@@ -4,8 +4,9 @@ import { BRAZIERS, CARAVAN, WELL } from '../data/layout';
 import { COOK, CRATES, HD, HORSE, LANTERN, WELL_RIG } from '../data/places';
 import { DUNE_FIELD } from '../data/duneField';
 import { signalDunesField } from './tiles';
-import { bakeKinds, foldKinds } from './kinds';
-import { colliderRows, type PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bakePiece, foldKinds, signalPiece, type SignalPieceBake } from './kinds';
+import { colliderRows } from '@wildshard/sdk/bake/kinds';
+import type { BakedPiece } from '@wildshard/sdk/bake';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72, SF67 fix 3 "bake the code-built worlds"): the caravan's, the well's and the
@@ -132,15 +133,17 @@ export function waymarkFrame(x: number, z: number, groundAt: Ground): { y: numbe
 }
 
 /** The caravan baked on the manifest's own dune field: its kinds, colliders and live-part anchors. */
-export function bakeSignalCaravan(): PieceBake & { anchors: CaravanAnchors } {
+export function signalCaravanPiece(): BakedPiece<ColliderDesc> {
   const field = signalDunesField(), frame = buildCaravanFrame(field.heightAt);
-  return { ...bakeKinds('caravan', foldKinds(frame.root), frame.colliders), anchors: frame.anchors };
+  return signalPiece('caravan', foldKinds(frame.root), frame.colliders, { anchors: frame.anchors });
 }
+export const bakeSignalCaravan = (): SignalPieceBake => bakePiece(signalCaravanPiece());
 /** The well baked on the manifest's own dune field. */
-export function bakeSignalWell(): PieceBake & { anchors: { y: number } } {
+export function signalWellPiece(): BakedPiece<ColliderDesc> {
   const field = signalDunesField(), frame = buildWellFrame(field.heightAt);
-  return { ...bakeKinds('well', foldKinds(frame.root), frame.colliders), anchors: frame.anchors };
+  return signalPiece('well', foldKinds(frame.root), frame.colliders, { anchors: frame.anchors });
 }
+export const bakeSignalWell = (): SignalPieceBake => bakePiece(signalWellPiece());
 /**
  * Waymark `i`'s charred log crown in its bowl (E399, mockup C: the hero brazier's log fire; round 1: the unlit bowls read
  * empty and black), in the brazier's own frame: seven ends splayed out over the rim and four logs laid low across the bowl
@@ -161,8 +164,9 @@ export function waymarkCrown(i: number): Group {
 }
 
 /** The three waymarks: their crowns (each in its brazier's frame), footings and colliders. */
-export function bakeSignalBraziers(): PieceBake & { braziers: { y: number; colliders: ColliderDesc[] }[] } {
+export function signalBraziersPiece(): BakedPiece<ColliderDesc> {
   const field = signalDunesField(), crowns = BRAZIERS.flatMap((_, i) => foldKinds(waymarkCrown(i)).map(([name, mesh]) => [`${String(i)}.${name}`, mesh] as const));
-  return { ...bakeKinds('braziers', crowns, []),
-    braziers: BRAZIERS.map((b) => { const w = waymarkFrame(b.x, b.z, field.heightAt); return { y: w.y, colliders: colliderRows(w.colliders) }; }) };
+  return signalPiece('braziers', crowns, [],
+    { braziers: BRAZIERS.map((b) => { const w = waymarkFrame(b.x, b.z, field.heightAt); return { y: w.y, colliders: colliderRows(w.colliders) }; }) });
 }
+export const bakeSignalBraziers = (): SignalPieceBake => bakePiece(signalBraziersPiece());

@@ -1,6 +1,5 @@
 import { BufferAttribute, BufferGeometry, CatmullRomCurve3, InstancedMesh, MeshStandardMaterial, TubeGeometry, Vector3, Euler } from 'three';
-import { bakeKinds } from './kinds';
-import type { PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bakePiece, signalPiece, type SignalPieceBake } from './kinds';
 import { WHIP_HOLD, type CoilPath, type CordRgb, type CordStyle, type LashHoldRow } from '../data/whip';
 
 /**
@@ -97,7 +96,7 @@ export function lashTip(row: LashHoldRow, glove: BufferGeometry): [number, numbe
 const kind = (geometry: BufferGeometry): InstancedMesh => new InstancedMesh(geometry, new MeshStandardMaterial(), 1);
 
 /** The lash's bake: its three kinds (no colliders), the hand's `tip` from the generated glove and the loop's `along`. */
-export function bakeSignalLash(glove: BufferGeometry, row: LashHoldRow = WHIP_HOLD): PieceBake & { tip: [number, number, number]; along: number } {
+export function bakeSignalLash(glove: BufferGeometry, row: LashHoldRow = WHIP_HOLD): SignalPieceBake {
   const loop = loopGeometry(row);
-  return { ...bakeKinds('lash', [['coil', kind(restCoilGeometry(row))], ['loop', kind(loop.geometry)], ['cord', kind(cordGeometry(row.lash))]], []), tip: lashTip(row, glove), along: loop.along };
+  return bakePiece(signalPiece('lash', [['coil', kind(restCoilGeometry(row))], ['loop', kind(loop.geometry)], ['cord', kind(cordGeometry(row.lash))]], [], { tip: lashTip(row, glove), along: loop.along }));
 }

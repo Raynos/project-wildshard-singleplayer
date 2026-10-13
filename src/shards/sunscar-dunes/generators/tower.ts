@@ -2,8 +2,8 @@ import { BoxGeometry, CylinderGeometry, Group, InstancedMesh, Matrix4, Mesh, Mes
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { TOWER } from '../data/layout';
 import { signalDunesField } from './tiles';
-import { bakeKinds } from './kinds';
-import type { PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bakePiece, signalPiece, type SignalPieceBake } from './kinds';
+import type { BakedPiece } from '@wildshard/sdk/bake';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72, SF67 fix 3 "bake the code-built worlds"): the signal tower's steel frame, baked
@@ -178,7 +178,8 @@ function towerKinds(root: Group): (readonly [string, InstancedMesh])[] {
 }
 
 /** The tower baked on the manifest's own dune field: its kinds (`generators/kinds.ts`), colliders and live-part anchors. */
-export function bakeSignalTower(): PieceBake & { anchors: TowerAnchors } {
+export function signalTowerPiece(): BakedPiece<ColliderDesc> {
   const field = signalDunesField(), frame = buildTowerFrame(field.heightAt(TOWER.x, TOWER.z), field.heightAt);
-  return { ...bakeKinds('tower', towerKinds(frame.root), frame.colliders), anchors: frame.anchors };
+  return signalPiece('tower', towerKinds(frame.root), frame.colliders, { anchors: frame.anchors });
 }
+export const bakeSignalTower = (): SignalPieceBake => bakePiece(signalTowerPiece());

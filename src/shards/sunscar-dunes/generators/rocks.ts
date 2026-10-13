@@ -4,8 +4,8 @@ import { rock } from '@wildshard/engine/world/geometryKit';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { BASIN, BRAZIERS, CARAVAN, PLAY_HALF, RIDGES, SEED, SPAWN, TOWER, WELL } from '../data/layout';
 import { signalDunesField } from './tiles';
-import { bakeKinds } from './kinds';
-import type { PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bakePiece, signalPiece, type SignalPieceBake } from './kinds';
+import type { BakedPiece } from '@wildshard/sdk/bake';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72, SF67 fix 3 "bake the code-built worlds"): Signal Dunes' wind-cut rock field, baked
@@ -72,7 +72,8 @@ export function buildRocks(groundAt: (x: number, z: number) => number, trailDist
  * builder read): each non-empty instanced kind is one GLB node (`generators/kinds.ts`), and the colliders are the builder's
  * own boxes.
  */
-export function bakeSignalRocks(): PieceBake {
+export function signalRocksPiece(): BakedPiece<ColliderDesc> {
   const field = signalDunesField(), built = buildRocks(field.heightAt, field.trailDistance);
-  return bakeKinds('rocks', [['ridges', built.ridges], ['boulders', built.boulders]], built.colliders);
+  return signalPiece('rocks', [['ridges', built.ridges], ['boulders', built.boulders]], built.colliders);
 }
+export const bakeSignalRocks = (): SignalPieceBake => bakePiece(signalRocksPiece());
