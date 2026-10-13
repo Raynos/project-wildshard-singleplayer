@@ -126,3 +126,8 @@ unload gates; the profile-ledger read/write fingerprints are intended. M5 minimu
 desktop; old/new poses remain above .99. Runner artifact bytes are unchanged from run `37865888684` on `584c24d61`.
 The receipt preserves the known desktop ambient scheduling difference, hashes and settings. Other shard baselines
 and shared metadata are untouched; Signal Dunes' missing-horse fix has its own independent proof.
+
+Nalati gh-macos15 audio only: [record 38366889945](https://github.com/Raynos/project-wildshard-singleplayer/actions/runs/38366889945),
+source `d94436d96`, restores the muted audio graph through harness `921883fb7`.
+Opus sound review approved the 26 sound/spread changes as identical to the original m5 audio law.
+This selective merge preserves every other baseline value and image, including leak data and timings.

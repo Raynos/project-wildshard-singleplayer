@@ -30582,12 +30582,21 @@
       "event": {
         "footstep:gravel": 92,
         "footstep:grass": 105,
+        "steppe.bed:camp": 1,
         "animal:marmot_whistle": 3,
+        "steppe.bed:coldwind": 1,
+        "steppe.bed:steppe-wind": 1,
+        "steppe.bed:steppe-larks": 1,
+        "steppe.bed:river": 1,
+        "steppe.bed:highwind": 1,
         "dodge": 1,
-        "audio.startSteppe": 1,
         "weaponSwap": 1
       },
-      "ambient": []
+      "ambient": [
+        "steppe.eagle",
+        "steppe.herd",
+        "steppe.marmot"
+      ]
     },
     "touch": {
       "moved": 15.095295492559705,
@@ -30636,10 +30645,6 @@
     "sounds": {
       "event": {
         "land": 1,
-        "steppe.bed:steppe-wind": 1,
-        "steppe.bed:steppe-larks": 1,
-        "steppe.bed:river": 1,
-        "steppe.bed:highwind": 1,
         "lunge": 1,
         "sabreSwing": 3,
         "animal:wolf_yelp": 5,
@@ -30652,7 +30657,10 @@
         "arrowWhoosh": 2,
         "arrowImpact:flesh": 2
       },
-      "ambient": []
+      "ambient": [
+        "steppe.herd",
+        "steppe.marmot"
+      ]
     }
   },
   "pauseResume": {
@@ -32416,9 +32424,7 @@
     "walk.sounds.event.footstep:grass": 0,
     "walk.sounds.event.animal:marmot_whistle": 0,
     "walk.sounds.event.dodge": 0,
-    "walk.sounds.event.audio.startSteppe": 0,
     "walk.sounds.event.weaponSwap": 0,
-    "walk.sounds.ambient": [],
     "walk.touch.moved": 0,
     "walk.touch.yawDelta": 0,
     "combat.swing.hits": 0,
@@ -32434,10 +32440,6 @@
     "combat.hitsToKill.swing": 0,
     "combat.hitsToKill.shot": 0,
     "combat.sounds.event.land": 0,
-    "combat.sounds.event.steppe.bed:steppe-wind": 0,
-    "combat.sounds.event.steppe.bed:steppe-larks": 0,
-    "combat.sounds.event.steppe.bed:river": 0,
-    "combat.sounds.event.steppe.bed:highwind": 0,
     "combat.sounds.event.lunge": 0,
     "combat.sounds.event.sabreSwing": 0,
     "combat.sounds.event.animal:wolf_yelp": 0,
@@ -32449,7 +32451,6 @@
     "combat.sounds.event.bowTwang": 0,
     "combat.sounds.event.arrowWhoosh": 0,
     "combat.sounds.event.arrowImpact:flesh": 0,
-    "combat.sounds.ambient": [],
     "pauseResume.before.clockNow": 0,
     "pauseResume.before.player.pos.x": 0,
     "pauseResume.before.player.pos.y": 0,
@@ -32644,7 +32645,13 @@
     "leak.weather.gpu.orphans.collected": 0,
     "leak.weather.gpu.retained.geometries": 0,
     "leak.weather.gpu.retained.textures": 0,
-    "leak.weather.gpu.retained.programs": 0
+    "leak.weather.gpu.retained.programs": 0,
+    "walk.sounds.event.steppe.bed:camp": 0,
+    "walk.sounds.event.steppe.bed:coldwind": 0,
+    "walk.sounds.event.steppe.bed:steppe-wind": 0,
+    "walk.sounds.event.steppe.bed:steppe-larks": 0,
+    "walk.sounds.event.steppe.bed:river": 0,
+    "walk.sounds.event.steppe.bed:highwind": 0
   },
   "selfMin": {
     "camp": 0.9999999999999548,
