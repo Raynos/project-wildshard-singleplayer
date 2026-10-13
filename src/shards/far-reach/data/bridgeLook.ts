@@ -1,10 +1,9 @@
-import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
-import { SKY_PAINTER_GRAPH } from './skyLook';
+import { SKY_PAINTER_GRAPH, skyMapGraph } from './skyLook';
 
 /**
  * The bridges' looks: the hover deck frame's glow for the rider near it and the rope bridges' painted deck wood (SF59
  * material graphs, the shardfile's `look.materials`), and the textured anchor posts' timber weathered to silver-grey (a
- * shader edit row, applied by world/shapes.ts with `editShader`; `@{weather}` splices how far it is greyed, `WEATHER`).
+ * graph over the post model's own map, bound by world/shapes.ts).
  */
 
 /**
@@ -61,10 +60,7 @@ node('colour', 'mix', [wood, grey, node('silver', 'add', [0.6, node('w3', 'mul',
 export const DECK_WOOD_GRAPH = { version: 1, kind: 'material', model: 'standard', nodes: { ...SKY_PAINTER_GRAPH.nodes, ...deck },
   stages: { surface: { colour: 'colour', roughness: 0.9, metalness: 0 }, lighting: SKY_PAINTER_GRAPH.lighting } } as const;
 
-/** The anchor posts' timber greyed to the mockups' silver; the gold hemp and the iron band kept. */
-export const POST_WEATHER_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'fragment', find: '#include <map_fragment>', put: `#include <map_fragment>
-  { vec3 c = diffuseColor.rgb; float l = dot(c, vec3(0.3, 0.59, 0.11));
-    float wood = (1.0 - smoothstep(0.32, 0.5, l)) * smoothstep(0.0, 0.04, c.r - c.b);
-    diffuseColor.rgb = mix(c, vec3(l) * vec3(1.06, 1.0, 0.92), wood * @{weather}); }` },
-];
+/** The anchor posts' timber greyed to the mockups' silver (0.8 of the way); the gold hemp and the iron band kept. */
+export const POST_WEATHER_GRAPH = skyMapGraph({ l: { op: 'dot', in: ['c', [0.3, 0.59, 0.11]] }, w1: { op: 'smoothstep', in: [0.32, 0.5, 'l'] }, w2: { op: 'oneMinus', in: ['w1'] },
+  rb: { op: 'sub', in: ['cr', 'cb'] }, w3: { op: 'smoothstep', in: [0, 0.04, 'rb'] }, w4: { op: 'mul', in: ['w2', 'w3'] }, wood: { op: 'mul', in: ['w4', 0.8] },
+  silver: { op: 'mul', in: ['l', [1.06, 1, 0.92]] }, colour: { op: 'mix', in: ['c', 'silver', 'wood'] } }, { colour: 'colour' });

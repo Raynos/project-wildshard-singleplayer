@@ -1,32 +1,22 @@
 import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
+import { skyMapGraph } from './skyLook';
 
 /**
- * Sky Reach's smaller paint corrections (SHARD-PLATFORM M3: shader edit rows, applied with `editShader` where each material
- * is made: world/crown.ts, world/bookStand.ts, world/fir.ts, world/trees.ts, world/build.ts, quest/keeper.ts,
- * weapons/fanModel.ts, runtime/index.ts). Each pulls a generated model's paint toward the mockups.
+ * Sky Reach's smaller paint corrections, each pulling a generated model's paint toward the mockups: SF59 material graphs
+ * over the model's own map (the shardfile's `look.materials`, bound by world/looks.ts `skyMappedLook` in world/crown.ts,
+ * world/bookStand.ts, quest/keeper.ts), and shader edit rows (applied with `editShader` in world/trees.ts,
+ * weapons/fanModel.ts, world/build.ts, runtime/index.ts): the trees wear five maps (a graph per map is a program each until
+ * a meshMap graph can share one), the fan's map arrives late, a keel has none, a creature wears the Roc's.
  */
 
+const LUMA = [0.2126, 0.7152, 0.0722];
+
 /** The crown dais's paint (it came out red-brown) toward mockup D's weathered grey stone with a warm cast. */
-export const CROWN_DAIS_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'fragment', find: '#include <map_fragment>', put: `#include <map_fragment>
-  diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.2126, 0.7152, 0.0722))) * vec3(1.06, 1.0, 0.92), diffuseColor.rgb, 0.3);` },
-];
+export const CROWN_DAIS_GRAPH = skyMapGraph({ l: { op: 'dot', in: ['c', LUMA] }, grey: { op: 'mul', in: ['l', [1.06, 1, 0.92]] }, colour: { op: 'mix', in: ['grey', 'c', 0.3] } }, { colour: 'colour' });
 
 /** The lantern's warm glass: the paint's bright amber texels burn (emissive); the iron and brass stay as painted. */
-export const LANTERN_GLOW_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'fragment', find: '#include <emissivemap_fragment>', put: `#include <emissivemap_fragment>
-  { vec3 c = diffuseColor.rgb; float amber = smoothstep(0.45, 0.75, c.r) * smoothstep(0.3, 0.6, c.r - c.b);
-    totalEmissiveRadiance += c * vec3(1.6, 1.15, 0.7) * amber; }` },
-];
-
-/** The firs' sheet: a trunk's uv is (-1, -1), so the bark is drawn from the vertex colour alone. */
-export const FIR_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'fragment', find: '#include <map_fragment>', put: `#ifdef USE_MAP
-  vec4 farTex = texture2D(map, vMapUv);
-  if (vMapUv.x < 0.0) farTex = vec4(1.0);
-  diffuseColor *= farTex;
-#endif` },
-];
+export const LANTERN_GLOW_GRAPH = skyMapGraph({ a1: { op: 'smoothstep', in: [0.45, 0.75, 'cr'] }, rb: { op: 'sub', in: ['cr', 'cb'] }, a2: { op: 'smoothstep', in: [0.3, 0.6, 'rb'] },
+  amber: { op: 'mul', in: ['a1', 'a2'] }, warm: { op: 'mul', in: ['c', [1.6, 1.15, 0.7]] }, glow: { op: 'mul', in: ['warm', 'amber'] } }, { colour: 'c', emissive: 'glow' });
 
 /** The trees' bark (the paint's came out magenta-red) toward a warm grey-brown; the foliage kept. */
 export const TREE_BARK_EDITS: readonly ShaderEditRow[] = [
@@ -36,11 +26,8 @@ export const TREE_BARK_EDITS: readonly ShaderEditRow[] = [
 ];
 
 /** The keeper's scarf and sash a warm rust-brown, not a loud red: strongly red texels pulled toward brown. */
-export const KEEPER_SCARF_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'fragment', find: '#include <map_fragment>', put: `#include <map_fragment>
-  { vec3 c = diffuseColor.rgb; float red = smoothstep(0.08, 0.25, c.r - max(c.g, c.b) * 1.1);
-    diffuseColor.rgb = mix(c, vec3(c.r * 0.72, c.r * 0.42, c.r * 0.24), red * 0.8); }` },
-];
+export const KEEPER_SCARF_GRAPH = skyMapGraph({ gb: { op: 'max', in: ['cg', 'cb'] }, gb1: { op: 'mul', in: ['gb', 1.1] }, rd: { op: 'sub', in: ['cr', 'gb1'] }, r1: { op: 'smoothstep', in: [0.08, 0.25, 'rd'] },
+  red: { op: 'mul', in: ['r1', 0.8] }, rust: { op: 'mul', in: ['cr', [0.72, 0.42, 0.24]] }, colour: { op: 'mix', in: ['c', 'rust', 'red'] } }, { colour: 'colour' });
 
 /** The painted silk toward the mockups' muted, lighter teal (E399 round 6): `@{saturation}` of its colour kept, `@{lift}` and `@{tint}` over it. */
 export const FAN_SILK_EDITS: readonly ShaderEditRow[] = [

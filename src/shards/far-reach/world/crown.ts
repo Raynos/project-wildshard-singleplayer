@@ -2,9 +2,7 @@ import { InstancedMesh, Matrix4, Mesh, Quaternion, Vector3, type Group } from 't
 import { CROWN, DAIS } from '../data/layout';
 import { CARVED } from '../data/modelFrames';
 import { hdMaterial, skyHd } from './meshes';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { CROWN_DAIS_EDITS } from '../data/paintLook';
+import { skyMappedLook } from './looks';
 import { CROWN_STONES, type Stone } from '../data/crownLayout';
 import { skyBakedPiece } from './baked';
 
@@ -35,12 +33,8 @@ function carvedSet(stones: readonly Stone[]): Mesh[] {
     mesh.computeBoundingSphere(); out.push(mesh);
   }
   const dg = d.geometry;
-  const daisMat = hdMaterial(d.map);
-  // the paint came out red-brown; mockup D's dais is weathered grey stone with a warm cast
-  patchShader(daisMat, 'far.crown-dais', PATCH_ORDER.decorate, (shader) => {
-    editShader(shader, CROWN_DAIS_EDITS);
-  }, { key: (prior) => `${prior}|far.crown-dais` });
-  const dais = new Mesh(dg, daisMat); dais.name = 'far.crown.dais'; dais.position.set(DAIS.x, CROWN.y - 0.08, DAIS.z);
+  // the paint came out red-brown; mockup D's dais is weathered grey stone with a warm cast (data/paintLook.ts)
+  const dais = new Mesh(dg, skyMappedLook('crown-dais', d.map)); dais.name = 'far.crown.dais'; dais.position.set(DAIS.x, CROWN.y - 0.08, DAIS.z);
   out.push(dais);
   return out;
 }

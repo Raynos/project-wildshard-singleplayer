@@ -1,14 +1,12 @@
 import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, CylinderGeometry, Group, InstancedMesh, type Material, Mesh, MeshStandardMaterial, TubeGeometry, Vector3, type Object3D } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
-import { POST_WEATHER_EDITS } from '../data/bridgeLook';
 import { splitAbove } from '../runtime/looks/modelIntake';
 import { fitGeometry } from '@wildshard/sdk/looks/modelLibrary';
 import { GeometryPack, fetchDeflated, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import bridgeRows from '../data/bridges.json' with { type: 'json' };
 import { BRIDGES_URL } from '../data/files';
-import { hdMaterial, skyHd, skyMesh } from './meshes';
+import { skyHd, skyMesh } from './meshes';
+import { skyMappedLook } from './looks';
 import { towerMill } from './mill';
 
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, warm brown-grey keel strata, green pines (the mockup's). */
@@ -48,20 +46,14 @@ const BRIDGE_ROWS = packedRows(bridgeRows);
 export async function loadSkyBridges(): Promise<void> {
   try { bridges = new GeometryPack(await fetchDeflated(BRIDGES_URL), BRIDGE_ROWS, 'far-reach bridges'); } catch (e: unknown) { console.error('[far-reach] the baked rope bridges did not load; they stand undrawn:', e); }
 }
-/** How far the anchor posts' wood is greyed toward weathered silver (the deck's planks: its graph, data/bridgeLook.ts). */
-const WEATHER = { post: 0.8 } as const;
 /**
  * The textured anchor post, 1.9 m tall on its footing, in its material (E392/E399, mockup A: weathered silver-grey timber wrapped in thick hemp rope under
  * an iron band; `art/far-reach/round-19-hero-models/`), or null when its model did not load: the timber weathered to the
- * mockups' silver-grey (its paint came out orange-brown); the gold hemp and the iron band, brighter or bluer, kept.
+ * mockups' silver-grey (its paint came out orange-brown; its graph, data/bridgeLook.ts); the gold hemp and the iron band, brighter or bluer, kept.
  */
-function anchorPost(): { geometry: BufferGeometry; material: MeshStandardMaterial } | null {
+function anchorPost(): { geometry: BufferGeometry; material: Material } | null {
   const source = skyHd('post-hd'); if (source === null) return null;
-  const material = hdMaterial(source.map);
-  patchShader(material, 'far.post-weather', PATCH_ORDER.decorate, (shader) => {
-    editShader(shader, spliceEdits(POST_WEATHER_EDITS, { weather: WEATHER.post.toFixed(2) }));
-  }, { key: (prior) => `${prior}|far.post-weather` });
-  return { geometry: source.geometry, material };
+  return { geometry: source.geometry, material: skyMappedLook('post-weather', source.map) };
 }
 /**
  * A rope span from its bake (SHARD-PLATFORM M3: generators/bridges.ts, by span id; `kit` is the Explorer's one segment):

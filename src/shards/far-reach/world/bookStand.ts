@@ -1,9 +1,7 @@
-import { AdditiveBlending, Group, Mesh, MeshBasicMaterial, SphereGeometry, type Texture } from 'three';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { LANTERN_GLOW_EDITS } from '../data/paintLook';
+import { AdditiveBlending, Group, Mesh, MeshBasicMaterial, SphereGeometry } from 'three';
 import { LECTERN } from '../data/bookStand';
 import { hdMaterial, skyHd } from './meshes';
+import { skyMappedLook } from './looks';
 import { skyBakedPiece } from './baked';
 
 /**
@@ -15,15 +13,6 @@ import { skyBakedPiece } from './baked';
  * Its size and the lectern's measures are data (`data/bookStand.ts`).
  */
 
-/** The lantern's warm glass: the paint's bright amber texels burn (emissive); the iron and brass stay as painted. */
-function lanternMaterial(map: Texture): ReturnType<typeof hdMaterial> {
-  const material = hdMaterial(map);
-  patchShader(material, 'far.lantern-glow', PATCH_ORDER.decorate, (shader) => {
-    editShader(shader, LANTERN_GLOW_EDITS);
-  }, { key: (prior) => `${prior}|far.lantern-glow` });
-  return material;
-}
-
 /** The modelled lectern (and its lantern on the hook) into `group`; nothing when a model is not loaded. */
 function modelled(group: Group, withLantern: boolean): void {
   const l = skyHd('lectern-hd'), h = withLantern ? skyHd('lantern-hd') : null;
@@ -32,7 +21,7 @@ function modelled(group: Group, withLantern: boolean): void {
   group.add(lectern);
   if (h !== null) {
     // hung by its ring from the hook: the lantern's top at the hook's tip
-    const lantern = new Mesh(h.geometry, lanternMaterial(h.map)); lantern.name = 'far.lectern-lantern';
+    const lantern = new Mesh(h.geometry, skyMappedLook('lantern-glow', h.map)); lantern.name = 'far.lectern-lantern';
     const [hx, hy, hz] = LECTERN.hook; lantern.position.set(hx, hy - LECTERN.lantern, hz); group.add(lantern);
     // a small warm halo round the glass, so the light reads from the spawn (mockup B's lit lantern)
     const halo = new Mesh(new SphereGeometry(0.12, 12, 8), new MeshBasicMaterial({ color: 0xffb860, transparent: true, opacity: 0.18, blending: AdditiveBlending, depthWrite: false }));
