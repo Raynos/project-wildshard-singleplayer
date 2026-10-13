@@ -13,7 +13,7 @@ export interface ResidentTile { mask: (excluded: ReadonlySet<number>) => void; s
 export interface ClientWorldViews {
   terrain: (bytes: Uint8Array, scope: Scope, shadow: boolean) => ResidentTile;
   library: (props: NonNullable<Shardfile['props']>, assets: ReadonlyMap<string, Uint8Array>, scope: Scope) => Promise<InstalledProps>;
-  props: (props: NonNullable<Shardfile['props']>, key: string, bytes: Uint8Array, scope: Scope) => Promise<ResidentTile | null>;
+  props: (props: NonNullable<Shardfile['props']>, key: string, bytes: Uint8Array, scope: Scope, additional?: ReadonlyMap<string, Uint8Array>) => Promise<ResidentTile | null>;
 }
 /** Injected ring scheduler owns all render-tile claims; the loader owns only admission, library installation and lifecycle. */
 export interface ClientWorldRings {
@@ -64,9 +64,11 @@ export async function clientWorld(source: Shardfile, assets: ClientAssets, ports
   const props = source.props === null ? null : await ports.views.library(source.props, assets.retained, ports.scope);
   const tileProps = async (key: string, scope: Scope): Promise<ResidentTile | null> => {
     const row = source.props?.tiles.find((tile) => `${tile.lod}/${tile.x}/${tile.z}` === key); if (row === undefined || source.props === null) return null;
-    scope.onDispose(assets.lease([row.file]));
+    scope.onDispose(assets.lease([row.file, ...row.additionalFiles ?? []]));
     const bytes = await assets.read(row.file); if (scope.disposed) throw new Error('Prop tile unloaded while reading');
-    return ports.views.props(source.props, key, bytes, scope);
+    const additional = new Map<string, Uint8Array>();
+    for (const hash of row.additionalFiles ?? []) additional.set(hash, await assets.read(hash));
+    return ports.views.props(source.props, key, bytes, scope, additional);
   };
   // SF67: cached tile reads resolve in microtasks, so the home tiles once installed in one 0.2-0.45 s task; the loop now ends
   // its task each ~30 ms (the same tiles in the same order)

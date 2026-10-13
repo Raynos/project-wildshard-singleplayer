@@ -68,6 +68,9 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     const attributes: Record<string, Json> = {};
     for (const [key, semantic, width] of [['position', 'POSITION', 3], ['normal', 'NORMAL', 3], ['uv', 'TEXCOORD_0', 2], ['color', 'COLOR_0', geometry.hasAttribute('color') ? geometry.getAttribute('color').itemSize : 3], ['tangent', 'TANGENT', 4]] as const) {
       const a = geometry.getAttribute(key); if (!geometry.hasAttribute(key)) continue;
+      // A trusted whole shape may use the fourth normal component as a shader channel. glTF NORMAL is vec3:
+      // retain the original vec4 as an application accessor below, never misdeclare the portable semantic.
+      if (nativeAttributes === true && key === 'normal' && a.itemSize === 4 && a.count === p.count) continue;
       if (a.itemSize !== width || a.count !== p.count || (key === 'color' && width !== 3 && width !== 4)) throw new Error('Mismatched GLB attributes');
       attributes[semantic] = accessor(Array.from({ length: a.count * width }, (_, i) => a.getComponent(Math.floor(i / width), i % width)), width, `VEC${width}`, false, key === 'position');
     }
@@ -87,7 +90,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
         const a = geometry.getAttribute(channel);
         if (!(a instanceof BufferAttribute)) throw new Error('Native GLB attributes must not be interleaved');
         let stored = semantic;
-        if (!(a.array instanceof Float32Array)) {
+        if (!(a.array instanceof Float32Array) || (semantic === 'NORMAL' && a.itemSize !== 3)) {
           stored = `_WS_RAW_${semantic.replace(/^_/u, '')}`;
           if (Object.hasOwn(attributes, stored)) throw new Error(`Native GLB semantic collision ${stored}`);
           attributes[stored] = rawAccessor(a);

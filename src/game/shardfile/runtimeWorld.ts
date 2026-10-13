@@ -87,8 +87,12 @@ export async function bindRuntimeProps(ctx: { readonly scope: Scope }, source: S
   try {
     for (const row of props.tiles) {
       const key = `${row.lod}/${row.x}/${row.z}`, scope = lifetime.child(key);
-      scope.onDispose(ports.assets.lease([row.file]));
+      scope.onDispose(ports.assets.lease([row.file, ...row.additionalFiles ?? []]));
       const bytes = await ports.assets.read(row.file), gltf = await new GLTFLoader().parseAsync(bytes.slice().buffer, ''), meshes: Mesh[] = [];
+      for (const hash of row.additionalFiles ?? []) {
+        const extra = await ports.assets.read(hash), child = await new GLTFLoader().parseAsync(extra.slice().buffer, '');
+        gltf.scene.add(child.scene);
+      }
       gltf.scene.traverse((o) => { if (isMesh(o)) meshes.push(o); });
       // a GLB material the runtime's view replaced is freed at once; one it kept lives with the tile
       const materials = (): Set<Material> => new Set(meshes.flatMap((mesh): Material[] => Array.isArray(mesh.material) ? mesh.material : [mesh.material]));

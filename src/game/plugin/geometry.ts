@@ -1,7 +1,10 @@
+import * as wholeV from 'valibot';
+import type { Scope as ResourceScope } from '@wildshard/engine/app/scope';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import { loadRigFile, type ClipName, type SocketName } from "@wildshard/engine/anim/rig";
 import { cacheUntilDisposed, retainCachedResources } from "@wildshard/engine/app/cachedAssets";
 import { releaseOnUpload } from "@wildshard/engine/render/memorySaver";
-import { Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, type Wrapping, type MinificationTextureFilter, type MagnificationTextureFilter, Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, InterleavedBufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material, InstancedMesh, InstancedBufferAttribute } from "three";
+import { Matrix4, Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, type Wrapping, type MinificationTextureFilter, type MagnificationTextureFilter, Box3, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, Uint16BufferAttribute, Vector3, BufferAttribute, type Object3D, CanvasTexture, LinearMipmapLinearFilter, SRGBColorSpace, Float16BufferAttribute, InterleavedBufferAttribute, BoxGeometry, CylinderGeometry, ConeGeometry, SphereGeometry, TorusGeometry, IcosahedronGeometry, CapsuleGeometry, Shape, ExtrudeGeometry, Color, type MeshStandardMaterialParameters, type Material, InstancedMesh, InstancedBufferAttribute } from "three";
 import { applySurfaceLooks, type SurfaceInputs } from "../systems/looks/surfaceLooks";
 import type { SurfaceLook } from "@wildshard/format/surfaceLooks";
 import { Rng } from "@wildshard/engine/core/rng";
@@ -1508,4 +1511,119 @@ export function installPivotNpc(ctx: PivotNpcLevel, row: NpcRow, ports: PivotNpc
     colliders: [{ kind: 'box', x: row.at.x, y: y + (c.above - c.below) / 2, z: row.at.z, hx: c.half, hy: Math.max(0.005, (c.above + c.below) / 2), hz: c.half, yaw: -0, surface: c.surface }], surface: c.surface });
   if (ports.source !== null) ctx.system({ id: row.id, phase: 'update', run: (dt, t) => { npc.update(dt, t, ports.player, ports.met()); } });
   return npc;
+}
+
+const WholeAttribute = wholeV.strictObject({ semantic: wholeV.string(), storage: wholeV.picklist(['Float32Array', 'Float16Array', 'Uint16Array', 'Uint32Array', 'Int16Array', 'Int8Array', 'Uint8Array']), normalized: wholeV.boolean(), itemSize: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1), wholeV.maxValue(4)) });
+const WholeNative = wholeV.record(wholeV.string(), WholeAttribute);
+const WholePartition = wholeV.strictObject({ id: wholeV.string(), vertices: wholeV.array(wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0))), triangles: wholeV.array(wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0))), vertexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(1)), indexCount: wholeV.pipe(wholeV.number(), wholeV.integer(), wholeV.minValue(0)), index: wholeV.picklist(['none', 'u16', 'u32']) });
+function isWholeMesh(node: Object3D): node is Mesh { return node instanceof Mesh; }
+const WHOLE_SEMANTICS: Readonly<Record<string, string>> = { POSITION: 'position', NORMAL: 'normal', COLOR_0: 'color', TEXCOORD_0: 'uv', TANGENT: 'tangent' };
+
+/** Original typed channels from a portable GLB node, including half-float bits and vec4 shader normals. */
+export function nativeWholeGeometry(node: Mesh): BufferGeometry {
+  const metadata: unknown = node.userData['nativeAttributes'], input: unknown = node.geometry;
+  if (!(input instanceof BufferGeometry)) throw new Error('Whole shape needs geometry');
+  const result = new BufferGeometry();
+  for (const [name, row] of Object.entries(wholeV.parse(WholeNative, metadata))) {
+    const channel = WHOLE_SEMANTICS[row.semantic] ?? row.semantic.toLowerCase(), attribute: unknown = input.getAttribute(channel);
+    if (!(attribute instanceof BufferAttribute) || attribute.itemSize !== row.itemSize || attribute.normalized !== row.normalized) throw new Error(`Whole shape missing typed channel ${channel}`);
+    if (row.storage === 'Float16Array') {
+      if (!(attribute.array instanceof Uint16Array)) throw new Error('Whole half-float channel needs uint16 bits');
+      result.setAttribute(name, new Float16BufferAttribute(attribute.array.slice(), row.itemSize, row.normalized));
+    } else {
+      if (attribute.array.constructor.name !== row.storage) throw new Error('Whole channel storage mismatch');
+      result.setAttribute(name, attribute.clone());
+    }
+  }
+  result.setIndex(input.getIndex()?.clone() ?? null); return result;
+}
+function wholeStorage(row: wholeV.InferOutput<typeof WholeAttribute>, count: number): BufferAttribute {
+  const n = row.itemSize * count;
+  if (row.storage === 'Float16Array') return new Float16BufferAttribute(new Uint16Array(n), row.itemSize, row.normalized);
+  const array = row.storage === 'Float32Array' ? new Float32Array(n) : row.storage === 'Uint16Array' ? new Uint16Array(n)
+    : row.storage === 'Uint32Array' ? new Uint32Array(n) : row.storage === 'Int16Array' ? new Int16Array(n)
+    : row.storage === 'Int8Array' ? new Int8Array(n) : new Uint8Array(n);
+  return new BufferAttribute(array, row.itemSize, row.normalized);
+}
+/** One original source draw reconstructed from exact subsets, at its original double-precision matrix. */
+export interface WholeGeometryView { readonly geometry: BufferGeometry; readonly matrix: Matrix4 }
+class WholeGeometryAssembler {
+  private readonly groups = new Map<string, { output: BufferGeometry; matrix: Matrix4; seen: Uint8Array; triangles: Uint8Array; layout: string }>();
+  add(node: Mesh): void {
+    const metadata: unknown = node.userData['wholePartition'], native: unknown = node.userData['nativeAttributes'], pose: unknown = node.userData['matrix64'];
+    const row = wholeV.parse(WholePartition, metadata), channels = wholeV.parse(WholeNative, native), signature = JSON.stringify(channels);
+    const values = wholeV.parse(wholeV.pipe(wholeV.array(wholeV.pipe(wholeV.number(), wholeV.finite())), wholeV.length(16)), pose), input = nativeWholeGeometry(node);
+    try {
+      let group = this.groups.get(row.id);
+      if (group === undefined) {
+        const output = new BufferGeometry();
+        for (const [name, channel] of Object.entries(channels)) output.setAttribute(name, wholeStorage(channel, row.vertexCount));
+        if (row.index !== 'none') output.setIndex(new BufferAttribute(row.index === 'u16' ? new Uint16Array(row.indexCount) : new Uint32Array(row.indexCount), 1));
+        group = { output, matrix: new Matrix4().fromArray(values), seen: new Uint8Array(row.vertexCount), triangles: new Uint8Array((row.index === 'none' ? row.vertexCount : row.indexCount) / 3), layout: signature };
+        this.groups.set(row.id, group);
+      }
+      if (signature !== group.layout || !group.matrix.equals(new Matrix4().fromArray(values)) || row.vertexCount !== group.seen.length || row.indexCount !== (group.output.index?.count ?? 0)) throw new Error('Whole source layout or transform differs');
+      for (const [local, vertex] of row.vertices.entries()) {
+        if (vertex >= group.seen.length) throw new Error('Whole vertex ordinal outside source');
+        for (const [name, destination] of Object.entries(group.output.attributes)) {
+          const source = input.getAttribute(name);
+          if (!(source instanceof BufferAttribute) || !(destination instanceof BufferAttribute) || local >= source.count) throw new Error('Whole channel layout differs');
+          const bytes = source.array.subarray(local * source.itemSize, (local + 1) * source.itemSize);
+          if (group.seen[vertex] === 1) for (const [i, component] of bytes.entries()) if (!Object.is(component, destination.array[vertex * destination.itemSize + i])) throw new Error('Whole shared vertex differs');
+          destination.array.set(bytes, vertex * destination.itemSize);
+        }
+        group.seen[vertex] = 1;
+      }
+      const index = input.getIndex();
+      for (const [local, triangle] of row.triangles.entries()) {
+        if (triangle >= group.triangles.length || group.triangles[triangle] === 1) throw new Error('Whole duplicate or invalid triangle');
+        for (let corner = 0; corner < 3; corner++) {
+          const vertex = row.vertices[index?.getX(local * 3 + corner) ?? local * 3 + corner];
+          if (vertex === undefined) throw new Error('Whole missing triangle vertex');
+          if (group.output.index !== null) group.output.index.setX(triangle * 3 + corner, vertex);
+          else if (vertex !== triangle * 3 + corner) throw new Error('Whole non-indexed topology differs');
+        }
+        group.triangles[triangle] = 1;
+      }
+    } finally { input.dispose(); }
+  }
+  finish(): Map<string, WholeGeometryView> {
+    const result = new Map<string, WholeGeometryView>();
+    for (const [id, group] of this.groups) {
+      if (group.seen.some(flag => flag === 0) || group.triangles.some(flag => flag === 0)) throw new Error(`Whole source ${id} is incomplete`);
+      group.output.computeBoundingSphere(); result.set(id, { geometry: group.output, matrix: group.matrix });
+    }
+    return result;
+  }
+  dispose(): void { for (const group of this.groups.values()) group.output.dispose(); }
+}
+/** Reconstruct source draws from parsed subsets; duplicate/missing triangles and conflicting shared bytes refuse. */
+export function assembleWholeGeometryViews(nodes: readonly Mesh[]): Map<string, WholeGeometryView> {
+  const assembler = new WholeGeometryAssembler();
+  try { for (const node of nodes) assembler.add(node); return assembler.finish(); }
+  catch (error) { assembler.dispose(); throw error; }
+}
+/** Read verified tile/library GLBs and assemble original draws; temporary decodes are freed after each bounded file. */
+export async function readWholeGeometry(scope: ResourceScope, source: Shardfile, refs?: readonly string[]): Promise<Map<string, WholeGeometryView>> {
+  const { runtimeProduct } = await import('../shardfile/runtimeProduct');
+  const product = runtimeProduct(source), hashes = refs ?? source.props?.tiles.flatMap(row => [row.file, ...row.additionalFiles ?? []]) ?? [];
+  const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js'), assembler = new WholeGeometryAssembler();
+  try {
+    for (const hash of hashes) {
+      const bytes = await product.assets.read(hash), gltf = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, ''), cleanup: (() => void)[] = [];
+      try {
+        gltf.scene.traverse(object => {
+          if (!isWholeMesh(object)) return;
+          const original: unknown = object.geometry;
+          if (!(original instanceof BufferGeometry)) throw new Error('Whole shape needs geometry');
+          cleanup.push(() => { original.dispose(); for (const material of Array.isArray(object.material) ? object.material : [object.material]) material.dispose(); });
+          assembler.add(object);
+        });
+        if (scope.disposed) throw new Error('Whole geometry unloaded while reading');
+      } finally { for (const dispose of cleanup) dispose(); }
+    }
+    const result = assembler.finish();
+    for (const view of result.values()) scope.own(view.geometry);
+    product.assets.releaseTiles(); return result;
+  } catch (error) { assembler.dispose(); throw error; }
 }

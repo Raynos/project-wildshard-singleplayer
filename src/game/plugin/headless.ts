@@ -51,7 +51,7 @@ export function runtimeBoundWorldFiles(source: Shardfile): ReadonlySet<string> {
   if (binds.has('terrain') && source.terrain !== null) for (const ref of [source.terrain.collider, ...source.terrain.tiles.map((tile) => tile.file)]) files.add(ref);
   const props = source.props;
   if (binds.has('props') && props !== null) {
-    for (const ref of [...props.tiles.map((tile) => tile.file), ...props.panels.map((panel) => panel.file), ...props.models.map((model) => model.file),
+    for (const ref of [...props.tiles.flatMap((tile) => [tile.file, ...tile.additionalFiles ?? []]), ...props.panels.map((panel) => panel.file), ...props.models.map((model) => model.file),
       ...props.textures.flatMap((texture) => [texture.model, texture.colour]), ...(props.far === null ? [] : [props.far])]) files.add(ref);
   }
   if (files.size === 0) return files;

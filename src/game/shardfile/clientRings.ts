@@ -52,7 +52,9 @@ export function clientRingPorts(instances: ReadonlyMap<string, ClientRingInstanc
     }
     const props = source.props, row = props?.tiles.find((candidate) => `${candidate.lod}/${candidate.x}/${candidate.z}` === key);
     if (props !== null && row !== undefined) {
-      const resident = await views.props(props, key, await admitted(row.file), group, scope);
+      const additional = new Map<string, Uint8Array>();
+      for (const hash of row.additionalFiles ?? []) additional.set(hash, await admitted(hash));
+      const resident = await views.props(props, key, await admitted(row.file), group, scope, additional);
       if (resident !== null) tiles.push(resident);
     }
     return { scope, group, tiles, root: instance.root };

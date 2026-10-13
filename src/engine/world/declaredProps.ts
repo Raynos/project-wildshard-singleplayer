@@ -105,7 +105,7 @@ function releaseVariant(family: Material, material: Material): void {
 
 /** Admitted prop bindings; the game validates hashes and tile relationships before handing bytes to this renderer. */
 export interface DeclaredProps {
-  family: string; tiles: readonly { lod: number; x: number; z: number; file: string }[];
+  family: string; tiles: readonly { lod: number; x: number; z: number; file: string; additionalFiles?: readonly string[] }[];
   panels: readonly { id: string; file: string; visible?: boolean }[]; models: readonly { id: string; file: string }[];
   far: string | null; textures: readonly { model: string; colour: string }[];
 }
@@ -176,7 +176,13 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
   };
   const tiles = new Map<string, Object3D>(), panels = new Map<string, Object3D>(), models = new Map<string, Object3D>();
   try {
-    for (const tile of props.tiles) { const key = `${tile.lod}/${tile.x}/${tile.z}`; if (tile.lod !== (ports.lod ?? 0) || (ports.selectedTiles !== undefined && !ports.selectedTiles.has(key))) continue; const root = await parse(tile.file); tiles.set(key, root); roots.add(root); }
+    for (const tile of props.tiles) {
+      const key = `${tile.lod}/${tile.x}/${tile.z}`;
+      if (tile.lod !== (ports.lod ?? 0) || (ports.selectedTiles !== undefined && !ports.selectedTiles.has(key))) continue;
+      const root = await parse(tile.file);
+      for (const hash of tile.additionalFiles ?? []) root.add(await parse(hash));
+      tiles.set(key, root); roots.add(root);
+    }
     for (const panel of ports.includeLibrary === false || (ports.lod ?? 0) !== 0 ? [] : props.panels) { const root = await parse(panel.file); root.visible = panel.visible ?? true; panels.set(panel.id, root); roots.add(root); }
     for (const model of ports.includeLibrary === false ? [] : props.models) models.set(model.id, await parse(model.file));
     const far = props.far === null || ports.lod !== 'far' ? null : await parse(props.far); if (far !== null) { far.visible = ports.lod === 'far'; roots.add(far); }

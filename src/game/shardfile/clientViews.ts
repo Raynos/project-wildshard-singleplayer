@@ -27,7 +27,7 @@ function noMask(excluded: ReadonlySet<number>): void { if (excluded.size > 0) th
  */
 export interface ClientTileViews {
   terrain: (input: Uint8Array | TerrainTileData, root: Object3D, scope: Scope, shadow: boolean) => ResidentTile;
-  props: (props: NonNullable<Shardfile['props']>, key: string, bytes: Uint8Array, root: Object3D, scope: Scope) => Promise<ResidentTile | null>;
+  props: (props: NonNullable<Shardfile['props']>, key: string, bytes: Uint8Array, root: Object3D, scope: Scope, additional?: ReadonlyMap<string, Uint8Array>) => Promise<ResidentTile | null>;
   /**
    * The declared library panels only (a door, a gate: what `targets.panels` shows and hides), under `root`, each starting at
    * its declared `visible`; no tiles, models or far proxy. The grid draws a neighbour's panels with these (G222 playtest #7).
@@ -43,7 +43,9 @@ interface ViewPorts { terrain: string | null; materials: ReadonlyMap<string, Mat
   /** The decoded terrain collider every tile was cut from: each tile's normals come from it, so tile edges light alike (absent: each tile's own grid). */
   lattice?: TerrainTileData;
   /** The terrain's shadow flags (`terrain.shadow`): a tile casts only when `cast` (and the shadow disc says so), receives only when `receive` (absent: both). */
-  terrainShadow?: NonNullable<Shardfile['terrain']>['shadow'] | undefined }
+  terrainShadow?: NonNullable<Shardfile['terrain']>['shadow'] | undefined;
+  /** The tiles' draw order among the opaque surfaces (`terrain.order`, three's renderOrder; absent: 0). */
+  terrainOrder?: number | undefined }
 
 /**
  * Outline what a props root draws: with named surfaces each mesh by its own material (a graph that declares
@@ -67,15 +69,16 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
       if (material === null) throw new Error('shardfile views: a terrain tile in a shard without terrain');
       const mesh = installTerrainTile(input, { root, scope, material, shadow: cast && shadow, ...(ports.lattice === undefined ? {} : { lattice: ports.lattice }) });
       if (!receive) mesh.receiveShadow = false;
+      if (ports.terrainOrder !== undefined) mesh.renderOrder = ports.terrainOrder;
       const hulls = ports.outline?.(mesh, material, scope) ?? [];
       // a coarse tile's mask moves its draw range; its hull (a shallow geometry copy) follows
       const mask = (excluded: ReadonlySet<number>): void => { maskTerrainTile(mesh, excluded); for (const hull of hulls) hull.geometry.setDrawRange(mesh.geometry.drawRange.start, mesh.geometry.drawRange.count); };
       return { mask, shadow: cast ? (enabled) => { mesh.castShadow = enabled; } : () => undefined };
     },
-    props: async (props, key, bytes, scene, scope): Promise<ResidentTile | null> => {
+    props: async (props, key, bytes, scene, scope, additional): Promise<ResidentTile | null> => {
       const row = props.tiles.find((tile) => `${tile.lod}/${tile.x}/${tile.z}` === key);
       if (row === undefined) throw new Error(`shardfile views: no props tile ${key}`);
-      const installed = await installDeclaredProps(props, { scene, scope, assets: new Map([[row.file, bytes]]), materials: ports.materials, textures: ports.textures,
+      const installed = await installDeclaredProps(props, { scene, scope, assets: new Map([[row.file, bytes], ...additional ?? []]), materials: ports.materials, textures: ports.textures,
         lod: row.lod, selectedTiles: new Set([key]), includeLibrary: false, ...surfacePort(ports) });
       const root = installed.tiles.get(key); if (root === undefined) return null;
       if (row.lod !== 1) outlineProps(root, ports, ports.materials.get(props.family), scope);
@@ -108,6 +111,6 @@ export function clientViews(ports: ViewPorts & { root: Object3D }): ClientWorldV
       for (const root of [...installed.panels.values(), ...installed.models.values()]) outlineProps(root, ports, family, scope);
       return installed;
     },
-    props: (props, key, bytes, scope) => tiles.props(props, key, bytes, ports.root, scope),
+    props: (props, key, bytes, scope, additional) => tiles.props(props, key, bytes, ports.root, scope, additional),
   };
 }

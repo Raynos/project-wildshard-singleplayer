@@ -55,6 +55,7 @@ export function partitionWholeGeometry(sourceGeometry: BufferGeometry, transform
   const position = sourceGeometry.getAttribute('position'), index = sourceGeometry.getIndex(), count = index?.count ?? position.count;
   if (count % 3 !== 0) throw new Error('Whole geometry requires triangles');
   const groups = new Map<string, { x: number; z: number; vertices: number[]; triangles: number[]; indices: number[]; lookup: Map<number, number> }>();
+  const active = new Map<string, number>();
   const point = new Vector3(), centroid = new Vector3();
   for (let triangle = 0; triangle < count / 3; triangle++) {
     const ids = [0, 1, 2].map(corner => index?.getX(triangle * 3 + corner) ?? triangle * 3 + corner);
@@ -63,7 +64,10 @@ export function partitionWholeGeometry(sourceGeometry: BufferGeometry, transform
     centroid.multiplyScalar(1 / 3);
     const x = Math.min(7, Math.floor((centroid.x + 250) / 62.5)), z = Math.min(7, Math.floor((centroid.z + 250) / 62.5));
     if (!Number.isFinite(centroid.x) || !Number.isFinite(centroid.z) || x < 0 || z < 0 || centroid.x > 250 || centroid.z > 250) throw new Error('Whole triangle centroid outside the cell');
-    const key = `${x}/${z}`, group = groups.get(key) ?? { x, z, vertices: [], triangles: [], indices: [], lookup: new Map<number, number>() };
+    const address = `${x}/${z}`;
+    let segment = active.get(address) ?? 0;
+    if ((groups.get(`${address}/${segment}`)?.triangles.length ?? 0) >= 10000) { segment++; active.set(address, segment); }
+    const key = `${address}/${segment}`, group = groups.get(key) ?? { x, z, vertices: [], triangles: [], indices: [], lookup: new Map<number, number>() };
     group.triangles.push(triangle);
     for (const vertex of ids) {
       let local = group.lookup.get(vertex);
@@ -200,13 +204,18 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     if (!(m instanceof MeshStandardMaterial) || m.transparent || m.metalness !== 0 || m.map !== null || m.color.getHex() !== 0xffffff) throw new Error(`Whole prop ${entry.id} needs one opaque untextured nonmetal white surface`);
     const placed = new Mesh(mesh.geometry, m); placed.applyMatrix4(entry.transform); vertices(placed, new Matrix4(), false); // refuses a shape outside the cell
     // the shape's own attributes and index, untouched: the runtime draws exactly the triangles it built
-    const g = new BufferGeometry(); for (const key of ['position', 'normal', 'color', ...Object.values(entry.customAttributes ?? {})]) if (mesh.geometry.hasAttribute(key)) g.setAttribute(key, mesh.geometry.getAttribute(key));
+    const g = new BufferGeometry();
+    const channels = entry.partition === true ? Object.keys(mesh.geometry.attributes) : ['position', 'normal', 'color', ...Object.values(entry.customAttributes ?? {})];
+    for (const key of channels) if (mesh.geometry.hasAttribute(key)) g.setAttribute(key, mesh.geometry.getAttribute(key));
     g.setIndex(mesh.geometry.getIndex());
-    const base = { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness }), transform: entry.transform, customAttributes: entry.customAttributes, nativeAttributes: entry.nativeAttributes };
+    const customAttributes = entry.partition === true ? Object.fromEntries(Object.keys(g.attributes)
+      .filter(key => !['position', 'normal', 'color', 'uv', 'tangent'].includes(key)).map((key, i) => [`_WS_CHANNEL_${i}`, key])) : entry.customAttributes;
+    const base = { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness }), transform: entry.transform, customAttributes,
+      nativeAttributes: entry.partition === true ? true as const : entry.nativeAttributes };
     if (entry.partition !== true) return [{ ...base, owner: null, extras: undefined }];
     const preparedParts: PreparedWhole[] = [];
     for (const part of partitionWholeGeometry(g, entry.transform)) {
-      const prepared: PreparedWhole = { ...base, id: `${entry.id}_p${part.x}_${part.z}`, geometry: part.geometry,
+      const prepared: PreparedWhole = { ...base, id: `${entry.id}_p${part.x}_${part.z}_n${preparedParts.length}`, geometry: part.geometry,
       owner: { x: part.x, z: part.z }, extras: { wholePartition: { id: entry.id, vertices: part.vertices, triangles: part.triangles,
         vertexCount: g.getAttribute('position').count, indexCount: g.getIndex()?.count ?? 0,
         index: g.getIndex() === null ? 'none' : g.getIndex()?.array instanceof Uint16Array ? 'u16' : 'u32' } } };
@@ -240,10 +249,24 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
       for (const w of lod === 0 ? whole : []) if (w.owner === null ? w.at.x >= x0 && w.at.x < x0 + size && w.at.z >= z0 && w.at.z < z0 + size : w.owner.x === x && w.owner.z === z) primitives.push({ geometry: w.geometry, material: w.material, castShadow: w.castShadow, name: w.id, transform: w.transform, compactIndex: true, ...(w.customAttributes === undefined ? {} : { customAttributes: w.customAttributes }), ...(w.nativeAttributes === undefined ? {} : { nativeAttributes: w.nativeAttributes }), ...(w.extras === undefined ? {} : { extras: w.extras }) });
       const hasPanel = lod === 0 && panelFiles.some((p) => p.bounds !== null && p.bounds.max.x >= x0 && p.bounds.min.x <= x0 + size && p.bounds.max.z >= z0 && p.bounds.min.z <= z0 + size);
       if (primitives.length === 0 && !hasPanel) continue;
-      const file = save(primitives, `props.${lod}.${x}.${z}`), cost = { ...parseGlb(assets.get(file.hash) ?? new Uint8Array()) };
+      const batches: GlbPrimitive[][] = [];
+      if ((source.whole ?? []).some(entry => entry.partition === true)) {
+        let batch: GlbPrimitive[] = [];
+        for (const primitive of primitives) {
+          try { staticGlb([...batch, primitive], `props.${lod}.${x}.${z}`); batch.push(primitive); }
+          catch (error) {
+            if (!(error instanceof Error) || !['GLB resource cap', 'invalid GLB header'].includes(error.message) || batch.length === 0) throw error;
+            batches.push(batch); batch = [primitive];
+          }
+        }
+        if (batch.length > 0) batches.push(batch);
+      } else batches.push(primitives);
+      const tileFiles = batches.map((batch, i) => save(batch, batches.length === 1 ? `props.${lod}.${x}.${z}` : `props.${lod}.${x}.${z}.${i}`));
+      const file = tileFiles[0]; if (file === undefined) throw new Error('Props tile contains no file');
+      const cost = tileFiles.reduce((sum, part) => ({ decoded: sum.decoded + part.decoded, gpu: sum.gpu + part.gpu, triangles: sum.triangles + part.triangles, draws: sum.draws + part.draws }), { decoded: 0, gpu: 0, triangles: 0, draws: 0 });
       if (texture !== null) { cost.gpu += texture.gpu; cost.decoded += texture.decoded; }
       const prior = tiles.find((t) => t.lod === lod && t.x === x && t.z === z), row: Shardfile['tiles'][number] = prior ?? { lod, x, z, bounds: { min: [x0, 0, z0], max: [x0 + size, 0, z0 + size] }, geometricError: 0, files: [], compressed: 0, decoded: 0, gpu: 0, triangles: 0, draws: 0 };
-      row.files.push(file.hash); row.compressed += file.compressed + (texture?.compressed ?? 0); row.decoded += cost.decoded; row.gpu += cost.gpu; row.triangles += cost.triangles; row.draws += cost.draws;
+      row.files.push(...tileFiles.map(part => part.hash)); row.compressed += tileFiles.reduce((sum, part) => sum + part.compressed, 0) + (texture?.compressed ?? 0); row.decoded += cost.decoded; row.gpu += cost.gpu; row.triangles += cost.triangles; row.draws += cost.draws;
       for (const primitive of primitives) { primitive.geometry.computeBoundingBox(); const box = primitive.geometry.boundingBox; if (box === null) continue;
         for (const matrix of primitive.instances ?? [primitive.transform ?? new Matrix4()]) { const world = box.clone().applyMatrix4(matrix); row.bounds.min[1] = Math.min(row.bounds.min[1], world.min.y); row.bounds.max[1] = Math.max(row.bounds.max[1], world.max.y); }
       }
@@ -259,7 +282,8 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
         tileWarnings.set(`${lod}/${x}/${z}`, warnings);
         console.warn(`Props tile ${lod}/${x}/${z}: ${warnings.join('; ')} (provisional caps)`);
       }
-      if (prior === undefined) tiles.push(row); section.tiles.push({ lod, x, z, file: file.hash });
+      if (prior === undefined) tiles.push(row); section.tiles.push({ lod, x, z, file: file.hash,
+        ...(tileFiles.length === 1 ? {} : { additionalFiles: tileFiles.slice(1).map(part => part.hash) }) });
     }
   }
   // a section of whole shapes only has no far proxy: a whole shape is never decimated, and the far proxy is one capped draw

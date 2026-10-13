@@ -3612,3 +3612,25 @@ attributes, index, groups, draw range and bounds. A missing subset refuses.
 An unreferenced authored vertex travels in the first occupied tile.
 Omitting partition keeps the original whole-shape byte path. Application
 GLB extras are charged bytes and cannot overwrite reserved storage keys.
+
+### Runtime whole-geometry assembly
+
+Props tile rows optionally carry `additionalFiles` beside their first
+`file`. All files belong to the same canonical tile address and are
+individually admitted, charged and leased. Existing rows omit this field.
+Partitioned whole shapes are batched into bounded GLBs; no parser bound
+is raised. Their native metadata also supports a vec4 shader normal as
+an application accessor, while portable glTF NORMAL remains vec3.
+
+`@wildshard/game/plugin/geometry` defines `nativeWholeGeometry`,
+`assembleWholeGeometryViews` and `readWholeGeometry(scope, source, refs?)`.
+The reader uses the admitted product, decodes one bounded file at a time,
+frees transient GLB geometries/materials immediately, and scopes each
+reconstructed source geometry. Default refs are every declared props tile
+file; explicit refs select a declared library subset. It returns a map of
+source ids to `{ geometry, matrix }`, restoring the original typed bytes,
+index and double-precision transform without adding render objects.
+Missing triangles, duplicate triangles, conflicting shared vertices and
+inconsistent layouts refuse. Trusted clients retain their original source
+materials and draw structure; they never import the authoring SDK to read
+these tiles.

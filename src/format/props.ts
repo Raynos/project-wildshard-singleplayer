@@ -31,7 +31,8 @@ const collider = v.strictObject({ id, panel: v.nullable(id), initialActive: v.bo
 export const PropsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only props'), v.strictObject({ version: v.literal(1), family: id,
   materials: v.exactOptional(PropMaterialsSchema),
   splat: v.exactOptional(SplatTerrainSchema),
-  tiles: v.pipe(v.array(v.strictObject({ lod: v.picklist([0, 1]), x: address, z: address, file: ref })), v.maxLength(80)),
+  tiles: v.pipe(v.array(v.strictObject({ lod: v.picklist([0, 1]), x: address, z: address, file: ref,
+    additionalFiles: v.exactOptional(v.pipe(v.array(ref), v.minLength(1), v.maxLength(128))) })), v.maxLength(80)),
   panels: v.pipe(v.array(v.strictObject({ id, file: ref, visible: v.optional(v.boolean(), true) })), v.maxLength(64)), models: v.pipe(v.array(named), v.maxLength(64)), far: v.nullable(ref),
   colliders: v.optional(v.pipe(v.array(collider), v.maxLength(1024)), []),
   textures: v.pipe(v.array(v.strictObject({ model: ref, colour: ref })), v.maxLength(256)),
@@ -42,10 +43,14 @@ export type ShardProps = v.InferOutput<typeof PropsSchema>;
 export function validatePropsReferences(props: ShardProps, content: { files: readonly { hash: string; kind: string; dependencies: readonly string[] }[]; tiles: readonly { lod: number; x: number; z: number; files: readonly string[] }[]; library: readonly string[]; far: { files: readonly string[] } | null; look?: { materials: Parameters<typeof validatePropMaterials>[1]['look'] } }): void {
   const files = new Map(content.files.map((f) => [f.hash, f]));
   const model = (hash: string) => { if (files.get(hash)?.kind !== 'glb') throw new Error('Prop model must reference an admitted GLB'); };
-  for (const tile of props.tiles) { model(tile.file); if (!content.tiles.find((t) => t.lod === tile.lod && t.x === tile.x && t.z === tile.z)?.files.includes(tile.file)) throw new Error('Props tile disagrees with tile files'); }
+  for (const tile of props.tiles) {
+    const refs = [tile.file, ...tile.additionalFiles ?? []];
+    if (new Set(refs).size !== refs.length) throw new Error('Props tile repeats a file');
+    for (const hash of refs) { model(hash); if (!content.tiles.find((t) => t.lod === tile.lod && t.x === tile.x && t.z === tile.z)?.files.includes(hash)) throw new Error('Props tile disagrees with tile files'); }
+  }
   for (const entry of [...props.panels, ...props.models]) { model(entry.file); if (!content.library.includes(entry.file)) throw new Error('Prop panel/model must belong to the library'); }
   if (props.far !== null) { model(props.far); if (!content.far?.files.includes(props.far)) throw new Error('Props far proxy disagrees with far files'); }
-  const refs = new Set([...props.tiles.map((t) => t.file), ...props.panels.map((p) => p.file), ...props.models.map((p) => p.file), ...(props.far === null ? [] : [props.far])]);
+  const refs = new Set([...props.tiles.flatMap((t) => [t.file, ...t.additionalFiles ?? []]), ...props.panels.map((p) => p.file), ...props.models.map((p) => p.file), ...(props.far === null ? [] : [props.far])]);
   for (const texture of props.textures) if (!refs.has(texture.model) || files.get(texture.colour)?.kind !== 'ktx2' || !files.get(texture.model)?.dependencies.includes(texture.colour)) throw new Error('Prop texture must be a declared KTX2 dependency');
   if (props.materials !== undefined) validatePropMaterials(props.materials, { look: content.look?.materials ?? {}, models: [...refs], textures: props.textures, files: content.files });
   if (props.splat !== undefined) {
