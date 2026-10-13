@@ -205,11 +205,13 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
     const placed = new Mesh(mesh.geometry, m); placed.applyMatrix4(entry.transform); vertices(placed, new Matrix4(), false); // refuses a shape outside the cell
     // the shape's own attributes and index, untouched: the runtime draws exactly the triangles it built
     const g = new BufferGeometry();
-    const channels = entry.partition === true ? Object.keys(mesh.geometry.attributes) : ['position', 'normal', 'color', ...Object.values(entry.customAttributes ?? {})];
+    const retain = entry.partition === true || entry.nativeAttributes === true;
+    const channels = retain ? Object.keys(mesh.geometry.attributes) : ['position', 'normal', 'color', ...Object.values(entry.customAttributes ?? {})];
     for (const key of channels) if (mesh.geometry.hasAttribute(key)) g.setAttribute(key, mesh.geometry.getAttribute(key));
     g.setIndex(mesh.geometry.getIndex());
-    const customAttributes = entry.partition === true ? Object.fromEntries(Object.keys(g.attributes)
-      .filter(key => !['position', 'normal', 'color', 'uv', 'tangent'].includes(key)).map((key, i) => [`_WS_CHANNEL_${i}`, key])) : entry.customAttributes;
+    const automatic = Object.fromEntries(Object.keys(g.attributes)
+      .filter(key => !['position', 'normal', 'color', 'uv', 'tangent'].includes(key) && !Object.values(entry.customAttributes ?? {}).includes(key)).map((key, i) => [`_WS_CHANNEL_${i}`, key]));
+    const customAttributes = retain ? { ...automatic, ...entry.customAttributes } : entry.customAttributes;
     const base = { id: entry.id, at, castShadow: mesh.castShadow, geometry: g, material: new MeshStandardMaterial({ color: 0xffffff, vertexColors: true, roughness: m.roughness }), transform: entry.transform, customAttributes,
       nativeAttributes: entry.partition === true ? true as const : entry.nativeAttributes };
     if (entry.partition !== true) return [{ ...base, owner: null, extras: undefined }];

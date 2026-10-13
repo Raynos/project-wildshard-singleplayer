@@ -22,6 +22,22 @@ describe('shared runtime whole-geometry assembly', () => {
       for (const tile of source.props?.tiles ?? []) expect(Object.hasOwn(tile, 'additionalFiles')).toBe(false);
     }
   });
+  it('retains UVs and every typed shader channel with native storage alone', async () => {
+    const source = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3))
+      .setAttribute('normal', new Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0], 3))
+      .setAttribute('uv', new Float16BufferAttribute(new Uint16Array([0, 0x3c00, 0x3c00, 0, 0, 0]), 2))
+      .setAttribute('wind', new BufferAttribute(new Int8Array([-128, 1, 127]), 1, true));
+    const baked = bakeProps({ static: new Group(), whole: [{ id: 'pool', mesh: new Mesh(source, new MeshStandardMaterial()), transform: new Matrix4(), nativeAttributes: true }] });
+    const bytes = [...baked.assets.values()][0]; if (bytes === undefined) throw new Error('Missing native whole GLB');
+    const parsed = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, ''), node = meshes(parsed.scene)[0];
+    if (node === undefined) throw new Error('Missing native whole node');
+    const result = nativeWholeGeometry(node);
+    for (const [key, attribute] of Object.entries(source.attributes)) {
+      expect(result.getAttribute(key).array).toEqual(attribute.array);
+      expect(result.getAttribute(key).normalized).toBe(attribute.normalized);
+      expect(result.getAttribute(key).array.constructor).toBe(attribute.array.constructor);
+    }
+  });
   it('retains a four-component shader normal in a typed application accessor', async () => {
     const source = new BufferGeometry().setAttribute('position', new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3))
       .setAttribute('normal', new Float16BufferAttribute(new Uint16Array([0, 0x3c00, 0, 0x4000, 0, 0x3c00, 0, 0x4200, 0, 0x3c00, 0, 0x4400]), 4));

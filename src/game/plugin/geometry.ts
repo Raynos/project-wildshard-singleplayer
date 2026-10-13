@@ -1550,7 +1550,8 @@ export interface WholeGeometryView { readonly geometry: BufferGeometry; readonly
 class WholeGeometryAssembler {
   private readonly groups = new Map<string, { output: BufferGeometry; matrix: Matrix4; seen: Uint8Array; triangles: Uint8Array; layout: string }>();
   add(node: Mesh): void {
-    const metadata: unknown = node.userData['wholePartition'], native: unknown = node.userData['nativeAttributes'], pose: unknown = node.userData['matrix64'];
+    const metadata: unknown = node.userData['wholePartition'], native: unknown = node.userData['nativeAttributes'], instances: unknown = node.userData['instances64'];
+    const pose: unknown = node.userData['matrix64'] ?? (node instanceof InstancedMesh && node.count === 1 && Array.isArray(instances) && instances.length === 1 ? instances[0] : undefined);
     const row = wholeV.parse(WholePartition, metadata), channels = wholeV.parse(WholeNative, native), signature = JSON.stringify(channels);
     const values = wholeV.parse(wholeV.pipe(wholeV.array(wholeV.pipe(wholeV.number(), wholeV.finite())), wholeV.length(16)), pose), input = nativeWholeGeometry(node);
     try {

@@ -3634,3 +3634,11 @@ Missing triangles, duplicate triangles, conflicting shared vertices and
 inconsistent layouts refuse. Trusted clients retain their original source
 materials and draw structure; they never import the authoring SDK to read
 these tiles.
+
+Native whole storage retains every authored BufferAttribute, including
+UVs and shader channels, even without partitioning or explicit semantic
+maps. Explicit custom semantics take precedence; omitted mappings get
+deterministic application semantics. Absent native storage preserves
+existing bytes. `BakedPiece.nodeExtras` supplies plain per-kind node rows
+for library subsets; one-copy instanced subsets reconstruct at their exact
+`instances64` matrix through the same game assembler.

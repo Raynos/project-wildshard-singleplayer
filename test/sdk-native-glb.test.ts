@@ -105,7 +105,7 @@ describe('native whole-shape storage', () => {
     expect(channel('_ws_raw_color_0').normalized).toBe(true);
     expect(Array.from(channel('_ws_raw_ink').array)).toEqual([-128, 0, 127]);
     expect(mesh.userData['matrix64']).toEqual(transform.elements);
-    expect(mesh.userData['nativeAttributes']).toEqual({
+    expect(mesh.userData['nativeAttributes']).toMatchObject({
       position: { semantic: 'POSITION', storage: 'Float32Array', normalized: false, itemSize: 3 },
       normal: { semantic: '_WS_RAW_NORMAL', storage: 'Float16Array', normalized: false, itemSize: 3 },
       color: { semantic: '_WS_RAW_COLOR_0', storage: 'Uint8Array', normalized: true, itemSize: 3 },

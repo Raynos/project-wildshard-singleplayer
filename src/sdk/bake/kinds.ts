@@ -27,6 +27,8 @@ export interface KindBakeOptions {
   nativeAttributes?: true;
   /** Keep the original index type, including non-indexed shapes; omitted preserves old bytes. */
   compactIndex?: true;
+  /** Plain application rows on each GLB node (source ordinals for exact library reconstruction). */
+  nodeExtras?: (kind: string, mesh: InstancedMesh) => GlbPrimitive['extras'];
   /** The extra row fields a kind's material carries (a shard's own flags); equal extras are part of a kind's look. */
   extra?: (material: MeshStandardMaterial) => KindExtra;
   /** Custom vertex channels to keep, glTF semantic → geometry channel (`{ _SHK: 'shk' }`); a kind without the channel skips it. */
@@ -52,9 +54,11 @@ export function bakeKinds<C extends KindCollider>(name: string, meshes: readonly
     const material = Array.isArray(mesh.material) ? undefined : mesh.material;
     if (!(material instanceof MeshStandardMaterial)) throw new Error(`${name}.${kind}: one standard material per kind`);
     const customAttributes = custom(mesh.geometry, options.attributes);
+    const extras = options.nodeExtras?.(kind, mesh);
     primitives.push({ geometry: mesh.geometry, material, instances, castShadow: false,
       ...(options.nativeAttributes === undefined ? {} : { nativeAttributes: options.nativeAttributes }),
       ...(options.compactIndex === undefined ? {} : { compactIndex: options.compactIndex }),
+      ...(extras === undefined ? {} : { extras }),
       ...(customAttributes === undefined ? {} : { customAttributes }) });
     kinds.push({ name: kind, count: mesh.count, color: material.color.getHex(), roughness: material.roughness, metalness: material.metalness, flat: material.flatShading,
       emissive: material.emissive.getHex(), emissiveIntensity: material.emissiveIntensity, vertexColors: material.vertexColors, doubleSided: material.side === DoubleSide,
