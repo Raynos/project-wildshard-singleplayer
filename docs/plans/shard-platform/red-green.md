@@ -151,3 +151,5 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | push gate: Sky `world-bake.test.ts` imports `src/sdk/looks/cardField` (not committed); typecheck + oxlint red | `fdb140aec` | pending (sp-o120) | sp-o120 |
 | 2026-10-13 | push gate fixed: Sky test import back to `runtime/looks/cardField` | `fdb140aec` | `74c8cd32c` (sp-o120) | sp-o120 |
 | 2026-10-13 | **Sky map bake non-deterministic** (same tree → 3 different top.webp; stale-map gate will flap) | `fdb140aec` (graph switch, suspected) | pending (sp-o120) | sp-o120 |
+| 2026-10-13 | push gate typecheck: `sunscar-dunes/data/questMarkers.ts` possibly-undefined tuple reads | `77e4f4a05` (sp-x6) | `72a0f1546` (finite exact 3-number guard) | sp-x6 |
+| 2026-10-13 | native closure: `bindMeleeContacts` in `plugin/weaponFamily.ts` imports renderer modules (viewmodelFeel), refused by Signal's native proofs | `8a7e5dc54` | pending (sp-x8: binder to a renderer-free plugin module) | sp-x8 |
