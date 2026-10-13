@@ -278,3 +278,29 @@ to 0.600 s. Every hook passed, including final-tree guard verification.
 **Cold pre-commit <=10 s remains OPEN; green pre-push <=120 s unqualified.**
 No full suite, build, browser, Simulator, cap or policy change accompanied
 this cut. All hook runs used an isolated worktree and private index.
+
+## Bounded concurrent export reuse (sp-x5, 2026-10-13)
+
+CALL: use at most two independently leased persistent exports. The second
+uses the original full tracked-file verification, untracked cleanup and
+exact-tree check; a live lease is never read or modified. Both occupied
+still use an isolated fresh archive, with no waiting or check exemption.
+The fixture proves live-owner isolation, dirty tracked/untracked repair,
+exact staged generation and the both-held fallback. Producer failure and
+foreign-working-byte tests remain unchanged and pass.
+
+The actual hook ran in a separate Git store on source `8eb9200c0`, with
+its primary lease held by the benchmark only. Each measured input was a
+new source edit; generation missed in both runs. No shared lease or source
+file was touched. After filling the reusable slots:
+
+| Primary occupied | Total | Export | Generation | Producers | Save |
+|---|---:|---:|---:|---:|---:|
+| One slot: fresh archive | 13.98 s | 4.389 s | 5.851 s | 1.132 s | 0.364 s |
+| Two slots: verified reuse | 8.23 s | 0.314 s | 5.289 s | 0.871 s | 0.448 s |
+
+**This cold-source path passes 10 s.** First use of the second slot was
+11.84 s (export 2.787 s); an entirely empty isolated cache was 28.69 s.
+Those first-fill cases and both-held fallback remain **OPEN**, so this is
+not an unconditional pre-commit or pre-push qualification. No numerical
+limit, guard, producer or receipt was weakened.

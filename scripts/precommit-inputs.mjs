@@ -52,13 +52,19 @@ function lease(/** @type {string} */ base) {
  * The staged tree, exactly, in a persistent folder Git updates in place (bench-max 2026-10-13: the full archive and
  * extraction of ~0.9 GB cost 3-6 s per commit). Before each update every tracked file is verified against the export's
  * own index and restored, and every untracked file (the previous run's outputs) is removed, so the folder holds exactly
- * `git archive <tree>` minus UNEXPORTED. Any failure rebuilds it from scratch; a concurrent commit takes a fresh export.
+ * `git archive <tree>` minus UNEXPORTED. Any failure rebuilds it from scratch. Two independently leased slots avoid
+ * copying the whole tree for a concurrent commit; if both are busy use a fresh export.
  * @param {string} root @param {string} tree
  */
 function stagedExport(root, tree) {
   const common = gitIn(root, ['rev-parse', '--path-format=absolute', '--git-common-dir']);
-  const base = resolve(realpathSync(common), 'commit-export');
-  const release = lease(base);
+  const directory = realpathSync(common);
+  let base = resolve(directory, 'commit-export');
+  let release = lease(base);
+  if (release===null) {
+    base=resolve(directory,'commit-export-2');
+    release=lease(base);
+  }
   if (release === null) return freshExport(root, exportTree(root, tree));
   try {
     const target = exportTree(root, tree);
