@@ -131,3 +131,4 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | cold `pnpm gen`: job `pine-lookout` isolated copy lacks `generators/timberWorld.ts` (ERR_MODULE_NOT_FOUND; breaks serve-build --rev and gate gen) + undeclared output `data/timberWorld.generated.json` | `c757e98b8` | pending (sp-x4) | sp-x4 |
 | 2026-10-13 | commit measurement on package-only commits: oxlint "No files" text fed to JSON.parse | `c28916c9e` | `cc9140838` (filter to the 8 JS/TS extensions; guard receipt / Debug policy kept) | sp-x7 |
 | 2026-10-13 | push gate: SDK release export missing for `./random` | `2e3b291b5` | `f9db02909` | sp-x8 |
+| 2026-10-13 | push gate: lint on an optional guard parameter | `df983a6de` | `4a3a269ad` | sp-x5 |
