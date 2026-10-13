@@ -87,6 +87,7 @@
     "./kit/geometryPack": "./kit/geometryPack.ts",
     "./looks/modelLibrary": "./looks/modelLibrary.ts",
     "./looks/canvasAtlas": "./looks/canvasAtlas.ts",
+    "./looks/tileField": "./looks/tileField.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/mergedPrimitives": "./kit/mergedPrimitives.ts",
     "./species/clips": "./species/clips.ts",
@@ -488,6 +489,10 @@
       "./looks/canvasAtlas": {
         "types": "./dist/types/sdk/looks/canvasAtlas.d.ts",
         "default": "./dist/looks/canvasAtlas.js"
+      },
+      "./looks/tileField": {
+        "types": "./dist/types/sdk/looks/tileField.d.ts",
+        "default": "./dist/looks/tileField.js"
       },
       "./kit/bakedGeometry": {
         "types": "./dist/types/sdk/kit/bakedGeometry.d.ts",

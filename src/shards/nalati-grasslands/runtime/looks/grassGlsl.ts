@@ -208,16 +208,16 @@ void main() {
 @{LOOK_BAKE_GLSL}
 @{WIND_GLSL}
 @{TRAMPLE_GLSL}
-attribute float aQ;       // which of the 3 crossed quads (0, 1, 2 → 0°, 60°, 120° round the clump's own turn)
+// the SDK tile field (G395): aRoot.xy the clump's cell centre in its tile, aTile.xy the tile round uOrigin (uTile m),
+// aShape = across −0.5 … 0.5, up 0 … 1, which of the 3 crossed quads (0, 1, 2 → 0°, 60°, 120° round the clump's own turn)
+attribute vec3 aRoot; attribute vec3 aShape; attribute vec3 aTile;
+uniform vec2 uOrigin; uniform float uTile;
 uniform float uSpacing; uniform float uPerSide; uniform vec3 uNear; uniform vec4 uCells[16]; uniform float uTime;
 varying vec2 vUv; varying vec3 vFogWorldPos; varying float vFogDepth; varying vec3 vN; varying vec3 vTint; varying float vT; varying float vSh; varying float vSelf;
 void main() {
   vec3 camL = cameraPosition - modelMatrix[3].xyz; // the camera in the grass's own frame (a grid cell's offset; zero standalone)
-  float per = uPerSide * uPerSide;
-  float tile = floor(float(gl_InstanceID) / per);
-  float id = float(gl_InstanceID) - tile * per;
-  vec2 origin = texelFetch(tTiles, ivec2(int(tile), 0), 0).xy;
-  vec2 cell = origin + vec2(mod(id, uPerSide), floor(id / uPerSide)) * uSpacing;
+  vec2 origin = uOrigin + aTile.xy * uTile;
+  vec2 cell = origin + floor(aRoot.xy * uPerSide) * uSpacing;
   vec2 xz = cell + gHash22(cell * 1.377) * uSpacing;
   vec4 fld = texture(tField, fUV(xz));
   vec4 msk = texture(tMask, hUV(xz));
@@ -243,9 +243,9 @@ void main() {
   c = plateau && flower < .5 && r3 > .7 ? 5. : c;  // the plateau's gold: more dry clumps
   vec4 uvr = uCells[int(c)];
   // the clump's own turn; the three quads cross at 60°
-  float ang = gHash12(cell + 5.55) * 3.1416 + aQ * 1.0472;
+  float ang = gHash12(cell + 5.55) * 3.1416 + aShape.z * 1.0472;
   vec2 f = vec2(cos(ang), sin(ang));
-  float t = position.y;
+  float t = aShape.y;
   // wind + trample, as the blades (the top bends, the root stays)
   vec2 B = (gHash22(cell + 9.1) - .5) * .35;
   float g = windGust(xz);
@@ -261,10 +261,10 @@ void main() {
   h *= flower > .5 ? .8 : 1.;
   float w = h * 0.62 * mix(.85, 1.2, r2);
   vec3 root = vec3(xz.x, groundH(xz) - .04, xz.y);
-  vec3 p = root + vec3(f.x, 0., f.y) * position.x * w + vec3(bd.x * along, up, bd.y * along);
+  vec3 p = root + vec3(f.x, 0., f.y) * aShape.x * w + vec3(bd.x * along, up, bd.y * along);
   vec2 nrm = vec2(-f.y, f.x);
   vN = normalize(vec3(nrm.x, 0.9, nrm.y));
-  vUv = vec2(mix(uvr.x, uvr.z, position.x + .5), mix(uvr.y, uvr.w, t));
+  vUv = vec2(mix(uvr.x, uvr.z, aShape.x + .5), mix(uvr.y, uvr.w, t));
   // the tint: the card's painted colour, pulled toward the field's gold / green patch and the ground under it
   float lush = 1. - smoothstep(.3, .55, fld.g);   // the valley: greener, cooler clumps (the plateau keeps its gold)
   float gold = clamp(smoothstep(.42, .78, gFbm(xz * .21 + 11.)) * .85 + fld.g * .45, 0., 1.) * (1. - .7 * lush);

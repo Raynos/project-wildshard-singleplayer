@@ -10,9 +10,10 @@ import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
  * 0.085 / 0.20 / 0.45 m spacing, 3 / 2 / 1 segments); each ring skips the inner ring's square per blade (the tile
  * straddling it too) and the last ring fades out radially. Flowers are a fourth draw: camera-facing SDF heads
  * (buttercup, daisy, lupine spike, edelweiss) — no texture bytes. The near field (0 – ~3 m, where a blade is a big dark
- * spike on the phone's 94° lens) is a fifth draw: the painted card atlas (GRASS_CARDS) as clumps of 3 crossed quads on a
- * 2 m-tile ring, same field / wind / trample; under it ring 0 keeps only 40 % of its blades (slimmer) and the SDF heads
- * stand down (the cards carry the flowers). Short turf (< ~0.3 m) stays blades.
+ * spike on the phone's 94° lens) is a fifth draw: the painted card atlas (GRASS_CARDS) as clumps of 3 crossed quads on the
+ * SDK's camera-tiled card field (`@wildshard/sdk/looks/tileField`, 2 m tiles, G395), same field / wind / trample; under
+ * it ring 0 keeps only 40 % of its blades (slimmer) and the SDF heads stand down (the cards carry the flowers). Short
+ * turf (< ~0.3 m) stays blades.
  *
  * Where it grows and how tall, baked once from the same functions the CPU senses read (so stealth, the wolves and
  * `grassHeightAt` see exactly the grass that is drawn):
@@ -51,6 +52,7 @@ import { GRASS_CARDS, loadGrassCardAtlas } from './nalatiTextures';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { GRASS_GLSL } from '../runtime/looks/grassGlsl';
+import { tileFieldGeometry, tileOrigin, type TileCardRow } from '@wildshard/sdk/looks/tileField';
 
 /** the GLSL below is trusted custom code (runtime/looks/grassGlsl.ts); `@{name}` splices the fragments this module passes */
 const GRASS_GLSL_FAMILY = new ShaderFamily(GRASS_GLSL, {});
@@ -62,8 +64,9 @@ const RINGS: RingCfg[] = PHONE
   ? [{ T: 4, G: 8, s: 0.085, w: 0.047, seg: 3 }, { T: 8, G: 12, s: 0.2, w: 0.1, seg: 2 }, { T: 16, G: 14, s: 0.45, w: 0.2, seg: 1 }]
   : [{ T: 4, G: 8, s: 0.06, w: 0.034, seg: 3 }, { T: 8, G: 14, s: 0.15, w: 0.08, seg: 3 }, { T: 16, G: 18, s: 0.34, w: 0.16, seg: 2 }];
 const FLOWERS = PHONE ? { T: 8, G: 10, s: 0.3 } : { T: 8, G: 14, s: 0.22 };
-/** the near field (0 – ~3 m): painted card clumps (GRASS_CARDS), 3 crossed quads each; the blades thin out under them */
-const CARDS = PHONE ? { T: 2, G: 4, s: 0.2 } : { T: 2, G: 4, s: 0.17 };
+/** the near field (0 – ~3 m): painted card clumps (GRASS_CARDS), 3 crossed quads each, on the SDK tile field (`across` 2 m
+ *  tiles round the camera's, so the cards reach past NEAR[1] every way); the blades thin out under them */
+const CARDS = PHONE ? { T: 2, across: 5, s: 0.2 } : { T: 2, across: 5, s: 0.17 };
 /** where the cards hand over to the blades (m from the camera): cards full inside NEAR[0], gone past NEAR[1] */
 const NEAR = [2.3, 3.4] as const;
 const MAX_TILES = 256;
@@ -116,21 +119,11 @@ const CARD_VS = GRASS_GLSL_FAMILY.glsl(GRASS_GLSL.CARD_VS, { LOOK_BAKE_GLSL, WIN
 
 const CARD_FS = GRASS_GLSL_FAMILY.glsl(GRASS_GLSL.CARD_FS);
 
-/** 3 crossed quads, 2 rows each (the top row bends): position.x −0.5 … 0.5 across, position.y 0 … 1 up; aQ = the quad */
-function cardGeometry(): THREE.InstancedBufferGeometry {
-  const g = new THREE.InstancedBufferGeometry();
-  const pos: number[] = [], q: number[] = [], idx: number[] = [];
-  for (let k = 0; k < 3; k++) {
-    const b = k * 6;
-    for (const y of [0, 0.5, 1]) { pos.push(-0.5, y, 0, 0.5, y, 0); q.push(k, k); }
-    idx.push(b, b + 1, b + 3, b, b + 3, b + 2, b + 2, b + 3, b + 5, b + 2, b + 5, b + 4);
-  }
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('aQ', new THREE.Float32BufferAttribute(q, 1));
-  g.setIndex(idx);
-  g.instanceCount = 0;
-  return g;
-}
+/** A clump's outline on the tile field: 3 crossed quads, 2 rows each (the top row bends): across −0.5 … 0.5, up 0 … 1, part = the quad */
+const CLUMP: TileCardRow = {
+  shape: [0, 1, 2].flatMap((k) => [0, 0.5, 1].flatMap((y) => [[-0.5, y, k], [0.5, y, k]] as const)),
+  triangles: [0, 1, 2].flatMap((k) => [0, 1, 3, 0, 3, 2, 2, 3, 5, 2, 5, 4].map((i) => i + k * 6)),
+};
 
 function bladeGeometry(seg: number): THREE.InstancedBufferGeometry {
   const g = new THREE.InstancedBufferGeometry();
@@ -220,7 +213,7 @@ const instances = new Set<GrassV2>();
 /** the dressing landed: every v2 carpet re-bakes its mask (wireNalati calls it once the dressing is built) */
 export function reseedGrassV2(): void { for (const g of instances) g.reseed(); }
 
-const _frustum = new THREE.Frustum(), _pv = new THREE.Matrix4(), _box = new THREE.Box3(), _origin = new THREE.Vector3();
+const _frustum = new THREE.Frustum(), _pv = new THREE.Matrix4(), _box = new THREE.Box3(), _origin = new THREE.Vector3(), _camL = new THREE.Vector3();
 
 export class GrassV2 {
   readonly group = new THREE.Group();
@@ -228,7 +221,7 @@ export class GrassV2 {
   private readonly maskData = new Uint8Array(HN * HN * 4);
   private rings: Ring[] = [];
   private flowers: Ring | null = null;
-  private cards: Ring | null = null;
+  private cards: { readonly geo: THREE.InstancedBufferGeometry; readonly tiles: number; readonly origin: THREE.Vector2 } | null = null;
   private readonly trail: PlayerTrail = { lastX: Number.NaN, lastZ: Number.NaN };
   private readonly pushTrample = (x: number, z: number, r: number, s: number, vx: number, vz: number): void => { trample.push(x, z, r, s, vx, vz); };
   private baking = 0;
@@ -317,13 +310,14 @@ export class GrassV2 {
    * in when it lands.
    */
   private buildCards(shared: Record<string, THREE.IUniform>): void {
-    const cfg = CARDS, per = Math.round(cfg.T / cfg.s), geo = cardGeometry(), tiles = tileTexture(), half = (cfg.G * cfg.T) / 2;
+    // the cards stand on the cells of a per × per grid in each tile (the program jitters them, as the blades)
+    const cfg = CARDS, per = Math.round(cfg.T / cfg.s), geo = tileFieldGeometry({ across: cfg.across, layers: 0, seed: 0x4a1a, grid: per, card: CLUMP }, per * per), origin = new THREE.Vector2();
     const clear = new THREE.DataTexture(new Uint8Array(4), 1, 1, THREE.RGBAFormat); clear.needsUpdate = true;
     const a2c = !PHONE;
     const cells = GRASS_CARDS.map((c) => new THREE.Vector4(c.u0 + 0.004, c.v0 + 0.004, c.u1 - 0.004, c.v1 - 0.01));
     const mat = new THREE.ShaderMaterial({
       uniforms: {
-        ...shared, ...wind.uniforms, ...trample.uniforms, tTiles: { value: tiles.tex }, tCards: { value: clear },
+        ...shared, ...wind.uniforms, ...trample.uniforms, tCards: { value: clear }, uOrigin: { value: origin }, uTile: { value: cfg.T },
         uSpacing: { value: cfg.s }, uPerSide: { value: per }, uNear: { value: new THREE.Vector3(NEAR[0], NEAR[1], 0) },
         uCells: { value: cells }, uA2C: { value: a2c ? 1 : 0 },
       },
@@ -334,7 +328,7 @@ export class GrassV2 {
     mesh.frustumCulled = false; mesh.name = mat.name;
     mesh.onBeforeRender = (renderer, _s, camera) => { this.place(renderer, camera); };
     this.group.add(mesh);
-    this.cards = { T: cfg.T, G: cfg.G, per: per * per, mesh, geo, tiles, hole: new THREE.Vector4(), half };
+    this.cards = { geo, tiles: geo.instanceCount, origin };
     void (async (): Promise<void> => {
       try { const t = await loadGrassCardAtlas(); const u = mat.uniforms['tCards']; if (u) u.value = t; } catch (e: unknown) { console.warn('[grass v2] no card atlas', e); }
     })();
@@ -421,7 +415,7 @@ export class GrassV2 {
       prev = this.fill(R, cx, cz, prev);
     });
     if (this.flowers) this.fill(this.flowers, cx, cz, null);
-    if (this.cards) { if (above > 6) this.cards.geo.instanceCount = 0; else this.fill(this.cards, cx, cz, null); }
+    if (this.cards) { this.cards.geo.instanceCount = above > 6 ? 0 : this.cards.tiles; tileOrigin(this.cards.origin, _camL.set(cx, 0, cz), CARDS.T); }
   }
 
   private fill(R: Ring, camX: number, camZ: number, prev: { cx: number; cz: number; half: number } | null): { cx: number; cz: number; half: number } {

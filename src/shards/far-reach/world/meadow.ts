@@ -1,7 +1,7 @@
 import { KNOLL_GLSL } from '../runtime/looks/knollGlsl';
 import { Color, type Texture, type InstancedBufferGeometry, Mesh, type ShaderMaterial, Vector2, Vector3, Vector4 } from 'three';
 import { ShaderFamily, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
-import { tileFieldGeometry, tileOrigin } from '../runtime/looks/tileField';
+import { tileFieldGeometry, tileOrigin } from '@wildshard/sdk/looks/tileField';
 import { ISLES, type Isle } from '../data/layout';
 import PLACEMENTS from '../data/placements.json' with { type: 'json' };
 import { MEADOW, MEADOW_CARD, MEADOW_GLSL, MEADOW_PROGRAMS, SWARD } from '../data/meadowLook';
