@@ -219,3 +219,29 @@ export function round5HeroPlan(): { junction: string; surrounding: readonly stri
   }
   return { junction: round3.junction, surrounding: round3.surrounding, road, poses };
 }
+
+/**
+ * G379 / G380 hero round 6 (Jake: "in the center of the edge of Nalati so we can see all of Nalati, Driftwood and a bit
+ * more of the other shards"): the eye over the midpoint of Nalati's edge on the side away from Driftwood, aimed across
+ * Nalati at Driftwood, at three heights and tilts; square and landscape at the phone-1x lens.
+ */
+export function round6HeroPlan(): ReturnType<typeof round5HeroPlan> {
+  const round5 = round5HeroPlan(), grid = new GridAssembly({ developer: true, devserver: false });
+  const nalati = grid.cells.find(c => c.slug === 'nalati-grasslands'), driftwood = grid.cells.find(c => c.slug === 'driftwood-isle');
+  if (nalati === undefined || driftwood === undefined) throw new Error('Round 6 stands over Nalati\'s far edge looking at Driftwood');
+  const placed = grid.cells.filter(cell => Math.abs(cell.origin.x - nalati.origin.x) <= 2 * grid.pitch && Math.abs(cell.origin.z - nalati.origin.z) <= 2 * grid.pitch);
+  const toward = { x: driftwood.origin.x - nalati.origin.x, z: driftwood.origin.z - nalati.origin.z }, span = Math.hypot(toward.x, toward.z), half = 250;
+  const over = { instance: nalati.instance, slug: nalati.slug, stand: { x: Math.round(nalati.origin.x - toward.x / span * (half - 40)), z: Math.round(nalati.origin.z - toward.z / span * (half - 40)) } };
+  const poses: LandscapeHeroPose[] = [];
+  for (const [variant, label, height, reach] of [
+    ['a', 'over its far edge, at Driftwood', 320, 1], ['b', 'over its far edge, higher and steeper', 520, 1], ['c', 'over its far edge, aimed past Driftwood', 420, 1.35],
+  ] as const) {
+    const target = { x: nalati.origin.x + toward.x * reach, y: 0, z: nalati.origin.z + toward.z * reach };
+    const headingDegrees = Math.atan2(nalati.origin.x - target.x, nalati.origin.z - target.z) * 180 / Math.PI;
+    for (const aspect of ['square', 'landscape'] as const) {
+      poses.push({ ...aimedPose(target, placed, { id: `${aspect === 'square' ? 'SQ' : 'LS'}-NE-${variant}`, name: `Above Nalati's far edge toward Driftwood, ${label}`,
+        headingDegrees, height, distance: Math.round(span * reach + half), aspect, fovDegrees: HERO_1X_FOV[aspect] }), over });
+    }
+  }
+  return { ...round5, poses };
+}

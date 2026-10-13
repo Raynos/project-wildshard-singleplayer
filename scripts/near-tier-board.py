@@ -3,11 +3,11 @@
 
 python3 scripts/near-tier-board.py <capture directory> <art directory>
 
-Reads capture.json from scripts/capture-main-menu-hero.mjs (round 'near' or '5'). Every panel gets a label band burned
+Reads capture.json from scripts/capture-main-menu-hero.mjs (round 'near', '5' or '6'). Every panel gets a label band burned
 in: what it is (A / B, the view, the device or aspect) and each cell's real tier from that frame's readout
 (grid.state().cells[].shows: entered, near, far proxy, tiles). Writes every labelled panel as JPEG (<= 500 KB) and:
   round 'near': board-desktop.jpg and board-iphone.jpg (A beside B, one row a view);
-  round '5':    board.jpg (each pose, square beside landscape).
+  round '5'/'6': board.jpg (each pose, square beside landscape).
 """
 import json
 import sys
@@ -133,7 +133,8 @@ def main(source, output):
             colour = AMBER if ab == 'A' else CYAN
         else:
             aspect = 'square, phone band' if row['id'].startswith('SQ') else 'landscape, desktop'
-            title = (f"{row['id']} · over Nalati, to Driftwood · {round(row['eye']['y'])} m, "
+            where = "over Nalati's far edge" if report['round'] == '6' else 'over Nalati'
+            title = (f"{row['id']} · {where}, to Driftwood · {round(row['eye']['y'])} m, "
                      f"{row['downDegrees']:.0f}° down · {aspect}")
             colour = CYAN
         if image.width > 1920:
@@ -154,12 +155,13 @@ def main(source, output):
                   'Debug > Look > Neighbour detail · real build · each label lists every cell’s drawn tier from that frame',
                   output / f'board-{device}.jpg', 900 if device == 'desktop' else 560)
     else:
-        order = []
+        order, six = [], report['round'] == '6'
         for variant in ('a', 'b', 'c'):
             for aspect in ('SQ', 'LS'):
-                order += [labelled[s['file']] for s in shots if s['id'] == f'{aspect}-NW-{variant}']
-        board(order, 2, 'Main-menu hero · round 5 · above Nalati, toward Driftwood',
-              'Neighbour detail B · Nalati entered · phone-1x lens · each label lists every cell’s drawn tier',
+                order += [labelled[s['file']] for s in shots if s['id'] == f"{aspect}-{'NE' if six else 'NW'}-{variant}"]
+        board(order, 2, 'Main-menu hero · round 6 · above Nalati’s far edge, toward Driftwood' if six else 'Main-menu hero · round 5 · above Nalati, toward Driftwood',
+              ('Neighbour detail C (every cell near) · Nalati entered · phone-1x lens · each label lists every cell’s drawn tier' if six
+               else 'Neighbour detail B · Nalati entered · phone-1x lens · each label lists every cell’s drawn tier'),
               output / 'board.jpg', 900)
     (output / 'capture.json').write_text(json.dumps(report, indent=2) + '\n')
 
