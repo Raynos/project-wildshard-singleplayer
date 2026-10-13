@@ -277,8 +277,10 @@ def round4(source, output, report, options):
     draw.text((margin, 24), 'MAIN MENU HERO · ROUND 4 · ABOVE THE SHARDS (G343)', font=font(46), fill='white')
     draw.text((margin, 90), 'The camera stands over Driftwood, Nalati or Pine (never the template), aimed across the roundabout,',
               font=font(25), fill='#a9cce0')
-    draw.text((margin, 128), 'with the near-placeholder tier on (Neighbour detail B); phone-1x lens: square 62°, landscape 70° across.',
-              font=font(25), fill='#a9cce0')
+    entered = all(row.get('entered') is not None for row in rows)
+    draw.text((margin, 128), ('the cell under the camera entered (its own runtime), the others near tier B; ' if entered
+                              else 'with the near-placeholder tier on (Neighbour detail B); ')
+              + 'phone-1x lens: square 62°, landscape 70° across.', font=font(25), fill='#a9cce0')
     draw.text((margin, 176), f'Recommended: {pick} (square) and {pick_wide} (landscape). {why}', font=font(27), fill='#ffd27a')
 
     def tile(x, y, image, w, h, title, detail, chosen):
