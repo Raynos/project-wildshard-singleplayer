@@ -1,5 +1,6 @@
 /** Pine's three placed timber landmarks and the two Explorer-only shape copies, baked once into a charged product. */
 import * as THREE from 'three';
+import { pineCabinScene } from './logCabin';
 import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
 import { pineLookoutScene, pineSiteTimberScene, timberDraws } from './timberScene';
 import { bakeSiteTimbers } from './siteTimbers';
@@ -42,7 +43,7 @@ export function pineTimberWorldBake(heightAt: (x: number, z: number) => number, 
   }));
   scene.add(library);
   if (crags !== undefined) scene.add(pineCragWorldScene(crags));
-  if (streams !== undefined) scene.add(pineStreamScene(streams));
+  if (streams !== undefined) { scene.add(pineStreamScene(streams)); scene.add(pineCabinScene(heightAt, true)); }
   try { return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project }); }
   finally {
     scene.traverse(node => {

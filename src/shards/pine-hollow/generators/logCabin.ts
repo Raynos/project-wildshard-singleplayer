@@ -1293,7 +1293,7 @@ export function bakePineCabins(heightAt: (x: number, z: number) => number): { bi
 }
 
 /** All native cabin shape sources in one author Scene. Live doors, lights and field placements remain native-owned. */
-export function pineCabinScene(heightAt: (x: number, z: number) => number): THREE.Scene {
+export function pineCabinScene(heightAt: (x: number, z: number) => number, whole = false): THREE.Scene {
   const scene = new THREE.Scene(); scene.name = 'pine-hollow.cabins';
   const material = new THREE.MeshStandardMaterial({ roughness: 1 });
   const kinds: (readonly [string, THREE.InstancedMesh])[] = [];
@@ -1309,7 +1309,14 @@ export function pineCabinScene(heightAt: (x: number, z: number) => number): THRE
     mesh.setMatrixAt(0, new THREE.Matrix4()); kinds.push([`cabin-geometry-${String(ordinal)}`, mesh]);
   });
   const { rows } = buildPineCabins(heightAt, sink);
-  scene.add(new BakedPiece('pine.cabins', kinds, [], { nativeAttributes: true, compactIndex: true, attributes: { _MOSS: 'moss' } }, { ...rows, seeds }));
+  scene.add(new BakedPiece('pine.cabins', kinds, [], { nativeAttributes: true, compactIndex: true, attributes: { _MOSS: 'moss' },
+    ...(whole ? { nodeExtras: (kind: string, mesh: THREE.InstancedMesh) => {
+      const vertices = mesh.geometry.getAttribute('position').count, index = mesh.geometry.getIndex();
+      return { wholePartition: { id: kind, vertexCount: vertices, indexCount: index?.count ?? 0,
+        index: index === null ? 'none' : index.array instanceof Uint32Array ? 'u32' : 'u16',
+        vertices: { runs: [0, vertices] },
+        triangles: { runs: [0, (index?.count ?? vertices) / 3] } } };
+    } } : {}) }, { ...rows, seeds }));
   return scene;
 }
 

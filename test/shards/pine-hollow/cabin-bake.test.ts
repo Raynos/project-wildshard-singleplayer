@@ -7,12 +7,15 @@ import { readFileSync } from 'node:fs';
 import { inflateSync } from 'node:zlib';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { nativeWholeGeometry } from '@wildshard/game/plugin/geometry';
+import { nativeWholeGeometry, assembleWholeGeometryViews } from '@wildshard/game/plugin/geometry';
 // oxlint-disable-next-line import/no-nodejs-modules -- Compare all native channel bytes without instrumented element matchers.
 import { Buffer } from 'node:buffer';
 import { PINE_SEED, bakePineCabins, pineCabinBake } from '../../../src/shards/pine-hollow/generators/logCabin';
 import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 import { CABIN_ROWS, CabinGeometries, LogBuilding, NO_OWNER } from '../../../src/shards/pine-hollow/world/cabinBake';
+import { GeometryPack } from '@wildshard/sdk/kit/geometryPack';
+import { pineTimberWorldBake } from '../../../src/shards/pine-hollow/generators/timberWorld';
+import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import type { Mats } from '../../../src/shards/pine-hollow/world/homestead';
 import committed from '../../../src/shards/pine-hollow/data/cabins.json' with { type: 'json' };
 import { pineCabinHeights } from '../../../src/shards/pine-hollow/generators/bake-pine-cabins.mjs';
@@ -29,8 +32,8 @@ describe('Pine Hollow bakes its log buildings offline (G285)', () => {
     expect(PINE_SEED).toBe(PINE_HOLLOW.seed);
   });
 
-  it('assembles every building from the binary: its parts, colliders, door and lights where the rows put them', () => {
-    const geometries = new CabinGeometries(packed());
+  it('assembles every building from the admitted Scene: its parts, colliders, door and lights where the rows put them', async () => {
+    const { geometries } = await liveCabins();
     const mat = (name: string): THREE.MeshStandardMaterial => Object.assign(new THREE.MeshStandardMaterial(), { name });
     const shader = (): THREE.ShaderMaterial => new THREE.ShaderMaterial();
     const mats: Mats = { log: mat('log'), endGrain: mat('endGrain'), chink: mat('chink'), roof: mat('roof'), beam: mat('beam'), deck: mat('deck'), door: mat('door'), stone: mat('stone'),
@@ -65,7 +68,7 @@ it('authors every native cabin mesh and particle seed through one Scene without 
   const instanced = (node: THREE.Object3D): node is THREE.InstancedMesh => 'isInstancedMesh' in node && node.isInstancedMesh === true;
   loaded.scene.traverse(node => { if (instanced(node)) loadedKinds.push(node); });
   const meshes = new Map(loadedKinds.map((mesh, i) => [piece.kinds[i]?.name ?? '', mesh]));
-  const original = new CabinGeometries(packed());
+  const original = new GeometryPack(packed(), CABIN_ROWS, 'cabins');
   const seeds = [];
   for (const [ordinal, row] of committed.geometries.entries()) {
     const expected = original.geometry(ordinal);
@@ -90,4 +93,39 @@ it('authors every native cabin mesh and particle seed through one Scene without 
   }
   expect(piece.rows['seeds']).toEqual(seeds);
   expect(meshes.size).toBe(committed.geometries.filter(row => row.attrs.some(([name]) => name === 'position')).length);
+});
+
+async function liveCabins(): Promise<{ geometries: CabinGeometries; meshes: number }> {
+  const ground = readNativeTerrain(readFileSync(new URL('../../../public/assets/baked/pine-hollow/terrain.bin', import.meta.url)));
+  const authored = pineTimberWorldBake(ground.heightAt, undefined, undefined, ground);
+  const piece = authored.pieces.find(part => part.name === 'pine.cabins');
+  if (piece === undefined) throw new Error('World Scene omitted cabin sources');
+  const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(piece.glb).buffer, '');
+  const nodes: THREE.Mesh[] = [], isMesh = (node: THREE.Object3D): node is THREE.Mesh => node instanceof THREE.Mesh;
+  loaded.scene.traverse(node => { if (isMesh(node)) nodes.push(node); });
+  const views = assembleWholeGeometryViews(nodes);
+  return { geometries: new CabinGeometries(views, piece.rows['seeds']), meshes: views.size };
+}
+
+it('reconstructs every live cabin geometry and seed byte-exactly without inventing world draws or colliders', async () => {
+  const { geometries, meshes } = await liveCabins(), original = new GeometryPack(packed(), CABIN_ROWS, 'cabins');
+  expect(meshes).toBe(CABIN_ROWS.geometries.filter(row => row.attrs.some(([name]) => name === 'position')).length);
+  for (const [ordinal] of CABIN_ROWS.geometries.entries()) {
+    const actual = geometries.geometry(ordinal), expected = original.geometry(ordinal);
+    expect(Object.keys(actual.attributes).sort()).toEqual(Object.keys(expected.attributes).sort());
+    for (const name of Object.keys(expected.attributes)) {
+      const a = actual.getAttribute(name), b = expected.getAttribute(name);
+      expect(a.itemSize).toBe(b.itemSize); expect(a.normalized).toBe(b.normalized);
+      expect(a.array.constructor).toBe(b.array.constructor);
+      expect(Buffer.from(a.array.buffer, a.array.byteOffset, a.array.byteLength).equals(new Uint8Array(b.array.buffer, b.array.byteOffset, b.array.byteLength)), `geometry ${String(ordinal)} ${name}`).toBe(true);
+    }
+    const a = actual.getIndex(), b = expected.getIndex();
+    expect(a?.array.constructor).toBe(b?.array.constructor);
+    expect(a === null && b === null || a !== null && b !== null && Buffer.from(a.array.buffer, a.array.byteOffset, a.array.byteLength).equals(new Uint8Array(b.array.buffer, b.array.byteOffset, b.array.byteLength))).toBe(true);
+    expect(actual.groups).toEqual(expected.groups);
+    actual.computeBoundingBox(); expected.computeBoundingBox(); expect(actual.boundingBox).toEqual(expected.boundingBox);
+    actual.computeBoundingSphere(); expected.computeBoundingSphere(); expect(actual.boundingSphere).toEqual(expected.boundingSphere);
+    actual.dispose(); expected.dispose();
+  }
+  expect(() => new CabinGeometries(new Map(), []).geometry(0)).toThrow('missing original geometry');
 });

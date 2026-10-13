@@ -23,6 +23,7 @@ import { END_GRAIN_PAINT, GLOW_PAINT, NOISE_PAINT } from '../data/cabinPaint';
 import { CABIN_DOOR_EDITS, CABIN_LIFE, CABIN_MOSS_EDITS, CABIN_PARTICLE_GLSL, CABIN_PARTICLE_KINDS } from '../runtime/looks/cabinLook';
 import { mergeParts, type PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind } from './logKit';
+import { pineModels } from './context';
 import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from './cabinBake';
 
 /**
@@ -234,7 +235,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
     // the seven PBR sets, the six models and the bake in one round of fetches
     const [mats, [firePitGltf, lanternGltf, crate, barrel, bucket, hatchet], geometries] = await Promise.all([cabinMats(this.sky), Promise.all([
       loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadGLTF('wooden_crate_02'), loadGLTF('wine_barrel_01'), loadGLTF('wooden_bucket_01'), loadGLTF('hatchet'),
-    ]), loadCabinBake()]);
+    ]), loadCabinBake(pineModels(this.sky))]);
     // each model's parts share one material: merged into one part, a cabin's crates / barrels / buckets are one draw each (9 → 4)
     const props = { crate: mergeParts(prepModel(crate.scene, this.sky)), barrel: mergeParts(prepModel(barrel.scene, this.sky)), bucket: mergeParts(prepModel(bucket.scene, this.sky)), hatchet: mergeParts(prepModel(hatchet.scene, this.sky)) };
     this._lamp(mats.glass, mats.glass.emissiveIntensity);

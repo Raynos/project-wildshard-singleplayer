@@ -11,22 +11,33 @@ import * as THREE from 'three';
 import * as v from 'valibot';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { GeometryPack, fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
+import type { loadSiteTimbers } from './timberSites';
+import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { BakedBuildingAssembly, NO_BUILDING_OWNER, type BakedBuildingOwner, type BakedBuildingRole, type BakedBuildingTier } from '../runtime/props/bakedBuilding';
 import { CABIN_BUILD } from '../runtime/props/cabinBuild';
 import rows from '../data/cabins.json' with { type: 'json' };
 import { CabinRowsSchema, type CabinRows, type BakedBuilding, type KitMat, type PropKind } from './logKit';
 import type { Mats } from './homestead';
 
-/** the bake's binary (`src/shards/pine-hollow/generators/bake-pine-cabins.mjs`); listed in the boot's world reads (../boot/files.ts) */
-export const CABIN_BAKE_URL = '/assets/pine-hollow/baked/cabins.bin';
-/** the bake's rows, parsed strictly once */
+/** Unchanged native owner rows, parsed strictly once. */
 export const CABIN_ROWS: CabinRows = v.parse(CabinRowsSchema, rows);
 
-/** The decoded binary (the SDK's geometry pack over the bake's rows): each geometry read fresh for every building built from it. */
-export class CabinGeometries extends GeometryPack {
-  /** `bytes` the inflated bake */
-  constructor(bytes: Uint8Array) { super(bytes, CABIN_ROWS, 'cabins'); }
+const Seed = v.strictObject({ ordinal: v.pipe(v.number(), v.integer(), v.minValue(0)), width: v.literal(4), values: v.array(v.pipe(v.number(), v.finite())) });
+/** Original meshes and particle seeds; each native building receives its own geometry copy. */
+export class CabinGeometries {
+  private readonly views: Awaited<ReturnType<typeof loadSiteTimbers>>;
+  private readonly seeds: ReadonlyMap<number, readonly number[]>;
+  constructor(views: Awaited<ReturnType<typeof loadSiteTimbers>>, seeds: unknown = authored.cabins.seeds) {
+    this.views = views; this.seeds = new Map(v.parse(v.array(Seed), seeds).map(seed => [seed.ordinal, seed.values]));
+  }
+  /** Preserve geometry ordinals, typed channels and the original particle seed blocks. */
+  geometry(ordinal: number): THREE.BufferGeometry {
+    const seeds = this.seeds.get(ordinal);
+    if (seeds !== undefined) return new THREE.BufferGeometry().setAttribute('seed', new THREE.BufferAttribute(Float32Array.from(seeds), 4));
+    const view = this.views.get(`cabin-geometry-${String(ordinal)}`);
+    if (view === undefined) throw new Error(`[cabins] missing original geometry ${String(ordinal)}`);
+    return view.geometry.clone();
+  }
 }
 
 /** the hamlet's roofs for the map: each building's footprint (+1 m of eave), turned with it */
@@ -34,10 +45,11 @@ export function hamletRoofs(): { x: number; z: number; rot: number; w: number; d
   return CABIN_ROWS.buildings.filter((b) => b.hamlet).map((b) => ({ x: b.at[0], z: b.at[2], rot: b.rot, w: b.size[1] + 1, d: b.size[0] + 1 }));
 }
 
-/** Fetch and inflate the bake; a bake that fails to load is a page fault (`console.error`), and the buildings stand absent. */
-export async function loadCabinBake(): Promise<CabinGeometries | null> {
+/** Read the admitted shape library; a bake that fails to load is a page fault (`console.error`), and the buildings stand absent. */
+export async function loadCabinBake(ctx: Parameters<typeof loadSiteTimbers>[0]): Promise<CabinGeometries | null> {
   try {
-    return new CabinGeometries(await fetchDeflated(CABIN_BAKE_URL));
+    const { loadSiteTimbers: readViews } = await import('./timberSites');
+    return new CabinGeometries(await readViews(ctx));
   } catch (error: unknown) {
     console.error('[pine-hollow] the baked log buildings did not load:', error);
     return null;

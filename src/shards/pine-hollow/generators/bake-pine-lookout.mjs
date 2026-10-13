@@ -36,16 +36,19 @@ export function pineTimberGround() { return readNativeTerrain(readFileSync(resol
 async function writeTimberWorld() {
   const crags = await bakeCragRows(), ground = pineTimberGround();
   const baked = pineTimberWorldBake(ground.heightAt, root, { phone: { bin: crags.bins.phone, tiles: crags.rows.skin.phone.tiles }, desktop: { bin: crags.bins.desktop, tiles: crags.rows.skin.desktop.tiles } }, ground);
-  const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer');
-  if (piece === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
-  const hash = createHash('sha256').update(piece.glb).digest('hex');
-  const file = { hash, kind: 'glb', compressed: piece.glb.length, ...parseGlb(piece.glb), dependencies: [], critical: false };
-  baked.assets.set(hash, piece.glb);
-  const props = { ...baked.props.props, wholeLibrary: [hash] };
-  const shardfile = { ...baked.shardfile, library: [...baked.shardfile.library ?? [], hash], files: [...baked.shardfile.files, file].sort((a,b) => a.hash.localeCompare(b.hash)) };
+  const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer'), cabins = baked.pieces.find(row => row.name === 'pine.cabins');
+  if (piece === undefined || cabins === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
+  const library = [piece, cabins].map(part => {
+    const hash = createHash('sha256').update(part.glb).digest('hex'); baked.assets.set(hash, part.glb);
+    const file = { hash, kind: 'glb', compressed: part.glb.length };
+    const parsed = Object.assign(file, parseGlb(part.glb));
+    return Object.assign(parsed, { dependencies: [], critical: false });
+  });
+  const props = { ...baked.props.props, wholeLibrary: library.map(file => file.hash) };
+  const shardfile = { ...baked.shardfile, library: [...baked.shardfile.library ?? [], ...props.wholeLibrary], files: [...baked.shardfile.files, ...library].sort((a,b) => a.hash.localeCompare(b.hash)) };
   const out = resolve(root, 'src/shards/pine-hollow/assets'); mkdirSync(out, { recursive: true });
   for (const [ref, bytes] of baked.assets) writeFileSync(resolve(out, ref), bytes);
-  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, placements: pineTimberPlacements(ground.heightAt), lookout: bakeLookoutRows().rows, sites: bakeSiteTimberRows().rows })}\n`);
+  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, placements: pineTimberPlacements(ground.heightAt), lookout: bakeLookoutRows().rows, sites: bakeSiteTimberRows().rows, cabins: cabins.rows })}\n`);
   console.info(`Pine timber product: ${shardfile.tiles.length} tiles, ${shardfile.files.length} charged files, 3 world copies and 2 library copies`);
 }
 

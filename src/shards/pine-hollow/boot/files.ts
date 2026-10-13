@@ -52,9 +52,7 @@ export function worldReads(tier: Tier, tex: TexMode = 'img'): string[] {
     '/assets/pine-hollow/weapons/lever-rifle.glb', '/assets/pine-hollow/weapons/skinning-knife.glb',
     '/assets/pine-hollow/life/birds.glb', '/assets/pine-hollow/life/birds.json',
     ...['ranger', 'trader', 'miller'].map((kind) => `/assets/pine-hollow/npcs/${kind}.glb`), '/assets/pine-hollow/journal/chalk.webp',
-    // the log buildings' offline bake (G285, world/cabinBake.ts)
-    '/assets/pine-hollow/baked/cabins.bin',
-    // Crag skins and running water are charged on the admitted world tiles.
+    // Cabin meshes, crag skins and running water are charged on the admitted world tiles.
     // the procedural wildlife's offline bake (G285, models/wildlife.ts)
     '/assets/pine-hollow/baked/wildlife.glb',
   ].map(gpu).filter((url) => url in publicBytes());
