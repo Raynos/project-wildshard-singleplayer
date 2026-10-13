@@ -16,7 +16,7 @@ export function checkChangedTypes(changed) {
     const members = new Set(parsed.fileNames.map(path => resolve(path)));
     const roots = changed.map(path => resolve(path)).filter(path => members.has(path) && existsSync(path));
     if (roots.length === 0) continue;
-    const ambient = parsed.fileNames.filter(path => /\.d\.[cm]?ts$/u.test(path));
+    const ambient = parsed.fileNames.filter(path => /\.d\.[cm]?ts$/u.test(path) || /\bdeclare\s+global\s*\{/u.test(readFileSync(path, 'utf8')));
     const program = ts.createProgram([...new Set([...roots, ...ambient])], { ...parsed.options, noEmit: true });
     diagnostics.push(...parsed.errors, ...ts.getPreEmitDiagnostics(program));
   }

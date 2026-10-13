@@ -50,8 +50,9 @@ def main():
                 with log.open('w') as stream:
                     code = bounded(command, cwd, deadline, stream, env)
                 steps[name] = round(time.monotonic() - before, 3)
-                print(f'vercel-gate: {name} {steps[name]:.3f}s rc={code}', flush=True)
+                print(f'  {"✓" if code == 0 else "✗"} {name} ({steps[name]:.3f} s)', flush=True)
                 if code:
+                    print('── ' + name + ' ──', flush=True)
                     print(log.read_text()[-12000:], flush=True)
                     raise RuntimeError(name + (' exceeded 120s gate deadline' if code == 124 else ' failed'))
 
@@ -94,9 +95,9 @@ def main():
                 run('affected-plan', ['node', str(root / 'scripts/local-gate-checks.mjs'), 'plan', str(tree / '.local-gate-changed.json')])
                 plan = json.loads((tree / '.local-gate-plan.json').read_text())
                 jobs = [('typecheck', ['node', str(root / 'scripts/local-gate-checks.mjs'), 'types', str(tree / '.local-gate-changed.json')]),
-                        ('lint', ['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *present])]
+                        ('oxlint', ['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *present])]
                 if plan:
-                    jobs.append(('affected-tests', ['pnpm', 'exec', 'vitest', 'related', '--run', '--passWithNoTests', *plan]))
+                    jobs.append(('vitest', ['pnpm', 'exec', 'vitest', 'related', '--run', '--passWithNoTests', *plan]))
                 test_env = dict(os.environ, WS_VITEST_MAX_WORKERS=os.environ.get('WS_VITEST_MAX_WORKERS', '4'))
                 with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
                     futures = [executor.submit(run, name, command, tree, test_env) for name, command in jobs]

@@ -20,6 +20,7 @@ export function vitestCoverageEnabled(argv: readonly string[] = process.argv.sli
 export function isFullVitest(argv: readonly string[]): boolean {
   if (argv[0] === 'list' || argv[0] === 'init' || argv[0] === 'complete' || argv.some(arg => /^(?:--help|-h|--version|-v|--mergeReports|--merge-reports|--listTags|--list-tags|--clearCache|--clear-cache)(?:=|$)/u.test(arg))) return false;
   const parsed = parseCLI(['vitest', ...argv]);
+  if ((parsed.options.related?.length ?? 0) > 0) return false;
   if (parsed.filter.length === 0) return true;
   return parsed.filter.some(filter => {
     const base = filter.replaceAll('\\', '/').replaceAll(/[*?{}[\]]/gu, '').replace(/\.test\.[cm]?[jt]sx?$/u, '').replace(/\/+$/u, '').replace(/^\.\//u, '');

@@ -41,6 +41,7 @@ it('retains strict diagnostics in a changed root', () => {
   try {
     writeFileSync(join(root, 'tsconfig.json'), JSON.stringify({ compilerOptions: { strict: true, noEmit: true, skipLibCheck: true }, include: ['*.ts'] }));
     writeFileSync(join(root, 'changed.ts'), 'const value: string = 123; export {value};');
+    writeFileSync(join(root, 'ambient.ts'), 'declare global {interface Window {fixture: string}} export {};');
     writeFileSync(join(root, 'changed.json'), '["changed.ts"]');
     const run = spawnSync('node', [resolve('scripts/local-gate-checks.mjs'), 'types', 'changed.json'], { cwd: root, encoding: 'utf8', timeout: 5000 });
     expect(run.status).toBe(1);

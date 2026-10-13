@@ -224,7 +224,7 @@ it('prunes a dead queued owner without stealing an active lock', async () => {
 
 it('recognizes full runs despite flag values and broad filters while focused files remain free', () => {
   for (const args of [[], ['run'], ['run', '--project', 'unit'], ['run', '--shard=1/6'], ['run', '--reporter', 'dot'], ['run', './test/**'], ['run', 'test/', 'test/one.test.ts']]) expect(isFullVitest(args)).toBe(true);
-  for (const args of [['run', 'test/one.test.ts'], ['run', 'test/engine'], ['list'], ['--help'], ['--version'], ['run', '--mergeReports=blobs']]) expect(isFullVitest(args)).toBe(false);
+  for (const args of [['related', 'src/game/input.ts', '--run'], ['run', 'test/one.test.ts'], ['run', 'test/engine'], ['list'], ['--help'], ['--version'], ['run', '--mergeReports=blobs']]) expect(isFullVitest(args)).toBe(false);
 });
 
 it('refuses an unwrapped real Vitest config before a worker pool can start', () => {
