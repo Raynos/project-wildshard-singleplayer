@@ -351,6 +351,8 @@ export interface HybridRuntimeRows {
   /** the held weapon's row: its content row and the cues its swings play */
   readonly weapon: EquipmentRow;
   readonly encounters: Parameters<ShardContext['rows']['encounter']>[0];
+  /** the flag the session's quest probe reports once `quest` is complete */
+  readonly complete: string;
   readonly audio: Parameters<typeof installRuntimeAudio>[1];
   readonly cues: Parameters<typeof installRuntimeAudio>[2];
   /** Build the brain catalogue (in kit, as the rows enter): the brained species rows, their looks and the live witness. */
@@ -363,10 +365,15 @@ export type HybridWeapon = Awaited<ReturnType<BuildEquipment>>['primary'] & { on
  * The shared host of a hybrid shard's trusted plugin (G345). The shard declares `rows` and keeps only what genuinely
  * differs in its hooks; the host runs every stage in one order. world: strings, then `build`. kit: the weapon row, the
  * species catalogue (rows, looks), the encounters, `prepare`, then `buildEquipment` (`arm`, with the swing cues wired).
- * play: the weapon into the viewmodel and `dress`, `enter`, the declared audio, the coin loot, `install`, then the debug name.
+ * play: the weapon into the viewmodel and `dress`, `enter`, the declared audio, the coin loot, `install`, the quest's
+ * complete flag (from the `quest` that `install` set), then the debug name.
  */
 export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected abstract readonly rows: HybridRuntimeRows;
+  /** The player's position when the world has no motor (a renderer-free page). */
+  readonly player = new Vector3();
+  /** The runtime's quest, once `install` has made it. */
+  quest: QuestState | null = null;
   private witness: ((actor: AnimalBody) => string | null) | null = null;
   /** The world, behind the loading screen (after the strings). */
   protected abstract build(ctx: ShardContext): Promise<void> | void;
@@ -405,6 +412,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
     installRuntimeAudio(ctx, this.rows.audio, this.rows.cues);
     const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
     await this.install(ctx, loot);
+    if (rt) rt.hooks.questFlags = () => this.quest?.isComplete === true ? [this.rows.complete] : [];
     ctx.debug.expose(this.rows.expose, this);
   }
   /** Actual instantiated declared policies, for the SF27 activation receipt; no actor state is changed. */

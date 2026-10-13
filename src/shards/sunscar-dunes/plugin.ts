@@ -13,9 +13,7 @@ import type { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { HybridRuntimePlugin, bindRuntimeCoins, bindRuntimeItemContexts, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/shardfile/hybridRows';
 import source from './shard.config';
-import { Vector3 } from 'three';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { QuestState } from '@wildshard/engine/quest/core';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { STRINGS } from './data/strings';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
@@ -55,13 +53,13 @@ function duskOf(places: SignalWorld): number {
 }
 
 export class SignalDunesPlugin extends HybridRuntimePlugin {
-  readonly player = new Vector3(); whip: Bullwhip | null = null; quest: QuestState | null = null;
+  whip: Bullwhip | null = null;
   fire: SignalFire | null = null; places: SignalWorld | null = null; creatures: ReturnType<typeof installCreatures> | null = null;
   matriarch: MarkedBoss | null = null;
   /** The dune ray now flying (captures drive it). */
   get ray(): Animal | null { return this.creatures?.ray() ?? null; }
   // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
-  protected readonly rows: HybridRuntimeRows = { expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }],
+  protected readonly rows: HybridRuntimeRows = { expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }], complete: 'sunscar.complete',
     audio: source.audio, cues: installSunscarCues, species: () => {
       const brains = speciesBrains(SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES);
       return { rows: [{ ...DUNE_RAY, ...brains.bind(DUNE_RAY.kind) }, { ...SKITTERER_DATA, ...brains.bind(SKITTERER_DATA.kind) }, { ...DUNE_STRIDER, ...brains.bind(DUNE_STRIDER.kind) }, DUNE_MATRIARCH],
@@ -118,7 +116,6 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
       initial: places.fire.lit ? [{ lit: false }, { lit: true }] : [{ lit: false }] });
       places.fire.onLight = () => { signal.advance(); };
     }
-    if (rt) rt.hooks.questFlags = () => this.quest?.isComplete ? ['sunscar.complete'] : [];
     // The first frame looks a little down the spawn's slip face, over the dune rows to the tower (review H1).
     if (rt?.world) rt.world.player.pitch = -0.1;
     this.creatures = installCreatures(ctx, () => places !== null && !places.flags.has(SCOUT_FLAG));

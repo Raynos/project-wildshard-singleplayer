@@ -4,7 +4,6 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { worldBuildYield } from '@wildshard/game/shard/plugin';
 import source from '../shard.config';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import type { QuestState } from '@wildshard/engine/quest/core';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { ROC_SLATE_EDITS } from '../data/paintLook';
@@ -83,8 +82,7 @@ function boundedRows<T>(rows: readonly T[]): readonly T[] {
 const WINCH_FLAGS = [FLAGS.notes, FLAGS.roost, FLAGS.vanes, ...VANES.map(v => vaneFlag(v.id))];
 
 export class SkyReachPlugin extends HybridRuntimePlugin {
-  readonly player = new Vector3();
-  built: BuiltWorld | null = null; fan: WarFanWeapon | null = null; quest: QuestState | null = null; boss: StormRocBoss | null = null;
+  built: BuiltWorld | null = null; fan: WarFanWeapon | null = null; boss: StormRocBoss | null = null;
   rays: Animal[] = []; roostRays: Animal[] = []; goats: Animal[] = []; wisps: Animal[] = []; roc: Animal | null = null;
   /** Is the player riding the hoverboard? The fan stows and the decks glow then; the hover decks and the updraft are
    *  `mode: 'board'` pieces, which collide only then (SF34, ENGINE §5 `app.player.mode`). */
@@ -100,7 +98,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   /** The near meadow that travels with the camera (loop 4). */
   meadow: Meadow | null = null;
 
-  protected readonly rows: HybridRuntimeRows = { expose: 'farReach', strings: STRINGS, weapon: FAN_ROW, encounters: { id: ROC_ID, displayName: STRINGS.roc },
+  protected readonly rows: HybridRuntimeRows = { expose: 'farReach', strings: STRINGS, weapon: FAN_ROW, encounters: { id: ROC_ID, displayName: STRINGS.roc }, complete: FLAGS.complete,
     audio: source.audio, cues: installSkyCues, species: () => {
       const policies = declaredSkyRows();
       return { rows: policies.rows, looks: [DRIFT_RAY_LOOK, SKY_GOAT_LOOK, GALE_WISP_LOOK, STORM_ROC_LOOK], witness: policies.witness };
@@ -164,7 +162,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const { quest, flags, burst, finished, persistence } = installQuest(ctx, position, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined);
     persistence.bindProgress(rt?.play?.progress);
     this.quest = quest; this.flags = flags; this.questFinished = finished;
-    if (rt) rt.hooks.questFlags = () => quest.isComplete ? [FLAGS.complete] : [];
 
     const showGust = (): boolean => ctx.app.state === 'play' && !this.board();
     const fanInput: Parameters<ShardContext['inputContext']>[0] = { id: 'far.fan', actions: ['attack', 'heavy', 'lock', 'far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
