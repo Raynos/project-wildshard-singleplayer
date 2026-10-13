@@ -34,10 +34,14 @@ function validate(baseline) {
 
 /** @param {string} root @param {string} baselineFile @param {string[] | null} files */
 function counts(root, baselineFile, files = null) {
+  const measuredFiles = files === null ? null : files.filter(file => existsSync(resolve(root,file)));
+  // Oxlint with no path arguments scans cwd. An empty staged scope must
+  // measure no files, while main still prunes deleted rows and checks policy.
+  if (measuredFiles?.length === 0) return {};
   const frozen = legacyInventory(root), hard = hardRules(resolve(REPO, '.oxlintrc.json')); 
   if (!existsSync(resolve(root, 'src'))) throw new Error(`Missing source directory: ${root}/src`);
   if (files !== null && !files.some(file => existsSync(resolve(root,file)))) return {};
-  const result = spawnSync(process.execPath, [resolve(REPO, 'node_modules/oxlint/bin/oxlint'), '-c', configFile, '-f', 'json', ...(files === null ? ['src'] : files.filter(file => existsSync(resolve(root,file))))], {
+  const result = spawnSync(process.execPath, [resolve(REPO, 'node_modules/oxlint/bin/oxlint'), '-c', configFile, '-f', 'json', ...(measuredFiles ?? ['src'])], {
     cwd: root, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
     env: { ...process.env, WILDSHARD_RATCHET_FILE: baselineFile },
   });

@@ -129,6 +129,18 @@ describe('ratchet CLI', () => {
     expect(readFileSync(f.file,'utf8')).toBe(reduced);
     expect(f.run('--files-from',paths).status).toBe(1);
   });
+  it('does not turn an empty or deleted-only scope into a whole-tree lint', () => {
+    const f=fixture();expect(f.run('--init').status).toBe(0);
+    const baseline=f.read();baseline['wildshard/no-raw-save']={...baseline['wildshard/no-raw-save'],'src/deleted.ts':3};f.write(baseline);
+    put(f.root,'src/unrelated.ts',"localStorage.getItem('not in this scope');");
+    const paths=join(f.root,'changed.json');writeFileSync(paths,'[]');
+    expect(f.run('--update','--files-from',paths).status).toBe(0);
+    expect(f.read()['wildshard/no-raw-save']).toEqual({'src/engine/ui/example.ts':1});
+    writeFileSync(paths,'["src/deleted.ts"]');
+    expect(f.run('--update','--files-from',paths).status).toBe(0);
+    expect(f.read()['wildshard/no-raw-save']).toEqual({'src/engine/ui/example.ts':1});
+    expect(f.run().status).toBe(1);
+  });
   it('measures candidate increases without writing or relaxing policy inputs', () => {
     const f = fixture('Math.random();'); f.write({ budgets: { gpu: 12 }, debugRows: { max: 5, raisedBy: ['E435'] } });
     const before = readFileSync(f.file, 'utf8');
