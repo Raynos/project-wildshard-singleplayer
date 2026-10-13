@@ -5365,7 +5365,13 @@
         "src/shards/_template/assets/7035c479edde46ee0baf713fce437fe21e7b61967154f36b5f1126708b2bfaa7",
         "src/shards/_template/assets/875e798b8b1be62129b477e6b85e7c45cf11ae67cba006596d869133b469726b"
       ],
-      "platform": "portable"
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/_template/behaviour/door.json": "dfdf59102bd8fd9aa70818092828b88ee85c8fed2b478beaf4815be94dd6e794",
+        "src/shards/_template/assets/ecc886d8bbebcf190298ff9162b6bb364f2125606f5bdc8cc220ea28044f96ea": "ecc886d8bbebcf190298ff9162b6bb364f2125606f5bdc8cc220ea28044f96ea",
+        "src/shards/_template/assets/7035c479edde46ee0baf713fce437fe21e7b61967154f36b5f1126708b2bfaa7": "7035c479edde46ee0baf713fce437fe21e7b61967154f36b5f1126708b2bfaa7",
+        "src/shards/_template/assets/875e798b8b1be62129b477e6b85e7c45cf11ae67cba006596d869133b469726b": "875e798b8b1be62129b477e6b85e7c45cf11ae67cba006596d869133b469726b"
+      }
     },
     {
       "id": "driftwood-director",
