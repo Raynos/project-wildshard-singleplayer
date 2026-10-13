@@ -245,10 +245,21 @@ describe('presentation-only data for a hybrid whose runtime keeps the simulation
       await data.world(ctx); data.kit(ctx); await data.play(ctx);
       const lent = runtimePresentation(source), ground = lent?.ground; if (lent === null || ground === null || ground === undefined) throw new Error('No lent presentation');
       expect(meshesWith(ctx.root, lent.material('pbr'))).toBeGreaterThan(16);
+      const residency = app.debug.snapshot()['shardfileResidency'];
+      if (residency === null || typeof residency !== 'object') throw new Error('Missing owned residency inspection');
+      expect(Reflect.get(residency, 'mode')).toBe('presentation');
+      const tiles: unknown = Reflect.get(residency, 'tiles');
+      if (tiles === null || typeof tiles !== 'object') throw new Error('Missing actual tile owner');
+      const refresh: unknown = Reflect.get(tiles, 'refresh');
+      if (typeof refresh !== 'function') throw new Error('Missing actual refresh queue');
+      await Reflect.apply(refresh, tiles, [60, -15]);
+      expect(Reflect.get(tiles, 'fine')).toBeInstanceOf(Set);
+
       const reference = clientGround(template, bytes);
       for (const [x, z] of [[0, 0], [60, -15], [-180, 140]] as const) expect(ground.heightAt(x, z)).toBe(reference.heightAt(x, z));
       expect(app.systemIds(ctx.scope).sort()).toEqual(['game.shardfile.presentation', 'game.shardfile.residency']);
     } finally { app.engineScope.dispose(); }
+    expect(app.debug.snapshot()['shardfileResidency']).toBeUndefined();
   });
 });
 

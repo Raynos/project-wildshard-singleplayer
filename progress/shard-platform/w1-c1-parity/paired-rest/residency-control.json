@@ -1,0 +1,54 @@
+[
+  {
+    "tier": "phone",
+    "pose": "basin",
+    "differentPixels": 0,
+    "draws": [
+      41,
+      41
+    ],
+    "triangles": [
+      90078,
+      90078
+    ]
+  },
+  {
+    "tier": "phone",
+    "pose": "edge-out",
+    "differentPixels": 0,
+    "draws": [
+      42,
+      42
+    ],
+    "triangles": [
+      88182,
+      88182
+    ]
+  },
+  {
+    "tier": "desktop",
+    "pose": "basin",
+    "differentPixels": 0,
+    "draws": [
+      42,
+      42
+    ],
+    "triangles": [
+      99078,
+      99078
+    ]
+  },
+  {
+    "tier": "desktop",
+    "pose": "edge-out",
+    "differentPixels": 0,
+    "draws": [
+      48,
+      48
+    ],
+    "triangles": [
+      89430,
+      89430
+    ]
+  }
+]

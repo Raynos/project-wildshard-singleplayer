@@ -26,3 +26,17 @@ C1 remains open at 666/363 lines; this is no 100/0 closure claim.
 Official maps preserve both rasters. The Signal producer's 88 outputs are
 exact except shard.json's map.tilesHash; the root pin is re-recorded only
 for that officially captured source key.
+
+## Actual presentation queue barrier
+
+The presentation data path now exposes its existing owned tile refresh
+handle, as full mode does. Signal's parity capture awaits refresh at the
+actual viewer, drives bounded capture frames until that promise completes,
+then pins time and camera. Missing handles, failed reads or frames and
+finite-bound exhaustion refuse capture; no idle boolean substitutes for
+completion. The Node caller also enforces a 120-second wall-clock bound.
+
+Two independent source `00451c423` captures now match on all four
+phone/desktop basin/edge rows: zero differing pixels, identical draws and
+triangles, and equal GPU bytes, programs, shader sources and collider
+census. [residency-control.json](residency-control.json) retains the rows.

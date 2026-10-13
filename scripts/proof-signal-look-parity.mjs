@@ -16,6 +16,8 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { installInit } from './parity/init.mjs';
+import { settlePresentationTerrain } from './parity/terrain-settle.mjs';
+import { within } from './parity/timeout.mjs';
 import { creatureKinds, creatureShot } from './look-parity-creatures.mjs';
 
 /** yaw 0 looks north (−z, toward the tower from the spawn), +π/2 west (−x); x / z in metres (the spawn stands on the sand) */
@@ -106,6 +108,11 @@ try {
         w.player.spawn(a.x, a.z, a.yaw); w.player.pitch = a.pitch;
       }, { x: p.x, z: p.z, yaw, pitch });
       await sleep(5000);
+      // The single captured frame queues residency; await its actual owner before freezing a pose.
+      await within((async () => {
+        await page.evaluate(() => window.__parity.advance(1));
+        await page.evaluate(settlePresentationTerrain, 1200);
+      })(), 120000, `Signal ${tier}/${p.id} terrain residency`);
       // Pin the entered owner's real clock, shared by classic uniforms and admitted graph state feeds.
       const effectTime = await page.evaluate(async () => {
         window.__parity.free = false;

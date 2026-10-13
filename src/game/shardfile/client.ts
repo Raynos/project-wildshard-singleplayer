@@ -257,6 +257,8 @@ export class ShardfileClient {
       views: clientViews({ root: ctx.root, terrain: terrain.family, terrainShadow: terrain.shadow, terrainOrder: terrain.order, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) }),
     });
     this.followViewer(ctx, runtime, tiles, presentation, start);
+    // Capture readers await this actual tile queue, as on the full data path.
+    ctx.debug.expose('shardfileResidency', { tiles, allocator: this.bindings.allocator, mode: 'presentation', workers: false });
   }
 
   kit(ctx: ShardContext): void {
