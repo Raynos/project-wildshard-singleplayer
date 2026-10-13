@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 // oxlint-disable-next-line import/no-nodejs-modules -- The fake producer's executable is its cache identity.
 import { execPath } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- This fixture exercises isolated on-disk Node generators.
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Each producer runs in an owned temporary directory.
 import { platform as hostPlatform, tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Paths are checked against the generator's isolated root.
@@ -30,6 +30,50 @@ function fixture():{root:string;job:ShardGenerationJob} {
   return {root,job};
 }
 describe('G292 shard generation entry',()=>{
+  it('keys only the opted-in projected catalogue and makes undeclared rows unavailable',async()=>{
+    const {root,job}=fixture(),cacheDir=resolve(root,'cache');
+    const selected={...job,catalogueDependencies:['dependency']};
+    const dependency={...job,id:'dependency',outputs:['public/out/dependency.bin']};
+    const unrelated={...job,id:'unrelated',outputs:['public/out/unrelated.bin']};
+    const save=(jobs:ShardGenerationJob[])=>writeFileSync(resolve(root,'scripts/generation-jobs.json'),JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT',jobs}));
+    const body=readFileSync(resolve(root,job.entry),'utf8');
+    writeFileSync(resolve(root,job.entry),`${body}const catalog=JSON.parse(readFileSync(resolve(root,'scripts/generation-jobs.json'),'utf8'));if(JSON.stringify(catalog.jobs.map(row=>row.id))!==JSON.stringify(['sample','dependency']))throw Error('unconfined catalogue');`);
+    save([selected,dependency,unrelated]);
+    const cold=await generateShardJob(root,selected,{cacheDir});
+    save([selected,dependency,{...unrelated,command:[job.entry,'--unrelated-change']}]);
+    const warm=await generateShardJob(root,selected,{cacheDir});
+    expect(warm.hit).toBe(true);expect(warm.key).toBe(cold.key);expect(warm.hashes).toEqual(cold.hashes);
+    save([selected,{...dependency,command:[job.entry,'--consulted-change']},unrelated]);
+    const changed=await generateShardJob(root,selected,{cacheDir});
+    expect(changed.hit).toBe(false);expect(changed.key).not.toBe(cold.key);expect(changed.hashes).toEqual(cold.hashes);
+    const compared=await generateShardJob(root,selected,{cacheDir,forceCompare:true});expect(compared.hashes).toEqual(cold.hashes);
+    save([selected,unrelated]);await expect(generateShardJob(root,selected,{cacheDir})).rejects.toThrow('Missing or duplicate catalogue dependency');
+    save([selected,dependency]);await expect(generateShardJob(root,{...selected,catalogueDependencies:[]},{cacheDir})).rejects.toThrow('Crossed catalogue descriptor');
+    const duplicate={...job,catalogueDependencies:['sample']};save([duplicate]);
+    await expect(generateShardJob(root,duplicate,{cacheDir})).rejects.toThrow('Duplicate catalogue dependency');
+  });
+
+  it('refuses a crossed consulted catalogue before publishing any cache output',async()=>{
+    const {root,job}=fixture(),cacheDir=resolve(root,'cache'),catalog=resolve(root,'scripts/generation-jobs.json');
+    const selected={...job,catalogueDependencies:['dependency']},dependency={...job,id:'dependency',outputs:['public/out/dependency.bin']};
+    const before={schema:'generation-jobs/1',notice:'DO NOT EDIT',jobs:[selected,dependency]};
+    const after={...before,jobs:[selected,{...dependency,command:[job.entry,'--crossed']} ]};
+    writeFileSync(catalog,JSON.stringify(before));
+    writeFileSync(resolve(root,job.entry),`${readFileSync(resolve(root,job.entry),'utf8')}writeFileSync(${JSON.stringify(catalog)},${JSON.stringify(JSON.stringify(after))});`);
+    await expect(generateShardJob(root,selected,{cacheDir})).rejects.toThrow('Catalogue changed during generation');
+    expect(readdirSync(resolve(cacheDir,job.id))).toEqual([]);
+    expect(readFileSync(resolve(root,'public/out/value.bin'),'utf8')).toBe('bit-exact');
+  });
+
+  it('keeps complete catalogue dependency when projection is not declared',async()=>{
+    const {root,job}=fixture(),cacheDir=resolve(root,'cache');
+    const save=(jobs:ShardGenerationJob[])=>writeFileSync(resolve(root,'scripts/generation-jobs.json'),JSON.stringify({schema:'generation-jobs/1',notice:'DO NOT EDIT',jobs}));
+    const cold=await generateShardJob(root,job,{cacheDir});
+    save([job,{...job,id:'unrelated',outputs:['public/out/unrelated.bin']}]);
+    const changed=await generateShardJob(root,job,{cacheDir});
+    expect(changed.hit).toBe(false);expect(changed.key).not.toBe(cold.key);expect(changed.hashes).toEqual(cold.hashes);
+  });
+
   it('stages and links a new format workspace and keys its defining contract before any shared install',async()=>{
     const {root,job}=fixture(),cacheDir=resolve(root,'cache');
     mkdirSync(resolve(root,'src/format'),{recursive:true});mkdirSync(resolve(root,'node_modules'),{recursive:true});

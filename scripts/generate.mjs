@@ -1,6 +1,6 @@
 // G292: shard-owned generator discovery and isolated jobs over the shared content-addressed cache.
 import { spawn } from 'node:child_process';
-import { copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, utimesSync } from 'node:fs';
+import { copyFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -13,7 +13,8 @@ import { linkNodeModules } from './link-node-modules.mjs';
 import { outputPolicy } from './generation-inventory.mjs';
 
 const path = v.pipe(v.string(),v.check(value=>value.length>0 && !isAbsolute(value) && !value.includes('\\') && value.split('/').every(part=>part!=='' && part!=='.' && part!=='..')));
-const Descriptor = v.strictObject({id:v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u)),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),comparisonOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false),browser:v.optional(v.boolean(),false),preview:v.optional(v.boolean(),false),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
+const jobIdSchema = v.pipe(v.string(),v.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u));
+const Descriptor = v.strictObject({id:jobIdSchema,catalogueDependencies:v.optional(v.array(jobIdSchema)),shard:v.nullable(v.pipe(v.string(),v.regex(/^[a-z0-9_]+(?:-[a-z0-9]+)*$/u))),entry:path,command:v.array(v.string()),inputRoots:v.array(path),outputs:v.array(path),platform:v.picklist(['portable','native','darwin']),buildOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),comparisonOutputs:v.optional(v.record(path,v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))),{}),seedOutputs:v.optional(v.array(path),[]),capture:v.optional(v.boolean(),false),browser:v.optional(v.boolean(),false),preview:v.optional(v.boolean(),false),recordedInputs:v.optional(v.boolean(),false),externalInputs:v.optional(v.array(v.strictObject({path, url:v.string(),sha256:v.pipe(v.string(),v.regex(/^[a-f0-9]{64}$/u))})),[]),toolCommands:v.optional(v.array(v.pipe(v.array(v.string()),v.minLength(1))),[])});
 const Catalog = v.strictObject({schema:v.literal('generation-jobs/1'),notice:v.pipe(v.string(),v.includes('DO NOT EDIT')),jobs:v.array(Descriptor)});
 const infrastructure=['src/format','scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs','scripts/generation-inventory.mjs'];
 // These are loader/check/hash/write helpers, not output producers. New bake entry points default to undeclared.
@@ -79,6 +80,22 @@ export function discoverGeneration(root,catalogPath='scripts/generation-jobs.jso
   return {schema:'generation-discovery/1',jobs:catalog.jobs,unregistered:entries.filter(entry=>!catalog.jobs.some(job=>job.entry===entry)).sort()};
 }
 
+/** An opted-in producer sees only its own row and declared catalogue dependencies.
+ * Omission preserves the complete catalogue. Missing/duplicate IDs or crossed
+ * caller descriptors refuse; projected bytes are part of the cache identity.
+ * @param {string} root @param {import('./generate.mjs').ShardGenerationJob} job @param {string} catalog */
+function catalogueProjection(root, job, catalog) {
+  if (job.catalogueDependencies === undefined) return undefined;
+  /** @type {{schema:string,notice:string,jobs:ShardGenerationJob[]}} */
+  const source=JSON.parse(readFileSync(resolve(root,catalog),'utf8'));
+  const parsed=v.parse(Catalog,source), wanted=[job.id,...job.catalogueDependencies];
+  if(new Set(wanted).size!==wanted.length)throw new Error(`Duplicate catalogue dependency: ${job.id}`);
+  const own=parsed.jobs.find(row=>row.id===job.id);
+  if(own===undefined || JSON.stringify(own)!==JSON.stringify(job))throw new Error(`Crossed catalogue descriptor: ${job.id}`);
+  for(const name of wanted)if(parsed.jobs.filter(row=>row.id===name).length!==1)throw new Error(`Missing or duplicate catalogue dependency: ${name}`);
+  return JSON.stringify({...source,jobs:source.jobs.filter(row=>wanted.includes(row.id))});
+}
+
 /** Run a Node producer without a shell, in its own copied source tree. @param {string} cwd @param {string[]} command */
 function nodeProducer(cwd,command) {
   return new Promise((_resolve,reject)=>{
@@ -109,15 +126,16 @@ export async function generateShardJob(root,descriptor,options={}) {
   const preview=job.capture || job.preview ? await capturePreview(options.preview ?? {url:'',revision:''}) : undefined;
   const command=job.command.map(arg=>arg.replaceAll('<preview-url>',preview?.url ?? ''));
   const captureArgs=job.capture && preview!==undefined ? [`--url=${preview.url}`,`--revision=${preview.revision}`,'--inputs=<stage>'] : [];
+  const projected=catalogueProjection(root,job,catalog);
   const controller=bakeInputHashes(import.meta.dirname,['generate.mjs','generation-capture.mjs','generation-sources.mjs']);
   const external=await externalGenerationInputs(job.externalInputs,options.cacheDir);
   const tools={...generationTools(job.toolCommands),...(job.browser?{browserDigest:generationBrowserDigest()}:{})};
   const collected=generationInputs(root,[...job.inputRoots,...infrastructure.filter(file=>existsSync(resolve(root,file))),catalog]);
   // Produced bytes are not source inputs. Explicit schema seeds remain inputs until their imports are separated.
-  const inputs=Object.fromEntries(Object.entries(collected).filter(([file])=>!job.outputs.includes(file) || job.seedOutputs.includes(file)));
+  const inputs=Object.fromEntries(Object.entries(collected).filter(([file])=>(projected===undefined || file!==catalog) && (!job.outputs.includes(file) || job.seedOutputs.includes(file))));
   /** @type {number|null} */
   let coldSeconds=null;
-  const result=await runGenerationJob(root,{id:job.id,inputs,command:['node',...command,...captureArgs],outputs:job.outputs,platform:job.platform,tools:{...controller,...tools,descriptor:JSON.stringify(job),...(preview===undefined?{}:{previewBuild:preview.build,browserDigest:preview.browserDigest})}},{
+  const result=await runGenerationJob(root,{id:job.id,inputs,command:['node',...command,...captureArgs],outputs:job.outputs,platform:job.platform,tools:{...controller,...tools,descriptor:JSON.stringify(job),...(projected===undefined?{}:{catalogue:projected}),...(preview===undefined?{}:{previewBuild:preview.build,browserDigest:preview.browserDigest})}},{
     ...(options.cacheDir===undefined?{}:{cacheDir:options.cacheDir}),...(options.forceCompare===undefined?{}:{forceCompare:options.forceCompare}),
     generate:async directory=>{
       const coldStarted=performance.now();
@@ -127,6 +145,7 @@ export async function generateShardJob(root,descriptor,options={}) {
         // Re-check after copying so concurrent edits cannot publish bytes under an earlier key.
         const copied=bakeInputHashes(tree,Object.keys(inputs));
         if(JSON.stringify(copied)!==JSON.stringify(inputs)) throw new Error('Generation inputs changed while copying');
+        if(projected!==undefined){mkdirSync(dirname(resolve(tree,catalog)),{recursive:true});writeFileSync(resolve(tree,catalog),projected);}
         // Some schemas import their committed stamps. Those seed inputs may exist, but a producer must still write
         // every output; otherwise a no-op could falsely pass regenerate-and-compare against the copied seed.
         for(const file of job.outputs) mkdirSync(dirname(resolve(tree,file)),{recursive:true});
@@ -139,12 +158,14 @@ export async function generateShardJob(root,descriptor,options={}) {
         if(preview!==undefined && (await capturePreview({url:preview.url,revision:preview.revision})).build!==preview.build) throw new Error('Capture preview changed during generation');
         const untouched=seeded.filter(file=>existsSync(resolve(tree,file)) && statSync(resolve(tree,file)).mtimeMs===1000);
         if(untouched.length>0) throw new Error(`Generator did not write declared outputs: ${untouched.join(', ')}`);
+        if(projected!==catalogueProjection(root,job,catalog))throw new Error(`Catalogue changed during generation: ${job.id}`);
         generationOutputHashes(tree,job.outputs);
         for(const file of job.outputs) {const to=resolve(directory,file);mkdirSync(dirname(to),{recursive:true});copyFileSync(resolve(tree,file),to);}
         coldSeconds=(performance.now()-coldStarted)/1000;
       } finally {rmSync(tree,{recursive:true,force:true});}
     }
   });
+  if(projected!==catalogueProjection(root,job,catalog))throw new Error(`Catalogue changed during generation: ${job.id}`);
   for(const [file,expectedHash] of Object.entries(job.buildOutputs)) if(result.hashes[file]!==expectedHash) throw new Error(`Build output hash differs: ${file}. No source output was overwritten.`);
   for(const [file,expectedHash] of Object.entries(job.comparisonOutputs)) if(result.hashes[file]!==expectedHash) throw new Error(`Comparison output hash differs: ${file}. No source output was overwritten.`);
   const present=job.outputs.filter(file=>existsSync(resolve(root,file)));

@@ -4185,7 +4185,8 @@
         "src/shards/nine-dragon-stack/assets/ff23012047c5213bd2bbbd6ad73472e60023831729108f718ddbbc5fd581ab66": "ff23012047c5213bd2bbbd6ad73472e60023831729108f718ddbbc5fd581ab66",
         "src/shards/nine-dragon-stack/assets/fff3c8278ced1cad78479a01fe7645dde1d63e78a1020342aa240d664eb25e06": "fff3c8278ced1cad78479a01fe7645dde1d63e78a1020342aa240d664eb25e06",
         "src/shards/nine-dragon-stack/data/world.generated.json": "62feece076a00aeeea5a806f590c0f9e9b4b925e4607564be234e77dc19f310d"
-      }
+      },
+      "catalogueDependencies": []
     },
     {
       "id": "sky-rising-islets",

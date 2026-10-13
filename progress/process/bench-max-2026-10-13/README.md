@@ -402,3 +402,26 @@ Fourteen focused checks, narrowed types and touched lint cover regular,
 split and private indexes while the caller lock is held, unchanged caller
 bytes, corrupt indexes, foreign initial trees and early guard failure.
 Every existing hard-rule/refusal and final producer-receipt test remains.
+
+## Confine a producer's catalogue view (sp-x5)
+
+CALL: an explicit catalogueDependencies array opts a recipe into a catalogue
+containing its own complete raw row plus those exact dependencies, in their
+original order. Omission retains the full catalogue. The isolated producer
+cannot read undeclared rows; projected bytes join its tool/cache identity.
+All existing source roots, executable/tool/native keys, raw output pins and
+regenerate-and-compare checks stay. Missing/duplicate IDs, crossed caller
+rows and consulted changes during execution refuse before cache publication.
+
+Nine layout is the first qualified caller, with no external catalogue row.
+Official Node regeneration kept **all 385 raw output pins exact**. Projected
+cold generation took **25.357 s**; an unrelated Nine-navigation descriptor
+edit then reused the same complete result in **0.373 s**, with no producer
+worker. Fixtures prove the default full catalogue still misses on that edit,
+while opted-in selected dependency changes miss and force comparison agrees.
+Twenty-three focused checks plus narrowed types/touched lint pass.
+
+This removes global descriptor churn, not actual source dependencies. A
+source edit anywhere in Nine's declared engine/game/SDK/commons/shard roots
+still misses. Cold <=10 s stays OPEN; shrinking those roots requires a
+complete author/import/read closure, not guessing that a module is unused.
