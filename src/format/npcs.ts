@@ -75,3 +75,15 @@ export const NpcRowSchema: v.GenericSchema<v.InferInput<typeof row>, NpcRow> = r
 /** Compile an authored NPC row; an unknown field or an empty dialogue refuses. */
 export function parseNpcRow(input: unknown): NpcRow { return v.parse(NpcRowSchema, input); }
 
+const questBinding = v.strictObject({
+  npc: NpcRowSchema, label: text, system: npcRowName, sourceFile: text,
+  ground: v.strictObject({ height: npcRowFinite, at: v.nullable(npcRowPoint), error: text }),
+  met: v.picklist(['flag', 'unmet']), missing: v.picklist(['omit', 'anchor']), update: v.picklist(['loaded', 'always']),
+});
+/** Serialisable NPC placement, prompt and lifecycle policy; geometry and its look remain borrowed resources. */
+export type QuestNpcBinding = v.InferOutput<typeof questBinding>;
+/** Strict NPC binding admission with bounded lifecycle choices and finite authored ground. */
+export const QuestNpcBindingSchema: v.GenericSchema<v.InferInput<typeof questBinding>, QuestNpcBinding> = questBinding;
+/** Admit the quest NPC's policy before constructing a figure or registering any system or collider. */
+export function parseQuestNpcBinding(input: unknown): QuestNpcBinding { return v.parse(QuestNpcBindingSchema, input); }
+

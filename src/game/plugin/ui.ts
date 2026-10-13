@@ -2,7 +2,7 @@ import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import type { MoverView } from './mover';
 import "../quest/presentation.css";
 import { parseClientChannels, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
-import { AdditiveBlending, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, Object3D } from 'three';
+import { AdditiveBlending, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, type Material } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ParticlePool, pointScale } from '@wildshard/engine/fx/ParticlePool';
 import { CLIENT_SCRIPT_LIMITS, type ClientScriptFrame } from '@wildshard/engine/script/client';
@@ -29,6 +29,8 @@ import { DirectorBossBrain } from './director';
 import { bindRuntimeQuest, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
 import { type Shardfile, parseShardfile } from '@wildshard/format/shardSchema';
 import { npcDef, type NpcRow } from './quests';
+import { installPivotNpc, type PivotNpcLevel, type PivotNpcPorts } from './geometry';
+import { parseQuestNpcBinding } from '@wildshard/format/npcs';
 import { parseBossProfile, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import { bossFight, type HeldBossBrain } from './bossPhase';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
@@ -696,6 +698,30 @@ export function presentRewardedQuest(ctx: ShardContext, quest: QuestState, rewar
 
 /** A rewarded quest's strings: the reward's toast, the new-quest toast's lead, the quest's title and the beat's kicker and subtitle. */
 export interface RewardedQuestStrings { readonly reward: string; readonly newQuest: string; readonly quest: string; readonly rewardKicker: string; readonly rewardSubtitle: string }
+/** The NPC's existing resource owners lend geometry/material, flags and dressing; the binding supplies only data. */
+export interface QuestNpcPorts {
+  readonly player: Vector3;
+  readonly flags: Pick<Flags, 'has'>;
+  readonly model: (id: string) => { readonly geometry: NonNullable<PivotNpcPorts['source']>; readonly material?: Material } | null;
+  readonly dress?: PivotNpcPorts['dress'];
+}
+/** Bind an admitted quest NPC without replacing its model, material, motion, collider or missing-model policy. */
+export function installQuestNpc(ctx: PivotNpcLevel, input: unknown, ports: QuestNpcPorts): ReturnType<NonNullable<RewardedQuestPorts['npc']>> {
+  const binding = parseQuestNpcBinding(input), resource = ports.model(binding.npc.figure.model);
+  if (resource === null && binding.missing === 'omit') return null;
+  const met = (): boolean => binding.met === 'flag' && ports.flags.has(binding.npc.metFlag);
+  const figure = installPivotNpc({ root: ctx.root, piece: piece => { ctx.piece(piece); },
+    system: spec => { ctx.system({ ...spec, id: binding.system }); } }, binding.npc, {
+    source: resource?.geometry ?? null, ...(resource?.material === undefined ? {} : { material: resource.material }),
+    groundAt: (x, z) => {
+      if (binding.ground.at !== null && (x !== binding.ground.at.x || z !== binding.ground.at.z)) throw new Error(binding.ground.error);
+      return binding.ground.height;
+    }, player: ports.player, met, file: binding.sourceFile,
+    ...(ports.dress === undefined ? {} : { dress: ports.dress }),
+  });
+  if (resource === null && binding.update === 'always') ctx.system({ id: binding.system, phase: 'update', run: (dt, t) => { figure.update(dt, t, ports.player, met()); } });
+  return { row: binding.npc, figure, label: binding.label };
+}
 /** What `installRewardedQuest` is lent beyond the runtime quest's ports (flags, facts, marker places). */
 export interface RewardedQuestPorts extends RuntimeQuestPorts {
   /** The declared quest's id and the reward burst's system id. */

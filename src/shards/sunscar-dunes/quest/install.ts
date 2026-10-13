@@ -1,23 +1,21 @@
 import type { QuestState } from '@wildshard/engine/quest/core';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
-import { installRewardedQuest } from '@wildshard/game/plugin/ui';
+import { installQuestNpc, installRewardedQuest } from '@wildshard/game/plugin/ui';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
 import type { SignalWorld } from '../world/build';
-import groundQueries from '../data/manifestGround.generated.json' with { type: 'json' };
 import { DISCOVERY_PLACES } from '../data/questPresentation';
 import { STRINGS } from '../data/strings';
 import { lastLightAll } from '../look/light';
 import { ownPrimitives } from '../world/resources';
-import { installPivotNpc } from '@wildshard/game/plugin/geometry';
-import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
 import { duneMesh } from '../world/meshes';
-import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';
+import { FLAG } from '../data/flags';
 import { PAID_FLAG } from '../data/signalQuest';
 import { bindRuntimeCoins, type RuntimeCoins, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
 import source from '../runtime/source';
 import { bindSignalFacts } from '../runtime/persistence';
+import { QUEST_NPC } from '../data/questNpc';
 import { QUEST_MARKERS } from '../data/questMarkers';
 import { QUEST_REPAIR, QUEST_REPAIR_INITIAL } from '../data/questRepair';
 import { bindDirectorActions } from '@wildshard/game/plugin/director';
@@ -42,10 +40,6 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   // SF14 / M3: Signal Dunes' feats are its shardfile's ledger rows (runtime.binds); the platform grants each achievement once.
   // The instance is the first-party placement id (the slug: Select a shard, explore and the grid share it).
   const slug = ctx.manifest.slug, runtime = ctx.game.runtime, facts = bindSignalFacts(ctx, runtime?.play?.progress, slug);
-  const groundAt = (x: number, z: number): number => {
-    if (x !== SCOUT_AT.x || z !== SCOUT_AT.z) throw new Error('Undeclared authored scout ground query');
-    return groundQueries.heights.scout;
-  };
   // Startup-only migration: flags hold the result, so no director cursor enters snapshots.
   const legacyPaid = !flags.has(PAID_FLAG) && legacy.read(slug);
   const repair = bindDirectorActions(QUEST_REPAIR, { flags, bindings: [], initial: [QUEST_REPAIR_INITIAL],
@@ -58,11 +52,9 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
   // the Matriarch falls; Sefa, the caravan scout, starts it on the spawn crest (P4; Driftwood's Wendell): she waves until you talk.
   const { quest, reward, view } = installRewardedQuest(ctx, source, { id: 'sunscar.signal', rewardId: 'sunscar.reward', strings: STRINGS, flags, facts,
     place: (marker) => QUEST_MARKERS[marker.id], player, coins, paid: () => flags.has(PAID_FLAG), markPaid: () => { flags.set(PAID_FLAG); },
-    presentation: { places: [...DISCOVERY_PLACES] }, npc: () => {
-      const figure = duneMesh(SCOUT_MODEL);
-      const sefa = figure === null ? null : installPivotNpc(ctx, SCOUT_NPC, { source: figure, groundAt, player, met: () => flags.has(SCOUT_FLAG), file: 'src/shards/sunscar-dunes/quests/scout.ts',
-        dress: (group) => { ownPrimitives(group, ctx.scope); lastLightAll(group, ctx.scope); } });
-      return sefa === null ? null : { row: SCOUT_NPC, figure: sefa, label: STRINGS.talkScout };
-    } });
+    presentation: { places: [...DISCOVERY_PLACES] }, npc: () => installQuestNpc(ctx, QUEST_NPC, { player, flags,
+      model: id => { if (id !== 'caravan-scout') throw new Error('Unknown quest scout model'); const geometry = duneMesh(id); return geometry === null ? null : { geometry }; },
+      dress: group => { ownPrimitives(group, ctx.scope); lastLightAll(group, ctx.scope); },
+    }) });
   return { quest, burst: reward.burst, facts, get view() { return view(); } };
 }

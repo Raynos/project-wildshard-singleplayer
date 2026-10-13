@@ -1288,7 +1288,7 @@ export function pivotNpc(row: NpcRow, source: BufferGeometry | PivotNpcGeometry 
 
 /** What `installPivotNpc` is lent: the model (null: not loaded), its material, the ground, the player, its met flag's reader, the piece's source file and the shard's dressing of the figure. */
 export interface PivotNpcPorts {
-  readonly source: BufferGeometry | null;
+  readonly source: BufferGeometry | PivotNpcGeometry | null;
   /** the figure's material (a textured model's own); else one vertex-coloured standard material */
   readonly material?: Material;
   readonly groundAt: (x: number, z: number) => number;

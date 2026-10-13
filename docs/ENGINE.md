@@ -2639,7 +2639,18 @@ A skinned NPC can use `parseNpcDialogueRow` (SDK `questGraph`) to validate its u
 place, home facing, met flag, talk height and reach, face and wave ranges, its solid column, its pivot figure (model,
 height, neck, shoulder, arm cut, material) and its dialogue. The shared pivot NPC host
 (`@wildshard/game/plugin/geometry`) `installPivotNpc(ctx, row, { source, groundAt, player, met, file, dress })` stands it
-in a level; `pivotNpcParts` is its Model Explorer figure. `pivotNpcParts` and `pivotNpc` also accept `PivotNpcGeometry`: body, head, arm and forearm geometries already baked into their local pivot frames. The native pivots, NPC motion and speaker registration stay unchanged. `bindRuntimeHomes` accepts an optional async pause between bodies; the synchronous form keeps its original allocation order, and the paced form retires partial bodies if its scope closes. Signal’s private `runtime/rowsHeadless.ts` `rowsHeadlessRuntime(manifest)` is a whole trusted
+in a level; `pivotNpcParts` is its Model Explorer figure. `pivotNpcParts` and `pivotNpc` also accept `PivotNpcGeometry`: body, head, arm and forearm geometries already baked into their local pivot frames. The native pivots, NPC motion and speaker registration stay unchanged. `bindRuntimeHomes` accepts an optional async pause between bodies; the synchronous form keeps its original allocation order, and the paced form retires partial bodies if its scope closes. 
+`@wildshard/game/plugin/ui` `installQuestNpc(ctx, binding, ports)` admits the
+`@wildshard/format/npcs` `QuestNpcBindingSchema` before borrowing the model.
+`QuestNpcPorts` lends the player, flags, model geometry/material and optional
+resource dressing. The binding declares the ground query, prompt label, system
+id, met-flag observation and missing-model policy. It retains the existing pivot
+motion and collider registration; an omitted figure and an empty talk anchor
+remain distinct lifecycle choices.
+The geometry loan also accepts prepared `PivotNpcGeometry` local-frame parts;
+the binding forwards them without fitting or partitioning them again.
+
+Signal’s private `runtime/rowsHeadless.ts` `rowsHeadlessRuntime(manifest)` is a whole trusted
 `prepareHeadlessRuntime` from rows: the baked metadata (`bakedSpecs`, `bakedSpots`), the homes and their brains (with
 `holds`: a home's memory field held until a flag), the marked boss, the lash item, the quest graph and the terrain entry
 walk (`@wildshard/game/plugin/productEntries` `proveTerrainEntries`). Signal’s private `runtime/shard/standaloneEntry.ts`

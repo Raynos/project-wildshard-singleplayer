@@ -1141,6 +1141,10 @@ actions a row starts (`{ row, summon }` arms a boss). NPC contracts are defined 
 `@wildshard/format/npcs`: `NpcRowSchema`, `NpcMotionSchema`, and `NpcDialogueRowSchema`
 share strict admission with the existing SDK and runtime parsers. Their generated JSON Schema
 documents retain every structural bound; figure, animation and dialogue ordering stay with their owners.
+Native quest bindings can also declare a `QuestNpcBindingSchema` row: NPC, talk label,
+finite ground anchor (with an optional exact query point), source metadata, update system,
+met-flag policy and missing-model policy. `@wildshard/game/plugin/ui` `installQuestNpc`
+validates it before borrowing geometry/material/dressing from their existing owners.
 `parseNpcRow` declares a quest-giver (where it stands, its talk,
 its figure metadata and dialogue). Native figure placement stays with the trusted
 owner; there is no public SDK pivot-NPC installer. Sky's phased-raptor remains a

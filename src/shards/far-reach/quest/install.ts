@@ -1,17 +1,18 @@
 import type { QuestState } from '@wildshard/engine/quest/core';
 import { Flags } from '@wildshard/engine/world/interact/flags';
-import { installRewardedQuest } from '@wildshard/game/plugin/ui';
+import { installQuestNpc, installRewardedQuest } from '@wildshard/game/plugin/ui';
 import { bindSkyQuestStage } from '../runtime/quest';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
 import { bindRuntimeCoins } from '@wildshard/game/shardfile/hybridRows';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Vector3 } from 'three';
-import { CROWN, DECK, HIGH, STEP, VANES } from '../data/layout';
+import { CROWN, HIGH, STEP, VANES } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { ownPrimitives } from '../world/resources';
 import { FLAGS, vaneFlag } from './flags';
-import { keeper } from './keeper';
-import { KEEPER_ROW } from '../data/keeperLook';
+import { skyHd } from '../world/meshes';
+import { skyMappedLook } from '../world/looks';
+import { QUEST_NPC } from '../data/questNpc';
 import { SKY_PLACES } from '../data/places';
 import source from '../shard.config';
 import { bindSkyPersistence, type SkyPersistence } from '../runtime/persistence';
@@ -36,11 +37,17 @@ export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share
   // The keeper at the spawn waves within 16 m and gestures while he talks; headless (tests, a node bake) the reward pays at once.
   const { quest, reward, view } = installRewardedQuest(ctx, source, { id: 'far.quest', rewardId: 'far.reward', strings: STRINGS, flags, facts, player,
     coins: onCoin ?? bindRuntimeCoins(ctx, null), paid: () => rewarded.read(), markPaid: () => { rewarded.write(true); }, unpaid: () => !rewarded.read(),
-    presentation: { flags, places: [...SKY_PLACES] }, beat: { ...REWARD_VIEW, holdSeconds: 5 }, npc: () => {
-      const npc = keeper(DECK); ctx.root.add(npc.group); ownPrimitives(npc.group, ctx.scope);
-      ctx.system({ id: 'far.keeper', phase: 'update', run: (dt, t) => { npc.update(dt, t, player, false); } });
-      return { row: KEEPER_ROW, figure: npc, label: STRINGS.talkKeeper };
-    } });
+    presentation: { flags, places: [...SKY_PLACES] }, beat: { ...REWARD_VIEW, holdSeconds: 5 }, npc: () => installQuestNpc(ctx, QUEST_NPC, { player, flags,
+      model: id => {
+        if (id !== 'keeper-hd') throw new Error('Unknown quest keeper model');
+        const made = skyHd(id);
+        if (made === null) return null;
+        made.geometry.dispose();
+        if (made.pivots === undefined) throw new Error('Missing authored keeper pivots');
+        return { geometry: made.pivots, material: skyMappedLook('keeper-scarf', made.map) };
+      },
+      dress: group => { ownPrimitives(group, ctx.scope); },
+    }) });
   const vanes = bindSkyQuestStage('vanes', flags);
   ctx.system({ id: 'far.vanes', phase: 'update', run: vanes.advance });
   /**
