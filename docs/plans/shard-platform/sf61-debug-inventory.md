@@ -40,4 +40,13 @@ starter-effects forcing, Pine wildlife off, clock speed, SFX audition) already l
 
 ## Result
 
-Filled in by the deletion commits below.
+**After this pass: 4 comparisons (`debugRows.max` 4) + 12 Developer tools.**
+
+| Commit | Change |
+|---|---|
+| `8ebbf72ba` | `pineMemoryTrim` row deleted; the trim stays on in the grid, off standalone |
+| `ba40278b3` | `debugRows.max` 7 → 5 (a policy-only commit: commit-time debt producers refuse policy in the same commit) |
+| `af889bfea` | `gridDevserverCell` row, its global-row helper and strings deleted; a DEVSERVER build always places its cell |
+| this commit | `debugRows.max` 5 → 4 |
+
+Left: `graphMaterials` and `nearTier` (pending Jake), `tex` (harness setting), the frozen legacy `pineMemoryTrim`.
