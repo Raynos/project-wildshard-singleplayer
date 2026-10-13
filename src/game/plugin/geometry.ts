@@ -1,3 +1,4 @@
+import { defineBakedModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
 import * as wholeV from 'valibot';
 import type { Scope as ResourceScope } from '@wildshard/engine/app/scope';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -8,12 +9,13 @@ import { Matrix4, Bone, FileLoader, SkinnedMesh, Texture, type AnimationClip, ty
 import { applySurfaceLooks, type SurfaceInputs } from "../systems/looks/surfaceLooks";
 import type { SurfaceLook } from "@wildshard/format/surfaceLooks";
 import { Rng } from "@wildshard/engine/core/rng";
-import type { AnimalSpecies } from "@wildshard/engine/entities/species/registry";
 import type { SpeciesLook } from "@wildshard/engine/entities/species/look";
 import { NO_FUR } from "@wildshard/engine/entities/species/rigs";
 import { clipAnimate, type SpeciesClips } from "./animation";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import type { NpcMotion, NpcRow } from "./quests";
+
+type AnimalSpecies = ReturnType<SpeciesLook['build']>;
 
 /**
  * A model library (SHARD-PLATFORM M3; ex a dune shard's generated models): the GLBs a level loads once behind its loading
@@ -65,6 +67,10 @@ export interface ModelLibraryRows<M extends string, H extends string> {
   readonly aoFloor: number;
   /** the hero models' dressing, by name */
   readonly hdLooks: Readonly<Partial<Record<H, HdLookRow>>>;
+  /** Optional baked rigs and look rows; absent retains the original model preload. */
+  readonly rigs?: RigLibraryRows;
+  /** Manual rig preload preserves a caller's existing preparation phase. */
+  readonly rigLoad?: 'manual';
 }
 
 /** How a copy is framed: turned `yaw` about +Y, centred on x / z, its lowest point at `floor`, `size` metres by span or height. */
@@ -79,6 +85,12 @@ export interface ModelLibrary<M extends string, H extends string> {
   mesh: (name: M) => BufferGeometry | null;
   /** A hero model fitted as `fit`, as a group sharing the loaded geometry and maps; null when it did not load. */
   hd: (name: H, fit: ModelFit) => Group | null;
+  readonly rig: (name: string) => AnimalSpecies;
+  readonly bakedRig: (name: string) => AnimalSpecies | null;
+  readonly looks: readonly SpeciesLook[];
+  readonly preloadRigs: () => Promise<void>;
+  /** Ordered Explorer models on this library's actual rig copies. */
+  readonly models: (rows: readonly ModelSpecimenRow[]) => ReturnType<typeof defineBakedModels>;
 }
 
 const isMesh = (o: Object3D): o is Mesh => o instanceof Mesh;
@@ -115,6 +127,7 @@ function dressHd(m: MeshStandardMaterial, look: HdLookRow | undefined, inputs: S
  */
 export function createModelLibrary<M extends string, H extends string>(rows: ModelLibraryRows<M, H>, fault: string, surfaceInputs: SurfaceInputs = {}): ModelLibrary<M, H> {
   const ready = new Map<M, BufferGeometry>(), hd = new Map<H, Object3D>();
+  const rigs = rows.rigs === undefined ? null : rigLibrary(rows.rigs);
   let loading: Promise<void> | null = null;
 
   async function load(name: M): Promise<void> {
@@ -156,8 +169,13 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
   return {
     preload: () => {
       loading ??= Promise.all([...rows.meshes.filter(name => !ready.has(name)).map(load), ...rows.hd.filter(name => !hd.has(name)).map(loadHd)]).then(() => undefined);
-      return loading;
+      return rigs === null || rows.rigLoad === 'manual' ? loading : Promise.all([loading, rigs.bodies.preload()]).then(() => undefined);
     },
+    rig: name => { if (rigs === null) throw new Error('Model library has no declared rigs'); return rigs.bodies.bodyOrStandIn(name); },
+    bakedRig: name => rigs?.bodies.body(name) ?? null,
+    looks: rigs?.looks ?? [],
+    preloadRigs: () => rigs?.bodies.preload() ?? Promise.resolve(),
+    models: specimens => modelCatalogue(specimens, { rig: name => { if (rigs === null) throw new Error('Model library has no declared rigs'); return rigs.bodies.bodyOrStandIn(name); } }),
     mesh: name => ready.get(name)?.clone() ?? null,
     hd: (name, o) => {
       const src = hd.get(name); if (!src) return null;
@@ -367,6 +385,8 @@ export interface CreatureBodyRows<C extends string> {
   readonly fault: string;
   /** the owner's upload policy for each shared map, once loaded (before it is retained) */
   readonly onMap?: (map: Texture) => void;
+  /** Release an ImageBitmap decode at the original texture upload; no CPU consumer may retain it. */
+  readonly releaseDecoded?: boolean;
 }
 /** A shard's loaded creature bodies: preload once, then each spawn takes a copy. */
 export interface CreatureBodies<C extends string> {
@@ -402,7 +422,11 @@ export function creatureBodies<C extends string>(rows: CreatureBodyRows<C>): Cre
     const model = skinnedModel(rows.urls[creature]);
     try {
       await model.load();
-      for (const map of model.textures()) rows.onMap?.(map);
+      for (const map of model.textures()) {
+        rows.onMap?.(map);
+        const image: unknown = map.image;
+        if (rows.releaseDecoded === true && typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap) releaseOnUpload(map.source, () => { image.close(); });
+      }
       // the maps and the loaded parts are kept once, like the model library's models; a retired one reloads on the next preload
       for (const kept of [...model.textures(), ...model.geometries()]) {
         retainCachedResources(kept);
@@ -1514,4 +1538,25 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile 
     }
     product.assets.releaseTiles(); return result;
   } catch (error) { assembler.dispose(); throw error; }
+}
+
+/** Authored skinned assets and their ordered look declarations. */
+export interface RigLibraryRows { readonly bodies: CreatureBodyRows<string>; readonly looks: readonly CreatureLookRow<string>[] }
+const rigLibraries = new WeakMap<RigLibraryRows, { bodies: CreatureBodies<string>; looks: readonly SpeciesLook[] }>();
+/** Resolve one loader per actual descriptor across model, page and Explorer consumers. */
+export function rigLibrary(rows: RigLibraryRows): { bodies: CreatureBodies<string>; looks: readonly SpeciesLook[] } {
+  const prior = rigLibraries.get(rows); if (prior !== undefined) return prior;
+  if (rows.bodies.creatures.length > 1024 || new Set(rows.bodies.creatures).size !== rows.bodies.creatures.length
+    || rows.looks.some(row => !rows.bodies.creatures.includes(row.body))) throw new Error('Rig library references an undeclared body');
+  const bodies = creatureBodies(rows.bodies), catalogue = { bodies, looks: creatureLooks(bodies, rows.looks) };
+  rigLibraries.set(rows, catalogue); return catalogue;
+}
+/** A model specimen is metadata and an existing library rig, with no private builder. */
+export interface ModelSpecimenRow { readonly model: BakedModelMetadata; readonly body: string; readonly specimen: CreatureSpecimenRow }
+/** Resolve authored specimens through the same hard-part/material builder as the original models. */
+export function modelCatalogue(rows: readonly ModelSpecimenRow[], library: Pick<ModelLibrary<string, string>, 'rig'>): ReturnType<typeof defineBakedModels> {
+  return defineBakedModels(rows.map(row => row.model), index => {
+    const row = rows[index]; if (row === undefined) throw new Error('Missing declared model specimen');
+    return creatureSpecimen(library.rig(row.body), row.specimen);
+  });
 }

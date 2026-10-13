@@ -101,6 +101,9 @@ async function boot(retain = false): Promise<{ app: App; plugin: SkyReachPlugin;
     return retained.context;
   };
   await app.loadLevel(toLevelSpec(manifest), { world: ctx => plugin.world(context(ctx)), kit: ctx => plugin.kit(context(ctx)), play: ctx => plugin.play(context(ctx)) });
+  expect(Reflect.get(plugin, 'roc')).toBe(plugin.actor('far.roc'));
+  expect(Reflect.get(plugin, 'boss')).toBe(plugin.presentedBoss);
+  expect(Reflect.get(Object.getOwnPropertyDescriptor(plugin, 'roc') ?? {}, 'set')).toBeUndefined();
   fake.onFixed('pre', (dt) => { for (const system of app.systemsByPhase()['fixed.pre']) system.run(dt, fake.clock.elapsedTime); });
   fake.onFixed('step', (dt) => { for (const system of app.systemsByPhase()['fixed.step']) system.run(dt, fake.clock.elapsedTime); });
   fake.onFixed('post', (dt) => { for (const system of app.systemsByPhase()['fixed.post']) system.run(dt, fake.clock.elapsedTime); });
@@ -118,13 +121,13 @@ describe('Sky Reach contract', () => {
   it('keeps the actual Sky world and mover roster stable across two retained entries with 600 frozen ticks between', async () => {
     const { app, plugin, retained, physics } = await boot(true);
     if (retained === undefined) throw new Error('Missing retained lifetime');
-    const pieces = app.registry.pieces.slice(), boss = plugin.boss;
+    const pieces = app.registry.pieces.slice(), boss = plugin.presentedBoss;
     const native = [physics.world.bodies.len(), physics.world.colliders.len()];
     expect(app.input.has('far.fan')).toBe(true); expect(app.input.active('far.fan')).toBe(false);
     expect(app.debug.scopedSnapshot()['farReach']).toBeUndefined();
     for (let visit = 0; visit < 2; visit++) {
       retained.activate();
-      expect(app.registry.pieces).toEqual(pieces); expect(plugin.boss).toBe(boss);
+      expect(app.registry.pieces).toEqual(pieces); expect(plugin.presentedBoss).toBe(boss);
       expect([physics.world.bodies.len(), physics.world.colliders.len()]).toEqual(native);
       expect(app.systemsByPhase()['fixed.pre'].filter(system => system.id === 'far.movers')).toHaveLength(1);
       expect(app.debug.scopedSnapshot()['farReach']).toBe(plugin);
@@ -210,7 +213,7 @@ describe('Sky Reach contract', () => {
     expect(app.registry.pieces.map((p) => p.id)).toEqual(expect.arrayContaining([...ISLES.map((i) => `far.isle.${i.id}`), ...SPANS.map((s) => s.id), 'far.updraft', FALLEN_BRIDGE.id, 'far.windmill', 'far.crown.ruin']));
     expect(app.levelRegistrations.list('species').map((r) => r.id)).toEqual(['far.creature.driftRay', 'far.creature.skyGoat', 'far.creature.galeWisp', 'far.creature.stormRoc']);
     expect(app.levelRegistrations.text('raise')).toBe('Raise the bridge to the storm crown');
-    expect(plugin.boss).not.toBeNull(); expect(app.debug.scopedSnapshot()['farReach']).toBe(plugin); expect(active.has('far.fan')).toBe(true);
+    expect(plugin.presentedBoss).not.toBeNull(); expect(app.debug.scopedSnapshot()['farReach']).toBe(plugin); expect(active.has('far.fan')).toBe(true);
     await app.unloadLevel(); expect(active.size).toBe(0); expect(app.registry.pieces).toEqual([]); expect(app.debug.scopedSnapshot()).toEqual({});
   });
   it('keeps every hover deck and the updraft off for a walker, each hover deck clear of every rim', async () => {

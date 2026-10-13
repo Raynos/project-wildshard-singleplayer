@@ -1,7 +1,7 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { releaseDecodedOnUpload } from '../look/image';
-import { SKY_BODIES } from '../species/bodies';
+import { SKY_RIG_LIBRARY } from '../data/rigLibrary';
 import { SKY_HD, SKY_MESHES, HD_URLS, MODEL_URLS, type SkyHdName, type SkyMeshName } from '../data/files';
 import { PREPARED_MODELS_URL } from '../data/modelFrames';
 import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
@@ -20,7 +20,7 @@ import { BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Sph
 export const SKY_AO_FLOOR = 0.6;
 let loading: Promise<void> | null = null;
 /** The facet models, through the SDK model library (its facet intake is the bakes' `generators/modelIntake.ts`). */
-const FACETS = createModelLibrary<SkyMeshName, never>({ meshes: SKY_MESHES, preparedMeshes: SKY_MESHES, meshUrls: MODEL_URLS, hd: [], hdUrls: {}, aoFloor: SKY_AO_FLOOR, hdLooks: {} }, '[far-reach]');
+export const SKY_LIBRARY = createModelLibrary<SkyMeshName, never>({ meshes: SKY_MESHES, preparedMeshes: SKY_MESHES, meshUrls: MODEL_URLS, hd: [], hdUrls: {}, aoFloor: SKY_AO_FLOOR, hdLooks: {}, rigs: SKY_RIG_LIBRARY, rigLoad: 'manual' }, '[far-reach]');
 
 /** A textured hero model: one indexed geometry (float position, normal, uv in the file's frame) and its painted map. */
 export interface SkyHd { readonly geometry: BufferGeometry; readonly map: Texture; readonly pivots?: { readonly body: BufferGeometry; readonly head: BufferGeometry; readonly arm: BufferGeometry; readonly fore: BufferGeometry } }
@@ -95,14 +95,14 @@ async function loadPreparedModels(pause?: () => Promise<void>): Promise<void> {
 }
 
 async function loadModels(pause?: () => Promise<void>): Promise<void> {
-  try { await Promise.all([loadPreparedModels(pause), SKY_BODIES.preload()]); }
+  try { await Promise.all([loadPreparedModels(pause), SKY_LIBRARY.preloadRigs()]); }
   catch (error) { loading = null; throw error; }
 }
 
 /** Load every generated model and baked creature body once (a failed one is skipped). */
 export function preloadSkyMeshes(pause?: () => Promise<void>): Promise<void> {
   loading ??= loadModels(pause);
-  return Promise.all([FACETS.preload(), loading]).then(() => undefined);
+  return Promise.all([SKY_LIBRARY.preload(), loading]).then(() => undefined);
 }
 
 /** A textured hero model (a copy of its geometry, its shared map), or null (not loaded: use the faceted model). */
@@ -112,4 +112,4 @@ export function skyHd(name: SkyHdName): SkyHd | null { const m = hd.get(name); r
 export const hdMaterial = (map: Texture): MeshStandardMaterial => new MeshStandardMaterial({ map, roughness: 0.85, metalness: 0 });
 
 /** A copy of a loaded model's geometry, or null (not loaded: use the code model). */
-export const skyMesh = FACETS.mesh;
+export const skyMesh = SKY_LIBRARY.mesh;

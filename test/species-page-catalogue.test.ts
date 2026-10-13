@@ -3,12 +3,13 @@ import { admitSpeciesBrains } from '../src/game/plugin/brain';
 import { registerSpecies } from '../src/engine/entities/species/registry';
 import { speciesWithLook } from '../src/engine/entities/species/look';
 import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES, SKY_PAGE_ROWS, SKY_PAGE_HOMES } from '../src/shards/far-reach/data/brains';
-import { SKY_CREATURE_LOOKS } from '../src/shards/far-reach/species/bodies';
+import { SKY_LIBRARY } from '../src/shards/far-reach/world/meshes';
 import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES, SIGNAL_PAGE_ROWS } from '../src/shards/sunscar-dunes/data/brains';
 import { speciesBrains } from '../src/sdk/speciesBrains';
 import { strike } from '../src/sdk/species';
 import { creature } from './fake/creature';
 
+const SKY_CREATURE_LOOKS = SKY_LIBRARY.looks;
 for (const look of SKY_CREATURE_LOOKS) {
   const row = SKY_CREATURE_ROWS.find(value => value.kind === look.kind);
   if (row === undefined) throw new Error('Missing shipping metadata');

@@ -9,7 +9,7 @@ import { creatureFloor } from '../src/game/shardfile/homeKeeper';
 import { speciesBrains } from '../src/sdk/speciesBrains';
 import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES } from '../src/shards/far-reach/data/brains';
 import { SKY_FLOCK_ROWS } from '../src/shards/far-reach/data/spawns';
-import { skySpecs } from '../src/shards/far-reach/runtime/headless';
+import { skySpecs } from './fake/sky-specs';
 import { DECK } from '../src/shards/far-reach/data/layout';
 import { SIGNAL_SPECIES, SIGNAL_STRIKES, SIGNAL_MODULES } from '../src/shards/sunscar-dunes/data/brains';
 import { SIGNAL_HEADLESS } from '../src/shards/sunscar-dunes/data/headlessOwners';

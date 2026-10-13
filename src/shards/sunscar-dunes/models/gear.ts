@@ -5,9 +5,8 @@ import { buildTower } from '../world/tower';
 import { lastBakedWorld } from '../world/baked';
 import { buildBrazier, buildCaravan, buildWell } from '../world/places';
 import { pivotNpcParts } from '@wildshard/game/plugin/geometry';
-import { creatureSpecimen } from '@wildshard/sdk/looks/modelLibrary';
 import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
-import { duneBody, duneMesh } from '../world/meshes';
+import { duneMesh } from '../world/meshes';
 import { BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';
 import caravanRows from '../data/caravan.json' with { type: 'json' };
 import wellRows from '../data/well.json' with { type: 'json' };
@@ -24,7 +23,6 @@ export const towerModel = defineModel({ id: 'sunscar-dunes/signal-tower', name: 
     const parts = buildTower(lastBakedWorld() ?? new Map()), group = new Group();
     parts.root.position.set(-TOWER.x, TOWER.deck - parts.deckY, -TOWER.z); parts.fire.visible = true; group.add(parts.root); return group;
   } });
-const CREATURE_SPECIMEN = { parts: 'first', material: { vertexColors: true, roughness: 0.8, flatShading: true } } as const;
 /** A world place from its bake moved to the origin, its ground there (flat under its live parts). */
 const centred = (root: Group, x: number, y: number, z: number): Group => { const group = new Group(); root.position.set(-x, -y, -z); group.add(root); return group; };
 const caravanY = caravanRows.anchors.y, wellY = wellRows.anchors.y, brazierY = brazierRows.braziers[0]?.y ?? 0;
@@ -37,15 +35,6 @@ export const brazierModel = defineModel({ id: 'sunscar-dunes/waymark-brazier', n
     const parts = buildBrazier(lastBakedWorld() ?? new Map(), 0, () => brazierY); parts.fire.visible = true; parts.oil.visible = true;
     return centred(parts.root, BRAZIERS[0]?.x ?? 0, brazierY, BRAZIERS[0]?.z ?? 0);
   } });
-/** The dune ray: the generated manta in its tint, as it flies (species/duneRay.ts). */
-export const rayModel = defineModel({ id: 'sunscar-dunes/dune-ray', name: STRINGS.ray, category: 'creatures', pipeline: ['hunyuan'], file: FILE, defaults: {},
-  build: () => creatureSpecimen(duneBody('ray'), CREATURE_SPECIMEN) });
-export const skittererModel = defineModel({ id: 'sunscar-dunes/sand-skitterer', name: STRINGS.skitterer, category: 'creatures', pipeline: 'code', file: FILE, defaults: {},
-  build: () => creatureSpecimen(duneBody('skitterer'), CREATURE_SPECIMEN) });
-export const striderModel = defineModel({ id: 'sunscar-dunes/dune-strider', name: STRINGS.strider, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
-  build: () => creatureSpecimen(duneBody('strider'), CREATURE_SPECIMEN) });
-export const matriarchModel = defineModel({ id: 'sunscar-dunes/dune-matriarch', name: STRINGS.matriarch, category: 'creatures', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
-  build: () => creatureSpecimen(duneBody('matriarch'), { ...CREATURE_SPECIMEN, scale: 3.6 }) });
 /** Sefa, the caravan scout who gives the quest (loop 2): the generated figure at her own origin. */
 export const scoutModel = defineModel({ id: 'sunscar-dunes/caravan-scout', name: STRINGS.scoutName, category: 'people', pipeline: ['hunyuan'], file: FILE, defaults: {},
   build: () => { const source = duneMesh(SCOUT_MODEL); return source === null ? new Group() : pivotNpcParts(SCOUT_NPC, source).root; } });

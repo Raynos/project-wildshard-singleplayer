@@ -305,3 +305,11 @@ export function seedOf(def: { readonly id: string; readonly seed?: number }): nu
   for (let i = 0; i < def.id.length; i++) { h ^= def.id.codePointAt(i) ?? 0; h = Math.imul(h, 0x01000193); }
   return h >>> 0;
 }
+
+/** Authored model metadata resolved by a shared baked library; definition remains on the model contract. */
+export type BakedModelMetadata = Pick<ModelDef<Record<string, never>>, 'id' | 'name' | 'category' | 'pipeline' | 'file' | 'rig'>;
+/** Define an ordered catalogue without building a specimen or installing a service. */
+export function defineBakedModels(rows: readonly BakedModelMetadata[], build: (index: number) => ReturnType<ModelDef<Record<string, never>>['build']>): readonly ModelDef<Record<string, never>>[] {
+  if (rows.length > 1024 || new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('Baked model catalogue must be bounded and unique');
+  return rows.map((row, index) => defineModel({ ...row, defaults: {}, build: () => build(index) }));
+}

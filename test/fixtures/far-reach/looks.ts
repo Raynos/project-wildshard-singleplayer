@@ -1,5 +1,6 @@
-import { SKY_CREATURE_LOOKS } from '../../../src/shards/far-reach/species/bodies';
+import { SKY_LIBRARY } from '../../../src/shards/far-reach/world/meshes';
 
+const SKY_CREATURE_LOOKS = SKY_LIBRARY.looks;
 function look(kind: string) {
   const found = SKY_CREATURE_LOOKS.find(row => row.kind === kind);
   if (found === undefined) throw new Error(`Missing shipping look ${kind}`);

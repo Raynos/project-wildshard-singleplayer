@@ -26,12 +26,14 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { CoinBurst } from '../loot/CoinBurst';
 import { DirectorBossBrain } from './director';
-import { bindRuntimeQuest, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
+import { bindRuntimeQuest, bindRuntimeBoss, bindRuntimeCoins, bindRuntimeBossRecord, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
+import type { SpeciesPageCatalogue } from './brain';
+import type { BossViewRows } from '../shardfile/bossRow';
 import { type Shardfile, parseShardfile } from '@wildshard/format/shardSchema';
 import { npcDef, type NpcRow } from './quests';
 import { installPivotNpc, type PivotNpcLevel, type PivotNpcPorts } from './geometry';
 import { parseQuestNpcBinding } from '@wildshard/format/npcs';
-import { parseBossProfile, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
+import { parseBossProfile, parseMarkedBossPresentation, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import { bossFight, type HeldBossBrain } from './bossPhase';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import type { EffectDef } from '@wildshard/engine/combat/effects/types';
@@ -903,6 +905,46 @@ export class RowBossView extends BossView {
     this.at = made.at; this.weather = made.weather; this.body = made.spec.body;
     made.after();
   }
+}
+
+/** Actual owners lent to the same held or spawned presentation interpreter. */
+export type DeclaredFightPorts = { readonly player: Vector3; readonly flags: Pick<Flags, 'has' | 'set'>;
+  readonly facts: (name: string, actor: string) => unknown; readonly armed: boolean } & ({
+  readonly kind: 'held'; readonly held: Animal | null; readonly catalogue: SpeciesPageCatalogue | null;
+  readonly record: RowBossRecord; readonly reward: (amount: number, label: string) => void;
+} | { readonly kind: 'spawned'; readonly source: Shardfile; readonly coins?: RuntimeCoins;
+  readonly dress?: (animal: Animal) => void;
+  readonly weather?: (presentation: MarkedBossPresentation) => (scene: Scene) => (dt: number, strength: number) => void;
+});
+/** Bind authored boss presentation at the caller's original phase, on its
+ * population's actual body/controller and original record, flags and reward. */
+export function bindDeclaredFight(ctx: ShardContext, row: BossViewRows | undefined, ports: DeclaredFightPorts): {
+  boss: RowBossView; summon: () => void; control: ReturnType<SpeciesPageCatalogue['prepareHeld']>;
+} {
+  if (row === undefined) throw new Error('Missing declared browser fight');
+  const toast = (text: string): void => { ctx.game.runtime?.play?.hud.toast(text); };
+  const victory = (): void => {
+    if (row.victory.once && ports.flags.has(row.victory.flag)) { if (row.victory.again !== undefined) toast(row.victory.again); return; }
+    ports.flags.set(row.victory.flag); ports.facts(row.victory.fact, row.id);
+    if (ports.kind === 'held') ports.reward(row.reward, row.victory.rewardLabel ?? '');
+  };
+  let boss: RowBossView, summoned: (() => void) | undefined, control: ReturnType<SpeciesPageCatalogue['prepareHeld']> = null;
+  const rows = { definition: row.definition, stages: row.stages, profile: row.profile };
+  if (ports.kind === 'held') {
+    control = ports.held === null ? null : ports.catalogue?.prepareHeld(ports.held.kind, ports.held) ?? null;
+    if (ports.held !== null && control === null) throw new Error('Held creature controller must be prepared by its species binding');
+    boss = new RowBossView(ctx, rows, { player: ports.player, held: ports.held, brain: control, victory, record: ports.record });
+  } else {
+    if (row.record === undefined) throw new Error('Spawned presentation requires its declared record');
+    const body = bindRuntimeBoss(ctx, ports.source, row.id, ports.dress);
+    const record = bindRuntimeBossRecord(ctx, ports.source, row.record, ports.flags);
+    const presentation = parseMarkedBossPresentation(row.presentation);
+    boss = new RowBossView(ctx, rows, { player: ports.player, body, record: { saved: record.read(), persist: record.write }, presentation,
+      reward: row.reward, coins: ports.coins ?? bindRuntimeCoins(ctx, null), onDown: victory,
+      ...(ports.weather === undefined ? {} : { weather: ports.weather(presentation) }) });
+    summoned = () => { toast(presentation.toasts.summoned); };
+  }
+  return { ...installBossView(ctx, row.id, boss, ports.armed, summoned), control };
 }
 
 /** Existing starter tuning; only the authored stun is applied by normal play, and importing installs no effects. */

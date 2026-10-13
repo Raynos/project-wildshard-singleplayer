@@ -2,12 +2,13 @@ import { expect, it } from 'vitest';
 import { Rng } from '../src/engine/core/rng';
 import { SKY_CREATURE_ROWS } from '../src/shards/far-reach/data/brains';
 import { SIGNAL_SPECIES } from '../src/shards/sunscar-dunes/data/brains';
-import { SKY_CREATURE_LOOKS } from '../src/shards/far-reach/species/bodies';
-import { DUNE_CREATURE_LOOKS } from '../src/shards/sunscar-dunes/world/meshes';
+import { SKY_LIBRARY } from '../src/shards/far-reach/world/meshes';
+import { DUNE_LIBRARY } from '../src/shards/sunscar-dunes/world/meshes';
 import { SKY_STAND_INS } from '../src/shards/far-reach/data/standIns';
 import { STRIDER_BODY } from '../src/shards/sunscar-dunes/data/striderRig.baked';
 import { RAY_BODY, SKITTERER_BODY } from '../src/shards/sunscar-dunes/data/species/bodies';
 
+const SKY_CREATURE_LOOKS = SKY_LIBRARY.looks, DUNE_CREATURE_LOOKS = DUNE_LIBRARY.looks;
 it('keeps both shipping catalogue orders, body skeletons and dimensions before preload', () => {
   expect(SKY_CREATURE_LOOKS.map(row => row.kind)).toEqual(['driftRay', 'skyGoat', 'galeWisp', 'stormRoc']);
   expect(DUNE_CREATURE_LOOKS.map(row => row.kind)).toEqual(['duneRay', 'sandSkitterer', 'duneStrider', 'duneMatriarch']);

@@ -11,7 +11,7 @@ import { installQuestHost } from '../src/game/plugin/simulation';
 import { parseQuestHost, questHostRules } from '../src/format/questHost';
 import { SKY_QUEST_STAGES, SKY_QUEST_STAGE_INITIAL } from '../src/shards/far-reach/data/questStages';
 import { ROOST_IDS, SKY_ACT, SKY_INTERACT, SKY_SPOTS, QUEST_STEP } from '../src/shards/far-reach/data/questPrompts';
-import { skySpecs } from '../src/shards/far-reach/runtime/headless';
+import { skySpecs } from './fake/sky-specs';
 import { SKY_QUESTS, KEEPER_AT } from '../src/shards/far-reach/data/quests';
 import { DECK, NOTES, VANES, WINCH } from '../src/shards/far-reach/data/layout';
 import { SKY_ACTIONS, SKY_GRAPH } from '../src/shards/far-reach/data/questGraph';

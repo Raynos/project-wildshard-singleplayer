@@ -36,3 +36,9 @@ export const ROC_OWNER: BossOwnerRow = parseBossOwnerRow({ step: ROC_STEP, actor
   saved: { defeated: false, rewardTaken: false, kills: 0 },
   victory: { flag: FLAGS.roc, fact: ROC_FACT, once: true }, reward: { when: 'victory', amount: BOSS_REWARD },
 });
+
+/** Original state field and read-only legacy record seed; error text remains unchanged. */
+export const SKY_BOSS_STATE = { kind: 'state', key: 'far-reach.roc', actor: ROC_ID,
+  jsonError: 'Sky encounter state must be JSON', writeError: 'Sky encounter checkpoint is not durable' } as const;
+/** The authored directors are ordinary source rows, consumed by the declaration and browser fight. */
+export const SKY_DIRECTORS = [stages];

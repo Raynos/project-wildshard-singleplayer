@@ -4,8 +4,10 @@ import { creatureSpecimen, undrawnRig } from '../src/game/plugin/geometry';
 import type { AnimalSpecies } from '../src/engine/entities/species/registry';
 import { Rng } from '../src/engine/core/rng';
 import { modelContext } from '../src/engine/models/model';
-import { goatEntry, rayEntry, rocEntry } from '../src/shards/far-reach/models/creatures';
-import { matriarchModel, rayModel, skittererModel, striderModel } from '../src/shards/sunscar-dunes/models/gear';
+import { SKY_LIBRARY } from '../src/shards/far-reach/world/meshes';
+import { DUNE_LIBRARY } from '../src/shards/sunscar-dunes/world/meshes';
+import { SKY_MODEL_SPECIMENS } from '../src/shards/far-reach/data/rigLibrary';
+import { SIGNAL_MODEL_SPECIMENS } from '../src/shards/sunscar-dunes/data/rigLibrary';
 
 function body(parts: readonly BufferGeometry[]): AnimalSpecies {
   return { bones: [], furParts: [], hardParts: [...parts], eyeParts: [],
@@ -64,7 +66,7 @@ it('retains the zero-area first-part fallback and refuses invalid scale before m
 });
 
 it('both shipping model catalogues use their original specimen shape, material and scale without RNG', () => {
-  const sky = [rocEntry, goatEntry, rayEntry], signal = [rayModel, skittererModel, striderModel, matriarchModel];
+  const sky = SKY_LIBRARY.models(SKY_MODEL_SPECIMENS), signal = DUNE_LIBRARY.models(SIGNAL_MODEL_SPECIMENS);
   for (const [catalogue, parts] of [[sky, 'all'], [signal, 'first']] as const) {
     for (const model of catalogue) {
       const rng = new Rng(77), before = rng.snapshot(), root = model.build(modelContext(null), model.defaults, rng);

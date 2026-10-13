@@ -5,27 +5,23 @@ import { standaloneEntry } from './runtime/standalone';
 import { SIGNAL_PAGE_PROGRAM } from './data/population';
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import type { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
-import { HybridRuntimePlugin, bindRuntimeCoins, bindRuntimeItemContexts, bindRuntimeHomes, type RuntimeHomes, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/shardfile/hybridRows';
-import { SIGNAL_PAGE_HOLDS } from './data/hostOwners';
+import { HybridRuntimePlugin, bindRuntimeCoins, bindRuntimeItemContexts, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/shardfile/hybridRows';
 import source from './runtime/source';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { STRINGS } from './data/strings';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
 import { lastLightAll } from './look/light';
 import { DUSK, setDusk, stepDusk } from './look/dusk';
-import { preloadDuneMeshes, DUNE_CREATURE_LOOKS } from './world/meshes';
+import { preloadDuneMeshes } from './world/meshes';
 import { loadBakedWorld } from './world/baked';
 import type { Bullwhip } from './weapons/Bullwhip';
 import { WHIP_ROW } from './weapons/rows';
 import { installQuest } from './quest/install';
-import { FACT, MATRIARCH_FLAG } from './data/signalQuest';
 import { FLAG, SCOUT_FLAG } from './data/flags';
 import { installSunscarCues } from './runtime/audio/cues';
-import { installMatriarch } from './combat/matriarch';
-import type { MarkedBoss } from './runtime/shardfile/markedBoss';
+import { bindDeclaredFight } from '@wildshard/game/plugin/ui';
+import { stormWeather } from './runtime/shardfile/markedBoss';
 import { SAND, SKIRT } from './look/render';
 import { lentMaterial } from './runtime/looks/bakedGround';
 
@@ -41,13 +37,10 @@ function duskOf(places: SignalWorld): number {
 
 export class SignalDunesPlugin extends HybridRuntimePlugin {
   whip: Bullwhip | null = null;
-  fire: SignalFire | null = null; places: SignalWorld | null = null; creatures: RuntimeHomes | null = null;
-  matriarch: MarkedBoss | null = null;
-  /** The dune ray now flying (captures drive it). */
-  get ray(): Animal | null { return this.creatures?.homes[0]?.animal ?? null; }
+  fire: SignalFire | null = null; places: SignalWorld | null = null;
   // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
   protected readonly rows: HybridRuntimeRows = { expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }], complete: 'sunscar.complete',
-    audio: source.audio, cues: installSunscarCues, species: { ...SIGNAL_PAGE_PROGRAM, looks: DUNE_CREATURE_LOOKS } };
+    audio: source.audio, cues: installSunscarCues, ...SIGNAL_PAGE_PROGRAM };
   /**
    * Quest state for a capture (E399; council round 1: run the player's own path, every side effect with it). Each step is
    * what play does: Sefa's first talk sets her flag (her dialogue's only effect), the logbook's interact, the crank's
@@ -85,7 +78,6 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     // G99: in a grid cell nothing draws past the cube (the dune skirt stops at its edge; the platform drops the ranges)
     if (ctx.cube !== null) SKIRT.fit(ctx.cube.half);
   }
-  protected override witnessed(): Animal[] { return (this.creatures?.all() ?? []).filter(actor => actor.kind === 'duneRay' || actor.kind === 'duneStrider'); }
   // SF50-p / M3: the whip is its shardfile's declared item row; the platform installs it, resolving this runtime's own family.
   protected override arm(ctx: ShardContext, targets: HybridTargets): Bullwhip { return bindSignalItems(ctx, targets, (whip) => { this.whip = whip; }); }
   protected override armed(): Bullwhip | null { return this.whip; }
@@ -102,16 +94,16 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
       const installed = installQuest(ctx, position, places, coins), facts = installed.facts;
       this.quest = installed.quest; this.whip?.aimAt(places.crackables);
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
-      const matriarch = installMatriarch(ctx, position, places.flags, () => places.fire.lit, coins, () => { places.flags.set(MATRIARCH_FLAG); facts(FACT.matriarch, 'sunscar.matriarch'); }); this.matriarch = matriarch.boss;
+      const fight = bindDeclaredFight(ctx, this.rows.fight, { kind: 'spawned', source, player: position, flags: places.flags, facts, coins, armed: places.fire.lit,
+        dress: animal => { lastLightAll(animal.mesh, ctx.scope); }, weather: presentation => stormWeather(ctx, position, presentation.storm) }); this.presentedBoss = fight.boss;
       const signal = bindDirectorActions(signalStages, { read: () => ({ lit: places.fire.lit }),
-      bindings: [{ action: { spawn: 'sunscar.matriarch' }, run: matriarch.summon }],
+      bindings: [{ action: { spawn: 'sunscar.matriarch' }, run: fight.summon }],
       initial: places.fire.lit ? [{ lit: false }, { lit: true }] : [{ lit: false }] });
       places.fire.onLight = () => { signal.advance(); };
     }
     // The first frame looks a little down the spawn's slip face, over the dune rows to the tower (review H1).
     if (rt?.world) rt.world.player.pitch = -0.1;
-    this.creatures = bindRuntimeHomes(ctx, source, { system: 'sunscar.creatures', spawned: animal => { lastLightAll(animal.mesh, ctx.scope); },
-      holds: { ...SIGNAL_PAGE_HOLDS, flags: places?.flags ?? null } });
+    this.populate(ctx, source, { spawned: animal => { lastLightAll(animal.mesh, ctx.scope); }, flags: places?.flags ?? null });
     // The dusk deepens with the quest (E399, look/dusk.ts): a save loads at its step's light, play eases to each new one.
     if (places) {
       installEnteredRuntimeService(ctx, scope => { setDusk(duskOf(places), true); scope.onDispose(() => { setDusk(0, true); }); });
@@ -123,7 +115,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
 export default standaloneEntry(SignalDunesPlugin);
 
 /** Resolve only the declared first-party entry, preserving the standalone constructor. */
-export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
+export function resolveTrustedRuntime(entry: string): typeof SignalDunesPlugin {
   if (entry !== 'runtime/index.ts') throw new Error('Unknown trusted runtime entry');
   return SignalDunesPlugin;
 }

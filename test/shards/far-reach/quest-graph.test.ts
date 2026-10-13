@@ -8,7 +8,7 @@ import { Rng } from '../../../src/engine/core/rng';
 import { installSkyQuest as shippingQuest } from '../../fixtures/quest-oracle/sky-bridge';
 import { installSkyQuest } from '../../fixtures/quest-host/sky';
 import { ROOST_IDS, SKY_ACT, SKY_INTERACT } from '../../../src/shards/far-reach/data/questPrompts';
-import { skySpecs } from '../../../src/shards/far-reach/runtime/headless';
+import { skySpecs } from '../../fake/sky-specs';
 import { SKY_QUESTS, KEEPER_AT } from '../../../src/shards/far-reach/data/quests';
 import { DECK, NOTES, VANES, WINCH } from '../../../src/shards/far-reach/data/layout';
 import { SKY_ACTIONS } from '../../../src/shards/far-reach/data/questGraph';

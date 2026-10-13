@@ -48,6 +48,19 @@ export interface BossRowSpec {
 }
 
 const finite = v.pipe(v.number(), v.finite());
+const RecordSchema = v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: v.pipe(finite, v.integer(), v.minValue(0)) });
+/** Strict shared durable record, including the original ordered JSON fields. */
+export function parseBossRecord(input: unknown): BossSaved { return v.parse(RecordSchema, input); }
+/** Browser record policy; the state owner or flags remain the sole writer. */
+export type BossRecordRow = { readonly kind: 'state'; readonly key: string; readonly actor: string; readonly jsonError: string; readonly writeError: string }
+  | { readonly kind: 'flags'; readonly names: BossRowFlagNames; readonly actor: string };
+/** Authored presentation on the existing held/spawned boss runner. */
+export interface BossViewRows {
+  readonly id: string; readonly definition: BossDefinition; readonly stages: unknown; readonly profile: unknown;
+  readonly presentation?: unknown; readonly reward: number;
+  readonly record?: BossRecordRow;
+  readonly victory: { readonly flag: string; readonly fact: string; readonly once: boolean; readonly again?: string; readonly rewardLabel?: string };
+}
 const Boss = v.strictObject({ state: v.picklist(['dormant', 'armed', 'intro', 'fight', 'beat', 'victory']), phase: finite, checkpoint: finite, attempts: finite, t: finite, skipT: finite, short: v.boolean(),
   director: v.exactOptional(v.string()),
   saved: v.strictObject({ defeated: v.boolean(), rewardTaken: v.boolean(), kills: finite }) });

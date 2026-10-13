@@ -13,7 +13,8 @@
     "../../../public/assets/far-reach/baked/prepared-models.glb",
     "../../../public/assets/far-reach/models/wind-vane/post.glb",
     "../../../public/assets/far-reach/models/wind-vane/rotor.glb",
-    "data/crownInstances.generated.json"
+    "data/crownInstances.generated.json",
+    "data/rigLibrary.ts"
   ],
   "hide": [
     "far.storm",

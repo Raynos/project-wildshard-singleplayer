@@ -4283,3 +4283,30 @@ once against those owned meshes. Absent model input preserves existing
 callers. Signal lash and Sky fan use this one model/presentation owner in
 both gameplay and their catalogue, retaining the original contact phase,
 clock and independent shader ports. No SDK runtime forwarding alias exists.
+
+### Declared creature libraries and page fights
+
+`engine/models/model.defineBakedModels(rows, build)` defines bounded,
+unique model metadata without registering a species or building a model.
+The SDK model library's `models(rows)` method resolves those
+metadata rows through the original rig specimen builder. Sky and Signal
+use their declared rig libraries for both play and Model Explorer.
+
+`ModelLibraryRows.rigs` contains body files and ordered look rows;
+`rigLoad: 'manual'` preserves an explicit preparation phase. Libraries
+expose `rig`, `bakedRig`, `looks` and `preloadRigs`. Absent rig rows retain
+the original preload. `CreatureBodyRows.releaseDecoded` releases decoded
+ImageBitmaps at upload through the existing texture resource hook.
+
+`HybridRuntimeRows.population` binds actual body homes, held bodies,
+ordered groups and witness selection. The base `populate` preserves the
+caller's install phase, pause and scope. `actor(id)` reads those actual
+bodies; `inspect` admits bounded, read-only capture aliases.
+
+`HybridRuntimeRows.fight` is a `BossViewRows` declaration.
+`ui.bindDeclaredFight(ctx, row, ports)` binds its original held or spawned
+controller, record, reward, presentation and victory actions. It adds no
+simulation clock. Sky and Signal supply actual bodies, page flags,
+Ledger facts and weather ports. `headless.bindRuntimeBossRecord` retains
+the existing strict state JSON or flag-backed save representation;
+`bossRow.parseBossRecord` admits the shared saved-field contract.

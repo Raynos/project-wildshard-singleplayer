@@ -7,7 +7,7 @@ import PLACEMENTS from '../data/placements.json' with { type: 'json' };
 import { MEADOW, MEADOW_CARD, MEADOW_GLSL, MEADOW_PROGRAMS, SWARD } from '../data/meadowLook';
 import { apothem } from '../layout';
 import { SKY, SKY_FOG as FOG } from '../data/skyLook';
-import { SWARD_ATLAS } from '../data/swardAtlas';
+import { SWARD_ATLAS_FRAGMENTS } from '../data/swardAtlas';
 import { skySwardAtlas } from './baked';
 
 /**
@@ -50,7 +50,7 @@ export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] =
     tile: MEADOW.tile.toFixed(1), range: MEADOW.range.toFixed(1), near: MEADOW.near.toFixed(1),
     isles: String(isleU.length), holes: String(holes.length), paths: String(paths.length),
     share0: SWARD.share[0].toFixed(2), share1: SWARD.share[1].toFixed(2), lawn: heights(SWARD.height.lawn), broad: heights(SWARD.height.broad), wild: heights(SWARD.height.wild),
-    perSpecies: SWARD_ATLAS.perSpecies.toFixed(1), variants: SWARD_ATLAS.variants.toFixed(1),
+    ...SWARD_ATLAS_FRAGMENTS,
     strawBody: SWARD.straw.body.toFixed(2), strawTip: SWARD.straw.tip.toFixed(2), leaf: glslColor(SWARD.leaf),
     fogNear: FOG.near.toFixed(1), fogSpan: (FOG.far - FOG.near).toFixed(1), fogMax: FOG.max.toFixed(2), fog: glslColor(SKY.fog),
   } });

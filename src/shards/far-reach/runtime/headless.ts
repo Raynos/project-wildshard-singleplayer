@@ -1,8 +1,6 @@
 import { Vector3 } from 'three';
 import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan, HeadlessRuntimePreparation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
-import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { bakedSpecs } from '@wildshard/game/plugin/brain';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { installDeclaredPropColliders } from '@wildshard/engine/physics/declaredProps';
@@ -21,9 +19,6 @@ import { SKY_SPOTS } from '../data/questPrompts';
 import { SKY_MOVER_BINDING } from '../data/moverBindings';
 import { UpdraftDriver, MoverScriptDriver, verifiedMoverModules, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import baked from '../data/physics.generated.json' with { type: 'json' };
-
-/** The baked native specs by kind (generators/physics.ts, authored rows only); every body of a kind shares one recipe. */
-export const skySpecs = (): ReadonlyMap<string, AnimalSimSpec> => bakedSpecs(baked.actors);
 
 /** The updraft's fixed-step id (its whole state is the player's board and impulse, so it carries no continuation). */
 export const UPDRAFT_STEP = 'far.updraft';

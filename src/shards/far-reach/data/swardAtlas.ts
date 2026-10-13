@@ -7,3 +7,6 @@
  */
 export const SWARD_ATLAS = { variants: 6, perSpecies: 2, w: 192, h: 512 } as const;
 
+
+/** Exact author tokens consumed by the meadow's existing shader template. */
+export const SWARD_ATLAS_FRAGMENTS = { perSpecies: SWARD_ATLAS.perSpecies.toFixed(1), variants: SWARD_ATLAS.variants.toFixed(1) };

@@ -61,6 +61,10 @@ async function boot(retained = false): Promise<{ app: App; plugin: SignalDunesPl
     return hooks.context;
   };
   await app.loadLevel(toLevelSpec(manifest), { world: (ctx) => plugin.world(context(ctx)), kit: (ctx) => plugin.kit(context(ctx)), play: (ctx) => plugin.play(context(ctx)) });
+  const first = source.runtime?.spawns?.homes[0]; if (first === undefined) throw new Error('Missing original ray home');
+  expect(Reflect.get(plugin, 'ray')).toBe(plugin.actor(first.id));
+  expect(Reflect.get(plugin, 'matriarch')).toBe(plugin.presentedBoss);
+  expect(Reflect.get(Object.getOwnPropertyDescriptor(plugin, 'ray') ?? {}, 'set')).toBeUndefined();
   fake.onUpdate((dt, time) => { for (const system of app.systemsByPhase().update) system.run(dt, time); });
   app.setState('play'); return { app, plugin, stages, active, fake, hooks };
 }
@@ -135,9 +139,9 @@ describe('Signal Dunes plugin contract', () => {
       whip.swing(false); expect(whip.crackWorld(b.parts.bowlAt.clone().add(new Vector3(0, 0, 5)), dir, CRACK.reach, false)).not.toBeNull(); expect(b.lit).toBe(true);
     }
     expect(whip.crackWorld(from, dir, CRACK.reach, false)).toBeNull();
-    expect(step()).toBe(4); expect(places.litCount).toBe(3); expect(plugin.matriarch?.state).toBe('dormant');
+    expect(step()).toBe(4); expect(places.litCount).toBe(3); expect(plugin.presentedBoss?.state).toBe('dormant');
     places.fire.brazier.onInteract(); app.events.flush('update');
-    expect(plugin.matriarch?.state).toBe('armed'); // the signal summons the Dune Matriarch
+    expect(plugin.presentedBoss?.state).toBe('armed'); // the signal summons the Dune Matriarch
     expect(plugin.fire?.lit).toBe(true); expect(plugin.fire?.brazier.label).toBe('Signal fire lit');
     // P4: the Matriarch is the last step; the signal reward pays after her fall.
     expect(step()).toBe(5); expect(plugin.quest?.isComplete).toBe(false);
@@ -157,7 +161,7 @@ describe('Signal Dunes plugin contract', () => {
     places.flags.set(MATRIARCH_FLAG); app.events.flush('update');
     for (let i = 0; i < 90; i++) fake.advance(1 / 30);
     expect(places.flags.has(PAID_FLAG)).toBe(true); expect(legacy.read(manifest.slug)).toBe(false);
-    expect(shardSave(bossesSave, manifest.slug).read()).toEqual({}); expect(plugin.matriarch?.defeated).toBe(false); // the flag alone is no fight
+    expect(shardSave(bossesSave, manifest.slug).read()).toEqual({}); expect(plugin.presentedBoss?.defeated).toBe(false); // the flag alone is no fight
     expect(achievements(app)).toEqual({ 'sunscar.signal': true }); // the flag alone, no boss fight: no Matriarch feat
     const facts = Object.keys(ledger(app).state().facts).length;
     await app.unloadLevel();
@@ -182,7 +186,7 @@ describe('Signal Dunes plugin contract', () => {
     expect(purse.read()).toBe(25); // paid once, under the old record
     // her old bossesSave entry is carried over as her flags (SF50-p) and never written again
     expect([MATRIARCH_DEFEATED_FLAG, MATRIARCH_PAID_FLAG].map((flag) => loaded.plugin.places?.flags.has(flag))).toEqual([true, true]);
-    expect(loaded.plugin.matriarch?.defeated).toBe(true); expect(loaded.plugin.matriarch?.rewardTaken).toBe(true);
+    expect(loaded.plugin.presentedBoss?.defeated).toBe(true); expect(loaded.plugin.presentedBoss?.rewardTaken).toBe(true);
     expect(achievements(loaded.app)).toEqual({ 'sunscar.signal': true, 'sunscar.matriarch': true });
     const facts = Object.keys(ledger(loaded.app).state().facts).length; expect(facts).toBe(2);
     const scope = loaded.app.levelScope; if (scope === null) throw new Error('Missing migrated level scope');

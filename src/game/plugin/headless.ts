@@ -1,3 +1,6 @@
+import { rigLibrary, type RigLibraryRows } from "./geometry";
+import { bossesSave } from '../saves';
+import { bossFlagRecord, parseBossRecord, type BossRecordRow, type BossRowFlags, type BossViewRows, type installBossOwnerRow } from '../shardfile/bossRow';
 import { admitSpeciesProgram, type SpeciesProgramRows, type SpeciesBrains, type SpeciesPageCatalogue, type SpeciesCataloguePorts } from "./brain";
 import type { Progress } from "../Progress";
 import { Vector3, type Object3D } from 'three';
@@ -449,8 +452,17 @@ export interface HybridRuntimeRows {
   /** Build the brain catalogue (in kit, as the rows enter): the brained species rows, their looks and the live witness. */
   readonly species: (() => { readonly rows: Parameters<ShardContext['rows']['species']>[0]; readonly looks: Parameters<ShardContext['rows']['speciesLook']>[0]; readonly witness: (actor: AnimalBody) => string | null }) | {
     readonly program: SpeciesProgramRows; readonly page: Parameters<SpeciesBrains['catalogue']>[0];
-    readonly looks: Parameters<ShardContext['rows']['speciesLook']>[0]; readonly homes?: SpeciesCataloguePorts['homes']; readonly shove?: boolean;
+    readonly looks?: Parameters<ShardContext['rows']['speciesLook']>[0]; readonly library?: RigLibraryRows; readonly homes?: SpeciesCataloguePorts['homes']; readonly shove?: boolean;
   };
+  readonly population?: {
+    readonly system: string; readonly held?: RuntimeHomePorts['held']; readonly bodyHomes?: NonNullable<RuntimeHomePorts['bodyHomes']>['rows'];
+    readonly holds?: Omit<NonNullable<RuntimeHomePorts['holds']>, 'flags'>;
+    readonly groups?: Readonly<Record<string, readonly { readonly id: string }[]>>;
+    readonly witness: { readonly groups: readonly string[] } | { readonly kinds: readonly string[] };
+  };
+  /** Original read-only capture names, resolved against actual owners rather than private shard fields. */
+  readonly inspect?: { readonly actors?: Readonly<Record<string, { readonly held: string } | { readonly home: number }>>; readonly roster?: string; readonly boss?: string };
+  readonly fight?: BossViewRows;
 }
 /** A held weapon the host wires: its viewmodel and its swing cues. */
 export type HybridWeapon = Awaited<ReturnType<BuildEquipment>>['primary'] & { onSwing: ((heavy: boolean) => void) | null; readonly model: Object3D };
@@ -473,6 +485,9 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected populationCatalogue: SpeciesPageCatalogue | null = null;
   protected populationControl: ReturnType<SpeciesBrains['held']> = null;
   private populationPush: ((yaw: number, speed: number, lift: number) => void) | null = null;
+  private populationHomes: RuntimeHomes | null = null;
+  private aliasesBound = false;
+  presentedBoss: ReturnType<typeof installBossOwnerRow>['boss'] | null = null;
   /** The world, behind the loading screen (after the strings). */
   protected abstract build(ctx: ShardContext): Promise<void> | void;
   /** The primary weapon for `buildEquipment`. */
@@ -480,7 +495,30 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   /** The weapon now built (null before `buildEquipment`). */
   protected abstract armed(): HybridWeapon | null;
   /** The bodies the SF27 activation receipt reports. */
-  protected abstract witnessed(): readonly AnimalBody[];
+  protected witnessed(): readonly AnimalBody[] {
+    const row = this.rows.population?.witness;
+    if (row === undefined) return [];
+    return 'groups' in row ? row.groups.flatMap(group => this.actors(group))
+      : (this.populationHomes?.all() ?? []).filter(actor => row.kinds.includes(actor.kind));
+  }
+  /** Actual retained actor under its declared placement id, never a reconstructed copy. */
+  actor(id: string): AnimalBody | null { return this.populationHomes?.held(id) ?? this.populationHomes?.homes.find(home => home.id === id)?.animal ?? null; }
+  protected actors(group: string): AnimalBody[] {
+    const rows = this.rows.population?.groups?.[group];
+    if (rows === undefined) throw new Error('Unknown declared population group');
+    return rows.flatMap(row => this.actor(row.id) ?? []);
+  }
+  protected populate(ctx: ShardContext, source: Shardfile, ports?: { spawned?: RuntimeHomePorts['spawned']; flags?: Pick<Flags, 'has'> | null }): void;
+  protected populate(ctx: ShardContext, source: Shardfile, ports: { spawned?: RuntimeHomePorts['spawned']; flags?: Pick<Flags, 'has'> | null }, pause: () => Promise<void>): Promise<void>;
+  protected populate(ctx: ShardContext, source: Shardfile, ports: { spawned?: RuntimeHomePorts['spawned']; flags?: Pick<Flags, 'has'> | null } = {}, pause?: () => Promise<void>): void | Promise<void> {
+    const row = this.rows.population; if (row === undefined) throw new Error('Missing declared population installation');
+    const installation: RuntimeHomePorts = { system: row.system,
+      ...(row.held === undefined ? {} : { held: row.held }), ...(ports.spawned === undefined ? {} : { spawned: ports.spawned }),
+      ...(row.bodyHomes === undefined ? {} : { bodyHomes: { rows: row.bodyHomes, authority: this.populationBrains } }),
+      ...(row.holds === undefined ? {} : { holds: { ...row.holds, flags: ports.flags ?? null } }) };
+    if (pause === undefined) { this.populationHomes = bindRuntimeHomes(ctx, source, installation); return; }
+    return bindRuntimeHomes(ctx, source, installation, pause).then(homes => { this.populationHomes = homes; return undefined; });
+  }
   /** Everything after the loot, in the shard's own order. */
   protected abstract install(ctx: ShardContext, loot: ScopedLoot | null): Promise<void> | void;
   /** Kit work after the rows, before `buildEquipment`. */
@@ -493,6 +531,22 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   override async world(ctx: ShardContext): Promise<void> { ctx.strings(this.rows.strings); await this.build(ctx); }
   override kit(ctx: ShardContext): void {
     const rows = this.rows, rt = ctx.game.runtime;
+    if (!this.aliasesBound) {
+      const aliases = new Map<string, () => unknown>();
+      const add = (name: string, read: () => unknown): void => {
+        if (aliases.size >= 1024 || aliases.has(name)) throw new Error('Population inspection aliases must be bounded and unique');
+        aliases.set(name, read);
+      };
+      for (const [name, row] of Object.entries(rows.inspect?.actors ?? {})) {
+        if ('held' in row ? row.held.length === 0 : !Number.isSafeInteger(row.home) || row.home < 0) throw new Error('Invalid population inspection address');
+        add(name, () => 'held' in row ? this.actor(row.held) : this.populationHomes?.homes[row.home]?.animal ?? null);
+      }
+      if (rows.inspect?.roster !== undefined) add(rows.inspect.roster, () => this.populationHomes);
+      if (rows.inspect?.boss !== undefined) add(rows.inspect.boss, () => this.presentedBoss);
+      for (const name of aliases.keys()) if (name in this || !/^[A-Za-z][A-Za-z0-9]*$/u.test(name)) throw new Error('Population inspection alias conflicts with its owner');
+      for (const [name, get] of aliases) Object.defineProperty(this, name, { get, configurable: false, enumerable: true });
+      this.aliasesBound = true;
+    }
     ctx.rows.weapon(rows.weapon);
     let species: { rows: Parameters<ShardContext['rows']['species']>[0]; looks: Parameters<ShardContext['rows']['speciesLook']>[0]; witness: (actor: AnimalBody) => string | null };
     if (typeof rows.species === 'function') species = rows.species();
@@ -501,7 +555,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
       this.populationBrains = brains;
       const catalogue = brains.catalogue(program.page, { ...(program.homes === undefined ? {} : { homes: program.homes }),
         ...(program.shove === true ? { held: { shove: (yaw, speed, lift) => { this.populationPush?.(yaw, speed, lift); } } } : {}) });
-      this.populationCatalogue = catalogue; species = { rows: catalogue.rows, looks: program.looks, witness: brains.witness };
+      this.populationCatalogue = catalogue; species = { rows: catalogue.rows, looks: program.looks ?? (program.library === undefined ? [] : rigLibrary(program.library).looks), witness: brains.witness };
     }
     this.witness = species.witness; ctx.rows.species(species.rows); ctx.rows.speciesLook(species.looks);
     ctx.rows.encounter(rows.encounters);
@@ -537,4 +591,27 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
     if (retainsRuntimeServices(ctx)) installEnteredRuntimeInput(ctx, definition, description);
     else { ctx.inputContext(definition); ctx.app.input.bindings.describe(description, ctx.scope); }
   }
+}
+
+/** Bind a boss's original legacy seed once, retaining its admitted state or flag
+ * owner as the only writer. Both hybrid browser encounters use this path. */
+export function bindRuntimeBossRecord(ctx: Pick<ShardContext, 'app' | 'scope'> & Partial<Pick<ShardContext, 'manifest'>>, source: Shardfile, row: BossRecordRow,
+  flags?: BossRowFlags, instance = source.identity.slug): {
+  readonly read: () => ReturnType<typeof parseBossRecord>; readonly write: (saved: ReturnType<typeof parseBossRecord>) => void; readonly flush: () => boolean;
+} {
+  if (row.kind === 'flags') {
+    if (flags === undefined) throw new Error('Boss flag record requires its actual flag owner');
+    const legacy = bossesSave.read(ctx.manifest?.slug ?? source.identity.slug)[row.actor];
+    if (legacy?.defeated === true) flags.set(row.names.defeated);
+    if (legacy?.rewardTaken === true) flags.set(row.names.paid);
+    const record = bossFlagRecord(flags, row.names);
+    return { read: () => record.saved, write: record.persist, flush: () => true };
+  }
+  const state = bindRuntimeState(ctx, source, row.key, () => JSON.stringify(bossesSave.read(source.identity.slug)[row.actor]
+    ?? { defeated: false, rewardTaken: false, kills: 0 }), instance);
+  return { read: () => {
+    const saved = state.read(); if (typeof saved !== 'string') throw new Error(row.jsonError);
+    const parsed: unknown = JSON.parse(saved); return parseBossRecord(parsed);
+  }, write: saved => { if (!state.write(JSON.stringify(parseBossRecord(saved)))) throw new Error(row.writeError); },
+  flush: () => state.write(state.read()) };
 }

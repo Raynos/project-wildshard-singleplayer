@@ -1,27 +1,9 @@
 import { Color, Mesh, SphereGeometry, type Material, type Scene, type Vector3 } from 'three';
-import type { BossSaved } from '@wildshard/engine/ai/BossBrain';
-import type { RowBossView } from '@wildshard/game/plugin/ui';
 import { weatherFog, type WeatherFog } from '@wildshard/engine/world/Atmosphere';
-import { bossesSave, shardSave } from '@wildshard/game/saves';
 import type { ShardContext } from "@wildshard/game/plugin/context";
-import { bossFlagRecord, type BossRowFlagNames, type BossRowFlags } from '@wildshard/game/shardfile/bossRow';
 import type { MarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import { ownLookMaterials } from '../looks/bakedGround';
 import source from '../source';
-
-/** The Matriarch's browser encounter: the platform's spawned-body boss view (`RowBossView`). */
-export type MarkedBoss = RowBossView;
-
-/**
- * A boss's record on the shard's flags (`bossFlagRecord`), first carrying over a current save's old `bossesSave` entry
- * under its id (read once, never written again).
- */
-export function carriedBossRecord(ctx: Pick<ShardContext, 'manifest'>, flags: BossRowFlags, id: string, names: BossRowFlagNames): { saved: BossSaved; persist: (value: BossSaved) => void } {
-  const legacy = shardSave(bossesSave, ctx.manifest.slug).read()[id];
-  if (legacy?.defeated === true) flags.set(names.defeated);
-  if (legacy?.rewardTaken === true) flags.set(names.paid);
-  return bossFlagRecord(flags, names);
-}
 
 /** The storm shells' look.materials ids, outer first (data/stormLook.ts STORM_GRAPHS, the presentation row's `shells`). */
 const SHELL_LOOKS = ['storm-far', 'storm-near'] as const;

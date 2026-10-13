@@ -10,7 +10,7 @@ import type { AnimalSim } from '../../../src/engine/entities/AnimalSim';
 import { speciesBrains } from '../../../src/sdk/speciesBrains';
 import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES } from '../../../src/shards/far-reach/data/brains';
 import type { KeptPolicy } from '../../../src/game/shardfile/homeKeeper';
-import { skySpecs } from '../../../src/shards/far-reach/runtime/headless';
+import { skySpecs } from '../../fake/sky-specs';
 import { flockBrain as shippingBrain } from '../../fixtures/species-oracle/skyFlock';
 
 let rapier: Rapier;

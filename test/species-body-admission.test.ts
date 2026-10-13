@@ -14,7 +14,7 @@ import type { KeptPolicy } from '../src/game/shardfile/homeKeeper';
 import { SKY_SPECIES_BRAINS } from '../src/shards/far-reach/data/brains';
 import { RAM_DATA, DIVE_DATA, BURST_DATA } from '../src/shards/far-reach/data/strikes';
 import { strike } from '../src/sdk/species';
-import { skySpecs } from '../src/shards/far-reach/runtime/headless';
+import { skySpecs } from './fake/sky-specs';
 import { CRAB_BRAIN, SAILOR_BRAIN, MONKEY_BRAIN } from '../src/shards/driftwood-isle/data/brains';
 import { flockBrain as shippingBrain } from './fixtures/species-oracle/skyFlock';
 

@@ -1,11 +1,9 @@
 import { ROC_STRIKES } from '../data/brains';
 import { SKY_PAGE_PROGRAM } from '../data/population';
-import stages from '../data/bossStages.json' with { type: 'json' };
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { worldBuildYield } from '@wildshard/game/shard/plugin';
 import source from '../shard.config';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { ROC_SLATE_EDITS } from '../data/paintLook';
@@ -14,7 +12,6 @@ import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrappin
 import { STRINGS } from '../data/strings';
 import { GUST_ICON, SWING_ICON } from '../data/icons';
 import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
-import { SKY_FLOCK_GROUPS, SKY_PAGE_BODY_HOMES, SKY_PAGE_HELD } from '../data/spawns';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_MOVER_BINDING, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
@@ -29,7 +26,6 @@ import type { ConeFanTarget } from './weapons/coneFan';
 import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
 import { FAN_ROW } from '../weapons/rows';
-import { SKY_CREATURE_LOOKS } from '../species/bodies';
 import { preloadSkyMeshes } from '../world/meshes';
 import { loadSkyBaked } from '../world/baked';
 import { loadSkyBridges } from '../world/shapes';
@@ -44,13 +40,13 @@ import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow, type Meadow } from '../world/meadow';
 import { heroStoneDiscs } from '../world/dressing';
 import { SKY_SUN } from '../data/skyLook';
-import { RowBossView, installBossView, moverChannelViews, moverChannelPrompts } from '@wildshard/game/plugin/ui';
-import { BOSS_REWARD, ROC_ID, ROC_DEFINITION, ROC_BOSS_PROFILE } from '../data/rocFight';
+import { bindDeclaredFight, moverChannelViews, moverChannelPrompts } from '@wildshard/game/plugin/ui';
+import { ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
 import { bindSkyQuestStage } from './quest';
 import { FLAGS, vaneFlag } from '../quest/flags';
 import { installSkyCues } from './audio/cues';
-import { HybridRuntimePlugin, bindRuntimeHomes, type HybridRuntimeRows, type RuntimeHomes } from '@wildshard/game/plugin/headless';
+import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import { bindRuntimeProductProps, runtimeLookMaterials, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { bindSkyItems } from './items';
 
@@ -75,11 +71,7 @@ const WINCH_FLAGS = [FLAGS.notes, FLAGS.roost, FLAGS.vanes, ...VANES.map(v => va
 const GALE_WALL = ROC_STRIKES[1];
 
 export class SkyReachPlugin extends HybridRuntimePlugin {
-  built: BuiltWorld | null = null; fan: WarFanWeapon | null = null; boss: RowBossView | null = null;
-  /** The 13 declared bodies (data/spawns.ts), held by the platform's home keeper in their shipping allocation order. */
-  private kept: RuntimeHomes | null = null;
-  private bodies(rows: readonly { readonly id: string }[]): Animal[] { return rows.flatMap(row => this.kept?.held(row.id) ?? []); }
-  get roc(): Animal | null { return this.kept?.held(ROC_ID) ?? null; }
+  built: BuiltWorld | null = null; fan: WarFanWeapon | null = null;
   /** Is the player riding the hoverboard? The fan stows and the decks glow then; the hover decks and the updraft are
    *  `mode: 'board'` pieces, which collide only then (SF34, ENGINE §5 `app.player.mode`). */
   private board: () => boolean = () => false;
@@ -95,7 +87,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   meadow: Meadow | null = null;
 
   protected readonly rows: HybridRuntimeRows = { expose: 'farReach', strings: STRINGS, weapon: FAN_ROW, encounters: { id: ROC_ID, displayName: STRINGS.roc }, complete: FLAGS.complete,
-    audio: source.audio, cues: installSkyCues, species: { ...SKY_PAGE_PROGRAM, looks: SKY_CREATURE_LOOKS } };
+    audio: source.audio, cues: installSkyCues, ...SKY_PAGE_PROGRAM };
 
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
@@ -141,7 +133,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     if (runtime !== undefined) runtime.hooks.levelBounds = () => ({ x0: -250, x1: 250, z0: -250, z1: 250, floor: -8 });
     runtime?.interactables.push(this.built.winch, this.built.notes);
   }
-  protected override witnessed(): Animal[] { return this.bodies([...SKY_FLOCK_GROUPS.rays, ...SKY_FLOCK_GROUPS.roost, ...SKY_FLOCK_GROUPS.goats, ...SKY_FLOCK_GROUPS.wisps]); }
   protected override prepare(ctx: ShardContext): void {
     // The shared combat-target query (ENGINE §19): world creatures in play, the Practice Arena's dummies while it is open.
     const targets = (): readonly ConeFanTarget[] => ctx.app.combat.targets().filter((t) => t.hittable);
@@ -268,10 +259,9 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // spawn ray lands them on the first WORLD floor under `fromY`, which finds the islands only once physics has stepped
     // (in `play` it hits nothing and the goat lands on the -1000 m analytic floor), so they land late, after the Roc.
     await worldBuildYield(ctx, 4);
-    this.kept = await bindRuntimeHomes(ctx, source, { system: 'far.creatures', held: SKY_PAGE_HELD,
-      bodyHomes: { rows: SKY_PAGE_BODY_HOMES, authority: this.populationBrains } }, () => worldBuildYield(ctx, 4));
+    await this.populate(ctx, source, {}, () => worldBuildYield(ctx, 4));
     // each free ray trails its luminous wake (data/rayWakeLook.ts on @wildshard/sdk/looks/wakeRibbon; proposal B's ray beside the mill)
-    const wakes = this.bodies(SKY_FLOCK_GROUPS.rays).map((ray) => { const w = wakeRibbon(RAY_WAKE); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
+    const wakes = this.actors('rays').map((ray) => { const w = wakeRibbon(RAY_WAKE); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
     boundedRows(wakes);
     ctx.system({ id: 'far.rayWake', phase: 'late', run: (dt) => {
       const cam = rt.world?.game.camera; if (!cam) return;
@@ -280,8 +270,9 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     } });
     // the Roc's plumage to mockup D (E399 round 6, seat A: 'a slate / white split'; the generated texture's wings and back are
     // a warm brown): the browns turn slate grey, the white head and belly and the yellow beak and talons stay
-    if (this.roc !== null) {
-      const materials = boundedRows(Array.isArray(this.roc.mesh.material) ? this.roc.mesh.material : [this.roc.mesh.material]);
+    const painted = this.actor(ROC_ID);
+    if (painted !== null) {
+      const materials = boundedRows(Array.isArray(painted.mesh.material) ? painted.mesh.material : [painted.mesh.material]);
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const mat = materials[i]; if (mat === undefined) break;
       patchShader(mat, 'far.roc-slate', PATCH_ORDER.decorate, (shader) => {
         // (round 7, seat B: the wings measured unchanged: the model's self-light feeds the painted texture back as emissive,
@@ -296,27 +287,20 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     }
     await worldBuildYield(ctx, 4);
     // Step 2: the roost is clear when its three rays are down.
-    const roost = this.bodies(SKY_FLOCK_GROUPS.roost);
+    const roost = this.actors('roost');
     const roostStage = bindSkyQuestStage('roost', flags, () => roost.length > 0 && roost.every(animal => !animal.alive));
     ctx.system({ id: 'far.roost', phase: 'update', run: roostStage.advance });
 
     // The boss: the Storm Roc on the crown, the shared BossBar, 25 coins once.
-    const heldRoc = this.roc; this.populationControl = heldRoc === null ? null : this.populationCatalogue?.prepareHeld(heldRoc.kind, heldRoc) ?? null;
-    // Prepare the held controller before the encounter, without a decision or a clock tick.
-    if (heldRoc !== null && this.populationControl === null) {
-      throw new Error('Held creature controller must be prepared by its species binding');
-    }
-    const boss = new RowBossView(ctx, { definition: ROC_DEFINITION, stages, profile: ROC_BOSS_PROFILE }, { player: position, held: heldRoc, brain: this.populationControl, victory: () => {
-      if (flags.has(FLAGS.roc)) { toast(STRINGS.rocDown); return; }
-      flags.set(FLAGS.roc); persistence.facts('far-reach.roc', ROC_ID); burst(BOSS_REWARD, STRINGS.bossReward);
-    }, record: { saved: persistence.boss.read(), persist: persistence.boss.write } });
-    this.boss = installBossView(ctx, ROC_ID, boss, true).boss;
+    const fight = bindDeclaredFight(ctx, this.rows.fight, { kind: 'held', player: position, held: this.actor(ROC_ID), catalogue: this.populationCatalogue,
+      flags, facts: persistence.facts, reward: burst, armed: true, record: { saved: persistence.boss.read(), persist: persistence.boss.write } });
+    this.populationControl = fight.control; this.presentedBoss = fight.boss;
     // Phase 2's gale wall: a pale sheet of wind that thickens over the windup along the lane it will sweep.
     const wall = new Mesh(new BoxGeometry(GALE_WALL.shape.kind === 'lane' ? GALE_WALL.shape.width : 6, 5, 0.4),
       new MeshBasicMaterial({ color: 0xc8f1f8, transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }));
     wall.visible = false; ctx.root.add(wall); ctx.scope.own(wall.geometry); ctx.scope.own(wall.material); ctx.scope.onDispose(() => { wall.removeFromParent(); });
     ctx.system({ id: 'far.galeWall', phase: 'update', run: () => {
-      const roc = this.roc, body = this.populationControl;
+      const roc = this.actor(ROC_ID), body = this.populationControl;
       wall.visible = body?.current?.id === GALE_WALL.id && roc?.alive === true;
       if (!wall.visible || roc === null || body === null) return;
       const k = Math.min(1, body.windup / GALE_WALL.windup), sweep = Math.max(0, body.windup - GALE_WALL.windup) / GALE_WALL.active, reach = 26 * Math.min(1, sweep);

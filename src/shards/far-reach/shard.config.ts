@@ -1,7 +1,7 @@
 import { QUEST_HOST } from './data/questHost';
 import { QUEST_NPC } from './data/questNpc';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
-import bossStages from './data/bossStages.json' with { type: 'json' };
+import { SKY_DIRECTORS } from './data/rocFight';
 import { SKY_REACH_RUNTIME_COST } from './data/budgets';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
@@ -44,7 +44,7 @@ const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wil
 const lifts = new Map(ISLET_LIFTS.map((entry) => [entry.edge, entry.lift]));
 const wasm = (module: { hash: string; bytes: number }) => ({ hash: module.hash, kind: 'wasm', compressed: module.bytes, decoded: module.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'props', 'clientChannels'], spawns: SKY_SPAWNS }, audio: AUDIO, directors: [bossStages],
+export default parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'props', 'clientChannels'], spawns: SKY_SPAWNS }, audio: AUDIO, directors: SKY_DIRECTORS,
   // the material graphs the runtime draws its own meshes in (runtime/index.ts): the rope decks' wood, the hover frames' glow,
   // the shacks' four kinds, the dressing's clumps and flowers, the falls; and the looks over a model's own map (meshMap, bound per model by
   // world/looks.ts skyMappedLook): the crown dais, the lantern, the keeper's scarf, the anchor posts, the trees' bark,

@@ -1,7 +1,7 @@
-import { DUNE_CREATURE_LOOKS } from '../../../src/shards/sunscar-dunes/world/meshes';
+import { DUNE_LIBRARY } from '../../../src/shards/sunscar-dunes/world/meshes';
 
 function look(kind: string) {
-  const found = DUNE_CREATURE_LOOKS.find(row => row.kind === kind);
+  const found = DUNE_LIBRARY.looks.find(row => row.kind === kind);
   if (found === undefined) throw new Error(`Missing shipping look ${kind}`);
   return found;
 }
