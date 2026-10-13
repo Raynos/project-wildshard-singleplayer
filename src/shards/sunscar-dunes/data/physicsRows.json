@@ -1,0 +1,297 @@
+{
+  "notice": "G350-SD: the Signal physics rows no authoring recipe computes, authored as data: the practice arena, the dressing tree, each species simulation spec with its scale range, and the prompt and crack spots. generators/physics.ts composes them with the placement, tower, ridge and scout recipes into data/physics.generated.json.",
+  "species": {
+    "duneRay": {
+      "scale": [
+        1,
+        1.15
+      ],
+      "spec": {
+        "kind": "duneRay",
+        "label": "Dune ray",
+        "variant": "dusk",
+        "rarity": "common",
+        "hp": 70,
+        "aggressive": true,
+        "dims": {
+          "bodyY": 0.3,
+          "bodyHalfLen": 1.1,
+          "bodyRadius": 0.8,
+          "headRadius": 0.4,
+          "legLen": 0,
+          "halfWidth": 2.6,
+          "feet": []
+        },
+        "mods": {
+          "speed": 1,
+          "chargeDist": 1,
+          "damageTaken": 1,
+          "chargeDamage": 25,
+          "relentless": false
+        },
+        "flight": {
+          "altitude": 14,
+          "above": "ground",
+          "climbRate": 6,
+          "diveRate": 24,
+          "lockRange": 34
+        },
+        "lockable": true
+      }
+    },
+    "sandSkitterer": {
+      "scale": [
+        0.9,
+        1.1
+      ],
+      "spec": {
+        "kind": "sandSkitterer",
+        "label": "Sand skitterer",
+        "variant": "dusk",
+        "rarity": "common",
+        "hp": 24,
+        "aggressive": true,
+        "dims": {
+          "bodyY": 0.22,
+          "bodyHalfLen": 0.45,
+          "bodyRadius": 0.3,
+          "headRadius": 0.17,
+          "legLen": 0.2,
+          "halfWidth": 0.45,
+          "feet": []
+        },
+        "mods": {
+          "speed": 1,
+          "chargeDist": 1,
+          "damageTaken": 1,
+          "chargeDamage": 25,
+          "relentless": false
+        },
+        "lockable": true
+      }
+    },
+    "duneStrider": {
+      "scale": [
+        0.95,
+        1.1
+      ],
+      "spec": {
+        "kind": "duneStrider",
+        "label": "Dune strider",
+        "variant": "dusk",
+        "rarity": "uncommon",
+        "hp": 150,
+        "aggressive": true,
+        "dims": {
+          "bodyY": 1.9659645557403562,
+          "bodyHalfLen": 1.3,
+          "bodyRadius": 0.75,
+          "headRadius": 0.4,
+          "legLen": 1.4042603969573975,
+          "halfWidth": 0.7,
+          "feet": []
+        },
+        "mods": {
+          "speed": 1,
+          "chargeDist": 1,
+          "damageTaken": 1,
+          "chargeDamage": 25,
+          "relentless": false
+        },
+        "lockable": true
+      }
+    },
+    "duneMatriarch": {
+      "scale": [
+        3.6,
+        3.6
+      ],
+      "spec": {
+        "kind": "duneMatriarch",
+        "label": "The Dune Matriarch",
+        "variant": "matriarch",
+        "rarity": "legendary",
+        "hp": 600,
+        "aggressive": true,
+        "dims": {
+          "bodyY": 0.3,
+          "bodyHalfLen": 1.1,
+          "bodyRadius": 0.8,
+          "headRadius": 0.4,
+          "legLen": 0,
+          "halfWidth": 2.6,
+          "feet": []
+        },
+        "mods": {
+          "speed": 1,
+          "chargeDist": 1,
+          "damageTaken": 1,
+          "chargeDamage": 25,
+          "relentless": false
+        },
+        "flight": {
+          "altitude": 18,
+          "above": "ground",
+          "climbRate": 7,
+          "diveRate": 20,
+          "lockRange": 60
+        },
+        "lockable": true
+      }
+    }
+  },
+  "arena": {
+    "id": "practice-arena",
+    "name": "HUD + Weapon Explorer arena",
+    "category": "ground",
+    "file": "src/engine/practice/TrainingArena.ts",
+    "colliders": [
+      {
+        "kind": "box",
+        "x": 0,
+        "y": 898,
+        "z": 70,
+        "hx": 50,
+        "hy": 2,
+        "hz": 50
+      },
+      {
+        "kind": "box",
+        "x": 0,
+        "y": 904.5,
+        "z": 20,
+        "hx": 50,
+        "hy": 4.5,
+        "hz": 0.22
+      },
+      {
+        "kind": "box",
+        "x": 0,
+        "y": 904.5,
+        "z": 120,
+        "hx": 50,
+        "hy": 4.5,
+        "hz": 0.22
+      },
+      {
+        "kind": "box",
+        "x": -50,
+        "y": 904.5,
+        "z": 70,
+        "hx": 0.22,
+        "hy": 4.5,
+        "hz": 50
+      },
+      {
+        "kind": "box",
+        "x": 50,
+        "y": 904.5,
+        "z": 70,
+        "hx": 0.22,
+        "hy": 4.5,
+        "hz": 50
+      }
+    ],
+    "active": true,
+    "owner": "piece:practice-arena",
+    "surface": "metal"
+  },
+  "dressing": {
+    "id": "sunscar.dressing",
+    "name": "Scrub, markers and bones",
+    "category": "nature",
+    "file": "src/shards/sunscar-dunes/generators/dressing.ts",
+    "colliders": [
+      {
+        "kind": "box",
+        "x": 96.15129731502012,
+        "y": 15.464213487279121,
+        "z": -15,
+        "hx": 0.2269459725301713,
+        "hy": 1.2086487668007608,
+        "hz": 0.2269459725301713,
+        "yaw": 0,
+        "surface": "wood"
+      }
+    ],
+    "active": true,
+    "owner": "piece:sunscar.dressing",
+    "surface": "sand"
+  },
+  "spots": {
+    "interact": [
+      {
+        "id": "logbook",
+        "x": -76.96553114894765,
+        "y": 16.00003837781969,
+        "z": 30.356878061377472,
+        "radius": 2.4
+      },
+      {
+        "id": "well",
+        "x": 84,
+        "y": 16.82022199588854,
+        "z": -6,
+        "radius": 2.6
+      },
+      {
+        "id": "brazier.0",
+        "x": 58,
+        "y": 26.6,
+        "z": -34,
+        "radius": 3
+      },
+      {
+        "id": "brazier.1",
+        "x": -44,
+        "y": 19.411776491606524,
+        "z": -22,
+        "radius": 3
+      },
+      {
+        "id": "brazier.2",
+        "x": 34,
+        "y": 10.372193895564756,
+        "z": -102,
+        "radius": 3
+      },
+      {
+        "id": "fire",
+        "x": 7.6,
+        "y": 26.161264166119512,
+        "z": -75.5,
+        "radius": 2.6
+      }
+    ],
+    "crack": [
+      {
+        "id": "well.crank",
+        "x": 85.66999999999999,
+        "y": 17.670221995888543,
+        "z": -6,
+        "radius": 0.8
+      },
+      {
+        "id": "brazier.0",
+        "x": 58,
+        "y": 26.6,
+        "z": -34,
+        "radius": 1.2
+      },
+      {
+        "id": "brazier.1",
+        "x": -44,
+        "y": 19.411776491606524,
+        "z": -22,
+        "radius": 1.2
+      },
+      {
+        "id": "brazier.2",
+        "x": 34,
+        "y": 10.372193895564756,
+        "z": -102,
+        "radius": 1.2
+      }
+    ]
+  }
+}

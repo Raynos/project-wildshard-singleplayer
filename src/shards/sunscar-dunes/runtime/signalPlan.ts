@@ -14,12 +14,12 @@ import type { PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIGNAL_MODULES, SIGNAL_SPECIES, SIGNAL_STRIKES } from '../data/brains';
 import { SIGNAL_HEADLESS, SIGNAL_BOSS_OWNER } from '../data/headlessOwners';
 import { SIGNAL_LEVEL } from '../data/headlessLevel';
-import baked from './physics.baked.json' with { type: 'json' };
+import baked from '../data/physics.generated.json' with { type: 'json' };
 import { SignalLashInput } from './lashInput';
 
 const finite = v.pipe(v.number(), v.finite());
 const Spot = v.strictObject({ id: v.string(), x: finite, y: finite, z: finite, radius: v.pipe(finite, v.minValue(0)) });
-/** The bake's native metadata (generators/bake-signal-physics.mjs); its pieces are admitted strictly by `addBakedWorld`. */
+/** The bake's native metadata (generators/physics.ts, authored rows only); its pieces are admitted strictly by `addBakedWorld`. */
 const Baked = v.object({ actors: v.array(v.object({ kind: v.string(), spec: v.unknown() })), bosses: v.array(v.object({ kind: v.string(), spec: v.unknown() })),
   spots: v.strictObject({ interact: v.array(Spot), crack: v.array(Spot) }), promptRegistrations: v.optional(v.unknown()) });
 /** The baked prompt spots and crack targets (the built world's order), strictly. */

@@ -9,7 +9,7 @@ import { signalTowerPhysicsPlacements } from '../src/shards/sunscar-dunes/genera
 import { signalHeightAt } from '../src/shards/sunscar-dunes/generators/landscape';
 import { TOWER } from '../src/shards/sunscar-dunes/data/layout';
 import { buildTowerFrame } from '../src/shards/sunscar-dunes/generators/tower';
-import native from '../src/shards/sunscar-dunes/runtime/physics.baked.json' with { type: 'json' };
+import native from '../src/shards/sunscar-dunes/data/physics.generated.json' with { type: 'json' };
 
 it('compiles all forty native tower boxes with exact persisted order, ownership and contact tags', () => {
   const rows = signalTowerPhysicsPlacements(), tower = native.pieces.find(piece => piece.id === 'sunscar.tower');
@@ -54,5 +54,5 @@ it('pins a complete source-only component without captured tower JSON, runtime s
   expect(job.inputRoots).not.toContain('src/shards/sunscar-dunes/data/tower.json');
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['src/shards/sunscar-dunes/data/towerPhysics.generated.json']);
-  expect(job.outputs).not.toContain('src/shards/sunscar-dunes/runtime/physics.baked.json');
+  expect(job.outputs).not.toContain('src/shards/sunscar-dunes/data/physics.generated.json');
 });

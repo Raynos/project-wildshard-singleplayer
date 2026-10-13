@@ -9,7 +9,7 @@ import { expectKeyedClosure } from './fixtures/authoringClosure';
 import { auditAuthoringInputs, isAuthoringInput } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
 import { signalPhysicsPlacements } from '../src/shards/sunscar-dunes/generators/physicsPlacements';
-import native from '../src/shards/sunscar-dunes/runtime/physics.baked.json' with { type: 'json' };
+import native from '../src/shards/sunscar-dunes/data/physics.generated.json' with { type: 'json' };
 
 it('compiles the exact five native camp placements without running a world, model or registry constructor', () => {
   const rows = signalPhysicsPlacements(), ids = new Set(rows.map(row => row.id));
@@ -40,7 +40,7 @@ it('keys a complete portable component without runtime, legacy, generated seeds 
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['src/shards/sunscar-dunes/data/physicsPlacements.generated.json']);
   expect(job.buildOutputs).toEqual({ 'src/shards/sunscar-dunes/data/physicsPlacements.generated.json': 'dc53caf1683fea1aa8e0117b93485ef09e6956fbd55b29846f0783e5ee8bd92f' });
-  expect(job.outputs).not.toContain('src/shards/sunscar-dunes/runtime/physics.baked.json');
+  expect(job.outputs).not.toContain('src/shards/sunscar-dunes/data/physics.generated.json');
 });
 
 it('retains every native noise/dune/trail/entry arithmetic step across 10,000 authored terrain samples', () => {

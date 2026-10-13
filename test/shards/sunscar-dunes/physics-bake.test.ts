@@ -1,8 +1,7 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Trusted-bake freshness is checked against the test checkout.
-import process from 'node:process';
 import { expect, it } from 'vitest';
-import { signalPhysicsInputs } from '../../../scripts/signal-physics-inputs.mjs';
-import baked from '../../../src/shards/sunscar-dunes/runtime/physics.baked.json';
+import baked from '../../../src/shards/sunscar-dunes/data/physics.generated.json';
+import rows from '../../../src/shards/sunscar-dunes/data/physicsRows.json';
+import { signalPhysics } from '../../../src/shards/sunscar-dunes/generators/physics';
 import { SIGNAL_SPAWNS } from '../../../src/shards/sunscar-dunes/data/spawns';
 import { Rng } from '../../../src/engine/core/rng';
 import { SEED } from '../../../src/shards/sunscar-dunes/data/layout';
@@ -11,17 +10,20 @@ import { DUNE_STRIDER } from '../../../src/shards/sunscar-dunes/data/species/str
 import { SKITTERER_DATA } from '../../../src/shards/sunscar-dunes/data/species/skitterer';
 import { MATRIARCH_DATA } from '../../../src/shards/sunscar-dunes/data/species/matriarch';
 
-it('refuses stale source or model bytes before the trusted Signal physics bake is used', () => {
+it('is the fresh product of the authored rows (G350-SD: generators/physics.ts, no runtime run)', () => {
+  expect(JSON.stringify(signalPhysics())).toBe(JSON.stringify(baked));
   expect(baked.version).toBe(1);
-  expect(baked.profile).toBe('Node / phone / no renderer');
-  expect(baked.build).toMatch(/^node-[a-f0-9]{64}$/u);
   expect(baked.notice).toContain('DO NOT EDIT');
-  expect(baked.inputs).toHaveProperty('src/engine/entities/AnimalFactory.ts');
-  expect(baked.inputs).toHaveProperty('src/engine/quest/view.ts');
-  expect(baked.inputs).toEqual(signalPhysicsInputs(process.cwd()));
-  expect(baked.revision).toMatch(/^[a-f0-9]{40}$/u);
-  expect(Object.keys(baked.inputs).some(path => path.endsWith('/dune-strider.glb'))).toBe(true);
-  expect(Object.keys(baked.inputs)).toContain('src/shards/sunscar-dunes/world/build.ts');
+});
+
+it('holds each authored species spec and scale range to its species row', () => {
+  for (const row of [DUNE_RAY, SKITTERER_DATA, DUNE_STRIDER, MATRIARCH_DATA]) {
+    const variant = row.variants[0], authored = Object.entries(rows.species).find(([kind]) => kind === row.kind)?.[1];
+    if (variant === undefined || authored === undefined) throw new Error(`no authored species row for ${row.kind}`);
+    expect(authored.scale).toEqual(variant.scale);
+    expect({ ...authored.spec, dims: undefined, mods: undefined }).toEqual({ kind: row.kind, label: variant.label, variant: variant.id, rarity: variant.rarity,
+      hp: variant.hp, aggressive: row.aggressive, dims: undefined, mods: undefined, ...(row.flight === undefined ? {} : { flight: row.flight }), lockable: row.lockable });
+  }
 });
 
 it('captures the 13 declared homes in order, the Matriarch and the native colliders', () => {
