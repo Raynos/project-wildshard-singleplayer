@@ -1102,6 +1102,9 @@ The rows in §4 build these answers; each row names the ones it builds.
 | G357 | Game's plugin modules (20 today, design ~12) | **Trim, one by one** (Jake, 2026-10-13): `effects`, `lifecycle`, `loader`, `placeholder` and `prompts` (no shard user) move back into game's internals; `quests` and `geometry` stay as bridges, deleted when the shards' quest code is rows (G295) and their geometry building is in generators (G311); `simulation` and `animation` stay; `shardPlugin` folds into `context`; the design's missing `playerMode` / `clientScript` come when a shard needs them; target 12–14 |
 | G358 | Checks at commit time | **Every check of about a second or less runs at commit, in parallel** (Jake, 2026-10-13: *"anything that's like 1 second or less that we can run in parallel at the commit level will make that not fail at the push level"*): the pre-commit hook runs every sub-second check on the committed files side by side (the debt counts, lint and typecheck of the touched files, generated-file stamps, layout and guard rules, formats); the push gate keeps only what can't run that fast; each push-time red gets a commit-time check if one can catch it in under a second |
 | G359 | The push gate's length | **At most 2 minutes** (Jake, 2026-10-13: *"whatever the push is, it needs to be capped at 2 minutes … we can't have the pre-push hook take more than 2 minutes"*): the pre-push gate finishes in ≤ 2 min (gates of 19 min were seen on 10-12); whatever doesn't fit moves to commit time (if sub-second), to CI, or to the nightly; the gate reports its time on every push and a slower gate is a red for the push lane |
+| G360 | Where pushes are gated | **Keep the local gate, just faster** (Jake, 2026-10-13): no CI merge queue; the local pre-push gate stays, held to 2 minutes (G359) |
+| G361 | The regeneration bot | **Keep it, but batch** (Jake, 2026-10-13): at most one regeneration commit per hour, not one per push |
+| G362 | Long coordinator and plan-agent sessions | **Keep them going** (Jake, 2026-10-13): *"Restarting is too hard"*; no scheduled restarts |
 
 ## Handoff (shard-platform)
 
@@ -1217,7 +1220,7 @@ deck climb, landings outside the grid, item art) is `shard-platform/mockup-wave-
 (the cell edge), the entry width (two lanes, ≈ 8 m) and FINISH-LINE M1 (inside SHARD SELECT). The double jump exists
 (`Player.ts` jumpsLeft).
 
-**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §6 (the ordered M2-ready path), §9 (how it is built), §10 (G1–G359,
+**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §6 (the ordered M2-ready path), §9 (how it is built), §10 (G1–G362,
 Jake's words verbatim) and this Handoff → `docs/plans/shard-platform/reviews/register.md`, `council-2/register.md` and `council-3/register.md` (closed), `council-4/register.md` (closed) →
 `docs/reviews/shard-platform-mockups.md` + `art/README.md` (the boards Jake picked) → `herdr agent list` (the Codex panes) →
 `git log --oneline -30` → `node scripts/asks.mjs`. The coordinator is the only pusher; builders commit and reply with the
