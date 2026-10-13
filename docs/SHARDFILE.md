@@ -143,6 +143,16 @@ does not establish the clip. Render adapters consume the same exclusion data.
 | `ui` | Optional (defaults to empty), at most 64 declarations, each with a unique id: `marker`, `counter`, `bagPanel`, `bossPanel`, `relabel` (below). |
 | `runtime` | Optional/null first-party transition declaration `{entry: "runtime/index.ts", cost?, binds?, spawns?}`; a bounded relative TypeScript entry resolved only through the trusted registry. Optional measured cost carries decimal-MB WebContent, GL and engine-base totals plus revision, device and evidence provenance. Spawn rows are required exactly when `binds` includes `"spawns"` (below). |
 
+The first-party build packs every retained `look/map.baked.json` raster through
+`packProjectMap`: its exact image bytes become an immutable `image` file and a
+charged library root. The ordinary image reader derives decoded residency
+(including wire/data-URL storage) and GPU bytes; deduplication charges an already
+included image once. No recompression or resizing occurs. Before packing, the
+builder checks the stamp's decoded pixel digest. The existing world-input hash
+still refuses stale maps in CI/Vercel and warns locally. Products without a map
+retain their exact previous encoding and asset costs. The SDK's explicit map
+build option remains available for movable, offline author products.
+
 Manifest admission runs before schema/reference traversal and immutable asset reads.
 The canonical UTF-8 JSON source is at most 2,000,000 bytes, with at most 4,096
 file rows, 1,024 commons references, 128 state fields per scope and 64 water

@@ -204,6 +204,7 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [auto-push.sh](./auto-push.sh)
 - [budget-ceilings.mjs](./budget-ceilings.mjs)
 - [build-sdk.mjs](./build-sdk.mjs)
+- [build-shardfiles.d.mts](./build-shardfiles.d.mts)
 - [build-shardfiles.mjs](./build-shardfiles.mjs)
 - [build-without-browser.mjs](./build-without-browser.mjs)
 - [calibrate.mjs](./calibrate.mjs)
