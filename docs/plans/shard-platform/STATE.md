@@ -11,7 +11,7 @@
 **Ratchets (G349):** standing debt rule deleted, sweeper stopped (02:25Z); debt shrink-only.
 **Next (Jake, review):** `bake(scene, identity)` and Signal through it to tiles + 0 private bins; SF81–SF85 reopened until their runtime is deleted; G350 exit row per shard.
 
-**Fleet:** Codex sp-x7 push/deploy (others parked, Codex 7 %). Opus: world-rows host sp-o51, creatures sp-o54, Signal ground sp-o55, second users sp-o56.
+**Fleet:** Codex sp-x7 push/deploy (others parked, Codex 7 %). Opus: world-rows host sp-o51, creatures sp-o54, Signal ground sp-o55, `bake(scene)` + Signal tiles sp-o57.
 **Live:** `957b05e6`; release unpin `e6eeefc1e` (green on `de0130e95`) waits on the gate; origin `53d4b7aa0`.
 
 **Calls for Jake (2026-10-13; reverse any):**
@@ -22,6 +22,8 @@
 5. Code moved into `data/` is no cut; shaders moved back (`5a5ff7f6d`); metric made per-export (`ddf5c4dea`).
 6. Kept graph standing rules only for downward layer edges (game→engine, sdk→engine/game, →format, shards→sdk/commons); removed shards→engine/game. **Touches G349: confirm or delete all.**
 7. Viewmodel ≤ 33 px / 1.1 M differences accepted as identical (`0e00aa4e7`).
+8. One entryway proof for Sky, Nine and shardfiles (`add1035d6`): the metric now credits Sky's 110-line socket-lift proof to Nine too (Nine has no lifts), so Sky's −120 is really ~−20 lines.
+9. Rope/tie bake skipped (bridges.bin 19 → 227 KB for −10 lines; sp-o52).
 
 **Jake picks waiting:** 80/20 reach: **S1** quest state machines as AssemblyScript hooks / **S2** shaders as graph rows / **S3** accept ~25–30 % Signal, ~35 % Sky; recommend S1 + S3. Signal look A/B (`art/signal-look/round-1/`), recommend A. Near board `art/near-tier/round-3/`; hero round 4 `art/main-menu-hero/round-4/board.jpg` (recommend SQ-DW-a + LS-DW-c; LOOKS LINE, Jake: "I don't want to forget this main hero thing"). Others: `docs/reviews/shard-platform-open-picks.md`.
 
