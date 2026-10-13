@@ -97,3 +97,5 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | gate: oxlint prefer-optional-chain (near placeholder); near grain shader failed to compile (B/C drew nothing) | `a6424d8f8` | `dd922e03b`, `1837ef8a4` (+ compile test) | sp-o72 |
 | 2026-10-13 | CI on `c9f6e59be`: navigation-json lint; five nav contract/order fixtures; build ratchet rows for deleted files + stale README; changed-root typecheck in ratchet fixture | `c9f6e59be`, `ce5a5fcf0` | `e51f846ff`, `b7656034b`, `ce5a5fcf0`, `9ff0dccec` | sp-x7 |
 | 2026-10-13 | gate: Driftwood loot RNG stream unseen by the narrowed typecheck | `37a702bdc` | `d3c462a00` (`rng.merge.d.ts`) | sp-o76 |
+| 2026-10-13 | gate: changed-root typecheck missed unimported `declare module` augmentations (false reds on Driftwood loot RNG, Signal whip slot) | `233eae084` (narrowed roots) | `2d4b48bf2` | sp-x7 |
+| 2026-10-13 | CI red since 02:01Z (nav fixtures, stale tables, lint, terrain readers, type docs) | various | **Full CI GREEN 38350364280 on `b7656034b`**; exact-SHA smoke 38351115302 queued | sp-x7 |
