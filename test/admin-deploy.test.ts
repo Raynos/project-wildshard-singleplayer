@@ -14,10 +14,10 @@ it('archives absent or committed optional content roots without reading working-
     const repo = resolve(fixture, 'repo'); mkdirSync(repo);
     const git = (...args: string[]): string => execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8' }).trim();
     git('init', '--quiet'); git('config', 'user.name', 'Fixture'); git('config', 'user.email', 'fixture@example.invalid');
-    for (const dir of ['admin', 'src', 'scripts', 'vite', 'lint', 'public', 'test']) {
+    for (const dir of ['admin', 'src', 'scripts', 'vite', 'budgets', 'lint', 'public', 'test']) {
       mkdirSync(resolve(repo, dir)); writeFileSync(resolve(repo, dir, 'retained.txt'), 'retained');
     }
-    for (const file of ['tsconfig.json', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml']) writeFileSync(resolve(repo, file), '{}');
+    for (const file of ['AGENTS.md', 'tsconfig.json', 'package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml']) writeFileSync(resolve(repo, file), '{}');
     git('add', '.'); git('commit', '--quiet', '-m', 'fixture');
     const script = readFileSync(resolve(import.meta.dirname, '../admin/tools/deploy.sh'), 'utf8');
     const start = script.indexOf('share=('), end = script.indexOf('node scripts/link-node-modules.mjs', start);
@@ -29,6 +29,8 @@ it('archives absent or committed optional content roots without reading working-
     const absent = resolve(fixture, 'absent'); archive(absent);
     expect(readFileSync(resolve(absent, 'src/retained.txt'), 'utf8')).toBe('retained');
     expect(readFileSync(resolve(absent, 'vite/retained.txt'), 'utf8')).toBe('retained');
+    expect(readFileSync(resolve(absent, 'budgets/retained.txt'), 'utf8')).toBe('retained');
+    expect(readFileSync(resolve(absent, 'AGENTS.md'), 'utf8')).toBe('{}');
     expect(existsSync(resolve(absent, 'music'))).toBe(false);
     mkdirSync(resolve(repo, 'music')); writeFileSync(resolve(repo, 'music/score.txt'), 'committed score');
     git('add', 'music'); git('commit', '--quiet', '-m', 'score');
