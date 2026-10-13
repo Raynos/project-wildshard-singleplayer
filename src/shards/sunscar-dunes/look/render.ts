@@ -8,7 +8,6 @@ import { SAND_FILES, SAND_MAPS } from '../data/sand';
 import sandMeans from '../data/sand.json' with { type: 'json' };
 import skirtRows from '../data/skirt.json' with { type: 'json' };
 import { DUNE_FIELD } from '../data/duneField';
-import { loadSignalRingMeans } from '../runtime/looks/ringMeans';
 import { FIRE_LIGHTS } from '../world/fireFx';
 import source from '../shard.config';
 
@@ -33,6 +32,5 @@ export const SKIRT = new CubeSkirt();
 /** Signal Dunes' look: the dusk look over the quest's dusk (look/dusk.ts), the fires' light pools and the analytic dune field. */
 export function signalDunesLook(): LookStrategy {
   return duskLook(SIGNAL_DUSK_LOOK, { dusk: DUSK, fires: FIRE_LIGHTS, wind: DUNE_FIELD.wind, maps: loadSandMaps, tiles: SAND_TILES, skirt: SKIRT,
-    skirtPack: { url: SAND_FILES.skirt, rows: skirtRows, fault: '[sunscar-dunes] the baked dune skirt did not load:' },
-    mean: () => loadSignalRingMeans(SAND_FILES.ringMean) });
+    skirtPack: { url: SAND_FILES.skirt, rows: skirtRows, fault: '[sunscar-dunes] the baked dune skirt did not load:' } });
 }

@@ -13,7 +13,7 @@ export const SAND_MAP = 896;
 /** The sand grain tile's texels a side (1.8 m a tile, RGBA: albedo, bump x, bump z, 255). */
 export const GRAIN_TILE = 256;
 /** The baked maps the client reads (each a zlib stream of the map's raw bytes), and the baked dune skirt (a zlib geometry pack, `generators/skirt.ts`). */
-export const SAND_FILES = { shadow: '/assets/sunscar-dunes/sand/shadow.bin', trail: '/assets/sunscar-dunes/sand/trail.bin', grain: '/assets/sunscar-dunes/sand/grain.bin', skirt: '/assets/sunscar-dunes/sand/skirt.bin', ringMean: '/assets/sunscar-dunes/ground/ring-mean.bin' } as const;
+export const SAND_FILES = { shadow: '/assets/sunscar-dunes/sand/shadow.bin', trail: '/assets/sunscar-dunes/sand/trail.bin', grain: '/assets/sunscar-dunes/sand/grain.bin', skirt: '/assets/sunscar-dunes/sand/skirt.bin' } as const;
 /**
  * The baked maps as the client uploads them (`@wildshard/sdk/looks/bakedGround` loadBakedMaps): a failed shadow stands in
  * fully lit, a failed trail as no trail, a failed grain as flat grain (round 5: anisotropic, so the grazing near view keeps it).

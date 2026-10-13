@@ -5,7 +5,7 @@
  * - `loadBakedMaps`: a set of offline-baked maps (each a zlib stream of the map's raw bytes) uploaded as DataTextures; a
  *   map that fails to load is a page fault (`console.error`) and stands in as one constant byte.
  * - `CubeSkirt`: the baked skirt past the ground's edge (a geometry pack), cut back to a grid cell's cube.
- * - `TintedTileGround`: the runtime-bound terrain tiles drawn in the caller's material with the caller's vertex tint, the
+ * - `TintedTileGround`: the runtime-bound terrain tiles drawn in the caller's material with their baked vertex tint, the
  *   ground's queries and collider bound from the tiles' collider, the fine ring following the player.
  * - `mappedFamilyMaterial`: an engine family material whose texture refs name the caller's maps.
  */
@@ -107,8 +107,6 @@ export class CubeSkirt {
   }
 }
 
-/** A vertex's tint (linear RGB) at (x, z) and height h, written at `out[at..at+2]`. */
-export type TileTint = (x: number, z: number, h: number, out: Float32Array, at: number) => void;
 /** Which runtime's tiles, where residency starts, how far (m) the player moves before the fine ring follows, the names its faults use. */
 export interface TintedTileOptions { readonly source: Shardfile; readonly x: number; readonly z: number; readonly follow: number; readonly name: string; readonly tag: string }
 type Bound = Awaited<ReturnType<typeof bindRuntimeProductTerrain>>;
@@ -116,22 +114,17 @@ type Bound = Awaited<ReturnType<typeof bindRuntimeProductTerrain>>;
 /**
  * A ground drawn from its compiled shardfile terrain tiles and stood on from their collider, through the platform's
  * runtime-bound terrain (the same product reader standalone and in a grid cell, the shardfile's own residency rings). Each
- * tile is the engine's terrain tile view in the caller's material, its vertex tint the caller's; its normals are the shared
+ * tile is the engine's terrain tile view in the caller's material, its vertex tint the bake's; its normals are the shared
  * collider lattice's, so a tile edge across a crest lights as one surface. The tiles cast and receive no shadow.
  */
 export class TintedTileGround {
   private live: { bound: Bound; x: number; z: number; busy: boolean } | null = null;
   constructor(private readonly options: TintedTileOptions) {}
   /** Bind the tiles under `scope` and hand their ground to the level frame (`field.bindGround`). */
-  async bind(terrain: Terrain, field: PainterField, material: Material, tint: TileTint, scope: Scope): Promise<void> {
+  async bind(terrain: Terrain, field: PainterField, material: Material, scope: Scope): Promise<void> {
     const o = this.options;
     const bound = await bindRuntimeProductTerrain(scope, o.source, { x: o.x, z: o.z, terrain: (bytes, tileScope, _shadow, lattice) => {
-      const data = decodeTerrainTile(bytes), r = data.resolution, cell = data.size / (r - 1), colours = new Float32Array(r * r * 3);
-      for (let z = 0; z < r; z++) for (let x = 0; x < r; x++) {
-        const vertex = z * r + x;
-        tint(data.x + x * cell, data.z + z * cell, data.heights[vertex] ?? 0, colours, vertex * 3);
-      }
-      const mesh = installTerrainTile({ ...data, colours }, { root: terrain.group, scope: tileScope, material, shadow: false, lattice });
+      const mesh = installTerrainTile(decodeTerrainTile(bytes), { root: terrain.group, scope: tileScope, material, shadow: false, lattice });
       mesh.receiveShadow = false;
       return { mask: (excluded) => { maskTerrainTile(mesh, excluded); }, shadow: () => undefined };
     } });

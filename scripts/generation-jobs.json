@@ -31,14 +31,12 @@
         "src/shards/sunscar-dunes/generators/nativeTerrain.ts"
       ],
       "outputs": [
-        "public/assets/sunscar-dunes/ground/ring-mean.bin",
         "src/shards/sunscar-dunes/data/manifestGround.generated.json",
         "public/assets/baked/sunscar-dunes/terrain.bin",
         "public/assets/baked/sunscar-dunes/terrain.json"
       ],
       "platform": "portable",
       "buildOutputs": {
-        "public/assets/sunscar-dunes/ground/ring-mean.bin": "d308466b111a20bcf07fbe3571e4a958b9a97d07266a8cd9409388ee62544d77",
         "src/shards/sunscar-dunes/data/manifestGround.generated.json": "ffb994ab2122111979074b82014225498393aaa96ed2155cbd620335850fe92f"
       }
     },

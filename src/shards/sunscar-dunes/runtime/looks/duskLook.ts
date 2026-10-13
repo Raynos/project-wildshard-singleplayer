@@ -9,17 +9,16 @@ import { duskSand, duskSky, type DuskSand, type DuskSky } from './duskFamilies';
 import { loadPaintedStrips } from './paintedStrips';
 import { loadBakedMaps, type BakedMapRow, type CubeSkirt, type TintedTileGround } from './bakedGround';
 import type { PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
-import type { DuskLookRow, DuskTintRow } from '../../data/lastLight';
+import type { DuskLookRow } from '../../data/lastLight';
 
 /** The sand's three baked maps a dusk look draws with. */
 export type DuskSandMaps = Record<'shadow' | 'trail' | 'grain', DataTexture>;
 
-/** What a dusk look reads live: the quest's dusk and the fires' light uniforms, the sand's wind, the exact authored ring means, the baked sand maps, the tile ground and the held skirt with its baked pack. */
+/** What a dusk look reads live: the quest's dusk and the fires' light uniforms, the sand's wind, the baked sand maps, the tile ground and the held skirt with its baked pack. */
 export interface DuskLookParts {
   readonly dusk: { readonly value: number };
   readonly fires: { readonly value: readonly GroundPool[] };
   readonly wind: { readonly x: number; readonly z: number };
-  readonly mean: () => Promise<(x: number, z: number) => number>;
   readonly maps: () => Promise<DuskSandMaps>;
   readonly tiles: TintedTileGround;
   readonly skirt: CubeSkirt;
@@ -37,24 +36,14 @@ export async function loadDuskSandMaps(rows: Readonly<Record<'shadow' | 'trail' 
   return maps;
 }
 
-/** The sand's hollow / crest tint at one vertex: its height `h` against its ring's mean. */
-function sandTint(row: DuskTintRow, tones: { sand: Color; hollow: Color; crest: Color }, meanAt: (x: number, z: number) => number, x: number, z: number, h: number, c: Color): Color {
-  const { span, hollowGain, crestGain } = row;
-  const mean = meanAt(x, z);
-  const rel = Math.max(-1, Math.min(1, (h - mean) / span));
-  c.copy(tones.sand); if (rel < 0) c.lerp(tones.hollow, -rel * hollowGain); else c.lerp(tones.crest, rel * crestGain);
-  return c;
-}
-
 /**
  * A dusk look (`extend`): the engine's clean chain, the painted sky family on its dome (a strip that fails to load is a
  * page fault: the dome stands in the fog's colour), the scene's fog edited in place, a low key light that dims and deepens with the dusk, the sky fill, the fog's sun
  * tint, the far rings' haze and the aerial fog on their curves, and the sand family over the tile ground with its skirt
- * (cut back to a grid cell's cube through `parts.skirt`), tinted by height against its ring.
+ * (cut back to a grid cell's cube through `parts.skirt`), each tile in its baked height tint.
  */
 export function duskLook(row: DuskLookRow, parts: DuskLookParts): LookStrategy {
   const key = { dir: new Vector3(...row.key.dir).normalize(), color: new Color(...row.key.color), intensity: row.key.intensity }, deepKey = new Color(...row.key.deep);
-  const tones = { sand: new Color(...row.tint.sand), hollow: new Color(...row.tint.hollow), crest: new Color(...row.tint.crest) };
   const sun = new Vector3(...row.sun).normalize(), site = { wind: parts.wind, glow: sun }, dusk = parts.dusk;
   // 120 m: the dome draws first with no depth test, so its size never occludes; at 300 m the far plane clipped it (an arc)
   const dome = new Mesh<SphereGeometry, Material>(new SphereGeometry(120, 48, 24), new MeshBasicMaterial({ color: row.fog.color, side: BackSide, depthTest: false, depthWrite: false, fog: false }));
@@ -63,18 +52,14 @@ export function duskLook(row: DuskLookRow, parts: DuskLookParts): LookStrategy {
   let sand: DuskSand | null = null;
   const buildSand = async (terrain: Terrain, field: PainterField, scope: Scope): Promise<void> => {
     await field.ready();
-    const [{ shadow, trail, grain }, skirt, meanAt] = await Promise.all([parts.maps(), parts.skirt.load(parts.skirtPack.url, parts.skirtPack.rows, parts.skirtPack.fault), parts.mean()]);
+    const [{ shadow, trail, grain }, skirt] = await Promise.all([parts.maps(), parts.skirt.load(parts.skirtPack.url, parts.skirtPack.rows, parts.skirtPack.fault)]);
     scope.own(shadow); scope.own(trail); scope.own(grain);
     const familyGround = duskSand(row.sand, { grain, trail, shadow }, site, dusk.value, scope); sand = familyGround;
     scope.onDispose(() => { if (sand === familyGround) sand = null; });
     const material = familyGround.material; terrain.material = material;
-    // The authored f64 ring means preserve the original analytic tint, independently of the collider.
-    const c = new Color();
     const skirtMesh = skirt === null ? null : new Mesh(scope.own(skirt.standalone), material);
     if (skirtMesh !== null) { skirtMesh.receiveShadow = false; terrain.group.add(skirtMesh); }
-    await parts.tiles.bind(terrain, field, material, (x, z, h, out, at) => {
-      sandTint(row.tint, tones, meanAt, x, z, h, c); out[at] = c.r; out[at + 1] = c.g; out[at + 2] = c.b;
-    }, scope);
+    await parts.tiles.bind(terrain, field, material, scope);
     if (skirt !== null && skirtMesh !== null) parts.skirt.hold(skirtMesh, skirt.cube, skirt.half, scope);
   };
   const fog = row.fog;
