@@ -29,6 +29,13 @@ const POSES = [
   { id: 'crown', x: 0, y: 45, z: -190, yaw: Math.PI, pitch: 0 },
   { id: 'roost', x: 60, y: 35, z: -12, yaw: Math.PI / 4, pitch: -0.2 },
 ];
+/** W1 C1 close-ups (`--poses=c1`): the runtime-fitted pieces C1 moves into generators/placements.ts: Sunrest's lectern and
+ *  lantern (−1.9, 30, −14.8), the mill (0, 30, −70), the west lectern (−61, 32.5, −62) */
+const C1_POSES = [
+  { id: 'c1-lectern', x: -1.9, y: 31, z: -10.8, yaw: 0, pitch: -0.3 },
+  { id: 'c1-mill', x: 12, y: 31, z: -54, yaw: 0.6435, pitch: 0.1 },
+  { id: 'c1-lectern-west', x: -58.5, y: 33.5, z: -59.5, yaw: Math.PI / 4, pitch: -0.35 },
+];
 
 const arg = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3);
 const compare = arg('compare');
@@ -54,6 +61,8 @@ if (compare !== undefined) {
   process.exit(diffs.length === 0 ? 0 : 1);
 }
 const url = arg('url'), output = arg('output'), raw = arg('raw');
+// W1 C1 (scripts/w1-c1-parity.mjs): `--poses=c1` adds close-ups of the static pieces C1 bakes and skips the creature shots
+const c1 = arg('poses') === 'c1', SHOTS = c1 ? [...POSES, ...C1_POSES] : POSES;
 if (url === undefined || output === undefined) throw new Error('Requires --url=<DEVSERVER preview> --output=<summary.json> (or --compare=a,b)');
 if (raw !== undefined) mkdirSync(raw, { recursive: true });
 const version = await (await fetch(new URL('/version.json', url))).json();
@@ -89,7 +98,7 @@ try {
       return { colliderJson: JSON.stringify(list), pieces: list.length, colliderCount: list.reduce((n, r) => n + r.colliders.length, 0) };
     });
     tiers[tier].colliders = sha(tiers[tier].colliderJson); delete tiers[tier].colliderJson;
-    for (const p of POSES) {
+    for (const p of SHOTS) {
       const { yaw, pitch } = p;
       await page.evaluate(() => { const g = window.__wildshard.world.game; if ('__slpGate' in window) g.frameGate = window.__slpGate; });
       await page.evaluate(a => {
@@ -136,7 +145,7 @@ try {
       console.log(`${tier} ${p.id} at ${shot.player.join(',')}: ${shot.calls} draws, ${shot.triangles} triangles, ${shot.lit} lit pixels`);
     }
     // one staged frame per creature kind (scripts/look-parity-creatures.mjs): the bodies' geometry, skin, maps and materials
-    for (const kind of await page.evaluate(creatureKinds)) {
+    for (const kind of c1 ? [] : await page.evaluate(creatureKinds)) {
       const shot = await page.evaluate(creatureShot, kind);
       const row = { tier, pose: `creature:${kind}`, player: shot.player, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels };
       if (raw !== undefined) { row.raw = join(raw, `${tier}-creature-${kind}.rgba`); writeFileSync(row.raw, Buffer.from(shot.data, 'base64')); }
