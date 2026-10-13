@@ -23,7 +23,8 @@ it.each(['phone', 'desktop'] as const)('preserves the frozen %s image and KTX2 b
     const sources = bootSources(tier, tex), added = worldReads(tier, tex);
     const coats = sources.props.filter((url) => COAT.test(url)), sets = sources.props.filter((url) => VIEWMODEL.test(url));
     expect({ ...sources, props: sources.props.filter((url) => !added.includes(url) && !COAT.test(url) && !COAT_IMAGE.test(url) && !VIEWMODEL.test(url)) }).toEqual(before[tier][tex]);
-    expect(added).toHaveLength(15); // G285: the cabins', this tier's crag skin, the streams' and the wildlife's bakes among them (c757e98b8: the lookout and site timbers load from the authored timber tiles)
+    expect(added).toHaveLength(14); // The crag skin now joins the charged world tiles; cabins, streams and wildlife still preload their native bakes.
+    expect(added).not.toContain(`/assets/pine-hollow/baked/crags.${tier}.bin`);
     expect(added.every((url) => sources.props.includes(url))).toBe(true);
     expect(coats.slice().sort()).toEqual(tex === 'ktx2' ? Object.values(bakedCoats[tier]).sort() : []);
     expect(coats).toHaveLength(tex === 'ktx2' ? 16 : 0);

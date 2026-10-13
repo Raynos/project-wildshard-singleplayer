@@ -9,15 +9,63 @@ import { platform } from 'node:process';
 import { Buffer } from 'node:buffer';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { CRAG_ROWS, CragSkin } from '../../../src/shards/pine-hollow/world/cragBake';
-import { nativeWholeGeometry, unshuffleLanes } from '@wildshard/game/plugin/geometry';
+import { CRAG_ROWS, CragSkin as AuthoredCragSkin } from '../../../src/shards/pine-hollow/world/cragBake';
+import { CragSkin } from '../../../src/shards/pine-hollow/generators/cragCodec';
+import { assembleWholeGeometryViews, nativeWholeGeometry, unshuffleLanes } from '@wildshard/game/plugin/geometry';
 import committed from '../../../src/shards/pine-hollow/data/crags.json' with { type: 'json' };
 import { bakeCragRows } from '../../../src/shards/pine-hollow/generators/bake-pine-crags.mjs';
 import { pineCragBake } from '../../../src/shards/pine-hollow/generators/cragScene';
+import { pineTimberWorldBake } from '../../../src/shards/pine-hollow/generators/timberWorld';
+import { pineTimberGround } from '../../../src/shards/pine-hollow/generators/bake-pine-lookout.mjs';
 
 const shipped = (tier: 'phone' | 'desktop'): Uint8Array => unshuffleLanes(new Uint8Array(inflateSync(readFileSync(new URL(`../../../public/assets/pine-hollow/baked/crags.${tier}.bin`, import.meta.url)))));
 
 describe('Pine Hollow bakes its crags offline (G285)', () => {
+  it('reassembles all 72 original skin draws from charged world tiles without changing a byte or adding colliders', async () => {
+    const authored = pineTimberWorldBake(pineTimberGround().heightAt, undefined, {
+      phone: { bin: shipped('phone'), tiles: CRAG_ROWS.skin.phone.tiles },
+      desktop: { bin: shipped('desktop'), tiles: CRAG_ROWS.skin.desktop.tiles },
+    });
+    expect(authored.shardfile.tiles.length).toBeGreaterThan(0);
+    expect(authored.colliders.scene).toEqual([]);
+    expect(authored.colliders.props).toEqual([]);
+    const nodes: THREE.Mesh[] = [];
+    for (const bytes of authored.assets.values()) {
+      const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(bytes).buffer, '');
+      const isMesh = (node: THREE.Object3D): node is THREE.Mesh => node instanceof THREE.Mesh;
+      loaded.scene.traverse(node => { if (isMesh(node)) nodes.push(node); });
+    }
+    const views = assembleWholeGeometryViews(nodes);
+    expect([...views.keys()].filter(key => key.includes('-skin-'))).toHaveLength(72);
+    for (const tier of ['phone', 'desktop'] as const) {
+      const original = await new CragSkin(shipped(tier), CRAG_ROWS.skin[tier]).tiles(() => Promise.resolve());
+      const restored = await new AuthoredCragSkin(views, tier).tiles(() => Promise.resolve());
+      expect(restored).toHaveLength(original.length);
+      for (const [i, pair] of original.entries()) for (const [resolution, expected] of pair.entries()) {
+        const actual = restored[i]?.[resolution];
+        const view = views.get(`${tier}-skin-${i}-${resolution === 0 ? 'near' : 'far'}`);
+        if (actual === undefined || view === undefined) throw new Error('Original crag draw missing');
+        expect(view.matrix.elements).toEqual(new THREE.Matrix4().elements);
+        expect(Object.keys(actual.attributes).sort()).toEqual(Object.keys(expected.attributes).sort());
+        for (const name of Object.keys(expected.attributes)) {
+          const a = actual.getAttribute(name), b = expected.getAttribute(name);
+          expect(a.itemSize).toBe(b.itemSize);
+          expect(a.array.constructor).toBe(b.array.constructor);
+          expect(Buffer.from(a.array.buffer, a.array.byteOffset, a.array.byteLength).equals(new Uint8Array(b.array.buffer, b.array.byteOffset, b.array.byteLength)), `${tier}:${i}:${resolution}:${name}`).toBe(true);
+        }
+        const a = actual.getIndex(), b = expected.getIndex();
+        if (a === null || b === null) throw new Error('Native skin triangles missing');
+        expect(a.array.constructor).toBe(b.array.constructor);
+        expect(Buffer.from(a.array.buffer, a.array.byteOffset, a.array.byteLength).equals(new Uint8Array(b.array.buffer, b.array.byteOffset, b.array.byteLength))).toBe(true);
+        expect(actual.boundingBox).toEqual(expected.boundingBox);
+        expect(actual.boundingSphere).toEqual(expected.boundingSphere);
+        actual.dispose(); expected.dispose();
+      }
+    }
+    await expect(new AuthoredCragSkin(new Map(), 'phone').tiles(() => Promise.resolve())).rejects.toThrow('missing original source');
+    for (const view of views.values()) view.geometry.dispose();
+  }, 30_000);
+
   // Byte-exact against a bake recorded on the Mac; Linux's libm differs in the last ulp (CI 38008817381: tiltX …043 vs …046),
   // so the stale gate runs where bakes are made (the local push gate), not on the Linux runners.
   it.runIf(platform === 'darwin')('the committed bake is byte-exact against its generator (the stale gate: rerun src/shards/pine-hollow/generators/bake-pine-crags.mjs)', async () => {

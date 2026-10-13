@@ -6,6 +6,9 @@ import { bakeSiteTimbers } from './siteTimbers';
 import { TimberRecorder } from './timberBake';
 import { landingSite, bridgeSite, timberFrame, ZIP_YAW } from './timberPlacement';
 import { LOOKOUT } from '../data/layout';
+import { pineCragWorldScene } from './cragScene';
+import type { SkinBake } from './crags';
+import type { CragTier } from './cragRows';
 
 /** Real placement doubles and native yaw rows; runtime queries never recompute these author-owned frames. */
 export function pineTimberPlacements(heightAt: (x: number, z: number) => number): { lookout: { matrix: number[]; yaw: number }; landing: { matrix: number[]; yaw: number }; bridge: { matrix: number[]; yaw: number; turn: [number, number] } } {
@@ -18,7 +21,7 @@ export function pineTimberPlacements(heightAt: (x: number, z: number) => number)
 }
 
 /** Compile one world Scene. Library shapes never become extra world draws or colliders. */
-export function pineTimberWorldBake(heightAt: (x: number, z: number) => number, project?: string): BakedScene {
+export function pineTimberWorldBake(heightAt: (x: number, z: number) => number, project?: string, crags?: Record<CragTier, SkinBake>): BakedScene {
   const scene = new THREE.Scene(); scene.name = 'pine-hollow.timber-world';
   scene.add(pineLookoutScene(heightAt), pineSiteTimberScene(heightAt));
   const library = new BakedPiece('pine-timber-explorer', [], [], { nativeAttributes: true, compactIndex: true,
@@ -37,6 +40,7 @@ export function pineTimberWorldBake(heightAt: (x: number, z: number) => number, 
     }
   }));
   scene.add(library);
+  if (crags !== undefined) scene.add(pineCragWorldScene(crags));
   try { return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project }); }
   finally {
     scene.traverse(node => {

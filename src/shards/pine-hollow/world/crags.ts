@@ -148,7 +148,7 @@ export class PineCrags {
         fetch(`${CRAG_DIR}/cave.json`).then(async (r) => (r.ok ? (await r.json()) as CaveMeta : null)).catch(() => null),
         sky ? Promise.all([loadPBR('mossy_rock', 1, pineSetCap(TIER_CONFIG.maxTexture)), Promise.all([loadTexture(texUrl('rock_ground', 'diffuse'), true), loadTexture(texUrl('rock_ground', 'nor_gl'))])
           .then(([map, normalMap]) => ({ map, normalMap }))]) : Promise.resolve(null), // G180 B1: only the grit samplers the shader uses; an eagerly uploaded unused ARM has no owner.
-        sky ? loadCragSkin(TIER) : Promise.resolve(null), // only drawn builds need the skin (G285: ./cragBake.ts)
+        sky ? loadCragSkin(TIER, pineModels(sky)) : Promise.resolve(null), // only drawn builds need the skin (G285: ./cragBake.ts)
       ]);
       const mat = sky && tex ? cragMaterial(sky, tex[0], tex[1]) : null;
       for (const [name, g] of kitB) kit.set(name, g);

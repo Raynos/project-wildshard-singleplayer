@@ -19,6 +19,7 @@ import { wildlifeWordLanes as shuffleLanes } from './wildlifeWords.ts';
 import { parseGlb } from '@wildshard/sdk/assets';
 import { pineTimberWorldBake, pineTimberPlacements } from './timberWorld.ts';
 import { bakeSiteTimberRows } from './bake-pine-site-timbers.mjs';
+import { bakeCragRows } from './bake-pine-crags.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
 
@@ -32,8 +33,9 @@ export function bakeLookoutRows() {
 export function pineTimberGround() { return readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin'))); }
 
 /** Write the admitted world tiles and Explorer library through the same confined launcher. */
-function writeTimberWorld() {
-  const ground = pineTimberGround(), baked = pineTimberWorldBake(ground.heightAt, root);
+async function writeTimberWorld() {
+  const crags = await bakeCragRows(), ground = pineTimberGround();
+  const baked = pineTimberWorldBake(ground.heightAt, root, { phone: { bin: crags.bins.phone, tiles: crags.rows.skin.phone.tiles }, desktop: { bin: crags.bins.desktop, tiles: crags.rows.skin.desktop.tiles } });
   const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer');
   if (piece === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
   const hash = createHash('sha256').update(piece.glb).digest('hex');
@@ -47,7 +49,7 @@ function writeTimberWorld() {
   console.info(`Pine timber product: ${shardfile.tiles.length} tiles, ${shardfile.files.length} charged files, 3 world copies and 2 library copies`);
 }
 
-if (import.meta.main && process.argv.includes('--world')) writeTimberWorld();
+if (import.meta.main && process.argv.includes('--world')) await writeTimberWorld();
 else if (import.meta.main) {
   const { rows, bin } = bakeLookoutRows();
   const authored = pineLookoutBake(pineTimberGround().heightAt, root);

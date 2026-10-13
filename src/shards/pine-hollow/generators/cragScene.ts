@@ -1,19 +1,9 @@
 /** The real crag-face skin shapes, in their native world coordinates and view profiles, through one author Scene. */
 import * as THREE from 'three';
-import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
+import { bake, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import type { SkinBake } from './crags';
 import type { CragTier } from './cragRows';
-
-function skinGeometry(position: Float32Array, ao: Float32Array, index: Uint16Array): THREE.BufferGeometry {
-  const count = ao.length, cd = new Float32Array(count * 4), ct = new Float32Array(count * 2);
-  for (let i = 0; i < count; i++) { cd[i * 4] = ao[i] ?? 0; cd[i * 4 + 1] = 1; cd[i * 4 + 3] = 1; ct[i * 2 + 1] = 1; }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(position, 3));
-  geometry.setAttribute('cdata', new THREE.BufferAttribute(cd, 4));
-  geometry.setAttribute('ctint', new THREE.BufferAttribute(ct, 2));
-  geometry.setIndex(new THREE.BufferAttribute(index, 1)); geometry.computeVertexNormals();
-  geometry.computeBoundingBox(); geometry.computeBoundingSphere(); return geometry;
-}
+import { skinGeometry } from './cragCodec';
 
 /** Decode the retained raw attribute oracle, retaining both resolution channels without merging or resampling. */
 export function pineCragScene(skin: Record<CragTier, SkinBake>): THREE.Scene {
@@ -35,6 +25,20 @@ export function pineCragScene(skin: Record<CragTier, SkinBake>): THREE.Scene {
       scene.add(new BakedPiece(`pine-crag-${tier}-${i}`, meshes, [], { nativeAttributes: true, compactIndex: true }));
     }
     if (offset !== data.bin.byteLength) throw new Error('Pine crag Scene must consume every source byte');
+  }
+  return scene;
+}
+
+/** All original world-space skin draws, on centroid-owned tiles; native tier and LOD owners select them at runtime. */
+export function pineCragWorldScene(skin: Record<CragTier, SkinBake>): THREE.Scene {
+  const source = pineCragScene(skin), scene = new THREE.Scene(); scene.name = 'pine-hollow.crag-world';
+  const isGeometry = (value: unknown): value is THREE.BufferGeometry => value instanceof THREE.BufferGeometry;
+  const isMaterial = (value: unknown): value is THREE.Material => value instanceof THREE.Material;
+  for (const piece of source.children) for (const node of piece.children) {
+    if (!(node instanceof THREE.Mesh)) throw new Error('Crag author source must be a mesh');
+    const geometry: unknown = node.geometry, material: unknown = node.material;
+    if (!isGeometry(geometry) || !isMaterial(material)) throw new Error('Crag author source must retain its native geometry');
+    scene.add(new WholeShape(node.name, new THREE.Mesh(geometry, material), { nativeAttributes: true, partition: true, overhang: 1 }));
   }
   return scene;
 }
