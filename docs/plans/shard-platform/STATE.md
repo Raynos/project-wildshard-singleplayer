@@ -16,6 +16,7 @@
 **Jake ask (Sky movers):** Sky headless onto the generic mover driver deletes one-user code but re-records the gameplay hash. Recommend yes, after the sprint.
 
 **For wildshard-v, Jake ask (S2):** Graph materials stay default-off pending a physical-iPhone reading, so the GLSL stays as fallback (no cut). Recommend accepting the Simulator + desktop reading. Near boards: `art/near-tier/round-6/`.
+**Jake ask (Sim):** KTX2 for Pine's 2048² bitmaps (default-off A/B Debug row + board, sp-o110).
 
 **Calls for Jake (2026-10-13; reverse any):**
 6–22. Ground loader; Sky prop tiles; commons 0 packs; literal physics rows; Signal navmesh kept; query terrain; Pine cabin shapes; `props.wholeLibrary`; ≤ 1 m tile overhang; Nine portable math (≤ 9e-16); boat hull shared; Debug rows 7 → 4; bake host online; Driftwood/Nalati ground readers; Sky placements baked; Pine helper copies (closed `c757e98b8`).
