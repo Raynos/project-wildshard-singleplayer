@@ -31,6 +31,8 @@ p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may 
 - **`scripts/generation-jobs.json` has many writers.** Never commit or build the working-tree copy wholesale: start from
   `git show HEAD:scripts/generation-jobs.json`, apply only your own job's entries, commit via a private index (a draft
   that carried stale hunks dropped Signal's commons roots and ring pin, 2026-10-13).
+- **Moving code is not a cut.** Code (TS, GLSL strings, shader bodies) moved into `data/`/`generators/` or a one-user
+  engine/game/SDK module still counts (G294, G306); only real rows/data, baked outputs or ≥ 2-user modules reduce custom %.
 - **Strict TS:** no `any`, `!`, `@ts-ignore`, `as unknown as`, blanket disables. Fix the type, never the gate. Never
   disable a lint guard. No `?foo=` URL switches (Debug rows only, DEBUG-TOGGLES.md). Never edit frozen `*-legacy` folders.
 - **Debt-row approvals:** a push refused for a generated rise under `src/shards/` (shard-engine-imports,
