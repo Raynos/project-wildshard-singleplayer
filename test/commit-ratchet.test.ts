@@ -3,7 +3,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Hash the fixture's exact pinned JSON bytes.
 import { createHash } from 'node:crypto';
 // oxlint-disable-next-line import/no-nodejs-modules -- Every write is confined to an owned temporary fixture.
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Canonical temporary Git roots.
 import { tmpdir } from 'node:os';
 // oxlint-disable-next-line import/no-nodejs-modules -- Resolve fixture files without touching the shared index.
@@ -56,6 +56,24 @@ it('reads committed source and helper bytes after clearing inherited private Git
     expect(report).not.toContain('foreign');
     expect(report).toContain('"gitKeys":[]');
     expect(git(['diff', '--cached', '--name-only'])).toBe('src/engine/value.ts');
+  });
+});
+
+it('imports the defining guard reader and declarations through the real narrowed commit export',()=>{
+  fixture((root,put,git)=>{
+    for(const file of ['scripts/guard-counts.mjs','scripts/guard-index-tree.mjs','scripts/guard-index-tree.d.mts'])put(file,readFileSync(file,'utf8'));
+    put('.oxlintrc.json','{"overrides":[]}');
+    put('lint/ratchet.mjs',`import {hardRules} from '../scripts/guard-counts.mjs';
+hardRules('.oxlintrc.json');readFileSync('scripts/guard-index-tree.d.mts');
+${readFileSync(join(root,'lint/ratchet.mjs'),'utf8')}`);
+    mkdirSync(join(root,'node_modules'));symlinkSync(resolve('node_modules/vite'),join(root,'node_modules/vite'));
+    git(['add','--','scripts','lint/ratchet.mjs','.oxlintrc.json']);git(['commit','-qm','real guard import fixture']);
+    const sha=git(['rev-parse','HEAD']);
+    put('scripts/guard-index-tree.mjs',"throw Error('foreign guard helper');");
+    const result=spawnSync('bash',[resolve('scripts/commit-ratchet.sh'),sha],{cwd:root,encoding:'utf8',env:{...env,COMMIT_RATCHET_LOCKED:'1',FIXTURE_MEASURE_MARKER:join(root,'.git/measured')}});
+    expect(result.status,result.stderr).toBe(0);
+    expect(readFileSync(join(root,'.git/ratchet-last.txt'),'utf8')).toContain(`${sha} ok`);
+    expect(readFileSync(join(root,'.git/measured'),'utf8')).toBe('measured');
   });
 });
 

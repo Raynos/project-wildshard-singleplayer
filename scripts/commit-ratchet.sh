@@ -34,7 +34,7 @@ fi
 
 # the ratchet reads both oxlint configs and (since E362 AG16/17) scripts/guard-counts.mjs; archive only what the commit has
 paths="src lint .oxlintrc.ratchet.json package.json"
-for extra in .oxlintrc.json scripts/guard-counts.mjs scripts/legacy-shards.mjs scripts/generation-jobs.json scripts/precommit-generated-data.mjs scripts/link-node-modules.mjs; do git -C "$repo" cat-file -e "$sha:$extra" 2>/dev/null && paths="$paths $extra"; done
+for extra in .oxlintrc.json scripts/guard-counts.mjs scripts/guard-index-tree.mjs scripts/guard-index-tree.d.mts scripts/legacy-shards.mjs scripts/generation-jobs.json scripts/precommit-generated-data.mjs scripts/link-node-modules.mjs; do git -C "$repo" cat-file -e "$sha:$extra" 2>/dev/null && paths="$paths $extra"; done
 tmp="$(cd "$(mktemp -d /tmp/ratchet-commit.XXXXXX)" && pwd -P)" || exit 0 # canonical: /tmp is a symlink on macOS (E432)
 trap 'rm -rf "$tmp"' EXIT
 t0=$SECONDS
