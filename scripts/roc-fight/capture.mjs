@@ -24,7 +24,7 @@ const url = arg('url'), outArg = arg('out'), label = arg('label') ?? 'BEFORE', t
 if (url === undefined || outArg === undefined) throw new Error('Requires --url=<preview> --out=<dir> [--label=BEFORE] [--tree=<export>]');
 const out = resolve(outArg), shots = join(out, 'shots');
 /** Fixed stills, in frames from the fight's first frame (30 frames a second): the same frames for every build. */
-const STILLS = [0, 90, 300, 600, 1200, 1800, 2400, 3000, 3600, 4200, 4800, 5400];
+const STILLS = [15, 90, 300, 600, 1200, 1800, 2400, 3000, 3600, 4200, 4800, 5400];
 /** The fight's frame budget (past it the pilot failed): 15 minutes of game time. */
 const MAX_FRAMES = 27_000;
 /** Frames played after the Roc's fall. */
@@ -89,7 +89,7 @@ function overlay(/** @type {string} */ text) {
   let el = document.getElementById('roc-label');
   if (el === null) {
     el = document.createElement('div'); el.id = 'roc-label';
-    el.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:2147483647;padding:6px 10px;font:600 13px/1.35 ui-monospace,Menlo,monospace;color:#fff;background:rgba(0,0,0,0.62);white-space:pre-wrap;pointer-events:none';
+    el.style.cssText = 'position:fixed;left:0;right:0;top:0;z-index:2147483647;padding:6px 10px;font:700 15px/1.3 ui-monospace,Menlo,monospace;color:#fff;background:rgba(0,0,0,0.62);white-space:pre-wrap;pointer-events:none';
     document.body.append(el);
   }
   el.textContent = text;
@@ -152,7 +152,7 @@ function pageFacts(log, victory) {
   for (const [i, row] of log.entries()) {
     const prev = log.at(i - 1);
     if (i === 0 || prev === undefined) continue;
-    if (row[2] !== prev[2] || row[3] !== prev[3] || row[4] !== prev[4]) changes.push({ frame: row[0], tick: row[0] * 2, state: row[2], phase: row[3], attempts: row[4], rocHp: row[1], playerHp: row[5] });
+    if (row[2] !== prev[2] || row[3] !== prev[3] || row[4] !== prev[4]) changes.push({ frame: row[0], tick: row[0] * 2, state: row[2], phase: row[3], attempts: row[4], rocHp: row[1] });
     if (row[5] < prev[5]) hits.push({ frame: row[0], damage: Math.round((prev[5] - row[5]) * 100) / 100 });
     const isLow = row[7] === 1 && row[6] < 47; if (isLow && !low) stoops.push(row[0]); low = isLow;
   }
@@ -161,7 +161,8 @@ function pageFacts(log, victory) {
     fightFrames: victory, fightTicks: victory === null ? null : victory * 2, framesLogged: log.length, attempts: log.at(-1)?.[4] ?? null,
     changes, hitsTaken: hits.length, damageTaken: Math.round(hits.reduce((n, h) => n + h.damage, 0) * 100) / 100, minPlayerHp: Math.min(...log.map(row => row[5])),
     stoops: stoops.length, stoopFrames: stoops,
-    rocHpEvery300: log.filter(row => row[0] % 300 === 0).map(row => ({ frame: row[0], rocHp: row[1], phase: row[3], playerHp: row[5], wisps: row[8] })),
+    // no player HP here: it regenerates on the wall clock (facts.deterministic)
+    rocHpEvery300: log.filter(row => row[0] % 300 === 0).map(row => ({ frame: row[0], rocHp: row[1], phase: row[3], wisps: row[8] })),
   };
 }
 
@@ -213,7 +214,8 @@ try {
     if (frame + 1 > have) await advance(page, frame + 1 - have);
     const row = logA.at(frame);
     if (row === undefined) continue;
-    const text = `${label} · ${sha} · frame ${String(frame)} · tick ${String(frame * 2)} · t+${(frame / 30).toFixed(1)}s\n${beatAt(frame)} · Roc HP ${String(row[1])} · ${row[2]} phase ${String(row[3] + 1)} · player ${String(row[5])}`;
+    // the player's HP is left out: its regeneration runs on the wall clock (see facts.deterministic)
+    const text = `${label} ${sha} · f${String(frame)} · tick ${String(frame * 2)} · +${(frame / 30).toFixed(1)}s\n${beatAt(frame)} · Roc ${String(row[1])} HP · ${row[2]} p${String(row[3] + 1)}`;
     await page.evaluate(overlay, text);
     const kind = wanted.get(frame);
     if (kind === 'clip' || kind === 'both') await page.screenshot({ path: join(shots, `clip-${String(clipIndex++).padStart(5, '0')}.jpg`), type: 'jpeg', quality: 85, scale: 'css' });
@@ -224,16 +226,19 @@ try {
   const logB = (await rows(page)).slice(0, logA.length);
   if (errors.length > 0) throw new Error(`Page errors: ${errors.join(' | ')}`);
   await context.close();
-  const same = JSON.stringify(logA) === JSON.stringify(logB);
-  const firstDiff = same ? null : logA.findIndex((row, i) => JSON.stringify(row) !== JSON.stringify(logB[i]));
-  console.log(`pass B: ${String(clipIndex)} clip frames, log ${same ? 'identical' : `differs from frame ${String(firstDiff)}`}`);
+  // the fight's own state (every column but the player's HP) must repeat exactly; the player's HP regenerates on the
+  // wall clock (not the capture clock), so between two passes it may differ by a regen step and is reported apart
+  const fight = (/** @type {Row | undefined} */ row) => JSON.stringify(row?.filter((_, i) => i !== 5));
+  const firstDiff = logA.findIndex((row, i) => fight(row) !== fight(logB.at(i))), same = firstDiff === -1 && logA.length === logB.length;
+  const hpFrames = logA.filter((row, i) => row[5] !== logB.at(i)?.[5]).length;
+  console.log(`pass B: ${String(clipIndex)} clip frames, fight log ${same ? 'identical' : `differs from frame ${String(firstDiff)}`}, player HP differs on ${String(hpFrames)} frames`);
   // the clip (15 fps, ≤ 4 MB) and the contact sheet (6 × 2, half size)
   const ff = (/** @type {string[]} */ args) => { const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', ...args], { stdio: 'inherit' }); if (r.status !== 0) throw new Error(`ffmpeg ${args.join(' ')}`); };
   ff(['-framerate', '15', '-i', join(shots, 'clip-%05d.jpg'), '-vf', 'scale=402:-2', '-c:v', 'libx264', '-preset', 'slow', '-crf', '30', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', join(out, 'clip.mp4')]);
   ff(['-framerate', '1', '-i', join(shots, 'still-%02d.jpg'), '-vf', 'scale=268:-2,tile=6x2:padding=4:color=black', '-frames:v', '1', '-q:v', '5', join(out, 'sheet.jpg')]);
   /** @type {Record<string, unknown>} */
   const facts = { label, build: version.build, url, profile: 'iPhone 16 Pro portrait, DPR 2, chromium headless, Metal, muted; capture clock 30 fps; Math.random pinned (scripts/parity/init.mjs)',
-    stills: STILLS, beats: found.list, deterministic: { passes: 2, identical: same, firstDifferentFrame: firstDiff }, page: pageFacts(logA, found.victory) };
+    stills: STILLS, beats: found.list, deterministic: { passes: 2, fightIdentical: same, firstDifferentFrame: same ? null : firstDiff, playerHpFramesDiffering: hpFrames, note: 'player HP regeneration runs on the wall clock; every other logged column repeats exactly' }, page: pageFacts(logA, found.victory) };
   if (tree !== undefined) {
     const result = spawnSync(process.execPath, ['--import', join(resolve(tree), 'scripts/sim-node-loader.mjs'), new URL('facts.mjs', import.meta.url).pathname, `--tree=${resolve(tree)}`], { cwd: resolve(tree), encoding: 'utf8', maxBuffer: 1 << 26 });
     if (result.status !== 0) throw new Error(`facts.mjs failed: ${result.stderr.slice(-2000)}`);

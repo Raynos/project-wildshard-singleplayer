@@ -54,7 +54,7 @@ for (const [side, e] of Object.entries(encounter)) {
 writeFileSync(join(out, 'diff.md'), `${lines.join('\n')}\n`);
 const ff = (/** @type {string[]} */ args) => { const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', ...args], { stdio: 'inherit' }); if (r.status !== 0) throw new Error(`ffmpeg ${args.join(' ')}`); };
 // the sheets: BEFORE over AFTER (each still carries its own label)
-ff(['-i', join(before, 'sheet.jpg'), '-i', join(after, 'sheet.jpg'), '-filter_complex', '[0][1]vstack=inputs=2', '-q:v', '6', join(out, 'sheets.jpg')]);
+ff(['-i', join(before, 'sheet.jpg'), '-i', join(after, 'sheet.jpg'), '-filter_complex', '[0][1]vstack=inputs=2', '-q:v', '9', join(out, 'sheets.jpg')]);
 // the clips: BEFORE | AFTER, the shorter one holding its last frame
 if (existsSync(join(before, 'clip.mp4')) && existsSync(join(after, 'clip.mp4'))) {
   ff(['-i', join(before, 'clip.mp4'), '-i', join(after, 'clip.mp4'), '-filter_complex', '[0]tpad=stop=-1:stop_mode=clone[l];[1]tpad=stop=-1:stop_mode=clone[r];[l][r]hstack=inputs=2:shortest=0',

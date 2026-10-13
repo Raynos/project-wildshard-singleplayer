@@ -1,0 +1,971 @@
+{
+ "label": "BEFORE",
+ "build": "6e136f0-mv6t94zz",
+ "url": "http://127.0.0.1:4401/",
+ "profile": "iPhone 16 Pro portrait, DPR 2, chromium headless, Metal, muted; capture clock 30 fps; Math.random pinned (scripts/parity/init.mjs)",
+ "stills": [
+  15,
+  90,
+  300,
+  600,
+  1200,
+  1800,
+  2400,
+  3000,
+  3600,
+  4200,
+  4800,
+  5400
+ ],
+ "beats": [
+  {
+   "frame": 0,
+   "kind": "start",
+   "text": "approach"
+  },
+  {
+   "frame": 1,
+   "kind": "change",
+   "text": "intro · phase 1"
+  },
+  {
+   "frame": 46,
+   "kind": "change",
+   "text": "fight · phase 1"
+  },
+  {
+   "frame": 287,
+   "kind": "stoop",
+   "text": "stoop 1 · phase 1"
+  },
+  {
+   "frame": 454,
+   "kind": "change",
+   "text": "beat · phase 2"
+  },
+  {
+   "frame": 499,
+   "kind": "change",
+   "text": "fight · phase 2"
+  },
+  {
+   "frame": 4610,
+   "kind": "change",
+   "text": "beat · phase 3"
+  },
+  {
+   "frame": 4616,
+   "kind": "stoop",
+   "text": "stoop 1 · phase 3"
+  },
+  {
+   "frame": 4655,
+   "kind": "change",
+   "text": "fight · phase 3"
+  },
+  {
+   "frame": 6529,
+   "kind": "change",
+   "text": "victory · phase 3"
+  },
+  {
+   "frame": 6529,
+   "kind": "victory",
+   "text": "the fall"
+  }
+ ],
+ "deterministic": {
+  "passes": 2,
+  "fightIdentical": true,
+  "firstDifferentFrame": null,
+  "playerHpFramesDiffering": 377,
+  "note": "player HP regeneration runs on the wall clock; every other logged column repeats exactly"
+ },
+ "page": {
+  "clock": "30 page frames a second (capture clock); tick = frame × 2 (60 Hz fixed step)",
+  "fightFrames": 6529,
+  "fightTicks": 13058,
+  "framesLogged": 6680,
+  "attempts": 1,
+  "changes": [
+   {
+    "frame": 1,
+    "tick": 2,
+    "state": "intro",
+    "phase": 0,
+    "attempts": 1,
+    "rocHp": 420
+   },
+   {
+    "frame": 46,
+    "tick": 92,
+    "state": "fight",
+    "phase": 0,
+    "attempts": 1,
+    "rocHp": 420
+   },
+   {
+    "frame": 454,
+    "tick": 908,
+    "state": "beat",
+    "phase": 1,
+    "attempts": 1,
+    "rocHp": 277.2
+   },
+   {
+    "frame": 499,
+    "tick": 998,
+    "state": "fight",
+    "phase": 1,
+    "attempts": 1,
+    "rocHp": 277.2
+   },
+   {
+    "frame": 4610,
+    "tick": 9220,
+    "state": "beat",
+    "phase": 2,
+    "attempts": 1,
+    "rocHp": 138.6
+   },
+   {
+    "frame": 4655,
+    "tick": 9310,
+    "state": "fight",
+    "phase": 2,
+    "attempts": 1,
+    "rocHp": 138.6
+   },
+   {
+    "frame": 6529,
+    "tick": 13058,
+    "state": "victory",
+    "phase": 2,
+    "attempts": 1,
+    "rocHp": 0
+   }
+  ],
+  "hitsTaken": 15,
+  "damageTaken": 182,
+  "minPlayerHp": 86,
+  "stoops": 2,
+  "stoopFrames": [
+   287,
+   4616
+  ],
+  "rocHpEvery300": [
+   {
+    "frame": 0,
+    "rocHp": 420,
+    "phase": 0,
+    "wisps": 3
+   },
+   {
+    "frame": 300,
+    "rocHp": 384,
+    "phase": 0,
+    "wisps": 3
+   },
+   {
+    "frame": 600,
+    "rocHp": 277.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 900,
+    "rocHp": 261.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 1200,
+    "rocHp": 253.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 1500,
+    "rocHp": 241.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 1800,
+    "rocHp": 229.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 2100,
+    "rocHp": 213.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 2400,
+    "rocHp": 205.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 2700,
+    "rocHp": 197.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 3000,
+    "rocHp": 181.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 3300,
+    "rocHp": 173.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 3600,
+    "rocHp": 165.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 3900,
+    "rocHp": 149.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 4200,
+    "rocHp": 145.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 4500,
+    "rocHp": 141.2,
+    "phase": 1,
+    "wisps": 3
+   },
+   {
+    "frame": 4800,
+    "rocHp": 122.6,
+    "phase": 2,
+    "wisps": 3
+   },
+   {
+    "frame": 5100,
+    "rocHp": 102.6,
+    "phase": 2,
+    "wisps": 3
+   },
+   {
+    "frame": 5400,
+    "rocHp": 82.6,
+    "phase": 2,
+    "wisps": 3
+   },
+   {
+    "frame": 5700,
+    "rocHp": 58.6,
+    "phase": 2,
+    "wisps": 3
+   },
+   {
+    "frame": 6000,
+    "rocHp": 34.6,
+    "phase": 2,
+    "wisps": 3
+   },
+   {
+    "frame": 6300,
+    "rocHp": 14.6,
+    "phase": 2,
+    "wisps": 3
+   },
+   {
+    "frame": 6600,
+    "rocHp": 0,
+    "phase": 2,
+    "wisps": 3
+   }
+  ]
+ },
+ "headless": {
+  "source": "test/proof/far-reach/witness.ts SkyTape from the spawn (headless, portable math)",
+  "endpointTick": 26469,
+  "victoryTick": 26349,
+  "crownTick": 8888,
+  "fightTicks": 17461,
+  "hash": "146505ca06c9ca5c5f523bbff3dc7cf6ed248017a5ad184c543b819c8ba6e864",
+  "attempts": 1,
+  "changes": [
+   {
+    "tick": 8888,
+    "state": "fight",
+    "phase": 0,
+    "attempts": 1,
+    "rocHp": 420,
+    "playerHp": 100
+   },
+   {
+    "tick": 10038,
+    "state": "beat",
+    "phase": 1,
+    "attempts": 1,
+    "rocHp": 277.2,
+    "playerHp": 86
+   },
+   {
+    "tick": 10129,
+    "state": "fight",
+    "phase": 1,
+    "attempts": 1,
+    "rocHp": 277.2,
+    "playerHp": 86
+   },
+   {
+    "tick": 17234,
+    "state": "beat",
+    "phase": 2,
+    "attempts": 1,
+    "rocHp": 138.6,
+    "playerHp": 88
+   },
+   {
+    "tick": 17325,
+    "state": "fight",
+    "phase": 2,
+    "attempts": 1,
+    "rocHp": 138.6,
+    "playerHp": 88
+   },
+   {
+    "tick": 26349,
+    "state": "victory",
+    "phase": 2,
+    "attempts": 1,
+    "rocHp": 0,
+    "playerHp": 100
+   }
+  ],
+  "fightHitsTaken": 14,
+  "fightDamageTaken": 172,
+  "journeyHitsTaken": 3,
+  "minPlayerHp": 80,
+  "stoops": 3,
+  "stoopTicks": [
+   9283,
+   9941,
+   17246
+  ],
+  "rocHpEvery": 600,
+  "samples": [
+   {
+    "tick": 8888,
+    "rocHp": 420,
+    "phase": 0,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -0.31,
+     51.29,
+     -203.96
+    ],
+    "player": [
+     -0.66,
+     44.52,
+     -183.79
+    ]
+   },
+   {
+    "tick": 9488,
+    "rocHp": 344,
+    "phase": 0,
+    "flockAlive": 6,
+    "playerHp": 86,
+    "roc": [
+     7.48,
+     45.54,
+     -201.4
+    ],
+    "player": [
+     3.77,
+     44.32,
+     -194.08
+    ]
+   },
+   {
+    "tick": 10088,
+    "rocHp": 277.2,
+    "phase": 1,
+    "flockAlive": 6,
+    "playerHp": 86,
+    "roc": [
+     -7.8,
+     51.01,
+     -201.78
+    ],
+    "player": [
+     -0.02,
+     44.02,
+     -190.95
+    ]
+   },
+   {
+    "tick": 10688,
+    "rocHp": 273.2,
+    "phase": 1,
+    "flockAlive": 6,
+    "playerHp": 88,
+    "roc": [
+     -15.74,
+     51,
+     -185.93
+    ],
+    "player": [
+     -11.74,
+     44.02,
+     -187.15
+    ]
+   },
+   {
+    "tick": 11288,
+    "rocHp": 261.2,
+    "phase": 1,
+    "flockAlive": 6,
+    "playerHp": 88,
+    "roc": [
+     -14.09,
+     51,
+     -198.51
+    ],
+    "player": [
+     -11.19,
+     44.02,
+     -196.39
+    ]
+   },
+   {
+    "tick": 11888,
+    "rocHp": 249.2,
+    "phase": 1,
+    "flockAlive": 6,
+    "playerHp": 88,
+    "roc": [
+     -3.93,
+     51,
+     -204.66
+    ],
+    "player": [
+     -3.22,
+     44.02,
+     -203.34
+    ]
+   },
+   {
+    "tick": 12488,
+    "rocHp": 229.2,
+    "phase": 1,
+    "flockAlive": 6,
+    "playerHp": 88,
+    "roc": [
+     14.97,
+     51.04,
+     -201.08
+    ],
+    "player": [
+     12.44,
+     44.02,
+     -199.91
+    ]
+   },
+   {
+    "tick": 13088,
+    "rocHp": 221.2,
+    "phase": 1,
+    "flockAlive": 6,
+    "playerHp": 88,
+    "roc": [
+     4.22,
+     51.01,
+     -206.94
+    ],
+    "player": [
+     3.33,
+     44.02,
+     -203.95
+    ]
+   },
+   {
+    "tick": 13688,
+    "rocHp": 213.2,
+    "phase": 1,
+    "flockAlive": 6,
+    "playerHp": 88,
+    "roc": [
+     -11.32,
+     51,
+     -201.66
+    ],
+    "player": [
+     -10.46,
+     44.02,
+     -200.87
+    ]
+   },
+   {
+    "tick": 14288,
+    "rocHp": 201.2,
+    "phase": 1,
+    "flockAlive": 6,
+    "playerHp": 88,
+    "roc": [
+     3.27,
+     51,
+     -206.36
+    ],
+    "player": [
+     2.86,
+     44.02,
+     -204.66
+    ]
+   },
+   {
+    "tick": 14888,
+    "rocHp": 189.2,
+    "phase": 1,
+    "flockAlive": 6,
+    "playerHp": 88,
+    "roc": [
+     -10.18,
+     51,
+     -203.46
+    ],
+    "player": [
+     -6.22,
+     44.02,
+     -199.72
+    ]
+   },
+   {
+    "tick": 15488,
+    "rocHp": 173.2,
+    "phase": 1,
+    "flockAlive": 6,
+    "playerHp": 88,
+    "roc": [
+     -4.37,
+     51.05,
+     -210.58
+    ],
+    "player": [
+     -3.41,
+     44.02,
+     -205.71
+    ]
+   },
+   {
+    "tick": 16088,
+    "rocHp": 165.2,
+    "phase": 1,
+    "flockAlive": 6,
+    "playerHp": 88,
+    "roc": [
+     12.26,
+     51.02,
+     -205.28
+    ],
+    "player": [
+     9.71,
+     44.02,
+     -202.87
+    ]
+   },
+   {
+    "tick": 16688,
+    "rocHp": 153.2,
+    "phase": 1,
+    "flockAlive": 6,
+    "playerHp": 88,
+    "roc": [
+     16.02,
+     51.01,
+     -181.09
+    ],
+    "player": [
+     14.03,
+     44.02,
+     -182.3
+    ]
+   },
+   {
+    "tick": 17288,
+    "rocHp": 138.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 88,
+    "roc": [
+     -0.25,
+     44.35,
+     -173.52
+    ],
+    "player": [
+     -0.19,
+     46.23,
+     -175.48
+    ]
+   },
+   {
+    "tick": 17888,
+    "rocHp": 118.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -0.65,
+     44.35,
+     -165.6
+    ],
+    "player": [
+     -0.21,
+     46.13,
+     -174.96
+    ]
+   },
+   {
+    "tick": 18488,
+    "rocHp": 110.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -0.64,
+     44.35,
+     -165.91
+    ],
+    "player": [
+     -0.21,
+     46.12,
+     -174.95
+    ]
+   },
+   {
+    "tick": 19088,
+    "rocHp": 106.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -0.42,
+     44.35,
+     -167.21
+    ],
+    "player": [
+     -0.21,
+     46.12,
+     -174.93
+    ]
+   },
+   {
+    "tick": 19688,
+    "rocHp": 94.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -0.41,
+     44.36,
+     -166.43
+    ],
+    "player": [
+     -0.21,
+     46.11,
+     -174.92
+    ]
+   },
+   {
+    "tick": 20288,
+    "rocHp": 90.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -0.68,
+     44.35,
+     -165.87
+    ],
+    "player": [
+     -0.21,
+     46.11,
+     -174.9
+    ]
+   },
+   {
+    "tick": 20888,
+    "rocHp": 82.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -1.24,
+     44.35,
+     -165.91
+    ],
+    "player": [
+     -0.21,
+     46.11,
+     -174.88
+    ]
+   },
+   {
+    "tick": 21488,
+    "rocHp": 78.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -1.32,
+     44.35,
+     -166.15
+    ],
+    "player": [
+     -0.21,
+     46.1,
+     -174.87
+    ]
+   },
+   {
+    "tick": 22088,
+    "rocHp": 70.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -1.63,
+     44.35,
+     -165.92
+    ],
+    "player": [
+     -0.24,
+     46.08,
+     -174.78
+    ]
+   },
+   {
+    "tick": 22688,
+    "rocHp": 62.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -1.99,
+     44.35,
+     -165.75
+    ],
+    "player": [
+     -0.33,
+     46.04,
+     -174.62
+    ]
+   },
+   {
+    "tick": 23288,
+    "rocHp": 54.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -2.64,
+     44.35,
+     -167.76
+    ],
+    "player": [
+     -0.77,
+     45.91,
+     -174.22
+    ]
+   },
+   {
+    "tick": 23888,
+    "rocHp": 46.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -3.86,
+     44.35,
+     -165.7
+    ],
+    "player": [
+     -0.92,
+     45.87,
+     -174.13
+    ]
+   },
+   {
+    "tick": 24488,
+    "rocHp": 38.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -4.38,
+     44.35,
+     -165.52
+    ],
+    "player": [
+     -1.31,
+     45.76,
+     -173.94
+    ]
+   },
+   {
+    "tick": 25088,
+    "rocHp": 26.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -3.84,
+     44.41,
+     -169.04
+    ],
+    "player": [
+     -1.55,
+     45.7,
+     -173.85
+    ]
+   },
+   {
+    "tick": 25688,
+    "rocHp": 22.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -6.51,
+     44.35,
+     -165.91
+    ],
+    "player": [
+     -2.47,
+     45.49,
+     -173.69
+    ]
+   },
+   {
+    "tick": 26288,
+    "rocHp": 2.6,
+    "phase": 2,
+    "flockAlive": 6,
+    "playerHp": 100,
+    "roc": [
+     -7.28,
+     44.36,
+     -166.31
+    ],
+    "player": [
+     -3.32,
+     45.23,
+     -173.68
+    ]
+   }
+  ],
+  "hits": [
+   {
+    "tick": 1281,
+    "damage": 6,
+    "playerHp": 94
+   },
+   {
+    "tick": 3073,
+    "damage": 10,
+    "playerHp": 90
+   },
+   {
+    "tick": 3074,
+    "damage": 10,
+    "playerHp": 80
+   },
+   {
+    "tick": 9303,
+    "damage": 14,
+    "playerHp": 86
+   },
+   {
+    "tick": 9941,
+    "damage": 14,
+    "playerHp": 86
+   },
+   {
+    "tick": 10549,
+    "damage": 12,
+    "playerHp": 88
+   },
+   {
+    "tick": 11113,
+    "damage": 12,
+    "playerHp": 88
+   },
+   {
+    "tick": 11677,
+    "damage": 12,
+    "playerHp": 88
+   },
+   {
+    "tick": 12307,
+    "damage": 12,
+    "playerHp": 88
+   },
+   {
+    "tick": 12891,
+    "damage": 12,
+    "playerHp": 88
+   },
+   {
+    "tick": 13510,
+    "damage": 12,
+    "playerHp": 88
+   },
+   {
+    "tick": 14113,
+    "damage": 12,
+    "playerHp": 88
+   },
+   {
+    "tick": 14717,
+    "damage": 12,
+    "playerHp": 88
+   },
+   {
+    "tick": 15279,
+    "damage": 12,
+    "playerHp": 88
+   },
+   {
+    "tick": 15848,
+    "damage": 12,
+    "playerHp": 88
+   },
+   {
+    "tick": 16459,
+    "damage": 12,
+    "playerHp": 88
+   },
+   {
+    "tick": 17090,
+    "damage": 12,
+    "playerHp": 88
+   }
+  ],
+  "effects": {
+   "coins": 2,
+   "fact:far-reach.quest": 1,
+   "fact:far-reach.roc": 1
+  }
+ }
+}
