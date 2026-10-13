@@ -3573,6 +3573,19 @@ A missing loader, a rejected load or a wrong seed fails boot instead of falling
 back. The existing optional analytic bake path keeps its warning/fallback
 behavior. Installation shifts datum exactly once and targets the captured frame.
 
+`@wildshard/engine/world/BakedTerrain.installBakedSamplesReader(reader)` installs
+the session's admitted-samples port for that optional path and returns its
+restore (E434: the game session calls it). `loadBakedTerrain` asks it first with
+`{ key: levelBakedId(level), seed }`; samples it returns are installed at the
+same moment the fetched `terrain.bin` would have been, with no placement log; a
+null (at once or after looking) keeps the fetch, and a rejection or a wrong seed
+falls back with the usual warning. The game's `installProductSampling` answers
+for a shard whose shardfile declares query-only terrain (G384): its sampling
+file, read from the grid cell's admitted product, or standalone from the
+canonical product ahead of the hybrid boot (the descriptor read once and handed
+to `prepareHybridShard`, the file cached for its admission), so the ground's
+lattice downloads once.
+
 ### Declared navigation (WSNM v1)
 
 `navigation` is an optional shardfile root with `version: 1`, a SHA-256
