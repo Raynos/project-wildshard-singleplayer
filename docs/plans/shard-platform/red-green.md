@@ -105,3 +105,7 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | gate: row-data refused a function (`isleNode`) exported from Sky `data/` | `fd1b0a9a4` | `ad1220312` | sp-o83 |
 | 2026-10-13 | **LIVE regression (found by parity re-attribution):** Nine phone sounds: rock footstep 2 → 98 (double step every step), combat gains a metal step, lantern hum and both ambient beds gone; Nalati steppe beds + all ambient (eagle, herd, marmot) gone | in `2beae6f27..230a36644` (850 commits) | pending bisect (sp-o92) | sp-o92 |
 | 2026-10-13 | desktop-only render change on Driftwood / Pine / Nine (programs −1, textures +1, renderbuffers −5.76 MB, ~−23 MB textures, 2nd programKeys change; Nalati both tiers) | in `f9fe9e81e..230a36644` | pending attribution (sp-o92) | sp-o92 |
+| 2026-10-13 | CI 38360704970 authoring-docs: GraphStages source doc binding lost | `7c88937bf` | `bac04cb0f` (inventory SDK 578/578, format 654/654) | sp-x6 |
+| 2026-10-13 | CI 38360704970: whole-geometry partition fixture hit its 20 s timeout (126k-vertex 13-channel matcher fixture) | `8dbd7c025` | `9f35dd3f2` (108k vertices, still > 25 MB; byte-exact; deadline unchanged) | sp-x8 |
+| 2026-10-13 | CI 38360704970 row-data: function `sandEntry` exported from Signal `data/familyLook.ts` | `7e4ee3740` | `4ffefcd05` (moved verbatim to `look/sandEntry.ts`; JSON identical, map pixels identical) | sp-o90 |
+| 2026-10-13 | push gate: oxlint import/newline-after-import in `test/bake-kinds-native.test.ts` | `b8279e643` | `2c2aa3c71` | sp-x8 |

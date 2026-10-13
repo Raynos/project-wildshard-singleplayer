@@ -16,7 +16,7 @@
 
 **For wildshard-v, Jake ask (S2):** sp-x6 is building an additive SF59 effect-state block (fog off, additive/premultiplied, depth bias, points, billboards; old graphs unchanged). Still Jake's: **Graph materials default-off pending a physical-iPhone reading**, so the GLSL stays as fallback (no cut). Recommend accepting the Simulator + desktop frame-floor reading (or one normal playtest with Debug ▸ Graph materials on).
 
-**Hero NE-b SHIPPED, re-shot with all nine near** (`77529adfb`, G383; call: shipped the re-shoot Jake asked for). **For wildshard-v:** near round 6 boards `art/near-tier/round-6/` (A/B/C, 4 road views + NE-b; ridges kept, `2d4b6b8a0`); template near fixed: tile-built near views keep their tiles' materials and don't take the cell (`7a3735a3c`), proof `template-near-proof-*.jpg`. Signal's ground now draws through the shared presentation-only data client incl. road entry (`7e4ee3740`).
+**Hero NE-b SHIPPED, re-shot all-near** (`77529adfb`, G383). **For wildshard-v:** near round 6 boards `art/near-tier/round-6/` (A/B/C; ridges kept `2d4b6b8a0`); tile-built near views keep their tiles' materials (`7a3735a3c`). Signal ground: shared presentation client (`7e4ee3740`).
 
 **Calls for Jake (2026-10-13; reverse any):**
 6. `terrain.bin` → session-installed ground loader (`5cfc5674b`).
@@ -24,5 +24,7 @@
 8. Commons 0 packs; plan desk: SF26/DS1.6 done-when → "first two-real-shard pack (G355)".
 9. Physics rows no recipe can compute are authored literally (`data/physicsRows.json`, G350).
 10. Signal navmesh kept byte-identical (739 polys) from the recipe's old height lattice, not rebaked.
+11. Terrain `form:'query'` (sampling only, 0 render tiles; collider derives from sampling; WSTR alias header+heights+splat, byte-exact) for Nalati (sp-x6).
+12. Pine cabins: one Scene bake as a shape library; live owners unchanged (`5e4c9f9d5`).
 
 Paused: frame floor, SF22, SF57, SF67.
