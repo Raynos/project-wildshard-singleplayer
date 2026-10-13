@@ -43,9 +43,9 @@ const mist = mul(mul(smooth(0.62, 1, down), oneMinus(smooth(0.25, 0.5, wide))), 
 const colour = mix(mix([0.3, 0.5, 0.58], [1, 0.98, 0.94], ropes), [1, 0.97, 0.92], mul(mist, 0.7));
 // the lip's mist
 const alpha = mul(op('max', [op('max', [body, mul(mist, 0.55)]), mul(mul(edge, oneMinus(smooth(0, 0.05, down))), 0.7)]), 0.85);
-// the old program wrote its colours straight to the display (no colour space conversion): the graph's are linear
-const linear = op('pow', [colour, 2.2]);
 
+// G402 (Jake: 'brighten, then ship'): the colours go out as the old program wrote them, unconverted; a pow 2.2 'to linear'
+// darkened the body to a solid teal between the ropes
 /** The falls' material graph (`look.materials.falls`). */
 export const FALL_GRAPH = { version: 1, kind: 'material', model: 'unlit', doubleSided: true, effectState: { blend: 'alpha', fog: false, depthWrite: false },
-  nodes, stages: { surface: { colour: linear, alpha } } } as const;
+  nodes, stages: { surface: { colour, alpha } } } as const;
