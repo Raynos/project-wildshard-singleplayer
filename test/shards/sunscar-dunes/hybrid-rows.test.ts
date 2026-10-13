@@ -1,3 +1,4 @@
+import FILE_INVENTORY from '../../fixtures/signal-hybrid-file-inventory.json' with { type: 'json' };
 import { describe, expect, it } from 'vitest';
 import { App } from '../../../src/engine/app/app';
 import { Flags } from '../../../src/engine/world/interact/flags';
@@ -32,7 +33,10 @@ describe('Signal Dunes declares runtime-bound rows (SHARD-PLATFORM M3, the runti
     expect(data.audio).toBe(source.audio); expect(data.edge).toBe(source.edge);
     // G345: the compiled terrain tiles, the sand maps and the bound dusk field are the presentation-only data client's; the
     // engine-owned navigation asset stays admitted
-    expect([data.terrain, data.tiles.length, data.files.length, data.critical.length, data.state.shared.length]).toEqual([source.terrain, 80, 85, 2, 0]);
+    expect([data.terrain, data.tiles.length, data.files.length, data.critical.length, data.state.shared.length]).toEqual([source.terrain, 80, 86, 2, 0]);
+    // cfea55867 adds the admitted fire-book; 22d016a63 keeps these exact files.
+    expect(data.files.map(file => file.hash)).toEqual(FILE_INVENTORY);
+    expect(data.files.some(file => file.hash === '5fe421ef5db33fc737043742feea77ad24105299c23e120b62c39e206e331b0a')).toBe(true);
     expect(data.navigation).toEqual(source.navigation);
   });
   it('the whip row drives the bullwhip and its equipment row: the same numbers, slot and context as before', () => {
