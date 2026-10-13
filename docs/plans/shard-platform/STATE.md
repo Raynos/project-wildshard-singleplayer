@@ -7,16 +7,16 @@
 | Signal Dunes | 70.7 % → **45.6 %** | ≤ 824 lines | **80 / 0** ✔ |
 | Sky Reach | 78.4 % → **53.5 %** | ≤ 1355 lines | **11 / 0** ✔ (`fd1b0a9a4`) |
 
-**Signal and Sky both meet Jake's port bar (tiles + 0 private binaries).** Authored physics (G350), navigation rows; gate issue left: "trusted runtime owns simulation". `plugin/` 20 → 14. Nine: Linux proof exact (385/385), landing.
+**Signal and Sky both meet Jake's port bar (tiles + 0 private binaries).** Authored physics (G350), navigation rows; gate issue left: "trusted runtime owns simulation". `plugin/` 20 → 14. Nine: Linux proof exact (385/385), landing. **Nalati 0 private bins** (`d3bdac368`; one-fetch ground: sp-o98).
 **LIVE `2f7cc5e25-mv6dko3t` (07:44Z)**: Sky island tiles, NE-b hero, fire A, nav rows, authored physics. Desktop frame floor at `fea49ae28` RED (worst 133–267 ms): sp-o93. CI `595a7bded` red: author-closure terrain keys (sp-x6).
 
-**Fleet (G384): 4 Opus + 6 Codex.** Codex: sp-x7 pusher; sp-x5 bench-max; sp-x6 SF87 clean room; sp-x4 Pine; sp-x1 Driftwood; sp-x8 Nine. Opus: sp-o93 frame floor, sp-o95 Nalati query terrain, sp-o96 Sky world → baked, sp-o97 sound diffs.
+**Fleet (G384): 4 Opus + 6 Codex.** Codex: sp-x7 pusher; sp-x5 bench-max; sp-x6 SF87 clean room; sp-x4 Pine; sp-x1 Driftwood; sp-x8 Nine. Opus: sp-o93 frame floor, sp-o98 Nalati one ground fetch, sp-o96 Sky world → baked, sp-o97 sound diffs.
 
 **For wildshard-v, Jake ask (G350 Nalati places):** bake runs 22k engine lines for 4.2 MB. **Port** to authored generators (big) or **freeze** the bins + rows as authored inputs (cheap, not regenerable). Recommend port later; bridge stays.
 
 **For wildshard-v, Jake ask (S2):** Graph materials stay default-off pending a physical-iPhone reading, so the GLSL stays as fallback (no cut). Recommend accepting the Simulator + desktop frame-floor reading (or one playtest with Debug ▸ Graph materials on).
 
-**For wildshard-v:** near boards `art/near-tier/round-6/` (A/B/C). Hero NE-b shipped (`77529adfb`).
+**For wildshard-v:** near boards `art/near-tier/round-6/` (A/B/C).
 
 **Calls for Jake (2026-10-13; reverse any):**
 6–7. Session ground loader; Sky tiles = island prop tiles.
@@ -31,5 +31,7 @@
 16. Driftwood boat hull equation shared by generator + live (`world/boatFrame.ts`), not a cut.
 17. Debug rows 7 → 4; DEVSERVER-only grid cell row deleted without a pick.
 18. Node bake host with a filesystem fetch reports online (bytes still verified).
+19. Driftwood ground reads its original 256 query lattice; landscape callbacks deleted, runtime owns render/collision.
+20. Nalati grid fetches ground twice (+0.52 MB) until sp-o98's one-fetch row lands.
 
 Paused: SF22, SF57, SF67.
