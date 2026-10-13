@@ -263,6 +263,9 @@ export interface CellScreensState { readonly shown: readonly { readonly instance
 interface Slot {
   readonly mesh: Mesh; readonly material: MeshBasicMaterial; readonly canvas: HTMLCanvasElement; readonly context: CanvasRenderingContext2D | null; readonly texture: CanvasTexture;
   readonly ordinal: number; readonly dispose: () => void; readonly upload: () => void; instance: string | null; key: string; along: number; sliding: boolean; status: CellScreenStatus | null; since: number;
+  /** sp-o100: the inputs the key was last built from (the snapshot's row, the whole seconds, near, the art's readiness):
+   *  the screen is a pure function of them, so an unchanged frame skips building and stringifying its content */
+  inputs: { readonly state: CellScreenInput; readonly elapsedS: number | null; readonly near: boolean; readonly art: boolean } | null;
 }
 const RANGE = 320, REFRESH = 6, DEAD_ZONE = 6;
 // Screens stay inside the closed cell, beyond a 20 m glide, leaving the entire road and soft wall clear.
@@ -316,7 +319,7 @@ export function installCellScreens(input: {
           if (!queued) { queued = true; later(); }
         };
         return { ordinal, dispose: () => { slotOwner.dispose(); }, upload, mesh, material, canvas, context: canvas.getContext('2d'), texture,
-          instance: null, key: '', along: 0, sliding: false, status: null, since: 0 };
+          instance: null, key: '', along: 0, sliding: false, status: null, since: 0, inputs: null };
       });
     };
     input.scene.add(group);
@@ -373,7 +376,7 @@ export function installCellScreens(input: {
           }
           if (s === undefined) continue;
           if (!slots.includes(s)) slots.push(s);
-          s.instance = cell.instance; s.key = ''; s.status = null; s.sliding = false;
+          s.instance = cell.instance; s.key = ''; s.inputs = null; s.status = null; s.sliding = false;
           const dx = feet.x - cell.x, dz = feet.z - cell.z; s.along = Math.abs(dx) >= Math.abs(dz) ? dz : dx;
         }
         const state = snapshot.get(cell.instance); if (state === undefined) continue;
@@ -382,9 +385,12 @@ export function installCellScreens(input: {
         const picture = image(cell);
         place(s, cell, feet);
         const near = Math.hypot(feet.x - s.mesh.position.x, feet.z - s.mesh.position.z) < NEAR;
+        s.mesh.visible = true;
+        const last = s.inputs;
+        if (last?.state === state && last.elapsedS === frame.elapsedS && last.near === near && last.art === (picture !== null)) continue;
+        s.inputs = { state, elapsedS: frame.elapsedS, near, art: picture !== null };
         const screen = cellScreenContent(state, frame), key = `${near ? 1 : 0}${picture === null ? 0 : 1}${JSON.stringify(near ? nearScreenFacts(screen) : screen)}`;
         if (key !== s.key && s.context !== null) { s.key = key; drawCellScreen(s.context, screen, picture, near); s.upload(); draws++; }
-        s.mesh.visible = true;
       }
       const liveArt = new Set(slots.flatMap(s => {
         const url = s.instance === null ? null : byInstance.get(s.instance)?.art;
