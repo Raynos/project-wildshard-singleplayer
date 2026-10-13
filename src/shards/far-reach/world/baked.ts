@@ -1,6 +1,6 @@
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { bakedColliders, bakedKindsGroup, loadBakedKinds } from '@wildshard/game/shardfile/bakedKinds';
-import { BufferGeometry, DataTexture, InstancedBufferAttribute, InstancedMesh, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, UnsignedByteType, type Group } from 'three';
+import { bakedWorld, type BakedKindRow, type DrawnBakedPiece } from '@wildshard/game/shardfile/bakedKinds';
+import { BufferGeometry, DataTexture, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, UnsignedByteType, type InstancedMesh } from 'three';
 import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
 import winchHouse from '../data/winchHouse.json' with { type: 'json' };
 import roost from '../data/roost.json' with { type: 'json' };
@@ -11,7 +11,7 @@ import bookStand from '../data/bookStand.json' with { type: 'json' };
 import knolls from '../data/knolls.json' with { type: 'json' };
 import geometries from '../data/geometries.json' with { type: 'json' };
 import isletRig from '../data/isletRig.json' with { type: 'json' };
-import { BAKED_PIECES, BAKED_URLS, ISLES_URL, SWARD_ATLAS_URL, type BakedPiece } from '../data/files';
+import { BAKED_URLS, ISLES_URL, SWARD_ATLAS_URL, type BakedPiece } from '../data/files';
 import { SWARD_ATLAS } from '../data/swardAtlas';
 import { shackMaterial, type ShackKind } from './shack';
 import { paintIsleMaterial, setIslePack } from './isle';
@@ -31,14 +31,17 @@ const shackKind = (kind: object): ShackKind | undefined => {
   return SHACK.find((k) => k === name);
 };
 
-let loaded: ReadonlyMap<BakedPiece, ReadonlyMap<string, InstancedMesh>> = new Map();
 let sward: Uint8Array | null = null;
+const WORLD = bakedWorld<BakedPiece, BakedKindRow>(PIECES, BAKED_URLS, 'far-reach', {
+  material: (kind) => { const shack = shackKind(kind); return shack === undefined ? undefined : shackMaterial(shack); },
+  decorate: (material, kind) => { const rockMix: unknown = 'paint' in kind ? kind.paint : undefined; if (typeof rockMix === 'number') paintIsleMaterial(material, rockMix); },
+  attributes: { _shk: 'shk', _farcloth: 'farCloth' },
+});
 /** Load every baked piece, the islands and the sward atlas (the plugin's `world` hook, before the world is built); a piece that fails to load is empty. */
 export async function loadSkyBaked(): Promise<void> {
-  const [meshes, atlas, isles] = await Promise.all([Promise.all(BAKED_PIECES.map((piece) => loadBakedKinds(BAKED_URLS[piece], PIECES[piece].kinds, `far-reach ${piece}`))),
+  const [, atlas, isles] = await Promise.all([WORLD.load(),
     fetchDeflated(SWARD_ATLAS_URL).catch((e: unknown) => { console.warn('[far-reach] the sward atlas did not load; the meadow stands bare:', e); return null; }),
     fetchDeflated(ISLES_URL).catch((e: unknown) => { console.error('[far-reach] the baked islands did not load; they stand undrawn:', e); return null; })]);
-  loaded = new Map(BAKED_PIECES.map((piece, i) => [piece, meshes[i] ?? new Map<string, InstancedMesh>()]));
   sward = atlas; setIslePack(isles);
 }
 
@@ -55,27 +58,10 @@ export function skySwardAtlas(): DataTexture {
 }
 
 /**
- * A world piece from its bake: its kinds as instanced meshes (undrawn if its GLB did not load) and its baked colliders.
- * `nodes` defaults to the loaded bake (a test passes the GLB's nodes it parsed itself).
+ * A world piece from its bake: its kinds as instanced meshes (undrawn if its GLB did not load; a tinted kind gets its rows'
+ * per-instance colours) and its baked colliders. `nodes` defaults to the loaded bake (a test passes the GLB's nodes it parsed itself).
  */
-export function skyBakedPiece(piece: BakedPiece, nodes: ReadonlyMap<string, InstancedMesh> | undefined = loaded.get(piece)): { root: Group; colliders: ColliderDesc[]; kinds: ReadonlyMap<string, InstancedMesh> } {
-  const rows = PIECES[piece];
-  const root = bakedKindsGroup(nodes, rows.kinds, {
-    material: (kind) => { const shack = shackKind(kind); return shack === undefined ? undefined : shackMaterial(shack); },
-    decorate: (material, kind) => { const rockMix: unknown = 'paint' in kind ? kind.paint : undefined; if (typeof rockMix === 'number') paintIsleMaterial(material, rockMix); },
-    attributes: { _shk: 'shk', _farcloth: 'farCloth' },
-  });
-  // the drawn kinds by name, in row order (a kind whose GLB did not load is absent)
-  const drawn = rows.kinds.filter((kind) => nodes?.has(kind.name) === true);
-  const kinds = new Map(drawn.flatMap((kind, i) => { const mesh = root.children[i]; return mesh instanceof InstancedMesh ? [[kind.name, mesh] as const] : []; }));
-  // a tinted kind's per-instance colours (the rows' `tints`: the GLB carries none), on the drawn kinds in row order
-  const tints: Readonly<Record<string, readonly number[]>> | undefined = 'tints' in rows ? rows.tints : undefined;
-  drawn.forEach((kind, i) => {
-    const mesh = root.children[i], tint = tints?.[kind.name];
-    if (tint !== undefined && mesh instanceof InstancedMesh) mesh.instanceColor = new InstancedBufferAttribute(new Float32Array(tint), 3);
-  });
-  return { root, colliders: bakedColliders(rows.colliders), kinds };
-}
+export const skyBakedPiece = (piece: BakedPiece, nodes?: ReadonlyMap<string, InstancedMesh>): DrawnBakedPiece => WORLD.piece(piece, { nodes });
 
 /** The knolls' hull colliders by knoll id (the rows' `hulls`: the SDK's baked collider rows are boxes), on the meadow. */
 export function skyKnollHulls(): ReadonlyMap<string, ColliderDesc> {
@@ -87,7 +73,7 @@ export function skyKnollHulls(): ReadonlyMap<string, ColliderDesc> {
  * the code pine, the fir, the falls' sheet): a copy its caller owns, unindexed as built; empty when the bake did not load.
  */
 export function skyBakedGeometry(kind: 'clump' | 'flower' | 'boulder' | 'pine' | 'fir' | 'fall'): BufferGeometry {
-  const node = loaded.get('geometries')?.get(kind); if (node === undefined) return new BufferGeometry();
+  const node = WORLD.last()?.get('geometries')?.get(kind); if (node === undefined) return new BufferGeometry();
   const g = node.geometry.clone(), index = g.getIndex();
   if (index !== null && Array.from(index.array).every((n, i) => n === i)) g.setIndex(null);
   return g;

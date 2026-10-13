@@ -1,7 +1,7 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { DoubleSide, FrontSide, Group, InstancedMesh, MeshStandardMaterial, type Material as DrawMaterial, type Object3D } from 'three';
+import { DoubleSide, FrontSide, Group, InstancedBufferAttribute, InstancedMesh, MeshStandardMaterial, type Material as DrawMaterial, type Object3D } from 'three';
 
 /**
  * SHARD-PLATFORM SF72 (SF67 fix 3, "bake the code-built worlds"): the client side of a shard's instanced-kinds bake
@@ -86,4 +86,60 @@ export function bakedKindsGroup<K extends BakedKindRow>(nodes: ReadonlyMap<strin
     mesh.computeBoundingSphere(); mesh.castShadow = false; mesh.receiveShadow = false; root.add(mesh);
   }
   return root;
+}
+
+/** One piece's rows as the bake writes them: its kinds, its collider boxes and (optionally) per-instance tints by kind. */
+export interface BakedPieceRows<K extends BakedKindRow> {
+  readonly kinds: readonly K[]; readonly colliders: readonly BakedColliderRow[];
+  /** a kind's per-instance colours (the GLB carries none), three floats an instance */
+  readonly tints?: Readonly<Record<string, readonly number[]>>;
+}
+/** A drawn piece: its group (one `InstancedMesh` per drawn kind, in row order), its colliders and its drawn kinds by name. */
+export interface DrawnBakedPiece { readonly root: Group; readonly colliders: ColliderDesc[]; readonly kinds: ReadonlyMap<string, InstancedMesh> }
+/** A loaded bake: each piece's instanced nodes by kind name. */
+export type LoadedBake<P extends string> = ReadonlyMap<P, ReadonlyMap<string, InstancedMesh>>;
+/** Per-call choices: the nodes to draw (default the last load), the kinds to draw and a material hook after the shard's. */
+export interface BakedPieceCall<K extends BakedKindRow> {
+  readonly nodes?: ReadonlyMap<string, InstancedMesh> | undefined;
+  readonly only?: ((kind: K) => boolean) | undefined;
+  readonly each?: ((material: MeshStandardMaterial) => void) | undefined;
+}
+/** A shard's whole bake: load every piece once behind the loading screen, then draw any piece from it. */
+export interface BakedWorld<P extends string, K extends BakedKindRow> {
+  /** Load every piece (a piece that fails to load is empty, with an error); resolves to the loaded nodes. */
+  readonly load: () => Promise<LoadedBake<P>>;
+  /** The bake loaded last, or null before the first load. */
+  readonly last: () => LoadedBake<P> | null;
+  /** A piece from its bake (undrawn if its GLB did not load, solid either way). */
+  readonly piece: (piece: P, call?: BakedPieceCall<K>) => DrawnBakedPiece;
+}
+
+/**
+ * A shard's instanced-kinds bake as rows (SF72): its pieces' rows, their GLB urls, a fault label and the shard's draw hooks.
+ * Shared by Signal Dunes and Sky Reach (G345): the loader, the cache and the piece builder were each shard's own.
+ */
+export function bakedWorld<P extends string, K extends BakedKindRow>(pieces: Readonly<Record<P, BakedPieceRows<K>>>, urls: Readonly<Record<P, string>>, label: string, draw: BakedKindsDraw<K> = {}): BakedWorld<P, K> {
+  const names = Object.keys(pieces).filter((name): name is P => Object.hasOwn(pieces, name));
+  let loaded: LoadedBake<P> | null = null;
+  return {
+    load: async () => {
+      const meshes = await Promise.all(names.map((name) => loadBakedKinds(urls[name], pieces[name].kinds, `${label} ${name}`)));
+      loaded = new Map(names.map((name, i) => [name, meshes[i] ?? new Map<string, InstancedMesh>()]));
+      return loaded;
+    },
+    last: () => loaded,
+    piece: (piece, call = {}) => {
+      const rows = pieces[piece], nodes = call.nodes ?? loaded?.get(piece), each = call.each;
+      const kinds = call.only === undefined ? rows.kinds : rows.kinds.filter(call.only);
+      const root = bakedKindsGroup(nodes, kinds, { ...draw, decorate: (material, kind) => { draw.decorate?.(material, kind); each?.(material); } });
+      // the drawn kinds by name, in row order (a kind whose GLB did not load is absent), each with its rows' tints
+      const drawn = kinds.filter((kind) => nodes?.has(kind.name) === true), byName = new Map<string, InstancedMesh>();
+      drawn.forEach((kind, i) => {
+        const mesh = root.children[i], tint = rows.tints?.[kind.name]; if (mesh === undefined || !instanced(mesh)) return;
+        byName.set(kind.name, mesh);
+        if (tint !== undefined) mesh.instanceColor = new InstancedBufferAttribute(new Float32Array(tint), 3);
+      });
+      return { root, colliders: bakedColliders(rows.colliders), kinds: byName };
+    },
+  };
 }
