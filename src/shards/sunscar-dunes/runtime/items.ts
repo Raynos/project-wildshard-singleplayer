@@ -3,7 +3,7 @@ import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import type { Targets } from '@wildshard/engine/combat/types';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { lashSpec } from './items/lash';
-import { Bullwhip } from '../weapons/Bullwhip';
+import { Bullwhip } from './items/heldWhip';
 import { whipIcon } from '../weapons/rows';
 import source from './source';
 

@@ -1,7 +1,7 @@
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import type { MoverView } from './mover';
 import "../quest/presentation.css";
-import { parseClientChannels, parsePrivateScene, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
+import { parseClientChannels, parsePrivateScene, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import { AdditiveBlending, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ParticlePool, pointScale } from '@wildshard/engine/fx/ParticlePool';
@@ -1484,4 +1484,19 @@ function ownedClientScene(root: Object3D, parts: Map<string,Object3D>, materials
   return Object.freeze({ root, parts, materials, group: (id: string) => { const value = parts.get(id); return sceneGroup(value) ? value : null; },
       mesh: (id: string) => { const value = parts.get(id); return sceneMesh(value) ? value : null; },
       standardMaterial: (id: string) => { const value = materials.get(id); return sceneStandard(value) ? value : null; }, dispose: () => { if (disposed) return; disposed = true; root.removeFromParent(); for (const material of created) material.dispose(); for (const empty of emptyGeometry) empty.dispose(); for (const texture of decodedTextures) texture.dispose(); } });
+}
+
+
+/** Resolve an admitted melee schedule against its existing private scene parts before any input is installed. */
+export function createHeldMeleeBinding(input: unknown, parts: ReadonlyMap<string, unknown>): {
+  readonly row: ReturnType<typeof parseHeldMeleePhase>;
+  readonly phases: ReadonlyMap<string, ReturnType<typeof parseHeldMeleePhase>['phases'][number]>;
+  readonly moving: Object3D | null; readonly resting: Object3D | null; readonly deformation: Object3D | null;
+} {
+  const row = parseHeldMeleePhase(input);
+  const phases = new Map(row.phases.map(phase => [phase.id, phase]));
+  if (row.mode === 'immediate') { phases.set(row.secondary.phase.id, row.secondary.phase); return { row, phases, moving: null, resting: null, deformation: null }; }
+  const isNode = (value: unknown): value is Object3D => value instanceof Object3D;
+  const node = (id: string): Object3D => { const value = parts.get(id); if (!isNode(value)) throw new Error('Held phase requires its owned scene part'); return value; };
+  return { row, phases, moving: node(row.bindings.moving), resting: node(row.bindings.resting), deformation: node(row.bindings.deformation) };
 }

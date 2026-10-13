@@ -14,7 +14,7 @@ import { parseClientChannels } from '../../../src/format/clientChannels';
 import { createClientChannelView } from '../../../src/game/plugin/ui';
 import playback from '../../../src/shards/sunscar-dunes/data/heldPlayback.generated.json' with { type: 'json' };
 import { LashCord } from '../../../src/shards/sunscar-dunes/runtime/items/lashView';
-import { buildLashHold } from '../../../src/shards/sunscar-dunes/runtime/items/lashWeapon';
+import { buildLashHold } from '../../../src/shards/sunscar-dunes/runtime/items/heldWhip';
 import { bakeSignalLash, braidColours, coilPoints, lashTip, plaitTexels, wrapGeometry } from '../../../src/shards/sunscar-dunes/generators/lash';
 import { createModelLibrary } from '../../../src/sdk/looks/modelLibrary';
 import { DUNE_MODELS } from '../../../src/shards/sunscar-dunes/data/files';

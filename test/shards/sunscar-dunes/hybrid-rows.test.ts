@@ -12,7 +12,7 @@ import { RESPAWN } from '../../../src/shards/sunscar-dunes/data/spawns';
 import { parseShardfile } from '@wildshard/format/shardSchema';
 import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import source from '../../../src/shards/sunscar-dunes/shard.config';
-import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
+import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/runtime/items/heldWhip';
 import { WHIP_ROW, whipIcon } from '../../../src/shards/sunscar-dunes/weapons/rows';
 import { COMPLETE_FLAG, FACT, LATER_FLAGS } from '../../../src/shards/sunscar-dunes/data/signalQuest';
 

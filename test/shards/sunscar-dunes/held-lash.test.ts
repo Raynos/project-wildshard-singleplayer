@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { App } from '../../../src/engine/app/app';
 import { Scope } from '../../../src/engine/app/scope';
-import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
+import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/runtime/items/heldWhip';
 import { SignalLashInput } from '../../../src/shards/sunscar-dunes/runtime/lashInput';
 import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
 

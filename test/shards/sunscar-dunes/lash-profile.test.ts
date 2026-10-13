@@ -5,7 +5,7 @@ import { App } from '../../../src/engine/app/app';
 import { TabRegistry } from '../../../src/engine/ui/tabs';
 import { lashRuntime, lashSpec } from '../../../src/shards/sunscar-dunes/runtime/items/lash';
 import { bindSignalItems } from '../../../src/shards/sunscar-dunes/runtime/items';
-import { CRACK } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
+import { CRACK } from '../../../src/shards/sunscar-dunes/runtime/items/heldWhip';
 import { WHIP_ITEM, WHIP_PROFILE } from '../../../src/shards/sunscar-dunes/data/items';
 import manifest from '../../../src/shards/sunscar-dunes/manifest';
 import source from '../../../src/shards/sunscar-dunes/shard.config';

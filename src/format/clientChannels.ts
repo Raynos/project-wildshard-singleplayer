@@ -169,3 +169,33 @@ export const PrivateSceneSchema = v.pipe(privateScene, v.check(row => {
 }, 'unique bounded connected private scene; ordered children and owned material references'));
 /** Admit authored private scene rows; functions and unknown properties cannot cross this boundary. */
 export function parsePrivateScene(input: unknown): PrivateScene { return v.parse(PrivateSceneSchema, input); }
+
+
+const phaseSeconds = v.pipe(v.number(), v.finite(), v.minValue(0.000001), v.maxValue(60));
+const phaseMove = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(15));
+const heldPhase = v.strictObject({ id: name, move: phaseMove, seconds: phaseSeconds, channel: name });
+const heldAction = v.pipe(v.custom<`${string}.${string}`>(value => typeof value === 'string' && /^[a-z][a-zA-Z0-9-]*\.[a-zA-Z0-9.-]+$/u.test(value)), v.maxLength(128));
+const heldPhaseCommon = {
+  version: v.literal(1), phases: v.tuple([heldPhase, heldPhase]), charge: phaseSeconds,
+  spring: v.strictObject({ gain: v.pipe(coefficient, v.minValue(0)), clampYaw: v.pipe(coefficient, v.minValue(0)),
+    clampPitch: v.pipe(coefficient, v.minValue(0)), k: v.pipe(coefficient, v.minValue(0)), c: v.pipe(coefficient, v.minValue(0)) }),
+  position: sceneVector, rotation: v.exactOptional(sceneVector), scale: v.exactOptional(v.pipe(phaseSeconds, v.maxValue(1000))),
+};
+/** Data-only contact/presentation scheduling; never a second contact controller or script host. */
+export const HeldMeleePhaseSchema = v.pipe(v.variant('mode', [
+  v.strictObject({ mode: v.literal('immediate'), ...heldPhaseCommon,
+    secondary: v.strictObject({ phase: heldPhase, action: heldAction }) }),
+  v.strictObject({ mode: v.literal('delayed'), ...heldPhaseCommon,
+    channels: v.strictObject({ root: name, rest: name, active: name, deformation: name }),
+    bindings: v.strictObject({ moving: name, resting: name, deformation: name }),
+    unroll: phaseSeconds, second: phaseSeconds, show: phaseSeconds,
+    overlap: v.pipe(coefficient, v.minValue(0)), caughtSeconds: phaseSeconds,
+    reach: v.tuple([phaseSeconds, phaseSeconds]),
+  }),
+]), v.check(row => new Set(row.phases.map(phase => phase.id)).size === 2
+  && row.phases[0].move !== row.phases[1].move
+  && (row.mode === 'immediate' ? !row.phases.some(phase => phase.id === row.secondary.phase.id || phase.move === row.secondary.phase.move)
+    : row.show > row.unroll && row.second > row.unroll && row.overlap < row.second
+      && new Set(Object.values(row.bindings)).size === 3), 'ordered distinct phases and bounded delayed intervals'));
+/** Admit a detached scheduling row; function ports and authoritative state are not data. */
+export function parseHeldMeleePhase(input: unknown): v.InferOutput<typeof HeldMeleePhaseSchema> { return v.parse(HeldMeleePhaseSchema, input); }

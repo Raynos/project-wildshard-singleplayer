@@ -12,7 +12,7 @@ import { SKY_ITEMS } from '../../src/shards/far-reach/data/items';
 import { FAN_GUST_MODULE } from '../../src/shards/far-reach/data/fanGustModule';
 import { bindMeleeContacts, createMeleeScriptDriver, startMeleeSecondary } from '../../src/game/plugin/simulation';
 import { createComposedMoverHost } from '../../src/game/plugin/mover';
-import { WarFan } from '../../src/shards/far-reach/weapons/WarFan';
+import { WarFan } from '../../src/shards/far-reach/runtime/weapons/heldFan';
 import { loadSkyFan } from '../../src/shards/far-reach/weapons/fanShapes';
 import { preloadSkyMeshes, skyHd } from '../../src/shards/far-reach/world/meshes';
 import { legacyDouble } from '../fake/FakeGame';

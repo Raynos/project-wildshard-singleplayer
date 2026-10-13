@@ -30,7 +30,7 @@ import { RISING_ISLETS } from '../../../src/shards/far-reach/world/islets';
 import { ISLET } from '../../../src/shards/far-reach/data/isletDesign';
 import manifest from '../../../src/shards/far-reach/manifest';
 import { SkyReachPlugin } from '../../../src/shards/far-reach/runtime/index';
-import { WarFan } from '../../../src/shards/far-reach/weapons/WarFan';
+import { WarFan } from '../../../src/shards/far-reach/runtime/weapons/heldFan';
 import { FAN_GUST as GUST, SKY_ITEMS } from '../../../src/shards/far-reach/data/items';
 import { inCone } from '../../../src/shards/far-reach/runtime/weapons/coneStrikes';
 import { VANE_HUB } from '../../../src/shards/far-reach/quest/vanes';

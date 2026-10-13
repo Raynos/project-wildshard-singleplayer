@@ -1,7 +1,7 @@
-import { createClientChannelView, createClientScene, type ClientScene, type ClientScenePorts, type ClientGeometryKernels } from './ui';
+import { createClientChannelView, createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts, type ClientGeometryKernels } from './ui';
 import { Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
-import { HeldWeaponClock, type ContactFamily, type ContactScanTarget } from "@wildshard/engine/combat/contactWeapon";
+import { HeldWeaponClock, type ContactFamily, type ContactScanTarget, type ContactFamilyPorts, type ContactWorldTarget } from "@wildshard/engine/combat/contactWeapon";
 import { Weapon, type WeaponState, type AimInfo } from "@wildshard/engine/combat/Weapon";
 import { Tool } from "@wildshard/engine/combat/Tool";
 import type { EquipmentRow, EquipContext } from "@wildshard/engine/combat/Equipment";
@@ -369,6 +369,8 @@ export class HeldPlayback {
   }
   /** Dispose only resources this owner constructed, including detached parts. Borrowed ports remain caller-owned. */
   dispose(): void { for (const part of this.attachments) part.dispose(); this.model?.dispose(); this.attachments.length = 0; }
+  /** Refuse a schedule naming an unbound group before inputs or contact clocks advance. */
+  requireGroups(ids: readonly string[]): void { for (const id of ids) if (!this.groups.has(id)) throw new Error('Missing held playback group'); }
   /** Presentation time only; callers retain their original contact/hold phase ordering. */
   beginFrame(dt: number): void {
     if (!Number.isFinite(dt) || dt < 0 || dt > 1e12 || this.elapsed + dt > 1e12) throw new RangeError('Invalid held playback frame');
@@ -386,5 +388,135 @@ export class HeldPlayback {
       }
       lane.evaluate({ time: this.elapsed, delta: this.delta, values: copied });
     }
+  }
+}
+
+
+/** Owned presentation parts and the trusted contact factory; the factory retains the original source/reaction laws. */
+export interface HeldMeleePorts<T extends ContactScanTarget, P> {
+  readonly model: Group; readonly parts: P; readonly presentation: HeldPlayback;
+  readonly nodes: ReadonlyMap<string, unknown>;
+  readonly contacts: (ports: Omit<ContactFamilyPorts<T>, 'react' | 'body'>) => ContactFamily<T>;
+  readonly targets: () => readonly T[];
+  readonly restingVisible?: boolean; readonly tip?: Vector3; readonly caughtPart?: () => Mesh;
+}
+/**
+ * One page held-melee phase owner. Immediate contacts claim before sampling aim; delayed contacts sample at their
+ * original landing times. Rows select the phase/channel, while ContactFamily and the existing AS owner stay authoritative.
+ */
+export class HeldMeleeWeapon<T extends ContactScanTarget, P> extends HeldContactWeapon<T> {
+  override readonly model: Group;
+  readonly parts: P; readonly presentation: HeldPlayback;
+  protected readonly moves: ContactFamily<T>;
+  private readonly binding: ReturnType<typeof createHeldMeleeBinding>;
+  private readonly ports: HeldMeleePorts<T, P>;
+  private readonly observed = { phase: 1, charge: 0, spring: 0, holster: 0, stowed: 0,
+    ext: 0, slack: 0, tipX: 0, tipY: 0, tipZ: 0, gripX: 0, gripY: 0, gripZ: 0, modelX: 0, modelY: 0,
+    reach: 0, taut: 0, caughtX: 0, caughtY: 0, caughtZ: 0 };
+  private readonly end = new Vector3();
+  private worldTargets: readonly ContactWorldTarget[] = [];
+  private caughtAt: Vector3 | null = null; private caughtT = 0; private caughtMesh: Mesh | null = null;
+  private secondary: ((family: ContactFamily<T>) => number | null) | null = null;
+  onGust: ((from: Vector3, dir: Vector3) => void) | null = null;
+  stowed: () => boolean = () => false;
+  motion: string; motionK = 1;
+  constructor(app: App, row: EquipmentRow, phases: unknown, ports: HeldMeleePorts<T, P>) {
+    const binding = createHeldMeleeBinding(phases, ports.nodes), data = binding.row;
+    super(app, row, data.spring, data.charge);
+    if (data.mode === 'delayed' && (ports.tip === undefined || ports.caughtPart === undefined)) throw new Error('Delayed phase requires owned deformation/catch ports');
+    this.binding = binding; this.ports = ports; this.model = ports.model; this.parts = ports.parts; this.presentation = ports.presentation;
+    this.motion = data.phases[0].id;
+    this.moves = ports.contacts({ hit: request => this.contact.hit(request), targets: ports.targets,
+      world: () => this.worldTargets, aim: (from, dir) => this.aim(from, dir),
+      fired: () => { this.onFire?.(); }, struck: (id, killed) => { this.onHit?.(id, false, killed); },
+      caught: caught => { if (this.moves.move === data.phases[1].move) this.catchAt(caught.at); } });
+    for (let i = 0; i < data.phases.length; i++) { const phase = data.phases[i]; if (phase === undefined) throw new Error('Missing admitted primary'); const move = this.moves.row(phase.move); if (move.lane !== 'primary' || move.heavy !== (i === 1) || (data.mode === 'immediate' ? move.lands.length > 0 : move.lands.length === 0)) throw new Error('Phase crossed its contact mode or lane'); }
+    if (data.mode === 'immediate') { const move = this.moves.row(data.secondary.phase.move); if (move.lane !== 'secondary' || move.lands.length > 0) throw new Error('Phase crossed its contact mode or lane'); }
+    this.presentation.requireGroups(data.mode === 'immediate' ? [...data.phases.map(phase => phase.channel), data.secondary.phase.channel] : Object.values(data.channels));
+    this.model.position.set(...data.position);
+    if (data.rotation !== undefined) this.model.rotation.set(...data.rotation);
+    if (data.scale !== undefined) this.model.scale.setScalar(data.scale);
+  }
+  bindSecondary(start: (family: ContactFamily<T>) => number | null, charge: number): void { this.secondary = start; this.chargeSeconds = charge; }
+  aimAt(targets: readonly ContactWorldTarget[]): void { this.worldTargets = targets; }
+  override install(ctx: EquipContext): void {
+    super.install(ctx);
+    const row = this.binding.row;
+    if (row.mode === 'immediate') this.app.input.bind(row.secondary.action, () => { this.gust(); }, ctx.scope, () => this.enabled);
+    else ctx.scope.onDispose(() => {
+      this.moves.cancel();
+      if (this.caughtMesh !== null) { this.caughtMesh.removeFromParent(); this.caughtMesh.geometry.dispose(); this.caughtMesh = null; }
+    });
+  }
+  private aimed(): { from: Vector3; dir: Vector3 } | null {
+    const from = new Vector3(), dir = new Vector3(); return this.aim(from, dir) ? { from, dir } : null;
+  }
+  swing(heavy: boolean): boolean {
+    const row = this.binding.row, phase = row.phases[heavy ? 1 : 0];
+    if (row.mode === 'delayed') {
+      if (!this.enabled || !this.moves.swing(phase.move)) return false;
+      this.onSwing?.(heavy); return true;
+    }
+    if (this.moves.cooldown > 0 || !this.enabled || this.stowed()) return false;
+    this.moves.claim(phase.move); this.play(phase.id); this.onSwing?.(heavy);
+    const aim = this.aimed(); if (aim !== null) this.slash(aim.from, aim.dir, heavy);
+    return true;
+  }
+  slash(from: Vector3, dir: Vector3, heavy: boolean): number {
+    const struck = this.moves.land(this.binding.row.phases[heavy ? 1 : 0].move, 0, from, dir);
+    if (struck > 0) this.onFire?.(); return struck;
+  }
+  gust(): void {
+    const row = this.binding.row;
+    if (row.mode !== 'immediate' || this.moves.secondaryCooldown > 0 || !this.enabled || this.stowed()) return;
+    if (this.secondary?.(this.moves) !== row.secondary.phase.move) return;
+    this.play(row.secondary.phase.id);
+    const aim = this.aimed(); if (aim === null) return;
+    this.onGust?.(aim.from, aim.dir); this.blow(aim.from, aim.dir);
+  }
+  blow(from: Vector3, dir: Vector3): number {
+    const row = this.binding.row; if (row.mode !== 'immediate') throw new Error('No admitted immediate secondary');
+    this.moves.land(row.secondary.phase.move, 0, from, dir); return this.moves.touched;
+  }
+  crackWorld(from: Vector3, dir: Vector3, reach: number, second: boolean): ContactWorldTarget | null { return this.moves.crackWorld(from, dir, reach, second); }
+  strike(target: Parameters<ContactFamily<T>['strike']>[0], point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean {
+    return this.moves.strike(target, this.binding.row.phases[heavy ? 1 : 0].move, second ? 1 : 0, point, dir, from);
+  }
+  private play(id: string): void { this.motion = id; this.motionK = 0; }
+  private catchAt(at: Vector3): void {
+    const row = this.binding.row;
+    if (row.mode !== 'delayed') return;
+    const scene = this.app.equipmentHost?.game.scene; if (scene === undefined) return;
+    if (this.caughtMesh === null) { const part = this.ports.caughtPart?.(); if (part === undefined) throw new Error('Missing owned catch part'); this.caughtMesh = part; part.frustumCulled = false; scene.add(part); }
+    this.caughtMesh.position.copy(at); this.caughtMesh.visible = true; this.caughtAt = at.clone(); this.caughtT = row.caughtSeconds;
+  }
+  override update(dt: number): void {
+    const row = this.binding.row, observed = this.observed;
+    if (row.mode === 'immediate') {
+      this.stepHeld(dt);
+      const phase = this.binding.phases.get(this.motion);
+      if (phase === undefined) throw new Error('Unadmitted held phase');
+      this.motionK = Math.min(1, this.motionK + dt / phase.seconds);
+      this.presentation.beginFrame(dt);
+      observed.phase = this.motionK; observed.charge = this.charge; observed.spring = this.spring.yaw; observed.holster = this.holster; observed.stowed = Number(this.stowed());
+      this.presentation.apply(phase.channel, observed); return;
+    }
+    this.presentation.beginFrame(dt); this.stepHeld(dt);
+    observed.holster = this.holster; observed.spring = this.spring.yaw; this.presentation.apply(row.channels.root, observed);
+    const { moving, resting, deformation } = this.binding, tip = this.ports.tip;
+    if (moving === null || resting === null || deformation === null || tip === undefined) throw new Error('Missing owned delayed bindings');
+    if (this.caughtT > 0) { this.caughtT -= dt; if (this.caughtT <= 0 && this.caughtMesh !== null) this.caughtMesh.visible = false; }
+    if (this.moves.t < 0) { deformation.visible = false; resting.visible = this.ports.restingVisible ?? true; this.presentation.apply(row.channels.rest, observed); return; }
+    const t = this.moves.advance(dt), double = this.moves.move === row.phases[1].move;
+    if (t < 0) return;
+    const local = double && t > row.second - row.overlap ? t - (row.second - row.unroll) : t;
+    observed.ext = Math.min(1, local / row.unroll); observed.slack = Math.max(0, (local - row.unroll) / (row.show - row.unroll));
+    this.presentation.apply(row.channels.active, observed); resting.visible = false; deformation.visible = true;
+    observed.tipX = tip.x; observed.tipY = tip.y; observed.tipZ = tip.z;
+    observed.gripX = moving.position.x; observed.gripY = moving.position.y; observed.gripZ = moving.position.z;
+    observed.modelX = this.model.position.x; observed.modelY = this.model.position.y; observed.reach = row.reach[double ? 1 : 0];
+    if (this.caughtT > 0 && this.caughtAt !== null) { this.model.updateWorldMatrix(true, false); this.end.copy(this.caughtAt); this.model.worldToLocal(this.end); }
+    observed.taut = Number(this.caughtT > 0); observed.caughtX = this.end.x; observed.caughtY = this.end.y; observed.caughtZ = this.end.z;
+    this.presentation.apply(row.channels.deformation, observed);
   }
 }

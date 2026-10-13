@@ -4375,3 +4375,28 @@ refuse; native owner, target, clock and authority checks remain intact.
 The former single-user `moverChannelView`, `moverChannelViews` and
 `moverChannelPrompts` exports are retired; both shards use the defining
 `bindClientChannels` export directly.
+
+
+### Declared page held-melee phases
+
+`@wildshard/format/clientChannels` defines `HeldMeleePhaseSchema` and
+`parseHeldMeleePhase`: a strict version-1 immediate/delayed schedule with
+two ordered primary phases, bounded durations/charge/spring/placement and
+an immediate namespaced secondary action or delayed channel/part bindings.
+The schema refuses crossed phase identities, intervals and unknown fields.
+
+`@wildshard/game/plugin/ui.createHeldMeleeBinding` binds that schedule to
+existing private scene parts and compiles a stable phase lookup. It does
+not allocate geometry, alter poses or install input, collision or scripts.
+
+`@wildshard/game/plugin/weaponFamily.HeldMeleeWeapon` is one page owner for
+immediate and delayed melee. Trusted ports supply the existing contact
+factory, targets, owned model/playback and optional deformation/catch
+parts. It keeps claim-before-aim, delayed landing/hold release, callbacks
+and original frame ordering; ContactFamily and the composed AS host stay
+authoritative. Primary and secondary contact lanes/modes and all channel
+groups are verified before input installation. `HeldPlayback.requireGroups`
+refuses unbound groups. Native hosts and contact snapshot bytes do not
+change. Sky's fan and Signal's lash are the two shipping users; both old
+page controllers are deleted. The private cord kernel and material shader
+ports remain honestly shard-owned.

@@ -16,7 +16,7 @@ import type { TargetAnimal, TargetHit } from '../../../src/engine/combat/types';
 import type { EquipmentHost } from '../../../src/engine/combat/view/EquipmentHost';
 import type { AimCommand } from '../../../src/engine/input/commands';
 import type { Player } from '../../../src/engine/player/Player';
-import { Bullwhip } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
+import { Bullwhip } from '../../../src/shards/sunscar-dunes/runtime/items/heldWhip';
 import { FakeGame, legacyDouble } from '../../fake/FakeGame';
 import { loadBakedWorld } from '../../../src/shards/sunscar-dunes/world/baked';
 import { preloadDuneMeshes } from '../../../src/shards/sunscar-dunes/world/meshes';

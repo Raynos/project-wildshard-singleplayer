@@ -1,5 +1,5 @@
 import { defineModel } from '@wildshard/engine/models/model';
-import { fanParts } from '../runtime/weapons/coneFan';
+import { fanParts } from '../runtime/weapons/heldFan';
 import { bridgeKit, windmill, vane } from '../world/shapes';
 import { keeper } from '../quest/keeper';
 import { STRINGS } from '../data/strings';

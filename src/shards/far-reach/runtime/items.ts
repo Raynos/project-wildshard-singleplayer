@@ -2,7 +2,7 @@ import { registerWeaponFamily } from '@wildshard/game/plugin/weaponFamily';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { bindRuntimeItems } from '@wildshard/game/plugin/headless';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
-import type { WarFanWeapon } from '../weapons/WarFan';
+import type { WarFanWeapon } from './weapons/heldFan';
 import source from '../shard.config';
 
 /** Adopt the already-built fan after its custom input definition enters; no second weapon or gust controller. */

@@ -15,7 +15,7 @@ import { lastLightAll } from './look/light';
 import { DUSK, setDusk, stepDusk } from './look/dusk';
 import { preloadDuneMeshes } from './world/meshes';
 import { loadBakedWorld } from './world/baked';
-import type { Bullwhip } from './weapons/Bullwhip';
+import type { Bullwhip } from './runtime/items/heldWhip';
 import { WHIP_ROW } from './weapons/rows';
 import { installQuest } from './quest/install';
 import { FLAG, SCOUT_FLAG } from './data/flags';

@@ -1,6 +1,6 @@
 import { defineModel } from '@wildshard/engine/models/model';
 import { Group } from 'three';
-import { buildWhipModel } from '../weapons/whipModel';
+import { buildWhipModel } from '../runtime/items/heldWhip';
 import { buildTower } from '../world/tower';
 import { lastBakedWorld } from '../world/baked';
 import { buildBrazier, buildCaravan, buildWell } from '../world/places';

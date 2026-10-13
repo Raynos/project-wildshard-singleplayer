@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { App } from '../../../src/engine/app/app';
 import { Scope } from '../../../src/engine/app/scope';
-import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/weapons/Bullwhip';
+import { Bullwhip, CRACK } from '../../../src/shards/sunscar-dunes/runtime/items/heldWhip';
 
 describe('bullwhip light and heavy input', () => {
   it('cracks on Attack, double-cracks on Heavy and on a released touch hold', () => {
