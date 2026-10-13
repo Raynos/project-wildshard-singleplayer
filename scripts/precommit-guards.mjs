@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
 import { pathToFileURL } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 import { compareCounts, hardRules, readLintConfig } from './guard-counts.mjs';
 import { checkShardLayout, shardEntries } from './check-shards.mjs';
 import { checkPlatformRatchets, PLATFORM_LISTS } from './check-platform-ratchets.mjs';
@@ -45,8 +46,32 @@ export function extractGuardArchive(root, tree, paths, destination) {
   } finally { rmSync(owned, { recursive: true, force: true }); }
 }
 
-/** The only paths scripts/precommit-inputs.mjs stages into the commit's index (its declared tracked tables). */
-const STAGED_TABLES = new Set(['lint/ask-ids.json', 'lint/shard-words.generated.json']);
+/** Source-independent generated tables; their final bytes still feed the final checks. */
+const STAGED_TABLES = new Set(['lint/ask-ids.json', 'lint/shard-words.generated.json', 'scripts/README.md']);
+
+/** Source analysis can survive generated debt reductions, never policy or source changes. */
+export function canOverlayGuardTable(path, before, after) {
+  if (STAGED_TABLES.has(path)) return true;
+  if (path !== 'lint/ratchet.json') return false;
+  try {
+    const previous = JSON.parse(before), current = JSON.parse(after);
+    if (previous === null || current === null || typeof previous !== 'object' || typeof current !== 'object'
+      || Array.isArray(previous) || Array.isArray(current)) return false;
+    const policy = value => Object.fromEntries(Object.entries(value).filter(([key]) => !key.startsWith('wildshard/')));
+    if (!isDeepStrictEqual(policy(previous), policy(current))) return false;
+    for (const key of new Set([...Object.keys(previous), ...Object.keys(current)])) {
+      if (!key.startsWith('wildshard/')) continue;
+      const old = previous[key] ?? {}, next = current[key] ?? {};
+      if (old === null || next === null || typeof old !== 'object' || typeof next !== 'object'
+        || Array.isArray(old) || Array.isArray(next)) return false;
+      for (const file of new Set([...Object.keys(old), ...Object.keys(next)])) {
+        const was = old[file] ?? 0, now = next[file] ?? 0;
+        if (!Number.isSafeInteger(was) || !Number.isSafeInteger(now) || was < 0 || now < 0 || now > was) return false;
+      }
+    }
+    return true;
+  } catch { return false; }
+}
 
 /** The hook's status file for scripts/precommit-inputs.mjs: its exit code once the index is final (G367). */
 async function inputsStatus(file) {
@@ -129,18 +154,26 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
     const beforeLint = beforePaths.length > 0 ? spawnAsync(beforeRoot, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', beforeConfig, '--disable-nested-config', '-f', 'json', ...beforePaths]) : null;
     if (beforeLint !== null) children.push(beforeLint);
     if (inputsDone !== undefined && inputsDone !== '') {
-      // G367: index-reading checks see the producer's final index. Only STAGED_TABLES may differ from `tree`.
+      // G367: index-reading checks see the producer's final index. Only source-independent tables may overlay `tree`.
+      console.log('precommit-guards: waiting for final inputs');
       const status = await inputsStatus(inputsDone);
       if (status !== 0) throw new Error('Architecture guards stopped: scripts/precommit-inputs.mjs failed');
       const final = run(root, 'git', ['write-tree']).trim();
       if (final !== tree) {
         const moved = run(root, 'git', ['diff-tree', '-r', '--no-renames', '--name-only', '-z', tree, final]).split('\0').filter(Boolean);
-        if (moved.some((path) => !STAGED_TABLES.has(path))) {
+        const overlay = moved.every(path => {
+          if (!STAGED_TABLES.has(path) && path !== 'lint/ratchet.json') return false;
+          if (spawnSync('git', ['cat-file', '-e', `${tree}:${path}`], { cwd: root }).status !== 0
+            || spawnSync('git', ['cat-file', '-e', `${final}:${path}`], { cwd: root }).status !== 0) return false;
+          return canOverlayGuardTable(path, run(root, 'git', ['show', `${tree}:${path}`]), run(root, 'git', ['show', `${final}:${path}`]));
+        });
+        if (!overlay) {
           await Promise.allSettled(children);
           rmSync(scratch, { recursive: true, force: true });
           await precommitGuards(root, '');
           return;
         }
+        console.log(`precommit-guards: overlay ${moved.length} final tables; source analysis retained`);
         for (const path of moved) {
           const target = join(scratch, path), present = spawnSync('git', ['cat-file', '-e', `${final}:${path}`], { cwd: root }).status === 0;
           if (present) writeFileSync(target, spawnSync('git', ['show', `${final}:${path}`], { cwd: root, maxBuffer: 64 * 1024 * 1024 }).stdout);

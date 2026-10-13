@@ -1,5 +1,5 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Run the actual lint and pre-commit binaries against isolated fixtures.
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixtures own their temporary directories and never mutate shared source files.
 import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Temporary fixture repositories are outside the shared tree.
@@ -233,6 +233,34 @@ describe('AG20 staged content isolation', () => {
     put(f.root, 'src/engine/example.ts', 'export const value = Math.random();');
     f.git('add', '--', 'lint/ratchet.json', 'src/engine/example.ts');
     const inflated = f.run(); expect(inflated.status).toBe(1); expect(inflated.stderr).toContain('was 0, now 1');
+  });
+  it('reads final measured reductions without restarting source checks and still refuses hard violations', async () => {
+    const f = repo();
+    put(f.root, 'src/engine/example.ts', 'export const value = 2;');
+    f.git('add', '--', 'src/engine/example.ts');
+    const status = join(f.root, '.inputs-status');
+    const child = spawn(execPath, ['scripts/precommit-guards.mjs'], { cwd: f.root,
+      env: { ...env, SKIP_ARCH_GUARDS: '0', WS_PRECOMMIT_INPUTS_DONE: status }, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '', published = false;
+    child.stdout.on('data', (chunk: Buffer) => {
+      stdout += String(chunk);
+      if (!published && stdout.includes('waiting for final inputs')) {
+        published = true;
+        put(f.root, 'lint/ratchet.json', '{"wildshard/no-raw-random-time":{}}');
+        f.git('add', '--', 'lint/ratchet.json');
+        writeFileSync(status, '0');
+      }
+    });
+    child.stderr.on('data', (chunk: Buffer) => { stderr += String(chunk); });
+    const code = await new Promise<number | null>((_resolve, reject) => {
+      child.on('error', reject); child.on('close', _resolve);
+    });
+    expect(code, stderr).toBe(0);
+    expect(stdout).toContain('overlay 1 final tables; source analysis retained');
+    put(f.root, 'src/engine/example.ts', "export const value = localStorage.getItem('x');");
+    f.git('add', '--', 'src/engine/example.ts');
+    const refused = f.run();
+    expect(refused.status).toBe(1); expect(refused.stderr).toContain('no-raw-save');
   });
   it('checks only the committed shard layout', () => {
     const f = repo(); put(f.root, 'src/shards/emberfall/plugin.ts', 'export const value = 1;'); f.git('add', '--', 'src/shards/emberfall/plugin.ts');

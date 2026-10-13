@@ -124,3 +124,19 @@ CALL: keep this cache commit-only and reuse only verified bytes; do not bypass
 real cold native or continuation proofs to meet the stopwatch. Warm complete
 hooks are below 10 s (sp-x7: 2.177 s); the complete cold-hook cap remains OPEN.
 No new pre-push timing credit is claimed. sp-x5 parks after this cut.
+
+
+## Final-table guard overlap (G384)
+
+A fresh test-edit hook measured 11.61 s: inputs 11.047 s, generation
+4.174 s, producers 5.992 s (scoped ratchet 4.822 s), at f17105083.
+A generated ratchet reduction previously restarted the complete source guard.
+The guard can now overlay final reduced counters and script liveness, retaining
+its source analysis. Final lint/list checks still read the final bytes. Policy
+changes, count increases, malformed data and native/source changes retain the
+full final-tree path. An actual-index fixture proves the overlay and continued
+hard-rule refusal; narrowed gate types and touched lint are green.
+
+CALL: reuse only source-independent final tables with identical policy and
+shrinking integer counts. Never overlay native geometry or source. The 10 s
+cold cap remains open pending the producer census cut owned by sp-x7.
