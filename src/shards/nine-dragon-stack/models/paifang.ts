@@ -11,20 +11,12 @@
  * Every copy's posts collide as the model's own (E346): the square's and the gate bridges' lacquered posts, the stair's
  * post bases with their drum stones.
  */
-import { defineModel, type ModelBuild, type ModelContext, type ModelVariant } from '@wildshard/engine/models/model';
+import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import type { GateSpec } from '../world/specimenDims';
+import { PAIFANG, PAIFANG_PROFILE } from '../data/specimenProfiles';
 import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/paifang.ts';
-
-/** the three gates in their own space, as their builders call buildGate (square.ts `paifang`, stairstreet-upper.ts
- *  `stairGate`, well-bridges.ts `gateBridge`): the posts about the centre bay */
-export const PAIFANG: Readonly<Record<'square' | 'stair' | 'well', Omit<GateSpec, 'x' | 'y' | 'z'>>> = {
-  square: { posts: [-5.45, -2.15, 2.15, 5.45], s: 1.85, plaque: '九龍', couplets: null, neonEaves: null, lions: false, k: 0.78, paint: 'cinnabar' },
-  stair: { posts: [-5.6, -3.1, 3.1, 5.6], s: 1.3, plaque: '九龍', couplets: null, neonEaves: null, lions: false, paint: 'cinnabar' },
-  well: { posts: [-5.4, -2.3, 2.3, 5.4], s: 1.05, plaque: '九龍', couplets: ['萬家燈火', '天下一家'], neonEaves: null, lions: false },
-};
 
 export interface PaifangParams { readonly kind: keyof typeof PAIFANG }
 
@@ -33,11 +25,9 @@ function gate(ctx: ModelContext, kind: PaifangParams['kind']): ModelBuild {
   return withSpecimens(ctx, 'nine-dragon-stack/paifang', () => [{ geometry: specimen(ctx, `paifang:${kind}`), material: need(ndLook(ctx).mat, 'the Jiehua program') }]);
 }
 
-const variant = (kind: PaifangParams['kind'], label: string): ModelVariant<PaifangParams> => ({ id: kind, label, params: { kind } });
-
 export const paifang = defineModel<PaifangParams>({
-  id: 'nine-dragon-stack/paifang', name: 'Paifang (memorial gate)', category: 'buildings', pipeline: 'code', file: FILE, defaults: { kind: 'square' },
-  variants: [variant('square', 'Lantern Square (cinnabar)'), variant('stair', 'The stair-street'), variant('well', 'The Well\'s gate bridge (mineral)')],
+  id: 'nine-dragon-stack/paifang', name: 'Paifang (memorial gate)', category: 'buildings', pipeline: 'code', file: FILE, defaults: PAIFANG_PROFILE.defaults,
+  variants: PAIFANG_PROFILE.variants,
   build: (ctx, p) => gate(ctx, p.kind),
   colliders: (p) => postColliders(p.kind),
 });

@@ -13,7 +13,8 @@
  *  - the brush-drawn figure (the procedural people crossing the skybridges and the cable deck, living things never
  *    ruled), its coat, hair and stride drawn per copy from the kit's stream.
  */
-import { defineModel, type ModelContext, type ModelPart, type ModelVariant } from '@wildshard/engine/models/model';
+import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
+import { HOOK_PROFILE, STOOL_PROFILE, SCOOTER_PROFILE, FIGURE_PROFILE } from '../data/specimenProfiles';
 import { ndLook, need, specimen } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/inKit.ts';
@@ -24,26 +25,24 @@ function kit(ctx: ModelContext, key: string): readonly ModelPart[] {
 }
 
 export interface HookParams { readonly reach: number }
-const REACHES = [0.6, 0.7, 0.8, 0.9, 1.0, 1.3] as const;
 
 export const brassDragonHook = defineModel<HookParams>({
-  id: 'nine-dragon-stack/brass-dragon-hook', name: 'Brass dragon hook (grapple anchor)', category: 'props', pipeline: 'code', file: FILE, defaults: { reach: 0.9 },
-  variants: REACHES.map((reach): ModelVariant<HookParams> => ({ id: `reach-${reach}`, label: `Reach ${reach} m`, params: { reach } })),
+  id: 'nine-dragon-stack/brass-dragon-hook', name: 'Brass dragon hook (grapple anchor)', category: 'props', pipeline: 'code', file: FILE, defaults: HOOK_PROFILE.defaults,
+  variants: HOOK_PROFILE.variants,
   build: (ctx, p) => kit(ctx, `hook:${p.reach}`),
 });
 
 export interface WashParams { readonly wash: number }
-const wash = (hex: number, label: string): ModelVariant<WashParams> => ({ id: hex.toString(16), label, params: { wash: hex } });
 
 export const drumStool = defineModel<WashParams>({
-  id: 'nine-dragon-stack/stool', name: 'Drum stool', category: 'props', pipeline: 'code', file: FILE, defaults: { wash: 0xc23b22 },
-  variants: [wash(0xc23b22, 'Cinnabar'), wash(0x2e5fa3, 'Azurite'), wash(0x3e5a4a, 'Malachite')],
+  id: 'nine-dragon-stack/stool', name: 'Drum stool', category: 'props', pipeline: 'code', file: FILE, defaults: STOOL_PROFILE.defaults,
+  variants: STOOL_PROFILE.variants,
   build: (ctx, p) => kit(ctx, `stool:${p.wash}`),
 });
 
 export const parkedScooter = defineModel<WashParams>({
-  id: 'nine-dragon-stack/scooter', name: 'Scooter', category: 'props', pipeline: 'code', file: FILE, defaults: { wash: 0xb8321f },
-  variants: [wash(0xb8321f, 'Red'), wash(0x2e5fa3, 'Blue'), wash(0x7fbf9a, 'Mint')],
+  id: 'nine-dragon-stack/scooter', name: 'Scooter', category: 'props', pipeline: 'code', file: FILE, defaults: SCOOTER_PROFILE.defaults,
+  variants: SCOOTER_PROFILE.variants,
   build: (ctx, p) => kit(ctx, `scooter:${p.wash}`),
 });
 
@@ -56,10 +55,7 @@ export interface FigureParams { readonly pose: 'stand' | 'sit' | 'cook'; readonl
 
 export const inkFigure = defineModel<FigureParams>({
   id: 'nine-dragon-stack/ink-figure', name: 'Brush-drawn figure (procedural)', category: 'people', pipeline: 'code', file: FILE,
-  defaults: { pose: 'stand', umbrella: false },
-  variants: [
-    { id: 'stand', label: 'Standing', params: {} }, { id: 'umbrella', label: 'With an umbrella', params: { umbrella: true } },
-    { id: 'sit', label: 'Seated', params: { pose: 'sit' } }, { id: 'cook', label: 'Cooking', params: { pose: 'cook' } },
-  ],
+  defaults: FIGURE_PROFILE.defaults,
+  variants: FIGURE_PROFILE.variants,
   build: (ctx, p) => kit(ctx, `figure:${p.pose}:${String(p.umbrella)}`),
 });

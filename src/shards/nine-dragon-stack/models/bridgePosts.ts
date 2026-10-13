@@ -11,6 +11,7 @@
  *    lantern is one of the fragment's paper lanterns.
  */
 import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
+import { LOTUS_PROFILE } from '../data/specimenProfiles';
 import { ndLook, need, specimen, withSpecimens } from '../world/modelLook';
 
 const FILE = 'src/shards/nine-dragon-stack/models/bridgePosts.ts';
@@ -22,8 +23,8 @@ function kit(ctx: ModelContext, id: string, key: string): ModelBuild {
 export interface LotusPostParams { readonly capped: boolean }
 
 export const lotusPostModel = defineModel<LotusPostParams>({
-  id: 'nine-dragon-stack/lotus-post', name: 'Lotus-capped balustrade post', category: 'props', pipeline: 'code', file: FILE, defaults: { capped: true },
-  variants: [{ id: 'lotus', label: 'Lotus cap', params: { capped: true } }, { id: 'bare', label: 'Far crossings (no cap)', params: { capped: false } }],
+  id: 'nine-dragon-stack/lotus-post', name: 'Lotus-capped balustrade post', category: 'props', pipeline: 'code', file: FILE, defaults: LOTUS_PROFILE.defaults,
+  variants: LOTUS_PROFILE.variants,
   build: (ctx, p) => kit(ctx, 'nine-dragon-stack/lotus-post', `lotus:${String(p.capped)}`),
 });
 

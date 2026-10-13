@@ -16,7 +16,8 @@ import { cableGondola, drone, monorailTrain } from '../../../src/shards/nine-dra
 import { paperLantern } from '../../../src/shards/nine-dragon-stack/models/paperLantern';
 import { airConBox, galleryPlant } from '../../../src/shards/nine-dragon-stack/models/wallKit';
 import { brassDragonHook, drumStool, inkFigure, mahjongTableModel, parkedScooter } from '../../../src/shards/nine-dragon-stack/models/inKit';
-import { PAIFANG, paifang } from '../../../src/shards/nine-dragon-stack/models/paifang';
+import { PAIFANG } from '../../../src/shards/nine-dragon-stack/data/specimenProfiles';
+import { paifang } from '../../../src/shards/nine-dragon-stack/models/paifang';
 import { banyan, earthGodShrine, kowloonSteleModel } from '../../../src/shards/nine-dragon-stack/models/banyan';
 import { hawkerStallModel, noodleStallModel } from '../../../src/shards/nine-dragon-stack/models/stalls';
 import { sign } from '../../../src/shards/nine-dragon-stack/models/signs';
