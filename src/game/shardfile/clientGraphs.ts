@@ -23,7 +23,7 @@
 import { Color, Mesh, PointsMaterial, SRGBColorSpace, type Material, type Object3D, type Texture } from 'three';
 import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphBudget, type GraphIr, type GraphParamType } from '@wildshard/format/materialGraph';
 import { DATA_LOOK_DAY, dataLookClock, lookSample, sampleLook, type LookSample } from '@wildshard/engine/render/dataLook';
-import type { GraphCompiler } from '@wildshard/engine/render/graphBackend';
+import { graphMeshMapBase, type GraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { graphBindingSources, graphFileJson, presetLooks } from '@wildshard/format/materials';
 import { GRAPH_PRESET_VERSION, parseFamilyMaterial } from '@wildshard/format/materialFamilies';
@@ -228,7 +228,7 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
     return compiled.material;
   };
   return {
-    compile, readout, outline: (material) => outlines.get(material) ?? null,
+    compile, readout, outline: (material) => outlines.get(graphMeshMapBase(material)) ?? null,
     tick: (dt) => { elapsed += dt; for (const clock of clocks) clock(); feeds.tick(dt); },
     bind: feeds.bind,
   };

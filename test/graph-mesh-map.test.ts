@@ -3,8 +3,10 @@ import { expect, it } from 'vitest';
 import { Texture, RepeatWrapping, SRGBColorSpace, Group, Material, Mesh, MeshStandardMaterial } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
-import { compileGraph } from '../src/engine/render/graph/compile';
-import { bindGraphMeshMap } from '../src/engine/render/graphBackend';
+import { compileGraph, attachOutline } from '../src/engine/render/graph/compile';
+import { bindGraphMeshMap, graphMeshMapBase } from '../src/engine/render/graphBackend';
+import { clientGraphs } from '../src/game/shardfile/clientGraphs';
+import { emptyShardfile } from '../src/sdk/author';
 import { installDeclaredProps } from '../src/engine/world/declaredProps';
 import { propSurfaces } from '../src/game/shardfile/clientPropMaterials';
 import { validatePropMaterials, PropMaterialsSchema } from '../src/format/propMaterials';
@@ -82,5 +84,17 @@ it('binds admitted named GLB colour slots when the graph replaces each original 
     maps.push(Reflect.get(material, 'map'));
   });
   expect(maps).toEqual([first, second, first]);
+  scope.dispose();
+});
+
+it('retains the compiled outline owner when a model receives its borrowed-map variant', () => {
+  const scope = new Scope('mesh-map-outline'), row = mapped();
+  const entry = { family: 'graph' as const, graph: { ...row, stages: { ...row.stages, outline: { offset: [0, 0.01, 0] as const, colour: [0, 0, 0] as const } } } };
+  const source = emptyShardfile({ slug: 'map-fixture', name: 'Map fixture', author: 'test', seed: 1, revision: 1 });
+  const graphs = clientGraphs(source, { compiler: { compileGraph, attachOutline }, fallback: () => new MeshStandardMaterial(), textures: () => new Texture() });
+  const original = graphs.compile(entry), variant = bindGraphMeshMap(original, new Texture(), scope);
+  expect(graphMeshMapBase(variant)).toBe(original);
+  expect(graphs.outline(original)).not.toBeNull();
+  expect(graphs.outline(variant)).toBe(graphs.outline(original));
   scope.dispose();
 });

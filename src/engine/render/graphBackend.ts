@@ -47,6 +47,7 @@ export async function loadGraphCompiler(renderer: Renderer): Promise<GraphCompil
   return { compileGraph: compile, attachOutline: attach, GraphPostPass: PostPass, GraphNormalPrepass: NormalPrepass };
 }
 
+const meshMapBases = new WeakMap<Material, Material>();
 const meshMaps = new WeakMap<Scope, WeakMap<Material, WeakMap<Texture, Material>>>();
 
 /** Borrow a model's original colour map for an opted-in graph, preserving its sampler and UV transform.
@@ -60,6 +61,10 @@ export function bindGraphMeshMap(material: Material, map: Texture | null | undef
   const known = textures.get(map); if (known !== undefined) return known;
   const variant = scope.own(material.clone());
   if (!Reflect.set(variant, 'map', map)) throw new Error('Graph colour map could not be bound');
+  meshMapBases.set(variant, material);
   textures.set(map, variant);
   return variant;
 }
+
+/** Resolve the compiled graph that owns a borrowed-map variant, including its outline and live parameter feeds. */
+export function graphMeshMapBase(material: Material): Material { return meshMapBases.get(material) ?? material; }
