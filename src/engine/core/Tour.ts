@@ -15,9 +15,10 @@ export class Tour {
   active = false;
 
   private camera: THREE.PerspectiveCamera;
-  constructor(camera: THREE.PerspectiveCamera) {
+  /** An explicit placement sampler keeps a neutral structures-only shell independent of unadmitted terrain. */
+  constructor(camera: THREE.PerspectiveCamera, placementHeight: typeof heightAt = heightAt) {
     this.camera = camera;
-    const eye = (x: number, z: number, h = 1.7) => new THREE.Vector3(x, heightAt(x, z) + h, z);
+    const eye = (x: number, z: number, h = 1.7) => new THREE.Vector3(x, placementHeight(x, z) + h, z);
     // south gate → up the trail → cabin 1 hollow → across to cabin 2 → ridge cabin 3 → ends looking over the planet
     // follows the trail centrelines (guaranteed clear of trunks): south gate → hollow (cabin 1)
     // → south trail → spur → ridge cabin 3, ending on the planet

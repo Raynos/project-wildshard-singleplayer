@@ -15,6 +15,7 @@ import { Player } from '../player/Player';
 import type { SkyRig as Sky } from '../world/skyRig';
 import { Tour } from './Tour';
 import * as Heightfield from '../world/Heightfield';
+import { terrainFieldFor } from '../world/groundField';
 import { macrotask, slicer, type StepRunner } from '../boot/plan';
 import { levelBakedId, needsTerrainCollider, type LevelSpec } from '../level/spec';
 import { loadRapier } from '../physics/rapier';
@@ -143,7 +144,8 @@ export async function bootstrap(step: StepRunner, level: LevelSpec, inputContext
   player.spawn(num('x', def.spawn.x), num('z', def.spawn.z), num('yaw', def.spawn.yaw), def.spawn.y);
   player.pitch = num('pitch', 0);
 
-  const tour = new Tour(game.camera);
+  const tour = new Tour(game.camera, level.ground.terrain === undefined && level.ground.structures !== undefined
+    ? terrainFieldFor(level.ground, level.id).heightAt : Heightfield.heightAt);
   tour.active = params.has('tour');
   const world: World = { game, sky, terrain, forest, player, physics, registry, tour, params, num, freeCamera: false };
   game.levelScope.listen(canvas, 'click', () => { if (!params.has('nolock') && !world.freeCamera) player.lock(); }); // Explore's free camera keeps the cursor
