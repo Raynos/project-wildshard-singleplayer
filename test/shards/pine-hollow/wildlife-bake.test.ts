@@ -10,7 +10,7 @@ import { platform } from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The committed bake is a zlib stream the page inflates.
 import { inflateSync } from 'node:zlib';
 import { unshuffleLanes } from '@wildshard/game/plugin/geometry';
-import { KIND, WILD_BAKE_KINDS, WILD_ROWS, WildlifeMesh, useWildShapes, wildShapes } from '../../../src/shards/pine-hollow/models/wildlife';
+import { KIND, WILD_BAKE_KINDS, WILD_ROWS, WildlifeMesh, useWildShapes, wildShapes, wildlifeGlbShapes, WILDLIFE_BAKE_URL } from '../../../src/shards/pine-hollow/models/wildlife';
 import committed from '../../../src/shards/pine-hollow/data/wildlife.json' with { type: 'json' };
 import { bakeWildlifeRows } from '../../../src/shards/pine-hollow/generators/bake-pine-wildlife.mjs';
 import { pineWildlifeBake } from '../../../src/shards/pine-hollow/generators/wildlife';
@@ -44,10 +44,18 @@ describe('Pine Hollow bakes its procedural wildlife offline (G285)', () => {
     loaded.scene.traverse(node => { if (instanced(node)) models.push(node); });
     expect(models).toHaveLength(4);
     const shapes = wildShapes(shipped());
+    const admitted = wildlifeGlbShapes(new Map(models.map((mesh, i) => [part.kinds[i]?.name ?? '', mesh])));
+    expect(WILDLIFE_BAKE_URL).toBe('/assets/pine-hollow/baked/wildlife.glb');
     for (const [i, kind] of WILD_BAKE_KINDS.entries()) {
       const mesh = models[i], shape = shapes.get(kind);
       if (mesh === undefined || shape === undefined) throw new Error('Missing wildlife kind');
       expect(mesh.count).toBe(1);
+      const actual = admitted.get(kind);
+      if (actual === undefined) throw new Error('Missing admitted kind');
+      for (const key of ['pos', 'nor', 'col', 'pivot', 'info', 'tex', 'idx'] as const) {
+        expect(Buffer.from(actual[key].buffer, actual[key].byteOffset, actual[key].byteLength).equals(
+          new Uint8Array(shape[key].buffer, shape[key].byteOffset, shape[key].byteLength)), `${String(kind)} ${key}`).toBe(true);
+      }
       for (const [name, expected] of [
         ['position', shape.pos], ['normal', shape.nor], ['color', shape.col],
         ['_pivot', shape.pivot], ['_info', shape.info], ['_tex', shape.tex],
@@ -61,6 +69,24 @@ describe('Pine Hollow bakes its procedural wildlife offline (G285)', () => {
       if (index === null) throw new Error('Missing wildlife triangles');
       expect(Buffer.from(index.array.buffer, index.array.byteOffset, index.array.byteLength).equals(
         new Uint8Array(shape.idx.buffer, shape.idx.byteOffset, shape.idx.byteLength))).toBe(true);
+      mesh.geometry.dispose();
+      for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) material.dispose();
+    }
+  });
+
+  it('refuses incomplete or malformed authored wildlife without falling back to the private binary', async () => {
+    const part = pineWildlifeBake().pieces[0];
+    if (part === undefined) throw new Error('Wildlife library omitted');
+    const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(part.glb).buffer, '');
+    const models: InstancedMesh[] = [];
+    loaded.scene.traverse(node => { if (instanced(node)) models.push(node); });
+    const nodes = new Map(models.map((mesh, i) => [part.kinds[i]?.name ?? '', mesh]));
+    expect(() => wildlifeGlbShapes(new Map())).toThrow(/missing authored kind/u);
+    const first = nodes.get('wildlife-0');
+    if (first === undefined) throw new Error('Missing raven');
+    first.geometry.deleteAttribute('_pivot');
+    expect(() => wildlifeGlbShapes(nodes)).toThrow(/invalid authored _pivot/u);
+    for (const mesh of models) {
       mesh.geometry.dispose();
       for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) material.dispose();
     }

@@ -1218,14 +1218,16 @@
       "outputs": [
         "public/assets/pine-hollow/baked/wildlife.bin",
         "src/shards/pine-hollow/data/wildlife.json",
-        "public/assets/pine-hollow/baked/wildlife.glb"
+        "public/assets/pine-hollow/baked/wildlife.glb",
+        "src/shards/pine-hollow/data/wildlifeGlb.generated.json"
       ],
       "platform": "native",
       "seedOutputs": [
         "src/shards/pine-hollow/data/wildlife.json"
       ],
       "buildOutputs": {
-        "public/assets/pine-hollow/baked/wildlife.glb": "c37412994b7585e36ea9516bd2201bc15e620b3f9f8f239c8107107d6307df08"
+        "public/assets/pine-hollow/baked/wildlife.glb": "c37412994b7585e36ea9516bd2201bc15e620b3f9f8f239c8107107d6307df08",
+        "src/shards/pine-hollow/data/wildlifeGlb.generated.json": "ecfe89adca3cd25fff8747600c77627b9d21944fa8ec7b6f8577ce4e9d013029"
       }
     },
     {

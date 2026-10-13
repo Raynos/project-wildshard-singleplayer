@@ -31,6 +31,9 @@ if (import.meta.main) {
   const packed = deflateSync(wildlifeWordLanes(bin), { level: 9 });
   writeFileSync(resolve(out, 'wildlife.bin'), packed);
   writeFileSync(resolve(out, 'wildlife.glb'), piece.glb);
+  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/wildlifeGlb.generated.json'), `${JSON.stringify({
+    glb: createHash('sha256').update(piece.glb).digest('hex'), kinds: piece.kinds,
+  })}\n`);
   writeFileSync(resolve(root, 'src/shards/pine-hollow/data/wildlife.json'), `${JSON.stringify(rows)}\n`);
   console.info(`pine-hollow wildlife: ${rows.kinds.map((k) => `${String(k.kind)}: ${String(k.vertices)} v`).join(', ')}, ${String(bin.length)} → ${String(packed.length)} zlib (baked/wildlife.bin, ${rows.bin.slice(0, 12)})`);
 }

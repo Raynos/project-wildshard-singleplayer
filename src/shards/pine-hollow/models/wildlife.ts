@@ -28,7 +28,8 @@ import { spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import * as vb from 'valibot';
 import { WILDLIFE_LOOK } from '../runtime/looks/wildlifeLook';
 import wildJson from '../data/wildlife.json' with { type: 'json' };
-import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
+import { loadBakedKinds } from '@wildshard/game/shardfile/bakedKinds';
+import glbRows from '../data/wildlifeGlb.generated.json' with { type: 'json' };
 
 export const KIND = { raven: 0, owl: 1, woodpecker: 2, hare: 4 } as const;
 export type WildKind = (typeof KIND)[keyof typeof KIND];
@@ -66,7 +67,7 @@ export const WILD_BAKE_KINDS: readonly WildKind[] = [KIND.raven, KIND.owl, KIND.
 /** the bake's rows, parsed strictly once */
 export const WILD_ROWS: WildRows = vb.parse(WildRowsSchema, wildJson);
 /** the bake's binary (`src/shards/pine-hollow/generators/bake-pine-wildlife.mjs`); listed in the boot's world reads (../boot/files.ts) */
-export const WILDLIFE_BAKE_URL = '/assets/pine-hollow/baked/wildlife.bin';
+export const WILDLIFE_BAKE_URL = '/assets/pine-hollow/baked/wildlife.glb';
 
 /** one kind's baked blocks: position, normal, colour, pivot (3 a vertex), info, atlas (4 a vertex), its local triangles */
 interface WildShape { readonly pos: Float32Array; readonly nor: Float32Array; readonly col: Float32Array; readonly pivot: Float32Array; readonly info: Float32Array; readonly tex: Float32Array; readonly idx: Uint32Array }
@@ -88,11 +89,34 @@ export function wildShapes(bytes: Uint8Array): ReadonlyMap<WildKind, WildShape> 
 
 let shapes: ReadonlyMap<WildKind, WildShape> | null = null;
 let loading: Promise<void> | null = null;
+/** Restore the original wildlife channels from the standard, authored model library. */
+export function wildlifeGlbShapes(nodes: ReadonlyMap<string, THREE.InstancedMesh>): ReadonlyMap<WildKind, WildShape> {
+  const out = new Map<WildKind, WildShape>();
+  for (const { kind, vertices, indices } of WILD_ROWS.kinds) {
+    const node = nodes.get(`wildlife-${String(kind)}`);
+    if (node?.count !== 1) throw new Error(`[wildlife] missing authored kind ${String(kind)}`);
+    const channel = (name: string, width: number): Float32Array => {
+      const attribute = node.geometry.getAttribute(name);
+      if (!(attribute instanceof THREE.BufferAttribute) || !(attribute.array instanceof Float32Array)
+        || attribute.itemSize !== width || attribute.count !== vertices) throw new Error(`[wildlife] invalid authored ${name}`);
+      return attribute.array;
+    };
+    const index = node.geometry.getIndex();
+    if (index === null || !(index.array instanceof Uint32Array) || index.count !== indices
+      || index.array.some(value => value >= vertices)) throw new Error('[wildlife] invalid authored triangles');
+    out.set(kind, { pos: channel('position', 3), nor: channel('normal', 3), col: channel('color', 3),
+      pivot: channel('_pivot', 3), info: channel('_info', 4), tex: channel('_tex', 4), idx: index.array });
+  }
+  if (nodes.size !== out.size) throw new Error('[wildlife] unexpected authored kind');
+  return out;
+}
 /** Fetch the bake behind the loading screen (the play hook awaits it before `installPineLife`), once. A bake that fails
  *  to load is a page fault (`console.error`), and the procedural animals stand absent. */
 export function preloadPineWildlife(): Promise<void> {
   loading ??= (async (): Promise<void> => {
-    try { shapes = wildShapes(await fetchLaneBake(WILDLIFE_BAKE_URL)); } catch (error: unknown) { console.error('[pine-hollow] the baked wildlife did not load:', error); }
+    try {
+      shapes = wildlifeGlbShapes(await loadBakedKinds(WILDLIFE_BAKE_URL, glbRows.kinds, 'pine-hollow wildlife'));
+    } catch (error: unknown) { console.error('[pine-hollow] the baked wildlife did not load:', error); }
   })();
   return loading;
 }

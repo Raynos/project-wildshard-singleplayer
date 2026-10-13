@@ -1,0 +1,45 @@
+{
+  "scope": "Pine wildlife authored scene and standard GLB consumer; not whole-shard tiles closure",
+  "before": "d45fea0-mv69r06d",
+  "after": "95d91de-mv6a91mg",
+  "verticesAndIndices": {
+    "bytes": 255016,
+    "allChannelsExact": true,
+    "legacyPackedBytes": 47208,
+    "frozenArtifactRetained": true
+  },
+  "render": {
+    "profile": "iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain scene render, time and cloud time 10, viewmodel hidden",
+    "worldPoses": 12,
+    "creatureComparisons": 8,
+    "notCredited": "Three desktop creature specimens draw zero in both arms; no visibility credit for these.",
+    "pixelsDrawsTrianglesGpuProgramsShadersColliders": "exact",
+    "tiers": {
+      "phone": {
+        "pieces": 50,
+        "colliderCount": 2034,
+        "colliders": "ec173930d1b8d3255f4a109dd6ccdc1fe8574d78e161cd5f4c6c3461620aa645",
+        "gpuBytes": 273717898,
+        "programs": 148,
+        "shaderCount": 244,
+        "shaders": "87ee1cebb0477085cc0752745e4d61e817afd86418e04e02b446bbcaec8ab96e"
+      },
+      "desktop": {
+        "pieces": 50,
+        "colliderCount": 2034,
+        "colliders": "ec173930d1b8d3255f4a109dd6ccdc1fe8574d78e161cd5f4c6c3461620aa645",
+        "gpuBytes": 1303824026,
+        "programs": 165,
+        "shaderCount": 268,
+        "shaders": "fc609833f3d2143c7de8782befd7014b4be4a4f54110b7a8ca582ca84c2b13ae"
+      }
+    }
+  },
+  "native": "headless, mid-fight replay and durable/refused-write ledger contracts pass in clean export",
+  "open": [
+    "Seven other Pine seed producers still use the native bridge",
+    "Pine world terrain/static scene and tile closure",
+    "Remaining private binary consumers",
+    "Whole-port physics walk and developer boot milestone"
+  ]
+}
