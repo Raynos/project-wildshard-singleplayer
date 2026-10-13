@@ -8,8 +8,8 @@
 | Sky Reach | 78.4 % → **53.3 %** | ≤ 1355 lines | 0 / 3 |
 
 **Game exports (G351):** 104 total (from 328), 20 shard-facing `plugin/` modules.
-**Ratchets (G349):** standing debt rule deleted, sweeper stopped (02:25Z); debt shrink-only.
-**Next (Jake, review):** `bake(scene, identity)` and Signal through it to tiles + 0 private bins; SF81–SF85 reopened until their runtime is deleted; G350 exit row per shard.
+**Ratchets (G349):** standing debt rule deleted, sweeper stopped; debt shrink-only. **Push green (Jake, `a44511f05`), sp-x7 building:** pre-commit refuses debt rises per file; allowed-direction graph counts report-only; green-prefix stays. Roc keeps the longer fight (Jake). Commons: 8 unused packs adopt-by-2-shards / move / delete (sp-o61).
+**Next (Jake):** Signal + Sky through `bake()` to tiles + 0 private bins; SF81–SF85 open until runtime deleted; G350 exit rows.
 
 **Fleet:** Codex sp-x7 push/deploy (others parked, Codex 7 %). Opus: creatures sp-o54, Sky through `bake()` sp-o60, Signal ground sp-o55, Signal through `bake()` + private bins sp-o59, war-fan viewmodel red sp-o58.
 **Live:** `957b05e6`; release unpin `e6eeefc1e` (green on `de0130e95`) waits on the gate; origin `53d4b7aa0`.
@@ -20,7 +20,7 @@
 3. Parity rename `far.boss`→`far.roc` via a renames file (`586f62fa2`).
 4. Missing Sky models stand undrawn, no code stand-ins (`d5267c284`).
 5. Code in `data/` is no cut (`5a5ff7f6d`); metric per-export (`ddf5c4dea`).
-6. Kept graph standing rules only for downward layer edges (game→engine, sdk→engine/game, →format, shards→sdk/commons); removed shards→engine/game. **Touches G349: confirm or delete all.**
+6. (resolved by Jake `a44511f05`: allowed-direction graph counts report-only.)
 7. Viewmodel ≤ 33 px / 1.1 M diffs accepted (`0e00aa4e7`).
 8. One entryway proof for Sky, Nine and shardfiles (`add1035d6`): the metric now credits Sky's 110-line socket-lift proof to Nine too (Nine has no lifts), so Sky's −120 is really ~−20 lines.
 9. Rope/tie bake skipped (bridges.bin 19 → 227 KB for −10 lines; sp-o52).
