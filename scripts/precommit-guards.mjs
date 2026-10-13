@@ -91,8 +91,8 @@ async function inputsStatus(file) {
  *
  * bench-max (2026-10-13): the hook starts this beside scripts/precommit-inputs.mjs and names its status file in
  * WS_PRECOMMIT_INPUTS_DONE. Everything that cannot read the staged tables (exports, shard-coupling, HEAD's lint) runs
- * on the tree before the tables; once the index is final the tables are overlaid from it, and the staged lint and every
- * list check read the final tree. Any other difference reruns the whole guard on the final tree.
+ * on the tree before the tables; once the index is final the tables are overlaid from it. Source lint runs concurrently;
+ * changed lint vocabulary reruns it, and every list check reads the final tree. Any other difference reruns the whole guard on the final tree.
  */
 export async function precommitGuards(root = resolve(import.meta.dirname, '..'), inputsDone = process.env.WS_PRECOMMIT_INPUTS_DONE) {
   if (process.env.SKIP_ARCH_GUARDS === '1') {
@@ -165,6 +165,18 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
     const beforePaths = paths.filter(path => beforeSnapshot.paths.includes(path));
     const beforeLint = beforePaths.length > 0 ? spawnAsync(beforeRoot, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', beforeConfig, '--disable-nested-config', '-f', 'json', ...beforePaths]) : null;
     if (beforeLint !== null) children.push(beforeLint);
+    const existing = new Set(snapshot.paths);
+    const lintPaths = paths.filter((p) => existing.has(p));
+    const startLint = () => {
+      if (lintPaths.length === 0) return null;
+      const started = performance.now();
+      return spawnAsync(scratch, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', guardConfig, '--disable-nested-config', '-f', 'json', ...lintPaths]).then(result => {
+        console.log(`precommit-guards: source lint ${((performance.now() - started) / 1000).toFixed(3)}s`);
+        return result;
+      });
+    };
+    let lint = startLint();
+    if (lint !== null) children.push(lint);
     if (inputsDone !== undefined && inputsDone !== '') {
       // G367: index-reading checks see the producer's final index. Only source-independent tables may overlay `tree`.
       console.log('precommit-guards: waiting for final inputs');
@@ -185,20 +197,24 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
           await precommitGuards(root, '');
           return;
         }
+        // Lint vocabulary changes can alter a diagnostic on unchanged source.
+        // Settle its reader before replacing tables, then lint the final words.
+        const vocabularyChanged = moved.some(path => path === 'lint/ask-ids.json' || path === 'lint/shard-words.generated.json');
+        if (vocabularyChanged) await Promise.allSettled([lint]);
         console.log(`precommit-guards: overlay ${moved.length} final tables; source analysis retained`);
         for (const path of moved) {
           const target = join(scratch, path), present = spawnSync('git', ['cat-file', '-e', `${final}:${path}`], { cwd: root }).status === 0;
           if (present) writeFileSync(target, spawnSync('git', ['show', `${final}:${path}`], { cwd: root, maxBuffer: 64 * 1024 * 1024 }).stdout);
           else rmSync(target, { force: true });
         }
+        if (vocabularyChanged) {
+          lint = startLint();
+          if (lint !== null) children.push(lint);
+        }
       }
     }
-    const existing = new Set(snapshot.paths);
-    const lintPaths = paths.filter((p) => existing.has(p));
     const frozen = legacyInventory(scratch);
     const counts = {}, failures = [...checkPlatformRatchets(predecessor, scratch), ...checkLegacyInventory(scratch, frozen)];
-    const lint = lintPaths.length > 0 ? spawnAsync(scratch, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', guardConfig, '--disable-nested-config', '-f', 'json', ...lintPaths]) : null;
-    if (lint !== null) children.push(lint);
     // Settle every child before reading any result, so a failure never leaves one running against a deleted scratch.
     const debt = Promise.allSettled([lint, beforeLint]).then(results => ({ results, seconds: (performance.now() - debtStarted) / 1000 }));
     const [coupled, checked] = await Promise.allSettled([coupling, debt]);

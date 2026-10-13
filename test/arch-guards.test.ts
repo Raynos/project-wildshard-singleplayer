@@ -262,6 +262,32 @@ describe('AG20 staged content isolation', () => {
     const refused = f.run();
     expect(refused.status).toBe(1); expect(refused.stderr).toContain('no-raw-save');
   });
+  it('rechecks source lint after final vocabulary introduces a forbidden word', async () => {
+    const f = repo();
+    put(f.root, 'src/engine/example.ts', "export const value = 'emberflux';");
+    f.git('add', '--', 'src/engine/example.ts');
+    const status = join(f.root, '.vocabulary-status');
+    const child = spawn(execPath, ['scripts/precommit-guards.mjs'], { cwd: f.root,
+      env: { ...env, SKIP_ARCH_GUARDS: '0', WS_PRECOMMIT_INPUTS_DONE: status }, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '', published = false;
+    child.stdout.on('data', (chunk: Buffer) => {
+      stdout += String(chunk);
+      if (!published && stdout.includes('precommit-guards: source lint')) {
+        published = true;
+        const path = 'lint/shard-words.generated.json';
+        const words = JSON.parse(readFileSync(join(f.root, path), 'utf8')) as { words: string[] };
+        words.words.push('emberflux'); put(f.root, path, JSON.stringify(words));
+        f.git('add', '--', path); writeFileSync(status, '0');
+      }
+    });
+    child.stderr.on('data', (chunk: Buffer) => { stderr += String(chunk); });
+    const code = await new Promise<number | null>((_resolve, reject) => {
+      child.on('error', reject); child.on('close', _resolve);
+    });
+    expect(published).toBe(true); expect(code).toBe(1);
+    expect(stderr).toContain('engine-words'); expect(stderr).toContain('emberflux');
+    expect(stdout.match(/precommit-guards: source lint/gu)).toHaveLength(2);
+  });
   it('waits for newly generated pinned data before reading source dependencies', async () => {
     const f = repo(), bytes = '{"rows":[1,2,3]}';
     const hash = '0a1952e4361b61e16dbdcac2e26925e489c8bc81fe637ea3f5af424f0fe882af';

@@ -173,3 +173,19 @@ Sky rigs and Signal sand still declare whole engine/game/SDK trees, so an
 engine UI edit rebuilds all four under the existing input contract.
 CALL: keep every declared generation input and every fresh policy check;
 reuse only parsed facts, never treat cached counts as permission.
+
+
+## Concurrent staged source lint (sp-x5)
+
+Staged lint now starts beside generation. A final vocabulary change settles
+the old reader and runs lint again; source/native/policy changes still rerun
+the complete guard. Counter reductions retain the exact source diagnostics.
+Three real-index fixtures pass, including a newly forbidden word introduced
+only after the first lint completed. Narrowed types and touched lint pass.
+
+Source lint took 3.57 s inside the producer wait instead of after it. The
+scratch source-edit hook took 22.91 s: export 4.99, gen 8.79, bakes 6.71,
+save 0.46 s. The persistent export was occupied, so this run used the full
+archive fallback. Previous source hooks were 17.56 s with a free export;
+these totals are not a matched speedup. The 10 s cold cap remains OPEN.
+A speculative census warmer was tested privately and discarded.
