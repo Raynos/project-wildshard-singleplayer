@@ -1,9 +1,14 @@
-# SHARD-PLATFORM M3 re-cut: component milestones (proposal for the plan agent)
+# SHARD-PLATFORM M3 re-cut: component milestones in three waves (proposal for the plan agent)
 
 Jake, 2026-10-13: *"Can you write your recommendation as a file down so I can give it to the planner agent and he can
-recut M3 into component milestones?"* Written by a read-only audit session from git, the plan folder, the process audits
-and the coordinator and plan-agent transcripts. The plan agent (wildshard-v) owns the re-cut; this file is the input, not
-the plan.
+recut M3 into component milestones?"* And: *"please respect that right now we are focused on a heavy sprint where we
+just try and get Skyreach and Dunes to the 80-20 or 90-10 split. … The first wave is Skyreach and Dunes. And the second
+wave is Driftwood, Nalati, Pinewood. And the last wave, the third wave, is Nine Dragon. … I think the component
+breakdown is great. But we can't cross-cut against all seven shards on a per component basis, because it's a fucking
+lot, bro."*
+
+Written by a read-only audit session from git, the plan folder, the process audits and the coordinator and plan-agent
+transcripts. The plan agent (wildshard-v) owns the re-cut; this file is its input, not the plan.
 
 ## 1. Why re-cut
 
@@ -13,62 +18,74 @@ the plan.
 | The 12 h sprint then took Sky 81 → 51 % and Signal 82 → 46 %; flat again since 10-13 05:30 (Sky −201 lines, Signal −106) | same |
 | The sprint's biggest drops were **shared components**, not single-shard ports: one creature-body loader (`14a757da1`, `02e371386`), one NPC host (`7fd5bd161`), lash and fan on move rows (`0e00aa4e7`), looks as data rows (`dc986514b`, `d9112c821`), shared map palette (`56af303ec`) | same, "The biggest moves" |
 | The plan is shard-major: §4 C is one row per shard (SF46–SF51) and the systems are "pulled by their conversion rows", so each shard rediscovers and half-builds the same system | `docs/plans/shard-platform/rows.md` §C |
-| Scope creep inside the plan: ~400 decisions (G1–G400), a 644 KB plan folder, Template 2, the dev-texture look, the menu hero board (6 lanes, $127), Pine KTX2, the near tier, deploy plumbing | `decisions.md`, `usage-audit-2026-10-13` finding 6 |
-| 80/20 is a waypoint: `runtime/` never ships to the MMO, so the "nasty 20 %" is exactly what decides MMO compatibility, and the plan defers it to successor plans (C38) | `SHARD-PLATFORM.md` §0, §C |
+| Scope creep inside the plan: ~400 decisions (G1–G400), a 644 KB plan folder, Template 2, the dev-texture look, the menu hero board (6 lanes, $127), Pine KTX2, the near tier | `decisions.md`, `usage-audit-2026-10-13` finding 6 |
 
-Rule G391 ("every legacy builder becomes a generator, all shards") is already a component milestone. This re-cut makes
-that the shape of all of M3.
+The per-shard sprint steps already work best where they are really components (G391, "every legacy builder becomes a
+generator", is one). This re-cut makes components the shape of each wave.
 
-## 2. The rules of the re-cut
+## 2. The waves (Jake's order)
 
-1. **The unit of work is a component across all seven shards, not a shard.** A component milestone is done when
-   (a) the format / SDK / game supports it as data, generators or approved systems, (b) every shard's instances use
-   that path, and (c) every custom line for that component is deleted in every shard, including its legacy path.
-   That is **100/0 for that component**. A shard is never half on a component.
-2. **The shard definition is valid at every step.** Each milestone leaves every shard booting, playable and passing
-   validate. Legacy code for a component keeps running until that component's milestone closes; then it is deleted in
-   one commit set, everywhere.
-3. **Discovered work is routed, not built.** Anything found mid-milestone that belongs to another component becomes a
-   line in that milestone's row and waits. If no milestone fits, append a new component row. Nothing orthogonal is built
-   in the current milestone. The coordinator labels each finding with its component when it lands in STATE.
-4. **The headline metric changes.** STATE leads with **components closed N of M** and **custom lines left per
-   component** (all shards summed), not the per-shard custom %. Per-shard 80/20 falls out of it and stays as a
-   secondary line.
-5. **Lanes own components, so they own disjoint files.** At most 2–3 milestones in flight; one component per lane.
-   This also cuts the cross-lane stale-bake reds (§5).
-6. **Each milestone closes with one check per shard for its component**: a labelled capture board when the look
-   changes (G112), a behaviour check otherwise (a fight finishes, a quest completes, a mover arrives). Exact-value tests
-   the component touches (byte totals, closure counts, code-shape snapshots) become bounds or behaviour tests inside
-   that milestone.
-
-## 3. Milestone 0: the component inventory (do this first, hours not days)
-
-Tag every remaining custom line in all seven shards (the same lines `scripts/shard-platform.mjs` counts as custom:
-shard TS, sole-platform code, extra GLSL) with exactly one component, and make the script report custom lines per
-component. Extend `generator-inventory.md` rather than start a new file. This is the denominator for every milestone
-and the thing that tells you the true size of "the nasty 20 %". Today's starting points: Sky `runtime/` 1,360 lines
-(largest: `index.ts` 357, `weapons/coneFan.ts` 167, `looks/windFx.ts` 143, `headless.ts` 115), Signal `runtime/` 1,314
-(largest: `looks/fireFx.ts` 314, the lash files ~450 together, `looks/bakedGround.ts` 115, `looks/duskLook.ts` 98).
-
-## 4. Proposed component order (the plan agent checks it against the inventory)
-
-Dependency first: later components stand on earlier ones.
-
-| # | Component | What closes it | Existing rows / decisions to fold in |
+| Wave | Shards | Finish line | Status |
 |---|---|---|---|
-| C1 | **Static world**: terrain, props, buildings, dressing | every legacy builder is a generator; baked tiles, colliders and far proxy from the build; no runtime world code | G391, SF55a, generator-inventory, -g grid-ready parts of SF46–SF51 |
-| C2 | **Looks**: materials, shaders, sky, fog, time-of-day | every material on a family or graph; sky / dusk as curve rows; no raw GLSL in shards | SF59 (graphs), SF10a families, G387 boards |
-| C3 | **Effects**: particles, wind, fire, ribbons, discs | effect rows on one shared effect host | Signal `fireFx`, Sky `windFx` / `wakeRibbon` / `discLayer` |
-| C4 | **Creatures**: bodies, rigs, brains, flocks, herds | shared creature loader + brain rows for every species | SF72, shared creature-body loader, far herd |
-| C5 | **NPCs, dialogue and quests** | quest graph rows, quest-givers on the shared NPC host, director stages | SF27, the shared pivot NPC host |
-| C6 | **Items and combat**: weapons, moves, viewmodels, bosses | move rows, item rows, one viewmodel host, boss phases as rows | lash, cone fan, Roc, Matriarch, Pine King |
-| C7 | **Movers and traversal**: lifts, platforms, bridges, mounts, riding | mover rows on the fixed step; riding on SF34 | SF30, SF34, G388 |
-| C8 | **Audio**: cues, ambient beds, footsteps | cue rows on the shared audio host | each shard's `audio/cues.ts` |
-| C9 | **Boot glue**: persistence, ledger, headless host, `runtime/index.ts` | `runtime/` empty for every shard: 100/0 | SF46 hybrid loader, ledger, headless / replay checks |
+| **W1** | Sky Reach (`far-reach`), Signal Dunes (`sunscar-dunes`) | 80/20, stretch 90/10 (Jake) | **now**: Sprint 2 (G400) |
+| **W2** | Driftwood Isle, Nalati Grasslands, Pine Hollow | 80/20 | after W1 |
+| **W3** | Nine Dragon Stack | 80/20 | last |
 
-The grid (M2) and the memory and frame-floor proofs stay where they are; they are not components of a shard.
+Template 1 is done; Template 2 and Pastel are outside the waves. A component milestone covers **only the shards of the
+current wave**, never all seven. W1 builds each component for two shards; W2 reuses and extends it for three; W3 for
+Nine. Each wave starts with the components the previous wave left, so the later waves are mostly adoption.
 
-## 5. Tests and the push (Jake's second question, same day)
+## 3. The rules inside a wave
+
+1. **The unit of work is a component across the wave's shards.** A component closes when (a) the format / SDK / game
+   supports it as data, generators or approved systems, (b) every shard in the wave uses that path, and (c) every custom
+   line for that component is deleted in those shards, legacy path included. That is **100/0 for that component in
+   that wave**. The wave reaches 80/20 or 90/10 when enough components close; whatever custom code is left sits inside
+   named open components, so the remainder is a known list, not a mystery tail.
+2. **Every shard stays valid at every step.** Each milestone leaves the wave's shards booting, playable and passing
+   validate. Legacy code for a component keeps running until that component closes, then goes in one commit set.
+3. **Discovered work is routed, not built.** A finding that belongs to another component becomes a line in that
+   component's row and waits. A finding in a shard of a later wave goes to that wave's list. Nothing orthogonal is built
+   in the current milestone.
+4. **The headline metric**: per wave, **components closed N of M** and **custom lines left per component**, beside the
+   per-shard custom % that the 80/20 bar still reads.
+5. **Lanes own components, so they own disjoint files.** At most 2–3 components in flight, one per lane. This also cuts
+   the cross-lane stale-bake reds (§6).
+6. **A component closes with one check per shard in the wave**: a labelled capture board when the look changes (G112),
+   a behaviour check otherwise (a fight finishes, a quest completes, a mover arrives). Exact-value tests the component
+   touches (byte totals, closure counts, code-shape snapshots) become bounds or behaviour tests in that milestone.
+
+## 4. W1 milestone 0: the component inventory for Sky and Signal (hours, not days)
+
+Tag every remaining custom line in Sky and Signal (the lines `scripts/shard-platform.mjs` counts as custom: shard TS,
+sole-platform code, extra GLSL) with exactly one component, and make the script report custom lines per component.
+Extend `generator-inventory.md` rather than start a new file. This sizes each component and shows which ones W1 must
+close to cross 20 % and 10 %. Starting points: Sky 3,407 custom lines, bar 1,355; Signal 1,860, bar 824. Sky `runtime/`
+is 1,360 (largest: `index.ts` 357, `weapons/coneFan.ts` 167, `looks/windFx.ts` 143, `headless.ts` 115), Signal
+`runtime/` 1,314 (largest: `looks/fireFx.ts` 314, the lash files ~450 together, `looks/bakedGround.ts` 115,
+`looks/duskLook.ts` 98). W2 and W3 run their own milestone 0 when they start.
+
+## 5. Proposed components (W1 checks the order against its inventory)
+
+Dependency first: later components stand on earlier ones. The W1 column maps the current Sprint 2 steps and lanes.
+
+| # | Component | Closes when | W1 today (Sprint 2, STATE) |
+|---|---|---|---|
+| C1 | **Static world**: terrain, props, buildings, dressing | every legacy builder is a generator; tiles, colliders and far proxy from the build; no runtime world code | G391; o123 Signal world → tiles; o120 Sky world → tiles |
+| C2 | **Looks**: materials, shaders, sky, fog, time of day | every material on a family or graph; sky / dusk as curve rows; no raw GLSL in shards | o121 Signal graphs; o120 Sky graphs, sky rows (G387 boards) |
+| C3 | **Effects**: particles, wind, fire, ribbons, discs | effect rows on one shared effect host | o122 effects paired (Sky step 9); Signal `fireFx` |
+| C4 | **Creatures**: bodies, rigs, brains, flocks | shared creature loader + brain rows for every species | x6 creatures |
+| C5 | **NPCs, dialogue and quests** | quest graph rows, quest-givers on the shared NPC host, director stages | x6 quest; x5 quest → director stages |
+| C6 | **Items and combat**: weapons, moves, viewmodels, bosses | move and item rows, one viewmodel host, boss phases as rows | x1 lash → melee row; x8 war fan, Roc re-record |
+| C7 | **Movers and traversal** | mover rows on the fixed step | x1 movers; x4 Sky movers (G388) |
+| C8 | **Audio**: cues, ambient beds | cue rows on the shared audio host | each shard's `audio/cues.ts` |
+| C9 | **Boot glue**: persistence, ledger, headless host, `runtime/index.ts` | whatever is left in `runtime/` is only what the wave's finish line allows | x5 glue → rows; x6 glue |
+
+The sprint does not stop: its lanes keep their work and are relabelled by component, so each lane's steps become one
+component for both shards instead of a numbered step for one shard. The grid (M2) and the memory and frame-floor proofs
+stay where they are; they are not shard components.
+
+## 6. Tests and the push (Jake's second question, same day)
 
 Jake asked whether pixel-matching regression tests built for porting are what kills the pushes. Measured:
 
@@ -85,19 +102,17 @@ Jake asked whether pixel-matching regression tests built for porting are what ki
   sounds), so parity earns its nightly slot.
 
 So the killer is **committed, byte-exact derived outputs** that go stale when another lane changes a shared input,
-not pixel tests. For the re-cut: each component milestone owns the bakes and generated files of its component, and
-the usage audit's cut 2 (bakes regenerate at commit for the shards whose inputs changed, or build in CI and stop
-committing the cheap ones) should land before C1 starts, because C1 changes every shard's bake inputs.
+not pixel tests. For the re-cut: each component owns the bakes and generated files of its component, and the usage
+audit's cut 2 (bakes regenerate at commit for the shards whose inputs changed, or build in CI and stop committing the
+cheap ones) should land early in W1, because C1 and C2 change the bake inputs of both shards.
 
-## 6. What the plan agent does with this
+## 7. What the plan agent does with this
 
-1. Run milestone 0 (the inventory and the per-component metric), or staff it as the first row.
-2. Rewrite `rows.md` §C as component rows C1–C9 (or the order the inventory supports). Map every open SF46–SF51 exit
-   and every "systems" row to one component; mark the per-shard rows superseded.
-3. Replace the Sprint 2 per-shard step lists with the active component milestones; lanes take components.
-4. Change the STATE headline to components closed and custom lines per component.
-5. Put the scope that is not a component of M3 (Template 2, the dev-texture look, the menu hero board, the near tier)
-   into a short "paused or elsewhere" list for Jake to confirm.
-6. Ask Jake, with option 1 Skip: **does Part A now end at 100/0 per component (runtime/ empty) instead of 80/20 per
-   shard?** Recommended: yes. 80/20 left the hard 20 % to successor plans; component milestones are how the hard part
-   gets designed rather than deferred.
+1. Run W1 milestone 0 (the Sky + Signal inventory and the per-component metric), or staff it as the first row.
+2. Rewrite `rows.md` §C as three waves; W1's rows are components C1–C9 for Sky and Signal (or the order the inventory
+   supports). Map every open SF49 / SF50 exit to one component; SF46–SF48 go under W2 and SF51 under W3, untouched
+   until their wave starts.
+3. Relabel the Sprint 2 lanes and steps by component (§5) without stopping them.
+4. Add components closed and custom lines per component to the STATE headline for the active wave.
+5. List the scope that is not W1 (Template 2, the dev-texture look, the menu hero board, the near tier) as paused or
+   elsewhere, for Jake to confirm.
