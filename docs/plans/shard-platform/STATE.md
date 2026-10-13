@@ -1,14 +1,14 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-13 02:00Z. G345 SPRINT (Jake, `34527bde0`): Signal Dunes + Sky Reach to 80/20 by ~09:30Z.** Quick checks +
+**2026-10-13 02:15Z. G345 SPRINT (Jake, `34527bde0`): Signal Dunes + Sky Reach to 80/20 by ~09:30Z.** Quick checks +
 push gate only; frame floor / Simulator / soak / boards paused. Lanes: `lanes/README.md`.
 
-| Shard (custom / legacy; ≤ 20 % = done) | 21:40Z → 02:00Z, clean HEAD | Target lines |
+| Shard (custom / legacy; ≤ 20 % = done) | 21:40Z → 02:15Z; **per-export G294 since `ddf5c4dea`** | Target lines |
 |---|---|---|
-| Signal Dunes | 70.7 % → **52.0 %** | ≤ 824 |
-| Sky Reach | 78.4 % → **50.1 %** (≈ +150 Sky-only `dataLook` knobs, `dc986514b`) | ≤ 1355 |
+| Signal Dunes | 70.7 % → 48.4 % per-file → **53.1 % per-export** | ≤ 824 |
+| Sky Reach | 78.4 % → 48.3 % per-file → **55.2 % per-export** (one-shard exports in shared files now count) | ≤ 1355 |
 
-**Fleet:** Codex sp-x7 push/deploy, others parked (Codex 7 %). Opus: Signal ground rows sp-o46, shared plans sp-o48, `paintedLook` 2nd user sp-o49, shared world-rows host sp-o51, Sky bake sweep sp-o52.
+**Fleet:** Codex sp-x7 push/deploy, others parked (Codex 7 %). Opus: shared world-rows host sp-o51, Sky bake sweep sp-o52, creatures sp-o54, Signal ground steps 2+4 sp-o55.
 
 **Live:** `957b05e6-mv5vop4l`; **release unpinned `e6eeefc1e`** (Linux CI + exact-SHA smoke incl. road→Signal green on `de0130e95`); next hourly release ships the Signal grid fix. Reds: `red-green.md`.
 
