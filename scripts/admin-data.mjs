@@ -13,7 +13,7 @@ const REPORTS=['progress/memory','progress/loading/sf67','art/playtest','docs/pl
 const SHARE_SCRIPT='scripts/shard-platform.mjs';
 /** What `node scripts/shard-platform.mjs --json` reads: the shard sources and packages, its ceilings, the frozen legacy
  * inventory, the proof witnesses and its own imports. admin/tools/deploy.sh exports the same list. */
-export const SHARE_INPUTS=['package.json','src','lint/shard-platform.json','lint/legacy-shards.json','test/proof',SHARE_SCRIPT,'scripts/shard-platform-content.mjs','scripts/check-graph.mjs','scripts/legacy-shards.mjs'];
+export const SHARE_INPUTS=['package.json','src','scripts','lint/shard-platform.json','lint/legacy-shards.json','test/proof'];
 
 /** Runs the share script of a clean tree (it measures the tree it lives in) and parses its JSON; it fails if the script
  * is missing or exits nonzero, never falling back to the shared checkout.
@@ -40,7 +40,8 @@ export function committedAdminTree(root,rev){
   // The share is measured on a clean export of the same revision, with the checkout's installed node_modules linked in.
   const platform=()=>{
     const present=git(['ls-tree','--name-only','-z',revision,'--',...SHARE_INPUTS]).toString('utf8').split('\0').filter(Boolean);
-    if(!present.includes(SHARE_SCRIPT))throw new Error(`Missing committed share script ${SHARE_SCRIPT} at ${revision.slice(0,9)} (${SHARE_COMMAND})`);
+    const script=git(['ls-tree','--name-only',revision,'--',SHARE_SCRIPT]).toString('utf8').trim();
+    if(script!==SHARE_SCRIPT)throw new Error(`Missing committed share script ${SHARE_SCRIPT} at ${revision.slice(0,9)} (${SHARE_COMMAND})`);
     const work=realpathSync(mkdtempSync(join(tmpdir(),'admin-share-')));
     try{
       const tar=join(work,'share.tar'),tree=join(work,'tree');

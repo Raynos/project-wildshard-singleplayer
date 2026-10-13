@@ -163,6 +163,24 @@ it('parses escaped/code pipes and ignores fenced fake tables and historical deci
   expect(parsed.rows[0]?.line).toBe(7);
 });
 
+it('exports transitive share helpers and their committed catalogues',()=>{
+  const root=mkdtempSync(join(tmpdir(),'admin-share-imports-'));
+  const git=(...args:string[])=>execFileSync('git',['-C',root,...args],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+  const put=(path:string,value:string)=>{const file=join(root,path);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,value);};
+  try{
+    git('init','--quiet');git('config','user.email','fixture@example.test');git('config','user.name','Fixture');
+    put('scripts/shard-platform.mjs',"import {discover} from './generate.mjs'; console.log(JSON.stringify(discover()));");
+    put('scripts/generate.mjs',"import {catalogue} from './generation-reader.mjs'; export function discover(){return catalogue();}");
+    put('scripts/generation-reader.mjs',"import {readFileSync} from 'node:fs'; export function catalogue(){return JSON.parse(readFileSync('scripts/generation-jobs.json','utf8'));}");
+    put('scripts/generation-jobs.json',JSON.stringify({owner:'committed'}));
+    git('add','.');git('commit','--quiet','-m','fixture');
+    put('scripts/generation-jobs.json',JSON.stringify({owner:'foreign-working-tree'}));
+    expect(committedAdminTree(root,'HEAD').platform()).toEqual({owner:'committed'});
+    rmSync(join(root,'scripts/generate.mjs'));
+    expect(committedAdminTree(root,'HEAD').platform()).toEqual({owner:'committed'});
+  }finally{rmSync(root,{recursive:true,force:true});}
+});
+
 it('pins an immutable Git tree and excludes dirty, staged and untracked report changes',()=>{
   const root=mkdtempSync(join(tmpdir(),'admin-data-'));
   const git=(...args:string[])=>execFileSync('git',['-C',root,...args],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
