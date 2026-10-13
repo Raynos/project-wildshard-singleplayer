@@ -26,7 +26,7 @@ import { hipRoof } from '../world/hipRoof';
 import { type Hole, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, pushClimbers, towerStack, wallShop } from './stairstreet';
 import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from '../world/stairPlan';
 import { SURF } from '../look/paint';
-import type { SignPlace, SignSink } from '../look/signs';
+import type { SignPlace, SignSink, SignBoardKit } from '../data/signPlacement';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { ASHLAR, COPING, FLOWER_COLS, ICO0, landingPlanter, leafBush, leafLook, leafQuad, tint } from './landingPlanter';
 import { PLANTER } from '../data/specimenDims';
@@ -83,7 +83,7 @@ class XfKitX extends KitX {
 /** forwards signs to the real builder in world space; a sign's board goes into the (local, transformed) kit */
 class XfSigns implements SignSink {
   constructor(private readonly inner: SignSink, private readonly xf: Matrix4) {}
-  place(p: SignPlace, kit: Kit | null): { w: number; h: number } {
+  place(p: SignPlace, kit: SignBoardKit | null): { w: number; h: number } {
     const r = this.inner.place({ ...p, at: p.at.clone().applyMatrix4(this.xf), normal: p.normal.clone().transformDirection(this.xf) }, null);
     if (kit !== null) {
       const depth = p.blade === true ? 0.12 : 0.1;
