@@ -10,7 +10,7 @@
 **Decided:** G385 near B (o117), G386 Pine KTX2, G387 graphs with boards, G388 Sky movers yes, G391 (supersedes G389): Nalati port NOW (sp-x5) and every legacy three.js builder/model/set becomes a generator, all shards.
 **Explorer inventory (G391):** every Model/Set/World explorer entry per shard → a generator; counts ported/left pending (sp-x6 in shard-platform.mjs; Nalati survey sp-x5).
 
-**For wildshard-v:** port % (G390) and the explorer inventory are sp-x6's, inventory first (both soon). G356 re-told to x5/x7 (git tooling only for reds); STATE.md now batched to one commit an hour.
+**For wildshard-v:** port % (G390) and the explorer inventory are sp-x6's, inventory first (both soon). G356 re-told to x5/x7; STATE.md hourly.
 **G387 boards for wildshard-v (per shard, BEFORE/AFTER graphs):** pending, paths land here.
 
 **Calls for Jake (2026-10-13; reverse any):**
