@@ -5888,9 +5888,10 @@
         "src/shards/far-reach/data/islets.generated.json"
       ],
       "platform": "portable",
-      "buildOutputs": {
-        "src/shards/far-reach/data/islets.generated.json": "ac1762788cb392151c16285dab616053b7403f443a0cccbd0634f396c9200b2c"
-      }
+      "buildOutputs": {},
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/islets.generated.json"
+      ]
     },
     {
       "id": "pastel-author-terrain",
