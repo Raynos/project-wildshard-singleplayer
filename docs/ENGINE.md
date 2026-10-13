@@ -3910,3 +3910,17 @@ schedules share the same aggregate entity, effect, event and fuel limits.
 Owner provenance remains local to each role. Omitting the last argument
 preserves the previous role order and continuation bytes; no second host
 or fixed tick is created.
+
+`MoverInstallation.composition` optionally joins verified `{ modules, roles,
+schedules?, seed }` with the existing page mover lane. Its installer owns
+one fixed tick; mover contacts still publish in their original fixed.pre
+phase. The original 32-entity cap and all shared allowances stay fatal.
+The defining `createComposedMoverHost` verifies and detaches extra module
+bytes before admission. `MoverRuntime.scriptHost` exposes the admitted
+host for trusted item binding; an injected shared host cannot also compose.
+
+`bindRuntimeItems` optionally accepts a host-bound `hooks` map. Every
+declared item hook must resolve before equipment is created. The declared
+item loader forwards its hook, contacts and secondary selection to trusted
+families without changing existing absent-field calls. It creates no script
+host or new tick; the runtime's existing composition owns both.

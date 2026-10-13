@@ -100,6 +100,9 @@ export function installDeclaredItems(input: unknown, ports: DeclaredItemPorts): 
         ...(declaration.kind === 'weapon' ? { legacySlot: declaration.slot } : {}) };
       const args = { scope: itemScope, runtime, input: ports.input, aim: ports.aim, view: declaration.view,
         ...(models[index] === undefined ? {} : { model: models[index] }),
+        ...(deps.hook === null ? {} : { hook: deps.hook }),
+        ...(declaration.kind === 'weapon' && declaration.contacts !== undefined ? { contacts: declaration.contacts } : {}),
+        ...(declaration.kind === 'weapon' && declaration.secondary !== undefined ? { secondary: declaration.secondary } : {}),
         ...(declaration.kind === 'weapon' && declaration.profile !== undefined ? { profile: declaration.profile } : {}) };
       if (declaration.kind === 'weapon' && family.kind === 'weapon') weapons.set(declaration.id, family.create(row, declaration, args));
       else if (declaration.kind === 'tool' && family.kind === 'tool') {

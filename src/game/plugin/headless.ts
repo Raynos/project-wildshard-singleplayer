@@ -10,7 +10,7 @@ import { type ShardContext, ShardPlugin } from './context';
 import { installEnteredRuntimeInput, retainsRuntimeServices } from "../shard/retainedHooks";
 import { Ledger, LedgerEmitter, type LedgerReceipt } from "../ledger";
 import { Purse } from "../loot/Purse";
-import { installDeclaredItems, type DeclaredItems } from "../shardfile/items";
+import { installDeclaredItems, type DeclaredItems, type DeclaredItemPorts } from "../shardfile/items";
 import type { RuntimeBoundSection } from "@wildshard/format/runtimeBinds";
 import type { RuntimeActorRow, RuntimeBossRow, RuntimeHomeRow } from "@wildshard/format/runtimeSpawns";
 import type { Shardfile } from "@wildshard/format/shardSchema";
@@ -193,15 +193,17 @@ export interface RuntimeItemPorts {
   readonly icon: (name: string) => EquipmentIcon;
   /** The platform kit's families, when the shard's rows also name `kit.*` ones. */
   readonly kit?: ReadonlyMap<string, ItemFamily>;
+  /** Actor-owned hooks bound to the runtime's existing composed lane; every declared hook must resolve. */
+  readonly hooks?: ReadonlyMap<string, ReturnType<DeclaredItemPorts['runtime']>['hook']>;
 }
 
 /**
- * Install the declared item rows inside a runtime's `buildEquipment`. A runtime-bound row carries no script hook (no
- * simulation lane runs here); a trusted family owns its contacts, so the platform item runtime sees no targets.
+ * Install declared items inside the runtime's equipment flow. Trusted families own contacts;
+ * optional hooks come from the already admitted composed lane, so the item runtime sees no targets.
  */
 export function bindRuntimeItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game'>, source: Shardfile, ports: RuntimeItemPorts): DeclaredItems {
   requireBound(source, 'items');
-  if (source.items.rows.some((row) => row.hook !== null)) throw new Error('Runtime-bound items cannot carry script hooks');
+  if (source.items.rows.some(row => row.hook !== null && (ports.hooks?.get(row.id) === null || ports.hooks?.get(row.id) === undefined))) throw new Error('Runtime-bound items require their admitted composed hooks');
   const camera = (): NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>['game']['camera'] => {
     const world = ctx.game.runtime?.world; if (world === null || world === undefined) throw new Error('Runtime-bound items need the normal world'); return world.game.camera;
   };
@@ -210,7 +212,7 @@ export function bindRuntimeItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game
   return installDeclaredItems(source.items, { scope: ctx.scope, actorId: actor.id, input: ctx.app.input, families: ports.kit ?? new Map(), icon: ports.icon,
     shardFamilies: { slug: shardContentIdentity(source.identity.slug), families: ports.families }, contexts: 'runtime',
     aim: () => ({ origin: camera().getWorldPosition(new Vector3()), direction: camera().getWorldDirection(new Vector3()) }),
-    runtime: () => ({ actor, combat: ctx.app.combat, active: () => ctx.app.state === 'play', targets: () => [], hook: null,
+    runtime: row => ({ actor, combat: ctx.app.combat, active: () => ctx.app.state === 'play', targets: () => [], hook: row.hook === null ? null : ports.hooks?.get(row.id) ?? null,
       effect: (target, effect, from) => { const service = ctx.app.effects; if (service === null) throw new Error('Missing normal effect host'); service.apply(target, effect, from); },
     }),
   });

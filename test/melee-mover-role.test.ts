@@ -1,9 +1,10 @@
 import { beforeAll, expect, it } from 'vitest';
 import { compileScript } from '../src/sdk/compileScript';
 import { scriptSource } from './script/fixture';
-import { MoverScriptDriver } from '../src/game/plugin/mover';
+import { MoverScriptDriver, createComposedMoverHost } from '../src/game/plugin/mover';
 import { createMeleeScriptDriver } from '../src/game/plugin/simulation';
 import { SKY_ITEMS } from '../src/shards/far-reach/data/items';
+import { ScriptWorld } from '../src/engine/script/effects';
 
 let bytes: Uint8Array, moduleId: string;
 beforeAll(async () => {
@@ -49,4 +50,16 @@ it('keeps aggregate entity limits and rejects overlapping extra roles', async ()
   const disjoint = await items(8);
   expect(() => driver.compose(content([moduleId]), item.modules, ports(), undefined, undefined,
     { roles: [item.role(), disjoint.role('other')] })).toThrow('Aggregate script entity allowance');
+});
+
+it('admits the page module union exactly and retains the original 32-entity host cap', async () => {
+  const item = await items();
+  const lane = await createComposedMoverHost([], new Map(), () => [], { modules: item.modules, roles: [item.role()], seed: 17 });
+  const hook = item.hooks(lane.host).get(SKY_ITEMS.rows[0].id); if (hook === undefined) throw new Error('Missing hook');
+  lane.step(1); expect(hook({ tick: lane.host.currentTick, dt: 1 / 60, action: 3, fuel: 0, cooldown: 0 })).toBe(3);
+  expect(lane.host.checkpoint().modules).toHaveLength(1); expect(lane.host.currentTick).toBe(1);
+  await expect(createComposedMoverHost([], new Map(), () => [], { modules: new Map([[moduleId, new Uint8Array(1)]]), roles: [item.role()], seed: 17 })).rejects.toThrow('hash mismatch');
+  const world = new ScriptWorld({ fields: {}, archetypes: [], events: [], maxEntities: 33 },
+    Array.from({ length: 33 }, (_, index) => ({ id: index + 1, name: 'fixture', position: [0, 0, 0], fields: {}, frozen: false, interactive: true })));
+  await expect(createComposedMoverHost([], new Map(), () => [], { modules: item.modules, roles: [{ ...item.role(), world }], seed: 17 })).rejects.toThrow('Aggregate script entity allowance');
 });

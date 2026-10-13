@@ -75,6 +75,8 @@ export async function createMoverHost(data: MoverData, assets: ReadonlyMap<strin
   return host;
 }
 
+/** Verified extra author modules and trusted roles share the existing 32-entity mover host. */
+export interface MoverRoleComposition { modules: ReadonlyMap<string, Uint8Array>; roles: readonly ScriptRole[]; schedules?: readonly ScriptSchedule[]; seed: number }
 /** Declared constants are read only and selected by the trusted calling entity; physics queries keep their adapter. */
 export function moverQueries(data: MoverData, physicsQueries: ScriptQuery): ScriptQuery {
   const parameters = new Map(parseMovers(data).map((m) => [m.entity, [...m.input]]));
@@ -92,6 +94,8 @@ export interface MoverView { pose: (value: MoverPose, fields: Readonly<Record<nu
 export interface MoverInstallation {
   data: MoverData; modules: ReadonlyMap<string, string>; views: ReadonlyMap<string, MoverView>; systemId: string;
   shared?: { host: ScriptHost; tick: () => number };
+  /** Additional consuming item roles join this installer's single host and tick. Incompatible with an injected shared host. */
+  composition?: MoverRoleComposition;
   /** A grid cell's admitted product bytes by module hash (`runtimeProduct(...).assets.retained`): a module present here is
    *  read from them (hash-checked again by {@link createMoverHost}) instead of fetched a second time from `modules`. */
   admitted?: ReadonlyMap<string, Uint8Array>;
@@ -120,6 +124,8 @@ export class MoverRuntime {
   /** the presentation-only views (adopted rows), for {@link showRest} */
   private readonly views = new Map<string, (pose: MoverPose) => void>();
   private readonly host: ScriptHost;
+  /** Trusted item bindings use this already installed host's actor grants and current tick. */
+  get scriptHost(): ScriptHost { return this.host; }
   private readonly physics: () => Physics;
   private readonly bodies = new Map<string, KinematicMover>();
   private bodyHandles = new Map<string, number>();
@@ -231,7 +237,8 @@ export class MoverRuntime {
 
 /** A single platform installer reads declared rows and owns their lifecycle; the shard only supplies presentation recipes. */
 export async function installDeclaredMovers(ctx: LevelContext, world: World, options: MoverInstallation): Promise<MoverRuntime> {
-  let tick = 0, host = options.shared?.host;
+  if (options.shared !== undefined && options.composition !== undefined) throw new Error('Mover composition cannot replace an injected shared host');
+  let tick = 0, host = options.shared?.host, composition: ReturnType<typeof createShardfileComposedLane> | undefined;
   if (host === undefined) {
     const assets = new Map<string, Uint8Array>();
     for (const hash of new Set(options.data.map((row) => row.module))) {
@@ -240,13 +247,16 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
       const url = options.modules.get(hash); if (url === undefined) throw new Error('Missing mover module URL');
       const response = await fetch(url); if (!response.ok) throw new Error('Missing mover script'); assets.set(hash, new Uint8Array(await response.arrayBuffer()));
     }
-    host = await createMoverHost(options.data, assets, scriptPhysicsQueries({ physics: world.physics, navigation: ctx.app.navmesh ?? { closestWalkable: () => null, findPath: () => null }, handle: () => undefined }));
+    const query = scriptPhysicsQueries({ physics: world.physics, navigation: ctx.app.navmesh ?? { closestWalkable: () => null, findPath: () => null }, handle: () => undefined });
+    if (options.composition === undefined) host = await createMoverHost(options.data, assets, query);
+    else { composition = await createComposedMoverHost(options.data, assets, query, options.composition); host = composition.host; }
   }
   if (ctx.scope.disposed) throw new Error('Mover scope left during admission');
   const runtime = new MoverRuntime(options.data, { physics: world.physics, scope: ctx.scope, host, adopt: (id) => options.views.get(id), activation: { ground: () => world.player.motor.result, ...options.activation } });
   const installedHost = host;
   ctx.system({ id: options.systemId, phase: 'fixed.pre', before: ['physics.movers'], run: () => {
-    const current = options.shared === undefined ? ++tick : options.shared.tick(); if (options.shared === undefined) installedHost.beginTick(current);
+    const current = options.shared === undefined ? ++tick : options.shared.tick();
+    if (options.shared === undefined) { if (composition === undefined) installedHost.beginTick(current); else composition.step(current); }
     runtime.step(current, options.permissions?.());
   } });
   if (options.onDispose !== undefined) ctx.scope.onDispose(options.onDispose);
@@ -331,6 +341,21 @@ export class MoverScriptDriver {
     if (saved.entities.some(row => this.resetIds.has(row.name) && JSON.stringify(row) !== JSON.stringify(initial.get(row.id)))) throw new Error('Lift continuation must reset at the road stop');
     this.world.restore(saved.entities);
   }
+}
+
+/** Prepare one page composition; mover calls still run in their original fixed.pre phase. */
+export async function createComposedMoverHost(data: MoverData, assets: ReadonlyMap<string, Uint8Array>, physicsQueries: ScriptQuery,
+  extra: MoverRoleComposition): Promise<ReturnType<typeof createShardfileComposedLane>> {
+  if (!Number.isSafeInteger(extra.seed) || extra.seed < 0) throw new Error('Invalid composed mover seed');
+  const driver = new MoverScriptDriver(data, physicsQueries), modules = new Map(await verifiedMoverModules(assets, driver.data));
+  for (const [hash, source] of extra.modules) {
+    const bytes = Uint8Array.from(source), digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+    if (!/^(?:commons:)?[a-f0-9]{64}$/u.test(hash) || [...digest].map(value => value.toString(16).padStart(2, '0')).join('') !== hash.replace(/^commons:/u, '')) throw new Error('Extra mover module hash mismatch');
+    modules.set(hash, bytes);
+  }
+  return createShardfileComposedLane({ identity: { seed: extra.seed }, sim: { scripts: [...modules.keys()], bindings: [], scriptTickDivisor: 1 },
+    state: { shared: [], player: [] } }, modules, { rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 }, entities: [], actors: new Map(), query: () => [] },
+  undefined, { roles: [driver.role(), ...extra.roles], schedules: extra.schedules ?? [], transientModules: driver.transientModules });
 }
 
 /** Copy and SHA-256-check each declared module before constructing a headless host. */
