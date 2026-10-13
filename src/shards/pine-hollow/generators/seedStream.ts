@@ -12,4 +12,6 @@ export class PineSeedStream {
   }
   /** Original affine range, consuming one sample. */
   range(a: number, b: number): number { return a + (b - a) * this.next(); }
+  /** Original inclusive integer interval, consuming one native range sample. */
+  int(a: number, b: number): number { return Math.floor(this.range(a, b + 1)); }
 }

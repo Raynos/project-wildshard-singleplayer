@@ -158,3 +158,4 @@ src/**/*.generated.*
 /public/assets/pine-hollow/baked/undergrowth.glb
 # Nalati declared navigation: cheap generated asset, retained input has navigation- prefix.
 /src/shards/nalati-grasslands/assets/223ce1ab45d736c5fb526308cb86bc6d61bdeb482ac886a7d47306fd5a8c41b5
+/public/assets/pine-hollow/baked/cabins.glb

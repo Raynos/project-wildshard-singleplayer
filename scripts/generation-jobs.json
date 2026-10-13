@@ -908,36 +908,37 @@
       "command": [
         "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
-        "--import",
-        "./scripts/generation-level.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-cabins.mjs",
-        "--generation-shard=pine-hollow"
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-cabins.mjs"
       ],
       "inputRoots": [
-        "src/engine",
-        "src/game",
         "src/sdk",
+        "src/format",
         "src/commons",
-        "src/shards/pine-hollow",
-        "scripts/bake-loader.mjs",
-        "scripts/bake",
+        "src/shards/pine-hollow/generators/logCabin.ts",
+        "src/shards/pine-hollow/generators/cabinShapes.ts",
+        "src/shards/pine-hollow/generators/seedStream.ts",
+        "src/shards/pine-hollow/generators/bake-pine-cabins.mjs",
+        "src/shards/pine-hollow/data/layout.ts",
+        "public/assets/baked/pine-hollow/terrain.bin",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml",
-        "public/assets/baked/pine-hollow/terrain.bin",
-        "scripts/generation-level.mjs"
+        "pnpm-workspace.yaml"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/cabins.bin",
-        "src/shards/pine-hollow/data/cabins.json"
+        "src/shards/pine-hollow/data/cabins.json",
+        "public/assets/pine-hollow/baked/cabins.glb",
+        "src/shards/pine-hollow/data/cabinsGlb.generated.json"
       ],
-      "platform": "native",
+      "platform": "portable",
       "seedOutputs": [
         "src/shards/pine-hollow/data/cabins.json"
       ],
       "buildOutputs": {
-        "public/assets/pine-hollow/baked/cabins.bin": "a9a08e6ceb639dda4eb6f0ed9a7828ef42e67c496b2c782cbd0ebf2e91b41d16"
+        "public/assets/pine-hollow/baked/cabins.bin": "a9a08e6ceb639dda4eb6f0ed9a7828ef42e67c496b2c782cbd0ebf2e91b41d16",
+        "public/assets/pine-hollow/baked/cabins.glb": "c5e7fee54f043a6e998f32c4b34463b7673726e4c64abbeda111efd7bc7482f8",
+        "src/shards/pine-hollow/data/cabinsGlb.generated.json": "6c8d19f6010414c600092c4eb3eb29c9e6015268e8dd7d89104bbfada77711df"
       }
     },
     {

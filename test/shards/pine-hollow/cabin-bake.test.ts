@@ -6,7 +6,11 @@ import { readFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The committed bake is a zlib stream the page inflates.
 import { inflateSync } from 'node:zlib';
 import * as THREE from 'three';
-import { PINE_SEED, bakePineCabins } from '../../../src/shards/pine-hollow/generators/logCabin';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { nativeWholeGeometry } from '@wildshard/game/plugin/geometry';
+// oxlint-disable-next-line import/no-nodejs-modules -- Compare all native channel bytes without instrumented element matchers.
+import { Buffer } from 'node:buffer';
+import { PINE_SEED, bakePineCabins, pineCabinBake } from '../../../src/shards/pine-hollow/generators/logCabin';
 import { PINE_HOLLOW } from '../../../src/shards/pine-hollow/manifest';
 import { CABIN_ROWS, CabinGeometries, LogBuilding, NO_OWNER } from '../../../src/shards/pine-hollow/world/cabinBake';
 import type { Mats } from '../../../src/shards/pine-hollow/world/homestead';
@@ -47,4 +51,43 @@ describe('Pine Hollow bakes its log buildings offline (G285)', () => {
       expect(b.root.position.toArray()).toEqual([...row.at]);
     }
   });
+});
+
+
+it('authors every native cabin mesh and particle seed through one Scene without changing bytes or owners', async () => {
+  const authored = pineCabinBake(pineCabinHeights()), piece = authored.pieces[0];
+  if (piece === undefined) throw new Error('Cabin library omitted');
+  expect(authored.pieces).toHaveLength(1); expect(piece.name).toBe('pine.cabins');
+  expect(authored.shardfile.tiles).toHaveLength(0); // A shape library, never fake static doors or flames.
+  expect(piece.rows['buildings']).toEqual(committed.buildings); expect(piece.rows['hamlet']).toEqual(committed.hamlet);
+  const loaded = await new GLTFLoader().parseAsync(Uint8Array.from(piece.glb).buffer, '');
+  const loadedKinds: THREE.InstancedMesh[] = [];
+  const instanced = (node: THREE.Object3D): node is THREE.InstancedMesh => 'isInstancedMesh' in node && node.isInstancedMesh === true;
+  loaded.scene.traverse(node => { if (instanced(node)) loadedKinds.push(node); });
+  const meshes = new Map(loadedKinds.map((mesh, i) => [piece.kinds[i]?.name ?? '', mesh]));
+  const original = new CabinGeometries(packed());
+  const seeds = [];
+  for (const [ordinal, row] of committed.geometries.entries()) {
+    const expected = original.geometry(ordinal);
+    if (!row.attrs.some(([name]) => name === 'position')) {
+      const attribute = expected.getAttribute('seed');
+      seeds.push({ ordinal, width: attribute.itemSize, values: Array.from(attribute.array) }); continue;
+    }
+    const mesh = meshes.get(`cabin-geometry-${String(ordinal)}`);
+    if (mesh === undefined) throw new Error('Cabin author omitted a native geometry');
+    expect(mesh.count).toBe(1);
+    const actual = nativeWholeGeometry(mesh);
+    expect(Object.keys(actual.attributes).sort()).toEqual(Object.keys(expected.attributes).sort());
+    for (const name of Object.keys(expected.attributes)) {
+      const a = actual.getAttribute(name), b = expected.getAttribute(name);
+      expect(a.itemSize).toBe(b.itemSize);
+      expect(Buffer.from(a.array.buffer, a.array.byteOffset, a.array.byteLength).equals(new Uint8Array(b.array.buffer, b.array.byteOffset, b.array.byteLength)), `geometry ${String(ordinal)} ${name}`).toBe(true);
+    }
+    const ai = actual.getIndex(), bi = expected.getIndex();
+    expect(ai?.array.constructor).toBe(bi?.array.constructor);
+    expect(ai === null && bi === null || ai !== null && bi !== null && Buffer.from(ai.array.buffer, ai.array.byteOffset, ai.array.byteLength).equals(new Uint8Array(bi.array.buffer, bi.array.byteOffset, bi.array.byteLength))).toBe(true);
+    actual.dispose(); expected.dispose();
+  }
+  expect(piece.rows['seeds']).toEqual(seeds);
+  expect(meshes.size).toBe(committed.geometries.filter(row => row.attrs.some(([name]) => name === 'position')).length);
 });

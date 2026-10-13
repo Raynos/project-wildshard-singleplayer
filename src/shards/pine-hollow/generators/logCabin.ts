@@ -13,11 +13,11 @@
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { Rng } from '@wildshard/engine/core/rng';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { PineSeedStream as Rng } from './seedStream';
+import { bake, BakedPiece, type BakedScene } from '@wildshard/sdk/bake';
 import { CABIN_SITES, HAMLET_SITES } from '../data/layout';
 import { BOARDS, BOARD_LEN, PROP_BOXES, boxUV, logGeo, swapUV, type BakedBuilding, type BakedGeometry, type BakedLight, type BakedNode, type CabinRows,
-  type Floor, type KitMat as MatKey, type LightKind, type PropKind, type Room } from '../world/logKit';
+  type Collider, type Floor, type KitMat as MatKey, type LightKind, type PropKind, type Room } from './cabinShapes';
 
 // ───────────────────────────── the log kit ─────────────────────────────
 
@@ -1209,9 +1209,12 @@ export function hamletBuildings(): ExtraBuilding[] {
  * with an index keeps its own. Every block is padded to 4 bytes.
  */
 class Geometries {
+  private readonly authored: ((geometry: THREE.BufferGeometry, ordinal: number) => void) | undefined;
+  constructor(authored?: (geometry: THREE.BufferGeometry, ordinal: number) => void) { this.authored = authored; }
   readonly rows: BakedGeometry[] = [];
   private readonly chunks: Uint8Array[] = [];
   add(g: THREE.BufferGeometry): number {
+    this.authored?.(g, this.rows.length);
     const names = Object.keys(g.attributes), attrs = names.map((name): [string, number] => [name, g.getAttribute(name).itemSize]);
     const count = g.getAttribute(names[0] ?? 'position').count, own = g.getIndex();
     const floats = (name: string): Float32Array => {
@@ -1261,8 +1264,8 @@ class Geometries {
  * cabins in CABIN_SITES order (indices 0–2), then the hamlet's five (3–7) around its root at their centre. Returns the
  * binary (uncompressed) and its rows (`bin` / `bytes` are the script's to fill).
  */
-export function bakePineCabins(heightAt: (x: number, z: number) => number): { bin: Uint8Array; rows: Omit<CabinRows, 'bin' | 'bytes'> } {
-  const sink = new Geometries(), buildings: BakedBuilding[] = [];
+function buildPineCabins(heightAt: (x: number, z: number) => number, sink: Geometries): { bin: Uint8Array; rows: Omit<CabinRows, 'bin' | 'bytes'> } {
+  const buildings: BakedBuilding[] = [];
   const build = (spec: CabinSpec, index: number, x: number, z: number, rot: number, id: string, hamlet: boolean): void => {
     const b = new CabinBuilder(spec, index, x, heightAt(x, z), z, rot, heightAt, sink);
     b.build();
@@ -1282,4 +1285,44 @@ export function bakePineCabins(heightAt: (x: number, z: number) => number): { bi
     pad = Math.max(pad, Math.hypot(e.x - cx, e.z - cz) + Math.max(e.spec.W, e.spec.L));
   });
   return { bin: sink.bytes(), rows: { geometries: sink.rows, buildings, hamlet: extra.length === 0 ? null : { at: [cx, heightAt(cx, cz), cz], pad } } };
+}
+
+/** Frozen-stream oracle: retain every original float, index and owner row, in their original order. */
+export function bakePineCabins(heightAt: (x: number, z: number) => number): { bin: Uint8Array; rows: Omit<CabinRows, 'bin' | 'bytes'> } {
+  return buildPineCabins(heightAt, new Geometries());
+}
+
+/** All native cabin shape sources in one author Scene. Live doors, lights and field placements remain native-owned. */
+export function pineCabinScene(heightAt: (x: number, z: number) => number): THREE.Scene {
+  const scene = new THREE.Scene(); scene.name = 'pine-hollow.cabins';
+  const material = new THREE.MeshStandardMaterial({ roughness: 1 });
+  const kinds: (readonly [string, THREE.InstancedMesh])[] = [];
+  const seeds: { ordinal: number; width: number; values: number[] }[] = [];
+  const sink = new Geometries((geometry, ordinal) => {
+    if (!geometry.hasAttribute('position')) {
+      const seed = geometry.getAttribute('seed');
+      if (!(seed instanceof THREE.BufferAttribute) || seed.itemSize !== 4) throw new Error('Cabin author has an unknown non-mesh channel');
+      seeds.push({ ordinal, width: seed.itemSize, values: Array.from(seed.array) });
+      return;
+    }
+    const mesh = new THREE.InstancedMesh(geometry.clone(), material, 1);
+    mesh.setMatrixAt(0, new THREE.Matrix4()); kinds.push([`cabin-geometry-${String(ordinal)}`, mesh]);
+  });
+  const { rows } = buildPineCabins(heightAt, sink);
+  scene.add(new BakedPiece('pine.cabins', kinds, [], { nativeAttributes: true, compactIndex: true, attributes: { _MOSS: 'moss' } }, { ...rows, seeds }));
+  return scene;
+}
+
+/** Central scene bake of the complete native shape library, without fabricating static doors or particles. */
+export function pineCabinBake(heightAt: (x: number, z: number) => number, project?: string): BakedScene {
+  const scene = pineCabinScene(heightAt);
+  try { return bake(scene, { slug: 'pine-hollow', name: 'Pine Hollow' }, project === undefined ? {} : { project }); }
+  finally {
+    for (const piece of scene.children) for (const mesh of piece.children) {
+      if (!(mesh instanceof THREE.InstancedMesh)) continue;
+      const geometry: unknown = mesh.geometry, material: unknown = mesh.material;
+      if (geometry instanceof THREE.BufferGeometry) geometry.dispose();
+      if (material instanceof THREE.Material) material.dispose();
+    }
+  }
 }
