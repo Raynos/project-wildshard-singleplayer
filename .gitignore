@@ -924,3 +924,6 @@ src/shards/nalati-grasslands/data/dressing.scene.generated.json
 # Cheap admitted held playback programs are built from the retained rows.
 src/shards/far-reach/data/heldPlayback.generated.json
 src/shards/sunscar-dunes/data/heldPlayback.generated.json
+
+# G405: pure source-derived WebGPU inventory, emitted before CI checks.
+/docs/design/webgpu-port-inventory.md

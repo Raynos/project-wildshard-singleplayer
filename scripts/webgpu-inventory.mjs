@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 // E357 X6: the WebGPU port inventory — every place a renderer port has to touch, as a checklist.
 // `node scripts/webgpu-inventory.mjs` rewrites docs/design/webgpu-port-inventory.md; `--check` fails when it is stale
-// (test/webgpu-inventory.test.ts runs the check inside `pnpm test`).
-import { readFileSync, readdirSync, writeFileSync, existsSync } from 'node:fs';
-import { join, relative } from 'node:path';
+// Normal pnpm gen emits this cheap report before CI verifies it; it is never committed.
+import { readFileSync, readdirSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
@@ -101,5 +101,5 @@ if (process.argv[1] === import.meta.filename) {
       console.error(`${DOC} is stale: run node scripts/webgpu-inventory.mjs`); process.exitCode = 1;
     }
     else console.log(`${relative(ROOT, path)} is current`);
-  } else { writeFileSync(path, want); console.log(`wrote ${DOC}`); }
+  } else { mkdirSync(dirname(path), {recursive:true}); writeFileSync(path, want); console.log(`wrote ${DOC}`); }
 }

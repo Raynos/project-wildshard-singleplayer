@@ -45,6 +45,7 @@ const measures = await step('port-shares', () => genPortShares());
 if (!process.argv.includes('--build-inputs')) {
   const { writeApiDocs } = await import('./gen-api.mjs');
   writeApiDocs();
+  execFileSync(process.execPath, ['scripts/webgpu-inventory.mjs'], {cwd: `${import.meta.dirname}/..`, stdio: 'inherit'});
 }
 
 // G405: derived documentation is fresh build output, never commit payload.
