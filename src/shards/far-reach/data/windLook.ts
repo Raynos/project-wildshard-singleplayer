@@ -50,3 +50,20 @@ export interface UpdraftRow {
   readonly streakName: string;
   readonly leafName: string;
 }
+
+/** The streaks' program (runtime/looks/windFx.ts): bright in the middle of their length and width, tapering to nothing at
+ *  the ends; instanceColor is the tint × fade. */
+export const STREAK_SHADER = {
+  vertexShader: /* glsl */`
+      varying vec2 vUv; varying vec3 vTint;
+      void main(){ vUv = uv; vTint = instanceColor; gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0); }`,
+  fragmentShader: /* glsl */`
+      varying vec2 vUv; varying vec3 vTint;
+      void main(){
+        float along = smoothstep(0.0, 0.35, vUv.x) * (1.0 - smoothstep(0.55, 1.0, vUv.x));
+        float across = 1.0 - abs(vUv.y * 2.0 - 1.0);
+        // instanceColor carries the tint × fade: the brightest channel is the fade, the colour stays near white
+        float fade = max(vTint.r, max(vTint.g, vTint.b));
+        gl_FragColor = vec4(vTint / max(fade, 1e-3), fade * along * across);
+      }`,
+} as const;

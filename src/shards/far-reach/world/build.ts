@@ -11,7 +11,6 @@ import { STRINGS } from '../data/strings';
 import { dressIslands } from './dressing';
 import { islandMesh } from './isle';
 import { crownArena } from './crown';
-import { firSheet, firs } from './fir';
 import { trees } from './trees';
 import { ISLE_CUT, ISLE_KEEL_CUT, SKY_ISLES } from '../data/skyIsles';
 import skyIslePines from '../data/skyIslePines.json' with { type: 'json' };
@@ -21,7 +20,7 @@ import { inCube, skyIslesIn } from './skyIsles';
 import { keelIsles, skyIsleModels } from './skyIsleHd';
 import { skyBakedPiece, skyKnollHulls } from './baked';
 import { skyline } from './distant';
-import { PALETTE, flat, hoverBridge, pines, ropeBridge, vane, windmill, winch } from './shapes';
+import { PALETTE, flat, hoverBridge, ropeBridge, vane, windmill, winch } from './shapes';
 import { bookStand } from './bookStand';
 import { BOOK_STAND } from '../data/bookStand';
 import { KEEPER_STAND } from '../quest/keeper';
@@ -157,9 +156,8 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>):
   for (const s of SKY_ISLES) if (half === null || inCube(s, half)) for (const p of SKY_ISLE_PINES[s.id] ?? []) if (p.y !== null) pineAt.push([p.x, p.y, p.z, p.size]);
   root.add(skyGroup);
   ctx.piece({ id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE, object: skyGroup });
-  // the card-branch firs when the branch sheet loaded (E392), else the code pines
-  // the modelled trees (top-10 row 2) where they loaded, else the card-branch firs (E392), else the code pines
-  const sheet = firSheet(), forest = trees(pineAt) ?? (sheet !== null ? firs(pineAt, sheet) : pines(pineAt)); root.add(forest);
+  // the modelled trees (top-10 row 2; none stand when a model did not load)
+  const forest = trees(pineAt) ?? new Group(); root.add(forest);
   ctx.piece({ id: 'far.pines', name: STRINGS.pines, category: 'props', file: FILE, object: forest });
   await pause();
   // the meadow and the roots (loop 2): grass clumps, flowers, stones, hanging roots; no colliders

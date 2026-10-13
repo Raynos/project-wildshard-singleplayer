@@ -1,4 +1,4 @@
-import type { GustRow, UpdraftRow } from '../../data/windLook';
+import { STREAK_SHADER, type GustRow, type UpdraftRow } from '../../data/windLook';
 import { BufferGeometry, CircleGeometry, Color, DoubleSide, DynamicDrawUsage, Float32BufferAttribute, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, ShaderMaterial, Vector3, type Object3D } from 'three';
 
 /**
@@ -20,19 +20,7 @@ function streakGeometry(): BufferGeometry {
 
 /** Streaks: bright in the middle of their length and width, tapering to nothing at the ends; instanceColor is the tint × fade. */
 function streakMaterial(): ShaderMaterial {
-  return new ShaderMaterial({ transparent: true, depthWrite: false, side: DoubleSide, fog: false,
-    vertexShader: /* glsl */`
-      varying vec2 vUv; varying vec3 vTint;
-      void main(){ vUv = uv; vTint = instanceColor; gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0); }`,
-    fragmentShader: /* glsl */`
-      varying vec2 vUv; varying vec3 vTint;
-      void main(){
-        float along = smoothstep(0.0, 0.35, vUv.x) * (1.0 - smoothstep(0.55, 1.0, vUv.x));
-        float across = 1.0 - abs(vUv.y * 2.0 - 1.0);
-        // instanceColor carries the tint × fade: the brightest channel is the fade, the colour stays near white
-        float fade = max(vTint.r, max(vTint.g, vTint.b));
-        gl_FragColor = vec4(vTint / max(fade, 1e-3), fade * along * across);
-      }` });
+  return new ShaderMaterial({ transparent: true, depthWrite: false, side: DoubleSide, fog: false, ...STREAK_SHADER });
 }
 
 const m = new Matrix4(), q = new Quaternion(), s = new Vector3(), p = new Vector3(), fwd = new Vector3(0, 0, -1), c = new Color();

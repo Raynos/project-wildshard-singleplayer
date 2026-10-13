@@ -5,7 +5,6 @@ import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { MILL_CANVAS_EDITS, MILL_TOWER_EDITS } from '../data/millLook';
 import { hdMaterial, skyHd } from './meshes';
 import { onPaintedDispose } from '../look/image';
-import { MILL_TOWER } from '../data/millShape';
 import millModel from '../data/millModel.json' with { type: 'json' };
 import { MILL_MODEL_URL } from '../data/files';
 import { skyBakedPiece } from './baked';
@@ -61,7 +60,7 @@ function towerMaterial(map: Texture): MeshStandardMaterial {
 }
 let pack: InstanceType<typeof GeometryPack> | null = null;
 const MODEL_ROWS = packedRows(millModel);
-/** Load the modelled tower and foot's bake (with the other baked pieces, before the world is built); a failed load keeps the code tower. */
+/** Load the modelled tower and foot's bake (with the other baked pieces, before the world is built); a failed load stands no tower. */
 export async function loadSkyMillModel(): Promise<void> {
   try { pack = new GeometryPack(await fetchDeflated(MILL_MODEL_URL), MODEL_ROWS, 'far-reach mill model'); } catch (e: unknown) { console.warn('[far-reach] the baked mill model did not load:', e); }
 }
@@ -76,9 +75,9 @@ function modelledSet(): Made | null {
 }
 
 /**
- * The mill: its baked code set (`nodes` defaults to the loaded bake; a test passes the GLB's nodes it parsed itself) in the
- * materials the painted stone, ivy and canvas land on, and the modelled tower and foot in place of the code ones where they
- * loaded. The hub (the boss, the sail frames and the canvases) turns: the plugin spins it.
+ * The mill: the modelled tower and foot (where they loaded; else no tower stands) and its baked turning parts (`nodes`
+ * defaults to the loaded bake; a test passes the GLB's nodes it parsed itself): the shaft, and the hub (the boss, the sail
+ * frames and the canvases the painted canvas lands on), which the plugin spins.
  */
 export function towerMill(nodes?: ReadonlyMap<string, InstancedMesh>): { group: Group; hub: Object3D; hubAt: { y: number; z: number } } {
   const made = modelledSet();
@@ -89,29 +88,10 @@ export function towerMill(nodes?: ReadonlyMap<string, InstancedMesh>): { group: 
     for (const own of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) own.dispose();
     mesh.material = material; parent.add(mesh); return mesh;
   };
-  // the whitewashed stone: cream until the painted stone lands, then the stone and its own luminance as the bump
-  const stone = new MeshStandardMaterial({ vertexColors: true, color: 0xe9e0cf, roughness: 0.95, metalness: 0 });
-  painted(MILL_TEX.stone, (t) => { stone.map = t; stone.bumpMap = t; stone.bumpScale = 3; stone.color.set(0xffffff); stone.needsUpdate = true; });
-  put(group, 'tower', stone);
-  // the ivy, hidden until its sheet lands
-  const ivyMat = new MeshStandardMaterial({ vertexColors: true, alphaTest: 0.4, side: DoubleSide, roughness: 0.8, metalness: 0, emissive: 0x18220c });
-  const ivyMesh = put(group, 'ivy', ivyMat); if (ivyMesh !== undefined) ivyMesh.visible = false;
-  painted(MILL_TEX.ivy, (t) => { ivyMat.map = t; ivyMat.emissiveMap = t; ivyMat.needsUpdate = true; if (ivyMesh !== undefined) ivyMesh.visible = true; });
-  const wood = new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0 });
-  put(group, 'dressed', new MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0 })); put(group, 'door', wood);
-  put(group, 'dark', new MeshStandardMaterial({ color: 0x1e1a20, roughness: 1, metalness: 0 }));
-  // the curb and the cap, a finial on top
-  put(group, 'curb', wood); put(group, 'cap', new MeshStandardMaterial({ vertexColors: true, roughness: 0.75, metalness: 0.05 }));
-  put(group, 'finial', new MeshStandardMaterial({ color: 0x3a3430, roughness: 0.6, metalness: 0.3 }));
   // the windshaft out of the cap toward +z, and the hub on it
-  const timber = new MeshStandardMaterial({ color: 0x6b4a32, roughness: 0.9, metalness: 0 });
-  const hubAt = made?.hubAt ?? { y: MILL_TOWER.height + 1.0, z: MILL_TOWER.top + 0.95 };
-  const shaft = put(group, 'shaft', timber); shaft?.position.set(0, hubAt.y, hubAt.z - 0.6);
-  if (made !== null) {
-    // the modelled tower, cap and foot in place of the code ones (the shaft and the sails stay: they turn)
-    for (const c of group.children) if (c !== shaft) c.visible = false;
-    group.add(...made.meshes);
-  }
+  const timber = new MeshStandardMaterial({ color: 0x6b4a32, roughness: 0.9, metalness: 0 }), hubAt = millModel.hubAt;
+  put(group, 'shaft', timber)?.position.set(0, hubAt.y, hubAt.z - 0.6);
+  if (made !== null) group.add(...made.meshes);
   hub.position.set(0, hubAt.y, hubAt.z); group.add(hub);
   put(hub, 'boss', timber);
   // the worn canvas: the painted cloth once it lands (a coarse weave and water stains in the shader until then), frayed

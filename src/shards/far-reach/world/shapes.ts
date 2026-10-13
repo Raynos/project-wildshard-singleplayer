@@ -1,4 +1,4 @@
-import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, ConeGeometry, CylinderGeometry, DoubleSide, Group, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Quaternion, TubeGeometry, Vector3, type Object3D } from 'three';
+import { BoxGeometry, type BufferGeometry, CatmullRomCurve3, CylinderGeometry, Group, InstancedMesh, Mesh, MeshStandardMaterial, TubeGeometry, Vector3, type Object3D } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
@@ -10,7 +10,6 @@ import bridgeRows from '../data/bridges.json' with { type: 'json' };
 import { BRIDGES_URL } from '../data/files';
 import { hdMaterial, skyHd, skyMesh } from './meshes';
 import { towerMill } from './mill';
-import { skyBakedGeometry } from './baked';
 
 /** The Sky Reach palette (sRGB hex): golden-hour grass, warm dirt, warm brown-grey keel strata, green pines (the mockup's). */
 export const PALETTE = {
@@ -20,13 +19,6 @@ export const PALETTE = {
 
 export const flat = (color = 0xffffff, extra: ConstructorParameters<typeof MeshStandardMaterial>[0] = {}): MeshStandardMaterial =>
   new MeshStandardMaterial({ color, flatShading: true, roughness: 0.95, metalness: 0, ...extra });
-
-/** The code pines at `at` ([x, y, z, scale]), one instanced draw (SF72: the pine is baked, generators/geometries.ts). */
-export function pines(at: readonly (readonly [number, number, number, number])[]): InstancedMesh {
-  const mesh = new InstancedMesh(skyBakedGeometry('pine'), flat(0xffffff, { vertexColors: true, side: DoubleSide }), at.length), m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
-  at.forEach(([x, y, z, s], i) => { q.setFromAxisAngle(up, i * 1.7); m.compose(new Vector3(x, y, z), q, new Vector3(s, s, s)); mesh.setMatrixAt(i, m); });
-  mesh.computeBoundingSphere(); return mesh;
-}
 
 /**
  * A hover deck (loop 5; the bible §5 glass, council R1C-10 / R1B-2): ONE half-transparent cyan slab, so nothing overlaps
@@ -142,22 +134,12 @@ export function winch(): Group {
 const VANE_ROTOR_Y = 2.2;
 /**
  * A wind vane: the generated shrine post (C6, Hunyuan3D-2 from `art/far-reach/round-7-models/ref-vane.jpg`), its cups and
- * arrow split off as the rotor the plugin spins once a GUST hits it; without it, a code post and a four-cup rotor.
+ * arrow split off as the rotor the plugin spins once a GUST hits it (empty while the model is not loaded).
  */
 export function vane(): { group: Group; rotor: Object3D } {
   const group = new Group(), rotor = new Group(), model = skyMesh('wind-vane');
-  if (model !== null) {
-    const g = fitGeometry(model, { size: 3.6, by: 'height', floor: 0, centre: 'base' }), [post, top] = splitAbove(g, VANE_ROTOR_Y), mat = flat(0xffffff, { vertexColors: true });
-    group.add(new Mesh(post, mat)); top.translate(0, -VANE_ROTOR_Y, 0); rotor.add(new Mesh(top, mat)); rotor.position.y = VANE_ROTOR_Y; group.add(rotor);
-    return { group, rotor };
-  }
-  const wood = flat(PALETTE.trunk), cloth = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.15 });
-  const pole = new Mesh(new CylinderGeometry(0.1, 0.16, 3.2, 6), wood); pole.position.y = 1.6; group.add(pole);
-  rotor.position.y = 3.3; group.add(rotor);
-  for (let i = 0; i < 4; i++) {
-    const arm = new Mesh(new BoxGeometry(1.4, 0.06, 0.06), wood); arm.rotation.y = (i * Math.PI) / 2; arm.position.set(Math.cos(arm.rotation.y) * 0.7, 0, -Math.sin(arm.rotation.y) * 0.7); rotor.add(arm);
-    const cup = new Mesh(new ConeGeometry(0.22, 0.4, 6, 1, true), cloth); cup.rotation.z = Math.PI / 2;
-    cup.position.set(Math.cos(arm.rotation.y) * 1.4, 0, -Math.sin(arm.rotation.y) * 1.4); cup.rotation.y = arm.rotation.y; rotor.add(cup);
-  }
+  if (model === null) return { group, rotor };
+  const g = fitGeometry(model, { size: 3.6, by: 'height', floor: 0, centre: 'base' }), [post, top] = splitAbove(g, VANE_ROTOR_Y), mat = flat(0xffffff, { vertexColors: true });
+  group.add(new Mesh(post, mat)); top.translate(0, -VANE_ROTOR_Y, 0); rotor.add(new Mesh(top, mat)); rotor.position.y = VANE_ROTOR_Y; group.add(rotor);
   return { group, rotor };
 }
