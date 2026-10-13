@@ -1,37 +1,19 @@
 import * as v from "valibot";
+import * as interactionContracts from '@wildshard/format/questInteractions';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import { test, type Flags } from '@wildshard/engine/world/interact/flags';
 import { pickPrompt, setPromptSight, type PromptTarget } from '@wildshard/engine/world/interact/prompts';
 
 
-const name = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
-const names = v.pipe(v.array(name), v.maxLength(64));
-const condition = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names) });
-const need = v.strictObject({ all: v.exactOptional(names), any: v.exactOptional(names), none: v.exactOptional(names), else: v.exactOptional(name) });
-const row = v.strictObject({
-  id: name, act: v.pipe(v.number(), v.safeInteger(), v.minValue(0)), at: name, crack: v.exactOptional(v.picklist(['light', 'heavy'])),
-  needs: v.exactOptional(v.pipe(v.array(need), v.maxLength(16))), sets: v.pipe(names, v.minLength(1)),
-});
-const unique = (list: readonly (string | number)[]): boolean => new Set(list).size === list.length;
-/**
- * Declared interaction rows (SF72): the transient `marks` an interaction keeps outside the durable flags (a raised well
- * bucket, an oiled bowl), each optionally starting set when its `initial` condition holds on the flags at install; the
- * `rows`, each a prompt or a crack (`crack: 'light' | 'heavy'`) at a named spot (`at`), answering a `script` command whose
- * value is its `act`: its `needs` are checked in order and the first unmet one refuses with its `else` reason, otherwise
- * its `sets` are raised (marks first, then durable flags); and `never`, the mark combinations a restore refuses.
- */
-export const InteractionRowsSchema = v.pipe(
-  v.strictObject({ marks: v.pipe(v.array(v.strictObject({ id: name, initial: v.exactOptional(condition) })), v.maxLength(256)),
-    rows: v.pipe(v.array(row), v.maxLength(256)), never: v.exactOptional(v.pipe(v.array(condition), v.maxLength(64))) }),
-  v.check(data => unique(data.marks.map(mark => mark.id)) && unique(data.rows.map(entry => entry.id)) && unique(data.rows.map(entry => entry.act)), 'unique mark ids, row ids and acts'),
-);
-/** Validated interaction rows (`InteractionRowsSchema`). */
-export type InteractionRowsData = v.InferOutput<typeof InteractionRowsSchema>;
-/** One declared row. */
-export type InteractionRow = InteractionRowsData['rows'][number];
-/** Compile authored interaction rows; an unknown field, a duplicate id or act, or an empty `sets` refuses. */
-export function parseInteractionRows(input: unknown): InteractionRowsData { return v.parse(InteractionRowsSchema, input); }
+/** The defining pure interaction contract, shared by author admission and native rules. */
+export const InteractionRowsSchema = interactionContracts.InteractionRowsSchema;
+/** Validated interaction rows. */
+export type InteractionRowsData = interactionContracts.InteractionRowsData;
+/** One declared prompt or crack row. */
+export type InteractionRow = interactionContracts.InteractionRow;
+/** Admit the identical bounded interaction contract before installing native rules. */
+export function parseInteractionRows(input: unknown): InteractionRowsData { return interactionContracts.parseInteractionRows(input); }
 /** A row's answer: it ran, or the `else` reason of its first unmet need (`'refused'` when the need names none). */
 export type InteractionResult = { readonly ok: true } | { readonly ok: false; readonly reason: string };
 

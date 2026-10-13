@@ -38,6 +38,8 @@ import { AccentSchema, ACCENT_IDS } from '@wildshard/format/accent';
 import { ItemsSchema, ItemFamilyNameSchema } from '@wildshard/format/items';
 import { TargetsSchema } from '@wildshard/format/targets';
 import { QuestDataSchema } from '@wildshard/format/quests';
+import { QuestGraphSchema } from '@wildshard/format/questGraph';
+import { InteractionRowsSchema } from '@wildshard/format/questInteractions';
 
 import { RowsSchema } from '@wildshard/format/rows';
 import { MoversSchema } from '@wildshard/format/movers';
@@ -173,6 +175,8 @@ const wireRoots = {
   'items.Items': ItemsSchema,
   'targets.Targets': TargetsSchema,
   'quests.QuestData': QuestDataSchema,
+  'questGraph.QuestGraph': QuestGraphSchema,
+  'questInteractions.InteractionRows': InteractionRowsSchema,
   'rows.Rows': RowsSchema,
   'movers.Movers': MoversSchema,
   'modes.Modes': ModesSchema,

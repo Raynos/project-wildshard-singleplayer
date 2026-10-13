@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
-import { InteractionRules as Rules, InteractionRowsSchema as schema, parseInteractionRows as parseRows, type InteractionRowsData as Data } from '@wildshard/game/quest/interactionRows';
+import { InteractionRules as Rules } from '@wildshard/game/quest/interactionRows';
+import { InteractionRowsSchema as schema, parseInteractionRows as parseRows, type InteractionRowsData as Data } from '@wildshard/format/questInteractions';
 
 /** Declared interaction rows: transient marks, prompt / crack rows at named spots with ordered needs and their sets (SF72). */
 export const InteractionRowsSchema = v.pipe(schema);

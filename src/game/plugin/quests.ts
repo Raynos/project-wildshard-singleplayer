@@ -2,6 +2,7 @@
 import { MathUtils, type Vector3 } from "three";
 import * as v from "valibot";
 import * as npcs from '@wildshard/format/npcs';
+import * as graphContracts from '@wildshard/format/questGraph';
 
 import type { NpcDef } from "@wildshard/engine/quest/core";
 import type { SimHost } from "@wildshard/engine/sim";
@@ -59,21 +60,12 @@ export function npcSpot(row: NpcRow, groundAt: (x: number, z: number) => number)
   return { x: row.at.x, y: groundAt(row.at.x, row.at.z) + row.talkHeight, z: row.at.z, radius: row.talkRadius };
 }
 
-const questGraphName = v.pipe(v.string(), v.minLength(1), v.maxLength(96));
-/**
- * A quest graph's runtime row (SHARD-PLATFORM SF27): the `script` command actor that carries its interaction rows, the
- * fixed-step id of their marks' continuation, and its `actions`, the beats a row's run starts beyond its flags (today
- * `summon`: the named boss encounter is armed, as a signal fire calls a boss up). Lighting a brazier and cracking a lever
- * are the interaction rows' own crack rows (`crack: 'light' | 'heavy'`).
- */
-export const QuestGraphSchema = v.strictObject({
-  actor: questGraphName, step: questGraphName,
-  actions: v.pipe(v.array(v.strictObject({ row: questGraphName, summon: questGraphName })), v.maxLength(64)),
-});
-/** A validated quest graph runtime row (`QuestGraphSchema`). */
-export type QuestGraphRow = v.InferOutput<typeof QuestGraphSchema>;
-/** Compile an authored quest graph runtime row; an unknown field refuses. */
-export function parseQuestGraph(input: unknown): QuestGraphRow { return v.parse(QuestGraphSchema, input); }
+/** The defining pure quest graph contract, shared by author and native consumers. */
+export const QuestGraphSchema = graphContracts.QuestGraphSchema;
+/** A validated quest graph runtime row. */
+export type QuestGraphRow = graphContracts.QuestGraphRow;
+/** Admit the identical quest graph without installing a native owner. */
+export function parseQuestGraph(input: unknown): QuestGraphRow { return graphContracts.parseQuestGraph(input); }
 
 /** One baked spot: where the built world placed a prompt or a crack target (a crack target answers as `crack.<id>`). */
 export interface QuestGraphSpot extends InteractionSpot { readonly id: string }

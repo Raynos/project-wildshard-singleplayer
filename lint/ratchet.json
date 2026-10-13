@@ -226,7 +226,6 @@
   },
   "wildshard/sdk-no-facade": {
     "src/sdk/bag.ts": 1,
-    "src/sdk/interactions.ts": 1,
     "src/sdk/kit/bakedGeometry.ts": 7,
     "src/sdk/kit/mergedPrimitives.ts": 11,
     "src/sdk/looks/canvasAtlas.ts": 8,
@@ -236,7 +235,6 @@
     "src/sdk/panels.ts": 5,
     "src/sdk/phasedBoss.ts": 9,
     "src/sdk/playerModeData.ts": 1,
-    "src/sdk/questGraph.ts": 1,
     "src/sdk/runtime/audio/combatCues.ts": 1,
     "src/sdk/runtime/audio/silentScore.ts": 1,
     "src/sdk/runtime/audio/weaponVoices.ts": 3,

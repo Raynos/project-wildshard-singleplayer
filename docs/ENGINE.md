@@ -2649,6 +2649,16 @@ motion and collider registration; an omitted figure and an empty talk anchor
 remain distinct lifecycle choices.
 The geometry loan also accepts prepared `PivotNpcGeometry` local-frame parts;
 the binding forwards them without fitting or partitioning them again.
+The pure `@wildshard/format/questGraph` contract defines `QuestGraphSchema`,
+`QuestGraphRow` and `parseQuestGraph`: the bounded interaction actor, step and
+ordered summon actions. `@wildshard/format/questInteractions` defines
+`InteractionRowsSchema`, `InteractionRowsData`, `InteractionRow` and
+`parseInteractionRows`: bounded marks, prompt/crack rows, ordered flag needs,
+sets and forbidden restore combinations. Both modules admit data without
+installing native or presentation owners. Their JSON Schema roots are
+`questGraph.QuestGraph` and `questInteractions.InteractionRows`; the existing
+game and SDK parsers preserve the defining schema identities and verdicts.
+
 `installDeclaredQuestNpc(ctx, source, id, ports)` selects the root's `questNpcs`
 binding by NPC identity. Missing identities refuse before resource lookup. Root
 admission requires native quest ownership, declared dialogue/met flags and unique

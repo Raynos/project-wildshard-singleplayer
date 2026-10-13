@@ -1,7 +1,8 @@
 import * as v from 'valibot';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import { NpcRowSchema as npcSchema, parseNpcRow as parseNpc, parseNpcDialogueRow as parseDialogue, type NpcDialogueRow as Dialogue, type NpcRow as Npc } from '@wildshard/format/npcs';
-import { QuestGraphSchema as graphSchema, parseQuestGraph as parseGraph, compileQuestTable as compileTable, type QuestGraphRow as Graph } from '@wildshard/game/plugin/quests';
+import { compileQuestTable as compileTable } from '@wildshard/game/plugin/quests';
+import { QuestGraphSchema as graphSchema, parseQuestGraph as parseGraph, type QuestGraphRow as Graph } from '@wildshard/format/questGraph';
 
 
 /** A quest-giver NPC row (SF27): who it is, where it stands, what it says and how its pivot figure moves. */
