@@ -299,6 +299,8 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [generation-removals.mjs](./generation-removals.mjs)
 - [generation-sources.d.mts](./generation-sources.d.mts)
 - [generation-sources.mjs](./generation-sources.mjs)
+- [generator-inventory.d.mts](./generator-inventory.d.mts)
+- [generator-inventory.mjs](./generator-inventory.mjs)
 - [green-prefix.d.mts](./green-prefix.d.mts)
 - [green-prefix.mjs](./green-prefix.mjs)
 - [grid-approach-regression.d.mts](./grid-approach-regression.d.mts)

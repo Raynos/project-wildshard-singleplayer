@@ -6,6 +6,7 @@ import { prepareGeneration } from './generate.mjs';
 import { genPortShares } from './gen-port-shares.mjs';
 import { genStarterArmClips } from './gen-starter-arm-clips.mjs';
 import { genStarterWeapons } from './gen-starter-weapons.mjs';
+import { writeGeneratorInventory } from './generator-inventory.mjs';
 
 const buildInputs = process.argv.includes('--build-inputs');
 async function step(name, run) {
@@ -44,3 +45,6 @@ if (!process.argv.includes('--build-inputs')) {
   const { writeApiDocs } = await import('./gen-api.mjs');
   writeApiDocs();
 }
+
+// G391: the explorers' checklist is a deterministic committed producer output.
+await step('generator-inventory', () => writeGeneratorInventory(`${import.meta.dirname}/..`));

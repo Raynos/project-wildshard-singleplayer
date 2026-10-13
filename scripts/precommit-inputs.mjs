@@ -150,7 +150,7 @@ writeFileSync(process.argv[1],JSON.stringify([...files,...recorded]));`;
     const baked = performance.now();
     const tracked = new Set(git(['ls-tree', '-r', '--name-only', before], undefined).split('\n'));
     // Only these declared tracked tables are written by the boot generator.
-    const tables = ['lint/ask-ids.json', 'lint/shard-words.generated.json'];
+    const tables = ['lint/ask-ids.json', 'lint/shard-words.generated.json', ...(existsSync(resolve(scratch, 'docs/plans/shard-platform/generator-inventory.md')) ? ['docs/plans/shard-platform/generator-inventory.md'] : [])];
     for (const file of new Set([...tables, ...produced])) {
       const bytes = readFileSync(resolve(scratch, file));
       const previous = spawnSync('git', ['show', `${before}:${file}`], { cwd: root, maxBuffer: 64 * 1024 * 1024 });
