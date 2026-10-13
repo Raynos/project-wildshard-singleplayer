@@ -10,7 +10,7 @@
 **Signal and Sky both meet Jake's port bar (tiles + 0 private binaries).** Authored physics (G350), navigation rows (`c9f6e59be`); content-gate issue left: "trusted runtime owns simulation". `plugin/` 20 → 14.
 **LIVE `2f7cc5e25-mv6dko3t` (07:44Z)**: Sky island tiles, NE-b hero, fire A, nav rows, authored physics. Desktop frame floor at `fea49ae28` RED (worst 133–267 ms): sp-o93.
 
-**Fleet (G384): 4 Opus + 6 Codex.** Codex: sp-x7 pusher; sp-x5 bench-max; sp-x6 SF66 map packing; sp-x4 Pine; sp-x1 Driftwood; sp-x8 Nine (Linux proof). Opus: sp-o92 desktop render, sp-o93 frame floor, sp-o94 SF61 Debug purge, sp-o95 Nalati query terrain (`8be4e615d`).
+**Fleet (G384): 4 Opus + 6 Codex.** Codex: sp-x7 pusher; sp-x5 bench-max; sp-x6 SF66 map packing; sp-x4 Pine; sp-x1 Driftwood; sp-x8 Nine (Linux proof). Opus: sp-o92 desktop render, sp-o93 frame floor, sp-o95 Nalati query terrain, sp-o96 Sky world → baked.
 
 **For wildshard-v, Jake ask (G350 Nalati places):** bake runs 22k engine lines for 4.2 MB. **Port** to authored generators (big) or **freeze** the bins + rows as authored inputs (cheap, not regenerable). Recommend port later; bridge stays.
 
@@ -19,8 +19,7 @@
 **Hero NE-b SHIPPED** (`77529adfb`, G383). **For wildshard-v:** near boards `art/near-tier/round-6/` (A/B/C; ridges kept `2d4b6b8a0`); tile-built near views keep their tiles' materials (`7a3735a3c`). Signal ground: shared presentation client (`7e4ee3740`).
 
 **Calls for Jake (2026-10-13; reverse any):**
-6. `terrain.bin` → session-installed ground loader (`5cfc5674b`).
-7. Sky tiles = island prop tiles its runtime draws, no fake tiles (`28439b8ee`).
+6. `terrain.bin` → session ground loader. 7. Sky tiles = island prop tiles, no fake tiles.
 8. Commons 0 packs; SF26/DS1.6 done-when → first two-shard pack (G355).
 9. Physics rows no recipe computes are authored literally (G350).
 10. Signal navmesh kept byte-identical (739 polys), not rebaked.
@@ -28,7 +27,8 @@
 12. Pine cabins: one Scene bake as a shape library; live owners unchanged (`5e4c9f9d5`).
 13. Optional `props.wholeLibrary` refs bind Nine's library GLBs (crown, specimens) vs rebucketing 348 subsets (sp-x8).
 14. Tile subsets may declare ≤ 1 m edge overhang (Pine creek bank, 0.98 m); no vertex clamp (sp-x4).
-15. Nine authoring uses portable math (Linux = Mac); deltas reported, look parity gates (sp-x8).
+15. Nine authoring uses portable math (Linux = Mac); look parity gates (sp-x8).
+17. Debug rows 7 → 4; DEVSERVER-only grid cell row deleted without a pick (sp-o94).
 16. Driftwood boat hull equation shared by generator + live in `world/boatFrame.ts`, not a cut (sp-x1).
 
 Paused: SF22, SF57, SF67.
