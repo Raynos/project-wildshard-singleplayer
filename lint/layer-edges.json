@@ -1,8 +1,7 @@
 {
   "about": "SF6b: generated cross-layer import counts; exact increases require coordinator approval in the regeneration commit.",
   "edges": {
-    "commons → format": 1,
-    "commons → sdk": 18,
+    "commons → sdk": 5,
     "engine → format": 31,
     "game → engine": 942,
     "game → format": 204,
