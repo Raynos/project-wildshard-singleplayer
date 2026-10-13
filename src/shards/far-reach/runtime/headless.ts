@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan, HeadlessRuntimePreparation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { bakedSpecs, installSpeciesHomes } from '@wildshard/game/plugin/brain';
+import { bakedSpecs } from '@wildshard/game/plugin/brain';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { installDeclaredPropColliders } from '@wildshard/engine/physics/declaredProps';
@@ -12,8 +12,8 @@ import { DECK, SPAWN, VANES } from '../data/layout';
 import { SKY_FLOCK_ROWS, SKY_FLOCK_PLACEMENT, SKY_ANALYTIC_FLOOR, SKY_KILL_Y, FLOCK_STEP } from '../data/spawns';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
 import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES } from '../data/brains';
-import { installBossOwnerRow } from '@wildshard/game/shardfile/bossRow';
-import { ROC_OWNER, ROC_ID } from '../data/rocFight';
+import { installSpeciesEncounter } from '@wildshard/game/shardfile/bossRow';
+import { ROC_OWNER } from '../data/rocFight';
 import { FAN_ID } from '../data/items';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM } from '../data/nativeMelee';
 import { turnVanes, VANE_HUB } from '../quest/vanes';
@@ -80,14 +80,11 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
     host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
     const movers = installMovers(host, context.restoring, () => new Map([[SKY_MOVER_BINDING.winch, skyWinchPermission(host.flags)]]));
     const brains = speciesBrains(SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES);
-    const keeper = installSpeciesHomes(host, { step: FLOCK_STEP, seed: shard.identity.seed, specs, species: SKY_CREATURE_ROWS,
+    const ledger = ledgerPorts(context.emit);
+    const { keeper, encounter } = installSpeciesEncounter(host, { step: FLOCK_STEP, seed: shard.identity.seed, specs, species: SKY_CREATURE_ROWS,
       brains, attackers: Infinity, think: { bands: { rate: () => 'legacy' } }, killY: SKY_KILL_Y, placement: SKY_FLOCK_PLACEMENT,
       homes: SKY_FLOCK_ROWS.map(home => ({ id: home.id, kind: home.kind, at: home.at, yaw: home.yaw, respawn: 0, late: specs.get(home.kind)?.flight === undefined })),
-    }, context.snapshot);
-    const actor = keeper.homes().find(home => home.id === ROC_ID)?.actor, body = actor === null || actor === undefined ? null : brains.held(actor.kind, actor);
-    if (actor === null || actor === undefined || body === null) throw new Error('Sky Reach declares its held raptor body');
-    const ledger = ledgerPorts(context.emit);
-    const encounter = installBossOwnerRow(host, ROC_OWNER, { body: { kind: 'held', actor, brain: body }, ...ledger });
+    }, ROC_OWNER, ledger, context.snapshot);
     const fan = pickCommands(context.commands, (command): NativeMeleeCommand | undefined => {
       if (command.kind === 'player') return command.attack === undefined ? undefined : { kind: 'move', action: 0, targetId: command.attack.targetId };
       if (command.kind === 'script' && command.actorId === FAN_AIM) return { kind: 'aim', pitch: command.value };

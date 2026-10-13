@@ -4173,3 +4173,15 @@ animated arithmetic order and normal computation stay exact. The
 shared host does not copy the loop, and its relocation is not claimed
 as a custom-code cut. Both lash and fan still use the same held
 presentation owner; this private geometry law is an open Signal C6 tail.
+
+**Native species encounter population (W1 C4).**
+`installSpeciesEncounter(host, population, bossOwnerRow, effectPorts,
+snapshot?)` installs the existing species home keeper and binds the boss
+only to an owner from that population. A spawned profile requires the
+matching declared boss row; a held profile requires a matching home.
+Foreign addresses refuse before allocation. Held control comes from the
+population's admitted brain on its actual body, and a spawned encounter
+uses that keeper's boss lifetime. The returned `keeper` and `encounter`
+retain the original continuations and ordered reward ports. Callers own
+brain construction phase, install order and the final `keeper.settle()`;
+no extra host, clock or body is created.

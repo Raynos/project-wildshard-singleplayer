@@ -8,6 +8,7 @@ import { BossBrain, type BossContinuation, type BossDefinition, type BossSaved, 
 import { silentBossPresentation } from '@wildshard/engine/ai/phases';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
+import { installSpeciesHomes, type SpeciesHomesSpec } from '../plugin/brain';
 
 /** A boss row's two durable flags: beaten (its record's `defeated`) and paid (its record's `rewardTaken`). */
 export interface BossRowFlagNames { readonly defeated: string; readonly paid: string }
@@ -136,4 +137,30 @@ export function installBossOwnerRow(host: SimHost, input: unknown, ports: BossOw
     script: fight.script, body: () => owner.actor, shielded: fight.shielded,
     fight: { snapshot: fight.snapshot, restore: fight.restore }, saved, persist,
     ...(reward === undefined ? {} : { spawnReward: reward }), armed: row.armed });
+}
+
+/** Install an encounter over its declared population's actual owner. Admission
+ * checks the owner address before allocating bodies; held controllers come from
+ * that population's admitted brain, and spawned bosses use its own keeper.
+ * The caller retains construction phase, fixed-step order and settle timing. */
+export function installSpeciesEncounter(host: SimHost, population: SpeciesHomesSpec, input: unknown,
+  ports: Omit<BossOwnerPorts, 'body'>, saved?: Parameters<typeof installSpeciesHomes>[2]): {
+  keeper: ReturnType<typeof installSpeciesHomes>; encounter: ReturnType<typeof installBossOwnerRow>;
+} {
+  const row = parseBossOwnerRow(input), pattern = row.profile.pattern;
+  if (pattern === 'spawned' ? population.boss?.id !== row.actor : !population.homes.some(home => home.id === row.actor)) {
+    throw new Error('Encounter owner must belong to its declared species population');
+  }
+  const keeper = installSpeciesHomes(host, population, saved);
+  let body: BossOwnerBody;
+  if (pattern === 'spawned') {
+    if (keeper.boss === null) throw new Error('Declared spawned encounter has no keeper');
+    body = { kind: 'spawned', keeper: keeper.boss };
+  } else {
+    const actor = keeper.homes().find(home => home.id === row.actor)?.actor;
+    const brain = actor === null || actor === undefined ? null : population.brains.held(actor.kind, actor);
+    if (actor === null || actor === undefined || brain === null) throw new Error('Declared held encounter has no owned controller');
+    body = { kind: 'held', actor, brain };
+  }
+  return { keeper, encounter: installBossOwnerRow(host, row, { body, ...ports }) };
 }

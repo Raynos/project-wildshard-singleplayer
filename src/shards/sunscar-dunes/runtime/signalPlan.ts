@@ -3,8 +3,8 @@ import signalStages from '../data/signalStages.json' with { type: 'json' };
 import { FLAG } from '../data/flags';
 import * as v from 'valibot';
 import { addBakedWorld, admittedTerrain, ledgerPorts, pickCommands, trustedLevel, weaponRow, installNativeMelee, type NativeMeleeCommand, type NativeMeleeWorld, type NativeMeleeOwner } from '@wildshard/game/plugin/simulation';
-import { bakedSpecs, installSpeciesHomes } from '@wildshard/game/plugin/brain';
-import { installBossOwnerRow } from '@wildshard/game/shardfile/bossRow';
+import { bakedSpecs } from '@wildshard/game/plugin/brain';
+import { installSpeciesEncounter } from '@wildshard/game/shardfile/bossRow';
 import { installQuestGraph, type QuestGraphPorts } from '@wildshard/game/plugin/quests';
 import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
 import { speciesBrains } from '@wildshard/sdk/speciesBrains';
@@ -44,12 +44,10 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) 
   return { level: trustedLevel(shard, { at, yaw: shard.spawn.yaw, speed: SIGNAL_LEVEL.player.speed }, SIGNAL_LEVEL.ground), ports: { ground: false, heightAt },
     proveEntries: host => proveTerrainEntries(host.physics, shard.entryways, heightAt, manifest.entries), install: (host, context) => {
     if (!context.restoring) addBakedWorld(host, baked.pieces, terrain.bytes);
-    const keeper = installSpeciesHomes(host, { step: homes.step, seed: homes.seed, homes: homes.rows, boss: boss.row, specs,
-      species: homes.species, brains, attackers: homes.attackers, think: homes.think,
-      holds: homes.holds }, context.snapshot);
-    if (keeper.boss === null) throw new Error('Missing native Matriarch body');
     const ledger = ledgerPorts(context.emit);
-    const encounter = installBossOwnerRow(host, SIGNAL_BOSS_OWNER, { body: { kind: 'spawned', keeper: keeper.boss }, ...ledger });
+    const { keeper, encounter } = installSpeciesEncounter(host, { step: homes.step, seed: homes.seed, homes: homes.rows, boss: boss.row, specs,
+      species: homes.species, brains, attackers: homes.attackers, think: homes.think,
+      holds: homes.holds }, SIGNAL_BOSS_OWNER, ledger, context.snapshot);
     const input = new SignalLashInput();
     let released = { released: false, target: null as string | null };
     host.onStep(SIGNAL_LASH_INPUT, dt => { released = input.sample(dt, context.commands(), !encounter.locked()); },
