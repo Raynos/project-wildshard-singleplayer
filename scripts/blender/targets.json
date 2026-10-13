@@ -185,7 +185,7 @@
    "inputs": [],
    "lock": false,
    "outputs": ["public/assets/far-reach/models/roc-hd/roc-hd.glb"],
-   "feeds": ["src/shards/far-reach/species/stormRoc.ts"]
+   "feeds": ["src/shards/far-reach/generators/creatures.ts"]
   },
   "blender-template": {
    "about": "SF55 fully authored clay cell: four entry landmarks, hall and one textured door",

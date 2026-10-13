@@ -9,7 +9,7 @@ and exports the GLB with its painted map (texture compression and meshopt are th
 
 The source is the eagle Hunyuan3D-2 made from art/far-reach/round-27-roc/refs/ref-eagle.jpg, after finish.sh (12k tris,
 1024 map): ~/ml/img2mesh/work/roc-eagle/roc-eagle.raw.glb. The sky that showed through its legs and tail in flight was
-the rig's, not the mesh's: src/shards/far-reach/species/stormRoc.ts now binds the wings with blended weights.
+the rig's, not the mesh's: src/shards/far-reach/generators/creatures.ts now binds the wings with blended weights.
 """
 import sys
 import bpy
