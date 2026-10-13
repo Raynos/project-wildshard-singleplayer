@@ -1422,6 +1422,7 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile,
         }
         if (scope.disposed) throw new Error('Whole geometry unloaded while reading');
       } finally { for (const dispose of cleanup) dispose(); }
+      await product.releaseTransport([hash]);
     }
     const result = assembler.finish();
     for (const [id, view] of result) {
