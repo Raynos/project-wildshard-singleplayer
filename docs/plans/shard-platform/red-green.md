@@ -122,3 +122,7 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | post-commit hang: a captured caller's stdout pipe held open by the background launcher (private-index helpers waited forever) | `321ac29ca` (+ ledger `93ec1c2fc`, ratchet `71e0d2752`) | `c47be4afa` (redirect + exec the whole launcher in all three branches) | sp-x7 |
 | 2026-10-13 | m5 parity boot fields red: Nalati meshes / programs / texture bytes; Driftwood update list / collider registry / GPU bytes | to attribute | pending (sp-o106: attribute per field, re-baseline intended ones only) | sp-o106 |
 | 2026-10-13 | push gate: oxlint (3 formatting / type-import issues) | `9c2ce3013` | `d8eb3af14` (385 portable pins unchanged) | sp-x8 |
+| 2026-10-13 | frame floor (Sim): Nine entry layout restore spikes 150–187 ms | layout restore (all pins) | `6a4beeeca` (sliced read into Float64Array runs; bounds in slices): 86–118 ms | sp-o101 |
+| 2026-10-13 | **P0 frame floor (Sim): Nine world-hook frame 1786–1831 ms** (7 MB `data/world.generated.json` parsed at module eval via `shard.config.ts` + `runtime/geometry.ts`) | `9c2ce3013` (Nine port) | pending (sp-o109: records to a fetched binary, sliced decode) | sp-o109 |
+| 2026-10-13 | typecheck: `test/shards/nine-dragon-stack/vertex-spill.test.ts` constructs `LayoutBake` with one argument | `9c2ce3013` | pending (sp-x8) | sp-x8 |
+| 2026-10-13 | clean-export `pnpm gen`: Nine `data/physics.generated.json` "committed generated output differs" (likely stale bytes seeded into the export) | tracing | pending (sp-x8) | sp-x8 |
