@@ -7,7 +7,7 @@ import { loadRapier, type Rapier } from '../src/engine/physics/rapier';
 import { snapshotSimHost, restoreSimHost, type SimSnapshot } from '../src/engine/sim/snapshot';
 import { HOST_PROBE, installNativeMelee, type NativeMeleeCommand } from '../src/game/plugin/simulation';
 import { parseNativeMeleeRow, type NativeMeleeRow, type MeleeContactRow } from '../src/format/weaponProfiles';
-import { parseItems } from '../src/format/items';
+import { parseItems, parseNativeMeleeBinding } from '../src/format/items';
 import { WHIP_ITEMS } from '../src/shards/sunscar-dunes/data/items';
 import { WHIP_CONTACT_MOVES } from '../src/shards/sunscar-dunes/data/whipContacts';
 
@@ -124,4 +124,15 @@ it('admits the real item policy and leaves absent attachments absent while refus
     { ...timed, actions: [{ action: 0, move: 0, aim: 'selected', hook: 3 }] },
     { ...timed, mode: 'immediate' },
   ]) expect(() => parseItems({ ...WHIP_ITEMS, rows: [{ ...original, native }] })).toThrow();
+});
+
+it('admits a native policy with its real contacts without copying lifetime arrays', () => {
+  const admitted = parseNativeMeleeBinding(timed, WHIP_CONTACT_MOVES);
+  expect(admitted.contacts).toBe(WHIP_CONTACT_MOVES);
+  expect(admitted.contacts[0]?.hits[0]?.tags).toBe(WHIP_CONTACT_MOVES[0].hits[0].tags);
+  expect(() => parseNativeMeleeBinding(timed, undefined)).toThrow();
+  expect(() => parseNativeMeleeBinding({ ...timed, actions: [{ action: 0, move: 4, aim: 'selected', hook: null }] }, WHIP_CONTACT_MOVES)).toThrow();
+  expect(() => parseNativeMeleeBinding({ ...timed, mode: 'immediate' }, WHIP_CONTACT_MOVES)).toThrow();
+  expect(() => parseNativeMeleeBinding({ ...timed, actions: [{ action: 0, move: 0, aim: 'selected', hook: 3 }] }, WHIP_CONTACT_MOVES)).toThrow();
+  expect(() => parseNativeMeleeBinding({ ...timed, hidden: () => false }, WHIP_CONTACT_MOVES)).toThrow();
 });

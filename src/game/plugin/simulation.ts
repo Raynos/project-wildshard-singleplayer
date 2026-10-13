@@ -1,6 +1,5 @@
-import { parseNativeMeleeRow } from '@wildshard/format/weaponProfiles';
 import { ContactFamily, type ContactFamilyPorts, type ContactScanTarget } from '@wildshard/engine/combat/contactWeapon';
-import { parseItems, parseMeleeContacts } from '@wildshard/format/items';
+import { parseItems, parseMeleeContacts, parseNativeMeleeBinding } from '@wildshard/format/items';
 import { scriptItemHook } from '@wildshard/engine/combat/items';
 import { Vector3 } from 'three';
 import { createHeadlessPromptPicker } from '../quest/interactionRows';
@@ -828,8 +827,7 @@ export interface NativeMeleeOwner { readonly family: ContactFamily<NativeMeleeTa
 /** Install immediate and delayed item contacts on one renderer-free owner, retaining ordered commands and wire bindings. */
 export function installNativeMelee(host: SimHost, weapon: { readonly id: string; readonly contacts?: readonly NativeMeleeContact[] },
   input: unknown, ports: NativeMeleePorts): NativeMeleeOwner {
-  const row = parseNativeMeleeRow(input);
-  if (weapon.contacts === undefined) throw new Error('Native melee requires admitted item contacts');
+  const { native: row, contacts } = parseNativeMeleeBinding(input, weapon.contacts);
   const aimed = { target: null as string | null, world: null as number | null, dir: new Vector3(0, 0, -1) };
   const from = new Vector3(), direction = new Vector3(), targets = ports.world ?? [];
   const volumes = { head: new Vector3(), headRadius: 0, a: new Vector3(), b: new Vector3(), bodyRadius: 0 };
@@ -853,7 +851,7 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
       if (heavy && second) cracked = target.act;
       return true;
     } }));
-  const family = bindMeleeContacts<NativeMeleeTarget>(weapon.id, weapon.contacts, { owner: host.player.health, hit: request => host.combat.hit(request),
+  const family = bindMeleeContacts<NativeMeleeTarget>(weapon.id, contacts, { owner: host.player.health, hit: request => host.combat.hit(request),
     world: () => world, aim: selected,
     targets: () => [...host.entities.keys()].flatMap(id => { const target = port(id); return target === null || row.liveTargetsOnly && !target.hittable ? [] : [target]; }),
     react: target => ({ actor: target.actor, ...(target.impulse === undefined ? {} : { impulse: target.impulse }), stagger: (dir, strength) => { target.target.stagger?.(dir, strength); } }),
@@ -872,11 +870,6 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
       return best;
     } }),
   });
-  for (const action of row.actions) {
-    const move = family.moves[action.move];
-    if (move === undefined || (row.mode === 'timed') !== (move.lands.length > 0)
-      || action.hook !== null && move.lane !== 'secondary') throw new Error('Native melee action does not match its admitted contact');
-  }
   const snapshot = (): SimValue => {
     const state: Record<string, SimValue> = {};
     for (const field of row.continuation.fields) {

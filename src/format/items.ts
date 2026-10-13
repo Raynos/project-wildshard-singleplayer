@@ -43,6 +43,20 @@ export function parseMeleeContacts(input: unknown): readonly MeleeContactRow[] {
   v.assert(MeleeContactsSchema, input);
   return input;
 }
+/** Admit a native owner together with its contacts, preserving event-lifetime arrays.
+ * JSON-only policies must resolve every action to the correct contact phase and lane. */
+export function parseNativeMeleeBinding(input: unknown, contactsInput: unknown): {
+  native: v.InferOutput<typeof NativeMeleeRowSchema>; contacts: readonly MeleeContactRow[];
+} {
+  v.assert(v.custom(isJsonData, 'JSON-only native melee policy'), input);
+  const native = v.parse(NativeMeleeRowSchema, input), contacts = parseMeleeContacts(contactsInput);
+  if (native.actions.some(action => {
+    const contact = contacts[action.move];
+    return contact === undefined || (native.mode === 'timed') !== (contact.lands.length > 0)
+      || action.hook !== null && contact.lane !== 'secondary';
+  })) throw new TypeError('Native melee action does not match its admitted contact');
+  return { native, contacts };
+}
 /** Declared item families, numeric contacts, input contexts, script hooks and initial loadout. */
 export type ShardItems = v.InferOutput<typeof raw>;
 /** Local references plus optional script catalogue checks; global format composition supplies admitted module ids. */

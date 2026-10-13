@@ -3975,3 +3975,10 @@ optional second texture argument and declared props' colour slots bind it via
 `bindGraphMeshMap` in the existing engine graph backend. Equal graph/map pairs
 share a scope-owned material; different maps remain separate. Original textures
 and source materials are never modified or disposed by the binding helper.
+
+`@wildshard/format/items.parseNativeMeleeBinding(policy, contacts)` admits
+JSON-only native policy and contact rows together. Every action must resolve
+to a contact with the declared immediate/delayed phase; scripted actions
+require a secondary contact. It retains original contact and tag arrays for
+event lifetimes. `installNativeMelee` uses this items admission before
+allocating its controller or registering a native step.
