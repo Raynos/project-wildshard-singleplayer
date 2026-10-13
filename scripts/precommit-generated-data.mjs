@@ -8,8 +8,9 @@ import { pathToFileURL } from 'node:url';
  * Missing pinned outputs refuse before lint can misclassify an unresolved type as renderer reach.
  * @param {string} root Working repository with locally generated outputs.
  * @param {string} snapshot Immutable staged-tree export containing its generation catalogue.
+ * @param {string} [blobDirectory] Commit-produced, content-addressed bytes; each is verified against the staged pin.
  */
-export function materializeGuardData(root, snapshot) {
+export function materializeGuardData(root, snapshot, blobDirectory) {
   const catalog = resolve(snapshot, 'scripts/generation-jobs.json');
   if (!existsSync(catalog)) return;
   /** @type {{jobs: {id?: string, buildOutputs?: Record<string, string>}[]}} */
@@ -22,8 +23,10 @@ export function materializeGuardData(root, snapshot) {
         || !/^[a-f0-9]{64}$/u.test(hash)) throw new Error(`Invalid generated guard data: ${path}`);
       const target = resolve(snapshot, path), source = resolve(root, path);
       if (existsSync(target)) continue;
-      if (!existsSync(source)) throw new Error(`Missing pinned generated guard data: ${path} (job ${job.id ?? 'unnamed'}). Run pnpm gen before measuring source guards.`);
-      const bytes = readFileSync(source);
+      const blob = blobDirectory === undefined ? undefined : resolve(blobDirectory, hash);
+      const available = blob !== undefined && existsSync(blob) ? blob : source;
+      if (!existsSync(available)) throw new Error(`Missing pinned generated guard data: ${path} (job ${job.id ?? 'unnamed'}). Run pnpm gen before measuring source guards.`);
+      const bytes = readFileSync(available);
       if (createHash('sha256').update(bytes).digest('hex') !== hash) throw new Error(`Generated guard data does not match staged hash: ${path}`);
       JSON.parse(bytes.toString('utf8')); // A pinned file cannot masquerade as executable source.
       mkdirSync(dirname(target), { recursive: true });

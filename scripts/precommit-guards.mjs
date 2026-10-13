@@ -110,6 +110,18 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
   /** @type {Promise<unknown>[]} children that must settle before the scratch export is removed */
   const children = [];
   try {
+    const blobDirectory = join(run(root, 'git', ['rev-parse', '--path-format=absolute', '--git-common-dir']).trim(), 'commit-inputs', 'blobs');
+    const materialize = async destination => {
+      try { materializeGuardData(root, destination, blobDirectory); }
+      catch (error) {
+        // A new pinned output may be generated concurrently. Wait for the
+        // writer's successful publication, then verify its exact staged pin.
+        if (inputsDone === undefined || inputsDone === '') throw error;
+        console.log('precommit-guards: waiting for pinned data');
+        if (await inputsStatus(inputsDone) !== 0) throw new Error('Architecture guards stopped: scripts/precommit-inputs.mjs failed', { cause: error });
+        materializeGuardData(root, destination, blobDirectory);
+      }
+    };
     // write-tree observes Git's pathspec temporary index too. Exporting it prevents dependency reads from WIP.
     const tree = run(root, 'git', ['write-tree']).trim();
     // SF2 (~4 s, the longest guard) reads src, tsconfig and its own lint lists, never STAGED_TABLES. It gets its own
@@ -117,7 +129,7 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
     const couplingRoot = join(scratch, 'coupling');
     mkdirSync(couplingRoot);
     extractGuardArchive(root, tree, ['src', 'lint', 'tsconfig.json', 'package.json', 'scripts/generation-jobs.json', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs'], couplingRoot);
-    materializeGuardData(root, couplingRoot);
+    await materialize(couplingRoot);
     linkNodeModules(root, couplingRoot);
     const coupling = runAsync(couplingRoot, process.execPath, ['scripts/shard-coupling.mjs', '--check']);
     children.push(coupling);
@@ -129,7 +141,7 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
     const snapshot = guardSnapshot(root, tree, scratch, paths);
     // Layout, legacy and manifest checks observe every shard. A manifest change also needs the generator scripts.
     extractGuardArchive(root, tree, ['src', 'scripts/generation-jobs.json', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json', ...(manifest ? ['scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'] : [])], scratch);
-    materializeGuardData(root, scratch); // Only staged hash-pinned JSON bytes may supplement the immutable source tree.
+    await materialize(scratch); // Only staged hash-pinned JSON bytes may supplement the immutable source tree.
     linkNodeModules(root, scratch); // E432: @wildshard/* resolve to the snapshot, not the working tree
     const configFile = join(scratch, '.oxlintrc.json'), hard = hardRules(configFile);
     const config = readLintConfig(configFile);
@@ -146,7 +158,7 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
     mkdirSync(beforeRoot);
     const beforeSnapshot = guardSnapshot(root, 'HEAD', beforeRoot, paths);
     extractGuardArchive(root, 'HEAD', ['scripts/generation-jobs.json'], beforeRoot);
-    materializeGuardData(root, beforeRoot);
+    await materialize(beforeRoot);
     linkNodeModules(root, beforeRoot);
     const beforeConfig = join(beforeRoot, '.oxlintrc.precommit.json');
     writeFileSync(beforeConfig, JSON.stringify(config));

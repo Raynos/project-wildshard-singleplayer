@@ -140,3 +140,17 @@ hard-rule refusal; narrowed gate types and touched lint are green.
 CALL: reuse only source-independent final tables with identical policy and
 shrinking integer counts. Never overlay native geometry or source. The 10 s
 cold cap remains open pending the producer census cut owned by sp-x7.
+
+
+## Parallel guard data publication
+
+A cold source hook refused before generation because a new staged JSON pin was
+not yet present in the working tree. Guards now read exact hash-verified commit
+blobs; a first-use missing pin waits for successful producer publication and
+then verifies again. Corrupt, missing or invalid JSON still refuses. Neither
+working source nor unpinned executable code can supplement the staged export.
+Seven focused checks, including a real asynchronous producer/guard fixture,
+narrowed gate types and touched lint pass. The refused 19.77 s source run earns
+no timing credit; the test-input cold run passes in 6.22 s on 713cad033.
+CALL: verified content-addressed outputs are authoritative; absent evidence
+waits for the writer, never falls back to guessed data.

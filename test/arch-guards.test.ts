@@ -262,6 +262,32 @@ describe('AG20 staged content isolation', () => {
     const refused = f.run();
     expect(refused.status).toBe(1); expect(refused.stderr).toContain('no-raw-save');
   });
+  it('waits for newly generated pinned data before reading source dependencies', async () => {
+    const f = repo(), bytes = '{"rows":[1,2,3]}';
+    const hash = '0a1952e4361b61e16dbdcac2e26925e489c8bc81fe637ea3f5af424f0fe882af';
+    put(f.root, 'scripts/generation-jobs.json', JSON.stringify({ jobs: [{ buildOutputs: {
+      'src/shards/example/data/rows.generated.json': hash,
+    } }] }));
+    put(f.root, 'src/engine/example.ts', 'export const value = 2;');
+    f.git('add', '--', 'src/engine/example.ts', 'scripts/generation-jobs.json');
+    const status = join(f.root, '.new-inputs-status');
+    const child = spawn(execPath, ['scripts/precommit-guards.mjs'], { cwd: f.root,
+      env: { ...env, SKIP_ARCH_GUARDS: '0', WS_PRECOMMIT_INPUTS_DONE: status }, stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '', published = false;
+    child.stdout.on('data', (chunk: Buffer) => {
+      stdout += String(chunk);
+      if (!published && stdout.includes('waiting for pinned data')) {
+        published = true;
+        put(f.root, `.git/commit-inputs/blobs/${hash}`, bytes);
+        writeFileSync(status, '0');
+      }
+    });
+    child.stderr.on('data', (chunk: Buffer) => { stderr += String(chunk); });
+    const code = await new Promise<number | null>((_resolve, reject) => {
+      child.on('error', reject); child.on('close', _resolve);
+    });
+    expect(published).toBe(true); expect(code, stderr).toBe(0);
+  });
   it('checks only the committed shard layout', () => {
     const f = repo(); put(f.root, 'src/shards/emberfall/plugin.ts', 'export const value = 1;'); f.git('add', '--', 'src/shards/emberfall/plugin.ts');
     const result = f.run(); expect(result.status).toBe(1); expect(result.stderr).toContain('missing required README.md');

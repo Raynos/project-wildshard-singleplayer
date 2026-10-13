@@ -85,3 +85,22 @@ it('materializes pinned JSON through the detached ratchet CLI without admitting 
     expect(readFileSync(join(snapshot, path), 'utf8')).toBe(bytes);
   } finally { rmSync(owned, { recursive: true, force: true }); }
 });
+
+
+it('uses verified commit blobs without requiring matching working output and refuses corrupt blobs', () => {
+  const owned = mkdtempSync(join(tmpdir(), 'guard-produced-data-'));
+  const root = join(owned, 'root'), snapshot = join(owned, 'snapshot'), blobs = join(owned, 'blobs');
+  const output = 'src/shards/example/data/rows.generated.json', bytes = '{"rows":[1,2,3]}\n';
+  const hash = createHash('sha256').update(bytes).digest('hex');
+  try {
+    mkdirSync(join(snapshot, 'scripts'), { recursive: true }); mkdirSync(blobs);
+    writeFileSync(join(snapshot, 'scripts/generation-jobs.json'), JSON.stringify({ jobs: [{ buildOutputs: { [output]: hash } }] }));
+    writeFileSync(join(blobs, hash), 'corrupt');
+    expect(() => materializeGuardData(root, snapshot, blobs)).toThrow('does not match staged hash');
+    expect(existsSync(join(snapshot, output))).toBe(false);
+    writeFileSync(join(blobs, hash), bytes);
+    materializeGuardData(root, snapshot, blobs);
+    expect(readFileSync(join(snapshot, output), 'utf8')).toBe(bytes);
+    expect(existsSync(join(root, output))).toBe(false);
+  } finally { rmSync(owned, { recursive: true, force: true }); }
+});
