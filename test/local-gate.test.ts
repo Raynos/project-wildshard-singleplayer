@@ -74,3 +74,27 @@ it('retains Node declarations for narrowed SDK and test composition roots', () =
     expect(run.status,run.stdout+run.stderr).toBe(0);
   } finally {rmSync(root,{recursive:true,force:true});}
 });
+
+it('retains unimported module merges and layer globals in changed roots', () => {
+  const root = mkdtempSync(join(tmpdir(),'local-gate-merges-'));
+  try {
+    mkdirSync(join(root,'src'));
+    mkdirSync(join(root,'node_modules'));
+    symlinkSync(resolve('node_modules/@types'),join(root,'node_modules/@types'),'dir');
+    writeFileSync(join(root,'tsconfig.json'),JSON.stringify({compilerOptions:{strict:true,noEmit:true,skipLibCheck:true,module:'ESNext',moduleResolution:'bundler',types:[]},include:['*.ts']}));
+    writeFileSync(join(root,'tsconfig.layers.json'),JSON.stringify({files:[],references:[{path:'./tsconfig.layer.json'}]}));
+    writeFileSync(join(root,'tsconfig.layer.json'),JSON.stringify({compilerOptions:{strict:true},include:['src/*.d.ts']}));
+    writeFileSync(join(root,'core.ts'),'export interface Slots {basic: true}');
+    writeFileSync(join(root,'augmentation.ts'),"import './core'; declare module './core' {interface Slots {ordinary: true}} ");
+    writeFileSync(join(root,'src','slot.merge.d.ts'),"import '../core'; declare module '../core' {interface Slots {merged: true}}");
+    writeFileSync(join(root,'src','global.d.ts'),'interface LayerGlobal {ready: true}');
+    writeFileSync(join(root,'changed.ts'),"import type{Slots}from'./core'; export const slots: (keyof Slots)[]=['ordinary','merged']; export const global: LayerGlobal={ready:true};");
+    writeFileSync(join(root,'changed.json'),'["changed.ts"]');
+    const run = spawnSync('node',[resolve('scripts/local-gate-checks.mjs'),'types','changed.json'],{cwd:root,encoding:'utf8',timeout:5000});
+    expect(run.status,run.stdout+run.stderr).toBe(0);
+    writeFileSync(join(root,'changed.ts'),"import type{Slots}from'./core'; export const invalid: keyof Slots='undeclared';");
+    const refused = spawnSync('node',[resolve('scripts/local-gate-checks.mjs'),'types','changed.json'],{cwd:root,encoding:'utf8',timeout:5000});
+    expect(refused.status).toBe(1);
+    expect(refused.stderr).toContain('not assignable');
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
