@@ -12,7 +12,7 @@ import { inflateSync } from 'node:zlib';
 import { platform } from 'node:process';
 import { BufferAttribute, BufferGeometry, type Group, Mesh, MeshBasicMaterial, ShaderMaterial, Vector3 } from 'three';
 import { bakeNineSpecimens, bootSpecimen, specimenRecipes } from '../../../src/shards/nine-dragon-stack/generators/specimens';
-import { SpecimenBake, specimensStamp } from '../../../src/shards/nine-dragon-stack/world/specimens';
+import { type SpecimenBake, specimensStamp } from '../../../src/shards/nine-dragon-stack/world/specimens';
 import { oracleLayout, oracleSpecimens } from './oracleBakes';
 import type { CanopyLump } from '../../../src/shards/nine-dragon-stack/world/banyanPlan';
 import { ndModelContext } from '../../../src/shards/nine-dragon-stack/world/modelLook';

@@ -47,12 +47,12 @@ export async function writeNineScene() {
   files.sort((a, b) => a.hash.localeCompare(b.hash));
   const metadata = { version: 1, notice: 'DO NOT EDIT: generators/bake-nine-layout.mjs through bake(scene, identity).',
     layout: { rows: product.layout.rows, records: product.layout.records }, libraries, specimenBoxes: product.boxes,
-    shardfile: { ...baked.shardfile, files, library: [...libraries.layout, ...libraries.boot, ...libraries.explorer].sort() }, props: baked.props?.props, report: baked.props?.report };
+    shardfile: { ...baked.shardfile, files, library: [...libraries.layout, ...libraries.boot, ...libraries.explorer].sort((a, b) => a < b ? -1 : a > b ? 1 : 0) }, props: baked.props?.props, report: baked.props?.report };
   const replacer = (_key, value) => typeof value === 'number' && Object.is(value, -0) ? '-0'
     : value === Infinity ? 'Infinity' : value === -Infinity ? '-Infinity' : value;
   const metadataPath = 'src/shards/nine-dragon-stack/data/world.generated.json';
-  writeFileSync(resolve(root, metadataPath), JSON.stringify(metadata, replacer) + '\n');
-  const outputs = [metadataPath, ...[...assets.keys()].map(hash => `src/shards/nine-dragon-stack/assets/${hash}`)].sort();
+  writeFileSync(resolve(root, metadataPath), `${JSON.stringify(metadata, replacer)}\n`);
+  const outputs = [metadataPath, ...[...assets.keys()].map(hash => `src/shards/nine-dragon-stack/assets/${hash}`)].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
   console.info(`Nine scene: ${baked.shardfile.tiles.length} L0 tiles, ${files.length} bounded GLBs, ${assets.size} files, scene.json ${baked.scenePath}`);
   return { metadata, outputs };
 }
