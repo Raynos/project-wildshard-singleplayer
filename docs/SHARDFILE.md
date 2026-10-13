@@ -2173,3 +2173,13 @@ interaction. `moverChannelPrompts` updates the same ordered roster from copied
 mover poses. Evaluation never dispatches an action or writes player/shared
 state. Socket-lift intents require a matching admitted edge and mover. The
 `hypot3` expression preserves the original three-axis `Math.hypot` boundary.
+
+The material graph input `meshMap` samples the original model colour map at
+its mesh UV, including the borrowed texture's sampler, transform and colour
+space. It is a fragment-only vec4 input and costs one sampler even when reused;
+post, points and vertex stages refuse it. Unmapped meshes read white RGBA.
+`@wildshard/sdk/materials.meshMap` authors this input. The client compiler's
+optional second texture argument and declared props' colour slots bind it via
+`bindGraphMeshMap` in the existing engine graph backend. Equal graph/map pairs
+share a scope-owned material; different maps remain separate. Original textures
+and source materials are never modified or disposed by the binding helper.

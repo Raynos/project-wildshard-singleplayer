@@ -1,3 +1,4 @@
+import { graphUsesMeshMap } from './materialGraph';
 /**
  * Named prop materials (SHARD-PLATFORM SF55, G211): the data half of the GLB material adapter for authored (Blender)
  * worlds. Without it, every declared prop mesh draws with `props.family` and one per-model colour texture (the default
@@ -105,7 +106,7 @@ export function validatePropMaterials(materials: PropMaterials, context: {
       if (family === 'graph') {
         if (entry?.family === 'graph' && !('graph' in entry)) throw new Error(`props material "${name}": its texture slots bind an inline graph, not a graph file or a preset reference`);
         const param = entry?.family === 'graph' ? entry.graph.params?.[slotName] : undefined;
-        if (param?.type !== 'texture') throw new Error(`props material "${name}": graph ${row.id} has no texture param "${slotName}" for its ${slotName} slot`);
+        if (param?.type !== 'texture' && !(slotName === 'colour' && entry?.family === 'graph' && graphUsesMeshMap(entry.graph))) throw new Error(`props material "${name}": graph ${row.id} has no texture param "${slotName}" for its ${slotName} slot`);
       } else if (!(FAMILY_SLOTS[family] ?? []).includes(slotName)) throw new Error(`props material "${name}": the ${family} family draws no ${slotName} slot`);
       const file = files.get(value.file);
       if (file?.kind !== 'ktx2' || !declared.has(value.file)) throw new Error(`props material "${name}": its ${slotName} texture must be a KTX2 dependency of a declared props GLB`);

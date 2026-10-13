@@ -357,6 +357,7 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   combine: { arity: [2, 4], rule: 'combine', cost: 0 },
   // MaterialX noise and textures
   noise: { arity: [1, 1], rule: 'noise', cost: 40 },
+  meshMap: { arity: [0, 0], rule: 'input', cost: 4, type: 'vec4', places: ['fragment'] },
   texture: { arity: [1, 1], rule: 'texture', cost: 4, places: FRAG },
   // the constant-count loop
   loop: { arity: [1, 1], rule: 'loop', cost: 1 },
@@ -520,7 +521,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   const types = new Map<string, GraphValueType>(); // `<scope path>/<id>` → type
   const visiting = new Set<string>();
   const textures = new Set<string>();
-  const sampled = { scene: false, depth: false, normal: false }; // set while typing (a post graph reads a scene input)
+  const sampled = { scene: false, depth: false, normal: false, mesh: false }; // set while typing (a post graph reads a scene input)
   const counted = new Set<string>();
   /** `<scope path>/<id>` → whether the node reads a sun input (directly, through its inputs or a loop body) */
   const lightDep = new Map<string, boolean>();
@@ -589,6 +590,10 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     switch (spec.rule) {
       case 'input':
         if (op === 'sceneColour') sampled.scene = true;
+        if (op === 'meshMap') {
+          if (kind !== 'material' || primitive === 'points') return fail(`${at}: meshMap requires a mesh material`);
+          sampled.mesh = true;
+        }
         return spec.type ?? null;
       case 'const': return literalType(raw.value) ?? fail(`${at}: const value is not a 1–4 number literal`);
       case 'param': {
@@ -739,7 +744,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     else want(p.colour, 'post', 'vec3', 'stages.post.colour');
   }
 
-  const cost: GraphCost = { nodes: nodeCount, samplers: textures.size + [sampled.scene, sampled.depth, sampled.normal].filter(Boolean).length, instructions };
+  const cost: GraphCost = { nodes: nodeCount, samplers: textures.size + [sampled.scene, sampled.depth, sampled.normal, sampled.mesh].filter(Boolean).length, instructions };
   if (cost.nodes > budget.nodes) fail(`budget: ${cost.nodes} nodes (at most ${budget.nodes})`);
   if (cost.samplers > budget.samplers) fail(`budget: ${cost.samplers} samplers (at most ${budget.samplers})`);
   if (cost.instructions > budget.instructions) fail(`budget: ≈ ${cost.instructions} instructions (at most ${budget.instructions})`);
@@ -828,4 +833,14 @@ function toParams(raw: Raw): Record<string, GraphParam> {
     };
   }
   return out;
+}
+
+/** Does an admitted graph read the original mesh colour map, including nested bounded loop bodies? */
+export function graphUsesMeshMap(graph: Pick<GraphIr, 'nodes'>): boolean {
+  const groups = [graph.nodes];
+  for (const nodes of groups) for (const node of Object.values(nodes)) {
+    if (node.op === 'meshMap') return true;
+    if (node.body !== undefined) groups.push(node.body.nodes);
+  }
+  return false;
 }

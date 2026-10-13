@@ -5,6 +5,8 @@
  * (`nodes/engineNodesHandler.ts`) on the renderer once and returns it. Nothing on the default render path calls it, so a
  * shard without a graph material pays nothing and its programs stay byte for byte.
  */
+import type { Texture, Material } from 'three';
+import type { Scope } from '../app/scope';
 import type { attachOutline, compileGraph, GraphNormalPrepass, GraphPostPass } from './graph/compile';
 import type { EngineNodesHandler } from './nodes/engineNodesHandler';
 import type { Renderer } from './renderer';
@@ -43,4 +45,21 @@ export async function loadGraphCompiler(renderer: Renderer): Promise<GraphCompil
   await loadGraphBackend(renderer);
   const { attachOutline: attach, compileGraph: compile, GraphPostPass: PostPass, GraphNormalPrepass: NormalPrepass } = await import('./graph/compile');
   return { compileGraph: compile, attachOutline: attach, GraphPostPass: PostPass, GraphNormalPrepass: NormalPrepass };
+}
+
+const meshMaps = new WeakMap<Scope, WeakMap<Material, WeakMap<Texture, Material>>>();
+
+/** Borrow a model's original colour map for an opted-in graph, preserving its sampler and UV transform.
+ * Equal graph/map pairs share one scope-owned material; neither the source nor the borrowed texture is disposed. */
+export function bindGraphMeshMap(material: Material, map: Texture | null | undefined, scope: Scope): Material {
+  if (material.userData['graphMeshMap'] !== true || (map === null || map === undefined)) return material;
+  let graphs = meshMaps.get(scope);
+  if (graphs === undefined) { graphs = new WeakMap(); meshMaps.set(scope, graphs); }
+  let textures = graphs.get(material);
+  if (textures === undefined) { textures = new WeakMap(); graphs.set(material, textures); }
+  const known = textures.get(map); if (known !== undefined) return known;
+  const variant = scope.own(material.clone());
+  if (!Reflect.set(variant, 'map', map)) throw new Error('Graph colour map could not be bound');
+  textures.set(map, variant);
+  return variant;
 }

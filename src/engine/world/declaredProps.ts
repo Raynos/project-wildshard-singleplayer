@@ -1,6 +1,7 @@
-import { Group, InstancedMesh, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, type BufferGeometry, type Color, type Material, type Object3D, type Texture } from 'three';
+import { Group, InstancedMesh, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshStandardMaterial, type BufferGeometry, type Color, type Material, type Object3D, Texture } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { Scope } from '../app/scope';
+import { bindGraphMeshMap } from '../render/graphBackend';
 import { familyVariant } from '../render/families/registry';
 
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
@@ -161,7 +162,12 @@ export async function installDeclaredProps(props: DeclaredProps, ports: {
       } : (source: Material | undefined): Material => {
         const binding = named(source?.name ?? '');
         if (binding.channels !== undefined) adoptChannels(o.geometry, binding.channels, source?.name ?? '');
-        if (binding.compiled === true || isNodeMaterial(binding.material)) { source?.dispose(); return binding.material; }
+        if (binding.compiled === true || isNodeMaterial(binding.material)) {
+          const mapped: unknown = source === undefined ? undefined : Reflect.get(source, 'map');
+          const map = binding.maps.colour ?? texture ?? (mapped instanceof Texture ? mapped : undefined);
+          const material = bindGraphMeshMap(binding.material, map, ports.scope);
+          source?.dispose(); return material;
+        }
         const glb = source === undefined ? null : surfaceOf(source), standard = source instanceof MeshStandardMaterial ? source : null, base = binding.material;
         const m = acquireVariant(base, { colour: glb?.color ?? null, roughness: standard?.roughness ?? null, metalness: standard?.metalness ?? null, map: undefined, vertexColours,
           side: source?.side ?? base.side, transparent: source?.transparent ?? base.transparent, opacity: source?.opacity ?? base.opacity,

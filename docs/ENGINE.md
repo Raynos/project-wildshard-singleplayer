@@ -3965,3 +3965,13 @@ actor-owned item role and current tick. Accepted actions retain the original
 claim, pose, onGust and contact phases; cooldown, held release and pendant
 pose arithmetic remain unchanged. Signal and Sky share the contact and
 script hosts; their remaining presentation recipes stay with C6.
+
+The material graph input `meshMap` samples the original model colour map at
+its mesh UV, including the borrowed texture's sampler, transform and colour
+space. It is a fragment-only vec4 input and costs one sampler even when reused;
+post, points and vertex stages refuse it. Unmapped meshes read white RGBA.
+`@wildshard/sdk/materials.meshMap` authors this input. The client compiler's
+optional second texture argument and declared props' colour slots bind it via
+`bindGraphMeshMap` in the existing engine graph backend. Equal graph/map pairs
+share a scope-owned material; different maps remain separate. Original textures
+and source materials are never modified or disposed by the binding helper.

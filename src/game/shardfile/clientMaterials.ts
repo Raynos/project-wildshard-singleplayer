@@ -16,7 +16,7 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { setting } from '@wildshard/engine/ui/Settings';
-import { loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
+import { loadGraphCompiler, bindGraphMeshMap } from '@wildshard/engine/render/graphBackend';
 import { curvedParams, graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
 import { clientGraphs, graphOutlineHook, isGraphEntry, type GraphOutlineHook, type GraphReadout, type GraphSources } from './clientGraphs';
 import { parseSkinFile, skinLookParameters } from '@wildshard/format/skinAssets';
@@ -72,7 +72,7 @@ function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>)
  * the field's declared default.
  */
 export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, renderer: Renderer, scope: Scope, options: { graphs?: boolean; sources?: GraphSources } = {}): Promise<{
-  materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown) => Material; tick: (dt: number) => void;
+  materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; tick: (dt: number) => void;
   outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding) | null;
 }> {
   const textures = new Map<string, Texture>(), uses = new Map<string, 'colour' | 'data'>();
@@ -111,11 +111,11 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   if (scope.disposed) throw new Error('Material scope unloaded during the graph compiler load');
   const graphs = clientGraphs(shard, { compiler, fallback: (entry) => familyMaterial(entry, context), textures: (ref) => resolveTexture(ref, 'colour'), file: (hash) => assets.get(hash) });
   if (options.sources !== undefined) graphs.bind(options.sources);
-  const compile = (entry: unknown): Material => {
+  const compile = (entry: unknown, meshMap?: Texture): Material => {
     if (!isGraphEntry(entry)) return scope.own(familyMaterial(entry, context));
     const material = graphs.compile(entry), outline = graphs.outline(material);
     if (outline !== null) scope.own(outline.material);
-    return scope.own(material);
+    return bindGraphMeshMap(scope.own(material), meshMap, scope);
   };
   // state-bound curves (look.curves): compiled at the fields' values now, moved in `tick` when a field moves
   let stateOf = options.sources?.state;

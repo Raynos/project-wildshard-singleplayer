@@ -37,14 +37,14 @@ import {
 } from 'three/webgpu';
 import {
   Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, hash,
-  instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
+  instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, positionGeometry, positionLocal,
   positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uv, varying, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
 import {
-  GRAPH_OPS, SUN_OPS, validateGraph, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
+  GRAPH_OPS, SUN_OPS, validateGraph, graphUsesMeshMap, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
   type GraphRef, type GraphValidationOptions, type GraphValueType,
 } from '@wildshard/format/materialGraph';
 
@@ -289,6 +289,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   if (!checked.ok) throw new Error(`material graph refused:\n  ${checked.errors.join('\n  ')}`);
   const ir: GraphIr = checked.graph;
   const selects = { light: 0, branch: 0 };
+  const meshMapUsed = graphUsesMeshMap(ir);
 
   // params → uniforms (a colour is written in sRGB and held linear, as the families hold theirs)
   const uniforms = new Map<string, Val>();
@@ -504,6 +505,12 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
         const p = one();
         return { t: 'float', n: p.t === 'vec2' ? mx_noise_float(new ConvertNode<'vec2'>(p.n, 'vec2')) : mx_noise_float(new ConvertNode<'vec3'>(p.n, 'vec3')) };
       }
+      case 'meshMap': {
+        return { t: 'vec4', n: Fn((builder: NodeBuilder): Node<'vec4'> => {
+          const map: unknown = Reflect.get(builder.material, 'map');
+          return map instanceof THREE.Texture ? new ConvertNode<'vec4'>(materialReference('map', 'texture', builder.material), 'vec4') : vec4(1);
+        })() };
+      }
       case 'texture': {
         const file = n.param === undefined ? undefined : texParams.get(n.param);
         if (file === undefined || opts.textures === undefined) throw new Error(`material graph: texture ${String(n.param)} needs { textures }`);
@@ -636,6 +643,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   };
   const material = ir.kind === 'post' ? postMaterial() : surfaceMaterial();
   material.name = `graph:${ir.kind}`;
+  if (meshMapUsed) material.userData['graphMeshMap'] = true;
   const outline = ir.kind === 'post' ? null : outlineMaterial();
 
   return {

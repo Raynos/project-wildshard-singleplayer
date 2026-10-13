@@ -18,6 +18,7 @@ import {
   type MinificationTextureFilter, type Texture, type Wrapping,
 } from 'three';
 import type { PropSurfaceBinding } from '@wildshard/engine/world/declaredProps';
+import { graphUsesMeshMap } from '@wildshard/format/materialGraph';
 import { FAMILY_IDS } from '@wildshard/format/materialFamilies';
 import { propMaterialSlots, propSlotUse, type PropMaterials, type PropTextureSlot } from '@wildshard/format/propMaterials';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -73,7 +74,7 @@ export function propSurfaces(materials: PropMaterials, ports: {
     if (entry?.family === 'graph' && 'graph' in entry && slots.length > 0) {
       // the slot files fill the graph's own texture params of the same names (admitted: validatePropMaterials)
       const params = { ...entry.graph.params };
-      for (const [slot, value] of slots) { const param = params[slot]; if (param?.type !== 'texture') throw new Error(`props material "${name}": graph ${row.id} has no texture param ${slot}`); params[slot] = { ...param, value: value.file }; }
+      for (const [slot, value] of slots) { const param = params[slot]; if (param?.type !== 'texture' && slot === 'colour' && graphUsesMeshMap(entry.graph)) continue; if (param?.type !== 'texture') throw new Error(`props material "${name}": graph ${row.id} has no texture param ${slot}`); params[slot] = { ...param, value: value.file }; }
       material = ports.compile({ family: 'graph', graph: { ...entry.graph, params } });
     } else material = base(row.id);
     resolved.set(name, { material, maps });

@@ -66,6 +66,9 @@ export function sample(texture: Node, at: GraphValue): Node<'vec4'> {
   if (info?.paramDef?.type !== 'texture') throw new Error('sample() reads a texture param()');
   return op('texture', 'vec4', [at], info.paramName, info.paramDef);
 }
+/** The original mesh material's colour map at its own UV, or white RGBA when unmapped. */
+export const meshMap = op('meshMap', 'vec4');
+
 /** MaterialX noise over a position (`noise`, about 40 instructions). */
 export function noise(at: GraphValue): Node<'float'> { return op('noise', 'float', [at]); }
 /** A view-space direction as a unit world one (`viewToWorld`). */
