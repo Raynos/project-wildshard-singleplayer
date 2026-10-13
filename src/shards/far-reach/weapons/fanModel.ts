@@ -1,4 +1,4 @@
-import { CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, TorusGeometry, type Texture } from 'three';
+import { Group, Mesh, MeshStandardMaterial, type Texture } from 'three';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { FAN_SILK_EDITS } from '../data/paintLook';
@@ -51,17 +51,11 @@ export function fanParts(): FanParts {
   fan.add(new Mesh(fanShape('rim'), new MeshStandardMaterial({ color: 0xc49a52, roughness: 0.35, metalness: 0.6, emissive: 0x1a1006 })));
   // the plates, the studs, the pivot's bronze boss and its rivet
   fan.add(new Mesh(fanShape('plates'), bronze));
-  // the ring at the hand's handle foot; the tassel (mockup C; row 3: from the pivot boss in front of the fist): a red cord,
-  // a knot, a bronze bead and cap, and a long silk fringe
-  const ring = new Mesh(new TorusGeometry(0.009, 0.0025, 5, 12), bronze); ring.position.y = -fanRows.grip - 0.006; fan.add(ring);
-  const tassel = new Group(); tassel.position.set(0, -0.004, 0.028); fan.add(tassel);
-  const cord = new Mesh(new CylinderGeometry(0.0022, 0.0022, 0.04, 4), red); cord.position.y = -0.02; tassel.add(cord);
-  const knot = new Mesh(new SphereGeometry(0.009, 8, 6), red); knot.scale.set(1.2, 0.8, 0.7); knot.position.y = -0.042; tassel.add(knot);
-  const loops = new Mesh(new TorusGeometry(0.008, 0.0025, 4, 10), red); loops.position.y = -0.042; loops.scale.set(1.6, 1, 1); tassel.add(loops);
-  const bead = new Mesh(new SphereGeometry(0.0055, 8, 6), bronze); bead.position.y = -0.058; tassel.add(bead);
-  const cap = new Mesh(new CylinderGeometry(0.0045, 0.007, 0.012, 8), bronze); cap.position.y = -0.07; tassel.add(cap);
-  tassel.add(new Mesh(fanShape('strands'), red));
-  group.add(fan);
+  // the ring at the hand's handle foot and the tassel (mockup C: a red cord, a knot, a bronze bead and cap, a long silk
+  // fringe), placed as the bake lays them (generators/fan.ts); the tassel hangs from the pivot boss in front of the fist
+  const tassel = new Group(); tassel.position.set(0, -0.004, 0.028);
+  for (const p of fanRows.tassel) { const m = new Mesh(fanShape(p.shape), p.bronze ? bronze : red); m.position.fromArray(p.at); m.scale.fromArray(p.scale); (p.fan ? fan : tassel).add(m); }
+  fan.add(tassel); group.add(fan);
   // the textured hero hand round its own wrapped handle (E392/E399, row 3), fitted offline (generators/fan.ts), in its
   // model's paint; undrawn when the model did not load
   const hand = skyHd('hand-hd');

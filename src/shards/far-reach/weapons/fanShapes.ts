@@ -17,5 +17,5 @@ export async function loadSkyFan(): Promise<void> {
 }
 /** The baked shapes by name. */
 export type FanShape = 'panels' | 'sticks' | 'straps' | 'guards' | 'rim' | 'plates' | 'strands' | 'hand';
-/** One of the baked shapes, a copy its caller owns; empty when the bake did not load. */
-export const fanShape = (name: FanShape): BufferGeometry => pack?.geometry(fanRows[name]) ?? new BufferGeometry();
+/** One of the baked shapes (by name, or by its index in the pack: a tassel part's), a copy its caller owns; empty when the bake did not load. */
+export const fanShape = (name: FanShape | number): BufferGeometry => pack?.geometry(typeof name === 'number' ? name : fanRows[name]) ?? new BufferGeometry();

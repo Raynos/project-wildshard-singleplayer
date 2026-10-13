@@ -1,4 +1,4 @@
-import { BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, ExtrudeGeometry, Float32BufferAttribute, Shape, SphereGeometry, TubeGeometry, Vector3 } from 'three';
+import { BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, ExtrudeGeometry, Float32BufferAttribute, Shape, SphereGeometry, TorusGeometry, TubeGeometry, Vector3 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
@@ -14,7 +14,9 @@ import { HD_URLS } from '../data/files';
  */
 
 /** The fan's baked shapes, each a geometry of the pack. */
-export interface FanRows extends PackedGeometryRows { panels: number; sticks: number; straps: number; guards: number; rim: number; plates: number; strands: number; hand: number; grip: number }
+export interface FanRows extends PackedGeometryRows { panels: number; sticks: number; straps: number; guards: number; rim: number; plates: number; strands: number; hand: number; grip: number; tassel: readonly TasselPart[] }
+/** One small part of the tassel (or the ring at the handle's foot), as the page places it: its baked shape, bronze or red, where (`at`) and scaled, in the fan (`fan`) or under the swinging tassel. */
+export interface TasselPart { readonly shape: number; readonly bronze: boolean; readonly fan: boolean; readonly at: readonly [number, number, number]; readonly scale: readonly [number, number, number] }
 
 /**
  * The leaf (loop 4): each panel is a real pleat, two strips meeting at a raised crease, mapped polar onto the painted silk
@@ -194,5 +196,12 @@ export async function bakeSkyFan(read: (url: string) => Uint8Array): Promise<{ b
   const source = await readSourceModel(read(HD_URLS['hand-hd'])), hd = hdGeometry(source.gltf.scene, (material) => source.texture(material) !== null);
   if (hd === null) throw new Error(`far-reach fan: ${HD_URLS['hand-hd']} has no textured mesh`);
   const strands = pack.add(mergeGeometries(fringe)), hand = pack.add(heroHand(hd.geometry));
-  return { bin: pack.bytes(), rows: { ...pack.rows(), panels, sticks, straps: strapsAt, guards, rim, plates: platesAt, strands, hand, grip: HERO_HAND.handle } };
+  // the ring at the hand's handle foot; the tassel (mockup C; row 3: from the pivot boss in front of the fist): a red cord,
+  // a knot, its loops, a bronze bead and cap, and the long silk fringe (the page swings the tassel from its group)
+  const part = (g: BufferGeometry, bronze: boolean, at: readonly [number, number, number], scale: readonly [number, number, number] = [1, 1, 1], fan = false): TasselPart => ({ shape: pack.add(g), bronze, fan, at, scale });
+  const tassel = [part(new TorusGeometry(0.009, 0.0025, 5, 12), true, [0, -HERO_HAND.handle - 0.006, 0], [1, 1, 1], true), part(new CylinderGeometry(0.0022, 0.0022, 0.04, 4), false, [0, -0.02, 0]),
+    part(new SphereGeometry(0.009, 8, 6), false, [0, -0.042, 0], [1.2, 0.8, 0.7]), part(new TorusGeometry(0.008, 0.0025, 4, 10), false, [0, -0.042, 0], [1.6, 1, 1]),
+    part(new SphereGeometry(0.0055, 8, 6), true, [0, -0.058, 0]), part(new CylinderGeometry(0.0045, 0.007, 0.012, 8), true, [0, -0.07, 0]),
+    { shape: strands, bronze: false, fan: false, at: [0, 0, 0], scale: [1, 1, 1] } as const];
+  return { bin: pack.bytes(), rows: { ...pack.rows(), panels, sticks, straps: strapsAt, guards, rim, plates: platesAt, strands, hand, grip: HERO_HAND.handle, tassel } };
 }
