@@ -3680,3 +3680,8 @@ or colliders. Without this section, triangular queries remain unchanged.
 Required native ground applies its manifest datum once to the raw samples.
 The executed admission and exact-query example is
 `test/native-terrain-authoring.test.ts`.
+
+`readWholeGeometry` returns a `release()` handle on each source draw. After
+copying or adopting it into an existing render owner, the caller forgets
+the temporary assembler registration. The scope disposes draws that
+have not been adopted.

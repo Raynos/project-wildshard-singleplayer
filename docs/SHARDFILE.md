@@ -2079,3 +2079,11 @@ The game supplies admitted bytes to ordinary level and grid boot. A
 trusted manifest can declare the same row with an immutable URL; hash or
 layout failure is fatal. Manifests without a row retain the older optional
 navmesh lookup while they migrate.
+
+`props.wholeLibrary` optionally lists ordinary GLB library roots containing
+exact whole source geometry. Every unique reference must name an admitted
+GLB in `library`; file and memory accounting are unchanged. A props-bound
+trusted runtime reads these through the shared whole-geometry assembler,
+and the data client drops them alongside its bound tiles. Omitting the
+field preserves existing declarations and bytes. Explorer consumers may
+read a subset lazily; declaring ownership does not draw an extra mesh.

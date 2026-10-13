@@ -52,7 +52,7 @@ export function runtimeBoundWorldFiles(source: Shardfile): ReadonlySet<string> {
     ...(source.terrain.sampling === undefined ? [] : [source.terrain.sampling.file]), ...source.terrain.tiles.map((tile) => tile.file)]) files.add(ref);
   const props = source.props;
   if (binds.has('props') && props !== null) {
-    for (const ref of [...props.tiles.flatMap((tile) => [tile.file, ...tile.additionalFiles ?? []]), ...props.panels.map((panel) => panel.file), ...props.models.map((model) => model.file),
+    for (const ref of [...props.tiles.flatMap((tile) => [tile.file, ...tile.additionalFiles ?? []]), ...props.panels.map((panel) => panel.file), ...props.models.map((model) => model.file), ...props.wholeLibrary ?? [],
       ...props.textures.flatMap((texture) => [texture.model, texture.colour]), ...(props.far === null ? [] : [props.far])]) files.add(ref);
   }
   if (files.size === 0) return files;
@@ -61,6 +61,12 @@ export function runtimeBoundWorldFiles(source: Shardfile): ReadonlySet<string> {
   const text = JSON.stringify(unbound);
   for (const ref of files) if (text.includes(ref)) files.delete(ref);
   return files;
+}
+
+function withoutDrawnProps(props: Shardfile['props']): Shardfile['props'] {
+  if (props === null) return null;
+  const { wholeLibrary: _wholeLibrary, ...rows } = props;
+  return { ...rows, tiles: [], panels: [], models: [], far: null, textures: [] };
 }
 
 /** The source as the data client installs it: every runtime-bound section emptied, so neither installs it twice. */
@@ -75,7 +81,7 @@ export function withoutRuntimeRows(source: Shardfile): Shardfile {
   return { ...source,
     ...(binds.has('terrain') ? { terrain: null } : {}),
     // bound props keep their collider rows (an entry's landings are platform data, like the edges); the drawn content is the runtime's
-    ...(binds.has('props') ? { props: source.props === null ? null : { ...source.props, tiles: [], panels: [], models: [], far: null, textures: [] } } : {}),
+    ...(binds.has('props') ? { props: withoutDrawnProps(source.props) } : {}),
     ...(world.size === 0 ? {} : { files: source.files.filter((file) => keep(file.hash)), critical: source.critical.filter(keep), library: source.library.filter(keep), far,
       tiles: source.tiles.flatMap((tile) => { const files = tile.files.filter(keep); return files.length === 0 ? [] : [files.length === tile.files.length ? tile : { ...tile, files }]; }) }),
     ...(binds.has('modes') ? { modes: { traverse: [] } } : {}),

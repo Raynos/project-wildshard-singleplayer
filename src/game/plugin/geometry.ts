@@ -1478,7 +1478,11 @@ function wholeStorage(row: wholeV.InferOutput<typeof WholeAttribute>, count: num
   return new BufferAttribute(array, row.itemSize, row.normalized);
 }
 /** One original source draw reconstructed from exact subsets, at its original double-precision matrix. */
-export interface WholeGeometryView { readonly geometry: BufferGeometry; readonly matrix: Matrix4 }
+export interface WholeGeometryView {
+  readonly geometry: BufferGeometry; readonly matrix: Matrix4;
+  /** Forget decoded-source ownership after adopting or copying it into a scope-owned render object. */
+  readonly release?: () => void;
+}
 class WholeGeometryAssembler {
   private readonly groups = new Map<string, { output: BufferGeometry; matrix: Matrix4; seen: Uint8Array; triangles: Uint8Array; layout: string }>();
   add(node: Mesh): void {
@@ -1556,7 +1560,10 @@ export async function readWholeGeometry(scope: ResourceScope, source: Shardfile,
       } finally { for (const dispose of cleanup) dispose(); }
     }
     const result = assembler.finish();
-    for (const view of result.values()) scope.own(view.geometry);
+    for (const [id, view] of result) {
+      const release = scope.capture('geometries', () => view.geometry.dispose());
+      result.set(id, { ...view, release });
+    }
     product.assets.releaseTiles(); return result;
   } catch (error) { assembler.dispose(); throw error; }
 }

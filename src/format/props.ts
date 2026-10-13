@@ -30,6 +30,8 @@ const collider = v.strictObject({ id, panel: v.nullable(id), initialActive: v.bo
 /** Declared self-contained GLBs: merged tile meshes, EXT_mesh_gpu_instancing lists, far proxy and script-addressable panels. */
 export const PropsSchema = v.pipe(v.unknown(), v.check(isJsonData, 'JSON-only props'), v.strictObject({ version: v.literal(1), family: id,
   materials: v.exactOptional(PropMaterialsSchema),
+  /** Exact whole source draws in ordinary library GLBs, installed only by a props-bound runtime. */
+  wholeLibrary: v.exactOptional(v.pipe(v.array(ref), v.minLength(1), v.maxLength(512), v.check(rows => new Set(rows).size === rows.length, 'unique whole library refs'))),
   splat: v.exactOptional(SplatTerrainSchema),
   tiles: v.pipe(v.array(v.strictObject({ lod: v.picklist([0, 1]), x: address, z: address, file: ref,
     additionalFiles: v.exactOptional(v.pipe(v.array(ref), v.minLength(1), v.maxLength(128))) })), v.maxLength(80)),
@@ -48,6 +50,7 @@ export function validatePropsReferences(props: ShardProps, content: { files: rea
     if (new Set(refs).size !== refs.length) throw new Error('Props tile repeats a file');
     for (const hash of refs) { model(hash); if (!content.tiles.find((t) => t.lod === tile.lod && t.x === tile.x && t.z === tile.z)?.files.includes(hash)) throw new Error('Props tile disagrees with tile files'); }
   }
+  for (const hash of props.wholeLibrary ?? []) { model(hash); if (!content.library.includes(hash)) throw new Error('Whole geometry must belong to the library'); }
   for (const entry of [...props.panels, ...props.models]) { model(entry.file); if (!content.library.includes(entry.file)) throw new Error('Prop panel/model must belong to the library'); }
   if (props.far !== null) { model(props.far); if (!content.far?.files.includes(props.far)) throw new Error('Props far proxy disagrees with far files'); }
   const refs = new Set([...props.tiles.flatMap((t) => [t.file, ...t.additionalFiles ?? []]), ...props.panels.map((p) => p.file), ...props.models.map((p) => p.file), ...(props.far === null ? [] : [props.far])]);
