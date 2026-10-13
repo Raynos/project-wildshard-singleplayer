@@ -1,0 +1,520 @@
+{
+  "build": "75e44ab-mv7a4z72",
+  "harnessBase": "e36a5b7cf0bd9ee47d6049edd28a57c9fad9f823",
+  "rows": [
+    {
+      "tier": "phone",
+      "pose": "spawn-tower",
+      "player": [
+        0,
+        21.345231730397792,
+        70
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        66,
+        66
+      ],
+      "triangles": [
+        137658,
+        137658
+      ]
+    },
+    {
+      "tier": "phone",
+      "pose": "spawn-back",
+      "player": [
+        0,
+        21.345231730397792,
+        70
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        39,
+        39
+      ],
+      "triangles": [
+        87158,
+        87158
+      ]
+    },
+    {
+      "tier": "phone",
+      "pose": "caravan",
+      "player": [
+        -59.99999761813888,
+        14.53285123832058,
+        39.999999688211545
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        52,
+        52
+      ],
+      "triangles": [
+        142128,
+        142128
+      ]
+    },
+    {
+      "tier": "phone",
+      "pose": "well",
+      "player": [
+        70.00001545021314,
+        14.439366929322478,
+        6.000054546895626
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        48,
+        48
+      ],
+      "triangles": [
+        88547,
+        88547
+      ]
+    },
+    {
+      "tier": "phone",
+      "pose": "basin",
+      "player": [
+        -14.000010541542451,
+        3.8513768560041175,
+        -100.00006004776515
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        41,
+        41
+      ],
+      "triangles": [
+        90078,
+        90078
+      ]
+    },
+    {
+      "tier": "phone",
+      "pose": "edge-out",
+      "player": [
+        0,
+        22.363867328746412,
+        70
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        42,
+        42
+      ],
+      "triangles": [
+        88182,
+        88182
+      ]
+    },
+    {
+      "tier": "phone",
+      "pose": "c1-well",
+      "player": [
+        78.00003101965194,
+        15.152246148941163,
+        5.037741175328847e-05
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        50,
+        50
+      ],
+      "triangles": [
+        91107,
+        91107
+      ]
+    },
+    {
+      "tier": "phone",
+      "pose": "c1-caravan-lamp",
+      "player": [
+        -69.99999782535428,
+        14.530315115640406,
+        32.9999998009923
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        52,
+        52
+      ],
+      "triangles": [
+        142128,
+        142128
+      ]
+    },
+    {
+      "tier": "phone",
+      "pose": "c1-tower-deck",
+      "player": [
+        1.9999858394780858,
+        17.889293739325716,
+        -59.99993520516
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        58,
+        58
+      ],
+      "triangles": [
+        147938,
+        147938
+      ]
+    },
+    {
+      "tier": "desktop",
+      "pose": "spawn-tower",
+      "player": [
+        0,
+        21.345231730397792,
+        70
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        72,
+        72
+      ],
+      "triangles": [
+        138906,
+        138906
+      ]
+    },
+    {
+      "tier": "desktop",
+      "pose": "spawn-back",
+      "player": [
+        0,
+        21.345231730397792,
+        70
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        50,
+        50
+      ],
+      "triangles": [
+        89446,
+        89446
+      ]
+    },
+    {
+      "tier": "desktop",
+      "pose": "caravan",
+      "player": [
+        -59.99999761813888,
+        14.53285123832058,
+        39.999999688211545
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        53,
+        53
+      ],
+      "triangles": [
+        143728,
+        143728
+      ]
+    },
+    {
+      "tier": "desktop",
+      "pose": "well",
+      "player": [
+        70.00001545021314,
+        14.439366929322478,
+        6.000054546895626
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        48,
+        48
+      ],
+      "triangles": [
+        88547,
+        88547
+      ]
+    },
+    {
+      "tier": "desktop",
+      "pose": "basin",
+      "player": [
+        -14.000010541542451,
+        3.8513768560041175,
+        -100.00006004776515
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        42,
+        42
+      ],
+      "triangles": [
+        99078,
+        99078
+      ]
+    },
+    {
+      "tier": "desktop",
+      "pose": "edge-out",
+      "player": [
+        0,
+        22.363867328746412,
+        70
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        42,
+        42
+      ],
+      "triangles": [
+        88182,
+        88182
+      ]
+    },
+    {
+      "tier": "desktop",
+      "pose": "c1-well",
+      "player": [
+        78.00003101965194,
+        15.152246148941163,
+        5.037741175328847e-05
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        51,
+        51
+      ],
+      "triangles": [
+        92707,
+        92707
+      ]
+    },
+    {
+      "tier": "desktop",
+      "pose": "c1-caravan-lamp",
+      "player": [
+        -69.99999782535428,
+        14.530315115640406,
+        32.9999998009923
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        53,
+        53
+      ],
+      "triangles": [
+        143728,
+        143728
+      ]
+    },
+    {
+      "tier": "desktop",
+      "pose": "c1-tower-deck",
+      "player": [
+        1.9999858394780858,
+        17.889293739325716,
+        -59.99993520516
+      ],
+      "clock": {
+        "version": 1,
+        "elapsed": 10,
+        "wall": 10,
+        "frames": 300,
+        "captureFps": 30,
+        "paused": false,
+        "scale": 1
+      },
+      "differentPixels": 0,
+      "draws": [
+        62,
+        62
+      ],
+      "triangles": [
+        157562,
+        157562
+      ]
+    }
+  ],
+  "tiers": {
+    "phone": {
+      "pieces": 10,
+      "colliderCount": 102,
+      "colliders": "641acb952686bfab9ba406908fe139df0ab41a6cf3e008ae844ee22c1df9ea76",
+      "gpuBytes": 145136004,
+      "programs": 79,
+      "shaderCount": 126,
+      "shaders": "407335f5fa243d42afc11b286d9cceb0cc97de9627878e5358872fdbeb9479ba"
+    },
+    "desktop": {
+      "pieces": 10,
+      "colliderCount": 102,
+      "colliders": "641acb952686bfab9ba406908fe139df0ab41a6cf3e008ae844ee22c1df9ea76",
+      "gpuBytes": 211907172,
+      "programs": 79,
+      "shaderCount": 126,
+      "shaders": "a85e15c8d99a94bb98c51a0a345fd7e9874940904af49c2020a6f1dce2b46e6f"
+    }
+  },
+  "pass": true,
+  "harnessFiles": {
+    "scripts/parity/terrain-settle.mjs": "129225ec5cdd29a20f076a400afc1b6ac83d093fb520d71f4c2f4fe65a268fd1",
+    "scripts/proof-signal-look-parity.mjs": "f3b389439f4bb3f827e180e3aeda4dc588b77daac84518041af48653639f2f9d"
+  },
+  "productSource": "75e44abb4",
+  "captureProof": "20261013T181507-c1-frozen-all18-controls-92103",
+  "captureProofNote": "Both captures completed; the first comparison wrapper refused Python zip(strict). The compatible strict comparator verifies the same original raw outputs."
+}

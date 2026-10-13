@@ -45,6 +45,7 @@ if (compare !== undefined) {
   for (const [i, row] of a.rows.entries()) {
     const other = b.rows[i];
     for (const key of ['tier', 'pose', 'calls', 'triangles', 'width', 'height']) if (row[key] !== other?.[key]) diffs.push(`${row.tier}/${row.pose}: ${key} ${row[key]} ≠ ${other?.[key]}`);
+    for (const key of ['player', 'clock']) if (JSON.stringify(row[key]) !== JSON.stringify(other?.[key])) diffs.push(`${row.tier}/${row.pose}: ${key} differs`);
     if (row.pixels !== other?.pixels) {
       // the differing pixel count when both runs kept their frames
       const fa = row.raw === undefined ? null : row.raw, fb = other?.raw ?? null;
@@ -108,21 +109,21 @@ try {
         w.player.spawn(a.x, a.z, a.yaw); w.player.pitch = a.pitch;
       }, { x: p.x, z: p.z, yaw, pitch });
       await sleep(5000);
-      // The single captured frame queues residency; await its actual owner before freezing a pose.
-      await within((async () => {
-        await page.evaluate(() => window.__parity.advance(1));
-        await page.evaluate(settlePresentationTerrain, 1200);
-      })(), 120000, `Signal ${tier}/${p.id} terrain residency`);
-      // Pin the entered owner's real clock, shared by classic uniforms and admitted graph state feeds.
-      const effectTime = await page.evaluate(async () => {
+      // Refresh the actual viewer queue with simulation frozen; wall-time work must not move the pose or either clock.
+      await within(page.evaluate(settlePresentationTerrain, 120000), 120000, `Signal ${tier}/${p.id} terrain residency`);
+      // One fixed pose frame updates native lights/materials at the same simulation and effect time on every capture.
+      const captureClock = await page.evaluate(async a => {
         window.__parity.free = false;
-        const clock = window.__wildshard.world.game.app.clock;
-        clock.restore({ ...clock.snapshot(), wall: 10 - 1 / 30 });
+        const world = window.__wildshard.world, clock = world.game.app.clock;
+        world.player.spawn(a.x, a.z, a.yaw); world.player.pitch = a.pitch;
+        clock.restore({ ...clock.snapshot(), elapsed: 10 - 1 / 30, wall: 10 - 1 / 30, frames: 299, captureFps: 30, paused: false, scale: 1 });
         await window.__parity.advance(1);
-        return clock.real;
-      });
-      if (Math.abs(effectTime - 10) > 1e-9) throw new Error(`Effect clock is not pinned: ${effectTime}`);
+        return clock.snapshot();
+      }, { x: p.x, z: p.z, yaw, pitch });
+      if (Math.abs(captureClock.wall - 10) > 1e-9 || Math.abs(captureClock.elapsed - 10) > 1e-9 || captureClock.frames !== 300) throw new Error(`Capture clocks are not pinned: ${JSON.stringify(captureClock)}`);
       await page.evaluate(() => { const g = window.__wildshard.world.game; if (!('__slpGate' in window)) window.__slpGate = g.frameGate; g.frameGate = () => false; });
+      // The fixed frame can ground the player; finish that actual viewer's queue without another simulation tick.
+      await within(page.evaluate(settlePresentationTerrain, 120000), 120000, `Signal ${tier}/${p.id} final terrain residency`);
       await sleep(300);
       const shot = await page.evaluate(async v => {
         const w = window.__wildshard.world, g = w.game, r = g.renderer, gl = r.getContext(), scene = g.rootScene ?? g.scene, cam = g.camera;
@@ -156,9 +157,9 @@ try {
         let lit = 0; for (let i = 0; i < pixels.length; i += 4) if (pixels[i] + pixels[i + 1] + pixels[i + 2] > 0) lit++;
         const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', pixels));
         let bin = ''; for (let i = 0; i < pixels.length; i += 0x8000) bin += String.fromCodePoint(...pixels.subarray(i, i + 0x8000));
-        return { player: [Math.round(at.x * 10) / 10, Math.round(at.y * 10) / 10, Math.round(at.z * 10) / 10], width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, calls, triangles, lit, pixels: Array.from(digest, x => x.toString(16).padStart(2, '0')).join(''), data: btoa(bin) };
+        return { player: [at.x, at.y, at.z], width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, calls, triangles, lit, pixels: Array.from(digest, x => x.toString(16).padStart(2, '0')).join(''), data: btoa(bin) };
       }, { yaw, pitch, frame });
-      const row = { tier, pose: p.id, player: shot.player, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels };
+      const row = { tier, pose: p.id, player: shot.player, clock: captureClock, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels };
       if (raw !== undefined) { row.raw = join(raw, `${tier}-${p.id}.rgba`); writeFileSync(row.raw, Buffer.from(shot.data, 'base64')); }
       rows.push(row);
       console.log(`${tier} ${p.id} at ${shot.player.join(',')}: ${shot.calls} draws, ${shot.triangles} triangles, ${shot.lit} lit pixels`);

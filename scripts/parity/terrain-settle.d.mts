@@ -1,2 +1,1 @@
-import './init.mjs';
-export function settlePresentationTerrain(maxFrames?:number):Promise<{frames:number}>;
+export function settlePresentationTerrain(maxWaitMs?:number):Promise<{frames:number}>;
