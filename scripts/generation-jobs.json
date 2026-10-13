@@ -10193,12 +10193,12 @@
     {
       "id": "sky-look-maps",
       "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/bake-sky-maps.mjs",
+      "entry": "src/shards/far-reach/generators/bake-sky-maps.ts",
       "command": [
         "--experimental-transform-types",
         "--import",
         "./src/sdk/bake/source-loader.mjs",
-        "src/shards/far-reach/generators/bake-sky-maps.mjs"
+        "src/shards/far-reach/generators/bake-sky-maps.ts"
       ],
       "inputRoots": [
         "package.json",
@@ -10216,7 +10216,7 @@
         "src/shards/far-reach/assets/b230b51585a820cad1c588292ad3b7b96e8ce087526b6adbcb2f6eb566dd96e0",
         "src/shards/far-reach/assets/e87efc25c5f2fb46ff968d8558edc2def23b5b14bc8e9eb81005f7e27f0bb0b3",
         "src/shards/far-reach/data/skyMapSources.json",
-        "src/shards/far-reach/generators/bake-sky-maps.mjs",
+        "src/shards/far-reach/generators/bake-sky-maps.ts",
         "src/shards/far-reach/world/materials.ts"
       ],
       "outputs": [

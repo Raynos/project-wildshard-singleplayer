@@ -3,4 +3,4 @@
 import { bakeTextureLibrary } from '@wildshard/sdk/bake/texture';
 
 await bakeTextureLibrary(new URL('../../../../', import.meta.url).pathname,
-  'src/shards/far-reach/data/skyMapSources.json', { encode: process.argv.includes('--encode'), check: process.argv.includes('--check') });
+  'src/shards/far-reach/data/skyMapSources.json', { encode: globalThis.process.argv.includes('--encode'), check: globalThis.process.argv.includes('--check') });
