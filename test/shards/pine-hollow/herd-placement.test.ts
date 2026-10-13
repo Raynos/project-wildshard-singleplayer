@@ -12,8 +12,8 @@ interface Row { id: string; kind: string; variant: string; scale: number; seed: 
 // (Rng(1337 + 31)) through the hunting brain's recipe (HuntBrain.placeHerds, spawnRolls, adopt) over the baked ground
 // (runtime/herds.ts: the terrain grid the page installs, the analytic trails / pads / water, the baked forest trunks), the
 // shard's one fauna plan (runtime/fauna.ts) and Pine's own creature rows (`pineSpawnSpecies`, through spawnRolls' species
-// seam: no global registry) must roll every body's kind, variant, scale and seed exactly as the trusted browser bake
-// recorded them (runtime/physics.baked.json), in the page's allocation order:
+// seam: no global registry) must roll every body's kind, variant, scale and seed exactly as the authored physics rows
+// hold them (data/physics.generated.json), in the page's allocation order:
 //   creature:0-159   the herds (the Den's rolled 'black-old' bear is creature:157);
 //   creature:160     its ordinary replacement (combat/eliteRoster.ts swapRolledElites: one Old Blackpaw, at his lair);
 //   creature:161-163 the Antler King's prewarm: his body, an elk thrall and a boar thrall, parked (bake `parked`);
@@ -29,7 +29,7 @@ const { pineHuntGround, pineSpawnSpecies, PINE_HERD_STREAM, PINE_KING_KIND } = a
 const { PINE_ELITE_DEFS, PINE_ELITE_ANIMALS, swapRolledElites } = await import('./src/shards/pine-hollow/combat/eliteRoster.ts');
 const { Vector3 } = await import('three');
 if (typeof window !== 'undefined' || typeof document !== 'undefined') throw new Error('DOM present');
-const bake = JSON.parse(readFileSync('src/shards/pine-hollow/runtime/physics.baked.json', 'utf8'));
+const bake = JSON.parse(readFileSync('src/shards/pine-hollow/data/physics.generated.json', 'utf8'));
 const king = bake.parked[0];
 const species = pineSpawnSpecies({ id: king.variant, label: 'The Antler King', weight: 1, rarity: 'legendary', scale: [king.scale, king.scale] });
 const bytes = readFileSync('public/assets/baked/pine-hollow/terrain.bin'), grid = parseBakedTerrain(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
@@ -52,7 +52,7 @@ console.log(JSON.stringify({ swapped, herdBodies: live.filter((a) => a.herd >= 0
     { encoding: 'utf8', timeout: 60000, maxBuffer: 8 * 1024 * 1024 });
   expect(result.stderr).toBe(''); expect(result.status).toBe(0);
   const out = JSON.parse(result.stdout) as { swapped: number; herdBodies: Row[]; prewarm: Row[]; elites: Row[]; herds: string[][] };
-  const bake = JSON.parse(readFileSync('src/shards/pine-hollow/runtime/physics.baked.json', 'utf8')) as
+  const bake = JSON.parse(readFileSync('src/shards/pine-hollow/data/physics.generated.json', 'utf8')) as
     { actors: (Row & { scripted: boolean })[]; parked: (Omit<Row, 'herd'> & { spec: unknown })[]; herds: { members: string[] }[] };
   const row = ({ id, kind, variant, scale, seed, herd }: Row): Row => ({ id, kind, variant, scale, seed, herd });
   const page = bake.actors.filter(a => !a.scripted).map(row), lairs = bake.actors.filter(a => a.scripted).map(row);

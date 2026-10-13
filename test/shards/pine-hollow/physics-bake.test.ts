@@ -1,11 +1,9 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Trusted-bake freshness is checked against the test checkout.
-import process from 'node:process';
 // oxlint-disable-next-line import/no-nodejs-modules -- The native physics module is read from the in-tree wasm.
 import { readFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
-import { pinePhysicsInputs } from '../../../scripts/pine-physics-inputs.mjs';
 import * as v from 'valibot';
-import bakedJson from '../../../src/shards/pine-hollow/runtime/physics.baked.json';
+import bakedJson from '../../../src/shards/pine-hollow/data/physics.generated.json';
+import { pinePhysics } from '../../../src/shards/pine-hollow/generators/physics';
 import { TERRAIN } from '../../../src/shards/pine-hollow/world/terrain';
 import { loadRapier } from '../../../src/engine/physics/rapier';
 import { GROUP } from '../../../src/engine/physics/groups';
@@ -14,7 +12,7 @@ const bytesOf = (text: string): Uint8Array => Uint8Array.from(atob(text), c => c
 const decode = (text: string): Float32Array => new Float32Array(bytesOf(text).buffer);
 const finite = v.pipe(v.number(), v.finite()), xyz = v.strictObject({ x: finite, y: finite, z: finite });
 /** The bake's own shape, strictly (TypeScript does not infer a JSON module this large). */
-const Bake = v.object({ version: v.literal(1), revision: v.string(), build: v.string(), profile: v.string(), notice: v.string(), inputs: v.record(v.string(), v.string()),
+const Bake = v.object({ version: v.literal(1), profile: v.string(), notice: v.string(),
   ground: v.object({ rows: finite, cols: finite, scale: xyz, at: xyz, heights: v.string() }),
   solids: v.array(v.object({ shape: finite, groups: finite, at: v.array(finite), rot: v.array(finite), half: v.optional(v.array(finite)),
     halfHeight: v.optional(finite), radius: v.optional(finite), vertices: v.optional(v.string()), indices: v.optional(v.string()) })),
@@ -27,14 +25,11 @@ const Bake = v.object({ version: v.literal(1), revision: v.string(), build: v.st
 const baked = v.parse(Bake, bakedJson);
 const RES = 256, SIZE = 500;
 
-it('refuses stale source or model bytes before the trusted Pine physics bake is used', () => {
+it('is the fresh product of the authored rows (G350-PH: generators/physics.ts, no runtime run)', () => {
+  expect(JSON.stringify(pinePhysics())).toBe(JSON.stringify(bakedJson));
   expect(baked.version).toBe(1);
-  expect(baked.inputs).toEqual(pinePhysicsInputs(process.cwd()));
-  expect(baked.profile).toBe('Node / phone / no renderer');
-  expect(baked.build).toMatch(/^node-[a-f0-9]{64}$/u);
+  expect(baked.profile).toBe('authored rows');
   expect(baked.notice).toContain('DO NOT EDIT');
-  expect(baked.revision).toMatch(/^[a-f0-9]{7,40}$/u);
-  expect(Object.keys(baked.inputs).some(path => path.endsWith('/bear-black.rigged.glb'))).toBe(true);
   expect(baked.trees.length).toBeGreaterThan(0);
 });
 
@@ -101,6 +96,4 @@ it('captures the loaded King chest and cage in rest model space, outside the old
   expect(left[0]).toBeLessThan(right[0]);
   expect(row.ribs[2]).toBeGreaterThan(front[2]);
   expect(row.ribs[1]).toBeGreaterThan(1);
-  expect(baked.inputs['src/engine/entities/AnimalView.ts']).toBeDefined();
-  expect(baked.inputs['src/shards/pine-hollow/generators/bake-pine-physics.mjs']).toBeDefined();
 });

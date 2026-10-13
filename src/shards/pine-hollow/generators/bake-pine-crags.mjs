@@ -3,7 +3,7 @@
 // (src/shards/pine-hollow/generators/crags.ts) runs here only, with the Pine level selected and its baked terrain grid
 // installed (public/assets/baked/pine-hollow/terrain.bin: the page's heights and normals), over the kit's module footprints
 // (public/assets/models/pine-hollow-crags/crags.glb + crags-b.glb, loaded as the page loads them) and the forest's trunks
-// (src/shards/pine-hollow/runtime/physics.baked.json `trees`, the page's forest). It writes each tier's face skin,
+// (src/shards/pine-hollow/data/physicsRows.json `shelterTrees`, the authored forest trunks). It writes each tier's face skin,
 // its 4-byte words' bytes in four lanes and zlib-compressed, to public/assets/pine-hollow/baked/crags.<tier>.bin and the rows (the placements, each tier's binary hash,
 // size and tile table) to src/shards/pine-hollow/data/crags.json, which the page reads (src/shards/pine-hollow/world/cragBake.ts).
 // test/shards/pine-hollow/crag-bake.test.ts is the stale gate (it re-runs the generator).
@@ -52,10 +52,10 @@ export async function pineCragKit() {
   return kit;
 }
 
-/** the forest's trunks the crags step round (the physics bake's capture of the page's forest) */
+/** the forest's trunks the crags step round (the authored trunk rows, data/physicsRows.json `shelterTrees`: x, z, ...) */
 export function pineTrunks() {
-  const physics = JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/runtime/physics.baked.json'), 'utf8'));
-  return physics.trees.map(([x, z]) => ({ x, z }));
+  const physics = JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/data/physicsRows.json'), 'utf8'));
+  return physics.shelterTrees.map(([x, z]) => ({ x, z }));
 }
 
 /** the bake: the rows and each tier's raw binary */

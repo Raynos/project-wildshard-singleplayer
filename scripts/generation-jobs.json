@@ -1238,56 +1238,64 @@
     {
       "id": "pine-physics",
       "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-pine-physics.mjs",
+      "entry": "src/shards/pine-hollow/generators/physics.ts",
       "command": [
-        "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-physics.mjs"
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/pine-hollow/generators/physics.ts",
+        "pinePhysics",
+        "src/shards/pine-hollow/data/physics.generated.json"
       ],
       "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/pine-hollow",
-        "scripts",
-        "public",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "src/format/package.json",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/pine-hollow/data/physicsRows.json",
+        "src/shards/pine-hollow/generators/physics.ts"
       ],
       "outputs": [
-        "src/shards/pine-hollow/runtime/physics.baked.json"
+        "src/shards/pine-hollow/data/physics.generated.json"
       ],
-      "platform": "portable"
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/pine-hollow/data/physics.generated.json": "e332691153953a5eb472d58817d3d1246adb87be6838ddd965230159bbdd8d8f"
+      },
+      "seedOutputs": []
     },
     {
       "id": "pine-spots",
       "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-pine-spots.mjs",
+      "entry": "src/shards/pine-hollow/generators/spots.ts",
       "command": [
-        "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-spots.mjs"
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/pine-hollow/generators/spots.ts",
+        "pineSpots",
+        "src/shards/pine-hollow/data/spots.generated.json"
       ],
       "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/pine-hollow",
-        "scripts",
-        "public",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "src/format/package.json",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/pine-hollow/data/spotsRows.json",
+        "src/shards/pine-hollow/generators/spots.ts"
       ],
       "outputs": [
-        "src/shards/pine-hollow/runtime/spots.baked.json"
+        "src/shards/pine-hollow/data/spots.generated.json"
       ],
-      "platform": "portable"
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/pine-hollow/data/spots.generated.json": "6788f7bed529e0bc6d40da68570f0562c77c318cd9c5446beb714bad4ce45bda"
+      },
+      "seedOutputs": []
     },
     {
       "id": "pine-hdri-keys",

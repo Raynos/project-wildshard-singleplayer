@@ -23,7 +23,7 @@ export const KING_COLLISION_INPUTS = [
   'public/assets/pine-hollow/creatures/antler-king-rig.phone.rigged.glb',
   'src/shards/pine-hollow/combat/kingRig.ts', 'src/shards/pine-hollow/runtime/species/kingClips.ts', 'src/shards/pine-hollow/runtime/species/limbRig.ts',
   'src/shards/pine-hollow/combat/kingTiming.ts',
-  'src/shards/pine-hollow/runtime/physics.baked.json', 'src/shards/pine-hollow/runtime/kingCollision.ts',
+  'src/shards/pine-hollow/data/physicsRows.json', 'src/shards/pine-hollow/runtime/kingCollision.ts',
   'src/shards/pine-hollow/runtime/kingCollisionBake.ts', 'src/game/plugin/animation.ts',
   'src/shards/pine-hollow/generators/bake-pine-king-collision.mjs', 'test/fake/portableMath.ts', 'src/commons/bake/portableMath.ts',
 ];
@@ -79,7 +79,7 @@ function bakePortableKingCollision(root) {
     const bone = selected[i], parent = i === 0 ? group : selected[i - 1];
     if (bone.parent !== parent) throw new Error(`Incompatible King collision chain at ${bone.name}`);
   }
-  const physics = v.parse(physicsSchema, JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/runtime/physics.baked.json'), 'utf8')));
+  const physics = v.parse(physicsSchema, JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/data/physicsRows.json'), 'utf8')));
   const king = physics.parked.find(row => row.kind === 'antler-king');
   const chest = rest.at.chest;
   if (king === undefined) throw new Error('Missing King volume metadata');

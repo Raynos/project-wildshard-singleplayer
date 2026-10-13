@@ -26,3 +26,6 @@ SF81 DIR-4 night: typed behaviour/night.as and nightStages.json own dawn flight,
 
 
 SF81 DIR-4 elite prelude: page and native bodies use the same authored absent/home/fight/idle rows at the original encounter phase. Native clock, lair math, RNG and admitted AS fights are unchanged. Deliberately re-record dam.snap.gz, ridge.snap.gz, night.snap.gz, king.snap.gz and fallen.snap.gz for pine.elites version 3 with four prelude cursors. Remove only those four cursor strings and normalize the root version: every other decoded state field, tape cursor and full effects/replay/Ledger outcome is exact. Immutable basis, physics/spots gameplay and map inputs stay exact; old version-2 elite continuations refuse. Nalati raids remain a separate DIR-4 slice, and every whole-shard compatibility gap stays open.
+
+
+G350-PH: Pine's physics and quest spots products are now `data/physics.generated.json` and `data/spots.generated.json`, made from authored rows only (`data/physicsRows.json`, `data/spotsRows.json`) by `generators/physics.ts` and `generators/spots.ts` under the SDK source loader. Every physics and spots gameplay field is byte-equal to the retired DS1.5 Node bakes; the King collision table keeps every gameplay field and reads the King's prewarm and cage rows from the authored physics rows. Re-recording the checkpoints changes only their inputs hash.

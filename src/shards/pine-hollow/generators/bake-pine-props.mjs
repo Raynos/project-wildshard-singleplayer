@@ -3,7 +3,7 @@
 // (src/shards/pine-hollow/generators/props.ts) runs here only, with the Pine level selected and its baked terrain grid
 // installed (the page's heights and normals; the grid carries the level seed), over the scans' footprints (the boulder
 // set's six rocks and the fallen log, read from their LOD GLBs as the page's loaders read them) and the forest's trunks
-// (src/shards/pine-hollow/runtime/physics.baked.json `trees`, the page's forest). It writes every copy's pose to
+// (src/shards/pine-hollow/data/physicsRows.json `shelterTrees`, the authored forest trunks). It writes every copy's pose to
 // src/shards/pine-hollow/data/props.json, which the page places the scans at (src/shards/pine-hollow/world/props.ts).
 // test/shards/pine-hollow/props-bake.test.ts is the stale gate (it re-runs the generator).
 // Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/pine-hollow/generators/bake-pine-props.mjs
@@ -37,10 +37,10 @@ async function scan(id) {
   return out;
 }
 
-/** the forest's trunks the props step round (the physics bake's capture of the page's forest: x, z, r) */
+/** the forest's trunks the props step round (the authored trunk rows, data/physicsRows.json `shelterTrees`: x, z, r, ...) */
 export function pineTrunkCircles() {
-  const physics = JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/runtime/physics.baked.json'), 'utf8'));
-  return physics.trees.map(([x, z, r]) => ({ x, z, r }));
+  const physics = JSON.parse(readFileSync(resolve(root, 'src/shards/pine-hollow/data/physicsRows.json'), 'utf8'));
+  return physics.shelterTrees.map(([x, z, r]) => ({ x, z, r }));
 }
 
 /** the bake's rows */

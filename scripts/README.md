@@ -355,8 +355,6 @@ One line per surviving top-level entry. Liveness follows decision 88; this gener
 - [pine-hollow-sound-gaps.mjs](./pine-hollow-sound-gaps.mjs)
 - [pine-hollow-views.mjs](./pine-hollow-views.mjs)
 - [pine-hollow-walkcheck.mjs](./pine-hollow-walkcheck.mjs)
-- [pine-physics-inputs.d.mts](./pine-physics-inputs.d.mts)
-- [pine-physics-inputs.mjs](./pine-physics-inputs.mjs)
 - [playground-grapple.mjs](./playground-grapple.mjs)
 - [playground-harness.mjs](./playground-harness.mjs)
 - [playground-horse.mjs](./playground-horse.mjs)

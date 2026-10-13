@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { PineShelterTree } from './rainShelter';
-import baked from './physics.baked.json' with { type: 'json' };
+import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** The baked floor's lattice: Rapier's own 256² heightfield over the 500 m chunk, as the page built it (crag cuts included). */
 export const PINE_GROUND_RES = 256, PINE_GROUND_SIZE = 500;
@@ -44,7 +44,7 @@ export interface PineSolid {
 }
 /** A baked body at load: the manager's id, kind / variant, herd slot (−1: none), native spec, seed, scale; elites are `scripted`. */
 export interface PineBakedActor { readonly id: string; readonly kind: string; readonly variant: string; readonly herd: number; readonly spec: AnimalSimSpec; readonly seed: number; readonly scale: number; readonly scripted: boolean }
-/** The trusted browser bake (src/shards/pine-hollow/generators/bake-pine-physics.mjs), parsed strictly and decoded once. */
+/** Pine's physics product (generators/physics.ts, G350-PH), parsed strictly and decoded once. */
 export interface PineBake {
   readonly ground: { readonly heights: Float32Array; readonly friction: number; readonly groups: number; readonly scale: { x: number; y: number; z: number }; readonly at: { x: number; y: number; z: number } };
   /** Page-rig rest-space head/main/chest hit volumes and ribcage, measured from the native inverse binds. */
