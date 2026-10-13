@@ -26,6 +26,29 @@ const source = () => emptyShardfileSource(emptyShardfile({ slug: 'bake-host-fixt
 const root = cwd();
 
 describe('shared authored world capture guard', () => {
+  it('forwards sliced punches to the supplied one-shot terrain without changing its native index bytes', async () => {
+    const { sky } = fakeWorld(), mesh = new Mesh(new PlaneGeometry(500, 500, 2, 2));
+    const index = mesh.geometry.getIndex();
+    if (index === null) throw new Error('Fixture must have terrain triangles');
+    const before = Array.from(index.array), hole = vi.fn(() => true), due = vi.fn(() => Promise.resolve());
+    const punch = vi.fn((given: Parameters<Terrain['punch']>[0]) => { expect(given).toBe(hole); return 7; });
+    const manifest = { ...source(), load: () => Promise.resolve({ default: class {
+      async world(ctx: ShardContext): Promise<void> {
+        const terrain = ctx.game.runtime?.world?.terrain;
+        if (terrain === undefined) throw new Error('Missing real bake host terrain');
+        expect(await terrain.punchSliced(hole, due)).toBe(7);
+        expect(terrain.mesh.geometry.getIndex()).toBe(index);
+        ctx.piece({ id: 'kept-floor', name: 'Floor', category: 'ground', file: 'test/bake-world-host.test.ts',
+          colliders: [{ kind: 'box', x: 0, y: -0.5, z: 0, hx: 2, hy: 0.5, hz: 2 }] });
+      }
+    } }) };
+    const result = await visitAuthoredWorld(manifest, { root, sky, element: () => document.createElement('canvas'), createTerrain: () => ({ mesh, punch }) });
+    expect(punch).toHaveBeenCalledOnce(); expect(hole).not.toHaveBeenCalled(); expect(due).not.toHaveBeenCalled();
+    expect(Array.from(index.array)).toEqual(before);
+    expect(result.colliders).toEqual([{ kind: 'box', x: 0, y: -0.5, z: 0, hx: 2, hy: 0.5, hz: 2 }]);
+    expect(app.levelScope).toBeNull(); expect(app.physics).toBeNull();
+  });
+
   it('builds the authored plugin independently of the public product entry and saved Developer choice', async () => {
     const { sky } = fakeWorld();
     const entries = { legacy: true, shardfile: true, public: 'shardfile' } as const;

@@ -50,9 +50,14 @@ export async function visitAuthoredWorld(manifest, options) {
   if (needsTerrainCollider(spec)) registerTerrain(physics, ground);
   const factory = typeof def.trees.factory === 'function' ? await (await def.trees.factory())(renderer, sky) : new TreeFactory(renderer).buildEmpty();
   const forest = new Forest(factory, sky).build({ drawnBy: def.trees.drawnBy ?? 'self' });
-  const terrain = options.createTerrain === undefined
+  const terrainSource = options.createTerrain === undefined
     ? { mesh: new THREE.Mesh(new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE, TERRAIN_RES - 1, TERRAIN_RES - 1).rotateX(-Math.PI / 2)), punch: noop }
     : await options.createTerrain({ ground, forest, native });
+  // Rendering captures keep their actual sliced terrain. The inert navmesh host
+  // and older one-shot providers forward to their same punch law, with no new
+  // hole test, index mutation or fabricated geometry.
+  const terrain = typeof terrainSource.punchSliced === 'function' ? terrainSource
+    : { ...terrainSource, punchSliced: (hole) => Promise.resolve(terrainSource.punch(hole)) };
   const player = { position: new THREE.Vector3(def.spawn.x, def.spawn.y ?? HF.heightAt(def.spawn.x, def.spawn.z), def.spawn.z), platforms: [] };
   // G342: a caller may collect the late hooks (view-dependent instance repacks) to pose them once before it visits
   const late = [], collectLate = options.collectLate === true ? (...args) => { const fn = args.find((a) => typeof a === 'function'); if (fn !== undefined) late.push(fn); } : noop;
