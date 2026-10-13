@@ -5,7 +5,7 @@ import { expectKeyedClosure } from './fixtures/authoringClosure';
 import { auditAuthoringInputs, isAuthoringInput } from '../scripts/authoring-inputs.mjs';
 import { discoverGeneration } from '../scripts/generate.mjs';
 import { skyPhysicsPlacements } from '../src/shards/far-reach/generators/physicsPlacements';
-import native from '../src/shards/far-reach/runtime/physics.baked.json' with { type: 'json' };
+import native from '../src/shards/far-reach/data/physics.generated.json' with { type: 'json' };
 
 it('compiles the exact native island/lip/prop placements without running a world, model or registry constructor', () => {
   const rows = skyPhysicsPlacements(), ids = new Set(rows.map(row => row.id));
@@ -40,5 +40,5 @@ it('keys a complete portable component without runtime, legacy, generated seeds 
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['src/shards/far-reach/data/physicsPlacements.generated.json']);
   expect(job.buildOutputs).toEqual({ 'src/shards/far-reach/data/physicsPlacements.generated.json': '12f4de8259d2a8589352afe3229cd9f90f9f4e94d09ba845dcb420f255b849b4' });
-  expect(job.outputs).not.toContain('src/shards/far-reach/runtime/physics.baked.json');
+  expect(job.outputs).not.toContain('src/shards/far-reach/data/physics.generated.json');
 });

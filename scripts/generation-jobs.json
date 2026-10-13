@@ -1238,29 +1238,46 @@
     {
       "id": "sky-physics",
       "shard": "far-reach",
-      "entry": "src/shards/far-reach/generators/bake-sky-physics.mjs",
+      "entry": "src/shards/far-reach/generators/physics.ts",
       "command": [
-        "--experimental-transform-types",
         "--import",
-        "./scripts/bake-loader.mjs",
-        "src/shards/far-reach/generators/bake-sky-physics.mjs"
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/physics.ts",
+        "skyPhysics",
+        "src/shards/far-reach/data/physics.generated.json"
       ],
       "inputRoots": [
-        "src/engine",
-        "src/game",
-        "src/sdk",
-        "src/commons",
-        "src/shards/far-reach",
-        "scripts",
-        "public",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "src/format/json.ts",
+        "src/format/package.json",
+        "src/format/portalLink.ts",
+        "src/format/socketLift.ts",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/entries.ts",
+        "src/sdk/package.json",
+        "src/sdk/physics.ts",
+        "src/sdk/sceneTransform.ts",
+        "src/shards/far-reach/data/isletDesign.ts",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/physicsRows.json",
+        "src/shards/far-reach/data/spawns.ts",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/generators/bridgeColliders.ts",
+        "src/shards/far-reach/generators/physics.ts",
+        "src/shards/far-reach/generators/physicsPlacements.ts",
+        "src/shards/far-reach/generators/risingIslets.ts"
       ],
       "outputs": [
-        "src/shards/far-reach/runtime/physics.baked.json"
+        "src/shards/far-reach/data/physics.generated.json"
       ],
-      "platform": "portable"
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/far-reach/data/physics.generated.json": "228e72f839fc8f892c34866cbb89bb3e51b0e7a15c9f46c7dfa83ea9bf36fa02"
+      },
+      "seedOutputs": []
     },
     {
       "id": "signal-rigs",

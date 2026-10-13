@@ -18,9 +18,9 @@ import { FAN_ACT, FAN_ACTOR, FAN_AIM, installSkyFan, type FanCommand } from './f
 import { installSkyQuest, skyWinchPermission } from './quest';
 import { SKY_MOVER_BINDING } from '../data/moverBindings';
 import { UpdraftDriver, installHeadlessMovers, verifiedMoverModules, type HeadlessMovers } from '@wildshard/game/plugin/mover';
-import baked from './physics.baked.json' with { type: 'json' };
+import baked from '../data/physics.generated.json' with { type: 'json' };
 
-/** The baked native specs by kind (generators/bake-sky-physics.mjs); every body of a kind shares one recipe. */
+/** The baked native specs by kind (generators/physics.ts, authored rows only); every body of a kind shares one recipe. */
 export const skySpecs = (): ReadonlyMap<string, AnimalSimSpec> => bakedSpecs(baked.actors);
 
 /** The updraft's fixed-step id (its whole state is the player's board and impulse, so it carries no continuation). */

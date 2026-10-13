@@ -1,25 +1,30 @@
-// oxlint-disable-next-line import/no-nodejs-modules -- Trusted-bake freshness is checked against the test checkout.
-import process from 'node:process';
 import { expect, it } from 'vitest';
-import { skyPhysicsInputs } from '../../../scripts/sky-physics-inputs.mjs';
-import baked from '../../../src/shards/far-reach/runtime/physics.baked.json';
+import baked from '../../../src/shards/far-reach/data/physics.generated.json';
+import rows from '../../../src/shards/far-reach/data/physicsRows.json';
+import { skyPhysics } from '../../../src/shards/far-reach/generators/physics';
 import { SKY_SPAWNS } from '../../../src/shards/far-reach/data/spawns';
 import { Rng } from '../../../src/engine/core/rng';
 import source from '../../../src/shards/far-reach/shard.config';
 import { speciesScales } from '../../../src/game/plugin/brain';
 import { DRIFT_RAY_DATA, GALE_WISP_DATA, SKY_GOAT_DATA, STORM_ROC_DATA } from '../../../src/shards/far-reach/data/species';
 
-it('refuses stale source or model bytes before the trusted Sky physics bake is used', () => {
+it('is the fresh product of the authored rows (G350-FR: generators/physics.ts, no runtime run)', () => {
+  expect(JSON.stringify(skyPhysics())).toBe(JSON.stringify(baked));
   expect(baked.version).toBe(1);
-  expect(baked.profile).toBe('Node / phone / no renderer');
-  expect(baked.build).toMatch(/^node-[a-f0-9]{64}$/u);
   expect(baked.notice).toContain('DO NOT EDIT');
-  expect(baked.inputs['src/shards/far-reach/generators/bake-sky-physics.mjs']).toMatch(/^[a-f0-9]{64}$/u);
-  expect(baked.inputs).toEqual(skyPhysicsInputs(process.cwd()));
-  expect(baked.revision).toMatch(/^[a-f0-9]{40}$/u);
-  expect(Object.keys(baked.inputs).some(path => path.endsWith('/roc-hd.glb'))).toBe(true);
-  expect(Object.keys(baked.inputs).some(path => path.endsWith('/sky-goat.glb'))).toBe(true);
+  expect(rows.seed).toBe(source.identity.seed);
 });
+
+it('holds each authored species spec and scale range to its species row', () => {
+  for (const row of [DRIFT_RAY_DATA, SKY_GOAT_DATA, GALE_WISP_DATA, STORM_ROC_DATA]) {
+    const variant = row.variants[0], authored = Object.entries(rows.species).find(([kind]) => kind === row.kind)?.[1];
+    if (variant === undefined || authored === undefined) throw new Error(`no authored species row for ${row.kind}`);
+    expect(authored.scale).toEqual(variant.scale);
+    expect(authored.spec).toMatchObject({ kind: row.kind, label: variant.label, variant: variant.id, rarity: variant.rarity, hp: variant.hp, aggressive: row.aggressive });
+    expect(Reflect.get(authored.spec, 'flight')).toEqual(row.flight);
+  }
+});
+
 it('captures every declared finite actor and the actual layered native world, including disabled traversal', () => {
   expect(baked.actors.map(actor => actor.id).sort()).toEqual([...SKY_SPAWNS.actors, ...SKY_SPAWNS.bosses].map(actor => actor.id).sort());
   expect(new Set(baked.actors.map(actor => actor.id)).size).toBe(13);

@@ -7,7 +7,7 @@ import { discoverGeneration } from '../scripts/generate.mjs';
 import { deckCollider, railColliders, saggedColliders, skyBridgePhysicsPlacements } from '../src/shards/far-reach/generators/bridgeColliders';
 import { SPANS, FALLEN_BRIDGE, UPDRAFT } from '../src/shards/far-reach/data/layout';
 import { risingIsletRows } from '../src/shards/far-reach/generators/risingIslets';
-import native from '../src/shards/far-reach/runtime/physics.baked.json' with { type: 'json' };
+import native from '../src/shards/far-reach/data/physics.generated.json' with { type: 'json' };
 
 it('compiles eleven bridge rest placements and all 975 boxes with exact persisted native property order', () => {
   const rows = skyBridgePhysicsPlacements(), ids = new Set(rows.map(row => row.id));
@@ -49,5 +49,5 @@ it('pins a complete portable component without world/runtime constructors or cap
   expect(job.seedOutputs).toEqual([]);
   expect(job.outputs).toEqual(['src/shards/far-reach/data/bridgePhysics.generated.json']);
   expect(job.buildOutputs).toEqual({ 'src/shards/far-reach/data/bridgePhysics.generated.json': 'd5545bc47278abcf37fbefea7a2fdbad75a8998b684e309a1585da081ce425f7' });
-  expect(job.outputs).not.toContain('src/shards/far-reach/runtime/physics.baked.json');
+  expect(job.outputs).not.toContain('src/shards/far-reach/data/physics.generated.json');
 });
