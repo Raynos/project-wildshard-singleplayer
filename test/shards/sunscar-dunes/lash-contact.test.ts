@@ -7,7 +7,7 @@ import { WHIP_ITEM, WHIP_PROFILE } from '../../../src/shards/sunscar-dunes/data/
 import { lashLane as frozenLane } from '../../../src/game/systems/items/lash';
 import { Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import { LashRuntime, lashSpec, lashContact, lashLane, lashVolumeHit } from '../../../src/shards/sunscar-dunes/runtime/items/lash';
+import { lashRuntime, lashSpec, lashContact, lashLane, lashVolumeHit } from '../../../src/shards/sunscar-dunes/runtime/items/lash';
 
 /** The grounded Matriarch at 3.6x (bodyY 0.3, half-length 1.1, radius 0.8, head 0.4), facing +z (the player at the origin). */
 function matriarch(at: Vector3) {
@@ -66,12 +66,12 @@ it('accepts the bounded native roster and refuses an excessive contact scan befo
     if (actor === undefined) throw new Error('Missing real native contact actor');
     const port = host.combat.targetPort(actor.combatActor(), actor);
     for (const count of [1024, 1025]) {
-      const lash = new LashRuntime(lashSpec(WHIP_ITEM, WHIP_PROFILE), {
+      const lash = lashRuntime(lashSpec(WHIP_ITEM, WHIP_PROFILE), {
         source: host.player.health, hit: request => host.combat.hit(request), body: () => null, world: () => [],
         targets: () => Array.from({ length: count }, () => port),
         aim: (from, dir) => { from.set(100, 100, 100); dir.set(0, 0, -1); return true; },
       });
-      expect(lash.swing(false)).toBe(true);
+      expect(lash.swing(0)).toBe(true);
       if (count === 1024) expect(() => lash.advance(WHIP_PROFILE.timing.unroll)).not.toThrow();
       else expect(() => lash.advance(WHIP_PROFILE.timing.unroll)).toThrow('admitted contact scan');
     }

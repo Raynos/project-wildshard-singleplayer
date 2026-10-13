@@ -3,7 +3,7 @@ import { Vector3 } from 'three';
 import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { CombatTarget } from '@wildshard/engine/combat/pipeline';
 import type { SimHost } from '@wildshard/engine/sim';
-import { LashRuntime, lashSpec, lashVolumeHit, type LashWorldTarget } from './lash';
+import { lashRestore, lashRuntime, lashSnapshot, lashSpec, lashVolumeHit, type LashRuntime, type LashWorldTarget } from './lash';
 
 /** One player attack this tick: a light crack at the named target (the protocol's `player.attack`), or a heavy one. */
 export interface LashCreatureCommand { readonly targetId: string; readonly heavy?: boolean }
@@ -59,7 +59,7 @@ export function installLashHost(host: SimHost, spec: LashHostSpec): LashHost {
       if (heavy && second) cracked = entry.act;
       return true;
     } }));
-  const lash = new LashRuntime(lashSpec(spec.row, spec.profile), { source: host.player.health, hit: req => host.combat.hit(req), world: () => world,
+  const lash = lashRuntime(lashSpec(spec.row, spec.profile), { source: host.player.health, hit: req => host.combat.hit(req), world: () => world,
     targets: () => [...host.entities.keys()].flatMap(id => { const p = port(id); return p === null ? [] : [p]; }),
     aim: (from, dir) => {
       from.copy(host.player.position); from.y += spec.eye;
@@ -91,14 +91,14 @@ export function installLashHost(host: SimHost, spec: LashHostSpec): LashHost {
     for (let i = 0; i < 1024; i++) {
       const command = list[i]; if (command === undefined) break;
       if (!('world' in command) && !host.entities.has(command.targetId)) continue;
-      if (!lash.swing(command.heavy === true)) continue;
+      if (!lash.swing(command.heavy === true ? 1 : 0)) continue;
       aimed.target = 'world' in command ? null : command.targetId; aimed.world = 'world' in command ? command.world : null;
     }
     lash.advance(dt);
-  }, { snapshot: () => JSON.stringify({ version: 2, ...lash.snapshot(), target: aimed.target, world: aimed.world, dir: aimed.dir.toArray() }), restore: value => {
+  }, { snapshot: () => JSON.stringify({ version: 2, ...lashSnapshot(lash), target: aimed.target, world: aimed.world, dir: aimed.dir.toArray() }), restore: value => {
     if (typeof value !== 'string') throw new Error(`Invalid ${spec.step} continuation`);
     const state = v.parse(Saved, JSON.parse(value));
-    lash.restore(state); aimed.target = state.target; aimed.world = state.world; aimed.dir.fromArray(state.dir);
+    lashRestore(lash, state); aimed.target = state.target; aimed.world = state.world; aimed.dir.fromArray(state.dir);
   } });
   return { lash, cracked: () => cracked };
 }

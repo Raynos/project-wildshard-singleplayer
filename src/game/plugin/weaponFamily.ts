@@ -1,6 +1,9 @@
 import * as v from 'valibot';
 import { ItemFamilyNameSchema } from '@wildshard/format/items';
-import { Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector3, MathUtils } from "three";
+import { Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
+import type { App } from "@wildshard/engine/app/app";
+import { blocks } from "@wildshard/engine/blocks";
+import { HeldWeaponClock, type ContactFamily, type ContactScanTarget } from "@wildshard/engine/combat/contactWeapon";
 import { Weapon, type WeaponState, type AimInfo } from "@wildshard/engine/combat/Weapon";
 import { Tool } from "@wildshard/engine/combat/Tool";
 import type { EquipmentRow, EquipContext } from "@wildshard/engine/combat/Equipment";
@@ -123,6 +126,56 @@ class DeclaredLantern extends Tool {
     keepInFrame(this.model, this.ports.view.position);
   }
 }
+/** The view spring a held contact weapon's model sways on (`blocks.viewmodel`). */
+export type HeldContactSpring = Parameters<typeof blocks.viewmodel>[0];
+/**
+ * A held contact weapon (SHARD-PLATFORM SF85): the chassis a trusted family's held weapon shares over its move rows
+ * (`ContactFamily`). Attack swings light, Heavy swings heavy, and a still hold (touch) fills the charge ring over
+ * `chargeSeconds` and its release swings heavy at once; the model sways on the view spring; contacts go through the
+ * shared melee block. A family gives its rows' runtime (`moves`), its `swing` and its view in `update` (after `stepHeld`).
+ */
+export abstract class HeldContactWeapon<T extends ContactScanTarget = ContactScanTarget> extends Weapon {
+  override readonly state: WeaponState = { ammo: undefined, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
+  override holster = 0; override enabled = true; override adsHeld = false; override aimInfo: AimInfo | null = null;
+  /** told of every swing's start (heavy or light) */
+  onSwing: ((heavy: boolean) => void) | null = null;
+  protected readonly app: App;
+  protected readonly vm: ReturnType<typeof blocks.viewmodel>;
+  protected readonly contact: ReturnType<typeof blocks.melee>;
+  protected readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
+  protected readonly hold = new HeldWeaponClock();
+  protected chargeSeconds: number;
+  /** the family's move rows at work */
+  protected abstract readonly moves: ContactFamily<T>;
+  private readonly releaseHold = (): void => { this.moves.cooldown = 0; this.swing(true); };
+  constructor(app: App, row: EquipmentRow, spring: HeldContactSpring, chargeSeconds: number) {
+    super(row); this.app = app; this.chargeSeconds = chargeSeconds;
+    this.vm = blocks.viewmodel({ ...spring }); this.contact = blocks.melee(app.combat);
+    this.blocks.vm = this.vm; this.blocks.melee = this.contact;
+  }
+  override get charge(): number { return Math.min(1, this.hold.elapsed / this.chargeSeconds); }
+  override install(ctx: EquipContext): void {
+    super.install(ctx);
+    this.app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, () => this.enabled);
+    this.app.input.bind('heavy', () => { this.swing(true); }, ctx.scope, () => this.enabled);
+    ctx.scope.onDispose(() => { this.hold.reset(); });
+  }
+  override tryFire(): void { this.swing(false); }
+  /** Starts a light or heavy swing when its cooldown and the weapon allow (false: refused). */
+  abstract swing(heavy: boolean): boolean;
+  /** This frame's aim from the eye (false: no equipment host). */
+  protected aim(from: Vector3, dir: Vector3): boolean {
+    const host = this.app.equipmentHost; if (host === null) return false;
+    this.setAimSource(() => host.player.sampleAimCommand()); this.aimRay(from, dir); return true;
+  }
+  /** The cooldowns run down, the hold steps (its release swings heavy) and the view spring follows the turn. */
+  protected stepHeld(dt: number): void {
+    this.moves.cool(dt);
+    this.hold.step(dt, this.enabled && this.holster <= 0.001, this.adsHeld, this.releaseHold);
+    this.vm.step(this.spring, new Vector2(), dt);
+  }
+}
+
 /** Register one trusted weapon family in the caller's session-local registry, without allocating a weapon or installing inputs.
  * The loader checks the shard namespace and every item before construction. Duplicate and reserved kit names refuse here. */
 export function registerWeaponFamily(registry: Map<string, ItemFamily>, id: string, family: ItemFamily): void {

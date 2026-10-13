@@ -1,11 +1,11 @@
-import { HeldWeaponClock } from '@wildshard/engine/combat/contactWeapon';
+import type { WeaponContactTarget } from '@wildshard/engine/combat/contactWeapon';
 import type { App } from '@wildshard/engine/app/app';
-import { blocks } from '@wildshard/engine/blocks';
 import type { EquipContext, EquipmentRow } from '@wildshard/engine/combat/Equipment';
+import type { CombatTarget } from '@wildshard/engine/combat/pipeline';
 import type { Targets } from '@wildshard/engine/combat/types';
-import { Weapon, type WeaponState } from '@wildshard/engine/combat/Weapon';
-import { CatmullRomCurve3, Mesh, TubeGeometry, Vector2, Vector3, type Group, type Material, type Object3D } from 'three';
-import { LashRuntime, type LashSpec, type LashTarget, type LashWorldTarget } from './lash';
+import { HeldContactWeapon } from '@wildshard/game/plugin/weaponFamily';
+import { CatmullRomCurve3, Mesh, TubeGeometry, Vector3, type Group, type Material, type Object3D } from 'three';
+import { lashRuntime, type LashRuntime, type LashSpec, type LashWorldTarget } from './lash';
 import type { LashCord } from './lashView';
 import type { LashView } from '../../data/whip';
 
@@ -37,62 +37,47 @@ export interface LashParts {
   readonly wrapMaterial: () => Material;
 }
 
-/** A lash held as a weapon: the declared crack (`spec`) on the lash runtime, its viewmodel moved by `view`. */
-export class LashWeapon extends Weapon {
-  override readonly model; override readonly state: WeaponState = { ammo: undefined, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
-  override holster = 0; override enabled = true; override adsHeld = false; override aimInfo = null;
-  onSwing: ((heavy: boolean) => void) | null = null;
+/** A lash held as a weapon: the declared crack (`spec`) on the shared contact family's rows, its viewmodel moved by `view`. */
+export class LashWeapon extends HeldContactWeapon<CombatTarget> {
+  override readonly model;
   readonly parts: LashParts;
-  private readonly app: App; private readonly targets: Targets | null;
+  private readonly targets: Targets | null;
   private readonly spec: LashSpec; private readonly view: LashView;
-  private readonly contact: ReturnType<typeof blocks.melee>;
-  private readonly vm: ReturnType<typeof blocks.viewmodel>;
-  private readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
-  private readonly releaseHold = (): void => { this.lash.cooldown = 0; this.swing(true); };
-  private readonly hold = new HeldWeaponClock(); private time = 0;
+  private time = 0;
   private readonly from = new Vector3(); private readonly end = new Vector3();
   /** What the lash reacts to in the world when it hits no creature. */
   private crackables: readonly LashWorldTarget[] = [];
-  private readonly lash: LashRuntime;
+  protected readonly moves: LashRuntime;
   /** The pull's wrap: the world point the lash caught, how long it holds there, and the coil wound round it. */
   private wrapAt: Vector3 | null = null; private wrapT = 0; private wrapCoil: Mesh | null = null;
   constructor(app: App, targets: Targets | null, o: { readonly row: EquipmentRow; readonly spec: LashSpec; readonly view: LashView; readonly parts: LashParts }) {
-    super(o.row); this.app = app; this.targets = targets; this.spec = o.spec; this.view = o.view;
-    this.vm = blocks.viewmodel({ ...o.view.spring });
-    this.contact = blocks.melee(app.combat); this.blocks.vm = this.vm; this.blocks.melee = this.contact;
+    super(app, o.row, o.view.spring, o.spec.charge); this.targets = targets; this.spec = o.spec; this.view = o.view;
     // Each lash: the shared raycast first (it knows the bodies' shapes), then the nearest target whose chest is inside
     // the lane, through the shared combat targets (ENGINE §19), so practice dummies take the crack like creatures; then
     // the world's crackables.
-    this.lash = new LashRuntime(o.spec, { source: 'env', hit: req => this.contact.hit(req), world: () => this.crackables, targets: () => this.app.combat.targets(),
-      aim: (from, dir) => {
-        const host = this.app.equipmentHost; if (host === null) return false;
-        this.setAimSource(() => host.player.sampleAimCommand()); this.aimRay(from, dir); return true;
-      },
+    this.moves = lashRuntime(o.spec, { source: 'env', hit: req => this.contact.hit(req), world: () => this.crackables, targets: () => this.app.combat.targets(),
+      aim: (from, dir) => this.aim(from, dir),
       body: (from, dir, reach) => {
         const hit = this.targets?.raycast(from, dir, reach) ?? null, port = hit === null ? null : this.app.combat.target(hit.animal);
         return hit === null || port === null ? null : { port, point: hit.point };
       },
       fired: () => { this.onFire?.(); }, struck: (id, killed) => { this.onHit?.(id, false, killed); },
-      caught: caught => { if (this.lash.heavy) this.wrap(caught.at); } });
+      caught: caught => { if (this.moves.move === 1) this.wrap(caught.at); } });
     this.parts = o.parts; this.model = o.parts.root;
     this.model.position.set(...(o.parts.hero ? o.view.hold.hero : o.view.hold.code));
   }
   /** The world things the lash can crack. */
   aimAt(crackables: readonly LashWorldTarget[]): void { this.crackables = crackables; }
-  override get charge(): number { return Math.min(1, this.hold.elapsed / this.spec.charge); }
   override install(ctx: EquipContext): void {
     super.install(ctx);
-    this.app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, () => this.enabled);
-    this.app.input.bind('heavy', () => { this.swing(true); }, ctx.scope, () => this.enabled);
     ctx.scope.onDispose(() => {
-      this.hold.reset(); this.lash.cancel();
+      this.moves.cancel();
       if (this.wrapCoil) { this.wrapCoil.removeFromParent(); this.wrapCoil.geometry.dispose(); this.wrapCoil = null; }
     });
   }
-  override tryFire(): void { this.swing(false); }
   /** Starts a crack; the lash lands `spec.unroll` s later (and again at `spec.second` for the heavy). */
   swing(heavy: boolean): boolean {
-    if (!this.enabled || !this.lash.swing(heavy)) return false;
+    if (!this.enabled || !this.moves.swing(heavy ? 1 : 0)) return false;
     this.onSwing?.(heavy); return true;
   }
   /** Winds the lash round a caught lever: a short helix at the point, shown while the wrap holds. */
@@ -108,22 +93,19 @@ export class LashWeapon extends Weapon {
     this.wrapAt = at.clone(); this.wrapT = this.view.wrap.hold;
   }
   /** The lash reaches a world crackable inside its lane: the nearest one along the view reacts. */
-  crackWorld(from: Vector3, dir: Vector3, reach: number, second: boolean): LashWorldTarget | null { return this.lash.crackWorld(from, dir, reach, second); }
+  crackWorld(from: Vector3, dir: Vector3, reach: number, second: boolean): LashWorldTarget | null { return this.moves.crackWorld(from, dir, reach, second); }
   /** Damage through the pipeline; the heavy's first lash yanks a small creature in, its second staggers a big one (ENGINE §18, §19). */
-  strike(target: LashTarget, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean { return this.lash.strike(target, point, dir, from, heavy, second); }
+  strike(target: WeaponContactTarget, point: Vector3, dir: Vector3, from: Vector3, heavy: boolean, second = false): boolean { return this.moves.strike(target, heavy ? 1 : 0, second ? 1 : 0, point, dir, from); }
   override update(dt: number): void {
-    this.time += dt; this.lash.cool(dt);
-    const drawn = this.enabled && this.holster <= 0.001;
-    this.hold.step(dt, drawn, this.adsHeld, this.releaseHold);
-    this.model.visible = this.holster < 0.5;
-    this.vm.step(this.spring, new Vector2(), dt); this.model.rotation.y = this.spring.yaw;
+    this.time += dt; this.stepHeld(dt);
+    this.model.visible = this.holster < 0.5; this.model.rotation.y = this.spring.yaw;
     this.animate(dt);
   }
   private animate(dt: number): void {
     const { grip, coil, lash, tip } = this.parts, spec = this.spec, k = this.view.flick;
     if (this.wrapT > 0) { this.wrapT -= dt; if (this.wrapT <= 0 && this.wrapCoil) this.wrapCoil.visible = false; }
-    if (this.lash.crackT < 0) { lash.mesh.visible = false; coil.visible = this.parts.restCoil; grip.position.set(0, 0, 0); return; }
-    const t = this.lash.advance(dt), double = this.lash.heavy;
+    if (this.moves.t < 0) { lash.mesh.visible = false; coil.visible = this.parts.restCoil; grip.position.set(0, 0, 0); return; }
+    const t = this.moves.advance(dt), double = this.moves.move === 1;
     if (t < 0) return;
     // the flick: the hand snaps forward on each lash, the lash unrolls to the crosshair, then falls slack
     const local = double && t > spec.second - k.overlap ? t - (spec.second - spec.unroll) : t;

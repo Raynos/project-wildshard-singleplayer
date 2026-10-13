@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import { VANES } from '../data/layout';
-import { ConeStrikes, coneStrikeSpec, type ConeFanTarget, type ConeStrikeSpec } from './weapons/coneStrikes';
+import { coneRestore, coneSnapshot, coneStrikes, coneStrikeSpec, type ConeFanTarget, type ConeStrikes, type ConeStrikeSpec } from './weapons/coneStrikes';
 import { FAN_ID, SKY_ITEMS, FAN_PROFILE } from '../data/items';
 import { turnVanes, VANE_HUB } from '../quest/vanes';
 
@@ -40,7 +40,7 @@ export function installSkyFan(host: SimHost, commands: () => readonly FanCommand
     const port = host.combat.targetPort(actor.combatActor(), actor, velocity => { actor.impulse(velocity); });
     return port.hittable ? [port] : [];
   });
-  const fan = new ConeStrikes(spec, { hit: req => host.combat.hit(req), targets });
+  const fan = coneStrikes(spec, { hit: req => host.combat.hit(req), targets });
   const vanes = VANES.map(vane => ({ id: vane.id, at: new Vector3(vane.x, vane.y + VANE_HUB, vane.z) }));
   const from = new Vector3(), dir = new Vector3();
   const eye = (): Vector3 => from.copy(host.player.position).setY(host.player.position.y + EYE);
@@ -48,7 +48,7 @@ export function installSkyFan(host: SimHost, commands: () => readonly FanCommand
   // the camera ray's direction at the player's yaw and the tick's pitch (engine Player.sampleAimCommand)
   const aim = (): Vector3 => { const cos = Math.cos(pitch); return dir.set(-Math.sin(host.player.yaw) * cos, Math.sin(pitch), -Math.cos(host.player.yaw) * cos); };
   host.onStep(FAN_STEP, dt => {
-    fan.tick(dt);
+    fan.cool(dt);
     const list = commands();
     // the tick's last aim, wherever it sits in the list, aims every HEAVY and GUST of the tick
     pitch = 0;
@@ -60,15 +60,15 @@ export function installSkyFan(host: SimHost, commands: () => readonly FanCommand
       const command = list[i]; if (command === undefined) break;
       if (command.kind === 'aim') continue;
       if (command.kind !== 'swing') {
-        if (command.kind === 'heavy') { if (fan.startSwing(true)) fan.slash(eye(), aim(), true); }
-        else if (fan.startGust()) { eye(); aim(); fan.blow(from, dir); turnVanes(host.flags, vanes, from, dir); }
+        if (command.kind === 'heavy') { if (fan.claim(1)) fan.land(1, 0, eye(), aim()); }
+        else if (fan.claim(2)) { eye(); aim(); fan.land(2, 0, from, dir); turnVanes(host.flags, vanes, from, dir); }
         continue;
       }
       const actor = host.entities.get(command.targetId); if (actor === undefined) continue;
       eye(); dir.copy(actor.position); dir.y += actor.dims.bodyY * actor.scale; dir.sub(from);
-      if (dir.lengthSq() < 1e-9 || !fan.startSwing(false)) continue;
-      fan.slash(from, dir.normalize(), false);
+      if (dir.lengthSq() < 1e-9 || !fan.claim(0)) continue;
+      fan.land(0, 0, from, dir.normalize());
     }
-  }, { snapshot: () => fan.snapshot(), restore: value => { fan.restore(value); } });
+  }, { snapshot: () => coneSnapshot(fan), restore: value => { coneRestore(fan, value); } });
   return fan;
 }

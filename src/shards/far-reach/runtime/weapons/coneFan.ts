@@ -1,12 +1,10 @@
-import { HeldWeaponClock } from '@wildshard/engine/combat/contactWeapon';
 import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { App } from '@wildshard/engine/app/app';
-import { blocks } from '@wildshard/engine/blocks';
 import type { EquipContext, EquipmentRow } from '@wildshard/engine/combat/Equipment';
 import type { DeclaredAction } from '@wildshard/engine/input/InputService';
-import { Weapon, type WeaponState } from '@wildshard/engine/combat/Weapon';
-import { Vector2, Vector3, type Group, type Object3D } from 'three';
-import { ConeStrikes, type ConeFanTarget, type ConeStrikeSpec } from './coneStrikes';
+import { HeldContactWeapon } from '@wildshard/game/plugin/weaponFamily';
+import { Vector3, type Group, type Object3D } from 'three';
+import { coneStrikes, configureCone, type ConeFanTarget, type ConeStrikes, type ConeStrikeSpec } from './coneStrikes';
 
 /**
  * The cone fan family (SHARD-PLATFORM M3): a held weapon with an arc slash and a cone gust. SWING is an arc slash through
@@ -76,92 +74,70 @@ export interface ConeFanOptions<P extends ConeFanParts> {
   readonly parts: () => P;
 }
 
-/** A held cone fan: the arc slash, the held heavy and the cone gust on `ConeStrikes`, its viewmodel moved by its view rows. */
-export class ConeFan<P extends ConeFanParts = ConeFanParts> extends Weapon {
+/** A held cone fan: the arc slash, the held heavy and the cone gust on the shared contact family's rows, its viewmodel moved by its view rows. */
+export class ConeFan<P extends ConeFanParts = ConeFanParts> extends HeldContactWeapon<ConeFanTarget> {
   /** the model's parts (a shard dresses them, e.g. paints a leaf) */
   readonly parts: P;
   override readonly model: Group;
   private time = 0;
-  private chargeSeconds: number;
-  override readonly state: WeaponState = { ammo: undefined, magazine: 0, reserve: 0, loaded: true, reloading: false, reloadProgress: 0, ads: false };
-  override holster = 0; override enabled = true; override adsHeld = false; override aimInfo = null;
-  /** told of every swing's start (heavy or light) */
-  onSwing: ((heavy: boolean) => void) | null = null;
   /** told of every gust that leaves, with its origin and direction */
   onGust: ((from: Vector3, dir: Vector3) => void) | null = null;
   /** True while the fan is put away (e.g. riding a board): it hides and neither swings nor gusts. */
   stowed: () => boolean = () => false;
-  private readonly releaseHold = (): void => { this.strikes.cooldown = 0; this.swing(true); };
-  private readonly hold = new HeldWeaponClock();
   /** The move playing and how far through it (0…1; 1 = done). */
   motion: ConeFanMotion = 'swing'; motionK = 1;
-  private readonly app: App; private readonly targets: () => readonly ConeFanTarget[];
+  private readonly targets: () => readonly ConeFanTarget[];
   private readonly view: ConeFanView; private readonly gustAction: DeclaredAction;
-  private readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
-  private readonly vm: ReturnType<typeof blocks.viewmodel>;
-  private readonly contact: ReturnType<typeof blocks.melee>;
-  private readonly strikes: ConeStrikes;
-  override get charge(): number { return Math.min(1, this.hold.elapsed / this.chargeSeconds); }
+  protected readonly moves: ConeStrikes;
 
   constructor(app: App, targets: () => readonly ConeFanTarget[], o: ConeFanOptions<P>) {
-    super(o.row);
-    this.chargeSeconds = o.view.charge;
+    super(app, o.row, o.view.spring, o.view.charge);
     this.parts = o.parts(); this.model = this.parts.group;
-    this.app = app; this.targets = targets; this.view = o.view; this.gustAction = o.gustAction;
-    this.vm = blocks.viewmodel({ ...o.view.spring });
-    this.contact = blocks.melee(app.combat);
-    this.strikes = new ConeStrikes(o.strikes, { hit: (req) => this.contact.hit(req), targets: () => this.targets() });
-    this.blocks.vm = this.vm; this.blocks.melee = this.contact;
+    this.targets = targets; this.view = o.view; this.gustAction = o.gustAction;
+    this.moves = coneStrikes(o.strikes, { hit: (req) => this.contact.hit(req), targets: () => this.targets(), struck: (id, killed) => { this.onHit?.(id, false, killed); } });
     const hold = o.view.hold;
     this.model.position.set(hold.x, hold.y, hold.z); this.model.rotation.set(hold.pitch, hold.yaw, hold.roll); this.model.scale.setScalar(hold.scale);
   }
   /** Hand the existing held owner its admitted profile; refusal leaves its row and clocks untouched. */
   bindProfile(row: ItemSpec, input: unknown): void {
-    this.strikes.configure(row, input);
+    configureCone(this.moves, row, input);
     if (row.kind === 'weapon') this.chargeSeconds = row.charge;
   }
   override install(ctx: EquipContext): void {
     super.install(ctx);
-    this.app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, () => this.enabled);
-    this.app.input.bind('heavy', () => { this.swing(true); }, ctx.scope, () => this.enabled);
     this.app.input.bind(this.gustAction, () => { this.gust(); }, ctx.scope, () => this.enabled);
-    ctx.scope.onDispose(() => { this.hold.reset(); });
   }
-  override tryFire(): void { this.swing(false); }
-  private aim(): { from: Vector3; dir: Vector3 } | null {
-    const host = this.app.equipmentHost; if (host === null) return null;
+  private aimed(): { from: Vector3; dir: Vector3 } | null {
     const from = new Vector3(), dir = new Vector3();
-    this.setAimSource(() => host.player.sampleAimCommand()); this.aimRay(from, dir);
-    return { from, dir };
+    return this.aim(from, dir) ? { from, dir } : null;
   }
   /** SWING (light) or HEAVY: claims the cooldown, plays the move and slashes along the aim. */
-  swing(heavy: boolean): void {
-    if (this.strikes.cooldown > 0 || !this.enabled || this.stowed()) return;
-    this.strikes.startSwing(heavy); this.play(heavy ? 'heavy' : 'swing'); this.onSwing?.(heavy);
-    const aim = this.aim(); if (aim !== null) this.slash(aim.from, aim.dir, heavy);
+  swing(heavy: boolean): boolean {
+    if (this.moves.cooldown > 0 || !this.enabled || this.stowed()) return false;
+    this.moves.claim(heavy ? 1 : 0); this.play(heavy ? 'heavy' : 'swing'); this.onSwing?.(heavy);
+    const aim = this.aimed(); if (aim !== null) this.slash(aim.from, aim.dir, heavy);
+    return true;
   }
   /** One slash from `from` along `dir`: every target in the arc takes a hit. Returns how many were struck. */
   slash(from: Vector3, dir: Vector3, heavy: boolean): number {
-    const struck = this.strikes.slash(from, dir, heavy, (id, killed) => { this.onHit?.(id, false, killed); });
+    const struck = this.moves.land(heavy ? 1 : 0, 0, from, dir);
     if (struck > 0) this.onFire?.();
     return struck;
   }
   /** GUST: claims its cooldown, plays the move and blows the cone along the aim. */
   gust(): void {
-    if (this.strikes.gustCooldown > 0 || !this.enabled || this.stowed()) return;
-    this.strikes.startGust(); this.play('gust');
-    const aim = this.aim(); if (aim === null) return;
+    if (this.moves.secondaryCooldown > 0 || !this.enabled || this.stowed()) return;
+    this.moves.claim(2); this.play('gust');
+    const aim = this.aimed(); if (aim === null) return;
     this.onGust?.(aim.from, aim.dir); this.blow(aim.from, aim.dir);
   }
   /** The GUST cone: an impulse away from `from` (plus a little lift) and a small hit on each target inside it. */
-  blow(from: Vector3, dir: Vector3): number { return this.strikes.blow(from, dir); }
+  blow(from: Vector3, dir: Vector3): number { this.moves.land(2, 0, from, dir); return this.moves.touched; }
   private play(motion: ConeFanMotion): void { this.motion = motion; this.motionK = 0; }
   override update(dt: number): void {
-    this.strikes.tick(dt);
-    this.hold.step(dt, this.enabled && this.holster <= 0.001, this.adsHeld, this.releaseHold);
+    this.stepHeld(dt);
     const view = this.view, hold = view.hold, draw = view.draw;
     this.motionK = Math.min(1, this.motionK + dt / view.motions[this.motion].seconds);
-    this.vm.step(this.spring, new Vector2(), dt);
     // idle: a slow breath and the pendant swinging; a move plays its key poses; holding for HEAVY draws the fan up and back
     this.time += dt; const pose = coneFanPose(view.motions[this.motion], this.motionK), c = this.motionK >= 1 ? this.charge : 0, breath = Math.sin(this.time * view.breath.rate);
     this.model.position.set(hold.x + pose.x + c * draw.x, hold.y + pose.y + breath * view.breath.lift + c * draw.y, hold.z + pose.z + c * draw.z);
