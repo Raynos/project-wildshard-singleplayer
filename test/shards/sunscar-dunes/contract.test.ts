@@ -1,4 +1,8 @@
 // @vitest-environment happy-dom
+// oxlint-disable-next-line import/no-nodejs-modules -- Admit the real content-addressed fire texture in this offline boot fixture.
+import { readFileSync } from 'node:fs';
+// oxlint-disable-next-line import/no-nodejs-modules -- Check fixture wire bytes before lending them to the runtime product reader.
+import { createHash } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { StrikeRunner } from '../../../src/engine/ai/strikes';
 import { App } from '../../../src/engine/app/app';
@@ -29,12 +33,20 @@ import { strikeFromData } from '../../../src/engine/ai/strikeRows';
 import { strike } from '../../../src/sdk/species';
 import { DUNE_RAY, SWOOP_DATA } from '../../../src/shards/sunscar-dunes/data/species/duneRay';
 import { DUNE_RAY_LOOK } from '../../fixtures/sunscar-dunes/looks';
-import { FakeGame } from '../../fake/FakeGame';
+import { materialTextureRefs } from '../../../src/format/materials';
+import { provideRuntimeProduct } from '../../../src/game/shardfile/runtimeProduct';
+import type { ShardRuntime } from '../../../src/game/shard/runtime';
+import type { ShardWorld } from '../../../src/game/shard/world';
+import type { Renderer } from '../../../src/engine/render/renderer';
+import { FIRE_GRAPH_IDS } from '../../../src/shards/sunscar-dunes/world/fireFx';
+import { fakeWorld } from '../../fake/world';
+import { FakeGame, legacyDouble } from '../../fake/FakeGame';
 import { INPUT_CONTEXTS } from '../../../src/game/inputContexts';
 import { DUSK, setDusk } from '../../../src/shards/sunscar-dunes/look/dusk';
 
 import { prepareBakedManifestGround } from '../../fixtures/baked-manifest-ground';
 
+const localFetch = globalThis.fetch;
 const SWOOP = strikeFromData(strike(SWOOP_DATA));
 const noop = (): void => undefined;
 const ledger = (app: App): Ledger => new Ledger(app.saves, [{ id: manifest.slug, shard: source.identity.slug }], [{ shard: source.identity.slug, revision: source.identity.revision, rules: SIGNAL_LEDGER }], []);
@@ -43,14 +55,33 @@ async function boot(retained = false): Promise<{ app: App; plugin: SignalDunesPl
   const fake = new FakeGame();
   const app = new App(), plugin = new SignalDunesPlugin(), stages: string[] = [], active = new Set<string>(), bag = new TabRegistry();
   for (const context of INPUT_CONTEXTS) app.input.register(context, app.engineScope);
-  const game: GameServices = { shard: manifest, rows: new Map(), bag };
+  // The world stage lends the real graph compiler a renderer; only GPU draws are doubled.
+  let graphPreparations = 0;
+  const rendered = fake.asGame();
+  const renderer = legacyDouble<Renderer>({ info: rendered.renderer.info, getDrawingBufferSize: out => fake.renderer.getDrawingBufferSize(out), setNodesHandler: () => { graphPreparations++; }, extensions: legacyDouble<Renderer['extensions']>({ has: () => false }) });
+  Reflect.set(renderer, 'isWebGPURenderer', false);
+  rendered.renderer = renderer;
+  const { player, sky, forest } = fakeWorld();
+  const world = legacyDouble<ShardWorld>({ player, sky, forest, chunk: manifest, game: rendered });
+  const runtime = legacyDouble<ShardRuntime>({ world, play: null, hooks: {}, interactables: [], overhead: [], objects: {} });
+  const game: GameServices = { shard: manifest, runtime, rows: new Map(), bag };
+  const fireMaterials = Object.fromEntries(Object.values(FIRE_GRAPH_IDS).map(id => {
+    const entry = source.look.materials[id]; if (entry === undefined) throw new Error(`Missing fire graph ${id}`);
+    return [id, entry];
+  }));
+  const assets = new Map(materialTextureRefs(fireMaterials).map(hash => {
+    const bytes = Uint8Array.from(readFileSync(`src/shards/sunscar-dunes/assets/${hash}`));
+    expect(createHash('sha256').update(bytes).digest('hex')).toBe(hash);
+    expect(bytes.length).toBe(source.files.find(file => file.hash === hash)?.compressed);
+    return [hash, bytes] as const;
+  }));
   app.registryValue = new WorldRegistry();
   const add = (name: string): (() => void) => { active.add(name); return () => { active.delete(name); }; };
   app.levelAdapters = { inputContext: (def) => { const scope = app.levelScope; if (scope === null) throw new Error('No input scope'); app.input.register(def, scope); app.input.push(def.id, scope); return add(def.id); },
     debugRow: () => add('debug'), playground: () => add('playground'), hud: { widget: () => add('widget'), pin: () => add('pin'), relabel: () => add('relabel'),
       verb: () => add('verb'), disc: () => ({ button: document.createElement('button'), dispose: add('disc') }) } };
   const stage = (id: string): void => { stages.push(id); };
-  const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: () => stage('data'), world: () => stage('world'), kit: () => stage('kit'),
+  const driver: LevelDriver = { progress: () => ({ set: noop, detail: noop }), data: () => stage('data'), world: (_spec, ctx) => { stage('world'); provideRuntimeProduct({ source, assets, cached: false }, ctx.scope); }, kit: () => stage('kit'),
     loadout: (_spec, ctx) => { stage('loadout'); expect(ctx.app.levelRegistrations.list('weapon').map((r) => r.id)).toEqual(['weapon.sunscar-whip']); },
     play: () => stage('play'), finish: () => stage('finish') };
   app.levelDriver = driver;
@@ -61,6 +92,7 @@ async function boot(retained = false): Promise<{ app: App; plugin: SignalDunesPl
     return hooks.context;
   };
   await app.loadLevel(toLevelSpec(manifest), { world: (ctx) => plugin.world(context(ctx)), kit: (ctx) => plugin.kit(context(ctx)), play: (ctx) => plugin.play(context(ctx)) });
+  expect(graphPreparations).toBe(1);
   const first = source.runtime?.spawns?.homes[0]; if (first === undefined) throw new Error('Missing original ray home');
   expect(Reflect.get(plugin, 'ray')).toBe(plugin.actor(first.id));
   expect(Reflect.get(plugin, 'matriarch')).toBe(plugin.presentedBoss);
@@ -72,9 +104,10 @@ const target = (health = 70): Actor => { const actor: Actor = { id: 'sunscar.tar
   applyDamage: (req) => { actor.attributes.health -= req.amount; return false; } }; return actor; };
 
 describe('Signal Dunes plugin contract', () => {
-  // No asset server exists in Node: refuse network fetches at once, so a failed optional load settles inside its test instead of
-  // retrying localhost and logging after the worker has torn down (the EnvironmentTeardownError the push gate saw).
-  beforeEach(() => { prepareBakedManifestGround(manifest); localStorage.clear(); sessionStorage.clear(); vi.stubGlobal('fetch', () => Promise.reject(new TypeError('offline contract test: no asset server'))); });
+  // Refuse asset-server requests immediately so optional loads settle before teardown.
+  // The raw KTX decoder's embedded WASM data URL stays available without a server.
+  beforeEach(() => { prepareBakedManifestGround(manifest); localStorage.clear(); sessionStorage.clear(); vi.stubGlobal('fetch', (input: RequestInfo | URL, init?: RequestInit) => typeof input === 'string' && input.startsWith('data:application/wasm;base64,')
+    ? localFetch(input, init) : Promise.reject(new TypeError('offline contract test: no asset server'))); });
   afterEach(() => { vi.unstubAllGlobals(); });
   it('retains authored quest state while parked input and dusk callbacks disappear through two re-entries', async () => {
     const { app, plugin, fake, hooks } = await boot(true);
