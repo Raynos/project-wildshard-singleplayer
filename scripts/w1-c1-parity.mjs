@@ -102,7 +102,7 @@ if (mode === 'capture') {
       }
       report[`${key}/${ra.tier}/${ra.pose}`] = { differ, base: { calls: ra.calls, triangles: ra.triangles }, candidate: { calls: rb.calls, triangles: rb.triangles } };
       if (ra.tier !== tier || (same && !all) || !existsSync(pngOf(bd, ra)) || !existsSync(pngOf(cd, rb))) continue;
-      const cells = [['BASE', a.build, pngOf(bd, ra), ra], ['CANDIDATE', b.build, pngOf(cd, rb), rb]].map(([label, build, png, r], j) => {
+      const cells = [{ label: 'BASE', build: a.build, png: pngOf(bd, ra), r: ra }, { label: 'CANDIDATE', build: b.build, png: pngOf(cd, rb), r: rb }].map(({ label, build, png, r }, j) => {
         const cell = join(work, `cmp-${ra.pose}-${String(j)}.png`);
         panel(png, [`${label} ${build} · ${SHARDS[key].slug} · ${ra.pose}`, `${String(r.calls)} draws · ${String(r.triangles)} tris`], cell);
         return cell;
