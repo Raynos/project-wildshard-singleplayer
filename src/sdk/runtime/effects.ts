@@ -1,5 +1,5 @@
 import { bindPlayerEffects as platformBindPlayerEffects } from '@wildshard/engine/combat/effects/EffectService';
-import { STARTER_EFFECTS as platformStarterEffects, installStarterEffects as platformInstallStarterEffects } from "@wildshard/game/plugin/effects";
+import { STARTER_EFFECTS as platformStarterEffects, installStarterEffects as platformInstallStarterEffects } from "@wildshard/game/plugin/ui";
 
 
 /** Independent status-effect movement channels, separate from equipment and traversal multipliers. */

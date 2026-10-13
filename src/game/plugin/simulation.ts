@@ -1,5 +1,5 @@
 import type { Vector3 } from 'three';
-import { createHeadlessPromptPicker } from './prompts';
+import { createHeadlessPromptPicker } from '../quest/interactionRows';
 import { GridAssembly } from '../grid/assembly';
 import { GridSimulation } from '../grid/simulation';
 import { ResidencyAllocator } from '../grid/allocator';

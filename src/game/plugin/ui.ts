@@ -1,34 +1,41 @@
 import { parseClientChannels, type ClientChannelProperty } from '@wildshard/format/clientChannels';
+import { AdditiveBlending, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, type Object3D } from 'three';
+import type { Scope } from '@wildshard/engine/app/scope';
+import { ParticlePool, pointScale } from '@wildshard/engine/fx/ParticlePool';
+import { CLIENT_SCRIPT_LIMITS, type ClientScriptFrame } from '@wildshard/engine/script/client';
+import type { SystemSpec } from '@wildshard/engine/app/systems';
+import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
+import type { Events } from '@wildshard/engine/events/events';
+import type { HudVerbs, LevelContext } from '@wildshard/engine/level/context';
+import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
+import type { MapMark } from '@wildshard/engine/ui/Minimap';
+import { Flags } from '@wildshard/engine/world/interact/flags';
+import type { Place } from '@wildshard/engine/world/interact/types';
+import { QuestState, type QuestDef, type QuestStep, type NpcDef } from '@wildshard/engine/quest/core';
+import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places, type NpcTalkOpts } from '@wildshard/engine/quest/view';
+import { DialogueBox } from '@wildshard/engine/quest/view/ui';
+import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from '../quest/reward';
+import { createLevelInstallation } from '@wildshard/engine/level/installation';
+import type { ShardContext } from './context';
+import type { BossDefinition, BossSaved, BossScript } from '@wildshard/engine/ai/BossBrain';
+import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import { BossBar } from '@wildshard/engine/ui/BossBar';
+import { CoinBurst } from '../loot/CoinBurst';
+import { DirectorBossBrain } from './director';
+import { bindRuntimeQuest, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
+import type { Shardfile } from '@wildshard/format/shardSchema';
+import { npcDef, type NpcRow } from './quests';
+import { parseBossProfile, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
+import { bossFight, type HeldBossBrain } from './bossPhase';
+import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
+import type { EffectDef } from '@wildshard/engine/combat/effects/types';
+import { STARTER_EFFECT_ROWS } from '../systems/effects/starter.generated';
+import { hudSlots } from '@wildshard/engine/ui/hudSlots';
+import { bindPlayerEffects, type EffectService } from '@wildshard/engine/combat/effects/EffectService';
+import type { Actor } from '@wildshard/engine/combat/pipeline';
+import { StatusIcons } from '../systems/effects/view';
+
 import "../quest/presentation.css";
-import { AdditiveBlending, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, type Object3D } from "three";
-import type { Scope } from "@wildshard/engine/app/scope";
-import { ParticlePool, pointScale } from "@wildshard/engine/fx/ParticlePool";
-import { CLIENT_SCRIPT_LIMITS, type ClientScriptFrame } from "@wildshard/engine/script/client";
-import type { SystemSpec } from "@wildshard/engine/app/systems";
-import { practiceRoom } from "@wildshard/engine/core/practiceRoom";
-import type { Events } from "@wildshard/engine/events/events";
-import type { HudVerbs } from "@wildshard/engine/level/context";
-import type { MapPoi, MapQuest } from "@wildshard/engine/ui/Map";
-import type { MapMark } from "@wildshard/engine/ui/Minimap";
-import { Flags } from "@wildshard/engine/world/interact/flags";
-import type { Place } from "@wildshard/engine/world/interact/types";
-import { QuestState, type QuestDef, type QuestStep, type NpcDef } from "@wildshard/engine/quest/core";
-import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places, type NpcTalkOpts } from "@wildshard/engine/quest/view";
-import { DialogueBox } from "@wildshard/engine/quest/view/ui";
-import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from "../quest/reward";
-import { createLevelInstallation } from "@wildshard/engine/level/installation";
-import type { ShardContext } from "./context";
-import type { BossDefinition, BossSaved, BossScript } from "@wildshard/engine/ai/BossBrain";
-import type { Animal } from "@wildshard/engine/entities/AnimalView";
-import { BossBar } from "@wildshard/engine/ui/BossBar";
-import { CoinBurst } from "../loot/CoinBurst";
-import { DirectorBossBrain } from "./director";
-import { bindRuntimeQuest, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from "./headless";
-import type { Shardfile } from "@wildshard/format/shardSchema";
-import { npcDef, type NpcRow } from "./quests";
-import { parseBossProfile, type MarkedBossPresentation } from "@wildshard/format/bossProfiles";
-import { bossFight, type HeldBossBrain } from "./bossPhase";
-import { installEnteredRuntimeService, retainsRuntimeServices } from "../shard/retainedHooks";
 
 /**
  * The client-script view adapter (SHARD-PLATFORM SF25, the render side; G66 "frozen, but alive-looking"). sp-x5's
@@ -668,4 +675,38 @@ export class RowBossView extends BossView {
     this.at = made.at; this.weather = made.weather; this.body = made.spec.body;
     made.after();
   }
+}
+
+/** Existing starter tuning; only the authored stun is applied by normal play, and importing installs no effects. */
+export const STARTER_EFFECTS: readonly EffectDef[] = STARTER_EFFECT_ROWS;
+
+type StatusMovement = Parameters<typeof bindPlayerEffects>[0]['movement'];
+type StarterContext = Pick<LevelContext, 'app' | 'scope' | 'system' | 'on'> & { hud: Pick<LevelContext['hud'], 'widget'> };
+/** An optional entered installer retires observers and icons while statuses remain player-owned. */
+export function installStarterEffects(ctx: StarterContext, host: { player: StatusMovement & { position: Vector3 }; health: Actor | null; effects: EffectService | null },
+  entered?: (install: (scope: Scope) => void) => void): void {
+  const { player, health, effects } = host;
+  if (health === null || effects === null) throw new Error('Starter effects need player health and effects services');
+  if (entered === undefined) bindPlayerEffects({ effects, target: health, movement: player, combat: ctx.app.combat, position: () => player.position, scope: ctx.scope });
+  let iconScope: Scope | undefined;
+  let icons: StatusIcons | null = null;
+  if (entered !== undefined) entered((scope) => {
+    iconScope = scope;
+    scope.onDispose(() => { icons?.root.remove(); icons = null; if (iconScope === scope) iconScope = undefined; });
+  });
+  ctx.system({ id: 'engine.effects.status', phase: 'update', run: () => {
+    const active = effects.active(health);
+    const status = active.some((effect) => effect.def.tags.some((tag) => tag.startsWith('status.')));
+    if (status && icons === null) {
+      icons = new StatusIcons();
+      if (entered === undefined) ctx.hud.widget('band.3', icons.root, 80);
+      else if (iconScope !== undefined) hudSlots.widget('band.3', icons.root, 80, iconScope);
+    }
+    if (icons !== null) { icons.update(active); icons.root.style.display = status ? '' : 'none'; }
+  } });
+  if (entered === undefined) ctx.on('player.died', ({ actor }) => {
+    if (actor !== health) return;
+    for (const effect of effects.active(health)) if (effect.def.tags.some((tag) => tag.startsWith('status.'))) effects.remove(health, effect.def.id);
+  });
+  ctx.scope.onDispose(() => { icons?.root.remove(); });
 }

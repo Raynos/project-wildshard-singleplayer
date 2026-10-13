@@ -1,12 +1,12 @@
+/** Transitional quest bridge: retire when quest behavior is expressed by authored rows. */
 import { MathUtils, type Vector3 } from "three";
 import * as v from "valibot";
 import type { NpcDef } from "@wildshard/engine/quest/core";
 import type { SimHost } from "@wildshard/engine/sim";
 import { DeclaredQuests } from "../quest/declared";
-import { eyeReaches, installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from "../quest/interactionRows";
+import { bindHeadlessPrompts, type HeadlessPrompt, type PromptRegistration, eyeReaches, installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from "../quest/interactionRows";
 import { autoFlag, type InteractTable } from "@wildshard/engine/world/interact/types";
 import type { QuestData } from "@wildshard/format/quests";
-import { bindHeadlessPrompts, type HeadlessPrompt, type PromptRegistration } from "./prompts";
 
 /** Mutable pose lent by a reward's player owner; this law creates no player, motor, camera or view. */
 export interface QuestRewardPosePlayer { position: Vector3; velocity: Vector3; yaw: number; pitch: number }

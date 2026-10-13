@@ -41,13 +41,13 @@ for exact SF73-registered frozen callers only. Primaries own Nalati `models/npc/
 `npc/faceHeads`; `wildshard/legacy-npc-imports` rejects every other caller. The historical internal type dependency is
 kept, and each definition/export is deleted with its last registered legacy consumer. No aliases or frozen edits.
 
-`@wildshard/game/plugin/effects` (`installStarterEffects` and its status-icon row; trusted runtimes use
+`@wildshard/game/plugin/ui` (`installStarterEffects` and its status-icon row; trusted runtimes use
 `@wildshard/sdk/runtime/effects`), `@wildshard/game/plugin/weaponFamily` (`declaredKitItemFamilies`),
 `@wildshard/game/systems/tools/hoverboard` and `@wildshard/game/icons` (with `src/game/icons.merge.d.ts`) moved unchanged
 from the kit, and its weapon compatibility names gave way to the defining `@wildshard/game/weapons/*` and engine
 modules (SF54). That emptied the kit: `@wildshard/kit`, its workspace entry and its guard layer are deleted.
 
-`@wildshard/game/plugin/effects.STARTER_EFFECTS` owns the typed runtime
+`@wildshard/game/plugin/ui.STARTER_EFFECTS` owns the typed runtime
 view of the authored rows in `game/systems/effects/starterRows.json`. The SDK exposes the same rows through
 `runtime/effects`; `pnpm gen` and direct Vite/native builds generate their literal
 table before compilation. Runtime imports apply nothing.
@@ -1589,7 +1589,7 @@ The practice predicate isolates the room when true, even when it has no targets.
 | `EffectDef` | `{ id: 'effect.*', tags, kind: 'instant' · 'timed' · 'permanent', duration?, period?, modifiers, stacking, cue?, icon?, blockedBy?, grants? … }` |
 | `EffectService`, `EffectTarget`, `EffectId`, `ActiveEffect`, `AttributeSet`, `matchesTag` | `apply(target, id, source?)`, `remove(target, id)`, `has(target, tag)` |
 
-The starter set (`@wildshard/game/plugin/effects`) is `effect.poison`, `effect.burn`, `effect.bleed`, `effect.slow`, `effect.stun`
+The starter set (`@wildshard/game/plugin/ui`) is `effect.poison`, `effect.burn`, `effect.bleed`, `effect.slow`, `effect.stun`
 (`STARTER_EFFECTS`, `installStarterEffects`). Register rows with `ctx.rows.effect(STARTER_EFFECTS)` in `kit`.
 
 **Ranged ports** (the game's families use them; a custom ranged weapon may too): `Projectiles`, `projectileFlightStep`,
@@ -1924,7 +1924,7 @@ including the inside-surface refusal. `ITEM_PICKUP_HOVER` defines its 0.78 m hov
 reach, first-row equal-distance ties and strong-before-weak priority. Visibility queries the actual native world;
 a first hit on the target's exact registered or reconstructed owner also counts as visible. The owner association
 is weakly held by the prompt. A null boot world retains distance-only picking; admitted native hosts supply physics.
-`@wildshard/game/plugin/prompts` and `@wildshard/sdk/runtime/prompts` define
+`@wildshard/game/quest/interactionRows` and `@wildshard/sdk/runtime/prompts` define
 `parsePromptRegistrations`, `bindHeadlessPrompts` and `createHeadlessPromptPicker`. Signal Dunes and Driftwood
 use this one client prompt law in their native hosts: eye = authoritative feet + 1.68 m, strict reach,
 stable page registration order, strong-before-weak priority and actual-world LOS. Captures retain native sight
@@ -2744,7 +2744,7 @@ modules, relative bypasses, and computed game module names. Existing layer,
 public-index and sandbox checks remain active. Promote this rule to `error` in the
 root config after the move-backs; its tests already exercise enforcement.
 
-The defining plugin modules also own shared geometry packing (`plugin/geometry`), model and atlas registries (`plugin/geometry`), quest rows (`plugin/quests`), native prompt selection (`plugin/prompts`), weapon hook admission (`plugin/weaponFamily`), collision pose and clip metadata (`plugin/animation`), and starter effect installation (`plugin/effects`). Their implementations live in these modules; consumers do not pass through forwarding facades. Frozen compatibility keys remain until their registered consumers retire.
+The defining plugin modules also own shared geometry packing (`plugin/geometry`), model and atlas registries (`plugin/geometry`), quest rows (`plugin/quests`), native prompt selection (`quest/interactionRows`), weapon hook admission (`plugin/weaponFamily`), collision pose and clip metadata (`plugin/animation`), and starter effect installation (`plugin/ui`). Their implementations live in these modules; consumers do not pass through forwarding facades. Frozen compatibility keys remain until their registered consumers retire.
 
 The admitted product API is defined by `plugin/product`: bounded byte parsers, dependency preflight, terrain validation, saved-state lineage, build verdicts, report cards and memory admission. Existing defining hosts own their associated laws: `plugin/brain` resolves numeric species/strike rows; `plugin/director` owns the isolated director lane; `plugin/mover` proves terrain entries and lift approaches; `plugin/shardPlugin` resolves trusted runtime constructors and maps admitted catalogue data. These imports install no service.
 
