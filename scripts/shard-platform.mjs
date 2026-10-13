@@ -94,7 +94,8 @@ export function shaderCodeLines(source) {
     value.startsWith('/') ? value.replaceAll(/[^\n]/gu, ' ') : value).split('\n').filter(line => line.trim()).length;
 }
 /** Raw shader source remains custom even inside a data/generator TS file; SF59 graph nodes are ordinary data. */
-export function rawShaderLines(source, path) {
+/** @param {string} source @param {string} path @param {unknown} [program] the file's own parse of `source`, reused when given */
+export function rawShaderLines(source, path, program) {
   if (path.endsWith('.glsl')) return shaderCodeLines(source);
   if (!RULES.typescript.test(path)) return 0;
   let total = 0;
@@ -113,7 +114,7 @@ export function rawShaderLines(source, path) {
     }
     for (const child of Object.values(node)) if (Array.isArray(child)) child.forEach(part => { visit(part, name); }); else visit(child, name);
   };
-  visit(parseSync(path, source).program);
+  visit(program ?? parseSync(path, source).program);
   return total;
 }
 function filesIn(dir) {
@@ -286,7 +287,10 @@ function codeLineMask(source, comments) {
   return { code, lineOf };
 }
 export function shardLines(root = ROOT) {
-  const exists = (path) => existsSync(resolve(root, path)), texts = new Map(), graphs = new Map(), sources = new Map(), counts = new Map();
+  // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
+  const probes = new Map(), targets = new Map(), edges = new Map();
+  const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
+  const texts = new Map(), graphs = new Map(), sources = new Map(), counts = new Map();
   const frozen = legacyInventory(root);
   const generated = new Set(exists('scripts/generation-jobs.json') ? discoverGeneration(root).jobs.flatMap(job => job.outputs) : []);
   // Retained source tables also have exact producer/output identities; older tooling predates generation jobs.
@@ -306,18 +310,23 @@ export function shardLines(root = ROOT) {
   };
   const ignored = (path) => generated.has(path);
   const info = path => { if (!sources.has(path)) sources.set(path, sourceInfo(text(path), path)); return sources.get(path); };
-  const shaders = path => ignored(path) ? 0 : rawShaderLines(text(path), path);
+  const shaders = path => ignored(path) ? 0 : rawShaderLines(text(path), path, RULES.typescript.test(path) && !path.endsWith('.glsl') ? info(path).tree?.program : undefined);
   const count = path => { if (!counts.has(path)) counts.set(path, ignored(path) ? 0 : (path.endsWith('.glsl') ? shaderCodeLines(text(path)) : linesWithoutComments(text(path), info(path).comments))); return counts.get(path); };
   const sdk = exists('src/sdk/package.json') ? JSON.parse(text('src/sdk/package.json')) : null;
   const hasSdk = sdk?.name === '@wildshard/sdk';
-  const publishedTarget = (pkg, spec) => {
+  const publishedTargetOf = (pkg, spec) => {
     const name = `@wildshard/${pkg}`, manifest = pkg === 'sdk' ? sdk : exists(`src/${pkg}/package.json`) ? JSON.parse(text(`src/${pkg}/package.json`)) : null;
     if (manifest?.name !== name || !(spec === name || spec?.startsWith(`${name}/`))) return null;
     const key = spec === name ? '.' : `.${spec.slice(name.length)}`, target = manifest.exports?.[key];
     const path = typeof target === 'string' ? relative(root, resolve(root, `src/${pkg}`, target)).replaceAll('\\', '/') : null;
     return path !== null && exists(path) ? path : null;
   };
-  const resolveEdge = (path, spec) => {
+  const publishedTarget = (pkg, spec) => {
+    const key = `${pkg}\0${String(spec)}`;
+    if (!targets.has(key)) targets.set(key, publishedTargetOf(pkg, spec));
+    return targets.get(key);
+  };
+  const resolveEdgeOf = (path, spec) => {
     const pkg = /^@wildshard\/(sdk|game|engine|commons)(?:\/|$)/u.exec(spec ?? '');
     const shaderBase = spec?.startsWith('.') ? relative(root, resolve(root, path, '..', spec.split('?')[0])).replaceAll('\\', '/') : null;
     const shaderPath = shaderBase?.endsWith('.glsl') && exists(shaderBase) ? shaderBase : null;
@@ -331,6 +340,11 @@ export function shardLines(root = ROOT) {
     const local = (to ?? '').split('/');
     const trustedLocal = local.length > 3 && local[0] === 'src' && local[1] === 'sdk' && local[2] === 'runtime';
     return { sdk: publishedTarget('sdk', spec) !== null, trusted: /^@wildshard\/sdk\/runtime(?:\/|$)/u.test(spec ?? '') || trustedLocal, commons: publishedTarget('commons', spec) !== null, to: to ?? assemblyPath ?? jsonPath ?? null };
+  };
+  const resolveEdge = (path, spec) => {
+    const key = spec === null ? `${path}\0\u0001` : `${path}\0${String(spec)}`;
+    if (!edges.has(key)) edges.set(key, resolveEdgeOf(path, spec));
+    return edges.get(key);
   };
   const graph = (path) => {
     if (!graphs.has(path)) graphs.set(path, info(path).specs.map(spec => resolveEdge(path, spec)));

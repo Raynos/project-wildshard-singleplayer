@@ -4,6 +4,10 @@
 # save JPEG / WebP (`cwebp -q 82 in.png -o out.webp`, `sips -s format jpeg in.png --out out.jpg`). Videos exempt.
 # Escape (rare): git commit --no-verify.
 set -uo pipefail
+# bench-max (2026-10-13, progress/process/bench-max-2026-10-13/): every step prints its time and the hook its total.
+now() { if [ -n "${EPOCHREALTIME:-}" ]; then printf '%s' "${EPOCHREALTIME/,/.}"; else date +%s; fi; }
+since() { awk -v a="$1" -v b="$(now)" 'BEGIN { printf "%.2f", b - a }'; }
+hook_started="$(now)"
 
 # E476: keep Git message handling exclusive until the commit exits.
 python3 scripts/commit-message-lock.py "$PPID" || exit $?
@@ -57,21 +61,32 @@ EOF
   exit 1
 fi
 # SF74 W14: the commit holds the shared index.lock for this whole hook, so the independent node checks run side by side
-# G367: finish index-writing producers before any index-reading guard starts.
-node scripts/precommit-inputs.mjs || exit 1
 # (each reads the commit's index, none writes it); the hook fails when any of them fails.
-pids=()
+# G367: index-reading checks start once the index-writing producer has finished. The architecture guards start with it
+# and wait for its status file before they read anything it can stage (scripts/precommit-guards.mjs).
+state="$(mktemp -d "${TMPDIR:-/tmp}/wildshard-precommit-hook-XXXXXX")" || exit 1
+trap 'hook_rc=$?; rm -rf "$state"; python3 scripts/commit-message-lock.py --record "$PPID" "$hook_rc"' EXIT
+step() { # step <name> <command...>: run one check, then print its wall time
+  local name="$1" started; started="$(now)"; shift
+  "$@"; local rc=$?
+  echo "pre-commit step $name: $(since "$started")s" >&2
+  return "$rc"
+}
+# E362 AG20: the commit's temporary/private index, so unrelated agents' WIP never participates.
+(export WS_PRECOMMIT_INPUTS_DONE="$state/inputs"; step guards node scripts/precommit-guards.mjs) & guards=$!
+step inputs node scripts/precommit-inputs.mjs; echo "$?" > "$state/inputs.tmp"; mv "$state/inputs.tmp" "$state/inputs"
+if [ "$(cat "$state/inputs")" != 0 ]; then wait "$guards"; echo "pre-commit: failed in $(since "$hook_started")s" >&2; exit 1; fi
+pids=("$guards")
 # SF6b: builders land source only; the serialized pusher owns generated measurements and docs.
-node scripts/precommit-generated.mjs & pids+=($!)
+step generated node scripts/precommit-generated.mjs & pids+=($!)
 # G320: newly deleted catalogue outputs require their complete product, never just a component match.
-node scripts/precommit-generation-removals.mjs & pids+=($!)
+step removals node scripts/precommit-generation-removals.mjs & pids+=($!)
 # E362 AG7: increases warn for exact coordinator approval; reach and cycle checks stay fatal.
 # shellcheck disable=SC2046 # word-split on purpose: the staged src paths
-node scripts/check-graph.mjs --source-only --paths $(git diff --cached --name-only --diff-filter=ACMR -- src) & pids+=($!)
+step graph node scripts/check-graph.mjs --source-only --paths $(git diff --cached --name-only --diff-filter=ACMR -- src) & pids+=($!)
 # E423: a staged ask file follows the ask rules (docs/process/ASKS.md: Status vocabulary, folds name a target).
-node scripts/asks.mjs check & pids+=($!)
-# E362 AG20: the commit's temporary/private index, so unrelated agents' WIP never participates.
-node scripts/precommit-guards.mjs & pids+=($!)
+step asks node scripts/asks.mjs check & pids+=($!)
 rc=0
 for pid in "${pids[@]}"; do wait "$pid" || rc=1; done
+echo "pre-commit: $([ "$rc" = 0 ] && echo passed || echo failed) in $(since "$hook_started")s" >&2
 exit "$rc"

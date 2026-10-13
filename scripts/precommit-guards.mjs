@@ -45,12 +45,31 @@ export function extractGuardArchive(root, tree, paths, destination) {
   } finally { rmSync(owned, { recursive: true, force: true }); }
 }
 
+/** The only paths scripts/precommit-inputs.mjs stages into the commit's index (its declared tracked tables). */
+const STAGED_TABLES = new Set(['lint/ask-ids.json', 'lint/shard-words.generated.json']);
+
+/** The hook's status file for scripts/precommit-inputs.mjs: its exit code once the index is final (G367). */
+async function inputsStatus(file) {
+  const deadline = Date.now() + 600_000;
+  for (;;) {
+    try { return Number(readFileSync(file, 'utf8').trim()); }
+    catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error; }
+    if (Date.now() > deadline) throw new Error(`precommit-inputs never reported to ${file}`);
+    await new Promise((_resolve) => { setTimeout(_resolve, 25); });
+  }
+}
+
 /**
  * The commit holds the shared index.lock for the whole pre-commit hook, so every second here is every agent's wait
  * (SF74 W14: 138 lock collisions in 6 h, ~6 s per src commit). Setup runs once; shard-coupling (~3 s) and oxlint then
  * run side by side on the same immutable export.
+ *
+ * bench-max (2026-10-13): the hook starts this beside scripts/precommit-inputs.mjs and names its status file in
+ * WS_PRECOMMIT_INPUTS_DONE. Everything that cannot read the staged tables (exports, shard-coupling, HEAD's lint) runs
+ * on the tree before the tables; once the index is final the tables are overlaid from it, and the staged lint and every
+ * list check read the final tree. Any other difference reruns the whole guard on the final tree.
  */
-export async function precommitGuards(root = resolve(import.meta.dirname, '..')) {
+export async function precommitGuards(root = resolve(import.meta.dirname, '..'), inputsDone = process.env.WS_PRECOMMIT_INPUTS_DONE) {
   if (process.env.SKIP_ARCH_GUARDS === '1') {
     appendFileSync(resolve(root, 'project/sweepguard-ledger.md'), `\n- ${new Date().toISOString()} SKIP_ARCH_GUARDS=1: architecture pre-commit checks bypassed.\n`);
     console.warn('Architecture guards skipped; recorded in project/sweepguard-ledger.md');
@@ -63,17 +82,27 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'))
   if (paths.length === 0 && slugs.size === 0 && !platform) return;
   // macOS /var aliases /private/var; oxlint override globs must share the canonical cwd/config path.
   const scratch = realpathSync(mkdtempSync(join(tmpdir(), 'wildshard-precommit-')));
+  /** @type {Promise<unknown>[]} children that must settle before the scratch export is removed */
+  const children = [];
   try {
     // write-tree observes Git's pathspec temporary index too. Exporting it prevents dependency reads from WIP.
     const tree = run(root, 'git', ['write-tree']).trim();
+    // SF2 (~4 s, the longest guard) reads src, tsconfig and its own lint lists, never STAGED_TABLES. It gets its own
+    // export of the same tree so it starts first; no child reads a file another extraction rewrites.
+    const couplingRoot = join(scratch, 'coupling');
+    mkdirSync(couplingRoot);
+    extractGuardArchive(root, tree, ['src', 'lint', 'tsconfig.json', 'package.json', 'scripts/generation-jobs.json', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs'], couplingRoot);
+    materializeGuardData(root, couplingRoot);
+    linkNodeModules(root, couplingRoot);
+    const coupling = runAsync(couplingRoot, process.execPath, ['scripts/shard-coupling.mjs', '--check']);
+    children.push(coupling);
     const manifest = changed.some((p) => /^src\/shards\/[^/]+\/manifest\.ts$/u.test(p));
     const predecessor = join(scratch, 'predecessor');
     mkdirSync(predecessor);
     const predecessorLists = PLATFORM_LISTS.filter((list) => !['lint/weapon-subclasses.json', 'lint/class-moves.json', 'lint/runtime-performance.json', 'lint/legacy-shards.json'].includes(list) || spawnSync('git', ['cat-file', '-e', `HEAD:${list}`], { cwd: root }).status === 0);
     extractGuardArchive(root, 'HEAD', [...predecessorLists, ...(changed.includes('lint/runtime-performance.json') || changed.includes('lint/class-moves.json') ? ['src/game', 'src/sdk', 'src/engine', 'src/shards'] : [])], predecessor);
     const snapshot = guardSnapshot(root, tree, scratch, paths);
-    // SF2 observes every shard, including inherited context/class types outside changed files. A manifest change also
-    // needs the generator scripts; one extraction, so no child reads a file while another tar rewrites it.
+    // Layout, legacy and manifest checks observe every shard. A manifest change also needs the generator scripts.
     extractGuardArchive(root, tree, ['src', 'scripts/generation-jobs.json', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json', ...(manifest ? ['scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'] : [])], scratch);
     materializeGuardData(root, scratch); // Only staged hash-pinned JSON bytes may supplement the immutable source tree.
     linkNodeModules(root, scratch); // E432: @wildshard/* resolve to the snapshot, not the working tree
@@ -97,13 +126,34 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'))
     const beforeConfig = join(beforeRoot, '.oxlintrc.precommit.json');
     writeFileSync(beforeConfig, JSON.stringify(config));
     const beforePaths = paths.filter(path => beforeSnapshot.paths.includes(path));
+    const beforeLint = beforePaths.length > 0 ? spawnAsync(beforeRoot, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', beforeConfig, '--disable-nested-config', '-f', 'json', ...beforePaths]) : null;
+    if (beforeLint !== null) children.push(beforeLint);
+    if (inputsDone !== undefined && inputsDone !== '') {
+      // G367: index-reading checks see the producer's final index. Only STAGED_TABLES may differ from `tree`.
+      const status = await inputsStatus(inputsDone);
+      if (status !== 0) throw new Error('Architecture guards stopped: scripts/precommit-inputs.mjs failed');
+      const final = run(root, 'git', ['write-tree']).trim();
+      if (final !== tree) {
+        const moved = run(root, 'git', ['diff-tree', '-r', '--no-renames', '--name-only', '-z', tree, final]).split('\0').filter(Boolean);
+        if (moved.some((path) => !STAGED_TABLES.has(path))) {
+          await Promise.allSettled(children);
+          rmSync(scratch, { recursive: true, force: true });
+          await precommitGuards(root, '');
+          return;
+        }
+        for (const path of moved) {
+          const target = join(scratch, path), present = spawnSync('git', ['cat-file', '-e', `${final}:${path}`], { cwd: root }).status === 0;
+          if (present) writeFileSync(target, spawnSync('git', ['show', `${final}:${path}`], { cwd: root, maxBuffer: 64 * 1024 * 1024 }).stdout);
+          else rmSync(target, { force: true });
+        }
+      }
+    }
     const existing = new Set(snapshot.paths);
     const lintPaths = paths.filter((p) => existing.has(p));
     const frozen = legacyInventory(scratch);
     const counts = {}, failures = [...checkPlatformRatchets(predecessor, scratch), ...checkLegacyInventory(scratch, frozen)];
-    const coupling = runAsync(scratch, process.execPath, ['scripts/shard-coupling.mjs', '--check']);
     const lint = lintPaths.length > 0 ? spawnAsync(scratch, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', guardConfig, '--disable-nested-config', '-f', 'json', ...lintPaths]) : null;
-    const beforeLint = beforePaths.length > 0 ? spawnAsync(beforeRoot, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', beforeConfig, '--disable-nested-config', '-f', 'json', ...beforePaths]) : null;
+    if (lint !== null) children.push(lint);
     // Settle every child before reading any result, so a failure never leaves one running against a deleted scratch.
     const debt = Promise.allSettled([lint, beforeLint]).then(results => ({ results, seconds: (performance.now() - debtStarted) / 1000 }));
     const [coupled, checked] = await Promise.allSettled([coupling, debt]);
@@ -157,7 +207,10 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'))
       run(scratch, process.execPath, ['--input-type=module', '-e', "import { genShards } from './scripts/gen-shards.mjs'; genShards(undefined, true, true);"]);
     }
     if (failures.length > 0) throw new Error(`Architecture pre-commit failed:\n${failures.join('\n')}`);
-  } finally { rmSync(scratch, { recursive: true, force: true }); }
+  } finally {
+    await Promise.allSettled(children);
+    rmSync(scratch, { recursive: true, force: true });
+  }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   try { await precommitGuards(); }

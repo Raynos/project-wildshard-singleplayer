@@ -26,6 +26,9 @@ await genBudgetDerivations(undefined, process.argv.includes('--check-budgets'), 
 genShards(undefined, false, false, shard);
 // SF65: SHARD SELECT's port badges (the SF6 public share), measured from the completed source tree.
 genPortShares();
-// SF74 W13 (G281): the API surface, docs/api/*.md and the export index are build outputs, gitignored (~1 s).
-const { writeApiDocs } = await import('./gen-api.mjs');
-writeApiDocs();
+// SF74 W13 (G281): the API surface, docs/api/*.md and the export index are build outputs, gitignored (~1.6 s).
+// Commit-time inputs (scripts/precommit-inputs.mjs) keep only src/public outputs, so they skip these docs.
+if (!process.argv.includes('--build-inputs')) {
+  const { writeApiDocs } = await import('./gen-api.mjs');
+  writeApiDocs();
+}

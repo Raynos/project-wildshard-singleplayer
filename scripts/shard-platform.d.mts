@@ -25,4 +25,4 @@ export function checkShares(recorded: ShardPlatformList, lines: Record<string, S
 /** Nonblank raw shader code lines, excluding comments and retaining quoted preprocessor paths. */
 export function shaderCodeLines(source: string): number;
 /** Raw GLSL in files or shader literals; declared graph nodes contribute zero. */
-export function rawShaderLines(source: string, path: string): number;
+export function rawShaderLines(source: string, path: string, program?: unknown): number;
