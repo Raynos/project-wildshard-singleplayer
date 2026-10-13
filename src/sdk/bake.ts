@@ -9,7 +9,7 @@ import { Collider } from './physics';
 import { declareNavigation } from './bake/navigationAsset';
 import type { Navigation } from '@wildshard/format/navigation';
 import { bakeTerrain, type BakedTerrain, type TerrainBakeSource } from './bake/terrain';
-import { bakeProps, type BakedProps, type PropScatter, type PropsBakeSource } from './bake/props';
+import { bakeProps, type BakedProps, type PropScatter, type PropsBakeSource, type PropWhole } from './bake/props';
 import { bakeKinds, type KindBakeOptions, type KindCollider, type PieceBake } from './bake/kinds';
 
 /**
@@ -90,6 +90,17 @@ export class Scatter extends Group {
   }
 }
 
+/** A named static mesh kept whole in its own frame, owned by its origin's L0 tile.
+ * Its ordinary scene transforms become the existing PropWhole transform; its child is never also merged. */
+export class WholeShape extends Group {
+  readonly mesh: Mesh;
+  readonly options: Pick<PropWhole, 'customAttributes' | 'nativeAttributes'>;
+  constructor(name: string, mesh: Mesh, options: Pick<PropWhole, 'customAttributes' | 'nativeAttributes'> = {}) {
+    super();
+    this.name = name; this.mesh = mesh; this.options = options; this.add(mesh);
+  }
+}
+
 /** Build-time inputs a scene graph cannot hold: closures, library panels and hand-made proxies. */
 export interface BakeInputs {
   /** Repository / author-project root: `scene.json` goes to `<project>/.wildshard/cache/<slug>/`. Omitted: nothing is written. */
@@ -126,7 +137,7 @@ const isMesh = (object: Object3D): object is Mesh => object instanceof Mesh;
 
 /** Inside a piece or a scatter (their own bakers own those meshes). */
 function owned(object: Object3D): boolean {
-  for (let node: Object3D | null = object.parent; node !== null; node = node.parent) if (node instanceof BakedPiece || node instanceof Scatter) return true;
+  for (let node: Object3D | null = object.parent; node !== null; node = node.parent) if (node instanceof BakedPiece || node instanceof Scatter || node instanceof WholeShape) return true;
   return false;
 }
 
@@ -141,10 +152,13 @@ function placed(mesh: Mesh): Mesh {
 export function bake(scene: Object3D, identity: BakeIdentity, inputs: BakeInputs = {}): BakedScene {
   if (!SLUG.test(identity.slug)) throw new Error('bake: identity needs a bounded shard slug');
   scene.updateMatrixWorld(true);
-  const statics = new Group(), scatter: PropScatter[] = [], pieces: BakedPiece[] = [];
+  const statics = new Group(), scatter: PropScatter[] = [], pieces: BakedPiece[] = [], whole: PropWhole[] = [...inputs.props?.whole ?? []];
   scene.traverse((object) => {
     if (owned(object)) return;
     if (isPiece(object)) { pieces.push(object); return; }
+    if (object instanceof WholeShape) {
+      whole.push({ ...object.options, id: object.name, mesh: object.mesh, transform: object.mesh.matrixWorld.clone() }); return;
+    }
     if (object instanceof Scatter) {
       if (!object.matrixWorld.equals(new Matrix4())) throw new Error(`bake: scatter ${object.name} must sit at the world origin (its transforms are world space)`);
       scatter.push({ model: object.model, transforms: object.transforms }); return;
@@ -170,8 +184,8 @@ export function bake(scene: Object3D, identity: BakeIdentity, inputs: BakeInputs
   const navigation = inputs.navigation === undefined ? null : declareNavigation(inputs.navigation);
   const terrain = inputs.terrain === undefined ? null : bakeTerrain(inputs.terrain);
   if (terrain !== null) { terrain.tiles.sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z); terrain.files.sort((a, b) => a.hash.localeCompare(b.hash)); }
-  const hasProps = statics.children.length > 0 || scatter.length > 0 || (inputs.props?.panels?.length ?? 0) > 0;
-  const props = hasProps ? bakeProps({ ...inputs.props, static: statics, scatter }, terrain?.tiles ?? []) : null;
+  const hasProps = statics.children.length > 0 || scatter.length > 0 || whole.length > 0 || (inputs.props?.panels?.length ?? 0) > 0;
+  const props = hasProps ? bakeProps({ ...inputs.props, static: statics, scatter, whole }, terrain?.tiles ?? []) : null;
   const baked = pieces.map((piece): BakedSceneParts => Object.assign(bakeKinds(piece.name, piece.kinds(), piece.colliders, piece.options), { name: piece.name, rows: piece.rows }));
 
   const assets = new Map([...terrain?.assets ?? [], ...props?.assets ?? [], ...navigation?.assets ?? []]);

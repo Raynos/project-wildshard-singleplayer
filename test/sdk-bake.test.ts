@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { BoxGeometry, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, Scene } from 'three';
 import { expect, it } from 'vitest';
-import { bake, BakedPiece, Scatter } from '../src/sdk/bake';
+import { bake, BakedPiece, Scatter, WholeShape } from '../src/sdk/bake';
 import { bakeKinds } from '../src/sdk/bake/kinds';
 import { bakeProps } from '../src/sdk/bake/props';
 import { BoxCollider } from '../src/sdk/physics';
@@ -16,6 +16,26 @@ import { encodeCanonicalJson } from '../src/sdk/immutable';
 import { templateProps, templateScene } from '../src/shards/_template/generators/templatePropsSource';
 
 const rough = (color: number) => new MeshStandardMaterial({ color, roughness: 1, metalness: 0 });
+
+it('bakes a transformed WholeShape once, byte-identically to its direct whole-mesh source', () => {
+  const scene = new Scene(), mesh = new Mesh(new BoxGeometry(2, 3, 4), new MeshStandardMaterial({ roughness: 0.4 }));
+  mesh.name = 'whole-mesh'; mesh.position.set(1, 1.5, 2); mesh.castShadow = true;
+  const shape = new WholeShape('whole-shape', mesh); shape.position.set(30, 0, -40); shape.rotation.y = 0.3; scene.add(shape);
+  scene.updateMatrixWorld(true);
+  const whole = [{ id: shape.name, mesh, transform: mesh.matrixWorld.clone() }];
+  const direct = bakeProps({ static: new Scene(), whole });
+  const viaScene = bake(scene, { slug: 'whole-test' }).props;
+  const viaInputs = bake(new Scene(), { slug: 'whole-test' }, { props: { whole } }).props;
+  for (const actual of [viaScene, viaInputs]) {
+    if (actual === null) throw new Error('Whole mesh was omitted from bake');
+    expect(actual.props).toEqual(direct.props); expect(actual.files).toEqual(direct.files);
+    expect(actual.report).toEqual(direct.report);
+    expect(actual.report).toHaveLength(1); expect(actual.report[0]?.triangles).toBe(12);
+    expect(actual.report[0]?.draws).toBe(2); // one surface plus its declared shadow pass
+    expect([...actual.assets.keys()]).toEqual([...direct.assets.keys()]);
+    for (const [hash, bytes] of actual.assets) expect(Buffer.from(bytes)).toEqual(Buffer.from(direct.assets.get(hash) ?? []));
+  }
+});
 
 /** A small camp: a hut and a ramp (static), crates (instanced scatter), posts (scatter), a rock piece and a collider. */
 function camp(): { scene: Scene; piece: () => InstancedMesh } {

@@ -2842,6 +2842,13 @@ migrate; internal audio recipes import its types relatively.
 
 ### Node scene authoring core (DS1.3)
 
+`@wildshard/sdk/bake` compiles an authored scene with `bake(scene, identity)`.
+Wrap a static mesh in `new WholeShape(name, mesh)` to keep its original
+geometry in one owning L0 tile. Parent and child transforms are retained;
+the mesh is emitted once through the whole-prop path and is never also
+merged or decimated. Its optional third argument accepts `customAttributes`
+and `nativeAttributes`, as `props.whole` does.
+
 The SDK authors ordinary three.js objects in Node. `@wildshard/sdk/scene` defines
 `readScene(root)` and its JSON-only `SceneDescription`: local graph matrices,
 geometry channels/index/groups/draw ranges, shared material references, instance
