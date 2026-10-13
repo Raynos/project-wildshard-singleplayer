@@ -49,6 +49,22 @@ export function extractGuardArchive(root, tree, paths, destination) {
   } finally { rmSync(owned, { recursive: true, force: true }); }
 }
 
+/** Derive cheap data inside each immutable lint archive before its reader runs.
+ * @param {string} root @param {string} tree @param {string} snapshot */
+export async function hydrateGuardLintArchive(root, tree, snapshot) {
+  const catalogue = join(snapshot, 'scripts/generation-jobs.json');
+  if (!existsSync(catalogue)) return;
+  /** @type {{jobs:{buildTimeOutputs?:string[]}[]}} */
+  const data = JSON.parse(readFileSync(catalogue, 'utf8'));
+  if (!data.jobs.some(job => (job.buildTimeOutputs ?? []).some(file => file.endsWith('.json') && !existsSync(join(snapshot, file))))) return;
+  const metadata = ['pnpm-lock.yaml', 'pnpm-workspace.yaml'].filter(file =>
+    spawnSync('git', ['cat-file', '-e', `${tree}:${file}`], {cwd:root}).status === 0);
+  // The producer implementation and dependency metadata belong to this tree,
+  // including HEAD on the debt comparison side. Never borrow the writer export.
+  extractGuardArchive(root, tree, ['scripts', ...metadata], snapshot);
+  await runAsync(snapshot, process.execPath, ['scripts/hydrate-cheap-guard.mjs', snapshot]);
+}
+
 /** Source-independent generated tables; their final bytes still feed the final checks. */
 const STAGED_TABLES = new Set(['lint/ask-ids.json', 'lint/shard-words.generated.json', 'scripts/README.md']);
 
@@ -170,6 +186,7 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
     extractGuardArchive(root, tree, ['src', 'scripts/generation-jobs.json', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'scripts/gen-shard-words.mjs', 'lint/legacy-shards.json', ...(manifest ? ['scripts/gen-shards.mjs'] : [])], scratch);
     await materialize(scratch); // Only staged hash-pinned JSON bytes may supplement the immutable source tree.
     linkNodeModules(root, scratch); // E432: @wildshard/* resolve to the snapshot, not the working tree
+    await hydrateGuardLintArchive(root, tree, scratch);
     // G405: the plugin reads build-derived vocabulary. Derive it from this
     // immutable source tree; a shared working list cannot supply either side.
     if (!existsSync(join(scratch, 'lint/shard-words.generated.json'))) run(scratch, process.execPath, ['scripts/gen-shard-words.mjs']);
@@ -190,6 +207,7 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'),
     extractGuardArchive(root, 'HEAD', ['src', 'scripts/generation-jobs.json', 'scripts/gen-shard-words.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json'], beforeRoot);
     await materialize(beforeRoot);
     linkNodeModules(root, beforeRoot);
+    await hydrateGuardLintArchive(root, 'HEAD', beforeRoot);
     if (!existsSync(join(beforeRoot, 'lint/shard-words.generated.json'))) run(beforeRoot, process.execPath, ['scripts/gen-shard-words.mjs']);
     const beforeConfig = join(beforeRoot, '.oxlintrc.precommit.json');
     writeFileSync(beforeConfig, JSON.stringify(config));
