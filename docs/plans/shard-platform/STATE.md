@@ -25,7 +25,7 @@
 25. Pine bridge yaw keeps a tiny runtime atan2 adapter (libm, ≤ 4.5e-16).
 26. Data client drops runtime-bound tile transports (`6c4cfd6ae`: Nine −195 MB, Driftwood −10.5 MB standalone RAM).
 27. Grid session start uses the shell's own level spec (`6960fa055`).
-28. Shared SDK authoring RNG (Mulberry32) with an engine equality test.
-29. G318: Template/Pastel's 332 CPU outputs (< 1.04 s each) move to cache; quickstart says `pnpm gen` first.
+31. Nine frame fix lands with travel p95 34 → 34–38 ms (max 1.4–2.3 s → ~100 ms); follow-up row queued.
+28–29. Shared SDK authoring RNG (equality-tested); G318 Template/Pastel CPU outputs to cache (`pnpm gen` first).
 
 Paused: SF22, SF57, SF67.
