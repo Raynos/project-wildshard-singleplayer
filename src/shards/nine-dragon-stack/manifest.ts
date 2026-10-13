@@ -1,3 +1,4 @@
+import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { NINE_DRAGON_RUNTIME_COST } from './data/runtimeCost';
 import { ND_SAMPLES } from './data/audioSamples';
 import { bootSources } from './boot/files';
@@ -47,6 +48,7 @@ export const NINE_DRAGON_STACK: ShardManifest = {
   runtimeCost: NINE_DRAGON_RUNTIME_COST,
   entries: { legacy: true, shardfile: true, public: 'shardfile' }, // G326: public card flipped once boot, walk and parity passed (op-ship38)
   gridShardfile: '/shardfiles/nine-dragon-stack/shard.json',
+  navigation: { row: navigation.navigation, url: navigation.url },
   trustedRuntime: { get slug() { return NINE_DRAGON_STACK.slug; }, entry: 'runtime/index.ts' },
   kitLook: 'pbr',
   creatures: CREATURE_LOOK,

@@ -43,7 +43,7 @@ describe('Nine Dragon runtime-owned fragment (SF51-p)', () => {
     expect(manifest.species).toEqual([]); expect(manifest.encounters).toEqual([]);
     const data = withoutRuntimeRows(source); expect(data.items.rows).toEqual([]); expect(data.ledger).toEqual([]);
     expect(data.props?.colliders).toBe(source.props?.colliders); expect(data.props?.tiles).toEqual([]);
-    expect(data.props?.wholeLibrary).toBeUndefined(); expect(data.files).toEqual([]); expect(data.entryways).toBe(source.entryways); expect(data.audio).toBe(source.audio);
+    expect(data.props?.wholeLibrary).toBeUndefined(); expect(data.files.map(file => file.hash)).toEqual([source.navigation?.file]); expect(data.entryways).toBe(source.entryways); expect(data.audio).toBe(source.audio);
   });
   it('adopts the prebuilt Jian and original Fei Zhua without adding generic input or replacing native policies', () => {
     const { scope, ctx, primary, grapple } = fixture();
