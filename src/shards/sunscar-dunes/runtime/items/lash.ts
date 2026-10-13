@@ -1,6 +1,7 @@
-import { ContactFamily, weaponContactDistance, type ContactFamilyPorts, type ContactWorldTarget } from '@wildshard/engine/combat/contactWeapon';
+import { weaponContactDistance, type ContactFamily, type ContactFamilyPorts, type ContactWorldTarget } from '@wildshard/engine/combat/contactWeapon';
 import { Vector3 } from 'three';
-import { parseWeaponProfile, type WeaponProfile } from '@wildshard/format/weaponProfiles';
+import { bindMeleeContacts } from '@wildshard/game/plugin/simulation';
+import { parseWeaponProfile, type WeaponProfile, type MeleeContactRow } from '@wildshard/format/weaponProfiles';
 import type { ItemSpec } from '@wildshard/engine/combat/items';
 import type { Actor, CombatTag, CombatTarget } from '@wildshard/engine/combat/pipeline';
 
@@ -74,13 +75,23 @@ export interface LashSpec extends LashTiming {
   readonly id: string; readonly reach: number; readonly heavyReach: number; readonly width: number;
   readonly light: number; readonly heavy: number; readonly cooldown: number; readonly heavyCooldown: number; readonly charge: number;
   readonly tags: readonly CombatTag[]; readonly moves: LashMoves; readonly contact: LashContact;
+  readonly contacts: readonly MeleeContactRow[];
 }
-/** A declared weapon row's lash: its light / heavy reach, width, damage and cooldowns and its charge, with the lash's timing. */
-export function lashSpec(row: ItemSpec, input: unknown): LashSpec {
+/** Project the admitted melee contacts into the retained cord view's numbers; no private move construction or clock. */
+export function lashSpec(row: ItemSpec & { readonly contacts?: readonly MeleeContactRow[] }, input: unknown): LashSpec {
   const profile = parseWeaponProfile(input);
-  if (row.kind !== 'weapon' || profile.family !== 'lash' || profile.contact === undefined) throw new Error(`Item ${row.id} requires its native lash profile`);
-  return { id: row.id, reach: row.light.range, heavyReach: row.heavy.range, width: row.light.width, light: row.light.damage, heavy: row.heavy.damage,
-    cooldown: row.light.cooldown, heavyCooldown: row.heavy.cooldown, charge: row.charge, tags: [...row.light.tags], moves: { ...profile.moves }, contact: { ...profile.contact }, ...profile.timing };
+  if (row.kind !== 'weapon' || profile.family !== 'lash' || profile.contact === undefined || row.contacts === undefined) throw new Error(`Item ${row.id} requires its native lash profile`);
+  const [light, heavy] = row.contacts, first = light?.hits[0], double = heavy?.hits[0], second = heavy?.hits[1];
+  const unroll = light?.lands[0], secondAt = heavy?.lands[1];
+  if (row.contacts.length !== 2 || light?.shape !== 'lane' || heavy?.shape !== 'lane' || light.heavy || !heavy.heavy
+    || light.lands.length !== 1 || heavy.lands.length !== 2 || heavy.lands[0] !== unroll
+    || unroll === undefined || secondAt === undefined || first === undefined || double === undefined || second === undefined) {
+    throw new Error(`Item ${row.id} requires its ordered light/double melee contacts`);
+  }
+  return { id: row.id, reach: light.reach, heavyReach: heavy.reach, width: light.size, light: first.damage, heavy: double.damage,
+    cooldown: light.cooldown, heavyCooldown: heavy.cooldown, charge: row.charge, contacts: row.contacts, tags: first.tags,
+    moves: { light: first.moveId, first: double.moveId, second: second.moveId },
+    contact: { chestHeight: light.height, bodyAllowance: light.allowance }, ...profile.timing, unroll, second: secondAt, show: light.show };
 }
 
 /** A lash's runtime: the shared contact family on its rows, 0 the light crack and 1 the heavy double crack. */
@@ -97,14 +108,9 @@ export type LashPorts = Omit<ContactFamilyPorts<CombatTarget>, 'react'> & { read
  * heavy's first lash yanks a small creature (<= `pullMaxHp`) toward the player; its second staggers a big one.
  */
 export function lashRuntime(spec: LashSpec, ports: LashPorts): LashRuntime {
-  const common = { source: ports.source, weaponId: spec.id, tags: spec.tags, copyVectors: false, copyTags: false };
-  const lane = { lane: 'primary', heavy: false, shape: 'lane', size: spec.width, height: spec.contact.chestHeight, allowance: spec.contact.bodyAllowance, reports: true } as const;
-  return new ContactFamily<CombatTarget>([
-    { ...lane, cooldown: spec.cooldown, reach: spec.reach, lands: [spec.unroll], show: spec.show, hits: [{ ...common, damage: spec.light, moveId: spec.moves.light, reactions: [] }] },
-    { ...lane, heavy: true, cooldown: spec.heavyCooldown, reach: spec.heavyReach, lands: [spec.unroll, spec.second], show: spec.show + spec.second - spec.unroll, hits: [
-      { ...common, damage: spec.heavy, moveId: spec.moves.first, reactions: [{ when: 'survived', kind: 'impulse', direction: 'aim-backward', speed: spec.pull, lift: 0, maxHealth: spec.pullMaxHp }] },
-      { ...common, damage: spec.heavy, moveId: spec.moves.second, reactions: [{ when: 'survived', kind: 'stagger', strength: spec.stagger, aboveHealth: spec.pullMaxHp }] }] }],
-  { ...ports, react: port => ({ actor: port.actor, ...(port.impulse === undefined ? {} : { impulse: port.impulse }), stagger: (dir: Vector3, strength: number): void => { port.target.stagger?.(dir, strength); } }) });
+  return bindMeleeContacts<CombatTarget>(spec.id, spec.contacts,
+    { ...ports, owner: ports.source, react: port => ({ actor: port.actor, ...(port.impulse === undefined ? {} : { impulse: port.impulse }),
+      stagger: (dir: Vector3, strength: number): void => { port.target.stagger?.(dir, strength); } }) });
 }
 
 /** A lash's exact continuation. */

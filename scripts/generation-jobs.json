@@ -7970,6 +7970,7 @@
         "src/shards/sunscar-dunes/data/stormLook.ts",
         "src/shards/sunscar-dunes/data/strings.ts",
         "src/shards/sunscar-dunes/data/tiles.json",
+        "src/shards/sunscar-dunes/data/whipContacts.ts",
         "src/shards/sunscar-dunes/generators/product.ts"
       ],
       "outputs": [
@@ -7977,7 +7978,7 @@
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/sunscar-dunes/data/product.generated.json": "1b6246442037b318529d2a9211d1634a04018a496025464d2f4c8bb931686b37"
+        "src/shards/sunscar-dunes/data/product.generated.json": "997e1a4543849c2bd53548d0e840ed034cc5a11f60727d8cd7ffcfb52111199a"
       }
     },
     {
@@ -8134,6 +8135,7 @@
         "src/shards/sunscar-dunes/data/stormLook.ts",
         "src/shards/sunscar-dunes/data/strings.ts",
         "src/shards/sunscar-dunes/data/tiles.json",
+        "src/shards/sunscar-dunes/data/whipContacts.ts",
         "src/shards/sunscar-dunes/generators/build-product.mjs",
         "src/shards/sunscar-dunes/generators/product.ts"
       ],
@@ -8314,7 +8316,7 @@
         "src/shards/sunscar-dunes/.wildshard/product/f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef": "f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef",
         "src/shards/sunscar-dunes/.wildshard/product/f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb": "f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb",
         "src/shards/sunscar-dunes/.wildshard/product/fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd": "fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd",
-        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "4124a3826435581d30a1dce0e1802a8af652f83b95f78226aa0ac13d931280ef"
+        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "326e77b1d4844846d18c93c569fc6a74212defb32c5e50cef3d9758f0a3d16d3"
       }
     }
   ]

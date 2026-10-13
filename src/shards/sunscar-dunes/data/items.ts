@@ -1,4 +1,5 @@
 import { STRINGS } from './strings';
+import { WHIP_CONTACT_MOVES } from './whipContacts';
 
 /** The whip's numbers' tags: what the lash's hits carry into the combat pipeline. */
 const TAGS = ['actor.player', 'weapon.sunscar-whip', 'dmg.melee'] as const;
@@ -22,7 +23,7 @@ export const WHIP_ITEMS = { version: 1,
     view: { recipe: 'sunscar-dunes.whip', colour: '#5a3a24', position: [0.1, -0.095, -0.5], rotation: [0, 0, 0] }, hook: null,
     light: { id: 'sunscar.whip.light', damage: 18, cooldown: 0.45, range: 7, width: 0.9, tags: [...TAGS], effect: null },
     heavy: { id: 'sunscar.whip.heavy', damage: 16, cooldown: 0.9, range: 8, width: 0.9, tags: [...TAGS], effect: null },
-    charge: 0.6, profile: WHIP_PROFILE }],
+    charge: 0.6, profile: WHIP_PROFILE, contacts: WHIP_CONTACT_MOVES }],
   contexts: [{ id: 'sunscar.whip', keysFrom: 'weapon.melee', actions: ['attack', 'heavy', 'lock'], touch: 'melee', lockable: true }],
   loadout: { primary: 'weapon.sunscar-whip', secondary: null, tools: [] },
 } as const;
