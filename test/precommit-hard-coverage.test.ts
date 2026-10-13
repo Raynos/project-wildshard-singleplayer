@@ -216,7 +216,7 @@ it('refuses a foreign initial tree rather than accepting its cached source check
   const f=fixture();
   try {
     const before=f.git('write-tree');f.put('src/engine/valid.ts','export const value=2;');f.git('add','src');
-    await expect(precommitGuards(f.root,'',before)).rejects.toThrow('Initial guard snapshot changed');
+    await expect(precommitGuards(f.root,'',{initialTree:before})).rejects.toThrow('Initial guard snapshot changed');
   } finally {rmSync(f.root,{recursive:true,force:true,maxRetries:3,retryDelay:50});}
 });
 

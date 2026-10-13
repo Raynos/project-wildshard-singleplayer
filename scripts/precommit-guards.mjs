@@ -110,9 +110,9 @@ async function inputsStatus(file, dataReady, expectedTree) {
  * WS_PRECOMMIT_INPUTS_DONE. Everything that cannot read the staged tables (exports, shard-coupling, HEAD's lint) runs
  * on the tree before the tables; once the index is final the tables are overlaid from it. Source lint runs concurrently;
  * changed lint vocabulary reruns it, and every list check reads the final tree. Any other difference reruns the whole guard on the final tree.
- * @param {string} root @param {string} [inputsDone] @param {string} [initialTree]
+ * @param {string} root @param {string} [inputsDone] @param {{initialTree?:string}} [options]
  */
-export async function precommitGuards(root = resolve(import.meta.dirname, '..'), inputsDone = process.env.WS_PRECOMMIT_INPUTS_DONE, initialTree = undefined) {
+export async function precommitGuards(root = resolve(import.meta.dirname, '..'), inputsDone = process.env.WS_PRECOMMIT_INPUTS_DONE, {initialTree} = {}) {
   if (process.env.SKIP_ARCH_GUARDS === '1') {
     appendFileSync(resolve(root, 'project/sweepguard-ledger.md'), `\n- ${new Date().toISOString()} SKIP_ARCH_GUARDS=1: architecture pre-commit checks bypassed.\n`);
     console.warn('Architecture guards skipped; recorded in project/sweepguard-ledger.md');
@@ -314,7 +314,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.ar
     const initial=requirement!==undefined ? beginGuardRequirement(root,requirement) : undefined;
     const ready=process.argv.find(arg=>arg.startsWith('--ready='))?.slice(8);
     if(ready!==undefined) {if(requirement===undefined)throw new Error('Guard readiness requires bound coverage');writeFileSync(ready,'ready',{flag:'wx'});}
-    await precommitGuards(root,undefined,initial);
+    await precommitGuards(root,undefined,initial===undefined ? {} : {initialTree:initial});
     if (requirement!==undefined) completeGuardRequirement(resolve(import.meta.dirname,'..'),requirement);
   }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
