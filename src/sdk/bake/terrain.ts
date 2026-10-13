@@ -5,6 +5,27 @@ import { TerrainSchema, type ShardTerrain } from '@wildshard/format/terrain';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import * as v from 'valibot';
 import { hashImmutableBytes as contentHash } from '../immutable';
+import { parseBakedTerrain, type BakedGrid } from '@wildshard/format/bakedTerrainBytes';
+import { bakedSamplers, type BakedTerrainSamplers } from '@wildshard/format/bakedTerrainSampling';
+
+/** Original renderer lattice and its defining native queries; this is not a physics-grid substitute. */
+export interface NativeTerrainSource extends BakedTerrainSamplers { readonly grid: BakedGrid }
+
+/** Admit bounded original WSTR bytes for author placements, keeping native samples, clamping and arithmetic exact.
+ * Copies only the supplied byte view; it never reads a host, selects a level or installs runtime services. */
+export function readNativeTerrain(bytes: Uint8Array): NativeTerrainSource {
+  if (bytes.byteLength < 24 || bytes.byteLength > 8_000_000) throw new Error('Native terrain byte cap');
+  const buffer = Uint8Array.from(bytes).buffer, header = new DataView(buffer);
+  const resolution = header.getUint32(8, true), size = header.getFloat32(12, true);
+  if ((resolution !== 256 && resolution !== 257) || !Number.isFinite(size) || size <= 0 || size > 500) throw new Error('Native terrain grid cap');
+  const end = 24 + resolution ** 2 * 8;
+  if (buffer.byteLength > end && (buffer.byteLength < end + 16 || header.getUint32(end + 8, true) > 4_000_000
+    || header.getUint32(end + 12, true) > 64)) throw new Error('Native terrain placement cap');
+  const grid = parseBakedTerrain(buffer);
+  if (grid === null || grid.heights.some(height => !Number.isFinite(height) || height < -CELL_BELOW || height > CELL_ABOVE)
+    || (grid.undergrowth !== null && !Number.isFinite(grid.undergrowth.checksum.sum))) throw new Error('Invalid native terrain lattice');
+  return { grid, ...bakedSamplers(grid) };
+}
 
 /** An ordered build-time patch, blended across a circular footprint; it changes rendering and collision together. */
 export interface TerrainOverride { x: number; z: number; radius: number; height: number; mode: 'replace' | 'lower' | 'raise' }
@@ -13,6 +34,8 @@ export interface TerrainBakeSource {
   heightAt: (x: number, z: number) => number;
   colourAt: (x: number, z: number, height: number) => readonly [number, number, number];
   overrides?: readonly TerrainOverride[]; family?: string;
+  /** Independent original native query lattice; does not replace or install the compiled collider. */
+  sampling?: { source: NativeTerrainSource; normalEpsilon?: number; datum?: number };
 }
 /** Immutable wire files plus the ordinary shardfile rows and a validated terrain section. */
 export interface BakedTerrain {
@@ -75,7 +98,16 @@ export function bakeTerrain(source: TerrainBakeSource): BakedTerrain {
     }
     return { heights: samples, colours: rgb, roadHeight: 0 };
   };
-  const terrain = v.parse(TerrainSchema, { version: 1, family: source.family ?? 'toon', collider, tiles: entries });
-  const result: BakedTerrain = { terrain, tiles, files, critical: [collider], assets, edge: { north: edgeAt('north'), east: edgeAt('east'), south: edgeAt('south'), west: edgeAt('west') } };
+  const critical = [collider];
+  const sampling = source.sampling === undefined ? undefined : (() => {
+    const { grid: native } = source.sampling.source;
+    const file = store({ resolution: native.res, x: -250, z: -250, size: native.size,
+      heights: native.heights, splat: native.splat }, true);
+    critical.push(file);
+    return { law: 'bilinear' as const, file, normalEpsilon: source.sampling.normalEpsilon ?? 0.6, datum: source.sampling.datum ?? 0 };
+  })();
+  const terrain = v.parse(TerrainSchema, { version: 1, family: source.family ?? 'toon', collider, tiles: entries,
+    ...(sampling === undefined ? {} : { sampling }) });
+  const result: BakedTerrain = { terrain, tiles, files, critical, assets, edge: { north: edgeAt('north'), east: edgeAt('east'), south: edgeAt('south'), west: edgeAt('west') } };
   validateTerrainAssets(terrain, assets, result); return result;
 }

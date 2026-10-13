@@ -1,5 +1,5 @@
 import { indexRecordingAac } from '@wildshard/format/aacIndex';
-import { decodeTerrainTile, isTerrainTileData, terrainTileCost, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
+import { bilinearTerrainSamplers, decodeTerrainTile, isTerrainTileData, terrainTileCost, terrainTileHeight } from "@wildshard/format/terrainTileBytes";
 import { decodeMeshCollision, isMeshCollisionData, meshCollisionCost } from "@wildshard/format/meshCollisionBytes";
 import { visitGlbGeometry, type GlbVertex } from "@wildshard/format/glbTriangles";
 import { projectedLayerCoverage, type OverdrawEstimate } from "@wildshard/format/overdraw";
@@ -334,7 +334,11 @@ export function validateTerrainAssets(terrain: ShardTerrain, assets: ReadonlyMap
 }): void {
   const read = (fileRef: string) => { const bytes = assets.get(fileRef); if (bytes === undefined) throw new Error('Missing terrain file'); return decodeTerrainTile(bytes); };
   const collider = read(terrain.collider);
-  if (!content.critical.includes(terrain.collider) || collider.colours !== undefined || collider.x !== -250 || collider.z !== -250 || collider.size !== 500 || collider.resolution !== 257) throw new Error('Terrain collider must be a complete critical heightfield');
+  if (!content.critical.includes(terrain.collider) || collider.colours !== undefined || collider.splat !== undefined || collider.x !== -250 || collider.z !== -250 || collider.size !== 500 || collider.resolution !== 257) throw new Error('Terrain collider must be a complete critical heightfield');
+  if (terrain.sampling !== undefined) {
+    if (!content.critical.includes(terrain.sampling.file)) throw new Error('Terrain sampling must be a critical query root');
+    bilinearTerrainSamplers(read(terrain.sampling.file), terrain.sampling.normalEpsilon, terrain.sampling.datum);
+  }
   const colours = new Map<string, readonly number[]>();
   for (const tile of terrain.tiles) {
     const data = read(tile.file), size = tile.lod === 0 ? 62.5 : 125, row = content.tiles.find((t) => t.lod === tile.lod && t.x === tile.x && t.z === tile.z);

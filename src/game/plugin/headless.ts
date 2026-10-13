@@ -48,7 +48,8 @@ function requireBound(source: Pick<Shardfile, 'runtime'>, section: RuntimeBoundS
  */
 export function runtimeBoundWorldFiles(source: Shardfile): ReadonlySet<string> {
   const binds = runtimeBinds(source), files = new Set<string>();
-  if (binds.has('terrain') && source.terrain !== null) for (const ref of [source.terrain.collider, ...source.terrain.tiles.map((tile) => tile.file)]) files.add(ref);
+  if (binds.has('terrain') && source.terrain !== null) for (const ref of [source.terrain.collider,
+    ...(source.terrain.sampling === undefined ? [] : [source.terrain.sampling.file]), ...source.terrain.tiles.map((tile) => tile.file)]) files.add(ref);
   const props = source.props;
   if (binds.has('props') && props !== null) {
     for (const ref of [...props.tiles.flatMap((tile) => [tile.file, ...tile.additionalFiles ?? []]), ...props.panels.map((panel) => panel.file), ...props.models.map((model) => model.file),

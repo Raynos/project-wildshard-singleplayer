@@ -54,8 +54,10 @@ export async function bindRuntimeTerrain(ctx: { readonly scope: Scope }, source:
   if (!runtimeBinds(source).has('terrain')) throw new Error('Shardfile terrain is not bound by its runtime (runtime.binds)');
   const terrain = source.terrain; if (terrain === null) throw new Error('Runtime-bound terrain declares no terrain tiles');
   const collider = await ports.assets.read(terrain.collider);
+  const assets = new Map([[terrain.collider, collider]]);
+  if (terrain.sampling !== undefined) assets.set(terrain.sampling.file, await ports.assets.read(terrain.sampling.file));
   if (ctx.scope.disposed) throw new Error('Runtime left while reading its terrain collider');
-  const ground = clientGround({ ...source, meshCollision: null }, new Map([[terrain.collider, collider]]));
+  const ground = clientGround({ ...source, meshCollision: null }, assets);
   // the shared lattice (E435 tiles-shade): each tile's normals from it, so a tile edge across a sharp ridge lights as one surface
   const lattice = decodeTerrainTile(collider);
   const world = await clientWorld({ ...source, props: null }, ports.assets, { scope: ctx.scope, x: ports.x, z: ports.z,

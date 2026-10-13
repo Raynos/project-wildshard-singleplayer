@@ -16,7 +16,10 @@ export function installProductGround(): () => void {
     const terrain = product.source.terrain;
     if (terrain === null) throw new Error(`Required ground ${declared.key}: its product declares no terrain collider`);
     const collider = await product.assets.read(terrain.collider);
-    const ground = clientGround({ ...product.source, meshCollision: null }, new Map([[terrain.collider, collider]]));
+    const assets = new Map([[terrain.collider, collider]]);
+    if (terrain.sampling !== undefined) assets.set(terrain.sampling.file, await product.assets.read(terrain.sampling.file));
+    // Required manifest metadata applies its datum once, after admitting these raw native queries.
+    const ground = clientGround({ ...product.source, meshCollision: null }, assets, 0);
     return { seed: product.source.identity.seed, heightAt: ground.heightAt, normalAt: ground.normalAt, splatAt: ground.splatAt };
   });
 }

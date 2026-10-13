@@ -3663,3 +3663,20 @@ deterministic application semantics. Absent native storage preserves
 existing bytes. `BakedPiece.nodeExtras` supplies plain per-kind node rows
 for library subsets; one-copy instanced subsets reconstruct at their exact
 `instances64` matrix through the same game assembler.
+
+### Original native terrain queries
+
+`readNativeTerrain(bytes)` in `@wildshard/sdk/bake/terrain` admits an
+original bounded WSTR lattice for author placements. It copies the supplied
+view and exposes the defining bilinear height, normal and splat queries.
+It does not substitute the physics ground or install runtime services.
+
+`bakeTerrain({ heightAt, colourAt, sampling: { source, normalEpsilon: 0.6,
+datum: -0.8 } })` can retain that original query lattice separately. The
+optional `terrain.sampling` section names a charged critical binary file,
+its bilinear law, normal epsilon and height datum. The existing render
+tiles and 257-sample collider are unchanged; the query file adds no draws
+or colliders. Without this section, triangular queries remain unchanged.
+Required native ground applies its manifest datum once to the raw samples.
+The executed admission and exact-query example is
+`test/native-terrain-authoring.test.ts`.
