@@ -1110,6 +1110,9 @@ The rows in §4 build these answers; each row names the ones it builds.
 | G365 | Tests that pin exact numbers | **Limits, behaviour tests stay** (Jake, 2026-10-13, on the 12-hour usage audit `progress/process/usage-audit-2026-10-13/README.md`): byte totals, closure counts and snapshots become limits (≤ budget, ± tolerance) or are deleted; tests that check behaviour stay exactly as they are (about 25 % of push reds) |
 | G366 | Fleet size | **4 Opus + 3 Codex is the new sweet spot** (Jake, 2026-10-13, on the usage audit; replaces G335's 5 + 5): at most 4 live Opus subagents of the coordinator and 3 Codex panes, one of them the push lane (G339); an idle lane gets work or stops |
 | G367 | When generated files are made | **At commit, fast; never at push** (Jake, 2026-10-13: *"What the hell is regenerating things on push? Instead of on commit. Any generated files should be generated fast af and on commit"*; replaces G362's hourly batch): the pre-commit hook regenerates every generated file the commit's inputs affect, quickly, and it rides in that same commit; the push never regenerates anything; the regeneration bot and its 'regenerate committed outputs' commits go |
+| G368 | The main-menu hero | **Above Nalati, NA-a** (Jake, 2026-10-13, on `art/main-menu-hero/round-4/board.jpg`): the camera over Nalati's centre (260 m, 34° down, 470 m from the roundabout), square SQ-NA-a on the phone band and its landscape twin LS-NA-a on desktop, replacing the interim SQ-c / LS-c in G341's layouts |
+| G369 | Near-shard tier after round 3 | **Keep iterating before it ships** (Jake, 2026-10-13, on `art/near-tier/round-3/board.jpg`: Pine much better, Driftwood a little, Nalati barely changed): it stays behind its Debug row; round 4 targets Nalati's hills and mountains and the cell edges, generic for every shard (G348) |
+| G370 | An Opus bench-max lane | **One Opus lane benchmarks and cuts the hooks** (Jake, 2026-10-13: *"redirect a visual Opus lane into an Opus benchmaxing lane … Benchmax the pre-commit, the pre-push. Pre-commit has to be 10 seconds … Pre-push has to be max 2 minutes … the biggest win is just not doing dumb work: caching, only doing what's changed, skipping work that doesn't need to happen"*): when a visual Opus subagent frees up, it becomes the bench-max lane; pre-commit ≤ 10 s and pre-push ≤ 2 min (G359), each measured step by step and cut by caching, changed-files-only work and skipping what doesn't need to run, keeping G353's commit-time debt checks and G367's commit-time generation inside the 10 s |
 
 ## Handoff (shard-platform)
 
@@ -1225,7 +1228,7 @@ deck climb, landings outside the grid, item art) is `shard-platform/mockup-wave-
 (the cell edge), the entry width (two lanes, ≈ 8 m) and FINISH-LINE M1 (inside SHARD SELECT). The double jump exists
 (`Player.ts` jumpsLeft).
 
-**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §6 (the ordered M2-ready path), §9 (how it is built), §10 (G1–G367,
+**6. Restart after a compaction, read in order:** AGENTS.md → this plan's State, §6 (the ordered M2-ready path), §9 (how it is built), §10 (G1–G370,
 Jake's words verbatim) and this Handoff → `docs/plans/shard-platform/reviews/register.md`, `council-2/register.md` and `council-3/register.md` (closed), `council-4/register.md` (closed) →
 `docs/reviews/shard-platform-mockups.md` + `art/README.md` (the boards Jake picked) → `herdr agent list` (the Codex panes) →
 `git log --oneline -30` → `node scripts/asks.mjs`. The coordinator is the only pusher; builders commit and reply with the
