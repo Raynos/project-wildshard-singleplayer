@@ -16,7 +16,8 @@ import * as v from 'valibot';
  *   each under a stable identity; the platform keeps the homes (respawn, retained identity), the runtime's species and
  *   encounter scripts stay its own.
  * - `state`: host-owned shared scalar fields (including bounded JSON strings), migrated once from legacy slots and
- *   persisted by the platform under the stable instance id; player/public fields remain simulation-owned.
+ *   persisted by the platform under the stable instance id; player/public fields remain simulation-owned. Its numeric
+ *   host fields may drive `look.curves` (the runtime hands the data client their live values, G345).
  * - `modes`: validated traversal parameters consumed by the native player owner at its existing update phase.
  *   The data client never installs a second traversal owner.
  * - `clientChannels`: copied clock/state observations and bounded straight-line numeric expressions; the runtime
@@ -24,6 +25,9 @@ import * as v from 'valibot';
  * - `terrain` (G227, "the shardfile is the bake"): the compiled 62.5 m terrain tiles and their critical collider. The data
  *   client draws and collides none of them; the runtime binds them (`bindRuntimeTerrain`, ./runtimeWorld.ts), streaming the
  *   admitted tiles through the shardfile's residency in place of its code-built ground. The edge rows stay platform data.
+ *   Left unbound in a hybrid whose other unbound data is only the look's family materials, the data client runs
+ *   presentation-only (G345): it draws the tiles in those materials and lends them and the ground's queries to the
+ *   runtime (`runtimePresentation`, `@wildshard/game/shardfile/runtimeProduct`), with no kit, play stage or simulation.
  * - `props` (G227): the compiled props section (tiles, library models, panels, far proxy), bound the same way; the
  *   runtime keeps the behaviour of the pieces it dresses.
  */

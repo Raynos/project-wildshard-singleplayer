@@ -70,10 +70,10 @@ describe('state-bound curves on family materials (look.curves)', () => {
     ] } } };
     expect(() => parseShardfile(shard)).toThrow('shardfile semantic rules');
     expect(materialCurveRules(shard)).toEqual([
-      'curves pbr: shared.missing is not a declared public numeric state field',
-      'curves pbr: shared.missing is not a declared public numeric state field',
+      'curves pbr: shared.missing is not a declared public numeric state field (or a host one its runtime binds)',
+      'curves pbr: shared.missing is not a declared public numeric state field (or a host one its runtime binds)',
       'curves pbr: pbr cannot move faceted without a new program',
-      'curves pbr: shared.missing is not a declared public numeric state field',
+      'curves pbr: shared.missing is not a declared public numeric state field (or a host one its runtime binds)',
       'curves pbr: ground.albedo is not a number of the entry',
     ]);
   });

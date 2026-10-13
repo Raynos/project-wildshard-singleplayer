@@ -14,6 +14,7 @@ import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import { installDeclaredAudio, type DeclaredAudioPorts } from '@wildshard/engine/audio/declared';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
+import type { TerrainField } from '@wildshard/engine/level/data';
 import type { ShardContext } from "../plugin/context";
 import type { ShardPlayHost } from '../shard/runtime';
 import { installDeclaredPlumbing } from '../shard/declaredPlumbing';
@@ -33,6 +34,10 @@ import { leaseClientLibrary } from './clientLibrary';
 import { compendiumSketches } from '@wildshard/format/compendiumSketches';
 import { clientMaterials } from './clientMaterials';
 import type { GraphSources } from './clientGraphs';
+import { clientGround } from './clientGround';
+import { publishHybridPresentation } from './hybridPresentation';
+import { materialTextureRefs } from '@wildshard/format/materials';
+import { decodeTerrainTile } from '@wildshard/format/terrainTileBytes';
 import { clientPostStack, type ClientPost } from './clientPost';
 import { loadGraphCompiler } from '@wildshard/engine/render/graphBackend';
 import { frameLookOf } from '../grid/frameLook';
@@ -120,6 +125,27 @@ function emptyHybridData(source: Shardfile, audioOwner: ShardfileClientBindings[
     && source.look.day === undefined && source.look.dayOverride === null;
 }
 
+/**
+ * G345: a trusted hybrid's data without its presentation sections: the terrain (its collider and tiles) and the look's
+ * family materials (their entries, family looks and curves, and the textures only they name). When this is empty the data
+ * is presentation-only: its runtime keeps the simulation and the data client only draws.
+ */
+function withoutPresentation(source: Shardfile): Shardfile {
+  const files = new Set([...(source.terrain === null ? [] : [source.terrain.collider, ...source.terrain.tiles.map((tile) => tile.file)]), ...materialTextureRefs(source.look.materials)]);
+  const keep = (ref: string): boolean => !files.has(ref);
+  return { ...source, terrain: null, files: source.files.filter((file) => keep(file.hash)), critical: source.critical.filter(keep), library: source.library.filter(keep),
+    tiles: source.tiles.flatMap((tile) => { const kept = tile.files.filter(keep); return kept.length === 0 ? [] : [kept.length === tile.files.length ? tile : { ...tile, files: kept }]; }),
+    look: { ...source.look, families: [], materials: {}, familyLooks: {} } };
+}
+
+/**
+ * What the data client installs (CALL G345, derived from the data, never declared): `full` for a data shard, or a trusted
+ * hybrid whose unbound data still holds behaviour; `empty` for a trusted hybrid whose runtime binds everything; `presentation`
+ * for a trusted hybrid whose unbound data is only terrain and look materials: the terrain tiles drawn in those materials,
+ * their curves moved and both lent to the runtime (`HybridPresentation`), with no kit, play stage, simulation or hook.
+ */
+type DataMode = 'full' | 'empty' | 'presentation';
+
 /** The existing Game's world/kit/play stages install one authored level, one borrowed simulation and the normal equipment/HUD. */
 export class ShardfileClient {
   private readonly source: Shardfile;
@@ -133,7 +159,11 @@ export class ShardfileClient {
   private items: DeclaredItems | undefined;
   private itemModels: Awaited<ReturnType<typeof loadItemModels>> = new Map();
   private readonly animals = new Map<string, Animal>();
-  private readonly emptyTrustedData: boolean;
+  private readonly mode: DataMode;
+  /** The declared state as authored: a runtime-bound host field keeps its default for the look's curves. */
+  private readonly curveState: Shardfile['state'];
+  /** The runtime's reader of its host-owned fields (`HybridPresentation.bindState`). */
+  private hostState: GraphSources['state'];
   constructor(source: Shardfile, assets: ClientAssets, bindings: ShardfileClientBindings) {
     if (bindings.residency !== undefined) {
       const home = bindings.residency.home();
@@ -141,12 +171,14 @@ export class ShardfileClient {
     }
     // M3: a trusted runtime's bound sections (runtime.binds) are its own to install (hybridRows.ts); the data client never installs them
     const data = bindings.trustedRuntime === true ? withoutRuntimeRows(source) : source;
-    this.source = data; this.assets = assets; this.bindings = bindings; this.emptyTrustedData = bindings.trustedRuntime === true && emptyHybridData(data, bindings.audioOwner, bindings.worldOwner);
-    if (!this.emptyTrustedData) bindings.onSimulationExpected?.();
+    this.source = data; this.assets = assets; this.bindings = bindings; this.curveState = source.state;
+    this.mode = bindings.trustedRuntime !== true ? 'full' : emptyHybridData(data, bindings.audioOwner, bindings.worldOwner) ? 'empty'
+      : emptyHybridData(withoutPresentation(data), bindings.audioOwner, bindings.worldOwner) ? 'presentation' : 'full';
+    if (this.mode === 'full') bindings.onSimulationExpected?.();
   }
 
   async world(ctx: ShardContext): Promise<void> {
-    if (this.emptyTrustedData) return;
+    if (this.mode === 'empty') return;
     const runtime = ctx.game.runtime, world = runtime?.world;
     if (runtime === undefined || world === null || world === undefined) throw new Error('Shardfile requires the normal world stage');
     ctx.scope.onDispose(this.assets.pin());
@@ -154,8 +186,10 @@ export class ShardfileClient {
     // The reviewed opaque-runtime claim includes its whole home. Cache leases remain pinned above;
     // ordinary data homes account library/commons and tile parts independently in the same allocator.
     if (this.bindings.residency === undefined || this.source.runtime === null) leaseClientLibrary(this.source, this.assets.retained, { scope: ctx.scope, allocator, owner: this.bindings.instance });
-    const presentation = await clientMaterials(this.source, this.assets.retained, world.game.renderer, ctx.scope);
+    const presentation = await clientMaterials({ ...this.source, state: this.curveState }, this.assets.retained, world.game.renderer, ctx.scope);
     this.presentation = presentation;
+    if (this.mode === 'presentation') { await this.drawPresentation(ctx, runtime, presentation); return; }
+    this.lend(ctx, presentation, null);
     this.itemModels = await loadItemModels(this.source.items, this.assets.retained, ctx.scope);
     this.skins = await loadClientSkins(this.source, this.assets.retained, presentation.compile, ctx.scope);
     installClientWater(this.source.water, { root: ctx.root, scope: ctx.scope, materials: presentation.materials, outline: presentation.outline });
@@ -163,14 +197,8 @@ export class ShardfileClient {
       ...(this.bindings.residency !== undefined && this.source.runtime === null ? { residency: { allocator, owner: this.bindings.instance } } : {}),
       views: clientViews({ root: ctx.root, terrain: this.source.terrain?.family ?? null, ...presentation }),
     });
-    const tiles = this.worldTiles; let priorX = this.source.spawn.x, priorZ = this.source.spawn.z;
-    ctx.system({ id: 'game.shardfile.residency', phase: 'fixed.post', after: ['player.step'], run: () => {
-      const position = runtime.viewer();
-      if (Math.hypot(position.x - priorX, position.z - priorZ) < 5) return;
-      void tiles.refresh(position.x, position.z);
-      priorX = position.x; priorZ = position.z;
-    } });
-    ctx.system({ id: 'game.shardfile.presentation', phase: 'update', run: (dt) => { presentation.tick(dt); } });
+    const tiles = this.worldTiles;
+    this.followViewer(ctx, runtime, tiles, presentation);
     // SF59 step 4: the shard's own post stack (Debug ▸ Look ▸ "Graph materials", default off); in the grid it fades with its
     // cell's owner weight, standalone it stays whole
     const post = await clientPostStack(this.source, this.assets.retained, { compiler: () => loadGraphCompiler(world.game.renderer), composer: () => world.game.composer, scene: world.game.rootScene, camera: world.game.camera }, ctx.scope, { enabled: setting('graphMaterials') === 'on' });
@@ -185,8 +213,46 @@ export class ShardfileClient {
     ctx.debug.expose('shardfileResidency', { tiles, allocator, mode: 'standalone', workers: false });
   }
 
+  /** The tiles' residency follows the viewer past 5 m; the materials' looks, graphs and curves tick each frame. */
+  private followViewer(ctx: ShardContext, runtime: NonNullable<ShardContext['game']['runtime']>, tiles: { refresh: (x: number, z: number) => Promise<void> }, presentation: Awaited<ReturnType<typeof clientMaterials>>): void {
+    let priorX = this.source.spawn.x, priorZ = this.source.spawn.z;
+    ctx.system({ id: 'game.shardfile.residency', phase: 'fixed.post', after: ['player.step'], run: () => {
+      const position = runtime.viewer();
+      if (Math.hypot(position.x - priorX, position.z - priorZ) < 5) return;
+      void tiles.refresh(position.x, position.z);
+      priorX = position.x; priorZ = position.z;
+    } });
+    ctx.system({ id: 'game.shardfile.presentation', phase: 'update', run: (dt) => { presentation.tick(dt); } });
+  }
+
+  /** A trusted hybrid's runtime reads the built materials, the drawn terrain's queries and the curves' host-state port. */
+  private lend(ctx: ShardContext, presentation: Awaited<ReturnType<typeof clientMaterials>>, ground: TerrainField | null): void {
+    if (this.bindings.trustedRuntime !== true) return;
+    publishHybridPresentation(this.source.identity.slug, { ground,
+      material: (id) => { const material = presentation.materials.get(id); if (material === undefined) throw new Error(`Hybrid presentation has no material ${id}`); return material; },
+      bindState: (read) => { this.hostState = read; return () => { if (this.hostState === read) this.hostState = undefined; }; },
+    }, ctx.scope);
+  }
+
+  /**
+   * Presentation-only (G345): the terrain tiles in the look's materials, through the shardfile's own residency, each lit
+   * from the shared collider lattice as the runtime-bound path draws them; the curves read the runtime's host state.
+   */
+  private async drawPresentation(ctx: ShardContext, runtime: NonNullable<ShardContext['game']['runtime']>, presentation: Awaited<ReturnType<typeof clientMaterials>>): Promise<void> {
+    const world = runtime.world; if (world === null) throw new Error('Shardfile requires the normal world stage');
+    const terrain = this.source.terrain, collider = terrain === null ? undefined : this.assets.retained.get(terrain.collider);
+    if (terrain !== null && collider === undefined) throw new Error('Missing admitted terrain collider');
+    this.lend(ctx, presentation, terrain === null ? null : clientGround(this.source, this.assets.retained));
+    presentation.graphs.bind({ hour: () => world.game.sky.dayNight?.hour ?? null, state: (scope, name) => this.hostState?.(scope, name) });
+    // the runtime's reviewed claim covers its whole home (as for every hybrid's tiles): no per-tile residency charge
+    const tiles = terrain === null ? { refresh: () => Promise.resolve() } : await clientWorld({ ...this.source, props: null }, this.assets, { scope: ctx.scope, x: this.source.spawn.x, z: this.source.spawn.z,
+      views: clientViews({ root: ctx.root, terrain: terrain.family, ...presentation, ...(collider === undefined ? {} : { lattice: decodeTerrainTile(collider) }) }),
+    });
+    this.followViewer(ctx, runtime, tiles, presentation);
+  }
+
   kit(ctx: ShardContext): void {
-    if (this.emptyTrustedData) return;
+    if (this.mode !== 'full') return;
     const runtime = ctx.game.runtime, world = runtime?.world, presentation = this.presentation;
     if (runtime === undefined || world === null || world === undefined || presentation === undefined) throw new Error('Shardfile requires the normal kit stage');
     const source = this.source;
@@ -236,7 +302,7 @@ export class ShardfileClient {
   }
 
   private *playSteps(ctx: ShardContext): Generator<void, void> {
-    if (this.emptyTrustedData) return;
+    if (this.mode !== 'full') return;
     const runtime = ctx.game.runtime, world = runtime?.world, play = runtime?.play, items = this.items, tiles = this.worldTiles;
     const health = ctx.app.player;
     if (runtime === undefined || world === null || world === undefined || play === null || play === undefined || items === undefined || tiles === undefined || health === null) throw new Error('Shardfile requires the normal play stage');
@@ -327,8 +393,9 @@ export class ShardfileClient {
     this.sim = sim;
     yield;
     // SF59: graph params read the frame owner's clock (the level backdrop's, G158) and the live public state
+    // a field the sim does not hold (a runtime-bound host field) reads the runtime's port (G345)
     const graphSources: GraphSources = { hour: () => world.game.sky.dayNight?.hour ?? null, state: (scope, name) => {
-      const value = sim.lane?.world.view(health.id)[scope][name]; return typeof value === 'number' ? value : undefined;
+      const value = sim.lane?.world.view(health.id)[scope][name]; return typeof value === 'number' ? value : this.hostState?.(scope, name);
     } };
     this.presentation?.graphs.bind(graphSources);
     this.post?.bind(graphSources); // the post stack's bound params read the same clock and state

@@ -104,11 +104,11 @@ export function graphBindingSources(source: Pick<Shardfile, 'look' | 'state'>): 
       day.set('fog.near', 'float'); day.set('fog.far', 'float');
     }
   }
-  const state = ['shared', 'player'].flatMap((scope) => {
-    const fields = scope === 'shared' ? source.state.shared : source.state.player;
-    return fields.filter((field) => field.privacy === 'public' && (field.type === 'i32' || field.type === 'f64')).map((field) => `${scope}.${field.name}`);
-  });
-  return { day, state };
+  return { day, state: numericFields(source.state, 'public') };
+}
+/** The `<scope>.<name>` keys of the numeric state fields of one privacy. */
+function numericFields(state: Shardfile['state'], privacy: 'public' | 'host'): string[] {
+  return (['shared', 'player'] as const).flatMap((scope) => state[scope].filter((field) => field.privacy === privacy && (field.type === 'i32' || field.type === 'f64')).map((field) => `${scope}.${field.name}`));
 }
 
 /**
@@ -210,7 +210,8 @@ export function curveAt(curve: Curve, d: number): number {
 
 /**
  * State-bound material curves (`look.curves`): per catalogue family entry, numbers that move with a declared public numeric
- * state field (`shared.<name>` / `player.<name>`), each the curve's value at the field's live value (clamped 0 … 1). A
+ * state field (`shared.<name>` / `player.<name>`), or a host-owned numeric shared field when a trusted runtime binds
+ * `state` (its runtime hands the client the live value), each the curve's value at the field's live value (clamped 0 … 1). A
  * `param` is a dot path into the entry with its defaults filled (`ground.shade.tint.0`) that resolves to a number its
  * family can move without a new program (`MOVABLE_FAMILY_PARAMS`). The client evaluates them in its material tick, only
  * when a field moved, uniforms only.
@@ -240,15 +241,22 @@ export function curvedParams(params: FamilyMaterialParams, curves: readonly { re
   }
   return out;
 }
-/** Check each curve's material, field and param: a family catalogue entry, a public numeric field, a movable number. */
-export function materialCurveRules(source: Pick<Shardfile, 'look' | 'state'>): string[] {
-  const errors: string[] = [], { state } = graphBindingSources(source), fields = new Set(state);
+/**
+ * The fields a material curve may read: every public numeric field, and, when a trusted runtime binds `state`
+ * (`runtime.binds`), its host-owned numeric shared fields too (the runtime hands the client their live values).
+ */
+function curveStateFields(source: Pick<Shardfile, 'state' | 'runtime'>): ReadonlySet<string> {
+  return new Set([...numericFields(source.state, 'public'), ...(source.runtime?.binds?.includes('state') === true ? numericFields(source.state, 'host') : [])]);
+}
+/** Check each curve's material, field and param: a family catalogue entry, a readable numeric field (`curveStateFields`), a movable number. */
+export function materialCurveRules(source: Pick<Shardfile, 'look' | 'state' | 'runtime'>): string[] {
+  const errors: string[] = [], fields = curveStateFields(source);
   for (const [materialId, rows] of Object.entries(source.look.curves ?? {})) {
     const entry = source.look.materials[materialId];
     if (entry === undefined || entry.family === 'graph') { errors.push(`curves ${materialId}: not a family entry of the catalogue`); continue; }
     const params = v.parse(FamilyMaterialSchema, entry), movable = MOVABLE_FAMILY_PARAMS[params.family] ?? [];
     for (const row of rows) {
-      if (!fields.has(row.state)) errors.push(`curves ${materialId}: ${row.state} is not a declared public numeric state field`);
+      if (!fields.has(row.state)) errors.push(`curves ${materialId}: ${row.state} is not a declared public numeric state field (or a host one its runtime binds)`);
       if (!movable.some((name) => name.endsWith('.') ? row.param.startsWith(name) : row.param === name)) errors.push(`curves ${materialId}: ${params.family} cannot move ${row.param} without a new program`);
       else if (typeof pathValue(params, row.param) !== 'number') errors.push(`curves ${materialId}: ${row.param} is not a number of the entry`);
     }

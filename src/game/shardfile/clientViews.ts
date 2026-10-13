@@ -37,9 +37,11 @@ export interface ClientTileViews {
 
 /**
  * The view ports: the terrain family's material id, the family `materials`, admitted `textures`, the graph outline hook and
- * the named prop surfaces (SF55; null or absent: every prop draws with `props.family`).
+ * the named prop surfaces (SF55; null or absent: every prop draws with `props.family`) and the optional shared terrain lattice.
  */
-interface ViewPorts { terrain: string | null; materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; outline?: GraphOutlineHook; surfaces?: ((name: string) => PropSurfaceBinding) | null }
+interface ViewPorts { terrain: string | null; materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; outline?: GraphOutlineHook; surfaces?: ((name: string) => PropSurfaceBinding) | null;
+  /** The decoded terrain collider every tile was cut from: each tile's normals come from it, so tile edges light alike (absent: each tile's own grid). */
+  lattice?: TerrainTileData }
 
 /**
  * Outline what a props root draws: with named surfaces each mesh by its own material (a graph that declares
@@ -60,7 +62,7 @@ export function clientTileViews(ports: ViewPorts): ClientTileViews {
   return {
     terrain: (input, root, scope, shadow) => {
       if (material === null) throw new Error('shardfile views: a terrain tile in a shard without terrain');
-      const mesh = installTerrainTile(input, { root, scope, material, shadow });
+      const mesh = installTerrainTile(input, { root, scope, material, shadow, ...(ports.lattice === undefined ? {} : { lattice: ports.lattice }) });
       const hulls = ports.outline?.(mesh, material, scope) ?? [];
       // a coarse tile's mask moves its draw range; its hull (a shallow geometry copy) follows
       const mask = (excluded: ReadonlySet<number>): void => { maskTerrainTile(mesh, excluded); for (const hull of hulls) hull.geometry.setDrawRange(mesh.geometry.drawRange.start, mesh.geometry.drawRange.count); };

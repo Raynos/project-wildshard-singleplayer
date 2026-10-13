@@ -3,6 +3,7 @@ import { ClientAssets } from './clientAssets';
 import { browserShardfileOptions } from '../plugin/loader';
 import type { AdmittedProduct } from './product';
 import { bindRuntimeTerrain, type RuntimeTerrain, type RuntimeTerrainPorts } from './runtimeWorld';
+import { hybridPresentation, type HybridPresentation } from './hybridPresentation';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /**
@@ -49,4 +50,14 @@ export function runtimeProduct(source: Shardfile): RuntimeProduct {
 export function bindRuntimeProductTerrain(scope: Scope, source: Shardfile, ports: Omit<RuntimeTerrainPorts, 'assets'>): Promise<RuntimeTerrain> {
   const product = runtimeProduct(source);
   return bindRuntimeTerrain({ scope }, product.source, { ...ports, assets: product.assets });
+}
+
+/**
+ * What its data client lends a trusted runtime (`HybridPresentation`): the built look materials by id, the drawn terrain's
+ * queries and the host-state port of the look's curves; null when no data client of this shard is live (a LEGACY entry, a
+ * runtime that owns every stage, or a grid region whose ground the rings draw). Read it from a hook that runs after the data
+ * client's world stage (the hybrid's runtime world, kit or play).
+ */
+export function runtimePresentation(source: Shardfile): HybridPresentation | null {
+  return hybridPresentation(source.identity.slug);
 }
