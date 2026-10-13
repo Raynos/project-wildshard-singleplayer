@@ -4206,3 +4206,17 @@ existing zero-area stand-in when none exists. Material values pass to
 the original standard constructor, and the optional positive finite
 scale applies to the root (default one). No geometry fitting, animation
 or RNG draw occurs. Model declarations retain their own ids and rigs.
+
+**Authored page body homes and holds (W1 C4).**
+`bindRuntimeHomes` accepts optional `bodyHomes` (declared body ids and
+finite homes, plus the existing `authority.home` port), `held.placements`
+(late floor rows replacing the callback), and `holds` (ordered home
+indices, numeric memory fields, until-flags and the existing flag owner).
+References, duplicates, finite placements and callback conflicts refuse
+before allocation. The authority binds the actual body once spawned;
+null authority retains the existing unbound-home path. Held allocation,
+late WORLD-floor placement, retained restoration and paced cancellation
+keep their original order. Holds run in the page's original update phase;
+a null flag owner writes zero, retaining the original unheld state.
+Legacy callbacks and absent options retain their behaviour. These rows
+create neither a host nor a clock and consume no random values.

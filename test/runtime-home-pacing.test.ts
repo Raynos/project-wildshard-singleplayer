@@ -17,20 +17,24 @@ const source: Pick<Shardfile, 'runtime'> = { runtime: { entry: 'runtime/index.ts
   actors: [{ id: 'test.early', kind: 'early', look: 'test.look', at: [5, 6], yaw: 0.5 },
     { id: 'test.late', kind: 'late', look: 'test.look', at: [7, 8], yaw: 0.6 }],
 } } };
-function host(retained = false): { ctx: ShardContext; trace: unknown[]; tick: () => void } {
-  const scope = new Scope('home-pacing'), trace: unknown[] = [], random = new Rng(51), ticks: (() => void)[] = [];
+function host(retained = false): { ctx: ShardContext; trace: unknown[]; tick: () => void; update: () => void } {
+  const scope = new Scope('home-pacing'), trace: unknown[] = [], random = new Rng(51), ticks: (() => void)[] = [], updates: (() => void)[] = [];
   const animals = legacyDouble<Animals>({
     spawn: (kind, x, z, yaw, look, placement) => {
       const entityId = `body.${String(trace.length)}`;
       trace.push({ kind, x, z, yaw, look, placement, random: random.next(), entityId });
-      return legacyDouble<Animal>({ entityId, alive: true });
+      return legacyDouble<Animal>({ entityId, kind, alive: true, mem: {} });
     }, retire: animal => { trace.push({ retire: animal.entityId }); },
   });
   const play = legacyDouble<Play>({ animals }), runtime = legacyDouble<Runtime>({ play });
   const game = legacyDouble<ShardContext['game']>({ runtime });
   const ctx = legacyDouble<ShardContext>({ scope, game, on: () => undefined,
-    system: spec => { if (spec.phase === 'fixed.post') ticks.push(() => spec.run(1 / 60, 1)); } });
-  return { ctx: retained ? new RetainedRuntimeHooks(ctx, { deferActivation: true }).context : ctx, trace, tick: () => { for (const tick of ticks) tick(); } };
+    system: spec => {
+      if (spec.phase === 'fixed.post') ticks.push(() => spec.run(1 / 60, 1));
+      if (spec.phase === 'update') updates.push(() => spec.run(1 / 60, 1));
+    } });
+  return { ctx: retained ? new RetainedRuntimeHooks(ctx, { deferActivation: true }).context : ctx, trace,
+    tick: () => { for (const tick of ticks) tick(); }, update: () => { for (const update of updates) update(); } };
 }
 const ports: RuntimeHomePorts = { system: 'test.homes', held: { order: ['test.early', 'test.boss', 'test.late'], settle: 'test.land',
   late: id => id === 'test.late' ? { fromY: 12, y: 3 } : undefined } };
@@ -53,4 +57,56 @@ it('retires a partial roster and refuses another body after its owner closes bet
     .rejects.toThrow('Runtime home preparation left its owner');
   expect(paced.trace).toHaveLength(2);
   expect(paced.trace[1]).toEqual({ retire: 'body.0' });
+});
+
+it.each([false, true])('actual-home and landing rows preserve callback allocation/RNG/phase order (retained=%s)', async retained => {
+  const before = host(retained), after = host(retained), home = { x: 1, y: 3, z: 2, r: 9 };
+  const rows = ['test.early', 'test.boss', 'test.late'].map(id => ({ id, home }));
+  const original = bindRuntimeHomes(before.ctx, source, { ...ports, held: { order: ['test.early', 'test.boss', 'test.late'], settle: 'test.land',
+    late: id => id === 'test.late' ? { fromY: 12, y: 3 } : undefined,
+    dress: (actor, id) => { const row = rows.find(value => value.id === id); if (row) before.trace.push({ body: actor.entityId, kind: actor.kind, home: row.home }); } } });
+  const actual = await bindRuntimeHomes(after.ctx, source, { system: ports.system,
+    held: { order: ['test.early', 'test.boss', 'test.late'], settle: 'test.land', placements: [{ id: 'test.late', fromY: 12, y: 3 }] },
+    bodyHomes: { rows, authority: { home: (kind, actor, at) => { after.trace.push({ body: actor.entityId, kind, home: at }); } } },
+  }, () => Promise.resolve());
+  expect(after.trace).toEqual(before.trace);
+  before.tick(); after.tick(); expect(after.trace).toEqual(before.trace);
+  expect(actual.held('test.late')?.entityId).toBe(original.held('test.late')?.entityId);
+  before.ctx.scope.dispose(); after.ctx.scope.dispose(); expect(after.trace).toEqual(before.trace);
+});
+
+it('memory hold rows retain the original flag-read and page update phase', () => {
+  const before = host(), after = host(); let met = false;
+  const original = bindRuntimeHomes(before.ctx, source, { system: ports.system });
+  before.ctx.system({ id: 'test.ray', phase: 'update', run: () => { const actor = original.homes[0]?.animal; if (actor) actor.mem['held'] = met ? 0 : 1; } });
+  const actual = bindRuntimeHomes(after.ctx, source, { system: ports.system,
+    holds: { system: 'test.ray', rows: [{ home: 0, field: 'held', until: 'test.met' }], flags: { has: name => name === 'test.met' && met } } });
+  try {
+    expect(actual.homes[0]?.animal?.mem).toEqual(original.homes[0]?.animal?.mem);
+    for (const value of [false, true, false]) {
+      met = value; before.update(); after.update();
+      expect(actual.homes[0]?.animal?.mem).toEqual(original.homes[0]?.animal?.mem);
+      expect(after.trace).toEqual(before.trace);
+    }
+  } finally { before.ctx.scope.dispose(); after.ctx.scope.dispose(); }
+});
+
+it('foreign/duplicate homes, conflicting floor authority and invalid holds refuse before allocation', () => {
+  const run = host(), home = { x: 0, y: 0, z: 0, r: 1 }, authority = { home: () => undefined };
+  try {
+    expect(() => bindRuntimeHomes(run.ctx, source, { system: ports.system, bodyHomes: { rows: [{ id: 'foreign', home }], authority } })).toThrow('runtime body homes');
+    expect(() => bindRuntimeHomes(run.ctx, source, { system: ports.system, bodyHomes: { rows: [{ id: 'test.home', home }, { id: 'test.home', home }], authority } })).toThrow('runtime body homes');
+    expect(() => bindRuntimeHomes(run.ctx, source, { ...ports, held: { order: [], settle: 'test.land', late: () => undefined, placements: [] } })).toThrow('runtime late placements');
+    expect(() => bindRuntimeHomes(run.ctx, source, { system: ports.system, holds: { system: 'test.ray', flags: { has: () => false }, rows: [{ home: 9, field: 'held', until: 'test.met' }] } })).toThrow('runtime memory holds');
+    expect(run.trace).toEqual([]);
+  } finally { run.ctx.scope.dispose(); }
+});
+
+it('an absent flag owner keeps the original unheld state', () => {
+  const run = host();
+  try {
+    const kept = bindRuntimeHomes(run.ctx, source, { system: ports.system,
+      holds: { system: 'test.ray', rows: [{ home: 0, field: 'held', until: 'test.met' }], flags: null } });
+    run.update(); expect(kept.homes[0]?.animal?.mem['held']).toBe(0);
+  } finally { run.ctx.scope.dispose(); }
 });

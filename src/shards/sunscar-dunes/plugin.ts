@@ -8,7 +8,8 @@ import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { ShardPlugin } from '@wildshard/game/shard/plugin';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
-import { HybridRuntimePlugin, bindRuntimeCoins, bindRuntimeItemContexts, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/shardfile/hybridRows';
+import { HybridRuntimePlugin, bindRuntimeCoins, bindRuntimeItemContexts, bindRuntimeHomes, type RuntimeHomes, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/shardfile/hybridRows';
+import { SIGNAL_PAGE_HOLDS } from './data/hostOwners';
 import source from './runtime/source';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { Flags } from '@wildshard/engine/world/interact/flags';
@@ -24,7 +25,6 @@ import { installQuest } from './quest/install';
 import { FACT, MATRIARCH_FLAG } from './data/signalQuest';
 import { FLAG, SCOUT_FLAG } from './data/flags';
 import { installSunscarCues } from './runtime/audio/cues';
-import { installCreatures } from './combat/creatures';
 import { installMatriarch } from './combat/matriarch';
 import type { MarkedBoss } from './runtime/shardfile/markedBoss';
 import { SAND, SKIRT } from './look/render';
@@ -42,10 +42,10 @@ function duskOf(places: SignalWorld): number {
 
 export class SignalDunesPlugin extends HybridRuntimePlugin {
   whip: Bullwhip | null = null;
-  fire: SignalFire | null = null; places: SignalWorld | null = null; creatures: ReturnType<typeof installCreatures> | null = null;
+  fire: SignalFire | null = null; places: SignalWorld | null = null; creatures: RuntimeHomes | null = null;
   matriarch: MarkedBoss | null = null;
   /** The dune ray now flying (captures drive it). */
-  get ray(): Animal | null { return this.creatures?.ray() ?? null; }
+  get ray(): Animal | null { return this.creatures?.homes[0]?.animal ?? null; }
   // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
   protected readonly rows: HybridRuntimeRows = { expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }], complete: 'sunscar.complete',
     audio: source.audio, cues: installSunscarCues, species: () => {
@@ -115,7 +115,8 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     }
     // The first frame looks a little down the spawn's slip face, over the dune rows to the tower (review H1).
     if (rt?.world) rt.world.player.pitch = -0.1;
-    this.creatures = installCreatures(ctx, () => places !== null && !places.flags.has(SCOUT_FLAG));
+    this.creatures = bindRuntimeHomes(ctx, source, { system: 'sunscar.creatures', spawned: animal => { lastLightAll(animal.mesh, ctx.scope); },
+      holds: { ...SIGNAL_PAGE_HOLDS, flags: places?.flags ?? null } });
     // The dusk deepens with the quest (E399, look/dusk.ts): a save loads at its step's light, play eases to each new one.
     if (places) {
       installEnteredRuntimeService(ctx, scope => { setDusk(duskOf(places), true); scope.onDispose(() => { setDusk(0, true); }); });

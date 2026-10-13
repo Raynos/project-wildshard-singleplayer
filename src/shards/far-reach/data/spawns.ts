@@ -24,10 +24,16 @@ export const SKY_FLOCK_GROUPS = {
   goats: SKY_FLOCK_ROWS.filter(row => row.kind === 'skyGoat'),
 };
 
+/** Page landing and actual-home authority, preserving the original two-metre goat ray. */
+export const GOAT_SPAWN_ABOVE = 2;
+export const SKY_PAGE_BODY_HOMES = SKY_FLOCK_ROWS.map(row => ({ id: row.id, home: row.home }));
+export const SKY_PAGE_HELD = { order: SKY_FLOCK_ROWS.map(row => row.id), settle: 'far.goats',
+  placements: SKY_FLOCK_GROUPS.goats.map(row => ({ id: row.id, fromY: row.home.y + GOAT_SPAWN_ABOVE, y: row.home.y })) };
+
 /** The native keeper uses the same body order and authored homes as the page. */
 export const FLOCK_STEP = 'far.flock';
 /** The structures-only analytic fallback and the manifest's death plane. */
 export const SKY_ANALYTIC_FLOOR = -1000;
 export const SKY_KILL_Y = DECK - 24;
 export const SKY_FLOCK_PLACEMENT = { fallback: SKY_ANALYTIC_FLOOR,
-  rows: SKY_FLOCK_ROWS.map(row => ({ id: row.id, home: row.home, fromY: row.kind === 'skyGoat' ? row.home.y + 2 : DECK + 2 })) };
+  rows: SKY_FLOCK_ROWS.map(row => ({ id: row.id, home: row.home, fromY: row.kind === 'skyGoat' ? row.home.y + GOAT_SPAWN_ABOVE : DECK + 2 })) };

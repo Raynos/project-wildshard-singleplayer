@@ -14,7 +14,7 @@ import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrappin
 import { STRINGS } from '../data/strings';
 import { GUST_ICON, SWING_ICON } from '../data/icons';
 import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
-import { SKY_FLOCK_GROUPS, SKY_FLOCK_ROWS } from '../data/spawns';
+import { SKY_FLOCK_GROUPS, SKY_PAGE_BODY_HOMES, SKY_PAGE_HELD } from '../data/spawns';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_MOVER_BINDING, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
@@ -64,11 +64,6 @@ declare module '@wildshard/engine/level/spec' {
 declare module '@wildshard/engine/combat/Equipment' {
   interface EquipmentSlotMap { 'far-fan': true }
 }
-
-/** How far above its island's deck a goat's spawn ray starts (metres): above the grass, below anything overhead. */
-export const GOAT_SPAWN_ABOVE = 2;
-const SKY_HOMES = new Map(SKY_FLOCK_ROWS.map(row => [row.id, row.home]));
-const GOAT_FLOORS = new Map(SKY_FLOCK_GROUPS.goats.map(row => [row.id, { fromY: row.home.y + GOAT_SPAWN_ABOVE, y: row.home.y }]));
 
 /** Every runtime collection is a finite authored roster; refuse overflow instead of silently dropping content. */
 const MAX_RUNTIME_ROWS = 64;
@@ -286,9 +281,8 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // spawn ray lands them on the first WORLD floor under `fromY`, which finds the islands only once physics has stepped
     // (in `play` it hits nothing and the goat lands on the -1000 m analytic floor), so they land late, after the Roc.
     await worldBuildYield(ctx, 4);
-    this.kept = await bindRuntimeHomes(ctx, source, { system: 'far.creatures', held: { order: SKY_FLOCK_ROWS.map(row => row.id), settle: 'far.goats',
-      dress: (animal, id) => { const home = SKY_HOMES.get(id); if (home !== undefined) this.creatureBrains?.home(animal.kind, animal, home); },
-      late: id => GOAT_FLOORS.get(id) } }, () => worldBuildYield(ctx, 4));
+    this.kept = await bindRuntimeHomes(ctx, source, { system: 'far.creatures', held: SKY_PAGE_HELD,
+      bodyHomes: { rows: SKY_PAGE_BODY_HOMES, authority: this.creatureBrains } }, () => worldBuildYield(ctx, 4));
     // each free ray trails its luminous wake (data/rayWakeLook.ts on @wildshard/sdk/looks/wakeRibbon; proposal B's ray beside the mill)
     const wakes = this.bodies(SKY_FLOCK_GROUPS.rays).map((ray) => { const w = wakeRibbon(RAY_WAKE); ctx.root.add(w.mesh); ctx.scope.own(w.mesh.geometry); ctx.scope.own(w.mesh.material); ctx.scope.onDispose(() => { w.mesh.removeFromParent(); }); return { ray, w }; });
     boundedRows(wakes);

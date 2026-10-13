@@ -20,7 +20,10 @@ import { RetainedRuntimeHooks } from "../../../src/game/shard/retainedHooks";
 import type { ShardRuntime, ShardPlayHost } from '../../../src/game/shard/runtime';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import { SUNSCAR_DUNES } from '../../../src/shards/sunscar-dunes/manifest';
-import { installCreatures } from '../../../src/shards/sunscar-dunes/combat/creatures';
+import { bindRuntimeHomes } from '../../../src/game/plugin/headless';
+import source from '../../../src/shards/sunscar-dunes/runtime/source';
+import { SIGNAL_PAGE_HOLDS } from '../../../src/shards/sunscar-dunes/data/hostOwners';
+import { lastLightAll } from '../../../src/shards/sunscar-dunes/look/light';
 import { RESPAWN } from '../../../src/shards/sunscar-dunes/data/spawns';
 import { installMatriarch } from '../../../src/shards/sunscar-dunes/combat/matriarch';
 import { FLAG } from '../../../src/shards/sunscar-dunes/data/flags';
@@ -66,7 +69,8 @@ it('restores a cold lit save after home respawn and boss retry without changing 
           const flags = new Flags(SUNSCAR_DUNES.slug);
           expect(flags.has(FLAG.lit)).toBe(visit > 0);
           const matriarch = installMatriarch(hooks.context, new Vector3(), flags, () => flags.has(FLAG.lit));
-          const creatures = installCreatures(hooks.context), home = creatures.homes.find(row => row.kind === 'sandSkitterer');
+          const creatures = bindRuntimeHomes(hooks.context, source, { system: 'sunscar.creatures', spawned: animal => { lastLightAll(animal.mesh, hooks.context.scope); },
+            holds: { ...SIGNAL_PAGE_HOLDS, flags: { has: () => true } } }), home = creatures.homes.find(row => row.kind === 'sandSkitterer');
           if (home?.animal === null || home === undefined) throw new Error('Missing authored skitterer home');
           if (visit === 0) {
             const original = home.animal;

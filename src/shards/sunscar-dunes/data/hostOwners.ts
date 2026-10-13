@@ -18,3 +18,6 @@ export const SIGNAL_OWNER_ROWS = {
   lash: { id: WHIP_ID, step: WHIP_STEP, profile: WHIP_PROFILE, eye: 1.68 },
   entries: { lanes: 23, walk: 50, start: 249.55, maxTicks: 600 },
 };
+
+/** The page uses the same held-ray memory row at its original update phase. */
+export const SIGNAL_PAGE_HOLDS = { system: 'sunscar.ray', rows: SIGNAL_OWNER_ROWS.homes.holds };
