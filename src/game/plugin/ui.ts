@@ -23,7 +23,9 @@ import type { Animal } from "@wildshard/engine/entities/AnimalView";
 import { BossBar } from "@wildshard/engine/ui/BossBar";
 import { CoinBurst } from "../loot/CoinBurst";
 import { DirectorBossBrain } from "./director";
-import type { RuntimeCoins } from "./headless";
+import type { RuntimeBoss, RuntimeCoins } from "./headless";
+import { parseBossProfile, type MarkedBossPresentation } from "@wildshard/format/bossProfiles";
+import { bossFight, type HeldBossBrain } from "./bossPhase";
 import { installEnteredRuntimeService, retainsRuntimeServices } from "./lifecycle";
 
 /**
@@ -566,4 +568,65 @@ export function installBossView<T extends BossView>(ctx: ShardContext, id: strin
   ctx.answer('death.checkpoint', (value) => live.onPlayerDeath() || value === true);
   ctx.system({ id, phase: 'update', run: (dt, t) => { live.update(dt, t); } });
   return { boss: live, summon: () => { if (live.state === 'dormant') { live.arm(); onSummon?.(); } } };
+}
+
+/** A body boss's rows: its encounter definition, its authored stages and its spawned or held fight profile. */
+export interface RowBossRows { readonly definition: BossDefinition; readonly stages: unknown; readonly profile: unknown }
+/** A boss record: the saved state to start from and how it persists. */
+export interface RowBossRecord { readonly saved: BossSaved; readonly persist: (value: BossSaved) => void }
+/**
+ * What a `RowBossView` is lent. A spawned body (a fresh body per checkpoint): the bound body row, its arena
+ * presentation (reward floor, respawn, toasts), its coins through the purse, the shard's weather view (made over the
+ * play scene, run with the storm's strength each frame) and the victory's beat. A held body: the retained body, its
+ * brain and the victory callback, which pays and toasts itself.
+ */
+export type RowBossPorts = { readonly player: Vector3; readonly record: RowBossRecord } & ({
+  readonly body: RuntimeBoss; readonly presentation: MarkedBossPresentation; readonly reward: number; readonly coins: RuntimeCoins;
+  readonly weather?: (scene: Scene) => (dt: number, strength: number) => void; readonly onDown?: () => void;
+} | { readonly held: Animal | null; readonly brain: HeldBossBrain | null; readonly victory: (at: Vector3) => void });
+
+interface RowBossMade { readonly spec: BossViewSpec; readonly at: Vector3 | null; readonly weather: { storm: number }; readonly after: () => void }
+function rowBossSpec(ctx: ShardContext, rows: RowBossRows, ports: RowBossPorts): RowBossMade {
+  const profile = parseBossProfile(rows.profile), { player, record } = ports, saved = record.saved;
+  const base = { definition: rows.definition, stages: rows.stages, player, saved, persist: record.persist };
+  if ('held' in ports) {
+    if (profile.pattern !== 'held') throw new Error(`${rows.definition.id} requires its declared held-body pattern`);
+    const fight = bossFight(profile, { body: ports.held, brain: ports.brain, victory: ports.victory });
+    return { spec: { ...base, script: fight.script, body: () => ports.held, shielded: fight.shielded }, at: null, weather: { storm: 0 }, after: () => undefined };
+  }
+  if (profile.pattern !== 'spawned') throw new Error(`${rows.definition.id} requires its declared spawned-body pattern`);
+  const look = ports.presentation, body = ports.body, onDown = ports.onDown;
+  const at = new Vector3(body.row.at[0], look.floor, body.row.at[1]);
+  const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene), weather = ports.weather?.(scene);
+  const fight = bossFight<Animal>(profile, { body: { spawn: (previous) => body.spawn(previous), retire: (a) => { body.retire(a); } }, rewardPoint: at,
+    respawnPoint: () => ({ pos: new Vector3(look.respawn.x, ctx.manifest.ground.terrain?.heightAt(look.respawn.x, look.respawn.z) ?? 0, look.respawn.z), yaw: look.respawn.yaw }),
+    victory: () => { ctx.game.runtime?.play?.hud.toast(saved.rewardTaken ? look.toasts.rewardAgain : look.toasts.reward); onDown?.(); },
+    update: (dt, strength) => { weather?.(dt, strength); burst.update(dt, player); } });
+  return { at, weather: fight.weather, spec: { ...base, script: fight.script, body: fight.body, shielded: fight.invulnerable, toast: true,
+    spawnReward: () => { saved.rewardTaken = true; record.persist(saved); burst.spawn(player, ports.reward, ports.coins, () => undefined); } },
+    after: () => {
+      if (saved.defeated) onDown?.();
+      ctx.scope.onDispose(() => { burst.update(3, player); burst.dispose(); const animal = fight.body(); if (animal) body.retire(animal); fight.adopt(null); });
+    } };
+}
+
+/**
+ * A declared body boss in the browser (SHARD-PLATFORM SF27; Signal's Dune Matriarch, spawned, and Sky Reach's Storm Roc,
+ * held): its profile through the platform's view-free `bossFight`, the `BossView` over it. A spawned body adds the
+ * presentation row's views (the shard's weather, the reward's coin burst from the arena floor, the respawn on the
+ * ground) and its toasts; the view refuses hits while the fight is invulnerable.
+ */
+export class RowBossView extends BossView {
+  /** The arena's reward point (a spawned body's spot on the floor; null held). */
+  readonly at: Vector3 | null;
+  /** The storm's strength 0..1 (captures and tests read it). */
+  readonly weather: { storm: number };
+  /** The boss's body while it is up. */
+  readonly body: () => Animal | null;
+  constructor(ctx: ShardContext, rows: RowBossRows, ports: RowBossPorts) {
+    const made = rowBossSpec(ctx, rows, ports);
+    super(ctx, made.spec);
+    this.at = made.at; this.weather = made.weather; this.body = made.spec.body;
+    made.after();
+  }
 }
