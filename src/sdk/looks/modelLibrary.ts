@@ -1,4 +1,4 @@
-import { bindRigid as platformBindRigid, createModelLibrary as platformCreateModelLibrary, facetMaterial as platformFacetMaterial, fitGeometry as platformFitGeometry, smoothColors as platformSmoothColors, undrawnRig as platformUndrawnRig, withoutTriangles as platformWithoutTriangles, type HdLookRow as PlatformHdLookRow, type ModelFit as PlatformModelFit, type ModelLibrary as PlatformModelLibrary, type ModelLibraryRows as PlatformModelLibraryRows } from '@wildshard/game/plugin/geometry';
+import { bindRigid as platformBindRigid, creatureSpecimen as platformCreatureSpecimen, createModelLibrary as platformCreateModelLibrary, facetMaterial as platformFacetMaterial, fitGeometry as platformFitGeometry, smoothColors as platformSmoothColors, undrawnRig as platformUndrawnRig, withoutTriangles as platformWithoutTriangles, type HdLookRow as PlatformHdLookRow, type ModelFit as PlatformModelFit, type ModelLibrary as PlatformModelLibrary, type ModelLibraryRows as PlatformModelLibraryRows } from '@wildshard/game/plugin/geometry';
 
 /** How a hero model's materials are dressed after the matte base (tint, roughness, fog, user flags, surface rows). */
 export type HdLookRow = PlatformHdLookRow;
@@ -10,6 +10,10 @@ export type ModelFit = PlatformModelFit;
 export type ModelLibrary<M extends string, H extends string> = PlatformModelLibrary<M, H>;
 /** A model library over its rows; a failed file is a page fault opened by the caller's fault prefix. */
 export const createModelLibrary: typeof platformCreateModelLibrary = platformCreateModelLibrary;
+/** An Explorer specimen on an actual body copy: original hard parts, standard material and root scale. */
+export function creatureSpecimen(body: Parameters<typeof platformCreatureSpecimen>[0], row: Parameters<typeof platformCreatureSpecimen>[1]): ReturnType<typeof platformCreatureSpecimen> {
+  return platformCreatureSpecimen(body, row);
+}
 /** A zero-area skinned stand-in for a creature whose rig did not load. */
 export const undrawnRig: typeof platformUndrawnRig = platformUndrawnRig;
 /** The facet models' matte vertex-colour material. */

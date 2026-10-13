@@ -1,4 +1,4 @@
-import { createModelLibrary, undrawnRig } from '@wildshard/sdk/looks/modelLibrary';
+import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
 import { creatureLooks, creatureBodies } from '@wildshard/game/plugin/geometry';
 import { STRIDER_BODY } from '../data/striderRig.baked';
 import { RAY_BODY, SKITTERER_BODY } from '../data/species/bodies';
@@ -8,8 +8,8 @@ import type { SurfaceLook } from '@wildshard/format/surfaceLooks';
 import { FIRE_LIGHTS } from './fireFx';
 import { DUSK } from '../look/dusk';
 import { CAMP_SURFACE } from '../data/surfaces';
-import { DUNE_MODELS, DUNE_RIGS, DUNE_RIG_URLS, type DuneRigName } from '../data/files';
-import type { BufferGeometry, MeshStandardMaterial } from 'three';
+import { DUNE_MODELS, DUNE_RIGS, DUNE_RIG_URLS } from '../data/files';
+import type { MeshStandardMaterial } from 'three';
 
 /**
  * Signal Dunes' generated models (C6, E374): codex refs → Hunyuan3D-2 → faceted, vertex-coloured GLBs, the textured hero
@@ -33,8 +33,6 @@ export const duneBody = BODIES.bodyOrStandIn;
 export const DUNE_CREATURE_LOOKS = creatureLooks(BODIES, SIGNAL_CREATURE_LOOK_ROWS);
 /** A copy of a baked creature body, or null (not loaded): the physics bake refuses the stand-in. */
 export const duneBakedBody = BODIES.body;
-/** A baked creature body's skin alone (the Model Explorer's specimen). */
-export const duneBodyGeometry = (creature: DuneRigName): BufferGeometry => duneBody(creature).hardParts[0] ?? undrawnRig();
 /** A textured hero model fitted (turned, centred, its lowest point at its floor, sized), or null when it did not load. */
 export const duneHd = MODELS.hd;
 /** A camp material warmed by each burning fire within ~4.5 m (`data/surfaces.ts` FIRELIGHT): its own fire lights it. */

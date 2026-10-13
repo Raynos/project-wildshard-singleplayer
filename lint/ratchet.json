@@ -444,7 +444,7 @@
     "src/shards/far-reach/look/image.ts": 2,
     "src/shards/far-reach/look/render.ts": 4,
     "src/shards/far-reach/look/sky.ts": 1,
-    "src/shards/far-reach/models/creatures.ts": 2,
+    "src/shards/far-reach/models/creatures.ts": 1,
     "src/shards/far-reach/models/gear.ts": 1,
     "src/shards/far-reach/quest/install.ts": 2,
     "src/shards/far-reach/quest/vanes.ts": 1,

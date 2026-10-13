@@ -438,6 +438,25 @@ export function creatureLooks<C extends string>(bodies: Pick<CreatureBodies<C>, 
   return rows.map(row => bakedLook(row.look, () => bodies.bodyOrStandIn(row.body), row.clips));
 }
 
+/** A specimen's authored hard-part selection and unchanged standard material. */
+export interface CreatureSpecimenRow {
+  readonly parts: 'all' | 'first'; readonly material: MeshStandardMaterialParameters; readonly scale?: number;
+}
+/** Build an Explorer specimen from an actual body copy without posing or fitting
+ * its geometry. All parts retain their order in a Group; first-part specimens
+ * retain the original Mesh and zero-area fallback for absent geometry. */
+export function creatureSpecimen(body: AnimalSpecies, row: CreatureSpecimenRow): Group | Mesh {
+  const scale = row.scale ?? 1;
+  if (!Number.isFinite(scale) || scale <= 0) throw new Error('Creature specimen scale must be finite and positive');
+  if (row.parts === 'first') {
+    const mesh = new Mesh(body.hardParts[0] ?? undrawnRig(), new MeshStandardMaterial(row.material));
+    mesh.scale.setScalar(scale); return mesh;
+  }
+  const group = new Group();
+  for (const part of body.hardParts) group.add(new Mesh(part, new MeshStandardMaterial(row.material)));
+  group.scale.setScalar(scale); return group;
+}
+
 /** Fit a geometry into a frame (turned `yaw` radians about +Y first): centred on x / z, its lowest point at `floor`, scaled to `size`. */
 export function fitGeometry(g: BufferGeometry, o: ModelFit): BufferGeometry {
   if (o.yaw !== undefined) g.rotateY(o.yaw);

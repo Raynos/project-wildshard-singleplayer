@@ -4185,3 +4185,14 @@ uses that keeper's boss lifetime. The returned `keeper` and `encounter`
 retain the original continuations and ordered reward ports. Callers own
 brain construction phase, install order and the final `keeper.settle()`;
 no extra host, clock or body is created.
+
+**Creature Model Explorer specimens (W1 C4).**
+`@wildshard/sdk/looks/modelLibrary#creatureSpecimen`
+`(actualBodyCopy, { parts, material, scale? })` builds an
+unposed specimen from the body's original hard-part geometries. `all`
+retains every part in order inside a Group, with a distinct standard
+material per part; `first` retains a Mesh of the first part and the
+existing zero-area stand-in when none exists. Material values pass to
+the original standard constructor, and the optional positive finite
+scale applies to the root (default one). No geometry fitting, animation
+or RNG draw occurs. Model declarations retain their own ids and rigs.
