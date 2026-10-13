@@ -30,7 +30,7 @@ import type { SimSnapshot } from "@wildshard/engine/sim/snapshot";
 import { parseGrazer, grazerPreset, type GrazerSchema, parseChallengeGrazer, type ChallengeGrazerSchema, type ShardChallengeGrazer, type ShardRamGrazer } from "@wildshard/format/grazers";
 import { parseDiver, diverPreset, type DiverSchema, parsePatrolDiver, type PatrolDiverSchema, type ShardPatrolDiver, type ShardOrbitDiver, type ShardBurstFlyer } from "@wildshard/format/flyers";
 import { phasedDiverPreset, type PhasedDiverSchema, parsePhasedFlyer, type PhasedFlyerSchema, type ShardPhasedFlyer } from "@wildshard/format/phasedFlyers";
-import { installHomeKeeper, type HomeKeeperSpec, type KeptBossBody, type KeptHome, type KeptPolicy } from "../shardfile/homeKeeper";
+import { creatureFloor, installHomeKeeper, type HomeKeeperSpec, type KeptBossBody, type KeptHome, type KeptPolicy } from "../shardfile/homeKeeper";
 import { type StalkerSchema, parseStalker, stalkerPreset, type GuardianPatternsSchema, guardianPreset, parseGuardianPattern, parseSkirmisher, parseGuardian, parsePerchHunter, type SkirmisherSchema, type GuardianSchema, type PerchHunterSchema, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from "@wildshard/format/brains";
 
 type Rng = ReturnType<SimHost['rng']['stream']>;
@@ -868,6 +868,10 @@ export interface SpeciesHomesSpec extends Omit<HomeKeeperSpec, 'scales' | 'polic
   readonly brains: SpeciesBrains;
   /** Each body's actual home by its declared id (an island or a flying circle), for the home-bound archetypes. */
   readonly home?: (id: string) => SpeciesBodyHome;
+  /** Actual body homes and world-floor ray starts; selects the existing floor query without a private placement callback. */
+  readonly placement?: { readonly fallback: number; readonly rows: readonly { readonly id: string; readonly fromY: number; readonly home: SpeciesBodyHome }[] };
+  /** Memory holds run in authored order at the keeper's original beforeStep phase. */
+  readonly holds?: readonly { readonly home: number; readonly field: string; readonly until: string }[];
   /** The runtime's own body for a kind its rows bind no body recipe (a unique boss), on the same shared ports. */
   readonly custom?: (kind: string, actor: AnimalSim, shared: SpeciesBodyPorts) => KeptPolicy;
 }
@@ -885,9 +889,36 @@ export function speciesScales(species: readonly { readonly kind: string; readonl
  * own stream, its home and the keeper's attack authority (its tokens; an uncapped keeper grants every attack).
  */
 export function installSpeciesHomes(host: SimHost, spec: SpeciesHomesSpec, saved?: Readonly<SimSnapshot>): { settle: () => void; homes: () => readonly KeptHome[]; boss: KeptBossBody | null } {
-  const { species, brains, home, custom, ...keeper } = spec;
-  return installHomeKeeper(host, { ...keeper, scales: speciesScales(species), policy: (kind, actor, claim, stream) => {
-    const at = home?.(actor.entityId);
+  const { species, brains, home, custom, placement, holds, ...keeper } = spec;
+  const declared = new Map<string, { readonly at: readonly [number, number] }>(spec.homes.map(row => [row.id, row]));
+  if (spec.boss !== undefined) declared.set(spec.boss.id, spec.boss);
+  const placed = new Map<string, { readonly fromY: number; readonly home: SpeciesBodyHome }>();
+  if (placement !== undefined) {
+    if (home !== undefined || spec.place !== undefined || spec.adopt !== undefined || !Number.isFinite(placement.fallback)
+      || placement.rows.length !== declared.size) throw new Error('Species placement requires one declared floor authority');
+    for (const row of placement.rows) {
+      if (!declared.has(row.id) || placed.has(row.id) || !Number.isFinite(row.fromY)) throw new Error('Invalid declared species placement');
+      v.parse(CreatureHomeSchema, row.home);
+      // Preserve authored property order: native continuation records serialize the original home.
+      placed.set(row.id, { fromY: row.fromY, home: row.home });
+    }
+  }
+  if (holds !== undefined && (holds.length > 1024 || holds.some(row => !Number.isInteger(row.home) || row.home < 0 || row.home >= spec.homes.length
+    || row.field.length === 0 || row.until.length === 0))) throw new Error('Invalid declared species hold');
+  const floor = placement === undefined ? undefined : creatureFloor(host, () => placement.fallback);
+  const prepared = floor === undefined ? keeper : { ...keeper,
+    place: (id: string) => {
+      const row = declared.get(id), at = placed.get(id);
+      if (row === undefined || at === undefined) throw new Error('Missing declared species placement');
+      return floor(row.at[0], row.at[1], at.fromY);
+    },
+    adopt: (actor: AnimalSim) => { actor.groundHeight = (x, z, fromY) => floor(x, z, fromY).y; },
+  };
+  return installHomeKeeper(host, { ...prepared, ...(holds === undefined ? {} : { beforeStep: (kept: readonly KeptHome[]) => {
+    for (const row of holds) { const actor = kept[row.home]?.actor; if (actor !== null && actor !== undefined) actor.mem[row.field] = host.flags.has(row.until) ? 0 : 1; }
+    keeper.beforeStep?.(kept);
+  } }), scales: speciesScales(species), policy: (kind, actor, claim, stream) => {
+    const at = placed.get(actor.entityId)?.home ?? home?.(actor.entityId);
     const shared: SpeciesBodyPorts = { host, stream, ...(at === undefined ? {} : { home: at }),
       attacks: spec.attackers === Infinity ? { kind: 'unlimited', limit: Infinity } : { kind: 'keeper', claim } };
     const body = brains.body(kind, actor, shared);

@@ -32,7 +32,7 @@ const manifest = { ...SIGNAL_HEADLESS, baked, homes: { ...SIGNAL_HEADLESS.homes,
 export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
   const rows = v.parse(Baked, baked), specs = bakedSpecs([...rows.actors, ...rows.bosses]), spots = rows.spots;
   const { homes, boss, quest } = manifest, terrain = admittedTerrain(shard, assets), { heightAt } = terrain;
-  const brains = speciesBrains(homes.species, homes.strikes, homes.modules), holds = homes.holds;
+  const brains = speciesBrains(homes.species, homes.strikes, homes.modules);
   const row = weaponRow(shard, manifest.lash.id);
   const cracks = quest.interactions.rows.flatMap((entry): NativeMeleeWorld[] => {
     if (entry.crack === undefined) return [];
@@ -46,14 +46,7 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) 
     if (!context.restoring) addBakedWorld(host, baked.pieces, terrain.bytes);
     const keeper = installSpeciesHomes(host, { step: homes.step, seed: homes.seed, homes: homes.rows, boss: boss.row, specs,
       species: homes.species, brains, attackers: homes.attackers, think: homes.think,
-      beforeStep: kept => {
-        for (let i = 0; i < 1024; i++) {
-          const hold = holds[i];
-          if (hold === undefined) break;
-          const actor = kept[hold.home]?.actor;
-          if (actor) actor.mem[hold.field] = host.flags.has(hold.until) ? 0 : 1;
-        }
-      } }, context.snapshot);
+      holds: homes.holds }, context.snapshot);
     if (keeper.boss === null) throw new Error('Missing native Matriarch body');
     const ledger = ledgerPorts(context.emit);
     const encounter = installBossOwnerRow(host, SIGNAL_BOSS_OWNER, { body: { kind: 'spawned', keeper: keeper.boss }, ...ledger });

@@ -4101,3 +4101,17 @@ Morph, skin, displacement, instance-normal and authored position order
 remain unchanged. The executed `scripts/graph-mesh-map/run.mjs` oracle
 checks three instanced meshes (3/5/2), shared geometry, two maps, map
 swaps and live matrix updates, alongside the original plain-mesh case.
+
+**Native species placement and holds (W1 C4).** Optional
+`installSpeciesHomes` placement rows lend each declared body's actual
+home and WORLD-floor ray start, with a finite analytic fallback. The
+existing keeper owns body order, shared RNG, floor query and restore.
+Placement requires exactly one row per declared body and cannot combine
+with private home/place/adopt callbacks. Homes validate strictly while
+retaining authored field order in native continuation records.
+
+Optional `holds: [{ home, field, until }]` writes each retained home's
+memory field to one until the host flag is set, then zero, in authored
+order at the original beforeStep phase. Invalid home indices refuse
+before body allocation. Neither option allocates another policy, clock
+or stream; absent options preserve the original callback paths and wire.

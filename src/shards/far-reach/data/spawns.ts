@@ -1,4 +1,4 @@
-import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, WISP_HOMES, APOTHEM, type Home } from './layout';
+import { GOATS, RAY_HOMES, ROC, ROOST_RAYS, WISP_HOMES, APOTHEM, DECK, type Home } from './layout';
 
 const flying = (id: string, kind: string, look: string, home: Home) => ({ id, kind, look, at: [home.x + home.r, home.z] as const, yaw: 0 });
 /** Actual installation order and home of each finite native body; goats land after install-time registrations. */
@@ -23,3 +23,11 @@ export const SKY_FLOCK_GROUPS = {
   wisps: SKY_FLOCK_ROWS.filter(row => row.kind === 'galeWisp'),
   goats: SKY_FLOCK_ROWS.filter(row => row.kind === 'skyGoat'),
 };
+
+/** The native keeper uses the same body order and authored homes as the page. */
+export const FLOCK_STEP = 'far.flock';
+/** The structures-only analytic fallback and the manifest's death plane. */
+export const SKY_ANALYTIC_FLOOR = -1000;
+export const SKY_KILL_Y = DECK - 24;
+export const SKY_FLOCK_PLACEMENT = { fallback: SKY_ANALYTIC_FLOOR,
+  rows: SKY_FLOCK_ROWS.map(row => ({ id: row.id, home: row.home, fromY: row.kind === 'skyGoat' ? row.home.y + 2 : DECK + 2 })) };
