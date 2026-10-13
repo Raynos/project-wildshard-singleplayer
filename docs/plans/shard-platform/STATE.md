@@ -11,9 +11,9 @@
 **Push (Jake `a44511f05`, `193a7e998`, `ef0eb5e04`, `267504b5a`; sp-x7 building):** debt shrink-only, refused per file at commit; generated files made at commit, never at push (regen bot goes); pre-commit ≤ 10 s, local gate ≤ 2 min, full suite/bakes in CI with fix-forward; no repeat retries; allowed graph counts report-only; exact-number tests → limits (sp-o66). **Origin stuck at `53d4b7aa0`** while the gate is rebuilt; live `957b05e6`, unpin `e6eeefc1e` queued.
 
 **Sprint = S1 + S3 (Jake `fd841c551`). For wildshard-v: S1 is net-zero on Signal/Sky** (quest machines are already data rows). The counted mass is looks (fire, ground, dusk, Sky wind, 614 GLSL) and weapons. S1 dropped for these two shards; sp-o69 moved to Signal's ground switch. Recommend Jake re-weigh S2 (shader rows). **Never stop the line:** no holds; lanes CAS-retry.
-**Fleet: 4 Opus + 3 Codex.** Codex: sp-x7 push, sp-x6 navigation, sp-x5 **bench-max** (pre-commit ≤ 10 s; today 13–25 s). Opus: sp-o67 looks, sp-o65 Sky island tiles, sp-o69 Signal ground switch, sp-o70 far placeholder → SDK cache. Pre-commit 26 → 9.4 s (`91cf2cdb7`).
+**Fleet: 4 Opus + 3 Codex.** Codex: sp-x7 push, sp-x6 navigation, sp-x5 **bench-max** (warm ~10 s, cold 13.8 s open). Opus: sp-o72 looks, sp-o65 Sky island tiles, sp-o73 physics exit rows (G350), sp-o74 Signal ground switch. Pre-commit 26 → 9.4 s (`91cf2cdb7`).
 
-**For wildshard-v, boards for Jake (sp-o67, every panel labelled with per-cell tiers):** near tier round 4 `art/near-tier/round-4/` (board-desktop/iphone, nalati before/after); hero round 5 above Nalati facing Driftwood `art/main-menu-hero/round-5/board.jpg`, **recommend SQ-NW-b + LS-NW-b**. Round 3's "far proxy" was a readout bug; near cells now by distance incl. diagonals. Open: Nalati's cliff at its cell edge, finer surface than vertex colour. Fire look A kept, B + row deleted (`eeeaf2fcd`).
+**Looks (sp-o72):** hero **NW-b SHIPPED** (`53ba19d09`, G378). Next (Jake G380): every shard gets an SDK near placeholder (Signal, Sky, 3 style templates have none), a capture-only force-near setting, then hero round 6 over the middle of Nalati's far edge toward Driftwood, all nine near (G379); then Nalati terrain/edges. Fire look A kept (`eeeaf2fcd`).
 
 **Calls for Jake (2026-10-13; reverse any):**
 1. Bosses never shrink on phone (`30dc4c9ae`).
