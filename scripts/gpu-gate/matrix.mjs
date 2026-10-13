@@ -8,7 +8,7 @@ export const SPLIT = new Set();
 /** @typedef {{ shard: string, mode: string, part: string }} Job */
 /** @typedef {{ id: string, kind: string, shards: string[] | 'all' }} Plant */
 
-/** @param {string} sha @param {string} mode @param {{ cwd?: string, split?: Set<string> }} [options] @returns {Job[]} */
+/** @param {string} sha @param {string} mode @param {{ cwd?: string, split?: Set<string>, recordShards?: readonly string[] }} [options] @returns {Job[]} */
 export function matrix(sha, mode, options = {}) {
   if (!/^[0-9a-f]{40}$/.test(sha)) throw new Error('matrix: sha must be a full 40-hex commit');
   if (!['compare', 'record', 'prove'].includes(mode)) throw new Error('matrix: mode must be compare, record or prove');
@@ -20,6 +20,13 @@ export function matrix(sha, mode, options = {}) {
   let shards = files.flatMap((file) => /^src\/shards\/([^/]+)\/manifest\.ts$/.exec(file)?.slice(1) ?? []);
   shards = [...new Set(shards)].sort();
   if (shards.length === 0) throw new Error('matrix: target SHA has no shards');
+  if (options.recordShards !== undefined) {
+    if (mode !== 'record') throw new Error('matrix: shard selection is record-only');
+    const selected = options.recordShards;
+    if (selected.length === 0 || new Set(selected).size !== selected.length || selected.some(shard => !shards.includes(shard)))
+      throw new Error('matrix: record shards must be unique target manifests');
+    shards = shards.filter(shard => selected.includes(shard));
+  }
   /** @type {Plant[]} */
   const plants = mode === 'prove' ? JSON.parse(git(['show', `${sha}:test/parity/plants/index.json`])) : [];
   if (!Array.isArray(plants)) throw new Error('matrix: plant index must be an array');
@@ -36,6 +43,6 @@ export function matrix(sha, mode, options = {}) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  try { console.log(JSON.stringify(matrix(process.argv[2] ?? '', process.argv[3] ?? 'compare'))); }
+  try { console.log(JSON.stringify(matrix(process.argv[2] ?? '', process.argv[3] ?? 'compare', process.argv[4] ? {recordShards: process.argv[4].split(',')} : {}))); }
   catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 2; }
 }

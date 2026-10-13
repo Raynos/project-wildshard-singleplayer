@@ -9,6 +9,7 @@ on:
     inputs:
       sha:    { description: Commit to gate (default the branch head), type: string, required: false }
       record: { description: Record runner baselines (artifact), type: boolean, default: false }
+      record_shards: { description: Record only these target slugs (comma-separated; record mode only), type: string, required: false }
       prove:  { description: Run the determinism proof, type: boolean, default: false }
       plant:  { description: Run one patch/flag/Linux plant (nightly plants use nightly.sh), type: string, required: false }
       angle:  { description: ANGLE backend (the metal-off plant uses swiftshader), type: string, default: metal }
@@ -16,7 +17,7 @@ on:
 concurrency:
   # the nightly run: one running + one pending (ci-gpu-options §6).
   # dispatches (plant / record / prove / a milestone gate) get their own group, so they never replace the nightly (R1-41)
-  group: ${{ github.event_name == 'schedule' && 'gpu-gate-main' || format('gpu-gate-dispatch-{0}-{1}-{2}-{3}', inputs.sha, inputs.plant, inputs.record, inputs.prove) }}
+  group: ${{ github.event_name == 'schedule' && 'gpu-gate-main' || format('gpu-gate-dispatch-{0}-{1}-{2}-{3}', inputs.sha, inputs.plant, inputs.record, inputs.prove) }}${{ inputs.record_shards && format('-{0}', inputs.record_shards) || '' }}
   cancel-in-progress: false
 permissions:
   contents: read
@@ -32,10 +33,11 @@ jobs:
       - id: list                 # [{ shard, mode, part }], read from the target SHA's tree with git ls-tree / cat-file
         env:
           SHA: ${{ inputs.sha || github.sha }}
+          RECORD_SHARDS: ${{ inputs.record_shards }}
           MODE: ${{ inputs.prove && 'prove' || (inputs.record && 'record' || 'compare') }}
         run: |
           git fetch --no-tags --filter=blob:none origin "$SHA"
-          echo "jobs=$(node scripts/gpu-gate/matrix.mjs "$SHA" "$MODE")" >> "$GITHUB_OUTPUT"
+          echo "jobs=$(node scripts/gpu-gate/matrix.mjs "$SHA" "$MODE" "$RECORD_SHARDS")" >> "$GITHUB_OUTPUT"
   shard:
     needs: [setup]
     strategy:

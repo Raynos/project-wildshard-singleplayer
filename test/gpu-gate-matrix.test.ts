@@ -35,6 +35,14 @@ describe('target SHA GPU jobs', () => {
     ]);
     expect(matrix(sha, 'record', { cwd, split: new Set(['a']) })).toEqual(['_template', 'a', 'b'].map((shard) => ({ shard, mode: 'record', part: '' })));
   });
+  it('scopes explicit records while refusing a partial comparison or proof', () => {
+    const {cwd, sha} = repo(manifests);
+    expect(matrix(sha, 'record', {cwd, recordShards: ['b']})).toEqual([{shard: 'b', mode: 'record', part: ''}]);
+    expect(() => matrix(sha, 'record', {cwd, recordShards: ['missing']})).toThrow('target manifests');
+    expect(() => matrix(sha, 'record', {cwd, recordShards: ['a', 'a']})).toThrow('unique');
+    expect(() => matrix(sha, 'record', {cwd, recordShards: []})).toThrow('unique');
+    for (const mode of ['compare', 'prove']) expect(() => matrix(sha, mode, {cwd, recordShards: ['a']})).toThrow('record-only');
+  });
   it('proves one part per plant and shard, excluding nightly/Linux plants', () => {
     const { cwd, sha } = repo({ ...manifests, 'test/parity/plants/index.json': JSON.stringify([
       { id: 'common', kind: 'patch', shards: 'all' }, { id: 'metal-off', kind: 'flag', shards: ['a'] },
