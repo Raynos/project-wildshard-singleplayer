@@ -9,8 +9,7 @@
     "data/floorPlan.ts",
     "data/specimenProfiles.ts",
     "data/layoutPlan.ts",
-    "data/specimenDims.ts",
-    "data/signPlacement.ts"
+    "data/specimenDims.ts"
   ],
   "clipAbove": 153,
   "style": {

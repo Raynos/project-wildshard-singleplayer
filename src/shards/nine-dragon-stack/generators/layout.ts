@@ -16,7 +16,7 @@ import { mergeBakedPieces } from './facadePieces';
 import { peekQueued, restoreQueued } from '../world/props3d';
 import { crossingColliders, wellSheets } from '../world/wellBounds';
 import { banyanOut } from '../world/banyanPlan';
-import type { SignPlace, SignSink, SignBoardKit } from '../data/signPlacement';
+import type { SignPlace, SignSink, SignBoardKit } from '../assets/contracts/signPlacement';
 import { signBoard, signSize, neonSize } from './signMath';
 import { geometryWriter } from './bakeWrite';
 import type { Placement } from '@wildshard/engine/models/model';

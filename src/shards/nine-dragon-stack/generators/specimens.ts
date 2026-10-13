@@ -14,7 +14,7 @@ import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { Ctx } from '../world/ctx';
 import { Kit } from '../world/kit';
 import { KitX, merge } from '../world/hero/kitx';
-import type { SignSink } from '../data/signPlacement';
+import type { SignSink } from '../assets/contracts/signPlacement';
 import { PLANTER, WELL_BALUSTRADE_AT as O } from '../data/specimenDims';
 import { centred } from './layoutMath';
 import type { CanopyLump } from '../world/banyanPlan';

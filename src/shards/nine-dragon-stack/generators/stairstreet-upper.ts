@@ -26,7 +26,7 @@ import { hipRoof } from '../world/hipRoof';
 import { type Hole, cutByHoles, extraFigure, flushExtraFigures, frontBalconies, pushClimbers, towerStack, wallShop } from './stairstreet';
 import { FACE_N, FACE_S, FAR_X, FLIGHTS, LANDINGS, RISE, RUN, SQ_BACK, STAIR_GATE, TOP_Y, stairFloor } from '../world/stairPlan';
 import { SURF } from '../look/paint';
-import type { SignPlace, SignSink, SignBoardKit } from '../data/signPlacement';
+import type { SignPlace, SignSink, SignBoardKit } from '../assets/contracts/signPlacement';
 import { NINE_LAYOUT_PLAN } from '../data/layoutPlan';
 import { ASHLAR, COPING, FLOWER_COLS, ICO0, landingPlanter, leafBush, leafLook, leafQuad, tint } from './landingPlanter';
 import { PLANTER } from '../data/specimenDims';

@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { SIGN_STYLES } from '../data/signs';
-import type { SignPlace, SignBoardBox, SignBoardKit } from '../data/signPlacement';
+import type { SignPlace, SignBoardBox, SignBoardKit } from '../assets/contracts/signPlacement';
 
 /** Author-only face sizing; permanent tests compare it with the runtime sign renderer. */
 export function signSize(p: SignPlace): { w: number; h: number } {

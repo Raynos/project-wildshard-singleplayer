@@ -7,7 +7,7 @@
 import { type Box3, BufferAttribute, BufferGeometry, Color, DataUtils, Float16BufferAttribute, Float32BufferAttribute, type Matrix4, Matrix3, Uint16BufferAttribute, Uint32BufferAttribute, Vector3 } from 'three';
 import { appendGeometry } from '@wildshard/game/plugin/geometry';
 import { EDGE } from './ruledKit';
-import type { TangentRows, TangentSource } from '../../data/tangentRows';
+import type { TangentRows, TangentSource } from '../../assets/contracts/tangentRows';
 
 export interface TangentLook {
   /** the flat wash (sRGB hex) */

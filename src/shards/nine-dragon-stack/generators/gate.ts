@@ -12,7 +12,7 @@
 //   couplets, lanterns; a pair of stone lions (石獅) on plinths before the centre bay.
 import { Vector3 } from 'three';
 import { E, K, type Kit, type Look } from '../world/kit';
-import type { SignSink } from '../data/signPlacement';
+import type { SignSink } from '../assets/contracts/signPlacement';
 import { type KitX, type XLook, curve } from '../world/hero/kitx';
 import { Rng } from '@wildshard/sdk/random';
 import { SURF } from '../look/paint';

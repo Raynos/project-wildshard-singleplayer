@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { BufferAttribute, type BufferGeometry, Vector3 } from 'three';
 import { SIGN_STYLES, type SignStyle } from '../../../src/shards/nine-dragon-stack/data/signs';
-import type { SignPlace } from '../../../src/shards/nine-dragon-stack/data/signPlacement';
+import type { SignPlace } from '../../../src/shards/nine-dragon-stack/assets/contracts/signPlacement';
 import { neonSize, signSize, signBoard, signBoardBox } from '../../../src/shards/nine-dragon-stack/generators/signMath';
 import { NeonText } from '../../../src/shards/nine-dragon-stack/runtime/signs/neonText';
 import { signSize as runtimeSize, signBoardBox as runtimeBox } from '../../../src/shards/nine-dragon-stack/runtime/signs/signAtlas';

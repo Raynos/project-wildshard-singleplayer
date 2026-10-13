@@ -4,7 +4,7 @@
 import type { Vector3 } from 'three';
 import { signBoardBox, signSize as boardSize, type SignBoardSink, type SignBuilder as SignBuilderView } from '../runtime/signs/signAtlas';
 import { SIGN_STYLES, type SignStyle } from '../data/signs';
-import type { SignPlace as AuthoredSignPlace, SignSink as AuthoredSignSink, SignBoardKit } from '../data/signPlacement';
+import type { SignPlace as AuthoredSignPlace, SignSink as AuthoredSignSink, SignBoardKit } from '../assets/contracts/signPlacement';
 
 export type SignPlace = AuthoredSignPlace;
 
