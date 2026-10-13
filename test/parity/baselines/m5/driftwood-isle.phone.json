@@ -80,6 +80,7 @@
         "shard.driftwood-isle.installGullGuide",
         "shard.driftwood-isle.installComplete",
         "shard.driftwood-isle.installFinale",
+        "shard.driftwood.director",
         "shard.driftwood-isle.installEcology",
         "shard.driftwood.adventure.3",
         "shard.driftwood.adventure.4",
@@ -841,10 +842,10 @@
         "solidFloor": true,
         "follows": false,
         "shapes": {
-          "cuboid": 41,
+          "cuboid": 40,
           "ball": 0,
           "capsule": 0,
-          "convex": 0,
+          "convex": 1,
           "trimesh": 0,
           "treads": 0
         }
@@ -857,10 +858,10 @@
         "solidFloor": true,
         "follows": false,
         "shapes": {
-          "cuboid": 59,
+          "cuboid": 58,
           "ball": 0,
           "capsule": 0,
-          "convex": 0,
+          "convex": 1,
           "trimesh": 0,
           "treads": 0
         }
@@ -873,10 +874,10 @@
         "solidFloor": true,
         "follows": false,
         "shapes": {
-          "cuboid": 43,
+          "cuboid": 42,
           "ball": 0,
           "capsule": 0,
-          "convex": 0,
+          "convex": 1,
           "trimesh": 0,
           "treads": 0
         }
@@ -1209,10 +1210,10 @@
         "solidFloor": true,
         "follows": false,
         "shapes": {
-          "cuboid": 63,
+          "cuboid": 62,
           "ball": 0,
           "capsule": 0,
-          "convex": 0,
+          "convex": 1,
           "trimesh": 0,
           "treads": 0
         }
@@ -2380,8 +2381,8 @@
       }
     },
     "gpuBytes": {
-      "textures": 83609768,
-      "renderbuffers": 5610624,
+      "textures": 91509608,
+      "renderbuffers": 10877184,
       "buffers": 79846897,
       "total": 169067289
     },
@@ -4161,7 +4162,7 @@
         -194.0000530196317
       ],
       "calls": 273,
-      "tris": 1316708,
+      "tris": 1316684,
       "fps": 83.0592563643898,
       "frameP95Ms": 13.600000381469727,
       "cpuP50Ms": 11.400000095367432,
@@ -4252,7 +4253,7 @@
         -150.0008747053146
       ],
       "calls": 287,
-      "tris": 1288640,
+      "tris": 1288616,
       "fps": 80.06017946786048,
       "frameP95Ms": 14.099999904632568,
       "cpuP50Ms": 11.900000095367432,
@@ -4379,7 +4380,7 @@
         -0.01762171576046967
       ],
       "calls": 180,
-      "tris": 937878,
+      "tris": 937854,
       "fps": 85.52895930667394,
       "frameP95Ms": 13.200000286102295,
       "cpuP50Ms": 11.199999809265137,
@@ -4795,9 +4796,9 @@
         "name": "pier",
         "stuck": [],
         "end": {
-          "x": -19.774,
+          "x": -19.771,
           "y": 0.539,
-          "z": -150.546
+          "z": -150.554
         },
         "maxY": 2,
         "out": 0,
@@ -18882,7 +18883,7 @@
     "wreck": 0.999953024953141
   },
   "harness": 2,
-  "sha": "16728f1c6f1d0cd7f29162d4ea2560909680ecf1",
-  "recorded": "2026-10-09T01:01:50.358Z",
+  "sha": "6fe38fc08e13bfd9282d0d8786dcfa7506c83f23",
+  "recorded": "2026-10-13T09:45:03.364Z",
   "browser": "153.0.8010.12"
 }
