@@ -10,6 +10,7 @@ import { DRIFTWOOD_EDGE_HEIGHTS } from './data/edges';
 import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
 import { DECLARED_SEA, WORLD_DROP } from './world/sea';
 import { ENTRY_LANDINGS } from './data/entryLandings';
+import navigation from './data/navigation.generated.json' with { type: 'json' };
 
 // SF46 step 1: content and the existing look stay in the declared trusted entry until the grid-ready bake lands.
 // SF46 edges (G93 / G99 / G164): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand on
@@ -32,6 +33,10 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({
   ...base,
+  navigation: navigation.navigation, files: navigation.files, critical: navigation.critical,
+  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) },
+  budgets: { ...base.budgets, sim: { resident: navigation.files.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
+    compressed: navigation.files.reduce((sum, file) => sum + file.compressed, 0) } },
   accent: 'marigold',
   runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes'], spawns: DRIFTWOOD_SPAWNS },
   quests: DRIFTWOOD_QUESTS, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,

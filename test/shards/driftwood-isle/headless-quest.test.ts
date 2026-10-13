@@ -24,7 +24,7 @@ import spotsBake from '../../../src/shards/driftwood-isle/data/spots.generated.j
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 beforeAll(async () => {
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  plan = await prepareHeadlessRuntime({ shard: source, assets: new Map(), rapier });
+  plan = await prepareHeadlessRuntime({ shard: source, assets: new Map(source.files.map(file => [file.hash, Uint8Array.from(readFileSync(`src/shards/driftwood-isle/assets/${file.hash}`))])), rapier });
 });
 let tape: readonly HeadlessCommand[] = [];
 const emitted: HeadlessEffect[] = [];

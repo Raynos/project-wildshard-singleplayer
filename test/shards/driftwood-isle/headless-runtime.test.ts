@@ -35,7 +35,7 @@ import { expectSameSimSnapshot } from '../../fake/simSnapshot';
 let rapier: Rapier, plan: HeadlessRuntimePlan;
 beforeAll(async () => {
   rapier = await loadRapier(readFileSync('public/assets/physics/rapier.wasm'));
-  plan = await prepareHeadlessRuntime({ shard: source, assets: new Map(), rapier });
+  plan = await prepareHeadlessRuntime({ shard: source, assets: new Map(source.files.map(file => [file.hash, Uint8Array.from(readFileSync(`src/shards/driftwood-isle/assets/${file.hash}`))])), rapier });
 });
 /** the tick's commands every booted host reads (the swords' attack taps); empty unless a test fills it */
 let tape: readonly HeadlessCommand[] = [];

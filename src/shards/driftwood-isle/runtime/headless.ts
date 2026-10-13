@@ -17,7 +17,6 @@ import { DRIFTWOOD_FEATS } from '../data/questInventory';
 import { DRIFTWOOD_INTERACT } from '../data/interactables';
 import { driftwoodSpots, installDriftwoodQuest } from './quest';
 import { proveDriftwoodEntries } from './entries';
-import navmeshBaked from './navmesh.baked.json' with { type: 'json' };
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { DRIFTWOOD_DAY, type Preset } from '../look/dayKeys';
 
@@ -34,11 +33,10 @@ export function driftwoodDayClock(): DayCycle<Preset> {
 /** The tick protocol's command allowance (sdk/tickProtocol.ts): a tick never carries more. */
 const MAX_COMMANDS = 1024;
 
-/** The browser's baked navmesh (public/assets/baked/driftwood-isle/navmesh.bin), from its exact-bytes copy
- *  (src/shards/driftwood-isle/generators/bake-driftwood-navmesh.mjs), parsed by the engine's renderer-free navmesh module. */
-export function driftwoodNavmesh(): Navmesh {
-  const bytes = Uint8Array.from(atob(navmeshBaked.bytes), c => c.codePointAt(0) ?? 0), nav = parseNavmesh(bytes.buffer);
-  if (nav === null) throw new Error('Driftwood navmesh copy does not parse');
+/** The admitted platform navigation bytes, parsed by the same renderer-free WSNM reader as the page. */
+export function driftwoodNavmesh(bytes: Uint8Array): Navmesh {
+  const nav = parseNavmesh(Uint8Array.from(bytes).buffer);
+  if (nav === null) throw new Error('Driftwood declared navigation does not parse');
   // Baked points already include the island's world height; Node has no active page level.
   nav.datum = () => 0;
   return nav;
@@ -86,9 +84,11 @@ function walkOf(list: ReturnType<HeadlessRuntimeInstallation['commands']>, speed
   return { x: x * k, z: z * k };
 }
 
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard }) => {
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets }) => {
+  const navigation = shard.navigation === null ? undefined : assets.get(shard.navigation.file);
+  if (navigation === undefined) throw new Error('Driftwood requires its admitted navigation asset');
   const createDirector = await prepareDriftwoodDirector();
-  const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh(), swords = driftwoodSwordProfiles(shard.items.rows), spots = driftwoodSpots();
+  const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh(navigation), swords = driftwoodSwordProfiles(shard.items.rows), spots = driftwoodSpots();
   const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: 500, height: 0 },
     player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     // the host's player strike is a zero-damage probe, never a sword: the swords are declared items (runtime/swords.ts)
