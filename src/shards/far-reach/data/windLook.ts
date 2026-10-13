@@ -1,4 +1,3 @@
-import type { GustRow, UpdraftRow } from '../runtime/looks/windFx';
 
 /**
  * Sky Reach's visible wind (style bible §7, loop 3; drawn by @wildshard/sdk/looks/windFx): the fan's GUST, a cone of
@@ -19,3 +18,35 @@ export const UPDRAFT_FX: UpdraftRow = {
   tint: 0xcdeeff, leafColours: [0xb9c868, 0xd9c060, 0x93b552, 0xf0d488],
   streakName: 'far.updraft.streaks', leafName: 'far.updraft.leaves',
 };
+
+/** A gust's rows: how many streaks and petals, how long they live, how far they fly; the colours and the meshes' names. */
+export interface GustRow {
+  readonly streaks: number;
+  readonly petals: number;
+  readonly life: number;
+  readonly speed: number;
+  readonly start: number;
+  readonly spread: number;
+  /** a streak's tint (sRGB hex), and the warm one's (drawn by about 3 in 10) */
+  readonly tint: number;
+  readonly warm: number;
+  /** the petals' colours (sRGB hex), in turn */
+  readonly petalColours: readonly number[];
+  readonly streakName: string;
+  readonly petalName: string;
+}
+
+/** An updraft's rows: its streaks and leaves round a helix of `radius` with `turns` turns, climbing at `rate` per second. */
+export interface UpdraftRow {
+  readonly streaks: number;
+  readonly leaves: number;
+  readonly radius: number;
+  readonly turns: number;
+  readonly rate: number;
+  /** the streaks' tint (sRGB hex) */
+  readonly tint: number;
+  /** the leaves' colours (sRGB hex), in turn */
+  readonly leafColours: readonly number[];
+  readonly streakName: string;
+  readonly leafName: string;
+}

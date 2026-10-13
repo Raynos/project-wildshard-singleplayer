@@ -1,3 +1,4 @@
+import type { WakeRibbonRow } from '../../data/rayWakeLook';
 import { AdditiveBlending, BufferAttribute, BufferGeometry, DoubleSide, Mesh, ShaderMaterial, Vector3 } from 'three';
 
 /**
@@ -6,15 +7,6 @@ import { AdditiveBlending, BufferAttribute, BufferGeometry, DoubleSide, Mesh, Sh
  * where the thing really went (one sample every `every` seconds), so it curls as the thing turns. Additive, no depth write:
  * a glow, not a surface. Nothing here knows a shard: the samples, timing, width, colour and name are the shard's row.
  */
-
-/** A wake's row: how many samples, seconds between them, its width at the head (m), its colour (linear RGB) and mesh name. */
-export interface WakeRibbonRow {
-  readonly samples: number;
-  readonly every: number;
-  readonly width: number;
-  readonly color: readonly [number, number, number];
-  readonly name: string;
-}
 
 /** A wake's mesh (add it to the scene) and its tick: the head's position, whether the thing is alive, the camera, dt. */
 export interface WakeRibbon { readonly mesh: Mesh<BufferGeometry, ShaderMaterial>; update: (at: Vector3, alive: boolean, camera: Vector3, dt: number) => void }

@@ -1,4 +1,5 @@
 import { BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, type Vector2, type Vector3 } from 'three';
+import type { TileFieldRow } from '../../data/meadowLook';
 
 /**
  * A camera-tiled card field as a declared row (SHARD-PLATFORM M3, look-family rows): a near meadow, a carpet of moss or
@@ -10,20 +11,6 @@ import { BufferAttribute, InstancedBufferAttribute, InstancedBufferGeometry, typ
  * grid to the tile lattice under the camera. Nothing here knows a shard: the outline, the lattice and the seed are data,
  * the program is the shard's.
  */
-
-/** A card's outline: its vertices (`[across, up]`) and its triangles (indices into them, three per triangle). */
-export interface TileCardRow {
-  readonly shape: readonly (readonly [number, number])[];
-  readonly triangles: readonly number[];
-}
-
-/** The field's lattice: tiles across (odd), extra layers of the inner 3 × 3, the cards' seed and their outline. */
-export interface TileFieldRow {
-  readonly across: number;
-  readonly layers: number;
-  readonly seed: number;
-  readonly card: TileCardRow;
-}
 
 /** The field's geometry: `cards` cards per tile (a tier knob), seeded so every load grows the same field; positions are
  *  zero (the program places every vertex from `aRoot`, `aShape` and `aTile`). */

@@ -150,3 +150,14 @@ export const SEA_DISCS = {
   paintedSeaUpper: { name: 'far.painted-sea.upper', program: 'paintedSeaUpper', radius: 1400, segments: 96, at: [0, 6, 0], order: -6, spin: 1.3 },
   paintedMaelstrom: { name: 'far.painted-maelstrom', program: 'paintedMaelstrom', radius: 125, segments: 96, at: [0, 10, -190], order: -6 },
 } as const;
+
+/** One disc: its mesh name, program, radius (m) and segments, centre `[x, y, z]` (m), render order and optional turn. */
+export interface DiscLayerRow<P extends string = string> {
+  readonly name: string;
+  readonly program: P;
+  readonly radius: number;
+  readonly segments: number;
+  readonly at: readonly [number, number, number];
+  readonly order: number;
+  readonly spin?: number;
+}

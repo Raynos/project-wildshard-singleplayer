@@ -1,6 +1,8 @@
+import type { UniformRows } from '@wildshard/sdk/looks/shaderFamily';
+
 /**
  * Sky Reach's camera-facing card programs (SHARD-PLATFORM M3: rows of an SDK shader family, built by
- * `@wildshard/sdk/looks/cardField`; the cards' numbers are the bake in data/skyCards.json, generators/skyCards.ts).
+ * runtime/looks/cardField.ts; the cards' numbers are the bake in data/skyCards.ts, generators/skyCards.ts).
  *
  * The sun's glow and light shafts (E392; the judge every loop: "no visible sun, no god rays"): the panorama paints the sun
  * disc (look/sky.ts); these add, at the same direction, a wide soft bloom and a fan of long light-shaft cards radiating from
@@ -90,3 +92,47 @@ export const SKY_CARD_PROGRAMS = {
         gl_FragColor = vec4(c, alpha);
       }`, shared: ['uSun'], transparent: true, depthWrite: false },
 } as const;
+
+/** A card uniform's pulse as data: each `update(t)` writes `base + amp · sin(t · rate + phase)`. */
+export interface CardPulseRow {
+  readonly uniform: string;
+  readonly base: number;
+  readonly amp: number;
+  readonly rate: number;
+  readonly phase: number;
+}
+
+/** One card: a program of the family, its own uniforms (over the program row's), and an optional pulse. */
+export interface CardRow<P extends string = string> {
+  readonly program: P;
+  readonly uniforms?: UniformRows;
+  readonly pulse?: CardPulseRow;
+}
+
+/** A group of unit cards: its name, the render order every card draws at, and the cards in draw order. */
+export interface CardGroupRow<P extends string = string> {
+  readonly name: string;
+  readonly order: number;
+  readonly cards: readonly CardRow<P>[];
+}
+
+/** One per-instance attribute: its item size and its float32 bytes, base64 (the platform's byte order). */
+export interface CardAttributeRow {
+  readonly size: number;
+  readonly float32: string;
+}
+
+/** An instanced card field: its mesh name, render order, the base quad's size, its program and per-instance attributes. */
+export interface CardFieldRow<P extends string = string> {
+  readonly name: string;
+  readonly order: number;
+  readonly plane: readonly [number, number];
+  readonly program: P;
+  readonly attributes: Readonly<Record<string, CardAttributeRow>>;
+}
+
+/** The baked cards (generators/skyCards.ts → data/skyCards.ts): the cumulus field and the sun's glow. */
+export interface SkyCardRows {
+  readonly cumulus: CardFieldRow<'cumulus'>;
+  readonly sunGlow: CardGroupRow<'sunBloom' | 'sunWide' | 'sunShaft'>;
+}

@@ -1,3 +1,4 @@
+import type { GustRow, UpdraftRow } from '../../data/windLook';
 import { BufferGeometry, CircleGeometry, Color, DoubleSide, DynamicDrawUsage, Float32BufferAttribute, InstancedBufferAttribute, InstancedMesh, Matrix4, MeshBasicMaterial, Quaternion, ShaderMaterial, Vector3, type Object3D } from 'three';
 
 /**
@@ -6,38 +7,6 @@ import { BufferGeometry, CircleGeometry, Color, DoubleSide, DynamicDrawUsage, Fl
  * a crossed pair of thin quads, instanced, alpha-blended with a per-instance fade (instanceColor), so each effect is one draw
  * per kind and no textures. Nothing here knows a shard: the counts, timings, colours and names are the shard's rows.
  */
-
-/** A gust's rows: how many streaks and petals, how long they live, how far they fly; the colours and the meshes' names. */
-export interface GustRow {
-  readonly streaks: number;
-  readonly petals: number;
-  readonly life: number;
-  readonly speed: number;
-  readonly start: number;
-  readonly spread: number;
-  /** a streak's tint (sRGB hex), and the warm one's (drawn by about 3 in 10) */
-  readonly tint: number;
-  readonly warm: number;
-  /** the petals' colours (sRGB hex), in turn */
-  readonly petalColours: readonly number[];
-  readonly streakName: string;
-  readonly petalName: string;
-}
-
-/** An updraft's rows: its streaks and leaves round a helix of `radius` with `turns` turns, climbing at `rate` per second. */
-export interface UpdraftRow {
-  readonly streaks: number;
-  readonly leaves: number;
-  readonly radius: number;
-  readonly turns: number;
-  readonly rate: number;
-  /** the streaks' tint (sRGB hex) */
-  readonly tint: number;
-  /** the leaves' colours (sRGB hex), in turn */
-  readonly leafColours: readonly number[];
-  readonly streakName: string;
-  readonly leafName: string;
-}
 
 /** A crossed pair of quads, `z` 0 → −1 (length 1), 1 wide; uv.x runs along the length. */
 function streakGeometry(): BufferGeometry {

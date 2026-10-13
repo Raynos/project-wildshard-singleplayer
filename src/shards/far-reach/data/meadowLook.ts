@@ -236,3 +236,17 @@ export const MEADOW_PROGRAMS = {
         gl_FragColor = vec4(mix(lit, @{fog}, f), 1.0);
       }` },
 } as const;
+
+/** A card's outline: its vertices (`[across, up]`) and its triangles (indices into them, three per triangle). */
+export interface TileCardRow {
+  readonly shape: readonly (readonly [number, number])[];
+  readonly triangles: readonly number[];
+}
+
+/** The field's lattice: tiles across (odd), extra layers of the inner 3 × 3, the cards' seed and their outline. */
+export interface TileFieldRow {
+  readonly across: number;
+  readonly layers: number;
+  readonly seed: number;
+  readonly card: TileCardRow;
+}

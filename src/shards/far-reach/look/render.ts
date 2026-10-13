@@ -12,9 +12,9 @@ import { HEADING_GLSL, fogLut, loadPanorama, skyDome } from './sky';
 import { seaTexture } from './cloudSea';
 import { discLayer } from '../runtime/looks/discLayer';
 import { SEA_DISCS, SEA_PROGRAMS } from '../data/cloudSeaLook';
-import { cardField, cardFieldRow, cardGroup, cardGroupRow } from '../runtime/looks/cardField';
+import { cardField, cardGroup } from '../runtime/looks/cardField';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import SKY_CARDS from '../data/skyCards.json' with { type: 'json' };
+import { SKY_CARDS } from '../data/skyCards';
 import { SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS } from '../data/skyCardsLook';
 import { PANO_SUN } from './panoramaData';
 import { loadPainted } from './image';
@@ -63,7 +63,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
     if (seaPaint === null) group.add(discLayer(seaFamily, SEA_DISCS.seaLow, seaShared));
     // the sun's bloom and light shafts at the painted sun (E392; data/skyCardsLook.ts, baked by generators/skyCards.ts)
     const cards = new ShaderFamily(SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS), sun = { uSun: { value: SUN_DIR } };
-    const glow = cardGroup(cards, cardGroupRow(cards, SKY_CARDS.sunGlow), sun); group.add(glow.group);
+    const glow = cardGroup(cards, SKY_CARDS.sunGlow, sun); group.add(glow.group);
     // the painted cloud sea (E392), wound into the maelstrom under the crown; without its texture the procedural maelstrom disc
     if (seaPaint !== null) {
       if (vortex !== null) group.add(discLayer(seaFamily, SEA_DISCS.paintedMaelstrom, seaShared, { painted: { value: vortex } }));
@@ -71,7 +71,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
     } else group.add(discLayer(seaFamily, SEA_DISCS.maelstrom, seaShared));
     // cumulus over the sea (loop 5): the islands rise out of billowing cloud (the camera-facing puffs baked by
     // generators/skyCards.ts: the ring field, the keel puffs, the bridge gaps, the crown bank and the banks beyond)
-    if (cloudAtlas !== null) group.add(cardField(cards, cardFieldRow(cards, SKY_CARDS.cumulus), sun, { uAtlas: { value: cloudAtlas } }));
+    if (cloudAtlas !== null) group.add(cardField(cards, SKY_CARDS.cumulus, sun, { uAtlas: { value: cloudAtlas } }));
     const meshes = new Set<Object3D>(); group.traverse((node) => { meshes.add(node); });
     dressing = { group, meshes, time, glow: glow.update };
     return dressing;

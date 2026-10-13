@@ -1,5 +1,6 @@
 import { CircleGeometry, Mesh, type ShaderMaterial } from 'three';
 import type { ShaderFamily, UniformMap } from '@wildshard/game/plugin/shaderFamily';
+import type { DiscLayerRow } from '../../data/cloudSeaLook';
 
 /**
  * A horizontal disc drawn by a shard's own program, as a declared row (SHARD-PLATFORM M3, look-family rows): a cloud sea
@@ -8,17 +9,6 @@ import type { ShaderFamily, UniformMap } from '@wildshard/game/plugin/shaderFami
  * and turn) is data. The disc is unculled (it reaches the horizon), its circle turned onto the ground (local x / y become
  * world x / −z), then `spin` radians about its own axis.
  */
-
-/** One disc: its mesh name, program, radius (m) and segments, centre `[x, y, z]` (m), render order and optional turn. */
-export interface DiscLayerRow<P extends string = string> {
-  readonly name: string;
-  readonly program: P;
-  readonly radius: number;
-  readonly segments: number;
-  readonly at: readonly [number, number, number];
-  readonly order: number;
-  readonly spin?: number;
-}
 
 /** A disc from a row: the family's material for its program (the shared uniforms it reads, then `uniforms`). */
 export function discLayer<P extends string>(family: ShaderFamily<P>, row: DiscLayerRow<P>, shared: UniformMap, uniforms?: UniformMap): Mesh<CircleGeometry, ShaderMaterial> {
