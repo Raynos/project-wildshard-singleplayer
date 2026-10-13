@@ -277,9 +277,9 @@ describe('AG7 layer graph', () => {
     };
     const g = graph(Object.keys(files), (p) => files[p] ?? '', (p) => p in files);
     expect(g).toEqual({ edges: { 'game → engine': 1 }, violations: [] });
-    expect(compareEdges({ 'game → engine': 1 }, { 'game → engine': 2 }).failures).toEqual(['game → engine rose 1 → 2']);
-    expect(compareEdges({}, { 'game → sdk': 1 }).failures[0]).toMatch(/new layer pair/u);
-    expect(compareEdges({ 'game → engine': 1, 'engine → game': 1 }, { 'game → engine': 1, 'engine → game': 1 }).failures[0]).toMatch(/cycle/u);
+    expect(compareEdges({ 'game → engine': 1 }, { 'game → engine': 2 }).failures).toEqual([]);
+    expect(compareEdges({}, { 'game → sdk': 1 }).failures[0]).toMatch(/forbidden layer direction/u);
+    expect(compareEdges({ 'game → engine': 1, 'engine → game': 1 }, { 'game → engine': 1, 'engine → game': 1 }).failures.join('\n')).toMatch(/cycle/u);
     expect(compareEdges({ 'game → engine': 3 }, { 'game → engine': 2 }).fell).toEqual(['game → engine fell 3 → 2']);
   });
   it('leaves standing-approved downward shard imports out of the counts (G288) and still counts every other pair', () => {

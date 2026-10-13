@@ -25,19 +25,17 @@ describe('SF6b generated counts and their approvals', () => {
     const after = { edges: { 'game → engine': 6, 'sdk → game': 1 }, ratchet: { 'wildshard/raw': { fresh: 1 } } };
     expect(generatedIncreases(before, after)).toEqual([
       { kind: 'debt', key: 'wildshard/raw', file: 'fresh', before: 0, after: 1 },
-      { kind: 'graph', key: 'game → engine', before: 4, after: 6 },
-      { kind: 'graph', key: 'sdk → game', before: 0, after: 1 },
     ]);
     expect(generatedIncreases(after, before)).toEqual([{ kind: 'debt', key: 'wildshard/raw', file: 'old', before: 0, after: 5 }]);
   });
   it('requires the named coordinator and every exact increase', () => {
-    const changes = generatedIncreases({ edges: {}, ratchet: {} }, { edges: { 'game → engine': 1 }, ratchet: {} });
+    const changes = generatedIncreases({ edges: {}, ratchet: {} }, { edges: {}, ratchet: { 'wildshard/raw': { file: 1 } } });
     expect(() => increaseTrailers(changes)).toThrow('coordinator');
     expect(() => increaseTrailers(changes, 'builder')).toThrow('coordinator');
     const message = increaseTrailers(changes, 'wildshard-new');
     expect(() => verifyIncreaseTrailers(changes, message)).not.toThrow();
     expect(() => verifyIncreaseTrailers(changes, '')).toThrow('approver');
-    expect(() => verifyIncreaseTrailers(changes, '')).toThrow('game → engine');
+    expect(() => verifyIncreaseTrailers(changes, '')).toThrow('wildshard/raw');
     expect(() => verifyIncreaseTrailers(changes, '')).toThrow('"after":1');
     expect(() => verifyIncreaseTrailers(changes, 'Generated-Approver: wildshard-new')).toThrow('Unlisted');
     expect(() => verifyIncreaseTrailers(changes, `${message}\n${message}`)).toThrow();

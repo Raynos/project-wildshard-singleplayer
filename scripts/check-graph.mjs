@@ -105,6 +105,15 @@ function sourceFiles() {
  * and the two-way (cycle) check still sees every edge. Every other pair (game → engine, sdk → game, root → …) is counted.
  */
 export const APPROVED_DOWNWARD = /^shards\/[^ ]+ → (engine|format|game|sdk|commons)$/u;
+/** Counts on permitted downward directions are informational (Jake, G358).
+ * Direction, shard reach and cycles remain architecture errors.
+ * @param {string} key */
+export function allowedGraphDirection(key) {
+  const order = ['format', 'engine', 'game', 'sdk', 'commons'];
+  const [from, to] = key.split(' → ');
+  const rank = layer => layer === 'root' ? 6 : (layer ?? '').startsWith('shards/') ? 5 : order.indexOf(layer);
+  return rank(from) >= 0 && rank(to) >= 0 && rank(from) > rank(to);
+}
 /** the counts of cross-layer edges: { 'game → engine': 887, … } (minus APPROVED_DOWNWARD) and the reach violations */
 const EMPTY_FROZEN = { shards: {} };
 /** Frozen sources remain in every reach/cycle check; only reviewed file identities leave the measured counts. */
@@ -134,8 +143,9 @@ export function compareEdges(recorded, current) {
   const failures = [], fell = [];
   for (const [key, n] of Object.entries(current)) {
     const was = recorded[key];
-    if (was === undefined) failures.push(`new layer pair: ${key} (${n} import${n === 1 ? '' : 's'})`);
-    else if (n > was) failures.push(`${key} rose ${was} → ${n}`);
+    if (!allowedGraphDirection(key)) failures.push(`forbidden layer direction: ${key}`);
+    else if (!Number.isSafeInteger(n) || n < 0) failures.push(`invalid graph count: ${key}`);
+    else if (was === undefined || n > was) fell.push(`${key} count ${was ?? 0} → ${n} (report-only)`);
     else if (n < was) fell.push(`${key} fell ${was} → ${n}`);
   }
   for (const key of Object.keys(recorded)) if (current[key] === undefined) fell.push(`${key} is gone`);
@@ -173,7 +183,8 @@ function main(input) {
     const headRec = recorded(head), stagedRec = recorded(staged);
     for (const [key, n] of Object.entries(now.edges)) {
       const rise = n - (before.edges[key] ?? 0), allowed = (stagedRec[key] ?? 0) - (headRec[key] ?? 0);
-      if (rise > 0 && sourceOnly) console.warn(`check-graph: ${key} rises by ${rise}; coordinator approval required in the serialized regeneration commit`);
+      if (rise > 0 && allowedGraphDirection(key)) console.warn(`check-graph: ${key} rises by ${rise} (report-only)`);
+      else if (rise > 0 && sourceOnly) failures.push(`forbidden layer direction: ${key}`);
       else if (rise > 0 && rise > allowed) failures.push(`${key} rises by ${rise} in this commit (record a reviewed crossing with node scripts/check-graph.mjs --update)`);
     }
     const combined = { ...headRec, ...now.edges };

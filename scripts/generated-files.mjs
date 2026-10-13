@@ -42,7 +42,7 @@ export function generatedFiles(root) {
   if (failures.length > 0) throw new Error(failures.join('\n'));
   const ratchet = replaceDebt(data(root, 'lint/ratchet.json'), JSON.parse(run(root, process.execPath, ['lint/ratchet.mjs', '--measure'])));
   const outputs = {
-    'lint/layer-edges.json': json({ about: 'SF6b: generated cross-layer import counts; exact increases require coordinator approval in the regeneration commit.', edges: sorted(edges) }),
+    'lint/layer-edges.json': json({ about: 'Generated cross-layer import counts; permitted downward counts are report-only.', edges: sorted(edges) }),
     'lint/ratchet.json': json(sorted(ratchet)),
   };
   // This pre-existing structural generated index also becomes stale whenever a source helper is added.

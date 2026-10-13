@@ -25,7 +25,7 @@ function baselineFixture(): string {
   const git = (args: string[]): string => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
   try {
     cpSync('lint', resolve(root, 'lint'), { recursive: true });
-    for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/precommit-generated.mjs', 'scripts/regenerate-committed.mjs', 'scripts/generated-index.mjs', 'scripts/witness-manifests.mjs', 'scripts/witness-checkpoints.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/legacy-shards.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs', 'scripts/sim-node-loader.mjs', 'scripts/docs/schema-reference.mjs', 'scripts/docs/gen-shardfile-reference.mjs', 'scripts/docs/read-shardfile-reference.mjs', 'scripts/docs/sdk-schemas.mjs']) {
+    for (const file of ['scripts/generated-files.mjs', 'scripts/generated-policy.mjs', 'scripts/precommit-generated.mjs', 'scripts/commit-produced.mjs', 'scripts/regenerate-committed.mjs', 'scripts/generated-index.mjs', 'scripts/witness-manifests.mjs', 'scripts/witness-checkpoints.mjs', 'scripts/link-node-modules.mjs', 'scripts/gen-api.mjs', 'scripts/check-graph.mjs', 'scripts/legacy-shards.mjs', 'scripts/guard-counts.mjs', 'scripts/normalize/liveness.mjs', 'scripts/sim-node-loader.mjs', 'scripts/docs/schema-reference.mjs', 'scripts/docs/gen-shardfile-reference.mjs', 'scripts/docs/read-shardfile-reference.mjs', 'scripts/docs/sdk-schemas.mjs']) {
       mkdirSync(dirname(resolve(root, file)), { recursive: true }); cpSync(file, resolve(root, file));
     }
     cpSync('scripts/docs/authoring', resolve(root, 'scripts/docs/authoring'), { recursive: true });
@@ -182,7 +182,7 @@ process.exitCode = result.status ?? 1;
       git(['add', '--', 'src/game/clock.ts']);
       const args = ['scripts/check-graph.mjs', '--source-only', '--paths', 'src/game/clock.ts'];
       const warning = spawnSync(execPath, args, { cwd: root, encoding: 'utf8' });
-      expect(warning.status, warning.stderr).toBe(0); expect(warning.stderr).toContain('coordinator approval');
+      expect(warning.status, warning.stderr).toBe(0); expect(warning.stderr).toContain('report-only');
       put('src/engine/clock.ts', "import { gameTick } from '@wildshard/game/clock';\nexport const tick = gameTick;\n"); git(['add', '--', 'src/engine/clock.ts']);
       const cycle = spawnSync(execPath, [...args, 'src/engine/clock.ts'], { cwd: root, encoding: 'utf8' });
       expect(cycle.status).toBe(1); expect(cycle.stderr).toContain('cycle across');
@@ -416,7 +416,7 @@ writeFileSync(process.argv[4], JSON.stringify({ 'test/proof/fake/inputs.txt': 'b
       git(['init', '-q', '-b', 'main']); git(['config', 'user.name', 'fixture']); git(['config', 'user.email', 'fixture@example.invalid']);
       fakeWitness(put); git(['add', '--', 'test']); git(['commit', '-qm', 'witness']);
       put('test/proof/fake/checkpoints/manifest.json', fakeManifest('bb')); git(['add', '--', 'test']);
-      expect(() => { precommitGenerated(root); }).toThrow('Builders leave witness input hashes to scripts/push-main.sh');
+      expect(() => { precommitGenerated(root); }).toThrow('exact commit-time producer receipt');
       put('test/proof/fake/checkpoints/manifest.json', fakeManifest('bb', 8)); put('test/proof/fake/checkpoints/a.snap.gz', 'p2'); git(['add', '--', 'test']);
       expect(() => { precommitGenerated(root); }).not.toThrow();
     } finally { rmSync(root, { recursive: true, force: true }); }

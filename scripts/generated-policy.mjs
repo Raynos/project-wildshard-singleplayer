@@ -1,4 +1,5 @@
 // SF6b: generated measurements are separate from human-reviewed policy and exact increase receipts.
+import { allowedGraphDirection } from './check-graph.mjs';
 // SF74 W13 (G281): the API surface, docs/api/ and the export index left git (build outputs of `pnpm gen`).
 export const GENERATED_FILES = ['lint/layer-edges.json', 'lint/ratchet.json', 'scripts/README.md'];
 // The export index's list markers (docs/api/EXPORTS.md strips them; ENGINE.md no longer carries the list).
@@ -37,7 +38,7 @@ export function generatedIncreases(previous, current) {
   for (const [key, after] of Object.entries(current.edges)) {
     const before = previous.edges[key] ?? 0;
     if (!count(before) || !count(after)) throw new Error(`Invalid graph count: ${key}`);
-    if (after > before) result.push({ kind: 'graph', key, before, after });
+    if (after > before && !allowedGraphDirection(key)) result.push({ kind: 'graph', key, before, after });
   }
   const oldDebt = debtCounts(previous.ratchet), newDebt = debtCounts(current.ratchet);
   for (const [key, files] of Object.entries(newDebt)) for (const [file, after] of Object.entries(files)) {

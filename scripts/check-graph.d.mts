@@ -6,3 +6,4 @@ export function reachViolation(from: string, to: string, dynamic: boolean): stri
 export function graph(files: string[], read: (path: string) => string, exists: (path: string) => boolean, frozen?: { shards: Readonly<Record<string, { files: Readonly<Record<string, string>> }>> }): { edges: Record<string, number>; violations: string[] };
 export function compareEdges(recorded: Record<string, number>, current: Record<string, number>): { failures: string[]; fell: string[] };
 export const APPROVED_DOWNWARD: RegExp;
+export function allowedGraphDirection(key: string): boolean;
