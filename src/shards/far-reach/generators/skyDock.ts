@@ -1,7 +1,8 @@
 import { ENTRY_ASPHALT } from '@wildshard/engine/core/config';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BoxGeometry, Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
-import { bakeKinds, type PieceBake } from '@wildshard/sdk/bake/kinds';
+import type { PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bakeSkyPiece, SkyPiece } from './piece';
 import { RISING_ISLETS } from '../world/islets';
 import { ISLET, type EntryEdge, type RisingIslet } from '../data/isletDesign';
 import { PALETTE, flat } from '../world/shapes';
@@ -121,9 +122,10 @@ export function buildSkyDocks(entries: readonly RisingIslet[] = RISING_ISLETS): 
 export interface DocksBake extends PieceBake { tints: Record<string, number[]> }
 
 /** The four docks as two instanced kinds (world space); the timber's per-instance colours go in the rows (`tints`). */
-export function bakeSkyDocks(): DocksBake {
+export function skyDocksPiece(): SkyPiece<{ tints: Record<string, number[]> }> {
   const built = buildSkyDocks(), colors = built.timber.instanceColor;
   const tints: Record<string, number[]> = colors === null ? {} : { timber: Array.from(colors.array) };
   built.timber.instanceColor = null;
-  return { ...bakeKinds('far.docks', [['timber', built.timber], ['beacon', built.beacon]], built.colliders), tints };
+  return new SkyPiece('far.docks', [['timber', built.timber], ['beacon', built.beacon]], built.colliders, {}, { tints });
 }
+export function bakeSkyDocks(): DocksBake { return bakeSkyPiece(skyDocksPiece()); }

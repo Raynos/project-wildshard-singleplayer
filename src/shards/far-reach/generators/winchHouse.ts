@@ -1,7 +1,8 @@
 import { BoxGeometry, BufferGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttribute, Group, Matrix4, Mesh, MeshStandardMaterial, Vector3 } from 'three';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { STEP, WINCH_HOUSE } from '../data/layout';
-import { bakeKinds, foldKinds, type KindExtra, type PieceBake } from '@wildshard/sdk/bake/kinds';
+import { foldKinds, type KindExtra, type PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bakeSkyPiece, SkyPiece } from './piece';
 import { beam, leanAbove, quad, shackMesh, shackPart, strut, tri, type ShackPart } from './shackKit';
 
 /**
@@ -231,8 +232,9 @@ const shackRow = (material: MeshStandardMaterial): KindExtra => {
  * the piece at WINCH_HOUSE on the step, so a part draws through the same matrices as before), its `shk` channel kept, and
  * its collider.
  */
-export function bakeSkyWinchHouse(): PieceBake {
+export function skyWinchHousePiece(): SkyPiece {
   const built = buildWinchHouse();
   built.group.position.set(0, 0, 0);
-  return bakeKinds('far.winch-house', foldKinds(built.group, { extra: shackRow }), built.colliders, { extra: shackRow, attributes: { _SHK: 'shk' } });
+  return new SkyPiece('far.winch-house', foldKinds(built.group, { extra: shackRow }), built.colliders, { extra: shackRow, attributes: { _SHK: 'shk' } }, {});
 }
+export function bakeSkyWinchHouse(): PieceBake { return bakeSkyPiece(skyWinchHousePiece()); }

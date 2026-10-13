@@ -1,6 +1,7 @@
 import { BoxGeometry, Color, Float32BufferAttribute, InstancedMesh, Matrix4, MeshStandardMaterial, type BufferGeometry } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { bakeKinds, type PieceBake } from '@wildshard/sdk/bake/kinds';
+import type { PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bakeSkyPiece, SkyPiece } from './piece';
 import { LECTERN } from '../data/bookStand';
 
 /**
@@ -50,4 +51,5 @@ export function buildBookStandSet(): (readonly [string, InstancedMesh])[] {
 }
 
 /** The book stand's code parts baked (no colliders: world/build.ts gives each stand its box). */
-export function bakeSkyBookStand(): PieceBake { return bakeKinds('far.book-stand', buildBookStandSet(), []); }
+export const skyBookStandPiece = (): SkyPiece => new SkyPiece('far.book-stand', buildBookStandSet(), [], {}, {});
+export function bakeSkyBookStand(): PieceBake { return bakeSkyPiece(skyBookStandPiece()); }

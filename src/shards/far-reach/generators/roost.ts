@@ -2,7 +2,8 @@ import { BufferGeometry, Color, CylinderGeometry, DoubleSide, Float32BufferAttri
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { NEST, ROOST, SPIRES } from '../data/layout';
 import { spireAt } from '../layout';
-import { bakeKinds, foldKinds, type PieceBake } from '@wildshard/sdk/bake/kinds';
+import { foldKinds, type PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bakeSkyPiece, SkyPiece } from './piece';
 
 /**
  * Build-time only (SHARD-PLATFORM SF72): baked by `scripts/bake-sky-world.mjs` into `baked/roost.glb` + `data/roost.json`;
@@ -109,7 +110,7 @@ export interface RoostBake extends PieceBake { tints: Record<string, number[]> }
  * are instanced already and keep their instances; their per-instance colours go in the rows (`tints`, the exact floats
  * `setColorAt` left), which the client puts back. Every other mesh folds by shape and look.
  */
-export function bakeSkyRoost(): RoostBake {
+export function skyRoostPiece(): SkyPiece<{ tints: Record<string, number[]> }> {
   const built = roost(), plain = new Group(), kinds: (readonly [string, InstancedMesh])[] = [], tints: Record<string, number[]> = {};
   const names = ['sticks', 'feathers'];
   // a copy: a plain mesh moves to its own group as it is read
@@ -119,5 +120,6 @@ export function bakeSkyRoost(): RoostBake {
     if (child.instanceColor !== null) tints[name] = Array.from(child.instanceColor.array);
     child.instanceColor = null; kinds.push([name, child]);
   }
-  return { ...bakeKinds('far.roost', [...kinds, ...foldKinds(plain)], built.colliders), tints };
+  return new SkyPiece('far.roost', [...kinds, ...foldKinds(plain)], built.colliders, {}, { tints });
 }
+export function bakeSkyRoost(): RoostBake { return bakeSkyPiece(skyRoostPiece()); }

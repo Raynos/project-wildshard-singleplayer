@@ -13,11 +13,6 @@ import { pathToFileURL } from 'node:url';
 
 const root = resolve(import.meta.dirname, '../../../..'), project = resolve(root, 'src/shards/far-reach');
 const out = resolve(root, 'public/assets/far-reach/baked');
-// [piece (the GLB's name), its rows file under data/, the generator module, its bake function]
-const PIECES = [['winch-house', 'winchHouse', 'generators/winchHouse.ts', 'bakeSkyWinchHouse'], ['roost', 'roost', 'generators/roost.ts', 'bakeSkyRoost'], ['docks', 'docks', 'generators/skyDock.ts', 'bakeSkyDocks'],
-  ['crown', 'crown', 'generators/crown.ts', 'bakeSkyCrown'], ['mill', 'mill', 'generators/mill.ts', 'bakeSkyMill'],
-  ['book-stand', 'bookStand', 'generators/bookStand.ts', 'bakeSkyBookStand'], ['knolls', 'knolls', 'generators/knoll.ts', 'bakeSkyKnolls'],
-  ['geometries', 'geometries', 'generators/geometries.ts', 'bakeSkyGeometries'], ['islet-rig', 'isletRig', 'generators/isletRig.ts', 'bakeSkyIsletRig']];
 const check = process.argv.includes('--check');
 const emit = (file, bytes) => {
   if (check) {
@@ -26,13 +21,19 @@ const emit = (file, bytes) => {
 };
 if (!check) mkdirSync(out, { recursive: true });
 const keep = new Set();
-for (const [piece, rows, file, name] of PIECES) {
-  const generator = await import(pathToFileURL(resolve(project, file)).href);
-  const { glb, ...data } = generator[name]();
-  const hash = createHash('sha256').update(glb).digest('hex');
-  emit(resolve(out, `${piece}.glb`), glb); keep.add(`${piece}.glb`);
-  emit(resolve(project, `data/${rows}.json`), `${JSON.stringify({ glb: hash, ...data }, null, 2)}\n`);
-  console.info(`far-reach ${piece}: ${String(glb.length)} bytes → baked/${piece}.glb (${hash}), ${String(data.kinds.length)} kinds, ${String(data.colliders.length)} colliders`);
+// SF80: the pieces as one three.js scene through the SDK's bake(scene, identity), which also writes its scene.json to
+// .wildshard/cache/far-reach/ (gitignored, the inspectable middle step)
+{
+  const { SKY_PIECES, skyReachBake } = await import(pathToFileURL(resolve(project, 'generators/scene.ts')).href);
+  const baked = skyReachBake(check ? undefined : root);
+  if (baked.pieces.length !== SKY_PIECES.length) throw new Error('bake-sky-world: the scene baked a different set of pieces');
+  baked.pieces.forEach(({ glb, kinds, colliders, rows: extras }, i) => {
+    const { glb: piece, rows } = SKY_PIECES[i], data = { kinds, colliders, ...extras };
+    const hash = createHash('sha256').update(glb).digest('hex');
+    emit(resolve(out, `${piece}.glb`), glb); keep.add(`${piece}.glb`);
+    emit(resolve(project, `data/${rows}.json`), `${JSON.stringify({ glb: hash, ...data }, null, 2)}\n`);
+    console.info(`far-reach ${piece}: ${String(glb.length)} bytes → baked/${piece}.glb (${hash}), ${String(kinds.length)} kinds, ${String(colliders.length)} colliders`);
+  });
 }
 // the data-only bakes: rows a generator computes (no GLB)
 for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'bakeSkySeaTexture']]) {

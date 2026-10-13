@@ -1,5 +1,6 @@
 import { BufferGeometry, Color, Float32BufferAttribute, InstancedMesh, Matrix4, MeshStandardMaterial } from 'three';
-import { bakeKinds, type PieceBake } from '@wildshard/sdk/bake/kinds';
+import type { PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bakeSkyPiece, SkyPiece } from './piece';
 import { ISLES, KNOLLS, type Knoll } from '../data/layout';
 import { knollHeight } from '../layout';
 
@@ -67,7 +68,8 @@ export function buildKnolls(): { kinds: (readonly [string, InstancedMesh])[]; hu
 }
 
 /** The knolls baked, their hulls as rows (`hulls`; the SDK's collider rows are boxes). */
-export function bakeSkyKnolls(): PieceBake & { hulls: KnollHullRow[] } {
+export function skyKnollsPiece(): SkyPiece<{ hulls: KnollHullRow[] }> {
   const built = buildKnolls();
-  return { ...bakeKinds('far.knolls', built.kinds, [], { extra: (m) => { const rockMix: unknown = m.userData['paint']; return typeof rockMix === 'number' ? { paint: rockMix } : {}; } }), hulls: built.hulls };
+  return new SkyPiece('far.knolls', built.kinds, [], { extra: (m) => { const rockMix: unknown = m.userData['paint']; return typeof rockMix === 'number' ? { paint: rockMix } : {}; } }, { hulls: built.hulls });
 }
+export function bakeSkyKnolls(): PieceBake & { hulls: KnollHullRow[] } { return bakeSkyPiece(skyKnollsPiece()); }

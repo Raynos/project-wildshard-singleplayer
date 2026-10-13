@@ -1,6 +1,7 @@
 import { BufferGeometry, Color, DoubleSide, Float32BufferAttribute, InstancedMesh, Matrix4, MeshStandardMaterial } from 'three';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
-import { bakeKinds, type PieceBake } from '@wildshard/sdk/bake/kinds';
+import type { PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bakeSkyPiece, SkyPiece } from './piece';
 import { CROWN, DAIS } from '../data/layout';
 import { CROWN_RING, CROWN_STONES, type Stone } from '../data/crownLayout';
 
@@ -56,7 +57,8 @@ export function buildCrownSet(): CrownSet {
 }
 
 /** The arena's two kinds (one instance each, world space) and its colliders. */
-export function bakeSkyCrown(): PieceBake {
+export function skyCrownPiece(): SkyPiece {
   const built = buildCrownSet();
-  return bakeKinds('far.crown', built.kinds, built.colliders);
+  return new SkyPiece('far.crown', built.kinds, built.colliders, {}, {});
 }
+export function bakeSkyCrown(): PieceBake { return bakeSkyPiece(skyCrownPiece()); }

@@ -1,6 +1,7 @@
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { BoxGeometry, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
-import { bakeKinds, type PieceBake } from '@wildshard/sdk/bake/kinds';
+import type { PieceBake } from '@wildshard/sdk/bake/kinds';
+import { bakeSkyPiece, SkyPiece } from './piece';
 import { apothem } from '../layout';
 import { RISING_ISLETS } from '../world/islets';
 import { ISLET, type RisingIslet } from '../data/isletDesign';
@@ -64,8 +65,10 @@ export function buildIsletRig(entries: readonly RisingIslet[] = RISING_ISLETS): 
 }
 
 /** The rig's bake: the posts and lanterns as two kinds with the posts' colliders, plus each entry's chain ends and rail rows. */
-export interface IsletRigBake extends PieceBake { rigs: { tops: P[]; local: P[] }[]; rails: { a: number; box: ReturnType<typeof boxDesc> }[][] }
-export function bakeSkyIsletRig(): IsletRigBake {
+export interface IsletRigRows { rigs: { tops: P[]; local: P[] }[]; rails: { a: number; box: ReturnType<typeof boxDesc> }[][] }
+export interface IsletRigBake extends PieceBake, IsletRigRows {}
+export function skyIsletRigPiece(): SkyPiece<IsletRigRows> {
   const built = buildIsletRig();
-  return { ...bakeKinds('far.islet.posts', [['post', built.posts], ['lantern', built.lanterns]], built.colliders), rigs: RISING_ISLETS.map(rig), rails: RISING_ISLETS.map(railBoxes) };
+  return new SkyPiece('far.islet.posts', [['post', built.posts], ['lantern', built.lanterns]], built.colliders, {}, { rigs: RISING_ISLETS.map(rig), rails: RISING_ISLETS.map(railBoxes) });
 }
+export function bakeSkyIsletRig(): IsletRigBake { return bakeSkyPiece(skyIsletRigPiece()); }
