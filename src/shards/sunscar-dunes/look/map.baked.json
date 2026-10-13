@@ -1,12 +1,12 @@
 {
   "version": 1,
-  "tilesHash": "40d31e78425beb2a4b380b7852931d6b36e6a5d85a25ad2591d52ce58d2d8c05",
-  "pixelHash": "ba64cf8083423c1832fc78f1c8c5e0fded2cbc8f2f139dbedfe69407cf6b6f52",
+  "tilesHash": "861bc01f3a481a507fb875c1e46a04ce88ec5f00d6e4e37e3675507716545e6d",
+  "pixelHash": "ca4baec510649a6d07df3b0621e800e6d331790b1d9640b5211797fb6e9d2e77",
   "image": "/assets/sunscar-dunes/map/top.webp",
   "size": 1000,
   "metres": 500,
   "north": "+z",
   "east": "-x",
   "style": "stylized:ground",
-  "bytes": 27290
+  "bytes": 27326
 }

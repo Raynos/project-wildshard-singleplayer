@@ -18,7 +18,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { saveFixture } from './debug-settings.mjs';
 import { installInit } from './parity/init.mjs';
-import { MAP_METRES, mapPixelHash, mapSettings, mapShards, mapTilesHash } from './map-hash.mjs';
+import { MAP_METRES, mapPixelHash, mapSettings, mapShards, mapTilesHash, writeMapStamp } from './map-hash.mjs';
 
 const option = (name) => process.argv.find((part) => part.startsWith(`--${name}=`))?.slice(name.length + 3);
 const root = resolve(import.meta.dirname, '..');
@@ -192,7 +192,7 @@ try {
       execFileSync('uv', ['run', '--quiet', '--with', 'numpy', '--with', 'scipy', '--with', 'pillow', 'python', join(root, 'scripts/map-stylize.py'), colourPng, heightPng, stylePath, webp, String(OUT)], { stdio: 'inherit' });
       const bytes = statSync(webp).size;
       const stamp = { version: 1, tilesHash: mapTilesHash(dir), pixelHash: await mapPixelHash(webp), image: `/assets/${slug}/map/top.webp`, size: OUT, metres: MAP_METRES, north: '+z', east: '-x', style: `stylized:${settings.style.kind}`, bytes };
-      writeFileSync(stampPath(dir), `${JSON.stringify(stamp, null, 2)}\n`);
+      await writeMapStamp(dir, webp, stamp);
       console.log(`bake-maps: ${slug} ${OUT}px ${(bytes / 1024).toFixed(0)} KB${out.collapsed > 0 ? `, ${String(out.collapsed)} instances hidden with what they stand on (${out.from})` : ''}`);
     } catch (error) {
       failed++; console.error(`bake-maps: ${slug} FAILED — ${error instanceof Error ? error.message : String(error)}`);

@@ -4,7 +4,7 @@
 // Node only, no git (the Vercel tree has no .git): file paths and contents, sorted.
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { legacyInventory } from './legacy-shards.mjs';
 
@@ -99,4 +99,23 @@ export function mapShards(repoRoot) {
     .filter((entry) => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name) && existsSync(join(shards, entry.name, 'shard.config.ts')))
     .map((entry) => ({ slug: entry.name, dir: join(shards, entry.name) }))
     .sort((a, b) => a.slug.localeCompare(b.slug));
+}
+
+/** Publish one official map bake and its existing authored-product companion together.
+ * Refuse stale world keys and mismatched pixels before writing either declaration.
+ * @param {string} shardDir @param {string} image
+ * @param {import('./map-hash.mjs').MapBakeStamp} stamp @returns {Promise<void>} */
+export async function writeMapStamp(shardDir, image, stamp) {
+  if (stamp.tilesHash !== mapTilesHash(shardDir)) throw new Error(`${shardDir}: map world inputs changed before publication`);
+  await verifyMapPixels(image, stamp.pixelHash);
+  const companion = join(shardDir, 'data', 'productMap.json');
+  const authoredImage = join(shardDir, 'assets', 'map.webp');
+  if (existsSync(companion) !== existsSync(authoredImage)) throw new Error(`${shardDir}: incomplete authored map companion`);
+  const bytes = `${JSON.stringify(stamp, null, 2)}\n`;
+  mkdirSync(join(shardDir, 'look'), { recursive: true });
+  if (existsSync(companion)) {
+    copyFileSync(image, authoredImage);
+    writeFileSync(companion, bytes);
+  }
+  writeFileSync(join(shardDir, 'look', 'map.baked.json'), bytes);
 }

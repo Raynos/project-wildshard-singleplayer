@@ -6,7 +6,7 @@ import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, statSync, wri
 // oxlint-disable-next-line import/no-nodejs-modules -- The fixture's temporary folder.
 import { tmpdir } from 'node:os';
 import { writeImagePixels } from '@wildshard/sdk/bake/image';
-import { mapPixelHash, mapShards, mapTilesHash, verifyMapPixels } from '../scripts/map-hash.mjs';
+import { mapPixelHash, mapShards, mapTilesHash, verifyMapPixels, writeMapStamp } from '../scripts/map-hash.mjs';
 
 const root = `${import.meta.dirname}/..`;
 const join = (...parts: string[]): string => parts.join('/');
@@ -65,4 +65,26 @@ describe('baked maps (SF66)', () => {
       expect(mapTilesHash(dir)).toBe(added);
     } finally { rmSync(dir, { recursive: true, force: true }); }
   });
+});
+
+it('publishes the official raster and authored map companion together, refusing stale evidence first', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'map-companion-'));
+  try {
+    mkdirSync(join(dir, 'data')); mkdirSync(join(dir, 'assets'));
+    const companion = join(dir, 'data/productMap.json'), authored = join(dir, 'assets/map.webp');
+    writeFileSync(companion, '{}\n'); writeFileSync(authored, 'old raster');
+    const image = join(dir, 'official.png');
+    writeFileSync(image, await writeImagePixels({ width: 1, height: 1, pixels: new Uint8ClampedArray([1, 2, 3, 255]) }));
+    const stamp = { version: 1, tilesHash: mapTilesHash(dir), pixelHash: await mapPixelHash(image), image: '/assets/fixture/map/top.webp', size: 1, metres: 500, north: '+z', east: '-x', style: 'stylized:ground', bytes: statSync(image).size };
+    await expect(writeMapStamp(dir, image, { ...stamp, tilesHash: '0'.repeat(64) })).rejects.toThrow('world inputs changed');
+    await expect(writeMapStamp(dir, image, { ...stamp, pixelHash: '0'.repeat(64) })).rejects.toThrow('decoded pixels differ');
+    expect(readFileSync(companion, 'utf8')).toBe('{}\n');
+    expect(readFileSync(authored, 'utf8')).toBe('old raster');
+    expect(existsSync(join(dir, 'look/map.baked.json'))).toBe(false);
+    await writeMapStamp(dir, image, stamp);
+    expect(readFileSync(companion)).toEqual(readFileSync(join(dir, 'look/map.baked.json')));
+    expect(readFileSync(authored)).toEqual(readFileSync(image));
+    rmSync(authored);
+    await expect(writeMapStamp(dir, image, stamp)).rejects.toThrow('incomplete authored map companion');
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });

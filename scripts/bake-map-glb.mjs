@@ -14,7 +14,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, wri
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { NodeIO } from '@gltf-transform/core';
-import { MAP_METRES, mapPixelHash, mapSettings, mapShards, mapTilesHash } from './map-hash.mjs';
+import { MAP_METRES, mapPixelHash, mapSettings, mapShards, mapTilesHash, writeMapStamp } from './map-hash.mjs';
 
 const SIDE = 2000, OUT = 1000, PPM = SIDE / MAP_METRES, BG = [0.16, 0.18, 0.2];
 const option = (name) => process.argv.find((part) => part.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -119,7 +119,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       execFileSync('uv', ['run', '--quiet', '--with', 'numpy', '--with', 'scipy', '--with', 'pillow', 'python', join(root, 'scripts/map-stylize.py'), colourPath, heightPath, stylePath, webp, String(OUT)], { stdio: 'inherit' });
       const bytes = statSync(webp).size;
       const stamp = { version: 1, tilesHash: mapTilesHash(dir), pixelHash: await mapPixelHash(webp), image: `/assets/${slug}/map/top.webp`, size: OUT, metres: MAP_METRES, north: '+z', east: '-x', style: `stylized:${settings.style.kind}`, bytes };
-      writeFileSync(stampPath(dir), `${JSON.stringify(stamp, null, 2)}\n`);
+      await writeMapStamp(dir, webp, stamp);
       console.log(`bake-map-glb: ${slug} from ${settings.from}, ${out.triangles} triangles, ${OUT}px ${(bytes / 1024).toFixed(0)} KB`);
     }
   } finally { if (keep === undefined) rmSync(work, { recursive: true, force: true }); }
