@@ -4465,3 +4465,13 @@ declared reward state or flag, its read-only legacy boolean seed, an
 optional encounter record and the projected ledger. `bindProgress` drains
 all durable owners before the checkpoint completes. Sky and Signal
 consume this binding; their rows select the existing keys and owners.
+
+### Numeric graph textures
+
+A texture param may declare `role: "data"` to retain numerical channel
+values instead of applying sRGB decoding. The material client forwards
+that role to the existing admitted texture resolver, which continues to
+refuse mixed colour/data usage of one hash. Texture nodes already take
+computed UV inputs. The SDK's `bakeRawColourTexture` accepts
+`colourSpace: "linear"` for lossless single-level numerical KTX2; omission
+retains sRGB. Original row orientation and filtering remain authored.

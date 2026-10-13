@@ -55,7 +55,7 @@ const DIV_EPSILON = 1e-6;
 /** what the compiler needs beyond the graph */
 export interface CompileGraphOptions extends GraphValidationOptions {
   /** resolves a texture param's file reference (an admitted texture); required when the graph samples one */
-  readonly textures?: (ref: string) => THREE.Texture;
+  readonly textures?: (ref: string, role?: 'colour' | 'data') => THREE.Texture;
   /** a post graph's scene colour: the engine's render target texture, sampled upright (`targetTexture`) */
   readonly scene?: THREE.Texture;
   /**
@@ -297,10 +297,10 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const uniforms = new Map<string, Val>();
   const setters = new Map<string, (v: GraphLiteral) => void>();
   const bindings: { param: string; bind: GraphBinding }[] = [];
-  const texParams = new Map<string, string>();
+  const texParams = new Map<string, { file: string; role?: 'colour' | 'data' }>();
   for (const [name, p] of Object.entries(ir.params ?? {})) {
     if (p.bind !== undefined) bindings.push({ param: name, bind: p.bind });
-    if (p.type === 'texture') { if (typeof p.value === 'string') texParams.set(name, p.value); continue; }
+    if (p.type === 'texture') { if (typeof p.value === 'string') texParams.set(name, { file: p.value, ...(p.role === undefined ? {} : { role: p.role }) }); continue; }
     if (typeof p.value === 'string') continue;
     const arr = (v: GraphLiteral): readonly number[] => (typeof v === 'number' ? [v] : v);
     if (p.type === 'float') {
@@ -568,7 +568,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'texture': {
         const file = n.param === undefined ? undefined : texParams.get(n.param);
         if (file === undefined || opts.textures === undefined) throw new Error(`material graph: texture ${String(n.param)} needs { textures }`);
-        return { t: 'vec4', n: texture(opts.textures(file), one().n) };
+        return { t: 'vec4', n: texture(file.role === undefined ? opts.textures(file.file) : opts.textures(file.file, file.role), one().n) };
       }
       case 'acc': if (scope.acc !== null) return scope.acc; break;
       case 'index': if (scope.index !== null) return scope.index; break;

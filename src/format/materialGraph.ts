@@ -95,6 +95,8 @@ export interface GraphParam {
   readonly min?: number;
   readonly max?: number;
   readonly bind?: GraphBinding;
+  /** Texture only: data bypasses sRGB conversion; absent retains the colour role. */
+  readonly role?: 'colour' | 'data';
 }
 
 /** Fixed-capacity numeric uniform list. Each value has the declared element
@@ -441,7 +443,7 @@ interface Raw {
   readonly primitive?: unknown; readonly effectState?: unknown; readonly blend?: unknown; readonly fog?: unknown;
   readonly depthWrite?: unknown; readonly singlePass?: unknown; readonly depthBias?: unknown; readonly factor?: unknown; readonly units?: unknown; readonly size?: unknown; readonly points?: unknown;
   readonly arrays?: unknown; readonly params?: unknown; readonly nodes?: unknown; readonly stages?: unknown;
-  readonly type?: unknown; readonly value?: unknown; readonly min?: unknown; readonly max?: unknown; readonly bind?: unknown;
+  readonly type?: unknown; readonly value?: unknown; readonly min?: unknown; readonly max?: unknown; readonly bind?: unknown; readonly role?: unknown;
   readonly day?: unknown; readonly state?: unknown;
   readonly op?: unknown; readonly in?: unknown; readonly param?: unknown; readonly mask?: unknown; readonly count?: unknown;
   readonly body?: unknown; readonly out?: unknown; readonly name?: unknown; readonly discard?: unknown;
@@ -550,6 +552,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     if (!isRecord(p)) { fail(`${at}: not an object`); continue; }
     const type = p.type;
     if (type !== 'float' && type !== 'vec2' && type !== 'vec3' && type !== 'vec4' && type !== 'colour' && type !== 'texture') { fail(`${at}: type ${String(type)}`); continue; }
+    if (p.role !== undefined && (type !== 'texture' || (p.role !== 'colour' && p.role !== 'data'))) fail(`${at}: role is colour or data on a texture only`);
     if (type === 'texture') {
       if (typeof p.value !== 'string' || p.value.length === 0) fail(`${at}: a texture names an admitted file`);
       if (p.bind !== undefined) fail(`${at}: a texture cannot be bound (a binding moves a uniform value)`);
@@ -905,6 +908,7 @@ function toParams(raw: Raw): Record<string, GraphParam> {
     const b = p.bind;
     out[name] = {
       type: t,
+      ...(p.role === 'colour' || p.role === 'data' ? { role: p.role } : {}),
       value: typeof p.value === 'string' ? p.value : toRef(p.value),
       ...(isFiniteNumber(p.min) ? { min: p.min } : {}),
       ...(isFiniteNumber(p.max) ? { max: p.max } : {}),
