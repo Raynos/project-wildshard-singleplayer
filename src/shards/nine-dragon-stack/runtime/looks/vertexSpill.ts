@@ -21,15 +21,21 @@ const CELL = 2;
 // Array lengths/counts are safe integers. This finite bound preserves every input
 // element; cooperative workSlice checks below bound the work between drawn frames.
 const MAX_ITEMS = 9007199254740991;
+/** a cell's packed light (sp-o116: one flat read per light): x, y, z, 9 r² (the cutoff), 1 / r², r, g, b, spill */
+const LIGHT = 9;
 
 /** Bakes the per-vertex light spill while keeping phone WebKit's page thread responsive. */
 export async function bakeSpill(geos: readonly BufferGeometry[], emitters: readonly Emitter[]): Promise<void> {
   interface Light { x: number; y: number; z: number; r2: number; invR2: number; r: number; g: number; b: number; spill: number }
   interface Cell {
-    minX: number; minY: number; minZ: number; maxX: number; maxY: number; maxZ: number;
+    id: number; minX: number; minY: number; minZ: number; maxX: number; maxY: number; maxZ: number;
     lights: Light[];
   }
   const grid = new Map<number, Map<number, Map<number, Cell>>>();
+  // sp-o116: each vertex's cell is looked up once, by the indexing pass (the shading pass reads it back by number), and a
+  // run of vertices in one cell (the usual case in merged kit boxes) skips the three map reads
+  const cells: Cell[] = [];
+  const cellOf: (Int32Array | undefined)[] = [];
   const slice = workSlice();
   // Index only occupied fine cells. The old broad cubes materialized millions of empty
   // bins, then made each vertex test lights anywhere in an 8 m cell. Neither is needed
@@ -39,22 +45,31 @@ export async function bakeSpill(geos: readonly BufferGeometry[], emitters: reado
     if (g === undefined) continue;
     const pos = g.getAttribute('position'), nor = g.getAttribute('normal');
     if (!(pos instanceof BufferAttribute) || !(nor instanceof BufferAttribute)) continue;
-    const pa = pos.array;
+    const pa = pos.array, index = new Int32Array(pos.count);
+    cellOf[gi] = index;
+    let lx = 0, ly = 0, lz = 0, last: Cell | undefined;
     for (let i = 0; i < Math.min(pos.count, MAX_ITEMS); i++) {
       const o = i * 3, px = pa[o] ?? 0, py = pa[o + 1] ?? 0, pz = pa[o + 2] ?? 0;
       const x = Math.floor(px / CELL), y = Math.floor(py / CELL), z = Math.floor(pz / CELL);
-      let rows = grid.get(x);
-      if (rows === undefined) { rows = new Map(); grid.set(x, rows); }
-      let columns = rows.get(y);
-      if (columns === undefined) { columns = new Map(); rows.set(y, columns); }
-      const cell = columns.get(z);
+      let cell = last !== undefined && x === lx && y === ly && z === lz ? last : undefined;
       if (cell === undefined) {
-        columns.set(z, { minX: px, minY: py, minZ: pz, maxX: px, maxY: py, maxZ: pz, lights: [] });
-      } else {
-        cell.minX = Math.min(cell.minX, px); cell.maxX = Math.max(cell.maxX, px);
-        cell.minY = Math.min(cell.minY, py); cell.maxY = Math.max(cell.maxY, py);
-        cell.minZ = Math.min(cell.minZ, pz); cell.maxZ = Math.max(cell.maxZ, pz);
+        let rows = grid.get(x);
+        if (rows === undefined) { rows = new Map(); grid.set(x, rows); }
+        let columns = rows.get(y);
+        if (columns === undefined) { columns = new Map(); rows.set(y, columns); }
+        cell = columns.get(z);
+        if (cell === undefined) {
+          cell = { id: cells.length, minX: px, minY: py, minZ: pz, maxX: px, maxY: py, maxZ: pz, lights: [] };
+          columns.set(z, cell);
+          cells.push(cell);
+        }
+        lx = x; ly = y; lz = z; last = cell;
       }
+      // (a new cell's bounds are its first vertex: the min / max below leave them as they are)
+      cell.minX = Math.min(cell.minX, px); cell.maxX = Math.max(cell.maxX, px);
+      cell.minY = Math.min(cell.minY, py); cell.maxY = Math.max(cell.maxY, py);
+      cell.minZ = Math.min(cell.minZ, pz); cell.maxZ = Math.max(cell.maxZ, pz);
+      index[i] = cell.id;
       if ((i & 511) === 511 && slice.due()) await slice.yield();
     }
     if (slice.due()) await slice.yield();
@@ -133,9 +148,22 @@ export async function bakeSpill(geos: readonly BufferGeometry[], emitters: reado
       }
     }
   }
+  // sp-o116: each cell's lights packed flat, in the emitters' order (the order they are summed in)
+  const packed: Float64Array[] = [];
+  for (let ci = 0; ci < Math.min(cells.length, MAX_ITEMS); ci++) {
+    const lights = cells[ci]?.lights ?? [], flat = new Float64Array(lights.length * LIGHT);
+    for (let li = 0; li < Math.min(lights.length, MAX_ITEMS); li++) {
+      const e = lights[li], b = li * LIGHT;
+      if (e === undefined) continue;
+      flat[b] = e.x; flat[b + 1] = e.y; flat[b + 2] = e.z; flat[b + 3] = 9 * e.r2; flat[b + 4] = e.invR2;
+      flat[b + 5] = e.r; flat[b + 6] = e.g; flat[b + 7] = e.b; flat[b + 8] = e.spill;
+    }
+    packed.push(flat);
+    if ((ci & 1023) === 1023 && slice.due()) await slice.yield();
+  }
   for (let gi = 0; gi < Math.min(geos.length, MAX_ITEMS); gi++) {
-    const g = geos[gi];
-    if (g === undefined) continue;
+    const g = geos[gi], index = cellOf[gi];
+    if (g === undefined || index === undefined) continue;
     if (slice.due()) await slice.yield();
     const pos = g.getAttribute('position');
     const nor = g.getAttribute('normal');
@@ -145,20 +173,22 @@ export async function bakeSpill(geos: readonly BufferGeometry[], emitters: reado
     for (let i = 0; i < Math.min(pos.count, MAX_ITEMS); i++) {
       const o = i * 3;
       const px = pa[o] ?? 0, py = pa[o + 1] ?? 0, pz = pa[o + 2] ?? 0;
-      const list = grid.get(Math.floor(px / CELL))?.get(Math.floor(py / CELL))?.get(Math.floor(pz / CELL))?.lights;
+      const nx = na[o] ?? 0, ny = na[o + 1] ?? 0, nz = na[o + 2] ?? 0;
+      const flat = packed[index[i] ?? -1];
       let r = 0, gg = 0, b = 0;
-      if (list !== undefined) for (let li = 0; li < Math.min(list.length, MAX_ITEMS); li++) {
-        const e = list[li];
-        if (e === undefined) continue;
-        const dx = e.x - px, dy = e.y - py, dz = e.z - pz;
+      const count = flat === undefined ? 0 : flat.length / LIGHT;
+      if (flat !== undefined) for (let li = 0; li < Math.min(count, MAX_ITEMS); li++) {
+        const at = li * LIGHT;
+        const dx = (flat[at] ?? 0) - px, dy = (flat[at + 1] ?? 0) - py, dz = (flat[at + 2] ?? 0) - pz;
         const d2 = dx * dx + dy * dy + dz * dz;
-        if (d2 > 9 * e.r2) continue;
-        const dot = (na[o] ?? 0) * dx + (na[o + 1] ?? 0) * dy + (na[o + 2] ?? 0) * dz;
-        const facing = Math.max(dot / Math.sqrt(Math.max(d2, 1e-4)), 0) * 0.75 + 0.25;
-        const k = (e.spill * facing) / (1 + d2 * e.invR2);
-        r += e.r * k;
-        gg += e.g * k;
-        b += e.b * k;
+        if (d2 > (flat[at + 3] ?? 0)) continue;
+        const dot = nx * dx + ny * dy + nz * dz;
+        // facing away (dot ≤ 0): max(dot / |d|, 0) is 0, so the facing is exactly 0.25 without the root
+        const facing = dot > 0 ? Math.max(dot / Math.sqrt(Math.max(d2, 1e-4)), 0) * 0.75 + 0.25 : 0.25;
+        const k = ((flat[at + 8] ?? 0) * facing) / (1 + d2 * (flat[at + 4] ?? 0));
+        r += (flat[at + 5] ?? 0) * k;
+        gg += (flat[at + 6] ?? 0) * k;
+        b += (flat[at + 7] ?? 0) * k;
       }
       out[o] = r;
       out[o + 1] = gg;
