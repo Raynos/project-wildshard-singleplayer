@@ -24,7 +24,7 @@ Sky 37, Nalati 36; fixes `38ea143c5`, `512bb3d16`, `dc4dfb106` unproven; task cl
 
 **For wildshard-v:** G344 interim hero SHIPPED in code `9422ff1d1`: SQ-c square band on portrait (full width), LS-c full-bleed on landscape (next release). Nine graph rollout needs one physical-iPhone reading (`graphMaterials`).
 
-**Coordinator call:** bosses never shrink on the phone (built `30dc4c9ae`).
+**Coordinator calls:** bosses never shrink on the phone (built `30dc4c9ae`); the road seam beside Signal will blend into the sand actually drawn (bright tint, not map brown) once Signal's tint is baked into its tiles (sp-o46; before/after in `progress/shard-platform/sp-o46/`). Jake can reverse either.
 
 **For wildshard-v, Jake pick (Signal look, Debug ▸ Look ▸ Signal look):** raw A/B in `art/signal-look/round-1/`. A = hand-written fire shaders; B = baked fires on standard materials, ~270 fewer Signal lines (the biggest single Signal cut left), but B loses A's white core, the smoke's lean/curl and the ember streaks (round dots instead), visible at phone size. Recommend **A** (looks better); the 80/20 cut then comes from elsewhere.
 
