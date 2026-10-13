@@ -36,6 +36,23 @@ it('defers unchanged failures across other lanes and retries observed input repa
   } finally { rmSync(root,{recursive:true,force:true}); }
 });
 
+it('retries a repaired generation reader absent from the original failure trace',()=>{
+  const root=realpathSync(mkdtempSync(join(tmpdir(),'push-reader-refusal-')));
+  const git=(...args:string[]):string=>execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
+  const put=(file:string,text:string):void=>{mkdirSync(join(root,file,'..'),{recursive:true});writeFileSync(join(root,file),text);};
+  const commit=():string=>{git('add','.');git('-c','core.hooksPath=/dev/null','-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','fixture');return git('rev-parse','HEAD');};
+  try {
+    git('init','-q');put('package.json','{}');put('scripts/commit-inputs.mjs','old reader');
+    const red=commit(),trace=join(root,'.git/trace');mkdirSync(trace);
+    writeFileSync(join(trace,'observed.trace'),`F ${join(root,'package.json')}`);
+    recordPushRefusal(root,red,root,[trace]);
+    put('docs/note.md','unrelated');const unrelated=commit();
+    expect(unchangedPushRefusal(root,red,unrelated)).toBe(true);
+    put('scripts/commit-inputs.mjs','repaired reader');const fixed=commit();
+    expect(unchangedPushRefusal(root,red,fixed)).toBe(false);
+  } finally {rmSync(root,{recursive:true,force:true});}
+});
+
 
 it('retries a native lint operand repair even when Node only read policy', () => {
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'push-native-refusal-')));

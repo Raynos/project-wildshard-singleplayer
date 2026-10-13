@@ -33,7 +33,7 @@ function value(identity, entry) {
   return hash(children.map(([file,blob]) => kind === 'D' ? file.slice(prefix.length).split('/')[0] : `${file}\0${blob}`).sort((a,b)=>a.localeCompare(b)).join('\0'));
 }
 const ALWAYS = ['F package.json','F pnpm-lock.yaml','F pnpm-workspace.yaml','F tsconfig.json','F vitest.config.ts','F .oxlintrc.json',
-  'F scripts/local-gate.py','F scripts/local-gate-checks.mjs','F scripts/push-refusal.mjs','F scripts/gate-trace.mjs'];
+  'F scripts/local-gate.py','F scripts/local-gate-checks.mjs','F scripts/push-refusal.mjs','F scripts/gate-trace.mjs','F scripts/commit-inputs.mjs'];
 /** @param {string} root @param {string} sha @param {string} tree @param {string[]} traces */
 export function recordPushRefusal(root,sha,tree,traces) {
   const entries = new Set(ALWAYS);
@@ -55,7 +55,7 @@ export function unchangedPushRefusal(root,red,tip) {
     if (saved.sha !== red || saved.node !== process.version || saved.platform !== process.platform || saved.arch !== process.arch || saved.approval !== approval(root)) return false;
     const identity = identities(root,tip);
     if (saved.complete !== true) return saved.key === identity.key && saved.recipe === identity.recipe;
-    return Object.keys(saved.inputs).length >= ALWAYS.length && Object.entries(saved.inputs).every(([entry,expected]) => value(identity,entry) === expected);
+    return ALWAYS.every(entry => Object.hasOwn(saved.inputs,entry)) && Object.entries(saved.inputs).every(([entry,expected]) => value(identity,entry) === expected);
   } catch { return false; }
 }
 if (process.argv[2] === '--record') {

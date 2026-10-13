@@ -112,7 +112,7 @@ def main():
             present = [p for p in changed if (tree / p).is_file() and p.endswith(('.ts', '.tsx', '.js', '.mjs', '.cjs'))]
             if present:
                 # These are ephemeral build inputs, not committed-output regeneration.
-                run('generation-inputs', ['node', str(root / 'scripts/commit-inputs.mjs'), '--restore', str(root), sha, str(tree)])
+                run('generation-inputs', ['node', str(tree / 'scripts/commit-inputs.mjs'), '--restore', str(root), sha, str(tree)], observed=('scripts/commit-inputs.mjs',))
                 run('affected-plan', ['node', str(root / 'scripts/local-gate-checks.mjs'), 'plan', str(tree / '.local-gate-changed.json'), str(common / 'gate-vitest-results')])
                 plan = json.loads((tree / '.local-gate-plan.json').read_text())
                 print((work / 'affected-plan.log').read_text(), flush=True)
