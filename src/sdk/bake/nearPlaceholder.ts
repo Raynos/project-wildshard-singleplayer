@@ -70,17 +70,28 @@ const apply = (m: readonly number[], x: number, y: number, z: number): [number, 
   (m[1] ?? 0) * x + (m[5] ?? 0) * y + (m[9] ?? 0) * z + (m[13] ?? 0),
   (m[2] ?? 0) * x + (m[6] ?? 0) * y + (m[10] ?? 0) * z + (m[14] ?? 0)];
 
+/** How much a vertex's colour (linear RGB, 0–1) and normal deviation count in the ground's error, in metres a unit. */
+export interface NearGroundWeights { readonly colour: number; readonly normal: number }
+/** Round 4's weights: a 0.5 colour step or a 1.0 normal turn costs as much as 0.5 m of height. */
+export const NEAR_GROUND_WEIGHTS: NearGroundWeights = { colour: 1, normal: 0.5 };
+
 /**
  * G342 round 3 (Jake: "the whole terrain and mountains of Nalati looks super low poly"): the near ground is sampled at
  * the shard's own height-field density and reduced per region by geometric error, so a mountain keeps its ridges and a
  * flat meadow or sea floor spends almost nothing. The region's border stays whole (its skirts hang from it). Pass the
  * result to `buildFarProxy` as its `reduce`.
  */
-export async function nearGroundReducer(errorMetres: number): Promise<(positions: Float32Array, index: Uint32Array) => Uint32Array> {
+export async function nearGroundReducer(errorMetres: number, weights: NearGroundWeights = NEAR_GROUND_WEIGHTS): Promise<(positions: Float32Array, index: Uint32Array, attributes?: Float32Array) => Uint32Array> {
   if (!Number.isFinite(errorMetres) || errorMetres <= 0) throw new RangeError('Invalid near ground error');
+  if (!Number.isFinite(weights.colour) || weights.colour < 0 || !Number.isFinite(weights.normal) || weights.normal < 0) throw new RangeError('Invalid near ground weights');
   await MeshoptSimplifier.ready;
-  return (positions, index) => {
-    const [kept] = MeshoptSimplifier.simplify(index, positions, 3, 3, errorMetres, ['LockBorder', 'ErrorAbsolute']);
+  return (positions, index, attributes) => {
+    // round 4: with the lattice's colours and normals (6 floats a vertex) the error also counts a painted patch, a snow
+    // line or a ridge's turn, so the shard's own colouring and creases keep their vertices instead of smearing
+    const [kept] = attributes === undefined || (weights.colour === 0 && weights.normal === 0)
+      ? MeshoptSimplifier.simplify(index, positions, 3, 3, errorMetres, ['LockBorder', 'ErrorAbsolute'])
+      : MeshoptSimplifier.simplifyWithAttributes(index, positions, 3, attributes, 6, [weights.colour, weights.colour, weights.colour, weights.normal, weights.normal, weights.normal],
+        null, 3, errorMetres, ['LockBorder', 'ErrorAbsolute']);
     return kept.length > 0 ? kept : index;
   };
 }

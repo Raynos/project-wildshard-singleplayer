@@ -125,7 +125,7 @@ function sampler(grid: FarGrid): { height: (x: number, z: number) => number; spl
  * border vertices (the skirts hang from them). Vertices no triangle uses are dropped at the end.
  */
 export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonly FarPart[] = [], cap: number = CONTENT_CAPS.far.triangles,
-  reduce?: (positions: Float32Array, index: Uint32Array) => Uint32Array): FarProxyMesh {
+  reduce?: (positions: Float32Array, index: Uint32Array, attributes: Float32Array) => Uint32Array): FarProxyMesh {
   const quads = look.quads ?? FAR_QUADS;
   if (!Number.isInteger(quads) || quads < 1) throw new RangeError('Invalid far lattice');
   const sample = sampler(grid), regionSize = (CHUNK_HALF * 2) / FAR_REGIONS, step = regionSize / quads, n = quads + 1;
@@ -159,7 +159,13 @@ export function buildFarProxy(grid: FarGrid, look: FarLookSource, parts: readonl
       const a = j * n + i, b = a + 1, c = a + n, d = c + 1;
       lattice.push(a, c, b, b, c, d);
     }
-    const kept = reduce === undefined ? lattice : reduce(Float32Array.from(positions.slice(base * 3, (base + n * n) * 3)), Uint32Array.from(lattice));
+    // the reducer also sees each lattice vertex's colour and normal (6 floats), so painted detail keeps its vertices
+    const attributes = (): Float32Array => {
+      const out = new Float32Array(n * n * 6);
+      for (let v = 0; v < n * n; v++) for (let k = 0; k < 3; k++) { out[v * 6 + k] = colours[(base + v) * 3 + k] ?? 0; out[v * 6 + 3 + k] = normals[(base + v) * 3 + k] ?? 0; }
+      return out;
+    };
+    const kept = reduce === undefined ? lattice : reduce(Float32Array.from(positions.slice(base * 3, (base + n * n) * 3)), Uint32Array.from(lattice), attributes());
     for (const i of kept) { if (!Number.isInteger(i) || i < 0 || i >= n * n) throw new RangeError('Invalid reduced far lattice'); index.push(base + i); }
     // skirts: each edge vertex drops FAR_SKIRT, darkened; wound outward (south edge faces −z, east +x, north +z, west −x).
     // On the cell's border the skirt is the exposed boundary face (G222): it drops to FAR_EDGE_FLOOR as a rock cliff, with

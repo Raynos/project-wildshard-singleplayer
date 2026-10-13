@@ -22,7 +22,7 @@ export type PlaceholderPart = FarPart;
  * `reduce` reduces each region's ground lattice (the near placeholder's geometric-error ground).
  */
 export function placeholderGeometry(grid: PlaceholderGrid, look: PlaceholderLook, parts: readonly PlaceholderPart[] = [], cap?: number,
-  reduce?: (positions: Float32Array, index: Uint32Array) => Uint32Array): BufferGeometry {
+  reduce?: (positions: Float32Array, index: Uint32Array, attributes: Float32Array) => Uint32Array): BufferGeometry {
   return farProxyGeometry(buildFarProxy(grid, look, parts, cap, reduce));
 }
 
