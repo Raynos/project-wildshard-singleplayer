@@ -117,7 +117,7 @@ describe('ratchet CLI', () => {
     const f = fixture("localStorage.getItem('x'); sessionStorage.getItem('y');");
     put(f.root,'src/engine/ui/other.ts',"localStorage.getItem('unchanged');");
     expect(f.run('--init').status).toBe(0);
-    const baseline=f.read();baseline.budgets={gpu:12};baseline['wildshard/no-raw-save']['src/deleted.ts']=3;f.write(baseline);
+    const baseline=f.read();baseline.budgets={gpu:12};baseline['wildshard/no-raw-save']={...baseline['wildshard/no-raw-save'],'src/deleted.ts':3};f.write(baseline);
     put(f.root,'src/engine/ui/example.ts',"localStorage.getItem('x');");
     const paths=join(f.root,'changed.json');writeFileSync(paths,JSON.stringify(['src/engine/ui/example.ts']));
     expect(f.run('--update','--files-from',paths).status).toBe(0);
