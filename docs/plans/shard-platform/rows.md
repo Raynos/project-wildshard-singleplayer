@@ -196,8 +196,8 @@ work for M3; the shard rows below (SF46–SF51) keep their exits, each mapped to
 | Wave | Shards | Finish line | Status |
 |---|---|---|---|
 | **W1** | Sky Reach, Signal Dunes | **90/10 each** (G404) | **now** (started as Sprint 2, G400) |
-| **W2** | Driftwood Isle, Nalati Grasslands, Pine Hollow | 80/20 each (G404) | starts when W1 is at 90/10 |
-| **W3** | Nine Dragon Stack | 80/20 (G404) | starts when W2 is at 80/20 |
+| **W2** | Pine Hollow, Driftwood Isle (G413) | 80/20 each (G404) | starts when W1 is at 90/10 |
+| **W3** | Nalati Grasslands, Nine Dragon Stack (G413) | 80/20 each (G404); M2 closes here | starts when W2 is at 80/20 |
 
 **Rules inside a wave:**
 1. **The unit of work is a component across the wave's shards**, never all seven. A component closes when the format /
@@ -234,8 +234,8 @@ replaces them with exact per-component counts):
 | W1-C9 | **Boot glue**: manifest, installers, headless host, `runtime/index.ts` | what is left in `runtime/` is only what the finish line allows; at 90/10 the trusted runtime is deleted | 529 (1, 10) | 309 (1, 9) | x5 Sky, x6 Signal |
 
 SF49's and SF50's open exits map here: entries, edge profile and far proxy → W1-C1; sky, sand and haze band → W1-C2;
-the bullwhip and the war fan → W1-C6; hover decks and movers → W1-C7. **W2** takes SF46, SF47 and SF48 (and G391's
-Nalati, Driftwood and Pine generators); **W3** takes SF51. Both stay untouched until their wave starts.
+the bullwhip and the war fan → W1-C6; hover decks and movers → W1-C7. **W2** takes SF46 and SF47 (and G391's Driftwood and
+Pine generators); **W3** takes SF48 and SF51 (and Nalati's generators) (G413). Both stay untouched until their wave starts.
 
 #### C — The seven shards ported → **M3** (from M1; all seven to 80/20, G49; worked in three waves, G403)
 
