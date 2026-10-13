@@ -22,7 +22,7 @@ function fixture(statuses: Record<string, string>, candidates = `${a}\n${b}\n${c
 it('holds selection while a newer exact-SHA boot is pending, even with an older proven build', () => {
   const { query, calls } = fixture({ [a]: 'boot-smoke\tpending\tqueued', [b]: 'boot-smoke\tsuccess\tgameplay passed' });
   expect(() => newestCiGreen(query)).toThrow(PendingBootSmokeError);
-  expect(calls).toHaveLength(2);
+  expect(calls).toHaveLength(4);
 });
 
 it('waits in the same release and selects the newer SHA only after its proof succeeds', async () => {
@@ -143,7 +143,7 @@ it('defers an older smoke completion without starting a release while a newer ex
   const status = { [a]: 'boot-smoke\tpending\tqueued', [b]: 'boot-smoke\tsuccess\tpassed' };
   const { query, calls } = fixture(status);
   expect(releaseReady(query, record)).toEqual({ ready: false, sha: a });
-  expect(calls).toHaveLength(2);
+  expect(calls).toHaveLength(4);
   status[a] = 'boot-smoke\tsuccess\tpassed';
   expect(releaseReady(query, record)).toEqual({ ready: true, sha: a });
 });
@@ -161,4 +161,32 @@ it('readiness keeps terminal fallback and refuses API or malformed proof errors'
     .toEqual({ ready: true, sha: b });
   expect(() => releaseReady(() => { throw new Error('API unavailable'); }, record)).toThrow('API unavailable');
   expect(() => releaseReady(fixture({}, 'not-a-sha').query, record)).toThrow();
+});
+
+it('bounds continuous newer pending smoke from the older BOTH-proof completion', () => {
+  const start=Date.parse('2026-10-13T12:00:00Z');
+  const statuses={
+    [a]:'boot-smoke\tpending\tnewest',
+    [b]:'boot-smoke\tsuccess\tnewer ready\t2026-10-13T12:15:00Z',
+    [c]:'boot-smoke\tsuccess\tfirst ready\t2026-10-13T12:00:00Z',
+  };
+  const base=fixture(statuses).query;
+  const query=(args:string[]) => (args[0]??'').includes('/workflows/')
+    ? `${a}\t2026-10-13T12:19:00Z\n${b}\t2026-10-13T12:10:00Z\n${c}\t2026-10-13T11:59:00Z` : base(args);
+  expect(()=>newestCiGreen(query,record,start+20*60000-1)).toThrow(PendingBootSmokeError);
+  expect(newestCiGreen(query,record,start+20*60000)).toBe(b);
+  expect(releaseReady(query,record,start+20*60000)).toEqual({ready:true,sha:b});
+  statuses[c]+='\nproduction-live\tsuccess\talready shipped\t2026-10-13T12:01:00Z';
+  expect(()=>newestCiGreen(query,record,start+20*60000)).toThrow(PendingBootSmokeError);
+});
+
+it('starts the chase clock only when both proofs are green and ignores superseded success', () => {
+  const statuses={ [a]:'boot-smoke\tpending\tqueued', [b]:'boot-smoke\tsuccess\tpassed\t2026-10-13T12:00:00Z' };
+  const base=fixture(statuses,`${a}\n${b}`).query;
+  const query=(args:string[]) => (args[0]??'').includes('/workflows/')
+    ? `${a}\t2026-10-13T12:29:00Z\n${b}\t2026-10-13T12:10:00Z` : base(args);
+  expect(()=>newestCiGreen(query,record,Date.parse('2026-10-13T12:29:59Z'))).toThrow(PendingBootSmokeError);
+  expect(newestCiGreen(query,record,Date.parse('2026-10-13T12:30:00Z'))).toBe(b);
+  statuses[b]=`boot-smoke\tfailure\tlatest refuses\t2026-10-13T12:31:00Z\n${statuses[b]}`;
+  expect(()=>newestCiGreen(query,record,Date.parse('2026-10-13T13:00:00Z'))).toThrow(PendingBootSmokeError);
 });

@@ -13,7 +13,7 @@ export function releaseSlot(now?: number, query?: (args: string[]) => string, wi
 
 /** A newer CI-green candidate is waiting for exact-SHA smoke; selection has no pin yet. */
 export class PendingBootSmokeError extends Error { constructor(sha: string); sha: string; }
-/** Wait within the same release for a newer pending proof; timeout refuses instead of selecting an older pin. */
+/** Wait within the same release for a newer pending proof; after the chase bound select only an exact BOTH-proof-green pin. */
 export function newestCiGreenAfterBoot(query?: (args: string[]) => string, log?: (line: string) => void, options?: { now?: () => number; wait?: (ms: number) => Promise<void>; maxWaitMs?: number }): Promise<string>;
 
 /** Defer automatic newest-CI dispatch while a newer exact-SHA proof is pending; API errors remain fatal. */

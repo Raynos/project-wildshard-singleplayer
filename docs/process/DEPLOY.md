@@ -67,9 +67,12 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   responses refuse the proof. Its macOS queue stays outside push CI's critical path. A scheduled, backstop or manual
   release waits within the same run while a newer CI-green candidate's exact-SHA smoke is pending. A newly completed
   push CI with no smoke status yet gets the same wait (up to 15 minutes after CI completion), covering dispatch and
-  queue startup. The selector refreshes candidates and statuses every 30 seconds, with a total 15-minute wait budget.
+  queue startup. The selector refreshes candidates and statuses every 30 seconds, with a total 20-minute wait budget.
   Only an exact-SHA successful smoke can supply the pin. A terminal failure or superseded proof may be skipped for an
-  older proven build; an unresolved proof at the deadline refuses selection and names its SHA. Waiting never chooses
+  older proven build. Under continuous landings, once 20 minutes have elapsed since an older **unshipped** SHA reached
+  both push CI and exact-SHA smoke green, select the **newest BOTH-proof-green SHA**. Read the actual proof timestamps;
+  each newer pending commit does not restart that bound. A previously shipped build does not start it. If no eligible
+  both-proof candidate exists, an unresolved proof at the deadline still refuses selection and names its SHA. Waiting never chooses
   an unproven candidate or consumes another dispatch. The hourly cadence and manual dispatch limit stay unchanged.
   Smoke runs following manual/scheduled releases are intentionally skipped (only push CI or explicit smoke dispatch
   runs the proof), so inspect the run event as well as its SHA. An explicit emergency rollback may instead return to any SHA

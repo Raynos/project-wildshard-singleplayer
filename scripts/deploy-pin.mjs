@@ -58,13 +58,13 @@ const readPin = () => validatePin(JSON.parse(readFileSync(FILE, 'utf8')));
 /** @param {Pin} pin */
 const writePin = (pin) => writeFileSync(FILE, `${JSON.stringify(validatePin(pin), null, 2)}\n`);
 
-/** @param {string} sha @param {(args:string[])=>string} [query] @returns {Map<string, { state: string, description: string }>} */
+/** @param {string} sha @param {(args:string[])=>string} [query] @returns {Map<string, { state: string, description: string, createdAt: string }>} */
 function statuses(sha, query = ghApi) {
-  const out = query([`repos/${REPO}/commits/${sha}/status`, '--paginate', '--jq', '.statuses[] | [.context, .state, .description] | @tsv']);
+  const out = query([`repos/${REPO}/commits/${sha}/status`, '--paginate', '--jq', '.statuses[] | [.context, .state, .description, .created_at] | @tsv']);
   const seen = new Map();
   for (const line of out.split('\n').filter(Boolean)) {
-    const [context, state, description = ''] = line.split('\t');
-    if (!seen.has(context)) seen.set(context, { state, description }); // newest first
+    const [context, state, description = '', createdAt = ''] = line.split('\t');
+    if (!seen.has(context)) seen.set(context, { state, description, createdAt }); // newest first
   }
   return seen;
 }
@@ -129,7 +129,7 @@ export function ciGreen(sha, query = ghApi) {
   return runs.includes(sha);
 }
 
-/** A newer CI-green SHA has not finished its exact-SHA proof; never choose an older pin yet. */
+/** A newer CI-green SHA is pending and the both-proof fallback bound has not expired. */
 export class PendingBootSmokeError extends Error {
   /** @param {string} sha */
   constructor(sha) { super(`newest-ci-green: awaiting exact-SHA boot-smoke for ${sha}`); this.name = 'PendingBootSmokeError'; this.sha = sha; }
@@ -137,28 +137,41 @@ export class PendingBootSmokeError extends Error {
 
 /** The newest successful push CI on main with a separate, successful real boot on that exact SHA. macOS boot
  * queueing never holds push CI, and an unproven/failing boot can never become a release pin. Pending smoke (or a newly green push still awaiting its first smoke status)
- * holds selection; terminal smoke failures may be skipped and are logged with their state (SF74 W15: a stuck release says why); main SHAs whose push CI failed
+ * holds selection for up to 20 minutes after an older unshipped commit reaches BOTH proofs; terminal smoke failures may be skipped and are logged with their state (SF74 W15: a stuck release says why); main SHAs whose push CI failed
  * or is still running are never candidates.
  * @param {(args:string[])=>string} [query] @param {(line: string) => void} [log] @param {number} [now] @returns {string} */
 export function newestCiGreen(query = ghApi, log = (line) => console.error(line), now = Date.now()) {
   const candidates = query([`repos/${REPO}/actions/workflows/deploy.yml/runs?branch=main&event=push&status=success&per_page=100`,
     '--jq', '.workflow_runs[] | [.head_sha, .updated_at] | @tsv']).trim().split('\n');
   const seen = new Set();
+  let pending, proven;
   for (const row of candidates) {
     const [sha = '', completed = ''] = row.split('\t');
     if (seen.has(sha)) continue;
     seen.add(sha);
     if (!/^[0-9a-f]{40}$/.test(sha)) continue;
-    const boot = statuses(sha, query).get('boot-smoke');
-    if (boot?.state === 'success') return sha;
+    const proof = statuses(sha, query), boot = proof.get('boot-smoke');
     const completedAt = Date.parse(completed);
     if (Number.isNaN(completedAt)) throw new Error(`newest-ci-green: unreadable completed CI time for ${sha}`);
-    // A successful push triggers smoke asynchronously; its exact-SHA status can be absent while queued.
+    if (boot?.state === 'success') {
+      if (pending === undefined) return sha;
+      proven ??= sha;
+      // Anchor to an unshipped older commit's actual BOTH-proof completion,
+      // not to the newest pending commit. Continuous landings cannot reset it.
+      const bootAt = Date.parse(boot.createdAt), bothAt = Math.max(completedAt,bootAt);
+      if (proof.get('production-live')?.state !== 'success' && Number.isFinite(bothAt) && now-bothAt>=20*60000) {
+        log(`newest-ci-green: 20-minute chase bound reached; release BOTH-proof-green ${proven}; pending ${pending}`);
+        return proven;
+      }
+      continue;
+    }
     if (boot?.state === 'pending' || (!boot && now - completedAt >= 0 && now - completedAt < 15 * 60 * 1000)) {
-      throw new PendingBootSmokeError(sha);
+      pending ??= sha;
+      continue;
     }
     log(`newest-ci-green: skipped ${sha.slice(0, 9)}: push CI green, boot-smoke ${boot ? `${boot.state} (${boot.description})` : 'not run yet'}`);
   }
+  if (pending !== undefined) throw new PendingBootSmokeError(pending);
   throw new Error('newest-ci-green: no successful push CI with a successful exact-SHA boot-smoke in the last 100 runs');
 }
 
@@ -174,14 +187,15 @@ export function releaseReady(query = ghApi, log = (line) => console.error(line),
   }
 }
 
-/** Keep one release waiting for up to 15 minutes; failures may fall back, unresolved proofs fail closed.
+/** Wait at most 20 minutes; the chase bound can select only a BOTH-proof-green SHA.
+ * With no such proof, unresolved candidates still fail closed.
  * Re-read CI and statuses every 30 seconds so a newer green push or coalesced smoke is observed.
  * @param {(args:string[])=>string} [query] @param {(line:string)=>void} [log]
  * @param {{now?:()=>number, wait?:(ms:number)=>Promise<void>, maxWaitMs?:number}} [options] @returns {Promise<string>} */
 export async function newestCiGreenAfterBoot(query = ghApi, log = (line) => console.error(line), options = {}) {
   const now = options.now ?? Date.now;
   const wait = options.wait ?? ((ms) => new Promise((resolve) => { setTimeout(resolve, ms); }));
-  const deadline = now() + (options.maxWaitMs ?? 15 * 60 * 1000);
+  const deadline = now() + (options.maxWaitMs ?? 20 * 60 * 1000);
   for (;;) {
     try { return newestCiGreen(query, log, now()); } catch (error) {
       if (!(error instanceof PendingBootSmokeError)) throw error;
