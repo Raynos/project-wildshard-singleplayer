@@ -30,7 +30,7 @@ import type { SimSnapshot } from "@wildshard/engine/sim/snapshot";
 import { parseGrazer, grazerPreset, type GrazerSchema, parseChallengeGrazer, type ChallengeGrazerSchema, type ShardChallengeGrazer, type ShardRamGrazer } from "@wildshard/format/grazers";
 import { parseDiver, diverPreset, type DiverSchema, parsePatrolDiver, type PatrolDiverSchema, type ShardPatrolDiver, type ShardOrbitDiver, type ShardBurstFlyer } from "@wildshard/format/flyers";
 import { phasedDiverPreset, type PhasedDiverSchema, parsePhasedFlyer, type PhasedFlyerSchema, type ShardPhasedFlyer } from "@wildshard/format/phasedFlyers";
-import { installHomeKeeper, type KeptBossBody, type KeptBossRow, type KeptHome, type KeptHomeRow, type KeptPolicy } from "../shardfile/homeKeeper";
+import { installHomeKeeper, type HomeKeeperSpec, type KeptBossBody, type KeptHome, type KeptPolicy } from "../shardfile/homeKeeper";
 import { type StalkerSchema, parseStalker, stalkerPreset, type GuardianPatternsSchema, guardianPreset, parseGuardianPattern, parseSkirmisher, parseGuardian, parsePerchHunter, type SkirmisherSchema, type GuardianSchema, type PerchHunterSchema, type ShardSkirmisher, type ShardGuardian, type ShardPerchHunter } from "@wildshard/format/brains";
 
 /** Resolve both species and variant, preserving authored health and gameplay multipliers. */
@@ -774,33 +774,16 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
   };
 }
 
-/** The melee shards' strike arc: a self-thinking species hurts only inside 70° of its facing (AnimalManager HURT_ARC). */
-const HURT_ARC = (70 * Math.PI) / 180;
-
-/** A declared catalogue's homes on the platform's renderer-free keeper, each body's policy its species' brain or the runtime's own. */
-export interface SpeciesHomesSpec {
-  /** The keeper's fixed-step id (`installHomeKeeper`). */
-  readonly step: string;
-  /** The level seed (the creature stream is `Rng(seed + 31)`). */
-  readonly seed: number;
-  readonly homes: readonly KeptHomeRow[];
-  readonly boss?: KeptBossRow;
-  /** Each kind's baked native spec. */
-  readonly specs: ReadonlyMap<string, AnimalSimSpec>;
+/** A declared catalogue's homes on the platform's renderer-free keeper (`installHomeKeeper`), each body bound to its row. */
+export interface SpeciesHomesSpec extends Omit<HomeKeeperSpec, 'scales' | 'policy'> {
   /** The catalogue's rows (each kind's scale range is its first variant's). */
   readonly species: readonly BrainedSpecies[];
   /** The catalogue's admitted brains (`admitSpeciesBrains` over the same rows). */
   readonly brains: SpeciesBrains;
-  /** `fight.attackers` from the manifest. */
-  readonly attackers: number;
-  /** The decision band (the browser's 'legacy' band: every 6 ticks, 0.1 s). */
-  readonly think: { readonly every: number; readonly dt: number };
-  /** The contact's move id per kind (the browser's PlayerHurt.creature move). */
-  readonly contactMove: (kind: string) => string;
-  /** The runtime's own policy for a kind that declares no brain (a unique boss, a not-yet-declared creature). */
-  readonly custom: (kind: string, actor: AnimalSim) => SpeciesPolicy<HomeObservation>;
-  /** Runs first on every tick (a gate the homes read). */
-  readonly beforeStep?: (homes: readonly KeptHome[]) => void;
+  /** Each body's actual home by its declared id (an island or a flying circle), for the home-bound archetypes. */
+  readonly home?: (id: string) => SpeciesBodyHome;
+  /** The runtime's own body for a kind its rows bind no body recipe (a unique boss), on the same shared ports. */
+  readonly custom: (kind: string, actor: AnimalSim, shared: SpeciesBodyPorts) => KeptPolicy;
 }
 
 /** Each species' scale range by kind: its first variant's, the creature manager's first draw (a species without one refuses). */
@@ -812,38 +795,17 @@ export function speciesScales(species: readonly { readonly kind: string; readonl
 }
 /**
  * Declared homes whose policies come from their species rows (SF27): the keeper's stream, tokens, respawn clocks and
- * exact restore (`installHomeKeeper`), each body observing through one reused `HomeObservation`. Contacts reach the
- * player through the host's combat pipeline only inside the strike arc and with a clear line, filed as the browser's
- * PlayerHurt.creature files them: tagged `creature.<kind>`, `feel.blow` (the host's knockback) and `cover.checked` (the
- * reach test is the line check), the blow's point at the creature.
+ * exact restore (`installHomeKeeper`), each body bound to its row's native recipe (`SpeciesBrains.body`) on the keeper's
+ * own stream, its home and the keeper's attack authority (its tokens; an uncapped keeper grants every attack).
  */
 export function installSpeciesHomes(host: SimHost, spec: SpeciesHomesSpec, saved?: Readonly<SimSnapshot>): { settle: () => void; homes: () => readonly KeptHome[]; boss: KeptBossBody | null } {
-  const scales = speciesScales(spec.species);
-  const player = host.player.position, reach = (a: AnimalSim): boolean => canReach(a, player, host.physics);
-  return installHomeKeeper(host, { step: spec.step, seed: spec.seed, homes: spec.homes, ...(spec.boss === undefined ? {} : { boss: spec.boss }),
-    specs: spec.specs, scales, attackers: spec.attackers, think: spec.think, ...(spec.beforeStep === undefined ? {} : { beforeStep: spec.beforeStep }),
-    policy: (kind, actor, claim, stream) => {
-      const declared = spec.brains.body(kind, actor, { host, stream, attacks: { kind: 'keeper', claim } });
-      if (declared !== null) return declared;
-      const point = new Vector3(), dir = new Vector3(), from = new Vector3(), tags: readonly `${string}.${string}`[] = [`creature.${kind}`, 'feel.blow', 'cover.checked'], move = spec.contactMove(kind);
-      const hurt = (damage: number): void => {
-        let rel = Math.atan2(player.x - actor.position.x, player.z - actor.position.z) - actor.yaw; rel = Math.atan2(Math.sin(rel), Math.cos(rel));
-        if (Math.abs(rel) > HURT_ARC || !reach(actor)) return;
-        point.copy(actor.position); dir.subVectors(player, actor.position).normalize(); from.copy(actor.position);
-        host.combat.hit({ source: actor.combatActor(), sourceTags: tags, target: host.player.health, amount: damage, point, dir, from, moveId: move });
-      };
-      const ports: HomeObservation = { dt: 0, t: 0, player, calm: false, phaseOffset: spec.brains.phase(kind, actor), reach, claim, hurt,
-        steer: (a, yaw, speed, turn) => { a.setMotion(yaw, speed, turn); },
-        flight: { steer: (a, yaw, speed, altitude, turn) => { a.fly(yaw, speed, altitude, turn); } } };
-      const brain = spec.brains.policy(kind, actor) ?? spec.custom(kind, actor);
-      const observe = (dt: number): void => { ports.dt = dt; ports.t = host.clock.now; };
-      return {
-        decide: dt => { observe(dt); brain.think(ports); },
-        move: dt => { observe(dt); brain.act(ports); },
-        snapshot: () => brain.snapshot(),
-        restore: value => { brain.restore(value); },
-      };
-    } }, saved);
+  const { species, brains, home, custom, ...keeper } = spec;
+  return installHomeKeeper(host, { ...keeper, scales: speciesScales(species), policy: (kind, actor, claim, stream) => {
+    const at = home?.(actor.entityId);
+    const shared: SpeciesBodyPorts = { host, stream, ...(at === undefined ? {} : { home: at }),
+      attacks: spec.attackers === Infinity ? { kind: 'unlimited', limit: Infinity } : { kind: 'keeper', claim } };
+    return brains.body(kind, actor, shared) ?? custom(kind, actor, shared);
+  } }, saved);
 }
 
 const bakedFinite = v.pipe(v.number(), v.finite());

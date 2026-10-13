@@ -2,14 +2,13 @@ import { Vector3 } from 'three';
 import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan, HeadlessRuntimePreparation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { bakedSpecs, speciesScales } from '@wildshard/game/plugin/brain';
+import { bakedSpecs } from '@wildshard/game/plugin/brain';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
 import { installDeclaredPropColliders } from '@wildshard/engine/physics/declaredProps';
 import { propColliderDescriptors } from '@wildshard/game/shardfile/props';
 import { addBakedWorld, ledgerPorts, proveEntryways, pickCommands, trustedLevel, weaponRow } from '@wildshard/game/plugin/simulation';
 import { DECK, SPAWN } from '../data/layout';
-import { DRIFT_RAY_DATA, GALE_WISP_DATA, SKY_GOAT_DATA, STORM_ROC_DATA } from '../data/species';
 import { installSkyFlock, SKY_ANALYTIC_FLOOR } from './flock';
 import { installBossOwnerRow } from '@wildshard/game/shardfile/bossRow';
 import { ROC_OWNER } from '../data/rocFight';
@@ -23,8 +22,6 @@ import baked from './physics.baked.json' with { type: 'json' };
 
 /** The baked native specs by kind (generators/bake-sky-physics.mjs); every body of a kind shares one recipe. */
 export const skySpecs = (): ReadonlyMap<string, AnimalSimSpec> => bakedSpecs(baked.actors);
-/** Each kind's variant scale range (the species rows' first variant): the manager's first draw. */
-export const skyScaleRanges = (): ReadonlyMap<string, readonly [number, number]> => speciesScales([DRIFT_RAY_DATA, SKY_GOAT_DATA, GALE_WISP_DATA, STORM_ROC_DATA]);
 
 /** The updraft's fixed-step id (its whole state is the player's board and impulse, so it carries no continuation). */
 export const UPDRAFT_STEP = 'far.updraft';
@@ -57,7 +54,7 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
   // the islet and bridge modules, admitted in shard.config.ts `files`, hash-checked once here (install is synchronous)
   const moverRows = shard.movers.filter(row => !row.id.startsWith(SKY_MOVER_BINDING.staticPrefix));
   const modules = await verifiedMoverModules(assets, moverRows);
-  const specs = skySpecs(), ranges = skyScaleRanges();
+  const specs = skySpecs();
   // the shipping spawn (manifest `spawn`, layout SPAWN) standing on Sunrest's deck, not the shardfile's grid datum; the
   // host's player strike is the zero-damage probe, never the War Fan (a declared item, data/items.ts)
   const level = trustedLevel(shard, { at: { x: SPAWN.x, y: DECK, z: SPAWN.z }, yaw: SPAWN.yaw, speed: 5 }, { size: 500, height: SKY_ANALYTIC_FLOOR });
@@ -72,7 +69,7 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
       initialPermissions: new Map([[SKY_MOVER_BINDING.winch, 0]]),
       permissions: () => new Map([[SKY_MOVER_BINDING.winch, skyWinchPermission(host.flags)]]),
     });
-    const flock = installSkyFlock(host, { specs, ranges, seed: shard.identity.seed }, context.snapshot);
+    const flock = installSkyFlock(host, { specs, seed: shard.identity.seed }, context.snapshot);
     const ledger = ledgerPorts(context.emit);
     const encounter = installBossOwnerRow(host, ROC_OWNER, { body: { kind: 'held', actor: flock.roc.actor, brain: flock.roc.body }, ...ledger });
     const fan = pickCommands(context.commands, (command): FanCommand | undefined => {

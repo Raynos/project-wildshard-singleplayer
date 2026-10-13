@@ -6,7 +6,8 @@ import baked from '../../../src/shards/far-reach/runtime/physics.baked.json';
 import { SKY_SPAWNS } from '../../../src/shards/far-reach/data/spawns';
 import { Rng } from '../../../src/engine/core/rng';
 import source from '../../../src/shards/far-reach/shard.config';
-import { skyScaleRanges } from '../../../src/shards/far-reach/runtime/headless';
+import { speciesScales } from '../../../src/game/plugin/brain';
+import { DRIFT_RAY_DATA, GALE_WISP_DATA, SKY_GOAT_DATA, STORM_ROC_DATA } from '../../../src/shards/far-reach/data/species';
 
 it('refuses stale source or model bytes before the trusted Sky physics bake is used', () => {
   expect(baked.version).toBe(1);
@@ -36,7 +37,7 @@ it('reproduces the browser seeds and scales from the creature manager stream: si
   // before the manager is built; a named variant draws no roll, then scale, rig seed, actor seed, and the brain's timer, fleeUntil
   // and callT. The eight flyers spawn in play (ray, roost rays, wisps, Roc), the five goats on the first fixed step after them.
   expect(source.identity.seed).toBe(6417);
-  const rng = new Rng(source.identity.seed + 31), ranges = skyScaleRanges();
+  const rng = new Rng(source.identity.seed + 31), ranges = speciesScales([DRIFT_RAY_DATA, SKY_GOAT_DATA, GALE_WISP_DATA, STORM_ROC_DATA]);
   expect(baked.actors.map(actor => actor.id)).toEqual(['far.ray.0', 'far.roost.0', 'far.roost.1', 'far.roost.2', 'far.wisp.0', 'far.wisp.1', 'far.wisp.2', 'far.roc',
     'far.goat.0', 'far.goat.1', 'far.goat.2', 'far.goat.3', 'far.goat.4']);
   for (const actor of baked.actors) {
