@@ -10,7 +10,7 @@ push gate only; frame floor / Simulator / soak / boards paused. Lanes: `lanes/RE
 
 **Fleet:** Codex sp-x7 push/deploy, others parked (Codex 7 %). Opus: Signal ground rows sp-o46, shared plans sp-o48, `paintedLook` 2nd user sp-o49, shared world-rows host sp-o51, Sky bake sweep sp-o52.
 
-**Live:** `957b05e6-mv5vop4l`, pinned (`3ebbf12bb`); origin `c80f022e2`; Linux CI green on `de0130e95` (Signal grid fix `96366f3e6`); unpin after the exact-SHA smoke incl. road→Signal. Reds: `red-green.md`.
+**Live:** `957b05e6-mv5vop4l`; **release unpinned `e6eeefc1e`** (Linux CI + exact-SHA smoke incl. road→Signal green on `de0130e95`); next hourly release ships the Signal grid fix. Reds: `red-green.md`.
 
 **For wildshard-v, Jake pick (80/20 reach; sp-o50 scoping):** honest cuts land Signal ~25–29 %, Sky ~35 %. **S1** quest/interaction state machines as sandboxed AssemblyScript hooks (AS uncapped until 90/10; ~−200 Signal, −250 Sky); **S2** shaders as SF59 graph rows (~−790, pixel-exact risk); **S3** accept 25–30 % / 35 % this sprint. Recommend **S1 + S3**.
 
