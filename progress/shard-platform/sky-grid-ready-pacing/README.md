@@ -1,7 +1,8 @@
 # Sky grid-ready construction
 
-C1 remains **OPEN** until two plain `far-reach-road-entry` Simulator runs
-meet travel p95 <= 35 ms. This slice bakes keeper fit/partition and paces
+The Sky road travel target **PASSES twice** on `66ca64cf7`; C1 remains
+**OPEN** for the remaining static-world work and construction margin.
+This slice bakes keeper fit/partition and paces
 world groups, model loads, install phases and body allocation. It changes
 no precompile policy, native NPC motion, roster order, RNG, or colliders.
 
@@ -31,3 +32,33 @@ Subsequent rebase preserves the one-graph mapped-material binding.
 
 CALL: keep the native empty keeper head as declared zero-count metadata;
 a missing nonempty baked pivot is damaged content, never a runtime fit.
+
+## Two plain same-pin Simulator runs
+
+Command: `node scripts/frame-floor.mjs --rev=66ca64cf7 --shards=grid
+--grid-scenario=milestone --grid-routes=far-reach-road-entry --devserver
+--surface=sim`. Both completed with zero errors. No profiling, GL timing,
+task clock or timeline observer; the default GL census was on.
+
+| Run | Sky travel p95 | Drive p95 / max | Interior p95 | Whole verdict |
+| --- | --- | --- | --- | --- |
+| 1 | 34 ms | 34 / 73 ms | 34 ms | PASS: all six rows |
+| 2 | 34 ms | 34 / 86 ms | 34 ms | FAIL: home spawn 38 ms only |
+
+The second run's home-spawn max was 177 ms. Its Sky travel, drive and
+interior rows passed. These are normal shared-load readings: one-minute
+load was 15.58 -> 27.83 for run 1 and 27.83 -> 15.93 for run 2. No clean
+quiet-window claim is made. Raw callback/rAF frame samples stay in
+scratch; `plain-summary.json` preserves every row and verdict.
+
+Long-frame attribution remains coarse hook overlap, not exact task CPU.
+Run 1: world 2 frames up to 73 ms, play 64 ms, activation 73 ms, afterPlay
+58 ms. Run 2: world 86 ms, play 71 ms, activation 66 ms; no afterPlay
+frame exceeded 50 ms. A four-ms yield budget does not prove every
+indivisible operation is below four ms. Those task margins remain open;
+the Opus warm-up owner received both measurements. Shader policy is
+unchanged.
+
+Official map: tiles `7617343b`, pixels `a3d5aa3b` identical to the parent.
+All six official physics products compare exactly. The post-hook map
+key and pixel checks passed before the atomic source landing.

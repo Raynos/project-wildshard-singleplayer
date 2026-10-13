@@ -1,0 +1,220 @@
+{
+  "pin": "66ca64cf7bb1e23dc524b246c0f2fdc55db279b3",
+  "target": "two plain Sky road travel p95 <=35ms",
+  "targetPass": true,
+  "conditions": "normal shared load; no quiet; profiler, GL-time, task-clock, timeline off; default GL observer on",
+  "load": {
+    "run1": {
+      "start": [
+        15.58,
+        10.55,
+        9.21
+      ],
+      "end": [
+        27.83,
+        14.93,
+        11.16
+      ]
+    },
+    "run2": {
+      "start": [
+        27.83,
+        14.93,
+        11.16
+      ],
+      "end": [
+        15.93,
+        15.34,
+        12.27
+      ]
+    }
+  },
+  "runs": [
+    {
+      "leg": 1,
+      "sha": "66ca64cf7bb1e23dc524b246c0f2fdc55db279b3",
+      "build": "devserver",
+      "complete": true,
+      "pass": true,
+      "when": "2026-10-13T16:54:32.418Z",
+      "glObserver": "on",
+      "glTime": false,
+      "safariProfile": false,
+      "frameTimeline": false,
+      "windows": [
+        {
+          "p95Ms": 34,
+          "p99Ms": 37,
+          "maxMs": 37,
+          "workP95Ms": 8,
+          "pass": true,
+          "name": "spawn"
+        },
+        {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "workP95Ms": 6,
+          "pass": true,
+          "name": "grid-crossroads"
+        },
+        {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "workP95Ms": 4,
+          "pass": true,
+          "name": "grid-deck-east"
+        },
+        {
+          "p95Ms": 34,
+          "p99Ms": 64,
+          "maxMs": 73,
+          "workP95Ms": 8,
+          "pass": true,
+          "name": "grid-far-reach-road-entry-travel"
+        },
+        {
+          "p95Ms": 34,
+          "p99Ms": 35,
+          "maxMs": 73,
+          "workP95Ms": 8,
+          "pass": true,
+          "longFrameHooks": [
+            {
+              "hook": "far-reach:world",
+              "frames": 2,
+              "maxMs": 73,
+              "totalMs": 136,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "far-reach:activate",
+              "frames": 1,
+              "maxMs": 73,
+              "totalMs": 73,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "far-reach:play",
+              "frames": 1,
+              "maxMs": 64,
+              "totalMs": 64,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "far-reach:afterPlay",
+              "frames": 1,
+              "maxMs": 58,
+              "totalMs": 58,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "name": "grid-far-reach-road-entry-drive"
+        },
+        {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "workP95Ms": 7,
+          "pass": true,
+          "name": "grid-far-reach-road-entry"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "leg": 2,
+      "sha": "66ca64cf7bb1e23dc524b246c0f2fdc55db279b3",
+      "build": "devserver",
+      "complete": true,
+      "pass": false,
+      "when": "2026-10-13T16:58:19.610Z",
+      "glObserver": "on",
+      "glTime": false,
+      "safariProfile": false,
+      "frameTimeline": false,
+      "windows": [
+        {
+          "p95Ms": 38,
+          "p99Ms": 107,
+          "maxMs": 177,
+          "workP95Ms": 10,
+          "pass": false,
+          "name": "spawn"
+        },
+        {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "workP95Ms": 5,
+          "pass": true,
+          "name": "grid-deck-east"
+        },
+        {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 35,
+          "workP95Ms": 5,
+          "pass": true,
+          "name": "grid-crossroads"
+        },
+        {
+          "p95Ms": 34,
+          "p99Ms": 47,
+          "maxMs": 71,
+          "workP95Ms": 7,
+          "pass": true,
+          "name": "grid-far-reach-road-entry-travel"
+        },
+        {
+          "p95Ms": 34,
+          "p99Ms": 35,
+          "maxMs": 86,
+          "workP95Ms": 8,
+          "pass": true,
+          "longFrameHooks": [
+            {
+              "hook": "far-reach:world",
+              "frames": 1,
+              "maxMs": 86,
+              "totalMs": 86,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "far-reach:play",
+              "frames": 1,
+              "maxMs": 71,
+              "totalMs": 71,
+              "gl": {},
+              "glStart": {}
+            },
+            {
+              "hook": "far-reach:activate",
+              "frames": 1,
+              "maxMs": 66,
+              "totalMs": 66,
+              "gl": {},
+              "glStart": {}
+            }
+          ],
+          "name": "grid-far-reach-road-entry-drive"
+        },
+        {
+          "p95Ms": 34,
+          "p99Ms": 34,
+          "maxMs": 34,
+          "workP95Ms": 6,
+          "pass": true,
+          "name": "grid-far-reach-road-entry"
+        }
+      ],
+      "errors": []
+    }
+  ]
+}
