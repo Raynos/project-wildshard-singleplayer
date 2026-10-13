@@ -1,10 +1,15 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it, vi } from 'vitest';
+
 import * as THREE from 'three';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import template from '../src/shards/_template/shard.config';
 import { parseShardfile } from '../src/format/shardSchema';
+import { FIRE_GRAPHS } from '../src/shards/sunscar-dunes/data/fireLook';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
+
+vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
+afterAll(() => { vi.unstubAllGlobals(); });
 
 /** A point sprite: top-origin point coordinates, runtime diameter, straight RGB. */
 const spark: GraphIr = {
@@ -27,9 +32,10 @@ function program(graph: GraphIr, points = false): THREE.WebGLProgramParametersWi
     debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => ({}), has: () => false },
   };
   for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
-  const handler = new EngineNodesHandler(), material = compileGraph(graph).material;
+  const sampled = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
+  const handler = new EngineNodesHandler(), material = compileGraph(graph, { textures: () => sampled }).material;
   handler.setRenderer(renderer);
-  const geometry = new THREE.PlaneGeometry(1, 1);
+  const geometry = new THREE.PlaneGeometry(1, 1); geometry.setAttribute('aSeed', new THREE.Float32BufferAttribute([0, 0.25, 0.5, 0.75], 1));
   const object = points ? new THREE.Points(geometry, material) : new THREE.Mesh(geometry, material);
   const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera();
   scene.add(object); handler.renderStart(scene, camera); handler.updateLights([]);
@@ -37,7 +43,7 @@ function program(graph: GraphIr, points = false): THREE.WebGLProgramParametersWi
   const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
   if (!isParameters(parameters)) throw new Error('Missing parameters');
   try { handler.build(material, object, parameters); return parameters; }
-  finally { geometry.dispose(); material.dispose(); }
+  finally { geometry.dispose(); material.dispose(); sampled.dispose(); }
 }
 
 describe('SF59 optional effect state', () => {
@@ -106,4 +112,42 @@ describe('SF59 optional effect state', () => {
     expect(shader.vertexShader).toMatch(/nodeUniform\d+ \* vec4\(/u);
     expect(validateGraph({ ...graph, stages: { surface: { colour: 'facing' } } }).ok).toBe(false);
   });
+});
+
+
+describe('C3 camera-space effect inputs', () => {
+  it('compiles a scaled cylindrical billboard without changing the existing view billboard', () => {
+    const graph: GraphIr = { ...plain, model: 'unlit', nodes: {
+      facing: { op: 'cylindricalBillboard' }, local: { op: 'positionLocal' }, offset: { op: 'sub', in: ['facing', 'local'] },
+      scale: { op: 'modelScale' }, colour: { op: 'varying', in: ['scale'] },
+    }, stages: { 'vertex.offset': { offset: 'offset' }, surface: { colour: 'colour' } } };
+    const result = validateGraph(graph); if (!result.ok) throw new Error(result.errors.join('\n'));
+    const shader = program(graph);
+    expect(shader.vertexShader).toContain('normalize('); expect(shader.vertexShader).toContain('length(');
+    expect(shader.vertexShader).toContain('0.0001');
+    expect(validateGraph({ ...graph, stages: { surface: { colour: 'facing' } } }).ok).toBe(false);
+  });
+
+  it('carries projected ember direction and view depth into a point sprite with no shader source', () => {
+    const graph: GraphIr = { ...spark, nodes: { ...spark.nodes,
+      origin: { op: 'objectOrigin' }, next: { op: 'add', in: ['origin', [0, 1, 0]] },
+      depth: { op: 'viewDepth', in: ['origin'] }, direction: { op: 'screenDirection', in: ['origin', 'next'] },
+      motion: { op: 'varying', in: ['direction'] }, colour: { op: 'combine', in: ['motion', 0.5] },
+    }, stages: { points: { size: 'depth' }, surface: { colour: 'colour', alpha: 0.5 } } };
+    const checked = validateGraph(graph); if (!checked.ok) throw new Error(checked.errors.join('\n'));
+    const shader = program(graph, true);
+    expect(shader.vertexShader).toContain('cameraProjectionMatrix'); expect(shader.vertexShader).toContain('cameraViewMatrix');
+    expect(shader.vertexShader).toContain('0.00001'); expect(shader.fragmentShader).not.toMatch(/cameraProjectionMatrix\s*\*/u);
+    expect(validateGraph({ ...graph, nodes: { ...graph.nodes, next: { op: 'const', value: 1 } } }).ok).toBe(false);
+    expect(validateGraph({ ...graph, stages: { points: { size: 1 }, surface: { colour: 'direction' } } }).ok).toBe(false);
+  });
+});
+
+
+it.each(Object.entries(FIRE_GRAPHS))('compiles admitted Opus fire row %s with the declared entered clock', (id, row) => {
+  const result = validateGraph(row, { stateFields: ['shared.firetime'] });
+  if (!result.ok) throw new Error(`${id}: ${result.errors.join('\n')}`);
+  expect(result.cost.nodes).toBeLessThanOrEqual(160); expect(result.cost.instructions).toBeLessThanOrEqual(480);
+  const shaders = program(result.graph, id === 'fire-embers');
+  expect(shaders.fragmentShader).not.toContain('engineFog');
 });

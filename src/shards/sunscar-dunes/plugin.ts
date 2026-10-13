@@ -24,6 +24,7 @@ import { bindDeclaredFight } from '@wildshard/game/plugin/ui';
 import { stormWeather } from './runtime/shardfile/markedBoss';
 import { SAND, SKIRT } from './look/render';
 import { lentMaterial } from './runtime/looks/bakedGround';
+import { prepareFireFx } from './world/fireFx';
 
 /** The dusk a quest step has reached (look/dusk.ts): 0 at the start, deeper with each step, 1 once the signal burns. */
 function duskOf(places: SignalWorld): number {
@@ -65,6 +66,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
     const [, baked] = await Promise.all([preloadDuneMeshes(), loadBakedWorld()]);
+    await prepareFireFx(ctx, source);
     this.places = buildWorld(ctx, new Flags(ctx.manifest.slug), baked); this.fire = this.places.fire;
     // G345: the data client draws the tiles in the look's sand and lends it: the skirt wears it, the fires light it, and
     // its dusk curves read DUSK (the host field shared.dusk). In a grid cell the region lends it the same way.

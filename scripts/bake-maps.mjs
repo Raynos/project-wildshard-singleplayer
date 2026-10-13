@@ -128,14 +128,8 @@ function bake(arg) {
     rest(); colour = pass();
     // height pass: every mesh in its world height (16 bit over R, G; B = 1 where anything is), cleared to black; the sky / sea
     // backdrops (> 800 m across), ghosts (invisible, colour-off or depth-off transparent) and the shard's "heightHide" left out
-    const shaders = []; scene.traverse((o) => { if (o.material?.type === 'ShaderMaterial') shaders.push(o.material.constructor); });
-    const SM = shaders[0];
-    if (SM !== undefined) {
-      const mat = new SM({
-        vertexShader: 'varying float vH; void main(){ vec4 p = vec4(position, 1.0);\n#ifdef USE_INSTANCING\n p = instanceMatrix * p;\n#endif\n vec4 w = modelMatrix * p; vH = w.y; gl_Position = projectionMatrix * viewMatrix * w; }',
-        fragmentShader: 'varying float vH; void main(){ float v = clamp((vH + 100.0) / 400.0, 0.0, 1.0) * 65535.0; gl_FragColor = vec4(floor(v / 256.0) / 255.0, mod(floor(v), 256.0) / 255.0, 1.0, 1.0); }',
-      });
-      mat.side = 2; mat.toneMapped = false;
+    const mat = g.captureHeightMaterial();
+    {
       const hid2 = [], back = (o) => arg.heightHide.some((p) => (p.endsWith('*') ? o.name.startsWith(p.slice(0, -1)) : o.name === p));
       scene.traverse((o) => {
         if (!o.visible || !(o.isMesh || o.isLine)) return;
@@ -182,12 +176,14 @@ try {
       await page.evaluate(() => window.__parity.advance(180));
       await page.waitForTimeout(3000);
       const out = await page.evaluate(bake, { tile: TILE, height: HEIGHT, metres: MAP_METRES, bg: [0.16, 0.18, 0.2], hide: settings.hide, heightHide: settings.heightHide, keep: settings.keep, hideStanding: settings.hideStanding, clipBelow: settings.clipBelow, clipAbove: settings.clipAbove });
+      /** @type {unknown} */
+      const heightResult = Reflect.get(out, 'height');
       const colourPng = join(work, `colour-${slug}.png`), heightPng = join(work, `height-${slug}.png`), stylePath = join(work, `style-${slug}.json`);
       writeFileSync(colourPng, Buffer.from(out.colour.slice(out.colour.indexOf(',') + 1), 'base64'));
-      if (out.height !== null) writeFileSync(heightPng, Buffer.from(out.height.slice(out.height.indexOf(',') + 1), 'base64'));
+      if (typeof heightResult === 'string') writeFileSync(heightPng, Buffer.from(heightResult.slice(heightResult.indexOf(',') + 1), 'base64'));
       const imageDir = join(root, 'public/assets', slug, 'map'), webp = join(imageDir, 'top.webp');
       mkdirSync(imageDir, { recursive: true }); mkdirSync(join(dir, 'look'), { recursive: true });
-      if (settings.style === null || out.height === null) throw new Error(`${slug}: no look/map.json "style" (the colour table) or no height pass`);
+      if (settings.style === null || typeof heightResult !== 'string') throw new Error(`${slug}: no look/map.json "style" (the colour table) or no height pass`);
       writeFileSync(stylePath, JSON.stringify(settings.style));
       execFileSync('uv', ['run', '--quiet', '--with', 'numpy', '--with', 'scipy', '--with', 'pillow', 'python', join(root, 'scripts/map-stylize.py'), colourPng, heightPng, stylePath, webp, String(OUT)], { stdio: 'inherit' });
       const bytes = statSync(webp).size;

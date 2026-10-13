@@ -61,6 +61,8 @@ if (compare !== undefined) {
 const url = arg('url'), output = arg('output'), raw = arg('raw');
 // W1 C1 (scripts/w1-c1-parity.mjs): `--poses=c1` adds close-ups of the static pieces C1 bakes and skips the creature shots
 const c1 = arg('poses') === 'c1', SHOTS = c1 ? [...POSES, ...C1_POSES] : POSES;
+const frame = arg('frame') ?? 'plain';
+if (!['plain', 'composer'].includes(frame)) throw new Error('Frame must be plain or composer');
 if (url === undefined || output === undefined) throw new Error('Requires --url=<DEVSERVER preview> --output=<summary.json> (or --compare=a,b)');
 if (raw !== undefined) mkdirSync(raw, { recursive: true });
 const version = await (await fetch(new URL('/version.json', url))).json();
@@ -104,6 +106,15 @@ try {
         w.player.spawn(a.x, a.z, a.yaw); w.player.pitch = a.pitch;
       }, { x: p.x, z: p.z, yaw, pitch });
       await sleep(5000);
+      // Pin the entered owner's real clock, shared by classic uniforms and admitted graph state feeds.
+      const effectTime = await page.evaluate(async () => {
+        window.__parity.free = false;
+        const clock = window.__wildshard.world.game.app.clock;
+        clock.restore({ ...clock.snapshot(), wall: 10 - 1 / 30 });
+        await window.__parity.advance(1);
+        return clock.real;
+      });
+      if (Math.abs(effectTime - 10) > 1e-9) throw new Error(`Effect clock is not pinned: ${effectTime}`);
       await page.evaluate(() => { const g = window.__wildshard.world.game; if (!('__slpGate' in window)) window.__slpGate = g.frameGate; g.frameGate = () => false; });
       await sleep(300);
       const shot = await page.evaluate(async v => {
@@ -117,8 +128,6 @@ try {
         scene.traverse(o => {
           for (const m of Array.isArray(o.material) ? o.material : o.material ? [o.material] : []) {
             const u = m.uniforms;
-            if (u?.uTime !== undefined && typeof u.uTime.value === 'number') u.uTime.value = 10;
-            if (u?.time !== undefined && typeof u.time.value === 'number') u.time.value = 10;
             if (u?.uCloudTime !== undefined && typeof u.uCloudTime.value === 'number') u.uCloudTime.value = 10;
             // the sun shafts' slow pulse (look time), held at full
             if (u?.uPulse !== undefined && typeof u.uPulse.value === 'number') u.uPulse.value = 1;
@@ -126,8 +135,13 @@ try {
         });
         r.setRenderTarget(null); r.setScissorTest(false);
         const ratio = r.getPixelRatio(); r.setViewport(0, 0, gl.drawingBufferWidth / ratio, gl.drawingBufferHeight / ratio);
-        r.clear(true, true, true); r.render(scene, cam);
-        r.info.reset(); r.clear(true, true, true); r.render(scene, cam);
+        const draw = () => {
+          if (v.frame === 'composer') {
+            if (g.snapshot(Math.max(gl.drawingBufferWidth, gl.drawingBufferHeight)) === null) throw new Error('Composer snapshot unavailable');
+          } else r.render(scene, cam);
+        };
+        r.clear(true, true, true); draw();
+        r.info.reset(); r.clear(true, true, true); draw();
         const calls = r.info.render.calls, triangles = r.info.render.triangles;
         const pixels = new Uint8Array(gl.drawingBufferWidth * gl.drawingBufferHeight * 4);
         gl.readPixels(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
@@ -136,7 +150,7 @@ try {
         const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', pixels));
         let bin = ''; for (let i = 0; i < pixels.length; i += 0x8000) bin += String.fromCodePoint(...pixels.subarray(i, i + 0x8000));
         return { player: [Math.round(at.x * 10) / 10, Math.round(at.y * 10) / 10, Math.round(at.z * 10) / 10], width: gl.drawingBufferWidth, height: gl.drawingBufferHeight, calls, triangles, lit, pixels: Array.from(digest, x => x.toString(16).padStart(2, '0')).join(''), data: btoa(bin) };
-      }, { yaw, pitch });
+      }, { yaw, pitch, frame });
       const row = { tier, pose: p.id, player: shot.player, width: shot.width, height: shot.height, calls: shot.calls, triangles: shot.triangles, lit: shot.lit, pixels: shot.pixels };
       if (raw !== undefined) { row.raw = join(raw, `${tier}-${p.id}.rgba`); writeFileSync(row.raw, Buffer.from(shot.data, 'base64')); }
       rows.push(row);
@@ -158,5 +172,5 @@ try {
     await context.close();
   }
   if (errors.length > 0) throw new Error(`Native page errors: ${JSON.stringify(errors)}`);
-  writeFileSync(output, `${JSON.stringify({ build: version.build, profile: 'iPhone 16 Pro / DPR2 / Metal / capture clock 30; plain scene render, time and cloud time 10, viewmodel hidden', tiers, rows }, null, 2)}\n`);
+  writeFileSync(output, `${JSON.stringify({ build: version.build, profile: `iPhone 16 Pro / DPR2 / Metal / capture clock 30; ${frame} render, actual owner time and cloud time 10, viewmodel hidden`, tiers, rows }, null, 2)}\n`);
 } finally { await browser.close(); }

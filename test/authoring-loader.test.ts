@@ -68,3 +68,30 @@ it.each(['src/game/state.ts', 'src/engine/state.ts', 'src/sdk/runtime/state.ts',
     expect(f.run).toThrow(/Non-authoring dependency refused/u);
   } finally { f.close(); }
 });
+
+
+it('emits multiple exact own-project bytes only after every output is admitted', () => {
+  const f = fixture();
+  try {
+    f.put('src/shards/sample/assets/source.bin', 'authored');
+    f.put('src/shards/sample/generators/files.ts', "export function files(read: (path: string) => Uint8Array) { return new Map([['assets/out.bin', read('src/shards/sample/assets/source.bin')], ['data/row.json', new TextEncoder().encode('{}')]]); }");
+    f.direct('src/sdk/bake/json.mjs', ['src/shards/sample/generators/files.ts', 'files', 'src/shards/sample', '--files']);
+    expect(f.read('src/shards/sample/assets/out.bin')).toStrictEqual(f.read('src/shards/sample/assets/source.bin'));
+    expect(new TextDecoder().decode(f.read('src/shards/sample/data/row.json'))).toBe('{}');
+  } finally { f.close(); }
+});
+it.each([
+  "new Map([['ok.bin', new Uint8Array([1])], ['../escape.bin', new Uint8Array([2])]])",
+  "new Map([['ok.bin', new Uint8Array([1])], ['bad.bin', [2]]])",
+  "new Map([['ok.bin', read('src/shards/sample/runtime/secret.bin')]])",
+  "new Map([['ok.bin', read('src/shards/other/assets/secret.bin')]])",
+  'new Map()', '({ files: [] })',
+])('refuses unsafe multi-file recipes before any output: %s', expression => {
+  const f = fixture();
+  try {
+    f.put('src/shards/sample/runtime/secret.bin', 'runtime'); f.put('src/shards/other/assets/secret.bin', 'foreign');
+    f.put('src/shards/sample/generators/files.ts', `export function files(read: (path: string) => Uint8Array): unknown { return ${expression}; }`);
+    expect(() => f.direct('src/sdk/bake/json.mjs', ['src/shards/sample/generators/files.ts', 'files', 'src/shards/sample', '--files'])).toThrow(/generate-json/u);
+    expect(() => f.read('src/shards/sample/ok.bin')).toThrow();
+  } finally { f.close(); }
+});

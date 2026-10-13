@@ -348,6 +348,16 @@ export class Game {
    *  camera `frame()` saw, so a thumbnail fogged from the turntable's eye came out a white silhouette (E289). */
   shardFrame(): void { this.camera.updateMatrixWorld(); this.lookStrategy?.frame?.(0, this.clock.elapsedTime); }
 
+  /** The official map bake's world-height override, independent of scene material families.
+   * The caller owns disposal; ordinary frames never instantiate this capture-only material. */
+  captureHeightMaterial(): THREE.ShaderMaterial {
+    return new THREE.ShaderMaterial({
+        vertexShader: 'varying float vH; void main(){ vec4 p = vec4(position, 1.0);\n#ifdef USE_INSTANCING\n p = instanceMatrix * p;\n#endif\n vec4 w = modelMatrix * p; vH = w.y; gl_Position = projectionMatrix * viewMatrix * w; }',
+        fragmentShader: 'varying float vH; void main(){ float v = clamp((vH + 100.0) / 400.0, 0.0, 1.0) * 65535.0; gl_FragColor = vec4(floor(v / 256.0) / 255.0, mod(floor(v), 256.0) / 255.0, 1.0, 1.0); }',
+      side: THREE.DoubleSide, toneMapped: false,
+    });
+  }
+
   snapshot(maxW: number): HTMLCanvasElement | null {
     if (this._composer === null || this.hold || this.renderer.getContext().isContextLost()) return null;
     this.lookStrategy?.frame?.(0, this.clock.elapsedTime);

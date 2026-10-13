@@ -12,7 +12,7 @@ import { buildTower, type TowerParts } from './tower';
 import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellParts } from './places';
 import { drapeGroundAt } from './drapeGround';
 import { signalPieces, type BakedWorld } from './baked';
-import { fireGeometries, fireLight, fireResources, loadFireBook, resetFireLights, tickFires } from './fireFx';
+import { fireGeometries, fireLight, fireResources, resetFireLights, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
 import { SIGNAL_INTERACTIONS } from '../data/signalInteractions';
@@ -134,7 +134,6 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   ctx.scope.ownPrimitives(ctx.root);
   for (const r of fireResources()) ctx.scope.own(r);
   ctx.scope.onDispose(() => { for (const g of fireGeometries()) g.dispose(); });
-  ctx.scope.onDispose(loadFireBook()); // E407 row 6: the flame's flipbook, freed with the shard
   // round 18 (row 3: a warm light pool on the sand AND the plinth, from a real light): one short-range point light rides to
   // the lit waymark nearest the player and flickers; one light for all three keeps the shaders' light count fixed (it is
   // in the scene from the start, dark until a waymark burns)

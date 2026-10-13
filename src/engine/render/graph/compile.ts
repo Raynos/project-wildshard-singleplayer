@@ -36,7 +36,7 @@ import {
   PhysicalLightingModel, SplitNode, type Node, type NodeBuilder, type NodeMaterial,
 } from 'three/webgpu';
 import {
-  Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, hash,
+  Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, hash,
   instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, positionGeometry, positionLocal,
   positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uv, varying, vec2, vec3, vec4, vertexColor,
@@ -406,6 +406,25 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
         const direction = new SplitNode(new OperatorNode('*', cameraWorldMatrix, vec4(positionGeometry, 0)), 'xyz');
         const world = new OperatorNode('+', objectOriginNode(), direction);
         return { n: new SplitNode(new OperatorNode('*', modelWorldMatrixInverse, new JoinNode([world, float(1)])), 'xyz'), t: 'vec3' };
+      }
+      case 'modelScale': return { t: 'vec3', n: vec3(
+        modelWorldMatrix.mul(vec4(1, 0, 0, 0)).xyz.length(),
+        modelWorldMatrix.mul(vec4(0, 1, 0, 0)).xyz.length(),
+        modelWorldMatrix.mul(vec4(0, 0, 1, 0)).xyz.length()) };
+      case 'cylindricalBillboard': {
+        const origin = objectOriginNode(), toward = cameraPosition.sub(origin);
+        const right = vec3(toward.z, 0, toward.x.negate()).add(vec3(0.0001, 0, 0)).normalize();
+        const sx = modelWorldMatrix.mul(vec4(1, 0, 0, 0)).xyz.length();
+        const sy = modelWorldMatrix.mul(vec4(0, 1, 0, 0)).xyz.length();
+        const world = origin.add(right.mul(positionGeometry.x).mul(sx)).add(vec3(0, positionGeometry.y.mul(sy), 0));
+        return { t: 'vec3', n: modelWorldMatrixInverse.mul(vec4(world, 1)).xyz };
+      }
+      case 'viewDepth': return { t: 'float', n: cameraViewMatrix.mul(vec4(new ConvertNode<'vec3'>(one().n, 'vec3'), 1)).z.negate() };
+      case 'screenDirection': {
+        const [from, to] = two();
+        const clip = (value: Val): Node<'vec4'> => cameraProjectionMatrix.mul(cameraViewMatrix.mul(vec4(new ConvertNode<'vec3'>(value.n, 'vec3'), 1)));
+        const start = clip(from), end = clip(to);
+        return { t: 'vec2', n: end.xy.div(end.w).sub(start.xy.div(start.w)).add(vec2(0.00001, 0)).normalize() };
       }
       case 'fragCoord': return { t: 'vec2', n: screenCoordinate };
       case 'attribute': {

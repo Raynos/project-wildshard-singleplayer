@@ -17,6 +17,8 @@ import sandMaps from '../data/sandMaps.json' with { type: 'json' };
 import { SAND_FIELDS } from '../data/sandFields';
 import { SAND_DUSK } from '../data/dusk';
 import { STORM_FIELD, STORM_GRAPHS } from '../data/stormLook';
+import { FIRE_GRAPHS } from '../data/fireLook';
+import fireBook from '../data/fireBook.generated.json' with { type: 'json' };
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
 // SF50-p / M3 (the runtime-owner binding): "The signal" quest, its ledger facts, the bullwhip and the creatures' homes and
@@ -39,7 +41,7 @@ import { STORM_FIELD, STORM_GRAPHS } from '../data/stormLook';
 const collider = [...tiles.files, ...navigation.files].filter((file) => [...tiles.critical, ...navigation.critical].includes(file.hash));
 const sim = { resident: collider.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: collider.reduce((sum, file) => sum + file.compressed, 0) };
 
-const maps = Object.values(sandMaps), ref = (name: keyof typeof sandMaps): string => sandMaps[name].hash;
+const maps = [...Object.values(sandMaps), fireBook], ref = (name: keyof typeof sandMaps): string => sandMaps[name].hash;
 const fields = structuredClone(SAND_FIELDS);
 const sand = { ...fields, ground: { ...fields.ground,
   grain: { map: ref('grain'), ...fields.ground.grain },
@@ -50,8 +52,8 @@ const base = emptyShardfile({ slug: 'sunscar-dunes', name: 'Signal Dunes', autho
 const product = parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, budgets: { ...base.budgets, library, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'state', 'clientChannels'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages, signalStages],
   clientChannels: SIGNAL_BUCKET_CHANNELS, quests: SIGNAL_QUESTS, questNpcs: [QUEST_NPC], questHost: QUEST_HOST, ledger: SIGNAL_LEDGER, items: WHIP_ITEMS,
   // G397: the storm's strength (`shared.storm`) is a host field like the dusk, moving the storm shells' graphs (data/stormLook.ts)
-  state: { ...base.state, shared: [{ id: 1, name: 'dusk', type: 'f64', privacy: 'host', default: 0, min: 0, max: 1 }, STORM_FIELD] },
-  look: { ...base.look, families: ['pbr'], materials: { pbr: sand, ...Object.fromEntries(Object.entries(STORM_GRAPHS).map(([id, graph]) => [id, { family: 'graph', graph }])) }, curves: { pbr: SAND_DUSK }, samplers: { [ref('grain')]: { wrap: 'repeat', anisotropy: 8, mips: 'gpu' }, [ref('trail')]: { filter: 'linear' }, [ref('shadow')]: { filter: 'linear' } } },
+  state: { ...base.state, shared: [{ id: 1, name: 'dusk', type: 'f64', privacy: 'host', default: 0, min: 0, max: 1 }, STORM_FIELD, { id: 3, name: 'firetime', type: 'f64', privacy: 'host', default: 0, min: 0 }] },
+  look: { ...base.look, families: ['pbr'], materials: { pbr: sand, ...Object.fromEntries(Object.entries({ ...STORM_GRAPHS, ...FIRE_GRAPHS }).map(([id, graph]) => [id, { family: 'graph', graph }])) }, curves: { pbr: SAND_DUSK }, samplers: { [fireBook.hash]: { filter: 'linear', mips: 'gpu' }, [ref('grain')]: { wrap: 'repeat', anisotropy: 8, mips: 'gpu' }, [ref('trail')]: { filter: 'linear' }, [ref('shadow')]: { filter: 'linear' } } },
   terrain: { ...tiles.terrain, shadow: { cast: false, receive: false }, follow: 8, order: -1 }, tiles: tiles.tiles, files: [...tiles.files, ...navigation.files, ...maps].sort((a, b) => a.hash.localeCompare(b.hash)), library: maps.map((file) => file.hash), critical: [...tiles.critical, ...navigation.critical], edge: tiles.edge });
 
 /** The identical declared product row for runtime consumers; file I/O belongs to the SDK Node driver. */

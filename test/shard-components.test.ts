@@ -109,3 +109,8 @@ it('registers only the defining mover helpers and NPC parser without changing ca
   expect(unrelated.unknown).toHaveLength(3);
   expect(componentWave({'far-reach':{components:unrelated},'sunscar-dunes':{components:signal}}).closed).toBe(0);
 });
+
+it('registers the charged author texture compiler as a look contribution',()=>{
+  const row=componentInventory('/unused','sunscar-dunes',[{path:'src/sdk/bake/texture.ts',kind:'sole-export',name:'bakeRawColourTexture',lines:13}],13);
+  expect(row.counts.C2).toBe(13);expect(row.total).toBe(13);expect(row.unknown).toEqual([]);
+});

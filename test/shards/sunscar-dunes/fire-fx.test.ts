@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Group, Mesh, Points, Vector3, type ShaderMaterial } from 'three';
-import { createFireFx, type FireStyle } from '../../../src/shards/sunscar-dunes/runtime/looks/fireFx';
+import { Group, Mesh, Points, Vector3, MeshBasicMaterial, ShaderMaterial, BufferGeometry, BufferAttribute } from 'three';
+import { createFireFx as releasedFireFx, type FireStyle } from '../../fixtures/signal-fire-released';
+import { createFireFx } from '../../../src/shards/sunscar-dunes/runtime/looks/fireFx';
 import { FIRE_STYLE, WAYMARK_FIRE, COOKFIRE } from '../../../src/shards/sunscar-dunes/data/fire';
 // The seven fire materials as Signal Dunes' own code built them before its fires became rows (HEAD c08ce5e69, world/fireFx.ts).
 import before from './fire-shaders.json' with { type: 'json' };
@@ -8,7 +9,7 @@ import before from './fire-shaders.json' with { type: 'json' };
 /** GLSL as the compiler reads it: comments dropped, whitespace collapsed. */
 const glsl = (source: string): string => source.replaceAll(/\/\/[^\n]*/gu, '').replaceAll(/\s+/gu, ' ').trim();
 const NAMES = ['flame', 'smoke', 'wisp', 'glow', 'lampGlow', 'ember', 'pool'] as const;
-const materials = (fx: ReturnType<typeof createFireFx>): ShaderMaterial[] => fx.resources.slice(0, 7).filter((r): r is ShaderMaterial => 'fragmentShader' in r);
+const materials = (fx: ReturnType<typeof releasedFireFx>): ShaderMaterial[] => fx.resources.slice(0, 7).filter((r): r is ShaderMaterial => 'fragmentShader' in r);
 
 /** A second look on the same effect: a cold blue spirit flame on its own flipbook (the system is generic, the look is data). */
 const SPIRIT: FireStyle = {
@@ -22,7 +23,7 @@ const SPIRIT: FireStyle = {
 
 describe('the platform fire effect runs a shard\'s fires from rows (SHARD-PLATFORM SF72, effect rows)', () => {
   it('Signal Dunes\' style compiles to exactly the shaders its own code built (pixel parity by construction)', () => {
-    const got = materials(createFireFx(FIRE_STYLE));
+    const got = materials(releasedFireFx(FIRE_STYLE));
     expect(got).toHaveLength(7);
     NAMES.forEach((name, i) => {
       const m = got[i], want = before[name];
@@ -39,7 +40,7 @@ describe('the platform fire effect runs a shard\'s fires from rows (SHARD-PLATFO
   });
 
   it('a second style draws the same parts in its own look, and each instance owns its clock and lights', () => {
-    const spirit = createFireFx(SPIRIT), signal = createFireFx(FIRE_STYLE);
+    const spirit = releasedFireFx(SPIRIT), signal = releasedFireFx(FIRE_STYLE);
     const [flame] = materials(spirit);
     expect(flame?.fragmentShader).toContain('vec3(0.05, 0.2, 0.9)');
     expect(flame?.fragmentShader).not.toContain('vec3(1.2, 0.95, 0.75)');
@@ -51,4 +52,32 @@ describe('the platform fire effect runs a shard\'s fires from rows (SHARD-PLATFO
     expect([spirit.lights.value[0]?.toArray(), signal.lights.value[0]?.toArray()]).toEqual([[1, 2, 3, 0.5], [0, 0, 0, 1]]);
     spirit.resetLights(); expect(spirit.lights.value[0]?.w).toBe(0);
   });
+});
+
+
+it('borrows graph programs with exact existing parts, seed bytes, light slots and entered clock', () => {
+  const maps = { flame: new MeshBasicMaterial(), smoke: new MeshBasicMaterial(), wisp: new MeshBasicMaterial(), glow: new MeshBasicMaterial(), lampGlow: new MeshBasicMaterial(), embers: new MeshBasicMaterial(), pool: new MeshBasicMaterial() };
+  const ticks: number[] = [], lights = { value: releasedFireFx(FIRE_STYLE).lights.value };
+  const borrowed = createFireFx({ materials: maps, setTime: t => { ticks.push(t); } }, lights), old = releasedFireFx(FIRE_STYLE);
+  expect(borrowed.resources).toHaveLength(3);
+  expect(borrowed.resources.some(resource => resource instanceof ShaderMaterial)).toBe(false);
+  const first = new Group(), second = new Group();
+  borrowed.addFire(first, WAYMARK_FIRE, { at: new Vector3(1, 2, 3), groundAt: (x, z) => x * 0.01 + z * 0.02 });
+  old.addFire(second, WAYMARK_FIRE, { at: new Vector3(1, 2, 3), groundAt: (x, z) => x * 0.01 + z * 0.02 });
+  const geometry = (group: Group) => group.children.map(child => {
+    if (!(child instanceof Mesh || child instanceof Points)) throw new Error('Missing fire primitive');
+    const data: unknown = child.geometry; if (!(data instanceof BufferGeometry)) throw new Error('Missing fire geometry');
+    const position: unknown = data.getAttribute('position'), seed: unknown = data.getAttribute('seed') ?? data.getAttribute('aSeed');
+    if (!(position instanceof BufferAttribute) || child instanceof Points && !(seed instanceof BufferAttribute)) throw new Error('Missing exact fire attributes');
+    return { kind: child.type, at: child.position.toArray(), scale: child.scale.toArray(), order: child.renderOrder, cull: child.frustumCulled,
+      position: Array.from(position.array), seed: seed instanceof BufferAttribute ? Array.from(seed.array) : null };
+  });
+  expect(geometry(first)).toEqual(geometry(second));
+  const graphSeeds: unknown = borrowed.geometries()[0]?.getAttribute('aSeed'), oldSeeds: unknown = old.geometries()[0]?.getAttribute('seed');
+  if (!(graphSeeds instanceof BufferAttribute) || !(oldSeeds instanceof BufferAttribute)) throw new Error('Missing seed oracle');
+  expect(graphSeeds.array).toEqual(oldSeeds.array);
+  borrowed.tick(0); borrowed.tick(12.375); expect(ticks).toEqual([0, 12.375]);
+  expect(borrowed.lights).toBe(lights); borrowed.fireLight(new Vector3(2, 3, 4))(true, 0.25);
+  expect(lights.value[0]?.toArray()).toEqual([2, 3, 4, 0.25]); borrowed.resetLights(); expect(lights.value.every(light => light.w === 0)).toBe(true);
+
 });

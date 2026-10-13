@@ -27,6 +27,33 @@ import { propSurfaces } from './clientPropMaterials';
 import { splatSurface, withSplatSurface } from './clientSplatTerrain';
 import { splatTerrainOf, splatTextureRefs } from '@wildshard/format/splatTerrain';
 
+/** Defer unused graph catalogue entries until a view actually asks for them. Iteration still resolves every declared ID. */
+class MaterialCatalogue implements ReadonlyMap<string, Material> {
+  readonly [Symbol.toStringTag] = 'Map';
+  private readonly factories = new Map<string, () => Material>();
+  private readonly ready = new Map<string, Material>();
+  get size(): number { return this.factories.size; }
+  set(id: string, material: Material): void { this.factories.set(id, () => material); this.ready.set(id, material); }
+  defer(id: string, make: () => Material): void { this.factories.set(id, make); }
+  has(id: string): boolean { return this.factories.has(id); }
+  get(id: string): Material | undefined {
+    const found = this.ready.get(id); if (found !== undefined) return found;
+    const make = this.factories.get(id); if (make === undefined) return undefined;
+    const material = make(); this.ready.set(id, material); return material;
+  }
+  keys(): MapIterator<string> { return this.factories.keys(); }
+  entries(): MapIterator<[string, Material]> {
+    const entries = new Map<string, Material>();
+    for (const id of this.keys()) { const material = this.get(id); if (material === undefined) throw new Error(`Missing declared material ${id}`); entries.set(id, material); }
+    return entries.entries();
+  }
+  values(): MapIterator<Material> { return new Map(this.entries()).values(); }
+  [Symbol.iterator](): MapIterator<[string, Material]> { return this.entries(); }
+  forEach(callback: (material: Material, id: string, map: ReadonlyMap<string, Material>) => void, thisArg?: unknown): void {
+    for (const [id, material] of this.entries()) callback.call(thisArg, material, id, this);
+  }
+}
+
 const WRAPS = { repeat: RepeatWrapping, clamp: ClampToEdgeWrapping, mirror: MirroredRepeatWrapping } as const;
 /**
  * A look sampler row on a just-transcoded texture, before its first upload: wrap, anisotropy (three caps it at the device's),
@@ -76,10 +103,12 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; bindMeshMap: (id: string, map: Texture) => Material; tick: (dt: number) => void;
   outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding) | null;
 }> {
+  const graphsOn = options.graphs ?? setting('graphMaterials') === 'on';
+  const sampledMaterials = graphsOn ? shard.look.materials : Object.fromEntries(Object.entries(shard.look.materials).filter(([, entry]) => entry.family !== 'graph' || 'preset' in entry));
   const textures = new Map<string, Texture>(), uses = new Map<string, 'colour' | 'data'>();
   const named = shard.props === null ? undefined : propMaterialsOf(shard.props);
   const splat = shard.props === null ? undefined : splatTerrainOf(shard.props);
-  const refs = new Set([...materialTextureRefs(shard.look.materials), ...graphFileTextureRefs(shard.look.materials, (hash) => assets.get(hash)), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named), ...splatTextureRefs(splat)]);
+  const refs = new Set([...materialTextureRefs(sampledMaterials), ...graphFileTextureRefs(sampledMaterials, (hash) => assets.get(hash)), ...(shard.props?.textures.map((entry) => entry.colour) ?? []), ...propMaterialTextureRefs(named), ...splatTextureRefs(splat)]);
   const splatRefs = new Set(splatTextureRefs(splat));
   if (refs.size > 0) {
     const loader = detectKtx2Support(new KTX2Loader().setTranscoderPath(BASIS_PATH), renderer);
@@ -102,12 +131,11 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   };
   for (const entry of shard.props?.textures ?? []) resolveTexture(entry.colour, 'colour');
   const toon = new ToonLook(shard.look.familyLooks.toon ?? {}), painterly = new PainterlyLook(shard.look.familyLooks.painterly ?? {}), emissive = new EmissiveLook(shard.look.familyLooks.emissive ?? {});
-  const context = { toon, painterly, emissive, textures: resolveTexture, scope }, materials = new Map<string, Material>();
+  const context = { toon, painterly, emissive, textures: resolveTexture, scope }, materials = new MaterialCatalogue();
   const defaults = new Set([...shard.look.families, ...(shard.terrain === null || shard.terrain.form === 'query' ? [] : [shard.terrain.family]), ...(shard.props === null ? [] : [shard.props.family])]);
   // a family's implicit surface is plain and vertex-coloured; PBR's metalness default is a map multiplier, so the plain one is dielectric
   for (const id of defaults) if (!Object.hasOwn(shard.look.materials, id)) materials.set(id, scope.own(familyMaterial({ family: id, vertexColours: true, ...(id === 'pbr' ? { metalness: 0 } : {}) }, context)));
   // graph entries: the lazy compiler loads only when the row is on and the shard carries one (a shard without pays nothing)
-  const graphsOn = options.graphs ?? setting('graphMaterials') === 'on';
   const compiler = graphsOn && carriesGraph(shard, assets) ? await loadGraphCompiler(renderer) : null;
   if (scope.disposed) throw new Error('Material scope unloaded during the graph compiler load');
   const graphs = clientGraphs(shard, { compiler, fallback: (entry) => familyMaterial(entry, context), textures: (ref) => resolveTexture(ref, 'colour'), file: (hash) => assets.get(hash) });
@@ -129,7 +157,8 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   const moving: { material: Material; base: ReturnType<typeof parseFamilyMaterial>; rows: NonNullable<Shardfile['look']['curves']>[string]; seen: Map<string, number> }[] = [];
   for (const [id, entry] of Object.entries(shard.look.materials)) {
     const rows = shard.look.curves?.[id];
-    if (rows === undefined || isGraphEntry(entry)) { materials.set(id, compile(entry)); continue; }
+    if (isGraphEntry(entry)) { materials.defer(id, () => compile(entry)); continue; }
+    if (rows === undefined) { materials.set(id, compile(entry)); continue; }
     const base = parseFamilyMaterial(entry), seen = new Map(rows.map((row) => [row.state, fieldValue(row.state)]));
     const material = compile(curvedParams(base, rows, (key) => seen.get(key) ?? 0));
     materials.set(id, material); moving.push({ material, base, rows, seen });

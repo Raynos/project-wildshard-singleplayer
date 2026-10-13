@@ -1,4 +1,4 @@
-import { Group, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, PlaneGeometry, type BufferGeometry, type ShaderMaterial } from 'three';
+import { Group, InstancedBufferAttribute, InstancedBufferGeometry, Mesh, PlaneGeometry, type BufferGeometry, ShaderMaterial, type Material } from 'three';
 import { uniformsFrom, type ShaderMaterialOptions, type UniformMap, type UniformRows } from '@wildshard/game/plugin/shaderFamily';
 
 /**
@@ -63,8 +63,8 @@ export interface CardFieldRow<P extends string = string> {
 }
 
 /** Where a card's material comes from: a shader family, or any source of a material by program name. */
-export interface CardPrograms<P extends string> {
-  material: (program: P, shared: UniformMap, options?: ShaderMaterialOptions) => ShaderMaterial;
+export interface CardPrograms<P extends string, M extends Material = ShaderMaterial> {
+  material: (program: P, shared: UniformMap, options?: ShaderMaterialOptions) => M;
 }
 
 /** What a card group adds: the caller's named quads, and the caller's group to put the cards under. */
@@ -74,10 +74,10 @@ export interface CardGroupOptions {
 }
 
 /** What `cardGroup` builds: the group, the shared plane, every card's material and mesh, and the pulse update. */
-export interface CardGroup {
+export interface CardGroup<M extends Material = ShaderMaterial> {
   readonly group: Group;
   readonly geometry: PlaneGeometry;
-  readonly materials: readonly ShaderMaterial[];
+  readonly materials: readonly M[];
   /** every card's mesh, in the row's order */
   readonly meshes: readonly Mesh[];
   /** writes every card's pulse for look time `t` (seconds) */
@@ -85,10 +85,10 @@ export interface CardGroup {
 }
 
 /** A group of camera-facing cards from a row: one mesh per card, on one shared 1 × 1 plane or the caller's named quads. */
-export function cardGroup<P extends string>(programs: CardPrograms<P>, row: CardGroupRow<P>, shared: UniformMap, options: CardGroupOptions = {}): CardGroup {
+export function cardGroup<P extends string, M extends Material = ShaderMaterial>(programs: CardPrograms<P, M>, row: CardGroupRow<P>, shared: UniformMap, options: CardGroupOptions = {}): CardGroup<M> {
   const group = options.into ?? new Group();
   if (options.into === undefined) group.name = row.name;
-  const plane = new PlaneGeometry(1, 1), materials: ShaderMaterial[] = [], meshes: Mesh[] = [];
+  const plane = new PlaneGeometry(1, 1), materials: M[] = [], meshes: Mesh[] = [];
   const pulses: { readonly material: ShaderMaterial; readonly pulse: CardPulseRow }[] = [];
   for (const card of row.cards) {
     const material = programs.material(card.program, shared, card.uniforms === undefined ? {} : { uniforms: uniformsFrom(card.uniforms) });
@@ -98,7 +98,10 @@ export function cardGroup<P extends string>(programs: CardPrograms<P>, row: Card
     if (typeof card.scale === 'number') mesh.scale.setScalar(card.scale); else if (card.scale !== undefined) mesh.scale.set(...card.scale);
     if (card.at !== undefined) mesh.position.set(...card.at);
     group.add(mesh); materials.push(material); meshes.push(mesh);
-    if (card.pulse !== undefined) pulses.push({ material, pulse: card.pulse });
+    if (card.pulse !== undefined) {
+      if (!(material instanceof ShaderMaterial)) throw new Error('[cardGroup] uniform pulses require a shader material');
+      pulses.push({ material, pulse: card.pulse });
+    }
   }
   return { group, geometry: plane, materials, meshes, update: (t) => {
     for (const { material, pulse } of pulses) { const u = material.uniforms[pulse.uniform]; if (u) u.value = pulse.base + pulse.amp * Math.sin(t * pulse.rate + pulse.phase); }

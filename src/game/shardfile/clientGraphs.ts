@@ -220,7 +220,7 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
       return ir.primitive === 'points' ? pointFallback() : options.fallback(graphFallbackEntry(ir));
     }
     const compiler = options.compiler, compiled = compiler.compileGraph(ir, { dayKeys, stateFields, budget, textures: options.textures });
-    if (resolved.preset) for (const name of PRESET_CLOCK_PARAMS) if (ir.params?.[name] !== undefined) clocks.push(() => { compiled.setParam(name, elapsed); });
+    if (resolved.preset) for (const name of PRESET_CLOCK_PARAMS) if (ir.params?.[name] !== undefined) { compiled.setParam(name, elapsed); clocks.push(() => { compiled.setParam(name, elapsed); }); }
     const hull = compiled.outline;
     if (hull !== null) outlines.set(compiled.material, { material: hull, attach: (mesh) => compiler.attachOutline(mesh, hull) });
     feeds.attach(compiled, ir.params);

@@ -4284,6 +4284,41 @@ callers. Signal lash and Sky fan use this one model/presentation owner in
 both gameplay and their catalogue, retaining the original contact phase,
 clock and independent shader ports. No SDK runtime forwarding alias exists.
 
+### Graph effect coordinates and exact raster inputs
+
+`@wildshard/format/materialGraph` admits these optional vertex inputs:
+`modelScale` reads the world model matrix's positive axis lengths;
+`cylindricalBillboard` returns an absolute local position facing the camera
+about world Y, retaining X/Y model scale (subtract `positionLocal` for
+`vertex.offset`). `viewDepth(worldPoint)` returns minus camera-space Z.
+`screenDirection(worldA, worldB)` returns the normalized NDC displacement
+B minus A, Y up, biased by `[0.00001, 0]` for a coincident pair. Pass it
+through `varying` to a point fragment; `pointCoord` is Y up. No source code
+or camera matrix comes from the shard. Existing ops and absent effect
+state keep their programs unchanged.
+
+`@wildshard/sdk/bake/texture#bakeRawColourTexture` stores decoded bounded
+PNG/JPEG/WebP RGBA pixels in Zstd RGBA8-sRGB KTX2 without lossy encoding.
+Its explicit `flipY` option selects row order. A graph texture param names
+the admitted file hash; the file belongs to the charged library. A sampler
+with `filter: 'linear', mips: 'gpu'` preserves the existing painted-image
+GPU mip law. This is an author writer, with no new runtime SDK facade.
+
+`runtimeLookMaterials` reads immutable graph files and their texture closure
+before compiling selected IDs. A hybrid compiles them in its world stage
+before making runtime meshes; its existing entered owner feeds declared
+host clock params through `graphs.bind` and `tick(0)`. Material and texture
+ownership stay with the resident scope; required files and failed graph
+compilation refuse before constructing effects.
+
+`Game.captureHeightMaterial()` makes the official map capture's unchanged
+world-height override (16-bit R/G, B coverage). Its caller disposes it;
+no ordinary frame creates it and it never depends on a retained scene shader.
+The confined SDK JSON writer's optional `--files` mode accepts a bounded
+Map of own project outputs, validates every path and byte array before
+publishing any, and reads only that shard's authored input folders.
+
+
 ### Declared creature libraries and page fights
 
 `engine/models/model.defineBakedModels(rows, build)` defines bounded,

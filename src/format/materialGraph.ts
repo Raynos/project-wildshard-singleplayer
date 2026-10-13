@@ -242,7 +242,7 @@ type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade' |
 /** how an op types its inputs */
 type TypeRule =
   | 'input' | 'const' | 'param' | 'same' | 'unary' | 'vecUnary' | 'length' | 'dot' | 'mix' | 'compare' | 'logic' | 'not'
-  | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'dir3' | 'sceneTap'
+  | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'point3' | 'pointPair' | 'dir3' | 'sceneTap'
   | 'varying' | 'attribute';
 /** one op of the vocabulary */
 export interface GraphOpSpec {
@@ -289,6 +289,13 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   pointCoord: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: ['fragment'] },
   // Absolute model-space billboard position. Geometry coordinates are world metres; object/instance origins stay fixed.
   viewBillboard: { arity: [0, 0], rule: 'input', cost: 32, type: 'vec3', places: VERT },
+  // Absolute model-space Y-axis billboard, retaining the model's X/Y scale; subtract positionLocal for vertex.offset.
+  cylindricalBillboard: { arity: [0, 0], rule: 'input', cost: 48, type: 'vec3', places: VERT },
+  // World-space lengths of the model matrix's X, Y and Z axes (positive, including parent transforms).
+  modelScale: { arity: [0, 0], rule: 'input', cost: 9, type: 'vec3', places: VERT },
+  // Camera-space forward distance and projected motion; vary the direction into a point fragment.
+  viewDepth: { arity: [1, 1], rule: 'point3', cost: 16, type: 'float', places: VERT },
+  screenDirection: { arity: [2, 2], rule: 'pointPair', cost: 72, type: 'vec2', places: VERT },
   fragCoord: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: ['fragment', 'outline'] },
   // a declared geometry attribute (`name`, `type`): a shard's own per-vertex or per-instance data
   attribute: { arity: [0, 0], rule: 'attribute', cost: 0, places: MESH },
@@ -640,6 +647,8 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         return n >= 2 && n <= 4 ? vecOf(n) : fail(`${at}: combine makes ${n} components (2–4)`);
       }
       case 'noise': return ins[0] === 'vec2' || ins[0] === 'vec3' ? 'float' : fail(`${at}: noise takes a vec2 or vec3`);
+      case 'pointPair': return ins.every(t => t === 'vec3') ? spec.type ?? null : fail(`${at}: ${op} takes two vec3 points`);
+      case 'point3': return ins[0] === 'vec3' ? spec.type ?? null : fail(`${at}: ${op} takes a vec3 point`);
       case 'dir3': return ins[0] === 'vec3' ? 'vec3' : fail(`${at}: ${op} takes a vec3 direction`);
       case 'varying': return ins[0] !== undefined && isNumeric(ins[0]) ? ins[0] : fail(`${at}: a varying carries a number`);
       case 'attribute': {

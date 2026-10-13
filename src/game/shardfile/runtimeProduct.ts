@@ -8,6 +8,7 @@ import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
 import { SHARDFILE_ADMISSION_LIMITS } from '@wildshard/format/admissionLimits';
 import { runtimeBoundWorldFiles } from '../plugin/headless';
 import { clientMaterials } from './clientMaterials';
+import { graphFileTextureRefs, materialTextureRefs } from '@wildshard/format/materials';
 import type { ShardContext } from '../plugin/context';
 
 /**
@@ -142,7 +143,7 @@ export function bindRuntimeProductProps(scope: Scope, source: Shardfile, ports: 
  * (off: each graph's family preset). `ids` compiles only those catalogue entries (no props, curves or terrain maps), so a
  * runtime whose data client already draws the textured rest compiles just its own meshes' materials.
  */
-export function runtimeLookMaterials(ctx: Pick<ShardContext, 'scope' | 'game'>, source: Shardfile, graphs?: boolean, ids?: readonly string[]): ReturnType<typeof clientMaterials> {
+export async function runtimeLookMaterials(ctx: Pick<ShardContext, 'scope' | 'game'>, source: Shardfile, graphs?: boolean, ids?: readonly string[]): ReturnType<typeof clientMaterials> {
   const world = ctx.game.runtime?.world;
   if (world === null || world === undefined) throw new Error('Runtime look materials need the world stage');
   const product = runtimeProduct(source);
@@ -154,7 +155,12 @@ export function runtimeLookMaterials(ctx: Pick<ShardContext, 'scope' | 'game'>, 
     }));
     shard = { ...shard, look: { ...look, families: [], materials }, terrain: null, props: null };
   }
-  return clientMaterials(shard, product.assets.retained, world.game.renderer, ctx.scope, graphs === undefined ? {} : { graphs });
+  const assets = new Map(product.assets.retained);
+  const files = Object.values(shard.look.materials).flatMap(entry => entry.family === 'graph' && 'file' in entry ? [entry.file] : []);
+  for (const ref of files) assets.set(ref, await product.assets.read(ref));
+  for (const ref of new Set([...materialTextureRefs(shard.look.materials), ...graphFileTextureRefs(shard.look.materials, hash => assets.get(hash))])) assets.set(ref, await product.assets.read(ref));
+  if (ctx.scope.disposed) throw new Error('Runtime look scope unloaded while reading materials');
+  return clientMaterials(shard, assets, world.game.renderer, ctx.scope, graphs === undefined ? {} : { graphs });
 }
 
 /**
