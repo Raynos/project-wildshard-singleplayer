@@ -1,4 +1,6 @@
 import { expect, it } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Admit the retained navigation bytes in the real island fixture.
+import { readFileSync } from 'node:fs';
 import { toLevelSpec } from '../../../src/game/shard/spec';
 import { configureLevel } from '../../../src/engine/level/selection';
 import { terrainDatum } from '../../../src/engine/world/terrainHeight';
@@ -29,6 +31,9 @@ import source from '../../../src/shards/driftwood-isle/shard.config';
 const shipped = manifest.ground.terrain;
 if (shipped === undefined) throw new Error('Driftwood has an analytic terrain');
 const authored = { ...shipped, heightAt: (x: number, z: number) => shipped.heightAt(x, z) + WORLD_DROP, waterLevel: () => shipped.waterLevel() + WORLD_DROP, datum: 0 };
+const navigation = source.navigation;
+if (navigation === null) throw new Error('Driftwood declares navigation');
+const assets = new Map([[navigation.file, Uint8Array.from(readFileSync(`src/shards/driftwood-isle/assets/navigation-${navigation.file}`))]]);
 const SAMPLES: readonly (readonly [number, number])[] = [[0, -194], [-4.2, -203], [0, -250], [-24, -62], [98, 96], [153, 2], [-98, 108], [24, 22], [-250, 0], [250, 250], [-180, -30]];
 
 it('the field, the waterline, OCEAN.level (uSeaLevel), the open water, the wreck and the engine datum all read -0.8 m', async () => {
@@ -51,7 +56,7 @@ it('the field drops WORLD_DROP as one (heights, waterline, the bake datum), norm
 });
 
 it('declares four 8 m midpoint entries on the lowered boundary rows, the socket at road height across each opening', () => {
-  expect(validateProject(source, new Map())).toEqual(source);
+  expect(validateProject(source, assets)).toEqual(source);
   expect(source.entryways.map((row) => [row.edge, row.width])).toEqual([['north', ENTRY_WIDTH], ['east', ENTRY_WIDTH], ['south', ENTRY_WIDTH], ['west', ENTRY_WIDTH]]);
   expect(entrywayRules(source)).toEqual([]);
   for (const edge of ['north', 'east', 'south', 'west'] as const) {
@@ -72,14 +77,14 @@ it('declares every entry a socket over water: the sea row clips all four sockets
   expect(source.entryways.map((row) => row.kind)).toEqual(['socketOverWater', 'socketOverWater', 'socketOverWater', 'socketOverWater']);
   expect(source.water).toEqual([{ id: 'sea', kind: 'sea', level: 0, waves: true, dryEntries: ['north', 'east', 'south', 'west'] }]);
   expect(source.props?.colliders.map((row) => row.shapes)).toEqual(ENTRY_LANDINGS.map(({ box }) => [box]));
-  expect(() => validateShardfileAssets(source, new Map(), contentHash)).not.toThrow();
+  expect(() => validateShardfileAssets(source, assets, contentHash)).not.toThrow();
   // no landing, or one 0.5 m short of the full 8 m, or 1 cm proud of the road: refused
-  expect(() => validateShardfileAssets({ ...source, props: null }, new Map(), contentHash)).toThrow('full-width collision landing');
+  expect(() => validateShardfileAssets({ ...source, props: null }, assets, contentHash)).toThrow('full-width collision landing');
   const narrow = ENTRY_LANDINGS.map(({ edge, box }) => ({ id: `landing.${edge}`, panel: null, initialActive: true, shapes: [edge === 'north' ? { ...box, x: box.x + 0.5 } : { ...box }] }));
   const props = source.props; if (props === null) throw new Error('Driftwood declares its landings');
-  expect(() => validateSocketLandings({ ...source, props: { ...props, colliders: narrow } }, new Map())).toThrow('full-width collision landing');
+  expect(() => validateSocketLandings({ ...source, props: { ...props, colliders: narrow } }, assets)).toThrow('full-width collision landing');
   const proud = ENTRY_LANDINGS.map(({ edge, box }) => ({ id: `landing.${edge}`, panel: null, initialActive: true, shapes: [{ ...box, y: box.y + 0.01 }] }));
-  expect(() => validateShardfileAssets({ ...source, props: { ...props, colliders: proud } }, new Map(), contentHash)).toThrow();
+  expect(() => validateShardfileAssets({ ...source, props: { ...props, colliders: proud } }, assets, contentHash)).toThrow();
   // the ocean's rectangles and the swim / wade clip are the engine's dry sockets exactly (inclusive edges)
   for (const edge of DRY_ENTRIES) {
     const r = dryEntryRect(edge);

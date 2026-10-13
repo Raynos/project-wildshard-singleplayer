@@ -1,5 +1,8 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
+// oxlint-disable-next-line import/no-nodejs-modules -- Admit the real retained navigation without a network fixture.
+import { readFileSync } from 'node:fs';
+import { contentHash } from '../src/sdk/project';
 import { PerspectiveCamera } from 'three';
 import { Scope } from '../src/engine/app/scope';
 import { app } from '../src/engine/app/runtime';
@@ -13,11 +16,21 @@ import { emptyShardfile } from '../src/sdk/author';
 import driftwood from '../src/shards/driftwood-isle/shard.config';
 
 const gridBoot = await import('../src/game/plugin/context');
+const navigation = driftwood.navigation;
+if (navigation === null) throw new Error('Driftwood declares navigation');
+const assets = new Map([[navigation.file, Uint8Array.from(readFileSync(`src/shards/driftwood-isle/assets/navigation-${navigation.file}`))]]);
+const options = { base: 'https://fixture.test/', firstParty: true, offline: false,
+  fetch: (url: string): Promise<Response> => {
+    const bytes = assets.get(new URL(url).pathname.slice(1));
+    if (bytes === undefined) return Promise.reject(new Error(`Undeclared fixture asset: ${url}`));
+    return Promise.resolve(new Response(Uint8Array.from(bytes)));
+  },
+  hash: (bytes: Uint8Array): Promise<string> => Promise.resolve(contentHash(bytes)),
+};
 
 
 async function announce(source: Shardfile, trustedRuntime: boolean, handoff: GridHomeHandoff): Promise<void> {
-  const manifest = await shardfileSource(source, { base: 'https://fixture.test/', firstParty: true, offline: false,
-    fetch: () => Promise.reject(new Error('Empty fixture never fetches')), hash: () => Promise.reject(new Error('Empty fixture never hashes')) }, {
+  const manifest = await shardfileSource(source, options, {
     instance: source.identity.slug, trustedRuntime, audioOwner: 'runtime', worldOwner: 'runtime', catalogue: [], recipes: new Map(), items: new Map(),
     voices: () => new Map(), icon: () => { throw new Error('Fixture never creates equipment'); },
     onSimulationExpected: () => { handoff.expect(); },
@@ -56,8 +69,6 @@ it('the actual grid hybrid composition announces only the data clients that will
   const expected = vi.spyOn(gridBoot.gridHomeSim, 'expect').mockImplementation(() => undefined);
   class Runtime extends ShardPlugin {}
   try {
-    const options = { base: 'https://fixture.test/', firstParty: true, offline: false,
-      fetch: (): Promise<Response> => Promise.reject(new Error('No fixture assets')), hash: (): Promise<string> => Promise.reject(new Error('No fixture hashes')) };
     const bindings = { catalogue: [], recipes: new Map(), items: new Map(), voices: () => new Map(), icon: (): never => { throw new Error('No equipment'); } };
     const entries = [{ slug: driftwood.identity.slug, entry: 'runtime/hybrid.ts', load: () => Promise.resolve({ default: Runtime }) }];
     await prepareHybridShard(driftwood, options, bindings, entries);
