@@ -608,6 +608,10 @@
       "./projectMap": {
         "types": "./dist/types/sdk/projectMap.d.ts",
         "default": "./dist/projectMap.js"
+      },
+      "./random": {
+        "types": "./dist/types/sdk/random.d.ts",
+        "default": "./dist/random.js"
       }
     }
   }
