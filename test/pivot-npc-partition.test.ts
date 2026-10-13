@@ -1,3 +1,4 @@
+import { parseNpcRow } from '@wildshard/format/npcs';
 import {expect,it} from 'vitest';
 import {BufferGeometry,Float32BufferAttribute,Uint8BufferAttribute,Float16BufferAttribute,InterleavedBuffer,InterleavedBufferAttribute,Mesh,type Object3D} from 'three';
 import {pivotNpcParts} from '@wildshard/game/plugin/geometry';
@@ -27,7 +28,7 @@ function snapshot(root:Object3D):unknown[]{
   });return rows;
 }
 it('matches released pivot attributes, flat normals, bounds and hierarchy for both NPC rows and every storage path',()=>{
-  for(const row of [KEEPER_ROW,SCOUT_NPC])for(const indexed of [false,true])for(const interleaved of [false,true])for(const flat of [false,true]){
+  for(const row of [parseNpcRow(KEEPER_ROW),SCOUT_NPC])for(const indexed of [false,true])for(const interleaved of [false,true])for(const flat of [false,true]){
     const source=specimen(indexed,interleaved),definition={...row,figure:{...row.figure,flat}};
     const actual=pivotNpcParts(definition,source.clone()),expected=releasedPivotNpcParts(definition,source.clone());
     expect(snapshot(actual.root)).toEqual(snapshot(expected.root));

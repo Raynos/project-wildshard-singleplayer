@@ -28,6 +28,7 @@ describe('Signal Dunes declares runtime-bound rows (SHARD-PLATFORM M3, the runti
     const data = withoutRuntimeRows(source);
     expect([data.quests.quests.length, data.quests.flags.length, data.ledger.length, data.items.rows.length, data.items.contexts.length]).toEqual([0, 0, 0, 0, 0]);
     expect(data.clientChannels).toEqual([]);
+    expect(data.questNpcs).toEqual([]);
     expect(data.audio).toBe(source.audio); expect(data.edge).toBe(source.edge);
     // G345: the compiled terrain tiles, the sand maps and the bound dusk field are the presentation-only data client's; the
     // engine-owned navigation asset stays admitted
@@ -55,7 +56,8 @@ describe('Signal Dunes declares runtime-bound rows (SHARD-PLATFORM M3, the runti
     const { app } = services(), runtime = source.runtime;
     if (runtime === null) throw new Error('Signal Dunes declares its runtime');
     const { spawns, ...rest } = runtime;
-    const unbound = parseShardfile({ ...source, runtime: { ...rest, binds: ['items', 'state', 'clientChannels'] } });
+    expect(() => parseShardfile({ ...source, runtime: { ...rest, binds: ['items', 'state', 'clientChannels'] } })).toThrow('shardfile semantic rules'); // an NPC requires its native quest owner
+    const unbound = parseShardfile({ ...source, questNpcs: [], runtime: { ...rest, binds: ['items', 'state', 'clientChannels'] } });
     expect(() => parseShardfile({ ...source, runtime: { ...rest, spawns, binds: ['items'] } })).toThrow(); // rows the runtime does not bind
     expect(() => parseShardfile({ ...source, runtime: { ...rest, binds: ['items', 'spawns'] } })).toThrow(); // a bind with no rows
     try {

@@ -5,6 +5,7 @@ import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile, shardfileRules } from '@wildshard/format/shardSchema';
 import { parseQuestNpcBinding, QuestNpcBindingsSchema } from '@wildshard/format/npcs';
 import { installDeclaredQuestNpc } from '@wildshard/game/plugin/ui';
+import { withoutRuntimeRows } from '@wildshard/game/plugin/headless';
 import { QUEST_NPC as KEEPER } from '../src/shards/far-reach/data/questNpc';
 import { QUEST_NPC as SCOUT } from '../src/shards/sunscar-dunes/data/questNpc';
 
@@ -63,4 +64,23 @@ it('looks up only the declared identity before borrowing any resource', () => {
   expect(reads).toBe(1); expect(systems).toEqual([KEEPER.system]);
   expect(bound?.label).toBe(KEEPER.label);
   expect(JSON.stringify(declared.questNpcs)).toBe(JSON.stringify([KEEPER]));
+});
+
+it('empties only native-owned NPC rows without inventing an absent declaration', () => {
+  for (const row of [KEEPER, SCOUT]) {
+    const declared = root(row), projected = withoutRuntimeRows(declared);
+    expect(projected.questNpcs).toEqual([]);
+    expect(projected.quests).toEqual({ flags: [], quests: [], triggers: [], dialogue: [] });
+    expect(parseShardfile(projected)).toStrictEqual(projected);
+    expect(JSON.stringify(declared.questNpcs)).toBe(JSON.stringify([row]));
+  }
+  const declared = root(KEEPER), { questNpcs: _rows, ...absent } = declared;
+  const projected = withoutRuntimeRows(absent);
+  expect(Object.hasOwn(projected, 'questNpcs')).toBe(false);
+  expect(JSON.stringify(projected)).toBe(JSON.stringify({ ...absent, quests: { flags: [], quests: [], triggers: [], dialogue: [] } }));
+  const runtime = declared.runtime;
+  if (runtime === null) throw new Error('Fixture requires native ownership');
+  const unbound = { ...declared, runtime: { ...runtime, binds: [] } };
+  expect(withoutRuntimeRows(unbound)).toBe(unbound);
+  expect(() => parseShardfile(unbound)).toThrow('shardfile semantic rules');
 });
