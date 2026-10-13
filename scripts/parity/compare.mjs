@@ -12,7 +12,7 @@ import { budgetChecks } from './budgets.mjs';
 export function captureIgnore(only, fast = false) {
   const ignored = only === 'fingerprint+poses' ? ['walk', 'combat', 'pauseResume', 'leak'] :
     only === 'walk+combat+leak' ? ['poses'] : [];
-  if (only !== undefined || fast) ignored.push('walk.sounds', 'combat.sounds');
+  if (only === 'fingerprint+poses' || only === 'walk+combat+leak' || fast) ignored.push('walk.sounds', 'combat.sounds');
   return ignored;
 }
 /** @param {string} pattern @param {string} path */

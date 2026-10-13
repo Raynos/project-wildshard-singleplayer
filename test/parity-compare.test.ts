@@ -100,6 +100,7 @@ describe('parity comparison', () => {
       expect(red).toContain('leak.sounds');
     }
     expect(captureIgnore(undefined)).toEqual([]);
+    expect(captureIgnore('unknown-profile')).toEqual([]);
     expect(captureIgnore('fingerprint+poses')).toContain('walk.sounds');
   });
   it('checks filled pending values on m5 and leaves runner pending', () => {
