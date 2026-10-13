@@ -1,3 +1,4 @@
+import { SKY_WORLD_TEXTURES } from '../data/worldTextures';
 import { ROC_STRIKES } from '../data/brains';
 import { SKY_PAGE_PROGRAM } from '../data/population';
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
@@ -31,7 +32,7 @@ import { loadSkyBridges } from '../world/shapes';
 import { adoptIsleTile, setIsleTextures } from '../world/isle';
 import { setSkyLooks } from '../world/looks';
 import { loadSkyMillModel, setMillTextures } from '../world/mill';
-import { FAN_LEAF_URL, TEX_URL } from '../data/files';
+import { FAN_LEAF_URL } from '../data/files';
 import { loadPainted } from '../look/image';
 import { setStormPaint } from '../world/storm';
 import { wakeRibbon } from './looks/wakeRibbon';
@@ -98,9 +99,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     this.board = () => ctx.app.player?.mode === 'board';
     // the islands' painted rock and meadow (E392): sampled in world space by world/isle.ts
     // and the windmill's stone, canvas and ivy (world/mill.ts)
-    const [rock, meadowTex, millStone, millCanvas, millIvy, vortex] = await Promise.all([loadPainted(TEX_URL.rock, 'far.rock', true), loadPainted(TEX_URL.meadow, 'far.meadow', true),
-      loadPainted(TEX_URL.millStone, 'far.mill-stone', true), loadPainted(TEX_URL.millCanvas, 'far.mill-canvas'), loadPainted(TEX_URL.millIvy, 'far.mill-ivy'),
-      loadPainted(TEX_URL.stormeye, 'far.stormeye')]);
+    const [rock = null, meadowTex = null, millStone = null, millCanvas = null, millIvy = null, vortex = null] = await Promise.all(SKY_WORLD_TEXTURES.map(row => loadPainted(row.url, row.name, row.tile)));
     const textures = [rock, meadowTex, millStone, millCanvas, millIvy, vortex];
     for (let i = 0; i < 6; i++) { const texture = textures[i]; if (texture !== null && texture !== undefined) ctx.scope.own(texture); }
     // the storm's painted underside (E399, mockup D's vortex seen from below), mirrored past its edge

@@ -37,7 +37,7 @@ export const IdentitySchema = v.strictObject({ slug: name, name: v.pipe(v.string
 /** Wire revision, capabilities and exact commons declarations. */
 export const RequiresSchema = v.strictObject({ sdk: v.literal(SHARDFILE_VERSION), capabilities: ShardNamesSchema, commons: v.pipe(v.array(ShardHashSchema), v.maxLength(limits.commons)), commonsWire: v.optional(v.record(ShardHashSchema, ShardNaturalSchema), {}), commonsCosts: v.optional(CommonsCostsSchema, {}) });
 /** Authored compressed and resident ceilings. */
-export const BudgetsSchema = v.strictObject({ library: v.strictObject({ resident: ShardNaturalSchema, compressed: ShardNaturalSchema }), sim: v.strictObject({ resident: ShardNaturalSchema, compressed: ShardNaturalSchema }), overlap: ShardNaturalSchema });
+export const BudgetsSchema = v.strictObject({ library: v.strictObject({ resident: ShardNaturalSchema, compressed: ShardNaturalSchema, downloadAllowance: v.exactOptional(ShardNaturalSchema) }), sim: v.strictObject({ resident: ShardNaturalSchema, compressed: ShardNaturalSchema }), overlap: ShardNaturalSchema });
 /** Fixed-step simulation and admitted script binding declarations. */
 export const SimSchema = v.strictObject({ fixedHz: v.literal(60), scriptTickDivisor: v.pipe(positive, v.check((n) => 60 % n === 0, 'script divisor divides 60')), commandVersion: v.literal(0), snapshotVersion: v.literal(0), scripts: ShardReferencesSchema, bindings: v.optional(ScriptBindingsSchema, []) });
 /** Bounded player count and authored movement speed. */

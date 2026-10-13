@@ -1,0 +1,73 @@
+{
+  "rock": {
+    "source": "/assets/far-reach/tex/rock.webp",
+    "sampler": {
+      "filter": "linear",
+      "wrap": "repeat",
+      "anisotropy": 4
+    },
+    "asset": "29509eb73032d3779209857635a2800c58e30d97cf39aa647cd82edce53aa9b5"
+  },
+  "meadow": {
+    "source": "/assets/far-reach/tex/meadow.webp",
+    "sampler": {
+      "filter": "linear",
+      "wrap": "repeat",
+      "anisotropy": 4
+    },
+    "asset": "b230b51585a820cad1c588292ad3b7b96e8ce087526b6adbcb2f6eb566dd96e0"
+  },
+  "clouds": {
+    "source": "/assets/far-reach/tex/clouds.webp",
+    "sampler": {
+      "filter": "linear"
+    },
+    "asset": "8643f909ff6e1a8bd9bc0939ffa587bf1302d58fe6a46d49163873f133b6d5b0"
+  },
+  "cloudsea": {
+    "source": "/assets/far-reach/tex/cloudsea.webp",
+    "sampler": {
+      "filter": "linear",
+      "wrap": "repeat",
+      "anisotropy": 4
+    },
+    "asset": "e87efc25c5f2fb46ff968d8558edc2def23b5b14bc8e9eb81005f7e27f0bb0b3"
+  },
+  "maelstrom": {
+    "source": "/assets/far-reach/tex/maelstrom.webp",
+    "sampler": {
+      "filter": "linear"
+    },
+    "asset": "36bcd27f5ed57c6ec5843e78ebcb57645e1050c32315c25a89329cd30de6dd14"
+  },
+  "stormeye": {
+    "source": "/assets/far-reach/tex/stormeye.webp",
+    "sampler": {
+      "filter": "linear"
+    },
+    "asset": "47844d7d65db8ad2d473359243eb9bff595a18254f0507d91a503e255b3d0e44"
+  },
+  "millStone": {
+    "source": "/assets/far-reach/tex/mill-stone.webp",
+    "sampler": {
+      "filter": "linear",
+      "wrap": "repeat",
+      "anisotropy": 4
+    },
+    "asset": "a6a27d40f424f2adca503a5acc321df62b65f666e6b7a266b4f7330b58c95268"
+  },
+  "millCanvas": {
+    "source": "/assets/far-reach/tex/mill-canvas.webp",
+    "sampler": {
+      "filter": "linear"
+    },
+    "asset": "902bd6a90128d62477fb16fc567dceb43194bffadd4544ee09cb94217b42a054"
+  },
+  "millIvy": {
+    "source": "/assets/far-reach/tex/mill-ivy.webp",
+    "sampler": {
+      "filter": "linear"
+    },
+    "asset": "4d7f378584c91c5e64a2c15a496fff6407e12db1c194fe30bf4261346eb03d3b"
+  }
+}

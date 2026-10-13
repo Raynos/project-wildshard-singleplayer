@@ -78,6 +78,13 @@ const DESKTOP_LAYER = 1024;
 const TIERS = new Set(flag('tiers', 'phone,desktop').split(','));
 
 /** the URLs each tier was seen to load (see the header) */
+// A bounded source catalogue can emit charged library assets without native shard/engine imports.
+const libraryInput = flag('library', '');
+if (libraryInput !== '') {
+  const { bakeTextureLibrary } = await import('../src/sdk/bake/texture.ts');
+  await bakeTextureLibrary(ROOT, libraryInput, { encode: argv.includes('--encode'), check: CHECK });
+  process.exit(0);
+}
 const LIST = JSON.parse(readFileSync(LIST_FILE, 'utf8'));
 const listed = { phone: new Set(TIERS.has('phone') ? LIST.phone : []), desktop: new Set(TIERS.has('desktop') ? LIST.desktop : []) };
 // the texture-array layers' sets (src/engine/core/assets.ts loadPBRArray): every shard's ground layers + the bark set

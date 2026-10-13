@@ -15,7 +15,9 @@ export function packProjectMap(source: Shardfile, map: ProjectMap): { shard: Sha
   return { hash, shard: parseShardfile({ ...source, map: { image: hash, tilesHash: map.tilesHash },
     files: existing === undefined ? [...source.files, { hash, kind: 'image', compressed: map.bytes.length, ...cost, dependencies: [], critical: false }] : source.files,
     library: included ? source.library : [...source.library, hash],
-    budgets: { ...source.budgets, library: { compressed: source.budgets.library.compressed + (included ? 0 : map.bytes.length),
+    budgets: { ...source.budgets, library: { ...source.budgets.library,
+      ...(source.budgets.library.downloadAllowance === undefined ? {} : { downloadAllowance: source.budgets.library.downloadAllowance + (included ? 0 : map.bytes.length) }),
+      compressed: source.budgets.library.compressed + (included ? 0 : map.bytes.length),
       resident: source.budgets.library.resident + (included ? 0 : cost.decoded + cost.gpu) } },
   }) };
 }

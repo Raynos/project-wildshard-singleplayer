@@ -1,3 +1,4 @@
+import skyMaps from './data/skyMaps.json' with { type: 'json' };
 import { QUEST_HOST } from './data/questHost';
 import { QUEST_NPC } from './data/questNpc';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
@@ -62,8 +63,8 @@ export default parseShardfile({ ...base, navigation: navigation.navigation, serv
   // The authored clips declare every bridge, islet and gate; both hosts install this admitted order once.
   movers: MOVERS,
   // the twelve static islands' compiled props tiles (generators/isleProps.ts), drawn by the runtime (runtime.binds props)
-  tiles: isleProps.tiles, files: [wasm(BRIDGE_MODULE), wasm(LIFT_MODULE), wasm(FAN_GUST_MODULE), ...navigation.files, ...isleProps.files], critical: [BRIDGE_MODULE.hash, LIFT_MODULE.hash, FAN_GUST_MODULE.hash, ...navigation.critical],
-  budgets: { ...base.budgets, sim: { resident: 1_000_000 + 65_536 + FAN_GUST_MODULE.bytes + navigation.files.reduce((sum, file) => sum + file.decoded, 0), compressed: LIFT_MODULE.bytes + BRIDGE_MODULE.bytes + FAN_GUST_MODULE.bytes + navigation.files.reduce((sum, file) => sum + file.compressed, 0) } },
+  library: [...base.library, ...skyMaps.library], tiles: isleProps.tiles, files: [...skyMaps.files, wasm(BRIDGE_MODULE), wasm(LIFT_MODULE), wasm(FAN_GUST_MODULE), ...navigation.files, ...isleProps.files], critical: [BRIDGE_MODULE.hash, LIFT_MODULE.hash, FAN_GUST_MODULE.hash, ...navigation.critical],
+  budgets: { ...base.budgets, library: { ...skyMaps.budget, downloadAllowance: 8_811_813 }, sim: { resident: 1_000_000 + 65_536 + FAN_GUST_MODULE.bytes + navigation.files.reduce((sum, file) => sum + file.decoded, 0), compressed: LIFT_MODULE.bytes + BRIDGE_MODULE.bytes + FAN_GUST_MODULE.bytes + navigation.files.reduce((sum, file) => sum + file.compressed, 0) } },
   sim: { ...base.sim, scripts: [BRIDGE_MODULE.hash, LIFT_MODULE.hash, FAN_GUST_MODULE.hash] },
   props: { version: 1, family: 'toon', tiles: isleProps.props.tiles, panels: [], models: [], far: null, textures: [],
     colliders: [...RISING_ISLETS.map((entry) => ({ id: `landing.${entry.edge}`, panel: null, initialActive: true, shapes: [{ ...entry.landing }] })),

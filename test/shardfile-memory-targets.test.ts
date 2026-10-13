@@ -60,3 +60,19 @@ it('charges authored coarse tile excess and the larger server reservation agains
   tile.decoded = C.playing;
   expect(() => validateProject(s, new Map())).toThrow('total exceeds envelope');
 });
+
+it('admits a per-shard download allowance without changing memory or other defaults', () => {
+  const s = source(), other = source(), memory = worstContentCost(s);
+  s.budgets.library.compressed = 8_811_813;
+  expect(() => validateProject(s, new Map())).toThrow('PERFORMANCE REPORT');
+  const raised = parseShardfile({ ...s, budgets: { ...s.budgets, library: { ...s.budgets.library, downloadAllowance: 8_811_813 } } });
+  expect(validateProject(raised, new Map())).toEqual(raised);
+  expect(worstContentCost(raised)).toEqual(memory);
+  expect(other.budgets.library).not.toHaveProperty('downloadAllowance');
+  expect(C.library.compressed).toBe(8_000_000);
+  raised.budgets.library.compressed++;
+  expect(() => validateProject(raised, new Map())).toThrow('PERFORMANCE REPORT');
+  expect(() => parseShardfile({ ...raised, budgets: { ...raised.budgets, library: { ...raised.budgets.library, downloadAllowance: -1 } } })).toThrow();
+  raised.budgets.overlap = C.playing;
+  expect(() => validateProject(raised, new Map())).toThrow('total exceeds envelope');
+});

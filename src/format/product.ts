@@ -479,9 +479,10 @@ export function performanceTargetIssues(source: Shardfile, policy: 'refuse' | 'w
   const check = (metric: string, actual: number, limit: number, provisional = false): void => {
     if (actual > limit) issues.push({ metric, actual, limit, severity: provisional || policy === 'warn' ? 'warning' : 'refusal' });
   };
-  check('library download budget bytes', source.budgets.library.compressed, C.library.compressed);
+  const libraryAllowance = source.budgets.library.downloadAllowance ?? C.library.compressed;
+  check('library download budget bytes', source.budgets.library.compressed, libraryAllowance);
   check('critical download budget bytes', source.budgets.sim.compressed, C.sim.compressed);
-  check('library download bytes', totals(source, reportCardClosure(source, source.library)).bytes, C.library.compressed);
+  check('library download bytes', totals(source, reportCardClosure(source, source.library)).bytes, libraryAllowance);
   check('critical download bytes', totals(source, reportCardClosure(source, source.critical)).bytes, C.sim.compressed);
   for (const tile of source.tiles) {
     const cap = tile.lod === 0 ? C.l0 : C.l1, id = `tile ${tile.lod}/${tile.x}/${tile.z}`;

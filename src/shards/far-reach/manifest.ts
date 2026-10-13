@@ -1,3 +1,4 @@
+import { SKY_MANIFEST_SKY, SKY_MANIFEST_ATMOSPHERE, SKY_MANIFEST_GRADE } from './data/manifestLook';
 import { SKY_DEV_POSES } from './data/devPoses';
 import { SKY_DISCOVERY } from './data/discovery';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
@@ -25,13 +26,12 @@ export const SKY_REACH: ShardManifest = {
   pois: (['north', 'east', 'south', 'west'] as const).map((edge, i) => ({ id: `islet-${edge}`, name: STRINGS.islet, x: [0, 228, 0, -228][i] ?? 0, z: [228, 0, -228, 0][i] ?? 0, r: 12 })),
   // The painted light (review 2026-10-01 item 1): a warm sky fill and a gold ground bounce lift every shade side; the key
   // stays low and behind the islands (look/light.ts adds the bounce wrap, the rim and the shade floor).
-  sky: { sunColor: [1, 0.8, 0.58], sunIntensity: 2.3, envIntensity: 0.7, bgIntensity: 1, fogSunColor: [1, 0.82, 0.64], cloudSunColor: [1, 0.84, 0.7],
-    hemiSky: 0xc8c6dc, hemiGround: 0x9e98ac, hemiIntensity: 1.4, sun: { azimuth: 300, elevation: 4.3 } }, // the elevation is the painted sun's (look/panoramaData.ts PANO_SUN)
-  atmosphere: { fogHeight: -20, fogHeightFalloff: 0, fogHeightDensity: 0, fogDistDensity: 0, volumetricSunColor: [1, 0.8, 0.6] },
+  sky: SKY_MANIFEST_SKY, atmosphere: SKY_MANIFEST_ATMOSPHERE, grade: SKY_MANIFEST_GRADE, // the elevation is the painted sun's (look/panoramaData.ts PANO_SUN)
+
   // E399 round 6: under the NEUTRAL tone map (look/render.ts) no extra saturation (0.32 drove every low-blue colour to 0:
   // the meadow's blue measured 0-3 against the mockups' 14-45), a gentler contrast and bloom; measured against the mockups.
   // (round 7: a gamma 1.15 lifted the middle but flattened the meadow's spread, 29 vs 70; look/light.ts lifts the forms' shade instead)
-  grade: { saturation: 0, brightness: 0, contrast: 0.12, bloomIntensity: 0.35, bloomThreshold: 0.7, shadowTint: [0.97, 0.98, 1.04], highTint: [1.06, 1.0, 0.88], lift: [0.012, 0.004, 0], gain: [1, 0.99, 0.97], gamma: 1 },
+
   render: async () => (await import('./look/render')).skyReachLook(), spawns: [],
   ktx2: () => import('./ktx2.generated'),
   audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./data/cues')).CUES },

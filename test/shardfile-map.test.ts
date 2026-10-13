@@ -148,3 +148,14 @@ it('far / near placeholders keep a trusted hybrid empty; other content still ann
   expect(announced(placed)).toBe(0);
   expect(announced({ ...placed, files: [...placed.files, glb('f')] })).toBe(1);
 });
+
+it('charges compiler-owned map wire to an explicit download allowance once', () => {
+  const source = emptyShardfile({ slug: 'map-allowance', name: 'Map allowance', author: 'Fixture', seed: 1, revision: 1 });
+  source.budgets.library.downloadAllowance = 8_811_813;
+  const map = { bytes, tilesHash: 'a'.repeat(64) }, packed = packProjectMap(source, map).shard;
+  expect(packed.budgets.library.downloadAllowance).toBe(8_811_813 + bytes.length);
+  expect(packProjectMap(packed, map).shard.budgets.library).toEqual(packed.budgets.library);
+  expect(source.budgets.library.downloadAllowance).toBe(8_811_813);
+  const normal = packProjectMap(emptyShardfile({ slug: 'normal-map', name: 'Normal', author: 'Fixture', seed: 1, revision: 1 }), map).shard;
+  expect(normal.budgets.library).not.toHaveProperty('downloadAllowance');
+});

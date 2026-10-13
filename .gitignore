@@ -945,3 +945,5 @@ src/shards/far-reach/data/crownInstances.generated.json
 /src/shards/sunscar-dunes/data/restPools.generated.json
 /public/assets/sunscar-dunes/baked/rest-well.glb
 /public/assets/sunscar-dunes/baked/rest-oil.glb
+
+/src/shards/far-reach/data/skyMaps.json

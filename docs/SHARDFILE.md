@@ -2290,3 +2290,11 @@ without fitting, flattening or recomputing normals. Add the pool URLs to the
 boot file inventory and keep the generator and its output pins in the build
 catalogue. Assemble its scene rows with `createClientScene`, then bind the
 existing motion owner to the returned stable part IDs.
+
+A shard may declare `budgets.library.downloadAllowance` in bytes when its
+approved download diet entry raises the library wire target. Absent means
+the existing 8 MB target. Both the declared wire budget and the actual
+dependency closure must fit the allowance; decoded/GPU charges and the
+1.0 GB playing / 1.8 GB loading envelopes are unchanged. Raised downloads
+use hash-named immutable files, must refetch zero library bytes on a warm
+visit, and keep the shard's load and road travel gates passing.
