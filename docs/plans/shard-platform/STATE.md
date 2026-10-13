@@ -1,14 +1,14 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-13 08:05Z. G345 sprint: Signal + Sky to 80/20 by ~09:30Z.** Review picks G349–G352: queue Part D.
+**2026-10-13 09:30Z. G345 sprint ENDED: target missed (Signal 44.6 %, Sky 51.0 %).** G349–G352: queue Part D.
 
-| Shard (per-export G294) | 21:40Z → 07:45Z | Target | Tiles / private bins |
+| Shard (per-export G294) | 21:40Z → 09:30Z | Target | Tiles / private bins |
 |---|---|---|---|
-| Signal Dunes | 70.7 % → **45.6 %** | ≤ 824 lines | **80 / 0** ✔ |
+| Signal Dunes | 70.7 % → **44.6 %** | ≤ 824 lines | **80 / 0** ✔ |
 | Sky Reach | 78.4 % → **51.0 %** | ≤ 1355 lines | **11 / 0** ✔ (`fd1b0a9a4`) |
 
 **Signal and Sky meet Jake's port bar (tiles + 0 private bins).** **Nine ported** (34 L0 tiles, 0 private bins, Linux-exact). **Nalati 0 private bins** (`d3bdac368`); ground + nav one fetch (Nalati, Sky, Signal).
-**LIVE `2f7cc5e25-mv6dko3t` (07:44Z)** with Sky island tiles. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: Sim Nine entry 241–453 ms (new, sp-o101), Pine desktop now PASS 4/4 (`6f634c96f`, `1682e5ec9`), Sim Far/Nalati/Pine/Driftwood travel 37–62 ms. **Full CI GREEN on `ad30fba68`**, release waits on its smoke. **Whole products: Template, Pastel.**
+**LIVE `2f7cc5e25-mv6dko3t` (07:44Z)** with Sky island tiles. Frame floor `fea49ae28` (`31f7986cd`): 7 shards PASS alone; grid FAIL: Sim Nine entry 241–453 ms (new, sp-o101), Pine desktop now PASS 4/4 (`6f634c96f`, `1682e5ec9`), Sim Far/Nalati/Pine/Driftwood travel 37–62 ms. `ad30fba68` CI + exact smoke GREEN: next release. **Whole products: Template, Pastel.**
 
 **Fleet (G384): 4 Opus + 6 Codex.** Codex: x7 pusher, x5 bench, x6 SF87, x4 Pine, x1 Driftwood, x8 Nine. Opus: o101 Nine Sim entry, o105 Sim grid travel, o107 Pine timber look,, o106 m5 parity drift.
 
