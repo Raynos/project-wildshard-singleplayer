@@ -24,14 +24,17 @@ const ram = strikeFromData(strike(RAM_DATA)), dive = strikeFromData(strike(DIVE_
 const strikes = [strike(RAM_DATA), strike(DIVE_DATA), strike(BURST_DATA)];
 
 it.each(['skyGoat', 'driftRay', 'galeWisp'])('%s refuses automatic installation before receiving its native body authority', kind => {
-  const catalogue = admitSpeciesBrains(rows, strikes), actor = creature('crab', 'small').animal;
-  expect(() => catalogue.bind(kind)).toThrow('trusted native body adapter');
+  const catalogue = admitSpeciesBrains(rows, strikes), fixture = creature('crab', 'small'), actor = fixture.animal;
+  const before = actor.snapshot(), rng = fixture.ctx.rng.snapshot();
+  expect(() => catalogue.bind(kind)).toThrow('trusted home and body authority');
   expect(() => catalogue.policy(kind, actor)).toThrow('trusted native body adapter');
   if (kind !== 'skyGoat') {
     expect(() => catalogue.bind(kind, () => ({ think: () => undefined, act: () => undefined }))).toThrow('native body home');
     expect(() => catalogue.decision(kind, actor)).toThrow('native body home');
     expect(() => catalogue.decision(kind, actor, { ...nativeHome, r: 0 })).toThrow('parameters');
   }
+  expect(actor.snapshot()).toEqual(before); expect(fixture.ctx.rng.snapshot()).toEqual(rng);
+  expect(fixture.hits).toEqual([]); expect(fixture.starts).toEqual([]);
 });
 it('initializes each flight policy from its actual home and preserves every old constructor save byte without RNG or effects', () => {
   const catalogue = admitSpeciesBrains(rows, strikes), f = creature('crab', 'small'), actor = f.animal;
