@@ -1,6 +1,4 @@
 import { Group, InstancedMesh, Matrix4, Mesh, type Object3D } from 'three';
-import type { ShardProps } from '@wildshard/format/props';
-import type { Shardfile } from '@wildshard/format/shardSchema';
 import { readScene, type SceneDescription } from './scene';
 // oxlint-disable-next-line import/no-nodejs-modules -- scene.json, the inspectable intermediate, is written inside the author project.
 import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
@@ -112,8 +110,8 @@ export interface BakedScene {
   props: BakedProps | null;
   pieces: BakedSceneParts[];
   /** Shardfile rows in the product's canonical order (tiles by lod, x, z; files by hash). */
-  shardfile: Pick<Shardfile, 'tiles' | 'files' | 'critical'> & Partial<Pick<Shardfile, 'edge' | 'terrain' | 'far' | 'library'>>;
-  colliders: { scene: SceneDescription['colliders']; props: ShardProps['colliders']; pieces: { piece: string; colliders: PieceBake['colliders'] }[] };
+  shardfile: Pick<BakedTerrain, 'tiles' | 'files' | 'critical'> & Partial<Pick<BakedTerrain, 'edge' | 'terrain'> & Pick<BakedProps, 'far' | 'library'>>;
+  colliders: { scene: SceneDescription['colliders']; props: BakedProps['props']['colliders']; pieces: { piece: string; colliders: PieceBake['colliders'] }[] };
   assets: Map<string, Uint8Array>;
 }
 
