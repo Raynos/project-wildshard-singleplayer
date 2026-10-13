@@ -1,6 +1,6 @@
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import bossStages from './data/bossStages.json' with { type: 'json' };
-import { SKY_REACH_RUNTIME_COST } from './budgets';
+import { SKY_REACH_RUNTIME_COST } from './data/budgets';
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { SKY_QUESTS } from './data/quests';

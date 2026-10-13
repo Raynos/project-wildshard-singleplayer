@@ -6,7 +6,7 @@ import { CONTENT_CAPS } from '../src/engine/core/config';
 import { runtimeAccountedBytes } from '@wildshard/format/runtimeCost';
 import { SKY_REACH } from '../src/shards/far-reach/manifest';
 import skySource from '../src/shards/far-reach/shard.config';
-import { SKY_REACH_RUNTIME_COST } from '../src/shards/far-reach/budgets';
+import { SKY_REACH_RUNTIME_COST } from '../src/shards/far-reach/data/budgets';
 import { NINE_DRAGON_STACK } from '../src/shards/nine-dragon-stack/manifest';
 import nineSource from '../src/shards/nine-dragon-stack/shard.config';
 import { NINE_DRAGON_RUNTIME_COST } from '../src/shards/nine-dragon-stack/data/runtimeCost';

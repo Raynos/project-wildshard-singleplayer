@@ -1,10 +1,11 @@
+import { SKY_DISCOVERY } from './data/discovery';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { STRINGS } from './data/strings';
-import { BUDGETS, SKY_REACH_RUNTIME_COST } from './budgets';
+import { BUDGETS, SKY_REACH_RUNTIME_COST } from './data/budgets';
 import { CROWN, DECK, HIGH, KEEPER, ROOST, SKY_REACH_MAP, SPAWN, STEP, WINDMILL } from './data/layout';
-import { SKY_CARD } from './thumbs/card';
-import { EXPLORE } from './explore/art';
+import { SKY_CARD } from './data/card';
+import { EXPLORE } from './data/explore';
 import { filePolicy } from '@wildshard/engine/boot/filePolicy';
 import { GPU_FILES } from './ktx2.generated';
 import { SKY_CREATURES, SKY_CREATURE_RIGS, SKY_MESHES, MODEL_URLS, SKY_HD, HD_URLS, BAKED_PIECES, BAKED_URLS, BRIDGES_URL, ISLES_URL, FAN_URL, MILL_MODEL_URL, SWARD_ATLAS_URL, TEX_URL, FAN_LEAF_URL, PANO_URL } from './data/files';
@@ -21,23 +22,13 @@ export const bootFiles = (): readonly string[] => Object.values(bootSources('pho
 export const lateReads = (): readonly string[] => ['/assets/lut/far-reach.bin'];
 
 export const SKY_REACH: ShardManifest = {
+  ...SKY_DISCOVERY, slug: 'far-reach',
   navigation: { row: navigation.navigation, url: navigation.url },
   runtimeCost: SKY_REACH_RUNTIME_COST,
-  entries: { legacy: true, shardfile: true, public: 'shardfile' }, // G326: public card flipped once boot, walk and parity passed (op-flip39)
-  gridShardfile: '/shardfiles/far-reach/shard.json',
   trustedRuntime: { get slug() { return SKY_REACH.slug; }, entry: 'runtime/index.ts' },
-  budgets: BUDGETS, api: 1, slug: 'far-reach', order: 60, status: 'experimental', name: STRINGS.name, label: STRINGS.label, seed: 6417,
-  accent: 'pink', // G104: the HUD accent inside its grid cell
-  biome: STRINGS.biome, blurb: STRINGS.blurb, 
+  budgets: BUDGETS, 
   card: { thumb: SKY_CARD.thumb, portrait: SKY_CARD.portrait, landscape: SKY_CARD.landscape },
-  style: 'skyReach', kitLook: 'toon', hands: 'toon', weapon: 'custom', treeCount: 0, trees: { factory: 'none', noun: 'pines' },
-  // A built world (G23, structures only): every island and bridge is a registry piece (world/build.ts); no terrain mesh or
-  // collider, the analytic floor is y -1000. The void under the islands is the cloud sea; `world.killY` ends a fall.
-  ground: { structures: true, paths: 'plugin' },
-  // Shipping bounds stay unchanged; the entry Debug row overrides them through the session hook.
-  spawn: { x: SPAWN.x, y: DECK + 1, z: SPAWN.z, yaw: SPAWN.yaw }, bounds: { x0: -120, x1: 120, z0: -240, z1: 60, floor: DECK - 18 },
-  world: { killY: DECK - 24 },
-  horizon: { rings: [], cloudSea: false }, boundary: { visible: false },
+  horizon: { rings: [], cloudSea: false },
   minimap: { image: '/assets/far-reach/map/top.webp', palette: mapPalette(SKY_REACH_MAP) }, // the map baked from the world (SF66); the palette paints the grid's edges (data/layout.ts)
   // the full map's fixed places (SF66; test/map-coverage.test.ts holds every lift and mover on one): the four rising islets
   // where the road's lifts wait (world/islets.ts RISING_ISLETS `rest`, 228 m out on each axis). The eight isles are the
@@ -52,18 +43,8 @@ export const SKY_REACH: ShardManifest = {
   // the meadow's blue measured 0-3 against the mockups' 14-45), a gentler contrast and bloom; measured against the mockups.
   // (round 7: a gamma 1.15 lifted the middle but flattened the meadow's spread, 29 vs 70; look/light.ts lifts the forms' shade instead)
   grade: { saturation: 0, brightness: 0, contrast: 0.12, bloomIntensity: 0.35, bloomThreshold: 0.7, shadowTint: [0.97, 0.98, 1.04], highTint: [1.06, 1.0, 0.88], lift: [0.012, 0.004, 0], gain: [1, 0.99, 0.97], gamma: 1 },
-  render: async () => (await import('./look/render')).skyReachLook(),
-  uses: ['hover', 'quests', 'bosses', 'coins', 'loot'],
-  loadout: { weapons: ['weapon.far-reach.fan'], tools: ['tool.hoverboard'], start: ['weapon.far-reach.fan', 'tool.hoverboard'], held: 'weapon.far-reach.fan' },
-  species: ['driftRay', 'skyGoat', 'galeWisp', 'stormRoc'], encounters: ['far.roc'], spawns: [], fight: { telegraphed: true, input: { bufferMs: 120, coyoteMs: 100 } },
-  creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0, oneMaterial: true },
-  // far.meadowBlades: blades per 8 m tile of the near meadow (world/meadow.ts)
-  // G253 (Jake, B): the phone loads the 22 HD models' ASTC 4×4 (UASTC) KTX2 GLBs under Auto from the first visit (−72 MB
-  // GL, progress/memory/sky-reach/). The desktop has no KTX2 set and keeps Auto's rule (G188); pause ▸ Settings ▸ Debug ▸
-  // GPU textures = Images stays the engine-wide fallback (the desktop's own files).
-  tiers: { phone: { 'far.meadowBlades': 1600, godRays: true, ao: false, textures: 'ktx2' }, desktop: { 'far.meadowBlades': 3200, godRays: true, ao: false } },
+  render: async () => (await import('./look/render')).skyReachLook(), spawns: [],
   ktx2: () => import('./ktx2.generated'),
-  loot: { coins: true },
   audio: { ambience: 'none', score: 'far.silent', cues: async () => (await import('./data/cues')).CUES },
   boot: { explore: { art: Object.values(EXPLORE.art) }, files: bootFiles, sources: bootSources, lateReads, viewmodelSets: [], shaders: { background: false }, audio: [], precache: [] },
   dev: { poses: () => Promise.resolve({
@@ -76,7 +57,6 @@ export const SKY_REACH: ShardManifest = {
     crown: { eye: [CROWN.x, HIGH + 1.7, CROWN.z + 16], yaw: 0, pitch: 4, mockup: '', frame: 'The storm crown' },
     step: { eye: [STEP.x - 5, HIGH + 1.7, STEP.z + 6], yaw: 20, pitch: 0, mockup: '', frame: 'The high step and the crown bridge winch' },
   }) },
-  assetGlobs: ['public/assets/far-reach/**', 'public/assets/lut/far-reach.bin'],
   explore: EXPLORE, roster: async () => (await import('./roster')).ROSTER, load: () => import('./plugin'),
 };
 // oxlint-disable-next-line import/no-default-export -- Folder discovery requires a default manifest.

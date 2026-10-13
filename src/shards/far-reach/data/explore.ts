@@ -1,7 +1,7 @@
-import exploreWorld from './world-far-reach.webp';
-import exploreModels from './models-far-reach.webp';
-import exploreSets from './sets-far-reach.webp';
-import explorePractice from './practice-far-reach.webp';
+import exploreWorld from '../explore/world-far-reach.webp';
+import exploreModels from '../explore/models-far-reach.webp';
+import exploreSets from '../explore/sets-far-reach.webp';
+import explorePractice from '../explore/practice-far-reach.webp';
 
 /**
  * Explore's four cards, re-cut in loop 5 from the current build: the archipelago from above over the painted cloud sea
