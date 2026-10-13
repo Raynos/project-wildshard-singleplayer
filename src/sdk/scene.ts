@@ -1,4 +1,4 @@
-import { AmbientLight, Bone, type BufferGeometry, DirectionalLight, Fog, FogExp2, HemisphereLight, InstancedMesh, InterleavedBufferAttribute, Light, Line, LOD, Material, Mesh, MeshStandardMaterial, MeshToonMaterial, PointLight, Points, Scene, ShaderMaterial, SkinnedMesh, SpotLight, Sprite, Matrix4, Vector3, type Object3D, type Side } from 'three';
+import { AmbientLight, Bone, type BufferGeometry, DirectionalLight, Fog, FogExp2, HemisphereLight, InstancedMesh, InterleavedBufferAttribute, Light, Line, LOD, Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, MeshToonMaterial, PointLight, Points, Scene, ShaderMaterial, SkinnedMesh, SpotLight, Sprite, Matrix4, Vector3, type Object3D, type Side } from 'three';
 import { updateAuthoringMatrix } from './sceneTransform';
 import { Collider, type ColliderData } from './physics';
 import { Entry, type EntryData } from './entries';
@@ -131,15 +131,15 @@ function geometryData(geometry: BufferGeometry): SceneGeometry {
 function materialData(material: Material): SceneMaterial {
     if (material instanceof ShaderMaterial || material.onBeforeCompile !== Material.prototype.onBeforeCompile)
         throw new Error('Raw shaders and material callbacks are trusted runtime code');
-    if (!(material instanceof MeshStandardMaterial) && !(material instanceof MeshToonMaterial))
+    if (!(material instanceof MeshStandardMaterial) && !(material instanceof MeshToonMaterial) && !(material instanceof MeshBasicMaterial))
         throw new Error(`Unsupported authoring material ${material.type}`);
-    if (material.type !== 'MeshStandardMaterial' && material.type !== 'MeshToonMaterial')
+    if (material.type !== 'MeshStandardMaterial' && material.type !== 'MeshToonMaterial' && material.type !== 'MeshBasicMaterial')
         throw new Error(`Material requires a dedicated compiler: ${material.type}`);
-    if (material.map !== null || material.normalMap !== null || material.alphaMap !== null || material.emissiveMap !== null || material.aoMap !== null || material.bumpMap !== null || material.displacementMap !== null)
+    if (material.map !== null || material.alphaMap !== null || material.aoMap !== null || (!(material instanceof MeshBasicMaterial) && (material.normalMap !== null || material.emissiveMap !== null || material.bumpMap !== null || material.displacementMap !== null)) || (material instanceof MeshBasicMaterial && (material.envMap !== null || material.lightMap !== null || material.specularMap !== null)))
         throw new Error('Scene reader requires independently compiled texture declarations');
     if (material instanceof MeshStandardMaterial && (material.roughnessMap !== null || material.metalnessMap !== null) || material instanceof MeshToonMaterial && material.gradientMap !== null)
         throw new Error('Scene reader requires independently compiled texture declarations');
-    const parameters: SceneMaterial['parameters'] = { flatShading: material instanceof MeshStandardMaterial && material.flatShading, alphaTest: material.alphaTest, emissive: [...material.emissive], emissiveIntensity: material.emissiveIntensity };
+    const parameters: SceneMaterial['parameters'] = { flatShading: material instanceof MeshStandardMaterial && material.flatShading, alphaTest: material.alphaTest, ...(material instanceof MeshBasicMaterial ? {} : { emissive: [...material.emissive], emissiveIntensity: material.emissiveIntensity }) };
     if (material instanceof MeshStandardMaterial) {
         parameters['roughness'] = material.roughness;
         parameters['metalness'] = material.metalness;

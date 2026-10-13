@@ -1,7 +1,7 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc, Piece, PieceCategory } from '@wildshard/engine/world/registry';
-import { DoubleSide, FrontSide, Group, InstancedBufferAttribute, InstancedMesh, MeshStandardMaterial, Object3D, type Material as DrawMaterial } from 'three';
+import { DoubleSide, FrontSide, Group, InstancedBufferAttribute, InstancedMesh, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, type Material as DrawMaterial } from 'three';
 
 /**
  * SHARD-PLATFORM SF72 (SF67 fix 3, "bake the code-built worlds"): the client side of a shard's instanced-kinds bake
@@ -16,12 +16,21 @@ export interface BakedKindRow {
   readonly name: string; readonly count: number; readonly color: number; readonly roughness: number; readonly metalness: number; readonly flat: boolean;
   readonly emissive: number; readonly emissiveIntensity: number; readonly vertexColors: boolean; readonly doubleSided: boolean;
 }
+/** An exact ordinary-mesh kind; omitted fields keep the original instanced standard-material path. */
+export interface BakedMeshKindRow extends BakedKindRow {
+  readonly mesh?: boolean;
+  readonly unlit?: boolean;
+  readonly colorR?: number; readonly colorG?: number; readonly colorB?: number;
+  readonly emissiveR?: number; readonly emissiveG?: number; readonly emissiveB?: number;
+}
+
 /** A baked collider row (a box; JSON keeps a yaw or a quaternion `rot`). */
 export interface BakedColliderRow {
   readonly kind: string; readonly x: number; readonly y: number; readonly z: number; readonly hx: number; readonly hy: number; readonly hz: number;
   readonly yaw?: number; readonly rot?: { readonly x: number; readonly y: number; readonly z: number; readonly w: number }; readonly surface: string;
 }
 
+const isMesh = (node: Object3D | undefined): node is Mesh => node instanceof Mesh;
 const instanced = (node: Object3D): node is InstancedMesh => node instanceof InstancedMesh;
 
 /** Load one piece's GLB: its instanced nodes by kind name, in the rows' order; empty (with a warning) if it fails. */
@@ -140,6 +149,86 @@ export function bakedWorld<P extends string, K extends BakedKindRow>(pieces: Rea
         const mesh = root.children[i], tint = rows.tints?.[kind.name]; if (mesh === undefined || !instanced(mesh)) return;
         byName.set(kind.name, mesh);
         if (tint !== undefined) mesh.instanceColor = new InstancedBufferAttribute(new Float32Array(tint), 3);
+      });
+      return { root, colliders: bakedColliders(rows.colliders), kinds: byName };
+    },
+  };
+}
+
+/** Draw exact ordinary meshes alongside instanced kinds, without changing their shader family or transform precision. */
+export function bakedMeshKindsGroup<K extends BakedMeshKindRow>(nodes: ReadonlyMap<string, Mesh> | undefined, kinds: readonly K[], draw: BakedKindsDraw<K> = {}): Group {
+  const root = new Group();
+  for (const kind of kinds) {
+    const node = nodes?.get(kind.name); if (node === undefined) continue;
+    if (kind.mesh !== true) {
+      if (!instanced(node)) throw new Error(`baked kind ${kind.name}: expected instances`);
+      if (kind.unlit === true) throw new Error(`baked kind ${kind.name}: unlit instances are not admitted`);
+      root.add(...bakedKindsGroup(new Map([[kind.name, node]]), [kind], draw).children); continue;
+    }
+    if (instanced(node) || kind.count !== 1) throw new Error(`baked kind ${kind.name}: expected one ordinary mesh`);
+    const pose: unknown = node.userData['matrix64'];
+    if (!Array.isArray(pose) || pose.length !== 16 || !pose.every((value): value is number => typeof value === 'number' && Number.isFinite(value))) throw new Error(`baked kind ${kind.name}: missing exact transform`);
+    const { colorR, colorG, colorB, emissiveR, emissiveG, emissiveB } = kind;
+    if (colorR === undefined || colorG === undefined || colorB === undefined || ![colorR, colorG, colorB].every(Number.isFinite)) throw new Error(`baked kind ${kind.name}: missing linear colour`);
+    const own = draw.material?.(kind);
+    let material: DrawMaterial;
+    if (own !== undefined) material = own;
+    else if (kind.unlit === true) {
+      const basic = new MeshBasicMaterial({ side: kind.doubleSided ? DoubleSide : FrontSide, vertexColors: kind.vertexColors });
+      basic.color.setRGB(colorR, colorG, colorB); material = basic;
+    } else {
+      if (emissiveR === undefined || emissiveG === undefined || emissiveB === undefined || ![emissiveR, emissiveG, emissiveB].every(Number.isFinite)) throw new Error(`baked kind ${kind.name}: missing linear emissive`);
+      const standard = new MeshStandardMaterial({ roughness: kind.roughness, metalness: kind.metalness, flatShading: kind.flat,
+        emissiveIntensity: kind.emissiveIntensity, side: kind.doubleSided ? DoubleSide : FrontSide, vertexColors: kind.vertexColors });
+      standard.color.setRGB(colorR, colorG, colorB); standard.emissive.setRGB(emissiveR, emissiveG, emissiveB);
+      draw.decorate?.(standard, kind); material = standard;
+    }
+    const mesh = new Mesh(node.geometry, material);
+    mesh.matrix.fromArray(pose); mesh.matrix.decompose(mesh.position, mesh.quaternion, mesh.scale); mesh.matrixAutoUpdate = false;
+    mesh.castShadow = false; mesh.receiveShadow = false; root.add(mesh);
+  }
+  return root;
+}
+
+/** A loaded mixed bake, keyed by piece then kind; ordinary meshes retain their exact local geometry and matrix. */
+export type LoadedMeshBake<P extends string> = ReadonlyMap<P, ReadonlyMap<string, Mesh>>;
+/** One drawn mixed piece, its unchanged collider rows and meshes in authored order. */
+export interface DrawnBakedMeshPiece { readonly root: Group; readonly colliders: ColliderDesc[]; readonly kinds: ReadonlyMap<string, Mesh> }
+/** Load and draw a static bake containing both ordinary and instanced mesh kinds. */
+export interface BakedMeshWorld<P extends string, K extends BakedMeshKindRow> {
+  readonly load: () => Promise<LoadedMeshBake<P>>;
+  readonly last: () => LoadedMeshBake<P> | null;
+  readonly piece: (piece: P, call?: { readonly nodes?: ReadonlyMap<string, Mesh>; readonly only?: (kind: K) => boolean; readonly each?: (material: MeshStandardMaterial) => void }) => DrawnBakedMeshPiece;
+}
+
+/** The ordinary-mesh counterpart of bakedWorld: the same piece rows, collider law and material hooks, with no instancing conversion. */
+export function bakedMeshWorld<P extends string, K extends BakedMeshKindRow>(pieces: Readonly<Record<P, BakedPieceRows<K>>>, urls: Readonly<Record<P, string>>, label: string, draw: BakedKindsDraw<K> = {}): BakedMeshWorld<P, K> {
+  const names = Object.keys(pieces).filter((name): name is P => Object.hasOwn(pieces, name));
+  let loaded: LoadedMeshBake<P> | null = null;
+  return {
+    load: async () => {
+      const meshes = await Promise.all(names.map(async name => {
+        const result = new Map<string, Mesh>();
+        try {
+          const gltf = await loadRigFile(urls[name]), nodes: Mesh[] = [];
+          gltf.scene.traverse(node => { if (isMesh(node)) nodes.push(node); });
+          if (nodes.length !== pieces[name].kinds.length) throw new Error(`${label} ${name}: baked node count differs`);
+          pieces[name].kinds.forEach((kind, i) => { const node = nodes[i]; if (node !== undefined) result.set(kind.name, node); });
+        } catch (error: unknown) { console.error(`[baked] ${label} ${name} did not load; it stands undrawn:`, error); }
+        return result;
+      }));
+      loaded = new Map(names.map((name, i) => [name, meshes[i] ?? new Map<string, Mesh>()])); return loaded;
+    },
+    last: () => loaded,
+    piece: (piece, call = {}) => {
+      const rows = pieces[piece], nodes = call.nodes ?? loaded?.get(piece), kinds = call.only === undefined ? rows.kinds : rows.kinds.filter(call.only);
+      const root = bakedMeshKindsGroup(nodes, kinds, { ...draw, decorate: (material, kind) => { draw.decorate?.(material, kind); call.each?.(material); } });
+      const byName = new Map<string, Mesh>();
+      kinds.filter(kind => nodes?.has(kind.name) === true).forEach((kind, i) => {
+        const mesh = root.children[i]; if (!isMesh(mesh)) throw new Error('Baked mesh order differs');
+        byName.set(kind.name, mesh);
+        const tint = rows.tints?.[kind.name];
+        if (tint !== undefined) { if (!instanced(mesh)) throw new Error('Ordinary baked meshes cannot carry instance tints'); mesh.instanceColor = new InstancedBufferAttribute(new Float32Array(tint), 3); }
       });
       return { root, colliders: bakedColliders(rows.colliders), kinds: byName };
     },

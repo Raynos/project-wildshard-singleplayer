@@ -68,14 +68,14 @@ export class BakedPiece<C extends KindCollider = KindCollider> extends Group {
   readonly options: KindBakeOptions;
   /** Extra plain JSON rows the piece's client reads beside its kinds (anchors, per-piece placements). */
   readonly rows: Readonly<Record<string, unknown>>;
-  constructor(name: string, kinds: readonly (readonly [string, InstancedMesh])[], colliders: readonly C[], options: KindBakeOptions = {}, rows: Readonly<Record<string, unknown>> = {}) {
+  constructor(name: string, kinds: readonly (readonly [string, Mesh])[], colliders: readonly C[], options: KindBakeOptions = {}, rows: Readonly<Record<string, unknown>> = {}) {
     super();
     this.name = name; this.colliders = colliders; this.options = options; this.rows = rows;
     for (const [kind, mesh] of kinds) { mesh.name = kind; this.add(mesh); }
   }
   /** The piece's kinds, in authored order. */
-  kinds(): (readonly [string, InstancedMesh])[] {
-    return this.children.filter((child): child is InstancedMesh => child instanceof InstancedMesh).map((mesh) => [mesh.name, mesh] as const);
+  kinds(): (readonly [string, Mesh])[] {
+    return this.children.filter((child): child is Mesh => child instanceof Mesh).map((mesh) => [mesh.name, mesh] as const);
   }
 }
 

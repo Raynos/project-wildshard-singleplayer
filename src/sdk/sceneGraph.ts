@@ -1,4 +1,4 @@
-import { AmbientLight, Bone, BufferAttribute, BufferGeometry, Color, DirectionalLight, Fog, FogExp2, Group, HemisphereLight, InstancedMesh, LOD, Matrix4, Mesh, MeshStandardMaterial, MeshToonMaterial, Object3D, PointLight, Scene, Skeleton, SkinnedMesh, SpotLight, type Light, type TypedArray } from 'three';
+import { AmbientLight, Bone, BufferAttribute, BufferGeometry, Color, DirectionalLight, Fog, FogExp2, Group, HemisphereLight, InstancedMesh, LOD, Matrix4, Mesh, MeshBasicMaterial, MeshStandardMaterial, MeshToonMaterial, Object3D, PointLight, Scene, Skeleton, SkinnedMesh, SpotLight, type Light, type TypedArray } from 'three';
 import type { SceneDescription, SceneGeometry, SceneMaterial, SceneNode } from './scene';
 import { restoreSceneAnimations } from './sceneAnimation';
 import { restoreSceneDeclaration } from './sceneDeclarations';
@@ -36,13 +36,13 @@ function geometryOf(row: SceneGeometry): BufferGeometry {
   return geometry;
 }
 
-function materialOf(row: SceneMaterial): MeshStandardMaterial | MeshToonMaterial {
-  const material = row.entry !== undefined ? catalogueMaterial(row.entry) : row.type === 'MeshStandardMaterial' ? new MeshStandardMaterial() : row.type === 'MeshToonMaterial' ? new MeshToonMaterial() : null;
+function materialOf(row: SceneMaterial): MeshStandardMaterial | MeshToonMaterial | MeshBasicMaterial {
+  const material = row.entry !== undefined ? catalogueMaterial(row.entry) : row.type === 'MeshStandardMaterial' ? new MeshStandardMaterial() : row.type === 'MeshToonMaterial' ? new MeshToonMaterial() : row.type === 'MeshBasicMaterial' ? new MeshBasicMaterial() : null;
   if (material === null) throw new Error(`Unknown scene material ${row.type}`);
   material.name = row.name; material.color.fromArray(row.color); material.opacity = row.opacity; material.transparent = row.transparent; material.side = row.side; material.vertexColors = row.vertexColors;
   const { emissive, emissiveIntensity, alphaTest, flatShading, roughness, metalness } = row.parameters;
-  if (Array.isArray(emissive)) material.emissive.fromArray(emissive);
-  if (typeof emissiveIntensity === 'number') material.emissiveIntensity = emissiveIntensity;
+  if (!(material instanceof MeshBasicMaterial) && Array.isArray(emissive)) material.emissive.fromArray(emissive);
+  if (!(material instanceof MeshBasicMaterial) && typeof emissiveIntensity === 'number') material.emissiveIntensity = emissiveIntensity;
   if (typeof alphaTest === 'number') material.alphaTest = alphaTest;
   if (material instanceof MeshStandardMaterial) {
     if (typeof flatShading === 'boolean') material.flatShading = flatShading;
@@ -94,7 +94,7 @@ export function restoreSceneGraph(data: SceneDescription): Object3D {
     else if (row.geometry !== undefined) {
       const geometry = geometries[row.geometry], selected = row.materials?.map(index => materials[index]);
       if (geometry === undefined || selected === undefined || selected.length === 0 || selected.some(material => material === undefined)) throw new Error('Missing scene mesh resource');
-      const valid = selected.filter((material): material is MeshStandardMaterial | MeshToonMaterial => material !== undefined);
+      const valid = selected.filter((material): material is MeshStandardMaterial | MeshToonMaterial | MeshBasicMaterial => material !== undefined);
       const material = valid.length === 1 ? valid[0] : valid;
       if (material === undefined) throw new Error('Missing scene mesh material');
       object = row.skin !== undefined ? new SkinnedMesh(geometry, material) : row.instances !== undefined ? new InstancedMesh(geometry, material, row.instances.length) : new Mesh(geometry, material);

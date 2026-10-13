@@ -1,4 +1,4 @@
-import { Color, BoxGeometry, BufferGeometry, DoubleSide, InstancedMesh, Matrix4, Mesh, MeshStandardMaterial, type Object3D } from 'three';
+import { Color, BoxGeometry, BufferAttribute, BufferGeometry, DoubleSide, InstancedMesh, Matrix4, Material, Mesh, MeshBasicMaterial, MeshStandardMaterial, type Object3D } from 'three';
 import { staticGlb, type GlbPrimitive } from './glb';
 
 /**
@@ -40,38 +40,56 @@ export interface KindBakeOptions {
 /** Colliders as the JSON rows keep them (a `-0` yaw is `0`). */
 export const colliderRows = <C extends KindCollider>(colliders: readonly C[]): C[] => colliders.map((c) => c.yaw === 0 ? { ...c, yaw: 0 } : c);
 
+const isInstancedMesh = (mesh: Mesh): mesh is InstancedMesh => mesh instanceof InstancedMesh;
+
 const custom = (geometry: BufferGeometry, attributes: Readonly<Record<string, string>> | undefined): Record<string, string> | undefined => {
   const kept = Object.entries(attributes ?? {}).filter(([, channel]) => geometry.hasAttribute(channel));
   return kept.length === 0 ? undefined : Object.fromEntries(kept);
 };
 
-/** Bake named instanced meshes into one GLB (`name` is its scene name, e.g. `sunscar.rocks`) and their kind rows. */
-export function bakeKinds<C extends KindCollider>(name: string, meshes: readonly (readonly [string, InstancedMesh])[], colliders: readonly C[], options: KindBakeOptions = {}): PieceBake<C> {
+/** Bake named ordinary or instanced meshes into one GLB (`name` is its scene name, e.g. `sunscar.rocks`) and their kind rows. */
+export function bakeKinds<C extends KindCollider>(name: string, meshes: readonly (readonly [string, Mesh])[], colliders: readonly C[], options: KindBakeOptions = {}): PieceBake<C> {
   const kinds: BakedKind[] = [], primitives: GlbPrimitive[] = [];
   for (const [kind, mesh] of meshes) {
-    if (mesh.count === 0) continue;
+    const instanced = isInstancedMesh(mesh), count = instanced ? mesh.count : 1;
+    if (count === 0) continue;
     // The legacy byte path rejects tint; exact mode preserves the instance colour buffer.
-    if (mesh.instanceColor !== null && options.exactInstances !== true) throw new Error(`${name}.${kind}: per-instance colours are not baked`);
-    const instances = Array.from({ length: mesh.count }, (_, i) => { const m = new Matrix4(); mesh.getMatrixAt(i, m); return m; });
-    const instanceColours = options.exactInstances === true && mesh.instanceColor !== null ? Array.from({ length: mesh.count }, (_, i) => { const colour = new Color(); mesh.getColorAt(i, colour); return colour; }) : undefined;
+    if (instanced && mesh.instanceColor !== null && options.exactInstances !== true) throw new Error(`${name}.${kind}: per-instance colours are not baked`);
+    const instances = instanced ? Array.from({ length: count }, (_, i) => { const m = new Matrix4(); mesh.getMatrixAt(i, m); return m; }) : undefined;
+    const instanceColours = instanced && options.exactInstances === true && mesh.instanceColor !== null ? Array.from({ length: count }, (_, i) => { const colour = new Color(); mesh.getColorAt(i, colour); return colour; }) : undefined;
     const material = Array.isArray(mesh.material) ? undefined : mesh.material;
-    if (!(material instanceof MeshStandardMaterial)) throw new Error(`${name}.${kind}: one standard material per kind`);
+    if (!(material instanceof MeshStandardMaterial) && !(material instanceof MeshBasicMaterial)) throw new Error(`${name}.${kind}: one standard or basic material per kind`);
+    if (!instanced && (options.nativeAttributes !== true || options.compactIndex !== true)) throw new Error(`${name}.${kind}: ordinary meshes require native attributes and compact indices`);
+    if (material instanceof MeshBasicMaterial && instanced) throw new Error(`${name}.${kind}: unlit kinds require ordinary meshes`);
+    if (!instanced && (material.transparent || material.opacity !== 1 || material.alphaTest !== 0 || material.wireframe || !material.depthTest || !material.depthWrite || !material.toneMapped || !material.fog)) throw new Error(`${name}.${kind}: unsupported ordinary material state`);
+    if (!instanced) {
+      if (material.onBeforeCompile !== Material.prototype.onBeforeCompile) throw new Error(`${name}.${kind}: material callbacks are runtime code`);
+      for (const [channel, attribute] of Object.entries(mesh.geometry.attributes)) {
+        if (!['position', 'normal', 'color', 'uv', 'tangent'].includes(channel) || !(attribute instanceof BufferAttribute) || !(attribute.array instanceof Float32Array) || attribute.normalized) throw new Error(`${name}.${kind}: ordinary kinds require portable float32 channels`);
+      }
+      if (material.aoMap !== null || material.lightMap !== null || material.envMap !== null || (material instanceof MeshBasicMaterial && material.specularMap !== null)
+        || (material instanceof MeshStandardMaterial && (material.emissiveMap !== null || material.bumpMap !== null || material.displacementMap !== null))) throw new Error(`${name}.${kind}: textures must be external KTX2 declarations`);
+    }
+    mesh.updateWorldMatrix(true, false);
     const explicit = custom(mesh.geometry, options.attributes);
     const automatic = options.nativeAttributes === true ? Object.fromEntries(Object.keys(mesh.geometry.attributes)
       .filter(key => !['position', 'normal', 'color', 'uv', 'tangent'].includes(key) && !Object.values(explicit ?? {}).includes(key))
       .map((key, index) => [`_WS_CHANNEL_${index}`, key])) : undefined;
     const customAttributes = automatic === undefined ? explicit : { ...automatic, ...explicit };
-    const extras = options.nodeExtras?.(kind, mesh);
-    primitives.push({ geometry: mesh.geometry, material, instances, castShadow: false,
-      ...(options.exactInstances === undefined ? {} : { exactInstances: options.exactInstances }),
+    const extras = instanced ? options.nodeExtras?.(kind, mesh) : undefined;
+    primitives.push({ geometry: mesh.geometry, material, ...(instances === undefined ? { transform: mesh.matrixWorld } : { instances }), castShadow: false,
+      ...(!instanced || options.exactInstances === undefined ? {} : { exactInstances: options.exactInstances }),
       ...(instanceColours === undefined ? {} : { instanceColours }),
       ...(options.nativeAttributes === undefined ? {} : { nativeAttributes: options.nativeAttributes }),
       ...(options.compactIndex === undefined ? {} : { compactIndex: options.compactIndex }),
       ...(extras === undefined ? {} : { extras }),
       ...(customAttributes === undefined ? {} : { customAttributes }) });
-    kinds.push({ name: kind, count: mesh.count, color: material.color.getHex(), roughness: material.roughness, metalness: material.metalness, flat: material.flatShading,
-      emissive: material.emissive.getHex(), emissiveIntensity: material.emissiveIntensity, vertexColors: material.vertexColors, doubleSided: material.side === DoubleSide,
-      ...options.extra?.(material) });
+    kinds.push({ name: kind, count, color: material.color.getHex(), roughness: material instanceof MeshStandardMaterial ? material.roughness : 1, metalness: material instanceof MeshStandardMaterial ? material.metalness : 0, flat: material instanceof MeshStandardMaterial && material.flatShading,
+      emissive: material instanceof MeshStandardMaterial ? material.emissive.getHex() : 0, emissiveIntensity: material instanceof MeshStandardMaterial ? material.emissiveIntensity : 1, vertexColors: material.vertexColors, doubleSided: material.side === DoubleSide,
+      ...(material instanceof MeshStandardMaterial ? options.extra?.(material) : {}),
+      ...(instanced ? {} : { mesh: true, colorR: material.color.r, colorG: material.color.g, colorB: material.color.b,
+        ...(material instanceof MeshStandardMaterial ? { emissiveR: material.emissive.r, emissiveG: material.emissive.g, emissiveB: material.emissive.b } : {}) }),
+      ...(material instanceof MeshBasicMaterial ? { unlit: true } : {}) });
   }
   return { glb: staticGlb(primitives, name), kinds, colliders: colliderRows(colliders) };
 }

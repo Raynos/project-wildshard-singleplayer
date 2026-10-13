@@ -1,10 +1,10 @@
-import { BufferAttribute, Float16BufferAttribute, Box3, Matrix4, type Color, type MeshStandardMaterial, Quaternion, Vector3, type Object3D, type BufferGeometry } from 'three';
+import { BufferAttribute, Float16BufferAttribute, Box3, Matrix4, type Color, MeshBasicMaterial, type MeshStandardMaterial, Quaternion, Vector3, type Object3D, type BufferGeometry } from 'three';
 import { parseGlb } from '../assets';
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
 /** A primitive's geometry, material and optional instanced local transforms; textures are separate declared assets. */
 export interface GlbPrimitive {
-  geometry: BufferGeometry; material: MeshStandardMaterial; instances?: readonly Matrix4[]; castShadow?: boolean;
+  geometry: BufferGeometry; material: MeshStandardMaterial | MeshBasicMaterial; instances?: readonly Matrix4[]; castShadow?: boolean;
   /** Optional unique glTF node/mesh name (letters, digits, underscore or hyphen); absent preserves the old byte path. */
   name?: string;
   /** Write exact float32 column-major MAT4 instances instead of decomposing TRS. */
@@ -66,7 +66,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     return { position, rotation, scale };
   };
   for (const { geometry, material, instances, exactInstances, instanceColours, castShadow = true, customAttributes = {}, name: nodeName = name, transform, compactIndex, nativeAttributes, extras } of primitives) {
-    if (material.map !== null || material.normalMap !== null || material.roughnessMap !== null || material.metalnessMap !== null || material.alphaMap !== null) throw new Error('GLB textures must be external KTX2 declarations');
+    if (material.map !== null || material.alphaMap !== null || (!(material instanceof MeshBasicMaterial) && (material.normalMap !== null || material.roughnessMap !== null || material.metalnessMap !== null))) throw new Error('GLB textures must be external KTX2 declarations');
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
     const attributes: Record<string, Json> = {};
@@ -106,10 +106,10 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     const index = geometry.getIndex(), indices = index === null ? Array.from({ length: p.count }, (_, i) => i) : Array.from(index.array);
     if (indices.length % 3 !== 0 || indices.some((i) => !Number.isInteger(i) || i < 0 || i >= p.count)) throw new Error('Invalid triangle indices');
     const materialIndex = materials.length;
-    materials.push({ name: material.name, pbrMetallicRoughness: { baseColorFactor: [...material.color, material.opacity], metallicFactor: material.metalness, roughnessFactor: material.roughness }, doubleSided: material.side === 2,
+    materials.push({ name: material.name, pbrMetallicRoughness: { baseColorFactor: [...material.color, material.opacity], metallicFactor: material instanceof MeshBasicMaterial ? 0 : material.metalness, roughnessFactor: material instanceof MeshBasicMaterial ? 1 : material.roughness }, doubleSided: material.side === 2,
       alphaMode: material.transparent ? 'BLEND' : material.alphaTest > 0 ? 'MASK' : 'OPAQUE',
       ...(material.alphaTest > 0 ? { alphaCutoff: material.alphaTest } : {}),
-      ...(material.emissive.r !== 0 || material.emissive.g !== 0 || material.emissive.b !== 0 ? { emissiveFactor: [...material.emissive].map(value => value * material.emissiveIntensity) } : {}),
+      ...(material instanceof MeshBasicMaterial ? { extensions: { KHR_materials_unlit: {} } } : material.emissive.r !== 0 || material.emissive.g !== 0 || material.emissive.b !== 0 ? { emissiveFactor: [...material.emissive].map(value => value * material.emissiveIntensity) } : {}),
     });
     const compact = compactIndex === true, short = compact && index !== null && index.array instanceof Uint16Array;
     meshes.push({ name: nodeName, primitives: [{ attributes, ...(compact && index === null ? {} : { indices: accessor(indices, 1, 'SCALAR', true, false, short) }), material: materialIndex }] });
@@ -144,7 +144,8 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     nodes.push(node);
   }
   const doc: Record<string, Json> = { asset: { version: '2.0', generator: 'wildshard-static-v1' }, scene: 0, scenes: [{ nodes: nodes.map((_, i) => i) }], nodes, meshes, materials, accessors, bufferViews: views, buffers: [{ byteLength: offset }] };
-  if (primitives.some((p) => p.instances !== undefined)) { doc['extensionsUsed'] = ['EXT_mesh_gpu_instancing']; doc['extensionsRequired'] = ['EXT_mesh_gpu_instancing']; }
+  const extensions = [...(primitives.some(p => p.instances !== undefined) ? ['EXT_mesh_gpu_instancing'] : []), ...(primitives.some(p => p.material instanceof MeshBasicMaterial) ? ['KHR_materials_unlit'] : [])];
+  if (extensions.length > 0) { doc['extensionsUsed'] = extensions; doc['extensionsRequired'] = extensions; }
   const raw = new TextEncoder().encode(JSON.stringify(doc)), length = Math.ceil(raw.length / 4) * 4, bytes = new Uint8Array(28 + length + offset), v = new DataView(bytes.buffer);
   v.setUint32(0, 0x46546c67, true); v.setUint32(4, 2, true); v.setUint32(8, bytes.length, true); v.setUint32(12, length, true); v.setUint32(16, 0x4e4f534a, true); bytes.fill(32, 20, 20 + length); bytes.set(raw, 20);
   v.setUint32(20 + length, offset, true); v.setUint32(24 + length, 0x004e4942, true);

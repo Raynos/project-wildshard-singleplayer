@@ -2199,3 +2199,33 @@ metadata. Unsupported/raw/HDR sources retain the full RGBA charge. File rows
 and conservative pre-read ceilings keep their RGBA fallback; actual byte
 admission and library allocator claims use the selected footprint. The
 25 MB library target and complete 1.0/1.8 GB memory limits do not change.
+
+
+### Exact ordinary meshes in a baked piece
+
+`BakedPiece` (`@wildshard/sdk/bake`) accepts named `Mesh` children as well
+as `InstancedMesh` kinds. Use `{ nativeAttributes: true, compactIndex: true }`
+for ordinary meshes: their float32 position/normal/colour/uv/tangent channels,
+original index type and double-precision world matrix survive the bake.
+`MeshBasicMaterial` is emitted with `KHR_materials_unlit`; its linear HDR colour
+is preserved, rather than reduced to an RGB hex value. Ordinary standard
+materials preserve their linear colour and emissive channels too.
+
+```ts
+import { BoxGeometry, Mesh, MeshBasicMaterial, Scene } from 'three';
+import { bake, BakedPiece } from '@wildshard/sdk/bake';
+const glass = new MeshBasicMaterial({ color: 0xffb24a });
+glass.color.multiplyScalar(3.2);
+const scene = new Scene();
+scene.add(new BakedPiece('lamp', [
+  ['glass', new Mesh(new BoxGeometry(0.13, 0.28, 0.13), glass)],
+], [], { nativeAttributes: true, compactIndex: true }));
+const product = bake(scene, { slug: 'camp' });
+```
+
+Opaque untextured ordinary kinds are supported. Unsupported material state,
+callbacks and nonportable channels refuse at bake time. Instanced kinds retain
+the existing standard-material byte path. The trusted client draws mixed pieces
+with `bakedMeshWorld` in game's defining `shardfile/bakedKinds` module; ordinary
+kinds remain ordinary meshes, so the bake does not add an instancing shader
+variant. `scene.json` also restores the basic material declaration exactly.
