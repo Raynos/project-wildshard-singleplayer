@@ -1170,19 +1170,50 @@ export function standardMaterial(row: StandardMaterialRow): MeshStandardMaterial
 
 /** Split a geometry by triangle centroid into `parts` (de-indexed, every attribute kept; flat normals recomputed when `flat`); disposes the input. */
 function partition(source: BufferGeometry, parts: number, of: (x: number, y: number, z: number) => number, flat: boolean): BufferGeometry[] {
-  const g = source.index === null ? source : source.toNonIndexed(), p = g.getAttribute('position'), side: number[] = [];
-  for (let t = 0; t + 2 < p.count; t += 3) side.push(of((p.getX(t) + p.getX(t + 1) + p.getX(t + 2)) / 3, (p.getY(t) + p.getY(t + 1) + p.getY(t + 2)) / 3, (p.getZ(t) + p.getZ(t + 1) + p.getZ(t + 2)) / 3));
-  const out = Array.from({ length: parts }, (_, part) => {
-    const r = new BufferGeometry();
-    for (const [name, a] of Object.entries(g.attributes)) {
-      const values: number[] = [];
-      side.forEach((s, t) => { if (s === part) for (let v = t * 3; v < t * 3 + 3; v++) for (let c = 0; c < a.itemSize; c++) values.push(a.getComponent(v, c)); });
-      r.setAttribute(name, new Float32BufferAttribute(values, a.itemSize));
-    }
-    if (flat) r.computeVertexNormals();
-    r.computeBoundingBox(); r.computeBoundingSphere(); return r;
+  const p = source.getAttribute('position'), index = source.index, triangles = Math.floor((index?.count ?? p.count) / 3);
+  const side = new Uint8Array(triangles), counts = new Uint32Array(parts);
+  const vertex = (i: number): number => index === null ? i : index.getX(i);
+  // Match toNonIndexed's base-attribute interpretation, including normalized and half storage.
+  const attributes = Object.entries(source.attributes).map(([name, attribute]) => {
+    const interleaved = 'isInterleavedBufferAttribute' in attribute;
+    const reader = index === null ? attribute : new BufferAttribute(interleaved ? attribute.data.array : attribute.array,
+      interleaved ? attribute.data.stride : attribute.itemSize, attribute.normalized);
+    return { name, attribute, reader, offset: index !== null && interleaved ? attribute.offset : 0 };
   });
-  if (g !== source) g.dispose();
+  const position = attributes.find(attribute => attribute.name === 'position');
+  if (position === undefined) throw new Error('Missing pivot positions');
+  const coordinate = (at: number, component: number): number => position.reader.getComponent(at, position.offset + component);
+  for (let t = 0; t < triangles; t++) {
+    const a = vertex(t * 3), b = vertex(t * 3 + 1), c = vertex(t * 3 + 2);
+    const part = of((coordinate(a, 0) + coordinate(b, 0) + coordinate(c, 0)) / 3, (coordinate(a, 1) + coordinate(b, 1) + coordinate(c, 1)) / 3, (coordinate(a, 2) + coordinate(b, 2) + coordinate(c, 2)) / 3);
+    side[t] = part; counts[part] = (counts[part] ?? 0) + 3;
+  }
+  const offsets = new Uint32Array(parts);
+  const out = Array.from({ length: parts }, (_, part) => {
+    const geometry = new BufferGeometry();
+    for (const { name, attribute } of attributes) geometry.setAttribute(name, new Float32BufferAttribute((counts[part] ?? 0) * attribute.itemSize, attribute.itemSize));
+    return geometry;
+  });
+  // Read indexed source components once, directly into each exactly sized part.
+  const targets = out.map(geometry => attributes.map(({ name }) => geometry.getAttribute(name)));
+  for (let t = 0; t < triangles; t++) {
+    const part = side[t], target = part === undefined ? undefined : targets[part];
+    if (part === undefined || target === undefined) throw new Error('Missing pivot partition');
+    const offset = offsets[part] ?? 0;
+    for (let local = 0; local < 3; local++) {
+      const at = vertex(t * 3 + local);
+      for (let i = 0; i < attributes.length; i++) {
+        const entry = attributes[i], destination = target[i];
+        if (entry === undefined || destination === undefined) throw new Error('Missing pivot attribute');
+        for (let c = 0; c < entry.attribute.itemSize; c++) destination.array[(offset + local) * entry.attribute.itemSize + c] = entry.reader.getComponent(at, entry.offset + c);
+      }
+    }
+    offsets[part] = offset + 3;
+  }
+  for (const geometry of out) {
+    if (flat) geometry.computeVertexNormals();
+    geometry.computeBoundingBox(); geometry.computeBoundingSphere();
+  }
   source.dispose(); return out;
 }
 
