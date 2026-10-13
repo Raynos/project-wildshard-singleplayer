@@ -13,6 +13,7 @@
  * `attachFogUniforms` hands to every fogged material.
  */
 import * as THREE from 'three';
+import { headingTexture } from '@wildshard/engine/render/dataLook';
 import { paintedAir } from './air';
 import { V2_TINT_GLSL, tintUniforms } from './tint';
 import { ungrade } from './grade';
@@ -24,25 +25,7 @@ import { FOG_GLSL } from '../runtime/looks/fogGlsl';
 const FOG_GLSL_FAMILY = new ShaderFamily(FOG_GLSL, {});
 
 /** the LUT: scene-linear (already un-graded), half float, RepeatWrapping on the azimuth */
-export const fogLut = ((): THREE.DataTexture => {
-  const n = PANO_FOG_SRGB.length / 3;
-  const data = new Uint16Array(n * 4);
-  const c = new THREE.Color();
-  const y: [number, number, number] = [0, 0, 0];
-  for (let i = 0; i < n; i++) {
-    c.setRGB(PANO_FOG_SRGB[i * 3] ?? 0.5, PANO_FOG_SRGB[i * 3 + 1] ?? 0.5, PANO_FOG_SRGB[i * 3 + 2] ?? 0.5, THREE.SRGBColorSpace);
-    y[0] = c.r; y[1] = c.g; y[2] = c.b;
-    ungrade(y);
-    data[i * 4] = THREE.DataUtils.toHalfFloat(y[0]);
-    data[i * 4 + 1] = THREE.DataUtils.toHalfFloat(y[1]);
-    data[i * 4 + 2] = THREE.DataUtils.toHalfFloat(y[2]);
-    data[i * 4 + 3] = THREE.DataUtils.toHalfFloat(1);
-  }
-  const t = new THREE.DataTexture(data, n, 1, THREE.RGBAFormat, THREE.HalfFloatType);
-  t.wrapS = THREE.RepeatWrapping; t.magFilter = t.minFilter = THREE.LinearFilter; t.needsUpdate = true;
-  t.name = 'nalati-fog-lut';
-  return t;
-})();
+export const fogLut = headingTexture({ samples: PANO_FOG_SRGB, stride: 3, half: true, map: (y) => { ungrade(y); }, name: 'nalati-fog-lut' });
 
 /** x = density (1/m), y = clear distance (m), z = the valley floor's height (m, the height thinning's zero), w = the day's aerial density (the rig's fogDist above it thickens the v2 fog) */
 export const fogV2 = { value: new THREE.Vector4(0.0032, 30, -10, 0.002) };

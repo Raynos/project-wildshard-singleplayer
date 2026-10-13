@@ -250,17 +250,36 @@ export interface HeadingHazeRow { readonly strip: readonly number[]; readonly ti
 /** GLSL: the heading (0..1, 0 = −z, a quarter = +x) of a direction, as a heading strip reads it. */
 export const headingGlsl = (prefix: string): string => `float ${prefix}Heading(vec3 v){ return fract(atan(v.x, -v.z) / 6.2831853 + 1.0); }`;
 
-/** The heading haze's strip as a texture: linear, wrapping round the compass. */
-export function headingStrip(row: HeadingHazeRow): THREE.DataTexture {
-  const n = row.strip.length / 3, data = new Uint8Array(n * 4), c = new THREE.Color(), tint = new THREE.Color(...row.tint);
+/**
+ * A strip of values round the compass as a texture a heading reads (n × 1, wrapping in u, linear): `samples` holds
+ * `stride` numbers per heading, an sRGB colour (stride 3, linearised) or a raw value into red (stride 1, green and blue
+ * 0); `map` reworks each linear rgb in place before it is stored; `half` stores half floats, else bytes (clamped to 1).
+ */
+export interface HeadingTextureRow {
+  readonly samples: readonly number[]; readonly stride: 1 | 3; readonly half: boolean;
+  readonly map?: ((rgb: [number, number, number]) => void) | undefined; readonly name?: string | undefined;
+}
+
+/** A heading strip's texture (see `HeadingTextureRow`). */
+export function headingTexture(row: HeadingTextureRow): THREE.DataTexture {
+  const n = row.samples.length / row.stride, c = new THREE.Color(), rgb: [number, number, number] = [0, 0, 0], at = (i: number): number => row.samples[i] ?? 0;
+  const data = row.half ? new Uint16Array(n * 4) : new Uint8Array(n * 4);
   for (let i = 0; i < n; i++) {
-    c.setRGB(row.strip[i * 3] ?? 0, row.strip[i * 3 + 1] ?? 0, row.strip[i * 3 + 2] ?? 0, THREE.SRGBColorSpace);
-    c.multiply(tint);
-    data[i * 4] = Math.round(Math.min(1, c.r) * 255); data[i * 4 + 1] = Math.round(Math.min(1, c.g) * 255); data[i * 4 + 2] = Math.round(Math.min(1, c.b) * 255); data[i * 4 + 3] = 255;
+    if (row.stride === 3) { c.setRGB(at(i * 3), at(i * 3 + 1), at(i * 3 + 2), THREE.SRGBColorSpace); rgb[0] = c.r; rgb[1] = c.g; rgb[2] = c.b; } else { rgb[0] = at(i); rgb[1] = 0; rgb[2] = 0; }
+    row.map?.(rgb);
+    for (let k = 0; k < 3; k++) data[i * 4 + k] = row.half ? THREE.DataUtils.toHalfFloat(rgb[k] ?? 0) : Math.round(Math.min(1, rgb[k] ?? 0) * 255);
+    data[i * 4 + 3] = row.half ? THREE.DataUtils.toHalfFloat(1) : 255;
   }
-  const tex = new THREE.DataTexture(data, n, 1, THREE.RGBAFormat, THREE.UnsignedByteType);
+  const tex = new THREE.DataTexture(data, n, 1, THREE.RGBAFormat, row.half ? THREE.HalfFloatType : THREE.UnsignedByteType);
   tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.ClampToEdgeWrapping; tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter; tex.needsUpdate = true;
+  if (row.name !== undefined) tex.name = row.name;
   return tex;
+}
+
+/** The heading haze's strip as a texture: its sRGB strip linearised and multiplied by its tint, in bytes. */
+export function headingStrip(row: HeadingHazeRow): THREE.DataTexture {
+  const [r, g, b] = row.tint;
+  return headingTexture({ samples: row.strip, stride: 3, half: false, map: (rgb) => { rgb[0] *= r; rgb[1] *= g; rgb[2] *= b; } });
 }
 
 /** The heading haze's fragment patch (three's `fog_fragment` replaced), reading the strip `strip`. */

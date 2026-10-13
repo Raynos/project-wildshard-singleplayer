@@ -25,6 +25,7 @@
 import type { Scope } from '@wildshard/engine/app/scope';
 import * as THREE from 'three';
 import { releaseOnUpload } from '@wildshard/engine/render/memorySaver';
+import { headingTexture } from '@wildshard/engine/render/dataLook';
 import { fetchImage } from '@wildshard/engine/boot/bytes';
 import { ktx2Texture, readTexturePixels, prepareCompressedTexture } from '@wildshard/engine/core/ktx2';
 import type { Renderer } from '@wildshard/engine/render/renderer';
@@ -50,15 +51,8 @@ const VERT = SKY_GLSL_FAMILY.glsl(SKY_GLSL.VERT);
 
 const FRAG = SKY_GLSL_FAMILY.glsl(SKY_GLSL.FRAG, { V2_GRADE_GLSL, V2_TINT_GLSL });
 
-/** the ridge line + fog LUT as tiny textures (RepeatWrapping on u: the azimuth wraps) */
-function ridgeTexture(): THREE.DataTexture {
-  const n = PANO_RIDGE_V.length;
-  const data = new Uint16Array(n * 4);
-  for (let i = 0; i < n; i++) { const h = THREE.DataUtils.toHalfFloat(PANO_RIDGE_V[i] ?? 0.5); data[i * 4] = h; data[i * 4 + 3] = THREE.DataUtils.toHalfFloat(1); }
-  const t = new THREE.DataTexture(data, n, 1, THREE.RGBAFormat, THREE.HalfFloatType);
-  t.wrapS = THREE.RepeatWrapping; t.magFilter = t.minFilter = THREE.LinearFilter; t.needsUpdate = true;
-  return t;
-}
+/** the ridge line as a tiny half-float heading strip (the fog LUT is fog.ts's) */
+const RIDGE = { samples: PANO_RIDGE_V, stride: 1, half: true } as const;
 
 interface SkyImagePorts { image: typeof fetchImage; compressed: typeof ktx2Texture }
 const skyImages: SkyImagePorts = { image: fetchImage, compressed: ktx2Texture };
@@ -75,7 +69,7 @@ export class SkyDomeV2 {
 
   private constructor(tex: THREE.Texture, width: number, fogLut: THREE.Texture, zenith: THREE.Color, scope: Scope) {
     this.uniforms = {
-      tPano: { value: tex }, tRidge: { value: ridgeTexture() }, tFogLut: { value: fogLut },
+      tPano: { value: tex }, tRidge: { value: headingTexture(RIDGE) }, tFogLut: { value: fogLut },
       uHorizonV: { value: PANO_HORIZON_V }, uPad: { value: PANO_PAD_PX / Math.max(1, width) }, uVPerDeg: { value: 1 / PANO_DEG_PER_V }, uElShift: { value: 0 },
       uZenith: { value: zenith }, uSunNow: { value: PAINTED_SUN.clone() }, uSunPainted: { value: PAINTED_SUN.clone() }, uNight: { value: 0 },
     };
