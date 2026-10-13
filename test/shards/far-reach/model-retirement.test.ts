@@ -6,12 +6,25 @@ import { Scope } from '../../../src/engine/app/scope';
 import { ownSceneTree, SceneOwnership } from '../../../src/engine/app/sceneOwnership';
 import { preloadSkyMeshes, skyHd, skyMesh } from '../../../src/shards/far-reach/world/meshes';
 import { SKY_HD, SKY_MESHES } from '../../../src/shards/far-reach/data/files';
+import { PREPARED_MODELS_URL } from '../../../src/shards/far-reach/data/modelFrames';
 import { legacyDouble } from '../../fake/FakeGame';
 
 it('charges Sky model sources once, preserves live map users, and reconstructs evicted module caches on three cold admissions', async () => {
   const initial = new Set(app.assets.retained().map(row => row.key));
-  const loaded = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(() => {
+  const loaded = vi.spyOn(GLTFLoader.prototype, 'loadAsync').mockImplementation(url => {
     const scene = new Group().add(new Mesh(new BoxGeometry(), new MeshStandardMaterial({ map: new Texture() })));
+    if (url === PREPARED_MODELS_URL) {
+      scene.clear();
+      for (const name of SKY_HD) {
+        const mesh = new Mesh(new BoxGeometry(), new MeshStandardMaterial());
+        mesh.name = name;
+        mesh.geometry.computeBoundingSphere();
+        const sphere = mesh.geometry.boundingSphere;
+        if (sphere === null) throw new Error('Missing fixture sphere');
+        mesh.userData['sphere'] = [...sphere.center.toArray(), sphere.radius];
+        scene.add(mesh);
+      }
+    }
     return Promise.resolve({ scene, scenes: [scene], animations: [], cameras: [], asset: { version: '2.0' },
       parser: legacyDouble<GLTF['parser']>({}), userData: {} });
   });
@@ -21,7 +34,7 @@ it('charges Sky model sources once, preserves live map users, and reconstructs e
       await preloadSkyMeshes();
       const count = loaded.mock.calls.length;
       await preloadSkyMeshes(); expect(loaded).toHaveBeenCalledTimes(count);
-      expect(count).toBe((visit + 1) * (SKY_MESHES.length + SKY_HD.length));
+      expect(count).toBe((visit + 1) * (SKY_MESHES.length + SKY_HD.length + 1));
       const hero = skyHd('keeper-hd'), faceted = skyMesh('keeper');
       if (hero === null || faceted === null) throw new Error('Missing actual parsed Sky models');
       expect(hero.map).not.toBe(previous); previous = hero.map;
