@@ -5,6 +5,7 @@ import { SHARDFILE_VERSION, SHARDFILE_PREVIOUS_VERSION, shardfileRevision } from
 
 import { acceptValidatedCost, preflightDeclaredCosts, validateShardfileAssets, deviceLibraryCost } from '@wildshard/format/assetAdmission';
 import { ContentCache } from '@wildshard/engine/boot/contentCache';
+import { ContentCacheWorker } from '@wildshard/engine/boot/contentCacheWorker';
 import { preflightShardfile } from '@wildshard/format/preflight';
 
 import { SHARDFILE_ADMISSION_LIMITS as limits } from '@wildshard/format/admissionLimits';
@@ -22,6 +23,8 @@ export interface ProductCache {
   asset: (base: string, hash: string) => Promise<Uint8Array | null>;
   /** Trusted content-cache read that already checked SHA-256; absent keeps raw/legacy cache verification. */
   verifiedAsset?: (hash: string) => Promise<Uint8Array | null>;
+  /** Checked durable presence without transferring a discarded asset to the page. */
+  verifiedPresent?: (hash: string, bytes: number) => Promise<boolean>;
   putAsset: (base: string, hash: string, bytes: Uint8Array) => Promise<boolean> | Promise<void>;
   putProduct: (key: string, product: CachedProduct) => Promise<void>;
   pin?: (hashes: Iterable<string>) => () => void;
@@ -208,12 +211,14 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
         if (verifiedCached.has(hash)) continue; // Exact cached bytes were already admitted; avoid rewriting the same immutable file.
         progress('cache', `Saving ${ref.slice(0, 12)}`); if (await cache.putAsset(base, hash, bytes) === false) complete = false;
       }
+      const present = async (hash: string, bytes: number): Promise<boolean> => cache.verifiedPresent === undefined
+        ? await cache.asset(base, hash) !== null : cache.verifiedPresent(hash, bytes);
       for (const [ref, bytes] of assets) {
         const hash = ref.replace(/^commons:/u, ''); progress('cache', `Checking saved ${ref.slice(0, 12)}`);
-        if (await cache.asset(base, hash) !== null) continue;
+        if (await present(hash, bytes.length)) continue;
         // Another owner/browser may have evicted a previously verified hit before this publication pin.
         // Repair that miss, then recheck durable presence just as for a newly fetched file.
-        if (!verifiedCached.has(hash) || await cache.putAsset(base, hash, bytes) === false || await cache.asset(base, hash) === null) complete = false;
+        if (!verifiedCached.has(hash) || await cache.putAsset(base, hash, bytes) === false || !await present(hash, bytes.length)) complete = false;
       }
       if (complete) await cache.putProduct(base, { source: raw, firstParty: options.firstParty, ...(revisionKey === null ? {} : { validation: { revision: revisionKey, sourceHash, worst } }) });
     } finally { release?.(); }
@@ -221,12 +226,22 @@ export async function admitProduct(input: unknown, options: ProductOptions): Pro
   progress('complete', 'Product admitted');
   return { source, assets, cached: cached !== null && cached !== undefined, ...(options.firstParty ? { releaseTransport: transportRelease(source, assets, options) } : {}), ...(options.firstParty ? {} : { instance: await externalShardInstance(base, source.identity.slug, options.hash) }) };
 }
+const browserContentStores = new WeakMap<Pick<CacheStorage, 'open'>, ContentCache | ContentCacheWorker>();
+
 /** Browser Cache Storage retains exact hash bytes separately from the last completely admitted visited product. */
 export function browserProductCache(storage: Pick<CacheStorage, 'open'>): ProductCache {
   const open = () => storage.open('ws-shardfile-products-v0');
   const productUrl = (base: string) => new URL('__visited_shardfile__', base).href;
-  const content = new ContentCache({ storage, origin: location.origin, hash: browserContentHash, estimate: () => navigator.storage.estimate(),
-    pagehide: window });
+  let content = browserContentStores.get(storage);
+  if (content === undefined) {
+    const fallback = new ContentCache({ storage, origin: location.origin, hash: browserContentHash, estimate: () => navigator.storage.estimate(), pagehide: window });
+    // Injected stores keep their exact ports; only the real page CacheStorage
+    // belongs to the worker. All product wrappers share one writer/fallback.
+    content = typeof caches !== 'undefined' && storage === caches && typeof CacheStorage !== 'undefined' && storage instanceof CacheStorage && typeof Worker !== 'undefined'
+      ? new ContentCacheWorker(fallback, { pagehide: window }) : fallback;
+    browserContentStores.set(storage, content);
+  }
+  const ownedContent = content;
   return {
     product: async (base) => {
       const response = await (await open()).match(productUrl(base)); if (response === undefined) return null;
@@ -238,12 +253,13 @@ export function browserProductCache(storage: Pick<CacheStorage, 'open'>): Produc
       return { source: value.source, firstParty: value.firstParty, ...(validation === null ? {} : { validation }) };
     },
     asset: async (base, hash) => {
-      const bytes = await content.get(hash); if (bytes !== null) return bytes;
+      const bytes = await ownedContent.get(hash); if (bytes !== null) return bytes;
       const response = await (await open()).match(new URL(hash, base).href);
       return response === undefined ? null : boundedResponse(response, MAX_FILE_BYTES);
     },
-    verifiedAsset: hash => content.get(hash),
-    putAsset: (_base, hash, bytes) => content.put(hash, bytes), pin: (hashes) => content.pin(hashes),
+    verifiedAsset: hash => ownedContent.get(hash),
+    ...(ownedContent instanceof ContentCacheWorker ? { verifiedPresent: (hash: string, bytes: number) => ownedContent.has(hash, bytes) } : {}),
+    putAsset: (_base, hash, bytes) => ownedContent.put(hash, bytes), pin: (hashes) => ownedContent.pin(hashes),
     putProduct: async (base, product) => { await (await open()).put(productUrl(base), Response.json(product)); },
   };
 }

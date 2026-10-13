@@ -35,3 +35,20 @@ The injected ports supply storage, origin, SHA-256, quota estimates and an
 optional clock/limits. Tests cover repeat visits, offline reload, concurrent
 downloads, leased LRU eviction, quota retries, corruption, browser eviction
 and service-worker activation.
+
+## Paced browser storage
+
+The actual page CacheStorage uses one explicit ContentCacheWorker shared
+by all product wrappers. It runs the existing capped, SHA-verified cache
+in a dedicated worker; injected storage ports keep their original path.
+Reads transfer fresh owned bytes. Puts snapshot caller bytes without
+detaching them. A verified presence query checks SHA and exact length in
+the worker, avoiding a discarded main-thread copy during durable checks.
+
+The bridge allows 64 pending requests, a 15-second request deadline,
+30-second idle close and two-minute lifetime followed by a bounded flush.
+Pagehide also flushes before closing. Control and data use one queue, so
+leases precede subsequent writes. Error, messageerror, silent exit or
+startup failure terminates the worker before pending operations replay
+through one shared original cache, with every live lease installed first.
+Verified data refusals remain errors. No admission or reveal skips a file.

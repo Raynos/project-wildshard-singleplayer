@@ -4310,3 +4310,13 @@ simulation clock. Sky and Signal supply actual bodies, page flags,
 Ledger facts and weather ports. `headless.bindRuntimeBossRecord` retains
 the existing strict state JSON or flag-backed save representation;
 `bossRow.parseBossRecord` admits the shared saved-field contract.
+
+### Content cache worker
+
+`@wildshard/engine/boot/contentCacheWorker` defines `ContentCacheWorker`,
+an explicit bounded worker owner over the original `ContentCache`.
+`get`, `put`, `pin`, `flush` and `stats` retain the cache contracts;
+`has(hash, bytes)` verifies durable SHA and length without returning an
+unneeded byte array. `close()` drains, flushes and terminates its worker.
+Failed workers terminate before one shared checked fallback takes over;
+its refcounted leases survive. Importing the module starts no worker.

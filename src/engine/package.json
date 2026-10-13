@@ -414,6 +414,7 @@
     "./player/walk": "./player/walk.ts",
     "./render/offscreenPreparation": "./render/offscreenPreparation.ts",
     "./render/materialPreparation": "./render/materialPreparation.ts",
-    "./world/bakedTerrainField": "./world/bakedTerrainField.ts"
+    "./world/bakedTerrainField": "./world/bakedTerrainField.ts",
+    "./boot/contentCacheWorker": "./boot/contentCacheWorker.ts"
   }
 }
