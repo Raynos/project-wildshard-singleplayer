@@ -44,14 +44,12 @@ export function setStormPaint(t: Texture | null): void {
 export function crownStorm(sun: Vector3, tex: Texture, random: () => number): CrownStorm {
   const group = new Group(); group.name = 'far.storm';
   const time = { value: 0 }, flash = { value: 0 }, centre = new Vector3(), family = new ShaderFamily({}, STORM_PROGRAMS);
-  STORM.layers.forEach((layer, i) => {
-    const radius = STORM.radius * layer.r, geometry = new RingGeometry(0.5, radius, 72, 10); geometry.rotateX(-Math.PI / 2);
-    // the vortex program (data/stormLook.ts), one dished ring per layer
-    const material = family.material('ring', {}, { defines: PAINT !== null ? { FAR_STORM_PAINT: '' } : {},
-      uniforms: { tex: { value: tex }, paint: { value: PAINT }, time, flash, sunDir: { value: sun }, twist: { value: layer.twist }, spin: { value: layer.spin },
-        seed: { value: i * 17.3 }, radius: { value: radius }, dish: { value: 6 + i * 4 }, centre: { value: centre } } });
-    const mesh = new Mesh(geometry, material); mesh.position.y = layer.dy; mesh.renderOrder = 3 - i; mesh.frustumCulled = false; group.add(mesh);
-  });
+  // the vortex program (data/stormLook.ts): one dished ring, the first layer's (the painted vortex is the first layer's
+  // alone: the upper one drew nothing over it); without the painting no ring shows
+  const layer = STORM.layers[0], radius = STORM.radius * layer.r, geometry = new RingGeometry(0.5, radius, 72, 10); geometry.rotateX(-Math.PI / 2);
+  const material = family.material('ring', {}, { uniforms: { tex: { value: tex }, paint: { value: PAINT }, time, flash, sunDir: { value: sun }, twist: { value: layer.twist },
+    spin: { value: layer.spin }, radius: { value: radius }, dish: { value: 6 }, centre: { value: centre } } });
+  const ring = new Mesh(geometry, material); ring.position.y = layer.dy; ring.renderOrder = 3; ring.frustumCulled = false; ring.visible = PAINT !== null; group.add(ring);
   const boltMaterial = new MeshBasicMaterial({ color: STORM_COLORS.bolt, transparent: true, opacity: 0.95, blending: AdditiveBlending, depthWrite: false, fog: false, side: DoubleSide });
   const bolts = [0, 1, 2].map((i) => {
     const bolt = new Mesh(boltGeometry(random, 18 + i * 6), boltMaterial); const a = random() * Math.PI * 2, rr = 8 + random() * 18;
