@@ -110,6 +110,12 @@ export interface InteractionRowPorts {
 
 /** The browser player's eye above the feet (engine Player EYE): prompts pick by eye distance (Interactables.pickInteractable). */
 const EYE = 1.68;
+const eye = new Vector3(), at = new Vector3();
+/** Whether the player's eye stands within the spot's radius plus `reach` (a prompt's pick, a crack's lash). */
+export function eyeReaches(host: Pick<SimHost, 'player'>, spot: InteractionSpot, reach = 0): boolean {
+  eye.copy(host.player.position); eye.y += EYE;
+  return at.set(spot.x, spot.y, spot.z).distanceTo(eye) < spot.radius + reach;
+}
 /** The tick protocol's command allowance (sdk/tickProtocol.ts). */
 const MAX_COMMANDS = 1024;
 
@@ -128,7 +134,6 @@ export function installInteractionRows(host: SimHost, rules: InteractionRules, p
     if (entry.crack !== undefined && ports.crack === undefined) throw new Error(`Interaction row ${entry.id} needs a cracking item`);
     return [entry.act, { entry, spot }] as const;
   }));
-  const eye = new Vector3(), at = new Vector3();
   const picker = createHeadlessPromptPicker(host);
   const act = (value: number, lashed: boolean): void => {
     if (!lashed && ports.prompts !== undefined && picker.pick(ports.prompts)?.act !== value) return;
@@ -136,8 +141,7 @@ export function installInteractionRows(host: SimHost, rules: InteractionRules, p
     const { entry, spot } = found, crack = ports.crack;
     if ((entry.crack !== undefined) !== lashed) return;
     const reach = entry.crack !== undefined && crack !== undefined ? crack.reach[entry.crack] : 0;
-    eye.copy(host.player.position); eye.y += EYE;
-    if (at.set(spot.x, spot.y, spot.z).distanceTo(eye) >= spot.radius + reach) return;
+    if (!eyeReaches(host, spot, reach)) return;
     if (rules.run(entry.id).ok) ports.done?.(entry.id);
   };
   host.onStep(ports.stepId, () => {

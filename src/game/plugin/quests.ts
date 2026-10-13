@@ -3,7 +3,7 @@ import * as v from "valibot";
 import type { NpcDef } from "@wildshard/engine/quest/core";
 import type { SimHost } from "@wildshard/engine/sim";
 import { DeclaredQuests } from "../quest/declared";
-import { installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from "../quest/interactionRows";
+import { eyeReaches, installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from "../quest/interactionRows";
 import { autoFlag, type InteractTable } from "@wildshard/engine/world/interact/types";
 import type { QuestData } from "@wildshard/format/quests";
 import { bindHeadlessPrompts, type HeadlessPrompt, type PromptRegistration } from "./prompts";
@@ -155,7 +155,9 @@ export interface QuestGraphPorts {
  * the platform's interaction step, at the baked spots and each quest-giver's talk spot over the ground; a row's run starts
  * its declared actions. A `summon` action with no summon port refuses at install.
  */
-export function installQuestGraph(host: SimHost, rows: QuestGraphRows, ports: QuestGraphPorts): { quests: DeclaredQuests; rules: InteractionRules; run: (id: string, changed?: () => void) => ReturnType<InteractionRules['run']> } {
+export function installQuestGraph(host: SimHost, rows: QuestGraphRows, ports: QuestGraphPorts): { quests: DeclaredQuests; rules: InteractionRules; run: (id: string, changed?: () => void) => ReturnType<InteractionRules['run']>;
+  /** Whether the player's eye stands within the named spot's prompt radius (an externally driven graph's prompts). */
+  near: (spot: string) => boolean } {
   const actions = new Map(rows.graph.actions.map(action => [action.row, action] as const)), summon = ports.summon;
   if (actions.size > 0 && summon === undefined) throw new Error('A quest graph summons a boss but has no summon port');
   if (ports.drive === 'external' && rows.interactions.marks.length > 0) throw new Error('Externally driven quest marks need an explicit continuation owner');
@@ -175,7 +177,8 @@ export function installQuestGraph(host: SimHost, rows: QuestGraphRows, ports: Qu
     ...(prompts === undefined ? {} : { prompts }),
     ...(ports.crack === undefined ? {} : { crack: ports.crack }),
     done });
-  return { quests, rules, run: (id, changed) => { const result = rules.run(id, changed); if (result.ok) done(id); return result; } };
+  return { quests, rules, run: (id, changed) => { const result = rules.run(id, changed); if (result.ok) done(id); return result; },
+    near: (id) => { const spot = spots[id]; if (spot === undefined) throw new Error(`Undeclared quest spot ${id}`); return eyeReaches(host, spot); } };
 }
 
 /** Compile the flag effects of latched levers, pickups and benches from the engine's authored table. Geometry, inventory,

@@ -1,19 +1,11 @@
 import { installQuestGraph } from '@wildshard/game/plugin/quests';
 import { SKY_ACTIONS, SKY_GRAPH } from '../data/questGraph';
-import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { QuestData } from '@wildshard/format/quests';
 import type { DeclaredQuests } from '@wildshard/game/quest/declared';
-import { QUEST_STEP, ROOST_IDS, SKY_ACT, SKY_INTERACT, SKY_PROMPTS } from '../data/questPrompts';
+import { QUEST_STEP, ROOST_IDS, SKY_ACT, SKY_INTERACT, SKY_SPOTS } from '../data/questPrompts';
 import { FLAGS } from '../quest/flags';
 
-/** The browser eye offset remains the native distance-query convention. */
-const EYE = 1.68;
-const PROMPTS = {
-  [SKY_ACT.talk]: { at: new Vector3(...SKY_PROMPTS[SKY_ACT.talk].at), radius: SKY_PROMPTS[SKY_ACT.talk].radius },
-  [SKY_ACT.notes]: { at: new Vector3(...SKY_PROMPTS[SKY_ACT.notes].at), radius: SKY_PROMPTS[SKY_ACT.notes].radius },
-  [SKY_ACT.winch]: { at: new Vector3(...SKY_PROMPTS[SKY_ACT.winch].at), radius: SKY_PROMPTS[SKY_ACT.winch].radius },
-};
 const MAX_COMMANDS = 1024;
 /** The roost's rays and the vanes are finite authored rows; refuse overflow rather than read past the bound. */
 const MAX_ROWS = 64;
@@ -47,16 +39,12 @@ export function skyWinchPermission(flags: Pick<SimHost['flags'], 'has'>): number
 export function installSkyQuest(host: SimHost, ports: SkyQuestPorts): DeclaredQuests {
   if (ROOST_IDS.some(id => host.entities.get(id) === undefined)) throw new Error('Sky Reach installs its quest after the roost rays');
   const graph = installQuestGraph(host, { quests: ports.quests, interactions: SKY_ACTIONS, npcs: [], graph: SKY_GRAPH },
-    { spots: { interact: [], crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins, drive: 'external' });
-  const flags = host.flags, eye = new Vector3();
-  const near = (prompt: { at: Vector3; radius: number }): boolean => {
-    eye.copy(host.player.position); eye.y += EYE;
-    return prompt.at.distanceTo(eye) < prompt.radius;
-  };
+    { spots: { interact: SKY_SPOTS, crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins, drive: 'external' });
+  const flags = host.flags;
   const act = (value: number): void => {
-    if (value === SKY_ACT.talk) { if (near(PROMPTS[SKY_ACT.talk])) graph.run('talk'); return; }
-    if (value === SKY_ACT.notes) { if (near(PROMPTS[SKY_ACT.notes])) graph.run('notes'); return; }
-    if (value !== SKY_ACT.winch || !near(PROMPTS[SKY_ACT.winch]) || ports.winch.raised()) return;
+    if (value === SKY_ACT.talk) { if (graph.near('keeper')) graph.run('talk'); return; }
+    if (value === SKY_ACT.notes) { if (graph.near('notes')) graph.run('notes'); return; }
+    if (value !== SKY_ACT.winch || !graph.near('winch') || ports.winch.raised()) return;
     // the browser toasts "locked" otherwise; nothing moves
     if (flags.has(FLAGS.roost) && flags.has(FLAGS.vanes)) ports.winch.command();
   };
