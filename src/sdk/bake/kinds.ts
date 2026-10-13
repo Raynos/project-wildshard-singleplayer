@@ -23,6 +23,10 @@ export interface PieceBake<C extends KindCollider = KindCollider> { glb: Uint8Ar
 
 /** Optional immutable row metadata and custom vertex channels retained by the kind baker. */
 export interface KindBakeOptions {
+  /** Original typed channels in application accessors (see staticGlb); omitted preserves old bytes. */
+  nativeAttributes?: true;
+  /** Keep the original index type, including non-indexed shapes; omitted preserves old bytes. */
+  compactIndex?: true;
   /** The extra row fields a kind's material carries (a shard's own flags); equal extras are part of a kind's look. */
   extra?: (material: MeshStandardMaterial) => KindExtra;
   /** Custom vertex channels to keep, glTF semantic → geometry channel (`{ _SHK: 'shk' }`); a kind without the channel skips it. */
@@ -48,7 +52,10 @@ export function bakeKinds<C extends KindCollider>(name: string, meshes: readonly
     const material = Array.isArray(mesh.material) ? undefined : mesh.material;
     if (!(material instanceof MeshStandardMaterial)) throw new Error(`${name}.${kind}: one standard material per kind`);
     const customAttributes = custom(mesh.geometry, options.attributes);
-    primitives.push({ geometry: mesh.geometry, material, instances, castShadow: false, ...(customAttributes === undefined ? {} : { customAttributes }) });
+    primitives.push({ geometry: mesh.geometry, material, instances, castShadow: false,
+      ...(options.nativeAttributes === undefined ? {} : { nativeAttributes: options.nativeAttributes }),
+      ...(options.compactIndex === undefined ? {} : { compactIndex: options.compactIndex }),
+      ...(customAttributes === undefined ? {} : { customAttributes }) });
     kinds.push({ name: kind, count: mesh.count, color: material.color.getHex(), roughness: material.roughness, metalness: material.metalness, flat: material.flatShading,
       emissive: material.emissive.getHex(), emissiveIntensity: material.emissiveIntensity, vertexColors: material.vertexColors, doubleSided: material.side === DoubleSide,
       ...options.extra?.(material) });

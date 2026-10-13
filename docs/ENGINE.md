@@ -3556,3 +3556,13 @@ float16 component type. A trusted client reconstructs those channels before
 using its own material. Extras `matrix64` and `instances64` retain source
 transform doubles alongside portable glTF transforms. These bytes count in
 normal product admission; omitting the options preserves existing outputs.
+
+### Provisional prop-tile budgets
+
+`bakeProps` warns when a tile exceeds the provisional resident, compressed,
+triangle or draw caps and includes the exceeded values in that tile's
+`report[].warnings`. It still computes exact costs and emits admitted GLBs.
+Product admission retains the hard playing/loading memory limits. Far and
+library checks remain unchanged. `BakedPiece` options `nativeAttributes`
+and `compactIndex` forward the corresponding static GLB options; omitted
+options preserve existing kind bytes.

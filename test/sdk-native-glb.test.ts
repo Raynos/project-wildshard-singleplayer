@@ -1,6 +1,6 @@
 import { BufferAttribute, BufferGeometry, Float16BufferAttribute, Float32BufferAttribute, Group, InstancedMesh, Matrix4, InterleavedBufferAttribute, Mesh, MeshStandardMaterial } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { staticGlb } from '../src/sdk/bake/glb';
 import { bakeProps } from '../src/sdk/bake/props';
 import { parseGlb } from '../src/sdk/assets';
@@ -121,4 +121,21 @@ describe('native whole-shape storage', () => {
     if (!(mesh instanceof InstancedMesh)) throw new Error('Missing instances');
     expect(mesh.userData['instances64']).toEqual([matrix.elements]);
   });
+});
+
+
+it('reports provisional whole-tile caps while retaining exact admitted costs', () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+  try {
+    const props = bakeProps({ static: new Group(), whole: Array.from({ length: 9 }, (_, i) => ({
+      id: `fabric_${i}`, mesh: new Mesh(geometry(), new MeshStandardMaterial()), transform: new Matrix4(),
+    })) });
+    expect(props.report[0]?.draws).toBe(9);
+    expect(props.report[0]?.warnings).toContain('draws 9 > 8');
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('provisional caps'));
+    const bytes = props.assets.get(props.props.tiles[0]?.file ?? '');
+    if (bytes === undefined) throw new Error('Missing admitted tile');
+    expect(parseGlb(bytes).draws).toBe(props.report[0]?.draws);
+    expect(parseGlb(bytes).triangles).toBe(props.report[0]?.triangles);
+  } finally { warn.mockRestore(); }
 });

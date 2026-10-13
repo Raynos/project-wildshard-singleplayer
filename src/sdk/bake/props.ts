@@ -34,7 +34,7 @@ export interface PropWhole {
 export interface BakedProps {
   props: ShardProps; tiles: Shardfile['tiles']; files: Shardfile['files']; library: string[];
   far: NonNullable<Shardfile['far']> | null; assets: Map<string, Uint8Array>;
-  report: readonly { lod: number; x: number; z: number; resident: number; compressed: number; triangles: number; draws: number }[];
+  report: readonly { lod: number; x: number; z: number; resident: number; compressed: number; triangles: number; draws: number; warnings?: readonly string[] }[];
 }
 interface Vertex { p: Vector3; n: Vector3; c: Vector3; u: number; v: number }
 function isMesh(object: Object3D): object is Mesh { return object instanceof Mesh; }
@@ -83,6 +83,7 @@ function geometry(triangles: readonly Vertex[][], bounds?: readonly [number, num
 const mergedMaterial = () => new MeshStandardMaterial({ color: 0xffffff, vertexColors: true });
 /** Merge props into the canonical 8×8 / 4×4 grid, instance L0 scatter, and refuse every over-budget output. */
 export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['tiles'][number][] = []): BakedProps {
+  const tileWarnings = new Map<string, readonly string[]>();
   const files: Shardfile['files'] = [], assets = new Map<string, Uint8Array>(), library: string[] = [], tiles = terrain.map((t) => ({ ...t, files: [...t.files], bounds: { min: [...t.bounds.min] as [number, number, number], max: [...t.bounds.max] as [number, number, number] } }));
   const section: ShardProps = { version: 1, family: source.family ?? 'pbr', tiles: [], panels: [], models: [], far: null, textures: [], colliders: source.colliders ?? [] };
   const store = (bytes: Uint8Array, kind: 'glb' | 'ktx2'): Shardfile['files'][number] => {
@@ -141,7 +142,16 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
       }
       if (lod === 0) for (const panel of panelFiles) { const box = panel.bounds; if (box === null || box.max.x < x0 || box.min.x > x0 + size || box.max.z < z0 || box.min.z > z0 + size) continue; row.files.push(panel.file.hash); row.triangles += panel.file.triangles; row.draws += panel.file.draws; row.bounds.min[1] = Math.min(row.bounds.min[1], box.min.y); row.bounds.max[1] = Math.max(row.bounds.max[1], box.max.y); }
       const cap = lod === 0 ? CONTENT_CAPS.l0 : CONTENT_CAPS.l1;
-      if (row.decoded + row.gpu > cap.resident || row.compressed > cap.compressed || row.triangles > cap.triangles || row.draws > cap.draws) throw new Error(`Props tile ${lod}/${x}/${z} exceeds content caps`);
+      const warnings = [
+        ...(row.decoded + row.gpu > cap.resident ? [`resident ${row.decoded + row.gpu} > ${cap.resident}`] : []),
+        ...(row.compressed > cap.compressed ? [`compressed ${row.compressed} > ${cap.compressed}`] : []),
+        ...(row.triangles > cap.triangles ? [`triangles ${row.triangles} > ${cap.triangles}`] : []),
+        ...(row.draws > cap.draws ? [`draws ${row.draws} > ${cap.draws}`] : []),
+      ];
+      if (warnings.length > 0) {
+        tileWarnings.set(`${lod}/${x}/${z}`, warnings);
+        console.warn(`Props tile ${lod}/${x}/${z}: ${warnings.join('; ')} (provisional caps)`);
+      }
       if (prior === undefined) tiles.push(row); section.tiles.push({ lod, x, z, file: file.hash });
     }
   }
@@ -161,6 +171,10 @@ export function bakeProps(source: PropsBakeSource, terrain: readonly Shardfile['
   }
   const libraryFiles = files.filter((f) => library.includes(f.hash) || (texture !== null && library.length > 0 && f.hash === texture.hash));
   if (libraryFiles.reduce((n, f) => n + f.decoded + f.gpu, 0) > CONTENT_CAPS.library.resident || libraryFiles.reduce((n, f) => n + f.compressed, 0) > CONTENT_CAPS.library.compressed) throw new Error('Props library exceeds content caps');
-  const props = v.parse(PropsSchema, section), report = tiles.map((t) => ({ lod: t.lod, x: t.x, z: t.z, resident: t.decoded + t.gpu, compressed: t.compressed, triangles: t.triangles, draws: t.draws }));
+  const props = v.parse(PropsSchema, section), report = tiles.map((t) => {
+    const warnings = tileWarnings.get(`${t.lod}/${t.x}/${t.z}`);
+    return { lod: t.lod, x: t.x, z: t.z, resident: t.decoded + t.gpu, compressed: t.compressed, triangles: t.triangles, draws: t.draws,
+      ...(warnings === undefined ? {} : { warnings }) };
+  });
   return { props, tiles, files, library, far, assets, report };
 }
