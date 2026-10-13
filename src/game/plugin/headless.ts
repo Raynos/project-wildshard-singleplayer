@@ -448,7 +448,14 @@ export interface HybridRuntimeRows {
   /** the flag the session's quest probe reports once `quest` is complete */
   readonly complete: string;
   readonly audio: Parameters<typeof installRuntimeAudio>[1];
-  readonly cues: Parameters<typeof installRuntimeAudio>[2];
+  readonly cues?: Parameters<typeof installRuntimeAudio>[2];
+  /** Serializable entry configuration; the host supplies all callbacks. */
+  readonly boot?: {
+    readonly bounds?: { readonly x0: number; readonly x1: number; readonly z0: number; readonly z1: number; readonly floor: number };
+    readonly pitch?: number;
+    readonly itemContexts?: Shardfile;
+    readonly input?: { readonly definition: InputDefinition; readonly description: InputDescription; readonly hiddenMode?: string };
+  };
   /** Build the brain catalogue (in kit, as the rows enter): the brained species rows, their looks and the live witness. */
   readonly species: (() => { readonly rows: Parameters<ShardContext['rows']['species']>[0]; readonly looks: Parameters<ShardContext['rows']['speciesLook']>[0]; readonly witness: (actor: AnimalBody) => string | null }) | {
     readonly program: SpeciesProgramRows; readonly page: Parameters<SpeciesBrains['catalogue']>[0];
@@ -528,7 +535,14 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   /** Play work before the audio. */
   protected enter(_ctx: ShardContext): void { /* none by default */ }
 
-  override async world(ctx: ShardContext): Promise<void> { ctx.strings(this.rows.strings); await this.build(ctx); }
+  override async world(ctx: ShardContext): Promise<void> {
+    ctx.strings(this.rows.strings); await this.build(ctx);
+    const bounds = this.rows.boot?.bounds, runtime = ctx.game.runtime;
+    if (bounds !== undefined && runtime !== undefined) {
+      if (![bounds.x0, bounds.x1, bounds.z0, bounds.z1, bounds.floor].every(Number.isFinite) || bounds.x0 >= bounds.x1 || bounds.z0 >= bounds.z1) throw new Error('Invalid declared runtime bounds');
+      runtime.hooks.levelBounds = () => ({ ...bounds });
+    }
+  }
   override kit(ctx: ShardContext): void {
     const rows = this.rows, rt = ctx.game.runtime;
     if (!this.aliasesBound) {
@@ -574,6 +588,18 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
         ctx.app.player?.impulse(velocity.set(Math.sin(yaw) * speed, lift, Math.cos(yaw) * speed));
       };
       installEnteredRuntimeService(ctx, scope => { this.populationPush = push; scope.onDispose(() => { if (this.populationPush === push) this.populationPush = null; }); });
+    }
+    const boot = this.rows.boot;
+    if (boot?.pitch !== undefined && rt?.world) {
+      if (!Number.isFinite(boot.pitch)) throw new Error('Invalid declared entry pitch');
+      rt.world.player.pitch = boot.pitch;
+    }
+    if (boot?.itemContexts !== undefined) bindRuntimeItemContexts(ctx, boot.itemContexts);
+    if (boot?.input !== undefined) {
+      const { definition, description, hiddenMode } = boot.input;
+      const verbs = { ...definition.touch?.verbs };
+      for (const [key, verb] of Object.entries(verbs)) if (typeof verb !== 'string') Reflect.set(verbs, key, { ...verb, show: () => ctx.app.state === 'play' && (hiddenMode === undefined || ctx.app.player?.mode !== hiddenMode) });
+      this.input(ctx, { ...definition, ...(definition.touch === undefined ? {} : { touch: { ...definition.touch, verbs } }) }, description);
     }
     this.enter(ctx);
     installRuntimeAudio(ctx, this.rows.audio, this.rows.cues);

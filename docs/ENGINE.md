@@ -4433,3 +4433,17 @@ The graph compiler's `setArrayParam(name, values)` requires the original
 length and element type and copies values before changing any uniforms.
 A refused update leaves the current list intact. Scalar day/state bindings
 continue to use `params` and `setParam`.
+
+### Declared hybrid entry configuration
+
+`HybridRuntimePlugin.rows.boot` supplies world bounds, the initial player
+pitch, admitted item contexts and a semantic input definition with binding
+labels. The host installs these on the same scoped entry lifetime;
+`hiddenMode` hides input verbs while that player mode is active. Bounds and
+pitch must be finite. The declaration contains data; the host supplies the
+visibility callbacks. Sky and Signal use this path.
+
+Hybrid audio defaults to the shared declared combat router. Catalogue voice
+ids and routing overrides select existing native sound recipes; a shard
+does not need a custom dispatcher. Legacy custom dispatchers remain
+supported through the optional `cues` binding.

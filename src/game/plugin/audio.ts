@@ -1,3 +1,4 @@
+import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CombatCueMap, CombatCueOpts, CombatCues } from '@wildshard/engine/combat/cues';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -20,7 +21,7 @@ export function runtimeAudio(context: { readonly game: Pick<GameServices, 'decla
  * scope). Absent play (headless), nothing.
  */
 export function installRuntimeAudio(context: ShardContext, legacy: AudioData,
-  cues: (audio: Audio, combat: CombatCues, scope: Scope, routing: AudioData['routing']) => void): void {
+  cues: (audio: Audio, combat: CombatCues, scope: Scope, routing: AudioData['routing']) => void = installDeclaredCombatCues): void {
   const play = context.game.runtime?.play;
   if (!play) return;
   const rows = runtimeAudio(context, legacy);
@@ -89,5 +90,14 @@ export function declaredWeaponVoices(audio: Audio): ReadonlyMap<string, (opts: C
     ['sword.swing', () => { voices.swordSwing(); }], ['sword.heavy', () => { voices.swordHeavy(); }],
     ['sword.hit', (opts) => { voices.swordHit(opts.surface === 'wood' ? 'wood' : 'flesh', opts.pan, opts.gain); }],
     ['weapon.reload', () => { voices.reload(); }], ['weapon.swap', () => { voices.weaponSwap(); }],
+    ['kit.swordSwing', () => { voices.swordSwing(); }], ['kit.swordHeavy', () => { voices.swordHeavy(); }],
+    ['kit.swordHit', (opts) => { voices.swordHit('flesh', opts.pan, opts.gain); }],
+    ['kit.reload', () => { voices.reload(); }], ['kit.weaponSwap', () => { voices.weaponSwap(); }],
   ]);
+}
+
+/** Bind admitted combat routing directly to shared native voices, without a shard dispatcher. */
+export function installDeclaredCombatCues(audio: Audio, cues: CombatCues, scope: Scope, routing: AudioData['routing']): void {
+  const voices = new Map([...declaredWeaponVoices(audio)].map(([id, voice]) => [id, (opts: CombatCueOpts): undefined => { voice(opts); }]));
+  cues.use(createCueRouter(routing, { voices }), scope);
 }

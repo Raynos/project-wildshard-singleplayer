@@ -1,3 +1,4 @@
+import { SKY_RUNTIME_BOOT } from '../data/runtimeBoot';
 import { SKY_WORLD_TEXTURES } from '../data/worldTextures';
 import { ROC_STRIKES } from '../data/brains';
 import { SKY_PAGE_PROGRAM } from '../data/population';
@@ -11,7 +12,6 @@ import { ROC_SLATE_EDITS } from '../data/paintLook';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
 import { STRINGS } from '../data/strings';
-import { GUST_ICON, SWING_ICON } from '../data/icons';
 import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_MOVER_BINDING, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
@@ -45,7 +45,6 @@ import { ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
 import { bindSkyQuestStage } from './quest';
 import { FLAGS, vaneFlag } from '../quest/flags';
-import { installSkyCues } from './audio/cues';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import { bindRuntimeProductProps, runtimeLookMaterials, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { bindSkyItems } from './items';
@@ -87,7 +86,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   meadow: Meadow | null = null;
 
   protected readonly rows: HybridRuntimeRows = { expose: 'farReach', strings: STRINGS, weapon: FAN_ROW, encounters: { id: ROC_ID, displayName: STRINGS.roc }, complete: FLAGS.complete,
-    audio: source.audio, cues: installSkyCues, ...SKY_PAGE_PROGRAM };
+    audio: source.audio, boot: SKY_RUNTIME_BOOT, ...SKY_PAGE_PROGRAM };
 
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
@@ -126,10 +125,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const field = meadow(new Vector3(...SKY_SUN), ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades, ISLES, heroStoneDiscs());
     this.meadow = field; ctx.root.add(field.mesh); ctx.scope.own(field.mesh.geometry); ctx.scope.own(field.mesh.material); ctx.scope.own(field.atlas);
     ctx.scope.onDispose(() => { field.mesh.removeFromParent(); });
-    const runtime = ctx.game.runtime;
-    // SF49-g (G183 / G194): the four Rising Islet entries are the only way in, from the cell's edges: the whole cell is in bounds
-    if (runtime !== undefined) runtime.hooks.levelBounds = () => ({ x0: -250, x1: 250, z0: -250, z1: 250, floor: -8 });
-    runtime?.interactables.push(this.built.winch, this.built.notes);
+    ctx.game.runtime?.interactables.push(this.built.winch, this.built.notes);
   }
   protected override prepare(ctx: ShardContext): void {
     // The shared combat-target query (ENGINE §19): world creatures in play, the Practice Arena's dummies while it is open.
@@ -152,15 +148,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const { quest, flags, burst, finished, persistence } = installQuest(ctx, position, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined);
     persistence.bindProgress(rt?.play?.progress);
     this.quest = quest; this.flags = flags; this.questFinished = finished;
-    await worldBuildYield(ctx, 4);
-
-    const showGust = (): boolean => ctx.app.state === 'play' && !this.board();
-    const fanInput: Parameters<ShardContext['inputContext']>[0] = { id: 'far.fan', actions: ['attack', 'heavy', 'lock', 'far.gust'], keysFrom: 'weapon.melee', keys: { 'far.gust': ['KeyG'] },
-      touch: { mode: 'melee', lockable: true, relabel: { r0: { label: STRINGS.swing, icon: SWING_ICON } },
-        verbs: { 'verb.1': { action: 'far.gust', label: STRINGS.gust, icon: GUST_ICON, show: showGust } } } };
-    // the gust in the key-bindings table, under Combat (E418: G worked but was listed nowhere), while the shard is loaded
-    const gustRow: Parameters<ShardContext['app']['input']['bindings']['describe']>[0] = { rows: [{ group: 'combat', id: 'far.gust', label: STRINGS.gustBinding, actions: ['far.gust'] }] };
-    this.input(ctx, fanInput, gustRow);
     await worldBuildYield(ctx, 4);
 
     // Step 1: the keeper's notes.
