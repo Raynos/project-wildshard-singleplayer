@@ -150,6 +150,10 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | Developer LEGACY Signal card doesn't boot ("skitterer: no _joints"): the shared-loader rig rewrite replaced the GLB the frozen legacy copy reads | `02e371386` | `33041d88d` (legacy reads its own exact `ec8a8e7fa` rig copy) | sp-x1 |
 | 2026-10-13 | push gate: Sky `world-bake.test.ts` imports `src/sdk/looks/cardField` (not committed); typecheck + oxlint red | `fdb140aec` | pending (sp-o120) | sp-o120 |
 | 2026-10-13 | push gate fixed: Sky test import back to `runtime/looks/cardField` | `fdb140aec` | `74c8cd32c` (sp-o120) | sp-o120 |
-| 2026-10-13 | **Sky map bake non-deterministic** (same tree → 3 different top.webp; stale-map gate will flap) | `fdb140aec` (graph switch, suspected) | pending (sp-o120) | sp-o120 |
+| 2026-10-13 | **Sky map bake non-deterministic** (same tree → 3 different top.webp; stale-map gate will flap) | `fdb140aec` (graph `time` from `performance.now()`) | `ef08eb1e5` (graph time from the game/capture clock; 3 bakes identical) | sp-o125 |
 | 2026-10-13 | push gate typecheck: `sunscar-dunes/data/questMarkers.ts` possibly-undefined tuple reads | `77e4f4a05` (sp-x6) | `72a0f1546` (finite exact 3-number guard) | sp-x6 |
 | 2026-10-13 | native closure: `bindMeleeContacts` in `plugin/weaponFamily.ts` imports renderer modules (viewmodelFeel), refused by Signal's native proofs | `8a7e5dc54` | pending (sp-x8: binder to a renderer-free plugin module) | sp-x8 |
+| 2026-10-13 | cold gen: isolated `signal-declaration` job can't find `sunscar-dunes/data/stormLook` (catalogue closure missing the new storm look) | `029fcb0ab` | not a red: HEAD already pins it (`029fcb0ab`, pin 1b624644); stale export mix | sp-x7 |
+| 2026-10-13 | Signal product catalogue pin stale since storm graphs: HEAD emits `381a30a9…`, catalogue expects `4124a382…` (graphless product) | `029fcb0ab` | fixed `12199269a` (lash commit refreshed the catalogue) | sp-x1 |
+| 2026-10-13 | Signal product-author fixture: `data/productMap` tilesHash 6d515739 vs `look/map` 40d31e78 (pixels identical) | `029fcb0ab`? | pending | sp-x7 (queue red) |
+| 2026-10-13 | P0 after G405: detached ratchet + pre-commit guardSnapshot lack now-untracked `lint/shard-words.generated.json` (oxlint ENOENT, blocks all landings); gate generation-inputs refuses | `95528caef` | pending | sp-x7 |
