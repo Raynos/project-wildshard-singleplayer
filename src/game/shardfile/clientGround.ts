@@ -3,20 +3,27 @@ import type { TerrainField } from '@wildshard/engine/level/data';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { decodeMeshCollision, lowestMeshHeight } from '@wildshard/format/meshCollisionBytes';
 
+/** Keep temporary byte readers outside the context retained by height/normal/water callbacks. */
+function samplingQueries(profile: NonNullable<NonNullable<Shardfile['terrain']>['sampling']>, assets: ReadonlyMap<string, Uint8Array>, nativeDatum?: number) {
+  const wire = assets.get(profile.file); if (wire === undefined) throw new Error('Missing admitted terrain sampling profile');
+  return bilinearTerrainSamplers(decodeTerrainTile(wire), profile.normalEpsilon, nativeDatum ?? profile.datum);
+}
+
+function meshQueries(tiles: NonNullable<Shardfile['meshCollision']>['tiles'], assets: ReadonlyMap<string, Uint8Array>) {
+  return tiles.map(row => {
+    const wire = assets.get(row.file); if (wire === undefined) throw new Error('Missing admitted mesh terrain queries');
+    return { minX: -250 + row.x * 62.5, minZ: -250 + row.z * 62.5, data: decodeMeshCollision(wire) };
+  });
+}
+
 /** Baked collider samples supply the existing player's terrain queries; they never allocate an analytic collider. */
 export function clientGround(source: Shardfile, assets: ReadonlyMap<string, Uint8Array>, nativeDatum?: number): TerrainField {
   const bytes = source.terrain === null ? undefined : assets.get(source.terrain.collider);
   if (source.terrain !== null && bytes === undefined) throw new Error('Missing admitted terrain queries');
   const data = bytes === undefined || (source.terrain?.form === 'query' && source.terrain.collider === source.terrain.sampling.file) ? null : decodeTerrainTile(bytes);
   const profile = source.terrain?.sampling;
-  const queries = profile === undefined ? null : (() => {
-    const wire = assets.get(profile.file); if (wire === undefined) throw new Error('Missing admitted terrain sampling profile');
-    return bilinearTerrainSamplers(decodeTerrainTile(wire), profile.normalEpsilon, nativeDatum ?? profile.datum);
-  })();
-  const mesh = source.meshCollision?.tiles.map(row => {
-    const wire = assets.get(row.file); if (wire === undefined) throw new Error('Missing admitted mesh terrain queries');
-    return { minX: -250 + row.x * 62.5, minZ: -250 + row.z * 62.5, data: decodeMeshCollision(wire) };
-  });
+  const queries = profile === undefined ? null : samplingQueries(profile, assets, nativeDatum);
+  const mesh = source.meshCollision === null ? undefined : meshQueries(source.meshCollision.tiles, assets);
   const heightAt = (x: number, z: number): number => {
     if (queries !== null && mesh === undefined) return queries.heightAt(x, z);
     if (x < -250 || x > 250 || z < -250 || z > 250) return 0;
