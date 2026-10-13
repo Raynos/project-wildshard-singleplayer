@@ -23,7 +23,9 @@ import type { Animal } from "@wildshard/engine/entities/AnimalView";
 import { BossBar } from "@wildshard/engine/ui/BossBar";
 import { CoinBurst } from "../loot/CoinBurst";
 import { DirectorBossBrain } from "./director";
-import type { RuntimeBoss, RuntimeCoins } from "./headless";
+import { bindRuntimeQuest, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from "./headless";
+import type { Shardfile } from "@wildshard/format/shardSchema";
+import { npcDef, type NpcRow } from "./quests";
 import { parseBossProfile, type MarkedBossPresentation } from "@wildshard/format/bossProfiles";
 import { bossFight, type HeldBossBrain } from "./bossPhase";
 import { installEnteredRuntimeService, retainsRuntimeServices } from "./lifecycle";
@@ -508,6 +510,43 @@ export function presentRewardedQuest(ctx: ShardContext, quest: QuestState, rewar
   ctx.system({ id: o.id, phase: 'update', run: (dt) => { burst.update(dt, o.player); } });
   ctx.scope.onDispose(() => { burst.update(3, o.player); burst.dispose(); });
   return () => entered === null ? view : entered();
+}
+
+/** A rewarded quest's strings: the reward's toast, the new-quest toast's lead, the quest's title and the beat's kicker and subtitle. */
+export interface RewardedQuestStrings { readonly reward: string; readonly newQuest: string; readonly quest: string; readonly rewardKicker: string; readonly rewardSubtitle: string }
+/** What `installRewardedQuest` is lent beyond the runtime quest's ports (flags, facts, marker places). */
+export interface RewardedQuestPorts extends RuntimeQuestPorts {
+  /** The declared quest's id and the reward burst's system id. */
+  readonly id: string; readonly rewardId: string;
+  readonly strings: RewardedQuestStrings;
+  readonly player: Vector3; readonly coins: RuntimeCoins;
+  /** The save's once-only reward record. */
+  readonly paid: () => boolean; readonly markPaid: () => void;
+  /** Whether the held reward beat still shows (absent: unpaid when the quest was bound). */
+  readonly unpaid?: () => boolean;
+  /** The quest-giver: its row and its installed figure, made after the reward and before the presentation (absent or null: none). */
+  readonly npc?: () => { readonly row: NpcRow; readonly figure: Pick<QuestPresentationNpc, 'speaker'> & { readonly head: Vector3 }; readonly label: string } | null;
+  /** The presentation's other options (the places, their discovery flags). */
+  readonly presentation: Omit<QuestPresentationOptions, 'reward' | 'npc' | 'introTitle'>;
+  /** The reward beat's held view (absent: the player's own). */
+  readonly beat?: Pick<QuestRewardSpec, 'at' | 'yaw' | 'pitch' | 'holdSeconds'>;
+}
+/**
+ * A shard's declared quest with its coin reward in one call (SHARD-PLATFORM M3; Signal Dunes and Sky Reach): the
+ * shardfile's quest bound over the shard's flags, its coins once per save through the purse, its quest-giver, and the
+ * rewarded presentation (`presentRewardedQuest`) titled by the quest's strings.
+ */
+export function installRewardedQuest(ctx: ShardContext, source: Shardfile, o: RewardedQuestPorts): { quest: QuestState; reward: QuestReward; view: () => QuestPresentation | null } {
+  const { strings: s, player } = o;
+  const bound = bindRuntimeQuest(ctx, source, o.id, { flags: o.flags, ...(o.facts === undefined ? {} : { facts: o.facts }), ...(o.place === undefined ? {} : { place: o.place }) });
+  const quest = bound.state, paidAtLoad = o.paid();
+  const reward = questReward(ctx, { player, coins: o.coins, amount: bound.reward.coins, paid: o.paid, markPaid: o.markPaid, toast: s.reward });
+  const giver = o.npc?.() ?? null, npc = giver === null ? null
+    : { npc: npcDef(giver.row), at: giver.figure.head, label: giver.label, speaker: giver.figure.speaker, radius: giver.row.talkRadius };
+  const view = presentRewardedQuest(ctx, quest, reward, { id: o.rewardId, player, unpaid: o.unpaid ?? (() => !paidAtLoad), newQuest: `${s.newQuest} · ${s.quest}`,
+    presentation: { ...o.presentation, introTitle: s.quest, ...(npc === null ? {} : { npc }) },
+    beat: { kicker: s.rewardKicker, title: s.quest, subtitle: s.rewardSubtitle, ...o.beat } });
+  return { quest, reward, view };
 }
 
 /** What a boss row's browser encounter is given: its rows, its view-free script, its body and its record. */

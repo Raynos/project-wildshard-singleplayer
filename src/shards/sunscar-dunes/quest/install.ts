@@ -1,7 +1,7 @@
 import type { QuestMarker, QuestState } from '@wildshard/engine/quest/core';
 import type { CoinBurst } from '@wildshard/game/loot/CoinBurst';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
-import { presentRewardedQuest, questReward } from '@wildshard/game/plugin/ui';
+import { installRewardedQuest } from '@wildshard/game/plugin/ui';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import * as v from 'valibot';
 import type { Vector3 } from 'three';
@@ -12,12 +12,11 @@ import { STRINGS } from '../data/strings';
 import { lastLightAll } from '../look/light';
 import { ownPrimitives } from '../world/resources';
 import { installPivotNpc } from '@wildshard/game/plugin/geometry';
-import { npcDef } from '@wildshard/game/plugin/quests';
 import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
 import { duneMesh } from '../world/meshes';
 import { FLAG, SCOUT_AT, SCOUT_FLAG } from '../data/flags';
 import { COMPLETE_FLAG, LATER_FLAGS, PAID_FLAG } from '../data/signalQuest';
-import { bindRuntimeCoins, bindRuntimeQuest, type RuntimeCoins, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
+import { bindRuntimeCoins, type RuntimeCoins, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
 import source from '../shard.config';
 import { bindSignalFacts } from '../runtime/persistence';
 
@@ -56,21 +55,15 @@ export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWo
     logbook: at(world.logbook.position, 0.4), well: at(world.well.spot.position, 0.6), tower: at(world.fire.brazier.position, 1),
     ...Object.fromEntries(world.braziers.map((b, i) => [`waymark.${String(i)}`, at(b.spot.position, 0.8)])),
   };
-  // The declared quest (shard.config.ts, bound by this runtime): the platform builds its state over the world's flags and
-  // emits its fact on completion, and on load for a save that finished it before facts existed.
-  const bound = bindRuntimeQuest(ctx, source, 'sunscar.signal', { flags, facts, place: (marker) => placed[marker.id] });
-  const quest = bound.state, paidAtLoad = flags.has(PAID_FLAG);
-  // the 5-coin signal reward, once per save (PAID_FLAG), held for the beat after the Matriarch falls
-  const reward = questReward(ctx, { player, coins, amount: bound.reward.coins, paid: () => flags.has(PAID_FLAG), markPaid: () => { flags.set(PAID_FLAG); }, toast: STRINGS.reward });
-  // Sefa, the caravan scout, starts the quest on the spawn crest (P4; Driftwood's Wendell): she waves until you talk.
-  const figure = duneMesh(SCOUT_MODEL);
-  const sefa = figure === null ? null : installPivotNpc(ctx, SCOUT_NPC, { source: figure, groundAt, player, met: () => flags.has(SCOUT_FLAG), file: 'src/shards/sunscar-dunes/quests/scout.ts',
-    dress: (group) => { ownPrimitives(group, ctx.scope); lastLightAll(group, ctx.scope); } });
-  // The one-call presentation (ENGINE §20): the chip with distance and bearing, minimap and map diamonds, world pins, the
-  // MAP card, saved discovery of the places, step toasts, the held reward beat and, on the first frame, the quest's toast.
-  const view = presentRewardedQuest(ctx, quest, reward, { id: 'sunscar.reward', player, unpaid: () => !paidAtLoad, newQuest: `${STRINGS.newQuest} · ${STRINGS.quest}`,
-    presentation: { places: [...DISCOVERY_PLACES], introTitle: STRINGS.quest,
-      ...(sefa === null ? {} : { npc: { npc: npcDef(SCOUT_NPC), at: sefa.head, label: STRINGS.talkScout, speaker: sefa.speaker, radius: SCOUT_NPC.talkRadius } }) },
-    beat: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle } });
+  // The declared quest (shard.config.ts) with its 5-coin signal reward, once per save (PAID_FLAG), held for the beat after
+  // the Matriarch falls; Sefa, the caravan scout, starts it on the spawn crest (P4; Driftwood's Wendell): she waves until you talk.
+  const { quest, reward, view } = installRewardedQuest(ctx, source, { id: 'sunscar.signal', rewardId: 'sunscar.reward', strings: STRINGS, flags, facts,
+    place: (marker) => placed[marker.id], player, coins, paid: () => flags.has(PAID_FLAG), markPaid: () => { flags.set(PAID_FLAG); },
+    presentation: { places: [...DISCOVERY_PLACES] }, npc: () => {
+      const figure = duneMesh(SCOUT_MODEL);
+      const sefa = figure === null ? null : installPivotNpc(ctx, SCOUT_NPC, { source: figure, groundAt, player, met: () => flags.has(SCOUT_FLAG), file: 'src/shards/sunscar-dunes/quests/scout.ts',
+        dress: (group) => { ownPrimitives(group, ctx.scope); lastLightAll(group, ctx.scope); } });
+      return sefa === null ? null : { row: SCOUT_NPC, figure: sefa, label: STRINGS.talkScout };
+    } });
   return { quest, burst: reward.burst, facts, get view() { return view(); } };
 }

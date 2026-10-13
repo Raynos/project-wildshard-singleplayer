@@ -1,8 +1,8 @@
 import type { QuestState } from '@wildshard/engine/quest/core';
 import { Flags } from '@wildshard/engine/world/interact/flags';
-import { presentRewardedQuest, questReward } from '@wildshard/game/plugin/ui';
+import { installRewardedQuest } from '@wildshard/game/plugin/ui';
 import type { QuestPresentation } from '@wildshard/game/quest/presentation';
-import { bindRuntimeCoins, bindRuntimeQuest } from '@wildshard/game/shardfile/hybridRows';
+import { bindRuntimeCoins } from '@wildshard/game/shardfile/hybridRows';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { Vector3 } from 'three';
 import { CROWN, DECK, HIGH, STEP, VANES } from '../data/layout';
@@ -10,7 +10,7 @@ import { STRINGS } from '../data/strings';
 import { ownPrimitives } from '../world/resources';
 import { FLAGS, vaneFlag } from './flags';
 import { keeper } from './keeper';
-import { KEEPER_NPC } from '../data/keeperDialogue';
+import { KEEPER_ROW } from '../data/keeperLook';
 import { SKY_PLACES } from '../data/places';
 import source from '../shard.config';
 import { bindSkyPersistence, type SkyPersistence } from '../runtime/persistence';
@@ -32,15 +32,14 @@ export const REWARD_VIEW = { at: new Vector3(STEP.x + 2, HIGH + 1.7, STEP.z - 4)
 export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share: number) => void):
   { quest: QuestState; flags: Flags; burst: (count: number, toast: string) => void; view: QuestPresentation | null; finished: () => void; persistence: SkyPersistence } {
   const flags = new Flags(ctx.manifest.slug), persistence = bindSkyPersistence(ctx, ctx.app.saves), { rewarded, facts } = persistence;
-  const bound = bindRuntimeQuest(ctx, source, 'far.quest', { flags, facts }), quest = bound.state;
-  const reward = questReward(ctx, { player, coins: onCoin ?? bindRuntimeCoins(ctx, null), amount: bound.reward.coins, paid: () => rewarded.read(), markPaid: () => { rewarded.write(true); }, toast: STRINGS.reward });
-  // The keeper at the spawn: he waves within 16 m and gestures while he talks.
-  const npc = keeper(DECK); ctx.root.add(npc.group); ownPrimitives(npc.group, ctx.scope);
-  ctx.system({ id: 'far.keeper', phase: 'update', run: (dt, t) => { npc.update(dt, t, player, false); } });
-  // The one-call presentation (ENGINE §20); headless (tests, a node bake) the reward pays at once.
-  const view = presentRewardedQuest(ctx, quest, reward, { id: 'far.reward', player, unpaid: () => !rewarded.read(), newQuest: `${STRINGS.newQuest} · ${STRINGS.quest}`,
-    presentation: { flags, places: [...SKY_PLACES], introTitle: STRINGS.quest, npc: { npc: KEEPER_NPC, at: npc.head, label: STRINGS.talkKeeper, speaker: npc.speaker, radius: 3.5 } },
-    beat: { kicker: STRINGS.rewardKicker, title: STRINGS.quest, subtitle: STRINGS.rewardSubtitle, at: REWARD_VIEW.at, yaw: REWARD_VIEW.yaw, pitch: REWARD_VIEW.pitch, holdSeconds: 5 } });
+  // The keeper at the spawn waves within 16 m and gestures while he talks; headless (tests, a node bake) the reward pays at once.
+  const { quest, reward, view } = installRewardedQuest(ctx, source, { id: 'far.quest', rewardId: 'far.reward', strings: STRINGS, flags, facts, player,
+    coins: onCoin ?? bindRuntimeCoins(ctx, null), paid: () => rewarded.read(), markPaid: () => { rewarded.write(true); }, unpaid: () => !rewarded.read(),
+    presentation: { flags, places: [...SKY_PLACES] }, beat: { ...REWARD_VIEW, holdSeconds: 5 }, npc: () => {
+      const npc = keeper(DECK); ctx.root.add(npc.group); ownPrimitives(npc.group, ctx.scope);
+      ctx.system({ id: 'far.keeper', phase: 'update', run: (dt, t) => { npc.update(dt, t, player, false); } });
+      return { row: KEEPER_ROW, figure: npc, label: STRINGS.talkKeeper };
+    } });
   ctx.system({ id: 'far.vanes', phase: 'update', run: () => {
     if (!flags.has(FLAGS.vanes) && VANES.every((vane) => flags.has(vaneFlag(vane.id)))) flags.set(FLAGS.vanes);
   } });
