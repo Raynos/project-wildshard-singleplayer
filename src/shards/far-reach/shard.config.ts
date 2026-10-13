@@ -1,3 +1,4 @@
+import navigation from './data/navigation.generated.json' with { type: 'json' };
 import bossStages from './data/bossStages.json' with { type: 'json' };
 import { SKY_REACH_RUNTIME_COST } from './budgets';
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -28,7 +29,7 @@ const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wil
 const lifts = new Map(ISLET_LIFTS.map((entry) => [entry.edge, entry.lift]));
 const wasm = (module: { hash: string; bytes: number }) => ({ hash: module.hash, kind: 'wasm', compressed: module.bytes, decoded: module.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes'], spawns: SKY_SPAWNS }, audio: AUDIO, directors: [bossStages],
+export default parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes'], spawns: SKY_SPAWNS }, audio: AUDIO, directors: [bossStages],
   modes: SKY_MODES, quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,
   entryways: base.entryways.map(({ edge, at, width }) => {
     const lift = lifts.get(edge); if (lift === undefined) throw new Error(`Sky Reach entry ${edge} has no Rising Islet`);
@@ -36,8 +37,8 @@ export default parseShardfile({ ...base, accent: 'pink', runtime: { entry: 'runt
   }),
   // The authored clips declare every bridge, islet and gate; both hosts install this admitted order once.
   movers: MOVERS,
-  files: [wasm(BRIDGE_MODULE), wasm(LIFT_MODULE)], critical: [BRIDGE_MODULE.hash, LIFT_MODULE.hash],
-  budgets: { ...base.budgets, sim: { resident: 1_000_000, compressed: LIFT_MODULE.bytes + BRIDGE_MODULE.bytes } },
+  files: [wasm(BRIDGE_MODULE), wasm(LIFT_MODULE), ...navigation.files], critical: [BRIDGE_MODULE.hash, LIFT_MODULE.hash, ...navigation.critical],
+  budgets: { ...base.budgets, sim: { resident: 1_000_000 + navigation.files.reduce((sum, file) => sum + file.decoded, 0), compressed: LIFT_MODULE.bytes + BRIDGE_MODULE.bytes + navigation.files.reduce((sum, file) => sum + file.compressed, 0) } },
   sim: { ...base.sim, scripts: [BRIDGE_MODULE.hash, LIFT_MODULE.hash] },
   props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [],
     colliders: [...RISING_ISLETS.map((entry) => ({ id: `landing.${entry.edge}`, panel: null, initialActive: true, shapes: [{ ...entry.landing }] })),

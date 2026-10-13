@@ -20,6 +20,7 @@ import { nearPlaceholderRoots } from '@wildshard/format/nearPlaceholder';
 /** Actual costs derived from a bounded parser, never trusted from the author declaration. */
 import { isNavigationData, navigationCost } from '@wildshard/format/navigationBytes';
 
+/** Admitted decoded CPU bytes, GPU bytes, triangle count and draw count charged to the asset budget. */
 export interface AssetCost { decoded: number; gpu: number; triangles: number; draws: number }
 const MAX_BYTES = 25_000_000;
 const MAX_ELEMENTS = 4_000_000;

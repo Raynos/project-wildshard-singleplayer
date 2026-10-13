@@ -14,8 +14,8 @@ const root = resolve(import.meta.dirname, '../../..');
 // Node normalises the script argument to an absolute path before preloads run.
 const script = process.argv.at(1);
 const driver = script === undefined ? '' : relative(root, resolve(script)).split(sep).join('/');
-// The confined JSON driver names its source explicitly; direct producers own their script path.
-const source = driver === 'src/sdk/bake/json.mjs' ? process.argv.at(2) : script;
+// Confined SDK drivers name their source explicitly; direct producers own their script path.
+const source = ['src/sdk/bake/json.mjs', 'src/sdk/bake/navigation-json.mjs'].includes(driver) ? process.argv.at(2) : script;
 const candidate = source === undefined ? '' : relative(root, resolve(source)).split(sep).join('/');
 const entry = /^src\/shards\/[^/]+\/generators\//u.test(candidate) ? candidate : undefined;
 const shard = entry?.split('/')[2];

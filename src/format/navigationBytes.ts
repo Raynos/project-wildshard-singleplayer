@@ -1,12 +1,16 @@
 /** WSNM v1 little-endian voxel/detail layout. Pure decoding: no navcat, renderer or service. */
 export type NavigationBounds = [number, number, number, number, number, number];
+/** A walkable polygon: ordered vertex and neighbour indices, traversal flags and area id. */
 export interface NavigationPoly { vertices: number[]; neis: number[]; flags: number; area: number }
+/** Offsets and counts into a tile's detailed height-sample vertices and triangle arrays. */
 export interface NavigationDetail { verticesBase: number; verticesCount: number; trianglesBase: number; trianglesCount: number }
+/** One decoded tile in world metres, retaining original polygon order and detailed height samples. */
 export interface NavigationTileData {
   bounds: NavigationBounds; vertices: number[]; polys: NavigationPoly[];
   detailMeshes: NavigationDetail[]; detailVertices: number[]; detailTriangles: number[];
   tileX: number; tileY: number; tileLayer: number;
 }
+/** One agent-clearance layer and its voxel dimensions, world origin and ordered decoded tiles. */
 export interface NavigationLayerData {
   radius: number; height: number; climb: number; cellSize: number; cellHeight: number;
   origin: [number, number, number]; tileSize: number; tiles: NavigationTileData[];

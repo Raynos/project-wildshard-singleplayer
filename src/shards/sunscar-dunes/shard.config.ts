@@ -1,4 +1,5 @@
 import signalStages from './data/signalStages.json' with { type: 'json' };
+import navigation from './data/navigation.generated.json' with { type: 'json' };
 import bossStages from './data/bossStages.json' with { type: 'json' };
 import { SIGNAL_DUNES_RUNTIME_COST } from './data/runtimeCost';
 import { emptyShardfile } from '@wildshard/sdk/author';
@@ -22,11 +23,11 @@ import { SIGNAL_QUESTS } from './data/signalQuest';
 // (`runtime.binds: ['terrain']`: the data client installs none of it). The edge rows are the same bake's, so seams,
 // collider and tiles agree exactly (within 8 cm of the old WSTR-read rows).
 // The sim budget is exactly the critical collider's cost (the tiles are render residency, charged per tile).
-const collider = tiles.files.filter((file) => tiles.critical.includes(file.hash));
+const collider = [...tiles.files, ...navigation.files].filter((file) => [...tiles.critical, ...navigation.critical].includes(file.hash));
 const sim = { resident: collider.reduce((sum, file) => sum + file.decoded + file.gpu, 0), compressed: collider.reduce((sum, file) => sum + file.compressed, 0) };
 
 const base = emptyShardfile({ slug: 'sunscar-dunes', name: 'Signal Dunes', author: 'Wildshard', revision: 1, seed: 5363 });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base, budgets: { ...base.budgets, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'terrain'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages, signalStages],
+export default parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, budgets: { ...base.budgets, sim }, accent: 'orchid', runtime: { entry: 'runtime/index.ts', cost: SIGNAL_DUNES_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'terrain'], spawns: SIGNAL_SPAWNS }, audio: AUDIO, directors: [bossStages, signalStages],
   quests: SIGNAL_QUESTS, ledger: SIGNAL_LEDGER, items: WHIP_ITEMS,
-  terrain: tiles.terrain, tiles: tiles.tiles, files: tiles.files, critical: tiles.critical, edge: tiles.edge });
+  terrain: tiles.terrain, tiles: tiles.tiles, files: [...tiles.files, ...navigation.files], critical: [...tiles.critical, ...navigation.critical], edge: tiles.edge });

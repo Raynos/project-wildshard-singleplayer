@@ -1,3 +1,4 @@
+import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { STRINGS } from './data/strings';
@@ -23,6 +24,7 @@ const eye = (x: number, z: number, height: number, lift = 1.6): [number, number,
 const feet = (x: number, z: number, height: number): [number, number, number] => [x, height, z];
 
 export const SUNSCAR_DUNES: ShardManifest = {
+  navigation: { row: navigation.navigation, url: navigation.url },
   runtimeCost: SIGNAL_DUNES_RUNTIME_COST,
   trustedRuntime: { get slug() { return SUNSCAR_DUNES.slug; }, entry: 'runtime/index.ts' },
   ...SIGNAL_MANIFEST_ROWS, slug: 'sunscar-dunes', budgets: BUDGETS, name: STRINGS.name, seed: SEED, spawns: [],

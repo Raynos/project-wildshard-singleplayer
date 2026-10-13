@@ -1,3 +1,4 @@
+import navigation from './data/navigation.generated.json' with { type: 'json' };
 import type { ShardManifest } from '@wildshard/game/shard/manifest';
 import { STRINGS } from './data/strings';
 import { BUDGETS, SKY_REACH_RUNTIME_COST } from './budgets';
@@ -20,6 +21,7 @@ export const bootFiles = (): readonly string[] => Object.values(bootSources('pho
 export const lateReads = (): readonly string[] => ['/assets/lut/far-reach.bin'];
 
 export const SKY_REACH: ShardManifest = {
+  navigation: { row: navigation.navigation, url: navigation.url },
   runtimeCost: SKY_REACH_RUNTIME_COST,
   entries: { legacy: true, shardfile: true, public: 'shardfile' }, // G326: public card flipped once boot, walk and parity passed (op-flip39)
   gridShardfile: '/shardfiles/far-reach/shard.json',

@@ -10,6 +10,7 @@ export const NavigationSchema = v.strictObject({ version: v.literal(1), layout: 
   file: v.pipe(v.string(), v.regex(/^[a-f0-9]{64}$/u)), bounds: v.tuple([finite, finite, finite, finite, finite, finite]),
   layers: v.pipe(v.array(v.strictObject({ radius: positive, height: positive, climb: v.pipe(finite, v.minValue(0)), cellSize: positive, cellHeight: positive,
     origin: point, tileSize: positive, tiles: v.pipe(v.array(v.tuple([coordinate, coordinate])), v.maxLength(4096)) })), v.minLength(1), v.maxLength(16)) });
+/** An admitted immutable navigation declaration, with exact WSNM bounds and ordered agent tile grids. */
 export type Navigation = v.InferOutput<typeof NavigationSchema>;
 /** Trusted level transport: admitted product bytes or the manifest's declared immutable URL. */
 export type NavigationContent = { row: unknown; bytes: Uint8Array } | { row: unknown; url: string };
