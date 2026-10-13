@@ -28,6 +28,9 @@ p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may 
   ancestor of HEAD (including deleting a newer file). A DELIBERATE rollback or a recapture that legitimately restores older
   bytes must set `WS_COMMIT_INTENT='{"base":"<full current parent SHA>","paths":["<every staged path>"]}'`; it is admitted
   only if the parent is unchanged and every staged path is listed. Recompute it on every CAS retry.
+- **`scripts/generation-jobs.json` has many writers.** Never commit or build the working-tree copy wholesale: start from
+  `git show HEAD:scripts/generation-jobs.json`, apply only your own job's entries, commit via a private index (a draft
+  that carried stale hunks dropped Signal's commons roots and ring pin, 2026-10-13).
 - **Strict TS:** no `any`, `!`, `@ts-ignore`, `as unknown as`, blanket disables. Fix the type, never the gate. Never
   disable a lint guard. No `?foo=` URL switches (Debug rows only, DEBUG-TOGGLES.md). Never edit frozen `*-legacy` folders.
 - **Debt-row approvals:** a push refused for a generated rise under `src/shards/` (shard-engine-imports,
