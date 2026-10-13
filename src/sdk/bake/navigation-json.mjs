@@ -10,7 +10,7 @@ import process from 'node:process';
 import { parseNavigation, readNavigation } from '@wildshard/format/navigation';
 import { hashImmutableBytes } from '../immutable.ts';
 
-const [entry, input, output, assets] = process.argv.slice(2);
+const entry = process.argv.at(2), input = process.argv.at(3), output = process.argv.at(4), assets = process.argv.at(5);
 if (process.argv.length !== 6 || entry === undefined || input === undefined || output === undefined || assets === undefined) throw new Error('Navigation driver requires entry, source bytes, metadata and asset folder');
 const root = process.cwd(), owner = /^src\/shards\/([^/]+)\/generators\//u.exec(entry)?.[1];
 if (owner === undefined) throw new Error('Navigation entry requires a shard-owned generator');
