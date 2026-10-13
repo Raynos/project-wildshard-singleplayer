@@ -69,3 +69,13 @@ it('treats constructor and prototype method names as ordinary owner spans',()=>{
     expect(row.counts.C9).toBe(4);expect(row.total).toBe(4);
   }finally{rmSync(root,{recursive:true,force:true});}
 });
+
+it('keeps effect shader and primitive spans with the effect owner and registers weapon-family ownership',()=>{
+  const root=mkdtempSync(resolve(tmpdir(),'wave-effects-')),file='src/shards/sunscar-dunes/runtime/looks/fireFx.ts';
+  try{
+    mkdirSync(dirname(resolve(root,file)),{recursive:true});
+    writeFileSync(resolve(root,file),"import {Mesh,ShaderMaterial} from 'three';\nconst material = new ShaderMaterial();\nconst mesh = new Mesh(undefined, material);");
+    const row=componentInventory(root,'sunscar-dunes',[{path:file,kind:'runtime-ts',lines:3},{path:'src/game/plugin/weaponFamily.ts',kind:'sole-export',name:'registerWeaponFamily',lines:2}],5);
+    expect(row.counts.C3).toBe(3);expect(row.counts.C6).toBe(2);expect(row.unknown).toEqual([]);
+  }finally{rmSync(root,{recursive:true,force:true});}
+});

@@ -30,7 +30,7 @@ function fileRole(path, name = '') {
   if (/fireFx|windFx|wakeRibbon|discLayer|skyCardsLook|cardField/iu.test(path)) return 'C3';
   if (/\/(?:quest|quests)\/|\/runtime\/quest\.ts$/u.test(path)) return 'C5';
   if (/\/(?:species|creatures)\/|brain|flock|\/ai\/|(?:models|combat)\/(?:creatures|matriarch|stormRoc)/iu.test(path)) return 'C4';
-  if (/\/(?:weapons|items)\/|\/items\.ts$|lash|fan|\/models\/gear/iu.test(path)) return 'C6';
+  if (/\/(?:weapons|items)\/|\/items\.ts$|lash|fan|\/models\/gear|weaponFamily/iu.test(path)) return 'C6';
   if (/mover|entries\.ts$|islets?\.ts$|risingIslet|isletLift|updraft/iu.test(path)) return 'C7';
   if (/audio|cues|voices/iu.test(path)) return 'C8';
   if (/\/look[s]?\/|Look|Glsl|\/render\/|Atmosphere|materialPreparation/iu.test(path)) return 'C2';
@@ -51,8 +51,9 @@ function runtimeTags(source, path, fallback) {
   const lineOf = offset => { let low=0, high=starts.length-1; while(low<high){const mid=(low+high+1)>>1;if(starts[mid]<=offset)low=mid;else high=mid-1;}return low; };
   const assign = (node, component, priority, reason) => {
     if (!component) return;
+    const owner = fallback === 'C3' && (component === 'C1' || component === 'C2') ? 'C3' : component;
     for (let i=lineOf(node.start);i<=lineOf(Math.max(node.start,node.end-1));i++) {
-      const row=tags[i]; if(row && priority>row.priority){row.component=component;row.priority=priority;row.reason=reason;}
+      const row=tags[i]; if(row && priority>row.priority){row.component=owner;row.priority=priority;row.reason=reason;}
     }
   };
   const imports = new Map();
