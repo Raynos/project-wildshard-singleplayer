@@ -14,6 +14,7 @@ import { DEFAULT_NORMALIZED_DAY, normalizedDayClock, type DayCycle } from '../wo
 import type { LookStrategy, SkyBackdropTargets } from './look';
 import { LUT_SIZE, fetchLut } from './lut';
 import { PATCH_ORDER, patchShader, setInheritedPatch, type ShaderSource } from './shaderPatches';
+import type { Scope } from '../app/scope';
 
 type Rgb = readonly [number, number, number];
 const mesh = (object: THREE.Object3D): object is THREE.Mesh => object instanceof THREE.Mesh;
@@ -201,16 +202,33 @@ export interface LookVec3 { readonly x: number; readonly y: number; readonly z: 
 const vec3Glsl = (v: readonly number[]): string => `vec3(${v.map((n) => n.toFixed(4)).join(',')})`;
 
 /**
- * A painter's light: three terms on every lit material's light sum, after three's own lights. `bounce` (a soft wrap from
- * the anti-sun heading lifted by `bounceLift`), `rim` (a sun-coloured fresnel edge, strongest with the sun behind the
- * surface, mostly on vertical faces) and `floor` (no shaded surface below that share of its own albedo); linear colours ×
- * strengths. `prefix` names its GLSL identifiers; a material opts out with the define `optOut`.
+ * A painter's light: terms on a lit material's light sum, after three's own lights. `bounce` (a soft wrap from the
+ * anti-sun heading lifted by `bounceLift`), `rim` (a sun-coloured fresnel edge, strongest with the sun behind the surface,
+ * mostly on vertical faces) and `floor` (no shaded surface below that share of its own albedo); linear colours ×
+ * strengths; a black `bounce` or `floor` is left out. `prefix` names its GLSL identifiers; a material opts out with the
+ * define `optOut`. The rim's shape is `rimBack` (its share without, then with, the sun behind; absent `[0.2, 0.8]`) and
+ * `rimSide` (on a flat, then a vertical face; absent `[0.3, 0.7]`). `lift` (absent: none) adds that share of the surface's
+ * base colour with the rim, past the ambient occlusion: an afterglow's cool sky-lit shade (G406, the shared painted look).
  */
-export interface PainterLightRow { readonly bounce: Rgb; readonly bounceLift: number; readonly rim: Rgb; readonly floor: Rgb; readonly prefix: string; readonly optOut: string }
+export interface PainterLightRow {
+  readonly bounce: Rgb; readonly bounceLift: number; readonly rim: Rgb; readonly floor: Rgb; readonly prefix: string; readonly optOut: string;
+  readonly rimBack?: readonly [number, number]; readonly rimSide?: readonly [number, number]; readonly lift?: Rgb;
+}
+
+const floatGlsl = (n: number): string => (Number.isInteger(n) ? n.toFixed(1) : String(n));
+const black = (c: Rgb): boolean => c.every((n) => n === 0);
 
 /** The painter's light's GLSL (appended to three's `lights_fragment_end`), the sun's direction baked in. */
 export function painterLightGlsl(row: PainterLightRow, sun: LookVec3): string {
   const p = row.prefix, bounce = new THREE.Vector3(-sun.x, row.bounceLift, -sun.z).normalize();
+  const [back0, back1] = row.rimBack ?? [0.2, 0.8], [side0, side1] = row.rimSide ?? [0.3, 0.7];
+  const edge = row.lift === undefined
+    ? `reflectedLight.directDiffuse += material.diffuseColor * ${vec3Glsl(row.rim)} * ${p}Rim;`
+    : `reflectedLight.directDiffuse += diffuseColor.rgb * ( ${vec3Glsl(row.lift)} + ${vec3Glsl(row.rim)} * ${p}Rim );`;
+  const bounceLine = black(row.bounce) ? '' : `
+  reflectedLight.indirectDiffuse += material.diffuseColor * ${vec3Glsl(row.bounce)} * ${p}Wrap;`;
+  const floorLine = black(row.floor) ? '' : `
+  reflectedLight.indirectDiffuse = max( reflectedLight.indirectDiffuse, material.diffuseColor * ${vec3Glsl(row.floor)} );`;
   return `
 #ifndef ${row.optOut}
 {
@@ -220,14 +238,23 @@ export function painterLightGlsl(row: PainterLightRow, sun: LookVec3): string {
   float ${p}NV = clamp( dot( geometryNormal, geometryViewDir ), 0.0, 1.0 );
   float ${p}Back = clamp( dot( -geometryViewDir, ${p}L ), 0.0, 1.0 );
   float ${p}Side = 1.0 - abs( dot( geometryNormal, ${p}Up ) );
-  float ${p}Rim = pow( 1.0 - ${p}NV, 3.0 ) * ( 0.2 + 0.8 * ${p}Back * ${p}Back ) * ( 0.3 + 0.7 * ${p}Side );
-  reflectedLight.directDiffuse += material.diffuseColor * ${vec3Glsl(row.rim)} * ${p}Rim;
-  float ${p}Wrap = clamp( ( dot( geometryNormal, ${p}B ) + 0.45 ) / 1.45, 0.0, 1.0 );
-  reflectedLight.indirectDiffuse += material.diffuseColor * ${vec3Glsl(row.bounce)} * ${p}Wrap;
-  reflectedLight.indirectDiffuse = max( reflectedLight.indirectDiffuse, material.diffuseColor * ${vec3Glsl(row.floor)} );
+  float ${p}Rim = pow( 1.0 - ${p}NV, 3.0 ) * ( ${floatGlsl(back0)} + ${floatGlsl(back1)} * ${p}Back * ${p}Back ) * ( ${floatGlsl(side0)} + ${floatGlsl(side1)} * ${p}Side );
+  ${edge}
+  float ${p}Wrap = clamp( ( dot( geometryNormal, ${p}B ) + 0.45 ) / 1.45, 0.0, 1.0 );${bounceLine}${floorLine}
 }
 #endif
 `;
+}
+
+/**
+ * The painter's light on one material only (a look whose light reaches its props, not the page's every lit material:
+ * Signal's afterglow edge), appended after its `lights_fragment_end`; removed with `scope`.
+ */
+export function painterLightPatch(material: THREE.Material, row: PainterLightRow, sun: LookVec3, scope: Scope): void {
+  const glsl = painterLightGlsl(row, sun);
+  patchShader(material, `${row.prefix}.painterLight`, PATCH_ORDER.decorate, (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace('#include <lights_fragment_end>', `#include <lights_fragment_end>${glsl}`);
+  }, { scope });
 }
 
 const installedLight = new Set<string>();

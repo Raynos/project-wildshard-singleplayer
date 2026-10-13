@@ -33,7 +33,8 @@ for n in spec.get('notes', []):
 y += 20
 for r in rows:
     d.text((M, y), r['label'], font=mid, fill=(240, 236, 228)); y += 50
-    for i, (key, tag, col) in enumerate((('before', 'BEFORE · GLSL', (200, 200, 200)), ('after', 'AFTER · SF59 graph', (140, 220, 160)))):
+    tags = spec.get('tags', ['BEFORE · GLSL', 'AFTER · SF59 graph'])
+    for i, (key, tag, col) in enumerate((('before', tags[0], (200, 200, 200)), ('after', tags[1], (140, 220, 160)))):
         x = M + i * (PW + GAP)
         p = Image.open(r[key]).convert('RGB').resize((PW, PH), Image.LANCZOS)
         img.paste(p, (x, y))
