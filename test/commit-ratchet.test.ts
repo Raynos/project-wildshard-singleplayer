@@ -106,3 +106,28 @@ it('refuses a historical export whose committed helper silently skips missing JS
     expect(report).not.toContain('Ratchet rose');
   });
 });
+
+
+it('refuses wrong JSON copied by a historical CLI-only helper before measurement', () => {
+  fixture((root, put, git) => {
+    const path = 'src/shards/example/data/rows.generated.json';
+    put('scripts/generation-jobs.json', JSON.stringify({jobs: [{id: 'old-cli', buildOutputs: {
+      [path]: createHash('sha256').update('{"rows":[]}\n').digest('hex'),
+    }}]}));
+    put('scripts/precommit-generated-data.mjs', `import {mkdirSync, writeFileSync} from 'node:fs';
+import {dirname, resolve} from 'node:path';
+if (process.argv[1].endsWith('precommit-generated-data.mjs')) {
+  const file=resolve(process.argv[3], '${path}'); mkdirSync(dirname(file), {recursive:true}); writeFileSync(file, '{"wrong":true}');
+}
+`);
+    git(['commit', '-qm', 'historical CLI fixture', '--', 'scripts/generation-jobs.json', 'scripts/precommit-generated-data.mjs']);
+    const sha=git(['rev-parse', 'HEAD']), marker=join(root, '.git/measured');
+    const result=spawnSync('bash', [resolve('scripts/commit-ratchet.sh'), sha], {cwd:root, encoding:'utf8', env:{...env, COMMIT_RATCHET_LOCKED:'1', FIXTURE_MEASURE_MARKER:marker}});
+    expect(result.status, result.stderr).toBe(0);
+    expect(existsSync(marker)).toBe(false);
+    const report=readFileSync(join(root, '.git/ratchet-last.txt'), 'utf8');
+    expect(report).toContain(`${sha} REFUSED`);
+    expect(report).toContain('does not match staged hash');
+    expect(report).not.toContain('Ratchet rose');
+  });
+});

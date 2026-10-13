@@ -48,11 +48,14 @@ fi
 # Source-only trees omit cached JSON. Use this commit's catalogue and helper, never unpinned working data.
 if [ -f "$tmp/scripts/precommit-generated-data.mjs" ]; then
   if ! out="$(node --input-type=module - "$repo" "$tmp" "$common/commit-inputs/blobs" 2>&1 <<'JS'
+import { execFileSync } from 'node:child_process';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 const [repo, snapshot, blobs] = process.argv.slice(2);
-const { materializeGuardData } = await import(pathToFileURL(resolve(snapshot, 'scripts/precommit-generated-data.mjs')).href);
-materializeGuardData(repo, snapshot, blobs);
+const helper = resolve(snapshot, 'scripts/precommit-generated-data.mjs');
+const { materializeGuardData } = await import(pathToFileURL(helper).href);
+if (typeof materializeGuardData === 'function') materializeGuardData(repo, snapshot, blobs);
+else execFileSync(process.execPath, [helper, repo, snapshot], { stdio: 'inherit' });
 JS
 )"; then
     refuse "generated guard data unavailable before measurement: $out"
@@ -62,13 +65,19 @@ fi
 # Historical helpers silently skipped missing files. Refuse their incomplete exports too.
 if ! out="$(node --input-type=module - "$tmp" 2>&1 <<'JS'
 import { existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 const root = process.argv[2], catalog = resolve(root, 'scripts/generation-jobs.json');
 if (existsSync(catalog)) for (const job of JSON.parse(readFileSync(catalog, 'utf8')).jobs) {
-  for (const path of Object.keys(job.buildOutputs ?? {})) {
-    if (path.endsWith('.json') && !existsSync(resolve(root, path))) {
+  for (const [path, hash] of Object.entries(job.buildOutputs ?? {})) {
+    if (!path.endsWith('.json')) continue;
+    if (!/^src\/shards\/[^/]+\//u.test(path) || path.includes('\\') || path.split('/').some(part => ['', '.', '..'].includes(part)) || !/^[a-f0-9]{64}$/u.test(hash)) throw new Error(`Invalid generated guard data: ${path}`);
+    if (!existsSync(resolve(root, path))) {
       throw new Error(`Missing pinned generated guard data: ${path} (job ${job.id ?? 'unnamed'}). Run pnpm gen before measuring source guards.`);
     }
+    const bytes = readFileSync(resolve(root, path));
+    if (createHash('sha256').update(bytes).digest('hex') !== hash) throw new Error(`Generated guard data does not match staged hash: ${path}`);
+    JSON.parse(bytes.toString('utf8'));
   }
 }
 JS
