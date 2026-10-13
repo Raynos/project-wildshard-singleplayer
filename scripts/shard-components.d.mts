@@ -1,4 +1,5 @@
 import type {CustomSource} from './shard-platform.mjs';
+
 export type Component = 'C1'|'C2'|'C3'|'C4'|'C5'|'C6'|'C7'|'C8'|'C9';
 export interface ComponentSpan {path:string;kind:CustomSource['kind'];component:Component;lines:number;start?:number;end?:number;reason:string}
 export interface ComponentInventory {shard:string;counts:Record<Component,number>;total:number;unknown:string[];spans:ComponentSpan[]}

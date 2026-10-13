@@ -1,4 +1,5 @@
-import type { ConversionMeasure } from '../shard-platform.mjs';
+import type { ConversionMeasure, PortHeadline } from '../shard-platform.mjs';
+import type { GeneratorTotal } from '../generator-inventory.mjs';
 import type { MemoryReport } from '../memory-report-data.mjs';
 
 export interface Source { path:string; sha256:string; bytes:number }
@@ -50,8 +51,8 @@ export interface ShardShare {
   legacyShare?:number;
   /** G291 frozen-runtime comparison, including explicit unavailable fields and the audit hook. */
   conversion?:ConversionMeasure;
-  port?:import('../shard-platform.mjs').PortHeadline;
-  generators?:import('../generator-inventory.mjs').GeneratorTotal;
+  port?:PortHeadline;
+  generators?:GeneratorTotal;
   baseline:number; ceiling:number; enforced:boolean; proofs:ShareProofs;
   /** boot, headless, replay, ledger, grid-ready, compatible: how many of the six pass. */
   proofsPassing:number;

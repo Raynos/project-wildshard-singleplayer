@@ -1,3 +1,5 @@
+import type { ComponentInventory } from './shard-components.mjs';
+
 /** G291's primary measure; no frozen copy is explicitly unavailable, with legacy-share used instead. */
 export interface ConversionMeasure {
   metric: 'runtime-vs-legacy' | 'legacy-share'; customRuntimeLines: number; shardRuntimeLines: number; rawGlslLines: number; additionalGlslLines: number;
@@ -13,7 +15,7 @@ export interface ConversionMeasure {
 }
 export interface CustomSource {path:string;kind:'runtime-ts'|'additional-glsl'|'sole-module'|'sole-export';lines:number;name?:string}
 export interface ShardLines {
-  components?:import('./shard-components.mjs').ComponentInventory;
+  components?:ComponentInventory;
   customSources?:CustomSource[];
   publicLines: number; customLines: number; runtimeLines: number; trustedRuntimeLines: number; assemblyScriptLines: number; publicShare: number; legacyShare: number; conversion: ConversionMeasure;
   legacy: { generators: number; data: number; runtime: number };
