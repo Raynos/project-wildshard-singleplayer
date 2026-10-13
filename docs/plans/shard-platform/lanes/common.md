@@ -31,6 +31,8 @@ p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may 
 - **`scripts/generation-jobs.json` has many writers.** Never commit or build the working-tree copy wholesale: start from
   `git show HEAD:scripts/generation-jobs.json`, apply only your own job's entries, commit via a private index (a draft
   that carried stale hunks dropped Signal's commons roots and ring pin, 2026-10-13).
+- **A shared file can be a physics input of several shards** (`scripts/*-physics-inputs.mjs`): changing it needs every
+  affected shard's official recapture in the same commit, built in a clean export of the current HEAD.
 - **Moving code is not a cut.** Code (TS, GLSL strings, shader bodies) moved into `data/`/`generators/` or a one-user
   engine/game/SDK module still counts (G294, G306); only real rows/data, baked outputs or ≥ 2-user modules reduce custom %.
 - **Strict TS:** no `any`, `!`, `@ts-ignore`, `as unknown as`, blanket disables. Fix the type, never the gate. Never
