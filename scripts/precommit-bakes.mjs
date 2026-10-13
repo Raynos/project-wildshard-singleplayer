@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { dirname, resolve, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import { inputValue, treeEntries } from './gate-cache.mjs';
 import { pathToFileURL } from 'node:url';
@@ -100,8 +100,14 @@ export async function regenerateCheapBakes(root, product = {}) {
     const slug = stamp?.[1] ?? image?.[1];
     return slug === undefined ? [] : [slug];
   }));
+  const { mapInputRoots, mapShards, mapTilesHash, verifyMapPixels } = await import('./map-hash.mjs');
+  const changed = (product.stagedPaths ?? []).map(file => resolve(root, file));
+  if (changed.length > 0 && existsSync(resolve(root, 'src/shards'))) {
+    for (const shard of mapShards(root)) {
+      if (mapInputRoots(shard.dir).some(input => changed.some(file => file === input || file.startsWith(input + sep)))) maps.add(shard.slug);
+    }
+  }
   if (maps.size > 0) {
-    const { mapTilesHash, verifyMapPixels } = await import('./map-hash.mjs');
     for (const slug of maps) {
       const dir = resolve(root, 'src/shards', slug);
       const stamp = JSON.parse(readFileSync(resolve(dir, 'look/map.baked.json'), 'utf8'));

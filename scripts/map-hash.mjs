@@ -71,6 +71,14 @@ export function mapSettings(shardDir) {
 /** @param {string} shardDir */
 export const mapInputs = (shardDir) => mapSettings(shardDir).inputs;
 
+/** Exact absolute roots contributing to mapTilesHash, including absent inputs.
+ * Prefix matching these roots also catches newly added or deleted input files.
+ * @param {string} shardDir @returns {string[]} */
+export function mapInputRoots(shardDir) {
+  const root = resolve(shardDir);
+  return [...mapInputs(root), 'look/map.json'].map(input => resolve(join(root, input)));
+}
+
 /** @param {string} dir @param {string[]} out */
 function walk(dir, out) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -82,8 +90,7 @@ function walk(dir, out) {
 /** The hash of a shard's map inputs: every file under each input (that exists), path and bytes. @param {string} shardDir */
 export function mapTilesHash(shardDir) {
   const root = resolve(shardDir), files = [];
-  for (const input of [...mapInputs(root), 'look/map.json']) { // the bake's own settings count too
-    const path = join(root, input);
+  for (const path of mapInputRoots(root)) { // the bake's own settings count too
     if (!existsSync(path)) continue;
     if (statSync(path).isDirectory()) walk(path, files); else files.push(path);
   }

@@ -2,6 +2,8 @@ export const DEFAULT_MAP_INPUTS: string[];
 export const MAP_METRES: number;
 export function mapSettings(shardDir: string): { inputs: string[]; hide: string[]; heightHide: string[]; keep: string[]; hideStanding: string[]; clipBelow: number | null; clipAbove: number | null; style: ({ kind: string } & Record<string, unknown>) | null };
 export function mapInputs(shardDir: string): string[];
+/** Exact absolute key roots, including declared inputs not yet present. */
+export function mapInputRoots(shardDir: string): string[];
 export function mapTilesHash(shardDir: string): string;
 export function mapPixelHash(image: string): Promise<string>;
 export function verifyMapPixels(image: string, expected: string): Promise<void>;
