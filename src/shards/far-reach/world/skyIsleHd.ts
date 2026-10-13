@@ -4,7 +4,6 @@ import { editShader, spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
 import { SKY_ISLE_CLIP_EDITS, SKY_ISLE_ROCK, SKY_ISLE_ROCK_EDITS } from '../data/skyIsleLook';
 import { SKY_ISLE_HD, SKY_ISLE_MODELS } from '../data/skyIsles';
 import { hdMaterial, skyHd } from './meshes';
-import FRAMES from '../data/skyIsleFrames.json' with { type: 'json' };
 import { SKY, SKY_SUN } from '../data/skyLook';
 
 /** A hex colour as a linear-space GLSL vec3 (the shader's output space before the post chain). */
@@ -41,8 +40,8 @@ export function skyIsleModels(placed: SkyIslePlacements, clipTop = false): Group
   const group = new Group();
   for (const { model, m } of placed) {
     const name = SKY_ISLE_MODELS.find((n) => n === model); if (name === undefined) throw new Error(`far-reach: no sky isle model ${model}`);
-    const made = skyHd(name), frame = FRAMES.find((f) => f.model === name); if (made === null || frame === undefined) continue;
-    const g = made.geometry; g.translate(-frame.tx, -frame.deck, -frame.tz); g.scale(frame.k, frame.k, frame.k); g.computeBoundingBox(); g.computeBoundingSphere();
+    const made = skyHd(name); if (made === null) continue;
+    const g = made.geometry;
     const material: MeshStandardMaterial = hdMaterial(made.map);
     material.color.setScalar(SKY_ISLE_HD.tint); material.emissiveMap = made.map; material.emissive.setScalar(1); material.emissiveIntensity = SKY_ISLE_HD.selfLight;
     // the rock grey-brown, the turf kept green (E399: from below the paint read olive-yellow; the mockups' undersides are

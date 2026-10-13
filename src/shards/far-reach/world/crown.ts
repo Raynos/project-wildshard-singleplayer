@@ -1,6 +1,6 @@
 import { InstancedMesh, Matrix4, Mesh, Quaternion, Vector3, type Group } from 'three';
 import { CROWN, DAIS } from '../data/layout';
-import { fitGeometry } from '@wildshard/sdk/looks/modelLibrary';
+import { CARVED } from '../data/modelFrames';
 import { hdMaterial, skyHd } from './meshes';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
@@ -20,9 +20,6 @@ export function crownArena(): { group: Group; colliders: ReturnType<typeof skyBa
   return { group, colliders: baked.colliders };
 }
 
-/** How the modelled set stands: each model's front (its rune) turned to the dais by `yaw`; the dais squashed to `daisH` m. */
-export const CARVED = { yaw: 0, daisH: 0.42, sink: 0.15 } as const;
-
 /** The modelled stones (two models, alternating) and dais; none when one failed to load. */
 function carvedSet(stones: readonly Stone[]): Mesh[] {
   const a = skyHd('crown-stone'), b = skyHd('crown-stone-b'), d = skyHd('crown-dais');
@@ -30,15 +27,14 @@ function carvedSet(stones: readonly Stone[]): Mesh[] {
   const out: Mesh[] = [], m = new Matrix4(), q = new Quaternion(), up = new Vector3(0, 1, 0);
   for (const [k, made] of [a, b].entries()) {
     const list = stones.filter((_, i) => i % 2 === k);
-    const g = fitGeometry(made.geometry, { size: 1, by: 'height', floor: 0, centre: 'base' });
+    const g = made.geometry;
     const mesh = new InstancedMesh(g, hdMaterial(made.map), list.length); mesh.name = `far.crown.stone-${k}`;
     list.forEach((st, i) => {
       q.setFromAxisAngle(up, st.yaw + CARVED.yaw); m.compose(new Vector3(st.x, CROWN.y - CARVED.sink, st.z), q, new Vector3(st.h, st.h, st.h)); mesh.setMatrixAt(i, m);
     });
     mesh.computeBoundingSphere(); out.push(mesh);
   }
-  const dg = fitGeometry(d.geometry, { size: DAIS.r * 2, by: 'span', floor: 0, centre: 'base' }); dg.computeBoundingBox();
-  const h = dg.boundingBox ? dg.boundingBox.max.y : 1; dg.scale(1, CARVED.daisH / Math.max(1e-3, h), 1);
+  const dg = d.geometry;
   const daisMat = hdMaterial(d.map);
   // the paint came out red-brown; mockup D's dais is weathered grey stone with a warm cast
   patchShader(daisMat, 'far.crown-dais', PATCH_ORDER.decorate, (shader) => {

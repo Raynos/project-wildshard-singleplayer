@@ -65,7 +65,7 @@ describe('Sky Reach bakes its code-built world offline (SHARD-PLATFORM SF72)', (
       expect(sha(new Uint8Array(readFileSync(new URL(`${piece}.glb`, folder))))).toBe(committed.glb);
     }
     // the folder holds exactly this bake: no orphan GLB from an older bake ships
-    expect(readdirSync(folder).filter((name) => name.endsWith('.glb')).sort()).toEqual(BAKED_PIECES.map((piece) => `${piece}.glb`).sort());
+    expect(readdirSync(folder).filter((name) => name.endsWith('.glb') && name !== 'prepared-models.glb').sort()).toEqual(BAKED_PIECES.map((piece) => `${piece}.glb`).sort());
   });
 
   it('the winch house draws every built mesh as one instance of a kind, its shack parts in their graphs with their `aShk` channel', async () => {

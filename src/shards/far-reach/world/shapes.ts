@@ -61,7 +61,7 @@ function anchorPost(): { geometry: BufferGeometry; material: MeshStandardMateria
   patchShader(material, 'far.post-weather', PATCH_ORDER.decorate, (shader) => {
     editShader(shader, spliceEdits(POST_WEATHER_EDITS, { weather: WEATHER.post.toFixed(2) }));
   }, { key: (prior) => `${prior}|far.post-weather` });
-  return { geometry: fitGeometry(source.geometry, { size: 1.9, by: 'height', floor: 0, centre: 'base' }), material };
+  return { geometry: source.geometry, material };
 }
 /**
  * A rope span from its bake (SHARD-PLATFORM M3: generators/bridges.ts, by span id; `kit` is the Explorer's one segment):

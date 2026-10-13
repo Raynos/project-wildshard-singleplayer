@@ -20,7 +20,8 @@ const emit = (file, bytes) => {
   } else writeFileSync(file, bytes);
 };
 if (!check) mkdirSync(out, { recursive: true });
-const keep = new Set();
+// This independently owned author product shares the output directory.
+const keep = new Set(['prepared-models.glb']);
 // SF80: the pieces as one three.js scene through the SDK's bake(scene, identity), which also writes its scene.json to
 // .wildshard/cache/far-reach/ (gitignored, the inspectable middle step)
 {

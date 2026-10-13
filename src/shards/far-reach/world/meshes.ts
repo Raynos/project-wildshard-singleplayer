@@ -3,9 +3,9 @@ import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app
 import { releaseDecodedOnUpload } from '../look/image';
 import { preloadSkyBodies } from '../species/bodies';
 import { SKY_HD, SKY_MESHES, HD_URLS, MODEL_URLS, type SkyHdName, type SkyMeshName } from '../data/files';
-import { hdGeometry } from '../runtime/looks/modelIntake';
+import { PREPARED_MODELS_URL } from '../data/modelFrames';
 import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
-import { MeshStandardMaterial, type BufferGeometry, type Texture } from 'three';
+import { Mesh, MeshStandardMaterial, Sphere, Vector3, type BufferGeometry, type Texture, type Object3D } from 'three';
 
 /**
  * Sky Reach's generated models (C6, E374): codex refs → Hunyuan3D-2 → faceted, vertex-coloured GLBs
@@ -25,10 +25,17 @@ const FACETS = createModelLibrary<SkyMeshName, never>({ meshes: SKY_MESHES, mesh
 /** A textured hero model: one indexed geometry (float position, normal, uv in the file's frame) and its painted map. */
 export interface SkyHd { readonly geometry: BufferGeometry; readonly map: Texture }
 const hd = new Map<SkyHdName, SkyHd>();
-async function loadHd(name: SkyHdName): Promise<void> {
+const isMesh = (node: Object3D): node is Mesh => node instanceof Mesh;
+async function loadHd(name: SkyHdName, geometry: BufferGeometry): Promise<void> {
   try {
-    const gltf = await loadRigFile(HD_URLS[name]), model = hdGeometry(gltf.scene, (m) => m.map !== null), map = model?.material.map ?? null;
-    const one: SkyHd | undefined = model === null || map === null ? undefined : { geometry: model.geometry, map };
+    const gltf = await loadRigFile(HD_URLS[name]);
+    const maps: Texture[] = [];
+    gltf.scene.traverse(node => {
+      if (maps.length > 0 || !isMesh(node)) return;
+      const material = Array.isArray(node.material) ? node.material[0] : node.material;
+      if (material instanceof MeshStandardMaterial && material.map !== null && node.geometry.hasAttribute('uv') && node.geometry.getIndex() !== null) maps.push(material.map);
+    });
+    const map = maps[0], one: SkyHd | undefined = map === undefined ? undefined : { geometry, map };
     if (one === undefined) throw new Error(`${name}: no textured mesh`);
     // Memory saver: the GLB's decoded atlas goes at its upload. Sky Reach never reads these maps on the CPU, every user
     // shares this one texture (no other sampler key), and the GLB is parsed afresh per visit (no cache keeps the source).
@@ -39,9 +46,28 @@ async function loadHd(name: SkyHdName): Promise<void> {
   } catch (e: unknown) { console.warn(`[far-reach] ${name} not loaded, the faceted model stands in:`, e); }
 }
 
+/** The author's plain accessors already contain the final static frame; no vertex processing runs on entry. */
+async function loadPreparedModels(): Promise<void> {
+  const missing = SKY_HD.filter(name => !hd.has(name));
+  if (missing.length === 0) return;
+  const prepared = await loadRigFile(PREPARED_MODELS_URL);
+  await Promise.all(missing.map(name => {
+    const node = prepared.scene.getObjectByName(name);
+    if (node === undefined || !isMesh(node)) throw new Error(`far-reach: missing prepared model ${name}`);
+    // GLTFLoader otherwise uses the box diagonal, widening frustum admission versus the native fitted sphere.
+    const bounds: unknown = Reflect.get(node.userData, 'sphere');
+    if (!Array.isArray(bounds) || bounds.length !== 4) throw new Error(`far-reach: missing prepared bounds ${name}`);
+    const x: unknown = bounds[0], y: unknown = bounds[1], z: unknown = bounds[2], radius: unknown = bounds[3];
+    if (typeof x !== 'number' || typeof y !== 'number' || typeof z !== 'number' || typeof radius !== 'number'
+      || !Number.isFinite(x) || !Number.isFinite(y) || !Number.isFinite(z) || !Number.isFinite(radius) || radius < 0) throw new Error(`far-reach: invalid prepared bounds ${name}`);
+    node.geometry.boundingSphere = new Sphere(new Vector3(x, y, z), radius);
+    return loadHd(name, node.geometry);
+  }));
+}
+
 /** Load every generated model and baked creature body once (a failed one is skipped). */
 export function preloadSkyMeshes(): Promise<void> {
-  loading ??= Promise.all([...SKY_HD.filter(name => !hd.has(name)).map(loadHd), preloadSkyBodies()]).then(() => undefined);
+  loading ??= Promise.all([loadPreparedModels(), preloadSkyBodies()]).then(() => undefined);
   return Promise.all([FACETS.preload(), loading]).then(() => undefined);
 }
 

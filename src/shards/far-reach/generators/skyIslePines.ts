@@ -1,7 +1,7 @@
 import { DoubleSide, Mesh, MeshBasicMaterial, Vector3 } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { skyIsleHitDown } from './skyIsleProbe';
-import { hdGeometry } from '../runtime/looks/modelIntake';
+import { hdGeometry } from './modelIntake';
 import { SKY_ISLES, SKY_ISLE_HD, SKY_ISLE_MODELS, type SkyIsleModel } from '../data/skyIsles';
 import type { SkyIsleFrame } from '../world/skyIsleHd';
 import { skyIslePose, skyIsleUnit, skyIsleWear, type SkyIsleUnit } from './placements';

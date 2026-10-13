@@ -3,7 +3,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { FAN } from '../weapons/fanModel';
-import { hdGeometry } from '../runtime/looks/modelIntake';
+import { hdGeometry } from './modelIntake';
 import { HD_URLS } from '../data/files';
 
 /**

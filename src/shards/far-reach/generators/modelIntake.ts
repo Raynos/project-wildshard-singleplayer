@@ -1,10 +1,10 @@
-import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, Vector3, type BufferAttribute, type Object3D } from 'three';
+import { Box3, BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Uint32BufferAttribute, Vector3, type BufferAttribute, type InterleavedBufferAttribute, type Object3D } from 'three';
 
 /**
  * The offline half of Sky Reach's model intake (SHARD-PLATFORM M3): the bakes (`generators/bridges.ts`, `creatures.ts`,
  * `millModel.ts`) turn loaded GLBs into plain geometry and fit it here. The page loads its facet models through the SDK
- * model library (`world/meshes.ts`) and fits its hero models with the SDK's `fitGeometry`; the textured intake
- * (`hdGeometry`) and `splitAbove` stay in `runtime/looks/modelIntake.ts`, which the page uses too.
+ * model library (`world/meshes.ts`); hero normalization and static fitting are emitted as plain GLB accessors.
+ * Only the moving vane split remains native.
  *
  * - `facetedGeometry`: every mesh of a scene as one flat non-indexed geometry in world space: position, the facet colour
  *   (rgb × the baked AO in COLOR_0's alpha, kept down to `aoFloor`) and flat normals (the SDK library's facet intake).
@@ -70,3 +70,31 @@ export function fitModel(g: BufferGeometry, o: ModelFrame): BufferGeometry {
   g.scale(k, k, k); g.translate(0, o.middle ?? o.floor ?? 0, 0); g.computeBoundingBox(); g.computeBoundingSphere();
   return g;
 }
+
+/** A (possibly meshopt-quantized) attribute as plain float32. */
+function floats(a: BufferAttribute | InterleavedBufferAttribute): Float32BufferAttribute {
+  const out = new Float32Array(a.count * a.itemSize);
+  for (let i = 0; i < a.count; i++) for (let k = 0; k < a.itemSize; k++) out[i * a.itemSize + k] = a.getComponent(i, k);
+  return new Float32BufferAttribute(out, a.itemSize);
+}
+
+/**
+ * The textured intake: the first indexed, UV-mapped mesh whose material `painted` accepts, as float position + uv in the
+ * file's frame with smooth normals, and its material; or null.
+ */
+export function hdGeometry(scene: Object3D, painted: (material: MeshStandardMaterial) => boolean): { geometry: BufferGeometry; material: MeshStandardMaterial } | null {
+  scene.updateMatrixWorld(true);
+  let found: { geometry: BufferGeometry; material: MeshStandardMaterial } | null = null;
+  scene.traverse((o) => {
+    if (found !== null || !isMesh(o)) return;
+    const m = Array.isArray(o.material) ? o.material[0] : o.material, src = o.geometry, index = src.getIndex();
+    if (!(m instanceof MeshStandardMaterial) || !painted(m) || !src.hasAttribute('uv') || index === null) return;
+    const g = new BufferGeometry();
+    g.setAttribute('position', floats(src.getAttribute('position'))); g.setAttribute('uv', floats(src.getAttribute('uv')));
+    g.setIndex(new Uint32BufferAttribute(Uint32Array.from({ length: index.count }, (_, i) => index.getX(i)), 1));
+    g.applyMatrix4(o.matrixWorld); g.computeVertexNormals(); g.computeBoundingBox();
+    found = { geometry: g, material: m };
+  });
+  return found;
+}
+
