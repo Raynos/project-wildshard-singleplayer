@@ -15,3 +15,6 @@ export function bootCases(catalogue: readonly { slug: string; status: string; le
 export function bootSignalRoadPlan(state: unknown): FloorGridPlan;
 /** Refuse missing Signal transitions, live residency or actual road frames. */
 export function verifyBootSignalRoad(witness: FloorGridWitness): void;
+
+/** Give the grid a fresh browser after prior contexts are closed, preserving every case law. */
+export function bootCaseBrowser<T>(pool: {browser:(slot:number)=>Promise<T>;release:(slot:number)=>Promise<void>}, mode:'standalone'|'grid'|'public-policy'):Promise<T>;

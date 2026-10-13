@@ -78,6 +78,14 @@ export function bootCatalogue() {
   });
 }
 
+/** Retire earlier GPU contexts before the grid's two-document boot.
+ * @template T @param {{browser:(slot:number)=>Promise<T>,release:(slot:number)=>Promise<void>}} pool
+ * @param {'standalone'|'grid'|'public-policy'} mode @returns {Promise<T>} */
+export async function bootCaseBrowser(pool, mode) {
+  if (mode === 'grid') await pool.release(0);
+  return pool.browser(0);
+}
+
 /** Every public primary enters through its real public button; experimental primaries enter with Developer on.
  * @param {readonly {slug:string,status:string,legacy:boolean}[]} catalogue
  * @param {'all'|'public'|'developer'} [group]
@@ -180,6 +188,8 @@ export function spawnOverhead() {
 export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle', developer = false) {
   // CI's macOS runner renders the phone tier at ~0.3 fps, so a case needs more than a minute of wall clock.
   const started = Date.now(), deadline = started + 90000;
+  /** @type {{initial:number|null,final:number|null}} */
+  const gameplayFrames = {initial:null,final:null};
   const receipt = mode !== 'grid' && shard !== 'driftwood-isle' ? shard : mode;
   /** @type {Record<string, number>} */ const phases = {};
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
@@ -282,19 +292,26 @@ export async function bootCase(browser, base, mode, out, shard = 'driftwood-isle
     }, `${mode} gameplay`, deadline);
     phases.gameplayMs = Date.now() - started;
     const initial = await page.evaluate(bootObservation);
+    gameplayFrames.initial = initial.frame;
+    phases.framesStartMs = Date.now() - started;
     if (mode === 'grid') { // E463: the settled home spawn stands on its deck / ground, never under a collider (Driftwood's pier)
       const overhead = await page.evaluate(spawnOverhead);
       if (overhead !== null) throw new Error(`grid spawn is under a collider: ${JSON.stringify(overhead)}`);
     }
     await until(page, faults, async () => (await page.evaluate(bootObservation)).frame >= initial.frame + 10, 'ten live gameplay frames', deadline);
+    gameplayFrames.final = (await page.evaluate(bootObservation)).frame;
+    phases.framesCompleteMs = Date.now() - started;
     const road = mode === 'grid' ? await bootSignalRoad(page, faults) : null;
-    const result = { mode, phases, road, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
+    const result = { mode, phases, gameplayFrames, road, telemetryPosts, lifecycleReports, gridNavigationObserved, elapsedMs: Date.now() - started, ...await page.evaluate(bootObservation), faults, reports };
     if (faults.length > 0 || result.fatal.length > 0) throw new Error(JSON.stringify(result));
     writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify(result, null, 2)}\n`);
     return result;
   } catch (error) {
     await page.screenshot({ path: join(out, `${receipt}-failure.jpg`), type: 'jpeg', quality: 70 }).catch(() => undefined);
-    writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify({ mode, phases, elapsedMs: Date.now() - started, faults, reports, lifecycleReports, gridNavigationObserved, error: String(error), observation: await page.evaluate(bootObservation).catch(() => null) }, null, 2)}\n`);
+    const observation = await page.evaluate(bootObservation).catch(() => null);
+    gameplayFrames.final = observation?.frame ?? null;
+    phases.failedMs = Date.now() - started;
+    writeFileSync(join(out, `${receipt}.json`), `${JSON.stringify({ mode, phases, gameplayFrames, elapsedMs: Date.now() - started, faults, reports, lifecycleReports, gridNavigationObserved, error: String(error), observation }, null, 2)}\n`);
     throw error;
   } finally { await context.close(); }
 }
@@ -316,7 +333,8 @@ async function main() {
     const catalogue = await discoverCatalogue(browser, base), cases = bootCases(catalogue, group);
     writeFileSync(join(out, 'cases.json'), `${JSON.stringify({ group, catalogue, cases }, null, 2)}\n`);
     for (const [mode, shard, developer] of cases) {
-      const result = await bootCase(browser, base, mode, out, shard, developer);
+      const isolated = await bootCaseBrowser(pool, mode);
+      const result = await bootCase(isolated, base, mode, out, shard, developer);
       console.log(`${mode}: ${mode === 'public-policy' ? 'public-policy admission' : 'gameplay'} PASS in ${result.elapsedMs}ms, frame=${result.frame}, faults=${result.faults.length}`);
     }
   } finally { try { await pool.close(); } finally { preview?.close(); } }

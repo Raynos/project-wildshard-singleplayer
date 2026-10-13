@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 import { expect, it } from 'vitest';
 import { gridFloorPlans, type FloorGridState, type FloorGridWitness } from '../scripts/frame-floor-grid.mjs';
-import { bootCases, bootCatalogue, publicPolicyAdmission, bootSignalRoadPlan, verifyBootSignalRoad } from '../scripts/parity/boot-smoke.mjs';
+import { bootCaseBrowser, bootCases, bootCatalogue, publicPolicyAdmission, bootSignalRoadPlan, verifyBootSignalRoad } from '../scripts/parity/boot-smoke.mjs';
 
 const source = readFileSync('scripts/parity/boot-smoke.mjs', 'utf8');
 const observer = source.slice(source.indexOf('export function bootObservation()'), source.indexOf('/** @param')).replace('export ', '');
@@ -202,4 +202,33 @@ it('requires unwaived Nine title hydration and keeps its experimental card locke
     { ...observed, playerValid: false }, { ...observed, frame: 0 }, { ...observed, renderFrame: 0 }, { ...observed, fatal: ['declared worst-location total exceeds envelope'] }]) {
     expect(observe(false, true, false, state)).toMatchObject({ admitted: false });
   }
+});
+
+
+it('isolates the grid browser after disposal without changing its proof or deadline', async () => {
+  const events: string[] = [];
+  let generation = 0;
+  const pool = {
+    browser: (slot: number): Promise<number> => { events.push(`open:${slot}`); return Promise.resolve(generation); },
+    release: (slot: number): Promise<void> => { events.push(`closed:${slot}`); generation++; return Promise.resolve(); },
+  };
+  expect(await bootCaseBrowser(pool, 'standalone')).toBe(0);
+  expect(await bootCaseBrowser(pool, 'public-policy')).toBe(0);
+  expect(await bootCaseBrowser(pool, 'grid')).toBe(1);
+  expect(events).toEqual(['open:0','open:0','closed:0','open:0']);
+  expect(source).toContain('deadline = started + 90000');
+  expect(source).toContain('frame >= initial.frame + 10');
+  expect(source).toContain("const road = mode === 'grid' ? await bootSignalRoad(page, faults) : null");
+  expect(source).toContain('gameplayFrames.initial = initial.frame');
+  expect(source).toContain('gameplayFrames.final = observation?.frame ?? null');
+});
+
+it('refuses failed browser disposal before opening the grid process', async () => {
+  let opened = false;
+  const pool = {
+    browser: (): Promise<number> => { opened = true; return Promise.resolve(1); },
+    release: (): Promise<void> => Promise.reject(new Error('browser cleanup failed')),
+  };
+  await expect(bootCaseBrowser(pool, 'grid')).rejects.toThrow('browser cleanup failed');
+  expect(opened).toBe(false);
 });
