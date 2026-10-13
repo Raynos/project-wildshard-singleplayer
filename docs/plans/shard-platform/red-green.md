@@ -95,3 +95,5 @@ one to the coordinator; only the coordinator writes this file.
 | 2026-10-13 | CI 38344750048 / build: Signal navmesh `--check` and grid-edge fixture still read the deleted `terrain.bin` | `602f8136a` | `daa20f9f3` (recipe-generated 256 lattice, 65536 Float32 exact; navmesh 739 polys exact; map image identical) | sp-x7 |
 | 2026-10-13 | gate: Signal / Sky map stamps stale after authored physics rows | `e6f5078d8`, `3ed995b80` | `7fe8f1db8`, `c0f73d07d` (images identical) | wildshard-new |
 | 2026-10-13 | gate: oxlint prefer-optional-chain (near placeholder); near grain shader failed to compile (B/C drew nothing) | `a6424d8f8` | `dd922e03b`, `1837ef8a4` (+ compile test) | sp-o72 |
+| 2026-10-13 | CI on `c9f6e59be`: navigation-json lint; five nav contract/order fixtures; build ratchet rows for deleted files + stale README; changed-root typecheck in ratchet fixture | `c9f6e59be`, `ce5a5fcf0` | `e51f846ff`, `b7656034b`, `ce5a5fcf0`, `9ff0dccec` | sp-x7 |
+| 2026-10-13 | gate: Driftwood loot RNG stream unseen by the narrowed typecheck | `37a702bdc` | `d3c462a00` (`rng.merge.d.ts`) | sp-o76 |
