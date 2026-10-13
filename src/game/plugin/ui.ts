@@ -1,6 +1,7 @@
+import type { MoverView } from './mover';
 import "../quest/presentation.css";
-import { parseClientChannels, type ClientChannelProperty } from '@wildshard/format/clientChannels';
-import { AdditiveBlending, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, type Object3D } from 'three';
+import { parseClientChannels, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
+import { AdditiveBlending, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, Object3D } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ParticlePool, pointScale } from '@wildshard/engine/fx/ParticlePool';
 import { CLIENT_SCRIPT_LIMITS, type ClientScriptFrame } from '@wildshard/engine/script/client';
@@ -527,6 +528,78 @@ export function createClientChannels(input: unknown): {
     published.set(scratch); locals.set(next); initialized = true;
   };
   return Object.freeze({ reads: Object.freeze([...program.reads]), frame, evaluate });
+}
+
+/** Bind admitted numeric outputs only to named private scene objects; authoritative player/shared objects refuse. */
+export function createClientChannelView(input: unknown, targets: ReadonlyMap<string, unknown>): ReturnType<typeof createClientChannels> {
+  const program = parseClientChannels([input])[0];
+  if (program?.bindings === undefined) throw new Error('Missing visual channel bindings');
+  const bindings = program.bindings.map(binding => {
+    const object = targets.get(binding.target);
+    if (!(object instanceof Object3D)) throw new Error('Client channel target must be a private scene object');
+    return { ...binding, object };
+  });
+  const lane = createClientChannels(program);
+  const evaluate = (observation: ClientChannelObservation): void => {
+    lane.evaluate(observation);
+    for (const binding of bindings) {
+      const { object, property, order } = binding, value = lane.frame[property];
+      if (value === undefined) throw new Error('Missing bound visual channel');
+      if (order !== undefined) object.rotation.order = order;
+      switch (property) {
+        case 'x': object.position.x = value; break;
+        case 'y': object.position.y = value; break;
+        case 'z': object.position.z = value; break;
+        case 'pitch': object.rotation.x = value; break;
+        case 'yaw': object.rotation.y = value; break;
+        case 'roll': object.rotation.z = value; break;
+        case 'scaleX': object.scale.x = value; break;
+        case 'scaleY': object.scale.y = value; break;
+        case 'scaleZ': object.scale.z = value; break;
+        case 'visible': object.visible = value !== 0; break;
+        default: throw new Error('Unknown visual channel target');
+      }
+    }
+  };
+  return Object.freeze({ reads: lane.reads, frame: lane.frame, evaluate });
+}
+
+/** Project copied mover observations through an admitted visual program; native bodies and script clocks stay external. */
+export function moverChannelView(program: ClientChannelProgram, targets: ReadonlyMap<string, unknown>,
+  observed?: (frame: ClientChannelFrame) => void): MoverView {
+  if (program.mover === undefined) throw new Error('Missing declared mover channel source');
+  const view = createClientChannelView(program, targets);
+  return { pose: (pose, fields) => {
+    const values = view.reads.map(read => {
+      if (read === 'enabled') return Number(pose.enabled);
+      if (read.startsWith('position.')) {
+        const axis = read.slice(9); if (axis === 'x' || axis === 'y' || axis === 'z') return pose.position[axis];
+      }
+      if (read.startsWith('euler.')) {
+        const axis = read.slice(6); if (axis === 'x' || axis === 'y' || axis === 'z') return pose.euler[axis];
+      }
+      const field = /^field\.([1-6])$/u.exec(read), key = field?.[1];
+      const value = key === undefined ? undefined : fields[Number(key)];
+      if (value === undefined) throw new Error('Missing copied mover field');
+      return value;
+    });
+    view.evaluate({ time: 0, delta: 0, values }); observed?.(view.frame);
+  } };
+}
+
+/** Bind declared visual programs to borrowed native movers without allocating bodies, clocks or authority. */
+export function moverChannelViews(programs: readonly ClientChannelProgram[], targets: ReadonlyMap<string, unknown>,
+  nativeOwners: readonly string[], observed?: (id: string, frame: ClientChannelFrame) => void): ReadonlyMap<string, MoverView> {
+  if (nativeOwners.length > 32 || new Set(nativeOwners).size !== nativeOwners.length) throw new Error('Invalid native mover view owners');
+  const views = new Map<string, MoverView>(nativeOwners.map(id => [id, { pose: () => undefined }]));
+  const bound = new Set<string>();
+  for (const program of programs) {
+    const id = program.mover;
+    if (id === undefined) continue;
+    if (!views.has(id) || bound.has(id)) throw new Error('Mover channels require one borrowed native owner');
+    bound.add(id); views.set(id, moverChannelView(program, targets, frame => { observed?.(id, frame); }));
+  }
+  return views;
 }
 
 /** A quest's coin reward: the burst that flies the coins to the player, `pay`, which pays once per save, and `spawn`, any other coins through the same burst. */

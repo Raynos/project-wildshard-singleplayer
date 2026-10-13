@@ -8,6 +8,8 @@ export class ClientChannels {
   private readonly nodes: Node[] = [];
   private readonly reads: string[] = [];
   private readonly locals: NonNullable<ClientChannelProgram['locals']> = [];
+  private readonly bindings: NonNullable<ClientChannelProgram['bindings']> = [];
+  private moverId: string | undefined;
   private readonly channels: ClientChannelProgram['channels'] = [];
   private readonly id: string;
   constructor(id: string) { this.id = id; }
@@ -50,9 +52,16 @@ export class ClientChannels {
   select(test: number, yes: number, no: number): number { return this.append({ op: 'select', test, yes, no }); }
   /** Bind a scalar result to one private visual property. */
   output(property: ClientChannelProperty, value: number): void { this.channels.push({ property, value }); }
+  /** Bind a visual channel to a named private scene object; rotations may specify their original Euler order. */
+  bind(property: NonNullable<ClientChannelProgram['bindings']>[number]['property'], target: string,
+    order?: NonNullable<ClientChannelProgram['bindings']>[number]['order']): void {
+    this.bindings.push({ property, target, ...(order === undefined ? {} : { order }) });
+  }
+  /** Observe a declared mover's copied pose/fields; this source has no additional clock or private recurrence. */
+  fromMover(id: string): void { this.moverId = id; }
   /** Validate and detach the authored program. */
   build(): ClientChannelProgram {
-    const result = parseClientChannels([{ id: this.id, reads: this.reads, nodes: this.nodes, channels: this.channels, ...(this.locals.length === 0 ? {} : { locals: this.locals }) }])[0];
+    const result = parseClientChannels([{ id: this.id, reads: this.reads, nodes: this.nodes, channels: this.channels, ...(this.locals.length === 0 ? {} : { locals: this.locals }), ...(this.bindings.length === 0 ? {} : { bindings: this.bindings }), ...(this.moverId === undefined ? {} : { mover: this.moverId }) }])[0];
     if (result === undefined) throw new Error('Missing client channel program'); return result;
   }
 }

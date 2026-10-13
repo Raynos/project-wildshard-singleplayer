@@ -14,6 +14,7 @@ const height = bucket.binary('add', rest, bucket.binary('mul', bucket.binary('su
 const rope = bucket.binary('sub', one, bucket.binary('mul', next, bucket.constant(0.8)));
 bucket.output('y', bucket.select(moved, height, bucket.select(progress, loaded, rest)));
 bucket.output('scaleY', bucket.select(moved, rope, bucket.select(progress, bucket.constant(0.2), one)));
+bucket.bind('y', 'bucket'); bucket.bind('scaleY', 'rope');
 
 /** The shipping frame-delta ramp; oil is copied only at boot, and these scalars own no interaction authority. */
 export const SIGNAL_BUCKET_CHANNELS = [bucket.build()];

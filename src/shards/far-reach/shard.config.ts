@@ -9,6 +9,7 @@ import { SKY_ITEMS } from './data/items';
 import { SKY_SPAWNS } from './data/spawns';
 import { SKY_STATE } from './data/state';
 import { AUDIO } from './data/audio';
+import { SKY_MOVER_VIEWS } from './data/moverViews';
 import { SKY_MODES } from './data/modes';
 import { MOVERS } from './data/movers';
 import { LIFT_MODULE } from './data/liftModule';
@@ -34,13 +35,13 @@ const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wil
 const lifts = new Map(ISLET_LIFTS.map((entry) => [entry.edge, entry.lift]));
 const wasm = (module: { hash: string; bytes: number }) => ({ hash: module.hash, kind: 'wasm', compressed: module.bytes, decoded: module.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
-export default parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'props'], spawns: SKY_SPAWNS }, audio: AUDIO, directors: [bossStages],
+export default parseShardfile({ ...base, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'props', 'clientChannels'], spawns: SKY_SPAWNS }, audio: AUDIO, directors: [bossStages],
   // the material graphs the runtime draws its own meshes in (runtime/index.ts): the rope decks' wood, the hover frames' glow,
   // the shacks' four kinds, the dressing's clumps and flowers, the falls
   look: { ...base.look, materials: { ...base.look.materials, 'deck-wood': { family: 'graph', graph: DECK_WOOD_GRAPH }, 'hover-frame': { family: 'graph', graph: HOVER_FRAME_GRAPH },
     'dressing-clump': { family: 'graph', graph: CLUMP_GRAPH }, 'dressing-flower': { family: 'graph', graph: FLOWER_GRAPH }, falls: { family: 'graph', graph: FALL_GRAPH },
     ...Object.fromEntries(Object.entries(SHACK_GRAPHS).map(([kind, graph]) => [`shack-${kind}`, { family: 'graph', graph }])) } },
-  modes: SKY_MODES, quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,
+  clientChannels: SKY_MOVER_VIEWS, modes: SKY_MODES, quests: SKY_QUESTS, ledger: SKY_LEDGER, state: SKY_STATE, items: SKY_ITEMS,
   entryways: base.entryways.map(({ edge, at, width }) => {
     const lift = lifts.get(edge); if (lift === undefined) throw new Error(`Sky Reach entry ${edge} has no Rising Islet`);
     return { edge, at, width, kind: 'socketLift' as const, lift };

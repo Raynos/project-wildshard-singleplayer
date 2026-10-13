@@ -113,6 +113,7 @@ export function shardfileRules(s: Shardfile): string[] {
   errors.push(...socketLiftRules(socketLiftEntries(s.entryways), s.movers, s));
   errors.push(...portalLinkRules(portalLinkEntries(s.entryways), s));
   try { parseMovers(s.movers); } catch { errors.push('declared mover identities and primitives'); }
+  if ((s.clientChannels ?? []).some(row => row.mover !== undefined && !s.movers.some(mover => mover.id === row.mover))) errors.push('client channel mover source must be declared');
   for (const row of s.movers) if (row.trigger?.kind === 'shared') {
     const trigger = row.trigger;
     const field = s.state.shared.find(candidate => candidate.id === trigger.field);

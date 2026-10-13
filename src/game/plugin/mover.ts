@@ -95,6 +95,8 @@ export interface MoverInstallation {
   /** A grid cell's admitted product bytes by module hash (`runtimeProduct(...).assets.retained`): a module present here is
    *  read from them (hash-checked again by {@link createMoverHost}) instead of fetched a second time from `modules`. */
   admitted?: ReadonlyMap<string, Uint8Array>;
+  /** Read a declared module through its existing product reader; SHA verification and tick ownership stay here. */
+  read?: (hash: string) => Promise<Uint8Array>;
   permissions?: () => ReadonlyMap<string, number>;
   onDispose?: () => void;
   activation?: MoverActivationPorts;
@@ -234,6 +236,7 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
     const assets = new Map<string, Uint8Array>();
     for (const hash of new Set(options.data.map((row) => row.module))) {
       const present = options.admitted?.get(hash); if (present !== undefined) { assets.set(hash, present); continue; }
+      if (options.read !== undefined) { assets.set(hash, await options.read(hash)); continue; }
       const url = options.modules.get(hash); if (url === undefined) throw new Error('Missing mover module URL');
       const response = await fetch(url); if (!response.ok) throw new Error('Missing mover script'); assets.set(hash, new Uint8Array(await response.arrayBuffer()));
     }

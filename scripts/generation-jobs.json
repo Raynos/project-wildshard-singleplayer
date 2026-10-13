@@ -8001,7 +8001,7 @@
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/sunscar-dunes/data/product.generated.json": "6a78fdde6eae033d3e35afdd22048542aabfc9df9716464b96d3aeb9ae4f25d4"
+        "src/shards/sunscar-dunes/data/product.generated.json": "d79690067cd4a68527f4a440e47dbd8b4bef122ad234ef47c4d80e4dcd18682e"
       }
     },
     {
@@ -8341,7 +8341,7 @@
         "src/shards/sunscar-dunes/.wildshard/product/f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef": "f72bd6f75ac9464379b552c28a8c36632249f376ad76d0f29d6fe60d663cf9ef",
         "src/shards/sunscar-dunes/.wildshard/product/f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb": "f8f6fe89062d8cb00217599d3494a0bc51e701414231efecfb86c2c7a6ec3ccb",
         "src/shards/sunscar-dunes/.wildshard/product/fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd": "fe6ce4afcfe921004f6a29c277614f3835fac51d044d0c0b587dc7851a869acd",
-        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "fad442fafc98a1632df268a9e0fc1ac75f46151f2e37468a956fc248346a261d"
+        "src/shards/sunscar-dunes/.wildshard/product/shard.json": "4fad68f40808b79112679cda3fe748d94ba375fa157aa6c2eab466478cd4fb5c"
       }
     }
   ]

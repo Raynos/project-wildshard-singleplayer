@@ -524,6 +524,21 @@ ramp.output('value', next);
 checks simultaneous recurrence and boot-only copied seeds, and proves failed
 frames do not advance it. Its outputs still cannot write shared/player state.
 
+Optional `bindings` connect published transforms to named **private scene
+objects**. They cannot bind `value`/`turn` to state, player or shared fields;
+those outputs remain frozen numeric observations. Rotation bindings can name
+the original Euler order. The runtime refuses unknown targets and anything
+that is not an Object3D before binding. Signal's bucket and Sky's winch share
+`plugin/ui.createClientChannelView`, without renderer or physics authority.
+
+A program may name an admitted `mover` as its observation source. Its reads
+are copied `position.x/y/z`, `euler.x/y/z`, `enabled` or numbered `field.N`.
+Such a program has no extra clock or private recurrence: the real fixed-step
+mover owns its pose. Undeclared mover IDs refuse product admission. The
+`moverChannelViews` binder borrows named existing native owners; it creates
+no body, script instance, tick, or authoritative writer. Frozen frame
+observers retain the existing trusted quest reactions outside the data.
+
 Named hook conditions resolve a stable numeric field ID and a typed equality value.
 Shared conditions read public fields; player conditions may read the owning actor's
 fields. Host-only fields stay private. Scene hooks declare a numeric event type and

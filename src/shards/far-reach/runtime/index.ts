@@ -14,7 +14,7 @@ import { GUST_ICON, SWING_ICON } from '../data/icons';
 import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
 import { SKY_FLOCK_GROUPS, SKY_FLOCK_ROWS } from '../data/spawns';
 import { buildWorld, type BuiltWorld } from '../world/build';
-import { skyMoverViews } from './movers';
+import { SKY_MOVER_BINDING, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import { commandSocketLift } from '@wildshard/game/plugin/simulation';
 import { isletCalls, type IsletCalls } from '../world/risingIslet';
@@ -49,7 +49,7 @@ import { meadow, type Meadow } from '../world/meadow';
 import { heroStoneDiscs } from '../world/dressing';
 import { SKY_SUN } from '../data/skyLook';
 import { StormRocBoss } from '../combat/stormRoc';
-import { installBossView } from '@wildshard/game/plugin/ui';
+import { installBossView, moverChannelViews } from '@wildshard/game/plugin/ui';
 import { BOSS_REWARD, ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
 import { bindSkyQuestStage } from './quest';
@@ -57,7 +57,7 @@ import { FLAGS, vaneFlag } from '../quest/flags';
 import { installSkyCues } from './audio/cues';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { HybridRuntimePlugin, bindRuntimeHomes, type HybridRuntimeRows, type RuntimeHomes } from '@wildshard/game/plugin/headless';
-import { bindRuntimeProductProps, runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
+import { bindRuntimeProductProps, runtimeLookMaterials, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { bindSkyItems } from './items';
 
 declare module '@wildshard/engine/input/InputService' {
@@ -192,10 +192,22 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // the world pins, chip, map and minimap marks are the quest presentation's (quest/install.ts)
     if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');
     const raised = bindSkyQuestStage('raised', flags, () => true);
-    this.movers = await installDeclaredMovers(ctx, rt.world, skyMoverViews(built, () => Number(flags.has(FLAGS.roost)) + Number(flags.has(FLAGS.vanes)) * 2, () => {
-      built.winch.label = STRINGS.raised;
-      if (!flags.has(FLAGS.raised)) { raised.advance(); toast(STRINGS.raised); }
-    }, () => { this.movers = null; }));
+    const channelRows = source.clientChannels;
+    if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
+    const moverViews = moverChannelViews(channelRows, new Map([['winch', built.fallen]]), SKY_NATIVE_MOVER_OWNERS, (_id, frame) => {
+      const previouslyRaised = built.state.raised;
+      if (frame.value === undefined || frame.turn === undefined) throw new Error('Missing winch channel observations');
+      built.state.raised = frame.value !== 0; built.state.raising = frame.turn === 1;
+      if (!previouslyRaised && built.state.raised) {
+        built.winch.label = STRINGS.raised;
+        if (!flags.has(FLAGS.raised)) { raised.advance(); toast(STRINGS.raised); }
+      }
+    });
+    const product = runtimeProduct(source);
+    this.movers = await installDeclaredMovers(ctx, rt.world, { data: source.movers, modules: new Map(), views: moverViews,
+      admitted: product.assets.retained, read: hash => product.assets.read(hash), systemId: SKY_MOVER_BINDING.systemId,
+      permissions: () => new Map([[SKY_MOVER_BINDING.winch, Number(flags.has(FLAGS.roost)) + Number(flags.has(FLAGS.vanes)) * 2]]),
+      onDispose: () => { this.movers = null; } });
     if (flags.has(FLAGS.raised)) this.movers.command('far.winch.bridge', 3);
     // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
     const lifts = new Map(source.entryways.flatMap((row) => (row.kind === 'socketLift' && row.lift !== undefined ? [[row.edge, row.lift] as const] : [])));

@@ -3154,6 +3154,9 @@ the author builder; SHARDFILE.md documents the executed example and limits.
 Optional bounded private recurrence slots retain first-frame copied seeds and
 finite next-node values atomically. They expose no storage or state setter;
 programs without slots retain their original continuous-clock behaviour.
+`createClientChannelView` binds declared transforms to private Object3D targets;
+`moverChannelViews` projects a declared mover source onto those same visual
+sinks without a new clock/body. Private value/turn outputs remain read-only.
 
 
 DS1.3: the scene reader now includes `SkinnedMesh` bind mode/matrices, ordered joint references and inverse binds, typed skin channels, and standard `AnimationClip` / `KeyframeTrack` interpolation, times and values. Raw integer channels stay raw even when normalized or interleaved. Named targets and all rest joints must belong to the author graph; UUID-bound tracks, duplicate joints, malformed influences and custom interpolants refuse. Local TRS is retained alongside matrices so clips remain executable without a decomposition changing the rest pose.
