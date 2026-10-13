@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { parseKtx2 } from '@wildshard/sdk/assets';
-import { contentHash } from '@wildshard/sdk/project';
+import { hashImmutableBytes } from '@wildshard/sdk/immutable';
 import { GROUND_HALF } from '../data/layout';
 import { GRAIN_TILE, KEY_DIR, SAND_MAP, SHADOW_HALF, SKIRT_SWELL } from '../data/sand';
 import { swellSkirtAt } from './skirt';
@@ -120,7 +120,7 @@ export function rawKtx2(size: number, channels: 1 | 4, data: Uint8Array, zstd: Z
 export function bakeSandFiles(sand: Pick<ReturnType<typeof bakeSignalSand>, 'grain' | 'trail' | 'shadow'>, zstd: Zstd): { rows: Record<'grain' | 'trail' | 'shadow', { hash: string; kind: 'ktx2'; compressed: number; decoded: number; gpu: number; triangles: number; draws: number; dependencies: string[]; critical: false }>; bytes: Map<string, Uint8Array> } {
   const bytes = new Map<string, Uint8Array>();
   const file = (data: Uint8Array, size: number, channels: 1 | 4) => {
-    const wire = rawKtx2(size, channels, data, zstd), hash = contentHash(wire);
+    const wire = rawKtx2(size, channels, data, zstd), hash = hashImmutableBytes(wire);
     bytes.set(hash, wire);
     return { hash, kind: 'ktx2' as const, compressed: wire.length, ...parseKtx2(wire), dependencies: [], critical: false as const };
   };

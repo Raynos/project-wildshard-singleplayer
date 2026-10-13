@@ -1,7 +1,7 @@
 import { Color, Float32BufferAttribute, PlaneGeometry, type BufferGeometry } from 'three';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
-import { SKIRT_CUBE, type SkirtGridRow, type SwellSkirtRow } from '../data/sand';
-import { SIGNAL_DUSK_LOOK } from '../data/lastLight';
+import { SKIRT_CUBE, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from '../data/sand';
+import { SAND_TINT } from '../data/duneField';
 import { signalDunesField } from './tiles';
 
 /**
@@ -40,8 +40,9 @@ export interface SkirtPackRows extends PackedGeometryRows { readonly cubeHalf: n
 
 /** The skirt as a pack: geometry 0 the standalone skirt, geometry 1 the grid cell's (cut to `SKIRT_CUBE`). */
 export function bakeSignalSkirt(): { bytes: Uint8Array; rows: SkirtPackRows } {
-  const look = SIGNAL_DUSK_LOOK, { grid, swell } = look.skirt, heightAt = signalDunesField().heightAt;
-  const colour = new Color(...look.tint.sand).lerp(new Color(...look.tint.hollow), look.tint.skirtHollow);
+  // the dusk look's skirt and sand tint rows (data/lastLight.ts SIGNAL_DUSK_LOOK carries these same rows to the client)
+  const grid = SKIRT_GRID, swell = SKIRT_SWELL, tint = SAND_TINT, heightAt = signalDunesField().heightAt;
+  const colour = new Color(...tint.sand).lerp(new Color(...tint.hollow), tint.skirtHollow);
   const pack = new GeometryPackWriter('sunscar-dunes skirt');
   for (const reach of [grid.reach, SKIRT_CUBE]) pack.add(skirtGrid(grid, swell, heightAt, colour, reach));
   return { bytes: pack.bytes(), rows: { ...pack.rows(), cubeHalf: SKIRT_CUBE } };

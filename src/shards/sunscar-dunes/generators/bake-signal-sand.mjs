@@ -5,16 +5,18 @@
 // data/sandMaps.json) the data client draws the sand with, and the grain tile's means to data/sand.json; the dune skirt
 // (generators/skirt.ts) as a geometry pack, sand/skirt.bin, with its rows in data/skirt.json.
 // test/shards/sunscar-dunes/sand-bake.test.ts is the byte-exact stale gate (it re-runs the generator).
-// Usage: node --import ./scripts/bake-loader.mjs src/shards/sunscar-dunes/generators/bake-signal-sand.mjs
+// G320 (SF87): author-only. Every input is a literal import from this shard's authoring folders, the SDK or a package, under
+// the SDK's authoring loader (no game, engine, runtime or look module; no committed output read back as a seed).
+// Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/sunscar-dunes/generators/bake-signal-sand.mjs
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { constants, zstdCompressSync } from 'node:zlib';
 import { zlibSync } from 'fflate';
+import { bakeSignalSand, bakeSandFiles, SAND_ZSTD_LEVEL } from './sand.ts';
+import { bakeSignalSkirt } from './skirt.ts';
 
 const root = resolve(import.meta.dirname, '../../../..'), project = resolve(root, 'src/shards/sunscar-dunes');
 const out = resolve(root, 'public/assets/sunscar-dunes/sand');
-const { bakeSignalSand, bakeSandFiles, SAND_ZSTD_LEVEL } = await import(new URL('sand.ts', import.meta.url).href);
-const { bakeSignalSkirt } = await import(new URL('skirt.ts', import.meta.url).href);
 const { shadow, trail, grain, meanR, meanGlint } = bakeSignalSand();
 const skirt = bakeSignalSkirt();
 const check = process.argv.includes('--check');

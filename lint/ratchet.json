@@ -238,7 +238,6 @@
     "src/sdk/bag.ts": 1,
     "src/sdk/interactions.ts": 1,
     "src/sdk/kit/bakedGeometry.ts": 7,
-    "src/sdk/kit/geometryPack.ts": 8,
     "src/sdk/kit/mergedPrimitives.ts": 11,
     "src/sdk/looks/canvasAtlas.ts": 8,
     "src/sdk/looks/modelLibrary.ts": 11,
