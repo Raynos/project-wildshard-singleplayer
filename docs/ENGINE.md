@@ -4013,3 +4013,19 @@ Subsequent rows read the new value, including when the rig lacks a bone.
 These rows require finite nonnegative frame `dt` and easing rate; missing
 frame authority refuses. Ordinary bone clips require no new inputs and
 keep their original arithmetic and signed zeroes.
+
+**Actual page homes (W1 C4).** `SpeciesBrains.home(kind, actor, at)` lends
+the catalogue a finite circular home for the declared live body, without
+constructing a policy or consuming RNG. A bind's home resolver is its
+fallback; a home lent before the first decision takes precedence.
+`bind(kind, undefined, homes, { shove })` can run the admitted wander,
+orbit and burst patterns on the existing page body and observation.
+Wander refreshes its home each call; orbit and burst retain the home
+chosen at policy construction, preserving their original continuation.
+Burst requires the trusted player-impulse port before construction.
+Explicit native adapters remain supported with their original behavior.
+
+`installSpeciesHomes` permits an omitted `custom` fallback when every
+kind declares its body policy. A kind without a body then refuses rather
+than constructing a default policy. Held controllers also expose their
+read-only `aim` for copied strike presentation.

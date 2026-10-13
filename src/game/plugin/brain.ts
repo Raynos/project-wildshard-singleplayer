@@ -528,6 +528,8 @@ export interface SpeciesBrains {
    * row (`{ ...ROW, ...brains.bind(kind) }`). Each call binds a fresh policy table; a kind without a brain refuses.
    */
   bind: (kind: string, native?: SpeciesNativeFactory, homes?: SpeciesBodyHomes, held?: SpeciesHeldPorts) => SpeciesBinding;
+  /** Lend a browser body's actual finite home before its first decision; no policy or random draw is created. */
+  home: (kind: string, actor: Animal, at: SpeciesBodyHome) => void;
   /** The controller prepared by this catalogue's body binding; lookup never advances perception, movement or RNG. */
   held: (kind: string, actor: AnimalSim) => HeldSpeciesControl | null;
   /** Construct a decision-only family for a trusted native body adapter; refuses self-contained policy kinds. */
@@ -547,7 +549,7 @@ export interface SpeciesHeldPorts { readonly shove: (yaw: number, speed: number,
 /** A held encounter drives its existing body, with read-only strike observations for presentation. */
 export interface HeldSpeciesControl {
   phase: number; fighting: boolean; restart: () => void;
-  readonly current: StrikeSpec | null; readonly windup: number;
+  readonly current: StrikeSpec | null; readonly windup: number; readonly aim: number;
   snapshot: () => SimValue; restore: (saved: SimValue) => void;
 }
 /** Preparing a held controller constructs it once without advancing perception, movement or a clock. */
@@ -622,12 +624,31 @@ function browserCallbacks(brain: Admitted, native?: SpeciesNativeFactory, homes?
         act: (actor, context) => { of(actor).act(context); }, control: of } };
     }
     case 'ram-grazer': case 'orbit-diver': case 'burst-flyer': case 'skirmisher': case 'guardian': case 'perch-hunter': {
-      if (native === undefined) throw new Error(`Species ${brain.archetype} requires a trusted native body adapter`);
+      let adapter = native;
+      if (adapter === undefined && (brain.archetype === 'ram-grazer' || brain.archetype === 'orbit-diver' || brain.archetype === 'burst-flyer')) {
+        if (homes === undefined || (brain.archetype === 'burst-flyer' && held === undefined)) throw new Error('Species requires its trusted home and body authority');
+        adapter = (actor, decision) => {
+          if (actor.kind !== held?.kind && held !== undefined) throw new Error('Species requires its declared live body');
+          if (decision.archetype === 'ram-grazer') return {
+            think: context => { decision.policy.think({ ...context, home: homes(actor) }); },
+            act: context => { decision.policy.act({ ...context, home: homes(actor) }); },
+          };
+          if (decision.archetype === 'orbit-diver') return {
+            think: context => { decision.policy.think(context); }, act: context => { decision.policy.act(context); },
+          };
+          if (decision.archetype === 'burst-flyer' && held !== undefined) return {
+            think: context => { decision.policy.think({ ...context, shove: held.shove }); },
+            act: context => { decision.policy.act({ ...context, shove: held.shove }); },
+          };
+          throw new Error('Species requires its matching declared body policy');
+        };
+      }
+      if (adapter === undefined) throw new Error(`Species ${brain.archetype} requires a trusted native body adapter`);
       if ((brain.archetype === 'orbit-diver' || brain.archetype === 'burst-flyer') && homes === undefined) throw new Error(`Species ${brain.archetype} requires its native body home`);
       const live = new WeakMap<Animal, ReturnType<SpeciesNativeFactory>>();
       const of = (actor: Animal): ReturnType<SpeciesNativeFactory> => {
         let value = live.get(actor);
-        if (value === undefined) { value = native(actor, decisionOf(brain, actor, homes?.(actor))); live.set(actor, value); }
+        if (value === undefined) { value = adapter(actor, decisionOf(brain, actor, homes?.(actor))); live.set(actor, value); }
         return value;
       };
       return { live: actor => live.has(actor), callbacks: { think: (actor, context) => { of(actor).think(context); },
@@ -766,6 +787,7 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
       throw new Error(`Species ${kind} has no admitted native body protocol`);
   }
   const witnesses: { archetype: string; live: (actor: Animal) => boolean }[] = [];
+  const bodyHomes = new WeakMap<Animal, SpeciesBodyHome>();
   const heldControls = new WeakMap<AnimalSim, { kind: string; controller: HeldSpeciesControl }>();
   const registerHeld = (kind: string, actor: AnimalSim, controller: HeldSpeciesControl): void => {
     if (actor.kind !== kind || heldControls.has(actor)) throw new Error('Held species already has an owning controller');
@@ -776,10 +798,16 @@ export function admitSpeciesBrains(species: readonly BrainedSpecies[], strikeRow
     bind: (kind, native, homes, held) => {
       const brain = admitted.get(kind);
       if (brain === undefined) throw new Error(`Species ${kind} declares no brain`);
-      const bound = browserCallbacks(brain, native, homes, held === undefined ? undefined : { ...held, kind,
+      const resolveHome = homes === undefined ? undefined : (actor: Animal): SpeciesBodyHome => bodyHomes.get(actor) ?? homes(actor);
+      const bound = browserCallbacks(brain, native, resolveHome, held === undefined ? undefined : { ...held, kind,
         occupied: actor => heldControls.has(actor),
         register: (actor, controller) => { registerHeld(kind, actor, controller); } });
       witnesses.push({ archetype: brain.archetype, live: bound.live }); return bound.callbacks;
+    },
+    home: (kind, actor, at) => {
+      if (!admitted.has(kind) || actor.kind !== kind || ![at.x, at.y, at.z, at.r].every(Number.isFinite) || at.r <= 0)
+        throw new Error('Species requires its declared finite body home');
+      bodyHomes.set(actor, at);
     },
     held: (kind, actor) => {
       if (actor.kind !== kind) throw new Error('Held species requires its declared live body');
@@ -838,7 +866,7 @@ export interface SpeciesHomesSpec extends Omit<HomeKeeperSpec, 'scales' | 'polic
   /** Each body's actual home by its declared id (an island or a flying circle), for the home-bound archetypes. */
   readonly home?: (id: string) => SpeciesBodyHome;
   /** The runtime's own body for a kind its rows bind no body recipe (a unique boss), on the same shared ports. */
-  readonly custom: (kind: string, actor: AnimalSim, shared: SpeciesBodyPorts) => KeptPolicy;
+  readonly custom?: (kind: string, actor: AnimalSim, shared: SpeciesBodyPorts) => KeptPolicy;
 }
 
 /** Each species' scale range by kind: its first variant's, the creature manager's first draw (a species without one refuses). */
@@ -859,7 +887,10 @@ export function installSpeciesHomes(host: SimHost, spec: SpeciesHomesSpec, saved
     const at = home?.(actor.entityId);
     const shared: SpeciesBodyPorts = { host, stream, ...(at === undefined ? {} : { home: at }),
       attacks: spec.attackers === Infinity ? { kind: 'unlimited', limit: Infinity } : { kind: 'keeper', claim } };
-    return brains.body(kind, actor, shared) ?? custom(kind, actor, shared);
+    const body = brains.body(kind, actor, shared);
+    if (body !== null) return body;
+    if (custom === undefined) throw new Error(`Species ${kind} has no declared body policy`);
+    return custom(kind, actor, shared);
   } }, saved);
 }
 
