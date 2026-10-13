@@ -1,6 +1,6 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**2026-10-13 02:20Z. G345 sprint: Signal + Sky to 80/20 by ~09:30Z.** Review picks G349–G352 applied (queue Part D).
+**2026-10-13 02:20Z. G345 sprint: Signal + Sky to 80/20 by ~09:30Z.** Review picks G349–G352 in queue Part D.
 
 | Shard (per-export G294, `ddf5c4dea`) | 21:40Z → 02:20Z | Target | Tiles / private bins |
 |---|---|---|---|
@@ -8,7 +8,7 @@
 | Sky Reach | 78.4 % → **53.3 %** | ≤ 1355 lines | 0 / 2 |
 
 **Game exports (G351):** 104 total (from 328); `plugin/` 20 → 19 (`4328edc17`; target 12–14).
-**Ratchets (G349):** standing debt rule deleted, sweeper stopped; debt shrink-only. **Push green (Jake `a44511f05`, `193a7e998`), sp-x7 building:** every sub-second check runs in parallel at commit (debt per file, touched lint/typecheck, stamps, guards); pre-push gate capped at 2 min (over = red); allowed graph counts report-only; green-prefix stays. **Plugin trim → 12–14 modules** (sp-x5). Roc keeps the longer fight (Jake). Commons: 8 unused packs adopt / move / delete (sp-o61).
+**Ratchets (G349):** standing debt rule deleted, sweeper stopped; debt shrink-only. **Push green (Jake `a44511f05`, `193a7e998`), sp-x7 building:** every sub-second check runs in parallel at commit (debt per file, touched lint/typecheck, stamps, guards); pre-push gate capped at 2 min (over = red); allowed graph counts report-only; green-prefix stays. **Plugin trim → 12–14 modules** (sp-x5).
 **Next (Jake):** tiles + 0 private bins; SF81–SF85 open until runtime deleted; G350 exits.
 
 **Fleet:** Codex sp-x7 push/deploy, sp-x5 plugin trim (Codex 7 %). Opus: Sky brains + rig compression sp-o64, Sky through `bake()` sp-o60, Signal ground sp-o55, Signal `terrain.bin` sp-o63, war-fan viewmodel red sp-o58.
@@ -30,9 +30,11 @@
 
 15. `terrain.bin` → session-installed engine ground loader (no debt rise). Navmesh blocked: no nav format row.
 
-16. Rigs +2.3 MB plain floats (`38145d61d`); compression queued.
+16. Rigs +2.3 MB (`38145d61d`); compression queued.
 
 17. Sky tiles = island prop tiles its runtime draws (no fake tiles); dead local `terrain.bin` deleted (`28439b8ee`). Navigation format row for both shards' navmesh → sp-x6.
+
+18. Commons: 0 packs (data into game, spear into the SF86 template). Plan desk: SF26/DS1.6 done-when → "first two-real-shard pack (G355)".
 
 **Jake picks waiting:** 80/20 reach: **S1** quest state machines as AssemblyScript hooks / **S2** shaders as graph rows / **S3** accept ~25–30 % Signal, ~35 % Sky; recommend S1 + S3. Signal look A/B (`art/signal-look/round-1/`), recommend A. Near `art/near-tier/round-3/`; hero r4 `art/main-menu-hero/round-4/board.jpg` (recommend SQ-DW-a + LS-DW-c; LOOKS LINE, Jake: "I don't want to forget this main hero thing"). 
 
