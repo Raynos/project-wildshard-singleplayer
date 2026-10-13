@@ -3607,6 +3607,19 @@ trusted manifest can declare the same row with an immutable URL; hash or
 layout failure is fatal. Manifests without a row retain the older optional
 navmesh lookup while they migrate.
 
+`@wildshard/engine/physics/navmeshLoad.installNavigationReader(reader)`
+installs the session's admitted-navigation port and returns its restore
+(E434: the game session calls it). `loadNavmesh` asks it for a row declared
+with a URL, with `{ key: levelBakedId(level), file: row.file }`; bytes it
+returns stand in for the URL's fetch and are hashed and checked against the
+row the same way; a null (at once or after looking) keeps the fetch, and a
+rejection falls back to it with a warning. The game's
+`installProductNavigation` answers from the shard's product when it declares
+the same file: a resident grid cell's admitted bytes, or standalone the
+canonical product read ahead of the hybrid boot (the descriptor shared with
+that boot, the file cached for its admission), so the navigation downloads
+once.
+
 ### Typed whole-shape GLBs (SHARD-PLATFORM M3)
 
 `PropWhole` in `@wildshard/sdk/bake/props` accepts `customAttributes`
