@@ -58,7 +58,7 @@ exit 0
       const lines = (name: string) => existsSync(join(root, '.git', name))
         ? readFileSync(join(root, '.git', name), 'utf8').trim().split('\n') : [];
       const expected = arriving ? [first, second] : [];
-      expect(lines('regens')).toEqual(expected); expect(lines('gates')).toEqual(expected);
+      expect(lines('regens')).toEqual([]); expect(lines('gates')).toEqual(expected);
       expect(git('rev-parse', 'origin/main')).toBe(arriving ? second : base);
       expect(run.stdout).toContain('origin/main has every local commit');
     } finally { rmSync(root, { recursive: true, force: true }); }
@@ -125,7 +125,7 @@ exit 1
       });
       expect(run.error).toBeUndefined(); expect(run.status, run.stdout + run.stderr).toBe(secondRed ? 1 : 0);
       expect(readFileSync(join(root, '.git/gates'), 'utf8').trim().split('\n')).toEqual([red, first]);
-      expect(readFileSync(join(root, '.git/regens'), 'utf8').trim().split('\n')).toEqual([red, first]);
+      expect(existsSync(join(root, '.git/regens'))).toBe(false);
       expect(run.stdout.match(/retrying regeneration and complete gate once/gu)).toHaveLength(1);
       expect(git('rev-parse', 'origin/main')).toBe(secondRed ? base : first);
     } finally { rmSync(root, { recursive: true, force: true }); }

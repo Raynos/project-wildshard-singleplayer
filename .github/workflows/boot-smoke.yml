@@ -86,6 +86,9 @@ jobs:
       - name: WebKit touch HOVER mounts in the template and on the grid road
         if: matrix.part == 'hover-webkit'
         run: scripts/browser-lane.sh --max 8 node scripts/parity/hover-touch.mjs --engine=webkit --out=boot-smoke-results/hover-webkit
+      - name: WebKit world and held-item rendering
+        if: matrix.part == 'hover-webkit'
+        run: scripts/browser-lane.sh --max 3 node scripts/webkit-render-smoke.mjs --dist=dist
       - name: Record smoke queue and run timings
         if: always()
         env:

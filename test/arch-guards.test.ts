@@ -212,19 +212,27 @@ describe('AG20 staged content isolation', () => {
     put(f.root, 'src/engine/example.ts', 'export const value = 2;');
     const result = f.run(); expect(result.status).toBe(1); expect(result.stderr).toContain('no-raw-save');
   });
-  it('warns about per-file legacy changes for central regeneration while keeping source commits independent', () => {
+  it('refuses per-file debt rises against HEAD despite stale or inflated ceilings', () => {
     const f = repo();
     put(f.root, 'lint/ratchet.json', JSON.stringify({ 'wildshard/no-raw-random-time': { 'src/engine/example.ts': 1, 'src/engine/unrelated.ts': 2 } }));
     put(f.root, 'src/engine/example.ts', 'export const value = Math.random();');
     f.git('add', '--', 'lint/ratchet.json', 'src/engine/example.ts');
+    const introduced = f.run(); expect(introduced.status).toBe(1); expect(introduced.stderr).toContain('was 0, now 1');
+    f.git('commit', '-qm', 'fixture existing debt');
+    put(f.root, 'src/engine/example.ts', 'export const value = Math.random() + 2;'); f.git('add', '--', 'src/engine/example.ts');
     expect(f.run().status).toBe(0);
     put(f.root, 'src/engine/example.ts', 'export const value = 2;'); f.git('add', '--', 'src/engine/example.ts');
     const cleaned = f.run(); expect(cleaned.status).toBe(0); expect(cleaned.stderr).toContain('central regeneration');
     put(f.root, 'src/engine/example.ts', 'export const value = Math.random() + Math.random();'); f.git('add', '--', 'src/engine/example.ts');
-    const rose = f.run(); expect(rose.status).toBe(0); expect(rose.stderr).toContain('coordinator approval');
+    const rose = f.run(); expect(rose.status).toBe(1); expect(rose.stderr).toContain('was 1, now 2');
     put(f.root, 'src/engine/example.ts', 'export const value = 2;'); f.git('add', '--', 'src/engine/example.ts');
     put(f.root, 'lint/ratchet.json', JSON.stringify({ 'wildshard/no-raw-random-time': { 'src/engine/unrelated.ts': 2 } }));
     f.git('add', '--', 'lint/ratchet.json'); expect(f.run().status).toBe(0);
+    f.git('commit', '-qm', 'fixture debt paid back');
+    put(f.root, 'lint/ratchet.json', JSON.stringify({ 'wildshard/no-raw-random-time': { 'src/engine/example.ts': 9 } }));
+    put(f.root, 'src/engine/example.ts', 'export const value = Math.random();');
+    f.git('add', '--', 'lint/ratchet.json', 'src/engine/example.ts');
+    const inflated = f.run(); expect(inflated.status).toBe(1); expect(inflated.stderr).toContain('was 0, now 1');
   });
   it('checks only the committed shard layout', () => {
     const f = repo(); put(f.root, 'src/shards/emberfall/plugin.ts', 'export const value = 1;'); f.git('add', '--', 'src/shards/emberfall/plugin.ts');

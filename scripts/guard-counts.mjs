@@ -29,7 +29,7 @@ export function hardRules(file) {
 }
 
 /** Only the supplied paths participate in a staged check; omitted paths mean the whole tree. */
-export function compareCounts(baseline, current, hard, paths, update = false, defer = false) {
+export function compareCounts(baseline, current, hard, paths, update = false, defer = false, strictIncreases = false) {
   const failures = [], warnings = [];
   const selected = paths ? new Set(paths) : null;
   for (const key of new Set([...Object.keys(baseline), ...Object.keys(current)])) {
@@ -38,7 +38,7 @@ export function compareCounts(baseline, current, hard, paths, update = false, de
     for (const file of new Set([...Object.keys(previous), ...Object.keys(now)])) {
       if (selected && !selected.has(file)) continue;
       const was = previous[file] ?? 0, count = now[file] ?? 0;
-      if (count > was) (defer && !hard.has(key) ? warnings : failures).push(`${file}: ${key} was ${was}, now ${count}${defer && !hard.has(key) ? ' (requires coordinator approval in the pusher regeneration commit)' : ''}`);
+      if (count > was) (defer && !strictIncreases && !hard.has(key) ? warnings : failures).push(`${file}: ${key} was ${was}, now ${count}${defer && !strictIncreases && !hard.has(key) ? ' (requires coordinator approval in the pusher regeneration commit)' : ''}`);
       else if (was > 0 && count === 0 && !update && !defer) failures.push(`${file}: ${key} is clean; run pnpm lint:ratchet --update in this commit`);
       else if (count < was) warnings.push(`${file}: ${key} was ${was}, now ${count} (${defer ? 'central regeneration will lower the debt' : 'partial slack; lower the ratchet'})`);
     }

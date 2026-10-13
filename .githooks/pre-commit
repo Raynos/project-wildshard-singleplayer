@@ -57,6 +57,8 @@ EOF
   exit 1
 fi
 # SF74 W14: the commit holds the shared index.lock for this whole hook, so the independent node checks run side by side
+# G367: finish index-writing producers before any index-reading guard starts.
+node scripts/precommit-inputs.mjs || exit 1
 # (each reads the commit's index, none writes it); the hook fails when any of them fails.
 pids=()
 # SF6b: builders land source only; the serialized pusher owns generated measurements and docs.

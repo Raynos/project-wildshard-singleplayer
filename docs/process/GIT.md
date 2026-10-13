@@ -135,21 +135,16 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   and `git clean -f` without paths are blocked. Name the paths you authored.
 - **Keep pushes small.** `.githooks/pre-commit` refuses a `progress/` image over 500 KB (save JPEG / WebP) and any
   `.blend`. `.gitattributes` marks binaries `-delta`.
-- **The pre-push gate builds what Vercel builds.** `.githooks/pre-push` runs `scripts/vercel-tree-gate.sh` on the tip
-  you push (stamped per commit, so a passed SHA never reruns); `push-main.sh` runs it before it opens the `git push`, so the hook only finds the stamp (SF74 W20: GitHub dropped the idle SSH session after a 385 s gate): only the files `.vercelignore` lets through, then
-  check-css, typecheck, oxlint, the ratchet, the audits, bake-check, vitest, liveness and vite build. Vitest has an
-  exclusive phase; the remaining jobs run at most three at a time, each printing its own wall time. The gate passes
-  `WS_VITEST_MAX_WORKERS` explicitly (six by default), and its heavy lease runs commands under `nice -n 10`.
-  Jake's budget is **≤ 2 min for the whole push** (E454: ~65 s for the gate plus
-  ~17 s for the regeneration on 2026-10-07); a step that pushes it over moves to CI, never silently away. It refuses
-  the push when `.vercelignore` would drop anything under `src/`, `public/`, `api/` or `scripts/`; anchor every
-  `.vercelignore` line with `/` (E41). A red gate is yours to fix before the push. Rare escape: `SKIP_VERCEL_GATE=1`.
-  **Gate cache** (`scripts/gate-cache.mjs`, state in `.git/gate-cache/`): bake-check and the node audits skip when every
-  file they read last time (traced by `scripts/gate-trace.mjs`) is byte-identical, and vitest runs `vitest related` on
-  the files changed since its last green gate, plus every test whose text (or a test fixture's) names a changed file:
-  spawned scripts and fixtures sit outside vite's import graph (SF74 W12). Timings land in `.git/gate-timings.jsonl` and
-  `.git/push-timings.jsonl`. Every 8th gate, 6 h after the last full one, a package / config /
-  test-setup change, a deleted module and `GATE_FULL=1` run everything; CI always does (2026-10-09: 277 s → 57 s).
+- **The local gate takes at most 120 seconds** (G363). It checks the exact
+  committed Vercel tree, changed-file types and lint, and only affected tests.
+  A deadline kills the gate's own child groups and refuses the push. Each step
+  and total time print on success, failure and cached passes. Full tests,
+  builds, bake checks and receipts run in CI. Required exact-SHA boot smoke
+  retains WebKit rendering, every public shard, and the road into Signal.
+  Production selects only a CI-green and smoke-green commit.
+- **Pushes never regenerate outputs** (G367, replacing hourly batching).
+  Generated outputs belong to the commit that changes their inputs. The
+  regeneration bot no longer runs in `push-main.sh`; green-prefix remains on.
 - **Hooks on:** every checkout runs `git config core.hooksPath .githooks` once (the session brief warns when it's off).
   The pre-commit hook also runs the architecture guards and `scripts/asks.mjs check`; commit-msg runs the lock check and
   the legacy-shard check (no plan-State check since 2026-10-09, [ASKS.md](ASKS.md)). The pre-commit hook refuses new raw

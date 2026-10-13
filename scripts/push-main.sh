@@ -81,21 +81,10 @@ for push_round in 1 2 3 4 5 6; do
     echo "push-main: origin/main has every local commit ($(git rev-parse --short main))"
     exit 0
   fi
-  # SF6b: one clean committed export and private-index regeneration while this pusher holds the lock.
-  # Increases require GENERATED_APPROVAL_FILE with the coordinator's exact reviewed receipt.
-  t0=$SECONDS
-  rout="$(mktemp "${TMPDIR:-/tmp}/push-regen.XXXXXX")" || exit 1
-  REGEN_SHA_FILE="$tipfile" node scripts/regenerate-committed.mjs 2>&1 | tee "$rout"; rc=${PIPESTATUS[0]}
-  if [ "$rc" != 0 ]; then
-    record '' 0 "$((SECONDS - t0))" 0 "$rc"
-    grep -q 'witness-manifests: payloads changed' "$rout" && try_prefix witness "$(git rev-parse main)" "$rout"
-    rm -f "$rout"; exit "$rc"
-  fi
-  rm -f "$rout"
-  regen=$((SECONDS - t0))
-  # Push exactly the regenerated tip: a builder commit landing after the regeneration waits for the next loop, so the
-  # gate never sees an unregenerated tip (2026-10-09: 'Ratchet rose: … is clean' reds after a lane cleaned debt).
-  tip="$(cat "$tipfile")"
+  # G367: a push never generates or rewrites committed outputs.
+  # Commit-time producers own outputs; CI owns full proofs and receipts.
+  regen=0
+  tip="$(git rev-parse main)"
   ahead="$(git rev-list --count "origin/main..$tip")"
   if [ "$ahead" = 0 ]; then
     [ "$(git rev-list --count origin/main..main)" = 0 ] || continue

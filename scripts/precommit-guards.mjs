@@ -77,7 +77,6 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'))
     extractGuardArchive(root, tree, ['src', 'scripts/generation-jobs.json', 'scripts/shard-coupling.mjs', 'scripts/legacy-shards.mjs', 'lint/legacy-shards.json', ...(manifest ? ['scripts/gen-shards.mjs', 'scripts/gen-shard-words.mjs'] : [])], scratch);
     materializeGuardData(root, scratch); // Only staged hash-pinned JSON bytes may supplement the immutable source tree.
     linkNodeModules(root, scratch); // E432: @wildshard/* resolve to the snapshot, not the working tree
-    const baseline = JSON.parse(readFileSync(join(scratch, 'lint/ratchet.json'), 'utf8'));
     const configFile = join(scratch, '.oxlintrc.json'), hard = hardRules(configFile);
     const config = readLintConfig(configFile);
     // No type info here, so type-aware rules never fire and their disable comments would read as unused: the full
@@ -87,16 +86,46 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'))
     config.overrides.push({ files: ['src/**'], rules: ratchet.rules });
     const guardConfig = join(scratch, '.oxlintrc.precommit.json');
     writeFileSync(guardConfig, JSON.stringify(config));
+    // G349: compare actual HEAD debt, not a stale ceiling awaiting regeneration.
+    // Both sides observe immutable dependency trees and only this commit's paths.
+    const debtStarted = performance.now(), beforeRoot = join(scratch, 'before');
+    mkdirSync(beforeRoot);
+    const beforeSnapshot = guardSnapshot(root, 'HEAD', beforeRoot, paths);
+    extractGuardArchive(root, 'HEAD', ['scripts/generation-jobs.json'], beforeRoot);
+    materializeGuardData(root, beforeRoot);
+    linkNodeModules(root, beforeRoot);
+    const beforeConfig = join(beforeRoot, '.oxlintrc.precommit.json');
+    writeFileSync(beforeConfig, JSON.stringify(config));
+    const beforePaths = paths.filter(path => beforeSnapshot.paths.includes(path));
     const existing = new Set(snapshot.paths);
     const lintPaths = paths.filter((p) => existing.has(p));
     const frozen = legacyInventory(scratch);
     const counts = {}, failures = [...checkPlatformRatchets(predecessor, scratch), ...checkLegacyInventory(scratch, frozen)];
     const coupling = runAsync(scratch, process.execPath, ['scripts/shard-coupling.mjs', '--check']);
     const lint = lintPaths.length > 0 ? spawnAsync(scratch, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', guardConfig, '--disable-nested-config', '-f', 'json', ...lintPaths]) : null;
+    const beforeLint = beforePaths.length > 0 ? spawnAsync(beforeRoot, process.execPath, [resolve(root, 'node_modules/oxlint/bin/oxlint'), '-c', beforeConfig, '--disable-nested-config', '-f', 'json', ...beforePaths]) : null;
     // Settle every child before reading any result, so a failure never leaves one running against a deleted scratch.
-    const [coupled, linted] = await Promise.allSettled([coupling, lint]);
+    const debt = Promise.allSettled([lint, beforeLint]).then(results => ({ results, seconds: (performance.now() - debtStarted) / 1000 }));
+    const [coupled, checked] = await Promise.allSettled([coupling, debt]);
     if (coupled.status === 'rejected') throw coupled.reason;
+    if (checked.status === 'rejected') throw checked.reason;
+    const [linted, previous] = checked.value.results;
     if (linted.status === 'rejected') throw linted.reason;
+    if (previous.status === 'rejected') throw previous.reason;
+    const baseline = {};
+    if (previous.value !== null) {
+      if (previous.value.status !== 0 && previous.value.status !== 1) throw new Error(`HEAD oxlint failed: ${previous.value.stderr}`);
+      const output = JSON.parse(previous.value.stdout);
+      if (!Array.isArray(output.diagnostics)) throw new Error('HEAD oxlint returned no diagnostics');
+      const beforeFrozen = legacyInventory(beforeRoot);
+      for (const diagnostic of output.diagnostics) {
+        const match = /^wildshard\(([^)]+)\)$/u.exec(diagnostic.code ?? '');
+        const key = match ? `wildshard/${match[1]}` : null;
+        if (!key || hard.has(key) || !Object.hasOwn(ratchet.rules, key) || registeredLegacyFile(beforeFrozen, diagnostic.filename)) continue;
+        baseline[key] ??= {};
+        baseline[key][diagnostic.filename] = (baseline[key][diagnostic.filename] ?? 0) + 1;
+      }
+    }
     const result = linted.value;
     if (result !== null) {
       if (result.status !== 0 && result.status !== 1) throw new Error(`oxlint failed (${result.status}): ${result.stderr}`);
@@ -113,7 +142,8 @@ export async function precommitGuards(root = resolve(import.meta.dirname, '..'))
       }
       if (result.status === 1 && output.diagnostics.length === 0) throw new Error(`oxlint failed without diagnostics: ${result.stderr}`);
     }
-    const compared = compareCounts(baseline, counts, hard, paths, false, true);
+    const compared = compareCounts(baseline, counts, hard, paths, false, true, true);
+    console.log(`precommit-debt: ${checked.value.seconds.toFixed(3)}s, ${paths.length} committed paths, shrink-only`);
     failures.push(...compared.failures);
     for (const warning of compared.warnings) console.warn(warning);
     if (slugs.size > 0) {
