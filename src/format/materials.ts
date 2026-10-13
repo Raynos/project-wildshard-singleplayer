@@ -230,7 +230,7 @@ function pathValue(root: unknown, path: string): unknown {
   return at;
 }
 /** A copy of `params` with each curve's value at its field's value (`value(state)`, clamped 0 … 1) written at its path. */
-export function curvedParams(params: FamilyMaterialParams, curves: MaterialCurves[string], value: (state: string) => number): FamilyMaterialParams {
+export function curvedParams(params: FamilyMaterialParams, curves: readonly { readonly param: string; readonly state: string; readonly curve: Curve }[], value: (state: string) => number): FamilyMaterialParams {
   const out = structuredClone(params);
   for (const row of curves) {
     const keys = row.param.split('.'), last = keys.pop();

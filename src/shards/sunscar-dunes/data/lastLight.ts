@@ -1,7 +1,6 @@
 import { SAND_TINT } from './duneField';
 import type { DayClockRow } from '@wildshard/format/dayCycle';
-import type { Curve } from '@wildshard/format/materials';
-import { AERIAL_FOG, FAR_HAZE, FILL, FOG_SUN, KEY_DIM } from './dusk';
+import { DUSK_CURVES } from './dusk';
 import { KEY_DIR, SKIRT_GRID, SKIRT_SWELL, type SkirtGridRow, type SwellSkirtRow } from './sand';
 import { SAND_LOOK, SKY_LOOK, type DuskSandRow, type DuskSkyRow } from './familyLook';
 import { PAINTED_STAGES, PAINTED_URLS } from './files';
@@ -22,7 +21,7 @@ export interface DuskLookRow {
   readonly fog: { readonly color: number; readonly near: number; readonly far: number };
   readonly key: { readonly dir: Rgb; readonly color: Rgb; readonly deep: Rgb; readonly intensity: number };
   readonly clock: DayClockRow;
-  readonly curves: { readonly key: Curve; readonly fill: Curve; readonly fogSun: Curve; readonly farHaze: Curve; readonly aerialFog: Curve };
+  readonly curves: typeof DUSK_CURVES;
   readonly tint: DuskTintRow;
   readonly skirt: { readonly grid: SkirtGridRow; readonly swell: SwellSkirtRow };
   readonly sand: DuskSandRow;
@@ -65,7 +64,7 @@ export const DUSK_CLOCK = { units: 'hour', start: 19,
  */
 export const SIGNAL_DUSK_LOOK: DuskLookRow = {
   fog: FOG, key: { dir: KEY_DIR, color: KEY_LIGHT.color, deep: DEEP_KEY, intensity: KEY_LIGHT.intensity }, clock: DUSK_CLOCK,
-  curves: { key: KEY_DIM, fill: FILL, fogSun: FOG_SUN, farHaze: FAR_HAZE, aerialFog: AERIAL_FOG },
+  curves: DUSK_CURVES,
   tint: SAND_TINT, skirt: { grid: SKIRT_GRID, swell: SKIRT_SWELL }, sand: SAND_LOOK, sky: SKY_LOOK,
   painted: { stages: PAINTED_STAGES, urls: PAINTED_URLS, tag: 'sunscar.sky', fault: '[sunscar-dunes] painted sky', scope: 'sunscar-dunes.sky' },
 };

@@ -1,4 +1,3 @@
-import type { MaterialCurves } from '@wildshard/format/materials';
 import { SAND_DUSK } from './dusk';
 import { DUNE_FIELD } from './duneField';
 import { GROUND_HALF } from './layout';
@@ -9,7 +8,7 @@ import sandMeans from './sand.json' with { type: 'json' };
 type V2 = readonly [number, number];
 
 /** A dusk sand as rows: its name, its three maps' names, its PBR ground entry (the dusk's first frame) and its dusk curves. */
-export interface DuskSandRow { readonly name: string; readonly maps: { readonly grain: string; readonly trail: string; readonly shadow: string }; readonly entry: unknown; readonly curves: MaterialCurves[string] }
+export interface DuskSandRow { readonly name: string; readonly maps: { readonly grain: string; readonly trail: string; readonly shadow: string }; readonly entry: unknown; readonly curves: typeof SAND_DUSK }
 
 /** A painted dusk sky as rows: its name, its two stages' map names, the strip's elevations, the dusk window, the first stage's gain and the hold. */
 export interface DuskSkyRow {
