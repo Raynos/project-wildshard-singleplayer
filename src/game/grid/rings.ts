@@ -84,7 +84,8 @@ const LEVEL_RANK = { far: 0, l1: 1, l0: 2 } as const;
 const SIZE = { far: CHUNK_HALF * 2, l1: C.l1.size, l0: C.l0.size } as const;
 const L0_RADIUS = C.nearRadius, L1_RADIUS = 400, LOOKAHEAD_SLOTS = C.l0Count - 32;
 type State = 'fetching' | 'queued' | 'uploaded';
-interface Slot<D> { tile: RingTile; state: State; lease: ResidencyLease; unholdParent: () => void; view: RingView | null; data: D | null; bytes: number; distance: number; masked: string; shadow: boolean }
+/** sp-o105: `parent` is `parentOf(tile)`, kept on the slot: the step's scans compared a freshly built key per slot pair. */
+interface Slot<D> { tile: RingTile; readonly parent: string | null; state: State; lease: ResidencyLease; unholdParent: () => void; view: RingView | null; data: D | null; bytes: number; distance: number; masked: string; shadow: boolean }
 
 function key(instance: string, level: RingLevel, x: number, z: number): string { return level === 'far' ? `${instance}:far` : `${instance}:${level}/${x}/${z}`; }
 /** Distance from a cell-local point to a tile's square (0 inside). */
@@ -246,11 +247,15 @@ export class RenderRings<D> {
    */
   private release(want: ReadonlyMap<string, unknown>, camera: RingCamera): void {
     const keep = { far: this.options.viewDistance + this.options.farPrefetch + C.pitch / 2, l1: L1_RADIUS + C.l1.size, l0: L0_RADIUS + C.l0.size } as const;
-    const order = [...this.slots.values()].sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level] || this.distance(b.tile, camera) - this.distance(a.tile, camera) || a.tile.key.localeCompare(b.tile.key));
+    // each slot's distance once (a pure function of the camera), not twice per comparison
+    const distances = new Map<Slot<D>, number>();
+    for (const slot of this.slots.values()) distances.set(slot, this.distance(slot.tile, camera));
+    const away = (slot: Slot<D>): number => distances.get(slot) ?? this.distance(slot.tile, camera);
+    const order = [...this.slots.values()].sort((a, b) => LEVEL_RANK[b.tile.level] - LEVEL_RANK[a.tile.level] || away(b) - away(a) || a.tile.key.localeCompare(b.tile.key));
     const count = { far: 0, l1: 0, l0: 0 };
     for (const slot of this.slots.values()) if (slot.state === 'uploaded') count[slot.tile.level]++;
     const dropTree = (slot: Slot<D>): void => {
-      for (const child of this.slots.values()) if (parentOf(child.tile) === slot.tile.key) dropTree(child);
+      for (const child of this.slots.values()) if (child.parent === slot.tile.key) dropTree(child);
       if (this.slots.get(slot.tile.key) !== slot) return;
       if (slot.state === 'uploaded') count[slot.tile.level]--;
       this.drop(slot);
@@ -258,7 +263,7 @@ export class RenderRings<D> {
     for (const slot of order) {
       if (want.has(slot.tile.key) || this.slots.get(slot.tile.key) !== slot) continue;
       const level = slot.tile.level, cap = this.options.residentCaps[level] ?? Infinity;
-      if (slot.state !== 'uploaded' ? !this.hasChildren(slot.tile) : this.distance(slot.tile, camera) > keep[level] || count[level] > cap) dropTree(slot);
+      if (slot.state !== 'uploaded' ? !this.hasChildren(slot.tile) : away(slot) > keep[level] || count[level] > cap) dropTree(slot);
     }
   }
 
@@ -269,7 +274,7 @@ export class RenderRings<D> {
 
   private hasChildren(tile: RingTile): boolean {
     if (tile.level === 'l0') return false;
-    for (const slot of this.slots.values()) if (parentOf(slot.tile) === tile.key) return true;
+    for (const slot of this.slots.values()) if (slot.parent === tile.key) return true;
     return false;
   }
 
@@ -285,7 +290,7 @@ export class RenderRings<D> {
       const bytes = this.catalogue(tile.instance, tile.level, tile.x, tile.z); if (bytes === null) continue;
       const lease = this.allocator.reserve({ id: `render:${tile.key}`, category: tile.level, bytes, owner: tile.instance, distance, needed: true, evictSync: () => { this.evicted(tile.key); } });
       if (lease === null) { this.refused++; this.retryAt.set(tile.key, this.frame + 15); continue; }
-      const slot: Slot<D> = { tile, state: 'fetching', lease, unholdParent: parent?.lease.hold() ?? ((): void => undefined), view: null, data: null, bytes, distance, masked: '', shadow: false };
+      const slot: Slot<D> = { tile, parent: parentKey, state: 'fetching', lease, unholdParent: parent?.lease.hold() ?? ((): void => undefined), view: null, data: null, bytes, distance, masked: '', shadow: false };
       this.slots.set(tile.key, slot); inFlight++;
       try {
         this.ports.fetch(tile, (result) => {
@@ -313,7 +318,7 @@ export class RenderRings<D> {
       catch (error) { this.drop(slot); throw error; }
       slot.data = null; slot.state = 'uploaded';
       count++; bytes += slot.bytes; this.uploads++;
-      const parent = parentOf(slot.tile); if (parent !== null) this.remask(parent);
+      const parent = slot.parent; if (parent !== null) this.remask(parent);
     }
   }
 
@@ -333,16 +338,16 @@ export class RenderRings<D> {
     clean(slot.unholdParent);
     clean(() => slot.lease.release());
     // tearing down re-masks nothing: the session's scope may already have uninstalled the parent's mesh
-    if (!this.disposed) { const parent = parentOf(slot.tile); if (parent !== null) clean(() => this.remask(parent)); }
+    if (!this.disposed) { const parent = slot.parent; if (parent !== null) clean(() => this.remask(parent)); }
     if (errors.length > 0) throw new AggregateError(errors, 'Ring tile cleanup failed');
   }
 
   /** A parent hides exactly the regions whose child is uploaded. */
-  private remask(parentKey: string): void {
+  private remask(parentKey: string, uploaded?: ReadonlyMap<string, readonly Slot<D>[]>): void {
     const parent = this.slots.get(parentKey); if (parent?.view === null || parent?.view === undefined) return;
     const excluded = new Set<number>();
-    for (const slot of this.slots.values()) {
-      if (slot.state !== 'uploaded' || parentOf(slot.tile) !== parentKey) continue;
+    for (const slot of uploaded === undefined ? this.slots.values() : uploaded.get(parentKey) ?? []) {
+      if (slot.state !== 'uploaded' || slot.parent !== parentKey) continue;
       excluded.add(parent.tile.level === 'far' ? slot.tile.x + slot.tile.z * 4 : slot.tile.x % 2 + (slot.tile.z % 2) * 2);
     }
     const signature = [...excluded].sort((a, b) => a - b).join(',');
@@ -350,9 +355,17 @@ export class RenderRings<D> {
   }
 
   private remaskAll(camera: RingCamera): void {
+    // the uploaded children by parent, gathered once in slot order (each parent then reads the same children, in the same
+    // order, as a whole-slot scan would): the step stays linear in the resident tiles
+    const uploaded = new Map<string, Slot<D>[]>();
+    for (const slot of this.slots.values()) {
+      if (slot.state !== 'uploaded' || slot.parent === null) continue;
+      const siblings = uploaded.get(slot.parent);
+      if (siblings === undefined) uploaded.set(slot.parent, [slot]); else siblings.push(slot);
+    }
     for (const slot of this.slots.values()) {
       if (slot.view === null) continue;
-      if (slot.tile.level !== 'l0') this.remask(slot.tile.key);
+      if (slot.tile.level !== 'l0') this.remask(slot.tile.key, uploaded);
       else { const shadow = this.distance(slot.tile, camera) <= C.shadowRadius; if (shadow !== slot.shadow) { slot.shadow = shadow; slot.view.shadow(shadow); } }
     }
   }

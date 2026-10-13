@@ -26,10 +26,21 @@ function lodKey(tile: { level: RingTile['level']; x: number; z: number }): strin
 
 /** Resident bytes per ring tile from the shardfile rows; null where the shard has no such tile (and for far, until SF23). */
 export function clientRingCatalogue(instances: ReadonlyMap<string, { readonly source: Shardfile }>): RingCatalogue {
+  // sp-o105: the rings ask this many times every fixed step; each source's rows are indexed once by their lod key (the first
+  // row of a key wins, as the linear search did) instead of formatting every row's key on every question
+  const indexes = new WeakMap<Shardfile['tiles'], ReadonlyMap<string, number>>();
+  const index = (tiles: Shardfile['tiles']): ReadonlyMap<string, number> => {
+    let found = indexes.get(tiles);
+    if (found === undefined) {
+      const made = new Map<string, number>();
+      for (const tile of tiles) { const key = `${tile.lod}/${tile.x}/${tile.z}`; if (!made.has(key)) made.set(key, tile.decoded + tile.gpu); }
+      indexes.set(tiles, made); found = made;
+    }
+    return found;
+  };
   return (instance, level, x, z) => {
     const key = lodKey({ level, x, z }), source = instances.get(instance)?.source; if (key === null || source === undefined) return null;
-    const row = source.tiles.find((tile) => `${tile.lod}/${tile.x}/${tile.z}` === key);
-    return row === undefined ? null : row.decoded + row.gpu;
+    return index(source.tiles).get(key) ?? null;
   };
 }
 
