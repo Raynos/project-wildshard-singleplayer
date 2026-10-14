@@ -9,6 +9,7 @@ import { PINE_STATE } from './data/state';
 import { PINE_EDGE_HEIGHTS } from './data/edges';
 import { PINE_RUNTIME_COST } from './data/runtimeCost';
 import { HEARTH_GRAPHS } from './data/hearthLook';
+import { CAVE_SHAFT_GRAPHS } from './data/caveShaftLook';
 import timbers from './data/timberWorld.generated.json' with { type: 'json' };
 
 // The trusted legacy entry keeps the live world; SF29 binds its existing audio to these rows.
@@ -26,8 +27,8 @@ export default parseShardfile({
   budgets: { ...base.budgets, sim: { resident: criticalFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: criticalFiles.reduce((n, file) => n + file.compressed, 0) }, library: { resident: libraryFiles.reduce((n, file) => n + file.decoded + file.gpu, 0), compressed: libraryFiles.reduce((n, file) => n + file.compressed, 0) } },
   serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + criticalFiles.reduce((n, file) => n + file.decoded, 0) },
   accent: 'moss',
-  // the material graphs the runtime draws its own meshes in (runtime/index.ts): the hearth particles
-  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries(HEARTH_GRAPHS).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
+  // the material graphs the runtime draws its own meshes in (runtime/index.ts): the hearth particles, the cave's shaft
+  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...HEARTH_GRAPHS, ...CAVE_SHAFT_GRAPHS }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   edge: { north: row(PINE_EDGE_HEIGHTS.north), east: row(PINE_EDGE_HEIGHTS.east), south: row(PINE_EDGE_HEIGHTS.south), west: row(PINE_EDGE_HEIGHTS.west) },
   runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['terrain', 'props', 'quests', 'ledger', 'items', 'spawns', 'state'], spawns: PINE_RUNTIME_SPAWNS },
   quests: PINE_QUESTS, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: PINE_AUDIO, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },

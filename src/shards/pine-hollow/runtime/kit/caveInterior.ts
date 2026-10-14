@@ -5,13 +5,14 @@ import type { TerrainCut } from '@wildshard/engine/physics/terrain';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { pineLook, setPineLookParam } from '../looks/graphLooks';
 
 /**
  * A cave cut into the terrain (SHARD-PLATFORM M3, the kit system): one interior baked by a shard's builder, described in
  * its own frame (lx across, lz in, y world height) by a meta file, and a look row for its shaft of light and its drips.
  * From those it answers the world's questions: the physics heightfield's cuts, the drawn terrain's hole, the terrain
  * patch over the cut as a trimesh (the ground above the mouth comes back), the reverb spots, the footprint (no rain
- * inside), the passage's floor; and it draws the shaft (the shard's program, additive) and the drips near the mouth,
+ * inside), the passage's floor; and it draws the shaft (the shard's lent graph look, additive) and the drips near the mouth,
  * fills the walls by day through the shard's fill uniform and hides the sun's depth-less disc under the roof. The
  * interior's geometry and its rock material are the shard's; nothing here knows a shard's cave.
  */
@@ -48,9 +49,9 @@ export interface CaveLookRow {
   readonly fill: readonly [number, number];
   /** the surface the cave's colliders report */
   readonly surface: SurfaceMaterial;
-  /** the shaft: its program, its cone's segments, its render order, and its intensity gain × day × min(1, sunBase + max(0, sun.y) × sunGain) + floor */
+  /** the shaft: its look (a lent look.materials graph with an `intensity` param), its cone's segments, its render order, and its intensity gain × day × min(1, sunBase + max(0, sun.y) × sunGain) + floor */
   readonly shaft: {
-    readonly vertex: string; readonly fragment: string;
+    readonly look: string;
     readonly radialSegments: number; readonly heightSegments: number; readonly renderOrder: number;
     readonly gain: number; readonly sunBase: number; readonly sunGain: number; readonly floor: number;
   };
@@ -195,13 +196,7 @@ export class CaveInterior {
     const len = top.distanceTo(foot);
     const geo = new THREE.CylinderGeometry(meta.shaft.r0, meta.shaft.r1, len, look.shaft.radialSegments, look.shaft.heightSegments, true);
     geo.translate(0, -len / 2, 0);
-    const shaftMat = new THREE.ShaderMaterial({
-      uniforms: { uI: { value: 0 }, uTime: { value: 0 }, uLen: { value: len } },
-      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
-      vertexShader: look.shaft.vertex,
-      fragmentShader: look.shaft.fragment,
-    });
-    const shaft = new THREE.Mesh(geo, shaftMat);
+    const shaft = new THREE.Mesh(geo, pineLook(look.shaft.look));
     shaft.position.copy(top);
     shaft.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), foot.clone().sub(top).normalize());
     shaft.renderOrder = look.shaft.renderOrder; shaft.frustumCulled = true; shaft.visible = false;
@@ -242,14 +237,12 @@ export class CaveInterior {
     const near = Math.hypot(p.x - this.frame.x, p.z - this.frame.z) < look.near;
     if (near !== this.near) { this.near = near; if (this.shaft) this.shaft.visible = near; if (this.drips) this.drips.visible = near; }
     if (!near) return;
-    if (this.shaft && this.shaft.material instanceof THREE.ShaderMaterial) {
-      const u = this.shaft.material.uniforms, s = look.shaft;
+    if (this.shaft) {
+      const s = look.shaft;
       // the sky over the crack: bright by day (the lamps are out), a glimmer at night
       const day = 1 - Math.max(0, Math.min(1, sky.lamps));
-      const uI = u['uI'], uT = u['uTime'];
       this.fill.value = look.fill[0] + look.fill[1] * day;
-      if (uI) uI.value = s.gain * day * Math.min(1, s.sunBase + Math.max(0, sky.sunDir.y) * s.sunGain) + s.floor;
-      if (uT) uT.value = t;
+      setPineLookParam(s.look, 'intensity', s.gain * day * Math.min(1, s.sunBase + Math.max(0, sky.sunDir.y) * s.sunGain) + s.floor);
     }
     if (this.drips) {
       const pos = this.drips.geometry.getAttribute('position');

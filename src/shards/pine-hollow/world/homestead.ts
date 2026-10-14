@@ -21,7 +21,7 @@ import { pineSetCap } from '../debug/options';
 import { END_GRAIN_PAINT, GLOW_PAINT } from '../data/cabinPaint';
 import { CABIN_DOOR_EDITS, CABIN_LIFE, CABIN_MOSS_EDITS } from '../data/cabinLook';
 import { HEARTH_LOOKS } from '../data/hearthLook';
-import type { GraphLiteral } from '@wildshard/format/materialGraph';
+import { pineLook, setPineLookParam } from '../runtime/looks/graphLooks';
 import { mergeParts, type PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind } from './logKit';
 import { pineModels } from './context';
@@ -100,7 +100,7 @@ async function loadMats(sky: Sky): Promise<Mats> {
     iron: new THREE.MeshStandardMaterial({ color: 0x2b2724, roughness: 0.6, metalness: 0.75 }),
     cloth: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0, vertexColors: true }),
     char: new THREE.MeshStandardMaterial({ color: 0x14100d, roughness: 0.95, metalness: 0, emissive: 0xff4a08, emissiveIntensity: 0.12 }),
-    smoke: hearthLook('smoke'), flame: hearthLook('flame'), ember: hearthLook('ember'),
+    smoke: pineLook(HEARTH_LOOKS.smoke), flame: pineLook(HEARTH_LOOKS.flame), ember: pineLook(HEARTH_LOOKS.ember),
     glow: new THREE.MeshBasicMaterial({ map: makeGlowTexture(), color: 0xff7a1a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
   };
   installMoss(m.roof, sky, 'roof');
@@ -123,15 +123,6 @@ export function makeGlowTexture(): THREE.CanvasTexture {
   return new THREE.CanvasTexture(paintCanvas(GLOW_PAINT));
 }
 
-/** the hearth particles' compiled look.materials (../data/hearthLook.ts) and their live params, lent by the world hook */
-let hearth: { readonly materials: ReadonlyMap<string, THREE.Material>; readonly setParam: (id: string, name: string, value: GraphLiteral) => void } | null = null;
-/** lend the compiled hearth looks (runtime/index.ts, before the cabins build) */
-export function setHearthLooks(looks: NonNullable<typeof hearth>): void { hearth = looks; }
-function hearthLook(kind: keyof typeof HEARTH_LOOKS): THREE.Material {
-  const m = hearth?.materials.get(HEARTH_LOOKS[kind]);
-  if (m === undefined) throw new Error(`[pine-hollow] no compiled hearth look ${kind}`);
-  return m;
-}
 /** the phone's pooled cabin lights (PH-L3) */
 const SHARED_CABIN_LIGHTS = 2;
 
@@ -282,10 +273,9 @@ export class Cabins extends BuildingLife implements BuildingOwner {
   update(dt: number, t: number): void {
     const cam = this.sky.viewCamera, sky = this.sky; cam.getWorldPosition(this.tmpV);
     this.tick(dt, t, this.tmpV, sky.lamps);
-    if (hearth === null) return;
     const id = HEARTH_LOOKS.smoke, c = sky.sunColor;
     this.sunColour[0] = c.r; this.sunColour[1] = c.g; this.sunColour[2] = c.b;
-    hearth.setParam(id, 'sunColour', this.sunColour); hearth.setParam(id, 'lamps', sky.lamps); hearth.setParam(id, 'shade', 1 - 0.8 * sky.night);
+    setPineLookParam(id, 'sunColour', this.sunColour); setPineLookParam(id, 'lamps', sky.lamps); setPineLookParam(id, 'shade', 1 - 0.8 * sky.night);
   }
 }
 
