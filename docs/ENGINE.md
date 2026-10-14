@@ -5451,3 +5451,12 @@ param. This output is charged by the existing graph budget and is limited
 to lit meshes. It leaves vertex placement, visible geometry and caster
 depth unchanged; clones retain it and parameter updates need no rebuild.
 Absent keeps the normal lookup. It is separate from vertex shadow:true.
+
+`physics/bodies.DynamicBodySlots<T>` is the bounded slot/lifecycle owner for
+existing dynamic bodies: ordered reuse, source identity, age/rest clocks,
+optional flight landing and the exact native handle continuation. Rows choose
+Float32 versus numeric clocks and strict versus inclusive retirement. Ports
+borrow the existing Bodies service, original collider recipe and contact,
+landing/removal callbacks; caller-owned fixed phases and pose scratch remain
+unchanged. Tossed Drop and native/page volleys use the same owner. Restore
+loads counters before reattaching saved Rapier handles after world replacement.

@@ -317,6 +317,116 @@ export function overlapBox(physics: Physics, at: Vec3, half: Vec3, yaw: number, 
 
 // ── drops (PHYSICS P7-L2): a thing that falls out of something, lands, and lies there ────────────────────────────────
 
+/** Bounded native-body lifecycle coefficients; collision/spawning remain the Bodies service's. */
+export interface DynamicBodySlotsRow {
+  readonly count: number; readonly clocks: 'f32' | 'number'; readonly initial: 1 | 2;
+  readonly restSpeed: number; readonly restTime: number; readonly maxAge: number; readonly inclusive: boolean;
+  readonly landing?: {readonly impact: number; readonly timeout: number; readonly wet: boolean; readonly clearDistance: number};
+}
+/** Native continuation keeps handles, float state, source indices and the round-robin cursor. */
+export interface DynamicBodySlotData { k: number; state: number; rest: number; age: number; thrower: number; handle: number; wet: number }
+export interface DynamicBodySlotsPorts<T> {
+  readonly bodies: () => Bodies | null; readonly spec: (slot: number) => BodySpec;
+  readonly removed?: (slot: number, body: Body) => void;
+  readonly retired?: (slot: number, body: Body) => void;
+  /** True means the caller applied a contact/bounce; the slot settles without drawing this frame. */
+  readonly contact?: (body: Body, source: T | null, at: Vec3) => boolean;
+  readonly landed?: (body: Body, at: Vec3, age: number) => void;
+}
+/** One body slot owner for volleys and tossed loot. No fixed phase, collider or Rapier service is installed here. */
+export class DynamicBodySlots<T> {
+  private readonly body: (Body | null)[];
+  private readonly state: Int8Array;
+  private readonly rest: Float32Array | number[];
+  private readonly age: Float32Array | number[];
+  private readonly source: (T | null)[];
+  private readonly gone: Uint8Array;
+  private next = 0;
+  private readonly row: DynamicBodySlotsRow;
+  private readonly ports: DynamicBodySlotsPorts<T>;
+  constructor(row: DynamicBodySlotsRow, ports: DynamicBodySlotsPorts<T>) {
+    if (!Number.isInteger(row.count) || row.count < 1 || row.count > 128
+      || ![row.restSpeed,row.restTime,row.maxAge,...(row.landing ? [row.landing.impact,row.landing.timeout,row.landing.clearDistance] : [])].every(value=>Number.isFinite(value)&&value>=0)) throw new RangeError('Invalid dynamic body slots row');
+    this.row = row; this.ports = ports;
+    this.body = Array.from({length:row.count},():Body|null=>null); this.source = Array.from({length:row.count},():T|null=>null);
+    this.state = new Int8Array(row.count); this.gone = new Uint8Array(row.count);
+    this.rest = row.clocks === 'f32' ? new Float32Array(row.count) : Array.from({length:row.count},()=>0);
+    this.age = row.clocks === 'f32' ? new Float32Array(row.count) : Array.from({length:row.count},()=>0);
+  }
+  private spec(k: number): BodySpec {
+    const spec = this.ports.spec(k);
+    return {...spec,onRemoved:body=>{
+      if (this.body[k] !== body) return;
+      this.body[k] = null; this.state[k] = 0; this.gone[k] = 1;
+      spec.onRemoved?.(body); this.ports.removed?.(k,body);
+    }};
+  }
+  bodyAt(k: number): Body | null { return this.body[k] ?? null; }
+  /** Reuse the next slot before spawning; caller retains the original launch/spin law. */
+  spawn(from: Vec3, velocity: Vec3, rotation?: Quat, source: T | null = null): Body | null {
+    const bodies = this.ports.bodies(); if (bodies === null) return null;
+    const k = this.next; this.next = (k+1)%this.row.count; this.free(k);
+    const body = bodies.spawn(this.spec(k),from,velocity,rotation);
+    this.body[k] = body; this.state[k] = this.row.initial; this.rest[k] = 0; this.age[k] = 0; this.source[k] = source;
+    return body;
+  }
+  free(k: number): void {
+    const body = this.bodyAt(k); this.body[k] = null; this.state[k] = 0; this.gone[k] = 1;
+    if (body !== null) this.ports.bodies()?.remove(body);
+  }
+  dispose(): void { for(let k=0;k<this.row.count;k++)this.free(k); }
+  /** Read after the caller's unchanged fixed/world step; scratch and drawing are borrowed. */
+  step<P extends Vec3>(dt: number, alpha: number, player: Vec3 | null, at: P, rotation?: Quat, draw?: (k:number,at:P|null)=>void): boolean {
+    let drew = false;
+    for(let k=0;k<this.row.count;k++) {
+      const state = this.state[k], body = this.bodyAt(k);
+      if (state === 0 || body === null) { if(this.gone[k] === 1){this.gone[k]=0;drew=true;draw?.(k,null);}continue; }
+      this.gone[k] = 0; body.pose(alpha,at,rotation);
+      const age = (this.age[k]??0)+dt; this.age[k] = age;
+      const landing = this.row.landing;
+      if(state === 1) {
+        if(this.ports.contact?.(body,this.source[k]??null,at)) {this.state[k]=2;this.rest[k]=0;continue;}
+        if(landing && (body.takeImpact()>landing.impact || (landing.wet && body.wet>0) || age>landing.timeout)) {
+          this.ports.landed?.(body,at,age); this.state[k]=2;this.rest[k]=0;body.setGroup('ITEM');
+        }
+      } else {
+        if(landing && player && body.collider.collisionGroups()===groups('DEBRIS') && Math.hypot(at.x-player.x,at.z-player.z)>landing.clearDistance)body.setGroup('ITEM');
+        const resting = body.rb.isSleeping() || body.speed<this.row.restSpeed;
+        this.rest[k] = resting ? (this.rest[k]??0)+dt : 0;
+        const rest = this.rest[k]??0;
+        if(this.row.inclusive ? rest>=this.row.restTime || age>=this.row.maxAge : rest>this.row.restTime || age>this.row.maxAge) {
+          this.free(k);this.ports.retired?.(k,body);this.gone[k]=0;drew=true;draw?.(k,null);continue;
+        }
+      }
+      drew=true;draw?.(k,at);
+    }
+    return drew;
+  }
+  snapshot(index:(source:T)=>number):{next:number;slots:DynamicBodySlotData[]} {
+    const slots:DynamicBodySlotData[]=[];
+    for(let k=0;k<this.row.count;k++) {
+      const body=this.bodyAt(k),state=this.state[k]??0,source=this.source[k]??null;
+      if(state===0||body===null)continue;
+      slots.push({k,state,rest:this.rest[k]??0,age:this.age[k]??0,thrower:source===null?-1:index(source),handle:body.rb.handle,wet:body.wet});
+    }
+    return {next:this.next,slots};
+  }
+  /** Restore counters first, then reattach the exact saved bodies after the native world replacement. */
+  restore(saved:{next:number;slots:readonly DynamicBodySlotData[]},source:(index:number)=>T|null):()=>void {
+    if(!Number.isInteger(saved.next)||saved.next<0||saved.next>=this.row.count)throw new Error('Invalid saved body slot cursor');
+    const seen=new Set<number>();
+    for(const row of saved.slots){if(!Number.isInteger(row.k)||row.k<0||row.k>=this.row.count||seen.has(row.k))throw new Error('Invalid saved body slot');seen.add(row.k);}
+    this.next=saved.next;
+    for(let k=0;k<this.row.count;k++){this.body[k]=null;this.state[k]=0;this.rest[k]=0;this.age[k]=0;this.source[k]=null;}
+    for(const row of saved.slots){this.state[row.k]=row.state;this.rest[row.k]=row.rest;this.age[row.k]=row.age;this.source[row.k]=row.thrower<0?null:source(row.thrower);}
+    return ()=>{
+      const bodies=this.ports.bodies();if(bodies===null)throw new Error('Saved body slots need their native service');
+      for(const row of saved.slots){const world=bodies.physics.world;if(!world.bodies.contains(row.handle))throw new Error('Saved body slot has no native body');
+        const rb=world.getRigidBody(row.handle),body=new Body(rb,rb.collider(0),this.spec(row.k),0);body.wet=row.wet;bodies.list.push(body);this.body[row.k]=body;}
+    };
+  }
+}
+
 /** a dropped item's body: a small ball that bounces a little and stops rolling soon (DEBRIS: the player walks through
  *  it, it never shoves you); removed by the cap before anything that lasts */
 export const DROP_BODY = {
@@ -324,7 +434,7 @@ export const DROP_BODY = {
   angularDamping: 2, rolling: 0.3, ccd: true, expendable: true,
 } as const satisfies Omit<BodySpec, 'owner'>;
 /** below this speed (m/s) for DROP_REST_T (s) it has landed; after DROP_MAX_T (s) it has landed whatever it is doing */
-const DROP_REST_SPEED = 0.1, DROP_REST_T = 0.3, DROP_MAX_T = 5;
+const DROP_SLOTS = {count:1,clocks:'number',initial:2,restSpeed:.1,restTime:.3,maxAge:5,inclusive:true} as const;
 
 /**
  * A short-lived body for something dropped into the world (a legendary's loot popping out of the carcass): it flies
@@ -341,9 +451,8 @@ export class Drop {
   /** the point under the thing: the ball's lowest point in flight, the surface it rests on once landed */
   readonly floor = { x: 0, y: 0, z: 0 };
   landed = false;
-  body: Body | null = null;
-  private age = 0;
-  private rest = 0;
+  private readonly slots: DynamicBodySlots<never>;
+  get body(): Body | null { return this.slots.bodyAt(0); }
   private readonly at = { x: 0, y: 0, z: 0 };
   private readonly r: number = DROP_BODY.shape.ball;
 
@@ -351,8 +460,9 @@ export class Drop {
   private readonly physics: Physics | null;
   constructor(bodies: Bodies | null, owner: unknown, from: Vec3, vel: Vec3, physics: Physics | null = bodies?.physics ?? null) {
     this.bodies = bodies; this.physics = physics;
+    this.slots = new DynamicBodySlots(DROP_SLOTS,{bodies:()=>this.bodies,spec:()=>({...DROP_BODY,owner}),removed:(_k,body)=>{if(!this.landed)this.land(body.curr,body);},retired:(_k,body)=>this.land(body.curr,body)});
     if (bodies === null) { this.land(from); return; }
-    this.body = bodies.spawn({ ...DROP_BODY, owner, onRemoved: (b) => { if (!this.landed) this.land(b.curr); } }, from, vel);
+    this.slots.spawn(from,vel);
     this.floor.x = from.x; this.floor.y = from.y - this.r; this.floor.z = from.z;
   }
 
@@ -360,24 +470,20 @@ export class Drop {
   update(dt: number): boolean {
     const b = this.body;
     if (this.landed || b === null) return false;
-    b.pose(this.bodies?.alpha ?? 1, this.at);
-    this.floor.x = this.at.x; this.floor.y = this.at.y - this.r; this.floor.z = this.at.z;
-    this.age += dt;
-    this.rest = b.rb.isSleeping() || b.speed < DROP_REST_SPEED ? this.rest + dt : 0;
-    if (this.rest < DROP_REST_T && this.age < DROP_MAX_T) return false;
-    this.land(b.curr);
-    return true;
+    this.slots.step(dt,this.bodies?.alpha??1,null,this.at,undefined,(_k,at)=>{
+      if(at===null)return;this.floor.x=at.x;this.floor.y=at.y-this.r;this.floor.z=at.z;
+    });
+    return this.landed;
   }
 
   /** stop now (picked up in flight, the owner disposed) — the body goes */
   dispose(): void { if (!this.landed) this.land(this.body?.curr ?? this.floor); }
 
   /** it lies at the first surface under `p` (its centre); the body, if any, is removed */
-  private land(p: Vec3): void {
+  private land(p: Vec3, removed?: Body): void {
     this.landed = true;
-    const b = this.body, x = p.x, y = p.y, z = p.z;
-    this.body = null;
-    if (b?.alive === true) this.bodies?.remove(b);
+    const b = removed ?? this.body, x = p.x, y = p.y, z = p.z;
+    this.slots.dispose();
     const below = this.physics ? floorBelow(this.physics, x, z, y, 60) : undefined;
     this.floor.x = x; this.floor.z = z;
     this.floor.y = below ?? (b !== null ? y - this.r : y);
