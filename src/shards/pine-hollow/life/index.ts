@@ -3,7 +3,8 @@ import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRun
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { app } from '@wildshard/engine/app/runtime';
 import { TickScheduler } from '@wildshard/engine/app/scheduler';
-import type { Audio } from '@wildshard/engine/audio/Audio';
+import { PlaceGuide } from '@wildshard/engine/quest/view';
+import { PINE_GUIDE } from '../data/guide';
 import { ownAudioSource } from '@wildshard/engine/audio/ownership';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -60,13 +61,13 @@ import { TrunkProbe } from './trunks';
 import { SkinKnife } from '../models/skinningKnife';
 import { loadBirdModels } from './birdModels';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../models/wildlife';
-import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, nearestUnvisited, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
+import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
 import { pineMemoryTrim } from '../debug/options';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 export interface PineLifeHost {
   ctx: ShardContext;
-  game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService; audio: Audio;
+  game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService; audio: Parameters<typeof sharedWeaponVoices>[0];
   trees: readonly TreeInstance[];
   /** the tree variants' bark geometry (Forest's factory): where a trunk really is (`TrunkProbe`) */
   trunks: readonly { trunk: THREE.BufferGeometry }[];
@@ -438,7 +439,9 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   };
 
   /** the nearest place the journal has not seen (the breadcrumbs' and the owl's heading) */
-  const crumbTarget = (): PlaceSpot | null => (h.places ? nearestUnvisited(h.places(), h.visited, player.position.x, player.position.z) : null);
+  const guide = new PlaceGuide(PINE_GUIDE, { points: () => h.places?.() ?? [], discovered: h.visited,
+    position: () => player.position, fly: flyCrumbs, time: now, random: (lo, hi) => rng.range(lo, hi) });
+  const crumbTarget = (): PlaceSpot | null => guide.target();
 
   // ── the owl (night) ──
   let owlNextT = 0, owlHootT = 0;
@@ -569,10 +572,8 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   };
 
   // ── the breadcrumbs: ravens toward the nearest unvisited place ──
-  let crumbNextT = now() + 25;
-  const crumbs = (force = false): PlaceSpot | null => {
-    const target = crumbTarget();
-    if (!target || (!force && guides.some((j) => j.mode !== 'off'))) return null;
+  function flyCrumbs(target: PlaceSpot, force: boolean): boolean {
+    if (!force && guides.some((j) => j.mode !== 'off')) return false;
     const pp = player.position, dx = target.x - pp.x, dz = target.z - pp.z, d = Math.hypot(dx, dz) || 1, ux = dx / d, uz = dz / d;
     // up from just behind you, low over your head (under the crowns), out ahead toward the place, rising away over the
     // trees: they overtake you, so whichever way you face you see them go — "follow the birds"
@@ -593,14 +594,8 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     });
     const lead = guides[0];
     if (lead && n > 0) { ravenVoiceT = 0; caw(lead, n > 1); } // croaking as they pass over: look up
-    return target;
-  };
-  const updateCrumbs = (night: number): void => {
-    if (now() >= crumbNextT) {
-      crumbNextT = now() + rng.range(90, 150);
-      if (night < 0.5 && !h.inCombat()) crumbs();
-    }
-  };
+    return true;
+  }
 
   // ── the hares ──
   const hares: Hare[] = Array.from({ length: N_HARE }, (_, i) => ({
@@ -785,7 +780,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     cam.getWorldDirection(fwd); fwd.y = 0; fwd.normalize();
     const night = sky.dayNight?.night ?? 0, t = now();
     const ambientDt = scheduler.systemDt(ambient, dt);
-    if (ambientDt > 0) { updateCarcasses(t, ambientDt); updateCrumbs(night); }
+    if (ambientDt > 0) { updateCarcasses(t, ambientDt); guide.update(ambientDt, 0, () => night < 0.5 && !h.inCombat()); }
     // Departure/placement is visibility work: a held brain must not retain a finished fly-off forever.
     if (wood.mode === 'perch' && Math.hypot(wood.pose.x - player.position.x, wood.pose.z - player.position.z) > 110) {
       wood.pose.b2 = 0; wood.pose.pitch = 0; wood.burst = 3; flyOff(wood); woodNextT = now() + 30;
@@ -830,7 +825,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   const probe = {
     wild, ravens, owl, wood, guides, hares, carcasses, get ms() { return perfMs; },
     /** a breadcrumb flock now (captures); the place it heads for */
-    crumbs: () => crumbs(true),
+    crumbs: () => guide.attempt(true),
     /** the owl onto a perch near you now (captures; set the clock to night first) — or onto the snag nearest (x, z) */
     owlNow: (x?: number, z?: number) => {
       if (x === undefined || z === undefined) { off(owl); owlNextT = 0; return true; }

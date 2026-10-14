@@ -25,8 +25,8 @@ import declaration from '../shard.config';
 import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
 import { installFeats } from './Feats';
 import { installPlaces } from './Places';
-import type { Places } from '@wildshard/engine/quest/view';
-import { installGullGuide } from './gullGuide';
+import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
+import { GUIDE } from '../data/discovery';
 import { installFinale, type Finale } from './Finale';
 import { installComplete, type Complete, type CompleteProgress } from './Complete';
 import { installEcology, type RespawnQueue } from './Ecology';
@@ -212,7 +212,14 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const places = installPlaces(adventure, (t) => { w.hud.toast(t); });
   adventure.places = places;
   w.fullMap?.setPois(places.mapPois, { tally: true });   // E309 A: "PLACES n / N" in the map's corner
-  if (w.gulls) installGullGuide({ game: w.game, player: w.player, hud: w.hud, gulls: w.gulls }, places, flags);
+  if (w.gulls) {
+    const gulls = w.gulls, guide = new PlaceGuide({ distance: 'edge', min: 0, schedule: { kind: 'idle', ...GUIDE } },
+      { points: () => places.points, discovered: places.discovered, position: () => w.player.position,
+        fly: target => gulls.guide(w.player.position, w.player.yaw, target.x, target.z) });
+    flags.onChange((flag, on) => { if (on && !flag.startsWith('plate:')) guide.progressed(); });
+    w.game.onUpdate(dt => { if (dt > 0 && w.hud.entered !== false && w.hud.paused !== true && w.player.position.y <= 300)
+      guide.update(dt, Math.hypot(w.player.velocity.x, w.player.velocity.z)); }, 'shard.driftwood-isle.installGullGuide');
+  }
   adventure.complete = installComplete(adventure, w, w.progress);   // before the finale: its reward hands over to the card
   const captain = bindRuntimeBoss(ctx, declaration, 'driftwood.captain', undefined, { identity: 'runtime' });
   adventure.finale = await installFinale(adventure, { ...w, spawnCaptain: captain.spawn }, ctx);

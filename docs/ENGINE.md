@@ -5136,3 +5136,12 @@ disposal, scene/phase logging and a delayed sting on the next non-excluded
 deck. Saved Debug picks are read by a borrowed `pin` callback;
 `CatalogueScore.get` and `CatalogueScore.install` keep the existing bank
 and entered scope.
+
+`engine/quest/view.PlaceGuide(profile, ports)` shares bounded place-guidance
+selection and cadence. Profiles use centre/edge distance and periodic or
+idle/progress schedules. It borrows the journal, clock, random source and
+flight callback. Periodic delays are sampled before eligibility/flight;
+idle guides retain progress, retry and cooldown order. `target()` retains
+the authored point identity; `attempt()` does not change schedule state.
+There is no save owner, flight/pose code or random generator in the controller.
+Malformed profiles, invalid points/steps/clocks and missing periodic ports refuse.

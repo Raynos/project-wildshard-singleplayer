@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import { engineString } from '../strings';
 import type * as THREE from 'three';
 import { ObjectiveLine, type DialogueBox } from './view/ui';
@@ -145,3 +146,92 @@ export function placesWithDiscovery(pts: PlacePoint[], flags: Flags, toast: (t: 
 }
 
 
+
+const guideFinite = v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1000000));
+const GuideProfile = v.strictObject({
+  distance: v.picklist(['centre', 'edge']), min: guideFinite, max: v.exactOptional(guideFinite),
+  schedule: v.variant('kind', [
+    v.strictObject({ kind: v.literal('idle'), wander: guideFinite, idle: guideFinite, idleSpeed: guideFinite, cooldown: guideFinite, retry: guideFinite }),
+    v.strictObject({ kind: v.literal('periodic'), initial: guideFinite,
+      period: v.pipe(v.tuple([guideFinite, guideFinite]), v.check(([lo, hi]) => lo > 0 && hi >= lo)) }),
+  ]),
+});
+
+/** The saved journal's points, borrowed without changing their identity. */
+export interface GuidePoint { readonly id: string; readonly x: number; readonly z: number; readonly r: number }
+
+/** One preflighted place-guide schedule and target selector. Flight, pose and
+ * random sources belong to its caller; this controller owns no saved state.
+ * Periodic schedules draw their next delay before eligibility or flight;
+ * idle schedules preserve progress, retry and successful-guide cooldowns.
+ */
+export class PlaceGuide<P extends GuidePoint> {
+  private readonly profile: v.InferOutput<typeof GuideProfile>;
+  private readonly ports: {
+    readonly points: () => readonly P[]; readonly discovered: (id: string) => boolean;
+    readonly position: () => { readonly x: number; readonly z: number };
+    readonly fly: (point: P, force: boolean) => boolean;
+    readonly time?: () => number; readonly random?: (lo: number, hi: number) => number;
+  };
+  private sinceProgress = 0;
+  private idle = 0;
+  private cooldown: number;
+  private next = 0;
+
+  constructor(input: unknown, ports: PlaceGuide<P>['ports']) {
+    const profile = v.parse(GuideProfile, input);
+    if (profile.max !== undefined && profile.max < profile.min) throw new RangeError('Invalid guide target range');
+    if (profile.schedule.kind === 'periodic' && (ports.time === undefined || ports.random === undefined)) throw new Error('Periodic guide requires its clock and random owner');
+    this.profile = profile; this.ports = ports;
+    this.cooldown = profile.schedule.kind === 'idle' ? profile.schedule.idle : 0;
+    if (profile.schedule.kind === 'periodic') this.next = this.time() + profile.schedule.initial;
+  }
+
+  /** Progress restarts only the wander clock, leaving retry/idle state intact. */
+  progressed(): void { this.sinceProgress = 0; }
+
+  /** First nearest undiscovered point, using centre or edge distance as authored. */
+  target(): P | null {
+    const points = this.ports.points(), at = this.ports.position();
+    if (points.length > 4096 || !Number.isFinite(at.x) || !Number.isFinite(at.z)) throw new RangeError('Invalid guide points or position');
+    let best: P | null = null, nearest = Infinity;
+    for (const point of points) {
+      if (!Number.isFinite(point.x) || !Number.isFinite(point.z) || !Number.isFinite(point.r) || point.r < 0) throw new RangeError('Invalid guide point');
+      if (this.ports.discovered(point.id)) continue;
+      const centre = Math.hypot(point.x - at.x, point.z - at.z), edge = centre - point.r;
+      const distance = this.profile.distance === 'edge' ? edge : centre;
+      if (this.profile.distance === 'edge' ? edge <= 0 || distance < this.profile.min : centre < Math.max(this.profile.min, point.r)) continue;
+      if (this.profile.max !== undefined && distance > this.profile.max) continue;
+      if (distance < nearest) { nearest = distance; best = point; }
+    }
+    return best;
+  }
+
+  /** An explicit guide request does not consume or restart its schedule. */
+  attempt(force = false): P | null { const target = this.target(); return target !== null && this.ports.fly(target, force) ? target : null; }
+
+  /** Call only in the caller's active world phase. Eligibility is read lazily
+   * when due; periodic ineligible attempts still consume their next delay.
+   */
+  update(dt: number, speed = 0, eligible: () => boolean = () => true): void {
+    if (!Number.isFinite(dt) || dt < 0 || !Number.isFinite(speed) || speed < 0) throw new RangeError('Invalid guide step');
+    const schedule = this.profile.schedule;
+    if (schedule.kind === 'periodic') {
+      if (this.time() < this.next) return;
+      const nextBase = this.time(), [lo, hi] = schedule.period, delay = this.ports.random?.(lo, hi);
+      if (delay === undefined || !Number.isFinite(delay) || delay < lo || delay > hi) throw new RangeError('Invalid guide delay');
+      this.next = nextBase + delay;
+      if (eligible()) this.attempt();
+      return;
+    }
+    this.sinceProgress += dt; this.idle = speed < schedule.idleSpeed ? this.idle + dt : 0;
+    this.cooldown = Math.max(0, this.cooldown - dt);
+    if (this.cooldown > 0 || this.sinceProgress < schedule.wander && this.idle < schedule.idle || !eligible()) return;
+    const target = this.target();
+    if (target === null) { this.cooldown = schedule.cooldown; return; }
+    if (this.ports.fly(target, false)) { this.cooldown = schedule.cooldown; this.sinceProgress = 0; this.idle = 0; }
+    else this.cooldown = schedule.retry;
+  }
+
+  private time(): number { const now = this.ports.time?.(); if (now === undefined || !Number.isFinite(now)) throw new RangeError('Invalid guide clock'); return now; }
+}

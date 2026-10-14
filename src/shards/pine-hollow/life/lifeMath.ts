@@ -11,21 +11,6 @@ export function hareMayDraw(distance: number, inView: boolean): boolean {
   return distance <= 130 && (distance <= 95 || inView);
 }
 
-/**
- * The breadcrumb's target: the nearest place the journal has not seen yet (stood in), between `min` and `max` metres
- * from (px, pz), and not one you are standing inside. null = nowhere left to point at (or none in reach).
- */
-export function nearestUnvisited(places: readonly PlaceSpot[], visited: (id: string) => boolean, px: number, pz: number, min = 40, max = 450): PlaceSpot | null {
-  let best: PlaceSpot | null = null, bd = Infinity;
-  for (const p of places) {
-    if (visited(p.id)) continue;
-    const d = Math.hypot(p.x - px, p.z - pz);
-    if (d < Math.max(min, p.r) || d > max) continue;
-    if (d < bd) { bd = d; best = p; }
-  }
-  return best;
-}
-
 /** the kinds whose carcass draws the ravens (the King, the thralls and the NPCs do not) */
 export const RAVEN_CARCASS = new Set(['deer', 'boar', 'elk', 'bear']);
 /** seconds from a kill to the ravens' arrival over it: 18–52 s (always inside the minute) */
