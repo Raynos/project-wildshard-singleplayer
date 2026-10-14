@@ -1,9 +1,9 @@
 import { addFire, addLampGlow, fireLight } from './fireFx';
 import { COOKFIRE, WAYMARK_FIRE } from '../data/fire';
-import { Group, type Mesh, type MeshStandardMaterial, Vector3, type Object3D } from 'three';
+import { Group, type Mesh, type MeshStandardMaterial, Vector3 } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BRAZIERS, CARAVAN, WELL } from '../data/layout';
-import { CAMP_HD, COOK, HD, LANTERN, WAYMARK_HD, WELL_RIG, type HdPlacement } from '../data/places';
+import { CAMP_HD, HD, LANTERN, WAYMARK_HD, WELL_RIG, type HdPlacement } from '../data/places';
 import caravanRows from '../data/caravan.json' with { type: 'json' };
 import wellRows from '../data/well.json' with { type: 'json' };
 import brazierRows from '../data/braziers.json' with { type: 'json' };
@@ -19,10 +19,10 @@ import { DUNE_LIBRARY, duneHd } from './meshes';
  * generated model that did not load stands undrawn, its colliders in place, as a baked piece does.
  */
 
-/** Place the rows' hero models under `parent` (a model that did not load stands undrawn, a page fault in world/meshes.ts). */
-export const placeHd = (parent: Object3D, rows: readonly HdPlacement[]): void => { for (const { model, fit, at: [x, y, z] = [0, 0, 0], rot: [rx, ry, rz] = [0, 0, 0] } of rows) {
-  const made = duneHd(model, fit); if (made) { made.position.set(x, y, z); made.rotation.set(rx, ry, rz); parent.add(made); }
-} };
+/** Bind the authored place's existing painted model resources into its emitted hierarchy. */
+export const placeScene = (scene: unknown, models: readonly HdPlacement[]): ReturnType<typeof createClientScene> => createClientScene(scene, {
+  geometry: DUNE_LIBRARY.geometry, objects: new Map(models.map(({model,fit}) => [model,duneHd(model,fit)])),
+});
 
 export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookAt: Vector3; lampAt: Vector3 }
 
@@ -33,19 +33,16 @@ export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookA
  */
 export function buildCaravan(baked: BakedWorld, groundAt: (x: number, z: number) => number): CaravanParts {
   const { root, colliders } = bakedPiece(baked, 'caravan'), { y } = caravanRows.anchors;
-  const camp = new Group(); camp.position.set(CARAVAN.x, y, CARAVAN.z); camp.rotation.y = CARAVAN.yaw; root.add(camp);
-  placeHd(camp, CAMP_HD); // the wagon, the crates, the sacks and the pack horse (data/places.ts CAMP_HD)
+  const made = placeScene(REST_SCENES.frames.camp, CAMP_HD), lamp = made.group('lamp'), cook = made.group('cook');
+  if (lamp === null || cook === null) throw new Error('Missing declared caravan anchors'); root.add(made.root);
   // The lantern's glass in its baked iron (loop 4, mockup B), the logbook's warm light in the dusk.
-  const lamp = new Group(); lamp.position.set(LANTERN.x, LANTERN.y, LANTERN.z); camp.add(lamp);
   const cosY = Math.cos(CARAVAN.yaw), sinY = Math.sin(CARAVAN.yaw);
   addLampGlow(lamp, 0.5, (lx, lz) => { // round 10: drawn over the canvas, 2.4 washed the whole wagon
     const x = LANTERN.x + lx, z = LANTERN.z + lz; // the lamp's frame → the caravan's → the world (three's Ry)
     return groundAt(CARAVAN.x + x * cosY + z * sinY, CARAVAN.z - x * sinY + z * cosY) - (y + LANTERN.y);
   });
   // E399 (mockup B): a smouldering cookfire on the lee side, its thin smoke column rising behind the wagon
-  const cook = new Group(); cook.position.set(COOK.x, 0.15, COOK.z); camp.add(cook);
-  const cw = new Vector3(COOK.x, 0, COOK.z).applyAxisAngle(new Vector3(0, 1, 0), CARAVAN.yaw).add(camp.position);
-  addFire(cook, COOKFIRE, { at: new Vector3(cw.x, y + 0.15, cw.z), groundAt });
+  addFire(cook, COOKFIRE, { at: new Vector3(...REST_SCENES.frames.cookAt), groundAt });
   return { root, colliders, logbookAt: new Vector3(...caravanRows.anchors.logbook), lampAt: new Vector3(...caravanRows.anchors.lamp) };
 }
 
@@ -75,7 +72,7 @@ export function buildBrazier(baked: BakedWorld, i: number, groundAt: (x: number,
   const spot = BRAZIERS[i], row = brazierRows.braziers[i]; if (spot === undefined || row === undefined) throw new Error(`no waymark ${String(i)}`);
   const { x, z } = spot, { y } = row, root = new Group(), bowl = HD.brazier * HD.bowlAt;
   root.position.set(x, y, z);
-  placeHd(root, WAYMARK_HD);
+  const models = placeScene(REST_SCENES.frames.waymark, WAYMARK_HD); root.add(models.root);
   const oil = createClientScene(REST_SCENES.oil, { geometry: DUNE_LIBRARY.geometry }).mesh('oil');
   if (oil === null) throw new Error('Missing declared waymark oil'); root.add(oil);
   // the baked charred log crown (generators/places.ts waymarkCrown), its ember lit with the fire

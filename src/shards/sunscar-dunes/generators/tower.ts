@@ -56,12 +56,14 @@ function stairColliders(foot: Vector3, rise: number, groundAt: (x: number, z: nu
  * lamp, the keeper lantern's iron cage, a south stair (treads) and the brazier's collider. Built in world coordinates at
  * `TOWER`, on ground `y` metres high, as plain meshes; `bakeSignalTower` folds them into instanced kinds.
  */
+export const towerAnchors = (y: number): TowerAnchors => ({ deckY: y + TOWER.deck, lampY: y + TOWER.deck + CROWN.posts + LAMP_DROP });
+
 export function buildTowerFrame(y: number, groundAt: (x: number, z: number) => number): TowerFrame {
   const root = new Group(), colliders: ColliderDesc[] = [];
   const wood = new MeshStandardMaterial({ color: WOOD, roughness: 0.55, metalness: 0.5 });
   const dark = new MeshStandardMaterial({ color: WOOD_DARK, roughness: 0.6, metalness: 0.5 });
   const iron = new MeshStandardMaterial({ color: IRON, roughness: 0.6, metalness: 0.4, flatShading: true });
-  const { x: cx, z: cz, deck, half } = TOWER, deckY = y + deck;
+  const { x: cx, z: cz, deck, half } = TOWER, { deckY, lampY } = towerAnchors(y);
   const add = (mesh: Mesh, x: number, my: number, z: number): Mesh => { mesh.position.set(cx + x, my, cz + z); root.add(mesh); return mesh; };
   for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
     const x = sx * half, z = sz * half, foot = Math.min(y, groundAt(cx + x, cz + z)) - 0.6, h = deckY - foot;
@@ -123,7 +125,6 @@ export function buildTowerFrame(y: number, groundAt: (x: number, z: number) => n
   add(new Mesh(new CylinderGeometry(0.09, 0.09, 0.14, 8), new MeshStandardMaterial({ color: 0x3a0a06, emissive: 0xff2a10, emissiveIntensity: 1.6 })), 0, apex.y + CROWN.antenna + 0.07, 0);
   // The keeper's lantern's iron cage (round 8, mockup dusk-fire): four bars and a cap round the lit glass the client hangs
   // at `lampY` (the glass, its halo and its flame live: `world/tower.ts`)
-  const lampY = topY + LAMP_DROP;
   for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) add(box(0.06, 0.85, 0.06, iron), dx * 0.32, lampY, dz * 0.32);
   add(box(0.8, 0.1, 0.8, iron), 0, lampY + 0.45, 0);
   // The south stair: STAIR.count treads from the sand to the deck edge.
