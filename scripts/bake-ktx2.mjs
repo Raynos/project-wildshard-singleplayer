@@ -81,8 +81,9 @@ const TIERS = new Set(flag('tiers', 'phone,desktop').split(','));
 // A bounded source catalogue can emit charged library assets without native shard/engine imports.
 const libraryInput = flag('library', '');
 if (libraryInput !== '') {
-  const { bakeTextureLibrary } = await import('../src/sdk/bake/texture.ts');
-  await bakeTextureLibrary(ROOT, libraryInput, { encode: argv.includes('--encode'), check: CHECK });
+  const { bakeTextureLibrary } = await import('../src/shards/far-reach/generators/bake-sky-world.mjs');
+  const { bakeColourTexture } = await import('../src/sdk/bake/texture.ts');
+  await bakeTextureLibrary(ROOT, libraryInput, { encoder: bakeColourTexture, encode: argv.includes('--encode'), check: CHECK });
   process.exit(0);
 }
 const LIST = JSON.parse(readFileSync(LIST_FILE, 'utf8'));

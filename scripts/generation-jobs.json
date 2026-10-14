@@ -10443,6 +10443,7 @@
         "src/shards/far-reach/assets/e87efc25c5f2fb46ff968d8558edc2def23b5b14bc8e9eb81005f7e27f0bb0b3",
         "src/shards/far-reach/data/skyMapSources.json",
         "src/shards/far-reach/generators/bake-sky-maps.ts",
+        "src/shards/far-reach/generators/bake-sky-world.mjs",
         "src/shards/far-reach/world/materials.ts"
       ],
       "outputs": [
