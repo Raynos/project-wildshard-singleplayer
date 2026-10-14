@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { interactionRules } from '@wildshard/sdk/interactions';
+import { PINE_KIT_EVENTS } from '../data/questEvents';
 import { pineQuestRows } from './graph';
 import { PINE_LANTERN_IDS, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES } from '../data/interactions';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -212,33 +213,14 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     shelf.setShown(tokenCount() === TOKEN_NAMES.length);
     ctx.system({ id: 'quest.shelf', phase: 'update', after: ['quest.pool'], before: ['quest', 'hud.combat', 'main.frame'], run: () => { shelf.update(game.camera); } });
   }
-  kit.onEvent = (e: InteractEvent) => {
-    const d = e.def;
-    switch (e.type) {
-      case 'take':
-        if (d.kind === 'pickup' && d.look === 'resin') {
-          inventory.add('amber-resin');
-          chip().show('Amber resin', resinCount(), RESIN_COUNT);
-          kitSfx.interact('chime', e.at, { gain: 0.7 });
-          if (resinCount() === RESIN_COUNT) hud.toast(`Every drop of amber in the Hollow · ${RESIN_COUNT} / ${RESIN_COUNT}`);
-        } else if (d.kind === 'pickup' && d.look === 'token') {
-          const i = Number(d.id.split('-')[1] ?? '1') - 1;
-          chip().show('Carved tokens', tokenCount(), TOKEN_NAMES.length);
-          hud.toast(`Carved token — ${TOKEN_NAMES[i] ?? 'somewhere quiet'}`);
-          kitSfx.interact('glyph', e.at);
-          if (tokenCount() === TOKEN_NAMES.length) { hud.toast("All eight carved tokens — they're on the ranger's mantel now"); shelf?.setShown(true); }
-        } else { if (e.text) hud.toast(e.text); kitSfx.interact('chime', e.at); h.music.sting('pickup'); }
-        break;
-      case 'locked': hud.toast(e.text ?? 'Locked'); kitSfx.interact('locked', e.at); break;
-      case 'lever': case 'door':
-        kitSfx.interact(e.type === 'lever' ? 'lever' : 'grate', e.at);
-        if (e.text) hud.toast(e.text);
-        break;
-      case 'sit': case 'press': case 'release': break;
-      case 'open': case 'light': case 'found': case 'use': case 'barrel-reset': if (e.text) hud.toast(e.text); break;
-      default: break;
-    }
-  };
+  kit.onEvent = kitSfx.bindEvents(PINE_KIT_EVENTS, { toast: text => { hud.toast(text); }, calls: new Map<string, (e: InteractEvent) => void>([
+    ['resin', () => { inventory.add('amber-resin'); chip().show('Amber resin', resinCount(), RESIN_COUNT); }],
+    ['all-resin', () => { if (resinCount() === RESIN_COUNT) hud.toast(`Every drop of amber in the Hollow · ${RESIN_COUNT} / ${RESIN_COUNT}`); }],
+    ['token', e => { const i = Number(e.def.id.split('-')[1] ?? '1') - 1;
+      chip().show('Carved tokens', tokenCount(), TOKEN_NAMES.length); hud.toast(`Carved token — ${TOKEN_NAMES[i] ?? 'somewhere quiet'}`); }],
+    ['all-tokens', () => { if (tokenCount() === TOKEN_NAMES.length) { hud.toast("All eight carved tokens — they're on the ranger's mantel now"); shelf?.setShown(true); } }],
+    ['pickup', () => { h.music.sting('pickup'); }],
+  ]) });
   // the vista bench: sit → face the far country, a little lift of the chin
   kit.onSit = (at, yaw) => {
     const pose = pineBenchPose(at, yaw);

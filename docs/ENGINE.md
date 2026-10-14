@@ -5074,3 +5074,12 @@ Material graph `fogColour` reads the current drawn scene's live linear
 fog colour as vec3 (black when there is no fog). It is a uniform input
 available to vertex, surface and post work; it adds no fog owner, clock
 or colour conversion, and remains separate from the fog epilogue.
+
+`engine/audio/interactSfx.InteractSfx.bindEvents(rows, ports)` preflights
+bounded first-match kit-event presentation. Selectors match event types,
+definition kind/look and flag prefix. Ordered effects call a named lent
+callback, toast event text, play a procedural interaction sound or give
+an item through the actual inventory port. Unknown effects, excessive
+rows and unbound callback/inventory owners refuse before any effect.
+Rows own no flags, quest decisions or saved state; omitted event types
+do nothing. Existing `interact()` callers keep their current behaviour.

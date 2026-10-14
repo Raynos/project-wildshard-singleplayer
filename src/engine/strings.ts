@@ -1,5 +1,6 @@
 /** English engine UI strings. Content-owned overrides are installed by the composition root. */
 export const ENGINE_STRINGS = {
+  "s_interact_item_count": "⟦0⟧ ×⟦1⟧",
   "s_explore_playgrounds": "⟦0⟧ · playgrounds",
   "s_memory_saver": "Memory saver",
   "s_memory_saver_note": "SF22d · E435: frees image and mesh copies once on the GPU, drops the shadow map's colour texture, half-size bloom luminance, one composer depth buffer. Reloads",

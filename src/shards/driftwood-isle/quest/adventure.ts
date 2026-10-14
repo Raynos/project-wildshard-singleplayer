@@ -15,6 +15,7 @@ import type { Progress, ProgressSink } from '@wildshard/game/Progress';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '../manifest';
 import { Cove } from '../world/Cove';
+import { DRIFTWOOD_KIT_EVENTS } from '../data/questEvents';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';
 import { installAdventureInteractables } from './interactLifetime';
 import { installSpine, ownEnteredTree, type Spine } from './Spine';
@@ -158,45 +159,16 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   };
 
   const kit = await installAdventureInteractables(scope, { scene: w.game.scene, sky: w.sky, player: w.player, flags, place, floorAt, prompts: w.prompts });
-  kit.onEvent = (e) => onInteract(e);
   w.game.onUpdate((dt, t) => kit.update(dt, t), 'shard.driftwood.adventure');
 
   const isItem = (id: string | undefined): id is ItemId => id !== undefined && id in ITEMS;
   const sfx = new InteractSfx(w.audio);
-  function onInteract(e: InteractEvent): void {
-    switch (e.type) {
-      case 'locked': w.hud.toast(e.text ?? 'Locked'); sfx.interact('locked', e.at); break;
-      case 'found':
-        if (isItem(e.item)) { w.inventory.add(e.item, e.n ?? 1); w.hud.toast(`${ITEMS[e.item].label} ×${e.n ?? 1}`); }
-        else if (e.text) w.hud.toast(e.text);
-        if (e.flag?.startsWith('shard:') === true) { sfx.interact('glyph', e.at, { delay: 0.55 }); w.music.sting('pickup'); }   // the wreck's shard, out of the strongbox
-        else sfx.interact('chime', e.at, { delay: 0.55, gain: 0.8 }); // after the lid has thudded back
-        break;
-      case 'take': {
-        if (isItem(e.item)) w.inventory.add(e.item, e.n ?? 1);
-        if (e.def.kind === 'pickup' && e.def.look === 'seaglass') {
-          const n = flags.count(SEA_GLASS_FLAG);
-          w.hud.toast(`Sea glass · ${n} / ${SEA_GLASS_COUNT}`);
-          sfx.interact('chime', e.at);
-        } else { if (e.text) w.hud.toast(e.text); sfx.interact(e.def.kind === 'pickup' && e.def.look === 'shard' ? 'glyph' : 'chime', e.at); w.music.sting('pickup'); }
-        break;
-      }
-      case 'press': case 'release': sfx.interact('plate', e.at, { release: e.type === 'release' }); break;
-      case 'lever': case 'door':
-        sfx.interact(e.type === 'lever' ? 'lever' : e.def.kind === 'door' && e.def.look !== 'plank' ? 'grate' : 'door', e.at);
-        if (e.text) w.hud.toast(e.text);
-        break;
-      case 'open': case 'light':
-        if (e.text) w.hud.toast(e.text);
-        sfx.interact(e.type === 'light' ? 'ignite' : 'chest', e.at);
-        break;
-      case 'use': case 'sit': case 'barrel-reset': // the altar's shards, the bench, the barrel: a quest beat, not a sword hit (E318)
-        if (e.text) w.hud.toast(e.text);
-        sfx.interact('chime', e.at);
-        break;
-      default: break;
-    }
-  }
+  kit.onEvent = sfx.bindEvents(DRIFTWOOD_KIT_EVENTS, { toast: text => { w.hud.toast(text); },
+    item: id => isItem(id) ? { label: ITEMS[id].label, add: n => { w.inventory.add(id, n); } } : null,
+    calls: new Map<string, (e: InteractEvent) => void>([
+      ['glass', () => { w.hud.toast(`Sea glass · ${flags.count(SEA_GLASS_FLAG)} / ${SEA_GLASS_COUNT}`); }],
+      ['pickup', () => { w.music.sting('pickup'); }],
+    ]) });
 
   const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
   const grants = bindDriftwoodFacts(ctx, w.progress?.rows ?? [], w.progress, w.chunk.slug);
