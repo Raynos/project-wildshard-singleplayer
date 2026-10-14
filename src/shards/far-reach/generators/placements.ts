@@ -10,7 +10,7 @@ import { KEEPER_AT } from '../data/quests';
 import { KEEPER_STAND } from '../data/keeperStand';
 import { spireAt } from '../layout';
 import { TREE_MODELS, TREES, type TreeModel } from '../data/trees';
-import { RISING_ISLETS } from '../world/islets';
+import { RISING_ISLETS } from './risingIslets';
 import type { SkyIsleFrame } from '../world/skyIsleHd';
 import type { SkyIslePine } from './skyIslePines';
 

@@ -3,7 +3,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { BoxGeometry, Color, InstancedMesh, Matrix4, Quaternion, Vector3 } from 'three';
 import type { PieceBake } from '@wildshard/sdk/bake/kinds';
 import { bakeSkyPiece, SkyPiece } from './piece';
-import { RISING_ISLETS } from '../world/islets';
+import { RISING_ISLETS } from './risingIslets';
 import { ISLET, type EntryEdge, type RisingIslet } from '../data/isletDesign';
 import { PALETTE, flat } from '../world/materials';
 

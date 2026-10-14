@@ -18,7 +18,7 @@ import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildsh
 import { createMeleeScriptDriver, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
-import { RISING_ISLETS } from '../world/islets';
+import { RISING_ISLETS } from '../data/islets.generated';
 import type { RisingIslet } from '../data/isletDesign';
 import { createFan, type WarFanWeapon, type ConeFanTarget } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';
@@ -300,7 +300,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   /** Snap the crown bridge up (the winch's end state, also restored from a save). */
   private finishRaise(_built: BuiltWorld): void { this.movers?.command('far.winch.bridge', 3); }
   /** SF49-g: the four Rising Islet entries' data (walks and captures read their routes here). */
-  get islets(): readonly RisingIslet[] { return RISING_ISLETS; }
+  get islets(): readonly Omit<RisingIslet, 'at'>[] { return RISING_ISLETS; }
   /** SF49-g: an entry's islet deck centre now (captures, walks and tests read it through `__wildshard.shard.farReach`). */
   isletAt(edge: string): { x: number; y: number; z: number } | null {
     const movers = this.movers; if (movers === null) return null;

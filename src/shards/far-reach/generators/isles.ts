@@ -4,7 +4,7 @@ import { ISLES, type Isle } from '../data/layout';
 import { ISLE_DRAWS } from '../data/isleLook';
 import { ISLET } from '../data/isletDesign';
 import { apothem } from '../layout';
-import { RISING_ISLETS } from '../world/islets';
+import { RISING_ISLETS } from './risingIslets';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): every island Sky Reach draws from its builder, baked by

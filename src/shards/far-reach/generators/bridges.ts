@@ -4,7 +4,7 @@ import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/
 import { facetedGeometry, fitModel } from './modelIntake';
 import { FALLEN_BRIDGE, SPANS, type Span } from '../data/layout';
 import { ropeSag } from '../layout';
-import { RISING_ISLETS } from '../world/islets';
+import { RISING_ISLETS } from './risingIslets';
 import { SKY_AO_FLOOR } from '../data/modelFrames';
 import { MODEL_URLS } from '../data/files';
 

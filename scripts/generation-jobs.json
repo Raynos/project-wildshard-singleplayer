@@ -6092,6 +6092,46 @@
       ]
     },
     {
+      "id": "sky-islet-source",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/risingIslets.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/risingIslets.ts",
+        "risingIsletSource",
+        "src/shards/far-reach/data/islets.generated.ts",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/json.ts",
+        "src/format/package.json",
+        "src/format/portalLink.ts",
+        "src/format/socketLift.ts",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/entries.ts",
+        "src/sdk/package.json",
+        "src/sdk/sceneTransform.ts",
+        "src/shards/far-reach/data/isletDesign.ts",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/generators/risingIslets.ts",
+        "src/shards/far-reach/world/materials.ts"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/islets.generated.ts"
+      ],
+      "platform": "portable",
+      "buildOutputs": {},
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/islets.generated.ts"
+      ]
+    },
+    {
       "id": "pastel-author-terrain",
       "shard": "pastel-plain",
       "entry": "src/shards/pastel-plain/generators/bake-pastel-terrain.mjs",

@@ -4596,3 +4596,9 @@ ModelLibrary `paintedModels` pairs named rest geometry with an existing
 painted atlas and optional four-slot pivots. `painted(name)` clones geometry
 for each owner and shares its atlas; `preload(pause)` retains preparation
 yields. `model(name, fit)` validates a recipe's hero name before copying it.
+
+`Entry(edge, kind?, bindings?)` accepts admitted portal or lift data in
+its optional third argument. Its existing frame checks and link parsers
+still refuse malformed or missing matching links. Omission retains the
+ordinary entry output. Cloning detaches binding data with the normal
+scene state; Sky's authoring recipe now uses the shared Entry directly.

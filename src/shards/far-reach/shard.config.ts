@@ -14,7 +14,7 @@ import { LIFT_MODULE } from './data/liftModule';
 import { FAN_GUST_MODULE } from './data/fanGustModule';
 import { BRIDGE_MODULE } from './data/bridgeModule';
 import isletRows from './data/islets.generated.json' with { type: 'json' };
-import { RISING_ISLETS } from './world/islets';
+import { RISING_ISLETS } from './data/islets.generated';
 import { ISLET_LIFTS } from './data/isletLift';
 import isleProps from './data/props.json' with { type: 'json' };
 import { DECK_WOOD_GRAPH, HOVER_FRAME_GRAPH, POST_WEATHER_GRAPH } from './data/bridgeLook';

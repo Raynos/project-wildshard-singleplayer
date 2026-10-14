@@ -28,7 +28,7 @@ import { crownStorm, type CrownStorm } from './storm';
 import { STORM } from '../data/storm';
 import { SKY_SUN } from '../data/skyLook';
 import { seaTexture } from '../look/cloudSea';
-import { RISING_ISLETS } from './islets';
+import { RISING_ISLETS } from '../data/islets.generated';
 import { skyDocksFor } from './skyDock';
 
 type ShardContext = Parameters<SkyReachPlugin['world']>[0];

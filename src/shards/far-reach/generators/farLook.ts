@@ -20,7 +20,7 @@ import { skyIsleFrame } from './skyIsleFrames';
 import { ISLES, MILL, PINES, WINDMILL, type Isle } from '../data/layout';
 import { apothem } from '../layout';
 import { builtIsleGeometry } from './isles';
-import { RISING_ISLETS } from '../world/islets';
+import { RISING_ISLETS } from './risingIslets';
 import { ISLET, type RisingIslet } from '../data/isletDesign';
 import { PALETTE } from '../world/materials';
 

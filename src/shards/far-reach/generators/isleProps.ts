@@ -2,7 +2,7 @@ import { Group, Matrix4, Mesh, MeshStandardMaterial } from 'three';
 import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import { bakeProps, type BakedProps } from '@wildshard/sdk/bake/props';
 import { ISLES } from '../data/layout';
-import { RISING_ISLETS } from '../world/islets';
+import { RISING_ISLETS } from './risingIslets';
 import { isleNode } from '../world/isle';
 import { bakeSkyIsles } from './isles';
 

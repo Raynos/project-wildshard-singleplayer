@@ -24,20 +24,22 @@ export class Entry extends Object3D {
     edge: EntryEdge;
     /** Optional floor admission kind; absent retains the host default. */
     kind: EntryData['kind'];
-    constructor(edge: EntryEdge = 'north', kind?: EntryData['kind']) {
+    private bindings: Pick<EntryData, 'portal' | 'lift'>;
+    constructor(edge: EntryEdge = 'north', kind?: EntryData['kind'], bindings: Pick<EntryData, 'portal' | 'lift'> = {}) {
         super();
-        this.edge = edge; this.kind = kind;
+        this.edge = edge; this.kind = kind; this.bindings = structuredClone(bindings);
         this.name = `entry.${edge}`;
         const at = MIDPOINTS[edge];
         this.position.set(at[0], at[1], at[2]);
     }
     /** Clone the edge and kind with the normal scene transform and hierarchy. */
-    override copy(source: this, recursive = true): this { super.copy(source, recursive); this.edge = source.edge; this.kind = source.kind; return this; }
+    override copy(source: this, recursive = true): this { super.copy(source, recursive); this.edge = source.edge; this.kind = source.kind; this.bindings = structuredClone(source.bindings); return this; }
     /** The four independent midpoint objects, in north/east/south/west order. */
     static midpoints(): Entry[] { return (['north', 'east', 'south', 'west'] as const).map(edge => new Entry(edge)); }
     /** Special entry subclasses supply their admitted link; a plain socket cannot guess one. */
     protected entryBindings(): Pick<EntryData, 'portal' | 'lift'> {
-        if (this.kind === 'portalLink' || this.kind === 'socketLift') throw new Error('Entry requires its matching portal or lift author object');
+        if (this.kind === 'portalLink') { if (this.bindings.portal === undefined) throw new Error('Entry requires its matching portal link'); return { portal: parsePortalLink(this.bindings.portal) }; }
+        if (this.kind === 'socketLift') { if (this.bindings.lift === undefined) throw new Error('Entry requires its matching lift link'); return { lift: parseSocketLift(this.bindings.lift) }; }
         return {};
     }
     /** Entries must retain their exact road-height world midpoint; geometry proof happens during validation. */
