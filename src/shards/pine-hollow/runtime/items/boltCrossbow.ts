@@ -1,3 +1,5 @@
+import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
+import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import { ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import { app, gameplayRandom } from '@wildshard/engine/app/runtime';
 import type { AmmoRow } from '@wildshard/engine/combat/ammo';
@@ -258,7 +260,9 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   private cooldown = 0; private sinceFire = 99; private reloadT = 0;
   private mouseAds = false; private fov = FOV_HIP;
   private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
-  private posePos = new THREE.Vector3(); private poseRot = new THREE.Euler(); private poseInit = false;
+  private readonly posePlayback: HeldPlayback;
+  private readonly poseValues = { time: 0, bob: 0, speed: 0, portrait: 0, recoil: 0, ads: 0, sprint: 0, reloadTilt: 0, reloadProgress: 0, reloading: 0, loadBlend: 0, lagYaw: 0, lagPitch: 0, holster: 0, inspect: 0, inspectYaw: 0, hipX: 0, hipY: 0, hipZ: 0, hipPitch: 0, hipYaw: 0, hipRoll: 0, adsX: 0, adsY: 0, adsZ: 0, adsPitch: 0, adsMotion: 0, cycle: 0, cycleX: 0, cycleY: 0, cycleZ: 0, cyclePitch: 0, cycleYaw: 0, cycleRoll: 0, scale: 0 };
+
   private adsBlend = 0; private sprintBlend = 0; private reloadTilt = 0;
   /** loaded bolt's broadhead tip, in model space (measured from the bolt geometry) and bolt-local */
   private tipModel = new THREE.Vector3(); private tipLocal = new THREE.Vector3();
@@ -303,6 +307,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.game.scene.add(this.puffs.points);
 
     this.buildHands();
+    this.posePlayback = new HeldPlayback({ pose: playback.crossbow }, new Map([['root', this.model]]));
   }
 
   private buildHands(): void {
@@ -317,7 +322,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.bindInput(ctx);
-    ctx.scope.onDispose(() => { this.model.removeFromParent(); });
+    ctx.scope.onDispose(() => { this.posePlayback.dispose(); this.model.removeFromParent(); });
   }
   private bindInput(ctx: EquipContext): void {
     const allowed = weaponActionGate(this, this.player);
@@ -537,36 +542,16 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     const rl = this.state.reloading ? Math.sin(Math.min(1, this.state.reloadProgress) * Math.PI) : 0;
     this.reloadTilt += (rl - this.reloadTilt) * Math.min(1, dt * 10);
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
-    const a = sstep(0, 1, this.adsBlend), sp = this.sprintBlend * (1 - portrait * 0.7), rt = this.reloadTilt; // portrait: the sprint swing would fill the frame
+    const a = sstep(0, 1, this.adsBlend);
     // portrait phone: the wider FOV + narrow frame make the bow fill the screen — hold it lower, further out, smaller
     const port = portrait, scale = this.view.hip.scale * (1 - port * 0.55);
-    // shared motion: breathing / idle sway, walk bob (counter-phase to the camera bob → the weapon feels heavy),
-    // look lag (spring), recoil. The hip takes it in full, the sights ~30 % (this.profile.adsMotion) so the tip stays on the aim line.
-    const swX = Math.sin(t * 0.7) * 0.0025, swY = Math.sin(t * 1.1) * 0.002, swRz = Math.sin(t * 0.5) * 0.006;
-    const sf = p.speedFactor;
-    const bobX = Math.cos(p.bobTime) * 0.016 * sf, bobY = -Math.abs(Math.sin(p.bobTime)) * 0.012 * sf, bobRz = Math.cos(p.bobTime) * 0.02 * sf, bobRx = Math.sin(p.bobTime * 2) * 0.01 * sf;
-    const lagX = this.lagYaw * 0.25, lagY = this.lagPitch * 0.2, lagRy = this.lagYaw, lagRx = this.lagPitch;
-    const rc = this.recoil;
-    // hip: lower-right (Skyrim)
-    const hip = this.view.hip;
-    let px = hip.px, py = hip.py, pz = hip.pz, rx = hip.rx, ry = hip.ry, rz = hip.rz;
-    // sprint: drop and swing across the body
-    px += sp * -0.05; py += sp * -0.09; pz += sp * 0.04; rx += sp * 0.32; ry += sp * 0.45; rz += sp * -0.15;
-    // reload: tilt the bow up-left to reach the string, crank shake
-    const crank = this.state.reloading ? Math.sin(this.state.reloadProgress * Math.PI * 14) * (this.state.reloadProgress > 0.15 && this.state.reloadProgress < 0.8 ? 1 : 0) : 0;
-    px += rt * -0.06; py += rt * -0.05; pz += rt * 0.02; rx += rt * 0.35 + crank * 0.008; ry += rt * -0.28; rz += rt * 0.42 + crank * 0.012;
-    px += swX + bobX + lagX; py += swY + bobY + lagY; rz += swRz + bobRz; rx += bobRx + lagRx; ry += lagRy;
-    pz += rc * 0.07; py += rc * 0.015; rx += rc * 0.12; rz += rc * -0.03;
-    // target: the whole prod visible inside ~60 % of the screen width (prod ≈ 0.68 m × scale at |pz| + 0.3 × scale)
-    px *= 1 - port * 0.25; py *= 1 + port * 0.7; pz *= 1 + port * 1.5;
-    // iron sights: cheek on the stock, looking straight down the bolt — pose solved from the geometry (solveAds);
-    // recoil kicks the muzzle up but barely back, the nut is already a hair in front of the near plane
-    if (a > 0) {
-      const ads = this.solveAds(cam, scale), m = this.profile.adsMotion;
-      const ax = ads.px + (swX + bobX + lagX) * m, ay = ads.py + (swY + bobY + lagY) * m + rc * 0.01, az = ads.pz + rc * 0.015;
-      const arx = ads.rx + (bobRx + lagRx) * m + rc * 0.1, ary = lagRy * m, arz = (swRz + bobRz) * m + rc * -0.02;
-      px += (ax - px) * a; py += (ay - py) * a; pz += (az - pz) * a; rx += (arx - rx) * a; ry += (ary - ry) * a; rz += (arz - rz) * a;
-    }
+    const sightPose = a > 0 ? this.solveAds(cam, scale) : this.adsPose, v = this.poseValues, hip = this.view.hip;
+    v.time = t; v.bob = p.bobTime; v.speed = p.speedFactor; v.portrait = portrait;
+    v.recoil = this.recoil; v.ads = a; v.sprint = this.sprintBlend; v.reloadTilt = this.reloadTilt;
+    v.reloadProgress = this.state.reloadProgress; v.reloading = Number(this.state.reloading);
+    v.lagYaw = this.lagYaw; v.lagPitch = this.lagPitch; v.holster = this.holster; v.inspect = this.inspect;
+    v.hipX = hip.px; v.hipY = hip.py; v.hipZ = hip.pz; v.hipPitch = hip.rx; v.hipYaw = hip.ry; v.hipRoll = hip.rz;
+    v.adsX = sightPose.px; v.adsY = sightPose.py; v.adsZ = sightPose.pz; v.adsPitch = sightPose.rx; v.adsMotion = this.profile.adsMotion;
 
     // peep sight: posed from the solve, faded with the blend (its centre, the eye and the tip are collinear at a = 1)
     if (a > 0.001 && !this.inspect) {
@@ -578,14 +563,8 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
       for (const m of this.peepMats) m.opacity = a;
     } else this.peep.visible = false;
 
-    if (this.inspect) { px = 0.02; py = -0.02; pz = -0.42; rx = 0.35; ry = 0.9 + Math.sin(t * 0.25) * 0.5; rz = 0.1; }
-    if (this.holster > 0) { const h = sstep(0, 1, this.holster); py -= h * 0.32; pz += h * 0.08; rx -= h * 0.55; rz += h * 0.25; } // weapon swap: drop out of the frame
     this.model.scale.setScalar(scale);
-    const sm = this.poseInit ? Math.min(1, dt * 14) : 1; this.poseInit = true;
-    this.posePos.x += (px - this.posePos.x) * sm; this.posePos.y += (py - this.posePos.y) * sm; this.posePos.z += (pz - this.posePos.z) * sm;
-    this.poseRot.x += (rx - this.poseRot.x) * sm; this.poseRot.y += (ry - this.poseRot.y) * sm; this.poseRot.z += (rz - this.poseRot.z) * sm;
-    this.model.position.copy(this.posePos);
-    this.model.rotation.set(this.poseRot.x, this.poseRot.y, this.poseRot.z);
+    this.posePlayback.beginFrame(dt); this.posePlayback.apply('pose', v);
     this.hands?.aim(this.model);
 
     // aim readout

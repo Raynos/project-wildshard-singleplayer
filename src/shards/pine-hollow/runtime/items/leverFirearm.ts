@@ -1,3 +1,5 @@
+import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
+import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
 import { ads as blendAds } from '@wildshard/engine/combat/blocks/ads';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
@@ -208,7 +210,9 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   private recoil = 0; private kickPending = 0; private kickApplied = 0;
   private mouseAds = false; private fov = FOV_HIP;
   private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
-  private readonly posePos = new THREE.Vector3(); private readonly poseRot = new THREE.Euler(); private poseInit = false;
+  private readonly posePlayback: HeldPlayback;
+  private readonly poseValues = { time: 0, bob: 0, speed: 0, portrait: 0, recoil: 0, ads: 0, sprint: 0, reloadTilt: 0, reloadProgress: 0, reloading: 0, loadBlend: 0, lagYaw: 0, lagPitch: 0, holster: 0, inspect: 0, inspectYaw: 0, hipX: 0, hipY: 0, hipZ: 0, hipPitch: 0, hipYaw: 0, hipRoll: 0, adsX: 0, adsY: 0, adsZ: 0, adsPitch: 0, adsMotion: 0, cycle: 0, cycleX: 0, cycleY: 0, cycleZ: 0, cyclePitch: 0, cycleYaw: 0, cycleRoll: 0, scale: 0 };
+
   private adsBlend = 0; private sprintBlend = 0; private loadBlend = 0;
   private time = 0;
   tracerLife: number;
@@ -296,6 +300,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
 
     this.syncState();
     this.buildHands();
+    this.posePlayback = new HeldPlayback({ pose: playback.lever }, new Map([['root', this.model]]));
   }
 
   private buildHands(): void {
@@ -335,7 +340,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.bindInput(ctx);
-    ctx.scope.onDispose(() => { this.model.removeFromParent(); });
+    ctx.scope.onDispose(() => { this.posePlayback.dispose(); this.model.removeFromParent(); });
   }
   private bindInput(ctx: EquipContext): void {
     const allowed = weaponActionGate(this, this.player);
@@ -529,36 +534,19 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     const loading = this.phase === 'reload' ? 1 : 0;
     this.loadBlend += (loading - this.loadBlend) * Math.min(1, dt / (loading ? this.view.timing.reloadIn : this.view.timing.reloadOut) * 2.2);
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
-    const a = sstep(0, 1, this.adsBlend), sp = this.sprintBlend * (1 - portrait * 0.7), ld = sstep(0, 1, this.loadBlend);
+    const a = sstep(0, 1, this.adsBlend);
     const port = portrait, scale = this.hip.scale * (1 - port * 0.14);
-    const swX = Math.sin(t * 0.7) * 0.0025, swY = Math.sin(t * 1.1) * 0.002, swRz = Math.sin(t * 0.5) * 0.006;
-    const sf = p.speedFactor;
-    const bobX = Math.cos(p.bobTime) * 0.014 * sf, bobY = -Math.abs(Math.sin(p.bobTime)) * 0.011 * sf, bobRz = Math.cos(p.bobTime) * 0.018 * sf, bobRx = Math.sin(p.bobTime * 2) * 0.009 * sf;
-    const lagX = this.lagYaw * 0.25, lagY = this.lagPitch * 0.2, lagRy = this.lagYaw, lagRx = this.lagPitch;
-    const rc = this.recoil, cy = open; // the lever's rock follows the throw
-    let { px, py, pz, rx, ry, rz } = this.hip;
-    px += sp * -0.06; py += sp * -0.08; pz += sp * 0.05; rx += sp * 0.3; ry += sp * 0.5; rz += sp * -0.12;
-    // the loading pose: rolled right side up toward you, the gate in view, muzzle a touch high
-    px += ld * -0.05; py += ld * 0.01; pz += ld * 0.05; rx += ld * 0.16; ry += ld * -0.32; rz += ld * -0.62;
-    px += swX + bobX + lagX; py += swY + bobY + lagY; rz += swRz + bobRz; rx += bobRx + lagRx; ry += lagRy;
-    pz += rc * 0.07; py += rc * 0.012; rx += rc * 0.1; rz += rc * -0.02;
-    { const c = this.cyclePose; px += cy * c.px; py += cy * c.py; pz += cy * c.pz; rx += cy * c.rx; ry += cy * c.ry; rz += cy * c.rz; } // the lever thrown: the rifle cants, the loop swings clear
-    px *= 1 - port * 0.35; py *= 1 + port * 0.25; pz *= 1 + port * 0.35;
-    if (a > 0) {
-      const ads = this.solveAds(scale), m = this.view.adsMotion;
-      const ax = ads.px + (swX + bobX + lagX) * m, ay = ads.py + (swY + bobY + lagY) * m + rc * 0.008 - cy * 0.03 * scale, az = ads.pz + rc * 0.03 + cy * 0.02;
-      const arx = (bobRx + lagRx) * m + rc * 0.06 - cy * 0.05, ary = lagRy * m, arz = (swRz + bobRz) * m + rc * -0.012 + cy * 0.06;
-      px += (ax - px) * a; py += (ay - py) * a; pz += (az - pz) * a; rx += (arx - rx) * a; ry += (ary - ry) * a; rz += (arz - rz) * a;
-    }
-    if (this.holster > 0) { const h = sstep(0, 1, this.holster); py -= h * 0.3; pz += h * 0.06; rx -= h * 0.5; rz += h * 0.2; }
-    if (this.inspect > 0) { px = 0; py = -0.02; pz = -1.15 / this.inspect; rx = 0; ry = this.inspectYaw; rz = 0; }
+    const ads = a > 0 ? this.solveAds(scale) : this.adsPose, v = this.poseValues, hip = this.hip, cycle = this.cyclePose;
+    v.time = t; v.bob = p.bobTime; v.speed = p.speedFactor; v.portrait = portrait;
+    v.recoil = this.recoil; v.ads = a; v.sprint = this.sprintBlend; v.loadBlend = this.loadBlend;
+    v.lagYaw = this.lagYaw; v.lagPitch = this.lagPitch; v.holster = this.holster;
+    v.inspect = this.inspect; v.inspectYaw = this.inspectYaw; v.scale = scale; v.cycle = open;
+    v.hipX = hip.px; v.hipY = hip.py; v.hipZ = hip.pz; v.hipPitch = hip.rx; v.hipYaw = hip.ry; v.hipRoll = hip.rz;
+    v.adsX = ads.px; v.adsY = ads.py; v.adsZ = ads.pz; v.adsMotion = this.view.adsMotion;
+    v.cycleX = cycle.px; v.cycleY = cycle.py; v.cycleZ = cycle.pz; v.cyclePitch = cycle.rx; v.cycleYaw = cycle.ry; v.cycleRoll = cycle.rz;
     this.stock.visible = a < 0.85 || this.inspect > 0;
     this.model.scale.setScalar(scale);
-    const sm = this.inspect > 0 ? 1 : this.poseInit ? Math.min(1, dt * 16) : 1; this.poseInit = true;
-    this.posePos.x += (px - this.posePos.x) * sm; this.posePos.y += (py - this.posePos.y) * sm; this.posePos.z += (pz - this.posePos.z) * sm;
-    this.poseRot.x += (rx - this.poseRot.x) * sm; this.poseRot.y += (ry - this.poseRot.y) * sm; this.poseRot.z += (rz - this.poseRot.z) * sm;
-    this.model.position.copy(this.posePos);
-    this.model.rotation.set(this.poseRot.x, this.poseRot.y, this.poseRot.z);
+    this.posePlayback.beginFrame(dt); this.posePlayback.apply('pose', v);
 
     // aim readout (held weapon only)
     if (this.active && this.targets && (++this.aimFrame & 3) === 0) {

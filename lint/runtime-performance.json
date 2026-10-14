@@ -6294,10 +6294,6 @@
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
     },
-    "src/shards/pine-hollow/runtime/items/boltCrossbow.ts:unbounded-loop:c712144900b7ab6124504ed7fb807dbaefa1c0d6526e450764eff57f842f6a54": {
-      "count": 1,
-      "row": "SF76 G303 Pine verbatim move"
-    },
     "src/shards/pine-hollow/runtime/items/boltCrossbow.ts:unbounded-loop:a975b43c3048f0c244feef542dc620c260d01b2bd8d53e0e23d42c07a3af40a8": {
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
@@ -6386,10 +6382,6 @@
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
     },
-    "src/shards/pine-hollow/runtime/items/leverFirearm.ts:unbounded-loop:800eedb4307fab28e34046b23af97489565cd256debb43be0449b1d590bbe400": {
-      "count": 1,
-      "row": "SF76 G303 Pine verbatim move"
-    },
     "src/shards/pine-hollow/runtime/items/leverFirearm.ts:unbounded-loop:a975b43c3048f0c244feef542dc620c260d01b2bd8d53e0e23d42c07a3af40a8": {
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
@@ -6417,6 +6409,14 @@
     "src/shards/pine-hollow-legacy/runtime/questDirector.ts:async:6b64f243660d4ea18aabf5b316860f905d3aa105f2422a374b131a9c2bf74ec7": {
       "count": 1,
       "row": "SF47"
+    },
+    "src/shards/pine-hollow/runtime/items/boltCrossbow.ts:unbounded-loop:08c95f6153c62988074689bedb8317738a516a6cda0af49b5130089a3e261e39": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
+    },
+    "src/shards/pine-hollow/runtime/items/leverFirearm.ts:unbounded-loop:e450f5ba9e289549ca1e95a30a3fd4ba524da29b74da9feb295861628bd80834": {
+      "count": 1,
+      "row": "SF76 G303 Pine verbatim move"
     }
   }
 }
