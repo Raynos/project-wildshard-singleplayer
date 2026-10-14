@@ -1,8 +1,8 @@
-import { BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, ExtrudeGeometry, Float32BufferAttribute, Shape, SphereGeometry, TorusGeometry, TubeGeometry, Vector3 } from 'three';
+import { BufferGeometry, CatmullRomCurve3, Color, CylinderGeometry, ExtrudeGeometry, Float32BufferAttribute, Shape, SphereGeometry, TorusGeometry, TubeGeometry, Vector3, Group, Mesh, MeshStandardMaterial } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
+import { clientSceneGlb } from '@wildshard/sdk/bake/glb';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { FAN } from '../weapons/fanModel';
+import { FAN } from '../data/fanGeometry';
 import { hdGeometry } from './modelIntake';
 import { HD_URLS } from '../data/files';
 
@@ -14,7 +14,7 @@ import { HD_URLS } from '../data/files';
  */
 
 /** The fan's baked shapes, each a geometry of the pack. */
-export interface FanRows extends PackedGeometryRows { panels: number; sticks: number; straps: number; guards: number; rim: number; plates: number; strands: number; hand: number; grip: number; tassel: readonly TasselPart[] }
+export interface FanRows { panels: number; sticks: number; straps: number; guards: number; rim: number; plates: number; strands: number; hand: number; grip: number; tassel: readonly TasselPart[] }
 /** One small part of the tassel (or the ring at the handle's foot), as the page places it: its baked shape, bronze or red, where (`at`) and scaled, in the fan (`fan`) or under the swinging tassel. */
 export interface TasselPart { readonly shape: number; readonly bronze: boolean; readonly fan: boolean; readonly at: readonly [number, number, number]; readonly scale: readonly [number, number, number] }
 
@@ -154,8 +154,10 @@ export function heroHand(g: BufferGeometry): BufferGeometry {
  * the bronze plates, studs, boss and rivet (one geometry), the tassel's fringe, and the fitted hero hand (`read` returns a
  * public file's bytes).
  */
-export async function bakeSkyFan(read: (url: string) => Uint8Array): Promise<{ bin: Uint8Array; rows: FanRows }> {
-  const pack = new GeometryPackWriter('far-reach fan'), panels = pack.add(fanPanels()), sticks = pack.add(fanSticks());
+export async function bakeSkyFan(read: (url: string) => Uint8Array): Promise<{ glb: Uint8Array; rows: FanRows }> {
+  const geometries: BufferGeometry[] = [];
+  const add = (geometry: BufferGeometry): number => { geometries.push(geometry); return geometries.length - 1; };
+  const panels = add(fanPanels()), sticks = add(fanSticks());
   // the guards' metal (E399 round 6, mockup C: 'riveted metal guards with engraved end caps', every seat since round 3):
   // each guard sheathed in a dark iron strap from the grip to past the leaf, riveted along its length, an engraved bronze
   // cap at its tip and a smaller one at its root; a bronze stud on every stick where the leaf starts
@@ -178,15 +180,15 @@ export async function bakeSkyFan(read: (url: string) => Uint8Array): Promise<{ b
   for (let i = 1; i < FAN.panels; i++) {
     const a = from + i * (FAN.spread / FAN.panels), stud = new SphereGeometry(0.0036, 6, 4); stud.scale(1, 1, 0.55); stud.translate(...along(a, FAN.leaf + 0.03, 0.012)); plates.push(stud);
   }
-  const strapsAt = pack.add(mergeGeometries(straps)), guards = pack.add(mergeGeometries(guardWood));
+  const strapsAt = add(mergeGeometries(straps)), guards = add(mergeGeometries(guardWood));
   // the gilt rim along the leaf's outer edge (mockup C's lit edge)
   const rimPoints: Vector3[] = [];
   for (let i = 0; i <= 24; i++) { const a = from + (i / 24) * FAN.spread; rimPoints.push(new Vector3(Math.sin(a) * FAN.reach, Math.cos(a) * FAN.reach, 0.004)); }
-  const rim = pack.add(new TubeGeometry(new CatmullRomCurve3(rimPoints), 48, 0.003, 4, false));
+  const rim = add(new TubeGeometry(new CatmullRomCurve3(rimPoints), 48, 0.003, 4, false));
   // the pivot: a bronze boss and its rivet
   const boss = new CylinderGeometry(0.017, 0.019, 0.012, 14); boss.rotateX(Math.PI / 2); boss.translate(0, 0, 0.012); plates.push(boss);
   const rivet = new SphereGeometry(0.008, 8, 6); rivet.translate(0, 0, 0.019); plates.push(rivet);
-  const platesAt = pack.add(mergeGeometries(plates.map((g) => g.index === null ? g : g.toNonIndexed())));
+  const platesAt = add(mergeGeometries(plates.map((g) => g.index === null ? g : g.toNonIndexed())));
   // the tassel's long silk fringe (mockup C)
   const fringe: BufferGeometry[] = [];
   for (let i = 0; i < 11; i++) {
@@ -195,13 +197,22 @@ export async function bakeSkyFan(read: (url: string) => Uint8Array): Promise<{ b
   }
   const source = await readSourceModel(read(HD_URLS['hand-hd'])), hd = hdGeometry(source.gltf.scene, (material) => source.texture(material) !== null);
   if (hd === null) throw new Error(`far-reach fan: ${HD_URLS['hand-hd']} has no textured mesh`);
-  const strands = pack.add(mergeGeometries(fringe)), hand = pack.add(heroHand(hd.geometry));
+  const strands = add(mergeGeometries(fringe)), hand = add(heroHand(hd.geometry));
   // the ring at the hand's handle foot; the tassel (mockup C; row 3: from the pivot boss in front of the fist): a red cord,
   // a knot, its loops, a bronze bead and cap, and the long silk fringe (the page swings the tassel from its group)
-  const part = (g: BufferGeometry, bronze: boolean, at: readonly [number, number, number], scale: readonly [number, number, number] = [1, 1, 1], fan = false): TasselPart => ({ shape: pack.add(g), bronze, fan, at, scale });
+  const part = (g: BufferGeometry, bronze: boolean, at: readonly [number, number, number], scale: readonly [number, number, number] = [1, 1, 1], fan = false): TasselPart => ({ shape: add(g), bronze, fan, at, scale });
   const tassel = [part(new TorusGeometry(0.009, 0.0025, 5, 12), true, [0, -HERO_HAND.handle - 0.006, 0], [1, 1, 1], true), part(new CylinderGeometry(0.0022, 0.0022, 0.04, 4), false, [0, -0.02, 0]),
     part(new SphereGeometry(0.009, 8, 6), false, [0, -0.042, 0], [1.2, 0.8, 0.7]), part(new TorusGeometry(0.008, 0.0025, 4, 10), false, [0, -0.042, 0], [1.6, 1, 1]),
     part(new SphereGeometry(0.0055, 8, 6), true, [0, -0.058, 0]), part(new CylinderGeometry(0.0045, 0.007, 0.012, 8), true, [0, -0.07, 0]),
     { shape: strands, bronze: false, fan: false, at: [0, 0, 0], scale: [1, 1, 1] } as const];
-  return { bin: pack.bytes(), rows: { ...pack.rows(), panels, sticks, straps: strapsAt, guards, rim, plates: platesAt, strands, hand, grip: HERO_HAND.handle, tassel } };
+  if (geometries.length !== 14) throw new Error('Fan pool differs from its declared shape roster');
+  const root = new Group(), material = new MeshStandardMaterial(); root.name = 'fan-pool';
+  for (const [index, geometry] of geometries.entries()) { const mesh = new Mesh(geometry, material); mesh.name = `shape${index}`; root.add(mesh); }
+  try { return { glb: clientSceneGlb(root, new Map([[material, 'geometry']])).glb,
+    rows: { panels, sticks, straps: strapsAt, guards, rim, plates: platesAt, strands, hand, grip: HERO_HAND.handle, tassel } }; }
+  finally { material.dispose(); for (const geometry of geometries) geometry.dispose(); }
+
 }
+
+/** Build-time pool product; the shared JSON driver supplies the confined asset reader. */
+export async function fanPoolGlb(read:(url:string)=>Uint8Array):Promise<Uint8Array> { return (await bakeSkyFan(read)).glb; }

@@ -73,7 +73,8 @@ export const ISLES_URL = '/assets/far-reach/baked/isles.bin';
 /** The rope bridges' baked geometry pack (world/shapes.ts `ropeBridge`; SHARD-PLATFORM M3, generators/bridges.ts). */
 export const BRIDGES_URL = '/assets/far-reach/baked/bridges.bin';
 /** The war fan's baked shapes (weapons/fanModel.ts `fanParts`; SHARD-PLATFORM M3, generators/fan.ts). */
-export const FAN_URL = '/assets/far-reach/baked/fan.bin';
+export const FAN_URL = '/assets/far-reach/baked/fan.glb';
+export const FAN_POOL = {url:FAN_URL,parts:['shape0','shape1','shape2','shape3','shape4','shape5','shape6','shape7','shape8','shape9','shape10','shape11','shape12','shape13']} as const;
 /** The windmill's modelled tower and foot, fitted offline (world/mill.ts; SHARD-PLATFORM M3, generators/millModel.ts). */
 export const MILL_MODEL_URL = '/assets/far-reach/baked/mill-model.bin';
 /** The painted textures (E392, `art/far-reach/round-17-mockup-loop/textures/`): keel rock, meadow ground, the cumulus atlas. */

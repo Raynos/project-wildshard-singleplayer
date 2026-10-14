@@ -21,7 +21,7 @@ const emit = (file, bytes) => {
 };
 if (!check) mkdirSync(out, { recursive: true });
 // This independently owned author product shares the output directory.
-const keep = new Set(['prepared-models.glb']);
+const keep = new Set(['fan.glb', 'prepared-models.glb']);
 // SF80: the pieces as one three.js scene through the SDK's bake(scene, identity), which also writes its scene.json to
 // .wildshard/cache/far-reach/ (gitignored, the inspectable middle step)
 {
@@ -77,14 +77,6 @@ for (const [rows, file, name] of [['seaTexture', 'generators/seaTexture.ts', 'ba
   const files = [...baked.files].sort((a, b) => a.hash.localeCompare(b.hash)), tiles = [...baked.tiles].sort((a, b) => a.lod - b.lod || a.x - b.x || a.z - b.z);
   emit(resolve(project, 'data/props.json'), canonicalJson({ props: baked.props, tiles, files, report: baked.report }));
   console.info(`far-reach isle props: ${String(baked.props.tiles.length)} tiles, ${String(baked.report.reduce((n, r) => n + r.draws, 0))} draws`);
-}
-// the war fan's built shapes and its fitted hero hand, as a deflated geometry pack (weapons/fanModel.ts fanParts)
-{
-  const { bakeSkyFan } = await import(pathToFileURL(resolve(project, 'generators/fan.ts')).href);
-  const { bin, rows } = await bakeSkyFan((url) => new Uint8Array(readFileSync(resolve(root, `public${url}`)))), packed = deflateSync(bin, { level: 9 });
-  emit(resolve(out, 'fan.bin'), packed);
-  emit(resolve(project, 'data/fan.json'), `${JSON.stringify({ pack: createHash('sha256').update(bin).digest('hex'), ...rows })}\n`);
-  console.info(`far-reach fan: ${String(bin.length)} bytes → baked/fan.bin (${String(packed.length)} deflated), ${String(rows.geometries.length)} geometries`);
 }
 // the windmill's modelled tower and foot, fitted from their GLBs (world/mill.ts modelledSet)
 {

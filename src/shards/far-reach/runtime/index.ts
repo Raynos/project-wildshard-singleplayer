@@ -22,7 +22,6 @@ import { GUST_FX } from '../data/windLook';
 import { RISING_ISLETS } from '../world/islets';
 import type { RisingIslet } from '../data/isletDesign';
 import { WarFan, type WarFanWeapon, type ConeFanTarget } from './weapons/heldFan';
-import { loadSkyFan } from '../weapons/fanShapes';
 import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
 import { FAN_ROW } from '../weapons/rows';
@@ -90,7 +89,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
     // and the world pieces baked offline (SF72, world/baked.ts)
-    await Promise.all([preloadSkyMeshes(() => worldBuildYield(ctx, 4)), loadSkyBaked(), loadSkyFan(), loadSkyMillModel()]);
+    await Promise.all([preloadSkyMeshes(() => worldBuildYield(ctx, 4)), loadSkyBaked(), loadSkyMillModel()]);
     // the fan's painted silk; without it (offline, a test page) the fan keeps its plain teal, as the models keep their code stand-ins
     const leaf = await loadPainted(FAN_LEAF_URL, 'far.fan-leaf');
     if (leaf !== null) { this.leaf = leaf; ctx.scope.own(leaf); }

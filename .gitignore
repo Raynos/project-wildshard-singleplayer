@@ -951,3 +951,6 @@ src/shards/far-reach/data/crownInstances.generated.json
 # Sky static bridge author products
 /src/shards/far-reach/data/bridgeRest.generated.json
 /public/assets/far-reach/baked/bridge-rest.glb
+
+# Held fan geometry is a cheap authoring product (G405).
+/public/assets/far-reach/baked/fan.glb
