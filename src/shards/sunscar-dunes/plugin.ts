@@ -1,9 +1,8 @@
 import { SIGNAL_RUNTIME_ROWS } from './data/runtimeRows';
 import { whipIcon } from './weapons/rows';
 import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
-import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
-import { HybridRuntimePlugin, bindRuntimeCoins, bindRuntimeMelee, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/plugin/headless';
+import { HybridRuntimePlugin, bindRuntimeMelee, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/plugin/headless';
 import source from './runtime/source';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
@@ -12,9 +11,8 @@ import { DUSK, setDusk, stepDusk } from './look/dusk';
 import { preloadDuneMeshes, DUNE_LIBRARY } from './world/meshes';
 import { loadBakedWorld } from './world/baked';
 import { createWhip, type Bullwhip } from './runtime/items/heldWhip';
-import { SIGNAL_QUEST_PAGE } from './data/questPage';
 import { FLAG, SCOUT_FLAG } from './data/flags';
-import { bindDeclaredFight, bindPageQuestStages, installPersistedQuest } from '@wildshard/game/plugin/ui';
+import { bindDeclaredFight, bindPageQuestStages } from '@wildshard/game/plugin/ui';
 import { SAND, SKIRT } from './look/render';
 import { lentMaterial } from './runtime/looks/bakedGround';
 import { prepareFireFx } from './world/fireFx';
@@ -35,7 +33,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   whip: Bullwhip | null = null;
   fire: SignalFire | null = null; places: SignalWorld | null = null;
   // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
-  protected readonly rows: HybridRuntimeRows = { ...SIGNAL_RUNTIME_ROWS, source };
+  protected readonly rows: HybridRuntimeRows = { ...SIGNAL_RUNTIME_ROWS, source, owners: { models: DUNE_LIBRARY, looks: { dress: lastLightAll } } };
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
     const [, baked] = await Promise.all([preloadDuneMeshes(), loadBakedWorld()]);
@@ -61,20 +59,13 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   protected override armed(): Bullwhip | null { return this.whip; }
   // loop 4: the style bible's dusk rim on the whip and glove too, so the weapon separates from the sand behind it
   protected override dress(ctx: ShardContext): void { const whip = this.whip; if (whip !== null) { lastLightAll(whip.model, ctx.scope); ctx.scope.ownPrimitives(whip.model); } }
-  protected override install(ctx: ShardContext, loot: ScopedLoot | null): void {
+  /** Settle the actual quest look for its declared capture checkpoint. */
+  settleQuestDusk(): void { const places = this.places; if (places !== null) setDusk(duskOf(places), true); }
+  protected override install(ctx: ShardContext): void {
     const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player, places = this.places;
-    // SF50-p: every coin the runtime pays goes through the platform purse (the level's loot purse; headless, the shard's).
-    const coins = bindRuntimeCoins(ctx, loot?.purse ?? null);
     if (places) {
       // SF14 / SF50-p: the quest's and the Matriarch's feats are ledger facts; the platform grants their achievements once.
-      const installed = installPersistedQuest(ctx, source, SIGNAL_QUEST_PAGE, { player: position, flags: places.flags, coins,
-        model: { kind: 'mesh', read: () => DUNE_LIBRARY.mesh('caravan-scout') }, dress: group => { ctx.scope.ownPrimitives(group); lastLightAll(group, ctx.scope); } }), facts = installed.facts;
-      this.bindQuestCapture(SIGNAL_QUEST_PAGE.capture, places.flags, new Map([
-        ['dusk', () => { setDusk(duskOf(places), true); }], ['logbook', places.logbook.onInteract],
-        ['well.pull', () => { places.well.pull(); }], ['well.take', places.well.spot.onInteract],
-        ...places.braziers.flatMap((b, i) => [[`pour.${String(i)}`, b.spot.onInteract] as const, [`light.${String(i)}`, () => { b.light(); }] as const]),
-      ]));
-      this.quest = installed.quest; this.whip?.aimAt(places.crackables);
+      const { facts, coins } = this.pageQuest; this.whip?.aimAt(places.crackables);
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
       const fight = bindDeclaredFight(ctx, this.rows.fight, { kind: 'spawned', source, player: position, flags: places.flags, facts, coins, armed: places.fire.lit,
         dress: animal => { lastLightAll(animal.mesh, ctx.scope); } }); this.presentedBoss = fight.boss;

@@ -1,3 +1,4 @@
+import type { PersistedQuest, PersistedQuestRows } from './ui';
 import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import * as v from 'valibot';
 import { rigLibrary, type RigLibraryRows } from "./geometry";
@@ -500,6 +501,10 @@ export interface HybridRuntimeRows {
   /** Original read-only capture names, resolved against actual owners rather than private shard fields. */
   readonly inspect?: { readonly actors?: Readonly<Record<string, { readonly held: string } | { readonly home: number }>>; readonly roster?: string; readonly boss?: string };
   readonly fight?: BossViewRows;
+  /** Optional declared saved page quest, installed before the shard play hook. */
+  readonly pageQuest?: HybridPageQuestRows;
+  /** Borrowed libraries and style owners; reserved plugin/scope/quest owners are supplied by the host. */
+  readonly owners?: Readonly<Record<string, unknown>>;
 }
 /** A borrowed object capability, with an explicitly bounded property path. */
 export interface BorrowedOwnerPath { readonly owner: string; readonly path: readonly (string | number)[]; readonly optional?: boolean }
@@ -530,6 +535,25 @@ export function readBorrowedOwner(owners: ReadonlyMap<string, unknown>, row: Bor
   throw new Error('Invalid borrowed owner path');
 }
 
+/** Borrow a required method with its actual receiver; resolution itself invokes nothing. */
+export function bindBorrowedMethod(owners: ReadonlyMap<string, unknown>, row: BorrowedOwnerPath): (...args: readonly unknown[]) => unknown {
+  const field = readBorrowedOwner(owners, row);
+  const callable = (value: unknown): value is (...args: readonly unknown[]) => unknown => typeof value === 'function';
+  if (field === null || !callable(field.value)) throw new Error('Missing borrowed owner method');
+  const method = field.value;
+  return (...args) => method.call(field.receiver, ...args);
+}
+
+/** Page-only saved quest composition; every binding borrows an existing owner. */
+export interface HybridPageQuestRows {
+  readonly data: PersistedQuestRows & { readonly capture?: QuestCaptureRows };
+  readonly flags?: BorrowedOwnerPath;
+  readonly model: { readonly kind: 'mesh' | 'pivots'; readonly read: BorrowedOwnerPath; readonly material?: BorrowedOwnerPath };
+  readonly dress?: readonly { readonly call: BorrowedOwnerPath; readonly args: readonly ('group' | 'scope' | { readonly instances: boolean })[] }[];
+  readonly capture?: Readonly<Record<string, BorrowedOwnerPath>>;
+  readonly progress?: boolean;
+}
+
 /** Bounded capture steps invoke real gameplay owners without introducing saved state. */
 export type QuestCaptureRows = Readonly<Record<string, readonly ({ readonly flag: string } | { readonly call: string })[]>>;
 
@@ -557,6 +581,12 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   private populationHomes: RuntimeHomes | null = null;
   private aliasesBound = false;
   presentedBoss: ReturnType<typeof installBossOwnerRow>['boss'] | null = null;
+  private savedPageQuest: (PersistedQuest & { readonly coins: RuntimeCoins }) | null = null;
+  /** Resident saved quest; missing declared composition refuses instead of inventing a quest. */
+  protected get pageQuest(): PersistedQuest & { readonly coins: RuntimeCoins } {
+    if (this.savedPageQuest === null) throw new Error('Page quest is not installed');
+    return this.savedPageQuest;
+  }
   private questCapture: ((name: string) => void) | null = null;
   /** Stage a declared quest through its live flags and callbacks; unknown capture names do nothing. */
   stage(name: string): void { this.questCapture?.(name); }
@@ -690,6 +720,25 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
     if (audio === undefined) throw new Error('Hybrid runtime needs its admitted audio rows');
     installRuntimeAudio(ctx, audio, this.rows.cues);
     const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
+    const page = this.rows.pageQuest;
+    if (page !== undefined) {
+      const source = this.rows.source;
+      if (source === undefined) throw new Error('Page quest needs its admitted source');
+      const borrowed = Object.entries(this.rows.owners ?? {});
+      if (borrowed.length > 64 || borrowed.some(([key]) => ['plugin', 'scope', 'quest'].includes(key))) throw new Error('Invalid page quest owners');
+      const owners = new Map<string, unknown>([...borrowed, ['plugin', this], ['scope', ctx.scope]]);
+      // Page presentation is never imported by the renderer-free native host.
+      const { installBorrowedPageQuest } = await import('./ui');
+      const installed = installBorrowedPageQuest(ctx, source, page, owners, bindRuntimeCoins(ctx, loot?.purse ?? null), rt?.world?.player.position ?? this.player);
+      this.savedPageQuest = installed; this.quest = installed.quest;
+      if (page.progress === true) installed.persistence.bindProgress(rt?.play?.progress);
+      owners.set('quest', installed);
+      const calls = new Map(Object.entries(page.capture ?? {}).map(([id, row]) => {
+        const method = bindBorrowedMethod(owners, row);
+        return [id, () => { method(); }] as const;
+      }));
+      this.bindQuestCapture(page.data.capture ?? {}, installed.flags, calls);
+    }
     await this.install(ctx, loot);
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete === true ? [this.rows.complete] : [];
     ctx.debug.expose(this.rows.expose, this);

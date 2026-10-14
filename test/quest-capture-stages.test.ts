@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Flags } from '../src/engine/world/interact/flags';
-import { HybridRuntimePlugin, type HybridRuntimeRows, type QuestCaptureRows } from '../src/game/plugin/headless';
+import { bindBorrowedMethod, HybridRuntimePlugin, type HybridRuntimeRows, type QuestCaptureRows } from '../src/game/plugin/headless';
 
 class Capture extends HybridRuntimePlugin {
   protected get rows(): HybridRuntimeRows { throw new Error('Capture-only fixture has no world rows'); }
@@ -20,4 +20,12 @@ test('capture stages use real saved flags and ordered actions, with preflight be
   plugin.stage('checkpoint'); expect(ran).toBe(true); expect(flags.has('met')).toBe(true);
   expect(() => plugin.bind({ invalid: [{ flag: 'new' }, { call: 'absent' }] }, flags, new Map())).toThrow('Missing quest capture action');
   expect(flags.has('new')).toBe(false);
+});
+
+test('a borrowed method keeps its receiver and resolution does not run it', () => {
+  const owner = { changed: false, apply() { this.changed = true; } };
+  const owners = new Map([['world', owner]]);
+  const method = bindBorrowedMethod(owners, { owner: 'world', path: ['apply'] });
+  expect(owner.changed).toBe(false); method(); expect(owner.changed).toBe(true);
+  expect(() => bindBorrowedMethod(owners, { owner: 'world', path: ['constructor', 'prototype'] })).toThrow('Unsafe borrowed owner path');
 });

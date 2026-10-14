@@ -4734,3 +4734,12 @@ native groups, meshes, point lights, materials and baked collider arrays.
 Vector and scalar rows copy bounded authored anchors; scene parts remain
 borrowed identities. `format/clientChannels.parseWorldSceneBindings` admits
 the finite field rows. Missing parts or a mismatched typed contract refuse.
+
+### Declared saved page quests
+
+`HybridRuntimeRows.pageQuest` optionally declares saved quest presentation,
+borrowed model/material/flag paths, resource dressing and capture actions.
+`HybridRuntimePlugin.play` imports UI lazily, installs those rows before
+the shard play hook, and exposes the resident `pageQuest`. Libraries stay
+borrowed; prepared pivots, null model policy, reward coins and saved flags
+keep their existing owners. The native headless installer is unchanged.

@@ -2,7 +2,6 @@ import { bindPlayerImpulse } from '@wildshard/game/shardfile/dataCreaturePorts';
 import { SKY_RUNTIME_ROWS } from '../data/runtimeRows';
 import { SKY_WORLD_PREPARATION } from '../data/worldTextures';
 import { ROC_STRIKES } from '../data/brains';
-import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { worldBuildYield } from '@wildshard/game/shard/plugin';
 import source from '../runtime/source';
@@ -23,16 +22,15 @@ import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
 import { SKY_ITEM_ROLE } from '../data/items';
 import { FAN_ROW, FAN_PRESENTATION } from '../data/equipment';
-import { preloadSkyMeshes, skyHd } from '../world/meshes';
+import { preloadSkyMeshes, HERO_LIBRARY } from '../world/meshes';
 import { loadSkyBaked, skyMeadowBlades } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
 import { setSkyLooks, skyLook, skyMappedLook } from '../world/looks';
 import { wakeRibbon } from './looks/wakeRibbon';
 import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow } from '../world/meadow';
-import { installPersistedQuest, bindDeclaredFight, bindQuestPageInteractions, bindPageQuestStages, bindClientChannels } from '@wildshard/game/plugin/ui';
+import { bindDeclaredFight, bindQuestPageInteractions, bindPageQuestStages, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
-import { SKY_QUEST_PAGE } from '../data/questPage';
 import { FLAGS, vaneFlag } from '../quests/flags';
 import { HybridRuntimePlugin, bindRuntimeMelee, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import { bindRuntimeProductProps, prepareClientWorld, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -67,7 +65,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
 
-  protected readonly rows: HybridRuntimeRows = { ...SKY_RUNTIME_ROWS, source };
+  protected readonly rows: HybridRuntimeRows = { ...SKY_RUNTIME_ROWS, source, owners: { models: HERO_LIBRARY, looks: { mapped: skyMappedLook } } };
 
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
@@ -108,17 +106,12 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     if (this.fan !== null) this.fan.stowed = () => this.board();
     // G24: the wisp's burst and the Roc's gale wall shove the player (`app.player.impulse`).
   }
-  protected override async install(ctx: ShardContext, loot: ScopedLoot | null): Promise<void> {
+  protected override async install(ctx: ShardContext): Promise<void> {
     const rt = ctx.game.runtime, built = this.built, fan = this.fan, position = rt?.world?.player.position ?? this.player;
     if (built === null || fan === null) throw new Error('Sky Reach: world and kit must run before play');
     const toast = (text: string): void => { rt?.play?.hud.toast(text); };
-    const { quest, flags, reward, finished, persistence } = installPersistedQuest(ctx, source, SKY_QUEST_PAGE, { player: position,
-      ...(loot?.purse ? { coins: (share: number) => { loot.purse?.add(share); } } : {}),
-      model: { kind: 'pivots', read: () => skyHd('keeper-hd'), material: map => skyMappedLook('keeper-scarf', map) },
-      dress: group => { ctx.scope.ownPrimitives(group, { instances: true }); } });
-    persistence.bindProgress(rt?.play?.progress);
-    this.quest = quest; this.flags = flags;
-    this.bindQuestCapture(SKY_QUEST_PAGE.capture, flags, new Map([['finish', finished], ['raise', () => { if (this.built !== null) this.finishRaise(this.built); }]]));
+    const { flags, reward, persistence } = this.pageQuest; this.flags = flags;
+    if (persistence.boss === null) throw new Error('Sky page quest needs its declared boss record');
     await worldBuildYield(ctx, 4);
 
     const page = bindQuestPageInteractions(source, { flags, toast,
@@ -272,7 +265,8 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     return turnVanes(flags, boundedRows(built.vanes), from, dir, () => { toast(STRINGS.vaneTurned); });
   }
   /** Snap the crown bridge up (the winch's end state, also restored from a save). */
-  private finishRaise(_built: BuiltWorld): void { this.isletCalls?.runtime?.command('far.winch.bridge', 3); }
+  /** Borrowed capture command on the actual bridge owner. */
+  finishRaise(): void { if (this.built !== null) this.isletCalls?.runtime?.command('far.winch.bridge', 3); }
 
 }
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.

@@ -29,7 +29,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { CoinBurst } from '../loot/CoinBurst';
 import { DirectorBossBrain, bindDirectorActions, type DirectorActionBinding, type BoundDirectorActions } from './director';
-import { readBorrowedOwner, type BorrowedOwnerPath, bindRuntimeQuest, bindRuntimePersistence, type RuntimePersistenceRows, type RuntimePersistence, bindRuntimeBoss, bindRuntimeCoins, bindRuntimeBossRecord, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
+import { bindBorrowedMethod, readBorrowedOwner, type BorrowedOwnerPath, type HybridPageQuestRows, bindRuntimeQuest, bindRuntimePersistence, type RuntimePersistenceRows, type RuntimePersistence, bindRuntimeBoss, bindRuntimeCoins, bindRuntimeBossRecord, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
 import type { SpeciesPageCatalogue } from './brain';
 import type { BossViewRows } from '../shardfile/bossRow';
 import { type Shardfile, parseShardfile } from '@wildshard/format/shardSchema';
@@ -1069,7 +1069,7 @@ export type QuestNpcModelSource =
   { readonly kind: 'pivots'; readonly read: () => { readonly geometry: BufferGeometry; readonly map: Texture; readonly pivots?: PivotNpcGeometry } | null;
     readonly material: (map: Texture) => Material };
 /** Model identity and preparation form, shared by page and Explorer consumers. */
-export interface QuestNpcModelRow { readonly id: string; readonly kind: QuestNpcModelSource['kind'] }
+export interface QuestNpcModelRow { readonly id: string; readonly kind: QuestNpcModelSource['kind']; readonly material?: string }
 
 function questNpcModelReader(row: QuestNpcModelRow, source: QuestNpcModelSource): QuestNpcPorts['model'] {
   if (row.kind !== source.kind) throw new Error('Quest model provider has the wrong preparation form');
@@ -1122,6 +1122,60 @@ export interface PersistedQuestPorts {
   readonly player: Vector3; readonly flags?: Flags; readonly coins?: RuntimeCoins;
   readonly model: QuestNpcPorts['model'] | QuestNpcModelSource; readonly dress?: QuestNpcPorts['dress'];
 }
+/** Install declared page composition using its original library, material and resource owners. */
+export function installBorrowedPageQuest(ctx: ShardContext, source: Shardfile, rows: HybridPageQuestRows,
+  owners: ReadonlyMap<string, unknown>, coins: RuntimeCoins, player: Vector3): PersistedQuest & { readonly coins: RuntimeCoins } {
+  const method = (row: BorrowedOwnerPath): ((...args: readonly unknown[]) => unknown) => bindBorrowedMethod(owners, row);
+  let flags: Flags | undefined;
+  if (rows.flags !== undefined) {
+    const field = readBorrowedOwner(owners, rows.flags);
+    if (!(field?.value instanceof Flags)) throw new Error('Page quest needs its actual flag owner');
+    flags = field.value;
+  }
+  const row = rows.data.model;
+  if (row === undefined || row.kind !== rows.model.kind) throw new Error('Page quest needs its matching model row');
+  const read = method(rows.model.read);
+  const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
+  const isTexture = (value: unknown): value is Texture => value instanceof Texture;
+  let model: QuestNpcModelSource;
+  if (rows.model.kind === 'mesh') model = { kind: 'mesh', read: () => {
+    const geometry = read(row.id);
+    if (geometry === null || isGeometry(geometry)) return geometry;
+    throw new Error('Page quest model must return copied geometry or null');
+  } };
+  else {
+    if (rows.model.material === undefined || row.material === undefined) throw new Error('Prepared page quest needs its material binding');
+    const material = method(rows.model.material), materialId = row.material;
+    const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object';
+    model = { kind: 'pivots', read: () => {
+      const made = read(row.id);
+      if (made === null) return null;
+      if (!record(made)) throw new Error('Invalid prepared page quest model');
+      const geometry = made['geometry'], map = made['map'], pivots = made['pivots'];
+      if (!(isGeometry(geometry)) || !(isTexture(map))) throw new Error('Invalid prepared page quest model');
+      if (!record(pivots)) throw new Error('Missing authored NPC pivots');
+      const body = pivots['body'], head = pivots['head'], arm = pivots['arm'], fore = pivots['fore'];
+      if (!(isGeometry(body)) || !(isGeometry(head))
+        || !(isGeometry(arm)) || !(isGeometry(fore))) throw new Error('Missing authored NPC pivots');
+      return { geometry, map, pivots: { body, head, arm, fore } };
+    }, material: map => {
+      const made = material(materialId, map);
+      if (!(made instanceof Material)) throw new Error('Invalid page quest material');
+      return made;
+    } };
+  }
+  if ((rows.dress?.length ?? 0) > 16) throw new Error('Page quest dressing must be bounded');
+  const dress = (rows.dress ?? []).map(step => {
+    if (step.args.length > 16 || step.args.some(arg => typeof arg === 'string' ? !['group', 'scope'].includes(arg)
+      : Object.keys(arg).length !== 1 || typeof arg.instances !== 'boolean')) throw new Error('Invalid page quest dressing arguments');
+    return { call: method(step.call), args: step.args };
+  });
+  const installed = installPersistedQuest(ctx, source, rows.data, { player,
+    ...(flags === undefined ? {} : { flags }), coins, model,
+    dress: group => { for (const step of dress) step.call(...step.args.map(arg => arg === 'group' ? group : arg === 'scope' ? ctx.scope : arg)); } });
+  return Object.assign(installed, { coins });
+}
+
 /** Live quest services over the original durable flag, reward and boss owners. */
 export interface PersistedQuest {
   readonly quest: QuestState; readonly flags: Flags; readonly reward: QuestReward; readonly burst: CoinBurst;
