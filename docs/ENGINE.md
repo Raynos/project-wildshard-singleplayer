@@ -5496,3 +5496,8 @@ precedence over a model anchor and ignores `dy`; a model anchor without
 height uses the selected floor plus `dy`. Borrowed models/floors remain
 live. Malformed coordinates, unsafe anchor paths and absent local frames
 refuse before the caller registers a prompt or piece. It owns no save.
+
+Private-scene standard material properties also admit the original material
+`name` and bounded nonnegative `envMapIntensity` (up to 32). The existing
+scene assembler passes them to MeshStandardMaterial before its named world
+decorator. Absence keeps the constructor defaults and existing scenes.

@@ -4,7 +4,7 @@ import { WRECK } from '../manifest';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
-import { IRON_SWORD_BLADE_GEOMETRY, IRON_SWORD_FITTINGS_GEOMETRY } from '../boot/fixedGeometry';
+import { buildIronSwordDisplay } from '../runtime/loadout';
 import { ItemPickup, type PickupTier } from '@wildshard/engine/player/WeaponPickup';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -60,31 +60,6 @@ const DISPLAY_SCALE = 1.3, TILT = THREE.MathUtils.degToRad(40);   // fills the o
 const TAKE_DY = 1.6;               // m, |feet y − floor y| — no taking it from the sand under the hull
 const GUARDED_R = 1.4;             // m, eye → prompt point while guarded (E296): the reason shows at the rack only, not over the
                                    // whole hold's fight (on the phone it was the big USE band across the sailor), and any other prompt wins
-
-/**
- * The big iron sword (model space: origin at the middle of the grip, +Y up the blade, X across the edges): ~1.22 m
- * pommel to tip — a longsword. Two meshes: steel (metallic) and the rest (guard, grip, pommel). Materials go through
- * `sky.setupMaterial` (they are lit world objects, unlike the viewmodel's).
- */
-export function buildIronSwordDisplay(sky: Sky): THREE.Group {
-  const g = new THREE.Group();
-  const steel = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.5, metalness: 0.65, envMapIntensity: 0.85 });
-  steel.name = 'iron-sword-steel';
-  sky.setupMaterial(steel);
-  const bladeMesh = new THREE.Mesh(IRON_SWORD_BLADE_GEOMETRY.copy(), steel);
-  bladeMesh.castShadow = true; bladeMesh.receiveShadow = true;
-  g.add(bladeMesh);
-
-  const iron = new THREE.MeshStandardMaterial({ flatShading: true, vertexColors: true, roughness: 0.62, metalness: 0.45, envMapIntensity: 0.7 });
-  iron.name = 'iron-sword-fittings';
-  sky.setupMaterial(iron);
-  const fittings = new THREE.Mesh(IRON_SWORD_FITTINGS_GEOMETRY.copy(), iron);
-  fittings.castShadow = true; fittings.receiveShadow = true;
-  g.add(fittings);
-  // centre the model on the orb: the orb's item origin is its middle; the sword's middle is ~0.45 m up from the grip
-  bladeMesh.position.y = fittings.position.y = -0.36;
-  return g;
-}
 
 /** a soft warm halo (additive sprite) so the glow reads from far off — a radial texture drawn once */
 let haloTex: THREE.CanvasTexture | null = null;

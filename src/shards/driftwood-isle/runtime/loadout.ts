@@ -1,6 +1,9 @@
 import { SWORD_GEOMETRY } from '../boot/swordGeometry';
 import { DRIFTWOOD_MELEE_PROFILE, DRIFTWOOD_IRON_PROFILE } from '../data/meleeProfile';
-import type { ShardContext } from '@wildshard/game/shard/context';
+import { createClientScene } from '@wildshard/game/plugin/ui';
+import type { Group, MeshStandardMaterial } from 'three';
+import { IRON_SWORD_BLADE_GEOMETRY, IRON_SWORD_FITTINGS_GEOMETRY } from '../boot/fixedGeometry';
+import displayRows from '../data/ironSwordScene.json' with { type: 'json' };
 import { bindRuntimeItems } from '@wildshard/game/shardfile/hybridRows';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import { macrotask } from '@wildshard/engine/boot/plan';
@@ -13,7 +16,7 @@ import source from '../shard.config';
 import { swordRig } from '../weapons/swordView';
 
 /** Both swords use the same castaway rig parts the shell already loaded, with the original task break. */
-export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows: readonly [MeleeProfile, MeleeProfile], ctx: ShardContext): void {
+export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows: readonly [MeleeProfile, MeleeProfile], ctx: Parameters<typeof bindRuntimeItems>[0]): void {
   shell.buildEquipment = async (targets, nolock, viewmodel?: ShardSword | null) => {
     await SWORD_GEOMETRY.preload();
     const { ironArms, swim: _swim, ...woodArms } = viewmodel ?? {};
@@ -33,4 +36,13 @@ export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows:
     // The normal loadout owns the original pickup/Owned lock; do not unlock the iron sword via declared defaults.
     return { primary, rifle: null, secondary: null, extras: [...bound.extras] };
   };
+}
+
+/** Authored world pickup scene: original owned copies and sky material decoration. */
+export function buildIronSwordDisplay(sky: World['sky']): Group {
+  const made=createClientScene(displayRows,{
+    geometry:id=>{if(id==='blade')return IRON_SWORD_BLADE_GEOMETRY.copy();if(id==='fittings')return IRON_SWORD_FITTINGS_GEOMETRY.copy();throw new Error('Unknown declared iron sword geometry');},
+    decorators:new Map<string,(material:MeshStandardMaterial)=>void>([['world',material=>sky.setupMaterial(material)]]),
+  });
+  const root=made.group('pickup');if(root===null)throw new Error('Iron sword display requires its declared group');return root;
 }
