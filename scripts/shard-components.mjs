@@ -78,6 +78,25 @@ const questOwners=new Set([
 ]);
 // Reviewed W2 baseline owners. Exact paths/exports only; mixed AST ownership below still applies.
 const reviewedW2Owners = new Map([
+  // Reviewed runtime tile views, lent looks, terrain admission and combat status.
+  ['src/game/shardfile/runtimeProduct.ts#bindRuntimeProductProps', 'C1'],
+  ['src/game/shardfile/runtimeWorld.ts#RuntimePropsPorts', 'C1'],
+  ['src/game/shardfile/runtimeWorld.ts#isMesh', 'C1'],
+  ['src/game/shardfile/runtimeWorld.ts#bindRuntimeProps', 'C1'],
+  ['src/game/shardfile/hybridPresentation.ts#hybridPresentation', 'C2'],
+  ['src/game/shardfile/runtimeProduct.ts#runtimePresentation', 'C2'],
+  ['src/engine/combat/effects/EffectService.ts#playerBindings', 'C6'],
+  ['src/engine/combat/effects/EffectService.ts#bindPlayerEffects', 'C6'],
+  ['src/engine/physics/terrain.ts#EDGE_WALL_INSET', 'C1'],
+  ['src/engine/physics/terrain.ts#isStandaloneEdgeWall', 'C1'],
+  ['src/game/bag/itemCatalog.ts#isItemId', 'C6'],
+  ['src/game/plugin/ui.ts#STARTER_EFFECTS', 'C6'],
+  ['src/game/plugin/ui.ts#StatusMovement', 'C6'],
+  ['src/game/plugin/ui.ts#StarterContext', 'C6'],
+  ['src/game/plugin/ui.ts#installStarterEffects', 'C6'],
+  ['src/game/systems/effects/starter.generated.ts#STARTER_EFFECT_ROWS', 'C6'],
+  ['src/game/systems/effects/view.ts#PATHS', 'C6'],
+  ['src/game/systems/effects/view.ts#StatusIcons', 'C6'],
   // Graph look-material collection. The decoded texture loan is committed.
   ['src/game/plugin/shaderFamily.ts#lookGraphMaterials', 'C2'],
   // Static scene geometry, placements, building assembly and their bake contracts.

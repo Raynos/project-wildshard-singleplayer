@@ -216,18 +216,57 @@ function moduleSymbols(program) {
     statics.push(literal(node.moduleReference.expression));
     namespaces.add(node.id.name);
   }
+  const patternNames = (node, out) => {
+    if (!node) return out;
+    if (node.type === 'Identifier') out.push(node.name);
+    else if (node.type === 'ObjectPattern') for (const prop of node.properties) patternNames(prop.type === 'RestElement' ? prop.argument : prop.value, out);
+    else if (node.type === 'ArrayPattern') for (const element of node.elements) patternNames(element, out);
+    else if (node.type === 'RestElement') patternNames(node.argument, out);
+    else if (node.type === 'AssignmentPattern') patternNames(node.left, out);
+    return out;
+  };
   const collect = (root, refs) => {
     // A local constant holding import() is a namespace too. Keep its initializer
     // from claiming the whole module when only named members are read. A root
     // binding remains conservative because another module may import that object.
     const dynamicNamespaces = new Map(), boundImports = new Map();
-    const importedValue = input => {
+    // The engine retry leaf returns its loader's result unchanged. Recognize
+    // only that named import, never an arbitrary wrapper around import().
+    const retryBindings = new Set([...imports].filter(([, row]) => row.name === 'retried'
+      && /(?:^|\/)engine\/boot\/retry$/u.test(row.spec)).map(([name]) => name));
+    const shadows = new Set();
+    const findShadows = node => {
+      if (node === null || typeof node !== 'object') return;
+      if (Array.isArray(node)) { node.forEach(findShadows); return; }
+      const patterns = node.type === 'VariableDeclarator' ? [node.id] : node.params ?? [];
+      for (const pattern of patterns) for (const name of patternNames(pattern, [])) shadows.add(name);
+      for (const child of Object.values(node)) if (child && typeof child === 'object') findShadows(child);
+    };
+    findShadows(root);
+    const resolvedValue = input => {
       let value = input, awaited = false;
-      while (value?.type === 'ParenthesizedExpression' || value?.type === 'AwaitExpression') {
-        if (value.type === 'AwaitExpression') awaited = true;
-        value = value.expression ?? value.argument;
+      while (value) {
+        if (value.type === 'ParenthesizedExpression' || value.type === 'AwaitExpression') {
+          if (value.type === 'AwaitExpression') awaited = true;
+          value = value.expression ?? value.argument;
+        } else if (value.type === 'CallExpression' && value.callee.type === 'Identifier'
+          && retryBindings.has(value.callee.name) && !shadows.has(value.callee.name) && value.arguments.length === 1
+          && value.arguments[0].type === 'ArrowFunctionExpression' && value.arguments[0].params.length === 0
+          && value.arguments[0].body.type !== 'BlockStatement') value = value.arguments[0].body;
+        else break;
       }
+      return { value, awaited };
+    };
+    const importedValue = input => {
+      const { value, awaited } = resolvedValue(input);
       return awaited && value?.type === 'ImportExpression' ? value : null;
+    };
+    const bindMembers = (pattern, input) => {
+      const { value } = resolvedValue(input);
+      if (pattern?.type !== 'ObjectPattern' || value?.type !== 'ImportExpression' || literal(value.source) === null) return;
+      const members = pattern.properties.map(row => row.type === 'Property'
+        ? row.computed ? literal(row.key) : nameOf(row.key) : null);
+      if (members.every(name => name !== null)) boundImports.set(value, members);
     };
     const findNamespaces = node => {
       if (node === null || typeof node !== 'object') return;
@@ -240,12 +279,20 @@ function moduleSymbols(program) {
           dynamicNamespaces.get(row.id.name).add(spec); boundImports.set(value, []);
         }
       }
-      if (node.type === 'VariableDeclarator' && node.id.type === 'ObjectPattern') {
-        const value = importedValue(node.init);
-        if (value?.type === 'ImportExpression' && literal(value.source) !== null) {
-          const members = node.id.properties.map(row => row.type === 'Property'
-            ? row.computed ? literal(row.key) : nameOf(row.key) : null);
-          if (members.every(name => name !== null)) boundImports.set(value, members);
+      if (node.type === 'VariableDeclarator') {
+        bindMembers(node.id, importedValue(node.init));
+        // Promise.all preserves literal tuple positions. Narrow each directly
+        // destructured namespace independently; rest/unknown keys still escape.
+        const resolved = resolvedValue(node.init), call = resolved.awaited ? resolved.value : null;
+        if (node.id.type === 'ArrayPattern' && call?.type === 'CallExpression'
+          && call.callee.type === 'MemberExpression' && !call.callee.computed
+          && call.callee.object.type === 'Identifier' && call.callee.object.name === 'Promise'
+          && !imports.has('Promise') && !shadows.has('Promise')
+          && call.callee.property.type === 'Identifier' && call.callee.property.name === 'all'
+          && call.arguments.length === 1 && call.arguments[0].type === 'ArrayExpression'
+          && !call.arguments[0].elements.some(row => row?.type === 'SpreadElement')
+          && !node.id.elements.some(row => row?.type === 'RestElement')) {
+          for (let i = 0; i < node.id.elements.length; i++) bindMembers(node.id.elements[i], call.arguments[0].elements[i]);
         }
       }
       if (node.type === 'MemberExpression') {
@@ -312,15 +359,6 @@ function moduleSymbols(program) {
       }
     };
     visit(root, null, null, false);
-  };
-  const patternNames = (node, out) => {
-    if (!node) return out;
-    if (node.type === 'Identifier') out.push(node.name);
-    else if (node.type === 'ObjectPattern') for (const prop of node.properties) patternNames(prop.type === 'RestElement' ? prop.argument : prop.value, out);
-    else if (node.type === 'ArrayPattern') for (const element of node.elements) patternNames(element, out);
-    else if (node.type === 'RestElement') patternNames(node.argument, out);
-    else if (node.type === 'AssignmentPattern') patternNames(node.left, out);
-    return out;
   };
   const bind = (name, span, declaration) => {
     if (!bindings.has(name)) bindings.set(name, { spans: [], refs: new Set() });
@@ -452,6 +490,26 @@ export function partitionPendingPlatformUsers(slug,modules,exports,allowances) {
   return {modules:modules.filter(charged),exports:exports.filter(charged),pending};
 }
 
+// The application's real composition roots are a consumer, not a shard. Their
+// named reach prevents menu/travel/session code from becoming a sole-shard debt.
+// Keep this list short: never add content folders or shard-specific installers.
+const SHELL_ROOTS = ['src/entry.ts', 'src/game/session/session.ts', 'src/game/mainMenu.ts', 'src/game/session/loadout.ts'];
+const SHELL_USER = '@game-shell';
+// Loading a default content catalogue is not using that content in a shard.
+// The shell supplies a second user only for these orchestration modules and
+// these UI bridge declarations, never species, models, rendering or gameplay.
+const SHELL_CONTROL_PREFIXES = ['src/game/grid/', 'src/game/session/', 'src/game/shard/', 'src/game/travel/'];
+const SHELL_UI_CONTROL = new Set([
+  'gridHome', 'enterGrid', 'bootPageMode', 'dropGridIntent', 'selected', 'refused', 'loop',
+  'safeGridRecovery', 'consumeGridRecovery', 'pageGridRecovery', 'clearGridRecovery',
+  'gridRecoveryRefused', 'gridRecoveryLoop', 'PageResidencyBoot', 'preparePageResidency',
+  'emptyShardfileSource', 'installShardfileProduct', 'selectSource', 'installManifestShardfile',
+  'shardfileLevelSpec', 'loadShardfile', 'configuredShardfile', 'installShardfileSource',
+]);
+/** @param {string} path @param {string|null} [local] */
+const shellControl = (path, local = null) => SHELL_CONTROL_PREFIXES.some(prefix => path.startsWith(prefix))
+  || (path === 'src/game/plugin/ui.ts' && (local === null || SHELL_UI_CONTROL.has(local)));
+
 export function shardLines(root = ROOT, includeSources = false) {
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const probes = new Map(), targets = new Map(), edges = new Map();
@@ -520,8 +578,9 @@ export function shardLines(root = ROOT, includeSources = false) {
   const shardFiles = Object.fromEntries(readdirSync(resolve(root, 'src/shards'), { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && !Object.hasOwn(frozen.shards, entry.name)).sort((a, b) => a.name.localeCompare(b.name))
     .map((entry) => [entry.name, filesIn(resolve(root, 'src/shards', entry.name)).map((path) => relative(root, path))]));
+  const consumers = [...Object.entries(shardFiles), [SHELL_USER, SHELL_ROOTS.filter(exists)]];
   const moduleUsers = new Map();
-  for (const [slug, files] of Object.entries(shardFiles)) {
+  for (const [slug, files] of consumers) {
     // G312: templates are authoring fixtures, never an independent consumer of a platform system.
     if (slug === RULES.template) continue;
     const prefix = `src/shards/${slug}/`, seen = new Set(), queue = files.filter(path => !RULES.tests.test(path));
@@ -531,8 +590,9 @@ export function shardLines(root = ROOT, includeSources = false) {
       seen.add(path);
       if (!sourceFile.test(path) || path.endsWith('.d.ts') || RULES.tests.test(path) || !exists(path)) continue;
       // Other shards are never consumers of this one's closure; follow defining engine modules too (G303).
-      if (!path.startsWith(prefix) && !/^src\/(?:engine|game|sdk|commons)\//u.test(path)) continue;
-      if (RULES.attributedLayers.test(path)) {
+      if (slug === SHELL_USER ? !path.startsWith('src/') || path.startsWith('src/shards/')
+        : !path.startsWith(prefix) && !/^src\/(?:engine|game|sdk|commons)\//u.test(path)) continue;
+      if (RULES.attributedLayers.test(path) && (slug !== SHELL_USER || shellControl(path))) {
         if (!moduleUsers.has(path)) moduleUsers.set(path, new Set());
         moduleUsers.get(path).add(slug);
       }
@@ -541,7 +601,7 @@ export function shardLines(root = ROOT, includeSources = false) {
   }
   const privateModules = new Map(Object.keys(shardFiles).map(slug => [slug, []]));
   for (const [path, users] of [...moduleUsers].sort(([a], [b]) => a.localeCompare(b))) {
-    if (users.size >= RULES.publicUserCount || !(RULES.typescript.test(path) || path.endsWith('.glsl'))) continue;
+    if (users.has(SHELL_USER) || users.size >= RULES.publicUserCount || !(RULES.typescript.test(path) || path.endsWith('.glsl'))) continue;
     const lines = count(path);
     if (lines > 0) privateModules.get([...users][0]).push({ path, lines });
   }
@@ -550,11 +610,13 @@ export function shardLines(root = ROOT, includeSources = false) {
   const symbols = new Map(), masks = new Map(), bindingUsers = new Map();
   const parsedTs = path => RULES.typescript.test(path) && !path.endsWith('.d.ts');
   const symbolsOf = path => { if (!symbols.has(path)) symbols.set(path, info(path).symbols ?? moduleSymbols(info(path).tree.program)); return symbols.get(path); };
-  for (const [slug, files] of Object.entries(shardFiles)) {
+  for (const [slug, files] of consumers) {
     if (slug === RULES.template) continue;
+    const rootFiles = new Set(files);
     const prefix = `src/shards/${slug}/`, seen = new Set(), queue = files.filter(path => !RULES.tests.test(path)).map(path => [path, null]);
     const follow = path => typeof path === 'string' && sourceFile.test(path) && !path.endsWith('.d.ts') && !RULES.tests.test(path) && exists(path)
-      && (path.startsWith(prefix) || /^src\/(?:engine|game|sdk|commons)\//u.test(path));
+      && (slug === SHELL_USER ? path.startsWith('src/') && !path.startsWith('src/shards/')
+        : path.startsWith(prefix) || /^src\/(?:engine|game|sdk|commons)\//u.test(path));
     // Resolve an exported name (or `*`, every export) to the local declaration(s) behind it; reaching it evaluates the module.
     const exported = (path, name, stack = new Set()) => {
       if (path === null || !follow(path)) return;
@@ -594,7 +656,7 @@ export function shardLines(root = ROOT, includeSources = false) {
         reach(path, sym, sym.init.refs);
         // The shard's own folder is the root: every declaration, named import and re-export in it is used (a namespace
         // import reaches the members its declarations name, or every export when used bare).
-        if (path.startsWith(prefix)) {
+        if (slug === SHELL_USER ? rootFiles.has(path) : path.startsWith(prefix)) {
           for (const name of sym.bindings.keys()) queue.push([path, name]);
           for (const row of sym.imports.values()) if (row.name !== '*') exported(resolveEdge(path, row.spec).to, row.name);
           for (const row of sym.exports.values()) if (row.spec !== undefined) exported(resolveEdge(path, row.spec).to, row.name);
@@ -604,7 +666,7 @@ export function shardLines(root = ROOT, includeSources = false) {
       }
       const row = sym.bindings.get(local);
       if (row === undefined) continue;
-      if (RULES.attributedLayers.test(path)) {
+      if (RULES.attributedLayers.test(path) && (slug !== SHELL_USER || shellControl(path, local))) {
         if (!bindingUsers.has(key)) bindingUsers.set(key, new Set());
         bindingUsers.get(key).add(slug);
       }
@@ -618,7 +680,7 @@ export function shardLines(root = ROOT, includeSources = false) {
     if (!masks.has(path)) masks.set(path, codeLineMask(text(path), info(path).comments));
     const { code, lineOf } = masks.get(path), exportedLocals = new Set([...sym.exports.values()].flatMap(row => row.local ?? []));
     const sole = [...sym.bindings].map(([local, row]) => ({ local, row, owners: bindingUsers.get(`${path}\0${local}`) }))
-      .filter(entry => entry.owners?.size === 1).sort((a, b) => a.row.spans[0].start - b.row.spans[0].start);
+      .filter(entry => entry.owners?.size === 1 && !entry.owners.has(SHELL_USER)).sort((a, b) => a.row.spans[0].start - b.row.spans[0].start);
     for (const { local, row, owners } of sole) {
       let lines = 0;
       for (const span of row.spans) for (let line = lineOf(span.start); line <= lineOf(Math.max(span.start, span.end - 1)); line++) {

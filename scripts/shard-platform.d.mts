@@ -7,8 +7,10 @@ export interface ConversionMeasure {
   runtimeShare: number | null; passed: boolean | null;
   /**
    * G294/G312: transitive real primary users, deduplicated; templates and frozen copies never supply users. `modules` are
-   * whole files one shard reaches; `exports` are top-level declarations (`exported: false` for a helper) that exactly one
-   * shard reaches inside a file two or more shards reach.
+   * whole files one shard reaches without the game shell; `exports` are top-level declarations (`exported: false` for a
+   * helper) that exactly one shard reaches inside a file multiple consumers reach. Entry/session/menu/loadout shell roots
+   * are consumers through named reach for the documented control-plane modules and UI bridges only.
+   * Loading species/models/rendering content never supplies a second content user.
    */
   gameSystemAttribution: { status: 'import-graph'; review: 'G294-primary-reach'; lines: number; modules: { path: string; lines: number }[];
     exports: { path: string; name: string; exported: boolean; lines: number }[]; pendingSecondUser?: PendingPlatformCharge[] };
