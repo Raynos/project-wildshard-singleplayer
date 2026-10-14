@@ -24,6 +24,7 @@ import { CABIN_DOOR_EDITS, CABIN_LIFE, CABIN_MOSS_EDITS, CABIN_PARTICLE_GLSL, CA
 import { mergeParts, type PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind } from './logKit';
 import { pineModels } from './context';
+import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from './cabinBake';
 
 /**
@@ -296,7 +297,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
 
 /** a model library's LOD glTF (@wildshard/sdk/kit/lodGlb) */
 export function loadLod(id: string): Promise<{ scene: THREE.Group }> {
-  return loadLodGlb(`/assets/models/${id}/${id}_lod.glb`);
+  return loadLodGlb(`/assets/models/${id}/${id}_lod.glb`, authored.propMaterials);
 }
 
 /** flatten a glTF scene into (geometry, material, world matrix) triples with sky-aware materials */

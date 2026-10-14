@@ -9,9 +9,10 @@
  *
  *   await loadMossyBoulder(ctx);   // place() is synchronous: the GLB first
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
+import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import { loadSiteTimbers, propShapeGeometry } from '../world/timberSites';
 import { loadLod, prepModel } from '../world/homestead';
-import { bakePart, supportPoints } from '@wildshard/engine/models/hull';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 
 /** a copy collides once this much of it shows above the ground (P3); lower ones the capsule's autostep walks over */
@@ -33,14 +34,10 @@ const KEY = 'pine-hollow/mossy-boulder';
 
 /** Load the scan into this shard's context (once). */
 export async function loadMossyBoulder(ctx: ModelContext): Promise<void> {
-  const gltf = await loadLod('rock_moss_set_01');
-  ctx.once(KEY, () => prepModel(gltf.scene, ctx.sky).map((p): Shape => {
-    const g = p.geometry;
-    g.computeBoundingBox();
-    const bb = g.boundingBox ?? new THREE.Box3(), c = bb.getCenter(new THREE.Vector3());
-    const local = new THREE.Matrix4().makeTranslation(-c.x, -bb.min.y, -c.z); // centred, base on y = 0
-    const hull = supportPoints(g, local);
-    return { geometry: bakePart(g, local), material: p.material, hull };
+  const [gltf, views] = await Promise.all([loadLod('rock_moss_set_01'), loadSiteTimbers(ctx)]);
+  ctx.once(KEY, () => authored.propShapes.rocks.map((row): Shape => {
+    const p = prepModel(gltf.scene, ctx.sky)[0]; if (p === undefined) throw new Error('[props] missing scan material');
+    return { geometry: propShapeGeometry(views, row.name, row.sphere), material: p.material, hull: new Float32Array(row.hull) };
   }));
 }
 

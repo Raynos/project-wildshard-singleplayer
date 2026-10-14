@@ -6,6 +6,7 @@ import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
 import { pineHeroUrls } from '../world/heroFiles';
 import coatPages from '../data/coatPages.generated.json' with { type: 'json' };
+import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { PINE_SKY } from '../data/sky';
 
 const uniq = (urls: readonly string[]): string[] => [...new Set(urls)];
@@ -75,7 +76,7 @@ export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
     sky: [...(color in publicBytes() && gain in publicBytes() ? [color, gain] : [`${hdri}.hdr`]), ...(skyJson in publicBytes() ? [skyJson] : []), ...PINE_SKY_KEY_URLS.filter((url) => url in publicBytes())].map(gpu),
     baked: Object.keys(publicBytes()).filter((url) => url.startsWith(`${bakedDir}tex/`) && !url.includes('.phone.') && !BAKED_UNREAD.test(url)).map(gpu),
     terrain: terrain.map(gpu), trees: trees.map(gpu), physics: ['/assets/physics/rapier.wasm', ...(`${bakedDir}navmesh.bin` in publicBytes() ? [`${bakedDir}navmesh.bin`] : [])], cabins,
-    props: [...worldReads(tier, tex), ...props, ...pineHeroUrls().filter((url) => url in publicBytes()), ...rigNames.map((name) => `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`).filter((url) => url in publicBytes())].map(gpu).concat(coatReads(tier, tex), viewmodelReads(tier, tex)),
+    props: [...worldReads(tier, tex), ...props, ...pineHeroUrls().filter((url) => url in publicBytes()), ...rigNames.map((name) => `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`).filter((url) => url in publicBytes())].map(gpu).map(url => (authored.propMaterials as Readonly<Record<string,string>>)[url] ?? url).concat(coatReads(tier, tex), viewmodelReads(tier, tex)),
     art: [], music: [], sfx: [],
   };
 }

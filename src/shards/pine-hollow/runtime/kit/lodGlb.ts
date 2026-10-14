@@ -1,4 +1,4 @@
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 /**
@@ -12,8 +12,13 @@ export interface GlbPart { geometry: THREE.BufferGeometry; material: THREE.Mater
 
 const loader = new GLTFLoader();
 /** Fetches a glTF scene. */
-export function loadLodGlb(url: string): Promise<{ scene: THREE.Group }> {
-  return new Promise<{ scene: THREE.Group }>((resolve, reject) => { loader.load(url, resolve, undefined, reject); });
+export function loadLodGlb(url: string, aliases: Readonly<Record<string, string>> = {}): Promise<{ scene: THREE.Group }> {
+  const read = Object.keys(aliases).length === 0 ? loader : new GLTFLoader(new THREE.LoadingManager());
+  if (read !== loader) read.manager.setURLModifier(path => {
+    const served = THREE.DefaultLoadingManager.resolveURL(path), key = new URL(served, location.href).pathname;
+    return THREE.DefaultLoadingManager.resolveURL(aliases[key] ?? path);
+  });
+  return new Promise<{ scene: THREE.Group }>((resolve, reject) => { read.load(url, resolve, undefined, reject); });
 }
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => 'isMesh' in o;

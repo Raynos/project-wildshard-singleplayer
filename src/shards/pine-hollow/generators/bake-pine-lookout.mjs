@@ -7,6 +7,8 @@
 // src/shards/pine-hollow/data/lookout.json, which the page finishes the timber from (src/shards/pine-hollow/models/fireLookout.ts).
 // test/shards/pine-hollow/lookout-bake.test.ts is the stale gate (it re-runs the generator).
 // Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-lookout.mjs
+import { pinePropShapes } from './propShapes.ts';
+import { pinePropScan, pinePropMaterialFiles } from './bake-pine-props.mjs';
 import { pineLandmarkSites } from './landmarkSites.ts';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -36,10 +38,13 @@ export function pineTimberGround() { return readNativeTerrain(readFileSync(resol
 /** Write the admitted world tiles and Explorer library through the same confined launcher. */
 async function writeTimberWorld() {
   const crags = await bakeCragRows(), ground = pineTimberGround();
-  const baked = pineTimberWorldBake(ground.heightAt, root, { phone: { bin: crags.bins.phone, tiles: crags.rows.skin.phone.tiles }, desktop: { bin: crags.bins.desktop, tiles: crags.rows.skin.desktop.tiles } }, ground);
-  const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer'), cabins = baked.pieces.find(row => row.name === 'pine.cabins'), under = baked.pieces.find(row => row.name === 'pine.undergrowth');
-  if (piece === undefined || cabins === undefined || under === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
-  const library = [piece, cabins, under].map(part => {
+  const materialFiles = pinePropMaterialFiles();
+  for (const [path, bytes] of Object.entries(materialFiles.outputs)) { mkdirSync(resolve(root, path, '..'), { recursive: true }); writeFileSync(resolve(root, path), bytes); }
+  const shapes = pinePropShapes({ rocks: await pinePropScan('rock_moss_set_01'), stumps: await pinePropScan('tree_stump_01'), logs: await pinePropScan('dead_tree_trunk') });
+  const baked = pineTimberWorldBake(ground.heightAt, root, { phone: { bin: crags.bins.phone, tiles: crags.rows.skin.phone.tiles }, desktop: { bin: crags.bins.desktop, tiles: crags.rows.skin.desktop.tiles } }, ground, shapes.piece);
+  const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer'), cabins = baked.pieces.find(row => row.name === 'pine.cabins'), under = baked.pieces.find(row => row.name === 'pine.undergrowth'), propsPiece = baked.pieces.find(row => row.name === 'pine.props');
+  if (piece === undefined || cabins === undefined || under === undefined || propsPiece === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
+  const library = [piece, cabins, under, propsPiece].map(part => {
     const hash = createHash('sha256').update(part.glb).digest('hex'); baked.assets.set(hash, part.glb);
     const file = { hash, kind: 'glb', compressed: part.glb.length };
     const parsed = Object.assign(file, parseGlb(part.glb));
@@ -51,7 +56,7 @@ async function writeTimberWorld() {
   const shardfile = { ...baked.shardfile, terrain: query.terrain, critical: [...baked.shardfile.critical, ...query.critical], library: [...baked.shardfile.library ?? [], ...props.wholeLibrary], files: [...baked.shardfile.files, ...library, ...query.files].sort((a,b) => a.hash.localeCompare(b.hash)) };
   const out = resolve(root, 'src/shards/pine-hollow/assets'); mkdirSync(out, { recursive: true });
   for (const [ref, bytes] of baked.assets) writeFileSync(resolve(out, ref), bytes);
-  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, landmarks: pineLandmarkSites(ground.heightAt), placements: pineTimberPlacements(ground.heightAt), lookout: bakeLookoutRows().rows, sites: bakeSiteTimberRows().rows, cabins: cabins.rows })}\n`);
+  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, propShapes: shapes.rows, propMaterials: materialFiles.aliases, propMaterialCosts: materialFiles.costs, landmarks: pineLandmarkSites(ground.heightAt), placements: pineTimberPlacements(ground.heightAt), lookout: bakeLookoutRows().rows, sites: bakeSiteTimberRows().rows, cabins: cabins.rows })}\n`);
   console.info(`Pine timber product: ${shardfile.tiles.length} tiles, ${shardfile.files.length} charged files, 3 world copies and 2 library copies`);
 }
 

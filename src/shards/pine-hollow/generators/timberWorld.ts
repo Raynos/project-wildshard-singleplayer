@@ -24,14 +24,15 @@ export function pineTimberPlacements(heightAt: (x: number, z: number) => number)
 }
 
 /** Compile one world Scene. Library shapes never become extra world draws or colliders. */
-export function pineTimberWorldBake(heightAt: (x: number, z: number) => number, project?: string, crags?: Record<CragTier, SkinBake>, streams?: PineStreamGround): BakedScene {
+export function pineTimberWorldBake(heightAt: (x: number, z: number) => number, project?: string, crags?: Record<CragTier, SkinBake>, streams?: PineStreamGround, restShapes?: THREE.Object3D): BakedScene {
   const scene = new THREE.Scene(); scene.name = 'pine-hollow.timber-world';
   scene.add(pineLookoutScene(heightAt), pineSiteTimberScene(heightAt));
+  if (restShapes !== undefined) scene.add(restShapes);
   const library = new BakedPiece('pine-timber-explorer', [], [], { nativeAttributes: true, compactIndex: true,
     nodeExtras: (kind, mesh) => {
       const count = mesh.geometry.getAttribute('position').count;
       return { wholePartition: { id: kind, vertexCount: count, indexCount: 0, index: 'none',
-        vertices: Array.from({ length: count }, (_, i) => i), triangles: Array.from({ length: count / 3 }, (_, i) => i) } };
+        vertices: { runs: [0, count] }, triangles: { runs: [0, count / 3] } } };
     } });
   bakeSiteTimbers(heightAt, new TimberRecorder((timber, _row, ordinal) => {
     if (ordinal !== 1 && ordinal !== 3) return;

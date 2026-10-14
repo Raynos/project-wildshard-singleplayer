@@ -7,8 +7,9 @@
  *   await loadTreeStump(ctx);   // place() is synchronous: the GLB first
  */
 import type * as THREE from 'three';
+import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import { loadSiteTimbers, propShapeGeometry } from '../world/timberSites';
 import { loadLod, prepModel } from '../world/homestead';
-import { bakePart, supportPoints } from '@wildshard/engine/models/hull';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 
 interface Part { geometry: THREE.BufferGeometry; material: THREE.Material; hull: Float32Array }
@@ -17,10 +18,10 @@ const KEY = 'pine-hollow/tree-stump';
 
 /** Load the scan into this shard's context (once). */
 export async function loadTreeStump(ctx: ModelContext): Promise<void> {
-  const gltf = await loadLod('tree_stump_01');
-  ctx.once(KEY, () => prepModel(gltf.scene, ctx.sky).map((p): Part => {
-    const hull = supportPoints(p.geometry, p.matrix);
-    return { geometry: bakePart(p.geometry, p.matrix), material: p.material, hull };
+  const [gltf, views] = await Promise.all([loadLod('tree_stump_01'), loadSiteTimbers(ctx)]);
+  ctx.once(KEY, () => prepModel(gltf.scene, ctx.sky).map((p, i): Part => {
+    const row = authored.propShapes.stumps[i]; if (row === undefined) throw new Error('[props] missing authored stump');
+    return { geometry: propShapeGeometry(views, row.name, row.sphere), material: p.material, hull: new Float32Array(row.hull) };
   }));
 }
 
