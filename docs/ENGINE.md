@@ -5060,3 +5060,12 @@ ordinary tick. `damaged(target, killed)` wakes hunt actors after a blow;
 custom policies keep their own damage listeners. `wake(body)` also serves
 external alarms. Caller noise/sight records, snapshot envelopes, clocks,
 policy/charge/body phases and RNG streams remain with their owners.
+
+`bindMeshMap(id, originalMaterial)` and model-library
+`mappedLook(id, originalMaterial)` borrow the original colour/bump and
+normal, roughness and AO maps for a compiled lit graph. Normal scale,
+bump scale and AO intensity are copied; textures retain their sampler,
+UV channel and owner. Equal graph/source loans share one scoped variant,
+while different source materials remain separate. Graph roughness and
+occlusion factors multiply the borrowed channels. Existing Texture-only
+calls retain the colour-map path; graph uniforms stay shared on variants.

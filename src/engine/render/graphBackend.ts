@@ -5,7 +5,7 @@
  * (`nodes/engineNodesHandler.ts`) on the renderer once and returns it. Nothing on the default render path calls it, so a
  * shard without a graph material pays nothing and its programs stay byte for byte.
  */
-import type { Texture, Material } from 'three';
+import { Texture, Material, Vector2 } from 'three';
 import type { Scope } from '../app/scope';
 import type { attachOutline, compileGraph, GraphNormalPrepass, GraphPostPass } from './graph/compile';
 import type { EngineNodesHandler } from './nodes/engineNodesHandler';
@@ -48,11 +48,33 @@ export async function loadGraphCompiler(renderer: Renderer): Promise<GraphCompil
 }
 
 const meshMapBases = new WeakMap<Material, Material>();
+const sourceMaps = new WeakMap<Scope, WeakMap<Material, WeakMap<Material, Material>>>();
 const meshMaps = new WeakMap<Scope, WeakMap<Material, WeakMap<Texture, Material>>>();
 
 /** Borrow a model's original colour map for an opted-in graph, preserving its sampler and UV transform.
  * Equal graph/map pairs share one scope-owned material; neither the source nor the borrowed texture is disposed. */
-export function bindGraphMeshMap(material: Material, map: Texture | null | undefined, scope: Scope): Material {
+export function bindGraphMeshMap(material: Material, map: Texture | Material | null | undefined, scope: Scope): Material {
+  if (map instanceof Material) {
+    if (scope.disposed) throw new Error('Graph map loan needs a live scope');
+    if (material.userData['graphPbrMaps'] !== true && material.userData['graphMeshMap'] !== true) return material;
+    let owners = sourceMaps.get(scope);
+    if (owners === undefined) { owners = new WeakMap(); sourceMaps.set(scope, owners); }
+    let sources = owners.get(material);
+    if (sources === undefined) { sources = new WeakMap(); owners.set(material, sources); }
+    const known = sources.get(map); if (known !== undefined) return known;
+    const variant = scope.own(material.clone());
+    for (const slot of ['map', 'bumpMap', 'normalMap', 'roughnessMap', 'aoMap'] as const) {
+      const value: unknown = Reflect.get(map, slot);
+      if (value instanceof Texture && !Reflect.set(variant, slot, value)) throw new Error(`Graph cannot borrow ${slot}`);
+    }
+    for (const slot of ['bumpScale', 'aoMapIntensity'] as const) {
+      const value: unknown = Reflect.get(map, slot);
+      if (typeof value === 'number' && Number.isFinite(value)) Reflect.set(variant, slot, value);
+    }
+    const scale: unknown = Reflect.get(map, 'normalScale'), target: unknown = Reflect.get(variant, 'normalScale');
+    if (scale instanceof Vector2 && target instanceof Vector2) target.copy(scale);
+    meshMapBases.set(variant, material); sources.set(map, variant); return variant;
+  }
   if (material.userData['graphMeshMap'] !== true || (map === null || map === undefined)) return material;
   let graphs = meshMaps.get(scope);
   if (graphs === undefined) { graphs = new WeakMap(); meshMaps.set(scope, graphs); }

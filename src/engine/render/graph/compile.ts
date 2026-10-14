@@ -725,6 +725,14 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     if (lighting === undefined) throw new Error('Missing toon lighting');
     return litHooks(lighting, scope);
   };
+  /** Authored scalar factors multiply borrowed PBR slots, as native material factors do. */
+  const mappedFactor = (base: Node<'float'>, slot: 'roughnessMap' | 'aoMap'): Node<'float'> => Fn((builder: NodeBuilder): Node<'float'> => {
+    const map: unknown = Reflect.get(builder.material, slot);
+    if (!(map instanceof THREE.Texture)) return base;
+    const sample = texture(map);
+    return slot === 'roughnessMap' ? base.mul(sample.g)
+      : base.mul(sample.r.sub(1).mul(new ConvertNode<'float'>(materialReference('aoMapIntensity', 'float'), 'float')).add(1));
+  })();
   /** a material graph: the lighting model's material with the surface and vertex stages in its slots */
   const surfaceMaterial = (): NodeMaterial => {
     const s = st.surface ?? {};
@@ -738,11 +746,11 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     const discard = out(s.discard);
     if (discard !== null) m.maskNode = not(asBool(discard)); // three discards where the mask is false
     const occlusion = out(s.occlusion);
-    if (occlusion !== null) m.aoNode = asFloat(occlusion);
+    if (occlusion !== null) m.aoNode = mappedFactor(asFloat(occlusion), 'aoMap');
     if (m instanceof MeshStandardNodeMaterial) {
       const emissive = out(s.emissive), roughness = out(s.roughness), metalness = out(s.metalness);
       if (emissive !== null) m.emissiveNode = widen(emissive, 'vec3');
-      if (roughness !== null) m.roughnessNode = asFloat(roughness);
+      if (roughness !== null) m.roughnessNode = mappedFactor(asFloat(roughness), 'roughnessMap');
       if (metalness !== null) m.metalnessNode = asFloat(metalness);
     }
     const position = out(st['vertex.position']?.position);
@@ -790,6 +798,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const material = ir.kind === 'post' ? postMaterial() : surfaceMaterial();
   material.name = `graph:${ir.kind}`;
   if (meshMapUsed) material.userData['graphMeshMap'] = true;
+  if (ir.kind === 'material' && ir.model !== 'unlit') material.userData['graphPbrMaps'] = true;
   const outline = ir.kind === 'post' ? null : outlineMaterial();
 
   return {

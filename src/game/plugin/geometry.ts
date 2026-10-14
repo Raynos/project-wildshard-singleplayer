@@ -90,10 +90,10 @@ export interface ModelFit { readonly size: number; readonly by: 'span' | 'height
 /** A loaded model library: preload once, then take copies. */
 export interface ModelLibrary<M extends string, H extends string> {
   /** Borrow the caller's compiled look book until its scope ends; no material is copied. */
-  readonly bindLooks: (scope: ResourceScope, ports: { readonly materials: ReadonlyMap<string, Material>; readonly bindMeshMap: (id: string, map: Texture) => Material }) => void;
+  readonly bindLooks: (scope: ResourceScope, ports: { readonly materials: ReadonlyMap<string, Material>; readonly bindMeshMap: (id: string, map: Texture | Material) => Material }) => void;
   readonly look: (id: string) => Material | undefined;
   readonly material: (id: string) => Material;
-  readonly mappedLook: (id: string, map: Texture) => Material;
+  readonly mappedLook: (id: string, map: Texture | Material) => Material;
   /** Load every listed model once (a failed one is skipped and faulted). */
   preload: (pause?: () => Promise<void>) => Promise<void>;
   /** Owned prepared geometry copies sharing their declared original atlas. */
@@ -303,6 +303,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
     mappedLook: (id, map) => {
       if (lookPorts?.materials.has(id) === true) return lookPorts.bindMeshMap(id, map);
       if (fallback === undefined) throw new Error('Model library has no declared mapped fallback');
+      if (!(map instanceof Texture)) { const copied = map.clone(); Object.assign(copied, fallback); return copied; }
       return new MeshStandardMaterial({ map, ...fallback });
     },
     preload: (pause) => {

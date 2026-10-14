@@ -104,7 +104,7 @@ function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>)
 export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, renderer: Renderer, scope: Scope, options: { graphs?: boolean; sources?: GraphSources; trustedGraphs?: boolean } = {}): Promise<{
   /** Set a named graph uniform through its declared type/range; no shader rebuild. */
   setParam: (id: string, name: string, value: GraphLiteral) => void;
-  materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; bindMeshMap: (id: string, map: Texture) => Material; tick: (dt: number) => void;
+  materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; bindMeshMap: (id: string, map: Texture | Material) => Material; tick: (dt: number) => void;
   outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding) | null;
 }> {
   const graphsOn = options.graphs ?? setting('graphMaterials') === 'on';
@@ -179,7 +179,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   const splatDrawn = splat === undefined ? null : splatSurface(splat, { scope, anisotropy: Math.min(16, renderer.capabilities.getMaxAnisotropy()), texture: (ref) => { const texture = textures.get(ref); if (texture === undefined) throw new Error('Unresolved admitted splat layer'); return texture; } });
   const surfaces = splat === undefined || splatDrawn === null ? propNamed : withSplatSurface({ name: splat.material, binding: splatDrawn.binding }, propNamed);
   // a further entry (an exported skin's binding, SF16) compiles on the same looks, compiler and admitted textures, scope-owned
-  const bindMeshMap = (id: string, map: Texture): Material => {
+  const bindMeshMap = (id: string, map: Texture | Material): Material => {
     const material = materials.get(id);
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
     return bindGraphMeshMap(material, map, scope);
