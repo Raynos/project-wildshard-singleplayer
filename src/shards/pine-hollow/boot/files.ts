@@ -1,83 +1,15 @@
-import type { ChunkFiles } from '@wildshard/engine/boot/bytes';
-import { filePolicy } from '@wildshard/engine/boot/filePolicy';
+import { resolveBootSources } from '@wildshard/engine/boot/filePolicy';
 import type { TexMode } from '@wildshard/engine/boot/gpuFiles';
-import { publicBytes } from '@wildshard/engine/boot/tables';
 import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
-import { pineHeroUrls } from '../world/heroFiles';
 import coatPages from '../data/coatPages.generated.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
-import { PINE_SKY } from '../data/sky';
+import { PINE_BOOT_FILES, PINE_BOOT_SOURCES } from '../data/bootFiles';
 
-const uniq = (urls: readonly string[]): string[] => [...new Set(urls)];
-/** every sky key's baked pair (data/sky.ts): the boot pack holds all seven, so the clock never fetches a key mid-play (E44) */
-const PINE_SKY_KEY_URLS = Object.values(PINE_SKY.keys).flatMap((k) => [PINE_SKY.keyFiles.color, PINE_SKY.keyFiles.gain].map((f) => f.replaceAll('{id}', k.id)));
-/** the KTX2 table the boot lists read: the generated one, or with the memory trim's ASTC 6×6 overlay (boot/gpuTable.ts, G180 B2) */
 let table: typeof GPU_FILES = GPU_FILES;
-/** boot/gpuTable.ts, when the manifest's KTX2 table resolves (the boot's ktx2 stage, before any list is read) */
+/** The boot's KTX2 stage supplies its actual ASTC overlay before any list resolves. */
 export function usePineGpuFiles(next: typeof GPU_FILES): void { table = next; }
-const rigNames = ['deer-hind', 'deer-stag', 'boar', 'elk-cow', 'elk-bull', 'bear-black', 'bear-brown', 'antler-king-rig'];
-const treeSet = '/assets/models/pine-hollow-trees';
-const bakedDir = '/assets/baked/pine-hollow/';
-const hdri = '/assets/hdri/qwantani_sunset_puresky_2k';
 export const BAKED_UNREAD = /\/fur-[^/]*$/;
-/** Lossless authored coat pages are charged on the image path; KTX2 keeps its existing stand-ins. */
-function coatReads(tier: Tier, tex: TexMode): string[] {
-  const pages: Readonly<Record<string, { image: string }>> = coatPages.tiers[tier];
-  return Object.keys(pages).sort().flatMap(key => {
-    if (tex === 'ktx2') {
-      const files = table[tier][key];
-      if (files === undefined) throw new Error(`Missing Pine coat stand-in ${key}`);
-      return files;
-    }
-    const page = pages[key];
-    if (page === undefined) throw new Error(`Missing Pine coat page ${key}`);
-    return [page.image];
-  });
-}
-/**
- * G187 cut 3: the weapon viewmodel sets baked to KTX2 (scripts/bake-viewmodel-sets.mjs; engine viewmodelBakeUrl names them
- * `/assets/baked/pine-hollow/viewmodel/<set>.<plane>.png`): read only on the KTX2 path (the engine's startViewmodelTextures
- * adopts them at boot instead of drawing the sets), so only a KTX2 list carries their stand-ins.
- */
-function viewmodelReads(tier: Tier, tex: TexMode): string[] {
-  if (tex !== 'ktx2') return [];
-  return Object.keys(table[tier]).filter((url) => url.startsWith(`procedural:${bakedDir}viewmodel/`)).sort().flatMap((url) => table[tier][url] ?? []);
-}
-/** World files formerly fetched outside the loading contract. */
-export function worldReads(tier: Tier, tex: TexMode = 'img'): string[] {
-  const { gpu } = filePolicy(tier, tex, table);
-  const phone = tier === 'phone' ? '-phone' : '';
-  return [
-    '/assets/lut/pine-hollow.bin', `/assets/horizon/pine-hollow-day${phone}.webp`, `/assets/horizon/pine-hollow-night${phone}.webp`,
-    '/assets/pine-hollow/weapons/lever-rifle.glb', '/assets/pine-hollow/weapons/skinning-knife.glb',
-    '/assets/pine-hollow/life/birds.glb', '/assets/pine-hollow/life/birds.json',
-    ...['ranger', 'trader', 'miller'].map((kind) => `/assets/pine-hollow/npcs/${kind}.glb`), '/assets/pine-hollow/journal/chalk.webp',
-    // Cabin meshes, crag skins and running water are charged on the admitted world tiles.
-    // the procedural wildlife's offline bake (G285, models/wildlife.ts)
-    '/assets/pine-hollow/baked/wildlife.glb',
-    // the thralls' baked glass eyes and ferns (species/hulls.ts)
-    `/assets/pine-hollow/creatures/thrall-extras${tier === 'phone' ? '.phone' : ''}.glb`,
-    // the rain's baked puddles and crowns' cover (world/weather.ts)
-    `/assets/pine-hollow/baked/rain${tier === 'phone' ? '.phone' : ''}.bin`,
-  ].map(gpu).filter((url) => url in publicBytes());
-}
-export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
-  const { gpu, layer, pbr } = filePolicy(tier, tex, table);
-  const gltf = (id: string): string[] => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((kind) => `/assets/models/${id}/textures/${id}_${kind}_1k.jpg`)];
-  const lod = (id: string): string => `/assets/models/${id}/${id}_lod.glb`;
-  const terrain = uniq([...['forrest_ground_03', 'leafy_grass', 'rock_ground', 'stony_dirt_path'].flatMap(pbr).map(layer), ...pbr('rock_ground')]);
-  const trees = uniq(['trees.glb', 'cards-albedo.png', 'cards-normal.jpg', 'cards-arm.jpg', 'impostor-albedo.png', 'impostor-normal.jpg'].map((name) => `${treeSet}/${name}`).concat(['pine_bark', 'fir_bark', 'metasequoia_bark', 'birch_bark', 'bark_willow_02'].flatMap(pbr).map(layer)));
-  const layered = new Set([...terrain, ...trees].map(gpu));
-  const cabins = uniq([...['wood_trunk_wall', 'wood_planks_grey', 'wood_planks_dirt', 'rough_pine_door', 'stone_wall', 'pine_bark'].flatMap(pbr), ...['stone_fire_pit', 'wooden_crate_02', 'wine_barrel_01', 'wooden_bucket_01', 'hatchet'].flatMap(gltf), lod('Lantern_01')].map(gpu)).filter((url) => !layered.has(url));
-  const props = uniq(['rock_moss_set_01', 'tree_stump_01', 'dead_tree_trunk'].map(lod));
-  const skyJson = `${bakedDir}sky.json`, color = `${hdri}.sky.jpg`, gain = `${hdri}.gain.png`;
-  return {
-    sky: [...(color in publicBytes() && gain in publicBytes() ? [color, gain] : [`${hdri}.hdr`]), ...(skyJson in publicBytes() ? [skyJson] : []), ...PINE_SKY_KEY_URLS.filter((url) => url in publicBytes())].map(gpu),
-    baked: Object.keys(publicBytes()).filter((url) => url.startsWith(`${bakedDir}tex/`) && !url.includes('.phone.') && !BAKED_UNREAD.test(url)).map(gpu),
-    terrain: terrain.map(gpu), trees: trees.map(gpu), physics: ['/assets/physics/rapier.wasm', ...(`${bakedDir}navmesh.bin` in publicBytes() ? [`${bakedDir}navmesh.bin`] : [])], cabins,
-    props: [...worldReads(tier, tex), ...props, ...pineHeroUrls().filter((url) => url in publicBytes()), ...rigNames.map((name) => `/assets/pine-hollow/creatures/${name}${tier === 'phone' ? '.phone' : ''}.rigged.glb`).filter((url) => url in publicBytes())].map(gpu).map(url => (authored.propMaterials as Readonly<Record<string,string>>)[url] ?? url).concat(coatReads(tier, tex), viewmodelReads(tier, tex)),
-    art: [], music: [], sfx: [],
-  };
-}
+export const bootSources = (tier: Tier, tex: TexMode = 'img'): ReturnType<typeof resolveBootSources> => resolveBootSources(PINE_BOOT_FILES, PINE_BOOT_SOURCES,
+  tier, tex, table, { pages: { coats: coatPages.tiers }, aliases: { props: authored.propMaterials } });
 export const bootFiles = (tier: Tier): readonly string[] => Object.values(bootSources(tier)).flat();

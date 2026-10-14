@@ -5102,3 +5102,11 @@ interpolates across the surface. Sun attenuates directional diffuse and
 specular (including toon/custom lighting); local lights and ambient stay
 unchanged. Fog attenuates the engine scene and weather fog blends. An
 unlit graph refuses sun. Omitted factors retain the existing shader path.
+
+Boot filePolicy interprets bounded `BootFileRecipes` through resolveBootFiles
+and resolveBootSources. Named rows select explicit tier URLs, public prefixes,
+PBR/GLTF inventories, GPU table prefixes or supplied image-page inventories;
+concat preserves ordering. Optional unique, layer/GPU transforms, public-file
+filtering, exclusions and admitted alias maps apply in that order. Page rows
+require KTX2 stand-ins in that mode. Named references refuse cycles, depth 16,
+256 visits or over 4096 files. No recipe performs IO or owns another boot.
