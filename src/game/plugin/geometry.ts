@@ -1,6 +1,7 @@
+import type { HeldMeleeRecipe, createHeldPresentation } from './weaponFamily';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, type ShaderEditRow } from './shaderFamily';
-import { defineBakedModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
+import { defineSceneModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
 import * as wholeV from 'valibot';
 import type { Scope as ResourceScope } from '@wildshard/engine/app/scope';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -102,7 +103,7 @@ export interface ModelLibrary<M extends string, H extends string> {
   readonly looks: readonly SpeciesLook[];
   readonly preloadRigs: () => Promise<void>;
   /** Ordered Explorer models on this library's actual rig copies. */
-  readonly models: (rows: readonly ModelSpecimenRow[]) => ReturnType<typeof defineBakedModels>;
+  readonly models: (rows: readonly ModelSpecimenRow[]) => ReturnType<typeof defineSceneModels>;
 }
 
 const isMesh = (o: Object3D): o is Mesh => o instanceof Mesh;
@@ -1686,10 +1687,39 @@ export function rigLibrary(rows: RigLibraryRows): { bodies: CreatureBodies<strin
 }
 /** A model specimen is metadata and an existing library rig, with no private builder. */
 export interface ModelSpecimenRow { readonly model: BakedModelMetadata; readonly body: string; readonly specimen: CreatureSpecimenRow }
-/** Resolve authored specimens through the same hard-part/material builder as the original models. */
-export function modelCatalogue(rows: readonly ModelSpecimenRow[], library: Pick<ModelLibrary<string, string>, 'rig'>): ReturnType<typeof defineBakedModels> {
-  return defineBakedModels(rows.map(row => row.model), index => {
-    const row = rows[index]; if (row === undefined) throw new Error('Missing declared model specimen');
-    return creatureSpecimen(library.rig(row.body), row.specimen);
-  });
+/** A private-scene specimen declares its held recipe and original Explorer framing. */
+export type SceneCatalogueRow = Parameters<typeof defineSceneModels>[0][number] & {
+  readonly specimen?: { readonly kind: 'held'; readonly recipe: HeldMeleeRecipe };
+};
+/** Sealed resource owners and existing non-held builders; declaration creates no model or preload. */
+export interface SceneCataloguePorts {
+  readonly owners: ReadonlyMap<string, unknown>;
+  readonly builds?: Parameters<typeof defineSceneModels>[1];
+  readonly source?: Shardfile;
+}
+/** Resolve old rig specimens and declared held scenes through the same ordered catalogue. */
+export function modelCatalogue(rows: readonly ModelSpecimenRow[], library: Pick<ModelLibrary<string, string>, 'rig'>): ReturnType<typeof defineSceneModels>;
+export function modelCatalogue<Rows extends readonly SceneCatalogueRow[]>(rows: Rows, ports: SceneCataloguePorts): ReturnType<typeof defineSceneModels<Rows>>;
+export function modelCatalogue(rows: readonly (ModelSpecimenRow | SceneCatalogueRow)[], library: Pick<ModelLibrary<string, string>, 'rig'> | SceneCataloguePorts): ReturnType<typeof defineSceneModels> {
+  if ('rig' in library) {
+    const rigs = rows.map(row => { if (!('body' in row)) throw new Error('Rig catalogue needs its original body row'); return row; });
+    return defineSceneModels(rigs.map((row, index) => ({ model: row.model, builder: `body${String(index)}` })),
+      rigs.map((row, index) => [`body${String(index)}`, () => creatureSpecimen(library.rig(row.body), row.specimen)] as const));
+  }
+  const scenes = rows.map(row => { if (!('builder' in row)) throw new Error('Scene catalogue needs its original builder id'); return row; });
+  const builders = [...library.builds ?? []];
+  let heldFactory: typeof createHeldPresentation | null = null;
+  let preparation: Promise<void> | null = null;
+  const prepare = scenes.some(row => row.specimen?.kind === 'held') ? (): Promise<void> => {
+    preparation ??= import('./weaponFamily').then(renderer => { heldFactory = renderer.createHeldPresentation; return undefined; });
+    return preparation;
+  } : undefined;
+  for (const row of scenes) if (row.specimen !== undefined) {
+    const specimen = row.specimen;
+    builders.push([row.builder, () => {
+      if (heldFactory === null) throw new Error('Held catalogue must prepare before building');
+      return heldFactory(specimen.recipe, { owners: library.owners });
+    }]);
+  }
+  return defineSceneModels(scenes, builders, prepare);
 }

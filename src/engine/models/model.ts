@@ -212,6 +212,8 @@ export interface ModelDef<P extends object> {
   readonly variants?: readonly ModelVariant<P>[];
   /** the rng stream a `place` call's builds draw from, in placement order (default: a hash of `id`) */
   readonly seed?: number;
+  /** Optional async code/resource preparation, awaited by the roster before any specimen builds. */
+  readonly prepare?: () => Promise<void>;
   readonly build: (ctx: ModelContext, params: P, rng: Rng) => ModelBuild;
   readonly lods?: readonly ModelLod<P>[];
   /** own-space colliders per copy; `ctx` reaches what the shard loaded (a GLB's hull points) */
@@ -310,9 +312,9 @@ export function seedOf(def: { readonly id: string; readonly seed?: number }): nu
 /** Authored model metadata resolved by a shared baked library; definition remains on the model contract. */
 export type BakedModelMetadata = Pick<ModelDef<Record<string, never>>, 'id' | 'name' | 'category' | 'pipeline' | 'file' | 'rig'>;
 /** Define an ordered catalogue without building a specimen or installing a service. */
-export function defineBakedModels(rows: readonly BakedModelMetadata[], build: (index: number) => ReturnType<ModelDef<Record<string, never>>['build']>): readonly ModelDef<Record<string, never>>[] {
+export function defineBakedModels(rows: readonly BakedModelMetadata[], build: (index: number) => ReturnType<ModelDef<Record<string, never>>['build']>, prepare?: () => Promise<void>): readonly ModelDef<Record<string, never>>[] {
   if (rows.length > 1024 || new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('Baked model catalogue must be bounded and unique');
-  return rows.map((row, index) => defineModel({ ...row, defaults: {}, build: () => build(index) }));
+  return rows.map((row, index) => defineModel({ ...row, defaults: {}, ...(prepare === undefined ? {} : { prepare }), build: () => build(index) }));
 }
 
 /** A lazy specimen borrows its actual builder; rows declare only framing and shown parts. */
@@ -323,7 +325,7 @@ export interface SceneModelRow {
 /** Actual page/Explorer owners keep geometry, materials and effects. */
 export type SceneModelPort = Object3D | {readonly root:Object3D;readonly part?:(id:string)=>Object3D|null};
 /** Define an ordered private-scene catalogue without constructing or preloading any model. */
-export function defineSceneModels<Rows extends readonly SceneModelRow[]>(rows:Rows,builds:readonly (readonly [string,()=>SceneModelPort])[]):{readonly [Index in keyof Rows]:ModelDef<Record<string,never>>} {
+export function defineSceneModels<Rows extends readonly SceneModelRow[]>(rows:Rows,builds:readonly (readonly [string,()=>SceneModelPort])[],prepare?:()=>Promise<void>):{readonly [Index in keyof Rows]:ModelDef<Record<string,never>>} {
   const builders=new Map(builds);
   const key=(value:string):boolean=>/^[a-zA-Z][a-zA-Z0-9.-]{0,127}$/u.test(value);
   if(rows.length>1024||builds.length>1024||builders.size!==builds.length||rows.some(row=>!key(row.builder)||!builders.has(row.builder)||(row.show?.length??0)>64||(row.show?.some(id=>!key(id))??false)
@@ -345,5 +347,5 @@ export function defineSceneModels<Rows extends readonly SceneModelRow[]>(rows:Ro
     if(typeof y!=='number'||!Number.isFinite(y))throw new Error('Scene model requires its owned vertical anchor');
     root.position.set(row.position[0],row.position[1]-y,row.position[2]);
     const group=new Group();group.add(root);return group;
-  }) as {readonly [Index in keyof Rows]:ModelDef<Record<string,never>>};
+  },prepare) as {readonly [Index in keyof Rows]:ModelDef<Record<string,never>>};
 }

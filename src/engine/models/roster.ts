@@ -34,7 +34,10 @@ export async function listShardModels(o: ShardModelsOptions): Promise<void> {
   listRoster([live(trainingDummy, { copies: ARENA_LINEUP.length, drawnAs: 'skinned' }), live(hoverboard, { copies: 1 })], ctx, o.animals, o.registry);
   try {
     const roster = await o.roster?.();
-    if (roster) listRoster(roster, ctx, o.animals, o.registry);
+    if (roster) {
+      await Promise.all(roster.flatMap(entry => entry.prepare === undefined ? [] : [entry.prepare()]));
+      listRoster(roster, ctx, o.animals, o.registry);
+    }
   } catch (error) {
     console.warn('[models] the level roster did not load; its creatures show from the live animals only', error);
   }

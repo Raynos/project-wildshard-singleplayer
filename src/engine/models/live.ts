@@ -102,6 +102,8 @@ function group(objects: readonly THREE.Object3D[], name: string): THREE.Object3D
 /** one live model a shard has: its catalog listing, made by `live(model, …)` (the model's params type stays inside) */
 export interface RosterEntry {
   readonly id: string;
+  /** Owned optional preparation, run before listing the synchronous specimen. */
+  readonly prepare?: () => Promise<void>;
   /** the species of a creature on the species rigs (its copies are the live animals of that kind) */
   readonly species?: string;
   readonly list: (ctx: ModelContext, animals: () => readonly { readonly kind: string }[], registry?: WorldRegistry) => void;
@@ -114,7 +116,7 @@ export interface RosterEntry {
 export function live<P extends object>(def: ModelDef<P>, o: { pipeline?: Pipeline | readonly Pipeline[]; planned?: number; copies?: number | (() => number); drawnAs?: DrawnAs } = {}): RosterEntry {
   const kind = def.rig?.species;
   return {
-    id: def.id, ...(kind === undefined ? {} : { species: kind }),
+    id: def.id, ...(kind === undefined ? {} : { species: kind }), ...(def.prepare === undefined ? {} : { prepare: def.prepare }),
     list: (ctx, animals, registry) => {
       const alive = (): number => {
         let n = 0;

@@ -4856,3 +4856,18 @@ pageEntry supplies the resident player/quest context; bindPageFight calls
 the existing UI fight owner at the shard original phase, with the same
 flags, facts, coins, held controller and saved record. It creates no host
 or clock, and never changes population installation order.
+
+`geometry.modelCatalogue` also accepts SceneCatalogueRow metadata/framing and
+`{ owners, builds?, source? }` ports. A `specimen: { kind: 'held', recipe }` row
+uses the same HeldMeleeRecipe and sealed resources as the page weapon, created
+only when its Explorer model builds. Original shown parts, framing and catalogue
+order use the defining engine scene-model runner. The existing rig/body specimen
+signature keeps its original builder; no model, preload or service is installed
+by declaring either catalogue. Both held gear catalogues use this one row shape.
+
+A ModelDef may declare an async `prepare` port. `live` retains that port and the
+shared roster loader awaits preparations before listing any of its synchronous
+specimens. Baked/scene catalogues accept the same optional preparation callback.
+Held modelCatalogue rows memoize their dynamic renderer import behind that door;
+declaring a catalogue in a cold generator never imports the UI or builds a model.
+Models without prepare keep their original listing/build path.

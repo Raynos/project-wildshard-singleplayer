@@ -1,3 +1,4 @@
+import { WHIP_HELD_RECIPE } from './heldWeapon';
 import { BRAZIERS, CARAVAN, TOWER, WELL } from './layout';
 import caravan from './caravan.json' with {type:'json'};
 import well from './well.json' with {type:'json'};
@@ -18,7 +19,7 @@ export const GEAR_MODEL_ROWS = [
 export const CARAVAN_MODEL_Y = caravan.anchors.y, WELL_MODEL_Y = well.anchors.y, BRAZIER_MODEL_Y = braziers.braziers[0]?.y ?? 0;
 /** Original lazy specimen framing and visible rest parts. */
 export const GEAR_SCENE_ROWS = [
-  {model:GEAR_MODEL_ROWS[0],builder:'whip',show:['coil']},
+  {model:GEAR_MODEL_ROWS[0],builder:'whip',show:['coil'],specimen:{kind:'held',recipe:WHIP_HELD_RECIPE}},
   {model:GEAR_MODEL_ROWS[1],builder:'tower',position:[-TOWER.x,TOWER.deck,-TOWER.z],subtractY:'deckY',show:['fire']},
   {model:GEAR_MODEL_ROWS[2],builder:'caravan',position:[-CARAVAN.x,-CARAVAN_MODEL_Y,-CARAVAN.z]},
   {model:GEAR_MODEL_ROWS[3],builder:'well',position:[-WELL.x,-WELL_MODEL_Y,-WELL.z]},
