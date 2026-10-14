@@ -1237,5 +1237,578 @@
         }
       ]
     }
+  ],
+  "crossbowParts": [
+    {
+      "id": "crossbow.loaded-bolt",
+      "reads": [
+        "loaded",
+        "reloading",
+        "reloadProgress"
+      ],
+      "nodes": [
+        {
+          "op": "constant",
+          "value": 1
+        },
+        {
+          "op": "constant",
+          "value": 0
+        },
+        {
+          "op": "read",
+          "index": 0
+        },
+        {
+          "op": "read",
+          "index": 1
+        },
+        {
+          "op": "read",
+          "index": 2
+        },
+        {
+          "op": "constant",
+          "value": 0.8
+        },
+        {
+          "op": "gt",
+          "a": 4,
+          "b": 5
+        },
+        {
+          "op": "select",
+          "test": 3,
+          "yes": 6,
+          "no": 1
+        },
+        {
+          "op": "select",
+          "test": 2,
+          "yes": 0,
+          "no": 7
+        },
+        {
+          "op": "sample",
+          "a": 4,
+          "interpolation": "smoothstep",
+          "keys": [
+            [
+              0.8,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        {
+          "op": "sub",
+          "a": 0,
+          "b": 9
+        },
+        {
+          "op": "select",
+          "test": 3,
+          "yes": 10,
+          "no": 1
+        },
+        {
+          "op": "select",
+          "test": 8,
+          "yes": 11,
+          "no": 1
+        },
+        {
+          "op": "constant",
+          "value": -0.05199999999999999
+        },
+        {
+          "op": "constant",
+          "value": 0.12
+        },
+        {
+          "op": "mul",
+          "a": 12,
+          "b": 14
+        },
+        {
+          "op": "add",
+          "a": 13,
+          "b": 15
+        },
+        {
+          "op": "constant",
+          "value": 0.0095
+        },
+        {
+          "op": "constant",
+          "value": 0.02
+        },
+        {
+          "op": "mul",
+          "a": 12,
+          "b": 18
+        },
+        {
+          "op": "add",
+          "a": 17,
+          "b": 19
+        }
+      ],
+      "bindings": [
+        {
+          "target": "loadedBolt",
+          "property": "visible"
+        },
+        {
+          "target": "loadedBolt",
+          "property": "z"
+        },
+        {
+          "target": "loadedBolt",
+          "property": "y"
+        }
+      ],
+      "channels": [
+        {
+          "property": "visible",
+          "value": 8
+        },
+        {
+          "property": "z",
+          "value": 16
+        },
+        {
+          "property": "y",
+          "value": 20
+        }
+      ]
+    }
+  ],
+  "leverParts": [
+    {
+      "id": "lever.moving-parts",
+      "reads": [
+        "open",
+        "leverAngle",
+        "boltTravel"
+      ],
+      "nodes": [
+        {
+          "op": "read",
+          "index": 0
+        },
+        {
+          "op": "read",
+          "index": 1
+        },
+        {
+          "op": "mul",
+          "a": 1,
+          "b": 0
+        },
+        {
+          "op": "read",
+          "index": 2
+        },
+        {
+          "op": "mul",
+          "a": 3,
+          "b": 0
+        }
+      ],
+      "bindings": [
+        {
+          "target": "lever",
+          "property": "pitch"
+        },
+        {
+          "target": "bolt",
+          "property": "z"
+        }
+      ],
+      "channels": [
+        {
+          "property": "pitch",
+          "value": 2
+        },
+        {
+          "property": "z",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "lever.hammer",
+      "reads": [
+        "cocked",
+        "hammerCocked",
+        "hammerDown",
+        "hammerAngle"
+      ],
+      "nodes": [
+        {
+          "op": "read",
+          "index": 0
+        },
+        {
+          "op": "read",
+          "index": 1
+        },
+        {
+          "op": "read",
+          "index": 2
+        },
+        {
+          "op": "select",
+          "test": 0,
+          "yes": 1,
+          "no": 2
+        },
+        {
+          "op": "constant",
+          "value": 18
+        },
+        {
+          "op": "constant",
+          "value": 60
+        },
+        {
+          "op": "select",
+          "test": 0,
+          "yes": 4,
+          "no": 5
+        },
+        {
+          "op": "read",
+          "index": 3
+        },
+        {
+          "op": "read",
+          "index": 3
+        },
+        {
+          "op": "constant",
+          "value": 1
+        },
+        {
+          "op": "clock",
+          "value": "delta"
+        },
+        {
+          "op": "mul",
+          "a": 10,
+          "b": 6
+        },
+        {
+          "op": "min",
+          "a": 9,
+          "b": 11
+        },
+        {
+          "op": "sub",
+          "a": 3,
+          "b": 8
+        },
+        {
+          "op": "mul",
+          "a": 13,
+          "b": 12
+        },
+        {
+          "op": "add",
+          "a": 8,
+          "b": 14
+        }
+      ],
+      "bindings": [
+        {
+          "target": "hammer",
+          "property": "pitch"
+        }
+      ],
+      "channels": [
+        {
+          "property": "pitch",
+          "value": 15
+        }
+      ]
+    },
+    {
+      "id": "lever.round",
+      "reads": [
+        "phaseT",
+        "reloadIn",
+        "roundTime",
+        "reloading",
+        "planned",
+        "fed",
+        "gateX",
+        "gateY",
+        "gateZ"
+      ],
+      "nodes": [
+        {
+          "op": "constant",
+          "value": 1
+        },
+        {
+          "op": "constant",
+          "value": 0
+        },
+        {
+          "op": "read",
+          "index": 0
+        },
+        {
+          "op": "read",
+          "index": 1
+        },
+        {
+          "op": "sub",
+          "a": 2,
+          "b": 3
+        },
+        {
+          "op": "read",
+          "index": 2
+        },
+        {
+          "op": "mod",
+          "a": 4,
+          "b": 5
+        },
+        {
+          "op": "div",
+          "a": 6,
+          "b": 5
+        },
+        {
+          "op": "read",
+          "index": 3
+        },
+        {
+          "op": "gt",
+          "a": 1,
+          "b": 4
+        },
+        {
+          "op": "read",
+          "index": 4
+        },
+        {
+          "op": "read",
+          "index": 5
+        },
+        {
+          "op": "gt",
+          "a": 10,
+          "b": 11
+        },
+        {
+          "op": "select",
+          "test": 9,
+          "yes": 1,
+          "no": 12
+        },
+        {
+          "op": "select",
+          "test": 8,
+          "yes": 13,
+          "no": 1
+        },
+        {
+          "op": "constant",
+          "value": 0.8
+        },
+        {
+          "op": "gt",
+          "a": 15,
+          "b": 7
+        },
+        {
+          "op": "select",
+          "test": 14,
+          "yes": 16,
+          "no": 1
+        },
+        {
+          "op": "sample",
+          "a": 7,
+          "interpolation": "smoothstep",
+          "keys": [
+            [
+              0,
+              0
+            ],
+            [
+              0.45,
+              1
+            ]
+          ]
+        },
+        {
+          "op": "sub",
+          "a": 0,
+          "b": 18
+        },
+        {
+          "op": "sample",
+          "a": 7,
+          "interpolation": "smoothstep",
+          "keys": [
+            [
+              0.45,
+              0
+            ],
+            [
+              0.8,
+              1
+            ]
+          ]
+        },
+        {
+          "op": "read",
+          "index": 6
+        },
+        {
+          "op": "constant",
+          "value": 0.03
+        },
+        {
+          "op": "mul",
+          "a": 19,
+          "b": 22
+        },
+        {
+          "op": "add",
+          "a": 21,
+          "b": 23
+        },
+        {
+          "op": "constant",
+          "value": 0.003
+        },
+        {
+          "op": "add",
+          "a": 24,
+          "b": 25
+        },
+        {
+          "op": "read",
+          "index": 7
+        },
+        {
+          "op": "constant",
+          "value": -0.03
+        },
+        {
+          "op": "mul",
+          "a": 19,
+          "b": 28
+        },
+        {
+          "op": "add",
+          "a": 27,
+          "b": 29
+        },
+        {
+          "op": "read",
+          "index": 8
+        },
+        {
+          "op": "constant",
+          "value": 0.05
+        },
+        {
+          "op": "mul",
+          "a": 19,
+          "b": 32
+        },
+        {
+          "op": "add",
+          "a": 31,
+          "b": 33
+        },
+        {
+          "op": "constant",
+          "value": 0.03
+        },
+        {
+          "op": "add",
+          "a": 34,
+          "b": 35
+        },
+        {
+          "op": "constant",
+          "value": 0.05
+        },
+        {
+          "op": "mul",
+          "a": 20,
+          "b": 37
+        },
+        {
+          "op": "sub",
+          "a": 36,
+          "b": 38
+        },
+        {
+          "op": "constant",
+          "value": -0.35
+        },
+        {
+          "op": "mul",
+          "a": 40,
+          "b": 19
+        }
+      ],
+      "bindings": [
+        {
+          "target": "round",
+          "property": "visible"
+        },
+        {
+          "target": "round",
+          "property": "x"
+        },
+        {
+          "target": "round",
+          "property": "y"
+        },
+        {
+          "target": "round",
+          "property": "z"
+        },
+        {
+          "target": "round",
+          "property": "yaw"
+        }
+      ],
+      "channels": [
+        {
+          "property": "visible",
+          "value": 17
+        },
+        {
+          "property": "x",
+          "value": 26
+        },
+        {
+          "property": "y",
+          "value": 30
+        },
+        {
+          "property": "z",
+          "value": 39
+        },
+        {
+          "property": "yaw",
+          "value": 41
+        }
+      ]
+    }
   ]
 }

@@ -1,3 +1,5 @@
+import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
+import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
 import { RangedFrame, RangedTrace, RangedFlash } from '@wildshard/engine/render/viewmodelFeel';
 import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_RELOAD, RANGED_HIT, RANGED_BRASS } from '../../data/rangedFrame';
@@ -116,7 +118,11 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   
   private readonly feel: RangedFrame;
   private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
-  private posePos = new THREE.Vector3(); private poseRot = new THREE.Euler(); private poseInit = false;
+  private readonly posePlayback: HeldPlayback;
+  private readonly partValues = { reloading: 0, reloadProgress: 0, magX: 0, magY: 0, magZ: 0 };
+  private readonly poseValues = { time: 0, bob: 0, speed: 0, portrait: 0, recoil: 0, ads: 0, sprint: 0, reloadTilt: 0,
+    lagYaw: 0, lagPitch: 0, holster: 0, hipX: 0, hipY: 0, hipZ: 0, hipPitch: 0, hipYaw: 0, hipRoll: 0,
+    adsX: 0, adsY: 0, adsZ: 0, adsMotion: 0 };
   private sprintBlend = 0; private reloadTilt = 0;
   private time = 0;
   /** tracer line life (s) — a dev knob for screenshots */
@@ -148,6 +154,8 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.feel = new RangedFrame(RANGED_FRAME.magazine, this.player, FOV_HIP, FOV_ADS);
     this.buildViewmodel();
+    this.posePlayback = new HeldPlayback({ pose: playback.magazine, parts: playback.magazineParts },
+      new Map<string, unknown>([['root', this.model], ['magazine', this.mag], ['handle', this.handle], ['bolt', this.bolt]]));
     this.buildEffects();
     this.game.viewmodel.add(this.model);
     this.game.scene.add(this.puffs.points);
@@ -157,7 +165,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   override install(ctx: EquipContext): void {
     super.install(ctx);
     this.feel.bindInputs(app.input, ctx.scope, this, this.player);
-    ctx.scope.onDispose(() => { this.model.removeFromParent(); });
+    ctx.scope.onDispose(() => { this.posePlayback.dispose(); this.model.removeFromParent(); });
   }
 
 
@@ -255,7 +263,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
 
   // ── per-frame ──
   update(dt: number, t: number): void {
-    this.time = t;
+    this.time = t; this.posePlayback.beginFrame(dt);
     const p = this.player, cam = this.game.camera, s = this.state;
     this.cooldown = Math.max(0, this.cooldown - dt);
     this.sinceEmpty += dt;
@@ -279,34 +287,15 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     const rl = s.reloading ? Math.sin(Math.min(1, s.reloadProgress) * Math.PI) : 0;
     this.reloadTilt += (rl - this.reloadTilt) * Math.min(1, dt * 10);
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
-    const a = sstep(0, 1, this.feel.adsBlend), sp = this.sprintBlend * (1 - portrait * 0.7), rt = this.reloadTilt;
-    const port = portrait, scale = this.hip.scale * (1 - port * 0.12); // portrait phone: a touch smaller, held a little further out
-    const swX = Math.sin(t * 0.7) * 0.0025, swY = Math.sin(t * 1.1) * 0.002, swRz = Math.sin(t * 0.5) * 0.006;
-    const sf = p.speedFactor;
-    const bobX = Math.cos(p.bobTime) * 0.014 * sf, bobY = -Math.abs(Math.sin(p.bobTime)) * 0.011 * sf, bobRz = Math.cos(p.bobTime) * 0.018 * sf, bobRx = Math.sin(p.bobTime * 2) * 0.009 * sf;
-    const lagX = this.feel.lag.yaw * 0.25, lagY = this.feel.lag.pitch * 0.2, lagRy = this.feel.lag.yaw, lagRx = this.feel.lag.pitch;
-    const rc = this.feel.recoil;
-    // hip: lower-right, muzzle a touch in toward the centre
-    let { px, py, pz, rx, ry, rz } = this.hip;
-    px += sp * -0.06; py += sp * -0.08; pz += sp * 0.05; rx += sp * 0.30; ry += sp * 0.5; rz += sp * -0.12;
-    px += rt * -0.05; py += rt * -0.04; pz += rt * 0.03; rx += rt * 0.22; ry += rt * -0.2; rz += rt * 0.35;
-    px += swX + bobX + lagX; py += swY + bobY + lagY; rz += swRz + bobRz; rx += bobRx + lagRx; ry += lagRy;
-    pz += rc * 0.045; py += rc * 0.008; rx += rc * 0.06; rz += rc * -0.015; // kick back + muzzle up
-    px *= 1 - port * 0.35; py *= 1 + port * 0.25; pz *= 1 + port * 0.35;
-    if (a > 0) {
-      const ads = this.solveAds(scale), m = this.profile.ads.motion;
-      const ax = ads.px + (swX + bobX + lagX) * m, ay = ads.py + (swY + bobY + lagY) * m + rc * 0.004, az = ads.pz + rc * 0.02;
-      const arx = (bobRx + lagRx) * m + rc * 0.035, ary = lagRy * m, arz = (swRz + bobRz) * m + rc * -0.01;
-      px += (ax - px) * a; py += (ay - py) * a; pz += (az - pz) * a; rx += (arx - rx) * a; ry += (ary - ry) * a; rz += (arz - rz) * a;
-    }
+    const a = sstep(0, 1, this.feel.adsBlend), scale = this.hip.scale * (1 - portrait * 0.12);
+    const ads = a > 0 ? this.solveAds(scale) : this.adsPose, v = this.poseValues, hip = this.hip;
+    v.time = t; v.bob = p.bobTime; v.speed = p.speedFactor; v.portrait = portrait;
+    v.recoil = this.feel.recoil; v.ads = a; v.sprint = this.sprintBlend; v.reloadTilt = this.reloadTilt;
+    v.lagYaw = this.feel.lag.yaw; v.lagPitch = this.feel.lag.pitch; v.holster = this.holster;
+    v.hipX = hip.px; v.hipY = hip.py; v.hipZ = hip.pz; v.hipPitch = hip.rx; v.hipYaw = hip.ry; v.hipRoll = hip.rz;
+    v.adsX = ads.px; v.adsY = ads.py; v.adsZ = ads.pz; v.adsMotion = this.profile.ads.motion;
     this.glowRing.visible = a > 0.001; (this.rearGlow as THREE.MeshBasicMaterial).opacity = a * 0.85;
-    if (this.holster > 0) { const h = sstep(0, 1, this.holster); py -= h * 0.3; pz += h * 0.06; rx -= h * 0.5; rz += h * 0.2; }
-    this.model.scale.setScalar(scale);
-    const sm = this.poseInit ? Math.min(1, dt * 16) : 1; this.poseInit = true;
-    this.posePos.x += (px - this.posePos.x) * sm; this.posePos.y += (py - this.posePos.y) * sm; this.posePos.z += (pz - this.posePos.z) * sm;
-    this.poseRot.x += (rx - this.poseRot.x) * sm; this.poseRot.y += (ry - this.poseRot.y) * sm; this.poseRot.z += (rz - this.poseRot.z) * sm;
-    this.model.position.copy(this.posePos);
-    this.model.rotation.set(this.poseRot.x, this.poseRot.y, this.poseRot.z);
+    this.model.scale.setScalar(scale); this.posePlayback.apply('pose', v);
 
     this.feel.scanAim(this, this.targets, this.active, _o, _d, _v2, this.model);
 
@@ -314,15 +303,8 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.tracers, this.paintTracer);
   }
   protected override animateAction(_t: number, _dt: number): void {
-    const s = this.state;
-    // magazine: drops out (0–30 %), gone (30–60 %), the fresh one comes up (60–85 %); charging handle racks at 88–100 %
-    const pr = s.reloading ? s.reloadProgress : 0;
-    const out = s.reloading ? (pr < 0.3 ? sstep(0.05, 0.3, pr) : pr < 0.6 ? 1 : 1 - sstep(0.6, 0.85, pr)) : 0;
-    this.mag.position.set(this.magRest.x, this.magRest.y - out * 0.16, this.magRest.z - out * 0.03);
-    this.mag.rotation.x = out * 0.3;
-    this.mag.visible = out < 0.999;
-    const rack = s.reloading ? Math.sin(sstep(0.88, 1, pr) * Math.PI) : 0;
-    this.handle.position.z = rack * 0.05; this.bolt.position.z = rack * 0.05;
+    const parts = this.partValues; parts.reloading = Number(this.state.reloading); parts.reloadProgress = this.state.reloadProgress;
+    parts.magX = this.magRest.x; parts.magY = this.magRest.y; parts.magZ = this.magRest.z; this.posePlayback.apply('parts', parts);
   }
   protected override autoReloadDue(): boolean {
     const s = this.state;

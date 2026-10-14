@@ -207,6 +207,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   private readonly feel: RangedFrame;
   private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
   private readonly posePlayback: HeldPlayback;
+  private readonly partValues = { open: 0, leverAngle: 0, boltTravel: 0, cocked: 0, hammerCocked: 0, hammerDown: 0, hammerAngle: 0, reloading: 0, phaseT: 0, reloadIn: 0, roundTime: 0, fed: 0, planned: 0, gateX: 0, gateY: 0, gateZ: 0 };
   private readonly poseValues = { time: 0, bob: 0, speed: 0, portrait: 0, recoil: 0, ads: 0, sprint: 0, reloadTilt: 0, reloadProgress: 0, reloading: 0, loadBlend: 0, lagYaw: 0, lagPitch: 0, holster: 0, inspect: 0, inspectYaw: 0, hipX: 0, hipY: 0, hipZ: 0, hipPitch: 0, hipYaw: 0, hipRoll: 0, adsX: 0, adsY: 0, adsZ: 0, adsPitch: 0, adsMotion: 0, cycle: 0, cycleX: 0, cycleY: 0, cycleZ: 0, cyclePitch: 0, cycleYaw: 0, cycleRoll: 0, scale: 0 };
 
   private sprintBlend = 0; private loadBlend = 0;
@@ -286,7 +287,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
 
     this.syncState();
     this.buildHands();
-    this.posePlayback = new HeldPlayback({ pose: playback.lever }, new Map([['root', this.model]]));
+    this.posePlayback = new HeldPlayback({ pose: playback.lever, parts: playback.leverParts }, new Map<string, unknown>([['root', this.model], ['lever', this.lever], ['hammer', this.hammer], ['bolt', this.bolt], ['round', this.round]]));
   }
 
   private buildHands(): void {
@@ -445,7 +446,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
 
   // ── per frame ──
   update(dt: number, t: number): void {
-    this.time = t;
+    this.time = t; this.posePlayback.beginFrame(dt);
     const p = this.player, cam = this.game.camera;
     this.sinceEmpty += dt;
     this.stepAction(dt);
@@ -480,7 +481,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     v.cycleX = cycle.px; v.cycleY = cycle.py; v.cycleZ = cycle.pz; v.cyclePitch = cycle.rx; v.cycleYaw = cycle.ry; v.cycleRoll = cycle.rz;
     this.stock.visible = a < 0.85 || this.inspect > 0;
     this.model.scale.setScalar(scale);
-    this.posePlayback.beginFrame(dt); this.posePlayback.apply('pose', v);
+    this.posePlayback.apply('pose', v);
 
     this.feel.scanAim(this, this.targets, this.active, _o, _d, _v2, this.model);
 
@@ -495,13 +496,15 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     this.state.reloadProgress = this.act.reloadProgress;
     this.syncState();
   }
-  protected override animateAction(_t: number, dt: number): void {
+  protected override animateAction(_t: number, _dt: number): void {
     const u = this.cycleU, open = this.freezeCycle !== null || this.act.phase === 'cycle' ? leverOpen(u) : 0;
-    this.lever.rotation.x = this.view.lever.open * open;
-    this.bolt.position.z = this.view.lever.boltTravel * open;
-    const cocked = this.freezeCycle !== null ? u >= 0.2 : this.act.hammerCocked;
-    this.hammer.rotation.x += ((cocked ? this.view.lever.hammerCocked : this.view.lever.hammerDown) - this.hammer.rotation.x) * Math.min(1, dt * (cocked ? 18 : 60));
-    this.poseRound();
+    const parts = this.partValues, view = this.view;
+    parts.open = open; parts.leverAngle = view.lever.open; parts.boltTravel = view.lever.boltTravel;
+    parts.cocked = Number(this.freezeCycle !== null ? u >= 0.2 : this.act.hammerCocked);
+    parts.hammerCocked = view.lever.hammerCocked; parts.hammerDown = view.lever.hammerDown; parts.hammerAngle = this.hammer.rotation.x;
+    parts.reloading = Number(this.act.phase === 'reload'); parts.phaseT = this.act.phaseT;
+    parts.reloadIn = view.timing.reloadIn; parts.roundTime = view.timing.roundTime; parts.fed = this.act.fed; parts.planned = this.act.planned;
+    parts.gateX = this.gate.x; parts.gateY = this.gate.y; parts.gateZ = this.gate.z; this.posePlayback.apply('parts', parts);
     this.poseRightHand(open);
 
   }
@@ -509,17 +512,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     return this.act.wantsAutoReload && this.sinceEmpty > this.view.timing.autoReloadDelay && this.sinceEmpty < (this.view.timing.autoReloadClose ?? 5) && this.active && this.enabled;
   }
 
-  private poseRound(): void {
-    if (this.act.phase !== 'reload') { this.round.visible = false; return; }
-    const inT = this.act.phaseT - this.view.timing.reloadIn;
-    if (inT < 0 || this.act.fed >= this.act.planned) { this.round.visible = false; return; }
-    const k = (inT % this.view.timing.roundTime) / this.view.timing.roundTime;
-    this.round.visible = k < 0.8;
-    const approach = sstep(0, 0.45, k), push = sstep(0.45, 0.8, k);
-    const gate = this.gate;
-    this.round.position.set(gate.x + 0.03 * (1 - approach) + 0.003, gate.y - 0.03 * (1 - approach), gate.z + 0.03 + 0.05 * (1 - approach) - push * 0.05);
-    this.round.rotation.set(0, -0.35 * (1 - approach), 0);
-  }
+
 }
 
 /** A shard's lever-action as a row: its default profile, model and cartridge builders, action, hands and view. `B` is the

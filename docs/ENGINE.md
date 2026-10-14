@@ -5589,3 +5589,12 @@ ordinary merged model placement. Its origin translates existing own-space geomet
 it never reapplies authored rotation. The returned `ModelSite` lends the actual `Placed` object and collider descriptors.
 `ModelSiteLayout` supplies authored boxes/anchors and the existing floor evaluator. Invalid origins and unsafe anchors
 refuse before placement. A null registry builds the same export specimen without registering it.
+
+Held ranged playback uses the same admitted `HeldPlayback` groups for root
+poses and moving parts. Pine's loaded bolt, lever, hammer and cartridge, and
+Nalati's magazine/rack, are authored channel rows; their original action
+clocks, reload transfer, string spring, hand grips and ADS solve remain with
+the weapon. Apply parts after action/reload progress and before hand placement,
+then apply the root after the frame/ADS inputs. Begin presentation once per
+source frame. Rows can initialize a private smoothing slot from a borrowed
+part's initial angle; no shared gameplay state is published or retained.

@@ -188,6 +188,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   private readonly feel: RangedFrame;
   private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
   private readonly posePlayback: HeldPlayback;
+  private readonly partValues = { loaded: 0, reloading: 0, reloadProgress: 0 };
   private readonly poseValues = { time: 0, bob: 0, speed: 0, portrait: 0, recoil: 0, ads: 0, sprint: 0, reloadTilt: 0, reloadProgress: 0, reloading: 0, loadBlend: 0, lagYaw: 0, lagPitch: 0, holster: 0, inspect: 0, inspectYaw: 0, hipX: 0, hipY: 0, hipZ: 0, hipPitch: 0, hipYaw: 0, hipRoll: 0, adsX: 0, adsY: 0, adsZ: 0, adsPitch: 0, adsMotion: 0, cycle: 0, cycleX: 0, cycleY: 0, cycleZ: 0, cyclePitch: 0, cycleYaw: 0, cycleRoll: 0, scale: 0 };
 
   private sprintBlend = 0; private reloadTilt = 0;
@@ -234,7 +235,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.game.scene.add(this.puffs.points);
 
     this.buildHands();
-    this.posePlayback = new HeldPlayback({ pose: playback.crossbow }, new Map([['root', this.model]]));
+    this.posePlayback = new HeldPlayback({ pose: playback.crossbow, parts: playback.crossbowParts }, new Map<string, unknown>([['root', this.model], ['loadedBolt', this.loadedBolt]]));
   }
 
   private buildHands(): void {
@@ -401,7 +402,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
 
   // ── per-frame ──
   update(dt: number, t: number): void {
-    this.time = t;
+    this.time = t; this.posePlayback.beginFrame(dt);
     const p = this.player, cam = this.game.camera;
     this.cooldown = Math.max(0, this.cooldown - dt);
     this.sinceFire += dt;
@@ -419,15 +420,9 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.draw += this.drawVel * dt;
     this.updateString();
 
-    // loaded bolt: visible once the reload is ~85 % through (slides in from the rear)
-    const showBolt = this.state.loaded || (this.state.reloading && this.state.reloadProgress > 0.8);
-    this.loadedBolt.visible = showBolt;
+    const parts = this.partValues; parts.loaded = Number(this.state.loaded); parts.reloading = Number(this.state.reloading); parts.reloadProgress = this.state.reloadProgress;
+    this.posePlayback.apply('parts', parts);
     this.loadedBolt.material = this.boltMod.material ?? this.boltMat;
-    if (showBolt && this.state.reloading) {
-      const slide = 1 - sstep(0.8, 1, this.state.reloadProgress);
-      this.loadedBolt.position.z = 0.128 - 0.18 + slide * 0.12;
-      this.loadedBolt.position.y = 0.0095 + slide * 0.02;
-    } else { this.loadedBolt.position.z = 0.128 - 0.18; this.loadedBolt.position.y = 0.0095; }
 
     const frame = this.frameInputs;
     frame.enabled = this.enabled; frame.active = true; frame.held = this.adsHeld;
@@ -461,7 +456,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     } else this.peep.visible = false;
 
     this.model.scale.setScalar(scale);
-    this.posePlayback.beginFrame(dt); this.posePlayback.apply('pose', v);
+    this.posePlayback.apply('pose', v);
     this.hands?.aim(this.model);
 
     this.feel.scanAim(this, this.targets, true, _v3, _fwd, _aimEnd, this.model);
