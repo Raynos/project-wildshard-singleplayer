@@ -1,3 +1,5 @@
+import { loadPaintedTexture, type PaintedSampler } from '../plugin/geometry';
+import type { Material, Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ClientAssets } from './clientAssets';
 import { browserShardfileOptions } from '../plugin/ui';
@@ -172,4 +174,30 @@ export async function runtimeLookMaterials(ctx: Pick<ShardContext, 'scope' | 'ga
  */
 export function runtimePresentation(source: Shardfile): HybridPresentation | null {
   return hybridPresentation(source.identity.slug);
+}
+
+/** Ordered preparation rows for existing hybrid world textures and graph materials. */
+export interface ClientWorldPreparation {
+  readonly textures?: readonly { readonly id: string; readonly url: string; readonly name: string; readonly warn: string; readonly sampler?: PaintedSampler; readonly phase?: number }[];
+  readonly materials?: readonly string[];
+  readonly requiredMaterials?: readonly string[];
+}
+/** Prepare borrowed world assets under their existing scope, never installing another host. */
+export async function prepareClientWorld(ctx: Parameters<typeof runtimeLookMaterials>[0], source: Shardfile, rows: ClientWorldPreparation): Promise<Awaited<ReturnType<typeof runtimeLookMaterials>> & {
+  readonly painted: ReadonlyMap<string, Texture | null>; readonly material: (id: string) => Material;
+}> {
+  const textures = rows.textures ?? [], required = rows.requiredMaterials ?? [];
+  if (textures.length > 64 || required.length > 64 || new Set(textures.map(row => row.id)).size !== textures.length
+    || textures.some(row => !/^[a-z][a-zA-Z0-9.:-]{0,127}$/u.test(row.id) || !Number.isSafeInteger(row.phase ?? 0) || (row.phase ?? 0) < 0 || (row.phase ?? 0) > 7)) throw new Error('Invalid bounded client world preparation');
+  const painted = new Map<string, Texture | null>();
+  for (const phase of [...new Set(textures.map(row => row.phase ?? 0))].sort((a, b) => a - b)) {
+    const group = textures.filter(row => (row.phase ?? 0) === phase);
+    const loaded = await Promise.all(group.map(row => loadPaintedTexture(row.url, row.name, row.warn, row.sampler)));
+    if (ctx.scope.disposed) { for (const texture of loaded) texture?.dispose(); throw new Error('Client world preparation left its owner'); }
+    for (const [index, row] of group.entries()) { const texture = loaded[index] ?? null; if (texture !== null) ctx.scope.own(texture); painted.set(row.id, texture); }
+  }
+  const compiled = await runtimeLookMaterials(ctx, source, true, rows.materials);
+  const material = (id: string): Material => { const value = compiled.materials.get(id); if (value === undefined) throw new Error(`Missing prepared world material ${id}`); return value; };
+  for (const id of required) material(id);
+  return { ...compiled, painted, material };
 }

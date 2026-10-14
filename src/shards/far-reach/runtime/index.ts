@@ -1,5 +1,5 @@
 import { SKY_RUNTIME_BOOT } from '../data/runtimeBoot';
-import { SKY_WORLD_TEXTURES } from '../data/worldTextures';
+import { SKY_WORLD_PREPARATION } from '../data/worldTextures';
 import { ROC_STRIKES } from '../data/brains';
 import { SKY_PAGE_PROGRAM } from '../data/population';
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
@@ -10,7 +10,7 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { ROC_SLATE_EDITS } from '../data/paintLook';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
-import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, MirroredRepeatWrapping, Vector3, type Texture } from 'three';
+import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture } from 'three';
 import { STRINGS } from '../data/strings';
 import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
@@ -30,8 +30,6 @@ import { loadSkyBaked } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
 import { setSkyLooks, skyLook } from '../world/looks';
 import { setMillTextures } from '../world/mill';
-import { FAN_LEAF_URL } from '../data/files';
-import { loadPainted } from '../look/image';
 import { setStormPaint } from '../world/storm';
 import { wakeRibbon } from './looks/wakeRibbon';
 import { RAY_WAKE } from '../data/rayWakeLook';
@@ -44,7 +42,7 @@ import { installQuest } from '../quest/install';
 import { bindSkyQuestStage } from './quest';
 import { FLAGS, vaneFlag } from '../quest/flags';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
-import { bindRuntimeProductProps, runtimeLookMaterials, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { bindRuntimeProductProps, prepareClientWorld, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import { bindSkyItems } from './items';
 
 declare module '@wildshard/engine/input/InputService' {
@@ -90,18 +88,9 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
     // and the world pieces baked offline (SF72, world/baked.ts)
     await Promise.all([preloadSkyMeshes(() => worldBuildYield(ctx, 4)), loadSkyBaked()]);
-    // the fan's painted silk; without it (offline, a test page) the fan keeps its plain teal, as the models keep their code stand-ins
-    const leaf = await loadPainted(FAN_LEAF_URL, 'far.fan-leaf');
-    if (leaf !== null) { this.leaf = leaf; ctx.scope.own(leaf); }
-    this.board = () => ctx.app.player?.mode === 'board';
-    // the windmill's stone (world/mill.ts; the islands' rock and meadow and the mill's canvas are library maps of their graphs)
-    const [millStone = null, vortex = null] = await Promise.all(SKY_WORLD_TEXTURES.map(row => loadPainted(row.url, row.name, row.tile)));
-    const textures = [millStone, vortex];
-    for (let i = 0; i < 2; i++) { const texture = textures[i]; if (texture !== null && texture !== undefined) ctx.scope.own(texture); }
-    // the storm's painted underside (E399, mockup D's vortex seen from below), mirrored past its edge
-    if (vortex !== null) { vortex.wrapS = MirroredRepeatWrapping; vortex.wrapT = MirroredRepeatWrapping; vortex.needsUpdate = true; }
-    setStormPaint(vortex);
-    setMillTextures({ stone: millStone });
+    const compiled = await prepareClientWorld(ctx, source, SKY_WORLD_PREPARATION);
+    this.leaf = compiled.painted.get('leaf') ?? null; this.board = () => ctx.app.player?.mode === 'board';
+    setStormPaint(compiled.painted.get('vortex') ?? null); setMillTextures({ stone: compiled.painted.get('millStone') ?? null });
     // op-hitch41: in work slices (a grid cell builds Sky Reach on the road, in play: one 366 ms task on the Simulator,
     // then the meadow's 59 ms in the same frame); the meadow starts on a task of its own
     // the static islands from the shardfile's props tiles (runtime.binds props; generators/isleProps.ts), every tile resident
@@ -111,8 +100,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // the shard's look materials (look.materials, material graphs switched on for Sky, G387): the rope decks, the hover frames,
     // the shacks' kinds, the dressing's clumps and flowers, the falls (world/looks.ts)
     // and the looks over a model's own map (meshMap: the crown dais, the lantern, the keeper, the posts), each bound to it on its one compiled graph
-    const compiled = await runtimeLookMaterials(ctx, source, true), looks = compiled.materials, deck = looks.get('deck-wood'), frame = looks.get('hover-frame');
-    if (deck === undefined || frame === undefined) throw new Error('Sky Reach: look.materials lacks deck-wood or hover-frame');
+    const looks = compiled.materials, deck = compiled.material('deck-wood'), frame = compiled.material('hover-frame');
     setSkyLooks(looks, compiled.bindMeshMap);
     this.built = await buildWorld(ctx, () => worldBuildYield(ctx, 4), isles, { deck, frame, channels: source.clientChannels ?? [] });
     await worldBuildYield(ctx, 4);

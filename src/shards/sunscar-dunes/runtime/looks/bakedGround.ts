@@ -14,7 +14,7 @@ import { GeometryPack, fetchDeflated, packedRows, type PackedGeometryJson } from
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { PainterField } from '@wildshard/engine/render/look';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
-import { runtimeLookMaterials, runtimePresentation, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { prepareClientWorld, runtimePresentation, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** What owns the skirt's geometry: the look's level scope (only the verbs used here). */
@@ -101,6 +101,6 @@ export function lentMaterial(source: Shardfile, id: string, scope: Scope, state:
 }
 
 /** The runtime's own meshes' `ids` from its look.materials, graphs switched on (G387, G397), on its world's renderer. */
-export function ownLookMaterials(ctx: Parameters<typeof runtimeLookMaterials>[0], source: Shardfile, ids: readonly string[]): ReturnType<typeof runtimeLookMaterials> {
-  return runtimeLookMaterials(ctx, source, true, ids);
+export function ownLookMaterials(ctx: Parameters<typeof prepareClientWorld>[0], source: Shardfile, ids: readonly string[]): ReturnType<typeof prepareClientWorld> {
+  return prepareClientWorld(ctx, source, { materials: ids, requiredMaterials: ids });
 }

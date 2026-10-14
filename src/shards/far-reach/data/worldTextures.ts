@@ -1,7 +1,13 @@
-import { TEX_URL } from './files';
+import { FAN_LEAF_URL, TEX_URL } from './files';
 
-/** Original ordered world paint requests; sampler recipes also accompany the immutable library maps. */
-export const SKY_WORLD_TEXTURES = [
-  { url: TEX_URL.millStone, name: 'far.mill-stone', tile: true },
-  { url: TEX_URL.stormeye, name: 'far.stormeye', tile: false },
-] as const;
+/** Original ordered paint groups, sampler settings and required world material ports. */
+export const SKY_WORLD_PREPARATION = {
+  textures: [
+    { id: 'leaf', url: FAN_LEAF_URL, name: 'far.fan-leaf', warn: '[far-reach] far.fan-leaf not loaded:', phase: 0, sampler: { release: true } },
+    { id: 'millStone', url: TEX_URL.millStone, name: 'far.mill-stone', warn: '[far-reach] far.mill-stone not loaded:', phase: 1,
+      sampler: { release: true, wrapS: 1000, wrapT: 1000, mips: true, minFilter: 1008, anisotropy: 4 } },
+    { id: 'vortex', url: TEX_URL.stormeye, name: 'far.stormeye', warn: '[far-reach] far.stormeye not loaded:', phase: 1,
+      sampler: { release: true, wrapS: 1002, wrapT: 1002 } },
+  ],
+  requiredMaterials: ['deck-wood', 'hover-frame'],
+} as const;

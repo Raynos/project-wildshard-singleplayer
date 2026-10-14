@@ -4516,3 +4516,12 @@ set that authority. A declared graph that exceeds its own budget or lacks
 host authority refuses; it never silently substitutes an emissive material.
 Legacy graphs and the explicit graph-materials Debug choice retain their
 existing family-preset behavior.
+
+`prepareClientWorld(ctx, source, rows)` in `game/shardfile/runtimeProduct`
+prepares up to 64 named painted textures in ordered phases (0–7), owns
+them on the existing scope, and compiles the existing product materials.
+Rows retain sampler settings and optional required material IDs; missing
+required materials and an unloaded owner refuse. `painted` contains the
+named texture handles, `material(id)` requires a compiled material, and
+the existing graph/material bindings remain available on the result.
+Sky world boot and Signal graph preparation consume the same binding.
