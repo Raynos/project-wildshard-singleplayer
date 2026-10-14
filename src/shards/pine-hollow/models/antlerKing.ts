@@ -1,17 +1,16 @@
 import * as THREE from 'three';
 import { Animal } from '@wildshard/engine/entities/AnimalView';
-import { skinPlain, type Paint } from '@wildshard/engine/entities/species/loft';
 import type { AnimalSpecies, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
 import { CREATURE_CLIPS, creatureFactory, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { hullSpots } from '../runtime/kit/hullSpots';
-import { buildPrimitive, mergePrimitives, standardMaterial } from '@wildshard/sdk/kit/mergedPrimitives';
+import { createModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
 import { KING_COAT, KING_DRESS, KING_OWN_RIG } from '../data/antlerKingLook';
 import { KING_BONES, animateKing, observeKingPose } from '../combat/kingRig';
 import { bindKingQueryView } from '../runtime/kingQueryView';
 import { readKingCollisionBake } from '../runtime/kingCollisionBake';
 import kingCollision from '../data/kingCollision.generated.json' with { type: 'json' };
+import kingKit from '../data/kingKit.generated.json' with { type: 'json' };
 
 /**
  * The Antler King's STAND-IN look (PINE-HOLLOW-REMASTER PH-C2; the final model is PH-M3, board B2 pick A "the Bark
@@ -29,7 +28,8 @@ import kingCollision from '../data/kingCollision.generated.json' with { type: 'j
  * `public/assets/pine-hollow/creatures/antler-king-rig[.phone].rigged.glb` (art/pine-hollow/round-25-e322-king-rig/,
  * src/shards/pine-hollow/combat/kingRig.ts; the Bark Warden hull on the elk's bones went with the Debug row) — and `dressAntlerKing`
  * hangs the lanterns off its own rack and drops the skull plate (the hull has its skull face); the ribcage rides his chest
- * bone. With Debug ▸ Creatures = Procedural (no hulls) he is kingRig's placeholder boxes with the lanterns at KING_DRESS.lanterns.
+ * bone. The lantern, the ribcage and the core are baked (generators/kingKit.ts: one rest-geometry pool, and the lantern spots
+ * read off his hull's rack); he is drawn only on his hull, and a hull or kit that is not loaded refuses.
  *
  * THE SWAP: everything model-specific is here — `KING_VARIANT` (the coat), `KING_ANTLER_SCALE`, and `dressAntlerKing()`
  * (the one factory the fight calls on a freshly spawned King). When PH-M3's Bark Warden hull exists, `dressAntlerKing`
@@ -51,24 +51,35 @@ export const KING_VARIANT: VariantDef = {
 
 const RIB_R = KING_DRESS.ribR;
 
-/** the shared geometries + materials (built once at boot, so their programs are compiled with the rest) */
+/** the King's baked kit (generators/kingKit.ts → data/kingKit.generated.json): the lantern's frame and glass, the ribs and
+ *  the core, one rest-geometry pool the shard's kit preloads (`preloadKingKit`) and the dressing borrows */
+const KING_KIT_GEOMETRY = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, aoFloor: 1, hdLooks: {}, geometryPools: [kingKit.pool] }, '[pine-hollow king kit]');
+/** load the King's baked kit once (the shard's kit step, before the fight or a card builds him) */
+export const preloadKingKit = (): Promise<void> => KING_KIT_GEOMETRY.preload();
+/** where his three lanterns hang off his hull's rack (head-bone local, model units): baked off the hull */
+const KING_LANTERNS: readonly (readonly number[])[] = kingKit.lanterns;
+
+/** the shared geometries + materials (made once at boot, so their programs are compiled with the rest) */
 export interface KingKit {
-  frameGeo: THREE.BufferGeometry; glassGeo: THREE.BufferGeometry; ribGeo: THREE.BufferGeometry; coreGeo: THREE.BufferGeometry; skullGeo: THREE.BufferGeometry;
-  frameMat: THREE.MeshStandardMaterial; glassMat: THREE.MeshStandardMaterial; ribMat: THREE.MeshStandardMaterial; coreMat: THREE.MeshStandardMaterial; skullMat: THREE.MeshStandardMaterial;
+  frameGeo: THREE.BufferGeometry; glassGeo: THREE.BufferGeometry; ribGeo: THREE.BufferGeometry; coreGeo: THREE.BufferGeometry;
+  frameMat: THREE.MeshStandardMaterial; glassMat: THREE.MeshStandardMaterial; ribMat: THREE.MeshStandardMaterial; coreMat: THREE.MeshStandardMaterial;
 }
 
-/** the lantern, the ribcage, the core and the skull plate, and their iron, amber and bone (../data/antlerKingLook.ts `KING_DRESS`) */
+/** the baked lantern, ribcage and core, and their iron and amber (../data/antlerKingLook.ts `KING_DRESS`); a part that is not
+ *  loaded refuses, it is never rebuilt here */
 export function makeKingKit(sky: Sky): KingKit {
   const D = KING_DRESS;
-  const frameGeo = mergePrimitives(D.frame), glassGeo = buildPrimitive(D.glass);
-  const ribGeo = mergePrimitives(D.ribs), coreGeo = buildPrimitive(D.core), skullGeo = buildPrimitive(D.skull);
-  const lit = (m: THREE.MeshStandardMaterial) => { sky.setupMaterial(m); return m; };
-  const glow = (i: number) => standardMaterial({ ...D.glowMat, emissive: D.amber, emissiveIntensity: i });
+  const part = (name: string): THREE.BufferGeometry => {
+    const g = KING_KIT_GEOMETRY.geometry(name, { borrow: true });
+    if (g === null) throw new Error(`[pine-hollow] the King's baked ${name} is not loaded`);
+    return g;
+  };
+  const frameMat = new THREE.MeshStandardMaterial({ ...D.frameMat });
+  sky.setupMaterial(frameMat);
+  const glow = (i: number) => new THREE.MeshStandardMaterial({ ...D.glowMat, emissive: new THREE.Color(D.amber[0], D.amber[1], D.amber[2]), emissiveIntensity: i });
   return {
-    frameGeo, glassGeo, ribGeo, coreGeo, skullGeo,
-    frameMat: lit(standardMaterial(D.frameMat)),
-    glassMat: glow(D.glow.glass), ribMat: glow(D.glow.ribs), coreMat: glow(D.glow.core),
-    skullMat: lit(standardMaterial(D.skullMat)),
+    frameGeo: part('king-lantern-frame'), glassGeo: part('king-lantern-glass'), ribGeo: part('king-ribs'), coreGeo: part('king-core'),
+    frameMat, glassMat: glow(D.glow.glass), ribMat: glow(D.glow.ribs), coreMat: glow(D.glow.core),
   };
 }
 
@@ -89,15 +100,8 @@ export interface KingLook {
   dispose: () => void;
 }
 
-/** the King is on a generated hull (pineCreatures.ts): one group and no fur-shell `furLen` (the procedural loft has it) */
-const isHull = (a: Animal): boolean => !a.mesh.geometry.hasAttribute('furLen');
-
-/** PH-M3: where the lanterns hang on the Bark Warden's own rack (head-bone local, model units: KING_DRESS.rack); null when
- *  the King is the procedural stand-in (KING_DRESS.lanterns) or the hull has no rack above the head */
-const hullLanterns = (a: Animal): [number, number, number][] | null => (isHull(a) ? hullSpots(a.mesh, KING_DRESS.rack) : null);
-
-/** dress a freshly spawned King: lanterns on the head bone, the ribcage on the chest bone. On his hull (the generated
- *  model: its own skull face and rack) the lanterns hang off its rack and the skull plate is left off */
+/** dress a freshly spawned King (on his hull: its own skull face and rack): the lanterns off the rack on the head bone, the
+ *  ribcage on the chest bone */
 export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
   const head = a.mesh.getObjectByName('head'), chest = a.mesh.getObjectByName('chest');
   if (!head || !chest) throw new Error('antler-king: the rig has no head / chest bone');
@@ -110,18 +114,11 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
     g.add(f, gl);
     return g;
   };
-  const hull = isHull(a);
-  // The procedural fallback keeps its own dimensions; only the real measured GLB uses the native collision table.
-  const collision = hull ? bindKingQueryView(a, readKingCollisionBake(kingCollision), receive => observeKingPose(a, receive)) : null;
-  for (const p of hullLanterns(a) ?? KING_DRESS.lanterns) {
+  const collision = bindKingQueryView(a, readKingCollisionBake(kingCollision), receive => observeKingPose(a, receive));
+  for (const p of KING_LANTERNS) {
     const l = makeLantern();
-    l.position.set(p[0], p[1], p[2]);
+    l.position.set(p[0] ?? 0, p[1] ?? 0, p[2] ?? 0);
     head.add(l); lanterns.push(l); own.push(l);
-  }
-  if (!hull) {
-    const skull = new THREE.Mesh(kit.skullGeo, kit.skullMat);
-    skull.position.set(KING_DRESS.skullAt[0], KING_DRESS.skullAt[1], KING_DRESS.skullAt[2]); skull.rotation.x = KING_DRESS.skullTilt; skull.castShadow = false;
-    head.add(skull); own.push(skull);
   }
   const cage = new THREE.Group();
   cage.name = 'king-ribcage'; // The offline capture reads this actual attachment, independently of FK queries.
@@ -137,13 +134,12 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
     lanternWorld: (i, out) => {
       const l = lanterns[i];
       if (!l) return out.copy(a.position);
-      l.getWorldPosition(out); collision?.publishHead();
+      l.getWorldPosition(out); collision.publishHead();
       return out;
     },
     setLanternsHung: (on) => { for (const l of lanterns) l.visible = on; },
     ribcageWorld: (out) => {
       cage.getWorldPosition(out); // Preserve the live getter's parent matrix propagation for every other consumer.
-      if (collision === null) return out;
       collision.publishRibs(); return collision.query.ribs(out);
     },
     ribcageRadius: RIB_R * scale * KING_DRESS.ribHit,
@@ -156,27 +152,18 @@ export function dressAntlerKing(a: Animal, kit: KingKit): KingLook {
       kit.ribMat.emissiveIntensity = glow * (O.ribGlow[0] + O.ribGlow[1] * k);
     },
     makeLantern: () => { const l = makeLantern(); l.scale.setScalar(scale); return l; },
-    dispose: () => { collision?.dispose(); for (const o of own) o.removeFromParent(); },
+    dispose: () => { collision.dispose(); for (const o of own) o.removeFromParent(); },
   };
 }
 
 // ─────────────── his own rig (E322 F-M1) ───────────────
 
-/** the stand-in paint of the own rig's placeholder parts (only seen if its hull fails to load) */
-const BARK: Paint = (out) => { out.setRGB(KING_OWN_RIG.bark[0], KING_OWN_RIG.bark[1], KING_OWN_RIG.bark[2]); };
-
-/** the placeholder body the factory merges before the hull replaces it: a box on the body, one on the head; the hit
- *  volumes (../data/antlerKingLook.ts `KING_OWN_RIG`) */
+/** his body: the skeleton (the hull's own joints replace its rest positions) and the hit volumes
+ *  (../data/antlerKingLook.ts `KING_OWN_RIG`), and no parts (the hull is the mesh) */
 function buildOwnRig(): AnimalSpecies {
-  const bones = KING_BONES.map((b) => ({ name: b.name, parent: b.parent, pos: [b.pos[0], b.pos[1], b.pos[2]] as [number, number, number] }));
-  const at = (n: string): [number, number, number] => bones.find((b) => b.name === n)?.pos ?? [0, 0, 0];
-  const bi = (n: string): number => Math.max(0, bones.findIndex((b) => b.name === n));
-  const R = KING_OWN_RIG, e = R.eye;
-  const torso = new THREE.BoxGeometry(...R.torso); torso.translate(at('body')[0], at('body')[1], at('body')[2]);
-  const skull = new THREE.BoxGeometry(...R.skull); skull.translate(at('head')[0], at('head')[1], at('head')[2] + R.skullAhead);
-  const eye = new THREE.SphereGeometry(e.r, e.w, e.h); eye.translate(e.x, at('head')[1], at('head')[2] + e.ahead);
+  const R = KING_OWN_RIG;
   return {
-    bones, furParts: [skinPlain(torso, bi('body'), 'body', BARK)], hardParts: [skinPlain(skull, bi('head'), 'head', BARK)], eyeParts: [skinPlain(eye, bi('head'), 'eye', BARK)],
+    bones: KING_BONES.map((b) => ({ name: b.name, parent: b.parent, pos: [b.pos[0], b.pos[1], b.pos[2]] })), furParts: [], hardParts: [], eyeParts: [],
     dims: { ...R.dims, feet: R.dims.feet.map((f): [number, number] => [f[0], f[1]]) },
   };
 }
@@ -184,7 +171,7 @@ function buildOwnRig(): AnimalSpecies {
 /**
  * The King's species on his own rig (E322 F-M1): `base` (the fight's elk-derived King: his coat, sounds,
  * AI hook and damage rule) as a custom rig — KING_BONES and kingRig.ts's poses instead of the elk's bones and gaits. The
- * hull (`antler-king-rig[.phone].rigged.glb`) replaces the placeholder through pineCreatures.ts like every Pine Hollow hull.
+ * hull (`antler-king-rig[.phone].rigged.glb`) is his mesh through species/hulls.ts like every Pine Hollow hull.
  */
 export function kingOwnSpecies(base: SpeciesDef): SpeciesDef {
   // (the elk's postPose / gait knobs are the quadruped path's: a custom rig never runs them)
@@ -199,8 +186,8 @@ const KING_KIT = 'pine-hollow/antler-king:kit';
 
 /**
  * The Antler King, Pine Hollow's boss: his own hull (Hunyuan3D-2, `public/assets/pine-hollow/creatures/antler-king-rig
- * [.phone].rigged.glb`) on his own rig (kingRig.ts), drawn ×2.6 by the fight, dressed in code (`dressAntlerKing`: the antler
- * lanterns, the amber ribcage; the skull plate on the procedural stand-in). The fight (src/shards/pine-hollow/combat/antlerKing.ts) spawns,
+ * [.phone].rigged.glb`) on his own rig (kingRig.ts), drawn ×2.6 by the fight, dressed with his baked kit (`dressAntlerKing`:
+ * the antler lanterns, the amber ribcage). The fight (src/shards/pine-hollow/combat/antlerKing.ts) spawns,
  * dresses and drives the one copy at night in the King's clearing; nothing here draws him in the world.
  *
  * His fields are `creature(KING_KIND)`'s spelled out from his one coat (`KING_VARIANT`), not `creature()` itself: his

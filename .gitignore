@@ -152,6 +152,7 @@ src/**/*.generated.*
 /public/assets/sunscar-dunes/ground/ring-mean.bin
 /src/shards/sunscar-dunes/data/manifestGround.generated.json
 /public/assets/pine-hollow/baked/wildlife.glb
+/public/assets/pine-hollow/baked/3d9b5fc17c7ac3e7fe148f4333b2ea62e2e9bf5999d89eea7f2ef0abf65e8220.glb
 
 # Driftwood declared navigation: cheap generated asset, retained input has navigation- prefix.
 /src/shards/driftwood-isle/assets/c5185248a44d1f5c20c129e6bc25785ff6c1a81206f19f162d32cfe77131b464

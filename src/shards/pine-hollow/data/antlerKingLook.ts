@@ -1,7 +1,7 @@
 /**
  * The Antler King's look as data (SHARD-PLATFORM M3): his coat (the variant the fight registers), what he wears (the
- * antler lanterns, the amber ribcage, the stand-in's skull plate: @wildshard/sdk/kit/mergedPrimitives rows and materials)
- * and the own rig's placeholder and hit volumes. models/antlerKing.ts dresses him from these; the ribs' radii and the bars'
+ * antler lanterns and the amber ribcage: @wildshard/sdk/kit/mergedPrimitives rows, baked by generators/kingKit.ts, and their
+ * materials) and his own rig's hit volumes. models/antlerKing.ts dresses him from these; the ribs' radii and the bars'
  * offsets are the old code's values (RIB_R × √(1 − (y / (RIB_R × 1.25))²), 0.075 × cos / sin of the quarter turns),
  * printed exactly.
  */
@@ -20,9 +20,7 @@ export const KING_COAT = {
 
 /** What he wears (model units, before his ×2.6 mesh scale). */
 export const KING_DRESS = {
-  /** the three lanterns (head-bone local): off the left dagger tine, the right beam, the right fifth tine */
-  lanterns: [[-0.6, 1.5, -0.19], [0.7, 1.02, -0.82], [0.84, 1.6, -0.67]],
-  /** on his hull, the lanterns hang off its own rack (@wildshard/sdk/kit/hullSpots): the rack's outermost left and right
+  /** the lanterns hang off his hull's own rack (baked by generators/kingKit.ts): the rack's outermost left and right
    *  points and the right beam's middle (the highest point about halfway out), over 0.25 above the head bone within
    *  1.2 of it along z, each lantern 0.2 under its tine */
   rack: { bone: 'head', above: 0.25, reachZ: 1.2, middle: { frac: 0.5, tol: 0.15 }, drop: 0.2 },
@@ -34,8 +32,6 @@ export const KING_DRESS = {
   /** the shot window's opening (k 0 shut … 1 open, t the clock): the ribs breathe ×(1 + 0.04 sin 3.1t) and spread by
    *  (0.45, 0.12, 0.3) × k, the core swells by 0.25 × k; at glow g the core burns g × (3 + 9k), the ribs g × (1.6 + 2.4k) */
   open: { breathe: [0.04, 3.1], ribs: [0.45, 0.12, 0.3], core: 0.25, coreGlow: [3, 9], ribGlow: [1.6, 2.4] },
-  /** the stand-in's skull plate over the face (head-bone local), tipped forward */
-  skullAt: [0, 0.03, 0.2], skullTilt: 0.55,
   /** the lantern: a cap, a base, four bars, the hanging ring and its chain, ~0.3 × 0.16 (≈ 0.8 m on the King) */
   frame: [
     { kind: 'cone', args: [0.1, 0.08, 8], ops: [['translate', 0, 0.12, 0]] },
@@ -58,15 +54,12 @@ export const KING_DRESS = {
     { kind: 'cylinder', args: [0.03, 0.03, 0.6, 5], ops: [['translate', 0, 0, 0.3528]] },
   ],
   core: { kind: 'icosahedron', args: [0.2592, 1] },
-  skull: { kind: 'icosahedron', args: [1, 2], ops: [['scale', 0.15, 0.12, 0.34]] },
-  /** iron, the amber glow (emissive only, unfogged: glass ×3, ribs ×2, core ×4 at full glow) and bone */
+  /** iron and the amber glow (emissive only, unfogged: glass ×3, ribs ×2, core ×4 at full glow) */
   frameMat: { color: 0x2b2520, roughness: 0.55, metalness: 0.75 },
   glowMat: { color: 0x000000, roughness: 0.6, metalness: 0, fog: false }, amber: [1.0, 0.56, 0.16], glow: { glass: 3, ribs: 2, core: 4 },
-  skullMat: { color: 0xd9d0b8, roughness: 0.85, metalness: 0 },
 } as const;
 
-/** His own rig's placeholder (seen only if his hull fails to load): a torso box on the body bone, a skull box ahead of the
- *  head, an eye; and the hit volumes the hitbox path (src/engine/physics/creatures.ts) reads, fitted to his hull (E350
+/** His own rig's hit volumes the hitbox path (src/engine/physics/creatures.ts) reads, fitted to his hull (E350
  *  F-X2, scripts/e350-king-measure.mjs: rays from a standing eye over his silhouette in idle, the rear, the slam, the
  *  gallop and the sweep; hit volumes vs the visible torso, shoulders and face — 77 % landed / 14 % through / 8 % from air,
  *  against 61 / 22 / 17 for the elk-sized capsule it replaces). ×2.6: the barrel a capsule on the body bone, r 1.46 m,
@@ -74,8 +67,6 @@ export const KING_DRESS = {
  *  across the chest bone; the head ball r 0.83 m on the face, not the joint. All three ride their bones (the rear, the
  *  sweep's dive). The motor capsule stays 0.9 m wide (CreatureBodies clamps it). */
 export const KING_OWN_RIG = {
-  bark: [0.12, 0.1, 0.075],
-  torso: [1.3, 1.2, 2.2], skull: [0.4, 0.4, 0.6], skullAhead: 0.3, eye: { r: 0.04, w: 8, h: 6, x: 0.14, ahead: 0.35 },
   dims: {
     bodyY: 1.85, bodyHalfLen: 0.45, bodyRadius: 0.56, headRadius: 0.32, legLen: 1.85, halfWidth: 0.8,
     feet: [[0.65, 1.25], [-0.66, 1.25], [0.57, -1.42], [-0.6, -1.42]],

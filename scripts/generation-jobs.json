@@ -12875,6 +12875,41 @@
       ]
     },
     {
+      "id": "pine-hollow-king-kit",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-king-kit.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-king-kit.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format",
+        "src/shards/pine-hollow/generators/bake-king-kit.mjs",
+        "src/shards/pine-hollow/generators/kingKit.ts",
+        "src/shards/pine-hollow/data/antlerKingLook.ts",
+        "public/assets/pine-hollow/creatures/antler-king-rig.rigged.glb",
+        "public/assets/pine-hollow/creatures/antler-king-rig.phone.rigged.glb",
+        "scripts/bake-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "public/assets/pine-hollow/baked/3d9b5fc17c7ac3e7fe148f4333b2ea62e2e9bf5999d89eea7f2ef0abf65e8220.glb",
+        "src/shards/pine-hollow/data/kingKit.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "public/assets/pine-hollow/baked/3d9b5fc17c7ac3e7fe148f4333b2ea62e2e9bf5999d89eea7f2ef0abf65e8220.glb",
+        "src/shards/pine-hollow/data/kingKit.generated.json"
+      ]
+    },
+    {
       "id": "driftwood-isle-held-sword-pool",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-sword-pool.mjs",

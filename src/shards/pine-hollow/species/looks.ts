@@ -44,7 +44,7 @@ export function pineElkLook(): SpeciesLook {
   const look = legacyLook('elk', { ...ELK, build: hullBody('elk') }, true);
   return { ...look, postPose: thrallPose, variants: { ...look.variants, thrall: { tint: ELK_THRALL_TINT, traits: { antlers: 1, ...THRALL_TRAITS } } } };
 }
-export function pineLooks(): SpeciesLook[] { return [PINE_BOAR_LOOK, PINE_BEAR_LOOK, legacyLook('deer', { ...DEER, build: hullBody('deer') }, true), pineElkLook(), legacyLook('antler-king')]; }
+export function pineLooks(): SpeciesLook[] { return [PINE_BOAR_LOOK, PINE_BEAR_LOOK, legacyLook('deer', { ...DEER, build: hullBody('deer') }, true), pineElkLook(), legacyLook('antler-king', undefined, true)]; }
 
 /** King registers its bespoke body at prewarm; only the hull strategy must be declared at kit. */
 export const KING_HULL_LOOK: Pick<SpeciesLook, 'preload' | 'skin'> = {

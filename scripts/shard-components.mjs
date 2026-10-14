@@ -149,7 +149,6 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/runtime/kingCollision.ts', 'C4'],
   ['src/shards/pine-hollow/runtime/kingCollisionBake.ts', 'C4'],
   ['src/shards/pine-hollow/runtime/kingPoseHost.ts', 'C4'],
-  ['src/shards/pine-hollow/runtime/kit/hullSpots.ts', 'C4'],
   ['src/shards/pine-hollow/runtime/rainShelter.ts', 'C4'],
   // Journal, onboarding, discovery and quest presentation.
   ['src/sdk/interactions.ts#interactionRules', 'C5'],
