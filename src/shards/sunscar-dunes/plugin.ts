@@ -1,7 +1,5 @@
 import { SIGNAL_RUNTIME_ROWS } from './data/runtimeRows';
 import { bindSignalItems } from './runtime/items';
-import { bindDirectorActions } from '@wildshard/game/plugin/director';
-import signalStages from './data/signalStages.json' with { type: 'json' };
 import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
@@ -16,7 +14,7 @@ import { loadBakedWorld } from './world/baked';
 import type { Bullwhip } from './runtime/items/heldWhip';
 import { installQuest } from './quest/install';
 import { FLAG, SCOUT_FLAG } from './data/flags';
-import { bindDeclaredFight } from '@wildshard/game/plugin/ui';
+import { bindDeclaredFight, bindPageQuestStages } from '@wildshard/game/plugin/ui';
 import { stormWeather } from './runtime/shardfile/markedBoss';
 import { SAND, SKIRT } from './look/render';
 import { lentMaterial } from './runtime/looks/bakedGround';
@@ -93,10 +91,9 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
       const fight = bindDeclaredFight(ctx, this.rows.fight, { kind: 'spawned', source, player: position, flags: places.flags, facts, coins, armed: places.fire.lit,
         dress: animal => { lastLightAll(animal.mesh, ctx.scope); }, weather: presentation => stormWeather(ctx, position, presentation.storm) }); this.presentedBoss = fight.boss;
-      const signal = bindDirectorActions(signalStages, { read: () => ({ lit: places.fire.lit }),
-      bindings: [{ action: { spawn: 'sunscar.matriarch' }, run: fight.summon }],
-      initial: places.fire.lit ? [{ lit: false }, { lit: true }] : [{ lit: false }] });
-      places.fire.onLight = () => { signal.advance(); };
+      const stages = bindPageQuestStages(ctx, source, { flags: places.flags,
+        bindings: new Map([['sunscar.signal-fire', [{ action: { spawn: 'sunscar.matriarch' }, run: fight.summon }]]]) });
+      places.fire.onLight = () => { stages.advance('sunscar.signal-fire'); };
     }
     this.populate(ctx, source, { spawned: animal => { lastLightAll(animal.mesh, ctx.scope); }, flags: places?.flags ?? null });
     // The dusk deepens with the quest (E399, look/dusk.ts): a save loads at its step's light, play eases to each new one.

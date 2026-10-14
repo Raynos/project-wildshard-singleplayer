@@ -34,10 +34,9 @@ import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow, type Meadow } from '../world/meadow';
 import { heroStoneDiscs } from '../world/dressing';
 import { SKY_SUN } from '../data/skyLook';
-import { bindDeclaredFight, bindClientChannels } from '@wildshard/game/plugin/ui';
+import { bindDeclaredFight, bindPageQuestStages, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
-import { bindSkyQuestStage } from './quest';
 import { FLAGS, vaneFlag } from '../quest/flags';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import { bindRuntimeProductProps, prepareClientWorld, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -138,7 +137,8 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     built.winch.onInteract = () => { if (built.state.raised) return; if (unlocked()) this.movers?.command('far.winch.bridge', 1); else toast(STRINGS.winchLocked); };
     // the world pins, chip, map and minimap marks are the quest presentation's (quest/install.ts)
     if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');
-    const raised = bindSkyQuestStage('raised', flags, () => true);
+    const questStages = bindPageQuestStages(ctx, source, { flags, actor: this.actor.bind(this),
+      observations: new Map([['winch-up', () => built.state.raised]]) });
     const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
     if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
     const channels = bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_MOVER_OWNERS, observed: (_id, frame) => {
@@ -147,7 +147,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       built.state.raised = frame.value !== 0; built.state.raising = frame.turn === 1;
       if (!previouslyRaised && built.state.raised) {
         built.winch.label = STRINGS.raised;
-        if (!flags.has(FLAGS.raised)) { raised.advance(); toast(STRINGS.raised); }
+        if (!flags.has(FLAGS.raised)) { questStages.advance('far.quest.raised'); toast(STRINGS.raised); }
       }
     } });
     const product = runtimeProduct(source);
@@ -246,9 +246,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     }
     await worldBuildYield(ctx, 4);
     // Step 2: the roost is clear when its three rays are down.
-    const roost = this.actors('roost');
-    const roostStage = bindSkyQuestStage('roost', flags, () => roost.length > 0 && roost.every(animal => !animal.alive));
-    ctx.system({ id: 'far.roost', phase: 'update', run: roostStage.advance });
 
     // The boss: the Storm Roc on the crown, the shared BossBar, 25 coins once.
     const fight = bindDeclaredFight(ctx, this.rows.fight, { kind: 'held', player: position, held: this.actor(ROC_ID), catalogue: this.populationCatalogue,

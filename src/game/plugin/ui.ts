@@ -27,7 +27,7 @@ import type { BossDefinition, BossSaved, BossScript } from '@wildshard/engine/ai
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { CoinBurst } from '../loot/CoinBurst';
-import { DirectorBossBrain, bindDirectorActions } from './director';
+import { DirectorBossBrain, bindDirectorActions, type DirectorActionBinding, type BoundDirectorActions } from './director';
 import { bindRuntimeQuest, bindRuntimePersistence, type RuntimePersistenceRows, type RuntimePersistence, bindRuntimeBoss, bindRuntimeCoins, bindRuntimeBossRecord, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
 import type { SpeciesPageCatalogue } from './brain';
 import type { BossViewRows } from '../shardfile/bossRow';
@@ -918,6 +918,50 @@ export function installRewardedQuest(ctx: ShardContext, source: Shardfile, o: Re
     presentation: { ...o.presentation, introTitle: s.quest, ...(npc === null ? {} : { npc }) },
     beat: { kicker: s.rewardKicker, title: s.quest, subtitle: s.rewardSubtitle, ...o.beat } });
   return { quest, reward, view };
+}
+
+/** Live page owners lent to the already admitted quest stages. */
+export interface PageQuestStagePorts {
+  readonly flags: Pick<Flags, 'has' | 'set'>;
+  readonly actor?: (id: string) => { readonly alive: boolean } | null;
+  readonly observations?: ReadonlyMap<string, () => boolean>;
+  readonly bindings?: ReadonlyMap<string, readonly DirectorActionBinding[]>;
+}
+/** Advance a declared event stage; tick stages are registered with the page owner. */
+export interface PageQuestStages { readonly advance: (id: string) => void }
+/** Use the native quest's stage rows on the page without creating another saved cursor. */
+export function bindPageQuestStages(ctx: Pick<ShardContext, 'system'>, source: Pick<Shardfile, 'questHost'>, ports: PageQuestStagePorts): PageQuestStages {
+  const host = source.questHost;
+  if (host === undefined || host === null) throw new Error('Missing admitted page quest host');
+  const observations = new Map<string, () => boolean>();
+  for (const row of host.observations) {
+    if (row.kind === 'all-dead') {
+      const actor = ports.actor;
+      if (actor === undefined) throw new Error('Quest stage needs its live actor owner');
+      observations.set(row.binding, () => row.actors.length > 0 && row.actors.every(id => actor(id)?.alive === false));
+    } else {
+      const owner = ports.observations?.get(row.owner);
+      if (owner === undefined) throw new Error(`Unbound page quest observation ${row.owner}`);
+      observations.set(row.binding, owner);
+    }
+  }
+  const observe = (binding: string): boolean => {
+    const owner = observations.get(binding);
+    if (owner === undefined) throw new Error(`Unbound page quest observation ${binding}`);
+    return owner();
+  };
+  const stages = new Map<string, BoundDirectorActions>();
+  for (const row of host.stages) {
+    const stage = bindDirectorActions(row.row, { flags: ports.flags, observe, bindings: ports.bindings?.get(row.row.id) ?? [],
+      initial: row.seed !== undefined && ports.flags.has(row.seed.flag) ? row.seed.initial : row.initial });
+    stages.set(row.row.id, stage);
+    if (row.tick) ctx.system({ id: row.row.id, phase: 'update', run: stage.advance });
+  }
+  return { advance: id => {
+    const stage = stages.get(id);
+    if (stage === undefined) throw new Error(`Undeclared page quest stage ${id}`);
+    stage.advance();
+  } };
 }
 
 /** A declared NPC's existing copied geometry provider; prepared pivots stay prepared. */

@@ -2082,6 +2082,13 @@ system `id` and frees it with the level; it returns the live view's getter. Sign
 NPC, reward, marker and bounded startup flag-repair rows. Model/material
 ports retain ownership, and flags and rewards retain existing saved keys.
 
+`bindPageQuestStages(ctx, source, ports)` in `@wildshard/game/plugin/ui`
+binds the admitted `questHost` stages to real saved flags, actor liveness and
+named owner observations. Saved seed flags initialize stages quietly; native
+actions require explicit bindings. Declared ticking stages register through
+`ctx.system`; event owners call `advance(id)`. Missing owners and undeclared
+stage ids refuse. This transient page projection adds no saved cursor.
+
 ## 21. Shared content (the kit's, now the game's)
 
 SF54 dissolved `@wildshard/kit`: content that 2+ shards use (the rule of two) lives in `@wildshard/game`, its trusted
