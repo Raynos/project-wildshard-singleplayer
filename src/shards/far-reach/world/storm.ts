@@ -1,4 +1,4 @@
-import { AdditiveBlending, BufferAttribute, BufferGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, RingGeometry, type Vector3, type Texture } from 'three';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, RingGeometry, type Texture } from 'three';
 import { onPaintedDispose } from '../look/image';
 import { skyLook } from './looks';
 
@@ -40,7 +40,7 @@ export function setStormPaint(t: Texture | null): void {
 }
 
 /** Build the storm, centred at the group's origin (place it over the crown at `STORM.lift`). */
-export function crownStorm(_sun: Vector3, _tex: Texture, random: () => number): CrownStorm {
+export function crownStorm(random: () => number): CrownStorm {
   const group = new Group(); group.name = 'far.storm';
   // the vortex (data/stormLook.ts, look.materials `storm-ring`): one dished ring, the first layer's (the painted vortex is
   // the first layer's alone); `aFlash` carries the lightning to it; before the looks are set (a test) no ring shows

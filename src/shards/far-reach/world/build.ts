@@ -26,8 +26,6 @@ import { BOOK_STAND } from '../data/bookStand';
 import { KEEPER_STAND } from '../data/keeperStand';
 import { crownStorm, type CrownStorm } from './storm';
 import { STORM } from '../data/storm';
-import { SKY_SUN } from '../data/skyLook';
-import { seaTexture } from '../look/cloudSea';
 import { RISING_ISLETS } from '../data/islets.generated';
 import { skyDocksFor } from './skyDock';
 
@@ -198,8 +196,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   pieces.baked('far.roost.nest');
   // the storm: a lit vortex high over the crown only (loop 3); it melts into the haze from the spawn
   await pause();
-  const stormTex = seaTexture(); ctx.scope.own(stormTex);
-  const storm = crownStorm(new Vector3(...SKY_SUN), stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
+  const storm = crownStorm(rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
 
   await pause();
   const scene = createClientScene(ISLET_SCENES.scene, { geometry: SKY_LIBRARY.geometry, objects: new Map(RISING_ISLETS.map(entry => [`islet.${entry.edge}`, islandMesh(`islet.${entry.edge}`)])) });
