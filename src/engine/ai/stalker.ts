@@ -225,6 +225,79 @@ export class StalkerBrain<A extends AnimalSim> extends HuntingStalkerCore<A> {
     if (this.profile.pattern === 'howler') this.howlT = this.profile.spec.initialHowl;
     else if (this.profile.pattern === 'pouncer') { this.st = 'lurk'; this.cd = this.profile.spec.initialCooldown; }
   }
+  /** Borrow the roster's noise/sight continuation and scheduler. Combined wakes
+   * request one urgent decision; interrupt wakes precede the ordinary decision.
+   * This driver owns no save state, actor, clock, body step or random stream.
+   */
+  bindRoster<B>(ports: {
+    readonly limit: number; readonly order: 'combined' | 'interrupt';
+    readonly at: (index: number) => B | null | undefined;
+    readonly actor: (body: B) => A | null; readonly id: (body: B) => string;
+    readonly player: Vector3; readonly sight: (boolean | null | undefined)[];
+    readonly noise: { seen: boolean; prev: Vector3; speed: number };
+    readonly reach: (actor: A, player: Vector3) => boolean;
+    readonly brainDt: (id: string, urgent?: boolean) => number;
+    readonly policy?: (body: B) => { readonly decide: (dt: number) => void } | null;
+    readonly herd?: (body: B) => number;
+    readonly beforeDecisions?: () => void;
+  }): {
+    readonly observe: (dt: number) => void; readonly decide: () => void;
+    readonly wake: (body: B | null | undefined) => void;
+    readonly damaged: (target: unknown, killed: boolean) => void;
+  } {
+    if (!Number.isInteger(ports.limit) || ports.limit < 1 || ports.limit > 512
+      || !['combined', 'interrupt'].includes(ports.order)) throw new RangeError('Invalid hunt roster cadence');
+    const { player, noise, sight } = ports;
+    const run = (body: B, actor: A, dt: number): void => {
+      const policy = ports.policy?.(body) ?? null;
+      if (policy === null) { this.think(actor, dt, player, false, noise.speed); return; }
+      if (!actor.alive) { actor.lookWeight = 0; return; }
+      if (actor.stunned) { actor.setMotion(actor.yaw, 0, 1); actor.setStrafe(0); actor.lookTarget.copy(player); actor.lookWeight = 1; return; }
+      policy.decide(dt);
+      const index = ports.herd?.(body), herd = index === undefined ? undefined : this.herds[index];
+      if (herd !== undefined) this.updateHerd(herd);
+    };
+    const wake = (body: B | null | undefined): void => {
+      if (body === undefined || body === null) return;
+      const actor = ports.actor(body); if (actor === null || !actor.alive) return;
+      const dt = ports.brainDt(ports.id(body), true);
+      if (ports.order === 'interrupt' || dt > 0) run(body, actor, dt);
+    };
+    return {
+      observe: dt => {
+        if (!Number.isFinite(dt) || dt <= 0) throw new RangeError('Invalid hunt noise step');
+        if (!noise.seen) { noise.prev.copy(player); noise.seen = true; }
+        const moved = Math.hypot(player.x - noise.prev.x, player.z - noise.prev.z);
+        noise.prev.copy(player);
+        noise.speed += (Math.min(moved / dt, 9) - noise.speed) * (1 - 0.5 ** (dt * 10));
+      },
+      decide: () => {
+        this.resetRepaths();
+        ports.beforeDecisions?.();
+        for (let i = 0; i < ports.limit; i++) {
+          const body = ports.at(i); if (body === undefined || body === null) continue;
+          const actor = ports.actor(body); if (actor === null) continue;
+          let urgent = false;
+          if (actor.alive && actor.aggressive && (actor.state === 'charge' || actor.state === 'stalk' || actor.state === 'alert')) {
+            const clear = ports.reach(actor, player); urgent = sight[i] === true && !clear;
+            if (ports.order === 'interrupt' && urgent) wake(body);
+            sight[i] = clear;
+          }
+          const dt = ports.brainDt(ports.id(body), ports.order === 'combined' ? urgent : undefined);
+          if (dt > 0) run(body, actor, dt);
+        }
+      },
+      wake,
+      damaged: (target, killed) => {
+        for (let i = 0; i < ports.limit; i++) {
+          const body = ports.at(i); if (body === undefined || body === null || (ports.policy?.(body) ?? null) !== null) continue;
+          const actor = ports.actor(body); if (actor === null || actor.combatActor() !== target) continue;
+          if (killed) this.died(actor); else { this.hurt(actor); wake(body); }
+          return;
+        }
+      },
+    };
+  }
   private get howlerSpec(): HowlerSpec { const p = this.profile; if (p.pattern !== 'howler') throw new Error('Incompatible stalker pattern'); return p.spec; }
   private get howlerPorts(): HowlerPorts<A> { const p = this.profile; if (p.pattern !== 'howler') throw new Error('Incompatible stalker pattern'); return p.ports; }
   private get pouncerSpec(): PouncerSpec { const p = this.profile; if (p.pattern !== 'pouncer') throw new Error('Incompatible stalker pattern'); return p.spec; }

@@ -329,29 +329,11 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     const i = bodies.indexOf(body); sight[i] = null;
     practice.dead = 0; practice.fade = -1;
   };
-  /** AnimalManager.think for body `i`: a fauna body's hunting brain, or an enemy's own policy. */
-  const runBrain = (body: IslandBody, a: HuntBody, dt: number): void => {
-    if (body.brain === null) { hunt.think(a, dt, player, false, tracked.speed); return; }
-    if (!a.alive) { a.lookWeight = 0; return; }
-    // a staggered self-thinking species holds (AnimalManager.think)
-    if (a.stunned) { a.setMotion(a.yaw, 0, 1); a.setStrafe(0); a.lookTarget.copy(player); a.lookWeight = 1; return; }
-    body.brain.decide(dt);
-    const herd = hunt.herds[body.herd]; if (herd !== undefined) hunt.updateHerd(herd);
-  };
-  /** TickScheduler.interrupt's wake (AnimalManager.spawnAnimal's onInterrupt): decide now, whatever the clock (a zero
-   *  step when the body already decided this frame). */
-  const wake = (body: IslandBody | undefined): void => {
-    const a = body?.actor ?? null;
-    if (body === undefined || a === null || !a.alive) return;
-    runBrain(body, a, host.brainDt(body.id, true));
-  };
-  // AnimalManager.damaged: a fauna body's hit reaction (a kill clears its timer); a hit that doesn't kill wakes its brain
-  host.events.on('damage.dealt', ({ req, killed }) => {
-    const i = bodies.findIndex(b => b.actor !== null && b.brain === null && b.actor.combatActor() === req.target), a = bodies[i]?.actor ?? null;
-    if (a === null) return;
-    if (killed) { hunt.died(a); return; }
-    hunt.hurt(a); wake(bodies[i]);
-  }, host.scope);
+  const cadence = hunt.bindRoster({ limit: ROSTER, order: 'interrupt', at: rosterAt, actor: body => body.actor,
+    id: body => body.id, player, noise: tracked, sight, reach, brainDt: (id, urgent) => host.brainDt(id, urgent),
+    policy: body => body.brain, herd: body => body.herd, beforeDecisions: () => { hunt.tokens.sweep(still); } });
+  const wake = cadence.wake;
+  host.events.on('damage.dealt', ({ req, killed }) => { cadence.damaged(req.target, killed); }, host.scope);
   // Reusable native recipe slots are cold-allocated; only host.spawn materializes an entity on a due event.
   const extra = Array.from({ length: ROSTER - BODY_COUNT - 1 }, () => enemyBody('', 'crab', 'small', -1, { x: 0, z: 0 }, 0));
   const ranges = new Map<string, Map<string, readonly [number, number]>>();
@@ -425,25 +407,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     // the coconuts' bodies after the host's world step (Bodies' fixed 'post' phase)
     service.post(dt);
     hunt.beginTick(dt); tracked.clock += dt;
-    // the player's ground speed is the noise they make (AnimalManager.update)
-    if (!tracked.seen) { tracked.prev.copy(player); tracked.seen = true; }
-    const moved = Math.hypot(player.x - tracked.prev.x, player.z - tracked.prev.z);
-    tracked.prev.copy(player);
-    tracked.speed += (Math.min(moved / dt, 9) - tracked.speed) * (1 - 0.5 ** (dt * 10));
-    hunt.resetRepaths();
-    hunt.tokens.sweep(still);
-    for (let i = 0; i < Math.min(ROSTER, bodies.length + 1); i++) {
-      const body = rosterAt(i), a = body?.actor ?? null;
-      if (body === null || a === null) continue;
-      // a hunter that loses its line to the player decides at once
-      if (a.alive && a.aggressive && (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert')) {
-        const clear = reach(a, player);
-        if (sight[i] === true && !clear) wake(body);
-        sight[i] = clear;
-      }
-      const brainDt = host.brainDt(body.id);
-      if (brainDt > 0) runBrain(body, a, brainDt);
-    }
+    cadence.observe(dt); cadence.decide();
     // the coconuts strike, land and rest (Enemies.update), then their bodies ready the next world step ('pre')
     volley.step(dt, 1, player);
     service.pre(dt);

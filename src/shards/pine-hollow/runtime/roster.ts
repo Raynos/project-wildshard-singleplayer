@@ -206,34 +206,15 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     || hunt.herds.length !== bake.herds.length || hunt.herds.some((h, i) => JSON.stringify(h.members.map(m => m.entityId)) !== JSON.stringify(bake.herds[i]?.members))) throw new Error('Pine roster diverges from the page\'s list');
 
   booted = true;
-  const speed = { init: false, x: 0, z: 0, v: 0 };
+  const speed = { seen: false, prev: new Vector3(), speed: 0 };
   let clock = 0;
-  const decide = (a: HuntBody, dt: number): void => { if (dt > 0) hunt.think(a, dt, player, false, speed.v); };
-  // AnimalManager.damaged: a death stops its timer; a blow that does not kill is the brain's hit reaction and wakes it now
-  host.events.on('damage.dealt', ({ req, killed }) => {
-    const i = list.findIndex(b => b.actor.combatActor() === req.target), body = list[i];
-    if (body === undefined) return;
-    if (killed) { hunt.died(body.actor); return; }
-    hunt.hurt(body.actor);
-    if (body.actor.alive) decide(body.actor, host.brainDt(body.id, true));
-  }, host.scope);
+  const cadence = hunt.bindRoster({ limit: LIVE_MAX, order: 'combined', at: i => list[i], actor: body => body.actor,
+    id: body => body.id, player, noise: speed, sight: seen, reach: (actor, point) => canReach(actor, point, host.physics),
+    brainDt: (id, urgent) => host.brainDt(id, urgent) });
+  host.events.on('damage.dealt', ({ req, killed }) => { cadence.damaged(req.target, killed); }, host.scope);
 
   host.onStep(ROSTER_STEP, dt => {
-    if (!speed.init) { speed.x = player.x; speed.z = player.z; speed.init = true; }
-    const moved = Math.hypot(player.x - speed.x, player.z - speed.z);
-    speed.x = player.x; speed.z = player.z;
-    speed.v += (Math.min(moved / dt, 9) - speed.v) * (1 - 0.5 ** (dt * 10));
-    hunt.beginTick(dt); clock += dt; hunt.resetRepaths();
-    for (let i = 0; i < LIVE_MAX; i++) {
-      const body = list[i]; if (body === undefined) break;
-      const a = body.actor;
-      let urgent = false;
-      if (a.alive && a.aggressive && (a.state === 'charge' || a.state === 'stalk' || a.state === 'alert')) {
-        const line = canReach(a, player, host.physics);
-        urgent = seen[i] === true && !line; seen[i] = line;
-      }
-      decide(a, host.brainDt(body.id, urgent));
-    }
+    cadence.observe(dt); hunt.beginTick(dt); clock += dt; cadence.decide();
     // a running charge on the body clock: its band's step (0 on a paused or off frame, both frames' time on the next)
     for (let i = 0; i < LIVE_MAX; i++) {
       const body = list[i], a = body?.actor;
@@ -242,7 +223,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
       const step = host.bodyDt(body.id); if (step > 0) hunt.advanceCharge(a, step, player);
     }
   }, {
-    snapshot: () => ({ version: 3, rng: { ...rng.snapshot() }, clock, speed: { ...speed }, next,
+    snapshot: () => ({ version: 3, rng: { ...rng.snapshot() }, clock, speed: { init: speed.seen, x: speed.prev.x, z: speed.prev.z, v: speed.speed }, next,
       bodies: list.map((b, i) => {
         const memory = hunt.memory(b.actor); if (memory === undefined) throw new Error(`Pine body ${b.id} has no memory`);
         return { id: b.id, kind: b.kind, seen: seen[i] === true, memory: huntMemoryCodec.save(memory) };
@@ -251,7 +232,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     restore: value => {
       const state = v.parse(Saved, value);
       if (state.bodies.length !== list.length || state.herds.length !== hunt.herds.length || state.bodies.some((b, i) => b.id !== list[i]?.id)) throw new Error('Incompatible Pine roster continuation');
-      rng.restore(state.rng); Object.assign(speed, state.speed); next = state.next;
+      rng.restore(state.rng); speed.seen = state.speed.init; speed.prev.set(state.speed.x, 0, state.speed.z); speed.speed = state.speed.v; next = state.next;
       // the brain's clock is a sum of the same steps: a fresh brain (clock 0) takes the saved sum exactly
       hunt.beginTick(state.clock - clock); clock = state.clock;
       state.bodies.forEach((b, i) => {

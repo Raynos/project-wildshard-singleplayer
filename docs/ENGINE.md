@@ -5051,3 +5051,12 @@ can borrow that owner directly. Authored surface and uniform names are
 isolated from the family recipe. Faceted normals default on (override
 with `flatShading:false`). Point/spot lights retain physical lighting.
 An authored lighting stage instead uses `model:'standard'`.
+
+`engine/ai/stalker.StalkerBrain.bindRoster` lends one bounded native hunt
+cadence to an existing roster. `observe(dt)` updates its lent noise meter;
+`decide()` checks sight loss and schedules decisions in roster order.
+Combined mode requests one urgent tick; interrupt mode wakes before the
+ordinary tick. `damaged(target, killed)` wakes hunt actors after a blow;
+custom policies keep their own damage listeners. `wake(body)` also serves
+external alarms. Caller noise/sight records, snapshot envelopes, clocks,
+policy/charge/body phases and RNG streams remain with their owners.
