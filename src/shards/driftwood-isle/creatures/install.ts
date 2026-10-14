@@ -13,7 +13,7 @@ import { Enemies } from './Enemies';
 export function installDriftwoodCreatures(ctx: ShardContext, species = DRIFTWOOD_SPECIES): void {
   ctx.rows.species([...species, ISLAND_BOAR, ISLAND_BEAR]);
   ctx.rows.speciesLook(DRIFTWOOD_LOOKS);
-  registerDriftwoodToonPaints(ctx.scope); // the boar / deer / elk / bear toon palettes (B50)
+  registerDriftwoodToonPaints(ctx.scope); // the boar / bear toon palettes (B50)
   ctx.rows.spawnTable([DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE]);
   ctx.rows.lootTable([DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES]);
   installDriftwoodLootTables(ctx.scope);

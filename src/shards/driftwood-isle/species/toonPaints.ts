@@ -55,44 +55,6 @@ function boarPaintLow(v?: VariantDef): Paint {
   };
 }
 
-/** Driftwood Isle deer: tan pastel body, cream belly / throat / rump, dark hooves and nose, bone antlers. */
-function deerPaintLow(v?: VariantDef): Paint {
-  const t = v?.tint ?? {};
-  const bodyC: RGB3 = t['body'] ?? [0.62, 0.46, 0.30];
-  const body = srgb(...bodyC), back = scaled(bodyC, 0.82), neck = scaled(bodyC, 0.94), muzzle = scaled(bodyC, 0.74);
-  const belly = srgb(...(t['belly'] ?? [0.86, 0.78, 0.62])), rump = scaled(t['belly'] ?? [0.86, 0.78, 0.62], 0.97);
-  const nose = srgb(...(t['nose'] ?? [0.10, 0.08, 0.07])), earIn = srgb(0.80, 0.70, 0.58);
-  const leg = scaled(bodyC, 0.84), legDark = scaled(bodyC, 0.55), hoof = srgb(...(t['hoof'] ?? [0.12, 0.09, 0.08]));
-  const antlerC: RGB3 = t['antler'] ?? [0.55, 0.44, 0.32];
-  const antler = srgb(...antlerC), antlerTip = scaled(antlerC, 1.55), eye = srgb(...(t['eye'] ?? [0.02, 0.015, 0.01]));
-  return (out, x, y, z, nx, ny, _nz, part, tt) => {
-    switch (part) {
-      case 'body': {
-        out.copy(body);
-        mix(out, out, back, sstep(0.5, 0.95, ny) * 0.8);
-        mix(out, out, belly, sstep(-0.2, -0.75, ny));
-        const rd = Math.hypot(x * 1.2, (y - 0.98) * 1.3, (z + 0.9) * 0.9);
-        mix(out, out, rump, sstep(0.30, 0.16, rd) * 0.9);
-        break;
-      }
-      case 'neck': out.copy(neck); mix(out, out, belly, sstep(-0.3, -0.85, ny) * 0.85); break;
-      case 'head':
-        out.copy(neck);
-        mix(out, out, muzzle, sstep(0.6, 0.9, tt) * 0.8);
-        mix(out, out, belly, sstep(-0.3, -0.8, ny) * sstep(0.3, 0.7, tt) * 0.7);
-        mix(out, out, nose, sstep(0.9, 0.97, tt));
-        break;
-      case 'ear': out.copy(back); mix(out, out, earIn, sstep(0.1, 0.6, -nx * Math.sign(x)) * 0.9); break;
-      case 'leg': mix(out, leg, legDark, sstep(0.62, 0.3, y)); break;
-      case 'tail': out.copy(back); mix(out, out, rump, sstep(-0.1, -0.7, ny) * 0.9); break;
-      case 'antler': mix(out, antler, antlerTip, sstep(0.5, 1, tt) * 0.85); break;
-      case 'hoof': out.copy(hoof); break;
-      case 'eye': out.copy(eye); break;
-      default: out.copy(body);
-    }
-  };
-}
-
 /**
  * Driftwood Isle bear: a flat two-tone coat — the base colour over the body, a paler saddle of guard-hair tips down the
  * back / hump / shoulders (no noise: the facet jitter does the "fur"), a darker belly and lower legs, a tan muzzle,
@@ -139,9 +101,9 @@ function bearPaintLow(v?: VariantDef): Paint {
   };
 }
 
-/** the island's toon paint rows: the boar, the bear, and the deer palette for the deer and the elk */
+/** the island's toon paint rows: its fauna, the boar and the bear (no deer or elk since E318) */
 export const DRIFTWOOD_TOON_PAINTS: readonly (readonly [string, (v?: VariantDef) => Paint])[] = [
-  ['boar', boarPaintLow], ['deer', deerPaintLow], ['elk', deerPaintLow], ['bear', bearPaintLow],
+  ['boar', boarPaintLow], ['bear', bearPaintLow],
 ];
 export function registerDriftwoodToonPaints(scope?: Scope): void {
   for (const [kind, paint] of DRIFTWOOD_TOON_PAINTS) registerToonPaint(kind, paint, scope);

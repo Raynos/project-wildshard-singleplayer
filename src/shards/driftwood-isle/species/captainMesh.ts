@@ -12,13 +12,13 @@ import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
  * own paint, grafted at its own neck (scripts/img2mesh/e304_faces.sh paint captain, face_remaster.py --graft-v2): ~346 KB.
  *
  *   await preloadCaptainMesh();         // quest/install.ts waits behind the loading screen, before saved-altar restore
- *   const m = captainMeshFor(bones);    // buildCaptain: { parts, map } bound to the captain's own bones, or null
+ *   const m = captainMesh.meshFor(bones); // buildCaptain: { parts, map } bound to the captain's own bones
  *
  * At load the mesh is normalized to the rig: 1.9 m tall (the tricorn's top — the rig's head bone sits at 1.56), feet at
  * y = 0, centred on x / z. Binding: every vertex rides the bone whose segment (bone → each child; a leaf is a point) is
  * nearest in the bind pose — rigid, like the loft kit's parts, so animateCaptain() drives it unchanged. The texture goes
- * on the rig's material (AnimalSpecies.map); the vertex colours are white so it shows true. A failed load permits the
- * loft stand-in; a build during the load throws, so AnimalFactory cannot cache a stand-in while the hull is pending.
+ * on the rig's material (AnimalSpecies.map); the vertex colours are white so it shows true. A failed load rejects the
+ * preload (there is no stand-in), and a build before the load throws.
  */
 export const CAPTAIN_GLB_URL = '/assets/models/driftwood-hero/captain/captain.glb';
 const URL_GLB = CAPTAIN_GLB_URL;
@@ -52,12 +52,10 @@ export class CaptainMesh {
   private source: THREE.BufferGeometry | null = null;
   private texture: THREE.Texture | null = null;
   private loading: Promise<void> | null = null;
-  private settled = false;
   private readonly loadFile: (url: string) => Promise<GLTF>;
   constructor(loadFile: (url: string) => Promise<GLTF> = loadRigFile) { this.loadFile = loadFile; }
 
   private async load(): Promise<void> {
-  try {
     const gltf = await this.loadFile(URL_GLB);
     const hit: { geo: THREE.BufferGeometry | null; map: THREE.Texture | null } = { geo: null, map: null };
     gltf.scene.updateMatrixWorld(true);
@@ -78,15 +76,11 @@ export class CaptainMesh {
     this.texture = hit.map;
     cacheUntilDisposed({ geometry: g, map: hit.map }, () => {
       if (this.source !== g) return;
-      this.source = null; this.texture = null; this.loading = null; this.settled = false;
+      this.source = null; this.texture = null; this.loading = null;
     });
-  } catch (e: unknown) { console.warn('[captain] generated mesh not loaded, using the stand-in:', e); }
-  finally { this.settled = true; }
   }
 
-  /** the generated mesh has loaded (buildCaptain then fits the rig to it before binding) */
-  loaded(): boolean { return this.source !== null; }
-
+  /** Fetch and fit the mesh once; a failed load rejects. */
   preload(): Promise<void> {
     this.loading ??= this.load();
     return this.loading;
@@ -95,11 +89,10 @@ export class CaptainMesh {
 /**
  * The mesh bound to `bones` (the attributes every species part carries) as TWO geometries — its triangles split in half —
  * because AnimalFactory merges furParts and hardParts separately and neither list may be empty (the captain has no fur,
- * so both halves draw alike), plus its texture. Null before / without the load.
+ * so both halves draw alike), plus its texture. Refuses before the load.
  */
-  meshFor(bones: BoneDef[]): { parts: [THREE.BufferGeometry, THREE.BufferGeometry]; map: THREE.Texture | null } | null {
-  if (this.loading !== null && !this.settled) throw new Error('Captain mesh is still loading; await preloadCaptainMesh before building');
-  if (this.source === null) return null;
+  meshFor(bones: BoneDef[]): { parts: [THREE.BufferGeometry, THREE.BufferGeometry]; map: THREE.Texture | null } {
+  if (this.source === null) throw new Error('Captain mesh is not loaded; await preloadCaptainMesh before building');
   const g = this.source.clone();
   const pos = g.getAttribute('position');
   const n = pos.count;
@@ -141,7 +134,7 @@ export class CaptainMesh {
   for (const key of Object.keys(g.attributes)) if (!['position', 'normal', 'uv', 'color', 'skinIndex', 'skinWeight', 'furLen'].includes(key)) g.deleteAttribute(key);
   if (g.index === null) g.setIndex(Array.from({ length: n }, (_, i) => i)); // the species parts are indexed; mergeGeometries wants them all alike
   const idx = g.index;
-  if (idx === null) return null;
+  if (idx === null) throw new Error('Captain mesh lost its index');
   const cut = Math.floor(idx.count / 6) * 3;
   const ids = Array.from(idx.array);
   const a = g.clone(), b = g.clone();
@@ -153,7 +146,4 @@ export class CaptainMesh {
 
 /** the page's captain mesh */
 export const captainMesh = new CaptainMesh();
-/** the generated mesh has loaded (buildCaptain then fits the rig to it before binding) */
-export function captainMeshLoaded(): boolean { return captainMesh.loaded(); }
 export function preloadCaptainMesh(): Promise<void> { return captainMesh.preload(); }
-export function captainMeshFor(bones: BoneDef[]): { parts: [THREE.BufferGeometry, THREE.BufferGeometry]; map: THREE.Texture | null } | null { return captainMesh.meshFor(bones); }

@@ -1,11 +1,9 @@
 import { animateCaptain } from './captainPose';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import { smoothstep as sstep } from '@wildshard/engine/core/noise';
-import type { Rng } from '@wildshard/engine/core/rng';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { loft, skinPlain, S, boneIndex, mix, paletteColors, type Paint, type RGB } from '@wildshard/engine/entities/species/loft';
+import { skinPlain, boneIndex, srgb, type Paint } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
-import type { AnimalSpecies, BoneDef, VariantDef, ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import type { AnimalSpecies, BoneDef, ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import * as THREE from 'three';
 import { captainMesh, type CaptainMesh } from './captainMesh';
@@ -18,8 +16,8 @@ import { CaptainBrain, SWING_DMG } from './captainPolicy';
  * frock coat with tarnished gold trim and epaulettes, a battered tricorn, a beard of kelp, barnacles on the shoulders,
  * glowing cyan eyes and a heavy boarding cutlass. Humanoid custom rig (the sailor's bones). 320 hp.
  *
- * The mesh is the adventure agent's stand-in built with the species `loft` kit; the model agent may replace
- * `buildCaptain` wholesale (the rig contract is the bone list + the animate() below).
+ * The mesh is the generated hull of ./captainMesh.ts on the sailor's humanoid rig (the rig contract is the bone list +
+ * the animate() of ./captainPose.ts).
  *
  * The fight (`think`), three phases by hp:
  *   I   (100–66 %) — he wades after you (1.2 m/s) and swings: a 0.7 s over-the-head wind-up (a readable telegraph),
@@ -34,48 +32,16 @@ import { CaptainBrain, SWING_DMG } from './captainPolicy';
  * `mem.poolX / poolZ` = where he rises (default: where he was spawned).
  */
 
-const PALETTE = {
-  bone: [0.84, 0.81, 0.70], boneDark: [0.58, 0.56, 0.47], skull: [0.88, 0.86, 0.76], socket: [0.08, 0.12, 0.12],
-  coat: [0.13, 0.17, 0.30], coatDark: [0.08, 0.10, 0.18], trim: [0.78, 0.60, 0.22], shirt: [0.74, 0.72, 0.62],
-  breeches: [0.20, 0.15, 0.11], boot: [0.10, 0.08, 0.07], hat: [0.08, 0.08, 0.09], kelp: [0.18, 0.38, 0.14],
-  barnacle: [0.70, 0.68, 0.60], steel: [0.66, 0.70, 0.74], steelEdge: [0.88, 0.92, 0.95], guard: [0.62, 0.48, 0.20], grip: [0.26, 0.16, 0.10],
-  eye: [0.35, 1.0, 1.0],
-} satisfies Record<string, RGB>;
-
-
-
-function captainPaint(v: VariantDef): Paint {
-  const P = paletteColors(PALETTE, v.tint);
-  return (out, _x, y, _z, _nx, ny, nz, part, t, a) => {
-    switch (part) {
-      case 'skull': out.copy(P.skull); mix(out, out, P.socket, sstep(0.55, 0.75, t) * sstep(0.2, 0.7, nz) * (1 - sstep(0.4, 0.7, ny)) * 0.9); break;
-      case 'bone': mix(out, P.bone, P.boneDark, 0.35 + 0.3 * Math.sin(y * 9 + a)); break;
-      case 'coat': {
-        out.copy(P.coat);
-        mix(out, out, P.coatDark, 0.5 + 0.5 * Math.sin(a * 4 + y * 3));                 // rot and salt streaks
-        if (Math.abs(Math.sin(a)) > 0.93) mix(out, out, P.trim, 0.9);                     // the gold-trimmed front edges
-        if (y < 0.75 && ((a * 7 + y * 30) % 2) < 0.5) mix(out, out, P.kelp, 0.55);         // torn, weedy tails
-        break;
-      }
-      case 'trim': out.copy(P.trim); break;
-      case 'shirt': out.copy(P.shirt); break;
-      case 'breeches': out.copy(P.breeches); break;
-      case 'boot': out.copy(P.boot); break;
-      case 'hat': mix(out, P.hat, P.trim, sstep(0.85, 1.0, t) * 0.8); break;
-      case 'kelp': mix(out, P.kelp, P.coatDark, sstep(0.6, 1.0, t) * 0.4); break;
-      case 'barnacle': out.copy(P.barnacle); break;
-      case 'steel': mix(out, P.steel, P.steelEdge, sstep(0.3, 0.9, Math.abs(ny))); break;
-      case 'guard': out.copy(P.guard); break;
-      case 'grip': out.copy(P.grip); break;
-      case 'eye': out.copy(P.eye); break;
-      default: out.copy(P.bone);
-    }
-  };
-}
+/** the glowing eye spheres' colour (the generated head's painted eyes sit under them) */
+const EYE = srgb(0.35, 1.0, 1.0);
+const eyePaint: Paint = (out) => { out.copy(EYE); };
 
 const CAPTAIN_DIMS: AnimalSpecies['dims'] = { bodyY: 0.95, bodyHalfLen: 0.5, bodyRadius: 0.3, headRadius: 0.16, legLen: 0.85, feet: [[0.12, 0.05], [-0.12, 0.05], [0.12, -0.05], [-0.12, -0.05]], halfWidth: 0.28, capsuleAxis: 'y' };
 
-function buildCaptain(v: VariantDef, rng: Rng, mesh: CaptainMesh = captainMesh): AnimalSpecies {
+/** The captain's rig: the sailor's bones, the limb joints fitted to the generated mesh (measured band by band, E70 round
+ *  3: he hangs his arms lower and wider than the sailor and stands wider), so the elbows and shoulders pivot where his
+ *  arms bend. */
+function captainBones(): BoneDef[] {
   const bones: BoneDef[] = [
     { name: 'body', parent: null, pos: [0, 0.95, 0] },
     { name: 'spine', parent: 'body', pos: [0, 1.12, 0] },
@@ -85,85 +51,26 @@ function buildCaptain(v: VariantDef, rng: Rng, mesh: CaptainMesh = captainMesh):
   for (const side of ['L', 'R'] as const) {
     const sx = side === 'L' ? 1 : -1;
     bones.push(
-      { name: `arm${side}_sh`, parent: 'chest', pos: [sx * 0.24, 1.47, 0] },
-      { name: `arm${side}_el`, parent: `arm${side}_sh`, pos: [sx * 0.28, 1.21, 0.02] },
-      { name: `arm${side}_hand`, parent: `arm${side}_el`, pos: [sx * 0.30, 0.97, 0.06] },
-      { name: `leg${side}_hip`, parent: 'body', pos: [sx * 0.11, 0.92, 0] },
-      { name: `leg${side}_knee`, parent: `leg${side}_hip`, pos: [sx * 0.12, 0.50, 0.01] },
-      { name: `leg${side}_foot`, parent: `leg${side}_knee`, pos: [sx * 0.12, 0.07, 0.02] },
+      { name: `arm${side}_sh`, parent: 'chest', pos: [sx * 0.26, 1.42, 0] },
+      { name: `arm${side}_el`, parent: `arm${side}_sh`, pos: [sx * 0.40, 1.12, 0.02] },
+      { name: `arm${side}_hand`, parent: `arm${side}_el`, pos: [sx * 0.47, 0.84, 0.05] },
+      { name: `leg${side}_hip`, parent: 'body', pos: [sx * 0.12, 0.90, 0] },
+      { name: `leg${side}_knee`, parent: `leg${side}_hip`, pos: [sx * 0.16, 0.48, 0.01] },
+      { name: `leg${side}_foot`, parent: `leg${side}_knee`, pos: [sx * 0.17, 0.08, 0.02] },
     );
   }
-  // the generated captain (captainMesh.ts) hangs his arms lower and wider than the loft stand-in, and stands wider: fit the
-  // limb joints to the mesh (measured band by band, E70 round 3) so the elbows and shoulders pivot where his arms bend
-  if (mesh.loaded()) {
-    const fit: Record<string, [number, number, number]> = {
-      _sh: [0.26, 1.42, 0], _el: [0.40, 1.12, 0.02], _hand: [0.47, 0.84, 0.05], _hip: [0.12, 0.90, 0], _knee: [0.16, 0.48, 0.01], _foot: [0.17, 0.08, 0.02],
-    };
-    for (const b of bones) {
-      const side = b.name.includes('L_') ? 1 : b.name.includes('R_') ? -1 : 0;
-      const key = Object.keys(fit).find((k) => b.name.endsWith(k));
-      const f = key === undefined ? undefined : fit[key];
-      if (side !== 0 && f) b.pos = [side * f[0], f[1], f[2]];
-    }
-  }
-  const B = boneIndex(bones);
-  const paint = captainPaint(v);
-  const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
-  const body = B('body'), spine = B('spine'), chest = B('chest'), head = B('head');
-  // skull with a jutting jaw
-  fur.push(loft([
-    S(0, 1.63, -0.09, 0.08, 0.08, head), S(0, 1.66, -0.02, 0.105, 0.105, head, head, 0, 1.05, 0.95),
-    S(0, 1.65, 0.06, 0.10, 0.10, head, head, 0, 1.05, 0.9), S(0, 1.60, 0.11, 0.075, 0.075, head), S(0, 1.54, 0.10, 0.06, 0.05, head),
-  ], 16, 'skull', paint, true, true));
-  // (the generated head's painted cyan eyes sit at x 0.022 ± 0.034, y 1.70, z 0.084 of its 1.9 m frame — measured off the
-  // file's texture, E343; the loft stand-in's at ± 0.043, 1.635, 0.115)
-  const gen = mesh.loaded();
-  for (const sx of [1, -1]) eyes.push(skinPlain(gen ? new THREE.SphereGeometry(0.02, 8, 6).translate(0.022 + sx * 0.034, 1.70, 0.092) : new THREE.SphereGeometry(0.027, 8, 6).translate(sx * 0.043, 1.635, 0.115), head, 'eye', paint));
-  // v0.2: the generated captain (codex concept → Hunyuan3D-2, src/engine/entities/species/captainMesh.ts) once it has loaded —
-  // bound to these same bones, so animateCaptain() drives it unchanged; the glowing eye spheres ride on top. The play
-  // installer awaits the file; a failed load uses the loft stand-in below. A pending build throws instead of caching it.
+  return bones;
+}
+
+/** The generated captain (codex concept → Hunyuan3D-2, ./captainMesh.ts) bound to his bones, so animateCaptain() drives
+ *  it unchanged, with the glowing eye spheres on top (the generated head's painted cyan eyes sit at x 0.022 ± 0.034,
+ *  y 1.70, z 0.084 of its 1.9 m frame — measured off the file's texture, E343). The play installer awaits the file; a
+ *  build before it refuses. */
+function buildCaptain(mesh: CaptainMesh = captainMesh): AnimalSpecies {
+  const bones = captainBones(), head = boneIndex(bones)('head');
+  const eyes = [1, -1].map((sx) => skinPlain(new THREE.SphereGeometry(0.02, 8, 6).translate(0.022 + sx * 0.034, 1.70, 0.092), head, 'eye', eyePaint));
   const generated = mesh.meshFor(bones);
-  if (generated) return { bones, furParts: [generated.parts[0]], hardParts: [generated.parts[1]], eyeParts: eyes, dims: CAPTAIN_DIMS, ...(generated.map ? { map: generated.map, selfLight: 0.5 } : {}), facetJitter: 0 };
-  // the tricorn: a flat brim turned up in three corners + a low crown
-  hard.push(loft([S(0, 1.72, -0.01, 0.2, 0.2, head), S(0, 1.75, -0.01, 0.23, 0.23, head), S(0, 1.79, -0.01, 0.13, 0.13, head), S(0, 1.86, -0.01, 0.11, 0.11, head), S(0, 1.88, -0.01, 0.02, 0.02, head)], 3, 'hat', paint, true, true));
-  // a beard of kelp hanging off the jaw
-  for (let i = 0; i < 5; i++) {
-    const bx = (i - 2) * 0.03, len = rng.range(0.16, 0.3);
-    hard.push(loft([S(bx, 1.54, 0.1, 0.018, 0.008, head), S(bx * 1.2, 1.54 - len * 0.5, 0.12, 0.016, 0.006, chest, head, 0.5), S(bx * 1.3, 1.54 - len, 0.13, 0.006, 0.003, chest)], 6, 'kelp', paint, false, true, 'z'));
-  }
-  fur.push(loft([S(0, 1.45, 0.0, 0.04, 0.04, chest), S(0, 1.55, 0.01, 0.035, 0.035, chest, head, 0.7)], 8, 'bone', paint, false, false));
-  // the frock coat: shoulders → chest → waist → long tails to the knee (one loft; the paint trims the front edges)
-  fur.push(loft([
-    S(0, 0.52, -0.01, 0.2, 0.15, body), S(0, 0.78, 0, 0.19, 0.13, body), S(0, 0.95, 0, 0.17, 0.11, body, spine, 0.3),
-    S(0, 1.12, 0, 0.19, 0.12, spine), S(0, 1.30, 0, 0.23, 0.14, spine, chest, 0.6), S(0, 1.46, 0, 0.25, 0.14, chest), S(0, 1.52, 0, 0.13, 0.09, chest),
-  ], 16, 'coat', paint, true, true));
-  hard.push(loft([S(0, 1.26, 0.1, 0.1, 0.05, chest), S(0, 1.42, 0.11, 0.08, 0.04, chest)], 8, 'shirt', paint, true, true));   // the shirt front
-  hard.push(loft([S(0, 0.98, 0.0, 0.18, 0.12, body), S(0, 1.02, 0.0, 0.18, 0.12, body)], 16, 'trim', paint, true, true));    // the sword belt
-  for (const sx of [1, -1]) {
-    hard.push(loft([S(sx * 0.2, 1.5, 0, 0.1, 0.06, chest), S(sx * 0.27, 1.49, 0, 0.09, 0.05, chest), S(sx * 0.31, 1.46, 0, 0.03, 0.03, chest)], 8, 'trim', paint, true, true));   // epaulettes
-    for (let i = 0; i < 3; i++) hard.push(skinPlain(new THREE.SphereGeometry(0.022 + rng.range(0, 0.012), 5, 3).translate(sx * (0.14 + rng.range(0, 0.1)), 1.5 + rng.range(-0.02, 0.03), rng.range(-0.08, 0.06)), chest, 'barnacle', paint));
-  }
-  for (const side of ['L', 'R'] as const) {
-    const sx = side === 'L' ? 1 : -1;
-    const sh = B(`arm${side}_sh`), el = B(`arm${side}_el`), hand = B(`arm${side}_hand`);
-    fur.push(loft([S(sx * 0.25, 1.47, 0, 0.065, 0.06, sh), S(sx * 0.27, 1.32, 0.01, 0.055, 0.05, sh), S(sx * 0.28, 1.21, 0.02, 0.05, 0.05, sh, el, 0.5), S(sx * 0.29, 1.07, 0.04, 0.06, 0.055, el), S(sx * 0.30, 1.0, 0.05, 0.065, 0.06, el)], 8, 'coat', paint, true, true));   // sleeves + cuffs
-    hard.push(loft([S(sx * 0.30, 0.99, 0.06, 0.03, 0.028, hand), S(sx * 0.305, 0.92, 0.07, 0.038, 0.027, hand), S(sx * 0.31, 0.86, 0.08, 0.02, 0.013, hand)], 8, 'bone', paint, false, true));
-    const hip = B(`leg${side}_hip`), knee = B(`leg${side}_knee`), foot = B(`leg${side}_foot`);
-    hard.push(loft([S(sx * 0.11, 0.9, 0, 0.07, 0.07, body, hip, 0.5), S(sx * 0.115, 0.68, 0.005, 0.06, 0.06, hip), S(sx * 0.12, 0.52, 0.01, 0.055, 0.055, hip, knee, 0.5)], 8, 'breeches', paint, true, false));
-    fur.push(loft([S(sx * 0.12, 0.5, 0.01, 0.06, 0.06, knee), S(sx * 0.12, 0.3, 0.015, 0.055, 0.055, knee), S(sx * 0.12, 0.1, 0.02, 0.05, 0.05, knee, foot, 0.6)], 8, 'boot', paint, true, false));   // tall boots
-    hard.push(loft([S(sx * 0.12, 0.06, -0.04, 0.055, 0.04, foot), S(sx * 0.12, 0.045, 0.1, 0.055, 0.035, foot), S(sx * 0.12, 0.035, 0.19, 0.03, 0.02, foot)], 8, 'boot', paint, true, true));
-  }
-  // the boarding cutlass: brass basket guard, a broad curved blade
-  {
-    const hand = B('armR_hand'), x = -0.31;
-    hard.push(loft([S(x, 0.96, 0.02, 0.022, 0.022, hand), S(x, 0.9, 0.0, 0.024, 0.024, hand), S(x, 0.83, -0.02, 0.028, 0.028, hand)], 8, 'grip', paint, true, true));
-    hard.push(loft([S(x, 0.92, 0.02, 0.075, 0.075, hand), S(x, 0.9, 0.09, 0.07, 0.06, hand), S(x, 0.89, 0.12, 0.025, 0.025, hand)], 8, 'guard', paint, true, true));
-    hard.push(loft([S(x, 0.9, 0.12, 0.008, 0.04, hand), S(x, 0.9, 0.36, 0.01, 0.05, hand), S(x, 0.91, 0.6, 0.009, 0.058, hand), S(x, 0.93, 0.8, 0.006, 0.05, hand), S(x, 0.97, 0.94, 0.002, 0.014, hand)], 8, 'steel', paint, true, true));
-  }
-  return {
-    bones, furParts: fur, hardParts: hard, eyeParts: eyes,
-    dims: CAPTAIN_DIMS,
-  };
+  return { bones, furParts: [generated.parts[0]], hardParts: [generated.parts[1]], eyeParts: eyes, dims: CAPTAIN_DIMS, ...(generated.map ? { map: generated.map, selfLight: 0.5 } : {}), facetJitter: 0 };
 }
 
 // ── animation (the sailor's rig language, heavier) ────────────────────────────────────────
@@ -197,7 +104,7 @@ export function captainLook(mesh: CaptainMesh = captainMesh): SpeciesLook { retu
   fur: NO_FUR,
   rig: 'custom',
   eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.4,
-  build: (v, rng) => buildCaptain(v, rng, mesh),
+  build: () => buildCaptain(mesh),
   animate: animateCaptain,
 }; }
 export const CAPTAIN_LOOK: SpeciesLook = captainLook();
