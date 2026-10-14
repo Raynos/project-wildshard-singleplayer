@@ -6,7 +6,7 @@ import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { CELL, type BlenderArea as IslandRect } from '@wildshard/engine/world/blenderArea';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { editShader, spliceEdits, type ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
-import type { ISLAND_CLIP, ISLAND_PROPS, ISLAND_TERRAIN } from './islandLook';
+import type { ISLAND_PROPS, ISLAND_TERRAIN } from './islandLook';
 import type { ISLAND_LOOK } from '../../data/islandRows';
 
 /**
@@ -18,7 +18,7 @@ import type { ISLAND_LOOK } from '../../data/islandRows';
  *
  * - `bakedTerrainMaterial` / `bakedPropsMaterial`: the toon standard materials of the baked terrain and props (fog, the
  *   sky rig's setup, the AO edits, per-instance tint and the cover's fade-out past each plant's own edge).
- * - `clipInstancedRect`, `clipGridTerrain`, `dropTriangles`, `dropNearestTriangles`: hide what the area replaces.
+ * - `clipGridTerrain`, `dropTriangles`, `dropNearestTriangles`: hide what the area replaces.
  * - `simplifiedProto`: a prototype's far copy (meshoptimizer), so a tile's far copies keep its near copies' shape.
  * - `protosFromMeshes`, `droppedPlacements`, `usedPlacements`, `placementSets`, `tileRect`: read and sort the bake.
  * - `decodeFloatBlock`: a baked float block's file (a 16-byte header, then the f32s; the generator writes it).
@@ -56,17 +56,6 @@ export function bakedPropsMaterial(row: typeof ISLAND_PROPS, sky: Sky, cover: Is
   const edits: ShaderEditRow[] = [...row.ao, ...(tinted ? row.tint : [])];
   if (cover !== null) edits.push(...spliceEdits(row.fade, { edgeNear: (cover.near + cover.grow).toFixed(1), far: cover.far.toFixed(1), grow: cover.grow.toFixed(1) }));
   return toon(mat, row.patch, edits, (cover !== null ? cover.key : row.key) + (tinted ? row.tintKey : ''), sky);
-}
-
-/** Collapses an instance of `mat` whose origin is inside `rect` (vertex shader, no discard, no CPU per frame):
- *  `@{x0}` … `@{z1}` splice the rect to three decimals; the program key gains `|<row.key>`. */
-export function clipInstancedRect(mat: THREE.Material, rect: IslandRect, row: typeof ISLAND_CLIP): void {
-  const f = (v: number) => v.toFixed(3);
-  const edits = spliceEdits(row.edits, { x0: f(rect.x0), x1: f(rect.x1), z0: f(rect.z0), z1: f(rect.z1) });
-  patchShader(mat, row.patch, PATCH_ORDER.decorate, (shader) => {
-    editShader(shader, edits);
-  }, { key: (k) => `${k}|${row.key}` });
-  mat.needsUpdate = true;
 }
 
 /** Keeps only the triangles `keep(cx, cz)` accepts (centroid, world xz: the geometry is built in world space); returns

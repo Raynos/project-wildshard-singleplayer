@@ -4,15 +4,6 @@
 // SDK formats from the numbers here: the cover's reach to one decimal, the AO share to two, the clipped rect to three).
 import type { ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
 
-/** the instanced cover GroundCover leaves inside the cove collapses at its origin (no discard, no CPU per frame) */
-export const ISLAND_CLIP = {
-  patch: 'driftwood.island-clip',
-  key: 'island-clip',
-  edits: [
-    { stage: 'vertex', find: '#include <project_vertex>', put: '#include <project_vertex>\n#ifdef USE_INSTANCING\n\t{ vec4 io = modelMatrix * instanceMatrix * vec4( 0.0, 0.0, 0.0, 1.0 );\n\t  if ( io.x > @{x0} && io.x < @{x1} && io.z > @{z0} && io.z < @{z1} ) gl_Position = vec4( 2.0, 2.0, 2.0, 1.0 ); }\n#endif' },
-  ] satisfies ShaderEditRow[],
-};
-
 /** the cove's terrain: the baked AO also grounds the direct light a little (contact shade under the palms, the rocks, the
  *  pier): `aoDirect` of it reaches the sun (0 = physically only the fill) */
 export const ISLAND_TERRAIN = {

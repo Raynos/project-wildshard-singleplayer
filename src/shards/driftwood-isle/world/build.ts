@@ -1,3 +1,4 @@
+import { area as BLENDER_AREA } from './blenderArea';
 /**
  * Driftwood Isle's world build (E357 S4.1, 08 §4 `level.world`, §6.1 step 2): the ~15 builders `main.ts`'s `edge` step
  * ran behind `isOcean ?`, in the same order with the same arguments and a `slice()` between them (the 30 ms task
@@ -193,7 +194,9 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const palms = await new Palms(sky).placeSliced(palmSpecs, registry, slice.due);
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
-  const cover = new GroundCover(sky, { sea: sea.level, palms: palmSpecs }).build();
+  const cover = new GroundCover(sky, { sea: sea.level, palms: palmSpecs });
+  cover.excludeArea(BLENDER_AREA); // Required baked cover owns this rectangle before the first refill.
+  cover.build();
   game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover'); tintTerrain(world.terrain.mesh); // E156: the ground wears the cover
   ocean.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
   await slice(++completed, total, 'Palms and ground cover');
@@ -217,7 +220,6 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     });
     game.onUpdate(() => { island.update(sky); }, 'shard.driftwood.blenderIsland');
     game.onLate(() => { island.late(sky); }, 'shard.driftwood.blenderIsland.instances'); // G144: the instanced placements repack after the camera is posed
-    cover.excludeArea(B.area); // E156: the cove dresses its own area
     return island;
   });
   await slice(total, total, 'Baked island');

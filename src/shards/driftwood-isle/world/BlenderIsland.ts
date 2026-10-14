@@ -41,10 +41,10 @@ import type { PalmSpec } from './Palms';
 import { WORLD_DROP } from './sea';
 import { smallRock, type SmallRockParams } from '../models/smallRock';
 import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams } from '../models/cove';
-import { ISLAND_CLIP, ISLAND_PROPS, ISLAND_TERRAIN } from '../runtime/looks/islandLook';
+import { ISLAND_PROPS, ISLAND_TERRAIN } from '../runtime/looks/islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
 import { CoverGrid, tintTerrain, coverSample, coverJitter } from './coverTint';
-import { bakedPropsMaterial, bakedTerrainMaterial, clipGridTerrain, clipInstancedRect, droppedPlacements, dropNearestTriangles, dropTriangles, placementSets, protosFromMeshes, simplifiedProto, simplifierReady, sunBounceLevel, tileRect, usedPlacements, type IslandCoverFade, type IslandProto } from '../runtime/looks/bakedIsland';
+import { bakedPropsMaterial, bakedTerrainMaterial, clipGridTerrain, droppedPlacements, dropNearestTriangles, dropTriangles, placementSets, protosFromMeshes, simplifiedProto, simplifierReady, sunBounceLevel, tileRect, usedPlacements, type IslandCoverFade, type IslandProto } from '../runtime/looks/bakedIsland';
 import { requiredIslandCover } from './islandCover';
 import { TiledInstances, type TiledInstances as TiledInstanceSet } from '../runtime/looks/instancedTiles';
 import { slicer } from '@wildshard/engine/boot/plan';
@@ -226,12 +226,10 @@ export class BlenderIsland {
     }
     for (const r of ctx.replace) if (r) { dropTriangles(r.geometry, (x, z) => !inArea(x, z)); await slice(); }
     if (ctx.cover) {
-      // instanced plants: an instance whose origin is inside the area collapses (data/islandLook.ts ISLAND_CLIP)
-      const clipped = new Set<THREE.Material>(), coverMeshes: THREE.Mesh[] = [];
-      ctx.cover.traverse((o) => {
-        if (isInstanced(o)) { for (const mm of Array.isArray(o.material) ? o.material : [o.material]) if (!clipped.has(mm)) { clipped.add(mm); clipInstancedRect(mm, area, ISLAND_CLIP); } }
-        else if (isMesh(o)) coverMeshes.push(o);
-      });
+      // Streamed cover excludes the baked area before its first refill; only
+      // non-instanced drift logs still need their replaced triangles removed.
+      const coverMeshes: THREE.Mesh[] = [];
+      ctx.cover.traverse((o) => { if (isMesh(o) && !isInstanced(o)) coverMeshes.push(o); });
       for (const m of coverMeshes) { dropTriangles(m.geometry, (x, z) => !inArea(x, z)); await slice(); }
     }
 
