@@ -466,6 +466,13 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'normalWorld': return { t: 'vec3', n: normalWorldGeometry };
       case 'cameraPosition': return { t: 'vec3', n: frameCameraPosition() };
       case 'time': return { t: 'float', n: time };
+      case 'fogColour': return { t: 'vec3', n: Fn((builder: NodeBuilder): Node<'vec3'> => {
+        const scene: unknown = Reflect.get(builder, 'scene');
+        const value: unknown = scene instanceof THREE.Scene ? scene.fog : null;
+        const fog = value instanceof THREE.Fog || value instanceof THREE.FogExp2 ? value : null;
+        return fog === null ? vec3(0)
+          : new ConvertNode<'vec3'>(reference('color', 'color', fog), 'vec3');
+      })() };
       case 'atmosphereSunDirection': return { t: 'vec3', n: reference('value', 'vec3', fogUniforms.fogSunDir) };
       case 'atmosphereSunColour': return { t: 'vec3', n: new ConvertNode<'vec3'>(reference('value', 'color', fogUniforms.fogSunColor), 'vec3') };
       case 'instanceHash': return { t: 'float', n: hash(instanceIndex) };

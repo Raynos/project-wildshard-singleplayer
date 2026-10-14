@@ -5069,3 +5069,8 @@ UV channel and owner. Equal graph/source loans share one scoped variant,
 while different source materials remain separate. Graph roughness and
 occlusion factors multiply the borrowed channels. Existing Texture-only
 calls retain the colour-map path; graph uniforms stay shared on variants.
+
+Material graph `fogColour` reads the current drawn scene's live linear
+fog colour as vec3 (black when there is no fog). It is a uniform input
+available to vertex, surface and post work; it adds no fog owner, clock
+or colour conversion, and remains separate from the fog epilogue.
