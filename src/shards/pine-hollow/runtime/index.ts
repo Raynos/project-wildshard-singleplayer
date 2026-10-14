@@ -1,3 +1,4 @@
+import { CROSSBOW_GEOMETRY } from '../boot/crossbowGeometry';
 import { installEnteredRuntimeService, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { runtimeAudio } from '@wildshard/game/plugin/audio';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
@@ -151,6 +152,7 @@ export class PineHollow extends ShardPlugin {
     ctx.rows.compendium({ ...PINE_HOLLOW_COMPENDIUM, id: PINE_HOLLOW_COMPENDIUM.chunkId });
     const rt = runtime(ctx), world = rt.world;
     if (world === null) throw new Error('Pine equipment needs a world');
+    await CROSSBOW_GEOMETRY.preload();
     await preloadLeverModel();
     rt.buildEquipment = async (targets, nolock) => {
       // SF67: each weapon's hands are its longest stretch; build them ahead in slices, then each constructor takes them

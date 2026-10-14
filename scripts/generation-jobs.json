@@ -12661,6 +12661,62 @@
       "buildOutputs": {
         "public/assets/far-reach/baked/rest-books.glb": "609bb5060b4d6ec2a95268dd7800ea1b89275525e6d637cf7b96250c70372e62"
       }
+    },
+    {
+      "id": "pine-hollow-held-crossbow-pool",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-crossbow-pool.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-crossbow-pool.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk",
+        "src/format",
+        "src/shards/pine-hollow/generators/bake-crossbow-pool.mjs",
+        "src/shards/pine-hollow/generators/crossbowPool.ts"
+      ],
+      "outputs": [
+        "public/assets/pine-hollow/baked/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159.glb",
+        "src/shards/pine-hollow/data/crossbowPool.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "public/assets/pine-hollow/baked/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159.glb",
+        "src/shards/pine-hollow/data/crossbowPool.generated.json"
+      ]
+    },
+    {
+      "id": "driftwood-isle-held-sword-pool",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-sword-pool.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-sword-pool.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk",
+        "src/format",
+        "src/shards/driftwood-isle/generators/bake-sword-pool.mjs",
+        "src/shards/driftwood-isle/generators/swordPool.ts"
+      ],
+      "outputs": [
+        "public/assets/driftwood-isle/baked/c00e6ad0f0384c1208d5b56a125f21793bd209ed59cfce9acd9e65c96a5bc981.glb",
+        "src/shards/driftwood-isle/data/swordPool.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "public/assets/driftwood-isle/baked/c00e6ad0f0384c1208d5b56a125f21793bd209ed59cfce9acd9e65c96a5bc981.glb",
+        "src/shards/driftwood-isle/data/swordPool.generated.json"
+      ]
     }
   ]
 }

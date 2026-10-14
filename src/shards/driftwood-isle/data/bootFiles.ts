@@ -1,5 +1,7 @@
+import heldPool from './swordPool.generated.json' with {type:'json'};
 /** Ordered retained boot and late inventory selections. */
 export const DRIFTWOOD_BOOT_FILES = {
+  held: {source: {urls: [heldPool.url]}},
   "empty": {
     "source": {
       "urls": []
@@ -120,7 +122,7 @@ export const DRIFTWOOD_BOOT_SOURCES = {
   "trees": "empty",
   "physics": "physics",
   "cabins": "empty",
-  "props": "empty",
+  "props": "held",
   "art": "empty",
   "music": "empty",
   "sfx": "empty"

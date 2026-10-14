@@ -1,3 +1,4 @@
+import { SWORD_GEOMETRY } from '../boot/swordGeometry';
 import { DRIFTWOOD_MELEE_PROFILE, DRIFTWOOD_IRON_PROFILE } from '../data/meleeProfile';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeItems } from '@wildshard/game/shardfile/hybridRows';
@@ -14,6 +15,7 @@ import { swordRig } from '../weapons/swordView';
 /** Both swords use the same castaway rig parts the shell already loaded, with the original task break. */
 export function installDriftwoodLoadout(world: World, shell: ShardRuntime, rows: readonly [MeleeProfile, MeleeProfile], ctx: ShardContext): void {
   shell.buildEquipment = async (targets, nolock, viewmodel?: ShardSword | null) => {
+    await SWORD_GEOMETRY.preload();
     const { ironArms, swim: _swim, ...woodArms } = viewmodel ?? {};
     const [wood, iron] = rows;
     const primary = new Sword(world, targets, { row: wood, profile: wood, allowUnlocked: nolock, rig: swordRig(world.sky, 'wood'), ...woodArms,

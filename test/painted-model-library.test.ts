@@ -17,6 +17,10 @@ it('shares an original atlas while cloning prepared geometry and explicit NPC sl
     geometryPools: [{ url: 'pool', parts: ['hero'] }], paintedModels: [{ name: 'actor', url: 'paint', geometry: 'hero', pivots: ['hero', 'hero', 'hero', null] }] }, 'test', {}, read);
   const pause = vi.fn(() => Promise.resolve());
   await library.preload(pause); await library.preload(pause);
+  expect(library.geometry('hero', { borrow: true })).toBe(geometry);
+  const owned = library.geometry('hero');
+  expect(owned?.getAttribute('position').array.buffer).not.toBe(geometry.getAttribute('position').array.buffer);
+  owned?.dispose();
   const first = library.painted('actor'), second = library.painted('actor');
   if (first === null || second === null || first.pivots === undefined) throw new Error('Missing prepared actor');
   expect(first.geometry).not.toBe(second.geometry); expect(first.map).toBe(texture); expect(second.map).toBe(texture);

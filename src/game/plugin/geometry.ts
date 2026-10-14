@@ -100,8 +100,8 @@ export interface ModelLibrary<M extends string, H extends string> {
   painted: (name: string) => PaintedModel | null;
   /** A copy of a loaded facet model's geometry, or null (not loaded: the caller's code model stands in). */
   mesh: (name: M) => BufferGeometry | null;
-  /** An independent owned copy of a named rest primitive, without facet flattening or normal recomputation. */
-  geometry: (name: string) => BufferGeometry | null;
+  /** An owned copy by default. borrow:true lends the immutable cached primitive: never transform, recolour, change attributes or dispose it. */
+  geometry: (name: string, options?: { readonly borrow?: boolean }) => BufferGeometry | null;
   /** A hero model fitted as `fit`, as a group sharing the loaded geometry and maps; null when it did not load. */
   hd: (name: H, fit: ModelFit) => Group | null;
   /** A recipe's named hero, validated against this library before copying its existing fit. */
@@ -324,7 +324,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
     preloadRigs: () => rigs?.bodies.preload() ?? Promise.resolve(),
     models: specimens => modelCatalogue(specimens, { rig: name => { if (rigs === null) throw new Error('Model library has no declared rigs'); return rigs.bodies.bodyOrStandIn(name); } }),
     mesh: name => ready.get(name)?.clone() ?? null,
-    geometry: name => rest.get(name)?.clone() ?? null,
+    geometry: (name, options) => { const value=rest.get(name); return value===undefined?null:options?.borrow===true?value:value.clone(); },
     painted: name => {
       const model = painted.get(name); if (model === undefined) return null;
       return { geometry: model.geometry.clone(), map: model.map, ...(model.pivots === undefined ? {} : { pivots: { body: model.pivots.body.clone(), head: model.pivots.head.clone(), arm: model.pivots.arm.clone(), fore: model.pivots.fore.clone() } }) };

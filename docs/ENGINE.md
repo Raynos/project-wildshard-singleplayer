@@ -5161,3 +5161,5 @@ on the first draw, even when renderer.compile selected a program without a
 program-switch callback. A material shared by a main/composer scene and a
 PMREM scene retains every program's own uniform blocks and sampler list.
 Actual material disposal releases them; environment refresh does not.
+
+Model-library `geometry(name, { borrow: true })` lends its cached rest primitive. The default remains an independent owned clone. Borrowers must never transform, recolour, replace attributes or dispose the immutable geometry; bake all geometry transforms before admission. Held crossbow and fallback sword meshes use this door without retaining a second backing.
