@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { facetedGroundPainter } from '../runtime/looks/facetedGround';
 import type { TerrainPainter } from '@wildshard/engine/render/look';
-import { GROUND_LOOK, GROUND_PATHS } from '../runtime/looks/groundLook';
+import { GROUND_LOOK, GROUND_PATHS } from '../data/groundLook';
 import { OCEAN } from '../manifest';
 import { LP, hash2, lowPolyGroundColor } from './groundColor';
 

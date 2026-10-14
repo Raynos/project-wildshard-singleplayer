@@ -5,6 +5,7 @@ import type { PainterField, TerrainPainter } from '@wildshard/engine/render/look
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { Terrain } from '@wildshard/engine/world/Terrain';
+import type { FacetedGroundRow } from '../../data/lookRows';
 
 /**
  * A faceted, texture-free ground as a terrain painter (SHARD-PLATFORM M3, look-family rows): the level's heightfield as
@@ -17,25 +18,6 @@ import type { Terrain } from '@wildshard/engine/world/Terrain';
  *
  *   look.terrainPainter = facetedGroundPainter(row, OCEAN.level, (c, cell, field) => { …paint c… });
  */
-
-/** A faceted ground's numbers as data. */
-export interface FacetedGroundRow {
-  /** the material patch's registry id and program cache key */
-  readonly patch: { readonly id: string; readonly key: string };
-  /** the grid's and the slab's roughness */
-  readonly roughness: number;
-  readonly slabRoughness: number;
-  /** rows built per task */
-  readonly band: number;
-  /** a cliff's top lip: below this normal y, the highest ground within `reach` m, smoothstepped `from` → `to` m above */
-  readonly lip: { readonly steep: number; readonly reach: number; readonly from: number; readonly to: number };
-  /** the slab walls: segments per side, rock and deep colours, the lip above the ground (m), the bulge's base and
-   *  jittered gain (m), the foot's step out (m), the bulge's depth share and the shade's base and jittered gain */
-  readonly slab: {
-    readonly segs: number; readonly rock: string; readonly deep: string; readonly top: number;
-    readonly bulge: readonly [number, number]; readonly foot: number; readonly mid: number; readonly shade: readonly [number, number];
-  };
-}
 
 /** One grid vertex as the paint reads it: height above the sea (a wall's middle height), slope (1 − normal y), where,
  *  the ground's height and the cliff-lip weight (0‥1). */

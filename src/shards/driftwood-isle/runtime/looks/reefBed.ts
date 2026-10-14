@@ -6,6 +6,7 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, type ModelContext, type ModelDef, type ModelPart, type Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import type { ReefBedRow } from '../../data/lookRows';
 
 /**
  * A sea floor's reef as rows (SHARD-PLATFORM M3, look-family rows): where the water is shallow enough, noise-clustered
@@ -28,41 +29,6 @@ export interface ReefBedSpec { kind: string; x: number; z: number; s: number; ro
 export interface ReefSchool { x: number; z: number; y: number; r: number; n: number }
 /** A scatter: its copies and the school over the densest reef. */
 export interface ReefBedLayout { items: ReefBedSpec[]; school?: ReefSchool | undefined }
-
-/** One noise field: its seed (added to the shard's), frequency, octaves and x offset. */
-export interface ReefNoiseRow { readonly seed: number; readonly freq: number; readonly octaves: number; readonly offset: number }
-
-/** The scatter's numbers as data. */
-export interface ReefBedRow {
-  /** the scatter's rng salt (xor the shard's seed), tries per copy and the margin kept from the chunk's edge (m) */
-  readonly salt: number;
-  readonly tries: number;
-  readonly margin: number;
-  /** water depth range (m) and the ground's least normal y (sampled `normalReach` m wide) */
-  readonly depth: readonly [number, number];
-  readonly normalReach: number;
-  readonly minNy: number;
-  readonly reefNoise: ReefNoiseRow;
-  readonly bedNoise: ReefNoiseRow;
-  /** the reef kind: where the reef noise is over `above` and the roll under `roll`, kept with p = (noise − above) × gain +
-   *  base, `spacing` m apart, sized `scale` × (1 + max(0, noise) × grow) */
-  readonly reef: { readonly kind: string; readonly above: number; readonly roll: number; readonly gain: number; readonly base: number; readonly spacing: number; readonly scale: readonly [number, number]; readonly grow: number };
-  /** the bed kind: likewise on the bed noise, sized `scale` × (from + min(1, depth / full) × grow) */
-  readonly bed: { readonly kind: string; readonly above: number; readonly roll: number; readonly gain: number; readonly base: number; readonly spacing: number; readonly scale: readonly [number, number]; readonly from: number; readonly full: number; readonly grow: number };
-  /** the scattered kind: a roll past the bed's, kept with p = `chance` */
-  readonly scatter: { readonly kind: string; readonly chance: number; readonly spacing: number; readonly scale: readonly [number, number] };
-  /** the school: over the reef copy with the most reef copies within `radius`, at depth share `depthShare` (at most
-   *  `maxDepth` m down), swimming a loop of radius `r`, `n` fish */
-  readonly school: { readonly radius: number; readonly depthShare: number; readonly maxDepth: number; readonly r: number; readonly n: number };
-  /** the weld's and the school's rng seeds */
-  readonly buildSeed: number;
-  readonly schoolSeed: number;
-  /** the weld mesh's name and its kinds' piece ids (`<piecePrefix><kind>`); the school's mesh name and piece id */
-  readonly mesh: string;
-  readonly piecePrefix: string;
-  readonly fishMesh: string;
-  readonly fishPiece: string;
-}
 
 /** The ground the scatter reads. */
 export interface ReefGround {

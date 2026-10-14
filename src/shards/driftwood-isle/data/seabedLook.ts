@@ -1,7 +1,7 @@
 // SHARD-PLATFORM M3 (look-family rows): the lagoon floor's reef as data (world/Seabed.ts builds it through
 // @wildshard/sdk/looks/reefBed): where corals, seaweed and starfish stand, how they are sized, the fish school's place and
 // the weld's names. The models are models/reef.ts and models/reefFish.ts.
-import type { ReefBedRow } from './reefBed';
+import type { ReefBedRow } from './lookRows';
 
 /**
  * Lagoon rule: the sand shelf 1.5–8 m under the surface, on gentle slopes (normal y ≥ 0.86 over 1.5 m), 14 m inside the

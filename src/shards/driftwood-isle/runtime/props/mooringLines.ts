@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import type { MooringLinesRow } from '../../data/lookRows';
 
 /**
  * A moored hull's lines as rows (SHARD-PLATFORM M3): each line a sagging tube from a cleat on the hull to a post on the
@@ -17,18 +18,6 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 const LINE_VERTICES = 192;
 const TOTAL_VERTICES = 384;
 const CLEATS = 2;
-
-/** Mooring lines' numbers as data. */
-export interface MooringLinesRow {
-  /** the rope's colour, its post end's height over the still water (m), the sag at the middle (m), the tube's length
-   *  segments, radius (m) and radial segments */
-  readonly color: string;
-  readonly postAbove: number;
-  readonly sag: number;
-  readonly segments: number;
-  readonly radius: number;
-  readonly radial: number;
-}
 
 /** A post a line is tied to (world xz). */
 export interface MooringPost { x: number; z: number }

@@ -6,7 +6,8 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { windUniforms } from '@wildshard/engine/world/wind';
-import { editShader, type ShaderEditRow, ShaderFamily } from "@wildshard/game/plugin/shaderFamily";
+import { editShader, ShaderFamily } from "@wildshard/game/plugin/shaderFamily";
+import type { StreamedCoverRow } from '../../data/lookRows';
 
 
 /**
@@ -36,64 +37,6 @@ import { editShader, type ShaderEditRow, ShaderFamily } from "@wildshard/game/pl
  *   scene.add(cover.group);
  *   game.onUpdate((dt) => cover.update(dt, player.position));
  */
-
-/** A kind's far tier as data: its model's geometry key, [farNear, farFar] m, its instance cap and the share kept. */
-export interface StreamedCoverFarRow {
-  readonly geometry: string;
-  readonly reach: readonly [number, number];
-  readonly cap: number;
-  /** the share of the kind's plants that get a far model (drawn by a hash of the yaw) */
-  readonly keep: number;
-}
-
-/** One kind as data: its name, geometry key, instance cap (phone, before `capK`), reach, scale range and far tier. */
-export interface StreamedCoverKindRow {
-  readonly name: string;
-  readonly geometry: string;
-  readonly cap: number;
-  /** (near, far) m: full density inside near, thinning to none at far */
-  readonly reach: readonly [number, number];
-  readonly scale: readonly [number, number];
-  readonly far?: StreamedCoverFarRow;
-}
-
-/** The cover's numbers, material settings, patch and GLSL as data. */
-export interface StreamedCoverRow {
-  /** cell size, refill travel (m), candidates per cell, the least cells cached */
-  readonly cell: number;
-  readonly refill: number;
-  readonly candidates: number;
-  readonly cacheMin: number;
-  /** the desktop's reach and instance caps over the phone's */
-  readonly reachK: { readonly phone: number; readonly desktop: number };
-  readonly capK: { readonly phone: number; readonly desktop: number };
-  /** the share of (far − near) a plant grows over */
-  readonly growShare: number;
-  /** the far set's rebuild travel, slack (m) and per-frame budget (ms) */
-  readonly farRefill: number;
-  readonly farSlack: number;
-  readonly farBudgetMs: { readonly phone: number; readonly desktop: number };
-  /** s a far set that lands somewhere new takes to grow in */
-  readonly farIn: number;
-  /** the viewer is the player's feet; the camera is up to this much over them */
-  readonly eyeSlack: number;
-  /** bytes the whole cover uploads a frame, and how early the near set starts (m) */
-  readonly uploadBytes: number;
-  readonly nearLag: number;
-  /** m a plant's base sits under the ground it stands on */
-  readonly sink: number;
-  /** plants on sloping ground keep reach × up to `up` (slope `lo` … `hi`), fading out `fadeFrom` … `fadeTo` m over the ground */
-  readonly slopeReach: { readonly up: number; readonly lo: number; readonly hi: number; readonly fadeFrom: number; readonly fadeTo: number };
-  readonly material: { readonly flatShading: boolean; readonly roughness: number; readonly metalness: number; readonly doubleSided: boolean };
-  /** the patch's id and program key; the meshes are named `<meshPrefix><kind>` and `<meshPrefix><kind>-far` */
-  readonly patchId: string;
-  readonly patchKey: string;
-  readonly meshPrefix: string;
-  readonly kinds: readonly StreamedCoverKindRow[];
-  /** the edits of the plants' program; `@{reachUp}`, `@{slopeLo}`, `@{slopeHi}` splice the slope reach (3 decimals),
-   *  any other `@{name}` the caller's `glsl` */
-  readonly edits: readonly ShaderEditRow[];
-}
 
 /** A candidate point's site, as the shard's `site` hook fills it (the shard's own fields beside these). */
 export interface CoverSite {
