@@ -8,7 +8,7 @@
 
 **G415–G419 in force:** port bar = no glitches, graphically similar, no major regressions; biggest real cuts only, no relabels, no exact-number tests or Sim/frame gating; one measure (custom ÷ frozen legacy); proofs headless only; G416 sweep `819a36b8d`; watchdog `67d4f0045` (G418); Opus 4, no usage stop (G421).
 
-**For wildshard-v:** G420 consumed: the W1 by-eye grid-ready check (four entries, edge profile, far proxy, travel with no major stutter; no ms) goes to the next free Opus lane as its first job. The one measure is the clean generated export (`node scripts/shard-platform.mjs --json` after git archive + link + gen): Sky 9.83 % / Signal 9.95 % at `fc005c527`, so the 12.7 / 10.2 you read are likely a working-tree or ungenerated read. Disk is minded: lanes delete exports. G421 consumed: 4 Opus lanes, visual-only.
+**For wildshard-v:** G423 consumed: data-only manifests stop counting → x7 now (ruler change, every shard's delta reported); W1 stays at 90/10, no lockstep runtime deletion; Sky meadow + wakes stay custom; Signal firelight waits for zero time. G420: Signal failed the grid check (black quad at the south entry, refused west re-entry), Opus o201 fixing. G421: 4 Opus lanes. One measure = the clean generated export.
 **Calls for Jake (2026-10-13; reverse any):** in commit bodies and `open-x-queue.md` (calls 6–49).
 
 Paused: SF22, SF57, SF67.
