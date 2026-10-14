@@ -33,7 +33,7 @@ import { SEED } from '@wildshard/engine/core/config';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
-import type { BlenderArea } from '../runtime/world/blenderArea';
+import type { BlenderArea } from '@wildshard/engine/world/blenderArea';
 import { log } from '@wildshard/engine/world/geometryKit';
 import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
 import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
