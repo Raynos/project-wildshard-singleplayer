@@ -3,14 +3,13 @@ import { bindPlayerImpulse } from '@wildshard/game/shardfile/dataCreaturePorts';
 import type { HeadlessRuntimeInstallation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import type { SimHost } from '@wildshard/engine/sim';
 import { floorBelow } from '@wildshard/engine/physics/query';
-import { readRuntimeWorldMetadata, addBakedWorld, installDeclaredQuestHost, ledgerPorts, pickCommands, trustedLevel, weaponRow, declaredItemScriptBindings, installNativeMelee, type NativeMeleeCommand } from '@wildshard/game/plugin/simulation';
+import { readRuntimeWorldMetadata, addBakedWorld, installDeclaredQuestHost, ledgerPorts, pickCommands, trustedLevel, weaponRow, declaredItemScriptBindings, installNativeMelee } from '@wildshard/game/plugin/simulation';
 import { DECK, SPAWN, VANES } from '../data/layout';
 import { SKY_ANALYTIC_FLOOR } from '../data/spawns';
 import { SKY_NATIVE_POPULATION } from '../data/population';
 import { prepareNativePopulation } from '@wildshard/game/shardfile/bossRow';
 import { ROC_OWNER } from '../data/rocFight';
 import { FAN_ID, SKY_ITEM_ROLE } from '../data/items';
-import { FAN_ACT, FAN_ACTOR, FAN_AIM } from '../data/nativeMelee';
 import { turnVanes, VANE_HUB } from '../quest/vanes';
 import { skyWinchPermission } from './quest';
 import { SKY_SPOTS } from '../data/questPrompts';
@@ -50,15 +49,9 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     const movers = installMovers(host, context.restoring, () => new Map([[SKY_MOVER_BINDING.winch, skyWinchPermission(host.flags)]]));
     const ledger = ledgerPorts(context.emit);
     const { keeper, encounter } = population.install(host, ledger, context.snapshot);
-    const fan = pickCommands(context.commands, (command): NativeMeleeCommand | undefined => {
-      if (command.kind === 'player') return command.attack === undefined ? undefined : { kind: 'move', action: 0, targetId: command.attack.targetId };
-      if (command.kind === 'script' && command.actorId === FAN_AIM) return { kind: 'aim', pitch: command.value };
-      if (command.kind !== 'script' || command.actorId !== FAN_ACTOR) return undefined;
-      return command.value === FAN_ACT.heavy ? { kind: 'move', action: 1 } : command.value === FAN_ACT.gust ? { kind: 'move', action: 2 } : undefined;
-    });
     // the browser disables the player's weapons through the Roc's intro (BossPorts.lockInput) and stows the fan on the board
     const vanes = VANES.map(vane => ({ id: vane.id, at: new Vector3(vane.x, vane.y + VANE_HUB, vane.z) }));
-    installNativeMelee(host, fanRow, fanRow.native, { commands: fan, heldCommands:context.commands, enabled:()=>!encounter.locked()&&!host.playerBoard.on,
+    installNativeMelee(host, fanRow, fanRow.native, { inputCommands:context.commands, enabled:()=>!encounter.locked()&&!host.playerBoard.on,
       hook: movers.hook, hookTick: movers.hookTick, landed: (action, from, dir) => { if (action === 2) turnVanes(host.flags, vanes, from, dir); } });
     installDeclaredQuestHost(host, shard, { ...ledger, commands: pickCommands(context.commands, command => command.kind === 'script' ? command : undefined),
       spots: { interact: SKY_SPOTS, crack: [] }, observations: new Map([['winch-up', () => movers.runtime.pose(SKY_MOVER_BINDING.winch).enabled]]),

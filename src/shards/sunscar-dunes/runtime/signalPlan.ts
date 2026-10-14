@@ -1,4 +1,4 @@
-import { readRuntimeWorldMetadata, addBakedWorld, installDeclaredQuestHost, admittedTerrain, ledgerPorts, pickCommands, trustedLevel, weaponRow, installNativeMelee, type NativeMeleeCommand, type NativeMeleeWorld } from '@wildshard/game/plugin/simulation';
+import { readRuntimeWorldMetadata, addBakedWorld, installDeclaredQuestHost, admittedTerrain, ledgerPorts, pickCommands, trustedLevel, weaponRow, installNativeMelee, type NativeMeleeWorld } from '@wildshard/game/plugin/simulation';
 import { prepareNativePopulation } from '@wildshard/game/shardfile/bossRow';
 import type { QuestGraphPorts } from '@wildshard/game/plugin/quests';
 import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
@@ -33,10 +33,7 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) 
     if (!context.restoring) addBakedWorld(host, baked.pieces, terrain.bytes);
     const ledger = ledgerPorts(context.emit);
     const { keeper, encounter } = population.install(host, ledger, context.snapshot);
-    const worldCommands = new Map(cracks.map(target => [target.act, { kind: 'move' as const, world: target.act, action: target.crack === 'heavy' ? 1 : 0 }]));
-    const swings = pickCommands(context.commands, (command): NativeMeleeCommand | undefined => command.kind === 'player' && command.attack !== undefined
-      ? { kind: 'move', action: 0, targetId: command.attack.targetId } : command.kind === 'script' && command.actorId === quest.graph.actor ? worldCommands.get(command.value) : undefined);
-    const lash = installNativeMelee(host, row, row.native, {world:cracks,commands:swings,heldCommands:context.commands,enabled:()=>!encounter.locked()});
+    const lash = installNativeMelee(host, row, row.native, {world:cracks,worldActor:quest.graph.actor,inputCommands:context.commands,enabled:()=>!encounter.locked()});
     installDeclaredQuestHost(host, shard, { spots, crack: { reach: { light: row.light.range, heavy: row.heavy.range }, cracked: lash.cracked },
       promptRegistrations: parsePromptRegistrations(rows.promptRegistrations),
       commands: pickCommands(context.commands, command => command.kind === 'script' ? command : undefined), ...ledger,

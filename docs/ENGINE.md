@@ -4667,3 +4667,10 @@ ordered needs; borrowed label/visibility/command targets must resolve before
 any effect. Accepted actions run before/after view beats around native flag
 writes; denied reasons select declared hints. Initial conditions restore only
 view state. Sky notes/winch and Signal logbook/well/crank share the binding.
+
+The optional native melee `input` row maps player attacks, named script
+aim/actions and quest-owned light/heavy world targets. `inputCommands` lends
+the already-admitted tick stream; `worldActor` supplies the trusted quest
+identity. The contact owner samples that stream once per tick, keeps command
+order and the last pitch, and shares it with held release. Existing direct
+`commands` callers remain supported when no mapping is declared.

@@ -121,9 +121,12 @@ const nativeBinding = v.strictObject({ key: nativeKey,
 const nativeHeld = v.strictObject({ action: v.pipe(count, v.maxValue(15)), mode: v.picklist(['replace', 'after']),
   continuation: v.variant('kind', [v.strictObject({ kind: v.literal('step'), id: nativeKey }),
     v.strictObject({ kind: v.literal('field'), key: nativeKey })]) });
+const nativeInput = v.strictObject({ attack: v.pipe(count,v.maxValue(15)), aimActor: v.exactOptional(nativeKey),
+  scripts: v.pipe(v.array(v.strictObject({actor:nativeKey,value:v.pipe(count,v.maxValue(65535)),action:v.pipe(count,v.maxValue(15))})),v.maxLength(32)),
+  world: v.exactOptional(v.strictObject({light:v.pipe(count,v.maxValue(15)),heavy:v.pipe(count,v.maxValue(15))})) });
 /** Fixed-step melee owner policy. Contacts stay on the item; continuation fields preserve an existing wire contract. */
 export const NativeMeleeRowSchema = v.pipe(v.strictObject({
-  step: nativeKey, held: v.exactOptional(nativeHeld), eye: v.pipe(scalar, v.maxValue(20)), mode: v.picklist(['timed', 'immediate']),
+  step: nativeKey, input: v.exactOptional(nativeInput), held: v.exactOptional(nativeHeld), eye: v.pipe(scalar, v.maxValue(20)), mode: v.picklist(['timed', 'immediate']),
   pitchLimit: v.nullable(v.pipe(positive, v.maxValue(Math.PI))), zeroAim: v.picklist(['retain', 'refuse']),
   body: v.picklist(['volumes', 'none']), liveTargetsOnly: v.boolean(), commandsAfterCool: v.boolean(),
   actions: v.pipe(v.array(v.strictObject({ action: v.pipe(count, v.maxValue(15)), move: v.pipe(count, v.maxValue(15)),
@@ -134,6 +137,8 @@ export const NativeMeleeRowSchema = v.pipe(v.strictObject({
   && new Set(row.continuation.fields.map(field => field.source)).size === row.continuation.fields.length
   && (row.held === undefined || row.actions.some(action => action.action === row.held?.action)
     && (row.held.continuation.kind === 'step' ? row.held.continuation.id !== row.step : !row.continuation.fields.some(field => field.key === (row.held?.continuation.kind === 'field' ? row.held.continuation.key : undefined))))
+  && (row.input===undefined || [row.input.attack,...row.input.scripts.map(script=>script.action),...(row.input.world===undefined?[]:[row.input.world.light,row.input.world.heavy])].every(id=>row.actions.some(action=>action.action===id))
+    && new Set(row.input.scripts.map(script=>`${script.actor}:${script.value}`)).size===row.input.scripts.length)
   && row.continuation.fields.every(field => (field.source === 'constant') === (field.constant !== undefined)
     && (field.min === undefined || field.max === undefined || field.min <= field.max))
   && (row.mode === 'timed' ? ['primary', 'time', 'heavy', 'landed', 'target', 'world', 'direction'] : ['primary', 'secondary'])

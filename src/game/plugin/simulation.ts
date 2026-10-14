@@ -788,9 +788,14 @@ export function nativeMeleeVolumeHit(from: Vector3, dir: Vector3, reach: number,
 }
 /** Minimal admitted input view; other commands keep their original routes. */
 export interface NativeHeldCommand { readonly kind:string; readonly heavy?: { readonly targetId?:string|undefined }|undefined }
+/** Admitted page/script fields consumed by the declared native command mapping. */
+export interface NativeMeleeInput extends NativeHeldCommand {
+  readonly attack?: {readonly targetId?:string|undefined}|undefined; readonly actorId?:string|undefined; readonly value?:number|undefined;
+}
 /** Runtime authority and command ports are injected; no imported module installs a host. */
 export interface NativeMeleePorts {
-  readonly commands: () => readonly NativeMeleeCommand[];
+  readonly commands?: () => readonly NativeMeleeCommand[];
+  readonly inputCommands?: () => readonly NativeMeleeInput[]; readonly worldActor?: string;
   /** Full admitted player input; sampled once when the owner declares held release. */
   readonly heldCommands?: () => readonly NativeHeldCommand[]; readonly enabled?: () => boolean;
   readonly world?: readonly NativeMeleeWorld[];
@@ -807,7 +812,28 @@ const NativeHoldState = v.strictObject({version:v.literal(1),held:v.pipe(v.numbe
 export function installNativeMelee(host: SimHost, weapon: { readonly id: string; readonly contacts?: readonly NativeMeleeContact[] },
   input: unknown, ports: NativeMeleePorts): NativeMeleeOwner {
   const { native: row, contacts } = parseNativeMeleeBinding(input, weapon.contacts);
-  if(row.held!==undefined&&ports.heldCommands===undefined)throw new Error('Held input requires its admitted player stream');
+  if(row.held!==undefined&&ports.heldCommands===undefined&&ports.inputCommands===undefined)throw new Error('Held input requires its admitted player stream');
+  if(row.input===undefined?ports.commands===undefined:ports.inputCommands===undefined)throw new Error('Native melee requires its declared command stream');
+  if(row.input?.world!==undefined&&ports.worldActor===undefined)throw new Error('Native world commands require their quest actor');
+  let inputTick=-1, inputStream:readonly NativeMeleeInput[]=[];
+  const inputCommands=():readonly NativeMeleeInput[]=>{
+    if(inputTick!==host.state.tick){inputStream=ports.inputCommands?.()??[];if(inputStream.length>MAX_TICK_COMMANDS)throw new RangeError('Native melee input exceeds its tick bound');inputTick=host.state.tick;}
+    return inputStream;
+  };
+  const mapped:NativeMeleeCommand[]=[];
+  const mappedCommands=():readonly NativeMeleeCommand[]=>{
+    const policy=row.input;if(policy===undefined)return ports.commands?.()??mapped;
+    mapped.length=0;
+    for(const command of inputCommands()){
+      if(command.kind==='player'&&command.attack!==undefined)mapped.push({kind:'move',action:policy.attack,...(command.attack.targetId===undefined?{}:{targetId:command.attack.targetId})});
+      else if(command.kind==='script'){
+        if(command.actorId===policy.aimActor&&command.value!==undefined)mapped.push({kind:'aim',pitch:command.value});
+        else if(policy.world!==undefined&&command.actorId===ports.worldActor){const target=ports.world?.find(entry=>entry.act===command.value);if(target!==undefined)mapped.push({kind:'move',world:target.act,action:target.crack==='heavy'?policy.world.heavy:policy.world.light});}
+        else {const move=policy.scripts.find(entry=>entry.actor===command.actorId&&entry.value===command.value);if(move!==undefined)mapped.push({kind:'move',action:move.action});}
+      }
+    }
+    return mapped;
+  };
   const aimed = { target: null as string | null, world: null as number | null, dir: new Vector3(0, 0, -1) };
   const from = new Vector3(), direction = new Vector3(), targets = ports.world ?? [];
   const volumes = { head: new Vector3(), headRadius: 0, a: new Vector3(), b: new Vector3(), bodyRadius: 0 };
@@ -857,7 +883,7 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
   const sampleHeld=(dt:number):void=>{
     release.released=false;release.target=null;
     if(!(ports.enabled?.()??true)){family.hold.reset();heldTarget=null;return;}
-    const commands=ports.heldCommands?.()??noHeld;
+    const commands=ports.heldCommands?.()??(ports.inputCommands===undefined?noHeld:inputCommands());
     if(commands.length>MAX_TICK_COMMANDS)throw new RangeError('Held player input exceeds its tick bound');
     let held=false,target:string|null=null;
     for(const command of commands)if(command.kind==='player'){held=command.heavy!==undefined;target=command.heavy?.targetId??null;}
@@ -937,7 +963,7 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
   host.onStep(row.step, dt => {
     if (row.commandsAfterCool) family.cool(dt);
     if(holdRow?.continuation.kind==='field')sampleHeld(dt);
-    let commands=ports.enabled?.()===false?none:ports.commands();
+    let commands=ports.enabled?.()===false?none:mappedCommands();
     if(holdRow?.mode==='replace'&&release.released&&release.target!==null){family.cooldown=0;heavy.targetId=release.target;commands=releasedCommands;}
     if (commands.length > MAX_TICK_COMMANDS) throw new RangeError('Native melee commands exceed the protocol allowance');
     cracked = null; if (!row.commandsAfterCool) family.cool(dt); pitch = 0;
