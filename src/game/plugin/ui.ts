@@ -1,4 +1,3 @@
-import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { installDeclaredMovers, type MoverView, type MoverRuntime, type MoverRoleComposition } from './mover';
 import { commandSocketLift } from './simulation';
 import "../quest/presentation.css";
@@ -39,6 +38,7 @@ import { installPivotNpc, pivotNpcParts, type ModelFit, type PivotNpcGeometry, t
 import { parseQuestNpcBinding } from '@wildshard/format/npcs';
 import { parseBossProfile, parseMarkedBossPresentation, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import { bossFight, type HeldBossBrain } from './bossPhase';
+import { bossStorm } from './bossStorm';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import type { EffectDef } from '@wildshard/engine/combat/effects/types';
 import { STARTER_EFFECT_ROWS } from '../systems/effects/starter.generated';
@@ -72,7 +72,7 @@ import { toLevelSpec } from '../shard/spec';
 import { SHARDFILE_VERSION } from '@wildshard/format/version';
 import { emptyLook } from '../shardfile/emptyLook';
 import { shardfileLook } from '../shardfile/look';
-import { admitProduct, boundedResponse, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
+import { admitProduct, boundedResponse, type AdmittedProduct, type ProductOptions } from '../shardfile/product';
 import { ClientAssets } from '../shardfile/clientAssets';
 import type { ShardfileClientBindings } from '../shardfile/client';
 import { clientGround } from '../shardfile/clientGround';
@@ -1212,13 +1212,13 @@ export interface RowBossRows { readonly definition: BossDefinition; readonly sta
 export interface RowBossRecord { readonly saved: BossSaved; readonly persist: (value: BossSaved) => void }
 /**
  * What a `RowBossView` is lent. A spawned body (a fresh body per checkpoint): the bound body row, its arena
- * presentation (reward floor, respawn, toasts), its coins through the purse, the shard's weather view (made over the
- * play scene, run with the storm's strength each frame) and the victory's beat. A held body: the retained body, its
- * brain and the victory callback, which pays and toasts itself.
+ * presentation (reward floor, respawn, storm, toasts), its admitted shardfile (the storm shells' look materials), its
+ * coins through the purse and the victory's beat. A held body: the retained body, its brain and the victory callback,
+ * which pays and toasts itself.
  */
 export type RowBossPorts = { readonly player: Vector3; readonly record: RowBossRecord } & ({
   readonly body: RuntimeBoss; readonly presentation: MarkedBossPresentation; readonly reward: number; readonly coins: RuntimeCoins;
-  readonly weather?: (scene: Scene) => (dt: number, strength: number) => void; readonly onDown?: () => void;
+  readonly source: Shardfile; readonly onDown?: () => void;
 } | { readonly held: Animal | null; readonly brain: HeldBossBrain | null; readonly victory: (at: Vector3) => void });
 
 interface RowBossMade { readonly spec: BossViewSpec; readonly at: Vector3 | null; readonly weather: { storm: number }; readonly after: () => void }
@@ -1233,11 +1233,11 @@ function rowBossSpec(ctx: ShardContext, rows: RowBossRows, ports: RowBossPorts):
   if (profile.pattern !== 'spawned') throw new Error(`${rows.definition.id} requires its declared spawned-body pattern`);
   const look = ports.presentation, body = ports.body, onDown = ports.onDown;
   const at = new Vector3(body.row.at[0], look.floor, body.row.at[1]);
-  const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene), weather = ports.weather?.(scene);
+  const scene = ctx.game.runtime?.world?.game.scene ?? new Scene(), burst = new CoinBurst(scene), weather = bossStorm(ctx, ports.source, player, look.storm)(scene);
   const fight = bossFight<Animal>(profile, { body: { spawn: (previous) => body.spawn(previous), retire: (a) => { body.retire(a); } }, rewardPoint: at,
     respawnPoint: () => ({ pos: new Vector3(look.respawn.x, ctx.manifest.ground.terrain?.heightAt(look.respawn.x, look.respawn.z) ?? 0, look.respawn.z), yaw: look.respawn.yaw }),
     victory: () => { ctx.game.runtime?.play?.hud.toast(saved.rewardTaken ? look.toasts.rewardAgain : look.toasts.reward); onDown?.(); },
-    update: (dt, strength) => { weather?.(dt, strength); burst.update(dt, player); } });
+    update: (dt, strength) => { weather(dt, strength); burst.update(dt, player); } });
   return { at, weather: fight.weather, spec: { ...base, script: fight.script, body: fight.body, shielded: fight.invulnerable, toast: true,
     spawnReward: () => { saved.rewardTaken = true; record.persist(saved); burst.spawn(player, ports.reward, ports.coins, () => undefined); } },
     after: () => {
@@ -1249,8 +1249,8 @@ function rowBossSpec(ctx: ShardContext, rows: RowBossRows, ports: RowBossPorts):
 /**
  * A declared body boss in the browser (SHARD-PLATFORM SF27; Signal's Dune Matriarch, spawned, and Sky Reach's Storm Roc,
  * held): its profile through the platform's view-free `bossFight`, the `BossView` over it. A spawned body adds the
- * presentation row's views (the shard's weather, the reward's coin burst from the arena floor, the respawn on the
- * ground) and its toasts; the view refuses hits while the fight is invulnerable.
+ * presentation row's views (its storm through `bossStorm`, the reward's coin burst from the arena floor, the respawn on
+ * the ground) and its toasts; the view refuses hits while the fight is invulnerable.
  */
 export class RowBossView extends BossView {
   /** The arena's reward point (a spawned body's spot on the floor; null held). */
@@ -1274,7 +1274,6 @@ export type DeclaredFightPorts = { readonly player: Vector3; readonly flags: Pic
   readonly record: RowBossRecord; readonly reward: (amount: number, label: string) => void;
 } | { readonly kind: 'spawned'; readonly source: Shardfile; readonly coins?: RuntimeCoins;
   readonly dress?: (animal: Animal) => void;
-  readonly weather?: (presentation: MarkedBossPresentation) => (scene: Scene) => (dt: number, strength: number) => void;
 });
 /** Bind authored boss presentation at the caller's original phase, on its
  * population's actual body/controller and original record, flags and reward. */
@@ -1300,8 +1299,7 @@ export function bindDeclaredFight(ctx: ShardContext, row: BossViewRows | undefin
     const record = bindRuntimeBossRecord(ctx, ports.source, row.record, ports.flags);
     const presentation = parseMarkedBossPresentation(row.presentation);
     boss = new RowBossView(ctx, rows, { player: ports.player, body, record: { saved: record.read(), persist: record.write }, presentation,
-      reward: row.reward, coins: ports.coins ?? bindRuntimeCoins(ctx, null), onDown: victory,
-      ...(ports.weather === undefined ? {} : { weather: ports.weather(presentation) }) });
+      reward: row.reward, coins: ports.coins ?? bindRuntimeCoins(ctx, null), onDown: victory, source: ports.source });
     summoned = () => { toast(presentation.toasts.summoned); };
   }
   return { ...installBossView(ctx, row.id, boss, ports.armed, summoned), control };
@@ -1584,13 +1582,6 @@ export async function installManifestShardfile(manifest: ShardManifest, provided
     // and its listed places, the full map's pins (SF66): the admitted source has none
     ...(manifest.pois === undefined ? {} : { pois: manifest.pois }),
   }, true);
-}
-
-/** Browser connectivity and visited-product storage feed the same admission path as headless validation. */
-export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
-  return { base, firstParty, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => fetch(url),
-    ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
-  };
 }
 
 /** Project an empty shardfile into the same engine spec consumed by legacy sources. */

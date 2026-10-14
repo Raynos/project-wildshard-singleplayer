@@ -15,7 +15,6 @@ import { createWhip, type Bullwhip } from './runtime/items/heldWhip';
 import { installQuest } from './quest/install';
 import { FLAG, SCOUT_FLAG } from './data/flags';
 import { bindDeclaredFight, bindPageQuestStages } from '@wildshard/game/plugin/ui';
-import { stormWeather } from './runtime/shardfile/markedBoss';
 import { SAND, SKIRT } from './look/render';
 import { lentMaterial } from './runtime/looks/bakedGround';
 import { prepareFireFx } from './world/fireFx';
@@ -93,7 +92,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
       this.quest = installed.quest; this.whip?.aimAt(places.crackables);
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
       const fight = bindDeclaredFight(ctx, this.rows.fight, { kind: 'spawned', source, player: position, flags: places.flags, facts, coins, armed: places.fire.lit,
-        dress: animal => { lastLightAll(animal.mesh, ctx.scope); }, weather: presentation => stormWeather(ctx, position, presentation.storm) }); this.presentedBoss = fight.boss;
+        dress: animal => { lastLightAll(animal.mesh, ctx.scope); } }); this.presentedBoss = fight.boss;
       const stages = bindPageQuestStages(ctx, source, { flags: places.flags,
         bindings: new Map([['sunscar.signal-fire', [{ action: { spawn: 'sunscar.matriarch' }, run: fight.summon }]]]) });
       places.fire.onLight = () => { stages.advance('sunscar.signal-fire'); };

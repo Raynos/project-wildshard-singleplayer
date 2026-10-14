@@ -2630,17 +2630,18 @@ body identities, hazard clocks, lane state and both streams. Pine's `data/kingFi
 its fields or order. The frozen shipping fight and goals in `test/fixtures/species-oracle/antlerKing*.ts` cover every
 mode, phase transition, view/contact ordering and restored suffix tick for tick. The fixed-arena policy above is unchanged.
 
-Signal Dunes’ private `runtime/shardfile/markedBoss.ts` is the browser side (SF27 / SF7f):
-`installMarkedBoss(ctx, rows, { player, body, record, coins, lit, onDown })` builds a `MarkedBoss` (the engine's
-`BossBrain` over `markedBossFight`) from `{ definition, fight, presentation, reward }`, registers it with the encounters,
-arms it when `lit` holds (else `summon` arms it and toasts the summons), answers the death checkpoint and updates it each
-frame. Its presentation row (Signal’s `runtime/shardfile/markedBossPresentation.ts`, `parseMarkedBossPresentation`) is the
-arena `floor` the coin burst leaves from, the `respawn` point, the storm's look (a weather fog of `dist` in `color`, eased
-with the storm strength, and blown-sand shells `[radius, opacity]` streaking down `wind`,
-Signal’s `runtime/looks/stormShell.ts` `stormShellMaterial`) and its toasts; the boss bar is the engine's `BossBar`.
-`carriedBossRecord(ctx, flags, id, names)` is `bossFlagRecord` after carrying a save's old `bossesSave` entry over once.
-Headless, Signal’s `runtime/shardfile/markedBossRow.ts` `installMarkedBossRow(host, spec, { body, fact, coins })` runs the same
-rows on `installBossRow`, its victory raising `spec.victory.flag` and emitting its fact.
+**A spawned boss's storm** (`@wildshard/game/plugin/bossStorm`, SF27). `ui.RowBossView`'s spawned branch presents its
+marked boss presentation row (`@wildshard/format/bossProfiles` `parseMarkedBossPresentation`: the arena `floor` the coin
+burst leaves from, the `respawn` point, the `storm` and the toasts; the boss bar is the engine's `BossBar`) and runs
+`bossStorm(ctx, source, player, storm)` over the play scene with the fight's storm strength each frame. The storm is the
+level's weather fog (`weatherFog`: `dist` per metre in `color`, eased in and out; the level sets
+`atmosphere.weather: true`, else the storm blows without fog) and one sphere shell per `shells` row
+(`[radius m, share, look]`, outer first) riding 1.6 m above the player, drawn from inside after the scene and shown
+while the strength is above 0.01. Each shell wears the shard's `look.materials[look]` graph, compiled through
+`prepareClientWorld`, which reads the strength as the host field `shared.storm` (declare it in `runtime.binds`); the
+graph owns the shell's colour, alpha and streaks, so a shard's storm is data only. A host with no world stage has no
+shells. Signal's Dune Matriarch is the first user (`data/matriarchPresentation.ts`, `data/stormLook.ts`); Nalati's
+Storm Titan (SF48) is the planned second (`lint/platform-pending-users.json`).
 
 `@wildshard/game/plugin/quests` `installQuestGraph(host, { quests, interactions, npcs, graph }, ports)` runs a shard's
 declared quest graph headless (SF27): `DeclaredQuests` plus the interaction step at the baked spots and each quest-giver's
@@ -4352,8 +4353,9 @@ bodies; `inspect` admits bounded, read-only capture aliases.
 `HybridRuntimeRows.fight` is a `BossViewRows` declaration.
 `ui.bindDeclaredFight(ctx, row, ports)` binds its original held or spawned
 controller, record, reward, presentation and victory actions. It adds no
-simulation clock. Sky and Signal supply actual bodies, page flags,
-Ledger facts and weather ports. `headless.bindRuntimeBossRecord` retains
+simulation clock. Sky and Signal supply actual bodies, page flags and
+Ledger facts; a spawned row's storm is the platform's (`bossStorm`).
+`headless.bindRuntimeBossRecord` retains
 the existing strict state JSON or flag-backed save representation;
 `bossRow.parseBossRecord` admits the shared saved-field contract.
 

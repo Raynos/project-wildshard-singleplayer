@@ -9,11 +9,11 @@ import type { ShardManifest } from '../shard/manifest';
 import { bindScopedRuntime, createScopedRuntimeBinding, type ScopedRuntimeBinding } from '../shard/scopedRuntime';
 import { RetainedRuntimeHooks } from "../shard/retainedHooks";
 
-import { browserShardfileOptions, shardfileSource } from '../plugin/ui';
+import { shardfileSource } from '../plugin/ui';
 import type { ProductOptions } from './product';
 import { configureLevel, selectedLevel } from '@wildshard/engine/level/selection';
 import { reserveMapImage } from './mapImage';
-import { provideHybridDeclaration, takeFirstPartyDescriptor } from './runtimeProduct';
+import { browserShardfileOptions, provideHybridDeclaration, takeFirstPartyDescriptor } from './runtimeProduct';
 import type { ShardfileClientBindings } from './client';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 

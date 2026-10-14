@@ -2,8 +2,8 @@ import { loadPaintedTexture, type PaintedSampler } from '../plugin/geometry';
 import type { Material, Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ClientAssets } from './clientAssets';
-import { browserShardfileOptions } from '../plugin/ui';
-import { boundedResponse, type AdmittedProduct, type ProductOptions } from './product';
+import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
+import { boundedResponse, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
 import { bindRuntimeProps, bindRuntimeTerrain, type RuntimePropsPorts, type RuntimeTerrain, type RuntimeTerrainPorts } from './runtimeWorld';
 import { hybridPresentation, type HybridPresentation } from './hybridPresentation';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
@@ -38,6 +38,13 @@ function ownedRuntimeProduct(source: Shardfile, assets: ClientAssets, release?: 
     const released = release === undefined ? [] : await release(requested);
     assets.releaseTransport(released);
   } };
+}
+
+/** Browser connectivity and visited-product storage feed the same admission path as headless validation. */
+export function browserShardfileOptions(base: string, firstParty = false): ProductOptions {
+  return { base, firstParty, textures: ktx2TranscodeSupport(), offline: !navigator.onLine, hash: browserContentHash, fetch: (url) => fetch(url),
+    ...(typeof caches === 'undefined' ? {} : { cache: browserProductCache(caches) }),
+  };
 }
 
 const provided = new Map<string, RuntimeProduct[]>();
