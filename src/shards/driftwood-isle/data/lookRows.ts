@@ -1,5 +1,5 @@
 // SHARD-PLATFORM W2 C2 (look-family rows): the row types Driftwood's look data is written in: a low-poly kit mesh as its
-// parts (runtime/kit/kitParts.ts builds it), a smoke column's numbers (runtime/looks/smokeColumn.ts), the reef bed's
+// parts (runtime/kit/kitParts.ts builds it), a smoke column's numbers (data/smokeLook.ts), the reef bed's
 // scatter (runtime/looks/reefBed.ts), the faceted ground (runtime/looks/facetedGround.ts), the mooring lines
 // (runtime/props/mooringLines.ts) and the streamed ground cover (runtime/looks/streamedCover.ts). The rows themselves are
 // data/{castaway,trader,seabed,ground,boat}Look.ts and runtime/looks/groundCoverLook.ts (its GLSL is trusted runtime, G306).
@@ -62,19 +62,15 @@ export interface SmokeColumnRow {
   readonly fadeOut: number;
   readonly fadePow: number;
   readonly thin: readonly [number, number, number];
-  /** the colour (linear), the opacity before the first update, the opacity close (base) and gained from `opacityFrom` to `opacityTo` m, and the distance past
-   *  which the puffs stop */
+  /** the colour (linear), and the opacity close (base) and gained from `opacityFrom` to `opacityTo` m */
   readonly color: readonly [number, number, number];
-  readonly startOpacity: number;
   readonly opacity: readonly [number, number];
   readonly opacityFrom: number;
   readonly opacityTo: number;
-  readonly far: number;
-  /** the bounding sphere's centre off the fire and its radius, the render order, the material's name and its patch */
+  /** the bounding sphere's centre off the fire and its radius, the render order and the mesh's name */
   readonly bounds: { readonly offset: readonly [number, number, number]; readonly radius: number };
   readonly renderOrder: number;
   readonly name: string;
-  readonly patch: { readonly id: string; readonly key: string };
 }
 
 /** One noise field: its seed (added to the shard's), frequency, octaves and x offset. */

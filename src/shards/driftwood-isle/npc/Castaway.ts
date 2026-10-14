@@ -18,8 +18,8 @@
  * The campfire stays put in the NPC group's frame.
  *
  * Draw calls: body, campfire (two merged meshes, the shadow casters), head, waving arm (each its own pivot), flames
- * (unlit), smoke (Points); past 85 m only the smoke. The smoke is a thin, broken wisp (SHARD-PLATFORM M3: the SDK's
- * @wildshard/sdk/looks/smokeColumn from data/castawayLook.ts): each puff grows as it climbs, fades in over the fire and out
+ * (unlit), smoke (puff quads); past 85 m only the smoke. The smoke is a thin, broken wisp (runtime/looks/smokeColumn.ts, its
+ * material graph data/smokeLook.ts from data/castawayLook.ts's row, all on the GPU): each puff grows as it climbs, fades in over the fire and out
  * toward the top, wanders on its own turbulence and leans downwind — so from the pier it reads as smoke, not a straight
  * bright streak.
  * No lights; the flames are unlit colour that blooms.
@@ -30,7 +30,7 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { buildKitMesh } from '../runtime/kit/kitParts';
-import { SmokeColumn, type SmokeColumn as SmokeColumnSet } from '../runtime/looks/smokeColumn';
+import { SmokeColumn } from '../runtime/looks/smokeColumn';
 import { CASTAWAY_ARM, CASTAWAY_BODY, CASTAWAY_CAMP, CASTAWAY_FLAMES, CASTAWAY_HEAD, CASTAWAY_SMOKE } from '../data/castawayLook';
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
@@ -85,7 +85,6 @@ export class Castaway {
   private head = new THREE.Mesh();
   private arm = new THREE.Mesh();
   private flames = new THREE.Mesh();
-  private smoke: SmokeColumnSet | null = null;
   private headYaw = 0; private headPitch = 0; private readonly bodyYaw: number;
   private waveT = -1;
   private glanceT = 0; private glanceYaw = 0;
@@ -133,12 +132,12 @@ export class Castaway {
     this.flames = new THREE.Mesh(buildKitMesh(CASTAWAY_FLAMES), flameMat);
     this.flames.position.set(f.x, f.y + 0.08, f.z);
 
-    // ── smoke: one Points cloud rising off the fire, drifting a little downwind ──
-    this.smoke = new SmokeColumn(CASTAWAY_SMOKE, f);
+    // ── smoke: one draw of puffs rising off the fire, drifting a little downwind (posed on the GPU) ──
+    const smoke = new SmokeColumn(CASTAWAY_SMOKE, f);
 
     this.figure.add(this.body, this.head, this.arm);
     this.group.name = 'npc-castaway';   // E304: the face capture finds him by name
-    this.group.add(this.figure, this.camp, this.flames, this.smoke.points);
+    this.group.add(this.figure, this.camp, this.flames, smoke.mesh);
     return this;
   }
 
@@ -192,8 +191,6 @@ export class Castaway {
     const fl = 1 + Math.sin(t * 13) * 0.1 + Math.sin(t * 31 + 2) * 0.06;
     this.flames.scale.set(1 + Math.sin(t * 17) * 0.05, fl, 1 + Math.cos(t * 19) * 0.05);
     this.flames.rotation.y = t * 0.6;
-    // the column is the far breadcrumb; up close it thins out so it never fogs the view
-    this.smoke?.update(dt, d);
   }
 }
 

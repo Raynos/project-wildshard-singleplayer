@@ -1,13 +1,13 @@
 // SHARD-PLATFORM M3 (look-family rows): Wendell the castaway as data (npc/Castaway.ts builds him): his low-poly kit meshes
 // (@wildshard/sdk/kit/kitParts: body, campfire, code head, waving arm, flames) and the smoke over his campfire
-// (@wildshard/sdk/looks/smokeColumn: the breadcrumb the intro objective points at, seen from the pier). The palette:
+// (data/smokeLook.ts, runtime/looks/smokeColumn.ts: the breadcrumb the intro objective points at, seen from the pier). The palette:
 // skin '#c98d62', beard '#cfcac0', straw hat '#d8b867', striped shirt '#e9e3d4' / '#3d6fae', canvas trousers '#b59f77'.
 import type { KitMeshRow, SmokeColumnRow } from './lookRows';
 
 /**
  * 42 puffs climbing 21 m over 13 s each (life speeds 0.85–1.15: uneven spacing, a broken column), from 1.2 m over the
  * fire, leaning 5 m downwind by the top along the trade wind off the sea (0.8, 0.55, NPC-local); 0.9–5.3 m puffs, in over
- * the first 8 % of a life, out over the last 45 %; 0.12 opacity close, 0.58 from 30 m; still past 260 m (the whole island).
+ * the first 8 % of a life, out over the last 45 %; 0.12 opacity close, 0.58 from 30 m (posed on the GPU: data/smokeLook.ts).
  */
 export const CASTAWAY_SMOKE: SmokeColumnRow = {
   count: 42,
@@ -30,15 +30,12 @@ export const CASTAWAY_SMOKE: SmokeColumnRow = {
   fadePow: 1.3,
   thin: [0.45, 0.55, 7.7],
   color: [0.8, 0.79, 0.77],
-  startOpacity: 0.42,
   opacity: [0.12, 0.46],
   opacityFrom: 8,
   opacityTo: 30,
-  far: 260,
   bounds: { offset: [2, 9, 1.5], radius: 14 },
   renderOrder: 4,
   name: 'castaway-smoke',
-  patch: { id: 'driftwood.castaway-smoke', key: 'castaway-smoke-v2' },
 };
 
 /** Wendell's body (turns with the figure): bare feet, rolled trousers, the rope belt and its knot, the striped shirt's bands (a little barrel-chested), the neck, the left arm hanging on the driftwood staff. */
