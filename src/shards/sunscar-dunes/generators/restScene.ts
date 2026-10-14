@@ -1,11 +1,12 @@
 import { REST_URLS } from '../data/restFiles';
-import { CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry } from 'three';
+import { CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
 import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
 import { WELL_RIG, HD, CAMP_HD, COOK, LANTERN, WAYMARK_HD, DECK_BRAZIER } from '../data/places';
-import { CARAVAN, TOWER } from '../data/layout';
+import { BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';
 import { signalDunesField } from './tiles';
 import { towerAnchors } from './tower';
-import { parsePrivateScene, type PrivateScene } from '@wildshard/format/clientChannels';
+import { waymarkFrame } from './places';
+import { parsePrivateScene, parseWorldScene, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
 
 /** Bucket-local rope, open pail and jar; stable part identities stay with the existing well motion owner. */
 export function wellRest(): ClientSceneBake {
@@ -33,7 +34,7 @@ export function oilRest(): ClientSceneBake {
 }
 
 /** The SDK JSON/byte driver owns I/O for these finite existing declarations. */
-export function restScenes(): { well: ClientSceneBake['scene']; oil: ClientSceneBake['scene']; frames: PlaceFrames } { return { well: wellRest().scene, oil: oilRest().scene, frames: placeFrames() }; }
+export function restScenes(): { well: ClientSceneBake['scene']; oil: ClientSceneBake['scene']; frames: PlaceFrames; places: ReturnType<typeof placeRecipes> } { return { well: wellRest().scene, oil: oilRest().scene, frames: placeFrames(), places: placeRecipes() }; }
 export function restPools(): readonly { readonly url: string; readonly parts: readonly string[] }[] { return [wellRest(), oilRest()].map((made,index) => {
   const url = REST_URLS[index]; if (url === undefined) throw new Error('Undeclared place pool');
   return { url, parts: made.scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : []) };
@@ -69,4 +70,52 @@ export function placeFrames(): PlaceFrames {
       ...WAYMARK_HD.map((row,index)=>({kind:'object',id:`model-${String(index)}`,source:row.model,missing:'omit',position:row.at??[0,0,0],rotation:row.rot??[0,0,0]})),
     ] }),
   };
+}
+
+/** Prefix independent rest fragments so their owned materials and part IDs cannot cross. */
+function restFragment(scene: PrivateScene, prefix: string): PrivateScene {
+  return parsePrivateScene({ ...scene, root: prefix + scene.root,
+    materials: scene.materials.map(material => ({ ...material, id: prefix + material.id })),
+    nodes: scene.nodes.map(node => ({ ...node, id: prefix + node.id, children: node.children.map(id => prefix + id),
+      ...(node.kind === 'mesh' ? { material: prefix + node.material } : {}),
+      ...(node.kind === 'object' || node.kind === 'anchor' ? { source: prefix + node.source } : {}),
+    })),
+  });
+}
+interface PlaceRecipes {
+  caravan: WorldSceneRecipe & { anchors: { y: number; logbook: number[]; lamp: number[]; cook: readonly [number,number,number] } };
+  tower: WorldSceneRecipe & { anchors: ReturnType<typeof towerAnchors> & { brazier: readonly [number,number,number] } };
+  well: WorldSceneRecipe & { anchors: { crank: number[]; jar: number[]; drop: number } };
+  braziers: (WorldSceneRecipe & { anchors: { bowl: number[]; flame: number[]; light: number[] } })[];
+}
+/** Existing material and animation owners bind only these named, baked rest hierarchies. */
+export function placeRecipes(): PlaceRecipes {
+  const frames = placeFrames(), field = signalDunesField(), wellY = field.heightAt(WELL.x,WELL.z);
+  const frameRecipe = (piece: 'caravan' | 'tower', frame: PrivateScene, models: readonly (typeof CAMP_HD)[number][]) => {
+    const live = restFragment(frame,'live.');
+    return parseWorldScene({ scene: parsePrivateScene({ version:1, root:'root', materials:live.materials, nodes:[
+      {kind:'group',id:'root',children:['baked',live.root]},
+      {kind:'object',id:'baked',source:'baked',missing:'refuse'}, ...live.nodes,
+    ] }), imports:[{id:'baked',kind:'baked',piece}, ...models.map(row=>({id:`live.${row.model}`,kind:'model',model:row.model,fit:row.fit}))] });
+  };
+  const y = field.heightAt(CARAVAN.x,CARAVAN.z), world = (x:number,dy:number,z:number):[number,number,number] => { const v=new Vector3(x,dy,z).applyAxisAngle(new Vector3(0,1,0),CARAVAN.yaw).add(new Vector3(CARAVAN.x,y,CARAVAN.z));return [v.x,v.y,v.z]; };
+  const towerFrame=towerAnchors(field.heightAt(TOWER.x,TOWER.z));
+  const well = restFragment(wellRest().scene,'live.');
+  for (const node of well.nodes) if (node.id === well.root && node.kind === 'group') node.position = [WELL.x,wellY,WELL.z];
+  const wellRecipe = { ...parseWorldScene({ scene:parsePrivateScene({version:1,root:'root',materials:well.materials,nodes:[
+    {kind:'group',id:'root',children:['baked',well.root]}, {kind:'object',id:'baked',source:'baked',missing:'refuse'},
+    ...well.nodes,
+  ]}), imports:[{id:'baked',kind:'baked',piece:'well'}]}), anchors:{crank:[WELL.x+WELL_RIG.r+0.32,wellY+WELL_RIG.axleY,WELL.z],jar:[WELL.x,wellY+1,WELL.z],drop:WELL_RIG.drop} };
+  const braziers = BRAZIERS.map((at,index)=>{
+    const baseY=waymarkFrame(at.x,at.z,field.heightAt).y, models=restFragment(frames.waymark,'live.'), oil=restFragment(oilRest().scene,'live.');
+    const recipe = parseWorldScene({scene:parsePrivateScene({version:1,root:'root',materials:oil.materials,nodes:[
+      {kind:'group',id:'root',position:[at.x,baseY,at.z],children:[models.root,oil.root,'baked','fire']},
+      ...models.nodes,...oil.nodes,{kind:'object',id:'baked',source:'baked',missing:'refuse'},
+      {kind:'group',id:'fire',position:[0,HD.brazier*HD.bowlAt,0],visible:false},
+    ]}),imports:[{id:'baked',kind:'baked',piece:'braziers',only:{brazier:index},materials:'embers'},
+      ...WAYMARK_HD.map(row=>({id:`live.${row.model}`,kind:'model',model:row.model,fit:row.fit}))]});
+    return Object.assign(recipe, { anchors:{bowl:[at.x,baseY+1.6,at.z],flame:[at.x,baseY+HD.brazier*HD.bowlAt,at.z],light:[at.x,baseY+HD.brazier*HD.bowlAt+0.4,at.z]} });
+  });
+  return { caravan:{...frameRecipe('caravan',frames.camp,CAMP_HD),anchors:{y,logbook:world(0.35,1.12,-2.55),lamp:world(LANTERN.x,LANTERN.y,LANTERN.z),cook:frames.cookAt}},
+    tower:{...frameRecipe('tower',frames.tower,[DECK_BRAZIER]),anchors:{...towerFrame,brazier:frames.brazierAt}},well:wellRecipe,braziers };
 }
