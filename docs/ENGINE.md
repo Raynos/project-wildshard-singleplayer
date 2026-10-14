@@ -4686,3 +4686,11 @@ at most 64 authored `{name, bit}` terms in their declared order. It sums
 Boolean flags with bounded integer coefficients without allocation or state
 writes. Director observations retain Boolean outputs; native and client
 motion permissions retain their numeric grants.
+
+`MoverScriptDriver.install` accepts an already composed lane or a declared
+native composition (`content`, verified `assets`, `rules`, optional
+`declarations`). Both use the existing role scheduler and restoration
+adapters. `drive: true` advances that same host once per fixed tick;
+`permissions` supplies copied trigger observations. Default ground
+activation reads the native player motor; explicit activation ports remain
+available. The installer creates no second clock or collision owner.

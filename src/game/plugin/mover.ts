@@ -267,6 +267,9 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
 const driverFinite = v.pipe(v.number(), v.finite());
 const driverEntity = v.strictObject({ id: v.pipe(driverFinite, v.integer(), v.minValue(1), v.maxValue(0x7fffffff)), name: v.pipe(v.string(), v.maxLength(128)),
   position: v.tuple([driverFinite, driverFinite, driverFinite]), fields: v.record(v.string(), driverFinite), frozen: v.boolean(), interactive: v.boolean() });
+/** Native composition facts on the existing host: verified modules and actor-bound role aliases are supplied by its session. */
+export interface DeclaredMoverComposition { content: Omit<ShardScriptContent, 'sim'> & { sim: Omit<ShardScriptContent['sim'], 'scripts'> }; assets: ReadonlyMap<string, Uint8Array>;
+  rules: ShardScriptPorts['rules']; declarations?: readonly DeclaredScriptRoleBinding[] }
 /** The mover's field/query role shares its level's host, module union, fuel, events and effect allowances. */
 export class MoverScriptDriver {
   readonly data: MoverData;
@@ -312,11 +315,14 @@ export class MoverScriptDriver {
       schedules: [this.schedule(() => { if (this.runtime === undefined) throw new Error('Missing mover runtime'); return this.runtime; }, permissions), ...(extra?.schedules ?? [])] });
   }
   /** Attach native handles to the same host; an explicit drive owns one fixed tick, never another script host. */
-  install(sim: SimHost, lane: ReturnType<typeof createShardfileComposedLane>, options: { id: string; restoring?: boolean; activation?: MoverActivationPorts; drive?: boolean }): MoverRuntime {
+  install(sim: SimHost, input: ReturnType<typeof createShardfileComposedLane> | DeclaredMoverComposition, options: { id: string; restoring?: boolean; activation?: MoverActivationPorts; drive?: boolean; permissions?: () => ReadonlyMap<string, number> }): MoverRuntime {
     if (this.runtime !== undefined) throw new Error('Mover driver is already installed');
+    const lane = 'host' in input ? input : this.compose({ ...input.content, sim: { ...input.content.sim, scripts: [...input.assets.keys()] } }, input.assets,
+      { rules: input.rules, entities: [], actors: new Map(), query: () => [] }, undefined, options.permissions,
+      { roles: [], ...(input.declarations === undefined ? {} : { declarations: input.declarations }) });
     const runtime = new MoverRuntime(this.data, { host: lane.host, physics: () => sim.physics, scope: sim.scope,
       ...(options.restoring === undefined ? {} : { restoring: options.restoring }),
-      ...(options.activation === undefined ? {} : { activation: options.activation }) });
+      activation: { ground: () => sim.hasPlayerMotor ? sim.player.motor.result : undefined, ...options.activation } });
     this.runtime = runtime;
     sim.onStep(options.id, () => { if (options.drive === true) lane.step(sim.state.tick); runtime.capture(); }, {
       snapshot: () => runtime.snapshotState(this.resetIds), restore: value => {

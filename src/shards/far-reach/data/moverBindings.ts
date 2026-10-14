@@ -17,3 +17,7 @@ export const FALLEN_ANGLE = -1.25;
 /** Scoped page motion installation and the native permission bit order. */
 export const SKY_CLIENT_MOTION = { systemId: SKY_MOVER_BINDING.systemId,
   permissions: [{ mover: SKY_MOVER_BINDING.winch, flags: SKY_MOVER_BINDING.permissions }] } as const;
+
+/** The native host's empty numeric role and aggregate grants; item aliases stay in their consuming role. */
+export const SKY_NATIVE_MOVER_COMPOSITION = { content: { sim: { bindings: [], scriptTickDivisor: 1 }, state: { shared: [], player: [] } },
+  rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 } } as const;
