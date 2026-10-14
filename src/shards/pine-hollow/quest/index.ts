@@ -161,7 +161,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   ctx.system({ id: 'quest.kit', phase: 'update', after: ['engine.compendium.installCompendium'], before: ['quest.pool', 'hud.combat', 'main.frame'], run: (dt, t) => { kit.update(dt, t); } });
 
   // ── the beaver pool behind the dam (E322 F-L6): the sluice's flag drains it, and a reload with it open starts drained ──
-  const pool = new BeaverPool(sky).build();
+  const pool = await new BeaverPool(sky).build();
   game.scene.add(pool.group);
   pool.setOpen(flags.has('open:dam-sluice'), true);
   ctx.scope.onDispose(flags.onChange((f, on) => { if (f === 'open:dam-sluice') pool.setOpen(on); }));

@@ -9,6 +9,7 @@
  *     re-lays each vertex at the draining level against it).
  *   · `trickle`: a narrow running ribbon down the bed's channel, riffle to sluice, a few cm over the bed.
  */
+import * as THREE from 'three';
 import type { CragGround } from './cragGround';
 import { BEAVER_POOL, POND, CREEK, CREEK_WATER, type XZ } from '../data/layout';
 import { creekBedAt, creekSpan, inBeaverPool } from '../behaviour/layout';
@@ -99,3 +100,17 @@ function trickle(heightAt: CragGround['heightAt']): PoolRows['trickle'] {
 
 /** The bake: both meshes' blocks over the page's ground. */
 export function bakeBeaverPool(heightAt: CragGround['heightAt']): PoolRows { return { still: still(heightAt), trickle: trickle(heightAt) }; }
+
+/** Original water draws emitted into the already-admitted Pine shape library. */
+export function pinePoolShapes(piece: THREE.Object3D, rows: PoolRows): void {
+  const material = new THREE.MeshStandardMaterial(); material.name = 'pine.props';
+  for (const name of ['still', 'trickle'] as const) {
+    const row = rows[name], geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(row.position, 3));
+    geometry.setAttribute('uv', new THREE.Float32BufferAttribute(row.uv, 2));
+    geometry.setAttribute('aWater', new THREE.Float32BufferAttribute(row.aWater, 4));
+    geometry.setIndex(row.index); geometry.computeVertexNormals(); geometry.computeBoundingSphere();
+    const mesh = new THREE.InstancedMesh(geometry, material, 1);
+    mesh.name = `pine-pool-${name}`; mesh.setMatrixAt(0, new THREE.Matrix4()); piece.add(mesh);
+  }
+}

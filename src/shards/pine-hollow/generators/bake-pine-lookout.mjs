@@ -7,6 +7,8 @@
 // src/shards/pine-hollow/data/lookout.json, which the page finishes the timber from (src/shards/pine-hollow/models/fireLookout.ts).
 // test/shards/pine-hollow/lookout-bake.test.ts is the stale gate (it re-runs the generator).
 // Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-lookout.mjs
+import { bakePoolRows } from './bake-pine-beaver-pool.mjs';
+import { pinePoolShapes } from './beaverPool.ts';
 import { pinePropShapes } from './propShapes.ts';
 import { pinePropScan, pinePropMaterialFiles } from './bake-pine-props.mjs';
 import { pineLandmarkSites } from './landmarkSites.ts';
@@ -38,13 +40,40 @@ export function bakeLookoutRows() {
 export function pineTimberGround() { return readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin'))); }
 
 /** Identical byte views share storage; every accessor, type and native shape stays independent. */
-function compactLibraryGlb(original) {
+function compactLibraryGlb(original, compactMaterials = false) {
   const bytes=Buffer.from(original), length=bytes.readUInt32LE(12), doc=JSON.parse(bytes.subarray(20,20+length).toString()), input=bytes.subarray(28+length), pieces=[], seen=new Map();
+  if (compactMaterials) {
+    const materials = [], seenMaterials = new Map(), indices = doc.materials.map(material => {
+      const key = JSON.stringify(material), present = seenMaterials.get(key);
+      if (present !== undefined) return present;
+      const index = materials.length; materials.push(material); seenMaterials.set(key, index); return index;
+    });
+    for (const mesh of doc.meshes) for (const primitive of mesh.primitives) if (primitive.material !== undefined) primitive.material = indices[primitive.material];
+    doc.materials = materials;
+  }
   let offset=0;
   for(const view of doc.bufferViews){const block=input.subarray(view.byteOffset ?? 0,(view.byteOffset ?? 0)+view.byteLength), key=JSON.stringify([createHash('sha256').update(block).digest('hex'),view.byteStride ?? 0,view.target ?? null]);
     const existing=seen.get(key);
     if(existing!==undefined)view.byteOffset=existing;
     else{view.byteOffset=offset;seen.set(key,offset);pieces.push(block,Buffer.alloc((-block.length)&3));offset+=block.length+((-block.length)&3);}
+  }
+  if (compactMaterials) {
+    const uniqueViews = [], seenViews = new Map(), views = doc.bufferViews.map(view => {
+      const key = JSON.stringify(view), prior = seenViews.get(key); if (prior !== undefined) return prior;
+      const index = uniqueViews.length; uniqueViews.push(view); seenViews.set(key, index); return index;
+    });
+    for (const accessor of doc.accessors) {
+      if (accessor.sparse !== undefined) throw new Error('Pine shape compaction requires its original dense accessors');
+      if (accessor.bufferView !== undefined) accessor.bufferView = views[accessor.bufferView];
+    }
+    const uniqueAccessors = [], seenAccessors = new Map(), accessors = doc.accessors.map(accessor => {
+      const key = JSON.stringify(accessor), prior = seenAccessors.get(key); if (prior !== undefined) return prior;
+      const index = uniqueAccessors.length; uniqueAccessors.push(accessor); seenAccessors.set(key, index); return index;
+    });
+    const remap = attributes => { for (const name of Object.keys(attributes)) attributes[name] = accessors[attributes[name]]; };
+    for (const mesh of doc.meshes) for (const primitive of mesh.primitives) { remap(primitive.attributes); if (primitive.indices !== undefined) primitive.indices = accessors[primitive.indices]; }
+    for (const node of doc.nodes) if (node.extensions?.EXT_mesh_gpu_instancing !== undefined) remap(node.extensions.EXT_mesh_gpu_instancing.attributes);
+    doc.bufferViews = uniqueViews; doc.accessors = uniqueAccessors;
   }
   doc.buffers[0].byteLength=offset;
   const json=Buffer.from(JSON.stringify(doc)), text=Buffer.concat([json,Buffer.alloc((-json.length)&3,0x20)]), bin=Buffer.concat(pieces), header=Buffer.from(bytes.subarray(0,20)), binaryHeader=Buffer.alloc(8);
@@ -63,11 +92,12 @@ async function writeTimberWorld() {
   const materialFiles = pinePropMaterialFiles();
   for (const [path, bytes] of Object.entries(materialFiles.outputs)) { mkdirSync(resolve(root, path, '..'), { recursive: true }); writeFileSync(resolve(root, path), bytes); }
   const shapes = pinePropShapes({ rocks: await pinePropScan('rock_moss_set_01'), stumps: await pinePropScan('tree_stump_01'), logs: await pinePropScan('dead_tree_trunk') });
+  const pool = bakePoolRows(); pinePoolShapes(shapes.piece, pool);
   const baked = pineTimberWorldBake(ground.heightAt, root, { phone: { bin: crags.bins.phone, tiles: crags.rows.skin.phone.tiles }, desktop: { bin: crags.bins.desktop, tiles: crags.rows.skin.desktop.tiles } }, ground, shapes.piece);
   const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer'), cabins = baked.pieces.find(row => row.name === 'pine.cabins'), under = baked.pieces.find(row => row.name === 'pine.undergrowth'), propsPiece = baked.pieces.find(row => row.name === 'pine.props');
   if (piece === undefined || cabins === undefined || under === undefined || propsPiece === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
   const library = [piece, cabins, under, propsPiece].map(part => {
-    const bytes=compactLibraryGlb(part.glb), hash = createHash('sha256').update(bytes).digest('hex'); baked.assets.set(hash,bytes);
+    const bytes=compactLibraryGlb(part.glb, part.name === 'pine.cabins'), hash = createHash('sha256').update(bytes).digest('hex'); baked.assets.set(hash,bytes);
     const file = { hash, kind: 'glb', compressed: bytes.length };
     const parsed = Object.assign(file, parseGlb(bytes));
     return Object.assign(parsed, { dependencies: [], critical: false });
@@ -78,7 +108,7 @@ async function writeTimberWorld() {
   const shardfile = { ...baked.shardfile, terrain: query.terrain, critical: [...baked.shardfile.critical, ...query.critical], library: [...baked.shardfile.library ?? [], ...props.wholeLibrary], files: [...baked.shardfile.files, ...library, ...query.files].sort((a,b) => a.hash.localeCompare(b.hash)) };
   const out = resolve(root, 'src/shards/pine-hollow/assets'); mkdirSync(out, { recursive: true });
   for (const [ref, bytes] of baked.assets) writeFileSync(resolve(out, ref), bytes);
-  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, cragAssembly, propShapes: shapes.rows, propMaterials: materialFiles.aliases, propMaterialCosts: materialFiles.costs, landmarks: { ...landmarkSites, ...landmarkFacts }, placements, lookout, sites, cabins: cabins.rows })}\n`);
+  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, cragAssembly, poolGround: pool.still.ground, propShapes: shapes.rows, propMaterials: materialFiles.aliases, propMaterialCosts: materialFiles.costs, landmarks: { ...landmarkSites, ...landmarkFacts }, placements, lookout, sites, cabins: cabins.rows })}\n`);
   console.info(`Pine timber product: ${shardfile.tiles.length} tiles, ${shardfile.files.length} charged files, 3 world copies and 2 library copies`);
 }
 

@@ -4,7 +4,7 @@
  * chunk's landscape). Full, it stands at the pond's level; when the sluice opens (`open:dam-sluice`) it drains over
  * DRAIN_S to a muddy bed and the pond's outflow runs on as a trickle down the bed and out through the sluice.
  *
- *   const pool = new BeaverPool(sky).build(); scene.add(pool.group);
+ *   const pool = await new BeaverPool(sky).build(); scene.add(pool.group);
  *   pool.setOpen(flags.has('open:dam-sluice'), true);    // a reload with the sluice open starts drained
  *   flags.onChange((f, on) => { if (f === 'open:dam-sluice') pool.setOpen(on); });
  *   game.onUpdate((dt) => { pool.update(dt); });
@@ -23,34 +23,14 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
 import { BEAVER_POOL, beaverPoolLevel } from '../data/layout';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import poolJson from '../data/beaverPool.json' with { type: 'json' };
+import { loadSiteTimbers } from './timberSites';
+import { pineModels } from './context';
+import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 
 /** seconds from the sluice lifting to the muddy bed */
 export const DRAIN_S = 8;
 /** the wet film's depth code on the uncovered bed (waterSurface.ts: the wet line peaks between −0.12 and −0.4) */
 const MUD_FILM = -0.34;
-
-const num = v.pipe(v.number(), v.finite());
-const Mesh = { position: v.array(num), uv: v.array(num), aWater: v.array(num), index: v.array(v.pipe(v.number(), v.integer(), v.minValue(0))) };
-/** the two meshes' blocks (f32-exact; the still surface with the ground under each vertex), baked offline (G285:
- *  ../generators/beaverPool.ts over the page's own terrain, `src/shards/pine-hollow/generators/bake-pine-beaver-pool.mjs`) */
-export const PoolRowsSchema = v.strictObject({ still: v.strictObject({ ...Mesh, ground: v.array(num) }), trickle: v.strictObject(Mesh) });
-export type PoolRows = v.InferOutput<typeof PoolRowsSchema>;
-/** the bake's rows, parsed strictly once */
-export const POOL_ROWS: PoolRows = v.parse(PoolRowsSchema, poolJson);
-
-/** a water mesh's geometry from its blocks, normals from its triangles (as the builder's) */
-function poolGeometry(m: PoolRows['trickle']): THREE.BufferGeometry {
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(m.position, 3));
-  geo.setAttribute('uv', new THREE.Float32BufferAttribute(m.uv, 2));
-  geo.setAttribute('aWater', new THREE.Float32BufferAttribute(m.aWater, 4));
-  geo.setIndex(m.index);
-  geo.computeVertexNormals();
-  geo.computeBoundingSphere();
-  return geo;
-}
-
 
 export class BeaverPool {
   readonly group = new THREE.Group();
@@ -66,9 +46,12 @@ export class BeaverPool {
 
   constructor(private sky: Sky) {}
 
-  build(): this {
-    this.still = this.buildStill();
-    this.trickle = this.buildTrickle();
+  async build(): Promise<this> {
+    const views = await loadSiteTimbers(pineModels(this.sky));
+    const still = views.get('pine-pool-still'), trickle = views.get('pine-pool-trickle');
+    if (still === undefined || trickle === undefined) throw new Error('[pool] admitted water draws missing');
+    this.still = this.buildStill(still.geometry.clone());
+    this.trickle = this.buildTrickle(trickle.geometry.clone());
     this.group.add(this.still, this.trickle);
     this.group.name = 'beaver-pool';
     this.apply();
@@ -113,9 +96,8 @@ export class BeaverPool {
   }
 
   /** the pool's still surface on the pond surface's grid (baked: the cells in the pool's reach, not always above its water) */
-  private buildStill(): THREE.Mesh {
-    this.ground = new Float32Array(POOL_ROWS.still.ground);
-    const geo = poolGeometry(POOL_ROWS.still);
+  private buildStill(geo: THREE.BufferGeometry): THREE.Mesh {
+    this.ground = Float32Array.from(v.parse(v.array(v.pipe(v.number(), v.finite())), authored.poolGround));
     const { material } = createWaterMaterial(this.sky, { skyline: null, forestSinEl: 0.3 });
     const mesh = new THREE.Mesh(geo, material);
     mesh.name = 'beaver-pool';
@@ -125,8 +107,7 @@ export class BeaverPool {
   }
 
   /** the trickle: the channel's line from the riffle's crest to under the dam, a few cm over the bed (baked) */
-  private buildTrickle(): THREE.Mesh {
-    const geo = poolGeometry(POOL_ROWS.trickle);
+  private buildTrickle(geo: THREE.BufferGeometry): THREE.Mesh {
     const { material } = createWaterMaterial(this.sky, { skyline: null, forestSinEl: 0.3, fade: this.trickleFade });
     const mesh = new THREE.Mesh(geo, material);
     mesh.name = 'beaver-pool-trickle';

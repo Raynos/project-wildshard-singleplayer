@@ -3088,6 +3088,9 @@
         "public/assets/models/pine-hollow-crags",
         "public/assets/models/pine-hollow-crags/cave.glb",
         "public/assets/models/pine-hollow-crags/cave.json",
+        "public/assets/models/pine-hollow-hero/cave-arch",
+        "public/assets/models/pine-hollow-hero/cave-arch-lod1",
+        "public/assets/models/pine-hollow-hero/waystone",
         "public/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb",
         "public/assets/models/rock_moss_set_01/rock_moss_set_01_lod.phone.glb",
         "public/assets/models/tree_stump_01/tree_stump_01_lod.glb",
@@ -3107,6 +3110,7 @@
         "src/shards/pine-hollow/generators/bake-pine-cabins.mjs",
         "src/shards/pine-hollow/generators/bake-pine-crags.d.mts",
         "src/shards/pine-hollow/generators/bake-pine-crags.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-landmark-facts.mjs",
         "src/shards/pine-hollow/generators/bake-pine-lookout.d.mts",
         "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
         "src/shards/pine-hollow/generators/bake-pine-props.d.mts",
@@ -3141,11 +3145,7 @@
         "src/shards/pine-hollow/generators/timberWorld.ts",
         "src/shards/pine-hollow/generators/undergrowth.ts",
         "src/shards/pine-hollow/generators/wildlifeWords.ts",
-        "src/shards/pine-hollow/ktx2.generated.ts",
-        "src/shards/pine-hollow/generators/bake-pine-landmark-facts.mjs",
-        "public/assets/models/pine-hollow-hero/cave-arch",
-        "public/assets/models/pine-hollow-hero/cave-arch-lod1",
-        "public/assets/models/pine-hollow-hero/waystone"
+        "src/shards/pine-hollow/ktx2.generated.ts"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/lookout.bin",
@@ -3251,6 +3251,9 @@
         "public/assets/models/pine-hollow-crags",
         "public/assets/models/pine-hollow-crags/cave.glb",
         "public/assets/models/pine-hollow-crags/cave.json",
+        "public/assets/models/pine-hollow-hero/cave-arch",
+        "public/assets/models/pine-hollow-hero/cave-arch-lod1",
+        "public/assets/models/pine-hollow-hero/waystone",
         "public/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb",
         "public/assets/models/rock_moss_set_01/rock_moss_set_01_lod.phone.glb",
         "public/assets/models/tree_stump_01/tree_stump_01_lod.glb",
@@ -3270,6 +3273,7 @@
         "src/shards/pine-hollow/generators/bake-pine-cabins.mjs",
         "src/shards/pine-hollow/generators/bake-pine-crags.d.mts",
         "src/shards/pine-hollow/generators/bake-pine-crags.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-landmark-facts.mjs",
         "src/shards/pine-hollow/generators/bake-pine-lookout.d.mts",
         "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
         "src/shards/pine-hollow/generators/bake-pine-props.d.mts",
@@ -3304,11 +3308,7 @@
         "src/shards/pine-hollow/generators/timberWorld.ts",
         "src/shards/pine-hollow/generators/undergrowth.ts",
         "src/shards/pine-hollow/generators/wildlifeWords.ts",
-        "src/shards/pine-hollow/ktx2.generated.ts",
-        "src/shards/pine-hollow/generators/bake-pine-landmark-facts.mjs",
-        "public/assets/models/pine-hollow-hero/cave-arch",
-        "public/assets/models/pine-hollow-hero/cave-arch-lod1",
-        "public/assets/models/pine-hollow-hero/waystone"
+        "src/shards/pine-hollow/ktx2.generated.ts"
       ],
       "outputs": [
         "public/assets/pine-hollow/baked/site-timbers.bin",
@@ -3359,6 +3359,9 @@
         "public/assets/models/pine-hollow-crags",
         "public/assets/models/pine-hollow-crags/cave.glb",
         "public/assets/models/pine-hollow-crags/cave.json",
+        "public/assets/models/pine-hollow-hero/cave-arch",
+        "public/assets/models/pine-hollow-hero/cave-arch-lod1",
+        "public/assets/models/pine-hollow-hero/waystone",
         "public/assets/models/rock_moss_set_01/rock_moss_set_01_lod.glb",
         "public/assets/models/rock_moss_set_01/rock_moss_set_01_lod.phone.glb",
         "public/assets/models/tree_stump_01/tree_stump_01_lod.glb",
@@ -3378,6 +3381,7 @@
         "src/shards/pine-hollow/generators/bake-pine-cabins.mjs",
         "src/shards/pine-hollow/generators/bake-pine-crags.d.mts",
         "src/shards/pine-hollow/generators/bake-pine-crags.mjs",
+        "src/shards/pine-hollow/generators/bake-pine-landmark-facts.mjs",
         "src/shards/pine-hollow/generators/bake-pine-lookout.d.mts",
         "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",
         "src/shards/pine-hollow/generators/bake-pine-props.d.mts",
@@ -3412,11 +3416,7 @@
         "src/shards/pine-hollow/generators/timberWorld.ts",
         "src/shards/pine-hollow/generators/undergrowth.ts",
         "src/shards/pine-hollow/generators/wildlifeWords.ts",
-        "src/shards/pine-hollow/ktx2.generated.ts",
-        "src/shards/pine-hollow/generators/bake-pine-landmark-facts.mjs",
-        "public/assets/models/pine-hollow-hero/cave-arch",
-        "public/assets/models/pine-hollow-hero/cave-arch-lod1",
-        "public/assets/models/pine-hollow-hero/waystone"
+        "src/shards/pine-hollow/ktx2.generated.ts"
       ],
       "outputs": [
         "src/shards/pine-hollow/data/timberWorld.generated.json",
@@ -3462,14 +3462,14 @@
         "public/assets/pine-hollow/baked/prop-materials/50ea2cdf3a3043e0ac7564a4c910c035031b8553d4d23b44138715b4d1dce5c9.glb",
         "public/assets/pine-hollow/baked/prop-materials/a4c5853eeecc37332c47a3000a6bc755f2d5dede1fc0c5c957ec4eb85609fb04.glb",
         "public/assets/pine-hollow/baked/prop-materials/a5ed74175ee4b3c7e8ee58aaa02258a927d8ff3e1fb37de8bc1fb0ffd404e878.glb",
-        "src/shards/pine-hollow/assets/28a7c8b0ba17b747205b31061bd1e94117a745588851f40594754f38026a1b71",
-        "src/shards/pine-hollow/assets/2f9f6a27083ade3df434a47bdbc4458f9d034492f52e5544b56d906ee691b45f",
         "src/shards/pine-hollow/assets/77b6d80831a59b1397cc369db82aafee70103627d91da7849984b0689740d219",
-        "src/shards/pine-hollow/assets/fa4281e475604c97d7a57805f49ecaac33bc0b7f319ca517cfd0f9f5fe420138"
+        "src/shards/pine-hollow/assets/fa4281e475604c97d7a57805f49ecaac33bc0b7f319ca517cfd0f9f5fe420138",
+        "src/shards/pine-hollow/assets/707ca72d8abfab98a4258e020619f29ebdbfcf12cf8e2ebd609be8bee93e8e70",
+        "src/shards/pine-hollow/assets/0aa42c615785b9f4227fc79bcb10c1d6a7cbfff3b666a11f46ff22cc8e715e74"
       ],
       "platform": "native",
       "buildOutputs": {
-        "src/shards/pine-hollow/data/timberWorld.generated.json": "a39b16fe5095698dd77d0e68f96bf12a3bdec4b9982cf0673a21e4cb61112f19",
+        "src/shards/pine-hollow/data/timberWorld.generated.json": "7e4db8109ad060e613f3a1dd5f7da26f3980b38d00a57b643ac06f45a4148fd6",
         "src/shards/pine-hollow/assets/0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680": "0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680",
         "src/shards/pine-hollow/assets/1dda8218279874f1e7d13c6ee348d6553b896c10595cf4d9ee4a79be9550d70d": "1dda8218279874f1e7d13c6ee348d6553b896c10595cf4d9ee4a79be9550d70d",
         "src/shards/pine-hollow/assets/22865d1c34ddb1e55513c606a5f884f7f39ba31d97e71676d94df03774c26fba": "22865d1c34ddb1e55513c606a5f884f7f39ba31d97e71676d94df03774c26fba",
@@ -3512,10 +3512,10 @@
         "public/assets/pine-hollow/baked/prop-materials/50ea2cdf3a3043e0ac7564a4c910c035031b8553d4d23b44138715b4d1dce5c9.glb": "50ea2cdf3a3043e0ac7564a4c910c035031b8553d4d23b44138715b4d1dce5c9",
         "public/assets/pine-hollow/baked/prop-materials/a4c5853eeecc37332c47a3000a6bc755f2d5dede1fc0c5c957ec4eb85609fb04.glb": "a4c5853eeecc37332c47a3000a6bc755f2d5dede1fc0c5c957ec4eb85609fb04",
         "public/assets/pine-hollow/baked/prop-materials/a5ed74175ee4b3c7e8ee58aaa02258a927d8ff3e1fb37de8bc1fb0ffd404e878.glb": "a5ed74175ee4b3c7e8ee58aaa02258a927d8ff3e1fb37de8bc1fb0ffd404e878",
-        "src/shards/pine-hollow/assets/28a7c8b0ba17b747205b31061bd1e94117a745588851f40594754f38026a1b71": "28a7c8b0ba17b747205b31061bd1e94117a745588851f40594754f38026a1b71",
-        "src/shards/pine-hollow/assets/2f9f6a27083ade3df434a47bdbc4458f9d034492f52e5544b56d906ee691b45f": "2f9f6a27083ade3df434a47bdbc4458f9d034492f52e5544b56d906ee691b45f",
         "src/shards/pine-hollow/assets/77b6d80831a59b1397cc369db82aafee70103627d91da7849984b0689740d219": "77b6d80831a59b1397cc369db82aafee70103627d91da7849984b0689740d219",
-        "src/shards/pine-hollow/assets/fa4281e475604c97d7a57805f49ecaac33bc0b7f319ca517cfd0f9f5fe420138": "fa4281e475604c97d7a57805f49ecaac33bc0b7f319ca517cfd0f9f5fe420138"
+        "src/shards/pine-hollow/assets/fa4281e475604c97d7a57805f49ecaac33bc0b7f319ca517cfd0f9f5fe420138": "fa4281e475604c97d7a57805f49ecaac33bc0b7f319ca517cfd0f9f5fe420138",
+        "src/shards/pine-hollow/assets/707ca72d8abfab98a4258e020619f29ebdbfcf12cf8e2ebd609be8bee93e8e70": "707ca72d8abfab98a4258e020619f29ebdbfcf12cf8e2ebd609be8bee93e8e70",
+        "src/shards/pine-hollow/assets/0aa42c615785b9f4227fc79bcb10c1d6a7cbfff3b666a11f46ff22cc8e715e74": "0aa42c615785b9f4227fc79bcb10c1d6a7cbfff3b666a11f46ff22cc8e715e74"
       }
     },
     {
