@@ -223,6 +223,5 @@ export class Cove {
   update(dt: number): void {
     this.t += dt;
     this.uniforms.uTime.value = this.t;
-    this.fall?.update(dt);
   }
 }

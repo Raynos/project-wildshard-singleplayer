@@ -1,37 +1,24 @@
 /**
- * A toon cascade as a look-family system (SHARD-PLATFORM M3): a stepped faceted water curtain in the Wind Waker / Sea of
- * Thieves manner. Nothing here knows a shard: the shard passes its GLSL rows (`glsl`, spliced with the shared
- * `ShaderFamily`: `@{HASH}`, and `@{SHELF}` / `@{DROP}` / `@{BRINK}`, the shelf's fractions of a terrace, which this
- * system passes) and the id its fog patch registers under.
+ * A toon cascade (SHARD-PLATFORM M3): a stepped faceted water curtain in the Wind Waker / Sea of Thieves manner. Its
+ * three draws wear the shard's material graphs (data/waterfallLook.ts, W2 C2), compiled from look.materials; this builds
+ * the geometry they read.
  *
- *   const fall = new Cascade({ lip, foot, width: 2.2, ground: heightAt, poolRadius: 2.3, glsl, patchId }).build();
+ *   const fall = new Cascade({ lip, foot, width: 2.2, ground: heightAt, poolRadius: 2.3, materials }).build();
  *   scene.add(fall.group);
- *   game.onUpdate((dt) => fall.update(dt));
  *
  * `lip` is the centre of the brink the water pours over, `foot` the centre of the plunge pool's surface. The water runs
  * from the lip to the foot in `steps` terraces: each is a short flat shelf (the pour-over lip, or the ledge the step
- * above lands on) and then a ballistic drop. `ground` keeps every vertex a hand above the terrain. Three draws, all unlit
- * (the sun's colour and direction come through the fog uniforms, so they follow the day / night clock), all fogged:
- * - **sheet**: the curtain, pleated into flat facets (the shard's sheet program shades it).
- * - **pool rings**: faceted (9-sided) foam rings spreading on the plunge pool.
- * - **puffs**: low-poly foam balls boiling at the foot and at each landing, and spray chunks thrown up that shrink away,
- *   every puff a 20-face icosahedron, all of them one merged mesh posed in the vertex shader.
+ * above lands on) and then a ballistic drop. `ground` keeps every vertex a hand above the terrain. Three draws:
+ * - **sheet**: the curtain, pleated into flat facets (face normals, `uv`, `aStep`).
+ * - **pool rings**: a disc on the plunge pool (its own `uv`).
+ * - **puffs**: low-poly foam balls at the foot and at each landing, and spray chunks, every puff a 20-face icosahedron,
+ *   all of them one merged mesh (`aCentre`, `aInfo`, squat face normals) the graph poses.
  */
 import * as THREE from 'three';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { ShaderFamily } from '@wildshard/game/plugin/shaderFamily';
+import { CASCADE_SHELF as SHELF } from '../../data/waterfallLook';
 
-/** a cascade's programs as GLSL rows: the hash every program splices, and each part's vertex / fragment source */
-export interface CascadeGlsl {
-  readonly HASH: string;
-  readonly curtainVertex: string;
-  readonly curtainFragment: string;
-  readonly poolVertex: string;
-  readonly poolFragment: string;
-  readonly puffVertex: string;
-  readonly puffFragment: string;
-}
+/** the compiled graphs the three draws wear */
+export interface CascadeMaterials { readonly curtain: THREE.Material; readonly pool: THREE.Material; readonly puffs: THREE.Material }
 
 export interface CascadeSpec {
   lip: THREE.Vector3;
@@ -44,21 +31,16 @@ export interface CascadeSpec {
   poolRadius?: number;
   /** terraces from the lip to the foot (v3; default 3) */
   steps?: number;
-  /** the shard's GLSL rows */
-  glsl: CascadeGlsl;
-  /** the id the fog patch registers under (the shader-patch inventory lists it) */
-  patchId: string;
+  /** the shard's compiled cascade graphs */
+  materials: CascadeMaterials;
 }
 
 /** what a caller keeps of the cascade */
 export interface CascadeLike {
   readonly group: THREE.Group;
   build: () => CascadeLike;
-  update: (dt: number) => void;
 }
 
-/** the shelf's share of each terrace (the flat run before the drop) */
-const SHELF = 0.28;
 /** the rows of one terrace, as fractions of it: two across the shelf, the rest down the drop */
 const ROWS_F = [0, 0.14, SHELF, 0.42, 0.56, 0.7, 0.85, 1];
 /** the columns across the curtain; the odd ones stand proud, so the sheet is pleated into flat facets */
@@ -67,29 +49,12 @@ const COLS = 6;
 /** A terraced waterfall: its curtain, pool rings and foam puffs, from a shard's cascade row. */
 export class Cascade implements CascadeLike {
   group = new THREE.Group();
-  private u = { uTime: { value: 0 } };
-  private readonly family: ShaderFamily;
 
-  constructor(private spec: CascadeSpec) {
-    this.family = new ShaderFamily({ ...spec.glsl, SHELF: SHELF.toFixed(2), DROP: (1 - SHELF).toFixed(2), BRINK: (SHELF + 0.08).toFixed(2) }, {});
-  }
+  constructor(private spec: CascadeSpec) {}
 
   build(): this {
     this.group.add(this.buildSheet(), this.buildRings(), this.buildPuffs());
     return this;
-  }
-
-  update(dt: number): void { this.u.uTime.value += dt; }
-
-  /** the fogged unlit material the three parts share the setup of */
-  private material(vert: string, frag: string, extra: Record<string, THREE.IUniform> = {}, side: THREE.Side = THREE.DoubleSide): THREE.ShaderMaterial {
-    const m = new THREE.ShaderMaterial({
-      uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, extra]),
-      vertexShader: vert, fragmentShader: frag, transparent: true, depthWrite: false, fog: true, side,
-    });
-    Object.assign(m.uniforms, this.u);
-    patchShader(m, this.spec.patchId, PATCH_ORDER.material, (shader) => { attachFogUniforms(shader); }, { mode: 'replace' });
-    return m;
   }
 
   /** the curtain's frame: forward (away from the cliff) and sideways unit vectors, the run and the drop */
@@ -141,9 +106,9 @@ export class Cascade implements CascadeLike {
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
     g.setAttribute('aStep', new THREE.Float32BufferAttribute(stp, 2));
+    g.computeVertexNormals(); // unindexed: each facet's own normal
     g.computeBoundingSphere();
-    const mat = this.material(this.family.glsl(this.spec.glsl.curtainVertex), this.family.glsl(this.spec.glsl.curtainFragment));
-    const mesh = new THREE.Mesh(g, mat);
+    const mesh = new THREE.Mesh(g, this.spec.materials.curtain);
     mesh.name = 'waterfall-sheet';
     mesh.renderOrder = 5; // after the sea
     return mesh;
@@ -155,8 +120,7 @@ export class Cascade implements CascadeLike {
     const g = new THREE.CircleGeometry(R, 18);
     g.rotateX(-Math.PI / 2);
     g.translate(foot.x, foot.y + 0.05, foot.z);
-    const mat = this.material(this.family.glsl(this.spec.glsl.poolVertex), this.family.glsl(this.spec.glsl.poolFragment), { uCentre: { value: foot.clone() }, uR: { value: R } });
-    const mesh = new THREE.Mesh(g, mat);
+    const mesh = new THREE.Mesh(g, this.spec.materials.pool);
     mesh.name = 'waterfall-rings';
     mesh.renderOrder = 6;
     return mesh;
@@ -203,9 +167,9 @@ export class Cascade implements CascadeLike {
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     g.setAttribute('aCentre', new THREE.BufferAttribute(centre, 3));
     g.setAttribute('aInfo', new THREE.BufferAttribute(info, 4));
+    g.computeVertexNormals(); // unindexed: each squat facet's own normal (the graph only scales and moves a puff)
     g.boundingSphere = new THREE.Sphere(foot.clone().lerp(this.spec.lip, 0.5), foot.distanceTo(this.spec.lip) * 0.5 + width + 4);
-    const mat = this.material(this.family.glsl(this.spec.glsl.puffVertex), this.family.glsl(this.spec.glsl.puffFragment), {}, THREE.FrontSide);
-    const mesh = new THREE.Mesh(g, mat);
+    const mesh = new THREE.Mesh(g, this.spec.materials.puffs);
     mesh.name = 'waterfall-puffs';
     mesh.renderOrder = 7;
     return mesh;

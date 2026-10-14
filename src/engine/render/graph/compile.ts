@@ -44,6 +44,7 @@ import {
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
 import { layerFrameOf } from '../nodeLayerFrame';
+import { fogUniforms } from '../../world/Atmosphere';
 import {
   GRAPH_OPS, SUN_OPS, validateGraph, graphUsesMeshMap, type GraphArrayParam, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
   type GraphRef, type GraphValidationOptions, type GraphValueType,
@@ -459,6 +460,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'normalWorld': return { t: 'vec3', n: normalWorldGeometry };
       case 'cameraPosition': return { t: 'vec3', n: frameCameraPosition() };
       case 'time': return { t: 'float', n: time };
+      case 'atmosphereSunDirection': return { t: 'vec3', n: reference('value', 'vec3', fogUniforms.fogSunDir) };
+      case 'atmosphereSunColour': return { t: 'vec3', n: new ConvertNode<'vec3'>(reference('value', 'color', fogUniforms.fogSunColor), 'vec3') };
       case 'instanceHash': return { t: 'float', n: hash(instanceIndex) };
       case 'vertexColour': return { t: 'vec3', n: new SplitNode(vertexColor(), 'xyz') };
       case 'screenUV': return { t: 'vec2', n: uv() };

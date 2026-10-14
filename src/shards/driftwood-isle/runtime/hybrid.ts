@@ -8,6 +8,10 @@ import { buildDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { driftwoodMoverViews } from './movers';
 import { installDriftwoodCreatures } from '../creatures/install';
 import { declaredCreatureRows } from './brains';
+import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
+import source from '../shard.config';
+import { CASCADE_LOOKS } from '../data/waterfallLook';
+import { setWaterfallLooks } from '../world/Waterfall';
 
 // The static transitional world belongs to the resident, not a single entered play scope.
 const residentWorld = new HybridResidentWorld<DriftwoodWorld>();
@@ -23,8 +27,9 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
       // SF46 (G164): the resident's world is built lowered as one, the sea at road level; its kits' voxel AO and its rocks'
       // painted pieces are read from the build-time bakes (SF67, scripts/bake-voxel-ao.mjs, scripts/bake-geometry.mjs),
       // built in code only on a miss
-      const built = await residentWorld.load(context, () => withGeometryBake('/assets/models/driftwood-blender/geometry.bin',
-        () => withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress))));
+      // the look.materials graphs the runtime's own meshes wear (data/waterfallLook.ts), owned by the resident
+      const built = await residentWorld.load(context, async (owner) => { setWaterfallLooks((await runtimeLookMaterials({ scope: owner, game: context.game }, source, true, Object.values(CASCADE_LOOKS))).materials); return withGeometryBake('/assets/models/driftwood-blender/geometry.bin',
+        () => withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress))); });
       const options = driftwoodMoverViews(built);
       if (options === null) throw new Error('Declared Driftwood movers require the bridge and moored boat');
       await installDeclaredMovers(context, world, options);
