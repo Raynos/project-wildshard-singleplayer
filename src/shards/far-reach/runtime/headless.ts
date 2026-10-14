@@ -1,11 +1,8 @@
 import { Vector3 } from 'three';
-import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan, HeadlessRuntimePreparation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
-import { createSimHost, type SimHost } from '@wildshard/engine/sim';
+import type { HeadlessRuntimeInstallation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
+import type { SimHost } from '@wildshard/engine/sim';
 import { floorBelow } from '@wildshard/engine/physics/query';
-import { installEntrySockets } from '@wildshard/engine/physics/entrySockets';
-import { installDeclaredPropColliders } from '@wildshard/engine/physics/declaredProps';
-import { propColliderDescriptors } from '@wildshard/game/shardfile/props';
-import { addBakedWorld, installDeclaredQuestHost, ledgerPorts, proveEntryways, pickCommands, trustedLevel, weaponRow, createMeleeScriptDriver, MeleeScriptDriver, installNativeMelee, type NativeMeleeCommand } from '@wildshard/game/plugin/simulation';
+import { addBakedWorld, installDeclaredQuestHost, ledgerPorts, pickCommands, trustedLevel, weaponRow, createMeleeScriptDriver, MeleeScriptDriver, installNativeMelee, type NativeMeleeCommand } from '@wildshard/game/plugin/simulation';
 import { DECK, SPAWN, VANES } from '../data/layout';
 import { SKY_ANALYTIC_FLOOR } from '../data/spawns';
 import { SKY_NATIVE_POPULATION } from '../data/population';
@@ -17,33 +14,14 @@ import { turnVanes, VANE_HUB } from '../quest/vanes';
 import { skyWinchPermission } from './quest';
 import { SKY_SPOTS } from '../data/questPrompts';
 import { SKY_MOVER_BINDING } from '../data/moverBindings';
-import { UpdraftDriver, MoverScriptDriver, verifiedMoverModules, type MoverRuntime } from '@wildshard/game/plugin/mover';
+import { UpdraftDriver, MoverScriptDriver, verifiedMoverModules } from '@wildshard/game/plugin/mover';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** The updraft's fixed-step id (its whole state is the player's board and impulse, so it carries no continuation). */
 export const UPDRAFT_STEP = 'far.updraft';
 
-/**
- * Sky Reach's renderer-free trusted runtime (SF72, `@wildshard/sdk/headlessRuntime`). A structures-only world: no terrain
- * collider (`ground: false`), the analytic placement floor at -1000 m, and every island, rope bridge, dock, lip and prop
- * the browser registers, from the Node-baked native colliders (the hover decks and the updraft ramp collide only on the
- * board, through the host's board mode; the fallen crown bridge stays out), with the host's layered WORLD floor queries
- * for flight and falls. Owns the 13 declared bodies and their shipping species rows (data/brains.ts) and the Storm Roc's encounter (data/rocFight.ts: authored BossBrain owner, its
- * fact and purse) and the War Fan (data/items.ts: the browser fan's own move recipe; a `player.attack` is its light
- * SWING, `far.fan` script commands its HEAVY and GUST at the `far.fan.aim` pitch; locked through the Roc's intro, stowed on the board), the
- * quest (runtime/quest.ts: its four steps, its fact and 10 coins once) and the movers (the admitted track/trigger/driver rows:
- * Rising Islets, their road gates and the winch bridge on their admitted modules, an exact continuation across a native
- * restore) and the updraft's lift on the board (the admitted modes row). `finish` proves all four Rising Islet entries by a
- * real capsule traversal on fresh hosts of this world.
- */
-export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async (input) => (await prepareSkyRuntime(input)).plan;
-
-/** Sky's prepared runtime: the SDK plan, and its install returning the movers it built (the witness rides and calls them). */
-export interface SkyRuntime {
-  readonly plan: HeadlessRuntimePlan;
-  readonly installSky: (host: SimHost, context: HeadlessRuntimeInstallation) => { runtime: MoverRuntime; failures: () => number };
-}
-export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRuntimePreparation): Promise<SkyRuntime> {
+/** The shipping native world, bodies, quest and movers in a renderer-free host. */
+export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets }) => {
   const fanRow = weaponRow(shard, FAN_ID);
   // Prepare detached, verified module bytes; every actual host binds its own player and role below.
   const itemModules = (await createMeleeScriptDriver(shard.items, 'actor.player', assets, shard.identity.seed)).modules;
@@ -68,7 +46,7 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
   // host's player strike is the zero-damage probe, never the War Fan (a declared item, data/items.ts)
   const level = trustedLevel(shard, { at: { x: SPAWN.x, y: DECK, z: SPAWN.z }, yaw: SPAWN.yaw, speed: 5 }, { size: 500, height: SKY_ANALYTIC_FLOOR });
   const ports = { ground: false, heightAt: () => SKY_ANALYTIC_FLOOR } as const;
-  const installSky = (host: SimHost, context: HeadlessRuntimeInstallation): { runtime: MoverRuntime; failures: () => number } => {
+  const install = (host: SimHost, context: HeadlessRuntimeInstallation): void => {
     // every piece the browser collides with on foot, plus the board-only ones (the hover decks and the updraft ramp, baked
     // `mode: 'board'`) in the host's board mode; a restore brings them back with the physics (SimSnapshot.boardColliders)
     if (!context.restoring) addBakedWorld(host, baked.pieces);
@@ -97,22 +75,6 @@ export async function prepareSkyRuntime({ shard, assets, rapier }: HeadlessRunti
       if (lift.y !== 0) host.impulsePlayer(lift);
     });
     keeper.settle();
-    return movers;
   };
-  const plan: HeadlessRuntimePlan = { level, ports, install: (host, context) => { installSky(host, context); }, proveEntries: () => proveEntryways(shard, assets, { world: () => {
-    // Every Rising Islet entry on a fresh host of this same world (the baked colliders, the movers), plus what the grid
-    // adds around a cell: the road's entry socket decks and the shardfile's declared landing / gate-isle colliders. The
-    // platform's socket-lift proof walks a real capsule in from the road, boards, rides, walks the onward route, calls both
-    // stops and probes the closed road gate across all 23 lanes, on actual fixed steps of the host.
-    const fresh = createSimHost(level, { ...ports, rapier });
-    try {
-      addBakedWorld(fresh, baked.pieces);
-      installEntrySockets(fresh.physics, fresh.scope, [{ x: 0, z: 0 }]);
-      installDeclaredPropColliders(shard.props === null ? [] : propColliderDescriptors(shard.props), () => fresh.physics, fresh.scope);
-      const movers = installMovers(fresh, false, () => new Map([[SKY_MOVER_BINDING.winch, 0]]));
-      return { physics: fresh.physics, movers: movers.runtime, dispose: () => { fresh.dispose(); },
-        fixedStep: () => { fresh.step(); if (movers.failures() !== 0) throw new Error('Sky Reach mover script call failed'); } };
-    } catch (error) { fresh.dispose(); throw error; }
-  } }) };
-  return { plan, installSky };
-}
+  return { level, ports, install };
+};

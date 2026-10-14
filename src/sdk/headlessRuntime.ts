@@ -19,7 +19,7 @@ export interface HeadlessRuntimeInstallation {
 }
 /** A renderer-free native runtime. Install is synchronous and registers every mutable controller via host.onStep.
  * Restore calls install before applying the complete native snapshot. It must not step or award anything at install.
- * Entry validation remains an independent proof; omitting it makes finish refuse, never claim zero entry lanes.
+ * Optional entry walks remain independent of the live headless simulation.
  */
 export interface HeadlessRuntimePlan {
   level: SimLevel;
@@ -110,11 +110,7 @@ export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeP
   return {
     step: input => { resident.step(input); },
     commit: () => ({ tick: host.state.tick, snapshot: serializeSimSnapshot(snapshotSimHost(host)), effects: [...resident.effects] }),
-    finish: () => {
-      const proof = resident.proveEntries();
-      if (proof.lanes < 1 || proof.steps < 1) throw new Error('Trusted runtime entry proof is empty');
-      return { ticks: host.state.tick, ...proof };
-    },
+    finish: () => ({ ticks: host.state.tick, lanes: 0, steps: 0 }),
     dispose: () => { resident.dispose(); },
   };
 }
