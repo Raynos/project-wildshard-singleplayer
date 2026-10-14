@@ -1,3 +1,4 @@
+import { PALM_FILES } from './palmFiles';
 import { HIBISCUS_FILES } from './hibiscusFiles';
 import { ISLAND_COVER_FILES } from './islandCoverFiles';
 import heldPool from './swordPool.generated.json' with {type:'json'};
@@ -80,6 +81,7 @@ export const DRIFTWOOD_BOOT_FILES = {
       "gpu"
     ]
   },
+  "palms": { source: { urls: { phone: [PALM_FILES.phone.world], desktop: [PALM_FILES.desktop.world] } } },
   "hibiscus": { source: { urls: { phone: [HIBISCUS_FILES.phone.world], desktop: [HIBISCUS_FILES.desktop.world] } } },
   "cover": {
     "source": {
@@ -113,6 +115,7 @@ export const DRIFTWOOD_BOOT_FILES = {
         "lights",
         "cover",
         "hibiscus",
+        "palms",
         "captain"
       ]
     },

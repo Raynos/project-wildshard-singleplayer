@@ -195,6 +195,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
   await slice(++completed, total, 'Cove');
   const palms = await new Palms(sky).placeSliced(palmSpecs, registry, slice.due);
+  game.scene.add(palms.mesh); // The registry borrows the compacted batch and its native boxes.
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
   const cover = new GroundCover(sky, { sea: sea.level, palms: palmSpecs, grid:coverGrid });

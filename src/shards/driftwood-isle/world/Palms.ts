@@ -1,11 +1,10 @@
 /**
  * Palms — where Driftwood Isle's coconut palms stand (E306 / E315 M1: the palm itself is the model
- * src/shards/driftwood-isle/models/palm.ts; this is the world side). `scatterIsland()` is the island rule; `place()` puts
+ * src/shards/driftwood-isle/models/palm.ts; this is the world side). `scatterIsland()` is the island rule; `placeSliced()` admits
  * one palm on each spec, its foot 0.2 m into the sand, merged into one mesh through src/engine/models/place.ts — one registry
  * piece, `palms`, with every trunk's three capsules. `update()` advances the shared wind the fronds sway in.
  *
- *   const palms = new Palms(sky).place(Palms.scatterIsland(seed), registry);   // the game (main.ts)
- *   const palms = new Palms(sky).build(Palms.scatterIsland(seed));             // a dev page: no registry
+ *   const palms = await new Palms(sky).placeSliced(Palms.scatterIsland(seed), registry, due);
  *   scene.add(palms.mesh); its registry piece.push(...palms.colliders);
  *   game.onUpdate((dt) => palms.update(dt));
  */
@@ -14,15 +13,16 @@ import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import { Noise2D } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, type Placement } from '@wildshard/engine/models/model';
-import { place, placeSliced, type Placed } from '@wildshard/engine/models/place';
+import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { windUniforms, updateWind } from '@wildshard/engine/world/wind';
+import { loadPalmWorld } from '../boot/palmGeometry';
 import { islandKnobs } from '../tiers';
-import { palm, type PalmParams } from '../models/palm';
+import { palm, palmMaterials, type PalmParams } from '../models/palm';
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }
 
@@ -71,21 +71,14 @@ export class Palms {
     return specs.map((p) => ({ x: p.x, y: heightAt(p.x, p.z) - 0.2, z: p.z, params: { h: p.h, lean: p.lean, leanDir: p.leanDir, rot: p.rot, fronds: p.fronds } }));
   }
 
-  /** the game's: placed and registered (piece `palms`, the catalog's Coconut palm) */
-  place(specs: PalmSpec[], registry: WorldRegistry): this { return this.draw(specs, registry); }
-
-  /** a dev page's: the same palms, not registered */
-  build(specs: PalmSpec[]): this { return this.draw(specs, null); }
-
-  /** `place`, its merged copies built a slice at a time (SF67: `due` is the load's task budget); the same palms */
+  /** Admit the owned world batch, then register its original native placements and capsules. */
   async placeSliced(specs: PalmSpec[], registry: WorldRegistry, due: () => Promise<void> | null): Promise<this> {
     const pls = Palms.placements(specs);
-    return this.take(specs, pls, await placeSliced(palm, pls, { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'palms', solidFloor: true } }, due));
-  }
-
-  private draw(specs: PalmSpec[], registry: WorldRegistry | null): this {
-    const pls = Palms.placements(specs);
-    return this.take(specs, pls, place(palm, pls, { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'palms', solidFloor: true } }));
+    const batch = await loadPalmWorld(specs.length); await due();
+    const { lit, depth } = palmMaterials(modelContext(this.sky)), mesh = new THREE.Mesh(batch.geometry, lit);
+    mesh.name = palm.id; mesh.castShadow = true; mesh.receiveShadow = true; mesh.customDepthMaterial = depth;
+    mesh.userData['islandDressingClipped'] = true;
+    return this.take(specs, pls, place(palm, pls, { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'palms', solidFloor: true }, drawnInto: { object: mesh, boxes: batch.boxes } }));
   }
 
   private take(specs: PalmSpec[], pls: readonly Placement<PalmParams>[], placed: Placed): this {

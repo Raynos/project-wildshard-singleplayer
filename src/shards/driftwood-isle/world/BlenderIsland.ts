@@ -221,7 +221,7 @@ export class BlenderIsland {
     await slice();
     if (ctx.palms) {
       // a triangle belongs to the nearest palm (its fronds reach 5 m out); drop the palms standing in the area
-      clipIslandDressing(ctx.palms.geometry,DRESSING[TIER].palms);
+      if (ctx.palms.userData['islandDressingClipped'] !== true) clipIslandDressing(ctx.palms.geometry,DRESSING[TIER].palms);
       await slice();
     }
     for (const r of ctx.replace) if (r) { if (r.userData['islandDressingClipped'] !== true) clipIslandDressing(r.geometry,DRESSING[TIER].bushes); await slice(); }

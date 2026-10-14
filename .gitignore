@@ -1076,3 +1076,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /public/assets/driftwood-isle/baked/hibiscus-*.glb
 
 /public/assets/driftwood-isle/baked/trail-*.glb
+
+/public/assets/driftwood-isle/baked/palm-*.bin
+
+/public/assets/driftwood-isle/baked/palm-*.glb

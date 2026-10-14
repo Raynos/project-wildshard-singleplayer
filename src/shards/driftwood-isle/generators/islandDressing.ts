@@ -9,7 +9,8 @@ import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import manifest, { HUT, LOOKOUT, SHRINE, WRECK } from '../manifest';
 import { Palms } from '../world/Palms';
 import { Bushes } from '../world/Bushes';
-import { palm, palmGeometry } from '../models/palm';
+import { palm } from '../models/palm';
+import { palmGeometry } from './palm';
 import { hibiscusBush } from '../models/hibiscusBush';
 import { leafClump } from './hibiscus';
 import { driftwoodGroundBytes } from './groundRows';
@@ -38,7 +39,7 @@ function palmKeep(points:readonly{x:number;z:number}[]):(x:number,z:number)=>boo
  };
 }
 /** Compile both tiers from their actual scatter, native shapes and original height binding. */
-export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void):Promise<{tiers:{tier:'phone'|'desktop';clips:{palms:ClipRuns;bushes:ClipRuns;logs:ClipRuns};cover:Awaited<ReturnType<typeof bakeFullIslandCover>>}[]}> {
+export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void, palmsReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void):Promise<{tiers:{tier:'phone'|'desktop';clips:{palms:ClipRuns;bushes:ClipRuns;logs:ClipRuns};cover:Awaited<ReturnType<typeof bakeFullIslandCover>>}[]}> {
  const terrain=manifest.ground.terrain;if(terrain===undefined)throw new Error('Native island ground is required');
  const level={id:manifest.slug,ground:{terrain},spawn:manifest.spawn,sky:manifest.sky,atmosphere:manifest.atmosphere,grade:manifest.grade,
   budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const}; // Only the real authored ground frame is evaluated by this isolated producer.
@@ -61,6 +62,7 @@ export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesR
    try{
     const clips={palms:retain(mergedPalms,palmKeep(palms)),bushes:retain(mergedBushes,(x,z)=>!inArea(x,z)),logs:retain(logs.geometry,(x,z)=>!inArea(x,z))};
     bushesReady?.(tier,mergedBushes,bg,clips.bushes);
+    palmsReady?.(tier,mergedPalms,pg,clips.palms);
     const cover=await bakeFullIslandCover(readAsset,tier==='phone',palms,ground);
     tiers.push({tier,clips,cover});
    }finally{mergedPalms.dispose();mergedBushes.dispose();for(const geometry of [...pg,...bg])geometry.dispose();}
