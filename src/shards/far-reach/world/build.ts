@@ -16,7 +16,7 @@ import { islandMesh, staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
 import { WORLD } from './baked';
 import { PALETTE, flat } from './materials';
-import { ropeBridge, vaneGeometry } from './shapes';
+import { routeScenePorts, vaneGeometry } from './shapes';
 import { towerMill } from './mill';
 import { BOOK_STAND } from '../data/bookStand';
 import { KEEPER_STAND } from '../data/keeperStand';
@@ -85,12 +85,8 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   // faint glass while you walk (E399, the council: 'translucent rectangles' over the windmill isle from the spawn): the glowing
   // frame shows the path; the plugin fills the glass in while you ride
   const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.25, transparent: true, opacity: 0.16, depthWrite: false, flatShading: false, roughness: 0.15, metalness: 0.1 });
-  const post = skyHd('post-hd'), routes = createClientScene(SKY_ROUTE_SCENE, {
-    geometry: name => { const geometry = name === 'post-hd' ? post?.geometry ?? null : SKY_LIBRARY.geometry(name);
-      if (geometry === null && name !== 'post-hd') throw new Error(`Missing route part ${name}`); return geometry; },
-    materials: new Map<string, Material | null>([['rails', rope], ['deck', looks.deck], ['glass', hoverDeck], ['frame', looks.frame],
-      ['posts', post === null ? null : skyMappedLook('post-weather', post.map)]]),
-  });
+  const routePorts = routeScenePorts(rope, looks.deck, new Map<string, Material>([['glass', hoverDeck], ['frame', looks.frame]]));
+  const routes = createClientScene(SKY_ROUTE_SCENE, routePorts);
   await pieces.scene(routes, SKY_ROUTES.bindings, pause);
   // SF49-g (G183): the Rising Islets' static parts (the road lips, the chain posts); the islets move in the plugin's movers
   // G200: played alone (no road beyond the lips) each lip ends at a railed timber sky dock with a beacon; in a grid cell the
@@ -103,8 +99,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
   const state = { raised: false, raising: false };
-  const frames = createWorldScene(SKY_ROUTE_FRAMES.recipe, { objects: new Map([['fallen-deck', ropeBridge(FALLEN_BRIDGE.id, rope, looks.deck)]]),
-    geometry: SKY_LIBRARY.geometry, model: SKY_LIBRARY.model, baked: WORLD.object });
+  const frames = createWorldScene(SKY_ROUTE_FRAMES.recipe, routePorts);
   const { fallen, winchAt, notesAt } = bindWorldSceneParts(frames, { fallen: 'group', winchAt: 'vector', notesAt: 'vector' }, SKY_ROUTE_FRAMES.bindings);
   pieces.add(FALLEN_BRIDGE.id, fallen, { colliders: spanColliders(FALLEN_BRIDGE.id), active: () => state.raised });
 

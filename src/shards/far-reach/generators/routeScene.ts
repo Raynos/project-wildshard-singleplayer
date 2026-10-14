@@ -28,11 +28,16 @@ export function skyRouteSource(): Uint8Array {
   }
   const scene: PrivateScene = { version: 1, root: root.id, nodes, textures: [], materials: ['deck', 'posts', 'rails', 'glass', 'frame'].map(id => ({ kind: 'port', id, source: id })) };
   parsePrivateScene(scene);
-  const fallen: PrivateScene = { version: 1, root: 'fallen', materials: [], textures: [], nodes: [
+  const fallenRow = BRIDGES.spans.find(row => row.id === FALLEN_BRIDGE.id), kitRow = BRIDGES.spans.find(row => row.id === 'kit');
+  if (fallenRow === undefined || kitRow === undefined) throw new Error('Missing authored bridge scene');
+  const deck = parsePrivateScene(fallenRow.scene), kit = parsePrivateScene(kitRow.scene);
+  const deckId = (id: string): string => id === deck.root ? 'deck' : `deck.${id}`;
+  const fallen: PrivateScene = { version: 1, root: 'fallen', materials: deck.materials, textures: deck.textures, nodes: [
     { kind: 'group', id: 'fallen', position: [FALLEN_BRIDGE.x0, FALLEN_BRIDGE.y, FALLEN_BRIDGE.z0],
       rotation: [FALLEN_ANGLE, Math.atan2(-(FALLEN_BRIDGE.x1 - FALLEN_BRIDGE.x0), -(FALLEN_BRIDGE.z1 - FALLEN_BRIDGE.z0)), 0], order: 'YXZ', children: ['deck'] },
-    { kind: 'object', id: 'deck', source: 'fallen-deck', missing: 'refuse', children: [] },
   ] };
+  for (const node of deck.nodes) fallen.nodes.push({ ...node, id: deckId(node.id), children: node.children.map(deckId) });
+  parsePrivateScene(fallen);
   const frames = { recipe: { scene: fallen, imports: [] }, bindings: { fallen: { kind: 'group', part: 'fallen' },
     winchAt: { kind: 'vector', value: [WINCH.x, WINCH.y + 1.2, WINCH.z] }, notesAt: { kind: 'vector', value: [NOTES.x, NOTES.y + 1.3, NOTES.z] } } };
   const vaneNodes: PrivateScene['nodes'] = [
@@ -60,5 +65,5 @@ export function skyRouteSource(): Uint8Array {
   const vanes = { recipe: { scene: vaneWorld, imports: [] }, kinds: vaneKinds, ports: vanePorts,
     rows: VANES.map(row => ({ id: row.id, flag: row.flag, rotor: `${row.id}.rotor`, at: `${row.id}.at` })),
     bindings: VANES.map(row => ({ piece: `far.vane.${row.id}`, part: `${row.id}.vane` })) };
-  return new TextEncoder().encode(`import type { PrivateScene } from '@wildshard/format/clientChannels';\n/** Static rope spans and hover decks, generated from their authored frames. */\nexport const SKY_ROUTE_SCENE: PrivateScene = ${JSON.stringify(scene)};\n/** Registry identities and board-only policy accompany the scene. */\nexport const SKY_ROUTES = ${JSON.stringify({ registry, bindings })} as const;\n/** Native moving pivot and copied interaction anchors. */\nexport const SKY_ROUTE_FRAMES = ${JSON.stringify(frames)} as const;\n/** Vane hierarchy, placements and native rotor ports. */\nexport const SKY_VANES = ${JSON.stringify(vanes)} as const;\n/** The same vane at the Explorer origin. */\nexport const SKY_VANE: PrivateScene = ${JSON.stringify(vane)};\n`);
+  return new TextEncoder().encode(`import type { PrivateScene } from '@wildshard/format/clientChannels';\n/** Static rope spans and hover decks, generated from their authored frames. */\nexport const SKY_ROUTE_SCENE: PrivateScene = ${JSON.stringify(scene)};\n/** Registry identities and board-only policy accompany the scene. */\nexport const SKY_ROUTES = ${JSON.stringify({ registry, bindings })} as const;\n/** Native moving pivot and copied interaction anchors. */\nexport const SKY_ROUTE_FRAMES = ${JSON.stringify(frames)} as const;\n/** The original bridge kit hierarchy at the Explorer origin. */\nexport const SKY_BRIDGE_KIT: PrivateScene = ${JSON.stringify(kit)};\n/** Vane hierarchy, placements and native rotor ports. */\nexport const SKY_VANES = ${JSON.stringify(vanes)} as const;\n/** The same vane at the Explorer origin. */\nexport const SKY_VANE: PrivateScene = ${JSON.stringify(vane)};\n`);
 }

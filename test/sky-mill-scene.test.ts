@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { Group, type Object3D } from 'three';
+import { BoxGeometry, Group, MeshStandardMaterial, type Object3D } from 'three';
 import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/ui';
 import { MILL_SCENE } from '../src/shards/far-reach/data/millScene.generated';
 import { SKY_ROUTE_FRAMES } from '../src/shards/far-reach/data/routeScene.generated';
@@ -28,15 +28,19 @@ it('keeps the native hub available when optional baked parts fail to load', () =
   made.dispose();
 });
 
-it('borrows the fallen deck while copying interaction anchor values', () => {
-  const deck = new Group();
-  const made = createWorldScene(SKY_ROUTE_FRAMES.recipe, { objects: new Map([['fallen-deck', deck]]),
-    geometry: () => null, model: () => null, baked: () => ({ root: new Group(), colliders: [] }) });
+it('keeps the authored fallen deck under its native pivot and copies interaction anchors', () => {
+  const geometry = new BoxGeometry(), material = new MeshStandardMaterial();
+  const made = createWorldScene(SKY_ROUTE_FRAMES.recipe, {
+    materials: new Map(SKY_ROUTE_FRAMES.recipe.scene.materials.map(row => [row.id, material])),
+    geometry: () => geometry, model: () => null, baked: () => ({ root: new Group(), colliders: [] }) });
+  const deck = made.parts.get('deck');
   const parts = bindWorldSceneParts(made, { fallen: 'group', winchAt: 'vector', notesAt: 'vector' }, SKY_ROUTE_FRAMES.bindings);
-  expect(deck.parent).toBe(parts.fallen);
+  expect(deck?.parent).toBe(parts.fallen);
+  parts.fallen.rotation.x = 0;
+  expect(deck?.children.length).toBeGreaterThan(0);
   expect(parts.fallen).toBe(made.root);
   parts.winchAt.y += 1;
   expect(parts.winchAt.y).toBe(SKY_ROUTE_FRAMES.bindings.winchAt.value[1] + 1);
   expect(parts.notesAt.toArray()).toEqual(SKY_ROUTE_FRAMES.bindings.notesAt.value);
-  made.dispose();
+  made.dispose(); geometry.dispose(); material.dispose();
 });
