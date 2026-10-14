@@ -5163,3 +5163,13 @@ PMREM scene retains every program's own uniform blocks and sampler list.
 Actual material disposal releases them; environment refresh does not.
 
 Model-library `geometry(name, { borrow: true })` lends its cached rest primitive. The default remains an independent owned clone. Borrowers must never transform, recolour, replace attributes or dispose the immutable geometry; bake all geometry transforms before admission. Held crossbow and fallback sword meshes use this door without retaining a second backing.
+
+`clientMaterials` and `runtimeLookMaterials` return `toon`, the live
+`ToonLook` shared by their classic toon and graph toon materials. A
+shard's day clock calls `looks.toon.set(partialLook)` to update bands,
+lift, rim, cloud shade and caustics without rebuilding shaders. The
+catalogue's existing `tick(dt)` advances its cloud/caustic time once.
+The SDK author route is `graph({ model: 'toon', surface: ... })` from
+`@wildshard/sdk/materials`: the compiler supplies the existing toon
+lighting preset, so shards need no engine preset import. An authored
+lighting stage uses `model:'standard'` instead.

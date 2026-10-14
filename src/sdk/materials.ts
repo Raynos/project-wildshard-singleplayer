@@ -123,7 +123,8 @@ export interface GraphSpec {
   readonly budget?: GraphBudget;
   /** a material (the default) or a post pass (`post` only) */
   readonly kind?: 'material' | 'post';
-  readonly model?: 'standard' | 'unlit';
+  /** Toon borrows the runtime catalogue's live family bands, cloud clock and caustics. */
+  readonly model?: 'standard' | 'unlit' | 'toon';
   readonly doubleSided?: boolean;
   readonly flatShading?: boolean;
   readonly vertex?: { readonly offset: GraphValue; readonly shadow?: boolean };

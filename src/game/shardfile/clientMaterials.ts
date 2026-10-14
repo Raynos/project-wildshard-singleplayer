@@ -102,6 +102,8 @@ function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>)
  * `trustedGraphs` is supplied only by the admitted runtime host to authorize declared graph ceilings.
  */
 export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, renderer: Renderer, scope: Scope, options: { graphs?: boolean; sources?: GraphSources; trustedGraphs?: boolean } = {}): Promise<{
+  /** Live toon family shared by classic and graph materials; a day clock may update it in place. */
+  readonly toon: ToonLook;
   /** Set a named graph uniform through its declared type/range; no shader rebuild. */
   setParam: (id: string, name: string, value: GraphLiteral) => void;
   materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; bindMeshMap: (id: string, map: Texture | Material) => Material; tick: (dt: number) => void;
@@ -184,7 +186,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
     return bindGraphMeshMap(material, map, scope);
   };
-  return { setParam: (id, name, value) => {
+  return { toon, setParam: (id, name, value) => {
     if (scope.disposed) throw new Error('Material scope unloaded');
     const material = materials.get(id);
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
