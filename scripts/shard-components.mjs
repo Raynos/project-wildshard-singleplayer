@@ -3,7 +3,15 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parseSync } from 'vite';
 
-export const W1_SHARDS = ['far-reach', 'sunscar-dunes'];
+/** One milestone roster drives component collection and every report. */
+export const SHARD_WAVES = [
+  { id:'W1',status:'closed at 90/10',current:false,shards:[{slug:'far-reach',name:'Sky'},{slug:'sunscar-dunes',name:'Signal'}] },
+  { id:'W2',status:'current',current:true,shards:[{slug:'pine-hollow',name:'Pine'},{slug:'driftwood-isle',name:'Driftwood'}] },
+];
+const waveRow = id => { const row=SHARD_WAVES.find(wave=>wave.id===id);if(row===undefined)throw new Error(`Unknown shard wave ${id}`);return row; };
+export const W1_SHARDS = waveRow('W1').shards.map(row=>row.slug);
+export const COMPONENT_SHARDS = SHARD_WAVES.flatMap(wave=>wave.shards.map(row=>row.slug));
+const currentWave = () => { const row=SHARD_WAVES.find(wave=>wave.current);if(row===undefined)throw new Error('No current shard wave');return row; };
 export const COMPONENTS = {
   C1: 'Static world', C2: 'Looks', C3: 'Effects', C4: 'Creatures',
   C5: 'NPCs and quests', C6: 'Items and combat', C7: 'Movers',
@@ -115,27 +123,34 @@ export function componentInventory(root, shard, sources, canonical) {
   if(total!==canonical)throw new Error(`${shard}: component total ${total} differs from canonical ${canonical}`);
   return {shard,counts,total,unknown,spans};
 }
-/** A wave component closes only when both known canonical inventories have zero left. */
-export function componentWave(rows) {
-  const shards=W1_SHARDS.map(shard=>rows[shard]?.components);
+/** A component closes only when its wave has known canonical inventories with zero left. */
+export function componentWave(rows, id=currentWave().id) {
+  const wave=waveRow(id),slugs=wave.shards.map(row=>row.slug),shards=slugs.map(shard=>rows[shard]?.components);
   const complete=shards.every(row=>row!==undefined && row.unknown.length===0);
-  const components=Object.fromEntries(Object.keys(COMPONENTS).map(key=>[key,{closed:complete && shards.every(row=>row.counts[key]===0),lines:Object.fromEntries(W1_SHARDS.map((slug,i)=>[slug,shards[i]?.counts[key]??null]))}]));
-  return {shards:W1_SHARDS,closed:Object.values(components).filter(row=>row.closed).length,total:9,components};
+  const components=Object.fromEntries(Object.keys(COMPONENTS).map(key=>[key,{closed:complete && shards.every(row=>row.counts[key]===0),
+    lines:Object.fromEntries(slugs.map((slug,i)=>[slug,shards[i]?.counts[key]??null]))}]));
+  return {id:wave.id,status:wave.status,current:wave.current,shards:slugs,names:Object.fromEntries(wave.shards.map(row=>[row.slug,row.name])),
+    unknown:Object.fromEntries(slugs.map((slug,i)=>[slug,shards[i]?.unknown??null])),
+    closed:Object.values(components).filter(row=>row.closed).length,total:Object.keys(COMPONENTS).length,components};
 }
 /** @param {Record<string,{components?:import('./shard-components.mjs').ComponentInventory}>} rows */
 export function componentMarkdown(rows) {
-  const wave=componentWave(rows);
-  const lines=['','## W1 component checklist','',`Components closed ${wave.closed} of ${wave.total}. Unknown ownership never counts closed.`,
-    'Nine disjoint totals reconcile exactly to G291/G294 custom lines. Mixed TS uses AST declarations and owner calls;',
-    'each code line has one owner (the deepest explicit owner span wins; ties retain the first span).',
-    'Extra GLSL belongs to its look/effect owner. G294 sole declarations retain their canonical charged line counts.','',
-    '| Component | Sky lines | Signal lines | Closed across both |','|---|---:|---:|---|',
-    ...Object.entries(wave.components).map(([key,row])=>`| ${key} ${COMPONENTS[key]} | ${row.lines['far-reach']??'unavailable'} | ${row.lines['sunscar-dunes']??'unavailable'} | ${row.closed?'yes':'no'} |`),
-    `| Total | ${W1_SHARDS.map(slug=>rows[slug]?.components?.total??'unavailable').join(' | ')} | |`,'','### Custom contribution owners','',
-    '| Shard | Source | Unit / span | Component | Lines | Owner rule |','|---|---|---|---|---:|---|'];
-  for(const slug of W1_SHARDS){const report=rows[slug]?.components;if(!report)continue;
-    for(const span of report.spans)lines.push(`| ${slug} | ${span.path} | ${span.kind}${span.start===undefined?'':`:${span.start}-${span.end}`} | ${span.component} | ${span.lines} | ${span.reason} |`);
-    for(const path of report.unknown)lines.push(`Unknown owner: ${path}`);
+  const lines=[];
+  for(const milestone of SHARD_WAVES.toSorted((a,b)=>Number(b.current)-Number(a.current))){
+    const wave=componentWave(rows,milestone.id);
+    lines.push('',`## ${wave.id} (${wave.status}) component checklist`,'',
+      `Components closed ${wave.closed} of ${wave.total}. Unknown ownership never counts closed.`,
+      'Nine disjoint totals reconcile to canonical custom lines. Mixed TS uses AST declarations and owner calls;',
+      'each code line has one owner. Extra GLSL belongs to its look/effect owner.','',
+      `| Component | ${wave.shards.map(slug=>`${wave.names[slug]} lines`).join(' | ')} | Closed across both |`,
+      `|---|${wave.shards.map(()=>'---:').join('|')}|---|`,
+      ...Object.entries(wave.components).map(([key,row])=>`| ${key} ${COMPONENTS[key]} | ${wave.shards.map(slug=>row.lines[slug]??'unavailable').join(' | ')} | ${row.closed?'yes':'no'} |`),
+      `| Total | ${wave.shards.map(slug=>rows[slug]?.components?.total??'unavailable').join(' | ')} | |`,'','### Custom contribution owners','',
+      '| Shard | Source | Unit / span | Component | Lines | Owner rule |','|---|---|---|---|---:|---|');
+    for(const slug of wave.shards){const report=rows[slug]?.components;if(!report)continue;
+      for(const span of report.spans)lines.push(`| ${slug} | ${span.path} | ${span.kind}${span.start===undefined?'':`:${span.start}-${span.end}`} | ${span.component} | ${span.lines} | ${span.reason} |`);
+      for(const path of report.unknown)lines.push(`Unknown owner: ${path}`);
+    }
   }
   return lines;
 }

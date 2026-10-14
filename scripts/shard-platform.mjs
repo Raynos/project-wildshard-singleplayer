@@ -11,7 +11,7 @@ import { resolveSpecifier } from './check-graph.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { shardContent } from './shard-platform-content.mjs';
 import { discoverGeneration } from './generate.mjs';
-import { componentInventory, componentWave, W1_SHARDS } from './shard-components.mjs';
+import { componentInventory, componentWave, COMPONENT_SHARDS, SHARD_WAVES, W1_SHARDS } from './shard-components.mjs';
 import { generatorInventory } from './generator-inventory.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
@@ -587,7 +587,7 @@ export function shardLines(root = ROOT, includeSources = false) {
   for (const [slug, files] of Object.entries(shardFiles)) {
     const row = { runtimeLines: 0, trustedRuntimeLines: 0, assemblyScriptLines: 0, conversion: null };
     let shardRuntimeLines = 0, rawGlslLines = 0, additionalGlslLines = 0;
-    const customSources = [], collectSources = includeSources || W1_SHARDS.includes(slug);
+    const customSources = [], collectSources = includeSources || COMPONENT_SHARDS.includes(slug);
     for (const path of files) {
       const local = path.slice(`src/shards/${slug}/`.length), top = local.split('/')[0];
       const lines = count(path);
@@ -631,7 +631,7 @@ export function shardLines(root = ROOT, includeSources = false) {
       for (const module of modules) customSources.push({path:module.path, lines:module.lines, kind:'sole-module'});
       for (const entry of exports) customSources.push({path:entry.path, lines:entry.lines, name:entry.name, kind:'sole-export'});
       if (includeSources) row.customSources = customSources;
-      if (W1_SHARDS.includes(slug)) row.components = componentInventory(root, slug, customSources, customRuntimeLines);
+      if (COMPONENT_SHARDS.includes(slug)) row.components = componentInventory(root, slug, customSources, customRuntimeLines);
     }
     out[slug] = row;
   }
@@ -662,13 +662,16 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
       port: portHeadline(customPercent, content), generators: inventory.totals.find(total => total.shard === slug) }];
   }));
   const average = portAverage(report);
-  if (process.argv.includes('--json')) console.log(JSON.stringify({ ...report, _summary: { portAverage: average, shards: HEADLINE_SHARDS, wave: componentWave(lines) } }, null, 2));
+  if (process.argv.includes('--json')) console.log(JSON.stringify({ ...report, _summary: { portAverage: average, shards: HEADLINE_SHARDS, wave: componentWave(lines), waves:SHARD_WAVES.map(wave=>componentWave(lines,wave.id)) } }, null, 2));
   else {
     console.log(`PORT average (6 ported shards): ${average === null ? 'unavailable; build admitted products first' : `${average.toFixed(1)} %`}`);
     for (const slug of HEADLINE_SHARDS) { const row = report[slug]; console.log(`  ${slug}: PORT ${row.port.percent === null ? 'unavailable' : `${row.port.percent.toFixed(1)} %`}; world ${row.port.world}; generators ${row.generators.ported} ported / ${row.generators.left} left (${row.generators.portedLines} / ${row.generators.leftLines} lines)`); }
-    const wave = componentWave(lines);
-    console.log(`W1 components closed ${wave.closed} of ${wave.total}`);
-    for (const [key, row] of Object.entries(wave.components)) console.log(`  ${key}: Sky ${row.lines['far-reach'] ?? 'unavailable'}, Signal ${row.lines['sunscar-dunes'] ?? 'unavailable'}; ${row.closed ? 'closed' : 'open'}`);
+    for(const milestone of SHARD_WAVES.toSorted((a,b)=>Number(b.current)-Number(a.current))){
+      const wave=componentWave(lines,milestone.id);
+      console.log(`${wave.id} (${wave.status}): components closed ${wave.closed} of ${wave.total}`);
+      for(const [key,row] of Object.entries(wave.components))console.log(`  ${key}: ${wave.shards.map(slug=>`${wave.names[slug]} ${row.lines[slug]??'unavailable'}`).join(', ')}; ${row.closed?'closed':'open'}`);
+      for(const slug of wave.shards)console.log(`  ${wave.names[slug]} unknown ownership: ${wave.unknown[slug]?.join(', ')??'inventory unavailable'}`);
+    }
     console.log('shard                  shard TS  sole SDK/game  frozen TS  custom / frozen  80/20       enforcement');
     for (const [slug, row] of Object.entries(lines)) {
             const measure = row.conversion, ratio = measure.runtimeShare === null ? 'native (no frozen legacy)' : `${(measure.runtimeShare * 100).toFixed(1)} %`;
