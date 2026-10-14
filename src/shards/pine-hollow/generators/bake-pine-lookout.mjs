@@ -7,6 +7,7 @@
 // src/shards/pine-hollow/data/lookout.json, which the page finishes the timber from (src/shards/pine-hollow/models/fireLookout.ts).
 // test/shards/pine-hollow/lookout-bake.test.ts is the stale gate (it re-runs the generator).
 // Usage: node --experimental-transform-types --import ./src/sdk/bake/source-loader.mjs src/shards/pine-hollow/generators/bake-pine-lookout.mjs
+import { pineLandmarkSites } from './landmarkSites.ts';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -48,7 +49,7 @@ async function writeTimberWorld() {
   const shardfile = { ...baked.shardfile, library: [...baked.shardfile.library ?? [], ...props.wholeLibrary], files: [...baked.shardfile.files, ...library].sort((a,b) => a.hash.localeCompare(b.hash)) };
   const out = resolve(root, 'src/shards/pine-hollow/assets'); mkdirSync(out, { recursive: true });
   for (const [ref, bytes] of baked.assets) writeFileSync(resolve(out, ref), bytes);
-  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, placements: pineTimberPlacements(ground.heightAt), lookout: bakeLookoutRows().rows, sites: bakeSiteTimberRows().rows, cabins: cabins.rows })}\n`);
+  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, landmarks: pineLandmarkSites(ground.heightAt), placements: pineTimberPlacements(ground.heightAt), lookout: bakeLookoutRows().rows, sites: bakeSiteTimberRows().rows, cabins: cabins.rows })}\n`);
   console.info(`Pine timber product: ${shardfile.tiles.length} tiles, ${shardfile.files.length} charged files, 3 world copies and 2 library copies`);
 }
 

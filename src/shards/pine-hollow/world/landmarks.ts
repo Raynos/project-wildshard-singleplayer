@@ -25,18 +25,15 @@
  *   lm.setLit('pond', true);                                                  // the quest relights a waystone
  */
 import * as THREE from 'three';
+import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { CullOptions } from '@wildshard/engine/models/cull';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { makeGlowTexture, type Cabins } from './homestead';
-import { LOOKOUT, BEAVER_DAM, CREEK, BEAR_CAVE, STANDING_STONES, KINGS_CLEARING, HAMLET_SITES, POND, SPURS } from '../data/layout';
 import { PINE_HERO_IDS, type PineHeroId } from './heroFiles';
 import { pineModels } from './context';
 import { HERO_FRONT, heroLod0, loadPineHero } from './hero';
@@ -84,40 +81,11 @@ interface Place { x: number; y: number; z: number; yaw: number; scale: number; p
 const placeMatrix = (p: Place): THREE.Matrix4 => new THREE.Matrix4().compose(
   V(p.x, p.y, p.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(p.pitch ?? 0, p.yaw, p.roll ?? 0, 'YXZ')), V(p.scale, p.scale, p.scale));
 
-// the sites: layout coordinates → placements (the props' own orientation is fixed in their build: front toward −Z…
-// TRELLIS faces the reference's camera down +Z; `front` turns that face toward the given yaw)
-const ground = (x: number, z: number): number => heightAt(x, z);
-const faceYaw = (fromX: number, fromZ: number, toX: number, toZ: number): number => Math.atan2(toX - fromX, toZ - fromZ);
-
-/** where the lookout trail comes in (its second-last vertex) */
-const LOOKOUT_TRAIL_IN: [number, number] = (SPURS['lookout'] ?? [])[3] ?? [76, 196];
-
-/** where the canoe is drawn up on the pond's W shore (its bow toward the islet) — the canoe secret's put-in (PH-C8) */
+/** Native quest readers borrow the same generated landmark facts as the world. */
 export const CANOE_SITE = { x: -67.8, z: 119 };
-/** the lodge's contract board: beside its porch steps, facing the way in (PH-C6 reads it for the board's prompt) */
-export function contractBoardSite(): { x: number; z: number; yaw: number } {
-  const L = HAMLET_SITES.lodge, fyaw = L.rot;
-  const fx = -Math.sin(fyaw), fz = -Math.cos(fyaw), rx = Math.cos(fyaw), rz = -Math.sin(fyaw);   // front, and its right hand
-  return { x: L.x + fx * (3.5 + 2.6 + 1.4) + rx * 4.2, z: L.z + fz * (3.5 + 2.6 + 1.4) + rz * 4.2, yaw: fyaw + Math.PI };
-}
-
+export function contractBoardSite(): { x: number; z: number; yaw: number } { return { ...authored.landmarks.contractBoardSite }; }
 export type WaystoneId = 'pond' | 'ridge' | 'den';
-/** the three waystone lanterns (PH-C1): the pond's W shore by the pond spur, the ridge by the lookout's stair door, the den's cave mouth */
-export function waystoneSites(): Record<WaystoneId, { x: number; z: number; yaw: number }> {
-  const pondSpur = SPURS['pond'] ?? [];
-  const pp = pondSpur[2] ?? [-60, 98];
-  const px = pp[0] - 3.2, pz = pp[1] + 5.5;             // a step off the spur toward the water
-  const c = Math.cos(ZIP_YAW), s = Math.sin(ZIP_YAW);
-  const rx = LOOKOUT.x + 6.0 * c + 1.6 * s, rz = LOOKOUT.z - 6.0 * s + 1.6 * c;      // tower-local (6.0, 1.6): by the stair door, off the trail's line
-  const fx = -Math.sin(BEAR_CAVE.rot), fz = -Math.cos(BEAR_CAVE.rot);            // the cave mouth faces (fx, fz)
-  const dx = BEAR_CAVE.x + fx * 4.5 + fz * 3.4, dz = BEAR_CAVE.z + fz * 4.5 - fx * 3.4;
-  // each lantern's arm reaches out over the way you come
-  return {
-    pond: { x: px, z: pz, yaw: faceYaw(px, pz, pp[0], pp[1]) },
-    ridge: { x: rx, z: rz, yaw: faceYaw(rx, rz, LOOKOUT_TRAIL_IN[0], LOOKOUT_TRAIL_IN[1]) },
-    den: { x: dx, z: dz, yaw: faceYaw(dx, dz, dx + fx, dz + fz) },
-  };
-}
+export function waystoneSites(): Record<WaystoneId, { x: number; z: number; yaw: number }> { return structuredClone(authored.landmarks.waystoneSites); }
 
 // ───────────────────────────── the whole set ─────────────────────────────
 
@@ -217,53 +185,23 @@ export class PineLandmarks implements PineLandmarksHandle {
       if (registry === null) this.group.add(placed.object);
       return { places: turned, placed };
     };
-    const rng = new Rng(SEED + 907);
-
-    // the King's standing stones: three shapes round the ring, each turned to face the arena, leaning a little
-    const kinds: HeroId[] = ['stone-a', 'stone-c', 'stone-b'];
-    const byKind = new Map<HeroId, Place[]>();
-    STANDING_STONES.forEach(([x, z], i) => {
-      const k = kinds[i % 3] ?? 'stone-a';
-      const list = byKind.get(k) ?? [];
-      // half as big again as the references (3–3.5 m → 4.5–5 m): the old-growth's giants dwarfed them at human size
-      list.push({ x, y: ground(x, z) - 0.5, z, yaw: faceYaw(x, z, KINGS_CLEARING.x, KINGS_CLEARING.z) + rng.range(-0.25, 0.25), scale: rng.range(1.35, 1.6), pitch: rng.range(-0.06, 0.06), roll: rng.range(-0.07, 0.07) });
-      byKind.set(k, list);
-    });
-    for (const [k, list] of byKind) { const kind = STONE_KINDS.find((x) => x === k); if (kind) add(standingStone, k, list, { variant: kind }); }
-
-    // the waystones
-    const ws = waystoneSites();
-    const wsPlaces = (['pond', 'ridge', 'den'] as const).map((id): Place => {
-      const s = ws[id];
-      const onDeck = this.floorHeightAt(s.x, s.z);
-      return { x: s.x, y: (onDeck ?? ground(s.x, s.z)) - 0.15, z: s.z, yaw: s.yaw, scale: 1 };
-    });
+    const sites = authored.landmarks;
+    for (const row of sites.stones) { const kind = STONE_KINDS.find(value => value === row.kind); if (kind) add(standingStone, kind, row.places, { variant: kind }); }
+    // Deck support remains the live timber owner's; the base terrain site is authored.
+    const wsPlaces = sites.waystones.map((p): Place => ({ ...p, y: (this.floorHeightAt(p.x, p.z) ?? p.y) - 0.15 }));
     const waySet = add(waystone, 'waystone', wsPlaces);
     const wayGeo = heroLod0(ctx, 'waystone')?.geometry;
     if (waySet && wayGeo) this.lanterns(waySet.places, wayGeo, cabins);
 
-    // the beaver dam across the creek on the pond's sill, the canoe drawn up on the W shore facing the islet
-    const d0 = CREEK[BEAVER_DAM.at - 1], d1 = CREEK[BEAVER_DAM.at + 1];
-    // the dam's length is the model's X: turned so its Z runs with the flow, it lies across the creek; sunk so it stands
-    // ~1.3 m over the pond's water line at the sill
-    const flow = d0 && d1 ? Math.atan2(d1[0] - d0[0], d1[1] - d0[1]) : 0;
-    add(beaverDam, 'beaver-dam', [{ x: BEAVER_DAM.x, y: ground(BEAVER_DAM.x, BEAVER_DAM.z) - 0.45, z: BEAVER_DAM.z, yaw: flow, scale: 1 }]);
-    const cx = CANOE_SITE.x, cz = CANOE_SITE.z;                     // its bow (local +Z) out toward the islet (−X), its stern up the bank
-    const bowH = Math.max(ground(cx - 2.3, cz), POND.level), sternH = Math.max(ground(cx + 2.3, cz), POND.level);
-    const drawnUp = add(canoe, 'canoe', [{ x: cx, y: (bowH + sternH) / 2 - 0.05, z: cz, yaw: -Math.PI / 2, scale: 1, pitch: Math.atan2(sternH - bowH, 4.6) * 0.85 }]);
+    add(beaverDam, 'beaver-dam', sites.dam);
+    const drawnUp = add(canoe, 'canoe', sites.canoe);
     const canoePlace = drawnUp?.places[0];
     this.canoe = drawnUp && canoePlace ? { place: canoePlace, placed: drawnUp.placed } : null;
 
-    // the lodge's contract board, beside its porch steps, facing the way in
-    const B = contractBoardSite();
-    add(contractBoard, 'contract-board', [{ x: B.x, y: ground(B.x, B.z) - 0.1, z: B.z, yaw: B.yaw, scale: 1 }]);
-
-    // the bear cave's mouth: the rock arch set into the den wall; the jambs and lintel collide (the model's boxes). Its
-    // mouth was generated shut: with the cave built (PH-B2) it is opened into the cave's passage, else it stays shut
-    const cyaw = BEAR_CAVE.rot, cfx = -Math.sin(cyaw), cfz = -Math.cos(cyaw);
-    const arch: Place = { x: BEAR_CAVE.x - cfx * 1.2, y: ground(BEAR_CAVE.x, BEAR_CAVE.z) - 0.45, z: BEAR_CAVE.z - cfz * 1.2, yaw: cyaw + Math.PI, scale: 1.4 };
+    add(contractBoard, 'contract-board', sites.board);
+    const arch = sites.arch;
     const hollow = (this.crags?.caveMetaData ?? null) !== null;
-    if (hollow && heroLod0(ctx, 'cave-arch')) openCaveArch(ctx, placeMatrix({ ...arch, yaw: arch.yaw + HERO_FRONT['cave-arch'] }), ground(BEAR_CAVE.x, BEAR_CAVE.z));
+    if (hollow && heroLod0(ctx, 'cave-arch')) openCaveArch(ctx, placeMatrix({ ...arch, yaw: arch.yaw + HERO_FRONT['cave-arch'] }), sites.archGround);
     add(caveArch, 'cave-arch', [arch], hollow ? {} : { variant: 'closed' });
   }
 

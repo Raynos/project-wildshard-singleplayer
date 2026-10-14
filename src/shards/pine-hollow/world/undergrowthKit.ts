@@ -18,7 +18,7 @@ export async function loadUnderShapes(ctx: ModelContext): Promise<UnderShapes> {
   const shape = (kind: UnderKind): THREE.BufferGeometry => {
     const view = views.get(`pine-undergrowth-${kind}`);
     if (view === undefined) throw new Error(`[undergrowth] missing admitted shape ${kind}`);
-    return view.geometry;
+    return view.geometry.clone();
   };
   return { ferns: shape('ferns'), shrubs: shape('shrubs'), litter: shape('litter'), stones: shape('stones'), moss: shape('moss'), reeds: shape('reeds') };
 }
