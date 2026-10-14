@@ -1,13 +1,12 @@
 import source from '../../shard.config';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
-import { impact } from '@wildshard/engine/audio/gen';
+import { impact, renderPcm } from '@wildshard/engine/audio/gen';
 import { panFromYaw, WindGustBed } from '@wildshard/engine/audio/util';
 import type { VoiceTable } from '@wildshard/engine/audio/Voices';
 import { tap } from '@wildshard/engine/core/harnessTap';
 import type { Vector3 } from 'three';
 import type { Surface } from './surface';
-import { vocal, windup } from './creatureVoices';
 /**
  * Driftwood Isle's voice table (08 §6.3 C.2): the island's footsteps (B9) and combat layers (S3), played from the procedural
  * bank (gen.ts via audio.voices), the gull calls, and the island's synth bed (the warm breeze, the far surf hiss, the swells).
@@ -54,14 +53,15 @@ export const ISLAND_FAMILIES = [
   'ui-chime', 'ui-chest', 'ui-locked', 'ui-lever', 'ui-plate', 'ui-door', 'ui-grate', 'ui-glyph', 'ui-ignite',
 ] as const;
 
+function pcm(id:string):Parameters<typeof renderPcm>[0]{const row=source.audio.pcm?.[id];if(row===undefined)throw new Error(`Missing creature PCM recipe: ${id}`);return row;}
 const ENEMIES: readonly Enemy[] = ['boar', 'crab', 'monkey', 'sailor'];
 /** the island's own families on the procedural bank (08 §6.3 C.2; the engine's FAMILIES rows until S4.3: same counts, rates, seeds) */
 export const ISLAND_VOICES: VoiceTable = {
   'impact-shell': { n: 4, ch: 1, half: false, gen: (sr: number, seed: number) => impact('shell', sr, seed) },
-  ...Object.fromEntries(ENEMIES.map((e) => [`vocal-${e}`, { n: 3, ch: 1, half: e === 'sailor' || e === 'boar', gen: (sr: number, seed: number) => vocal(e, sr, seed) }])),
-  'windup-boar': { n: 2, ch: 1, half: false, gen: (sr: number, seed: number) => windup('boar', sr, seed) },
-  'windup-crab': { n: 2, ch: 1, half: false, gen: (sr: number, seed: number) => windup('crab', sr, seed) },
-  'windup-sailor': { n: 2, ch: 1, half: true, gen: (sr: number, seed: number) => windup('sailor', sr, seed) },
+  ...Object.fromEntries(ENEMIES.map((e) => [`vocal-${e}`, { n: 3, ch: 1, half: e === 'sailor' || e === 'boar', gen: (sr: number, seed: number) => renderPcm(pcm(`vocal.${e}`),sr,seed) }])),
+  'windup-boar': { n: 2, ch: 1, half: false, gen: (sr: number, seed: number) => renderPcm(pcm('windup.boar'),sr,seed) },
+  'windup-crab': { n: 2, ch: 1, half: false, gen: (sr: number, seed: number) => renderPcm(pcm('windup.crab'),sr,seed) },
+  'windup-sailor': { n: 2, ch: 1, half: true, gen: (sr: number, seed: number) => renderPcm(pcm('windup.sailor'),sr,seed) },
 };
 
 export class IslandSfx {

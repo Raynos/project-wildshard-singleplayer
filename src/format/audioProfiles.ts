@@ -11,7 +11,7 @@ const optionalIds = v.optional(v.pipe(v.array(id), v.maxLength(128), v.check((id
 const scalar = v.union([finite, v.boolean(), id, v.null()]);
 const conditions = v.pipe(v.array(v.strictObject({ field: id, op: v.picklist(['equals', 'not-equals', 'greater']), value: scalar })), v.maxLength(16));
 /** Bounded numerical mix expressions over supplied listener/clock/geometry values. */
-export type AudioMixOp = '+' | '-' | '*' | '/' | 'min' | 'max' | 'floor' | 'abs' | 'sin' | 'hypot' | 'ss' | 'in' | 'lt' | 'gt' | 'if' | 'and' | 'or' | 'not' | 'clamp' | 'zone' | 'dist';
+export type AudioMixOp = '+' | '-' | '*' | '/' | 'min' | 'max' | '%' | 'pow' | 'cos' | 'exp' | 'tanh' | 'lerp' | 'round' | 'floor' | 'abs' | 'sin' | 'hypot' | 'ss' | 'in' | 'lt' | 'gt' | 'if' | 'and' | 'or' | 'not' | 'clamp' | 'zone' | 'dist';
 /** Recursive bounded scalar expression; schema metadata keeps its lazy factory opaque. */
 export type AudioMixExpr = number | string | readonly [AudioMixOp, ...AudioMixExpr[]];
 function boundedMix(expr:AudioMixExpr):boolean {
@@ -20,14 +20,14 @@ function boundedMix(expr:AudioMixExpr):boolean {
     const current=pending.pop();if(current===undefined)return true;if(current.depth>16)return false;
     if(typeof current.value!=='number'&&typeof current.value!=='string') {
       const arity=current.value.length-1,op=current.value[0];
-      const wanted=op==='ss'||op==='in'||op==='if'||op==='clamp'?3:op==='-'||op==='/'||op==='min'||op==='max'||op==='hypot'||op==='lt'||op==='gt'?2:op==='floor'||op==='abs'||op==='sin'||op==='not'||op==='zone'||op==='dist'?1:null;
+      const wanted=op==='ss'||op==='in'||op==='if'||op==='clamp'||op==='lerp'?3:op==='-'||op==='/'||op==='min'||op==='max'||op==='hypot'||op==='lt'||op==='gt'||op==='%'||op==='pow'?2:op==='round'||op==='floor'||op==='abs'||op==='sin'||op==='not'||op==='zone'||op==='dist'||op==='cos'||op==='exp'||op==='tanh'?1:null;
       if(arity<1||arity>8||(wanted!==null&&arity!==wanted)||((op==='dist'||op==='zone')&&typeof current.value[1]!=='string'))return false;
       for(const value of current.value.slice(1))pending.push({value,depth:current.depth+1});
     }
   }
   return pending.length===0;
 }
-const mixExpr:v.GenericSchema<AudioMixExpr> = v.pipe(v.lazy(()=>v.union([finite,id,v.tupleWithRest([v.picklist(['+','-','*','/','min','max','floor','abs','sin','hypot','ss','in','lt','gt','if','and','or','not','clamp','zone','dist'])],mixExpr)])),v.check(value=>boundedMix(value),'bounded mix expression'));
+const mixExpr:v.GenericSchema<AudioMixExpr> = v.pipe(v.lazy(()=>v.union([finite,id,v.tupleWithRest([v.picklist(['+','-','*','/','min','max','%','pow','cos','exp','tanh','lerp','round','floor','abs','sin','hypot','ss','in','lt','gt','if','and','or','not','clamp','zone','dist'])],mixExpr)])),v.check(value=>boundedMix(value),'bounded mix expression'));
 const mixValues=(max:number)=>v.pipe(v.array(v.tuple([id,mixExpr])),v.maxLength(max));
 /** Ordered weights, levels, filters, sends and diagnostics. All graph/geometry ports remain native. */
 export const AudioMixSchema = v.strictObject({values:mixValues(256),levels:mixValues(64),cutoffs:mixValues(16),
@@ -195,3 +195,30 @@ export type AudioMusic = v.InferOutput<typeof AudioMusicSchema>;
 export type AudioSamples = v.InferOutput<typeof AudioSamplesSchema>;
 /** The validated mixer timing and named ambience zones. */
 export type AudioZones = v.InferOutput<typeof AudioZonesSchema>;
+
+/** Bounded offline DSP commands; the bank still supplies its actual sample rate and variant seed. */
+const pcmModes=v.pipe(v.array(v.tuple([mixExpr,mixExpr,mixExpr])),v.maxLength(16));
+const pcmFilter=v.picklist(['lowpass','highpass','bandpass','peaking','notch']);
+const pcmStep=v.variant('kind',[
+  v.strictObject({kind:v.literal('values'),rows:mixValues(32)}),
+  v.strictObject({kind:v.literal('formants'),id,rows:pcmModes}),
+  v.strictObject({kind:v.literal('noise'),at:mixExpr,type:pcmFilter,f:mixExpr,f1:v.exactOptional(mixExpr),q:v.exactOptional(mixExpr),attack:mixExpr,decay:mixExpr,gain:mixExpr,pink:v.exactOptional(v.boolean())}),
+  v.strictObject({kind:v.literal('thump'),at:mixExpr,args:v.tuple([mixExpr,mixExpr,mixExpr,mixExpr])}),
+  v.strictObject({kind:v.literal('grains'),at:mixExpr,rate:mixExpr,dur:mixExpr,f:mixExpr,q:mixExpr,gain:mixExpr,grain:v.exactOptional(mixExpr),shape:v.exactOptional(mixExpr)}),
+  v.strictObject({kind:v.literal('strike'),at:mixExpr,modes:pcmModes,gain:mixExpr,jitter:v.exactOptional(mixExpr)}),
+  v.strictObject({kind:v.literal('click'),at:mixExpr,args:v.tuple([mixExpr,mixExpr,mixExpr])}),
+  v.strictObject({kind:v.literal('bubbles'),at:mixExpr,args:v.tuple([mixExpr,mixExpr,mixExpr,mixExpr,mixExpr])}),
+  v.strictObject({kind:v.literal('voice'),at:mixExpr,dur:mixExpr,f0:mixExpr,tense:mixExpr,breath:mixExpr,
+    vowel:id,vowelIndex:v.exactOptional(mixExpr),blend:v.exactOptional(v.strictObject({to:id,amount:mixExpr})),env:v.tuple([mixExpr,mixExpr,mixExpr]),gain:mixExpr,
+    rough:v.exactOptional(mixExpr),jitter:v.exactOptional(mixExpr),shimmer:v.exactOptional(mixExpr)}),
+  v.strictObject({kind:v.literal('saturate'),drive:mixExpr}),
+  v.strictObject({kind:v.literal('filter'),type:pcmFilter,f:mixExpr,q:mixExpr}),
+  v.strictObject({kind:v.literal('flutter'),f:mixExpr,q:mixExpr,base:mixExpr,depth:mixExpr,drive:mixExpr}),
+  v.strictObject({kind:v.literal('sine'),f:mixExpr,gain:mixExpr,envelope:mixExpr})
+]);
+export const AudioPcmProgramSchema=v.pipe(v.strictObject({seed:v.tuple([finite,finite]),
+  values:mixValues(32),duration:mixExpr,
+  steps:v.pipe(v.array(v.variant('kind',[...pcmStep.options,
+    v.strictObject({kind:v.literal('repeat'),count:mixExpr,max:v.pipe(finite,v.safeInteger(),v.minValue(1),v.maxValue(32)),index:id,while:v.exactOptional(mixExpr),body:v.pipe(v.array(pcmStep),v.maxLength(32))})])),v.maxLength(64)),
+  finish:v.tuple([finite,finite])}),v.check(program=>program.steps.reduce((sum,row)=>sum+(row.kind==='repeat'?row.max*row.body.length:1),0)<=2048,'bounded PCM recipe'));
+export type AudioPcmProgram=v.InferOutput<typeof AudioPcmProgramSchema>;

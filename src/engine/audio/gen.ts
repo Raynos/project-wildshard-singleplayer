@@ -1,3 +1,5 @@
+import type { AudioPcmProgram, AudioMixExpr } from '@wildshard/format/audioProfiles';
+import { audioMixValue } from './audioProfiles';
 /**
  * gen — the procedural sound bank: every one-shot the island needs, synthesised offline into a Float32Array (pure
  * TypeScript, src/engine/audio/dsp.ts; no files, no WebAudio). src/engine/audio/Voices.ts turns them into AudioBuffers once, after the
@@ -131,6 +133,61 @@ const lerp = (a: number, b: number, u: number): number => a + (b - a) * u;
 const lerpV = (a: [number, number, number][], b: [number, number, number][], u: number): [number, number, number][] =>
   a.map(([f, q, g], i) => { const o = b[i] ?? [f, q, g]; return [lerp(f, o[0], u), lerp(q, o[1], u), lerp(g, o[2], u)]; });
 const finish = (buf: Float32Array, sr: number, peak = 0.9, outS = 0.02): Float32Array => normalize(fade(buf, sr, 0.0005, outS), peak);
+
+
+/** Render admitted offline layers with the bank's actual sample rate, variant seed and original DSP primitives. */
+export function renderPcm(program:AudioPcmProgram,sr:number,seed:number):Float32Array {
+  if(!Number.isFinite(sr)||sr<8000||sr>192000||!Number.isFinite(seed))throw new Error('Invalid PCM rate or seed');
+  const r=new Rand(seed*program.seed[0]+program.seed[1]),values=new Map<string,number>([['seed',seed],['sr',sr]]),vowels=new Map<string,[number,number,number][]>();
+  const read=(id:string):number=>{if(id==='random')return r.next();const value=values.get(id);if(value===undefined)throw new Error(`Missing PCM value: ${id}`);return value;};
+  const value=(expr:AudioMixExpr):number=>audioMixValue(expr,read);
+  for(const [id,expr] of program.values)values.set(id,value(expr));
+  const duration=value(program.duration);if(!(duration>0&&duration<=60))throw new Error('PCM duration exceeds its bound');
+  const out=new Float32Array(len(duration,sr));
+  const modes=(rows:readonly (readonly [AudioMixExpr,AudioMixExpr,AudioMixExpr])[]):[number,number,number][]=>rows.map(row=>[value(row[0]),value(row[1]),value(row[2])]);
+  type Step=Exclude<AudioPcmProgram['steps'][number],{kind:'repeat'}>;
+  const run=(step:Step):void=>{
+    switch(step.kind){
+      case 'values':for(const [id,expr] of step.rows)values.set(id,value(expr));break;
+      case 'formants':vowels.set(step.id,modes(step.rows));break;
+      case 'noise':noise(out,value(step.at),sr,r,{type:step.type,f:value(step.f),attack:value(step.attack),decay:value(step.decay),gain:value(step.gain),
+        ...(step.f1===undefined?{}:{f1:value(step.f1)}),...(step.q===undefined?{}:{q:value(step.q)}),...(step.pink===undefined?{}:{pink:step.pink})});break;
+      case 'thump':thump(out,value(step.at),sr,value(step.args[0]),value(step.args[1]),value(step.args[2]),value(step.args[3]));break;
+      case 'grains':grains(out,value(step.at),sr,r,{rate:value(step.rate),dur:value(step.dur),f:value(step.f),q:value(step.q),gain:value(step.gain),
+        ...(step.grain===undefined?{}:{grain:value(step.grain)}),...(step.shape===undefined?{}:{shape:value(step.shape)})});break;
+      case 'strike':strike(out,value(step.at),sr,r,modes(step.modes),value(step.gain),step.jitter===undefined?undefined:value(step.jitter));break;
+      case 'click':click(out,value(step.at),sr,r,value(step.args[0]),value(step.args[1]),value(step.args[2]));break;
+      case 'bubbles':bubbles(out,value(step.at),sr,r,value(step.args[0]),value(step.args[1]),value(step.args[2]),value(step.args[3]),value(step.args[4]));break;
+      case 'voice':{
+        const at=value(step.at),dur=value(step.dur),name=step.vowelIndex===undefined?step.vowel:`${step.vowel}.${value(step.vowelIndex)}`;
+        const vowel=requireVowel(name),blend=step.blend,to=blend===undefined?undefined:requireVowel(blend.to);
+        const curve=(expr:AudioMixExpr)=>(u:number):number=>{values.set('u',u);return value(expr);};
+        voice(out,at,sr,r,{dur,f0:curve(step.f0),tense:curve(step.tense),breath:curve(step.breath),
+          vowel:u=>{if(to===undefined||blend===undefined)return vowel;values.set('u',u);return lerpV(vowel,to,value(blend.amount));},
+          env:ahr(value(step.env[0]),value(step.env[1]),value(step.env[2])),gain:value(step.gain),
+          ...(step.rough===undefined?{}:{rough:value(step.rough)}),...(step.jitter===undefined?{}:{jitter:value(step.jitter)}),...(step.shimmer===undefined?{}:{shimmer:value(step.shimmer)})});break;
+      }
+      case 'saturate':saturate(out,value(step.drive));break;
+      case 'filter':new Biquad(step.type,value(step.f),value(step.q),sr).apply(out);break;
+      case 'flutter':{
+        const filter=new Biquad('lowpass',value(step.f),value(step.q),sr),base=value(step.base),depth=value(step.depth),drive=value(step.drive);
+        for(let i=0;i<out.length;i++)out[i]=(out[i]??0)*(base+depth*Math.tanh(filter.run(r.bi())*drive));break;
+      }
+      case 'sine':{
+        const f=value(step.f),gain=value(step.gain);let ph=0;
+        for(let i=0;i<out.length;i++){values.set('t',i/sr);ph+=(2*Math.PI*f)/sr;out[i]=(out[i]??0)+Math.sin(ph)*gain*value(step.envelope);}break;
+      }
+      default:throw new Error('Unsupported PCM instruction');
+    }
+  };
+  function requireVowel(id:string):[number,number,number][]{const row=vowels.get(id);if(row===undefined)throw new Error(`Missing PCM formants: ${id}`);return row;}
+  for(const step of program.steps){
+    if(step.kind!=='repeat'){run(step);continue;}
+    const count=value(step.count);if(!Number.isSafeInteger(count)||count<0||count>step.max)throw new Error('PCM repetition exceeds its bound');
+    for(let i=0;i<count;i++){values.set(step.index,i);if(step.while!==undefined&&value(step.while)===0)break;for(const row of step.body)run(row);}
+  }
+  return finish(out,sr,program.finish[0],program.finish[1]);
+}
 
 // ─────────────── footsteps ───────────────
 /** one step: heel strike, then the toe 45–75 ms later; each surface is its own recipe */
@@ -266,21 +323,15 @@ export const synthKit = { Rand, Biquad, len, saturate, noise, thump, grains, str
 
 /** the player takes a hit: a short grunt ("uh" / "ah" / "oof" by variant) over a body impact, an exhale tail */
 export function hurt(sr: number, seed: number): Float32Array {
-  const r = new Rand(seed * 69069 + 1), out = new Float32Array(len(0.5, sr));
-  const vowels: [number, number, number][][] = [
-    [[640, 5, 1], [1180, 6, 0.55], [2600, 8, 0.2]],   // uh
-    [[760, 5, 1], [1260, 6, 0.5], [2700, 8, 0.2]],    // ah
-    [[460, 5, 1], [880, 6, 0.5], [2500, 8, 0.15]],    // oof
-  ];
-  const v = vowels[seed % vowels.length] ?? vowels[0] ?? [], f0a = r.range(135, 165), d = r.range(0.16, 0.22);
-  thump(out, 0, sr, 95, 48, 0.07, 0.4);
-  noise(out, 0, sr, r, { type: 'lowpass', f: 900, attack: 0.001, decay: 0.02, gain: 0.5 });
-  voice(out, len(0.012, sr), sr, r, {
-    dur: d + 0.12, f0: (u) => f0a * lerp(1.08, 0.78, u), tense: (u) => lerp(0.9, 0.6, u), breath: (u) => lerp(0.12, 0.3, u), rough: 0.15,
-    vowel: () => v, env: ahr(0.012, d * 0.45, 0.06), gain: 1.4, jitter: 0.025, shimmer: 0.1,
-  });
-  noise(out, len(d, sr), sr, r, { type: 'bandpass', f: 1300, f1: 800, q: 1.2, attack: 0.02, decay: 0.07, gain: 0.1 });
-  return finish(saturate(out, 1.3), sr, 0.9, 0.05);
+  return renderPcm({seed:[69069,1],values:[['f0a',['+',135,['*','random',['-',165,135]]]],['d',['+',0.16,['*','random',['-',0.22,0.16]]]]],duration:0.5,steps:[
+    {kind:'formants',id:'vowels.0',rows:[[640,5,1],[1180,6,0.55],[2600,8,0.2]]},
+    {kind:'formants',id:'vowels.1',rows:[[760,5,1],[1260,6,0.5],[2700,8,0.2]]},
+    {kind:'formants',id:'vowels.2',rows:[[460,5,1],[880,6,0.5],[2500,8,0.15]]},
+    {kind:'thump',at:0,args:[95,48,0.07,0.4]},
+    {kind:'noise',at:0,type:'lowpass',f:900,attack:0.001,decay:0.02,gain:0.5},
+    {kind:'voice',at:['max',1,['round',['*',0.012,'sr']]],dur:['+','d',0.12],f0:['*','f0a',['lerp',1.08,0.78,'u']],tense:['lerp',0.9,0.6,'u'],breath:['lerp',0.12,0.3,'u'],rough:0.15,vowel:'vowels',vowelIndex:['%','seed',3],env:[0.012,['*','d',0.45],0.06],gain:1.4,jitter:0.025,shimmer:0.1},
+    {kind:'noise',at:['max',1,['round',['*','d','sr']]],type:'bandpass',f:1300,f1:800,q:1.2,attack:0.02,decay:0.07,gain:0.1},
+    {kind:'saturate',drive:1.3}],finish:[0.9,0.05]},sr,seed);
 }
 
 /** the player dies: the hit, a falling groan that runs out of breath, the body hitting the ground */
