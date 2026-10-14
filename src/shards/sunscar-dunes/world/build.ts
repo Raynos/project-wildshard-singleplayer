@@ -60,6 +60,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
   if (programs?.length !== 2) throw new Error('Missing declared bucket motion');
   const channels = keepChannels(bindClientChannels(programs, { targets: new Map<string, unknown>([['bucket', wellParts.bucket], ['rope', wellParts.rope]]) }));
   channels.evaluate(programs[0]?.id ?? '', { time: 0, delta: 0, values: [Number(flags.has(FLAG.oil)), Number(rules.has('raised')), wellParts.drop] });
+  channels.bindPrompts({ named: new Map([['sunscar.well.take', () => { page('well'); }]]) });
   channels.evaluate(programs[1]?.id ?? '', { time: 0, delta: 0, values: [wellParts.jarAt.x, wellParts.jarAt.y, wellParts.jarAt.z] });
   const wellSpot = channels.prompt(programs[1]?.id ?? '');
   const well: SignalWorld['well'] = { ...wellParts, get raised() { return rules.has('raised'); }, spot: wellSpot,
