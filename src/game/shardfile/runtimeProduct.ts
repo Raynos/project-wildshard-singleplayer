@@ -188,13 +188,20 @@ export interface ClientWorldPreparation {
   readonly textures?: readonly { readonly id: string; readonly url: string; readonly name: string; readonly warn: string; readonly sampler?: PaintedSampler; readonly phase?: number }[];
   readonly materials?: readonly string[];
   readonly requiredMaterials?: readonly string[];
+  /**
+   * A prepared texture (`texture`, a `textures` id) laid on a compiled look material (`material`) as its bump, read on UV set
+   * `channel` (default 0) at `scale`: a graph cannot output a normal, so a painted relief (a tower's stone courses) rides the
+   * material's own bump slot, and every mesh-map binding of that look inherits it. A missing texture or a material without
+   * a bump slot (a family preset with graphs off) keeps the look unbumped.
+   */
+  readonly bumps?: readonly { readonly material: string; readonly texture: string; readonly channel?: number; readonly scale: number }[];
 }
 /** Prepare borrowed world assets under their existing scope, never installing another host. */
 export async function prepareClientWorld(ctx: Parameters<typeof runtimeLookMaterials>[0], source: Shardfile, rows: ClientWorldPreparation): Promise<Awaited<ReturnType<typeof runtimeLookMaterials>> & {
   readonly painted: ReadonlyMap<string, Texture | null>; readonly material: (id: string) => Material;
 }> {
-  const textures = rows.textures ?? [], required = rows.requiredMaterials ?? [];
-  if (textures.length > 64 || required.length > 64 || new Set(textures.map(row => row.id)).size !== textures.length
+  const textures = rows.textures ?? [], required = rows.requiredMaterials ?? [], bumps = rows.bumps ?? [];
+  if (textures.length > 64 || required.length > 64 || bumps.length > 16 || bumps.some(row => ![0, 1, 2, 3].includes(row.channel ?? 0) || !Number.isFinite(row.scale)) || new Set(textures.map(row => row.id)).size !== textures.length
     || textures.some(row => !/^[a-z][a-zA-Z0-9.:-]{0,127}$/u.test(row.id) || !Number.isSafeInteger(row.phase ?? 0) || (row.phase ?? 0) < 0 || (row.phase ?? 0) > 7)) throw new Error('Invalid bounded client world preparation');
   const painted = new Map<string, Texture | null>();
   for (const phase of [...new Set(textures.map(row => row.phase ?? 0))].sort((a, b) => a - b)) {
@@ -206,5 +213,11 @@ export async function prepareClientWorld(ctx: Parameters<typeof runtimeLookMater
   const compiled = await runtimeLookMaterials(ctx, source, true, rows.materials);
   const material = (id: string): Material => { const value = compiled.materials.get(id); if (value === undefined) throw new Error(`Missing prepared world material ${id}`); return value; };
   for (const id of required) material(id);
+  for (const row of bumps) {
+    const relief = painted.get(row.texture) ?? null, target = compiled.materials.get(row.material);
+    if (relief === null || target === undefined || !('bumpMap' in target)) continue;
+    const map = ctx.scope.own(relief.clone()); map.channel = row.channel ?? 0;
+    Object.assign(target, { bumpMap: map, bumpScale: row.scale }); target.needsUpdate = true;
+  }
   return { ...compiled, painted, material };
 }

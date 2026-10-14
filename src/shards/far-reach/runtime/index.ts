@@ -27,7 +27,6 @@ import { preloadSkyMeshes, skyHd } from '../world/meshes';
 import { loadSkyBaked, skyMeadowBlades } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
 import { setSkyLooks, skyLook, skyMappedLook } from '../world/looks';
-import { setMillTextures } from '../world/mill';
 import { wakeRibbon } from './looks/wakeRibbon';
 import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow } from '../world/meadow';
@@ -76,7 +75,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     await Promise.all([preloadSkyMeshes(() => worldBuildYield(ctx, 4)), loadSkyBaked()]);
     const compiled = await prepareClientWorld(ctx, source, SKY_WORLD_PREPARATION);
     this.leaf = compiled.painted.get('leaf') ?? null; this.board = () => ctx.app.player?.mode === 'board';
-    setMillTextures({ stone: compiled.painted.get('millStone') ?? null });
     // op-hitch41: in work slices (a grid cell builds Sky Reach on the road, in play: one 366 ms task on the Simulator,
     // then the meadow's 59 ms in the same frame); the meadow starts on a task of its own
     // the static islands from the shardfile's props tiles (runtime.binds props; generators/isleProps.ts), every tile resident

@@ -1,6 +1,7 @@
 import type { Material } from 'three';
 import dressing from '../data/dressing.json' with { type: 'json' };
 import { skyLook } from './looks';
+import { DRESSING_LOOKS } from '../data/dressingLook';
 
 /**
  * The island dressing (Gilded Air, review items 6 / 7, loop 2): grass clumps, the rims' lip clumps, flowers and boulders,
@@ -15,14 +16,9 @@ export function heroStoneDiscs(): [number, number, number][] {
 }
 
 /**
- * A dressing kind's own material (its row's `dressing`), as the piece is drawn: the clumps (and the lip clumps, which lean
- * out over every rim, E407 row 4) carry the meadow beyond the near field (world/meadow.ts) and shrink away inside it so the
- * fine blades own the foreground, the flowers grow in past the near meadow's own (their graphs, `look.materials`); the
- * boulders wear the islands' painted rock and moss with their own near detail over it (E392).
+ * A dressing kind's own material (its row's `dressing`, looked up in data/dressingLook.ts `DRESSING_LOOKS`), as the piece is
+ * drawn: the clumps carry the meadow beyond the near field (world/meadow.ts) and shrink away inside it so the fine blades
+ * own the foreground, the flowers grow in past the near meadow's own (their graphs, `look.materials`); the boulders wear
+ * the islands' painted rock and moss with their own near detail over it (E392).
  */
-export function dressingMaterial(kind: string): Material | undefined {
-  if (kind === 'clump' || kind === 'lip') return skyLook('dressing-clump');
-  if (kind === 'flower') return skyLook('dressing-flower');
-  if (kind === 'stone') return skyLook('dressing-stone');
-  return undefined;
-}
+export const dressingMaterial = (kind: string): Material | undefined => skyLook(DRESSING_LOOKS[kind] ?? '');

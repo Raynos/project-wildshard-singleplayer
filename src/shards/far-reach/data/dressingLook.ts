@@ -70,3 +70,9 @@ const boulder = op('mix', [lichen, mul([0.1, 0.12, 0.05], add(0.75, mul(n3, 0.5)
 export const BOULDER_GRAPH = { version: 1, kind: 'material', model: 'standard', flatShading: true,
   params: { rock: { type: 'texture', value: ISLE_MAPS.rock } },
   nodes: { ...SKY_PAINTER_GRAPH.nodes, ...boulderNodes }, stages: { surface: { colour: boulder, roughness: 0.95, metalness: 0 }, lighting: SKY_PAINTER_GRAPH.lighting } } as const;
+
+/**
+ * Which `look.materials` entry each dressing kind (a dressing row's `dressing`) is drawn in: the clumps and the rims' lip
+ * clumps (which lean out over every rim, E407 row 4) the hand-off clump, the flowers theirs, the boulders the rock.
+ */
+export const DRESSING_LOOKS: Readonly<Record<string, string>> = { clump: 'dressing-clump', lip: 'dressing-clump', flower: 'dressing-flower', stone: 'dressing-stone' };

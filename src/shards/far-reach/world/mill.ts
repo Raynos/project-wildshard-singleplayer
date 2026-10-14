@@ -1,7 +1,6 @@
-import { Group, Mesh, MeshStandardMaterial, DoubleSide, type InstancedMesh, type Material, type Object3D, type Texture } from 'three';
+import { Group, Mesh, type InstancedMesh, type Material, type Object3D } from 'three';
 import { hdMaterial, skyHd, SKY_LIBRARY } from './meshes';
 import { skyLook, skyMappedLook } from './looks';
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import millModel from '../data/millModel.json' with { type: 'json' };
 import { skyBakedPiece } from './baked';
 
@@ -19,37 +18,23 @@ import { skyBakedPiece } from './baked';
  * - a boarded curb under a shingled slate ogee cap with a finial;
  * - four lattice sails: the stock, four laths and fifteen sail bars in weathered timber, the worn canvas
  *   (`tex/mill-canvas.webp`: stains, patches, seams) billowing behind the bars, frayed at its edges, two sails torn.
- * SF72: the code set is built offline (`generators/mill.ts` → `baked/mill.glb`) and drawn here in its own materials.
+ * SF72: the code set is built offline (`generators/mill.ts` → `baked/mill.glb`) and drawn here in its bake rows' own
+ * materials (data/mill.json: the timber shaft and boss, the vertex-coloured frames), the canvas in its look.
  * The hub turns (the plugin spins it). Local frame: base at y 0, the sails face +z.
  */
-/**
- * The windmill's painted stone (`public/assets/far-reach/tex/mill-stone.webp`; the boot downloads it, boot/files.ts): the
- * plugin loads it behind the loading screen and owns it (`setMillTextures`), so the first frame already has the courses;
- * without it (offline, a test page) the tower keeps its paint unbumped. The canvas is the `mill-canvas` look's library map.
- */
-const MILL_TEX: { stone: Texture | null } = { stone: null };
-export function setMillTextures(t: { stone: Texture | null }): void {
-  const texture = t.stone; MILL_TEX.stone = texture;
-  if (texture !== null) cacheUntilDisposed(texture, () => { if (MILL_TEX.stone === texture) MILL_TEX.stone = null; });
-}
-
 interface Made { readonly meshes: Mesh[]; readonly hubAt: { y: number; z: number } }
 /**
- * The modelled tower's material: the `mill-tower` look over its map (data/millLook.ts: the paint pulled toward mockup A's
- * pale weathered whitewash), the painted stone's courses (`MILL_TEX.stone`, on the second UV set) as the bump.
+ * The modelled tower and foot (E410, data/millShape.ts MODELLED): fitted offline (`generators/millModel.ts`), drawn in their
+ * models' paint, the tower in the `mill-tower` look over its map (data/millLook.ts: the paint pulled toward mockup A's pale
+ * weathered whitewash), which carries the painted stone (`tex/mill-stone.webp`, loaded behind the loading screen) as its
+ * bump on the second UV set (data/worldTextures.ts `bumps`; offline or on a test page the tower keeps its paint unbumped).
  */
-function towerMaterial(map: Texture): Material {
-  const m = skyMappedLook('mill-tower', map), stone = MILL_TEX.stone;
-  if (stone !== null && 'bumpMap' in m) { const t = stone.clone(); t.channel = 1; Object.assign(m, { bumpMap: t, bumpScale: 2 }); m.needsUpdate = true; }
-  return m;
-}
-/** The modelled tower and foot (E410, data/millShape.ts MODELLED): fitted offline (`generators/millModel.ts`), drawn in their models' paint. */
 function modelledSet(): Made | null {
   const t = skyHd('mill-tower'), f = skyHd('mill-foot');
   const towerGeometry = SKY_LIBRARY.geometry('mill-tower'), footGeometry = SKY_LIBRARY.geometry('mill-foot');
   if (t === null || f === null || towerGeometry === null || footGeometry === null) return null;
   t.geometry.dispose(); f.geometry.dispose();
-  const made = new Mesh(towerGeometry, towerMaterial(t.map)); made.name = 'far.mill.tower';
+  const made = new Mesh(towerGeometry, skyMappedLook('mill-tower', t.map)); made.name = 'far.mill.tower';
   const foot = new Mesh(footGeometry, hdMaterial(f.map)); foot.name = 'far.mill.foot';
   return { meshes: [made, foot], hubAt: millModel.hubAt };
 }
@@ -61,24 +46,23 @@ function modelledSet(): Made | null {
  */
 export function towerMill(nodes?: ReadonlyMap<string, InstancedMesh>): { group: Group; hub: Object3D; hubAt: { y: number; z: number } } {
   const made = modelledSet();
-  const group = new Group(), hub = new Group(), baked = skyBakedPiece('mill', nodes);
-  /** a baked kind under `parent`, drawn in `material` (the row's own material is never drawn) */
-  const put = (parent: Object3D, name: string, material: Material): Mesh | undefined => {
+  const group = new Group(), hub = new Group(), baked = skyBakedPiece('mill', nodes), hubAt = millModel.hubAt;
+  /** a baked kind under `parent`, in its row's own material, or in `material` when one is given */
+  const put = (parent: Object3D, name: string, material?: Material): Mesh | undefined => {
     const mesh = baked.kinds.get(name); if (mesh === undefined) return undefined;
-    for (const own of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) own.dispose();
-    mesh.material = material; parent.add(mesh); return mesh;
+    if (material !== undefined) { for (const own of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) own.dispose(); mesh.material = material; }
+    parent.add(mesh); return mesh;
   };
   // the windshaft out of the cap toward +z, and the hub on it
-  const timber = new MeshStandardMaterial({ color: 0x6b4a32, roughness: 0.9, metalness: 0 }), hubAt = millModel.hubAt;
-  put(group, 'shaft', timber)?.position.set(0, hubAt.y, hubAt.z - 0.6);
+  put(group, 'shaft')?.position.set(0, hubAt.y, hubAt.z - 0.6);
   if (made !== null) group.add(...made.meshes);
   hub.position.set(0, hubAt.y, hubAt.z); group.add(hub);
-  put(hub, 'boss', timber);
-  // the worn canvas: the `mill-canvas` look (the library's painted cloth: frayed, two sails torn, a faint warm glow); plain
-  // cream cloth before the looks are set
-  const clothMat = skyLook('mill-canvas') ?? new MeshStandardMaterial({ color: 0xece0c6, roughness: 0.95, metalness: 0, side: DoubleSide });
-  // the four lattice frames (one kind, an instance per arm) and the four canvases, each turned to its arm
-  put(hub, 'frame', new MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0 }));
-  for (let i = 0; i < 4; i++) put(hub, `cloth-${String(i)}`, clothMat);
+  put(hub, 'boss');
+  // the four lattice frames (one kind, an instance per arm) and the four canvases, each turned to its arm, in the
+  // `mill-canvas` look (the library's painted cloth: frayed, two sails torn, a faint warm glow; the bake's cream cloth
+  // before the looks are set)
+  put(hub, 'frame');
+  const cloth = skyLook('mill-canvas');
+  for (let i = 0; i < 4; i++) put(hub, `cloth-${String(i)}`, cloth);
   return { group, hub, hubAt };
 }
