@@ -1,0 +1,91 @@
+{
+  "revision": "2ca20f6bf7c00f479fd1cd5804841fad5532ed22",
+  "method": "G258 matched cold pre-entry resident increment, worst of three valid cold runs",
+  "developer": true,
+  "textures": "img",
+  "memorySaver": "off (shipping default; absent saved pick resolves off)",
+  "engineBaseBytes": 299000000,
+  "selected": {
+    "pose": "dw-centre",
+    "webContentBytes": 602771488,
+    "glBytes": 193503436,
+    "residentBaseBytes": 458082832,
+    "incrementBytes": 338192092,
+    "rawClaimBytes": 304677561,
+    "run": 1
+  },
+  "oldRawClaimBytes": 334435201,
+  "runs": [
+    {
+      "run": 1,
+      "build": "2ca20f6-mv86nulk",
+      "pid": 55596,
+      "pairs": [
+        {
+          "pose": "dw-entry",
+          "webContentBytes": 602394632,
+          "glBytes": 191779880,
+          "residentBaseBytes": 458082832,
+          "incrementBytes": 336091680,
+          "rawClaimBytes": 302785298
+        },
+        {
+          "pose": "dw-centre",
+          "webContentBytes": 602771488,
+          "glBytes": 193503436,
+          "residentBaseBytes": 458082832,
+          "incrementBytes": 338192092,
+          "rawClaimBytes": 304677561
+        }
+      ]
+    },
+    {
+      "run": 2,
+      "build": "2ca20f6-mv86nulk",
+      "pid": 75927,
+      "pairs": [
+        {
+          "pose": "dw-entry",
+          "webContentBytes": 591892680,
+          "glBytes": 191779880,
+          "residentBaseBytes": 474860096,
+          "incrementBytes": 308812464,
+          "rawClaimBytes": 278209428
+        },
+        {
+          "pose": "dw-centre",
+          "webContentBytes": 600428792,
+          "glBytes": 193503436,
+          "residentBaseBytes": 474860096,
+          "incrementBytes": 319072132,
+          "rawClaimBytes": 287452372
+        }
+      ]
+    },
+    {
+      "run": 3,
+      "build": "2ca20f6-mv86nulk",
+      "pid": 88066,
+      "pairs": [
+        {
+          "pose": "dw-entry",
+          "webContentBytes": 602771584,
+          "glBytes": 191779880,
+          "residentBaseBytes": 470125144,
+          "incrementBytes": 324426320,
+          "rawClaimBytes": 292275964
+        },
+        {
+          "pose": "dw-centre",
+          "webContentBytes": 614682800,
+          "glBytes": 193503436,
+          "residentBaseBytes": 470125144,
+          "incrementBytes": 338061092,
+          "rawClaimBytes": 304559543
+        }
+      ]
+    }
+  ],
+  "unlabelledGlBytesIncluded": 7824,
+  "warning": "Simulator regression evidence, not physical-phone cap proof. Native WebContent plus exact GL storage; GPU-process RSS is not added. No inferred new grid overlay total."
+}
