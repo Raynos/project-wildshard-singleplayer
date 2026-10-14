@@ -7,11 +7,11 @@ import { validateGraph } from '../src/format/materialGraph';
 import { UNDER_GRAPHS, UNDER_LOOK } from '../src/shards/pine-hollow/data/undergrowthLook';
 
 test("Pine's undergrowth graph validates in its budget and compiles a swaying, cut, shadow-casting foliage material", () => {
-  // every kind names a declared graph; each shadow-casting kind has a compile of its own
+  // every kind borrows the same compiled graph
   for (const [, row] of UNDER_LOOK.kinds) expect(UNDER_GRAPHS[row.graph]).toBeDefined();
   const casting = UNDER_LOOK.kinds.filter(([, row]) => row.shadow).map(([, row]) => row.graph);
-  expect(new Set(casting).size).toBe(casting.length);
-  expect(Object.keys(UNDER_GRAPHS)).toHaveLength(casting.length + 1);
+  expect(new Set(casting).size).toBe(1);
+  expect(Object.keys(UNDER_GRAPHS)).toHaveLength(1);
   const graph = UNDER_GRAPHS['pine-undergrowth'];
   if (graph === undefined) throw new Error('no undergrowth graph');
   const checked = validateGraph(graph, { trustedBudget: true });

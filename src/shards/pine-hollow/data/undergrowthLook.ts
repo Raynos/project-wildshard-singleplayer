@@ -4,8 +4,7 @@ import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGra
  * Pine Hollow's forest-floor undergrowth as data (SHARD-PLATFORM M3): each kind's look on the shard's ground cover
  * (runtime/looks/groundCover.ts): its wind, alpha cut, roughness, whether it lies flat or casts a shadow, in the order
  * their materials are made, and the SF59 material graph each wears (`UNDER_GRAPHS`, the shardfile's look.materials, by
- * the row's `graph` id; one graph, compiled once per shadow-casting kind and once for the flat kinds: casting clones of
- * one compile drew with mismatched uniform blocks on the desktop tier). A kind wears its graph over its own painted
+ * the row's `graph` id; one graph compiled once, with mapped clones sharing its program). A kind wears its graph over its own painted
  * texture (`meshMap`); its alpha cut, roughness and depth bias are its material's, its wind the `aWind` its geometry
  * carries.
  */
@@ -14,12 +13,12 @@ import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGra
 export const UNDER_LOOK = {
   namePrefix: 'under-',
   kinds: [
-    ['ferns', { key: 'fern', graph: 'pine-undergrowth-fern', wind: 0.35, alphaTest: 0.5, shadow: true }],
-    ['shrubs', { key: 'shrub', graph: 'pine-undergrowth-shrub', wind: 0.25, alphaTest: 0.5, shadow: true }],
+    ['ferns', { key: 'fern', graph: 'pine-undergrowth', wind: 0.35, alphaTest: 0.5, shadow: true }],
+    ['shrubs', { key: 'shrub', graph: 'pine-undergrowth', wind: 0.25, alphaTest: 0.5, shadow: true }],
     ['litter', { key: 'litter', graph: 'pine-undergrowth', wind: 0, alphaTest: 0.35, roughness: 1, flat: true, shadow: false }],
     ['stones', { key: 'stone', graph: 'pine-undergrowth', wind: 0, alphaTest: 0.5, roughness: 0.75, flat: true, shadow: false }],
     ['moss', { key: 'moss', graph: 'pine-undergrowth', wind: 0, alphaTest: 0.4, roughness: 1, flat: true, shadow: false }],
-    ['reeds', { key: 'reed', graph: 'pine-undergrowth-reed', wind: 0.5, alphaTest: 0.45, shadow: true }],
+    ['reeds', { key: 'reed', graph: 'pine-undergrowth', wind: 0.5, alphaTest: 0.45, shadow: true }],
   ],
 } as const;
 
@@ -49,7 +48,7 @@ function kit() {
 function coverGraph(): GraphIr {
   const k = kit(), { op, add, sub, mul, swz, param } = k;
   // the vertex: the copy's fade by the player's distance, then the sway
-  const local = swz(op('instanceTransform', [[0, 0, 0, 1]]), 'xyz'), origin = add(local, param('shift')), fade = param('fade');
+  const origin = op('objectOrigin'), local = sub(origin, param('shift')), fade = param('fade');
   const dist = op('length', [sub(origin, param('viewer'))]);
   const keep = op('oneMinus', [op('smoothstep', [sub(swz(fade, 'x'), swz(fade, 'y')), swz(fade, 'x'), dist])]);
   const rel = sub(op('positionLocal'), local);
@@ -84,5 +83,5 @@ function coverGraph(): GraphIr {
     stages: { 'vertex.offset': { offset, shadow: true }, surface: { colour, alpha: swz(map, 'w'), alphaCutoff: 0.5 }, lighting: { sun, sunSpecular: 1, ambient } } };
 }
 
-/** The undergrowth's graphs by look.materials id: one per shadow-casting kind, one the flat kinds share (each its own compile). */
-export const UNDER_GRAPHS: Readonly<Record<string, GraphIr>> = Object.fromEntries([...new Set(UNDER_LOOK.kinds.map(([, row]) => row.graph))].map((id) => [id, coverGraph()]));
+/** All six kinds borrow one compiled graph and keep their own mapped textures. */
+export const UNDER_GRAPHS: Readonly<Record<string, GraphIr>> = { 'pine-undergrowth': coverGraph() };
