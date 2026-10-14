@@ -78,6 +78,11 @@ export function worldToLocal(direction: GraphValue): Node<'vec3'> { return op('w
 /** The engine's gust front at world xz; reads the existing wind clock and gust owner. */
 export function windGustAt(at: GraphValue): Node<'float'> { return op('windGustAt', 'float', [at]); }
 
+/** Smooth upward wave normal at a REST xz point, using the CPU ocean's shared coefficients. */
+export function gerstnerNormal(at: GraphValue, clock: GraphValue, damping: GraphValue): Node<'vec3'> {
+  return op('gerstnerNormal', 'vec3', [at, clock, damping]);
+}
+
 /** The scene colour at a uv (a post tap, `sceneColourAt`). */
 export function sceneColourAt(at: GraphValue): Node<'vec4'> { return op('sceneColourAt', 'vec4', [at]); }
 /** The scene depth (linear metres) at a uv, or at the pixel (a post tap, `sceneDepth`). */

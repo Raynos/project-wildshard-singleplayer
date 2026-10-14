@@ -376,6 +376,7 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   // Float index is floored and clamped to the declared fixed-capacity list.
   arrayElement: { arity: [1, 1], rule: 'arrayElement', cost: 4 },
   // Fixed CPU ocean coefficients: rest XZ, seconds, damping.
+  gerstnerNormal: { arity: [3, 3], rule: 'gerstner', cost: 200, type: 'vec3' },
   gerstner: { arity: [3, 3], rule: 'gerstner', cost: 120, type: 'vec3' },
   // arithmetic (a float broadcasts to a vector)
   add: { arity: [2, 2], rule: 'same', cost: 1 },

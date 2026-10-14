@@ -686,6 +686,17 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
         }
         return { t: 'vec3', n: sum.mul(asFloat(damping)) };
       }
+      case 'gerstnerNormal': {
+        const [point, clock, damping] = three(), p = asVec2(point), t = asFloat(clock), damp = asFloat(damping);
+        let tx: Node<'vec3'> = vec3(0), tz: Node<'vec3'> = vec3(0);
+        for (const wave of GERSTNER_TERMS) {
+          const phase = p.x.mul(wave.x).add(p.y.mul(wave.z)).sub(t.mul(wave.speed)).mul(wave.k);
+          const sine = phase.sin(), cosine = phase.cos();
+          tx = tx.add(vec3(sine.mul(-wave.x * wave.horizontalX * wave.k), cosine.mul(wave.x * wave.amplitude * wave.k), sine.mul(-wave.x * wave.horizontalZ * wave.k)));
+          tz = tz.add(vec3(sine.mul(-wave.z * wave.horizontalX * wave.k), cosine.mul(wave.z * wave.amplitude * wave.k), sine.mul(-wave.z * wave.horizontalZ * wave.k)));
+        }
+        return { t: 'vec3', n: vec3(0, 0, 1).add(tz.mul(damp)).cross(vec3(1, 0, 0).add(tx.mul(damp))).normalize() };
+      }
       case 'length': return { t: 'float', n: new MathNode('length', one().n) };
       case 'viewToWorld': return { t: 'vec3', n: new MathNode('normalize', new SplitNode(new OperatorNode('*', new JoinNode([one().n, float(0)]), cameraViewMatrix), 'xyz')) };
       case 'worldToLocal': return { t: 'vec3', n: new SplitNode(new OperatorNode('*', new JoinNode([one().n, float(0)]), modelWorldMatrix), 'xyz') };

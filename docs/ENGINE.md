@@ -5406,3 +5406,11 @@ borrowed geometry/material. `ejectBrass` consumes a `BrassEjectionRow` with
 ordered camera-axis velocity, spin coefficients, rotation and floor offset;
 six cosmetic RNG draws and the live floor query stay in their original order.
 Vectors/quaternion are borrowed, with no additional effect buffer backing.
+
+### Gerstner graph normals
+
+`gerstnerNormal(restXZ, clock, damping)` takes vec2/float/float and returns
+a unit, upward wave normal. Its analytic tangents use `GERSTNER_TERMS`,
+the same coefficients as CPU `waveDisplace` and graph `gerstner`. Evaluate
+it at the rest point, not the displaced position; damping zero is flat.
+It costs 200 estimated instructions and adds no clock or sampler.
