@@ -54,7 +54,7 @@ import { ANTLER_KING_ENCOUNTER } from '../data/antlerKing';
  *   Checkpoints per phase (Boss.ts): die and you are back at the stones' N gap, bolts refilled, the King at the start of
  *   the phase you reached. The reward (the gold legendary orb, once): THE WARDEN'S LONGBOW — the bow itself (PH-C11,
  *   src/engine/player/Longbow.ts, adapted from Nalati's Bow.ts) joins the kit, with the WARDEN crossbow skin and the
- *   Owned 'warden-longbow' that keeps it across sessions (E314 C, src/shards/pine-hollow/loadout/loadout.ts); a re-fight pays 3 amber resin. Music: Music.ts's Pine Hollow boss slot (setPineScene('boss') / setBossPhase).
+ *   Owned 'warden-longbow' that keeps it across sessions (E314 C, src/shards/pine-hollow/loadout/loadout.ts); a re-fight pays 3 amber resin. Music: Music.ts's Pine Hollow boss slot (setScene('boss') / setBossPhase).
  *
  *   STAND-IN MODEL: src/shards/pine-hollow/models/antlerKing.ts (the elk rig ×2.6, bark coat, lanterns, ribcage, skull) — `dressAntlerKing` is the one
  *   factory PH-M3's Bark Warden replaces. The King is its own kind, 'antler-king' (the journal's page answers to it).
@@ -404,10 +404,10 @@ export class AntlerKing {
 
   private music(e: 'intro' | 'phase' | 'victory' | 'death' | 'pickup'): void {
     const m = pineScore(this.host.music);
-    if (e === 'intro') { m.setPineScene('boss'); m.setBossPhase(1); m.combat(1); }
+    if (e === 'intro') { m.setScene('boss'); m.setBossPhase(1); m.combat(1); }
     else if (e === 'phase') { const ph = this.fight.phase + 1; m.setBossPhase(ph === 3 ? 3 : ph === 2 ? 2 : 1); }
-    else if (e === 'victory') { m.setPineScene(this.night() ? 'night' : 'day'); m.playSting('chunk'); }
-    else if (e === 'death') { m.setPineScene(this.night() ? 'night' : 'day'); m.playSting('death'); }
+    else if (e === 'victory') { m.setScene(this.night() ? 'night' : 'day'); m.playSting('chunk'); }
+    else if (e === 'death') { m.setScene(this.night() ? 'night' : 'day'); m.playSting('death'); }
     else m.playSting('pickup');
   }
 

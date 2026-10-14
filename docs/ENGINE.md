@@ -5129,3 +5129,10 @@ concat preserves ordering. Optional unique, layer/GPU transforms, public-file
 filtering, exclusions and admitted alias maps apply in that order. Page rows
 require KTX2 stand-ins in that mode. Named references refuse cycles, depth 16,
 256 visits or over 4096 files. No recipe performs IO or owns another boot.
+
+
+Declared score lifecycle: `audio.music.lifecycle` selects resident reuse,
+disposal, scene/phase logging and a delayed sting on the next non-excluded
+deck. Saved Debug picks are read by a borrowed `pin` callback;
+`CatalogueScore.get` and `CatalogueScore.install` keep the existing bank
+and entered scope.

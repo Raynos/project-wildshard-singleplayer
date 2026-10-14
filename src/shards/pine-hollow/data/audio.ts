@@ -27,7 +27,7 @@ export const PINE_AUDIO = parseAudioData({ playback:{mode:'samples',initial:{},p
     { frequency:260,q:0.5,pan:-0.55,rate:0.07,gain:0.11 }, { frequency:620,q:0.8,pan:0.55,rate:0.11,gain:0.06 },
     { frequency:140,q:0.4,pan:0,rate:0.05,gain:0.09 }, { frequency:2400,q:0.5,pan:0.2,rate:0.09,gain:0.012 }
   ], gust: { scope:'audio.pine.bed',scopeFirst:false,startTap:'audio.startForest',tap:'audio.gust',gentle:1,wait:[5,12],rise:[1.5,3],fall:[2,4],amount:[0.5,1.6] } }, score: 'default',
-  music: { catalogue: { mode: 'slots', extraStings: ['dawn'], stingSets: { dawn: 'pine-hollow' } }, id: 'score.pine', base: 'pine', slots: ['pine', 'night', 'boss'], bootSlots: ['title', 'pine'], synthLead: 'pluck', minFade: 0,
+  music: { lifecycle:{persistent:true,dispose:false,logChanges:true,bossScene:'boss',deckSting:{exceptSlot:'title',delay:2},pins:{night:{scene:'night'},boss:{scene:'boss'},'boss-2':{scene:'boss',phase:2},'boss-3':{scene:'boss',phase:3},dawn:{sting:'dawn'}}}, catalogue: { mode: 'slots', extraStings: ['dawn'], stingSets: { dawn: 'pine-hollow' } }, id: 'score.pine', base: 'pine', slots: ['pine', 'night', 'boss'], bootSlots: ['title', 'pine'], synthLead: 'pluck', minFade: 0,
     source: null, sets: { pine: 'base', night: 'pine-hollow', boss: 'pine-hollow' }, selectMode: 'first', selection: [
       { slots: ['pine'], when: [{ field: 'scene', op: 'equals', value: 'day' }] },
       { slots: ['night'], when: [{ field: 'scene', op: 'equals', value: 'night' }] },

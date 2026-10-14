@@ -29,7 +29,7 @@ export const DRIFTWOOD_AUDIO = parseAudioData({ playback:ISLAND_PLAYBACK, surfac
     { frequency:180,q:0.4,pan:-0.3,rate:0.05,gain:0.05,cutoff:900 }, { frequency:420,q:0.6,pan:0.3,rate:0.08,gain:0.03,cutoff:1100 },
     { frequency:1500,q:0.35,pan:0,rate:0.03,gain:0.02,cutoff:5000 }
   ], gust:{scope:'audio.ocean.surf',scopeFirst:true,startTap:'audio.startIsland',tap:'audio.gust',gentle:1.4,wait:[5,12],rise:[1.5,3],fall:[2,4],amount:[0.5,1.6]} }, score: 'default',
-  music: { catalogue: { mode: 'bank', extraStings: [], stingSets: {} }, id: 'score.driftwood', base: 'island', slots: ['island'], bootSlots: ['title', 'island'], synthLead: 'marimba', minFade: 0,
+  music: { lifecycle:{persistent:false,dispose:true,logChanges:false,pins:{}}, catalogue: { mode: 'bank', extraStings: [], stingSets: {} }, id: 'score.driftwood', base: 'island', slots: ['island'], bootSlots: ['title', 'island'], synthLead: 'marimba', minFade: 0,
     source: null, sets: { island: 'base' }, selectMode: 'first', selection: [{ slots: ['island'], when: [] }] },
   samples: { catalogue: { ownMusic: false, priorityOwn: false, overlaySamples: true, inventoryOmitSlots: [], loopOrder: ['island', 'underwater', 'pickup', 'shrine'] }, set: 'driftwood-isle', bed: 'island', loopGains: { island: 0.5 } },
   zones: { routing:ISLAND_ROUTING,nodes: [

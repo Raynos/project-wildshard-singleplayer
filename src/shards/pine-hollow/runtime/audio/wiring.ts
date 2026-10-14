@@ -77,7 +77,7 @@ export function installPineAudio(h: PineAudioHost): void {
     writers:new Map([['ambience.night',(value)=>{amb.night=value;}]]),
     entities:{animals:()=>animals.animals},commands:new Map<string,NonNullable<ReturnType<Parameters<typeof audioObserverSystems>[1]['commands']['get']>>>([
       ['clock.change',(_dt,_t,event)=>{audioLog('wire',event.value===1?'clock:night':'clock:day',true,(sky.dayNight?.night??0).toFixed(2));}],
-      ['score.scene',()=>{score.setPineScene(observer.value('audio','night')!==0?'night':'day');}],
+      ['score.scene',()=>{score.setScene(observer.value('audio','night')!==0?'night':'day');}],
       ['elite.change',(_dt,_t,event)=>{audioLog('wire',event.value===1?'elite:engaged':'elite:clear');}],
       ['combat',()=>{music.combat(0.8);}],
       ['deer.snort',(_dt,_t,event)=>{if(event.entity===undefined)throw new Error('Missing audio observation actor');amb.sfx.shot('deer_snort',{at:event.entity.position});}],
