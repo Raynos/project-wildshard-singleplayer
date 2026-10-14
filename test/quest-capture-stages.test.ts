@@ -6,8 +6,8 @@ import { bindBorrowedMethod, HybridRuntimePlugin, type HybridRuntimeRows, type Q
 class Capture extends HybridRuntimePlugin {
   protected get rows(): HybridRuntimeRows { throw new Error('Capture-only fixture has no world rows'); }
   protected build(): void { /* no world in this fixture */ }
-  protected arm(): never { throw new Error('Capture-only fixture has no weapon'); }
-  protected armed(): null { return null; }
+  protected override arm(): never { throw new Error('Capture-only fixture has no weapon'); }
+  protected override armed(): null { return null; }
   protected install(): void { /* no play scope in this fixture */ }
   bind(rows: QuestCaptureRows, flags: Flags, calls: ReadonlyMap<string, () => void>): void { this.bindQuestCapture(rows, flags, calls); }
 }
