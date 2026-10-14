@@ -38,6 +38,15 @@ const creatureOwners=new Set([
   'src/shards/pine-hollow/runtime/herds.ts',
   'src/shards/driftwood-isle/runtime/ecology.ts',
   'src/shards/driftwood-isle/runtime/captain.ts',
+  'src/shards/pine-hollow/runtime/KingGoals.ts',
+  'src/shards/pine-hollow/runtime/antlerKing.ts',
+  'src/shards/pine-hollow/runtime/king.ts',
+  'src/shards/pine-hollow/runtime/elitePrelude.ts',
+  'src/shards/pine-hollow/runtime/nightPopulation.ts',
+  'src/shards/pine-hollow/combat/kingFight.ts',
+  'src/shards/pine-hollow/combat/kingTiming.ts',
+  'src/shards/driftwood-isle/runtime/placement.ts',
+  'src/shards/driftwood-isle/combat/captain.ts',
 ]);
 const questOwners=new Set([
   'src/shards/pine-hollow/runtime/facts.ts',
