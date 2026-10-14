@@ -1,6 +1,7 @@
 import { loadPaintedTexture, type PaintedSampler, type ModelLibrary } from '../plugin/geometry';
 import type { Material, Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
+import type { Renderer } from '@wildshard/engine/render/renderer';
 import { ClientAssets } from './clientAssets';
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import { boundedResponse, browserContentHash, browserProductCache, type AdmittedProduct, type ProductOptions } from './product';
@@ -150,11 +151,12 @@ export function bindRuntimeProductProps(scope: Scope, source: Shardfile, ports: 
  * its scope, from its product reader (`runtimeProduct`), for the meshes it still builds itself (read from its world stage).
  * `graphs` is the shard's switch (G387): true compiles its graphs whatever the Debug row says; absent, the row decides
  * (off: each graph's family preset). `ids` compiles only those catalogue entries (no props, curves or terrain maps), so a
- * runtime whose data client already draws the textured rest compiles just its own meshes' materials.
+ * runtime whose data client already draws the textured rest compiles just its own meshes' materials. A look built before the
+ * world stage (a sky backdrop) passes the page renderer it was handed with its own scope instead of a shard context.
  */
-export async function runtimeLookMaterials(ctx: Pick<ShardContext, 'scope' | 'game'>, source: Shardfile, graphs?: boolean, ids?: readonly string[]): ReturnType<typeof clientMaterials> {
-  const world = ctx.game.runtime?.world;
-  if (world === null || world === undefined) throw new Error('Runtime look materials need the world stage');
+export async function runtimeLookMaterials(ctx: Pick<ShardContext, 'scope' | 'game'> | { readonly scope: Scope; readonly renderer: Renderer }, source: Shardfile, graphs?: boolean, ids?: readonly string[]): ReturnType<typeof clientMaterials> {
+  const renderer = 'renderer' in ctx ? ctx.renderer : ctx.game.runtime?.world?.game.renderer;
+  if (renderer === undefined) throw new Error('Runtime look materials need the world stage');
   const product = runtimeProduct(source);
   let shard = product.source;
   if (ids !== undefined) {
@@ -169,7 +171,7 @@ export async function runtimeLookMaterials(ctx: Pick<ShardContext, 'scope' | 'ga
   for (const ref of files) assets.set(ref, await product.assets.read(ref));
   for (const ref of new Set([...materialTextureRefs(shard.look.materials), ...graphFileTextureRefs(shard.look.materials, hash => assets.get(hash))])) assets.set(ref, await product.assets.read(ref));
   if (ctx.scope.disposed) throw new Error('Runtime look scope unloaded while reading materials');
-  return clientMaterials(shard, assets, world.game.renderer, ctx.scope, { trustedGraphs: true, ...(graphs === undefined ? {} : { graphs }) });
+  return clientMaterials(shard, assets, renderer, ctx.scope, { trustedGraphs: true, ...(graphs === undefined ? {} : { graphs }) });
 }
 
 /**

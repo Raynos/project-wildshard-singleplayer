@@ -5029,6 +5029,14 @@ are checked before mutation; colours take three sRGB components. Unknown
 catalogue/param names, texture params, fallback materials and disposed
 scopes refuse. Borrowed mesh-map variants share their graph's uniforms.
 
+`SkyBackdropContext.renderer` is the page renderer, read-only. A sky
+backdrop compiles its own `look.materials` graphs before the world stage
+with `lookGraphMaterials(scope, context, source, ids)` from
+`@wildshard/game/plugin/shaderFamily`: it hands over its whole context,
+the helper reads the renderer, and the shard's runtime never holds it for
+that (the `raw-render` guard). The result carries the materials and the
+same checked `setParam`; they leave with `scope`.
+
 Material graph `dFdx(value)` and `dFdy(value)` preserve a numeric scalar
 or vector type and run only in fragment, lighting, outline or post work.
 Vertex use refuses before compilation. `cross(vec3, vec3)` returns vec3;

@@ -352,5 +352,16 @@ export interface SkyBackdrop {
 
 /** An offscreen draw: what `renderer.render(scene, camera)` into `target` draws (`compileOffscreenPass`). */
 export interface OffscreenPass { readonly scene: Object3D; readonly camera: Camera; readonly target: WebGLRenderTarget }
-export interface SkyBackdropContext { sky: Sky; scene: Scene; renderer: WebGLRenderer; level: LevelSpec; tier: Tier; look: { vol: number; fogDist: number; sat: number; ambient: number; sky: number } | null }
+/** What a sky backdrop's factory is built with (`SkyRig.build`, or a grid cell's layer, `SkyRig.layeredBackdrop`). */
+export interface SkyBackdropContext {
+  sky: Sky; scene: Scene;
+  /**
+   * The page renderer, read-only: what the backdrop's offscreen passes (its PMREM environment) draw with, and what a game
+   * helper compiles the backdrop's own material graphs on before the world stage (`lookGraphMaterials(scope, context, …)`
+   * in `@wildshard/game/plugin/shaderFamily`). A shard hands that helper the whole context instead of reading `renderer`
+   * itself, so its runtime never holds the renderer for it (the runtime-performance `raw-render` guard).
+   */
+  readonly renderer: WebGLRenderer;
+  level: LevelSpec; tier: Tier; look: { vol: number; fogDist: number; sat: number; ambient: number; sky: number } | null;
+}
 export type SkyBackdropFactory = (c: SkyBackdropContext) => Promise<SkyBackdrop>;

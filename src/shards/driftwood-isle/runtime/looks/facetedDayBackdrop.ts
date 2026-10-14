@@ -1,10 +1,10 @@
 /**
  * A faceted sky backdrop with its day / night clock, as a look-family system (SHARD-PLATFORM M3): no HDRI at all — the
- * faceted gradient dome + cumulus (`FacetedSky`) is the background, a PMREM of the dome is the environment (re-rendered as
+ * faceted gradient dome + cumulus (`FacetedSky`, the shard's material graphs) is the background, a PMREM of the dome is the environment (re-rendered as
  * the clock moves on), and the sun starts where the clock puts it. The clock (`facetedDay`'s row) turns the lights, the
  * fog, the toon light's tunables, the dome's palette, the disc and the planet's lit side from `bind` on; it steps its own
  * shadow light, so it runs after the cascades (`updateAt: 'late'`), and the planet keeps its opacity by night. Nothing here
- * knows a shard: the shard passes its day, its sky's GLSL rows, palette and seed, its light's tunables and its cycle.
+ * knows a shard: the shard passes its day, its sky's graph ids, palette and seed, its light's tunables and its cycle.
  *
  *   ?tod=0.5    // start phase (default the row's start)
  *   ?clock=120  // cycle length in seconds (default the shard's)
@@ -23,8 +23,9 @@ import { preloadBakedTextures, loadLUT } from '@wildshard/engine/boot/bakedApi';
 import type { SkyBackdropFactory } from '@wildshard/engine/render/look';
 import { setting, type OptionValue } from '@wildshard/engine/ui/Settings';
 import { DayCycle, type DayCycleClock } from '@wildshard/engine/world/dayCycle';
+import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { cloneFacetedDayPreset, type FacetedDay, type FacetedDayPreset } from './facetedDay';
-import { FacetedSky, type FacetedSkyGlsl, type SkyPalette } from './facetedSky';
+import { FacetedSky, type SkyPalette } from './facetedSky';
 
 /** the light model's tunables the clock turns */
 export interface FacetedDayLight {
@@ -37,7 +38,11 @@ export interface FacetedDayBackdropSpec {
   /** the shard's name, for errors */
   readonly name: string;
   readonly day: FacetedDay;
-  readonly sky: { readonly glsl: FacetedSkyGlsl; readonly palette: SkyPalette; readonly seed: number };
+  readonly sky: {
+    /** the shard's declaration and the look.materials ids of the dome's and the cumulus's graphs */
+    readonly looks: { readonly source: Parameters<typeof lookGraphMaterials>[2]; readonly dome: string; readonly clouds: string };
+    readonly palette: SkyPalette; readonly seed: number;
+  };
   readonly light: FacetedDayLight;
   /** the cycle's default length in seconds */
   readonly cycleSeconds: number;
@@ -151,11 +156,22 @@ class FacetedDayClock {
 export function facetedDayBackdrop(spec: FacetedDayBackdropSpec): SkyBackdropFactory {
   const style = spec.day.style, envSize = style.envSize;
   const startSun = new THREE.Vector3(style.startSun[0], style.startSun[1], style.startSun[2]).normalize();
-  return async ({ sky, scene, renderer, level }) => {
+  return async (context) => {
+    const { sky, scene, renderer, level } = context;
     const owner = resourceScope();
-    const [, lut] = await Promise.all([preloadBakedTextures(), loadLUT(level.id)]);
+    // the sky's graphs compile here from the look catalogue, on the page renderer, before the world stage: the dome is drawn
+    // (and PMREM'd) from the first frame, and a grid layer gets the same materials to blend; they leave with this owner
+    const ids = spec.sky.looks;
+    const [, lut, looks] = await Promise.all([preloadBakedTextures(), loadLUT(level.id), lookGraphMaterials(owner, context, ids.source, [ids.dome, ids.clouds])]);
+    const material = (id: string): THREE.Material => {
+      const found = looks.materials.get(id);
+      if (found === undefined) throw new Error(`${spec.name}: look.materials lacks the sky graph ${id}`);
+      return found;
+    };
     sky.sunDir.copy(startSun);
-    const st = new FacetedSky(sky.sunDir, spec.sky.glsl, spec.sky.palette, spec.sky.seed).build();
+    const st = new FacetedSky(sky.sunDir, spec.sky.palette, spec.sky.seed).build({ dome: material(ids.dome), clouds: material(ids.clouds),
+      setParam: (part, name, value) => { looks.setParam(part === 'dome' ? ids.dome : ids.clouds, name, value); } });
+    owner.onDispose(() => { st.envMaterial?.dispose(); });
     scene.add(st.dome);
     scene.background = null;
     const envSource: SkyEnvironmentSource = { kind: 'scene', scene: st.envScene, size: envSize, near: 1, far: 3000 };
@@ -201,12 +217,12 @@ export function facetedDayBackdrop(spec: FacetedDayBackdropSpec): SkyBackdropFac
         clock = new FacetedDayClock(spec.day, {
           sunDir: T.sunDir, lights: T.lights, lightDirection: T.lightDirection, hemi: T.hemi, fog: T.fog,
           fogSunDir: T.fogU.fogSunDir.value, fogSunColor: T.fogU.fogSunColor.value, toon: spec.light,
-          setSkyPalette: (pal, dir) => { st.setPalette(pal); st.u.uSunDir.value.copy(dir); },
+          setSkyPalette: (pal, dir) => { st.setPalette(pal, dir); },
           disc: T.disc, planetSun: T.planet.uSunDir.value, planetHaze: T.planet.uHaze.value,
           refreshEnvironment, shadowBusy: T.shadowBusy,
         }, spec.cycleSeconds, level.sky.sunIntensity / style.sunIBase);
       },
-      update: (dt) => { clock?.update(dt); st.update(dt); spec.light.uCloudTime.value += dt; },
+      update: (dt) => { clock?.update(dt); spec.light.uCloudTime.value += dt; },
       rebuild: () => { pmrem = null; envRT = null; refreshEnvironment(); }, // a fresh generator: the old one's targets belong to the lost context
       attachPost: () => undefined, // the clean chain: no post the clock turns
       dispose: () => {

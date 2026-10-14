@@ -1,20 +1,20 @@
 /**
- * A faceted gradient sky as a look-family system (SHARD-PLATFORM M3): one back-faced dome drawn by the shard's dome program
- * (a zenith → horizon gradient, a sun glow, stars at night…) and one merged ring of faceted cumulus drawn by its cloud
- * program, both unlit and fogless, sharing one uniform table the day / night clock writes (`u`, `setPalette`). Nothing
- * here knows a shard: the shard passes its GLSL rows, its palette and the ring's seed.
+ * A faceted gradient sky as a look-family system (SHARD-PLATFORM M3, W2 C2): one back-faced dome and one merged ring of
+ * faceted cumulus, both drawn by the shard's material graphs (unlit, fogless; data/skyLook.ts), compiled from its look
+ * catalogue on the page renderer when the backdrop builds. The day / night clock writes the palette (`setPalette`) into `u`, a plain table other systems read
+ * by reference (the horizon matte), and through each graph's checked `setParam`. Nothing here knows a shard: the shard passes
+ * its graphs, its palette and the ring's seed.
  *
- *   const s = new FacetedSky(sunDir, glsl, palette, seed).build();   // s.dome follows the camera; the clouds ride it
- *   s.envScene                                                       // a copy of the dome at the origin for PMREM (IBL specular)
- *   s.update(dt)                                                     // cloud drift
+ *   const s = new FacetedSky(sunDir, palette, seed).build(looks);   // s.dome follows the camera; the clouds ride it
+ *   s.envScene                                                     // a copy of the dome at the origin for PMREM (IBL specular)
  *
  * - **dome**: one sphere (r 2200 m), back faces, no depth test or write; renderOrder −20.
- * - **cumulus**: one merged mesh of faceted puffs (icosahedra, flattened bases, a `belly` attribute on the undersides) on
+ * - **cumulus**: one merged mesh of faceted puffs (icosahedra, flattened bases, an `aBelly` attribute on the undersides) on
  *   a ring 900–1700 m out; transparent so it is drawn after the world (depth-tested against it), renderOrder −15. One draw.
+ *   Its graph turns it slowly on the frame clock.
  */
 import * as THREE from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
-import { ShaderFamily } from '@wildshard/game/plugin/shaderFamily';
 
 /** the sky's palette (linear, pre-tonemap); a day / night clock lerps these per preset */
 export interface SkyPalette {
@@ -22,12 +22,12 @@ export interface SkyPalette {
   cloudLit: THREE.Color; cloudShade: THREE.Color; night: number;
 }
 
-/** a faceted sky's programs as GLSL rows (spliced with the shared `ShaderFamily`) */
-export interface FacetedSkyGlsl {
-  readonly domeVertex: string;
-  readonly domeFragment: string;
-  readonly cloudVertex: string;
-  readonly cloudFragment: string;
+/** a faceted sky's two compiled graph materials (params: the palette's colours as vec3s, `night`, `sunDir`) */
+export interface FacetedSkyLooks {
+  readonly dome: THREE.Material;
+  readonly clouds: THREE.Material;
+  /** write one of the two materials' graph uniforms (checked before it moves anything; no program change) */
+  readonly setParam: (part: 'dome' | 'clouds', name: string, value: number | number[]) => void;
 }
 
 /** A stylized faceted sky dome with a cumulus ring, coloured from a shard's palette. */
@@ -35,64 +35,76 @@ export class FacetedSky {
   dome!: THREE.Mesh;
   clouds!: THREE.Mesh;
   envScene = new THREE.Scene();
+  /** the live palette, read by reference elsewhere; write it through `setPalette` */
   readonly u: {
     uZenith: { value: THREE.Color }; uHorizon: { value: THREE.Color }; uBelow: { value: THREE.Color }; uSunGlow: { value: THREE.Color };
-    uCloudLit: { value: THREE.Color }; uCloudShade: { value: THREE.Color }; uNight: { value: number }; uSunDir: { value: THREE.Vector3 }; uTime: { value: number };
+    uCloudLit: { value: THREE.Color }; uCloudShade: { value: THREE.Color }; uNight: { value: number }; uSunDir: { value: THREE.Vector3 };
   };
-  private readonly family: ShaderFamily;
+  /** the PMREM scene's copy of the dome material (the owner frees it) */
+  envMaterial: THREE.Material | null = null;
+  private looks: FacetedSkyLooks | null = null;
+  private readonly out: number[] = [0, 0, 0];
 
   /** `palette`: the starting colours (copied); `seed`: the cumulus ring's layout */
-  constructor(sunDir: THREE.Vector3, private readonly glsl: FacetedSkyGlsl, palette: SkyPalette, private readonly seed: number) {
-    this.family = new ShaderFamily({ ...glsl }, {});
+  constructor(sunDir: THREE.Vector3, palette: SkyPalette, private readonly seed: number) {
     this.u = {
-      uZenith: { value: palette.zenith.clone() },
-      uHorizon: { value: palette.horizon.clone() },
-      uBelow: { value: palette.below.clone() },
-      uSunGlow: { value: palette.sunGlow.clone() },
-      uCloudLit: { value: palette.cloudLit.clone() },
-      uCloudShade: { value: palette.cloudShade.clone() },
-      uNight: { value: 0 },
-      uSunDir: { value: new THREE.Vector3(0, 1, 0) },
-      uTime: { value: 0 },
+      uZenith: { value: palette.zenith.clone() }, uHorizon: { value: palette.horizon.clone() }, uBelow: { value: palette.below.clone() },
+      uSunGlow: { value: palette.sunGlow.clone() }, uCloudLit: { value: palette.cloudLit.clone() }, uCloudShade: { value: palette.cloudShade.clone() },
+      uNight: { value: 0 }, uSunDir: { value: sunDir.clone() },
     };
-    this.u.uSunDir.value.copy(sunDir);
   }
 
-  /** set every palette colour from a preset (DayNight blends two presets into a scratch palette first) */
-  setPalette(p: SkyPalette): void {
-    this.u.uZenith.value.copy(p.zenith); this.u.uHorizon.value.copy(p.horizon); this.u.uBelow.value.copy(p.below);
-    this.u.uSunGlow.value.copy(p.sunGlow); this.u.uCloudLit.value.copy(p.cloudLit); this.u.uCloudShade.value.copy(p.cloudShade);
-    this.u.uNight.value = p.night;
+  /** set every palette colour from a preset (DayNight blends two presets into a scratch palette first) and the sun's direction */
+  setPalette(p: SkyPalette, sunDir: THREE.Vector3): void {
+    const u = this.u;
+    u.uZenith.value.copy(p.zenith); u.uHorizon.value.copy(p.horizon); u.uBelow.value.copy(p.below);
+    u.uSunGlow.value.copy(p.sunGlow); u.uCloudLit.value.copy(p.cloudLit); u.uCloudShade.value.copy(p.cloudShade);
+    u.uNight.value = p.night; u.uSunDir.value.copy(sunDir);
+    this.push();
   }
 
-  build(): this {
-    const domeMat = new THREE.ShaderMaterial({
-      uniforms: this.u, side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false,
-      vertexShader: this.family.glsl(this.glsl.domeVertex),
-      fragmentShader: this.family.glsl(this.glsl.domeFragment),
-    });
-    this.dome = new THREE.Mesh(new THREE.SphereGeometry(2200, 48, 24), domeMat);
+  /** the palette into both graphs' uniforms (no program changes) */
+  private push(): void {
+    const looks = this.looks;
+    if (looks === null) return;
+    const u = this.u, out = this.out;
+    const set = (part: 'dome' | 'clouds', name: string, v: THREE.Color | THREE.Vector3): void => { looks.setParam(part, name, v.toArray(out)); };
+    set('dome', 'zenith', u.uZenith.value); set('dome', 'horizon', u.uHorizon.value); set('dome', 'below', u.uBelow.value);
+    set('dome', 'sunGlow', u.uSunGlow.value); set('dome', 'sunDir', u.uSunDir.value); looks.setParam('dome', 'night', u.uNight.value);
+    set('clouds', 'cloudLit', u.uCloudLit.value); set('clouds', 'cloudShade', u.uCloudShade.value); set('clouds', 'horizon', u.uHorizon.value);
+    set('clouds', 'sunGlow', u.uSunGlow.value); set('clouds', 'sunDir', u.uSunDir.value);
+  }
+
+  /** take the compiled graphs: drawn as the GLSL programs were, behind everything and untouched by the material's tone map
+   *  (the post chain grades it), with the palette pushed in */
+  private adoptLooks(looks: FacetedSkyLooks): THREE.Material {
+    this.looks = looks;
+    const domeMat = looks.dome;
+    domeMat.side = THREE.BackSide; domeMat.depthTest = false; domeMat.toneMapped = false;
+    looks.clouds.toneMapped = false;
+    this.push();
+    return domeMat;
+  }
+
+  build(looks: FacetedSkyLooks): this {
+    this.dome = new THREE.Mesh(new THREE.SphereGeometry(2200, 48, 24), this.adoptLooks(looks));
     this.dome.frustumCulled = false;
     this.dome.renderOrder = -20;
-    this.envScene.add(new THREE.Mesh(this.dome.geometry, domeMat));
+    // the PMREM scene draws the dome's twin (the same graph and params): one node material drawn into both scenes lost its
+    // uniform blocks on every environment refresh and the dome drew black through the post chain
+    this.envScene.add(new THREE.Mesh(this.dome.geometry, this.envMaterial = looks.dome.clone()));
 
-    this.clouds = new THREE.Mesh(buildCumulus(this.seed), new THREE.ShaderMaterial({
-      uniforms: this.u, transparent: true, depthWrite: false, fog: false,
-      vertexShader: this.family.glsl(this.glsl.cloudVertex),
-      fragmentShader: this.family.glsl(this.glsl.cloudFragment),
-    }));
+    this.clouds = new THREE.Mesh(buildCumulus(this.seed), looks.clouds);
     this.clouds.frustumCulled = false;
     this.clouds.renderOrder = -15;
     this.dome.add(this.clouds);
     return this;
   }
-
-  update(dt: number): void { this.u.uTime.value += dt; }
 }
 
 /**
  * The cumulus ring: 22 clusters of 5–11 icosahedron puffs each, bigger and lower toward the horizon, bases cut flat.
- * Non-indexed with flat normals, plus a `belly` attribute (1 on the underside) for the darker bases.
+ * Non-indexed with flat normals, plus an `aBelly` attribute (1 on the underside) for the darker bases.
  */
 function buildCumulus(seed: number): THREE.BufferGeometry {
   const rng = new Rng(seed);
@@ -137,6 +149,6 @@ function buildCumulus(seed: number): THREE.BufferGeometry {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   geo.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
-  geo.setAttribute('belly', new THREE.Float32BufferAttribute(belly, 1));
+  geo.setAttribute('aBelly', new THREE.Float32BufferAttribute(belly, 1));
   return geo;
 }

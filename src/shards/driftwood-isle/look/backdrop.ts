@@ -13,7 +13,8 @@
  */
 import type { SkyBackdropFactory } from '@wildshard/engine/render/look';
 import { facetedDayBackdrop } from '../runtime/looks/facetedDayBackdrop';
-import { SKY_GLSL } from '../runtime/looks/skyGlsl';
+import { SKY_CLOUD_LOOK, SKY_DOME_LOOK } from '../data/skyLook';
+import source from '../shard.config';
 import { DRIFTWOOD_FACETED_DAY } from './dayKeys';
 import { CUMULUS_SEED, MIDDAY_SKY } from './stylizedSky';
 import { toonUniforms } from './toon';
@@ -22,5 +23,5 @@ import { toonUniforms } from './toon';
 const CYCLE_S = 48 * 60;
 
 export const STYLIZED_BACKDROP: SkyBackdropFactory = facetedDayBackdrop({
-  name: 'driftwood-isle', day: DRIFTWOOD_FACETED_DAY, sky: { glsl: SKY_GLSL, palette: MIDDAY_SKY, seed: CUMULUS_SEED }, light: toonUniforms, cycleSeconds: CYCLE_S,
+  name: 'driftwood-isle', day: DRIFTWOOD_FACETED_DAY, sky: { looks: { source, dome: SKY_DOME_LOOK, clouds: SKY_CLOUD_LOOK }, palette: MIDDAY_SKY, seed: CUMULUS_SEED }, light: toonUniforms, cycleSeconds: CYCLE_S,
 });

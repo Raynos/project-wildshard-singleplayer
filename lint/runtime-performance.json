@@ -2614,15 +2614,7 @@
       "count": 1,
       "row": "SF46"
     },
-    "src/shards/driftwood-isle/runtime/looks/facetedDayBackdrop.ts:frame-allocation:2a328c8fdb8e4e247c7e68bced3f6818f9ce6c68e5e8053cdae6751a19c91bfd": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/facetedDayBackdrop.ts:unbounded-loop:f8d548f2e7c645a4fbc4d7ee6d6b648b42441c95df1701050b1a5cdf33489484": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/facetedDayBackdrop.ts:unbounded-loop:569032e029960978c3c853a9c6eb1dfee0c56f43132e4efd9f2b63b24a36186e": {
+    "src/shards/driftwood-isle/runtime/looks/facetedDayBackdrop.ts:unbounded-loop:dc0b1426c340fd64d856ea922b7b32d6d3eda517320f96425c8e471625ea3f2c": {
       "count": 1,
       "row": "SF46"
     },
