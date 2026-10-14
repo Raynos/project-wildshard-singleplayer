@@ -10,6 +10,7 @@
  * `drawnInto` it. The posts and signposts collide as the boxes they always had (own space, carried to each placement).
  */
 import * as THREE from 'three';
+import TRAIL_FONT from '../data/trailFont.generated.json' with { type: 'json' };
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
@@ -69,26 +70,8 @@ export interface SignpostParams {
   readonly labels?: readonly string[];
 }
 
-/** the lettering's block font: 5 × 7 cells, '#' painted (the island's faceted look: the letters are flat quads in the
- *  weld's vertex colour, so a lettered sign costs no texture and no draw) */
-const GLYPHS: Readonly<Record<string, readonly string[]>> = {
-  A: ['.###.', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
-  C: ['.####', '#....', '#....', '#....', '#....', '#....', '.####'],
-  E: ['#####', '#....', '#....', '####.', '#....', '#....', '#####'],
-  H: ['#...#', '#...#', '#...#', '#####', '#...#', '#...#', '#...#'],
-  I: ['.###.', '..#..', '..#..', '..#..', '..#..', '..#..', '.###.'],
-  K: ['#...#', '#..#.', '#.#..', '##...', '#.#..', '#..#.', '#...#'],
-  L: ['#....', '#....', '#....', '#....', '#....', '#....', '#####'],
-  N: ['#...#', '##..#', '##..#', '#.#.#', '#..##', '#..##', '#...#'],
-  O: ['.###.', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
-  P: ['####.', '#...#', '#...#', '####.', '#....', '#....', '#....'],
-  R: ['####.', '#...#', '#...#', '####.', '#.#..', '#..#.', '#...#'],
-  S: ['.####', '#....', '#....', '.###.', '....#', '....#', '####.'],
-  T: ['#####', '..#..', '..#..', '..#..', '..#..', '..#..', '..#..'],
-  U: ['#...#', '#...#', '#...#', '#...#', '#...#', '#...#', '.###.'],
-  V: ['#...#', '#...#', '#...#', '#...#', '#...#', '.#.#.', '..#..'],
-  W: ['#...#', '#...#', '#...#', '#.#.#', '#.#.#', '##.##', '#...#'],
-};
+/** Build-time font runs; unsupported characters remain blank cells. */
+const FONT: Readonly<Record<string, readonly { start: number; end: number; row: number }[]>> = TRAIL_FONT;
 /** one font cell, metres: letters 0.18 m tall on a 0.3 m board (readable from ~10 m on a phone) */
 const CELL = 0.026;
 const textWidth = (text: string): number => Math.max(0, text.length * 6 - 1) * CELL;
@@ -97,23 +80,13 @@ const textWidth = (text: string): number => Math.max(0, text.length * 6 - 1) * C
  *  laid mirrored so it reads left → right from there too), centred on `cx`, in the board's own frame */
 function lettering(text: string, cx: number, side: 1 | -1): THREE.BufferGeometry[] {
   const out: THREE.BufferGeometry[] = [], w = textWidth(text), x0 = cx - (side * w) / 2, z = side * 0.034;
-  text.toUpperCase().split('').forEach((ch, k) => { // the font is plain ASCII capitals
-    const rows = GLYPHS[ch];
-    if (!rows) return; // a space (or a letter the font lacks) is a gap
-    rows.forEach((row, r) => {
-      // one quad per run of painted cells in the row
-      for (let c = 0; c < 5;) {
-        if (row[c] !== '#') { c++; continue; }
-        let e = c; while (e < 5 && row[e] === '#') e++;
-        const a = (k * 6 + c) * CELL, b = (k * 6 + e) * CELL, y = (3.5 - r) * CELL - CELL / 2;
-        const q = new THREE.PlaneGeometry(b - a, CELL);
-        if (side < 0) q.rotateY(Math.PI);
-        q.translate(x0 + side * (a + b) / 2, y, z);
-        out.push(q);
-        c = e;
-      }
-    });
-  });
+  for (const [k, ch] of text.toUpperCase().split('').entries()) for (const run of FONT[ch] ?? []) {
+    const a = (k * 6 + run.start) * CELL, b = (k * 6 + run.end) * CELL, y = (3.5 - run.row) * CELL - CELL / 2;
+    const q = new THREE.PlaneGeometry(b - a, CELL);
+    if (side < 0) q.rotateY(Math.PI);
+    q.translate(x0 + side * (a + b) / 2, y, z);
+    out.push(q);
+  }
   return out;
 }
 

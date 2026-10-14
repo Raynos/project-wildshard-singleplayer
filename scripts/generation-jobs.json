@@ -3,6 +3,33 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "driftwood-trail-font",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/trailFont.ts",
+      "command": [
+        "--experimental-transform-types",
+        "src/sdk/bake/json.mjs",
+        "src/shards/driftwood-isle/generators/trailFont.ts",
+        "trailFontFacts",
+        "src/shards/driftwood-isle/data/trailFont.generated.json"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/trailFont.ts",
+        "src/sdk/bake/json.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/trailFont.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/trailFont.generated.json"
+      ],
+      "seedOutputs": [],
+      "platform": "native"
+    },
+    {
       "id": "sky-rest-scenes",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/restScene.ts",
