@@ -3,7 +3,7 @@ import { type BufferGeometry, MeshStandardMaterial } from 'three';
 import { Rng } from '../src/engine/core/rng';
 import { modelContext, type ModelBuild, type ModelPart } from '../src/engine/models/model';
 import { trailFontFacts } from '../src/shards/driftwood-isle/generators/trailFont';
-import { signpost } from '../src/shards/driftwood-isle/models/trailside';
+import { signpost } from '../src/shards/driftwood-isle/generators/trailsideModels';
 
 it('composes readable trail signs from quad runs while leaving unsupported characters blank', () => {
   const font = trailFontFacts();
