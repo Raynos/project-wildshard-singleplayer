@@ -23,7 +23,7 @@ import { setSkyLooks, skyLook, skyMappedLook } from '../world/looks';
 import { wakeRibbon } from './looks/wakeRibbon';
 import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow } from '../world/meadow';
-import { bindDeclaredFight, bindQuestPageInteractions, bindClientChannels } from '@wildshard/game/plugin/ui';
+import { bindQuestPageInteractions, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
 import { FLAGS } from '../quests/flags';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
@@ -98,11 +98,10 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     } }));
   }
   protected override async install(ctx: ShardContext): Promise<void> {
-    const rt = ctx.game.runtime, built = this.built, fan = this.fan, motion = this.clientMotion, channels = this.clientChannels, position = rt?.world?.player.position ?? this.player;
+    const { runtime: rt, position, quest } = this.pageEntry(ctx), built = this.built, fan = this.fan, motion = this.clientMotion, channels = this.clientChannels;
     if (built === null || fan === null || motion === null || channels === null || rt?.world === undefined || rt.world === null) throw new Error('Sky Reach: world and kit must run before play');
     const toast = (text: string): void => { rt.play?.hud.toast(text); };
-    const { flags, reward, persistence } = this.pageQuest; this.flags = flags;
-    if (persistence.boss === null) throw new Error('Sky page quest needs its declared boss record');
+    const { flags } = quest; this.flags = flags;
     await worldBuildYield(ctx, 4);
 
     const page = bindQuestPageInteractions(source, { flags, toast,
@@ -165,9 +164,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // Step 2: the roost is clear when its three rays are down.
 
     // The boss: the Storm Roc on the crown, the shared BossBar, 25 coins once.
-    const fight = bindDeclaredFight(ctx, this.rows.fight, { kind: 'held', player: position, held: this.actor(ROC_ID), catalogue: this.populationCatalogue,
-      flags, facts: persistence.facts, reward: reward.spawn, armed: true, record: { saved: persistence.boss.read(), persist: persistence.boss.write } });
-    this.populationControl = fight.control; this.presentedBoss = fight.boss;
+    await this.bindPageFight(ctx);
     // Phase 2's gale wall: a pale sheet of wind that thickens over the windup along the lane it will sweep.
     const wall = new Mesh(new BoxGeometry(GALE_WALL.shape.kind === 'lane' ? GALE_WALL.shape.width : 6, 5, 0.4),
       new MeshBasicMaterial({ color: 0xc8f1f8, transparent: true, opacity: 0, depthWrite: false, side: DoubleSide, fog: false }));

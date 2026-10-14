@@ -11,7 +11,6 @@ import { DUNE_LIBRARY } from './world/meshes';
 import { WORLD } from './world/baked';
 import { WHIP_HELD_OWNERS, type Bullwhip } from './runtime/items/heldWhip';
 import { FLAG, SCOUT_FLAG } from './data/flags';
-import { bindDeclaredFight } from '@wildshard/game/plugin/ui';
 import { SAND, SKIRT } from './look/render';
 import { lentMaterial } from './runtime/looks/bakedGround';
 import { prepareFireFx } from './world/fireFx';
@@ -54,15 +53,13 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   protected override dress(ctx: ShardContext): void { const whip = this.whip; if (whip !== null) { lastLightAll(whip.model, ctx.scope); ctx.scope.ownPrimitives(whip.model); } }
   /** Settle the actual quest look for its declared capture checkpoint. */
   settleQuestDusk(): void { const places = this.places; if (places !== null) setDusk(duskOf(places), true); }
-  protected override install(ctx: ShardContext): void {
-    const rt = ctx.game.runtime, position = rt?.world?.player.position ?? this.player, places = this.places;
+  protected override async install(ctx: ShardContext): Promise<void> {
+    const places = this.places;
     if (places) {
       // SF14 / SF50-p: the quest's and the Matriarch's feats are ledger facts; the platform grants their achievements once.
-      const { facts, coins } = this.pageQuest; this.whip?.aimAt(places.crackables);
+      this.whip?.aimAt(places.crackables);
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
-      const fight = bindDeclaredFight(ctx, this.rows.fight, { kind: 'spawned', source, player: position, flags: places.flags, facts, coins, armed: places.fire.lit,
-        dress: animal => { lastLightAll(animal.mesh, ctx.scope); } }); this.presentedBoss = fight.boss;
-      this.bindPageStages(ctx,{fight});
+      await this.bindPageFight(ctx);
     }
     this.populate(ctx, source, { spawned: animal => { lastLightAll(animal.mesh, ctx.scope); }, flags: places?.flags ?? null });
     // The dusk deepens with the quest (E399, look/dusk.ts): a save loads at its step's light, play eases to each new one.

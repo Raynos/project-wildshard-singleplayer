@@ -9,7 +9,7 @@ import { FLAGS } from '../quests/flags';
 import { SKY_NATIVE_WORLD } from './nativeWorld';
 
 /** Discovery, boot and population facts; the native plugin supplies only its admitted source. */
-export const SKY_RUNTIME_ROWS = { clientMotion: SKY_NATIVE_WORLD.motion, melee: { recipe: FAN_HELD_RECIPE, stage: 'kit', targets: 'scan', expose: 'fan', composed: true, stowedMode: 'board',
+export const SKY_RUNTIME_ROWS = { pageFight: { kind: 'held', armed: true } as const, clientMotion: SKY_NATIVE_WORLD.motion, melee: { recipe: FAN_HELD_RECIPE, stage: 'kit', targets: 'scan', expose: 'fan', composed: true, stowedMode: 'board',
   presentation: FAN_PRESENTATION, legacySlot: 'far-fan', decorate: { call: { owner: 'heldStyle', path: ['paint'] }, value: { owner: 'plugin', path: ['leaf'] } } } as const, expose: 'farReach', strings: STRINGS, weapon: FAN_ROW, encounters: { id: ROC_ID, displayName: STRINGS.roc },
   pageQuest: { stages:{observations:[{id:'winch-up',owner:'plugin',path:['built','state','raised']}]}, data: SKY_QUEST_PAGE, progress: true,
     model: { kind: 'pivots', read: { owner: 'models', path: ['painted'] }, material: { owner: 'looks', path: ['mapped'] } },

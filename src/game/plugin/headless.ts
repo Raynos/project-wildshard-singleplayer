@@ -1,6 +1,6 @@
 import type { HeldMeleeRecipe, createDeclaredHeldMelee } from './weaponFamily';
 import type { startMeleeSecondary } from './simulation';
-import type { PersistedQuest, PersistedQuestRows, QuestPageStageBindings, PageQuestStages, bindBorrowedPageQuestStages, bindClientChannels } from './ui';
+import type { PersistedQuest, PersistedQuestRows, QuestPageStageBindings, PageQuestStages, bindDeclaredFight, bindBorrowedPageQuestStages, bindClientChannels } from './ui';
 import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import * as v from 'valibot';
 import { rigLibrary, type RigLibraryRows } from "./geometry";
@@ -507,6 +507,8 @@ export interface HybridRuntimeRows {
   /** Original read-only capture names, resolved against actual owners rather than private shard fields. */
   readonly inspect?: { readonly actors?: Readonly<Record<string, { readonly held: string } | { readonly home: number }>>; readonly roster?: string; readonly boss?: string };
   readonly fight?: BossViewRows;
+  /** Existing held/spawned fight ports resolved at the caller's original phase. */
+  readonly pageFight?: { readonly kind: 'held' | 'spawned'; readonly armed: boolean | BorrowedOwnerPath; readonly bindStages?: boolean; readonly dress?: BorrowedOwnerPath };
   /** Optional declared saved page quest, installed before the shard play hook. */
   readonly pageQuest?: HybridPageQuestRows;
   /** Borrowed libraries and style owners; reserved plugin/scope/quest owners are supplied by the host. */
@@ -661,6 +663,36 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected get pageQuest(): PersistedQuest & { readonly coins: RuntimeCoins } {
     if (this.savedPageQuest === null) throw new Error('Page quest is not installed');
     return this.savedPageQuest;
+  }
+  /** The caller's existing page runtime and saved quest, without another owner. */
+  protected pageEntry(ctx: ShardContext): { readonly runtime: ShardContext['game']['runtime']; readonly position: Vector3; readonly quest: PersistedQuest & { readonly coins: RuntimeCoins } } {
+    const runtime = ctx.game.runtime;
+    return { runtime, position: runtime?.world?.player.position ?? this.player, quest: this.pageQuest };
+  }
+  /** Bind the existing fight at the shard's original population/quest phase. */
+  protected async bindPageFight(ctx: ShardContext): Promise<ReturnType<typeof bindDeclaredFight>> {
+    const source = this.rows.source, row = this.rows.pageFight, definition = this.rows.fight;
+    if (source === undefined || row === undefined || definition === undefined) throw new Error('Missing declared page fight');
+    const { position, quest } = this.pageEntry(ctx);
+    const owners = new Map<string, unknown>([...Object.entries(this.rows.owners ?? {}), ['plugin', this]]);
+    const armed = typeof row.armed === 'boolean' ? row.armed : readBorrowedOwner(owners, row.armed)?.value;
+    if (typeof armed !== 'boolean') throw new Error('Page fight requires its owned armed field');
+    const { bindDeclaredFight: bindFight } = await import('./ui');
+    const common = { player: position, flags: quest.flags, facts: quest.facts, armed };
+    let fight: ReturnType<typeof bindDeclaredFight>;
+    if (row.kind === 'held') {
+      const record = quest.persistence.boss;
+      if (record === null) throw new Error('Missing declared held boss record');
+      fight = bindFight(ctx, definition, { ...common, kind: 'held', held: this.actor(definition.id), catalogue: this.populationCatalogue,
+        reward: quest.reward.spawn, record: { saved: record.read(), persist: record.write } });
+    } else {
+      const dress = row.dress === undefined ? undefined : bindBorrowedMethod(owners, row.dress);
+      fight = bindFight(ctx, definition, { ...common, kind: 'spawned', source, coins: quest.coins,
+        ...(dress === undefined ? {} : { dress: animal => { dress(animal.mesh, ctx.scope); } }) });
+    }
+    this.populationControl = fight.control; this.presentedBoss = fight.boss;
+    if (row.bindStages) this.bindPageStages(ctx, { fight });
+    return fight;
   }
   private pageStageFactory:typeof bindBorrowedPageQuestStages|null=null;
   /** Bind page stages with the resident flags and current borrowed owners. */

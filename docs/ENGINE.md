@@ -4848,3 +4848,11 @@ row on the already retained page channels after `pageQuest` is restored,
 before custom page installation. The protected `clientMotion` lends that
 same owner to held hooks and commands, and clears on scope teardown.
 Omission leaves a page's ordinary visual channels without a mover role.
+
+HybridRuntimeRows.pageFight declares the existing held or spawned fight
+ports, a boolean or bounded borrowed armed field, optional borrowed dress
+method and optional stage binding after the fight. HybridRuntimePlugin
+pageEntry supplies the resident player/quest context; bindPageFight calls
+the existing UI fight owner at the shard original phase, with the same
+flags, facts, coins, held controller and saved record. It creates no host
+or clock, and never changes population installation order.
