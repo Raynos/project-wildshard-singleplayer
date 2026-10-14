@@ -18,7 +18,8 @@ import { setFireflyLook } from '../world/Shrine';
 import { REEF_LOOK } from '../data/reefLook';
 import { setReefLook } from '../models/reef';
 import { followToon } from '../look/toon';
-import { POOL_LOOK } from '../data/poolLook';
+import { POOL_LOOK, SHRINE_POOL_LOOK } from '../data/poolLook';
+import { setShrinePoolLook } from '../models/shrine';
 import { setPoolLook } from '../world/Cove';
 
 // The static transitional world belongs to the resident, not a single entered play scope.
@@ -38,9 +39,9 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
       // the look.materials graphs the runtime's own meshes wear (data/waterfallLook.ts, data/smokeLook.ts, data/fireflyLook.ts, data/reefLook.ts,
       // data/poolLook.ts), owned by the resident; the toon graphs follow the day clock's toon tunables once a frame
       const built = await residentWorld.load(context, async (owner) => {
-        const { materials, setParam, toon } = await runtimeLookMaterials({ scope: owner, game: context.game }, source, true, [...Object.values(CASCADE_LOOKS), SMOKE_LOOK, FIREFLY_LOOK, REEF_LOOK, POOL_LOOK]);
+        const { materials, setParam, toon } = await runtimeLookMaterials({ scope: owner, game: context.game }, source, true, [...Object.values(CASCADE_LOOKS), SMOKE_LOOK, FIREFLY_LOOK, REEF_LOOK, POOL_LOOK, SHRINE_POOL_LOOK]);
         const follow = followToon(toon);
-        setWaterfallLooks(materials); setSmokeLook(materials); setFireflyLook(materials, setParam); setReefLook(materials, follow); setPoolLook(materials, follow);
+        setWaterfallLooks(materials); setSmokeLook(materials); setFireflyLook(materials, setParam); setReefLook(materials, follow); setPoolLook(materials, follow); setShrinePoolLook(materials);
         return withGeometryBake('/assets/models/driftwood-blender/geometry.bin',
         () => withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress))); });
       return built;

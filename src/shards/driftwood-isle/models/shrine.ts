@@ -1,14 +1,13 @@
 import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { ShrineAnchor, ShrineParams, ShrineSite } from '../assets/contracts/shrine';
 import { SHRINE_SITES } from '../data/shrineSites';
 import bake from '../data/shrineBake.json' with {type:'json'};
+import { SHRINE_POOL_LOOK } from '../data/poolLook';
 import { fixedGeometryReady, loadFixedGeometry,
   SHRINE_KIT_GEOMETRY,SHRINE_WATER_GEOMETRY,SHRINE_GLYPHS_GEOMETRY,
   SHRINE_SPECIMEN_KIT_GEOMETRY,SHRINE_SPECIMEN_WATER_GEOMETRY,SHRINE_SPECIMEN_GLYPHS_GEOMETRY } from '../boot/fixedGeometry';
@@ -59,32 +58,29 @@ export function shrineLayout(p:ShrineParams):ShrineLayout {
     }};
 }
 
-/** the pool's material: soft ripple rings and a caustic shimmer, brighter at the edges (its clock: `uniforms.uTime`) */
-function poolMaterial(ctx: ModelContext, uniforms: { uTime: THREE.IUniform<number> }): THREE.MeshStandardMaterial {
+let poolLook: THREE.Material | null = null;
+/** hand the pool its compiled graph (look.materials, data/poolLook.ts: the ripples; its toon look follows the day clock with
+ *  the cove's pools) before the world builds */
+export function setShrinePoolLook(materials: ReadonlyMap<string, THREE.Material>): void {
+  const material = materials.get(SHRINE_POOL_LOOK);
+  if (material === undefined) throw new Error('Driftwood: look.materials lacks the shrine pool graph');
+  poolLook = material;
+}
+
+/** the pool's material: its graph (soft ripples, a caustic shimmer at their crests); a page outside the hybrid world (no
+ *  graph handed over, the Model Explorer's specimen) draws the still teal water */
+function poolMaterial(ctx: ModelContext): THREE.Material {
+  if (poolLook !== null) return poolLook;
   const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#2aa7b0'), roughness: 0.25, metalness: 0, transparent: true, opacity: 0.82, flatShading: true });
-  patchShader(mat, 'driftwood.shrine-pool', PATCH_ORDER.material, (shader) => {
-    attachFogUniforms(shader);
-    shader.uniforms['uTime'] = uniforms.uTime;
-    shader.vertexShader = shader.vertexShader
-      .replace('#include <common>', '#include <common>\nvarying vec3 vWp;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    shader.fragmentShader = shader.fragmentShader
-      .replace('#include <common>', '#include <common>\nuniform float uTime; varying vec3 vWp;')
-      .replace('#include <color_fragment>', `#include <color_fragment>
-          {
-            float w = sin(vWp.x * 2.3 + uTime * 1.1) * sin(vWp.z * 2.9 - uTime * 0.9) + sin((vWp.x + vWp.z) * 4.1 + uTime * 1.7) * 0.5;
-            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.55, 0.95, 0.95), smoothstep(0.9, 1.4, w) * 0.45);
-          }`);
-  }, { mode: 'replace', key: 'shrine-pool' });
   ctx.sky.setupMaterial(mat);
   return mat;
 }
 
 /** the shrine's own materials on a shard — the pool (and its clock) and the glyphs — which the world animates */
-export function shrineMaterials(ctx: ModelContext): { water: THREE.MeshStandardMaterial; glyphs: THREE.MeshBasicMaterial; uniforms: { uTime: THREE.IUniform<number> } } {
+export function shrineMaterials(ctx: ModelContext): { water: THREE.Material; glyphs: THREE.MeshBasicMaterial; uniforms: { uTime: THREE.IUniform<number> } } {
   return ctx.once('driftwood-isle/shrine:materials', () => {
     const uniforms = { uTime: { value: 0 } };
-    return { water: poolMaterial(ctx, uniforms), glyphs: new THREE.MeshBasicMaterial({ color: SHRINE_RUNE, side: THREE.DoubleSide }), uniforms };
+    return { water: poolMaterial(ctx), glyphs: new THREE.MeshBasicMaterial({ color: SHRINE_RUNE, side: THREE.DoubleSide }), uniforms };
   });
 }
 
