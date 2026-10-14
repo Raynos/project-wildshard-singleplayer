@@ -124,7 +124,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     await worldBuildYield(ctx, 4);
 
     const page = bindQuestPageInteractions(source, { flags, toast,
-      observations: new Map([['winch-up', () => built.state.raised]]), calls: new Map([['winch', () => { this.isletCalls?.runtime?.command('far.winch.bridge', 1); }]]) });
+      owners: new Map<string,unknown>([['world',built],['plugin',this]]) });
     built.notes.onInteract = page.action('notes'); built.winch.onInteract = page.action('winch');
     // the world pins, chip, map and minimap marks are the quest presentation's (data/questPage.ts)
     if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');

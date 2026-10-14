@@ -9,6 +9,13 @@ const row = v.strictObject({
   needs: v.exactOptional(v.pipe(v.array(need), v.maxLength(16))), sets: v.pipe(names, v.minLength(1)),
 });
 const unique = (list: readonly (string | number)[]): boolean => new Set(list).size === list.length;
+const pathKey = v.pipe(name, v.regex(/^[A-Za-z][A-Za-z0-9_-]*$/u), v.check(key => !['constructor', 'prototype', '__proto__', 'caller', 'callee', 'arguments'].includes(key), 'safe borrowed property'));
+const ownerPath = v.strictObject({ target: name, owner: name,
+  path: v.pipe(v.array(v.union([pathKey, v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(1024))])), v.minLength(1), v.maxLength(16)) });
+const ownerPaths = v.pipe(v.array(ownerPath), v.maxLength(128), v.check(rows => unique(rows.map(entry => entry.target)), 'unique borrowed targets'));
+const ownerCalls = v.pipe(v.array(v.strictObject({ ...ownerPath.entries, optional: v.exactOptional(v.boolean()),
+  args: v.exactOptional(v.pipe(v.array(v.union([v.pipe(v.string(), v.maxLength(4096)), v.pipe(v.number(), v.finite()), v.boolean()])), v.maxLength(16))) })),
+  v.maxLength(128), v.check(rows => unique(rows.map(entry => entry.target)), 'unique borrowed calls'));
 /**
  * Declared interaction rows (SF72): the transient `marks` an interaction keeps outside the durable flags (a raised well
  * bucket, an oiled bowl), each optionally starting set when its `initial` condition holds on the flags at install; the
@@ -42,6 +49,8 @@ const pageRaw=v.pipe(v.strictObject({
   actions:v.pipe(v.array(v.strictObject({id:name,interaction:v.exactOptional(name),
     needs:v.exactOptional(v.pipe(v.array(need),v.maxLength(16))),
     denied:v.exactOptional(v.record(name,pageText)),before:v.exactOptional(pageEffects),after:v.exactOptional(pageEffects)})),v.maxLength(128)),
+  bindings:v.exactOptional(v.strictObject({ labels:v.exactOptional(ownerPaths), visible:v.exactOptional(ownerPaths),
+    observations:v.exactOptional(ownerPaths), calls:v.exactOptional(ownerCalls) })),
   initial:v.exactOptional(v.pipe(v.array(v.strictObject({when:condition,effects:pageEffects})),v.maxLength(64))),
 }),v.check(data=>unique(data.actions.map(action=>action.id)),'unique page interaction ids'));
 /** Validated page action and restore-view rows; no new durable state is introduced. */

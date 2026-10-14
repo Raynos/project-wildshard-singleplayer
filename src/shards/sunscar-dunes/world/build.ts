@@ -97,9 +97,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
       fire.onLight?.();
     } };
   page = bindQuestPageInteractions(source, { flags, rules,
-    labels: new Map([['logbook', logbook], ['well', wellSpot], ...braziers.map((b, i) => [`brazier.${String(i)}`, b.spot] as const)]),
-    visible: new Map<string, { visible: boolean }>([['jar', wellParts.jar], ...braziers.flatMap((b, i) => [[`oil.${String(i)}`, b.parts.oil] as const, [`fire.${String(i)}`, b.parts.fire] as const])]),
-    calls: new Map([['catch-fire', () => { fireCaught(fire); }], ['summon', () => { fire.onLight?.(); }], ...braziers.map((b, i) => [`glow.${String(i)}`, () => { b.parts.glow(true); }] as const)]),
+    owners: new Map<string,unknown>([['world',{logbook,well,braziers,fire}],['commands',{catchFire:()=>{fireCaught(fire);}}]]),
     toast: text => { toast(ctx, text); } }).run;
 
   if (flags.has(FLAG.lit)) fire.light();

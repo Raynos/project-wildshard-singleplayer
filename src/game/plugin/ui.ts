@@ -29,7 +29,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { CoinBurst } from '../loot/CoinBurst';
 import { DirectorBossBrain, bindDirectorActions, type DirectorActionBinding, type BoundDirectorActions } from './director';
-import { bindRuntimeQuest, bindRuntimePersistence, type RuntimePersistenceRows, type RuntimePersistence, bindRuntimeBoss, bindRuntimeCoins, bindRuntimeBossRecord, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
+import { readBorrowedOwner, type BorrowedOwnerPath, bindRuntimeQuest, bindRuntimePersistence, type RuntimePersistenceRows, type RuntimePersistence, bindRuntimeBoss, bindRuntimeCoins, bindRuntimeBossRecord, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
 import type { SpeciesPageCatalogue } from './brain';
 import type { BossViewRows } from '../shardfile/bossRow';
 import { type Shardfile, parseShardfile } from '@wildshard/format/shardSchema';
@@ -956,6 +956,8 @@ export interface QuestPageInteractionPorts {
   readonly calls?:ReadonlyMap<string,()=>void>;
   readonly observations?:ReadonlyMap<string,()=>boolean>;
   readonly toast:(text:string)=>void;
+  /** Actual world objects, named by the admitted bounded binding rows. */
+  readonly owners?:ReadonlyMap<string,unknown>;
 }
 /** Validated presentation actions; run returns the native acceptance and action supplies a prompt callback. */
 export interface QuestPageInteractions {readonly run:(id:string)=>boolean;readonly action:(id:string)=>()=>void}
@@ -964,8 +966,30 @@ export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,por
   const host=source.questHost;
   if(host===null||host===undefined||host.page===undefined)throw new Error('Page interactions need admitted presentation rows');
   const data=host.page;
+  const owners=ports.owners??new Map<string,unknown>();
+  const labels=new Map(ports.labels), visible=new Map(ports.visible), calls=new Map(ports.calls), observations=new Map(ports.observations);
+  const field=(row:BorrowedOwnerPath):ReturnType<typeof readBorrowedOwner>=>readBorrowedOwner(owners,row);
+  for(const row of data.bindings?.labels??[])if(!labels.has(row.target)){
+    const target=field(row);if(target===null||typeof target.value!=='string')throw new Error(`Invalid borrowed label ${row.target}`);
+    labels.set(row.target,{get label(){const value=target.receiver[target.key];if(typeof value!=='string')throw new Error('Borrowed label changed type');return value;},set label(value){target.receiver[target.key]=value;}});
+  }
+  for(const row of data.bindings?.visible??[])if(!visible.has(row.target)){
+    const target=field(row);if(target===null||typeof target.value!=='boolean')throw new Error(`Invalid borrowed visibility ${row.target}`);
+    visible.set(row.target,{get visible(){return target.receiver[target.key]===true;},set visible(value){target.receiver[target.key]=value;}});
+  }
+  for(const row of data.bindings?.observations??[])if(!observations.has(row.target)){
+    const target=field(row);if(target===null||typeof target.value!=='boolean')throw new Error(`Invalid borrowed observation ${row.target}`);
+    observations.set(row.target,()=>{const current=field(row);if(current===null||typeof current.value!=='boolean')throw new Error('Borrowed observation changed type');return current.value;});
+  }
+  const callable=(value:unknown):value is (...args:readonly unknown[])=>unknown=>typeof value==='function';
+  for(const row of data.bindings?.calls??[])if(!calls.has(row.target)){
+    const initial=readBorrowedOwner(owners,row);
+    if(!(row.optional===true&&(initial?.value??null)===null)&&(initial===null||!callable(initial.value)))throw new Error(`Invalid borrowed call ${row.target}`);
+    calls.set(row.target,()=>{const current=readBorrowedOwner(owners,row);if(row.optional===true&&(current?.value??null)===null)return;
+      if(current===null||!callable(current.value))throw new Error(`Invalid borrowed call ${row.target}`);current.value.call(current.receiver,...row.args??[]);});
+  }
   const rules=ports.rules??new InteractionRules(ports.flags,host.interactions);
-  const view={has:(id:string):boolean=>ports.observations?.get(id)?.()??rules.has(id)};
+  const view={has:(id:string):boolean=>observations.get(id)?.()??rules.has(id)};
   type Effect=QuestPageInteractionsData['actions'][number]['after'];
   const compile=(rows:Effect):(()=>void)[] => (rows??[]).map(row=>{
     if(row.kind==='toast')return ()=>{
@@ -974,9 +998,9 @@ export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,por
       ports.toast(lit<progress.flags.length?`${row.text} · ${String(lit)}/${String(progress.flags.length)}`:progress.complete);
     };
     if(row.kind==='mark'){if(!rules.data.marks.some(mark=>mark.id===row.target))throw new Error(`Unknown page interaction mark ${row.target}`);return ()=>{rules.mark(row.target,row.value);};}
-    if(row.kind==='call'){const call=ports.calls?.get(row.target);if(call===undefined)throw new Error(`Missing page interaction command ${row.target}`);return call;}
-    if(row.kind==='label'){const target=ports.labels?.get(row.target);if(target===undefined)throw new Error(`Missing page interaction label ${row.target}`);return ()=>{target.label=row.text;};}
-    const target=ports.visible?.get(row.target);if(target===undefined)throw new Error(`Missing page interaction visibility ${row.target}`);return ()=>{target.visible=row.value;};
+    if(row.kind==='call'){const call=calls.get(row.target);if(call===undefined)throw new Error(`Missing page interaction command ${row.target}`);return call;}
+    if(row.kind==='label'){const target=labels.get(row.target);if(target===undefined)throw new Error(`Missing page interaction label ${row.target}`);return ()=>{target.label=row.text;};}
+    const target=visible.get(row.target);if(target===undefined)throw new Error(`Missing page interaction visibility ${row.target}`);return ()=>{target.visible=row.value;};
   });
   const actions=new Map(data.actions.map(row=>{
     if(row.interaction!==undefined)rules.row(row.interaction);

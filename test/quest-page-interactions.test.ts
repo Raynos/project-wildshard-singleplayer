@@ -43,3 +43,19 @@ test('unknown fields or missing borrowed targets refuse before initial effects',
     {flags,labels:new Map([['view',view]]),toast:()=>undefined})).toThrow('Missing page interaction command');
   expect(view.label).toBe('unchanged');
 });
+
+test('borrowed rows restore actual views and methods keep their receiver; path escapes refuse',()=>{
+  const flags=new Flags('page-borrowed-world',false);flags.set('restored');
+  const world={label:'old',visible:true,active:false,turn(on:boolean){this.active=on;}};
+  const page={actions:[{id:'turn',after:[{kind:'call',target:'turn'}]}],bindings:{
+    labels:[{target:'label',owner:'world',path:['label']}],visible:[{target:'visible',owner:'world',path:['visible']}],
+    calls:[{target:'turn',owner:'world',path:['turn'],args:[true]}]},
+    initial:[{when:{all:['restored']},effects:[{kind:'label',target:'label',text:'restored'},{kind:'visible',target:'visible',value:false}]}]};
+  const source={questHost:parseQuestHost({...signal,page})};
+  const bound=bindQuestPageInteractions(source,{flags,owners:new Map([['world',world]]),toast:()=>undefined});
+  expect(world.label).toBe('restored');expect(world.visible).toBe(false);bound.run('turn');expect(world.active).toBe(true);
+  expect(()=>parseQuestHost({...signal,page:{...page,bindings:{calls:[{target:'turn',owner:'world',path:['constructor','prototype']}]}}})).toThrow();
+  world.label='unchanged';
+  expect(()=>bindQuestPageInteractions(source,{flags,owners:new Map(),toast:()=>undefined})).toThrow('Missing borrowed owner');
+  expect(world.label).toBe('unchanged');
+});

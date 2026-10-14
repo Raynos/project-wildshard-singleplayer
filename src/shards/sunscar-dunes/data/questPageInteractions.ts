@@ -2,7 +2,18 @@ import { FLAG } from './flags';
 import { STRINGS } from './strings';
 
 /** Page beats for the same admitted logbook, well and crank rules. */
-export const SIGNAL_QUEST_PAGE_INTERACTIONS={actions:[
+export const SIGNAL_QUEST_PAGE_INTERACTIONS={bindings:{
+  labels:[{target:'logbook',owner:'world',path:['logbook','label']},{target:'well',owner:'world',path:['well','spot','label']},
+    {target:'brazier.0',owner:'world',path:['braziers',0,'spot','label']},{target:'brazier.1',owner:'world',path:['braziers',1,'spot','label']},{target:'brazier.2',owner:'world',path:['braziers',2,'spot','label']}],
+  visible:[{target:'jar',owner:'world',path:['well','jar','visible']},
+    {target:'oil.0',owner:'world',path:['braziers',0,'parts','oil','visible']},{target:'fire.0',owner:'world',path:['braziers',0,'parts','fire','visible']},
+    {target:'oil.1',owner:'world',path:['braziers',1,'parts','oil','visible']},{target:'fire.1',owner:'world',path:['braziers',1,'parts','fire','visible']},
+    {target:'oil.2',owner:'world',path:['braziers',2,'parts','oil','visible']},{target:'fire.2',owner:'world',path:['braziers',2,'parts','fire','visible']}],
+  calls:[{target:'catch-fire',owner:'commands',path:['catchFire']},{target:'summon',owner:'world',path:['fire','onLight'],optional:true},
+    {target:'glow.0',owner:'world',path:['braziers',0,'parts','glow'],args:[true]},
+    {target:'glow.1',owner:'world',path:['braziers',1,'parts','glow'],args:[true]},
+    {target:'glow.2',owner:'world',path:['braziers',2,'parts','glow'],args:[true]}],
+},actions:[
   {id:'logbook',interaction:'logbook',after:[{kind:'label',target:'logbook',text:STRINGS.logRead},{kind:'toast',text:STRINGS.logText}]},
   {id:'well',interaction:'well',denied:{unraised:STRINGS.wellHint},after:[
     {kind:'visible',target:'jar',value:false},{kind:'label',target:'well',text:STRINGS.oilTaken},{kind:'toast',text:STRINGS.oilGot}]},

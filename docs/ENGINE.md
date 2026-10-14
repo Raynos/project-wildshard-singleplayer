@@ -4712,3 +4712,13 @@ resources remain owned ports. No recipe advances gameplay or installs actors.
 `questNpcSpecimen(source, npcId, provider)` reads the model identity from
 the admitted NPC figure. The provider still borrows the original mesh or
 prepared pivots and material; an explicit model row remains supported.
+
+### Borrowed quest view bindings
+
+Optional `questHost.page.bindings` rows map labels, visibility, Boolean
+observations and named calls to supplied owners and bounded property paths.
+`bindQuestPageInteractions` checks every required binding before restoring
+views. Calls retain the actual receiver; optional null owners keep their
+existing absence policy. Explicit maps remain supported. Prototype and
+traversal keys refuse. `readBorrowedOwner` in `plugin/headless` is the same
+reader for other runtime ports; it returns the field, receiver and key.
