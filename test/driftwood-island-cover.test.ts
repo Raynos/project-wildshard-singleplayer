@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { requiredIslandCover } from '../src/shards/driftwood-isle/world/islandCover';
-import { encodeFloatBlock } from '../src/shards/driftwood-isle/runtime/looks/bakedIsland';
+import { encodeFloatBlock } from '../src/shards/driftwood-isle/generators/islandCover';
 import { ISLAND_LOOK } from '../src/shards/driftwood-isle/data/islandRows';
 
 it('admits baked cover and refuses missing, mismatched and corrupt content', () => {

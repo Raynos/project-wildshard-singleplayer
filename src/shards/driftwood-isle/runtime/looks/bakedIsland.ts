@@ -3,7 +3,7 @@ import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.mo
 import { CHUNK_HALF, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { CELL } from '../world/blenderArea';
+import { CELL } from '@wildshard/engine/world/blenderArea';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { editShader, spliceEdits, type ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
 
@@ -19,7 +19,7 @@ import { editShader, spliceEdits, type ShaderEditRow } from '@wildshard/game/plu
  * - `clipInstancedRect`, `clipGridTerrain`, `dropTriangles`, `dropNearestTriangles`: hide what the area replaces.
  * - `simplifiedProto`: a prototype's far copy (meshoptimizer), so a tile's far copies keep its near copies' shape.
  * - `protosFromMeshes`, `droppedPlacements`, `usedPlacements`, `placementSets`, `tileRect`: read and sort the bake.
- * - `encodeFloatBlock` / `decodeFloatBlock`: a baked float block's file (a 16-byte header, then the f32s).
+ * - `decodeFloatBlock`: a baked float block's file (a 16-byte header, then the f32s; the generator writes it).
  * - `sunBounceLevel`: how much of the baked bounce the live sun lights.
  */
 
@@ -261,16 +261,8 @@ export function tileRect(rect: IslandRect, k: number, n: number): IslandRect {
 
 const BLOCK_HEADER = 16;
 
-/** A baked float block's file: a 16-byte header (magic, version, the placements it was baked from, floats) and the
- *  block's f32s, little-endian. */
-export function encodeFloatBlock(block: Float32Array, used: number, magic: number, version: number): Uint8Array {
-  const out = new Uint8Array(BLOCK_HEADER + block.length * 4), view = new DataView(out.buffer);
-  view.setUint32(0, magic, true); view.setUint32(4, version, true); view.setUint32(8, used, true); view.setUint32(12, block.length, true);
-  for (let i = 0; i < block.length; i++) view.setFloat32(BLOCK_HEADER + i * 4, block[i] ?? 0, true);
-  return out;
-}
-
-/** The baked block, or null when the file is not this build's (another magic, version, placement count or size). */
+/** A baked float block (a 16-byte header: magic, version, the placements it was baked from, floats; then the f32s,
+ *  little-endian), or null when the file is not this build's (another magic, version, placement count or size). */
 export function decodeFloatBlock(buf: ArrayBuffer, used: number, floats: number, magic: number, version: number): Float32Array | null {
   if (buf.byteLength !== BLOCK_HEADER + floats * 4) return null;
   const view = new DataView(buf);

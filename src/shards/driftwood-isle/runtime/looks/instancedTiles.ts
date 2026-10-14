@@ -82,48 +82,13 @@ interface SetState {
 }
 
 /** a placement's own edge in the cover's reach (0..1): a hash of where it stands */
-export const edgeOf = (x: number, z: number): number => { const h = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return h - Math.floor(h); };
+const edgeOf = (x: number, z: number): number => { const h = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return h - Math.floor(h); };
 
 /** m: the caster and cover tiles' boxes grow by this before the view test (the shadow frusta are a frame old) */
 const PAD = 4;
 
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), _t = new THREE.Vector3();
 const _pv = new THREE.Matrix4(), _box = new THREE.Box3(), _ws = new THREE.Sphere();
-
-/** one cover triangle in world space (`a`, `b`, `d` its corners) and its mean tinted colour */
-export interface CoverTriangle { ax: number; ay: number; az: number; bx: number; by: number; bz: number; dx: number; dy: number; dz: number; r: number; g: number; b: number }
-
-/**
- * E156: each cover triangle's centre, ground / upright areas and colour, in world space, exactly as the merged tiles
- * held them (f32 positions, the truncated tinted Uint8 colour), in the merged path's order: set by set, tile by tile, each
- * tile's placements in order. SF67 (E461): a free function, so a bake walks the same triangles in Node that
- * `TiledInstances.coverTriangles` walks in the page.
- */
-export function* coverTrianglesOf(protos: readonly (InstProto | undefined)[], f: Float32Array, sets: readonly (readonly (readonly number[])[])[]): Generator<CoverTriangle> {
-  const e = _m.elements;
-  const o: CoverTriangle = { ax: 0, ay: 0, az: 0, bx: 0, by: 0, bz: 0, dx: 0, dy: 0, dz: 0, r: 0, g: 0, b: 0 };
-  const w = new Float32Array(9);
-  for (const tiles of sets) for (const items of tiles) for (const i of items) {
-    const pr = protos[f[i * 10] ?? 0];
-    if (pr === undefined) continue;
-    const k = i * 10, tint = f[k + 9] ?? 1, sc = f[k + 8] ?? 1;
-    _t.set(f[k + 1] ?? 0, f[k + 2] ?? 0, f[k + 3] ?? 0); _q.set(f[k + 4] ?? 0, f[k + 5] ?? 0, f[k + 6] ?? 0, f[k + 7] ?? 1);
-    _m.compose(_t, _q, _s.set(sc, sc, sc));
-    const ch = (v: number, c: number) => Math.trunc(Math.min(255, (pr.col[v * 4 + c] ?? 0) * tint)) / 255;
-    for (let t = 0; t + 2 < pr.index.length; t += 3) {
-      for (let j = 0; j < 3; j++) {
-        const v = pr.index[t + j] ?? 0, px = pr.pos[v * 3] ?? 0, py = pr.pos[v * 3 + 1] ?? 0, pz = pr.pos[v * 3 + 2] ?? 0;
-        w[j * 3] = e[0] * px + e[4] * py + e[8] * pz + e[12];
-        w[j * 3 + 1] = e[1] * px + e[5] * py + e[9] * pz + e[13];
-        w[j * 3 + 2] = e[2] * px + e[6] * py + e[10] * pz + e[14];
-      }
-      o.ax = w[0] ?? 0; o.ay = w[1] ?? 0; o.az = w[2] ?? 0; o.bx = w[3] ?? 0; o.by = w[4] ?? 0; o.bz = w[5] ?? 0; o.dx = w[6] ?? 0; o.dy = w[7] ?? 0; o.dz = w[8] ?? 0;
-      const a = pr.index[t] ?? 0, b = pr.index[t + 1] ?? 0, d = pr.index[t + 2] ?? 0;
-      o.r = (ch(a, 0) + ch(b, 0) + ch(d, 0)) / 3; o.g = (ch(a, 1) + ch(b, 1) + ch(d, 1)) / 3; o.b = (ch(a, 2) + ch(b, 2) + ch(d, 2)) / 3;
-      yield o;
-    }
-  }
-}
 
 /** The tiled instanced placements: one InstancedMesh per prototype × set, repacked per tile as the view moves. */
 export class TiledInstances {
@@ -134,7 +99,6 @@ export class TiledInstances {
   /** the camera seen from the group (SF63: a grid cell's render offset; standalone the camera itself) */
   private readonly frame: FrameCamera;
   private lights: readonly THREE.DirectionalLight[] = [];
-  stats = { meshes: 0, rows: 0, protoBytes: 0, instanceBytes: 0 };
 
   constructor(private readonly group: THREE.Group, private readonly protos: readonly (InstProto | undefined)[],
     private readonly names: readonly string[], private readonly f: Float32Array, private readonly lodOf: ReadonlyMap<number, number>,
@@ -213,9 +177,6 @@ export class TiledInstances {
       state.batches.push(batch);
       for (const k of tiles) state.tileBatches[k]?.push(batch);
       this.group.add(mesh);
-      this.stats.meshes++; this.stats.rows += rows;
-      this.stats.protoBytes += pr.pos.byteLength * 2 + pr.col.byteLength + (geo.getIndex()?.array.byteLength ?? 0); // + its normals
-      this.stats.instanceBytes += attrs.reduce((a, x) => a + x.src.byteLength, 0);
     }
     for (const [k, b] of boxes.entries()) if (!b.isEmpty()) { b.expandByScalar(PAD); b.getBoundingSphere(state.spheres[k] ?? new THREE.Sphere()); }
     this.sets.push(state);
@@ -232,15 +193,6 @@ export class TiledInstances {
         b.dirty = true;
       }
     }
-  }
-
-  /**
-   * E156: each cover triangle's centre, ground / upright areas and colour, in world space, exactly as the merged tiles
-   * held them (f32 positions, the truncated tinted Uint8 colour), in the merged path's order: tile by tile, each tile's
-   * placements in order.
-   */
-  *coverTriangles(): Generator<CoverTriangle> {
-    yield* coverTrianglesOf(this.protos, this.f, this.sets.filter((s) => s.spec.cover).map((s) => s.spec.tiles));
   }
 
   /**
@@ -311,13 +263,6 @@ export class TiledInstances {
     b.mesh.boundingSphere = null; // a raycast (the Explorer's picking) recomputes it over the packed rows
     if (w === 0) return;
     for (const a of b.attrs) { a.gpu.clearUpdateRanges(); a.gpu.addUpdateRange(0, w * a.size); a.gpu.needsUpdate = true; }
-  }
-
-  /** renderer.info-style counts of what the repack packed: meshes drawn and rows */
-  packed(): { meshes: number; rows: number } {
-    let meshes = 0, rows = 0;
-    for (const s of this.sets) for (const b of s.batches) if (b.mesh.count > 0) { meshes++; rows += b.mesh.count; }
-    return { meshes, rows };
   }
 }
 

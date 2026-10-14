@@ -2522,10 +2522,6 @@
       "count": 1,
       "row": "SF46"
     },
-    "src/shards/driftwood-isle/runtime/looks/bakedIsland.ts:unbounded-loop:92b55b386803167106ca9e4038a3e1bd9a99173d8018605e5293252fe01611e4": {
-      "count": 1,
-      "row": "SF46"
-    },
     "src/shards/driftwood-isle/runtime/looks/bakedIsland.ts:unbounded-loop:4932a9cfc3e143d5c5d67e19154a21e57ee90334b73069a0efb002a2c1c10097": {
       "count": 1,
       "row": "SF46"
@@ -2555,22 +2551,6 @@
       "row": "SF46"
     },
     "src/shards/driftwood-isle/runtime/looks/coverGrid.ts:unbounded-loop:03cfa430734448fc7b169e34e0394fdc02e9c4bdc3a2a1871937c0beb104b169": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/coverGrid.ts:unbounded-loop:823760e9b5a4693a59c465a94228b4c0c044048bc71c3aafa1da66238ac46fef": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/coverGrid.ts:unbounded-loop:21314e0ea6248b4df4dfb4dc373054f2b6e0e06b53404a8e55f4a006a1592405": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/coverGrid.ts:unbounded-loop:6ea1a17edbe54c2ea630fda3517ccd1e63877eee3f7f83ccc5da157311159b79": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/coverGrid.ts:unbounded-loop:f2034c20ad5febaf6cfc9bc62594d3512e74caa3128ef6b5c324cd815b7accd6": {
       "count": 1,
       "row": "SF46"
     },
@@ -2782,22 +2762,6 @@
       "count": 1,
       "row": "SF46"
     },
-    "src/shards/driftwood-isle/runtime/looks/instancedTiles.ts:unbounded-loop:d1ebf5f8752b1f604c3ac0e1a31e5bdf4b6ccb70527d24542b8bd620eb308c0c": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/instancedTiles.ts:unbounded-loop:700ef6a4cc672e90004a2c07d16acefd8621bd7b35c0afa84b1d5751f0281448": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/instancedTiles.ts:unbounded-loop:5fd1325dbe586fd8397bae0c4d23f6cb732ce093765c7c905ba1e0ea075b4f41": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/instancedTiles.ts:unbounded-loop:88ac0964321d519ad9d6bb277705c8f5769d0272411e6061678fa1acff9f035b": {
-      "count": 1,
-      "row": "SF46"
-    },
     "src/shards/driftwood-isle/runtime/looks/instancedTiles.ts:unbounded-loop:f80aa9fa8f89a7594402a45e71be6014b90589bf6bae38111707988adcd2746e": {
       "count": 1,
       "row": "SF46"
@@ -2806,7 +2770,7 @@
       "count": 1,
       "row": "SF46"
     },
-    "src/shards/driftwood-isle/runtime/looks/instancedTiles.ts:unbounded-loop:d687ea76442ca9bc969dec963d15228e326e1166b9b6b95c6ae443b0de1b442b": {
+    "src/shards/driftwood-isle/runtime/looks/instancedTiles.ts:unbounded-loop:154f32e672b737d28aebb160a9b9aaee3aad2deb8833bbf9f1046845e58fd42b": {
       "count": 1,
       "row": "SF46"
     },
@@ -2891,14 +2855,6 @@
       "row": "SF46"
     },
     "src/shards/driftwood-isle/runtime/looks/instancedTiles.ts:unbounded-loop:b9eb0341424b833d5979797a4bde5afb404c4513f2d62ae9490c4b31dca5d153": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/instancedTiles.ts:unbounded-loop:2e09e3d4961f86ff77195b7bde28c1cb28fafb25f98f82d9c935e644426d6126": {
-      "count": 1,
-      "row": "SF46"
-    },
-    "src/shards/driftwood-isle/runtime/looks/instancedTiles.ts:unbounded-loop:d265bdef19125c91acb38f02dda47125707a4a6992f09151bc41f0d13cbab60c": {
       "count": 1,
       "row": "SF46"
     },

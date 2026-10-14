@@ -8,8 +8,8 @@ import { ShaderFamily } from '@wildshard/game/plugin/shaderFamily';
  * camera leaves bare terrain past it, so plants seem to appear as you walk up to them. This is a chunk-wide grid of what
  * the cover makes the ground look like: per cell the share of the ground the plants cover seen from straight above
  * (`top`), how much they hide seen from the side (`side`: their upright blades and fronds) and their mean colour (`rgb`).
- * The shard fills it from its own density rules (`fill`), or splats it from cover it actually placed (`splat`, or a baked
- * block with `writeBlock`). Terrains sample it per vertex (`aCover`, `flat`, like their colour) through `tintTerrain`, and
+ * The shard fills it from its own density rules (`fill`), or writes a block a generator splatted from cover it actually
+ * placed (`writeBlock`). Terrains sample it per vertex (`aCover`, `flat`, like their colour) through `tintTerrain`, and
  * their shader mixes the facet towards the cover colour by how much of the ground the plants hide *from where you look*:
  * a little from above, nearly all of it at the grazing angle far ground is seen at. Nothing here knows a shard's look:
  * the GLSL (`CoverTintGlsl`) and the patch's id are the shard's.
@@ -24,7 +24,7 @@ export interface CoverSample { r: number; g: number; b: number; top: number; sid
 export const coverSample = (): CoverSample => ({ r: 0, g: 0, b: 0, top: 0, side: 0 });
 const W = 5;
 
-/** One triangle of cover for CoverGrid.splat: centre (x, z), ground (top) and upright (side) areas, colour. */
+/** One triangle of cover for a generator's splat: centre (x, z), ground (top) and upright (side) areas, colour. */
 export interface CoverTri { x: number; z: number; top: number; side: number; r: number; g: number; b: number }
 
 /**
@@ -70,43 +70,12 @@ export class CoverGrid {
     }
   }
 
-  /**
-   * Overwrite the cells inside [x0, x1] × [z0, z1] from triangles of cover geometry (world space): each triangle adds its
-   * ground (top) and upright (side) areas × its colour to its cell. `k` scales area to optical depth (fronds overlap).
-   */
-  splat(tris: Iterable<CoverTri>, x0: number, x1: number, z0: number, z1: number, k: number): void {
-    const acc = new Map<number, [number, number, number, number, number]>(), step = this.step, n = this.n;
-    for (const t of tris) {
-      const c = Math.round((t.z + CHUNK_HALF) / step) * n + Math.round((t.x + CHUNK_HALF) / step);
-      const s = acc.get(c) ?? [0, 0, 0, 0, 0], w = t.top + t.side;
-      s[0] += t.r * w; s[1] += t.g * w; s[2] += t.b * w; s[3] += t.top; s[4] += t.side;
-      acc.set(c, s);
-    }
-    const i0 = this.ix(x0), i1 = this.ix(x1), k0 = this.ix(z0), k1 = this.ix(z1), cell = step * step;
-    for (let kk = k0; kk <= k1; kk++) for (let i = i0; i <= i1; i++) {
-      const c = kk * n + i, s = acc.get(c), o = c * W, w = s ? s[3] + s[4] : 0;
-      if (!s || w <= 0) { this.data.fill(0, o, o + W); continue; }
-      this.data.set([s[0] / w, s[1] / w, s[2] / w, 1 - Math.exp(-(s[3] / cell) * k), 1 - Math.exp(-(s[4] / cell) * k)], o);
-    }
-  }
-
-  /**
-   * The cells inside [x0, x1] × [z0, z1] (the rect `splat` overwrites), row by row, so a build-time splat can be stored
-   * and written back with `writeBlock` instead of splatting at load.
-   */
-  readBlock(x0: number, x1: number, z0: number, z1: number): Float32Array {
-    const i0 = this.ix(x0), i1 = this.ix(x1), k0 = this.ix(z0), k1 = this.ix(z1), row = (i1 - i0 + 1) * W, n = this.n;
-    const out = new Float32Array((k1 - k0 + 1) * row);
-    for (let k = k0; k <= k1; k++) out.set(this.data.subarray((k * n + i0) * W, (k * n + i1 + 1) * W), (k - k0) * row);
-    return out;
-  }
-
-  /** The number of floats `readBlock` returns for this rect. */
+  /** The number of floats a block of this rect holds (r, g, b, top, side per cell, row by row). */
   blockLength(x0: number, x1: number, z0: number, z1: number): number {
     return (this.ix(z1) - this.ix(z0) + 1) * (this.ix(x1) - this.ix(x0) + 1) * W;
   }
 
-  /** Write a `readBlock` of the same rect back (false, and nothing written, when its length does not fit the rect). */
+  /** Write a baked block of the rect (false, and nothing written, when its length does not fit the rect). */
   writeBlock(block: Float32Array, x0: number, x1: number, z0: number, z1: number): boolean {
     if (block.length !== this.blockLength(x0, x1, z0, z1)) return false;
     const i0 = this.ix(x0), i1 = this.ix(x1), k0 = this.ix(z0), k1 = this.ix(z1), row = (i1 - i0 + 1) * W, n = this.n;
