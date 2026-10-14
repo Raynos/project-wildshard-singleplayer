@@ -25,8 +25,8 @@ import type { BossDefinition, BossSaved, BossScript } from '@wildshard/engine/ai
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { CoinBurst } from '../loot/CoinBurst';
-import { DirectorBossBrain } from './director';
-import { bindRuntimeQuest, bindRuntimeBoss, bindRuntimeCoins, bindRuntimeBossRecord, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
+import { DirectorBossBrain, bindDirectorActions } from './director';
+import { bindRuntimeQuest, bindRuntimePersistence, type RuntimePersistenceRows, type RuntimePersistence, bindRuntimeBoss, bindRuntimeCoins, bindRuntimeBossRecord, type RuntimeBoss, type RuntimeCoins, type RuntimeQuestPorts } from './headless';
 import type { SpeciesPageCatalogue } from './brain';
 import type { BossViewRows } from '../shardfile/bossRow';
 import { type Shardfile, parseShardfile } from '@wildshard/format/shardSchema';
@@ -891,6 +891,75 @@ export function installRewardedQuest(ctx: ShardContext, source: Shardfile, o: Re
     presentation: { ...o.presentation, introTitle: s.quest, ...(npc === null ? {} : { npc }) },
     beat: { kicker: s.rewardKicker, title: s.quest, subtitle: s.rewardSubtitle, ...o.beat } });
   return { quest, reward, view };
+}
+
+/** Saved quest presentation rows shared by native and flag-backed rewards. */
+export interface PersistedQuestRows {
+  readonly id: string; readonly rewardId: string; readonly npc: string;
+  readonly strings: RewardedQuestStrings; readonly persistence: RuntimePersistenceRows;
+  readonly places: readonly PlacePoint[];
+  readonly markers?: Readonly<Record<string, NonNullable<ReturnType<NonNullable<RuntimeQuestPorts['place']>>>>>;
+  readonly presentationFlags?: boolean; readonly projectProgress?: boolean;
+  readonly unpaid?: 'live' | 'initial';
+  readonly beat?: { readonly at: { readonly x: number; readonly y: number; readonly z: number };
+    readonly toward: { readonly x: number; readonly z: number }; readonly pitch: number; readonly holdSeconds: number };
+  readonly finishFlags?: readonly string[];
+  readonly stages?: readonly { readonly system: string; readonly data: unknown; readonly initial: readonly Readonly<Record<string, boolean>>[] }[];
+  /** A bounded transient startup repair; saved flags are its continuation. */
+  readonly repair?: { readonly data: unknown; readonly initial: readonly Readonly<Record<string, boolean>>[];
+    readonly legacyObservation: string; readonly advances: number };
+}
+/** Borrow the existing model/material owner and purse; rows own quest composition. */
+export interface PersistedQuestPorts {
+  readonly player: Vector3; readonly flags?: Flags; readonly coins?: RuntimeCoins;
+  readonly model: QuestNpcPorts['model']; readonly dress?: QuestNpcPorts['dress'];
+}
+/** Live quest services over the original durable flag, reward and boss owners. */
+export interface PersistedQuest {
+  readonly quest: QuestState; readonly flags: Flags; readonly reward: QuestReward; readonly burst: CoinBurst;
+  readonly view: QuestPresentation | null; readonly persistence: RuntimePersistence;
+  readonly facts: RuntimePersistence['facts']; readonly finished: () => void;
+}
+export function installPersistedQuest(ctx: ShardContext, source: Shardfile,
+  rows: PersistedQuestRows & { readonly persistence: RuntimePersistenceRows & { readonly boss: NonNullable<RuntimePersistenceRows['boss']> } },
+  ports: PersistedQuestPorts): PersistedQuest & { readonly persistence: RuntimePersistence & { readonly boss: NonNullable<RuntimePersistence['boss']> } };
+export function installPersistedQuest(ctx: ShardContext, source: Shardfile, rows: PersistedQuestRows, ports: PersistedQuestPorts): PersistedQuest;
+/** Compose declared NPCs, saved rewards and flag stages without replacing a save owner. */
+export function installPersistedQuest(ctx: ShardContext, source: Shardfile, rows: PersistedQuestRows, ports: PersistedQuestPorts): PersistedQuest {
+  const flags = ports.flags ?? new Flags(ctx.manifest.slug);
+  const persistence = bindRuntimePersistence(ctx, source, rows.persistence, flags, ctx.manifest.slug);
+  if (rows.projectProgress === true) persistence.bindProgress(ctx.game.runtime?.play?.progress);
+  if (rows.repair !== undefined) {
+    const repairRow = rows.repair;
+    if (!Number.isSafeInteger(repairRow.advances) || repairRow.advances < 1 || repairRow.advances > 16) throw new Error('Quest repair must be bounded');
+    const legacy = !persistence.rewarded.read() && persistence.legacyPaid;
+    const repair = bindDirectorActions(repairRow.data, { flags, bindings: [], initial: repairRow.initial, observe: binding => {
+      if (binding !== repairRow.legacyObservation) throw new Error('Unknown quest repair observation');
+      return legacy;
+    } });
+    for (let step = 0; step < repairRow.advances; step++) repair.advance();
+  }
+  const beat = rows.beat;
+  const installed = installRewardedQuest(ctx, source, { id: rows.id, rewardId: rows.rewardId, strings: rows.strings,
+    flags, facts: persistence.facts, player: ports.player, coins: ports.coins ?? bindRuntimeCoins(ctx, null),
+    paid: persistence.rewarded.read, markPaid: () => { persistence.rewarded.write(true); },
+    ...(rows.unpaid === 'live' ? { unpaid: () => !persistence.rewarded.read() } : {}),
+    ...(rows.markers === undefined ? {} : { place: marker => rows.markers?.[marker.id] }),
+    presentation: { places: [...rows.places], ...(rows.presentationFlags === true ? { flags } : {}) },
+    ...(beat === undefined ? {} : { beat: { at: new Vector3(beat.at.x, beat.at.y, beat.at.z),
+      yaw: Math.atan2(-(beat.toward.x - beat.at.x), -(beat.toward.z - beat.at.z)), pitch: beat.pitch, holdSeconds: beat.holdSeconds } }),
+    npc: () => installDeclaredQuestNpc(ctx, source, rows.npc, { player: ports.player, flags, model: ports.model,
+      ...(ports.dress === undefined ? {} : { dress: ports.dress }) }),
+  });
+  for (const row of rows.stages ?? []) {
+    const stage = bindDirectorActions(row.data, { flags, bindings: [], initial: row.initial });
+    ctx.system({ id: row.system, phase: 'update', run: stage.advance });
+  }
+  return { quest: installed.quest, flags, reward: installed.reward, burst: installed.reward.burst, facts: persistence.facts, persistence,
+    get view() { return installed.view(); }, finished: () => {
+      persistence.rewarded.write(true);
+      for (const flag of rows.finishFlags ?? []) flags.set(flag);
+    } };
 }
 
 /** What a boss row's browser encounter is given: its rows, its view-free script, its body and its record. */

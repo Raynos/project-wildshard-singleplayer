@@ -2078,6 +2078,10 @@ installs the presentation (entered for a retained home, plain in play, none head
 in `pay`, pays at once on completion headless, toasts `newQuest` while the quest is open, animates the burst under the
 system `id` and frees it with the level; it returns the live view's getter. Signal Dunes' `quest/install.ts` uses both.
 
+`installPersistedQuest` in `@wildshard/game/plugin/ui` composes declared
+NPC, reward, marker and bounded startup flag-repair rows. Model/material
+ports retain ownership, and flags and rewards retain existing saved keys.
+
 ## 21. Shared content (the kit's, now the game's)
 
 SF54 dissolved `@wildshard/kit`: content that 2+ shards use (the rule of two) lives in `@wildshard/game`, its trusted
