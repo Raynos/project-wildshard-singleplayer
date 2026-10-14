@@ -26,8 +26,6 @@ import { BOOK_STAND } from '../data/bookStand';
 import { KEEPER_STAND } from '../quest/keeper';
 import { crownStorm, type CrownStorm } from './storm';
 import { STORM } from '../data/storm';
-import { updraftFx, type UpdraftFx } from '../runtime/looks/windFx';
-import { UPDRAFT_FX } from '../data/windLook';
 import { SKY_SUN } from '../data/skyLook';
 import { seaTexture } from '../look/cloudSea';
 import { RISING_ISLETS } from './islets';
@@ -48,8 +46,6 @@ function skyPlacements(cube: { readonly half: number } | null): typeof PLACEMENT
 export interface BuiltWorld {
   /** The hover decks' shared material: the plugin brightens it while the player rides the board. */
   readonly hoverDeck: MeshStandardMaterial;
-  /** The updraft's wind spiral; the plugin turns it. */
-  readonly wind: UpdraftFx;
   /** The fallen bridge's pivot on the step's rim; rotation.x runs from FALLEN_ANGLE (hanging) to 0 (raised). */
   readonly fallen: Object3D;
   readonly millHub: Object3D;
@@ -158,9 +154,6 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   const ramp = createClientScene(HOVER_SCENES.get(UPDRAFT.id), { geometry: SKY_LIBRARY.geometry, materials: new Map([['glass', hoverDeck], ['frame', looks.frame]]) }).root;
   ramp.position.set(UPDRAFT.x0, UPDRAFT.y, UPDRAFT.z0); ramp.rotation.set(UPDRAFT_ANGLE, spanYaw(UPDRAFT), 0, 'YXZ');
   pieces.add('far.updraft', ramp, { colliders: spanColliders('far.updraft') });
-  // the wind column: a spiral of streaks and leaves up the ramp (loop 3; the plugin turns it)
-  const wind = updraftFx(UPDRAFT_FX, new Vector3(UPDRAFT.x0, UPDRAFT.y + 2.2, UPDRAFT.z0), new Vector3(UPDRAFT.x1, UPDRAFT.y1 + 2.2, UPDRAFT.z1));
-  for (const o of wind.objects) root.add(o); wind.update(0);
   await pause();
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
@@ -215,5 +208,5 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   islets.updateMovers(id => { const pose = rest.get(id); if (pose === undefined) throw new Error('Missing initial islet pose'); return pose; });
   root.add(scene.root);
   ctx.root.add(root); ctx.scope.ownPrimitives(root, { instances: true });
-  return { hoverDeck, wind, fallen, millHub: mill.hub, storm, vanes, winch: handle, winchAt, notes, notesAt, state, islets };
+  return { hoverDeck, fallen, millHub: mill.hub, storm, vanes, winch: handle, winchAt, notes, notesAt, state, islets };
 }

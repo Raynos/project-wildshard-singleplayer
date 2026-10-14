@@ -17,8 +17,8 @@ import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_MOVER_BINDING, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import { commandSocketLift, bindMeleeContacts, createMeleeScriptDriver, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
-import { gustFx } from './looks/windFx';
-import { GUST_FX } from '../data/windLook';
+import { effectField } from '@wildshard/sdk/looks/effectField';
+import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
 import { RISING_ISLETS } from '../world/islets';
 import type { RisingIslet } from '../data/isletDesign';
 import { WarFan, type WarFanWeapon, type ConeFanTarget } from './weapons/heldFan';
@@ -28,7 +28,7 @@ import { FAN_ROW } from '../data/equipment';
 import { preloadSkyMeshes } from '../world/meshes';
 import { loadSkyBaked } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
-import { setSkyLooks } from '../world/looks';
+import { setSkyLooks, skyLook } from '../world/looks';
 import { setMillTextures } from '../world/mill';
 import { FAN_LEAF_URL } from '../data/files';
 import { loadPainted } from '../look/image';
@@ -218,23 +218,26 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       const cam = rt.world?.game.camera; if (cam && this.meadow) this.meadow.update(this.meadow.mesh.worldToLocal(cam.getWorldPosition(eye)), t);
       // SF49-g (G183): the Rising Islets ride their movers (fixed ride driver, in the fixed step); draw them and their chains
       const movers = this.movers; if (movers !== null) { built.islets.updateMovers(moverPose); this.isletCalls?.updateMovers(moverPose); }
-      built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t); built.wind.update(t);
+      built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t);
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
         const row = vanes[i]; if (row === undefined) break;
         row.vane.rotor.rotation.y += dt * (flags.has(row.flag) ? 6 : 0.25);
       }
     } });
 
-    // GUST: a cone of wind streaks and petals leaves the fan (style bible §7); a vane inside the cone starts turning (step 3).
-    const fxRandom = ctx.app.rng.stream('cosmetic'), gustView = gustFx(GUST_FX, () => fxRandom.next());
-    const gustObjects = boundedRows(gustView.objects);
-    for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const object = gustObjects[i]; if (object === undefined) break; ctx.root.add(object); }
-    ctx.scope.onDispose(() => { gustView.dispose(); });
-    fan.onGust = (from, dir) => {
-      gustView.fire(from.clone().addScaledVector(dir, 0.2).setY(from.y - 0.25), dir); rt.play?.cues.charge(FAN_ROW, 'heavy');
-      this.gustVanes(from, dir, toast);
+    // The wind's seeded fields (data/windLook.ts), moved by their graphs: the updraft's spiral up the ramp, and GUST, a cone
+    // of streaks and petals leaving the fan (style bible §7); a vane inside the cone starts turning (step 3).
+    const wind = (key: keyof typeof WIND_FIELDS): ReturnType<typeof effectField> => {
+      const look = skyLook(WIND_LOOKS[key]); if (look === undefined) throw new Error(`Sky Reach: look.materials lacks ${WIND_LOOKS[key]}`);
+      const field = effectField(WIND_FIELDS[key], look); ctx.root.add(field.object); ctx.scope.own(field.geometry); ctx.scope.onDispose(() => { field.object.removeFromParent(); }); return field;
     };
-    ctx.system({ id: 'far.gust', phase: 'update', run: (dt) => { gustView.update(dt); } });
+    const axis = [new Vector3(...UPDRAFT_AXIS.at), new Vector3(...UPDRAFT_AXIS.aim)] as const, fxRandom = ctx.app.rng.stream('cosmetic'), gust = [wind('gustStreaks'), wind('gustPetals')] as const;
+    wind('updraftStreaks').place(...axis); wind('updraftLeaves').place(...axis);
+    fan.onGust = (from, dir) => {
+      const at = from.clone().addScaledVector(dir, 0.2).setY(from.y - 0.25), salt = fxRandom.next(); gust[0].burst(at, dir, salt); gust[1].burst(at, dir, salt);
+      rt.play?.cues.charge(FAN_ROW, 'heavy'); this.gustVanes(from, dir, toast);
+    };
+    ctx.system({ id: 'far.gust', phase: 'update', run: (dt) => { gust[0].update(dt); gust[1].update(dt); } });
 
     // Creatures: each one knows its home (an island or a flying circle). The goats walk their island's deck (G26): their
     // spawn ray lands them on the first WORLD floor under `fromY`, which finds the islands only once physics has stepped

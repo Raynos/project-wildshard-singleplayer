@@ -89,6 +89,7 @@
     "./looks/canvasAtlas": "./looks/canvasAtlas.ts",
     "./looks/tileField": "./looks/tileField.ts",
     "./looks/cardField": "./looks/cardField.ts",
+    "./looks/effectField": "./looks/effectField.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/mergedPrimitives": "./kit/mergedPrimitives.ts",
     "./species/clips": "./species/clips.ts",
@@ -498,6 +499,10 @@
       "./looks/cardField": {
         "types": "./dist/types/sdk/looks/cardField.d.ts",
         "default": "./dist/looks/cardField.js"
+      },
+      "./looks/effectField": {
+        "types": "./dist/types/sdk/looks/effectField.d.ts",
+        "default": "./dist/looks/effectField.js"
       },
       "./kit/bakedGeometry": {
         "types": "./dist/types/sdk/kit/bakedGeometry.d.ts",

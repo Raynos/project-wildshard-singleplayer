@@ -1,12 +1,14 @@
-import { BufferGeometry, Float32BufferAttribute, Mesh, PlaneGeometry, Points, Vector4, type Material, type Group, type Object3D, type Vector3 } from 'three';
+import { Mesh, PlaneGeometry, Vector4, type BufferGeometry, type Material, type Group, type Object3D, type Vector3 } from 'three';
 import { cardGroup, type CardPrograms, type CardRow } from '@wildshard/sdk/looks/cardField';
+import { effectField } from '@wildshard/sdk/looks/effectField';
 
 /**
  * Fire, embers and smoke as declared rows (SHARD-PLATFORM SF72, effect rows): a shard declares its fires' sizes as data and
  * its fire's look as SF59 material graphs (`data/fireLook.ts`, G382), compiled before the world builds; `createFireFx`
  * places them on a few quads and points, animated on the GPU from the fires' clock: no CPU particles, no lights, ~4 draws
  * a fire. The billboards (flame tongues, glow, smoke, a lamp's halo) are placed on the SDK's card host
- * (`@wildshard/sdk/looks/cardField` cardGroup, G395); each graph turns its own quad to the camera.
+ * (`@wildshard/sdk/looks/cardField` cardGroup, G395); each graph turns its own quad to the camera. The embers are a
+ * seeded point field (`@wildshard/sdk/looks/effectField`) their graph moves.
  *
  * `FireFx.lights` is a uniform of up to four burning fires (xyz the flame, w the gain) a shard's own materials can read.
  */
@@ -36,7 +38,7 @@ export interface FireFx {
   readonly lights: { value: Vector4[] };
   /** The shared quads, for the level scope to own (the materials are the look's). */
   readonly resources: readonly PlaneGeometry[];
-  /** The ember geometries made so far (one per count). */
+  /** The ember geometries made so far (one per fire). */
   geometries: () => BufferGeometry[];
 }
 
@@ -50,22 +52,12 @@ export function createFireFx(programs: FireFxPrograms, lights: { value: Vector4[
   /** the billboards' quads and materials, for the SDK card host (G395) */
   const quads = { flame: quad, wisp: wispQuad, glow: glowQuad }, cards = { flame, smoke, wisp: wispMaterial, glow, lampGlow };
   const cardPrograms: CardPrograms<keyof typeof cards, Material> = { material: (program) => cards[program] };
-  const emberCache = new Map<number, BufferGeometry>();
-  const embers = (n: number): BufferGeometry => {
-    let g = emberCache.get(n);
-    if (g === undefined) {
-      g = new BufferGeometry(); const seeds = new Float32Array(n), pos = new Float32Array(n * 3);
-      for (let i = 0; i < n; i++) seeds[i] = (i * 0.618034) % 1;
-      g.setAttribute('position', new Float32BufferAttribute(pos, 3)); g.setAttribute('aSeed', new Float32BufferAttribute(seeds, 1));
-      emberCache.set(n, g);
-    }
-    return g;
-  };
+  const emberGeometries: BufferGeometry[] = [];
   const slots = { next: 0 };
   return {
     lights,
     resources: [quad, wispQuad, glowQuad],
-    geometries: () => [...emberCache.values()],
+    geometries: () => emberGeometries,
     addFire: (group, size, at) => {
       const parts: Object3D[] = [];
       const add = (o: Object3D): void => { o.frustumCulled = false; group.add(o); parts.push(o); };
@@ -73,7 +65,8 @@ export function createFireFx(programs: FireFxPrograms, lights: { value: Vector4[
       // the main and inner tongues, then two narrower side tongues, offset and phase-shifted by their place; the glow round them
       parts.push(...cardGroup(cardPrograms, { name: 'fire', order: 0, cards: [tongue(0.56, 1, [0, -0.1, 0]), tongue(0.34, 0.8, [0.05, -0.05, 0.05]), tongue(0.26, 0.62, [-fh * 0.11, -0.08, -0.07]), tongue(0.26, 0.72, [fh * 0.11, -0.08, 0.07]),
         { program: 'glow', quad: 'glow', scale: size.glow, at: [0, fh * 0.4, 0], order: 2 }] }, {}, { quads, into: group }).meshes);
-      const sparks = new Points(embers(size.embers), emberMaterial); sparks.scale.setScalar(fh * 0.9); sparks.position.y = fh * 0.3; add(sparks);
+      const embers = effectField({ name: 'fire.embers', shape: 'point', count: size.embers }, emberMaterial), sparks = embers.object; emberGeometries.push(embers.geometry);
+      sparks.scale.setScalar(fh * 0.9); sparks.position.y = fh * 0.3; add(sparks);
       parts.push(...cardGroup(cardPrograms, { name: 'smoke', order: 1, cards: [{ program: wisp ? 'wisp' : 'smoke', quad: wisp ? 'wisp' : 'flame', scale: [size.smoke * (wisp ? 0.03 : 0.2), size.smoke, 1], at: [0, fh * 0.7, 0] }] }, {}, { quads, into: group }).meshes);
       if (at) {
         const r = Math.max(size.glow * 2.3, size.flame * 2.4), n = 16, g = new PlaneGeometry(r * 2, r * 2, n, n); g.rotateX(-Math.PI / 2);
