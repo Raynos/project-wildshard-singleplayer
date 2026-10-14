@@ -5212,3 +5212,13 @@ Audio `voiceBindings` loans explicit native methods to cue routing. Each
 binding declares its owner, method, argument fields and optional refusal
 conditions; bounded options keep the caller's point and direction references.
 Supply the actual owners to `createCueRouter` alongside those bindings.
+
+### Native interaction transitions
+
+`engine/world/interact/flags.ts` defines `InteractionTransitionPorts`,
+`InteractionTransitions` and `bindInteractionTransitions`. A preflighted,
+bounded table borrows graph-run, item-grant, touch and plate callbacks.
+Transitions preserve ordered automatic/explicit flags, physical door toggles,
+chest grants, plate release, walk-in pickups and latched doors. The caller keeps
+reach, sight, physics phases and its existing save owner. Direct touch grants
+and graph touch actions are explicit policies; no new clock or save is created.

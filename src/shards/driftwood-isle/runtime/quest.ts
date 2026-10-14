@@ -6,7 +6,7 @@ import type { Collider } from '@dimforge/rapier3d-simd';
 import { BARREL_BODY, BARREL_HALF, BarrelWatch, barrelAtPlate, type BarrelEnv } from '@wildshard/engine/world/interact/barrel';
 import type { GroupName } from '@wildshard/engine/physics/groups';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
-import { test, bindInteractionState } from '@wildshard/engine/world/interact/flags';
+import { bindInteractionState, bindInteractionTransitions } from '@wildshard/engine/world/interact/flags';
 import type { QuestData } from '@wildshard/format/quests';
 import type { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { installQuestGraph } from '@wildshard/game/plugin/quests';
@@ -185,25 +185,6 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     eye.copy(host.player.position); eye.y += EYE;
     return at.set(p.x, p.y, p.z).distanceTo(eye) < radius;
   };
-  const raiseAll = (list: readonly string[], on: boolean): void => { for (let k = 0; k < MAX_ROWS; k++) { const f = list[k]; if (f === undefined) break; flags.set(f, on); } };
-  /** Interactables.interact (a locked row only toasts) */
-  const interact = (r: Rule): void => {
-    const d = r.d;
-    if (!r.shown() || r.locked()!==null || d.kind === 'plate' || d.kind === 'barrel') return;
-    // Physical doors retain their toggle law; other prompts commit the admitted graph row.
-    if (d.kind === 'door') {
-      if (d.look === 'plank' && flags.has(r.open)) { flags.clear(r.open); return; }
-      if (r.auto !== null) flags.set(r.auto);
-      raiseAll(r.sets, true);
-    } else if (!graph.run(d.id).ok) return;
-    if (d.kind === 'chest') {
-      for (let k = 0; k < MAX_ROWS; k++) {
-        const loot = r.contents[k]; if (loot === undefined) break;
-        if (loot.kind === 'item') pack.add(loot.id, loot.n);
-        else flags.set(loot.id);
-      }
-    }
-  };
   /** the row's prompt point: the hold key's follows where the sailor fell (Interactables.moveTo, 1 m over the key) */
   const promptOf = (r: Rule): { x: number; y: number; z: number } | undefined => {
     if (r.d.kind !== 'key' || state.key === null) return r.spot.prompt;
@@ -215,6 +196,16 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     for (let i = 0; i < MAX_BODIES; i++) { const b = list[i]; if (b === undefined) break; if (b.kind === 'sailor' && b.actor?.alive === true) return true; }
     return false;
   };
+  /** Interactables.plateDown: a thin slab over the plate, a little inside its rim, against the player and items */
+  const plateDown = (r: Rule, size: number): boolean => {
+    const h = Math.max(0.05, size / 2 - PLATE_INSET);
+    slab.x = r.spot.x; slab.y = r.spot.y + PLATE_DEPTH / 2; slab.z = r.spot.z; half.x = h; half.z = h;
+    return overlapBox(host.physics, slab, half, r.spot.yaw, PLATE_SEES, anyOwner);
+  };
+  const transitions=bindInteractionTransitions(rules,flags,{rowLimit:MAX_ROWS,flagLimit:MAX_ROWS,
+    commit:id=>graph.run(id),item:(id,n)=>{pack.add(id,n);},plate:plateDown,
+    touched:r=>{const feet=host.player.position,dx=feet.x-r.spot.x,dz=feet.z-r.spot.z;
+      return dx*dx+dz*dz<TOUCH_R*TOUCH_R&&Math.abs(feet.y-r.spot.y)<TOUCH_DY;}});
   const picker = createHeadlessPromptPicker(host);
   const prompts = bindHeadlessPrompts(spots.promptRegistrations, id => {
     if (id === 'castaway.talk') return { act: DRIFTWOOD_ACT.talk, position: spots.talk, radius: TALK_R };
@@ -238,7 +229,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
       return;
     }
     const r = rules[value - DRIFTWOOD_ACT.row], p = r === undefined ? undefined : promptOf(r);
-    if (r !== undefined && p !== undefined && near(p, r.promptRadius())) interact(r);
+    if (r !== undefined && p !== undefined && near(p, r.promptRadius())) transitions.interact(r);
   };
 
   // the sailor's fall drops the hold key on the floor there (quest/Spine.ts's kill hook, order 10)
@@ -253,24 +244,6 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const offFlags = flags.onChange((f, on) => { if (on && !f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats(); });
   host.scope.onDispose(offFlags);
 
-  /** Interactables.plateDown: a thin slab over the plate, a little inside its rim, against the player and items */
-  const plateDown = (r: Rule, size: number): boolean => {
-    const h = Math.max(0.05, size / 2 - PLATE_INSET);
-    slab.x = r.spot.x; slab.y = r.spot.y + PLATE_DEPTH / 2; slab.z = r.spot.z; half.x = h; half.z = h;
-    return overlapBox(host.physics, slab, half, r.spot.yaw, PLATE_SEES, anyOwner);
-  };
-  /** Interactables.update / refresh for one row: a plate's press, a walk-in take, a latching door */
-  const stepRow = (r: Rule): void => {
-    const d = r.d, feet = host.player.position;
-    if (!r.shown()) return;
-    if (d.kind === 'plate') {
-      const down = plateDown(r, d.size);
-      if (down !== flags.has(r.plate)) { flags.set(r.plate, down); raiseAll(r.sets, down); }
-    } else if (d.kind === 'pickup' && d.touch === true) {
-      const dx = feet.x - r.spot.x, dz = feet.z - r.spot.z;
-      if (dx * dx + dz * dz < TOUCH_R * TOUCH_R && Math.abs(feet.y - r.spot.y) < TOUCH_DY) { graph.run(d.id); }
-    } else if (d.kind === 'door' && d.latch === true && d.opensWhen !== undefined && !flags.has(r.open) && test(flags, d.opensWhen)) flags.set(r.open);
-  };
   // the puzzle barrel (Interactables.placeLive's 'barrel'): the kit's body at its home, upright on the row's yaw, in its
   // own body service over the host's world (pre / post around the host's world step, as the page's fixed phases)
   const barrelRule = rules.find(r => r.d.kind === 'barrel'), plates = rules.filter(r => r.d.kind === 'plate');
@@ -310,7 +283,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
       if (watch?.check(b.curr, dt, env) === true) sendHome(b);
       service.pre(dt);
     }
-    for (let i = 0; i < MAX_ROWS; i++) { const r = rules[i]; if (r === undefined) break; stepRow(r); }
+    transitions.step();
     // the open gate's collider leaves the world (Interactables.syncDoor parks it; the sluice latches open)
     if (sluiceRule !== undefined && flags.has(sluiceRule.open) && sluice?.isEnabled() === true) sluice.setEnabled(false);
     // Adventure's zipline update is after the player/kit and before the finale's reward beat.

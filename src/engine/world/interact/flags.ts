@@ -131,3 +131,74 @@ export function bindInteractionState(d:InteractDef,flags:Pick<Flags,'has'>):Inte
   return {d,auto:autoFlag(d),sets:d.sets??[],gives:d.kind==='key'?[`key:${d.key}`]:[],contents,
     taken,open,lit,used,lever,plate,lockKey,shown,locked,promptRadius};
 }
+
+/** Borrowed native graph, grants and physical eligibility. The caller retains reach, sight and save ownership. */
+export interface InteractionTransitionPorts<Row extends InteractionState> {
+  readonly commit:(id:string)=>{readonly ok:boolean};
+  readonly item:(id:string,n:number)=>void;
+  readonly touched?:(row:Row)=>boolean;
+  readonly plate?:(row:Row,size:number)=>boolean;
+  readonly touch?:'direct'|'graph';
+  readonly rowLimit?:number;
+  readonly flagLimit?:number;
+}
+/** A bounded table's ordered native transitions, with no clock, physics or continuation of its own. */
+export interface InteractionTransitions<Row extends InteractionState> {
+  readonly setFlags:(list:readonly string[]|undefined,on?:boolean)=>void;
+  readonly interact:(row:Row)=>boolean;
+  readonly latch:(row:Row)=>void;
+  readonly step:(rows?:readonly Row[])=>void;
+}
+/** Preflight a native table before effects. Physical eligibility is lent; graph and direct pickups retain their own order. */
+export function bindInteractionTransitions<Row extends InteractionState>(rows:readonly Row[],flags:Pick<Flags,'has'|'set'>,
+  ports:InteractionTransitionPorts<Row>):InteractionTransitions<Row> {
+  const rowLimit=ports.rowLimit??1024,flagLimit=ports.flagLimit??1024;
+  if(!Number.isInteger(rowLimit)||rowLimit<1||rowLimit>1024||!Number.isInteger(flagLimit)||flagLimit<1||flagLimit>1024
+    ||rows.length>rowLimit||new Set(rows.map(row=>row.d.id)).size!==rows.length)throw new Error('Invalid interaction transition table');
+  const validFlags=(list:readonly string[]):boolean=>list.length<=flagLimit&&list.every(id=>id.length>0&&id.length<=256);
+  for(const row of rows){
+    bindInteractionState(row.d,flags);
+    if(!validFlags(row.sets)||row.contents.length>rowLimit||row.contents.some(grant=>grant.id.length===0||grant.id.length>256
+      ||(grant.kind==='item'&&(!Number.isSafeInteger(grant.n)||grant.n<0))))throw new Error('Invalid interaction transition grants');
+    if(row.d.kind==='plate'&&ports.plate===undefined)throw new Error('Interaction plate needs its physical owner');
+    if(row.d.kind==='pickup'&&row.d.touch===true&&(ports.touched===undefined||(ports.touch==='direct'&&row.d.item===undefined)))throw new Error('Interaction pickup needs its touch owner and grant');
+  }
+  const known=new Set(rows);
+  const requireRow=(row:Row):void=>{if(!known.has(row))throw new Error('Unknown interaction transition row');};
+  const setFlags=(list:readonly string[]|undefined,on=true):void=>{
+    if(list===undefined)return;
+    if(!validFlags(list))throw new Error('Invalid interaction transition flags');
+    for(const id of list)flags.set(id,on);
+  };
+  const latch=(row:Row):void=>{
+    requireRow(row);const d=row.d;
+    if(d.kind==='door'&&d.latch===true&&d.opensWhen!==undefined&&!flags.has(row.open)&&test(flags,d.opensWhen))flags.set(row.open);
+  };
+  const interact=(row:Row):boolean=>{
+    requireRow(row);const d=row.d;
+    if(!row.shown()||row.locked()!==null||d.kind==='plate'||d.kind==='barrel')return false;
+    if(d.kind==='door'){
+      if(d.look==='plank'&&flags.has(row.open)){flags.set(row.open,false);return true;}
+      if(row.auto!==null)flags.set(row.auto);setFlags(row.sets);
+    }else if(!ports.commit(d.id).ok)return false;
+    if(d.kind==='chest')for(const grant of row.contents){if(grant.kind==='item')ports.item(grant.id,grant.n);else flags.set(grant.id);}
+    return true;
+  };
+  const step=(selected:readonly Row[]=rows):void=>{
+    if(selected.length>rowLimit)throw new Error('Too many interaction transition rows');
+    for(const row of selected)requireRow(row);
+    for(const row of selected){
+      const d=row.d;if(!row.shown())continue;
+      if(d.kind==='plate'){
+        const down=ports.plate?.(row,d.size);if(down===undefined)throw new Error('Missing interaction plate owner');
+        if(down!==flags.has(row.plate)){flags.set(row.plate,down);setFlags(row.sets,down);}
+      }else if(d.kind==='pickup'&&d.touch===true&&ports.touched?.(row)===true){
+        if(ports.touch==='direct'){
+          if(d.item===undefined)throw new Error('Missing interaction pickup grant');
+          flags.set(row.taken);setFlags(row.sets);ports.item(d.item,1);
+        }else ports.commit(d.id);
+      }else if(d.kind==='door')latch(row);
+    }
+  };
+  return {setFlags,interact,latch,step};
+}

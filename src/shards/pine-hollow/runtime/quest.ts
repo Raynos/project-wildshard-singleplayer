@@ -3,7 +3,7 @@ import { ZIPLINE, ZIP_RIDE } from '../data/zipline';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
-import { test, bindInteractionState } from '@wildshard/engine/world/interact/flags';
+import { bindInteractionState, bindInteractionTransitions } from '@wildshard/engine/world/interact/flags';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/format/quests';
 import { installQuestGraph } from '@wildshard/game/plugin/quests';
@@ -176,10 +176,6 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   /** a command's table row (the prompts' order: the two logs, the glass, the flint) */
   const rowOf = (value: number): Rule | null => value === PINE_ACT.logA ? logA : value === PINE_ACT.logB ? logB : value === PINE_ACT.glass ? glass : value === PINE_ACT.flint ? flint
     : value === PINE_ACT.bench ? benchRule : Number.isInteger(value) && value >= PINE_ACT.token1 && value <= PINE_ACT.token8 ? tokenRules[value - PINE_ACT.token1] ?? null : null;
-  const raiseAll = (list: readonly string[] | undefined, on: boolean): void => {
-    if (list === undefined) return;
-    for (let k = 0; k < MAX_SETS; k++) { const f = list[k]; if (f === undefined) break; flags.set(f, on); }
-  };
   const graph = installQuestGraph(host, { quests: ports.quests, interactions: pineQuestRows(table), npcs: [], graph: PINE_GRAPH },
     { spots: { interact: [], crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins, drive: 'external' });
   const quests = graph.quests;
@@ -223,17 +219,11 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const resin = resinSpots.map(spot => {
     const d = table.rows.find(row => row.id === spot.id);
     if (d?.kind !== 'pickup' || d.touch !== true || d.item !== 'amber-resin') throw new Error(`Pine table has no resin take law ${spot.id}`);
-    return { d, spot, taken: `taken:${d.id}` };
+    return Object.assign(bindInteractionState(d,flags),{spot});
   });
-  const touchResin = (): void => {
-    for (let i = 0; i < 30; i++) {
-      const row = resin[i]; if (row === undefined) break;
-      const { d, spot, taken } = row;
-      if (flags.has(taken) || !test(flags, d.showWhen) || !walkInPickup(host.physics, host.player.position, spot)) continue;
-      flags.set(taken); raiseAll(d.sets, true);
-      pack.add('amber-resin');
-    }
-  };
+  const transitions=bindInteractionTransitions([...resin,sluice],flags,{rowLimit:RESIN_COUNT+1,flagLimit:MAX_SETS,touch:'direct',
+    commit:id=>graph.run(id),item:()=>{pack.add('amber-resin');},
+    touched:row=>'spot' in row&&walkInPickup(host.physics,host.player.position,row.spot)});
 
   // ── the clock: Hale's watch till dark, the dawn (quest/index.ts publishClock, without its presentation) ──
   const fast: { on: { from: number; span: number; t: number; dur: number; to: number } | null } = { on: null };
@@ -245,7 +235,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (event === 'night.consume') flags.clear('wait:night');
     else if (event === 'night.start') fastForward(NIGHT_PHASE, value);
     else if (event === 'dawn.sunrise') fastForward(SUNRISE_PHASE, value);
-    else if (event === 'dawn.lanterns') raiseAll(LANTERN_FLAGS, true);
+    else if (event === 'dawn.lanterns') transitions.setFlags(LANTERN_FLAGS);
     else if (event === 'dawn.finish') flags.set('seen:dawn');
   };
   const clockPorts = { seen: () => flags.has('seen:dawn'), hasClock: () => ports.day() !== null, night: ports.night, publish };
@@ -333,9 +323,9 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     }
     dialogue.advanceReading(dt, host.player.position);
     ride(dt);
-    touchResin();
+    transitions.step(resin);
     // the sluice lifts on its own once both logs are off and latches open (Interactables.update's latching door)
-    if (sluice.d.kind === 'door' && sluice.d.latch === true && !flags.has(sluice.open) && test(flags, sluice.d.opensWhen)) flags.set(sluice.open);
+    transitions.latch(sluice);
     // the clock's fast-forward (a smoothstep over its span), then the clock, then the stag, as the page's quest frame
     const day = ports.day(), ff = fast.on;
     if (ff !== null && day !== null) {
