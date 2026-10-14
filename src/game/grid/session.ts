@@ -369,6 +369,8 @@ export class GridSession {
     this.road = platformRoad.road; this.seams = platformRoad.seams;
     // G321: inside a cell whose shard draws its own sky, its backdrop owns the horizon: the road's void floor fades by it
     if (frame !== null) host.scope.onDispose(frame.horizon(platformRoad.horizon));
+    // G103: the asphalt forced 15 m into each cell keeps the road's light under that cell's own (the road's frame weight)
+    if (frame !== null) host.scope.onDispose(frame.stack(null, { weight: platformRoad.overlayLight }));
     // G321 part 4: and what stands outside that cell (the road's far reaches here; the neighbours' far proxies, haze bands
     // and ring tiles as they arrive) dithers out by it beyond the near road
     const horizon = horizonFade(host.scope);

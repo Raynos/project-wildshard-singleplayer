@@ -18,7 +18,7 @@ import { diagnosticNow } from '@wildshard/engine/core/clock';
 import type { GridCell } from './assembly';
 import type { LookScope, RoadLayout } from './roadLayout';
 import { allocateRenderSteps, type PlatformRenderAdmission, type PlatformRenderBytePlan } from './renderResidency';
-import { installRoadLookSteps, type RoadLookState } from './roadLook';
+import { installRoadLookSteps, RoadOverlayLight, type RoadLookState } from './roadLook';
 import { installVoidLook } from './voidLook';
 import { CURTAIN_FLOATS, curtainGeometry, curtainMaterial, curtainSource, gravel, riprap, seamSolidSource, stone, strata, type SeamCurtain, type SeamLookState, type SeamPiece } from './seamLook';
 import { bytePlan, cullIntoSteps, finishRoadSteps, gpuOnlyRoad, meshBytes, meshBytesSteps, ROAD_LOD, type CullPlan, type RoadCuller } from './roadCull';
@@ -45,6 +45,8 @@ export interface PlatformRoad {
   readonly road: RoadLookState; readonly seams: SeamLookState; readonly roots: readonly Object3D[];
   /** G321: the void floor's fade by how much a cell's own sky owns the horizon (`VoidLookState.fade`) */
   readonly horizon: (owned: number) => void;
+  /** G103: the road's weight in the frame, so the asphalt forced into a cell keeps the road's light (`RoadOverlayLight`) */
+  readonly overlayLight: (roadWeight: number) => void;
 }
 
 /** G144's preflight for the deck: the merged solid parts after clip and far LOD, and the grain array (every mip of every
@@ -88,7 +90,8 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   // the seams' materials keyed by the generator's feature ranges: the same triangles the world collides with
   const seams = seamSolidSource(strips, home, undefined, pitch);
   const parts: SolidPart[] = [...seams.parts], solid = (part: SolidPart): void => { parts.push(part); };
-  const road = yield* installRoadLookSteps({ layout, home, scene, scope, solid, cull: culler, admission });
+  const overlayLight = new RoadOverlayLight();
+  const road = yield* installRoadLookSteps({ layout, home, scene, scope, solid, cull: culler, admission, overlayLight });
   const voidLook = installVoidLook({ rail: layout.rail, home, scene, scope, solid, admission });
   const meshes: Mesh[] = [];
   yield;
@@ -117,5 +120,5 @@ function* platformRoadSteps(input: PlatformRoadInput): Generator<void, PlatformR
   // the split/merge sources have already been copied into their final uploaded representation.
   parts.length = 0; seams.parts.length = 0;
   const roots = [...meshes, scene.getObjectByName('grid-boulevard'), scene.getObjectByName('grid-void')].filter((o): o is Object3D => o !== undefined);
-  return { road, seams: seams.state, roots, horizon: voidLook.fade };
+  return { road, seams: seams.state, roots, horizon: voidLook.fade, overlayLight: (w) => { overlayLight.weight(w); } };
 }

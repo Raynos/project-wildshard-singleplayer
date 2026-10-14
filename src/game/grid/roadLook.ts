@@ -12,6 +12,7 @@ import {
   MeshLambertMaterial, NoColorSpace, type Object3D, Quaternion, RepeatWrapping, RGFormat, SRGBColorSpace, type Texture, UnsignedByteType, Vector3,
 } from 'three';
 import type { GridCell } from './assembly';
+import { ROAD_SKY } from './frameModel';
 import { coverageMaterial, coverageTable, gpuOnlyTextureBytes, uniformPart, type CoverageColours, type SolidPart } from './roadSolid';
 import { bytePlan, cullIntoSteps, finishRoadSteps, gpuOnlyRoad, meshBytes, meshBytesSteps, type CullSource, type RoadCuller } from './roadCull';
 import { allocateRenderSteps, type PlatformRenderAdmission, type PlatformRenderBytePlan } from './renderResidency';
@@ -32,6 +33,50 @@ export interface RoadLookInput {
   readonly cull?: RoadCuller | ((mesh: Mesh) => void);
   /** G144: admit each textured mesh's byte plan before building it (absent: the unchanged build) */
   readonly admission?: PlatformRenderAdmission;
+  /** G103: the asphalt and junction overlays keep the road's light where a cell's own light owns the frame */
+  readonly overlayLight?: RoadOverlayLight;
+}
+
+/**
+ * The road's light on its own flat asphalt (G165's fixed "grid dawn" key at its elevation, plus its hemisphere sky), as
+ * the Lambert term the overlay reflects under it: (key · sin(elevation) + hemisphere sky) / π, linear RGB.
+ */
+export const ROAD_OVERLAY_LIGHT: readonly [number, number, number] = (() => {
+  const { sun, hemi } = ROAD_SKY, up = Math.sin(sun.elevation * Math.PI / 180);
+  const at = (k: 0 | 1 | 2): number => (sun.colour[k] * sun.intensity * up + hemi.sky[k] * hemi.intensity) / Math.PI;
+  return [at(0), at(1), at(2)] as const;
+})();
+
+/**
+ * G103: the 15 m of road asphalt forced into every shard is the platform's style, so it keeps the road's light inside the
+ * cell too. Under a cell's own light (Signal Dunes' dusk key and grade) the dark asphalt read as a black hole at each entry
+ * (W1 grid-ready check, 2026-10-14). The frame tells this the road's weight each frame: at 1 (on the road) the overlays are
+ * lit exactly as before; toward 0 (inside a cell) their lit share fades and the same map, as emissive, shows the road's own
+ * light on it (`ROAD_OVERLAY_LIGHT`). Uniforms only: the emissive map is part of the program from the build, so nothing
+ * compiles at a crossing.
+ */
+export class RoadOverlayLight {
+  private readonly materials = new Set<MeshLambertMaterial>();
+  private w = 1;
+  /** Hold an overlay material until its owner scope disposes. */
+  add(material: MeshLambertMaterial, owner: LookScope): void {
+    this.materials.add(material); this.apply(material);
+    owner.onDispose(() => { this.materials.delete(material); });
+  }
+  /** The road's weight (0..1) this frame. */
+  weight(w: number): void {
+    const next = Math.max(0, Math.min(1, w));
+    if (next === this.w) return;
+    this.w = next;
+    for (const material of this.materials) this.apply(material);
+  }
+  /** The readout: the road weight last applied. */
+  applied(): number { return this.w; }
+  private apply(material: MeshLambertMaterial): void {
+    const glow = 1 - this.w;
+    material.color.setScalar(this.w);
+    material.emissive.setRGB(ROAD_OVERLAY_LIGHT[0] * glow, ROAD_OVERLAY_LIGHT[1] * glow, ROAD_OVERLAY_LIGHT[2] * glow);
+  }
 }
 /** The readout (tests, the board). */
 export interface RoadLookState { readonly segments: number; readonly junctions: number; readonly roundabouts: number; readonly signs: number; readonly lights: number; readonly draws: number }
@@ -411,7 +456,8 @@ interface TexturedSource {
   readonly texelBytes: number; readonly source: 'canvas' | 'data';
   readonly material: (map: Texture) => MeshLambertMaterial;
 }
-const overlayMaterial = (map: Texture): MeshLambertMaterial => new MeshLambertMaterial({ map, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+// the map is the emissive map too, black until RoadOverlayLight lights it inside a cell (one program either way)
+const overlayMaterial = (map: Texture): MeshLambertMaterial => new MeshLambertMaterial({ map, emissiveMap: map, emissive: 0x000000, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
 function texturedSources(layout: RoadLayout, home: GridCell): TexturedSource[] {
   const atlas = signAtlasLayout(layout.signs);
   return [
@@ -457,7 +503,7 @@ export function* installRoadLookSteps(input: RoadLookInput): Generator<void, Roa
       const map = source.paint(), material = source.material(map);
       const mesh = new Mesh(source.mesher.geometry(), material);
       owner.onDispose(() => { mesh.removeFromParent(); mesh.geometry.dispose(); map.dispose(); material.dispose(); });
-      mesh.name = source.name; if (source.overlay) mesh.receiveShadow = true;
+      mesh.name = source.name; if (source.overlay) { mesh.receiveShadow = true; input.overlayLight?.add(material, owner); }
       mesh.castShadow = false; mesh.matrixAutoUpdate = false; mesh.updateMatrix();
       if (cull !== undefined) yield* cullIntoSteps(cull, mesh); else hook?.(mesh);
       group.add(mesh);
