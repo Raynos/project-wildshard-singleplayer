@@ -1,3 +1,5 @@
+import type { AudioPlaybackRecipe } from '@wildshard/format/audioProfiles';
+import { audioMixValue } from './audioProfiles';
 import { resourceScope } from '../app/resources';
 import { ownAudioSource } from './ownership';
 import { tap } from '../core/harnessTap';
@@ -136,6 +138,42 @@ export class VoicePool {
     }
     src.start(t, clip.offset, clip.duration);
     return src;
+  }
+
+  /** Bind declared controls to this pool's original sample and procedural players. */
+  playback(recipe:AudioPlaybackRecipe,ports:{available?:()=>boolean;samples?:{clips:(family:string)=>readonly SampleVoice[]|undefined;load:(family:string)=>void}}={}):{
+    play:(id:string,parameters?:Readonly<Record<string,number|string|boolean>>,options?:SamplePlay)=>boolean;
+    value:(id:string)=>number;listener:(x:number,y:number,z:number,yaw:number)=>void;
+  } {
+    const state=new Map(Object.entries(recipe.initial)),values=new Map<string,number>();let armed=false,lx=0,ly=0,lz=0;
+    return {value:id=>values.get(id)??0,listener:(x,y,z,yaw)=>{lx=x;ly=y;lz=z;this.setListener(x,y,z,yaw);},play:(id,parameters={},options={})=>{
+      const row=recipe.actions[id];if(row===undefined)throw new Error('Missing declared audio action');
+      if(recipe.mode==='samples'&&(!this.host.ready||ports.available?.()===false))return false;
+      if(row.warm===true&&!armed&&this.host.ready){armed=true;this.prewarm(recipe.prewarm);}
+      const family=row.family.prefix+(row.family.param===undefined?'':String(parameters[row.family.param]));
+      const clips=recipe.mode==='samples'?ports.samples?.clips(family):undefined;
+      if(recipe.mode==='samples'&&clips===undefined){ports.samples?.load(family);return false;}
+      values.clear();
+      const read=(key:string):number=>{
+        if(key.startsWith('state.'))return state.get(key.slice(6))??0;
+        const value=values.get(key);if(value!==undefined)return value;
+        const parts=key.split('.'),table=recipe.tables[parts[0]??''];
+        const selector=parts[1],selected=selector===undefined?undefined:parameters[selector];
+        if(table!==undefined&&typeof selected==='string'){const level=table[selected];if(level!==undefined)return level;}
+        const parameter=parameters[key];if(typeof parameter==='number')return parameter;if(typeof parameter==='boolean')return Number(parameter);
+        throw new Error('Missing audio playback value');
+      };
+      for(const [key,expr]of row.state)state.set(key,audioMixValue(expr,read));
+      for(const [key,expr]of row.values)values.set(key,audioMixValue(expr,read));
+      const output:SamplePlay={...options};for(const [key,expr]of row.options)output[key]=audioMixValue(expr,read);
+      if(recipe.mode==='samples'){
+        const policy=recipe.sample;if(policy===undefined||clips===undefined)throw new Error('Missing sample playback policy');
+        if(output.at){const distance=Math.hypot(output.at.x-lx,output.at.y-ly,output.at.z-lz);if(distance>policy.reach)return policy.outOfRangeHandled;if(!Number.isFinite(distance))return false;}
+        const source=this.sample(clips,output,policy);if(source===undefined)return false;
+      }else{this.play(family,output);}
+      if(row.tap!==undefined)tap.sound?.(row.tap+family);
+      return true;
+    }};
   }
 
   setListener(x: number, y: number, z: number, yaw: number): void { this.lx = x; this.ly = y; this.lz = z; this.yaw = yaw; }

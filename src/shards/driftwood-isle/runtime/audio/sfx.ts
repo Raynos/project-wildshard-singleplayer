@@ -1,4 +1,5 @@
 import source from '../../shard.config';
+import { ISLAND_FAMILIES } from '../../data/audioPlayback';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { impact, renderPcm } from '@wildshard/engine/audio/gen';
@@ -37,22 +38,6 @@ export type InteractSound = 'chest' | 'locked' | 'lever' | 'plate' | 'door' | 'g
 interface At { x: number; y: number; z: number }
 
 
-/** each surface's level at a walk (the bank is peak-normalised; these sit the steps where Audio.footstep's synth ones sat) */
-const STEP_LEVEL: Record<Surface, number> = { sand: 0.34, wetSand: 0.36, grass: 0.3, rock: 0.34, planks: 0.42, stone: 0.36, water: 0.34 };
-const VOCAL_LEVEL: Record<Enemy, number> = { boar: 0.75, crab: 0.6, monkey: 0.5, sailor: 0.85 };
-const WINDUP_LEVEL: Record<WindupEnemy, number> = { boar: 0.7, crab: 0.65, sailor: 0.7 };
-const SPRINT = 7.2;
-const INTERACT_LEVEL: Record<InteractSound, number> = { chest: 0.7, locked: 0.6, lever: 0.7, plate: 0.65, door: 0.7, grate: 0.6, chime: 0.45, glyph: 0.6, ignite: 0.8 };
-
-/** the families the island plays first — prewarmed right after the first gesture, footsteps before combat */
-export const ISLAND_FAMILIES = [
-  'step-sand', 'step-planks', 'step-grass', 'step-wetSand', 'step-rock', 'step-water', 'step-stone',
-  'whoosh', 'impact-flesh', 'hurt', 'impact-shell', 'impact-wood', 'impact-stone', 'whoosh-heavy',
-  'vocal-boar', 'vocal-crab', 'vocal-monkey', 'vocal-sailor', 'windup-boar', 'windup-crab', 'windup-sailor',
-  'plunge-down', 'plunge-up', 'death',
-  'ui-chime', 'ui-chest', 'ui-locked', 'ui-lever', 'ui-plate', 'ui-door', 'ui-grate', 'ui-glyph', 'ui-ignite',
-] as const;
-
 function pcm(id:string):Parameters<typeof renderPcm>[0]{const row=source.audio.pcm?.[id];if(row===undefined)throw new Error(`Missing creature PCM recipe: ${id}`);return row;}
 const ENEMIES: readonly Enemy[] = ['boar', 'crab', 'monkey', 'sailor'];
 /** the island's own families on the procedural bank (08 §6.3 C.2; the engine's FAMILIES rows until S4.3: same counts, rates, seeds) */
@@ -65,52 +50,27 @@ export const ISLAND_VOICES: VoiceTable = {
 };
 
 export class IslandSfx {
-  private side = 1;
-  private armed = false;
+  private readonly playback:ReturnType<Audio['voices']['playback']>;
   /** diagnostics: the last footstep's surface / gain / rate */
   lastStep: { surface: Surface; gain: number; rate: number } | undefined;
 
-  constructor(private readonly audio: Audio, scope?: Scope) { audio.voices.register(ISLAND_VOICES, scope); }
+  constructor(private readonly audio: Audio, scope?: Scope) { audio.voices.register(ISLAND_VOICES, scope);const rows=source.audio.playback;if(rows===undefined)throw new Error('Missing island playback');this.playback=audio.voices.playback(rows); }
 
   /** render the island's one-shots in the background (call once the graph exists: after audio.resume()) */
   prewarm(): void { this.audio.voices.prewarm(ISLAND_FAMILIES); }
 
   /** one footfall. `speed` (m/s) scales level and pitch: a crouch-creep is soft and low, a sprint loud and bright */
   footstep(surface: Surface, speed: number): void {
-    if (!this.armed && this.audio.ready) { this.armed = true; this.prewarm(); } // the first step after the gesture starts the background render
-    const k = Math.max(0.2, Math.min(1.15, speed / SPRINT));
-    this.side = -this.side;
-    const gain = STEP_LEVEL[surface] * (0.35 + 0.65 * k), rate = 0.9 + 0.14 * k;
-    this.lastStep = { surface, gain, rate };
-    this.audio.voices.play(`step-${surface}`, { gain, rate, pan: this.side * 0.12 });
+    this.playback.play('step',{surface,speed});this.lastStep={surface,gain:this.playback.value('gain'),rate:this.playback.value('rate')};
   }
-
-  whoosh(speed = 0.6, o: { heavy?: boolean; dir?: -1 | 1 } = {}): void {
-    const s = Math.max(0, Math.min(1, speed)), dir = o.dir ?? 1;
-    if (o.heavy === true) this.audio.voices.play('whoosh-heavy', { gain: 0.45 + 0.2 * s, rate: 0.9 + 0.15 * s, pan: -0.35 * dir, panTo: 0.35 * dir });
-    else this.audio.voices.play('whoosh', { gain: 0.22 + 0.3 * s, rate: 0.82 + 0.38 * s, pan: -0.4 * dir, panTo: 0.4 * dir });
+  whoosh(speed=0.6,o:{heavy?:boolean;dir?:-1|1}={}):void {this.playback.play(o.heavy===true?'heavy':'whoosh',{speed,dir:o.dir??1});}
+  impact(material:Material,strength=0.6,at?:At):void {this.playback.play('impact',{material,strength},{at});}
+  vocal(enemy:Enemy,at?:At,intensity=1):void {this.playback.play('vocal',{enemy,intensity},{at});}
+  windup(enemy:WindupEnemy,at?:At):void {this.playback.play('windup',{enemy},{at});}
+  interact(sound:InteractSound,at?:At,o:{gain?:number;delay?:number;release?:boolean}={}):void {
+    this.playback.play('interact',{sound,gain:o.gain??1,delay:o.delay??0,release:o.release===true,jitter:sound==='chime'||sound==='glyph'?0.02:0.05},{at});
   }
-
-  impact(material: Material, strength = 0.6, at?: At): void {
-    const s = Math.max(0, Math.min(1, strength));
-    this.audio.voices.play(`impact-${material}`, { gain: 0.4 + 0.45 * s, rate: 1.04 - 0.1 * s, at });
-  }
-
-  vocal(enemy: Enemy, at?: At, intensity = 1): void {
-    this.audio.voices.play(`vocal-${enemy}`, { gain: VOCAL_LEVEL[enemy] * Math.max(0.2, Math.min(1.3, intensity)), at });
-  }
-
-  windup(enemy: WindupEnemy, at?: At): void {
-    this.audio.voices.play(`windup-${enemy}`, { gain: WINDUP_LEVEL[enemy], at });
-  }
-
-  /** an interactable's sound (the adventure kit), placed at the object */
-  interact(sound: InteractSound, at?: At, o: { gain?: number; delay?: number; release?: boolean } = {}): void {
-    const base = INTERACT_LEVEL[sound] * (o.gain ?? 1) * (o.release === true ? 0.6 : 1);
-    this.audio.voices.play(`ui-${sound}`, { gain: base, rate: o.release === true ? 1.18 : 1, at, delay: o.delay ?? 0, jitter: sound === 'chime' || sound === 'glyph' ? 0.02 : 0.05 });
-  }
-
-  plunge(up: boolean): void { this.audio.voices.play(up ? 'plunge-up' : 'plunge-down', { gain: up ? 0.35 : 0.5 }); }
+  plunge(up:boolean):void {this.playback.play('plunge',{direction:up?'up':'down',up});}
 
   /** a gull's squawk: the set's sampled `gull` take when it decoded, else two (sometimes three) rasping saw notes */
   gullCall(pan = 0, gain = 1): void {

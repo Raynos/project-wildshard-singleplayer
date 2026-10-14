@@ -1,3 +1,4 @@
+import { ISLAND_PLAYBACK } from './audioPlayback';
 import { ISLAND_PCM } from './audioPcm';
 import { ISLAND_ROUTING } from './ambienceRouting';
 import { ISLAND_ZONE_PROGRAMS, ISLAND_ZONE_SCHEDULES } from './audioOneShots';
@@ -9,7 +10,7 @@ import { parseAudioData } from '@wildshard/sdk/audio';
 const enemies = ['boar', 'crab', 'monkey', 'sailor'] as const;
 const death = enemies.map((kind) => ({ voice: `island.kill.${kind}`, overrides: { gain: 1.3 }, when: [{ op: 'equals', field: 'killed', value: true }, { op: 'equals', field: 'kind', value: kind }] }));
 /** Today's island bank calls, in their original mixer/combat order; the trusted recipes keep their taps and random draws. */
-export const DRIFTWOOD_AUDIO = parseAudioData({ surfaces:{fallback:'sand',rules:[
+export const DRIFTWOOD_AUDIO = parseAudioData({ playback:ISLAND_PLAYBACK, surfaces:{fallback:'sand',rules:[
     {kind:'floor',source:'decks',tolerance:0.45,surface:'planks'},{kind:'floor',source:'stone',tolerance:0.45,surface:'stone'},
     {kind:'value',source:'height',op:'lt',threshold:0.02,surface:'water'},
     {kind:'value',source:'slope',op:'gt',threshold:0.32,surface:'rock'},

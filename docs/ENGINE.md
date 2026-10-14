@@ -1426,6 +1426,11 @@ A door is a piece whose `active()` is false while it is open, plus an `Interacta
 
 ## 15. Audio
 
+`audio.playback` declares ordered voice controls or recorded-sample
+policies. `audio.voices.playback(recipe, ports)` uses the existing pool,
+listener and RNG, with borrowed lazy clips when declared. It evaluates
+state and scalar rows in order, preserving the native playback chain.
+
 `audio.surfaces` declares ordered floor, scalar and circle probes with a
 fallback surface. `Audio.surfaceMap(recipe, names, ports)` binds those rows
 to actual floors, terrain, weather and optional points. Floors use the

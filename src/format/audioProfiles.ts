@@ -254,3 +254,12 @@ export const AudioSurfaceSchema = v.strictObject({ fallback:id, rules:v.pipe(v.a
   v.strictObject({kind:v.literal('circle'),source:id,padding:finite,surface:id})
 ])),v.maxLength(32)) });
 export type AudioSurfaceRecipe = v.InferOutput<typeof AudioSurfaceSchema>;
+
+/** Native generated or recorded playback, with ordered scalar controls and no author callbacks. */
+export const AudioPlaybackSchema = v.strictObject({ mode:v.picklist(['voices','samples']),initial:v.pipe(v.record(id,finite),v.check(rows=>Object.keys(rows).length<=32)),
+  prewarm:v.pipe(v.array(id),v.maxLength(128)),tables:v.pipe(v.record(id,v.record(id,finite)),v.check(rows=>Object.keys(rows).length<=32&&Object.values(rows).every(table=>Object.keys(table).length<=128))),
+  actions:v.pipe(v.record(id,v.strictObject({family:v.strictObject({prefix:v.pipe(v.string(),v.maxLength(128)),param:v.exactOptional(id)}),
+    warm:v.exactOptional(v.boolean()),state:mixValues(16),values:mixValues(32),
+    options:v.pipe(v.array(v.tuple([v.picklist(['gain','rate','pan','panTo','delay','jitter']),mixExpr])),v.maxLength(6)),tap:v.exactOptional(id)})),v.check(rows=>Object.keys(rows).length<=128)),
+  sample:v.exactOptional(v.strictObject({reach:v.pipe(finite,v.minValue(0)),scale:v.pipe(finite,v.minValue(0.001)),power:v.pipe(finite,v.minValue(0)),cutoffScale:v.pipe(finite,v.minValue(0.001)),delay:v.pipe(finite,v.minValue(0)),jitter:v.pipe(finite,v.minValue(0)),outOfRangeHandled:v.boolean()})) });
+export type AudioPlaybackRecipe = v.InferOutput<typeof AudioPlaybackSchema>;

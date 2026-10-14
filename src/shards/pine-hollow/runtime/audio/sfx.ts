@@ -4,7 +4,7 @@ import type { Audio } from '@wildshard/engine/audio/Audio';
 import { audioLog } from '@wildshard/engine/audio/audioLog';
 import { cachedBytes, decodeBytes } from '@wildshard/engine/audio/preload';
 import { cueFile, CueCatalogue, type SampleClip } from '@wildshard/engine/audio/Cues';
-import { tap } from '@wildshard/engine/core/harnessTap';
+import source from '../../shard.config';
 import { getSfxSet } from '@wildshard/engine/ui/Settings';
 /**
  * PineHollowSfx — Pine Hollow's own generated sounds (PINE-HOLLOW-REMASTER PH-A2..A4): public/assets/sfx/pine-hollow/sfx.json,
@@ -67,11 +67,11 @@ export class PineHollowSfx {
   private readonly manifest: Record<string, unknown> | undefined;
   private readonly catalogue:CueCatalogue;
   private lastBark = new Map<Npc, string>();
-  private lx = 0; private ly = 0; private lz = 0;
+  private readonly playback:ReturnType<Audio['voices']['playback']>;
   private prefetched = false;
 
-  constructor(private readonly audio: Audio) {
-    this.catalogue=catalogue();this.manifest=this.catalogue.manifest;
+  constructor(audio: Audio) {
+    this.catalogue=catalogue();this.manifest=this.catalogue.manifest;const rows=source.audio.playback;if(rows===undefined)throw new Error('Missing forest playback');this.playback=audio.voices.playback(rows,{available:()=>this.available,samples:{clips:id=>this.catalogue.clips(id),load:id=>{this.catalogue.load(id);}}});
   }
 
   /** the build ships the set and Settings plays generated sound effects */
@@ -81,8 +81,7 @@ export class PineHollowSfx {
   private buffers(family:string):SampleClip[]|undefined{return this.catalogue.clips(family);}
 
   setListener(x: number, y: number, z: number, yaw: number): void {
-    this.lx = x; this.ly = y; this.lz = z;
-    this.audio.voices.setListener(x, y, z, yaw);
+    this.playback.listener(x,y,z,yaw);
   }
 
   /** the beds sfx.json lists, with their zone and whether that zone is in the world today */
@@ -103,18 +102,7 @@ export class PineHollowSfx {
   shot(family: PhShot, o: PhPlay = {}): boolean { const ok = this.play(family, o); audioLog('sfx', family, ok); return ok; }
   /** any family of the set by name (a PhShot, a bark) — `shot` is the typed door */
   play(family: string, o: PhPlay = {}): boolean {
-    if (!this.audio.ready || !this.available) return false;
-    const clips = this.buffers(family);
-    if (!clips) { this.catalogue.load(family); return false; }
-    if (o.at) {
-      const distance = Math.hypot(o.at.x - this.lx, o.at.y - this.ly, o.at.z - this.lz);
-      if (distance > 220) return true;
-      if (!Number.isFinite(distance)) return false;
-    }
-    const source = this.audio.voices.sample(clips, o, { reach: 220, scale: 10, power: 1.3, cutoffScale: 30, delay: 0.01, jitter: 40 });
-    if (!source) return false;
-    tap.sound?.(`pineSfx:${family}`);
-    return true;
+    return this.playback.play('shot',{family},o);
   }
 
   /** the barks this build ships for `npc` (family names) */
