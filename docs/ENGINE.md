@@ -5253,3 +5253,10 @@ underwater fog wins. Day-clock changes and map suspension update the same
 uniforms without rebuilding shaders. It uses the level frame and optional
 vertex fog scale from the existing node-fog context. Classic fog installs
 and callback replacements keep their current path.
+
+Graphs expose fragment-only `frontFacing` (bool), also accepted as the TSL
+builtin by the SDK author. `texture` now samples in vertex stages too: the
+compiler uses explicit mip zero there and preserves derivative-selected
+fragment sampling. Admitted texture roles and runtime `role: 'lent'`
+slots share this path; retargeting a lent slot still updates every sample
+without rebuilding the shader. Texture limits/accounting remain unchanged.

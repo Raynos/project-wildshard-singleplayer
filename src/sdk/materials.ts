@@ -1,7 +1,7 @@
 import { Color, DoubleSide, FrontSide, MeshStandardMaterial, MeshToonMaterial, SRGBColorSpace, Vector2, Vector3, Vector4, type ColorRepresentation } from 'three';
 import { AttributeNode, ConditionalNode, ConstNode, ConvertNode, JoinNode, MathNode, Node, OperatorNode, SplitNode, SubBuildNode, UniformNode, VaryingNode, VarNode } from 'three/webgpu';
 import {
-  cameraPosition, dot, normalLocal, normalView, normalWorld, normalWorldGeometry, positionGeometry, positionLocal, positionViewDirection,
+  cameraPosition, dot, frontFacing, normalLocal, normalView, normalWorld, normalWorldGeometry, positionGeometry, positionLocal, positionViewDirection,
   positionWorld, screenCoordinate, screenUV, smoothstep, step, time,
 } from 'three/tsl';
 import { GRAPH_PRESET_VERSION, parseFamilyMaterial, type PainterlyMaterialParams, type ToonMaterialParams } from '@wildshard/format/materialFamilies';
@@ -60,7 +60,7 @@ export function param<const P extends GraphParam>(name: string, def: P): Node<Pa
   const type = (def.type === 'colour' ? 'vec3' : def.type === 'texture' ? 'vec4' : def.type) as ParamNodeType<P['type']>;
   return op('param', type, [], name, def);
 }
-/** Sample a texture param at a uv (`texture`; a fragment-place op). */
+/** Sample a texture param at a uv (base mip in vertex stages, derivative-selected mip in fragments). */
 export function sample(texture: Node, at: GraphValue): Node<'vec4'> {
   const info = graphOps.get(unwrap(texture));
   if (info?.paramDef?.type !== 'texture') throw new Error('sample() reads a texture param()');
@@ -85,6 +85,8 @@ export function sceneNormal(at?: GraphValue): Node<'vec3'> { return op('sceneNor
 /** The lighting stage's inputs and the other graph-only inputs, as TSL nodes (each maps to one graph input op). */
 export const graphInputs = {
   /** toward the light (the `sun` sub-graph only) */
+  /** true for a front-facing fragment; vertex stages refuse this input */
+  frontFacing: op('frontFacing', 'bool'),
   sunDirection: op('sunDirection', 'vec3'),
   /** the light's colour × intensity, unshadowed (the `sun` sub-graph only) */
   sunColour: op('sunColour', 'vec3'),
@@ -111,7 +113,7 @@ const BUILTINS = new Map<Node, string>([
   [positionLocal, 'positionLocal'], [positionGeometry, 'positionGeometry'], [positionWorld, 'positionWorld'],
   [normalLocal, 'normalLocal'], [normalWorld, 'normalWorld'], [normalWorldGeometry, 'normalWorld'], [normalView, 'normalView'],
   [positionViewDirection, 'viewDirection'], [cameraPosition, 'cameraPosition'], [time, 'time'], [screenUV, 'screenUV'],
-  [screenCoordinate, 'fragCoord'],
+  [screenCoordinate, 'fragCoord'], [frontFacing, 'frontFacing'],
 ]);
 const OPERATORS: Readonly<Record<string, string>> = { '+': 'add', '-': 'sub', '*': 'mul', '/': 'div', '%': 'mod', '<': 'lt', '<=': 'lte', '>': 'gt', '>=': 'gte', '==': 'eq', '&&': 'and', '||': 'or', '!': 'not' };
 const METHODS = new Set(['abs', 'floor', 'fract', 'sin', 'cos', 'exp', 'atan', 'mod', 'negate', 'oneMinus', 'fwidth', 'normalize', 'length', 'dot', 'mix', 'min', 'max', 'pow', 'step', 'smoothstep', 'clamp']);

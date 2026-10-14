@@ -306,6 +306,7 @@ const VERT: readonly GraphPlace[] = ['vertex', 'outlineVertex'];
  */
 export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   // inputs
+  frontFacing: { arity: [0, 0], rule: 'input', cost: 0, type: 'bool', places: FRAG },
   uv: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec2', places: MESH },
   positionLocal: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH },
   // SF59 step 7: the geometry's own vertex position, before an instance's transform (the painterly sway's height)
@@ -420,7 +421,7 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   // MaterialX noise and textures
   noise: { arity: [1, 1], rule: 'noise', cost: 40 },
   meshMap: { arity: [0, 0], rule: 'input', cost: 4, type: 'vec4', places: ['fragment'] },
-  texture: { arity: [1, 1], rule: 'texture', cost: 4, places: FRAG },
+  texture: { arity: [1, 1], rule: 'texture', cost: 4 },
   // the constant-count loop
   loop: { arity: [1, 1], rule: 'loop', cost: 1 },
   acc: { arity: [0, 0], rule: 'acc', cost: 0 },

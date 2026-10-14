@@ -34,10 +34,10 @@
 import * as THREE from 'three';
 import {
   ConditionalNode, ConvertNode, JoinNode, MathNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, OperatorNode,
-  PhysicalLightingModel, SplitNode, type Node, type NodeBuilder, type NodeMaterial, type UniformArrayNode,
+  PhysicalLightingModel, SplitNode, TextureNode, type Node, type NodeBuilder, type NodeMaterial, type UniformArrayNode,
 } from 'three/webgpu';
 import {
-  Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, hash,
+  Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, frontFacing, hash,
   instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, reference, positionGeometry, positionLocal,
   positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
@@ -361,6 +361,12 @@ function lentStandIn(): THREE.DataTexture {
   return standIn;
 }
 
+/** Vertex samples use base mip explicitly; fragment samples keep their derivative-selected mip.
+ * level() references the same base texture node, including a lent texture retargeted after compilation. */
+function stagedTexture(sample: TextureNode): Node<'vec4'> {
+  return Fn((builder: NodeBuilder): Node<'vec4'> => Reflect.get(builder, 'shaderStage') === 'vertex' ? sample.level(float(0)) : sample)();
+}
+
 /**
  * Compile a graph to a node material. Throws (with every reason) when validation refuses it. Call it only after
  * `loadGraphCompiler(renderer)` resolved, which installs the engine's node handler first.
@@ -512,6 +518,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
         const index = new ConvertNode<'int'>(new MathNode('floor', clamp(asFloat(one()), 0, row.length - 1)), 'int');
         return { t: row.type, n: row.node.element(index) };
       }
+      case 'frontFacing': return { t: 'bool', n: frontFacing };
       case 'uv': return { t: 'vec2', n: uv() };
       case 'positionLocal': return { t: 'vec3', n: positionLocal };
       case 'positionGeometry': return { t: 'vec3', n: positionGeometry };
@@ -696,10 +703,11 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
         if (file?.role === 'lent' && n.param !== undefined) {
           const sample = retargetableTexture(lentStandIn(), asVec2(one())), list = lent.get(n.param) ?? [];
           list.push(sample.retarget); lent.set(n.param, list);
-          return { t: 'vec4', n: sample.node };
+          if (!(sample.node instanceof TextureNode)) throw new Error('material graph: lent sample is not a texture node');
+          return { t: 'vec4', n: stagedTexture(sample.node) };
         }
         if (file === undefined || file.role === 'lent' || opts.textures === undefined) throw new Error(`material graph: texture ${String(n.param)} needs { textures }`);
-        return { t: 'vec4', n: texture(file.role === undefined ? opts.textures(file.file) : opts.textures(file.file, file.role), one().n) };
+        return { t: 'vec4', n: stagedTexture(texture(file.role === undefined ? opts.textures(file.file) : opts.textures(file.file, file.role), one().n)) };
       }
       case 'acc': if (scope.acc !== null) return scope.acc; break;
       case 'index': if (scope.index !== null) return scope.index; break;
