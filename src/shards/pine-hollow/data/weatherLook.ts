@@ -1,6 +1,6 @@
 /**
  * Pine Hollow's rain as data (PH-L10, E322 F-L5; SHARD-PLATFORM M3): the sizes of the SDK rain system's pieces
- * (@wildshard/sdk/looks/rainFx — the curtain with the canopy's drips, the puddles, the splashes at the feet, the drops on
+ * (runtime/looks/rainFx — the curtain with the canopy's drips, the puddles, the splashes at the feet, the drops on
  * the lens) and its three programs. `@{fog}` is the atmosphere's fog GLSL, spliced in by the system. The cave's hood is
  * the bear cave's mouth in its own frame (lx across, lz into the rock; the mouth faces −lz): half width, from, to, height
  * over the mouth's ground — the arch's opening is 2.6 × 4.8 m (caveArch.ts `openCaveArch`); the cover map takes over at

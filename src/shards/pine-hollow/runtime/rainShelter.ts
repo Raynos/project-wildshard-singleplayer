@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import type { HuntHerd, HuntBody } from '@wildshard/engine/ai/hunt';
 import type { SimHost } from '@wildshard/engine/sim';
-import { PINE_HERD_SHELTER as look } from './looks/weatherLook';
+import { PINE_HERD_SHELTER as look } from '../data/weatherLook';
 
 /** Actual page tree position, trunk radius, height and RainFx crown-cover reading, in forest order. */
 export type PineShelterTree = readonly [x: number, z: number, radius: number, height: number, cover: number];

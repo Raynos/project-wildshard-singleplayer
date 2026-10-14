@@ -46,7 +46,7 @@ import { PineWeather, wetProjectile, type PineWeatherMode } from './weatherProfi
 import { RainFx } from '../runtime/looks/rainFx';
 import { HerdShelter } from '../runtime/species/herdShelter';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
-import { PINE_CAVE_HOOD, PINE_HERD_SHELTER, PINE_RAIN, PINE_RAIN_PROGRAMS } from '../runtime/looks/weatherLook';
+import { PINE_CAVE_HOOD, PINE_HERD_SHELTER, PINE_RAIN, PINE_RAIN_PROGRAMS } from '../data/weatherLook';
 import { BEAR_CAVE, OLD_GROWTH } from '../data/layout';
 
 /** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/shards/pine-hollow/combat/antlerKing.ts) */

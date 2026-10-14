@@ -8,7 +8,7 @@ import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { BARK_LAYERS, loadTreeSetGeometry, patchBarkArrays, patchCardCrownTop, patchImpostorCrownTop, standIn, treeSetUrls } from '@wildshard/engine/world/forest/treeSet';
 import { TreeFactory, patchFade, patchWind, type FadeBand } from '@wildshard/engine/world/TreeFactory';
-import { TREE_CROWN_EDITS, TREE_FAR_EDITS } from '../runtime/looks/forestLook';
+import { TREE_CROWN_EDITS, TREE_FAR_EDITS } from '../data/forestLook';
 import { PINE_TREE_ASSETS, PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
 
 export interface PineTreeFactoryOptions { set: string }
@@ -34,7 +34,7 @@ export class PineTreeFactory extends TreeFactory {
     });
     patchShader(far, 'pine.tree-far', PATCH_ORDER.material, (shader) => {
       attachFogUniforms(shader); patchWind(shader); patchFade(shader, this.fade.far);
-      editShader(shader, TREE_FAR_EDITS); // ../runtime/looks/forestLook.ts
+      editShader(shader, TREE_FAR_EDITS); // ../data/forestLook.ts
       if (crownTop) patchImpostorCrownTop(shader, this.crownTop);
     }, { mode: 'replace', key: (crownTop ? 'tree-far-crown' : 'tree-far') });
     return far;
@@ -74,7 +74,7 @@ export class PineTreeFactory extends TreeFactory {
       });
       patchShader(m, 'pine.crown', PATCH_ORDER.material, (shader) => {
         attachFogUniforms(shader); patchWind(shader); patchFade(shader, band);
-        editShader(shader, TREE_CROWN_EDITS); // ../runtime/looks/forestLook.ts
+        editShader(shader, TREE_CROWN_EDITS); // ../data/forestLook.ts
         patchCardCrownTop(shader, this.crownTop);
       }, { mode: 'replace', key: `${key}-crown` });
       return m;

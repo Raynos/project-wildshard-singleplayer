@@ -2,7 +2,7 @@
  * Pine Hollow's forest-floor undergrowth as data (SHARD-PLATFORM M3): each kind's look on the SDK ground cover
  * (@wildshard/sdk/looks/groundCover) — its wind, alpha test, roughness, whether it lies flat or casts a shadow — in the
  * order their materials are made, and the patch ids / program keys every kind shares (ONE lit program, one depth program).
- * The edits are ../runtime/looks/forestLook.ts `UNDER_EDITS` / `UNDER_VERTEX_EDITS`; the textures are painted by world/undergrowth.ts.
+ * The edits are data/forestLook.ts `UNDER_EDITS` / `UNDER_VERTEX_EDITS`; the textures are painted by world/undergrowth.ts.
  */
 
 /** The undergrowth's look: the patches, the material names, and the six kinds. */
