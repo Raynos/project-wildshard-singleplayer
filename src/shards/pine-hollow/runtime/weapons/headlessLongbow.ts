@@ -6,7 +6,7 @@ import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { BowDraw } from '@wildshard/engine/combat/bowDraw';
-import { projectileFlightStep } from '@wildshard/engine/combat/projectileFlight';
+import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import { projectileContactTip, projectileGlance } from '@wildshard/engine/combat/projectileContact';
 import { drawnSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { floorBelow, sticksIn } from '@wildshard/engine/physics/query';
@@ -17,12 +17,12 @@ import { PineStuckArrows, STUCK_ARROWS_SAVED } from './stuckArrows';
 export const LONGBOW_STEP = 'pine.longbow';
 /** The arrow pool's loop bound (ARROW_MAX_FLYING slots, well under it). Bow.ts launchFrom: the arrow starts this far down the aim line; the loose's cone (°, hip, standing). Projectiles: four
  *  substeps a tick, the broadhead's 2 cm ball, dead past the chunk + 80 m, below -150 m or after 12 s. */
-const MAX_SUBSTEPS = 64, MAX_SLOTS = 1024, RADIUS = 0.02, BOUND = 250 + 80, FLOOR = -150;
+const RADIUS = 0.02, BOUND = 250 + 80, FLOOR = -150;
 /** Projectiles' glance off a hard surface: lift off it, keep a little of the speed, a small bounce, a speed cap. */
 const GLANCE_LIFT = 0.03, GLANCE_KEEP = 0.35, GLANCE_BOUNCE = 0.25, GLANCE_MAX = 9;
 const GLANCE = { lift: GLANCE_LIFT, keep: GLANCE_KEEP, bounce: GLANCE_BOUNCE, maxSpeed: GLANCE_MAX };
 
-interface Arrow { active: boolean; pos: Vector3; vel: Vector3; origin: Vector3; age: number; glanced: boolean }
+type Arrow = FlightSlot<{ origin: Vector3 }>;
 
 const finite = v.pipe(v.number(), v.finite()), vec = v.tuple([finite, finite, finite]);
 const savedSchema = (profile: v.InferOutput<typeof BowWeaponProfileSchema>) => v.strictObject({
@@ -71,35 +71,15 @@ export function installPineLongbow(host: SimHost, ports: PineLongbowPorts): { re
   const profile = v.parse(BowWeaponProfileSchema, ports.profile ?? BOW_PROFILE);
   const random = (): number => host.rng.stream('gameplay').next(), player = host.player;
   const draw = new BowDraw(profile.draw), state: { arrows: number; aim: string | null } = { arrows: profile.quiver, aim: null };
-  const arrows: Arrow[] = Array.from({ length: profile.pool }, () => ({ active: false, pos: new Vector3(), vel: new Vector3(), origin: new Vector3(), age: 0, glanced: false }));
-  const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), prev = new Vector3(), seg = new Vector3(), n = new Vector3(), contact = new Vector3(), wind = new Vector3();
+
+  const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), seg = new Vector3(), n = new Vector3(), contact = new Vector3(), wind = new Vector3();
   const stuck = new PineStuckArrows({ feet: player.position,
     floorAt: (x, y, z) => floorBelow(host.physics, x, z, y + 0.3, 60) ?? host.groundHeightAt(x, z),
     body: id => host.entities.get(id), canRecover: () => state.arrows < profile.quiver,
     recover: survived => { if (survived) state.arrows = Math.min(profile.quiver, state.arrows + 1); }, random });
   const req: DamageRequest = { source: player.health, sourceTags: ['weapon.longbow', 'dmg.ranged', 'cover.checked'], target: player.health, amount: 0, point: new Vector3(), dir: seg, headshot: false };
-  const loose = (): void => {
-    const target = state.aim === null ? undefined : host.entities.get(state.aim);
-    if (target?.alive === true) aimAt(host, target, eye, dir, ports.aim?.());
-    else { const p = player.position; eye.set(p.x, p.y + EYE, p.z); dir.set(-Math.sin(player.yaw), 0, -Math.cos(player.yaw)); }
-    const spread = drawnSpreadDegrees(profile.spread.degrees, profile.spread.aimMultiplier, ports.aimed?.() ?? 0, profile.spread.motion,
-      ports.speedFactor?.() ?? 0, ports.extraSpread?.() ?? 0, ports.mountSpread?.() ?? 0);
-    shotSpread(dir, spread * (Math.PI / 180), random, profile.spread, across);
-    // a free slot, else the oldest arrow's (Projectiles.launch)
-    let a: Arrow | undefined;
-    for (let i = 0; i < MAX_SLOTS; i++) {
-      const x = arrows[i];
-      if (x === undefined) break;
-      if (!x.active) { a = x; break; }
-      if (a === undefined || x.age > a.age) a = x;
-    }
-    if (a === undefined) return;
-    a.active = true; a.age = 0; a.glanced = false;
-    a.pos.copy(eye).addScaledVector(dir, profile.muzzle); a.origin.copy(a.pos); a.vel.copy(dir).multiplyScalar(profile.speedBase + profile.speedDraw);
-    state.arrows--;
-  };
   /** the step prev → arrow: the nearer of a body and the world; true when the arrow stopped */
-  const testHit = (a: Arrow): boolean => {
+  const testHit = (a: Arrow, prev: Vector3): boolean => {
     seg.subVectors(a.pos, prev);
     const len = seg.length();
     if (len < 1e-6) return false;
@@ -125,24 +105,29 @@ export function installPineLongbow(host: SimHost, ports: PineLongbowPorts): { re
     a.glanced = true;
     return false;
   };
-  const fly = (a: Arrow, dt: number): void => {
-    a.age += dt;
-    const h = dt / profile.substeps;
-    for (let s = 0; s < MAX_SUBSTEPS; s++) {
-      if (s >= profile.substeps) break;
-      prev.copy(a.pos);
-      const sampled = ports.wind === undefined ? null : ports.wind.vecAt(a.pos.x, a.pos.z, wind);
-      projectileFlightStep(a.pos, a.vel, h, profile.flight, sampled);
-      if (testHit(a)) { a.active = false; return; }
-    }
-    if (Math.abs(a.pos.x) > BOUND || Math.abs(a.pos.z) > BOUND || a.pos.y < FLOOR || a.age > profile.lifetime) a.active = false;
+  const pool = new ProjectileSlots<{ origin: Vector3 }>(profile.pool, () => ({ origin: new Vector3() }), {
+    substeps: profile.substeps, extent: BOUND, floor: FLOOR, lifetime: profile.lifetime,
+    integrate: (slot, h) => { projectileFlightStep(slot.pos, slot.vel, h, profile.flight,
+      ports.wind === undefined ? null : ports.wind.vecAt(slot.pos.x, slot.pos.z, wind)); }, contact: testHit,
+  });
+  const arrows = pool.slots;
+  const loose = (): void => {
+    const target = state.aim === null ? undefined : host.entities.get(state.aim);
+    if (target?.alive === true) aimAt(host, target, eye, dir, ports.aim?.());
+    else { const p = player.position; eye.set(p.x, p.y + EYE, p.z); dir.set(-Math.sin(player.yaw), 0, -Math.cos(player.yaw)); }
+    const spread = drawnSpreadDegrees(profile.spread.degrees, profile.spread.aimMultiplier, ports.aimed?.() ?? 0, profile.spread.motion,
+      ports.speedFactor?.() ?? 0, ports.extraSpread?.() ?? 0, ports.mountSpread?.() ?? 0);
+    shotSpread(dir, spread * (Math.PI / 180), random, profile.spread, across);
+    const a = pool.take();
+    a.pos.copy(eye).addScaledVector(dir, profile.muzzle); a.origin.copy(a.pos); a.vel.copy(dir).multiplyScalar(profile.speedBase + profile.speedDraw);
+    state.arrows--;
   };
   host.onStep(LONGBOW_STEP, dt => {
     const live = ports.enabled(), heavy = live ? ports.heavy() : null;
     // the hold's named body is the aim the release looses at (a release tick has no hold to name it)
     if (heavy !== null) state.aim = heavy.targetId ?? null;
     if (draw.step(dt, heavy !== null, !live || state.arrows <= 0) === 'loose') loose();
-    for (let i = 0; i < MAX_SLOTS; i++) { const a = arrows[i]; if (a === undefined) break; if (a.active) fly(a, dt); }
+    pool.step(dt);
     stuck.update();
   }, {
     snapshot: () => ({ draw: { ...draw.save() }, arrows: state.arrows, aim: state.aim,

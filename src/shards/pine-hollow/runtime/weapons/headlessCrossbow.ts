@@ -1,3 +1,4 @@
+import { ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -20,9 +21,9 @@ const BOUND = 250 + 60, FLOOR = -150;
 const GLANCE_LIFT = 0.02, GLANCE_KEEP = 0.25, GLANCE_BOUNCE = 0.15, GLANCE_MAX = 6;
 
 /** One bolt slot (Crossbow.ts's pool of `maxFlying`): in flight while `active`. */
-interface Bolt { active: boolean; pos: Vector3; vel: Vector3; age: number; glanced: boolean; ammo: BoltKind }
+type Bolt = FlightSlot<{ ammo: BoltKind }>;
 /** The most shots a tick reads (the tick's command allowance). */
-const MAX_FLYING = 1024, MAX_SUBSTEPS = 64, MAX_SHOTS = 1024, NO_SHOTS: readonly string[] = [];
+const MAX_SHOTS = 1024, NO_SHOTS: readonly string[] = [];
 
 const finite = v.pipe(v.number(), v.finite());
 
@@ -64,33 +65,13 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
     v.length(p.maxFlying)) });
   const cone = { radius: p.spreadRadius, axisScale: p.spreadAxisScale };
   const state = { loaded: true, quiver: p.quiver, reloading: false, reloadT: 0, cooldown: 0, sinceFire: 99 };
-  const bolts: Bolt[] = Array.from({ length: p.maxFlying }, () => ({ active: false, pos: new Vector3(), vel: new Vector3(), age: 0, glanced: false, ammo: 'iron' }));
+
   const reload = (): void => { if (!state.reloading && !state.loaded && state.quiver > 0) { state.reloading = true; state.reloadT = 0; } };
-  const eye = new Vector3(), fwd = new Vector3(), side = new Vector3(), dir = new Vector3(), prev = new Vector3(), seg = new Vector3(), n = new Vector3();
-  const fire = (target: AnimalSim): void => {
-    state.loaded = false; state.quiver = Math.max(0, state.quiver - 1); state.cooldown = p.cooldown; state.sinceFire = 0;
-    aimAt(host, target, eye, fwd, ports.aim?.());
-    // the page's hip spread: a random axis across the line, a random fraction of 0.75°
-    const spread = (p.spreadAds + (1 - smoothstep(0, 1, ports.adsBlend?.() ?? 0)) * (p.spreadHip - p.spreadAds)) * (Math.PI / 180);
-    dir.copy(fwd);
-    shotSpread(dir, spread, random, cone, side);
-    // a free slot, else the oldest bolt's (Crossbow.ts spawnBolt)
-    let b: Bolt | undefined;
-    for (let i = 0; i < MAX_FLYING; i++) {
-      if (i >= p.maxFlying) break;
-      const x = bolts[i];
-      if (x === undefined) break;
-      if (!x.active) { b = x; break; }
-      if (b === undefined || x.age > b.age) b = x;
-    }
-    if (b === undefined) return;
-    b.active = true; b.age = 0; b.glanced = false; b.ammo = ports.ammunition?.() ?? 'iron';
-    b.pos.copy(eye).addScaledVector(fwd, p.muzzle); b.vel.copy(dir).multiplyScalar(p.speed);
-  };
+  const eye = new Vector3(), fwd = new Vector3(), side = new Vector3(), dir = new Vector3(), seg = new Vector3(), n = new Vector3();
   // one request, refilled per hit (the pipeline copies the contact frame and the tags)
   const req: DamageRequest = { source: player.health, sourceTags: ['weapon.crossbow', 'dmg.ranged', 'cover.checked'], target: player.health, amount: 0, point: new Vector3(), dir: seg, headshot: false };
   /** the step prev → bolt: the nearer of a body and the world; true when the bolt stopped */
-  const testHit = (b: Bolt): boolean => {
+  const testHit = (b: Bolt, prev: Vector3): boolean => {
     seg.subVectors(b.pos, prev);
     const len = seg.length();
     if (len < 1e-6) return false;
@@ -116,11 +97,21 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
     b.glanced = true;
     return false;
   };
-  const fly = (b: Bolt, dt: number): void => {
-    b.age += dt;
-    const h = dt / p.substeps;
-    for (let s = 0; s < MAX_SUBSTEPS; s++) { if (s >= p.substeps) break; prev.copy(b.pos); boltFlightStep(b.pos, b.vel, h, ports.flight?.(b.ammo) ?? PLAIN_FLIGHT, p); if (testHit(b)) { b.active = false; return; } }
-    if (Math.abs(b.pos.x) > BOUND || Math.abs(b.pos.z) > BOUND || b.pos.y < FLOOR || b.age > p.lifetime) b.active = false;
+  const pool = new ProjectileSlots<{ ammo: BoltKind }>(p.maxFlying, () => ({ ammo: 'iron' }), {
+    substeps: p.substeps, extent: BOUND, floor: FLOOR, lifetime: p.lifetime,
+    integrate: (slot, h) => { boltFlightStep(slot.pos, slot.vel, h, ports.flight?.(slot.ammo) ?? PLAIN_FLIGHT, p); },
+    contact: testHit,
+  });
+  const bolts = pool.slots;
+  const fire = (target: AnimalSim): void => {
+    state.loaded = false; state.quiver = Math.max(0, state.quiver - 1); state.cooldown = p.cooldown; state.sinceFire = 0;
+    aimAt(host, target, eye, fwd, ports.aim?.());
+    // the page's hip spread: a random axis across the line, a random fraction of 0.75°
+    const spread = (p.spreadAds + (1 - smoothstep(0, 1, ports.adsBlend?.() ?? 0)) * (p.spreadHip - p.spreadAds)) * (Math.PI / 180);
+    dir.copy(fwd);
+    shotSpread(dir, spread, random, cone, side);
+    const b = pool.take(); b.ammo = ports.ammunition?.() ?? 'iron';
+    b.pos.copy(eye).addScaledVector(fwd, p.muzzle); b.vel.copy(dir).multiplyScalar(p.speed);
   };
   host.onStep(CROSSBOW_STEP, dt => {
     const shots = ports.enabled() ? ports.shots() : NO_SHOTS;
@@ -135,7 +126,7 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
     state.cooldown = Math.max(0, state.cooldown - dt); state.sinceFire += dt;
     if (!state.loaded && !state.reloading && state.quiver > 0 && state.sinceFire > p.autoReload) reload();
     if (state.reloading) { state.reloadT += dt; if (state.reloadT >= p.reload) { state.reloading = false; state.loaded = true; } }
-    for (let i = 0; i < MAX_FLYING; i++) { if (i >= p.maxFlying) break; const b = bolts[i]; if (b?.active === true) fly(b, dt); }
+    pool.step(dt);
   }, {
     snapshot: () => ({ ...state, bolts: bolts.map(b => ({ active: b.active, pos: [b.pos.x, b.pos.y, b.pos.z], vel: [b.vel.x, b.vel.y, b.vel.z], age: b.age, glanced: b.glanced, ...(b.ammo === 'iron' ? {} : { ammo: b.ammo }) })) }),
     restore: value => {

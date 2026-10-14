@@ -1,3 +1,4 @@
+import { ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import { app, gameplayRandom } from '@wildshard/engine/app/runtime';
 import type { AmmoRow } from '@wildshard/engine/combat/ammo';
 import { ads as blendAds } from '@wildshard/engine/combat/blocks/ads';
@@ -198,7 +199,9 @@ class Tracer {
 
 // ───────────────────────────── the crossbow ─────────────────────────────
 
-interface Bolt { mesh: THREE.Mesh; pos: THREE.Vector3; vel: THREE.Vector3; active: boolean; age: number; roll: number; traced: boolean; tracer: Tracer | null; glow: THREE.Mesh; glanced: boolean; mod: BoltMod; ammo?: AmmoRow | undefined }
+interface BoltData { mesh: THREE.Mesh; roll: number; traced: boolean; tracer: Tracer | null; glow: THREE.Mesh; mod: BoltMod; ammo?: AmmoRow | undefined }
+type Bolt = FlightSlot<BoltData>;
+
 interface Stuck { mesh: THREE.Mesh }
 
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
@@ -272,7 +275,8 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   private readonly flight: BoltFlightStep<P>;
 
   // projectiles
-  private bolts: Bolt[] = [];
+  private readonly flightPool: ProjectileSlots<BoltData>;
+  private get bolts(): Bolt[] { return this.flightPool.slots; }
   private stuck: Stuck[] = [];
   private puffs = new Puffs();
   private tracers: Tracer[] = [];
@@ -294,7 +298,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
     this.buildViewmodel();
-    this.buildProjectiles();
+    this.flightPool = this.buildProjectiles();
     this.game.viewmodel.add(this.model);
     this.game.scene.add(this.puffs.points);
 
@@ -368,17 +372,31 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.model.scale.setScalar(this.view.hip.scale);
   }
 
-  private buildProjectiles(): void {
-    for (let i = 0; i < this.profile.maxFlying; i++) {
+  private buildProjectiles(): ProjectileSlots<BoltData> {
+    const pool = new ProjectileSlots<BoltData>(this.profile.maxFlying, () => {
       const mesh = new THREE.Mesh(this.boltGeo, this.boltMat);
       mesh.visible = false; mesh.castShadow = true; mesh.frustumCulled = false;
       // red glow riding on the flying bolt (a child, so it hides with it; shown only on traced shots)
       const glow = new THREE.Mesh(boltGlowGeo, glowMat); glow.renderOrder = TRACER_ORDER + 1; glow.position.set(0, 0, this.tipLocal.z + 0.05); glow.visible = false;
       mesh.add(glow);
       this.game.scene.add(mesh);
-      this.bolts.push({ mesh, pos: new THREE.Vector3(), vel: new THREE.Vector3(), active: false, age: 0, roll: 0, traced: false, tracer: null, glow, glanced: false, mod: PLAIN_BOLT });
-    }
+      return { mesh, roll: 0, traced: false, tracer: null, glow, mod: PLAIN_BOLT };
+    }, {
+      substeps: this.profile.substeps ?? 4, extent: CHUNK_HALF + 60, floor: -150, lifetime: this.profile.lifetime ?? 12,
+      integrate: (bolt, h) => {
+        const flight = bolt.ammo && this.equipEvents ? this.equipEvents.ask('projectile.modify', { ammo: bolt.ammo, gravity: bolt.ammo.flight.gravity, drag: bolt.ammo.flight.drag }) : bolt.mod;
+        this.flight(bolt.pos, bolt.vel, h, flight, this.profile);
+      },
+      contact: (bolt, previous) => this.testHit(bolt, previous), advanced: bolt => { bolt.tracer?.addPoint(bolt.pos); },
+      expired: bolt => { bolt.mesh.visible = false; this.endTracer(bolt, bolt.pos); },
+      moved: (bolt, dt) => {
+        bolt.mesh.position.copy(bolt.pos); _dir.copy(bolt.vel).normalize(); bolt.roll += dt * 14;
+        bolt.mesh.quaternion.setFromUnitVectors(NEG_Z, _dir).multiply(_q2.setFromAxisAngle(NEG_Z, bolt.roll));
+        if (bolt.traced) bolt.glow.scale.setScalar(Math.max(1, TRACER_PX * bolt.pos.distanceTo(this.game.camera.position)));
+      },
+    });
     for (let i = 0; i < MAX_TRACERS; i++) this.tracers.push(new Tracer(this.game.scene));
+    return pool;
   }
   /** a free tracer, else the one closest to expiring (oldest) */
   private takeTracer(): Tracer | null {
@@ -402,8 +420,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return super.aimRay(origin, dir); }
 
   private spawnBolt(): void {
-    let b = this.bolts.find((x) => !x.active);
-    b ??= this.bolts.reduce((a, x) => (x.age > a.age ? x : a));
+    const b = this.flightPool.take();
     const a = sstep(0, 1, this.adsBlend);
     this.aimRay(_v3, _fwd);
     // spread: tight at ADS, a touch wider from the hip
@@ -413,7 +430,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     // Simulation launches from command data; the drawn bolt never chooses a shot's origin.
     b.pos.copy(_v3).addScaledVector(_fwd, this.profile.muzzle ?? 0.35);
     b.vel.copy(_dir).multiplyScalar(this.profile.speed);
-    b.active = true; b.age = 0; b.roll = 0; b.glanced = false;
+    b.roll = 0;
     b.mod = this.boltMod; b.ammo = this.nextAmmo(); this.onShot(b); b.mesh.material = b.mod.material ?? this.boltMat;
     b.mesh.visible = true;
     b.mesh.position.copy(b.pos);
@@ -588,6 +605,8 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     for (const tr of this.tracers) tr.update(t, cam, this.tracerRes);
   }
 
+  private stepBolts(dt: number): void { this.flightPool.step(dt); }
+
   private updateString(): void {
     const d = THREE.MathUtils.clamp(this.draw, -0.12, 1.05);
     const nock = _v1.copy(this.nockRest).lerp(this.nockDrawn, d);
@@ -606,31 +625,6 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   }
 
   // ── projectiles ──
-  private stepBolts(dt: number): void {
-    for (let index = 0; index < 1024; index++) {
-      const b = this.bolts[index]; if (b === undefined) break;
-      if (!b.active) continue;
-      b.age += dt;
-      const sub = this.profile.substeps ?? 4, h = dt / sub;
-      let stopped = false;
-      for (let s = 0; s < 64; s++) {
-        if (s >= sub) break;
-        _v1.copy(b.pos); // previous
-        const flight = b.ammo && this.equipEvents ? this.equipEvents.ask('projectile.modify', { ammo: b.ammo, gravity: b.ammo.flight.gravity, drag: b.ammo.flight.drag }) : b.mod;
-        this.flight(b.pos, b.vel, h, flight, this.profile);
-        if (this.testHit(b, _v1)) { stopped = true; break; }
-        b.tracer?.addPoint(b.pos);
-      }
-      if (stopped) continue;
-      if (Math.abs(b.pos.x) > CHUNK_HALF + 60 || Math.abs(b.pos.z) > CHUNK_HALF + 60 || b.pos.y < -150 || b.age > (this.profile.lifetime ?? 12)) { b.active = false; b.mesh.visible = false; this.endTracer(b, b.pos); continue; }
-      b.mesh.position.copy(b.pos);
-      _dir.copy(b.vel).normalize();
-      b.roll += dt * 14;
-      b.mesh.quaternion.setFromUnitVectors(NEG_Z, _dir).multiply(_q2.setFromAxisAngle(NEG_Z, b.roll));
-      if (b.traced) b.glow.scale.setScalar(Math.max(1, TRACER_PX * b.pos.distanceTo(this.game.camera.position)));
-    }
-  }
-
   /**
    * The step prev → b.pos: the nearer of an animal (AnimalManager.raycast, cut short at the world hit so a wall in
    * front wins) and the world (a this.profile.radius ball swept through the physics world — terrain, trunks, rocks,

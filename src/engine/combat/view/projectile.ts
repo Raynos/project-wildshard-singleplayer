@@ -10,7 +10,7 @@ import type { ImpactSurface } from '../Weapon';
 import type { TargetAnimal, TargetHit, Targets, TargetFrame } from '../types';
 import { floorBelow, sticksIn } from '../../physics/query';
 import { app, gameplayRandom } from '../../app/runtime';
-import { projectileFlightStep } from '../projectileFlight';
+import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '../projectileFlight';
 import { projectileBury, projectileContactTip, projectileDrop, projectileGlance, projectileRest, projectileWithinReach } from '../projectileContact';
 
 
@@ -59,7 +59,9 @@ export interface ShotOpts {
   onHitScale?: ((hit: TargetHit) => number) | undefined;
 }
 
-interface Flying { slot: number; pos: THREE.Vector3; vel: THREE.Vector3; origin: THREE.Vector3; active: boolean; age: number; roll: number; scale: number; hitScale: ((hit: TargetHit) => number) | undefined; /** it has glanced off stone: the next surface it meets, it lies on */ glanced: boolean }
+interface FlyingData { slot: number; origin: THREE.Vector3; roll: number; scale: number; hitScale: ((hit: TargetHit) => number) | undefined }
+type Flying = FlightSlot<FlyingData>;
+
 interface Stuck {
   slot: number; pos: THREE.Vector3; dir: THREE.Vector3; roll: number;
   /** riding a live animal: offset + direction in its yaw frame */
@@ -105,7 +107,8 @@ export class Projectiles {
   private readonly kind: ProjectileKind;
   private readonly game: Game; private readonly player: Player;
   private readonly targets: Targets | undefined;
-  private readonly flying: Flying[] = [];
+  private readonly pool: ProjectileSlots<FlyingData>;
+  private get flying(): Flying[] { return this.pool.slots; }
   private readonly stuck: Stuck[] = [];
   private readonly freeStuckSlots: number[] = [];
   private readonly puffs = new Puffs();
@@ -121,7 +124,11 @@ export class Projectiles {
     this.mesh.frustumCulled = false; this.mesh.castShadow = false; this.mesh.receiveShadow = true;
     this.mesh.name = 'projectiles';
     for (let i = 0; i < cap; i++) this.mesh.setMatrixAt(i, ZERO_M);
-    for (let i = 0; i < kind.maxFlying; i++) this.flying.push({ slot: i, pos: new THREE.Vector3(), vel: new THREE.Vector3(), origin: new THREE.Vector3(), active: false, age: 0, roll: 0, scale: 1, hitScale: undefined, glanced: false });
+    this.pool = new ProjectileSlots<FlyingData>(kind.maxFlying, slot => ({ slot, origin: new THREE.Vector3(), roll: 0, scale: 1, hitScale: undefined }), {
+      substeps: kind.substeps ?? 4, extent: CHUNK_HALF + 80, floor: -150, lifetime: kind.lifetime ?? 12,
+      integrate: (slot, h) => { this.step(slot.pos, slot.vel, h); }, contact: (slot, previous) => this.testHit(slot, previous),
+      expired: slot => { this.endFlying(slot); }, moved: (slot, dt) => { slot.roll += dt * 9; this.writeFlying(slot); },
+    });
     for (let i = cap - 1; i >= kind.maxFlying; i--) this.freeStuckSlots.push(i);
     world.game.scene.add(this.mesh, this.puffs.points);
   }
@@ -130,10 +137,9 @@ export class Projectiles {
 
   /** loose one: from `origin` (world) with `velocity` (m/s, world — any carrier velocity already added) */
   launch(origin: THREE.Vector3, velocity: THREE.Vector3, opts: ShotOpts): void {
-    let f = this.flying.find((x) => !x.active);
-    f ??= this.flying.reduce((a, x) => (x.age > a.age ? x : a));
+    const f = this.pool.take();
     f.pos.copy(origin); f.origin.copy(origin); f.vel.copy(velocity);
-    f.active = true; f.age = 0; f.roll = app.rng.stream('cosmetic').next() * Math.PI * 2; f.glanced = false;
+    f.roll = app.rng.stream('cosmetic').next() * Math.PI * 2;
     f.scale = opts.damageScale; f.hitScale = opts.onHitScale;
     this.writeFlying(f);
   }
@@ -203,21 +209,7 @@ export class Projectiles {
   // ── per frame ──
 
   update(dt: number): void {
-    for (const f of this.flying) {
-      if (!f.active) continue;
-      f.age += dt;
-      const sub = this.kind.substeps ?? 4, h = dt / sub;
-      let stopped = false;
-      for (let s = 0; s < sub; s++) {
-        const prev = _v1.copy(f.pos);
-        this.step(f.pos, f.vel, h);
-        if (this.testHit(f, prev)) { stopped = true; break; }
-      }
-      if (stopped) continue;
-      if (Math.abs(f.pos.x) > CHUNK_HALF + 80 || Math.abs(f.pos.z) > CHUNK_HALF + 80 || f.pos.y < -150 || f.age > (this.kind.lifetime ?? 12)) { this.endFlying(f); continue; }
-      f.roll += dt * 9;
-      this.writeFlying(f);
-    }
+    this.pool.step(dt);
     // arrows riding animals follow them; a dead (or harvested) one drops its arrows into the ground beside it
     for (let i = this.stuck.length - 1; i >= 0; i--) {
       const s = this.stuck[i];

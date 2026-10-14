@@ -4944,3 +4944,15 @@ uses AchievementCounterPorts read/write/emit on the existing saved owner;
 kill/event/count emit newly reached identities, replay submits old saved
 identities for the ledger's normal deduplication. No flags, rewards or save
 slots are allocated by the counter.
+
+### Renderer-free projectile slots
+
+`ProjectileSlots<Data>` in `engine/combat/projectileFlight` owns bounded
+flight slots (1–1024), first-free/oldest reuse, age, declared integration
+substeps (1–64) and extent/floor/lifetime expiry. Borrowed data is combined
+with position, velocity, active, age and glanced state. `take()` resets only
+the mechanical slot state; the caller supplies launch vectors and its own
+metadata. `step(dt)` invokes trusted integration, contact, advanced, moved
+and expired ports in that order without allocating per-step result data.
+Integration laws, damage, sticking, render meshes and tracers remain with
+the original owners; the pool installs no physics or rendering service.
