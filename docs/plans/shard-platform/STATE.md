@@ -1,6 +1,7 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**W1 (Sky + Signal, 90/10; G403/G404): components closed 2 of 9 (C4, C8); C7 at 1/0.** Custom lines Sky/Signal (clean generated `9d442d379`, 04:00Z): C1 379/165 · C2 112/134 · C3 49/45 · C4 0/0 · C5 19/12 · C6 27/12 · C7 1/0 · C8 0/0 · C9 122/53; 0 unknown. **Sky 10.5 %, Signal 10.2 %** (03:00Z: 12.7/11.8). **W2 starts when both are ≤ 10 %** (G413) on x4's split (`w2-m0-inventory.md`).
+**W1 (Sky + Signal, 90/10; G403/G404): components closed 3 of 9 (C4, C7 `016680c2a`, C8).** Custom lines Sky/Signal (clean generated `a72b6c08c`, 04:50Z): Sky 651/6777 = **9.61 %**, Signal 414/4122 = **10.04 %** (Signal ≈ 2 lines over; sp-x6's NPC cut lands next). C1 352/162 · C2 112/133 · C3 49/45 · C5 19/11 · C6 27/12 · C9 106/51; 0 unknown.
+**W2 STARTED (G413) 04:55Z:** sp-x4 on Pine + Driftwood C1 (split in `w2-m0-inventory.md`); other lanes move as their W1 components run out.
 **Night QA done:** `406320c20` sweep + `03fd2b75e` real-play check (Signal storm fight, updraft ride, Roc flight: no regressions). Fixed: meadow tufts `5678fbee7`, cumulus/fan silk flips, road-lip shimmer at every socket `0e626fb74` (pre-W1). Disk hit 100 % at 02:50Z from lane exports; lanes freed ~1.4 TB.
 **22:51Z. PORT % (G390, `351e3f8bc`): avg 44.7 %** (Template 100, Signal 74.9, Sky 69.7, Nine 48.3, Nalati 10, Pine 10, Driftwood 0).
 
