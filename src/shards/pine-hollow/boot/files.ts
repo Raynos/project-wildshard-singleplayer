@@ -6,7 +6,7 @@ import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
 import { pineHeroUrls } from '../world/heroFiles';
 import coatPages from '../data/coatPages.generated.json' with { type: 'json' };
-import { PINE_SKY } from '../runtime/looks/sky';
+import { PINE_SKY } from '../data/sky';
 
 const uniq = (urls: readonly string[]): string[] => [...new Set(urls)];
 /** every sky key's baked pair (data/sky.ts): the boot pack holds all seven, so the clock never fetches a key mid-play (E44) */

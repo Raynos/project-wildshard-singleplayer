@@ -1,5 +1,5 @@
 import { keyedSkyDay } from '../runtime/looks/keyedSkyDay';
-import { PINE_SKY } from '../runtime/looks/sky';
+import { PINE_SKY } from '../data/sky';
 
 /**
  * Pine Hollow's day / night clock (PINE-HOLLOW-REMASTER PH-L2): the keyed-sky row in data/sky.ts as the engine's clock spec,

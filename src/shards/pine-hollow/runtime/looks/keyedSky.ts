@@ -5,7 +5,7 @@ import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
 import { cloneSkyPreset, type KeyedSkyDay, type SkyPreset } from './keyedSkyDay';
-import { skyKeyFiles, type KeyedSkyStyle } from './keyedSkyRows';
+import { skyKeyFiles, type KeyedSkyStyle } from '../../data/keyedSkyRows';
 
 /**
  * A day / night sky drawn from photographic keys (SHARD-PLATFORM M3, look-family rows): the backdrop half of a keyed sky,

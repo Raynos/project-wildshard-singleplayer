@@ -1,6 +1,6 @@
 import { DayCycle, type DayCycleSpec } from '@wildshard/engine/world/dayCycle';
 import * as THREE from 'three';
-import type { KeyedSkyStyle, SkyColour, SkyPresetRow } from './keyedSkyRows';
+import type { KeyedSkyStyle, SkyColour, SkyPresetRow } from '../../data/keyedSkyRows';
 
 /**
  * A keyed sky's day / night clock as data (SHARD-PLATFORM M3, look-family rows): the clock half of `keyedSky`, renderer-free

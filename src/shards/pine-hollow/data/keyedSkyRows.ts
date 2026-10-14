@@ -1,4 +1,4 @@
-import type { LightPreset, ScheduleSeg, TimePick } from '@wildshard/engine/world/dayCycle';
+import type { DayClockRow, DayClockSegment } from '@wildshard/format/dayCycle';
 
 /**
  * A keyed sky's row types (SHARD-PLATFORM M3, look-family rows; `keyedSkyDay` is its clock, `keyedSky` its backdrop) and its
@@ -58,7 +58,7 @@ export interface KeyedSkyStyle {
   /** the start phase when nothing pins one */
   readonly start: number;
   /** the real-time schedule the clock's hours run on */
-  readonly schedule: readonly ScheduleSeg[];
+  readonly schedule: readonly DayClockSegment[];
   /** the photographic sky keys by name */
   readonly keys: Readonly<Record<string, SkyKeyRow>>;
   /** the key whose glow sits on the moon (every other key's sits on the sun) */
@@ -72,9 +72,9 @@ export interface KeyedSkyStyle {
   /** named phases (`?tod=` names, the quest's and ambience's times) */
   readonly phases: Readonly<Record<string, number>>;
   /** Settings ▸ Time of day's picks */
-  readonly fixed: Readonly<Record<Exclude<TimePick, 'live'>, number>>;
+  readonly fixed: Readonly<Record<keyof DayClockRow['fixed'], number>>;
   /** the engine's named light presets */
-  readonly lightPresets: Readonly<Record<LightPreset, number>>;
+  readonly lightPresets: Readonly<Record<keyof DayClockRow['presets'], number>>;
   /** the sun's path: compass azimuths (0 = north = +Z, 90 = east = −X) and elevations in degrees */
   readonly sun: { readonly riseAz: number; readonly setAz: number; readonly noonEl: number; readonly nightDip: number };
   /** the moon's path over the night: azimuth `az` + `azSpan` × s, elevation `el` + `elRise` × sin(π s) */

@@ -1,7 +1,7 @@
 import type { KeyedSkyStyle } from './keyedSkyRows';
 
 /**
- * Pine Hollow's day / night sky as a keyed-sky row (`@wildshard/sdk/looks/keyedSky`; PINE-HOLLOW-REMASTER PH-L2, Jake's
+ * Pine Hollow's day / night sky as a keyed-sky row (`runtime/looks/keyedSky`; PINE-HOLLOW-REMASTER PH-L2, Jake's
  * PH-U7: "the full cycle, 20 + 4 min, dawn / day / golden hour / night, like Driftwood, in photoreal"; picked over the
  * pre-remaster fixed sunset: "A + a brighter night").
  *
