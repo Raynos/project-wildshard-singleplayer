@@ -39,7 +39,7 @@ import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
 import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { StreamedCover, type CoverGround, type CoverSite, type StreamedCoverHooks, type StreamedCover as StreamedCoverSet, type StreamedCoverStats } from '../runtime/looks/streamedCover';
+import { StreamedCover, type CoverSite, type StreamedCoverHooks, type StreamedCover as StreamedCoverSet, type StreamedCoverStats } from '../runtime/looks/streamedCover';
 
 export interface GroundCoverOpts {
   sea: number;
@@ -116,7 +116,7 @@ export class GroundCover {
       density: (ki, s) => (KIND_DENSITY[ki] ?? (() => 0))(s),
       tinted: (ki) => (KIND_TINT[ki] ?? null) !== null,
       tint: (ki, s, rng, out) => { KIND_TINT[ki]?.(s.h, rng, out); },
-      ground: (x, z, s, out) => this.ground(x, z, s, out),
+      ground: (x, z, s, out, o) => this.ground(x, z, s, out, o),
     };
     this.cover = new StreamedCover({ sky, row: GROUND_COVER, geometry: copyCoverGeometry(), hooks, heightAt, seed: SEED, glsl: { coverSeen: COVER_SEEN_GLSL } });
   }
@@ -151,14 +151,16 @@ export class GroundCover {
     return true;
   }
 
-  /** a plant's ground: its height, the terrain's facet colour there and the cover grid's look (E156) */
-  private ground(x: number, z: number, s: Site, out: CoverGround): void {
+  /** a plant's ground: the cover grid's look (E156: side, then rgb and top after) and the terrain's facet colour there,
+   *  at out[o …]; returns its height */
+  private ground(x: number, z: number, s: Site, out: Float32Array, o: number): number {
     const y = heightAt(x, z), c = this.groundColor, cv = this.coverAt, grid = CoverGrid.get();
     lowPolyGroundColor(c, y - this.opts.sea, s.slope, x, z);
     if (grid) grid.sample(x, z, cv); else { cv.r = 0; cv.g = 0; cv.b = 0; cv.top = 0; cv.side = 0; }
     const j = coverJitter(x, z);
-    out.y = y; out.r = c.r; out.g = c.g; out.b = c.b;
-    out.side = cv.side; out.cr = cv.r * j; out.cg = cv.g * j; out.cb = cv.b * j; out.top = cv.top;
+    out[o] = cv.side; out[o + 1] = c.r; out[o + 2] = c.g; out[o + 3] = c.b;
+    out[o + 4] = cv.r * j; out[o + 5] = cv.g * j; out[o + 6] = cv.b * j; out[o + 7] = cv.top;
+    return y;
   }
 
   build(): this {

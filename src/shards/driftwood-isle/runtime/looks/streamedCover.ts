@@ -48,20 +48,6 @@ export interface CoverSite {
   nz: number;
 }
 
-/** What a plant stands on, as the shard's `ground` hook fills it: its height, the ground's colour and the cover's. */
-export interface CoverGround {
-  y: number;
-  r: number;
-  g: number;
-  b: number;
-  /** the cover grid's side, colour (jittered) and top at the plant */
-  side: number;
-  cr: number;
-  cg: number;
-  cb: number;
-  top: number;
-}
-
 /** The shard's placement rules. */
 export interface StreamedCoverHooks<S extends CoverSite> {
   /** a new site to fill */
@@ -74,8 +60,9 @@ export interface StreamedCoverHooks<S extends CoverSite> {
   readonly tinted: (kind: number) => boolean;
   /** kind `kind`'s per-instance tint (multiplies the vertex colours), drawn from `rng`, into `out` (a tinted kind only) */
   readonly tint: (kind: number, site: S, rng: Rng, out: THREE.Color) => void;
-  /** the plant at (x, z) on that site: its ground height, colour and cover */
-  readonly ground: (x: number, z: number, site: S, out: CoverGround) => void;
+  /** the plant at (x, z) on that site: writes the cover grid's side, the ground's colour (rgb) and the cover's (jittered
+   *  rgb, top) at `out[o … o + 7]` and returns the ground's height */
+  readonly ground: (x: number, z: number, site: S, out: Float32Array, o: number) => number;
 }
 
 /** What the cover needs. */
@@ -101,7 +88,8 @@ export interface StreamedCoverStats {
 
 /** shader modes: a near plant that just shrinks away / hands over to its far model; a far model */
 const MODE_NEAR = 0, MODE_HANDOVER = 1, MODE_FAR = 2;
-/** floats per cached candidate: x y z yaw scale · tint rgb · ground rgb · ground normal xyz · cover side · cover rgb top */
+/** floats per cached candidate: x y z yaw scale · tint rgb · ground normal xyz, cover side (aNrm) · ground rgb (aGround) ·
+ *  cover rgb top (aCover) */
 const STRIDE = 19;
 
 /**
@@ -180,7 +168,22 @@ interface Kind {
   scale: readonly [number, number];
 }
 
+/** the phone's or the desktop's value of a row's pair */
+const forTier = (pair: { readonly phone: number; readonly desktop: number }): number => (TIER === 'desktop' ? pair.desktop : pair.phone);
 const ss = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+
+/** cached plant `i` of `v` into instance `n` of a tier's back arrays (the far model is its near one's size) */
+function writePlant(A: ReturnType<CoverTier['arrays']>, n: number, v: Float32Array, i: number): void {
+  const yaw = v[i + 3] ?? 0, s = v[i + 4] ?? 1, c = Math.cos(yaw) * s, sn = Math.sin(yaw) * s, m = A.mat, o = n * 16;
+  // a turn about +y, scaled: what Matrix4.compose writes, without the quaternion
+  m[o] = c; m[o + 1] = 0; m[o + 2] = -sn; m[o + 3] = 0;
+  m[o + 4] = 0; m[o + 5] = s; m[o + 6] = 0; m[o + 7] = 0;
+  m[o + 8] = sn; m[o + 9] = 0; m[o + 10] = c; m[o + 11] = 0;
+  m[o + 12] = v[i] ?? 0; m[o + 13] = v[i + 1] ?? 0; m[o + 14] = v[i + 2] ?? 0; m[o + 15] = 1;
+  if (A.col) { A.col[n * 3] = v[i + 5] ?? 1; A.col[n * 3 + 1] = v[i + 6] ?? 1; A.col[n * 3 + 2] = v[i + 7] ?? 1; }
+  A.gnd[n * 3] = v[i + 12] ?? 0; A.gnd[n * 3 + 1] = v[i + 13] ?? 0; A.gnd[n * 3 + 2] = v[i + 14] ?? 0;
+  A.nrm.set(v.subarray(i + 8, i + 12), n * 4); A.cov.set(v.subarray(i + 15, i + 19), n * 4);
+}
 
 /** A ground cover streamed round the viewer (see the module comment). */
 export class StreamedCover<S extends CoverSite> {
@@ -190,8 +193,6 @@ export class StreamedCover<S extends CoverSite> {
   readonly stats: StreamedCoverStats = { nearRefillMs: 0, farJobMs: 0, farJobFrames: 0, farCells: 0, farCount: 0, cellsBuilt: 0, gridMs: 0, nearRefills: 0, farSwaps: 0, uploadBytes: 0 };
   private readonly o: StreamedCoverOptions<S>;
   private readonly row: StreamedCoverRow;
-  private readonly reachK: number;
-  private readonly capK: number;
   private readonly farBudgetMs: number;
   private readonly kinds: Kind[] = [];
   private readonly cells = new Map<string, Float32Array[]>();
@@ -201,7 +202,6 @@ export class StreamedCover<S extends CoverSite> {
   private rMax = 0;
   private cacheMax = 96;
   private readonly tint = new THREE.Color();
-  private readonly ground: CoverGround = { y: 0, r: 0, g: 0, b: 0, side: 0, cr: 0, cg: 0, cb: 0, top: 0 };
   private readonly site: S;
   /** the far tier's rebuild: a job stepped within the budget a frame; where the shown / the next set were built from */
   private farJob: Generator<undefined, undefined, undefined> | null = null;
@@ -221,10 +221,7 @@ export class StreamedCover<S extends CoverSite> {
   constructor(options: StreamedCoverOptions<S>) {
     this.o = options;
     this.row = options.row;
-    const desktop = TIER === 'desktop';
-    this.reachK = desktop ? this.row.reachK.desktop : this.row.reachK.phone;
-    this.capK = desktop ? this.row.capK.desktop : this.row.capK.phone;
-    this.farBudgetMs = desktop ? this.row.farBudgetMs.desktop : this.row.farBudgetMs.phone;
+    this.farBudgetMs = forTier(this.row.farBudgetMs);
     this.site = options.hooks.newSite();
   }
 
@@ -233,12 +230,12 @@ export class StreamedCover<S extends CoverSite> {
   private reachMax(v: Float32Array, i: number, strength: number, travel: number): number {
     const sr = this.row.slopeReach;
     const s = strength >= 1 ? 1 : Math.min(1, strength + travel / (sr.fadeTo - sr.fadeFrom));
-    return 1 + s * (sr.up - 1) * ss(sr.lo, sr.hi, 1 - (v[i + 12] ?? 1));
+    return 1 + s * (sr.up - 1) * ss(sr.lo, sr.hi, 1 - (v[i + 9] ?? 1));
   }
 
   /** Builds every kind's meshes and materials (one program for all of them) into `group`. */
   build(): this {
-    const row = this.row, K = this.reachK, ms = row.material, sr = row.slopeReach;
+    const row = this.row, K = forTier(row.reachK), capK = forTier(row.capK), ms = row.material, sr = row.slopeReach;
     const material = (reach: THREE.Vector3, far: THREE.Vector3, mode: number, keep = 1): THREE.MeshStandardMaterial => {
       const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: ms.flatShading, roughness: ms.roughness, metalness: ms.metalness, side: ms.doubleSided ? THREE.DoubleSide : THREE.FrontSide });
       this.patch(mat, reach, far, mode, keep);
@@ -251,13 +248,13 @@ export class StreamedCover<S extends CoverSite> {
       return g;
     };
     for (const [ki, k] of row.kinds.entries()) {
-      const cap = Math.round(k.cap * this.capK), [near, far] = k.reach, hasTint = this.o.hooks.tinted(ki);
+      const cap = Math.round(k.cap * capK), [near, far] = k.reach, hasTint = this.o.hooks.tinted(ki);
       const reach = new THREE.Vector3(near * K, far * K, (far - near) * K * row.growShare);
       this.rMax = Math.max(this.rMax, reach.y * sr.up + row.refill + row.eyeSlack); // sized for the slope reach
       let farTier: FarTier | null = null;
       const farSpan = new THREE.Vector3(0, 0, 1);
       if (k.far !== undefined) {
-        const f = k.far, [fn, ff] = f.reach, fcap = Math.round(f.cap * f.keep * this.capK);
+        const f = k.far, [fn, ff] = f.reach, fcap = Math.round(f.cap * f.keep * capK);
         farSpan.set(fn * K, ff * K, (ff - fn) * K * row.growShare);
         this.rFar = Math.max(this.rFar, farSpan.y * sr.up + row.farSlack + row.eyeSlack);
         farTier = { set: this.instanced(`${row.meshPrefix}${k.name}-far`, geometry(f.geometry), material(reach, farSpan, MODE_FAR), fcap, hasTint), cap: fcap, reach: farSpan, keep: f.keep };
@@ -306,7 +303,7 @@ export class StreamedCover<S extends CoverSite> {
     const key = `${cx},${cz}`;
     const hit = this.cells.get(key);
     if (hit) return hit;
-    const row = this.row, CELL = row.cell, hooks = this.o.hooks, site = this.site, gd = this.ground;
+    const row = this.row, CELL = row.cell, hooks = this.o.hooks, site = this.site;
     const rng = new Rng(this.o.seed ^ Math.imul(cx + 1013, 73856093) ^ Math.imul(cz + 2027, 19349663));
     // one candidate set per cell, the site read once per point, then a density lottery per kind
     const n = row.candidates;
@@ -317,7 +314,6 @@ export class StreamedCover<S extends CoverSite> {
     for (let i = 0; i < n; i++) {
       const x = (cx + rng.next()) * CELL, z = (cz + rng.next()) * CELL;
       if (!hooks.site(x, z, site)) continue;
-      const { nx, ny, nz } = site;
       for (let ki = 0; ki < nk; ki++) {
         const k = kinds[ki], out = this.scratch[ki];
         if (k === undefined || out === undefined) continue;
@@ -325,14 +321,10 @@ export class StreamedCover<S extends CoverSite> {
         if (rng.next() * 2 > d) continue;
         const jx = x + rng.range(-0.3, 0.3), jz = z + rng.range(-0.3, 0.3), sc = rng.range(k.scale[0], k.scale[1]);
         if (hooks.tinted(ki)) hooks.tint(ki, site, rng, this.tint); else this.tint.setRGB(1, 1, 1);
-        const yaw = rng.range(0, Math.PI * 2);
-        hooks.ground(jx, jz, site, gd);
-        const o = len[ki] ?? 0;
-        out[o] = jx; out[o + 1] = gd.y - row.sink; out[o + 2] = jz; out[o + 3] = yaw; out[o + 4] = sc;
+        const yaw = rng.range(0, Math.PI * 2), o = len[ki] ?? 0;
+        out[o] = jx; out[o + 1] = hooks.ground(jx, jz, site, out, o + 11) - row.sink; out[o + 2] = jz; out[o + 3] = yaw; out[o + 4] = sc;
         out[o + 5] = this.tint.r; out[o + 6] = this.tint.g; out[o + 7] = this.tint.b;
-        out[o + 8] = gd.r; out[o + 9] = gd.g; out[o + 10] = gd.b;
-        out[o + 11] = nx; out[o + 12] = ny; out[o + 13] = nz;
-        out[o + 14] = gd.side; out[o + 15] = gd.cr; out[o + 16] = gd.cg; out[o + 17] = gd.cb; out[o + 18] = gd.top;
+        out[o + 8] = site.nx; out[o + 9] = site.ny; out[o + 10] = site.nz;
         len[ki] = o + STRIDE;
       }
     }
@@ -346,51 +338,35 @@ export class StreamedCover<S extends CoverSite> {
   /** copy every cached plant that can show before the next refill (its edge + `refill`) into its kind's back buffers
    *  (`update` uploads and swaps them) */
   private refill(px: number, py: number, pz: number): void {
-    const t0 = diagnosticNow(), row = this.row, CELL = row.cell;
+    const t0 = diagnosticNow(), row = this.row;
     for (const k of this.kinds) k.set.begin();
     const arrs = this.kinds.map((k) => k.set.arrays());
-    const R = this.rMax, c0x = Math.floor((px - R) / CELL), c1x = Math.floor((px + R) / CELL), c0z = Math.floor((pz - R) / CELL), c1z = Math.floor((pz + R) / CELL);
-    const counts = this.kinds.map(() => 0);
-    const TAU = Math.PI * 2, up = this.uniforms.uReachUp.value;
+    const TAU = Math.PI * 2, up = this.uniforms.uReachUp.value, slack = row.refill + row.eyeSlack;
     // nearest cells first: a kind that runs into its cap then drops its furthest (thinnest) plants, not a corner
-    const order: [number, number, number][] = [];
-    for (let cz = c0z; cz <= c1z; cz++) for (let cx = c0x; cx <= c1x; cx++) {
-      const dx = Math.max(0, cx * CELL - px, px - (cx + 1) * CELL), dz = Math.max(0, cz * CELL - pz, pz - (cz + 1) * CELL);
-      if (dx * dx + dz * dz <= R * R) order.push([cx, cz, dx * dx + dz * dz]);
-    }
-    order.sort((a, b) => a[2] - b[2]);
-    for (const [cx, cz] of order) {
+    for (const [cx, cz] of this.cellsWithin(px, pz, this.rMax)) {
       const data = this.cell(cx, cz);
       this.kinds.forEach((k, ki) => {
-        const v = data[ki];
-        if (v === undefined) return;
-        const near = k.reach.x, far = k.reach.y, grow = k.reach.z, slack = row.refill + row.eyeSlack;
-        const A = arrs[ki];
-        if (A === undefined) return;
-        const { mat, col, gnd, cov, nrm } = A;
-        let n = counts[ki] ?? 0;
-        for (let i = 0; i < v.length && n < k.cap; i += STRIDE) {
-          const x = v[i] ?? 0, y = v[i + 1] ?? 0, z = v[i + 2] ?? 0, yaw = v[i + 3] ?? 0;
+        const v = data[ki], A = arrs[ki], near = k.reach.x, far = k.reach.y, grow = k.reach.z;
+        if (v === undefined || A === undefined) return;
+        for (let i = 0; i < v.length && k.set.n < k.cap; i += STRIDE) {
           // this plant's edge (the shader's): yaw / 2π; round the wrap (the GPU's atan may land either side) to the far end
-          const d2 = (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2, rk = this.reachMax(v, i, up, row.refill + row.eyeSlack);
-          const h = yaw / TAU, edge = (h < 0.005 || h > 0.995 ? far : near + grow + (far - near - grow) * h) * rk, lim = edge + slack;
-          if (d2 > lim * lim) continue;
-          const s = v[i + 4] ?? 1, c = Math.cos(yaw) * s, sn = Math.sin(yaw) * s, o = n * 16;
-          // a turn about +y, scaled: what Matrix4.compose writes, without the quaternion
-          mat[o] = c; mat[o + 1] = 0; mat[o + 2] = -sn; mat[o + 3] = 0;
-          mat[o + 4] = 0; mat[o + 5] = s; mat[o + 6] = 0; mat[o + 7] = 0;
-          mat[o + 8] = sn; mat[o + 9] = 0; mat[o + 10] = c; mat[o + 11] = 0;
-          mat[o + 12] = x; mat[o + 13] = y; mat[o + 14] = z; mat[o + 15] = 1;
-          if (col) { col[n * 3] = v[i + 5] ?? 1; col[n * 3 + 1] = v[i + 6] ?? 1; col[n * 3 + 2] = v[i + 7] ?? 1; }
-          gnd[n * 3] = v[i + 8] ?? 0; gnd[n * 3 + 1] = v[i + 9] ?? 0; gnd[n * 3 + 2] = v[i + 10] ?? 0;
-          nrm.set(v.subarray(i + 11, i + 15), n * 4); cov.set(v.subarray(i + 15, i + 19), n * 4);
-          n++;
+          const d2 = ((v[i] ?? 0) - px) ** 2 + ((v[i + 1] ?? 0) - py) ** 2 + ((v[i + 2] ?? 0) - pz) ** 2, rk = this.reachMax(v, i, up, slack);
+          const h = (v[i + 3] ?? 0) / TAU, edge = (h < 0.005 || h > 0.995 ? far : near + grow + (far - near - grow) * h) * rk, lim = edge + slack;
+          if (d2 <= lim * lim) writePlant(A, k.set.n++, v, i);
         }
-        counts[ki] = n;
       });
     }
-    this.kinds.forEach((k, ki) => { k.set.n = counts[ki] ?? 0; });
     this.stats.nearRefillMs = diagnosticNow() - t0;
+  }
+
+  /** the cells within R of (px, pz), nearest first */
+  private cellsWithin(px: number, pz: number, R: number): [number, number, number][] {
+    const C = this.row.cell, out: [number, number, number][] = [];
+    for (let cz = Math.floor((pz - R) / C); cz <= Math.floor((pz + R) / C); cz++) for (let cx = Math.floor((px - R) / C); cx <= Math.floor((px + R) / C); cx++) {
+      const dx = Math.max(0, cx * C - px, px - (cx + 1) * C), dz = Math.max(0, cz * C - pz, pz - (cz + 1) * C);
+      if (dx * dx + dz * dz <= R * R) out.push([cx, cz, dx * dx + dz * dz]);
+    }
+    return out.sort((a, b) => a[2] - b[2]);
   }
 
   /**
@@ -400,14 +376,7 @@ export class StreamedCover<S extends CoverSite> {
    * A cap cuts the furthest (thinnest) first.
    */
   private *farRefill(px: number, py: number, pz: number): Generator<undefined, undefined, undefined> {
-    const row = this.row, CELL = row.cell;
-    const R = this.rFar, c0x = Math.floor((px - R) / CELL), c1x = Math.floor((px + R) / CELL), c0z = Math.floor((pz - R) / CELL), c1z = Math.floor((pz + R) / CELL);
-    const cellsAt: [number, number, number][] = [];
-    for (let cz = c0z; cz <= c1z; cz++) for (let cx = c0x; cx <= c1x; cx++) {
-      const dx = Math.max(0, cx * CELL - px, px - (cx + 1) * CELL), dz = Math.max(0, cz * CELL - pz, pz - (cz + 1) * CELL);
-      if (dx * dx + dz * dz <= R * R) cellsAt.push([cx, cz, dx * dx + dz * dz]);
-    }
-    cellsAt.sort((a, b) => a[2] - b[2]);
+    const row = this.row, cellsAt = this.cellsWithin(px, pz, this.rFar);
     for (const k of this.kinds) k.far?.set.begin();
     const arrs = this.kinds.map((k) => k.far?.set.arrays() ?? null);
     const TAU = Math.PI * 2, slack = row.farSlack + row.eyeSlack, up = this.uniforms.uReachUp.value;
@@ -420,28 +389,15 @@ export class StreamedCover<S extends CoverSite> {
         const near = k.reach.x, grow = k.reach.z, far = k.reach.y, fNear = f.reach.x, fFar = f.reach.y, fGrow = f.reach.z;
         const st = arrs[ki], keep = f.keep;
         if (!st) return;
-        let n = f.set.n;
-        for (let i = 0; i < v.length && n < f.cap; i += STRIDE) {
-          const x = v[i] ?? 0, y = v[i + 1] ?? 0, z = v[i + 2] ?? 0, yaw = v[i + 3] ?? 0;
-          const h = yaw / TAU, wrap = h < 0.005 || h > 0.995;
+        for (let i = 0; i < v.length && f.set.n < f.cap; i += STRIDE) {
+          const h = (v[i + 3] ?? 0) / TAU, wrap = h < 0.005 || h > 0.995;
           if (keep < 1 && ((h * 97.13) % 1) >= keep) continue;           // not one of the kind's far plants
-          const d2 = (x - px) ** 2 + (y - py) ** 2 + (z - pz) ** 2, rk = this.reachMax(v, i, up, row.farSlack);
+          const d2 = ((v[i] ?? 0) - px) ** 2 + ((v[i + 1] ?? 0) - py) ** 2 + ((v[i + 2] ?? 0) - pz) ** 2, rk = this.reachMax(v, i, up, row.farSlack);
           const edge = (wrap ? near + grow : near + grow + (far - near - grow) * h) * rk, fEdge = (wrap ? fFar : fNear + fGrow + (fFar - fNear - fGrow) * h) * rk;
           // the lower bound takes the plant's reach at 1× (the camera may climb and the strength fall before the next rebuild)
           const lo = Math.max(0, (edge / rk) - grow - slack), hi = fEdge + slack;
-          if (d2 > hi * hi || d2 < lo * lo) continue;
-          // the far model is its near one's size
-          const s = v[i + 4] ?? 1, c = Math.cos(yaw) * s, sn = Math.sin(yaw) * s, o = n * 16, m = st.mat;
-          m[o] = c; m[o + 1] = 0; m[o + 2] = -sn; m[o + 3] = 0;
-          m[o + 4] = 0; m[o + 5] = s; m[o + 6] = 0; m[o + 7] = 0;
-          m[o + 8] = sn; m[o + 9] = 0; m[o + 10] = c; m[o + 11] = 0;
-          m[o + 12] = x; m[o + 13] = y; m[o + 14] = z; m[o + 15] = 1;
-          if (st.col) { st.col[n * 3] = v[i + 5] ?? 1; st.col[n * 3 + 1] = v[i + 6] ?? 1; st.col[n * 3 + 2] = v[i + 7] ?? 1; }
-          st.gnd[n * 3] = v[i + 8] ?? 0; st.gnd[n * 3 + 1] = v[i + 9] ?? 0; st.gnd[n * 3 + 2] = v[i + 10] ?? 0;
-          st.nrm.set(v.subarray(i + 11, i + 15), n * 4); st.cov.set(v.subarray(i + 15, i + 19), n * 4);
-          n++;
+          if (d2 <= hi * hi && d2 >= lo * lo) writePlant(st, f.set.n++, v, i);
         }
-        f.set.n = n;
       });
       yield undefined;
     }
@@ -471,17 +427,12 @@ export class StreamedCover<S extends CoverSite> {
     // NEAR_LAG m early and uploads a slice a frame; it must be shown before the viewer is REFILL_M from where the shown one
     // was built, so it swaps by NEAR_LAG m of travel whatever is left (`last` = where the newest set was built).
     let budget = row.uploadBytes, used = 0;
-    const moved = this.last.distanceToSquared(viewer);
-    if (moved > REFILL_M * REFILL_M) {
-      // the first frame, a teleport, a reset: all of it, this frame
+    const moved = this.last.distanceToSquared(viewer), jump = moved > REFILL_M * REFILL_M;
+    if (jump || (!this.nearPending && moved > (REFILL_M - NEAR_LAG) ** 2)) {
       this.last.copy(viewer);
       this.refill(viewer.x, viewer.y, viewer.z);
       this.nearPending = true;
-      budget = Infinity;
-    } else if (!this.nearPending && moved > (REFILL_M - NEAR_LAG) ** 2) {
-      this.last.copy(viewer);
-      this.refill(viewer.x, viewer.y, viewer.z);
-      this.nearPending = true;
+      if (jump) budget = Infinity; // the first frame, a teleport, a reset: all of it, this frame
     }
     if (this.nearPending) {
       if (this.last.distanceToSquared(viewer) > NEAR_LAG * NEAR_LAG) budget = Infinity; // its deadline
