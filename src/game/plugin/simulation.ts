@@ -5,6 +5,7 @@ import { compileDirectorWhen, evaluateDirectorWhen } from '@wildshard/format/dir
 import { ContactFamily, type ContactFamilyPorts, type ContactScanTarget } from '@wildshard/engine/combat/contactWeapon';
 import { parseItems, parseMeleeContacts, parseNativeMeleeBinding } from '@wildshard/format/items';
 import { scriptItemHook } from '@wildshard/engine/combat/items';
+import { flagValue } from '@wildshard/engine/world/interact/flags';
 import { Vector3 } from 'three';
 import { createHeadlessPromptPicker } from '../quest/interactionRows';
 import { GridAssembly } from '../grid/assembly';
@@ -52,7 +53,7 @@ import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroup
 import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } from "../shardfile/crowdRuntime";
 import { installLadders, type LadderClientPorts } from '../shardfile/ladder';
 import type { LiftApproachSource } from '@wildshard/format/liftApproach';
-import { MoverScriptDriver, type MoverRuntime } from "./mover";
+import { MoverScriptDriver, verifiedMoverModules, type DeclaredMoverComposition, type MoverRuntime } from "./mover";
 import { socketLiftEntries, socketLiftRules, type SocketLiftEntry } from "@wildshard/format/socketLiftAssets";
 import { portalLinkEntries, portalLinkRules } from "@wildshard/format/portalLinkAssets";
 import { validatePortalFloors } from "@wildshard/format/portalFloor";
@@ -119,6 +120,51 @@ export function addBakedWorld(host: SimHost, pieces: unknown, terrain?: Uint8Arr
   if (terrain !== undefined) addBakedTerrainCollider(host.physics, terrain, host.scope);
   const board = addBakedPieces(host.physics, pieces);
   if (board.length > 0) host.boardColliders(board);
+}
+interface RuntimeWorldRecipe {
+  readonly terrain: 'none' | 'collider'; readonly ground: SimLevel['ground'];
+  readonly player: { readonly speed: number; readonly lift?: number; readonly at?: readonly [number, number, number]; readonly yaw?: number };
+  readonly floor?: 'solids';
+  readonly motion?: { readonly systemId: string; readonly skipPrefix?: string;
+    readonly composition: Omit<DeclaredMoverComposition['content'], 'identity'>; readonly rules: ShardScriptPorts['rules'];
+    readonly itemRole?: NonNullable<DeclaredMoverComposition['declarations']>[number]['row'];
+    readonly permissions: readonly { readonly mover: string; readonly flags: readonly { readonly name: string; readonly bit: number }[] }[];
+    readonly observations: readonly { readonly name: string; readonly mover: string }[];
+    readonly actions: readonly { readonly name: string; readonly mover: string; readonly command: 1 | 2 | 3 }[];
+  };
+}
+/** Shared native world preparation: declarations select static collision, spawn and optional scripted motion on the same host. */
+export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, pieces: unknown, recipe: RuntimeWorldRecipe): Promise<{
+  level: SimLevel; ports: { ground: false; heightAt: (x: number, z: number) => number };
+  install: (host: SimHost, restoring: boolean) => { hooks: ReturnType<ReturnType<typeof declaredItemScriptBindings>['hooks']>;
+    hookTick: () => number; observations: ReadonlyMap<string, () => boolean>; actions: ReadonlyMap<string, () => void> };
+}> {
+  const terrain = recipe.terrain === 'collider' ? admittedTerrain(shard, assets) : undefined;
+  if (recipe.terrain === 'none' && shard.terrain !== null) throw new Error('Native world declares no terrain');
+  const heightAt = terrain?.heightAt ?? (() => recipe.ground.height);
+  const at = recipe.player.at;
+  const player = { at: at === undefined ? { x: shard.spawn.x, y: heightAt(shard.spawn.x, shard.spawn.z) + (recipe.player.lift ?? 0), z: shard.spawn.z }
+    : { x: at[0], y: at[1], z: at[2] }, yaw: recipe.player.yaw ?? shard.spawn.yaw, speed: recipe.player.speed };
+  const row = recipe.motion, data = row === undefined ? [] : shard.movers.filter(value => row.skipPrefix === undefined || !value.id.startsWith(row.skipPrefix));
+  const modules = row === undefined ? new Map<string, Uint8Array>() : new Map(await verifiedMoverModules(assets, data));
+  if (row?.itemRole !== undefined) for (const [name, bytes] of await declaredItemScriptBindings(shard.items, 'actor.player').modules(assets)) modules.set(name, bytes);
+  if (row !== undefined && [row.permissions, row.observations, row.actions].some(rows => rows.length > 64
+    || rows.some(value => !data.some(declaration => declaration.id === value.mover)))) throw new Error('Unbound native world motion rows');
+  if (row !== undefined && (new Set(row.observations.map(value => value.name)).size !== row.observations.length
+    || new Set(row.actions.map(value => value.name)).size !== row.actions.length)) throw new Error('Duplicate native world bindings');
+  return { level: trustedLevel(shard, player, recipe.ground), ports: { ground: false, heightAt }, install: (host, restoring) => {
+    if (!restoring) addBakedWorld(host, pieces, terrain?.bytes);
+    if (recipe.floor === 'solids') host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
+    const observations = new Map<string, () => boolean>(), actions = new Map<string, () => void>();
+    if (row === undefined) return { hooks: new Map(), hookTick: () => -1, observations, actions };
+    const items = declaredItemScriptBindings(shard.items, host.player.id);
+    const motion = new MoverScriptDriver(data, host).install(host, { content: { ...row.composition, identity: shard.identity }, rules: row.rules, assets: modules,
+      declarations: row.itemRole === undefined ? [] : [{ row: row.itemRole, entities: items.entities, actors: items.actors }] },
+    { id: row.systemId, restoring, drive: true, permissions: () => new Map(row.permissions.map(grant => [grant.mover, flagValue(host.flags, grant.flags)])) });
+    for (const binding of row.observations) observations.set(binding.name, () => motion.pose(binding.mover).enabled);
+    for (const binding of row.actions) actions.set(binding.name, () => { motion.command(binding.mover, binding.command); });
+    return { hooks: items.hooks(motion.scriptHost), hookTick: () => motion.scriptHost.currentTick, observations, actions };
+  } };
 }
 /** A declared weapon row (`shard.items`) by id; an absent or non-weapon row refuses. */
 export function weaponRow(shard: Pick<Shardfile, 'items'>, id: string): Extract<Shardfile['items']['rows'][number], { kind: 'weapon' }> {
