@@ -44,7 +44,7 @@ export function signalPhysics(): Record<string, unknown> {
   const rocks = { id: 'sunscar.rocks', name: STRINGS.rocks, category: 'nature', file: 'src/shards/sunscar-dunes/generators/rocks.ts', colliders: ridges,
     active: true, owner: 'piece:sunscar.rocks', surface: 'rock' };
   const groundAt = signalHeightAt(), at = SCOUT_ROW.at, c = SCOUT_ROW.collider, y = groundAt(at.x, at.z);
-  const scout = { id: SCOUT_ROW.id, name: SCOUT_ROW.name, category: 'props', file: 'src/shards/sunscar-dunes/quests/scout.ts',
+  const scout = { id: SCOUT_ROW.id, name: SCOUT_ROW.name, category: 'props', file: 'src/shards/sunscar-dunes/data/questPresentation.ts',
     colliders: [{ kind: 'box', x: at.x, y: y + (c.above - c.below) / 2, z: at.z, hx: c.half, hy: Math.max(0.005, (c.above + c.below) / 2), hz: c.half, yaw: 0, surface: c.surface }],
     active: true, owner: `piece:${SCOUT_ROW.id}`, surface: c.surface };
   const [tower] = signalTowerPhysicsPlacements(), [caravan, well, ...braziers] = signalPhysicsPlacements();

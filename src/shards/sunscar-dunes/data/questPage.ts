@@ -8,5 +8,6 @@ import { QUEST_REPAIR, QUEST_REPAIR_INITIAL } from './questRepair';
 export const SIGNAL_QUEST_PAGE = {
   id: 'sunscar.signal', rewardId: 'sunscar.reward', npc: 'sunscar.scout', strings: STRINGS,
   persistence: SIGNAL_PERSISTENCE, places: DISCOVERY_PLACES, markers: QUEST_MARKERS, projectProgress: true,
+  model: { id: 'caravan-scout', kind: 'mesh' },
   repair: { data: QUEST_REPAIR, initial: [QUEST_REPAIR_INITIAL], legacyObservation: 'event:legacy.sunscar.signal', advances: 3 },
 } as const;

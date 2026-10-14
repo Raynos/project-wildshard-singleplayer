@@ -4,8 +4,9 @@ import { buildWhipModel } from '../runtime/items/heldWhip';
 import { buildTower } from '../world/tower';
 import { lastBakedWorld } from '../world/baked';
 import { buildBrazier, buildCaravan, buildWell } from '../world/places';
-import { pivotNpcParts } from '@wildshard/game/plugin/geometry';
-import { SCOUT_MODEL, SCOUT_NPC } from '../quests/scout';
+import { questNpcSpecimen } from '@wildshard/game/plugin/ui';
+import source from '../runtime/source';
+import { SIGNAL_QUEST_PAGE } from '../data/questPage';
 import { duneMesh } from '../world/meshes';
 import { BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';
 import caravanRows from '../data/caravan.json' with { type: 'json' };
@@ -37,4 +38,5 @@ export const brazierModel = defineModel({ id: 'sunscar-dunes/waymark-brazier', n
   } });
 /** Sefa, the caravan scout who gives the quest (loop 2): the generated figure at her own origin. */
 export const scoutModel = defineModel({ id: 'sunscar-dunes/caravan-scout', name: STRINGS.scoutName, category: 'people', pipeline: ['hunyuan'], file: FILE, defaults: {},
-  build: () => { const source = duneMesh(SCOUT_MODEL); return source === null ? new Group() : pivotNpcParts(SCOUT_NPC, source).root; } });
+  build: () => questNpcSpecimen(source, SIGNAL_QUEST_PAGE.npc, SIGNAL_QUEST_PAGE.model,
+    { kind: 'mesh', read: () => duneMesh('caravan-scout') }) });

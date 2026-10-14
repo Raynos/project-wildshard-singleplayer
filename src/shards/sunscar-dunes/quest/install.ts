@@ -14,7 +14,7 @@ export const LIT_FLAG = FLAG.lit;
 /** Keep the scout model/material owners while rows compose the saved quest. */
 export function installQuest(ctx: ShardContext, player: Vector3, world: SignalWorld, coins?: RuntimeCoins): PersistedQuest {
   return installPersistedQuest(ctx, source, SIGNAL_QUEST_PAGE, { player, flags: world.flags, ...(coins === undefined ? {} : { coins }),
-    model: id => { if (id !== 'caravan-scout') throw new Error('Unknown quest scout model'); const geometry = duneMesh(id); return geometry === null ? null : { geometry }; },
+    model: { kind: 'mesh', read: () => duneMesh('caravan-scout') },
     dress: group => { ctx.scope.ownPrimitives(group); lastLightAll(group, ctx.scope); },
   });
 }

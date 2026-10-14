@@ -23,7 +23,7 @@ import { PALETTE, flat } from './materials';
 import { ropeBridge, vane, windmill } from './shapes';
 import { bookStand } from './bookStand';
 import { BOOK_STAND } from '../data/bookStand';
-import { KEEPER_STAND } from '../quest/keeper';
+import { KEEPER_STAND } from '../data/keeperStand';
 import { crownStorm, type CrownStorm } from './storm';
 import { STORM } from '../data/storm';
 import { SKY_SUN } from '../data/skyLook';

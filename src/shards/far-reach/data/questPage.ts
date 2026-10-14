@@ -9,6 +9,7 @@ import { FLAGS, vaneFlag } from '../quest/flags';
 export const SKY_QUEST_PAGE = {
   id: 'far.quest', rewardId: 'far.reward', npc: 'far.keeper', strings: STRINGS, persistence: SKY_PERSISTENCE,
   places: SKY_PLACES, presentationFlags: true, unpaid: 'live',
+  model: { id: 'keeper-hd', kind: 'pivots' },
   beat: { at: { x: STEP.x + 2, y: HIGH + 1.7, z: STEP.z - 4 }, toward: CROWN, pitch: 0.12, holdSeconds: 5 },
   stages: [{ system: 'far.vanes', data: SKY_QUEST_STAGES.vanes, initial: SKY_QUEST_STAGE_INITIAL.vanes }],
   finishFlags: [...VANES.map(vane => vaneFlag(vane.id)), FLAGS.notes, FLAGS.roost, FLAGS.vanes, FLAGS.raised],

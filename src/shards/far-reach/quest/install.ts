@@ -10,14 +10,7 @@ import { SKY_QUEST_PAGE } from '../data/questPage';
 export function installQuest(ctx: ShardContext, player: Vector3, onCoin?: (share: number) => void):
   Omit<PersistedQuest, 'burst' | 'persistence'> & { readonly burst: QuestReward['spawn']; readonly persistence: PersistedQuest['persistence'] & { readonly boss: NonNullable<PersistedQuest['persistence']['boss']> } } {
   const state = installPersistedQuest(ctx, source, SKY_QUEST_PAGE, { player, ...(onCoin === undefined ? {} : { coins: onCoin }),
-    model: id => {
-      if (id !== 'keeper-hd') throw new Error('Unknown quest keeper model');
-      const made = skyHd(id);
-      if (made === null) return null;
-      made.geometry.dispose();
-      if (made.pivots === undefined) throw new Error('Missing authored keeper pivots');
-      return { geometry: made.pivots, material: skyMappedLook('keeper-scarf', made.map) };
-    },
+    model: { kind: 'pivots', read: () => skyHd('keeper-hd'), material: map => skyMappedLook('keeper-scarf', map) },
     dress: group => { ctx.scope.ownPrimitives(group, { instances: true }); },
   });
   return { ...state, get view(): PersistedQuest['view'] { return state.view; }, burst: state.reward.spawn };

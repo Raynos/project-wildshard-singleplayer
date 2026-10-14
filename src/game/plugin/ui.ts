@@ -31,7 +31,7 @@ import type { SpeciesPageCatalogue } from './brain';
 import type { BossViewRows } from '../shardfile/bossRow';
 import { type Shardfile, parseShardfile } from '@wildshard/format/shardSchema';
 import { npcDef, type NpcRow } from './quests';
-import { installPivotNpc, type PivotNpcLevel, type PivotNpcPorts } from './geometry';
+import { installPivotNpc, pivotNpcParts, type PivotNpcGeometry, type PivotNpcLevel, type PivotNpcPorts } from './geometry';
 import { parseQuestNpcBinding } from '@wildshard/format/npcs';
 import { parseBossProfile, parseMarkedBossPresentation, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import { bossFight, type HeldBossBrain } from './bossPhase';
@@ -893,10 +893,42 @@ export function installRewardedQuest(ctx: ShardContext, source: Shardfile, o: Re
   return { quest, reward, view };
 }
 
+/** A declared NPC's existing copied geometry provider; prepared pivots stay prepared. */
+export type QuestNpcModelSource =
+  { readonly kind: 'mesh'; readonly read: () => BufferGeometry | null } |
+  { readonly kind: 'pivots'; readonly read: () => { readonly geometry: BufferGeometry; readonly map: Texture; readonly pivots?: PivotNpcGeometry } | null;
+    readonly material: (map: Texture) => Material };
+/** Model identity and preparation form, shared by page and Explorer consumers. */
+export interface QuestNpcModelRow { readonly id: string; readonly kind: QuestNpcModelSource['kind'] }
+
+function questNpcModelReader(row: QuestNpcModelRow, source: QuestNpcModelSource): QuestNpcPorts['model'] {
+  if (row.kind !== source.kind) throw new Error('Quest model provider has the wrong preparation form');
+  return id => {
+    if (id !== row.id) throw new Error(`Unknown quest model ${id}`);
+    if (source.kind === 'mesh') {
+      const geometry = source.read();
+      return geometry === null ? null : { geometry };
+    }
+    const copied = source.read();
+    if (copied === null) return null;
+    copied.geometry.dispose();
+    if (copied.pivots === undefined) throw new Error('Missing authored NPC pivots');
+    return { geometry: copied.pivots, material: source.material(copied.map) };
+  };
+}
+/** An Explorer specimen uses the same admitted figure row and model provider as its live NPC. */
+export function questNpcSpecimen(source: Pick<Shardfile, 'questNpcs'>, id: string, model: QuestNpcModelRow, ports: QuestNpcModelSource): Group {
+  const binding = source.questNpcs?.find(row => row.npc.id === id);
+  if (binding === undefined) throw new Error(`Undeclared quest NPC ${id}`);
+  const copied = questNpcModelReader(model, ports)(binding.npc.figure.model);
+  return copied === null ? new Group() : pivotNpcParts(binding.npc, copied.geometry, copied.material).root;
+}
+
 /** Saved quest presentation rows shared by native and flag-backed rewards. */
 export interface PersistedQuestRows {
   readonly id: string; readonly rewardId: string; readonly npc: string;
   readonly strings: RewardedQuestStrings; readonly persistence: RuntimePersistenceRows;
+  readonly model?: QuestNpcModelRow;
   readonly places: readonly PlacePoint[];
   readonly markers?: Readonly<Record<string, NonNullable<ReturnType<NonNullable<RuntimeQuestPorts['place']>>>>>;
   readonly presentationFlags?: boolean; readonly projectProgress?: boolean;
@@ -912,7 +944,7 @@ export interface PersistedQuestRows {
 /** Borrow the existing model/material owner and purse; rows own quest composition. */
 export interface PersistedQuestPorts {
   readonly player: Vector3; readonly flags?: Flags; readonly coins?: RuntimeCoins;
-  readonly model: QuestNpcPorts['model']; readonly dress?: QuestNpcPorts['dress'];
+  readonly model: QuestNpcPorts['model'] | QuestNpcModelSource; readonly dress?: QuestNpcPorts['dress'];
 }
 /** Live quest services over the original durable flag, reward and boss owners. */
 export interface PersistedQuest {
@@ -940,6 +972,12 @@ export function installPersistedQuest(ctx: ShardContext, source: Shardfile, rows
     for (let step = 0; step < repairRow.advances; step++) repair.advance();
   }
   const beat = rows.beat;
+  let model: QuestNpcPorts['model'];
+  if (typeof ports.model === 'function') model = ports.model;
+  else {
+    if (rows.model === undefined) throw new Error('Missing declared quest model');
+    model = questNpcModelReader(rows.model, ports.model);
+  }
   const installed = installRewardedQuest(ctx, source, { id: rows.id, rewardId: rows.rewardId, strings: rows.strings,
     flags, facts: persistence.facts, player: ports.player, coins: ports.coins ?? bindRuntimeCoins(ctx, null),
     paid: persistence.rewarded.read, markPaid: () => { persistence.rewarded.write(true); },
@@ -948,7 +986,7 @@ export function installPersistedQuest(ctx: ShardContext, source: Shardfile, rows
     presentation: { places: [...rows.places], ...(rows.presentationFlags === true ? { flags } : {}) },
     ...(beat === undefined ? {} : { beat: { at: new Vector3(beat.at.x, beat.at.y, beat.at.z),
       yaw: Math.atan2(-(beat.toward.x - beat.at.x), -(beat.toward.z - beat.at.z)), pitch: beat.pitch, holdSeconds: beat.holdSeconds } }),
-    npc: () => installDeclaredQuestNpc(ctx, source, rows.npc, { player: ports.player, flags, model: ports.model,
+    npc: () => installDeclaredQuestNpc(ctx, source, rows.npc, { player: ports.player, flags, model,
       ...(ports.dress === undefined ? {} : { dress: ports.dress }) }),
   });
   for (const row of rows.stages ?? []) {

@@ -7,7 +7,7 @@ import { FALLS } from '../data/falls';
 import { HD_URLS } from '../data/files';
 import { CROWN_STONES } from '../data/crownLayout';
 import { KEEPER_AT } from '../data/quests';
-import { KEEPER_STAND } from '../quest/keeper';
+import { KEEPER_STAND } from '../data/keeperStand';
 import { spireAt } from '../layout';
 import { TREE_MODELS, TREES, type TreeModel } from '../data/trees';
 import { RISING_ISLETS } from '../world/islets';
