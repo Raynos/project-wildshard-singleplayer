@@ -11,6 +11,7 @@ import type { LookReplaceContext, LookStrategy } from '@wildshard/engine/render/
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { HudBand } from '@wildshard/engine/ui/hudSlots';
 import type { MinimapPalette } from '@wildshard/engine/ui/Minimap';
+import { mapPalette, type MapPaletteRow } from '@wildshard/format/minimap';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from '@wildshard/engine/world/forest/treeSpecies';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
@@ -640,6 +641,36 @@ export interface ChunkMapDef {
 
 /** a named place on the shard: world XZ in metres; `r` ≈ its size (how far back the fly-to camera stands) */
 export interface ChunkPoi { id: string; name: string; x: number; z: number; r?: number }
+
+/** Data for first-party discovery and boot; native module loaders stay explicit bindings. */
+export type ShardManifestRows = Omit<ShardManifest, 'load' | 'render' | 'roster' | 'ktx2' | 'dev' | 'groundColor' | 'trustedRuntime' | 'ground' | 'horizon' | 'pois' | 'spawns' | 'minimap'> & {
+  readonly spawns: readonly ShardManifest['spawns'][number][];
+  readonly minimap?: Omit<ChunkMapDef, 'palette'> & { readonly palette?: MapPaletteRow };
+  readonly ground?: ShardManifest['ground'];
+  readonly horizon?: { readonly rings: readonly HorizonRing[]; readonly cloudSea: boolean };
+  readonly pois?: readonly ChunkPoi[];
+  readonly runtimeEntry?: TrustedRuntimeEntry['entry'];
+  readonly poses?: Awaited<ReturnType<NonNullable<ShardManifest['dev']>['poses']>>;
+  readonly groundColour?: readonly [number, number, number];
+};
+/** Resolve copied boot poses, fixed ground colours and native entry metadata from rows. */
+export function defineShard(rows: ShardManifestRows,
+  bindings: Pick<ShardManifest, 'load' | 'render' | 'roster' | 'ktx2'> & { readonly ground?: ShardManifest['ground'] }): ShardManifest {
+  const { runtimeEntry, poses, groundColour, horizon, pois, minimap, ...data } = rows;
+  const ground = bindings.ground ?? data.ground;
+  if (ground === undefined) throw new Error('Shard boot needs its declared ground owner');
+  const { palette, ...mapFields } = minimap ?? {};
+  const map = minimap === undefined ? undefined : { ...mapFields, ...(palette === undefined ? {} : { palette: mapPalette(palette) }) };
+  const manifest: ShardManifest = { ...data, ...bindings, ground, spawns: [...data.spawns],
+    ...(map === undefined ? {} : { minimap: map }),
+    ...(horizon === undefined ? {} : { horizon: { ...horizon, rings: [...horizon.rings] } }),
+    ...(pois === undefined ? {} : { pois: [...pois] }),
+    ...(poses === undefined ? {} : { dev: { poses: () => Promise.resolve(structuredClone(poses)) } }),
+    ...(groundColour === undefined ? {} : { groundColor: (_x, _z, _h, _slope, _terrain, out) => { out[0] = groundColour[0]; out[1] = groundColour[1]; out[2] = groundColour[2]; return out; } }),
+  };
+  if (runtimeEntry !== undefined) manifest.trustedRuntime = { get slug() { return manifest.slug; }, entry: runtimeEntry };
+  return manifest;
+}
 
 /** Four authored shards; F9 generates this union from the registry. */
 

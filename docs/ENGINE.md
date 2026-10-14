@@ -4483,3 +4483,10 @@ or incorrectly typed handles refuse before equipment installs. Sky's fan
 and Signal's lash share these handles for gameplay and catalogue views;
 callers no longer reconstruct a second model-binding object. The private
 cord kernel and shader decorators remain caller-owned.
+
+`defineShard(rows, bindings)` in the defining manifest module assembles
+first-party discovery and boot metadata from data rows. `runtimeEntry`,
+`poses` and `groundColour` replace entry getters, pose loader callbacks
+and fixed colour callbacks. Native render, plugin, roster, GPU table and
+terrain owners remain explicit bindings. Sky and Signal use the same
+constructor; it copies mutable host arrays from readonly authored rows.
