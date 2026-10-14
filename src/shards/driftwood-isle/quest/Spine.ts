@@ -17,7 +17,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeQuest, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
 import source from '../shard.config';
 import { DRIFTWOOD_MARKERS } from '../data/quests';
-import { presentQuest, installNpcTalk } from '@wildshard/game/plugin/ui';
+import { presentQuest, installNpcTalk, QuestViews } from '@wildshard/game/plugin/ui';
 import { CASTAWAY_TALK } from '../data/questNpcs';
 import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { CASTAWAY, DRIFTWOOD_QUEST } from '../data/questStory';
@@ -60,7 +60,7 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   });
   const { chip, markers } = presentation;
   const objective = chip.line;
-  const dialogue = new DialogueBox(w.scope?.child('dialogue'));
+  const views = new QuestViews(ctx), dialogue = views.view('dialogue', scope => new DialogueBox(scope));
   w.scope?.onDispose(() => { quest.dispose(); objective.root.remove(); });
 
   // ── Wendell at his campfire in front of the hut steps (hut local frame: the door faces −z) ──
@@ -68,7 +68,7 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   const fire = place({ poi: 'hut', x: 0.7, z: -9.8 });
   const npc = castawayRig(w.sky, feet, fire), castaway = npc.model;
   w.scope?.onDispose(() => { npc.dispose(); });
-  const talk = installNpcTalk(CASTAWAY_TALK, { npc: CASTAWAY, dialogue: () => dialogue, flags, create: () => castaway,
+  const talk = installNpcTalk(CASTAWAY_TALK, { npc: CASTAWAY, dialogue, flags, create: () => castaway,
     scene: w.game.scene, registry: w.registry ?? app.registry, prompts: w.prompts,
     own: (fig, register) => { const entry = w.scope; if (entry === undefined) register(); else { ownEnteredTree(fig.group, entry); entry.run(register); } },
     at: fig => { fig.group.updateMatrixWorld(true); return fig.headWorld(new THREE.Vector3()); },
@@ -93,9 +93,9 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   // ── per frame: the quest chip, the nearest marker, the dialogue ──
   w.game.onUpdate((dt, t) => {
     const pp = w.player.position;
-    dialogue.update(dt);
+    dialogue().update(dt);
     talk.update(dt, t, pp);
     presentation.update(dt, t);
   }, 'shard.driftwood-isle.installSpine');
-  return { quest, castaway, dialogue, objective, markers };
+  return { quest, castaway, get dialogue() { return dialogue(); }, objective, markers };
 }

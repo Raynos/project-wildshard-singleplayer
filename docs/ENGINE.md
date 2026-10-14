@@ -5377,3 +5377,13 @@ only their fire/fade clock. It preserves four cosmetic RNG draws and caller phas
 through the existing state envelope; callbacks keep the weapon receiver. Progress
 uses the explicit duration/scale; transfer and completion keep the original ammo
 and reserve rules. The lever's per-round action remains its existing owner.
+
+### Quest view lifetimes
+
+`@wildshard/game/plugin/ui#QuestViews` borrows a shard context's existing
+scope. `view(name, create)` returns the current widget getter; names are
+bounded and unique, and a retained home recreates its widgets on entry.
+The getter refuses after leaving that home. `enter`, `leave`, `timeout`,
+`cancelTimer`, `retainRoot`, and `exposeBrowser` use the same entered owner.
+`disposeLegacy` keeps the ordinary resident teardown order. Quest flags,
+saves, NPC figures and the lent DialogueBox reading clock keep their owners.

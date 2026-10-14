@@ -33,7 +33,6 @@ import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
 import type { Progress } from '@wildshard/game/Progress';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
-import { PineQuestLifetime } from '../runtime/questLifetime';
 import { bindPineFacts } from '../runtime/facts';
 import { isPineThrall, recordPineFeatKill } from './featLaw';
 import source from '../shard.config';
@@ -124,13 +123,13 @@ const _v = new THREE.Vector3();
 /** `deps`: the people's preload and the quest UI's loader (the page's by default; a test passes its own) */
 /** the quest views, loaded after the NPC models (`deps.loadQuest` lets a test fail it) */
 async function loadQuest() {
-  const [{ DialogueBox, RewardCaption }, { presentQuest, installNpcTalk }] = await Promise.all([import('@wildshard/engine/quest/view/ui'), import('@wildshard/game/plugin/ui')]);
-  return { presentQuest, installNpcTalk, DialogueBox, RewardCaption };
+  const [{ DialogueBox, RewardCaption }, { presentQuest, installNpcTalk, QuestViews }] = await Promise.all([import('@wildshard/engine/quest/view/ui'), import('@wildshard/game/plugin/ui')]);
+  return { presentQuest, installNpcTalk, QuestViews, DialogueBox, RewardCaption };
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
   await (deps.preload ?? preloadNpcModels)();
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
-  const { DialogueBox, presentQuest, installNpcTalk, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
+  const { DialogueBox, presentQuest, installNpcTalk, QuestViews, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
   const { ctx } = h;
   const { game, sky, player, animals, hud, inventory, progress } = h;
   const flags = new Flags(h.chunkId);
@@ -175,7 +174,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   ctx.system({ id: 'quest.pool', phase: 'update', after: ['quest.kit'], before: ['quest.shelf', 'quest', 'hud.combat', 'main.frame'], run: (dt) => { pool.update(dt); } });
 
   // ── the counters, the toasts ──
-  const ui = new PineQuestLifetime(ctx);
+  const ui = new QuestViews(ctx);
   const chip = ui.view('count', (scope) => new CountChip(scope));
   const tokenCount = (): number => flags.count(TOKEN_FLAG), resinCount = (): number => flags.count(RESIN_FLAG);
   // PH-C8: all eight tokens → the pine rack of them on the ranger's mantel (a model: tokenShelf.ts places it)

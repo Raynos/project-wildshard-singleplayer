@@ -42,7 +42,7 @@ import { parseQuestNpcBinding } from '@wildshard/format/npcs';
 import { parseBossProfile, parseMarkedBossPresentation, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import { bossFight, type HeldBossBrain } from './bossPhase';
 import { bossStorm } from './bossStorm';
-import { installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
+import { installEnteredRuntimeAttachment, installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '../shard/retainedHooks';
 import type { EffectDef } from '@wildshard/engine/combat/effects/types';
 import { STARTER_EFFECT_ROWS } from '../systems/effects/starter.generated';
 import { hudSlots } from '@wildshard/engine/ui/hudSlots';
@@ -107,6 +107,65 @@ import { preflightShardfile } from '@wildshard/format/preflight';
 
 
 
+
+/** Keep authored quest state resident, but recreate modal input and cancel timers at every home exit. */
+export class QuestViews {
+  private readonly retained: boolean;
+  private readonly resident: Scope;
+  private entered: Scope | undefined;
+  private readonly names = new Set<string>();
+  constructor(private readonly context: ShardContext) {
+    if (context.scope.disposed) throw new Error('Quest views need a live scope');
+    this.retained = retainsRuntimeServices(context);
+    this.resident = context.scope;
+    this.entered = this.resident;
+    if (this.retained) installEnteredRuntimeService(context, (scope) => {
+      this.entered = scope;
+      scope.onDispose(() => { if (this.entered === scope) this.entered = undefined; });
+    });
+  }
+  /** Construct one resident widget, or one scoped widget per retained home entry. */
+  view<T>(name: string, create: (scope: Scope) => T): () => T {
+    if (!/^[a-z][a-z0-9.-]{0,63}$/u.test(name) || this.names.has(name) || this.names.size >= 16) throw new Error('Invalid or duplicate quest view');
+    this.names.add(name);
+    if (!this.retained) { const view = create(this.resident.child(name)); return () => view; }
+    let current: T | undefined;
+    installEnteredRuntimeService(this.context, (scope) => {
+      const view = create(scope.child(name)); current = view;
+      scope.onDispose(() => { if (current === view) current = undefined; });
+    });
+    return () => { if (current === undefined) throw new Error('Quest view left its home'); return current; };
+  }
+  /** Wire the newly constructed widgets without rebuilding quest data or NPC figures. */
+  enter(run: () => void): void {
+    if (!this.retained) run(); else installEnteredRuntimeService(this.context, run);
+  }
+  leave(run: () => void): void {
+    if (this.retained) installEnteredRuntimeService(this.context, (scope) => { scope.onDispose(run); });
+  }
+  /** Preserve the original resident teardown order; entered views have already disposed when their cell left. */
+  disposeLegacy(run: () => void): void { if (!this.retained) run(); }
+  timeout(ms: number, run: () => void): ReturnType<Scope['timeout']> {
+    const scope = this.entered;
+    if (scope === undefined) throw new Error('Quest timer left its home');
+    return scope.timeout(ms, run);
+  }
+  cancelTimer(timer: ReturnType<typeof setTimeout> | 0): void { this.entered?.cancelTimer(timer); }
+  /** The retained browser observer leaves with its cell; false preserves the original resident assignment. */
+  exposeBrowser(name: string, observer: object): boolean {
+    if (!this.retained) return false;
+    installEnteredRuntimeObserver(this.context, name, observer);
+    return true;
+  }
+  /** The resident objective/caption keep their exact DOM insertion positions while hidden on the road. */
+  retainRoot(root: HTMLElement, reset: () => void): void {
+    if (!this.retained) return;
+    installEnteredRuntimeAttachment(this.context, root);
+    installEnteredRuntimeService(this.context, (scope) => {
+      scope.onDispose(reset);
+    });
+  }
+}
 
 type Vec3 = readonly [number, number, number];
 /** The part of a client lane the adapter reads: detached frames, nothing else. */
