@@ -1281,7 +1281,10 @@ epilogue, the tent and cascade shadows as nodes, and the coarse-mask port); `loa
 `GRAPH_IR_VERSION` 1) is data: `nodes` of an allowlisted vocabulary (`GRAPH_OPS`: inputs, safe maths, comparisons and a
 branch-light `select`, swizzles, MaterialX noise, an admitted texture, a constant-count `loop`), the stages
 `vertex.offset`, `surface`, `lighting` and `post`, typed `params` that are uniforms only (bindable to a day key
-or a declared shard-state field; `setParam` never recompiles), and a per-program budget. `validateGraph(ir, opts)`
+or a declared shard-state field; `setParam` never recompiles; a texture param with `role: 'lent'` names no admitted file:
+its trusted runtime lends the sampled texture (a decoded baked key, say) with `setTexture`, which swaps every sample of it,
+a 1×1 black stand-in until then, through `runtimeLookMaterials` and the backdrop's `lookGraphMaterials`), and a
+per-program budget. `validateGraph(ir, opts)`
 refuses unknown ops, type mismatches, cycles and over-budget graphs before any node exists. A select with cheap sides
 compiles branch-free (`mix`); one with an expensive side nothing else reads becomes a real `if / else`. Presets
 (`render/graph/presets.ts`) re-express a family for the parity bench (`scripts/tsl-spike/`, the `graph` variants):

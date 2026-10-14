@@ -1,9 +1,11 @@
 import { loadBakedSky, loadLUT, preloadBakedTextures } from '@wildshard/engine/boot/bakedApi';
 import type { OffscreenPass, SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
 import { canStepSkyEnvironment, refreshSkyEnvironment, skyEnvironmentBytes, skyEnvironmentCeiling, stepSkyEnvironment, type SkyEnvironmentSource } from '@wildshard/engine/render/skyEnvironment';
+import { resourceScope } from '@wildshard/engine/app/resources';
 import { setting, type OptionValue } from '@wildshard/engine/ui/Settings';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
+import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import * as THREE from 'three';
 import { cloneSkyPreset, type KeyedSkyDay, type SkyPreset } from './keyedSkyDay';
 import { skyKeyFiles, type KeyedSkyStyle } from '../../data/keyedSkyRows';
@@ -14,8 +16,9 @@ import { skyKeyFiles, type KeyedSkyStyle } from '../../data/keyedSkyRows';
  *
  * THE SKY is a dome drawn from two baked equirect keys at a time (gain-mapped pairs, each key's own sun painted out by the
  * bake), blended by the clock, each turned about the vertical so its sun glow sits on the clock's sun azimuth (the moon key's
- * on the moon), and scaled by a per-preset gain. The dome adds an analytic aureole around the clock's own sun / moon. The
- * same shader renders the blend into a 1024×512 equirect every 2 s and PMREM turns it into the scene's environment (IBL) in
+ * on the moon), and scaled by a per-preset gain. The dome adds an analytic aureole around the clock's own sun / moon. Both
+ * are the shard's look.materials graphs (data/skyLook.ts; the keys lent as they decode, the rest params set each frame): the
+ * dome's, and the environment pass's, which renders the blend into a 1024×512 equirect every 2 s and PMREM turns it into the scene's environment (IBL) in
  * place, so every lit material sees the sky of the hour. The keys' GPU textures are decoded on demand (at most 3 resident:
  * the two being blended and the next one, decoded ahead); their CPU copies are dropped after upload.
  *
@@ -31,27 +34,9 @@ import { skyKeyFiles, type KeyedSkyStyle } from '../../data/keyedSkyRows';
  */
 
 const SHADOW_STEP = 0.25 * Math.PI / 180;
-// the GLSL's text is kept byte for byte as its first shard shipped it (its comments too: the program sources stay identical)
-const SKY_GLSL = /* glsl */`
-  uniform sampler2D tA; uniform sampler2D tB; uniform float uMix;
-  uniform vec2 uRotA; uniform vec2 uRotB; uniform float uGainA; uniform float uGainB;
-  uniform vec3 uLightDir; uniform vec3 uGlow; uniform float uGrey; uniform vec3 uFlat;
-  vec3 keySample(sampler2D t, vec3 d, vec2 rot) {
-    vec3 r = vec3(rot.x * d.x - rot.y * d.z, d.y, rot.y * d.x + rot.x * d.z);
-    return texture2D(t, equirectUv(r)).rgb;
-  }
-  vec3 skyColor(vec3 d) {
-    vec3 col = keySample(tA, d, uRotA) * (uGainA * (1.0 - uMix)) + keySample(tB, d, uRotB) * (uGainB * uMix);
-    float mu = clamp(dot(d, uLightDir), 0.0, 1.0);
-    float up = smoothstep(-0.12, 0.02, d.y);             // the aureole stays above the haze line
-    col += uGlow * (0.55 * pow(mu, 900.0) + 0.3 * pow(mu, 60.0) + 0.12 * pow(mu, 8.0)) * up;
-    // the weather's cloud deck (PineSkyMod.overcast): the photo's blue and its clouds go to a flat cool grey
-    // (the photo's own clouds soften into it: mostly the flat deck, a little of their shading left)
-    col = mix(col, mix(vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))), uFlat, 0.7) * vec3(0.94, 0.97, 1.0), uGrey);
-    return col;
-  }`;
-
 const tmpC = new THREE.Color();
+/** components into `out` (a param setter copies them: nothing allocated a frame) */
+function put(out: number[], a: number, b: number, c = 0): number[] { out[0] = a; out[1] = b; if (out.length > 2) out[2] = c; return out; }
 
 /** one decoded key: its GPU texture (CPU copy dropped after upload) and its horizon colour */
 interface Resident { tex: THREE.DataTexture; horizon: THREE.Color; used: number; /** GPU bytes (RGBA16F 8 a texel, RGB9_E5 4) */ bytes: number }
@@ -81,6 +66,14 @@ export interface KeyedSkyOptions {
   readonly smallEnv: boolean;
 }
 
+/** The sky's two compiled graphs (the dome, the environment pass) and their checked setters, both params by name. */
+export interface KeyedSkyGraphs {
+  readonly dome: THREE.Material;
+  readonly env: THREE.Material;
+  readonly set: (name: string, value: number | number[]) => void;
+  readonly lend: (name: string, texture: THREE.Texture) => void;
+}
+
 export class KeyedSky {
   readonly clock: DayCycle<SkyPreset>;
   get phase(): number { return this.clock.phase; }
@@ -99,10 +92,10 @@ export class KeyedSky {
   /** the dome: add it to the scene; update keeps it on the camera */
   readonly dome: THREE.Mesh;
   private readonly style: KeyedSkyStyle;
+  /** the two keys the graphs blend and their params (`push` sets both graphs) */
   private readonly u = {
-    tA: { value: null as THREE.Texture | null }, tB: { value: null as THREE.Texture | null }, uMix: { value: 0 },
-    uRotA: { value: new THREE.Vector2(1, 0) }, uRotB: { value: new THREE.Vector2(1, 0) }, uGainA: { value: 1 }, uGainB: { value: 1 },
-    uLightDir: { value: new THREE.Vector3(0, 1, 0) }, uGlow: { value: new THREE.Color() }, uGrey: { value: 0 }, uFlat: { value: new THREE.Color() },
+    tA: { value: null as THREE.Texture | null }, tB: { value: null as THREE.Texture | null }, mix: 0,
+    rotA: new THREE.Vector2(1, 0), rotB: new THREE.Vector2(1, 0), gainA: 1, gainB: 1, lightDir: new THREE.Vector3(0, 1, 0), glow: new THREE.Color(), grey: 0, flat: new THREE.Color(),
   };
   private T: SkyBackdropTargets | null = null;
   private post: SkyBackdropPost | null = null;
@@ -118,7 +111,7 @@ export class KeyedSky {
   // the environment: the blend rendered to an equirect, PMREM'd into a cube-UV target reused in place
   private envEquirect: THREE.WebGLRenderTarget;
   private envScene = new THREE.Scene();
-  private readonly envQuad: THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial>;
+  private readonly envQuad: THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
   private envCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   private readonly envSource: SkyEnvironmentSource;
   private pmrem: THREE.PMREMGenerator;
@@ -136,7 +129,7 @@ export class KeyedSky {
   private envTexture: THREE.Texture | null = null;
   private disposed = false;
 
-  private constructor(private readonly day: KeyedSkyDay, private renderer: SkyBackdropContext['renderer'], private scene: THREE.Scene, phase: number, cycle: number, frozen: boolean, private readonly opts: KeyedSkyOptions) {
+  private constructor(private readonly day: KeyedSkyDay, private renderer: SkyBackdropContext['renderer'], private scene: THREE.Scene, phase: number, cycle: number, frozen: boolean, private readonly opts: KeyedSkyOptions, private readonly graphs: KeyedSkyGraphs) {
     const style = day.style;
     this.style = style;
     const curves = day.spec.curves;
@@ -147,17 +140,10 @@ export class KeyedSky {
     if (first === undefined) throw new Error('keyed sky: no keyframes');
     this.cur = cloneSkyPreset(first);
     const [radius, wSeg, hSeg] = [style.dome.radius, style.dome.segments[0], style.dome.segments[1]];
-    const dome = new THREE.Mesh(new THREE.SphereGeometry(radius, wSeg, hSeg), new THREE.ShaderMaterial({
-      uniforms: this.u, side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false,
-      vertexShader: /* glsl */`
-        varying vec3 vDir;
-        void main() { vDir = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
-      fragmentShader: /* glsl */`
-        #include <common>
-        ${SKY_GLSL}
-        varying vec3 vDir;
-        void main() { gl_FragColor = vec4(skyColor(normalize(vDir)), 1.0); }`,
-    }));
+    // both graphs drawn as the GLSL programs were: no depth, untouched by the material's tone map (the post chain grades it)
+    graphs.dome.depthTest = false; graphs.dome.toneMapped = false; graphs.dome.side = THREE.BackSide;
+    graphs.env.depthTest = false; graphs.env.toneMapped = false;
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(radius, wSeg, hSeg), graphs.dome);
     dome.name = style.dome.name;
     dome.frustumCulled = false;
     dome.renderOrder = -1000; // first of the opaque pass, depth untouched: everything draws over it
@@ -169,18 +155,7 @@ export class KeyedSky {
     this.envEquirect.texture.mapping = THREE.EquirectangularReflectionMapping;
     const tri = new THREE.BufferGeometry();
     tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
-    const quad = new THREE.Mesh(tri, new THREE.ShaderMaterial({
-      uniforms: this.u, depthTest: false, depthWrite: false,
-      vertexShader: /* glsl */`varying vec2 vUv; void main() { vUv = position.xy * 0.5 + 0.5; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
-      fragmentShader: /* glsl */`
-        #include <common>
-        ${SKY_GLSL}
-        varying vec2 vUv;
-        void main() {
-          float th = (vUv.x - 0.5) * 2.0 * PI, ph = (vUv.y - 0.5) * PI;
-          gl_FragColor = vec4(skyColor(vec3(cos(th) * cos(ph), sin(ph), sin(th) * cos(ph))), 1.0);
-        }`,
-    }));
+    const quad = new THREE.Mesh(tri, graphs.env);
     quad.frustumCulled = false;
     this.envScene.add(quad);
     this.envQuad = quad;
@@ -189,7 +164,7 @@ export class KeyedSky {
   }
 
   /** the clock at the URL's / Settings' time, its first two keys decoded, the environment rendered */
-  static async create(day: KeyedSkyDay, renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, opts: KeyedSkyOptions): Promise<KeyedSky> {
+  static async create(day: KeyedSkyDay, renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, opts: KeyedSkyOptions, graphs: KeyedSkyGraphs): Promise<KeyedSky> {
     const style = day.style;
     const qs = new URLSearchParams(location.search);
     const todRaw = qs.get('tod') ?? '';
@@ -199,7 +174,7 @@ export class KeyedSky {
     const time = setting('time'); // 'live' whenever ?tod / ?clock are in the URL
     const frozen = time !== 'live';
     const phase = frozen ? style.fixed[time] : Number.isFinite(tod) ? ((tod % 1) + 1) % 1 : style.start;
-    const dn = new KeyedSky(day, renderer, scene, phase, Number.isFinite(clock) && clock > 1 ? clock : style.cycleMinutes * 60, frozen, opts);
+    const dn = new KeyedSky(day, renderer, scene, phase, Number.isFinite(clock) && clock > 1 ? clock : style.cycleMinutes * 60, frozen, opts, graphs);
     const [a, b] = dn.segment(phase);
     await Promise.all([dn.ensure(a[1].key), dn.ensure(b[1].key)]);
     return dn;
@@ -355,6 +330,17 @@ export class KeyedSky {
     out.set(Math.cos(a), Math.sin(a));
   }
 
+  private readonly v2 = [0, 0];
+  private readonly v3 = [0, 0, 0];
+  /** the keys and every param into both sky graphs (uniforms and sampled textures only: no program change) */
+  private push(): void {
+    const { u, graphs: g, v2, v3 } = this, tA = u.tA.value, tB = u.tB.value;
+    if (tA !== null && tB !== null) { g.lend('keyA', tA); g.lend('keyB', tB); }
+    g.set('mix', u.mix); g.set('rotA', put(v2, u.rotA.x, u.rotA.y)); g.set('rotB', put(v2, u.rotB.x, u.rotB.y));
+    g.set('gainA', u.gainA); g.set('gainB', u.gainB); g.set('lightDir', put(v3, u.lightDir.x, u.lightDir.y, u.lightDir.z));
+    g.set('glow', put(v3, u.glow.r, u.glow.g, u.glow.b)); g.set('grey', u.grey); g.set('flat', put(v3, u.flat.r, u.flat.g, u.flat.b));
+  }
+
   refreshEnvironment(): void {
     if (this.disposed) return;
     this.envTimer = 0;
@@ -387,12 +373,12 @@ export class KeyedSky {
     const A = ra ?? rb, B = rb ?? ra;
     if (A && B) {
       this.u.tA.value = A.tex; this.u.tB.value = B.tex;
-      this.u.uMix.value = ra && rb ? t : 0;
-      this.rot(ra ? a[1].key : b[1].key, glowBody(ra ? a[1].key : b[1].key), this.u.uRotA.value);
-      this.rot(rb ? b[1].key : a[1].key, glowBody(rb ? b[1].key : a[1].key), this.u.uRotB.value);
+      this.u.mix = ra && rb ? t : 0;
+      this.rot(ra ? a[1].key : b[1].key, glowBody(ra ? a[1].key : b[1].key), this.u.rotA);
+      this.rot(rb ? b[1].key : a[1].key, glowBody(rb ? b[1].key : a[1].key), this.u.rotB);
       const dim = 1 - 0.5 * ov; // the deck: the sky's brightness under it
-      this.u.uGainA.value = (ra ? a[1].bg : b[1].bg) * dim; this.u.uGainB.value = (rb ? b[1].bg : a[1].bg) * dim;
-      this.fogCol.copy(A.horizon).multiplyScalar(this.u.uGainA.value).lerp(tmpC.copy(B.horizon).multiplyScalar(this.u.uGainB.value), this.u.uMix.value);
+      this.u.gainA = (ra ? a[1].bg : b[1].bg) * dim; this.u.gainB = (rb ? b[1].bg : a[1].bg) * dim;
+      this.fogCol.copy(A.horizon).multiplyScalar(this.u.gainA).lerp(tmpC.copy(B.horizon).multiplyScalar(this.u.gainB), this.u.mix);
       const m = Math.max(this.fogCol.r, this.fogCol.g, this.fogCol.b, 1e-3);
       if (m > 1.1) this.fogCol.multiplyScalar(1.1 / m);
       if (ov > 0) { const g = (this.fogCol.r * 0.2126 + this.fogCol.g * 0.7152 + this.fogCol.b * 0.0722) * 0.92; this.fogCol.lerp(tmpC.setRGB(g * 0.95, g * 0.98, g * 1.03), ov * 0.85); }
@@ -400,10 +386,10 @@ export class KeyedSky {
       if (mist > 0) { const g = (this.fogCol.r * 0.2126 + this.fogCol.g * 0.7152 + this.fogCol.b * 0.0722) * 1.08; this.fogCol.lerp(tmpC.setRGB(g * 0.96, g, g * 1.05), mist * 0.6); }
       // the look loop's sky (by day): the dome — and so the IBL rendered from it — × look.sky; the fog colour above stays
       const skyK = 1 + (this.look.sky - 1) * (1 - day0.nightAt(p));
-      this.u.uGainA.value *= skyK; this.u.uGainB.value *= skyK;
+      this.u.gainA *= skyK; this.u.gainB *= skyK;
     }
-    this.u.uGrey.value = 0.92 * ov;
-    this.u.uFlat.value.copy(this.fogCol).multiplyScalar(1.05);
+    this.u.grey = 0.92 * ov;
+    this.u.flat.copy(this.fogCol).multiplyScalar(1.05);
     if (!ra || !rb) void Promise.all([this.ensure(a[1].key), this.ensure(b[1].key)]);
     // decode the key after this segment ahead of time (its upload lands mid-segment, not on the transition)
     const [, next] = this.segment((b[0] + 0.0005) % 1);
@@ -416,8 +402,9 @@ export class KeyedSky {
     this.dusk = Math.max(this.night, 1 - THREE.MathUtils.smoothstep(this.sun.y, this.style.dusk[0], this.style.dusk[1]));
     this.dawn = day0.dawnAt(p);
     this.lamps = Math.max(C.lamps, this.night);
-    this.u.uLightDir.value.copy(day || this.night < 0.5 ? this.sun : this.moon);
-    this.u.uGlow.value.copy(C.glow).multiplyScalar((day ? THREE.MathUtils.smoothstep(this.sun.y, -0.08, 0.02) : 1) * (1 - ov));
+    this.u.lightDir.copy(day || this.night < 0.5 ? this.sun : this.moon);
+    this.u.glow.copy(C.glow).multiplyScalar((day ? THREE.MathUtils.smoothstep(this.sun.y, -0.08, 0.02) : 1) * (1 - ov));
+    this.push();
     const T = this.T;
     if (!T) return;
     T.sunDir.copy(lightDir);
@@ -519,10 +506,17 @@ export function keyedSkyOf(sky: SkyRig): KeyedSky | null { return skies.get(sky)
  * LUT loaded alongside, the look loop's layer applied, the dome added. `memoryTrim` read once at build: packed keys, and on
  * the phone a half-size environment.
  */
-export function keyedSkyBackdrop(day: KeyedSkyDay, memoryTrim: () => boolean): SkyBackdropFactory {
-  return async ({ sky, scene, renderer, level, tier, look }) => {
+export function keyedSkyBackdrop(day: KeyedSkyDay, memoryTrim: () => boolean, looks: { readonly source: Parameters<typeof lookGraphMaterials>[2]; readonly dome: string; readonly env: string }): SkyBackdropFactory {
+  return async (context) => {
+    const { sky, scene, renderer, level, tier, look } = context;
     const opts: KeyedSkyOptions = { envSteps: level.tiers?.[tier]?.envSteps === true, packKeys: memoryTrim(), smallEnv: tier === 'phone' && memoryTrim() };
-    const [keyed, , lut] = await Promise.all([KeyedSky.create(day, renderer, scene, opts), preloadBakedTextures(), loadLUT(level.id)]);
+    // the sky's graphs compile from the look catalogue on the page renderer, before the world stage; they leave with the owner
+    const compiled = await lookGraphMaterials(resourceScope(), context, looks.source, [looks.dome, looks.env]);
+    const graph = (id: string): THREE.Material => { const m = compiled.materials.get(id); if (m === undefined) throw new Error(`keyed sky: look.materials lacks ${id}`); return m; };
+    const graphs: KeyedSkyGraphs = { dome: graph(looks.dome), env: graph(looks.env),
+      set: (name, value) => { compiled.setParam(looks.dome, name, value); compiled.setParam(looks.env, name, value); },
+      lend: (name, texture) => { compiled.setTexture(looks.dome, name, texture); compiled.setTexture(looks.env, name, texture); } };
+    const [keyed, , lut] = await Promise.all([KeyedSky.create(day, renderer, scene, opts, graphs), preloadBakedTextures(), loadLUT(level.id)]);
     skies.set(sky, keyed);
     if (look) Object.assign(keyed.look, { vol: look.vol, fogDist: look.fogDist, sat: look.sat, ambient: look.ambient, sky: look.sky });
     day.sunAt(keyed.phase, sky.sunDir);
