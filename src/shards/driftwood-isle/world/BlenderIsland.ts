@@ -102,10 +102,8 @@ export class BlenderIsland {
   /** the area the island covers (GroundCover leaves it to the island's own dressing, E156) */
   static readonly area = area;
   group = new THREE.Group();
-  stats = { terrainTris: 0, propTris: 0, placements: 0, draws: 0 };
   private terrainMat!: THREE.MeshStandardMaterial;
   private meta!: IslandMeta;
-  private sunLum = 0;
   /** G144: the instanced placements, repacked in `late` (null until the build has made them) */
   instances: TiledInstanceSet | null = null;
 
@@ -131,7 +129,6 @@ export class BlenderIsland {
       lm('lm-ao'), lm('lm-bounce'),
     ]);
     const f = droppedPlacements(place, WORLD_DROP); // G164: each placement's y
-    const count = f.length / 10;
     const used = usedPlacements(f, meta.mustDraw, TIER_LOOK.share);
     const coverGrid = CoverGrid.get();
     if(coverGrid===null||used!==ISLAND_COVER_FILES[TIER].used)throw new Error('Required full island cover does not match its placements');
@@ -167,7 +164,6 @@ export class BlenderIsland {
       if (!o.geometry.hasAttribute('normal')) o.geometry.computeVertexNormals(); // lighting is flat (derivatives); the normals are the shadows' normal bias
       o.geometry.computeBoundingSphere();
       this.group.add(m);
-      this.stats.terrainTris += (o.geometry.getIndex()?.count ?? o.geometry.getAttribute('position').count) / 3;
     }
     const protos = protosFromMeshes(found, meta.protos.map((p) => p.name), ISLAND_LOOK.protoPrefix);
     // SF67: the build ends its task at each ~30 ms between its sections (the order and every result are unchanged)
@@ -190,7 +186,6 @@ export class BlenderIsland {
     await slice();
     ins.add({ tag: 'cover-big', tiles: bigs, rects: bigs.map((_, k) => tileRect(area, k, VT)), material: bigMat, cast: false, reach: TIER_LOOK.big.far + 1, lod: ISLAND_LOOK.lod, cover: true });
     await slice();
-    for (const set of [casters, covers, bigs]) for (const items of set) for (const i of items) this.stats.propTris += (protos[f[i * 10] ?? 0]?.index.length ?? 0) / 3;
     // E156: the cove's ground wears the cover it carries (coverTint.ts) — what was placed here, splatted into the grid over
     // GroundCover's estimate for this area, then sampled by the cove's terrain
     { // The required complete grid is admitted before world assembly.
@@ -206,11 +201,8 @@ export class BlenderIsland {
     }
     if (smallRocks.length > 0) {
       // E315 M1: the small-rock model, merged into one mesh (piece `cove-small-rocks`; it used to hang in this group)
-      const rocks = await placeSliced(smallRock, this.smallRocks(smallRocks, f), { ctx: models, draw: 'merged', piece: { id: 'cove-small-rocks' } }, slice.due);
-      rocks.object.traverse((o) => { if (isMesh(o)) this.stats.propTris += o.geometry.getAttribute('position').count / 3; });
+      await placeSliced(smallRock, this.smallRocks(smallRocks, f), { ctx: models, draw: 'merged', piece: { id: 'cove-small-rocks' } }, slice.due);
     }
-    this.stats.placements = used;
-    this.stats.draws = this.group.children.length;
     this.group.name = 'blender-island';
     ctx.scene.add(this.group);
     // the specimens draw with an untinted props material (a single specimen has no per-instance `aTint`)
@@ -237,7 +229,6 @@ export class BlenderIsland {
     ctx.registry.add({ id: 'cove-unclaimed', name: 'Cove rocks', category: 'nature', file: 'src/shards/driftwood-isle/world/BlenderIsland.ts', colliders: unclaimed.map((c) => boxDesc(c, 'wood')), surface: 'wood', solidFloor: false });
     ctx.palmSpecs.push(...meta.extraPalms);
     this.update(ctx.sky);
-    console.info(`[island] blender: terrain ${this.stats.terrainTris} tris, props ${this.stats.propTris} tris in ${this.stats.draws} meshes, ${used}/${count} placements (${TIER})`);
   }
 
   /**
@@ -309,7 +300,6 @@ export class BlenderIsland {
   update(sky: Sky): void {
     const level = sunBounceLevel(sky, this.meta.bake.refSun[1]);
     if (level === null) return;
-    this.sunLum = level;
-    this.terrainMat.lightMapIntensity = this.sunLum / this.meta.bake.bounceGain;
+    this.terrainMat.lightMapIntensity = level / this.meta.bake.bounceGain;
   }
 }
