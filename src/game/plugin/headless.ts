@@ -64,9 +64,11 @@ export function runtimeBoundWorldFiles(source: Shardfile): ReadonlySet<string> {
     for (const ref of [...props.tiles.flatMap((tile) => [tile.file, ...tile.additionalFiles ?? []]), ...props.panels.map((panel) => panel.file), ...props.models.map((model) => model.file), ...props.wholeLibrary ?? [],
       ...props.textures.flatMap((texture) => [texture.model, texture.colour]), ...(props.far === null ? [] : [props.far])]) files.add(ref);
   }
+  if (binds.has('movers')) for (const row of source.movers) files.add(row.module);
   if (files.size === 0) return files;
   // a file another (unbound) declaration still names stays the data client's
-  const unbound = { ...source, terrain: binds.has('terrain') ? null : source.terrain, props: binds.has('props') ? null : source.props, tiles: [], files: [], critical: [], library: [], far: null };
+  const moverModules = new Set(binds.has('movers') ? source.movers.map(row => row.module) : []);
+  const unbound = { ...source, movers: binds.has('movers') ? [] : source.movers, sim: { ...source.sim, scripts: source.sim.scripts.filter(ref => !moverModules.has(ref)) }, terrain: binds.has('terrain') ? null : source.terrain, props: binds.has('props') ? null : source.props, tiles: [], files: [], critical: [], library: [], far: null };
   const text = JSON.stringify(unbound);
   for (const ref of files) if (text.includes(ref)) files.delete(ref);
   return files;
@@ -93,6 +95,7 @@ export function withoutRuntimeRows(source: Shardfile): Shardfile {
     ...(binds.has('props') ? { props: withoutDrawnProps(source.props) } : {}),
     ...(world.size === 0 ? {} : { files: source.files.filter((file) => keep(file.hash)), critical: source.critical.filter(keep), library: source.library.filter(keep), far,
       tiles: source.tiles.flatMap((tile) => { const files = tile.files.filter(keep); return files.length === 0 ? [] : [files.length === tile.files.length ? tile : { ...tile, files }]; }) }),
+    ...(binds.has('movers') ? { movers: [], sim: { ...source.sim, scripts: source.sim.scripts.filter(keep) } } : {}),
     ...(binds.has('modes') ? { modes: { traverse: [] } } : {}),
     ...(binds.has('clientChannels') ? { clientChannels: [] } : {}),
     ...(binds.has('quests') ? { quests: { flags: [], quests: [], triggers: [], dialogue: [] },

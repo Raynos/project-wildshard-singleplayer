@@ -1,3 +1,4 @@
+import { installDeclaredMovers, type MoverInstallation } from '../plugin/mover';
 import { ownerTask, withOwner } from '@wildshard/engine/app/ownership';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
@@ -13,7 +14,7 @@ import { shardfileSource } from '../plugin/ui';
 import type { ProductOptions } from './product';
 import { configureLevel, selectedLevel } from '@wildshard/engine/level/selection';
 import { reserveMapImage } from './mapImage';
-import { browserShardfileOptions, provideHybridDeclaration, takeFirstPartyDescriptor } from './runtimeProduct';
+import { browserShardfileOptions, provideHybridDeclaration, takeFirstPartyDescriptor, runtimeProduct } from './runtimeProduct';
 import type { ShardfileClientBindings } from './client';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
@@ -66,13 +67,34 @@ interface ActiveRuntime {
 const residentScopes = new WeakMap<Scope, Scope>();
 
 /** A transitional world's static resources persist for the resident; entered gameplay hooks retain their own scope. */
+/** Static-world recipe optionally binds admitted motion after each entered load, on the existing mover host. */
+export interface ResidentWorldRecipe {
+  readonly motion?: { readonly source: Shardfile; readonly systemId: string;
+    readonly rows: NonNullable<MoverInstallation['borrowed']>['rows'] };
+}
 export class HybridResidentWorld<T> {
   private readonly builds = new WeakMap<Scope, Promise<T>>();
+  private readonly recipe: ResidentWorldRecipe;
+  constructor(recipe: ResidentWorldRecipe = {}) { this.recipe = recipe; }
+  private async entered(context: ShardContext, pending: Promise<T>): Promise<T> {
+    const value = await pending, row = this.recipe.motion;
+    if (context.scope.disposed) throw new Error('Resident entered scope ended during construction');
+    if (row !== undefined) {
+      if (row.source.runtime?.binds?.includes('movers') !== true) throw new Error('Resident motion must be runtime-bound');
+      const world = context.game.runtime?.world;
+      if (world === undefined || world === null) throw new Error('Resident motion requires its world');
+      const assets = runtimeProduct(row.source).assets;
+      await installDeclaredMovers(context, world, { data: row.source.movers, modules: new Map(),
+        admitted: assets.retained, read: hash => assets.read(hash), systemId: row.systemId,
+        borrowed: { rows: row.rows, targets: value } });
+    }
+    return value;
+  }
   /** Reuse one asynchronous build across entries; the supplied owner outlives each entered play scope. */
   load(context: ShardContext, build: (owner: Scope) => Promise<T>): Promise<T> {
     const owner = residentScopes.get(context.scope);
     if (owner === undefined || owner.disposed || context.scope.disposed) return Promise.reject(new Error('Missing live hybrid resident world'));
-    const existing = this.builds.get(owner); if (existing !== undefined) return existing;
+    const existing = this.builds.get(owner); if (existing !== undefined) return this.entered(context, existing);
     const pending = Promise.resolve().then(() => {
       if (owner.disposed) throw new Error('Hybrid resident left before world construction');
       return withOwner(owner, () => build(owner));
@@ -83,7 +105,7 @@ export class HybridResidentWorld<T> {
     this.builds.set(owner, pending);
     owner.onDispose(() => { this.builds.delete(owner); });
     void pending.catch(() => { if (this.builds.get(owner) === pending) this.builds.delete(owner); });
-    return pending;
+    return this.entered(context, pending);
   }
 }
 

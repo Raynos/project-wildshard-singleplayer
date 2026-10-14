@@ -48,6 +48,7 @@ function namedRole(name,path='') {
   if(creatureOwners.has(path)&&/keeper/iu.test(name))return 'C4'; return roles.find(([, pattern]) => pattern.test(name))?.[0] ?? null; }
 /** Explicit file ownership; an unrecognised file stays visible and cannot close C9. */
 function fileRole(path, name = '') {
+  if (path === 'src/shards/driftwood-isle/runtime/hybrid.ts' || path === 'src/game/shardfile/hybrid.ts') return 'C9';
   if(creatureOwners.has(path))return 'C4';
   if(questOwners.has(path))return 'C5';
   if(path==='src/shards/driftwood-isle/combat/coconuts.ts')return 'C6';
@@ -98,7 +99,8 @@ function runtimeTags(source, path, fallback) {
       const bindingOwner = path === 'src/shards/driftwood-isle/models/zipline.ts' ? 'C1'
         : ['src/shards/pine-hollow/quest/rides.ts', 'src/shards/pine-hollow/runtime/quest.ts',
           'src/shards/driftwood-isle/runtime/quest.ts', 'src/shards/driftwood-isle/world/Zipline.ts'].includes(path) ? 'C5' : null;
-      const owner = cable && bindingOwner !== null ? bindingOwner : namedRole(spec.local.name,path) ?? from;
+      const admittedBoot = path === 'src/shards/driftwood-isle/shard.config.ts' && node.source.value === './data/movers';
+      const owner = admittedBoot ? 'C9' : cable && bindingOwner !== null ? bindingOwner : namedRole(spec.local.name,path) ?? from;
       imports.set(spec.local.name, owner);
     }
     assign(node, node.specifiers.map(spec=>imports.get(spec.local.name)).find(Boolean),1,`import ${node.source.value}`);
@@ -113,6 +115,7 @@ function runtimeTags(source, path, fallback) {
       const name=nodeName(node.key);role=namedRole(name,path);reason=`property ${name}`;
       // A world's winch prompt and its anchor are quest interaction handles,
       // distinct from the kinematic mover command/pose owners.
+      if (path === 'src/shards/driftwood-isle/shard.config.ts' && name === 'movers') role='C9';
       if (path.endsWith('/world/build.ts') && ['winch', 'winchAt'].includes(name)) role='C5';
     } else if(node.type==='CallExpression'||node.type==='NewExpression') {
       const name=calledName(node.callee);role=imports.get(name)??namedRole(name,path);reason=`owner API ${name}`;

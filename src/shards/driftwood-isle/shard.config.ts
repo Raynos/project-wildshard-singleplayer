@@ -13,6 +13,8 @@ import { ENTRY_LANDINGS } from './data/entryLandings';
 import { CASCADE_GRAPHS } from './data/waterfallLook';
 import { SMOKE_GRAPHS } from './data/smokeLook';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
+import { MOVERS } from './data/movers';
+import { MOTION_FILES, MOTION_MEMORY } from './data/motion';
 import fixed from './data/fixedTiles.generated.json' with { type: 'json' };
 
 // SF46 step 1: content and the existing look stay in the declared trusted entry until the grid-ready bake lands.
@@ -33,19 +35,20 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
   const heights = lowered(authored);
   return { heights, colours: heights.map((): [number, number, number] => [0.5, 0.5, 0.5]), roadHeight: 0 };
 };
-const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixed.critical.includes(file.hash))];
+const simulationFiles = [...MOTION_FILES, ...navigation.files, ...fixed.files.filter(file => fixed.critical.includes(file.hash))];
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({
   ...base,
-  navigation: navigation.navigation, files: [...navigation.files, ...fixed.files], critical: [...navigation.critical, ...fixed.critical],
+  movers: MOVERS, sim: { ...base.sim, scripts: MOTION_FILES.map(file => file.hash) },
+  navigation: navigation.navigation, files: [...MOTION_FILES, ...navigation.files, ...fixed.files], critical: [...MOTION_FILES.map(file => file.hash), ...navigation.critical, ...fixed.critical],
   tiles: fixed.tiles, terrain: fixed.terrain, library: fixed.library,
-  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + simulationFiles.reduce((sum, file) => sum + file.decoded, 0) },
-  budgets: { ...base.budgets, library: fixed.libraryCost, sim: { resident: simulationFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
+  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + MOTION_MEMORY + simulationFiles.reduce((sum, file) => sum + file.decoded, 0) },
+  budgets: { ...base.budgets, library: fixed.libraryCost, sim: { resident: MOTION_MEMORY + simulationFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
     compressed: simulationFiles.reduce((sum, file) => sum + file.compressed, 0) } },
   accent: 'marigold',
   // the material graphs the runtime draws its own meshes in (runtime/hybrid.ts): the cove's cascade, the castaway's smoke
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...CASCADE_GRAPHS, ...SMOKE_GRAPHS }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
-  runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain'], spawns: DRIFTWOOD_SPAWNS },
+  runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers'], spawns: DRIFTWOOD_SPAWNS },
   quests: DRIFTWOOD_QUESTS, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },
   audio: DRIFTWOOD_AUDIO, modes: DRIFTWOOD_MODES,

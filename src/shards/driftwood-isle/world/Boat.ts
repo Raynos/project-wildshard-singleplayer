@@ -24,7 +24,6 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { waveHeight, seaDamp } from '@wildshard/engine/world/waves';
 import { MooringLines, type MooringLines as MooringLinesSet } from '../runtime/props/mooringLines';
 import { BOAT_MOORING } from '../data/boatLook';
-import type { MoverPose } from '@wildshard/engine/physics/mover';
 import { BEAM, BOAT_CLEATS, BOAT_FLOOR, LENGTH, boat, boatColliders } from '../models/boat';
 
 export interface BoatSpec {
@@ -44,7 +43,6 @@ export class Boat {
   colliders: Collider[] = [];
   private t = 0;
   /** The gameplay installer projects an admitted fixed-step script; dev model pages retain their preview clock. */
-  moverDriven = false;
   private floorY: number;
 
   constructor(private sky: Sky, private spec: BoatSpec) { this.floorY = spec.waterY + BOAT_FLOOR; }
@@ -134,17 +132,10 @@ export class Boat {
     g.position.y = w + waveHeight(x, z, undefined, damp);
     g.rotation.x = Math.atan2(hFore - hAft, 4);            // bow up when the crest is under it
     g.rotation.z = Math.atan2(hStar - hPort, 4);           // port side up when the crest is to port
-    this.updateMoorings();
+    this.refreshPose();
   }
 
-  /** Presentation projection only: the script's published pose already drives collision before the physics step. */
-  setMoverPose(pose: MoverPose): void {
-    this.group.position.set(pose.position.x, pose.position.y, pose.position.z);
-    this.group.rotation.set(pose.euler.x, pose.euler.y, pose.euler.z, 'YXZ');
-    this.updateMoorings();
-  }
-
-  private updateMoorings(): void {
+  refreshPose(): void {
     const g = this.group, w = this.spec.waterY;
     // the mooring lines: lift each rope's cleat end with the hull (heave + pitch at that cleat), the post end stays put
     this.moorings?.lift(g.position.y - w, Math.sin(g.rotation.x));

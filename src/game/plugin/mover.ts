@@ -1,6 +1,6 @@
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { castRay, floorBelow, lineOfSight } from '@wildshard/engine/physics/query';
-import { MathUtils, Vector3 } from 'three';
+import { MathUtils, Object3D, Vector3 } from 'three';
 import { GrappleModeSchema, type GrappleMode } from '@wildshard/format/modes';
 import { tagOf } from "@wildshard/engine/physics/surface";
 import { CharacterMotor, type MotorOptions } from "@wildshard/engine/physics/CharacterMotor";
@@ -147,7 +147,10 @@ export function moverQueries(data: MoverData, physicsQueries: ScriptQuery): Scri
 export interface MoverView { pose: (value: MoverPose, fields: Readonly<Record<number, number>>) => void; chain?: RopeChain }
 /** Declared rows plus trusted legacy view callbacks; the platform owns context, world, scripts, scope and fixed systems. */
 export interface MoverInstallation {
-  data: MoverData; modules: ReadonlyMap<string, string>; views: ReadonlyMap<string, MoverView>; systemId: string;
+  data: MoverData; modules: ReadonlyMap<string, string>; views?: ReadonlyMap<string, MoverView>; systemId: string;
+  /** Bounded authored bindings borrow rendered groups or native chains from the constructed world. */
+  borrowed?: { rows: readonly { readonly id: string; readonly target: string; readonly chain?: boolean;
+    readonly group?: 'group'; readonly afterPose?: 'refreshPose' }[]; targets: unknown };
   shared?: { host: ScriptHost; tick: () => number };
   /** Additional consuming item roles join this installer's single host and tick. Incompatible with an injected shared host. */
   composition?: MoverRoleComposition;
@@ -291,7 +294,39 @@ export class MoverRuntime {
 }
 
 /** A single platform installer reads declared rows and owns their lifecycle; the shard only supplies presentation recipes. */
+function hasPosePresentation(target: object): target is { refreshPose: () => void } {
+  return 'refreshPose' in target && typeof target.refreshPose === 'function';
+}
 export async function installDeclaredMovers(ctx: LevelContext, world: World, options: MoverInstallation): Promise<MoverRuntime> {
+  const views = new Map(options.views), borrowed = options.borrowed;
+  if (borrowed !== undefined) {
+    const identifier = v.pipe(v.string(), v.regex(/^[a-zA-Z0-9_.-]{1,128}$/u));
+    const rows = v.parse(v.pipe(v.array(v.strictObject({ id: identifier, target: identifier,
+      chain: v.exactOptional(v.boolean()), group: v.exactOptional(v.literal('group')),
+      afterPose: v.exactOptional(v.literal('refreshPose')) })), v.maxLength(32)), borrowed.rows);
+    if (new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('Duplicate borrowed mover binding');
+    const targets = borrowed.targets;
+    if (targets === null || typeof targets !== 'object') throw new Error('Missing borrowed mover targets');
+    for (const row of rows) {
+      if (!Object.hasOwn(targets, row.target) || !options.data.some(value => value.id === row.id) || views.has(row.id)) throw new Error('Unbound borrowed mover target');
+      const target: unknown = Reflect.get(targets, row.target);
+      if (row.chain === true) {
+        if (!(target instanceof RopeChain) || row.group !== undefined || row.afterPose !== undefined) throw new Error('Borrowed mover requires its native chain');
+        views.set(row.id, { chain: target, pose: () => undefined });
+      } else {
+        if (target === null || typeof target !== 'object' || row.group === undefined || !('group' in target)
+          || !(target.group instanceof Object3D)) throw new Error('Borrowed mover requires its rendered group');
+        const group = target.group;
+        if (row.afterPose !== undefined && !hasPosePresentation(target)) throw new Error('Missing borrowed pose presentation');
+        group.userData['declaredMotion'] = true;
+        views.set(row.id, { pose: pose => {
+          group.position.set(pose.position.x, pose.position.y, pose.position.z);
+          group.rotation.set(pose.euler.x, pose.euler.y, pose.euler.z, 'YXZ');
+          if (row.afterPose !== undefined && hasPosePresentation(target)) target.refreshPose();
+        } });
+      }
+    }
+  }
   if (options.shared !== undefined && options.composition !== undefined) throw new Error('Mover composition cannot replace an injected shared host');
   let tick = 0, host = options.shared?.host, composition: ReturnType<typeof createShardfileComposedLane> | undefined;
   if (host === undefined) {
@@ -307,7 +342,7 @@ export async function installDeclaredMovers(ctx: LevelContext, world: World, opt
     else { composition = await createComposedMoverHost(options.data, assets, query, options.composition); host = composition.host; }
   }
   if (ctx.scope.disposed) throw new Error('Mover scope left during admission');
-  const runtime = new MoverRuntime(options.data, { physics: world.physics, scope: ctx.scope, host, adopt: (id) => options.views.get(id), activation: { ground: () => world.player.motor.result, ...options.activation } });
+  const runtime = new MoverRuntime(options.data, { physics: world.physics, scope: ctx.scope, host, adopt: (id) => views.get(id), activation: { ground: () => world.player.motor.result, ...options.activation } });
   const installedHost = host;
   ctx.system({ id: options.systemId, phase: 'fixed.pre', before: ['physics.movers'], run: () => {
     const current = options.shared === undefined ? ++tick : options.shared.tick();

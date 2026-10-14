@@ -1,11 +1,10 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { installDeclaredMovers } from '@wildshard/sdk/runtime/movers';
 import { HybridResidentWorld } from '@wildshard/game/shardfile/hybrid';
 import { withGeometryBake } from '@wildshard/engine/world/geometryBake';
 import { withVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import RuntimePlugin from './index';
 import { buildDriftwoodWorld, type DriftwoodWorld } from '../world/build';
-import { driftwoodMoverViews } from './movers';
+import { RESIDENT_WORLD } from '../data/residentWorld';
 import { installDriftwoodCreatures } from '../creatures/install';
 import { declaredCreatureRows } from './brains';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
@@ -16,7 +15,7 @@ import { SMOKE_LOOK } from '../data/smokeLook';
 import { setSmokeLook } from './looks/smokeColumn';
 
 // The static transitional world belongs to the resident, not a single entered play scope.
-const residentWorld = new HybridResidentWorld<DriftwoodWorld>();
+const residentWorld = new HybridResidentWorld<DriftwoodWorld>(RESIDENT_WORLD);
 
 /** Driftwood's only boot (SF46 hybrid, G172): the admitted shardfile's declared movers and brains over the lowered world. */
 class DriftwoodMoverPlugin extends RuntimePlugin {
@@ -35,9 +34,6 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
         setWaterfallLooks(materials); setSmokeLook(materials);
         return withGeometryBake('/assets/models/driftwood-blender/geometry.bin',
         () => withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress))); });
-      const options = driftwoodMoverViews(built);
-      if (options === null) throw new Error('Declared Driftwood movers require the bridge and moored boat');
-      await installDeclaredMovers(context, world, options);
       return built;
     });
     this.binding = binding;

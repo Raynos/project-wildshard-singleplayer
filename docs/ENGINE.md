@@ -5003,3 +5003,16 @@ row to read-only automatic flags, ordered chest contents, visibility, lock
 reason and prompt reach. Page callers lend current door animation and
 cached visibility; native callers use static door state. Actions, physics
 and durable writes remain in their existing owners.
+
+`HybridResidentWorld` accepts optional motion rows: an admitted source,
+system id and up to 32 borrowed group/chain bindings. Its existing load
+installs motion for each entered scope, even when static geometry is cached.
+`plugin/mover.installDeclaredMovers` borrows named constructed groups or
+actual `RopeChain` instances, with an optional `refreshPose` presentation
+hook. Render groups publish `userData.declaredMotion` to prevent a second
+legacy update owner; mooring geometry stays with its original owner.
+
+`runtime.binds: ['movers']` retains motion and its verified Wasm roots for
+the trusted resident, stripping them from data-client installation. Native
+chains are admitted only under that binding, where the resident supplies
+the existing RopeChain and its restore owner; pure-data chains still refuse.
