@@ -16,6 +16,8 @@ import { LUT_SIZE, fetchLut } from './lut';
 import { PATCH_ORDER, patchShader, setInheritedPatch, type ShaderSource } from './shaderPatches';
 import { Scope } from '../app/scope';
 import { curveAt, type Curve } from '@wildshard/format/materials';
+import type { GraphIr } from '@wildshard/format/materialGraph';
+import { loadGraphCompiler } from './graphBackend';
 import { EmissiveLook } from './families/emissive';
 import { familyMaterial } from './families/registry';
 import { ToonLook } from './families/toon';
@@ -358,6 +360,17 @@ export class NeutralToneEffect extends Effect {
 export interface PaintedSky { readonly dome: THREE.Mesh<THREE.BufferGeometry, THREE.Material>; readonly strip: THREE.Texture | null }
 /** A painted look's dressing: the sky pieces that stand in the world (a sea of cloud, the sun's glow) and their tick. */
 export interface PaintedDressing { readonly group: THREE.Group; readonly update: (dt: number) => void; /** its textures, freed with the look's */ readonly textures: readonly THREE.Texture[] }
+/**
+ * What a painted look's dressing builder is handed (it runs once, when the backdrop is built, on the page's renderer).
+ * `graph` compiles a material graph (an SF59 IR, validated first) on that renderer through the lazy graph back-end: the
+ * material is the dressing's own, like every material it builds, and is freed with the dressing (the look's compose scope
+ * standalone, the grid cell's layer otherwise); `textures` resolves the graph's texture params to textures the caller keeps
+ * (list them in the dressing's `textures` to have the look free them). On a grid cell's layer a graph material is drawn in
+ * its level's frame like any dressing piece (`BackdropLayer`, `render/nodeLayerFrame.ts`).
+ */
+export interface PaintedDressingContext {
+  readonly graph: (ir: GraphIr, textures?: (ref: string) => THREE.Texture) => Promise<THREE.Material>;
+}
 
 /** How a painted strip samples: wrapping in heading (no seam at heading 0), clamped in elevation, magnified so unmipped. */
 export interface PaintedStripSampler {
@@ -435,8 +448,8 @@ export interface PaintedLookSpec {
   /** the textures the look loaded up front: the look frees them unless a compose takes them (absent: none) */
   readonly textures?: readonly THREE.Texture[];
   readonly sky: PaintedSkySpec;
-  /** the sky pieces in the world (absent: none) */
-  readonly dressing?: () => PaintedDressing;
+  /** the sky pieces in the world, built once with the backdrop (absent: none); see `PaintedDressingContext` */
+  readonly dressing?: (ctx: PaintedDressingContext) => PaintedDressing | Promise<PaintedDressing>;
   /** the painter's light on every lit material (absent: three's lights only) */
   readonly light?: PainterLightRow;
   /** the key light: its direction, its colour (an sRGB hex or linear rgb) and intensity */
@@ -460,6 +473,9 @@ export interface PaintedLookSpec {
   readonly terrain?: { readonly build: TerrainPainter['build']; readonly update?: () => void };
 }
 
+/** a painted look's built dressing and every node in it (the compose's world patch leaves them alone) */
+interface BuiltDressing { readonly own: PaintedDressing; readonly meshes: ReadonlySet<THREE.Object3D> }
+
 const lookColour = (c: number | Rgb): THREE.Color => (typeof c === 'number' ? new THREE.Color(c) : new THREE.Color(c[0], c[1], c[2]));
 
 /**
@@ -471,7 +487,7 @@ const lookColour = (c: number | Rgb): THREE.Color => (typeof c === 'number' ? ne
 export function paintedLook(spec: PaintedLookSpec): LookStrategy {
   const pending = new Set(spec.textures), skySpec = spec.sky, state = spec.state;
   const sunDir = new THREE.Vector3(spec.sun.dir.x, spec.sun.dir.y, spec.sun.dir.z), haze = 'haze' in skySpec ? headingHaze(skySpec.haze, spec.sun.dir) : null;
-  let sky: PaintedSky | null = null, dressing: { readonly own: PaintedDressing; readonly meshes: ReadonlySet<THREE.Object3D> } | null = null;
+  let sky: PaintedSky | null = null, dressing: BuiltDressing | null = null;
   let painted: { readonly scope: Scope; readonly blend: (state: number) => void; readonly textures: readonly THREE.Texture[] } | null = null;
   const makeSky = (): PaintedSky => {
     if ('haze' in skySpec) {
@@ -488,12 +504,23 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
   };
   // a painted-strip sky stands in from the start (its strips load with the backdrop)
   if (!('haze' in skySpec)) makeSky();
-  const makeDressing = (): NonNullable<typeof dressing> | null => {
-    if (spec.dressing === undefined) return null;
-    const own = spec.dressing(), meshes = new Set<THREE.Object3D>(); own.group.traverse((node) => { meshes.add(node); });
-    for (const texture of own.textures) pending.add(texture);
-    dressing = { own, meshes };
-    return dressing;
+  // the dressing is built once, by the backdrop (it has the page's renderer, and runs before the compose on a page)
+  let building: Promise<BuiltDressing | null> | null = null;
+  const makeDressing = (renderer: THREE.WebGLRenderer): Promise<BuiltDressing | null> => {
+    const build = spec.dressing;
+    if (build === undefined) return Promise.resolve(null);
+    building ??= (async () => {
+      const graph: PaintedDressingContext['graph'] = async (ir, textures) => {
+        const { compileGraph } = await loadGraphCompiler(renderer);
+        return compileGraph(ir, textures === undefined ? {} : { textures }).material;
+      };
+      const own = await build({ graph }), meshes = new Set<THREE.Object3D>(); own.group.traverse((node) => { meshes.add(node); });
+      for (const texture of own.textures) pending.add(texture);
+      const built: BuiltDressing = { own, meshes };
+      dressing = built;
+      return built;
+    })();
+    return building;
   };
   const freePainted = (): void => { if (painted) { painted.scope.dispose(); for (const t of painted.textures) t.dispose(); painted = null; } };
   const worldPatch: NonNullable<LookStrategy['worldPatch']> = (material, scope) => {
@@ -523,7 +550,7 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
       // the scene's own fog is edited in place: a new Fog would orphan the one the backdrop bound
       if (scene.fog instanceof THREE.Fog) { scene.fog.color.set(spec.fog.color); scene.fog.near = spec.fog.near; scene.fog.far = spec.fog.far; }
       else scene.fog = new THREE.Fog(new THREE.Color(spec.fog.color), spec.fog.near, spec.fog.far);
-      const pieces = dressing ?? makeDressing();
+      const pieces = dressing;
       if (pieces !== null) {
         if (pieces.own.group.parent === null) scene.add(pieces.own.group);
         for (const part of parts(pieces.own.group)) { scope.own(part.geometry); scope.own(part.material); }
@@ -538,7 +565,7 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
     ...(spec.light === undefined ? {} : { lighting: painterLight(spec.light, spec.sun.dir) }),
     ...(haze === null ? {} : { worldPatch }),
     sky: { clouds: false, planet: false, sun: { disc: false, halo: false, ...rays } },
-    backdrop: async ({ sky: rig }) => {
+    backdrop: async ({ sky: rig, renderer }) => {
       const own = sky ?? makeSky();
       if ('strips' in skySpec) {
         const strips = await loadPaintedStrips(skySpec.strips, skySpec.load);
@@ -548,7 +575,7 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
         }
       }
       const clock = spec.clock(), key = lookColour(spec.sun.colour), fog = new THREE.Color(spec.fog.color), lut = spec.lut === undefined ? null : await spec.lut();
-      const pieces = (dressing ?? makeDressing())?.own ?? null, deep = state === undefined ? null : lookColour(state.deep), keyNow = new THREE.Color();
+      const pieces = (dressing ?? await makeDressing(renderer))?.own ?? null, deep = state === undefined ? null : lookColour(state.deep), keyNow = new THREE.Color();
       let air: (() => THREE.Fog | null) | null = null, live: SkyBackdropTargets | null = null;
       const base = { hemi: 1, fogSun: new THREE.Color(), haze: new THREE.Color() };
       return { clock, horizon: new THREE.Color(spec.horizon ?? spec.fog.color), lut, clouds: own.dome, ...(pieces === null ? {} : { dressing: pieces.group }),

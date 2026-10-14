@@ -28,6 +28,10 @@
  *
  * 5. **The sun's cascades and the shadow fade** (`cascadeLightNode.ts`): a DirectionalLight the sky rig registered as
  *    a cascade is gated to its depth slice as the CSM chunk gates it, with the fade's ghost shadow mixed in.
+ * 6. **A layered backdrop's level frame** (`nodeLayerFrame.ts`, G321): a node material a `BackdropLayer` dresses with
+ *    is built with the level frame's view as its model-view (`material.contextNode`), the graph compiler's camera reads
+ *    shifted by the frame's origin, and its output faded by the owner weight as the last epilogue stage; its programs
+ *    keep a key of their own.
  *
  * Load it lazily (`render/graphBackend.ts`): it pulls in `three/webgpu` + `three/tsl` (≈ +117 KB gzip), which a shard
  * without a graph material never pays for. Nothing on the default render path imports this module.
@@ -35,7 +39,7 @@
 import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
 import { ConvertNode, NodeMaterial, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
-import { and, mix, nodeObject, positionWorld, step, uniform, vec2, workingToColorSpace } from 'three/tsl';
+import { and, context, mix, modelWorldMatrix, nodeObject, positionWorld, reference, step, uniform, vec2, vec4, workingToColorSpace } from 'three/tsl';
 import { fogPatches } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
 import { engineFog } from './engineFog';
@@ -48,6 +52,7 @@ import { worldTime } from '../../core/time';
 import type { Renderer } from '../renderer';
 import { NodeUniformBuffers, type BlockGroup } from './nodeUniformBuffers';
 import { installNodeCoarseMask, type NodeCoarseMask } from '../nodeCoarseMask';
+import { installNodeLayerFrame, layerFrameOf, type NodeLayerFrameInstaller } from '../nodeLayerFrame';
 import { buildWithInstanceAttributes, instanceAttributeShader, nodeInstanceKey } from './nodeInstancing';
 
 /** what an epilogue stage is handed: the builder, its material, the scene's fog and the renderer */
@@ -167,6 +172,13 @@ const nodeCoarseMask: NodeCoarseMask = (material, origin, mask, half) => {
   return true;
 };
 
+/** A layer's level frame: the model-view in the frame's view (the graph compiler reads the camera through `layerFrameOf`). */
+const nodeLayerFrame: NodeLayerFrameInstaller = (material, frame) => {
+  if (!(material instanceof NodeMaterial)) return false;
+  material.contextNode = context({ modelViewMatrix: reference('value', 'mat4', frame.view).mul(modelWorldMatrix) });
+  return true;
+};
+
 const PROGRAM_KEY = 'engine-nodes';
 
 /** three's node handler fitted to the engine's frame (the module comment lists what it changes); install it with `loadGraphBackend` */
@@ -187,6 +199,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   constructor() {
     super();
     installNodeCoarseMask(nodeCoarseMask);
+    installNodeLayerFrame(nodeLayerFrame);
     const self = internals(this);
     // the stock per-draw and dispose callbacks, as three writes them, plus the engine's uniform blocks: every draw binds
     // its program's blocks once their nodes are updated, and a disposed material's blocks free their buffers
@@ -211,9 +224,17 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     self.customProgramCacheKeyCallback = function customProgramCacheKeyCallback(this: THREE.Material): string {
       const current = frame();
       const object: unknown = typeof current === 'object' && current !== null ? Reflect.get(current, 'object') : undefined;
-      return `${stockKey.call(this)}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}|${nodeInstanceKey(object)}`;
+      const layer = layerFrameOf(this);
+      return `${stockKey.call(this)}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}|${nodeInstanceKey(object)}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
     };
     this.epilogue.push((out, ctx) => (this.engineFogOn() && Reflect.get(ctx.material, 'fog') === true ? engineFog(out, ctx.fog) : out));
+    // a layered backdrop's node dressing fades by its owner weight last, where a classic piece's gl_FragColor is faded
+    this.epilogue.push((out, ctx) => {
+      const layer = layerFrameOf(ctx.material);
+      if (layer === null) return out;
+      const fade = reference('value', 'float', layer.fade);
+      return layer.whole ? out.mul(fade) : vec4(out.xyz, out.w.mul(fade));
+    });
   }
 
   /** the classic renderer this handler serves (after `renderer.setNodesHandler(handler)`) */

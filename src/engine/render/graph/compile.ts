@@ -38,11 +38,12 @@ import {
 import {
   Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, hash,
   instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
-  mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, positionGeometry, positionLocal,
+  mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, reference, positionGeometry, positionLocal,
   positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
+import { layerFrameOf } from '../nodeLayerFrame';
 import {
   GRAPH_OPS, SUN_OPS, validateGraph, graphUsesMeshMap, type GraphArrayParam, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
   type GraphRef, type GraphValidationOptions, type GraphValueType,
@@ -91,6 +92,24 @@ export interface CompiledGraph {
    * stack fades with its cell's owner weight where two frames blend; 1 (the default) is the graph's own colour exactly
    */
   readonly setWeight: (w: number) => void;
+}
+
+/**
+ * The camera as the drawn material sees it: in a layered backdrop's level frame (`nodeLayerFrame.ts`, G321) the camera
+ * less the frame's origin and the frame's view, else the page camera's own. Every camera read of a graph goes through
+ * these two, so a graph drawn as a layer's dressing places and shades exactly as on its own page.
+ */
+function frameCameraPosition(): Node<'vec3'> {
+  return Fn((builder: NodeBuilder): Node<'vec3'> => {
+    const frame = layerFrameOf(builder.material);
+    return frame === null ? cameraPosition : cameraPosition.sub(reference('value', 'vec3', frame.origin));
+  })();
+}
+function frameViewMatrix(): Node<'mat4'> {
+  return Fn((builder: NodeBuilder): Node<'mat4'> => {
+    const frame = layerFrameOf(builder.material);
+    return frame === null ? cameraViewMatrix : reference('value', 'mat4', frame.view);
+  })();
 }
 
 /** the instance matrices' arrays as instanced buffers, shared by every graph that reads `objectOrigin` */
@@ -418,7 +437,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'positionWorld': return { t: 'vec3', n: positionWorld };
       case 'normalLocal': return { t: 'vec3', n: normalLocal };
       case 'normalWorld': return { t: 'vec3', n: normalWorldGeometry };
-      case 'cameraPosition': return { t: 'vec3', n: cameraPosition };
+      case 'cameraPosition': return { t: 'vec3', n: frameCameraPosition() };
       case 'time': return { t: 'float', n: time };
       case 'instanceHash': return { t: 'float', n: hash(instanceIndex) };
       case 'vertexColour': return { t: 'vec3', n: new SplitNode(vertexColor(), 'xyz') };
@@ -434,7 +453,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
         modelWorldMatrix.mul(vec4(0, 1, 0, 0)).xyz.length(),
         modelWorldMatrix.mul(vec4(0, 0, 1, 0)).xyz.length()) };
       case 'cylindricalBillboard': {
-        const origin = objectOriginNode(), toward = cameraPosition.sub(origin);
+        const origin = objectOriginNode(), toward = frameCameraPosition().sub(origin);
         const right = vec3(toward.z, 0, toward.x.negate()).add(vec3(0.0001, 0, 0)).normalize();
         const sx = modelWorldMatrix.mul(vec4(1, 0, 0, 0)).xyz.length();
         const sy = modelWorldMatrix.mul(vec4(0, 1, 0, 0)).xyz.length();
@@ -449,14 +468,14 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
         const axis = new ConditionalNode(toward.y.abs().greaterThan(0.999), vec3(1, 0, 0), vec3(0, 1, 0));
         const right = new MathNode('normalize', new MathNode('cross', axis, toward));
         const up = new MathNode('cross', toward, right), xy = asVec2(local);
-        const centre = new OperatorNode('+', cameraPosition, new OperatorNode('*', d, asFloat(distance)));
+        const centre = new OperatorNode('+', frameCameraPosition(), new OperatorNode('*', d, asFloat(distance)));
         const world = new OperatorNode('+', new OperatorNode('+', centre, new OperatorNode('*', right, xy.x)), new OperatorNode('*', up, xy.y));
         return { t: 'vec3', n: new SplitNode(new OperatorNode('*', modelWorldMatrixInverse, new JoinNode([world, float(1)])), 'xyz') };
       }
-      case 'viewDepth': return { t: 'float', n: cameraViewMatrix.mul(vec4(new ConvertNode<'vec3'>(one().n, 'vec3'), 1)).z.negate() };
+      case 'viewDepth': return { t: 'float', n: frameViewMatrix().mul(vec4(new ConvertNode<'vec3'>(one().n, 'vec3'), 1)).z.negate() };
       case 'screenDirection': {
         const [from, to] = two();
-        const clip = (value: Val): Node<'vec4'> => cameraProjectionMatrix.mul(cameraViewMatrix.mul(vec4(new ConvertNode<'vec3'>(value.n, 'vec3'), 1)));
+        const view = frameViewMatrix(), clip = (value: Val): Node<'vec4'> => cameraProjectionMatrix.mul(view.mul(vec4(new ConvertNode<'vec3'>(value.n, 'vec3'), 1)));
         const start = clip(from), end = clip(to);
         return { t: 'vec2', n: end.xy.div(end.w).sub(start.xy.div(start.w)).add(vec2(0.00001, 0)).normalize() };
       }

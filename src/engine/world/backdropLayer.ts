@@ -37,7 +37,9 @@
  *   shifted by the origin (`wsLayerView`, `wsLayerOrigin`), so a piece that reads world positions in its shader (a puff
  *   billboarded on its own attribute, a sea wound round a fixed point) draws exactly as standalone; each one's output is
  *   faded by the weight (`wsLayerFade`: its alpha, or its whole colour where it blends `One`), and the pieces keep their
- *   own render order and blending. Hidden, and not drawn, at weight 0.
+ *   own render order and blending. Hidden, and not drawn, at weight 0. A node material (an SF59 graph: its camera in a
+ *   uniform block, no `gl_FragColor`) gets the same frame and fade as material inputs instead of GLSL defines
+ *   (`frameNodeMaterial`, `render/nodeLayerFrame.ts`); a classic piece keeps the defines.
  * - **Its dispose**: the dome leaves the page scene, the backdrop's own `dispose` frees its textures and targets, and the
  *   last frame's moved values go back at the next update.
  *
@@ -62,6 +64,7 @@ import {
   MeshBasicMaterial, OneFactor, OneMinusConstantAlphaFactor, Scene, Sprite, SpriteMaterial, Vector3, type Camera, type Object3D, type PerspectiveCamera, type WebGLRenderTarget,
 } from 'three';
 import { PATCH_ORDER, patchShader } from '../render/shaderPatches';
+import { frameNodeMaterial } from '../render/nodeLayerFrame';
 import type { Scope } from '../app/scope';
 import { resourceScope } from '../app/resources';
 import { ownSceneResource, ownSceneTree } from '../app/sceneOwnership';
@@ -357,6 +360,8 @@ export class BackdropLayer {
       for (const m of materials) {
         const whole = m.premultipliedAlpha || (m.blending === CustomBlending && m.blendSrc === OneFactor);
         m.transparent = true;
+        // a node material (an SF59 graph) takes the same frame as material inputs; the GLSL defines below cannot reach it
+        if (frameNodeMaterial(m, { view: this.dressView, origin: this.dressOrigin, fade: this.dressFade, whole })) continue;
         patchShader(m, 'layer.dressing', PATCH_ORDER.view + 45, (shader) => {
           shader.uniforms[DRESS_VIEW] = this.dressView; shader.uniforms[DRESS_ORIGIN] = this.dressOrigin; shader.uniforms[DRESS_FADE] = this.dressFade;
           shader.vertexShader = levelFrameSource(shader.vertexShader, 'vertex');
