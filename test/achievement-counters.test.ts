@@ -19,3 +19,21 @@ test('unknown explicit feat and malformed row bounds refuse without writes',()=>
   const counter=createAchievementCounters(DRIFTWOOD_FEAT_COUNTERS,ports);expect(()=>counter.count('missing',1)).toThrow();expect(()=>counter.count('crab10',Number.NaN)).toThrow();expect(written).toBe(false);
   expect(()=>createAchievementCounters({...DRIFTWOOD_FEAT_COUNTERS,feats:[{id:'bad',count:Infinity}]},ports)).toThrow();
 });
+
+test('flag rows preserve old counters, callback order and malformed-row refusal',()=>{
+  const on=new Set(['ready','listed-a','found:one']);
+  const flags={has:(flag:string)=>on.has(flag),count:(prefix:string)=>[...on].filter(flag=>flag.startsWith(prefix)).length};
+  const submitted:string[]=[];let state:Record<string,number>={progress:1};
+  const policy=createAchievementCounters({feats:[{id:'progress',count:8}],prefix:'feat.',floorTotals:true,validateTotals:true,write:'each',flags:[
+    {id:'progress',method:'count',value:{flags:['ready','listed-a','missing']}},
+    {id:'found',method:'event',value:{prefix:'found:'}},
+    {id:'pending',method:'event',value:{flag:'pending'},onlyWhenSet:true},
+  ]},{read:()=>({...state}),write:next=>{state=next;},emit:(_fact,id)=>{submitted.push(`${id}/${String(state['progress'])}`);}});
+  policy.syncFlags(flags,(id,total)=>{submitted.push(`${id}/${String(total)}`);});
+  expect(submitted).toEqual(['progress/2','found/1']);submitted.length=0;
+  policy.count('progress',4);expect(submitted).toEqual(['progress:2/2','progress:3/3','progress:4/4']);
+  const old=state['progress'];policy.count('progress',0);expect(state['progress']).toBe(old);
+  let written=false;
+  expect(()=>createAchievementCounters({...PINE_FEAT_COUNTERS,flags:[{id:'bad',method:'event',value:{prefix:''}}]},
+    {read:()=>({}),write:()=>{written=true;},emit:()=>undefined})).toThrow();expect(written).toBe(false);
+});

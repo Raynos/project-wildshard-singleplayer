@@ -4982,3 +4982,9 @@ and nearest-contact fences. `closest(body, origin, limit, out)` writes a
 borrowed skin-contact result. The optional pose reader lends synchronized
 hitboxes; `fore:false` keeps a head/body-only contact recipe. Both methods
 reuse `nativeVolumeContact`; neither changes actor or physics state.
+
+The existing `game/achievements` counter profile optionally declares bounded
+`flags` totals (a flag, ordered flags, prefix count, or zero). Its `syncFlags`
+borrows the live flags and submits through the existing event/count owner,
+with optional one-shot suppression and a caller presentation callback. It
+installs no clock, subscription or save owner.

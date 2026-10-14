@@ -203,7 +203,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   adventure.spine = installSpine(adventure, w, ctx, grants.facts);
   w.onDeath?.(animal => { grants.kill(animal.kind); }, 35);
   adventure.trader = installTrader(adventure, w);   // E314: the trader and her counter of goods at the hut, beside Wendell; her shop comes with the loot
-  installFeats(adventure, w, grants.count);
+  installFeats(adventure, w, () => { grants.syncFlags(flags); });
   if (w.ironDrop) {
     const all = w.animals.animals;   // guarded while any drowned sailor is up — after a reload or a night respawn too (guards.ts)
     w.ironDrop.guard = () => (all ? ironSwordGuard(all) : flags.has('dead:sailor') ? null : SWORD_GUARDED);

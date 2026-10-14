@@ -1,3 +1,6 @@
+import { SEA_GLASS_FLAG, SHARD_FLAGS } from './interactables';
+import { QUEST_DONE } from './questStory';
+
 /** Existing achievement metadata; the declared ledger remains its authoritative gameplay projection. */
 export const DRIFTWOOD_FEATS = [
   { id: 'castaway', name: 'Message in a Bottle', goal: 'Talk to the castaway', count: 1, event: 'talked', title: 'Honorary Castaway', icon: 'rope' as const },
@@ -31,5 +34,16 @@ export const DRIFTWOOD_NATIVE_PACK = { kinds: Object.keys(ITEM_LABELS), slots: 1
   counts: { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true, complete: true }, quantity: 'positive-safe-integer', snapshot: 'order',
   stackLimit: Number.MAX_SAFE_INTEGER, restoreError: 'Incompatible Driftwood pack continuation' } as const;
 
+/** Page flag totals retain their original submission order. */
+export const DRIFTWOOD_FLAG_FEATS=[
+  {id:'castaway',method:'count',value:{flag:'talked:castaway'}},
+  {id:'shards',method:'count',value:{flags:SHARD_FLAGS}},
+  {id:'glass',method:'count',value:{prefix:SEA_GLASS_FLAG}},
+  {id:'treasure',method:'count',value:{flag:'open:reef-treasure'}},
+  {id:'vista',method:'count',value:{flag:'used:vista-bench'}},
+  {id:'zipline',method:'count',value:{flag:'used:zipline'}},
+  {id:'quest',method:'count',value:{flag:QUEST_DONE}},
+] as const;
+
 /** Page feat counters retain floor totals and update after stable emission. */
-export const DRIFTWOOD_FEAT_COUNTERS={feats:DRIFTWOOD_FEATS,prefix:'driftwood.',floorTotals:true,validateTotals:true,write:'after'} as const;
+export const DRIFTWOOD_FEAT_COUNTERS={feats:DRIFTWOOD_FEATS,flags:DRIFTWOOD_FLAG_FEATS,prefix:'driftwood.',floorTotals:true,validateTotals:true,write:'after'} as const;

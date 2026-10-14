@@ -34,7 +34,7 @@ import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
 import { PineQuestLifetime } from '../runtime/questLifetime';
 import { bindPineFacts } from '../runtime/facts';
-import { isPineThrall, recordPineFeatKill, syncPineFlagFeats } from './featLaw';
+import { isPineThrall, recordPineFeatKill } from './featLaw';
 import source from '../shard.config';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
@@ -553,7 +553,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the event achievements, read back from the flags (a save from before an achievement still earns it) ──
   const syncFeats = (): void => {
-    syncPineFlagFeats(flags, featFacts);
+    featFacts.syncFlags(flags);
   };
   syncFeats();
   ctx.scope.onDispose(flags.onChange((f, on) => { if (on && !f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats(); }));

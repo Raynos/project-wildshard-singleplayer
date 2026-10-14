@@ -8,6 +8,7 @@ import source from '../shard.config';
 export interface DriftwoodFacts {
   readonly facts: RuntimeFacts;
   readonly count: (id: string, total: number) => void;
+  readonly syncFlags:ReturnType<typeof createAchievementCounters>['syncFlags'];
   readonly kill: (kind: string) => void;
 }
 /** C26: read current Progress counts without rewriting its save; replay stable count facts into SF14 once. */
@@ -21,5 +22,5 @@ export function bindDriftwoodFacts(ctx: Pick<ShardContext, 'app'>, previous: rea
   const count=counter.count;
   for (const row of previous) if (DRIFTWOOD_FEATS.some(feat => feat.id === row.def.id)) count(row.def.id, row.count);
   progress?.bindLedger?.({ count: id => emit.achievement(id)?.count ?? 0, earned: id => emit.achievement(id)?.earned ?? false, checkpoint: emit.flush });
-  return {facts,count,kill:counter.kill};
+  return {facts,count,kill:counter.kill,syncFlags:counter.syncFlags};
 }

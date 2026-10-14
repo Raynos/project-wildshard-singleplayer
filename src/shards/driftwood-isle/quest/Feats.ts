@@ -3,19 +3,12 @@
  * The platform Progress view reads that ledger; this runtime owns no second achievement counter store.
  * The vista bench keeps its original player pose and toast.
  */
-import { SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from '../data/interactables';
-import { QUEST_DONE } from '../data/questStory';
+import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
 
 
-export function installFeats<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, factCount: (id: string, total: number) => void): void {
+export function installFeats<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, sync: () => void): void {
   const { flags } = adv;
-  const sync = (): void => {
-    const counts = { castaway: Number(flags.has('talked:castaway')), shards: SHARD_FLAGS.filter(f => flags.has(f)).length,
-      glass: flags.count(SEA_GLASS_FLAG), treasure: Number(flags.has('open:reef-treasure')), vista: Number(flags.has('used:vista-bench')),
-      zipline: Number(flags.has('used:zipline')), quest: Number(flags.has(QUEST_DONE)) };
-    for (const [id, total] of Object.entries(counts)) factCount(id, total);
-  };
   sync();
   const offFlags = flags.onChange((f, on) => {
     if (!on || f.startsWith('plate:') || f.startsWith('lever:')) return;

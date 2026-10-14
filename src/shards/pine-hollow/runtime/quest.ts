@@ -12,7 +12,7 @@ import { LANTERN_FLAGS } from '../data/wardensHollow';
 import { pineTable } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';
-import { createPineFacts, recordPineFeatKill, syncPineFlagFeats, isPineThrall } from '../quest/featLaw';
+import { createPineFacts, recordPineFeatKill, isPineThrall } from '../quest/featLaw';
 import { pineDirectorClock, type PineClockEvent } from './directorClock';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { LEVER_FLAG } from '../data/nativeLoadout';
@@ -309,7 +309,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   };
 
   // ── one page/host feat law, fed only by committed flags and actual creature deaths ──
-  const syncFeats = (): void => { syncPineFlagFeats(flags, feats); };
+  const syncFeats = (): void => { feats.syncFlags(flags); };
   const offFlags = flags.onChange((f, on) => {
     if (!on) return;
     if (f === 'wait:night') clock.night();

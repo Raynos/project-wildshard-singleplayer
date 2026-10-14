@@ -1,3 +1,6 @@
+import { LANTERN_FLAGS, QUEST_DONE } from './wardensHollow';
+import { RESIN_FLAG, TOKEN_FLAG, SECRET_FLAGS } from './interactions';
+
 /** Authored feat metadata; the declared ledger owns deduplicated gameplay grants. */
 export const PINE_FEATS = [
   { id: 'deer5', name: 'Deerstalker', goal: 'Kill 5 deer', count: 5, kind: 'deer', title: 'Antler Management', icon: 'deer' as const },
@@ -46,5 +49,17 @@ export const PINE_BAG_ITEMS = [
   { id: 'lodge-ribbon', label: 'Lodge ribbon', icon: 'laurel', travels: false },
 ] as const;
 
+/** Flag totals preserve event order and suppress unraised one-shot events. */
+export const PINE_FLAG_FEATS=[
+  {id:'lantern',method:'event',value:{flags:LANTERN_FLAGS}},
+  {id:'resin',method:'event',value:{prefix:RESIN_FLAG}},
+  {id:'token',method:'event',value:{prefix:TOKEN_FLAG}},
+  {id:'secret',method:'event',value:{flags:SECRET_FLAGS}},
+  {id:'zipline',method:'event',value:{flag:'used:ph-zip'},onlyWhenSet:true},
+  {id:'miller',method:'event',value:{flag:'errand:done'},onlyWhenSet:true},
+  {id:'king',method:'event',value:{flag:'dead:king'},onlyWhenSet:true},
+  {id:'quest',method:'event',value:{flag:QUEST_DONE},onlyWhenSet:true},
+] as const;
+
 /** Native/page feat counters retain numeric totals and write before stable emission. */
-export const PINE_FEAT_COUNTERS={feats:PINE_FEATS,prefix:'pine.feat.',floorTotals:false,validateTotals:false,write:'before'} as const;
+export const PINE_FEAT_COUNTERS={feats:PINE_FEATS,flags:PINE_FLAG_FEATS,prefix:'pine.feat.',floorTotals:false,validateTotals:false,write:'before'} as const;

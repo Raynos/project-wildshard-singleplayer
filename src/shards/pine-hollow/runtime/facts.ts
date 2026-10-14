@@ -20,5 +20,6 @@ export function bindPineFacts(ctx: Pick<ShardContext, 'app' | 'scope'>, progress
   progress.bindLedger({ count: (id) => achievement(id)?.count ?? 0, earned: (id) => achievement(id)?.earned ?? false,
     checkpoint: () => { const counters = state.write(JSON.stringify(read())), grants = facts.flush(); return counters && grants; } });
   return { kill: (kind, variant) => { policy.kill(kind, variant); progress.refreshLedger(); },
+    syncFlags:flags=>{policy.syncFlags(flags,(id,total)=>{policy.event(id,total);progress.refreshLedger();});},
     event: (event, total) => { policy.event(event, total); progress.refreshLedger(); } };
 }

@@ -47,9 +47,17 @@ export function registerAchievements(chunkId: string, defs: AchievementDef[]): (
 }
 
 /** Authored matching/count policy over the caller's existing progress storage. */
+/** Bounded read-only totals submitted to the existing event or count owner. */
+export interface AchievementFlagRow {
+  readonly id:string;readonly method:'event'|'count';readonly onlyWhenSet?:boolean;
+  readonly value:{readonly flag:string}|{readonly flags:readonly string[]}|{readonly prefix:string}|{readonly constant:0};
+}
+/** Borrow the live durable flags; no storage or subscription is installed. */
+export interface AchievementFlagPorts { readonly has:(flag:string)=>boolean;readonly count:(prefix:string)=>number }
 export interface AchievementCounterRows {
   readonly feats:readonly Pick<AchievementDef,'id'|'count'|'kind'|'event'|'variant'>[];
-  readonly prefix:string;readonly floorTotals:boolean;readonly validateTotals:boolean;readonly write:'before'|'after';
+  readonly flags?:readonly AchievementFlagRow[];
+  readonly prefix:string;readonly floorTotals:boolean;readonly validateTotals:boolean;readonly write:'before'|'after'|'each';
 }
 /** Actual saved counters and stable fact emission; this counter never owns persistence. */
 export interface AchievementCounterPorts {
@@ -60,11 +68,15 @@ export interface AchievementCounterPorts {
 export interface AchievementCounters {
   readonly kill:(kind:string,variant?:string)=>void;readonly event:(event:string,total?:number)=>void;
   readonly count:(id:string,total:number)=>void;readonly replay:()=>void;
+  readonly syncFlags:(flags:AchievementFlagPorts,submit?:(id:string,total:number)=>void)=>void;
 }
 /** Match bounded authored outcomes and submit only newly reached stable identities. */
 export function createAchievementCounters(profile:AchievementCounterRows,ports:AchievementCounterPorts):AchievementCounters {
   if(profile.feats.length>256||new Set(profile.feats.map(row=>row.id)).size!==profile.feats.length||profile.prefix.length>96
     ||profile.feats.some(row=>!(/^[a-z][a-z0-9-]{0,95}$/u.test(row.id))||['constructor','prototype','__proto__'].includes(row.id)||!Number.isSafeInteger(row.count)||row.count<1||row.count>4096))throw new Error('Invalid achievement counter rows');
+  const flagRows=profile.flags??[];
+  const valid=(flag:string):boolean=>flag.length>0&&flag.length<=256;
+  if(flagRows.length>256||new Set(flagRows.map(row=>row.id)).size!==flagRows.length||flagRows.some(row=>{const constant:unknown=Reflect.get(row.value,'constant');return !valid(row.id)||!['event','count'].includes(row.method)||('flag' in row.value?!valid(row.value.flag):'flags' in row.value?row.value.flags.length>256||row.value.flags.some(flag=>!valid(flag)):'prefix' in row.value?!valid(row.value.prefix):constant!==0);}))throw new Error('Invalid achievement flag rows');
   const rows=profile.feats.map(feat=>({feat,fact:profile.prefix+feat.id,entities:Array.from({length:feat.count},(_,n)=>`${feat.id}:${String(n+1)}`)}));
   const emit=(row:typeof rows[number],first:number,total:number):void=>{
     for(let n=0;n<row.entities.length;n++){const entity=row.entities[n];if(n>=first&&n<total&&entity!==undefined)ports.emit(row.fact,entity);}
@@ -74,7 +86,9 @@ export function createAchievementCounters(profile:AchievementCounterRows,ports:A
     const after=Math.min(row.feat.count,Math.max(before,profile.floorTotals?Math.floor(requested):requested));
     if(profile.validateTotals&&(!Number.isFinite(after)||after<0))throw new RangeError('Invalid achievement count');
     if(before===after)return;state[row.feat.id]=after;
-    if(profile.write==='before')ports.write(state);emit(row,before,after);if(profile.write==='after')ports.write(state);
+    if(profile.write==='each'){
+      for(let n=before;n<after;n++){state[row.feat.id]=n+1;ports.write(state);const entity=row.entities[n];if(entity!==undefined)ports.emit(row.fact,entity);}
+    }else{if(profile.write==='before')ports.write(state);emit(row,before,after);if(profile.write==='after')ports.write(state);}
   };
   const outcome=(kind:'kill'|'event',name:string,variant?:string,total?:number):void=>{
     const state=ports.read();
@@ -82,5 +96,15 @@ export function createAchievementCounters(profile:AchievementCounterRows,ports:A
   };
   return {kill:(kind,variant)=>{outcome('kill',kind,variant);},event:(event,total)=>{outcome('event',event,undefined,total);},
     count:(id,total)=>{const row=rows.find(entry=>entry.feat.id===id);if(row===undefined)throw new Error(`Unknown achievement ${id}`);advance(row,ports.read(),total);},
+    syncFlags:(flags,submit)=>{
+      for(const row of flagRows){
+        const value=row.value;
+        const total='flag' in value?Number(flags.has(value.flag)):'flags' in value?value.flags.reduce((n,flag)=>n+Number(flags.has(flag)),0):'prefix' in value?flags.count(value.prefix):0;
+        if(row.onlyWhenSet===true&&total===0)continue;
+        if(submit!==undefined)submit(row.id,total);
+        else if(row.method==='event')outcome('event',row.id,undefined,total);
+        else {const found=rows.find(entry=>entry.feat.id===row.id);if(found===undefined)throw new Error(`Unknown achievement ${row.id}`);advance(found,ports.read(),total);}
+      }
+    },
     replay:()=>{const state=ports.read();for(const row of rows)emit(row,0,Math.min(row.feat.count,state[row.feat.id]??0));}};
 }

@@ -10,10 +10,9 @@ import { test } from '@wildshard/engine/world/interact/flags';
 import type { QuestData } from '@wildshard/format/quests';
 import type { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { installQuestGraph } from '@wildshard/game/plugin/quests';
-import type { AchievementDef } from '@wildshard/game/achievements';
-import { SEA_GLASS_FLAG, SHARD_FLAGS } from '../data/interactables';
+import { createAchievementCounters } from '@wildshard/game/achievements';
+import { DRIFTWOOD_FEAT_COUNTERS } from '../data/questInventory';
 import { DRIFTWOOD_GRAPH, DRIFTWOOD_ACTIONS } from '../data/questGraph';
-import { QUEST_DONE } from '../data/questStory';
 import baked from '../data/spots.generated.json' with { type: 'json' };
 import { DriftwoodPack } from './pack';
 import { ZiplineDriver } from '@wildshard/game/plugin/mover';
@@ -39,7 +38,6 @@ const TALK_R = 3.2;
 /** The iron sword's prompt (weapons/IronSword.ts): 2.6 m from the eye once no drowned sailor guards it. */
 const SWORD_R = 2.6;
 const MAX_COMMANDS = 1024, MAX_ROWS = 64, MAX_BODIES = 64;
-const TALKED_FLAG = 'talked:castaway';
 const PLATE_SEES: readonly GroupName[] = ['PLAYER', 'ITEM'], anyOwner = (): boolean => true;
 
 const finite = v.pipe(v.number(), v.finite()), xyz = { x: finite, y: finite, z: finite };
@@ -67,7 +65,7 @@ export interface DriftwoodQuestPorts {
   /** The admitted cable row; the native quest remains the sole carry owner. */
   readonly zipline: ConstructorParameters<typeof ZiplineDriver>[0];
   /** the flag feats (quest/Feats.ts; the kill feats are runtime/kills.ts's) */
-  readonly feats: readonly AchievementDef[];
+  readonly feats: Parameters<typeof createAchievementCounters>[0]['feats'];
   readonly commands: () => readonly { readonly actorId: string; readonly value: number }[];
   readonly fact: (name: string, entity: string) => void;
   readonly coins: (amount: number, entity: string) => void;
@@ -185,9 +183,12 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   host.scope.onDispose(() => { reward.dispose(); });
   const eye = new Vector3(), at = new Vector3(), keyPrompt = { x: 0, y: 0, z: 0 }, slab = { x: 0, y: 0, z: 0 }, half = { x: 0, y: PLATE_DEPTH, z: 0 };
   const state: { key: { x: number; y: number; z: number } | null; iron: boolean } = { key: null, iron: false };
-  const feats = ports.feats.filter(f => f.kind === undefined).map(f => ({ id: f.id, count: f.count, name: `driftwood.${f.id}`,
-    entities: Array.from({ length: f.count }, (_, k) => `${f.id}:${String(k + 1)}`), n: 0 }));
-  if (feats.length > MAX_ROWS || feats.some(f => f.count > MAX_ROWS)) throw new RangeError('Driftwood feats exceed their finite bound');
+  const feats=ports.feats.filter(f=>f.kind===undefined);
+  if(feats.length>MAX_ROWS||feats.some(f=>f.count>MAX_ROWS))throw new RangeError('Driftwood feats exceed their finite bound');
+  let counts=Object.fromEntries(feats.map(feat=>[feat.id,0]));
+  const flagRows=feats.map(feat=>DRIFTWOOD_FEAT_COUNTERS.flags.find(row=>row.id===feat.id)??{id:feat.id,method:'count' as const,value:{constant:0 as const}});
+  const counter=createAchievementCounters({...DRIFTWOOD_FEAT_COUNTERS,feats,flags:flagRows,write:'each'},
+    {read:()=>({...counts}),write:current=>{counts=current;},emit:ports.fact});
   const near = (p: { x: number; y: number; z: number }, radius: number): boolean => {
     eye.copy(host.player.position); eye.y += EYE;
     return at.set(p.x, p.y, p.z).distanceTo(eye) < radius;
@@ -271,18 +272,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     state.key = { x, y: ports.floorAt(x, z), z };
   }, host.scope);
 
-  /** quest/Feats.ts's counts from the flags */
-  const total = (id: string): number => id === 'castaway' ? Number(flags.has(TALKED_FLAG)) : id === 'shards' ? SHARD_FLAGS.filter(f => flags.has(f)).length
-    : id === 'glass' ? flags.count(SEA_GLASS_FLAG) : id === 'treasure' ? Number(flags.has('open:reef-treasure')) : id === 'vista' ? Number(flags.has('used:vista-bench'))
-      : id === 'zipline' ? Number(flags.has('used:zipline')) : id === 'quest' ? Number(flags.has(QUEST_DONE)) : 0;
-  /** each new count emits its stable ledger fact (quest/facts.ts `bindDriftwoodFacts.count`), capped at the feat's count */
-  const syncFeats = (): void => {
-    for (let i = 0; i < MAX_ROWS; i++) {
-      const feat = feats[i]; if (feat === undefined) break;
-      const value = Math.min(feat.count, Math.max(feat.n, total(feat.id)));
-      for (let k = 0; k < MAX_ROWS; k++) { const n = feat.n + 1; if (n > value) break; feat.n = n; ports.fact(feat.name, feat.entities[n - 1] ?? feat.id); }
-    }
-  };
+  const syncFeats=():void=>{counter.syncFlags(flags);};
   const offFlags = flags.onChange((f, on) => { if (on && !f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats(); });
   host.scope.onDispose(offFlags);
 
@@ -352,7 +342,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     ports.finale.update(dt);
     reward.update(dt, flags.has(REWARD_FLAG));
   }, {
-    snapshot: () => ({ key: state.key, finale: ports.finale.snapshot(), iron: state.iron, pack: pack.snapshot(), zipline: zipline.snapshot(), reward: reward.snapshot(), counts: Object.fromEntries(feats.map(f => [f.id, f.n])),
+    snapshot: () => ({ key: state.key, finale: ports.finale.snapshot(), iron: state.iron, pack: pack.snapshot(), zipline: zipline.snapshot(), reward: reward.snapshot(), counts: { ...counts },
       barrel: barrel === null || watch === null ? null : barrelState(barrel.rb.handle, watch) }),
     restore: value => {
       const saved = v.parse(Saved, value);
@@ -360,7 +350,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
       reward.restore(saved.reward);
       pack.restore(saved.pack);
       ports.finale.restore(saved.finale); state.key = saved.key; state.iron = saved.iron;
-      feats.forEach(f => { f.n = saved.counts[f.id] ?? 0; });
+      counts=Object.fromEntries(feats.map(f=>[f.id,saved.counts[f.id]??0]));
       if ((saved.barrel === null) !== (home === null)) throw new Error('Incompatible Driftwood barrel continuation');
       if (saved.barrel !== null && home !== null) { watch = new BarrelWatch(home, leash); watch.restore(saved.barrel.watch); adopt = saved.barrel.handle; }
     },
