@@ -12833,6 +12833,39 @@
       ],
       "seedOutputs": [],
       "platform": "native"
+    },
+    {
+      "id": "driftwood-shore-boulders",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/shoreBoulders.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/driftwood-isle/generators/shoreBoulders.ts",
+        "shoreBoulderFacts",
+        "src/shards/driftwood-isle/data/shoreBoulders.generated.json"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/driftwood-isle",
+        "scripts/bake-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/shoreBoulders.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/shoreBoulders.generated.json"
+      ],
+      "seedOutputs": [],
+      "platform": "native"
     }
   ]
 }

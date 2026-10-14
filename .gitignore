@@ -1057,3 +1057,5 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /public/assets/models/driftwood-blender/island-cover.phone.bin
 
 /public/assets/models/driftwood-blender/island-cover.desktop.bin
+
+/src/shards/driftwood-isle/data/shoreBoulders.generated.json
