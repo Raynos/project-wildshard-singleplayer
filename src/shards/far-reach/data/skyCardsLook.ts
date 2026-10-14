@@ -1,14 +1,12 @@
 import type { CardFieldRow, CardGroupRow } from '@wildshard/sdk/looks/cardField';
+import type { SunGlowProgram } from './sunGlowLook';
 
 /**
  * Sky Reach's camera-facing card programs (SHARD-PLATFORM M3: rows of an SDK shader family, built by
  * @wildshard/sdk/looks/cardField; the cards' numbers are the bake in data/skyCards.ts, generators/skyCards.ts).
  *
- * The sun's glow and light shafts (E392; the judge every loop: "no visible sun, no god rays"): the panorama paints the sun
- * disc (look/sky.ts); these add, at the same direction, a wide soft bloom and a fan of long light-shaft cards radiating from
- * it, additive, drawn after the cumulus puffs (they write no depth) and before the world, so the low sun burns through a
- * cloud bank as mockups A and D paint it while the isles and the world (depth) still hide it. Camera-facing in the shader;
- * a shard-side stand-in until the engine's god-ray pass can take a shard's light source.
+ * The sun's glow and light shafts (E392) are baked here too (`sunGlow`), drawn by their material graph (data/sunGlowLook.ts,
+ * look/sunGlow.ts).
  *
  * The cumulus over the cloud sea (E392; the targets: the islands rise out of a sea of sunlit billowing cloud): each card
  * shows one of eight painted golden-hour cumulus puffs from the atlas (`public/assets/far-reach/tex/clouds.webp`, codex
@@ -18,50 +16,11 @@ import type { CardFieldRow, CardGroupRow } from '@wildshard/sdk/looks/cardField'
  * gold when the sun is behind the cloud. Without the atlas (offline, a test page) the field is not built.
  */
 
-/** The GLSL the programs splice: the sun cards' shared vertex program (a card centred on the sun, or a shaft card rotated
- *  about it in the view plane). */
-export const SKY_CARD_FRAGMENTS = {
-  sunCard: `
-  uniform vec3 uSun; uniform float uDist; uniform vec2 uSize; uniform float uAngle;
-  varying vec2 vUv;
-  void main(){
-    vec3 centre = cameraPosition + uSun * uDist;
-    vec3 toCam = normalize(cameraPosition - centre);
-    vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), toCam)), up = cross(toCam, right);
-    // a shaft card rotates in the view plane about the sun; the bloom card is centred on it
-    float c = cos(uAngle), s = sin(uAngle);
-    vec2 p = vec2(position.x * uSize.x, (position.y + (uSize.y > uSize.x ? 0.5 : 0.0)) * uSize.y);
-    vec2 r = vec2(c * p.x - s * p.y, s * p.x + c * p.y);
-    vUv = position.xy + 0.5;
-    gl_Position = projectionMatrix * viewMatrix * vec4(centre + right * r.x + up * r.y, 1.0);
-  }`,
-} as const;
+/** The GLSL the programs splice (none: the sun's glow is a material graph, data/sunGlowLook.ts). */
+export const SKY_CARD_FRAGMENTS = {} as const;
 
-/** The programs: the sun's disc and bloom, its wide gold air, a light shaft, and the cumulus puff. */
+/** The programs: the cumulus puff. */
 export const SKY_CARD_PROGRAMS = {
-  sunBloom: { vertex: '@{sunCard}', fragment: `
-      varying vec2 vUv;
-      void main(){
-        float d = length(vUv - 0.5) * 2.0;
-        // loop 20 (mockup A: a hot white disc with a wide bloom beside the windmill; the painted disc alone read faint
-        // through the haze): the disc itself (about the painted one's 1.5 deg), a tight hot glow and a wide warm halo
-        float disc = 1.0 - smoothstep(0.085, 0.115, d);
-        float halo = exp(-d * 3.2) * (1.0 - smoothstep(0.7, 1.0, d));
-        // gold, not white (E399 seats: 'the sun white'): a warm disc in an amber-orange bloom
-        // round 6 (the seats: 'a hollow pink ring in a soft wash', 66-76 % of the frame's over-230 pixels in the sun's blur
-        // against the mockups' 46-62 %, D's halo 15 % of its middle band over 230 vs 5 %): one solid hot disc, a fainter halo
-        gl_FragColor = vec4(vec3(1.0, 0.95, 0.82) * disc * 6.0 + vec3(1.0, 0.62, 0.26) * (exp(-d * d * 140.0) * 1.2 + halo * 0.1), 1.0);
-      }`, shared: ['uSun'], transparent: true, depthWrite: false, depthTest: true, blend: 'add', side: 'double' },
-  sunWide: { vertex: '@{sunCard}', fragment: `
-      varying vec2 vUv;
-      void main(){ float d = length(vUv - 0.5) * 2.0; gl_FragColor = vec4(vec3(1.0, 0.78, 0.46) * exp(-d * 2.4) * (1.0 - smoothstep(0.75, 1.0, d)) * 0.06, 1.0); }`, shared: ['uSun'], transparent: true, depthWrite: false, depthTest: true, blend: 'add', side: 'double' },
-  sunShaft: { vertex: '@{sunCard}', fragment: `
-        uniform float uPulse; varying vec2 vUv;
-        void main(){
-          float across = 1.0 - abs(vUv.x - 0.5) * 2.0, along = vUv.y;
-          float a = smoothstep(0.0, 1.0, across) * (1.0 - along) * smoothstep(0.0, 0.08, along) * 0.13 * uPulse;
-          gl_FragColor = vec4(vec3(1.0, 0.82, 0.55) * a, 1.0);
-        }`, shared: ['uSun'], transparent: true, depthWrite: false, depthTest: true, blend: 'add', side: 'double' },
   cumulus: { vertex: `
       attribute vec4 aAt; attribute vec2 aCell; attribute float aFar; varying vec2 vUv; varying float vFade; varying float vToSun;
       uniform vec3 uSun;
@@ -96,5 +55,5 @@ export const SKY_CARD_PROGRAMS = {
 /** The baked cards (generators/skyCards.ts → data/skyCards.ts): the cumulus field and the sun's glow. */
 export interface SkyCardRows {
   readonly cumulus: CardFieldRow<'cumulus'>;
-  readonly sunGlow: CardGroupRow<'sunBloom' | 'sunWide' | 'sunShaft'>;
+  readonly sunGlow: CardGroupRow<SunGlowProgram>;
 }

@@ -1,15 +1,16 @@
 import { Group, Vector2, Vector3, type Texture } from 'three';
 import { loadLUT } from '@wildshard/engine/boot/bakedApi';
-import { paintedLook, type PaintedDressing } from '@wildshard/engine/render/dataLook';
+import { paintedLook, type PaintedDressing, type PaintedDressingContext } from '@wildshard/engine/render/dataLook';
 import type { LookStrategy } from '@wildshard/engine/render/look';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { loadPanorama, skyDome } from './sky';
 import { discLayer } from '../runtime/looks/discLayer';
 import { SEA_DISCS, SEA_LAYERS, SEA_PROGRAMS } from '../data/cloudSeaLook';
-import { cardField, cardGroup } from '@wildshard/sdk/looks/cardField';
+import { cardField } from '@wildshard/sdk/looks/cardField';
 import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
 import { SKY_CARDS } from '../data/skyCards';
 import { SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS } from '../data/skyCardsLook';
+import { sunGlow } from './sunGlow';
 import { SKY, SKY_DAY, SKY_FOG, SKY_HAZE, SKY_KEY, SKY_PAINTER_LIGHT, SKY_RAYS, SKY_SUN } from '../data/skyLook';
 import { PANO_FOG_SRGB } from './panoramaData';
 import { loadPainted } from './image';
@@ -26,13 +27,13 @@ import { TEX_URL } from '../data/files';
 export async function skyReachLook(): Promise<LookStrategy> {
   const pano: Texture = await loadPanorama(), SUN_DIR = new Vector3(...SKY_SUN);
   const [cloudAtlas, seaPaint, vortex] = await Promise.all([loadPainted(TEX_URL.clouds, 'far.cumulus'), loadPainted(TEX_URL.cloudsea, 'far.cloudsea', true), loadPainted(TEX_URL.maelstrom, 'far.maelstrom')]);
-  const dressing = (): PaintedDressing => {
+  const dressing = async (ctx: PaintedDressingContext): Promise<PaintedDressing> => {
     const group = new Group(); group.name = 'far.sky-dressing';
     // the layered painted cloud sea (its own haze; no scene fog)
     const seaFamily = new ShaderFamily({}, SEA_PROGRAMS), time = { value: 0 }, seaShared = { time };
-    // the sun's bloom and light shafts at the painted sun (E392; data/skyCardsLook.ts, baked by generators/skyCards.ts)
+    // the sun's bloom and light shafts at the painted sun (E392): one instanced draw of its material graph (look/sunGlow.ts)
     const cards = new ShaderFamily(SKY_CARD_FRAGMENTS, SKY_CARD_PROGRAMS), sun = { uSun: { value: SUN_DIR } };
-    const glow = cardGroup(cards, SKY_CARDS.sunGlow, sun); group.add(glow.group);
+    group.add(await sunGlow(ctx, SKY_CARDS.sunGlow, SKY_SUN));
     // the painted cloud sea (E392) and the painted maelstrom under the crown; without their textures, no sea is drawn
     if (seaPaint !== null) {
       if (vortex !== null) group.add(discLayer(seaFamily, SEA_DISCS.paintedMaelstrom, seaShared, { painted: { value: vortex } }));
@@ -43,7 +44,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
     }
     // cumulus over the sea (loop 5): the islands rise out of billowing cloud (the camera-facing puffs baked by generators/skyCards.ts)
     if (cloudAtlas !== null) group.add(cardField(cards, SKY_CARDS.cumulus, sun, { uAtlas: { value: cloudAtlas } }));
-    return { group, textures: [], update: (dt) => { time.value += dt; glow.update(time.value); } };
+    return { group, textures: [], update: (dt) => { time.value += dt; } };
   };
   const textures = [pano, cloudAtlas, seaPaint, vortex].filter((texture): texture is Texture => texture !== null);
   return paintedLook({ textures, sky: { haze: { ...SKY_HAZE, ...SKY_FOG, strip: PANO_FOG_SRGB }, dome: (strip) => skyDome(pano, strip) }, dressing,
