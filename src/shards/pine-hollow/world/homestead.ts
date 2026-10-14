@@ -1,7 +1,7 @@
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
-import { loadPBR, loadGLTF, pbrMaterial, type PBRSet } from '@wildshard/engine/core/assets';
+import { loadPBR, loadGLTF, pbrMaterial } from '@wildshard/engine/core/assets';
 import { SEED } from '@wildshard/engine/core/config';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
@@ -26,6 +26,7 @@ import { mergeParts, type PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind } from './logKit';
 import { pineModels } from './context';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
+import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT, CABIN_MOSS_BINDINGS } from '../data/cabinAssembly';
 import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from './cabinBake';
 
 /**
@@ -78,33 +79,21 @@ export function cabinMats(sky: Sky): Promise<Mats> {
 
 async function loadMats(sky: Sky): Promise<Mats> {
   const cap = pineSetCap(TIER_CONFIG.maxTexture); // G180 B1: 512² on the phone with the memory trim on
-  const [logSet, roofSet, beamSet, deckSet, doorSet, stoneSet, barkSet] = await Promise.all([
-    loadPBR('wood_trunk_wall', 1, cap), loadPBR('wood_planks_grey', 1, cap), loadPBR('wood_planks_grey', 1, cap), loadPBR('wood_planks_dirt', 1, cap),
-    loadPBR('rough_pine_door', 1, cap), loadPBR('stone_wall', 1, cap), loadPBR('pine_bark', 1, cap),
-  ]);
-  const std = (set: PBRSet, extra: THREE.MeshStandardMaterialParameters = {}) => pbrMaterial(set, { metalness: 0, ...extra });
+  const scans = new Map(await Promise.all(CABIN_PBR.map(async row => [row.key, pbrMaterial(await loadPBR(row.scan, 1, cap), {
+    metalness: 0, color: new THREE.Color(...row.color), normalScale: new THREE.Vector2(...row.normal),
+  })] as const)));
+  const scan = (key: typeof CABIN_PBR[number]['key']): THREE.MeshStandardMaterial => {
+    const material = scans.get(key); if (material === undefined) throw new Error(`Missing cabin material ${key}`); return material;
+  };
   const m: Mats = {
-    log: std(logSet, { color: new THREE.Color(0.95, 0.9, 0.84), normalScale: new THREE.Vector2(0.8, 0.8) }),
-    endGrain: new THREE.MeshStandardMaterial({ map: makeEndGrainTexture(), roughness: 0.95, metalness: 0, color: 0xb0a48e }),
-    chink: new THREE.MeshStandardMaterial({ color: 0x4d473f, roughness: 1, metalness: 0 }),
-    roof: std(roofSet, { color: new THREE.Color(0.46, 0.43, 0.39), normalScale: new THREE.Vector2(1.3, 1.3) }),
-    beam: std(beamSet, { color: new THREE.Color(0.9, 0.86, 0.8) }),
-    deck: std(deckSet),
-    door: std(doorSet, { color: new THREE.Color(0.72, 0.68, 0.62) }),
-    stone: std(stoneSet, { color: new THREE.Color(0.58, 0.56, 0.53) }),
-    glass: new THREE.MeshStandardMaterial({ // Standard, not Physical: same look, and it shares the double-sided program with the fire pit
-      color: 0x0a0c0e, roughness: 0.08, metalness: 0, transparent: true, opacity: 0.66, envMapIntensity: 0.8,
-      emissive: new THREE.Color(1.0, 0.5, 0.17), emissiveIntensity: 1.15, side: THREE.DoubleSide, depthWrite: false,
-    }),
-    bark: std(barkSet, { color: new THREE.Color(0.85, 0.8, 0.75) }),
-    iron: new THREE.MeshStandardMaterial({ color: 0x2b2724, roughness: 0.6, metalness: 0.75 }),
-    cloth: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0, vertexColors: true }),
-    char: new THREE.MeshStandardMaterial({ color: 0x14100d, roughness: 0.95, metalness: 0, emissive: 0xff4a08, emissiveIntensity: 0.12 }),
+    log: scan('log'), endGrain: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.endGrain, map: makeEndGrainTexture() }),
+    chink: new THREE.MeshStandardMaterial(CABIN_MATERIALS.chink), roof: scan('roof'), beam: scan('beam'), deck: scan('deck'), door: scan('door'), stone: scan('stone'),
+    glass: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.glass, emissive: new THREE.Color(...CABIN_GLASS_EMISSIVE) }), bark: scan('bark'),
+    iron: new THREE.MeshStandardMaterial(CABIN_MATERIALS.iron), cloth: new THREE.MeshStandardMaterial(CABIN_MATERIALS.cloth), char: new THREE.MeshStandardMaterial(CABIN_MATERIALS.char),
     smoke: pineLook(HEARTH_LOOKS.smoke), flame: pineLook(HEARTH_LOOKS.flame), ember: pineLook(HEARTH_LOOKS.ember),
     glow: new THREE.MeshBasicMaterial({ map: makeGlowTexture(), color: 0xff7a1a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
   };
-  installMoss(m.roof, sky, 'roof');
-  installMoss(m.stone, sky, 'stone');
+  for (const row of CABIN_MOSS_BINDINGS) installMossOverlay(m[row.key], { id: 'pine.cabin-moss', key: 'cabin-moss', sunDir: sky.sunDir, strength: row.strength, upOnly: row.upOnly, edits: CABIN_MOSS_EDITS });
   // the rough_pine_door scan is a saturated orange-red: pull it toward a weathered grey-brown in the shader
   patchShader(m.door, 'pine.cabin-door', PATCH_ORDER.material, (shader) => {
     attachFogUniforms(shader);
@@ -124,16 +113,7 @@ export function makeGlowTexture(): THREE.CanvasTexture {
 }
 
 /** the phone's pooled cabin lights (PH-L3) */
-const SHARED_CABIN_LIGHTS = 2;
 
-/**
- * Procedural moss / lichen overlay (@wildshard/sdk/looks/mossOverlay, the GLSL edits ../data/cabinLook.ts `CABIN_MOSS_EDITS`):
- * denser where the `moss` vertex attribute is high (eaves, foundation base) and on faces turned away from the sun; the
- * roof's full strength and up-only, the stone's 0.6 — uniforms, so roof and stone share one program.
- */
-function installMoss(mat: THREE.MeshStandardMaterial, sky: Sky, kind: 'roof' | 'stone') {
-  installMossOverlay(mat, { id: 'pine.cabin-moss', key: 'cabin-moss', sunDir: sky.sunDir, strength: kind === 'roof' ? 1.0 : 0.6, upOnly: kind === 'roof', edits: CABIN_MOSS_EDITS });
-}
 
 // ───────────────────────────── the homestead ─────────────────────────────
 
@@ -226,43 +206,33 @@ export class Cabins extends BuildingLife implements BuildingOwner {
     this._lamp(mats.glass, mats.glass.emissiveIntensity);
     // the phone's shared cabin lights (PH-L3): TWO pooled lights, not one per anchor — every point light is per-fragment
     // cost on every lit surface, grass included; the nearest cabin's fire pit and porch lantern (else its room / hearth)
-    if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < SHARED_CABIN_LIGHTS; k++) this.addSharedLight(LightPool.for(this.lightScene).acquire(0xffa050, 0, 10, 2));
+    if (TIER_CONFIG.sharedCabinLights) for (let k = 0; k < CABIN_LIGHT.count; k++) this.addSharedLight(LightPool.for(this.lightScene).acquire(CABIN_LIGHT.color, CABIN_LIGHT.intensity, CABIN_LIGHT.distance, CABIN_LIGHT.decay));
     if (geometries === null) return { group: this.group, colliders: this.colliders, interactables: this.interactables };
     this.loaded = { mats, props, firePit: firePitGltf.scene, lantern: lanternGltf.scene, geometries };
     const models = { firePit: firePitGltf.scene, lantern: lanternGltf.scene };
-    for (const row of CABIN_ROWS.buildings.filter((r) => !r.hamlet)) {
-      if (this.buildings.length > 0) await macrotask(); // one cabin per task: the whole homestead in one go was a 180 ms long task at 4x CPU
-      const b = new LogBuilding(this, row, geometries, mats, this.sky, models, 'standalone');
-      this.group.add(b.root);
-      if (b.casters !== null) {
-        // desktop: the props' depth goes into this cabin's double-sided near proxy (they cast no shadow of their own)
-        const toRoot = b.root.matrixWorld.clone().invert(), m = new THREE.Matrix4();
-        for (const k of PROP_KINDS) for (const part of props[k]) for (const mat of b.props[k]) b.casters.push(twoSidedPositions(part.geometry, m.multiplyMatrices(toRoot, mat).multiply(part.matrix)));
-      }
-      this.record(b, row.id, row.index, ...row.at, row.rot, false);
-    }
-    this.cabinCount = this.buildings.length;
     const hamlet = CABIN_ROWS.hamlet;
-    if (hamlet !== null) await this.buildHamlet(hamlet, geometries, mats, models);
-    return { group: this.group, colliders: this.colliders, interactables: this.interactables };
-  }
-
-  /** the hamlet's buildings (PH-B3), one per task; their root, at their centre, takes their welded set (`place`) */
-  private async buildHamlet(hamlet: { readonly at: readonly [number, number, number]; readonly pad: number }, geometries: CabinGeometries, mats: Mats, models: { firePit: THREE.Object3D; lantern: THREE.Object3D }): Promise<void> {
-    const root = new THREE.Group();
-    root.name = 'cabin-cluster';
-    root.position.set(...hamlet.at);
-    root.updateMatrixWorld(true);
-    for (const row of CABIN_ROWS.buildings.filter((r) => r.hamlet)) {
-      await macrotask(); // one building per task, as the cabins
-      const b = new LogBuilding(this, row, geometries, mats, this.sky, models, 'member');
-      b.root.name = row.id;
-      this.record(b, row.id, row.index, ...row.at, row.rot, true);
-      this.group.add(b.root);
+    const ordered = [...CABIN_ROWS.buildings.filter(row => !row.hamlet), ...CABIN_ROWS.buildings.filter(row => row.hamlet)];
+    for (const row of ordered) {
+      if (row.hamlet && this.cluster === null) {
+        if (hamlet === null) throw new Error('Hamlet building requires its authored cluster');
+        this.cluster = new THREE.Group(); this.cluster.name = 'cabin-cluster'; this.cluster.position.set(...hamlet.at); this.cluster.updateMatrixWorld(true); this.clusterPad = hamlet.pad;
+      }
+      if (this.buildings.length > 0 || row.hamlet) await macrotask(); // one native building per task, in original role order
+      const b = new LogBuilding(this, row, geometries, mats, this.sky, models, row.hamlet ? 'member' : 'standalone');
+      if (row.hamlet) b.root.name = row.id;
+      else {
+        this.group.add(b.root);
+        if (b.casters !== null) {
+          const toRoot = b.root.matrixWorld.clone().invert(), m = new THREE.Matrix4();
+          for (const k of PROP_KINDS) for (const part of props[k]) for (const mat of b.props[k]) b.casters.push(twoSidedPositions(part.geometry, m.multiplyMatrices(toRoot, mat).multiply(part.matrix)));
+        }
+      }
+      this.record(b, row.id, row.index, ...row.at, row.rot, row.hamlet);
+      if (row.hamlet) this.group.add(b.root);
+      else this.cabinCount++;
     }
-    this.group.add(root);
-    this.cluster = root;
-    this.clusterPad = hamlet.pad;
+    if (this.cluster !== null) this.group.add(this.cluster);
+    return { group: this.group, colliders: this.colliders, interactables: this.interactables };
   }
 
   /** each cabin's own root, in CABIN_SITES order (Explore's catalog shows one at a time) — not the cluster's buildings */
