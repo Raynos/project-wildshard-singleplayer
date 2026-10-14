@@ -173,7 +173,38 @@ export interface ShadowStyle {
 /** a level's fog switched off and back on around an off-screen shot (Explore's map from overhead) */
 export interface FogControl { suspend: () => void; resume: () => void }
 
+/** Material handover after the sky exists, before terrain and kit meshes build. */
+export interface WorldLookContext {
+  readonly renderer: WebGLRenderer;
+  readonly sky: Sky;
+  readonly scope: Scope;
+}
+
+const preparedWorldLooks = new WeakMap<Scope, Map<LookStrategy, Promise<void>>>();
+
+/** Await optional world material preparation once per look and owning scope.
+ * Failure remains rejected; disposed owners never proceed into terrain build. */
+export function prepareWorldLook(look: LookStrategy | null, context: WorldLookContext): Promise<void> {
+  if (look?.prepareWorld === undefined) return Promise.resolve();
+  if (context.scope.disposed) return Promise.reject(new Error('World look preparation requires a live scope'));
+  let prepared = preparedWorldLooks.get(context.scope);
+  if (prepared === undefined) { prepared = new Map(); preparedWorldLooks.set(context.scope, prepared); }
+  let pending = prepared.get(look);
+  if (pending === undefined) {
+    const prepare = look.prepareWorld;
+    pending = Promise.resolve().then(() => prepare(context)).then(() => {
+      if (context.scope.disposed) throw new Error('World left while preparing its look');
+      return undefined;
+    });
+    prepared.set(look, pending);
+  }
+  return pending;
+}
+
 interface LookParts {
+  /** Scoped material compilation/lending, awaited before Terrain.build in
+   * standalone and regional worlds. Absent preserves the existing build order. */
+  prepareWorld?: (context: WorldLookContext) => Promise<void>;
   backdrop?: SkyBackdropFactory;
 
   lighting?: LightingRig;

@@ -5539,3 +5539,17 @@ Graph `objectOrigin` uses the renderer-bound instance matrix for each drawn
 instance. Cull compaction and `instanceMatrix.needsUpdate` therefore update its
 origin with its placement; it allocates no separate origin buffer. Fragment
 reads use a vertex varying. Ordinary meshes keep their model origin.
+
+The lowpolyKit bindLowPolyMaterial(sky, variant, material, scope) API lends a
+material to the existing kit factory. The newest live binding wins for that
+sky and variant; manual unbind or scope disposal restores the previous binding.
+The loan is never patched or disposed. lowPolyMaterial returns Material,
+including node materials; without a loan its classic cache and initializer
+remain unchanged. Meshes already built retain their material.
+
+A look may declare LookStrategy.prepareWorld(context) to compile and lend its
+graph materials before terrain and kit construction. WorldLookContext borrows
+renderer, sky and the existing world scope; lookGraphMaterials accepts this
+context directly. Standalone and regional worlds await preparation once per
+look and scope, after the sky exists and before Terrain.build. Failure or
+disposal refuses construction. With no hook, the old build order remains.

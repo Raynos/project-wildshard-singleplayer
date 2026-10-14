@@ -19,7 +19,7 @@ import { N8AOPostPass } from 'n8ao';
 import { installAoTransparency } from '../render/aoTransparency';
 import { retried } from '../boot/retry';
 import { RegionCinematic } from '../render/regionCinematic';
-import { CINEMATIC_FX, ENGINE_CHAIN_TUNING, type EngineChainKind, type EngineEffects, type LookComposition, type LookStrategy, type ReplaceLook } from '../render/look';
+import { prepareWorldLook, CINEMATIC_FX, ENGINE_CHAIN_TUNING, type EngineChainKind, type EngineEffects, type LookComposition, type LookStrategy, type ReplaceLook } from '../render/look';
 import { resolveTierKnobs, type LevelSpec, type TierKnobs } from '../level/spec';
 import { installAtmosphere } from '../world/Atmosphere';
 import { installFogPatch } from '../render/fogPatches';
@@ -451,6 +451,7 @@ export class Game {
     if (fog !== undefined) installFogPatch(`level.fog.${this.level.id}`, fog.order, fog.install, this.level.id, fog.node);
     this._sky = await new Sky(this.rootScene, this.camera, this.renderer).build(this.lookStrategy, { level: this.level, tier: TIER, look: this.level.lookLayer ?? null }); // its lighting, shadows, backdrop and sky dressing
     this.levelScope.onDispose(() => { this.lookStrategy?.dispose?.(); this.lookStrategy = null; });
+    await prepareWorldLook(this.lookStrategy, { renderer: this.renderer, sky: this._sky, scope: this.levelScope });
     return this._sky;
   }
 

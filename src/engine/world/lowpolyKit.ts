@@ -17,6 +17,7 @@
  * Per face, not per vertex, so it keeps the faceted look. ~5–20 ms for a 10k-tri model, once at build.
  */
 import * as THREE from 'three';
+import type { Scope } from '../app/scope';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Rng } from '../core/rng';
 import type { SkyRig as Sky } from './skyRig';
@@ -354,6 +355,23 @@ export function bakeLight(geo: THREE.BufferGeometry, lights: BakedLight[]): void
 // ── material ──────────────────────────────────────────────────────────────────────────────────────
 
 const materials = new WeakMap<Sky, Map<string, THREE.MeshStandardMaterial>>();
+const borrowedMaterials = new WeakMap<Sky, Map<string, { readonly material: THREE.Material }[]>>();
+
+/** Bind a borrowed kit material while scope lives. Newest live binding wins;
+ * the loan is never patched or disposed. Existing meshes retain their material.
+ * Unbind restores the preceding binding for this sky and variant. */
+export function bindLowPolyMaterial(sky: Sky, variant: string, material: THREE.Material, scope: Scope): () => void {
+  if (scope.disposed || variant.length === 0) throw new Error('Kit material binding requires a live scope and named variant');
+  let variants = borrowedMaterials.get(sky);
+  if (variants === undefined) { variants = new Map(); borrowedMaterials.set(sky, variants); }
+  const bindings = variants, stack = bindings.get(variant) ?? [], entry = { material };
+  stack.push(entry); bindings.set(variant, stack);
+  const unbind = (): void => {
+    const at = stack.indexOf(entry); if (at === -1) return;
+    stack.splice(at, 1); if (stack.length === 0) bindings.delete(variant);
+  };
+  scope.onDispose(unbind); return unbind;
+}
 
 const SHADOW_NORMAL = 'vec3 shadowWorldNormal = transformNormalByInverseViewMatrix( transformedNormal, viewMatrix );';
 
@@ -382,7 +400,9 @@ function patchShadowNormal(shader: { uniforms: Record<string, THREE.IUniform>; v
  * program and the scene pays one material state). `variant` keys an extra copy (e.g. 'glow' with an
  * emissive), everything else should take the default.
  */
-export function lowPolyMaterial(sky: Sky, variant = 'default', init?: (m: THREE.MeshStandardMaterial) => void): THREE.MeshStandardMaterial {
+export function lowPolyMaterial(sky: Sky, variant = 'default', init?: (m: THREE.MeshStandardMaterial) => void): THREE.Material {
+  const borrowed = borrowedMaterials.get(sky)?.get(variant)?.at(-1);
+  if (borrowed !== undefined) return borrowed.material;
   let bySky = materials.get(sky);
   if (!bySky) { bySky = new Map(); materials.set(sky, bySky); }
   let m = bySky.get(variant);

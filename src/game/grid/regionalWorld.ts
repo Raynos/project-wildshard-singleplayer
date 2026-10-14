@@ -50,7 +50,7 @@ import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService
 import { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { LevelFrameBinding, type LevelFrameOptions } from '@wildshard/engine/level/frame';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
-import type { LookStrategy } from '@wildshard/engine/render/look';
+import { prepareWorldLook, type LookStrategy } from '@wildshard/engine/render/look';
 import { compileOffscreenPass } from '@wildshard/engine/render/precompile';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
 import { addTerrain, resampleTerrain } from '@wildshard/engine/physics/terrain';
@@ -260,6 +260,7 @@ export function createRegionalWorldFoundation(ports: RegionalWorldPorts): (reque
       ports.install?.(host, request);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its collision');
+      await prepareWorldLook(levelLook, { renderer: game.renderer, sky, scope: resident });
       const terrain = ports.terrain === undefined ? await regionalTerrain(level, resident, frame.terrain, levelLook) : await ports.terrain(level, resident, frame.terrain);
       await ports.pause();
       if (left()) throw new Error('Regional world left while building its terrain');

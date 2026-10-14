@@ -49,7 +49,7 @@ export interface RockOpts {
 
 /** the rocks' material: a smooth-shaded copy of the shared low-poly program (the rocks carry their own smooth normals,
  * so they don't merge into a flat-shaded LowPolyKit) */
-export function rockMaterial(sky: Sky): THREE.MeshStandardMaterial {
+export function rockMaterial(sky: Sky): THREE.Material {
   return lowPolyMaterial(sky, 'rock-smooth', (m) => { m.flatShading = false; m.roughness = 0.82; });
 }
 
