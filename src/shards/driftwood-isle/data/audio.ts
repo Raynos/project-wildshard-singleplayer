@@ -9,7 +9,12 @@ import { parseAudioData } from '@wildshard/sdk/audio';
 const enemies = ['boar', 'crab', 'monkey', 'sailor'] as const;
 const death = enemies.map((kind) => ({ voice: `island.kill.${kind}`, overrides: { gain: 1.3 }, when: [{ op: 'equals', field: 'killed', value: true }, { op: 'equals', field: 'kind', value: kind }] }));
 /** Today's island bank calls, in their original mixer/combat order; the trusted recipes keep their taps and random draws. */
-export const DRIFTWOOD_AUDIO = parseAudioData({ loopGraphs:{shrine:[
+export const DRIFTWOOD_AUDIO = parseAudioData({ surfaces:{fallback:'sand',rules:[
+    {kind:'floor',source:'decks',tolerance:0.45,surface:'planks'},{kind:'floor',source:'stone',tolerance:0.45,surface:'stone'},
+    {kind:'value',source:'height',op:'lt',threshold:0.02,surface:'water'},
+    {kind:'value',source:'slope',op:'gt',threshold:0.32,surface:'rock'},
+    {kind:'value',source:'height',op:'lt',threshold:0.45,surface:'wetSand'},
+    {kind:'value',source:'height',op:'gt',threshold:3.35,surface:'grass',when:['not',['lt','trail',3.3]]}]}, loopGraphs:{shrine:[
     {kind:'filter',id:'lp',type:'lowpass',frequency:480,q:0.6},{kind:'connect',from:'lp',to:'out'},
     {kind:'oscillator',id:'d2',type:'sine',frequency:0,midi:38,detune:0},{kind:'gain',id:'g1',value:0.55},{kind:'connect',from:'d2',to:'g1'},{kind:'connect',from:'g1',to:'lp'},{kind:'start',id:'d2'},
     {kind:'oscillator',id:'d3',type:'sine',frequency:0,midi:50,detune:4},{kind:'gain',id:'g2',value:0.16},{kind:'connect',from:'d3',to:'g2'},{kind:'connect',from:'g2',to:'lp'},{kind:'start',id:'d3'},

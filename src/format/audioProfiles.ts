@@ -246,3 +246,11 @@ export const AudioLoopGraphSchema=v.pipe(v.array(v.variant('kind',[
   v.strictObject({kind:v.literal('start'),id})
 ])),v.maxLength(64));
 export type AudioLoopGraph=v.InferOutput<typeof AudioLoopGraphSchema>;
+
+/** Ordered footstep probes over actual floors and terrain; queries remain lazy and native. */
+export const AudioSurfaceSchema = v.strictObject({ fallback:id, rules:v.pipe(v.array(v.variant('kind',[
+  v.strictObject({kind:v.literal('floor'),source:id,tolerance:v.pipe(finite,v.minValue(0),v.maxValue(10)),surface:id}),
+  v.strictObject({kind:v.literal('value'),source:id,op:v.picklist(['lt','gt']),threshold:finite,surface:id,when:v.exactOptional(mixExpr)}),
+  v.strictObject({kind:v.literal('circle'),source:id,padding:finite,surface:id})
+])),v.maxLength(32)) });
+export type AudioSurfaceRecipe = v.InferOutput<typeof AudioSurfaceSchema>;

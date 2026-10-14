@@ -1,10 +1,10 @@
-import type { AudioLoopGraph } from '@wildshard/format/audioProfiles';
+import type { AudioSurfaceRecipe, AudioLoopGraph } from '@wildshard/format/audioProfiles';
 import { SynthBeds } from './synth';
 import { AmbienceZones } from './ambience';
 import { resourceScope } from '../app/resources';
 import { loopAt, audioRandom, panFromYaw } from './util';
 import { PlayerVoices } from './playerVoices';
-import type { StepSurface } from './surface';
+import { AudioSurfaceMap, type AudioSurfacePorts, type StepSurface } from './surface';
 import { ownAudioSource } from './ownership';
 import { currentOwner } from '../app/ownership';
 import { tap, ambientTick } from '../core/harnessTap';
@@ -102,6 +102,9 @@ interface Graph { ctx: AudioContext; master: GainNode; world: GainNode; sfx: Gai
 // this one context; iOS unlocks a context once, and a parked shard's graph is simply cut from the speakers, see `park`).
 
 export class Audio extends PlayerVoices {
+  /** Bind declared step surfaces to the real terrain/floor owners without another audio clock. */
+  surfaceMap<T extends string>(recipe:AudioSurfaceRecipe,names:readonly T[],ports:AudioSurfacePorts):AudioSurfaceMap<T> {return new AudioSurfaceMap(recipe,names,ports);}
+
   private readonly scope = resourceScope().child('Audio');
   listenerYaw = 0;
   listenerPosition: Vector3 | null = null;

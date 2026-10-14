@@ -4,7 +4,11 @@ import { PINE_AUDIO_ZONES, PINE_AUDIO_MIX, PINE_AUDIO_NODES } from './audioZones
 import { PINE_AUDIO_SAMPLES } from './runtimeCost';
 
 /** Existing forest samples, score/boss slots, scoped rifle echo and authored ambience zones. */
-export const PINE_AUDIO = parseAudioData({ observations:[{
+export const PINE_AUDIO = parseAudioData({ surfaces:{fallback:'litter',rules:[
+  {kind:'floor',source:'cabins',tolerance:0.45,surface:'planks'},
+  {kind:'value',source:'rain',op:'gt',threshold:0.3,surface:'wet'},
+  {kind:'circle',source:'pond',padding:3.5,surface:'mud'},
+  {kind:'value',source:'slope',op:'gt',threshold:0.32,surface:'rock'}]}, observations:[{
   id:'audio',inputs:[
     {id:'hasClock',source:'clock',path:[],op:'present'},{id:'night',source:'clock',path:['night'],op:'number',fallback:0},
     {id:'pinned',source:'pinned',path:[],op:'truth'},{id:'boss',source:'score',path:['sceneName'],op:'equals',value:'boss'},

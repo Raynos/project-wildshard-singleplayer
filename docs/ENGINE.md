@@ -1426,6 +1426,12 @@ A door is a piece whose `active()` is false while it is open, plus an `Interacta
 
 ## 15. Audio
 
+`audio.surfaces` declares ordered floor, scalar and circle probes with a
+fallback surface. `Audio.surfaceMap(recipe, names, ports)` binds those rows
+to actual floors, terrain, weather and optional points. Floors use the
+specified feet tolerance; height and slope are queried only when reached,
+and the first matching rule wins. Pine and Driftwood use the same host.
+
 | Export | What it is |
 |---|---|
 | `Audio`, `StepSurface`, `AnimalSound`, `HoofSurface`, `ImpactKind` | the engine mixer (`runtime.play.audio`, a port while S3.5 finishes) |

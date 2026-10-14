@@ -67,7 +67,6 @@ const DEFAULT_PROFILE = requireAudioProfile(source.audio.zones, 'ambience.pine')
 
 /** a cabin's inside: its floor, and within the smallest cabin's half-width of the site along the door axis (the porch is past it) */
 const CABIN_HALF_W = 2.45;
-const ROCK_SLOPE = 0.32;
 const FOREST_ZONES = ['hollow','pond','cabin','creek','waterfall','mill','ridge','oldgrowth','cave'] as const;
 const ROOMS = ['cabin','den','oldgrowth','bowl'] as const;
 const SPOT_KEYS = ['creek','waterfall','mill','ridge','oldgrowth','cave'] as const;
@@ -77,6 +76,7 @@ const SPOT_KEYS = ['creek','waterfall','mill','ridge','oldgrowth','cave'] as con
 export class ForestAmbience {
   private readonly scope: Scope;
   private readonly routing: AmbienceMix;
+  private readonly surfaces:{surfaceAt:(x:number,z:number,y:number)=>StepSurface};
   private readonly bedNames = new Map<string,PhBed>(PH_BEDS.map(name=>[name,name] as const));
   private readonly roomNames = new Map<string,Room>(ROOMS.map(name=>[name,name] as const));
   private readonly zoneNames = new Map<string,ForestZone>(FOREST_ZONES.map(name=>[name,name] as const));
@@ -100,6 +100,7 @@ export class ForestAmbience {
   constructor(audio: Audio, private readonly o: ForestAmbienceOpts, profile: AudioZoneProfile = DEFAULT_PROFILE) {
     this.scope = (o.scope ?? resourceScope()).child('ForestAmbience');
     this.sfx = new PineHollowSfx(audio);
+    this.surfaces=audio.surfaceMap(requireAudioProfile(source.audio.surfaces,'forest step surfaces'),['planks','wet','mud','rock','litter'] as const,{heightAt:o.heightAt,floors:{cabins:[o.cabins]},values:{rain:()=>this.rain},circles:{pond:()=>hasPond()?POND:undefined}});
     this.spots = [...(o.spots ?? [])];
     this.routing = new AmbienceMix(audio,profile,{
       random:audioRandom,scope:this.scope,...(o.scope===undefined?{}:{zoneScope:this.scope}),heightAt:o.heightAt,sea:0,
@@ -178,13 +179,7 @@ export class ForestAmbience {
 
   /** what the player's boots are on (Player.onStep → audio.footstep(sprinting, amb.stepSurface(x, z, y))) */
   stepSurface(x: number, z: number, feetY: number): StepSurface {
-    const f = this.o.cabins?.floorHeightAt(x, z);
-    if (f !== undefined && Math.abs(feetY - f) < 0.45) return 'planks';
-    if (this.rain > 0.3) return 'wet';
-    if (hasPond() && Math.hypot(x - POND.x, z - POND.z) < POND.r + 3.5) return 'mud';
-    const H = this.o.heightAt, e = 1.0;
-    const dx = (H(x + e, z) - H(x - e, z)) / (2 * e), dz = (H(x, z + e) - H(x, z - e)) / (2 * e);
-    return 1 - 1 / Math.sqrt(1 + dx * dx + dz * dz) > ROCK_SLOPE ? 'rock' : 'litter';
+    return this.surfaces.surfaceAt(x,z,feetY);
   }
 
   /** head under / over the pond's surface: the beds and sends drop while under */
