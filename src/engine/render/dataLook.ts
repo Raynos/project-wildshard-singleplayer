@@ -425,11 +425,14 @@ function paintedStripSky(row: PaintedStripRow, strips: readonly [THREE.Texture, 
 
 /**
  * A painted look's sky: a dome over a heading strip (`dome`, its haze `haze` patched into every world material, reading
- * the same strip), or two painted strips (`strips`, decoded by `load`) on a sphere that stands in the fog's colour until
- * they load (a strip that fails to load is a page fault: the stand-in stays).
+ * the same strip; `graph`, when given, is the dome's material as an SF59 graph, compiled with the backdrop on the page's
+ * renderer like the dressing's, from the heading strip; the dome's own material stands in until then), or two painted
+ * strips (`strips`, decoded by `load`) on a sphere that stands in the fog's colour until they load (a strip that fails to
+ * load is a page fault: the stand-in stays).
  */
 export type PaintedSkySpec =
-  | { readonly haze: HeadingHazeRow; readonly dome: (strip: THREE.Texture) => THREE.Mesh<THREE.BufferGeometry, THREE.Material> }
+  | { readonly haze: HeadingHazeRow; readonly dome: (strip: THREE.Texture) => THREE.Mesh<THREE.BufferGeometry, THREE.Material>
+    readonly graph?: (strip: THREE.Texture) => { readonly ir: GraphIr; readonly textures: (ref: string) => THREE.Texture } }
   | { readonly strips: PaintedStripRow; readonly load: PaintedLoad };
 
 /**
@@ -504,17 +507,17 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
   };
   // a painted-strip sky stands in from the start (its strips load with the backdrop)
   if (!('haze' in skySpec)) makeSky();
-  // the dressing is built once, by the backdrop (it has the page's renderer, and runs before the compose on a page)
-  let building: Promise<BuiltDressing | null> | null = null;
+  // the dressing and a graph dome are built once, by the backdrop (it has the page's renderer, and runs before the compose)
+  const graphOn = (renderer: THREE.WebGLRenderer): PaintedDressingContext['graph'] => async (ir, textures) => {
+    const { compileGraph } = await loadGraphCompiler(renderer);
+    return compileGraph(ir, textures === undefined ? {} : { textures }).material;
+  };
+  let building: Promise<BuiltDressing | null> | null = null, domeGraph: Promise<void> | null = null;
   const makeDressing = (renderer: THREE.WebGLRenderer): Promise<BuiltDressing | null> => {
     const build = spec.dressing;
     if (build === undefined) return Promise.resolve(null);
     building ??= (async () => {
-      const graph: PaintedDressingContext['graph'] = async (ir, textures) => {
-        const { compileGraph } = await loadGraphCompiler(renderer);
-        return compileGraph(ir, textures === undefined ? {} : { textures }).material;
-      };
-      const own = await build({ graph }), meshes = new Set<THREE.Object3D>(); own.group.traverse((node) => { meshes.add(node); });
+      const own = await build({ graph: graphOn(renderer) }), meshes = new Set<THREE.Object3D>(); own.group.traverse((node) => { meshes.add(node); });
       for (const texture of own.textures) pending.add(texture);
       const built: BuiltDressing = { own, meshes };
       dressing = built;
@@ -566,7 +569,15 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
     ...(haze === null ? {} : { worldPatch }),
     sky: { clouds: false, planet: false, sun: { disc: false, halo: false, ...rays } },
     backdrop: async ({ sky: rig, renderer }) => {
-      const own = sky ?? makeSky();
+      const own = sky ?? makeSky(), strip = own.strip;
+      if ('haze' in skySpec && skySpec.graph !== undefined && strip !== null) {
+        const made = skySpec.graph(strip);
+        domeGraph ??= (async () => {
+          const material = await graphOn(renderer)(made.ir, made.textures), standIn = own.dome.material;
+          own.dome.material = material; standIn.dispose();
+        })();
+        await domeGraph;
+      }
       if ('strips' in skySpec) {
         const strips = await loadPaintedStrips(skySpec.strips, skySpec.load);
         if (strips !== null) {

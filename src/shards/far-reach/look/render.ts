@@ -3,7 +3,7 @@ import { loadLUT } from '@wildshard/engine/boot/bakedApi';
 import { paintedLook, type PaintedDressing, type PaintedDressingContext } from '@wildshard/engine/render/dataLook';
 import type { LookStrategy } from '@wildshard/engine/render/look';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
-import { loadPanorama, skyDome } from './sky';
+import { loadPanorama, skyDome, skyDomeMaterial } from './sky';
 import { discLayer } from '../runtime/looks/discLayer';
 import { SEA_DISCS, SEA_LAYERS, paintedMaelstromGraph, paintedSeaGraph } from '../data/cloudSeaLook';
 import { cardGroup } from '@wildshard/sdk/looks/cardField';
@@ -44,7 +44,10 @@ export async function skyReachLook(): Promise<LookStrategy> {
     return { group, textures: [], update: () => undefined };
   };
   const textures = [pano, cloudAtlas, seaPaint, vortex].filter((texture): texture is Texture => texture !== null);
-  return paintedLook({ textures, sky: { haze: { ...SKY_HAZE, ...SKY_FOG, strip: PANO_FOG_SRGB }, dome: (strip) => skyDome(pano, strip) }, dressing,
+  // decoded flipped already (ImageBitmaps): unflagged, so the graphs' node sampler reads them as the GLSL did, with or
+  // without the bitmap (a flagged one is flipped again until the Memory saver drops it: upside-down puffs, look/sky.ts)
+  for (const texture of textures) texture.flipY = false;
+  return paintedLook({ textures, sky: { haze: { ...SKY_HAZE, ...SKY_FOG, strip: PANO_FOG_SRGB }, dome: skyDome, graph: (strip) => skyDomeMaterial(pano, strip) }, dressing,
     light: SKY_PAINTER_LIGHT, sun: { ...SKY_KEY, dir: SUN_DIR }, fog: { color: SKY.fog, near: SKY_FOG.near, far: SKY_FOG.far }, horizon: SKY.horizon,
     neutral: true, rays: SKY_RAYS, clock: () => new DayCycle(SKY_DAY), lut: () => loadLUT('far-reach') });
 }
