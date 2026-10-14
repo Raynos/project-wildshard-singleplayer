@@ -5225,3 +5225,12 @@ Transitions preserve ordered automatic/explicit flags, physical door toggles,
 chest grants, plate release, walk-in pickups and latched doors. The caller keeps
 reach, sight, physics phases and its existing save owner. Direct touch grants
 and graph touch actions are explicit policies; no new clock or save is created.
+
+### Authored quest notices
+
+`engine/quest/core.ts` defines `QuestMessageRows`, `QuestMessagePorts` and
+`questMessageHandlers`. Bounded notice prefixes and an optional first-step id
+produce existing quest text; transition order is toast, sting, borrowed beat.
+`game/plugin/ui.ts`'s `QuestPresentationOptions.messages` consumes these rows.
+Its optional `afterStep` preserves caller-owned dawn/stage timing. No quest,
+flag or save is created by the message handlers; existing options are unchanged.

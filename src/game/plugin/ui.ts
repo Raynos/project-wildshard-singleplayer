@@ -16,7 +16,7 @@ import type { MapMark } from '@wildshard/engine/ui/Minimap';
 import { Flags, flagValue, test as testFlags } from '@wildshard/engine/world/interact/flags';
 import type { MoverPose } from '@wildshard/engine/physics/mover';
 import type { Place, Interactable } from '@wildshard/engine/world/interact/types';
-import { QuestState, type QuestDef, type QuestStep, type NpcDef } from '@wildshard/engine/quest/core';
+import { questMessageHandlers, type QuestMessageRows, QuestState, type QuestDef, type QuestStep, type NpcDef } from '@wildshard/engine/quest/core';
 import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places, type NpcTalkOpts } from '@wildshard/engine/quest/view';
 import { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { InteractionRules } from '../quest/interactionRows';
@@ -305,6 +305,9 @@ export interface QuestPresentationOptions {
   places?: PlacePoint[];
   reward?: QuestRewardSpec | false;
   /** Existing adventures can retain their authored beat strings and leftovers. */
+  messages?: QuestMessageRows;
+  /** A borrowed page beat follows the sting, without owning a cursor or save. */
+  afterStep?: (step: QuestStep | null) => void;
   stepToast?: (step: QuestStep, previous: QuestStep | null, quest: QuestState) => string;
   stepCompleteToast?: false | ((step: QuestStep) => string);
   completeToast?: (quest: QuestState) => string;
@@ -360,6 +363,8 @@ export interface QuestPresentationContext {
 
 /** Shared wiring for older adventures that own their frame order. New shards use installQuestPresentation. */
 export function presentQuest(host: QuestPresentationHost, quest: QuestState, options: QuestPresentationOptions = {}): QuestPresentation {
+  const messages=options.messages===undefined?null:questMessageHandlers(quest,options.messages,{toast:host.toast,sting:host.sting,
+    ...(options.afterStep===undefined?{}:{afterStep:options.afterStep})});
   const scope = host.scope.child(`quest.${quest.def.id}`);
   const resolve = options.place ?? ((at: Place) => {
     if (at.poi !== 'world' || at.anchor !== undefined) throw new Error('Quest POI markers require a place resolver');
@@ -373,10 +378,11 @@ export function presentQuest(host: QuestPresentationHost, quest: QuestState, opt
   scope.onDispose(() => { chip.line.scope.dispose(); });
   const onStep: NonNullable<QuestState['onStep']> = (step, prev) => {
     if (prev && typeof options.stepCompleteToast === 'function') host.toast(options.stepCompleteToast(prev));
+    if(messages!==null){messages.step(step,prev);return;}
     if (step) host.toast(options.stepToast?.(step, prev, quest) ?? (prev === null ? `New quest · ${quest.def.title}` : `Objective · ${quest.objective()}`));
-    host.sting();
+    host.sting();options.afterStep?.(step);
   };
-  const onComplete = (): void => { host.toast(options.completeToast?.(quest) ?? `Quest complete · ${quest.def.title}`); };
+  const onComplete = (): void => { if(messages!==null)messages.complete();else host.toast(options.completeToast?.(quest) ?? `Quest complete · ${quest.def.title}`); };
   scope.onDispose(quest.observe({ step: onStep, complete: onComplete }));
   const card = (): MapQuest => ({ title: quest.isStarted ? quest.def.title : options.introTitle ?? quest.def.title, objective: quest.objective(), hint: quest.isComplete ? '' : quest.hint() });
   if (host.fullMap?.addQuest) scope.onDispose(host.fullMap.addQuest(card));

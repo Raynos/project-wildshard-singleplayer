@@ -19,6 +19,7 @@ import { bindRuntimeQuest, type RuntimeFacts } from '@wildshard/game/shardfile/h
 import source from '../shard.config';
 import { DRIFTWOOD_MARKERS } from '../data/quests';
 import { presentQuest } from '@wildshard/game/quest/presentation';
+import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { CASTAWAY, DRIFTWOOD_QUEST } from '../data/questStory';
 import type { Castaway } from '../npc/Castaway';
 import { castawayRig } from './people';
@@ -54,10 +55,9 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   const presentation = presentQuest({ scope: w.scope ?? app.levelScope ?? app.engineScope, player: w.player,
     toast: (text) => { w.hud.toast(text); }, sting: () => { w.music.sting('chunk'); },
     ...(w.fullMap === undefined ? {} : { fullMap: w.fullMap }) }, quest, {
-    place, introTitle: 'Driftwood Isle', worldPins: false, mapMarkers: false, minimapMarks: false,
+    place, ...QUEST_PRESENTATION,
     chip: () => { const l = leftovers(); return l === null ? quest.chip() : { label: l.length > 0 ? 'Still to find' : '', count: '' }; },
     markers: () => leftovers() ?? presentation.markers(),
-    stepToast: (step, prev) => prev === null && step.id === 'shards' ? `New quest · ${DRIFTWOOD_QUEST.title}` : `Objective · ${quest.objective()}`,
   });
   const { chip, markers } = presentation;
   const objective = chip.line;

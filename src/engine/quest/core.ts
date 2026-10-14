@@ -185,3 +185,21 @@ export class QuestLine {
   number(q: QuestState): number { return this.chapters.indexOf(q) + 1; }
   dispose(): void { for (const q of this.chapters) q.dispose(); }
 }
+
+/** Authored quest notice prefixes; an optional first-step id selects the introductory notice. */
+export interface QuestMessageRows { readonly firstStep?:string;readonly started:string;readonly objective:string;readonly completed:string }
+/** Caller-owned presentation effects and an optional beat after the transition sting. */
+export interface QuestMessagePorts {readonly toast:(text:string)=>void;readonly sting:()=>void;readonly afterStep?:(step:QuestStep|null)=>void}
+/** Preflight authored notices without observing or owning quest state. The caller keeps its original phase. */
+export function questMessageHandlers(quest:QuestState,rows:QuestMessageRows,ports:QuestMessagePorts):{
+  step:(step:QuestStep|null,previous:QuestStep|null)=>void;complete:()=>void;
+} {
+  const valid=(value:unknown):boolean=>typeof value==='string'&&value.length<=8192;
+  if(!valid(rows.started)||!valid(rows.objective)||!valid(rows.completed)
+    ||(rows.firstStep!==undefined&&!quest.def.steps.some(step=>step.id===rows.firstStep)))throw new Error('Invalid quest message rows');
+  return {step:(step,previous)=>{
+    if(step!==null)ports.toast(previous===null&&(rows.firstStep===undefined||step.id===rows.firstStep)
+      ?rows.started+quest.def.title:rows.objective+quest.objective());
+    ports.sting();ports.afterStep?.(step);
+  },complete:()=>{ports.toast(rows.completed+quest.def.title);}};
+}

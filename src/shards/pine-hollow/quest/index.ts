@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { interactionRules } from '@wildshard/sdk/interactions';
+import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { PINE_KIT_EVENTS } from '../data/questEvents';
 import { pineQuestRows } from './graph';
 import { PINE_LANTERN_IDS, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES } from '../data/interactions';
@@ -26,7 +27,6 @@ import type { Place, Interactable } from '@wildshard/engine/world/interact/types
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import type { CompendiumState } from '@wildshard/game/compendium/state';
 import type { SkinLocker } from '@wildshard/game/cosmetics/locker';
 import type { Inventory, ItemId } from '@wildshard/game/Inventory';
 import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
@@ -67,7 +67,7 @@ import { hamletRoofs } from '../world/cabinBake';
 import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../data/layout';
 import { KING_KIND } from '../runtime/antlerKing';
 import { RANGER, MILLER, TRADER } from './wardensHollow';
-import { WARDENS_HOLLOW, QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
+import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
 import { pineTable, type Spot } from './table';
 import { makeNpcFigure, type NpcFigure, type NpcKind } from '../models/people';
 import { preloadNpcModels } from './npcModels';
@@ -105,7 +105,7 @@ export interface PineQuestHost {
   landmarks: PineLandmarks | null;
   trees: readonly TreeInstance[];
   fullMap: FullMap;
-  compendium: CompendiumState | null;
+  compendium: { readonly def: { readonly entries: readonly { readonly id: string }[] }; stats: (id: string) => { readonly state: string } } | null;
   chunkId: string;
   params: URLSearchParams;
   touchUi: () => boolean;
@@ -124,13 +124,13 @@ const _v = new THREE.Vector3();
 /** `deps`: the people's preload and the quest UI's loader (the page's by default; a test passes its own) */
 /** the quest views, loaded after the NPC models (`deps.loadQuest` lets a test fail it) */
 async function loadQuest() {
-  const [{ QuestChip, NpcTalk }, { DialogueBox, RewardCaption }] = await Promise.all([import('@wildshard/engine/quest/view'), import('@wildshard/engine/quest/view/ui')]);
-  return { QuestChip, NpcTalk, DialogueBox, RewardCaption };
+  const [{ NpcTalk }, { DialogueBox, RewardCaption }, { presentQuest }] = await Promise.all([import('@wildshard/engine/quest/view'), import('@wildshard/engine/quest/view/ui'), import('@wildshard/game/plugin/ui')]);
+  return { presentQuest, NpcTalk, DialogueBox, RewardCaption };
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
   await (deps.preload ?? preloadNpcModels)();
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
-  const { DialogueBox, QuestChip, NpcTalk, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
+  const { DialogueBox, presentQuest, NpcTalk, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
   const { ctx } = h;
   const { game, sky, player, animals, hud, inventory, progress } = h;
   const flags = new Flags(h.chunkId);
@@ -474,7 +474,9 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   });
 
   // ── the clock: Hale's watch till dark, the dawn ──
-  const questChip = new QuestChip({ chip: () => quest.chip(), markers: () => quest.markers().map((m) => ({ id: m.id, label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z })) });
+  const presentation=presentQuest({scope:ctx.scope,player,fullMap:{setQuest:h.fullMap.setQuest.bind(h.fullMap)},toast:text=>{hud.toast(text);},sting:()=>{h.music.sting('chunk');}},quest,
+    {...QUEST_PRESENTATION,afterStep:step=>{if(step?.id==='dawn')runDawn();}});
+  const questChip=presentation.chip;
   const objective = questChip.line;
   const reward = new RewardCaption('Dawn over the Hollow', "The Warden's Hollow", 'Every lantern burns. The fog is going home.');
   ui.retainRoot(objective.root, () => { objective.hide(false); });
@@ -505,17 +507,9 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     if (f === 'wait:night') clock.night();
     if (f.startsWith('lit:')) syncLanterns();
   }));
-  const runDawn = (): void => { clock.dawn(); };
+  function runDawn():void { clock.dawn(); }
 
   // ── the quest ──
-  h.fullMap.setQuest(() => ({ title: quest.isStarted ? WARDENS_HOLLOW.title : 'Pine Hollow', objective: quest.objective(), hint: quest.isComplete ? '' : quest.hint() }));
-  quest.onStep = (step, prev) => {
-    if (prev === null && step?.id === 'pond') hud.toast(`New quest · ${WARDENS_HOLLOW.title}`);
-    else if (step) hud.toast(`Objective · ${quest.objective()}`);
-    h.music.sting('chunk');
-    if (step?.id === 'dawn') runDawn();
-  };
-  quest.onComplete = () => { hud.toast(`Quest complete · ${WARDENS_HOLLOW.title}`); };
 
   // ── the stag ──
   const stag = new StagLead(game.scene, animals);
