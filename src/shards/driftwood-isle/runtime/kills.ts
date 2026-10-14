@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type { SimHost } from '@wildshard/engine/sim';
-import type { AchievementDef } from '@wildshard/game/achievements';
+import { createAchievementCounters, type AchievementDef } from '@wildshard/game/achievements';
 
 /** The kill feats' fixed-step adapter id (their counts are continuation). */
 export const KILLS_STEP = 'driftwood.kills';
@@ -20,23 +20,22 @@ const count = v.pipe(v.number(), v.integer(), v.minValue(0));
  * page starts from the profile's ledger) and are exact continuation.
  */
 export function installDriftwoodKills(host: SimHost, feats: readonly AchievementDef[], roster: () => readonly KilledBody[], fact: (name: string, entity: string) => void): { readonly count: (id: string) => number } {
-  const kills = feats.filter(feat => feat.kind !== undefined), counts = new Map(kills.map(feat => [feat.id, 0]));
+  const kills = feats.filter(feat => feat.kind !== undefined);
+  let counts: Record<string, number> = Object.fromEntries(kills.map(feat => [feat.id, 0]));
+  const counter = createAchievementCounters({ feats: kills.map(feat => { if (feat.kind === undefined) throw new Error("Missing kill feat kind"); return { id: feat.id, count: feat.count, kind: feat.kind }; }),
+    prefix: 'driftwood.', floorTotals: false, validateTotals: true, write: 'each' },
+    { read: () => counts, write: current => { counts = current; }, emit: fact });
   const Saved = v.strictObject(Object.fromEntries(kills.map(feat => [feat.id, v.pipe(count, v.maxValue(feat.count))])));
   host.events.on('actor.died', ({ actor }) => {
     const body = roster().find(b => b.actor?.combatActor() === actor);
     if (body === undefined) return;
     if (body.kind === 'sailor') host.flags.set(SAILOR_DEAD_FLAG);
-    kills.forEach(feat => {
-      const n = counts.get(feat.id) ?? 0;
-      if (feat.kind !== body.kind || n >= feat.count) return;
-      counts.set(feat.id, n + 1);
-      fact(`driftwood.${feat.id}`, `${feat.id}:${String(n + 1)}`);
-    });
+    counter.kill(body.kind);
   }, host.scope);
   // the counts change only on a death: the step carries them as continuation and does nothing per tick
   host.onStep(KILLS_STEP, () => undefined, {
-    snapshot: () => Object.fromEntries(counts),
-    restore: value => { const saved = v.parse(Saved, value); kills.forEach(feat => { counts.set(feat.id, saved[feat.id] ?? 0); }); },
+    snapshot: () => ({ ...counts }),
+    restore: value => { counts = v.parse(Saved, value); },
   });
-  return { count: id => counts.get(id) ?? 0 };
+  return { count: id => counts[id] ?? 0 };
 }
