@@ -41,7 +41,6 @@ export class FacetedSky {
     uCloudLit: { value: THREE.Color }; uCloudShade: { value: THREE.Color }; uNight: { value: number }; uSunDir: { value: THREE.Vector3 };
   };
   /** the PMREM scene's copy of the dome material (the owner frees it) */
-  envMaterial: THREE.Material | null = null;
   private looks: FacetedSkyLooks | null = null;
   private readonly out: number[] = [0, 0, 0];
 
@@ -90,9 +89,8 @@ export class FacetedSky {
     this.dome = new THREE.Mesh(new THREE.SphereGeometry(2200, 48, 24), this.adoptLooks(looks));
     this.dome.frustumCulled = false;
     this.dome.renderOrder = -20;
-    // the PMREM scene draws the dome's twin (the same graph and params): one node material drawn into both scenes lost its
-    // uniform blocks on every environment refresh and the dome drew black through the post chain
-    this.envScene.add(new THREE.Mesh(this.dome.geometry, this.envMaterial = looks.dome.clone()));
+    // The node handler keeps the main/composer and environment programs' uniforms paired.
+    this.envScene.add(new THREE.Mesh(this.dome.geometry, looks.dome));
 
     this.clouds = new THREE.Mesh(buildCumulus(this.seed), looks.clouds);
     this.clouds.frustumCulled = false;

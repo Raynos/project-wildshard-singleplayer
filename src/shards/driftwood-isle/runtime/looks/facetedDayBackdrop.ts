@@ -171,7 +171,6 @@ export function facetedDayBackdrop(spec: FacetedDayBackdropSpec): SkyBackdropFac
     sky.sunDir.copy(startSun);
     const st = new FacetedSky(sky.sunDir, spec.sky.palette, spec.sky.seed).build({ dome: material(ids.dome), clouds: material(ids.clouds),
       setParam: (part, name, value) => { looks.setParam(part === 'dome' ? ids.dome : ids.clouds, name, value); } });
-    owner.onDispose(() => { st.envMaterial?.dispose(); });
     scene.add(st.dome);
     scene.background = null;
     const envSource: SkyEnvironmentSource = { kind: 'scene', scene: st.envScene, size: envSize, near: 1, far: 3000 };
