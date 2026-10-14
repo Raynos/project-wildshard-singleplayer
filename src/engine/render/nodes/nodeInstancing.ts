@@ -1,7 +1,7 @@
 /** Node graphs use the classic renderer's per-object instance attributes.
  * Their names and layout are independent of instance count and material. */
 import { InstancedMesh, type Object3D } from 'three';
-import { Node, type NodeMaterial } from 'three/webgpu';
+import { Node, type NodeBuilder, type NodeMaterial } from 'three/webgpu';
 import { Fn, nodeObject, normalLocal, positionLocal, subBuild, transformNormal, varyingProperty } from 'three/tsl';
 
 /** Reserved attributes are supplied by WebGLBindingStates from the draw object,
@@ -13,6 +13,11 @@ class InstanceMatrixNode extends Node<'mat4'> {
 class InstanceColourNode extends Node<'vec3'> {
   constructor() { super('vec3'); }
   override generate(): string { return 'instanceColor'; }
+}
+
+/** Full renderer-bound instance transform; non-instanced objects use identity. Vertex stage only. */
+export function instanceTransformNode(value: Node<'vec4'>): Node<'vec4'> {
+  return Fn((builder: NodeBuilder): Node<'vec4'> => builder.object instanceof InstancedMesh ? nodeObject(new InstanceMatrixNode()).mul(value) : value)();
 }
 
 /** Shader features only: neither object identity nor instance count adds a program. */

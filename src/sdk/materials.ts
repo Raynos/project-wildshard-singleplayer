@@ -75,6 +75,11 @@ export function noise(at: GraphValue): Node<'float'> { return op('noise', 'float
 export function viewToWorld(direction: GraphValue): Node<'vec3'> { return op('viewToWorld', 'vec3', [direction]); }
 /** A world direction into the model space `vertex.offset` is added in (`worldToLocal`). */
 export function worldToLocal(direction: GraphValue): Node<'vec3'> { return op('worldToLocal', 'vec3', [direction]); }
+/** Apply the full instance matrix to a homogeneous vector in the vertex stage (identity on ordinary meshes).
+ * w=1 places a point; w=0 rotates/scales a direction. Apply placement ONCE: positionLocal already includes instancing.
+ * For vertex.position, transform vec4(positionGeometry, 1), not positionLocal. */
+export function instanceTransform(value: GraphValue): Node<'vec4'> { return op('instanceTransform', 'vec4', [value]); }
+
 /** The engine's gust front at world xz; reads the existing wind clock and gust owner. */
 export function windGustAt(at: GraphValue): Node<'float'> { return op('windGustAt', 'float', [at]); }
 

@@ -5431,3 +5431,13 @@ caustic term, for example on the water surface itself. It keeps the same
 shared ToonLook bands, clock and other lighting; other materials and the
 shared water-level/strength uniforms are unchanged. Absent/true follows
 the existing family caustics. Other lighting models refuse this option.
+
+### Full graph instance transform
+
+`instanceTransform(vec4)` returns the renderer-bound instance matrix times
+the vector in vertex stages. `w=1` places points, `w=0` rotates/scales
+directions, and ordinary meshes use identity. It reads the existing raw
+instanceMatrix attribute, allocating no matrix copies or new buffers.
+Apply placement once: `positionLocal` already includes instancing. A
+`vertex.position` output should transform `vec4(positionGeometry, 1)`;
+transforming positionLocal again applies placement twice.

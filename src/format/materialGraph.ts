@@ -285,7 +285,7 @@ type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade' |
 type TypeRule =
   | 'input' | 'const' | 'param' | 'same' | 'unary' | 'vecUnary' | 'length' | 'dot' | 'mix' | 'compare' | 'logic' | 'not'
   | 'cross' | 'gerstner' | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'point3' | 'pointPair' | 'dir3' | 'sceneTap'
-  | 'windField' | 'varying' | 'attribute' | 'arrayElement' | 'cameraBillboard';
+  | 'instanceTransform' | 'windField' | 'varying' | 'attribute' | 'arrayElement' | 'cameraBillboard';
 /** one op of the vocabulary */
 export interface GraphOpSpec {
   /** the number of inputs (min, max) */
@@ -322,6 +322,7 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   // SF59 step 7: the geometry's own vertex position, before an instance's transform (the painterly sway's height)
   positionGeometry: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: VERT },
   // SF59 step 7: the world position of the object's origin, the instance's own for an instanced mesh (a per-object phase)
+  instanceTransform: { arity: [1, 1], rule: 'instanceTransform', cost: 16, type: 'vec4', places: VERT },
   objectOrigin: { arity: [0, 0], rule: 'input', cost: 4, type: 'vec3', places: VERT },
   positionWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: MESH },
   normalLocal: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH },
@@ -733,6 +734,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       case 'length': return ins[0] !== undefined && isNumeric(ins[0]) ? 'float' : fail(`${at}: length takes a number`);
       case 'cross': return ins[0] === 'vec3' && ins[1] === 'vec3' ? 'vec3' : fail(`${at}: cross takes two vec3 values`);
       case 'windField': return ins[0] === 'vec2' ? 'float' : fail(`${at}: windGustAt takes world xz (vec2)`);
+      case 'instanceTransform': return ins[0] === 'vec4' ? 'vec4' : fail(`${at}: instanceTransform takes a vec4`);
       case 'gerstner': return ins[0] === 'vec2' && ins[1] === 'float' && ins[2] === 'float' ? 'vec3' : fail(`${at}: gerstner takes vec2, float, float`);
       case 'dot': return ins[0] !== undefined && ins[0] === ins[1] && VEC_LEN[ins[0]] > 1 && isNumeric(ins[0]) ? 'float' : fail(`${at}: dot takes two vectors of one size`);
       case 'mix': {

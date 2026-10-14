@@ -50,6 +50,7 @@ import { toonGraph } from './presets';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
+import { instanceTransformNode } from '../nodes/nodeInstancing';
 import { layerFrameOf } from '../nodeLayerFrame';
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { fogUniforms } from '../../world/Atmosphere';
@@ -561,6 +562,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'uv': return { t: 'vec2', n: uv() };
       case 'positionLocal': return { t: 'vec3', n: positionLocal };
       case 'positionGeometry': return { t: 'vec3', n: positionGeometry };
+      case 'instanceTransform': return { t: 'vec4', n: instanceTransformNode(new ConvertNode<'vec4'>(one().n, 'vec4')) };
       case 'objectOrigin': return { t: 'vec3', n: objectOriginNode() };
       case 'positionWorld': return { t: 'vec3', n: positionWorld };
       case 'normalLocal': return { t: 'vec3', n: normalLocal };
