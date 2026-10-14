@@ -3,7 +3,7 @@ import { engineString } from '../strings';
 import type * as THREE from 'three';
 import { ObjectiveLine, type DialogueBox } from './view/ui';
 import type {DialogueEntry,NpcDef} from './core';
-import {NpcDialogue} from './dialogueClock';
+import {NpcReading} from './dialogueClock';
 import type { Flags } from '../world/interact/flags';
 import type { Interactable } from '../world/interact/types';
 import type { MapPoi } from '../ui/Map';
@@ -70,6 +70,7 @@ export interface NpcTalkOpts {
 export class NpcTalk {
   readonly prompt: Interactable;
   private mine = false;
+  private reading: NpcReading | null = null;
   private readonly o: NpcTalkOpts;
   constructor(o: NpcTalkOpts) {
     this.o = o;
@@ -87,10 +88,10 @@ export class NpcTalk {
   talk(): void {
     const { dialogue, flags, npc, speaker } = this.o;
     if (dialogue.isOpen) { dialogue.advance(); return; }
-    const reading=new NpcDialogue(npc,flags,dialogue.readingClock),entry=reading.select();
+    const reading=new NpcReading(npc,flags,this.o.at,this.o.radius,0,()=>dialogue.readingClock),entry=reading.select();
     if (!entry) { this.o.onEmpty?.(); return; }
     speaker.talking = true;
-    this.mine = true;
+    this.reading = reading; this.mine = true;
     dialogue.open(npc.name, entry.lines, () => {
       speaker.talking = false;
       this.mine = false;
@@ -104,7 +105,7 @@ export class NpcTalk {
   update(player: THREE.Vector3): void {
     if (!this.mine) return;
     if (!this.o.dialogue.isOpen) { this.mine = false; this.o.speaker.talking = false; return; }
-    if (player.distanceTo(this.o.at) > this.o.radius + 2.5) { this.o.dialogue.close(false); this.o.speaker.talking = false; this.mine = false; }
+    if (this.reading?.outside(player) === true) { this.o.dialogue.close(false); this.o.speaker.talking = false; this.mine = false; }
   }
 }
 

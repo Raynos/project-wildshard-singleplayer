@@ -1,0 +1,44 @@
+{
+  "ranger": {
+    "dialogue": {
+      "version": 1,
+      "npc": "ranger",
+      "entry": 8,
+      "clock": {
+        "version": 1,
+        "lines": [
+          "Easy. You are not one of them. Good. Not many come up the south road any more.",
+          "I am Hale. I keep the lanterns in the Hollow. Kept. Three waystones: the pond, the ridge, the den. They went dark the night the fog came up out of the old-growth.",
+          "Since then something walks the big trees after dark. Antlers of light. The elk and the boar that wander in there come out wrong: moss on them, glass for eyes.",
+          "Light the lanterns again and we will see what is what. Start at the pond. Its glass is in the beaver pool, under the dam."
+        ],
+        "index": 0,
+        "shown": 3,
+        "open": true
+      }
+    },
+    "elapsed": 0.05
+  },
+  "miller": {
+    "kind": "miller",
+    "reading": {
+      "dialogue": {
+        "version": 1,
+        "npc": "miller",
+        "entry": 3,
+        "clock": {
+          "version": 1,
+          "lines": [
+            "You carry a bow. Good. Something has jammed my wheel, and it is not a branch.",
+            "It is them. The mossy ones. They stand in the millrace at night and the wheel will not turn with them in it.",
+            "Clear the race after dark, would you? I will make it worth the walk."
+          ],
+          "index": 0,
+          "shown": 3,
+          "open": true
+        }
+      },
+      "elapsed": 0.05
+    }
+  }
+}

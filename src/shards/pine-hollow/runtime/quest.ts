@@ -2,13 +2,13 @@ import { ZiplineDriver } from '@wildshard/sdk/movers';
 import { ZIPLINE, ZIP_RIDE } from '../data/zipline';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import type { SimHost } from '@wildshard/engine/sim';
+import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
 import { test, bindInteractionState } from '@wildshard/engine/world/interact/flags';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/format/quests';
 import { installQuestGraph } from '@wildshard/game/plugin/quests';
 import { PINE_GRAPH, pineQuestRows } from '../quest/graph';
-import { PINE_LANTERN_IDS, RESIN_COUNT, TOKEN_NAMES } from '../data/interactions';
+import { PINE_READING_DELAY, PINE_LANTERN_IDS, RESIN_COUNT, TOKEN_NAMES } from '../data/interactions';
 import { LANTERN_FLAGS } from '../data/wardensHollow';
 import { pineTable } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
@@ -25,6 +25,8 @@ import { pineBenchPose } from '../quest/benchPose';
 import { PineTrader, PINE_TRADE, PINE_TRADE_CLOSE, type PineTradeSkin } from './trader';
 import { PINE_AMMO_SAVED, type PineAmmunition } from './weapons/ammunition';
 import baked from '../data/spots.generated.json' with { type: 'json' };
+
+type SimHost = Parameters<typeof installQuestGraph>[0];
 
 /** The script command actor that carries Pine's [E] prompts (`{ kind: 'script', actorId: PINE_INTERACT, value: PINE_ACT.* }`). */
 export const PINE_INTERACT = 'pine.interact';
@@ -196,7 +198,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     addAmmo: (kind, n) => { if (ports.ammunition === undefined) throw new Error('Pine shop requires an ammunition owner'); ports.ammunition.add(kind, n); },
     ownSkin: skin => { tradeSkins.add(skin); } });
   const initialTrader = trader.snapshot();
-  const dialogue = new PinePeople(flags, people, kind => {
+  const dialogue = new PinePeople((npc, head, radius) => new NpcReading(npc, flags, head, radius, PINE_READING_DELAY), people, kind => {
     if (kind === 'miller' && flags.has('errand:thanked') && !flags.has('errand:paid')) {
       flags.set('errand:paid'); pack.add('lodge-ribbon', 3); pack.add('amber-resin', 4);
     }

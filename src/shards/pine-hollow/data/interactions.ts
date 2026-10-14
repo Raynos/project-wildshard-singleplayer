@@ -29,3 +29,6 @@ export const RESIN_COUNT = RESIN_SPOTS.length;
 
 
 export const TOKEN_NAMES = ['the fire lookout', 'the hollow log', 'the islet', "the King's stones", 'the waterfall', 'the ridge cabin', 'the mill hamlet', 'under the creek bridge'] as const;
+
+/** Native use debounce, matching the page's existing dialogue input owner. */
+export const PINE_READING_DELAY = 0.15;

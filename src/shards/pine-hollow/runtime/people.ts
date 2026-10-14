@@ -1,10 +1,13 @@
 import * as v from 'valibot';
 import { RANGER, MILLER, TRADER } from '../quest/wardensHollow';
-import { PineDialogue } from './dialogue';
 
 const Wrapped = v.strictObject({ kind: v.picklist(['miller', 'trader']), reading: v.unknown() });
 export type PinePersonKind = 'ranger' | 'miller' | 'trader';
 interface Point { readonly x: number; readonly y: number; readonly z: number }
+interface Reading<Saved> {
+  readonly active: boolean; use: () => void; dismiss: () => void; step: (dt: number, feet: Point) => void;
+  snapshot: () => Saved; prepareRestore: (value: unknown) => () => void;
+}
 /** Capture stores prompt position separately from the actual speaker head: Mott's hatch offsets the former. */
 export interface PinePersonSpot {
   readonly kind: PinePersonKind;
@@ -14,18 +17,18 @@ export interface PinePersonSpot {
 
 /** One reading modal owns use input. NPC-specific completion effects are lent by the quest; cancelling or leaving range
  * never pays them. Closed/default-Hale continuation remains the existing shape. */
-export class PinePeople {
-  private readonly readings: Record<PinePersonKind, PineDialogue>;
+export class PinePeople<Saved> {
+  private readonly readings: Record<PinePersonKind, Reading<Saved>>;
   private current: PinePersonKind | null = null;
   private readonly completed: (kind: PinePersonKind) => void;
-  constructor(flags:ConstructorParameters<typeof PineDialogue>[0], spots: readonly PinePersonSpot[], completed: (kind: PinePersonKind) => void) {
+  constructor(create: (npc: typeof RANGER, at: Point, radius: number) => Reading<Saved>, spots: readonly PinePersonSpot[], completed: (kind: PinePersonKind) => void) {
     this.completed = completed;
     if (spots.length !== 3) throw new RangeError('Pine has exactly three captured speakers');
-    const reading = (kind: PinePersonKind, npc: typeof RANGER): PineDialogue => {
+    const reading = (kind: PinePersonKind, npc: typeof RANGER): Reading<Saved> => {
       const matches = spots.filter(spot => spot.kind === kind), spot = matches[0];
       if (matches.length !== 1 || spot === undefined || spot.prompt.radius <= 0
         || ![spot.at.x, spot.at.y, spot.at.z, spot.prompt.x, spot.prompt.y, spot.prompt.z, spot.prompt.radius].every(Number.isFinite)) throw new RangeError(`Missing captured Pine ${kind} prompt`);
-      return new PineDialogue(flags, spot.at, spot.prompt.radius, npc);
+      return create(npc, spot.at, spot.prompt.radius);
     };
     this.readings = { ranger: reading('ranger', RANGER), miller: reading('miller', MILLER), trader: reading('trader', TRADER) };
   }
@@ -43,7 +46,7 @@ export class PinePeople {
     const reading = this.readings[this.current]; reading.step(dt, feet);
     if (!reading.active) this.current = null;
   }
-  snapshot(): ReturnType<PineDialogue['snapshot']> | { kind: 'miller' | 'trader'; reading: ReturnType<PineDialogue['snapshot']> } {
+  snapshot(): Saved | { kind: 'miller' | 'trader'; reading: Saved } | null {
     if (this.current === null) return null;
     const reading = this.readings[this.current].snapshot();
     return this.current === 'ranger' ? reading : { kind: this.current, reading };

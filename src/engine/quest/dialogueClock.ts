@@ -101,3 +101,80 @@ export class NpcDialogue {
   }
   restore(value: unknown): void { this.prepareRestore(value)(); }
 }
+
+/** Borrowed head/prompt coordinates; walking away is measured from the feet. */
+export interface DialoguePoint { readonly x: number; readonly y: number; readonly z: number }
+const ReadingProfile = v.strictObject({ radius: v.pipe(finite, v.minValue(0), v.maxValue(1000)),
+  keyDelay: v.pipe(finite, v.minValue(0), v.maxValue(10)) });
+const ReadingSaved = v.strictObject({ dialogue: v.unknown(), elapsed: v.pipe(finite, v.minValue(0)) });
+
+/** One NPC reading's use debounce, reach and old continuation envelope.
+ * An owned clock drives native reading. A lent page clock is fetched lazily
+ * when selecting a line; the actual panel keeps its input/type-out timer.
+ * Completion commits authored flags; cancellation/restore never grants them.
+ */
+export class NpcReading {
+  private reading: NpcDialogue | null;
+  private elapsed = 0;
+  private readonly profile: v.InferOutput<typeof ReadingProfile>;
+  private readonly npc: NpcDef;
+  private readonly flags: DialogueFlags;
+  private readonly at: DialoguePoint;
+  private readonly borrowedClock: (() => DialogueClock) | undefined;
+  constructor(npc: NpcDef, flags: DialogueFlags, at: DialoguePoint, radius: number, keyDelay = 0,
+    borrowedClock?: () => DialogueClock) {
+    this.npc = npc; this.flags = flags; this.at = at; this.borrowedClock = borrowedClock;
+    this.profile = v.parse(ReadingProfile, { radius, keyDelay });
+    if (!Number.isFinite(at.x) || !Number.isFinite(at.y) || !Number.isFinite(at.z)) throw new RangeError('Invalid NPC reading position');
+    this.reading = borrowedClock === undefined ? new NpcDialogue(npc, flags) : null;
+  }
+  private session(): NpcDialogue {
+    if (this.borrowedClock !== undefined) {
+      const clock = this.borrowedClock();
+      if (this.reading?.clock !== clock) this.reading = new NpcDialogue(this.npc, this.flags, clock);
+    }
+    if (this.reading === null) throw new Error('Missing NPC reading clock');
+    return this.reading;
+  }
+  get active(): boolean { return this.session().clock.isOpen; }
+  /** The lent clock stays the same object; no parallel timer is installed. */
+  get clock(): DialogueClock { return this.session().clock; }
+  select(): DialogueEntry | null { return this.session().select(); }
+  finish(): void { this.session().finish(); }
+  /** A close-range prompt can advance only after its authored key delay. */
+  use(): void {
+    const reading = this.session();
+    if (this.active) { if (this.elapsed >= this.profile.keyDelay) reading.advance(); }
+    else { this.elapsed = 0; reading.open(); }
+  }
+  dismiss(): void { this.session().cancel(); this.elapsed = 0; }
+  /** The existing talk reach is radius + 2.5 m, independent of eye prompt picking. */
+  outside(feet: DialoguePoint): boolean {
+    if (!Number.isFinite(feet.x) || !Number.isFinite(feet.y) || !Number.isFinite(feet.z)) throw new RangeError('Invalid NPC reading feet');
+    const x = feet.x - this.at.x, y = feet.y - this.at.y, z = feet.z - this.at.z;
+    return Math.sqrt(x * x + y * y + z * z) > this.profile.radius + 2.5;
+  }
+  /** Native reading only; a page's panel owns updating its borrowed clock. */
+  step(dt: number, feet: DialoguePoint): void {
+    if (this.borrowedClock !== undefined) throw new Error('The page owns its NPC reading clock');
+    if (!Number.isFinite(dt) || dt < 0) throw new RangeError('Invalid NPC reading step');
+    if (!this.active) return;
+    if (this.outside(feet)) { this.dismiss(); return; }
+    this.elapsed = Math.min(this.profile.keyDelay, this.elapsed + dt); this.session().update(dt);
+  }
+  snapshot(): { dialogue: ReturnType<NpcDialogue['snapshot']>; elapsed: number } | null {
+    return this.active ? { dialogue: this.session().snapshot(), elapsed: this.elapsed } : null;
+  }
+  /** Prepare the old {dialogue, elapsed} envelope without changing state/flags. */
+  prepareRestore(value: unknown): () => void {
+    if (this.borrowedClock !== undefined) throw new Error('The page owns its NPC reading continuation');
+    if (value === null) return () => { this.dismiss(); };
+    const saved = v.parse(ReadingSaved, value);
+    if (saved.elapsed > this.profile.keyDelay) throw new RangeError('Invalid NPC reading delay');
+    const candidate = new NpcDialogue(this.npc, { has: () => false, set: () => undefined });
+    candidate.restore(saved.dialogue);
+    if (!candidate.clock.isOpen) throw new RangeError('A saved NPC dialogue must still be open');
+    const commit = this.session().prepareRestore(saved.dialogue);
+    return () => { commit(); this.elapsed = saved.elapsed; };
+  }
+}

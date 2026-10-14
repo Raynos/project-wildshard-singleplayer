@@ -5196,3 +5196,14 @@ is parsed and importing the registry does not load the graph backend.
 registers it when a scope is supplied. Its `zone()` handoff stops that fallback
 once the declared spatial mix takes over, while sampled beds keep their
 existing precedence.
+
+`engine/quest/dialogueClock.NpcReading(npc, flags, at, radius, keyDelay?, clock?)`
+shares the NPC reading's use delay and feet-to-head walk-away rule. With
+an owned clock, `use()` and `step(dt, feet)` drive the existing `NpcDialogue`;
+`snapshot()` / `prepareRestore()` keep its old `{dialogue, elapsed}` envelope.
+Restore preflights the NPC, open entry and delay before any field or flag
+changes. A page lends its actual `DialogueClock` lazily, uses `select()` /
+`finish()` and `outside(feet)`, and retains its own input and type-out timer.
+Driving or restoring a lent page clock refuses; no second timer/save owner
+is created. Positions, radius, delay and native step are bounded/finite.
+`DialoguePoint` is the borrowed world point read by this session.
