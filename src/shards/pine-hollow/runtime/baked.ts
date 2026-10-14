@@ -1,4 +1,4 @@
-import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats, nativeBakeBytes } from '@wildshard/sdk/headlessRuntime';
+import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats, nativeBakeBytes, nativeGroundSchema, nativeBakeGround, nativeBakeActors } from '@wildshard/sdk/headlessRuntime';
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { PineShelterTree } from './rainShelter';
@@ -7,7 +7,7 @@ import baked from '../data/physics.generated.json' with { type: 'json' };
 /** The baked floor's lattice: Rapier's own 256² heightfield over the 500 m chunk, as the page built it (crag cuts included). */
 export const PINE_GROUND_RES = 256, PINE_GROUND_SIZE = 500;
 
-const finite = v.pipe(v.number(), v.finite()), xyz = v.strictObject({ x: finite, y: finite, z: finite }), triple = v.tuple([finite, finite, finite]);
+const finite = v.pipe(v.number(), v.finite()), triple = v.tuple([finite, finite, finite]);
 /** One baked native simulation spec, strictly: an unknown or missing field refuses the bake rather than defaulting. */
 const BakedSpec = nativeBodySpecSchema('segments');
 const Actor = v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, spec: BakedSpec, seed: finite, scale: finite, scripted: v.boolean() });
@@ -16,7 +16,7 @@ const Solid = nativeColliderSchema([1, 2, 6, 9], 'piece');
 const KingHit = v.strictObject({ head: triple, body: v.tuple([triple, triple]), fore: v.tuple([triple, triple]), ribs: triple, radius: v.pipe(finite, v.minValue(0.001)) });
 const ShelterTree = v.tuple([finite, finite, v.pipe(finite, v.minValue(0)), v.pipe(finite, v.minValue(0)), v.pipe(finite, v.minValue(0), v.maxValue(1))]);
 const Bake = v.object({ version: v.literal(1),
-  ground: v.strictObject({ rows: v.literal(PINE_GROUND_RES - 1), cols: v.literal(PINE_GROUND_RES - 1), scale: xyz, at: xyz, friction: finite, groups: finite, heights: v.string() }),
+  ground: nativeGroundSchema(PINE_GROUND_RES),
   kingHit: KingHit, shelterTrees: v.array(ShelterTree), solids: v.array(Solid), actors: v.array(Actor), parked: v.array(Parked), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })) });
 
 /** One baked fixed WORLD collider: a cuboid, a capsule, a triangle mesh or a convex hull, at its load pose (doors included). */
@@ -46,11 +46,6 @@ export interface PineBake {
   readonly herds: readonly { readonly kind: string; readonly members: readonly string[] }[];
 }
 
-function spec(row: v.InferOutput<typeof BakedSpec>, kind: string, variant: string, id: string): AnimalSimSpec {
-  if (row.kind !== kind || row.variant !== variant) throw new Error(`Divergent baked Pine spec ${id}`);
-  return row;
-}
-
 /** Decode one trusted native solid, preserving optional exact query-owner provenance. Unknown fields refuse. */
 export function parsePineSolid(input: unknown): PineSolid {
   return decodeSolid(v.parse(Solid, input));
@@ -65,11 +60,10 @@ let parsed: PineBake | null = null;
 /** Pine Hollow's trusted native bake, strictly parsed and decoded once. */
 export function pineBake(): PineBake {
   if (parsed !== null) return parsed;
-  const bake = v.parse(Bake, baked), heights = nativeBakeFloats(bake.ground.heights);
-  if (heights.length !== PINE_GROUND_RES ** 2 || bake.ground.scale.x !== PINE_GROUND_SIZE || bake.ground.scale.z !== PINE_GROUND_SIZE || bake.ground.scale.y !== 1) throw new Error('Pine baked floor is not its 256² lattice');
+  const bake = v.parse(Bake, baked), ground = nativeBakeGround(bake.ground, PINE_GROUND_RES, PINE_GROUND_SIZE, 'Pine');
   const solids = bake.solids.map(decodeSolid);
-  parsed = { kingHit: bake.kingHit, shelterTrees: bake.shelterTrees, ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at }, solids,
-    actors: bake.actors.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })),
-    parked: bake.parked.map(a => ({ ...a, spec: spec(a.spec, a.kind, a.variant, a.id) })), herds: bake.herds };
+  parsed = { kingHit: bake.kingHit, shelterTrees: bake.shelterTrees, ground, solids,
+    actors: nativeBakeActors(bake.actors, 'Pine'),
+    parked: nativeBakeActors(bake.parked, 'Pine'), herds: bake.herds };
   return parsed;
 }

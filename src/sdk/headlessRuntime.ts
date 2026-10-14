@@ -142,6 +142,34 @@ export function nativeBakeFloats(text: string): Float32Array<ArrayBuffer> {
   return new Float32Array(nativeBakeBytes(text).buffer);
 }
 
+/** Raw native floor declaration. The producer's resolution stays part of admission. */
+export interface NativeGroundRecord {
+  readonly rows: number; readonly cols: number; readonly heights: string;
+  readonly friction: number; readonly groups: number;
+  readonly scale: { x: number; y: number; z: number };
+  readonly at: { x: number; y: number; z: number };
+}
+/** Admit the original native lattice metadata without renderer allocation. */
+export function nativeGroundSchema(resolution: number): v.GenericSchema<unknown, NativeGroundRecord> {
+  const finite = v.pipe(v.number(), v.finite()), xyz = v.strictObject({ x: finite, y: finite, z: finite });
+  return v.strictObject({ rows: v.literal(resolution - 1), cols: v.literal(resolution - 1), scale: xyz, at: xyz,
+    friction: finite, groups: finite, heights: v.string() });
+}
+/** Decode an owned native heightfield, refusing a different lattice or world scale. */
+export function nativeBakeGround(row: NativeGroundRecord, resolution: number, size: number, label: string): NativeCollisionBake['ground'] {
+  const heights = nativeBakeFloats(row.heights);
+  if (heights.length !== resolution ** 2 || row.scale.x !== size || row.scale.z !== size || row.scale.y !== 1)
+    throw new Error(`${label} baked floor is not its ${String(resolution)}² lattice`);
+  return { heights, friction: row.friction, groups: row.groups, scale: row.scale, at: row.at };
+}
+/** Admit ordered actor metadata while checking each body's authored kind and variant. */
+export function nativeBakeActors<T extends { readonly id: string; readonly kind: string; readonly variant: string; readonly spec: AnimalSimSpec }>(rows: readonly T[], label: string): readonly T[] {
+  for (const row of rows) {
+    if (row.spec.kind !== row.kind || row.spec.variant !== row.variant) throw new Error(`Divergent baked ${label} spec ${row.id}`);
+  }
+  return rows;
+}
+
 /** Strict raw Rapier bake records. The owner declaration chooses the original
  * provenance namespace and exact admitted collider shapes before decoding. */
 export function nativeColliderSchema<const S extends readonly (1 | 2 | 6 | 9)[]>(shapes: S, owner: 'piece' | 'tagged'): v.GenericSchema<unknown, NativeColliderRecord<S[number]>> {

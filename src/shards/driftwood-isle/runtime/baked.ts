@@ -1,4 +1,4 @@
-import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats } from '@wildshard/sdk/headlessRuntime';
+import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats, nativeGroundSchema, nativeBakeGround, nativeBakeActors } from '@wildshard/sdk/headlessRuntime';
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { DriftwoodPoseRecipe } from './posedVolumes';
@@ -16,7 +16,7 @@ const Pose = v.strictObject({ joints: v.pipe(v.array(v.strictObject({ name: v.pi
 const Actor = v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, spec: BakedSpec, pose: Pose, seed: finite, scale: finite, at: v.nullable(xz) });
 const Solid = nativeColliderSchema([1, 2, 9], 'tagged');
 const Bake = v.object({ version: v.literal(1),
-  ground: v.strictObject({ rows: v.literal(DRIFTWOOD_GROUND_RES - 1), cols: v.literal(DRIFTWOOD_GROUND_RES - 1), scale: xyz, at: xyz, friction: finite, groups: finite, heights: v.string() }),
+  ground: nativeGroundSchema(DRIFTWOOD_GROUND_RES),
   solids: v.array(Solid), actors: v.array(Actor), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })),
   habitat: v.object({ perches: v.array(xyz), perchBases: v.array(xyz), crabSites: v.array(xz), practice: v.string(),
     hold: v.strictObject({ x: finite, z: finite, r: finite, guardR: finite, step: finite, floor: v.array(v.nullable(finite)) }) }),
@@ -48,8 +48,7 @@ let parsed: DriftwoodBake | null = null;
 export function driftwoodBake(): DriftwoodBake {
   if (parsed !== null) return parsed;
   const bake = v.parse(Bake, baked), RES = DRIFTWOOD_GROUND_RES, SIZE = DRIFTWOOD_GROUND_SIZE, d = SIZE / (RES - 1);
-  const heights = nativeBakeFloats(bake.ground.heights);
-  if (heights.length !== RES * RES || bake.ground.scale.x !== SIZE || bake.ground.scale.z !== SIZE || bake.ground.scale.y !== 1) throw new Error('Driftwood baked floor is not its 256² lattice');
+  const ground = nativeBakeGround(bake.ground, RES, SIZE, 'Driftwood'), { heights } = ground;
   const vertex = (ix: number, iz: number): number => heights[ix * RES + iz] ?? Number.NaN;
   const floorAt = (x: number, z: number): number => {
     const gx = Math.min(RES - 1, Math.max(0, (x + SIZE / 2) / d)), gz = Math.min(RES - 1, Math.max(0, (z + SIZE / 2) / d));
@@ -69,13 +68,11 @@ export function driftwoodBake(): DriftwoodBake {
     const { lockable, dims: { capsuleAxis, ...dims }, ...rest } = spec;
     return { ...rest, dims: { ...dims, ...(capsuleAxis === undefined ? {} : { capsuleAxis }) }, ...(lockable === undefined ? {} : { lockable }) };
   };
-  const actors = bake.actors.map((actor): DriftwoodBakedActor => {
-    if (actor.spec.kind !== actor.kind || actor.spec.variant !== actor.variant) throw new Error(`Divergent baked Driftwood spec ${actor.id}`);
-    return { ...actor, spec: specOf(actor.spec) };
-  });
+  const actorOf = (actor: v.InferOutput<typeof Actor>): DriftwoodBakedActor => ({ ...actor, spec: specOf(actor.spec) });
+  const actors = nativeBakeActors(bake.actors, 'Driftwood').map(actorOf);
   if (bake.captain.spec.kind !== 'captain' || bake.captain.spec.variant !== 'captain') throw new Error('Divergent baked Driftwood captain spec');
   const solids = bake.solids.map((solid): DriftwoodSolid => solid.vertices === undefined ? solid : { ...solid, points: nativeBakeFloats(solid.vertices) });
-  parsed = { ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at },
+  parsed = { ground,
     solids, actors, herds: bake.herds, habitat: bake.habitat, captain: { spec: specOf(bake.captain.spec), pose: bake.captain.pose, pool: bake.captain.pool, arena: bake.captain.arena }, floorAt, holdFloorAt };
   return parsed;
 }

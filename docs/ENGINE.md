@@ -5501,3 +5501,12 @@ Private-scene standard material properties also admit the original material
 `name` and bounded nonnegative `envMapIntensity` (up to 32). The existing
 scene assembler passes them to MeshStandardMaterial before its named world
 decorator. Absence keeps the constructor defaults and existing scenes.
+
+
+**Native bake intake (W2 C9).** `@wildshard/sdk/headlessRuntime` defines
+`nativeGroundSchema(resolution)` for strict native lattice metadata,
+`nativeBakeGround(row, resolution, size, label)` for owned Float32 heights
+and scale admission, and `nativeBakeActors(rows, label)` for ordered actor
+rows whose specs match their declared kind and variant. Pine and
+Driftwood use these same functions; special terrain sampling, collision
+provenance, shelter metadata and boss spawn policy remain with their owners.
