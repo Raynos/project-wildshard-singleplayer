@@ -4997,3 +4997,9 @@ release and landing values; absent profile keeps the deck ride law.
 `step` can advance the caller's existing `{s,v}` state; `update` owns the
 driver's original flat continuation. Both use the existing caller clock.
 
+
+`engine/world/interact/flags.bindInteractionState` binds one validated kit
+row to read-only automatic flags, ordered chest contents, visibility, lock
+reason and prompt reach. Page callers lend current door animation and
+cached visibility; native callers use static door state. Actions, physics
+and durable writes remain in their existing owners.

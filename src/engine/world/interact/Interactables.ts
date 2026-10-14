@@ -33,7 +33,7 @@ import type { GroupName } from '../../physics/groups';
 import { overlapBox, type Body } from '../../physics/bodies';
 import { BARREL_BODY, BARREL_HALF, BARREL_R, BarrelWatch, barrelAtPlate, type BarrelEnv } from './barrel';
 import { waterLevel } from '../Heightfield';
-import { test, type Flags } from './flags';
+import { test, bindInteractionState, type Flags } from './flags';
 import { autoFlag, interactProps, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
 import { modelContext, type ModelDef, type Placement } from '../../models/model';
 import { place, type Placed } from '../../models/place';
@@ -102,13 +102,14 @@ export class Live {
   watch: BarrelWatch | null = null;
   /** glow tint (pickups' `color`) */
   tint = new THREE.Color(1, 1, 1);
+  readonly rules:ReturnType<typeof bindInteractionState>;
   readonly def: InteractDef;
-  constructor(def: InteractDef) {
-    this.def = def;
+  constructor(def: InteractDef,flags:Flags) {
+    this.def = def;this.rules=bindInteractionState(def,flags);
   }
 }
 
-const PROMPT_R = 2.5, PLAYER_R = 0.35;
+const PLAYER_R = 0.35;
 /** a plate feels what overlaps a slab this far inside its rim and this deep over it (feet, a barrel's base) */
 const PLATE_INSET = 0.1, PLATE_DEPTH = 0.1;
 const _m = new THREE.Matrix4(), _local = new THREE.Matrix4(), _c = new THREE.Color(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(1, 1, 1), _v = new THREE.Vector3(), _e = new THREE.Euler();
@@ -169,7 +170,7 @@ export class Interactables {
   build(table: InteractTable): this {
     // pass 1: geometries (cached by shape) + the parts list per row
     for (const def of table.rows) {
-      const lv = new Live(def);
+      const lv = new Live(def,this.host.flags);
       this.lives.push(lv); this.byId.set(def.id, lv);
       this.parts(lv);
     }
@@ -446,8 +447,7 @@ export class Interactables {
   private refresh(first = false): void {
     for (const lv of this.lives) {
       const d = lv.def;
-      const taken = (d.kind === 'key' || d.kind === 'pickup') && this.has(`taken:${d.id}`);
-      const shown = !taken && test(this.host.flags, d.showWhen);
+      const shown=lv.rules.shown();
       if (shown !== lv.shown || first) {
         lv.shown = shown; lv.dirty = true;
         lv.body?.setEnabled(shown);
@@ -494,33 +494,8 @@ export class Interactables {
     }
   }
 
-  private promptRadius(lv: Live): number {
-    if (!lv.shown) return 0;
-    const d = lv.def;
-    if (d.reach !== undefined) return this.baseRadius(lv) > 0 ? d.reach : 0;
-    return this.baseRadius(lv);
-  }
-  private baseRadius(lv: Live): number {
-    const d = lv.def;
-    switch (d.kind) {
-      case 'chest': return this.has(`open:${d.id}`) ? 0 : PROMPT_R;
-      case 'door': return lv.anim > 0.02 && d.look !== 'plank' ? 0 : d.opensWhen !== undefined && d.lock === undefined && d.requires === undefined ? 0 : PROMPT_R;
-      case 'beacon': return this.has(`lit:${d.id}`) ? 0 : PROMPT_R + 0.4;
-      case 'altar': return this.has(`used:${d.id}`) ? 0 : PROMPT_R + 0.3;
-      case 'bench': return PROMPT_R + 0.5;
-      case 'lever': return d.latch === true && this.has(`lever:${d.id}`) ? 0 : PROMPT_R;
-      case 'key': case 'pickup': return PROMPT_R;
-      case 'plate': case 'barrel': return 0;
-      default: return PROMPT_R;
-    }
-  }
-
-  private locked(lv: Live): string | null {
-    const d = lv.def;
-    if (!test(this.host.flags, d.requires)) return d.lockedLabel ?? 'Locked';
-    if ((d.kind === 'chest' || d.kind === 'door') && d.lock !== undefined && !this.has(`key:${d.lock}`) && !this.has(`open:${d.id}`)) return d.lockedLabel ?? 'Locked — it needs a key';
-    return null;
-  }
+  private promptRadius(lv:Live):number {return lv.rules.promptRadius(lv.anim,lv.shown);}
+  private locked(lv:Live):string|null {return lv.rules.locked();}
 
   private label(lv: Live): string {
     const d = lv.def, lock = this.locked(lv);

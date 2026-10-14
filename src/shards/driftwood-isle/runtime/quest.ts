@@ -5,8 +5,8 @@ import { Bodies, Body, overlapBox } from '@wildshard/engine/physics/bodies';
 import type { Collider } from '@dimforge/rapier3d-simd';
 import { BARREL_BODY, BARREL_HALF, BarrelWatch, barrelAtPlate, type BarrelEnv } from '@wildshard/engine/world/interact/barrel';
 import type { GroupName } from '@wildshard/engine/physics/groups';
-import { autoFlag, type InteractDef, type InteractTable } from '@wildshard/engine/world/interact/types';
-import { test } from '@wildshard/engine/world/interact/flags';
+import type { InteractTable } from '@wildshard/engine/world/interact/types';
+import { test, bindInteractionState } from '@wildshard/engine/world/interact/flags';
 import type { QuestData } from '@wildshard/format/quests';
 import type { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { installQuestGraph } from '@wildshard/game/plugin/quests';
@@ -32,7 +32,7 @@ export const REWARD_FLAG = 'seen:reward';
 /** The browser player's eye above the feet (engine Player EYE): prompts pick by eye distance (Interactables.pickInteractable). */
 const EYE = 1.68;
 /** Interactables.ts: the kit's prompt radius, its walk-in take radius (feet), the walk-in's height window and the plate slab. */
-const PROMPT_R = 2.5, TOUCH_R = 1.1, TOUCH_DY = 2.2, PLATE_INSET = 0.1, PLATE_DEPTH = 0.1;
+const TOUCH_R = 1.1, TOUCH_DY = 2.2, PLATE_INSET = 0.1, PLATE_DEPTH = 0.1;
 /** Wendell's talk radius from his head (quest/Spine.ts TALK_R). */
 const TALK_R = 3.2;
 /** The iron sword's prompt (weapons/IronSword.ts): 2.6 m from the eye once no drowned sailor guards it. */
@@ -106,12 +106,8 @@ function barrelState(handle: number, watch: BarrelWatch): { handle: number; watc
 }
 
 /** One table row with its flag spellings made once (the step reads them every tick). */
-interface Rule {
-  readonly d: InteractDef; readonly spot: DriftwoodSpots['rows'][number]; readonly auto: string | null;
-  readonly sets: readonly string[]; readonly gives: readonly string[]; readonly lockKey: string | null;
-  readonly loot: readonly ({ readonly kind: 'item'; readonly id: string; readonly n: number } | { readonly kind: 'flag'; readonly id: string })[];
-  readonly taken: string; readonly open: string; readonly lit: string; readonly used: string; readonly lever: string; readonly plate: string;
-}
+interface Rule extends ReturnType<typeof bindInteractionState> { readonly spot:DriftwoodSpots['rows'][number] }
+
 const Watch = v.strictObject({ lost: finite, wedge: finite, from: v.strictObject(xyz) });
 const Saved = v.strictObject({ key: v.nullable(v.strictObject(xyz)), finale: v.string(), iron: v.boolean(), counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
   pack: v.unknown(), zipline: v.unknown(), reward: v.unknown(),
@@ -145,11 +141,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     const spot = spots.rows[i];
     if (spot?.id !== d.id || spot.kind !== d.kind) throw new Error(`Driftwood spot ${String(i)} does not match row ${d.id}`);
     if (d.kind === 'chest' && d.contents.length > MAX_ROWS) throw new RangeError('Driftwood chest contents exceed their finite bound');
-    const loot: Rule['loot'] = d.kind === 'chest' ? d.contents.map(l => 'item' in l ? { kind: 'item', id: l.item, n: l.n ?? 1 }
-      : { kind: 'flag', id: 'key' in l ? `key:${l.key}` : l.flag }) : [];
-    const gives = d.kind === 'key' ? [`key:${d.key}`] : [];
-    return { d, spot, auto: autoFlag(d), sets: d.sets ?? [], gives, loot, taken: `taken:${d.id}`, open: `open:${d.id}`, lit: `lit:${d.id}`, used: `used:${d.id}`,
-      lever: `lever:${d.id}`, plate: `plate:${d.id}`, lockKey: (d.kind === 'chest' || d.kind === 'door') && d.lock !== undefined ? `key:${d.lock}` : null };
+    return Object.assign(bindInteractionState(d,flags),{spot});
   });
   const graph = installQuestGraph(host, { quests: ports.quests, interactions: DRIFTWOOD_ACTIONS, npcs: [], graph: DRIFTWOOD_GRAPH },
     { spots: { interact: [], crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins, drive: 'external' });
@@ -194,25 +186,10 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     return at.set(p.x, p.y, p.z).distanceTo(eye) < radius;
   };
   const raiseAll = (list: readonly string[], on: boolean): void => { for (let k = 0; k < MAX_ROWS; k++) { const f = list[k]; if (f === undefined) break; flags.set(f, on); } };
-  const shown = (r: Rule): boolean => !((r.d.kind === 'key' || r.d.kind === 'pickup') && flags.has(r.taken)) && test(flags, r.d.showWhen);
-  const locked = (r: Rule): boolean => !test(flags, r.d.requires) || (r.lockKey !== null && !flags.has(r.lockKey) && !flags.has(r.open));
-  /** Interactables.promptRadius / baseRadius */
-  const promptRadius = (r: Rule): number => {
-    const d = r.d;
-    if (!shown(r)) return 0;
-    const base = d.kind === 'chest' ? (flags.has(r.open) ? 0 : PROMPT_R)
-      : d.kind === 'door' ? (d.opensWhen !== undefined && d.lock === undefined && d.requires === undefined ? 0 : PROMPT_R)
-        : d.kind === 'beacon' ? (flags.has(r.lit) ? 0 : PROMPT_R + 0.4)
-          : d.kind === 'altar' ? (flags.has(r.used) ? 0 : PROMPT_R + 0.3)
-            : d.kind === 'bench' ? PROMPT_R + 0.5
-              : d.kind === 'lever' ? (d.latch === true && flags.has(r.lever) ? 0 : PROMPT_R)
-                : d.kind === 'plate' || d.kind === 'barrel' ? 0 : PROMPT_R;
-    return d.reach === undefined ? base : base > 0 ? d.reach : 0;
-  };
   /** Interactables.interact (a locked row only toasts) */
   const interact = (r: Rule): void => {
     const d = r.d;
-    if (!shown(r) || locked(r) || d.kind === 'plate' || d.kind === 'barrel') return;
+    if (!r.shown() || r.locked()!==null || d.kind === 'plate' || d.kind === 'barrel') return;
     // Physical doors retain their toggle law; other prompts commit the admitted graph row.
     if (d.kind === 'door') {
       if (d.look === 'plank' && flags.has(r.open)) { flags.clear(r.open); return; }
@@ -221,7 +198,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     } else if (!graph.run(d.id).ok) return;
     if (d.kind === 'chest') {
       for (let k = 0; k < MAX_ROWS; k++) {
-        const loot = r.loot[k]; if (loot === undefined) break;
+        const loot = r.contents[k]; if (loot === undefined) break;
         if (loot.kind === 'item') pack.add(loot.id, loot.n);
         else flags.set(loot.id);
       }
@@ -245,7 +222,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     if (id === 'zipline') return { act: DRIFTWOOD_ACT.zipline, position: spots.zipline.prompt, get radius() { return zipline.isRiding ? 0 : spots.zipline.prompt.radius; } };
     const i = rules.findIndex(r => r.d.id === id), r = rules[i];
     if (r?.spot.prompt === undefined) return undefined;
-    const prompt: HeadlessPrompt = { act: DRIFTWOOD_ACT.row + i, get position() { return promptOf(r) ?? r.spot; }, get radius() { return promptRadius(r); } };
+    const prompt: HeadlessPrompt = { act: DRIFTWOOD_ACT.row + i, get position() { return promptOf(r) ?? r.spot; }, get radius() { return r.promptRadius(); } };
     return prompt;
   });
   const act = (value: number): void => {
@@ -261,7 +238,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
       return;
     }
     const r = rules[value - DRIFTWOOD_ACT.row], p = r === undefined ? undefined : promptOf(r);
-    if (r !== undefined && p !== undefined && near(p, promptRadius(r))) interact(r);
+    if (r !== undefined && p !== undefined && near(p, r.promptRadius())) interact(r);
   };
 
   // the sailor's fall drops the hold key on the floor there (quest/Spine.ts's kill hook, order 10)
@@ -285,7 +262,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   /** Interactables.update / refresh for one row: a plate's press, a walk-in take, a latching door */
   const stepRow = (r: Rule): void => {
     const d = r.d, feet = host.player.position;
-    if (!shown(r)) return;
+    if (!r.shown()) return;
     if (d.kind === 'plate') {
       const down = plateDown(r, d.size);
       if (down !== flags.has(r.plate)) { flags.set(r.plate, down); raiseAll(r.sets, down); }
@@ -304,7 +281,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   let service = new Bodies(host.physics, host.player.position), barrel: Body | null = null, watch: BarrelWatch | null = null, adopt: number | null = null;
   const env: BarrelEnv = {
     player, floorAt: ports.floorAt, water: () => ports.waterLevel,
-    onPlate: c => plates.some(p => p.d.kind === 'plate' && shown(p) && barrelAtPlate(c, p.spot, p.d.size)),
+    onPlate: c => plates.some(p => p.d.kind === 'plate' && p.shown() && barrelAtPlate(c, p.spot, p.d.size)),
   };
   const lifted = { x: 0, y: 0, z: 0 };
   const lift = (p: { x: number; y: number; z: number }): { x: number; y: number; z: number } => { lifted.x = p.x; lifted.y = p.y + BARREL_HALF + 0.01; lifted.z = p.z; return lifted; };

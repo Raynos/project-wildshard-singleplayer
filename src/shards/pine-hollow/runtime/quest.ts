@@ -3,8 +3,7 @@ import { ZIPLINE, ZIP_RIDE } from '../data/zipline';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
-import { test } from '@wildshard/engine/world/interact/flags';
-import { autoFlag, type InteractDef } from '@wildshard/engine/world/interact/types';
+import { test, bindInteractionState } from '@wildshard/engine/world/interact/flags';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/format/quests';
 import { installQuestGraph } from '@wildshard/game/plugin/quests';
@@ -40,7 +39,6 @@ export const PINE_AMMO = 'pine.ammo';
 /** The browser player's eye above the feet (engine Player EYE): prompts pick by eye distance (Interactables.pickInteractable). */
 const EYE = 1.68;
 /** Interactables.ts: the kit's prompt radius. */
-const PROMPT_R = 2.5;
 /** questClock's two fast-forwards: to night over 6 s, to just past sunrise over 7 s */
 const NIGHT_PHASE = PINE_PHASES.night, SUNRISE_PHASE = PINE_PHASES.sunrise + 0.012;
 const MAX_COMMANDS = 1024, MAX_SETS = 16;
@@ -109,7 +107,7 @@ export interface PineQuest {
 }
 
 /** One kit row of the quest's table, with its flag spellings made once. */
-interface Rule { readonly d: InteractDef; readonly prompt: { x: number; y: number; z: number } | null; readonly auto: string | null; readonly lever: string; readonly taken: string; readonly open: string }
+interface Rule extends ReturnType<typeof bindInteractionState> { readonly prompt:{x:number;y:number;z:number}|null }
 
 /**
  * "The Warden's Hollow" in the renderer-free host (SF72): the declared quest rows through the game's declared quest path
@@ -161,18 +159,18 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const rules = QUEST_ROWS.map((id): Rule => {
     const d = table.rows.find(row => row.id === id), spot = spots.rows.find(row => row.id === id);
     if (d === undefined || spot?.kind !== d.kind) throw new Error(`Pine spots do not match the table's row ${id}`);
-    return { d, prompt: spot.prompt, auto: autoFlag(d), lever: `lever:${id}`, taken: `taken:${id}`, open: `open:${id}` };
+    return Object.assign(bindInteractionState(d,flags),{prompt:spot.prompt});
   });
   const [logA, logB, sluice, glass, flint] = rules;
   if (logA === undefined || logB === undefined || sluice === undefined || glass === undefined || flint === undefined) throw new Error('Pine\'s quest rows are missing');
   const tokenRules = tokenSpots.map((spot): Rule => {
     const d = table.rows.find(row => row.id === spot.id);
     if (d?.kind !== 'pickup' || d.look !== 'token') throw new Error(`Pine table has no token take law ${spot.id}`);
-    return { d, prompt: spot.prompt, auto: autoFlag(d), lever: `lever:${d.id}`, taken: `taken:${d.id}`, open: `open:${d.id}` };
+    return Object.assign(bindInteractionState(d,flags),{prompt:spot.prompt});
   });
   const seat = table.rows.find(row => row.id === bench.id);
   if (seat?.kind !== 'bench') throw new Error('Pine table has no lookout bench law');
-  const benchRule: Rule = { d: seat, prompt: bench.prompt, auto: autoFlag(seat), lever: `lever:${seat.id}`, taken: `taken:${seat.id}`, open: `open:${seat.id}` };
+  const benchRule:Rule={...bindInteractionState(seat,flags),prompt:bench.prompt};
   /** a command's table row (the prompts' order: the two logs, the glass, the flint) */
   const rowOf = (value: number): Rule | null => value === PINE_ACT.logA ? logA : value === PINE_ACT.logB ? logB : value === PINE_ACT.glass ? glass : value === PINE_ACT.flint ? flint
     : value === PINE_ACT.bench ? benchRule : Number.isInteger(value) && value >= PINE_ACT.token1 && value <= PINE_ACT.token8 ? tokenRules[value - PINE_ACT.token1] ?? null : null;
@@ -211,12 +209,6 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   };
 
   // ── the kit's rules (Interactables: shown / locked / prompt radius / interact) for the quest's rows ──
-  const shown = (r: Rule): boolean => !(r.d.kind === 'pickup' && flags.has(r.taken)) && test(flags, r.d.showWhen);
-  const radius = (r: Rule): number => {
-    if (!shown(r)) return 0;
-    const d = r.d;
-    return d.kind === 'lever' ? (d.latch === true && flags.has(r.lever) ? 0 : PROMPT_R) : d.kind === 'pickup' ? PROMPT_R : d.kind === 'bench' ? PROMPT_R + 0.5 : 0;
-  };
   const interact = (r: Rule): void => {
     const d = r.d;
     if (!graph.run(d.id).ok) return; // the shared table flag law; a locked row only toasts
@@ -306,7 +298,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (value === PINE_ACT.zip) { if (near(spots.zip.prompt, spots.zip.prompt.radius)) { state.zip.on = true; state.zip.s = ZIP_RIDE.start; state.zip.v = ZIP_RIDE.landing.velocity; } return; }
     if (value === PINE_ACT.rifle) { if (!flags.has(LEVER_FLAG) && near(spots.rifle, spots.rifle.radius)) { flags.set(LEVER_FLAG); state.rifle = true; } return; }
     const r = rowOf(value);
-    if (r !== null && near(r.prompt, radius(r))) interact(r);
+    if (r !== null && near(r.prompt,r.promptRadius())) interact(r);
   };
 
   // ── one page/host feat law, fed only by committed flags and actual creature deaths ──

@@ -10,7 +10,7 @@ import { saves } from '../../saves/runtime';
  *   flags.onChange((flag, on) => …);   test(flags, { all: ['a'], none: ['b'] })
  *   flags.reset()                      // dev: `?resetquest` — forget this level's progress
  */
-import { TRANSIENT_PREFIXES, type Cond } from './types';
+import { TRANSIENT_PREFIXES, autoFlag, type InteractDef, type Cond } from './types';
 
 const flagsSave = saves.define({ key: 'flags', scope: 'shard', version: 1, schema: v.array(v.string()), initial: () => [] as string[] });
 
@@ -93,4 +93,41 @@ export function flagValue(flags: Pick<Flags, 'has'>, terms: readonly { readonly 
     value += Number(flags.has(term.name)) * term.bit;
   }
   return value;
+}
+
+/** Automatic row metadata plus live read-only prompt decisions. */
+export interface InteractionState {
+  readonly d:InteractDef;readonly auto:string|null;readonly sets:readonly string[];readonly gives:readonly string[];
+  readonly contents:readonly ({readonly kind:'item';readonly id:string;readonly n:number}|{readonly kind:'flag';readonly id:string})[];
+  readonly taken:string;readonly open:string;readonly lit:string;readonly used:string;readonly lever:string;readonly plate:string;
+  readonly lockKey:string|null;readonly shown:()=>boolean;readonly locked:()=>string|null;
+  readonly promptRadius:(animation?:number,visible?:boolean)=>number;
+}
+/** Read-only state shared by page and native table consumers; it owns no actions, physics or saves. */
+export function bindInteractionState(d:InteractDef,flags:Pick<Flags,'has'>):InteractionState {
+  if(d.id.length===0||d.id.length>128||(d.sets?.length??0)>1024||(d.kind==='chest'&&d.contents.length>1024)
+    ||(d.reach!==undefined&&(!Number.isFinite(d.reach)||d.reach<0)))throw new Error('Invalid interaction state row');
+  const taken=`taken:${d.id}`,open=`open:${d.id}`,lit=`lit:${d.id}`,used=`used:${d.id}`,lever=`lever:${d.id}`,plate=`plate:${d.id}`;
+  const lockKey=(d.kind==='chest'||d.kind==='door')&&d.lock!==undefined?`key:${d.lock}`:null;
+  const contents:readonly ({readonly kind:'item';readonly id:string;readonly n:number}|{readonly kind:'flag';readonly id:string})[]=d.kind==='chest'?d.contents.map(row=>'item' in row?{kind:'item',id:row.item,n:row.n??1}:{kind:'flag',id:'key' in row?`key:${row.key}`:row.flag}):[];
+  const shown=():boolean=>!((d.kind==='key'||d.kind==='pickup')&&flags.has(taken))&&test(flags,d.showWhen);
+  const locked=():string|null=>!test(flags,d.requires)?d.lockedLabel??'Locked':lockKey!==null&&!flags.has(lockKey)&&!flags.has(open)?d.lockedLabel??'Locked — it needs a key':null;
+  const promptRadius=(animation=0,visible=shown()):number=>{
+    if(!visible)return 0;
+    let base=2.5;
+    switch(d.kind){
+      case 'chest':base=flags.has(open)?0:2.5;break;
+      case 'door':base=animation>0.02&&d.look!=='plank'?0:d.opensWhen!==undefined&&d.lock===undefined&&d.requires===undefined?0:2.5;break;
+      case 'beacon':base=flags.has(lit)?0:2.5+0.4;break;
+      case 'altar':base=flags.has(used)?0:2.5+0.3;break;
+      case 'bench':base=2.5+0.5;break;
+      case 'lever':base=d.latch===true&&flags.has(lever)?0:2.5;break;
+      case 'plate':case 'barrel':base=0;break;
+      case 'key':case 'pickup':break;
+      default:break;
+    }
+    return d.reach===undefined?base:base>0?d.reach:0;
+  };
+  return {d,auto:autoFlag(d),sets:d.sets??[],gives:d.kind==='key'?[`key:${d.key}`]:[],contents,
+    taken,open,lit,used,lever,plate,lockKey,shown,locked,promptRadius};
 }
