@@ -1,9 +1,11 @@
 import { REST_URLS } from '../data/restFiles';
-import { CylinderGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
+import { CylinderGeometry, PlaneGeometry, Group, Mesh, MeshStandardMaterial, SphereGeometry, Vector3 } from 'three';
 import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
 import { WELL_RIG, HD, CAMP_HD, COOK, LANTERN, WAYMARK_HD, DECK_BRAZIER } from '../data/places';
 import { BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';
-import { signalDunesField } from './tiles';
+import { signalDunesTiles, signalDunesField } from './tiles';
+import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
+import { fireRows, lampRows, COOKFIRE, WAYMARK_FIRE, type FirePool } from '../data/fire';
 import { towerAnchors } from './tower';
 import { waymarkFrame } from './places';
 import { parsePrivateScene, parseWorldScene, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
@@ -35,7 +37,7 @@ export function oilRest(): ClientSceneBake {
 
 /** The SDK JSON/byte driver owns I/O for these finite existing declarations. */
 export function restScenes(): { well: ClientSceneBake['scene']; oil: ClientSceneBake['scene']; frames: PlaceFrames; places: ReturnType<typeof placeRecipes> } { return { well: wellRest().scene, oil: oilRest().scene, frames: placeFrames(), places: placeRecipes() }; }
-export function restPools(): readonly { readonly url: string; readonly parts: readonly string[] }[] { return [wellRest(), oilRest()].map((made,index) => {
+export function restPools(): readonly { readonly url: string; readonly parts: readonly string[] }[] { return [wellRest(), oilRest(), fireRest()].map((made,index) => {
   const url = REST_URLS[index]; if (url === undefined) throw new Error('Undeclared place pool');
   return { url, parts: made.scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : []) };
 }); }
@@ -119,3 +121,30 @@ export function placeRecipes(): PlaceRecipes {
   return { caravan:{...frameRecipe('caravan',frames.camp,CAMP_HD),anchors:{y,logbook:world(0.35,1.12,-2.55),lamp:world(LANTERN.x,LANTERN.y,LANTERN.z),cook:frames.cookAt}},
     tower:{...frameRecipe('tower',frames.tower,[DECK_BRAZIER]),anchors:{...towerFrame,brazier:frames.brazierAt}},well:wellRecipe,braziers };
 }
+
+/** Fire cards and draped light pools are author meshes; their live materials and clock remain native. */
+export function fireRest(): ClientSceneBake {
+  const root = new Group(), material = new MeshStandardMaterial(); root.name = 'fire-rest';
+  const add = (id: string, geometry: PlaneGeometry): void => { const mesh = new Mesh(geometry,material); mesh.name = id; root.add(mesh); };
+  add('fire-flame',new PlaneGeometry(1,1).translate(0,0.5,0));
+  add('fire-wisp',new PlaneGeometry(1,1,1,16).translate(0,0.5,0));
+  add('fire-glow',new PlaneGeometry(2,2));
+  const terrain = signalDunesTiles(), collider = terrain.terrain.collider;
+  const bytes = terrain.assets.get(collider);
+  if (bytes === undefined) throw new Error('Fire pools require baked terrain');
+  const ground = decodeTerrainTile(bytes), heightAt = (x:number,z:number):number => terrainTileHeight(ground,x,z);
+  const pool = (id:string,row:FirePool,height:(x:number,z:number)=>number):void => {
+    const geometry = new PlaneGeometry(row.r*2,row.r*2,row.n,row.n).rotateX(-Math.PI/2), positions=geometry.getAttribute('position');
+    for(let i=0;i<positions.count;i++) positions.setY(i,height(positions.getX(i),positions.getZ(i))+0.06);
+    add(id,geometry);
+  };
+  const frames=placeFrames(), field=signalDunesField(), y=field.heightAt(CARAVAN.x,CARAVAN.z), cos=Math.cos(CARAVAN.yaw), sin=Math.sin(CARAVAN.yaw);
+  pool('pool-caravan-lamp',lampRows(0.5).pool,(lx,lz)=>{const x=LANTERN.x+lx,z=LANTERN.z+lz;return heightAt(CARAVAN.x+x*cos+z*sin,CARAVAN.z-x*sin+z*cos)-(y+LANTERN.y);});
+  pool('pool-cook',fireRows(COOKFIRE).pool,(x,z)=>heightAt(frames.cookAt[0]+x,frames.cookAt[2]+z)-frames.cookAt[1]);
+  const tower=towerAnchors(field.heightAt(TOWER.x,TOWER.z));
+  pool('pool-keeper-lamp',lampRows(1.1).pool,()=>tower.deckY-tower.lampY);
+  BRAZIERS.forEach((at,i)=>{const flameY=waymarkFrame(at.x,at.z,field.heightAt).y+HD.brazier*HD.bowlAt;
+    pool(`pool-brazier-${String(i)}`,fireRows(WAYMARK_FIRE).pool,(x,z)=>heightAt(at.x+x,at.z+z)-flameY);});
+  return clientSceneGlb(root,new Map([[material,'fire-geometry']]));
+}
+export function fireGlb(): Uint8Array { return fireRest().glb; }

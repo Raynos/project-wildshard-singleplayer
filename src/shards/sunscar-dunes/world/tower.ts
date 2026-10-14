@@ -1,6 +1,7 @@
 import { addFire, addLampGlow } from './fireFx';
 import { KEEPER_LAMP, SIGNAL_FIRE } from '../data/fire';
 import { type Group, PointLight, Vector3 } from 'three';
+import { DUNE_LIBRARY } from './meshes';
 import { placeScene } from './places';
 import REST_SCENES from '../data/restScenes.generated.json' with { type:'json' };
 import type { BakedWorld } from './baked';
@@ -13,13 +14,13 @@ export interface TowerParts { root: Group; colliders: ReturnType<typeof placeSce
  * generated model) and the signal fire, hidden until lit.
  */
 export function buildTower(baked: BakedWorld): TowerParts {
-  const row = REST_SCENES.places.tower, made = placeScene(row,baked), {root,colliders} = made, {deckY,lampY} = row.anchors;
+  const row = REST_SCENES.places.tower, made = placeScene(row,baked), {root,colliders} = made, {deckY} = row.anchors;
   // The keeper's lantern (round 8, mockup dusk-fire: a lamp burns in the tower's top before the signal is lit; the council: an
   // empty cage): a lit glass in the baked iron cage, its small halo (fireFx addLampGlow)
   // (round 8 first cut: a 0.3 m glass under the frame read as a pale dot against the bright afterglow at 145 m)
   const keeperLamp = made.group('live.keeper-lamp'), flame = made.group('live.lamp-flame'), fire = made.group('live.fire');
   if (keeperLamp === null || flame === null || fire === null) throw new Error('Missing declared tower anchors');
-  addLampGlow(keeperLamp, 1.1, () => deckY - lampY); // round 12: 2.6 m read as a wash, not a lamp
+  addLampGlow(keeperLamp, 1.1, DUNE_LIBRARY.geometry('pool-keeper-lamp')); // round 12: 2.6 m read as a wash, not a lamp
   addFire(flame, KEEPER_LAMP); // round 10 (R9B-8): the open flame over the cap (inside the glass it read as a pale box) // its flame (a lit glass alone read as a pale dot)
   // The brazier (round 1, R1C-1 / R1B-12: the H4 view's subject): the generated one, deck-sized, its fire hidden until
   // the signal is lit. A model that did not load stands undrawn (a page fault, world/meshes.ts), as the places' do.

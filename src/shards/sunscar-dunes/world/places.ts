@@ -2,8 +2,6 @@ import { addFire, addLampGlow, fireLight } from './fireFx';
 import { COOKFIRE, WAYMARK_FIRE } from '../data/fire';
 import { type Group, type Mesh, type MeshStandardMaterial, Vector3 } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { CARAVAN } from '../data/layout';
-import { LANTERN } from '../data/places';
 import { createWorldScene } from '@wildshard/game/plugin/ui';
 import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
 import { WORLD, type BakedWorld } from './baked';
@@ -33,18 +31,14 @@ export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookA
  * and the pack horse on the baked camp (the barrel, the logbook on the tailboard, the lantern's iron, the tent, the
  * cookfire's stones); the lantern's lit glass and halo and the cookfire live.
  */
-export function buildCaravan(baked: BakedWorld, groundAt: (x: number, z: number) => number): CaravanParts {
-  const row = REST_SCENES.places.caravan, made = placeScene(row, baked), { root, colliders } = made, { y } = row.anchors;
+export function buildCaravan(baked: BakedWorld): CaravanParts {
+  const row = REST_SCENES.places.caravan, made = placeScene(row, baked), { root, colliders } = made;
   const lamp = made.group('live.lamp'), cook = made.group('live.cook');
   if (lamp === null || cook === null) throw new Error('Missing declared caravan anchors');
   // The lantern's glass in its baked iron (loop 4, mockup B), the logbook's warm light in the dusk.
-  const cosY = Math.cos(CARAVAN.yaw), sinY = Math.sin(CARAVAN.yaw);
-  addLampGlow(lamp, 0.5, (lx, lz) => { // round 10: drawn over the canvas, 2.4 washed the whole wagon
-    const x = LANTERN.x + lx, z = LANTERN.z + lz; // the lamp's frame → the caravan's → the world (three's Ry)
-    return groundAt(CARAVAN.x + x * cosY + z * sinY, CARAVAN.z - x * sinY + z * cosY) - (y + LANTERN.y);
-  });
+  addLampGlow(lamp, 0.5, DUNE_LIBRARY.geometry('pool-caravan-lamp'));
   // E399 (mockup B): a smouldering cookfire on the lee side, its thin smoke column rising behind the wagon
-  addFire(cook, COOKFIRE, { at: new Vector3(...row.anchors.cook), groundAt });
+  addFire(cook, COOKFIRE, DUNE_LIBRARY.geometry('pool-cook'));
   return { root, colliders, logbookAt: new Vector3(...row.anchors.logbook), lampAt: new Vector3(...row.anchors.lamp) };
 }
 
@@ -68,12 +62,12 @@ export interface BrazierParts { root: Group; colliders: ColliderDesc[]; fire: Gr
  * Waymark `i`: the generated brazier (loop 6, mockup C) on its baked footing, the oil, the baked log crown and a hidden
  * fire (`fireFx.ts`; no light of its own, one rides to the lit waymark nearest the player).
  */
-export function buildBrazier(baked: BakedWorld, i: number, groundAt: (x: number, z: number) => number, colliders: ColliderDesc[]): BrazierParts {
+export function buildBrazier(baked: BakedWorld, i: number, colliders: ColliderDesc[]): BrazierParts {
   const row = REST_SCENES.places.braziers[i]; if (row === undefined) throw new Error(`no waymark ${String(i)}`);
   const embers: MeshStandardMaterial[] = [], made = placeScene(row,baked,material=>{embers.push(material);}), {root} = made;
   const oil = made.mesh('live.oil'), fire = made.group('fire');
   if (oil === null || fire === null) throw new Error('Missing declared waymark rest parts');
-  addFire(fire, WAYMARK_FIRE, {at:new Vector3(...row.anchors.flame),groundAt});
+  addFire(fire, WAYMARK_FIRE, DUNE_LIBRARY.geometry(`pool-brazier-${String(i)}`));
   const light = fireLight(new Vector3(...row.anchors.light));
   return {root,colliders,fire,bowlAt:new Vector3(...row.anchors.bowl),oil,glow:(lit:boolean)=>{
     light(lit); for (const ember of embers) ember.emissiveIntensity = lit ? 1.1 : 0;

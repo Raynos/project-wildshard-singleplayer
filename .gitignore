@@ -960,3 +960,6 @@ src/shards/far-reach/data/crownInstances.generated.json
 
 # G412: fast derived meadow transport has an immutable content address.
 /public/assets/far-reach/baked/a977ed8a82e49ff6212e43b8aee35e4ef6e8f0a2438a1cc45967c3265d3596a1.bin
+
+# Fire cards and ground pools are restored from their author recipe.
+/public/assets/sunscar-dunes/baked/rest-fire.glb
