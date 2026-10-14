@@ -46,6 +46,3 @@ export const fireLookout = defineModel<Record<string, never>>({
   build: (ctx, p) => tower.build(ctx, p),
   colliders: (p, ctx) => tower.facts(ctx, p).colliders,
 });
-
-/** its deck floors and its anchors (`zipTop`: the cable's end, `launch`: where you stand to ride), own space */
-export const fireLookoutFacts = tower.facts;

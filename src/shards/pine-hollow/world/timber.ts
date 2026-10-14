@@ -17,7 +17,6 @@ import { finishParts } from '../models/logCabin';
 import { TIMBER_GLASS } from '../data/timberDraws';
 
 type V3 = THREE.Vector3;
-const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);
 
 /** a walkable deck rectangle: centre, turn, half extents, height (own space, or world once placed) */
 export interface Floor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
@@ -88,9 +87,4 @@ export function timberFacts<P extends object>(make: (ctx: ModelContext, p: P) =>
     build: (ctx, p) => { const t = make(ctx, p); if (!known.has(keyOf(p))) known.set(keyOf(p), t.facts()); return t.root; },
     facts: (ctx, p) => { let f = known.get(keyOf(p)); if (f === undefined) { f = make(ctx, p).facts(); known.set(keyOf(p), f); } return f; },
   };
-}
-
-/** own-space floors carried to a frame (world space, as `floorHeightAt` reads them) */
-export function placeFloors(floors: readonly Floor[], frame: THREE.Matrix4, yaw: number): Floor[] {
-  return floors.map((f) => { const c = V(f.x, f.y, f.z).applyMatrix4(frame); return { x: c.x, z: c.z, rot: yaw + f.rot, hw: f.hw, hd: f.hd, y: c.y }; });
 }

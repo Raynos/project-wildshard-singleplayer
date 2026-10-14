@@ -43,11 +43,11 @@ import { beaverDam } from '../models/beaverDam';
 import { canoe } from '../models/canoe';
 import { contractBoard } from '../models/contractBoard';
 import { caveArch, openCaveArch } from '../models/caveArch';
-import { loadTimber, placeFloors, type Floor, type TimberFacts } from './timber';
-import { ZIP_YAW, bridgeSite, landingSite, lookoutSite, loadSiteTimbers } from './timberSites';
-import { fireLookout, fireLookoutFacts, loadFireLookout } from '../models/fireLookout';
-import { ziplineLanding, ziplineLandingFacts } from '../models/ziplineLanding';
-import { creekFootbridge, creekFootbridgeFacts } from '../models/creekFootbridge';
+import { loadTimber, type Floor } from './timber';
+import { bridgeSite, landingSite, lookoutSite, loadSiteTimbers } from './timberSites';
+import { fireLookout, loadFireLookout } from '../models/fireLookout';
+import { ziplineLanding } from '../models/ziplineLanding';
+import { creekFootbridge } from '../models/creekFootbridge';
 import { zipCable } from '../models/zipCable';
 import { PineCrags } from './crags';
 import { CRAG_ROWS } from './cragBake';
@@ -128,21 +128,19 @@ export class PineLandmarks implements PineLandmarksHandle {
     await Promise.all([loadTimber(ctx), loadFireLookout(ctx), loadSiteTimbers(ctx)]);
     // the timber landmarks (models), one task each, at the frames their world-space builders used
     const lookoutAt = lookoutSite();
-    this.placeTimber(fireLookout, lookoutAt, ZIP_YAW, undefined, () => fireLookoutFacts(ctx, fireLookout.defaults), 'pine-lookout', registry);
-    const topAt = fireLookoutFacts(ctx, fireLookout.defaults).anchors;
+    this.placeTimber(fireLookout, lookoutAt, undefined, 'pine-lookout', registry);
     await macrotask();
     const landingAt = landingSite().at, atSite = { site: 'world' } as const;
-    this.placeTimber(ziplineLanding, landingAt, ZIP_YAW, atSite, () => ziplineLandingFacts(ctx, atSite), 'pine-zip-landing', registry);
-    const bottomAt = ziplineLandingFacts(ctx, atSite).anchors;
-    const world = (v: V3 | undefined, frame: THREE.Matrix4): V3 => (v ?? V(0, 0, 0)).clone().applyMatrix4(frame);
-    this.zip = { top: world(topAt['zipTop'], lookoutAt), bottom: world(bottomAt['zipBottom'], landingAt), launch: world(topAt['launch'], lookoutAt), landing: world(bottomAt['landing'], landingAt) };
+    this.placeTimber(ziplineLanding, landingAt, atSite, 'pine-zip-landing', registry);
+    const zip=authored.landmarks.zip;
+    this.zip={top:new THREE.Vector3(...zip.top),bottom:new THREE.Vector3(...zip.bottom),launch:new THREE.Vector3(...zip.launch),landing:new THREE.Vector3(...zip.landing)};
     // the steel cable between the two gantries
     const { top, bottom } = this.zip;
     const cable = place(zipCable, [{ x: top.x, y: top.y, z: top.z, params: { span: [bottom.x - top.x, bottom.y - top.y, bottom.z - top.z] } }], { ctx, draw: 'single', registry, piece: { id: 'pine-zip-cable' } });
     if (registry === null) this.group.add(cable.object);
     await macrotask();
     const bridge = bridgeSite();
-    this.placeTimber(creekFootbridge, bridge.at, bridge.yaw, atSite, () => creekFootbridgeFacts(ctx, atSite), 'pine-footbridge', registry);
+    this.placeTimber(creekFootbridge, bridge.at, atSite, 'pine-footbridge', registry);
     await macrotask();
     this.crags = await crags;
     await this.buildProps(cabins, registry);
@@ -160,11 +158,10 @@ export class PineLandmarks implements PineLandmarksHandle {
    * Place a timber model once at its frame: drawn, colliding, its decks the piece's floors (`facts` reads them once the
    * copy is built: the build keeps them).
    */
-  private placeTimber<P extends object>(model: ModelDef<P>, frame: THREE.Matrix4, yaw: number, params: P | undefined, facts: () => TimberFacts, id: string, registry: WorldRegistry | null): void {
-    const mine: Floor[] = [], e = frame.elements;
+  private placeTimber<P extends object>(model: ModelDef<P>, frame: THREE.Matrix4, params: P | undefined, id: keyof typeof authored.landmarks.timberFloors, registry: WorldRegistry | null): void {
+    const mine: readonly Floor[] = authored.landmarks.timberFloors[id], e = frame.elements;
     const placed = place(model, [{ x: e[12], y: e[13], z: e[14], matrix: frame, ...(params === undefined ? {} : { params }) }], { ctx: pineModels(this.sky), draw: 'single', registry,
       piece: { id, solidFloor: true, floor: (x, z) => floorIn(mine, x, z) } });
-    mine.push(...placeFloors(facts().floors, frame, yaw));
     this.floors.push(...mine);
     this.timberColliders.push(...placed.colliders);
     if (registry === null) this.group.add(placed.object);
@@ -191,7 +188,7 @@ export class PineLandmarks implements PineLandmarksHandle {
     const wsPlaces = sites.waystones.map((p): Place => ({ ...p, y: (this.floorHeightAt(p.x, p.z) ?? p.y) - 0.15 }));
     const waySet = add(waystone, 'waystone', wsPlaces);
     const wayGeo = heroLod0(ctx, 'waystone')?.geometry;
-    if (waySet && wayGeo) this.lanterns(waySet.places, wayGeo, cabins);
+    if (waySet && wayGeo) this.lanterns(waySet.places, cabins);
 
     add(beaverDam, 'beaver-dam', sites.dam);
     const drawnUp = add(canoe, 'canoe', sites.canoe);
@@ -201,29 +198,13 @@ export class PineLandmarks implements PineLandmarksHandle {
     add(contractBoard, 'contract-board', sites.board);
     const arch = sites.arch;
     const hollow = (this.crags?.caveMetaData ?? null) !== null;
-    if (hollow && heroLod0(ctx, 'cave-arch')) openCaveArch(ctx, placeMatrix({ ...arch, yaw: arch.yaw + HERO_FRONT['cave-arch'] }), sites.archGround);
+    if (hollow && heroLod0(ctx, 'cave-arch')) openCaveArch(ctx);
     add(caveArch, 'cave-arch', [arch], hollow ? {} : { variant: 'closed' });
   }
 
   /** the waystones' flames (emissive, one instanced draw) and their glow (one Points draw), both on sky.lamps */
-  private lanterns(places: readonly Place[], geo: THREE.BufferGeometry, cabins: Cabins | null): void {
-    // the lantern hangs off the bracket: the model's vertex cloud furthest from the post, in the top half
-    const pos = geo.getAttribute('position');
-    geo.computeBoundingBox();
-    const bb = geo.boundingBox ?? new THREE.Box3();
-    const h = bb.max.y - bb.min.y;
-    let px = 0, pz = 0, pn = 0;
-    const v = new THREE.Vector3();
-    for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i); if (v.y < bb.min.y + h * 0.3) { px += v.x; pz += v.z; pn++; } }
-    px /= Math.max(1, pn); pz /= Math.max(1, pn);
-    let far = 0;
-    for (let i = 0; i < pos.count; i++) { v.fromBufferAttribute(pos, i); if (v.y > bb.min.y + h * 0.5) far = Math.max(far, Math.hypot(v.x - px, v.z - pz)); }
-    const lamp = new THREE.Vector3(); let ln = 0;
-    for (let i = 0; i < pos.count; i++) {
-      v.fromBufferAttribute(pos, i);
-      if (v.y > bb.min.y + h * 0.45 && Math.hypot(v.x - px, v.z - pz) > far * 0.7) { lamp.add(v); ln++; }
-    }
-    if (ln === 0) lamp.set(px, bb.min.y + h * 0.7, pz); else lamp.divideScalar(ln);
+  private lanterns(places: readonly Place[], cabins: Cabins | null): void {
+    const lamp = new THREE.Vector3(...authored.landmarks.lamp);
     const glowPos = new Float32Array(places.length * 3);
     const anchors = {} as Record<WaystoneId, THREE.Object3D>;
     const ids: WaystoneId[] = ['pond', 'ridge', 'den'];

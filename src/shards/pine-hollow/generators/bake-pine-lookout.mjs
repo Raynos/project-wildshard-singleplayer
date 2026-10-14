@@ -10,6 +10,7 @@
 import { pinePropShapes } from './propShapes.ts';
 import { pinePropScan, pinePropMaterialFiles } from './bake-pine-props.mjs';
 import { pineLandmarkSites } from './landmarkSites.ts';
+import { pineLandmarkFacts } from './bake-pine-landmark-facts.mjs';
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -54,6 +55,8 @@ function compactLibraryGlb(original) {
 /** Write the admitted world tiles and Explorer library through the same confined launcher. */
 async function writeTimberWorld() {
   const crags = await bakeCragRows(), ground = pineTimberGround();
+  const landmarkSites=pineLandmarkSites(ground.heightAt), placements=pineTimberPlacements(ground.heightAt), lookout=bakeLookoutRows().rows, sites=bakeSiteTimberRows().rows;
+  const landmarkFacts=await pineLandmarkFacts(landmarkSites,placements,lookout,sites.landing.world,sites.bridge.world);
   const [kit,cave]=await Promise.all([pineCragKit(),pineCragKit(['cave.glb'])]);
   const caveMeta=JSON.parse(readFileSync(resolve(root,'public/assets/models/pine-hollow-crags/cave.json'),'utf8'));
   const cragAssembly=pineCragAssembly(kit,cave,caveMeta,{phone:{bin:crags.bins.phone,tiles:crags.rows.skin.phone.tiles},desktop:{bin:crags.bins.desktop,tiles:crags.rows.skin.desktop.tiles}},crags.rows.places,ground);
@@ -75,7 +78,7 @@ async function writeTimberWorld() {
   const shardfile = { ...baked.shardfile, terrain: query.terrain, critical: [...baked.shardfile.critical, ...query.critical], library: [...baked.shardfile.library ?? [], ...props.wholeLibrary], files: [...baked.shardfile.files, ...library, ...query.files].sort((a,b) => a.hash.localeCompare(b.hash)) };
   const out = resolve(root, 'src/shards/pine-hollow/assets'); mkdirSync(out, { recursive: true });
   for (const [ref, bytes] of baked.assets) writeFileSync(resolve(out, ref), bytes);
-  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, cragAssembly, propShapes: shapes.rows, propMaterials: materialFiles.aliases, propMaterialCosts: materialFiles.costs, landmarks: pineLandmarkSites(ground.heightAt), placements: pineTimberPlacements(ground.heightAt), lookout: bakeLookoutRows().rows, sites: bakeSiteTimberRows().rows, cabins: cabins.rows })}\n`);
+  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, cragAssembly, propShapes: shapes.rows, propMaterials: materialFiles.aliases, propMaterialCosts: materialFiles.costs, landmarks: { ...landmarkSites, ...landmarkFacts }, placements, lookout, sites, cabins: cabins.rows })}\n`);
   console.info(`Pine timber product: ${shardfile.tiles.length} tiles, ${shardfile.files.length} charged files, 3 world copies and 2 library copies`);
 }
 

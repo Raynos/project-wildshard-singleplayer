@@ -28,6 +28,3 @@ export const creekFootbridge = defineModel<CreekFootbridgeParams>({
   build: (ctx, p) => footbridge.build(ctx, p),
   colliders: (p, ctx) => footbridge.facts(ctx, p).colliders,
 });
-
-/** its deck floor, own space */
-export const creekFootbridgeFacts = footbridge.facts;

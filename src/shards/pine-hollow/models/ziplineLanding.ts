@@ -28,6 +28,3 @@ export const ziplineLanding = defineModel<ZiplineLandingParams>({
   build: (ctx, p) => landing.build(ctx, p),
   colliders: (p, ctx) => landing.facts(ctx, p).colliders,
 });
-
-/** its deck floor and its anchors (`zipBottom`: the cable's end, `landing`: where the ride sets you down), own space */
-export const ziplineLandingFacts = landing.facts;
