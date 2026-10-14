@@ -653,9 +653,10 @@ export type ShardManifestRows = Omit<ShardManifest, 'load' | 'render' | 'roster'
   readonly poses?: Awaited<ReturnType<NonNullable<ShardManifest['dev']>['poses']>>;
   readonly groundColour?: readonly [number, number, number];
 };
-/** Resolve copied boot poses, fixed ground colours and native entry metadata from rows. */
+/** Resolve copied boot poses, fixed ground colours and native entry metadata from rows.
+ * Terrain-dependent native pose callbacks may remain explicit bindings. */
 export function defineShard(rows: ShardManifestRows,
-  bindings: Pick<ShardManifest, 'load' | 'render' | 'roster' | 'ktx2'> & { readonly ground?: ShardManifest['ground'] }): ShardManifest {
+  bindings: Pick<ShardManifest, 'load' | 'render' | 'roster' | 'ktx2' | 'dev'> & { readonly ground?: ShardManifest['ground'] }): ShardManifest {
   const { runtimeEntry, poses, groundColour, horizon, pois, minimap, ...data } = rows;
   const ground = bindings.ground ?? data.ground;
   if (ground === undefined) throw new Error('Shard boot needs its declared ground owner');

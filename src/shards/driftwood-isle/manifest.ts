@@ -1,20 +1,10 @@
+import { DRIFTWOOD_MANIFEST } from './data/manifest';
 import { BRIDGE_SPANS } from './data/bridgeRows';
 import { SHRINE_SITES } from './data/shrineSites';
 import { WRECK_SITES } from './data/wreckSites';
-import { DRIFTWOOD_BUDGET_INPUTS } from './budgets';
-import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
+
 import { area as BLENDER_AREA } from './world/blenderArea';
-import { DRIFTWOOD_FAUNA_PLANS, DRIFTWOOD_FAUNA_TUNING } from './data/fauna';
-import exploreWorld from './explore/world-driftwood-isle.webp';
-import exploreModels from './explore/models-driftwood-isle.webp';
-import exploreSets from './explore/sets-driftwood-isle.webp';
-import explorePractice from './explore/practice-driftwood-isle.webp';
-import compareSpawnLive from './explore/compare/driftwood-spawn-live.jpg';
-import compareSpawnTarget from './explore/compare/driftwood-spawn-target.jpg';
-import compareRightLive from './explore/compare/driftwood-right-live.jpg';
-import compareRightTarget from './explore/compare/driftwood-right-target.jpg';
-import compareOverlookLive from './explore/compare/driftwood-overlook-live.jpg';
-import compareOverlookTarget from './explore/compare/driftwood-overlook-target.jpg';
+
 /**
  * Driftwood Isle — the second shard: a small faceted low-poly island in a bright turquoise ocean
  * on grid (−1, +6). Wind Waker in spirit: flat-shaded vertex-coloured geometry, no textures at
@@ -28,28 +18,19 @@ import { CHUNK_HALF, ROAD_LENGTH } from '@wildshard/engine/core/config';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
-import type { ShardManifest, OceanDef } from '@wildshard/game/shard/manifest';
+import { defineShard, type OceanDef } from '@wildshard/game/shard/manifest';
 import { lateReads } from './boot/lateReads';
 import { bootSources } from './boot/sources';
 import { DRIFTWOOD_SEA, LOWERED_SEA, SHORE_LEVEL, droppedTerrain } from './world/sea';
-import thumbnail from './thumbs/driftwood-isle.jpg';
-import heroPortrait from './thumbs/driftwood-isle-portrait.jpg';
-import heroLandscape from './thumbs/driftwood-isle-landscape.jpg';
 
 const SEED = 0x5ea1;
 
 /** Sea surface. The four entry roads are forced to y = 0 by `buildTerrain`, so a level a little above 0 turns them into submerged sandbars under the piers. */
-const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: exploreSets, practice: explorePractice }, compare: [
-    { id: 'spawn', label: 'Spawn · pier', model: 'driftwood-spawn', target: 'art/driftwood-isle/round-4-remaster/mockup-1-fp-front.jpg', live: compareSpawnLive, image: compareSpawnTarget },
-    { id: 'right', label: 'Spawn · right', model: 'driftwood-right', target: 'art/driftwood-isle/round-4-remaster/mockup-3-fp-right.jpg', live: compareRightLive, image: compareRightTarget },
-    { id: 'overlook', label: 'Island overlook', model: 'driftwood-overlook', target: 'art/driftwood-isle/round-4-remaster/mockup-6-diag-front.jpg', live: compareOverlookLive, image: compareOverlookTarget },
-  ] } satisfies NonNullable<ShardManifest['explore']>;
 
 export const OCEAN: OceanDef = {
-  // the island's waterline in world space: the authored +0.8 m, less G164's whole-world drop: road height
-  // (./world/sea.ts); the landscape below is authored round SHORE_LEVEL
+
   level: LOWERED_SEA,
-  // albedo (linear); the sun + sky here add up to ~3× so the palette stays under 0.5 or it tone-maps to white
+  
   shallowColor: [0.0, 0.8, 0.88],
   deepColor: [0.008, 0.15, 0.52],
   deepDepth: 6,
@@ -63,21 +44,16 @@ export const PIER = { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckA
 export const JETTIES: readonly { readonly x: number; readonly z: number; readonly rot: number; readonly length: number; readonly landing?: boolean | 'end' }[] = [
   { x: 0, z: CHUNK_HALF, rot: Math.PI, length: ROAD_LENGTH, landing: true },
   { x: -CHUNK_HALF, z: 0, rot: Math.PI / 2, length: 95 },
-  { x: CHUNK_HALF, z: 0, rot: -Math.PI / 2, length: 72, landing: 'end' }, // ends 30 m short of the wreck's stern (x 149) — 108 ran straight through it
+  { x: CHUNK_HALF, z: 0, rot: -Math.PI / 2, length: 72, landing: 'end' }, 
 ];
 /** the sand paths between the POIs (also `trails[4..]`): [pier → hut], [hut → lookout], [fork → wreck], [hut → shrine] */
 export const PATHS: [number, number][][] = [
-  // E308: it starts where the built pier's landing steps down onto the sand (z ≈ −152, not on the deck over the lagoon)
-  // and runs the fenced corridor off it (Trailside's landing fences) to the plateau ramp's foot. The maps draw this line;
-  // the terrain's bed keeps PIER_PATH_BED below
+
   [[0, -152], [-8, -145], [-18, -143], [-30, -142], [-30, -104], [-24, -80], [-20, -68]],
-  // hut → lookout: over the rope bridge end to end (BRIDGE.a → .b), then up the headland ramp's diagonal with its plank
-  // steps and fence (Trailside), not beside them over the crags (PHYSICS.md P9: the old line climbed 2–3 m a metre).
-  // E354: it ends at the lookout's stair foot (88, 88): its last 2.8 m ran on under the stair's treads (1.4–1.9 m up)
+
   [[-20, -68], [-8, -50], [14, -24], [17, 8], [15, 12], [16, 14], [32, 30], [34, 32], [46, 46], [86, 86], [88, 88]],
   [[17, 8], [60, 0], [100, -2], [140, 4]],
-  // E354: from the fenced approach's end (−94, 88) it turns onto the shrine's axis and up the pool causeway's three
-  // steps (between the front glyph pillars): it ran on to (−96, 96), through the south-west pillar into the pool's side
+
   [[-20, -68], [-52, -30], [-72, 20], [-88, 70], [-94, 88], [-87.5, 93.7], [-89.3, 96.1]],
 ];
 /** the pier → hut path's sand bed as the terrain carves it (`trails`), the line it had before E308: the Blender spawn cove
@@ -106,8 +82,7 @@ export const LOOKOUT = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };
 /** E308 (Jake's pick B, art/onboarding/round-1-first-minutes/board-3-start-length.jpg): half way down the pier (it runs
  *  ~100 m, sea end z −250 → the landing on the sand z ≈ −152), facing north up it, so the first frame is still the island
  *  from the sea: 38 s walking / 22 s sprinting to Wendell, was 49 / 27 from 15 m in */
-// y: the deck's top after G164's 0.8 m drop (as shard.config.ts); without it the grid stood the player on the seabed under the
-// pier at water level (E463, Jake's iPhone)
+
 const SPAWN = { x: 0, y: 1.2, z: -194, yaw: Math.PI };
 /** the sailboat you arrived in, moored alongside the pier's west side by the spawn (it was at the sea end, 9 m behind the
  *  old spawn; E308, Jake: "move the boat to halfway down the pier too") — bow out to sea, its bow line on the pennant's piling */
@@ -120,59 +95,15 @@ export const PIER_PENNANT_AT = 43.2;
 export const PRACTICE_CRAB = { x: -7, z: -143 };
 /** the boar variants the island rolls (E318): the common four, never Pine Hollow's Scarback or Old Ironhide (whose drop is a gun) */
 
-export const DRIFTWOOD_ISLE: ShardManifest = {
-  gridShardfile: '/shardfiles/driftwood-isle/shard.json',
-  // SF65 (G237): the SF46 hybrid boot ships (G172); LEGACY is the TypeScript runtime alone, no shardfile admitted
-  entries: { legacy: true, shardfile: true, public: 'shardfile' },
-  trustedRuntime: { get slug() { return DRIFTWOOD_ISLE.slug; }, entry: 'runtime/hybrid.ts' },
-  runtimeCost: DRIFTWOOD_RUNTIME_COST,
-  // Migrated verbatim from parity’s camera table; omitted y keeps the existing ground/land placement.
-  dev: { poses: () => Promise.resolve(Object.fromEntries([{name:'pier',x:0,z:-194,yaw:Math.PI,pitch:0},{name:'beach',x:-10,z:-150,yaw:4.3,pitch:0},{name:'wreck',x:105,z:0,yaw:-Math.PI/2,pitch:0}].map((probe) => [probe.name, {
-    probe, eye: [probe.x, (DRIFTWOOD_ISLE.ground.terrain?.heightAt(probe.x, probe.z) ?? 0) + 1.68, probe.z] as const, yaw: -probe.yaw * 180 / Math.PI, pitch: probe.pitch * 180 / Math.PI,
-    mockup: '', frame: probe.name,
-  }]))) },
+export const DRIFTWOOD_ISLE = defineShard({ ...DRIFTWOOD_MANIFEST,
+
   audio: { bed: 'island', samples: { loopGains: { island: 0.5 } }, ambience: 'ambience.driftwood', score: 'score.driftwood',
     preload: () => import('./runtime/audio/files').then((m) => m.createDriftwoodAudio()) },
-  budgets: DRIFTWOOD_BUDGET_INPUTS,
-  uses: ['dayCycle'],
-  api: 1,
-  kitLook: 'toon',
-  hands: 'toon',
-  // the Blender-baked cove (./world/blenderArea.ts): the export and BlenderIsland.ts clip at its lines
+
   blender: { area: BLENDER_AREA, models: [] },
-  // the painted band above the sea (HorizonMatte); the engine keeps no per-shard strips table (E405 AG25)
-  horizonStrips: { day: '/assets/horizon/driftwood-isle-day.webp', night: '/assets/horizon/driftwood-isle-night.webp', elMin: -4, elMax: 24 },
-  creatures: { lowPoly: true, waitForModels: false, furRim: false, tintRange: 0.3, oneMaterial: true },
-  debugOptions: [],
-  assetGlobs: ['public/assets/models/driftwood-blender/**', 'public/assets/models/driftwood-cc0/**', 'public/assets/models/driftwood-fp/**', 'public/assets/models/driftwood-hero/**', 'public/assets/gpu/models/driftwood-blender/**', 'public/assets/gpu/models/driftwood-hero/**', 'public/assets/gpu/baked/driftwood-isle/**', 'public/assets/horizon/driftwood-isle-*', 'public/assets/gpu/horizon/driftwood-isle-*', 'public/assets/lut/driftwood-isle.bin', 'public/assets/title/driftwood-isle-portrait.jpg', 'public/assets/sfx/driftwood-isle/**', 'public/assets/driftwood-isle/map/**', 'public/assets/driftwood-isle/baked/fixed-models/**'],
-  ktx2: () => import('./ktx2.generated'),
-  boot: { audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(EXPLORE.art), ...EXPLORE.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], files: (tier) => Object.values(bootSources(tier)).flat(), sources: bootSources, lateReads }, // includes the two offline fixed-model props; the island's late reads (./boot/lateReads.ts)
-  load: () => import('./plugin'), // E357 S4.1: the world build (./world/build.ts); the rest still runs in main.ts until S4.2–S4.4
-  order: 1,
-  // the phone's picture cuts (E189): the viewmodels in near depth slices, no god-ray pass while the sun is off screen,
-  // one FXAA pass instead of SMAA's three and no god rays at all (Jake's picks, "no regression"); the island's own
-  // scatter knobs are ./tiers.ts
-  tiers: { phone: { slices: true, skipRaysOffscreen: true, aa: 'fxaa', godRays: false } },
-  // the toon look (look/render.ts, E357 S4.3): the engine's clean chain
-  render: async () => (await import('./look/render')).shardRender(),
-  status: 'live',
-  
-  slug: 'driftwood-isle',
-  next: 'nalati-grasslands',
-  name: 'Driftwood Isle',
-  label: '(−1, +6)',
-  seed: SEED,
-  treeCount: 0,
-  accent: 'marigold', // G104: the HUD accent inside its grid cell
-  biome: 'Low-poly island, open ocean', // the title card's one-line blurb (E318: a player's words, not the grid)
-  blurb: 'A small low-poly island in a bright ocean, in the spirit of Wind Waker. A pier, a moored sailboat, a hut on the plateau, a ring shrine in the jungle and a wreck in the cove — island boar hunted with a wooden sword.',
-  card: { thumb: thumbnail, portrait: heroPortrait, landscape: heroLandscape },
-  style: 'toon',
-  weapon: 'sword',
-  loadout: { weapons: ['weapon.sword', 'weapon.sword-iron'], tools: ['tool.hoverboard'], start: ['weapon.sword', 'tool.hoverboard'],
-    pickups: [{ id: 'weapon.sword-iron', at: 'wreck.deck' }] },
-  // the castaway's skinned arms (E334, Jake's board-2 A / board-3 A): the wooden and the iron sword on the same hands, and
-  // the same arms swimming (driftwood-isle/fpArms.ts); the engine's code-built sword and white gloves if the rig does not load
+
+  boot: { audio: async () => (await import('./runtime/audio/files')).BOOT_AUDIO(), explore: { art: [...Object.values(DRIFTWOOD_MANIFEST.explore.art), ...DRIFTWOOD_MANIFEST.explore.compare.flatMap(({ live, image }) => [live, image])] }, precache: [], files: (tier) => Object.values(bootSources(tier)).flat(), sources: bootSources, lateReads }, 
+
   sword: async () => {
     try {
       return await (await import('./fpArms')).castawayArms();
@@ -182,14 +113,10 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
     }
   },
   ocean: OCEAN,
-  // Explore's hub art and its Compare pairs (the live capture against the mockup it chases; `target` is the mockup's source path)
-  explore: EXPLORE,
-  // its live models in the Model Explorer (E315 M5): the creatures it spawns, alive now or not, its people, its gear
-  roster: async () => (await import('./roster')).ROSTER,
-  // the maps: the island baked from the world (SF66); the open water also tells the grid's edge reader where the sea is
+
   minimap: {
     image: '/assets/driftwood-isle/map/top.webp',
-    // SF46 (G164): road height, so the grid's edge reader sees the lowered sea
+    
     openWater: { level: LOWERED_SEA, deepDepth: OCEAN.deepDepth },
     outside: 'rgb(22,74,128)',
   },
@@ -202,13 +129,10 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
     { id: 'bridge', name: 'Rope bridge', x: (BRIDGE.a[0] + BRIDGE.b[0]) / 2, z: (BRIDGE.a[1] + BRIDGE.b[1]) / 2, r: 12 },
   ],
 
-  // the sea is a water body (app.world.water), registered at level.data: the edge step's Boundary and every sea reader ask it
-  // G164: the field is authored round SHORE_LEVEL and lowered as one (droppedTerrain: heights,
-  // waterline and the bake's datum)
   navigation: { row: navigation.navigation, url: navigation.url },
   ground: { paths: 'plugin', water: [DRIFTWOOD_SEA], terrain: createBakedTerrainField({ key: 'driftwood-isle', seed: SEED }, droppedTerrain(buildTerrain(SEED, {
     oceanLevel: SHORE_LEVEL,
-    // This builder retains only trail/cabin/water metadata; every height query must use the admitted lattice.
+    
     landscape: () => { throw new Error('Driftwood requires admitted native ground'); },
     trails: [
       [[0, -CHUNK_HALF], [0, -CHUNK_HALF + ROAD_LENGTH]],
@@ -218,60 +142,20 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
       PIER_PATH_BED, ...PATHS.slice(1),
     ],
     cabinSites: [],
-    // no `splat`: the low-poly terrain colours by height and slope (E318: the borrowed splat, PBR assets, pine bark, forest
-    // block and HDRI name the Pine Hollow path would read are gone — ShardManifest makes them optional)
+
   }))) },
 
-  trees: { factory: 'none', noun: 'trees' }, // no forest trees (palms are their own builder, src/shards/driftwood-isle/world/Palms.ts)
-  // ── island fauna (loot-agent): no forest here, so every plan asks for the open (`canopy: false`); the placer treats a
-  // treeless shard as all clearing and keeps animals above the water line. Trails are only the four jetties' sandbars,
-  // hence the wide band. Anchors: boar sounders on the south beach by the pier, the west back-beach palms and the north
-  // grove; a brown bear in the south-east jungle grove below the plateau (E294: off the Wreck Cove sand and the wreck path,
-  // ~70 m from every quest path, past its 45 m sight), and a black bear on the south-west back beach past the vista point
-  // (E318: it was 15–35 m from the Ring Shrine, the finale; now ~90 m off the pier and shrine paths, 74 m from the vista
-  // point, clear of the brown bear across the island). Boars are the island's four (E318: no Scarback / Old Ironhide, the
-  // Pine Hollow legendaries); no deer (E318: a temperate game animal on a tropical island).
-  spawns: DRIFTWOOD_FAUNA_PLANS,
-  // E294 (Jake's yes, 2026-09-29): no single enemy hit takes more than 20 of your 100 health, so you survive ~5 hits of
-  // anything (brown bear 45 → 20, boars 25 / 32 / 40 → 20, the drowned captain's swing 24 → 20; the sailor's cutlass is 14 in sailor.ts)
-  // E297 (Jake's yes, 2026-09-29): one set of fight rules — at most 2 enemies attack at once, boars circle back instead of
-  // fleeing, an off-screen wind-up is flagged at the screen edge, no animal's body swallows the camera
-  fight: { input: { bufferMs: 120, coyoteMs: 100 }, telegraphed: true, maxHitDamage: 20, capExempt: ['captain'], attackers: 2 },
-   // the final boss hits harder than the cap (Jake, 2026-09-30)
-  // E314 (Jake's picks, 2026-09-30): kills burst doubloons that fly to you (crab 1 … captain 25, src/game/loot/coins.ts)
-  loot: { coins: true },
-  // E314 stage 3 (Jake, 2026-09-30): "a simple body shadow" — your castaway's shadow on the sand (src/engine/player/BodyShadow.ts)
-  bodyShadow: true,
-
-  // open sand: a boar sees you from far off; merged over the species' HuntTuning by AnimalManager.tuningFor
-  faunaTuning: DRIFTWOOD_FAUNA_TUNING,
-  sky: {
-    sunColor: [1.0, 0.97, 0.9],
-    sunIntensity: 2.7,
-    envIntensity: 0.7,
-    bgIntensity: 1.0,
-    fogSunColor: [1.0, 0.98, 0.92],
-    cloudSunColor: [1.0, 0.98, 0.94],
-    // toon ambient (stylize.ts): the whole shade band — a lavender-blue sky fill, a warm sand bounce from below
-    hemiSky: 0x7b90f4, hemiGround: 0xd8a878, hemiIntensity: 0.9,
-    // the ringed gas giant high in the north-east (up and right of the pier's view), lit from the NW sun
-    planet: { azimuth: 36, elevation: 38, size: 17, tilt: 24, roll: -16 },
-  },
-  atmosphere: {
-    fogHeight: -20.0,
-    fogHeightFalloff: 0.08,
-    fogHeightDensity: 0.0004,
-    fogDistDensity: 0.00014,
-    volumetricSunColor: [1.0, 0.97, 0.9],
-  },
-  grade: {
-    saturation: 0.3, brightness: 0.0, contrast: 0.2,
-    bloomIntensity: 0.4, bloomThreshold: 1.0,
-    shadowTint: [0.94, 0.98, 1.06], highTint: [1.04, 1.01, 0.96],
-    lift: [0.0, 0.0, 0.005], gain: [1.02, 1.02, 1.0], gamma: 1.0,
-  },
   spawn: SPAWN,
-};
+}, {
+dev: { poses: () => Promise.resolve(Object.fromEntries([{name:'pier',x:0,z:-194,yaw:Math.PI,pitch:0},{name:'beach',x:-10,z:-150,yaw:4.3,pitch:0},{name:'wreck',x:105,z:0,yaw:-Math.PI/2,pitch:0}].map((probe) => [probe.name, {
+    probe, eye: [probe.x, (DRIFTWOOD_ISLE.ground.terrain?.heightAt(probe.x, probe.z) ?? 0) + 1.68, probe.z] as const, yaw: -probe.yaw * 180 / Math.PI, pitch: probe.pitch * 180 / Math.PI,
+    mockup: '', frame: probe.name,
+  }]))) },
+ktx2: () => import('./ktx2.generated'),
+load: () => import('./plugin'),
+render: async () => (await import('./look/render')).shardRender(),
+roster: async () => (await import('./roster')).ROSTER
+});
 
-// oxlint-disable-next-line import/no-default-export -- F9 discovery requires a uniform manifest default export.
+// oxlint-disable-next-line import/no-default-export -- Folder discovery requires a default manifest.
 export default DRIFTWOOD_ISLE;
