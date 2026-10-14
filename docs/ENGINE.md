@@ -4652,3 +4652,8 @@ step preserves an existing hold save slot; an inline continuation field
 is optional when reading older saves. Disabled input cancels quietly.
 Signal replaces its timed command on release; Sky applies the held heavy
 after its existing ordered commands. Original contact/AS owners remain.
+
+The player impulse binding's `columns(routes, feet, enabled, register)`
+selects admitted column modes and supplies callbacks under their declared
+ids. It validates the bounded roster before registering any callback. The
+caller supplies its existing fixed-step registration and player owner.

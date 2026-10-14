@@ -18,16 +18,11 @@ import { SKY_MOVER_BINDING } from '../data/moverBindings';
 import { MoverScriptDriver, verifiedMoverModules } from '@wildshard/game/plugin/mover';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
-/** The updraft's fixed-step id (its whole state is the player's board and impulse, so it carries no continuation). */
-export const UPDRAFT_STEP = 'far.updraft';
-
 /** The shipping native world, bodies, quest and movers in a renderer-free host. */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets }) => {
   const rows = readRuntimeWorldMetadata(baked), fanRow = weaponRow(shard, FAN_ID);
   // Prepare detached, verified module bytes; every actual host binds its own player and role below.
   const itemModules = await declaredItemScriptBindings(shard.items, 'actor.player').modules(assets);
-  const updraft = shard.modes?.traverse.find(row => row.id === 'far.updraft');
-  if (updraft?.kind !== 'updraft') throw new Error('Sky Reach requires its admitted updraft row');
   if (shard.terrain !== null) throw new Error('Sky Reach is a structures-only world');
   // the islet and bridge modules, admitted in shard.config.ts `files`, hash-checked once here (install is synchronous)
   const moverRows = shard.movers.filter(row => !row.id.startsWith(SKY_MOVER_BINDING.staticPrefix));
@@ -70,7 +65,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
       actions: new Map([['winch', () => { movers.runtime.command(SKY_MOVER_BINDING.winch, 1); }]]), directorActions: new Map() });
     // the updraft (G24): riding the board inside its column, a steady upward push through the host impulse, as the
     // browser's `far.updraft` fixed.pre system; read after this tick's move, it feeds the next one, as the browser's does
-    host.onStep(UPDRAFT_STEP, bindPlayerImpulse(velocity => { host.impulsePlayer(velocity); }).column(updraft, () => host.player.position, () => host.playerBoard.on));
+    bindPlayerImpulse(velocity => { host.impulsePlayer(velocity); }).columns(shard.modes?.traverse ?? [], () => host.player.position, () => host.playerBoard.on,
+      (id, run) => { host.onStep(id, run); });
     keeper.settle();
   };
   return { level, ports, install };

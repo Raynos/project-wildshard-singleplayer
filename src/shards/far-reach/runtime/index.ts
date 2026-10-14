@@ -18,8 +18,6 @@ import { SKY_CLIENT_MOTION, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBinding
 import { declaredItemScriptBindings, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
-import { RISING_ISLETS } from '../data/islets.generated';
-import type { RisingIslet } from '../data/isletDesign';
 import { createFan, type WarFanWeapon, type ConeFanTarget } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
@@ -165,9 +163,8 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     rt.interactables.push(...channels.interactables);
     // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
     // like an animal's, so a constant feed holds about updraft.lift / 3.5 m/s) floats you off the ramp to the high step.
-    const updraft = source.modes?.traverse.find(row => row.id === 'far.updraft');
-    if (updraft?.kind !== 'updraft') throw new Error('Sky Reach requires its admitted updraft row');
-    ctx.system({ id: updraft.id, phase: 'fixed.pre', run: bindPlayerImpulse(velocity => { ctx.app.player?.impulse(velocity); }).column(updraft, () => position, this.board) });
+    bindPlayerImpulse(velocity => { ctx.app.player?.impulse(velocity); }).columns(source.modes?.traverse ?? [], () => position, this.board,
+      (id, run) => { ctx.system({ id, phase: 'fixed.pre', run }); });
 
     await worldBuildYield(ctx, 4);
     const poses = motion.pose.bind(motion);
@@ -285,26 +282,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   }
   /** Snap the crown bridge up (the winch's end state, also restored from a save). */
   private finishRaise(_built: BuiltWorld): void { this.isletCalls?.runtime?.command('far.winch.bridge', 3); }
-  /** SF49-g: the four Rising Islet entries' data (walks and captures read their routes here). */
-  get islets(): readonly Omit<RisingIslet, 'at'>[] { return RISING_ISLETS; }
-  /** SF49-g: an entry's islet deck centre now (captures, walks and tests read it through `__wildshard.shard.farReach`). */
-  isletAt(edge: string): { x: number; y: number; z: number } | null {
-    const movers = this.isletCalls?.runtime; if (movers === null || movers === undefined) return null;
-    return movers.data.some((m) => m.id === `far.islet.${edge}`) ? movers.pose(`far.islet.${edge}`).position : null;
-  }
-  /** SF8c: does an entry's road gate close the socket right now (the islet is away from the road)? */
-  isletGateShut(edge: string): boolean | null {
-    const movers = this.isletCalls?.runtime; if (movers === null || movers === undefined) return null;
-    return movers.data.some((m) => m.id === `far.islet.${edge}.gate`) ? movers.pose(`far.islet.${edge}.gate`).enabled : null;
-  }
-  /** SF8c: press an entry's RIDE (1) / road CALL (2) / gate-isle CALL (3) prompt, exactly as INTERACT does (walks and
-   *  captures use this through `__wildshard.shard.farReach`). */
-  interactIslet(edge: string, action: 1 | 2 | 3): void {
-    const index = RISING_ISLETS.findIndex((entry) => entry.edge === edge);
-    this.isletCalls?.interactables[index * 3 + action - 1]?.onInteract();
-  }
-  /** Turn the winch, ignoring the lock (captures and tests use this through `__wildshard.shard.farReach`). */
-  raise(): void { if (this.built && !this.built.state.raised) this.isletCalls?.runtime?.command('far.winch.bridge', 2); }
+
 }
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.
 export default SkyReachPlugin;

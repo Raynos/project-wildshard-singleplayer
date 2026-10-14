@@ -5,7 +5,7 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type Piece } from '@wildshard/engine/world/registry';
 import { bindClientChannels, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
 import type { SkyReachPlugin } from '../runtime/index';
-import { spanLength, spanYaw, spanPitch } from '../layout';
+import { spanYaw, spanPitch } from '../layout';
 import { FALLEN_ANGLE } from '../data/moverBindings';
 import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
 import { SKY_LIBRARY, skyHd } from './meshes';
@@ -30,9 +30,6 @@ import { skyDocksFor } from './skyDock';
 type ShardContext = Parameters<SkyReachPlugin['world']>[0];
 const HOVER_SCENES = new Map(REST_SCENES.hover.map(row => [row.id, row.scene]));
 const FILE = 'src/shards/far-reach/world/build.ts';
-/** The updraft's climb (radians; under the 40° walk limit) and its run along the slope. */
-export const UPDRAFT_ANGLE = spanPitch(UPDRAFT);
-export const UPDRAFT_LENGTH = spanLength(UPDRAFT);
 /** The baked placements for this session's cube (G99): standalone, or a grid cell of the half width they were baked for. */
 function skyPlacements(cube: { readonly half: number } | null): typeof STATIC_SCENES.standalone {
   if (cube === null) return STATIC_SCENES.standalone;
@@ -140,7 +137,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
 
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
   const ramp = createClientScene(HOVER_SCENES.get(UPDRAFT.id), { geometry: SKY_LIBRARY.geometry, materials: new Map([['glass', hoverDeck], ['frame', looks.frame]]) }).root;
-  ramp.position.set(UPDRAFT.x0, UPDRAFT.y, UPDRAFT.z0); ramp.rotation.set(UPDRAFT_ANGLE, spanYaw(UPDRAFT), 0, 'YXZ');
+  ramp.position.set(UPDRAFT.x0, UPDRAFT.y, UPDRAFT.z0); ramp.rotation.set(spanPitch(UPDRAFT), spanYaw(UPDRAFT), 0, 'YXZ');
   pieces.add('far.updraft', ramp, { colliders: spanColliders('far.updraft') });
   await pause();
 

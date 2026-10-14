@@ -3,10 +3,9 @@
 // Sunrest (0, 0) deck 30 with the rise behind the spawn, the windmill isle (0, −64) deck 30 across the rope bridge, the
 // grove (−54, 5), the Roost (60, −12) +34, the keeper (−58, −60), the ruin (65, −72), the high step (−64, −126) +44 with the
 // winch, the storm crown (0, −190) +44 under the vortex. The low sun stands west-north-west (azimuth 300°): looking north
-// or west is into the glow. `window.__wildshard.shard.farReach` is the plugin (stage, raise, roc, built).
+// or west is into the glow. `window.__wildshard.shard.farReach` is the plugin (stage, roc, built).
 // Rig shots park the player on Sunrest under a free camera (bootstrap `freeCamera`, as nine-dragon.mjs does): nothing
 // falls into the clouds under the lens.
-import { at } from './lib.mjs';
 
 const U = 'chunk=far-reach';
 const FR = 'window.__wildshard.shard.farReach';
@@ -43,15 +42,13 @@ export const shots = [
       { t: 0, p: [-30, 90, 70], l: [-10, 30, -90], fov: 55 },
       { t: 4, p: [20, 92, 72], l: [6, 30, -90], fov: 55 },
     ] } },
-  // the winch: the crown bridge swings up off the high step toward the storm crown, seen side-on from the east (the
-  // winch's own motion, in play)
+  // the winch and crown bridge, seen side-on from the east; scripted raise probe retired
   { name: 'sr-winch', shard: 'sky-reach', url: U, secs: 4,
     setup: `${FREE}${FR}.stage('quest-winch');`,
     rig: { carryPlayer: false, ease: true, keys: [
       { t: 0, p: [-2, 50, -128], l: [-36, 42, -160], fov: 56 },
       { t: 4, p: [-8, 52, -124], l: [-34, 43, -162], fov: 54 },
-    ] },
-    tick: (t, i, sb, step) => (at(t, 0.4, step) ? `${FR}.raise();` : '') },
+    ] } },
   // the storm crown: the Storm Roc lifts off its perch under the vortex, lightning in the storm (quest done, the fight on)
   { name: 'sr-roc', shard: 'sky-reach', url: U, secs: 4, warm: 300,
     setup: `${CROWN}${FR}.stage('quest-crown');`,

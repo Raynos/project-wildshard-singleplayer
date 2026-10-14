@@ -6,7 +6,7 @@ import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
-import { UpdraftModeSchema, type UpdraftMode } from '@wildshard/format/modes';
+import { UpdraftModeSchema, type UpdraftMode, type TraverseMode } from '@wildshard/format/modes';
 import type { ShardCreatures } from '@wildshard/format/creatures';
 import type { ShardRows } from '@wildshard/format/rows';
 import type { DeclaredBrainPorts } from './brainRuntime';
@@ -20,6 +20,8 @@ const motionSchema = v.strictObject({ x: finite, z: finite, speed: v.pipe(finite
 export function bindPlayerImpulse(apply: (velocity: Vector3) => void): {
   directed: (yaw: number, speed: number, lift: number) => void;
   column: (input: UpdraftMode, feet: () => Readonly<{ x: number; y: number; z: number }>, enabled: () => boolean) => (dt: number) => void;
+  columns: (input: readonly TraverseMode[], feet: () => Readonly<{ x: number; y: number; z: number }>, enabled: () => boolean,
+    register: (id: string, run: (dt: number) => void) => void) => void;
 } {
   const impulse = new Vector3();
   return {
@@ -40,6 +42,12 @@ export function bindPlayerImpulse(apply: (velocity: Vector3) => void): {
           if (impulse.y !== 0) apply(impulse);
         }
       };
+    },
+    columns(input, feet, enabled, register) {
+      if (input.length > 64) throw new Error('Too many player impulse routes');
+      const rows = input.filter(row => row.kind === 'updraft').map(row => v.parse(UpdraftModeSchema, row));
+      if (new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('Duplicate player impulse route');
+      for (const row of rows) register(row.id, this.column(row, feet, enabled));
     },
   };
 }
