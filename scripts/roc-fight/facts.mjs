@@ -26,7 +26,7 @@ const { canonicalSimDigest } = await import(at('test/fake/simState.ts'));
 const { snapshotSimHost } = await import(at('src/engine/sim/snapshot.ts'));
 const { ROC_ID, ROC_STEP } = await import(at('src/shards/far-reach/data/rocFight.ts'));
 const { CROWN } = await import(at('src/shards/far-reach/data/layout.ts'));
-const { FLAGS } = await import(at('src/shards/far-reach/quest/flags.ts'));
+const { FLAGS } = await import(at('src/shards/far-reach/quests/flags.ts'));
 
 const LIMIT = 60_000, AFTER = 120, HP_EVERY = 600;
 const rapier = await witness.skyRapier(), plan = await witness.skyPlan(rapier);

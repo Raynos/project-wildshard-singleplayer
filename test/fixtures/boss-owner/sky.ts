@@ -3,7 +3,7 @@ import stages from '../../../src/shards/far-reach/data/bossStages.json' with { t
 import { installBossRow } from '@wildshard/game/shardfile/bossRow';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
-import { FLAGS } from '../../../src/shards/far-reach/quest/flags';
+import { FLAGS } from '../../../src/shards/far-reach/quests/flags';
 import { BOSS_REWARD, ROC_ID, ROC_DEFINITION, ROC_BOSS_PROFILE } from '../../../src/shards/far-reach/data/rocFight';
 import { bossFight } from '@wildshard/game/plugin/bossPhase';
 import { parseBossProfile } from '@wildshard/format/bossProfiles';

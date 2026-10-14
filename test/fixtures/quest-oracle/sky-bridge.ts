@@ -4,7 +4,7 @@ import type { QuestData } from '@wildshard/format/quests';
 import { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { DECK, NOTES, ROOST_RAYS, VANES, WINCH } from '../../../src/shards/far-reach/data/layout';
 import { KEEPER_AT } from '../../../src/shards/far-reach/data/quests';
-import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quest/flags';
+import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quests/flags';
 
 /** The script command actor that carries Sky's [E] prompts (`{ kind: 'script', actorId: SKY_INTERACT, value: SKY_ACT.* }`). */
 export const SKY_INTERACT = 'far.interact';
