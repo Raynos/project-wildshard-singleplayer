@@ -236,3 +236,13 @@ export const AudioObservationSystemSchema=v.strictObject({id,before:observationN
       gap:v.pipe(finite,v.minValue(0),v.maxValue(600)),radius:v.pipe(finite,v.minValue(0),v.maxValue(2000)),remember:id,call:id})
   ])),v.maxLength(64))});
 export type AudioObservationSystem=v.InferOutput<typeof AudioObservationSystemSchema>;
+
+/** Ordered persistent oscillator graphs. The caller owns the output and all fade/stop policy. */
+export const AudioLoopGraphSchema=v.pipe(v.array(v.variant('kind',[
+  v.strictObject({kind:v.literal('gain'),id,value:finite}),
+  v.strictObject({kind:v.literal('filter'),id,type:v.picklist(['lowpass','highpass','bandpass']),frequency:finite,q:finite}),
+  v.strictObject({kind:v.literal('oscillator'),id,type:v.picklist(['sine','triangle','square','sawtooth']),frequency:finite,midi:v.exactOptional(finite),detune:v.exactOptional(finite)}),
+  v.strictObject({kind:v.literal('connect'),from:id,to:id,param:v.exactOptional(v.picklist(['gain','frequency','detune']))}),
+  v.strictObject({kind:v.literal('start'),id})
+])),v.maxLength(64));
+export type AudioLoopGraph=v.InferOutput<typeof AudioLoopGraphSchema>;

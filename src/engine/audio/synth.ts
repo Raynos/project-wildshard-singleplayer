@@ -1,6 +1,6 @@
 import { ownAudioSource } from './ownership';
 import type { AmbienceZones } from './ambience';
-import type { AudioNodeRow, AudioPhraseProgram, AudioMixExpr, SynthNoise, SynthLfoRow, SynthChainRow, SynthBedGraph } from '@wildshard/format/audioProfiles';
+import type { AudioLoopGraph, AudioNodeRow, AudioPhraseProgram, AudioMixExpr, SynthNoise, SynthLfoRow, SynthChainRow, SynthBedGraph } from '@wildshard/format/audioProfiles';
 import { audioMixValue } from './audioProfiles';
 import { tap } from '../core/harnessTap';
 import { audioRandom } from './util';
@@ -17,6 +17,33 @@ export abstract class Synth {
     g.gain.linearRampToValueAtTime(peak, t + attack);
     if (hold > 0) g.gain.setValueAtTime(peak, t + attack + hold);
     g.gain.exponentialRampToValueAtTime(0.0001, t + attack + hold + decay);
+  }
+
+  /** Create persistent sources in declared order; the native emitter retains its fades and teardown. */
+  loopGraph(rows:AudioLoopGraph,out:GainNode,time=this.ctx.currentTime):AudioScheduledSourceNode[] {
+    if(rows.length>64)throw new Error('Loop graph capacity');
+    const c=this.ctx,nodes=new Map<string,AudioNode>([['out',out],['sfx',this.sfx]]),sources:AudioScheduledSourceNode[]=[];
+    const node=(id:string):AudioNode=>{const value=nodes.get(id);if(value===undefined)throw new Error(`Missing loop graph node: ${id}`);return value;};
+    for(const row of rows){
+      if(row.kind==='connect'){
+        const source=node(row.from),target=node(row.to);
+        if(row.param===undefined)source.connect(target);
+        else if(row.param==='gain'&&target instanceof GainNode)source.connect(target.gain);
+        else if(row.param==='frequency'&&target instanceof OscillatorNode)source.connect(target.frequency);
+        else if(row.param==='detune'&&target instanceof OscillatorNode)source.connect(target.detune);
+        else throw new Error('Invalid loop graph parameter');
+        continue;
+      }
+      if(row.kind==='start'){const source=node(row.id);if(!(source instanceof OscillatorNode))throw new Error('Loop graph start requires an oscillator');source.start(time);sources.push(source);continue;}
+      if(nodes.has(row.id))throw new Error('Duplicate loop graph node');
+      switch(row.kind){
+        case 'gain':{const made=c.createGain();made.gain.value=row.value;nodes.set(row.id,made);break;}
+        case 'filter':{const made=c.createBiquadFilter();made.type=row.type;made.frequency.value=row.frequency;made.Q.value=row.q;nodes.set(row.id,made);break;}
+        case 'oscillator':{const made=ownAudioSource(c.createOscillator());made.type=row.type;made.frequency.value=row.midi===undefined?row.frequency:440*2**((row.midi-69)/12);if(row.detune!==undefined)made.detune.value=row.detune;nodes.set(row.id,made);break;}
+        default:throw new Error('Unsupported loop graph node');
+      }
+    }
+    return sources;
   }
 
   /** filtered noise burst */

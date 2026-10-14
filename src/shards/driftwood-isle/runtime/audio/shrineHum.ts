@@ -18,7 +18,6 @@ import type { Camera } from 'three';
 
 const REF = 4, MAX = 22, BUILD_R = 30, DROP_R = 36;
 const DUCK_IN = 10, DUCK_EDGE = 13, DUCK = 10 ** (-3 / 20);
-const midiHz = (n: number) => 440 * 2 ** ((n - 69) / 12);
 
 
 export class ShrineHum {
@@ -28,7 +27,7 @@ export class ShrineHum {
   /** the teardown's disconnect timers */
   private readonly scope = new Scope('audio.shrine.hum');
 
-  constructor(private readonly audio: Audio, private readonly music: Music, private readonly pos: { x: number; y: number; z: number }) {}
+  constructor(private readonly audio: Audio, private readonly music: Music, private readonly pos: { x: number; y: number; z: number },private readonly graph:Parameters<Audio['loopGraph']>[0]) {}
 
   get active(): boolean { return this.nodes !== undefined; }
   get source(): 'sample' | 'synth' | undefined { return this.nodes ? (this.nodes.buf ? 'sample' : 'synth') : undefined; }
@@ -71,16 +70,7 @@ export class ShrineHum {
       const s = ownAudioSource(c.createBufferSource()); s.buffer = sample.buffer; s.loop = true; s.loopStart = sample.loopStart; s.loopEnd = sample.loopEnd;
       s.connect(out); s.start(t, sample.loopStart); srcs.push(s); level = sample.gain;
     } else {
-      // the synth drone: D2 sine + D3 sine (quiet) + A2 triangle through a 480 Hz low-pass, the fifth breathing on a 0.09 Hz LFO
-      const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 480; lp.Q.value = 0.6; lp.connect(out);
-      const voice = (type: OscillatorType, n: number, gain: number, detune = 0): GainNode => {
-        const o = ownAudioSource(c.createOscillator()); o.type = type; o.frequency.value = midiHz(n); o.detune.value = detune;
-        const g = c.createGain(); g.gain.value = gain; o.connect(g).connect(lp); o.start(t); srcs.push(o); return g;
-      };
-      voice('sine', 38, 0.55); voice('sine', 50, 0.16, 4);
-      const fifth = voice('triangle', 45, 0.14, -3);
-      const lfo = ownAudioSource(c.createOscillator()); lfo.frequency.value = 0.09; const lg = c.createGain(); lg.gain.value = 0.1;
-      lfo.connect(lg).connect(fifth.gain); lfo.start(t); srcs.push(lfo);
+      srcs.push(...this.audio.loopGraph(this.graph,out,t));
     }
     out.gain.linearRampToValueAtTime(level, t + 1.5);
     this.nodes = { panner, out, srcs, buf: sample?.buffer };

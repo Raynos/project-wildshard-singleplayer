@@ -23,7 +23,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const audioRows = runtimeAudio(ctx, source.audio);
   installDriftwoodScore(audio, music, ctx.scope, requireAudioProfile(audioRows.music, 'score.driftwood'));
   const built = driftwoodWorld(shell), { trailDistance } = await import('@wildshard/engine/world/Heightfield');
-  const shrineHum = built.shrine === null ? null : new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z });
+  const shrineHum = built.shrine === null ? null : new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z },requireAudioProfile(audioRows.loopGraphs?.['shrine'],'shrine loop graph'));
   const islandSfx = new IslandSfx(audio, ctx.scope);
   const sea = LOWERED_SEA; // SF46 (G164): the lowered sea at road height
   const surfaces = new SurfaceMap({ sea, heightAt, trailDistance,

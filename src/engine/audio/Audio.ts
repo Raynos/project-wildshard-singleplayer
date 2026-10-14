@@ -1,3 +1,4 @@
+import type { AudioLoopGraph } from '@wildshard/format/audioProfiles';
 import { SynthBeds } from './synth';
 import { AmbienceZones } from './ambience';
 import { resourceScope } from '../app/resources';
@@ -55,6 +56,15 @@ import { audioUnlocked, claimPageAudioContext, releasePageAudioContext, whenAudi
  * sample selection to `new Audio(profile)`. `setAmbient(id)` switches it (before or after resume()); a level's own synth bed registers with
  * `installSynthBed`.
  */
+
+const PICKUP_GRAPH:AudioLoopGraph=[
+  {kind:'gain',id:'trem',value:0.7},{kind:'oscillator',id:'lfo',type:'sine',frequency:5.5},{kind:'gain',id:'lg',value:0.3},
+  {kind:'connect',from:'lfo',to:'lg'},{kind:'connect',from:'lg',to:'trem',param:'gain'},{kind:'start',id:'lfo'},
+  {kind:'filter',id:'lp',type:'lowpass',frequency:700,q:0.7},
+  {kind:'oscillator',id:'o1',type:'sine',frequency:220},{kind:'oscillator',id:'o2',type:'triangle',frequency:330},{kind:'gain',id:'g2',value:0.18},
+  {kind:'connect',from:'o1',to:'lp'},{kind:'connect',from:'o2',to:'g2'},{kind:'connect',from:'g2',to:'lp'},
+  {kind:'connect',from:'lp',to:'trem'},{kind:'connect',from:'trem',to:'out'},{kind:'connect',from:'out',to:'sfx'},{kind:'start',id:'o1'},{kind:'start',id:'o2'}
+];
 
 export type ImpactKind = 'wood' | 'ground' | 'flesh';
 /** the mixer's own creature calls; a level adds its own ids with `registerCalls` (any string reaches `animal`) */
@@ -325,16 +335,8 @@ export class Audio extends PlayerVoices {
       }
       if (!this.hum) {
         const out = c.createGain(); out.gain.value = 0;
-        const trem = c.createGain(); trem.gain.value = 0.7;
-        const lfo = ownAudioSource(c.createOscillator()); lfo.frequency.value = 5.5;
-        const lg = c.createGain(); lg.gain.value = 0.3; lfo.connect(lg).connect(trem.gain); lfo.start(t);
-        const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700; lp.Q.value = 0.7;
-        const o1 = ownAudioSource(c.createOscillator()); o1.type = 'sine'; o1.frequency.value = 220;
-        const o2 = ownAudioSource(c.createOscillator()); o2.type = 'triangle'; o2.frequency.value = 330; // a soft fifth
-        const g2 = c.createGain(); g2.gain.value = 0.18;
-        o1.connect(lp); o2.connect(g2).connect(lp); lp.connect(trem).connect(out).connect(this.sfx);
-        o1.start(t); o2.start(t);
-        this.hum = { out, level: 0.11, sample: false, stop: () => { o1.stop(); o2.stop(); lfo.stop(); out.disconnect(); } };
+        const sources=this.loopGraph(PICKUP_GRAPH,out,t);
+        this.hum={out,level:0.11,sample:false,stop:()=>{sources[1]?.stop();sources[2]?.stop();sources[0]?.stop();out.disconnect();}};
       }
       this.hum.out.gain.cancelScheduledValues(t); this.hum.out.gain.setTargetAtTime(this.hum.level, t, 0.12);
     } else if (this.hum) {

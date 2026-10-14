@@ -9,7 +9,13 @@ import { parseAudioData } from '@wildshard/sdk/audio';
 const enemies = ['boar', 'crab', 'monkey', 'sailor'] as const;
 const death = enemies.map((kind) => ({ voice: `island.kill.${kind}`, overrides: { gain: 1.3 }, when: [{ op: 'equals', field: 'killed', value: true }, { op: 'equals', field: 'kind', value: kind }] }));
 /** Today's island bank calls, in their original mixer/combat order; the trusted recipes keep their taps and random draws. */
-export const DRIFTWOOD_AUDIO = parseAudioData({ observations:[
+export const DRIFTWOOD_AUDIO = parseAudioData({ loopGraphs:{shrine:[
+    {kind:'filter',id:'lp',type:'lowpass',frequency:480,q:0.6},{kind:'connect',from:'lp',to:'out'},
+    {kind:'oscillator',id:'d2',type:'sine',frequency:0,midi:38,detune:0},{kind:'gain',id:'g1',value:0.55},{kind:'connect',from:'d2',to:'g1'},{kind:'connect',from:'g1',to:'lp'},{kind:'start',id:'d2'},
+    {kind:'oscillator',id:'d3',type:'sine',frequency:0,midi:50,detune:4},{kind:'gain',id:'g2',value:0.16},{kind:'connect',from:'d3',to:'g2'},{kind:'connect',from:'g2',to:'lp'},{kind:'start',id:'d3'},
+    {kind:'oscillator',id:'a2',type:'triangle',frequency:0,midi:45,detune:-3},{kind:'gain',id:'fifth',value:0.14},{kind:'connect',from:'a2',to:'fifth'},{kind:'connect',from:'fifth',to:'lp'},{kind:'start',id:'a2'},
+    {kind:'oscillator',id:'lfo',type:'sine',frequency:0.09},{kind:'gain',id:'lg',value:0.1},{kind:'connect',from:'lfo',to:'lg'},{kind:'connect',from:'lg',to:'fifth',param:'gain'},{kind:'start',id:'lfo'}
+  ]}, observations:[
     {id:'shard.driftwood.dusk',inputs:[{id:'hasClock',source:'clock',path:[],op:'present'},{id:'night',source:'clock',path:['night'],op:'number',fallback:0},{id:'dusk',source:'clock',path:['dusk'],op:'number',fallback:0}],before:['main.world'],after:[],interval:0,initial:{},frame:[{write:'shrine.dusk',value:'dusk',when:'hasClock'},{write:'ambience.night',value:'night',when:'hasClock'}],steps:[]},
     {id:'shard.driftwood.shrineHum',inputs:[],before:['main.frame'],after:['engine.audio.listener'],interval:0,initial:{},frame:[],steps:[{kind:'call',call:'hum'}]},
     {id:'shard.driftwood.ambience',inputs:[],before:['main.frame'],after:['shard.driftwood.shrineHum'],interval:0,initial:{},frame:[],steps:[{kind:'call',call:'ambience'}]}
