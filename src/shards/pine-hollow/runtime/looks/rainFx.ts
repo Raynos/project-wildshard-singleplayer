@@ -10,39 +10,34 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
 import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { GeometryPack, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
-import { fogGLSL } from '@wildshard/game/systems/looks/fogProgram';
-import { rainCurtain } from '@wildshard/game/systems/looks/rainCurtain';
-import { ShaderFamily, type ShaderProgramRow } from '@wildshard/game/plugin/shaderFamily';
-import { RAIN_LOOKS } from '../../data/weatherLook';
-import { pineLook, setPineLookParam } from './graphLooks';
+import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
+import { pineLook, setPineLookParam, setPineLookTexture } from './graphLooks';
 
 /**
  * A wooded level's rain as rows (SHARD-PLATFORM M3): the rain round the camera with the canopy's drips in it, the puddles in
  * the ground's low spots, the splashes at the player's feet and the drops on the lens. Everything reads a weather reading
- * (rain, wet); nothing here decides anything. The shard gives its sizes and its three programs as data, its bake, where
- * its roofs are and, optionally, one hood (a cave's mouth) where no rain falls.
+ * (rain, wet); nothing here decides anything. The shard gives its sizes and its three graphs' look.materials ids as data,
+ * its bake, where its roofs are and, optionally, one hood (a cave's mouth) where no rain falls.
  *
  *   const fx = new RainFx({ sky, roofAt, phone, seed, look, programs, baked, hood }).build();  scene.add(fx.group)
  *   fx.update(dt, weather, fogColor, wind, camera)   // the camera: the extras (splashes round it, drops on its lens)
  *
- * THE RAIN: a camera-local curtain (`rainCurtain`) — N streak quads in a box round the eye, world-anchored by a wrapped
- * offset (no CPU per drop), built in the vertex shader, the count following the intensity. The COVER MAP: a `coverN`²
- * texture over the slab of the crowns (R, baked from the trees) and the roofs (G, `roofAt`): the rain program stops the
- * rain under a roof and turns most of it under the crowns into drips off the needles, in the same draw. Its uniforms: `uCover` /
- * `uCoverK` (world x/z → uv = p · k + 0.5), `uCave` (the hood's frame: x, z, cos yaw, sin yaw) and `uCaveBox` (half width,
- * lz from, lz to, the ceiling's world y; all 0 with no hood, which nothing is inside).
+ * THE RAIN: a camera-local curtain (`rainCurtainGeometry`) — N streak quads in a box round the eye, world-anchored by a
+ * wrapped offset (no CPU per drop), built in the vertex stage of the `programs.rain` graph (data/weatherLook.ts), the
+ * count following the intensity. The COVER MAP: a `coverN`² texture over the slab of the crowns (R, baked from the trees)
+ * and the roofs (G, `roofAt`), lent to that graph: it stops the rain under a roof and turns most of it under the crowns
+ * into drips off the needles, in the same draw; the hood's frame and box are its `cave` / `caveBox` params.
  * THE PUDDLES: irregular draped discs in the concave spots of the roads and trails (and the open meadows' dips after them),
  * merged into one mesh drawn by the water's own program at a fading alpha: 0 new programs. They and the crowns' half of the
  * cover map are baked offline (generators/bake-pine-rain.mjs over the page's ground and forest; `loadRainBake`), so the
  * page builds only the roofs' half.
  * THE EXTRAS: the splashes (a ring of crowns + ripples on the ground within a few metres of the eye, respawned on the CPU,
  * one instanced draw; none under a roof or the hood, fewer under the crowns) and the lens drops (screen-space quads in
- * the look.materials graph `RAIN_LOOKS.lens`, data/weatherLook.ts: they land while you face the open sky and bead, slide
+ * the `programs.lens` graph: they land while you face the open sky and bead, slide
  * and dry).
  *
  * A practice room (`practiceRoom.open`) has none of it. Draws: 0 while dry (all hidden); raining: the rain + the puddles +
- * the splashes + the lens = 4. Programs: +3 (the rain, the splash and lens graphs), built at boot (the meshes are in the scene,
- * hidden, when the precompile walks it).
+ * the splashes + the lens = 4. Programs: +3 (the curtain, splash and lens graphs, compiled with the shard's other looks).
  */
 
 /** A count per device tier. */
@@ -65,8 +60,8 @@ export async function loadRainBake(url: string, rows: PackedGeometryJson): Promi
   return { puddles: pack.geometry(0), crowns: pack.floats(1) };
 }
 
-/** The rain's program (`@{fog}` splices the atmosphere's fog GLSL). */
-export interface RainFxPrograms { readonly rain: ShaderProgramRow }
+/** The look.materials ids of the rain's graphs: the curtain, the splashes and the lens drops. */
+export interface RainFxPrograms { readonly rain: string; readonly splash: string; readonly lens: string }
 
 /** A hood where no rain falls: a box in a frame at (x, z) turned by `rot` (lx across, lz in), under `top` (world y). */
 export interface RainHood { readonly x: number; readonly z: number; readonly rot: number; readonly hw: number; readonly lz0: number; readonly lz1: number; readonly top: number }
@@ -101,11 +96,12 @@ export class RainFx {
   cover!: THREE.DataTexture;
   private readonly coverN: number;
   private readonly coverData: Uint8Array;
-  private readonly rainU: {
-    uOffset: { value: THREE.Vector3 }; uR: { value: number }; uVel: { value: THREE.Vector3 }; uLen: { value: number };
-    uCol: { value: THREE.Color }; uAlpha: { value: number }; uWidth: { value: number };
-    uCover: { value: THREE.Texture | null }; uCoverK: { value: number }; uCave: { value: THREE.Vector4 }; uCaveBox: { value: THREE.Vector4 };
-  };
+  /** the hood's frame (x, z, cos yaw, sin yaw) and box (half width, lz from, lz to, ceiling y); all 0 with none */
+  private readonly cave = new THREE.Vector4();
+  private readonly caveBox = new THREE.Vector4();
+  /** the curtain's wrapped world offset and fall velocity */
+  private readonly offset = new THREE.Vector3();
+  private readonly vel = new THREE.Vector3();
   private readonly puddleFade = { value: 0 };
   private readonly rainCount: number;
   /** the splashes at the feet */
@@ -123,29 +119,20 @@ export class RainFx {
   private readonly eye = new THREE.Vector3();
   private readonly fwd = new THREE.Vector3(0, 0, -1);
   private readonly xrng: Rng;
-  private readonly family: ShaderFamily<keyof RainFxPrograms>;
 
   /** `o`: the roofs, tier, seed, the look and programs as data, and an optional hood. */
   constructor(private readonly o: RainFxOptions) {
     this.coverN = o.look.coverN;
     this.coverData = new Uint8Array(this.coverN * this.coverN * 4);
     const hood = o.hood;
-    this.rainU = {
-      uOffset: { value: new THREE.Vector3() }, uR: { value: 16 }, uVel: { value: new THREE.Vector3(0, -9, 0) }, uLen: { value: 0.9 },
-      uCol: { value: new THREE.Color(0.6, 0.65, 0.75) }, uAlpha: { value: 0.3 }, uWidth: { value: 0.012 },
-      uCover: { value: null }, uCoverK: { value: 1 / (2 * CHUNK_HALF) },
-      uCave: { value: hood ? new THREE.Vector4(hood.x, hood.z, Math.cos(hood.rot), Math.sin(hood.rot)) : new THREE.Vector4() },
-      uCaveBox: { value: hood ? new THREE.Vector4(hood.hw, hood.lz0, hood.lz1, hood.top) : new THREE.Vector4() },
-    };
+    if (hood) { this.cave.set(hood.x, hood.z, Math.cos(hood.rot), Math.sin(hood.rot)); this.caveBox.set(hood.hw, hood.lz0, hood.lz1, hood.top); }
     this.rainCount = o.phone ? o.look.streaks.phone : o.look.streaks.desktop;
     this.xrng = new Rng(o.seed ^ 0x7e11);
-    this.family = new ShaderFamily({ fog: fogGLSL }, o.programs);
   }
 
   /** Builds the cover map and the four meshes into `group`. */
   build(): this {
     this.cover = this.buildCover();
-    this.rainU.uCover.value = this.cover;
     this.rain = this.buildRain();
     this.puddles = this.buildPuddles();
     this.splashes = this.buildSplashes();
@@ -168,7 +155,7 @@ export class RainFx {
     const N = this.coverN;
     const i = Math.floor((x + CHUNK_HALF) / (2 * CHUNK_HALF) * N), j = Math.floor((z + CHUNK_HALF) / (2 * CHUNK_HALF) * N);
     if (i >= 0 && j >= 0 && i < N && j < N && (this.coverData[(j * N + i) * 4 + 1] ?? 0) > 127) return true;
-    const c = this.rainU.uCave.value, b = this.rainU.uCaveBox.value, dx = x - c.x, dz = z - c.y;
+    const c = this.cave, b = this.caveBox, dx = x - c.x, dz = z - c.y;
     const lx = dx * c.z - dz * c.w, lz = dx * c.w + dz * c.z;
     return Math.abs(lx) < b.x && lz > b.y && lz < b.z && y < b.w;
   }
@@ -190,9 +177,16 @@ export class RainFx {
   }
 
   // ─────────────────────────── rain around the camera ───────────────────────────
+  /** the streak quads in the `programs.rain` graph, lent the cover map and given the hood once */
   private buildRain(): THREE.Mesh {
-    const row = this.family.row('rain');
-    return rainCurtain({ count: this.rainCount, seed: this.o.seed, uniforms: this.rainU, program: { vertexShader: this.family.glsl(row.vertex), fragmentShader: this.family.glsl(row.fragment) } });
+    const id = this.o.programs.rain;
+    setPineLookTexture(id, 'cover', this.cover);
+    setPineLookParam(id, 'coverK', 1 / (2 * CHUNK_HALF));
+    setPineLookParam(id, 'cave', this.cave.toArray());
+    setPineLookParam(id, 'caveBox', this.caveBox.toArray());
+    const m = new THREE.Mesh(rainCurtainGeometry(this.rainCount, this.o.seed, 'aSeed'), pineLook(id));
+    m.frustumCulled = false; m.renderOrder = 20; m.visible = false; m.name = 'rain';
+    return m;
   }
 
   // ─────────────────────────── puddles in the low spots ───────────────────────────
@@ -215,7 +209,7 @@ export class RainFx {
 
   // ─────────────────────────── splashes at the feet ───────────────────────────
   /**
-   * One instanced draw in the look.materials graph `RAIN_LOOKS.splash` (data/weatherLook.ts): per slot a flat ripple ring
+   * One instanced draw in the look.materials graph `programs.splash` (data/weatherLook.ts): per slot a flat ripple ring
    * (verts 0–3) and an upright crown of droplets facing the eye (4–7), both posed from (x, y, z, born) and the clock.
    */
   private buildSplashes(): THREE.Mesh {
@@ -229,7 +223,7 @@ export class RainFx {
     geo.setAttribute('aSplash', this.splashAttr);
     geo.instanceCount = n;
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    const m = new THREE.Mesh(geo, pineLook(RAIN_LOOKS.splash));
+    const m = new THREE.Mesh(geo, pineLook(this.o.programs.splash));
     m.frustumCulled = false; m.renderOrder = 21; m.visible = false; m.name = 'rain-splashes';
     return m;
   }
@@ -271,7 +265,7 @@ export class RainFx {
     geo.setAttribute('aDrop', this.lensAttr);
     geo.instanceCount = 0;
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    const mat = pineLook(RAIN_LOOKS.lens);
+    const mat = pineLook(this.o.programs.lens);
     mat.depthTest = false; // over everything
     const m = new THREE.Mesh(geo, mat);
     m.frustumCulled = false; m.renderOrder = 1000; m.visible = false; m.name = 'rain-lens';
@@ -315,7 +309,11 @@ export class RainFx {
   private readonly rgb = [0, 0, 0];
   /** `c` · k + add as a param's rgb (one array, copied by the param setter) */
   private tint(c: THREE.Color, k: number, add: number): number[] {
-    this.rgb[0] = c.r * k + add; this.rgb[1] = c.g * k + add; this.rgb[2] = c.b * k + add;
+    return this.xyz(c.r * k + add, c.g * k + add, c.b * k + add);
+  }
+  /** (x, y, z) as a param's vec3, in the same array */
+  private xyz(x: number, y: number, z: number): number[] {
+    this.rgb[0] = x; this.rgb[1] = y; this.rgb[2] = z;
     return this.rgb;
   }
 
@@ -325,16 +323,16 @@ export class RainFx {
     const rainOn = w.rain > 0.01 && !practiceRoom.open;
     this.rain.visible = rainOn;
     if (rainOn) {
-      const r = this.rainU;
-      r.uVel.value.set(wind.x * 0.3, -9.5, wind.z * 0.3);
-      r.uOffset.value.addScaledVector(r.uVel.value, dt);
+      const id = this.o.programs.rain, o = this.offset.addScaledVector(this.vel.set(wind.x * 0.3, -9.5, wind.z * 0.3), dt);
       const R = this.o.phone ? 11 : 16, box = 2 * R;
       // keep the offset small (float precision): any whole multiple of the box wraps to itself
-      r.uOffset.value.set(((r.uOffset.value.x % box) + box) % box, ((r.uOffset.value.y % box) + box) % box, ((r.uOffset.value.z % box) + box) % box);
-      r.uR.value = R;
-      r.uLen.value = 0.42 + 0.26 * w.rain;
-      r.uCol.value.copy(fogColor).multiplyScalar(1.5).addScalar(0.04);
-      r.uAlpha.value = 0.16 + 0.2 * w.rain;
+      o.set(((o.x % box) + box) % box, ((o.y % box) + box) % box, ((o.z % box) + box) % box);
+      setPineLookParam(id, 'velocity', this.xyz(this.vel.x, this.vel.y, this.vel.z));
+      setPineLookParam(id, 'offset', this.xyz(o.x, o.y, o.z));
+      setPineLookParam(id, 'radius', R);
+      setPineLookParam(id, 'length', 0.42 + 0.26 * w.rain);
+      setPineLookParam(id, 'colour', this.tint(fogColor, 1.5, 0.04));
+      setPineLookParam(id, 'alpha', 0.16 + 0.2 * w.rain);
       this.rain.geometry.setDrawRange(0, Math.ceil(this.rainCount * Math.min(1, w.rain * 1.1)) * 6);
     }
     this.puddleFade.value = THREE.MathUtils.smoothstep(w.wet, 0.05, 0.6);
@@ -342,16 +340,16 @@ export class RainFx {
     // the extras — none in a practice room (its x / z is no spot on the level)
     if (practiceRoom.open) { this.splashes.visible = false; this.lens.visible = false; this.drops.length = 0; return; }
     if (cam) { cam.getWorldPosition(this.eye); cam.getWorldDirection(this.fwd); }
-    if (cam instanceof THREE.PerspectiveCamera) setPineLookParam(RAIN_LOOKS.lens, 'aspect', cam.aspect); // the screen's shape
+    if (cam instanceof THREE.PerspectiveCamera) setPineLookParam(this.o.programs.lens, 'aspect', cam.aspect); // the screen's shape
     this.splashTime += dt;
-    setPineLookParam(RAIN_LOOKS.splash, 'time', this.splashTime);
+    setPineLookParam(this.o.programs.splash, 'time', this.splashTime);
     this.splashes.visible = rainOn;
     if (rainOn) {
-      setPineLookParam(RAIN_LOOKS.splash, 'colour', this.tint(fogColor, 1.4, 0.05));
-      setPineLookParam(RAIN_LOOKS.splash, 'alpha', 0.24 + 0.26 * w.rain);
+      setPineLookParam(this.o.programs.splash, 'colour', this.tint(fogColor, 1.4, 0.05));
+      setPineLookParam(this.o.programs.splash, 'alpha', 0.24 + 0.26 * w.rain);
       this.spawnSplashes(dt, w.rain);
-      setPineLookParam(RAIN_LOOKS.lens, 'sky', this.tint(fogColor, 1.45, 0.06));
-      setPineLookParam(RAIN_LOOKS.lens, 'ground', this.tint(fogColor, 0.35, 0));
+      setPineLookParam(this.o.programs.lens, 'sky', this.tint(fogColor, 1.45, 0.06));
+      setPineLookParam(this.o.programs.lens, 'ground', this.tint(fogColor, 0.35, 0));
     }
     this.updateLens(dt, rainOn ? w.rain : 0);
   }

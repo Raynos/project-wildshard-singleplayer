@@ -3,8 +3,8 @@ import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGra
 /**
  * Pine Hollow's rain as data (PH-L10, E322 F-L5; SHARD-PLATFORM M3): the sizes of the SDK rain system's pieces
  * (runtime/looks/rainFx — the curtain with the canopy's drips, the puddles, the splashes at the feet, the drops on
- * the lens), the curtain's program and the splashes' and lens drops' SF59 material graphs (`RAIN_GRAPHS`, the shardfile's look.materials). `@{fog}` is the
- * atmosphere's fog GLSL, spliced in by the system. The cave's hood is the bear cave's mouth in its own frame (lx across,
+ * the lens) and the curtain's, the splashes' and the lens drops' SF59 material graphs (`RAIN_GRAPHS`, the shardfile's
+ * look.materials; `PINE_RAIN_PROGRAMS` their ids). The cave's hood is the bear cave's mouth in its own frame (lx across,
  * lz into the rock; the mouth faces −lz): half width, from, to, height over the mouth's ground — the arch's opening is
  * 2.6 × 4.8 m (caveArch.ts `openCaveArch`); the cover map takes over at lz ≈ 1.5.
  */
@@ -21,57 +21,8 @@ export const PINE_RAIN = {
 /** The bear cave's hood, where no rain falls (its frame is the layout's BEAR_CAVE). */
 export const PINE_CAVE_HOOD = { hw: 3.2, lz0: -1.4, lz1: 4.5, up: 5.6 } as const;
 
-/** The curtain's program (the cover map's crowns and roofs, the cave's hood). */
-export const PINE_RAIN_PROGRAMS = {
-  rain: {
-    vertex: /* glsl */`
-        attribute vec4 seed; attribute vec2 corner;
-        uniform vec3 uOffset; uniform float uR; uniform vec3 uVel; uniform float uLen; uniform float uWidth;
-        uniform sampler2D uCover; uniform float uCoverK; uniform vec4 uCave; uniform vec4 uCaveBox;
-        varying float vA; varying vec3 vW; varying float vDrip;
-        void main() {
-          float R = uR;
-          vec3 p = seed.xyz * 2.0 * R + uOffset * seed.w;
-          vec3 c = cameraPosition + vec3( 0.0, 2.0, 0.0 );
-          vec3 w = mod( p - c + R, 2.0 * R ) - R + c;
-          // the cover over this drop: a roof stops it; the crowns catch most of it and let the rest through as drips
-          vec4 cv = texture2D( uCover, w.xz * uCoverK + 0.5 );
-          float drip = smoothstep( 0.25, 0.8, cv.r );
-          float keep = step( drip * 0.86, fract( seed.x * 91.7 + seed.z * 13.3 ) ) * ( 1.0 - step( 0.5, cv.g ) );
-          // the cave's hood (E322 F-L5): no rain in the mouth or under the arch, below its ceiling
-          vec2 cd = w.xz - uCave.xy;
-          float clx = cd.x * uCave.z - cd.y * uCave.w, clz = cd.x * uCave.w + cd.y * uCave.z;
-          keep *= 1.0 - step( abs( clx ), uCaveBox.x ) * step( uCaveBox.y, clz ) * step( clz, uCaveBox.z ) * step( w.y, uCaveBox.w );
-          vDrip = drip;
-          vec3 v = normalize( uVel + vec3( 0.0, -3.0 * drip, 0.0 ) );   // drips fall straight: the canopy breaks the wind
-          float len = mix( uLen, 0.28, drip ) * seed.w;
-          vec3 a = w + v * ( corner.y * len );
-          vW = a;
-          vec4 mv = viewMatrix * vec4( a, 1.0 );
-          vec3 vv = ( viewMatrix * vec4( v, 0.0 ) ).xyz;
-          vec2 side = normalize( vec2( - vv.y, vv.x ) + 1e-5 );
-          float dist = length( mv.xyz );
-          mv.xy += side * corner.x * uWidth * mix( 1.0, 2.2, drip ) * max( dist, 1.0 ) * 0.12 * ( 0.6 + 0.4 * seed.w );
-          vec3 off = abs( w - c );
-          float edge = 1.0 - smoothstep( R * 0.65, R * 0.98, max( max( off.x, off.y ), off.z ) );
-          vA = keep * edge * smoothstep( 0.5, 2.2, dist ) * ( corner.y > 0.5 ? 1.0 : 0.15 ) * mix( 1.0, 1.4, drip );
-          gl_Position = projectionMatrix * mv;
-        }`,
-    fragment: /* glsl */`
-        @{fog}
-        uniform vec3 uCol; uniform float uAlpha;
-        varying float vA; varying vec3 vW; varying float vDrip;
-        void main() {
-          float a = vA * uAlpha;
-          if ( a < 0.002 ) discard;
-          vec3 col = mix( uCol, atmosFogColor( vW ), atmosFogFactor( vW ) * 0.6 ) * mix( 1.0, 1.15, vDrip );
-          gl_FragColor = vec4( col, a );
-        }`,
-  },
-} as const;
-
-/** the look.materials ids the rain's graphs are worn under */
-export const RAIN_LOOKS = { splash: 'pine-rain-splash', lens: 'pine-rain-lens' } as const;
+/** the look.materials ids the rain's graphs are worn under: the curtain, the splashes at the feet, the drops on the lens */
+export const PINE_RAIN_PROGRAMS = { rain: 'pine-rain-curtain', splash: 'pine-rain-splash', lens: 'pine-rain-lens' } as const;
 
 /** One graph's node table and its builders (ids `r0`, `r1`, …). */
 function kit() {
@@ -88,6 +39,60 @@ function kit() {
   const param = (name: string): string => op('param', undefined, { param: name });
   const attr = (name: string): string => op('attribute', undefined, { name, type: 'vec4' });
   return { nodes, op, add, sub, mul, swz, ss, fall, param, attr };
+}
+
+/**
+ * The curtain: N streak quads (game/systems/looks/rainCurtain `rainCurtainGeometry`: the corner in `position`, the drop's
+ * seed in `aSeed`) in a box of half-size `radius` round the eye, world-anchored by the wrapped `offset` (set each frame),
+ * built here in the vertex stage. The cover map (`cover`, lent by the runtime: R the crowns, G the roofs; world x/z → uv
+ * = p · `coverK` + 0.5) stops the rain under a roof and turns most of it under the crowns into short, straight drips.
+ * No rain in the cave's hood (`cave`: x, z, cos yaw, sin yaw; `caveBox`: half width, lz from, lz to, the ceiling's world
+ * y; all 0 with no hood). Each streak turns its width to the eye and fades at the box's walls and right at the eye. The
+ * fog takes 0.6 of it (`vertex.scale`); `colour`, `alpha`, `velocity` and `length` follow the rain, the wind and the fog.
+ */
+function curtainGraph(): GraphIr {
+  const k = kit(), { op, add, sub, mul, swz, ss, param } = k;
+  const seed = k.attr('aSeed'), corner = op('positionGeometry'), cx = swz(corner, 'x'), cy = swz(corner, 'y'), speed = swz(seed, 'w');
+  const R = param('radius'), box = mul(R, 2), eye = op('cameraPosition');
+  const p = add(mul(swz(seed, 'xyz'), box), mul(param('offset'), speed));
+  const c = add(eye, [0, 2, 0]);
+  const w = add(sub(op('mod', [add(sub(p, c), R), box]), R), c);
+  // the cover over this drop: a roof stops it; the crowns catch most of it and let the rest through as drips
+  const cv = op('texture', [add(mul(swz(w, 'xz'), param('coverK')), 0.5)], { param: 'cover' });
+  const drip = ss(0.25, 0.8, swz(cv, 'x'));
+  const lucky = op('step', [mul(drip, 0.86), op('fract', [add(mul(swz(seed, 'x'), 91.7), mul(swz(seed, 'z'), 13.3))])]);
+  // the cave's hood (E322 F-L5): no rain in the mouth or under the arch, below its ceiling
+  const cave = param('cave'), hood = param('caveBox'), cd = sub(swz(w, 'xz'), swz(cave, 'xy')), dx = swz(cd, 'x'), dz = swz(cd, 'y');
+  const lx = sub(mul(dx, swz(cave, 'z')), mul(dz, swz(cave, 'w'))), lz = add(mul(dx, swz(cave, 'w')), mul(dz, swz(cave, 'z')));
+  const across = mul(op('step', [op('abs', [lx]), swz(hood, 'x')]), op('step', [swz(w, 'y'), swz(hood, 'w')]));
+  const inHood = mul(across, mul(op('step', [swz(hood, 'y'), lz]), op('step', [lz, swz(hood, 'z')])));
+  const keep = mul(mul(lucky, op('oneMinus', [op('step', [0.5, swz(cv, 'y')])])), op('oneMinus', [inHood]));
+  const v = op('normalize', [add(param('velocity'), op('combine', [0, mul(drip, -3), 0]))]); // drips fall straight: the canopy breaks the wind
+  const a = add(w, mul(v, mul(cy, mul(op('mix', [param('length'), 0.28, drip]), speed))));
+  const toEye = sub(eye, a), dist = op('length', [toEye]);
+  const side = op('normalize', [add(op('cross', [v, toEye]), 1e-5)]);
+  const half = mul(mul(mul(0.012 * 0.12, op('mix', [1, 2.2, drip])), op('max', [dist, 1])), add(0.6, mul(speed, 0.4)));
+  const off = op('abs', [sub(w, c)]), far = op('max', [op('max', [swz(off, 'x'), swz(off, 'y')]), swz(off, 'z')]);
+  const edge = op('oneMinus', [ss(mul(R, 0.65), mul(R, 0.98), far)]);
+  const vA = mul(mul(mul(keep, edge), mul(ss(0.5, 2.2, dist), op('mix', [0.15, 1, cy]))), op('mix', [1, 1.4, drip]));
+  const alpha = mul(op('varying', [vA]), param('alpha'));
+  const colour = mul(param('colour'), op('mix', [1, 1.15, op('varying', [drip])]));
+  const big = 1e6;
+  return { version: 1, kind: 'material', model: 'unlit', doubleSided: true, effectState: { blend: 'alpha', depthWrite: false },
+    params: {
+      cover: { type: 'texture', value: 'rain-cover', role: 'lent' },
+      coverK: { type: 'float', value: 1 / 1024, min: 0, max: 1 },
+      cave: { type: 'vec4', value: [0, 0, 0, 0], min: -big, max: big },
+      caveBox: { type: 'vec4', value: [0, 0, 0, 0], min: -big, max: big },
+      offset: { type: 'vec3', value: [0, 0, 0], min: 0, max: 1000 },
+      radius: { type: 'float', value: 16, min: 1, max: 100 },
+      velocity: { type: 'vec3', value: [0, -9, 0], min: -100, max: 100 },
+      length: { type: 'float', value: 0.9, min: 0, max: 10 },
+      colour: { type: 'vec3', value: [0.6, 0.65, 0.75], min: 0, max: 64 },
+      alpha: { type: 'float', value: 0.3, min: 0, max: 1 },
+    },
+    nodes: k.nodes,
+    stages: { 'vertex.position': { position: add(a, mul(side, mul(cx, half))) }, 'vertex.scale': { fog: 0.6 }, surface: { colour, alpha, discard: op('lt', [alpha, 0.002]) } } };
 }
 
 /**
@@ -163,7 +168,9 @@ function lensGraph(): GraphIr {
 }
 
 /** The rain's graphs by look.materials id. */
-export const RAIN_GRAPHS: Readonly<Record<string, GraphIr>> = { [RAIN_LOOKS.splash]: splashGraph(), [RAIN_LOOKS.lens]: lensGraph() };
+export const RAIN_GRAPHS: Readonly<Record<string, GraphIr>> = {
+  [PINE_RAIN_PROGRAMS.rain]: curtainGraph(), [PINE_RAIN_PROGRAMS.splash]: splashGraph(), [PINE_RAIN_PROGRAMS.lens]: lensGraph(),
+};
 
 /** C7: in the rain the grazing herds drift in under the nearest big trees (the bear sits it out), and back out after. */
 export const PINE_HERD_SHELTER = { kinds: ['deer', 'elk', 'boar'], bigTree: 20, reach: 90, homeHold: 90, clear: 2.2, spotR: 3.5, homeR: 10, wet: 0.3, dry: 0.05 } as const;
