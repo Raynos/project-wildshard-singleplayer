@@ -555,6 +555,7 @@ export type ClientChannelFrame = Readonly<Partial<Record<ClientChannelProperty, 
 /** A capability-limited numeric lane; it has no state setter, physics port, event writer or player reference. */
 export function createClientChannels(input: unknown): {
   readonly reads: readonly string[]; readonly frame: ClientChannelFrame; readonly geometry?: ClientTubeFrame; readonly connectors?: readonly ClientConnectorFrame[]; evaluate: (observation: ClientChannelObservation) => void;
+  bindNumeric: (rows: readonly ClientNumericPortRow[], targets: ReadonlyMap<string, unknown>) => ClientNumericPorts;
 } {
   const program = parseClientChannels([input])[0]; if (program === undefined) throw new Error('Missing client channel program');
   const nodes = structuredClone(program.nodes), scratch = new Float64Array(nodes.length), published = new Float64Array(nodes.length), reads = new Float64Array(program.reads.length);
@@ -640,7 +641,7 @@ export function createClientChannels(input: unknown): {
     }
     published.set(scratch); locals.set(next); initialized = true;
   };
-  return Object.freeze({ reads: Object.freeze([...program.reads]), frame, evaluate, ...(geometry === undefined ? {} : { geometry }), ...(connectors === undefined ? {} : { connectors }) });
+  return Object.freeze({ bindNumeric: createClientNumericPorts, reads: Object.freeze([...program.reads]), frame, evaluate, ...(geometry === undefined ? {} : { geometry }), ...(connectors === undefined ? {} : { connectors }) });
 }
 
 /** A trusted private view supplies its own declared geometry kernel; admission never accepts a function. */
@@ -659,6 +660,51 @@ function bindTubeCurve(row: NonNullable<ClientChannelProgram['geometry']>, targe
   return (frame,time)=>{tube.write(positions,frame,time);position.needsUpdate=true;geometry.computeVertexNormals();geometry.computeBoundingSphere();};
 }
 
+/** A numeric visual loan: a copied channel writes one named field, never a script-state grant. */
+export interface ClientNumericPortRow {
+  readonly property: ClientChannelProperty; readonly target: string; readonly path: readonly string[];
+  readonly restore?: boolean; readonly nullable?: boolean;
+}
+/** Bind a bounded list of explicitly loaned visual fields. Unknown roots, prototypes, non-numeric fields,
+ * authoritative actor classes and readonly fields refuse. Capture restores only declared borrowed values;
+ * this binder owns no clock, scene object, listener or simulation state. */
+export interface ClientNumericPorts { apply: (frame: ClientChannelFrame) => void; capture: () => () => void }
+function createClientNumericPorts(rows: readonly ClientNumericPortRow[], targets: ReadonlyMap<string, unknown>): ClientNumericPorts {
+  if (rows.length > 32) throw new Error('Numeric visual port roster exceeds its bound');
+  const ports = rows.flatMap(row => {
+    const root = targets.get(row.target); if (root === null) return [];
+    if (/^(?:player|shared|state)(?:[.:]|$)/u.test(row.target) || row.path.length === 0 || row.path.length > 2
+      || row.path.some(key => key.length === 0 || key.length > 128 || ['__proto__', 'prototype', 'constructor'].includes(key))) throw new Error('Invalid numeric visual loan');
+    if (typeof root !== 'object') throw new Error('Missing numeric visual target');
+    const scene = root instanceof Object3D;
+    const prototype: unknown = Object.getPrototypeOf(root);
+    if (!scene && prototype !== Object.prototype && prototype !== null) throw new Error('Numeric ports require plain visual fields');
+    if (scene && (row.path.length !== 2 || !['position', 'rotation', 'scale'].includes(row.path[0] ?? '') || !['x', 'y', 'z'].includes(row.path[1] ?? ''))) throw new Error('Numeric scene port must be a transform');
+    let parent: unknown = root;
+    for (const key of row.path.slice(0, -1)) {
+      if (typeof parent !== 'object' || parent === null || !Object.hasOwn(parent, key)) throw new Error('Missing numeric visual owner');
+      parent = Reflect.get(parent, key);
+    }
+    const key = row.path.at(-1);
+    if (typeof parent !== 'object' || parent === null || key === undefined || (!scene && !Object.hasOwn(parent, key))) throw new Error('Missing numeric visual field');
+    const value: unknown = Reflect.get(parent, key);
+    if (typeof value !== 'number' && !(row.nullable === true && value === null)) throw new Error('Visual field is not numeric');
+    return [{ row, target: parent, key }];
+  });
+  return {
+    apply: frame => { for (const { row, target, key } of ports) {
+      const value = frame[row.property];
+      if (value === undefined || !Number.isFinite(value) || Math.abs(value) > 1e12 || !Reflect.set(target, key, value)) throw new Error('Numeric visual write refused');
+    } },
+    capture: () => { const saved = ports.filter(port => port.row.restore === true).map(port => {
+      const value: unknown = Reflect.get(port.target, port.key); return { target: port.target, key: port.key, value };
+    }); return () => { for (const row of saved) if (!Reflect.set(row.target, row.key, row.value)) throw new Error('Numeric visual restore refused'); }; },
+  };
+}
+const CLIENT_SCALAR_TRANSFORMS = { x: ['position', 'x'], y: ['position', 'y'], z: ['position', 'z'],
+  pitch: ['rotation', 'x'], yaw: ['rotation', 'y'], roll: ['rotation', 'z'],
+  scaleX: ['scale', 'x'], scaleY: ['scale', 'y'], scaleZ: ['scale', 'z'] } as const;
+
 /** Bind admitted numeric outputs only to named private scene objects; authoritative player/shared objects refuse. */
 export function createClientChannelView(input: unknown, targets: ReadonlyMap<string, unknown>, kernels?: ClientGeometryKernels, changed?: (mesh: InstancedMesh) => void): ReturnType<typeof createClientChannels> {
   const program = parseClientChannels([input])[0];
@@ -669,12 +715,14 @@ export function createClientChannelView(input: unknown, targets: ReadonlyMap<str
     if (!(target instanceof Object3D)) throw new Error('Geometry target must be a private scene object');
     curve = kernel === undefined ? bindTubeCurve(program.geometry, target) : kernel(program.geometry, target);
   }
+  const lane = createClientChannels(program);
   const bindings = (program.bindings ?? []).map(binding => {
     const object = targets.get(binding.target);
     if (!(object instanceof Object3D)) throw new Error('Client channel target must be a private scene object');
-    return { property: binding.property, target: binding.target, order: binding.order, object };
+    const numeric = binding.property === 'visible' ? null : lane.bindNumeric([{ property: binding.property, target: binding.target, path: CLIENT_SCALAR_TRANSFORMS[binding.property] }], targets);
+    return { property: binding.property, target: binding.target, order: binding.order, object, numeric };
   });
-  const lane = createClientChannels(program), pending = new Set<InstancedMesh>();
+  const pending = new Set<InstancedMesh>();
   const poses = (program.connectors ?? []).map(row => clientConnector(row, targets.get(row.target), mesh => { pending.add(mesh); }));
   const evaluate = (observation: ClientChannelObservation): void => {
     lane.evaluate(observation);
@@ -688,22 +736,11 @@ export function createClientChannelView(input: unknown, targets: ReadonlyMap<str
       const { object, property, order } = binding, value = lane.frame[property];
       if (value === undefined) throw new Error('Missing bound visual channel');
       if (order !== undefined) object.rotation.order = order;
-      switch (property) {
-        case 'x': object.position.x = value; break;
-        case 'y': object.position.y = value; break;
-        case 'z': object.position.z = value; break;
-        case 'pitch': object.rotation.x = value; break;
-        case 'yaw': object.rotation.y = value; break;
-        case 'roll': object.rotation.z = value; break;
-        case 'scaleX': object.scale.x = value; break;
-        case 'scaleY': object.scale.y = value; break;
-        case 'scaleZ': object.scale.z = value; break;
-        case 'visible': object.visible = value !== 0; break;
-        default: throw new Error('Unknown visual channel target');
-      }
+      if (binding.numeric === null) object.visible = value !== 0;
+      else binding.numeric.apply(lane.frame);
     }
   };
-  return Object.freeze({ reads: lane.reads, frame: lane.frame, evaluate, ...(lane.connectors === undefined ? {} : { connectors: lane.connectors }) });
+  return Object.freeze({ bindNumeric: lane.bindNumeric, reads: lane.reads, frame: lane.frame, evaluate, ...(lane.connectors === undefined ? {} : { connectors: lane.connectors }) });
 }
 
 /** Copy only the fixed mover ABI's published observations, never its world or module memory. */

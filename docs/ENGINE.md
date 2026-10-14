@@ -5306,3 +5306,13 @@ foreign, non-finite or mismatched sites refuse before construction. The optional
 second argument of `Interactables.build` applies the same binder; absent keeps
 the existing placement resolver. Moving keys, barrels and native body/save
 ownership remain with their original runtime owners.
+
+
+Client numeric presentation loans: `createClientChannels(program).bindNumeric(rows,
+targets)` binds up to 32 copied outputs to explicit one- or two-field visual
+paths. Scene objects accept only position, rotation and scale axes; plain
+visual uniforms accept numeric fields. Prototype paths and authoritative
+actor classes refuse. `apply(frame)` writes the evaluated numbers;
+`capture()` returns a restore callback for rows marked `restore`. No clock,
+body, scene object or state grant is created. Pine weather and Signal well
+transforms use this binding.

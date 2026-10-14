@@ -24,7 +24,7 @@
  * E322 F-L7: on top of the weather's ×29 old-growth fog it was ~100 % pale fog a few metres out, the King a white ghost.
  */
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { ShardContext } from '@wildshard/game/shard/context';
+import { createClientChannels } from '@wildshard/game/plugin/ui';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
@@ -48,8 +48,10 @@ import rainRows from '../data/rain.json' with { type: 'json' };
 import { HerdShelter } from '../runtime/species/herdShelter';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { PINE_CAVE_HOOD, PINE_HERD_SHELTER, PINE_RAIN, PINE_RAIN_PROGRAMS } from '../data/weatherLook';
-import { BEAR_CAVE, OLD_GROWTH } from '../data/layout';
+import { BEAR_CAVE } from '../data/layout';
+import { PINE_WEATHER_CHANNELS } from '../data/weatherChannels';
 
+type ShardContext = Parameters<typeof installEnteredRuntimeService>[0];
 /** 0 … 1: how far a scripted room's own air replaces the weather's fog (the Antler King's seal, src/shards/pine-hollow/combat/antlerKing.ts) */
 export const weatherHold = { k: 0 };
 
@@ -77,13 +79,6 @@ export const loadPineRain = (): Promise<RainBake> => loadRainBake(`/assets/pine-
 
 export interface PineWeatherRig { weather: PineWeather; fx: InstanceType<typeof RainFx>; setMode: (m: PineWeatherMode, at?: number) => void }
 
-const sm = THREE.MathUtils.smoothstep;
-
-/** 0 → 1 inside the old-growth's ellipse (pine-hollow.ts oldGrowthMask) */
-function oldGrowthAt(x: number, z: number): number {
-  return sm(-Math.hypot((x - OLD_GROWTH.x) / OLD_GROWTH.ax, (z - OLD_GROWTH.z) / OLD_GROWTH.az), -1.0, -0.72);
-}
-
 export function installWeather(ctx: ShardContext, host: PineWeatherHost): PineWeatherRig | null {
   return installPineWeather(host, ctx, retainsRuntimeServices(ctx) ? ctx : undefined);
 }
@@ -110,6 +105,16 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
   const wind = { x: 0, z: 0 };
   const fogCol = new THREE.Color(0.6, 0.65, 0.72);
 
+  const veil = { x: { value: 0 }, y: { value: 0 } };
+  const roots = new Map<string, unknown>(Object.entries({ mod: pine.mod, fog: fogUniforms, weather: weatherUniforms, volume: volumetricFog,
+    veil, particles: h.particles?.params ?? null, water: waterWeather, wind: windBoost, windVector: wind }));
+  const channels = PINE_WEATHER_CHANNELS.flatMap(row => {
+    if (row.program === null) return [];
+    const lane = createClientChannels(row.program);
+    return [{ lane, ports: lane.bindNumeric([{ property: 'value', target: row.owner, path: row.path, nullable: row.owner === 'volume' }], roots) }];
+  });
+  const first = channels[0]; if (first === undefined) throw new Error('Weather projections missing');
+  const borrowed = first.lane.bindNumeric(PINE_WEATHER_CHANNELS.filter(row => row.restore).map(row => ({ property: 'value', target: row.owner, path: row.path, restore: true, nullable: row.owner === 'volume' })), roots);
   const answers = (scope: Scope): void => {
     h.game.app.events.answer('projectile.modify', (input) => h.game.app.levelScope === h.game.levelScope ? wetProjectile(input, weather.rain) : input, scope);
     h.game.app.events.answer('creature.wander-goal', (query) => {
@@ -119,23 +124,14 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
   };
   if (entered === undefined) answers(ctx?.scope ?? h.game.levelScope);
   else installEnteredRuntimeService(entered, (scope) => {
-    const borrowed = {
-      height: fogUniforms.fogHeight.value, falloff: fogUniforms.fogHeightFalloff.value,
-      wet: weatherUniforms.uWet.value, fogBlob: weatherUniforms.fogBlob.value.clone(), fogBlobAmt: weatherUniforms.fogBlobAmt.value,
-      rain: waterWeather.uRainRings.value, wind: windBoost.value, mod: { ...pine.mod },
-      volumeHeight: volumetricFog.height, volumeFalloff: volumetricFog.falloff,
-      mist: h.particles?.params.mistOpacity, veil: h.horizonVeil?.value.clone(),
-    };
+    const restore = borrowed.capture();
+    const mod = { ...pine.mod }, fogBlob = weatherUniforms.fogBlob.value.clone(), horizon = h.horizonVeil?.value.clone();
     answers(scope);
     scope.onDispose(onSettingChange('weather', (mode) => { weather.setMode(mode, atT); }));
     scope.onDispose(() => {
-      fogUniforms.fogHeight.value = borrowed.height; fogUniforms.fogHeightFalloff.value = borrowed.falloff;
-      weatherUniforms.uWet.value = borrowed.wet; weatherUniforms.fogBlob.value.copy(borrowed.fogBlob); weatherUniforms.fogBlobAmt.value = borrowed.fogBlobAmt;
-      waterWeather.uRainRings.value = borrowed.rain; windBoost.value = borrowed.wind;
-      volumetricFog.height = borrowed.volumeHeight; volumetricFog.falloff = borrowed.volumeFalloff;
-      Object.assign(pine.mod, borrowed.mod);
-      if (h.particles && borrowed.mist !== undefined) h.particles.params.mistOpacity = borrowed.mist;
-      if (h.horizonVeil && borrowed.veil !== undefined) h.horizonVeil.value.copy(borrowed.veil);
+      restore();
+      weatherUniforms.fogBlob.value.copy(fogBlob); Object.assign(pine.mod, mod);
+      if (h.horizonVeil && horizon !== undefined) h.horizonVeil.value.copy(horizon);
       // Camera-local rain is an entered service; resident ground dressing and weather state stay frozen.
       fx.group.visible = false;
     });
@@ -165,29 +161,15 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
   const update = (dt: number): void => {
     if (dev.paused) return; // dev: the numbers below left as they are, to poke at one by hand
     const eye = h.viewer();
-    const stay = 1 - THREE.MathUtils.clamp(h.game.app.events.ask('weather.hold', weatherHold.k), 0, 1); // a sealed boss room's own fog wins (F-L7)
-    const fog = weather.fog * stay, haze = weather.rain * stay, og = oldGrowthAt(eye.x, eye.z);
-    // the sky: the deck, and the fog's densities (dawn fog, the rain's haze on top of the clock's own, the old-growth thickest)
-    pine.mod.overcast = weather.overcast;
-    pine.mod.fogDist = 1 + fog * (2 + 26 * og) + 0.4 * haze;
-    pine.mod.fogHeight = 1 + fog * (1.2 + 1.5 * og) + 0.6 * haze;
-    pine.mod.mist = fog;
-    // the fog's floor: from −14 m (a thin haze on the hills) up to the bowl's floor (≈ 0 m; the pond −3, the creek −5), and
-    // steeper, so it lies in the lows: × 3 in the pond's basin, × 6 down the creek, a quarter of it on the old-growth's swell
-    fogUniforms.fogHeight.value = baseH + (0 - baseH) * fog;
-    fogUniforms.fogHeightFalloff.value = baseFall + 0.23 * fog;
-    volumetricFog.height = baseH; volumetricFog.falloff = baseFall; // the shafts keep the clear-sky floor (else a white-out)
-    if (h.horizonVeil) h.horizonVeil.value.set(0.7 * weather.overcast, 0.75 * fog);
-    if (h.particles) h.particles.params.mistOpacity = baseMist * (1 + 1.6 * fog) * (1 - 0.5 * weather.rain);
-    // the rain: wet surfaces (and the dew in the dawn fog), rings on the water, the wind up, the beds. A practice room (the
-    // arena, a playground) is out of the weather: no wet sheen, no rain beds or wet steps in it (E350 F-X4; back on exit)
+    const hold = h.game.app.events.ask('weather.hold', weatherHold.k); // a sealed boss room's own fog wins (F-L7)
     const room = practiceRoom.open;
-    weatherUniforms.uWet.value = room ? 0 : Math.max(weather.wet, 0.22 * fog);
-    waterWeather.uRainRings.value = weather.rain;
-    windBoost.value = weather.wind;
+    const values = [weather.overcast, weather.fog, weather.rain, weather.wet, weather.wind, windUniforms.uGust.value,
+      hold, eye.x, eye.z, baseH, baseFall, baseMist, Number(room), WIND_DIR.x, WIND_DIR.z];
+    for (const { ports, lane } of channels) {
+      lane.evaluate({ time: 0, delta: dt, values }); ports.apply(lane.frame);
+    }
+    if (h.horizonVeil) h.horizonVeil.value.set(veil.x.value, veil.y.value);
     if (h.ambience) h.ambience.rain = room ? 0 : weather.rain;
-    const ws = 3 + 7 * windUniforms.uGust.value;
-    wind.x = WIND_DIR.x * ws; wind.z = WIND_DIR.z * ws;
     const f = h.game.scene.fog;
     if (f instanceof THREE.Fog || f instanceof THREE.FogExp2) fogCol.copy(f.color);
     fx.update(dt, weather, fogCol, wind, h.game.camera);
