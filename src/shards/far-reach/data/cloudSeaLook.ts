@@ -1,6 +1,9 @@
+import type { GraphIr } from '@wildshard/format/materialGraph';
+import { graphKit } from './graphKit';
+
 /**
- * Sky Reach's cloud sea programs and discs (SHARD-PLATFORM M3: rows of an SDK shader family, built as horizontal discs by
- * `@wildshard/sdk/looks/discLayer`; look/render.ts adds them).
+ * Sky Reach's cloud sea graphs and discs (SHARD-PLATFORM M3: SF59 material graphs on horizontal discs built by
+ * runtime/looks/discLayer.ts; look/render.ts adds them).
  *
  * - `paintedSea` (E392, E399, E410; two discs, `SEA_LAYERS`): a big disc carrying a seamless painted texture of cumulus tops
  *   seen from above (`public/assets/far-reach/tex/cloudsea.webp`, codex image_gen), two scales blended so no repeat shows,
@@ -12,45 +15,49 @@
  * Both read the painted textures only: when one is missing its discs are not drawn (the procedural stand-ins went, W1 C2).
  */
 
-/** The programs (each reads its `painted` texture and the shared `time`). */
-export const SEA_PROGRAMS = {
-  paintedSea: { vertex: `varying vec3 wp; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); wp = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`, fragment: `
-      uniform sampler2D painted; uniform float time, gain; uniform vec2 crown; varying vec3 wp;
-      void main(){
-        // the maelstrom's eye (the puff spiral, look/puffs.ts, carries the maelstrom: the sea itself is not twisted)
-        float mr = length(wp.xz - vec2(0.0, -190.0));
-        vec2 drift = vec2(time * 0.4, time * 0.15);
-        vec3 a = texture2D(painted, (wp.xz + drift) / 120.0).rgb;
-        vec3 b = texture2D(painted, (wp.xz - drift * 0.6) / 348.0 + 0.37).rgb;
-        vec3 c = mix(a, b, 0.35);
-        // value contrast (the judge: the sea reads flat-bright): lavender valleys, warm crowns
-        float lum = dot(c, vec3(0.3, 0.59, 0.11));
-        // the shaded hollows a peach-lavender, not violet (E410: under the slimmer keels the sea read lavender where the
-        // mockups' cloud below the isles is gold-lit; was 0.66, 0.64, 0.84)
-        c = mix(c * vec3(0.84, 0.74, 0.82), c * vec3(1.12, 1.06, 0.96), smoothstep(0.38, 0.8, lum));
-        // the eye a dark lavender well
-        c = mix(c * vec3(0.62, 0.6, 0.78), c, smoothstep(16.0, 56.0, mr));
-        float far = 1.0 - smoothstep(420.0, 900.0, length(wp.xz - cameraPosition.xz));
-        // the upper layer keeps only the bright billow crowns (SEA_LAYERS); the lower one keeps all of it
-        gl_FragColor = vec4(c * gain, far * smoothstep(crown.x, crown.y, dot(c, vec3(0.3, 0.59, 0.11))));
-      }`, shared: ['time'], transparent: true, depthWrite: false, side: 'double' },
-  paintedMaelstrom: { vertex: `varying vec2 lp; varying float far; void main(){ lp = position.xy; vec4 w = modelMatrix * vec4(position, 1.0); far = length(cameraPosition.xz - (modelMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xz); gl_Position = projectionMatrix * viewMatrix * w; }`, fragment: `
-      uniform sampler2D painted; uniform float time; varying vec2 lp; varying float far;
-      void main(){
-        float rn = length(lp) / 125.0;
-        float a = -time * 0.012;
-        vec2 q = vec2(cos(a) * lp.x - sin(a) * lp.y, sin(a) * lp.x + cos(a) * lp.y) / (125.0 * 2.0) + 0.5;
-        // the cloud palette (loop 20, the judge: 'too purple, hard bands'): the violet valleys lifted toward a lavender grey,
-        // the lit crests kept warm, two taps blurred so the band edges soften
-        vec3 c = texture2D(painted, q).rgb * 0.6 + texture2D(painted, q + vec2(0.004, 0.003)).rgb * 0.4;
-        float l = dot(c, vec3(0.3, 0.59, 0.11));
-        c = mix(c, vec3(l) * vec3(1.06, 0.98, 0.95), 0.45);
-        c = mix(c, vec3(1.0, 0.93, 0.84), 0.18) * 1.06;
-        // only the crown's own sky sees it: away from the arena the painted sea takes over (it bled into H1-H3)
-        float near = 1.0 - smoothstep(110.0, 175.0, far);
-        gl_FragColor = vec4(c, (1.0 - smoothstep(0.55, 0.95, rn)) * near);
-      }`, shared: ['time'], transparent: true, depthWrite: false, side: 'double' },
-} as const;
+/**
+ * The painted sea as an SF59 material graph (`painted` names the sheet the dressing hands the compiler; `gain` and `crown`
+ * are the layer's, `SEA_LAYERS`): two scales of the sheet blended so no repeat shows, drifting on the graph clock; value
+ * contrast (peach-lavender hollows, E410, warm crowns), the maelstrom's eye under the crown a dark lavender well (the sea
+ * itself is not twisted), melting into the panorama's painted sea 420 -> 900 m out; the upper layer keeps only the bright
+ * billow crowns. Alpha-blended, double-sided, unfogged, no depth write.
+ */
+export function paintedSeaGraph(painted: string, gain: number, crown: readonly [number, number]): GraphIr {
+  const k = graphKit(), { op, add, sub, mul, div, swz, smooth } = k;
+  const wp = swz(op('positionWorld'), 'xz'), t = op('time');
+  const mr = op('length', [sub(wp, [0, -190])]), drift = op('combine', [mul(t, 0.4), mul(t, 0.15)]);
+  const a = swz(k.tex('painted', div(add(wp, drift), 120)), 'xyz');
+  const b = swz(k.tex('painted', add(div(sub(wp, mul(drift, 0.6)), 348), 0.37)), 'xyz');
+  let c = k.mix(a, b, 0.35);
+  const lum = op('dot', [c, [0.3, 0.59, 0.11]]);
+  c = k.mix(mul(c, [0.84, 0.74, 0.82]), mul(c, [1.12, 1.06, 0.96]), smooth(0.38, 0.8, lum));
+  c = k.mix(mul(c, [0.62, 0.6, 0.78]), c, smooth(16, 56, mr));
+  const far = op('oneMinus', [smooth(420, 900, op('length', [sub(wp, swz(op('cameraPosition'), 'xz'))]))]);
+  const alpha = mul(far, smooth(crown[0], crown[1], op('dot', [c, [0.3, 0.59, 0.11]])));
+  return { version: 1, kind: 'material', model: 'unlit', doubleSided: true, params: { painted: { type: 'texture', value: painted } }, nodes: k.nodes,
+    stages: { surface: { colour: mul(c, gain), alpha } }, effectState: { blend: 'alpha', depthWrite: false, fog: false } };
+}
+
+/**
+ * The painted maelstrom under the crown as an SF59 material graph: the codex-painted vortex turning slowly on the graph
+ * clock, the violet valleys lifted toward a lavender grey and the lit crests kept warm (loop 20: 'too purple, hard bands'),
+ * two taps blurred so the band edges soften; only the crown's own sky sees it (110 -> 175 m from the disc's centre).
+ */
+export function paintedMaelstromGraph(painted: string): GraphIr {
+  const k = graphKit(), { op, add, sub, mul, div, swz, smooth } = k;
+  const lp = k.varying(swz(op('positionGeometry'), 'xy'));
+  const far = k.varying(op('length', [sub(swz(op('cameraPosition'), 'xz'), swz(op('objectOrigin'), 'xz'))]));
+  const rn = div(op('length', [lp]), 125), ang = mul(op('time'), -0.012), co = op('cos', [ang]), si = op('sin', [ang]);
+  const lx = swz(lp, 'x'), ly = swz(lp, 'y');
+  const q = add(div(op('combine', [sub(mul(co, lx), mul(si, ly)), add(mul(si, lx), mul(co, ly))]), 250), 0.5);
+  let c = add(mul(swz(k.tex('painted', q), 'xyz'), 0.6), mul(swz(k.tex('painted', add(q, [0.004, 0.003])), 'xyz'), 0.4));
+  const l = op('dot', [c, [0.3, 0.59, 0.11]]);
+  c = k.mix(c, mul(l, [1.06, 0.98, 0.95]), 0.45);
+  c = mul(k.mix(c, [1, 0.93, 0.84], 0.18), 1.06);
+  const alpha = mul(op('oneMinus', [smooth(0.55, 0.95, rn)]), op('oneMinus', [smooth(110, 175, far)]));
+  return { version: 1, kind: 'material', model: 'unlit', doubleSided: true, params: { painted: { type: 'texture', value: painted } }, nodes: k.nodes,
+    stages: { surface: { colour: c, alpha } }, effectState: { blend: 'alpha', depthWrite: false, fog: false } };
+}
 
 /** The painted sea's two layers: the lower one whole (`crown` a band below every value), the upper one only its bright
  *  billow crowns, a shade brighter, for parallax on the diagonals. */
@@ -64,9 +71,9 @@ export const SEA_DISCS = {
 } as const;
 
 /** One disc: its mesh name, program, radius (m) and segments, centre `[x, y, z]` (m), render order and optional turn. */
-export interface DiscLayerRow<P extends string = string> {
+export interface DiscLayerRow {
   readonly name: string;
-  readonly program: P;
+  readonly program: string;
   readonly radius: number;
   readonly segments: number;
   readonly at: readonly [number, number, number];

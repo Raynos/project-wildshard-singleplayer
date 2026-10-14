@@ -1,4 +1,6 @@
 import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGraph';
+import type { CardFieldRow, CardGroupRow } from '@wildshard/sdk/looks/cardField';
+import { SKY_CARDS } from './skyCards';
 
 /** The sun's three card programs and each one's weights in the glow graph's mix (`aMix`: bloom, wide, shaft). */
 export const SUN_GLOW_PROGRAMS = { sunBloom: [1, 0, 0], sunWide: [0, 1, 0], sunShaft: [0, 0, 1] } as const;
@@ -6,7 +8,7 @@ export type SunGlowProgram = keyof typeof SUN_GLOW_PROGRAMS;
 
 /**
  * The sun's glow (E392; the judge every loop: "no visible sun, no god rays") as one SF59 material graph over one instanced
- * draw (look/sunGlow.ts builds the instances from the baked cards): every card camera-relative at `distance` along the
+ * draw (`SUN_GLOW_FIELD`: the baked cards as instance rows): every card camera-relative at `distance` along the
  * sun's direction `sun`, its plane scaled by `aCard.xy`, lifted by `aCard.w` (a shaft's foot on the sun) and turned by
  * `aCard.z` in the view plane; its colour the three programs' mixed by `aMix`: the bloom (loop 20, mockup A: one hot gold
  * disc about the painted one's 1.5 deg, a tight amber glow, a faint wide halo; round 6 / E399: gold, not white, no pink
@@ -47,3 +49,32 @@ export function sunGlowGraph(sun: readonly [number, number, number], distance: n
     stages: { 'vertex.position': { position: placed }, surface: { colour } },
     effectState: { blend: 'additive', depthWrite: false, fog: false } };
 }
+
+/** the float32 bytes of `values`, base64 (a card field's attribute) */
+function floats(values: readonly number[]): string {
+  const bytes = new Uint8Array(Float32Array.from(values).buffer);
+  let out = '';
+  for (const byte of bytes) out += String.fromCodePoint(byte);
+  return btoa(out);
+}
+type GlowCard = CardGroupRow<SunGlowProgram>['cards'][number];
+/** a card's number uniform (its row's), else `fallback` */
+const num = (card: GlowCard, name: string, fallback: number): number => { const row = card.uniforms?.[name]; return typeof row === 'number' ? row : fallback; };
+/** a card's 2-vector uniform (`{ v2 }`), else `fallback` */
+const pair = (card: GlowCard, name: string): readonly [number, number] => { const row = card.uniforms?.[name]; return typeof row === 'object' && 'v2' in row ? row.v2 : [1, 1]; };
+
+/**
+ * The baked sun cards (generators/skyCards.ts: the disc and bloom, the wide gold air, the fan of light shafts) as one card
+ * field for the glow graph: each card's size, angle and lift (`aCard`; a shaft's foot stands on the sun, a bloom card is
+ * centred on it), its pulse (`aPulse`: base, amplitude, rate, phase) and its program's weights (`aMix`).
+ */
+function glowField(row: CardGroupRow<SunGlowProgram>): CardFieldRow<'sunGlow'> & { readonly distance: number } {
+  const card = row.cards.flatMap((c) => { const [w, h] = pair(c, 'uSize'); return [w, h, num(c, 'uAngle', 0), h > w ? 0.5 : 0]; });
+  const pulse = row.cards.flatMap((c) => (c.pulse === undefined ? [num(c, 'uPulse', 1), 0, 0, 0] : [c.pulse.base, c.pulse.amp, c.pulse.rate, c.pulse.phase]));
+  const mix = row.cards.flatMap((c) => SUN_GLOW_PROGRAMS[c.program]);
+  const first = row.cards[0];
+  return { name: row.name, order: row.order, plane: [1, 1], program: 'sunGlow', distance: first === undefined ? 820 : num(first, 'uDist', 820),
+    attributes: { aCard: { size: 4, float32: floats(card) }, aPulse: { size: 4, float32: floats(pulse) }, aMix: { size: 3, float32: floats(mix) } } };
+}
+/** The sun's glow field (its graph: `sunGlowGraph(SKY_SUN, SUN_GLOW_FIELD.distance)`). */
+export const SUN_GLOW_FIELD = glowField(SKY_CARDS.sunGlow);

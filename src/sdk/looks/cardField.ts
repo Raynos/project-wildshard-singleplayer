@@ -113,8 +113,11 @@ function floats(base64: string): Float32Array {
   return new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4);
 }
 
-/** An instanced card field from a row, one draw: `uniforms` adds the caller's (a texture) over the program's. */
-export function cardField<P extends string>(programs: CardPrograms<P>, row: CardFieldRow<P>, shared: UniformMap, uniforms?: UniformMap): Mesh<InstancedBufferGeometry, ShaderMaterial> {
+/**
+ * An instanced card field from a row, one draw: `uniforms` adds the caller's (a texture) over the program's. The programs
+ * may be any source of materials by program name (a shader family, or a compiled SF59 graph that reads the attributes).
+ */
+export function cardField<P extends string, M extends Material = ShaderMaterial>(programs: CardPrograms<P, M>, row: CardFieldRow<P>, shared: UniformMap, uniforms?: UniformMap): Mesh<InstancedBufferGeometry, M> {
   const base = new PlaneGeometry(row.plane[0], row.plane[1]), g = new InstancedBufferGeometry();
   g.index = base.index; g.setAttribute('position', base.getAttribute('position')); g.setAttribute('uv', base.getAttribute('uv'));
   let count = -1;
