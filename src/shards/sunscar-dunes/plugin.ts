@@ -11,7 +11,7 @@ import { DUNE_LIBRARY } from './world/meshes';
 import { WORLD } from './world/baked';
 import { WHIP_HELD_OWNERS, type Bullwhip } from './runtime/items/heldWhip';
 import { FLAG, SCOUT_FLAG } from './data/flags';
-import { bindDeclaredFight, bindPageQuestStages } from '@wildshard/game/plugin/ui';
+import { bindDeclaredFight } from '@wildshard/game/plugin/ui';
 import { SAND, SKIRT } from './look/render';
 import { lentMaterial } from './runtime/looks/bakedGround';
 import { prepareFireFx } from './world/fireFx';
@@ -62,9 +62,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
       const fight = bindDeclaredFight(ctx, this.rows.fight, { kind: 'spawned', source, player: position, flags: places.flags, facts, coins, armed: places.fire.lit,
         dress: animal => { lastLightAll(animal.mesh, ctx.scope); } }); this.presentedBoss = fight.boss;
-      const stages = bindPageQuestStages(ctx, source, { flags: places.flags,
-        bindings: new Map([['sunscar.signal-fire', [{ action: { spawn: 'sunscar.matriarch' }, run: fight.summon }]]]) });
-      places.fire.onLight = () => { stages.advance('sunscar.signal-fire'); };
+      this.bindPageStages(ctx,{fight});
     }
     this.populate(ctx, source, { spawned: animal => { lastLightAll(animal.mesh, ctx.scope); }, flags: places?.flags ?? null });
     // The dusk deepens with the quest (E399, look/dusk.ts): a save loads at its step's light, play eases to each new one.

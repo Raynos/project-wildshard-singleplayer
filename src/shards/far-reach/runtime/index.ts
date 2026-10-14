@@ -24,7 +24,7 @@ import { setSkyLooks, skyLook, skyMappedLook } from '../world/looks';
 import { wakeRibbon } from './looks/wakeRibbon';
 import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow } from '../world/meadow';
-import { bindDeclaredFight, bindQuestPageInteractions, bindPageQuestStages, bindClientChannels } from '@wildshard/game/plugin/ui';
+import { bindDeclaredFight, bindQuestPageInteractions, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
 import { FLAGS, vaneFlag } from '../quests/flags';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
@@ -101,8 +101,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     this.questWorld = page.world;
     // the world pins, chip, map and minimap marks are the quest presentation's (data/questPage.ts)
     if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');
-    const questStages = bindPageQuestStages(ctx, source, { flags, actor: this.actor.bind(this),
-      observations: new Map([['winch-up', () => built.state.raised]]) });
+    const questStages = this.bindPageStages(ctx);
     const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
     if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
     const channels = this.isletCalls = bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_MOVER_OWNERS, observed: (_id, frame) => {

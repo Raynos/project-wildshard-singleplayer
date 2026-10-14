@@ -4805,3 +4805,10 @@ Presentation loads only in the page world stage. `bindHeldScripts` completes
 that instance with the admitted item hooks and clock from the existing composed
 script host; it creates no second controller, actor, script host or timer.
 Absent rows preserve subclasses' existing arm/armed/prepare hooks.
+
+`HybridPageQuestRows.stages` and `bindBorrowedPageQuestStages` bind the
+existing page director lane through bounded observation, action and
+event owner paths. `HybridRuntimePlugin.bindPageStages(ctx, extraOwners)`
+uses the resident saved flags at the original installation point.
+Required fields preflight before quiet initial observations; no saved
+cursor or replacement flag owner is introduced.

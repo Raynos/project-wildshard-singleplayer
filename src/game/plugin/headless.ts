@@ -1,6 +1,6 @@
 import type { HeldMeleeRecipe, createDeclaredHeldMelee } from './weaponFamily';
 import type { startMeleeSecondary } from './simulation';
-import type { PersistedQuest, PersistedQuestRows } from './ui';
+import type { PersistedQuest, PersistedQuestRows, QuestPageStageBindings, PageQuestStages, bindBorrowedPageQuestStages } from './ui';
 import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import * as v from 'valibot';
 import { rigLibrary, type RigLibraryRows } from "./geometry";
@@ -566,6 +566,7 @@ export interface HybridPageQuestRows {
   readonly dress?: readonly { readonly call: BorrowedOwnerPath; readonly args: readonly ('group' | 'scope' | { readonly instances: boolean })[] }[];
   readonly capture?: Readonly<Record<string, BorrowedOwnerPath>>;
   readonly progress?: boolean;
+  readonly stages?: QuestPageStageBindings;
 }
 
 /** Bounded capture steps invoke real gameplay owners without introducing saved state. */
@@ -645,6 +646,15 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected get pageQuest(): PersistedQuest & { readonly coins: RuntimeCoins } {
     if (this.savedPageQuest === null) throw new Error('Page quest is not installed');
     return this.savedPageQuest;
+  }
+  private pageStageFactory:typeof bindBorrowedPageQuestStages|null=null;
+  /** Bind page stages with the resident flags and current borrowed owners. */
+  protected bindPageStages(ctx:ShardContext,extra:Readonly<Record<string,unknown>>={}):PageQuestStages {
+    const source=this.rows.source,rows=this.rows.pageQuest?.stages,factory=this.pageStageFactory;
+    if(source===undefined||rows===undefined||factory===null)throw new Error('Missing page stage rows');
+    const owners=new Map<string,unknown>([...Object.entries(this.rows.owners??{}),['plugin',this],...Object.entries(extra)]);
+    if(owners.size>64||Object.hasOwn(extra,'plugin'))throw new Error('Invalid page stage owners');
+    return factory(ctx,source,this.pageQuest.flags,rows,owners,this.actor.bind(this));
   }
   private questCapture: ((name: string) => void) | null = null;
   /** Stage a declared quest through its live flags and callbacks; unknown capture names do nothing. */
@@ -807,7 +817,8 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
       if (borrowed.length > 64 || borrowed.some(([key]) => ['plugin', 'scope', 'quest'].includes(key))) throw new Error('Invalid page quest owners');
       const owners = new Map<string, unknown>([...borrowed, ['plugin', this], ['scope', ctx.scope]]);
       // Page presentation is never imported by the renderer-free native host.
-      const { installBorrowedPageQuest } = await import('./ui');
+      const { installBorrowedPageQuest, bindBorrowedPageQuestStages } = await import('./ui');
+      this.pageStageFactory=bindBorrowedPageQuestStages;
       const installed = installBorrowedPageQuest(ctx, source, page, owners, bindRuntimeCoins(ctx, loot?.purse ?? null), rt?.world?.player.position ?? this.player);
       this.savedPageQuest = installed; this.quest = installed.quest;
       if (page.progress === true) installed.persistence.bindProgress(rt?.play?.progress);

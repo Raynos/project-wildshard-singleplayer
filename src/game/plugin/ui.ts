@@ -1089,6 +1089,39 @@ export function bindPageQuestStages(ctx: Pick<ShardContext, 'system'>, source: P
   } };
 }
 
+/** Bounded borrowed stage observations, existing actions and event callback fields. */
+export interface QuestPageStageBindings {
+  readonly observations?: readonly (BorrowedOwnerPath & { readonly id: string })[];
+  readonly actions?: readonly (BorrowedOwnerPath & { readonly id: string; readonly action: DirectorActionBinding['action'] })[];
+  readonly events?: readonly (BorrowedOwnerPath & { readonly id: string })[];
+}
+/** Bind the admitted page lane at its existing install point; all owners preflight before quiet seeding. */
+export function bindBorrowedPageQuestStages(ctx:Pick<ShardContext,'system'>,source:Pick<Shardfile,'questHost'>,
+  flags:Pick<Flags,'has'|'set'>,rows:QuestPageStageBindings,owners:ReadonlyMap<string,unknown>,
+  actor:(id:string)=>{readonly alive:boolean}|null):PageQuestStages {
+  const host=source.questHost;if(host===undefined||host===null)throw new Error('Missing admitted page quest host');
+  const ids=new Set(host.stages.map(stage=>stage.row.id));
+  for(const list of [rows.observations??[],rows.actions??[],rows.events??[]])if(list.length>64)throw new Error('Unbounded page stage bindings');
+  const observations=new Map((rows.observations??[]).map(row=>{
+    const field=readBorrowedOwner(owners,row);if(field===null||typeof field.value!=='boolean')throw new Error('Missing page stage observation');
+    return [row.id,()=>{const value=field.receiver[field.key];if(typeof value!=='boolean')throw new Error('Page stage observation changed type');return value;}] as const;
+  }));
+  const bindings=new Map<string,DirectorActionBinding[]>();
+  for(const row of rows.actions??[]){
+    if(!ids.has(row.id))throw new Error('Undeclared page stage action');
+    const call=bindBorrowedMethod(owners,row),list=bindings.get(row.id)??[];
+    list.push({action:row.action,run:()=>{call();}});bindings.set(row.id,list);
+  }
+  const events=(rows.events??[]).map(row=>{
+    if(!ids.has(row.id))throw new Error('Undeclared page stage event');
+    const field=readBorrowedOwner(owners,row);if(field===null||field.value!==null&&typeof field.value!=='function')throw new Error('Missing page stage event');
+    return {field,id:row.id};
+  });
+  const stages=bindPageQuestStages(ctx,source,{flags,actor,observations,bindings});
+  for(const {field,id} of events)field.receiver[field.key]=()=>{stages.advance(id);};
+  return stages;
+}
+
 /** A declared NPC's existing copied geometry provider; prepared pivots stay prepared. */
 export type QuestNpcModelSource =
   { readonly kind: 'mesh'; readonly read: () => BufferGeometry | null } |
