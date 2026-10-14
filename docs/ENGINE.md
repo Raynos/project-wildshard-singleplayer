@@ -1437,6 +1437,11 @@ to actual floors, terrain, weather and optional points. Floors use the
 specified feet tolerance; height and slope are queried only when reached,
 and the first matching rule wins. Pine and Driftwood use the same host.
 
+Ambience routing `probes` reads native bounds, nearby point lists, oriented
+floor footprints, circular regions and live zone spots. Ordered rows feed
+the existing mixer expressions; `probeFinite` holds the mix on invalid
+listener/weather input. Floor, site and point ports remain real owners.
+
 | Export | What it is |
 |---|---|
 | `Audio`, `StepSurface`, `AnimalSound`, `HoofSurface`, `ImpactKind` | the engine mixer (`runtime.play.audio`, a port while S3.5 finishes) |

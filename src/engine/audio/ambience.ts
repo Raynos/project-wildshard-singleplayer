@@ -105,6 +105,11 @@ export interface AmbienceMixPorts {
   readonly sampleLive?: (ids:string[])=>void;
   readonly onZone?: (zone:string)=>void;
   readonly stereoTargets?: ()=>readonly (readonly [string,number,number])[];
+  readonly floors?:Readonly<Record<string,{floorHeightAt:(x:number,z:number)=>number|undefined}|null|undefined>>;
+  readonly sites?:Readonly<Record<string,readonly {x:number;z:number;rot:number}[]>>;
+  readonly circles?:Readonly<Record<string,()=>({x:number;z:number;r:number}|undefined)>>;
+  readonly spots?:Readonly<Record<string,()=>readonly {zone:string;x:number;z:number;r:number;fade?:number;open?:boolean;gain?:()=>number}[]>>;
+  readonly pointLists?:Readonly<Record<string,()=>readonly {x:number;z:number}[]>>;
   readonly heightAt: (x: number, z: number) => number;
   readonly sea: number;
   readonly objects?: Readonly<Record<string, object | null | undefined>>;
@@ -131,6 +136,7 @@ export class AmbienceMix {
   /** the profile's zoned beds */
   readonly zones: AmbienceZones;
   private readonly mixPorts:Parameters<typeof evaluateAudioMix>[1];
+  private readonly probeRows:NonNullable<AudioAmbienceRouting['probes']>;
   private readonly inputRows:readonly [string,()=>number][];
   private readonly readValue=(id:string):number=>this.value(id);
   private readonly readLevel=(id:string):number=>requireAudioLevel(this.profile.levels,id);
@@ -166,6 +172,14 @@ export class AmbienceMix {
     const schedules=profile.schedules??[];
     if(schedules.length>32)throw new Error('Ambient schedule capacity');
     for(let i=0;i<32;i++){const row=schedules[i];if(row!==undefined)this.marks[row.mark]=()=>{this.scheduleOneShot(row);};}
+    this.probeRows=[...rows.bounds.map(row=>({kind:'bounds' as const,...row})),...rows.near.map(row=>({kind:'near' as const,...row})),...(rows.probes??[])];
+    if(this.probeRows.length>128)throw new Error('Audio spatial probe capacity');
+    for(const row of this.probeRows){
+      if(row.kind==='footprint'&&(ports.floors===undefined||!(row.floor in ports.floors)||ports.sites?.[row.sites]===undefined))throw new Error('Missing audio footprint owner');
+      if(row.kind==='circle'&&ports.circles?.[row.source]===undefined)throw new Error('Missing audio circle owner');
+      if(row.kind==='spots'&&ports.spots?.[row.source]===undefined)throw new Error('Missing audio spots owner');
+      if(row.kind==='maximum'&&ports.pointLists?.[row.source]===undefined)throw new Error('Missing audio points owner');
+    }
     this.inputRows=Object.entries(ports.inputs??{});
     if(rows.rooms.list.length>16||rows.zoneNames.length>32||rows.steer.length>32||this.inputRows.length>64)throw new Error('Ambience port rows exceed their bound');
     for(let i=0;i<16;i++){const room=rows.rooms.list[i];if(room!==undefined)this.roomDefs.set(room.id,room);}
@@ -343,23 +357,49 @@ export class AmbienceMix {
     V.set('night', this.night); V.set('underwater', this.underwater ? 1 : 0); V.set('t', this.t);
     if(this.rows.listener==='context')V.set('ground',this.ports.heightAt(x,z));
     for(let i=0;i<64;i++){const row=this.inputRows[i];if(row!==undefined)V.set(row[0],row[1]());}
-    for (const b of rows.bounds) {
-      const box = boundsOf(this.ports.objects?.[b.from], b.key);
-      V.set(b.id, box ? 1 : 0);
-      if (box) for (const k of BOUNDS_KEYS) V.set(`${b.id}.${k}`, box[k]);
-    }
-    for (const n of rows.near) {
-      let pd = 0, pdx = 0, pdz = 0;
-      const r2 = n.radius * n.radius;
-      for (const p of this.ports.near?.[n.id] ?? []) { const dx = p.x - x, dz = p.z - z, dd = dx * dx + dz * dz; if (dd < r2) { const w = 1 - Math.sqrt(dd) / n.radius; pd += w; pdx += dx * w; pdz += dz * w; } }
-      V.set(`${n.id}.sum`, pd); V.set(`${n.id}.dx`, pdx); V.set(`${n.id}.dz`, pdz);
-    }
+    let finiteSum=0;for(const id of rows.probeFinite??[])finiteSum+=this.value(id);if(!Number.isFinite(finiteSum))return;
+    this.probeSpatial(x,this.value('y'),z);
     if(this.ports.observe?.(V,this.mixDt)===false)return;
     this.mixTime=t;
     const selected=evaluateAudioMix(requireAudioProfile(this.profile.mix,'ambience.mix'),this.mixPorts);
     this.ports.sampleLive?.((this.profile.mix?.levels??[]).map(([id])=>id).filter(id=>this.samples.has(id)&&this.zones.beds.get(id)?.src!==undefined));
     const zone=requireAudioProfile(this.zoneNames.get(selected),'ambience.zone');if(zone!==this.zone){this.zone=zone;this.ports.onZone?.(zone);}
     this.mixed = true;
+  }
+
+  private probeSpatial(x:number,y:number,z:number):void {
+    const V=this.values,smooth=(outer:number,inner:number,distance:number):number=>{const t=Math.max(0,Math.min(1,(distance-outer)/(inner-outer)));return t*t*(3-2*t);};
+    for(const row of this.probeRows){
+      switch(row.kind){
+        case 'bounds':{const box=boundsOf(this.ports.objects?.[row.from],row.key);V.set(row.id,box?1:0);if(box)for(const key of BOUNDS_KEYS)V.set(`${row.id}.${key}`,box[key]);break;}
+        case 'near':{
+          let sum=0,dxSum=0,dzSum=0;const r2=row.radius*row.radius;
+          for(const point of this.ports.near?.[row.id]??[]){const dx=point.x-x,dz=point.z-z,dd=dx*dx+dz*dz;if(dd<r2){const weight=1-Math.sqrt(dd)/row.radius;sum+=weight;dxSum+=dx*weight;dzSum+=dz*weight;}}
+          V.set(`${row.id}.sum`,sum);V.set(`${row.id}.dx`,dxSum);V.set(`${row.id}.dz`,dzSum);break;
+        }
+        case 'footprint':{
+          const floor=this.ports.floors?.[row.floor]?.floorHeightAt(x,z);let weight=0;
+          if(floor!==undefined&&y>=floor+row.minY&&y<=floor+row.maxY){for(const site of this.ports.sites?.[row.sites]??[]){const c=Math.cos(site.rot),sn=Math.sin(site.rot),lx=(x-site.x)*c-(z-site.z)*sn,lz=(x-site.x)*sn+(z-site.z)*c;if(lx>row.x[0]&&lx<row.x[1]&&lz>row.z[0]&&lz<row.z[1]){weight=1;break;}}}
+          V.set(row.id,weight);break;
+        }
+        case 'circle':{const point=this.ports.circles?.[row.source]?.();V.set(row.id,point===undefined?0:smooth(point.r+row.outer,point.r+row.inner,Math.hypot(x-point.x,z-point.z)));break;}
+        case 'spots':{
+          for(const id of row.ids)V.set(id,0);let open=this.eval(row.initial);
+          for(const spot of this.ports.spots?.[row.source]?.()??[]){const weight=smooth(spot.r+(spot.fade??row.fade),spot.r,Math.hypot(x-spot.x,z-spot.z))*(spot.gain===undefined?1:Math.max(0,Math.min(1,spot.gain())));V.set(spot.zone,Math.max(V.get(spot.zone)??0,weight));if(spot.open)open=Math.max(open,weight);}
+          V.set(row.open,open);break;
+        }
+        case 'maximum':{let weight=this.eval(row.initial);for(const point of this.ports.pointLists?.[row.source]?.()??[])weight=Math.max(weight,row.gain*smooth(row.outer,row.inner,Math.hypot(x-point.x,z-point.z)));V.set(row.id,weight);break;}
+        default:throw new Error('Unknown audio spatial probe');
+      }
+    }
+  }
+  private stereoTargets():readonly (readonly [string,number,number])[] {
+    const targets:(readonly [string,number,number])[]=[...(this.ports.stereoTargets?.()??[])];
+    for(const row of this.probeRows){
+      if(row.kind==='circle'&&row.pan!==undefined){const point=this.ports.circles?.[row.source]?.();if(point!==undefined)targets.push([row.pan,point.x,point.z]);}
+      if(row.kind==='spots')for(const spot of this.ports.spots?.[row.source]?.()??[])if(row.pans.includes(spot.zone))targets.push([spot.zone,spot.x,spot.z]);
+    }
+    return targets;
   }
 
   private level(id:string,value:number):void {
@@ -391,7 +431,7 @@ export class AmbienceMix {
   private dropSample(id:string):void {this.zones.drop(id);this.samples.delete(id);this.ports.sample?.drop(id);}
   private panSamples():void {
     const x=this.value('x'),z=this.value('z'),l=this.audio.ctx.listener;
-    for(const [id,px,pz] of this.ports.stereoTargets?.()??[]){
+    for(const [id,px,pz] of this.stereoTargets()){
       const bed=this.zones.beds.get(id);if(!bed?.pan)continue;
       const dx=px-x,dz=pz-z,d=Math.hypot(dx,dz),u=Math.max(0,Math.min(1,(d-4)/16)),fade=u*u*(3-2*u);
       bed.pan.pan.setTargetAtTime(d>1?Math.max(-0.75,Math.min(0.75,(dx*-l.forwardZ.value+dz*l.forwardX.value)/d*0.75*fade)):0,this.mixTime,0.2);

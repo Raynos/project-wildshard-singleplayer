@@ -34,7 +34,11 @@ export const PINE_AUDIO = parseAudioData({ playback:{mode:'samples',initial:{},p
       { slots: ['boss'], when: [{ field: 'scene', op: 'equals', value: 'boss' }] },
     ] },
   samples: PINE_AUDIO_SAMPLES,
-  zones: { routing:{warm:[],prewarm:['ir-cabin','ir-bowl'],listener:'port',bounds:[],near:[],steer:[],
+  zones: { routing:{probeFinite:['x','y','z','rawNight','rawDawn','rawRain'],probes:[
+    {kind:'footprint',id:'cabin',floor:'cabins',sites:'cabins',minY:0,maxY:3.2,x:[-6,2.45],z:[-6,6]},
+    {kind:'circle',id:'pond',source:'pond',inner:4,outer:40,pan:'pond'},
+    {kind:'spots',source:'spots',ids:['creek','waterfall','mill','ridge','oldgrowth','cave'],fade:25,open:'open',initial:['gt','pond',0.5],pans:['creek','waterfall','mill']},
+    {kind:'maximum',id:'fire',source:'fire',initial:'cabin',inner:2,outer:9,gain:0.55}],warm:[],prewarm:['ir-cabin','ir-bowl'],listener:'port',bounds:[],near:[],steer:[],
     rooms:{from:'sfx',to:'world',input:'sendIn',prewarmMissing:true,list:[
       {id:'cabin',ir:'ir-cabin',weight:'cabin',level:['*','wet.cabin','cabin','dry']},
       {id:'den',ir:'ir-den',weight:'cave',level:['*','wet.den','cave','dry']},

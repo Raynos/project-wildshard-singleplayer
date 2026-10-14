@@ -8,8 +8,7 @@ export const ISLAND_ROUTING = {
   warm: ['noise-pink', 'noise-white', 'bubble-bed'],
   prewarm: ['bubble-bed', 'ir-shrine', 'ir-cave', 'ir-hold'],
   underwater: [500, 0.15],
-  bounds: [{ id: 'holdBox', from: 'wreck', key: 'holdBounds' }, { id: 'caveBox', from: 'cove', key: 'caveBounds' }],
-  near: [{ id: 'palms', radius: 22 }],
+  bounds:[],near:[],probes:[{kind:'bounds',id:'holdBox',from:'wreck',key:'holdBounds'},{kind:'bounds',id:'caveBox',from:'cove',key:'caveBounds'},{kind:'near',id:'palms',radius:22}],
   
   
   steer: [{ pan: 'flutter', toward: 'palms', width: 0.7, tau: 0.2 }],

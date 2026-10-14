@@ -167,8 +167,18 @@ export type AudioPhraseSchedule = v.InferOutput<typeof AudioPhraseScheduleSchema
 const zone = v.pipe(v.strictObject({ id, x: finite, z: finite, inner: v.pipe(finite, v.minValue(0), v.maxValue(2000)), outer: v.pipe(finite, v.minValue(0), v.maxValue(2000)), gain,
   fade: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))), open: v.optional(v.boolean()), source: v.optional(id) }), v.check((row) => row.inner < row.outer && (row.fade === undefined || row.outer === row.inner + row.fade), 'audio zone fade must extend outside its inner radius'));
 const rectangle = v.pipe(v.strictObject({ id, zone: id, x0: finite, x1: finite, z0: finite, z1: finite }), v.check((row) => row.x0 < row.x1 && row.z0 < row.z1, 'positive rectangular audio region'));
+/** Bounded native spatial probes; authored weights never replace the live world owners. */
+const audioSpatialProbe=v.variant('kind',[
+ v.strictObject({kind:v.literal('bounds'),id,from:id,key:id}),
+ v.strictObject({kind:v.literal('near'),id,radius:v.pipe(finite,v.minValue(0.001))}),
+ v.strictObject({kind:v.literal('footprint'),id,floor:id,sites:id,minY:finite,maxY:finite,x:v.tuple([finite,finite]),z:v.tuple([finite,finite])}),
+ v.strictObject({kind:v.literal('circle'),id,source:id,inner:finite,outer:finite,pan:v.exactOptional(id)}),
+ v.strictObject({kind:v.literal('spots'),source:id,ids:v.pipe(v.array(id),v.maxLength(32)),fade:finite,open:id,initial:mixExpr,pans:v.pipe(v.array(id),v.maxLength(32))}),
+ v.strictObject({kind:v.literal('maximum'),id,source:id,initial:mixExpr,inner:finite,outer:finite,gain:finite})
+]);
 /** Native audio lifecycle policy; observations and decoded samples are supplied by the resident owner. */
 export const AudioAmbienceRoutingSchema = v.strictObject({
+  probes:v.exactOptional(v.pipe(v.array(audioSpatialProbe),v.maxLength(64))),probeFinite:v.exactOptional(v.pipe(v.array(id),v.maxLength(32))),
   warm:v.pipe(v.array(id),v.maxLength(32)),prewarm:v.pipe(v.array(id),v.maxLength(32)),listener:v.picklist(['context','port']),
   underwater:v.exactOptional(v.tuple([finite,finite])),
   bounds:v.pipe(v.array(v.strictObject({id,from:id,key:id})),v.maxLength(64)),

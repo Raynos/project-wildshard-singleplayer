@@ -61,15 +61,12 @@ export interface ForestAmbienceOpts {
   spots?: readonly ZoneSpot[];
 }
 
-const ss = (a: number, b: number, x: number): number => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const DEFAULT_PROFILE = requireAudioProfile(source.audio.zones, 'ambience.pine');
 /** the beds that are positional (panned toward their zone's centre); the rest surround you */
 
 /** a cabin's inside: its floor, and within the smallest cabin's half-width of the site along the door axis (the porch is past it) */
-const CABIN_HALF_W = 2.45;
 const FOREST_ZONES = ['hollow','pond','cabin','creek','waterfall','mill','ridge','oldgrowth','cave'] as const;
 const ROOMS = ['cabin','den','oldgrowth','bowl'] as const;
-const SPOT_KEYS = ['creek','waterfall','mill','ridge','oldgrowth','cave'] as const;
 
 
 
@@ -97,7 +94,7 @@ export class ForestAmbience {
   private underwater = false;
   private timers: (ReturnType<typeof setTimeout> | 0)[] = [];
 
-  constructor(audio: Audio, private readonly o: ForestAmbienceOpts, profile: AudioZoneProfile = DEFAULT_PROFILE) {
+  constructor(audio: Audio, o: ForestAmbienceOpts, profile: AudioZoneProfile = DEFAULT_PROFILE) {
     this.scope = (o.scope ?? resourceScope()).child('ForestAmbience');
     this.sfx = new PineHollowSfx(audio);
     this.surfaces=audio.surfaceMap(requireAudioProfile(source.audio.surfaces,'forest step surfaces'),['planks','wet','mud','rock','litter'] as const,{heightAt:o.heightAt,floors:{cabins:[o.cabins]},values:{rain:()=>this.rain},circles:{pond:()=>hasPond()?POND:undefined}});
@@ -105,9 +102,11 @@ export class ForestAmbience {
     this.routing = new AmbienceMix(audio,profile,{
       random:audioRandom,scope:this.scope,...(o.scope===undefined?{}:{zoneScope:this.scope}),heightAt:o.heightAt,sea:0,
       sample:{available:()=>this.sfx.available,load:id=>this.sfx.bed(requireAudioProfile(this.bedNames.get(id),'forest bed')),drop:id=>{this.sfx.dropBed(requireAudioProfile(this.bedNames.get(id),'forest bed'));}},
-      sampleLive:ids=>{this.diag.beds=ids;},stereoTargets:()=>this.panTargets(),
+      sampleLive:ids=>{this.diag.beds=ids;},
+      floors:{cabins:o.cabins},sites:{cabins:CABIN_SITES},circles:{pond:()=>hasPond()?POND:undefined},spots:{spots:()=>this.spots},pointLists:{fire:()=>o.cabins?.firePits??[]},
+      inputs:{rawNight:()=>this.night,rawDawn:()=>this.dawn,rawRain:()=>this.rain,thr:()=>this.thrallLevel()},
       listener:(x,y,z,yaw)=>{this.px=x;this.py=y;this.pz=z;this.sfx.setListener(x,y,z,yaw);},
-      observe:values=>this.observe(values),onBuild:()=>{this.scheduleThrall();},
+      onBuild:()=>{this.scheduleThrall();},
       diagnostic:(id,value)=>{if(!(id in this.diag)||id==='beds'||id==='sends')throw new Error('Unknown forest diagnostic');Reflect.set(this.diag,id,value);},
       roomWeight:(id,value)=>{this.diag.sends[requireAudioProfile(this.roomNames.get(id),'forest room')]=value;},
       onZone:id=>{this.zone=requireAudioProfile(this.zoneNames.get(id),'forest zone');audioLog('zone',this.zone);this.onZone?.(this.zone);},
@@ -136,45 +135,6 @@ export class ForestAmbience {
   // ─────────────── per frame ───────────────
   update(dt: number, camera: Camera): void {
     this.routing.frame(dt,camera);
-  }
-
-  /** inside a cabin: on a floor, within the house's half-width of a site along its door axis (the porch is further out) */
-  private inCabin(x: number, z: number, y: number): number {
-    const f = this.o.cabins?.floorHeightAt(x, z);
-    if (f === undefined || y < f || y > f + 3.2) return 0;
-    for (const s of CABIN_SITES) {
-      const c = Math.cos(s.rot), sn = Math.sin(s.rot), lx = (x - s.x) * c - (z - s.z) * sn, lz = (x - s.x) * sn + (z - s.z) * c;
-      if (Math.abs(lz) < 6 && lx < CABIN_HALF_W && lx > -6) return 1;
-    }
-    return 0;
-  }
-
-  /** the zone weights → every bed's target level, the ambient shade and every reverb send (10 Hz, 300 ms crossfades) */
-  private observe(values:Map<string,number>): boolean {
-    const x=this.px,y=this.py,z=this.pz;
-    if (!Number.isFinite(x + y + z + this.night + this.dawn + this.rain)) return false; // hold the last mix rather than feed NaN to the AudioParams (E278)
-    const cabin = this.inCabin(x, z, y);
-    const pond = hasPond() ? ss(POND.r + 40, POND.r + 4, Math.hypot(x - POND.x, z - POND.z)) : 0;
-    const spot: Record<string, number> = { creek: 0, waterfall: 0, mill: 0, ridge: 0, oldgrowth: 0, cave: 0 };
-    let open = pond > 0.5 ? 1 : 0;
-    for (const s of this.spots) {
-      const w = ss(s.r + (s.fade ?? 25), s.r, Math.hypot(x - s.x, z - s.z)) * (s.gain ? Math.max(0, Math.min(1, s.gain())) : 1);
-      spot[s.zone] = Math.max(spot[s.zone] ?? 0, w);
-      if (s.open) open = Math.max(open, w);
-    }
-    // fire crackle: inside, or beside a fire pit
-    let fire = cabin;
-    for (const p of this.o.cabins?.firePits ?? []) fire = Math.max(fire, 0.55 * ss(9, 2, Math.hypot(x - p.x, z - p.z)));
-    values.set('x',x);values.set('y',y);values.set('z',z);values.set('cabin',cabin);values.set('pond',pond);values.set('open',open);values.set('fire',fire);
-    values.set('underwater',this.underwater?1:0);values.set('rawNight',this.night);values.set('rawDawn',this.dawn);values.set('rawRain',this.rain);values.set('thr',this.thrallLevel());
-    for(let i=0;i<6;i++){const key=SPOT_KEYS[i];if(key!==undefined)values.set(key,spot[key]??0);}
-    return true;
-  }
-  private panTargets(): [PhBed, number, number][] {
-    const out: [PhBed, number, number][] = [];
-    if (hasPond()) out.push(['pond', POND.x, POND.z]);
-    for (const s of this.spots) if (s.zone === 'creek' || s.zone === 'waterfall' || s.zone === 'mill') out.push([s.zone, s.x, s.z]);
-    return out;
   }
 
   /** what the player's boots are on (Player.onStep → audio.footstep(sprinting, amb.stepSurface(x, z, y))) */
