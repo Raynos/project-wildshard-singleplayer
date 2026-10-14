@@ -5,7 +5,7 @@ import type { Actor } from '@wildshard/engine/combat/pipeline';
 import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactables, InteractEvent } from '@wildshard/engine/world/interact/Interactables';
-import type { Interactable, PoiId, Place } from '@wildshard/engine/world/interact/types';
+import { createQuestPlacements, type Interactable, type Place } from '@wildshard/engine/world/interact/types';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -35,13 +35,6 @@ import { ironSwordGuard, SWORD_GUARDED } from './guards';
 
 /** a named point a model module exports (`anchors`, world coords) for the adventure to place things at */
 export interface Anchor { x: number; y?: number; z: number; yaw?: number }
-/** the POI module's `anchors` map, if it exports one (the model agent adds them as the hold / cave / shrine land) */
-function anchorsOf(m: object | null | undefined): Record<string, Anchor> | undefined {
-  if (m === null || m === undefined || !('anchors' in m)) return undefined;
-  const a: unknown = m.anchors;
-  return typeof a === 'object' && a !== null ? (a as Record<string, Anchor>) : undefined;
-}
-
 /** what the adventure reads of an animal (Animal.ts satisfies it) */
 export interface AdvAnimal { kind: string; variant?: string; position: THREE.Vector3; mem: Record<string, number>; hp: number; maxHp: number; alive: boolean; herd: number; aggressive?: boolean; combatActor?: () => Actor }
 
@@ -61,7 +54,7 @@ export interface AdventureWorld<A extends AdvAnimal = AdvAnimal> {
   audio: Audio;
   music: { sting: (name: 'pickup' | 'death' | 'chunk') => void; combat?: (intensity: number) => void };
   inventory: { add: (id: ItemId, n?: number) => void };
-  pois: Partial<Record<Exclude<PoiId, 'world'>, object | null>>;
+  pois: Partial<Record<Exclude<Place['poi'], 'world'>, object | null>>;
   /** Creature views for scoped death listeners and authored respawns. */
   animals: { animals?: A[]; spawn?: (kind: string, x: number, z: number, yaw: number, variant?: string) => A; herds?: { cx: number; cz: number; members: A[] }[] };
   params?: URLSearchParams;
@@ -108,7 +101,7 @@ export interface Adventure {
 
 const CAVE = Cove.forIsland().cave;
 /** POI frames: origin + rotation (world = origin + R_y(rot) · local, the modules' own convention) */
-const FRAMES: Record<Exclude<PoiId, 'world'>, { x: number; z: number; rot: number }> = {
+const FRAMES: Record<Exclude<Place['poi'], 'world'>, { x: number; z: number; rot: number }> = {
   hut: HUT, lookout: LOOKOUT, shrine: SHRINE,
   wreck: { x: WRECK.x, z: WRECK.z, rot: WRECK.heading },
   cave: { x: CAVE.x, z: CAVE.z, rot: CAVE.yaw },
@@ -133,30 +126,8 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   const flags = new Flags(w.chunk.slug);
   if (w.params?.has('resetquest')) flags.reset();
 
-  const floorAt = (x: number, z: number): number => {
-    let y = heightAt(x, z);
-    for (const p of w.player.platforms) { const f = p(x, z); if (f !== undefined && f > y) y = f; }
-    const r = w.registry?.floorAt(x, z);
-    if (r !== undefined && r > y) y = r;
-    return y;
-  };
-  /** anchors the adventure computes itself (the finale's reward spot) — consulted before the models' */
-  const ownAnchors: Record<string, Anchor> = {};
-  const place = (p: Place): { x: number; y: number; z: number; yaw: number } => {
-    const own = p.anchor !== undefined ? ownAnchors[p.anchor] : undefined;
-    if (own) return { x: own.x, z: own.z, y: own.y ?? floorAt(own.x, own.z), yaw: own.yaw ?? 0 };
-    if (p.anchor !== undefined) {
-      const [poi, name] = p.anchor.split('.');
-      const a = poi !== undefined && name !== undefined ? anchorsOf(w.pois[poi as Exclude<PoiId, 'world'>])?.[name] : undefined;
-      if (a) return { x: a.x, z: a.z, y: a.y ?? floorAt(a.x, a.z) + (p.dy ?? 0), yaw: a.yaw ?? 0 };
-    }
-    let x = p.x, z = p.z, yaw = p.yaw ?? 0;
-    if (p.poi !== 'world') {
-      const f = FRAMES[p.poi], c = Math.cos(f.rot), s = Math.sin(f.rot);
-      x = f.x + p.x * c + p.z * s; z = f.z - p.x * s + p.z * c; yaw += f.rot;
-    }
-    return { x, z, y: p.y ?? floorAt(x, z) + (p.dy ?? 0), yaw };
-  };
+  const { floorAt, place, setAnchor } = createQuestPlacements({ terrain: heightAt, platforms: w.player.platforms, frames: FRAMES, pois: w.pois,
+    ...(w.registry === undefined ? {} : { registry: w.registry }) });
 
   const kit = await installAdventureInteractables(scope, { scene: w.game.scene, sky: w.sky, player: w.player, flags, place, floorAt, prompts: w.prompts });
   w.game.onUpdate((dt, t) => kit.update(dt, t), 'shard.driftwood.adventure');
@@ -170,7 +141,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
       ['pickup', () => { w.music.sting('pickup'); }],
     ]) });
 
-  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor: (name, a) => { ownAnchors[name] = a; } };
+  const adventure: Adventure = { flags, kit, place, floorAt, spine: null, places: null, finale: null, ecology: null, complete: null, zipline: null, trader: null, setAnchor };
   const grants = bindDriftwoodFacts(ctx, w.progress?.rows ?? [], w.progress, w.chunk.slug);
   adventure.spine = installSpine(adventure, w, ctx, grants.facts);
   w.onDeath?.(animal => { grants.kill(animal.kind); }, 35);

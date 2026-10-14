@@ -5484,3 +5484,15 @@ adapters retain their existing versioned wire fields and policy state.
 `orderedNativeReinstall` restores actor registration order before/after
 the keeper step and returns an idempotent settle callback for later spawns.
 No helper creates a second simulation or random stream.
+
+### Quest placement floors and anchors
+
+`engine/world/interact/types.createQuestPlacements` borrows terrain,
+platforms, registry floors and authored POI frames. `registryReach` is a
+strict maximum rise above the already selected floor; omission preserves
+unbounded higher-floor selection. The returned `place` respects explicit
+height and local yaw. `setAnchor` lends a bounded world anchor that takes
+precedence over a model anchor and ignores `dy`; a model anchor without
+height uses the selected floor plus `dy`. Borrowed models/floors remain
+live. Malformed coordinates, unsafe anchor paths and absent local frames
+refuse before the caller registers a prompt or piece. It owns no save.

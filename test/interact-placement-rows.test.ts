@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { autoFlag, bindInteractPlacements, readInteractPlacements, type InteractTable } from '../src/engine/world/interact/types';
+import { autoFlag, createQuestPlacements, bindInteractPlacements, readInteractPlacements, type InteractTable } from '../src/engine/world/interact/types';
 import { bindInteractionState, Flags } from '../src/engine/world/interact/flags';
 import { pineTableFromPlacements } from '../src/shards/pine-hollow/quest/table';
 import pine from '../src/shards/pine-hollow/data/spots.generated.json' with { type: 'json' };
@@ -31,4 +31,31 @@ test('authored rest sites preserve quest laws and order; malformed or foreign si
   expect(island.rows.map(row => row.id)).toEqual(DRIFTWOOD_INTERACT.rows.map(row => row.id));
   expect(island.rows.find(row => row.id === 'hold-key')?.showWhen?.all).toContain('dead:sailor');
   expect(island.rows.find(row => row.id === 'castaway-chest')?.requires?.all).toContain('talked:castaway');
+});
+
+
+test('quest placements borrow live floors and anchors without changing authored precedence', () => {
+  let registered = 24;
+  const registry = { floorAt: () => registered };
+  const hollow = createQuestPlacements({ terrain: () => 4, registry, registryReach: 20 });
+  const world = { poi: 'world' as const, x: 5, z: 7, dy: 1 };
+  expect(hollow.place(world).y).toBe(5); // Exactly at the strict reach is not a walkable placement.
+  registered = 23; expect(hollow.place(world).y).toBe(24);
+  expect(hollow.place({ ...world, y: 9 }).y).toBe(9);
+  const model = { anchors: { door: { x: 30, z: 40, yaw: 0.2 } } };
+  const island = createQuestPlacements({ terrain: () => 4, platforms: [() => 10], registry,
+    frames: { hut: { x: 12, z: 15, rot: Math.PI / 2 } }, pois: { hut: model } });
+  expect(island.place({ poi: 'hut', x: 2, z: 3, yaw: 0.1 })).toMatchObject({ x: 15, y: 23, z: 13 });
+  const door = { poi: 'hut' as const, x: 0, z: 0, anchor: 'hut.door', dy: 2 };
+  expect(island.place(door)).toMatchObject({ x: 30, y: 25, z: 40, yaw: 0.2 });
+  model.anchors.door.x = 31; expect(island.place(door).x).toBe(31);
+  island.setAnchor('hut.door', { x: 8, z: 9 });
+  expect(island.place(door)).toEqual({ x: 8, y: 23, z: 9, yaw: 0 }); // Own override ignores dy.
+  island.setAnchor('hut.door', { x: 8, y: 7, z: 9, yaw: 0.8 });
+  expect(island.place(door)).toEqual({ x: 8, y: 7, z: 9, yaw: 0.8 });
+  expect(() => island.place({ ...door, anchor: 'hut.__proto__' })).toThrow();
+  expect(() => island.setAnchor('bad', { x: Infinity, z: 0 })).toThrow();
+  expect(() => island.place({ poi: 'wreck', x: 0, z: 0 })).toThrow();
+  expect(() => island.place({ ...world, dy: Number.NaN })).toThrow();
+  expect(() => createQuestPlacements({ terrain: () => 0, registryReach: 0 })).toThrow();
 });

@@ -23,7 +23,7 @@ import type { FullMap, MapPoi } from '@wildshard/engine/ui/Map';
 import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
 import { Flags, test } from '@wildshard/engine/world/interact/flags';
 import { Interactables, type InteractEvent } from '@wildshard/engine/world/interact/Interactables';
-import type { Place, Interactable } from '@wildshard/engine/world/interact/types';
+import { createQuestPlacements, type Interactable } from '@wildshard/engine/world/interact/types';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -145,13 +145,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const shot = (name: Parameters<PineHollowSfx['shot']>[0], at?: THREE.Vector3): void => { sfx?.shot(name, at ? { at } : {}); };
 
   // ── floors + placements (world coordinates only) ──
-  const floorAt = (x: number, z: number): number => {
-    let y = heightAt(x, z);
-    const r = h.registry.floorAt(x, z);
-    if (r !== undefined && r > y && r - y < 20) y = r;
-    return y;
-  };
-  const place = (p: Place): { x: number; y: number; z: number; yaw: number } => ({ x: p.x, z: p.z, yaw: p.yaw ?? 0, y: p.y ?? floorAt(p.x, p.z) + (p.dy ?? 0) });
+  const { floorAt, place } = createQuestPlacements({ terrain: heightAt, registry: h.registry, registryReach: 20 });
 
   // ── the tower's frame (the lookout: local −Z faces the landing), its deck height ──
   const towerY = heightAt(LOOKOUT.x, LOOKOUT.z), deckY = towerY + 11;
