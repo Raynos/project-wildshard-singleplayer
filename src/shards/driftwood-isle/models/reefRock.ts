@@ -5,7 +5,8 @@
  * radius, squash and moss are its params, the rest the stream of the world that lays it — which welds its copies into
  * one smooth-shaded mesh (their normals can't join the flat-shaded kits) and places the model `drawnInto` it.
  */
-import { rockGeometry, rockMaterial, REEF_ROCK } from '../world/rockKit';
+import { rockGeometry, rockMaterial } from '../world/rockKit';
+import { REEF_ROCK } from '../data/rockProfiles';
 import { defineModel } from '@wildshard/engine/models/model';
 
 export interface ReefRockParams {

@@ -5,7 +5,8 @@
  * Its placement sinks it about a third into the sand and leans it with the slope (src/shards/driftwood-isle/world/Boulders.ts). A rock over
  * 0.9 m collides as the convex hull of what it draws; the small ones stay walk-through.
  */
-import { rockGeometry, rockMaterial, SHORE_ROCK } from '../world/rockKit';
+import { rockGeometry, rockMaterial } from '../world/rockKit';
+import { SHORE_ROCK } from '../data/rockProfiles';
 import { islandKnobs } from '../tiers';
 import { defineModel } from '@wildshard/engine/models/model';
 

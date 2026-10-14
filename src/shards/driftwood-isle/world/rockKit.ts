@@ -19,19 +19,8 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { smoothstep } from '@wildshard/engine/core/noise';
+import { SHORE_ROCK, ROCK_PROFILES, ROCK_KINDS } from '../data/rockProfiles';
 import { bakedGeometry } from '@wildshard/engine/world/geometryBake';
-
-/** the shore's boulders (Boulders.ts, Explore's Boulder): beach granite, a shade lighter than the reef */
-export const SHORE_ROCK: RockPalette = {
-  foot: '#2f3134', dark: '#45474c', mid: '#5f6165', light: '#7f7e7c', edge: '#918f8b', warm: '#776e63', cool: '#535b64', crease: '#2a2d33',
-  moss: '#62853a', mossLight: '#8ea24f', mossDark: '#40602b', wet: '#2e3a36',
-};
-/** the wreck's reef rocks (Wreck.ts), the cove's loose rocks, the pebbles: weedier basalt, a warmer grey (E310 T2 B: lifted
- * ~25 % from the old charcoal, still heavy, never black in shade) */
-export const REEF_ROCK: RockPalette = {
-  foot: '#3a3836', dark: '#535050', mid: '#726e69', light: '#958f87', edge: '#a8a198', warm: '#8a7f72', cool: '#63666a', crease: '#35333a',
-  moss: '#62853a', mossLight: '#8ea24f', mossDark: '#3d5d2a', wet: '#34403b',
-};
 
 export interface RockOpts {
   /** vertical half-height ÷ r (default 0.7) */
@@ -164,6 +153,7 @@ function insidePiece(p: Piece, x: number, y: number, z: number): boolean {
 
 /** a piece's planes and softness for an archetype */
 function piecePlanes(kind: Archetype, rng: Rng): { planes: { n: THREE.Vector3; d: number }[]; k: number } {
+  const profile = ROCK_PROFILES[kind];
   const planes: { n: THREE.Vector3; d: number }[] = [];
   const add = (x: number, y: number, z: number, d: number): void => { planes.push({ n: new THREE.Vector3(x, y, z).normalize(), d }); };
   const sides = rng.int(5, 8), off = rng.range(0, Math.PI * 2);
@@ -171,18 +161,18 @@ function piecePlanes(kind: Archetype, rng: Rng): { planes: { n: THREE.Vector3; d
     const a = off + (i / sides) * Math.PI * 2 + rng.range(-0.25, 0.25);
     add(Math.cos(a), rng.range(0.05, 0.42), Math.sin(a), rng.range(0.8, 0.98));
   }
-  const bevels = kind === 'dome' ? rng.int(5, 7) : rng.int(3, 5);
+  const bevels = rng.int(profile.bevels[0], profile.bevels[1]);
   for (let i = 0; i < bevels; i++) {
-    const a = off + rng.range(0, Math.PI * 2), y = kind === 'dome' ? rng.range(0.5, 0.8) : rng.range(0.45, 0.7);
+    const a = off + rng.range(0, Math.PI * 2), y = rng.range(profile.bevelY[0], profile.bevelY[1]);
     add(Math.cos(a), y / Math.sqrt(1 - y * y), Math.sin(a), rng.range(0.8, 0.92));
   }
   for (let i = 0; i < 3; i++) { const a = off + (i / 3) * Math.PI * 2 + 0.5; add(Math.cos(a), -0.8, Math.sin(a), 0.88); }
   add(0, -1, 0, 0.9);
   const ta = rng.range(0, Math.PI * 2);
-  const tilt = kind === 'wedge' ? rng.range(0.32, 0.5) : kind === 'dome' ? rng.range(0, 0.15) : rng.range(0.04, 0.2);
-  const top = kind === 'table' ? rng.range(0.6, 0.7) : kind === 'wedge' ? rng.range(0.72, 0.8) : kind === 'block' ? rng.range(0.74, 0.82) : rng.range(0.86, 0.94);
+  const tilt = rng.range(profile.tilt[0], profile.tilt[1]);
+  const top = rng.range(profile.top[0], profile.top[1]);
   add(Math.cos(ta) * tilt, 1, Math.sin(ta) * tilt, top);
-  const k = kind === 'dome' ? rng.range(0.09, 0.12) : kind === 'block' ? rng.range(0.04, 0.055) : rng.range(0.05, 0.07);
+  const k = rng.range(profile.softness[0], profile.softness[1]);
   return { planes, k };
 }
 
@@ -193,7 +183,7 @@ function makePiece(kind: Archetype, c: THREE.Vector3, rx: number, ry: number, rz
     const along = new THREE.Vector3(-n.z, 0, n.x).multiplyScalar(rng.next() < 0.5 ? 1 : -1);
     return { n, o: rng.range(-0.25, 0.25), w: rng.range(0.12, 0.16), depth: rng.range(0.07, 0.1), along };
   });
-  return { c, rx, ry, rz, cos: Math.cos(yaw), sin: Math.sin(yaw), planes, k, noise: valueNoise(Math.floor(rng.next() * 1e9)), amp: kind === 'dome' ? 0.14 : 0.1, cracks: cr };
+  return { c, rx, ry, rz, cos: Math.cos(yaw), sin: Math.sin(yaw), planes, k, noise: valueNoise(Math.floor(rng.next() * 1e9)), amp: ROCK_PROFILES[kind].noiseAmplitude, cracks: cr };
 }
 
 /** how far the smooth normals lean toward each triangle's own normal: 0 = fully smooth, 1 = faceted. A touch keeps the
@@ -258,9 +248,9 @@ function parsePalette(pal: RockPalette): Record<keyof RockPalette, THREE.Color> 
 function smoothPainted(r: number, sq: number, moss: number, palette: RockPalette, rng: Rng, ground: number, lod: number): THREE.BufferGeometry {
   const pal = parsePalette(palette);
   const pebble = r < 0.3;
-  const kinds: Archetype[] = ['dome', 'table', 'wedge', 'block', 'table', 'block'];
+  const kinds = ROCK_KINDS;
   const kind = pebble ? (rng.next() < 0.5 ? 'dome' : 'block') : rng.pick(kinds);
-  const ry = r * sq * (kind === 'table' ? 0.88 : kind === 'dome' ? 1.04 : 1);
+  const ry = r * sq * ROCK_PROFILES[kind].heightScale;
   const gr = ground;                                                               // the ground plane (rock space)
   const main = makePiece(kind, new THREE.Vector3(), r * rng.range(0.95, 1.08), ry, r * rng.range(0.8, 0.95), pebble || r < 0.7 ? 0 : r > 1.3 ? rng.int(1, 2) : rng.int(0, 1), rng);
   const pieces: Piece[] = [main];

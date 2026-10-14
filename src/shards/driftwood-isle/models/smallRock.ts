@@ -6,7 +6,8 @@
  * Each copy has its own shape: its size and squash are its params, the rest the placement group's rng stream (the old
  * loop's, so the move is exact). No colliders: you step over them.
  */
-import { rockGeometry, rockMaterial, SHORE_ROCK } from '../world/rockKit';
+import { rockGeometry, rockMaterial } from '../world/rockKit';
+import { SHORE_ROCK } from '../data/rockProfiles';
 import { defineModel } from '@wildshard/engine/models/model';
 
 export interface SmallRockParams {
