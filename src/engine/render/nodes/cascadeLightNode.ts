@@ -35,10 +35,13 @@ const nearFar = (camera: THREE.Camera): { near: number; far: number } =>
 
 /** three's directional light node, gated as a cascade where the sky rig registered the light as one */
 export class EngineDirectionalLightNode extends DirectionalLightNode {
+  /** Graph lighting applies the classic result blend after its nonlinear sun hook. */
+  graphCascade: { readonly colour: Node<'vec3'>; readonly shadowed: Node<'vec3'>; readonly weight: Node<'float'> } | null = null;
   private ghostShadow: Node<'vec3'> | null = null;
 
   /** the light's direction and colour; a cascade's colour carries the CSM chunk's slice gate and the fade */
   override setupDirect(builder: NodeBuilder): DirectLightData | undefined {
+    this.graphCascade = null;
     const data = super.setupDirect(builder);
     const light = this.light;
     if (data === undefined || light === null) return data;
@@ -74,6 +77,10 @@ export class EngineDirectionalLightNode extends DirectionalLightNode {
     const lo = x.sub(margin.mul(0.5)), hi = y.add(margin.mul(0.5));
     const ratio = clamp(min(d.sub(lo), hi.sub(d)).div(margin), 0, 1);
     const last = index === csm.cascades - 1;
+    const weight = last
+      ? select(d.greaterThanEqual(lo), select(d.lessThan(centre), ratio, 1), 0)
+      : select(d.greaterThanEqual(lo).and(d.lessThan(hi)), ratio, 0);
+    this.graphCascade = { colour: base, weight, shadowed: last ? select(d.lessThan(centre), shadowed, mix(base, shadowed, ratio)) : shadowed };
     const lightColor = last
       ? select(d.greaterThanEqual(lo), select(d.lessThan(centre), shadowed.mul(ratio), mix(base, shadowed, ratio)), vec3(0))
       : select(d.greaterThanEqual(lo).and(d.lessThan(hi)), shadowed.mul(ratio), vec3(0));

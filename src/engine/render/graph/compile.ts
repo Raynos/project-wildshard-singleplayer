@@ -50,6 +50,7 @@ import { toonGraph } from './presets';
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
+import { EngineDirectionalLightNode } from '../nodes/cascadeLightNode';
 import { instanceTransformNode } from '../nodes/nodeInstancing';
 import { layerFrameOf } from '../nodeLayerFrame';
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
@@ -220,8 +221,9 @@ type DirectInput = Parameters<PhysicalLightingModel['direct']>[0];
 
 /**
  * The lighting stage's model: three's physical model, with each directional light (the sun; the sky rig's cascades are
- * one sun) lit by the graph's `sun` sub-graph instead. The light node has already applied its shadow (and a cascade its
- * slice gate) to `lightColor`; its unshadowed colour (`baseColorNode`) recovers the ratio as the families do.
+ * one sun) lit by the graph's `sun` sub-graph instead. Physical light carries its shadow and cascade gate in
+ * `lightColor`. Graph sun hooks use a cascade's separate shadow colour and result weight, so nonlinear shade floors
+ * stay inside their slice; other lights recover the shadow ratio from `baseColorNode` as the families do.
  */
 class GraphLightingModel extends PhysicalLightingModel {
   private readonly hooks: LitHooks;
@@ -234,11 +236,19 @@ class GraphLightingModel extends PhysicalLightingModel {
     const scale = this.hooks.sunScale, hook = this.hooks.sun;
     if (hook === null) { this.physical({ ...input, lightColor: scale === undefined ? shadowed : shadowed.mul(scale) }, builder, true, true); return; }
     const baseNode: unknown = Reflect.get(input.lightNode, 'baseColorNode');
-    const base = isNodeValue(baseNode) ? vec3Of(baseNode, 'a light colour') : shadowed;
-    const shadow = clamp(dot(shadowed, vec3(1)).div(max(dot(base, vec3(1)), 1e-5)), 0, 1);
+    const cascade = input.lightNode instanceof EngineDirectionalLightNode ? input.lightNode.graphCascade : null;
+    const base = cascade?.colour ?? (isNodeValue(baseNode) ? vec3Of(baseNode, 'a light colour') : shadowed);
+    const received = cascade?.shadowed ?? shadowed;
+    const shadow = clamp(dot(received, vec3(1)).div(max(dot(base, vec3(1)), 1e-5)), 0, 1);
     const sun = hook(vec3Of(input.lightDirection, 'a light direction'), base, shadow);
-    accumulate(input.reflectedLight.directDiffuse, scale === undefined ? sun.radiance : sun.radiance.mul(scale));
-    if (sun.specular !== null) this.physical({ ...input, lightColor: base.mul(scale === undefined ? sun.specular : sun.specular.mul(scale)) }, builder, false, true);
+    // A toon hook can retain light even at shadow=0. The cascade gate is a
+    // blend of the completed RE_Direct result, never part of that shadow input.
+    const radiance = cascade === null ? sun.radiance : sun.radiance.mul(cascade.weight);
+    accumulate(input.reflectedLight.directDiffuse, scale === undefined ? radiance : radiance.mul(scale));
+    if (sun.specular !== null) {
+      const specular = scale === undefined ? sun.specular : sun.specular.mul(scale);
+      this.physical({ ...input, lightColor: base.mul(cascade === null ? specular : specular.mul(cascade.weight)) }, builder, false, true);
+    }
   }
 
   /** three's physical direct term for this light, keeping its diffuse and / or its specular */
