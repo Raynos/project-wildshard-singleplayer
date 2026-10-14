@@ -1,3 +1,4 @@
+import { WHIP_HELD_RECIPE } from './heldWeapon';
 import { SIGNAL_QUEST_PAGE } from './questPage';
 import { STRINGS } from './strings';
 import { WHIP_ROW } from './equipment';
@@ -5,7 +6,7 @@ import { SIGNAL_RUNTIME_BOOT } from './runtimeBoot';
 import { SIGNAL_PAGE_PROGRAM } from './population';
 
 /** Discovery, boot and population facts; the native plugin supplies only its admitted source. */
-export const SIGNAL_RUNTIME_ROWS = { expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }],
+export const SIGNAL_RUNTIME_ROWS = { melee: { recipe: WHIP_HELD_RECIPE, stage: 'equipment', targets: 'raycast', expose: 'whip' } as const, expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }],
   pageQuest: { data: SIGNAL_QUEST_PAGE, flags: { owner: 'plugin', path: ['places', 'flags'] },
     model: { kind: 'mesh', read: { owner: 'models', path: ['mesh'] } },
     dress: [{ call: { owner: 'scope', path: ['ownPrimitives'] }, args: ['group'] },

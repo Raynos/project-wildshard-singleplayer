@@ -12,12 +12,11 @@ import { CROWN, DAIS, ROC } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { SKY_NATIVE_WORLD } from '../data/nativeWorld';
-import { startMeleeSecondary } from '@wildshard/game/plugin/simulation';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
-import { createFan, type WarFanWeapon, type ConeFanTarget } from './weapons/heldFan';
+import { FAN_HELD_OWNERS, type WarFanWeapon } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';
-import { FAN_ROW, FAN_PRESENTATION } from '../data/equipment';
+import { FAN_ROW } from '../data/equipment';
 import { preloadSkyMeshes, HERO_LIBRARY } from '../world/meshes';
 import { loadSkyBaked, skyMeadowBlades } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
@@ -28,7 +27,7 @@ import { meadow } from '../world/meadow';
 import { bindDeclaredFight, bindQuestPageInteractions, bindPageQuestStages, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
 import { FLAGS, vaneFlag } from '../quests/flags';
-import { HybridRuntimePlugin, bindRuntimeMelee, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
+import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import { bindRuntimeProductProps, prepareClientWorld, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 
 declare module '@wildshard/engine/input/InputService' {
@@ -51,7 +50,7 @@ function boundedRows<T>(rows: readonly T[]): readonly T[] {
 const GALE_WALL = ROC_STRIKES[1];
 
 export class SkyReachPlugin extends HybridRuntimePlugin {
-  built: BuiltWorld | null = null; fan: WarFanWeapon | null = null;
+  built: BuiltWorld | null = null; declare readonly fan: WarFanWeapon | null;
   /** Is the player riding the hoverboard? The fan stows and the decks glow then; the hover decks and the updraft are
    *  `mode: 'board'` pieces, which collide only then (SF34, ENGINE §5 `app.player.mode`). */
   private board: () => boolean = () => false;
@@ -62,7 +61,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
 
-  protected readonly rows: HybridRuntimeRows = { ...SKY_RUNTIME_ROWS, source, owners: { models: HERO_LIBRARY, looks: { mapped: skyMappedLook } } };
+  protected readonly rows: HybridRuntimeRows = { ...SKY_RUNTIME_ROWS, source, owners: { ...FAN_HELD_OWNERS, heldStyle: { paint: paintFanLeaf }, models: HERO_LIBRARY, looks: { mapped: skyMappedLook } } };
 
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
@@ -88,20 +87,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const field = meadow(skyMeadowBlades(), skyLook('meadow'), ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades);
     ctx.root.add(field.group); ctx.scope.onDispose(field.dispose);
     ctx.game.runtime?.interactables.push(this.built.winch, this.built.notes);
-  }
-  protected override prepare(ctx: ShardContext): void {
-    // The shared combat-target query (ENGINE §19): world creatures in play, the Practice Arena's dummies while it is open.
-    const targets = (): readonly ConeFanTarget[] => ctx.app.combat.targets().filter((t) => t.hittable);
-    const row = source.items.rows.find(item => item.id === 'weapon.far-reach.fan');
-    if (row?.kind !== 'weapon' || row.contacts === undefined) throw new Error('Sky fan needs admitted contact rows');
-    this.fan = createFan(ctx.app, targets, row.contacts);
-    if (this.leaf !== null) paintFanLeaf(this.fan.parts, this.leaf);
-  }
-  protected override arm(): WarFanWeapon { const fan = this.fan; if (fan === null) throw new Error('Sky Reach: the war fan was not built'); return fan; }
-  protected override armed(): WarFanWeapon | null { return this.fan; }
-  protected override enter(): void {
-    if (this.fan !== null) this.fan.stowed = () => this.board();
-    // G24: the wisp's burst and the Roc's gale wall shove the player (`app.player.impulse`).
   }
   protected override async install(ctx: ShardContext): Promise<void> {
     const rt = ctx.game.runtime, built = this.built, fan = this.fan, position = rt?.world?.player.position ?? this.player;
@@ -132,16 +117,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const product = runtimeProduct(source);
     const motion = await channels.installMovers(ctx, rt.world, source, SKY_NATIVE_WORLD.motion, flags, product.assets);
     await worldBuildYield(ctx, 4);
-    const host = motion.scriptHost, hooks = channels.hooks, fanRow = source.items.rows.find(item => item.id === 'weapon.far-reach.fan');
-    if (fanRow?.kind !== 'weapon' || fanRow.secondary === undefined) throw new Error('Sky fan needs its admitted secondary');
-    const secondary = fanRow.secondary, hook = hooks.get(fanRow.id);
-    if (hook === undefined) throw new Error('Sky fan needs its admitted gust hook');
-    const native = fan.row;
-    bindRuntimeMelee(ctx, source, {presentation:FAN_PRESENTATION,icon:()=> 'sword',hooks,create:(row,spec,ports)=>{
-      if(ports.contacts===undefined||ports.secondary===undefined||ports.hook===undefined)throw new Error('Fan requires admitted contacts and composed hook');
-      fan.bindSecondary(family=>startMeleeSecondary(family,hook,{tick:host.currentTick,dt:1/60,action:secondary.code,move:secondary.move}),spec.charge);
-      fan.row={...row,legacySlot:'far-fan',meta:native.meta};return fan;
-    }});
+    const host = motion.scriptHost; this.bindHeldScripts(ctx, channels.hooks, () => host.currentTick);
     if (flags.has(FLAGS.raised)) motion.command('far.winch.bridge', 3);
     // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
     channels.bindPrompts({ socketLifts: { entryways: source.entryways, runtime: () => channels.runtime } });

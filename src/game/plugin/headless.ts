@@ -1,3 +1,5 @@
+import type { HeldMeleeRecipe, createDeclaredHeldMelee } from './weaponFamily';
+import type { startMeleeSecondary } from './simulation';
 import type { PersistedQuest, PersistedQuestRows } from './ui';
 import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import * as v from 'valibot';
@@ -478,6 +480,8 @@ export interface HybridRuntimeRows {
   /** the flag the session's quest probe reports once `quest` is complete */
   readonly complete: string;
   readonly source?: Shardfile;
+  /** One declared held owner, installed at the original kit/equipment stage. */
+  readonly melee?: HybridMeleeRows;
   readonly audio?: Parameters<typeof installRuntimeAudio>[1];
   readonly cues?: Parameters<typeof installRuntimeAudio>[2];
   /** Serializable entry configuration; the host supplies all callbacks. */
@@ -506,6 +510,16 @@ export interface HybridRuntimeRows {
   /** Borrowed libraries and style owners; reserved plugin/scope/quest owners are supplied by the host. */
   readonly owners?: Readonly<Record<string, unknown>>;
 }
+/** Page-only held installation; resources borrow the same sealed owner map as quest presentation. */
+export interface HybridMeleeRows {
+  readonly recipe: HeldMeleeRecipe;
+  readonly stage: 'kit' | 'equipment'; readonly targets: 'scan' | 'raycast';
+  readonly expose?: string; readonly composed?: boolean;
+  readonly presentation?: RuntimeWeaponFamily['presentation']; readonly legacySlot?: EquipmentRow['legacySlot'];
+  readonly stowedMode?: string;
+  readonly decorate?: { readonly call: BorrowedOwnerPath; readonly value: BorrowedOwnerPath };
+}
+
 /** A borrowed object capability, with an explicitly bounded property path. */
 export interface BorrowedOwnerPath { readonly owner: string; readonly path: readonly (string | number)[]; readonly optional?: boolean }
 /** The resolved field and its actual receiver; methods retain that receiver when lent to another host. */
@@ -580,6 +594,51 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   private populationPush: ((yaw: number, speed: number, lift: number) => void) | null = null;
   private populationHomes: RuntimeHomes | null = null;
   private aliasesBound = false;
+  private heldOwner: ReturnType<typeof createDeclaredHeldMelee> | null = null;
+  private heldFactory: typeof createDeclaredHeldMelee | null = null;
+  private heldSecondary: typeof startMeleeSecondary | null = null;
+  /** The actual primary held owner; no reconstructed presentation instance. */
+  protected get heldMelee(): ReturnType<typeof createDeclaredHeldMelee> | null { return this.heldOwner; }
+  private meleeOwners(ctx: ShardContext): ReadonlyMap<string, unknown> {
+    const borrowed = Object.entries(this.rows.owners ?? {});
+    if (borrowed.length > 64 || borrowed.some(([key]) => ['plugin', 'scope', 'quest'].includes(key))) throw new Error('Invalid held owners');
+    return new Map([...borrowed, ['plugin', this], ['scope', ctx.scope]]);
+  }
+  private createMelee(ctx: ShardContext, contacts: unknown, targets?: HybridTargets, charge?: number): ReturnType<typeof createDeclaredHeldMelee> {
+    const row = this.rows.melee, create = this.heldFactory;
+    if (row === undefined || create === null || this.heldOwner !== null) throw new Error('Declared held owner is not ready');
+    if (row.targets === 'raycast' && targets === undefined) throw new Error('Held raycast needs its equipment targets');
+    const owners = this.meleeOwners(ctx);
+    const weapon = create(ctx.app, row.recipe, { model: { owners }, contacts,
+      ...(charge === undefined ? {} : { charge }),
+      ...(row.targets === 'raycast' && targets !== undefined ? { raycast: targets.raycast.bind(targets) }
+        : { targets: () => ctx.app.combat.targets().filter(target => target.hittable) }),
+    });
+    this.heldOwner = weapon;
+    if (row.decorate !== undefined) {
+      const value = readBorrowedOwner(owners, row.decorate.value)?.value;
+      if (value !== null && value !== undefined) bindBorrowedMethod(owners, row.decorate.call)(weapon.parts, value);
+    }
+    return weapon;
+  }
+  /** Complete the same held owner with hooks from the existing composed item/mover host. */
+  protected bindHeldScripts(ctx: ShardContext, hooks: NonNullable<RuntimeItemPorts['hooks']>, tick: () => number): void {
+    const rows = this.rows.melee, source = this.rows.source, weapon = this.heldOwner, start = this.heldSecondary;
+    if (rows?.composed !== true || source === undefined || weapon === null || start === null) throw new Error('Declared held script binding is not ready');
+    const primary = source.items.rows.find(row => row.id === source.items.loadout.primary);
+    if (primary?.kind !== 'weapon' || primary.secondary === undefined) throw new Error('Held owner needs its admitted secondary');
+    const secondary = primary.secondary, hook = hooks.get(primary.id);
+    if (hook === undefined) throw new Error('Held owner needs its admitted composed hook');
+    const native = weapon.row;
+    bindRuntimeMelee(ctx, source, { presentation: rows.presentation, icon: name => {
+      if (name !== rows.recipe.equipment.ui.icon) throw new Error('Unknown held equipment icon'); return rows.recipe.equipment.ui.icon;
+    }, hooks, create: (row, spec, ports) => {
+      if (ports.contacts === undefined || ports.secondary === undefined || ports.hook === undefined) throw new Error('Held owner needs contacts and its composed hook');
+      weapon.bindSecondary(family => start(family, hook, { tick: tick(), dt: 1 / 60, action: secondary.code, move: secondary.move }), spec.charge);
+      weapon.row = { ...row, ...(rows.legacySlot === undefined ? {} : { legacySlot: rows.legacySlot }), meta: native.meta };
+      return weapon;
+    } });
+  }
   presentedBoss: ReturnType<typeof installBossOwnerRow>['boss'] | null = null;
   private savedPageQuest: (PersistedQuest & { readonly coins: RuntimeCoins }) | null = null;
   /** Resident saved quest; missing declared composition refuses instead of inventing a quest. */
@@ -612,9 +671,16 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   /** The world, behind the loading screen (after the strings). */
   protected abstract build(ctx: ShardContext): Promise<void> | void;
   /** The primary weapon for `buildEquipment`. */
-  protected abstract arm(ctx: ShardContext, targets: HybridTargets): HybridWeapon;
+  protected arm(ctx: ShardContext, targets: HybridTargets): HybridWeapon {
+    if (this.heldOwner !== null) return this.heldOwner;
+    const source = this.rows.source, rows = this.rows.melee;
+    if (source === undefined || rows === undefined) throw new Error('Missing declared held equipment');
+    return bindRuntimeMelee(ctx, source, { presentation: rows.presentation, icon: name => {
+      if (name !== rows.recipe.equipment.ui.icon) throw new Error('Unknown held equipment icon'); return rows.recipe.equipment.ui.icon;
+    }, create: (_row, spec, ports) => this.createMelee(ctx, ports.contacts, targets, spec.charge) });
+  }
   /** The weapon now built (null before `buildEquipment`). */
-  protected abstract armed(): HybridWeapon | null;
+  protected armed(): HybridWeapon | null { return this.heldOwner; }
   /** The bodies the SF27 activation receipt reports. */
   protected witnessed(): readonly AnimalBody[] {
     const row = this.rows.population?.witness;
@@ -651,6 +717,11 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
 
   override async world(ctx: ShardContext): Promise<void> {
     ctx.strings(this.rows.strings); await this.build(ctx);
+    if (this.rows.melee !== undefined) {
+      // Keep presentation out of renderer-free imports and use the existing phase/contact owner.
+      const held = await import('./weaponFamily'); this.heldFactory = held.createDeclaredHeldMelee;
+      if (this.rows.melee.composed === true) this.heldSecondary = (await import('./simulation')).startMeleeSecondary;
+    }
     const bounds = this.rows.boot?.bounds, runtime = ctx.game.runtime;
     if (bounds !== undefined && runtime !== undefined) {
       if (![bounds.x0, bounds.x1, bounds.z0, bounds.z1, bounds.floor].every(Number.isFinite) || bounds.x0 >= bounds.x1 || bounds.z0 >= bounds.z1) throw new Error('Invalid declared runtime bounds');
@@ -669,6 +740,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
         if ('held' in row ? row.held.length === 0 : !Number.isSafeInteger(row.home) || row.home < 0) throw new Error('Invalid population inspection address');
         add(name, () => 'held' in row ? this.actor(row.held) : this.populationHomes?.homes[row.home]?.animal ?? null);
       }
+      if (rows.melee?.expose !== undefined) add(rows.melee.expose, () => this.heldOwner);
       if (rows.inspect?.roster !== undefined) add(rows.inspect.roster, () => this.populationHomes);
       if (rows.inspect?.boss !== undefined) add(rows.inspect.boss, () => this.presentedBoss);
       for (const name of aliases.keys()) if (name in this || !/^[A-Za-z][A-Za-z0-9]*$/u.test(name)) throw new Error('Population inspection alias conflicts with its owner');
@@ -687,6 +759,11 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
     }
     this.witness = species.witness; ctx.rows.species(species.rows); ctx.rows.speciesLook(species.looks);
     ctx.rows.encounter(rows.encounters);
+    if (rows.melee?.stage === 'kit') {
+      const primary = rows.source?.items.rows.find(row => row.id === rows.source?.items.loadout.primary);
+      if (primary?.kind !== 'weapon' || primary.contacts === undefined) throw new Error('Held kit needs admitted contact rows');
+      this.createMelee(ctx, primary.contacts);
+    }
     this.prepare(ctx);
     if (rt) rt.buildEquipment = (targets) => {
       const primary = this.arm(ctx, targets);
@@ -715,6 +792,8 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
       for (const [key, verb] of Object.entries(verbs)) if (typeof verb !== 'string') Reflect.set(verbs, key, { ...verb, show: () => ctx.app.state === 'play' && (hiddenMode === undefined || ctx.app.player?.mode !== hiddenMode) });
       this.input(ctx, { ...definition, ...(definition.touch === undefined ? {} : { touch: { ...definition.touch, verbs } }) }, description);
     }
+    const stowedMode = this.rows.melee?.stowedMode;
+    if (stowedMode !== undefined && this.heldOwner !== null) this.heldOwner.stowed = () => ctx.app.player?.mode === stowedMode;
     this.enter(ctx);
     const audio = this.rows.audio ?? this.rows.source?.audio;
     if (audio === undefined) throw new Error('Hybrid runtime needs its admitted audio rows');

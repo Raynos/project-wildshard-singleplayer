@@ -4796,3 +4796,12 @@ through the product asset reader and composes aliases on the same clock.
 The scoped channel binding exposes that host item hooks and clears them on
 disposal. Omission preserves ordinary channel/mover installation and
 creates no item role. Existing extra declarations and schedules remain.
+
+The HybridRuntimePlugin optional `melee` row installs an existing HeldMeleeRecipe
+at its original `kit` or `equipment` stage. `targets` chooses the normal combat
+scan or equipment raycast; borrowed owners, optional material decoration, a
+stowed player mode and an inspection alias retain the actual one held instance.
+Presentation loads only in the page world stage. `bindHeldScripts` completes
+that instance with the admitted item hooks and clock from the existing composed
+script host; it creates no second controller, actor, script host or timer.
+Absent rows preserve subclasses' existing arm/armed/prepare hooks.

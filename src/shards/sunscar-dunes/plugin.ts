@@ -1,8 +1,7 @@
 import { SIGNAL_RUNTIME_ROWS } from './data/runtimeRows';
-import { whipIcon } from './weapons/rows';
 import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
-import { HybridRuntimePlugin, bindRuntimeMelee, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/plugin/headless';
+import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import source from './runtime/source';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
@@ -10,7 +9,7 @@ import { lastLightAll } from './look/light';
 import { DUSK, setDusk, stepDusk } from './look/dusk';
 import { DUNE_LIBRARY } from './world/meshes';
 import { WORLD } from './world/baked';
-import { createWhip, type Bullwhip } from './runtime/items/heldWhip';
+import { WHIP_HELD_OWNERS, type Bullwhip } from './runtime/items/heldWhip';
 import { FLAG, SCOUT_FLAG } from './data/flags';
 import { bindDeclaredFight, bindPageQuestStages } from '@wildshard/game/plugin/ui';
 import { SAND, SKIRT } from './look/render';
@@ -30,10 +29,10 @@ function duskOf(places: SignalWorld): number {
 }
 
 export class SignalDunesPlugin extends HybridRuntimePlugin {
-  whip: Bullwhip | null = null;
+  declare readonly whip: Bullwhip | null;
   fire: SignalFire | null = null; places: SignalWorld | null = null;
   // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
-  protected readonly rows: HybridRuntimeRows = { ...SIGNAL_RUNTIME_ROWS, source, owners: { models: DUNE_LIBRARY, looks: { dress: lastLightAll } } };
+  protected readonly rows: HybridRuntimeRows = { ...SIGNAL_RUNTIME_ROWS, source, owners: { ...WHIP_HELD_OWNERS, models: DUNE_LIBRARY, looks: { dress: lastLightAll } } };
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
     const [, baked] = await Promise.all([DUNE_LIBRARY.preload(), WORLD.load()]);
@@ -51,12 +50,6 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     // G99: in a grid cell nothing draws past the cube (the dune skirt stops at its edge; the platform drops the ranges)
     if (ctx.cube !== null) SKIRT.fit(ctx.cube.half);
   }
-  // SF50-p / M3: the whip is its shardfile's declared item row; the platform installs it, resolving this runtime's own family.
-  protected override arm(ctx: ShardContext, targets: HybridTargets): Bullwhip {
-    const whip = bindRuntimeMelee(ctx, source, {icon:whipIcon,create:(_row,spec,ports)=>createWhip(ctx.app,targets,ports.contacts,spec.charge)});
-    this.whip = whip; return whip;
-  }
-  protected override armed(): Bullwhip | null { return this.whip; }
   // loop 4: the style bible's dusk rim on the whip and glove too, so the weapon separates from the sand behind it
   protected override dress(ctx: ShardContext): void { const whip = this.whip; if (whip !== null) { lastLightAll(whip.model, ctx.scope); ctx.scope.ownPrimitives(whip.model); } }
   /** Settle the actual quest look for its declared capture checkpoint. */
