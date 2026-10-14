@@ -106,6 +106,8 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   readonly toon: ToonLook;
   /** Set a named graph uniform through its declared type/range; no shader rebuild. */
   setParam: (id: string, name: string, value: GraphLiteral) => void;
+  /** lend a compiled graph's `role: 'lent'` texture param its texture, by catalogue id (no program change) */
+  setTexture: (id: string, name: string, texture: Texture) => void;
   materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; bindMeshMap: (id: string, map: Texture | Material) => Material; tick: (dt: number) => void;
   outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding) | null;
 }> {
@@ -191,6 +193,11 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
     const material = materials.get(id);
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
     graphs.setParam(material, name, value);
+  }, setTexture: (id, name, texture) => {
+    if (scope.disposed) throw new Error('Material scope unloaded');
+    const material = materials.get(id);
+    if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
+    graphs.setTexture(material, name, texture);
   }, materials, textures, compile, bindMeshMap, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); moveCurves(); },
     graphs: { bind: (sources) => { if (sources.state !== undefined) stateOf = sources.state; graphs.bind(sources); moveCurves(); }, readout: graphs.readout }, surfaces };
 }

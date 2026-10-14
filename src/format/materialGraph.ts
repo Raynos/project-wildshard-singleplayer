@@ -95,8 +95,12 @@ export interface GraphParam {
   readonly min?: number;
   readonly max?: number;
   readonly bind?: GraphBinding;
-  /** Texture only: data bypasses sRGB conversion; absent retains the colour role. */
-  readonly role?: 'colour' | 'data';
+  /**
+   * Texture only: data bypasses sRGB conversion; absent retains the colour role. `lent`: no admitted file, a trusted
+   * runtime lends the sampled texture (`setTexture`, swapped without a program change; a 1×1 black stand-in until then)
+   * and `value` only names the slot; a texture it decodes at run time (a baked sky key) is sampled as it is.
+   */
+  readonly role?: 'colour' | 'data' | 'lent';
 }
 
 /** Fixed-capacity numeric uniform list. Each value has the declared element
@@ -586,7 +590,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     if (!isRecord(p)) { fail(`${at}: not an object`); continue; }
     const type = p.type;
     if (type !== 'float' && type !== 'vec2' && type !== 'vec3' && type !== 'vec4' && type !== 'colour' && type !== 'texture') { fail(`${at}: type ${String(type)}`); continue; }
-    if (p.role !== undefined && (type !== 'texture' || (p.role !== 'colour' && p.role !== 'data'))) fail(`${at}: role is colour or data on a texture only`);
+    if (p.role !== undefined && (type !== 'texture' || (p.role !== 'colour' && p.role !== 'data' && p.role !== 'lent'))) fail(`${at}: role is colour, data or lent on a texture only`);
     if (type === 'texture') {
       if (typeof p.value !== 'string' || p.value.length === 0) fail(`${at}: a texture names an admitted file`);
       if (p.bind !== undefined) fail(`${at}: a texture cannot be bound (a binding moves a uniform value)`);
@@ -983,7 +987,7 @@ function toParams(raw: Raw): Record<string, GraphParam> {
     const b = p.bind;
     out[name] = {
       type: t,
-      ...(p.role === 'colour' || p.role === 'data' ? { role: p.role } : {}),
+      ...(p.role === 'colour' || p.role === 'data' || p.role === 'lent' ? { role: p.role } : {}),
       value: typeof p.value === 'string' ? p.value : toRef(p.value),
       ...(isFiniteNumber(p.min) ? { min: p.min } : {}),
       ...(isFiniteNumber(p.max) ? { max: p.max } : {}),

@@ -175,6 +175,8 @@ export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided' 
 export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial<Pick<Shardfile, 'runtime'>>, options: { compiler: GraphCompiler | null; toon?: ToonLook; trustedGraphs?: boolean; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string, role?: 'colour' | 'data') => Texture; file?: (hash: string) => Uint8Array | undefined }): {
   /** Update a compiled material uniform; unknown/fallback materials and invalid values refuse. */
   setParam: (material: Material, name: string, value: GraphLiteral) => void;
+  /** Lend a compiled material's `role: 'lent'` texture param its texture; unknown/fallback materials refuse. */
+  setTexture: (material: Material, name: string, texture: Texture) => void;
   compile: (entry: GraphMaterialEntry) => Material; tick: (dt: number) => void; bind: (sources: GraphSources) => void; readout: GraphReadout;
   /** the outline stage of a material this compiled (null: no `stages.outline`, a fallback preset, or not a graph) */
   outline: (material: Material) => GraphOutline | null;
@@ -183,6 +185,7 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
   const feeds = graphParamFeeds(source), readout: GraphReadout = { compiled: 0, fallback: 0, reasons: [] };
   const outlines = new WeakMap<Material, GraphOutline>();
   const setters = new WeakMap<Material, (name: string, value: GraphLiteral) => void>();
+  const lenders = new WeakMap<Material, (name: string, texture: Texture) => void>();
 
   const looks = presetLooks(source.look.familyLooks);
   /** the preset clocks: seconds since the client was made, as each family look's own clock (both tick by dt) */
@@ -231,6 +234,7 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
     const compiler = options.compiler, compiled = compiler.compileGraph(ir, { ...(options.toon === undefined ? {} : { toon: options.toon }), dayKeys, stateFields, budget, trustedBudget: options.trustedGraphs === true, textures: options.textures });
     if (resolved.preset) for (const name of PRESET_CLOCK_PARAMS) if (ir.params?.[name] !== undefined) { compiled.setParam(name, elapsed); clocks.push(() => { compiled.setParam(name, elapsed); }); }
     setters.set(compiled.material, compiled.setParam);
+    lenders.set(compiled.material, compiled.setTexture);
     const hull = compiled.outline;
     if (hull !== null) outlines.set(compiled.material, { material: hull, attach: (mesh) => compiler.attachOutline(mesh, hull) });
     feeds.attach(compiled, ir.params);
@@ -242,6 +246,11 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
       const set = setters.get(graphMeshMapBase(material));
       if (set === undefined) throw new Error('Material has no compiled graph parameters');
       set(name, value);
+    },
+    setTexture: (material, name, texture) => {
+      const lend = lenders.get(graphMeshMapBase(material));
+      if (lend === undefined) throw new Error('Material has no compiled graph textures');
+      lend(name, texture);
     },
     compile, readout, outline: (material) => outlines.get(graphMeshMapBase(material)) ?? null,
     tick: (dt) => { elapsed += dt; for (const clock of clocks) clock(); feeds.tick(dt); },

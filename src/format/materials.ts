@@ -58,7 +58,8 @@ export function graphFileTextureRefs(materials: Readonly<v.InferOutput<typeof Ma
     const params: unknown = typeof json === 'object' && json !== null ? Reflect.get(json, 'params') : undefined;
     if (typeof params !== 'object' || params === null) continue;
     for (const param of Object.values(params)) {
-      if (typeof param === 'object' && param !== null && Reflect.get(param, 'type') === 'texture') { const value: unknown = Reflect.get(param, 'value'); if (typeof value === 'string') refs.push(value); }
+      // a lent texture names no file: its runtime lends it (materialGraph `role: 'lent'`)
+      if (typeof param === 'object' && param !== null && Reflect.get(param, 'type') === 'texture' && Reflect.get(param, 'role') !== 'lent') { const value: unknown = Reflect.get(param, 'value'); if (typeof value === 'string') refs.push(value); }
     }
   }
   return refs;
@@ -93,7 +94,7 @@ export function materialTextureRefs(materials: Readonly<v.InferOutput<typeof Mat
       // a preset's textures are its family entry's; a graph file's are its file row's dependencies (validated with its bytes)
       if ('preset' in material) return familyTextureRefs(material.preset);
       if ('file' in material) return [];
-      return Object.values(material.graph.params ?? {}).flatMap((param) => param.type === 'texture' && typeof param.value === 'string' ? [param.value] : []);
+      return Object.values(material.graph.params ?? {}).flatMap((param) => param.type === 'texture' && param.role !== 'lent' && typeof param.value === 'string' ? [param.value] : []);
     }
     return familyTextureRefs(material);
   });

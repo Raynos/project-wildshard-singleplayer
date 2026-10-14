@@ -5,7 +5,8 @@
  * file and nowhere else; content never reaches `NodeLoader`, `CodeNode` or `glslFn`.
  *
  * - **Validation first:** an unknown op, a type mismatch, a cycle or an over-budget graph throws before a node is made.
- * - **Params are uniforms** (§2.6): `setParam` moves a value (a day key, a shard-state field), never the program.
+ * - **Params are uniforms** (§2.6): `setParam` moves a value (a day key, a shard-state field), never the program;
+ *   `setTexture` lends a `role: 'lent'` texture param a texture its runtime made (swapped, never recompiled).
  * - **Branch-light `select`** (§5's flag): a select whose sides are cheap compiles to a branch-free
  *   `mix(else, then, float(cond))` (both sides run, as the family's GLSL ternary does); a select with an expensive side
  *   that nothing else reads becomes a real `if / else`, so only the taken side runs. `selects` reports the split.
@@ -84,6 +85,8 @@ export interface CompiledGraph {
   readonly bindings: readonly { readonly param: string; readonly bind: GraphBinding }[];
   /** move a param's value (uniform only: the program stays) */
   readonly setParam: (name: string, value: GraphLiteral) => void;
+  /** lend a `role: 'lent'` texture param its texture (every sample of it moves; the program stays); refuses any other param */
+  readonly setTexture: (name: string, texture: THREE.Texture) => void;
   /** Replace a numeric list with equal-length, same-type finite values; never resize its uniform buffer. */
   readonly setArrayParam: (name: string, value: readonly GraphLiteral[]) => void;
   /** how the selects compiled: branch-free (`light`) or a real if / else (`branch`) */
@@ -337,6 +340,13 @@ const literal = (v: GraphLiteral): Val => {
 };
 const widest = (vals: readonly Val[]): GraphValueType => vals.reduce<GraphValueType>((t, v) => (LEN[v.t] > LEN[t] ? v.t : t), 'float');
 
+/** the 1×1 black texture a lent texture param samples until its runtime lends one (shared, never freed: 4 bytes) */
+let standIn: THREE.DataTexture | null = null;
+function lentStandIn(): THREE.DataTexture {
+  if (standIn === null) { standIn = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1); standIn.needsUpdate = true; }
+  return standIn;
+}
+
 /**
  * Compile a graph to a node material. Throws (with every reason) when validation refuses it. Call it only after
  * `loadGraphCompiler(renderer)` resolved, which installs the engine's node handler first.
@@ -352,7 +362,9 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const uniforms = new Map<string, Val>();
   const setters = new Map<string, (v: GraphLiteral) => void>();
   const bindings: { param: string; bind: GraphBinding }[] = [];
-  const texParams = new Map<string, { file: string; role?: 'colour' | 'data' }>();
+  const texParams = new Map<string, { file: string; role?: 'colour' | 'data' | 'lent' }>();
+  // each lent texture param's samples, so `setTexture` can move them all
+  const lent = new Map<string, ((next: THREE.Texture) => void)[]>();
   for (const [name, p] of Object.entries(ir.params ?? {})) {
     if (p.bind !== undefined) bindings.push({ param: name, bind: p.bind });
     if (p.type === 'texture') { if (typeof p.value === 'string') texParams.set(name, { file: p.value, ...(p.role === undefined ? {} : { role: p.role }) }); continue; }
@@ -667,7 +679,12 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       }
       case 'texture': {
         const file = n.param === undefined ? undefined : texParams.get(n.param);
-        if (file === undefined || opts.textures === undefined) throw new Error(`material graph: texture ${String(n.param)} needs { textures }`);
+        if (file?.role === 'lent' && n.param !== undefined) {
+          const sample = retargetableTexture(lentStandIn(), asVec2(one())), list = lent.get(n.param) ?? [];
+          list.push(sample.retarget); lent.set(n.param, list);
+          return { t: 'vec4', n: sample.node };
+        }
+        if (file === undefined || file.role === 'lent' || opts.textures === undefined) throw new Error(`material graph: texture ${String(n.param)} needs { textures }`);
         return { t: 'vec4', n: texture(file.role === undefined ? opts.textures(file.file) : opts.textures(file.file, file.role), one().n) };
       }
       case 'acc': if (scope.acc !== null) return scope.acc; break;
@@ -856,6 +873,11 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       const row = arrays.get(name);
       if (row === undefined || value.length !== row.length) throw new Error(`material graph: uniform list ${name} has fixed capacity`);
       row.node.array = arrayValues(row.type, value);
+    },
+    setTexture(name, next) {
+      const list = lent.get(name);
+      if (list === undefined) throw new Error(`material graph: no sampled lent texture ${name}`);
+      for (const retarget of list) retarget(next);
     },
     setParam(name, value) {
       const set = setters.get(name);
