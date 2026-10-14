@@ -142,7 +142,11 @@ export function pineUndergrowthScene(): THREE.Scene {
     mesh.setMatrixAt(0, new THREE.Matrix4());
     return [name, mesh] as const;
   });
-  scene.add(new BakedPiece('pine.undergrowth', kinds, [], { compactIndex: true }));
+  scene.add(new BakedPiece('pine.undergrowth', kinds, [], { nativeAttributes: true, compactIndex: true, nodeExtras: (kind, mesh) => {
+    const vertexCount = mesh.geometry.getAttribute('position').count, indexCount = mesh.geometry.getIndex()?.count ?? 0;
+    return { wholePartition: { id: `pine-undergrowth-${kind}`, vertexCount, indexCount, index: 'u16',
+      vertices: Array.from({ length: vertexCount }, (_, i) => i), triangles: Array.from({ length: indexCount / 3 }, (_, i) => i) } };
+  } }));
   return scene;
 }
 

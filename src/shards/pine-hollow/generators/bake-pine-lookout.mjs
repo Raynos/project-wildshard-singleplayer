@@ -36,9 +36,9 @@ export function pineTimberGround() { return readNativeTerrain(readFileSync(resol
 async function writeTimberWorld() {
   const crags = await bakeCragRows(), ground = pineTimberGround();
   const baked = pineTimberWorldBake(ground.heightAt, root, { phone: { bin: crags.bins.phone, tiles: crags.rows.skin.phone.tiles }, desktop: { bin: crags.bins.desktop, tiles: crags.rows.skin.desktop.tiles } }, ground);
-  const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer'), cabins = baked.pieces.find(row => row.name === 'pine.cabins');
-  if (piece === undefined || cabins === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
-  const library = [piece, cabins].map(part => {
+  const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer'), cabins = baked.pieces.find(row => row.name === 'pine.cabins'), under = baked.pieces.find(row => row.name === 'pine.undergrowth');
+  if (piece === undefined || cabins === undefined || under === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
+  const library = [piece, cabins, under].map(part => {
     const hash = createHash('sha256').update(part.glb).digest('hex'); baked.assets.set(hash, part.glb);
     const file = { hash, kind: 'glb', compressed: part.glb.length };
     const parsed = Object.assign(file, parseGlb(part.glb));

@@ -33,6 +33,8 @@ import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
 import { Crossbow, prepareCrossbowHands } from './weapons/crossbow/Crossbow';
 import { crossbowDisplayModel } from '../weapons/crossbow/display';
 import { Cabins } from '../world/homestead';
+import { loadUnderShapes } from '../world/undergrowthKit';
+import { pineModels } from '../world/context';
 import { Undergrowth } from '../world/undergrowth';
 import { Props } from '../world/props';
 import { PineStreams } from '../world/streams';
@@ -88,7 +90,7 @@ export class PineHollow extends ShardPlugin {
     const carpet = await step('grass', async () => {
       const grass = new Grass(sky, forest, { trample: { field: trample, glsl: TRAMPLE_GLSL } }).build();
       await macrotask();
-      const under = await new Undergrowth(sky, forest).buildAsync(macrotask);
+      const under = await new Undergrowth(sky, forest, await loadUnderShapes(pineModels(sky))).buildAsync(macrotask);
       const particles = new ParticleField(sky, forest).build();
       game.scene.add(grass.group, under.group, particles.group);
       return { grass, under, particles };

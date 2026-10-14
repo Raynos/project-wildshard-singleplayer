@@ -2875,6 +2875,7 @@
         "src/shards/pine-hollow/generators/timberRows.ts",
         "src/shards/pine-hollow/generators/timberScene.ts",
         "src/shards/pine-hollow/generators/timberWorld.ts",
+        "src/shards/pine-hollow/generators/undergrowth.ts",
         "src/shards/pine-hollow/generators/wildlifeWords.ts"
       ],
       "outputs": [
@@ -2998,6 +2999,7 @@
         "src/shards/pine-hollow/generators/timberRows.ts",
         "src/shards/pine-hollow/generators/timberScene.ts",
         "src/shards/pine-hollow/generators/timberWorld.ts",
+        "src/shards/pine-hollow/generators/undergrowth.ts",
         "src/shards/pine-hollow/generators/wildlifeWords.ts"
       ],
       "outputs": [
@@ -3081,6 +3083,7 @@
         "src/shards/pine-hollow/generators/timberRows.ts",
         "src/shards/pine-hollow/generators/timberScene.ts",
         "src/shards/pine-hollow/generators/timberWorld.ts",
+        "src/shards/pine-hollow/generators/undergrowth.ts",
         "src/shards/pine-hollow/generators/wildlifeWords.ts"
       ],
       "outputs": [
@@ -3112,11 +3115,12 @@
         "src/shards/pine-hollow/assets/daa1dd65167408e8b6e8a5cbdaf31f70a06471fe7e6f2dbfcc378c5a87926ce8",
         "src/shards/pine-hollow/assets/e070988cbecf1eeccf79cf8322abb350847f277f8411ec8138a188414112797e",
         "src/shards/pine-hollow/assets/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e",
-        "src/shards/pine-hollow/assets/f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2"
+        "src/shards/pine-hollow/assets/f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2",
+        "src/shards/pine-hollow/assets/78629da1c49ee7f0b7f44b26be5ad1c282e67271a0be409356e49902c634a1d6"
       ],
       "platform": "native",
       "buildOutputs": {
-        "src/shards/pine-hollow/data/timberWorld.generated.json": "3760e2f3d9b1ad47446d7190601c40e6ba5c907aeb7145a95f22be15bcea0c19",
+        "src/shards/pine-hollow/data/timberWorld.generated.json": "ee7e1d69755ca07b0d8bfb73309a0c900be41a0166277c7a302cfb2211acd216",
         "src/shards/pine-hollow/assets/0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680": "0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680",
         "src/shards/pine-hollow/assets/184a783069239d81057d9d8179f46769cd2b204c5ef4989d6a8d340a06c5e902": "184a783069239d81057d9d8179f46769cd2b204c5ef4989d6a8d340a06c5e902",
         "src/shards/pine-hollow/assets/1dda8218279874f1e7d13c6ee348d6553b896c10595cf4d9ee4a79be9550d70d": "1dda8218279874f1e7d13c6ee348d6553b896c10595cf4d9ee4a79be9550d70d",
@@ -3144,7 +3148,8 @@
         "src/shards/pine-hollow/assets/daa1dd65167408e8b6e8a5cbdaf31f70a06471fe7e6f2dbfcc378c5a87926ce8": "daa1dd65167408e8b6e8a5cbdaf31f70a06471fe7e6f2dbfcc378c5a87926ce8",
         "src/shards/pine-hollow/assets/e070988cbecf1eeccf79cf8322abb350847f277f8411ec8138a188414112797e": "e070988cbecf1eeccf79cf8322abb350847f277f8411ec8138a188414112797e",
         "src/shards/pine-hollow/assets/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e": "f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e",
-        "src/shards/pine-hollow/assets/f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2": "f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2"
+        "src/shards/pine-hollow/assets/f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2": "f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2",
+        "src/shards/pine-hollow/assets/78629da1c49ee7f0b7f44b26be5ad1c282e67271a0be409356e49902c634a1d6": "78629da1c49ee7f0b7f44b26be5ad1c282e67271a0be409356e49902c634a1d6"
       }
     },
     {
@@ -3201,39 +3206,6 @@
         "public/assets/pine-hollow/baked/streams/0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680.glb": "0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680",
         "public/assets/pine-hollow/baked/streams/d50b2e6a4a693d6bd68edd62c75316f58497dfdb5c3ee6d12bdc9b0247af7f40.glb": "d50b2e6a4a693d6bd68edd62c75316f58497dfdb5c3ee6d12bdc9b0247af7f40",
         "public/assets/pine-hollow/baked/streams/f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2.glb": "f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2"
-      }
-    },
-    {
-      "id": "pine-undergrowth",
-      "shard": "pine-hollow",
-      "entry": "src/shards/pine-hollow/generators/bake-pine-undergrowth.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/pine-hollow/generators/bake-pine-undergrowth.mjs"
-      ],
-      "inputRoots": [
-        "src/sdk",
-        "src/format",
-        "src/commons",
-        "src/shards/pine-hollow/generators/undergrowth.ts",
-        "src/shards/pine-hollow/generators/seedStream.ts",
-        "src/shards/pine-hollow/generators/bake-pine-undergrowth.mjs",
-        "package.json",
-        "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
-      ],
-      "outputs": [
-        "src/shards/pine-hollow/data/undergrowth.json",
-        "public/assets/pine-hollow/baked/undergrowth.glb"
-      ],
-      "platform": "native",
-      "seedOutputs": [
-        "src/shards/pine-hollow/data/undergrowth.json"
-      ],
-      "buildOutputs": {
-        "public/assets/pine-hollow/baked/undergrowth.glb": "11cb0850015989bb95ab2497f395b8d3e34a889332d684ce8c36a4cf32113984"
       }
     },
     {

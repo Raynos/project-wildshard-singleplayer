@@ -53,7 +53,7 @@ export interface GroundCoverLook {
 }
 
 /** One kind's geometry as data: positions, normals, uvs, the index. */
-export interface GroundCoverShape { position: number[]; normal: number[]; uv: number[]; index: number[] }
+export type GroundCoverShape = THREE.BufferGeometry;
 
 /** One kind as the field draws it: its geometry, its material (and its shadow's). */
 export interface GroundCoverDraw {
@@ -154,7 +154,7 @@ export class GroundCover {
     const draw = (kind: GroundCoverKind): GroundCoverDraw => {
       const m = made.get(kind);
       if (m === undefined) throw new Error(`[ground cover] no look for ${kind}`);
-      return this.kindDraw(toGeometry(this.o.shapes[kind]), m.mat, m.row.shadow, m.tex, m.row.wind);
+      return this.kindDraw(this.o.shapes[kind], m.mat, m.row.shadow, m.tex, m.row.wind);
     };
     this.kinds = { ferns: draw('ferns'), shrubs: draw('shrubs'), litter: draw('litter'), stones: draw('stones'), moss: draw('moss'), reeds: draw('reeds') };
     this.counts = { ferns: place.ferns.length, shrubs: place.shrubs.length, litter: place.litter.length, stones: place.stones.length, moss: place.moss.length, reeds: place.reeds.length };
@@ -223,16 +223,6 @@ export function groundCoverMatrix(it: Placement, target = new THREE.Matrix4()): 
   _q2.setFromUnitVectors(UP, _n);
   _q.setFromAxisAngle(UP, it.rot).premultiply(_q2);
   return target.compose(_p.set(it.x, it.y, it.z), _q, _s.set(it.scale, it.scale, it.scale));
-}
-
-function toGeometry({ position: verts, normal: norms, uv: uvs, index: idx }: GroundCoverShape): THREE.BufferGeometry {
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-  geo.setAttribute('normal', new THREE.Float32BufferAttribute(norms, 3));
-  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-  geo.setIndex(idx);
-  geo.computeBoundingSphere();
-  return geo;
 }
 
 function canvasTexture(c: HTMLCanvasElement): THREE.CanvasTexture {
