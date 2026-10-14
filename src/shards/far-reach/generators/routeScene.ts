@@ -1,7 +1,7 @@
 import { parsePrivateScene, type PrivateScene } from '@wildshard/format/clientChannels';
 import BRIDGES from '../data/bridgeRest.generated.json' with { type: 'json' };
 import REST from '../data/restScenes.generated.json' with { type: 'json' };
-import { FALLEN_BRIDGE, NOTES, SPANS, UPDRAFT, WINCH } from '../data/layout';
+import { FALLEN_BRIDGE, NOTES, SPANS, UPDRAFT, VANES, WINCH } from '../data/layout';
 import { FALLEN_ANGLE } from '../data/moverBindings';
 import { STRINGS } from '../data/strings';
 import { RISING_ISLETS } from './risingIslets';
@@ -35,5 +35,30 @@ export function skyRouteSource(): Uint8Array {
   ] };
   const frames = { recipe: { scene: fallen, imports: [] }, bindings: { fallen: { kind: 'group', part: 'fallen' },
     winchAt: { kind: 'vector', value: [WINCH.x, WINCH.y + 1.2, WINCH.z] }, notesAt: { kind: 'vector', value: [NOTES.x, NOTES.y + 1.3, NOTES.z] } } };
-  return new TextEncoder().encode(`import type { PrivateScene } from '@wildshard/format/clientChannels';\n/** Static rope spans and hover decks, generated from their authored frames. */\nexport const SKY_ROUTE_SCENE: PrivateScene = ${JSON.stringify(scene)};\n/** Registry identities and board-only policy accompany the scene. */\nexport const SKY_ROUTES = ${JSON.stringify({ registry, bindings })} as const;\n/** Native moving pivot and copied interaction anchors. */\nexport const SKY_ROUTE_FRAMES = ${JSON.stringify(frames)} as const;\n`);
+  const vaneNodes: PrivateScene['nodes'] = [
+    { kind: 'group', id: 'vane', children: ['post', 'rotor'] },
+    { kind: 'mesh', id: 'post', geometry: 'vane-post', material: 'facets', missing: 'omit', children: [] },
+    { kind: 'group', id: 'rotor', position: [0, 2.2, 0], children: ['cups'] },
+    { kind: 'mesh', id: 'cups', geometry: 'vane-rotor', material: 'facets', missing: 'omit', children: [] },
+  ];
+  const vane: PrivateScene = { version: 1, root: 'vane', nodes: vaneNodes, textures: [], materials: [
+    { kind: 'standard', id: 'facets', properties: { color: 0xffffff, vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 } },
+  ] };
+  const vaneWorld: PrivateScene = { ...vane, root: 'vanes', nodes: [{ kind: 'group', id: 'vanes', children: VANES.map(row => `${row.id}.vane`) }] };
+  const vanePorts: Record<string, { kind: 'group'; part: string } | { kind: 'vector'; value: number[] }> = {};
+  const vaneKinds: Record<string, 'group' | 'vector'> = {};
+  for (const row of VANES) {
+    for (const node of vaneNodes) {
+      const placed = { ...node, id: `${row.id}.${node.id}`, children: node.children.map(id => `${row.id}.${id}`) };
+      if (placed.kind === 'group' && node.id === vane.root) placed.position = [row.x, row.y, row.z];
+      vaneWorld.nodes.push(placed);
+    }
+    vanePorts[`${row.id}.rotor`] = { kind: 'group', part: `${row.id}.rotor` }; vaneKinds[`${row.id}.rotor`] = 'group';
+    vanePorts[`${row.id}.at`] = { kind: 'vector', value: [row.x, row.y + 3.3, row.z] }; vaneKinds[`${row.id}.at`] = 'vector';
+  }
+  parsePrivateScene(vane); parsePrivateScene(vaneWorld);
+  const vanes = { recipe: { scene: vaneWorld, imports: [] }, kinds: vaneKinds, ports: vanePorts,
+    rows: VANES.map(row => ({ id: row.id, flag: row.flag, rotor: `${row.id}.rotor`, at: `${row.id}.at` })),
+    bindings: VANES.map(row => ({ piece: `far.vane.${row.id}`, part: `${row.id}.vane` })) };
+  return new TextEncoder().encode(`import type { PrivateScene } from '@wildshard/format/clientChannels';\n/** Static rope spans and hover decks, generated from their authored frames. */\nexport const SKY_ROUTE_SCENE: PrivateScene = ${JSON.stringify(scene)};\n/** Registry identities and board-only policy accompany the scene. */\nexport const SKY_ROUTES = ${JSON.stringify({ registry, bindings })} as const;\n/** Native moving pivot and copied interaction anchors. */\nexport const SKY_ROUTE_FRAMES = ${JSON.stringify(frames)} as const;\n/** Vane hierarchy, placements and native rotor ports. */\nexport const SKY_VANES = ${JSON.stringify(vanes)} as const;\n/** The same vane at the Explorer origin. */\nexport const SKY_VANE: PrivateScene = ${JSON.stringify(vane)};\n`);
 }

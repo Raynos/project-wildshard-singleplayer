@@ -1,10 +1,11 @@
 import { PALETTE, flat } from './materials';
-import { Group, type Material, Mesh, type MeshStandardMaterial, type Object3D } from 'three';
-import { createClientScene } from '@wildshard/game/plugin/ui';
+import { Group, type Material, type MeshStandardMaterial, type Object3D } from 'three';
+import { createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
 import BRIDGES from '../data/bridgeRest.generated.json' with { type: 'json' };
 import { SKY_LIBRARY, skyHd, skyMesh } from './meshes';
 import { skyMappedLook } from './looks';
-import { towerMill } from './mill';
+import { SKY_VANE } from '../data/routeScene.generated';
+import { WORLD } from './baked';
 
 const isGroup = (value: Object3D): value is Group => value instanceof Group;
 
@@ -28,22 +29,12 @@ export function ropeBridge(id: string, rails: MeshStandardMaterial, deck: Materi
 /** The rope-bridge kit for the Model Explorer: one deck segment (its plain vertex-coloured wood) with its four posts and the ropes. */
 export function bridgeKit(): Group { return ropeBridge('kit', flat(PALETTE.rope), flat(0xffffff, { vertexColors: true, flatShading: false, roughness: 0.9 })); }
 
-/** The windmill: the code-built tower mill (loop 5, world/mill.ts); the generated C6 tower stays in the Model Explorer. */
-export function windmill(): { group: Group; hub: Object3D } {
-  const { group, hub } = towerMill();
-  return { group, hub };
+/** The Explorer borrows the same authored vane hierarchy as the world. */
+export function vane(): Group {
+  return createWorldScene({ scene: SKY_VANE, imports: [] }, { geometry: vaneGeometry(), model: SKY_LIBRARY.model, baked: WORLD.object }).root;
 }
-
-/** The generated vane's rotor: every facet above this height (the cups and the arrow) turns. */
-const VANE_ROTOR_Y = 2.2;
-/**
- * A wind vane: the generated shrine post (C6, Hunyuan3D-2 from `art/far-reach/round-7-models/ref-vane.jpg`), its cups and
- * arrow split off as the rotor the plugin spins once a GUST hits it (empty while the model is not loaded).
- */
-export function vane(): { group: Group; rotor: Object3D } {
-  const group = new Group(), rotor = new Group(), post = skyMesh('vane-post'), top = skyMesh('vane-rotor');
-  if (post === null || top === null) return { group, rotor };
-  const mat = flat(0xffffff, { vertexColors: true });
-  group.add(new Mesh(post, mat)); rotor.add(new Mesh(top, mat)); rotor.position.y = VANE_ROTOR_Y; group.add(rotor);
-  return { group, rotor };
+/** Both prepared parts must be present before any vane facet is drawn. */
+export function vaneGeometry(): (name: string) => ReturnType<typeof skyMesh> {
+  const post = skyMesh('vane-post'), top = skyMesh('vane-rotor');
+  return name => post === null || top === null ? null : name === 'vane-post' ? post : name === 'vane-rotor' ? top : null;
 }

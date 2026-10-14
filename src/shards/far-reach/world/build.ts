@@ -1,7 +1,7 @@
 import STATIC_SCENES from '../data/staticScenes.generated.json' with { type: 'json' };
 import ISLET_SCENES from '../data/isletScenes.generated.json' with { type: 'json' };
 import { SKY_GROUND } from '../data/groundScene.generated';
-import { SKY_ROUTE_FRAMES, SKY_ROUTE_SCENE, SKY_ROUTES } from '../data/routeScene.generated';
+import { SKY_ROUTE_FRAMES, SKY_ROUTE_SCENE, SKY_ROUTES, SKY_VANES } from '../data/routeScene.generated';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc } from '@wildshard/engine/world/registry';
 import { questPagePrompt, bindClientChannels, bindWorldSceneParts, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
@@ -9,14 +9,15 @@ import type { SkyReachPlugin } from '../runtime/index';
 import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
 import { SKY_LIBRARY, skyHd } from './meshes';
 import { skyLook, skyMappedLook } from './looks';
-import { Group, Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, FALLEN_BRIDGE, SUNREST, VANES } from '../data/layout';
+import { Group, type Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
+import { CROWN, FALLEN_BRIDGE, SUNREST } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { islandMesh, staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
 import { WORLD } from './baked';
 import { PALETTE, flat } from './materials';
-import { ropeBridge, vane, windmill } from './shapes';
+import { ropeBridge, vaneGeometry } from './shapes';
+import { towerMill } from './mill';
 import { bookStand } from './bookStand';
 import { BOOK_STAND } from '../data/bookStand';
 import { KEEPER_STAND } from '../data/keeperStand';
@@ -112,7 +113,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   pieces.add(FALLEN_BRIDGE.id, fallen, { colliders: spanColliders(FALLEN_BRIDGE.id), active: () => state.raised });
 
   await pause();
-  const mill = windmill(); pieces.add('far.windmill', mill.group, { colliders: propColliders('far.windmill') });
+  const mill = towerMill(); pieces.add('far.windmill', mill.group, { colliders: propColliders('far.windmill') });
 
   await pause();
   pieces.add('far.winch', createClientScene(REST_SCENES.winch, { geometry: SKY_LIBRARY.geometry }).root, { colliders: propColliders('far.winch') });
@@ -125,12 +126,10 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   const notes = questPagePrompt(STRINGS.readNotes,notesAt,2.6);
 
   await pause();
-  const vanes: BuiltWorld['vanes'][number][] = [];
-  for (const v of VANES) {
-    const built = vane(); pieces.add(`far.vane.${v.id}`, built.group, { colliders: propColliders(`far.vane.${v.id}`) });
-    vanes.push({ id: v.id, flag: v.flag, at: new Vector3(v.x, v.y + 3.3, v.z), rotor: built.rotor });
-    await pause();
-  }
+  const vaneScene = createWorldScene(SKY_VANES.recipe, { geometry: vaneGeometry(), model: SKY_LIBRARY.model, baked: WORLD.object });
+  const vaneParts = bindWorldSceneParts(vaneScene, SKY_VANES.kinds, SKY_VANES.ports);
+  await pieces.scene(vaneScene, SKY_VANES.bindings, pause);
+  const vanes = SKY_VANES.rows.map(row => ({ id: row.id, flag: row.flag, at: vaneParts[row.at], rotor: vaneParts[row.rotor] }));
 
   // the arena (loop 4, mockup D): standing stones with wind glyphs, pennant ropes, the compass-rose dais
   // (SF72: built offline, generators/crown.ts → baked/crown.glb; its colliders, the dais and each stone, are the rows')
