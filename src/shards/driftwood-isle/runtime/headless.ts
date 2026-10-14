@@ -1,7 +1,5 @@
-import type { HeadlessRuntimeInstallation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
+import { installNativeCollision, type HeadlessRuntimeInstallation, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
-import { withOwner } from '@wildshard/engine/app/ownership';
-import { tagCollider } from '@wildshard/engine/physics/surface';
 import { parseNavmesh, type Navmesh } from '@wildshard/engine/physics/navmesh';
 import { DRIFTWOOD_SEA, LOWERED_SEA } from '../world/sea';
 import { waveHeight } from '@wildshard/engine/world/waves';
@@ -46,20 +44,7 @@ export function driftwoodNavmesh(bytes: Uint8Array): Navmesh {
 /** Install the Node-canonical native world into the host's physics, owned by its scope: Rapier's own 256² heightfield (the
  *  sea cave's cut included) and the 2067 fixed WORLD colliders (cuboids, capsules and convex hulls) the page built. */
 export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
-  const { R, world } = host.physics, g = bake.ground;
-  withOwner(host.scope, () => {
-    const ground = world.createCollider(R.ColliderDesc.heightfield(255, 255, g.heights, g.scale).setTranslation(g.at.x, g.at.y, g.at.z).setCollisionGroups(g.groups).setFriction(g.friction));
-    tagCollider(ground, 'ground');
-    bake.solids.forEach(solid => {
-      const desc = solid.shape === 1 && solid.half !== undefined ? R.ColliderDesc.cuboid(solid.half[0], solid.half[1], solid.half[2])
-        : solid.shape === 2 && solid.halfHeight !== undefined && solid.radius !== undefined ? R.ColliderDesc.capsule(solid.halfHeight, solid.radius)
-          : solid.shape === 9 && solid.points !== undefined ? R.ColliderDesc.convexHull(solid.points) : null;
-      if (desc === null) throw new Error(`Unbuildable baked Driftwood collider shape ${String(solid.shape)}`);
-      const collider = world.createCollider(desc.setTranslation(solid.at[0], solid.at[1], solid.at[2]).setRotation({ x: solid.rot[0], y: solid.rot[1], z: solid.rot[2], w: solid.rot[3] })
-        .setCollisionGroups(solid.groups).setFriction(solid.friction));
-      if (solid.material !== undefined) tagCollider(collider, solid.material, solid.owner ?? null);
-    });
-  });
+  installNativeCollision(host,bake,{resolution:256});
 }
 
 /**

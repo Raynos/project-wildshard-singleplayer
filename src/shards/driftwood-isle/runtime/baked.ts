@@ -1,3 +1,4 @@
+import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats } from '@wildshard/sdk/headlessRuntime';
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { DriftwoodPoseRecipe } from './posedVolumes';
@@ -8,17 +9,12 @@ export const DRIFTWOOD_GROUND_RES = 256, DRIFTWOOD_GROUND_SIZE = 500;
 
 const finite = v.pipe(v.number(), v.finite()), xyz = v.strictObject({ x: finite, y: finite, z: finite }), xz = v.strictObject({ x: finite, z: finite });
 /** One baked native simulation spec, strictly: an unknown or missing field refuses the bake rather than defaulting. */
-const BakedSpec = v.strictObject({ kind: v.string(), label: v.string(), variant: v.string(), rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']),
-  hp: finite, aggressive: v.boolean(), lockable: v.optional(v.boolean()),
-  dims: v.strictObject({ bodyY: finite, bodyHalfLen: finite, bodyRadius: finite, headRadius: finite, legLen: finite, feet: v.array(v.tuple([finite, finite])), halfWidth: finite, capsuleAxis: v.optional(v.picklist(['z', 'y'])) }),
-  mods: v.strictObject({ speed: finite, chargeDist: finite, damageTaken: finite, chargeDamage: finite, relentless: v.boolean() }) });
+const BakedSpec = nativeBodySpecSchema('axis');
 const Pose = v.strictObject({ joints: v.pipe(v.array(v.strictObject({ name: v.pipe(v.string(), v.minLength(1), v.maxLength(64)), parent: v.pipe(finite, v.integer(), v.minValue(-1), v.maxValue(31)),
   position: v.tuple([finite, finite, finite]), order: v.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY']), scale: v.tuple([finite, finite, finite]) })), v.minLength(1), v.maxLength(32)), custom: v.boolean(),
   gait: v.exactOptional(v.strictObject({ trot: finite, gallop: finite })), pose: v.exactOptional(v.strictObject({ grazeNeck: finite, gallopTail: finite })) });
 const Actor = v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, spec: BakedSpec, pose: Pose, seed: finite, scale: finite, at: v.nullable(xz) });
-const Solid = v.strictObject({ shape: v.picklist([1, 2, 9]), groups: finite, friction: finite, at: v.tuple([finite, finite, finite]), rot: v.tuple([finite, finite, finite, finite]),
-  owner: v.optional(v.string()), material: v.optional(v.picklist(['sand', 'wetSand', 'grass', 'rock', 'planks', 'stone', 'water', 'wood', 'metal', 'flesh', 'shell', 'ground', 'edge', 'felt', 'earth'])),
-  half: v.optional(v.tuple([finite, finite, finite])), halfHeight: v.optional(finite), radius: v.optional(finite), vertices: v.optional(v.string()) });
+const Solid = nativeColliderSchema([1, 2, 9], 'tagged');
 const Bake = v.object({ version: v.literal(1),
   ground: v.strictObject({ rows: v.literal(DRIFTWOOD_GROUND_RES - 1), cols: v.literal(DRIFTWOOD_GROUND_RES - 1), scale: xyz, at: xyz, friction: finite, groups: finite, heights: v.string() }),
   solids: v.array(Solid), actors: v.array(Actor), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })),
@@ -28,7 +24,7 @@ const Bake = v.object({ version: v.literal(1),
   captain: v.strictObject({ spec: BakedSpec, pose: Pose, pool: v.strictObject({ x: finite, z: finite, yaw: finite }), arena: finite }) });
 
 /** One baked fixed WORLD collider: a cuboid (half extents), a capsule (half height, radius) or a convex hull (vertices). */
-export type DriftwoodSolid = v.InferOutput<typeof Solid> & { readonly points?: Float32Array };
+export type DriftwoodSolid = Omit<v.InferOutput<typeof Solid>, 'indices'> & { readonly points?: Float32Array };
 /** A baked body: the manager's spawn order, kind / variant, herd slot, native spec, seed, scale and spawn point. */
 export interface DriftwoodBakedActor { readonly id: string; readonly kind: string; readonly variant: string; readonly herd: number; readonly spec: AnimalSimSpec; readonly pose: DriftwoodPoseRecipe; readonly seed: number; readonly scale: number; readonly at: { readonly x: number; readonly z: number } | null }
 /** The trusted browser bake, parsed strictly once. */
@@ -46,15 +42,13 @@ export interface DriftwoodBake {
   readonly holdFloorAt: (x: number, z: number) => number | undefined;
 }
 
-const bytesOf = (text: string): Uint8Array => Uint8Array.from(atob(text), c => c.codePointAt(0) ?? 0);
-const floats = (text: string): Float32Array => new Float32Array(bytesOf(text).buffer);
 
 let parsed: DriftwoodBake | null = null;
 /** Driftwood's physics product (generators/physics.ts, G350-DW), strictly parsed and decoded once. */
 export function driftwoodBake(): DriftwoodBake {
   if (parsed !== null) return parsed;
   const bake = v.parse(Bake, baked), RES = DRIFTWOOD_GROUND_RES, SIZE = DRIFTWOOD_GROUND_SIZE, d = SIZE / (RES - 1);
-  const heights = floats(bake.ground.heights);
+  const heights = nativeBakeFloats(bake.ground.heights);
   if (heights.length !== RES * RES || bake.ground.scale.x !== SIZE || bake.ground.scale.z !== SIZE || bake.ground.scale.y !== 1) throw new Error('Driftwood baked floor is not its 256² lattice');
   const vertex = (ix: number, iz: number): number => heights[ix * RES + iz] ?? Number.NaN;
   const floorAt = (x: number, z: number): number => {
@@ -80,7 +74,7 @@ export function driftwoodBake(): DriftwoodBake {
     return { ...actor, spec: specOf(actor.spec) };
   });
   if (bake.captain.spec.kind !== 'captain' || bake.captain.spec.variant !== 'captain') throw new Error('Divergent baked Driftwood captain spec');
-  const solids = bake.solids.map((solid): DriftwoodSolid => solid.vertices === undefined ? solid : { ...solid, points: floats(solid.vertices) });
+  const solids = bake.solids.map((solid): DriftwoodSolid => solid.vertices === undefined ? solid : { ...solid, points: nativeBakeFloats(solid.vertices) });
   parsed = { ground: { heights, friction: bake.ground.friction, groups: bake.ground.groups, scale: bake.ground.scale, at: bake.ground.at },
     solids, actors, herds: bake.herds, habitat: bake.habitat, captain: { spec: specOf(bake.captain.spec), pose: bake.captain.pose, pool: bake.captain.pool, arena: bake.captain.arena }, floorAt, holdFloorAt };
   return parsed;

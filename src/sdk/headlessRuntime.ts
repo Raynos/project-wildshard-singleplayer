@@ -1,3 +1,7 @@
+import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
+import { withOwner } from '@wildshard/engine/app/ownership';
+import { tagCollider, tagOf, type Material } from '@wildshard/engine/physics/surface';
+import * as v from 'valibot';
 import { createSimHost, type SimHost, type SimHostPorts, type SimLevel } from '@wildshard/engine/sim';
 import { decodeSimSnapshot, restoreSimHost, serializeSimSnapshot, snapshotSimHost, type SimSnapshot } from '@wildshard/engine/sim/snapshot';
 import type { Rapier } from '@wildshard/engine/physics/rapier';
@@ -114,3 +118,101 @@ export async function createTrustedHeadlessAdapter(preparation: HeadlessRuntimeP
     dispose: () => { resident.dispose(); },
   };
 }
+
+/** Strict body recipes shared by trusted native bake readers. The declared rig
+ * shape retains each producer's field admission; no renderer or body is built. */
+export function nativeBodySpecSchema(rig: 'segments' | 'axis'): v.GenericSchema<unknown, AnimalSimSpec> {
+  const finite = v.pipe(v.number(), v.finite()), triple = v.tuple([finite, finite, finite]);
+  const schema = v.strictObject({ kind: v.string(), label: v.string(), variant: v.string(), rarity: v.picklist(['common', 'uncommon', 'rare', 'legendary']),
+    hp: finite, aggressive: v.boolean(), lockable: v.exactOptional(v.boolean()),
+    dims: v.strictObject({ bodyY: finite, bodyHalfLen: finite, bodyRadius: finite, headRadius: finite, legLen: finite, feet: v.array(v.tuple([finite, finite])), halfWidth: finite,
+      capsuleAxis: v.exactOptional(v.picklist(['z', 'y'])), headAt: v.exactOptional(triple), bodyAt: v.exactOptional(triple), bodyPitch: v.exactOptional(finite),
+      fore: v.exactOptional(v.strictObject({ bone: v.string(), at: triple, halfLen: finite, radius: finite })) }),
+    mods: v.strictObject({ speed: finite, chargeDist: finite, damageTaken: finite, chargeDamage: finite, relentless: v.boolean() }) });
+  return v.pipe(schema, v.check(row => rig === 'segments' ? !Object.hasOwn(row.dims, 'capsuleAxis')
+    : !['headAt','bodyAt','bodyPitch','fore'].some(key => Object.hasOwn(row.dims, key)), 'Unsupported native body rig field'));
+}
+/** Decode an owned copy of one native base64 buffer; typed views never share
+ * caller storage. Malformed data is refused by atob or its typed-array reader. */
+export function nativeBakeBytes(text: string): Uint8Array<ArrayBuffer> {
+  return Uint8Array.from(atob(text), character => character.codePointAt(0) ?? 0);
+}
+/** The original column-major native float payload, with no resampling. */
+export function nativeBakeFloats(text: string): Float32Array<ArrayBuffer> {
+  return new Float32Array(nativeBakeBytes(text).buffer);
+}
+
+/** Strict raw Rapier bake records. The owner declaration chooses the original
+ * provenance namespace and exact admitted collider shapes before decoding. */
+export function nativeColliderSchema<const S extends readonly (1 | 2 | 6 | 9)[]>(shapes: S, owner: 'piece' | 'tagged'): v.GenericSchema<unknown, NativeColliderRecord<S[number]>> {
+  const finite = v.pipe(v.number(), v.finite()), triple = v.tuple([finite, finite, finite]);
+  const materials: Readonly<Record<Material, true>> = { sand:true,wetSand:true,grass:true,rock:true,planks:true,stone:true,water:true,
+    wood:true,metal:true,flesh:true,shell:true,ground:true,edge:true,felt:true,earth:true };
+  const material = v.custom<Material>(input => typeof input === 'string' && Object.hasOwn(materials,input), 'Unknown native collider material');
+  const schema = v.strictObject({ shape:v.picklist(shapes), groups:finite,friction:finite,at:triple,rot:v.tuple([finite,finite,finite,finite]),
+    body:v.exactOptional(v.nullable(finite)),material:v.exactOptional(material),owner:v.exactOptional(v.string()),
+    ownerId:v.exactOptional(v.pipe(v.string(),v.regex(/^(?:piece|declared):[^\r\n]{1,256}$/u))),
+    half:v.exactOptional(triple),halfHeight:v.exactOptional(finite),radius:v.exactOptional(finite),vertices:v.exactOptional(v.string()),indices:v.exactOptional(v.string()) });
+  return v.pipe(schema,v.check(row => owner === 'piece' ? Object.hasOwn(row,'body') && !Object.hasOwn(row,'owner')
+    : !['body','ownerId','indices'].some(key => Object.hasOwn(row,key)), 'Unsupported native collider provenance'));
+}
+
+/** Native collision payload after strict admission and owned typed-buffer decode. */
+export interface NativeCollisionBake {
+  readonly ground: { readonly heights: Float32Array; readonly friction:number;readonly groups:number;
+    readonly scale:{x:number;y:number;z:number};readonly at:{x:number;y:number;z:number} };
+  readonly solids:readonly NativeCollisionSolid[];
+}
+/** Original native shape and query provenance; no placement or material inference. */
+export interface NativeCollisionSolid {
+  readonly shape:1|2|6|9;readonly groups:number;readonly friction:number;
+  readonly at:readonly[number,number,number];readonly rot:readonly[number,number,number,number];
+  readonly half?:readonly[number,number,number];readonly halfHeight?:number;readonly radius?:number;
+  readonly points?:Float32Array;readonly indices?:Uint32Array;readonly material?:Material;
+  readonly ownerId?:string;readonly owner?:string;
+}
+/** Install the declared native lattice then its ordered solids under the actual
+ * host scope. Optional record provenance preserves shared identities across
+ * every collider and rebinds snapshot copies after native restore. */
+export function installNativeCollision<S extends NativeCollisionSolid>(host:SimHost,bake:Omit<NativeCollisionBake,'solids'> & {readonly solids:readonly S[]},
+  options:{readonly resolution:number;readonly skip?:(solid:S)=>boolean;
+    readonly provenance?:{readonly field:string;readonly step:string;readonly fallback:Material}}):ReadonlyMap<string,object|string> {
+  const owners=new Map<string,object|string>(),policy=options.provenance;
+  if(policy!==undefined){
+    if(!/^[a-z][a-zA-Z0-9]{0,63}$/u.test(policy.field))throw new Error('Invalid native owner field');
+    bake.solids.forEach(solid=>{const id=solid.ownerId;if(options.skip?.(solid)===true||id===undefined||owners.has(id))return;
+      if(!/^(?:piece|declared):[^\r\n]{1,256}$/u.test(id))throw new Error('Invalid baked world owner');
+      owners.set(id,id.startsWith('piece:')?Object.freeze({[policy.field]:id}):id.slice('declared:'.length));});
+  }
+  const {R,world}=host.physics,g=bake.ground,n=options.resolution-1;
+  withOwner(host.scope,()=>{
+    const ground=world.createCollider(R.ColliderDesc.heightfield(n,n,g.heights,g.scale).setTranslation(g.at.x,g.at.y,g.at.z).setCollisionGroups(g.groups).setFriction(g.friction));
+    tagCollider(ground,'ground');
+    for(const solid of bake.solids){
+      if(options.skip?.(solid)===true)continue;
+      const desc=solid.shape===1&&solid.half!==undefined?R.ColliderDesc.cuboid(solid.half[0],solid.half[1],solid.half[2])
+        :solid.shape===2&&solid.halfHeight!==undefined&&solid.radius!==undefined?R.ColliderDesc.capsule(solid.halfHeight,solid.radius)
+        :solid.shape===6&&solid.points!==undefined&&solid.indices!==undefined?R.ColliderDesc.trimesh(solid.points,solid.indices)
+        :solid.shape===9&&solid.points!==undefined?R.ColliderDesc.convexHull(solid.points):null;
+      if(desc===null)throw new Error('Unbuildable native collider');
+      const collider=world.createCollider(desc.setTranslation(solid.at[0],solid.at[1],solid.at[2]).setRotation({x:solid.rot[0],y:solid.rot[1],z:solid.rot[2],w:solid.rot[3]})
+        .setCollisionGroups(solid.groups).setFriction(solid.friction));
+      if(policy!==undefined)tagCollider(collider,solid.material??policy.fallback,solid.ownerId===undefined?null:owners.get(solid.ownerId));
+      else if(solid.material!==undefined)tagCollider(collider,solid.material,solid.owner??null);
+    }
+  });
+  if(policy!==undefined){
+    host.onStep(policy.step,()=>undefined,{snapshot:()=>1,restore:value=>{if(value!==1)throw new Error('Invalid world-tag continuation');},
+      physicsRestored:()=>{host.physics.world.forEachCollider(collider=>{const tag=tagOf(collider),owner=tag?.owner;
+        if(tag===undefined||owner===null||typeof owner!=='object'||!(policy.field in owner))return;
+        const id:unknown=Reflect.get(owner,policy.field);if(typeof id!=='string'||!owners.has(id))throw new Error('Saved native world owner is missing');
+        tagCollider(collider,tag.material,owners.get(id));});}});
+    host.scope.onDispose(()=>{owners.clear();});
+  }
+  return owners;
+}
+
+/** Validated wire collider before its binary channels become owned typed views. */
+export type NativeColliderRecord<S extends 1|2|6|9 = 1|2|6|9> = Omit<NativeCollisionSolid,'points'|'indices'|'shape'> & {
+  readonly shape:S;readonly body?:number|null;readonly vertices?:string;readonly indices?:string;
+};
