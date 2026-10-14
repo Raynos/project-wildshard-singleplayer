@@ -186,7 +186,7 @@ export async function installAdventure<A extends AdvAnimal>(ctx: ShardContext, s
   if (w.gulls) {
     const gulls = w.gulls, guide = new PlaceGuide({ distance: 'edge', min: 0, schedule: { kind: 'idle', ...GUIDE } },
       { points: () => places.points, discovered: places.discovered, position: () => w.player.position,
-        fly: target => gulls.guide(w.player.position, w.player.yaw, target.x, target.z) });
+        fly: (target: { readonly x: number; readonly z: number }) => gulls.guide(w.player.position, w.player.yaw, target.x, target.z) });
     flags.onChange((flag, on) => { if (on && !flag.startsWith('plate:')) guide.progressed(); });
     w.game.onUpdate(dt => { if (dt > 0 && w.hud.entered !== false && w.hud.paused !== true && w.player.position.y <= 300)
       guide.update(dt, Math.hypot(w.player.velocity.x, w.player.velocity.z)); }, 'shard.driftwood-isle.installGullGuide');

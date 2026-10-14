@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/// <reference types="node" />
 // Offline Sky source catalogue; the real shared encoder remains an authored TS dependency.
 import { bakeColourTexture } from '@wildshard/sdk/bake/texture';
 import { bakeTextureLibrary } from './bake-sky-world.mjs';

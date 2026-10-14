@@ -3,7 +3,8 @@ import type { readWholeGeometry } from '@wildshard/game/plugin/geometry';
 import { FIXED_MODEL_FILES } from '../../data/modelFiles';
 
 /** Decode the admitted scene's subsets through the shared assembler; original materials and placements stay local. */
-export async function readProductGeometry(owner: Parameters<typeof readWholeGeometry>[0]): Promise<{ templates: Map<string, BufferGeometry>; release: () => void }> {
+export type ProductGeometryOwner = Parameters<typeof readWholeGeometry>[0];
+export async function readProductGeometry(owner: ProductGeometryOwner): Promise<{ templates: Map<string, BufferGeometry>; release: () => void }> {
   const { readWholeGeometry } = await import('@wildshard/game/plugin/geometry');
   const assembled = await readWholeGeometry(owner, 'driftwood-isle'), result = new Map<string, BufferGeometry>();
   const urls = Object.values(FIXED_MODEL_FILES);

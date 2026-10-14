@@ -11,7 +11,7 @@ import { warmByFire } from './meshes';
  * static GLB and its rows through the game's baked-world rows (`@wildshard/game/shardfile/bakedKinds`) and only adds its
  * own lighting: a kind marked `warm` is lit by the fires. The colliders never wait on the GLB.
  */
-interface KindRow extends BakedMeshKindRow { readonly warm?: boolean; readonly brazier?: number }
+export interface KindRow extends BakedMeshKindRow { readonly warm?: boolean; readonly brazier?: number }
 export const WORLD = bakedMeshWorld<BakedPiece, KindRow>(WORLD_ROWS, BAKED_URLS, 'sunscar-dunes',
   { resources: WORLD_BYTES, readBytes: fetchDeflated, placements:{rows:SIGNAL_PIECES,colliders:WORLD_ROWS.braziers.braziers.map((row,index)=>({id:`sunscar.brazier.${String(index)}`,colliders:row.colliders}))}, decorate: (material, kind) => { if (kind.warm === true) warmByFire(material); } });
 

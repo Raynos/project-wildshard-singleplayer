@@ -9,8 +9,8 @@ export const SIGNAL_INTERACT = 'sunscar.interact';
  */
 export const SIGNAL_ACT = { talk: 0, logbook: 1, well: 2, pour: 3, fire: 6, crank: 100, light: 101 } as const;
 
-interface SignalCondition { all?: string[]; any?: string[]; none?: string[] }
-interface SignalInteractionRows {
+export interface SignalCondition { all?: string[]; any?: string[]; none?: string[] }
+export interface SignalInteractionRows {
   marks: { id: string; initial?: SignalCondition }[];
   never: SignalCondition[];
   rows: { id: string; act: number; at: string; crack?: 'light' | 'heavy'; needs?: (SignalCondition & { else?: string })[]; sets: string[] }[];
