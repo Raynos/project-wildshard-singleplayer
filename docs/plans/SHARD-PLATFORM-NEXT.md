@@ -7,6 +7,7 @@ Jake, 2026-10-13: *"I don't want to cut the plan. I don't want to delete stuff f
 ## Rows
 
 - **N1** Sky and Signal from 90/10 to zero (G423): delete both W1 runtimes in one landing after features F1–F7 (the data client owns every bound section, painted-look section, effects section and host, textured prop tiles, graphs on skinned creatures, a terrain skirt row, graph inputs); keep Sky's meadow and wakes custom; drop Signal's roaming firelight after a before / after board; ~280 lane-hours; plan in `progress/shard-platform/w1-residue-2026-10-14/README.md` — open
+- **N2** Every shard runtime-deleted, then the hybrid host deleted (G426): after N1, Pine, Driftwood, Nalati, Nine (and any other shard with a trusted runtime) go from their 80/20 line to "runtime deleted" (`runtime.binds` empty, no `plugin.ts` / `runtime/`), each the way N1 plans it for Sky and Signal; the hybrid-host code in game / engine (~3,100+ lines that only host trusted runtimes) is deleted with the last runtime — open
 - **S1** Crowds of hundreds — stretch
 - **S2** Interiors and verticality — stretch
 - **S3** New physics toys and vehicles — stretch
