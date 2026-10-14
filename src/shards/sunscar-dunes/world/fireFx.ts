@@ -2,7 +2,6 @@ import { Mesh, Vector4, type BufferGeometry, type Group, type Material, type Obj
 import { cardGroup, type CardGroupRow, type CardPrograms } from '@wildshard/sdk/looks/cardField';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { prepareClientWorld } from '@wildshard/game/shardfile/runtimeProduct';
-import type { ModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
 import { FIRE_GRAPH_IDS, fireRows, lampRows, type FireCard, type FireSize } from '../data/fire';
 import type source from '../runtime/source';
 
@@ -25,9 +24,8 @@ let fire: Fire | null = null;
 const current = (): Fire => { if (fire === null) throw new Error('Signal Dunes: the fire graphs compile before the world builds (prepareFireFx)'); return fire; };
 
 /** Compile every fire program (required graphs, bound to the host field `shared.firetime`) before buildWorld adds meshes. */
-export async function prepareFireFx(ctx: Parameters<typeof prepareClientWorld>[0], shard: typeof source, library: Pick<ModelLibrary<string, string>, 'geometry' | 'bindLooks' | 'material'>): Promise<void> {
-  const ids = Object.values(FIRE_GRAPH_IDS), looks = await prepareClientWorld(ctx, shard, { materials: ids, requiredMaterials: ids });
-  library.bindLooks(ctx.scope, looks);
+export async function prepareFireFx(ctx: Parameters<typeof prepareClientWorld>[0], shard: typeof source, library: NonNullable<Parameters<typeof prepareClientWorld>[3]>): Promise<void> {
+  const ids = Object.values(FIRE_GRAPH_IDS), looks = await prepareClientWorld(ctx, shard, { materials: ids, requiredMaterials: ids }, library);
   let time = 0;
   looks.graphs.bind({ state: (scope, name) => scope === 'shared' && name === 'firetime' ? time : undefined });
   if (looks.graphs.readout.fallback !== 0) throw new Error('Fire graph compilation refused');

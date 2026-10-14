@@ -4906,3 +4906,9 @@ restoration remain the owners of interaction and restored presentation.
 `QuestPageInteractionPorts.interactables` optionally registers the actual
 preflighted prompts in binding-row order, after restored presentation is
 seeded. Invalid prompt objects refuse before the host list is changed.
+
+`prepareClientWorld` accepts optional model-library ports as its fourth
+argument. It lends the compiled look book at the return boundary, after
+ordered paint/material preparation and bumps, before caller graph state
+bindings. Sky and Signal use this same step; absent ports keep the original
+preparation result with no library binding.

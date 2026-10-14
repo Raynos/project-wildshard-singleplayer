@@ -1,4 +1,4 @@
-import { loadPaintedTexture, type PaintedSampler } from '../plugin/geometry';
+import { loadPaintedTexture, type PaintedSampler, type ModelLibrary } from '../plugin/geometry';
 import type { Material, Texture } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ClientAssets } from './clientAssets';
@@ -197,7 +197,8 @@ export interface ClientWorldPreparation {
   readonly bumps?: readonly { readonly material: string; readonly texture: string; readonly channel?: number; readonly scale: number }[];
 }
 /** Prepare borrowed world assets under their existing scope, never installing another host. */
-export async function prepareClientWorld(ctx: Parameters<typeof runtimeLookMaterials>[0], source: Shardfile, rows: ClientWorldPreparation): Promise<Awaited<ReturnType<typeof runtimeLookMaterials>> & {
+export async function prepareClientWorld(ctx: Parameters<typeof runtimeLookMaterials>[0], source: Shardfile, rows: ClientWorldPreparation,
+  library?: Pick<ModelLibrary<string, string>, 'bindLooks' | 'material' | 'geometry'>): Promise<Awaited<ReturnType<typeof runtimeLookMaterials>> & {
   readonly painted: ReadonlyMap<string, Texture | null>; readonly material: (id: string) => Material;
 }> {
   const textures = rows.textures ?? [], required = rows.requiredMaterials ?? [], bumps = rows.bumps ?? [];
@@ -219,5 +220,6 @@ export async function prepareClientWorld(ctx: Parameters<typeof runtimeLookMater
     const map = ctx.scope.own(relief.clone()); map.channel = row.channel ?? 0;
     Object.assign(target, { bumpMap: map, bumpScale: row.scale }); target.needsUpdate = true;
   }
+  library?.bindLooks(ctx.scope, compiled);
   return { ...compiled, painted, material };
 }

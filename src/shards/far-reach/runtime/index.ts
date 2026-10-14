@@ -64,7 +64,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
     // and the world pieces baked offline (SF72, world/baked.ts)
     await Promise.all([preloadSkyMeshes(() => worldBuildYield(ctx, 4)), loadSkyBaked()]);
-    const compiled = await prepareClientWorld(ctx, source, SKY_WORLD_PREPARATION);
+    const compiled = await prepareClientWorld(ctx, source, SKY_WORLD_PREPARATION, SKY_LIBRARY);
     this.leaf = compiled.painted.get('leaf') ?? null; this.board = () => ctx.app.player?.mode === 'board';
     // op-hitch41: in work slices (a grid cell builds Sky Reach on the road, in play: one 366 ms task on the Simulator,
     // then the meadow's 59 ms in the same frame); the meadow starts on a task of its own
@@ -76,7 +76,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // the shacks' kinds, the dressing's clumps and flowers, the falls (world/looks.ts)
     // and the looks over a model's own map (meshMap: the crown dais, the lantern, the keeper, the posts), each bound to it on its one compiled graph
     const deck = compiled.material('deck-wood'), frame = compiled.material('hover-frame');
-    SKY_LIBRARY.bindLooks(ctx.scope, compiled);
     const built = this.built = await buildWorld(ctx, () => worldBuildYield(ctx, 4), isles, { deck, frame, channels: source.clientChannels ?? [] });
     await worldBuildYield(ctx, 4);
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
