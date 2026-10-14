@@ -27,7 +27,7 @@ import { bindDeclaredFight, bindQuestPageInteractions, bindClientChannels } from
 import { ROC_ID } from '../data/rocFight';
 import { FLAGS } from '../quests/flags';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
-import { bindRuntimeProductProps, prepareClientWorld, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { bindRuntimeProductProps, prepareClientWorld } from '@wildshard/game/shardfile/runtimeProduct';
 
 declare module '@wildshard/engine/input/InputService' {
   interface ActionMap { 'far.gust': true }
@@ -78,18 +78,29 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // and the looks over a model's own map (meshMap: the crown dais, the lantern, the keeper, the posts), each bound to it on its one compiled graph
     const looks = compiled.materials, deck = compiled.material('deck-wood'), frame = compiled.material('hover-frame');
     setSkyLooks(looks, compiled.bindMeshMap);
-    this.built = await buildWorld(ctx, () => worldBuildYield(ctx, 4), isles, { deck, frame, channels: source.clientChannels ?? [] });
+    const built = this.built = await buildWorld(ctx, () => worldBuildYield(ctx, 4), isles, { deck, frame, channels: source.clientChannels ?? [] });
     await worldBuildYield(ctx, 4);
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
     ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
     const field = meadow(skyMeadowBlades(), skyLook('meadow'), ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades);
     ctx.root.add(field.group); ctx.scope.onDispose(field.dispose);
     ctx.game.runtime?.interactables.push(this.built.winch, this.built.notes);
+    const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
+    if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
+    this.keepClientChannels(ctx, bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_WORLD.motion.nativeOwners, bindings: [built.islets], observed: (_id, observation) => {
+      const previouslyRaised = built.state.raised, flags = this.pageQuest.flags;
+      if (observation.value === undefined || observation.turn === undefined) throw new Error('Missing winch channel observations');
+      built.state.raised = observation.value !== 0; built.state.raising = observation.turn === 1;
+      if (!previouslyRaised && built.state.raised) {
+        built.winch.label = STRINGS.raised;
+        if (!flags.has(FLAGS.raised)) { this.bindPageStages(ctx).advance('far.quest.raised'); ctx.game.runtime?.play?.hud.toast(STRINGS.raised); }
+      }
+    } }));
   }
   protected override async install(ctx: ShardContext): Promise<void> {
-    const rt = ctx.game.runtime, built = this.built, fan = this.fan, position = rt?.world?.player.position ?? this.player;
-    if (built === null || fan === null) throw new Error('Sky Reach: world and kit must run before play');
-    const toast = (text: string): void => { rt?.play?.hud.toast(text); };
+    const rt = ctx.game.runtime, built = this.built, fan = this.fan, motion = this.clientMotion, channels = this.clientChannels, position = rt?.world?.player.position ?? this.player;
+    if (built === null || fan === null || motion === null || channels === null || rt?.world === undefined || rt.world === null) throw new Error('Sky Reach: world and kit must run before play');
+    const toast = (text: string): void => { rt.play?.hud.toast(text); };
     const { flags, reward, persistence } = this.pageQuest; this.flags = flags;
     if (persistence.boss === null) throw new Error('Sky page quest needs its declared boss record');
     await worldBuildYield(ctx, 4);
@@ -98,21 +109,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       owners: new Map<string,unknown>([['world',built],['plugin',this]]) });
     this.questWorld = page.world;
     // the world pins, chip, map and minimap marks are the quest presentation's (data/questPage.ts)
-    if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');
-    const questStages = this.bindPageStages(ctx);
-    const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
-    if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
-    const channels = this.keepClientChannels(ctx, bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_WORLD.motion.nativeOwners, bindings: [built.islets], observed: (_id, frame) => {
-      const previouslyRaised = built.state.raised;
-      if (frame.value === undefined || frame.turn === undefined) throw new Error('Missing winch channel observations');
-      built.state.raised = frame.value !== 0; built.state.raising = frame.turn === 1;
-      if (!previouslyRaised && built.state.raised) {
-        built.winch.label = STRINGS.raised;
-        if (!flags.has(FLAGS.raised)) { questStages.advance('far.quest.raised'); toast(STRINGS.raised); }
-      }
-    } }));
-    const product = runtimeProduct(source);
-    const motion = await channels.installMovers(ctx, rt.world, source, SKY_NATIVE_WORLD.motion, flags, product.assets);
     await worldBuildYield(ctx, 4);
     const host = motion.scriptHost; this.bindHeldScripts(ctx, channels.hooks, () => host.currentTick);
     if (flags.has(FLAGS.raised)) motion.command('far.winch.bridge', 3);

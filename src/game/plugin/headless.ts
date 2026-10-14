@@ -480,6 +480,8 @@ export interface HybridRuntimeRows {
   /** the flag the session's quest probe reports once `quest` is complete */
   readonly complete: string;
   readonly source?: Shardfile;
+  /** Install declared page motion after the saved quest, on its existing channel owner. */
+  readonly clientMotion?: Parameters<ReturnType<typeof bindClientChannels>['installMovers']>[3];
   /** One declared held owner, installed at the original kit/equipment stage. */
   readonly melee?: HybridMeleeRows;
   readonly audio?: Parameters<typeof installRuntimeAudio>[1];
@@ -586,12 +588,14 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected abstract readonly rows: HybridRuntimeRows;
   /** The page's borrowed channel views and motion owner, retired with its scope. */
   protected clientChannels: ReturnType<typeof bindClientChannels> | null = null;
+  protected clientMotion: Awaited<ReturnType<ReturnType<typeof bindClientChannels>['installMovers']>> | null = null;
   protected keepClientChannels(ctx: ShardContext, channels: ReturnType<typeof bindClientChannels>): ReturnType<typeof bindClientChannels> {
     if (ctx.scope.disposed || this.clientChannels !== null) throw new Error('Page channels require one living scope');
     this.clientChannels = channels;
     ctx.scope.onDispose(() => {
       channels.dispose();
       if (this.clientChannels === channels) this.clientChannels = null;
+      this.clientMotion = null;
     });
     return channels;
   }
@@ -839,6 +843,14 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
         return [id, () => { method(); }] as const;
       }));
       this.bindQuestCapture(page.data.capture ?? {}, installed.flags, calls);
+    }
+    const motion = this.rows.clientMotion;
+    if (motion !== undefined) {
+      const source = this.rows.source, channels = this.clientChannels;
+      if (source === undefined || channels === null || rt?.world === undefined || rt.world === null) throw new Error('Declared page motion needs its source, channels and world');
+      const { runtimeProduct } = await import('../shardfile/runtimeProduct');
+      this.clientMotion = await channels.installMovers(ctx, rt.world, source, motion, this.pageQuest.flags, runtimeProduct(source).assets);
+      if (ctx.scope.disposed) { this.clientMotion = null; throw new Error('Page motion scope ended during installation'); }
     }
     await this.install(ctx, loot);
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete === true ? [this.rows.complete] : [];

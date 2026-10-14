@@ -4842,3 +4842,9 @@ the existing mover installation. There is no extra simulation clock.
 quest host and creates its original transient marks over the supplied
 durable owner. Both early world and default page bindings use it; no
 second interaction table or continuation is created.
+
+An optional `HybridRuntimeRows.clientMotion` installs its declared mover
+row on the already retained page channels after `pageQuest` is restored,
+before custom page installation. The protected `clientMotion` lends that
+same owner to held hooks and commands, and clears on scope teardown.
+Omission leaves a page's ordinary visual channels without a mover role.
