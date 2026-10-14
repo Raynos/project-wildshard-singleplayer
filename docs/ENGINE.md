@@ -4635,3 +4635,12 @@ product reader and fixed-step owner. The authored row names a system and
 bounded flag-bit grants. Its read-only `runtime` becomes null on disposal;
 `updateMovers()` reads that owner, while an explicit pose reader still lends
 external motion. No additional host or clock is created.
+
+Declared action roles on `createShardfileComposedLane` use serializable
+`id`, `sim`, `state`, `rules` and `events` rows in `extra.declarations`.
+The session binds entity aliases and actor provenance separately. At most
+128 roles join the same admitted module union and aggregate entity budget;
+action roles have no query grants or scheduled bindings. Mover compositions
+forward these declarations without creating another host or fixed clock.
+`declaredItemScriptBindings` supplies actor-bound aliases, verified modules
+and hook maps for both native equipment and the data client.

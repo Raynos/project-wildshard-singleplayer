@@ -26,3 +26,7 @@ export const SKY_ITEMS = { version: 1, rows: [{
   heavy: { id: 'far.fan.heavy', damage: FAN_SWING.heavy, cooldown: FAN_SWING.heavyCooldown, range: FAN_SWING.reach, width: FAN_SWING.halfAngle,
     tags: ['actor.player', 'weapon.far-fan', 'dmg.melee'], effect: null }, charge: 0.6,
 }], contexts: [], runtimeContexts: ['far.fan'], loadout: { primary: 'weapon.far-reach.fan', secondary: null, tools: [] } } as const;
+
+/** The fan's consuming action role; numeric world state and mover grants remain separate. */
+export const SKY_ITEM_ROLE = { id: 'items', sim: { scripts: [FAN_GUST_MODULE.hash], bindings: [], scriptTickDivisor: 1 },
+  state: { shared: [], player: [] }, rules: { fields: {}, archetypes: [], events: [301], maxEntities: 1 }, events: 'consume' } as const;

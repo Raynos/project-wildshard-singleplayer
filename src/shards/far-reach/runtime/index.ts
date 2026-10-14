@@ -15,7 +15,7 @@ import { STRINGS } from '../data/strings';
 import { CROWN, DAIS, ROC, VANES } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_CLIENT_MOTION, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
-import { createMeleeScriptDriver, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
+import { declaredItemScriptBindings, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
 import { RISING_ISLETS } from '../data/islets.generated';
@@ -23,6 +23,7 @@ import type { RisingIslet } from '../data/isletDesign';
 import { createFan, type WarFanWeapon, type ConeFanTarget } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
+import { SKY_ITEM_ROLE } from '../data/items';
 import { FAN_ROW, FAN_PRESENTATION } from '../data/equipment';
 import { preloadSkyMeshes } from '../world/meshes';
 import { loadSkyBaked, skyMeadowBlades } from '../world/baked';
@@ -144,9 +145,9 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       }
     } });
     const product = runtimeProduct(source);
-    const items = await createMeleeScriptDriver(source.items, 'actor.player', hash => product.assets.read(hash), source.identity.seed);
+    const items = declaredItemScriptBindings(source.items, 'actor.player'), itemModules = await items.modules(hash => product.assets.read(hash));
     const motion = await channels.installMovers(ctx, rt.world, source, SKY_CLIENT_MOTION, flags, product.assets,
-      { modules: items.modules, roles: [items.role()], seed: items.seed });
+      { modules: itemModules, roles: [], declarations: [{ row: SKY_ITEM_ROLE, entities: items.entities, actors: items.actors }], seed: source.identity.seed });
     await worldBuildYield(ctx, 4);
     const host = motion.scriptHost, hooks = items.hooks(host), fanRow = source.items.rows.find(item => item.id === 'weapon.far-reach.fan');
     if (fanRow?.kind !== 'weapon' || fanRow.secondary === undefined) throw new Error('Sky fan needs its admitted secondary');

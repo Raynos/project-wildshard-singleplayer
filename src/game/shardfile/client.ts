@@ -9,7 +9,7 @@ import { Mesh, Object3D, Vector3 } from 'three';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { Actor, CombatTarget } from '@wildshard/engine/combat/pipeline';
 import { fovForAspect } from '@wildshard/engine/combat/blocks/melee';
-import { scriptItemHook, type ItemTarget, type ItemRuntime } from '@wildshard/engine/combat/items';
+import type { ItemTarget, ItemRuntime } from '@wildshard/engine/combat/items';
 import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
 import type { EquipmentIcon } from '@wildshard/engine/combat/Equipment';
 import { installDeclaredAudio, type DeclaredAudioPorts } from '@wildshard/engine/audio/declared';
@@ -59,7 +59,7 @@ import { syncTargetColliders } from './targets';
 import type { ClientAssets } from './clientAssets';
 import { installDeclaredItems, type DeclaredItems } from './items';
 import { runtimeBoundWorldFiles, withoutRuntimeRows } from "../plugin/headless";
-import { createShardfileSim, type ShardfileSimulation, type ShardfileSimPorts } from '../plugin/simulation';
+import { createShardfileSim, declaredItemScriptBindings, type ShardfileSimulation, type ShardfileSimPorts } from '../plugin/simulation';
 import { scriptDisabledNotice } from './scriptNotice';
 import type { DeclaredGroupPorts } from './groupRuntime';
 import type { Shardfile } from '@wildshard/format/shardSchema';
@@ -282,6 +282,7 @@ export class ShardfileClient {
     };
     const player = (): NonNullable<ShardContext['app']['player']> => { const actor = ctx.app.player; if (actor === null) throw new Error('Player health has not entered play'); return actor; };
     const actor: Actor = { id: 'actor.player', get tags() { return player().tags; }, get state() { return player().state; }, get attributes() { return player().attributes; }, get alive() { return player().alive; }, applyDamage: (request) => player().applyDamage(request) };
+    const itemBindings = declaredItemScriptBindings(source.items, actor.id);
     const aimTarget = (target: CombatTarget): ItemTarget => {
       const body = this.sim?.host.entities.get(target.actor.id);
       return { ...target, aimPoint: target.position.clone().add(new Vector3(0, body === undefined ? 0.9 : body.dims.bodyY * body.scale, 0)) };
@@ -292,7 +293,7 @@ export class ShardfileClient {
         runtime: (row) => ({ actor, combat: ctx.app.combat, active: () => ctx.app.state === 'play' && !world.freeCamera,
           targets: () => ctx.app.combat.targets().map(aimTarget),
           effect: (target, effect, from) => { const service = ctx.app.effects; if (service === null) throw new Error('Missing normal effect host'); service.apply(target, effect, from); },
-          hook: row.hook === null ? null : (command) => { const lane = this.sim?.lane, hook = row.hook; if (lane === undefined || hook === null) throw new Error('Missing admitted item lane'); return scriptItemHook(lane.host, hook.module, hook.entity, hook.event, actor.id)(command); },
+          hook: row.hook === null ? null : (command) => { const lane = this.sim?.lane; if (lane === undefined) throw new Error('Missing admitted item lane'); const hook = itemBindings.hooks(lane.host).get(row.id); if (hook === undefined) throw new Error('Missing admitted item hook'); return hook(command); },
         }),
       });
       this.items = items;

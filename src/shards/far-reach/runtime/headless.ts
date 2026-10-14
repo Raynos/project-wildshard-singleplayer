@@ -3,13 +3,13 @@ import { bindPlayerImpulse } from '@wildshard/game/shardfile/dataCreaturePorts';
 import type { HeadlessRuntimeInstallation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import type { SimHost } from '@wildshard/engine/sim';
 import { floorBelow } from '@wildshard/engine/physics/query';
-import { readRuntimeWorldMetadata, addBakedWorld, installDeclaredQuestHost, ledgerPorts, pickCommands, trustedLevel, weaponRow, createMeleeScriptDriver, MeleeScriptDriver, installNativeMelee, type NativeMeleeCommand } from '@wildshard/game/plugin/simulation';
+import { readRuntimeWorldMetadata, addBakedWorld, installDeclaredQuestHost, ledgerPorts, pickCommands, trustedLevel, weaponRow, declaredItemScriptBindings, installNativeMelee, type NativeMeleeCommand } from '@wildshard/game/plugin/simulation';
 import { DECK, SPAWN, VANES } from '../data/layout';
 import { SKY_ANALYTIC_FLOOR } from '../data/spawns';
 import { SKY_NATIVE_POPULATION } from '../data/population';
 import { prepareNativePopulation } from '@wildshard/game/shardfile/bossRow';
 import { ROC_OWNER } from '../data/rocFight';
-import { FAN_ID } from '../data/items';
+import { FAN_ID, SKY_ITEM_ROLE } from '../data/items';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM } from '../data/nativeMelee';
 import { turnVanes, VANE_HUB } from '../quest/vanes';
 import { skyWinchPermission } from './quest';
@@ -25,7 +25,7 @@ export const UPDRAFT_STEP = 'far.updraft';
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets }) => {
   const rows = readRuntimeWorldMetadata(baked), fanRow = weaponRow(shard, FAN_ID);
   // Prepare detached, verified module bytes; every actual host binds its own player and role below.
-  const itemModules = (await createMeleeScriptDriver(shard.items, 'actor.player', assets, shard.identity.seed)).modules;
+  const itemModules = await declaredItemScriptBindings(shard.items, 'actor.player').modules(assets);
   const updraft = shard.modes?.traverse.find(row => row.id === 'far.updraft');
   if (updraft?.kind !== 'updraft') throw new Error('Sky Reach requires its admitted updraft row');
   if (shard.terrain !== null) throw new Error('Sky Reach is a structures-only world');
@@ -34,10 +34,10 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   const modules = await verifiedMoverModules(assets, moverRows);
   const installMovers = (host: SimHost, restoring: boolean, permissions: () => ReadonlyMap<string, number>) => {
     const driver = new MoverScriptDriver(moverRows, host);
-    const items = new MeleeScriptDriver(shard.items, host.player.id, itemModules, shard.identity.seed);
-    const composedModules = new Map([...modules, ...items.modules]);
+    const items = declaredItemScriptBindings(shard.items, host.player.id);
+    const composedModules = new Map([...modules, ...itemModules]);
     const content = { identity: shard.identity, sim: { scripts: [...composedModules.keys()], bindings: [], scriptTickDivisor: 1 }, state: { shared: [], player: [] } };
-    const lane = driver.compose(content, composedModules, { rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 }, entities: [], actors: new Map(), query: () => [] }, undefined, permissions, { roles: [items.role()] });
+    const lane = driver.compose(content, composedModules, { rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 }, entities: [], actors: new Map(), query: () => [] }, undefined, permissions, { roles: [], declarations: [{ row: SKY_ITEM_ROLE, entities: items.entities, actors: items.actors }] });
     const runtime = driver.install(host, lane, { id: SKY_MOVER_BINDING.systemId, restoring, drive: true,
       activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined } });
     return { runtime, failures: () => lane.host.failureCount, hook: items.hooks(lane.host).get(FAN_ID) ?? null, hookTick: () => lane.host.currentTick };

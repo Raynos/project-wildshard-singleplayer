@@ -13,7 +13,7 @@ import { scriptPhysicsQueries } from "@wildshard/engine/script/queries";
 import type { World } from "@wildshard/engine/core/bootstrap";
 import type { SimHost } from "@wildshard/engine/sim";
 import type { LevelContext } from "@wildshard/engine/level/context";
-import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from "../shardfile/scriptComposition";
+import { createShardfileComposedLane, type DeclaredScriptBrainPorts, type DeclaredScriptRoleBinding } from "../shardfile/scriptComposition";
 import { verifiedScriptModules, type ShardScriptContent, type ShardScriptPorts } from "../shardfile/scripts";
 import type { ScriptRole, ScriptSchedule } from "@wildshard/engine/script/composition";
 import type { Scope } from "@wildshard/engine/app/scope";
@@ -76,7 +76,7 @@ export async function createMoverHost(data: MoverData, assets: ReadonlyMap<strin
 }
 
 /** Verified extra author modules and trusted roles share the existing 32-entity mover host. */
-export interface MoverRoleComposition { modules: ReadonlyMap<string, Uint8Array>; roles: readonly ScriptRole[]; schedules?: readonly ScriptSchedule[]; seed: number }
+export interface MoverRoleComposition { modules: ReadonlyMap<string, Uint8Array>; roles: readonly ScriptRole[]; declarations?: readonly DeclaredScriptRoleBinding[]; schedules?: readonly ScriptSchedule[]; seed: number }
 /** Declared constants are read only and selected by the trusted calling entity; physics queries keep their adapter. */
 export function moverQueries(data: MoverData, physicsQueries: ScriptQuery): ScriptQuery {
   const parameters = new Map(parseMovers(data).map((m) => [m.entity, [...m.input]]));
@@ -307,8 +307,8 @@ export class MoverScriptDriver {
    * Extra roles retain their own owner grants and event policy; omitted roles preserve the existing continuation. */
   compose(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts,
     brains?: DeclaredScriptBrainPorts, permissions: () => ReadonlyMap<string, number> = () => new Map(),
-    extra?: { roles: readonly ScriptRole[]; schedules?: readonly ScriptSchedule[] }): ReturnType<typeof createShardfileComposedLane> {
-    return createShardfileComposedLane(content, assets, ports, brains, { roles: [this.role(), ...(extra?.roles ?? [])], transientModules: this.transientModules,
+    extra?: { roles: readonly ScriptRole[]; declarations?: readonly DeclaredScriptRoleBinding[]; schedules?: readonly ScriptSchedule[] }): ReturnType<typeof createShardfileComposedLane> {
+    return createShardfileComposedLane(content, assets, ports, brains, { roles: [this.role(), ...(extra?.roles ?? [])], transientModules: this.transientModules, ...(extra?.declarations === undefined ? {} : { declarations: extra.declarations }),
       schedules: [this.schedule(() => { if (this.runtime === undefined) throw new Error('Missing mover runtime'); return this.runtime; }, permissions), ...(extra?.schedules ?? [])] });
   }
   /** Attach native handles to the same host; an explicit drive owns one fixed tick, never another script host. */
@@ -351,7 +351,7 @@ export async function createComposedMoverHost(data: MoverData, assets: ReadonlyM
   for (const [hash, bytes] of await verifiedScriptModules(extra.modules, [...extra.modules.keys()])) modules.set(hash, bytes);
   return createShardfileComposedLane({ identity: { seed: extra.seed }, sim: { scripts: [...modules.keys()], bindings: [], scriptTickDivisor: 1 },
     state: { shared: [], player: [] } }, modules, { rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 }, entities: [], actors: new Map(), query: () => [] },
-  undefined, { roles: [driver.role(), ...extra.roles], schedules: extra.schedules ?? [], transientModules: driver.transientModules });
+  undefined, { roles: [driver.role(), ...extra.roles], schedules: extra.schedules ?? [], transientModules: driver.transientModules, ...(extra.declarations === undefined ? {} : { declarations: extra.declarations }) });
 }
 
 /** Copy and SHA-256-check each declared module before constructing a headless host. */
