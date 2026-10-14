@@ -80,7 +80,7 @@ export function noDriftwoodWorld(): DriftwoodWorld {
 export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, progress?: StepProgress): Promise<DriftwoodWorld> {
   const lowered = G164_LOWERED;
   const { game, sky, player, registry } = world;
-  const [{ cutTerrain }, { normalAt, TRAILS }] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry()]); // the deferred world code (cut, the live baked heightfield)
+  const [{ cutTerrain }, { normalAt, TRAILS }] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry(undefined, game.registrationScope)]); // the deferred world code (cut, the live baked heightfield)
   const sea = { level: lowered.level };
   // Jake's SF72 pick: each sea ramp flares from the full entry socket at the landing to its deck.
   const cut = lowered.pierStart, seaRamp = { seaRamp: { run: lowered.seaRamp, flare: ENTRY_WIDTH } };

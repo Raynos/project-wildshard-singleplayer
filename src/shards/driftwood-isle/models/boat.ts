@@ -16,21 +16,18 @@ import { BOAT_HULL_GEOMETRY, BOAT_SAIL_GEOMETRY, BOAT_GEAR_GEOMETRY, fixedGeomet
 import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { swayDepthMaterial } from '@wildshard/engine/world/wind';
+import { BOAT_LAYOUT } from '../data/boatLayout';
+import { boatStation as authoredBoatStation } from '../world/boatFrame';
 
-export const LENGTH = 6.4, BEAM = 2.2;
+export const LENGTH = BOAT_LAYOUT.length, BEAM = BOAT_LAYOUT.beam;
 /** the floor boards' top over the waterline (own y): where you stand in it */
-export const BOAT_FLOOR = 0.32;
-export const BOAT_DECK_T = 0.105;
+export const BOAT_FLOOR = BOAT_LAYOUT.floor;
+export const BOAT_DECK_T = BOAT_LAYOUT.deckThickness;
 
 /** a hull station, bow (t = 0, −z) → transom (t = 1); y = 0 is the waterline */
 export interface BoatStation { t: number; z: number; w: number; sheer: number; keel: number; floor: number }
 export function boatStation(t: number): BoatStation {
-  const W = BEAM / 2 - 0.03, FLOOR = BOAT_FLOOR, DECK_T = BOAT_DECK_T;
-  const fore = Math.min(1, t / 0.42), aft = Math.max(0, (t - 0.55) / 0.45);
-  const w = W * Math.sin(fore * Math.PI / 2) ** 0.85 * (1 - 0.3 * aft ** 1.5);
-  const sheer = 0.7 + 0.46 * Math.max(0, 1 - t / 0.5) ** 2.2 + 0.2 * aft ** 2;
-  const keel = -0.52 + 0.34 * Math.max(0, 1 - t / 0.35) ** 2 + 0.14 * aft ** 2;
-  return { t, z: -LENGTH / 2 + t * LENGTH, w, sheer, keel, floor: t <= DECK_T ? sheer : FLOOR };
+  return authoredBoatStation(t);
 }
 
 /** the bow and stern cleats the mooring lines start from, own space (z along the hull, y over the waterline) */

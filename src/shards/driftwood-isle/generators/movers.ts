@@ -3,8 +3,9 @@ import { Mover } from '@wildshard/sdk/movers';
 import { WAVES, seaDamp } from '@wildshard/engine/world/waves';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { MoverData } from '@wildshard/format/movers';
-import manifest, { BOAT_MOOR, BRIDGE } from '../manifest';
-import { LOWERED_SEA } from '../world/sea';
+import { BOAT_MOOR, BRIDGE } from '../manifest';
+import { LOWERED_SEA, WORLD_DROP } from '../world/sea';
+import { driftwoodGroundField } from './groundRows';
 import { boatColliders } from '../models/boat';
 import { ropeBridgeSegments } from '../models/ropeBridge';
 
@@ -14,8 +15,8 @@ import { ropeBridgeSegments } from '../models/ropeBridge';
 const SEA = LOWERED_SEA, BOAT = BOAT_MOOR;
 /** Trusted build-only capture of the unchanged model's collision/rest layout on today's exact terrain, lowered. */
 export function captureDriftwoodMovers(boatModule: string, bridgeModule: string): MoverData {
-  const terrain = manifest.ground.terrain; if (terrain === undefined) throw new Error('Missing island terrain');
-  const ground = (x: number, z: number): number => terrain.heightAt(x, z);
+  const terrain = driftwoodGroundField();
+  const ground = (x: number, z: number): number => terrain.heightAt(x, z) - WORLD_DROP;
   const boxes = boatColliders().map((box: ColliderDesc) => { if (box.kind !== 'box') throw new Error('Boat primitive changed'); return { x: box.x, y: box.y, z: box.z, hx: box.hx, hy: box.hy, hz: box.hz, rot: box.rot ?? { x: 0, y: Math.sin((box.yaw ?? 0) / 2), z: 0, w: Math.cos((box.yaw ?? 0) / 2) } }; });
   const [a, b, c, d] = WAVES;
   if (WAVES.length !== 4 || a === undefined || b === undefined || c === undefined || d === undefined) throw new Error('Four authored wave components required');

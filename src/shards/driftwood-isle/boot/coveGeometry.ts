@@ -12,7 +12,7 @@ const templates = {
 };
 
 /** Explicit intake; a fixture can admit these same immutable templates without fetch. */
-export async function loadCoveGeometry(bytes?: ReadonlyMap<string, Uint8Array>): Promise<void> {
+export async function loadCoveGeometry(bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<void> {
   await Promise.all([
     templates.structure.load(bytes?.get(FIXED_MODEL_FILES.coveStructure)),
     templates.rocks.load(bytes?.get(FIXED_MODEL_FILES.coveRocks)),

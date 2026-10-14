@@ -5,6 +5,12 @@ import { parseBakedTerrain } from '@wildshard/format/bakedTerrainBytes';
 import { buildDriftwoodField, landscapeHash } from './groundField';
 import { driftwoodLandscape } from './landscape';
 
+/** Retained unquantized author field for original mover rows and cold lattice compilation. */
+export function driftwoodGroundField(seed = SEED): ReturnType<typeof buildDriftwoodField> {
+  return buildDriftwoodField(seed, { landscape: driftwoodLandscape, oceanLevel: SHORE_LEVEL,
+    graded: GRADED, trails: TRAILS, cabinSites: [] });
+}
+
 /** Exact unshifted native height lattice; collision consumers apply the declared datum. */
 export interface DriftwoodGroundRows {
   notice: string; resolution: number; size: number; datum: number; heights: number[];
@@ -12,8 +18,7 @@ export interface DriftwoodGroundRows {
 
 /** Cold native floor lattice compiled from retained equations, with no terrain.bin or runtime seed. */
 export function driftwoodGroundRows(seed = SEED): DriftwoodGroundRows {
-  const field = buildDriftwoodField(seed, { landscape: driftwoodLandscape, oceanLevel: SHORE_LEVEL,
-    graded: GRADED, trails: TRAILS, cabinSites: [] });
+  const field = driftwoodGroundField(seed);
   const heightAt: TerrainBakeSource['heightAt'] = field.heightAt;
   const resolution = 256, size = CHUNK_HALF * 2, stride = size / (resolution - 1), heights = new Float32Array(resolution ** 2);
   for (let z = 0; z < resolution; z++) for (let x = 0; x < resolution; x++) {
@@ -26,9 +31,7 @@ export function driftwoodGroundRows(seed = SEED): DriftwoodGroundRows {
 
 /** Compile the original WSTR v1 transport from source, never from a retained native grid. */
 export function driftwoodGroundBytes(): Uint8Array {
-  const rows = driftwoodGroundRows(), field = buildDriftwoodField(SEED, {
-    landscape: driftwoodLandscape, oceanLevel: SHORE_LEVEL, graded: GRADED, trails: TRAILS, cabinSites: [],
-  });
+  const rows = driftwoodGroundRows(), field = driftwoodGroundField();
   const source = { heightAt: (x: number, z: number): number => (field.heightAt(x, z) - WORLD_DROP) + WORLD_DROP };
   const count = rows.resolution ** 2, header = 24, buffer = new ArrayBuffer(header + count * 8), view = new DataView(buffer);
   view.setUint8(0, 0x57); view.setUint8(1, 0x53); view.setUint8(2, 0x54); view.setUint8(3, 0x52);

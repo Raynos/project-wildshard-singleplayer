@@ -4,7 +4,6 @@ import type { TexMode } from '@wildshard/engine/boot/gpuFiles';
 import { publicBytes } from '@wildshard/engine/boot/tables';
 import type { Tier } from '@wildshard/engine/core/tier';
 import { GPU_FILES } from '../ktx2.generated';
-import { FIXED_MODEL_FILES } from '../data/modelFiles';
 
 const ROOT = '/assets/baked/driftwood-isle/';
 
@@ -15,11 +14,11 @@ const ROOT = '/assets/baked/driftwood-isle/';
  */
 export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
   const { gpu } = filePolicy(tier, tex, GPU_FILES);
-  const terrain = `${ROOT}terrain.bin`, navmesh = `${ROOT}navmesh.bin`;
   return {
     sky: [], baked: Object.keys(publicBytes()).filter((url) => url.startsWith(`${ROOT}tex/`) && !url.includes('.phone.')).map(gpu),
-    terrain: terrain in publicBytes() ? [gpu(terrain)] : [], trees: [],
-    physics: ['/assets/physics/rapier.wasm', ...(navmesh in publicBytes() ? [navmesh] : [])], cabins: [], props: Object.values(FIXED_MODEL_FILES),
+    // The admitted product owns terrain queries, navigation and fixed geometry; avoid a second legacy byte cache.
+    terrain: [], trees: [],
+    physics: ['/assets/physics/rapier.wasm'], cabins: [], props: [],
     art: [], music: [], sfx: [],
   };
 }

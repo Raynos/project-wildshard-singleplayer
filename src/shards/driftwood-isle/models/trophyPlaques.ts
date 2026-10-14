@@ -24,7 +24,7 @@ import bakedSlots from '../data/trophySlots.json' with { type: 'json' };
 import { TROPHY_LAYOUT } from '../data/trophyLayout';
 
 export type TrophyId = 'bear' | 'boar';
-export const TROPHIES: readonly TrophyId[] = ['bear', 'boar'];
+export const TROPHIES: readonly TrophyId[] = TROPHY_LAYOUT.ids;
 
 /** the plaques' default spacing, centre to centre (m) */
 export const PLAQUE_GAP = TROPHY_LAYOUT.gap;

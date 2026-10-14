@@ -22,7 +22,8 @@ import compareOverlookTarget from './explore/compare/driftwood-overlook-target.j
  * The landscape below is the sea floor; the island rises out of it as the pieces land.
  */
 import { CHUNK_HALF, ROAD_LENGTH } from '@wildshard/engine/core/config';
-import { smoothstep, clamp } from '@wildshard/engine/core/noise';
+import navigation from './data/navigation.generated.json' with { type: 'json' };
+import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import type { ShardManifest, OceanDef } from '@wildshard/game/shard/manifest';
 import { lateReads } from './boot/lateReads';
@@ -201,79 +202,11 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
   // the sea is a water body (app.world.water), registered at level.data: the edge step's Boundary and every sea reader ask it
   // G164: the field is authored round SHORE_LEVEL and lowered as one (droppedTerrain: heights,
   // waterline and the bake's datum)
-  ground: { paths: 'plugin', water: [DRIFTWOOD_SEA], terrain: droppedTerrain(buildTerrain(SEED, {
+  navigation: { row: navigation.navigation, url: navigation.url },
+  ground: { paths: 'plugin', water: [DRIFTWOOD_SEA], terrain: createBakedTerrainField({ key: 'driftwood-isle', seed: SEED }, droppedTerrain(buildTerrain(SEED, {
     oceanLevel: SHORE_LEVEL,
-    /**
-     * The island: a noise-warped disc centred a little north of the chunk centre. `m` is signed
-     * metres inside the shoreline. Out to sea the floor is 2.6 m down and shelves up over the last
-     * 130 m (a wide, clear turquoise lagoon over sand — 1.5–2.5 m deep around the pier); the beach climbs from the water line to ~2.6 m over
-     * 25 m, then the interior rises gently to grass at ~6 m. The plateau, cliffs and lookout are
-     * added on top as their pieces land. Entry roads are forced to 0 by buildTerrain (sandbars).
-     */
-    landscape(x, z, { n, n2 }) {
-      const dx = x - ISLAND.x, dz = z - ISLAND.z;
-      const r = Math.hypot(dx, dz), ang = Math.atan2(dz, dx);
-      let R = ISLAND.r + n.get(Math.cos(ang) * 1.7 + 3.3, Math.sin(ang) * 1.7) * 32 + n2.fbm(x * 0.006, z * 0.006, 3) * 22;
-      R -= smoothstep(1 - COVE.width, 0.995, Math.cos(ang - COVE.ang)) * COVE.depth; // Wreck Cove bitten out of the east shore
-      const m = R - r;
-      const sea = SHORE_LEVEL;
-      // the shelf and the beach keep a real slope through the water line (a smoothstep there would flatten
-      // the shallows into a 20 m wide foam sheet)
-      let h = m < 0
-        ? -2.6 + clamp(1 + m / 130, 0, 1) ** 1.1 * (sea + 2.6)                             // a wide sandy lagoon: 1.5–2.5 m under the pier (clear turquoise over sand, the spawn mockup)
-        : sea + clamp(m / 26, 0, 1) ** 0.85 * 1.8 + smoothstep(20, 90, m) * 3.6;            // beach, then the grassy interior
-      h += n.fbm(x * 0.04, z * 0.04, 2) * 0.25 * smoothstep(-10, 15, m);       // small dune / ground bumps on land
-      // the hut plateau: a flat-topped crag with a craggy (noise-warped) rim and a gentler ramp on the south side
-      {
-        const px = x - PLATEAU.x, pz = z - PLATEAU.z;
-        const pr = Math.hypot(px, pz) + n2.get(px * 0.05 + 9, pz * 0.05) * 6;
-        const south = smoothstep(0.2, 0.9, -pz / Math.max(1, Math.hypot(px, pz))) * smoothstep(14, 0, Math.abs(px + 6)); // a 12 m wide ramp toward the pier
-        const rimW = 10 + south * 26;
-        h += smoothstep(PLATEAU.r + rimW, PLATEAU.r - 4, pr) * PLATEAU.h;
-        h += smoothstep(PLATEAU.r - 6, PLATEAU.r - 30, pr) * n.fbm(x * 0.03 + 4, z * 0.03, 2) * 0.6; // the top is not a table
-      }
-      // the north-east headland: a broad rocky shoulder and a high craggy top, a narrow ramp up its south-west face
-      {
-        const hx = x - HEADLAND.x, hz = z - HEADLAND.z;
-        const d = Math.hypot(hx, hz);
-        const crag = n2.get(hx * 0.04 + 21, hz * 0.04) * 9 + n.get(hx * 0.12, hz * 0.12 + 7) * 3;
-        const hr = d + crag;
-        const sw = smoothstep(0.3, 0.95, (-hx - hz) / Math.max(1, d * 1.4142)) * smoothstep(16, 0, Math.abs(hx - hz) / 1.4142); // ramp along the SW diagonal
-        h += smoothstep(HEADLAND.shoulderR + 14 + sw * 20, HEADLAND.shoulderR - 10, hr) * HEADLAND.shoulderH;
-        h += smoothstep(HEADLAND.r + 7 + sw * 26, HEADLAND.r - 6, hr) * HEADLAND.h;
-        h += smoothstep(HEADLAND.shoulderR, 20, d) * n.fbm(x * 0.025 + 8, z * 0.025, 3) * 2.2 * (1 - sw); // broken, boulder-strewn top
-      }
-      // the gully: a ravine cut across the headland's south-west climb (NW–SE), spanned by the rope bridge
-      {
-        const gx = x - GULLY.x, gz = z - GULLY.z;
-        const across = (gx + gz) * 0.7071, along = (gx - gz) * 0.7071; // across = the climb's direction
-        const cut = smoothstep(GULLY.width / 2 + 3, GULLY.width / 2 - 2, Math.abs(across) + n2.get(along * 0.15, 3.3) * 1.5) * smoothstep(GULLY.length / 2, GULLY.length / 2 - 14, Math.abs(along));
-        h -= cut * (GULLY.depth + n.get(x * 0.2, z * 0.2) * 1.2);
-      }
-      // the shrine knoll: a soft rise with a flat top for the dais
-      { const d = Math.hypot(x - SHRINE.x, z - SHRINE.z); h += smoothstep(34, 9, d) * 3.2; }
-      return h;
-    },
-    /**
-     * The four mandated entry roads (the jetties' sandbars), then the sand paths: pier landing → up the
-     * plateau ramp → the hut; hut → east → the headland ramp → the lookout; the fork east on to Wreck Cove;
-     * hut → north-west → the shrine. The low-poly terrain paints them sand (Terrain.ts, trailDistance).
-     */
-    /**
-     * The paths that climb crags are graded (cut and filled to ≤ 32° along the centreline): hut → lookout on both sides
-     * of the bridge (never across the creek), the fork → wreck, hut → shrine. Only outside the Blender spawn cove
-     * (blenderArea.ts, z < −20.6 — its terrain is baked in Blender from these heights): each graded stretch starts
-     * a shelf's width (7 m) clear of it. The plateau rim inside it is climbed by stairs (Trailside `flights`).
-     */
-    graded: {
-      paths: [
-        [[14.9, -13.5], [17, 8], [15, 12], [16, 14]],
-        [[32, 30], [34, 32], [46, 46], [86, 86], [90, 90]],
-        [[17, 8], [60, 0], [100, -2], [140, 4]],
-        [[-58.6, -13.5], [-72, 20], [-88, 70], [-96, 96]],
-      ],
-      maxGrade: Math.tan(32 * Math.PI / 180),
-    },
+    // This builder retains only trail/cabin/water metadata; every height query must use the admitted lattice.
+    landscape: () => { throw new Error('Driftwood requires admitted native ground'); },
     trails: [
       [[0, -CHUNK_HALF], [0, -CHUNK_HALF + ROAD_LENGTH]],
       [[0, CHUNK_HALF], [0, CHUNK_HALF - ROAD_LENGTH]],
@@ -284,7 +217,7 @@ export const DRIFTWOOD_ISLE: ShardManifest = {
     cabinSites: [],
     // no `splat`: the low-poly terrain colours by height and slope (E318: the borrowed splat, PBR assets, pine bark, forest
     // block and HDRI name the Pine Hollow path would read are gone — ShardManifest makes them optional)
-  })) },
+  }))) },
 
   trees: { factory: 'none', noun: 'trees' }, // no forest trees (palms are their own builder, src/shards/driftwood-isle/world/Palms.ts)
   // ── island fauna (loot-agent): no forest here, so every plan asks for the open (`canopy: false`); the placer treats a

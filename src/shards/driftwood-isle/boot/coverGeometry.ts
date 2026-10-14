@@ -20,7 +20,7 @@ const templates = {
 };
 
 /** Explicit boot intake, including the same bytes-only path for portable fixtures. */
-export async function loadCoverGeometry(bytes?: ReadonlyMap<string, Uint8Array>): Promise<void> {
+export async function loadCoverGeometry(bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<void> {
   await Promise.all([
     templates.tuft.load(bytes?.get(FIXED_MODEL_FILES.coverTuft)),
     templates.fern.load(bytes?.get(FIXED_MODEL_FILES.coverFern)),

@@ -2,7 +2,10 @@
 import * as THREE from 'three';
 import { beam, log, plank, rope, sagLine } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
-import { LENGTH, BOAT_FLOOR, BOAT_DECK_T, boatStation, type BoatStation } from '../models/boat';
+import { BOAT_LAYOUT, type BoatStation } from '../data/boatLayout';
+import { boatStation } from '../world/boatFrame';
+
+const LENGTH = BOAT_LAYOUT.length, BOAT_FLOOR = BOAT_LAYOUT.floor, BOAT_DECK_T = BOAT_LAYOUT.deckThickness;
 
 /**
  * The boat (E113's B, the rebuild Jake picked): the dinghy of the round-8 reference (art/driftwood-isle/round-8-assets/ref-sailboat.jpg),

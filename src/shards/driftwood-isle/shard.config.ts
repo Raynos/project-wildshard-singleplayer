@@ -11,6 +11,7 @@ import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
 import { DECLARED_SEA, WORLD_DROP } from './world/sea';
 import { ENTRY_LANDINGS } from './data/entryLandings';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
+import fixed from './data/fixedTiles.generated.json' with { type: 'json' };
 
 // SF46 step 1: content and the existing look stay in the declared trusted entry until the grid-ready bake lands.
 // SF46 edges (G93 / G99 / G164): the four 8 m midpoint entryways (`emptyShardfile`'s, the engine's ENTRY_WIDTH) stand on
@@ -30,15 +31,17 @@ const row = (authored: readonly number[]): { heights: number[]; colours: [number
   const heights = lowered(authored);
   return { heights, colours: heights.map((): [number, number, number] => [0.5, 0.5, 0.5]), roadHeight: 0 };
 };
+const simulationFiles = [...navigation.files, ...fixed.files.filter(file => fixed.critical.includes(file.hash))];
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({
   ...base,
-  navigation: navigation.navigation, files: navigation.files, critical: navigation.critical,
-  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) },
-  budgets: { ...base.budgets, sim: { resident: navigation.files.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
-    compressed: navigation.files.reduce((sum, file) => sum + file.compressed, 0) } },
+  navigation: navigation.navigation, files: [...navigation.files, ...fixed.files], critical: [...navigation.critical, ...fixed.critical],
+  tiles: fixed.tiles, terrain: fixed.terrain, library: fixed.library,
+  serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + simulationFiles.reduce((sum, file) => sum + file.decoded, 0) },
+  budgets: { ...base.budgets, library: fixed.libraryCost, sim: { resident: simulationFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
+    compressed: simulationFiles.reduce((sum, file) => sum + file.compressed, 0) } },
   accent: 'marigold',
-  runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes'], spawns: DRIFTWOOD_SPAWNS },
+  runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain'], spawns: DRIFTWOOD_SPAWNS },
   quests: DRIFTWOOD_QUESTS, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },
   audio: DRIFTWOOD_AUDIO, modes: DRIFTWOOD_MODES,
@@ -47,7 +50,7 @@ export default parseShardfile({
   // G170: the inner ends of the asphalt road decks) prove the walk off the socket. The trusted runtime consumes both rows itself (world/sea.ts, world/build.ts).
   entryways: base.entryways.map(({ edge, at, width }) => ({ edge, at, width, kind: 'socketOverWater' as const })),
   water: [{ ...DECLARED_SEA, dryEntries: [...DECLARED_SEA.dryEntries] }],
-  props: { version: 1, family: 'toon', tiles: [], panels: [], models: [], far: null, textures: [],
+  props: { ...fixed.props,
     colliders: ENTRY_LANDINGS.map((landing) => ({ id: `landing.${landing.edge}`, panel: null, initialActive: true, shapes: [{ ...landing.box }] })) },
   spawn: { x: 0, y: 1.2, z: -194, yaw: Math.PI },
 });

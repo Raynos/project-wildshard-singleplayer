@@ -6,7 +6,7 @@ import { trailsideSpecKey, type TrailsideSpec } from '../world/trailsideLayout';
 
 const template = modelGeometry(FIXED_MODEL_FILES.trailside);
 /** Explicit immutable template intake; tests and offline tools may supply bytes directly. */
-export async function loadTrailsideGeometry(bytes?: ReadonlyMap<string, Uint8Array>): Promise<void> {
+export async function loadTrailsideGeometry(bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<void> {
   await template.load(bytes?.get(FIXED_MODEL_FILES.trailside));
 }
 /** Independent geometry and placement rows for the admitted native layout; changed layouts require a new bake. */

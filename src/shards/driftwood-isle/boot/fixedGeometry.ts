@@ -1,7 +1,8 @@
 import { loadTrailsideGeometry } from './trailsideGeometry';
 import { loadCoverGeometry } from './coverGeometry';
 import { loadCoveGeometry } from './coveGeometry';
-import { modelGeometry } from '../runtime/boot/modelGeometry';
+import { modelGeometry, readProductGeometry } from '../runtime/boot/modelGeometry';
+import type { BufferGeometry } from 'three';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
 
 /** Immutable CPU templates only; every model receives a deep mutable geometry copy. */
@@ -26,19 +27,23 @@ let ready = false;
 /** Explorer may open these models before the island's world hook has run. */
 export function fixedGeometryReady(): boolean { return ready; }
 /** Called explicitly by the world hook before any synchronous placement or later loot factory. Explicit bytes admit the same templates in Node fixtures. */
-export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array>): Promise<void> {
+export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>, owner?: Parameters<typeof readProductGeometry>[0]): Promise<void> {
+  const product = owner === undefined ? undefined : await readProductGeometry(owner);
+  const admitted = product?.templates ?? bytes;
+  try {
   await Promise.all([
-    loadTrailsideGeometry(bytes),
-    loadCoveGeometry(bytes),
-    loadCoverGeometry(bytes),
-    IRON_SWORD_BLADE_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.ironSwordBlade)), IRON_SWORD_FITTINGS_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.ironSwordFittings)),
-    HAT_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.hat)), CHIME_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.chime)),
-    CAPE_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.cape)), BOAT_HULL_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatHull)),
-    BOAT_SAIL_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatSail)), BOAT_GEAR_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.boatGear)),
-    TROPHY_PLAQUES_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.trophyPlaques)), TROPHY_DROP_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.trophyDrop)),
-    COUNTER_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.tradeCounter)),
-    HUT_KIT_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.hutKit)), HUT_FLAMES_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.hutFlames)),
-    LOOKOUT_GEOMETRY.load(bytes?.get(FIXED_MODEL_FILES.lookout)),
+    loadTrailsideGeometry(admitted),
+    loadCoveGeometry(admitted),
+    loadCoverGeometry(admitted),
+    IRON_SWORD_BLADE_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.ironSwordBlade)), IRON_SWORD_FITTINGS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.ironSwordFittings)),
+    HAT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.hat)), CHIME_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.chime)),
+    CAPE_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.cape)), BOAT_HULL_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.boatHull)),
+    BOAT_SAIL_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.boatSail)), BOAT_GEAR_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.boatGear)),
+    TROPHY_PLAQUES_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.trophyPlaques)), TROPHY_DROP_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.trophyDrop)),
+    COUNTER_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.tradeCounter)),
+    HUT_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.hutKit)), HUT_FLAMES_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.hutFlames)),
+    LOOKOUT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.lookout)),
   ]);
   ready = true;
+  } finally { product?.release(); }
 }
