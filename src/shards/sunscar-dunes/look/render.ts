@@ -1,13 +1,12 @@
 import { DUSK } from './dusk';
 import type { Material } from 'three';
 import type { LookStrategy } from '@wildshard/engine/render/look';
-import { CubeSkirt, bindColliderGround } from '../runtime/looks/bakedGround';
+import { CubeSkirt } from '../runtime/looks/bakedGround';
 import { duskLook } from '../runtime/looks/duskLook';
 import { SIGNAL_DUSK_LOOK } from '../data/lastLight';
 import { SAND_FILES } from '../data/sand';
 import skirtRows from '../data/skirt.json' with { type: 'json' };
 import { FIRE_LIGHTS } from '../world/fireFx';
-import source from '../runtime/source';
 
 /**
  * "Last Light" (docs/design/sunscar-dunes/style-bible.md) on the platform's dusk look (`@wildshard/sdk/looks/duskLook`,
@@ -21,8 +20,12 @@ export const SAND: { material: Material | null } = { material: null };
 /** The skirt (baked, `generators/skirt.ts`), held so the plugin can cut it back to a grid cell's cube (G99). */
 export const SKIRT = new CubeSkirt();
 
-/** Signal Dunes' look: the dusk look over the quest's dusk (look/dusk.ts), the fires' light pools on the lent sand and the collider ground. */
+/**
+ * Signal Dunes' look: the dusk look over the quest's dusk (look/dusk.ts) and the fires' light pools on the lent sand. Its
+ * ground is the manifest's declared key, which the platform's required-ground loader (`installProductGround`) reads from
+ * the shard's product, so the look binds none of its own.
+ */
 export function signalDunesLook(): LookStrategy {
-  return duskLook(SIGNAL_DUSK_LOOK, { dusk: DUSK, fires: FIRE_LIGHTS, sand: SAND, ground: (field, scope) => bindColliderGround(source, field, scope, 'Signal Dunes'), skirt: SKIRT,
+  return duskLook(SIGNAL_DUSK_LOOK, { dusk: DUSK, fires: FIRE_LIGHTS, sand: SAND, ground: () => Promise.resolve(), skirt: SKIRT,
     skirtPack: { url: SAND_FILES.skirt, rows: skirtRows, fault: '[sunscar-dunes] the baked dune skirt did not load:' } });
 }

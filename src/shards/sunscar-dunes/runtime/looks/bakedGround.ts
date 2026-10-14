@@ -4,16 +4,12 @@
  *
  * - `CubeSkirt`: the baked skirt past the ground's edge (a geometry pack), cut back to a grid cell's cube, worn in the
  *   ground's material once the data client lends it.
- * - `bindColliderGround`: the level frame's ground (its queries and collider) from the shardfile's terrain collider; the
- *   data client draws the tiles (G345, presentation-only).
  * - `lentMaterial`: the data client's built ground material, its curves reading the runtime's host fields.
  */
 import { Mesh, type BufferGeometry, type Material, type Object3D } from 'three';
 import { GeometryPack, fetchDeflated, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import type { Scope } from '@wildshard/engine/app/scope';
-import type { PainterField } from '@wildshard/engine/render/look';
-import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
-import { runtimePresentation, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { runtimePresentation } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** What owns the skirt's geometry: the look's level scope (only the verbs used here). */
@@ -60,23 +56,6 @@ export class CubeSkirt {
     entry.mesh.geometry = entry.scope.own(entry.cube); entry.fitted = true;
     old.dispose();
   }
-}
-
-/**
- * The level frame's ground from the shardfile's terrain collider (G227: its heights, normals and splat as the platform's
- * client ground reads them), through the runtime's product reader (standalone the canonical product, in a grid cell the
- * admitted one), so the frame's collider stands on the same lattice the data client draws.
- */
-export async function bindColliderGround(source: Shardfile, field: PainterField, scope: Scope, name: string): Promise<void> {
-  const terrain = source.terrain; if (terrain === null) throw new Error(`${name} declares no terrain collider`);
-  const data = decodeTerrainTile(await runtimeProduct(source).assets.read(terrain.collider));
-  if (scope.disposed) throw new Error(`${name} left while reading its terrain collider`);
-  if (field.bindGround === undefined) throw new Error(`${name} ground needs a live level frame (PainterField.bindGround)`);
-  const heightAt = (x: number, z: number): number => (x < -250 || x > 250 || z < -250 || z > 250 ? 0 : terrainTileHeight(data, x, z));
-  field.bindGround({ heightAt, splatAt: () => [1, 0, 0, 0], normalAt: (x, z, eps = 0.25) => {
-    const dx = heightAt(x - eps, z) - heightAt(x + eps, z), dz = heightAt(x, z - eps) - heightAt(x, z + eps), length = Math.hypot(dx, 2 * eps, dz);
-    return [dx / length, 2 * eps / length, dz / length];
-  } });
 }
 
 /**
