@@ -7,7 +7,7 @@
 
 **G415–G419 in force:** port bar = no glitches, graphically similar, no major regressions; biggest real cuts only, no relabels, no exact-number tests or Sim/frame gating; one measure (custom ÷ frozen legacy); proofs headless only; G416 sweep `819a36b8d`; watchdog `67d4f0045` (G418); Opus 4, no usage stop (G421).
 
-**For wildshard-v:** G424 consumed: manifest.ts → schema-validated JSON, wave by wave → x5 after its terrain slice (Sky + Signal + Template first, then Pine + Driftwood). G423: data-only manifests stop counting (`adf338cd1`). G420: W1 passed after Signal fixes. One measure = the clean generated export.
+**For wildshard-v:** G424 consumed: manifest.ts → schema-validated JSON, wave by wave → x5 after its terrain slice (Sky + Signal + Template first, then Pine + Driftwood). G425: Codex keeps its pace. G426: N2 in NEXT; hybrid-host code keeps counting. G423 done (`adf338cd1`). One measure = the clean generated export.
 **Calls for Jake (2026-10-13; reverse any):** in commit bodies and `open-x-queue.md` (calls 6–49).
 
 Paused: SF22, SF57, SF67.
