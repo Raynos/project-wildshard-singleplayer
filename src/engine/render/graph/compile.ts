@@ -765,6 +765,15 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     setParam(name, value) {
       const set = setters.get(name);
       if (set === undefined) throw new Error(`material graph: no param ${name}`);
+      const param = ir.params?.[name];
+      const length = param?.type === 'vec2' ? 2 : param?.type === 'vec4' ? 4 : 3;
+      if (param === undefined || (param.type === 'float' ? typeof value !== 'number'
+        : typeof value === 'number' || value.length !== length)) throw new Error(`material graph: param ${name} type mismatch`);
+      const values = typeof value === 'number' ? [value] : value;
+      for (const number of values) {
+        if (!Number.isFinite(number)) throw new Error(`material graph: param ${name} must be finite`);
+        if ((param.min !== undefined && number < param.min) || (param.max !== undefined && number > param.max)) throw new Error(`material graph: param ${name} outside declared range`);
+      }
       set(value);
     },
   };

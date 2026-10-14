@@ -14,6 +14,7 @@ import { familyMaterial, moveFamilyMaterial } from '@wildshard/engine/render/fam
 import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Renderer } from '@wildshard/engine/render/renderer';
+import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import { setting } from '@wildshard/engine/ui/Settings';
 import { loadGraphCompiler, bindGraphMeshMap } from '@wildshard/engine/render/graphBackend';
@@ -101,6 +102,8 @@ function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>)
  * `trustedGraphs` is supplied only by the admitted runtime host to authorize declared graph ceilings.
  */
 export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, renderer: Renderer, scope: Scope, options: { graphs?: boolean; sources?: GraphSources; trustedGraphs?: boolean } = {}): Promise<{
+  /** Set a named graph uniform through its declared type/range; no shader rebuild. */
+  setParam: (id: string, name: string, value: GraphLiteral) => void;
   materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; bindMeshMap: (id: string, map: Texture) => Material; tick: (dt: number) => void;
   outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding) | null;
 }> {
@@ -181,6 +184,11 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
     if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
     return bindGraphMeshMap(material, map, scope);
   };
-  return { materials, textures, compile, bindMeshMap, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); moveCurves(); },
+  return { setParam: (id, name, value) => {
+    if (scope.disposed) throw new Error('Material scope unloaded');
+    const material = materials.get(id);
+    if (material === undefined) throw new Error(`Unknown catalogue material ${id}`);
+    graphs.setParam(material, name, value);
+  }, materials, textures, compile, bindMeshMap, outline: graphOutlineHook(graphs.outline), tick: (dt) => { toon.tick(dt); painterly.tick(dt); emissive.tick(dt); graphs.tick(dt); moveCurves(); },
     graphs: { bind: (sources) => { if (sources.state !== undefined) stateOf = sources.state; graphs.bind(sources); moveCurves(); }, readout: graphs.readout }, surfaces };
 }

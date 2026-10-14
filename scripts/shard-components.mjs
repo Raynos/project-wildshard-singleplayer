@@ -48,6 +48,7 @@ function namedRole(name,path='') {
   if(creatureOwners.has(path)&&/keeper/iu.test(name))return 'C4'; return roles.find(([, pattern]) => pattern.test(name))?.[0] ?? null; }
 /** Explicit file ownership; an unrecognised file stays visible and cannot close C9. */
 function fileRole(path, name = '') {
+  if (['src/format/materialGraph.ts', 'src/game/shardfile/clientMaterials.ts', 'src/game/shardfile/clientGraphs.ts'].includes(path)) return 'C2';
   if (path === 'src/shards/driftwood-isle/runtime/hybrid.ts' || path === 'src/game/shardfile/hybrid.ts') return 'C9';
   if(creatureOwners.has(path))return 'C4';
   if(questOwners.has(path))return 'C5';

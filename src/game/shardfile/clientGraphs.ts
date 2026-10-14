@@ -22,7 +22,7 @@
  *   already in the graph's admitted cost (`validateGraph` counts the `outlineVertex` / `outline` programs).
  */
 import { Color, Mesh, PointsMaterial, SRGBColorSpace, type Material, type Object3D, type Texture } from 'three';
-import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphBudget, type GraphIr, type GraphParamType } from '@wildshard/format/materialGraph';
+import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphBudget, type GraphIr, type GraphParamType, type GraphLiteral } from '@wildshard/format/materialGraph';
 import { DATA_LOOK_DAY, dataLookClock, lookSample, sampleLook, type LookSample } from '@wildshard/engine/render/dataLook';
 import { graphMeshMapBase, type GraphCompiler } from '@wildshard/engine/render/graphBackend';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -171,6 +171,8 @@ export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided'>
  * An explicit budget refuses on admission failure instead of using a family material.
  */
 export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial<Pick<Shardfile, 'runtime'>>, options: { compiler: GraphCompiler | null; trustedGraphs?: boolean; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string, role?: 'colour' | 'data') => Texture; file?: (hash: string) => Uint8Array | undefined }): {
+  /** Update a compiled material uniform; unknown/fallback materials and invalid values refuse. */
+  setParam: (material: Material, name: string, value: GraphLiteral) => void;
   compile: (entry: GraphMaterialEntry) => Material; tick: (dt: number) => void; bind: (sources: GraphSources) => void; readout: GraphReadout;
   /** the outline stage of a material this compiled (null: no `stages.outline`, a fallback preset, or not a graph) */
   outline: (material: Material) => GraphOutline | null;
@@ -178,6 +180,7 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
   const lists = graphBindingSources(source), dayKeys = [...lists.day.keys()], stateFields = lists.state;
   const feeds = graphParamFeeds(source), readout: GraphReadout = { compiled: 0, fallback: 0, reasons: [] };
   const outlines = new WeakMap<Material, GraphOutline>();
+  const setters = new WeakMap<Material, (name: string, value: GraphLiteral) => void>();
 
   const looks = presetLooks(source.look.familyLooks);
   /** the preset clocks: seconds since the client was made, as each family look's own clock (both tick by dt) */
@@ -225,6 +228,7 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
     }
     const compiler = options.compiler, compiled = compiler.compileGraph(ir, { dayKeys, stateFields, budget, trustedBudget: options.trustedGraphs === true, textures: options.textures });
     if (resolved.preset) for (const name of PRESET_CLOCK_PARAMS) if (ir.params?.[name] !== undefined) { compiled.setParam(name, elapsed); clocks.push(() => { compiled.setParam(name, elapsed); }); }
+    setters.set(compiled.material, compiled.setParam);
     const hull = compiled.outline;
     if (hull !== null) outlines.set(compiled.material, { material: hull, attach: (mesh) => compiler.attachOutline(mesh, hull) });
     feeds.attach(compiled, ir.params);
@@ -232,6 +236,11 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
     return compiled.material;
   };
   return {
+    setParam: (material, name, value) => {
+      const set = setters.get(graphMeshMapBase(material));
+      if (set === undefined) throw new Error('Material has no compiled graph parameters');
+      set(name, value);
+    },
     compile, readout, outline: (material) => outlines.get(graphMeshMapBase(material)) ?? null,
     tick: (dt) => { elapsed += dt; for (const clock of clocks) clock(); feeds.tick(dt); },
     bind: feeds.bind,

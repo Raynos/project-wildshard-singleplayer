@@ -5021,3 +5021,10 @@ the existing RopeChain and its restore owner; pure-data chains still refuse.
 flags only on completion and preflights old reading continuations before
 mutation. It uses its native clock or the actual `DialogueBox.readingClock`
 lent when a page talk opens; UI, key delay and save owners stay with callers.
+
+`runtimeLookMaterials(...).setParam(materialId, paramName, value)` updates
+a compiled graph's live uniform without rebuilding its material/program.
+The declared scalar/vector shape, finite components and inclusive min/max
+are checked before mutation; colours take three sRGB components. Unknown
+catalogue/param names, texture params, fallback materials and disposed
+scopes refuse. Borrowed mesh-map variants share their graph's uniforms.
