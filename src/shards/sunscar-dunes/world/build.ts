@@ -12,7 +12,7 @@ import { buildTower, type TowerParts } from './tower';
 import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellParts } from './places';
 import { drapeGroundAt } from './drapeGround';
 import { signalPieces, type BakedWorld } from './baked';
-import { fireGeometries, fireLight, fireResources, resetFireLights, tickFires } from './fireFx';
+import { fireLight, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
 import { SIGNAL_INTERACTIONS } from '../data/signalInteractions';
@@ -82,7 +82,6 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   if (flags.has(FLAG.oil)) { wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; }
 
   // The braziers: pour oil by hand, light with a crack.
-  resetFireLights();
   const braziers: Brazier[] = BRAZIERS.map((_, i) => {
     const parts = pieces.add(`sunscar.brazier.${String(i)}`, buildBrazier(baked, i, groundAt, pieces.colliders(`sunscar.brazier.${String(i)}`)));
     const oiled = `oiled.${String(i)}`, lit = `lit.${String(i)}`;
@@ -132,8 +131,6 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   ];
   lastLightAll(ctx.root, ctx.scope); // the style bible's rim and shade floor on every prop
   ctx.scope.ownPrimitives(ctx.root);
-  for (const r of fireResources()) ctx.scope.own(r);
-  ctx.scope.onDispose(() => { for (const g of fireGeometries()) g.dispose(); });
   // round 18 (row 3: a warm light pool on the sand AND the plinth, from a real light): one short-range point light rides to
   // the lit waymark nearest the player and flickers; one light for all three keeps the shaders' light count fixed (it is
   // in the scene from the start, dark until a waymark burns)

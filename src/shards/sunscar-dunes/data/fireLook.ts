@@ -5,7 +5,7 @@ import fireBook from './fireBook.generated.json' with { type: 'json' };
  * Signal Dunes' fire as SF59 material graphs (SHARD-PLATFORM G382 / G377: the hand-written fire shaders' look, kept: a
  * white-hot flipbook core, a leaning smoke plume, a curling cookfire wisp, ember streaks, a flickering halo and a warm
  * ground pool), the shardfile's `look.materials.fire-*`. Each part is a graph over the fire effect's own quads and points
- * (`runtime/looks/fireFx.ts` places them): unlit, unfogged, depth-tested without writing depth, animated from the fires'
+ * (`world/fireFx.ts` places them): unlit, unfogged, depth-tested without writing depth, animated from the fires'
  * clock (`uTime`, bound to the host field `shared.firetime`: the game's frame time the fires tick on). The colours go
  * out as the old programs wrote them, unconverted (G402: the game renders into the composer's linear target).
  * - glow / lamp glow: a soft spherical billboard (`viewBillboard`) the mesh's scale wide, fading inside its own radius;
