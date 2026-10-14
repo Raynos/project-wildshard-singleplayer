@@ -3,11 +3,12 @@ import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import { ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import { app, gameplayRandom } from '@wildshard/engine/app/runtime';
 import type { AmmoRow } from '@wildshard/engine/combat/ammo';
-import { ads as blendAds } from '@wildshard/engine/combat/blocks/ads';
+import { RangedFrame } from '@wildshard/engine/render/viewmodelFeel';
+import { RANGED_FRAME } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import type { TargetHit, Targets } from '@wildshard/engine/combat/types';
-import { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, fovForAspect, isMesh, whiteColors, TRACER_ORDER, TRACER_RED, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, isMesh, whiteColors, TRACER_ORDER, TRACER_RED, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import { quiverState, Weapon, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -256,14 +257,15 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
 
   // animation state
   private draw = 1; private drawVel = 0; private drawTarget = 1;
-  private recoil = 0; private kickPending = 0; private kickApplied = 0;
+  
   private cooldown = 0; private sinceFire = 99; private reloadT = 0;
-  private mouseAds = false; private fov = FOV_HIP;
-  private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
+  
+  private readonly feel: RangedFrame;
+  private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
   private readonly posePlayback: HeldPlayback;
   private readonly poseValues = { time: 0, bob: 0, speed: 0, portrait: 0, recoil: 0, ads: 0, sprint: 0, reloadTilt: 0, reloadProgress: 0, reloading: 0, loadBlend: 0, lagYaw: 0, lagPitch: 0, holster: 0, inspect: 0, inspectYaw: 0, hipX: 0, hipY: 0, hipZ: 0, hipPitch: 0, hipYaw: 0, hipRoll: 0, adsX: 0, adsY: 0, adsZ: 0, adsPitch: 0, adsMotion: 0, cycle: 0, cycleX: 0, cycleY: 0, cycleZ: 0, cyclePitch: 0, cycleYaw: 0, cycleRoll: 0, scale: 0 };
 
-  private adsBlend = 0; private sprintBlend = 0; private reloadTilt = 0;
+  private sprintBlend = 0; private reloadTilt = 0;
   /** loaded bolt's broadhead tip, in model space (measured from the bolt geometry) and bolt-local */
   private tipModel = new THREE.Vector3(); private tipLocal = new THREE.Vector3();
   private adsCache = { aspect: 0, fov: 0, scale: 0 };
@@ -284,7 +286,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   private stuck: Stuck[] = [];
   private puffs = new Puffs();
   private tracers: Tracer[] = [];
-  private tracerRes = new THREE.Vector2();
+  private readonly paintTracer = (trace: Tracer, time: number, camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.update(time, camera, resolution); };
   private time = 0;
 
   constructor(world: RangedWorld, targets: Targets | undefined, opts: BoltCrossbowOptions<P>) {
@@ -300,7 +302,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.setAimSource(() => this.player.sampleAimCommand());
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
-    this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
+    this.feel = new RangedFrame(RANGED_FRAME.crossbow, this.player, FOV_HIP, FOV_ADS);
     this.buildViewmodel();
     this.flightPool = this.buildProjectiles();
     this.game.viewmodel.add(this.model);
@@ -327,9 +329,9 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   private bindInput(ctx: EquipContext): void {
     const allowed = weaponActionGate(this, this.player);
     app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
-    app.input.bind('aim', () => { this.mouseAds = !this.mouseAds; }, ctx.scope, allowed);
+    app.input.bind('aim', () => { this.feel.mouseAds = !this.feel.mouseAds; }, ctx.scope, allowed);
     app.input.bind('reload', () => { this.reload(); }, ctx.scope, allowed);
-    app.input.onReset(() => { this.mouseAds = false; }, ctx.scope);
+    app.input.onReset(() => { this.feel.mouseAds = false; }, ctx.scope);
   }
 
   /** Pull the trigger. Fires if loaded, else starts a reload (and reports a dry click). */
@@ -345,7 +347,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.state.bolts = Math.max(0, this.state.bolts - 1);
     this.cooldown = this.profile.cooldown; this.sinceFire = 0;
     this.drawTarget = 0; this.drawVel = -40; // string snaps forward
-    this.recoil = 1; this.kickPending = this.profile.kick;
+    this.feel.shot(this.profile.kick);
     this.spawnBolt();
     this.onFire?.();
   }
@@ -426,7 +428,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
 
   private spawnBolt(): void {
     const b = this.flightPool.take();
-    const a = sstep(0, 1, this.adsBlend);
+    const a = sstep(0, 1, this.feel.adsBlend);
     this.aimRay(_v3, _fwd);
     // spread: tight at ADS, a touch wider from the hip
     const spread = THREE.MathUtils.degToRad((this.profile.spreadAds ?? 0.15) + (1 - a) * ((this.profile.spreadHip ?? 0.75) - (this.profile.spreadAds ?? 0.15)));
@@ -509,47 +511,24 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
       this.loadedBolt.position.y = 0.0095 + slide * 0.02;
     } else { this.loadedBolt.position.z = 0.128 - 0.18; this.loadedBolt.position.y = 0.0095; }
 
-    // ADS + FOV
-    if (p.sprinting || !this.enabled) this.mouseAds = false; // sprinting / pause / holster drop the RMB toggle
-    this.state.ads = (this.mouseAds || this.adsHeld) && this.enabled && !this.state.reloading && !p.sprinting;
-    this.adsBlend = blendAds(this.adsBlend, this.state.ads, dt, this.profile.adsBlend);
-    const targetFov = fovForAspect(FOV_HIP + (FOV_ADS - FOV_HIP) * sstep(0, 1, this.adsBlend), cam.aspect);
-    if (Math.abs(targetFov - this.fov) > 0.01) {
-      this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums();
-    }
-
-    // recoil + camera kick (kick up on fire, recover smoothly)
-    this.recoil *= Math.exp(-dt * 9);
-    if (this.kickPending > 0) { const a = Math.min(this.kickPending, this.profile.kick * dt * 40); p.pitch += a; this.kickApplied += a; this.kickPending -= a; }
-    else if (this.kickApplied > 0) { const r = this.kickApplied * Math.min(1, dt * 6); p.pitch -= r; this.kickApplied -= r; }
-
-    // look lag (spring)
-    let dYaw = p.yaw - this.lastYaw, dPitch = p.pitch - this.lastPitch;
-    this.lastYaw = p.yaw; this.lastPitch = p.pitch;
-    if (Math.abs(dYaw) > 1) dYaw = 0; if (Math.abs(dPitch) > 1) dPitch = 0;
-    this.lagYaw = THREE.MathUtils.clamp(this.lagYaw - dYaw * 0.5, -0.12, 0.12);
-    this.lagPitch = THREE.MathUtils.clamp(this.lagPitch - dPitch * 0.5, -0.1, 0.1);
-    // stiff spring (k=220): explicit Euler blows up once k·dt² > 1 (≈ 15 fps on a phone) → substep at ≤ 1/120 s
-    for (let rem = dt; rem > 0; rem -= 1 / 120) {
-      const h = Math.min(rem, 1 / 120);
-      this.lagYawVel += (-this.lagYaw * 220 - this.lagYawVel * 20) * h; this.lagYaw += this.lagYawVel * h;
-      this.lagPitchVel += (-this.lagPitch * 220 - this.lagPitchVel * 20) * h; this.lagPitch += this.lagPitchVel * h;
-    }
-    this.lagYaw = THREE.MathUtils.clamp(this.lagYaw, -0.12, 0.12); this.lagPitch = THREE.MathUtils.clamp(this.lagPitch, -0.1, 0.1);
+    const frame = this.frameInputs;
+    frame.enabled = this.enabled; frame.active = true; frame.held = this.adsHeld;
+    frame.reloading = this.state.reloading; frame.adsDuration = this.profile.adsBlend; frame.kick = this.profile.kick;
+    this.state.ads = this.feel.sampleFrame(dt, p, frame, cam, this.sky.csm);
 
     // pose blend: hip ↔ ADS ↔ sprint ↔ reload
     this.sprintBlend += ((p.sprinting ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
     const rl = this.state.reloading ? Math.sin(Math.min(1, this.state.reloadProgress) * Math.PI) : 0;
     this.reloadTilt += (rl - this.reloadTilt) * Math.min(1, dt * 10);
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
-    const a = sstep(0, 1, this.adsBlend);
+    const a = sstep(0, 1, this.feel.adsBlend);
     // portrait phone: the wider FOV + narrow frame make the bow fill the screen — hold it lower, further out, smaller
     const port = portrait, scale = this.view.hip.scale * (1 - port * 0.55);
     const sightPose = a > 0 ? this.solveAds(cam, scale) : this.adsPose, v = this.poseValues, hip = this.view.hip;
     v.time = t; v.bob = p.bobTime; v.speed = p.speedFactor; v.portrait = portrait;
-    v.recoil = this.recoil; v.ads = a; v.sprint = this.sprintBlend; v.reloadTilt = this.reloadTilt;
+    v.recoil = this.feel.recoil; v.ads = a; v.sprint = this.sprintBlend; v.reloadTilt = this.reloadTilt;
     v.reloadProgress = this.state.reloadProgress; v.reloading = Number(this.state.reloading);
-    v.lagYaw = this.lagYaw; v.lagPitch = this.lagPitch; v.holster = this.holster; v.inspect = this.inspect;
+    v.lagYaw = this.feel.lag.yaw; v.lagPitch = this.feel.lag.pitch; v.holster = this.holster; v.inspect = this.inspect;
     v.hipX = hip.px; v.hipY = hip.py; v.hipZ = hip.pz; v.hipPitch = hip.rx; v.hipYaw = hip.ry; v.hipRoll = hip.rz;
     v.adsX = sightPose.px; v.adsY = sightPose.py; v.adsZ = sightPose.pz; v.adsPitch = sightPose.rx; v.adsMotion = this.profile.adsMotion;
 
@@ -579,9 +558,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     }
 
     this.stepBolts(dt);
-    this.puffs.update(dt, this.game.renderer, cam);
-    this.game.renderer.getDrawingBufferSize(this.tracerRes);
-    for (const tr of this.tracers) tr.update(t, cam, this.tracerRes);
+    this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.tracers, this.paintTracer);
   }
 
   private stepBolts(dt: number): void { this.flightPool.step(dt); }

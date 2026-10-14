@@ -1,12 +1,13 @@
 import { app } from '@wildshard/engine/app/runtime';
-import { ads as blendAds } from '@wildshard/engine/combat/blocks/ads';
+import { RangedFrame } from '@wildshard/engine/render/viewmodelFeel';
+import { RANGED_FRAME } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Firearm } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { brassFloor, stepBrass } from '@wildshard/engine/combat/view/brass';
 import { HitLine, makeFlashTexture } from '@wildshard/engine/combat/view/firearmFx';
 import { hitscan, type HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
-import { Puffs, fovForAspect, FOV_HIP, FOV_ADS, isMesh, whiteColors, worldHit, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { Puffs, FOV_HIP, FOV_ADS, isMesh, whiteColors, worldHit, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
@@ -110,16 +111,17 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   private displayParts: { geo: THREE.BufferGeometry; mat: THREE.Material; pos?: THREE.Vector3 }[] = [];
   private brass: Brass[] = [];
   private brassMat!: THREE.MeshStandardMaterial;
-  private tracers: HitLine[] = []; private tracerRes = new THREE.Vector2();
+  private tracers: HitLine[] = []; private readonly paintTracer = (trace: HitLine, time: number, _camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.update(time, resolution, this.tracerLife); };
   private puffs = new Puffs();
 
   // animation state
   private cooldown = 0; private reloadT = 0;
-  private recoil = 0; private kickPending = 0; private kickApplied = 0; private bloom = 0;
-  private mouseAds = false; private fov = FOV_HIP;
-  private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
+  private bloom = 0;
+  
+  private readonly feel: RangedFrame;
+  private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
   private posePos = new THREE.Vector3(); private poseRot = new THREE.Euler(); private poseInit = false;
-  private adsBlend = 0; private sprintBlend = 0; private reloadTilt = 0;
+  private sprintBlend = 0; private reloadTilt = 0;
   private time = 0;
   /** tracer line life (s) — a dev knob for screenshots */
   tracerLife: number;
@@ -147,7 +149,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     this.flashLight = opts.muzzleLight === false ? new THREE.PointLight(flash.colour, 0, 8, 2) : LightPool.for(this.game.scene).acquire(flash.colour, 0, 8, 2);
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
-    this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
+    this.feel = new RangedFrame(RANGED_FRAME.magazine, this.player, FOV_HIP, FOV_ADS);
     this.buildViewmodel();
     this.buildEffects();
     this.game.viewmodel.add(this.model);
@@ -163,15 +165,15 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   private bindInput(ctx: EquipContext): void {
     const allowed = weaponActionGate(this, this.player);
     app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
-    app.input.bind('aim', () => { this.mouseAds = !this.mouseAds; }, ctx.scope, allowed);
+    app.input.bind('aim', () => { this.feel.mouseAds = !this.feel.mouseAds; }, ctx.scope, allowed);
     app.input.bind('reload', () => { this.reload(); }, ctx.scope, allowed);
-    app.input.onReset(() => { this.mouseAds = false; }, ctx.scope);
+    app.input.onReset(() => { this.feel.mouseAds = false; }, ctx.scope);
   }
 
   override setActive(on: boolean): void {
     this.active = on;
     this.model.visible = on;
-    if (!on) { this.enabled = false; this.mouseAds = false; }
+    if (!on) { this.enabled = false; this.feel.mouseAds = false; }
   }
 
   /** the pooled muzzle light, just ahead of the muzzle, in world space (the pool's group sits at the scene origin) */
@@ -195,7 +197,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     const s = this.state, flash = this.view.flash;
     s.ammo--; s.loaded = s.ammo > 0;
     this.cooldown = this.profile.interval;
-    this.recoil = 1; this.kickPending = this.profile.kick;
+    this.feel.shot(this.profile.kick);
     this.flashFrames = flash.frames; this.flashLightT = flash.lightTime;
     for (const q of this.flashQuads) { q.rotation.z = app.rng.stream('cosmetic').next() * Math.PI * 2; q.scale.setScalar(0.8 + app.rng.stream('cosmetic').next() * 0.5); }
     this.flash.visible = true; this.flashLight.intensity = flash.light; this.placeFlashLight();
@@ -207,7 +209,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   }
 
   private hitscan(): void {
-    const result = hitscan((origin, dir) => this.aimRay(origin, dir), this.targets, this.profile, this.adsBlend, this.bloom, this.player.speedFactor);
+    const result = hitscan((origin, dir) => this.aimRay(origin, dir), this.targets, this.profile, this.feel.adsBlend, this.bloom, this.player.speedFactor);
     const { point, direction, surface, hit, killed } = result;
     if (hit) this.onHit?.(hit.animal.kind, hit.headshot, killed);
     _d.copy(direction);
@@ -324,45 +326,23 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     if (this.flashFrames > 0 && --this.flashFrames === 0) this.flash.visible = false;
     if (this.flashLightT > 0) { this.flashLightT -= dt; this.flashLight.intensity = this.flashLightT <= 0 ? 0 : flash.light * clamp01(this.flashLightT / flash.lightTime); this.placeFlashLight(); }
 
-    // ADS + FOV (only the held weapon owns the camera FOV)
-    if (p.sprinting || !this.enabled) this.mouseAds = false; // sprinting / pause / holster drop the RMB toggle
-    s.ads = (this.mouseAds || this.adsHeld) && this.enabled && !s.reloading && !p.sprinting;
-    this.adsBlend = blendAds(this.adsBlend, s.ads, dt, this.profile.ads.blend);
-    const targetFov = fovForAspect(FOV_HIP + (FOV_ADS - FOV_HIP) * sstep(0, 1, this.adsBlend), cam.aspect);
-    if (this.active && Math.abs(targetFov - this.fov) > 0.01) {
-      this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums();
-    }
-
-    // recoil + camera kick (up on fire, recovered over ~0.2 s)
-    this.recoil *= Math.exp(-dt * 14);
-    if (this.kickPending > 0) { const a = Math.min(this.kickPending, this.profile.kick * dt * 60); p.pitch += a; this.kickApplied += a; this.kickPending -= a; }
-    else if (this.kickApplied > 0) { const r = this.kickApplied * Math.min(1, dt * 9); p.pitch -= r; this.kickApplied -= r; }
-
-    // look lag (spring, substepped)
-    let dYaw = p.yaw - this.lastYaw, dPitch = p.pitch - this.lastPitch;
-    this.lastYaw = p.yaw; this.lastPitch = p.pitch;
-    if (Math.abs(dYaw) > 1) dYaw = 0; if (Math.abs(dPitch) > 1) dPitch = 0;
-    this.lagYaw = THREE.MathUtils.clamp(this.lagYaw - dYaw * 0.5, -0.12, 0.12);
-    this.lagPitch = THREE.MathUtils.clamp(this.lagPitch - dPitch * 0.5, -0.1, 0.1);
-    for (let rem = dt; rem > 0; rem -= 1 / 120) {
-      const h = Math.min(rem, 1 / 120);
-      this.lagYawVel += (-this.lagYaw * 220 - this.lagYawVel * 20) * h; this.lagYaw += this.lagYawVel * h;
-      this.lagPitchVel += (-this.lagPitch * 220 - this.lagPitchVel * 20) * h; this.lagPitch += this.lagPitchVel * h;
-    }
-    this.lagYaw = THREE.MathUtils.clamp(this.lagYaw, -0.12, 0.12); this.lagPitch = THREE.MathUtils.clamp(this.lagPitch, -0.1, 0.1);
+    const frame = this.frameInputs;
+    frame.enabled = this.enabled; frame.active = this.active; frame.held = this.adsHeld;
+    frame.reloading = s.reloading; frame.adsDuration = this.profile.ads.blend; frame.kick = this.profile.kick;
+    s.ads = this.feel.sampleFrame(dt, p, frame, cam, this.sky.csm);
 
     // pose blend: hip ↔ ADS ↔ sprint ↔ reload ↔ holster
     this.sprintBlend += ((p.sprinting ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
     const rl = s.reloading ? Math.sin(Math.min(1, s.reloadProgress) * Math.PI) : 0;
     this.reloadTilt += (rl - this.reloadTilt) * Math.min(1, dt * 10);
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
-    const a = sstep(0, 1, this.adsBlend), sp = this.sprintBlend * (1 - portrait * 0.7), rt = this.reloadTilt;
+    const a = sstep(0, 1, this.feel.adsBlend), sp = this.sprintBlend * (1 - portrait * 0.7), rt = this.reloadTilt;
     const port = portrait, scale = this.hip.scale * (1 - port * 0.12); // portrait phone: a touch smaller, held a little further out
     const swX = Math.sin(t * 0.7) * 0.0025, swY = Math.sin(t * 1.1) * 0.002, swRz = Math.sin(t * 0.5) * 0.006;
     const sf = p.speedFactor;
     const bobX = Math.cos(p.bobTime) * 0.014 * sf, bobY = -Math.abs(Math.sin(p.bobTime)) * 0.011 * sf, bobRz = Math.cos(p.bobTime) * 0.018 * sf, bobRx = Math.sin(p.bobTime * 2) * 0.009 * sf;
-    const lagX = this.lagYaw * 0.25, lagY = this.lagPitch * 0.2, lagRy = this.lagYaw, lagRx = this.lagPitch;
-    const rc = this.recoil;
+    const lagX = this.feel.lag.yaw * 0.25, lagY = this.feel.lag.pitch * 0.2, lagRy = this.feel.lag.yaw, lagRx = this.feel.lag.pitch;
+    const rc = this.feel.recoil;
     // hip: lower-right, muzzle a touch in toward the centre
     let { px, py, pz, rx, ry, rz } = this.hip;
     px += sp * -0.06; py += sp * -0.08; pz += sp * 0.05; rx += sp * 0.30; ry += sp * 0.5; rz += sp * -0.12;
@@ -395,9 +375,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     }
 
     this.stepBrass(dt);
-    this.puffs.update(dt, this.game.renderer, cam);
-    this.game.renderer.getDrawingBufferSize(this.tracerRes);
-    for (const tr of this.tracers) tr.update(t, this.tracerRes, this.tracerLife);
+    this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.tracers, this.paintTracer);
   }
   protected override animateAction(_t: number, _dt: number): void {
     const s = this.state;

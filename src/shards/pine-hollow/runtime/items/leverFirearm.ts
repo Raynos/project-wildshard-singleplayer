@@ -1,14 +1,15 @@
 import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
-import { ads as blendAds } from '@wildshard/engine/combat/blocks/ads';
+import { RangedFrame } from '@wildshard/engine/render/viewmodelFeel';
+import { RANGED_FRAME } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Firearm } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { stepBrass, brassFloor } from '@wildshard/engine/combat/view/brass';
 import { makeFlashTexture, HitLine } from '@wildshard/engine/combat/view/firearmFx';
 import { hitscan, type HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
-import { Puffs, whiteColors, fovForAspect, FOV_HIP, FOV_ADS, isMesh, worldHit, fixIBL, VIEWMODEL_GROUP, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { Puffs, whiteColors, FOV_HIP, FOV_ADS, isMesh, worldHit, fixIBL, VIEWMODEL_GROUP, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
 import { SHADOW_LAYER } from '@wildshard/engine/core/shadowLayer';
 import { mergeOrNull } from '@wildshard/engine/models/weld';
@@ -194,7 +195,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   private readonly brass: Brass[] = [];
   private readonly brassMat: THREE.MeshPhysicalMaterial;
   private readonly caseGeo: THREE.BufferGeometry;
-  private readonly tracers: HitLine[] = []; private readonly tracerRes = new THREE.Vector2();
+  private readonly tracers: HitLine[] = []; private readonly paintTracer = (trace: HitLine, time: number, _camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.update(time, resolution, this.tracerLife); };
   private readonly puffs = new Puffs();
   /** the shard's hands on the model (LeverFirearmOptions.hands), null without */
   private hands: LeverFirearmHands | null = null;
@@ -207,13 +208,14 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   private readonly blendGrip: LeverFirearmHandsKit['blend'];
 
   // pose
-  private recoil = 0; private kickPending = 0; private kickApplied = 0;
-  private mouseAds = false; private fov = FOV_HIP;
-  private lastYaw = 0; private lastPitch = 0; private lagYaw = 0; private lagYawVel = 0; private lagPitch = 0; private lagPitchVel = 0;
+  
+  
+  private readonly feel: RangedFrame;
+  private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
   private readonly posePlayback: HeldPlayback;
   private readonly poseValues = { time: 0, bob: 0, speed: 0, portrait: 0, recoil: 0, ads: 0, sprint: 0, reloadTilt: 0, reloadProgress: 0, reloading: 0, loadBlend: 0, lagYaw: 0, lagPitch: 0, holster: 0, inspect: 0, inspectYaw: 0, hipX: 0, hipY: 0, hipZ: 0, hipPitch: 0, hipYaw: 0, hipRoll: 0, adsX: 0, adsY: 0, adsZ: 0, adsPitch: 0, adsMotion: 0, cycle: 0, cycleX: 0, cycleY: 0, cycleZ: 0, cyclePitch: 0, cycleYaw: 0, cycleRoll: 0, scale: 0 };
 
-  private adsBlend = 0; private sprintBlend = 0; private loadBlend = 0;
+  private sprintBlend = 0; private loadBlend = 0;
   private time = 0;
   tracerLife: number;
   /** hip pose (lower-right); a dev knob: `__weapons.get('rifle').hip.py = …` */
@@ -242,7 +244,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     this.flashLight = opts.muzzleLight === false ? new THREE.PointLight(0xffb060, 0, 8, 2) : LightPool.for(this.game.scene).acquire(0xffb060, 0, 8, 2);
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
-    this.lastYaw = this.player.yaw; this.lastPitch = this.player.pitch;
+    this.feel = new RangedFrame(RANGED_FRAME.lever, this.player, FOV_HIP, FOV_ADS);
 
     const { brassMat, woodMat, steelMat, parts, beadGeo } = opts.build(this.sky);
     this.brassMat = brassMat;
@@ -345,15 +347,15 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   private bindInput(ctx: EquipContext): void {
     const allowed = weaponActionGate(this, this.player);
     app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
-    app.input.bind('aim', () => { this.mouseAds = !this.mouseAds; }, ctx.scope, allowed);
+    app.input.bind('aim', () => { this.feel.mouseAds = !this.feel.mouseAds; }, ctx.scope, allowed);
     app.input.bind('reload', () => { this.reload(); }, ctx.scope, allowed);
-    app.input.onReset(() => { this.mouseAds = false; }, ctx.scope);
+    app.input.onReset(() => { this.feel.mouseAds = false; }, ctx.scope);
   }
 
   override setActive(on: boolean): void {
     this.active = on;
     this.model.visible = on;
-    if (!on) { this.enabled = false; this.mouseAds = false; }
+    if (!on) { this.enabled = false; this.feel.mouseAds = false; }
   }
 
   /** rounds in the gun, the chamber, the reserve → the HUD's state */
@@ -384,7 +386,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
 
   protected override fire(): void {
     this.act.dropHammer();
-    this.recoil = 1; this.kickPending = this.view.kick;
+    this.feel.shot(this.view.kick);
     this.flashFrames = this.view.flash.frames; this.flashLightT = this.view.flash.lightTime;
     for (const q of this.flashQuads) { q.rotation.z = app.rng.stream('cosmetic').next() * Math.PI * 2; q.scale.setScalar(0.8 + app.rng.stream('cosmetic').next() * 0.5); }
     this.flash.visible = true; this.flashLight.intensity = this.view.flash.light; this.placeFlashLight();
@@ -404,7 +406,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return super.aimRay(origin, dir); }
 
   private hitscan(): void {
-    const result = hitscan((origin, dir) => this.aimRay(origin, dir), this.targets, this.profile, this.adsBlend, 0, this.player.speedFactor);
+    const result = hitscan((origin, dir) => this.aimRay(origin, dir), this.targets, this.profile, this.feel.adsBlend, 0, this.player.speedFactor);
     const { point, direction, surface, hit, killed } = result;
     if (hit) this.onHit?.(hit.animal.kind, hit.headshot, killed);
     _d.copy(direction);
@@ -503,43 +505,23 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     if (this.flashFrames > 0 && --this.flashFrames === 0) this.flash.visible = false;
     if (this.flashLightT > 0) { this.flashLightT -= dt; this.flashLight.intensity = this.flashLightT <= 0 ? 0 : this.view.flash.light * clamp01(this.flashLightT / this.view.flash.lightTime); this.placeFlashLight(); }
 
-    // ADS + FOV (only the held weapon owns the FOV)
     const s = this.state;
-    if (p.sprinting || !this.enabled) this.mouseAds = false;
-    s.ads = (this.mouseAds || this.adsHeld) && this.enabled && this.phase !== 'reload' && !p.sprinting;
-    this.adsBlend = blendAds(this.adsBlend, s.ads, dt, this.profile.ads.blend);
-    const targetFov = fovForAspect(FOV_HIP + (FOV_ADS - FOV_HIP) * sstep(0, 1, this.adsBlend), cam.aspect);
-    if (this.active && Math.abs(targetFov - this.fov) > 0.01) { this.fov = targetFov; cam.fov = this.fov; cam.updateProjectionMatrix(); this.sky.csm.updateFrustums(); }
-
-    // recoil + camera kick (a .30-30 shoves: up hard, recovered over ~0.3 s)
-    this.recoil *= Math.exp(-dt * 10);
-    if (this.kickPending > 0) { const k = Math.min(this.kickPending, this.view.kick * dt * 30); p.pitch += k; this.kickApplied += k; this.kickPending -= k; }
-    else if (this.kickApplied > 0) { const r = this.kickApplied * Math.min(1, dt * 6); p.pitch -= r; this.kickApplied -= r; }
-
-    // look lag (spring, substepped — Crossbow.ts)
-    let dYaw = p.yaw - this.lastYaw, dPitch = p.pitch - this.lastPitch;
-    this.lastYaw = p.yaw; this.lastPitch = p.pitch;
-    if (Math.abs(dYaw) > 1) dYaw = 0; if (Math.abs(dPitch) > 1) dPitch = 0;
-    this.lagYaw = THREE.MathUtils.clamp(this.lagYaw - dYaw * 0.5, -0.12, 0.12);
-    this.lagPitch = THREE.MathUtils.clamp(this.lagPitch - dPitch * 0.5, -0.1, 0.1);
-    for (let rem = dt; rem > 0; rem -= 1 / 120) {
-      const h = Math.min(rem, 1 / 120);
-      this.lagYawVel += (-this.lagYaw * 220 - this.lagYawVel * 20) * h; this.lagYaw += this.lagYawVel * h;
-      this.lagPitchVel += (-this.lagPitch * 220 - this.lagPitchVel * 20) * h; this.lagPitch += this.lagPitchVel * h;
-    }
-    this.lagYaw = THREE.MathUtils.clamp(this.lagYaw, -0.12, 0.12); this.lagPitch = THREE.MathUtils.clamp(this.lagPitch, -0.1, 0.1);
+    const frame = this.frameInputs;
+    frame.enabled = this.enabled; frame.active = this.active; frame.held = this.adsHeld;
+    frame.reloading = this.phase === 'reload'; frame.adsDuration = this.profile.ads.blend; frame.kick = this.view.kick;
+    s.ads = this.feel.sampleFrame(dt, p, frame, cam, this.sky.csm);
 
     // pose: hip ↔ sighted ↔ sprint ↔ the loading roll ↔ the lever's rock ↔ holster
     this.sprintBlend += ((p.sprinting ? 1 : 0) - this.sprintBlend) * Math.min(1, dt * 7);
     const loading = this.phase === 'reload' ? 1 : 0;
     this.loadBlend += (loading - this.loadBlend) * Math.min(1, dt / (loading ? this.view.timing.reloadIn : this.view.timing.reloadOut) * 2.2);
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
-    const a = sstep(0, 1, this.adsBlend);
+    const a = sstep(0, 1, this.feel.adsBlend);
     const port = portrait, scale = this.hip.scale * (1 - port * 0.14);
     const ads = a > 0 ? this.solveAds(scale) : this.adsPose, v = this.poseValues, hip = this.hip, cycle = this.cyclePose;
     v.time = t; v.bob = p.bobTime; v.speed = p.speedFactor; v.portrait = portrait;
-    v.recoil = this.recoil; v.ads = a; v.sprint = this.sprintBlend; v.loadBlend = this.loadBlend;
-    v.lagYaw = this.lagYaw; v.lagPitch = this.lagPitch; v.holster = this.holster;
+    v.recoil = this.feel.recoil; v.ads = a; v.sprint = this.sprintBlend; v.loadBlend = this.loadBlend;
+    v.lagYaw = this.feel.lag.yaw; v.lagPitch = this.feel.lag.pitch; v.holster = this.holster;
     v.inspect = this.inspect; v.inspectYaw = this.inspectYaw; v.scale = scale; v.cycle = open;
     v.hipX = hip.px; v.hipY = hip.py; v.hipZ = hip.pz; v.hipPitch = hip.rx; v.hipYaw = hip.ry; v.hipRoll = hip.rz;
     v.adsX = ads.px; v.adsY = ads.py; v.adsZ = ads.pz; v.adsMotion = this.view.adsMotion;
@@ -558,9 +540,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     }
 
     this.stepBrass(dt);
-    this.puffs.update(dt, this.game.renderer, cam);
-    this.game.renderer.getDrawingBufferSize(this.tracerRes);
-    for (const tr of this.tracers) tr.update(t, this.tracerRes, this.tracerLife);
+    this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.tracers, this.paintTracer);
   }
 
   /** the action's clock: the recoil beat → the lever cycle → idle; the reload's rounds */
