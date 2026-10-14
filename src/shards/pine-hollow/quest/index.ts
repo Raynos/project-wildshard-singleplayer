@@ -30,11 +30,12 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import type { SkinLocker } from '@wildshard/game/cosmetics/locker';
 import type { Inventory, ItemId } from '@wildshard/game/Inventory';
 import { ShopPanel } from '@wildshard/game/loot/ui/ShopPanel';
-import type { Progress } from '@wildshard/game/Progress';
+import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
+import { PINE_PAGE_DEATH_EFFECTS } from '../data/questDeaths';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeLedger, bindRuntimeQuest, bindRuntimeState } from '@wildshard/game/shardfile/hybridRows';
 import { bindPineFacts } from '../runtime/facts';
-import { isPineThrall, recordPineFeatKill } from './featLaw';
+import { isPineThrall } from './featLaw';
 import source from '../shard.config';
 /**
  * Pine Hollow's adventure layer, wired in one call from main.ts (PINE-HOLLOW-REMASTER: PH-C1 the quest *The Warden's
@@ -64,7 +65,6 @@ import { waystoneSites, contractBoardSite, CANOE_SITE, type PineLandmarks } from
 import { ZIP_YAW } from '../world/timberSites';
 import { hamletRoofs } from '../world/cabinBake';
 import { CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND } from '../data/layout';
-import { KING_KIND } from '../runtime/antlerKing';
 import { RANGER, MILLER, TRADER } from './wardensHollow';
 import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
 import { pineTableFromPlacements } from './table';
@@ -94,7 +94,7 @@ export interface PineQuestHost {
   ctx: ShardContext;
   game: Game; sky: Sky; player: Player; animals: AnimalManager;
   hud: HUD; audio: Audio; music: Music;
-  inventory: Inventory; progress: Progress; skins: SkinLocker; wearSkin: (s: SkinDef) => void;
+  inventory: Inventory; progress: Parameters<typeof bindPineFacts>[1]; skins: SkinLocker; wearSkin: (s: SkinDef) => void;
   weapons: { setEnabled: (on: boolean) => void; visible: boolean };
   /** the crossbow's bolts, and the loadout's special ammo (PH-C11: pitch / broadhead bolts, cartridges, arrows) */
   crossbow: { addBolts: (n: number) => void; addAmmo?: (kind: 'pitch' | 'broadhead' | 'cartridge' | 'arrow', n: number) => void; /** can the kit hold n more? (E314 C: no trade into a full quiver) */ room?: Room };
@@ -355,20 +355,19 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   { const f = front(HAMLET_SITES.trader, 2.6); traderPerson.prompt.position.set(f.x, floorAt(f.x, f.z) + 1.4, f.z); traderVoice.copy(traderPerson.fig.talkPoint); }
 
   // ── kills: the King, thralls, the contracts ──
-  ctx.on('actor.died', ({ actor }) => {
-    const a = animals.animals.find((animal) => animal.combatActor() === actor);
-    if (a === undefined) return;
-    if (a.kind === KING_KIND) flags.set('dead:king');
-    recordPineFeatKill(featFacts, a);
-    const thrall = isPineThrall(a);
-    const moved = recordKill(board, { kind: a.kind, variant: a.variant, rarity: a.rarity, elite: eliteOf(a.kind, a.variant), thrall });
-    if (moved.length > 0) {
+  const killed = bindQuestDeathEffects(PINE_PAGE_DEATH_EFFECTS, { flags, kill: featFacts.kill, event: featFacts.event,
+    calls: new Map([['contracts', (a: AnimalManager['animals'][number]) => {
+      const moved = recordKill(board, { kind: a.kind, variant: a.variant, rarity: a.rarity, elite: eliteOf(a.kind, a.variant), thrall: isPineThrall(a) });
+      if (moved.length === 0) return;
       saveBoard(board, store);
       for (const i of moved) {
         const c = board.slots[i];
         if (c) hud.toast(isFilled(c) ? `Contract filled · ${c.goal} — claim it at the lodge` : `Contract · ${c.goal} · ${c.have} / ${c.need}`);
       }
-    }
+    }]]) });
+  ctx.on('actor.died', ({ actor }) => {
+    const a = animals.animals.find(animal => animal.combatActor() === actor);
+    if (a !== undefined) killed(a);
   });
 
   // ── the rides ──

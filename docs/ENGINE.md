@@ -5561,3 +5561,9 @@ selecting each member. Positions, normals, colours, displaced shadow depth and
 objectOrigin all follow the current member's placement. No graph-only batch
 buffers or dispatch are created. This support admits existing non-facade
 batches; facade multi-draw remains prohibited.
+
+
+`@wildshard/game/plugin/quests` `bindQuestDeathEffects(rows, ports)` preflights bounded ordered death consequences.
+Optional `when` alternatives match kind/variant/label; all matching rows run once in order. Effects lend existing
+flag, achievement kill/event, named callback or toast owners. Missing owners refuse before any effects. The caller
+keeps actual actor lookup, subscription priority, key placement, contract persistence and save continuation.

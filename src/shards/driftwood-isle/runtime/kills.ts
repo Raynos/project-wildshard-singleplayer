@@ -1,3 +1,5 @@
+import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
+import { DRIFTWOOD_KILL_DEATH_EFFECTS } from '../data/questDeaths';
 import * as v from 'valibot';
 import type { SimHost } from '@wildshard/engine/sim';
 import { createAchievementCounters, type AchievementDef } from '@wildshard/game/achievements';
@@ -26,11 +28,10 @@ export function installDriftwoodKills(host: SimHost, feats: readonly Achievement
     prefix: 'driftwood.', floorTotals: false, validateTotals: true, write: 'each' },
     { read: () => counts, write: current => { counts = current; }, emit: fact });
   const Saved = v.strictObject(Object.fromEntries(kills.map(feat => [feat.id, v.pipe(count, v.maxValue(feat.count))])));
+  const killed = bindQuestDeathEffects(DRIFTWOOD_KILL_DEATH_EFFECTS, { flags: host.flags, kill: counter.kill });
   host.events.on('actor.died', ({ actor }) => {
     const body = roster().find(b => b.actor?.combatActor() === actor);
-    if (body === undefined) return;
-    if (body.kind === 'sailor') host.flags.set(SAILOR_DEAD_FLAG);
-    counter.kill(body.kind);
+    if (body !== undefined) killed(body);
   }, host.scope);
   // the counts change only on a death: the step carries them as continuation and does nothing per tick
   host.onStep(KILLS_STEP, () => undefined, {

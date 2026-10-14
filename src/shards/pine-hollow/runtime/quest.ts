@@ -1,3 +1,4 @@
+import { PINE_DEATH_EFFECTS } from '../data/questDeaths';
 import { ZiplineDriver } from '@wildshard/sdk/movers';
 import { ZIPLINE, ZIP_RIDE } from '../data/zipline';
 import * as v from 'valibot';
@@ -6,14 +7,14 @@ import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
 import { bindInteractionTransitions, type InteractionState } from '@wildshard/engine/world/interact/flags';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/format/quests';
-import { installQuestGraph, bindQuestTableSpots } from '@wildshard/game/plugin/quests';
+import { installQuestGraph, bindQuestTableSpots, bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
 import { PINE_GRAPH, pineQuestRows } from '../quest/graph';
 import { PINE_READING_DELAY, PINE_LANTERN_IDS, RESIN_COUNT, TOKEN_NAMES } from '../data/interactions';
 import { LANTERN_FLAGS } from '../data/wardensHollow';
 import { pineTableFromPlacements } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';
-import { createPineFacts, recordPineFeatKill, isPineThrall } from '../quest/featLaw';
+import { createPineFacts, isPineThrall } from '../quest/featLaw';
 import { pineDirectorClock, type PineClockEvent } from './directorClock';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { LEVER_FLAG } from '../data/nativeLoadout';
@@ -285,11 +286,13 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (!f.startsWith('plate:') && !f.startsWith('lever:')) syncFeats();
   });
   host.scope.onDispose(offFlags);
+  const killed = bindQuestDeathEffects(PINE_DEATH_EFFECTS, { kill: feats.kill, event: feats.event,
+    calls: new Map([['contracts', (body: SimHost['entities'] extends ReadonlyMap<string, infer Entity> ? Entity : never) => {
+      lodge.killed({ kind: body.kind, variant: body.variant, rarity: body.rarity, elite: eliteOf(body.kind, body.variant), thrall: isPineThrall(body) });
+    }]]) });
   host.events.on('actor.died', ({ actor }) => {
     const body = [...host.entities.values()].find(candidate => candidate.combatActor() === actor);
-    if (body === undefined) return;
-    recordPineFeatKill(feats, body);
-    lodge.killed({ kind: body.kind, variant: body.variant, rarity: body.rarity, elite: eliteOf(body.kind, body.variant), thrall: isPineThrall(body) });
+    if (body !== undefined) killed(body);
   }, host.scope);
   syncFeats();
 

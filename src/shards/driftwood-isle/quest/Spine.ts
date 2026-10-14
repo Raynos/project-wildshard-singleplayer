@@ -13,7 +13,8 @@ import { ownSceneTree, sceneObjectOwner } from '@wildshard/engine/app/sceneOwner
 import type { QuestState } from '@wildshard/engine/quest/core';
 import type { LiveMarker } from '@wildshard/engine/quest/view';
 import { DialogueBox, type ObjectiveLine } from '@wildshard/engine/quest/view/ui';
-import type { ShardContext } from '@wildshard/game/shard/context';
+import { bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
+import { DRIFTWOOD_PAGE_DEATH_EFFECTS } from '../data/questDeaths';
 import { bindRuntimeQuest, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
 import source from '../shard.config';
 import { DRIFTWOOD_MARKERS } from '../data/quests';
@@ -45,7 +46,7 @@ export function ownEnteredTree(object: THREE.Object3D, scope: Parameters<typeof 
   ownSceneTree(object, scope, app.assets);
 }
 
-export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, ctx: ShardContext, facts: RuntimeFacts): Spine {
+export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWorld<A>, ctx: ConstructorParameters<typeof QuestViews>[0], facts: RuntimeFacts): Spine {
   const { flags, kit, place } = adv;
   const quest = bindRuntimeQuest(ctx, source, DRIFTWOOD_QUEST.id, { flags, facts, place: marker => DRIFTWOOD_MARKERS[marker.id] }).state;
   // the chip (the shared quest core, core.ts) — built before the dialogue box, as it always was (their DOM order)
@@ -79,13 +80,9 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
 
   // ── kills: the sailor drops the hold key; the captain ends the fight ──
   // Ordered scoped death listener: the hold key lands before respawn and reward listeners.
-  const killed = (a: A): void => {
-    if (a.kind === 'sailor') {
-      kit.moveTo('hold-key', a.position.x, a.position.z);
-      flags.set('dead:sailor');
-      w.hud.toast('The drowned sailor collapses — his hold key clatters to the planks');
-    } else if (a.kind === 'captain') flags.set('dead:captain');
-  };
+  const killed = bindQuestDeathEffects<A>(DRIFTWOOD_PAGE_DEATH_EFFECTS, { flags,
+    calls: new Map([['hold-key', a => { kit.moveTo('hold-key', a.position.x, a.position.z); }]]),
+    toast: text => { w.hud.toast(text); } });
   w.onDeath?.(killed, 10);
 
   // the full quest — chapter title, objective, sub-steps — on the menu's MAP tab (the HUD chip only carries the short form, E51)

@@ -22,8 +22,3 @@ export function createPineFacts(ports: PineFeatPorts): PineFacts & { replay: () 
 export function isPineThrall(actor: { variant?: string; label?: string }): boolean {
   return actor.variant === 'thrall' || actor.label === 'Thrall';
 }
-/** Only an actual creature death calls this: ordinary and elite kills overlap, and a thrall also advances Weed Control. */
-export function recordPineFeatKill(facts: Pick<PineFacts,'kill'|'event'>, actor: { kind: string; variant?: string; label?: string }): void {
-  facts.kill(actor.kind, actor.variant);
-  if (isPineThrall(actor)) facts.event('thrall');
-}

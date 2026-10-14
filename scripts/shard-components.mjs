@@ -104,6 +104,8 @@ const reviewedW2Owners = new Map([
   ['src/game/systems/effects/view.ts#StatusIcons', 'C6'],
   // Graph look-material collection. The decoded texture loan is committed.
   ['src/game/plugin/shaderFamily.ts#lookGraphMaterials', 'C2'],
+  ['src/game/plugin/shaderFamily.ts#SPLICER', 'C2'],
+  ['src/game/plugin/shaderFamily.ts#spliceEdits', 'C2'],
   // Static scene geometry, placements, building assembly and their bake contracts.
   ['src/engine/sim/shore.ts#SHORE_REVETMENT_INNER_FACE', 'C1'],
   ['src/game/shardfile/bakedKinds.ts#loadBakedKinds', 'C1'],

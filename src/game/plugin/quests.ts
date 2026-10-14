@@ -166,3 +166,65 @@ export function bindQuestTableSpots<Spot extends { readonly id: string; readonly
   });
   return new Map(matched.map(({ d, spot }) => [d.id, Object.assign(bindInteractionState(d, flags), { spot })]));
 }
+
+
+const deathName = v.pipe(v.string(), v.regex(/^[a-z][a-z0-9.:-]{0,127}$/u));
+const deathValue = v.pipe(v.string(), v.minLength(1), v.maxLength(256));
+const DeathMatch = v.pipe(v.strictObject({ kind: v.exactOptional(deathValue), variant: v.exactOptional(deathValue), label: v.exactOptional(deathValue) }),
+  v.check(row => row.kind !== undefined || row.variant !== undefined || row.label !== undefined));
+const DeathRows = v.pipe(v.array(v.strictObject({
+  when: v.exactOptional(v.pipe(v.array(DeathMatch), v.minLength(1), v.maxLength(16))),
+  effects: v.pipe(v.array(v.variant('kind', [
+    v.strictObject({ kind: v.literal('flag'), flag: deathName }),
+    v.strictObject({ kind: v.literal('kill') }),
+    v.strictObject({ kind: v.literal('event'), event: deathName }),
+    v.strictObject({ kind: v.literal('call'), name: deathName }),
+    v.strictObject({ kind: v.literal('toast'), text: v.pipe(v.string(), v.minLength(1), v.maxLength(2048)) }),
+  ])), v.minLength(1), v.maxLength(32)),
+})), v.maxLength(128));
+
+/** The actual dead creature lent by the caller, without a copied body or save owner. */
+export interface QuestDeathSubject { readonly kind: string; readonly variant?: string; readonly label?: string }
+/** Existing flag, achievement and consequence owners; subscriptions and listener priority remain caller-owned. */
+export interface QuestDeathPorts<Subject extends QuestDeathSubject> {
+  readonly flags?: { readonly set: (flag: string) => void };
+  readonly kill?: (kind: string, variant?: string) => void;
+  readonly event?: (event: string) => void;
+  readonly calls?: ReadonlyMap<string, (subject: Subject) => void>;
+  readonly toast?: (text: string) => void;
+}
+/** Preflight bounded death consequences before any effect. All matching rows run in order; each row runs once even if
+ * several of its alternative conditions match. Owners keep their counters, key placement, contracts and continuation.
+ */
+export function bindQuestDeathEffects<Subject extends QuestDeathSubject>(input: unknown, ports: QuestDeathPorts<Subject>): (subject: Subject) => void {
+  const rows = v.parse(DeathRows, input);
+  if ((ports.calls?.size ?? 0) > 128) throw new RangeError('Unbounded quest death callbacks');
+  const compiled = rows.map(row => ({ when: row.when, effects: row.effects.map(effect => {
+    if (effect.kind === 'call') {
+      const call = ports.calls?.get(effect.name);
+      if (call === undefined) throw new Error(`Unbound quest death callback ${effect.name}`);
+      return call;
+    }
+    if (effect.kind === 'flag') {
+      const flags = ports.flags; if (flags === undefined) throw new Error('Quest death flag needs its owner');
+      return (_subject: Subject): void => { flags.set(effect.flag); };
+    }
+    if (effect.kind === 'kill') {
+      const kill = ports.kill; if (kill === undefined) throw new Error('Quest death kill needs its achievement owner');
+      return (subject: Subject): void => { kill(subject.kind, subject.variant); };
+    }
+    if (effect.kind === 'event') {
+      const event = ports.event; if (event === undefined) throw new Error('Quest death event needs its achievement owner');
+      return (_subject: Subject): void => { event(effect.event); };
+    }
+    const toast = ports.toast; if (toast === undefined) throw new Error('Quest death toast needs its view owner');
+    return (_subject: Subject): void => { toast(effect.text); };
+  }) }));
+  return subject => {
+    for (const row of compiled) {
+      if (row.when !== undefined && !row.when.some(match => (match.kind === undefined || match.kind === subject.kind)
+        && (match.variant === undefined || match.variant === subject.variant) && (match.label === undefined || match.label === subject.label))) continue;
+      for (const effect of row.effects) effect(subject);
+    }
+  };
+}
