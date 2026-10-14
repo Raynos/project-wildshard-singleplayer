@@ -1,6 +1,7 @@
-import { DayCycle, type DayCycleSpec } from '@wildshard/engine/world/dayCycle';
+import { compassDir as dirFrom, DayCycle, type DayCycleSpec } from '@wildshard/engine/world/dayCycle';
+import { dayLookPresets, type DayLookPreset } from '@wildshard/sdk/looks/dayLookPresets';
 import * as THREE from 'three';
-import type { KeyedSkyStyle, SkyColour, SkyPresetRow } from '../../data/keyedSkyRows';
+import { SKY_PRESET, type KeyedSkyStyle } from '../../data/keyedSkyRows';
 
 /**
  * A keyed sky's day / night clock as data (SHARD-PLATFORM M3, look-family rows): the clock half of `keyedSky`, renderer-free
@@ -16,61 +17,14 @@ import type { KeyedSkyStyle, SkyColour, SkyPresetRow } from '../../data/keyedSky
  */
 
 /** One live preset: the row's colours as three.js colours. */
-export interface SkyPreset {
-  key: string;
-  bg: number;
-  env: number;
-  light: THREE.Color; lightI: number;
-  hemiSky: THREE.Color; hemiGround: THREE.Color; hemiI: number;
-  fogSun: THREE.Color; fogDist: number; fogHeight: number;
-  vol: number; volColor: THREE.Color; rays: number;
-  glow: THREE.Color; disc: THREE.Color; halo: THREE.Color; haloO: number;
-  cloudSun: THREE.Color; cloudLit: THREE.Color; cloudA: number;
-  far: THREE.Color;
-  lamps: number;
-  sat: number;
-}
-
-const colour = (c: SkyColour): THREE.Color => typeof c === 'number' ? new THREE.Color(c) : new THREE.Color(c[0], c[1], c[2]);
-
+export type SkyPreset = DayLookPreset<typeof SKY_PRESET>;
+const presetKit = dayLookPresets(SKY_PRESET);
 /** A row's live preset. */
-export function skyPreset(r: SkyPresetRow): SkyPreset {
-  return {
-    key: r.key, bg: r.bg, env: r.env, light: colour(r.light), lightI: r.lightI, hemiSky: colour(r.hemiSky), hemiGround: colour(r.hemiGround), hemiI: r.hemiI,
-    fogSun: colour(r.fogSun), fogDist: r.fogDist, fogHeight: r.fogHeight, vol: r.vol, volColor: colour(r.volColor), rays: r.rays,
-    glow: colour(r.glow), disc: colour(r.disc), halo: colour(r.halo), haloO: r.haloO, cloudSun: colour(r.cloudSun), cloudLit: colour(r.cloudLit), cloudA: r.cloudA,
-    far: colour(r.far), lamps: r.lamps, sat: r.sat,
-  };
-}
-
+const skyPreset = presetKit.live;
 /** A preset's copy (its own colours). */
-export function cloneSkyPreset(p: SkyPreset): SkyPreset {
-  return {
-    ...p, light: p.light.clone(), hemiSky: p.hemiSky.clone(), hemiGround: p.hemiGround.clone(), fogSun: p.fogSun.clone(), volColor: p.volColor.clone(),
-    glow: p.glow.clone(), disc: p.disc.clone(), halo: p.halo.clone(), cloudSun: p.cloudSun.clone(), cloudLit: p.cloudLit.clone(), far: p.far.clone(),
-  };
-}
-
+export const cloneSkyPreset = presetKit.clone;
 /** `out` = a → b at t (the key switches at the midpoint). */
-export function lerpSkyPreset(out: SkyPreset, a: SkyPreset, b: SkyPreset, t: number): void {
-  const L = (o: THREE.Color, x: THREE.Color, y: THREE.Color): void => { o.copy(x).lerp(y, t); };
-  const n = (x: number, y: number): number => x + (y - x) * t;
-  out.key = t < 0.5 ? a.key : b.key;
-  out.bg = n(a.bg, b.bg); out.env = n(a.env, b.env);
-  L(out.light, a.light, b.light); out.lightI = n(a.lightI, b.lightI);
-  L(out.hemiSky, a.hemiSky, b.hemiSky); L(out.hemiGround, a.hemiGround, b.hemiGround); out.hemiI = n(a.hemiI, b.hemiI);
-  L(out.fogSun, a.fogSun, b.fogSun); out.fogDist = n(a.fogDist, b.fogDist); out.fogHeight = n(a.fogHeight, b.fogHeight);
-  out.vol = n(a.vol, b.vol); L(out.volColor, a.volColor, b.volColor); out.rays = n(a.rays, b.rays);
-  L(out.glow, a.glow, b.glow); L(out.disc, a.disc, b.disc); L(out.halo, a.halo, b.halo); out.haloO = n(a.haloO, b.haloO);
-  L(out.cloudSun, a.cloudSun, b.cloudSun); L(out.cloudLit, a.cloudLit, b.cloudLit); out.cloudA = n(a.cloudA, b.cloudA); L(out.far, a.far, b.far);
-  out.lamps = n(a.lamps, b.lamps); out.sat = n(a.sat, b.sat);
-}
-
-const d2r = Math.PI / 180;
-/** compass azimuth (0 = north = +Z, 90 = east = −X) + elevation (deg) → unit vector toward the body */
-function dirFrom(az: number, el: number, out: THREE.Vector3): THREE.Vector3 {
-  return out.set(-Math.sin(az * d2r) * Math.cos(el * d2r), Math.sin(el * d2r), Math.cos(az * d2r) * Math.cos(el * d2r));
-}
+const lerpSkyPreset = presetKit.lerp;
 
 /** A keyed sky's clock: the engine spec, the bodies' paths and the curves. */
 export interface KeyedSkyDay {

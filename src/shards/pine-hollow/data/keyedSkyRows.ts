@@ -1,4 +1,5 @@
 import type { DayClockRow, DayClockSegment } from '@wildshard/format/dayCycle';
+import type { DayLookSchema } from '@wildshard/sdk/looks/dayLookPresets';
 
 /**
  * A keyed sky's row types (SHARD-PLATFORM M3, look-family rows; `keyedSkyDay` is its clock, `keyedSky` its backdrop) and its
@@ -48,6 +49,14 @@ export interface SkyPresetRow {
   /** the grade's saturation */
   readonly sat: number;
 }
+
+/** A preset's fields by kind (`dayLookPresets`: the row → its live preset, copied and blended by the clock). */
+export const SKY_PRESET = {
+  key: 'name', bg: 'number', env: 'number', light: 'colour', lightI: 'number', hemiSky: 'colour', hemiGround: 'colour', hemiI: 'number',
+  fogSun: 'colour', fogDist: 'number', fogHeight: 'number', vol: 'number', volColor: 'colour', rays: 'number',
+  glow: 'colour', disc: 'colour', halo: 'colour', haloO: 'number', cloudSun: 'colour', cloudLit: 'colour', cloudA: 'number',
+  far: 'colour', lamps: 'number', sat: 'number',
+} as const satisfies DayLookSchema & Record<keyof SkyPresetRow, unknown>;
 
 /** A keyed sky: its keys, presets, keyframes, phases and paths. */
 export interface KeyedSkyStyle {
