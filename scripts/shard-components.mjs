@@ -24,6 +24,7 @@ const roles = [
 function namedRole(name) { return roles.find(([, pattern]) => pattern.test(name))?.[0] ?? null; }
 /** Explicit file ownership; an unrecognised file stays visible and cannot close C9. */
 function fileRole(path, name = '') {
+  if (path === 'src/game/plugin/ui.ts' && ['WorldSceneBoundParts', 'bindWorldSceneParts'].includes(name)) return 'C1';
   if (path === 'src/game/plugin/ui.ts' && ['moverChannelValues', 'moverChannelView', 'moverChannelViews', 'moverChannelPrompts'].includes(name)) return 'C7';
   if (path === 'src/sdk/questGraph.ts' && name === 'parseNpcRow') return 'C5';
   if (path === 'src/sdk/bake/texture.ts') return 'C2';
