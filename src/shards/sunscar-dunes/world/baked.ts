@@ -1,14 +1,8 @@
 import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
 import { bakedMeshWorld, worldPieces, type BakedMeshKindRow, type LoadedMeshBake, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
 import type { Object3D } from 'three';
+import WORLD_ROWS from '../data/worldBakes.generated.json' with { type: 'json' };
 import { SIGNAL_PIECES } from '../data/pieces';
-import rocks from '../data/rocks.json' with { type: 'json' };
-import dressing from '../data/dressing.json' with { type: 'json' };
-import tower from '../data/tower.json' with { type: 'json' };
-import caravan from '../data/caravan.json' with { type: 'json' };
-import well from '../data/well.json' with { type: 'json' };
-import lash from '../data/lash.json' with { type: 'json' };
-import braziers from '../data/braziers.json' with { type: 'json' };
 import { BAKED_URLS, WORLD_BYTES, type BakedPiece } from '../data/files';
 import { warmByFire } from './meshes';
 
@@ -19,17 +13,11 @@ import { warmByFire } from './meshes';
  * own lighting: a kind marked `warm` is lit by the fires. The colliders never wait on the GLB.
  */
 interface KindRow extends BakedMeshKindRow { readonly warm?: boolean; readonly brazier?: number }
-export const WORLD = bakedMeshWorld<BakedPiece, KindRow>({ rocks, dressing, tower, caravan, well, braziers, lash }, BAKED_URLS, 'sunscar-dunes',
+export const WORLD = bakedMeshWorld<BakedPiece, KindRow>(WORLD_ROWS, BAKED_URLS, 'sunscar-dunes',
   { resources: WORLD_BYTES, readBytes: fetchDeflated, decorate: (material, kind) => { if (kind.warm === true) warmByFire(material); } });
 
 /** A loaded bake: each piece's instanced meshes (their geometry and transforms), keyed by the kind's name. */
 export type BakedWorld = LoadedMeshBake<BakedPiece>;
-/** Load the declared mesh world and its companion texels behind the loading screen. */
-export const loadBakedWorld = WORLD.load;
-/** The held coil borrows the declared plait bytes after the same world preload. */
-export const lastPlait = (): Uint8Array | null => WORLD.bytes('plait');
-/** The bake loaded last (the Model Explorer's specimens draw from it), or null before the first load. */
-export const lastBakedWorld = WORLD.last;
 
 /** Signal's world pieces (data/pieces.ts) placed under `root` and registered, the baked ones drawn from `baked`. */
-export const signalPieces = (register: Parameters<typeof worldPieces>[0], root: Object3D, baked: BakedWorld): WorldPieces => worldPieces(register, root, SIGNAL_PIECES, (piece) => WORLD.object(piece, undefined, undefined, baked), braziers.braziers.map((row,index)=>({id:`sunscar.brazier.${String(index)}`,colliders:row.colliders})));
+export const signalPieces = (register: Parameters<typeof worldPieces>[0], root: Object3D, baked: BakedWorld): WorldPieces => worldPieces(register, root, SIGNAL_PIECES, (piece) => WORLD.object(piece, undefined, undefined, baked), WORLD_ROWS.braziers.braziers.map((row,index)=>({id:`sunscar.brazier.${String(index)}`,colliders:row.colliders})));

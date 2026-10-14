@@ -8,8 +8,8 @@ import { Flags } from '@wildshard/engine/world/interact/flags';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
 import { lastLightAll } from './look/light';
 import { DUSK, setDusk, stepDusk } from './look/dusk';
-import { preloadDuneMeshes, DUNE_LIBRARY } from './world/meshes';
-import { loadBakedWorld } from './world/baked';
+import { DUNE_LIBRARY } from './world/meshes';
+import { WORLD } from './world/baked';
 import { createWhip, type Bullwhip } from './runtime/items/heldWhip';
 import { FLAG, SCOUT_FLAG } from './data/flags';
 import { bindDeclaredFight, bindPageQuestStages } from '@wildshard/game/plugin/ui';
@@ -36,7 +36,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   protected readonly rows: HybridRuntimeRows = { ...SIGNAL_RUNTIME_ROWS, source, owners: { models: DUNE_LIBRARY, looks: { dress: lastLightAll } } };
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
-    const [, baked] = await Promise.all([preloadDuneMeshes(), loadBakedWorld()]);
+    const [, baked] = await Promise.all([DUNE_LIBRARY.preload(), WORLD.load()]);
     await prepareFireFx(ctx, source, DUNE_LIBRARY.geometry);
     this.places = buildWorld(ctx, new Flags(ctx.manifest.slug), baked); this.fire = this.places.fire;
     // G345: the data client draws the tiles in the look's sand and lends it: the skirt wears it, the fires light it, and

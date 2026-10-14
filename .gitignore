@@ -966,3 +966,6 @@ src/shards/far-reach/data/crownInstances.generated.json
 
 # Sky runtime declaration is rebuilt from authored rows (G405).
 /src/shards/far-reach/data/product.generated.json
+
+# Signal static world metadata is rebuilt from its author declaration.
+/src/shards/sunscar-dunes/data/worldBakes.generated.json

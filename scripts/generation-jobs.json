@@ -12060,6 +12060,43 @@
       "buildTimeOutputs": [
         "src/shards/far-reach/data/product.generated.json"
       ]
+    },
+    {
+      "id": "signal-world-bakes",
+      "shard": "sunscar-dunes",
+      "entry": "src/shards/sunscar-dunes/generators/worldBakes.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/sunscar-dunes/generators/worldBakes.ts",
+        "worldBakes",
+        "src/shards/sunscar-dunes/data/worldBakes.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/sunscar-dunes/data/braziers.json",
+        "src/shards/sunscar-dunes/data/caravan.json",
+        "src/shards/sunscar-dunes/data/dressing.json",
+        "src/shards/sunscar-dunes/data/lash.json",
+        "src/shards/sunscar-dunes/data/rocks.json",
+        "src/shards/sunscar-dunes/data/tower.json",
+        "src/shards/sunscar-dunes/data/well.json",
+        "src/shards/sunscar-dunes/generators/worldBakes.ts"
+      ],
+      "outputs": [
+        "src/shards/sunscar-dunes/data/worldBakes.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {},
+      "buildTimeOutputs": [
+        "src/shards/sunscar-dunes/data/worldBakes.generated.json"
+      ]
     }
   ]
 }
