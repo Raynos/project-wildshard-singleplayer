@@ -29,9 +29,29 @@ const roles = [
   ['C2', /look|Glsl|shader|Material|scarfed|dusk|light|fog|paint|texture|SKY_SUN|SAND|SKIRT|Atmosphere|stormWeather/iu],
   ['C1', /terrain|ground|worldBuild|buildWorld|bakedWorld|BakedTerrain|meadow|mesh|geometry|collider|props|Primitives/iu],
 ];
-function namedRole(name) { return roles.find(([, pattern]) => pattern.test(name))?.[0] ?? null; }
+// W2 reviewed ownership: native animal keepers are creature managers, not quest NPCs.
+const creatureOwners=new Set([
+  'src/shards/pine-hollow/runtime/roster.ts',
+  'src/shards/pine-hollow/runtime/fauna.ts',
+  'src/shards/driftwood-isle/runtime/keeper.ts',
+  'src/shards/driftwood-isle/runtime/fauna.ts',
+]);
+const questOwners=new Set([
+  'src/shards/pine-hollow/runtime/facts.ts',
+  'src/shards/pine-hollow/runtime/people.ts',
+  'src/shards/pine-hollow/runtime/lodge.ts',
+  'src/shards/pine-hollow/runtime/trader.ts',
+  'src/shards/pine-hollow/runtime/questLifetime.ts',
+  'src/shards/driftwood-isle/runtime/reward.ts',
+]);
+function namedRole(name,path='') {
+  if(creatureOwners.has(path)&&/keeper/iu.test(name))return 'C4'; return roles.find(([, pattern]) => pattern.test(name))?.[0] ?? null; }
 /** Explicit file ownership; an unrecognised file stays visible and cannot close C9. */
 function fileRole(path, name = '') {
+  if(creatureOwners.has(path))return 'C4';
+  if(questOwners.has(path))return 'C5';
+  if(path==='src/shards/driftwood-isle/combat/coconuts.ts')return 'C6';
+  if(path==='src/engine/world/interact/flags.ts'&&name==='bindInteractionState')return 'C5';
   if (path === 'src/game/plugin/ui.ts' && ['WorldSceneBoundParts', 'bindWorldSceneParts'].includes(name)) return 'C1';
   if (path === 'src/game/plugin/ui.ts' && ['moverChannelValues', 'moverChannelView', 'moverChannelViews', 'moverChannelPrompts'].includes(name)) return 'C7';
   if (path === 'src/sdk/questGraph.ts' && name === 'parseNpcRow') return 'C5';
@@ -78,7 +98,7 @@ function runtimeTags(source, path, fallback) {
       const bindingOwner = path === 'src/shards/driftwood-isle/models/zipline.ts' ? 'C1'
         : ['src/shards/pine-hollow/quest/rides.ts', 'src/shards/pine-hollow/runtime/quest.ts',
           'src/shards/driftwood-isle/runtime/quest.ts', 'src/shards/driftwood-isle/world/Zipline.ts'].includes(path) ? 'C5' : null;
-      const owner = cable && bindingOwner !== null ? bindingOwner : namedRole(spec.local.name) ?? from;
+      const owner = cable && bindingOwner !== null ? bindingOwner : namedRole(spec.local.name,path) ?? from;
       imports.set(spec.local.name, owner);
     }
     assign(node, node.specifiers.map(spec=>imports.get(spec.local.name)).find(Boolean),1,`import ${node.source.value}`);
@@ -87,15 +107,15 @@ function runtimeTags(source, path, fallback) {
   const visit=(node,depth)=>{
     let role=null, reason='';
     if(node.type==='VariableDeclarator'||node.type==='FunctionDeclaration') {
-      const name=nodeName(node.id);role=(node.init?.type==='CallExpression' ? imports.get(calledName(node.init.callee)) ?? namedRole(calledName(node.init.callee)) : null) ?? namedRole(name);reason=`declaration ${name}`;
-    } else if(node.type==='MethodDefinition') { const name=nodeName(node.key);role=(Object.hasOwn(methods,name)?methods[name]:null)??namedRole(name);reason=`method ${name}`;
+      const name=nodeName(node.id);role=(node.init?.type==='CallExpression' ? imports.get(calledName(node.init.callee)) ?? namedRole(calledName(node.init.callee),path) : null) ?? namedRole(name,path);reason=`declaration ${name}`;
+    } else if(node.type==='MethodDefinition') { const name=nodeName(node.key);role=(Object.hasOwn(methods,name)?methods[name]:null)??namedRole(name,path);reason=`method ${name}`;
     } else if(node.type==='Property'||node.type==='PropertyDefinition') {
-      const name=nodeName(node.key);role=namedRole(name);reason=`property ${name}`;
+      const name=nodeName(node.key);role=namedRole(name,path);reason=`property ${name}`;
       // A world's winch prompt and its anchor are quest interaction handles,
       // distinct from the kinematic mover command/pose owners.
       if (path.endsWith('/world/build.ts') && ['winch', 'winchAt'].includes(name)) role='C5';
     } else if(node.type==='CallExpression'||node.type==='NewExpression') {
-      const name=calledName(node.callee);role=imports.get(name)??namedRole(name);reason=`owner API ${name}`;
+      const name=calledName(node.callee);role=imports.get(name)??namedRole(name,path);reason=`owner API ${name}`;
     }
     assign(node,role,2+depth,reason);
     for(const child of children(node))visit(child,depth+1);
@@ -123,7 +143,7 @@ export function componentInventory(root, shard, sources, canonical) {
       }
     } else {
       // Additional GLSL is the canonical shader unit; sole exports already have deduplicated declaration spans.
-      const component=row.kind==='additional-glsl'?(owner==='C3'?'C3':'C2'):namedRole(row.name??'')??owner;
+      const component=row.kind==='additional-glsl'?(owner==='C3'?'C3':'C2'):namedRole(row.name??'',row.path)??owner;
       counts[component]+=row.lines;
       spans.push({path:row.path,kind:row.kind,component,lines:row.lines,reason:row.name?`G294 declaration ${row.name}`:'additional GLSL owner'});
     }
