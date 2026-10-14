@@ -23,6 +23,11 @@ export const LOOKOUT_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.lookout, { _sway
 /** Pickup parts retain their native materials and local centring. */
 export const IRON_SWORD_BLADE_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.ironSwordBlade);
 export const IRON_SWORD_FITTINGS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.ironSwordFittings);
+export const WRECK_KIT_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.wreckKit, { _sway: 'aSway' });
+export const WRECK_GLOW_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.wreckGlow);
+export const WRECK_ROCKS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.wreckRocks);
+export const SHIPWRECK_KIT_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.shipwreckKit, { _sway: 'aSway' });
+export const SHIPWRECK_GLOW_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.shipwreckGlow);
 let ready = false;
 /** Explorer may open these models before the island's world hook has run. */
 export function fixedGeometryReady(): boolean { return ready; }
@@ -43,6 +48,12 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
     COUNTER_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.tradeCounter)),
     HUT_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.hutKit)), HUT_FLAMES_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.hutFlames)),
     LOOKOUT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.lookout)),
+    WRECK_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.wreckKit)),
+    WRECK_GLOW_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.wreckGlow)),
+    WRECK_ROCKS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.wreckRocks)),
+    SHIPWRECK_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shipwreckKit)),
+    SHIPWRECK_GLOW_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shipwreckGlow)),
+
   ]);
   ready = true;
   } finally { product?.release(); }

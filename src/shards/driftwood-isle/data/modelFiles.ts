@@ -32,4 +32,9 @@ export const FIXED_MODEL_FILES = {
   hutKit: '/assets/driftwood-isle/baked/fixed-models/hut-kit.glb',
   hutFlames: '/assets/driftwood-isle/baked/fixed-models/hut-flames.glb',
   lookout: '/assets/driftwood-isle/baked/fixed-models/lookout.glb',
+  wreckKit: '/assets/driftwood-isle/baked/fixed-models/wreck-kit.glb',
+  wreckGlow: '/assets/driftwood-isle/baked/fixed-models/wreck-glow.glb',
+  wreckRocks: '/assets/driftwood-isle/baked/fixed-models/wreck-rocks.glb',
+  shipwreckKit: '/assets/driftwood-isle/baked/fixed-models/shipwreck-kit.glb',
+  shipwreckGlow: '/assets/driftwood-isle/baked/fixed-models/shipwreck-glow.glb',
 } as const;

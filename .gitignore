@@ -1015,3 +1015,15 @@ src/shards/far-reach/data/crownInstances.generated.json
 /src/shards/driftwood-isle/assets/f12dc04f6f186cafce4d25689916c08737c7e7809835c509b57852087e2173bb
 /src/shards/driftwood-isle/assets/f88561216dac439ed1d9efcd967f9d5692eced70540c8c5ea808328082b1f8e2
 /src/shards/driftwood-isle/assets/fab3be0e055f56bc498d1489a67226aa84a630540bfe6a2651d93c3523a6a889
+
+# Authored Driftwood shipwreck draws and immutable scene subsets.
+/src/shards/driftwood-isle/data/wreckBake.json
+/public/assets/driftwood-isle/baked/fixed-models/wreck-kit.glb
+/public/assets/driftwood-isle/baked/fixed-models/wreck-glow.glb
+/public/assets/driftwood-isle/baked/fixed-models/wreck-rocks.glb
+/public/assets/driftwood-isle/baked/fixed-models/shipwreck-kit.glb
+/public/assets/driftwood-isle/baked/fixed-models/shipwreck-glow.glb
+/src/shards/driftwood-isle/assets/534cec830ae56911d56553fa3f99d7db08847146964011afc310395b9c21f582
+/src/shards/driftwood-isle/assets/78bef12a62f10a560d67522b2d656911d559bb192f798ac819aa1b0510d5a006
+/src/shards/driftwood-isle/assets/b169e5f167116fd43c402fefcff07f952db72d15f7117b910021634789891874
+/src/shards/driftwood-isle/assets/d7737c770136ac1d0fc446ed1309a805e1f1dff2f57113aa23efb14e0282de52

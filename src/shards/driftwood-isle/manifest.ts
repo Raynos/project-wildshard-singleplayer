@@ -1,3 +1,4 @@
+import { WRECK_SITES } from './data/wreckSites';
 import { DRIFTWOOD_BUDGET_INPUTS } from './budgets';
 import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
 import { area as BLENDER_AREA } from './world/blenderArea';
@@ -28,7 +29,7 @@ import { buildTerrain } from '@wildshard/engine/world/terrainField';
 import type { ShardManifest, OceanDef } from '@wildshard/game/shard/manifest';
 import { lateReads } from './boot/lateReads';
 import { bootSources } from './boot/sources';
-import { DRIFTWOOD_SEA, LOWERED_SEA, SHORE_LEVEL, WORLD_DROP, droppedTerrain } from './world/sea';
+import { DRIFTWOOD_SEA, LOWERED_SEA, SHORE_LEVEL, droppedTerrain } from './world/sea';
 import thumbnail from './thumbs/driftwood-isle.jpg';
 import heroPortrait from './thumbs/driftwood-isle-portrait.jpg';
 import heroLandscape from './thumbs/driftwood-isle-landscape.jpg';
@@ -91,7 +92,7 @@ export const HUT = { x: PLATEAU.x + 2, z: PLATEAU.z - 2, rot: 0 };
 export const HEADLAND = { x: 98, z: 96, r: 48, h: 22, shoulderR: 80, shoulderH: 9 };
 /** Wreck Cove: a bay bitten out of the east shore; the wreck lies half sunk on the reef at its mouth, bow run up the sand, heeled toward the beach (Wreck.ts) */
 export const COVE = { ang: -0.02, depth: 46, width: 0.5 };
-export const WRECK = { x: 153, z: 2, heading: 2.7, roll: -0.2, pitch: 0.05, floorY: 1.45 - WORLD_DROP }; // G164: the hold floor drops with the world
+export const WRECK = WRECK_SITES.world;
 /** the ring shrine on a knoll in the north-west jungle (rot: its stair faces south-east toward the hut path; its back points at the planet, so the ring frames it from the stair head) */
 export const SHRINE = { x: -98, z: 108, rot: 2.51 };
 /** the tidal creek across the hut → lookout path (a ravine cut below sea level, so the lagoon runs into it) and the rope bridge over it */
