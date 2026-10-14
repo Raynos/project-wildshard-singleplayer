@@ -1,4 +1,5 @@
 import { WHIP_HELD_RECIPE } from './heldWeapon';
+import { SIGNAL_RUNTIME_ROWS } from './runtimeRows';
 import { BRAZIERS, CARAVAN, TOWER, WELL } from './layout';
 import caravan from './caravan.json' with {type:'json'};
 import well from './well.json' with {type:'json'};
@@ -24,5 +25,6 @@ export const GEAR_SCENE_ROWS = [
   {model:GEAR_MODEL_ROWS[2],builder:'caravan',position:[-CARAVAN.x,-CARAVAN_MODEL_Y,-CARAVAN.z]},
   {model:GEAR_MODEL_ROWS[3],builder:'well',position:[-WELL.x,-WELL_MODEL_Y,-WELL.z]},
   {model:GEAR_MODEL_ROWS[4],builder:'brazier',position:[-(BRAZIERS[0]?.x??0),-BRAZIER_MODEL_Y,-(BRAZIERS[0]?.z??0)],show:['fire','oil']},
-  {model:GEAR_MODEL_ROWS[5],builder:'scout'},
+  {model:GEAR_MODEL_ROWS[5],builder:'scout',specimen:{kind:'npc',npc:'sunscar.scout',
+    figure:{...SIGNAL_RUNTIME_ROWS.pageQuest.model,read:{owner:'npcModels',path:['mesh']}},prepare:{owner:'npcModels',path:['preload']}}},
 ] as const;

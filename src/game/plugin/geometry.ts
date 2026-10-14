@@ -1,3 +1,4 @@
+import type { BorrowedNpcSpecimen, borrowedNpcSpecimen } from './ui';
 import type { HeldMeleeRecipe, createHeldPresentation } from './weaponFamily';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader, type ShaderEditRow } from './shaderFamily';
@@ -1710,7 +1711,7 @@ export function rigLibrary(rows: RigLibraryRows): { bodies: CreatureBodies<strin
 export interface ModelSpecimenRow { readonly model: BakedModelMetadata; readonly body: string; readonly specimen: CreatureSpecimenRow }
 /** A private-scene specimen declares its held recipe and original Explorer framing. */
 export type SceneCatalogueRow = Parameters<typeof defineSceneModels>[0][number] & {
-  readonly specimen?: { readonly kind: 'held'; readonly recipe: HeldMeleeRecipe };
+  readonly specimen?: { readonly kind: 'held'; readonly recipe: HeldMeleeRecipe } | BorrowedNpcSpecimen;
 };
 /** Sealed resource owners and existing non-held builders; declaration creates no model or preload. */
 export interface SceneCataloguePorts {
@@ -1730,16 +1731,28 @@ export function modelCatalogue(rows: readonly (ModelSpecimenRow | SceneCatalogue
   const scenes = rows.map(row => { if (!('builder' in row)) throw new Error('Scene catalogue needs its original builder id'); return row; });
   const builders = [...library.builds ?? []];
   let heldFactory: typeof createHeldPresentation | null = null;
-  let preparation: Promise<void> | null = null;
-  const prepare = scenes.some(row => row.specimen?.kind === 'held') ? (): Promise<void> => {
-    preparation ??= import('./weaponFamily').then(renderer => { heldFactory = renderer.createHeldPresentation; return undefined; });
-    return preparation;
-  } : undefined;
-  for (const row of scenes) if (row.specimen !== undefined) {
-    const specimen = row.specimen;
-    builders.push([row.builder, () => {
-      if (heldFactory === null) throw new Error('Held catalogue must prepare before building');
-      return heldFactory(specimen.recipe, { owners: library.owners });
+  let npcFactory:typeof borrowedNpcSpecimen|null=null;
+  let preparation:Promise<void>|null=null;
+  const prepare=scenes.some(row=>row.specimen!==undefined)?():Promise<void>=>{
+    preparation??=(async()=>{
+      if(scenes.some(row=>row.specimen?.kind==='held'))heldFactory=(await import('./weaponFamily')).createHeldPresentation;
+      const npcs=scenes.flatMap(row=>row.specimen?.kind==='npc'?[row.specimen]:[]);
+      if(npcs.length>0){
+        if(library.source===undefined)throw new Error('NPC catalogue needs its admitted source');
+        const renderer=await import('./ui');npcFactory=renderer.borrowedNpcSpecimen;
+        for(const npc of npcs)await renderer.prepareBorrowedNpcSpecimen(npc,library.owners);
+      }
+    })();return preparation;
+  }:undefined;
+  for(const row of scenes)if(row.specimen!==undefined){
+    const specimen=row.specimen;
+    builders.push([row.builder,()=>{
+      if(specimen.kind==='held'){
+        if(heldFactory===null)throw new Error('Held catalogue must prepare before building');
+        return heldFactory(specimen.recipe,{owners:library.owners});
+      }
+      if(npcFactory===null||library.source===undefined)throw new Error('NPC catalogue must prepare before building');
+      return npcFactory(library.source,specimen,library.owners);
     }]);
   }
   return defineSceneModels(scenes, builders, prepare);

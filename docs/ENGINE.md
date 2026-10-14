@@ -4879,3 +4879,9 @@ an admitted material. `mappedLook(id, map)` uses the compiled binder or
 the authored `mappedFallback` roughness/metalness in a model viewer.
 Sky world materials and Signal's fire book use these same library ports.
 They borrow resources and release the look-book references with the scope.
+
+NPC `SceneCatalogueRow.specimen` rows use the same model catalogue as
+held scenes. `BorrowedNpcSpecimen` and `borrowedNpcSpecimen` borrow the
+admitted figure, copied geometry and original material methods; a
+bounded prepare path loads the original library before cold Explorer
+builds. The page and Explorer share one copier admission path.

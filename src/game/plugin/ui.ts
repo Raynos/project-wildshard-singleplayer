@@ -1207,30 +1207,20 @@ export interface PersistedQuestPorts {
   readonly player: Vector3; readonly flags?: Flags; readonly coins?: RuntimeCoins;
   readonly model: QuestNpcPorts['model'] | QuestNpcModelSource; readonly dress?: QuestNpcPorts['dress'];
 }
-/** Install declared page composition using its original library, material and resource owners. */
-export function installBorrowedPageQuest(ctx: ShardContext, source: Shardfile, rows: HybridPageQuestRows,
-  owners: ReadonlyMap<string, unknown>, coins: RuntimeCoins, player: Vector3): PersistedQuest & { readonly coins: RuntimeCoins } {
-  const method = (row: BorrowedOwnerPath): ((...args: readonly unknown[]) => unknown) => bindBorrowedMethod(owners, row);
-  let flags: Flags | undefined;
-  if (rows.flags !== undefined) {
-    const field = readBorrowedOwner(owners, rows.flags);
-    if (!(field?.value instanceof Flags)) throw new Error('Page quest needs its actual flag owner');
-    flags = field.value;
-  }
-  const row = rows.data.model;
-  if (row === undefined || row.kind !== rows.model.kind) throw new Error('Page quest needs its matching model row');
-  const read = method(rows.model.read);
+function borrowedNpcModel(row:QuestNpcModelRow,binding:HybridPageQuestRows['model'],owners:ReadonlyMap<string,unknown>):QuestNpcModelSource {
+  if(row.kind!==binding.kind)throw new Error('Page quest needs its matching model row');
+  const read = bindBorrowedMethod(owners,binding.read);
   const isGeometry = (value: unknown): value is BufferGeometry => value instanceof BufferGeometry;
   const isTexture = (value: unknown): value is Texture => value instanceof Texture;
   let model: QuestNpcModelSource;
-  if (rows.model.kind === 'mesh') model = { kind: 'mesh', read: () => {
+  if (binding.kind === 'mesh') model = { kind: 'mesh', read: () => {
     const geometry = read(row.id);
     if (geometry === null || isGeometry(geometry)) return geometry;
     throw new Error('Page quest model must return copied geometry or null');
   } };
   else {
-    if (rows.model.material === undefined || row.material === undefined) throw new Error('Prepared page quest needs its material binding');
-    const material = method(rows.model.material), materialId = row.material;
+    if (binding.material === undefined || row.material === undefined) throw new Error('Prepared page quest needs its material binding');
+    const material = bindBorrowedMethod(owners,binding.material), materialId = row.material;
     const record = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === 'object';
     model = { kind: 'pivots', read: () => {
       const made = read(row.id);
@@ -1249,6 +1239,36 @@ export function installBorrowedPageQuest(ctx: ShardContext, source: Shardfile, r
       return made;
     } };
   }
+  return model;
+}
+
+/** Borrowed NPC Explorer metadata uses the same model copy and material owners as play. */
+export interface BorrowedNpcSpecimen { readonly kind:'npc';readonly npc:string;readonly figure:HybridPageQuestRows['model']&{readonly materialId?:string};readonly prepare?:BorrowedOwnerPath }
+/** Prepare the same borrowed model library before a cold Explorer specimen. */
+export async function prepareBorrowedNpcSpecimen(row:BorrowedNpcSpecimen,owners:ReadonlyMap<string,unknown>):Promise<void> {
+  if(row.prepare!==undefined)await bindBorrowedMethod(owners,row.prepare)();
+}
+/** Build the admitted figure through the page copier; no world or quest is installed. */
+export function borrowedNpcSpecimen(source:Pick<Shardfile,'questNpcs'>,row:BorrowedNpcSpecimen,owners:ReadonlyMap<string,unknown>):Group {
+  const binding=source.questNpcs?.find(entry=>entry.npc.id===row.npc);
+  if(binding===undefined)throw new Error(`Undeclared quest NPC ${row.npc}`);
+  const model={id:binding.npc.figure.model,kind:row.figure.kind,...(row.figure.materialId===undefined?{}:{material:row.figure.materialId})};
+  return questNpcSpecimen(source,row.npc,model,borrowedNpcModel(model,row.figure,owners));
+}
+
+/** Install declared page composition using its original library, material and resource owners. */
+export function installBorrowedPageQuest(ctx: ShardContext, source: Shardfile, rows: HybridPageQuestRows,
+  owners: ReadonlyMap<string, unknown>, coins: RuntimeCoins, player: Vector3): PersistedQuest & { readonly coins: RuntimeCoins } {
+  const method = (row: BorrowedOwnerPath): ((...args: readonly unknown[]) => unknown) => bindBorrowedMethod(owners, row);
+  let flags: Flags | undefined;
+  if (rows.flags !== undefined) {
+    const field = readBorrowedOwner(owners, rows.flags);
+    if (!(field?.value instanceof Flags)) throw new Error('Page quest needs its actual flag owner');
+    flags = field.value;
+  }
+  const row = rows.data.model;
+  if(row===undefined)throw new Error('Page quest needs its matching model row');
+  const model=borrowedNpcModel(row,rows.model,owners);
   if ((rows.dress?.length ?? 0) > 16) throw new Error('Page quest dressing must be bounded');
   const dress = (rows.dress ?? []).map(step => {
     if (step.args.length > 16 || step.args.some(arg => typeof arg === 'string' ? !['group', 'scope'].includes(arg)
