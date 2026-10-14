@@ -12822,12 +12822,12 @@
         "pnpm-workspace.yaml"
       ],
       "outputs": [
-        "public/assets/pine-hollow/baked/e9ca424824e8b66289cd3593b2fa66b7e9c7a546d03fe289ec404af59d7d90b2.glb",
+        "public/assets/pine-hollow/baked/9500ccf884a8bf642237d00c950f96c6aa81e6b06307d7f517adf0c7e4ae5020.glb",
         "src/shards/pine-hollow/data/handsPool.generated.json"
       ],
       "platform": "portable",
       "buildTimeOutputs": [
-        "public/assets/pine-hollow/baked/e9ca424824e8b66289cd3593b2fa66b7e9c7a546d03fe289ec404af59d7d90b2.glb",
+        "public/assets/pine-hollow/baked/9500ccf884a8bf642237d00c950f96c6aa81e6b06307d7f517adf0c7e4ae5020.glb",
         "src/shards/pine-hollow/data/handsPool.generated.json"
       ]
     },

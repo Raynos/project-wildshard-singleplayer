@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { MeshoptSimplifier } from 'meshoptimizer';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
 import { lin } from '@wildshard/engine/math/color';
 import { ARM_PAL, gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
@@ -326,6 +327,40 @@ function staveRest(look: StaveBowLook, fist: Geo): { geometry: Geo; ringU: numbe
   return { geometry: g, ringU, ringSign, limbVerts, dynVerts };
 }
 
+/** The Longbow sleeves' vertex budget: the engine's rider arm (96 around, 3 mm rings through its ornament bands) is ~19-20 k
+ *  vertices; first person needs a few thousand, so the bake simplifies it, weighing the vertex colours (the felt bands)
+ *  and normals (the folds) so the pattern and silhouette keep where they change. Kept vertices keep their own normals. */
+const SLEEVE_VERTS = 7000;
+function decimate(g: Geo, verts: number): Geo {
+  const p = g.getAttribute('position'), n = g.getAttribute('normal'), c = g.getAttribute('color'), src = g.getIndex();
+  if (src === null) throw new Error('[pine-hollow hands pool] a sleeve to decimate must be indexed');
+  const count = p.count, pos = new Float32Array(count * 3), attr = new Float32Array(count * 6);
+  for (let i = 0; i < count; i++) {
+    pos[i * 3] = p.getX(i); pos[i * 3 + 1] = p.getY(i); pos[i * 3 + 2] = p.getZ(i);
+    attr.set([c.getX(i), c.getY(i), c.getZ(i), n.getX(i), n.getY(i), n.getZ(i)], i * 6);
+  }
+  const index = Uint32Array.from({ length: src.count }, (_, i) => src.getX(i));
+  const target = Math.round(index.length * (verts / count) / 3) * 3;
+  const [kept] = MeshoptSimplifier.simplifyWithAttributes(index, pos, 3, attr, 6, [12, 12, 12, 1, 1, 1], null, target, 0.05);
+  const remap = new Int32Array(count).fill(-1), order: number[] = [];
+  const out = new Uint32Array(kept.length);
+  for (let i = 0; i < kept.length; i++) {
+    const v = kept[i] ?? 0;
+    let m = remap[v] ?? -1;
+    if (m < 0) { m = order.length; remap[v] = m; order.push(v); }
+    out[i] = m;
+  }
+  const take = (a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): THREE.BufferAttribute => {
+    const o = new Float32Array(order.length * 3);
+    order.forEach((v, i) => { o[i * 3] = a.getX(v); o[i * 3 + 1] = a.getY(v); o[i * 3 + 2] = a.getZ(v); });
+    return new THREE.BufferAttribute(o, 3);
+  };
+  const d = new THREE.BufferGeometry();
+  d.setAttribute('position', take(p)); d.setAttribute('normal', take(n)); d.setAttribute('color', take(c));
+  d.setIndex(new THREE.BufferAttribute(out, 1));
+  return d;
+}
+
 // ───────────────────────────── the pool ─────────────────────────────
 
 /** Every hand a weapon holds: its part name, its HandHold spec (Crossbow.ts CROSSBOW_HAND_HOLDS, LeverRifle.ts
@@ -341,7 +376,8 @@ const v3 = (v: THREE.Vector3): V3 => [v.x, v.y, v.z];
 const handKey = (look: GloveHandsLook, spec: HandSpec, free: boolean): string => JSON.stringify([look, spec, free]);
 
 /** Every hand and Longbow part as one rest-geometry pool GLB, and the rows the runtime reads it by. */
-export function handsPool(): { glb: Uint8Array; rows: unknown } {
+export async function handsPool(): Promise<{ glb: Uint8Array; rows: unknown }> {
+  await MeshoptSimplifier.ready;
   const parts = new Map<string, Geo>();
   const hands: Record<string, { geometry: string; sleeve: string | null; wrist: V3; dir: V3 }> = {};
   for (const [name, held, mirror] of HAND_SPECS) {
@@ -355,8 +391,8 @@ export function handsPool(): { glb: Uint8Array; rows: unknown } {
   const stave = staveRest(look, lf.geometry);
   parts.set('bow-stave', stave.geometry);
   parts.set('bow-right-fist', planarUv(rf.geometry));
-  parts.set('bow-left-sleeve', planarUv(lArm));
-  parts.set('bow-right-sleeve', planarUv(rArm));
+  parts.set('bow-left-sleeve', planarUv(decimate(lArm, SLEEVE_VERTS)));
+  parts.set('bow-right-sleeve', planarUv(decimate(rArm, SLEEVE_VERTS)));
   parts.set('bow-arrow', arrowGeometry(look.arrow));
   parts.set('bow-arrow-nocked', planarUv(arrowGeometry(look.arrow), 20));
   const bow = {
