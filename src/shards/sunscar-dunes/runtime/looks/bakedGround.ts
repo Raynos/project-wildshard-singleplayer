@@ -7,14 +7,13 @@
  * - `bindColliderGround`: the level frame's ground (its queries and collider) from the shardfile's terrain collider; the
  *   data client draws the tiles (G345, presentation-only).
  * - `lentMaterial`: the data client's built ground material, its curves reading the runtime's host fields.
- * - `ownLookMaterials`: the runtime's own meshes' look.materials entries, graphs switched on (G387).
  */
 import { Mesh, type BufferGeometry, type Material, type Object3D } from 'three';
 import { GeometryPack, fetchDeflated, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { PainterField } from '@wildshard/engine/render/look';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
-import { prepareClientWorld, runtimePresentation, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
+import { runtimePresentation, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 
 /** What owns the skirt's geometry: the look's level scope (only the verbs used here). */
@@ -61,15 +60,6 @@ export class CubeSkirt {
     entry.mesh.geometry = entry.scope.own(entry.cube); entry.fitted = true;
     old.dispose();
   }
-  /** Tests and captures: the held skirt's horizontal reach (m) from the centre, or null when none is held. */
-  reach(): number | null {
-    const entry = this.held;
-    if (entry === null) return null;
-    const geometry = entry.mesh.geometry;
-    geometry.computeBoundingBox();
-    const box = geometry.boundingBox;
-    return box === null ? null : Math.max(-box.min.x, box.max.x, -box.min.z, box.max.z);
-  }
 }
 
 /**
@@ -98,9 +88,4 @@ export function lentMaterial(source: Shardfile, id: string, scope: Scope, state:
   const lent = runtimePresentation(source); if (lent === null) return null;
   scope.onDispose(lent.bindState(state));
   return lent.material(id);
-}
-
-/** The runtime's own meshes' `ids` from its look.materials, graphs switched on (G387, G397), on its world's renderer. */
-export function ownLookMaterials(ctx: Parameters<typeof prepareClientWorld>[0], source: Shardfile, ids: readonly string[]): ReturnType<typeof prepareClientWorld> {
-  return prepareClientWorld(ctx, source, { materials: ids, requiredMaterials: ids });
 }
