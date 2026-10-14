@@ -1,4 +1,4 @@
-import { skyMapGraph } from '../look/mapGraph';
+import { skyMapGraph } from './mapGraph';
 import { SKY, SKY_SUN, type SkyGraph } from './skyLook';
 import { SKY_ISLE_HD } from './skyIsles';
 

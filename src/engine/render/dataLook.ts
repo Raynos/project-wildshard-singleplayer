@@ -424,14 +424,14 @@ function paintedStripSky(row: PaintedStripRow, strips: readonly [THREE.Texture, 
 }
 
 /**
- * A painted look's sky: a dome over a heading strip (`dome`, its haze `haze` patched into every world material, reading
- * the same strip; `graph`, when given, is the dome's material as an SF59 graph, compiled with the backdrop on the page's
+ * A painted look's sky: a dome over a heading strip (`dome`, absent a 900 m back-faced sphere in the fog's colour that
+ * writes no depth; its haze `haze` patched into every world material, reading the same strip; `graph`, when given, is the dome's material as an SF59 graph, compiled with the backdrop on the page's
  * renderer like the dressing's, from the heading strip; the dome's own material stands in until then), or two painted
  * strips (`strips`, decoded by `load`) on a sphere that stands in the fog's colour until they load (a strip that fails to
  * load is a page fault: the stand-in stays).
  */
 export type PaintedSkySpec =
-  | { readonly haze: HeadingHazeRow; readonly dome: (strip: THREE.Texture) => THREE.Mesh<THREE.BufferGeometry, THREE.Material>
+  | { readonly haze: HeadingHazeRow; readonly dome?: (strip: THREE.Texture) => THREE.Mesh<THREE.BufferGeometry, THREE.Material>
     readonly graph?: (strip: THREE.Texture) => { readonly ir: GraphIr; readonly textures: (ref: string) => THREE.Texture } }
   | { readonly strips: PaintedStripRow; readonly load: PaintedLoad };
 
@@ -494,7 +494,9 @@ export function paintedLook(spec: PaintedLookSpec): LookStrategy {
   let painted: { readonly scope: Scope; readonly blend: (state: number) => void; readonly textures: readonly THREE.Texture[] } | null = null;
   const makeSky = (): PaintedSky => {
     if ('haze' in skySpec) {
-      const strip = headingStrip(skySpec.haze), dome = skySpec.dome(strip); pending.add(strip);
+      const strip = headingStrip(skySpec.haze), dome = skySpec.dome?.(strip)
+        ?? new THREE.Mesh<THREE.BufferGeometry, THREE.Material>(new THREE.SphereGeometry(900, 64, 32), new THREE.MeshBasicMaterial({ color: spec.fog.color, side: THREE.BackSide, depthWrite: false, fog: false }));
+      pending.add(strip);
       dome.renderOrder = -10; dome.frustumCulled = false;
       sky = { dome, strip };
       return sky;

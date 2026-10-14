@@ -324,14 +324,16 @@ export interface PaintedSampler {
  * A painted image as an sRGB texture named `name`, fetched and decoded off the main thread (an ImageBitmap, flipped at
  * decode as the engine's own loader does, so its v runs up like a TextureLoader image's), sampled as `sampler`; null when
  * it cannot be had (offline, a test page), with `console.warn(warn, error)`: the caller keeps its stand-in. A plain fetch
- * fails fast where an <img> would hang a headless test.
+ * fails fast where an <img> would hang a headless test. Already flipped, it is unflagged (`flipY` false, as the engine's
+ * loader leaves a bitmap): a graph's node sampler flips a flagged ImageBitmap again, so a flagged one sampled upside down
+ * until the Memory saver dropped its bitmap; a classic upload ignores the flag on a bitmap either way.
  */
 export async function loadPaintedTexture(url: string, name: string, warn: string, sampler: PaintedSampler = {}): Promise<Texture | null> {
   try {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`${String(response.status)} ${url}`);
     const bitmap = await createImageBitmap(await response.blob(), { imageOrientation: 'flipY' });
-    const tex = new Texture(bitmap); tex.colorSpace = SRGBColorSpace; tex.name = name;
+    const tex = new Texture(bitmap); tex.colorSpace = SRGBColorSpace; tex.name = name; tex.flipY = false;
     if (sampler.release === true) { cacheUntilDisposed(tex, () => { bitmap.close(); }); releaseOnUpload(tex.source, () => { bitmap.close(); }); }
     if (sampler.wrapS !== undefined) tex.wrapS = sampler.wrapS;
     if (sampler.wrapT !== undefined) tex.wrapT = sampler.wrapT;

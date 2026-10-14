@@ -1,5 +1,4 @@
-import { AdditiveBlending, BufferAttribute, BufferGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, RingGeometry, type Texture } from 'three';
-import { onPaintedDispose } from '../look/image';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, RingGeometry } from 'three';
 import { skyLook } from './looks';
 
 import { STORM } from '../data/storm';
@@ -30,13 +29,6 @@ export interface CrownStorm {
   readonly update: (dt: number, t: number) => void;
   /** Strike `delay` seconds from the next update (captures and tests use it through `__wildshard.shard.farReach`). */
   readonly strike: (delay?: number) => void;
-}
-
-let PAINT: Texture | null = null;
-/** The painted cumulus spiral for the storm's underside (the sea's maelstrom painting; the plugin owns it). */
-export function setStormPaint(t: Texture | null): void {
-  PAINT = t;
-  onPaintedDispose(t, () => { if (PAINT === t) PAINT = null; });
 }
 
 /** Build the storm, centred at the group's origin (place it over the crown at `STORM.lift`). */

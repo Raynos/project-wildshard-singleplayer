@@ -1,5 +1,5 @@
 import skyMapSources from './skyMapSources.json' with { type: 'json' };
-import { skyMapGraph } from '../look/mapGraph';
+import { skyMapGraph } from './mapGraph';
 
 /**
  * The windmill's looks (SHARD-PLATFORM W1 C2: SF59 material graphs in the shardfile's `look.materials`, bound to the

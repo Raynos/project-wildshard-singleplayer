@@ -1,7 +1,7 @@
 import { Group, Mesh, MeshStandardMaterial, DoubleSide, type InstancedMesh, type Material, type Object3D, type Texture } from 'three';
 import { hdMaterial, skyHd, SKY_LIBRARY } from './meshes';
 import { skyLook, skyMappedLook } from './looks';
-import { onPaintedDispose } from '../look/image';
+import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import millModel from '../data/millModel.json' with { type: 'json' };
 import { skyBakedPiece } from './baked';
 
@@ -30,7 +30,7 @@ import { skyBakedPiece } from './baked';
 const MILL_TEX: { stone: Texture | null } = { stone: null };
 export function setMillTextures(t: { stone: Texture | null }): void {
   const texture = t.stone; MILL_TEX.stone = texture;
-  onPaintedDispose(texture, () => { if (MILL_TEX.stone === texture) MILL_TEX.stone = null; });
+  if (texture !== null) cacheUntilDisposed(texture, () => { if (MILL_TEX.stone === texture) MILL_TEX.stone = null; });
 }
 
 interface Made { readonly meshes: Mesh[]; readonly hubAt: { y: number; z: number } }

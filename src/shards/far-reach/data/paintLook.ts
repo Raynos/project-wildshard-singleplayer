@@ -1,5 +1,5 @@
 import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
-import { skyMapGraph } from '../look/mapGraph';
+import { skyMapGraph } from './mapGraph';
 
 /**
  * Sky Reach's smaller paint corrections, each pulling a generated model's paint toward the mockups: SF59 material graphs

@@ -1,4 +1,4 @@
-import { skyMapGraph } from '../look/mapGraph';
+import { skyMapGraph } from './mapGraph';
 import { SKY_PAINTER_GRAPH } from './skyLook';
 
 /**
