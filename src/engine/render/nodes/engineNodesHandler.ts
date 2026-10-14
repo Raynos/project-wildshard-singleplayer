@@ -54,6 +54,7 @@ import { planeBiasShadowFilter } from './planeBiasShadowFilter';
 import { EngineDirectionalLightNode } from './cascadeLightNode';
 import { isCascadeGhost } from '../../world/cascadeLights';
 import { Scope } from '../../app/scope';
+import { rebindGeometry } from '../../app/cachedAssets';
 import { diagnosticNow } from '../../core/clock';
 import { worldTime } from '../../core/time';
 import type { Renderer } from '../renderer';
@@ -182,6 +183,7 @@ interface StockInternals {
   collectUniformsGroups: (builder: unknown) => unknown[];
   onBeforeRenderCallback: (this: THREE.Material, ...args: unknown[]) => void;
   onDisposeMaterialCallback: (this: THREE.Material) => void;
+  updateGeometryAttributes: (builder: unknown, geometry: THREE.BufferGeometry) => void;
 }
 const internals = (h: WebGLNodesHandler): StockInternals => h as WebGLNodesHandler & StockInternals;
 
@@ -262,6 +264,20 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const disposed = (material: THREE.Material): void => { this.disposeMaterial(material); };
     self.onBeforeRenderCallback = function onBeforeRenderCallback(this: THREE.Material, ...args: unknown[]): void { before(this, args[0], args[4]); };
     self.onDisposeMaterialCallback = function onDisposeMaterialCallback(this: THREE.Material): void { disposed(this); };
+    // the stock build sets the node attributes on the drawn geometry, then disposes it so the renderer rebinds them: the
+    // same attributes and the same rebind, sent as a rebind (`rebindGeometry`), so a memo holding a live geometry (a
+    // shard's loaded views, its ground cover's kinds) does not take its first graph draw for its retirement
+    self.updateGeometryAttributes = function updateGeometryAttributes(builder: unknown, geometry: THREE.BufferGeometry): void {
+      const attributes: unknown = typeof builder === 'object' && builder !== null ? Reflect.get(builder, 'bufferAttributes') : undefined;
+      if (!Array.isArray(attributes)) throw new Error('Node build carries no buffer attribute list');
+      for (const entry of attributes) {
+        const name: unknown = Reflect.get(entry, 'name'), node: unknown = Reflect.get(entry, 'node');
+        const attribute: unknown = typeof node === 'object' && node !== null ? Reflect.get(node, 'attribute') : undefined;
+        if (typeof name !== 'string' || !(attribute instanceof THREE.BufferAttribute || attribute instanceof THREE.InterleavedBufferAttribute)) throw new Error('Node buffer attribute is malformed');
+        geometry.setAttribute(name, attribute);
+      }
+      queueMicrotask(() => { rebindGeometry(geometry); });
+    };
     self.getOutputCallback = (outputNode, builder) => {
       const renderer = this.classicRenderer();
       const { toneMapping, colorSpace } = outputTransform(renderer);
