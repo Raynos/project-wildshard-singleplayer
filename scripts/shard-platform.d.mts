@@ -36,6 +36,8 @@ export function rawShaderLines(source: string, path: string, program?: unknown):
 /** G390 headline, unavailable until the admitted product is present. */
 export interface PortHeadline {customPercent:number|null;world:'yes'|'partial'|'no'|'unavailable';percent:number|null}
 export function declarationOnlyConfig(source:string,path?:string):boolean;
+/** G423: only root manifest data declarations qualify; runtime logic stays custom. */
+export function declarationOnlyManifest(source:string,path?:string):boolean;
 export function portHeadline(customPercent:number|null,content:{status:string;tiles:{total:number}|null;privateBinaries:readonly string[]}):PortHeadline;
 export function portAverage(rows:Record<string,{port:PortHeadline}>):number|null;
 

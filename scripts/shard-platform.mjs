@@ -141,6 +141,43 @@ export function declarationOnlyConfig(source, path = 'shard.config.ts') {
     'VariableDeclaration', 'TSTypeAliasDeclaration', 'TSInterfaceDeclaration', 'EmptyStatement'].includes(row.type) && declaration(row));
 }
 
+/** G423 extends call 36 to root manifest.ts only. Literal rows, const aliases, imported
+ * values/member reads, spreads and erased TS types are declarations; referenced modules keep
+ * their existing reach/counts. No calls (even config wrappers), mutation, functions, classes,
+ * control flow or bare side-effect imports qualify. Unknown syntax stays custom. Raw GLSL
+ * literals still count separately, just as they do in data/. No code is executed to classify it. */
+export function declarationOnlyManifest(source, path = 'manifest.ts') {
+  const value = node => {
+    switch (node?.type) {
+      case 'Literal': case 'Identifier': return true;
+      case 'ObjectExpression': return node.properties.every(property => property.type === 'SpreadElement'
+        ? value(property.argument) : property.type === 'Property' && property.kind === 'init' && !property.method
+          && !property.computed && value(property.value));
+      case 'ArrayExpression': return node.elements.every(element => element === null || value(element));
+      case 'SpreadElement': return value(node.argument);
+      case 'MemberExpression': return !node.optional && value(node.object)
+        && (node.computed ? node.property.type === 'Literal' : node.property.type === 'Identifier');
+      case 'UnaryExpression': return ['-', '+'].includes(node.operator) && node.argument.type === 'Literal'
+        && typeof node.argument.value === 'number';
+      case 'TemplateLiteral': return node.expressions.length === 0;
+      case 'TSAsExpression': case 'TSSatisfiesExpression': case 'TSTypeAssertion': return value(node.expression);
+      default: return false;
+    }
+  };
+  const statement = node => {
+    switch (node.type) {
+      case 'ImportDeclaration': return node.importKind === 'type' || node.specifiers.length > 0;
+      case 'VariableDeclaration': return node.kind === 'const' && node.declarations.every(row =>
+        row.id.type === 'Identifier' && row.init !== null && value(row.init));
+      case 'ExportDefaultDeclaration': return value(node.declaration);
+      case 'ExportNamedDeclaration': return node.source === null && (node.declaration === null || statement(node.declaration));
+      case 'TSInterfaceDeclaration': case 'TSTypeAliasDeclaration': case 'EmptyStatement': return true;
+      default: return false;
+    }
+  };
+  return parseSync(path, source).program.body.every(statement);
+}
+
 /** G390: measured custom reduction contributes 80 points; tiles plus no private bytes contribute 20.
  * @param {number|null} customPercent @param {{status:string,tiles:{total:number}|null,privateBinaries:readonly string[]}} content
  * @returns {import('./shard-platform.mjs').PortHeadline} */
@@ -712,16 +749,17 @@ export function shardLines(root = ROOT, includeSources = false) {
     for (const path of files) {
       const local = path.slice(`src/shards/${slug}/`.length), top = local.split('/')[0];
       const lines = count(path);
+      const dataManifest = local === 'manifest.ts' && declarationOnlyManifest(text(path), path);
       // G315: authored AS is reported separately, without a cap or an effect on the G291 TS ratio.
       if (path.endsWith('.as') && !RULES.tests.test(local)) row.assemblyScriptLines += lines;
       if (RULES.typescript.test(path) && !RULES.runtimeExcludedFolders.has(top) && !RULES.tests.test(local)
-        && !(local === 'shard.config.ts' && declarationOnlyConfig(text(path), path))) {
+        && !dataManifest && !(local === 'shard.config.ts' && declarationOnlyConfig(text(path), path))) {
         shardRuntimeLines += lines;
         if (collectSources && lines > 0) customSources.push({path, kind:'runtime-ts', lines});
       }
       const shaderLines = RULES.tests.test(local) ? 0 : shaders(path);
       rawGlslLines += shaderLines;
-      if (!RULES.typescript.test(path) || RULES.runtimeExcludedFolders.has(top)) {
+      if (!RULES.typescript.test(path) || RULES.runtimeExcludedFolders.has(top) || dataManifest) {
         additionalGlslLines += shaderLines;
         if (collectSources && shaderLines > 0) customSources.push({path, kind:'additional-glsl', lines:shaderLines});
       }
