@@ -5016,3 +5016,8 @@ legacy update owner; mooring geometry stays with its original owner.
 the trusted resident, stripping them from data-client installation. Native
 chains are admitted only under that binding, where the resident supplies
 the existing RopeChain and its restore owner; pure-data chains still refuse.
+
+`engine/quest/dialogueClock.NpcDialogue` selects authored NPC lines, commits
+flags only on completion and preflights old reading continuations before
+mutation. It uses its native clock or the actual `DialogueBox.readingClock`
+lent when a page talk opens; UI, key delay and save owners stay with callers.

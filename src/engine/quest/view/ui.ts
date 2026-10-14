@@ -117,6 +117,8 @@ export class DialogueBox {
   dispose(): void { this.scope.dispose(); }
 
   get isOpen(): boolean { return this.open_; }
+  /** Lend the panel's actual clock to a reading opened by its NPC owner. */
+  get readingClock():DialogueClock {return this.clock;}
 
   open(name: string, lines: string[], onDone: () => void): void {
     if (lines.length === 0) { onDone(); return; }

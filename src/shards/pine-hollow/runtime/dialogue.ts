@@ -1,6 +1,5 @@
 import * as v from 'valibot';
-import { NpcDialogue, type DialogueFlags } from './quest/npcDialogue';
-import type { NpcDef } from '@wildshard/engine/quest/core';
+import {NpcDialogue} from '@wildshard/engine/quest/dialogueClock';
 import { RANGER } from '../quest/wardensHollow';
 
 const KEY_DELAY = 0.15;
@@ -13,8 +12,8 @@ export class PineDialogue {
   private elapsed = 0;
   private readonly at: Point;
   private readonly radius: number;
-  private readonly npc: NpcDef;
-  constructor(flags: DialogueFlags, at: Point, radius: number, npc: NpcDef = RANGER) {
+  private readonly npc:typeof RANGER;
+  constructor(flags:ConstructorParameters<typeof NpcDialogue>[1],at:Point,radius:number,npc:typeof RANGER=RANGER) {
     this.npc = npc; this.dialogue = new NpcDialogue(npc, flags); this.at = at; this.radius = radius;
   }
   get active(): boolean { return this.dialogue.clock.isOpen; }

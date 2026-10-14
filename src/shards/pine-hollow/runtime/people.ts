@@ -1,5 +1,4 @@
 import * as v from 'valibot';
-import type { DialogueFlags } from './quest/npcDialogue';
 import { RANGER, MILLER, TRADER } from '../quest/wardensHollow';
 import { PineDialogue } from './dialogue';
 
@@ -19,7 +18,7 @@ export class PinePeople {
   private readonly readings: Record<PinePersonKind, PineDialogue>;
   private current: PinePersonKind | null = null;
   private readonly completed: (kind: PinePersonKind) => void;
-  constructor(flags: DialogueFlags, spots: readonly PinePersonSpot[], completed: (kind: PinePersonKind) => void) {
+  constructor(flags:ConstructorParameters<typeof PineDialogue>[0], spots: readonly PinePersonSpot[], completed: (kind: PinePersonKind) => void) {
     this.completed = completed;
     if (spots.length !== 3) throw new RangeError('Pine has exactly three captured speakers');
     const reading = (kind: PinePersonKind, npc: typeof RANGER): PineDialogue => {

@@ -1,7 +1,8 @@
 import { engineString } from '../strings';
 import type * as THREE from 'three';
 import { ObjectiveLine, type DialogueBox } from './view/ui';
-import { lineFor, type DialogueEntry, type NpcDef } from './core';
+import type {DialogueEntry,NpcDef} from './core';
+import {NpcDialogue} from './dialogueClock';
 import type { Flags } from '../world/interact/flags';
 import type { Interactable } from '../world/interact/types';
 import type { MapPoi } from '../ui/Map';
@@ -85,14 +86,14 @@ export class NpcTalk {
   talk(): void {
     const { dialogue, flags, npc, speaker } = this.o;
     if (dialogue.isOpen) { dialogue.advance(); return; }
-    const entry = lineFor(npc, flags);
+    const reading=new NpcDialogue(npc,flags,dialogue.readingClock),entry=reading.select();
     if (!entry) { this.o.onEmpty?.(); return; }
     speaker.talking = true;
     this.mine = true;
     dialogue.open(npc.name, entry.lines, () => {
       speaker.talking = false;
       this.mine = false;
-      for (const f of entry.sets ?? []) flags.set(f);
+      reading.finish();
       this.o.onDone?.(entry);
     });
     this.o.onOpen?.(entry);

@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import {lineFor,type DialogueEntry,type NpcDef} from './core';
 
 const finite = v.pipe(v.number(), v.finite());
 const Saved = v.strictObject({ version: v.literal(1),
@@ -48,6 +49,55 @@ export class DialogueClock {
       throw new RangeError('Invalid dialogue continuation');
     }
     return () => { this.lines = saved.lines; this.i = saved.index; this.shown = saved.shown; this.active = saved.open; };
+  }
+  restore(value: unknown): void { this.prepareRestore(value)(); }
+}
+
+const NpcSaved = v.strictObject({ version: v.literal(1), npc: v.string(),
+  entry: v.nullable(v.pipe(v.number(), v.integer(), v.minValue(0))), clock: v.unknown(),
+});
+/** Actual flags lent by the current quest; completion is their only write path. */
+export interface DialogueFlags { readonly has: (flag: string) => boolean; readonly set: (flag: string) => void }
+
+/** Renderer-free NPC dialogue: the panel's clock, authored line selection, and flags committed only on completion. */
+export class NpcDialogue {
+  readonly clock:DialogueClock;
+  private entry: DialogueEntry | null = null;
+  private readonly npc: NpcDef;
+  private readonly flags: DialogueFlags;
+  constructor(npc:NpcDef,flags:DialogueFlags,clock:DialogueClock=new DialogueClock()) {this.npc=npc;this.flags=flags;this.clock=clock;}
+
+  open(): boolean {
+    if (this.clock.isOpen) { this.advance(); return this.clock.isOpen; }
+    const entry=this.select();
+    if(entry===null)return false;
+    if (!this.clock.open(entry.lines)) this.finish();
+    return this.clock.isOpen;
+  }
+  advance(): void { if (this.clock.advance() === 'finished') this.finish(); }
+  update(dt: number): void { this.clock.update(dt); }
+  cancel(): void { this.clock.close(); this.entry = null; }
+  /** Select without driving a borrowed clock; page presentation opens its same panel next. */
+  select():DialogueEntry|null {const entry=lineFor(this.npc,this.flags);this.entry=entry;return entry;}
+  /** Commit only a completed reading; cancellation never grants the entry's flags. */
+  finish(): void {
+    if(this.clock.isOpen)throw new Error('Open dialogue cannot complete');
+    const entry = this.entry; this.entry = null;
+    for (const flag of entry?.sets ?? []) this.flags.set(flag);
+  }
+  snapshot(): { version: 1; npc: string; entry: number | null; clock: ReturnType<DialogueClock['snapshot']> } {
+    return { version: 1, npc: this.npc.id, entry: this.entry === null ? null : this.npc.dialogue.indexOf(this.entry), clock: this.clock.snapshot() };
+  }
+  prepareRestore(value: unknown): () => void {
+    const saved = v.parse(NpcSaved, value), clock = new DialogueClock(); clock.restore(saved.clock);
+    const entry = saved.entry === null ? null : this.npc.dialogue[saved.entry];
+    const state = clock.snapshot();
+    if (saved.npc !== this.npc.id || entry === undefined || (entry !== null) !== clock.isOpen
+      || (entry !== null && (entry.lines.length !== state.lines.length || entry.lines.some((line, i) => line !== state.lines[i])))) {
+      throw new RangeError('Incompatible NPC dialogue continuation');
+    }
+    const commit = this.clock.prepareRestore(state);
+    return () => { commit(); this.entry = entry; };
   }
   restore(value: unknown): void { this.prepareRestore(value)(); }
 }
