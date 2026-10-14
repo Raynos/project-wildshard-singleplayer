@@ -5297,3 +5297,12 @@ on mesh vertices or fragments. The SDK exposes the inputs and the same
 authoring op. CPU sampling and graph nodes use one renderer-free gust
 front kernel through typed arithmetic adapters; no new clock or update
 system is installed. Its bounded arithmetic counts in the graph budget.
+
+Interactable rest sites can be admitted by `readInteractPlacements` and bound
+with `bindInteractPlacements` (`engine/world/interact/types`). The original
+ordered table keeps its flags, conditions, contents, labels and models; only
+world-space rest points/yaw come from bounded authored rows. Missing, duplicate,
+foreign, non-finite or mismatched sites refuse before construction. The optional
+second argument of `Interactables.build` applies the same binder; absent keeps
+the existing placement resolver. Moving keys, barrels and native body/save
+ownership remain with their original runtime owners.

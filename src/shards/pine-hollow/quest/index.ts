@@ -4,7 +4,7 @@ import { QUEST_NPCS } from '../data/questNpcs';
 import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { PINE_KIT_EVENTS } from '../data/questEvents';
 import { pineQuestRows } from './graph';
-import { PINE_LANTERN_IDS, RESIN_SPOTS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES } from '../data/interactions';
+import { PINE_LANTERN_IDS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES } from '../data/interactions';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import type { Music } from '@wildshard/engine/audio/Music';
@@ -64,11 +64,12 @@ import { installPineClock, type PineClockEvent } from '../runtime/directorClock'
 import { waystoneSites, contractBoardSite, CANOE_SITE, type PineLandmarks } from '../world/landmarks';
 import { ZIP_YAW } from '../world/timberSites';
 import { hamletRoofs } from '../world/cabinBake';
-import { BEAVER_DAM, CREEK, CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND, STANDING_STONES, KINGS_CLEARING, WATERFALL, CREEK_BRIDGE } from '../data/layout';
+import { CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND } from '../data/layout';
 import { KING_KIND } from '../runtime/antlerKing';
 import { RANGER, MILLER, TRADER } from './wardensHollow';
 import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
-import { pineTable, type Spot } from './table';
+import { pineTableFromPlacements } from './table';
+import authoredSpots from '../data/spots.generated.json' with { type: 'json' };
 import { makeNpcFigure, type NpcFigure, type NpcKind } from '../models/people';
 import { preloadNpcModels } from './npcModels';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
@@ -77,7 +78,7 @@ import { TRADE_GOODS, tradeCost, tradeShopState, type Room, type TradeGood } fro
 import type { TradeItem } from '../data/trades';
 import { BoardPanel, CountChip } from './ui';
 import { ZipRide, CanoeRide } from './rides';
-import { hollowLogFloor, hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
+import { hollowLogSite, insideHollowLog, HOLLOW_LOG, type HollowLog } from './hollowLog';
 import { hollowLog, loadHollowLog } from '../models/hollowLog';
 import { pineModels } from '../world/context';
 import { StagLead } from './stagLead';
@@ -161,35 +162,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   };
 
   // ── the table's sites ──
-  const resin: Spot[] = RESIN_SPOTS.map(([x, z]) => {
-    let best: TreeInstance | null = null, bd = 9 * 9;
-    for (const t of h.trees) { const d = (t.x - x) ** 2 + (t.z - z) ** 2; if (d < bd) { bd = d; best = t; } }
-    if (!best) return { x, z, dy: 0.25 };
-    const dx = x - best.x, dz = z - best.z, d = Math.hypot(dx, dz) || 1, r = Math.max(0.18, best.r) + 0.07;
-    const px = best.x + (dx / d) * r, pz = best.z + (dz / d) * r;
-    return { x: px, z: pz, y: heightAt(best.x, best.z) + 1.15 };
-  });
-  const stone = STANDING_STONES[3] ?? [KINGS_CLEARING.x, KINGS_CLEARING.z - 24];
-  const toC = Math.hypot(KINGS_CLEARING.x - stone[0], KINGS_CLEARING.z - stone[1]) || 1;
-  const deckTok = tower(2.85, -2.85), finder = tower(0.9, 1.45), bench = tower(-2.8, 2.8);   // the bench: the catwalk's NW corner, over the lake and the snow range
-  const tokens: Spot[] = [
-    { x: deckTok.x, z: deckTok.z, y: deckY + 0.05 },
-    { x: HOLLOW_LOG.x, z: HOLLOW_LOG.z, y: hollowLogFloor() },                           // inside the hollow log, on its bed
-    { x: ISLET.x + 1.5, z: ISLET.z + 1.0 },
-    { x: stone[0] + ((KINGS_CLEARING.x - stone[0]) / toC) * 2.2, z: stone[1] + ((KINGS_CLEARING.z - stone[1]) / toC) * 2.2 },
-    { x: WATERFALL.foot.x + 7.5, z: WATERFALL.foot.z + 5 },
-    { x: CABIN_SITES[2]?.x ?? 118, z: (CABIN_SITES[2]?.z ?? 142) - 6.5 },
-    { x: HAMLET_SITES.shed.x + 2.6, z: HAMLET_SITES.shed.z - 2.2 },
-    { x: CREEK_BRIDGE.x + 4.2, z: CREEK_BRIDGE.z + 1.4 },
-  ];
-  const d0 = CREEK[BEAVER_DAM.at - 1] ?? [-130, 76], d1 = CREEK[BEAVER_DAM.at + 1] ?? [-146, 38];
-  const fl = Math.hypot(d1[0] - d0[0], d1[1] - d0[1]) || 1, fx = (d1[0] - d0[0]) / fl, fz = (d1[1] - d0[1]) / fl;
-  const table = pineTable({
-    resin, tokens,
-    dam: { x: BEAVER_DAM.x, z: BEAVER_DAM.z, fx, fz, ax: fz, az: -fx },
-    finder: { x: finder.x, y: deckY + 1.1, z: finder.z },
-    bench: { x: bench.x, y: deckY, z: bench.z, yaw: ZIP_YAW - Math.PI / 4 },
-  });
+  const table = pineTableFromPlacements(authoredSpots.rows);
   const graph = interactionRules(flags, pineQuestRows(table));
   const kit = new Interactables({ scene: game.scene, sky, player, flags, place, floorAt, prompts: h.interactables }).build(table);
   ctx.system({ id: 'quest.kit', phase: 'update', after: ['engine.compendium.installCompendium'], before: ['quest.pool', 'hud.combat', 'main.frame'], run: (dt, t) => { kit.update(dt, t); } });

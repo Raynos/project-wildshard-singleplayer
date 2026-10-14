@@ -14,7 +14,7 @@
  *
  * Placement is world coordinates (`poi: 'world'`); `y` pins heights on the tower (its deck), the rest sit on the floor.
  */
-import type { InteractTable, PickupDef } from '@wildshard/engine/world/interact/types';
+import { bindInteractPlacements, readInteractPlacements, type InteractTable, type PickupDef } from '@wildshard/engine/world/interact/types';
 
 import { RESIN_FLAG, TOKEN_FLAG } from '../data/interactions';
 
@@ -64,4 +64,13 @@ export function pineTable(s: TableSites): InteractTable {
       ...tokens,
     ],
   };
+}
+
+/** The existing table laws over the admitted author spots; no live tree search or site calculation. */
+export function pineTableFromPlacements(input: unknown): InteractTable {
+  const rows = readInteractPlacements(input), bench = rows.find(row => row.id === 'lookout-bench'), finder = rows.find(row => row.id === 'ridge-flint');
+  if (bench === undefined || finder === undefined) throw new Error('Pine quest sites are incomplete');
+  const table = pineTable({ resin: rows.filter(row => row.id.startsWith('resin-')), tokens: rows.filter(row => row.id.startsWith('token-')),
+    dam: { x: 0, z: 0, fx: 0, fz: 1, ax: 1, az: 0 }, finder, bench });
+  return bindInteractPlacements(table, rows);
 }

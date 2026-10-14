@@ -34,7 +34,7 @@ import { overlapBox, type Body } from '../../physics/bodies';
 import { BARREL_BODY, BARREL_HALF, BARREL_R, BarrelWatch, barrelAtPlate, type BarrelEnv } from './barrel';
 import { waterLevel } from '../Heightfield';
 import { test, bindInteractionState, type Flags } from './flags';
-import { autoFlag, interactProps, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
+import { bindInteractPlacements, autoFlag, interactProps, pickupLook, type Interactable, type InteractDef, type InteractTable, type Place } from './types';
 import { modelContext, type ModelDef, type Placement } from '../../models/model';
 import { place, type Placed } from '../../models/place';
 import { walkInPickup } from './pickup';
@@ -167,9 +167,10 @@ export class Interactables {
 
   live(id: string): Live | undefined { return this.byId.get(id); }
 
-  build(table: InteractTable): this {
+  build(table: InteractTable, placements?: unknown): this {
+    const placedTable = placements === undefined ? table : bindInteractPlacements(table, placements);
     // pass 1: geometries (cached by shape) + the parts list per row
-    for (const def of table.rows) {
+    for (const def of placedTable.rows) {
       const lv = new Live(def,this.host.flags);
       this.lives.push(lv); this.byId.set(def.id, lv);
       this.parts(lv);
