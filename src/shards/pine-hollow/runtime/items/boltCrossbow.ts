@@ -13,7 +13,7 @@ import { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, isMesh, whiteColors
 import { quiverState, Weapon, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { Game } from '@wildshard/engine/core/Game';
-import { sticksIn } from '@wildshard/engine/physics/query';
+import { ProjectileContact } from '@wildshard/engine/combat/projectileContact';
 import type { Player } from '@wildshard/engine/player/Player';
 import { sstep } from '@wildshard/engine/player/viewmodelTextures';
 import { getSetting } from '@wildshard/engine/ui/Settings';
@@ -498,58 +498,24 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
    * (knocking off any wall on the way).
    * Returns true when the bolt stopped.
    */
-  private testHit(b: Bolt, prev: THREE.Vector3): boolean {
-    _dir.subVectors(b.pos, prev);
-    const segLen = _dir.length();
-    if (segLen < 1e-6) return false;
-    _dir.multiplyScalar(1 / segLen);
-    const wall = worldHit(prev, b.pos, this.profile.radius);
-
-    // animals, short of the wall
-    if (this.targets) {
-      const hit = this.targets.raycast(prev, _dir, wall ? wall.distance : segLen);
-      if (hit) {
-        this.onBoltHit(hit);
-        const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.player.position)) * b.mod.damage(hit.animal.kind) * (this.profile.damageScale ?? 1), hit.point, _dir);
-        this.onHit?.(hit.animal.kind, hit.headshot, killed);
-        const frame = hit.animal.stuckFrame?.(hit.point) ?? null; // a practice dummy keeps the bolt, on the bone it hit
-        const attached = frame instanceof THREE.Object3D ? frame : null;
-        this.stopBolt(b, hit.point, _dir, 'flesh', attached !== null, this.profile.bury, false, attached);
-        return true;
-      }
-    }
-    if (!wall) return false;
-    const n = _v2.set(wall.normal.x, wall.normal.y, wall.normal.z);
-    if (n.dot(_dir) > 0) n.negate(); // facing the bolt
-    const at = _v3.set(wall.point.x, wall.point.y, wall.point.z); // the ball's centre, touching the surface
-    if (b.glanced && n.y >= 0.5) { this.restBolt(b, at, n); return true; } // a spent bolt lies where it lands
-    const surface = impactSurfaceOf(wall.material);
-    if (!b.glanced && sticksIn(wall.material)) {
-      // the ball touches one radius off the surface: the tip carries on along the flight to it
-      at.addScaledVector(_dir, this.profile.radius / Math.max(0.25, -n.dot(_dir)));
-      this.stopBolt(b, at, _dir, surface, true, this.profile.bury, false, movingOwner(wall.owner));
-      return true;
-    }
-    // glance: off the surface with little of the speed left, then gravity has it
-    at.addScaledVector(n, GLANCE_LIFT);
-    if (!b.glanced) { this.puffs.emit(at, _dir, surface); this.onImpact?.(surface, at); } // a spent bolt knocks off walls quietly
-    const vn = b.vel.dot(n);
-    b.vel.addScaledVector(n, -vn).multiplyScalar(GLANCE_KEEP).addScaledVector(n, -vn * GLANCE_BOUNCE);
-    if (b.vel.length() > GLANCE_MAX) b.vel.setLength(GLANCE_MAX);
-    b.pos.copy(at);
-    b.glanced = true;
-    return false;
-  }
-
-  /** A spent (glanced) bolt comes to rest lying on the surface it fell onto: along its travel, flat to the surface. */
-  private restBolt(b: Bolt, at: THREE.Vector3, n: THREE.Vector3): void {
-    const along = _v1.copy(_dir).addScaledVector(n, -_dir.dot(n));
-    if (along.lengthSq() < 1e-6) along.crossVectors(n, Math.abs(n.y) < 0.9 ? Y_AXIS : X_AXIS); // fell straight down: any way along the surface
-    along.normalize();
-    // the tip half a bolt ahead of the contact so the shaft lies across it, on the surface instead of a radius above it
-    at.addScaledVector(n, -this.profile.radius * 0.8).addScaledVector(along, (this.nockZ - this.tipLocal.z) * 0.5);
-    this.stopBolt(b, at, along, 'ground', true, 0, true);
-  }
+  private readonly contacts = new ProjectileContact<Bolt>({
+    glance: { lift: GLANCE_LIFT, keep: GLANCE_KEEP, bounce: GLANCE_BOUNCE, maxSpeed: GLANCE_MAX },
+    spentRest: 'upward', impactAfterLift: true, impactOnRepeatedGlance: false,
+  }, {
+    world: worldHit, target: (from, direction, distance) => this.targets?.raycast(from, direction, distance) ?? null,
+    hit: (bolt, hit, direction) => {
+      this.onBoltHit(hit);
+      const killed = hit.animal.applyDamage(hit.animal.damageFor(hit.headshot, hit.point.distanceTo(this.player.position)) * bolt.mod.damage(hit.animal.kind) * (this.profile.damageScale ?? 1), hit.point, direction);
+      this.onHit?.(hit.animal.kind, hit.headshot, killed);
+      const frame = hit.animal.stuckFrame?.(hit.point) ?? null, attached = frame instanceof THREE.Object3D ? frame : null;
+      this.stopBolt(bolt, hit.point, direction, 'flesh', attached !== null, this.profile.bury, false, attached);
+    },
+    stop: (bolt, at, direction, wall) => { this.stopBolt(bolt, at, direction, impactSurfaceOf(wall.material), true, this.profile.bury, false, movingOwner(wall.owner)); },
+    rest: (bolt, at, direction) => { this.stopBolt(bolt, at, direction, 'ground', true, 0, true); },
+    impact: (at, direction, wall) => { const surface = impactSurfaceOf(wall.material); this.puffs.emit(at, direction, surface); this.onImpact?.(surface, at); },
+    expire: bolt => { bolt.active = false; bolt.mesh.visible = false; },
+  });
+  private testHit(b: Bolt, prev: THREE.Vector3): boolean { return this.contacts.step(b, prev, this.profile.radius, this.nockZ - this.tipLocal.z); }
 
   /** `bury`: how deep the broadhead goes in; `quiet`: no puff / impact event (a spent bolt settling) */
   private stopBolt(b: Bolt, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, stick: boolean, bury = this.profile.bury, quiet = false, rideOn: THREE.Object3D | null = null): void {

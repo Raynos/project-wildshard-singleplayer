@@ -8,10 +8,10 @@ import { CHUNK_HALF } from '../../core/config';
 import { Puffs, impactSurfaceOf, worldHit } from './ranged';
 import type { ImpactSurface } from '../Weapon';
 import type { TargetAnimal, TargetHit, Targets } from '../types';
-import { floorBelow, sticksIn } from '../../physics/query';
+import { floorBelow } from '../../physics/query';
 import { app, gameplayRandom } from '../../app/runtime';
 import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '../projectileFlight';
-import { projectileContactTip, projectileGlance, StoppedProjectileSlots, type StoppedProjectile } from '../projectileContact';
+import { ProjectileContact, StoppedProjectileSlots, type StoppedProjectile } from '../projectileContact';
 
 
 
@@ -74,7 +74,7 @@ const RECOVER_REACH = { radius: RECOVER_R, up: RECOVER_UP, down: 1.2 };
 const GLANCE = { lift: GLANCE_LIFT, keep: GLANCE_KEEP, bounce: GLANCE_BOUNCE, maxSpeed: GLANCE_MAX };
 const NEG_Z = new THREE.Vector3(0, 0, -1), POS_Z = new THREE.Vector3(0, 0, 1);
 const _cp = new THREE.Vector3(), _chord = new THREE.Vector3();
-const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _dir = new THREE.Vector3(), _wind = new THREE.Vector3(), _nrm = new THREE.Vector3();
+const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _dir = new THREE.Vector3(), _wind = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3(1, 1, 1);
 const ZERO_M = new THREE.Matrix4().makeScale(0, 0, 0);
 
@@ -211,64 +211,32 @@ export class Projectiles {
   // ── hits ──
 
   /** segment prev → f.pos vs animals, trunks, colliders, terrain; true when it stopped */
-  private testHit(f: Flying, prev: THREE.Vector3): boolean {
-    _dir.subVectors(f.pos, prev);
-    const segLen = _dir.length();
-    if (segLen < 1e-6) return false;
-    _dir.multiplyScalar(1 / segLen);
-
-    const hp = this.kind.hurtsPlayer;
-    if (hp !== undefined) {
-      const t = segmentCapsule(prev, _dir, segLen, this.player.position, hp.radius, hp.height);
-      if (t >= 0) {
-        _v2.copy(prev).addScaledVector(_dir, t);
-        this.onPlayerHit?.(_v2, _dir);
-        this.stop(f, _v2, _dir, 'flesh', null, false);
-        return true;
-      }
-    }
-    const r = this.kind.radius ?? ARROW_RADIUS;
-    const wall = worldHit(prev, f.pos, r);
-    if (this.targets && this.kind.hitsAnimals !== false) {
-      const hit = this.targets.raycast(prev, _dir, wall ? wall.distance : segLen);   // an animal short of the wall
-      if (hit) {
-        this.onTargetHit?.(hit);
-        const a = hit.animal;
-        const dmg = Math.max(1, Math.round(a.damageFor(hit.headshot, hit.point.distanceTo(f.origin)) * f.scale * (f.hitScale?.(hit) ?? 1)));
-        const killed = a.applyDamage(dmg, hit.point, _dir);
-        this.onHit?.(a.kind, hit.headshot, killed, hit.point, dmg);
-        this.stop(f, hit.point, _dir, 'flesh', a.alive ? a : null, true);
-        if (!a.alive) { const s = this.stuck[this.stuck.length - 1]; if (s !== undefined) this.stopped.drop(s); } // a kill: into the grass beside it
-        return true;
-      }
-    }
-    if (!wall) return false;
-    const n = _nrm.set(wall.normal.x, wall.normal.y, wall.normal.z);
-    if (n.dot(_dir) > 0) n.negate(); // facing the arrow
-    const at = _v2.set(wall.point.x, wall.point.y, wall.point.z); // the ball's centre, touching the surface
-    const surface = impactSurfaceOf(wall.material);
-    if (f.glanced) { this.rest(f, at, n); return true; } // a spent arrow lies where it lands
-    if (sticksIn(wall.material)) {
-      // the ball touches one radius off the surface: the tip carries on along the flight to it
-      projectileContactTip(at, _dir, n, r);
-      this.stop(f, at, _dir, surface, null, true);
-      return true;
-    }
-    // glance (stone, rock, metal): off the surface with little of the speed left, then gravity has it
-    if (this.kind.puffs !== false) this.puffs.emit(at, _dir, surface);
-    this.onImpact?.(surface, at);
-    if (this.kind.stick === false) { this.endFlying(f); return true; }
-    projectileGlance(at, f.vel, n, GLANCE);
-    f.pos.copy(at);
-    f.glanced = true;
-    return false;
-  }
-
-  /** a spent (glanced) arrow comes to rest lying on what it fell onto: along its travel, flat to the surface */
-  private rest(f: Flying, at: THREE.Vector3, n: THREE.Vector3): void {
-    this.endFlying(f);
-    this.stopped.rest(at, _dir, n, slot => { slot.data.roll = f.roll; });
-  }
+  private readonly contacts = new ProjectileContact<Flying>({ glance: GLANCE, spentRest: 'any', impactAfterLift: false, impactOnRepeatedGlance: true }, {
+    beforeWorld: (flight, from, direction, length) => {
+      const hp = this.kind.hurtsPlayer;
+      if (hp === undefined) return false;
+      const t = segmentCapsule(from, direction, length, this.player.position, hp.radius, hp.height);
+      if (!(t >= 0)) return false;
+      _v2.copy(from).addScaledVector(direction, t); this.onPlayerHit?.(_v2, direction);
+      this.stop(flight, _v2, direction, 'flesh', null, false); return true;
+    },
+    world: worldHit,
+    target: (from, direction, distance) => this.kind.hitsAnimals !== false ? this.targets?.raycast(from, direction, distance) ?? null : null,
+    hit: (flight, hit, direction) => {
+      this.onTargetHit?.(hit);
+      const animal = hit.animal;
+      const damage = Math.max(1, Math.round(animal.damageFor(hit.headshot, hit.point.distanceTo(flight.origin)) * flight.scale * (flight.hitScale?.(hit) ?? 1)));
+      const killed = animal.applyDamage(damage, hit.point, direction);
+      this.onHit?.(animal.kind, hit.headshot, killed, hit.point, damage);
+      this.stop(flight, hit.point, direction, 'flesh', animal.alive ? animal : null, true);
+      if (!animal.alive) this.stopped.dropLast();
+    },
+    stop: (flight, at, direction, wall) => { this.stop(flight, at, direction, impactSurfaceOf(wall.material), null, true); },
+    rest: (flight, at, direction) => { this.endFlying(flight); this.stopped.settle(at, direction, slot => { slot.data.roll = flight.roll; }); },
+    impact: (at, direction, wall) => { const surface = impactSurfaceOf(wall.material); if (this.kind.puffs !== false) this.puffs.emit(at, direction, surface); this.onImpact?.(surface, at); },
+    expire: flight => { this.endFlying(flight); },
+  });
+  private testHit(flight: Flying, from: THREE.Vector3): boolean { return this.contacts.step(flight, from, this.kind.radius ?? ARROW_RADIUS, this.kind.length, this.kind.stick !== false); }
 
   private stop(f: Flying, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, animal: TargetAnimal | null, stick: boolean): void {
     const roll = f.roll;

@@ -5575,3 +5575,10 @@ accepts an optional column-major/clamped sampling policy for admitted native
 heightfields; the default row-major/refusing policy remains unchanged.
 `parseBakedTerrain` accepts owned byte views plus expected header fields, and
 `readNavmesh` owns admitted bytes with an explicit datum and refusal message.
+
+`ProjectileContact` in engine/combat/projectileContact resolves one posed flight
+segment through borrowed world/target queries. Rows retain the spent-surface
+rule and first/repeated glance impact ordering. Live radius, shaft length and
+sticking observations stay with the weapon. Synchronous hit/stop/rest/impact
+ports retain damage, material, attachment and effects ownership; no Rapier
+service or actor is created or mutated by this owner.

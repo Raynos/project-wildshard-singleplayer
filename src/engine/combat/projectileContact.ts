@@ -1,5 +1,7 @@
 import { Matrix4, Vector3 } from 'three';
 import * as v from 'valibot';
+import { sticksIn, type Hit } from '../physics/query';
+import type { TargetHit } from './types';
 
 /** Caller-owned contact vectors. No collision query, clock, allocation or random draw is performed here. */
 export interface ProjectileReach { radius: number; up: number; down: number }
@@ -126,6 +128,13 @@ export class StoppedProjectileSlots<T, B> {
     slot.local.set(0, 0, 0); slot.localDirection.set(0, 0, 0); slot.recoverable = true;
     initialize?.(slot); this.slots.push(slot); this.ports.changed?.(slot);
   }
+  /** A surface phase owner has already solved the stopped shaft pose. */
+  settle(point: Vector3, direction: Vector3, initialize?: (slot: StoppedProjectile<T, B>) => void): void {
+    const slot = this.take(); if (slot === undefined) return;
+    slot.position.copy(point); slot.direction.copy(direction); slot.body = null; slot.frame = null;
+    slot.local.set(0, 0, 0); slot.localDirection.set(0, 0, 0); slot.recoverable = true;
+    initialize?.(slot); this.slots.push(slot); this.ports.changed?.(slot);
+  }
   dropLast(): void { const slot = this.slots.at(-1); if (slot !== undefined) this.drop(slot); }
   drop(slot: StoppedProjectile<T, B>): void {
     slot.body = null; slot.frame = null;
@@ -172,4 +181,62 @@ export class StoppedProjectileSlots<T, B> {
   }
   private take(): StoppedProjectile<T, B> | undefined { if (this.slots.length >= this.row.capacity) this.remove(0); return this.free.pop(); }
   private remove(index: number): void { const slot = this.slots.splice(index, 1)[0]; if (slot !== undefined) { this.ports.removed?.(slot); this.free.push(slot); } }
+}
+
+/** Surface phase policy; target/damage and draw owners remain borrowed ports. */
+export interface ProjectileContactRow {
+  readonly glance: ProjectileGlance;
+  readonly spentRest: 'any' | 'upward';
+  readonly impactAfterLift: boolean;
+  readonly impactOnRepeatedGlance: boolean;
+}
+export interface ProjectileContactSlot { readonly pos: Vector3; readonly vel: Vector3; glanced: boolean }
+export interface ProjectileContactPorts<T extends ProjectileContactSlot> {
+  readonly world: (from: Vector3, to: Vector3, radius: number) => Hit | null;
+  readonly target: (from: Vector3, direction: Vector3, distance: number) => TargetHit | null;
+  readonly hit: (slot: T, hit: TargetHit, direction: Vector3) => void;
+  readonly stop: (slot: T, at: Vector3, direction: Vector3, wall: Hit) => void;
+  readonly rest: (slot: T, at: Vector3, direction: Vector3, normal: Vector3) => void;
+  readonly impact: (at: Vector3, direction: Vector3, wall: Hit) => void;
+  readonly expire: (slot: T) => void;
+  readonly beforeWorld?: (slot: T, from: Vector3, direction: Vector3, length: number) => boolean;
+}
+/** Resolve a posed segment once, retaining its wall fence and the authored surface phase.
+ * Radius, shaft length and sticking are live observations from the caller's existing profile.
+ * Scratch vectors are borrowed by synchronous ports only; no actor or physics service is owned here.
+ */
+export class ProjectileContact<T extends ProjectileContactSlot> {
+  private readonly row: ProjectileContactRow;
+  private readonly ports: ProjectileContactPorts<T>;
+  private readonly withoutLift: ProjectileGlance;
+  private readonly direction = new Vector3(); private readonly normal = new Vector3(); private readonly at = new Vector3();
+  private readonly along = new Vector3(); private readonly y = new Vector3(0, 1, 0); private readonly x = new Vector3(1, 0, 0);
+  constructor(row: ProjectileContactRow, ports: ProjectileContactPorts<T>) {
+    this.row = row; this.ports = ports; this.withoutLift = { ...row.glance, lift: 0 };
+  }
+  step(slot: T, from: Vector3, radius: number, shaftLength: number, stick = true): boolean {
+    const direction = this.direction.subVectors(slot.pos, from), length = direction.length();
+    if (length < 1e-6) return false;
+    direction.multiplyScalar(1 / length);
+    if (this.ports.beforeWorld?.(slot, from, direction, length) === true) return true;
+    const wall = this.ports.world(from, slot.pos, radius);
+    const hit = this.ports.target(from, direction, wall ? wall.distance : length);
+    if (hit !== null) { this.ports.hit(slot, hit, direction); return true; }
+    if (wall === null) return false;
+    const normal = this.normal.set(wall.normal.x, wall.normal.y, wall.normal.z);
+    if (normal.dot(direction) > 0) normal.negate();
+    const at = this.at.set(wall.point.x, wall.point.y, wall.point.z);
+    if (slot.glanced && (this.row.spentRest === 'any' || normal.y >= 0.5)) {
+      projectileRest(at, direction, normal, radius, shaftLength, this.along, this.y, this.x);
+      this.ports.rest(slot, at, this.along, normal); return true;
+    }
+    if (!slot.glanced && sticksIn(wall.material)) {
+      projectileContactTip(at, direction, normal, radius); this.ports.stop(slot, at, direction, wall); return true;
+    }
+    if (this.row.impactAfterLift) at.addScaledVector(normal, this.row.glance.lift);
+    if (!slot.glanced || this.row.impactOnRepeatedGlance) this.ports.impact(at, direction, wall);
+    if (!stick) { this.ports.expire(slot); return true; }
+    projectileGlance(at, slot.vel, normal, this.row.impactAfterLift ? this.withoutLift : this.row.glance);
+    slot.pos.copy(at); slot.glanced = true; return false;
+  }
 }
