@@ -14,8 +14,7 @@ import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture
 import { STRINGS } from '../data/strings';
 import { CROWN, DAIS, ROC, VANES } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
-import { SKY_MOVER_BINDING, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
-import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
+import { SKY_CLIENT_MOTION, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { createMeleeScriptDriver, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
@@ -68,7 +67,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   flags: Flags | null = null;
   /** Sets the quest as a player has it at the crown (capture staging, `stage`). */
   private questFinished: (() => void) | null = null;
-  private movers: MoverRuntime | null = null;
   /** SF8c: the Rising Islets' RIDE / CALL prompts (world/risingIslet.ts). */
   private isletCalls: ReturnType<typeof bindClientChannels> | null = null;
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
@@ -129,14 +127,14 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     built.notes.onInteract = () => { flags.set(FLAGS.notes); toast(STRINGS.notesToast); };
     // Step 4: the winch answers only once the roost is quiet and the vanes turn (the notes say so).
     const unlocked = (): boolean => flags.has(FLAGS.roost) && flags.has(FLAGS.vanes);
-    built.winch.onInteract = () => { if (built.state.raised) return; if (unlocked()) this.movers?.command('far.winch.bridge', 1); else toast(STRINGS.winchLocked); };
+    built.winch.onInteract = () => { if (built.state.raised) return; if (unlocked()) this.isletCalls?.runtime?.command('far.winch.bridge', 1); else toast(STRINGS.winchLocked); };
     // the world pins, chip, map and minimap marks are the quest presentation's (quest/install.ts)
     if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');
     const questStages = bindPageQuestStages(ctx, source, { flags, actor: this.actor.bind(this),
       observations: new Map([['winch-up', () => built.state.raised]]) });
     const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
     if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
-    const channels = bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_MOVER_OWNERS, observed: (_id, frame) => {
+    const channels = this.isletCalls = bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_MOVER_OWNERS, observed: (_id, frame) => {
       const previouslyRaised = built.state.raised;
       if (frame.value === undefined || frame.turn === undefined) throw new Error('Missing winch channel observations');
       built.state.raised = frame.value !== 0; built.state.raising = frame.turn === 1;
@@ -147,13 +145,10 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     } });
     const product = runtimeProduct(source);
     const items = await createMeleeScriptDriver(source.items, 'actor.player', hash => product.assets.read(hash), source.identity.seed);
-    this.movers = await installDeclaredMovers(ctx, rt.world, { data: source.movers, modules: new Map(), views: channels.movers,
-      admitted: product.assets.retained, read: hash => product.assets.read(hash), systemId: SKY_MOVER_BINDING.systemId,
-      composition: { modules: items.modules, roles: [items.role()], seed: items.seed },
-      permissions: () => new Map([[SKY_MOVER_BINDING.winch, Number(flags.has(FLAGS.roost)) + Number(flags.has(FLAGS.vanes)) * 2]]),
-      onDispose: () => { this.movers = null; } });
+    const motion = await channels.installMovers(ctx, rt.world, source, SKY_CLIENT_MOTION, flags, product.assets,
+      { modules: items.modules, roles: [items.role()], seed: items.seed });
     await worldBuildYield(ctx, 4);
-    const host = this.movers.scriptHost, hooks = items.hooks(host), fanRow = source.items.rows.find(item => item.id === 'weapon.far-reach.fan');
+    const host = motion.scriptHost, hooks = items.hooks(host), fanRow = source.items.rows.find(item => item.id === 'weapon.far-reach.fan');
     if (fanRow?.kind !== 'weapon' || fanRow.secondary === undefined) throw new Error('Sky fan needs its admitted secondary');
     const secondary = fanRow.secondary, hook = hooks.get(fanRow.id);
     if (hook === undefined) throw new Error('Sky fan needs its admitted gust hook');
@@ -163,10 +158,10 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       fan.bindSecondary(family=>startMeleeSecondary(family,hook,{tick:host.currentTick,dt:1/60,action:secondary.code,move:secondary.move}),spec.charge);
       fan.row={...row,legacySlot:'far-fan',meta:native.meta};return fan;
     }});
-    if (flags.has(FLAGS.raised)) this.movers.command('far.winch.bridge', 3);
+    if (flags.has(FLAGS.raised)) motion.command('far.winch.bridge', 3);
     // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
-    channels.bindPrompts({ socketLifts: { entryways: source.entryways, runtime: () => this.movers } });
-    rt.interactables.push(...channels.interactables); this.isletCalls = channels;
+    channels.bindPrompts({ socketLifts: { entryways: source.entryways, runtime: () => channels.runtime } });
+    rt.interactables.push(...channels.interactables);
     // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
     // like an animal's, so a constant feed holds about updraft.lift / 3.5 m/s) floats you off the ramp to the high step.
     const updraft = source.modes?.traverse.find(row => row.id === 'far.updraft');
@@ -174,10 +169,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     ctx.system({ id: updraft.id, phase: 'fixed.pre', run: bindPlayerImpulse(velocity => { ctx.app.player?.impulse(velocity); }).column(updraft, () => position, this.board) });
 
     await worldBuildYield(ctx, 4);
-    const moverPose = (id: string): ReturnType<MoverRuntime['pose']> => {
-      const movers = this.movers; if (movers === null) throw new Error('Sky mover pose requested outside its installed lifetime');
-      return movers.pose(id);
-    };
+    const poses = motion.pose.bind(motion);
     const vanes = boundedRows(built.vanes).map(vane => ({ vane, flag: vaneFlag(vane.id) }));
     const eye = new Vector3();
     // Dressing: the hover decks glow while you ride; the mill and the turned vanes spin; the updraft's rings rise.
@@ -185,7 +177,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       const riding = this.board();
       built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.16;
       // SF49-g (G183): the Rising Islets ride their movers (fixed ride driver, in the fixed step); draw them and their chains
-      const movers = this.movers; if (movers !== null) { built.islets.updateMovers(moverPose); this.isletCalls?.updateMovers(moverPose); }
+      built.islets.updateMovers(poses); channels.updateMovers();
       built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t);
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
         const row = vanes[i]; if (row === undefined) break;
@@ -291,17 +283,17 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     return turnVanes(flags, boundedRows(built.vanes), from, dir, () => { toast(STRINGS.vaneTurned); });
   }
   /** Snap the crown bridge up (the winch's end state, also restored from a save). */
-  private finishRaise(_built: BuiltWorld): void { this.movers?.command('far.winch.bridge', 3); }
+  private finishRaise(_built: BuiltWorld): void { this.isletCalls?.runtime?.command('far.winch.bridge', 3); }
   /** SF49-g: the four Rising Islet entries' data (walks and captures read their routes here). */
   get islets(): readonly Omit<RisingIslet, 'at'>[] { return RISING_ISLETS; }
   /** SF49-g: an entry's islet deck centre now (captures, walks and tests read it through `__wildshard.shard.farReach`). */
   isletAt(edge: string): { x: number; y: number; z: number } | null {
-    const movers = this.movers; if (movers === null) return null;
+    const movers = this.isletCalls?.runtime; if (movers === null || movers === undefined) return null;
     return movers.data.some((m) => m.id === `far.islet.${edge}`) ? movers.pose(`far.islet.${edge}`).position : null;
   }
   /** SF8c: does an entry's road gate close the socket right now (the islet is away from the road)? */
   isletGateShut(edge: string): boolean | null {
-    const movers = this.movers; if (movers === null) return null;
+    const movers = this.isletCalls?.runtime; if (movers === null || movers === undefined) return null;
     return movers.data.some((m) => m.id === `far.islet.${edge}.gate`) ? movers.pose(`far.islet.${edge}.gate`).enabled : null;
   }
   /** SF8c: press an entry's RIDE (1) / road CALL (2) / gate-isle CALL (3) prompt, exactly as INTERACT does (walks and
@@ -311,7 +303,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     this.isletCalls?.interactables[index * 3 + action - 1]?.onInteract();
   }
   /** Turn the winch, ignoring the lock (captures and tests use this through `__wildshard.shard.farReach`). */
-  raise(): void { if (this.built && !this.built.state.raised) this.movers?.command('far.winch.bridge', 2); }
+  raise(): void { if (this.built && !this.built.state.raised) this.isletCalls?.runtime?.command('far.winch.bridge', 2); }
 }
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.
 export default SkyReachPlugin;

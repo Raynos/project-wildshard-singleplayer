@@ -4628,3 +4628,10 @@ its optional third argument. Its existing frame checks and link parsers
 still refuse malformed or missing matching links. Omission retains the
 ordinary entry output. Cloning detaches binding data with the normal
 scene state; Sky's authoring recipe now uses the shared Entry directly.
+
+`bindClientChannels(...).installMovers(ctx, world, source, row, flags,
+assets, composition?)` installs the source's admitted movers through the existing
+product reader and fixed-step owner. The authored row names a system and
+bounded flag-bit grants. Its read-only `runtime` becomes null on disposal;
+`updateMovers()` reads that owner, while an explicit pose reader still lends
+external motion. No additional host or clock is created.

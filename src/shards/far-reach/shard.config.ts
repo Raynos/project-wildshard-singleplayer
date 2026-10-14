@@ -14,8 +14,7 @@ import { LIFT_MODULE } from './data/liftModule';
 import { FAN_GUST_MODULE } from './data/fanGustModule';
 import { BRIDGE_MODULE } from './data/bridgeModule';
 import isletRows from './data/islets.generated.json' with { type: 'json' };
-import { RISING_ISLETS } from './data/islets.generated';
-import { ISLET_LIFTS } from './data/isletLift';
+import { RISING_ISLETS, ENTRYWAYS } from './data/islets.generated';
 import isleProps from './data/props.json' with { type: 'json' };
 import { DECK_WOOD_GRAPH, HOVER_FRAME_GRAPH, POST_WEATHER_GRAPH } from './data/bridgeLook';
 import { CROWN_DAIS_GRAPH, FAN_SILK_GRAPH, KEEPER_SCARF_GRAPH, LANTERN_GLOW_GRAPH, TREE_BARK_GRAPH } from './data/paintLook';
@@ -39,7 +38,6 @@ import { MEADOW_GRAPH } from './data/meadowLook';
 // exactly these rows (runtime/movers.ts). world/islets.ts is the one source of the geometry.
 
 const base = emptyShardfile({ slug: 'far-reach', name: 'Sky Reach', author: 'Wildshard', revision: 1, seed: 6417 });
-const lifts = new Map(ISLET_LIFTS.map((entry) => [entry.edge, entry.lift]));
 const wasm = (module: { hash: string; bytes: number }) => ({ hash: module.hash, kind: 'wasm', compressed: module.bytes, decoded: module.bytes, gpu: 0, triangles: 0, draws: 0, dependencies: [], critical: true });
 // oxlint-disable-next-line import/no-default-export -- The author CLI loads shard.config.ts as the project entry.
 export default parseShardfile({ ...base, ...SKY_SECTIONS, navigation: navigation.navigation, serverBudget: { ...base.serverBudget, memory: base.serverBudget.memory + navigation.files.reduce((sum, file) => sum + file.decoded, 0) }, accent: 'pink', runtime: { entry: 'runtime/index.ts', cost: SKY_REACH_RUNTIME_COST, binds: ['quests', 'ledger', 'state', 'items', 'spawns', 'modes', 'props', 'clientChannels'], spawns: SKY_SPAWNS },
@@ -56,10 +54,7 @@ export default parseShardfile({ ...base, ...SKY_SECTIONS, navigation: navigation
     // the islands' and boulders' library maps tile (data/skyMapSources.json's sampler rows)
     samplers: { ...base.look.samplers, [ISLE_MAPS.rock]: { wrap: 'repeat', anisotropy: 4 }, [ISLE_MAPS.meadow]: { wrap: 'repeat', anisotropy: 4 }, [SWARD_ATLAS_FILE.hash]: SWARD_ATLAS_SAMPLER } },
   clientChannels: [...SKY_MOVER_VIEWS, ...SKY_LIFT_PROMPTS],
-  entryways: base.entryways.map(({ edge, at, width }) => {
-    const lift = lifts.get(edge); if (lift === undefined) throw new Error(`Sky Reach entry ${edge} has no Rising Islet`);
-    return { edge, at, width, kind: 'socketLift' as const, lift };
-  }),
+  entryways: [...ENTRYWAYS],
   // The authored clips declare every bridge, islet and gate; both hosts install this admitted order once.
   movers: MOVERS,
   // the twelve static islands' compiled props tiles (generators/isleProps.ts), drawn by the runtime (runtime.binds props)

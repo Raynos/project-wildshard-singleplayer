@@ -96,6 +96,7 @@ export const RISING_ISLETS: readonly RisingIslet[] = risingIsletRows().entries.m
 });
 /** Literal typed rows retain discriminants without rebuilding entry frames at page load. */
 export function risingIsletSource(): Uint8Array {
-  const entries = risingIsletRows().entries.map(row => { const { strips: _strips, ...entry } = row; return entry; });
-  return new TextEncoder().encode(`// Generated authored entry rows.\nexport const RISING_ISLETS: readonly Omit<import('./isletDesign').RisingIslet, 'at'>[] = ${JSON.stringify(entries)} as const;\n`);
+  const rows = risingIsletRows(), entries = rows.entries.map(row => { const { strips: _strips, ...entry } = row; return entry; });
+  const links = rows.lifts.map(row => new Entry(row.edge, 'socketLift', { lift: row.lift }).toEntryData());
+  return new TextEncoder().encode(`// Generated authored entry rows.\nexport const RISING_ISLETS: readonly Omit<import('./isletDesign').RisingIslet, 'at'>[] = ${JSON.stringify(entries)} as const;\nexport const ENTRYWAYS: readonly import('@wildshard/format/entryways').ShardEntryways[number][] = ${JSON.stringify(links)} as const;\n`);
 }

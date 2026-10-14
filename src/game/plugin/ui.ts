@@ -1,5 +1,5 @@
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
-import type { MoverView, MoverRuntime } from './mover';
+import { installDeclaredMovers, type MoverView, type MoverRuntime, type MoverRoleComposition } from './mover';
 import { commandSocketLift } from './simulation';
 import "../quest/presentation.css";
 import { compileTubeCurve, parseClientChannels, parsePrivateScene, parseWorldScene, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
@@ -714,18 +714,26 @@ function moverChannelValues(reads: readonly string[], pose: MoverPose, fields: R
   });
 }
 
+/** Authored native installation and flag bit grants on the existing motion owner. */
+export interface ClientMoverInstallation {
+  readonly systemId: string;
+  readonly permissions?: readonly { readonly mover: string; readonly flags: readonly { readonly name: string; readonly bit: number }[] }[];
+}
 /** Declared visual channels and input prompts, with clocks lent by their existing owners. */
 export function bindClientChannels(programs: readonly ClientChannelProgram[], ports: {
   readonly targets: ReadonlyMap<string, unknown>; readonly nativeOwners?: readonly string[]; readonly copiedOwners?: readonly string[];
   readonly kernels?: ClientGeometryKernels; readonly observed?: (id: string, frame: ClientChannelFrame) => void;
 }): {
   readonly movers: ReadonlyMap<string, MoverView>; readonly interactables: readonly Interactable[];
+  readonly runtime: MoverRuntime | null;
+  readonly installMovers: (ctx: LevelContext, world: Parameters<typeof installDeclaredMovers>[1], source: Shardfile, row: ClientMoverInstallation, flags: Pick<Flags, 'has'>, assets: { readonly retained: ReadonlyMap<string, Uint8Array>; readonly read: (hash: string) => Promise<Uint8Array> }, composition?: MoverRoleComposition) => Promise<MoverRuntime>;
   readonly evaluate: (id: string, observation: ClientChannelObservation) => void;
   readonly view: (id: string) => ReturnType<typeof createClientChannelView>;
   readonly prompt: (id: string) => Interactable;
   readonly bindPrompts: (bind: Parameters<typeof createClientChannelPrompt>[1]) => void;
-  readonly updateMovers: (pose: (id: string) => MoverPose) => void;
+  readonly updateMovers: (pose?: (id: string) => MoverPose) => void;
 } {
+  let runtime: MoverRuntime | null = null, installed = false;
   const owners = ports.nativeOwners ?? [];
   if (owners.length > 32 || new Set(owners).size !== owners.length) throw new Error('Invalid native mover view owners');
   const copiedOwners = ports.copiedOwners ?? [];
@@ -752,7 +760,22 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
   const prompts = new Map<string, ReturnType<typeof createClientChannelPrompt>>();
   let promptRows: readonly { id: string; lane: ReturnType<typeof createClientChannelPrompt> }[] = [];
   let interactables: readonly Interactable[] = Object.freeze([]), promptsBound = false;
-  return Object.freeze({ movers, get interactables() { return interactables; },
+  return Object.freeze({ movers, get runtime() { return runtime; }, get interactables() { return interactables; },
+    installMovers: async (ctx: LevelContext, world: Parameters<typeof installDeclaredMovers>[1], source: Shardfile, row: ClientMoverInstallation, flags: Pick<Flags, 'has'>, assets: { readonly retained: ReadonlyMap<string, Uint8Array>; readonly read: (hash: string) => Promise<Uint8Array> }, composition?: MoverRoleComposition) => {
+      if (installed) throw new Error('Client motion is already installed');
+      const grants = row.permissions ?? [];
+      if (grants.length > 32 || new Set(grants.map(grant => grant.mover)).size !== grants.length
+        || grants.some(grant => !source.movers.some(mover => mover.id === grant.mover) || grant.flags.length > 16
+          || new Set(grant.flags.map(flag => flag.name)).size !== grant.flags.length
+          || grant.flags.some(flag => flag.name.length === 0 || !Number.isSafeInteger(flag.bit) || flag.bit < 0 || flag.bit > 65536))) throw new Error('Invalid client mover flag grants');
+      installed = true;
+      runtime = await installDeclaredMovers(ctx, world, { data: source.movers, modules: new Map(), views: movers,
+        admitted: assets.retained, read: hash => assets.read(hash), systemId: row.systemId,
+        ...(composition === undefined ? {} : { composition }),
+        permissions: () => new Map(grants.map(grant => [grant.mover, grant.flags.reduce((sum, flag) => sum + Number(flags.has(flag.name)) * flag.bit, 0)])),
+        onDispose: () => { runtime = null; } });
+      return runtime;
+    },
     view: (id: string) => { const view = views.get(id); if (view === undefined) throw new Error('Unknown declared visual channel'); return view; },
     prompt: (id: string) => { const prompt = prompts.get(id); if (prompt === undefined) throw new Error('Unknown declared prompt channel'); return prompt.spot; },
     evaluate: (id: string, observation: ClientChannelObservation) => {
@@ -769,7 +792,10 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
       interactables = Object.freeze(next.map(({ lane }) => lane.spot)); promptsBound = true;
     },
     // Native views are published by the existing mover callback; only copied-pose prompts evaluate here.
-    updateMovers: (pose: (id: string) => MoverPose) => {
+    updateMovers: (provided?: (id: string) => MoverPose) => {
+      const active = runtime;
+      if (provided === undefined && active === null) return;
+      const pose = provided ?? ((id: string) => { if (active === null) throw new Error('Missing client motion owner'); return active.pose(id); });
       batching = true;
       try {
         for (const row of copiedViews) row.view.evaluate({ time: 0, delta: 0, values: moverChannelValues(row.view.reads, pose(row.id), {}) });
