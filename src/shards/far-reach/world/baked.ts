@@ -5,16 +5,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { bakedMeshWorld, worldPieces, type BakedMeshKindRow, type DrawnBakedMeshPiece, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
 import { BufferGeometry, type Mesh, type Object3D } from 'three';
 import { SKY_PIECES } from '../data/pieces';
-import winchHouse from '../data/winchHouse.json' with { type: 'json' };
-import roost from '../data/roost.json' with { type: 'json' };
-import docks from '../data/docks.json' with { type: 'json' };
-import crown from '../data/crown.json' with { type: 'json' };
-import mill from '../data/mill.json' with { type: 'json' };
-import bookStand from '../data/bookStand.json' with { type: 'json' };
-import knolls from '../data/knolls.json' with { type: 'json' };
-import geometries from '../data/geometries.json' with { type: 'json' };
-import isletRig from '../data/isletRig.json' with { type: 'json' };
-import dressing from '../data/dressing.json' with { type: 'json' };
+import { WORLD_BAKES, SKY_KNOLL_HULLS } from '../data/worldBakes';
 import { BAKED_URLS, WORLD_BYTES, type BakedPiece } from '../data/files';
 import { shackMaterial, type ShackKind } from './shack';
 import { isleMaterial, setIslePack } from './isle';
@@ -27,7 +18,6 @@ import { dressingMaterial } from './dressing';
  * material graph (`world/shack.ts`), a dressing kind in its own (`world/dressing.ts`), anything else in its row's standard material (a kind with a `paint` in the islands'
  * paint, `isleMaterial`). The colliders are the rows'.
  */
-const PIECES = { 'winch-house': winchHouse, roost, docks, crown, mill, 'book-stand': bookStand, knolls, geometries, 'islet-rig': isletRig, dressing } as const satisfies Readonly<Record<BakedPiece, unknown>>;
 
 const SHACK: readonly ShackKind[] = ['plank', 'shingle', 'stone', 'beam'];
 const shackKind = (kind: object): ShackKind | undefined => {
@@ -35,7 +25,7 @@ const shackKind = (kind: object): ShackKind | undefined => {
   return SHACK.find((k) => k === name);
 };
 
-export const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(PIECES, BAKED_URLS, 'far-reach', {
+export const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(WORLD_BAKES, BAKED_URLS, 'far-reach', {
   resources: WORLD_BYTES, readBytes: fetchDeflated,
   material: (kind) => { const shack = shackKind(kind), dressed: unknown = 'dressing' in kind ? kind.dressing : undefined;
     return shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : 'paint' in kind ? isleMaterial() : undefined; },
@@ -57,7 +47,7 @@ export const skyBakedPiece = (piece: BakedPiece, nodes?: ReadonlyMap<string, Mes
 
 /** The knolls' hull colliders by knoll id (the rows' `hulls`: the SDK's baked collider rows are boxes), on the meadow. */
 export function skyKnollHulls(): ReadonlyMap<string, ColliderDesc> {
-  return new Map(knolls.hulls.map((h) => [h.id, { kind: 'hull', x: h.x, y: h.y, z: h.z, points: new Float32Array(h.points), surface: 'grass' } satisfies ColliderDesc]));
+  return new Map(SKY_KNOLL_HULLS.map((h) => [h.id, { kind: 'hull', x: h.x, y: h.y, z: h.z, points: new Float32Array(h.points), surface: 'grass' } satisfies ColliderDesc]));
 }
 
 /**
