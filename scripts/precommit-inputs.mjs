@@ -28,7 +28,10 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
       // .oxlintrc.json is JSONC (comments, globs with '/*'), so read only its ignorePatterns array.
       const ignoreList = /"ignorePatterns"\s*:\s*\[([^\]]*)\]/u.exec(readFileSync(resolve(scratch, '.oxlintrc.json'), 'utf8'))?.[1] ?? '';
       const ignored = [...ignoreList.matchAll(/"([^"]+)"/gu)].map(match => match[1]);
-      const lintable = present.filter(file => !ignored.some(prefix => file.startsWith(prefix)));
+      // gitignore-style: a pattern with an inner '/' is anchored at the root, otherwise it matches at any depth.
+      const isIgnored = (/** @type {string} */ file) => ignored.some(pattern => pattern.slice(0, -1).includes('/')
+        ? file.startsWith(pattern) : file.startsWith(pattern) || file.includes(`/${pattern}`));
+      const lintable = present.filter(file => !isIgnored(file));
       if (lintable.length > 0) run('pnpm', ['exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', ...lintable]);
       run(process.execPath, ['scripts/check-graph.mjs', '--source-only']);
     }

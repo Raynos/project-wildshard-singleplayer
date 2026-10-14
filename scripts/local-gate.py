@@ -39,7 +39,10 @@ def main():
             # .oxlintrc.json is JSONC (comments, globs with '/*'), so read only its ignorePatterns array.
             listing = re.search(r'"ignorePatterns"\s*:\s*\[([^\]]*)\]', (tree / '.oxlintrc.json').read_text())
             ignored = re.findall(r'"([^"]+)"', listing.group(1)) if listing else []
-            lintable = [path for path in present if not any(path.startswith(prefix) for prefix in ignored)]
+            # gitignore-style: a pattern with an inner '/' is anchored at the root, otherwise it matches at any depth.
+            def is_ignored(path):
+                return any(path.startswith(p) if '/' in p[:-1] else (path.startswith(p) or f'/{p}' in path) for p in ignored)
+            lintable = [path for path in present if not is_ignored(path)]
             if lintable:
                 commands.append(['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *lintable])
             commands.extend([['pnpm', 'test'], ['pnpm', 'build']])
