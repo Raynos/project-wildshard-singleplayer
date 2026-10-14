@@ -1,3 +1,4 @@
+import { prepareNativePopulation, type NativePopulationRows } from '../shardfile/bossRow';
 import { installQuestGraph, type QuestGraphPorts } from './quests';
 import { parseQuestHost, type QuestHostRow } from '@wildshard/format/questHost';
 import type { QuestData } from '@wildshard/format/quests';
@@ -122,6 +123,7 @@ export function addBakedWorld(host: SimHost, pieces: unknown, terrain?: Uint8Arr
   if (board.length > 0) host.boardColliders(board);
 }
 interface RuntimeWorldRecipe {
+  readonly population: { readonly rows: NativePopulationRows; readonly sources: 'actors' | 'actors+bosses'; readonly seed: 'identity' | 'declared'; readonly owner: unknown };
   readonly terrain: 'none' | 'collider'; readonly ground: SimLevel['ground'];
   readonly player: { readonly speed: number; readonly lift?: number; readonly at?: readonly [number, number, number]; readonly yaw?: number };
   readonly floor?: 'solids';
@@ -134,11 +136,12 @@ interface RuntimeWorldRecipe {
   };
 }
 /** Shared native world preparation: declarations select static collision, spawn and optional scripted motion on the same host. */
-export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, pieces: unknown, recipe: RuntimeWorldRecipe): Promise<{
+export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, baked: unknown, recipe: RuntimeWorldRecipe): Promise<{
   level: SimLevel; ports: { ground: false; heightAt: (x: number, z: number) => number };
-  install: (host: SimHost, restoring: boolean) => { hooks: ReturnType<ReturnType<typeof declaredItemScriptBindings>['hooks']>;
+  install: (host: SimHost, context: { restoring: boolean; emit: Parameters<typeof ledgerPorts>[0]; snapshot?: Parameters<ReturnType<typeof prepareNativePopulation>['install']>[2] }) => ReturnType<ReturnType<typeof prepareNativePopulation>['install']> & { ledger: ReturnType<typeof ledgerPorts>; hooks: ReturnType<ReturnType<typeof declaredItemScriptBindings>['hooks']>;
     hookTick: () => number; observations: ReadonlyMap<string, () => boolean>; actions: ReadonlyMap<string, () => void> };
 }> {
+  const { pieces } = v.parse(v.object({ pieces: v.unknown() }), baked);
   const terrain = recipe.terrain === 'collider' ? admittedTerrain(shard, assets) : undefined;
   if (recipe.terrain === 'none' && shard.terrain !== null) throw new Error('Native world declares no terrain');
   const heightAt = terrain?.heightAt ?? (() => recipe.ground.height);
@@ -152,18 +155,26 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
     || rows.some(value => !data.some(declaration => declaration.id === value.mover)))) throw new Error('Unbound native world motion rows');
   if (row !== undefined && (new Set(row.observations.map(value => value.name)).size !== row.observations.length
     || new Set(row.actions.map(value => value.name)).size !== row.actions.length)) throw new Error('Duplicate native world bindings');
-  return { level: trustedLevel(shard, player, recipe.ground), ports: { ground: false, heightAt }, install: (host, restoring) => {
+  const policy = recipe.population;
+  const actors = policy.sources === 'actors+bosses' ? (() => { const rows = readRuntimeWorldMetadata(baked, true); return [...rows.actors, ...rows.bosses]; })() : readRuntimeWorldMetadata(baked).actors;
+  const population = prepareNativePopulation(policy.seed === 'identity' ? { ...policy.rows, seed: shard.identity.seed } : policy.rows, actors, policy.owner);
+  return { level: trustedLevel(shard, player, recipe.ground), ports: { ground: false, heightAt }, install: (host, context) => {
+    const restoring = context.restoring;
     if (!restoring) addBakedWorld(host, pieces, terrain?.bytes);
     if (recipe.floor === 'solids') host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
-    const observations = new Map<string, () => boolean>(), actions = new Map<string, () => void>();
-    if (row === undefined) return { hooks: new Map(), hookTick: () => -1, observations, actions };
-    const items = declaredItemScriptBindings(shard.items, host.player.id);
-    const motion = new MoverScriptDriver(data, host).install(host, { content: { ...row.composition, identity: shard.identity }, rules: row.rules, assets: modules,
-      declarations: row.itemRole === undefined ? [] : [{ row: row.itemRole, entities: items.entities, actors: items.actors }] },
-    { id: row.systemId, restoring, drive: true, permissions: () => new Map(row.permissions.map(grant => [grant.mover, flagValue(host.flags, grant.flags)])) });
-    for (const binding of row.observations) observations.set(binding.name, () => motion.pose(binding.mover).enabled);
-    for (const binding of row.actions) actions.set(binding.name, () => { motion.command(binding.mover, binding.command); });
-    return { hooks: items.hooks(motion.scriptHost), hookTick: () => motion.scriptHost.currentTick, observations, actions };
+    const environment = (() => {
+      const observations = new Map<string, () => boolean>(), actions = new Map<string, () => void>();
+      if (row === undefined) return { hooks: new Map(), hookTick: () => -1, observations, actions };
+      const items = declaredItemScriptBindings(shard.items, host.player.id);
+      const motion = new MoverScriptDriver(data, host).install(host, { content: { ...row.composition, identity: shard.identity }, rules: row.rules, assets: modules,
+        declarations: row.itemRole === undefined ? [] : [{ row: row.itemRole, entities: items.entities, actors: items.actors }] },
+      { id: row.systemId, restoring, drive: true, permissions: () => new Map(row.permissions.map(grant => [grant.mover, flagValue(host.flags, grant.flags)])) });
+      for (const binding of row.observations) observations.set(binding.name, () => motion.pose(binding.mover).enabled);
+      for (const binding of row.actions) actions.set(binding.name, () => { motion.command(binding.mover, binding.command); });
+      return { hooks: items.hooks(motion.scriptHost), hookTick: () => motion.scriptHost.currentTick, observations, actions };
+    })();
+    const ledger = ledgerPorts(context.emit);
+    return { ...environment, ledger, ...population.install(host, ledger, context.snapshot) };
   } };
 }
 /** A declared weapon row (`shard.items`) by id; an absent or non-weapon row refuses. */

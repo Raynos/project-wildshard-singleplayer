@@ -4752,11 +4752,11 @@ and literal texture repeats are declared explicitly. Sealed owner maps lend
 only model/world-resource providers and private material decorators. The
 resource binder never reads an authoritative actor or advances gameplay.
 
-`prepareRuntimeWorld(shard, assets, pieces, recipe)` prepares native
+`prepareRuntimeWorld(shard, assets, baked, recipe)` prepares native
 spawn/ground and collision intake on an existing `SimHost`. A recipe may
 select admitted terrain or solid floor queries, and optional motion grants,
 item roles and named quest observation/action bindings (64 per list).
-Preparation verifies modules; `install(host, restoring)` registers the
+Preparation verifies modules; `install(host, context)` registers the
 original world pieces and the existing mover driver without another clock.
 A recipe without motion creates no script host or item role.
 
@@ -4766,3 +4766,10 @@ after the factory installs lighting. `bakedLook` accepts bounded optional
 It preserves the original materials, maps, lighting and hit-flash ownership;
 shared materials receive each look's edit once. Sky and Signal use this
 existing baked creature catalogue. Omission retains the ordinary path.
+
+Native world recipes also declare population metadata sources, seed policy
+and the existing encounter owner. `prepareRuntimeWorld` takes the complete
+baked world. `install(host, context)` retains collision, motion and population
+order and returns ledger, keeper and encounter ports. The caller still owns
+weapon/quest installation and final settling. Population admission and restore
+continue through `prepareNativePopulation`; no second host or clock is added.
