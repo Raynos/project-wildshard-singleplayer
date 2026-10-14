@@ -1,12 +1,13 @@
 import { prepareNativePopulation, type NativePopulationRows } from '../shardfile/bossRow';
+import { parseQuestWorldReactions, type QuestWorldReactionsData } from '@wildshard/format/questInteractions';
 import { installQuestGraph, type QuestGraphPorts } from './quests';
 import { parseQuestHost, type QuestHostRow } from '@wildshard/format/questHost';
 import type { QuestData } from '@wildshard/format/quests';
 import { compileDirectorWhen, evaluateDirectorWhen } from '@wildshard/format/directorWhen';
-import { ContactFamily, type ContactFamilyPorts, type ContactScanTarget } from '@wildshard/engine/combat/contactWeapon';
+import { weaponContactDistance, type ContactWorldTarget, ContactFamily, type ContactFamilyPorts, type ContactScanTarget } from '@wildshard/engine/combat/contactWeapon';
 import { parseItems, parseMeleeContacts, parseNativeMeleeBinding } from '@wildshard/format/items';
 import { scriptItemHook } from '@wildshard/engine/combat/items';
-import { flagValue } from '@wildshard/engine/world/interact/flags';
+import { flagValue, test as testQuestFlags, type Flags } from '@wildshard/engine/world/interact/flags';
 import { Vector3 } from 'three';
 import { createHeadlessPromptPicker } from '../quest/interactionRows';
 import { GridAssembly } from '../grid/assembly';
@@ -1117,6 +1118,46 @@ export function installQuestHost(host: SimHost, quests: QuestData, input: QuestH
     for (const stage of stages) if (stage.row.tick) stage.lane.advance();
   });
   return graph;
+}
+
+/** Borrowed world reaction owners; no hit, flag, prompt or saved state is reconstructed. */
+export interface QuestWorldReactionPorts {
+  readonly flags: Pick<Flags, 'has' | 'set'>;
+  readonly point?: (row: Extract<QuestWorldReactionsData[number]['at'], { readonly kind: 'owner' }>) => Vector3;
+  readonly run?: (id: string) => boolean;
+  readonly toast?: (text: string) => void;
+}
+/** Actual contact targets and the same cone scan for browser and renderer-free quest owners. */
+export interface QuestWorldReactions {
+  readonly targets: readonly ContactWorldTarget[];
+  readonly scan: (from: Vector3, dir: Vector3) => number;
+}
+/** Bind a bounded hit roster once; the engine's contact-distance law and actual flags remain authoritative. */
+export function bindQuestWorldReactions(input: QuestWorldReactionsData, ports: QuestWorldReactionPorts): QuestWorldReactions {
+  const rows = parseQuestWorldReactions(input).map(row => {
+    if (row.action !== undefined && ports.run === undefined) throw new Error(`Missing quest world action ${row.action}`);
+    const at = row.at.kind === 'point' ? new Vector3(row.at.x, row.at.y, row.at.z) : ports.point?.(row.at);
+    if (at === undefined) throw new Error(`Missing quest world point ${row.id}`);
+    const react = (heavy: boolean, second: boolean): boolean => {
+      if (row.needs !== undefined && !testQuestFlags(ports.flags, row.needs)) return false;
+      if (row.heavy === true && !heavy) { if (row.lightHint !== undefined) ports.toast?.(row.lightHint); return true; }
+      if (row.second === true && !second) return true;
+      if (row.action !== undefined && ports.run?.(row.action) !== true) return false;
+      for (const flag of row.sets ?? []) ports.flags.set(flag);
+      if (row.toast !== undefined) ports.toast?.(row.toast);
+      return true;
+    };
+    return { row, at, react };
+  });
+  return {
+    targets: rows.filter(entry => entry.row.cone === undefined).map(entry => ({ at: entry.at, radius: entry.row.radius, crack: entry.react })),
+    scan: (from, dir) => {
+      let accepted = 0;
+      for (const { row, at, react } of rows) if (row.cone !== undefined
+        && weaponContactDistance(from, dir, at, 'cone', row.cone.reach, row.cone.halfAngle) !== null && react(true, true)) accepted++;
+      return accepted;
+    },
+  };
 }
 
 /** Select only the admitted root composition; missing or unbound rows refuse before any borrowed owner is read. */

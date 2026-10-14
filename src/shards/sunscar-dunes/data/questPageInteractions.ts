@@ -2,7 +2,12 @@ import { FLAG } from './flags';
 import { STRINGS } from './strings';
 
 /** Page beats for the same admitted logbook, well and crank rules. */
-export const SIGNAL_QUEST_PAGE_INTERACTIONS={bindings:{
+export const SIGNAL_QUEST_PAGE_INTERACTIONS={world:[
+  {id:'crank',at:{kind:'owner',owner:'world',path:['well','crankAt']},radius:0.8,needs:{none:['raised']},heavy:true,second:true,lightHint:STRINGS.pullHint,action:'crank'},
+  {id:'brazier.0',at:{kind:'owner',owner:'world',path:['braziers',0,'parts','bowlAt']},radius:1.2,action:'light.0'},
+  {id:'brazier.1',at:{kind:'owner',owner:'world',path:['braziers',1,'parts','bowlAt']},radius:1.2,action:'light.1'},
+  {id:'brazier.2',at:{kind:'owner',owner:'world',path:['braziers',2,'parts','bowlAt']},radius:1.2,action:'light.2'},
+],bindings:{
   labels:[{target:'logbook',owner:'world',path:['logbook','label']},{target:'well',owner:'world',path:['well','spot','label']},
     {target:'brazier.0',owner:'world',path:['braziers',0,'spot','label']},{target:'brazier.1',owner:'world',path:['braziers',1,'spot','label']},{target:'brazier.2',owner:'world',path:['braziers',2,'spot','label']}],
   visible:[{target:'jar',owner:'world',path:['well','jar','visible']},

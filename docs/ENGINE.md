@@ -4773,3 +4773,13 @@ baked world. `install(host, context)` retains collision, motion and population
 order and returns ledger, keeper and encounter ports. The caller still owns
 weapon/quest installation and final settling. Population admission and restore
 continue through `prepareNativePopulation`; no second host or clock is added.
+
+### Quest world reactions
+
+Optional `questHost.page.world` rows describe borrowed contact points or
+authored cone points, flag gates, contact phase, existing page actions and
+accepted flag/toast effects. `bindQuestWorldReactions` supplies real
+ContactWorldTargets and a cone scan using the engine contact-distance law.
+Both page and native owners use the same bounded rows; marks and saved
+flags remain with their existing rules. Required points/actions refuse
+before restore effects.

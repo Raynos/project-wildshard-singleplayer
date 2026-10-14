@@ -1,3 +1,4 @@
+import { Vector3 } from 'three';
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
 import { Flags } from '../src/engine/world/interact/flags';
@@ -14,7 +15,7 @@ test('Signal refuses unraised oil, runs the crank and restores saved page state'
   const labels=new Map([['well',well],['logbook',logbook],...['0','1','2'].map(id=>[`brazier.${id}`,{label:'brazier'}] as const)]);
   const visible=new Map([['jar',jar],...['0','1','2'].flatMap(id=>[[`oil.${id}`,{visible:false}] as const,[`fire.${id}`,{visible:false}] as const])]);
   const calls=new Map<string,()=>void>([['catch-fire',()=>undefined],['summon',()=>{summoned=true;}],...['0','1','2'].map(id=>[`glow.${id}`,()=>undefined] as const)]);
-  const ports={flags,labels,visible,calls,toast:(text:string)=>{toasts.push(text);}};
+  const ports={flags,labels,visible,calls,owners:new Map([['world',{well:{crankAt:new Vector3()},braziers:['0','1','2'].map(()=>({parts:{bowlAt:new Vector3()}}))}]]),toast:(text:string)=>{toasts.push(text);}};
   const page=bindQuestPageInteractions({questHost:parseQuestHost(signal)},ports);
   expect(page.run('well')).toBe(false);expect(jar.visible).toBe(true);expect(toasts).not.toEqual([]);
   expect(page.run('crank')).toBe(true);expect(page.run('well')).toBe(true);expect(flags.has(FLAG.oil)).toBe(true);expect(jar.visible).toBe(false);

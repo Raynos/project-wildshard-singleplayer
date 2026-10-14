@@ -1,5 +1,5 @@
 import { installDeclaredMovers, type MoverView, type MoverRuntime, type MoverRoleComposition } from './mover';
-import { commandSocketLift } from './simulation';
+import { bindQuestWorldReactions, type QuestWorldReactions, commandSocketLift } from './simulation';
 import "../quest/presentation.css";
 import { compileTubeCurve, parseClientChannels, parsePrivateScene, parseWorldScene, parseWorldSceneBindings, type WorldSceneBindingKind, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import { BufferAttribute, AdditiveBlending, Matrix4, InstancedMesh, Euler, PerspectiveCamera, PointLight, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
@@ -960,7 +960,7 @@ export interface QuestPageInteractionPorts {
   readonly owners?:ReadonlyMap<string,unknown>;
 }
 /** Validated presentation actions; run returns the native acceptance and action supplies a prompt callback. */
-export interface QuestPageInteractions {readonly run:(id:string)=>boolean;readonly action:(id:string)=>()=>void}
+export interface QuestPageInteractions {readonly run:(id:string)=>boolean;readonly action:(id:string)=>()=>void;readonly world:QuestWorldReactions}
 /** Bind page view rows only after every native rule and borrowed target resolves; seed saved view state once. */
 export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,ports:QuestPageInteractionPorts):QuestPageInteractions {
   const host=source.questHost;
@@ -1014,9 +1014,12 @@ export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,por
     }] as const;
   }));
   const initial=(data.initial??[]).map(row=>({when:row.when,effects:compile(row.effects)}));
-  for(const row of initial)if(testFlags(view,row.when))for(const effect of row.effects)effect();
   const read=(id:string):(()=>boolean)=>{const action=actions.get(id);if(action===undefined)throw new Error(`Unknown page interaction ${id}`);return action;};
-  return {run:id=>read(id)(),action:id=>{const action=read(id);return ()=>{action();};}};
+  for(const row of data.world??[])if(row.action!==undefined)read(row.action);
+  const world=bindQuestWorldReactions(data.world??[],{flags:{has:id=>rules.has(id),set:id=>{ports.flags.set(id);}},run:id=>read(id)(),toast:ports.toast,
+    point:row=>{const pointField=readBorrowedOwner(owners,row);if(!(pointField?.value instanceof Vector3))throw new Error('Quest world reaction needs its actual point');return pointField.value;}});
+  for(const row of initial)if(testFlags(view,row.when))for(const effect of row.effects)effect();
+  return {run:id=>read(id)(),action:id=>{const action=read(id);return ()=>{action();};},world};
 }
 
 /** Live page owners lent to the already admitted quest stages. */

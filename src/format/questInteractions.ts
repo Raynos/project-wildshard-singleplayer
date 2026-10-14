@@ -16,6 +16,24 @@ const ownerPaths = v.pipe(v.array(ownerPath), v.maxLength(128), v.check(rows => 
 const ownerCalls = v.pipe(v.array(v.strictObject({ ...ownerPath.entries, optional: v.exactOptional(v.boolean()),
   args: v.exactOptional(v.pipe(v.array(v.union([v.pipe(v.string(), v.maxLength(4096)), v.pipe(v.number(), v.finite()), v.boolean()])), v.maxLength(16))) })),
   v.maxLength(128), v.check(rows => unique(rows.map(entry => entry.target)), 'unique borrowed calls'));
+const worldFinite = v.pipe(v.number(), v.finite());
+const worldPoint = v.variant('kind', [
+  v.strictObject({ kind: v.literal('point'), x: worldFinite, y: worldFinite, z: worldFinite }),
+  v.strictObject({ kind: v.literal('owner'), owner: name, path: ownerPath.entries.path }),
+]);
+const worldReactions = v.pipe(v.array(v.strictObject({ id: name, at: worldPoint,
+  radius: v.pipe(worldFinite, v.minValue(0), v.maxValue(100)), needs: v.exactOptional(condition),
+  action: v.exactOptional(name), sets: v.exactOptional(names), toast: v.exactOptional(v.pipe(v.string(), v.maxLength(4096))),
+  heavy: v.exactOptional(v.boolean()), second: v.exactOptional(v.boolean()), lightHint: v.exactOptional(v.pipe(v.string(), v.maxLength(4096))),
+  cone: v.exactOptional(v.strictObject({ reach: v.pipe(worldFinite, v.minValue(0), v.maxValue(100)), halfAngle: v.pipe(worldFinite, v.minValue(0), v.maxValue(Math.PI)) })),
+})), v.maxLength(64), v.check(rows => unique(rows.map(entry => entry.id)) && rows.every(entry => entry.action !== undefined || (entry.sets?.length ?? 0) > 0), 'unique world reactions with an accepted effect'));
+/** Bounded world hits: borrowed or authored points, existing contact shapes, flag gates and named page actions. */
+export type QuestWorldReactionsData = v.InferOutput<typeof worldReactions>;
+/** Named schema boundary for optional world reactions. */
+export const QuestWorldReactionsSchema: v.GenericSchema<unknown, QuestWorldReactionsData> = worldReactions;
+/** Refuse malformed positions, unsafe borrowed paths and unbounded or effect-free reactions. */
+export function parseQuestWorldReactions(input: unknown): QuestWorldReactionsData { return v.parse(QuestWorldReactionsSchema, input); }
+
 /**
  * Declared interaction rows (SF72): the transient `marks` an interaction keeps outside the durable flags (a raised well
  * bucket, an oiled bowl), each optionally starting set when its `initial` condition holds on the flags at install; the
@@ -49,6 +67,7 @@ const pageRaw=v.pipe(v.strictObject({
   actions:v.pipe(v.array(v.strictObject({id:name,interaction:v.exactOptional(name),
     needs:v.exactOptional(v.pipe(v.array(need),v.maxLength(16))),
     denied:v.exactOptional(v.record(name,pageText)),before:v.exactOptional(pageEffects),after:v.exactOptional(pageEffects)})),v.maxLength(128)),
+  world:v.exactOptional(QuestWorldReactionsSchema),
   bindings:v.exactOptional(v.strictObject({ labels:v.exactOptional(ownerPaths), visible:v.exactOptional(ownerPaths),
     observations:v.exactOptional(ownerPaths), calls:v.exactOptional(ownerCalls) })),
   initial:v.exactOptional(v.pipe(v.array(v.strictObject({when:condition,effects:pageEffects})),v.maxLength(64))),

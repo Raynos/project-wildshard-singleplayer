@@ -95,21 +95,15 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
       rules.mark('fire'); fireCaught(fire); flags.set(FLAG.lit);
       fire.onLight?.();
     } };
-  page = bindQuestPageInteractions(source, { flags, rules,
+  const presentation = bindQuestPageInteractions(source, { flags, rules,
     owners: new Map<string,unknown>([['world',{logbook,well,braziers,fire}],['commands',{catchFire:()=>{fireCaught(fire);}}]]),
-    toast: text => { toast(ctx, text); } }).run;
+    toast: text => { toast(ctx, text); } });
+  page = presentation.run;
 
   if (flags.has(FLAG.lit)) fire.light();
   interactables?.push(logbook, wellSpot, ...braziers.map((b) => b.spot), fire.brazier);
 
-  const crackables: Crackable[] = [
-    { at: wellParts.crankAt, radius: 0.8, crack: (heavy, second) => {
-      if (well.raised) return false;
-      if (!heavy) { toast(ctx, STRINGS.pullHint); return true; }
-      return second ? well.pull() : true; // the double crack's first lash wraps the crank, the second pulls
-    } },
-    ...braziers.map((b): Crackable => ({ at: b.parts.bowlAt, radius: 1.2, crack: () => b.light() })),
-  ];
+  const crackables = [...presentation.world.targets];
   lastLightAll(ctx.root, ctx.scope); // the style bible's rim and shade floor on every prop
   ctx.scope.ownPrimitives(ctx.root);
   // round 18 (row 3: a warm light pool on the sand AND the plinth, from a real light): one short-range point light rides to

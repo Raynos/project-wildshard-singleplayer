@@ -1,12 +1,9 @@
-import { Vector3 } from 'three';
 import { bindPlayerImpulse } from '@wildshard/game/shardfile/dataCreaturePorts';
 import type { HeadlessRuntimeInstallation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import type { SimHost } from '@wildshard/engine/sim';
-import { prepareRuntimeWorld, installDeclaredQuestHost, pickCommands, weaponRow, installNativeMelee } from '@wildshard/game/plugin/simulation';
-import { VANES } from '../data/layout';
+import { bindQuestWorldReactions, prepareRuntimeWorld, installDeclaredQuestHost, pickCommands, weaponRow, installNativeMelee } from '@wildshard/game/plugin/simulation';
 import { SKY_NATIVE_WORLD } from '../data/nativeWorld';
 import { FAN_ID } from '../data/items';
-import { turnVanes, VANE_HUB } from '../quest/vanes';
 import { SKY_SPOTS } from '../data/questPrompts';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
@@ -17,9 +14,10 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   const install = (host: SimHost, context: HeadlessRuntimeInstallation): void => {
     const environment = world.install(host, context), { ledger, keeper, encounter } = environment;
     // the browser disables the player's weapons through the Roc's intro (BossPorts.lockInput) and stows the fan on the board
-    const vanes = VANES.map(vane => ({ id: vane.id, at: new Vector3(vane.x, vane.y + VANE_HUB, vane.z) }));
+    const reactions = shard.questHost?.page?.world; if (reactions === undefined) throw new Error('Missing admitted quest world reactions');
+    const questWorld = bindQuestWorldReactions(reactions, { flags: host.flags });
     installNativeMelee(host, fanRow, fanRow.native, { inputCommands:context.commands, enabled:()=>!encounter.locked()&&!host.playerBoard.on,
-      hook: environment.hooks.get(FAN_ID) ?? null, hookTick: environment.hookTick, landed: (action, from, dir) => { if (action === 2) turnVanes(host.flags, vanes, from, dir); } });
+      hook: environment.hooks.get(FAN_ID) ?? null, hookTick: environment.hookTick, landed: (action, from, dir) => { if (action === 2) questWorld.scan(from, dir); } });
     installDeclaredQuestHost(host, shard, { ...ledger, commands: pickCommands(context.commands, command => command.kind === 'script' ? command : undefined),
       spots: { interact: SKY_SPOTS, crack: [] }, observations: environment.observations,
       actions: environment.actions, directorActions: new Map() });

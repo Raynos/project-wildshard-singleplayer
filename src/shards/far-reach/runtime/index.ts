@@ -16,7 +16,6 @@ import { effectField } from '@wildshard/sdk/looks/effectField';
 import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
 import { createFan, type WarFanWeapon, type ConeFanTarget } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';
-import { turnVanes } from '../quest/vanes';
 import { SKY_ITEM_ROLE } from '../data/items';
 import { FAN_ROW, FAN_PRESENTATION } from '../data/equipment';
 import { preloadSkyMeshes, HERO_LIBRARY } from '../world/meshes';
@@ -58,6 +57,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   private board: () => boolean = () => false;
   flags: Flags | null = null;
   /** SF8c: the Rising Islets' RIDE / CALL prompts (world/risingIslet.ts). */
+  private questWorld: ReturnType<typeof bindQuestPageInteractions>['world'] | null = null;
   private isletCalls: ReturnType<typeof bindClientChannels> | null = null;
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
@@ -113,6 +113,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
 
     const page = bindQuestPageInteractions(source, { flags, toast,
       owners: new Map<string,unknown>([['world',built],['plugin',this]]) });
+    this.questWorld = page.world;
     built.notes.onInteract = page.action('notes'); built.winch.onInteract = page.action('winch');
     // the world pins, chip, map and minimap marks are the quest presentation's (data/questPage.ts)
     if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');
@@ -180,7 +181,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     wind('updraftStreaks').place(...axis); wind('updraftLeaves').place(...axis);
     fan.onGust = (from, dir) => {
       const at = from.clone().addScaledVector(dir, 0.2).setY(from.y - 0.25), salt = fxRandom.next(); gust[0].burst(at, dir, salt); gust[1].burst(at, dir, salt);
-      rt.play?.cues.charge(FAN_ROW, 'heavy'); this.gustVanes(from, dir, toast);
+      rt.play?.cues.charge(FAN_ROW, 'heavy'); this.gustVanes(from, dir);
     };
     ctx.system({ id: 'far.gust', phase: 'update', run: (dt) => { gust[0].update(dt); gust[1].update(dt); } });
 
@@ -240,9 +241,8 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     if (name === 'roc-stalk' && body !== null) body.stageStalk({ x: DAIS.x - 3, z: DAIS.z - Math.sqrt(ROC.r * ROC.r - 9) }, { x: CROWN.x, z: CROWN.z + CROWN.r });
   }
   /** A GUST from `from` along `dir` turns every vane it reaches (quest step 3, once the notes are read). */
-  gustVanes(from: Vector3, dir: Vector3, toast: (text: string) => void = () => undefined): number {
-    const built = this.built, flags = this.flags; if (built === null || flags === null) return 0;
-    return turnVanes(flags, boundedRows(built.vanes), from, dir, () => { toast(STRINGS.vaneTurned); });
+  gustVanes(from: Vector3, dir: Vector3): number {
+    return this.questWorld?.scan(from, dir) ?? 0;
   }
   /** Snap the crown bridge up (the winch's end state, also restored from a save). */
   /** Borrowed capture command on the actual bridge owner. */

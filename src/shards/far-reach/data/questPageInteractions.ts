@@ -1,8 +1,11 @@
+import { FAN_GUST } from './items';
+import { VANES } from './layout';
 import { FLAGS } from '../quests/flags';
 import { STRINGS } from './strings';
 
 /** Notes and native winch permissions, with the existing hint/toast beats. */
-export const SKY_QUEST_PAGE_INTERACTIONS={bindings:{
+export const SKY_QUEST_PAGE_INTERACTIONS={world:VANES.map(vane=>({id:vane.id,at:{kind:'point',x:vane.x,y:vane.y+3.3,z:vane.z},radius:0,
+  cone:{reach:FAN_GUST.reach+2,halfAngle:FAN_GUST.halfAngle+0.15},needs:{all:[FLAGS.notes],none:[`far.vane.${vane.id}`]},sets:[`far.vane.${vane.id}`],toast:STRINGS.vaneTurned})),bindings:{
   observations:[{target:'winch-up',owner:'world',path:['state','raised']}],
   calls:[{target:'winch',owner:'plugin',path:['isletCalls','runtime','command'],args:['far.winch.bridge',1],optional:true}],
 },actions:[
