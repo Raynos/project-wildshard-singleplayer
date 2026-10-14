@@ -7,11 +7,11 @@ import { terrainHeight as heightAt } from '../../world/terrainHeight';
 import { CHUNK_HALF } from '../../core/config';
 import { Puffs, impactSurfaceOf, worldHit } from './ranged';
 import type { ImpactSurface } from '../Weapon';
-import type { TargetAnimal, TargetHit, Targets, TargetFrame } from '../types';
+import type { TargetAnimal, TargetHit, Targets } from '../types';
 import { floorBelow, sticksIn } from '../../physics/query';
 import { app, gameplayRandom } from '../../app/runtime';
 import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '../projectileFlight';
-import { projectileBury, projectileContactTip, projectileDrop, projectileGlance, projectileRest, projectileWithinReach } from '../projectileContact';
+import { projectileContactTip, projectileGlance, StoppedProjectileSlots, type StoppedProjectile } from '../projectileContact';
 
 
 
@@ -62,15 +62,7 @@ export interface ShotOpts {
 interface FlyingData { slot: number; origin: THREE.Vector3; roll: number; scale: number; hitScale: ((hit: TargetHit) => number) | undefined }
 type Flying = FlightSlot<FlyingData>;
 
-interface Stuck {
-  slot: number; pos: THREE.Vector3; dir: THREE.Vector3; roll: number;
-  /** riding a live animal: offset + direction in its yaw frame */
-  animal: TargetAnimal | null; local: THREE.Vector3; localDir: THREE.Vector3;
-  /** riding a part of the target instead (a practice dummy's bone, TargetAnimal.stuckFrame): local is in its frame */
-  frame: TargetFrame | null;
-  /** reachable from the ground (not 4 m up a trunk) */
-  recoverable: boolean;
-}
+type Stuck = StoppedProjectile<{ slot: number; roll: number }, TargetAnimal>;
 
 /** the ball an arrow sweeps through the world (the broadhead) */
 const ARROW_RADIUS = 0.02;
@@ -80,16 +72,11 @@ const RECOVER_R = 1.25; // m, horizontal reach from the feet
 const RECOVER_UP = 2.1; // m, highest point of a stuck arrow's midpoint the player can pull out
 const RECOVER_REACH = { radius: RECOVER_R, up: RECOVER_UP, down: 1.2 };
 const GLANCE = { lift: GLANCE_LIFT, keep: GLANCE_KEEP, bounce: GLANCE_BOUNCE, maxSpeed: GLANCE_MAX };
-const NEG_Z = new THREE.Vector3(0, 0, -1), POS_Z = new THREE.Vector3(0, 0, 1), Y_AXIS = new THREE.Vector3(0, 1, 0), X_AXIS = new THREE.Vector3(1, 0, 0);
+const NEG_Z = new THREE.Vector3(0, 0, -1), POS_Z = new THREE.Vector3(0, 0, 1);
 const _cp = new THREE.Vector3(), _chord = new THREE.Vector3();
 const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _dir = new THREE.Vector3(), _wind = new THREE.Vector3(), _nrm = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3(1, 1, 1);
 const ZERO_M = new THREE.Matrix4().makeScale(0, 0, 0);
-
-/** the animal's heading if it has one (every `Animal` does; a stub target may not) */
-function yawOf(a: TargetAnimal): number { return 'yaw' in a && typeof a.yaw === 'number' ? a.yaw : 0; }
-/** a hidden (harvested, faded) carcass */
-function hiddenOf(a: TargetAnimal): boolean { return 'hidden' in a && a.hidden === true; }
 
 export class Projectiles {
   wind: WindField | null = null;
@@ -109,10 +96,9 @@ export class Projectiles {
   private readonly targets: Targets | undefined;
   private readonly pool: ProjectileSlots<FlyingData>;
   private get flying(): Flying[] { return this.pool.slots; }
-  private readonly stuck: Stuck[] = [];
-  private readonly freeStuckSlots: number[] = [];
+  private readonly stopped: StoppedProjectileSlots<{ slot: number; roll: number }, TargetAnimal>;
+  private get stuck(): Stuck[] { return this.stopped.slots; }
   private readonly puffs = new Puffs();
-  private recoverFrame = 0;
   private dirty = false;
 
   constructor(world: ProjectileWorld, targets: Targets | undefined, kind: ProjectileKind) {
@@ -129,7 +115,14 @@ export class Projectiles {
       integrate: (slot, h) => { this.step(slot.pos, slot.vel, h); }, contact: (slot, previous) => this.testHit(slot, previous),
       expired: slot => { this.endFlying(slot); }, moved: (slot, dt) => { slot.roll += dt * 9; this.writeFlying(slot); },
     });
-    for (let i = cap - 1; i >= kind.maxFlying; i--) this.freeStuckSlots.push(i);
+    this.stopped = new StoppedProjectileSlots({ capacity: kind.maxStuck, length: kind.length, bury: kind.bury,
+      radius: kind.radius ?? ARROW_RADIUS, reach: RECOVER_REACH, recover: kind.recover, recoveryStride: 8 }, {
+      feet: this.player.position, floorAt: floorUnder,
+      body: animal => animal,
+      attachment: (animal, point) => animal.stuckFrame?.(point) ?? null,
+      canRecover: () => this.canRecover(), recover: survived => this.onRecover?.(survived), random: gameplayRandom,
+      changed: slot => this.writeStuck(slot), removed: slot => { this.mesh.setMatrixAt(slot.data.slot, ZERO_M); this.dirty = true; },
+    }, index => ({ slot: cap - 1 - index, roll: 0 }));
     world.game.scene.add(this.mesh, this.puffs.points);
   }
 
@@ -147,8 +140,8 @@ export class Projectiles {
   get inFlight(): number { let n = 0; for (const f of this.flying) if (f.active) n++; return n; }
   get stuckCount(): number { return this.stuck.length; }
   /** world positions of the stuck ones (dev / screenshots) */
-  stuckPositions(): THREE.Vector3[] { return this.stuck.map((s) => s.pos.clone()); }
-  clearStuck(): void { while (this.stuck.length > 0) this.removeStuck(0); }
+  stuckPositions(): THREE.Vector3[] { return this.stuck.map((s) => s.position.clone()); }
+  clearStuck(): void { this.stopped.clear(); }
 
   // ── the one integrator (flight and the preview share it) ──
 
@@ -210,40 +203,9 @@ export class Projectiles {
 
   update(dt: number): void {
     this.pool.step(dt);
-    // arrows riding animals follow them; a dead (or harvested) one drops its arrows into the ground beside it
-    for (let i = this.stuck.length - 1; i >= 0; i--) {
-      const s = this.stuck[i];
-      const a = s?.animal;
-      if (s === undefined || a === null || a === undefined) continue;
-      if (!a.alive || hiddenOf(a)) { this.dropToGround(s); continue; }
-      if (s.frame !== null) { // on a bone: its world matrix as last drawn
-        s.pos.copy(s.local).applyMatrix4(s.frame.matrixWorld);
-        s.dir.copy(s.localDir).transformDirection(s.frame.matrixWorld);
-        this.writeStuck(s);
-        continue;
-      }
-      const yaw = yawOf(a);
-      s.pos.copy(s.local).applyAxisAngle(Y_AXIS, yaw).add(a.position);
-      s.dir.copy(s.localDir).applyAxisAngle(Y_AXIS, yaw);
-      this.writeStuck(s);
-    }
-    // walk-over recovery (4× a second is plenty for a walking player)
-    if ((++this.recoverFrame & 7) === 0) this.recoverNear();
+    this.stopped.update();
     if (this.dirty) { this.mesh.instanceMatrix.needsUpdate = true; this.dirty = false; }
     this.puffs.update(dt, this.game.renderer, this.game.camera);
-  }
-
-  private recoverNear(): void {
-    const p = this.player.position;
-    for (let i = this.stuck.length - 1; i >= 0; i--) {
-      const s = this.stuck[i];
-      if (s === undefined || s.animal !== null || !s.recoverable) continue;
-      // the shaft's middle: tip + dir·(−length/2) (dir points along the flight, into the surface)
-      if (!projectileWithinReach(s.pos, s.dir, this.kind.length, p, RECOVER_REACH)) continue;
-      if (!this.canRecover()) return;
-      this.removeStuck(i);
-      this.onRecover?.(gameplayRandom() < this.kind.recover); // seeded (09 §3.5)
-    }
   }
 
   // ── hits ──
@@ -276,7 +238,7 @@ export class Projectiles {
         const killed = a.applyDamage(dmg, hit.point, _dir);
         this.onHit?.(a.kind, hit.headshot, killed, hit.point, dmg);
         this.stop(f, hit.point, _dir, 'flesh', a.alive ? a : null, true);
-        if (!a.alive) { const s = this.stuck[this.stuck.length - 1]; if (s !== undefined) this.dropToGround(s); } // a kill: into the grass beside it
+        if (!a.alive) { const s = this.stuck[this.stuck.length - 1]; if (s !== undefined) this.stopped.drop(s); } // a kill: into the grass beside it
         return true;
       }
     }
@@ -304,16 +266,8 @@ export class Projectiles {
 
   /** a spent (glanced) arrow comes to rest lying on what it fell onto: along its travel, flat to the surface */
   private rest(f: Flying, at: THREE.Vector3, n: THREE.Vector3): void {
-    const along = _v1;
-    // the tip half a shaft ahead of the contact, so the shaft lies across it
-    projectileRest(at, _dir, n, this.kind.radius ?? ARROW_RADIUS, this.kind.length, along, Y_AXIS, X_AXIS);
     this.endFlying(f);
-    if (this.stuck.length >= this.kind.maxStuck) this.removeStuck(0);
-    const slot = this.freeStuckSlots.pop();
-    if (slot === undefined) return;
-    const s: Stuck = { slot, pos: at.clone(), dir: along.clone(), roll: f.roll, animal: null, local: new THREE.Vector3(), localDir: new THREE.Vector3(), frame: null, recoverable: true };
-    this.stuck.push(s);
-    this.writeStuck(s);
+    this.stopped.rest(at, _dir, n, slot => { slot.data.roll = f.roll; });
   }
 
   private stop(f: Flying, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, animal: TargetAnimal | null, stick: boolean): void {
@@ -322,50 +276,12 @@ export class Projectiles {
     if (this.kind.puffs !== false) this.puffs.emit(point, dir, surface);
     this.onImpact?.(surface, point);
     if (!stick || this.kind.stick === false) return;
-    if (this.stuck.length >= this.kind.maxStuck) this.removeStuck(0);
-    const slot = this.freeStuckSlots.pop();
-    if (slot === undefined) return;
-    const bury = surface === 'flesh' ? this.kind.bury * 2.2 : this.kind.bury;
-    const pos = projectileBury(point, dir, bury, new THREE.Vector3());
-    const s: Stuck = { slot, pos, dir: dir.clone(), roll, animal, local: new THREE.Vector3(), localDir: new THREE.Vector3(), frame: null, recoverable: true };
-    const frame = animal?.stuckFrame?.(point) ?? null;
-    if (frame !== null) {
-      _m.copy(frame.matrixWorld).invert();
-      s.frame = frame;
-      s.local.copy(pos).applyMatrix4(_m);
-      s.localDir.copy(dir).transformDirection(_m);
-    } else if (animal !== null) {
-      const yaw = yawOf(animal);
-      s.local.copy(pos).sub(animal.position).applyAxisAngle(Y_AXIS, -yaw);
-      s.localDir.copy(dir).applyAxisAngle(Y_AXIS, -yaw);
-    } else {
-      // too high up a trunk / a yurt roof to reach: it stays as a trophy until the cap evicts it
-      const midY = pos.y - dir.y * this.kind.length * 0.5;
-      s.recoverable = midY - floorUnder(pos.x, midY, pos.z) < RECOVER_UP - 0.2;
-    }
-    this.stuck.push(s);
-    this.writeStuck(s);
-  }
-
-  /** an arrow from a dead / vanished animal: into the ground where it hung, tilted a little off vertical */
-  private dropToGround(s: Stuck): void {
-    s.animal = null; s.frame = null;
-    const g = floorUnder(s.pos.x, s.pos.y, s.pos.z);   // the ground, a deck, a rock — whatever it hangs over
-    projectileDrop(s.pos, s.dir, g, this.kind.bury);
-    s.recoverable = true;
-    this.writeStuck(s);
+    this.stopped.stop(point, dir, surface === 'flesh', animal, slot => { slot.data.roll = roll; });
   }
 
   private endFlying(f: Flying): void {
     f.active = false;
     this.mesh.setMatrixAt(f.slot, ZERO_M); this.dirty = true;
-  }
-
-  private removeStuck(i: number): void {
-    const s = this.stuck.splice(i, 1)[0];
-    if (s === undefined) return;
-    this.mesh.setMatrixAt(s.slot, ZERO_M); this.dirty = true;
-    this.freeStuckSlots.push(s.slot);
   }
 
   private writeFlying(f: Flying): void {
@@ -376,9 +292,9 @@ export class Projectiles {
   }
 
   private writeStuck(s: Stuck): void {
-    _q.setFromUnitVectors(NEG_Z, s.dir).multiply(_q2.setFromAxisAngle(POS_Z, s.roll));
-    _m.compose(s.pos, _q, _s);
-    this.mesh.setMatrixAt(s.slot, _m); this.dirty = true;
+    _q.setFromUnitVectors(NEG_Z, s.direction).multiply(_q2.setFromAxisAngle(POS_Z, s.data.roll));
+    _m.compose(s.position, _q, _s);
+    this.mesh.setMatrixAt(s.data.slot, _m); this.dirty = true;
   }
 }
 

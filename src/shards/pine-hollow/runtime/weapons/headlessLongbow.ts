@@ -7,11 +7,10 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { BowDraw } from '@wildshard/engine/combat/bowDraw';
 import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
-import { projectileContactTip, projectileGlance } from '@wildshard/engine/combat/projectileContact';
+import { projectileContactTip, projectileGlance, StoppedProjectileSlots, stoppedProjectileSaved } from '@wildshard/engine/combat/projectileContact';
 import { drawnSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { floorBelow, sticksIn } from '@wildshard/engine/physics/query';
 import { EYE, aimAt, bodyHit, worldHit } from './headlessRanged';
-import { PineStuckArrows, STUCK_ARROWS_SAVED } from './stuckArrows';
 
 /** The longbow's fixed-step id; its continuation is the draw, the quiver, the aim and every arrow in flight. */
 export const LONGBOW_STEP = 'pine.longbow';
@@ -29,7 +28,7 @@ const savedSchema = (profile: v.InferOutput<typeof BowWeaponProfileSchema>) => v
   draw: v.strictObject({ drawT: finite, holdT: finite, renockT: finite, tiredT: finite, wasHeld: v.boolean(), needLift: v.boolean(), reachedFull: v.boolean() }),
   arrows: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(profile.quiver)), aim: v.nullable(v.string()),
   flying: v.pipe(v.array(v.strictObject({ active: v.boolean(), pos: vec, vel: vec, origin: vec, age: finite, glanced: v.boolean() })), v.length(profile.pool)),
-  stuck: STUCK_ARROWS_SAVED,
+  stuck: stoppedProjectileSaved(48),
 });
 
 /** What the longbow is lent: this tick's HEAVY hold (null when up; its target, if it names one), whether it is live (held,
@@ -67,16 +66,17 @@ export interface PineLongbowPorts {
  * page frame clock requires the same sampled deltas. Pickup checks follow the page's eight-update clock, saved with
  * every stopped shaft. Aimed and mounted spread remain explicit input ports.
  */
-export function installPineLongbow(host: SimHost, ports: PineLongbowPorts): { readonly draw: BowDraw; readonly state: { arrows: number; aim: string | null }; readonly flying: () => number; readonly stuck: PineStuckArrows } {
+export function installPineLongbow(host: SimHost, ports: PineLongbowPorts): { readonly draw: BowDraw; readonly state: { arrows: number; aim: string | null }; readonly flying: () => number; readonly stuck: StoppedProjectileSlots<null, string> } {
   const profile = v.parse(BowWeaponProfileSchema, ports.profile ?? BOW_PROFILE);
   const random = (): number => host.rng.stream('gameplay').next(), player = host.player;
   const draw = new BowDraw(profile.draw), state: { arrows: number; aim: string | null } = { arrows: profile.quiver, aim: null };
 
   const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), seg = new Vector3(), n = new Vector3(), contact = new Vector3(), wind = new Vector3();
-  const stuck = new PineStuckArrows({ feet: player.position,
+  const stuck = new StoppedProjectileSlots<null, string>({ capacity: 48, length: 0.76, bury: 0.09, radius: RADIUS,
+    reach: { radius: 1.25, up: 2.1, down: 1.2 }, recover: 0.7, recoveryStride: 8 }, { feet: player.position,
     floorAt: (x, y, z) => floorBelow(host.physics, x, z, y + 0.3, 60) ?? host.groundHeightAt(x, z),
     body: id => host.entities.get(id), canRecover: () => state.arrows < profile.quiver,
-    recover: survived => { if (survived) state.arrows = Math.min(profile.quiver, state.arrows + 1); }, random });
+    recover: survived => { if (survived) state.arrows = Math.min(profile.quiver, state.arrows + 1); }, random }, () => null);
   const req: DamageRequest = { source: player.health, sourceTags: ['weapon.longbow', 'dmg.ranged', 'cover.checked'], target: player.health, amount: 0, point: new Vector3(), dir: seg, headshot: false };
   /** the step prev → arrow: the nearer of a body and the world; true when the arrow stopped */
   const testHit = (a: Arrow, prev: Vector3): boolean => {
@@ -90,7 +90,7 @@ export function installPineLongbow(host: SimHost, ports: PineLongbowPorts): { re
       req.target = body.combatActor(); req.amount = Math.max(1, Math.round(body.damageFor(hit.head, hit.point.distanceTo(a.origin)) * profile.damageScale));
       req.point.copy(hit.point); req.headshot = hit.head;
       host.combat.hit(req);
-      stuck.stop(hit.point, seg, true, body.alive ? body : null);
+      stuck.stop(hit.point, seg, true, body.alive ? body.entityId : null);
       if (!body.alive) stuck.dropLast();
       return true;
     }
@@ -131,11 +131,11 @@ export function installPineLongbow(host: SimHost, ports: PineLongbowPorts): { re
     stuck.update();
   }, {
     snapshot: () => ({ draw: { ...draw.save() }, arrows: state.arrows, aim: state.aim,
-      flying: arrows.map(a => ({ active: a.active, pos: [a.pos.x, a.pos.y, a.pos.z], vel: [a.vel.x, a.vel.y, a.vel.z], origin: [a.origin.x, a.origin.y, a.origin.z], age: a.age, glanced: a.glanced })), stuck: stuck.snapshot() }),
+      flying: arrows.map(a => ({ active: a.active, pos: [a.pos.x, a.pos.y, a.pos.z], vel: [a.vel.x, a.vel.y, a.vel.z], origin: [a.origin.x, a.origin.y, a.origin.z], age: a.age, glanced: a.glanced })), stuck: stuck.snapshot(id => id) }),
     restore: value => {
       const saved = v.parse(savedSchema(profile), value);
       draw.load(saved.draw); state.arrows = saved.arrows; state.aim = saved.aim;
-      stuck.restore(saved.stuck);
+      stuck.restore(saved.stuck, id => id);
       saved.flying.forEach((s, i) => { const a = arrows[i]; if (a !== undefined) { a.active = s.active; a.pos.set(...s.pos); a.vel.set(...s.vel); a.origin.set(...s.origin); a.age = s.age; a.glanced = s.glanced; } });
     },
   }, 'afterBodies');

@@ -5514,3 +5514,12 @@ and scale admission, and `nativeBakeActors(rows, label)` for ordered actor
 rows whose specs match their declared kind and variant. Pine and
 Driftwood use these same functions; special terrain sampling, collision
 provenance, shelter metadata and boss spawn policy remain with their owners.
+
+Stopped shafts use `StoppedProjectileSlots` from engine/combat/projectileContact:
+capacity, length, bury, contact radius, reach, survival and recovery stride are
+rows. Native entity ids or page actor references and bone frames are borrowed;
+changed/removed ports keep the existing rendered slot ownership. Flight and
+damage are separate. `stoppedProjectileSaved(capacity)` retains the version-one
+position/direction/body/local/localDirection/recoverable envelope and update
+count; restore validates before changing the roster. Bone-frame saves belong to
+the page owner and are refused by this native envelope.
