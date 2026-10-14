@@ -129,6 +129,9 @@ export interface GraphSurface {
   readonly occlusion?: GraphRef;
   /** bool: the fragment is discarded where it is true (a dither or a clip; a fragment-place op, like `alphaCutoff`) */
   readonly discard?: GraphRef;
+  /** vec3: the shading normal in world space (unit; a lit model only), in place of the interpolated one: a per-pixel
+   *  ripple or detail normal the lighting, the environment's reflection and the lighting stage's `normalView` all use */
+  readonly normal?: GraphRef;
 }
 /** the vertex stage: an object-space offset; shadow:true also applies it and the surface mask to shadow depth */
 export interface GraphVertexOffset {
@@ -369,6 +372,11 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   sunColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['sun'] }, // the light's colour × intensity, unshadowed
   sunShadow: { arity: [0, 0], rule: 'input', cost: 4, type: 'float', places: ['sun'] }, // 1 lit … 0 in cast shadow (the families' ratio)
   irradiance: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['ambient'] }, // the indirect irradiance (hemisphere, ambient)
+  // the environment's own light at the shading point, beside `irradiance`: its prefiltered radiance along the reflected view
+  // ray at the surface's roughness, and its irradiance (× π, as three keeps it) for the shading normal. Reading either
+  // makes `ambient` own the whole indirect term: the physical model adds no environment diffuse or specular of its own
+  radiance: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['ambient'] },
+  environmentIrradiance: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['ambient'] },
   litColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['grade'] }, // the lit colour, emissive included
   sceneColour: { arity: [0, 0], rule: 'input', cost: 2, type: 'vec4', places: ['post'] },
   // SF59 (2b), the post inputs, each its own sampler once a graph reads it (however many taps): the scene colour at a uv
@@ -474,7 +482,7 @@ const VEC_LEN: Readonly<Record<GraphValueType, number>> = { float: 1, vec2: 2, v
 const vecOf = (n: number): GraphValueType | null => (n === 1 ? 'float' : n === 2 ? 'vec2' : n === 3 ? 'vec3' : n === 4 ? 'vec4' : null);
 const isNumeric = (t: GraphValueType): boolean => t !== 'bool';
 const ID = /^[A-Za-z_][A-Za-z0-9_]{0,63}$/;
-const SURFACE_TYPES: Readonly<Record<string, GraphValueType>> = { colour: 'vec3', alpha: 'float', emissive: 'vec3', roughness: 'float', metalness: 'float', occlusion: 'float', discard: 'bool' };
+const SURFACE_TYPES: Readonly<Record<string, GraphValueType>> = { colour: 'vec3', alpha: 'float', emissive: 'vec3', roughness: 'float', metalness: 'float', occlusion: 'float', discard: 'bool', normal: 'vec3' };
 /** an `attribute` node's name: `a` and a capital (`aSeed`), so it never names one of three's own attributes */
 export const GRAPH_ATTRIBUTE_NAME = /^a[A-Z][A-Za-z0-9]{0,31}$/;
 /** where a `varying`'s input runs: the vertex program of the place reading it */
@@ -898,6 +906,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       if (k === 'alphaCutoff') { if (!isFiniteNumber(v) || v < 0 || v > 1) fail('stages.surface.alphaCutoff: a number 0–1'); continue; }
       const t = SURFACE_TYPES[k];
       if (t === undefined) { fail(`stages.surface: unknown output ${k}`); continue; }
+      if (k === 'normal' && input.model === 'unlit') fail('stages.surface.normal: an unlit graph has no shading normal');
       want(v, 'fragment', t, `stages.surface.${k}`);
     }
     const lit = stages.lighting;

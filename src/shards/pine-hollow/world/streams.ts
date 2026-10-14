@@ -24,7 +24,7 @@ import { pineLook } from '../runtime/looks/graphLooks';
 import { loadSiteTimbers } from './timberSites';
 import { pineModels } from './context';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
+import { pineWater } from './water';
 
 const num = v.pipe(v.number(), v.finite()), xyz = v.tuple([num, num, num]);
 /** ../data/streams.json: the water mesh's counts and index width, the fall's plunge and face-foot anchors */
@@ -52,9 +52,8 @@ export class PineStreams {
       return original;
     }).catch((error: unknown) => { console.error('[pine-hollow] the baked streams did not load:', error); return null; });
     if (geometry !== null) {
-      // the gully's banks and the forest over them fill the low reflections (sin 0.3 ≈ 17°)
-      const { material } = createWaterMaterial(this.sky, { skyline: null, forestSinEl: 0.3 });
-      const water = this.water = new THREE.Mesh(geometry, material);
+      // the creek's water look (../data/waterLook.ts): the gully's banks and the forest over them fill the low reflections
+      const water = this.water = new THREE.Mesh(geometry, pineWater('creek'));
       water.name = 'creek-waterfall';
       water.receiveShadow = true;
       water.renderOrder = 6; // after the pond: the plunge ring lies on it

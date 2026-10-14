@@ -9,5 +9,12 @@ export type WaterView = 'eye' | 'top-down';
  */
 export const waterView = { uTopDown: { value: 0 } };
 
-/** the reflect hook of a body drawn with the shared photoreal water (waterSurface.ts): the pond, the creek */
-export function surfaceReflect(view: WaterView): void { waterView.uTopDown.value = view === 'top-down' ? 1 : 0; }
+const viewers = new Set<(view: WaterView) => void>();
+/** the reflect hook of a body drawn with the shared photoreal water (waterSurface.ts, or a shard's water graphs that follow
+ *  `onSurfaceReflect`): the pond, the creek */
+export function surfaceReflect(view: WaterView): void {
+  waterView.uTopDown.value = view === 'top-down' ? 1 : 0;
+  for (const viewer of viewers) viewer(view);
+}
+/** call `fn` with each `surfaceReflect` view, at once (the shot renders right after); returns the unsubscribe */
+export function onSurfaceReflect(fn: (view: WaterView) => void): () => void { viewers.add(fn); return () => { viewers.delete(fn); }; }

@@ -117,6 +117,11 @@ export const graphInputs = {
   albedo: op('albedo', 'vec3'),
   /** the indirect irradiance (the `ambient` sub-graph only) */
   irradiance: op('irradiance', 'vec3'),
+  /** the environment's prefiltered radiance along the reflected view ray (the `ambient` sub-graph only; reading it or
+   *  `environmentIrradiance` makes `ambient` the whole indirect term) */
+  radiance: op('radiance', 'vec3'),
+  /** the environment's irradiance (× π) for the shading normal (the `ambient` sub-graph only) */
+  environmentIrradiance: op('environmentIrradiance', 'vec3'),
   /** the lit colour, emissive included (the `grade` sub-graph only) */
   litColour: op('litColour', 'vec3'),
   /** a per-instance hash in [0, 1) */
@@ -163,6 +168,8 @@ export interface GraphSpec {
     readonly roughness?: GraphValue; readonly metalness?: GraphValue; readonly occlusion?: GraphValue;
     /** bool: discard the fragment where true (a dither against `screenCoordinate`, a clip) */
     readonly discard?: GraphValue;
+    /** vec3: the world-space shading normal (a lit model only) */
+    readonly normal?: GraphValue;
   };
   readonly lighting?: { readonly sun: GraphValue; readonly sunSpecular?: GraphValue; readonly ambient?: GraphValue; readonly grade?: GraphValue };
   readonly outline?: { readonly offset: GraphValue; readonly colour: GraphValue };
@@ -286,7 +293,7 @@ export function graph(spec: GraphSpec): GraphIr {
   let surface: GraphStages['surface'];
   if (spec.surface !== undefined) {
     const s = spec.surface, refs: Record<string, GraphRef> = {};
-    for (const key of ['colour', 'alpha', 'emissive', 'roughness', 'metalness', 'occlusion', 'discard'] as const) { const value = s[key]; if (value !== undefined) refs[key] = refOf(value); }
+    for (const key of ['colour', 'alpha', 'emissive', 'roughness', 'metalness', 'occlusion', 'discard', 'normal'] as const) { const value = s[key]; if (value !== undefined) refs[key] = refOf(value); }
     surface = { ...refs, ...(s.alphaCutoff === undefined ? {} : { alphaCutoff: s.alphaCutoff }) };
   }
   const l = spec.lighting;

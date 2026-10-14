@@ -192,7 +192,9 @@ interface LitHooks {
   /** the radiance one directional light adds, and the factor on its physical specular (null: no specular) */
   readonly sun: ((direction: Node<'vec3'>, colour: Node<'vec3'>, shadow: Node<'float'>) => { readonly radiance: Node<'vec3'>; readonly specular: Node<'float'> | null }) | null;
   readonly sunScale?: Node<'float'>;
-  readonly ambient: ((irradiance: Node<'vec3'>) => Node<'vec3'>) | null;
+  readonly ambient: ((irradiance: Node<'vec3'>, environment: { readonly radiance: Node<'vec3'>; readonly irradiance: Node<'vec3'> }) => Node<'vec3'>) | null;
+  /** `ambient` reads the environment's radiance / irradiance, so it owns the whole indirect term (no physical environment light) */
+  readonly ownsEnvironment?: boolean;
   readonly grade: ((lit: Node<'vec3'>) => Node<'vec3'>) | null;
   /** whether the model keeps any specular (the graph declared `sunSpecular`) */
   readonly specular: boolean;
@@ -256,9 +258,10 @@ class GraphLightingModel extends PhysicalLightingModel {
       const irradiance: unknown = typeof ctx === 'object' && ctx !== null ? Reflect.get(ctx, 'irradiance') : null;
       const reflected: unknown = typeof ctx === 'object' && ctx !== null ? Reflect.get(ctx, 'reflectedLight') : null;
       const indirect: unknown = typeof reflected === 'object' && reflected !== null ? Reflect.get(reflected, 'indirectDiffuse') : null;
-      accumulate(indirect, ambient(vec3Of(irradiance, 'the irradiance')));
+      const env = (key: 'radiance' | 'iblIrradiance'): Node<'vec3'> => vec3Of(typeof ctx === 'object' && ctx !== null ? Reflect.get(ctx, key) : null, `the environment's ${key}`);
+      accumulate(indirect, ambient(vec3Of(irradiance, 'the irradiance'), this.hooks.ownsEnvironment === true ? { radiance: env('radiance'), irradiance: env('iblIrradiance') } : { radiance: vec3(0), irradiance: vec3(0) }));
     }
-    if (this.hooks.specular) {
+    if (this.hooks.specular && this.hooks.ownsEnvironment !== true) {
       if (ambient === null || this.hooks.replaceEnvironmentDiffuse !== true) this.indirectSpecular(builder);
       else {
         // Physical indirectSpecular also accumulates environment diffuse. Toon
@@ -417,6 +420,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const texParams = new Map<string, { file: string; role?: 'colour' | 'data' | 'lent' }>();
   // each lent texture param's samples, so `setTexture` can move them all
   const lent = new Map<string, ((next: THREE.Texture) => void)[]>();
+  /** the texture each lent param was lent last, for its samples not built yet */
+  const lentNow = new Map<string, THREE.Texture>();
   for (const [name, p] of Object.entries(ir.params ?? {})) {
     if (p.bind !== undefined) bindings.push({ param: name, bind: p.bind });
     if (p.type === 'texture') { if (typeof p.value === 'string') texParams.set(name, { file: p.value, ...(p.role === undefined ? {} : { role: p.role }) }); continue; }
@@ -467,7 +472,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   countRef(st['vertex.offset']?.offset);
   countRef(st['vertex.position']?.position);
   countRef(st.points?.size);
-  for (const k of ['colour', 'alpha', 'emissive', 'roughness', 'metalness', 'occlusion'] as const) countRef(st.surface?.[k]);
+  for (const k of ['colour', 'alpha', 'emissive', 'roughness', 'metalness', 'occlusion', 'normal'] as const) countRef(st.surface?.[k]);
   countRef(st.post?.colour);
   for (const k of ['sun', 'sunSpecular', 'ambient', 'grade'] as const) countRef(st.lighting?.[k]);
   /** the instructions only this side of a select would run */
@@ -516,6 +521,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   // the lighting stage's inputs, live only while its sub-graph builds; a node reading a sun input memoizes per light
   let sunIn: { readonly direction: Node<'vec3'>; readonly colour: Node<'vec3'>; readonly shadow: Node<'float'> } | null = null;
   let irradianceIn: Node<'vec3'> | null = null;
+  let environmentIn: { readonly radiance: Node<'vec3'>; readonly irradiance: Node<'vec3'> } | null = null;
   let litIn: Node<'vec3'> | null = null;
   const perLight = lightDependents(ir);
   let lightMemo = new Map<string, Val>();
@@ -642,6 +648,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'sunColour': if (sunIn !== null) return { t: 'vec3', n: sunIn.colour }; break;
       case 'sunShadow': if (sunIn !== null) return { t: 'float', n: sunIn.shadow }; break;
       case 'irradiance': if (irradianceIn !== null) return { t: 'vec3', n: irradianceIn }; break;
+      case 'radiance': if (environmentIn !== null) return { t: 'vec3', n: environmentIn.radiance }; break;
+      case 'environmentIrradiance': if (environmentIn !== null) return { t: 'vec3', n: environmentIn.irradiance }; break;
       case 'litColour': if (litIn !== null) return { t: 'vec3', n: litIn }; break;
       case 'sceneColour': {
         if (opts.scene === undefined) throw new Error('material graph: a post graph reads sceneColour, so compile it with { scene }');
@@ -763,7 +771,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'texture': {
         const file = n.param === undefined ? undefined : texParams.get(n.param);
         if (file?.role === 'lent' && n.param !== undefined) {
-          const sample = retargetableTexture(lentStandIn(), asVec2(one())), list = lent.get(n.param) ?? [];
+          const sample = retargetableTexture(lentNow.get(n.param) ?? lentStandIn(), asVec2(one())), list = lent.get(n.param) ?? [];
           list.push(sample.retarget); lent.set(n.param, list);
           if (!(sample.node instanceof TextureNode)) throw new Error('material graph: lent sample is not a texture node');
           return { t: 'vec4', n: stagedTexture(sample.node) };
@@ -813,6 +821,11 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     m.fog = false;
     return m;
   };
+  /** whether a scope's nodes (loop bodies included) read the environment's radiance or irradiance */
+  const readsEnvironment = (scope: Scope): boolean => {
+    const reads = (nodes: Readonly<Record<string, GraphNode>>): boolean => Object.values(nodes).some((n) => n.op === 'radiance' || n.op === 'environmentIrradiance' || (n.body !== undefined && reads(n.body.nodes)));
+    return reads(scope.nodes);
+  };
   /** the lighting stage's hooks: each builds its sub-graph with its inputs live (the material calls them while it builds) */
   const litHooks = (lit: NonNullable<GraphIr['stages']['lighting']>, scope: Scope = root): LitHooks => {
     const asVec3 = (r: GraphRef): Node<'vec3'> => new ConvertNode<'vec3'>(widen(ref(r, scope), 'vec3'), 'vec3');
@@ -827,9 +840,10 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
           return { radiance: asVec3(lit.sun), specular: specularRef === undefined ? null : asFloat(ref(specularRef, scope)) };
         } finally { sunIn = null; }
       },
-      ambient: ambientRef === undefined ? null : (irradiance) => {
-        irradianceIn = irradiance;
-        try { return asVec3(ambientRef); } finally { irradianceIn = null; }
+      ownsEnvironment: ambientRef !== undefined && readsEnvironment(scope),
+      ambient: ambientRef === undefined ? null : (irradiance, environment) => {
+        irradianceIn = irradiance; environmentIn = environment;
+        try { return asVec3(ambientRef); } finally { irradianceIn = null; environmentIn = null; }
       },
       grade: gradeRef === undefined ? null : (litColour) => {
         litIn = litColour;
@@ -888,6 +902,9 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     if (s.alphaCutoff !== undefined) m.alphaTest = s.alphaCutoff;
     const discard = out(s.discard);
     if (discard !== null) m.maskNode = not(asBool(discard)); // three discards where the mask is false
+    const shading = out(s.normal);
+    // the authored world-space shading normal, in the view space three lights in
+    if (shading !== null) m.normalNode = new MathNode('normalize', new SplitNode(new OperatorNode('*', cameraViewMatrix, new JoinNode([new ConvertNode<'vec3'>(shading.n, 'vec3'), float(0)])), 'xyz'));
     const occlusion = out(s.occlusion);
     if (occlusion !== null) m.aoNode = mappedFactor(asFloat(occlusion), 'aoMap');
     if (m instanceof MeshStandardNodeMaterial) {
@@ -965,9 +982,10 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       row.node.array = arrayValues(row.type, value);
     },
     setTexture(name, next) {
-      const list = lent.get(name);
-      if (list === undefined) throw new Error(`material graph: no sampled lent texture ${name}`);
-      for (const retarget of list) retarget(next);
+      // a lighting-stage sample builds with the program (after this call): it starts on the texture lent last
+      if (texParams.get(name)?.role !== 'lent') throw new Error(`material graph: no sampled lent texture ${name}`);
+      lentNow.set(name, next);
+      for (const retarget of lent.get(name) ?? []) retarget(next);
     },
     setParam(name, value) {
       const set = setters.get(name);

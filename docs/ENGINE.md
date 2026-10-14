@@ -1294,7 +1294,11 @@ tube), `toonGraph` and `painterlyGraph` (their light models through the `lightin
 material only) has four outputs: `sun`, the radiance a directional light adds, built per light from `sunDirection`,
 `sunColour` (unshadowed) and `sunShadow` (the cast-shadow ratio) with `normalView`, `viewDirection` and `albedo`;
 `sunSpecular`, a factor on the physical specular (absent: no specular); `ambient`, the indirect diffuse from `irradiance`;
-`grade`, the lit colour (`litColour`) before the output transform, which turns tone mapping off. The compiler's
+`grade`, the lit colour (`litColour`) before the output transform, which turns tone mapping off. An `ambient` that
+reads `radiance` (the environment's prefiltered radiance along the reflected view ray) or `environmentIrradiance` owns
+the whole indirect term: the physical model adds no environment diffuse or specular of its own (Pine Hollow's water
+writes its Fresnel reflection there). `surface.normal` (vec3, world space, lit models only) replaces the shading normal
+the lights, the environment and the lighting stage's `normalView` use: a per-pixel ripple or detail normal. The compiler's
 `GraphLitMaterial` keeps three's physical model and the engine's light nodes (tent, cascades, fade) underneath, so the
 epilogue is unchanged. `toonGraph` refuses caustics and `painterlyGraph` a wind sway (not ported yet);
 `emissiveGraph` refuses a sky, an additive blend or a fog share other than 1. No shipped material uses a preset, and

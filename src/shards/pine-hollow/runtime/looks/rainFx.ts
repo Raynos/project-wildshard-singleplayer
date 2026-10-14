@@ -7,7 +7,7 @@ import { floorBelow } from '@wildshard/engine/physics/query';
 import { pondMask, streamAt } from '@wildshard/engine/world/Heightfield';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
+import { pineWater } from '../../world/water';
 import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { GeometryPack, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
@@ -197,9 +197,8 @@ export class RainFx {
     geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     geo.computeVertexNormals();
     geo.computeBoundingSphere();
-    const { material } = createWaterMaterial(this.o.sky, { skyline: null, forestSinEl: 0.12, fade: this.puddleFade });
-    material.polygonOffset = true; material.polygonOffsetFactor = -2; material.polygonOffsetUnits = -4; // on the ground, not in it
-    const mesh = new THREE.Mesh(geo, material);
+    // the puddle look (../../data/waterLook.ts) is offset onto the ground, not into it
+    const mesh = new THREE.Mesh(geo, pineWater('puddle', this.puddleFade));
     mesh.name = 'puddles';
     mesh.receiveShadow = true; // the creek's flags: the same water program
     mesh.renderOrder = 4;

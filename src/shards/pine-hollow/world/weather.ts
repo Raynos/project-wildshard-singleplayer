@@ -37,7 +37,7 @@ import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { fogUniforms, weatherUniforms, volumetricFog } from '@wildshard/engine/world/Atmosphere';
 import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { waterWeather } from '@wildshard/engine/world/waterSurface';
+import { waterWeather } from './water';
 import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import type { ForestAmbience } from '../runtime/audio/ambience';
