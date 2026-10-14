@@ -71,7 +71,16 @@ function runtimeTags(source, path, fallback) {
   const imports = new Map();
   for (const node of parsed.program.body) if(node.type==='ImportDeclaration') {
     const from=fileRole(node.source.value);
-    for(const spec of node.specifiers) imports.set(spec.local.name,namedRole(spec.local.name) ?? from);
+    for(const spec of node.specifiers) {
+      // Shared cable construction is quest binding or static rest geometry, not a private mover law.
+      const cable = ['ZiplineDriver', 'CableLayout', 'ZiplineSpec', 'ZiplineRideState'].includes(spec.local.name)
+        && node.source.value === '@wildshard/sdk/movers';
+      const bindingOwner = path === 'src/shards/driftwood-isle/models/zipline.ts' ? 'C1'
+        : ['src/shards/pine-hollow/quest/rides.ts', 'src/shards/pine-hollow/runtime/quest.ts',
+          'src/shards/driftwood-isle/runtime/quest.ts', 'src/shards/driftwood-isle/world/Zipline.ts'].includes(path) ? 'C5' : null;
+      const owner = cable && bindingOwner !== null ? bindingOwner : namedRole(spec.local.name) ?? from;
+      imports.set(spec.local.name, owner);
+    }
     assign(node, node.specifiers.map(spec=>imports.get(spec.local.name)).find(Boolean),1,`import ${node.source.value}`);
   }
   const methods = { arm:'C6',armed:'C6',dress:'C6',enter:'C6',witnessed:'C4',ray:'C4',stage:'C5',build:'C1' };

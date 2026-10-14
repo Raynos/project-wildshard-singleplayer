@@ -15,7 +15,7 @@ import { DRIFTWOOD_FEAT_COUNTERS } from '../data/questInventory';
 import { DRIFTWOOD_GRAPH, DRIFTWOOD_ACTIONS } from '../data/questGraph';
 import baked from '../data/spots.generated.json' with { type: 'json' };
 import { DriftwoodPack } from './pack';
-import { ZiplineDriver } from '@wildshard/game/plugin/mover';
+import { ZiplineDriver } from '@wildshard/sdk/movers';
 import { DriftwoodReward } from './reward';
 import type { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
 import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type PromptRegistration, type HeadlessPrompt } from '@wildshard/sdk/runtime/prompts';

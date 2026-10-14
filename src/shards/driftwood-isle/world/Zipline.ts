@@ -25,8 +25,7 @@ import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { zipline, ziplineGeometry } from '../models/zipline';
-import { ZiplineDriver } from '@wildshard/game/plugin/mover';
-import { ZiplineLayout, type ZiplineSpec } from '../runtime/ziplineLayout';
+import { ZiplineDriver, CableLayout, type ZiplineSpec } from '@wildshard/sdk/movers';
 
 
 const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
@@ -40,12 +39,12 @@ export class Zipline {
   readonly b: THREE.Vector3;
   private trolley!: THREE.Mesh;
   private readonly driver: ZiplineDriver;
-  private readonly lay: ZiplineLayout;
+  private readonly lay: CableLayout;
   /** its placements (the named places' sets read them, src/shards/driftwood-isle/world/places.ts) */
   placed: Placed | null = null;
 
   constructor(private sky: Sky, private spec: ZiplineSpec, row: ConstructorParameters<typeof ZiplineDriver>[0]) {
-    const lay = this.lay = new ZiplineLayout(spec);
+    const lay = this.lay = new CableLayout(spec);
     this.a = lay.a; this.b = lay.b;
     this.driver = new ZiplineDriver(row, on => { if (!on) this.parkTrolley(); this.onRide?.(on); });
     const flat = lay.flat;

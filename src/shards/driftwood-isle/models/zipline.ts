@@ -15,7 +15,7 @@ import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
 import { log, beam, plank, rope, rock } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { ZiplineLayout } from '../runtime/ziplineLayout';
+import { CableLayout } from '@wildshard/sdk/movers';
 
 
 
@@ -23,7 +23,7 @@ const C = { wood: '#8a6440', woodDark: '#5f432a', woodLight: '#a88157', steel: '
 const V = (x: number, y: number, z: number): THREE.Vector3 => new THREE.Vector3(x, y, z);
 
 /** the rig (deck, A-frame, cable, landing: world space) and the trolley (its origin on the cable), built where it stands */
-export function ziplineGeometry(lay: ZiplineLayout): { rig: THREE.BufferGeometry; trolley: THREE.BufferGeometry } {
+export function ziplineGeometry(lay: CableLayout): { rig: THREE.BufferGeometry; trolley: THREE.BufferGeometry } {
   const k = new LowPolyKit(0x21e);
   const d = lay.deck, cs = Math.cos(d.yaw), sn = Math.sin(d.yaw);
   const W = (lx: number, ly: number, lz: number): THREE.Vector3 => V(d.x + lx * cs + lz * sn, ly, d.z - lx * sn + lz * cs);
@@ -74,7 +74,7 @@ export const zipline = defineModel<ZiplineParams>({
   // a short run (14 m down a 5 m drop) from the origin, so the turntable frames the deck, the A-frame and the landing
   defaults: { top: { x: 0, y: 0, z: 0 }, bottom: { x: 13, y: -5, z: 3 } },
   build: (ctx, p) => {
-    const lay = new ZiplineLayout({ top: V(p.top.x, p.top.y, p.top.z), bottom: V(p.bottom.x, p.bottom.y, p.bottom.z) });
+    const lay = new CableLayout({ top: V(p.top.x, p.top.y, p.top.z), bottom: V(p.bottom.x, p.bottom.y, p.bottom.z) });
     const { rig, trolley } = ziplineGeometry(lay);
     const at = new THREE.Vector3(), yaw = lay.park(at);
     trolley.applyMatrix4(new THREE.Matrix4().compose(at, new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), yaw), V(1, 1, 1)));

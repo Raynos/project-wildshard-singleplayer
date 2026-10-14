@@ -3,7 +3,7 @@ import type { HeadlessCommand } from '../../../src/sdk/tickProtocol';
 import { driftwoodSpots, QUEST_STEP } from '../../../src/shards/driftwood-isle/runtime/quest';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
-import { ZiplineLayout } from '../../../src/shards/driftwood-isle/runtime/ziplineLayout';
+import { CableLayout } from '../../../src/sdk/movers';
 
 type Point = readonly [number, number];
 const spots = driftwoodSpots();
@@ -55,7 +55,7 @@ export async function playDriftwood(host: SimHost, tick: (commands: HeadlessComm
   if (journey !== 'sealed-ring') {
     // Leave the lookout by foot, cross the native headland and approach the captured deck's single stair side.
     // The remaining waypoints are player steering targets; neither this route nor the prompt writes a pose or grant.
-    const spec = spots.zipline, layout = new ZiplineLayout({ top: new Vector3(spec.top.x, spec.top.y, spec.top.z),
+    const spec = spots.zipline, layout = new CableLayout({ top: new Vector3(spec.top.x, spec.top.y, spec.top.z),
       bottom: new Vector3(spec.bottom.x, spec.bottom.y, spec.bottom.z), sag: spec.sag }), deck = layout.deck;
     const c = Math.cos(deck.yaw), s = Math.sin(deck.yaw);
     walk([[100, 90], [108, 82], [112, 74], [114, 66],

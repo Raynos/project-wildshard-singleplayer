@@ -4989,3 +4989,11 @@ The existing `game/achievements` counter profile optionally declares bounded
 borrows the live flags and submits through the existing event/count owner,
 with optional one-shot suppression and a caller presentation callback. It
 installs no clock, subscription or save owner.
+
+`@wildshard/sdk/movers` defines `CableLayout` and `ZiplineDriver`: one
+renderer-free cable/deck geometry and gravity/drag ride law used by Pine
+and Driftwood. A bounded optional direct-anchor profile selects start,
+release and landing values; absent profile keeps the deck ride law.
+`step` can advance the caller's existing `{s,v}` state; `update` owns the
+driver's original flat continuation. Both use the existing caller clock.
+

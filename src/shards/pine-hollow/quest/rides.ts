@@ -1,3 +1,5 @@
+import { ZiplineDriver, type ZiplineRideState } from '@wildshard/sdk/movers';
+import { ZIPLINE, ZIP_RIDE } from '../data/zipline';
 /**
  * Pine Hollow's two rides (PINE-HOLLOW-REMASTER PH-C1 beat 3, PH-C8 the canoe secret), on the landmarks PH-B3 built:
  *
@@ -17,7 +19,6 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { POND } from '../data/layout';
 import { PartKit } from '../runtime/kit/primitiveParts';
 import { npcMaterial } from '../models/people';
-import { ZIP_LAUNCH_V, ZIP_START, ZIP_VMAX, ZipWire, type ZipState } from './zipWire';
 
 interface Rider { position: THREE.Vector3; velocity: THREE.Vector3; yaw: number; pitch: number; carried: boolean }
 
@@ -26,12 +27,12 @@ export class ZipRide {
   readonly trolley: THREE.Mesh;
   onRide?: (on: boolean) => void;
   private riding = false;
-  private readonly ride: ZipState = { s: 0, v: 0 };
-  private readonly wire: ZipWire;
+  private readonly ride: ZiplineRideState = { s: 0, v: 0 };
+  private readonly wire: ZiplineDriver;
   private roll = 0;
 
   constructor(sky: Sky, top: THREE.Vector3, bottom: THREE.Vector3, launch: THREE.Vector3, private readonly landing: THREE.Vector3) {
-    this.wire = new ZipWire(top, bottom);
+    this.wire = new ZiplineDriver({ ...ZIPLINE, top, bottom }, () => undefined, ZIP_RIDE);
     const k = new PartKit();
     k.add(new THREE.CylinderGeometry(0.1, 0.1, 0.06, 12), '#3a3d42', 0, 0, 0, 0, 0, Math.PI / 2);
     k.add(new THREE.BoxGeometry(0.07, 0.24, 0.22), '#7a2e22', 0, -0.07, 0);
@@ -48,13 +49,13 @@ export class ZipRide {
   get isRiding(): boolean { return this.riding; }
 
   private park(): void {
-    this.wire.at(ZIP_START, this.trolley.position);
+    this.wire.at(ZIP_RIDE.start, this.trolley.position);
     this.trolley.rotation.set(0, Math.atan2(this.wire.dir.x, this.wire.dir.z) + Math.PI / 2, 0);
   }
 
   start(): void {
     if (this.riding) return;
-    this.riding = true; this.ride.s = ZIP_START; this.ride.v = ZIP_LAUNCH_V; this.roll = 0;
+    this.riding = true; this.ride.s = ZIP_RIDE.start; this.ride.v = ZIP_RIDE.landing.velocity; this.roll = 0;
     this.onRide?.(true);
   }
 
@@ -69,7 +70,7 @@ export class ZipRide {
     p.velocity.set(0, 0, 0);
     // the wind on the wire: a slow roll that grows with the speed
     this.roll += dt;
-    camera.rotation.z += Math.sin(this.roll * 1.3) * 0.012 * (ride.v / ZIP_VMAX);
+    camera.rotation.z += Math.sin(this.roll * 1.3) * 0.012 * (ride.v / ZIPLINE.maxSpeed);
     if (!holding) {
       this.riding = false;
       p.carried = false;

@@ -1,3 +1,5 @@
+import { ZiplineDriver } from '@wildshard/sdk/movers';
+import { ZIPLINE, ZIP_RIDE } from '../data/zipline';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
@@ -16,7 +18,6 @@ import { createPineFacts, recordPineFeatKill, isPineThrall } from '../quest/feat
 import { pineDirectorClock, type PineClockEvent } from './directorClock';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { LEVER_FLAG } from '../data/nativeLoadout';
-import { ZIP_LAUNCH_V, ZIP_START, ZipWire } from '../quest/zipWire';
 import { createPinePack, PinePackSchema } from './pack';
 import { PinePeople } from './people';
 import { PineLodge, PINE_LODGE, PINE_LODGE_ACT } from './lodge';
@@ -258,7 +259,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
   const restoreClock = (saved: string): void => { clock.load(saved); };
 
   // ── the ride down the wire (the page's ZipRide law, quest/zipWire.ts) ──
-  const cable = new ZipWire(spots.zip.top, spots.zip.bottom), landing = spots.zip.landing;
+  const cable = new ZiplineDriver({ ...ZIPLINE, top: spots.zip.top, bottom: spots.zip.bottom }, () => undefined, ZIP_RIDE), landing = spots.zip.landing;
   const hang = new Vector3(), walkOn = new Vector3();
   const state = { zip: { on: false, s: 0, v: 0 }, rifle: false };
   const carry = (p: Vector3): void => { host.player.motor.resetAt(p); host.player.position.copy(p); host.playerFall.vy = 0; host.playerFall.grounded = false; };
@@ -302,7 +303,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     if (value === PINE_ACT.pond) { lantern('pond'); return; }
     if (value === PINE_ACT.ridge) { lantern('ridge'); return; }
     if (value === PINE_ACT.den) { lantern('den'); return; }
-    if (value === PINE_ACT.zip) { if (near(spots.zip.prompt, spots.zip.prompt.radius)) { state.zip.on = true; state.zip.s = ZIP_START; state.zip.v = ZIP_LAUNCH_V; } return; }
+    if (value === PINE_ACT.zip) { if (near(spots.zip.prompt, spots.zip.prompt.radius)) { state.zip.on = true; state.zip.s = ZIP_RIDE.start; state.zip.v = ZIP_RIDE.landing.velocity; } return; }
     if (value === PINE_ACT.rifle) { if (!flags.has(LEVER_FLAG) && near(spots.rifle, spots.rifle.radius)) { flags.set(LEVER_FLAG); state.rifle = true; } return; }
     const r = rowOf(value);
     if (r !== null && near(r.prompt, radius(r))) interact(r);
