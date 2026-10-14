@@ -16,7 +16,7 @@ import { STRINGS } from '../data/strings';
 const FILE = 'src/shards/sunscar-dunes/models/gear.ts';
 /** C6: the caravan, the well, the brazier and the strider are Hunyuan3D-2 models (`art/sunscar-dunes/round-7-models/`), each with its code model as the stand-in. */
 export const whipModel = defineModel({ id: 'sunscar-dunes/bullwhip', name: STRINGS.whip, category: 'gear', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
-  build: () => { const parts = buildWhipModel(); parts.coil.visible = true; return parts.root; } });
+  build: () => { const parts = buildWhipModel(); parts.part('coil').visible = true; return parts.root; } });
 /** The world's own tower from its bake (SF72, `generators/tower.ts`), its deck's ground at the origin. */
 export const towerModel = defineModel({ id: 'sunscar-dunes/signal-tower', name: STRINGS.tower, category: 'buildings', pipeline: 'code', file: FILE, defaults: {},
   build: () => {

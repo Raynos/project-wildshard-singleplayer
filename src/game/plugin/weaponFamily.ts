@@ -1,5 +1,5 @@
 import { createClientChannelView, createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts, type ClientGeometryKernels } from './ui';
-import { Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
+import { type Object3D, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
 import { HeldWeaponClock, type ContactFamily, type ContactScanTarget, type ContactFamilyPorts, type ContactWorldTarget } from "@wildshard/engine/combat/contactWeapon";
 import { Weapon, type WeaponState, type AimInfo } from "@wildshard/engine/combat/Weapon";
@@ -359,6 +359,23 @@ export class HeldPlayback {
         return { lane, copied: Array.from({ length: lane.reads.length }, () => 0) };
       }));
     }    } catch (error) { this.model?.dispose(); throw error; }
+  }
+
+  /** Required scene handles for declared held weapons and their catalogue views. */
+  get root(): Group {
+    const root = this.model?.group('root');
+    if (root === null || root === undefined) throw new Error('Held scene root unavailable');
+    return root;
+  }
+  part(id: string): Object3D {
+    const part = this.model?.parts.get(id);
+    if (part === undefined) throw new Error('Held scene part unavailable');
+    return part;
+  }
+  material(id: string): MeshStandardMaterial {
+    const material = this.model?.standardMaterial(id);
+    if (material === null || material === undefined) throw new Error('Held scene material unavailable');
+    return material;
   }
 
   /** Construct another owned private part, optionally appended at an existing admitted node. No world-scene access. */

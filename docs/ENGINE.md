@@ -4475,3 +4475,11 @@ refuse mixed colour/data usage of one hash. Texture nodes already take
 computed UV inputs. The SDK's `bakeRawColourTexture` accepts
 `colourSpace: "linear"` for lossless single-level numerical KTX2; omission
 retains sRGB. Original row orientation and filtering remain authored.
+
+
+`HeldPlayback.root`, `part(id)` and `material(id)` require the admitted
+private scene's group, object and standard material respectively. Missing
+or incorrectly typed handles refuse before equipment installs. Sky's fan
+and Signal's lash share these handles for gameplay and catalogue views;
+callers no longer reconstruct a second model-binding object. The private
+cord kernel and shader decorators remain caller-owned.

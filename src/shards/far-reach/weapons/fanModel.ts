@@ -18,10 +18,10 @@ import { fanShape } from './fanShapes';
 export const FAN = { panels: 9, reach: 0.31, spread: Math.PI * 0.68, grip: 0.07, leaf: 0.42 } as const;
 /** Paint the silk with the leaf texture (loaded and owned by the plugin's scope): its meshes wear the `fan-silk` look over it
  *  (data/paintLook.ts FAN_SILK_GRAPH: the leaf toward the mockups' muted, lighter teal, E399 round 6). */
-export function paintFanLeaf(parts: { readonly group: Object3D; readonly silk: MeshStandardMaterial }, leaf: Texture): void {
+export function paintFanLeaf(parts: { readonly root: Object3D; readonly material:(id:string)=>MeshStandardMaterial }, leaf: Texture): void {
   if (!(leaf instanceof Texture)) throw new Error('Fan leaf must be its owned texture');
-  const silk = skyMappedLook('fan-silk', leaf);
-  parts.group.traverse((part) => { if (part instanceof Mesh && part.material === parts.silk) part.material = silk; });
+  const original=parts.material('silk'), silk = skyMappedLook('fan-silk', leaf);
+  parts.root.traverse((part) => { if (part instanceof Mesh && part.material === original) part.material = silk; });
 }
 
 /** Original silk and hand stay owned by the shard; assembly is admitted scene data. */
