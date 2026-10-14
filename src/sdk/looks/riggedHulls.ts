@@ -3,8 +3,8 @@ import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 import type { RGB } from '@wildshard/engine/entities/species/loft';
-import type { CreatureHull, EyeSpot } from '@wildshard/engine/entities/species/look';
-import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
+import type { CreatureHull } from '@wildshard/engine/entities/species/look';
+import type { BoneDef } from '@wildshard/engine/entities/species/registry';
 
 /**
  * Rigged creature hulls (SHARD-PLATFORM W2 C2, one generic family): generated hulls pre-skinned offline to the procedural
@@ -13,15 +13,15 @@ import { variantDef, type BoneDef, type VariantDef } from '@wildshard/engine/ent
  *
  *   const family = riggedHulls(row, { rig: (hull) => url, coat: (hull, kind, variant) => key, coatImage: (key) => url });
  *   await family.preload();                                  // every rig, before a herd spawns (a look's `preload`)
- *   const h = family.skin(kind, variant, bones, eyes, def);  // null → keep the procedural mesh (a look's `skin`)
+ *   const h = family.skin(kind, variant, bones);              // null → keep the procedural mesh (a look's `skin`)
  *   h.geometry (position, normal, uv, color, skinIndex, skinWeight[, the extras' attributes]; one group)  h.map  h.normalMap
  *
  * Each rig (`<hull>[.phone].rigged.glb`) is a glTF skin whose joints are the species' bones by name and order, with the
  * hull's PBR base colour + normal map. A rig is only used when its joint names match the variant's bones (in order); the
  * model then takes the rig's joint positions. Every variant of a hull wears it, in its authored baked coat (a KTX2 key,
  * else its lossless image; a variant with no baked coat wears the hull's own atlas). A hull's generator flap (the row's
- * `flaps`, `pressFlap`) is pressed onto its body at load (positions + normals only). A variant can add rigid geometry to
- * its hull in the same single draw (`extras`, built once per variant and flagged `overgrown`), e.g. glowing eyes.
+ * `flaps`, `pressFlap`) is pressed onto its body at load (positions + normals only). A variant can add baked rigid parts
+ * to its hull in the same single draw (`parts`, merged once per variant and flagged `overgrown`), e.g. glowing eyes.
  */
 
 /** A generator flap: the back plane z(y) = z0 + (y - y0) · slope; every vertex above `yMin` behind it is pressed onto it,
@@ -58,8 +58,12 @@ export interface RiggedHullUrls {
   coat: (hull: string, kind: string, variant: string) => string;
   /** a baked coat's lossless image (undefined: no baked coat, the hull's own atlas) */
   coatImage: (key: string) => string | undefined;
-  /** the hull geometry plus a variant's rigid extras (null: none); built once per variant */
-  extras?: (hull: THREE.BufferGeometry, bones: readonly BoneDef[], eyes: readonly EyeSpot[], variant: VariantDef) => THREE.BufferGeometry | null;
+  /**
+   * A variant's baked rigid parts (null: none), appended to its hull once: position, normal, uv, color and per vertex
+   * `_bone` (the one bone it rides, an index into the variant's bones) and `_glow` (0..1), as a static GLB node loads them.
+   * The merged hull's `aOvergrown` = (1: the part's own colour instead of the atlas, glow) on the parts, 0 on the hull.
+   */
+  parts?: (kind: string, variant: string) => THREE.BufferGeometry | null;
 }
 
 /** A shard's live rigged-hull family. */
@@ -69,7 +73,7 @@ export interface RiggedHulls {
   /** every rig loaded (failures are logged: those species stay procedural); every baked coat adopted */
   preload: () => Promise<void>;
   /** the rigged hull for (kind, variant) bound to `bones`, or null (no hull, not loaded, or baked against other bones) */
-  skin: (kind: string, variant: string, bones: readonly BoneDef[], eyes: readonly EyeSpot[], definition?: VariantDef) => CreatureHull | null;
+  skin: (kind: string, variant: string, bones: readonly BoneDef[]) => CreatureHull | null;
 }
 
 interface Rig {
@@ -183,7 +187,7 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
       .catch((e: unknown) => { console.warn(`[${row.label}] creature rig ${n} failed`, e); })));
   };
 
-  const skin = (kind: string, variant: string, bones: readonly BoneDef[], eyes: readonly EyeSpot[], definition?: VariantDef): CreatureHull | null => {
+  const skin = (kind: string, variant: string, bones: readonly BoneDef[]): CreatureHull | null => {
     const name = hullOf(kind, variant);
     if (name === null) return null;
     const rig = ready.get(name);
@@ -194,7 +198,8 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
     const map = coats.get(key) ?? rig.map;
     let extra = extraGeo.get(key);
     if (extra === undefined) {
-      extra = urls.extras?.(rig.geometry, out, eyes, definition ?? variantDef(kind, variant)) ?? null;
+      const parts = urls.parts?.(kind, variant) ?? null;
+      extra = parts === null ? null : withParts(rig.geometry, parts);
       extraGeo.set(key, extra);
     }
     const f = row.fur?.[name]?.[variant];
@@ -203,6 +208,42 @@ export function riggedHulls(row: RiggedHullFamilyRow, urls: RiggedHullUrls): Rig
   };
 
   return { hullOf, preload, skin };
+}
+
+/** the hull geometry + baked rigid parts (`RiggedHullUrls.parts`), `aOvergrown` = (own colour, glow) per vertex */
+function withParts(hull: THREE.BufferGeometry, parts: THREE.BufferGeometry): THREE.BufferGeometry {
+  const n0 = hull.getAttribute('position').count, extra = parts.getAttribute('position').count, n = n0 + extra;
+  const pos = new Float32Array(n * 3), nrm = new Float32Array(n * 3), uv = new Float32Array(n * 2), col = new Float32Array(n * 3).fill(1);
+  const si = new Uint16Array(n * 4), sw = new Float32Array(n * 4), thr = new Float32Array(n * 2);
+  const copy = (src: THREE.BufferGeometry, name: string, dst: Float32Array | Uint16Array, k: number, at: number): void => {
+    if (!src.hasAttribute(name)) return;
+    const a = src.getAttribute(name), count = a.count;
+    for (let i = 0; i < count; i++) for (let c = 0; c < k; c++) dst[(at + i) * k + c] = a.getComponent(i, c);
+  };
+  copy(hull, 'position', pos, 3, 0); copy(hull, 'normal', nrm, 3, 0); copy(hull, 'uv', uv, 2, 0); copy(hull, 'skinIndex', si, 4, 0); copy(hull, 'skinWeight', sw, 4, 0);
+  copy(parts, 'position', pos, 3, n0); copy(parts, 'normal', nrm, 3, n0); copy(parts, 'uv', uv, 2, n0); copy(parts, 'color', col, 3, n0);
+  const bone = parts.getAttribute('_bone'), glow = parts.getAttribute('_glow');
+  for (let i = 0; i < extra; i++) {
+    const j = n0 + i;
+    si[j * 4] = bone.getX(i); sw[j * 4] = 1;
+    thr[j * 2] = 1; thr[j * 2 + 1] = glow.getX(i);
+  }
+  const idx: number[] = Array.from(hull.getIndex()?.array ?? []);
+  for (const t of parts.getIndex()?.array ?? []) idx.push(n0 + t);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
+  g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
+  g.setAttribute('aOvergrown', new THREE.BufferAttribute(thr, 2));
+  g.setIndex(idx);
+  g.addGroup(0, idx.length, 0);
+  g.computeBoundingBox();
+  g.computeBoundingSphere();
+  if (g.boundingSphere !== null) g.boundingSphere.radius += 0.6;
+  return g;
 }
 
 /**

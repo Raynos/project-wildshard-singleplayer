@@ -2122,11 +2122,12 @@ binding (row `data/renderLook.ts` SIGNAL_DUSK_LOOK).
 `riggedHulls(row, urls)` is a shard's family of generated creature hulls pre-skinned offline to the procedural species'
 skeletons, from one `RiggedHullFamilyRow` (pure data: the log label, the rigs to preload, `kind:variant` → hull, each
 hull's generator flap `RiggedHullFlap` and each coat's fur sheen and rim `RiggedHullFur`) and its `RiggedHullUrls` (a
-hull's rig file per tier, a baked coat's KTX2 key and lossless image, and an optional per-variant `extras` builder that
-returns the hull plus rigid extra geometry in the same draw, flagged `overgrown`). `preload()` loads every rig and adopts
-its baked coats once; `skin(kind, variant, bones, eyes, def)` is a species look's `skin` (null keeps the procedural mesh:
-no hull, not loaded, or baked against other bones). `pressFlap(pos, nrm, index, flap)` collapses a flap in place.
-Pine Hollow's `species/hulls.ts` is its binding (row `data/creatureHulls.ts` PINE_HULLS).
+hull's rig file per tier, a baked coat's KTX2 key and lossless image, and an optional per-variant `parts`: baked rigid
+geometry with per-vertex `_bone` and `_glow`, as a static GLB node loads it, appended once to the hull in the same draw
+and flagged `overgrown`). `preload()` loads every rig and adopts its baked coats once; `skin(kind, variant, bones)` is a
+species look's `skin` (null keeps the procedural mesh: no hull, not loaded, or baked against other bones). `pressFlap(pos, nrm, index, flap)` collapses a flap in place.
+Pine Hollow's `species/hulls.ts` is its binding (row `data/creatureHulls.ts` PINE_HULLS; the thralls' eyes and ferns
+baked by `generators/bake-pine-thrall-extras.mjs`).
 
 Shared species take a plain `{ ...BOAR, variants: [...] }` spread to add a variant (the template's Greyback elite).
 

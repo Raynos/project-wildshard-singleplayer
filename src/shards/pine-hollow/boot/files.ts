@@ -55,6 +55,8 @@ export function worldReads(tier: Tier, tex: TexMode = 'img'): string[] {
     // Cabin meshes, crag skins and running water are charged on the admitted world tiles.
     // the procedural wildlife's offline bake (G285, models/wildlife.ts)
     '/assets/pine-hollow/baked/wildlife.glb',
+    // the thralls' baked glass eyes and ferns (species/hulls.ts)
+    `/assets/pine-hollow/creatures/thrall-extras${tier === 'phone' ? '.phone' : ''}.glb`,
   ].map(gpu).filter((url) => url in publicBytes());
 }
 export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {

@@ -1,23 +1,46 @@
-import type { EyeSpot } from '@wildshard/engine/entities/species/look';
-import type { BoneDef, VariantDef } from '@wildshard/engine/entities/species/registry';
-/**
- * Pine Hollow's thralls on their rigged hulls (`@wildshard/sdk/looks/riggedHulls`' `extras`): a thrall
- * (VariantDef.traits.thrall) gets glowing glass eyes and a few rigid fern clumps on the spine: geometry in the same single
- * draw, flagged per vertex by `aOvergrown` (x = own vertex colour instead of the atlas, y = glow).
- */
 import * as THREE from 'three';
+import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { Rng } from '@wildshard/engine/core/rng';
+import type { BoneDef, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
+import { ELK } from '@wildshard/game/systems/species/elk';
+import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
+import { PINE_HULLS } from '../data/creatureHulls';
 
-/** the hull plus a thrall's eyes and ferns; null for any other variant (it wears the bare hull) */
-export function pineThrallExtras(hull: THREE.BufferGeometry, bones: readonly BoneDef[], eyes: readonly EyeSpot[], v: VariantDef): THREE.BufferGeometry | null {
-  const thrall = Boolean(v.traits?.['thrall']);
-  return thrall ? withThrallExtras(hull, bones, eyes, v) : null;
+/**
+ * Pine Hollow's thralls' extras, baked offline (SHARD-PLATFORM W2 C2; was runtime/looks/riggedHulls.ts): each thrall
+ * (`boar:thrall`, `elk:thrall`) wears glowing glass eyes and a few rigid fern clumps on its spine, placed on its tier's
+ * rigged hull. This runs the same placement the page ran on the same loaded rig (three's GLTFLoader, `readSourceModel`)
+ * and writes the parts as one static GLB per tier (`bake-pine-thrall-extras.mjs`); the page appends them to the hull
+ * (`@wildshard/sdk/looks/riggedHulls` `parts`). Each part vertex carries `_bone` (its one rigid bone) and `_glow`.
+ */
+
+/** the thralls the bake covers: [kind, variant id, the variant's traits as the look declares them] */
+const THRALLS: readonly (readonly [string, string, Readonly<Record<string, number>>])[] = [
+  ['boar', 'thrall', { tuskScale: 1.4, thrall: 1 }],
+  ['elk', 'thrall', { antlers: 1, thrall: 1 }],
+];
+
+/** the procedural species whose eye spots a thrall's glass eyes go on */
+const BUILDS: Readonly<Record<string, Pick<SpeciesDef, 'build'>>> = { boar: BOAR_LOOK, elk: ELK };
+
+/** the page's model seed (AnimalFactory `hashSeed`) */
+function hashSeed(s: string): number { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.codePointAt(i) ?? 0; h = Math.imul(h, 16777619); } return h >>> 0; }
+
+interface EyeSpot { centre: THREE.Vector3; radius: number }
+
+/** a variant's procedural eye spots (the bounding spheres of its species build's eye parts, as the page reads them) */
+function eyeSpots(kind: string, variant: string, traits: Readonly<Record<string, number>>): EyeSpot[] {
+  const builder = BUILDS[kind];
+  if (builder === undefined) throw new Error(`thrall extras: no species build for ${kind}`);
+  const v: VariantDef = { id: variant, label: variant, weight: 1, rarity: 'rare', scale: [1, 1], hp: 1, traits: { ...traits } };
+  const sp = builder.build(v, new Rng(hashSeed(`${kind}:${variant}`)));
+  const eyes: EyeSpot[] = [];
+  for (const g of sp.eyeParts) { g.computeBoundingSphere(); const bs = g.boundingSphere; if (bs !== null) eyes.push({ centre: bs.center.clone(), radius: bs.radius }); }
+  for (const g of [...sp.furParts, ...sp.hardParts, ...sp.eyeParts]) g.dispose();
+  return eyes;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────────────────
-// The thralls' extras: glass eyes + fern clumps, rigid on one bone each
-// ─────────────────────────────────────────────────────────────────────────────────────────
-
-/** a part appended to the hull: positions / normals / colours, bound wholly to `bone`; own = 1 (vertex colour), glow */
+/** a part appended to the hull: positions / normals / colours, bound wholly to `bone`; glow */
 interface Part { pos: number[]; nrm: number[]; col: number[]; idx: number[]; bone: number; glow: number }
 
 const boneIdx = (bones: readonly BoneDef[], name: string): number => Math.max(0, bones.findIndex((b) => b.name === name));
@@ -110,8 +133,8 @@ function fernPart(at: THREE.Vector3, up: THREE.Vector3, size: number, fronds: nu
   return part;
 }
 
-/** the hull geometry + a thrall's eyes and fern clumps, `aOvergrown` = (own colour, glow) per vertex */
-function withThrallExtras(hull: THREE.BufferGeometry, bones: readonly BoneDef[], eyes: readonly EyeSpot[], v: VariantDef): THREE.BufferGeometry {
+/** a thrall's eyes and fern clumps on its hull, as one geometry: position, normal, uv, color, `_bone`, `_glow` */
+function thrallParts(hull: THREE.BufferGeometry, bones: readonly BoneDef[], eyes: readonly EyeSpot[], traits: Readonly<Record<string, number>>): THREE.BufferGeometry {
   const box = hull.boundingBox ?? new THREE.Box3().setFromBufferAttribute(hull.getAttribute('position') as THREE.BufferAttribute);
   const H = box.max.y - box.min.y, halfW = Math.max(0.05, (box.max.x - box.min.x) * 0.5);
   const parts: Part[] = [];
@@ -124,7 +147,7 @@ function withThrallExtras(hull: THREE.BufferGeometry, bones: readonly BoneDef[],
   const body = bones.find((b) => b.name === 'body'), neck = bones.find((b) => b.name === 'neck1');
   if (body && neck) {
     const up = new THREE.Vector3(0, 1, 0);
-    const size = H * 0.28 * Number(v.traits?.['fern'] ?? 1);   // traits.fern: the clumps' size (1 = 28 % of the height)
+    const size = H * 0.28 * (traits['fern'] ?? 1);   // traits.fern: the clumps' size (1 = 28 % of the height)
     // withers (on neck1), mid-back and rump (on the body): the clumps ride the spine bones rigidly
     const spots: [number, string, number][] = [[neck.pos[2] - 0.1 * H, 'neck1', 6], [body.pos[2] + 0.05 * H, 'body', 5], [body.pos[2] - 0.35 * H, 'body', 4]];
     spots.forEach(([z, bone, fronds], k) => {
@@ -132,24 +155,18 @@ function withThrallExtras(hull: THREE.BufferGeometry, bones: readonly BoneDef[],
       if (top) parts.push(fernPart(top.addScaledVector(up, -0.01 * H), up, size * (k === 0 ? 1.1 : 0.9), fronds, 977 + k * 131, boneIdx(bones, bone)));
     });
   }
-  // merge: the hull's attributes + the parts (uv: a small patch — the aOvergrown.x = 1 texels ignore the atlas and its normals)
-  const n0 = hull.getAttribute('position').count;
-  const extra = parts.reduce((s, p) => s + p.pos.length / 3, 0);
-  const n = n0 + extra;
-  const pos = new Float32Array(n * 3), nrm = new Float32Array(n * 3), uv = new Float32Array(n * 2), col = new Float32Array(n * 3).fill(1);
-  const si = new Uint16Array(n * 4), sw = new Float32Array(n * 4), thr = new Float32Array(n * 2);
-  const copy = (name: string, dst: Float32Array | Uint16Array, k: number): void => { const a = hull.getAttribute(name); for (let i = 0; i < n0; i++) for (let c = 0; c < k; c++) dst[i * k + c] = a.getComponent(i, c); };
-  copy('position', pos, 3); copy('normal', nrm, 3); copy('uv', uv, 2); copy('skinIndex', si, 4); copy('skinWeight', sw, 4);
-  const idx: number[] = Array.from(hull.getIndex()?.array ?? []);
-  let o = n0;
+  const n = parts.reduce((s, p) => s + p.pos.length / 3, 0);
+  const pos = new Float32Array(n * 3), nrm = new Float32Array(n * 3), uv = new Float32Array(n * 2), col = new Float32Array(n * 3), bone = new Float32Array(n), glow = new Float32Array(n);
+  const idx: number[] = [];
+  let o = 0;
   for (const p of parts) {
     const m = p.pos.length / 3;
     for (let i = 0; i < m; i++) {
       const j = o + i;
       for (let c = 0; c < 3; c++) { pos[j * 3 + c] = p.pos[i * 3 + c] ?? 0; nrm[j * 3 + c] = p.nrm[i * 3 + c] ?? 0; col[j * 3 + c] = p.col[i * 3 + c] ?? 1; }
+      // uv: a small patch (the parts' texels take their own colour, never the atlas)
       uv[j * 2] = 0.5 + 0.01 * (i % 7); uv[j * 2 + 1] = 0.5 + 0.01 * ((i * 3) % 5);
-      si[j * 4] = p.bone; sw[j * 4] = 1;
-      thr[j * 2] = 1; thr[j * 2 + 1] = p.glow;
+      bone[j] = p.bone; glow[j] = p.glow;
     }
     for (const t of p.idx) idx.push(o + t);
     o += m;
@@ -159,13 +176,45 @@ function withThrallExtras(hull: THREE.BufferGeometry, bones: readonly BoneDef[],
   g.setAttribute('normal', new THREE.BufferAttribute(nrm, 3));
   g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  g.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(si, 4));
-  g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
-  g.setAttribute('aOvergrown', new THREE.BufferAttribute(thr, 2));
+  g.setAttribute('bone', new THREE.BufferAttribute(bone, 1));
+  g.setAttribute('glow', new THREE.BufferAttribute(glow, 1));
   g.setIndex(idx);
-  g.addGroup(0, idx.length, 0);
-  g.computeBoundingBox();
-  g.computeBoundingSphere();
-  if (g.boundingSphere !== null) g.boundingSphere.radius += 0.6;
   return g;
+}
+
+const isSkinned = (o: THREE.Object3D): o is THREE.SkinnedMesh => (o as Partial<THREE.SkinnedMesh>).isSkinnedMesh === true;
+
+/** one baked thrall: its node name in the GLB (`<kind>_<variant>`) and its parts */
+export interface ThrallPartsBake { readonly name: string; readonly geometry: THREE.BufferGeometry }
+
+/** every thrall's parts on `tier`'s hulls; `rig(file)` returns a retained rig GLB's bytes (`<hull>[.phone].rigged.glb`) */
+export async function bakeThrallParts(rig: (file: string) => Promise<Uint8Array>, tier: 'phone' | 'desktop'): Promise<ThrallPartsBake[]> {
+  const out: ThrallPartsBake[] = [];
+  for (const [kind, variant, traits] of THRALLS) {
+    const hullName = PINE_HULLS.hulls[`${kind}:${variant}`];
+    if (hullName === undefined) throw new Error(`thrall extras: ${kind}:${variant} wears no hull`);
+    if (PINE_HULLS.flaps?.[hullName] !== undefined) throw new Error(`thrall extras: ${hullName} has a flap; press it before placing the parts`);
+    const { gltf } = await readSourceModel(await rig(`${hullName}${tier === 'phone' ? '.phone' : ''}.rigged.glb`));
+    gltf.scene.updateMatrixWorld(true);
+    const found: THREE.SkinnedMesh[] = [];
+    gltf.scene.traverse((o) => { if (isSkinned(o)) found.push(o); });
+    const skinned = found[0];
+    if (skinned === undefined) throw new Error(`thrall extras: ${hullName} has no skinned mesh`);
+    // the hull as the page holds it: float positions + normals, its bounding box
+    const hull = new THREE.BufferGeometry();
+    for (const key of ['position', 'normal'] as const) {
+      const a = skinned.geometry.getAttribute(key), arr = new Float32Array(a.count * a.itemSize);
+      for (let i = 0; i < a.count; i++) for (let c = 0; c < a.itemSize; c++) arr[i * a.itemSize + c] = a.getComponent(i, c);
+      hull.setAttribute(key, new THREE.BufferAttribute(arr, a.itemSize));
+    }
+    hull.computeBoundingBox();
+    // the page's bones: the rig's joints (by name, in order) at their world rest positions
+    const bones: BoneDef[] = skinned.skeleton.bones.map((b) => {
+      const p = new THREE.Vector3().setFromMatrixPosition(b.matrixWorld);
+      return { name: b.name, parent: null, pos: [p.x, p.y, p.z] };
+    });
+    out.push({ name: `${kind}_${variant}`, geometry: thrallParts(hull, bones, eyeSpots(kind, variant, traits), traits) });
+    hull.dispose();
+  }
+  return out;
 }

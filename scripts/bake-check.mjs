@@ -17,7 +17,7 @@ const run = (args, command = process.execPath) => {
 };
 // SF74 W24 (speed audit #10): the push gate caches each node baker on its own inputs (`--list-node`, then
 // `--node-only --only=<baker>` per cached step), so one touched src file re-runs only the bakers that read it.
-const NODE_BAKERS = ['directors', 'chunk', 'sky', 'navmesh', 'island-cover', 'voxel-ao', 'geometry', 'cloud-field', 'driftwood-fixed-models', 'nalati-bodies', 'nalati-places', 'pine-coat-pages'];
+const NODE_BAKERS = ['directors', 'chunk', 'sky', 'navmesh', 'island-cover', 'voxel-ao', 'geometry', 'cloud-field', 'driftwood-fixed-models', 'nalati-bodies', 'nalati-places', 'pine-coat-pages', 'pine-thrall-extras'];
 if (process.argv.includes('--list-node')) { console.log(NODE_BAKERS.join('\n')); process.exit(0); }
 const only = process.argv.find((arg) => arg.startsWith('--only='))?.slice('--only='.length);
 if (only !== undefined && !NODE_BAKERS.includes(only)) { console.error(`bake-check: no node baker ${only} (${NODE_BAKERS.join(', ')})`); process.exit(64); }
@@ -32,7 +32,7 @@ for (const baker of NODE_BAKERS) if (only === undefined || only === baker) {
   } else if (baker === 'driftwood-fixed-models' && process.platform !== 'darwin') {
     console.info('bake-check: driftwood-fixed-models skipped (byte-exact on macOS, where the bake is made)');
   } else {
-    const entry = baker === 'driftwood-fixed-models' ? 'src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs' : baker.startsWith('nalati-') ? `src/shards/nalati-grasslands/generators/bake-${baker === 'nalati-places' ? 'nalati-painted' : baker}.mjs` : `scripts/bake-${baker}.mjs`;
+    const entry = baker === 'driftwood-fixed-models' ? 'src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs' : baker === 'pine-thrall-extras' ? 'src/shards/pine-hollow/generators/bake-pine-thrall-extras.mjs' : baker.startsWith('nalati-') ? `src/shards/nalati-grasslands/generators/bake-${baker === 'nalati-places' ? 'nalati-painted' : baker}.mjs` : `scripts/bake-${baker}.mjs`;
     run(['--experimental-transform-types', '--import', './scripts/bake-loader.mjs', entry, '--check']);
   }
 }
