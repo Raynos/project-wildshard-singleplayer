@@ -17,6 +17,7 @@
  */
 import * as THREE from 'three';
 import { prepareOffscreenBuild } from '@wildshard/engine/render/offscreenBuild';
+import { refreshSkyEnvironment, skyEnvironmentBytes, skyEnvironmentCeiling, type SkyEnvironmentSource } from '@wildshard/engine/render/skyEnvironment';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { preloadBakedTextures, loadLUT } from '@wildshard/engine/boot/bakedApi';
 import type { SkyBackdropFactory } from '@wildshard/engine/render/look';
@@ -149,15 +150,6 @@ class FacetedDayClock {
 /** A faceted sky backdrop and its day / night clock from the shard's day row, sky rows and light tunables. */
 export function facetedDayBackdrop(spec: FacetedDayBackdropSpec): SkyBackdropFactory {
   const style = spec.day.style, envSize = style.envSize;
-  /**
-   * The GPU bytes of one of PMREM's cube-UV atlases at `envSize` (three's PMREMGenerator: 3·max(size, 112) × 4·size, RGBA
-   * half float); `depth`: the environment target `fromScene` renders with a depth buffer (counted at 4 bytes a texel, its
-   * widest format), the generator's ping-pong has none.
-   */
-  const envTargetBytes = (depth: boolean): number => {
-    const texels = 3 * Math.max(envSize, 16 * 7) * 4 * envSize;
-    return texels * 8 + (depth ? texels * 4 : 0);
-  };
   const startSun = new THREE.Vector3(style.startSun[0], style.startSun[1], style.startSun[2]).normalize();
   return async ({ sky, scene, renderer, level }) => {
     const owner = resourceScope();
@@ -166,20 +158,19 @@ export function facetedDayBackdrop(spec: FacetedDayBackdropSpec): SkyBackdropFac
     const st = new FacetedSky(sky.sunDir, spec.sky.glsl, spec.sky.palette, spec.sky.seed).build();
     scene.add(st.dome);
     scene.background = null;
+    const envSource: SkyEnvironmentSource = { kind: 'scene', scene: st.envScene, size: envSize, near: 1, far: 3000 };
     // One owner for the environment (SF57): this backdrop holds its PMREM generator (whose ping-pong target is a second
     // cube-UV atlas) and the one live environment target, and frees both when it leaves. A grid region builds this backdrop
     // as a layer each time the shard is admitted (G223); without a dispose every visit left both behind.
     let pmrem: THREE.PMREMGenerator | null = null;
     let envRT: THREE.WebGLRenderTarget | null = null;
     let disposed = false;
-    /** re-render the dome into the PMREM environment (the clock calls it when the sky has moved on; ~1 ms of GPU) */
+    /** re-render the dome into the PMREM environment, in place (the clock calls it when the sky has moved on; ~1 ms of GPU) */
     const refreshEnvironment = (): void => {
       if (disposed) return;
       pmrem ??= new THREE.PMREMGenerator(renderer);
-      const rt = pmrem.fromScene(st.envScene, 0, 1, 3000, { size: envSize });
-      envRT?.dispose();
-      envRT = rt;
-      scene.environment = rt.texture;
+      envRT = refreshSkyEnvironment(pmrem, envSource, envRT);
+      scene.environment = envRT.texture;
     };
     const prepared: { generator: THREE.PMREMGenerator | null } = { generator: null };
     try {
@@ -225,9 +216,8 @@ export function facetedDayBackdrop(spec: FacetedDayBackdropSpec): SkyBackdropFac
         envRT?.dispose(); envRT = null;
         pmrem?.dispose(); pmrem = null; // its ping-pong target, blur and GGX passes
       },
-      gpuBytes: () => (envRT === null ? 0 : envTargetBytes(true)) + (pmrem === null ? 0 : envTargetBytes(false)),
-      // a refresh holds the new target beside the old one for a moment, with the generator's ping-pong
-      gpuCeiling: () => 2 * envTargetBytes(true) + envTargetBytes(false),
+      gpuBytes: () => skyEnvironmentBytes(envSource, envRT, pmrem),
+      gpuCeiling: () => skyEnvironmentCeiling(envSource),
     };
   };
 }

@@ -240,6 +240,7 @@
     "./render/memorySaver": "./render/memorySaver.ts",
     "./render/lut": "./render/lut.ts",
     "./render/offscreenBuild": "./render/offscreenBuild.ts",
+    "./render/skyEnvironment": "./render/skyEnvironment.ts",
     "./render/precompile": "./render/precompile.ts",
     "./render/renderer": "./render/renderer.ts",
     "./render/shaderPatches": "./render/shaderPatches.ts",

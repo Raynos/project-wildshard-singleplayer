@@ -1,5 +1,6 @@
 import { loadBakedSky, loadLUT, preloadBakedTextures } from '@wildshard/engine/boot/bakedApi';
 import type { OffscreenPass, SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
+import { canStepSkyEnvironment, refreshSkyEnvironment, skyEnvironmentBytes, skyEnvironmentCeiling, stepSkyEnvironment, type SkyEnvironmentSource } from '@wildshard/engine/render/skyEnvironment';
 import { setting, type OptionValue } from '@wildshard/engine/ui/Settings';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
@@ -29,18 +30,6 @@ import { skyKeyFiles, type KeyedSkyStyle } from '../../data/keyedSkyRows';
  * look loop a layer over every preset (`KeyedSky.look`); the presets' own numbers are never edited.
  */
 
-/** the PMREMGenerator (r186) internals the stepped refresh drives, one call a frame (KeyedSky.stepEnvironment) */
-interface PmremSteps {
-  _setSize: (cubeSize: number) => void;
-  _textureToCubeUV: (texture: THREE.Texture, target: THREE.WebGLRenderTarget) => void;
-  _applyGGXFilter: (target: THREE.WebGLRenderTarget, lodIn: number, lodOut: number) => void;
-  _lodMeshes: unknown[];
-}
-/** the generator still has them (a three upgrade that renames one falls back to the whole refresh) */
-function hasSteps(gen: object): gen is PmremSteps {
-  return ['_setSize', '_textureToCubeUV', '_applyGGXFilter'].every((k) => typeof Reflect.get(gen, k) === 'function') && Array.isArray(Reflect.get(gen, '_lodMeshes'));
-}
-
 const SHADOW_STEP = 0.25 * Math.PI / 180;
 // the GLSL's text is kept byte for byte as its first shard shipped it (its comments too: the program sources stay identical)
 const SKY_GLSL = /* glsl */`
@@ -66,8 +55,6 @@ const tmpC = new THREE.Color();
 
 /** one decoded key: its GPU texture (CPU copy dropped after upload) and its horizon colour */
 interface Resident { tex: THREE.DataTexture; horizon: THREE.Color; used: number; /** GPU bytes (RGBA16F 8 a texel, RGB9_E5 4) */ bytes: number }
-/** a half-float colour target's GPU bytes (8 a texel) */
-const targetBytes = (t: { readonly width: number; readonly height: number }): number => t.width * t.height * 8;
 
 /**
  * The weather's hook on the clock: multipliers laid over the keyed presets after they are blended — the presets' own
@@ -133,6 +120,7 @@ export class KeyedSky {
   private envScene = new THREE.Scene();
   private readonly envQuad: THREE.Mesh<THREE.BufferGeometry, THREE.ShaderMaterial>;
   private envCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  private readonly envSource: SkyEnvironmentSource;
   private pmrem: THREE.PMREMGenerator;
   private envCube: THREE.WebGLRenderTarget | null = null;
   private envTimer = 0;
@@ -196,6 +184,7 @@ export class KeyedSky {
     quad.frustumCulled = false;
     this.envScene.add(quad);
     this.envQuad = quad;
+    this.envSource = { kind: 'equirect', scene: this.envScene, camera: this.envCam, target: this.envEquirect };
     this.pmrem = new THREE.PMREMGenerator(renderer);
   }
 
@@ -248,30 +237,11 @@ export class KeyedSky {
     if (this.envStep >= 0) this.stepEnvironment();
   }
 
-  /** one step of the stepped refresh (`envStep`): the top level from the sky, or the next GGX level from the one above */
+  /** one step of the stepped refresh (`envStep`, `stepSkyEnvironment`): the top level from the sky, or the next GGX level */
   private stepEnvironment(): void {
     const gen: object = this.pmrem, cube = this.envCube;
-    if (cube === null || !hasSteps(gen) || this.u.tA.value === null) { this.refreshEnvironment(); return; }
-    const r = this.renderer, prev = r.getRenderTarget(), face = r.getActiveCubeFace(), mip = r.getActiveMipmapLevel(), autoClear = r.autoClear;
-    try {
-      if (this.envStep === 0) {
-        r.setRenderTarget(this.envEquirect);
-        r.render(this.envScene, this.envCam);
-        gen._setSize(this.envEquirect.width / 4);
-        gen._textureToCubeUV(this.envEquirect.texture, cube);
-      } else {
-        r.autoClear = false; // as PMREMGenerator._applyPMREM: the level is drawn into its own rectangle of the atlas
-        gen._applyGGXFilter(cube, this.envStep - 1, this.envStep);
-      }
-    } finally {
-      // PMREMGenerator._cleanup's target reset (its own restores a module-level target from its last whole run)
-      r.autoClear = autoClear;
-      cube.scissorTest = false;
-      cube.viewport.set(0, 0, cube.width, cube.height);
-      cube.scissor.set(0, 0, cube.width, cube.height);
-      r.setRenderTarget(prev, face, mip);
-    }
-    this.envStep = this.envStep + 1 < gen._lodMeshes.length ? this.envStep + 1 : -1;
+    if (cube === null || !canStepSkyEnvironment(gen) || this.u.tA.value === null) { this.refreshEnvironment(); return; }
+    this.envStep = stepSkyEnvironment(gen, this.envSource, cube, this.envStep);
   }
 
   /** after an in-place WebGL restore (GpuRecovery): the keys' CPU copies are gone — decode them again, re-render the IBL */
@@ -306,9 +276,7 @@ export class KeyedSky {
 
   /** The GPU bytes held now: the resident keys, the environment equirect and PMREM's cube-UV targets. */
   gpuBytes(): number {
-    let bytes = targetBytes(this.envEquirect) + (this.envCube === null ? 0 : targetBytes(this.envCube));
-    const ping: unknown = Reflect.get(this.pmrem, '_pingPongRenderTarget');
-    if (ping instanceof THREE.WebGLRenderTarget) bytes += targetBytes(ping);
+    let bytes = skyEnvironmentBytes(this.envSource, this.envCube, this.pmrem);
     for (const r of this.resident.values()) bytes += r.bytes;
     return bytes;
   }
@@ -316,8 +284,7 @@ export class KeyedSky {
   /** The most it can hold: three resident keys at the decoded size, the equirect and PMREM's two cube-UV targets. */
   gpuCeiling(): number {
     const key = Math.max(0, ...[...this.resident.values()].map((r) => r.bytes));
-    const cube = this.envEquirect.width / 4, cubeW = 3 * Math.max(cube, 16 * 7), cubeH = 4 * cube;
-    return 3 * key + targetBytes(this.envEquirect) + 2 * cubeW * cubeH * 8;
+    return 3 * key + skyEnvironmentCeiling(this.envSource);
   }
 
   /** the keyframes around phase p: [a, b] and the blend t */
@@ -393,13 +360,8 @@ export class KeyedSky {
     this.envTimer = 0;
     this.envStep = -1; // a stepped refresh in flight is superseded
     if (this.u.tA.value === null) return;
-    const r = this.renderer, prev = r.getRenderTarget();
-    r.setRenderTarget(this.envEquirect);
-    r.render(this.envScene, this.envCam);
-    r.setRenderTarget(prev);
-    // the first call allocates the cube-UV target and PMREM's own passes; after that the same target is filled in place, so
-    // scene.environment keeps its identity (and every program its envmap define)
-    this.envCube = this.envCube === null ? this.pmrem.fromEquirectangular(this.envEquirect.texture) : this.pmrem.fromEquirectangular(this.envEquirect.texture, this.envCube);
+    // in place after the first call: scene.environment keeps its identity (and every program its envmap define)
+    this.envCube = refreshSkyEnvironment(this.pmrem, this.envSource, this.envCube);
     this.scene.environment = this.envCube.texture;
     this.envTexture = this.envCube.texture;
   }
