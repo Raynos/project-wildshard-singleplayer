@@ -12,24 +12,7 @@ const LENT: GraphIr = { version: 1, kind: 'material', model: 'unlit',
   nodes: { uv: { op: 'uv' }, tap: { op: 'texture', param: 'key', in: ['uv'] }, rgb: { op: 'swizzle', in: ['tap'], mask: 'xyz' } },
   stages: { surface: { colour: 'rgb' } } };
 
-/** the texture every sample node of `material`'s colour reads (walks the node tree for `.value` textures) */
-function sampled(material: Material): DataTexture[] {
-  const out: DataTexture[] = [], seen = new Set<object>();
-  const walk = (node: unknown): void => {
-    if (typeof node !== 'object' || node === null || seen.has(node)) return;
-    seen.add(node);
-    const value: unknown = Reflect.get(node, 'value');
-    if (value instanceof DataTexture && Reflect.get(node, 'isTextureNode') === true) out.push(value);
-    for (const key of ['node', 'nodes', 'uvNode', 'aNode', 'bNode', 'cNode', 'colorNode', 'convertTo']) {
-      const child: unknown = Reflect.get(node, key);
-      if (Array.isArray(child)) child.forEach(walk); else walk(child);
-    }
-  };
-  walk(Reflect.get(material, 'colorNode'));
-  return out;
-}
-
-test('a lent texture param names no admitted file and is swapped in place by setTexture', () => {
+test('a lent texture param names no admitted file and is set in place by setTexture', () => {
   expect(validateGraph(LENT).ok).toBe(true);
   expect(materialTextureRefs({ m: { family: 'graph', graph: LENT } })).toEqual([]);
   const source = emptyShardfile({ slug: 'lent-fixture', name: 'Lent', author: 'Test', seed: 1, revision: 1 });
@@ -38,10 +21,9 @@ test('a lent texture param names no admitted file and is swapped in place by set
   const material = graphs.compile({ family: 'graph', graph: LENT }), foreign = new Material();
   const key = new DataTexture(new Uint8Array([1, 2, 3, 255]), 1, 1);
   try {
-    const before = material.version, [standIn] = sampled(material);
-    expect(standIn?.image.width).toBe(1);
+    // retargeting through the built program is covered by graph-vertex-texture.test.ts
+    const before = material.version;
     graphs.setTexture(material, 'key', key);
-    expect(sampled(material)).toEqual([key]);
     expect(material.version).toBe(before);
     expect(() => graphs.setTexture(material, 'absent', key)).toThrow('no sampled lent texture');
     expect(() => graphs.setTexture(foreign, 'key', key)).toThrow('no compiled graph');
