@@ -1,11 +1,11 @@
 import { app } from '@wildshard/engine/app/runtime';
-import { RangedFrame } from '@wildshard/engine/render/viewmodelFeel';
-import { RANGED_FRAME } from '../../data/rangedFrame';
+import { RangedFrame, RangedTrace } from '@wildshard/engine/render/viewmodelFeel';
+import { RANGED_FRAME, RANGED_TRACE } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Firearm } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { brassFloor, stepBrass } from '@wildshard/engine/combat/view/brass';
-import { HitLine, makeFlashTexture } from '@wildshard/engine/combat/view/firearmFx';
+import { makeFlashTexture } from '@wildshard/engine/combat/view/firearmFx';
 import { hitscan, type HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
 import { Puffs, FOV_HIP, FOV_ADS, isMesh, whiteColors, worldHit, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
@@ -111,7 +111,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   private displayParts: { geo: THREE.BufferGeometry; mat: THREE.Material; pos?: THREE.Vector3 }[] = [];
   private brass: Brass[] = [];
   private brassMat!: THREE.MeshStandardMaterial;
-  private tracers: HitLine[] = []; private readonly paintTracer = (trace: HitLine, time: number, _camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.update(time, resolution, this.tracerLife); };
+  private tracers: RangedTrace[] = []; private readonly paintTracer = (trace: RangedTrace, time: number, _camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.publish(time, _camera, resolution, this.tracerLife); };
   private puffs = new Puffs();
 
   // animation state
@@ -278,7 +278,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
       this.game.scene.add(mesh);
       this.brass.push({ mesh, vel: new THREE.Vector3(), spin: new THREE.Vector3(), life: 0, down: false, floor: 0 });
     }
-    for (let i = 0; i < this.profile.tracer.count; i++) this.tracers.push(new HitLine(this.game.scene));
+    this.tracers.push(...RangedTrace.roster(this.game.scene, RANGED_TRACE.segment, this.profile.tracer.count));
   }
 
   private ejectBrass() {

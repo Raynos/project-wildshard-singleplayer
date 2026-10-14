@@ -5281,3 +5281,12 @@ borrows its atlas from a declared model through the original tier/GPU path.
 The SDK bake writes phone UVs separately. Pivots and Uint8 vertex-part ids
 are authored; missing assets or incompatible channels refuse. The caller
 copies frames into its existing posed draw, then releases intake references.
+
+`engine/render/viewmodelFeel.RangedTrace` consumes a bounded segment/trail row
+(points 2..2048, width/color/order and source-clock lifetime/fade). Segment
+`show(from,to,time)` keeps the original straight positions upload; trail
+`begin/addPoint/finish` keeps the preallocated dynamic segment buffer. Optional
+impact marker geometry/material ports are borrowed, with original facing,
+distance scale and expiry. `publish(time,camera,resolution,life?)` runs at the
+existing after-pose phase, retaining a caller's live segment-life knob. Pool
+sizes remain caller-owned; no shader, physics or damage owner changes.

@@ -3,8 +3,8 @@ import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import { ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import { app, gameplayRandom } from '@wildshard/engine/app/runtime';
 import type { AmmoRow } from '@wildshard/engine/combat/ammo';
-import { RangedFrame } from '@wildshard/engine/render/viewmodelFeel';
-import { RANGED_FRAME } from '../../data/rangedFrame';
+import { RangedFrame, RangedTrace } from '@wildshard/engine/render/viewmodelFeel';
+import { RANGED_FRAME, RANGED_TRACE } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import type { TargetHit, Targets } from '@wildshard/engine/combat/types';
@@ -19,9 +19,6 @@ import { sstep } from '@wildshard/engine/player/viewmodelTextures';
 import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
-import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
-import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
-import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
 /**
  * The bolt crossbow family (SHARD-PLATFORM SF36): a first-person crossbow loosing physical bolts, whose model and hands are
@@ -119,9 +116,9 @@ const GLANCE_KEEP = 0.2, GLANCE_BOUNCE = 0.25, GLANCE_MAX = 9, GLANCE_LIFT = 0.0
  * Runtime toggle: the 'tracers' setting (pause menu, persisted) is read at fire time, so a flip applies to the next
  * shot (a capture script saves it in ws.settings.v1 before the load, scripts/debug-settings.mjs).
  */
-const MAX_TRACERS = 8, TRACER_POINTS = 2048, TRACER_LIFE = 6, TRACER_FADE = 1.5, TRACER_WIDTH = 8;
+const MAX_TRACERS = RANGED_TRACE.trail.roster;
 /** markers + the flying glow are scaled with distance (never below 1×) so they stay ~25 px on screen at any range */
-const TRACER_PX = 0.32;
+const TRACER_PX = RANGED_TRACE.trail.markerScale;
 /** shared: the glow on flying bolts, impact-marker spheres, stuck-bolt nock dots (never fades) */
 const glowMat = new THREE.MeshBasicMaterial({ color: TRACER_RED, transparent: true, depthTest: false, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide });
 const boltGlowGeo = new THREE.SphereGeometry(0.035, 12, 8);   // 7 cm on the flying bolt
@@ -129,80 +126,9 @@ const stuckDotGeo = new THREE.SphereGeometry(0.025, 10, 6);   // 5 cm on a stuck
 const markerGeo = new THREE.SphereGeometry(0.06, 14, 10);     // 12 cm at the impact point
 const ringGeo = new THREE.RingGeometry(0.10, 0.14, 28);
 
-/** One flight path: a pre-allocated fat-line buffer (TRACER_POINTS samples → segment pairs) + an impact marker. */
-class Tracer {
-  readonly line: LineSegments2; readonly mat: LineMaterial;
-  readonly marker = new THREE.Group();
-  private buf: Float32Array; private ibuf: THREE.InstancedInterleavedBuffer; private geo: LineSegmentsGeometry;
-  private markMat: THREE.MeshBasicMaterial; private ring: THREE.Mesh;
-  private last = new THREE.Vector3();
-  n = 0; active = false;
-  /** absolute time the trail + marker expire; < 0 while the bolt is still flying */
-  endTime = -1;
-
-  constructor(scene: THREE.Scene) {
-    this.buf = new Float32Array((TRACER_POINTS - 1) * 6);
-    this.geo = new LineSegmentsGeometry();
-    this.geo.setPositions(this.buf);
-    this.ibuf = (this.geo.getAttribute('instanceStart') as THREE.InterleavedBufferAttribute).data as THREE.InstancedInterleavedBuffer;
-    this.ibuf.setUsage(THREE.DynamicDrawUsage);
-    this.geo.instanceCount = 0;
-    this.mat = new LineMaterial({ linewidth: TRACER_WIDTH, transparent: true, opacity: 1, depthTest: false, depthWrite: false, toneMapped: false, fog: false });
-    this.mat.color = TRACER_RED.clone(); // the setter stores the object itself (a Color; > 1 so bloom haloes it)
-    this.line = new LineSegments2(this.geo, this.mat);
-    this.line.frustumCulled = false; this.line.renderOrder = TRACER_ORDER; this.line.visible = false;
-    scene.add(this.line);
-    this.markMat = glowMat.clone();
-    const ball = new THREE.Mesh(markerGeo, this.markMat); ball.renderOrder = TRACER_ORDER + 1;
-    this.ring = new THREE.Mesh(ringGeo, this.markMat); this.ring.renderOrder = TRACER_ORDER + 1;
-    this.marker.add(ball, this.ring);
-    this.marker.visible = false;
-    scene.add(this.marker);
-  }
-
-  begin(p: THREE.Vector3) {
-    this.n = 0; this.geo.instanceCount = 0; this.active = true; this.endTime = -1;
-    this.mat.opacity = 1; this.markMat.opacity = 1;
-    this.marker.visible = false; this.line.visible = false;
-    this.addPoint(p);
-  }
-
-  /** append a flight sample (one per integration step); no allocation, uploads only the new segment */
-  addPoint(p: THREE.Vector3) {
-    if (this.n >= TRACER_POINTS) return;
-    if (this.n > 0) {
-      if (p.distanceToSquared(this.last) < 1e-8) return;
-      const o = (this.n - 1) * 6, b = this.buf, l = this.last;
-      b[o] = l.x; b[o + 1] = l.y; b[o + 2] = l.z; b[o + 3] = p.x; b[o + 4] = p.y; b[o + 5] = p.z;
-      this.ibuf.addUpdateRange(o, 6); this.ibuf.needsUpdate = true;
-      this.geo.instanceCount = this.n;
-      this.line.visible = true;
-    }
-    this.last.copy(p); this.n++;
-  }
-
-  finish(p: THREE.Vector3, t: number) {
-    this.addPoint(p);
-    this.marker.position.copy(p); this.marker.visible = true;
-    this.endTime = t + TRACER_LIFE;
-  }
-
-  update(t: number, cam: THREE.Camera, res: THREE.Vector2) {
-    if (!this.active) return;
-    this.mat.resolution.copy(res);
-    if (this.endTime < 0) return;
-    const rem = this.endTime - t;
-    if (rem <= 0) { this.active = false; this.line.visible = false; this.marker.visible = false; return; }
-    const a = Math.min(1, rem / TRACER_FADE);
-    this.mat.opacity = a; this.markMat.opacity = a;
-    this.ring.quaternion.copy(cam.quaternion); // the ring always faces the camera
-    this.marker.scale.setScalar(Math.max(1, TRACER_PX * this.marker.position.distanceTo(cam.position)));
-  }
-}
-
 // ───────────────────────────── the crossbow ─────────────────────────────
 
-interface BoltData { mesh: THREE.Mesh; roll: number; traced: boolean; tracer: Tracer | null; glow: THREE.Mesh; mod: BoltMod; ammo?: AmmoRow | undefined }
+interface BoltData { mesh: THREE.Mesh; roll: number; traced: boolean; tracer: RangedTrace | null; glow: THREE.Mesh; mod: BoltMod; ammo?: AmmoRow | undefined }
 type Bolt = FlightSlot<BoltData>;
 
 interface Stuck { mesh: THREE.Mesh }
@@ -285,8 +211,8 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   private get bolts(): Bolt[] { return this.flightPool.slots; }
   private stuck: Stuck[] = [];
   private puffs = new Puffs();
-  private tracers: Tracer[] = [];
-  private readonly paintTracer = (trace: Tracer, time: number, camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.update(time, camera, resolution); };
+  private tracers: RangedTrace[] = [];
+  private readonly paintTracer = (trace: RangedTrace, time: number, camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.publish(time, camera, resolution); };
   private time = 0;
 
   constructor(world: RangedWorld, targets: Targets | undefined, opts: BoltCrossbowOptions<P>) {
@@ -402,12 +328,17 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
         if (bolt.traced) bolt.glow.scale.setScalar(Math.max(1, TRACER_PX * bolt.pos.distanceTo(this.game.camera.position)));
       },
     });
-    for (let i = 0; i < MAX_TRACERS; i++) this.tracers.push(new Tracer(this.game.scene));
+    this.tracers.push(...RangedTrace.roster(this.game.scene, RANGED_TRACE.trail, MAX_TRACERS, () => {
+      const material = glowMat.clone(), group = new THREE.Group();
+      const ball = new THREE.Mesh(markerGeo, material), ring = new THREE.Mesh(ringGeo, material);
+      ball.renderOrder = TRACER_ORDER + 1; ring.renderOrder = TRACER_ORDER + 1; group.add(ball, ring);
+      return { group, ring, material };
+    }));
     return pool;
   }
   /** a free tracer, else the one closest to expiring (oldest) */
-  private takeTracer(): Tracer | null {
-    let best: Tracer | null = null;
+  private takeTracer(): RangedTrace | null {
+    let best: RangedTrace | null = null;
     for (const t of this.tracers) { if (!t.active) return t; if (t.endTime >= 0 && (!best || t.endTime < best.endTime)) best = t; }
     best ??= this.tracers[0] ?? null; // all 8 still flying: recycle the first
     for (const b of this.bolts) if (b.tracer === best) b.tracer = null;

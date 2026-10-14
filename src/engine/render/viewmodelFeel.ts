@@ -1,4 +1,7 @@
-import { Vector2, type WebGLRenderer, type PerspectiveCamera } from 'three';
+import { Vector2, Vector3, DynamicDrawUsage, InstancedInterleavedBuffer, InterleavedBufferAttribute, Color, type Group, type Mesh, type MeshBasicMaterial, type Scene, type WebGLRenderer, type PerspectiveCamera } from 'three';
+import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
+import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
+import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import type { Puffs } from '../combat/view/ranged';
 import { ads } from '../combat/blocks/ads';
 import { fovForAspect } from '../combat/blocks/melee';
@@ -22,6 +25,109 @@ export function viewmodel(lag: LookLag): { step: (state: LookSpring, delta: Vect
     }
     if (remaining > 0) throw new RangeError('View spring step exceeds its bounded clock');
   }, dispose: () => undefined };
+}
+
+/** A declared straight shot or sampled flight trail; marker geometry belongs to the caller. */
+export interface RangedTraceRow {
+  readonly mode: 'segment' | 'trail'; readonly points: number; readonly width: number;
+  readonly color: readonly [number, number, number]; readonly order: number;
+  readonly lifetime: number; readonly fade: number; readonly markerScale: number;
+}
+export interface RangedTraceMarker { readonly group: Group; readonly ring: Mesh; readonly material: MeshBasicMaterial }
+/** Owns the existing line buffers and expiry clock, borrowing optional impact-marker ports.
+ * No pool or world is retained; callers keep their original roster and source time.
+ */
+export class RangedTrace {
+  readonly line: LineSegments2; readonly mat: LineMaterial;
+  private readonly geo: LineSegmentsGeometry;
+  private readonly buf: Float32Array;
+  private readonly ibuf: InstancedInterleavedBuffer | null;
+  private readonly last: Vector3 | null;
+  private readonly row: RangedTraceRow;
+  private readonly mark: RangedTraceMarker | undefined;
+  n = 0; active = false; endTime = -1; t0 = -1;
+  /** Allocate only the declared roster, under the same bounded runtime cap. */
+  static roster(scene: Scene, row: RangedTraceRow, count: number, marker?: () => RangedTraceMarker): RangedTrace[] {
+    if (!Number.isInteger(count) || count < 1 || count > 128) throw new RangeError('Invalid ranged trace roster');
+    const result: RangedTrace[] = [];
+    for (let i = 0; i < 128; i++) {
+      if (i >= count) break;
+      result.push(new RangedTrace(scene, row, marker?.()));
+    }
+    return result;
+  }
+  constructor(scene: Scene, row: RangedTraceRow, marker?: RangedTraceMarker) {
+    if (!Number.isInteger(row.points) || row.points < 2 || row.points > 2048
+      || ![row.width, row.order, row.lifetime, row.fade, row.markerScale, ...row.color].every(Number.isFinite)
+      || row.width <= 0 || row.lifetime <= 0 || row.fade <= 0
+      || (row.mode === 'segment' && row.points !== 2)
+      || (row.mode === 'trail' && marker === undefined)) throw new RangeError('Invalid ranged trace row');
+    this.row = row; this.mark = marker;
+    this.buf = new Float32Array((row.points - 1) * 6);
+    this.geo = new LineSegmentsGeometry(); this.geo.setPositions(this.buf);
+    this.last = row.mode === 'trail' ? new Vector3() : null;
+    if (row.mode === 'trail') {
+      const attribute = this.geo.getAttribute('instanceStart');
+      if (!(attribute instanceof InterleavedBufferAttribute) || !(attribute.data instanceof InstancedInterleavedBuffer)) throw new Error('Trace geometry has no segment buffer');
+      this.ibuf = attribute.data; this.ibuf.setUsage(DynamicDrawUsage); this.geo.instanceCount = 0;
+    } else this.ibuf = null;
+    this.mat = new LineMaterial({ linewidth: row.width, transparent: true, opacity: 1, depthTest: false, depthWrite: false, toneMapped: false, fog: false });
+    this.mat.color = new Color(...row.color);
+    this.line = new LineSegments2(this.geo, this.mat);
+    this.line.frustumCulled = false; this.line.renderOrder = row.order; this.line.visible = false;
+    scene.add(this.line);
+    if (marker) { marker.group.visible = false; scene.add(marker.group); }
+  }
+  /** A fresh flight uses the existing allocation; impact ends it on the caller's source clock. */
+  begin(point: Vector3): void {
+    this.n = 0; this.geo.instanceCount = 0; this.active = true; this.endTime = -1;
+    this.mat.opacity = 1; if (this.mark) { this.mark.material.opacity = 1; this.mark.group.visible = false; }
+    this.line.visible = false; this.addPoint(point);
+  }
+  addPoint(point: Vector3): void {
+    const last = this.last, buffer = this.ibuf;
+    if (last === null || buffer === null || this.n >= this.row.points) return;
+    if (this.n > 0) {
+      if (point.distanceToSquared(last) < 1e-8) return;
+      const offset = (this.n - 1) * 6, b = this.buf;
+      b[offset] = last.x; b[offset + 1] = last.y; b[offset + 2] = last.z;
+      b[offset + 3] = point.x; b[offset + 4] = point.y; b[offset + 5] = point.z;
+      buffer.addUpdateRange(offset, 6); buffer.needsUpdate = true;
+      this.geo.instanceCount = this.n; this.line.visible = true;
+    }
+    last.copy(point); this.n++;
+  }
+  finish(point: Vector3, time: number): void {
+    this.addPoint(point);
+    if (this.mark) { this.mark.group.position.copy(point); this.mark.group.visible = true; }
+    this.endTime = time + this.row.lifetime;
+  }
+  /** The straight-shot path preserves its original positions upload and immediate opacity reset. */
+  show(from: Vector3, to: Vector3, time: number): void {
+    this.buf[0] = from.x; this.buf[1] = from.y; this.buf[2] = from.z;
+    this.buf[3] = to.x; this.buf[4] = to.y; this.buf[5] = to.z;
+    this.geo.setPositions(this.buf); this.mat.opacity = 1; this.line.visible = true; this.t0 = time;
+  }
+  /** Published at the old after-pose phase; segment users may retain their existing live life knob. */
+  publish(time: number, camera: PerspectiveCamera, resolution: Vector2, life = this.row.lifetime): void {
+    if (this.row.mode === 'segment') {
+      if (this.t0 < 0) return;
+      this.mat.resolution.copy(resolution);
+      const alpha = 1 - (time - this.t0) / life;
+      if (alpha <= 0) { this.t0 = -1; this.line.visible = false; return; }
+      this.mat.opacity = alpha; return;
+    }
+    if (!this.active) return;
+    this.mat.resolution.copy(resolution);
+    if (this.endTime < 0) return;
+    const remaining = this.endTime - time;
+    if (remaining <= 0) { this.active = false; this.line.visible = false; if (this.mark) this.mark.group.visible = false; return; }
+    const alpha = Math.min(1, remaining / this.row.fade); this.mat.opacity = alpha;
+    if (this.mark) {
+      this.mark.material.opacity = alpha; this.mark.ring.quaternion.copy(camera.quaternion);
+      this.mark.group.scale.setScalar(Math.max(1, this.row.markerScale * this.mark.group.position.distanceTo(camera.position)));
+    }
+  }
 }
 
 

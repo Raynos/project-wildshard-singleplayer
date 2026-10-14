@@ -1,13 +1,13 @@
 import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
-import { RangedFrame } from '@wildshard/engine/render/viewmodelFeel';
-import { RANGED_FRAME } from '../../data/rangedFrame';
+import { RangedFrame, RangedTrace } from '@wildshard/engine/render/viewmodelFeel';
+import { RANGED_FRAME, RANGED_TRACE } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Firearm } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { stepBrass, brassFloor } from '@wildshard/engine/combat/view/brass';
-import { makeFlashTexture, HitLine } from '@wildshard/engine/combat/view/firearmFx';
+import { makeFlashTexture } from '@wildshard/engine/combat/view/firearmFx';
 import { hitscan, type HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
 import { Puffs, whiteColors, FOV_HIP, FOV_ADS, isMesh, worldHit, fixIBL, VIEWMODEL_GROUP, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
@@ -195,7 +195,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   private readonly brass: Brass[] = [];
   private readonly brassMat: THREE.MeshPhysicalMaterial;
   private readonly caseGeo: THREE.BufferGeometry;
-  private readonly tracers: HitLine[] = []; private readonly paintTracer = (trace: HitLine, time: number, _camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.update(time, resolution, this.tracerLife); };
+  private readonly tracers: RangedTrace[] = []; private readonly paintTracer = (trace: RangedTrace, time: number, _camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.publish(time, _camera, resolution, this.tracerLife); };
   private readonly puffs = new Puffs();
   /** the shard's hands on the model (LeverFirearmOptions.hands), null without */
   private hands: LeverFirearmHands | null = null;
@@ -293,7 +293,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
       this.game.scene.add(mesh);
       this.brass.push({ mesh, vel: new THREE.Vector3(), spin: new THREE.Vector3(), life: 0, down: false, floor: 0 });
     }
-    for (let i = 0; i < this.view.tracer.count; i++) this.tracers.push(new HitLine(this.game.scene));
+    this.tracers.push(...RangedTrace.roster(this.game.scene, RANGED_TRACE.segment, this.view.tracer.count));
 
     const cam = this.game.camera;
     this.game.viewmodel.mountOwnPass(this.model, cam); // its own depth clear; staged while its cell prepares (op-hitch41)
