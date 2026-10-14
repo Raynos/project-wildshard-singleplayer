@@ -23,10 +23,10 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { PosedInstances, PosedPacker, type PosedInstancesLook, type PosedInstances as PosedInstancesView } from '../runtime/looks/posedInstances';
-import { spliceEdits } from '@wildshard/sdk/looks/shaderEdits';
+import { PosedInstances, PosedPacker, type PosedInstances as PosedInstancesView } from '../runtime/looks/posedInstances';
+import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import * as vb from 'valibot';
-import { WILDLIFE_LOOK } from '../runtime/looks/wildlifeLook';
+import { WILDLIFE_LOOK } from '../data/wildlifeLook';
 import wildJson from '../data/wildlife.json' with { type: 'json' };
 import { loadBakedKinds } from '@wildshard/game/shardfile/bakedKinds';
 import glbRows from '../data/wildlifeGlb.generated.json' with { type: 'json' };
@@ -36,8 +36,6 @@ export type WildKind = (typeof KIND)[keyof typeof KIND];
 
 /** vertex part ids (aPart): what the vertex shader turns */
 export const P = { body: 0, wingL: 1, wingR: 2, head: 3, legs: 4, tail: 5, hBody: 10, hHead: 11, hEars: 12, hHind: 13, hFore: 14 } as const;
-/** the hare's neck: its ears turn with the head about this point */
-export const HARE_NECK: V3 = [0, 0.235, 0.15];
 
 export type V3 = readonly [number, number, number];
 
@@ -141,8 +139,24 @@ function modelled(b: Packer, m: BirdMesh): void {
 }
 
 // ─────────────── the mesh ───────────────
-/** the look's rows (../data/wildlifeLook.ts) with the hare's neck spliced into its vertex edits */
-const LOOK: PosedInstancesLook = { ...WILDLIFE_LOOK, edits: spliceEdits(WILDLIFE_LOOK.edits, { hareNeck: HARE_NECK.map((v) => v.toFixed(3)).join(', ') }) };
+/** what a compiled look catalogue lends (`runtimeLookMaterials`) */
+interface LentLooks {
+  readonly materials: ReadonlyMap<string, THREE.Material>;
+  readonly setParam: (id: string, name: string, value: GraphLiteral) => void;
+  readonly setTexture: (id: string, name: string, texture: THREE.Texture) => void;
+}
+/** the compiled wildlife graph (../data/wildlifeLook.ts), lent by the world hook (runtime/index.ts) */
+let lent: { readonly looks: LentLooks; readonly material: THREE.Material } | null = null;
+/** lend the compiled looks (over WILDLIFE_LOOK) before any WildlifeMesh is built */
+export function lendPineWildlifeLook(looks: LentLooks): void {
+  const material = looks.materials.get(WILDLIFE_LOOK);
+  if (material === undefined) throw new Error('[pine-hollow] no compiled wildlife look');
+  lent = { looks, material };
+}
+function wildlifeLook(): NonNullable<typeof lent> {
+  if (lent === null) throw new Error('[pine-hollow] the wildlife graph was not lent before the wildlife built');
+  return lent;
+}
 
 /** the forest's small wildlife: one posed-instances draw (@wildshard/sdk/looks/posedInstances) of the four kinds */
 export class WildlifeMesh {
@@ -152,11 +166,13 @@ export class WildlifeMesh {
   readonly glow: { value: number };
   private readonly posed: PosedInstancesView;
 
-  constructor(sky: Sky, capacity: number) {
+  constructor(readonly sky: Sky, capacity: number) {
     this.capacity = capacity;
-    this.posed = new PosedInstances(sky, capacity, LOOK, () => WildlifeMesh.packed(null));
+    const look = wildlifeLook();
+    this.posed = new PosedInstances(capacity, WILDLIFE_LOOK, look.material, () => WildlifeMesh.packed(null));
     this.mesh = this.posed.mesh;
-    this.glow = this.posed.glow;
+    let glow = 0;
+    this.glow = { get value() { return glow; }, set value(v: number) { if (v !== glow) { glow = v; look.looks.setParam(WILDLIFE_LOOK, 'glow', v); } } };
   }
 
   /** the shared geometry: the hare (and, without `birds`, the procedural birds) + the modelled birds' two poses each */
@@ -172,7 +188,8 @@ export class WildlifeMesh {
   useBirds(birds: BirdSet, renderer: Renderer): void {
     const old = this.mesh.geometry;
     this.mesh.geometry = this.posed.wrap(WildlifeMesh.packed(birds), true);
-    this.posed.useAtlas(birds.atlas, renderer);
+    wildlifeLook().looks.setTexture(WILDLIFE_LOOK, 'atlas', birds.atlas);
+    renderer.initTexture(birds.atlas);
     old.dispose();
   }
 

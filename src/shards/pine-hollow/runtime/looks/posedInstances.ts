@@ -1,23 +1,16 @@
 import * as THREE from 'three';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import type { Renderer } from '@wildshard/engine/render/renderer';
-import { editShader, type ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
 
 /**
  * Posed instances (SHARD-PLATFORM M3, moved from Pine Hollow's models/wildlife.ts): several small posable models (birds,
  * a hare…) packed into ONE geometry and drawn as ONE instanced mesh — one draw call, one program. Each instance draws only
- * its own model (the shard's vertex shader collapses the others' vertices to a point) and moves that model's parts from
- * two per-instance vec4s (`aAnim`, `aAnim2`). The packing, the instance buffers, the material and the per-frame packing of
- * the live instances are here; the parts' motion, what the packed scalars mean and the fragment look are the shard's
- * shader edit rows (its `data/`).
+ * its own model (the shard's material collapses the others' vertices to a point) and moves that model's parts from two
+ * per-instance vec4s (`aAnim`, `aAnim2`). The packing, the instance buffers and the per-frame packing of the live instances
+ * are here; the parts' motion, what the packed scalars mean and the look are the shard's material graph (its `data/`).
  *
  * Per vertex: position, normal, colour, the part's pivot (`aPivot`) and two packed vec4s, `aInfo` and `aTexV` (WebGL's 16
- * attribute slots: the instance matrix takes four). Two uniforms are bound before the first compile: a glow scalar and an
- * atlas sampler (a white texel until `useAtlas`). The mesh casts no shadow and receives them; it is never frustum culled.
+ * attribute slots: the instance matrix takes four). The mesh casts no shadow and receives them; it is never frustum culled.
  *
- *   const posed = new PosedInstances(sky, 24, LOOK, packer.geometry());
+ *   const posed = new PosedInstances(24, 'pine-wildlife', material, () => packer.geometry());
  *   scene.add(posed.mesh);
  *   posed.begin(); posed.add(x, y, z, pitch, yaw, roll, scale, a0, a1, a2, a3, b0, b1, b2, b3); posed.commit();
  */
@@ -62,58 +55,26 @@ export class PosedPacker {
   }
 }
 
-/** A posed-instances look as data: the mesh's name, its shader patch's id and program key, the material and the edits. */
-export interface PosedInstancesLook {
-  readonly name: string;
-  /** the `patchShader` id and program cache key */
-  readonly patch: string;
-  readonly key: string;
-  readonly roughness: number;
-  readonly metalness: number;
-  readonly doubleSide: boolean;
-  /** the uniforms bound for the glow scalar and the atlas sampler */
-  readonly glowUniform: string;
-  readonly atlasUniform: string;
-  /** the shard's GLSL: the part motion and the collapse in the vertex stage, the look in the fragment stage */
-  readonly edits: readonly ShaderEditRow[];
-}
-
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 
 /** One instanced mesh of posable packed models (see the module comment). */
 export class PosedInstances {
   readonly mesh: THREE.InstancedMesh;
   readonly capacity: number;
-  /** the glow scalar's uniform value (e.g. an owl's eye-shine, 0 by day → 1 at night) */
-  readonly glow = { value: 0 };
   private readonly anim: THREE.InstancedBufferAttribute;
   private readonly anim2: THREE.InstancedBufferAttribute;
-  private readonly atlas: { value: THREE.Texture };
   private readonly m = new THREE.Matrix4(); private readonly q = new THREE.Quaternion(); private readonly e = new THREE.Euler();
   private readonly p = new THREE.Vector3(); private readonly s = new THREE.Vector3();
   private n = 0;
 
-  /** `capacity` instances of the packed `src` (a `PosedPacker` geometry) drawn with `look` */
-  constructor(sky: Sky, capacity: number, look: PosedInstancesLook, src: () => THREE.BufferGeometry) {
+  /** `capacity` instances of the packed `src` (a `PosedPacker` geometry) drawn in `material` (the shard's posed look) */
+  constructor(capacity: number, name: string, material: THREE.Material, src: () => THREE.BufferGeometry) {
     this.capacity = capacity;
     this.anim = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4); this.anim.setUsage(THREE.DynamicDrawUsage);
     this.anim2 = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4); this.anim2.setUsage(THREE.DynamicDrawUsage);
     const geo = this.wrap(src(), true);
-    const white = new THREE.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1);
-    white.colorSpace = THREE.SRGBColorSpace; white.needsUpdate = true;
-    this.atlas = { value: white };
-
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: look.roughness, metalness: look.metalness, side: look.doubleSide ? THREE.DoubleSide : THREE.FrontSide });
-    const glow = this.glow, atlas = this.atlas;
-    patchShader(mat, look.patch, PATCH_ORDER.material, (shader) => {
-      attachFogUniforms(shader);
-      shader.uniforms[look.glowUniform] = glow;
-      shader.uniforms[look.atlasUniform] = atlas;
-      editShader(shader, look.edits);
-    }, { mode: 'replace', key: look.key });
-    sky.setupMaterial(mat);
-    this.mesh = new THREE.InstancedMesh(geo, mat, capacity);
-    this.mesh.name = look.name;
+    this.mesh = new THREE.InstancedMesh(geo, material, capacity);
+    this.mesh.name = name;
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.mesh.frustumCulled = false;
     this.mesh.castShadow = false;
@@ -139,12 +100,6 @@ export class PosedInstances {
     const old = this.mesh.geometry;
     this.mesh.geometry = this.wrap(src, true);
     old.dispose();
-  }
-
-  /** bind `tex` to the atlas sampler that was there from the start (uploaded now, not on the first frame that draws it) */
-  useAtlas(tex: THREE.Texture, renderer: Renderer): void {
-    this.atlas.value = tex;
-    renderer.initTexture(tex);
   }
 
   /** vertices in the shared geometry */

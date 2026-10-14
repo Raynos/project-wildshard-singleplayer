@@ -56,7 +56,8 @@ import { PINE_LIFE,LIFE_CAPACITY } from '../data/ambientLife';
 import { SkinKnife } from '../models/skinningKnife';
 import { pineMemoryTrim } from '../debug/options';
 import { loadBirdModels } from './birds';
-import { WildlifeMesh,preloadPineWildlife } from '../models/wildlife';
+import { WildlifeMesh,preloadPineWildlife,lendPineWildlifeLook } from '../models/wildlife';
+import { WILDLIFE_LOOK } from '../data/wildlifeLook';
 import { installPineAudio } from './audio/wiring';
 import { ForestAmbience } from './audio/ambience';
 import { installWeather, loadPineRain } from '../world/weather';
@@ -98,6 +99,8 @@ export class PineHollow extends ShardPlugin {
     lendPineLooks(await runtimeLookMaterials(ctx, source, true, Object.keys(PINE_GRAPHS)));
     // the water's graphs (data/waterLook.ts): the creek, beaver pool and puddles wear them, and the session's pond now
     lendPineWater(await runtimeLookMaterials(ctx, source, true, Object.values(WATER_LOOKS)), ctx.scope, game);
+    // the small wildlife's posed look (data/wildlifeLook.ts), before the forest's draw and any Model Explorer specimen
+    lendPineWildlifeLook(await runtimeLookMaterials(ctx, source, true, [WILDLIFE_LOOK]));
     const streams = await new PineStreams(sky).build();
     game.scene.add(streams.group);
     const carpet = await step('grass', async () => {
