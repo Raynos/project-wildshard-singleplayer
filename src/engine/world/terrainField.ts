@@ -92,6 +92,36 @@ export function landscapeHash(t: Pick<TerrainField, 'heightAt'>, size = CHUNK_HA
   return h >>> 0;
 }
 
+/** Terrain metadata over authored trails, pads and pond; height/splat sampling stays with the admitted lattice. */
+export function buildTerrainMetadata(seed: number, spec: Pick<TerrainSpec, 'trails' | 'cabinSites' | 'pond' | 'streamAt'>,
+  waterLevel: TerrainField['waterLevel'], n = new Noise2D(seed)): Omit<TerrainField, 'heightAt' | 'normalAt' | 'splatAt'> {
+  const trails = spec.trails, cabinSites = spec.cabinSites, pond = spec.pond ?? null;
+  function trailDistance(x: number, z: number): number {
+    let d = Infinity;
+    for (const poly of trails) for (let i = 0; i < poly.length - 1; i++) { const a = poly[i], b = poly[i + 1]; if (a && b) d = Math.min(d, distToSegmentSquared(x, z, a[0], a[1], b[0], b[1])); }
+    // sqrt is monotone: keep the same winning squared value and the exact final root, once per field query.
+    return Math.sqrt(d);
+  }
+
+  function cabinMask(x: number, z: number): number {
+    let m = 0;
+    for (const c of cabinSites) {
+      const d = Math.hypot(x - c.x, z - c.z);
+      m = Math.max(m, smoothstep(22, 11, d));
+    }
+    return m;
+  }
+
+  const pondMask = pond
+    ? (x: number, z: number): number => {
+        const d = Math.hypot(x - pond.x, z - pond.z) + n.get(x * 0.05, z * 0.05) * 3;
+        return smoothstep(pond.r + 10, pond.r * 0.3, d);
+      }
+    : () => 0;
+
+  return { trailDistance, cabinMask, pondMask, waterLevel, ...(spec.streamAt ? { streamAt: spec.streamAt } : {}), trails, cabinSites, pond };
+}
+
 export function buildTerrain(seed: number, spec: TerrainSpec): TerrainField {
   const noise: TerrainNoise = { n: new Noise2D(seed), n2: new Noise2D(seed + 7) };
   const { n } = noise;
@@ -130,34 +160,13 @@ export function buildTerrain(seed: number, spec: TerrainSpec): TerrainField {
     return _grade;
   }
 
-  function trailDistance(x: number, z: number): number {
-    let d = Infinity;
-    for (const poly of trails) for (let i = 0; i < poly.length - 1; i++) { const a = poly[i], b = poly[i + 1]; if (a && b) d = Math.min(d, distToSegmentSquared(x, z, a[0], a[1], b[0], b[1])); }
-    // sqrt is monotone: keep the same winning squared value and the exact final root, once per field query.
-    return Math.sqrt(d);
-  }
-
-  function cabinMask(x: number, z: number): number {
-    let m = 0;
-    for (const c of cabinSites) {
-      const d = Math.hypot(x - c.x, z - c.z);
-      m = Math.max(m, smoothstep(22, 11, d));
-    }
-    return m;
-  }
-
   let _waterLevel: number | null = null;
   function waterLevel(): number {
     _waterLevel ??= oceanLevel ?? (pond ? landscape(pond.x, pond.z) + pondFill : -1e4); // ocean, or the pond fills the natural basin below its rim
     return _waterLevel;
   }
 
-  const pondMask = pond
-    ? (x: number, z: number): number => {
-        const d = Math.hypot(x - pond.x, z - pond.z) + n.get(x * 0.05, z * 0.05) * 3;
-        return smoothstep(pond.r + 10, pond.r * 0.3, d);
-      }
-    : () => 0;
+  const { trailDistance, cabinMask, pondMask } = buildTerrainMetadata(seed, spec, waterLevel, n);
 
   function heightAt(x: number, z: number): number {
     let h = landscape(x, z);

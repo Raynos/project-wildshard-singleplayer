@@ -2,10 +2,11 @@ import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats, nativeBak
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { PineShelterTree } from './rainShelter';
+import { PINE_TERRAIN } from '../data/terrainBindings';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** The baked floor's lattice: Rapier's own 256² heightfield over the 500 m chunk, as the page built it (crag cuts included). */
-export const PINE_GROUND_RES = 256, PINE_GROUND_SIZE = 500;
+export const PINE_GROUND_RES = PINE_TERRAIN.res, PINE_GROUND_SIZE = PINE_TERRAIN.size;
 
 const finite = v.pipe(v.number(), v.finite()), triple = v.tuple([finite, finite, finite]);
 /** One baked native simulation spec, strictly: an unknown or missing field refuses the bake rather than defaulting. */

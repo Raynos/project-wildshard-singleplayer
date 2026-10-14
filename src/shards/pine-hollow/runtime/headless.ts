@@ -1,9 +1,10 @@
+import { PINE_TERRAIN } from '../data/terrainBindings';
 import * as v from 'valibot';
 import { parseCrossbowProfile } from '../weapons/crossbow/profiles';
 import { BowWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { installNativeCollision, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import { createSimHost, type SimHost } from '@wildshard/engine/sim';
-import { parseNavmesh } from '@wildshard/engine/physics/navmesh';
+import { readNavmesh } from '@wildshard/engine/physics/navmesh';
 import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { PINE_GROUND_RES, pineBake, type PineBake, type PineSolid } from './baked';
 import { preparePineDirector } from './directorClock';
@@ -38,9 +39,7 @@ import type { PineWeatherMode } from '../world/weatherProfile';
 
 /** The native bakes the page reads before its herds, handed to the trusted runtime by path: the terrain grid (the hunting
  *  brain's ground, the bodies' ground follow) and the navmesh (the brain's paths). Pine's shardfile admits no assets. */
-export const PINE_TERRAIN_ASSET = 'public/assets/baked/pine-hollow/terrain.bin', PINE_NAVMESH_ASSET = 'public/assets/baked/pine-hollow/navmesh.bin';
-
-const buffer = (bytes: Uint8Array): ArrayBuffer => { const copy = new ArrayBuffer(bytes.byteLength); new Uint8Array(copy).set(bytes); return copy; };
+export const PINE_TERRAIN_ASSET = PINE_TERRAIN.terrain, PINE_NAVMESH_ASSET = PINE_TERRAIN.navmesh;
 
 /** Install the browser-baked native world into the host's physics, owned by its scope: Rapier's own 256² heightfield (the
  *  crag cave's cuts included) and the 2082 solid WORLD colliders the page built (cuboids, capsules, meshes, convex hulls).
@@ -51,8 +50,8 @@ export function addPineWorld(host: SimHost, bake: PineBake, skip?: (solid: PineS
 
 /** The page's terrain grid from its trusted bytes, refused unless it is Pine's own 256² lattice over the 500 m chunk. */
 export function pineTerrainGrid(bytes: Uint8Array | undefined): BakedGrid {
-  const grid = bytes === undefined ? null : parseBakedTerrain(buffer(bytes));
-  if (grid === null || grid.res !== PINE_GROUND_RES || grid.size !== 500 || grid.seed !== 1337) throw new Error(`Pine headless needs its baked terrain grid (${PINE_TERRAIN_ASSET})`);
+  const grid = bytes === undefined ? null : parseBakedTerrain(bytes, PINE_TERRAIN);
+  if (grid === null) throw new Error(`Pine headless needs its baked terrain grid (${PINE_TERRAIN_ASSET})`);
   return grid;
 }
 
@@ -84,10 +83,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   const leverProfile = parseLeverProfile(leverRow.profile);
   const director = await preparePineDirector(), nightDirector = await preparePineNightDirector();
   const bake = pineBake(), grid = pineTerrainGrid(assets.get(PINE_TERRAIN_ASSET)), navBytes = assets.get(PINE_NAVMESH_ASSET);
-  const nav = navBytes === undefined ? null : parseNavmesh(buffer(navBytes));
-  if (nav === null) throw new Error(`Pine headless needs its baked navmesh (${PINE_NAVMESH_ASSET})`);
-  // this host configures no level and shifts nothing: the navmesh's queries stand in the bake's own (authored) frame
-  nav.datum = () => 0;
+  const nav = readNavmesh(navBytes, `Pine headless needs its baked navmesh (${PINE_NAVMESH_ASSET})`, () => 0);
   const heightAt = bakedSamplers(grid).heightAt;
   const level = trustedLevel(shard, { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z },
     yaw: shard.spawn.yaw, speed: 5 }, { size: 500, height: 0 });

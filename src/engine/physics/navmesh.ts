@@ -168,3 +168,11 @@ export function parseNavmesh(buf: ArrayBuffer): Navmesh | null {
     throw e;
   }
 }
+
+/** Own an admitted navigation payload and bind its explicit query datum; missing or malformed bytes refuse. */
+export function readNavmesh(bytes: Uint8Array | undefined, refusal: string, datum: () => number): Navmesh {
+  const nav = bytes === undefined ? null : parseNavmesh(Uint8Array.from(bytes).buffer);
+  if (nav === null) throw new Error(refusal);
+  nav.datum = datum;
+  return nav;
+}

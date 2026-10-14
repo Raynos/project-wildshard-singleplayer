@@ -20,11 +20,13 @@ function parsePlacement(buf: ArrayBuffer, at: number): BakedPlacement | null {
 }
 
 /** Decode the original WSTR terrain bytes without runtime services. */
-export function parseBakedTerrain(buf: ArrayBuffer): BakedGrid | null {
+export function parseBakedTerrain(input: ArrayBuffer | Uint8Array, expected?: { res?: number; size?: number; seed?: number }): BakedGrid | null {
+  const buf = input instanceof Uint8Array ? Uint8Array.from(input).buffer : input;
   const dv = new DataView(buf);
   if (buf.byteLength < 24 || dv.getUint8(0) !== 0x57 || dv.getUint8(1) !== 0x53 || dv.getUint8(2) !== 0x54 || dv.getUint8(3) !== 0x52) return null;
   if (dv.getUint32(4, true) !== 1) return null;
   const res = dv.getUint32(8, true), size = dv.getFloat32(12, true), seed = dv.getUint32(16, true), hash = dv.getUint32(20, true);
+  if (expected !== undefined && ((expected.res !== undefined && res !== expected.res) || (expected.size !== undefined && size !== expected.size) || (expected.seed !== undefined && seed !== expected.seed))) return null;
   const n = res * res;
   if (buf.byteLength < 24 + n * 8) return null;
   const undergrowth = buf.byteLength > 24 + n * 8 ? parsePlacement(buf, 24 + n * 8) : null;

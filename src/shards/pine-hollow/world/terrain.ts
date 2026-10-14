@@ -2,7 +2,8 @@ import { smoothstep, lerp } from '@wildshard/engine/core/noise';
 import type { Vec2 } from '@wildshard/engine/level/data';
 import type { SpeciesWeights } from '@wildshard/engine/world/forest/treeSpecies';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
-import { buildTerrain } from '@wildshard/engine/world/terrainField';
+import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
+import { PINE_TERRAIN } from '../data/terrainBindings';
 import { PINE_TREE_IDS } from './treeSet';
 import { CABIN_SITES, RIDGE, LOOKOUT, ZIPLINE, POND, WATERFALL, CREEK, CREEK_BRIDGE, DEN, BEAR_CAVE, OLD_GROWTH, KINGS_CLEARING, HAMLET, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS } from '../data/layout';
 import { ridgeFootZ, nearestOnPolyline, creekWaterAt } from '../behaviour/layout';
@@ -25,13 +26,9 @@ function ridgeWeight(x: number, z: number): number {
 const TRAILS: Vec2[][] = [S_ROAD, N_ROAD, W_ROAD, E_ROAD, ...Object.values(SPURS)];
 
 /** Required original renderer lattice; trail/water/forest metadata keep their live laws. */
-const metadata = buildTerrain(1337, {
-  landscape: () => 0, trails: TRAILS, cabinSites: CABIN_SITES,
-  pond: { x: POND.x, z: POND.z, r: POND.r }, streamAt: creekWaterAt,
-});
-export const TERRAIN = createBakedTerrainField({ key: 'pine-hollow', seed: 1337 }, {
-  ...metadata, waterLevel: () => POND.level,
-});
+export const TERRAIN = createBakedTerrainField(PINE_TERRAIN, buildTerrainMetadata(PINE_TERRAIN.seed, {
+  trails: TRAILS, cabinSites: CABIN_SITES, pond: { x: POND.x, z: POND.z, r: POND.r }, streamAt: creekWaterAt,
+}, () => POND.level));
 
 /** metres from (x, z) to the zipline's ground track */
 function ziplineDistance(x: number, z: number): number {

@@ -5568,3 +5568,10 @@ Optional `when` alternatives match kind/variant/label; all matching rows run onc
 flag, achievement kill/event, named callback or toast owners. Missing owners refuse before any effects. The caller
 keeps actual actor lookup, subscription priority, key placement, contract persistence and save continuation.
 rity, key placement, contract persistence and save continuation.
+
+`buildTerrainMetadata` builds the same trail/pad/pond queries with an explicit
+water-level port without allocating an analytic ground. `terrainTileHeight`
+accepts an optional column-major/clamped sampling policy for admitted native
+heightfields; the default row-major/refusing policy remains unchanged.
+`parseBakedTerrain` accepts owned byte views plus expected header fields, and
+`readNavmesh` owns admitted bytes with an explicit datum and refusal message.

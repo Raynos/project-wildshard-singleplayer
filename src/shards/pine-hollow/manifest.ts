@@ -1,4 +1,4 @@
-import { PINE_MANIFEST } from './data/manifest';
+import { PINE_MANIFEST, PINE_FOREST } from './data/manifest';
 
 import { PINE_AUDIO_SAMPLES } from './data/runtimeCost';
 
@@ -52,18 +52,12 @@ export const PINE_HOLLOW = defineShard({ ...PINE_MANIFEST,
 
   trees: { factory: () => import('./world/treeFactory').then((m) => m.pineFactory), ...PINE_TREE_ASSETS, noun: 'trees', drawnBy: 'model' }, 
   forest: {
-    spacing: 8.5,
-    densityFreq: 0.008,
-    clearings: [-0.45, 0.35],
-    maxSlope: 0.72,
-    tintHue: 0.25, tintHueJitter: [-0.04, 0.03], tintSat: [0.25, 0.5], tintLight: [0.5, 0.68],
-    largeVariantChance: 0.1,
+    ...PINE_FOREST,
     density: forestDensity,
     /** the old-growth's pines and firs stand a quarter taller (its giants are their own species, PH-B4) */
     scale: (x, z) => 1 + oldGrowthMask(x, z) * 0.25,
     species: speciesMix, speciesTraits: PINE_TREE_SPECIES,
 
-    understory: { ferns: 1, shrubs: 2.5, fernCanopy: false },
   },
 
   spawn: SPAWN,

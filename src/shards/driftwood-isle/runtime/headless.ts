@@ -1,7 +1,7 @@
 import { trustedLevel } from '@wildshard/game/plugin/simulation';
 import { installNativeCollision, type HeadlessRuntimeInstallation, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import type { SimHost } from '@wildshard/engine/sim';
-import { parseNavmesh, type Navmesh } from '@wildshard/engine/physics/navmesh';
+import { readNavmesh, type Navmesh } from '@wildshard/engine/physics/navmesh';
 import { DRIFTWOOD_SEA, LOWERED_SEA } from '../world/sea';
 import { waveHeight } from '@wildshard/engine/world/waves';
 import { driftwoodBake, driftwoodSpecs, type DriftwoodBake } from './baked';
@@ -35,11 +35,7 @@ const MAX_COMMANDS = 1024;
 
 /** The admitted platform navigation bytes, parsed by the same renderer-free WSNM reader as the page. */
 export function driftwoodNavmesh(bytes: Uint8Array): Navmesh {
-  const nav = parseNavmesh(Uint8Array.from(bytes).buffer);
-  if (nav === null) throw new Error('Driftwood declared navigation does not parse');
-  // Baked points already include the island's world height; Node has no active page level.
-  nav.datum = () => 0;
-  return nav;
+  return readNavmesh(bytes, 'Driftwood declared navigation does not parse', () => 0);
 }
 
 /** Install the Node-canonical native world into the host's physics, owned by its scope: Rapier's own 256² heightfield (the

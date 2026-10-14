@@ -1,11 +1,13 @@
+import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats, nativeGroundSchema, nativeBakeGround, nativeBakeActors } from '@wildshard/sdk/headlessRuntime';
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import type { DriftwoodPoseRecipe } from './posedVolumes';
+import { DRIFTWOOD_TERRAIN } from '../data/terrainBindings';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** The baked floor's lattice (Rapier's own column-major heightfield, from authored rows: generators/physics.ts, G350-DW). */
-export const DRIFTWOOD_GROUND_RES = 256, DRIFTWOOD_GROUND_SIZE = 500;
+export const DRIFTWOOD_GROUND_RES = DRIFTWOOD_TERRAIN.res, DRIFTWOOD_GROUND_SIZE = DRIFTWOOD_TERRAIN.size;
 
 const finite = v.pipe(v.number(), v.finite()), xyz = v.strictObject({ x: finite, y: finite, z: finite }), xz = v.strictObject({ x: finite, z: finite });
 /** One baked native simulation spec, strictly: an unknown or missing field refuses the bake rather than defaulting. */
@@ -47,15 +49,10 @@ let parsed: DriftwoodBake | null = null;
 /** Driftwood's physics product (generators/physics.ts, G350-DW), strictly parsed and decoded once. */
 export function driftwoodBake(): DriftwoodBake {
   if (parsed !== null) return parsed;
-  const bake = v.parse(Bake, baked), RES = DRIFTWOOD_GROUND_RES, SIZE = DRIFTWOOD_GROUND_SIZE, d = SIZE / (RES - 1);
+  const bake = v.parse(Bake, baked), RES = DRIFTWOOD_GROUND_RES, SIZE = DRIFTWOOD_GROUND_SIZE;
   const ground = nativeBakeGround(bake.ground, RES, SIZE, 'Driftwood'), { heights } = ground;
-  const vertex = (ix: number, iz: number): number => heights[ix * RES + iz] ?? Number.NaN;
-  const floorAt = (x: number, z: number): number => {
-    const gx = Math.min(RES - 1, Math.max(0, (x + SIZE / 2) / d)), gz = Math.min(RES - 1, Math.max(0, (z + SIZE / 2) / d));
-    const ix = Math.min(RES - 2, Math.floor(gx)), iz = Math.min(RES - 2, Math.floor(gz)), u = gx - ix, w = gz - iz;
-    return u + w <= 1 ? vertex(ix, iz) + (vertex(ix + 1, iz) - vertex(ix, iz)) * u + (vertex(ix, iz + 1) - vertex(ix, iz)) * w
-      : vertex(ix + 1, iz + 1) + (vertex(ix, iz + 1) - vertex(ix + 1, iz + 1)) * (1 - u) + (vertex(ix + 1, iz) - vertex(ix + 1, iz + 1)) * (1 - w);
-  };
+  const floor = { resolution: RES, x: -SIZE / 2, z: -SIZE / 2, size: SIZE, heights };
+  const floorAt = (x: number, z: number): number => terrainTileHeight(floor, x, z, DRIFTWOOD_TERRAIN.sampling);
   const hold = bake.habitat.hold, side = Math.round((2 * hold.guardR) / hold.step) + 1;
   if (hold.floor.length !== side * side) throw new Error('Driftwood baked hold lattice is not square');
   const holdFloorAt = (x: number, z: number): number | undefined => {

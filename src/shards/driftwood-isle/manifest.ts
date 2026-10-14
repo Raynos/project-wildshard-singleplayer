@@ -18,13 +18,13 @@ import { area as BLENDER_AREA } from './world/blenderArea';
 import { CHUNK_HALF, ROAD_LENGTH } from '@wildshard/engine/core/config';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
-import { buildTerrain } from '@wildshard/engine/world/terrainField';
+import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { defineShard, type OceanDef } from '@wildshard/game/shard/manifest';
 import { lateReads } from './boot/lateReads';
 import { bootSources } from './boot/sources';
-import { DRIFTWOOD_SEA, LOWERED_SEA, SHORE_LEVEL, droppedTerrain } from './world/sea';
+import { DRIFTWOOD_SEA, LOWERED_SEA, WORLD_DROP } from './world/sea';
 
-const SEED = 0x5ea1;
+import { DRIFTWOOD_TERRAIN } from './data/terrainBindings';
 
 /** Sea surface. The four entry roads are forced to y = 0 by `buildTerrain`, so a level a little above 0 turns them into submerged sandbars under the piers. */
 
@@ -106,10 +106,7 @@ export const DRIFTWOOD_ISLE = defineShard({ ...DRIFTWOOD_MANIFEST,
   ],
 
   navigation: { row: navigation.navigation, url: navigation.url },
-  ground: { paths: 'plugin', water: [DRIFTWOOD_SEA], terrain: createBakedTerrainField({ key: 'driftwood-isle', seed: SEED }, droppedTerrain(buildTerrain(SEED, {
-    oceanLevel: SHORE_LEVEL,
-    
-    landscape: () => { throw new Error('Driftwood requires admitted native ground'); },
+  ground: { paths: 'plugin', water: [DRIFTWOOD_SEA], terrain: createBakedTerrainField(DRIFTWOOD_TERRAIN, { ...buildTerrainMetadata(DRIFTWOOD_TERRAIN.seed, {
     trails: [
       [[0, -CHUNK_HALF], [0, -CHUNK_HALF + ROAD_LENGTH]],
       [[0, CHUNK_HALF], [0, CHUNK_HALF - ROAD_LENGTH]],
@@ -119,7 +116,7 @@ export const DRIFTWOOD_ISLE = defineShard({ ...DRIFTWOOD_MANIFEST,
     ],
     cabinSites: [],
 
-  }))) },
+  }, () => LOWERED_SEA), datum: -WORLD_DROP }) },
 
   spawn: SPAWN,
 }, {

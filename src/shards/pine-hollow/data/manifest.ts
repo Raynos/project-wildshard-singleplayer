@@ -103,3 +103,14 @@ runtimeEntry: 'runtime/index.ts',
 export const PINE_MANIFEST: typeof DISCOVERY_ROWS & { readonly budgets: typeof PINE_BUDGET_INPUTS; readonly spawns: typeof PINE_FAUNA } = {
   ...DISCOVERY_ROWS, budgets: PINE_BUDGET_INPUTS, spawns: PINE_FAUNA,
 };
+
+/** Native forest tuning; density/species remain the existing authored query ports. */
+export const PINE_FOREST = {
+    spacing: 8.5,
+    densityFreq: 0.008,
+    clearings: [-0.45, 0.35] as [number, number],
+    maxSlope: 0.72,
+    tintHue: 0.25, tintHueJitter: [-0.04, 0.03] as [number, number], tintSat: [0.25, 0.5] as [number, number], tintLight: [0.5, 0.68] as [number, number],
+    largeVariantChance: 0.1,
+    understory: { ferns: 1, shrubs: 2.5, fernCanopy: false },
+};

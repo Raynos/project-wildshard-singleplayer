@@ -14,7 +14,6 @@ import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from '@wildshard/engine/core/c
 import { swellBody, type WaterBody } from '@wildshard/engine/world/water/body';
 import { waterExtent } from '@wildshard/engine/world/waves';
 import { SHORE_REVETMENT_INNER_FACE } from '@wildshard/engine/sim/shore';
-import type { ChunkTerrain } from '@wildshard/game/shard/manifest';
 import { DRY_ENTRIES, type DryEntryEdge } from '../data/entryRows';
 
 /** the waterline the island was authored round (its landscape and its offline bake) */
@@ -27,18 +26,6 @@ export const LOWERED_SEA = SHORE_LEVEL - WORLD_DROP;
  *  (ENTRY_ASPHALT, 15 m of road asphalt at y = 0 into the shard; SF8c / G103), so the deck's sea-end ramp rises from the
  *  socket's edge; a whole number of 3 m piling bays, so every piling stays where it stands */
 export const PIER_START = Math.floor(ENTRY_ASPHALT / 3) * 3;
-
-/** G164: Driftwood's terrain field lowered `WORLD_DROP` as one (its heights and its waterline; the offline bake, made
- *  from the authored field, is installed shifted by the same `datum`). Normals and splat are unchanged by a vertical
- *  shift. */
-export function droppedTerrain(field: ChunkTerrain): ChunkTerrain {
-  return {
-    ...field,
-    heightAt: (x, z) => field.heightAt(x, z) - WORLD_DROP,
-    waterLevel: () => field.waterLevel() - WORLD_DROP,
-    datum: -WORLD_DROP,
-  };
-}
 
 /** G149: how far in from the cell edge the platform's rip-rap shore revetment (crest +0.6 m, spanning ±0.8 m about the
  *  edge) puts its inner face (the platform's SHORE_REVETMENT_INNER_FACE); the lowered sea, confined to a grid cell, stops
