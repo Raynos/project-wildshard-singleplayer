@@ -1,3 +1,4 @@
+import type { NodeFogPatch } from './fogPatches';
 import type { Camera, Color, DirectionalLight, Fog, Group, HemisphereLight, Material, Mesh, Object3D, Sprite, Texture, Vector3, PerspectiveCamera, Scene, WebGLRenderer, WebGLRenderTarget } from 'three';
 import type { BloomEffect, BrightnessContrastEffect, ChromaticAberrationEffect, Effect, EffectComposer, GodRaysEffect, HueSaturationEffect, LookupTexture, LUT3DEffect, NoiseEffect, Pass, ToneMappingEffect, VignetteEffect } from 'postprocessing';
 import type { N8AOPostPass } from 'n8ao';
@@ -92,7 +93,7 @@ export interface LookComposition {
  * A level's fog patch (01 §13.2's ordered `fog_fragment` slots: engine fog 100, stylize 200, a level's fog 300). The
  * engine runs `install()` once, after its own `installAtmosphere()` and before the sky builds or anything compiles.
  */
-export interface FogModel { order: number; install: () => void }
+export interface FogModel { order: number; install: () => void; /** Trusted graph fog replacement; classic installs remain unchanged. */ node?: NodeFogPatch }
 
 /** the heightfield a painter samples (live: the baked terrain replaces the procedural one once `ready()` resolves) */
 export interface PainterField {

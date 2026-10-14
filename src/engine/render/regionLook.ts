@@ -34,6 +34,7 @@
  * The patches leave with the region's scope. Generic engine code (E405): no level is named here.
  */
 import * as THREE from 'three';
+import { bindMaterialNodeFog } from './fogPatches';
 import type { Scope } from '../app/scope';
 import { captureFogUniforms } from '../world/Atmosphere';
 import { PATCH_ORDER, patchShader, type ShaderSource } from './shaderPatches';
@@ -228,7 +229,7 @@ export interface ScopedLook {
  * Scope the look to `root`'s materials (`sweep`, see `ScopedLook`). A material compiled before its patch is recompiled
  * once. `parts`: the look's per-frame hooks `frame` runs.
  */
-export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: Scope, options: LookScopeOptions = {}, parts: Pick<RegionLookParts, 'sky' | 'frame' | 'worldPatch'> = {}): ScopedLook {
+export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: Scope, options: LookScopeOptions = {}, parts: Pick<RegionLookParts, 'sky' | 'frame' | 'worldPatch' | 'fog'> = {}): ScopedLook {
   const done = new WeakSet<THREE.Material>();
   const origin: THREE.IUniform<THREE.Vector3> = { value: new THREE.Vector3() };
   let count = 0;
@@ -237,7 +238,12 @@ export function scopeLookChunks(root: THREE.Object3D, look: LookChunks, scope: S
     done.add(material);
     if (options.isShared?.(material) === true) return;
     if (parts.worldPatch !== undefined) { parts.worldPatch(material, scope); material.needsUpdate = true; }
-    if (lookChunksFor(material, look).size === 0) return;
+    const nodeFog = parts.fog?.node;
+    if (parts.fog !== undefined) bindMaterialNodeFog(material, { id: look.id, origin, ...(nodeFog === undefined ? {} : { node: nodeFog }) }, scope);
+    if (lookChunksFor(material, look).size === 0) {
+      if (nodeFog !== undefined && Reflect.get(material, 'isNodeMaterial') === true) count++;
+      return;
+    }
     // three keys a program by its shader id (or a ShaderMaterial's original source id) and this key, never the patched text
     patchShader(material, 'region.look', PATCH_ORDER.view + 40, (shader) => { applyLookChunks(shader, look, origin); }, { scope, key: (before) => `${before}|look:${look.id}` });
     material.needsUpdate = true; count++;

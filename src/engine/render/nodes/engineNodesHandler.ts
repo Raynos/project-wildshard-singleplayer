@@ -20,7 +20,7 @@
  *    follows `colorspace_fragment`): `epilogue` is an ordered list of stages a graph cannot skip. The handler's own
  *    first stage is the engine's height fog (`engineFog.ts`) wherever the engine fog is installed; three's stock fog node
  *    is then switched off, so a node material is fogged once. A level's own fog chunk (fogPatches' slots 200 / 300)
- *    does not reach node materials yet: the handler warns once.
+ *    may supply its trusted node replacement through the same registry and region sweep.
  * 4. **The engine's shadow filter** (`shadowFilter.ts`, E138): where the tent is installed, every shadow-casting light
  *    without a filter of its own gets the tent as its node filter (`tentShadowFilter.ts`), so node and family
  *    materials share one penumbra; where the chunk carries the receiver-plane bias instead (E435), the same biased PCF
@@ -45,8 +45,8 @@
 import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
 import { ConvertNode, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
-import { and, context, mix, modelWorldMatrix, nodeObject, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
-import { fogPatches } from '../fogPatches';
+import { and, cameraPosition, context, mix, modelWorldMatrix, nodeObject, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
+import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
 import { engineFog } from './engineFog';
 import { tentShadowFilter } from './tentShadowFilter';
@@ -269,13 +269,22 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const current = frame();
       const object: unknown = typeof current === 'object' && current !== null ? Reflect.get(current, 'object') : undefined;
       const layer = layerFrameOf(this);
-      return `${stockKey.call(this)}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}|${nodeInstanceKey(object)}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
+      const fog = materialNodeFogOf(this) ?? fogPatches().at(-1);
+      const fogKey = fog?.node === undefined ? '' : `|fog:${fog.id}`;
+      return `${stockKey.call(this)}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}|${nodeInstanceKey(object)}${fogKey}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
     };
     this.epilogue.push((out, ctx) => {
-      if (!this.engineFogOn() || Reflect.get(ctx.material, 'fog') !== true) return out;
+      const bound = materialNodeFogOf(ctx.material);
+      const patch = bound === undefined ? fogPatches().at(-1)?.node : bound.node;
+      if ((!this.engineFogOn() && patch === undefined) || Reflect.get(ctx.material, 'fog') !== true || ctx.fog === null) return out;
       const scale: unknown = Reflect.get(ctx.material, 'graphFogScale');
       const node = typeof scale === 'object' && scale !== null && isNode(scale) ? new ConvertNode<'float'>(scale, 'float') : undefined;
-      return engineFog(out, ctx.fog, node);
+      const engine = engineFog(out, ctx.fog, node);
+      if (patch === undefined) return engine;
+      const origin = bound?.origin ?? layerFrameOf(ctx.material)?.origin;
+      const shift = origin === undefined ? null : reference('value', 'vec3', origin);
+      return patch(out, { engine, fog: ctx.fog, position: shift === null ? positionWorld : positionWorld.sub(shift),
+        camera: shift === null ? cameraPosition : cameraPosition.sub(shift), ...(node === undefined ? {} : { scale: node }) });
     });
     // a layered backdrop's node dressing fades by its owner weight last, where a classic piece's gl_FragColor is faded
     this.epilogue.push((out, ctx) => {
@@ -313,15 +322,15 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     }
   }
 
-  /** the engine fog is the page's fog (Atmosphere installed slot 100); a level's own fog chunk is not ported yet */
+  /** Engine fog or the page's explicit node replacement suppresses stock fog to avoid applying it twice. */
   private engineFogOn(): boolean {
     const patches = fogPatches();
     const engine = patches.some((p) => p.id === 'engine.fog');
-    if (engine && patches.length > 1 && !this.warnedLevelFog) {
+    if (engine && patches.length > 1 && patches.at(-1)?.node === undefined && !this.warnedLevelFog) {
       this.warnedLevelFog = true;
       console.warn(`[nodes] a level fog patch (${patches.filter((p) => p.id !== 'engine.fog').map((p) => p.id).join(', ')}) does not reach graph materials: they get the engine fog only`);
     }
-    return engine;
+    return engine || patches.at(-1)?.node !== undefined;
   }
 
   /**

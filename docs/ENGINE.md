@@ -5178,3 +5178,16 @@ The SDK author route is `graph({ model: 'toon', surface: ... })` from
 `@wildshard/sdk/materials`: the compiler supplies the existing toon
 lighting preset, so shards need no engine preset import. An authored
 lighting stage uses `model:'standard'` instead.
+
+A trusted look may supply `FogModel.node(out, context)` alongside its
+existing classic `install()`. It replaces fog in graph materials at
+the engine epilogue, after the output colour transform; classic chunks
+and uniforms are unchanged. The last installed fog replacement wins,
+matching classic chunk writes. `context.engine` is the engine-fogged
+colour if the replacement needs it; `context.fog` is the live scene fog,
+`position`/`camera` are in the level frame, and optional `scale` is the
+graph's interpolated fog share. Return RGBA, preserving alpha.
+The page registry forwards the node hook once; `scopeLookChunks` lends
+a region's hook and origin to its own materials and restores them on
+unload. A region without a node hook retains engine fog. No shader text
+is parsed and importing the registry does not load the graph backend.
