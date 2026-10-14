@@ -38,7 +38,7 @@ import {
 } from 'three/webgpu';
 import {
   Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, frontFacing, hash,
-  instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
+  instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, materialNormal, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, reference, positionGeometry, positionLocal,
   positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
@@ -278,6 +278,19 @@ class GraphLightingModel extends PhysicalLightingModel {
  * viewmodel's transparent copy, for one) builds `new this.constructor()` with no hooks and then `copy`s: `copy` carries the
  * hooks over, so a cloned graph material keeps its lighting stage.
  */
+/** Build borrowed mapped normals without a back-face sign change; draw culling stays untouched. */
+class UnflippedNormalNode extends BaseNode<'vec3'> {
+  constructor() { super('vec3'); }
+  override build(builder: NodeBuilder, output?: string | Node | null): Node | string | null {
+    const material = builder.material;
+    builder.material = new Proxy(material, {
+      get(target, key, receiver): unknown { return key === 'side' ? THREE.FrontSide : Reflect.get(target, key, receiver); },
+    });
+    try { return materialNormal.build(builder, output); }
+    finally { builder.material = material; }
+  }
+}
+
 /** Apply authored geometry normals before morph/skin/instance transforms. */
 class GraphNormalMaterial extends MeshStandardNodeMaterial {
   vertexNormal: Node<'vec3'> | null = null;
@@ -869,6 +882,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     const clip = out(st['vertex.clip']?.position);
     if (clip !== null) m.vertexNode = new ConvertNode<'vec4'>(clip.n, 'vec4');
     m.side = ir.doubleSided === true ? THREE.DoubleSide : THREE.FrontSide;
+    if (ir.flipBackfaceNormals === false) m.normalNode = new UnflippedNormalNode();
     if (m instanceof MeshStandardNodeMaterial) m.flatShading = ir.flatShading ?? ir.model === 'toon';
     if (lit?.grade !== undefined) m.toneMapped = false; // a graded colour is display linear already
     m.fog = ir.effectState?.fog ?? true;

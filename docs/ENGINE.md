@@ -5387,3 +5387,12 @@ The getter refuses after leaving that home. `enter`, `leave`, `timeout`,
 `cancelTimer`, `retainRoot`, and `exposeBrowser` use the same entered owner.
 `disposeLegacy` keeps the ordinary resident teardown order. Quest flags,
 saves, NPC figures and the lent DialogueBox reading clock keep their owners.
+
+### Foliage graph normals
+
+A mesh graph may set `flipBackfaceNormals: false` to retain its front-face
+normal and tangent basis when both sides draw. The same borrowed normal/bump
+map path and authored vertex normals still feed lighting. This is independent
+of `doubleSided`: the draw's side/culling stays unchanged, and clones retain
+the option. Absent/true keeps the existing back-face flip. Derivative-built
+flat geometry normals retain their existing winding behavior.

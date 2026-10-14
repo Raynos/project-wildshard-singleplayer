@@ -203,6 +203,8 @@ export interface GraphIr {
   /** Optional material-only effect state; omission preserves every prior render default. */
   readonly effectState?: GraphEffectState;
   readonly doubleSided?: boolean;
+  /** false: retain the front-face normal basis on back faces; culling is unchanged. */
+  readonly flipBackfaceNormals?: boolean;
   /** one normal per triangle (the toon family's faceted look): `normalView` is the face's */
   readonly flatShading?: boolean;
   readonly params?: Readonly<Record<string, GraphParam>>;
@@ -474,7 +476,7 @@ const VARYING_SOURCE: Readonly<Partial<Record<GraphPlace, GraphPlace>>> = { frag
 interface Raw {
   readonly interpolation?: unknown;
   readonly [k: string]: unknown;
-  readonly version?: unknown; readonly kind?: unknown; readonly model?: unknown; readonly doubleSided?: unknown; readonly flatShading?: unknown;
+  readonly version?: unknown; readonly kind?: unknown; readonly model?: unknown; readonly doubleSided?: unknown; readonly flipBackfaceNormals?: unknown; readonly flatShading?: unknown;
   readonly primitive?: unknown; readonly effectState?: unknown; readonly blend?: unknown; readonly fog?: unknown;
   readonly depthWrite?: unknown; readonly singlePass?: unknown; readonly depthBias?: unknown; readonly factor?: unknown; readonly units?: unknown; readonly size?: unknown; readonly points?: unknown;
   readonly budget?: unknown; readonly arrays?: unknown; readonly params?: unknown; readonly nodes?: unknown; readonly stages?: unknown;
@@ -543,8 +545,10 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   if (input.model !== undefined && input.model !== 'standard' && input.model !== 'unlit' && input.model !== 'toon') fail(`graph: model ${JSON.stringify(input.model)} (standard, unlit or toon)`);
   if (input.model === 'toon' && input.kind !== 'material') fail('graph: toon is a material lighting model');
   if (input.doubleSided !== undefined && typeof input.doubleSided !== 'boolean') fail('graph: doubleSided is not a boolean');
+  if (input.flipBackfaceNormals !== undefined && typeof input.flipBackfaceNormals !== 'boolean') fail('graph: flipBackfaceNormals is not a boolean');
+  if (input.flipBackfaceNormals !== undefined && (kind !== 'material' || primitive === 'points')) fail('graph: flipBackfaceNormals requires a mesh material');
   if (input.flatShading !== undefined && typeof input.flatShading !== 'boolean') fail('graph: flatShading is not a boolean');
-  for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'primitive', 'effectState', 'doubleSided', 'flatShading', 'budget', 'params', 'arrays', 'nodes', 'stages'].includes(k)) fail(`graph: unknown field ${k}`);
+  for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'primitive', 'effectState', 'doubleSided', 'flipBackfaceNormals', 'flatShading', 'budget', 'params', 'arrays', 'nodes', 'stages'].includes(k)) fail(`graph: unknown field ${k}`);
 
   if (input.primitive !== undefined && input.primitive !== 'mesh' && input.primitive !== 'points') fail('graph: primitive must be mesh or points');
   if (kind === 'post' && (input.primitive !== undefined || input.effectState !== undefined)) fail('graph: post graphs have no effect state or primitive');
@@ -932,6 +936,7 @@ function asGraph(input: Raw): GraphIr {
     ...(isRecord(input.effectState) ? { effectState: toEffectState(input.effectState) } : {}),
     ...(input.model === 'standard' || input.model === 'unlit' || input.model === 'toon' ? { model: input.model } : {}),
     ...(typeof input.doubleSided === 'boolean' ? { doubleSided: input.doubleSided } : {}),
+    ...(typeof input.flipBackfaceNormals === 'boolean' ? { flipBackfaceNormals: input.flipBackfaceNormals } : {}),
     ...(typeof input.flatShading === 'boolean' ? { flatShading: input.flatShading } : {}),
     ...(isRecord(input.params) ? { params: toParams(input.params) } : {}),
     ...(isRecord(input.arrays) ? { arrays: toArrays(input.arrays) } : {}),
