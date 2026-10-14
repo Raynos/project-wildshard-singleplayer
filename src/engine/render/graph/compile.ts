@@ -910,6 +910,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const material = ir.kind === 'post' ? postMaterial() : surfaceMaterial();
   material.name = `graph:${ir.kind}`;
   if (meshMapUsed) material.userData['graphMeshMap'] = true;
+  // A boolean survives Material.clone(); the handler caches each clone's own depth variant.
+  if (st['vertex.position']?.shadow === true || st['vertex.offset']?.shadow === true) material.userData['graphShadowDepth'] = true;
   if (ir.kind === 'material' && ir.model !== 'unlit') material.userData['graphPbrMaps'] = true;
   const outline = ir.kind === 'post' ? null : outlineMaterial();
 

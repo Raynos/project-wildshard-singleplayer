@@ -44,8 +44,8 @@
  */
 import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
-import { ConvertNode, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
-import { and, cameraPosition, context, mix, modelWorldMatrix, nodeObject, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
+import { ConvertNode, MeshBasicNodeMaterial, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
+import { Fn, and, cameraPosition, context, mix, modelWorldMatrix, nodeObject, normalLocal, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
 import { colourRampFog, engineFog } from './engineFog';
@@ -53,6 +53,7 @@ import { tentShadowFilter } from './tentShadowFilter';
 import { planeBiasShadowFilter } from './planeBiasShadowFilter';
 import { EngineDirectionalLightNode } from './cascadeLightNode';
 import { isCascadeGhost } from '../../world/cascadeLights';
+import { Scope } from '../../app/scope';
 import { diagnosticNow } from '../../core/clock';
 import { worldTime } from '../../core/time';
 import type { Renderer } from '../renderer';
@@ -60,6 +61,16 @@ import { NodeUniformBuffers, type BlockGroup } from './nodeUniformBuffers';
 import { installNodeCoarseMask, type NodeCoarseMask } from '../nodeCoarseMask';
 import { installNodeLayerFrame, layerFrameOf, type NodeLayerFrameInstaller } from '../nodeLayerFrame';
 import { buildWithInstanceAttributes, instanceAttributeShader, nodeInstanceKey } from './nodeInstancing';
+
+/** Depth displacement reads the same authored local normal as its surface. */
+class GraphShadowDepthMaterial extends MeshBasicNodeMaterial {
+  vertexNormal: Node | null = null;
+  override setupPosition(builder: NodeBuilder): Node {
+    const normal = this.vertexNormal;
+    if (normal !== null) Fn(() => { normalLocal.assign(new ConvertNode<'vec3'>(normal, 'vec3'));  }, 'void')();
+    return super.setupPosition(builder);
+  }
+}
 
 /** what an epilogue stage is handed: the builder, its material, the scene's fog and the renderer */
 export interface EpilogueContext {
@@ -166,7 +177,7 @@ interface ProgramEntry {
 interface StockInternals {
   getOutputCallback: (outputNode: Node<'vec4'>, builder: NodeBuilder) => Node<'vec4'>;
   customProgramCacheKeyCallback: (this: THREE.Material) => string;
-  renderStack: { sceneContext: { fogNode: Node | null; environmentNode: Node | null; scene: THREE.Object3D } }[];
+  renderStack: { camera: THREE.Camera; sceneContext: { fogNode: Node | null; environmentNode: Node | null; scene: THREE.Object3D } }[];
   programCache: Map<THREE.Material, Map<unknown, ProgramEntry>>;
   collectUniformsGroups: (builder: unknown) => unknown[];
   onBeforeRenderCallback: (this: THREE.Material, ...args: unknown[]) => void;
@@ -255,6 +266,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const renderer = this.classicRenderer();
       const { toneMapping, colorSpace } = outputTransform(renderer);
       const material = builder.material;
+      // Shadow targets store native depth, never display colour/fog/layer fades.
+      if (material.userData['graphDepthVariant'] === true) return outputNode;
       let mapped: Node = outputNode;
       if (material.toneMapped && toneMapping !== THREE.NoToneMapping) mapped = outputNode.toneMapping(toneMapping);
       let out = asVec4(workingToColorSpace(mapped, colorSpace));
@@ -304,8 +317,15 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   /** bind to the renderer (`renderer.setNodesHandler` calls it); the program key follows the bound target from here */
   override setRenderer(renderer: Renderer): void {
+    const previous = this.real;
     super.setRenderer(renderer);
     this.real = renderer;
+    if (previous !== renderer) {
+      const draw = renderer.renderBufferDirect.bind(renderer);
+      renderer.renderBufferDirect = (camera, scene, geometry, material, object, group): void => {
+        this.drawShadow(camera, material, object, group, next => { draw(camera, scene, geometry, next, object, group); });
+      };
+    }
     const gl: unknown = renderer.getContext();
     if (typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext) this.blocks = new NodeUniformBuffers(gl);
     // the stock key reads the renderer's tone mapping and output space whatever is bound; the engine's follows the target
@@ -320,6 +340,50 @@ export class EngineNodesHandler extends WebGLNodesHandler {
         const { toneMapping, colorSpace } = outputTransform(renderer);
         return `${String(toneMapping)}:${colorSpace}`;
       });
+    }
+  }
+
+  /** One owned depth variant per material, including independent clones; never per frame. */
+  private readonly shadowDepths = new WeakMap<NodeMaterial, GraphShadowDepthMaterial>();
+
+  /** The classic shadow map calls renderBufferDirect without the main node callbacks. */
+  private drawShadow(camera: THREE.Camera, stock: THREE.Material, object: THREE.Object3D,
+    group: THREE.GeometryGroup | null, draw: (material: THREE.Material) => void): void {
+    if (!(stock instanceof THREE.MeshDepthMaterial || stock instanceof THREE.MeshDistanceMaterial) || !(object instanceof THREE.Mesh)) { draw(stock); return; }
+    // Explicit custom depth/distance materials belong to their caller.
+    if (stock === object.customDepthMaterial || stock === object.customDistanceMaterial) { draw(stock); return; }
+    const source: unknown = Array.isArray(object.material) ? object.material[group?.materialIndex ?? 0] : object.material;
+    if (!(source instanceof NodeMaterial) || source.userData['graphShadowDepth'] !== true) { draw(stock); return; }
+    let depth = this.shadowDepths.get(source);
+    if (depth === undefined) {
+      depth = new GraphShadowDepthMaterial();
+      depth.name = 'graph:shadow-depth'; depth.userData['graphDepthVariant'] = true;
+      depth.colorNode = vec3(1); depth.fog = false; depth.toneMapped = false;
+      this.shadowDepths.set(source, depth);
+      const lifetime = new Scope('graph:shadow-depth');
+      lifetime.own(depth);
+      lifetime.listenOnceEmitter(source, 'dispose', () => { this.shadowDepths.delete(source); lifetime.dispose(); });
+    }
+    // Nodes and their live uniforms are borrowed; stock selection retains side/clipping/map policy.
+    const normal: unknown = Reflect.get(source, 'vertexNormal');
+    depth.vertexNormal = typeof normal === 'object' && normal !== null && isNode(normal) ? normal : null;
+    depth.contextNode = source.contextNode;
+    depth.positionNode = source.positionNode; depth.opacityNode = source.opacityNode;
+    depth.maskNode = source.maskNode; depth.alphaTestNode = source.alphaTestNode;
+    depth.opacity = source.opacity; depth.side = stock.side; depth.alphaTest = stock.alphaTest;
+    for (const key of ['map', 'alphaMap', 'wireframe', 'wireframeLinewidth', 'clippingPlanes', 'clipIntersection', 'clipShadows',
+      'displacementMap', 'displacementScale', 'displacementBias'] as const) Reflect.set(depth, key, Reflect.get(stock, key));
+    const top = internals(this).renderStack.at(-1), frame: unknown = Reflect.get(this, 'nodeFrame');
+    if (top === undefined || typeof frame !== 'object' || frame === null) throw new Error('Graph shadow depth requires an active render');
+    const oldCamera = top.camera, saved: unknown[] = ['camera', 'material', 'object'].map((key): unknown => Reflect.get(frame, key));
+    top.camera = camera; Reflect.set(frame, 'camera', camera);
+    try {
+      this.setObject(object, depth);
+      this.beforeDraw(depth, this.classicRenderer(), object);
+      draw(depth);
+    } finally {
+      top.camera = oldCamera;
+      for (const [i, key] of ['camera', 'material', 'object'].entries()) Reflect.set(frame, key, saved[i]);
     }
   }
 

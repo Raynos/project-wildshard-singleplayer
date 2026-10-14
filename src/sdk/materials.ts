@@ -134,6 +134,7 @@ export interface GraphSpec {
   readonly model?: 'standard' | 'unlit' | 'toon';
   readonly doubleSided?: boolean;
   readonly flatShading?: boolean;
+  /** shadow:true reuses displacement and alpha/discard in the shadow camera. */
   readonly vertex?: { readonly offset: GraphValue; readonly shadow?: boolean };
   readonly surface?: {
     readonly colour?: GraphValue; readonly alpha?: GraphValue; readonly alphaCutoff?: number; readonly emissive?: GraphValue;

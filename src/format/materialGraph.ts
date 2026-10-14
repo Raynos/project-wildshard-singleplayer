@@ -112,7 +112,7 @@ export interface GraphArrayParam {
   readonly value: readonly GraphLiteral[];
 }
 /** Absolute post-instance model-space position, replacing the ordinary vertex.
- * Mutually exclusive with vertex.offset; shadow variants remain unsupported. */
+ * Mutually exclusive with vertex.offset; shadow:true emits matching depth. */
 export interface GraphVertexPosition {
   readonly position: GraphRef;
   readonly shadow?: boolean;
@@ -130,7 +130,7 @@ export interface GraphSurface {
   /** bool: the fragment is discarded where it is true (a dither or a clip; a fragment-place op, like `alphaCutoff`) */
   readonly discard?: GraphRef;
 }
-/** the vertex stage: an object-space offset; `shadow` (a matching depth variant) is refused until the back-end emits one (§2.5) */
+/** the vertex stage: an object-space offset; shadow:true also applies it and the surface mask to shadow depth */
 export interface GraphVertexOffset {
   readonly offset: GraphRef;
   readonly shadow?: boolean;
@@ -851,7 +851,9 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       if (!isRecord(vp)) fail('stages.vertex.position: not an object');
       else {
         for (const key of Object.keys(vp)) if (key !== 'position' && key !== 'shadow') fail(`stages.vertex.position: unknown output ${key}`);
-        if (vp.shadow !== undefined && vp.shadow !== false) fail('stages.vertex.position.shadow: matching shadow variant is not emitted');
+        if (vp.shadow !== undefined && typeof vp.shadow !== 'boolean') fail('stages.vertex.position.shadow: a boolean');
+        if (vp.shadow === true && input.primitive === 'points') fail('stages.vertex.position.shadow: mesh casters only');
+        if (vp.shadow === true && stages['vertex.clip'] !== undefined) fail('stages.vertex.position.shadow: clip-position has no matching shadow camera');
         want(vp.position, 'vertex', 'vec3', 'stages.vertex.position.position');
       }
     }
@@ -860,7 +862,9 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       if (!isRecord(vo)) fail('stages.vertex.offset: not an object');
       else {
         want(vo.offset, 'vertex', 'vec3', 'stages.vertex.offset.offset');
-        if (vo.shadow === true) fail('stages.vertex.offset.shadow: the matching shadow depth variant is not emitted yet (§2.5)');
+        if (vo.shadow !== undefined && typeof vo.shadow !== 'boolean') fail('stages.vertex.offset.shadow: a boolean');
+        if (vo.shadow === true && input.primitive === 'points') fail('stages.vertex.offset.shadow: mesh casters only');
+        if (vo.shadow === true && stages['vertex.clip'] !== undefined) fail('stages.vertex.offset.shadow: clip-position has no matching shadow camera');
       }
     }
     const s = stages.surface;
@@ -976,8 +980,8 @@ function toStages(raw: Raw): GraphStages {
     ...(isRecord(scale) ? { 'vertex.scale': { ...(scale.sun !== undefined ? { sun: toRef(scale.sun) } : {}), ...(scale.fog !== undefined ? { fog: toRef(scale.fog) } : {}) } } : {}),
     ...(isRecord(vn) ? { 'vertex.normal': { normal: toRef(vn['normal']) } } : {}),
     ...(isRecord(clip) ? { 'vertex.clip': { position: toRef(clip.position) } } : {}),
-    ...(isRecord(vp) ? { 'vertex.position': { position: toRef(vp.position), ...(vp.shadow === false ? { shadow: false } : {}) } } : {}),
-    ...(isRecord(vo) ? { 'vertex.offset': { offset: toRef(vo.offset), ...(vo.shadow === false ? { shadow: false } : {}) } } : {}),
+    ...(isRecord(vp) ? { 'vertex.position': { position: toRef(vp.position), ...(typeof vp.shadow === 'boolean' ? { shadow: vp.shadow } : {}) } } : {}),
+    ...(isRecord(vo) ? { 'vertex.offset': { offset: toRef(vo.offset), ...(typeof vo.shadow === 'boolean' ? { shadow: vo.shadow } : {}) } } : {}),
     ...(isRecord(s) ? { surface } : {}),
     ...(isRecord(p) ? { post: { colour: toRef(p.colour) } } : {}),
     ...(isRecord(o) ? { outline: { offset: toRef(o.offset), colour: toRef(o.colour) } } : {}),

@@ -5356,3 +5356,14 @@ clock, body roster, wing draw or RNG is allocated by the circling law.
 `bindDirectorActions(...).validate(saved)` checks the installed immutable
 stage contract and cursor without mutating its lane or calling native ports.
 Use it before an aggregate encounter restore applies any body effects.
+
+### Graph shadow depth
+
+Set `shadow: true` on `vertex.offset` or `vertex.position` to cast with the
+graph's object-space displacement, surface alpha cutoff and discard mask.
+The existing node handler caches one depth variant per material, including
+clones, borrows its live parameters and mapped textures, and uses the actual
+shadow camera without advancing the clock. Explicit custom depth/distance
+materials remain authoritative. Clip-position plus matching shadow is refused:
+a camera-space position cannot be reused in another camera. Absent/false keeps
+the existing stock shadow path. The variant leaves with its source material.
