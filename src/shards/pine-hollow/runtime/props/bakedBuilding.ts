@@ -94,7 +94,7 @@ export interface BakedBuildingTier {
 
 /** The materials a building draws with: its kit materials, its particle programs, its glass and its glow. */
 export interface BakedBuildingMats<K extends string, P extends string> {
-  readonly parts: Readonly<Record<K, THREE.MeshStandardMaterial>>;
+  readonly parts: Readonly<Record<K, THREE.Material>>;
   readonly particles: Readonly<Record<P, THREE.Material>>;
   readonly glass: THREE.MeshStandardMaterial;
   readonly glow: THREE.MeshBasicMaterial;

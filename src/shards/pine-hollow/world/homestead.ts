@@ -7,21 +7,18 @@ import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { paintCanvas } from '@wildshard/sdk/looks/canvasAtlas';
-import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { installMossOverlay } from '../runtime/looks/mossOverlay';
 import { flattenGlbParts, loadLodGlb } from '../runtime/kit/lodGlb';
 import { BuildingLife } from '../runtime/props/buildingLife';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
 import { END_GRAIN_PAINT, GLOW_PAINT } from '../data/cabinPaint';
-import { CABIN_DOOR_EDITS, CABIN_LIFE, CABIN_MOSS_EDITS } from '../data/cabinLook';
+import { CABIN_DOOR_LOOK, CABIN_LIFE, CABIN_MOSS_EDITS } from '../data/cabinLook';
 import { HEARTH_LOOKS } from '../data/hearthLook';
-import { pineLook, setPineLookParam } from '../runtime/looks/graphLooks';
+import { pineLook, pineMappedLook, setPineLookParam } from '../runtime/looks/graphLooks';
 import { mergeParts, type PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind } from './logKit';
 import { pineModels } from './context';
@@ -61,7 +58,7 @@ import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinG
 export interface Mats {
   log: THREE.MeshStandardMaterial; endGrain: THREE.MeshStandardMaterial; chink: THREE.MeshStandardMaterial;
   roof: THREE.MeshStandardMaterial; beam: THREE.MeshStandardMaterial; deck: THREE.MeshStandardMaterial;
-  door: THREE.MeshStandardMaterial; stone: THREE.MeshStandardMaterial; glass: THREE.MeshStandardMaterial;
+  door: THREE.Material; stone: THREE.MeshStandardMaterial; glass: THREE.MeshStandardMaterial;
   bark: THREE.MeshStandardMaterial; iron: THREE.MeshStandardMaterial; cloth: THREE.MeshStandardMaterial;
   char: THREE.MeshStandardMaterial;
   smoke: THREE.Material; flame: THREE.Material; ember: THREE.Material; glow: THREE.MeshBasicMaterial;
@@ -87,19 +84,16 @@ async function loadMats(sky: Sky): Promise<Mats> {
   };
   const m: Mats = {
     log: scan('log'), endGrain: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.endGrain, map: makeEndGrainTexture() }),
-    chink: new THREE.MeshStandardMaterial(CABIN_MATERIALS.chink), roof: scan('roof'), beam: scan('beam'), deck: scan('deck'), door: scan('door'), stone: scan('stone'),
+    chink: new THREE.MeshStandardMaterial(CABIN_MATERIALS.chink), roof: scan('roof'), beam: scan('beam'), deck: scan('deck'),
+    door: pineMappedLook(CABIN_DOOR_LOOK, scan('door')), // the scan pulled toward a weathered grey-brown, over the set's maps (../data/cabinLook.ts)
+    stone: scan('stone'),
     glass: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.glass, emissive: new THREE.Color(...CABIN_GLASS_EMISSIVE) }), bark: scan('bark'),
     iron: new THREE.MeshStandardMaterial(CABIN_MATERIALS.iron), cloth: new THREE.MeshStandardMaterial(CABIN_MATERIALS.cloth), char: new THREE.MeshStandardMaterial(CABIN_MATERIALS.char),
     smoke: pineLook(HEARTH_LOOKS.smoke), flame: pineLook(HEARTH_LOOKS.flame), ember: pineLook(HEARTH_LOOKS.ember),
     glow: new THREE.MeshBasicMaterial({ map: makeGlowTexture(), color: 0xff7a1a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
   };
   for (const row of CABIN_MOSS_BINDINGS) installMossOverlay(m[row.key], { id: 'pine.cabin-moss', key: 'cabin-moss', sunDir: sky.sunDir, strength: row.strength, upOnly: row.upOnly, edits: CABIN_MOSS_EDITS });
-  // the rough_pine_door scan is a saturated orange-red: pull it toward a weathered grey-brown in the shader
-  patchShader(m.door, 'pine.cabin-door', PATCH_ORDER.material, (shader) => {
-    attachFogUniforms(shader);
-    editShader(shader, CABIN_DOOR_EDITS); // ../data/cabinLook.ts
-  }, { mode: 'replace', key: 'cabin-door' });
-  for (const k of ['log', 'endGrain', 'chink', 'roof', 'beam', 'deck', 'door', 'stone', 'glass', 'bark', 'iron', 'cloth', 'char'] as const) sky.setupMaterial(m[k]);
+  for (const k of ['log', 'endGrain', 'chink', 'roof', 'beam', 'deck', 'stone', 'glass', 'bark', 'iron', 'cloth', 'char'] as const) sky.setupMaterial(m[k]);
   return m;
 }
 

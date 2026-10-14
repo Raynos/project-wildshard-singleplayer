@@ -1,14 +1,25 @@
-// Pine Hollow's cabin looks as data (SHARD-PLATFORM M3, look-family rows): the door's and the moss overlay's edits of the
-// standard material (world/homestead.ts applies them through @wildshard/sdk/looks/shaderEdits inside its patches) and how
-// the homestead moves and lights (CABIN_LIFE: @wildshard/sdk/props/buildingLife).
+// Pine Hollow's cabin looks as data (SHARD-PLATFORM M3, look-family rows): the door's SF59 material graph (worn over its
+// rough_pine_door PBR set, world/homestead.ts), the moss overlay's edits of the standard material (applied through
+// @wildshard/sdk/looks/shaderEdits inside its patches) and how the homestead moves and lights (CABIN_LIFE:
+// @wildshard/sdk/props/buildingLife).
+import type { GraphIr } from '@wildshard/format/materialGraph';
 import type { BuildingLifeLook } from '../runtime/props/buildingLife';
 import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
 
-/** the rough_pine_door scan is a saturated orange-red: pulled toward a weathered grey-brown */
-export const CABIN_DOOR_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'fragment', find: '#include <map_fragment>', put: `#include <map_fragment>
-      diffuseColor.rgb = mix(vec3(dot(diffuseColor.rgb, vec3(0.333))), diffuseColor.rgb, 0.45) * vec3(0.9, 0.95, 1.0);` },
-];
+/** the look.materials id the cabin doors wear */
+export const CABIN_DOOR_LOOK = 'pine-cabin-door';
+
+/**
+ * The door leaf: the rough_pine_door scan (a saturated orange-red, its `meshMap` under the set's tint) pulled toward a
+ * weathered grey-brown; its normal, roughness and AO maps are borrowed from the set's material (`bindMeshMap`), the
+ * graph's roughness and occlusion of 1 leaving them as they are.
+ */
+export const CABIN_DOOR_GRAPHS: Readonly<Record<string, GraphIr>> = {
+  [CABIN_DOOR_LOOK]: { version: 1, kind: 'material', model: 'standard',
+    nodes: { mm: { op: 'meshMap' }, scan: { op: 'swizzle', in: ['mm'], mask: 'xyz' }, c: { op: 'mul', in: ['scan', [0.72, 0.68, 0.62]] },
+      l: { op: 'dot', in: ['c', [0.333, 0.333, 0.333]] }, grey: { op: 'mix', in: ['l', 'c', 0.45] }, colour: { op: 'mul', in: ['grey', [0.9, 0.95, 1]] } },
+    stages: { surface: { colour: 'colour', roughness: 1, metalness: 0, occlusion: 1 } } },
+};
 
 /**
  * Procedural moss / lichen overlay: value-noise patches in world space, denser where the `moss` vertex attribute is high
