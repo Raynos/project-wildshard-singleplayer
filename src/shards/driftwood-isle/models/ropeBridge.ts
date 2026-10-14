@@ -18,9 +18,12 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
+import { BRIDGE_SPANS } from '../data/bridgeRows';
+import { admitBridgeFacts } from '../boot/bridgeFacts';
+import { staticColliders } from '../runtime/boot/staticColliders';
 import { defineModel } from '@wildshard/engine/models/model';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 export interface RopeBridgeSpec { a: [number, number]; b: [number, number]; /** metres the middle hangs below the straight line */ sag?: number; width?: number }
@@ -31,26 +34,10 @@ export interface DeckPoses { pose: (i: number, alpha: number, p: { x: number; y:
 /** one deck segment at rest: centre, rotation (local +z along the span, +y up), half length */
 export interface DeckSegment { x: number; y: number; z: number; rot: { x: number; y: number; z: number; w: number }; hz: number }
 
-const C = { post: new THREE.Color('#6f5638'), plank: new THREE.Color('#a07c53'), plankDark: new THREE.Color('#7d5f3f'), rope: new THREE.Color('#d2bd85') };
+const C = { post: new THREE.Color('#6f5638'), rope: new THREE.Color('#d2bd85') };
 /** a deck segment's length before it is fitted to the span (m), its half thickness, its weight (kg) */
-const SEG_LEN = 0.9, SEG_HY = 0.05, SEG_KG = 14;
+const SEG_HY = 0.05, SEG_KG = 14;
 
-/** Exact rest poses shared by today's model and its trusted data export; no material or renderer is needed. */
-export function ropeBridgeSegments(spec: RopeBridgeSpec, ground: (x: number, z: number) => number): DeckSegment[] {
-  const { a, b } = spec, ya = ground(a[0], a[1]) + 0.35, yb = ground(b[0], b[1]) + 0.35;
-  const len = Math.hypot(b[0] - a[0], b[1] - a[1]), dx = (b[0] - a[0]) / len, dz = (b[1] - a[1]) / len;
-  const n = Math.max(6, Math.round(len / SEG_LEN)), yaw = Math.atan2(dx, dz), sag = spec.sag ?? 1;
-  const q = new THREE.Quaternion(), e = new THREE.Euler(0, 0, 0, 'YXZ'), up = new THREE.Vector3();
-  const top = (t: number) => ya + (yb - ya) * t - sag * 4 * t * (1 - t) + 0.03;
-  const out: DeckSegment[] = [];
-  for (let i = 0; i < n; i++) {
-    const t0 = i / n, t1 = (i + 1) / n, y0 = top(t0), y1 = top(t1), run = len / n;
-    q.setFromEuler(e.set(-Math.atan2(y1 - y0, run), yaw, 0)); up.set(0, 1, 0).applyQuaternion(q);
-    const sm = (t0 + t1) / 2 * len;
-    out.push({ x: a[0] + dx * sm - up.x * SEG_HY, y: (y0 + y1) / 2 - up.y * SEG_HY, z: a[1] + dz * sm - up.z * SEG_HY, rot: { x: q.x, y: q.y, z: q.z, w: q.w }, hz: Math.hypot(run, y1 - y0) / 2 });
-  }
-  return out;
-}
 
 const _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _m = new THREE.Matrix4(), _s = new THREE.Vector3();
 const _v = new THREE.Vector3(), _a = new THREE.Vector3(), _b = new THREE.Vector3(), _d = new THREE.Vector3(), _y = new THREE.Vector3(0, 1, 0);
@@ -75,18 +62,18 @@ class RopeBridgeBuilder {
   /** own-space colliders (the legacy boxes and the static floors), handed to the model */
   descs: ColliderDesc[] = [];
 
-  constructor(private sky: Sky, private spec: RopeBridgeSpec, private readonly ground: (x: number, z: number) => number) { this.o = ropeBridgeOrigin(spec, ground); }
+  private readonly facts: ReturnType<typeof admitBridgeFacts>;
+  constructor(private sky: Sky, private spec: RopeBridgeSpec, private readonly ground: (x: number, z: number) => number) { this.facts = admitBridgeFacts(spec, ground); this.o = {...this.facts.origin}; }
 
   /** plank height at span fraction t (0 at a → 1 at b), at rest */
   private deckY(t: number) { return this.ya + (this.yb - this.ya) * t - this.sag * 4 * t * (1 - t); }
 
   build(): this {
     const rng = new Rng(SEED ^ 0xb21d);
-    const { a, b } = this.spec;
-    this.width = this.spec.width ?? 1.4; this.sag = this.spec.sag ?? 1.0;
-    this.ya = this.ground(a[0], a[1]) + 0.35; this.yb = this.ground(b[0], b[1]) + 0.35;
-    this.len = Math.hypot(b[0] - a[0], b[1] - a[1]);
-    this.dir.set((b[0] - a[0]) / this.len, (b[1] - a[1]) / this.len);
+    const { a } = this.spec;
+    const facts=this.facts;
+    this.width=facts.width;this.sag=facts.sag;this.ya=facts.ya;this.yb=facts.yb;this.len=facts.len;
+    this.dir.set(facts.direction.x,facts.direction.z);
     const side = new THREE.Vector2(-this.dir.y, this.dir.x);
     const hw = this.width / 2;
     const at = (t: number, s: number, dy: number) => new THREE.Vector3(a[0] + this.dir.x * this.len * t + side.x * s, this.deckY(t) + dy, a[1] + this.dir.y * this.len * t + side.y * s);
@@ -104,7 +91,6 @@ class RopeBridgeBuilder {
       for (let i = 0; i < n; i += 3) { const k = 0.94 + rng.next() * 0.12; for (let j = 0; j < 3; j++) { c[(i + j) * 3] = C.post.r * k; c[(i + j) * 3 + 1] = C.post.g * k; c[(i + j) * 3 + 2] = C.post.b * k; } }
       ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
       parts.push(ni);
-      this.colliders.push({ x: p.x, z: p.z, hw: 0.18, hd: 0.18, rot: 0, yTop: y + 1.3, yBottom: gy - 1 });
     }
     const postMat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.88, metalness: 0 });
     this.sky.setupMaterial(postMat);
@@ -115,32 +101,16 @@ class RopeBridgeBuilder {
     this.mesh.add(posts);
 
     // ── the deck at rest: one segment per chord of the sag, its top face on the catenary ──
-    const n = Math.max(6, Math.round(this.len / SEG_LEN));
-    const yaw = Math.atan2(this.dir.x, this.dir.y);
-    const e = new THREE.Euler(0, 0, 0, 'YXZ'), up = new THREE.Vector3();
-    const top = (t: number) => this.deckY(t) + 0.03;
-    for (let i = 0; i < n; i++) {
-      const t0 = i / n, t1 = (i + 1) / n, y0 = top(t0), y1 = top(t1), run = this.len / n;
-      _q.setFromEuler(e.set(-Math.atan2(y1 - y0, run), yaw, 0));
-      up.set(0, 1, 0).applyQuaternion(_q);
-      const sm = (t0 + t1) / 2 * this.len;
-      this.segs.push({ x: a[0] + this.dir.x * sm - up.x * SEG_HY, y: (y0 + y1) / 2 - up.y * SEG_HY, z: a[1] + this.dir.y * sm - up.z * SEG_HY, rot: { x: _q.x, y: _q.y, z: _q.z, w: _q.w }, hz: Math.hypot(run, y1 - y0) / 2 });
-      const h = new THREE.Object3D();
-      h.matrixAutoUpdate = false;
-      this.mesh.add(h); this.holders.push(h);
-    }
+    this.segs=structuredClone(facts.segments);
+    for(let i=0;i<this.segs.length;i++){const h=new THREE.Object3D();h.matrixAutoUpdate=false;this.mesh.add(h);this.holders.push(h);}
+    const n=this.segs.length;
     this.live = new Float32Array(n + 1);
-
-    // ── planks (~0.42 m apart, two or three per segment) and ropes: instanced, posed from the segments ──
-    this.segs.forEach((sg, i) => {
-      const k = Math.max(1, Math.round(sg.hz * 2 / 0.42));
-      for (let j = 0; j < k; j++) this.plankSpecs.push({ seg: i, z: -sg.hz + (j + 0.5) * (sg.hz * 2 / k), w: this.width + 0.2 + rng.range(-0.04, 0.04) });
-    });
+    this.plankSpecs=structuredClone(facts.planks);
     const plankMat = new THREE.MeshStandardMaterial({ flatShading: true, roughness: 0.88, metalness: 0 });
     this.sky.setupMaterial(plankMat);
     this.planks = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), plankMat, this.plankSpecs.length);
     const col = new THREE.Color();
-    this.plankSpecs.forEach((_, i) => { this.planks.setColorAt(i, col.copy(i % 3 === 0 ? C.plankDark : C.plank).multiplyScalar(0.94 + rng.next() * 0.12)); });
+    facts.colours.forEach((c,i)=>{this.planks.setColorAt(i,col.setRGB(c.r,c.g,c.b));});
     const ropeMat = new THREE.MeshStandardMaterial({ color: C.rope, flatShading: true, roughness: 0.9, metalness: 0 });
     this.sky.setupMaterial(ropeMat);
     this.ropes = new THREE.InstancedMesh(new THREE.CylinderGeometry(1, 1, 1, 4, 1, true).translate(0, 0.5, 0), ropeMat, 2 * (2 * n + Math.ceil(n / 2)));
@@ -151,13 +121,7 @@ class RopeBridgeBuilder {
       this.mesh.add(m);
     }
 
-    // rail colliders in three sagging segments (static: the handrails bow a hand's width at most)
-    for (const s of [-1, 1]) {
-      for (let i = 0; i < 3; i++) {
-        const t0 = i / 3, t1 = (i + 1) / 3, mid = at((t0 + t1) / 2, s * (hw + 0.12), 0);
-        this.colliders.push({ x: mid.x, z: mid.z, hw: 0.06, hd: this.len / 6, rot: -yaw, yTop: Math.max(this.deckY(t0), this.deckY(t1)) + 1.1, yBottom: Math.min(this.deckY(t0), this.deckY(t1)) - 0.5 });
-      }
-    }
+    this.colliders=structuredClone(facts.colliders);
     this.setPoses(null, 1);
     // own-space colliders for the model (the world's are these placed back at the origin)
     const o = this.o;
@@ -224,61 +188,14 @@ class RopeBridgeBuilder {
     return (this.live[i] ?? 0) * (1 - f) + (this.live[i + 1] ?? 0) * f + this.o.y; // the live joints are own space
   }
 
-  /** one walk slab along the span from s0 to s1 metres (its top on the rest catenary), as a ColliderDesc */
-  private slab(s0: number, s1: number): ColliderDesc {
-    const { a } = this.spec;
-    const floor = (s: number) => this.deckY(Math.min(1, Math.max(0, s / this.len))) + 0.03;
-    const yaw = Math.atan2(this.dir.x, this.dir.y), hx = this.width / 2 + 0.15, hy = 0.1, over = 0.02;
-    const y0 = floor(s0), y1 = floor(s1);
-    const run = s1 - s0, pitch = Math.atan2(y1 - y0, run), chord = Math.hypot(run, y1 - y0);
-    const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(-pitch, yaw, 0, 'YXZ'));
-    const up = new THREE.Vector3(0, 1, 0).applyQuaternion(q);
-    const sm = (s0 + s1) / 2, ym = (y0 + y1) / 2;
-    return {
-      kind: 'box', hx, hy, hz: chord / 2 + over,
-      x: a[0] + this.dir.x * sm - up.x * hy, y: ym - up.y * hy, z: a[1] + this.dir.y * sm - up.z * hy,
-      rot: { x: q.x, y: q.y, z: q.z, w: q.w },
-    };
-  }
+  /** Fresh native post, rail and end-tread descriptors from the authored rest plan. */
+  colliderDescs(): ColliderDesc[] { return staticColliders(this.facts.descs); }
+  /** Static rest slabs for navmesh and trail probes; live collision remains the RopeChain. */
+  deckDescs(): ColliderDesc[] { return staticColliders(this.facts.deck); }
 
-  /**
-   * PHYSICS P4: this builder's static collision in world space — the posts and rails (the legacy boxes), the flat
-   * 0.3 m overhangs at both ends, and a tread in front of each end. The span itself is the RopeChain (`chainSpec`);
-   * `deckDescs` is that span at rest, for the navmesh bake and the trail probes.
-   */
-  colliderDescs(): ColliderDesc[] {
-    const out: ColliderDesc[] = this.colliders.map((c) => boxDesc(c));
-    const { a } = this.spec;
-    const floor = (s: number) => this.deckY(Math.min(1, Math.max(0, s / this.len))) + 0.03;
-    const yaw = Math.atan2(this.dir.x, this.dir.y), hx = this.width / 2 + 0.15;
-    out.push(this.slab(-0.3, 0), this.slab(this.len, this.len + 0.3));
-    // the ends stand 0.36–0.39 m over the ground (a: ya is ground + 0.35, plus the 3 cm plank; b: one side of the path
-    // falls away), which the old 0.5 m step-up climbed and the 0.35 m autostep may not: one tread, 0.4 m deep, just
-    // outside each end, 0.19 m under the deck, down into the ground
-    for (const [s0, s1] of [[-0.7, -0.3], [this.len + 0.3, this.len + 0.7]] as const) {
-      const topY = floor(s0 < 0 ? 0 : this.len) - 0.19, sm = (s0 + s1) / 2, side = new THREE.Vector2(-this.dir.y, this.dir.x);
-      let lo = topY;
-      for (const sa of [s0, s1]) for (const c of [-hx, hx]) lo = Math.min(lo, this.ground(a[0] + this.dir.x * sa + side.x * c, a[1] + this.dir.y * sa + side.y * c));
-      const th = (topY - (lo - 0.3)) / 2;
-      out.push({ kind: 'box', x: a[0] + this.dir.x * sm, y: topY - th, z: a[1] + this.dir.y * sm, hx, hy: th, hz: (s1 - s0) / 2, yaw });
-    }
-    return out;
-  }
-
-  /** the span at rest as static slabs (≤ 1 m each, running 2 cm into each other): what the navmesh bake walks */
-  deckDescs(): ColliderDesc[] {
-    const n = Math.ceil(this.len / 1.0), out: ColliderDesc[] = [];
-    for (let i = 0; i < n; i++) out.push(this.slab((i / n) * this.len, ((i + 1) / n) * this.len));
-    return out;
-  }
 }
 
 export type RopeBridgeLayout = Pick<RopeBridgeBuilder, 'o' | 'colliders' | 'descs' | 'chainSpec' | 'setPoses' | 'floorHeightAt' | 'colliderDescs' | 'deckDescs' | 'mesh'>;
-
-/** the site's origin: end a on the ground (a float32 value, so moving the geometry to own space and back is exact) */
-export function ropeBridgeOrigin(spec: RopeBridgeSpec, ground: (x: number, z: number) => number): { x: number; y: number; z: number } {
-  return { x: spec.a[0], y: Math.fround(ground(spec.a[0], spec.a[1])), z: spec.a[1] };
-}
 
 export interface RopeBridgeParams {
   readonly span: RopeBridgeSpec;
@@ -287,7 +204,7 @@ export interface RopeBridgeParams {
 }
 
 /** a specimen's span: 12 m over flat ground from the origin along +x, sagging 0.9 m */
-const ORIGIN: RopeBridgeSpec = { a: [0, 0], b: [12, 0], sag: 0.9 };
+const ORIGIN = BRIDGE_SPANS.specimen;
 const FLAT = (): number => 0;
 /** each placement's builder, by its span (a `place` builds it for its group; its colliders and the world's chain read the same one) */
 const built = new WeakMap<RopeBridgeSpec, RopeBridgeBuilder>();

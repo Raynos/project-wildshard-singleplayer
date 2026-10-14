@@ -7,7 +7,7 @@ import { BOAT_MOOR, BRIDGE } from '../manifest';
 import { LOWERED_SEA, WORLD_DROP } from '../world/sea';
 import { driftwoodGroundField } from './groundRows';
 import { boatColliders } from '../models/boat';
-import { ropeBridgeSegments } from '../models/ropeBridge';
+import { ropeBridgeSegments } from './ropeBridge';
 
 /** Movers run only in SF46's hybrid world, lowered as one by WORLD_DROP (G164): the boat rides the lowered sea at its
  *  mooring by the pier, the rope bridge hangs between the lowered banks. This build-only capture runs in Node, where no

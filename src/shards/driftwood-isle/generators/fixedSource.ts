@@ -8,6 +8,7 @@ import { TROPHY_LAYOUT } from '../data/trophyLayout';
 import { counterGeometry } from './tradeCounter';
 import { ironSwordGeometry } from './ironSword';
 import { coverGeometry } from './groundCover';
+import { originalBridgeFacts } from './driftwoodBridge.mjs';
 import { originalTrailside } from './driftwoodTrailside.mjs';
 import { originalCove } from './driftwoodCove.mjs';
 import { originalHut, originalLookout } from './driftwoodHut.mjs';
@@ -55,5 +56,6 @@ export function driftwoodFixedSource(): {
   }
   for(const [part,geometry] of Object.entries(shrine.specimen.geometry))geometries.set(`shrine-specimen-${part}`,geometry);
   rows['shrineBake']={world:shrine.world.rows,specimen:shrine.specimen.rows};
+  rows['bridgeBake']=originalBridgeFacts();
   return { geometries, world, rows };
 }

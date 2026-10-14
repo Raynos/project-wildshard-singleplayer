@@ -1,3 +1,4 @@
+import { BRIDGE_SPANS } from './data/bridgeRows';
 import { SHRINE_SITES } from './data/shrineSites';
 import { WRECK_SITES } from './data/wreckSites';
 import { DRIFTWOOD_BUDGET_INPUTS } from './budgets';
@@ -98,7 +99,7 @@ export const WRECK = WRECK_SITES.world;
 export const SHRINE = SHRINE_SITES.world;
 /** the tidal creek across the hut → lookout path (a ravine cut below sea level, so the lagoon runs into it) and the rope bridge over it */
 export const GULLY = { x: 24, z: 22, width: 11, depth: 7, length: 64 };
-export const BRIDGE = { a: [16, 14] as [number, number], b: [32, 30] as [number, number], sag: 0.9 };
+export const BRIDGE = BRIDGE_SPANS.world;
 /** the lookout tower on the headland summit (rot: the stair faces south-west, toward the hut) */
 export const LOOKOUT = { x: HEADLAND.x - 4, z: HEADLAND.z - 2, rot: 0.6 };
 
