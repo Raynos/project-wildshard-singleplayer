@@ -1,9 +1,11 @@
 // The same retained terrain binding as the native level: original WSTR samples plus its authored datum.
 // Explicit function call only; import selects no world, service or level.
 import { readFileSync } from 'node:fs';
+import { Vector3 } from 'three';
 import { addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { driftwoodGroundSampler } from './groundSampling.ts';
 import { coveGeometry } from './cove.ts';
+import { coveNative } from './coveNative.ts';
 import { coveSpecKey, islandCoveSpec } from '../world/coveLayout.ts';
 
 export function originalCove() {
@@ -14,10 +16,13 @@ export function originalCove() {
     const spec = islandCoveSpec(), built = coveGeometry(spec, ground);
     return {
       geometry: built.geometry,
-      metadata: { specKey: coveSpecKey(spec), placements: built.placements.map(row => ({
-        matrix: row.m.toArray(), matrixNegativeZero: row.m.elements.flatMap((value, index) => Object.is(value, -0) ? [index] : []),
-        r: row.r, squash: row.squash, moss: row.moss, min: row.box.min.toArray(), max: row.box.max.toArray(),
-      })) },
+      metadata: { specKey: coveSpecKey(spec), native:coveNative(spec,ground), catalogue: {
+        placements: built.placements.map(row => {
+          const at = new Vector3().setFromMatrixPosition(row.m);
+          return { x:at.x,y:at.y,z:at.z,params:{r:row.r,squash:row.squash,moss:row.moss} };
+        }),
+        boxes: built.placements.flatMap(row => [row.box.min.x,row.box.min.y,row.box.min.z,row.box.max.x,row.box.max.y,row.box.max.z]),
+      } },
     };
   } finally { release(); }
 }

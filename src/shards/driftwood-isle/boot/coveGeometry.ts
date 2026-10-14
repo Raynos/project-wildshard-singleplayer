@@ -1,4 +1,5 @@
-import { Box3, Matrix4, Vector3, type BufferGeometry } from 'three';
+import type { BufferGeometry } from 'three';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { modelGeometry } from '../runtime/boot/modelGeometry';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
 import bake from '../data/coveBake.json' with { type: 'json' };
@@ -24,7 +25,8 @@ export async function loadCoveGeometry(bytes?: ReadonlyMap<string, Uint8Array | 
 /** The authored island is one admitted layout. Refuse a different spec rather than draw geometry with mismatched collision. */
 export function copyCoveGeometry(spec: CoveSpec): {
   geometry: Record<keyof typeof templates, BufferGeometry>;
-  placements: { m: Matrix4; r: number; squash: number; moss: number; box: Box3 }[];
+  catalogue: typeof bake.catalogue;
+  native: typeof bake.native;
 } {
   if (coveSpecKey(spec) !== bake.specKey) throw new Error('Cove layout changed; regenerate its fixed geometry');
   return {
@@ -32,12 +34,19 @@ export function copyCoveGeometry(spec: CoveSpec): {
       structure: templates.structure.copy(), rocks: templates.rocks.copy(),
       glow: templates.glow.copy(), pools: templates.pools.copy(),
     },
-    placements: bake.placements.map(row => {
-      const m = new Matrix4().fromArray(row.matrix);
-      // JSON normalizes -0. Retain those matrix entries too, so every placement number matches the builder.
-      for (const index of row.matrixNegativeZero) m.elements[index] = -0;
-      return { m, r: row.r, squash: row.squash, moss: row.moss,
-        box: new Box3(new Vector3().fromArray(row.min), new Vector3().fromArray(row.max)) };
-    }),
+    catalogue: bake.catalogue,
+    native:bake.native,
   };
+}
+
+const n=(v:number|undefined):number=>{if(v===undefined||!Number.isFinite(v))throw new Error('Cove collider lacks a finite value');return v;};
+const point=(v:{x:number;y:number;z:number}|undefined):{x:number;y:number;z:number}=>{if(v===undefined)throw new Error('Cove stair lacks an endpoint');return {x:n(v.x),y:n(v.y),z:n(v.z)};};
+/** Fresh native descriptors from the admitted static cave facts. */
+export function coveColliderDescs(): ColliderDesc[] {
+  return bake.native.descs.map((d):ColliderDesc=>{
+    if(d.surface!=='rock')throw new Error('Unexpected cave collider surface');
+    if(d.kind==='treads')return {kind:'treads',from:point(d.from),to:point(d.to),width:n(d.width),count:n(d.count),surface:'rock'};
+    if(d.kind==='box')return {kind:'box',x:n(d.x),y:n(d.y),z:n(d.z),hx:n(d.hx),hy:n(d.hy),hz:n(d.hz),yaw:n(d.yaw),surface:'rock'};
+    throw new Error('Unexpected cave collider shape');
+  });
 }
