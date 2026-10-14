@@ -1,6 +1,6 @@
 import STATIC_SCENES from '../data/staticScenes.generated.json' with { type: 'json' };
 import ISLET_SCENES from '../data/isletScenes.generated.json' with { type: 'json' };
-import { ISLE_DRAWS } from '../data/isleLook';
+import { SKY_GROUND } from '../data/groundScene.generated';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type Piece } from '@wildshard/engine/world/registry';
 import { bindClientChannels, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
@@ -11,12 +11,11 @@ import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' 
 import { SKY_LIBRARY, skyHd } from './meshes';
 import { skyLook, skyMappedLook } from './looks';
 import { Group, Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, NOTES, SPANS, SUNREST, UPDRAFT, VANES, WINCH } from '../data/layout';
+import { CROWN, FALLEN_BRIDGE, NOTES, SPANS, SUNREST, UPDRAFT, VANES, WINCH } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { islandMesh, staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
-import { ISLE_KEEL_CUT } from '../data/skyIsles';
-import { WORLD, skyBakedGeometry, skyBakedPiece, skyKnollHulls, skyPieces } from './baked';
+import { WORLD, skyBakedGeometry, skyBakedPiece, skyPieces } from './baked';
 import { PALETTE, flat } from './materials';
 import { ropeBridge, vane, windmill } from './shapes';
 import { bookStand } from './bookStand';
@@ -56,14 +55,6 @@ export interface BuiltWorld {
 }
 
 /**
- * How far under its deck a playable island's code keel is cut away (the textured keel model carries the rock below), and
- * where that model's turf sits under the deck. The windmill isle (round 6: under A's bridge a dark wall where the mockups
- * show lit cloud; they stand the mill on a rooted spur): a short lip over a narrower keel that overlaps it.
- */
-// (round 13, seat A 5: 'the broad faceted apron below the deck': the code band was 3.2 m, 1.6 on the mill isle; the
-// modelled rock now starts just under the turf)
-const CUT = ISLE_KEEL_CUT;
-/**
  * The world, with SF49-g's four Rising Islet entries (G183; the only way in since G194), built a piece (or a few small
  * ones) per task (op-hitch41: a grid cell builds it on the road, in play, where the whole build was one 366 ms task on
  * the iOS Simulator). The same pieces in the same order, the same seeded draws. `pause` ends a piece's task (the plugin's
@@ -73,28 +64,12 @@ const CUT = ISLE_KEEL_CUT;
 export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, isles: IsleMeshes, looks: { readonly deck: Material; readonly frame: Material; readonly channels: Parameters<typeof bindClientChannels>[0] }): Promise<BuiltWorld> {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const pieces = skyPieces(ctx.piece, root), spanColliders = (id: string) => pieces.colliders(id,'wood'), propColliders = pieces.colliders;
-  const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
-    keeper: STRINGS.keeper, ruin: STRINGS.ruin, step: STRINGS.step, crown: STRINGS.crown };
-  // SF49-g (G183): the four gate isles join the islands (every shape baked, generators/isles.ts; drawn from the props tiles,
-  // generators/isleProps.ts, each at its own position); a playable island still takes its ISLE_DRAWS cosmetic values, so
-  // every draw after the islands is unchanged
-  for (const isle of [...ISLES, ...RISING_ISLETS.map(entry => entry.gate)]) {
-    // the code keel ends a little under the lip (E399 round 3, item 2: 'under the bridge a grey-green cliff wall where the
-    // mockups show open cloud'): the textured keel model below (far.isle-keels) is the rock you see, narrower, with sky
-    // round it; the top, the lip and every collider are unchanged (a gate isle has no keel model: its code keel stays whole)
-    const gate = RISING_ISLETS.map(entry => entry.gate).includes(isle), mesh = staticIsle(isles, isle.id, gate ? 'isle-paint' : CUT[isle.id] === undefined ? 'isle-paint-cut' : 'isle-paint-cut-mill'); root.add(mesh);
-    if (!gate) for (let i = 0; i < ISLE_DRAWS; i++) rnd();
-    ctx.piece({ id: `far.isle.${isle.id}`, name: names[isle.id] ?? (gate ? STRINGS.gateIsle : isle.id), category: 'ground', file: FILE, object: mesh, colliders: pieces.colliders(`far.isle.${isle.id}`,'grass'), surface: 'grass' });
-    await pause();
-  }
-  // the grassy rises (E399: proposal B's hill on the bridge's axis, mockup D's look down into the arena), walkable on their hulls
-  // (SF72: built offline, generators/knoll.ts → baked/knolls.glb; each collided by its rows' hull)
-  const knolls = skyBakedPiece('knolls'), hulls = skyKnollHulls();
-  for (const k of KNOLLS) {
-    const isle = ISLES.find((i) => i.id === k.isle), hull = hulls.get(k.id); if (isle === undefined || hull === undefined) continue;
-    const knoll = knolls.kinds.get(k.id) ?? new Group(); knoll.name = `far.knoll.${k.id}`; root.add(knoll);
-    ctx.piece({ id: `far.${k.id}.knoll`, name: names[isle.id] ?? isle.id, category: 'ground', file: FILE, object: knoll, colliders: [hull], surface: 'grass' });
-  }
+  const ground = createWorldScene(SKY_GROUND.recipe, {
+    geometry: SKY_LIBRARY.geometry, model: SKY_LIBRARY.model, baked: WORLD.object,
+    objects: new Map(SKY_GROUND.isles.map(row => [`isle.${row.id}`, staticIsle(isles, row.id, row.look)])),
+  });
+  for (let i = 0; i < SKY_GROUND.cosmeticDraws; i++) rnd();
+  await pieces.scene(ground, SKY_GROUND.bindings, pause);
   await pause();
   const staticRows = skyPlacements(ctx.cube);
   const models = new Map(staticRows.models.map(name => [name, skyHd(name)]));

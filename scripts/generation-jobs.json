@@ -11778,6 +11778,50 @@
       "buildOutputs": {
         "public/assets/sunscar-dunes/baked/rest-fire.glb": "9a0dfb440ed07bf4338467add4ea7c0941b62294c1ae7efd4a9802d776eb1f42"
       }
+    },
+    {
+      "id": "sky-ground-scene",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/groundScene.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/groundScene.ts",
+        "skyGroundSource",
+        "src/shards/far-reach/data/groundScene.generated.ts",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/generators/groundScene.ts",
+        "src/shards/far-reach/generators/risingIslets.ts",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/isleLook.ts",
+        "src/shards/far-reach/data/skyIsles.ts",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/data/isletDesign.ts",
+        "src/shards/far-reach/data/knolls.json",
+        "src/format/clientChannels.ts",
+        "src/format/json.ts",
+        "src/format/portalLink.ts",
+        "src/format/socketLift.ts",
+        "src/sdk/entries.ts",
+        "src/sdk/sceneTransform.ts",
+        "src/shards/far-reach/data/skyLook.ts",
+        "src/shards/far-reach/data/skyMapSources.json"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/groundScene.generated.ts"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/groundScene.generated.ts"
+      ],
+      "platform": "portable"
     }
   ]
 }

@@ -1,11 +1,11 @@
 import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
 import BRIDGE_PHYSICS from '../data/bridgePhysics.generated.json' with { type:'json' };
 import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type:'json' };
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { bakedMeshWorld, worldPieces, type BakedMeshKindRow, type DrawnBakedMeshPiece, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
 import { BufferGeometry, type Mesh, type Object3D } from 'three';
 import { SKY_PIECES } from '../data/pieces';
-import { WORLD_BAKES, SKY_KNOLL_HULLS } from '../data/worldBakes';
+import { WORLD_BAKES } from '../data/worldBakes';
+import { SKY_GROUND_COLLIDERS } from '../data/groundScene.generated';
 import { BAKED_URLS, WORLD_BYTES, type BakedPiece } from '../data/files';
 import { shackMaterial, type ShackKind } from './shack';
 import { isleMaterial, setIslePack } from './isle';
@@ -45,11 +45,6 @@ export const skyMeadowBlades = (): Uint8Array | undefined => WORLD.bytes('blades
  */
 export const skyBakedPiece = (piece: BakedPiece, nodes?: ReadonlyMap<string, Mesh>): DrawnBakedMeshPiece => WORLD.piece(piece, { nodes });
 
-/** The knolls' hull colliders by knoll id (the rows' `hulls`: the SDK's baked collider rows are boxes), on the meadow. */
-export function skyKnollHulls(): ReadonlyMap<string, ColliderDesc> {
-  return new Map(SKY_KNOLL_HULLS.map((h) => [h.id, { kind: 'hull', x: h.x, y: h.y, z: h.z, points: new Float32Array(h.points), surface: 'grass' } satisfies ColliderDesc]));
-}
-
 /**
  * One of the baked shapes Sky Reach instances itself (`generators/geometries.ts`: the grass clump, the daisy, the boulder,
  * the code pine, the fir, the falls' sheet): a copy its caller owns, unindexed as built; empty when the bake did not load.
@@ -62,4 +57,4 @@ export function skyBakedGeometry(kind: 'clump' | 'flower' | 'boulder' | 'pine' |
 }
 
 /** Sky's world pieces (data/pieces.ts) placed under `root` and registered, the baked ones drawn from the loaded bake. */
-export const skyPieces = (register: Parameters<typeof worldPieces>[0], root: Object3D): WorldPieces => worldPieces(register, root, SKY_PIECES, (piece) => skyBakedPiece(piece), [...BRIDGE_PHYSICS,...PLACEMENTS]);
+export const skyPieces = (register: Parameters<typeof worldPieces>[0], root: Object3D): WorldPieces => worldPieces(register, root, SKY_PIECES, (piece) => skyBakedPiece(piece), [...BRIDGE_PHYSICS,...PLACEMENTS,...SKY_GROUND_COLLIDERS]);

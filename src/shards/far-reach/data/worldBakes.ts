@@ -13,5 +13,3 @@ import dressing from './dressing.json' with { type: 'json' };
 /** Authored static kind, pose, material and collider rows, in their original preload order. */
 export const WORLD_BAKES = { 'winch-house': winchHouse, roost, docks, crown, mill, 'book-stand': bookStand,
   knolls, geometries, 'islet-rig': isletRig, dressing } as const satisfies Readonly<Record<BakedPiece, unknown>>;
-/** Declared hull point rows for the walkable rises. */
-export const SKY_KNOLL_HULLS = knolls.hulls;

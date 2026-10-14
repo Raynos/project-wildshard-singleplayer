@@ -1,5 +1,6 @@
 import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from './layout';
 import { STRINGS } from './strings';
+import { SKY_GROUND } from './groundScene.generated';
 
 const FILE = 'src/shards/far-reach/world/build.ts';
 /**
@@ -8,6 +9,7 @@ const FILE = 'src/shards/far-reach/world/build.ts';
  * the three vanes, the crown arena, and the winch house and the Roost's nest drawn straight from the bake.
  */
 export const SKY_PIECES = [
+  ...SKY_GROUND.registry,
   { id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE },
   { id: 'far.pines', name: STRINGS.pines, category: 'props', file: FILE },
   { id: 'far.dressing', name: STRINGS.meadow, category: 'props', file: FILE },
