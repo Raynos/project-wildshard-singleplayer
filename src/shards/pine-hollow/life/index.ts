@@ -34,7 +34,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
  *   woodpecker   by day, a pileated woodpecker on a snag / pine trunk, drumming in bursts, calling now and then,
  *                hitching up the trunk; flushes (calling) to another trunk when you come close.
  *   breadcrumbs  every ~1.5–2.5 min by day, when no fight is on, 2–3 ravens overtake you low under the crowns and fly on
- *                toward the nearest place the journal has not seen (Driftwood's `gulls.breadcrumb` idea, `nearestUnvisited`;
+ *                toward the nearest place the journal has not seen (Driftwood's `gulls.breadcrumb` idea, the shared place guide;
  *                the Hollow's ravens show the way — folklore; a small songbird was a speck on the phone), croaking as
  *                they pass so you look up.
  *   hares        5 snowshoe hares on open ground around you: they graze, hop, sit up alert when you are near and
@@ -441,7 +441,6 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   /** the nearest place the journal has not seen (the breadcrumbs' and the owl's heading) */
   const guide = new PlaceGuide(PINE_GUIDE, { points: () => h.places?.() ?? [], discovered: h.visited,
     position: () => player.position, fly: flyCrumbs, time: now, random: (lo, hi) => rng.range(lo, hi) });
-  const crumbTarget = (): PlaceSpot | null => guide.target();
 
   // ── the owl (night) ──
   let owlNextT = 0, owlHootT = 0;
@@ -485,7 +484,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     if (d < 14 || d > 120) {
       // flushed (or left far behind): a silent glide on — toward the nearest place the journal has not seen, if any
       p.b2 = 0; p.pitch = 0; owl.burst = 3; p.b1 = 0;
-      const target = crumbTarget();
+      const target = guide.target();
       const spot = d > 120 ? null : owlPerch(new THREE.Vector3(p.x, 0, p.z), 30, 65, target);
       if (spot) owlSettle(spot); else { flyOff(owl); owlNextT = now() + 25; }
     }
