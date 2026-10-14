@@ -5534,3 +5534,8 @@ match that order too, and `rows` / `items` bound the table and chest size.
 Duplicates, missing/foreign/mismatched spots and excess contents refuse
 without flag writes. Reach, command dispatch, rewards and save envelopes
 remain caller-owned. Pine and Driftwood use this same native intake.
+
+Graph `objectOrigin` uses the renderer-bound instance matrix for each drawn
+instance. Cull compaction and `instanceMatrix.needsUpdate` therefore update its
+origin with its placement; it allocates no separate origin buffer. Fragment
+reads use a vertex varying. Ordinary meshes keep their model origin.

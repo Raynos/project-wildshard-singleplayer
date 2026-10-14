@@ -25,7 +25,7 @@
  *   material whose vertex stage pushes the hull out by the graph's offset; `attachOutline(mesh, material)` adds the
  *   second draw as a child mesh sharing the geometry's buffers (and an instanced mesh's matrices).
  * - **Object inputs** (SF59 step 7): `objectOrigin` reads an instanced mesh's own translation column through one
- *   instanced vec4 attribute over the instance matrices' array (a buffer shared by every graph that reads it);
+ *   renderer-bound instance matrix (ordinary `instanceMatrix.needsUpdate` owns its upload);
  *   `worldToLocal` and `viewToWorld` are the model and view matrices' 3 × 3 parts.
  *
  * This module imports `three/webgpu` + `three/tsl`, so it is reached only through `loadGraphCompiler()`
@@ -37,8 +37,8 @@ import {
   Node as BaseNode, PhysicalLightingModel, SplitNode, TextureNode, type Node, type NodeBuilder, type NodeMaterial, type UniformArrayNode,
 } from 'three/webgpu';
 import {
-  Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, frontFacing, hash,
-  instanceIndex, instancedBufferAttribute, instancedDynamicBufferAttribute, max, materialNormal, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
+  Fn, Loop, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, frontFacing, hash,
+  instanceIndex, max, materialNormal, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, reference, positionGeometry, positionLocal,
   positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
@@ -131,28 +131,11 @@ function frameViewMatrix(): Node<'mat4'> {
   })();
 }
 
-/** the instance matrices' arrays as instanced buffers, shared by every graph that reads `objectOrigin` */
-const instanceOrigins = new WeakMap<THREE.InstancedBufferAttribute, THREE.InstancedInterleavedBuffer>();
-/**
- * `objectOrigin`: the world position of the drawn object's origin, an instanced mesh's own instance's (its matrix's
- * translation column, read as one instanced vec4 over the matrices' array, kept in step with their version).
- */
+/** World origin follows the renderer's live instance matrix, including cull compaction. */
 function objectOriginNode(): Node<'vec3'> {
   return Fn((builder: NodeBuilder): Node<'vec3'> => {
-    const object = builder.object;
-    if (!(object instanceof THREE.InstancedMesh)) return modelPosition;
-    const matrices = object.instanceMatrix;
-    let buffer = instanceOrigins.get(matrices);
-    if (buffer === undefined) {
-      buffer = new THREE.InstancedInterleavedBuffer(matrices.array, 16, 1);
-      buffer.setUsage(matrices.usage);
-      instanceOrigins.set(matrices, buffer);
-    }
-    const shared = buffer;
-    OnBeforeFrameUpdate(() => { if (shared.version !== matrices.version) shared.version = matrices.version; });
-    const read = matrices.usage === THREE.DynamicDrawUsage ? instancedDynamicBufferAttribute : instancedBufferAttribute;
-    const column = read(shared, 'vec4', 16, 12);
-    return new ConvertNode<'vec3'>(new SplitNode(new OperatorNode('*', modelWorldMatrix, new JoinNode([new SplitNode(column, 'xyz'), float(1)])), 'xyz'), 'vec3');
+    if (!(builder.object instanceof THREE.InstancedMesh)) return modelPosition;
+    return modelWorldMatrix.mul(instanceTransformNode(vec4(0, 0, 0, 1))).xyz;
   }, 'vec3')();
 }
 
