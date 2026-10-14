@@ -11,8 +11,8 @@
  * `share`: the phone builds 70 % of the small cover (the palms, rocks and logs always build; the file is a prefix).
  */
 export const ISLAND_TIERS = {
-  phone: { casterTiles: 6, coverTiles: 8, share: 0.7, cover: { near: 16, far: 40, grow: 6 }, big: { near: 50, far: 80, grow: 10 }, coverUrl: '/assets/models/driftwood-blender/island-cover.phone.bin' },
-  desktop: { casterTiles: 3, coverTiles: 4, share: 1, cover: { near: 100, far: 148, grow: 12 }, big: { near: 100, far: 148, grow: 12 }, coverUrl: '/assets/models/driftwood-blender/island-cover.desktop.bin' },
+  phone: { casterTiles: 6, coverTiles: 8, share: 0.7, cover: { near: 16, far: 40, grow: 6 }, big: { near: 50, far: 80, grow: 10 } },
+  desktop: { casterTiles: 3, coverTiles: 4, share: 1, cover: { near: 100, far: 148, grow: 12 }, big: { near: 100, far: 148, grow: 12 } },
 };
 
 /**
@@ -27,7 +27,7 @@ export const ISLAND_LOOK = {
   lod: 110,
   far: { ratio: 0.25, error: 0.01 },
   coverDepth: 0.6,
-  coverFile: { magic: 0x43495357, version: 1 },
+  coverFile: { magic: 0x43495357, version: 2 },
   names: { casterKinds: ['palm', 'rock', 'prop'], skip: '^rockb?\\d+$', apart: '^smallrock\\d+$', big: '^(bush|flowerbush|hibiscus|fern)\\d+$' },
   protoPrefix: 'proto_',
   meshPrefix: 'island-',

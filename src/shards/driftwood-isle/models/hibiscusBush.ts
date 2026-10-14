@@ -148,7 +148,8 @@ function core(t: TriList, rng: Rng, rx: number, ry: number, cy: number): void {
 
 // ── the leaf clump ───────────────────────────────────────────────────────────────────────────────
 
-function leafClump(b: HibiscusBushParams, rng: Rng): THREE.BufferGeometry {
+/** Native shape recipe also used to compile its retained clipping runs. */
+export function leafClump(b: HibiscusBushParams, rng: Rng): THREE.BufferGeometry {
   const r = b.r, t = new TriList();
   const cy = r * 0.4, rx = r * 0.6, ry = r * 0.46;
   core(t, rng, rx * 0.92, ry * 0.92, cy);

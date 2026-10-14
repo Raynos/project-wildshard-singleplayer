@@ -1,3 +1,4 @@
+import { ISLAND_COVER_FILES } from './islandCoverFiles';
 import heldPool from './swordPool.generated.json' with {type:'json'};
 /** Ordered retained boot and late inventory selections. */
 export const DRIFTWOOD_BOOT_FILES = {
@@ -82,10 +83,10 @@ export const DRIFTWOOD_BOOT_FILES = {
     "source": {
       "urls": {
         "phone": [
-          "/assets/models/driftwood-blender/island-cover.phone.bin"
+          ISLAND_COVER_FILES.phone.url
         ],
         "desktop": [
-          "/assets/models/driftwood-blender/island-cover.desktop.bin"
+          ISLAND_COVER_FILES.desktop.url
         ]
       }
     }

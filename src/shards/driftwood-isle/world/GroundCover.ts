@@ -1,3 +1,4 @@
+import { DENSITY, beach, ss, type Site } from '../runtime/looks/coverSites';
 /**
  * GroundCover — Driftwood Isle's ground cover near the player (remaster M4): instanced low-poly grass tufts, ferns,
  * hibiscus, white daisies and mossy pebbles on the grass, sparse sun-bleached beach grass on the sand, and a thicker
@@ -7,10 +8,10 @@
  * E186: written and uploaded behind, swapped in one frame), refilled from 16 m cells round the viewer every 4 m, each
  * plant at its own edge in its kind's reach (E117: no ring, no pop), a far tier of stand-ins past the near set (E117
  * follow-up: "more distant cover"), plants on sloping ground keeping their reach further (E156 C), and the plants fading
- * into the colour the ground wears (E156: coverTint.ts's grid, which `fillCoverGrid` writes from the same rules). This file
+ * into the colour the ground wears (E156: coverTint.ts's grid, compiled from the same rules). This file
  * is where a plant may stand and how dense each kind is there: its sites, densities and tints are the system's hooks.
  *
- *   const cover = new GroundCover(sky, { sea: sea.level }).build();
+ *   const cover = new GroundCover(sky, { sea: sea.level, grid: admitted }).build();
  *   scene.add(cover.group);
  *   game.onUpdate((dt) => cover.update(dt, player.position));
  *
@@ -19,61 +20,36 @@
  * switches (Jake, 2026-09-25); every decided Debug row is gone (E318).
  */
 import * as THREE from 'three';
-import { addDriftLog, DRIFT } from './driftLogs';
-import { HUT, LOOKOUT, SHRINE, WRECK, ISLAND } from '../manifest';
+import { duneLogs } from '../models/duneLogs';
+import { HUT, LOOKOUT, SHRINE, WRECK } from '../manifest';
 import { Cove } from './Cove';
 import { copyCoverGeometry } from '../boot/coverGeometry';
-import COVER_LOOK from '../data/coverLook.json' with { type: 'json' };
 import { GROUND_COVER } from '../runtime/looks/groundCoverLook';
 import { lowPolyGroundColor } from '../look/groundColor';
 import { CoverGrid, COVER_SEEN_GLSL, coverSample, coverJitter } from './coverTint';
 import { driftLog, driftLogBox } from '../models/driftLog';
-import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { SEED } from '@wildshard/engine/core/config';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BlenderArea } from '@wildshard/engine/world/blenderArea';
-import { log } from '@wildshard/engine/world/geometryKit';
 import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
-import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { StreamedCover, type CoverSite, type StreamedCoverHooks, type StreamedCover as StreamedCoverSet, type StreamedCoverStats } from '../runtime/looks/streamedCover';
+import { StreamedCover, type StreamedCoverHooks, type StreamedCover as StreamedCoverSet, type StreamedCoverStats } from '../runtime/looks/streamedCover';
 
 export interface GroundCoverOpts {
   sea: number;
+  /** Borrowed validated full-grid file, including the authored Blender overlay. */
+  grid: Parameters<typeof CoverGrid.create>;
   /** the palms (Palms.scatterIsland): ferns, hibiscus and bushes crowd round their feet */
   palms?: { x: number; z: number }[];
 }
 
 /** a candidate point: its height over the sea, slope and normal, its trail and shrine distances and how near a palm it is */
-interface Site extends CoverSite { td: number; sd: number; palm: number }
-type Density = (s: Site) => number;
 type Tint = (h: number, rng: Rng, out: THREE.Color) => void;
 
-const ss = (e0: number, e1: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
-const beach = (h: number) => ss(0.5, 1.2, h) * (1 - ss(2.0, 3.2, h));
-const grass = (h: number, slope: number) => ss(2.6, 4.2, h) * (1 - ss(0.18, 0.26, slope));
-const off = (td: number) => ss(2.6, 4.0, td);
-const jungle = (sd: number) => 1 - ss(18, 45, sd);
-/** the sand -> grass edge (the plant fringe) and the dune crest (beach grass) */
-const edge = (h: number, sl: number): number => ss(1.9, 2.7, h) * (1 - ss(4.8, 7, h)) * (1 - ss(0.2, 0.3, sl));
-const dune = (h: number): number => ss(1.2, 1.8, h) * (1 - ss(2.6, 3.4, h));
-
-/** each kind's instances per candidate × 2 at a site (by the rows' names) */
-const DENSITY: Readonly<Record<string, Density>> = {
-  tuft: (s) => (grass(s.h, s.slope) * 1.6 + beach(s.h) * 0.18 + dune(s.h) * 0.7) * off(s.td),
-  fern: (s) => (grass(s.h, s.slope) * (0.03 + jungle(s.sd) * 0.35) + edge(s.h, s.slope) * 0.45 + s.palm * 0.45) * off(s.td),
-  hibiscus: (s) => (grass(s.h, s.slope) * (0.025 + jungle(s.sd) * 0.08) + edge(s.h, s.slope) * 0.3 + s.palm * 0.28) * off(s.td),
-  daisy: (s) => (grass(s.h, s.slope) * 0.07 + edge(s.h, s.slope) * 0.3) * off(s.td),
-  pebble: (s) => (grass(s.h, s.slope) * 0.03 + beach(s.h) * 0.05) * (0.4 + 0.6 * off(s.td)),
-  // (E43) the beach: a shell / starfish / pebble scatter every 1-2 m on the sand, beach grass on the dune crest, and a
-  // dense fringe of ferns, hibiscus, flowers and bushes along the sand -> grass edge and round every palm's foot
-  shells: (s) => beach(s.h) * 0.8,
-  starfish: (s) => beach(s.h) * 0.09,
-  bush: (s) => (edge(s.h, s.slope) * 0.3 + s.palm * 0.3 + grass(s.h, s.slope) * 0.015) * off(s.td) + jungle(s.sd) * grass(s.h, s.slope) * 0.06,
-};
 /** the tinted kinds' per-instance tint (multiplies the vertex colours) */
 const TINT: Readonly<Record<string, Tint>> = {
   tuft: (h, r, out) => { const b = beach(h); out.setRGB(1 + b * 0.35 + r.range(-0.08, 0.08), 1 + b * 0.12 + r.range(-0.06, 0.06), 1 - b * 0.35); },
@@ -165,39 +141,10 @@ export class GroundCover {
 
   build(): this {
     this.cover.build();
-    this.fillCoverGrid();
+    CoverGrid.create(...this.opts.grid);
     this.buildDriftwood();
     this.group.name = 'ground-cover';
     return this;
-  }
-
-  /**
-   * E156: the chunk's cover grid from the same rules the cells place by — per 4 m, each kind's expected plants per m²
-   * (≈ 2.03 candidates per m², each kept with p = density / 2) × the ground one covers × its colour.
-   */
-  private fillCoverGrid(): void {
-    const sea = this.opts.sea, grid = CoverGrid.create(), per = GROUND_COVER.candidates / (GROUND_COVER.cell * GROUND_COVER.cell), col = new THREE.Color();
-    const site: Site = { h: 0, slope: 0, nx: 0, ny: 1, nz: 0, td: 0, sd: 0, palm: 0 };
-    const t0 = diagnosticNow();
-    grid.fill((x, z, out) => {
-      if (this.avoid.some((a) => (x - a.x) ** 2 + (z - a.z) ** 2 < a.r * a.r)) return;
-      const h = heightAt(x, z) - sea;
-      if (h < 0.4) return;
-      const [, ny] = normalAt(x, z, 0.6), slope = 1 - ny;
-      if (slope > 0.3) return;
-      site.h = h; site.slope = slope; site.td = trailDistance(x, z); site.sd = Math.hypot(x - SHRINE.x, z - SHRINE.z); site.palm = this.nearPalm(x, z);
-      let top = 0, side = 0;
-      col.setRGB(0, 0, 0);
-      for (const [ki, k] of GROUND_COVER.kinds.entries()) {
-        const look = COVER_LOOK[k.name as keyof typeof COVER_LOOK];
-        const n = per * Math.min(1, Math.max(0, (KIND_DENSITY[ki] ?? (() => 0))(site)) / 2), s = (k.scale[0] + k.scale[1]) / 2, ns = n * s * s;
-        const t = ns * look.top, sd2 = ns * look.side, wt = t + sd2;
-        top += t; side += sd2; col.r += look.r * wt; col.g += look.g * wt; col.b += look.b * wt;
-      }
-      const w = top + side;
-      if (w > 0) { out.r = col.r / w; out.g = col.g / w; out.b = col.b / w; out.top = 1 - Math.exp(-top); out.side = 1 - Math.exp(-side); }
-    }, ISLAND.x - ISLAND.r - 40, ISLAND.x + ISLAND.r + 40, ISLAND.z - ISLAND.r - 40, ISLAND.z + ISLAND.r + 40);
-    this.stats.gridMs = diagnosticNow() - t0;
   }
 
   /** the viewer moved: refill, upload and swap the near and far sets */
@@ -214,28 +161,7 @@ export class GroundCover {
 
   /** bleached driftwood logs (the E149 painter, driftwood.ts) along the dune line all round the island, one every ~9 m (one static mesh) */
   private buildDriftwood(): void {
-    const kit = new LowPolyKit(SEED ^ 0x6c08), rng = kit.rng, sea = this.opts.sea;
-    const logs: { a: THREE.Vector3; b: THREE.Vector3; r: number; tone: number }[] = [];
-    for (let a = 0; a < Math.PI * 2; a += 9 / 200) {
-      const dx = Math.cos(a), dz = Math.sin(a);
-      // march outward from inland to the first sand below the dune crest (~1.6 m over the sea)
-      let r = 120, found = false;
-      for (; r < 250; r += 1) { const x = ISLAND.x + dx * r, z = ISLAND.z + dz * r; if (heightAt(x, z) - sea < 1.6) { found = true; break; } }
-      if (!found || rng.next() < 0.2) continue;
-      const x = ISLAND.x + dx * (r - rng.range(0, 3)), z = ISLAND.z + dz * (r - rng.range(0, 3));
-      if (Math.abs(x) > 245 || Math.abs(z) > 245) continue;
-      if (this.avoid.some((p) => (x - p.x) ** 2 + (z - p.z) ** 2 < (p.r + 3) ** 2) || trailDistance(x, z) < 3.5) continue;
-      const n = rng.next() < 0.35 ? 2 : 1;
-      for (let k = 0; k < n; k++) {
-        const len = rng.range(2.2, 4.2), rad = rng.range(0.12, 0.24), yaw = a + Math.PI / 2 + rng.range(-0.6, 0.6) + k * 1.1;
-        const hx = Math.cos(yaw) * len / 2, hz = Math.sin(yaw) * len / 2;
-        const A = new THREE.Vector3(x - hx, heightAt(x - hx, z - hz) + rad * 0.7 + k * 0.2, z - hz), B = new THREE.Vector3(x + hx, heightAt(x + hx, z + hz) + rad * 0.7 + k * 0.2, z + hz);
-        addDriftLog(kit, A, B, rad, rad * 0.7, { sides: 6, twist: rng.range(0, 1), tone: k + Math.floor(a * 10), wobble: 0.02 });
-        logs.push({ a: A, b: B, r: rad, tone: k + Math.floor(a * 10) });
-        if (rng.next() < 0.5) { const m = A.clone().lerp(B, rng.range(0.3, 0.7)); kit.add(log(m, m.clone().add(new THREE.Vector3(rng.range(-0.3, 0.3), rng.range(0.25, 0.5), rng.range(-0.3, 0.3))), rad * 0.4, rad * 0.25, 5), DRIFT.stub); }
-      }
-    }
-    const geo = kit.finish({ ao: { ground: heightAt, cell: 0.35, strength: 0.5 } });
+    const {geometry:geo,logs}=duneLogs(heightAt,trailDistance,this.avoid,this.opts.sea,SEED);
     const mesh = new THREE.Mesh(geo, lowPolyMaterial(this.sky));
     mesh.name = 'ground-cover-driftwood';
     mesh.userData['coverProp'] = true; // static logs, not instanced cover: the perf probe's cover rows leave it (E405)

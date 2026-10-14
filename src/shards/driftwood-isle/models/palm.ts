@@ -42,7 +42,8 @@ function axisAt(p: PalmParams, t: number): THREE.Vector3 {
 }
 
 /** one palm's geometry in own space: position, colour and the sway attribute (non-indexed, flat-shaded) */
-function palmGeometry(p: PalmParams, rng: Rng): THREE.BufferGeometry {
+/** Native shape recipe also used to compile its retained clipping runs. */
+export function palmGeometry(p: PalmParams, rng: Rng): THREE.BufferGeometry {
   const pos: number[] = [], col: number[] = [], sway: number[] = [];
   const c = new THREE.Color();
   const phase = rng.range(0, Math.PI * 2);

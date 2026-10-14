@@ -1,3 +1,4 @@
+import { loadIslandCover } from './islandCover';
 import { area as BLENDER_AREA } from './blenderArea';
 /**
  * Driftwood Isle's world build (E357 S4.1, 08 §4 `level.world`, §6.1 step 2): the ~15 builders `main.ts`'s `edge` step
@@ -81,7 +82,7 @@ export function noDriftwoodWorld(): DriftwoodWorld {
 export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vector3, progress?: StepProgress): Promise<DriftwoodWorld> {
   const lowered = G164_LOWERED;
   const { game, sky, player, registry } = world;
-  const [{ cutTerrain }, { normalAt, TRAILS }] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry(undefined, game.registrationScope)]); // the deferred world code (cut, the live baked heightfield)
+  const [{ cutTerrain }, { normalAt, TRAILS }, , coverGrid] = await Promise.all([import('@wildshard/engine/physics/terrain'), import('@wildshard/engine/world/Heightfield'), loadFixedGeometry(undefined, game.registrationScope),loadIslandCover()]); // the deferred world code (cut, the live baked heightfield)
   const sea = { level: lowered.level };
   // Jake's SF72 pick: each sea ramp flares from the full entry socket at the landing to its deck.
   const cut = lowered.pierStart, seaRamp = { seaRamp: { run: lowered.seaRamp, flare: ENTRY_WIDTH } };
@@ -194,7 +195,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const palms = await new Palms(sky).placeSliced(palmSpecs, registry, slice.due);
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk
-  const cover = new GroundCover(sky, { sea: sea.level, palms: palmSpecs });
+  const cover = new GroundCover(sky, { sea: sea.level, palms: palmSpecs, grid:coverGrid });
   cover.excludeArea(BLENDER_AREA); // Required baked cover owns this rectangle before the first refill.
   cover.build();
   game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover'); tintTerrain(world.terrain.mesh); // E156: the ground wears the cover

@@ -1,3 +1,6 @@
+import DRESSING from '../data/islandDressing.generated.json' with {type:'json'};
+import { clipIslandDressing } from './islandDressing';
+import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
 /**
  * The Blender-built island (DRIFTWOOD-REMASTER X2, E52): on Driftwood it always replaces the procedural spawn cove —
  * terrain, palms, bushes, shore boulders, ground cover inside `area` (./blenderArea.ts) — with the one scripts/blender/
@@ -36,7 +39,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import ISLAND_FACTS from '../data/islandFacts.generated.json' with { type: 'json' };
-import { area, inArea, BLENDER_MODELS } from './blenderArea';
+import { area, BLENDER_MODELS } from './blenderArea';
 import type { PalmSpec } from './Palms';
 import { WORLD_DROP } from './sea';
 import { smallRock, type SmallRockParams } from '../models/smallRock';
@@ -44,8 +47,7 @@ import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams
 import { ISLAND_PROPS, ISLAND_TERRAIN } from '../runtime/looks/islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
 import { CoverGrid, tintTerrain, coverSample, coverJitter } from './coverTint';
-import { bakedPropsMaterial, bakedTerrainMaterial, clipGridTerrain, droppedPlacements, dropNearestTriangles, dropTriangles, placementSets, protosFromMeshes, simplifiedProto, simplifierReady, sunBounceLevel, tileRect, usedPlacements, type IslandCoverFade, type IslandProto } from '../runtime/looks/bakedIsland';
-import { requiredIslandCover } from './islandCover';
+import { bakedPropsMaterial, bakedTerrainMaterial, clipGridTerrain, droppedPlacements, placementSets, protosFromMeshes, simplifiedProto, simplifierReady, sunBounceLevel, tileRect, usedPlacements, type IslandCoverFade, type IslandProto } from '../runtime/looks/bakedIsland';
 import { TiledInstances, type TiledInstances as TiledInstanceSet } from '../runtime/looks/instancedTiles';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
@@ -122,18 +124,17 @@ export class BlenderIsland {
       const url = `${BASE}${name}${phone ? '.phone' : ''}.webp`;
       return (await ktx2Texture(url)) ?? load<THREE.Texture>((ok, bad) => { tex.load(url, ok, undefined, bad); });
     };
-    const [gltf, meta, place, ao, bounce, bakedCover] = await Promise.all([
+    const [gltf, meta, place, ao, bounce] = await Promise.all([
       load<{ scene: THREE.Group }>((ok, bad) => { loader.load(`${BASE}island.glb`, ok, undefined, bad); }),
       fetch(`${BASE}island.json`).then((r) => r.json() as Promise<IslandMeta>),
       fetch(`${BASE}placements.bin`).then((r) => r.arrayBuffer()),
       lm('lm-ao'), lm('lm-bounce'),
-      fetch(TIER_LOOK.coverUrl).then((r) => (r.ok ? r.arrayBuffer() : null), () => null), // SF67: the baked cover splat
     ]);
     const f = droppedPlacements(place, WORLD_DROP); // G164: each placement's y
     const count = f.length / 10;
     const used = usedPlacements(f, meta.mustDraw, TIER_LOOK.share);
     const coverGrid = CoverGrid.get();
-    const coverBlock = requiredIslandCover(bakedCover, used, coverGrid?.blockLength(area.x0, area.x1, area.z0, area.z1));
+    if(coverGrid===null||used!==ISLAND_COVER_FILES[TIER].used)throw new Error('Required full island cover does not match its placements');
     // G164: the cove was baked on the authored heights; it drops with the whole world (its tiles,
     // every placement and every collider box), so it stays on the dropped terrain exactly
     const drop = WORLD_DROP;
@@ -192,8 +193,7 @@ export class BlenderIsland {
     for (const set of [casters, covers, bigs]) for (const items of set) for (const i of items) this.stats.propTris += (protos[f[i * 10] ?? 0]?.index.length ?? 0) / 3;
     // E156: the cove's ground wears the cover it carries (coverTint.ts) — what was placed here, splatted into the grid over
     // GroundCover's estimate for this area, then sampled by the cove's terrain
-    if (coverGrid) {
-      if (!coverGrid.writeBlock(coverBlock, area.x0, area.x1, area.z0, area.z1)) throw new Error('Required island cover does not fit the terrain grid');
+    { // The required complete grid is admitted before world assembly.
       // each cover plant's fade-out colour: the grid's at its base (a = 0 where the grid has none: it keeps its own)
       const smp = coverSample();
       ins.fillGround((x, z, out, o) => {
@@ -221,16 +221,16 @@ export class BlenderIsland {
     await slice();
     if (ctx.palms) {
       // a triangle belongs to the nearest palm (its fronds reach 5 m out); drop the palms standing in the area
-      dropNearestTriangles(ctx.palms.geometry, ctx.palmSpecs, ISLAND_LOOK.palmCell, (p) => inArea(p.x, p.z, 1));
+      clipIslandDressing(ctx.palms.geometry,DRESSING[TIER].palms);
       await slice();
     }
-    for (const r of ctx.replace) if (r) { dropTriangles(r.geometry, (x, z) => !inArea(x, z)); await slice(); }
+    for (const r of ctx.replace) if (r) { clipIslandDressing(r.geometry,DRESSING[TIER].bushes); await slice(); }
     if (ctx.cover) {
       // Streamed cover excludes the baked area before its first refill; only
       // non-instanced drift logs still need their replaced triangles removed.
       const coverMeshes: THREE.Mesh[] = [];
       ctx.cover.traverse((o) => { if (isMesh(o) && !isInstanced(o)) coverMeshes.push(o); });
-      for (const m of coverMeshes) { dropTriangles(m.geometry, (x, z) => !inArea(x, z)); await slice(); }
+      for (const m of coverMeshes) { clipIslandDressing(m.geometry,DRESSING[TIER].logs); await slice(); }
     }
 
     // ── gameplay ──

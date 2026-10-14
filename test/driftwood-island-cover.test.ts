@@ -6,7 +6,8 @@ import { ISLAND_LOOK } from '../src/shards/driftwood-isle/data/islandRows';
 it('admits baked cover and refuses missing, mismatched and corrupt content', () => {
   const block = new Float32Array([0.2, 0.4, 0.8]);
   const file = new Uint8Array(encodeFloatBlock(block, 5, ISLAND_LOOK.coverFile.magic, ISLAND_LOOK.coverFile.version));
-  expect(requiredIslandCover(file.buffer, 5, block.length)).toEqual(block);
+  const admitted=requiredIslandCover(file.buffer,5,block.length);
+  expect(admitted).toEqual(block);expect(admitted.buffer).toBe(file.buffer);
   expect(() => requiredIslandCover(null, 5, block.length)).toThrow('missing');
   expect(() => requiredIslandCover(file.buffer, 6, block.length)).toThrow('mismatched');
   expect(() => requiredIslandCover(file.buffer, 5, block.length + 1)).toThrow('mismatched');

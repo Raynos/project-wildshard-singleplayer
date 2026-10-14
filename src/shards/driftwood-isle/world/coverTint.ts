@@ -2,12 +2,11 @@
  * E156 — the ground wears the cover. Driftwood's ground cover is drawn only round the camera (GroundCover.ts, the Blender
  * cove's cover tiles); past that the terrain was bare facet colour, so plants seemed to appear as you walked up to them.
  * The chunk-wide cover grid (@wildshard/sdk/looks/coverGrid) holds what the cover makes the ground look like per 4 m:
- * GroundCover fills it from its own density rules, the Blender island overwrites its area from the cover it actually
- * placed, and the terrains sample it per vertex and mix their facets towards it by how much of the ground the plants hide
+ * The build combines the density estimate and the Blender island’s actual placed cover; runtime borrows that full grid, and the terrains sample it per vertex and mix their facets towards it by how much of the ground the plants hide
  * from where you look. The plants fade into the same colour (`coverSeen`). The GLSL and the patch are data
  * (data/coverGlsl.ts).
  *
- *   const grid = CoverGrid.create();          // GroundCover.build() fills it (grid.fill), the Blender cove splats its own
+ *   const grid = CoverGrid.create(admitted, bounds); // Borrow the validated, cropped full-grid body
  *   tintTerrain(terrain.mesh);                // after the fill: aCover per vertex + the shader
  *
  * Always on (E318: the decided Debug row "Ground tint" is gone).

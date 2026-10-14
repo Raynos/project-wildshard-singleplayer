@@ -1,9 +1,11 @@
+import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
 /** Build-time cover splat; the page only admits and installs its declared file. */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import * as v from 'valibot';
-import { CoverGrid, triAreas, type CoverTri } from '../world/coverTint';
+import { triAreas, type CoverTri } from '../world/coverTint';
+import { AuthorCoverGrid, baseCoverGrid } from './coverGrid';
 import { area } from '../world/blenderArea';
 import { WORLD_DROP } from '../world/sea';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
@@ -50,7 +52,7 @@ export function* coverTrianglesOf(protos: readonly (IslandProto | undefined)[], 
  * `CoverGrid.writeBlock` takes them: each triangle adds its ground (top) and upright (side) areas × its colour to its
  * cell; `k` scales area to optical depth (fronds overlap). r, g, b, top, side (1 − e^−τ) per cell.
  */
-export function splatBlock(grid: InstanceType<typeof CoverGrid>, tris: Iterable<CoverTri>, x0: number, x1: number, z0: number, z1: number, k: number): Float32Array {
+export function splatBlock(grid: AuthorCoverGrid, tris: Iterable<CoverTri>, x0: number, x1: number, z0: number, z1: number, k: number): Float32Array {
   const step = grid.step, n = grid.n, half = CHUNK_HALF;
   const ix = (at: number) => Math.max(0, Math.min(n - 1, Math.round((at + half) / step)));
   const acc = new Map<number, [number, number, number, number, number]>();
@@ -93,11 +95,11 @@ function* instancedCoverTriangles(tris: Iterable<CoverTriangle>): Generator<Cove
 }
 
 /** The declared tier-specific cover output. */
-export const islandCoverUrl = (tier: Tier): string => (tier === 'phone' ? ISLAND_TIERS.phone.coverUrl : ISLAND_TIERS.desktop.coverUrl);
+export const islandCoverUrl = (tier: Tier): string => ISLAND_COVER_FILES[tier].url;
 
 /** the area's splatted block (`splatBlock`) from the cover sets' triangles */
 export function islandCoverBlock(tris: Iterable<CoverTriangle>): Float32Array {
-  return splatBlock(new CoverGrid(), instancedCoverTriangles(tris), area.x0, area.x1, area.z0, area.z1, ISLAND_LOOK.coverDepth);
+  return splatBlock(new AuthorCoverGrid(), instancedCoverTriangles(tris), area.x0, area.x1, area.z0, area.z1, ISLAND_LOOK.coverDepth);
 }
 
 /** the baked file: a 16-byte header ('WSIC', version, placements used, floats) and the block's f32s, little-endian */
@@ -125,7 +127,7 @@ export function islandSets(f: Float32Array, meta: CoverMeta, used: number, phone
 }
 
 const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
-async function bakeCover(readAsset: (url: string) => Uint8Array, phone: boolean): Promise<Uint8Array> {
+export async function bakeFullIslandCover(readAsset: (url: string) => Uint8Array, phone: boolean, palms: readonly {x:number;z:number}[], ground: {heightAt:(x:number,z:number)=>number;normalAt:(x:number,z:number,eps:number)=>[number,number,number];trailDistance:(x:number,z:number)=>number}): Promise<{bytes:Uint8Array;used:number;rect:{x:number;z:number;width:number;height:number}}> {
   const base = '/assets/models/driftwood-blender/';
   const meta = v.parse(v.object({ protos: v.array(v.object({ name: v.string(), kind: v.string() })), mustDraw: v.number() }), JSON.parse(new TextDecoder().decode(readAsset(`${base}island.json`))));
   await MeshoptDecoder.ready;
@@ -136,14 +138,12 @@ async function bakeCover(readAsset: (url: string) => Uint8Array, phone: boolean)
     gltf.scene.traverse(o => { if (isMesh(o)) meshes.push(o); });
     const protos = islandProtos(meshes, meta), f = islandPlacements(Uint8Array.from(readAsset(`${base}placements.bin`)).buffer);
     const used = islandUsed(f, meta, phone), sets = islandSets(f, meta, used, phone);
-    return encodeIslandCover(islandCoverBlock(coverTrianglesOf(protos, f, [sets.covers, sets.bigs])), used);
+    const grid=baseCoverGrid(palms,ground.heightAt,ground.normalAt,ground.trailDistance);
+    grid.writeBlock(islandCoverBlock(coverTrianglesOf(protos,f,[sets.covers,sets.bigs])),area.x0,area.x1,area.z0,area.z1);
+    const {data,rect}=grid.crop();
+    return {bytes:encodeIslandCover(data,used),used,rect};
   } finally {
     gltf.scene.traverse(o => { if (isMesh(o)) { o.geometry.dispose(); for (const material of Array.isArray(o.material) ? o.material : [o.material]) material.dispose(); } });
   }
 }
-
-/** Cheap required phone boot file, emitted by the SDK's confined byte producer. */
-export const phoneIslandCover = (readAsset: (url: string) => Uint8Array): Promise<Uint8Array> => bakeCover(readAsset, true);
-/** Cheap required desktop boot file, emitted by the SDK's confined byte producer. */
-export const desktopIslandCover = (readAsset: (url: string) => Uint8Array): Promise<Uint8Array> => bakeCover(readAsset, false);
 

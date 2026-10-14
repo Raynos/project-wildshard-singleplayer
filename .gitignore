@@ -1066,3 +1066,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /public/assets/pine-hollow/life/birds-rest-*.glb
 
 /src/shards/driftwood-isle/data/islandClips.generated.json
+
+/src/shards/driftwood-isle/data/islandDressing.generated.json
+
+/public/assets/driftwood-isle/baked/island-cover-*.bin

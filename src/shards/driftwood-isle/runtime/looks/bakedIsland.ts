@@ -1,9 +1,9 @@
+import type { BlenderArea as IslandRect } from '@wildshard/engine/world/blenderArea';
 import * as THREE from 'three';
 import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
 import ISLAND_TERRAIN_CLIP from '../../data/islandClips.generated.json' with { type: 'json' };
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import type { BlenderArea as IslandRect } from '@wildshard/engine/world/blenderArea';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { editShader, spliceEdits, type ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
 import type { ISLAND_PROPS, ISLAND_TERRAIN } from './islandLook';
@@ -18,7 +18,7 @@ import type { ISLAND_LOOK } from '../../data/islandRows';
  *
  * - `bakedTerrainMaterial` / `bakedPropsMaterial`: the toon standard materials of the baked terrain and props (fog, the
  *   sky rig's setup, the AO edits, per-instance tint and the cover's fade-out past each plant's own edge).
- * - `clipGridTerrain`, `dropTriangles`, `dropNearestTriangles`: hide what the area replaces.
+ * - `clipGridTerrain`: install the authored terrain clipping facts.
  * - `simplifiedProto`: a prototype's far copy (meshoptimizer), so a tile's far copies keep its near copies' shape.
  * - `protosFromMeshes`, `droppedPlacements`, `usedPlacements`, `placementSets`, `tileRect`: read and sort the bake.
  * - `decodeFloatBlock`: a baked float block's file (a 16-byte header, then the f32s; the generator writes it).
@@ -58,23 +58,6 @@ export function bakedPropsMaterial(row: typeof ISLAND_PROPS, sky: Sky, cover: Is
   return toon(mat, row.patch, edits, (cover !== null ? cover.key : row.key) + (tinted ? row.tintKey : ''), sky);
 }
 
-/** Keeps only the triangles `keep(cx, cz)` accepts (centroid, world xz: the geometry is built in world space); returns
- *  a third of the dropped count. */
-export function dropTriangles(geo: THREE.BufferGeometry, keep: (x: number, z: number) => boolean): number {
-  const pos = geo.getAttribute('position');
-  const src = geo.getIndex();
-  const n = src ? src.count : pos.count;
-  const out: number[] = [];
-  let dropped = 0;
-  for (let t = 0; t < n; t += 3) {
-    const a = src ? src.getX(t) : t, b = src ? src.getX(t + 1) : t + 1, c = src ? src.getX(t + 2) : t + 2;
-    const x = (pos.getX(a) + pos.getX(b) + pos.getX(c)) / 3, z = (pos.getZ(a) + pos.getZ(b) + pos.getZ(c)) / 3;
-    if (keep(x, z)) out.push(a, b, c); else dropped++;
-  }
-  if (dropped > 0) geo.setIndex(out);
-  return dropped / 3;
-}
-
 /** Install the authored grid's retained index runs; another topology is not this island bake. */
 export function clipGridTerrain(mesh: THREE.Mesh): void {
   const geometry = mesh.geometry, source = geometry.getIndex();
@@ -85,22 +68,6 @@ export function clipGridTerrain(mesh: THREE.Mesh): void {
     out.set(source.array.subarray(row.start, row.start + row.count), offset); offset += row.count;
   }
   geometry.setIndex(new THREE.BufferAttribute(out, 1));
-}
-
-/** Each triangle belongs to the nearest of `points` (searched in `cell` m buckets, the 3×3 round it); drops the
- *  triangles whose owner `drop` names (e.g. a merged palm mesh losing the palms standing in an area). */
-export function dropNearestTriangles<P extends { readonly x: number; readonly z: number }>(geo: THREE.BufferGeometry, points: readonly P[], cell: number, drop: (p: P) => boolean): void {
-  const cellOf = (x: number, z: number) => `${Math.floor(x / cell)},${Math.floor(z / cell)}`;
-  const grid = new Map<string, P[]>();
-  for (const p of points) { const k = cellOf(p.x, p.z); const l = grid.get(k); if (l) l.push(p); else grid.set(k, [p]); }
-  dropTriangles(geo, (x, z) => {
-    let best: P | null = null, bd = Infinity;
-    const cx = Math.floor(x / cell), cz = Math.floor(z / cell);
-    for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) for (const p of grid.get(`${cx + dx},${cz + dz}`) ?? []) {
-      const d = (p.x - x) ** 2 + (p.z - z) ** 2; if (d < bd) { bd = d; best = p; }
-    }
-    return best === null || !drop(best);
-  });
 }
 
 /** `p` with its triangles simplified (to `ratio` of them, never past `error` of its size) and its vertices compacted to
@@ -209,9 +176,8 @@ export function decodeFloatBlock(buf: ArrayBuffer, used: number, floats: number,
   if (buf.byteLength !== BLOCK_HEADER + floats * 4) return null;
   const view = new DataView(buf);
   if (view.getUint32(0, true) !== magic || view.getUint32(4, true) !== version || view.getUint32(8, true) !== used || view.getUint32(12, true) !== floats) return null;
-  const out = new Float32Array(floats);
-  for (let i = 0; i < floats; i++) out[i] = view.getFloat32(BLOCK_HEADER + i * 4, true);
-  return out;
+  if(new Uint8Array(new Uint32Array([1]).buffer)[0]!==1)return null;
+  return new Float32Array(buf,BLOCK_HEADER,floats);
 }
 
 /** The live sun's share of a baked bounce: its luminance × intensity × its elevation over the bake's reference

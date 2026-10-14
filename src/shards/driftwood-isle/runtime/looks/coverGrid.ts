@@ -9,13 +9,12 @@ import type { COVER_GLSL, COVER_TINT } from './coverGlsl';
  * camera leaves bare terrain past it, so plants seem to appear as you walk up to them. This is a chunk-wide grid of what
  * the cover makes the ground look like: per cell the share of the ground the plants cover seen from straight above
  * (`top`), how much they hide seen from the side (`side`: their upright blades and fronds) and their mean colour (`rgb`).
- * The shard fills it from its own density rules (`fill`), or writes a block a generator splatted from cover it actually
- * placed (`writeBlock`). Terrains sample it per vertex (`aCover`, `flat`, like their colour) through `tintTerrain`, and
+ * The author fills it from its density rules and splats the cover it placed. The page borrows that validated file. Terrains sample it per vertex (`aCover`, `flat`, like their colour) through `tintTerrain`, and
  * their shader mixes the facet towards the cover colour by how much of the ground the plants hide *from where you look*:
  * a little from above, nearly all of it at the grazing angle far ground is seen at. Nothing here knows a shard's look:
  * the GLSL (`COVER_GLSL`, runtime/looks/coverGlsl.ts) and the patch's id are the shard's.
  *
- *   const grid = CoverGrid.create();          // the shard's cover fills it (grid.fill), a baked area splats its own
+ *   const grid = CoverGrid.create(admitted, bounds);  // full grid, no second allocation
  *   tintTerrain(terrain.mesh, row);           // after the fill: aCover per vertex + the shader
  */
 
@@ -49,40 +48,17 @@ export class CoverGrid {
   private static current: CoverGrid | null = null;
 
   /** `step`: metres per cell (the chunk's whole extent is covered). */
-  constructor(step = 4) {
+  constructor(data: Float32Array, private readonly rect:{x:number;z:number;width:number;height:number}, step = 4) {
     this.step = step;
     this.n = Math.ceil(CHUNK_SIZE / step) + 1;
-    this.data = new Float32Array(this.n * this.n * W);
+    if(![rect.x,rect.z,rect.width,rect.height].every(Number.isInteger)||rect.x<0||rect.z<0||rect.width<1||rect.height<1||rect.x+rect.width>this.n||rect.z+rect.height>this.n||data.length!==rect.width*rect.height*W)throw new Error('Required full cover grid has another extent');
+    this.data = data;
   }
 
   /** The chunk's grid (a new shard load starts a new one). */
-  static create(step = 4): CoverGrid { CoverGrid.current = new CoverGrid(step); return CoverGrid.current; }
+  static create(data: Float32Array, rect:{x:number;z:number;width:number;height:number}, step = 4): CoverGrid { CoverGrid.current = new CoverGrid(data,rect,step); return CoverGrid.current; }
   /** The chunk's grid, once created. */
   static get(): CoverGrid | null { return CoverGrid.current; }
-
-  /** Fill every cell centre from `at` (x, z → writes into out, which starts empty: leave it for none). */
-  fill(at: (x: number, z: number, out: CoverSample) => void, x0 = -CHUNK_HALF, x1 = CHUNK_HALF, z0 = -CHUNK_HALF, z1 = CHUNK_HALF): void {
-    const v = coverSample(), step = this.step, n = this.n;
-    const i0 = this.ix(x0), i1 = this.ix(x1), k0 = this.ix(z0), k1 = this.ix(z1);
-    for (let k = k0; k <= k1; k++) for (let i = i0; i <= i1; i++) {
-      v.r = 0; v.g = 0; v.b = 0; v.top = 0; v.side = 0;
-      at(-CHUNK_HALF + i * step, -CHUNK_HALF + k * step, v);
-      this.data.set([v.r, v.g, v.b, v.top, v.side], (k * n + i) * W);
-    }
-  }
-
-  /** The number of floats a block of this rect holds (r, g, b, top, side per cell, row by row). */
-  blockLength(x0: number, x1: number, z0: number, z1: number): number {
-    return (this.ix(z1) - this.ix(z0) + 1) * (this.ix(x1) - this.ix(x0) + 1) * W;
-  }
-
-  /** Write a baked block of the rect (false, and nothing written, when its length does not fit the rect). */
-  writeBlock(block: Float32Array, x0: number, x1: number, z0: number, z1: number): boolean {
-    if (block.length !== this.blockLength(x0, x1, z0, z1)) return false;
-    const i0 = this.ix(x0), i1 = this.ix(x1), k0 = this.ix(z0), k1 = this.ix(z1), row = (i1 - i0 + 1) * W, n = this.n;
-    for (let k = k0; k <= k1; k++) this.data.set(block.subarray((k - k0) * row, (k - k0 + 1) * row), (k * n + i0) * W);
-    return true;
-  }
 
   /** Bilinear sample at (x, z) into out (the colour weighted by cover, so a bare neighbour doesn't grey it). */
   sample(x: number, z: number, out: CoverSample): CoverSample {
@@ -94,7 +70,9 @@ export class CoverGrid {
     // cover's cells made by the thousand while running
     for (let c = 0; c < 4; c++) {
       const di = c & 1, dk = c >> 1, wt = (di === 1 ? u : 1 - u) * (dk === 1 ? w : 1 - w);
-      const o = ((k + dk) * n + i + di) * W, t = this.data[o + 3] ?? 0, sd = this.data[o + 4] ?? 0, ca = (t + sd) * wt;
+      const cx=i+di-this.rect.x,cz=k+dk-this.rect.z;
+      if(cx<0||cz<0||cx>=this.rect.width||cz>=this.rect.height)continue;
+      const o = (cz*this.rect.width+cx) * W, t = this.data[o + 3] ?? 0, sd = this.data[o + 4] ?? 0, ca = (t + sd) * wt;
       r += (this.data[o] ?? 0) * ca; g += (this.data[o + 1] ?? 0) * ca; b += (this.data[o + 2] ?? 0) * ca; cw += ca;
       top += t * wt; side += sd * wt;
     }
@@ -103,7 +81,7 @@ export class CoverGrid {
     return out;
   }
 
-  private ix(v: number): number { return Math.max(0, Math.min(this.n - 1, Math.round((v + CHUNK_HALF) / this.step))); }
+
 }
 
 /** ×0.88 … ×1.12 per point, a hash of where it is (the facets of covered ground keep their light / dark mosaic). */
