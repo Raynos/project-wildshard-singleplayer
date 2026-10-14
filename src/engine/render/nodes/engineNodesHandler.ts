@@ -320,7 +320,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const previous = this.real;
     super.setRenderer(renderer);
     this.real = renderer;
-    if (previous !== renderer) {
+    // Shader-only hosts have no buffer draw to wrap. Real renderers install it in their constructor.
+    const stock: unknown = Reflect.get(renderer, 'renderBufferDirect');
+    if (previous !== renderer && typeof stock === 'function') {
       const draw = renderer.renderBufferDirect.bind(renderer);
       renderer.renderBufferDirect = (camera, scene, geometry, material, object, group): void => {
         this.drawShadow(camera, material, object, group, next => { draw(camera, scene, geometry, next, object, group); });
