@@ -4694,3 +4694,10 @@ adapters. `drive: true` advances that same host once per fixed tick;
 `permissions` supplies copied trigger observations. Default ground
 activation reads the native player motor; explicit activation ports remain
 available. The installer creates no second clock or collision owner.
+
+### Quest capture rows
+
+`HybridRuntimePlugin.bindQuestCapture` preflights bounded named stages of
+flag writes and borrowed gameplay callbacks. The inherited `stage(name)`
+runs those same owners; unknown names do nothing. The rows do not add a
+save cursor, bypass interaction rules or substitute a reconstructed world.

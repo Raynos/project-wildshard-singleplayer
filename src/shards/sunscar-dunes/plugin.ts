@@ -36,27 +36,6 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   fire: SignalFire | null = null; places: SignalWorld | null = null;
   // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
   protected readonly rows: HybridRuntimeRows = { ...SIGNAL_RUNTIME_ROWS, source };
-  /**
-   * Quest state for a capture (E399; council round 1: run the player's own path, every side effect with it). Each step is
-   * what play does: Sefa's first talk sets her flag (her dialogue's only effect), the logbook's interact, the crank's
-   * pull and the jar's interact at the well, then per waymark the oil poured by hand and the crack that lights it.
-   * 'logbook': Sefa met (mock-B-logbook: the tracker at the logbook step). 'waymarks-lit': every step to the three lit
-   * waymarks, in the quest's order (mock-C-waymark). The dusk settles at the step before the last action (a player who
-   * waited there), and the last action's dusk then eases in as play eases it (round 7, seat A R7-A-P1: snapping straight
-   * to the three-lit dusk showed the last light's fresh notices under a dusk play only reaches 6 s later).
-   */
-  stage(name: string): void {
-    const places = this.places; if (!places) return;
-    const steps = ['logbook', 'waymarks-lit'], upTo = steps.indexOf(name); if (upTo === -1) return;
-    places.flags.set(SCOUT_FLAG);
-    if (upTo < 1) { setDusk(duskOf(places), true); return; }
-    places.logbook.onInteract();
-    places.well.pull(); places.well.spot.onInteract();
-    const last = places.braziers[places.braziers.length - 1];
-    for (const b of places.braziers) if (b !== last) { b.spot.onInteract(); b.light(); }
-    setDusk(duskOf(places), true);
-    if (last) { last.spot.onInteract(); last.light(); }
-  }
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
     const [, baked] = await Promise.all([preloadDuneMeshes(), loadBakedWorld()]);
@@ -90,6 +69,11 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
       // SF14 / SF50-p: the quest's and the Matriarch's feats are ledger facts; the platform grants their achievements once.
       const installed = installPersistedQuest(ctx, source, SIGNAL_QUEST_PAGE, { player: position, flags: places.flags, coins,
         model: { kind: 'mesh', read: () => DUNE_LIBRARY.mesh('caravan-scout') }, dress: group => { ctx.scope.ownPrimitives(group); lastLightAll(group, ctx.scope); } }), facts = installed.facts;
+      this.bindQuestCapture(SIGNAL_QUEST_PAGE.capture, places.flags, new Map([
+        ['dusk', () => { setDusk(duskOf(places), true); }], ['logbook', places.logbook.onInteract],
+        ['well.pull', () => { places.well.pull(); }], ['well.take', places.well.spot.onInteract],
+        ...places.braziers.flatMap((b, i) => [[`pour.${String(i)}`, b.spot.onInteract] as const, [`light.${String(i)}`, () => { b.light(); }] as const]),
+      ]));
       this.quest = installed.quest; this.whip?.aimAt(places.crackables);
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
       const fight = bindDeclaredFight(ctx, this.rows.fight, { kind: 'spawned', source, player: position, flags: places.flags, facts, coins, armed: places.fire.lit,

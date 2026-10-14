@@ -501,6 +501,9 @@ export interface HybridRuntimeRows {
   readonly inspect?: { readonly actors?: Readonly<Record<string, { readonly held: string } | { readonly home: number }>>; readonly roster?: string; readonly boss?: string };
   readonly fight?: BossViewRows;
 }
+/** Bounded capture steps invoke real gameplay owners without introducing saved state. */
+export type QuestCaptureRows = Readonly<Record<string, readonly ({ readonly flag: string } | { readonly call: string })[]>>;
+
 /** A held weapon the host wires: its viewmodel and its swing cues. */
 export type HybridWeapon = Awaited<ReturnType<BuildEquipment>>['primary'] & { onSwing: ((heavy: boolean) => void) | null; readonly model: Object3D };
 
@@ -525,6 +528,28 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
   private populationHomes: RuntimeHomes | null = null;
   private aliasesBound = false;
   presentedBoss: ReturnType<typeof installBossOwnerRow>['boss'] | null = null;
+  private questCapture: ((name: string) => void) | null = null;
+  /** Stage a declared quest through its live flags and callbacks; unknown capture names do nothing. */
+  stage(name: string): void { this.questCapture?.(name); }
+  /** Preflight bounded stage rows before any effect; saves continue to use the original flag and reward owners. */
+  protected bindQuestCapture(rows: QuestCaptureRows, flags: Pick<Flags, 'set'>, calls: ReadonlyMap<string, () => void>): void {
+    const entries = Object.entries(rows);
+    if (entries.length > 64) throw new Error('Quest capture stage roster must be bounded');
+    const compiled = new Map(entries.map(([name, steps]) => {
+      if (name.length === 0 || name.length > 96 || steps.length > 64) throw new Error('Invalid quest capture stage');
+      const run = steps.map(step => {
+        if ('flag' in step) {
+          if (step.flag.length === 0 || step.flag.length > 96) throw new Error('Invalid quest capture flag');
+          return () => { flags.set(step.flag); };
+        }
+        const call = calls.get(step.call);
+        if (call === undefined) throw new Error(`Missing quest capture action ${step.call}`);
+        return call;
+      });
+      return [name, () => { for (const action of run) action(); }] as const;
+    }));
+    this.questCapture = name => { compiled.get(name)?.(); };
+  }
   /** The world, behind the loading screen (after the strings). */
   protected abstract build(ctx: ShardContext): Promise<void> | void;
   /** The primary weapon for `buildEquipment`. */

@@ -1,3 +1,4 @@
+import { SCOUT_FLAG } from './flags';
 import { STRINGS } from './strings';
 import { DISCOVERY_PLACES } from './questPresentation';
 import { SIGNAL_PERSISTENCE } from './persistence';
@@ -9,5 +10,11 @@ export const SIGNAL_QUEST_PAGE = {
   id: 'sunscar.signal', rewardId: 'sunscar.reward', npc: 'sunscar.scout', strings: STRINGS,
   persistence: SIGNAL_PERSISTENCE, places: DISCOVERY_PLACES, markers: QUEST_MARKERS, projectProgress: true,
   model: { id: 'caravan-scout', kind: 'mesh' },
+  capture: {
+    logbook: [{ flag: SCOUT_FLAG }, { call: 'dusk' }],
+    'waymarks-lit': [{ flag: SCOUT_FLAG }, { call: 'logbook' }, { call: 'well.pull' }, { call: 'well.take' },
+      { call: 'pour.0' }, { call: 'light.0' }, { call: 'pour.1' }, { call: 'light.1' },
+      { call: 'dusk' }, { call: 'pour.2' }, { call: 'light.2' }],
+  },
   repair: { data: QUEST_REPAIR, initial: [QUEST_REPAIR_INITIAL], legacyObservation: 'event:legacy.sunscar.signal', advances: 3 },
 } as const;

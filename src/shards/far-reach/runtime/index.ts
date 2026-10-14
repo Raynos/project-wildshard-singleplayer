@@ -12,7 +12,7 @@ import { ROC_SLATE_EDITS } from '../data/paintLook';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture } from 'three';
 import { STRINGS } from '../data/strings';
-import { CROWN, DAIS, ROC, VANES } from '../data/layout';
+import { CROWN, DAIS, ROC } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_CLIENT_MOTION, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { declaredItemScriptBindings, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
@@ -54,7 +54,6 @@ function boundedRows<T>(rows: readonly T[]): readonly T[] {
   if (rows.length > MAX_RUNTIME_ROWS) throw new RangeError('Sky runtime roster exceeds its finite row bound');
   return rows;
 }
-const WINCH_FLAGS = [FLAGS.notes, FLAGS.roost, FLAGS.vanes, ...VANES.map(v => vaneFlag(v.id))];
 
 const GALE_WALL = ROC_STRIKES[1];
 
@@ -64,8 +63,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
    *  `mode: 'board'` pieces, which collide only then (SF34, ENGINE §5 `app.player.mode`). */
   private board: () => boolean = () => false;
   flags: Flags | null = null;
-  /** Sets the quest as a player has it at the crown (capture staging, `stage`). */
-  private questFinished: (() => void) | null = null;
   /** SF8c: the Rising Islets' RIDE / CALL prompts (world/risingIslet.ts). */
   private isletCalls: ReturnType<typeof bindClientChannels> | null = null;
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
@@ -122,7 +119,8 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       model: { kind: 'pivots', read: () => skyHd('keeper-hd'), material: map => skyMappedLook('keeper-scarf', map) },
       dress: group => { ctx.scope.ownPrimitives(group, { instances: true }); } });
     persistence.bindProgress(rt?.play?.progress);
-    this.quest = quest; this.flags = flags; this.questFinished = finished;
+    this.quest = quest; this.flags = flags;
+    this.bindQuestCapture(SKY_QUEST_PAGE.capture, flags, new Map([['finish', finished], ['raise', () => { if (this.built !== null) this.finishRaise(this.built); }]]));
     await worldBuildYield(ctx, 4);
 
     const page = bindQuestPageInteractions(source, { flags, toast,
@@ -257,15 +255,9 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
    * the quest as a player has it in the arena (finished, the bridge raised, its reward paid; council round 1's should-fix),
    * staged on the shot before so its toasts are long gone.
    */
-  stage(name: string): void {
+  override stage(name: string): void {
+    super.stage(name);
     const body = this.populationControl;
-    if (name === 'quest-crown') { this.questFinished?.(); if (this.built !== null) this.finishRaise(this.built); }
-    // 'quest-winch' (round 8, X4: the route as ordinary play): the quest as a player has it when the winch unlocks, the notes
-    // read, the roost quiet and the three vanes turning; the bridge is still down, the winch raises it in play
-    if (name === 'quest-winch' && this.flags !== null) {
-      const flags = boundedRows(WINCH_FLAGS);
-      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const flag = flags[i]; if (flag === undefined) break; this.flags.set(flag); }
-    }
     // and a strike in the storm behind it (its lightning comes every 3.5-8 s; mockup D shows a bolt), just before the frame
     // 'roc-lap' (round 7, the lead's ruling for mock-D): the Roc's rest lap round the dais, set so that after D's 1.5 s
     // settle (steady circling, a steady bank) it is on the lap's north-east quarter, turning in toward the arena view and banking along it (tried at
