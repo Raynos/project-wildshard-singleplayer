@@ -5,9 +5,6 @@ import { ROC_STRIKES } from '../data/brains';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { worldBuildYield } from '@wildshard/game/shard/plugin';
 import source from '../runtime/source';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { ROC_SLATE_EDITS } from '../data/paintLook';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture } from 'three';
 import { STRINGS } from '../data/strings';
@@ -200,23 +197,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       // each wake in the level's own frame (it stands at the root): inside a grid cell the root is at the cell's render offset
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = wakes[i]; if (row === undefined) break; row.w.update(row.ray.position, row.ray.alive, row.w.mesh.worldToLocal(cam.getWorldPosition(eye)), dt); }
     } });
-    // the Roc's plumage to mockup D (E399 round 6, seat A: 'a slate / white split'; the generated texture's wings and back are
-    // a warm brown): the browns turn slate grey, the white head and belly and the yellow beak and talons stay
-    const painted = this.actor(ROC_ID);
-    if (painted !== null) {
-      const materials = boundedRows(Array.isArray(painted.mesh.material) ? painted.mesh.material : [painted.mesh.material]);
-      for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const mat = materials[i]; if (mat === undefined) break;
-      patchShader(mat, 'far.roc-slate', PATCH_ORDER.decorate, (shader) => {
-        // (round 7, seat B: the wings measured unchanged: the model's self-light feeds the painted texture back as emissive,
-        // so the emission is recoloured too; linear values, the brown test scaled for them)
-        // (round 8, seats B and C: the mids still 117,64,51 against the mockup's slate 86,71,80: the paint's near-black darks kept
-        // their luminance) a slate floor under the darks, the lighter feathers keeping their bands
-        // (E410, 'no gold beak shows': in linear light the gold beak and toes (g/r ~0.47) passed the brown test and turned
-        // slate) the gold keeps: blue under a tenth of red, bright; in the map only the beak and the toes are (15 k texels)
-        editShader(shader, ROC_SLATE_EDITS);
-      }, { key: (prior) => `${prior}|far.roc-slate`, scope: ctx.scope });
-    }
-    }
     await worldBuildYield(ctx, 4);
     // Step 2: the roost is clear when its three rays are down.
 

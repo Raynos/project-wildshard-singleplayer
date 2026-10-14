@@ -566,6 +566,7 @@ export class AnimalFactory {
     // low-poly rigs are one group (oneMaterial): one draw, and the per-animal body clone is the whole body (the hit flash)
     // a generated hull (Pine Hollow) is one group too: one draw, and one shadow draw without animalShadow's caster
     const mesh = new THREE.SkinnedMesh(model.geometry, model.render.oneMaterial || model.hull !== undefined ? [fur] : [fur, model.hard, model.eye]);
+    app.species.look(model.kind)?.decorateMaterials?.(mesh.material);
     this.pendingRigs.get(`${model.kind}:${model.variant}`)?.push({ mesh, fur });
     const root = bones['body'];
     if (root === undefined) throw new Error(`species '${model.kind}': no 'body' bone`);

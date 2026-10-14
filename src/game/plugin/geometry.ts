@@ -1,3 +1,5 @@
+import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
+import { editShader, type ShaderEditRow } from './shaderFamily';
 import { defineBakedModels, type BakedModelMetadata } from '@wildshard/engine/models/model';
 import * as wholeV from 'valibot';
 import type { Scope as ResourceScope } from '@wildshard/engine/app/scope';
@@ -577,13 +579,24 @@ export function creatureBodies<C extends string>(rows: CreatureBodyRows<C>): Cre
 
 /** A baked body's species look as rows: its ids and rig contract (its dims ride in the baked body). */
 export interface BakedLookRow {
+  /** Optional shader edits decorate the original material; lighting, maps and hit flash stay owned by the factory. */
+  readonly materialEdits?: readonly { readonly id: string; readonly edits: readonly ShaderEditRow[] }[];
   readonly id: string; readonly species: string; readonly kind: string;
   readonly skeleton: string; readonly sockets: readonly SocketName[]; readonly clipNames: readonly ClipName[];
 }
 /** A species look on a baked creature body (`build`: a fresh copy each time, `creatureBodies(...).bodyOrStandIn`), animated
  *  by its clip rows. Signal Dunes' and Sky Reach's creatures declare their looks this way. */
 export function bakedLook(row: BakedLookRow, build: () => AnimalSpecies, clips: SpeciesClips): SpeciesLook {
+  const patches = row.materialEdits ?? [], decorated = new WeakSet<Material>();
+  if (patches.length > 16 || new Set(patches.map(patch => patch.id)).size !== patches.length || patches.some(patch => !/^[a-zA-Z][a-zA-Z0-9.:-]{0,127}$/u.test(patch.id) || patch.edits.length > 64)) throw new Error('Invalid baked look material edits');
   return { id: row.id, species: row.species, kind: row.kind, rig: 'custom', fur: NO_FUR,
+    ...(patches.length === 0 ? {} : { decorateMaterials: (materials: readonly Material[]): void => {
+      if (materials.length > 64) throw new Error('Baked look material roster exceeds its bound');
+      for (const material of materials) {
+        if (decorated.has(material)) continue; decorated.add(material);
+        for (const patch of patches) patchShader(material, patch.id, PATCH_ORDER.decorate, shader => { editShader(shader, patch.edits); }, { key: prior => `${prior}|${patch.id}` });
+      }
+    } }),
     rigContract: { skeleton: row.skeleton, sockets: [...row.sockets], clips: [...row.clipNames] }, build, animate: clipAnimate(clips) };
 }
 

@@ -16,6 +16,8 @@ export interface SpeciesLook extends Pick<SpeciesDef, 'rigContract' | 'fur' | 'b
   standMem?: Readonly<Record<string, number>>;
   variants?: Readonly<Record<string, Pick<VariantDef, 'tint' | 'fur' | 'traits'>>>;
   material?: (sky: Sky, glow?: [number, number, number], intensity?: number) => AnimalMaterial;
+  /** Decorate the existing instance materials after lighting is installed; preserve their hit-flash owners. */
+  decorateMaterials?: (materials: readonly AnimalMaterial[]) => void;
   hasSkin?: (variant: VariantDef) => boolean;
   loadSkin?: (variant: VariantDef) => Promise<void>;
   preload?: () => Promise<void>;

@@ -4759,3 +4759,10 @@ item roles and named quest observation/action bindings (64 per list).
 Preparation verifies modules; `install(host, restoring)` registers the
 original world pieces and the existing mover driver without another clock.
 A recipe without motion creates no script host or item role.
+
+`SpeciesLook.decorateMaterials` decorates existing per-instance materials
+after the factory installs lighting. `bakedLook` accepts bounded optional
+`materialEdits` rows (`id`, shader `edits`) and chains them at decorate order.
+It preserves the original materials, maps, lighting and hit-flash ownership;
+shared materials receive each look's edit once. Sky and Signal use this
+existing baked creature catalogue. Omission retains the ordinary path.
