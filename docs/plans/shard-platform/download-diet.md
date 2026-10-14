@@ -20,3 +20,4 @@ compiler-owned wire to the explicit allowance, exactly once; the nine-map
 authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
 
 | Pine Hollow | Fitted bird poses (`life/birds-rest-08c7c2580ed1056d4b2e4b71d61cca4381820ce4546736e836812b8ab6cd9bd3.glb` + `.phone.glb`) | — | — | 251,300 B per tier (+246,398 B net, replaces birds.json) | W2 wildlife | Ensemble hash covers both tiers; unchanged original GLB lends its selected compressed atlas, fitted intake is released after packing |
+| Driftwood Isle | Lofted creature bodies (`driftwood-isle/creatures/bodies-23550b30c9b851af6d594dcc1108ec44091cecfe04e8cc6d781f97d808fce79c.bin`, deflated) | — | — | 44,819 B (+13,031 B net: the 31,788 B `sailor-head.glb` is no longer fetched) | W2 C4 | Crab, monkey and sailor bodies baked offline, bit-exact after the page faceting; resident keeps the deflated file (44,819 B) instead of the parsed head (85,320 B) |

@@ -1,18 +1,14 @@
 import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { animateSailor } from './sailorPose';
-import { faceHead, loadFaceHead, type FaceHead } from '../npc/faceHeads';
+import { creatureBody, preloadCreatureBodies } from './bodies';
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import { smoothstep as sstep } from '@wildshard/engine/core/noise';
-import type { Rng } from '@wildshard/engine/core/rng';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { loft, skinPlain, S, boneIndex, mix, paletteColors, type Paint, type RGB } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
-import type { AnimalSpecies, BoneDef, VariantDef, ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { DRIFTWOOD_STRIKES, driftwoodContact, type DriftwoodContactPorts } from '../combat/strikes';
-import * as THREE from 'three';
 
 /**
  * Drowned Sailor — the wreck's guardian (art/driftwood-isle/round-3-enemies/driftwood-enemy-3-wreckghost.png): a bone-white faceted skeleton in the
@@ -29,17 +25,6 @@ import * as THREE from 'three';
  * light goes out) and dissolves when harvested, or on its own after a minute (`corpseFade`). With no hold (the dev harness) it stands guard where it was placed.
  */
 
-const PALETTE = {
-  bone: [0.86, 0.83, 0.72], boneDark: [0.62, 0.60, 0.50], skull: [0.90, 0.88, 0.78], socket: [0.12, 0.16, 0.16],
-  shirt: [0.88, 0.86, 0.78], stripe: [0.30, 0.36, 0.46], shorts: [0.24, 0.16, 0.11], bandana: [0.58, 0.13, 0.12],
-  weed: [0.20, 0.40, 0.14], steel: [0.72, 0.76, 0.80], steelEdge: [0.90, 0.93, 0.96], guard: [0.22, 0.20, 0.18], grip: [0.32, 0.20, 0.12],
-  eye: [0.35, 1.0, 1.0],
-} satisfies Record<string, RGB>;
-
-/** the rig's bones by name — exactly the BoneDef list buildSailor() emits (so the factory's bone map holds every key) */
-
-/** `Animal.mem` as the sailor uses it (numbers only, the registry contract; Enemies.ts reads `rise` / `rising` for the droplets).
- *  The first `think` tick writes every key but `floorS`, which `animate` (it can run first) seeds itself. */
 export type SailorMem = Record<string, number> & {
   init: number; hx: number; hz: number; cd: number; hitT: number; away: number;
   rise: number; rising: number; sinking: number; floor: number; floorS?: number;
@@ -48,174 +33,13 @@ export type SailorMem = Record<string, number> & {
   sd?: number; sdT?: number;
 };
 
-function sailorPaint(v: VariantDef): Paint {
-  const P = paletteColors(PALETTE, v.tint);
-  return (out, _x, y, z, _nx, ny, nz, part, t, a) => {
-    switch (part) {
-      case 'skull': out.copy(P.skull); mix(out, out, P.socket, sstep(0.55, 0.75, t) * sstep(0.2, 0.7, nz) * (1 - sstep(0.4, 0.7, ny)) * 0.9); mix(out, out, P.boneDark, sstep(0.86, 1.0, t) * 0.5); break;
-      case 'bone': mix(out, P.bone, P.boneDark, 0.35 + 0.3 * Math.sin(y * 9 + a)); break;
-      case 'shirt': {
-        // horizontal stripes, salt-faded; the hem is torn to a ragged edge with bone showing beneath
-        const band = Math.floor((y - 0.90) / 0.085) % 2 === 0;
-        out.copy(band ? P.shirt : P.stripe);
-        const hem = 0.96 + 0.05 * Math.sin(a * 3 + 1);
-        if (y < hem && ((a * 5 + y * 40) % 2) < 1.2) mix(out, out, P.bone, 0.9);
-        mix(out, out, P.weed, sstep(0.0, -0.6, nz) * 0.15);
-        break;
-      }
-      case 'shorts': out.copy(P.shorts); break;
-      case 'bandana': out.copy(P.bandana); mix(out, out, P.shorts, sstep(0.7, 1.0, t) * 0.3); break;
-      case 'weed': mix(out, P.weed, P.shorts, sstep(0.6, 1.0, t) * 0.5); break;
-      case 'steel': mix(out, P.steel, P.steelEdge, sstep(0.3, 0.9, Math.abs(ny))); void z; break;
-      case 'guard': out.copy(P.guard); break;
-      case 'grip': out.copy(P.grip); break;
-      case 'eye': out.copy(P.eye); break;
-      default: out.copy(P.bone);
-    }
-  };
-}
-
-/**
- * E343 (Jake's pick D): the Drowned Sailor's head (public/assets/models/driftwood-hero/faces/sailor-head.glb: a Hunyuan3D-2
- * skull + bandana from a codex portrait in the island's toon look, art/driftwood-isle/round-14-faces/, its own paint, cut at
- * its neck by scripts/img2mesh/head_cut.py, the faceted post) on the head bone, fitted to the lofted skull's span (its neck
- * at 1.53 m, the bandana's top at 1.80 m). Enemies.ts spawns the sailor after preloadSailorHead(); the lofted skull is the
- * stand-in if the file fails. `eyes` gets the painted sockets' centres (its cyan facets, per side) for the glow spheres.
- */
-const SAILOR_HEAD = '/assets/models/driftwood-hero/faces/sailor-head.glb';
-const SAILOR_NECK_FROM_TOP = 0.8159;
-export function preloadSailorHead(): Promise<unknown> { return loadFaceHead(SAILOR_HEAD); }
-function sailorHead(fh: FaceHead, bone: number, eyes: THREE.Vector3[]): THREE.BufferGeometry {
-  const pos = Float32Array.from(fh.pos);
-  let top = -Infinity, bot = Infinity;
-  for (let i = 1; i < pos.length; i += 3) { top = Math.max(top, pos[i] ?? 0); bot = Math.min(bot, pos[i] ?? 0); }
-  const neck = top - SAILOR_NECK_FROM_TOP * (top - bot);
-  const k = (1.80 - 1.53) / Math.max(1e-6, top - neck);
-  let cx = 0, cz = 0, n = 0;
-  for (let i = 0; i < fh.count; i++) if ((pos[i * 3 + 1] ?? 0) > neck) { cx += pos[i * 3] ?? 0; cz += pos[i * 3 + 2] ?? 0; n++; }
-  cx /= Math.max(1, n); cz /= Math.max(1, n);
-  for (let i = 0; i < fh.count; i++) {
-    pos[i * 3] = ((pos[i * 3] ?? 0) - cx) * k; pos[i * 3 + 1] = 1.53 + ((pos[i * 3 + 1] ?? 0) - neck) * k; pos[i * 3 + 2] = ((pos[i * 3 + 2] ?? 0) - cz) * k + 0.02;
-  }
-  // the glows: the cyan (painted-eye) facets' centres on each side, a little out of the socket
-  const side = [new THREE.Vector3(), new THREE.Vector3()], sn = [0, 0];
-  for (let i = 0; i < fh.count; i++) {
-    const r = fh.col[i * 3] ?? 0, gr = fh.col[i * 3 + 1] ?? 0, b = fh.col[i * 3 + 2] ?? 0;
-    if (Math.min(gr, b) - r < 0.25 || (pos[i * 3 + 2] ?? 0) < 0.03) continue;
-    const k2 = (pos[i * 3] ?? 0) >= 0 ? 0 : 1;
-    side[k2]?.add(new THREE.Vector3(pos[i * 3], pos[i * 3 + 1], pos[i * 3 + 2])); sn[k2] = (sn[k2] ?? 0) + 1;
-  }
-  for (const k2 of [0, 1]) { const n2 = sn[k2] ?? 0, v2 = side[k2]; if (n2 > 2 && v2) eyes[k2] = v2.divideScalar(n2).add(new THREE.Vector3(0, 0, 0.004)); }
-  const g = new THREE.BufferGeometry(), cnt = fh.count;
-  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  g.setAttribute('normal', new THREE.BufferAttribute(Float32Array.from(fh.nrm), 3));
-  g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(cnt * 2), 2));
-  g.setAttribute('color', new THREE.BufferAttribute(Float32Array.from(fh.col), 3));
-  const si = new Uint16Array(cnt * 4), sw = new Float32Array(cnt * 4);
-  for (let i = 0; i < cnt; i++) { si[i * 4] = bone; sw[i * 4] = 1; }
-  g.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
-  g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
-  g.setAttribute('furLen', new THREE.BufferAttribute(new Float32Array(cnt), 1));
-  g.setIndex(Array.from({ length: cnt }, (_, i) => i));   // the lofts are indexed: mergeGeometries wants them all so
-  return g;
-}
-
-function buildSailor(v: VariantDef, rng: Rng): AnimalSpecies {
-  const bones: BoneDef[] = [
-    { name: 'body', parent: null, pos: [0, 0.95, 0] },
-    { name: 'spine', parent: 'body', pos: [0, 1.12, 0] },
-    { name: 'chest', parent: 'spine', pos: [0, 1.32, 0] },
-    { name: 'head', parent: 'chest', pos: [0, 1.56, 0.02] },
-  ];
-  for (const side of ['L', 'R'] as const) {
-    const sx = side === 'L' ? 1 : -1;
-    bones.push(
-      { name: `arm${side}_sh`, parent: 'chest', pos: [sx * 0.22, 1.47, 0] },
-      { name: `arm${side}_el`, parent: `arm${side}_sh`, pos: [sx * 0.26, 1.21, 0.02] },
-      { name: `arm${side}_hand`, parent: `arm${side}_el`, pos: [sx * 0.28, 0.97, 0.06] },
-      { name: `leg${side}_hip`, parent: 'body', pos: [sx * 0.10, 0.92, 0] },
-      { name: `leg${side}_knee`, parent: `leg${side}_hip`, pos: [sx * 0.11, 0.50, 0.01] },
-      { name: `leg${side}_foot`, parent: `leg${side}_knee`, pos: [sx * 0.11, 0.07, 0.02] },
-    );
-  }
-  const B = boneIndex(bones);
-  const paint = sailorPaint(v);
-  const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
-  const body = B('body'), spine = B('spine'), chest = B('chest'), head = B('head');
-  // E343 (Jake's pick D): the generated skull + bandana (preloaded before the spawn, below); the lofted skull is the stand-in
-  const dHead = faceHead(SAILOR_HEAD);
-  const dEyes: THREE.Vector3[] = [];
-  if (dHead !== null) hard.push(sailorHead(dHead, head, dEyes));
-  // skull: cranium, brow, jaw
-  if (dHead === null) fur.push(loft([
-    S(0, 1.63, -0.09, 0.075, 0.075, head),
-    S(0, 1.65, -0.02, 0.10, 0.10, head, head, 0, 1.05, 0.95),
-    S(0, 1.64, 0.06, 0.095, 0.095, head, head, 0, 1.05, 0.9),
-    S(0, 1.60, 0.10, 0.07, 0.07, head),
-    S(0, 1.55, 0.09, 0.05, 0.045, head),
-  ], 16, 'skull', paint, true, true));
-  // the bandana: a band round the cranium and a tail hanging at the back
-  if (dHead === null) hard.push(loft([S(0, 1.69, -0.02, 0.108, 0.108, head), S(0, 1.745, -0.025, 0.098, 0.098, head), S(0, 1.785, -0.03, 0.06, 0.06, head), S(0, 1.80, -0.035, 0.015, 0.015, head)], 16, 'bandana', paint, false, true));
-  if (dHead === null) hard.push(loft([S(0, 1.72, -0.10, 0.04, 0.014, head), S(0, 1.64, -0.16, 0.032, 0.01, head), S(0, 1.54, -0.19, 0.018, 0.006, chest, head, 0.6)], 8, 'bandana', paint, false, true, 'z'));
-  for (const [i, sx] of [1, -1].entries()) {
-    // the glows sit in the sockets: the generated head's painted cyan eyes, else the lofted skull's
-    const at = dEyes[i] ?? new THREE.Vector3(sx * 0.04, 1.63, 0.11);
-    const eye = new THREE.SphereGeometry(dEyes[i] ? 0.019 : 0.024, 8, 6);
-    eye.translate(at.x, at.y, at.z);
-    eyes.push(skinPlain(eye, head, 'eye', paint));
-  }
-  // neck + spine column
-  fur.push(loft([S(0, 1.45, 0.0, 0.035, 0.035, chest), S(0, 1.55, 0.01, 0.03, 0.03, chest, head, 0.7)], 8, 'bone', paint, false, false));
-  // torso in the striped shirt: pelvis → ribcage → shoulders, hunched
-  // (stacked bands, one loft per stripe, so the flat facets keep the stripes crisp)
-  {
-    const prof = (y: number) => { const u = (y - 0.90) / 0.59; return { rx: 0.15 + 0.05 * Math.sin(u * Math.PI * 0.9), ry: 0.10 + 0.025 * Math.sin(u * Math.PI * 0.9) }; };
-    const skin = (y: number): [number, number, number] => (y < 1.02 ? [body, spine, (y - 0.90) / 0.12 * 0.4] : y < 1.30 ? [spine, chest, Math.max(0, (y - 1.16) / 0.14) * 0.6] : [chest, chest, 0]);
-    for (let k = 0; k < 7; k++) {
-      const y0 = 0.90 + k * 0.085 + 0.002, y1 = y0 + 0.085 - 0.004;
-      const p0 = prof(y0), p1 = prof(y1), s0 = skin(y0), s1 = skin(y1);
-      fur.push(loft([S(0, y0, 0, p0.rx, p0.ry, s0[0], s0[1], s0[2]), S(0, y1, 0, p1.rx, p1.ry, s1[0], s1[1], s1[2])], 16, 'shirt', paint, k === 0, k === 6));
-    }
-    fur.push(loft([S(0, 1.49, 0.0, 0.16, 0.105, chest), S(0, 1.52, 0.0, 0.10, 0.07, chest)], 16, 'shirt', paint, false, true));
-  }
-  // breeches over the pelvis
-  hard.push(loft([S(0, 0.74, 0.0, 0.15, 0.10, body), S(0, 0.86, 0.0, 0.16, 0.105, body), S(0, 0.93, 0.0, 0.15, 0.10, body)], 16, 'shorts', paint, true, false));
-  // seaweed strands off the shoulders and belt
-  for (let i = 0; i < 6; i++) {
-    const ang = rng.range(0, Math.PI * 2), top = i < 3 ? 1.46 : 0.9, r = i < 3 ? 0.2 : 0.16, len = rng.range(0.18, 0.4);
-    const bx = Math.cos(ang) * r, bz = Math.sin(ang) * r, bn = i < 3 ? chest : body;
-    hard.push(loft([S(bx, top, bz, 0.02, 0.008, bn), S(bx * 1.15, top - len * 0.5, bz * 1.15, 0.018, 0.006, bn), S(bx * 1.2, top - len, bz * 1.2, 0.008, 0.003, bn)], 8, 'weed', paint, false, true, 'z'));
-  }
-  for (const side of ['L', 'R'] as const) {
-    const sx = side === 'L' ? 1 : -1;
-    const sh = B(`arm${side}_sh`), el = B(`arm${side}_el`), hand = B(`arm${side}_hand`);
-    // arms: shoulder knob, upper bone, elbow knob, forearm, hand
-    hard.push(loft([S(sx * 0.19, 1.50, 0, 0.05, 0.045, chest, sh, 0.3), S(sx * 0.24, 1.46, 0.0, 0.05, 0.045, sh), S(sx * 0.25, 1.42, 0.0, 0.035, 0.035, sh)], 8, 'bone', paint, true, true));
-    fur.push(loft([S(sx * 0.24, 1.44, 0.0, 0.032, 0.03, sh), S(sx * 0.25, 1.32, 0.01, 0.028, 0.026, sh), S(sx * 0.26, 1.21, 0.02, 0.03, 0.03, sh, el, 0.5), S(sx * 0.27, 1.09, 0.04, 0.026, 0.024, el), S(sx * 0.28, 0.98, 0.06, 0.022, 0.02, el, hand, 0.6)], 8, 'bone', paint, true, false));
-    hard.push(loft([S(sx * 0.28, 0.98, 0.06, 0.03, 0.028, hand), S(sx * 0.285, 0.92, 0.07, 0.035, 0.025, hand), S(sx * 0.29, 0.86, 0.08, 0.018, 0.012, hand)], 8, 'bone', paint, false, true));
-    const hip = B(`leg${side}_hip`), knee = B(`leg${side}_knee`), foot = B(`leg${side}_foot`);
-    fur.push(loft([S(sx * 0.10, 0.90, 0.0, 0.05, 0.05, body, hip, 0.5), S(sx * 0.105, 0.72, 0.005, 0.038, 0.036, hip), S(sx * 0.11, 0.50, 0.01, 0.036, 0.036, hip, knee, 0.5), S(sx * 0.11, 0.30, 0.015, 0.03, 0.03, knee), S(sx * 0.11, 0.09, 0.02, 0.028, 0.028, knee, foot, 0.6)], 8, 'bone', paint, true, false));
-    hard.push(loft([S(sx * 0.11, 0.055, -0.03, 0.04, 0.03, foot), S(sx * 0.11, 0.04, 0.10, 0.045, 0.028, foot), S(sx * 0.11, 0.03, 0.18, 0.025, 0.015, foot)], 8, 'bone', paint, true, true));
-    hard.push(skinPlain(new THREE.SphereGeometry(0.045, 6, 5).translate(sx * 0.11, 0.50, 0.01), knee, 'bone', paint));
-  }
-  // the cutlass in the right hand: grip, guard, a flat curved blade pointing forward
-  {
-    const hand = B('armR_hand'), x = -0.29;
-    hard.push(loft([S(x, 0.96, 0.02, 0.02, 0.02, hand), S(x, 0.90, 0.0, 0.022, 0.022, hand), S(x, 0.84, -0.02, 0.025, 0.025, hand)], 8, 'grip', paint, true, true));
-    hard.push(loft([S(x, 0.91, 0.03, 0.06, 0.06, hand), S(x, 0.90, 0.08, 0.055, 0.05, hand), S(x, 0.89, 0.10, 0.02, 0.02, hand)], 8, 'guard', paint, true, true));
-    hard.push(loft([
-      S(x, 0.90, 0.10, 0.006, 0.03, hand), S(x, 0.90, 0.30, 0.008, 0.038, hand), S(x, 0.905, 0.50, 0.007, 0.044, hand), S(x, 0.92, 0.64, 0.005, 0.038, hand), S(x, 0.945, 0.74, 0.002, 0.01, hand),
-    ], 8, 'steel', paint, true, true));
-  }
-  return {
-    bones, furParts: fur, hardParts: hard, eyeParts: eyes,
-    dims: { bodyY: 0.95, bodyHalfLen: 0.48, bodyRadius: 0.26, headRadius: 0.15, legLen: 0.85, feet: [[0.11, 0.05], [-0.11, 0.05], [0.11, -0.05], [-0.11, -0.05]], halfWidth: 0.25, capsuleAxis: 'y' },
-  };
-}
-
 // ── animation ────────────────────────────────────────────────────────────────────────────
 
 export const RISE_T = 1.5;
+
+/** The baked bodies (runtime/creatureBodies.ts) before the sailor spawns: the adventure's install waits on it behind the
+ *  loading screen, Enemies.ts before placing the island's enemies. */
+export function preloadSailorHead(): Promise<void> { return preloadCreatureBodies(); }
 
 /** The one shipping nonvisual rise/sink/deck transition. Visual and trusted native bodies call it once per body phase. */
 
@@ -252,7 +76,8 @@ export const SAILOR_LOOK: SpeciesLook = {
   fur: NO_FUR,
   rig: 'custom',
   eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.0,
-  build: buildSailor,
+  // the lofted skeleton with its Hunyuan head, baked offline (generators/creatureBodies.ts)
+  build: (v) => creatureBody('sailor', v.id),
   animate: animateSailor,
 };
 

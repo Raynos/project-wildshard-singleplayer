@@ -3,15 +3,13 @@ import { animateCrab } from './crabPose';
 import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
 import { CreatureBrain } from '@wildshard/engine/ai/CreatureBrain';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
-import { smoothstep as sstep } from '@wildshard/engine/core/noise';
-import type { Rng } from '@wildshard/engine/core/rng';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { loft, skinPlain, S, boneIndex, mix, paletteColors, type Paint, type RGB } from '@wildshard/engine/entities/species/loft';
+import { creatureBody } from './bodies';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
-import type { AnimalSpecies, BoneDef, VariantDef, ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import { DRIFTWOOD_STRIKES, driftwoodContact, type DriftwoodContactPorts } from '../combat/strikes';
-import * as THREE from 'three';
+import type * as THREE from 'three';
 
 /**
  * Reef Crab — Wreck Cove's tidepool crab (art/driftwood-isle/round-3-enemies/driftwood-enemy-1-crab.png): a wide domed orange-red carapace with
@@ -27,132 +25,6 @@ import * as THREE from 'three';
  * Skitter (`animate`): the legs walk in two alternating tripods (L0 R1 L2 / R0 L1 R2), the sidestep reaches the
  * leading legs out and folds the trailing ones; claws up while engaged; the snap raises then slams them.
  */
-
-const PALETTE = {
-  shell: [0.86, 0.34, 0.15], shellDark: [0.62, 0.20, 0.09], belly: [0.94, 0.83, 0.66],
-  leg: [0.84, 0.40, 0.19], legTip: [0.42, 0.16, 0.07], claw: [0.90, 0.38, 0.17], clawTip: [0.96, 0.87, 0.74],
-  stalk: [0.66, 0.28, 0.13], eye: [0.03, 0.02, 0.02], barnacle: [0.88, 0.87, 0.82],
-} satisfies Record<string, RGB>;
-
-type LegIdx = 0 | 1 | 2;
-/** the rig's bones by name — exactly the BoneDef list buildCrab() emits (so the factory's bone map holds every key) */
-
-
-function crabPaint(v: VariantDef): Paint {
-  const P = paletteColors(PALETTE, v.tint);
-  return (out, _x, y, z, _nx, ny, _nz, part, t) => {
-    switch (part) {
-      case 'body':
-        out.copy(P.shell);
-        mix(out, out, P.shellDark, sstep(0.05, -0.2, ny) * 0.5 + sstep(-0.18, 0.28, z) * 0.15);   // darker flanks, a warm front edge
-        mix(out, out, P.belly, sstep(-0.25, -0.75, ny));
-        break;
-      case 'leg': mix(out, P.leg, P.legTip, sstep(0.45, 1.0, t)); if (y < 0.06) out.copy(P.legTip); break;
-      case 'arm': out.copy(P.leg); break;
-      case 'claw': mix(out, P.claw, P.clawTip, sstep(0.55, 1.0, t)); break;
-      case 'tip': mix(out, P.claw, P.clawTip, sstep(0.3, 1.0, t)); break;
-      case 'stalk': out.copy(P.stalk); break;
-      case 'eye': out.copy(P.eye); break;
-      case 'barnacle': out.copy(P.barnacle); break;
-      default: out.copy(P.shell);
-    }
-  };
-}
-
-const LEG_IDX: readonly LegIdx[] = [0, 1, 2];
-const LEG_Z: Record<LegIdx, number> = [0.08, -0.03, -0.14], LEG_FAN: Record<LegIdx, number> = [0.07, 0, -0.07];
-
-function buildCrab(v: VariantDef, rng: Rng): AnimalSpecies {
-  const cs = Number(v.traits?.['clawScale'] ?? 1);
-  const bones: BoneDef[] = [
-    { name: 'body', parent: null, pos: [0, 0.20, 0] },
-    { name: 'head', parent: 'body', pos: [0, 0.24, 0.22] },
-  ];
-  for (const side of ['L', 'R'] as const) {
-    const sx = side === 'L' ? 1 : -1;
-    bones.push(
-      { name: `claw${side}_arm`, parent: 'body', pos: [sx * 0.28, 0.18, 0.14] },
-      { name: `claw${side}_hand`, parent: `claw${side}_arm`, pos: [sx * 0.50, 0.18, 0.38] },
-      { name: `claw${side}_tip`, parent: `claw${side}_hand`, pos: [sx * 0.60, 0.20, 0.52] },
-    );
-    for (const i of LEG_IDX) bones.push(
-      { name: `leg${side}${i}_hip`, parent: 'body', pos: [sx * 0.28, 0.17, LEG_Z[i]] },
-      { name: `leg${side}${i}_knee`, parent: `leg${side}${i}_hip`, pos: [sx * 0.50, 0.38, LEG_Z[i] + LEG_FAN[i]] },
-    );
-  }
-  const B = boneIndex(bones);
-  const paint = crabPaint(v);
-  const fur: THREE.BufferGeometry[] = [], hard: THREE.BufferGeometry[] = [], eyes: THREE.BufferGeometry[] = [];
-  const body = B('body'), head = B('head');
-  // carapace: a wide domed hexagonal shell, flat underneath, a scalloped front edge
-  fur.push(loft([
-    S(0, 0.20, -0.25, 0.14, 0.05, body, body, 0, 1.2, 0.6),
-    S(0, 0.205, -0.15, 0.28, 0.09, body, body, 0, 1.35, 0.55),
-    S(0, 0.21, -0.01, 0.35, 0.105, body, body, 0, 1.4, 0.5),
-    S(0, 0.205, 0.13, 0.31, 0.095, body, body, 0, 1.3, 0.55),
-    S(0, 0.195, 0.24, 0.20, 0.06, body, body, 0, 1.2, 0.6),
-    S(0, 0.185, 0.30, 0.07, 0.03, body),
-  ], 16, 'body', paint, true, true));
-  // eyestalks + eyes
-  for (const sx of [1, -1]) {
-    hard.push(loft([
-      S(sx * 0.07, 0.24, 0.23, 0.022, 0.022, head),
-      S(sx * 0.085, 0.31, 0.245, 0.018, 0.018, head),
-      S(sx * 0.09, 0.345, 0.25, 0.012, 0.012, head),
-    ], 8, 'stalk', paint, false, true));
-    const eye = new THREE.SphereGeometry(0.03, 8, 6);
-    eye.translate(sx * 0.09, 0.36, 0.25);
-    eyes.push(skinPlain(eye, head, 'eye', paint));
-  }
-  // barnacles: a crust of little cones over the top of the shell
-  for (let i = 0; i < 13; i++) {
-    const bx = rng.range(-0.28, 0.28), bz = rng.range(-0.18, 0.18);
-    const by = 0.21 + 0.105 * 1.4 * Math.sqrt(Math.max(0, 1 - (bx / 0.35) ** 2 - (bz / 0.22) ** 2)) - 0.015;
-    const r = rng.range(0.025, 0.045);
-    hard.push(loft([S(bx, by - 0.01, bz, r, r, body), S(bx, by + r * 0.9, bz, r * 0.55, r * 0.55, body), S(bx, by + r * 1.15, bz, r * 0.2, r * 0.2, body)], 8, 'barnacle', paint, false, true));
-  }
-  // claws: arm → fat hand (the fixed finger runs on from it) + the movable dactyl on its own bone
-  for (const side of ['L', 'R'] as const) {
-    const sx = side === 'L' ? 1 : -1;
-    const arm = B(`claw${side}_arm`), hand = B(`claw${side}_hand`), tip = B(`claw${side}_tip`);
-    fur.push(loft([
-      S(sx * 0.26, 0.18, 0.13, 0.05, 0.045, body, arm, 0.5),
-      S(sx * 0.38, 0.19, 0.26, 0.05 * cs, 0.045 * cs, arm),
-      S(sx * 0.50, 0.18, 0.38, 0.055 * cs, 0.05 * cs, arm, hand, 0.5),
-    ], 8, 'arm', paint, true, false));
-    fur.push(loft([
-      S(sx * 0.50, 0.18, 0.38, 0.075 * cs, 0.07 * cs, hand),
-      S(sx * 0.58, 0.185, 0.48, 0.17 * cs, 0.13 * cs, hand),
-      S(sx * 0.67, 0.18, 0.61, 0.14 * cs, 0.11 * cs, hand),
-      S(sx * 0.72, 0.15, 0.75, 0.055 * cs, 0.045 * cs, hand),
-      S(sx * 0.745, 0.12, 0.86, 0.01, 0.01, hand),
-    ], 8, 'claw', paint, false, true));
-    fur.push(loft([
-      S(sx * 0.60, 0.21, 0.52, 0.055 * cs, 0.045 * cs, tip),
-      S(sx * 0.665, 0.25, 0.66, 0.045 * cs, 0.036 * cs, tip),
-      S(sx * 0.69, 0.25, 0.80, 0.01, 0.01, tip),
-    ], 8, 'tip', paint, true, true));
-    // legs: upper segment rising to the knee, lower segment down to a pointed foot
-    for (const i of LEG_IDX) {
-      const hip = B(`leg${side}${i}_hip`), knee = B(`leg${side}${i}_knee`);
-      const z = LEG_Z[i], fan = LEG_FAN[i];
-      fur.push(loft([
-        S(sx * 0.27, 0.17, z, 0.035, 0.032, body, hip, 0.5),
-        S(sx * 0.39, 0.30, z + fan * 0.5, 0.032, 0.03, hip),
-        S(sx * 0.50, 0.38, z + fan, 0.03, 0.028, hip, knee, 0.5),
-      ], 8, 'leg', paint, true, false));
-      fur.push(loft([
-        S(sx * 0.50, 0.38, z + fan, 0.03, 0.028, knee),
-        S(sx * 0.60, 0.20, z + fan * 1.3, 0.024, 0.022, knee),
-        S(sx * 0.66, 0.0, z + fan * 1.6, 0.006, 0.006, knee),
-      ], 8, 'leg', paint, false, true));
-    }
-  }
-  return {
-    bones, furParts: fur, hardParts: hard, eyeParts: eyes,
-    dims: { bodyY: 0.20, bodyHalfLen: 0.22, bodyRadius: 0.30, headRadius: 0.09, legLen: 0.32, feet: [[0.68, 0.08], [-0.68, 0.08], [0.68, -0.25], [-0.68, -0.25]], halfWidth: 0.36 },
-  };
-}
 
 // ── animation ────────────────────────────────────────────────────────────────────────────
 
@@ -194,10 +66,10 @@ export const CRAB_LOOK: SpeciesLook = {
   id: 'driftwood.look.crab', species: CRAB.id, kind: 'crab',
   fur: NO_FUR,
   rig: 'custom',
-  build: buildCrab,
+  // the lofted shell, claws and legs, baked offline (generators/creatureBodies.ts, the big crab's claws a quarter larger)
+  build: (v) => creatureBody('crab', v.id),
   animate: animateCrab,
   damageMul: crabDamageMul,
-  variants: { big: { traits: { clawScale: 1.25 } } },
 };
 
 /** What the strike reads: the contact ports and the sound (ThinkCtx in the browser, a headless host's ports in SF72). */

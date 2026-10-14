@@ -156,12 +156,13 @@ export class Enemies {
       opts.scope?.own(this.drops.points.geometry); opts.scope?.own(mat); if (mat.map !== null) opts.scope?.own(mat.map);
       this.group.add(this.drops.points);
     }
-    this.placeCrabs();
-    this.placePracticeCrab();
-    this.placeMonkeys();
-    // E343: the sailor's generated head first (AnimalFactory builds his model once, at the first spawn): a ~30 KB file, a
-    // beat after the boot; he waits under the hold's deck until night anyway
-    void preloadSailorHead().then(() => { if (!this.disposed) this.placeSailor(); return null; });
+    // the baked bodies first (AnimalFactory builds each model once, at its first spawn; the adventure's install already
+    // waited on the same ~45 KB file behind the loading screen), then the placements in their order
+    void preloadSailorHead().then(() => {
+      if (this.disposed) return null;
+      this.placeCrabs(); this.placePracticeCrab(); this.placeMonkeys(); this.placeSailor();
+      return null;
+    });
     opts.scene.add(this.group);
     return this;
   }
