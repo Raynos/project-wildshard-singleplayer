@@ -5,7 +5,7 @@ import {
   positionWorld, screenCoordinate, screenUV, smoothstep, step, time,
 } from 'three/tsl';
 import { GRAPH_PRESET_VERSION, parseFamilyMaterial, type PainterlyMaterialParams, type ToonMaterialParams } from '@wildshard/format/materialFamilies';
-import { validateGraph, type GraphIr, type GraphLiteral, type GraphNode, type GraphParam, type GraphRef, type GraphStages, type GraphValueType } from '@wildshard/format/materialGraph';
+import { validateGraph, type GraphBudget, type GraphIr, type GraphLiteral, type GraphNode, type GraphParam, type GraphRef, type GraphStages, type GraphValueType } from '@wildshard/format/materialGraph';
 import type { MaterialEntry } from '@wildshard/format/materials';
 
 /**
@@ -119,6 +119,8 @@ const SWIZZLE: Readonly<Record<string, string>> = { r: 'x', g: 'y', b: 'z', a: '
 
 /** What `graph()` compiles: TSL values in the graph's stages, plus the graph's own switches. */
 export interface GraphSpec {
+  /** Validated author declaration; only an admitted host may grant this budget at runtime. */
+  readonly budget?: GraphBudget;
   /** a material (the default) or a post pass (`post` only) */
   readonly kind?: 'material' | 'post';
   readonly model?: 'standard' | 'unlit';
@@ -266,11 +268,11 @@ export function graph(spec: GraphSpec): GraphIr {
   };
   const kind = spec.kind ?? (spec.post !== undefined ? 'post' : 'material');
   const ir = {
-    version: 1, kind, ...(kind === 'material' ? { model: spec.model ?? 'standard' } : {}),
+    version: 1, kind, ...(spec.budget === undefined ? {} : { budget: spec.budget }), ...(kind === 'material' ? { model: spec.model ?? 'standard' } : {}),
     ...(spec.doubleSided === undefined ? {} : { doubleSided: spec.doubleSided }), ...(spec.flatShading === undefined ? {} : { flatShading: spec.flatShading }),
     ...(Object.keys(paramDefs).length === 0 ? {} : { params: paramDefs }), nodes, stages,
   };
-  const checked = validateGraph(structuredClone(ir));
+  const checked = validateGraph(structuredClone(ir), { trustedBudget: true });
   if (!checked.ok) throw new Error(`graph: ${checked.errors.join('; ')}`);
   return checked.graph;
 }
@@ -401,7 +403,7 @@ export class GraphMaterial extends MeshStandardMaterial {
   toMaterialEntry(): MaterialEntry { return { family: 'graph', graph: this.graph }; }
 }
 function checkedGraph(ir: GraphIr): GraphIr {
-  const checked = validateGraph(structuredClone(ir));
+  const checked = validateGraph(structuredClone(ir), { trustedBudget: true });
   if (!checked.ok) throw new Error(`graph: ${checked.errors.join('; ')}`);
   return checked.graph;
 }

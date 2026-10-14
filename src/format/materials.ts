@@ -10,7 +10,7 @@ import type { Shardfile } from '@wildshard/format/shardSchema';
 
 const graph = v.pipe(v.unknown(), v.rawTransform(({ dataset, addIssue, NEVER }): GraphIr => {
   if (!isJsonData(dataset.value)) { addIssue({ message: 'material graph is plain JSON data' }); return NEVER; }
-  const checked = validateGraph(dataset.value);
+  const checked = validateGraph(dataset.value, { trustedBudget: true });
   if (!checked.ok) { addIssue({ message: checked.errors.join('; ') }); return NEVER; }
   if (checked.graph.kind !== 'material') { addIssue({ message: 'material slot requires a material graph, not a post pass' }); return NEVER; }
   return checked.graph;
@@ -147,7 +147,7 @@ export function materialGraphRules(source: Pick<Shardfile, 'look' | 'state'> & P
       continue;
     }
     if ('preset' in material) { const refusal = presetRefusal(material.preset); if (refusal !== null) errors.push(`material ${materialId}: ${refusal}`); continue; }
-    const checked = validateGraph(material.graph, { dayKeys: [...dayChannels.keys()], stateFields });
+    const checked = validateGraph(material.graph, { dayKeys: [...dayChannels.keys()], stateFields, trustedBudget: source.runtime !== null && source.runtime !== undefined });
     if (!checked.ok) { errors.push(...checked.errors.map((error) => `material ${materialId}: ${error}`)); continue; }
     errors.push(...bindingTypeErrors(materialId, checked.graph, dayChannels));
   }
@@ -166,7 +166,7 @@ export function graphFileRules(source: Pick<Shardfile, 'look' | 'state' | 'files
     if (material.family !== 'graph' || !('file' in material)) continue;
     let ir: unknown;
     try { ir = graphFileJson(material.file, bytes); } catch (error) { errors.push(`material ${materialId}: ${error instanceof Error ? error.message : 'graph file'}`); continue; }
-    const checked = validateGraph(ir, { dayKeys: [...dayChannels.keys()], stateFields });
+    const checked = validateGraph(ir, { dayKeys: [...dayChannels.keys()], stateFields, trustedBudget: source.runtime !== null && source.runtime !== undefined });
     if (!checked.ok) { errors.push(...checked.errors.map((error) => `material ${materialId}: ${error}`)); continue; }
     if (checked.graph.kind !== 'material') { errors.push(`material ${materialId}: a graph file in a material slot holds a material graph, not a post pass`); continue; }
     const deps = new Set(files.get(material.file)?.dependencies);

@@ -160,7 +160,7 @@ export async function runtimeLookMaterials(ctx: Pick<ShardContext, 'scope' | 'ga
   for (const ref of files) assets.set(ref, await product.assets.read(ref));
   for (const ref of new Set([...materialTextureRefs(shard.look.materials), ...graphFileTextureRefs(shard.look.materials, hash => assets.get(hash))])) assets.set(ref, await product.assets.read(ref));
   if (ctx.scope.disposed) throw new Error('Runtime look scope unloaded while reading materials');
-  return clientMaterials(shard, assets, world.game.renderer, ctx.scope, graphs === undefined ? {} : { graphs });
+  return clientMaterials(shard, assets, world.game.renderer, ctx.scope, { trustedGraphs: true, ...(graphs === undefined ? {} : { graphs }) });
 }
 
 /**

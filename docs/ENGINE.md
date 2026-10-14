@@ -4499,3 +4499,20 @@ Private scene mesh rows accept optional `instances` (1–8192, at most
 8192 per scene). The shared scene host allocates InstancedMesh storage;
 existing channel connectors populate its bounded slots. Geometry and
 material ownership remain with the existing scene ports.
+
+
+### Trusted material graph ceilings
+
+A `GraphIr.budget` declares `{ nodes, samplers, instructions }` for one
+program. The default remains `DEFAULT_GRAPH_BUDGET`. Declared values are
+positive integers bounded by `MAX_GRAPH_BUDGET` (4096 nodes, 16 samplers,
+8192 estimated instructions); loop trips still contribute their full cost.
+The existing JSON byte/depth and uniform-list limits also apply.
+
+Format admission validates the declaration. Only an admitted trusted runtime
+passes `trustedBudget: true` to graph validation/compilation through
+`clientMaterials`' host-owned `trustedGraphs` option. Authored JSON cannot
+set that authority. A declared graph that exceeds its own budget or lacks
+host authority refuses; it never silently substitutes an emissive material.
+Legacy graphs and the explicit graph-materials Debug choice retain their
+existing family-preset behavior.

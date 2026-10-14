@@ -98,8 +98,9 @@ function carriesGraph(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>)
  * keeps the one-family path. A family entry with `look.curves` (state-bound curves) compiles at its fields' values and
  * moves in `tick`, uniforms only, whenever a field it reads moved: the live state source `graphs.bind` hands over, else
  * the field's declared default.
+ * `trustedGraphs` is supplied only by the admitted runtime host to authorize declared graph ceilings.
  */
-export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, renderer: Renderer, scope: Scope, options: { graphs?: boolean; sources?: GraphSources } = {}): Promise<{
+export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, renderer: Renderer, scope: Scope, options: { graphs?: boolean; sources?: GraphSources; trustedGraphs?: boolean } = {}): Promise<{
   materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; compile: (entry: unknown, meshMap?: Texture) => Material; bindMeshMap: (id: string, map: Texture) => Material; tick: (dt: number) => void;
   outline: GraphOutlineHook; graphs: { bind: (sources: GraphSources) => void; readout: GraphReadout }; surfaces: ((name: string) => PropSurfaceBinding) | null;
 }> {
@@ -138,7 +139,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   // graph entries: the lazy compiler loads only when the row is on and the shard carries one (a shard without pays nothing)
   const compiler = graphsOn && carriesGraph(shard, assets) ? await loadGraphCompiler(renderer) : null;
   if (scope.disposed) throw new Error('Material scope unloaded during the graph compiler load');
-  const graphs = clientGraphs(shard, { compiler, fallback: (entry) => familyMaterial(entry, context), textures: (ref, role = 'colour') => resolveTexture(ref, role), file: (hash) => assets.get(hash) });
+  const graphs = clientGraphs(shard, { compiler, trustedGraphs: options.trustedGraphs === true, fallback: (entry) => familyMaterial(entry, context), textures: (ref, role = 'colour') => resolveTexture(ref, role), file: (hash) => assets.get(hash) });
   if (options.sources !== undefined) graphs.bind(options.sources);
   const compile = (entry: unknown, meshMap?: Texture): Material => {
     if (!isGraphEntry(entry)) return scope.own(familyMaterial(entry, context));

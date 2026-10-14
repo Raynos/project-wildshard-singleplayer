@@ -180,6 +180,8 @@ export interface GraphStages {
 /** a graph */
 export interface GraphIr {
   readonly version: typeof GRAPH_IR_VERSION;
+  /** Explicit per-program ceilings. Raising the defaults requires trusted runtime authority. */
+  readonly budget?: GraphBudget;
   /** a material (vertex.offset + surface) or a screen pass (post) */
   readonly kind: 'material' | 'post';
   /** a material's lighting model: three's physical standard model, or unlit */
@@ -206,6 +208,8 @@ export interface GraphBudget {
 }
 /** the default ceilings (a starter graph: the measure preset is ≈ 60 nodes, ≈ 170 instructions) */
 export const DEFAULT_GRAPH_BUDGET: GraphBudget = { nodes: 160, samplers: 4, instructions: 480 };
+/** Hard ceilings for a trusted declaration; loop trips remain charged to the estimated cost. */
+export const MAX_GRAPH_BUDGET: GraphBudget = Object.freeze({ nodes: 4096, samplers: 16, instructions: 8192 });
 
 /** Raw graph JSON bounds, enforced before typing or compiler work; trusted presets supply their own node budget. */
 export const GRAPH_ADMISSION_LIMITS = Object.freeze({ bytes: 64_000, depth: 64 });
@@ -422,6 +426,8 @@ export interface GraphValidationOptions {
   /** the shard's declared public numeric state fields a param may bind to (any name when absent) */
   readonly stateFields?: readonly string[];
   readonly budget?: GraphBudget;
+  /** Host authority to use an explicit declaration; content cannot grant this. */
+  readonly trustedBudget?: boolean;
   /** the directional lights a `sun` sub-graph is built for (1 … SUN_CASCADES_MAX; SUN_CASCADES when absent) */
   readonly cascades?: number;
 }
@@ -442,7 +448,7 @@ interface Raw {
   readonly version?: unknown; readonly kind?: unknown; readonly model?: unknown; readonly doubleSided?: unknown; readonly flatShading?: unknown;
   readonly primitive?: unknown; readonly effectState?: unknown; readonly blend?: unknown; readonly fog?: unknown;
   readonly depthWrite?: unknown; readonly singlePass?: unknown; readonly depthBias?: unknown; readonly factor?: unknown; readonly units?: unknown; readonly size?: unknown; readonly points?: unknown;
-  readonly arrays?: unknown; readonly params?: unknown; readonly nodes?: unknown; readonly stages?: unknown;
+  readonly budget?: unknown; readonly arrays?: unknown; readonly params?: unknown; readonly nodes?: unknown; readonly stages?: unknown;
   readonly type?: unknown; readonly value?: unknown; readonly min?: unknown; readonly max?: unknown; readonly bind?: unknown; readonly role?: unknown;
   readonly day?: unknown; readonly state?: unknown;
   readonly op?: unknown; readonly in?: unknown; readonly param?: unknown; readonly mask?: unknown; readonly count?: unknown;
@@ -484,21 +490,31 @@ interface Scope {
  * every reason it is refused.
  */
 export function validateGraph(input: unknown, opts: GraphValidationOptions = {}): GraphValidation {
-  const rawErrors = graphAdmissionErrors(input, opts.budget?.nodes ?? DEFAULT_GRAPH_BUDGET.nodes);
+  const rawErrors = graphAdmissionErrors(input, opts.trustedBudget === true ? MAX_GRAPH_BUDGET.nodes : opts.budget?.nodes ?? DEFAULT_GRAPH_BUDGET.nodes);
   if (rawErrors.length > 0) return { ok: false, errors: rawErrors };
   const errors: string[] = [];
   const fail = (msg: string): null => { errors.push(msg); return null; };
-  const budget = opts.budget ?? DEFAULT_GRAPH_BUDGET;
+  let budget = opts.budget ?? DEFAULT_GRAPH_BUDGET;
   const cascades = opts.cascades ?? SUN_CASCADES;
   if (!Number.isInteger(cascades) || cascades < 1 || cascades > SUN_CASCADES_MAX) return { ok: false, errors: [`graph: cascades ${cascades} (1–${SUN_CASCADES_MAX})`] };
   if (!isRecord(input)) return { ok: false, errors: ['graph: not an object'] };
+  if (input.budget !== undefined) {
+    const declared = input.budget;
+    if (!isRecord(declared) || Object.keys(declared).some(key => !['nodes', 'samplers', 'instructions'].includes(key))) return { ok: false, errors: ['graph: budget requires only nodes, samplers and instructions'] };
+    for (const key of ['nodes', 'samplers', 'instructions'] as const) {
+      const value = declared[key];
+      if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 1 || value > MAX_GRAPH_BUDGET[key]) return { ok: false, errors: [`graph: declared budget ${key} must be 1–${MAX_GRAPH_BUDGET[key]}`] };
+    }
+    if (opts.trustedBudget !== true) return { ok: false, errors: ['graph: declared budget requires trusted runtime authority'] };
+    budget = { nodes: Number(declared.nodes), samplers: Number(declared['samplers']), instructions: Number(declared['instructions']) };
+  }
   if (input.version !== GRAPH_IR_VERSION) fail(`graph: version ${String(input.version)} (this engine reads ${GRAPH_IR_VERSION})`);
   const kind = input.kind, primitive = input.primitive;
   if (kind !== 'material' && kind !== 'post') fail(`graph: kind ${String(kind)} (material or post)`);
   if (input.model !== undefined && input.model !== 'standard' && input.model !== 'unlit') fail(`graph: model ${JSON.stringify(input.model)} (standard or unlit)`);
   if (input.doubleSided !== undefined && typeof input.doubleSided !== 'boolean') fail('graph: doubleSided is not a boolean');
   if (input.flatShading !== undefined && typeof input.flatShading !== 'boolean') fail('graph: flatShading is not a boolean');
-  for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'primitive', 'effectState', 'doubleSided', 'flatShading', 'params', 'arrays', 'nodes', 'stages'].includes(k)) fail(`graph: unknown field ${k}`);
+  for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'primitive', 'effectState', 'doubleSided', 'flatShading', 'budget', 'params', 'arrays', 'nodes', 'stages'].includes(k)) fail(`graph: unknown field ${k}`);
 
   if (input.primitive !== undefined && input.primitive !== 'mesh' && input.primitive !== 'points') fail('graph: primitive must be mesh or points');
   if (kind === 'post' && (input.primitive !== undefined || input.effectState !== undefined)) fail('graph: post graphs have no effect state or primitive');
@@ -838,6 +854,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
 function asGraph(input: Raw): GraphIr {
   const graph: GraphIr = {
     version: GRAPH_IR_VERSION,
+    ...(isRecord(input.budget) ? { budget: { nodes: Number(input.budget.nodes), samplers: Number(input.budget['samplers']), instructions: Number(input.budget['instructions']) } } : {}),
     kind: input.kind === 'post' ? 'post' : 'material',
     nodes: isRecord(input.nodes) ? toNodes(input.nodes) : {},
     stages: isRecord(input.stages) ? toStages(input.stages) : {},
