@@ -10514,6 +10514,38 @@
       "buildTimeOutputs": [
         "public/assets/far-reach/baked/bridge-rest.glb"
       ]
+    },
+    {
+      "id": "sky-storm-noise",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/stormNoise.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/stormNoise.ts",
+        "bakeStormNoise",
+        "src/shards/far-reach/assets/9e04e0e37d62f6e67961705d1b59f30082227cc60df9bf4c6cb0d262845c2e00",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/data/seaTexture.json",
+        "src/shards/far-reach/generators/stormNoise.ts"
+      ],
+      "outputs": [
+        "src/shards/far-reach/assets/9e04e0e37d62f6e67961705d1b59f30082227cc60df9bf4c6cb0d262845c2e00"
+      ],
+      "buildOutputs": {
+        "src/shards/far-reach/assets/9e04e0e37d62f6e67961705d1b59f30082227cc60df9bf4c6cb0d262845c2e00": "9e04e0e37d62f6e67961705d1b59f30082227cc60df9bf4c6cb0d262845c2e00"
+      },
+      "seedOutputs": [],
+      "platform": "portable"
     }
   ]
 }
