@@ -455,7 +455,7 @@ export interface HybridRuntimeRows {
   readonly boot?: {
     readonly bounds?: { readonly x0: number; readonly x1: number; readonly z0: number; readonly z1: number; readonly floor: number };
     readonly pitch?: number;
-    readonly itemContexts?: Shardfile;
+    readonly itemContexts?: Shardfile | 'source';
     readonly input?: { readonly definition: InputDefinition; readonly description: InputDescription; readonly hiddenMode?: string };
   };
   /** Build the brain catalogue (in kit, as the rows enter): the brained species rows, their looks and the live witness. */
@@ -596,7 +596,9 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
       if (!Number.isFinite(boot.pitch)) throw new Error('Invalid declared entry pitch');
       rt.world.player.pitch = boot.pitch;
     }
-    if (boot?.itemContexts !== undefined) bindRuntimeItemContexts(ctx, boot.itemContexts);
+    const contexts = boot?.itemContexts === 'source' ? this.rows.source : boot?.itemContexts;
+    if (boot?.itemContexts === 'source' && contexts === undefined) throw new Error('Declared item contexts need their admitted source');
+    if (contexts !== undefined) bindRuntimeItemContexts(ctx, contexts);
     if (boot?.input !== undefined) {
       const { definition, description, hiddenMode } = boot.input;
       const verbs = { ...definition.touch?.verbs };

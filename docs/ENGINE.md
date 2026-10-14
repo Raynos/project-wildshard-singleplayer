@@ -4553,3 +4553,10 @@ mesh from up to 32 authored tube profiles, with optional closed caps and
 local placement. All curves merge into that original mesh; absent options
 keep the ordinary scene path. Signal's animated cord and Sky's baked tassel
 use the same sampler.
+
+
+`HybridRuntimeRows.boot.itemContexts` may name `'source'` to bind the
+plugin's admitted item contexts in the existing play phase. The source
+is required for that binding; absent rows retain the previous behaviour.
+Discovery, encounter, completion and population values may all be authored
+in the shard's data recipe, leaving its plugin only the native bindings.

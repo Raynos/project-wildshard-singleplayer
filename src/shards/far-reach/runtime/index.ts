@@ -1,7 +1,6 @@
-import { SKY_RUNTIME_BOOT } from '../data/runtimeBoot';
+import { SKY_RUNTIME_ROWS } from '../data/runtimeRows';
 import { SKY_WORLD_PREPARATION } from '../data/worldTextures';
 import { ROC_STRIKES } from '../data/brains';
-import { SKY_PAGE_PROGRAM } from '../data/population';
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { worldBuildYield } from '@wildshard/game/shard/plugin';
@@ -80,8 +79,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   /** The near meadow that travels with the camera (loop 4). */
   meadow: Meadow | null = null;
 
-  protected readonly rows: HybridRuntimeRows = { expose: 'farReach', strings: STRINGS, weapon: FAN_ROW, encounters: { id: ROC_ID, displayName: STRINGS.roc }, complete: FLAGS.complete,
-    source, boot: SKY_RUNTIME_BOOT, ...SKY_PAGE_PROGRAM };
+  protected readonly rows: HybridRuntimeRows = { ...SKY_RUNTIME_ROWS, source };
 
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.

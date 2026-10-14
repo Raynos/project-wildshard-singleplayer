@@ -1,23 +1,19 @@
-import { SIGNAL_RUNTIME_BOOT } from './data/runtimeBoot';
+import { SIGNAL_RUNTIME_ROWS } from './data/runtimeRows';
 import { bindSignalItems } from './runtime/items';
 import { bindDirectorActions } from '@wildshard/game/plugin/director';
 import signalStages from './data/signalStages.json' with { type: 'json' };
-import { standaloneEntry } from './runtime/standalone';
-import { SIGNAL_PAGE_PROGRAM } from './data/population';
+import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
-import type { ShardContext } from '@wildshard/game/shard/context';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
 import { HybridRuntimePlugin, bindRuntimeCoins, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/shardfile/hybridRows';
 import source from './runtime/source';
 import { Flags } from '@wildshard/engine/world/interact/flags';
-import { STRINGS } from './data/strings';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
 import { lastLightAll } from './look/light';
 import { DUSK, setDusk, stepDusk } from './look/dusk';
 import { preloadDuneMeshes } from './world/meshes';
 import { loadBakedWorld } from './world/baked';
 import type { Bullwhip } from './runtime/items/heldWhip';
-import { WHIP_ROW } from './data/equipment';
 import { installQuest } from './quest/install';
 import { FLAG, SCOUT_FLAG } from './data/flags';
 import { bindDeclaredFight } from '@wildshard/game/plugin/ui';
@@ -25,6 +21,8 @@ import { stormWeather } from './runtime/shardfile/markedBoss';
 import { SAND, SKIRT } from './look/render';
 import { lentMaterial } from './runtime/looks/bakedGround';
 import { prepareFireFx } from './world/fireFx';
+
+type ShardContext = Parameters<HybridRuntimePlugin['world']>[0];
 
 /** The dusk a quest step has reached (look/dusk.ts): 0 at the start, deeper with each step, 1 once the signal burns. */
 function duskOf(places: SignalWorld): number {
@@ -40,8 +38,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   whip: Bullwhip | null = null;
   fire: SignalFire | null = null; places: SignalWorld | null = null;
   // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
-  protected readonly rows: HybridRuntimeRows = { expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }], complete: 'sunscar.complete',
-    source, boot: { ...SIGNAL_RUNTIME_BOOT, itemContexts: source }, ...SIGNAL_PAGE_PROGRAM };
+  protected readonly rows: HybridRuntimeRows = { ...SIGNAL_RUNTIME_ROWS, source };
   /**
    * Quest state for a capture (E399; council round 1: run the player's own path, every side effect with it). Each step is
    * what play does: Sefa's first talk sets her flag (her dialogue's only effect), the logbook's interact, the crank's
@@ -110,7 +107,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   }
 }
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.
-export default standaloneEntry(SignalDunesPlugin);
+export default firstPartyStandaloneEntry(SignalDunesPlugin, 'Signal Dunes', () => import('./runtime/source'), () => import('./runtime/index'));
 
 /** Resolve only the declared first-party entry, preserving the standalone constructor. */
 export function resolveTrustedRuntime(entry: string): typeof SignalDunesPlugin {
