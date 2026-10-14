@@ -16,6 +16,7 @@ export const AudioMusicSchema = v.pipe(v.strictObject({ id, base: id, slots: lis
   source: v.nullable(v.strictObject({ dir: v.pipe(v.string(), v.regex(/^\/assets\/music\/[a-z0-9_-]+\/$/u)), manifestKey: id })),
   sets: v.record(id, id), selection: v.pipe(v.array(v.strictObject({ slots: list, when: conditions })), v.minLength(1), v.maxLength(64)),
   selectMode: v.picklist(['first', 'all']),
+  catalogue: v.exactOptional(v.strictObject({ mode: v.picklist(['slots','bank']), extraStings: v.pipe(v.array(v.picklist(['pickup','death','chunk','dawn'])),v.maxLength(4)), stingSets: v.strictObject({ pickup:v.exactOptional(id),death:v.exactOptional(id),chunk:v.exactOptional(id),dawn:v.exactOptional(id) }) })),
 }), v.check((music) => new Set(music.slots).size === music.slots.length && music.slots.includes(music.base)
   && music.bootSlots.every((slot) => slot === 'title' || music.slots.includes(slot))
   && music.selection.every((row) => row.slots.every((slot) => music.slots.includes(slot)))

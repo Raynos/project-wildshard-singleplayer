@@ -1,6 +1,10 @@
 import { musicManifests } from '../boot/tables';
-import { parseManifest, shipped, type MusicManifest, type SlotAudio, type StemSting, type BossPhase } from './Stems';
-import type { MusicState } from './Music';
+import { parseManifest, shipped, type MusicManifest, type SlotAudio, type StemSting, type BossPhase, type StyleBank } from './Stems';
+import type { Music, MusicState } from './Music';
+import type { Scope } from '../app/scope';
+import type { MusicStyle } from '../ui/Settings';
+import type { AudioMusicProfile } from './audioProfiles';
+import { selectScoreSlots } from './scoreSelection';
 
 /** reads a stem file's bytes (fetch by default; a test hands its own) */
 export type AudioRead = (url: string) => Promise<ArrayBuffer>;
@@ -147,4 +151,110 @@ export class SetScore<Scene> implements ScoreSource {
   }
   sting(name: StemSting): AudioBuffer | undefined { return this.stings.get(name); }
   dispose(): void { this.disposed = true; this.residentSlots.clear(); this.stings.clear(); }
+}
+
+
+/** Declared score catalogue: shared lazy decoding, scope cancellation and resident
+ * fallback. Slot mode retains a base theme plus one scene; bank mode retains the
+ * boot bank. The music deck still owns playback, envelopes and bar-grid clocks.
+ */
+export class CatalogueScore implements ScoreSource {
+  protected readonly music: Pick<Music,'genre'|'state'|'refreshScore'|'combat'|'sting'>;
+  protected profile: AudioMusicProfile;
+  protected scope: Scope | undefined;
+  readonly stings = new Map<StemSting,AudioBuffer>();
+  readonly failures = new Set<string>();
+  sceneName = 'day';
+  phase: BossPhase = 1;
+  private theme: SlotAudio | undefined;
+  private extra: { genre:MusicStyle; slot:SlotAudio|undefined; stings:Map<StemSting,AudioBuffer> } | undefined;
+  private bank: StyleBank | undefined;
+  private decoding = new Set<string>();
+  private bankDecoding: MusicStyle | undefined;
+  private genre: MusicStyle | undefined;
+  constructor(music:Pick<Music,'genre'|'state'|'refreshScore'|'combat'|'sting'>,profile:AudioMusicProfile,scope?:Scope) {
+    if (profile.catalogue === undefined) throw new Error('Missing declared score catalogue');
+    this.music=music; this.profile=profile; this.scope=scope;
+  }
+  get base():string { return this.profile.base; }
+  get slots():readonly string[] { return this.profile.slots; }
+  get synthLead():AudioMusicProfile['synthLead'] { return this.profile.synthLead; }
+  get minFade():number { return this.profile.minFade; }
+  get pending():boolean { return this.decoding.size>0 || this.bankDecoding!==undefined; }
+  target(_state:MusicState):string { return selectScoreSlots(this.profile.selection,this.profile.selectMode,{scene:this.sceneName})[0]??this.base; }
+  bindProfile(profile:AudioMusicProfile):void {
+    if(JSON.stringify(profile)===JSON.stringify(this.profile)) return;
+    if(this.scope!==undefined && !this.scope.disposed) throw new Error('Cannot replace an entered score profile');
+    if(profile.catalogue===undefined) throw new Error('Missing declared score catalogue');
+    this.profile=profile; this.theme=undefined; this.extra=undefined; this.bank=undefined; this.stings.clear(); this.failures.clear();
+  }
+  useBank(bank:ScoreBank):void {
+    if(this.profile.catalogue?.mode==='slots') { const theme=bank.slots.get(this.base); if(theme!==undefined){this.theme=theme;this.stings.clear();} }
+    for(const [name,buffer] of bank.stings)this.stings.set(name,buffer);
+  }
+  useStyleBank(bank:StyleBank):void {
+    if(this.profile.catalogue?.mode==='bank'){this.bank=bank;this.stings.clear();}
+    this.useBank(bank);
+  }
+  want(_playing:string|undefined):SlotAudio|undefined {
+    const genre=this.music.genre;
+    if(this.profile.catalogue?.mode==='bank') {
+      if(genre==='synth'||this.scope?.disposed)return undefined;
+      if(this.bank?.genre===genre)return this.bank.slots.get(this.base);
+      if(this.bankDecoding===genre||this.failures.has(genre))return undefined;
+      this.bankDecoding=genre; void this.prepareBank(genre); return undefined;
+    }
+    const want=this.target(this.music.state);
+    if(genre!==this.genre){this.genre=genre;this.failures.clear();}
+    if(genre==='synth')return undefined;
+    if(want!==this.base){const slot=this.extra?.genre===genre?this.extra.slot:undefined;if(slot?.slot===want)return slot;this.prepare(genre,want);}
+    if(this.theme?.genre===genre)return this.theme;
+    this.prepare(genre,this.base);return undefined;
+  }
+  private async prepareBank(genre:MusicStyle):Promise<void> {
+    try {
+      const [{decodeStyle},{cachedBytes,decodeBytes}]=await Promise.all([import('./Stems'),import('./preload')]);
+      const bank=await decodeStyle(genre,this.profile.bootSlots,cachedBytes,decodeBytes);
+      if(!this.scope?.disposed&&this.music.genre===genre)this.useStyleBank(bank);
+    } catch { this.failures.add(genre); }
+    finally {if(this.bankDecoding===genre)this.bankDecoding=undefined;if(!this.scope?.disposed)this.music.refreshScore();}
+  }
+  private prepare(genre:MusicStyle,slot:string):void {
+    const key=`${genre}/${slot}`;
+    if(this.decoding.has(key)||this.failures.has(key)||this.scope?.disposed)return;
+    const owner=this.scope,profile=this.profile;this.decoding.add(key);
+    void(async()=>{
+      let bank:StyleBank|undefined;
+      try {
+        const [{decodeStyle},{cachedBytes,decodeBytes}]=await Promise.all([import('./Stems'),import('./preload')]);
+        bank=await decodeStyle(genre,[slot],cachedBytes,decodeBytes,undefined,profile.sets[slot]??'base',slot===this.base?undefined:profile.catalogue?.extraStings);
+      } catch(error){console.info(`[music] ${profile.id} ${key}: ${error instanceof Error?error.message:String(error)} — the theme plays`);}
+      finally{this.decoding.delete(key);}
+      if(owner?.disposed||this.scope!==owner||this.profile!==profile)return;
+      const audio=bank?.slots.get(slot);if(audio===undefined){this.failures.add(key);return;}
+      if(this.music.genre!==genre||this.scope?.disposed)return;
+      if(slot===this.base&&bank!==undefined)this.useStyleBank(bank);
+      else {
+        const stings=new Map(this.extra?.genre===genre?this.extra.stings:[]);
+        for(const [name,buffer] of bank?.stings??[])stings.set(name,buffer);
+        this.extra={genre,slot:audio,stings};
+      }
+      this.music.refreshScore();
+    })();
+  }
+  async sting(name:StemSting):Promise<AudioBuffer|undefined> {
+    const set=this.profile.catalogue?.stingSets[name];if(set===undefined)return this.stings.get(name);
+    const genre=this.music.genre,owner=this.scope,profile=this.profile;
+    const have=this.extra?.genre===genre?this.extra.stings.get(name):undefined;if(have!==undefined)return have;
+    try {
+      const [{decodeStyle},{cachedBytes,decodeBytes}]=await Promise.all([import('./Stems'),import('./preload')]);
+      const bank=await decodeStyle(genre,[],cachedBytes,decodeBytes,undefined,set,[name]);
+      if(owner?.disposed||this.scope!==owner||this.profile!==profile)return undefined;
+      const buffer=bank.stings.get(name);
+      if(buffer!==undefined&&this.music.genre===genre&&!this.scope?.disposed){const stings=new Map(this.extra?.genre===genre?this.extra.stings:[]);stings.set(name,buffer);this.extra={genre,slot:this.extra?.genre===genre?this.extra.slot:undefined,stings};}
+      return buffer;
+    } catch {return undefined;}
+  }
+  attach(scope:Scope):void {this.scope=scope;scope.onDispose(()=>{this.theme=undefined;this.extra=undefined;this.stings.clear();});}
+  dispose():void {this.bank=undefined;this.stings.clear();this.failures.clear();}
 }
