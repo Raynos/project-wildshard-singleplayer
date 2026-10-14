@@ -1,58 +1,34 @@
-import { AdditiveBlending, BufferAttribute, BufferGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, RingGeometry } from 'three';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshBasicMaterial, type Object3D } from 'three';
+import { createClientScene } from '@wildshard/game/plugin/ui';
+import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
+import { STORM } from '../data/storm';
+import { SKY_LIBRARY } from './meshes';
 import { skyLook } from './looks';
 
-import { STORM } from '../data/storm';
+/** The built storm: its group, `update(dt, t)` firing the lightning on the shard's play clock (seconds), and `strike(delay)`. */
+export type CrownStorm = ReturnType<typeof crownStorm>;
 
-/** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
-export const STORM_COLORS = { belly: 0x343046, mid: 0x7e7286, top: 0xe8c6a8, gold: 0xffc983, bolt: 0xe2d6ff, haze: 0xedc9b0 } as const;
-
-/** A jagged bolt: a crossed pair of thin ribbons along a zig-zag from the storm's base down `length` metres. */
-function boltGeometry(random: () => number, length: number): BufferGeometry {
-  const pts: [number, number, number][] = [[0, 0, 0]];
-  let x = 0, z = 0;
-  for (let i = 1; i <= 9; i++) { x += (random() - 0.5) * 4; z += (random() - 0.5) * 4; pts.push([x, -(i / 9) * length, z]); }
-  const pos: number[] = [], w = 0.35;
-  for (let i = 0; i < pts.length - 1; i++) {
-    const a = pts[i], b = pts[i + 1]; if (a === undefined || b === undefined) continue;
-    const ww = w * (1 - i / pts.length);
-    for (const [ox, oz] of [[ww, 0], [0, ww]] as const) {
-      pos.push(a[0] - ox, a[1], a[2] - oz, a[0] + ox, a[1], a[2] + oz, b[0] + ox, b[1], b[2] + oz);
-      pos.push(a[0] - ox, a[1], a[2] - oz, b[0] + ox, b[1], b[2] + oz, b[0] - ox, b[1], b[2] - oz);
-    }
-  }
-  const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); return g;
-}
-
-export interface CrownStorm {
-  readonly group: Group;
-  /** Turn the vortex and fire the lightning; `t` is the shard's play clock (seconds). */
-  readonly update: (dt: number, t: number) => void;
-  /** Strike `delay` seconds from the next update (captures and tests use it through `__wildshard.shard.farReach`). */
-  readonly strike: (delay?: number) => void;
-}
-
-/** Build the storm, centred at the group's origin (place it over the crown at `STORM.lift`). */
-export function crownStorm(random: () => number): CrownStorm {
-  const group = new Group(); group.name = 'far.storm';
-  // the vortex (data/stormLook.ts, look.materials `storm-ring`): one dished ring, the first layer's (the painted vortex is
-  // the first layer's alone); `aFlash` carries the lightning to it; before the looks are set (a test) no ring shows
-  const layer = STORM.layers[0], geometry = new RingGeometry(0.5, STORM.radius * layer.r, 72, 10); geometry.rotateX(-Math.PI / 2);
-  const flashes = new Float32Array(geometry.getAttribute('position').count), flash = new BufferAttribute(flashes, 1); geometry.setAttribute('aFlash', flash);
-  const material = skyLook('storm-ring');
-  const ring = new Mesh(geometry, material); ring.position.y = layer.dy; ring.renderOrder = 3; ring.frustumCulled = false; ring.visible = material !== undefined; group.add(ring);
-  const boltMaterial = new MeshBasicMaterial({ color: STORM_COLORS.bolt, transparent: true, opacity: 0.95, blending: AdditiveBlending, depthWrite: false, fog: false, side: DoubleSide });
-  const bolts = [0, 1, 2].map((i) => {
-    const bolt = new Mesh(boltGeometry(random, 18 + i * 6), boltMaterial); const a = random() * Math.PI * 2, rr = 8 + random() * 18;
-    bolt.position.set(Math.cos(a) * rr, 2, Math.sin(a) * rr); bolt.visible = false; bolt.frustumCulled = false; group.add(bolt); return bolt;
-  });
+/**
+ * The storm from its rest scene (generators/restScene.ts `stormRest`: the vortex ring and three hidden bolts), centred at
+ * the group's origin (place it over the crown at `STORM.lift`). The ring wears the `storm-ring` look (data/stormLook.ts);
+ * `aFlash` carries the lightning to it; before the looks are set (a test) no ring shows. `strike(delay)` fires a strike
+ * `delay` seconds from the next update (captures and tests use it through `__wildshard.shard.farReach`).
+ */
+export function crownStorm(random: () => number): { readonly group: Object3D; readonly update: (dt: number, t: number) => void; readonly strike: (delay?: number) => void } {
+  const look = skyLook('storm-ring'), bolt = new MeshBasicMaterial({ color: STORM.bolt, transparent: true, opacity: 0.95, blending: AdditiveBlending, depthWrite: false, fog: false, side: DoubleSide });
+  const scene = createClientScene(REST_SCENES.storm, { geometry: SKY_LIBRARY.geometry, materials: new Map([['storm-ring', look ?? bolt], ['storm-bolt', bolt]]) });
+  const ring = scene.parts.get('storm-ring'), shape: unknown = ring instanceof Mesh ? ring.geometry : null, bolts = Array.from({ length: STORM.bolts }, (_, i) => scene.parts.get(`storm-bolt-${String(i)}`));
+  if (ring === undefined || !(shape instanceof BufferGeometry)) throw new Error('far-reach: the storm scene lost its ring');
+  const position: unknown = shape.getAttribute('position'), flashes = new Float32Array(position instanceof BufferAttribute ? position.count : 0), flash = new BufferAttribute(flashes, 1);
+  shape.setAttribute('aFlash', flash); ring.visible = look !== undefined;
+  for (let i = 0; i < STORM.boltDraws; i++) random();
   // the lightning schedule: a strike every 3.5–8 s, a double flicker, one bolt shown
-  let next = 2, strike = -10, which = 0;
-  let pending: number | null = null;
-  return { group, strike: (delay = 0) => { pending = delay; }, update: (_dt, t) => {
+  let next = 2, strike = -10, which = 0, pending: number | null = null;
+  return { group: scene.root, strike: (delay = 0) => { pending = delay; }, update: (_dt, t) => {
     if (pending !== null) { next = t + pending; pending = null; }
     if (t >= next) { strike = t; which = Math.floor(random() * bolts.length); next = t + 3.5 + random() * 4.5; }
     const s = t - strike, k = s < 0.08 ? 1 : s < 0.14 ? 0.15 : s < 0.24 ? 0.8 : Math.max(0, 1 - (s - 0.24) / 0.5) * 0.3;
     if (flashes[0] !== k) { flashes.fill(k); flash.needsUpdate = true; }
-    bolts.forEach((bolt, i) => { bolt.visible = i === which && s < 0.26 && k > 0.5; });
+    bolts.forEach((b, i) => { if (b !== undefined) b.visible = i === which && s < 0.26 && k > 0.5; });
   } };
 }

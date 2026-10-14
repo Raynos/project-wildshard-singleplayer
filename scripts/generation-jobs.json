@@ -114,6 +114,7 @@
         "src/sdk/package.json",
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/restFiles.ts",
+        "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/world/materials.ts"
@@ -123,7 +124,7 @@
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/far-reach/data/restScenes.generated.json": "96bbc8728a7e07f6d458c40cd81eeaecf29a1543aa0c4a2f5057267a2d5a55b7"
+        "src/shards/far-reach/data/restScenes.generated.json": "4635dcf3c8a4495b03f456422fc3dd56e2e8d383d70ac24f97fb31395d2607f6"
       }
     },
     {
@@ -238,6 +239,7 @@
         "src/sdk/package.json",
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/restFiles.ts",
+        "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/world/materials.ts"
@@ -247,7 +249,7 @@
       ],
       "platform": "portable",
       "buildOutputs": {
-        "src/shards/far-reach/data/restPools.generated.json": "aee5ffd9a5ee72fc4c83377a447b39c769c70852095a58add93115788474edff"
+        "src/shards/far-reach/data/restPools.generated.json": "153c8737e68dfd8ee9996a4364c716bb458ee094dcf698226be5731b24b0f4a1"
       }
     },
     {
@@ -363,6 +365,7 @@
         "src/sdk/package.json",
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/restFiles.ts",
+        "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/world/materials.ts"
@@ -488,6 +491,7 @@
         "src/sdk/package.json",
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/restFiles.ts",
+        "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/world/materials.ts"
@@ -613,6 +617,7 @@
         "src/sdk/package.json",
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/restFiles.ts",
+        "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/world/materials.ts"
@@ -738,6 +743,7 @@
         "src/sdk/package.json",
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/restFiles.ts",
+        "src/shards/far-reach/data/storm.ts",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/generators/restScene.ts",
         "src/shards/far-reach/world/materials.ts"
@@ -748,6 +754,132 @@
       "platform": "portable",
       "buildOutputs": {
         "public/assets/far-reach/baked/rest-hover-2.glb": "fca144c2bebcf604855dd842d4be38769dfeaf3f69b51a5f049f3d3f3c945241"
+      }
+    },
+    {
+      "id": "sky-rest-storm",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/restScene.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/restScene.ts",
+        "stormGlb",
+        "public/assets/far-reach/baked/rest-storm.glb",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/aacIndex.ts",
+        "src/format/accent.ts",
+        "src/format/admissionLimits.ts",
+        "src/format/audio.ts",
+        "src/format/audioProfiles.ts",
+        "src/format/audioRouting.ts",
+        "src/format/bakedTerrainBytes.ts",
+        "src/format/bakedTerrainSampling.ts",
+        "src/format/brains.ts",
+        "src/format/budget.ts",
+        "src/format/clientChannels.ts",
+        "src/format/clientScripts.ts",
+        "src/format/commonsCosts.ts",
+        "src/format/contentBounds.ts",
+        "src/format/contentCost.ts",
+        "src/format/creatures.ts",
+        "src/format/crowds.ts",
+        "src/format/directorStages.ts",
+        "src/format/directorWhen.ts",
+        "src/format/edgeProfiles.ts",
+        "src/format/encounters.ts",
+        "src/format/entryCoverage.ts",
+        "src/format/entryGeometry.ts",
+        "src/format/entryways.ts",
+        "src/format/flyers.ts",
+        "src/format/glbTriangles.ts",
+        "src/format/grazers.ts",
+        "src/format/groupBrains.ts",
+        "src/format/hooks.ts",
+        "src/format/items.ts",
+        "src/format/json.ts",
+        "src/format/ledger.ts",
+        "src/format/liftApproach.ts",
+        "src/format/materialFamilies.ts",
+        "src/format/materialGraph.ts",
+        "src/format/materials.ts",
+        "src/format/meshCollision.ts",
+        "src/format/meshCollisionBytes.ts",
+        "src/format/migrations.ts",
+        "src/format/modes.ts",
+        "src/format/moverMotion.ts",
+        "src/format/movers.ts",
+        "src/format/nativeGround.ts",
+        "src/format/navigation.ts",
+        "src/format/navigationBytes.ts",
+        "src/format/nearPlaceholder.ts",
+        "src/format/npcs.ts",
+        "src/format/overdraw.ts",
+        "src/format/package.json",
+        "src/format/plumbing.ts",
+        "src/format/portalLink.ts",
+        "src/format/portalLinkAssets.ts",
+        "src/format/postStack.ts",
+        "src/format/preflight.ts",
+        "src/format/presentation.ts",
+        "src/format/product.ts",
+        "src/format/propMaterials.ts",
+        "src/format/props.ts",
+        "src/format/questGraph.ts",
+        "src/format/questHost.ts",
+        "src/format/questInteractions.ts",
+        "src/format/quests.ts",
+        "src/format/rows.ts",
+        "src/format/runtime.ts",
+        "src/format/runtimeBinds.ts",
+        "src/format/runtimeCost.ts",
+        "src/format/runtimeSpawns.ts",
+        "src/format/scriptLimits.ts",
+        "src/format/scripts.ts",
+        "src/format/shardSchema.ts",
+        "src/format/shardSections.ts",
+        "src/format/sketch.ts",
+        "src/format/skinAssets.ts",
+        "src/format/skinData.ts",
+        "src/format/skinLayers.ts",
+        "src/format/skins.ts",
+        "src/format/socketLift.ts",
+        "src/format/socketLiftAssets.ts",
+        "src/format/splatTerrain.ts",
+        "src/format/state.ts",
+        "src/format/stillImage.ts",
+        "src/format/targets.ts",
+        "src/format/terrain.ts",
+        "src/format/terrainTileBytes.ts",
+        "src/format/traversal.ts",
+        "src/format/ui.ts",
+        "src/format/version.ts",
+        "src/format/water.ts",
+        "src/format/weaponProfiles.ts",
+        "src/format/wireLimits.ts",
+        "src/sdk/assets.ts",
+        "src/sdk/bake/glb.ts",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/restFiles.ts",
+        "src/shards/far-reach/data/storm.ts",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/generators/restScene.ts",
+        "src/shards/far-reach/world/materials.ts"
+      ],
+      "outputs": [
+        "public/assets/far-reach/baked/rest-storm.glb"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "public/assets/far-reach/baked/rest-storm.glb": "1b2b676f05b98aab1341d5d959038f7c7b9f7ea0446096712710eed9256867d4"
       }
     },
     {

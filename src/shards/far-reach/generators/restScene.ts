@@ -1,7 +1,8 @@
 import { REST_URLS } from '../data/restFiles';
-import { BoxGeometry, CylinderGeometry, Group, Mesh, MeshStandardMaterial } from 'three';
+import { BoxGeometry, BufferGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, RingGeometry } from 'three';
 import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
 import { SPANS, UPDRAFT } from '../data/layout';
+import { STORM } from '../data/storm';
 
 /** Original winch parts in their local frame; wood and rope remain named client material owners. */
 export function winchRest(): ClientSceneBake {
@@ -44,12 +45,12 @@ export function hoverRestRows(): ReturnType<typeof hoverRest>[] {
 }
 
 /** The existing finite scene and file catalogues; the SDK JSON driver owns all I/O. */
-export function restScenes(): { readonly winch: ClientSceneBake['scene']; readonly hover: readonly { readonly id: string; readonly scene: ClientSceneBake['scene'] }[] } {
+export function restScenes(): { readonly winch: ClientSceneBake['scene']; readonly hover: readonly { readonly id: string; readonly scene: ClientSceneBake['scene'] }[]; readonly storm: ClientSceneBake['scene'] } {
   const ids = [...SPANS.filter(span => span.kind === 'hover'), UPDRAFT].map(span => span.id);
-  return { winch: winchRest().scene, hover: hoverRestRows().map((made, index) => { const id = ids[index]; if (id === undefined) throw new Error('Undeclared hover span'); return { id, scene: made.scene }; }) };
+  return { winch: winchRest().scene, hover: hoverRestRows().map((made, index) => { const id = ids[index]; if (id === undefined) throw new Error('Undeclared hover span'); return { id, scene: made.scene }; }), storm: stormRest().scene };
 }
 export function restPools(): readonly { readonly url: string; readonly parts: readonly string[] }[] {
-  const scenes = [winchRest(), ...hoverRestRows()];
+  const scenes = [winchRest(), ...hoverRestRows(), stormRest()];
   return scenes.map((made, index) => {
     const url = REST_URLS[index]; if (url === undefined) throw new Error('Undeclared hover pool');
     return { url, parts: made.scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : []) };
@@ -59,3 +60,46 @@ export function winchGlb(): Uint8Array { return winchRest().glb; }
 export function hover0Glb(): Uint8Array { const made = hoverRestRows()[0]; if (made === undefined) throw new Error('Missing first hover span'); return made.glb; }
 export function hover1Glb(): Uint8Array { const made = hoverRestRows()[1]; if (made === undefined) throw new Error('Missing second hover span'); return made.glb; }
 export function hover2Glb(): Uint8Array { const made = hoverRestRows()[2]; if (made === undefined) throw new Error('Missing updraft span'); return made.glb; }
+
+/** A seeded stream for the bolts' zig-zags (mulberry32): every bake draws the same three bolts. */
+function stormRandom(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+/** A jagged bolt: a crossed pair of thin ribbons along a zig-zag from the storm's base down `length` metres. */
+function boltGeometry(random: () => number, length: number): BufferGeometry {
+  const pts: [number, number, number][] = [[0, 0, 0]];
+  let x = 0, z = 0;
+  for (let i = 1; i <= 9; i++) { x += (random() - 0.5) * 4; z += (random() - 0.5) * 4; pts.push([x, -(i / 9) * length, z]); }
+  const pos: number[] = [], w = 0.35;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1]; if (a === undefined || b === undefined) continue;
+    const ww = w * (1 - i / pts.length);
+    for (const [ox, oz] of [[ww, 0], [0, ww]] as const) {
+      pos.push(a[0] - ox, a[1], a[2] - oz, a[0] + ox, a[1], a[2] + oz, b[0] + ox, b[1], b[2] + oz);
+      pos.push(a[0] - ox, a[1], a[2] - oz, b[0] + ox, b[1], b[2] + oz, b[0] - ox, b[1], b[2] - oz);
+    }
+  }
+  const g = new BufferGeometry(); g.setAttribute('position', new Float32BufferAttribute(pos, 3)); return g;
+}
+/**
+ * The crown's storm (loop 3), centred at its origin (world/build.ts hangs it over the crown at `STORM.lift`, leaning
+ * toward the arena): the vortex's dished ring (the first layer's; data/stormLook.ts paints it in the `storm-ring` look)
+ * and three hidden lightning bolts the plugin flashes (world/storm.ts). Ring and bolts are client material ports; the
+ * lightning's per-vertex flash stays the client's.
+ */
+export function stormRest(): ClientSceneBake {
+  const root = new Group(), ringLook = new MeshStandardMaterial(), boltLook = new MeshStandardMaterial(); root.name = 'storm';
+  const layer = STORM.layers[0], ringShape = new RingGeometry(0.5, STORM.radius * layer.r, 72, 10); ringShape.rotateX(-Math.PI / 2);
+  const ring = new Mesh(ringShape, ringLook); ring.name = 'storm-ring'; ring.position.y = layer.dy; ring.renderOrder = 3; ring.frustumCulled = false; root.add(ring);
+  const random = stormRandom(STORM.boltSeed);
+  for (let i = 0; i < STORM.bolts; i++) {
+    const bolt = new Mesh(boltGeometry(random, 18 + i * 6), boltLook), a = random() * Math.PI * 2, rr = 8 + random() * 18; bolt.name = `storm-bolt-${String(i)}`;
+    bolt.position.set(Math.cos(a) * rr, 2, Math.sin(a) * rr); bolt.visible = false; bolt.frustumCulled = false; root.add(bolt);
+  }
+  const made = clientSceneGlb(root, new Map([[ringLook, 'storm-ring'], [boltLook, 'storm-bolt']])), top = made.scene.nodes.find(node => node.id === 'storm');
+  if (top?.kind !== 'group') throw new Error('Storm scene lost its root');
+  top.name = 'far.storm';
+  return made;
+}
+export function stormGlb(): Uint8Array { return stormRest().glb; }

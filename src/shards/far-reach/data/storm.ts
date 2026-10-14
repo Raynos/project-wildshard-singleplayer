@@ -16,5 +16,8 @@
  */
 // (round 6, seat A: 'the storm eye higher': mockup D's eye sits above the boss bar, ~29 deg up from the arena's rise; ours
 // was ~18 deg) closer and higher over the crown
-export const STORM = { lift: 55, ahead: 70, lean: -0.5, radius: 92, gather: [110, 170], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }] } as const;
+// `bolts` / `boltSeed`: the lightning bolts baked into the storm's rest scene (generators/restScene.ts); `boltDraws`: the
+// cosmetic draws the bolts once took at runtime, still taken so the stream's later strikes fall as before
+export const STORM = { lift: 55, ahead: 70, lean: -0.5, radius: 92, gather: [110, 170], layers: [{ dy: 0, r: 1, spin: 0.045, twist: 4.4 }, { dy: 7, r: 1.2, spin: -0.028, twist: 3.0 }],
+  bolts: 3, boltSeed: 5153, boltDraws: 60, bolt: 0xe2d6ff } as const;
 
