@@ -18,7 +18,7 @@
  * No shadow is cast (a bird-sized caster would add the cascades' draws); the forest's shadows fall on them.
  */
 import * as THREE from 'three';
-import type { BirdMesh, BirdSet } from '../life/birdModels';
+import type { BirdMesh, BirdSet } from '../runtime/birds';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import type { Renderer } from '@wildshard/engine/render/renderer';

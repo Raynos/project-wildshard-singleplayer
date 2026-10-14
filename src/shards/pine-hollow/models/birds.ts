@@ -9,7 +9,7 @@
  */
 import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
-import { loadBirdModels, type BirdSet } from '../life/birdModels';
+import { loadBirdModels, type BirdSet } from '../runtime/birds';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { KIND, preloadPineWildlife, wildlifeBaked, wildlifeSpecimen, type WildKind } from './wildlife';
 

@@ -1,19 +1,6 @@
-/**
- * E322 F-M5 (Jake picked B; the unfixed birds and their Debug row are gone): the two generated-bird shapes the round-16 meshes got wrong,
- * corrected on the vertices at load (birdModels.ts calls these before it tells the parts; the normals are rebuilt after):
- *
- *   inflateBody(pos, side)             the flying owl: its body came back a bas-relief (flat side-on); the belly and the
- *                                      back are pushed out to an ellipsoid between the wing roots, the head, and the tail
- *   clingPose(pos, side, pitch)        the perched woodpecker: it stood on the bark on straight legs, its tail in the air;
- *                                      in the frame its perch puts it in (the trunk a vertical plane in front of its belly)
- *                                      the body lies along the bark, the generated legs go into the belly and new feet
- *                                      grip the bark (a short tarsus, four dark toes hooked in at the claws: `feet`, which
- *                                      birdModels.ts appends), the tail bends down until its tip braces on the bark
- *
- * Pure geometry on a flat xyz array (no three.js loader): scripts/img2mesh/birds/birds_fix_preview.mjs runs them in Node.
- */
 import * as THREE from 'three';
-import { smoothstep } from '@wildshard/engine/core/noise';
+
+const smoothstep=(a:number,b:number,x:number):number=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
 
 type V3 = readonly [number, number, number];
 /** the sidecar fields these read (birds.json, per mesh) */

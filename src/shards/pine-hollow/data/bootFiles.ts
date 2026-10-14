@@ -1,3 +1,4 @@
+import birds from './ambientBirds.generated.json' with {type:'json'};
 import heldPool from './crossbowPool.generated.json' with {type:'json'};
 import handsPool from './handsPool.generated.json' with {type:'json'};
 /** Ordered boot selections; GPU inventory and admitted prop/coat aliases are borrowed at resolution. */
@@ -213,8 +214,8 @@ export const PINE_BOOT_FILES = {
           "/assets/horizon/pine-hollow-night-phone.webp",
           "/assets/pine-hollow/weapons/lever-rifle.glb",
           "/assets/pine-hollow/weapons/skinning-knife.glb",
-          "/assets/pine-hollow/life/birds.glb",
-          "/assets/pine-hollow/life/birds.json",
+          birds.geometry,
+          birds.atlasModel,
           "/assets/pine-hollow/npcs/ranger.glb",
           "/assets/pine-hollow/npcs/trader.glb",
           "/assets/pine-hollow/npcs/miller.glb",
@@ -231,8 +232,8 @@ export const PINE_BOOT_FILES = {
           "/assets/horizon/pine-hollow-night.webp",
           "/assets/pine-hollow/weapons/lever-rifle.glb",
           "/assets/pine-hollow/weapons/skinning-knife.glb",
-          "/assets/pine-hollow/life/birds.glb",
-          "/assets/pine-hollow/life/birds.json",
+          birds.geometry,
+          birds.atlasModel,
           "/assets/pine-hollow/npcs/ranger.glb",
           "/assets/pine-hollow/npcs/trader.glb",
           "/assets/pine-hollow/npcs/miller.glb",

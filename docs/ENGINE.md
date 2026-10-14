@@ -5275,3 +5275,9 @@ reads the primitive's provoking vertex value with no geometry duplication.
 Absent interpolation preserves ordinary perspective interpolation. The
 SDK retains `varying(value).setInterpolation('flat')`; other interpolation
 modes/sampling modifiers and interpolation fields on other ops refuse.
+
+`game/plugin/geometry.posedAssets` reads bounded named fitted geometry and
+borrows its atlas from a declared model through the original tier/GPU path.
+The SDK bake writes phone UVs separately. Pivots and Uint8 vertex-part ids
+are authored; missing assets or incompatible channels refuse. The caller
+copies frames into its existing posed draw, then releases intake references.

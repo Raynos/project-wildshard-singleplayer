@@ -1758,3 +1758,26 @@ export function modelCatalogue(rows: readonly (ModelSpecimenRow | SceneCatalogue
   }
   return defineSceneModels(scenes, builders, prepare);
 }
+
+/** One fitted posed asset. Vertex parts and pivots are authored; no runtime normals, cuts or fitting. */
+export interface PosedAsset {kind:number;fly:boolean;geo:BufferGeometry;parts:Uint8Array;shoulderL:readonly [number,number,number];shoulderR:readonly [number,number,number];neck:readonly [number,number,number];rough:number;eyes:boolean}
+export interface PosedAssetSet {meshes:PosedAsset[];atlas:Texture}
+export interface PosedAssetRows {geometry:string;atlasModel:string;models:readonly (Omit<PosedAsset,'geo'|'parts'>&{readonly name:string})[]}
+/** Read immutable named geometry and original image bytes. Any absent/invalid asset refuses; no procedural fallback. */
+export async function posedAssets(input:unknown):Promise<PosedAssetSet> {
+  const poseNumber=wholeV.pipe(wholeV.number(),wholeV.finite()),point=wholeV.tuple([poseNumber,poseNumber,poseNumber]);
+  const rows=wholeV.parse(wholeV.strictObject({geometry:wholeV.pipe(wholeV.string(),wholeV.minLength(1)),atlasModel:wholeV.pipe(wholeV.string(),wholeV.minLength(1)),models:wholeV.pipe(wholeV.array(wholeV.strictObject({name:wholeV.pipe(wholeV.string(),wholeV.minLength(1)),kind:wholeV.pipe(poseNumber,wholeV.integer(),wholeV.minValue(0),wholeV.maxValue(31)),fly:wholeV.boolean(),shoulderL:point,shoulderR:point,neck:point,rough:wholeV.pipe(poseNumber,wholeV.minValue(0),wholeV.maxValue(1)),eyes:wholeV.boolean()})),wholeV.minLength(1),wholeV.maxLength(64))}),input);
+  if(new Set(rows.models.map(row=>row.name)).size!==rows.models.length)throw new Error('Duplicate posed asset name');
+  const source=await loadRigFile(rows.geometry),found=new Map<string,Mesh>();source.scene.traverse(node=>{if(isMesh(node))found.set(node.name,node);});
+  const meshes:PosedAsset[]=rows.models.map(row=>{
+    const node=found.get(row.name);if(node===undefined)throw new Error(`Missing posed asset ${row.name}`);
+    const geo=node.geometry,parts=geo.getAttribute('_ws_raw_parts');
+    for(const [name,width]of [['position',3],['normal',3],['uv',2]] as const){const attribute=geo.getAttribute(name);if(!(attribute instanceof BufferAttribute)||!(attribute.array instanceof Float32Array)||attribute.itemSize!==width)throw new Error('Invalid posed asset channel');}
+    if(!(parts instanceof BufferAttribute)||!(parts.array instanceof Uint8Array)||parts.itemSize!==1||parts.count!==geo.getAttribute('position').count||parts.array.some(part=>part>3))throw new Error('Invalid posed asset parts');
+    return {...row,geo,parts:parts.array};
+  });
+  const atlasSource=await loadRigFile(rows.atlasModel),textures:Texture[]=[];
+  atlasSource.scene.traverse(node=>{if(isMesh(node)&&!Array.isArray(node.material)&&node.material instanceof MeshStandardMaterial&&node.material.map!==null)textures.push(node.material.map);});
+  const atlas=textures[0];if(atlas===undefined)throw new Error('Missing posed asset atlas');atlas.anisotropy=4;
+  return {meshes,atlas};
+}

@@ -18,3 +18,5 @@ The ordinary SF66 packer adds the existing 23,404-byte map raster to the
 compiled library, giving 10 files / 8,835,217 B. It charges that same
 compiler-owned wire to the explicit allowance, exactly once; the nine-map
 authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
+
+| Pine Hollow | Fitted bird poses (`life/birds-rest-08c7c2580ed1056d4b2e4b71d61cca4381820ce4546736e836812b8ab6cd9bd3.glb` + `.phone.glb`) | — | — | 251,300 B per tier (+246,398 B net, replaces birds.json) | W2 wildlife | Ensemble hash covers both tiers; unchanged original GLB lends its selected compressed atlas, fitted intake is released after packing |

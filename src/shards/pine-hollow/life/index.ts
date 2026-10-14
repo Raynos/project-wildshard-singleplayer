@@ -59,13 +59,14 @@ import * as THREE from 'three';
 import type { PhShot, PineHollowSfx } from '../runtime/audio/sfx';
 import { TrunkProbe } from './trunks';
 import { SkinKnife } from '../models/skinningKnife';
-import { loadBirdModels } from './birdModels';
+import type { BirdSet } from '../runtime/birds';
 import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../models/wildlife';
 import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
 import { pineMemoryTrim } from '../debug/options';
 import { smoothstep } from '@wildshard/engine/core/noise';
 
 export interface PineLifeHost {
+  birdModels:BirdSet|null;
   ctx: ShardContext;
   game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService; audio: Parameters<typeof sharedWeaponVoices>[0];
   trees: readonly TreeInstance[];
@@ -139,11 +140,8 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   const rng = new Rng(0x71fe);
   const wild = new WildlifeMesh(sky, CAPACITY);
   game.scene.add(wild.mesh);
-  // the modelled birds (birdModels.ts; Debug ▸ Pine Hollow birds = Procedural keeps these): fetched once booted (off the load's
-  // requests and bytes, like the painted horizon), swapped in when they land — same draw, same program
-  const swapBirds = async (): Promise<void> => { const set = await loadBirdModels(); if (set && !h.ctx.scope.disposed) wild.useBirds(set, game.renderer); };
-  let scheduled = false;
-  h.ctx.on('level.loaded', ({ id }) => { if (id !== h.ctx.manifest.slug || scheduled) return; scheduled = true; h.ctx.scope.timeout(400, () => { void swapBirds(); }); });
+  if(h.birdModels===null)throw new Error('Missing required bird assets');
+  wild.useBirds(h.birdModels,game.renderer);h.birdModels=null;
   const cam = game.camera;
   const trunks = new TrunkProbe(h.trunks);
 
