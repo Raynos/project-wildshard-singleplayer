@@ -153,6 +153,8 @@ const reviewedW2Owners = new Map([
   ['src/shards/pine-hollow/runtime/compendium/trophyWall.ts', 'C1'],
   // Equipment, combat feel, held viewmodels, loot and owned rewards.
   ['src/engine/combat/ammo.ts', 'C6'],
+  ['src/engine/combat/view/ranged.ts#TRACER_ORDER', 'C6'],
+  ['src/engine/combat/view/ranged.ts#TRACER_RED', 'C6'],
   ['src/engine/combat/view/ranged.ts#edgeWear', 'C6'],
   ['src/engine/combat/view/ranged.ts#makeBoltAtlas', 'C6'],
   ['src/engine/combat/view/ranged.ts#makeCord', 'C6'],

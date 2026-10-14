@@ -1,11 +1,17 @@
-import { Vector2, Vector3, DynamicDrawUsage, InstancedInterleavedBuffer, InterleavedBufferAttribute, Color, type Group, type Mesh, type MeshBasicMaterial, type Scene, type WebGLRenderer, type PerspectiveCamera } from 'three';
+import { Vector2, Vector3, DynamicDrawUsage, InstancedInterleavedBuffer, InterleavedBufferAttribute, Color, Group, Mesh, MeshBasicMaterial, PlaneGeometry, AdditiveBlending, DoubleSide, type Object3D, type PointLight, type Scene, type WebGLRenderer, type PerspectiveCamera } from 'three';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
-import type { Puffs } from '../combat/view/ranged';
+import { worldHit, type Puffs } from '../combat/view/ranged';
 import { ads } from '../combat/blocks/ads';
 import { fovForAspect } from '../combat/blocks/melee';
 import { worldTime } from '../core/time';
+import { makeFlashTexture } from '../combat/view/firearmFx';
+import { weaponActionGate } from '../input/weaponActions';
+import type { InputService } from '../input/InputService';
+import type { Scope } from '../app/scope';
+import type { Weapon } from '../combat/Weapon';
+import type { Targets } from '../combat/types';
 
 /** Drawing-buffer port used by viewmodel effects without exposing a renderer backend. */
 export type DrawingBuffer = Pick<WebGLRenderer, 'getDrawingBufferSize' | 'domElement' | 'getPixelRatio'>;
@@ -138,6 +144,7 @@ export interface RangedFrameRow {
   readonly recoil: { readonly decay: number; readonly attack: number; readonly recovery: number };
   readonly lag: LookLag;
   readonly clampAfter: boolean;
+  readonly readout: { readonly range: number; readonly mask: number; readonly held: boolean; readonly posed: boolean };
 }
 interface RangedHeading { readonly yaw: number; pitch: number; readonly sprinting: boolean }
 interface RangedControls {
@@ -164,6 +171,8 @@ export class RangedFrame {
   private readonly row: RangedFrameRow;
   private readonly hipFov: number;
   private readonly adsFov: number;
+  private aimFrame = 0;
+  private readonly aimCache = { kind: '', distance: 0 };
   constructor(row: RangedFrameRow, heading: RangedHeading, hipFov: number, adsFov: number) {
     const coefficients = [row.recoil.decay, row.recoil.attack, row.recoil.recovery,
       row.lag.gain, row.lag.clampYaw, row.lag.clampPitch, row.lag.k, row.lag.c, hipFov, adsFov];
@@ -174,6 +183,25 @@ export class RangedFrame {
   }
   /** The original recoil impulse is claimed at the weapon's shot phase. */
   shot(kick: number): void { this.recoil = 1; this.kickPending = kick; }
+  /** Original scope/context/lock refusal and input order; reset only drops the mouse ADS latch. */
+  bindInputs(input: InputService, scope: Scope, weapon: Weapon & { allowUnlocked: boolean }, player: { locked: boolean }): void {
+    const allowed = weaponActionGate(weapon, player);
+    input.bind('attack', () => { weapon.tryFire(); }, scope, allowed);
+    input.bind('aim', () => { this.mouseAds = !this.mouseAds; }, scope, allowed);
+    input.bind('reload', () => { weapon.reload(); }, scope, allowed);
+    input.onReset(() => { this.mouseAds = false; }, scope);
+  }
+  /** Cadence-limited animal readout, capped by the first world surface, using borrowed scratch vectors. */
+  scanAim(weapon: Weapon, targets: Targets | undefined, active: boolean, origin: Vector3, direction: Vector3, end: Vector3, model: Object3D): void {
+    const row = this.row.readout;
+    if ((row.held && !active) || !targets || (++this.aimFrame & row.mask) !== 0) return;
+    if (row.posed) model.updateMatrixWorld();
+    weapon.aimRay(origin, direction);
+    const wall = worldHit(origin, end.copy(origin).addScaledVector(direction, row.range), 0);
+    const hit = targets.raycast(origin, direction, wall?.distance ?? row.range);
+    if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; weapon.aimInfo = this.aimCache; }
+    else weapon.aimInfo = null;
+  }
   /** Returns the published ADS state, after the action/flash phases and before the held pose. */
   sampleFrame(dt: number, heading: RangedHeading, controls: RangedControls, camera: RangedCamera,
     frustums: { updateFrustums: () => void }): boolean {
@@ -215,4 +243,51 @@ export class RangedFrame {
     }
   }
 
+}
+
+/** Authored flash transforms, borrowing the existing muzzle, light and live flash profile. */
+export interface RangedFlashShape {
+  readonly size?: number; readonly y: number; readonly z: number; readonly secondaryZ: number;
+  readonly secondaryScale: readonly [number, number, number]; readonly lightY: number; readonly lightZ: number;
+}
+interface RangedFlashProfile { readonly frames: number; readonly lightTime: number; readonly light: number; readonly size?: number }
+/** One build/fire/fade owner for the original two quads and borrowed pooled light. */
+export class RangedFlash {
+  readonly group = new Group(); readonly quads: Mesh[] = [];
+  private frames = 0; private lightTime = 0;
+  private readonly profile: RangedFlashProfile; private readonly shape: RangedFlashShape;
+  private readonly muzzle: { readonly muzzleZ: number }; readonly light: PointLight;
+  constructor(profile: RangedFlashProfile, shape: RangedFlashShape, muzzle: { readonly muzzleZ: number }, light: PointLight) {
+    this.profile = profile; this.shape = shape; this.muzzle = muzzle; this.light = light;
+  }
+  build(model: Object3D): MeshBasicMaterial {
+    const size = this.shape.size ?? this.profile.size;
+    if (size === undefined) throw new Error('Muzzle flash requires a declared size');
+    const material = new MeshBasicMaterial({ map: makeFlashTexture(), blending: AdditiveBlending, transparent: true, depthWrite: false, toneMapped: false, fog: false, side: DoubleSide });
+    const geometry = new PlaneGeometry(size, size), first = new Mesh(geometry, material), second = new Mesh(geometry, material);
+    second.rotation.y = Math.PI / 2; second.position.z = this.shape.secondaryZ; second.scale.set(...this.shape.secondaryScale);
+    this.quads.push(first, second); this.group.add(first, second);
+    this.group.position.set(0, this.shape.y, this.muzzle.muzzleZ + this.shape.z); this.group.visible = false;
+    model.add(this.group); return material;
+  }
+  fire(model: Object3D, random: { next: () => number }): void {
+    this.frames = this.profile.frames; this.lightTime = this.profile.lightTime;
+    for (let i = 0; i < 2; i++) {
+      const quad = this.quads[i]; if (quad === undefined) throw new Error('Muzzle flash has not been built');
+      quad.rotation.z = random.next() * Math.PI * 2; quad.scale.setScalar(.8 + random.next() * .5);
+    }
+    this.group.visible = true; this.light.intensity = this.profile.light; this.place(model);
+  }
+  advance(dt: number, model: Object3D): void {
+    if (this.frames > 0 && --this.frames === 0) this.group.visible = false;
+    if (this.lightTime > 0) {
+      this.lightTime -= dt;
+      this.light.intensity = this.lightTime <= 0 ? 0 : this.profile.light * Math.max(0, Math.min(1, this.lightTime / this.profile.lightTime));
+      this.place(model);
+    }
+  }
+  private place(model: Object3D): void {
+    model.updateWorldMatrix(true, false);
+    model.localToWorld(this.light.position.set(0, this.shape.lightY, this.muzzle.muzzleZ + this.shape.lightZ));
+  }
 }

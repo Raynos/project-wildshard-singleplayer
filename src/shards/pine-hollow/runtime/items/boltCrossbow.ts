@@ -1,10 +1,11 @@
+import { RangedReload } from '@wildshard/engine/combat/Firearm';
 import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import { ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import { app, gameplayRandom } from '@wildshard/engine/app/runtime';
 import type { AmmoRow } from '@wildshard/engine/combat/ammo';
 import { RangedFrame, RangedTrace } from '@wildshard/engine/render/viewmodelFeel';
-import { RANGED_FRAME, RANGED_TRACE } from '../../data/rangedFrame';
+import { RANGED_FRAME, RANGED_TRACE, RANGED_RELOAD } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import type { TargetHit, Targets } from '@wildshard/engine/combat/types';
@@ -12,7 +13,6 @@ import { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, isMesh, whiteColors
 import { quiverState, Weapon, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { Game } from '@wildshard/engine/core/Game';
-import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
 import { sticksIn } from '@wildshard/engine/physics/query';
 import type { Player } from '@wildshard/engine/player/Player';
 import { sstep } from '@wildshard/engine/player/viewmodelTextures';
@@ -155,8 +155,6 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   holster = 0;
   /** what the crosshair is over (animals only; refreshed every 4th frame, 120 m) */
   aimInfo: { kind: string; distance: number } | null = null;
-  private aimFrame = 0;
-  private aimCache = { kind: 'deer', distance: 0 };
   /** the bolt on the rail (special bolts, BoltMod above): read at each loose; PLAIN_BOLT = iron */
   boltMod: BoltMod = PLAIN_BOLT;
   selectedAmmo: AmmoRow | undefined;
@@ -184,7 +182,8 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   // animation state
   private draw = 1; private drawVel = 0; private drawTarget = 1;
   
-  private cooldown = 0; private sinceFire = 99; private reloadT = 0;
+  private cooldown = 0; private sinceFire = 99;
+  private readonly reloadClock = new RangedReload(RANGED_RELOAD.crossbow);
   
   private readonly feel: RangedFrame;
   private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
@@ -249,16 +248,10 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   // ── input ──
   override install(ctx: EquipContext): void {
     super.install(ctx);
-    this.bindInput(ctx);
+    this.feel.bindInputs(app.input, ctx.scope, this, this.player);
     ctx.scope.onDispose(() => { this.posePlayback.dispose(); this.model.removeFromParent(); });
   }
-  private bindInput(ctx: EquipContext): void {
-    const allowed = weaponActionGate(this, this.player);
-    app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
-    app.input.bind('aim', () => { this.feel.mouseAds = !this.feel.mouseAds; }, ctx.scope, allowed);
-    app.input.bind('reload', () => { this.reload(); }, ctx.scope, allowed);
-    app.input.onReset(() => { this.feel.mouseAds = false; }, ctx.scope);
-  }
+
 
   /** Pull the trigger. Fires if loaded, else starts a reload (and reports a dry click). */
   tryFire(): void {
@@ -278,11 +271,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.onFire?.();
   }
 
-  override reload(): void {
-    if (this.state.reloading || this.state.loaded || this.state.bolts <= 0) return;
-    this.state.reloading = true; this.reloadT = 0; this.state.reloadProgress = 0;
-    this.onReloadStart?.();
-  }
+  override reload(): void { this.reloadClock.begin(this, this.profile.quiver); }
 
   override addBolts(n: number): void { this.state.bolts = Math.min(this.profile.quiver, this.state.bolts + n); }
 
@@ -420,11 +409,9 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     // auto reload
     if (!this.state.loaded && !this.state.reloading && this.state.bolts > 0 && this.sinceFire > this.profile.autoReload) this.reload();
     if (this.state.reloading) {
-      this.reloadT += dt / this.reloadScale;
-      const pr = Math.min(1, this.reloadT / this.profile.reload);
-      this.state.reloadProgress = pr;
+      const pr = this.reloadClock.progress(this, dt, this.profile.reload, this.reloadScale);
       this.drawTarget = sstep(0.18, 0.78, pr);
-      if (pr >= 1) { this.state.reloading = false; this.state.loaded = true; this.drawTarget = 1; this.onReloadEnd?.(); }
+      if (pr >= 1) { this.drawTarget = 1; this.reloadClock.finish(this, this.profile.quiver); }
     }
     // string spring (stiff, slightly under-damped so the release overshoots)
     const k = this.state.reloading ? 260 : 1400, c = this.state.reloading ? 28 : 34;
@@ -477,16 +464,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.posePlayback.beginFrame(dt); this.posePlayback.apply('pose', v);
     this.hands?.aim(this.model);
 
-    // aim readout
-    if (this.targets && (++this.aimFrame & 3) === 0) {
-      this.model.updateMatrixWorld(); // the pose was just set; the sight ray goes through the tip
-      this.aimRay(_v3, _fwd);
-      // an animal behind a wall shows no range (P5-L2): the world hit along the sight ray caps the reach
-      const wall = worldHit(_v3, _aimEnd.copy(_v3).addScaledVector(_fwd, 120), 0);
-      const hit = this.targets.raycast(_v3, _fwd, wall?.distance ?? 120);
-      if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
-      else this.aimInfo = null;
-    }
+    this.feel.scanAim(this, this.targets, true, _v3, _fwd, _aimEnd, this.model);
 
     this.stepBolts(dt);
     this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.tracers, this.paintTracer);

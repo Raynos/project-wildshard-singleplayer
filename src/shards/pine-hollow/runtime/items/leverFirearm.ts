@@ -1,21 +1,19 @@
 import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
-import { RangedFrame, RangedTrace } from '@wildshard/engine/render/viewmodelFeel';
-import { RANGED_FRAME, RANGED_TRACE } from '../../data/rangedFrame';
+import { RangedFrame, RangedTrace, RangedFlash } from '@wildshard/engine/render/viewmodelFeel';
+import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Firearm } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { stepBrass, brassFloor } from '@wildshard/engine/combat/view/brass';
-import { makeFlashTexture } from '@wildshard/engine/combat/view/firearmFx';
 import { hitscan, type HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
-import { Puffs, whiteColors, FOV_HIP, FOV_ADS, isMesh, worldHit, fixIBL, VIEWMODEL_GROUP, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { Puffs, whiteColors, FOV_HIP, FOV_ADS, isMesh, fixIBL, VIEWMODEL_GROUP, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
 import { SHADOW_LAYER } from '@wildshard/engine/core/shadowLayer';
 import { mergeOrNull } from '@wildshard/engine/models/weld';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
-import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
-import { sstep, clamp01 } from '@wildshard/engine/player/viewmodelTextures';
+import { sstep } from '@wildshard/engine/player/viewmodelTextures';
 import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
@@ -155,8 +153,6 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   adsHeld = false;
   holster = 0;
   aimInfo: AimInfo | null = null;
-  private aimFrame = 0;
-  private aimCache: AimInfo = { kind: 'deer', distance: 0 };
 
   /** the lever is thrown (a cycle starts) — the 'leverCycle' sound */
   onCycle?: () => void;
@@ -189,8 +185,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   /** where the loading gate is (the cartridge's reload path aims at it) — the build's */
   private readonly gate: THREE.Vector3;
   private readonly lever: THREE.Mesh; private readonly hammer: THREE.Mesh; private readonly bolt: THREE.Mesh; private readonly round: THREE.Mesh;
-  private readonly flash = new THREE.Group(); private readonly flashQuads: THREE.Mesh[] = []; private readonly flashLight: THREE.PointLight;
-  private flashFrames = 0; private flashLightT = 0;
+  private readonly flash: RangedFlash; private readonly flashLight: THREE.PointLight;
   private readonly displayParts: { geo: THREE.BufferGeometry; mat: THREE.Material; pos?: THREE.Vector3; rot?: THREE.Euler }[] = [];
   private readonly brass: Brass[] = [];
   private readonly brassMat: THREE.MeshPhysicalMaterial;
@@ -242,6 +237,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.setAimSource(() => this.player.sampleAimCommand());
     this.flashLight = opts.muzzleLight === false ? new THREE.PointLight(0xffb060, 0, 8, 2) : LightPool.for(this.game.scene).acquire(0xffb060, 0, 8, 2);
+    this.flash = new RangedFlash(this.view.flash, RANGED_FLASH.lever, this.view.sight, this.flashLight);
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.feel = new RangedFrame(RANGED_FRAME.lever, this.player, FOV_HIP, FOV_ADS);
@@ -264,13 +260,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     this.displayParts.push({ geo: parts.wood, mat: woodMat }, { geo: parts.stock, mat: woodMat }, { geo: parts.steel, mat: steelMat }, { geo: beadGeo, mat: this.brassMat },
       { geo: parts.lever, mat: steelMat, pos: parts.leverPivot.clone() }, { geo: parts.hammer, mat: steelMat, pos: this.hammerPivot.clone(), rot: new THREE.Euler(this.view.lever.hammerDown, 0, 0) }, { geo: parts.bolt, mat: steelMat });
 
-    // ── muzzle flash: two additive quads (Rifle.ts's sprite), the pooled light ──
-    const flashMat = new THREE.MeshBasicMaterial({ map: makeFlashTexture(), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide });
-    const fq = new THREE.PlaneGeometry(0.2, 0.2);
-    const q1 = new THREE.Mesh(fq, flashMat), q2 = new THREE.Mesh(fq, flashMat); q2.rotation.y = Math.PI / 2; q2.position.z = -0.06; q2.scale.set(1.5, 0.55, 1);
-    this.flashQuads.push(q1, q2); this.flash.add(q1, q2);
-    this.flash.position.set(0, 0, this.view.sight.muzzleZ - 0.02); this.flash.visible = false;
-    this.model.add(this.flash);
+    const flashMat = this.flash.build(this.model);
 
     // depth clear + render after the world (Crossbow.ts / Rifle.ts)
     const clearer = new THREE.Mesh(new THREE.BoxGeometry(0.001, 0.001, 0.001), new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, fog: false }));
@@ -281,7 +271,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
       if (!isMesh(m)) return;
       m.frustumCulled = false; m.castShadow = false; m.receiveShadow = m !== clearer;
       if (m === clearer) return;
-      m.renderOrder = this.flashQuads.includes(m) ? 1001 : 1000;
+      m.renderOrder = this.flash.quads.includes(m) ? 1001 : 1000;
       if ((Array.isArray(m.material) ? m.material : [m.material]).some((mat) => mat.vertexColors)) whiteColors(m.geometry);
       for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; if (mat !== flashMat) mat.depthWrite = true; }
     });
@@ -341,16 +331,10 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   // ── input ──
   override install(ctx: EquipContext): void {
     super.install(ctx);
-    this.bindInput(ctx);
+    this.feel.bindInputs(app.input, ctx.scope, this, this.player);
     ctx.scope.onDispose(() => { this.posePlayback.dispose(); this.model.removeFromParent(); });
   }
-  private bindInput(ctx: EquipContext): void {
-    const allowed = weaponActionGate(this, this.player);
-    app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
-    app.input.bind('aim', () => { this.feel.mouseAds = !this.feel.mouseAds; }, ctx.scope, allowed);
-    app.input.bind('reload', () => { this.reload(); }, ctx.scope, allowed);
-    app.input.onReset(() => { this.feel.mouseAds = false; }, ctx.scope);
-  }
+
 
   override setActive(on: boolean): void {
     this.active = on;
@@ -387,9 +371,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   protected override fire(): void {
     this.act.dropHammer();
     this.feel.shot(this.view.kick);
-    this.flashFrames = this.view.flash.frames; this.flashLightT = this.view.flash.lightTime;
-    for (const q of this.flashQuads) { q.rotation.z = app.rng.stream('cosmetic').next() * Math.PI * 2; q.scale.setScalar(0.8 + app.rng.stream('cosmetic').next() * 0.5); }
-    this.flash.visible = true; this.flashLight.intensity = this.view.flash.light; this.placeFlashLight();
+    this.flash.fire(this.model, app.rng.stream('cosmetic'));
     this.syncState();
     this.onFire?.();
     this.hitscan();
@@ -397,10 +379,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
 
   private startCycle(): void { this.act.throwLever(); this.hooks.cycle(); }
 
-  private placeFlashLight(): void {
-    this.model.updateWorldMatrix(true, false);
-    this.model.localToWorld(this.flashLight.position.set(0, 0.03, this.view.sight.muzzleZ + 0.1));
-  }
+
 
   /** the aim line is the camera forward, hip or sighted */
   override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return super.aimRay(origin, dir); }
@@ -502,8 +481,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     this.animateAction(t, dt);
 
     // muzzle flash
-    if (this.flashFrames > 0 && --this.flashFrames === 0) this.flash.visible = false;
-    if (this.flashLightT > 0) { this.flashLightT -= dt; this.flashLight.intensity = this.flashLightT <= 0 ? 0 : this.view.flash.light * clamp01(this.flashLightT / this.view.flash.lightTime); this.placeFlashLight(); }
+    this.flash.advance(dt, this.model);
 
     const s = this.state;
     const frame = this.frameInputs;
@@ -530,14 +508,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     this.model.scale.setScalar(scale);
     this.posePlayback.beginFrame(dt); this.posePlayback.apply('pose', v);
 
-    // aim readout (held weapon only)
-    if (this.active && this.targets && (++this.aimFrame & 3) === 0) {
-      this.aimRay(_o, _d);
-      const wall = worldHit(_o, _v2.copy(_o).addScaledVector(_d, 150), 0);
-      const hit = this.targets.raycast(_o, _d, wall?.distance ?? 150);
-      if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
-      else this.aimInfo = null;
-    }
+    this.feel.scanAim(this, this.targets, this.active, _o, _d, _v2, this.model);
 
     this.stepBrass(dt);
     this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.tracers, this.paintTracer);

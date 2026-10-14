@@ -5367,3 +5367,13 @@ shadow camera without advancing the clock. Explicit custom depth/distance
 materials remain authoritative. Clip-position plus matching shadow is refused:
 a camera-space position cannot be reused in another camera. Absent/false keeps
 the existing stock shadow path. The variant leaves with its source material.
+
+`RangedFrame.bindInputs` installs the original scoped ranged actions and lock/context
+refusal. `scanAim` uses declared held policy, cadence mask and wall-capped reach;
+its scratch vectors and posed model are borrowed. `RangedFlash` builds the original
+two quads from transform rows, borrows the pooled light/muzzle/profile, and owns
+only their fire/fade clock. It preserves four cosmetic RNG draws and caller phases.
+`engine/combat/Firearm.RangedReload` supplies quiver/magazine begin/progress/finish
+through the existing state envelope; callbacks keep the weapon receiver. Progress
+uses the explicit duration/scale; transfer and completion keep the original ammo
+and reserve rules. The lever's per-round action remains its existing owner.

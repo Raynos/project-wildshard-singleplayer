@@ -1,17 +1,15 @@
 import { app } from '@wildshard/engine/app/runtime';
-import { RangedFrame, RangedTrace } from '@wildshard/engine/render/viewmodelFeel';
-import { RANGED_FRAME, RANGED_TRACE } from '../../data/rangedFrame';
+import { RangedFrame, RangedTrace, RangedFlash } from '@wildshard/engine/render/viewmodelFeel';
+import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_RELOAD } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
-import { Firearm } from '@wildshard/engine/combat/Firearm';
+import { Firearm, RangedReload } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { brassFloor, stepBrass } from '@wildshard/engine/combat/view/brass';
-import { makeFlashTexture } from '@wildshard/engine/combat/view/firearmFx';
 import { hitscan, type HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
-import { Puffs, FOV_HIP, FOV_ADS, isMesh, whiteColors, worldHit, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { Puffs, FOV_HIP, FOV_ADS, isMesh, whiteColors, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
-import { weaponActionGate } from '@wildshard/engine/input/weaponActions';
-import { sstep, clamp01 } from '@wildshard/engine/player/viewmodelTextures';
+import { sstep } from '@wildshard/engine/player/viewmodelTextures';
 import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
@@ -92,8 +90,6 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   adsHeld = false;
   holster = 0;
   aimInfo: AimInfo | null = null;
-  private aimFrame = 0;
-  private aimCache: AimInfo = { kind: 'deer', distance: 0 };
 
   readonly model = new THREE.Group();
   private game: RangedWorld['game']; private sky: RangedWorld['sky']; private player: RangedWorld['player'];
@@ -104,7 +100,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
 
   // animated parts
   private mag!: THREE.Mesh; private magRest = new THREE.Vector3(); private handle!: THREE.Mesh; private bolt!: THREE.Mesh;
-  private flash = new THREE.Group(); private flashQuads: THREE.Mesh[] = []; private flashLight: THREE.PointLight; private flashFrames = 0; private flashLightT = 0;
+  private readonly flash: RangedFlash; private flashLight: THREE.PointLight;
   private rearGlow!: THREE.Material;
   private glowRing!: THREE.Mesh;
   /** geometry + material pairs for `displayModel()` (a world pickup) */
@@ -115,7 +111,8 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   private puffs = new Puffs();
 
   // animation state
-  private cooldown = 0; private reloadT = 0;
+  private cooldown = 0;
+  private readonly reloadClock = new RangedReload(RANGED_RELOAD.magazine);
   private bloom = 0;
   
   private readonly feel: RangedFrame;
@@ -147,6 +144,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     // gun mid-play: 28 programs). Dark at rest, lit by intensity only, placed at the muzzle in world space when it fires.
     const flash = opts.view.flash;
     this.flashLight = opts.muzzleLight === false ? new THREE.PointLight(flash.colour, 0, 8, 2) : LightPool.for(this.game.scene).acquire(flash.colour, 0, 8, 2);
+    this.flash = new RangedFlash(this.view.flash, RANGED_FLASH.magazine, this.profile.ads, this.flashLight);
     this.targets = targets;
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.feel = new RangedFrame(RANGED_FRAME.magazine, this.player, FOV_HIP, FOV_ADS);
@@ -159,16 +157,10 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   // ── input ──
   override install(ctx: EquipContext): void {
     super.install(ctx);
-    this.bindInput(ctx);
+    this.feel.bindInputs(app.input, ctx.scope, this, this.player);
     ctx.scope.onDispose(() => { this.model.removeFromParent(); });
   }
-  private bindInput(ctx: EquipContext): void {
-    const allowed = weaponActionGate(this, this.player);
-    app.input.bind('attack', () => { this.tryFire(); }, ctx.scope, allowed);
-    app.input.bind('aim', () => { this.feel.mouseAds = !this.feel.mouseAds; }, ctx.scope, allowed);
-    app.input.bind('reload', () => { this.reload(); }, ctx.scope, allowed);
-    app.input.onReset(() => { this.feel.mouseAds = false; }, ctx.scope);
-  }
+
 
   override setActive(on: boolean): void {
     this.active = on;
@@ -177,30 +169,21 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   }
 
   /** the pooled muzzle light, just ahead of the muzzle, in world space (the pool's group sits at the scene origin) */
-  private placeFlashLight(): void {
-    this.model.updateWorldMatrix(true, false);
-    this.model.localToWorld(this.flashLight.position.set(0, 0.03, this.profile.ads.muzzleZ + 0.1));
-  }
+
 
   /** Pull the trigger: one round if the mag has one, else a dry click and (after a beat) a reload. */
   protected override actionReady(): boolean { return this.cooldown <= 0; }
 
-  override reload(): void {
-    if (this.state.reloading || this.state.ammo >= this.profile.magazine || this.state.reserve <= 0) return;
-    this.state.reloading = true; this.reloadT = 0; this.state.reloadProgress = 0;
-    this.onReloadStart?.();
-  }
+  override reload(): void { this.reloadClock.begin(this, this.profile.magazine); }
 
   addRounds(n: number): void { this.state.reserve += n; }
 
   protected override fire(): void {
-    const s = this.state, flash = this.view.flash;
+    const s = this.state;
     s.ammo--; s.loaded = s.ammo > 0;
     this.cooldown = this.profile.interval;
     this.feel.shot(this.profile.kick);
-    this.flashFrames = flash.frames; this.flashLightT = flash.lightTime;
-    for (const q of this.flashQuads) { q.rotation.z = app.rng.stream('cosmetic').next() * Math.PI * 2; q.scale.setScalar(0.8 + app.rng.stream('cosmetic').next() * 0.5); }
-    this.flash.visible = true; this.flashLight.intensity = flash.light; this.placeFlashLight();
+    this.flash.fire(this.model, app.rng.stream('cosmetic'));
     this.onFire?.(); // before the hit resolves: Combat registers the aimed shot, the damage float then closes it
     this.hitscan();
     this.ejectBrass();
@@ -235,22 +218,13 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     this.displayParts.push({ geo: meshA.geometry, mat: aluMat }, { geo: meshP.geometry, mat: polyMat }, { geo: meshS.geometry, mat: steelMat }, { geo: handleGeo, mat: steelMat }, { geo: magGeo, mat: polyMat, pos: this.magRest.clone() });
     this.glowRing = glowRing;
 
-    // ── muzzle flash: two additive quads (one facing, one along the bore) + a point light, shown `flash.frames` frames ──
-    const flashTex = makeFlashTexture();
-    const flashMat = new THREE.MeshBasicMaterial({ map: flashTex, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide });
-    const fq = new THREE.PlaneGeometry(this.view.flash.size, this.view.flash.size);
-    const q1 = new THREE.Mesh(fq, flashMat); const q2 = new THREE.Mesh(fq, flashMat); q2.rotation.y = Math.PI / 2; q2.position.z = -0.06; q2.scale.set(1.4, 0.6, 1);
-    this.flashQuads.push(q1, q2);
-    this.flash.add(q1, q2);
-    this.flash.position.set(0, 0.002, this.profile.ads.muzzleZ - 0.02);
-    this.flash.visible = false;
-    this.model.add(this.flash);
+    const flashMat = this.flash.build(this.model);
 
     // The engine clears depth once for all viewmodels before this transparent queue.
     this.model.traverse((m) => {
       if (!isMesh(m)) return;
       m.frustumCulled = false; m.castShadow = false; m.receiveShadow = true;
-      m.renderOrder = this.flashQuads.includes(m) ? 1001 : 1000;
+      m.renderOrder = this.flash.quads.includes(m) ? 1001 : 1000;
       if ((Array.isArray(m.material) ? m.material : [m.material]).some((mat) => mat.vertexColors)) whiteColors(m.geometry);
       for (const mat of Array.isArray(m.material) ? m.material : [m.material]) { mat.transparent = true; if (mat !== flashMat) mat.depthWrite = true; }
     });
@@ -312,7 +286,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   // ── per-frame ──
   update(dt: number, t: number): void {
     this.time = t;
-    const p = this.player, cam = this.game.camera, s = this.state, flash = this.view.flash;
+    const p = this.player, cam = this.game.camera, s = this.state;
     this.cooldown = Math.max(0, this.cooldown - dt);
     this.sinceEmpty += dt;
     this.bloom = Math.max(0, this.bloom - dt * 2.4);
@@ -323,8 +297,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     this.animateAction(t, dt);
 
     // muzzle flash: `flash.frames` frames of quads, the light for `flash.lightTime`
-    if (this.flashFrames > 0 && --this.flashFrames === 0) this.flash.visible = false;
-    if (this.flashLightT > 0) { this.flashLightT -= dt; this.flashLight.intensity = this.flashLightT <= 0 ? 0 : flash.light * clamp01(this.flashLightT / flash.lightTime); this.placeFlashLight(); }
+    this.flash.advance(dt, this.model);
 
     const frame = this.frameInputs;
     frame.enabled = this.enabled; frame.active = this.active; frame.held = this.adsHeld;
@@ -365,14 +338,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     this.model.position.copy(this.posePos);
     this.model.rotation.set(this.poseRot.x, this.poseRot.y, this.poseRot.z);
 
-    // aim readout (held weapon only)
-    if (this.active && this.targets && (++this.aimFrame & 3) === 0) {
-      this.aimRay(_o, _d);
-      const wall = worldHit(_o, _v2.copy(_o).addScaledVector(_d, 120), 0); // an animal behind a wall shows no range (P5-L2)
-      const hit = this.targets.raycast(_o, _d, wall?.distance ?? 120);
-      if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; this.aimInfo = this.aimCache; }
-      else this.aimInfo = null;
-    }
+    this.feel.scanAim(this, this.targets, this.active, _o, _d, _v2, this.model);
 
     this.stepBrass(dt);
     this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.tracers, this.paintTracer);
@@ -393,18 +359,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     return !s.reloading && s.ammo <= 0 && s.reserve > 0 && this.sinceEmpty > this.profile.autoReload && this.active && this.enabled;
   }
   protected override reloadStep(dt: number): void {
-    const s = this.state;
-    if (s.reloading) {
-      this.reloadT += dt;
-      const pr = Math.min(1, this.reloadT / this.profile.reload);
-      s.reloadProgress = pr;
-      if (pr >= 1) {
-        const take = Math.min(this.profile.magazine - s.ammo, s.reserve);
-        s.ammo += take; s.reserve -= take; s.loaded = s.ammo > 0;
-        s.reloading = false; s.reloadProgress = 0;
-        this.onReloadEnd?.();
-      }
-    }
+    if (this.state.reloading && this.reloadClock.progress(this, dt, this.profile.reload) >= 1) this.reloadClock.finish(this, this.profile.magazine);
   }
 }
 
