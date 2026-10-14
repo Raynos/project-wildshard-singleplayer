@@ -1,5 +1,4 @@
 import { versionedUrl } from '@wildshard/engine/boot/bytes';
-import type { AnimalFactory } from '@wildshard/engine/entities/AnimalFactory';
 import { declarePanel, type PanelView } from '@wildshard/engine/ui/panel';
 import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
 /**
@@ -10,7 +9,7 @@ import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
  * slot shows a tip under the crosshair ("NOT YET TAKEN" / the name + the joke title) and offers "[E] Examine …", which
  * opens the journal on that entry.
  *
- *   const wall = new TrophyWall({ anchor, state, factory, rows: [3, 4], width: 3, rowY: [1.95, 1.1] });
+ *   const wall = new TrophyWall({ anchor, state, rows: [3, 4], width: 3, rowY: [1.95, 1.1] });
  *   anchor.add(wall.group); interactables.push(wall.interactable);
  *   game.onUpdate(() => wall.update(camera));   wall.onExamine = (entryId) => journal.open(entryId);
  *   state.onChange → wall.rebuild()             // a new trophy is mounted on the spot
@@ -18,13 +17,14 @@ import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
  * `anchor`'s local frame: origin on the wall face at floor level, +x along the wall (the viewer's right), +y up, +z out
  * of the wall into the room. Cheap: ONE merged mesh for every mount + shield (vertex colours, one MeshStandardMaterial)
  * and ONE merged mesh for every chalk decal (a canvas atlas); no lights, nothing per frame but a ray-plane test.
- * The mount geometry is the species' bind-pose model clipped at the neck (AnimalFactory.model): the generated hull where
- * the animal is one (`riggedHulls` — its coat atlas sampled into the vertex colours, so the wall
- * stays one mesh), else the procedural model's own paint.
+ * Each mount (its shield and the species' head and shoulders, its coat in its vertex colours) is baked offline, posed on
+ * the wall (generators/trophyMounts.ts → data/trophyMounts.json + a hash-named geometry pack), fetched only
+ * when a slot is taken.
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { readTexturePixels } from '@wildshard/engine/core/ktx2';
+import { fetchDeflated, GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
+import mounts from '../../data/trophyMounts.json' with { type: 'json' };
 import { loadHandFont } from "@wildshard/game/compendium/Journal";
 import type { CompendiumState } from "@wildshard/game/compendium/state";
 import type { TrophySlot } from "@wildshard/game/compendium/types";
@@ -32,7 +32,6 @@ import type { TrophySlot } from "@wildshard/game/compendium/types";
 export interface TrophyWallOptions {
   anchor: THREE.Object3D;
   state: CompendiumState;
-  factory: AnimalFactory;
   /** slots per row, top row first (their sum = the slot count) */
   rows: readonly number[];
   /** wall width the slots spread over (m) and each row's centre height above the anchor */
@@ -49,100 +48,8 @@ const CELL_W = 256, CELL_H = 320, COLS = 4;
 const LOOK_RANGE = 4.2;
 /** past this (m) the wall is not drawn */
 const CULL = 30;
-/** the live fur multiplies its vertex paint by a grey strand texture (AnimalFactory); the mount has no texture, so it darkens the paint by about as much */
-const FUR_TONE = 0.3;
-const WOOD = new THREE.Color(0x6e4a2c), WOOD_DARK = new THREE.Color(0x3a2616);
-
-/** a shield plaque: arched top, straight sides, pointed bottom, extruded, bevelled (y up, facing +z, centred) */
-function shieldGeometry(w: number, h: number): THREE.BufferGeometry {
-  const s = new THREE.Shape(), hw = w / 2, hh = h / 2;
-  // a hunting plaque: a shallow arched top, straight sides, then down to a soft point
-  s.moveTo(0, -hh);
-  s.quadraticCurveTo(hw * 0.95, -hh * 0.62, hw, -hh * 0.05);
-  s.lineTo(hw, hh * 0.72);
-  s.quadraticCurveTo(hw * 0.5, hh * 0.78, 0, hh);
-  s.quadraticCurveTo(-hw * 0.5, hh * 0.78, -hw, hh * 0.72);
-  s.lineTo(-hw, -hh * 0.05);
-  s.quadraticCurveTo(-hw * 0.95, -hh * 0.62, 0, -hh);
-  const g = new THREE.ExtrudeGeometry(s, { depth: 0.035, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.014, bevelSegments: 2, curveSegments: 10 });
-  g.deleteAttribute('uv');
-  const pos = g.getAttribute('position'), col = new Float32Array(pos.count * 3), c = new THREE.Color();
-  for (let i = 0; i < pos.count; i++) {
-    // darker on the bevel and the back, a faint grain across the face
-    const face = pos.getZ(i) > 0.04 ? 1 : 0.6;
-    c.copy(WOOD_DARK).lerp(WOOD, face * (0.8 + 0.2 * Math.sin(pos.getY(i) * 60 + pos.getX(i) * 7)));
-    col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
-  }
-  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  return g.toNonIndexed();
-}
-
-/** a texture's pixels (downscaled to ≤ 512²), to sample a generated hull's coat per vertex; null when unreadable */
-function texturePixels(map: THREE.Texture): { data: Uint8ClampedArray; w: number; h: number; flipY: boolean } | null {
-  const img = map.image as (CanvasImageSource & { width: number; height: number }) | null;
-  if (!img || typeof document === 'undefined' || !(img.width > 0)) return null;
-  const k = Math.min(1, 512 / Math.max(img.width, img.height));
-  const w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
-  if (map instanceof THREE.CompressedTexture) {
-    // G187 cut 2: a KTX2 coat has no pixels on the CPU; read it back through the GPU (rows top-first = the texture's last
-    // row first), then put the rows back in the texture's own order, as a canvas holds an uncompressed coat
-    const rows = readTexturePixels(map, w, h);
-    if (rows === null) return null;
-    const data = new Uint8ClampedArray(rows.length), stride = w * 4;
-    for (let y = 0; y < h; y++) data.set(rows.subarray((h - 1 - y) * stride, (h - y) * stride), y * stride);
-    return { data, w, h, flipY: map.flipY };
-  }
-  const c = document.createElement('canvas'); c.width = w; c.height = h;
-  const g = c.getContext('2d', { willReadFrequently: true });
-  if (!g) return null;
-  g.drawImage(img, 0, 0, w, h);
-  return { data: g.getImageData(0, 0, w, h).data, w, h, flipY: map.flipY };
-}
-
-/** the head and shoulders of a (kind, variant) model: its bind-pose triangles in front of the neck's base, above the chest */
-function mountGeometry(factory: AnimalFactory, kind: string, variant: string): THREE.BufferGeometry | null {
-  const model = factory.model(kind, variant);
-  // a generated hull: white vertex colours under a photo atlas — the atlas, sampled at each vertex, is its paint
-  const atlas = model.hull !== undefined && model.fur.map ? texturePixels(model.fur.map) : null;
-  const uv = atlas ? model.geometry.getAttribute('uv') : null, col = model.geometry.getAttribute('color');
-  const sc = new THREE.Color();
-  const paint = (v: number): [number, number, number] => {
-    if (atlas && uv) {
-      const u = uv.getX(v) - Math.floor(uv.getX(v)), t = uv.getY(v) - Math.floor(uv.getY(v));
-      const x = Math.min(atlas.w - 1, Math.floor(u * atlas.w)), y = Math.min(atlas.h - 1, Math.floor((atlas.flipY ? 1 - t : t) * atlas.h));
-      const o = (y * atlas.w + x) * 4;
-      sc.setRGB((atlas.data[o] ?? 0) / 255, (atlas.data[o + 1] ?? 0) / 255, (atlas.data[o + 2] ?? 0) / 255, THREE.SRGBColorSpace);
-      return [sc.r, sc.g, sc.b];
-    }
-    return [col.getX(v) * FUR_TONE, col.getY(v) * FUR_TONE, col.getZ(v) * FUR_TONE];
-  };
-  const neck = model.bones.find((b) => b.name === 'neck1')?.pos, body = model.bones.find((b) => b.name === 'body')?.pos;
-  if (!neck || !body) return null;
-  const src = model.geometry;
-  const pos = src.getAttribute('position'), nrm = src.getAttribute('normal');
-  const idx = src.getIndex();
-  const cutZ = neck[2] - 0.06, cutY = body[1] - 0.04;
-  const P: number[] = [], N: number[] = [], C: number[] = [];
-  const tri = (a: number, b: number, c: number): void => {
-    const zc = (pos.getZ(a) + pos.getZ(b) + pos.getZ(c)) / 3, yc = (pos.getY(a) + pos.getY(b) + pos.getY(c)) / 3;
-    if (zc < cutZ || yc < cutY) return;
-    for (const v of [a, b, c]) {
-      P.push(pos.getX(v) - neck[0], pos.getY(v) - neck[1], pos.getZ(v) - cutZ);
-      N.push(nrm.getX(v), nrm.getY(v), nrm.getZ(v));
-      C.push(...paint(v));
-    }
-  };
-  const n = idx ? idx.count : pos.count;
-  for (let i = 0; i + 2 < n; i += 3) {
-    if (idx) tri(idx.getX(i), idx.getX(i + 1), idx.getX(i + 2)); else tri(i, i + 1, i + 2);
-  }
-  if (P.length === 0) return null;
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
-  g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3));
-  return g;
-}
+/** each mount slot's geometry in the baked pack (by entry id) */
+const MOUNT_SLOTS: Readonly<Record<string, number>> = mounts.slots;
 
 export class TrophyWall {
   readonly scope = uiScope('trophyWall');
@@ -157,6 +64,7 @@ export class TrophyWall {
   private chalkMat: THREE.MeshStandardMaterial | null = null;
   private chalkImg: HTMLImageElement | null = null;
   private looked: Placed | null = null;
+  private builds = 0;
   private tip: PanelView | null = null;
   private readonly ray = new THREE.Ray();
   private readonly inv = new THREE.Matrix4();
@@ -189,34 +97,28 @@ export class TrophyWall {
 
   /** (re)build the mounts mesh from the taken slots, and the chalk mesh from the rest */
   rebuild(): void {
-    const parts: THREE.BufferGeometry[] = [];
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), t = new THREE.Vector3();
-    for (const p of this.placed) {
-      if (!this.taken(p) || !p.slot.mount) continue;
-      const shield = shieldGeometry(Math.min(0.62, p.w * 0.78), Math.min(0.7, p.h * 0.8));
-      shield.translate(p.x, p.y - 0.06, 0.005);
-      parts.push(shield);
-      const head = mountGeometry(this.opts.factory, p.slot.mount.kind, p.slot.mount.variant);
-      if (!head) continue;
-      head.computeBoundingBox();
-      const bb = head.boundingBox;
-      if (!bb) continue;
-      const k = Math.min((p.w * 0.72) / Math.max(0.01, bb.max.x - bb.min.x), (p.h * 0.9) / Math.max(0.01, bb.max.y - bb.min.y), 1.1);
-      const yaw = (p.x < 0 ? 1 : -1) * 0.5; // turned toward the room's middle: a mount reads in three-quarter view
-      m.compose(t.set(p.x, p.y - 0.05, 0.05), q.setFromEuler(new THREE.Euler(-0.08, yaw, 0)), s.setScalar(k));
-      head.applyMatrix4(m);
-      head.deleteAttribute('uv');
-      parts.push(head);
-    }
-    if (this.mounts) { this.group.remove(this.mounts); this.mounts.geometry.dispose(); this.mounts = null; }
-    if (parts.length > 0) {
-      const merged = mergeGeometries(parts.map((g) => { for (const a of Object.keys(g.attributes)) if (a !== 'position' && a !== 'normal' && a !== 'color') g.deleteAttribute(a); return g; }), false);
-      for (const g of parts) g.dispose();
-      this.mounts = new THREE.Mesh(merged, this.mountMat);
-      this.mounts.name = 'trophy-mounts';
-      this.group.add(this.mounts);
-    }
+    void this.mountTaken();
     this.buildChalk();
+  }
+
+  /** the taken slots' baked mounts merged into one mesh; the pack is fetched only while a slot is taken, never kept */
+  private async mountTaken(): Promise<void> {
+    const build = ++this.builds;
+    const taken = this.placed.flatMap((p) => { const i = this.taken(p) ? MOUNT_SLOTS[p.slot.entry] : undefined; return i === undefined ? [] : [i]; });
+    let parts: THREE.BufferGeometry[] = [];
+    if (taken.length > 0) {
+      try {
+        const pack = new GeometryPack(await fetchDeflated(mounts.url), packedRows(mounts.rows), 'trophy-wall');
+        parts = taken.map((i) => pack.geometry(i));
+      } catch (error: unknown) { console.error('[trophy-wall] the baked mounts did not load:', error); return; }
+    }
+    if (build !== this.builds) return; // a newer rebuild won
+    if (this.mounts) { this.group.remove(this.mounts); this.mounts.geometry.dispose(); this.mounts = null; }
+    if (parts.length === 0) return;
+    this.mounts = new THREE.Mesh(mergeGeometries(parts, false), this.mountMat);
+    for (const g of parts) g.dispose();
+    this.mounts.name = 'trophy-mounts';
+    this.group.add(this.mounts);
   }
 
   /** the outline atlas + the hand font, then the chalk decals */

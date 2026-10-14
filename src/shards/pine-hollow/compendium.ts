@@ -13,7 +13,8 @@
  * <id>.webp (+ <id>-sil.webp, the silhouette an unknown page shows; chalk.webp, the wall's outline atlas).
  */
 import { PINE_HOLLOW_POIS } from './data/layout';
-import type { CompendiumSkin, EntryDef, EntryStats, ShardCompendium, TrophySlot } from '@wildshard/game/compendium/types';
+import { PINE_HOLLOW_TROPHIES, RANGER_WALL } from './data/trophyWall';
+import type { CompendiumSkin, EntryDef, EntryStats, ShardCompendium } from '@wildshard/game/compendium/types';
 
 export const PINE_HOLLOW_ID = 'chunk://local/pine-hollow';
 export const JOURNAL_ART = '/assets/pine-hollow/journal';
@@ -90,16 +91,6 @@ const PLACES: EntryDef[] = PINE_HOLLOW_POIS.map((p): EntryDef => ({
   plate: { sketch: sketch(`place-${p.id}`) },
 }));
 
-/** the wall, top row first (the antlered heads need the width), then the bottom row */
-export const PINE_HOLLOW_TROPHIES: TrophySlot[] = [
-  { entry: 'ghost-stag', outline: 'stag', mount: { kind: 'deer', variant: 'ghost' }, title: 'Ghostbuster' },
-  { entry: 'antler-king', outline: 'king', title: 'Regicide, Technically' },
-  { entry: 'imperial-bull', outline: 'elk', mount: { kind: 'elk', variant: 'imperial' }, title: 'His Royal Lowness' },
-  { entry: 'ironhide', outline: 'boar', mount: { kind: 'boar', variant: 'ironhide' }, title: 'Ironhide\'s Retirement Plan' },
-  { entry: 'scarback', outline: 'boar', mount: { kind: 'boar', variant: 'scarback' }, title: 'Scar Tissue Collector' },
-  { entry: 'grizzled-sow', outline: 'bear', mount: { kind: 'bear', variant: 'brown-old' }, title: 'Grin and Bear It' },
-  { entry: 'blackpaw', outline: 'bear', mount: { kind: 'bear', variant: 'black-old' }, title: 'Paws for Thought' },
-];
 
 const RARITY_WORD: Record<string, string> = { common: 'Common', uncommon: 'Uncommon', rare: 'Rare', legendary: 'Legendary' };
 
@@ -142,12 +133,6 @@ export const JOURNAL_SKIN: CompendiumSkin = {
   },
 };
 
-/**
- * The ranger's cabin (cabin 1: W 5 × L 7, chimney at −Z, door on +X). The wall is the back wall's inner face (x = −W/2 +
- * 2·LOG_R, the log crests) between the hearth corner and the window at z = +0.6: z ∈ [−3.2, −0.2]. Turned +90° so the
- * wall's +z is the cabin's +X (into the room) and its +x the viewer's right (−Z). FLOOR = 0.22 (Cabin.ts).
- */
-const RANGER_WALL = { cabin: 0, at: [-2.27, 0.22, -1.7] as [number, number, number], yaw: Math.PI / 2, width: 3.0, rows: [3, 4], rowY: [1.98, 1.12] };
 
 /** registered by src/game/compendium/install.ts */
 export const PINE_HOLLOW_COMPENDIUM: ShardCompendium = { chunkId: PINE_HOLLOW_ID, skin: JOURNAL_SKIN, entries: [...BEASTS, ...ELITES, ...PLACES], trophies: PINE_HOLLOW_TROPHIES, wall: RANGER_WALL };

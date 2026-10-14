@@ -14,7 +14,7 @@ export function installPineCompendium(host: CompendiumHost): ReturnType<typeof i
       anchor.rotation.y = place.yaw;
       root.add(anchor);
       anchor.updateMatrixWorld(true);
-      wall = new TrophyWall({ anchor, state, factory: host.animals.factory, rows: place.rows, width: place.width, rowY: place.rowY, tip: true });
+      wall = new TrophyWall({ anchor, state, rows: place.rows, width: place.width, rowY: place.rowY, tip: true });
       wall.onExamine = (id) => { journal.open(id); };
       host.interactables.push(wall.interactable);
     }
