@@ -4,11 +4,12 @@ import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { Rng } from '@wildshard/engine/core/rng';
 import { floorBelow } from '@wildshard/engine/physics/query';
-import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
-import { normalAt, splatAt, trailDistance, cabinMask, pondMask, streamAt, inChunk } from '@wildshard/engine/world/Heightfield';
+import { pondMask, streamAt } from '@wildshard/engine/world/Heightfield';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
+import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
+import { GeometryPack, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import { fogGLSL } from '@wildshard/game/systems/looks/fogProgram';
 import { rainCurtain } from '@wildshard/game/systems/looks/rainCurtain';
 import { ShaderFamily, type ShaderProgramRow } from '@wildshard/game/plugin/shaderFamily';
@@ -16,20 +17,22 @@ import { ShaderFamily, type ShaderProgramRow } from '@wildshard/game/plugin/shad
 /**
  * A wooded level's rain as rows (SHARD-PLATFORM M3): the rain round the camera with the canopy's drips in it, the puddles in
  * the ground's low spots, the splashes at the player's feet and the drops on the lens. Everything reads a weather reading
- * (rain, wet); nothing here decides anything. The shard gives its sizes and its three programs as data, its trees, where
+ * (rain, wet); nothing here decides anything. The shard gives its sizes and its three programs as data, its bake, where
  * its roofs are and, optionally, one hood (a cave's mouth) where no rain falls.
  *
- *   const fx = new RainFx({ sky, trees, roofAt, phone, seed, look, programs, hood }).build();  scene.add(fx.group)
+ *   const fx = new RainFx({ sky, roofAt, phone, seed, look, programs, baked, hood }).build();  scene.add(fx.group)
  *   fx.update(dt, weather, fogColor, wind, camera)   // the camera: the extras (splashes round it, drops on its lens)
  *
  * THE RAIN: a camera-local curtain (`rainCurtain`) — N streak quads in a box round the eye, world-anchored by a wrapped
  * offset (no CPU per drop), built in the vertex shader, the count following the intensity. The COVER MAP: a `coverN`²
- * texture over the slab of the crowns (R, from `trees`) and the roofs (G, `roofAt`): the rain program stops the rain under
- * a roof and turns most of it under the crowns into drips off the needles, in the same draw. Its uniforms: `uCover` /
+ * texture over the slab of the crowns (R, baked from the trees) and the roofs (G, `roofAt`): the rain program stops the
+ * rain under a roof and turns most of it under the crowns into drips off the needles, in the same draw. Its uniforms: `uCover` /
  * `uCoverK` (world x/z → uv = p · k + 0.5), `uCave` (the hood's frame: x, z, cos yaw, sin yaw) and `uCaveBox` (half width,
  * lz from, lz to, the ceiling's world y; all 0 with no hood, which nothing is inside).
  * THE PUDDLES: irregular draped discs in the concave spots of the roads and trails (and the open meadows' dips after them),
- * merged into one mesh drawn by the water's own program at a fading alpha: 0 new programs.
+ * merged into one mesh drawn by the water's own program at a fading alpha: 0 new programs. They and the crowns' half of the
+ * cover map are baked offline (generators/bake-pine-rain.mjs over the page's ground and forest; `loadRainBake`), so the
+ * page builds only the roofs' half.
  * THE EXTRAS: the splashes (a ring of crowns + ripples on the ground within a few metres of the eye, respawned on the CPU,
  * one instanced draw; none under a roof or the hood, fewer under the crowns) and the lens drops (screen-space quads: they
  * land while you face the open sky and bead, slide and dry).
@@ -42,14 +45,21 @@ import { ShaderFamily, type ShaderProgramRow } from '@wildshard/game/plugin/shad
 /** A count per device tier. */
 export interface TierCount { readonly phone: number; readonly desktop: number }
 
-/** The rain's sizes as data: the cover map's texels, the streaks, the splash and lens-drop slots, the puddles. */
+/** The rain's sizes as data: the cover map's texels, the streaks, the splash and lens-drop slots. */
 export interface RainFxLook {
   readonly coverN: number;
   readonly streaks: TierCount;
   readonly splashes: TierCount;
   readonly lensDrops: TierCount;
-  /** puddles on / beside the trails, then in the open dips; each a disc of `seg` sides through `rings` (radius, depth) */
-  readonly puddles: { readonly trail: TierCount; readonly open: TierCount; readonly seg: number; readonly rings: readonly (readonly [number, number])[] };
+}
+
+/** The offline bake: the merged puddles (position, `aWater`, index) and the crowns' cover (the R byte per texel). */
+export interface RainBake { readonly puddles: THREE.BufferGeometry; readonly crowns: Float32Array }
+
+/** Fetch a tier's rain bake (a lane-shuffled geometry pack: the puddles, then the crowns' floats). */
+export async function loadRainBake(url: string, rows: PackedGeometryJson): Promise<RainBake> {
+  const pack = new GeometryPack(await fetchLaneBake(url), packedRows(rows), 'rain');
+  return { puddles: pack.geometry(0), crowns: pack.floats(1) };
 }
 
 /** The rain's three programs (`@{fog}` splices the atmosphere's fog GLSL). */
@@ -70,13 +80,13 @@ export interface RainFxOptions {
   /** the group's name (a capture finds it by it) */
   name: string;
   sky: Sky;
-  trees: readonly TreeInstance[];
   /** a roof over (x, z) */
   roofAt: (x: number, z: number) => boolean;
   phone: boolean;
   seed: number;
   look: RainFxLook;
   programs: RainFxPrograms;
+  baked: RainBake;
   hood?: RainHood;
 }
 
@@ -118,7 +128,7 @@ export class RainFx {
   private readonly xrng: Rng;
   private readonly family: ShaderFamily<keyof RainFxPrograms>;
 
-  /** `o`: the trees, roofs, tier, seed, the look and programs as data, and an optional hood. */
+  /** `o`: the roofs, tier, seed, the look and programs as data, and an optional hood. */
   constructor(private readonly o: RainFxOptions) {
     this.coverN = o.look.coverN;
     this.coverData = new Uint8Array(this.coverN * this.coverN * 4);
@@ -168,23 +178,11 @@ export class RainFx {
 
   // ─────────────────────────── the cover map ───────────────────────────
   private buildCover(): THREE.DataTexture {
-    const d = this.coverData, N = this.coverN, cell = (2 * CHUNK_HALF) / N;
-    const cov = new Float32Array(N * N);
-    for (const t of this.o.trees) {
-      const r = Math.max(1.6, 0.16 * t.height + 0.8), i0 = (t.x + CHUNK_HALF) / cell, j0 = (t.z + CHUNK_HALF) / cell, rc = r / cell;
-      for (let j = Math.max(0, Math.floor(j0 - rc)); j <= Math.min(N - 1, Math.ceil(j0 + rc)); j++) {
-        for (let i = Math.max(0, Math.floor(i0 - rc)); i <= Math.min(N - 1, Math.ceil(i0 + rc)); i++) {
-          const q = Math.hypot(i + 0.5 - i0, j + 0.5 - j0) / rc;
-          if (q >= 1) continue;
-          const k = j * N + i;
-          cov[k] = Math.min(1, (cov[k] ?? 0) + 0.85 * (1 - q * q));
-        }
-      }
-    }
-    for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
-      const k = j * N + i, x = -CHUNK_HALF + (i + 0.5) * cell, z = -CHUNK_HALF + (j + 0.5) * cell;
-      d[k * 4] = Math.round((cov[k] ?? 0) * 255);
-      d[k * 4 + 1] = this.o.roofAt(x, z) ? 255 : 0;
+    const d = this.coverData, N = this.coverN, cell = (2 * CHUNK_HALF) / N, crowns = this.o.baked.crowns;
+    for (let j = 0; j < Math.min(N, 1024); j++) for (let i = 0; i < Math.min(N, 1024); i++) {
+      const k = j * N + i;
+      d[k * 4] = crowns[k] ?? 0;
+      d[k * 4 + 1] = this.o.roofAt(-CHUNK_HALF + (i + 0.5) * cell, -CHUNK_HALF + (j + 0.5) * cell) ? 255 : 0;
       d[k * 4 + 3] = 255;
     }
     const tex = new THREE.DataTexture(d, N, N, THREE.RGBAFormat, THREE.UnsignedByteType);
@@ -202,70 +200,10 @@ export class RainFx {
 
   // ─────────────────────────── puddles in the low spots ───────────────────────────
   private buildPuddles(): THREE.Mesh {
-    const pl = this.o.look.puddles;
-    const rng = new Rng(this.o.seed ^ 0x9dd1), want = this.o.phone ? pl.trail.phone : pl.trail.desktop;
-    const spots: { x: number; z: number; r: number }[] = [];
-    // the low spots on or beside the roads and trails: a point a few cm under the ground 2 m round it
-    for (let tries = 0; tries < 30000 && spots.length < want; tries++) {
-      const x = rng.range(-CHUNK_HALF, CHUNK_HALF), z = rng.range(-CHUNK_HALF, CHUNK_HALF);
-      if (!inChunk(x, z, 12) || trailDistance(x, z) > 2.4) continue;
-      if (cabinMask(x, z) > 0 || pondMask(x, z) > 0.01 || streamAt(x, z) !== null) continue;
-      const h = heightAt(x, z);
-      const m = (heightAt(x + 2, z) + heightAt(x - 2, z) + heightAt(x, z + 2) + heightAt(x, z - 2)) / 4;
-      if (h - m > -0.006 && rng.next() > 0.1) continue; // mostly concave spots, a few anywhere on the track
-      if (spots.some((s) => (s.x - x) ** 2 + (s.z - z) ** 2 < 49)) continue;
-      spots.push({ x, z, r: rng.range(0.6, 1.5) });
-    }
-    const trailSpots = spots.length;
-    // the meadows' low spots too — open (little crown over them), flat, not rock, the dips; their own random stream and
-    // appended, so the trails' puddles stay exactly as they were
-    const rx = new Rng(this.o.seed ^ 0x51ab), wantOff = this.o.phone ? pl.open.phone : pl.open.desktop;
-    for (let tries = 0; tries < 40000 && spots.length < trailSpots + wantOff; tries++) {
-      const x = rx.range(-CHUNK_HALF, CHUNK_HALF), z = rx.range(-CHUNK_HALF, CHUNK_HALF);
-      if (!inChunk(x, z, 12) || trailDistance(x, z) <= 2.4 || this.coverAt(x, z) > 0.45) continue;
-      if (cabinMask(x, z) > 0 || pondMask(x, z) > 0.01 || streamAt(x, z) !== null) continue;
-      if (splatAt(x, z)[2] > 0.15 || normalAt(x, z, 1.5)[1] < 0.975) continue;
-      const h = heightAt(x, z);
-      const m = (heightAt(x + 2.5, z) + heightAt(x - 2.5, z) + heightAt(x, z + 2.5) + heightAt(x, z - 2.5)) / 4;
-      if (h - m > -0.012) continue; // only the dips: water pools, it does not sit on a rise
-      if (spots.some((s) => (s.x - x) ** 2 + (s.z - z) ** 2 < 100)) continue;
-      spots.push({ x, z, r: rx.range(0.8, 2.0) });
-    }
-    // one merged mesh: each puddle a draped disc — deep centre, the water's edge, a wet dark rim, fading out
-    const RINGS = pl.rings;
-    const SEG = pl.seg;
-    const pos: number[] = [], uv: number[] = [], aw: number[] = [], idx: number[] = [];
-    for (const s of spots) {
-      const base = pos.length / 3, ph = rng.range(0, 6.283), ph2 = rng.range(0, 6.283), stretch = rng.range(1, 1.7), rot = rng.range(0, Math.PI);
-      const cr = Math.cos(rot), sr = Math.sin(rot);
-      for (let r = 0; r < RINGS.length; r++) {
-        const ring = RINGS[r] ?? [0, 0];
-        const n = r === 0 ? 1 : SEG;
-        for (let k = 0; k < n; k++) {
-          const a = (k / SEG) * Math.PI * 2;
-          const wob = 1 + 0.16 * Math.sin(a * 3 + ph) + 0.1 * Math.sin(a * 5 + ph2);
-          const lx = Math.cos(a) * ring[0] * s.r * wob * stretch, lz = Math.sin(a) * ring[0] * s.r * wob;
-          const x = s.x + lx * cr - lz * sr, z = s.z + lx * sr + lz * cr;
-          pos.push(x, heightAt(x, z) + 0.035, z);
-          uv.push(x, z);
-          aw.push(ring[1], 0, 0, 45); // murky: 45 / m
-        }
-      }
-      // the centre fan, then quads between rings
-      for (let k = 0; k < SEG; k++) idx.push(base, base + 1 + ((k + 1) % SEG), base + 1 + k);
-      for (let r = 1; r + 1 < RINGS.length; r++) {
-        const a0 = base + 1 + (r - 1) * SEG, b0 = a0 + SEG;
-        for (let k = 0; k < SEG; k++) {
-          const k1 = (k + 1) % SEG;
-          idx.push(a0 + k, a0 + k1, b0 + k, a0 + k1, b0 + k1, b0 + k);
-        }
-      }
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-    geo.setAttribute('aWater', new THREE.Float32BufferAttribute(aw, 4));
-    geo.setIndex(idx);
+    // the bake leaves out what the positions give: the uv (world x / z) and the normals
+    const geo = this.o.baked.puddles, p = geo.getAttribute('position'), uv = new Float32Array(p.count * 2);
+    for (let i = 0; i < Math.min(p.count, 65536); i++) { uv[i * 2] = p.getX(i); uv[i * 2 + 1] = p.getZ(i); }
+    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     geo.computeVertexNormals();
     geo.computeBoundingSphere();
     const { material } = createWaterMaterial(this.o.sky, { skyline: null, forestSinEl: 0.12, fade: this.puddleFade });
@@ -275,8 +213,6 @@ export class RainFx {
     mesh.receiveShadow = true; // the creek's flags: the same water program
     mesh.renderOrder = 4;
     mesh.visible = false;
-    mesh.userData['spots'] = trailSpots;
-    mesh.userData['extraSpots'] = spots.length - trailSpots;
     return mesh;
   }
 

@@ -43,7 +43,8 @@ import type { Particles } from '@wildshard/game/systems/looks/particles';
 import type { ForestAmbience } from '../runtime/audio/ambience';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PineWeather, wetProjectile, type PineWeatherMode } from './weatherProfile';
-import { RainFx } from '../runtime/looks/rainFx';
+import { loadRainBake, RainFx, type RainBake } from '../runtime/looks/rainFx';
+import rainRows from '../data/rain.json' with { type: 'json' };
 import { HerdShelter } from '../runtime/species/herdShelter';
 import { terrainHeight } from '@wildshard/engine/world/terrainHeight';
 import { PINE_CAVE_HOOD, PINE_HERD_SHELTER, PINE_RAIN, PINE_RAIN_PROGRAMS } from '../data/weatherLook';
@@ -67,7 +68,12 @@ export interface PineWeatherHost {
   viewer: () => THREE.Vector3;
   /** the painted horizon's veil (HorizonMatte PaintedHorizon.veil): x the deck over it all, y the fog on its low rows */
   horizonVeil: { value: THREE.Vector2 } | null;
+  /** the rain's offline bake (`loadPineRain`) */
+  rain: RainBake;
 }
+
+/** The tier's rain bake (generators/bake-pine-rain.mjs: the puddles, the crowns' cover), fetched before `installWeather`. */
+export const loadPineRain = (): Promise<RainBake> => loadRainBake(`/assets/pine-hollow/baked/rain${TIER === 'phone' ? '.phone' : ''}.bin`, rainRows[TIER]);
 
 export interface PineWeatherRig { weather: PineWeather; fx: InstanceType<typeof RainFx>; setMode: (m: PineWeatherMode, at?: number) => void }
 
@@ -90,7 +96,7 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
   weather.setMode(setting('weather'), atT);
   // the rain (PH-L10, E322 F-L5): the cover map's crowns and roofs, and the bear cave's mouth under its arch, where none falls
   const hood = { x: BEAR_CAVE.x, z: BEAR_CAVE.z, rot: BEAR_CAVE.rot, hw: PINE_CAVE_HOOD.hw, lz0: PINE_CAVE_HOOD.lz0, lz1: PINE_CAVE_HOOD.lz1, top: terrainHeight(BEAR_CAVE.x, BEAR_CAVE.z) + PINE_CAVE_HOOD.up };
-  const fx = new RainFx({ name: 'pine-weather', sky: h.sky, trees: h.trees, roofAt: h.roofAt, phone: TIER === 'phone', seed: SEED, look: PINE_RAIN, programs: PINE_RAIN_PROGRAMS, hood }).build();
+  const fx = new RainFx({ name: 'pine-weather', sky: h.sky, roofAt: h.roofAt, phone: TIER === 'phone', seed: SEED, look: PINE_RAIN, programs: PINE_RAIN_PROGRAMS, baked: h.rain, hood }).build();
   h.game.scene.add(fx.group); // hidden while dry; in the scene before the boot's precompile, so the rain's program is built then
   if (entered === undefined) {
     const stopSetting = onSettingChange('weather', (m) => { weather.setMode(m, atT); });

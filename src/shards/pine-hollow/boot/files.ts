@@ -57,6 +57,8 @@ export function worldReads(tier: Tier, tex: TexMode = 'img'): string[] {
     '/assets/pine-hollow/baked/wildlife.glb',
     // the thralls' baked glass eyes and ferns (species/hulls.ts)
     `/assets/pine-hollow/creatures/thrall-extras${tier === 'phone' ? '.phone' : ''}.glb`,
+    // the rain's baked puddles and crowns' cover (world/weather.ts)
+    `/assets/pine-hollow/baked/rain${tier === 'phone' ? '.phone' : ''}.bin`,
   ].map(gpu).filter((url) => url in publicBytes());
 }
 export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {

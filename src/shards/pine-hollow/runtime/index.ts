@@ -50,7 +50,7 @@ import { installPineLife } from '../life/index';
 import { preloadPineWildlife } from '../models/wildlife';
 import { installPineAudio } from './audio/wiring';
 import { ForestAmbience } from './audio/ambience';
-import { installWeather } from '../world/weather';
+import { installWeather, loadPineRain } from '../world/weather';
 import { LeverRifle, preloadLeverModel, prepareLeverHands } from './weapons/LeverRifle';
 import { LONGBOW as LONGBOW_PROFILE } from '../weapons/longbowProfile';
 import { prepareLongbowHands } from '../weapons/longbowView';
@@ -248,7 +248,7 @@ export class PineHollow extends ShardPlugin {
     fights.useSfx(ambience.sfx); quest.useSfx(ambience.sfx); loadout.useSfx(ambience.sfx);
     installPineAudio({ context: ctx, game, audio, sky, music, ambience, animals, cabins, eliteEngaged: () => fights.eliteEngaged(), params });
     for (const spot of landmarks?.crags?.caveSpots() ?? []) ambience.addSpot({ zone: 'cave', ...spot, fade: 3 });
-    installWeather(ctx, { game, sky, trees: forest.trees, animals, particles, ambience,
+    installWeather(ctx, { game, sky, trees: forest.trees, rain: await loadPineRain(), animals, particles, ambience,
       roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.inCave(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
     await preloadPineWildlife(); // the procedural animals' baked shapes (G285), behind the loading screen
     const life = installPineLife({ ctx, game, sky, player, animals, weapons, audio, sfx: ambience.sfx, trees: forest.trees, trunks: forest.factory.variants, params,
