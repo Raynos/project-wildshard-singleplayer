@@ -1,9 +1,9 @@
 // Pine Hollow's cabin looks as data (SHARD-PLATFORM M3, look-family rows): the door's and the moss overlay's edits of the
 // standard material (world/homestead.ts applies them through @wildshard/sdk/looks/shaderEdits inside its patches) and the
 // hearth particles' program and kinds, and how the homestead moves and lights (CABIN_LIFE: @wildshard/sdk/props/buildingLife).
-import type { BuildingLifeLook } from '../props/buildingLife';
-import type { ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
-import type { RiseParticleRow } from './riseParticles';
+import type { BuildingLifeLook } from '../runtime/props/buildingLife';
+import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
+import type { RiseParticleRow } from '../runtime/looks/riseParticles';
 
 /** the rough_pine_door scan is a saturated orange-red: pulled toward a weathered grey-brown */
 export const CABIN_DOOR_EDITS: readonly ShaderEditRow[] = [

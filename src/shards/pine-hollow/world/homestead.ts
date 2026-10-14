@@ -20,7 +20,7 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
 import { END_GRAIN_PAINT, GLOW_PAINT, NOISE_PAINT } from '../data/cabinPaint';
-import { CABIN_DOOR_EDITS, CABIN_LIFE, CABIN_MOSS_EDITS, CABIN_PARTICLE_GLSL, CABIN_PARTICLE_KINDS } from '../runtime/looks/cabinLook';
+import { CABIN_DOOR_EDITS, CABIN_LIFE, CABIN_MOSS_EDITS, CABIN_PARTICLE_GLSL, CABIN_PARTICLE_KINDS } from '../data/cabinLook';
 import { mergeParts, type PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind } from './logKit';
 import { pineModels } from './context';
