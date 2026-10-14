@@ -66,14 +66,11 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   if (programs?.length !== 2) throw new Error('Missing declared bucket motion');
   const channels = bindClientChannels(programs, { targets: new Map<string, unknown>([['bucket', wellParts.bucket], ['rope', wellParts.rope]]) });
   channels.evaluate(programs[0]?.id ?? '', { time: 0, delta: 0, values: [Number(flags.has(FLAG.oil)), Number(rules.has('raised')), wellParts.drop] });
-  channels.bindPrompts(action => {
-    if (action.kind !== 'named' || action.name !== 'sunscar.well.take') throw new Error('Unknown well prompt action');
-    return spot => {
+  channels.bindPrompts({ named: new Map([['sunscar.well.take', spot => {
       const result = rules.run('well');
       if (!result.ok) { if (result.reason === 'unraised') toast(ctx, STRINGS.wellHint); return; }
       wellParts.jar.visible = false; spot.label = STRINGS.oilTaken; toast(ctx, STRINGS.oilGot);
-    };
-  });
+    }]]) });
   channels.evaluate(programs[1]?.id ?? '', { time: 0, delta: 0, values: [wellParts.jarAt.x, wellParts.jarAt.y, wellParts.jarAt.z] });
   const wellSpot = channels.prompt(programs[1]?.id ?? '');
   const well: SignalWorld['well'] = { ...wellParts, get raised() { return rules.has('raised'); }, spot: wellSpot, pull: () => {

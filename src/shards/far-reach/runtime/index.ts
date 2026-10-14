@@ -15,7 +15,7 @@ import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_MOVER_BINDING, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
-import { commandSocketLift, createMeleeScriptDriver, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
+import { createMeleeScriptDriver, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
 import { RISING_ISLETS } from '../world/islets';
@@ -165,12 +165,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     bindSkyItems(ctx, fan, hooks, family => startMeleeSecondary(family, hook, { tick: host.currentTick, dt: 1 / 60, action: secondary.code, move: secondary.move }));
     if (flags.has(FLAGS.raised)) this.movers.command('far.winch.bridge', 3);
     // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
-    const lifts = new Map(source.entryways.flatMap((row) => (row.kind === 'socketLift' && row.lift !== undefined ? [[row.edge, row.lift] as const] : [])));
-    channels.bindPrompts(action => {
-      if (action.kind !== 'socketLift') throw new Error('Sky prompt needs its declared lift action');
-      const lift = lifts.get(action.edge); if (lift === undefined) throw new Error('Unknown Sky lift entry');
-      return () => { const movers = this.movers; if (movers !== null) commandSocketLift(movers, lift, action.action); };
-    });
+    channels.bindPrompts({ socketLifts: { entryways: source.entryways, runtime: () => this.movers } });
     rt.interactables.push(...channels.interactables); this.isletCalls = channels;
     // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
     // like an animal's, so a constant feed holds about updraft.lift / 3.5 m/s) floats you off the ramp to the high step.

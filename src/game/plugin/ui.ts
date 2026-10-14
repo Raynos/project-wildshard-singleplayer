@@ -1,5 +1,6 @@
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
-import type { MoverView } from './mover';
+import type { MoverView, MoverRuntime } from './mover';
+import { commandSocketLift } from './simulation';
 import "../quest/presentation.css";
 import { compileTubeCurve, parseClientChannels, parsePrivateScene, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import { BufferAttribute, AdditiveBlending, Matrix4, InstancedMesh, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
@@ -781,14 +782,27 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
   });
 }
 
+/** Declarative prompt dispatch over existing named handlers and admitted lift/mover owners. */
+export interface ClientPromptBindings {
+  readonly named?: ReadonlyMap<string, (spot: Interactable) => void>;
+  readonly socketLifts?: { readonly entryways: Shardfile['entryways']; readonly runtime: () => MoverRuntime | null };
+}
 /** A channel-owned prompt: copied coordinates plus a separately bound real input action. */
 export function createClientChannelPrompt(input: unknown,
-  bind: (action: NonNullable<ClientChannelProgram['prompt']>['action']) => (spot: Interactable) => void): {
+  bind: ClientPromptBindings | ((action: NonNullable<ClientChannelProgram['prompt']>['action']) => (spot: Interactable) => void)): {
     readonly spot: Interactable; readonly reads: readonly string[]; readonly evaluate: (observation: ClientChannelObservation) => void;
   } {
   const program = parseClientChannels([input])[0];
   if (program?.prompt === undefined) throw new Error('Missing declared client prompt');
-  const declaration = structuredClone(program.prompt), action = bind(Object.freeze(declaration.action));
+  const declaration = structuredClone(program.prompt);
+  if (typeof bind !== 'function' && (bind.named?.size ?? 0) > 64) throw new Error('Prompt action table exceeds its bound');
+  const resolve = typeof bind === 'function' ? bind : (row: NonNullable<ClientChannelProgram['prompt']>['action']): ((spot: Interactable) => void) => {
+    if (row.kind === 'named') { const handler = bind.named?.get(row.name); if (handler === undefined) throw new Error('Unknown named prompt action'); return handler; }
+    const ports = bind.socketLifts, entry = ports?.entryways.find(value => value.kind === 'socketLift' && value.edge === row.edge), lift = entry?.lift;
+    if (ports === undefined || lift === undefined) throw new Error('Unknown socket lift prompt action');
+    return () => { const runtime = ports.runtime(); if (runtime !== null) commandSocketLift(runtime, lift, row.action); };
+  };
+  const action = resolve(Object.freeze(declaration.action));
   const lane = createClientChannels(program);
   const spot: Interactable = { label: declaration.label, radius: declaration.radius,
     position: new Vector3(...declaration.at), onInteract: () => undefined };

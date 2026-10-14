@@ -4567,3 +4567,11 @@ owner directly. It admits item contacts, binds the HeldPlayback scene, and
 borrows optional body-raycast and caught-scene ports. Signal and Sky use
 this factory instead of private weapon subclasses; phases and contacts
 keep their existing owners.
+
+`bindClientChannels(...).bindPrompts` and `createClientChannelPrompt`
+also accept `ClientPromptBindings`: a bounded named-action map, or
+admitted socket-lift entryways with a deferred mover-runtime getter.
+Unknown actions refuse before installation. Dispatch uses the existing
+spot callback or paired lift/gate commands; a retired mover is inert.
+The original function binding remains supported. Sky lift prompts and
+Signal well prompts use these rows on their existing input owners.
