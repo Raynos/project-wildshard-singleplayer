@@ -1,0 +1,1239 @@
+{
+ "measured": {
+  "date": "2026-10-14",
+  "head": "99c9a7079",
+  "tree": "clean git archive of HEAD, node_modules linked with scripts/link-node-modules.mjs, pnpm gen run",
+  "script": "node scripts/shard-platform.mjs --json"
+ },
+ "classes": {
+  "a": "just work",
+  "b": "needs a missing platform feature",
+  "c": "needs Jake's decision",
+  "d": "stays custom"
+ },
+ "features": {
+  "F1": {
+   "name": "Data client owns every section W1 binds to its trusted runtime",
+   "what": "runtime.binds goes to []: quests and quest-page interactions (owner paths resolved to data-client objects: props nodes, movers, hook scenes), ledger, state, items (held melee with the AS gust and view rows), spawns (runtime.spawns become creatures.spawns and boss rows), modes (traverse), props and clientChannels (inputs from state fields; an observed channel value can advance a quest stage)",
+   "effort": "L",
+   "hours": 28,
+   "lane": "Codex (2-3 lanes: quests, items, spawns)",
+   "users": "Sky + Signal; W2 Driftwood (the other HybridRuntimePlugin user) needs the same to drop its runtime"
+  },
+  "F2": {
+   "name": "Painted look as a shardfile look section",
+   "what": "the data client builds the engine paintedLook from rows: dome graph or painted strips, haze, fog, sun, clock, LUT, state curves on host fields (dusk) and dressing rows (card groups, disc layers)",
+   "effort": "M",
+   "hours": 16,
+   "lane": "Codex 12 h + Opus 4 h by-eye",
+   "users": "Sky + Signal (both use paintedLook today); possibly W3 Nalati"
+  },
+  "F3": {
+   "name": "Effects section and a data-client effect host",
+   "what": "card groups, seeded point fields, camera-facing ribbons attached to actors, lane telegraph sheets, emitters at prop anchors, bursts on events (an item action), one shared clock and host fields; plus the fire-light slot uniform the surface looks read",
+   "effort": "L",
+   "hours": 28,
+   "lane": "Codex 24 h + Opus 4 h by-eye",
+   "users": "Sky (wind, wake, gale wall, sky dressing) + Signal (fire); W2 plausibly (spray, fireflies)"
+  },
+  "F4": {
+   "name": "Props tiles for textured hero scenes with moving nodes and lights",
+   "what": "props tiles whose materials are graphs over the model's own map (clientMaterials bindMeshMap exists), named nodes that client channels drive (mill hub, vanes, bridge pivot, islets, well bucket and rope) and scene light rows (format/lights.ts) switched by hook scenes",
+   "effort": "M",
+   "hours": 12,
+   "lane": "Codex",
+   "users": "Sky + Signal; W2 Driftwood boat and bridges, W3 Nine lifts"
+  },
+  "F5": {
+   "name": "Graph looks on skinned creatures with hit flash (engine)",
+   "what": "open-x-queue sp-o146: the Roc wears an engine-owned skinned MeshStandardMaterial; graphs cannot replace it yet",
+   "effort": "M",
+   "hours": 10,
+   "lane": "Opus",
+   "users": "Sky; W2 creature looks would be second users (G419-eligible)"
+  },
+  "F6": {
+   "name": "Terrain skirt row in the data client",
+   "what": "a baked skirt pack with its grid-cube cut, drawn by the data client in the terrain material, so no runtime borrows (lends) the sand",
+   "effort": "S-M",
+   "hours": 6,
+   "lane": "Codex",
+   "users": "Signal; W2 Driftwood far skirt likely (G419-eligible)"
+  },
+  "F7": {
+   "name": "Graph inputs for player mode and an eased quest-driven state field",
+   "what": "a graph state input for the player mode (hover-deck glow) and a numeric shared field set from quest flags and eased (dusk); the dusk half can instead be an AS client script",
+   "effort": "S",
+   "hours": 4,
+   "lane": "Codex",
+   "users": "Sky + Signal"
+  },
+  "F8": {
+   "name": "Declaration-only manifest.ts is not custom (ruler rule)",
+   "what": "extend G392 call 36 (thin shard.config.ts) to a manifest.ts that only calls defineShard with data; or have the platform discover the shard from data/manifest.ts + the shardfile",
+   "effort": "hours",
+   "hours": 1,
+   "lane": "Codex",
+   "users": "every shard (the Template counts 70 lines today, 36 of them its manifest)"
+  }
+ },
+ "shards": [
+  {
+   "slug": "far-reach",
+   "name": "Sky Reach",
+   "custom": 657,
+   "shard_ts": 599,
+   "additional_glsl": 7,
+   "g294": 51,
+   "legacy": 6777,
+   "percent": 9.69,
+   "assemblyscript": 18,
+   "components": {
+    "C1": 366,
+    "C2": 92,
+    "C3": 49,
+    "C4": 0,
+    "C5": 17,
+    "C6": 27,
+    "C7": 0,
+    "C8": 0,
+    "C9": 106
+   },
+   "shard_lane_hours": 100,
+   "groups": [
+    {
+     "id": "scenes",
+     "title": "Static scene assembly",
+     "lines": 147,
+     "components": {
+      "C2": 24,
+      "C1": 120,
+      "C5": 3
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/runtime/index.ts",
+       "lines": 3
+      },
+      {
+       "file": "src/shards/far-reach/world/build.ts",
+       "lines": 90
+      },
+      {
+       "file": "src/shards/far-reach/world/crown.ts",
+       "lines": 16
+      },
+      {
+       "file": "src/shards/far-reach/world/mill.ts",
+       "lines": 13
+      },
+      {
+       "file": "src/shards/far-reach/world/shapes.ts",
+       "lines": 25
+      }
+     ],
+     "what": "world/build.ts builds the ground scene from the island tiles, the hero-model statics with their mapped looks, the rope and hover routes, the islet road lips and chain posts, the docks, the winch house, the two book stands and the vanes; world/crown.ts, world/mill.ts and world/shapes.ts do the same for the arena, the mill and the bridge kit. The recipes are generated already; the runtime only supplies geometry and materials.",
+     "way_to_zero": "Bake every scene into L0 props tiles (look ids and mapped graphs in the GLB, colliders already rows) drawn by the data client the way the islands are; mill hub, vanes and bridge pivot become named nodes driven by client channels.",
+     "effort": "L",
+     "lane_hours": 24,
+     "class": "b",
+     "needs": [
+      "F4"
+     ]
+    },
+    {
+     "id": "boot",
+     "title": "Boot glue and the installer shell",
+     "lines": 83,
+     "components": {
+      "C9": 58,
+      "C2": 3,
+      "C6": 5,
+      "C1": 10,
+      "C3": 3,
+      "C5": 4
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/manifest.ts",
+       "lines": 8
+      },
+      {
+       "file": "src/shards/far-reach/plugin.ts",
+       "lines": 7
+      },
+      {
+       "file": "src/shards/far-reach/runtime/headless.ts",
+       "lines": 5
+      },
+      {
+       "file": "src/shards/far-reach/runtime/index.ts",
+       "lines": 60
+      },
+      {
+       "file": "src/shards/far-reach/runtime/source.ts",
+       "lines": 3
+      }
+     ],
+     "what": "manifest.ts (defineShard with render, ktx2, roster, load), plugin.ts (standalone entry), runtime/source.ts, runtime/headless.ts and runtime/index.ts's imports, module augmentations (the far.gust action, the far.meadowBlades tier knob, the far-fan slot), row bound and class fields.",
+     "way_to_zero": "Deleted with the trusted runtime once every other group is native: no load, source, headless or plugin; the augmentations become item, tier and slot rows. The last ~4 manifest lines go only with F8.",
+     "effort": "M",
+     "lane_hours": 8,
+     "class": "a",
+     "needs": [
+      "F1",
+      "F8"
+     ]
+    },
+    {
+     "id": "worldload",
+     "title": "Baked-world loader and material routing",
+     "lines": 82,
+     "components": {
+      "C1": 59,
+      "C2": 20,
+      "C3": 3
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/runtime/index.ts",
+       "lines": 4
+      },
+      {
+       "file": "src/shards/far-reach/world/baked.ts",
+       "lines": 27
+      },
+      {
+       "file": "src/shards/far-reach/world/dressing.ts",
+       "lines": 8
+      },
+      {
+       "file": "src/shards/far-reach/world/isle.ts",
+       "lines": 13
+      },
+      {
+       "file": "src/shards/far-reach/world/materials.ts",
+       "lines": 7
+      },
+      {
+       "file": "src/shards/far-reach/world/meshes.ts",
+       "lines": 19
+      },
+      {
+       "file": "src/shards/far-reach/world/shack.ts",
+       "lines": 4
+      }
+     ],
+     "what": "world/baked.ts (bakedMeshWorld, a kind's material picked by look, shack, dressing or paint), world/meshes.ts (the two model libraries and their preload), world/materials.ts (palette and flat()), world/shack.ts, world/dressing.ts, the islet half of world/isle.ts.",
+     "way_to_zero": "The model libraries become the shardfile library section; the bake writes each kind's look-material id into the GLB; rope and hover-glass palette materials become look.materials entries.",
+     "effort": "M",
+     "lane_hours": 8,
+     "class": "a",
+     "needs": [
+      "F4"
+     ]
+    },
+    {
+     "id": "isleprops",
+     "title": "Island props tiles bound by the runtime",
+     "lines": 50,
+     "components": {
+      "C1": 50
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/runtime/index.ts",
+       "lines": 3
+      },
+      {
+       "file": "src/shards/far-reach/world/isle.ts",
+       "lines": 8
+      },
+      {
+       "file": "src/game/shardfile/runtimeProduct.ts",
+       "lines": 4
+      },
+      {
+       "file": "src/game/shardfile/runtimeWorld.ts",
+       "lines": 35
+      }
+     ],
+     "what": "runtime/index.ts binds the islands' props tiles and world/isle.ts adopts each island mesh; 39 lines are game code only Sky reaches (bindRuntimeProps, bindRuntimeProductProps, G294).",
+     "way_to_zero": "Drop props from runtime.binds; the data client draws the islands natively; the runtime-bound props path loses its only user and is deleted. Lands with scenes (the ground scene reads island geometry).",
+     "effort": "S",
+     "lane_hours": 4,
+     "class": "a",
+     "needs": [
+      "F1"
+     ]
+    },
+    {
+     "id": "questworld",
+     "title": "Quest world wiring",
+     "lines": 47,
+     "components": {
+      "C5": 5,
+      "C1": 38,
+      "C9": 4
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/quests/flags.ts",
+       "lines": 1
+      },
+      {
+       "file": "src/shards/far-reach/runtime/index.ts",
+       "lines": 19
+      },
+      {
+       "file": "src/shards/far-reach/world/build.ts",
+       "lines": 27
+      }
+     ],
+     "what": "The fallen bridge (pivot, collider live only when raised), the winch scene, the winch and notes prompts, the keeper stand collider, the vane rotors, the moving islets' channels; in runtime/index.ts the winch observation that raises the bridge, toasts and advances the quest, the quest page bind, the held scripts, the save restore and the socket-lift interactables; quests/flags.ts.",
+     "way_to_zero": "Bridge = a mover row whose collider is live at the end; \"winch arrived\" advances the stage through a director condition on the channel value; vanes = movers with a flag-scaled speed; prompts and socket lifts run natively (F1); flags move to data/.",
+     "effort": "M",
+     "lane_hours": 12,
+     "class": "b",
+     "needs": [
+      "F1",
+      "F4"
+     ]
+    },
+    {
+     "id": "creatures",
+     "title": "Creatures and ray wakes",
+     "lines": 39,
+     "components": {
+      "C1": 3,
+      "C3": 31,
+      "C9": 5
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/runtime/index.ts",
+       "lines": 9
+      },
+      {
+       "file": "src/shards/far-reach/runtime/looks/wakeRibbon.ts",
+       "lines": 30
+      }
+     ],
+     "what": "The populate call and runtime/looks/wakeRibbon.ts: a camera-facing ribbon each drift ray trails, rebuilt on the CPU every frame.",
+     "way_to_zero": "Populate becomes native creatures.spawns + boss rows (F1). The wake has no second user (queue sp-o148): extend the engine SlashTrail with a camera-facing timed mode, or an F3 ribbon row, or drop it (decision D3).",
+     "effort": "M",
+     "lane_hours": 8,
+     "class": "c",
+     "needs": [
+      "F1",
+      "F3"
+     ]
+    },
+    {
+     "id": "look",
+     "title": "Painted look",
+     "lines": 35,
+     "components": {
+      "C2": 20,
+      "C9": 1,
+      "C1": 2,
+      "C3": 12
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/look/render.ts",
+       "lines": 27
+      },
+      {
+       "file": "src/shards/far-reach/runtime/looks/discLayer.ts",
+       "lines": 8
+      }
+     ],
+     "what": "look/render.ts builds the engine paintedLook: the panorama dome graph, the painted dressing (glow cards, maelstrom disc, two sea discs, cumulus cards), the day clock and the LUT; runtime/looks/discLayer.ts draws the discs.",
+     "way_to_zero": "An F2 look section in the shardfile; the data client builds the same paintedLook from rows.",
+     "effort": "S",
+     "lane_hours": 3,
+     "class": "b",
+     "needs": [
+      "F2"
+     ]
+    },
+    {
+     "id": "meadow",
+     "title": "Near meadow blades",
+     "lines": 29,
+     "components": {
+      "C1": 29
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/runtime/index.ts",
+       "lines": 4
+      },
+      {
+       "file": "src/shards/far-reach/world/meadow.ts",
+       "lines": 25
+      }
+     ],
+     "what": "world/meadow.ts turns the baked blade chunks into instanced LOD meshes in the meadow graph; runtime/index.ts sets the far.meadowBlades tier knob.",
+     "way_to_zero": "No later-wave user (queue sp-o162/o164: Nalati grass is camera-ring based, Pine ground cover is not chunked), so moving it into the platform still counts (G294). Keep it, or swap to the shared camera-ring grass (look change), decision D2.",
+     "effort": "0 (keep) or M",
+     "lane_hours": 0,
+     "class": "d",
+     "needs": []
+    },
+    {
+     "id": "storm",
+     "title": "Crown storm lightning",
+     "lines": 25,
+     "components": {
+      "C1": 21,
+      "C2": 1,
+      "C6": 3
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/world/build.ts",
+       "lines": 2
+      },
+      {
+       "file": "src/shards/far-reach/world/storm.ts",
+       "lines": 23
+      }
+     ],
+     "what": "world/storm.ts: the vortex ring and three bolts from a rest scene, a strike every 3.5-8 s from the cosmetic RNG, the double flicker fed to the ring through aFlash; strike(delay) for captures.",
+     "way_to_zero": "Ring and bolts into a props tile; the flash and bolt choice become a graph over time with hash-picked strikes (similar look, pattern not identical, fine under G415); captures wait for a strike.",
+     "effort": "S-M",
+     "lane_hours": 6,
+     "class": "a",
+     "needs": [
+      "F4"
+     ]
+    },
+    {
+     "id": "layoutmath",
+     "title": "Layout maths",
+     "lines": 23,
+     "components": {
+      "C1": 23
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/layout.ts",
+       "lines": 23
+      }
+     ],
+     "what": "layout.ts: rope sag, knoll height, island apothem and rim, spire feet and span yaw / pitch, read by data/ rows and generators.",
+     "way_to_zero": "Move into generators/ and emit the derived values as generated data the data/ rows read.",
+     "effort": "S",
+     "lane_hours": 3,
+     "class": "a",
+     "needs": []
+    },
+    {
+     "id": "explorer",
+     "title": "Model Explorer specimens",
+     "lines": 17,
+     "components": {
+      "C6": 8,
+      "C1": 7,
+      "C9": 2
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/models/gear.ts",
+       "lines": 11
+      },
+      {
+       "file": "src/shards/far-reach/roster.ts",
+       "lines": 6
+      }
+     ],
+     "what": "roster.ts and models/gear.ts build the mill, bridge kit and vane for the Explorer with the runtime scene builders.",
+     "way_to_zero": "Explorer entries from the gear rows over library and props assets once the scenes are baked.",
+     "effort": "S",
+     "lane_hours": 3,
+     "class": "a",
+     "needs": [
+      "F4"
+     ]
+    },
+    {
+     "id": "boss",
+     "title": "Storm Roc fight and gale wall",
+     "lines": 13,
+     "components": {
+      "C9": 11,
+      "C1": 1,
+      "C2": 1
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/runtime/index.ts",
+       "lines": 13
+      }
+     ],
+     "what": "bindPageFight and the gale wall: a box that thickens over the windup along the lane the strike will sweep.",
+     "way_to_zero": "Native boss rows (F1); the wall becomes a lane-telegraph effect row (F3).",
+     "effort": "S",
+     "lane_hours": 4,
+     "class": "b",
+     "needs": [
+      "F1",
+      "F3"
+     ]
+    },
+    {
+     "id": "dressfx",
+     "title": "Per-frame dressing",
+     "lines": 12,
+     "components": {
+      "C1": 1,
+      "C9": 11
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/runtime/index.ts",
+       "lines": 12
+      }
+     ],
+     "what": "The hover decks glow while riding the board; the mill hub and the vane rotors spin (faster once turned); the storm ticks.",
+     "way_to_zero": "Hub and rotors = always-on mover tracks with a flag-scaled speed; the glow = a graph param on the player mode (F7).",
+     "effort": "S",
+     "lane_hours": 3,
+     "class": "b",
+     "needs": [
+      "F7",
+      "F4"
+     ]
+    },
+    {
+     "id": "fan",
+     "title": "War fan view",
+     "lines": 12,
+     "components": {
+      "C6": 8,
+      "C1": 2,
+      "C2": 2
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/runtime/weapons/heldFan.ts",
+       "lines": 5
+      },
+      {
+       "file": "src/shards/far-reach/weapons/fanModel.ts",
+       "lines": 7
+      }
+     ],
+     "what": "runtime/weapons/heldFan.ts (held owners: library, hero reader) and weapons/fanModel.ts (swaps the silk for the fan-silk graph over the leaf texture).",
+     "way_to_zero": "An item view row: the fan asset with the fan-silk graph and the leaf as a library texture; the data client owns the held item (F1). The gust is already an AS hook.",
+     "effort": "S",
+     "lane_hours": 4,
+     "class": "a",
+     "needs": [
+      "F1"
+     ]
+    },
+    {
+     "id": "bakehelpers",
+     "title": "SDK bake helpers only Sky reaches",
+     "lines": 12,
+     "components": {
+      "C2": 12
+     },
+     "files": [
+      {
+       "file": "src/sdk/bake/texture.ts",
+       "lines": 11
+      },
+      {
+       "file": "src/sdk/looks/modelLibrary.ts",
+       "lines": 1
+      }
+     ],
+     "what": "bakeColourTexture (11, used by generators/bake-sky-maps.ts) and bindRigid (1, generators/creatures.ts), counted by G294 though only generators use them.",
+     "way_to_zero": "Signal's generators import the SDK bindRigid instead of their own copy (two users); bakeColourTexture moves into Sky's generators/ or gets a G419 row if a W2 bake uses it. Accounting only; nothing changes at runtime.",
+     "effort": "hours",
+     "lane_hours": 1,
+     "class": "a",
+     "needs": []
+    },
+    {
+     "id": "wind",
+     "title": "Wind fields and the gust",
+     "lines": 11,
+     "components": {
+      "C9": 9,
+      "C2": 2
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/runtime/index.ts",
+       "lines": 11
+      }
+     ],
+     "what": "The updraft's streaks and leaves placed on its axis; the gust's streaks and petals burst from the fan, play the heavy cue and scan the vanes.",
+     "way_to_zero": "F3 rows: emitters on the updraft axis, a burst on the fan's gust event; the vane scan is a quest-page event.",
+     "effort": "S",
+     "lane_hours": 3,
+     "class": "b",
+     "needs": [
+      "F3"
+     ]
+    },
+    {
+     "id": "capture",
+     "title": "Capture staging hooks",
+     "lines": 11,
+     "components": {
+      "C5": 5,
+      "C6": 3,
+      "C9": 3
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/runtime/index.ts",
+       "lines": 11
+      }
+     ],
+     "what": "stage() poses the Roc (lap, opening, stalk) and fires a storm strike for captures; gustVanes forwards a gust to the quest page.",
+     "way_to_zero": "Capture-stage rows the platform runs (the poses are data already) or a test-side helper; gustVanes goes with wind.",
+     "effort": "S",
+     "lane_hours": 3,
+     "class": "a",
+     "needs": []
+    },
+    {
+     "id": "rocglsl",
+     "title": "Roc plumage shader edit",
+     "lines": 7,
+     "components": {
+      "C2": 7
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/data/paintLook.ts",
+       "lines": 7
+      }
+     ],
+     "what": "data/paintLook.ts ROC_SLATE_EDITS: 7 lines of raw GLSL turning the Roc's browns slate grey (G306 counts raw GLSL anywhere).",
+     "way_to_zero": "After F5, a mapped graph on the Roc's creature look like the other paint corrections.",
+     "effort": "S",
+     "lane_hours": 2,
+     "class": "b",
+     "needs": [
+      "F5"
+     ]
+    },
+    {
+     "id": "updraft",
+     "title": "Updraft impulse",
+     "lines": 2,
+     "components": {
+      "C9": 2
+     },
+     "files": [
+      {
+       "file": "src/shards/far-reach/runtime/index.ts",
+       "lines": 2
+      }
+     ],
+     "what": "bindPlayerImpulse columns from modes.traverse.",
+     "way_to_zero": "Drop modes from runtime.binds; the data client runs traverse rows (the Template already does).",
+     "effort": "hours",
+     "lane_hours": 1,
+     "class": "a",
+     "needs": [
+      "F1"
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "sunscar-dunes",
+   "name": "Signal Dunes",
+   "custom": 410,
+   "shard_ts": 384,
+   "additional_glsl": 0,
+   "g294": 26,
+   "legacy": 4122,
+   "percent": 9.95,
+   "assemblyscript": 67,
+   "components": {
+    "C1": 161,
+    "C2": 139,
+    "C3": 45,
+    "C4": 0,
+    "C5": 8,
+    "C6": 12,
+    "C7": 0,
+    "C8": 0,
+    "C9": 45
+   },
+   "shard_lane_hours": 64,
+   "groups": [
+    {
+     "id": "questworld",
+     "title": "Quest world wiring",
+     "lines": 68,
+     "components": {
+      "C5": 7,
+      "C2": 16,
+      "C1": 45
+     },
+     "files": [
+      {
+       "file": "src/shards/sunscar-dunes/world/build.ts",
+       "lines": 68
+      }
+     ],
+     "what": "world/build.ts: the places, interaction rules, logbook and fire prompts, the well bucket's channels fed from flags, the braziers' oiled / lit state, the caravan lantern, the fire catching, the quest page bind and the crack targets.",
+     "way_to_zero": "Native quests and state (F1); \"fire caught\" and brazier glow become hook scenes; the bucket's channel inputs read state fields; crack targets come from the quest page natively.",
+     "effort": "M",
+     "lane_hours": 12,
+     "class": "b",
+     "needs": [
+      "F1",
+      "F4"
+     ]
+    },
+    {
+     "id": "sandlend",
+     "title": "Lent sand and the dune skirt",
+     "lines": 59,
+     "components": {
+      "C2": 44,
+      "C1": 15
+     },
+     "files": [
+      {
+       "file": "src/shards/sunscar-dunes/look/sandEntry.ts",
+       "lines": 8
+      },
+      {
+       "file": "src/shards/sunscar-dunes/plugin.ts",
+       "lines": 8
+      },
+      {
+       "file": "src/shards/sunscar-dunes/runtime/looks/bakedGround.ts",
+       "lines": 37
+      },
+      {
+       "file": "src/game/shardfile/hybridPresentation.ts",
+       "lines": 3
+      },
+      {
+       "file": "src/game/shardfile/runtimeProduct.ts",
+       "lines": 3
+      }
+     ],
+     "what": "plugin.ts borrows the data client's sand material, gives it the sky's cascades and puts it on the skirt; runtime/looks/bakedGround.ts loads the skirt pack and cuts it to a grid cube; look/sandEntry.ts binds the sand rows to maps; 6 lines of lending code only Signal reaches (G294).",
+     "way_to_zero": "The data client draws the skirt as a terrain row (F6); lending loses its only user and is deleted; sandEntry folds into generators.",
+     "effort": "M",
+     "lane_hours": 6,
+     "class": "b",
+     "needs": [
+      "F6"
+     ]
+    },
+    {
+     "id": "boot",
+     "title": "Boot glue and the installer shell",
+     "lines": 55,
+     "components": {
+      "C9": 38,
+      "C1": 7,
+      "C2": 6,
+      "C6": 2,
+      "C5": 1,
+      "C3": 1
+     },
+     "files": [
+      {
+       "file": "src/shards/sunscar-dunes/manifest.ts",
+       "lines": 11
+      },
+      {
+       "file": "src/shards/sunscar-dunes/plugin.ts",
+       "lines": 34
+      },
+      {
+       "file": "src/shards/sunscar-dunes/runtime/headless.ts",
+       "lines": 5
+      },
+      {
+       "file": "src/shards/sunscar-dunes/runtime/index.ts",
+       "lines": 2
+      },
+      {
+       "file": "src/shards/sunscar-dunes/runtime/source.ts",
+       "lines": 3
+      }
+     ],
+     "what": "manifest.ts, the plugin class shell and standalone entry, runtime/index.ts (SunscarAudioRuntime), runtime/source.ts, runtime/headless.ts.",
+     "way_to_zero": "Deleted with the trusted runtime; the last ~4 manifest lines go only with F8.",
+     "effort": "M",
+     "lane_hours": 6,
+     "class": "a",
+     "needs": [
+      "F1",
+      "F8"
+     ]
+    },
+    {
+     "id": "look",
+     "title": "Painted look and the Last Light rim",
+     "lines": 46,
+     "components": {
+      "C1": 11,
+      "C2": 35
+     },
+     "files": [
+      {
+       "file": "src/shards/sunscar-dunes/look/light.ts",
+       "lines": 12
+      },
+      {
+       "file": "src/shards/sunscar-dunes/look/render.ts",
+       "lines": 26
+      },
+      {
+       "file": "src/shards/sunscar-dunes/plugin.ts",
+       "lines": 2
+      },
+      {
+       "file": "src/engine/render/dataLook.ts",
+       "lines": 6
+      }
+     ],
+     "what": "look/render.ts builds paintedLook (strips, fog, clock, sun, dusk curves, the skirt hook); look/light.ts puts the painter rim on every standard material (painterLightPatch, 6 G294 lines); plugin.ts rims the whip and each spawned animal.",
+     "way_to_zero": "F2 look section; the rim becomes a family / surface-look row the data client applies to props, creatures and held items.",
+     "effort": "M",
+     "lane_hours": 8,
+     "class": "b",
+     "needs": [
+      "F2"
+     ]
+    },
+    {
+     "id": "fire",
+     "title": "Fire effect plumbing",
+     "lines": 40,
+     "components": {
+      "C3": 40
+     },
+     "files": [
+      {
+       "file": "src/shards/sunscar-dunes/world/fireFx.ts",
+       "lines": 40
+      }
+     ],
+     "what": "world/fireFx.ts compiles the fire graphs on a shared firetime clock, places card groups and ember point fields at the place anchors and hands out four fire-light slots the surface shaders read.",
+     "way_to_zero": "F3 rows: card groups and ember fields at prop anchors, the firetime clock, the light-slot uniform.",
+     "effort": "S-M",
+     "lane_hours": 6,
+     "class": "b",
+     "needs": [
+      "F3"
+     ]
+    },
+    {
+     "id": "firelight",
+     "title": "Roaming firelight and fire pools",
+     "lines": 29,
+     "components": {
+      "C2": 1,
+      "C1": 27,
+      "C3": 1
+     },
+     "files": [
+      {
+       "file": "src/shards/sunscar-dunes/world/build.ts",
+       "lines": 17
+      },
+      {
+       "file": "src/engine/render/families/ground.ts",
+       "lines": 12
+      }
+     ],
+     "what": "world/build.ts: one real PointLight that moves to the nearest lit brazier or the lantern and flickers, the tower light's flicker, the bucket's per-frame channel input; setGroundPools (12, G294) feeds the fire pools to the sand.",
+     "way_to_zero": "Drop the roaming PointLight and let the light-slot pools light the sand and plinths (decision D4); pools become a surface-look row; the tower flicker a light row; the bucket input reads state natively.",
+     "effort": "S",
+     "lane_hours": 4,
+     "class": "c",
+     "needs": [
+      "F3",
+      "F4"
+     ]
+    },
+    {
+     "id": "places",
+     "title": "Place builder",
+     "lines": 29,
+     "components": {
+      "C2": 5,
+      "C1": 22,
+      "C3": 2
+     },
+     "files": [
+      {
+       "file": "src/shards/sunscar-dunes/world/places.ts",
+       "lines": 29
+      }
+     ],
+     "what": "world/places.ts: each place's scene recipe with its point lights, ember materials, fires and lamps on anchors and a glow switch.",
+     "way_to_zero": "Props tiles with light rows (F4); the glow switch is a hook scene; fires and lamps are F3 rows.",
+     "effort": "M",
+     "lane_hours": 6,
+     "class": "b",
+     "needs": [
+      "F4",
+      "F3"
+     ]
+    },
+    {
+     "id": "worldload",
+     "title": "Baked-world loader and surfaces",
+     "lines": 28,
+     "components": {
+      "C1": 18,
+      "C3": 1,
+      "C2": 9
+     },
+     "files": [
+      {
+       "file": "src/shards/sunscar-dunes/plugin.ts",
+       "lines": 4
+      },
+      {
+       "file": "src/shards/sunscar-dunes/world/baked.ts",
+       "lines": 10
+      },
+      {
+       "file": "src/shards/sunscar-dunes/world/meshes.ts",
+       "lines": 14
+      }
+     ],
+     "what": "world/baked.ts (bakedMeshWorld, warm-by-fire on marked kinds), world/meshes.ts (the model library with the fire lights and dusk as surface inputs), plugin.ts preload and prepareFireFx.",
+     "way_to_zero": "Library section; warm-by-fire and the held surface become material rows reading host fields (light slots, shared.dusk).",
+     "effort": "S",
+     "lane_hours": 4,
+     "class": "a",
+     "needs": [
+      "F3"
+     ]
+    },
+    {
+     "id": "explorer",
+     "title": "Model Explorer specimens",
+     "lines": 24,
+     "components": {
+      "C6": 7,
+      "C1": 12,
+      "C9": 5
+     },
+     "files": [
+      {
+       "file": "src/shards/sunscar-dunes/models/gear.ts",
+       "lines": 13
+      },
+      {
+       "file": "src/shards/sunscar-dunes/roster.ts",
+       "lines": 11
+      }
+     ],
+     "what": "models/gear.ts builds the tower, caravan, well and brazier for the Explorer; roster.ts orders them.",
+     "way_to_zero": "Explorer entries from gear rows over props assets.",
+     "effort": "S",
+     "lane_hours": 3,
+     "class": "a",
+     "needs": [
+      "F4"
+     ]
+    },
+    {
+     "id": "questdusk",
+     "title": "Quest-driven dusk",
+     "lines": 23,
+     "components": {
+      "C2": 21,
+      "C9": 2
+     },
+     "files": [
+      {
+       "file": "src/shards/sunscar-dunes/look/dusk.ts",
+       "lines": 11
+      },
+      {
+       "file": "src/shards/sunscar-dunes/plugin.ts",
+       "lines": 12
+      }
+     ],
+     "what": "plugin.ts duskOf maps quest flags and lit braziers to a target dusk; look/dusk.ts eases DUSK toward it at 0.02 per second; a save snaps to its step.",
+     "way_to_zero": "An AS client script computes and eases the dusk into shared.dusk (AS is its own column), or F7 state-curve rows.",
+     "effort": "S",
+     "lane_hours": 4,
+     "class": "a",
+     "needs": []
+    },
+    {
+     "id": "whip",
+     "title": "Held whip owners",
+     "lines": 5,
+     "components": {
+      "C6": 3,
+      "C1": 2
+     },
+     "files": [
+      {
+       "file": "src/shards/sunscar-dunes/runtime/items/heldWhip.ts",
+       "lines": 5
+      }
+     ],
+     "what": "runtime/items/heldWhip.ts: the held owners (world, library, surface decorate).",
+     "way_to_zero": "Native items with view rows (the Template ships a whip natively).",
+     "effort": "S",
+     "lane_hours": 2,
+     "class": "a",
+     "needs": [
+      "F1"
+     ]
+    },
+    {
+     "id": "terrainfield",
+     "title": "Terrain field in the manifest",
+     "lines": 2,
+     "components": {
+      "C1": 2
+     },
+     "files": [
+      {
+       "file": "src/shards/sunscar-dunes/manifest.ts",
+       "lines": 2
+      }
+     ],
+     "what": "manifest.ts builds the baked terrain field (createBakedTerrainField itself is G419-exempt for Driftwood).",
+     "way_to_zero": "The data client builds the field from the shardfile terrain.",
+     "effort": "S",
+     "lane_hours": 2,
+     "class": "a",
+     "needs": []
+    },
+    {
+     "id": "types",
+     "title": "SDK library types only Signal reaches",
+     "lines": 2,
+     "components": {
+      "C2": 2
+     },
+     "files": [
+      {
+       "file": "src/sdk/looks/modelLibrary.ts",
+       "lines": 2
+      }
+     ],
+     "what": "HdLookRow and ModelLibraryRows, imported by data/surfaces.ts and data/files.ts.",
+     "way_to_zero": "Gone when the library is the shardfile section, or with a second user.",
+     "effort": "hours",
+     "lane_hours": 1,
+     "class": "a",
+     "needs": []
+    }
+   ]
+  }
+ ],
+ "simulation": {
+  "method": "In the scratch export only: delete a shard's runtime/world/look/plugin/models/roster files and leave a 4-line defineShard manifest (what \"every section native\" leaves), then rerun the ruler. Data-client use counts for no shard.",
+  "signal_native_sky_keeps_runtime": {
+   "far-reach": {
+    "custom": 3756,
+    "percent": 55.42
+   },
+   "sunscar-dunes": {
+    "custom": 6,
+    "percent": 0.15
+   }
+  },
+  "sky_native_signal_keeps_runtime": {
+   "far-reach": {
+    "custom": 23,
+    "percent": 0.34
+   },
+   "sunscar-dunes": {
+    "custom": 3509,
+    "percent": 85.13
+   }
+  },
+  "both_native": {
+   "far-reach": {
+    "before": 657,
+    "after": 23,
+    "percent_after": 0.34
+   },
+   "sunscar-dunes": {
+    "before": 410,
+    "after": 6,
+    "percent_after": 0.15
+   },
+   "driftwood-isle": {
+    "before": 13696,
+    "after": 13858,
+    "percent_after": 80.72
+   },
+   "pine-hollow": {
+    "before": 18617,
+    "after": 19056,
+    "percent_after": 89.8
+   },
+   "nalati-grasslands": {
+    "before": 29158,
+    "after": 29176,
+    "percent_after": 102.84
+   },
+   "nine-dragon-stack": {
+    "before": 15333,
+    "after": 15352,
+    "percent_after": 72.72
+   }
+  },
+  "both_native_residue": {
+   "far-reach": "manifest.ts 4, data/paintLook.ts Roc GLSL 7, sdk/bake/texture.ts 11, sdk/looks/modelLibrary.ts bindRigid 1",
+   "sunscar-dunes": "manifest.ts 4, sdk/looks/modelLibrary.ts types 2"
+  },
+  "hybrid_host_lines_shared_only_by_w1": "about 3,100 (game/plugin/ui.ts 654, headless.ts 529, simulation.ts 525, engine/render/dataLook.ts 276, game/shardfile/bakedKinds.ts 230, game/plugin/weaponFamily.ts 200, engine/combat/contactWeapon.ts 182, homeKeeper.ts 118, bossRow.ts 98, plugin/brain.ts 74, effectField 54, cardField 53, others)"
+ },
+ "totals": {
+  "custom_lines": {
+   "far-reach": 657,
+   "sunscar-dunes": 410
+  },
+  "lane_hours": {
+   "platform_features": 105,
+   "far-reach": 100,
+   "sunscar-dunes": 64,
+   "checks": 10,
+   "total": 279,
+   "range": "230-300"
+  },
+  "wall_clock": "2-3 days nonstop with 4 Opus + 5 Codex (critical path F1 -> quest wiring -> one lockstep runtime deletion -> checks, about 32-40 h); 4-5 days realistic with shared-file contention",
+  "quick_wins_4h": {
+   "far-reach": {
+    "lines": 38,
+    "groups": [
+     "bakehelpers 12",
+     "layoutmath 23",
+     "quests/flags.ts 1",
+     "updraft 2 (if modes can unbind alone)"
+    ],
+    "after": 619,
+    "percent_after": 9.13
+   },
+   "sunscar-dunes": {
+    "lines": 27,
+    "groups": [
+     "questdusk 23 (AS client script)",
+     "types 2",
+     "terrainfield 2"
+    ],
+    "after": 383,
+    "percent_after": 9.29
+   }
+  },
+  "floor": {
+   "far-reach": {
+    "lines": "0-60",
+    "percent": "0-0.9",
+    "why": "everything native leaves 23 (manifest 4, Roc GLSL 7, bake helpers 12), each removable; keeping the meadow (D2) adds 29 and keeping the wake custom (D3) 30"
+   },
+   "sunscar-dunes": {
+    "lines": "0-6",
+    "percent": "0-0.15",
+    "why": "everything native leaves manifest 4 + library types 2"
+   }
+  }
+ },
+ "blockers": [
+  {
+   "id": "B1",
+   "title": "Lockstep: neither runtime can go first",
+   "detail": "About 3,100 lines of hybrid-host platform code (quest page, HybridRuntimePlugin, runtime plan, held melee, bakedMeshWorld, paintedLook, card and effect fields) have exactly two shard users, Sky and Signal. Delete Signal's runtime first and Sky jumps 657 -> 3,756 (55.4 %); delete Sky's first and Signal jumps 410 -> 3,509 (85.1 %). Both runtimes go in one commit set, after every F-feature both need is in.",
+   "kind": "sequencing"
+  },
+  {
+   "id": "B2",
+   "title": "W2/W3 inherit ~640 lines when W1 leaves",
+   "detail": "With both W1 runtimes gone, shared code loses two users: Pine +439 (to 89.8 %), Driftwood +162 (80.7 %), Nine +19, Nalati +18. Doing W1 zero in the middle of W2's 80/20 push moves Pine's goalposts.",
+   "kind": "sequencing"
+  },
+  {
+   "id": "B3",
+   "title": "The ruler counts every executable manifest",
+   "detail": "Even the platform-native Template counts 70 custom lines (manifest.ts 36, budgets 19, hooks 11). Sky and Signal each keep a 4-line defineShard manifest. Literal zero needs F8 (a declaration-only manifest is not custom).",
+   "kind": "definition"
+  },
+  {
+   "id": "B4",
+   "title": "Meadow and wake have no second user",
+   "detail": "Open-x-queue rows sp-o162/o164 (meadow, 29) and sp-o148/o152 (wake, 30): moving either into the platform still counts against Sky (G294). Only a decision (D2, D3) removes them.",
+   "kind": "definition"
+  },
+  {
+   "id": "B5",
+   "title": "Missing platform features",
+   "detail": "F1 (data client owns the bound sections; the quest page reads runtime owner objects today), F3 (no effects section at all), F4 (props nodes driven by channels, light rows), F5 (graphs on skinned creatures). None is impossible; F1 and F3 are the long poles.",
+   "kind": "work"
+  }
+ ],
+ "decisions": [
+  {
+   "id": "D1",
+   "question": "What does \"zero\" mean?",
+   "options": [
+    "A declaration-only manifest.ts is not custom (extend call 36)",
+    "Literal zero: platform discovery replaces manifest.ts",
+    "Accept ~4 lines per shard as the floor"
+   ],
+   "recommend": "A declaration-only manifest.ts is not custom (extend call 36); same rule frees the Template."
+  },
+  {
+   "id": "D2",
+   "question": "Sky's near meadow (29 lines, no later-wave user)",
+   "options": [
+    "Keep it as Sky's one custom piece",
+    "Swap to the shared camera-ring grass (look change, makes Nalati's grass two-user)",
+    "Build a sole-user baked instance-field family (no gain under G294)"
+   ],
+   "recommend": "Keep it as Sky's floor; revisit at the end of W3 if a real second user appears."
+  },
+  {
+   "id": "D3",
+   "question": "Sky's ray wakes (30 lines, no second user)",
+   "options": [
+    "Extend the engine SlashTrail with a camera-facing timed mode",
+    "Drop the wakes",
+    "Keep them custom"
+   ],
+   "recommend": "Extend SlashTrail (shared host, look kept)."
+  },
+  {
+   "id": "D4",
+   "question": "Signal's roaming firelight (one moving PointLight)",
+   "options": [
+    "Drop it; the light-slot pools light sand and plinths",
+    "Keep it as a \"nearest lit source\" light row"
+   ],
+   "recommend": "Drop it, with one before / after board."
+  },
+  {
+   "id": "D5",
+   "question": "When to do W1 zero",
+   "options": [
+    "Now",
+    "After W2 reaches 80/20, both W1 shards in one lockstep commit set, reusing W2's F1/F3/F4",
+    "Never: 90/10 is the bar"
+   ],
+   "recommend": "After W2 reaches 80/20, in lockstep; the shared features are W2 work anyway."
+  }
+ ]
+}
