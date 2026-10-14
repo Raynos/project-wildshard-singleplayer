@@ -374,7 +374,7 @@ export class SkyRig {
   private static fillers: { white: THREE.DataTexture; flatNormal: THREE.DataTexture } | null = null;
   private static fillSlots(mat: THREE.Material) {
     const m = mat as THREE.MeshStandardMaterial;
-    if (!m.isMeshStandardMaterial || hasProgramKey(mat)) return;
+    if (!m.isMeshStandardMaterial || Reflect.get(mat, 'isNodeMaterial') === true || hasProgramKey(mat)) return;
     if (!SkyRig.fillers) {
       const tex = (rgb: [number, number, number], srgb: boolean) => { const t = new THREE.DataTexture(new Uint8Array([...rgb, 255]), 1, 1); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.needsUpdate = true; return t; };
       SkyRig.fillers = { white: tex([255, 255, 255], true), flatNormal: tex([128, 128, 255], false) };
