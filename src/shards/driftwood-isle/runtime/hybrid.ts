@@ -13,6 +13,8 @@ import { CASCADE_LOOKS } from '../data/waterfallLook';
 import { setWaterfallLooks } from '../world/Waterfall';
 import { SMOKE_LOOK } from '../data/smokeLook';
 import { setSmokeLook } from './looks/smokeColumn';
+import { FIREFLY_LOOK } from '../data/fireflyLook';
+import { setFireflyLook } from '../world/Shrine';
 
 // The static transitional world belongs to the resident, not a single entered play scope.
 const residentWorld = new HybridResidentWorld<DriftwoodWorld>(RESIDENT_WORLD);
@@ -28,10 +30,10 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
       // SF46 (G164): the resident's world is built lowered as one, the sea at road level; its kits' voxel AO and its rocks'
       // painted pieces are read from the build-time bakes (SF67, scripts/bake-voxel-ao.mjs, scripts/bake-geometry.mjs),
       // built in code only on a miss
-      // the look.materials graphs the runtime's own meshes wear (data/waterfallLook.ts, data/smokeLook.ts), owned by the resident
+      // the look.materials graphs the runtime's own meshes wear (data/waterfallLook.ts, data/smokeLook.ts, data/fireflyLook.ts), owned by the resident
       const built = await residentWorld.load(context, async (owner) => {
-        const { materials } = await runtimeLookMaterials({ scope: owner, game: context.game }, source, true, [...Object.values(CASCADE_LOOKS), SMOKE_LOOK]);
-        setWaterfallLooks(materials); setSmokeLook(materials);
+        const { materials, setParam } = await runtimeLookMaterials({ scope: owner, game: context.game }, source, true, [...Object.values(CASCADE_LOOKS), SMOKE_LOOK, FIREFLY_LOOK]);
+        setWaterfallLooks(materials); setSmokeLook(materials); setFireflyLook(materials, setParam);
         return withGeometryBake('/assets/models/driftwood-blender/geometry.bin',
         () => withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress))); });
       return built;

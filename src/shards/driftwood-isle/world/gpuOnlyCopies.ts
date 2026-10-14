@@ -3,7 +3,7 @@
  * (and every index) gives up its CPU copy the moment it uploads: the SF46 breakdown measured −82.4 MB of ArrayBuffers
  * (`docs/design/mmo/research/e435/memory-pine-driftwood.md`, experiment 1). Nothing changes on screen: the GPU copy is the
  * one drawn. Kept, for their CPU readers: `position` and the index (Explorer picking, the boat's mooring ropes, trimesh
- * colliders), every attribute that is not static-draw (ground-cover refills, gull wings, shrine fireflies), and any skinned
+ * colliders), every attribute that is not static-draw (ground-cover refills, gull wings), and any skinned
  * or morphing mesh. The bounds are computed first (culling reads them). Only Driftwood's own roots are walked, never the
  * scene: a grid neighbour or the platform road built meanwhile keeps its arrays.
  *

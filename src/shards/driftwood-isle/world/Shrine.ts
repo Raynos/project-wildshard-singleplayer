@@ -11,6 +11,9 @@
  *   game.onUpdate((dt) => shrine.update(dt));
  *   shrine.setDusk(k)       // 0 = broad day … 1 = dusk / night: glyph brightness + the firefly cloud (the day clock drives it)
  *
+ * The fireflies are one mesh of quads its material graph poses on the GPU (data/fireflyLook.ts, handed over by
+ * setFireflyLook before the world builds); without it (a page outside the hybrid world) the cloud is not drawn.
+ *
  * `anchors` (world coords, yaw = world facing, 0 = +Z): altar, pool, stairFoot, ring (see the model).
  */
 import * as THREE from 'three';
@@ -24,10 +27,19 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { SHRINE_RUNE, shrine, shrineLayout, shrineMaterials, shrineOrigin } from '../models/shrine';
 import type { ShrineAnchor, ShrineParams } from '../assets/contracts/shrine';
+import { FIREFLY_COUNT, FIREFLY_LOOK } from '../data/fireflyLook';
 
 export interface ShrineSpec { x: number; z: number; rot: number }
 
-const FIREFLIES = 90;
+let fireflyLook: { material: THREE.Material; dusk: (k: number) => void } | null = null;
+/** hand the fireflies their compiled graph (look.materials, data/fireflyLook.ts) and its `dusk` writer */
+export function setFireflyLook(materials: ReadonlyMap<string, THREE.Material>, setParam: (id: string, name: string, value: number) => void): void {
+  const material = materials.get(FIREFLY_LOOK);
+  if (material === undefined) throw new Error('Driftwood: look.materials lacks the firefly graph');
+  fireflyLook = { material, dusk: (k) => { setParam(FIREFLY_LOOK, 'dusk', k); } };
+}
+/** a firefly quad's four corners, x then y (the graph scales and turns them to the camera) */
+const CORNERS: readonly number[] = [-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5];
 
 export class Shrine {
   /** what it draws: the stone + jungle, the pool, the glyphs — and the firefly cloud */
@@ -45,12 +57,8 @@ export class Shrine {
   private baseY = 0;
   private glyphMat!: THREE.MeshBasicMaterial;
   private uniforms!: { uTime: THREE.IUniform<number> };
-  private fireflies!: THREE.Points;
-  private ffMat!: THREE.PointsMaterial;
-  private ffPos = new Float32Array(FIREFLIES * 3);
-  private ffSeed = new Float32Array(FIREFLIES * 4);
-  private ffAttr!: THREE.BufferAttribute;
   private dusk = 0.35;
+  private readonly look = fireflyLook;
   private t = 0;
 
   constructor(private sky: Sky, private spec: ShrineSpec) {
@@ -60,7 +68,7 @@ export class Shrine {
   }
 
   /** 0 = broad daylight (the fireflies barely show), 1 = dusk / night (the full cloud, the glyphs at their brightest) */
-  setDusk(k: number): void { this.dusk = Math.max(0, Math.min(1, k)); }
+  setDusk(k: number): void { this.dusk = Math.max(0, Math.min(1, k)); this.look?.dusk(this.dusk); }
 
   /** the game's: placed and registered (piece `shrine`, the catalog's Ring shrine) */
   place(registry: WorldRegistry): this { return this.draw(registry); }
@@ -87,28 +95,30 @@ export class Shrine {
     return this;
   }
 
-  /** the firefly cloud (an effect, not the model): FIREFLIES points wandering on seeded sine paths round the platform, 0.4–3 m up */
+  /** the firefly cloud (an effect, not the model): FIREFLY_COUNT quads the graph circles round the platform, 0.4–3 m up */
   private buildFireflies(rng: Rng, top: number): void {
-    for (let i = 0; i < FIREFLIES; i++) {
-      this.ffSeed[i * 4] = rng.range(0, Math.PI * 2);
-      this.ffSeed[i * 4 + 1] = rng.range(4, 13);
-      this.ffSeed[i * 4 + 2] = rng.range(0.4, 3.4);
-      this.ffSeed[i * 4 + 3] = rng.range(0, 100);
+    const n = FIREFLY_COUNT, position = new Float32Array(n * 12), uv = new Float32Array(n * 8), fly = new Float32Array(n * 16), index: number[] = [];
+    for (let i = 0; i < n; i++) {
+      const seed = [rng.range(0, Math.PI * 2), rng.range(4, 13), rng.range(0.4, 3.4), rng.range(0, 100)];
+      for (let k = 0; k < 4; k++) {
+        const v = i * 4 + k, x = CORNERS[k * 2] ?? 0, y = CORNERS[k * 2 + 1] ?? 0;
+        position.set([x, y, 0], v * 3); uv.set([x + 0.5, y + 0.5], v * 2); fly.set(seed, v * 4);
+      }
+      index.push(i * 4, i * 4 + 1, i * 4 + 2, i * 4, i * 4 + 2, i * 4 + 3);
     }
     const g = new THREE.BufferGeometry();
-    this.ffAttr = new THREE.BufferAttribute(this.ffPos, 3); this.ffAttr.setUsage(THREE.DynamicDrawUsage);
-    g.setAttribute('position', this.ffAttr);
-    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(this.spec.x, top, this.spec.z), 18);
-    const c = document.createElement('canvas'); c.width = c.height = 32;
-    const ctx = c.getContext('2d');
-    if (!ctx) throw new Error('[shrine] no 2d canvas context');
-    const grad = ctx.createRadialGradient(16, 16, 1, 16, 16, 15);
-    grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.35, 'rgba(255,255,255,0.7)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = grad; ctx.fillRect(0, 0, 32, 32);
-    this.ffMat = new THREE.PointsMaterial({ color: new THREE.Color(0.75, 1.0, 0.55), size: 0.09, sizeAttenuation: true, transparent: true, opacity: 0.9, depthWrite: false, map: new THREE.CanvasTexture(c), blending: THREE.AdditiveBlending });
-    this.fireflies = new THREE.Points(g, this.ffMat);
-    this.fireflies.renderOrder = 4;
-    this.group.add(this.fireflies);
+    g.setAttribute('position', new THREE.BufferAttribute(position, 3));
+    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    g.setAttribute('aFly', new THREE.BufferAttribute(fly, 4));
+    g.setIndex(index);
+    g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, top - this.baseY, 0), 18);
+    const mesh = new THREE.Mesh(g, this.look?.material);
+    mesh.name = 'shrine-fireflies';
+    mesh.position.set(this.spec.x, this.baseY, this.spec.z);
+    mesh.renderOrder = 4;
+    mesh.visible = this.look !== null;
+    this.group.add(mesh);
+    this.look?.dusk(this.dusk);
     this.update(0);
   }
 
@@ -118,19 +128,6 @@ export class Shrine {
     this.uniforms.uTime.value = t;
     const pulse = 0.55 + 0.45 * Math.sin(t * 1.1) * Math.sin(t * 0.37 + 1);
     this.glyphMat.color.copy(SHRINE_RUNE).multiplyScalar(1.6 + 2.6 * pulse * (0.6 + 0.4 * this.dusk));
-    const S = this.ffSeed, P = this.ffPos, base = this.baseY;
-    for (let i = 0; i < FIREFLIES; i++) {
-      const ph = S[i * 4 + 3] ?? 0;
-      const a = (S[i * 4] ?? 0) + t * 0.12 * (1 + 0.5 * Math.sin(ph)), r = (S[i * 4 + 1] ?? 0) + 0.6 * Math.sin(t * 0.7 + ph);
-      const wob = Math.sin(t * 1.9 + ph * 3) * 0.35;
-      P[i * 3] = this.spec.x + Math.cos(a) * r + wob;
-      P[i * 3 + 1] = base + (S[i * 4 + 2] ?? 0) + 0.25 * Math.sin(t * 1.3 + ph);
-      P[i * 3 + 2] = this.spec.z + Math.sin(a) * r - wob * 0.6;
-    }
-    this.ffAttr.needsUpdate = true;
-    const flick = 0.7 + 0.3 * Math.sin(t * 7.3) * Math.sin(t * 3.1);
-    this.ffMat.opacity = (0.3 + 0.7 * this.dusk) * flick;
-    this.ffMat.size = 0.09 + 0.06 * this.dusk;
   }
 
   /**
