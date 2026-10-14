@@ -1,4 +1,6 @@
-import { Float32BufferAttribute, type BufferGeometry } from 'three';
+import { clientSceneGlb } from '@wildshard/sdk/bake/glb';
+import { MILL_REST_URL } from '../data/restFiles';
+import { Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, type BufferGeometry } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { hdGeometry, fitModel } from './modelIntake';
@@ -84,13 +86,26 @@ export function millModel(tower: BufferGeometry, footSource: BufferGeometry): { 
 }
 
 /** The mill model from its two GLBs (`read` returns a public file's bytes): the binary (uncompressed; the script deflates it) and its rows. */
-export async function bakeSkyMillModel(read: (url: string) => Uint8Array): Promise<{ bin: Uint8Array; rows: MillModelRows }> {
+async function readMillGeometry(read: (url: string) => Uint8Array): Promise<ReturnType<typeof millModel>> {
   const textured = async (url: string): Promise<BufferGeometry> => {
     const source = await readSourceModel(read(url)), hd = hdGeometry(source.gltf.scene, (material) => source.texture(material) !== null);
     if (hd === null) throw new Error(`far-reach mill model: ${url} has no textured mesh`);
     return hd.geometry;
   };
   const made = millModel(await textured(HD_URLS['mill-tower']), await textured(HD_URLS['mill-foot']));
+  return made;
+}
+export async function bakeSkyMillModel(read: (url: string) => Uint8Array): Promise<{ bin: Uint8Array; rows: MillModelRows }> {
+  const made = await readMillGeometry(read);
   const pack = new GeometryPackWriter('far-reach mill model'), tower = pack.add(made.tower), foot = pack.add(made.foot);
   return { bin: pack.bytes(), rows: { ...pack.rows(), tower, foot, hubAt: made.hubAt } };
 }
+
+/** The fitted mill's rigid geometry, with both original UV channels, in the shared admitted pool. */
+export async function millRestGlb(read: (url:string)=>Uint8Array): Promise<Uint8Array> {
+  const made = await readMillGeometry(read), root = new Group(), material = new MeshStandardMaterial(); root.name='mill-model';
+  const tower = new Mesh(made.tower,material), foot = new Mesh(made.foot,material); tower.name='mill-tower';foot.name='mill-foot';root.add(tower,foot);
+  try { return clientSceneGlb(root,new Map([[material,'mill-material']])).glb; }
+  finally { made.tower.dispose();made.foot.dispose();material.dispose(); }
+}
+export const millRestRows = (): {url:string;parts:string[]} => ({url:MILL_REST_URL,parts:['mill-tower','mill-foot']});

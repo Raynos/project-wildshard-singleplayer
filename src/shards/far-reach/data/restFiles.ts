@@ -5,3 +5,5 @@ export const REST_URLS = ["/assets/far-reach/baked/rest-winch.glb", "/assets/far
 export const ISLET_POOL = { url: '/assets/far-reach/baked/rest-islets.glb', parts: ['islet-link', 'islet-box', 'islet-lip-north', 'islet-lip-east', 'islet-lip-south', 'islet-lip-west'] } as const;
 
 export const BRIDGE_REST_URL = '/assets/far-reach/baked/bridge-rest.glb';
+
+export const MILL_REST_URL='/assets/far-reach/baked/mill-rest.glb';

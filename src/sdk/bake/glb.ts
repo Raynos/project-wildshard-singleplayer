@@ -36,7 +36,7 @@ export function clientSceneGlb(root: Group, ports: ReadonlyMap<Material, string>
       }
       const geometry: BufferGeometry = object.geometry; const sphere = geometry.boundingSphere, box = geometry.boundingBox;
       for (const [channel, attribute] of Object.entries(geometry.attributes)) {
-        const width = channel === 'uv' ? 2 : channel === 'tangent' ? 4 : ['position', 'normal', 'color'].includes(channel) ? 3 : undefined;
+        const width = ['uv','uv1'].includes(channel) ? 2 : channel === 'tangent' ? 4 : ['position', 'normal', 'color'].includes(channel) ? 3 : undefined;
         if (width === undefined || !(attribute instanceof BufferAttribute) || !(attribute.array instanceof Float32Array)
           || attribute.normalized || attribute.itemSize !== width) throw new Error('Rest scene requires exact supported Float32 geometry channels');
       }
@@ -125,7 +125,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     if (!geometry.hasAttribute('position')) throw new Error('Missing GLB positions');
     const p = geometry.getAttribute('position'); if ( p.count > 400_000) throw new Error('Unsupported GLB geometry');
     const attributes: Record<string, Json> = {};
-    for (const [key, semantic, width] of [['position', 'POSITION', 3], ['normal', 'NORMAL', 3], ['uv', 'TEXCOORD_0', 2], ['color', 'COLOR_0', geometry.hasAttribute('color') ? geometry.getAttribute('color').itemSize : 3], ['tangent', 'TANGENT', 4]] as const) {
+    for (const [key, semantic, width] of [['position', 'POSITION', 3], ['normal', 'NORMAL', 3], ['uv', 'TEXCOORD_0', 2], ['uv1', 'TEXCOORD_1', 2], ['color', 'COLOR_0', geometry.hasAttribute('color') ? geometry.getAttribute('color').itemSize : 3], ['tangent', 'TANGENT', 4]] as const) {
       const a = geometry.getAttribute(key); if (!geometry.hasAttribute(key)) continue;
       // A trusted whole shape may use the fourth normal component as a shader channel. glTF NORMAL is vec3:
       // retain the original vec4 as an application accessor below, never misdeclare the portable semantic.
@@ -143,7 +143,7 @@ export function staticGlb(primitives: readonly GlbPrimitive[], name = 'baked'): 
     }
     const native: Record<string, Json> = {};
     if (nativeAttributes === true) {
-      const channels = new Map<string, string>([['position', 'POSITION'], ['normal', 'NORMAL'], ['uv', 'TEXCOORD_0'], ['color', 'COLOR_0'], ['tangent', 'TANGENT'], ...custom.map(([semantic, channel]) => [channel, semantic] as [string, string])]);
+      const channels = new Map<string, string>([['position', 'POSITION'], ['normal', 'NORMAL'], ['uv', 'TEXCOORD_0'], ['uv1', 'TEXCOORD_1'], ['color', 'COLOR_0'], ['tangent', 'TANGENT'], ...custom.map(([semantic, channel]) => [channel, semantic] as [string, string])]);
       for (const [channel, semantic] of channels) {
         if (!geometry.hasAttribute(channel)) continue;
         const a = geometry.getAttribute(channel);

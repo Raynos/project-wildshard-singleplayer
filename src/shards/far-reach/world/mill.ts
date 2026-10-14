@@ -1,10 +1,8 @@
 import { Group, Mesh, MeshStandardMaterial, DoubleSide, type InstancedMesh, type Material, type Object3D, type Texture } from 'three';
-import { GeometryPack, fetchDeflated, packedRows } from '@wildshard/sdk/kit/geometryPack';
-import { hdMaterial, skyHd } from './meshes';
+import { hdMaterial, skyHd, SKY_LIBRARY } from './meshes';
 import { skyLook, skyMappedLook } from './looks';
 import { onPaintedDispose } from '../look/image';
 import millModel from '../data/millModel.json' with { type: 'json' };
-import { MILL_MODEL_URL } from '../data/files';
 import { skyBakedPiece } from './baked';
 
 /**
@@ -45,19 +43,14 @@ function towerMaterial(map: Texture): Material {
   if (stone !== null && 'bumpMap' in m) { const t = stone.clone(); t.channel = 1; Object.assign(m, { bumpMap: t, bumpScale: 2 }); m.needsUpdate = true; }
   return m;
 }
-let pack: InstanceType<typeof GeometryPack> | null = null;
-const MODEL_ROWS = packedRows(millModel);
-/** Load the modelled tower and foot's bake (with the other baked pieces, before the world is built); a failed load stands no tower. */
-export async function loadSkyMillModel(): Promise<void> {
-  try { pack = new GeometryPack(await fetchDeflated(MILL_MODEL_URL), MODEL_ROWS, 'far-reach mill model'); } catch (e: unknown) { console.warn('[far-reach] the baked mill model did not load:', e); }
-}
 /** The modelled tower and foot (E410, data/millShape.ts MODELLED): fitted offline (`generators/millModel.ts`), drawn in their models' paint. */
 function modelledSet(): Made | null {
   const t = skyHd('mill-tower'), f = skyHd('mill-foot');
-  if (t === null || f === null || pack === null) return null;
+  const towerGeometry = SKY_LIBRARY.geometry('mill-tower'), footGeometry = SKY_LIBRARY.geometry('mill-foot');
+  if (t === null || f === null || towerGeometry === null || footGeometry === null) return null;
   t.geometry.dispose(); f.geometry.dispose();
-  const made = new Mesh(pack.geometry(millModel.tower), towerMaterial(t.map)); made.name = 'far.mill.tower';
-  const foot = new Mesh(pack.geometry(millModel.foot), hdMaterial(f.map)); foot.name = 'far.mill.foot';
+  const made = new Mesh(towerGeometry, towerMaterial(t.map)); made.name = 'far.mill.tower';
+  const foot = new Mesh(footGeometry, hdMaterial(f.map)); foot.name = 'far.mill.foot';
   return { meshes: [made, foot], hubAt: millModel.hubAt };
 }
 

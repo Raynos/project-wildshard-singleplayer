@@ -149,7 +149,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
         const geometry = node.geometry, position = geometry.getAttribute('position');
         if (!(position instanceof BufferAttribute) || position.count === 0 || position.count > 400_000 || Object.keys(geometry.morphAttributes).length > 0) throw new Error('Rest pool requires bounded rigid positions');
         for (const [channel, attribute] of Object.entries(geometry.attributes)) {
-          const width = channel === 'uv' ? 2 : channel === 'tangent' ? 4 : ['position', 'normal', 'color'].includes(channel) ? 3 : undefined;
+          const width = ['uv','uv1'].includes(channel) ? 2 : channel === 'tangent' ? 4 : ['position', 'normal', 'color'].includes(channel) ? 3 : undefined;
           if (width === undefined || !(attribute instanceof BufferAttribute) || !(attribute.array instanceof Float32Array)
             || attribute.normalized || attribute.itemSize !== width || attribute.count !== position.count || attribute.array.some(value => !Number.isFinite(value))) throw new Error('Rest pool has incompatible Float32 channels');
         }

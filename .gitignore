@@ -954,3 +954,6 @@ src/shards/far-reach/data/crownInstances.generated.json
 
 # Held fan geometry is a cheap authoring product (G405).
 /public/assets/far-reach/baked/fan.glb
+
+/src/shards/far-reach/data/millRest.generated.json
+/public/assets/far-reach/baked/mill-rest.glb
