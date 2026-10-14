@@ -6,7 +6,7 @@ import { bindPageQuestStages } from '../src/game/plugin/ui';
 import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/data/questHost';
 import { QUEST_HOST as sky } from '../src/shards/far-reach/data/questHost';
 import { FLAG } from '../src/shards/sunscar-dunes/data/flags';
-import { FLAGS } from '../src/shards/far-reach/quest/flags';
+import { FLAGS } from '../src/shards/far-reach/quests/flags';
 
 it('a loaded lit Signal save stays quiet', () => {
   const flags = new Flags('page-signal-loaded', false); flags.set(FLAG.lit);

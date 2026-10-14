@@ -6,7 +6,7 @@ import { bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/data/questHost';
 import { QUEST_HOST as sky } from '../src/shards/far-reach/data/questHost';
 import { FLAG } from '../src/shards/sunscar-dunes/data/flags';
-import { FLAGS } from '../src/shards/far-reach/quest/flags';
+import { FLAGS } from '../src/shards/far-reach/quests/flags';
 
 test('Signal refuses unraised oil, runs the crank and restores saved page state',()=>{
   const flags=new Flags('page-beats-signal',false),well={label:'well'},logbook={label:'logbook'},jar={visible:true},toasts:string[]=[];
