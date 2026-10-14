@@ -159,21 +159,18 @@ export interface Milestone {
 export interface ProgressShard {
   slug: string;
   name: string;
-  /** G291 runtime reduction from frozen TS, or legacy-share without a copy, %. */
-  measure?: 'runtime-vs-legacy' | 'legacy-share';
-  legacySharePct?: number;
-  sharePct: number;
+  /** G417 runtime reduction from frozen TS; native shards have no ratio. */
+  measure?: 'runtime-vs-legacy' | 'native';
+  sharePct: number | null;
   portPct?: number | null;
   world?: 'yes' | 'partial' | 'no' | 'unavailable';
   generators?: {ported:number;left:number;portedLines:number;leftLines:number};
-  publicLines: number;
-  customLines: number;
   /** Authored runtime TS / 20 % frozen TS ceiling; old measure when no frozen copy exists. */
   runtime: number;
   ceiling: number;
   /** G291 passes at ≤20 % retained runtime; no-copy rows keep the old measure. */
   at8020: boolean;
-  /** Of the six: boot, headless, replay, ledger, grid-ready, compatible. */
+  /** Headless behaviour harness availability. */
   proofs: number;
   effort: ProgressEffort | null;
 }

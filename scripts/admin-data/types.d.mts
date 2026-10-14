@@ -42,19 +42,15 @@ export interface LoadingRun {
 }
 export interface LoadingReport {schema:'loading-benchmark/1';pin:string;device:string;runs:LoadingRun[];missing:string[]}
 /** One shard's row of `node scripts/shard-platform.mjs --json`, run on the collected revision (measured, verbatim). */
-export interface ShareProofs { boot:boolean; headless:boolean; replay:boolean; ledger:boolean; gridReady:boolean; compatible:boolean; transitional:boolean }
+export interface ShareProofs { headless:boolean }
 export interface ShardShare {
-  slug:string; publicLines:number; customLines:number; runtimeLines:number; trustedRuntimeLines:number;
-  /** public ÷ (public + custom), 0..1. */
-  publicShare:number;
-  /** Secondary historical public/custom share. Old report fixtures may omit the additive G291 fields. */
-  legacyShare?:number;
+  slug:string; runtimeLines:number; trustedRuntimeLines:number;
   /** G291 frozen-runtime comparison, including explicit unavailable fields and the audit hook. */
   conversion?:ConversionMeasure;
   port?:PortHeadline;
   generators?:GeneratorTotal;
   baseline:number; ceiling:number; enforced:boolean; proofs:ShareProofs;
-  /** boot, headless, replay, ledger, grid-ready, compatible: how many of the six pass. */
+  /** Headless behaviour harness availability. */
   proofsPassing:number;
 }
 export interface ShareReport { command:string; target:number; portAverage?:number|null; shards:ShardShare[] }

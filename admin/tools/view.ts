@@ -240,14 +240,11 @@ export function progress(p: Progress, revision: string, media: Map<string, Media
     ...(row.port === undefined ? {} : {portPct:row.port.percent,world:row.port.world}),
     ...(row.generators === undefined ? {} : {generators:row.generators}),
     name: known(row.slug)?.name ?? shardName(row.slug),
-    measure: row.conversion?.metric ?? 'legacy-share',
-    legacySharePct: Math.round(row.publicShare * 1000) / 10,
-    sharePct: Math.round((runtimeShare === null ? row.publicShare : Math.max(0, 1 - runtimeShare)) * 1000) / 10,
-    publicLines: row.publicLines,
-    customLines: row.customLines,
+    measure: row.conversion?.metric ?? 'native',
+    sharePct: runtimeShare === null ? null : Math.round(Math.max(0, 1 - runtimeShare) * 1000) / 10,
     runtime: legacyLines === null ? row.runtimeLines : (row.conversion?.customRuntimeLines ?? row.runtimeLines),
     ceiling: legacyLines === null ? row.ceiling : Math.floor(legacyLines * 0.2),
-    at8020: row.conversion?.passed ?? (row.publicShare >= target && row.runtimeLines <= row.ceiling),
+    at8020: row.conversion?.passed === true,
     proofs: row.proofsPassing,
     effort: effortFor(row.slug),
     };
@@ -256,7 +253,7 @@ export function progress(p: Progress, revision: string, media: Map<string, Media
     const row = p.share.shards.find((s) => s.slug === slug);
     if (!row) throw new Error(`Progress: ${p.share.command} has no row for the shipping shard ${slug}`);
     return toShard(row);
-  }).sort((a, b) => b.sharePct - a.sharePct);
+  }).sort((a, b) => (b.sharePct ?? -1) - (a.sharePct ?? -1));
   const others = p.share.shards.filter((s) => !known(s.slug)).map(toShard);
   const extra = p.effort.shards.filter((e) => !used.has(e)).map((e): ProgressEffort =>
     ({ name: e.name, pct: e.effortPercent, spent: e.spentHours, left: e.remainingHours, approx: e.approximate }));

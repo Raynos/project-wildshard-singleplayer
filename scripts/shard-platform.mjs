@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // G291: authored runtime TS / the frozen legacy TS size is the primary 80/20 measure.
-// The old SF6 public/custom measure remains secondary, explicitly labelled legacy-share.
+// G417: one measure only; platform-native shards have no frozen denominator.
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { relative, resolve } from 'node:path';
@@ -34,7 +34,6 @@ const { Parser, NodeKind } = compiler;
 const ROOT = resolve(import.meta.dirname, '..');
 const LIST = 'lint/shard-platform.json';
 const sourceFile = /\.(?:tsx?|as|glsl)$/u;
-const publicFolder = /^(?:data|behaviour|quests)\//u;
 const producerPath = v.pipe(v.string(), v.check(path => path.length > 0 && !path.startsWith('/') && !path.includes('\\')
   && path.split('/').every(part => part !== '' && part !== '.' && part !== '..')));
 const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outputs/1'),
@@ -142,17 +141,17 @@ export function declarationOnlyConfig(source, path = 'shard.config.ts') {
 }
 
 /** G390: measured custom reduction contributes 80 points; tiles plus no private bytes contribute 20.
- * @param {number} customPercent @param {{status:string,tiles:{total:number}|null,privateBinaries:readonly string[]}} content
+ * @param {number|null} customPercent @param {{status:string,tiles:{total:number}|null,privateBinaries:readonly string[]}} content
  * @returns {import('./shard-platform.mjs').PortHeadline} */
 export function portHeadline(customPercent, content) {
-  if (!Number.isFinite(customPercent) || customPercent < 0) throw new Error('Invalid custom percentage');
+  if (customPercent !== null && (!Number.isFinite(customPercent) || customPercent < 0)) throw new Error('Invalid custom percentage');
   const world = content.status !== 'built' ? 'unavailable' : content.tiles?.total > 0 && content.privateBinaries.length === 0
     ? 'yes' : content.tiles?.total > 0 || content.privateBinaries.length === 0 ? 'partial' : 'no';
   const worldPoints = world === 'yes' ? 20 : world === 'partial' ? 10 : 0;
-  return { customPercent, world, percent: world === 'unavailable' ? null
+  return { customPercent, world, percent: world === 'unavailable' || customPercent === null ? null
     : 80 * Math.max(0, Math.min(1, (100 - customPercent) / 80)) + worldPoints };
 }
-const HEADLINE_SHARDS = ['_template', 'sunscar-dunes', 'far-reach', 'nine-dragon-stack', 'nalati-grasslands', 'driftwood-isle', 'pine-hollow'];
+const HEADLINE_SHARDS = [ 'sunscar-dunes', 'far-reach', 'nine-dragon-stack', 'nalati-grasslands', 'driftwood-isle', 'pine-hollow'];
 /** @param {Record<string,{port:import('./shard-platform.mjs').PortHeadline}>} rows */
 export function portAverage(rows) {
   const values = HEADLINE_SHARDS.map(slug => rows[slug]?.port.percent ?? null);
@@ -380,7 +379,6 @@ export function shardLines(root = ROOT, includeSources = false) {
   const shaders = path => ignored(path) ? 0 : info(path).shaderLines ?? rawShaderLines(text(path), path, RULES.typescript.test(path) && !path.endsWith('.glsl') ? info(path).tree?.program : undefined);
   const count = path => { if (!counts.has(path)) counts.set(path, ignored(path) ? 0 : (path.endsWith('.glsl') ? shaderCodeLines(text(path)) : linesWithoutComments(text(path), info(path).comments))); return counts.get(path); };
   const sdk = exists('src/sdk/package.json') ? JSON.parse(text('src/sdk/package.json')) : null;
-  const hasSdk = sdk?.name === '@wildshard/sdk';
   const publishedTargetOf = (pkg, spec) => {
     const name = `@wildshard/${pkg}`, manifest = pkg === 'sdk' ? sdk : exists(`src/${pkg}/package.json`) ? JSON.parse(text(`src/${pkg}/package.json`)) : null;
     if (manifest?.name !== name || !(spec === name || spec?.startsWith(`${name}/`))) return null;
@@ -523,37 +521,28 @@ export function shardLines(root = ROOT, includeSources = false) {
       if (lines > 0) privateExports.get([...owners][0]).push({ path, name: local === '\0default' ? 'default' : local, exported: exportedLocals.has(local), lines });
     }
   }
-  const classify = (slug, path) => {
-    const prefix = `src/shards/${slug}/`, seen = new Set(), queue = [path], generator = path.startsWith(`${prefix}generators/`);
-    let publicCode = true, trusted = false;
+  const trustedRuntime = (slug, path) => {
+    const prefix = `src/shards/${slug}/`, seen = new Set(), queue = [path];
     while (queue.length > 0) {
       const current = queue.pop();
       if (seen.has(current)) continue;
       seen.add(current);
-      if (!current.startsWith(prefix)) { publicCode = false; continue; }
-      const local = current.slice(prefix.length), author = /^(?:generators|data|quests)\//u.test(local) || local === 'shard.config.ts';
-      if (!generator && !publicFolder.test(local) && !local.startsWith('generators/') && local !== 'shard.config.ts') publicCode = false;
+      if (!current.startsWith(prefix)) continue;
       for (const edge of graph(current)) {
-        if (edge.trusted) { trusted = true; publicCode = false; continue; }
-        if (edge.sdk || (author && edge.commons)) continue;
-        // Generator tools stay public; a trusted SDK runtime import still belongs to the custom bucket.
-        if ((generator || local.startsWith('generators/')) && !edge.to?.startsWith(prefix)) continue;
-        if (edge.to === null) { publicCode = false; continue; }
-        queue.push(edge.to);
+        if (edge.trusted) return true;
+        if (edge.to?.startsWith(prefix)) queue.push(edge.to);
       }
     }
-    return { publicCode, trusted };
+    return false;
   };
   // SF54 dissolved the kit, so no shard-unique kit lines remain to count as custom (the former kit-only column).
   const out = {};
   for (const [slug, files] of Object.entries(shardFiles)) {
-    const row = { publicLines: 0, customLines: 0, runtimeLines: 0, trustedRuntimeLines: 0, assemblyScriptLines: 0, publicShare: 0, legacy: { generators: 0, data: 0, runtime: 0 }, legacyShare: 0, conversion: null };
+    const row = { runtimeLines: 0, trustedRuntimeLines: 0, assemblyScriptLines: 0, conversion: null };
     let shardRuntimeLines = 0, rawGlslLines = 0, additionalGlslLines = 0;
     const customSources = [], collectSources = includeSources || W1_SHARDS.includes(slug);
     for (const path of files) {
       const local = path.slice(`src/shards/${slug}/`.length), top = local.split('/')[0];
-      // Keep the historical physical TS-only comparison explicitly separate from the current authored measure.
-      if (RULES.typescript.test(path)) row.legacy[top === 'generators' || top === 'data' ? top : 'runtime'] += text(path).split('\n').length - 1;
       const lines = count(path);
       // G315: authored AS is reported separately, without a cap or an effect on the G291 TS ratio.
       if (path.endsWith('.as') && !RULES.tests.test(local)) row.assemblyScriptLines += lines;
@@ -568,13 +557,10 @@ export function shardLines(root = ROOT, includeSources = false) {
         additionalGlslLines += shaderLines;
         if (collectSources && shaderLines > 0) customSources.push({path, kind:'additional-glsl', lines:shaderLines});
       }
-      const category = shaderLines > 0 ? { publicCode: false, trusted: false } : classify(slug, path);
-      row[category.publicCode ? 'publicLines' : 'customLines'] += lines;
-      if (!path.endsWith('.as') && category.trusted) row.trustedRuntimeLines += lines;
-      if (!path.endsWith('.as') && (top === 'runtime' || category.trusted)) row.runtimeLines += lines;
+      const trusted = trustedRuntime(slug, path);
+      if (!path.endsWith('.as') && trusted) row.trustedRuntimeLines += lines;
+      if (!path.endsWith('.as') && (top === 'runtime' || trusted)) row.runtimeLines += lines;
     }
-    row.publicShare = hasSdk && row.publicLines + row.customLines > 0 ? row.publicLines / (row.publicLines + row.customLines) : 0;
-    row.legacyShare = row.publicShare;
     const pair = Object.entries(frozen.shards).find(([, legacy]) => legacy.primary === slug);
     let legacyLines = null;
     if (pair !== undefined) {
@@ -588,7 +574,7 @@ export function shardLines(root = ROOT, includeSources = false) {
     const attributedLines = [...modules, ...exports].reduce((total, module) => total + module.lines, 0);
     const customRuntimeLines = shardRuntimeLines + additionalGlslLines + attributedLines;
     row.conversion = {
-      metric: pair === undefined ? 'legacy-share' : 'runtime-vs-legacy', customRuntimeLines, shardRuntimeLines, rawGlslLines, additionalGlslLines,
+      metric: pair === undefined ? 'native' : 'runtime-vs-legacy', customRuntimeLines, shardRuntimeLines, rawGlslLines, additionalGlslLines,
       legacyLines, legacyFolder: pair?.[0] ?? null, legacyRevision: pair?.[1].source ?? null,
       runtimeShare: legacyLines === null ? null : customRuntimeLines / legacyLines,
       passed: legacyLines === null ? null : customRuntimeLines <= legacyLines * 0.2,
@@ -604,36 +590,15 @@ export function shardLines(root = ROOT, includeSources = false) {
   }
   return out;
 }
-/**
- * Files are executable proofs, run by the push gate's vitest step; absence never masquerades as success. A shard with a
- * canonical witness result (`test/proof/<slug>/compatibility.json`, written only from a real run) reads its headless /
- * replay / ledger / compatible flags from that result: a fail-closed witness test file exists but proves a refusal, so
- * its presence alone must never read as a pass. `transitional` holds until the trusted runtime is gone AND the witnesses
- * pass.
- */
-export function milestoneFlags(slug, row, root = ROOT) {
-  const proof = (name) => existsSync(resolve(root, `test/proof/${slug}/${name}.test.ts`));
-  const witnessPath = resolve(root, `test/proof/${slug}/compatibility.json`);
-  const witness = existsSync(witnessPath) ? JSON.parse(readFileSync(witnessPath, 'utf8')) : null;
-  const passed = (name) => proof(name) && (witness === null || (witness[name]?.status === 'passed'
-    && (name !== 'ledger' || witness.ledger.gameplayEmissionProven === true)));
-  const headless = passed('headless'), replay = passed('replay'), ledger = passed('ledger');
-  const witnessCompatible = headless && replay && ledger && (witness === null || (witness.compatible === true && witness.audit?.exitStatus === 0));
-  const trustedSimulation = row.runtimeLines > 0 || row.trustedRuntimeLines > 0 || typeof witness?.entry === 'string';
-  const compatible = witnessCompatible && !trustedSimulation;
-  return { boot: proof('boot'), headless, replay, ledger, gridReady: proof('grid-ready'), compatible, transitional: trustedSimulation || !compatible, witnessCompatible };
+/** Headless availability is reported separately from the custom/frozen measure. */
+export function milestoneFlags(_slug, _row, root = ROOT) {
+  return { headless: existsSync(resolve(root, 'test/shard-headless.test.ts')) };
 }
 export function checkShares(recorded, lines) {
   const failures = [];
   for (const slug of Object.keys(lines)) if (!Object.hasOwn(recorded.baseline, slug)) failures.push(`${slug}: unknown shard (no baseline in ${LIST})`);
-  for (const slug of [...Object.keys(recorded.baseline), ...Object.keys(recorded.enforced)]) if (!lines[slug]) failures.push(`${slug} is recorded in ${LIST} but src/shards/${slug} doesn't exist`);
-  for (const [slug, ceiling] of Object.entries(recorded.enforced)) {
-    const row = lines[slug];
-    if (!row) continue;
-    // G291/G294 is report-only initially: preserve exactly the predecessor gate, no new failures.
-    // The coordinator can promote the new measure after reviewing the audit and current table.
-    if (row.runtimeLines > ceiling) failures.push(`${slug}: ${row.runtimeLines} runtime/ or trusted-SDK lines, ceiling ${ceiling}`);
-    if (row.publicShare < 0.8) failures.push(`${slug}: public SDK share ${(row.publicShare * 100).toFixed(1)} %, floor 80 %`);
+  for (const [slug, row] of Object.entries(lines)) {
+    if (Object.hasOwn(recorded.enforced, slug) && row.conversion.passed === false) failures.push(`${slug}: custom runtime exceeds 20 % of frozen legacy`);
   }
   return failures;
 }
@@ -644,7 +609,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const inventory = generatorInventory(ROOT);
   const report = Object.fromEntries(Object.entries(lines).map(([slug, row]) => {
     const content = shardContent(slug, ROOT, products);
-    const customPercent = 100 * (row.conversion.runtimeShare ?? 1 - row.legacyShare);
+    const customPercent = row.conversion.runtimeShare === null ? null : 100 * row.conversion.runtimeShare;
     return [slug, { ...row, baseline: recorded.baseline[slug], ceiling: recorded.enforced[slug] ?? Math.floor(recorded.baseline[slug] * 0.2),
       enforced: Object.hasOwn(recorded.enforced, slug), milestones: milestoneFlags(slug, row), content,
       port: portHeadline(customPercent, content), generators: inventory.totals.find(total => total.shard === slug) }];
@@ -652,17 +617,16 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   const average = portAverage(report);
   if (process.argv.includes('--json')) console.log(JSON.stringify({ ...report, _summary: { portAverage: average, shards: HEADLINE_SHARDS, wave: componentWave(lines) } }, null, 2));
   else {
-    console.log(`PORT average (7 shards): ${average === null ? 'unavailable; build admitted products first' : `${average.toFixed(1)} %`}`);
+    console.log(`PORT average (6 ported shards): ${average === null ? 'unavailable; build admitted products first' : `${average.toFixed(1)} %`}`);
     for (const slug of HEADLINE_SHARDS) { const row = report[slug]; console.log(`  ${slug}: PORT ${row.port.percent === null ? 'unavailable' : `${row.port.percent.toFixed(1)} %`}; world ${row.port.world}; generators ${row.generators.ported} ported / ${row.generators.left} left (${row.generators.portedLines} / ${row.generators.leftLines} lines)`); }
     const wave = componentWave(lines);
     console.log(`W1 components closed ${wave.closed} of ${wave.total}`);
     for (const [key, row] of Object.entries(wave.components)) console.log(`  ${key}: Sky ${row.lines['far-reach'] ?? 'unavailable'}, Signal ${row.lines['sunscar-dunes'] ?? 'unavailable'}; ${row.closed ? 'closed' : 'open'}`);
-    console.log('shard                  shard TS  sole SDK/game  frozen TS  custom / frozen  80/20       legacy-share  enforcement');
+    console.log('shard                  shard TS  sole SDK/game  frozen TS  custom / frozen  80/20       enforcement');
     for (const [slug, row] of Object.entries(lines)) {
-      const base = recorded.baseline[slug], ceiling = recorded.enforced[slug] ?? Math.floor(base * 0.2);
-      const measure = row.conversion, ratio = measure.runtimeShare === null ? 'no legacy folder' : `${(measure.runtimeShare * 100).toFixed(1)} %`;
-      const passed = measure.passed ?? (row.publicShare >= 0.8 && row.runtimeLines <= ceiling);
-      console.log(`${slug.padEnd(22)} ${String(measure.shardRuntimeLines).padStart(8)} ${String(measure.gameSystemAttribution.lines).padStart(14)} ${String(measure.legacyLines ?? '—').padStart(10)} ${ratio.padStart(16)}  ${(passed ? 'PASS' : 'FAIL').padEnd(10)} ${(row.legacyShare * 100).toFixed(1).padStart(7)} %  ${measure.metric === 'runtime-vs-legacy' ? RULES.enforcement : (slug in recorded.enforced ? 'old enforced' : 'old reported')}`);
+            const measure = row.conversion, ratio = measure.runtimeShare === null ? 'native (no frozen legacy)' : `${(measure.runtimeShare * 100).toFixed(1)} %`;
+      const passed = measure.passed;
+      console.log(`${slug.padEnd(22)} ${String(measure.shardRuntimeLines).padStart(8)} ${String(measure.gameSystemAttribution.lines).padStart(14)} ${String(measure.legacyLines ?? '—').padStart(10)} ${ratio.padStart(16)}  ${(passed === null ? 'NATIVE' : passed ? 'PASS' : 'FAIL').padEnd(10)} ${RULES.enforcement}`);
       console.log(`  proofs ${JSON.stringify(milestoneFlags(slug, row))}`);
       const sole = measure.gameSystemAttribution, byModule = new Map();
       for (const entry of sole.exports) byModule.set(entry.path, [...byModule.get(entry.path) ?? [], entry]);

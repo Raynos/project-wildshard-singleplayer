@@ -5,7 +5,7 @@ import { markdownTables } from './markdown.mjs';
 export const SHARE_COMMAND='node scripts/shard-platform.mjs --json';
 export const SHARE_TARGET=0.8;
 export const RECOUNT_PREFIX='progress/shard-platform/effort-recount-';
-const PROOFS=/** @type {const} */(['boot','headless','replay','ledger','gridReady','compatible']);
+const PROOFS=/** @type {const} */(['headless']);
 
 /** @param {unknown} value @returns {value is Record<string,unknown>} */
 const isObject=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
@@ -23,8 +23,8 @@ function flag(value,where){
 /** Validate G291's additive measure; unavailable never becomes zero.
  * @param {unknown} value @param {string} slug @returns {import('../shard-platform.mjs').ConversionMeasure} */
 function conversion(value,slug){
-  if(!isObject(value)||!['runtime-vs-legacy','legacy-share'].includes(String(value.metric)))throw new Error(`Share script output: ${slug}.conversion is invalid`);
-  const metric=value.metric==='runtime-vs-legacy'?'runtime-vs-legacy':'legacy-share';
+  if(!isObject(value)||!['runtime-vs-legacy','native'].includes(String(value.metric)))throw new Error(`Share script output: ${slug}.conversion is invalid`);
+  const metric=value.metric==='runtime-vs-legacy'?'runtime-vs-legacy':'native';
   const customRuntimeLines=count(value.customRuntimeLines,`${slug}.customRuntimeLines`);
   const rawGlslLines=count(value.rawGlslLines,`${slug}.rawGlslLines`),additionalGlslLines=count(value.additionalGlslLines,`${slug}.additionalGlslLines`);
   if(additionalGlslLines>rawGlslLines)throw new Error(`Share script output: ${slug} has inconsistent GLSL lines`);
@@ -43,7 +43,7 @@ function conversion(value,slug){
   const lines=count(attribution.lines,`${slug}.gameSystemAttribution.lines`);
   if(new Set(modules.map(module=>module.path)).size!==modules.length||lines!==[...modules,...exports].reduce((total,module)=>total+module.lines,0)||customRuntimeLines!==shardRuntimeLines+additionalGlslLines+lines)throw new Error(`Share script output: ${slug} has inconsistent attributed lines`);
   const gameSystemAttribution={status:/** @type {const} */('import-graph'),review:/** @type {const} */('G294-primary-reach'),lines,modules,exports};
-  if(metric==='legacy-share'){
+  if(metric==='native'){
     if([value.legacyLines,value.legacyFolder,value.legacyRevision,value.runtimeShare,value.passed].some(field=>field!==null))throw new Error(`Share script output: ${slug} without legacy must be explicitly unavailable`);
     return {metric,customRuntimeLines,shardRuntimeLines,rawGlslLines,additionalGlslLines,legacyLines:null,legacyFolder:null,legacyRevision:null,runtimeShare:null,passed:null,gameSystemAttribution};
   }
@@ -53,7 +53,7 @@ function conversion(value,slug){
   return {metric,customRuntimeLines,shardRuntimeLines,rawGlslLines,additionalGlslLines,legacyLines,legacyFolder:value.legacyFolder,legacyRevision:value.legacyRevision,runtimeShare,passed:flag(value.passed,`${slug}.conversion.passed`),gameSystemAttribution};
 }
 
-/** `node scripts/shard-platform.mjs --json` → its rows, verbatim, with the six proofs counted.
+/** `node scripts/shard-platform.mjs --json` → its rows, verbatim, with headless availability.
  * @param {unknown} value @returns {import('./types.mjs').ShareReport} */
 export function readSharePlatform(value){
   if(!isObject(value))throw new Error(`Share script output is not an object (${SHARE_COMMAND})`);
@@ -61,25 +61,17 @@ export function readSharePlatform(value){
     if(!isObject(row))throw new Error(`Share script output: ${slug} is not an object`);
     const milestones=row.milestones;
     if(!isObject(milestones))throw new Error(`Share script output: ${slug}.milestones is missing`);
-    const proofs={boot:flag(milestones.boot,`${slug}.boot`),headless:flag(milestones.headless,`${slug}.headless`),
-      replay:flag(milestones.replay,`${slug}.replay`),ledger:flag(milestones.ledger,`${slug}.ledger`),
-      gridReady:flag(milestones.gridReady,`${slug}.gridReady`),compatible:flag(milestones.compatible,`${slug}.compatible`),
-      transitional:flag(milestones.transitional,`${slug}.transitional`)};
-    const publicShare=count(row.publicShare,`${slug}.publicShare`);
-    if(publicShare>1)throw new Error(`Share script output: ${slug}.publicShare exceeds 1`);
+    const proofs={headless:flag(milestones.headless,`${slug}.headless`)};
     /** @type {import('./types.mjs').ShardShare} */
-    const measured={slug,publicLines:count(row.publicLines,`${slug}.publicLines`),customLines:count(row.customLines,`${slug}.customLines`),
-      runtimeLines:count(row.runtimeLines,`${slug}.runtimeLines`),trustedRuntimeLines:count(row.trustedRuntimeLines,`${slug}.trustedRuntimeLines`),
-      publicShare,baseline:count(row.baseline,`${slug}.baseline (no baseline in lint/shard-platform.json?)`),
-      ceiling:count(row.ceiling,`${slug}.ceiling`),enforced:flag(row.enforced,`${slug}.enforced`),proofs,
+    const measured={slug,runtimeLines:count(row.runtimeLines,`${slug}.runtimeLines`),trustedRuntimeLines:count(row.trustedRuntimeLines,`${slug}.trustedRuntimeLines`),
+      baseline:count(row.baseline,`${slug}.baseline`),ceiling:count(row.ceiling,`${slug}.ceiling`),enforced:flag(row.enforced,`${slug}.enforced`),proofs,
       proofsPassing:PROOFS.filter(name=>proofs[name]).length};
-    if(row.legacyShare!==undefined)measured.legacyShare=count(row.legacyShare,`${slug}.legacyShare`);
     if(row.conversion!==undefined)measured.conversion=conversion(row.conversion,slug);
     if(row.port!==undefined){
       if(!isObject(row.port)||!['yes','partial','no','unavailable'].includes(String(row.port.world)))throw new Error(`Share script output: ${slug}.port invalid`);
-      const customPercent=count(row.port.customPercent,`${slug}.customPercent`);
+      const customPercent=row.port.customPercent===null?null:count(row.port.customPercent,`${slug}.customPercent`);
       const world=/** @type {import('../shard-platform.mjs').PortHeadline['world']} */(row.port.world);
-      const expected=world==='unavailable'?null:80*Math.max(0,Math.min(1,(100-customPercent)/80))+(world==='yes'?20:world==='partial'?10:0);
+      const expected=world==='unavailable'||customPercent===null?null:80*Math.max(0,Math.min(1,(100-customPercent)/80))+(world==='yes'?20:world==='partial'?10:0);
       if(row.port.percent!==expected)throw new Error(`Share script output: ${slug}.port formula drift`);
       measured.port={customPercent,world,percent:expected};
     }
@@ -96,7 +88,7 @@ export function readSharePlatform(value){
   const report={command:SHARE_COMMAND,target:SHARE_TARGET,shards};
   if(value._summary!==undefined){
     const summary=value._summary;
-    if(!isObject(summary)||!Array.isArray(summary.shards)||summary.shards.length!==7||new Set(summary.shards).size!==7)throw new Error('Invalid PORT summary');
+    if(!isObject(summary)||!Array.isArray(summary.shards)||summary.shards.length!==6||new Set(summary.shards).size!==6)throw new Error('Invalid PORT summary');
     const ports=summary.shards.map(slug=>{const row=shards.find(shard=>shard.slug===slug);if(row?.port===undefined)throw new Error('Missing PORT summary shard');return row.port.percent;});
     const expected=ports.some(port=>port===null)?null:ports.reduce((sum,port)=>sum+(port??0),0)/ports.length;
     if(summary.portAverage!==expected)throw new Error('PORT average drift');

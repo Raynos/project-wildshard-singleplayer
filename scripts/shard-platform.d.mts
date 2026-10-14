@@ -1,8 +1,8 @@
 import type { ComponentInventory } from './shard-components.mjs';
 
-/** G291's primary measure; no frozen copy is explicitly unavailable, with legacy-share used instead. */
+/** G291's primary measure; native shards have no frozen denominator. */
 export interface ConversionMeasure {
-  metric: 'runtime-vs-legacy' | 'legacy-share'; customRuntimeLines: number; shardRuntimeLines: number; rawGlslLines: number; additionalGlslLines: number;
+  metric: 'runtime-vs-legacy' | 'native'; customRuntimeLines: number; shardRuntimeLines: number; rawGlslLines: number; additionalGlslLines: number;
   legacyLines: number | null; legacyFolder: string | null; legacyRevision: string | null;
   runtimeShare: number | null; passed: boolean | null;
   /**
@@ -17,11 +17,10 @@ export interface CustomSource {path:string;kind:'runtime-ts'|'additional-glsl'|'
 export interface ShardLines {
   components?:ComponentInventory;
   customSources?:CustomSource[];
-  publicLines: number; customLines: number; runtimeLines: number; trustedRuntimeLines: number; assemblyScriptLines: number; publicShare: number; legacyShare: number; conversion: ConversionMeasure;
-  legacy: { generators: number; data: number; runtime: number };
+  runtimeLines: number; trustedRuntimeLines: number; assemblyScriptLines: number; conversion: ConversionMeasure;
 }
 export interface ShardPlatformList { baseline: Record<string, number>; enforced: Record<string, number> }
-export interface MilestoneFlags { boot: boolean; headless: boolean; replay: boolean; ledger: boolean; gridReady: boolean; compatible: boolean; transitional: boolean; witnessCompatible: boolean }
+export interface MilestoneFlags { headless: boolean }
 export function codeLines(source: string, path?: string): number;
 export function shardLines(root?: string, includeSources?: boolean): Record<string, ShardLines>;
 export function milestoneFlags(slug: string, row: ShardLines, root?: string): MilestoneFlags;
@@ -33,7 +32,7 @@ export function shaderCodeLines(source: string): number;
 export function rawShaderLines(source: string, path: string, program?: unknown): number;
 
 /** G390 headline, unavailable until the admitted product is present. */
-export interface PortHeadline {customPercent:number;world:'yes'|'partial'|'no'|'unavailable';percent:number|null}
+export interface PortHeadline {customPercent:number|null;world:'yes'|'partial'|'no'|'unavailable';percent:number|null}
 export function declarationOnlyConfig(source:string,path?:string):boolean;
-export function portHeadline(customPercent:number,content:{status:string;tiles:{total:number}|null;privateBinaries:readonly string[]}):PortHeadline;
+export function portHeadline(customPercent:number|null,content:{status:string;tiles:{total:number}|null;privateBinaries:readonly string[]}):PortHeadline;
 export function portAverage(rows:Record<string,{port:PortHeadline}>):number|null;

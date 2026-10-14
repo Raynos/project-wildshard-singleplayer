@@ -69,14 +69,13 @@ function shardRow(r: ProgressShard, target: number): HTMLElement {
     h('div', { class: 'phead' },
       h('b', {}, r.name),
       r.at8020 ? h('span', { class: 'pmet' }, '80/20 ✓') : null,
-      h('span', { class: 'pnum' }, h('span', { class: 'pshare' }, r.portPct === undefined ? `${num(r.sharePct)} %` : r.portPct === null ? 'PORT unavailable' : `${num(r.portPct)} % PORT`),
+      h('span', { class: 'pnum' }, h('span', { class: 'pshare' }, r.portPct === undefined ? r.sharePct === null ? 'native (no frozen legacy)' : `${num(r.sharePct)} %` : r.portPct === null ? 'PORT unavailable' : `${num(r.portPct)} % PORT`),
         r.effort ? h('span', { class: 'peffort' }, ` · ${num(r.effort.pct)} %`) : null)),
-    shareBar(r.portPct ?? r.sharePct, r.effort?.pct ?? null, target),
+    shareBar(r.portPct ?? r.sharePct ?? 0, r.effort?.pct ?? null, target),
     h('div', { class: 'pmeta' },
-      h('span', {}, `proofs ${r.proofs}/6`),
+      h('span', {}, `headless ${r.proofs > 0 ? 'available' : 'unavailable'}`),
       r.world ? h('span', {}, `world ${r.world}`) : null,
       r.generators ? h('span', {}, `generators ${r.generators.ported} ported / ${r.generators.left} left · ${r.generators.portedLines} / ${r.generators.leftLines} lines`) : null,
-      h('span', {}, `legacy-share ${num(r.legacySharePct ?? r.sharePct)} %${r.measure === 'legacy-share' ? ' · no legacy folder' : ''}`),
       h('span', { class: over ? 'pover' : '' }, `runtime ${num(r.runtime)} / ${num(r.ceiling)}`),
       r.effort ? h('span', {}, hoursText(r.effort)) : h('span', {}, 'no recount row')));
 }
@@ -122,7 +121,7 @@ function progressCard(p: ProgressData, stateCount: PlanData['hardCount']): HTMLE
       onclick: () => { if (r.chart) openMedia({ kind: 'image', name: 'Share vs agent-hours', src: r.chart, poster: null }); } },
     h('img', { src: `/${r.chart}`, alt: 'Public SDK share against agent-hours spent, per shard', loading: 'lazy', decoding: 'async' })) : null,
     h('p', { class: 'small pnote' },
-      h('b', {}, 'Measured: '), `G291 runtime reduction, legacy-share, proofs and runtime lines (scripts/shard-platform.mjs on ${p.revision}, this build) and hours spent (session logs, recount ${utc(r.asOf)}). `,
+      h('b', {}, 'Measured: '), `G417 custom/frozen runtime, headless and custom lines (scripts/shard-platform.mjs on ${p.revision}, this build) and hours spent (session logs, recount ${utc(r.asOf)}). `,
       h('b', {}, 'Projected: '), 'hours left, so effort % (spent ÷ (spent + left)) and the finish. ',
       `Recount confidence: ${r.confidence}. `, h('code', {}, r.source)));
 }
