@@ -1754,11 +1754,18 @@ export function createClientScene(input: unknown, ports: ClientScenePorts): Clie
         if (material === undefined) throw new Error('Private mesh material disappeared');
         let backing = source;
         if (backing === null && node.missing === 'empty') { backing = new BufferGeometry(); emptyGeometry.push(backing); }
-        object = backing === null ? null : node.instances === undefined ? new Mesh(backing, material) : new InstancedMesh(backing, material, node.instances);
+        if (backing === null) object = null;
+        else if (node.instances === undefined) object = new Mesh(backing, material);
+        else {
+          const mesh = new InstancedMesh(backing, material, node.instances);
+          if (node.matrices !== undefined) { mesh.instanceMatrix.array.set(node.matrices); mesh.instanceMatrix.needsUpdate = true; mesh.computeBoundingSphere(); }
+          object = mesh;
+        }
         }
       }
       if (object === null) continue;
       if (node.kind !== 'anchor') {
+        if (node.name !== undefined) object.name = node.name;
         if (node.position !== undefined) object.position.set(...node.position);
         if (node.rotation !== undefined) object.rotation.set(...node.rotation, node.order ?? object.rotation.order);
         if (node.scale !== undefined) object.scale.set(...node.scale);

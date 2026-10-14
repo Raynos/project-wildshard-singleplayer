@@ -11566,6 +11566,36 @@
         "src/shards/far-reach/data/heroLibrary.generated.json"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "sky-static-scenes",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/staticScene.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/staticScene.ts",
+        "skyStaticScenes",
+        "src/shards/far-reach/data/staticScenes.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk/bake",
+        "src/sdk/package.json",
+        "src/shards/far-reach/generators/staticScene.ts",
+        "src/shards/far-reach/data/placements.json"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/staticScenes.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/staticScenes.generated.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

@@ -2,7 +2,7 @@ import { Matrix4, Quaternion, Vector3, Vector4, type BufferGeometry } from 'thre
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { hdGeometry } from './modelIntake';
 import { DAIS, FALLEN_BRIDGE, ISLES, MILL, MILL_DRUM, NEST, NOTES, PINES, SPANS, SPIRES, UPDRAFT, VANES, WINCH, WINCH_HOUSE, type Isle } from '../data/layout';
-import { ISLE_KEEL_CUT, KEEL_TOP, SKY_ISLES, SKY_ISLE_HD, SKY_ISLE_MODELS, SKY_ISLE_WEAR, type SkyIsle, type SkyIsleModel } from '../data/skyIsles';
+import { ISLE_KEEL_CUT, KEEL_TOP, SKY_ISLES, SKY_ISLE_HD, SKY_ISLE_MODELS, SKY_ISLE_WEAR, type SkyIsle, type SkyIsleModel, type SkyIsleFrame } from '../data/skyIsles';
 import { FALLS } from '../data/falls';
 import { HD_URLS } from '../data/files';
 import { CROWN_STONES } from '../data/crownLayout';
@@ -11,7 +11,6 @@ import { KEEPER_STAND } from '../data/keeperStand';
 import { spireAt } from '../layout';
 import { TREE_MODELS, TREES, type TreeModel } from '../data/trees';
 import { RISING_ISLETS } from './risingIslets';
-import type { SkyIsleFrame } from '../world/skyIsleHd';
 import type { SkyIslePine } from './skyIslePines';
 
 /**

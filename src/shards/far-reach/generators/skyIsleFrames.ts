@@ -1,8 +1,7 @@
 import { Box3, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type BufferAttribute, type BufferGeometry } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { hdGeometry } from './modelIntake';
-import { SKY_ISLE_HD, SKY_ISLE_MODELS } from '../data/skyIsles';
-import type { SkyIsleFrame } from '../world/skyIsleHd';
+import { SKY_ISLE_HD, SKY_ISLE_MODELS, type SkyIsleFrame } from '../data/skyIsles';
 import { skyIsleHitDown } from './skyIsleProbe';
 import { HD_URLS } from '../data/files';
 

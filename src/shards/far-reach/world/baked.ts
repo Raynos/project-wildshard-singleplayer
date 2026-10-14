@@ -35,7 +35,7 @@ const shackKind = (kind: object): ShackKind | undefined => {
   return SHACK.find((k) => k === name);
 };
 
-const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(PIECES, BAKED_URLS, 'far-reach', {
+export const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(PIECES, BAKED_URLS, 'far-reach', {
   resources: WORLD_BYTES, readBytes: fetchDeflated,
   material: (kind) => { const shack = shackKind(kind), dressed: unknown = 'dressing' in kind ? kind.dressing : undefined;
     return shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : 'paint' in kind ? isleMaterial() : undefined; },

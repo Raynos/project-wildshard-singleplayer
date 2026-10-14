@@ -4615,3 +4615,16 @@ loans one reusable velocity vector to the real player impulse owner. Its
 enabled)` admits a wind-column row and returns a fixed-step callback. The
 caller retains phase and clock ownership. Columns keep strict side and upper
 bounds, with no lower floor, and act only while the supplied mode is enabled.
+
+Private scene mesh rows may carry bounded `matrices` for every declared
+instance. Admission checks the full matrix count before allocation. The
+host copies those rows to the native instance buffer and computes its
+bound; optional `name` retains authored object names. `BakedMeshWorld.object`
+resolves a named recipe piece and own-field primitive selector. An explicit
+snapshot, including an empty one, always wins over the latest loaded bake.
+
+`Entry(edge, kind?, bindings?)` accepts admitted portal or lift data in
+its optional third argument. Its existing frame checks and link parsers
+still refuse malformed or missing matching links. Omission retains the
+ordinary entry output. Cloning detaches binding data with the normal
+scene state; Sky's authoring recipe now uses the shared Entry directly.

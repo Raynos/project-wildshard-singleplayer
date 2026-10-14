@@ -1,5 +1,8 @@
 import type { Isle } from './layout';
 
+/** Author-derived unit frame for a textured decorative island. */
+export interface SkyIsleFrame { model: string; tx: number; deck: number; tz: number; k: number; bulge: number; rim: number[] }
+
 /**
  * The sky around the archipelago (E392, toward the mockups: Jake's pick `round-1-proposals/B-sky-reach.jpg` and
  * `round-11-review/mockup-A-spawn-look.jpg` frame the windmill isle with big craggy floating islands at mid distance,

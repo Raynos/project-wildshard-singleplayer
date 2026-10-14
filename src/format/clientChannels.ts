@@ -134,6 +134,7 @@ const sceneCoordinate = v.pipe(v.number(), v.finite(), v.minValue(-1e5), v.maxVa
 const sceneVector = v.tuple([sceneCoordinate, sceneCoordinate, sceneCoordinate]);
 const sceneChildren = v.pipe(v.array(name), v.maxLength(128));
 const scenePose = {
+  name: v.exactOptional(name),
   children: v.optional(sceneChildren, []), position: v.exactOptional(sceneVector), rotation: v.exactOptional(sceneVector), scale: v.exactOptional(sceneVector),
   order: v.exactOptional(v.picklist(['XYZ', 'YXZ', 'ZXY', 'ZYX', 'YZX', 'XZY'])),
   visible: v.exactOptional(v.boolean()), castShadow: v.exactOptional(v.boolean()), receiveShadow: v.exactOptional(v.boolean()),
@@ -144,7 +145,8 @@ const scenePose = {
 };
 const sceneNode = v.variant('kind', [
   v.strictObject({ kind: v.literal('group'), id: name, ...scenePose }),
-  v.strictObject({ kind: v.literal('mesh'), id: name, geometry: name, material: name, instances: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8192))), missing: v.picklist(['empty', 'group', 'omit']), ...scenePose }),
+  v.strictObject({ kind: v.literal('mesh'), id: name, geometry: name, material: name, instances: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8192))),
+    matrices: v.exactOptional(v.pipe(v.array(sceneCoordinate), v.maxLength(8192 * 16))), missing: v.picklist(['empty', 'group', 'omit']), ...scenePose }),
   v.strictObject({ kind: v.literal('object'), id: name, source: name, missing: v.picklist(['omit', 'refuse']), ...scenePose }),
   v.strictObject({ kind: v.literal('anchor'), id: name, source: name, path: v.pipe(v.array(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(127))), v.minLength(1), v.maxLength(8)), missing: v.picklist(['omit', 'refuse']), children: v.optional(sceneChildren, []) }),
 ]);
@@ -185,6 +187,7 @@ export const PrivateSceneSchema = v.pipe(privateScene, v.check(row => {
   const parents = new Map<string, string>();
   for (const entry of row.nodes) {
     if (entry.kind === 'mesh' && !materials.has(entry.material)) return false;
+    if (entry.kind === 'mesh' && entry.matrices !== undefined && (entry.instances === undefined || entry.matrices.length !== entry.instances * 16)) return false;
     if ('whenTexture' in entry && !textures.has(entry.whenTexture.texture)) return false;
     if (entry.kind === 'anchor') {
       if (nodes.get(entry.source)?.kind !== 'object' || parents.has(entry.id)) return false;

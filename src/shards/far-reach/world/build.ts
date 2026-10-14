@@ -1,24 +1,22 @@
+import STATIC_SCENES from '../data/staticScenes.generated.json' with { type: 'json' };
 import ISLET_SCENES from '../data/isletScenes.generated.json' with { type: 'json' };
 import { ISLE_DRAWS } from '../data/isleLook';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type Piece } from '@wildshard/engine/world/registry';
-import { bindClientChannels, createClientScene } from '@wildshard/game/plugin/ui';
+import { bindClientChannels, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
 import type { SkyReachPlugin } from '../runtime/index';
 import { spanLength, spanYaw, spanPitch } from '../layout';
 import { FALLEN_ANGLE } from '../data/moverBindings';
 import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
-import { SKY_LIBRARY } from './meshes';
+import { SKY_LIBRARY, skyHd } from './meshes';
+import { skyLook, skyMappedLook } from './looks';
 import { Group, Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
 import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, NOTES, SPANS, SUNREST, UPDRAFT, VANES, WINCH } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { islandMesh, staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
-import { trees } from './trees';
 import { ISLE_KEEL_CUT } from '../data/skyIsles';
-import PLACEMENTS_BAKED from '../data/placements.json' with { type: 'json' };
-import { skyIsleModels } from './skyIsleHd';
-import { skyBakedPiece, skyKnollHulls, skyPieces } from './baked';
-import { skyline } from './distant';
+import { WORLD, skyBakedGeometry, skyBakedPiece, skyKnollHulls, skyPieces } from './baked';
 import { PALETTE, flat } from './materials';
 import { ropeBridge, vane, windmill } from './shapes';
 import { bookStand } from './bookStand';
@@ -36,10 +34,10 @@ const FILE = 'src/shards/far-reach/world/build.ts';
 export const UPDRAFT_ANGLE = spanPitch(UPDRAFT);
 export const UPDRAFT_LENGTH = spanLength(UPDRAFT);
 /** The baked placements for this session's cube (G99): standalone, or a grid cell of the half width they were baked for. */
-function skyPlacements(cube: { readonly half: number } | null): typeof PLACEMENTS_BAKED.standalone {
-  if (cube === null) return PLACEMENTS_BAKED.standalone;
-  if (cube.half !== PLACEMENTS_BAKED.half) throw new Error(`far-reach: placements baked for a ${String(PLACEMENTS_BAKED.half)} m cube, not ${String(cube.half)}`);
-  return PLACEMENTS_BAKED.cell;
+function skyPlacements(cube: { readonly half: number } | null): typeof STATIC_SCENES.standalone {
+  if (cube === null) return STATIC_SCENES.standalone;
+  if (cube.half !== STATIC_SCENES.half) throw new Error(`far-reach: placements baked for a ${String(STATIC_SCENES.half)} m cube, not ${String(cube.half)}`);
+  return STATIC_SCENES.cell;
 }
 export interface BuiltWorld {
   /** The hover decks' shared material: the plugin brightens it while the player rides the board. */
@@ -101,27 +99,19 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
     ctx.piece({ id: `far.${k.id}.knoll`, name: names[isle.id] ?? isle.id, category: 'ground', file: FILE, object: knoll, colliders: [hull], surface: 'grass' });
   }
   await pause();
-  // E392/E399: the sky around the archipelago, the textured floating-island models (world/skyIsleHd.ts; one that did not load stands undrawn)
-  // G99: in a grid cell only the isles inside the 500 m cube (ctx.cube); standalone every one: each placed offline (generators/placements.ts)
-  const skyGroup = new Group(); skyGroup.name = 'far.sky-isles';
-  const placed = skyPlacements(ctx.cube);
-  skyGroup.add(await skyIsleModels(placed.isles, false, pause));
-  await pause();
-  // the playable islands' keels in the same painted rock (E399 round 2, seat C: 'under the bridge a flat sage-green cliff
-  // wall'): a model under each island, its turf 1.8 m under the walkable top (its turf mounds poked up through the arena floor at 0.7 m), so
-  // the rock below are the textured ones; the code top and its colliders are unchanged, nothing here collides
-  const keels = await skyIsleModels(PLACEMENTS_BAKED.keels, true, pause);
-  keels.name = 'far.isle-keels'; skyGroup.add(keels);
-  await pause();
-  pieces.add('far.sky-isles', skyGroup);
-  // the modelled trees (top-10 row 2; none stand when a model did not load)
-  pieces.add('far.pines', await trees(placed.trees, pause) ?? new Group());
-  await pause();
-  // the meadow and the roots (loop 2): grass clumps, flowers, stones, hanging roots; no colliders
-  pieces.add('far.dressing', skyBakedPiece('dressing').root);
-  await pause();
-  // the skyline: decorative 3-D islands and waterfalls out past the archipelago, and the windmill isle's fall
-  const sky = skyline(placed.falls); root.add(sky);
+  const staticRows = skyPlacements(ctx.cube);
+  const models = new Map(staticRows.models.map(name => [name, skyHd(name)]));
+  const materials = new Map<string, Material | null>([['falls', skyLook('falls') ?? null]]);
+  for (const row of staticRows.recipe.scene.materials) {
+    if (row.kind !== 'port' || row.source === 'falls') continue;
+    const [look, name] = row.source.split(':'), model = name === undefined ? undefined : models.get(name);
+    materials.set(row.source, look === undefined || model === undefined || model === null ? null : skyMappedLook(look, model.map));
+  }
+  const staticScene = createWorldScene(staticRows.recipe, {
+    geometry: name => name === 'fall' ? skyBakedGeometry('fall') : models.get(name.slice('hero-'.length))?.geometry ?? null,
+    materials, model: SKY_LIBRARY.model, baked: WORLD.object,
+  });
+  await pieces.scene(staticScene, staticRows.bindings, pause);
   await pause();
 
   const rope = flat(PALETTE.rope);
