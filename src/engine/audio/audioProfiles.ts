@@ -1,4 +1,4 @@
-import type { AudioNodeRow, AudioOneShotSchedule, AudioPhraseProgram, SynthBedGraph, AudioMixExpr, AudioMixRecipe } from '@wildshard/format/audioProfiles';
+import type { AudioAmbienceRouting, AudioNodeRow, AudioOneShotSchedule, AudioPhraseProgram, SynthBedGraph, AudioMixExpr, AudioMixRecipe } from '@wildshard/format/audioProfiles';
 import type { ScoreSelection } from './scoreSelection';
 
 /** Same-byte platform sample catalogue; gains apply to admitted named loops. */
@@ -15,6 +15,7 @@ export interface AudioMusicProfile {
 export interface AudioZone { id: string; x: number; z: number; inner: number; outer: number; gain: number; /** Exact authored width; avoids subtracting rounded outer/inner radii. */ fade?: number | undefined; open?: boolean | undefined; source?: string | undefined }
 /** Mixer timing, bed levels, room sends and named zones consumed by a trusted catalogue recipe. */
 export interface AudioZoneProfile {
+  routing?: AudioAmbienceRouting | undefined;
   mix?: AudioMixRecipe | undefined;
   graph?: SynthBedGraph | undefined;
   programs?: Readonly<Record<string,AudioPhraseProgram>> | undefined;

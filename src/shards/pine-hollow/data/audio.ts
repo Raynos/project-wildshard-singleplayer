@@ -15,7 +15,19 @@ export const PINE_AUDIO = parseAudioData({ cues: [], ambience: { phrases:[PINE_B
       { slots: ['boss'], when: [{ field: 'scene', op: 'equals', value: 'boss' }] },
     ] },
   samples: PINE_AUDIO_SAMPLES,
-  zones: { nodes:PINE_AUDIO_NODES,mix:PINE_AUDIO_MIX, id: 'ambience.pine', smoothSeconds: 0.1, tickHz: 10, silentSeconds: 60, holdSeconds: 0,
+  zones: { routing:{warm:[],prewarm:['ir-cabin','ir-bowl'],listener:'port',bounds:[],near:[],steer:[],
+    rooms:{from:'sfx',to:'world',input:'sendIn',prewarmMissing:true,list:[
+      {id:'cabin',ir:'ir-cabin',weight:'cabin',level:['*','wet.cabin','cabin','dry']},
+      {id:'den',ir:'ir-den',weight:'cave',level:['*','wet.den','cave','dry']},
+      {id:'oldgrowth',ir:'ir-oldgrowth',weight:'room.oldgrowth',level:['*','wet.oldgrowth','room.oldgrowth','dry']},
+      {id:'bowl',ir:'ir-bowl',weight:'room.bowl',level:['*','wet.bowl','room.bowl','dry']} ]},
+    zoneNames:['hollow','pond','cabin','creek','waterfall','mill','ridge','oldgrowth','cave'],
+    samples:{startDelay:0.05,tap:'forest.bed:',beds:[
+      {id:'hollow',out:'occl',panned:false},{id:'pond',out:'occl',panned:true},{id:'cabin',out:'out',panned:false},
+      {id:'creek',out:'occl',panned:true},{id:'waterfall',out:'occl',panned:true},{id:'mill',out:'occl',panned:true},
+      {id:'ridge',out:'occl',panned:false},{id:'oldgrowth',out:'occl',panned:false},{id:'cave',out:'occl',panned:false},
+      {id:'night',out:'occl',panned:false},{id:'nightfog',out:'occl',panned:false},{id:'rain-canopy',out:'occl',panned:false},{id:'rain-open',out:'occl',panned:false},{id:'dawn',out:'occl',panned:false}]},
+    activeGains:[['out','out'],['sendIn',1]]}, nodes:PINE_AUDIO_NODES,mix:PINE_AUDIO_MIX, id: 'ambience.pine', smoothSeconds: 0.1, tickHz: 10, silentSeconds: 60, holdSeconds: 0,
     levels: { out: 0.55, hollow: 0.7, pond: 1, cabin: 1.1, creek: 0.9, waterfall: 1.1, mill: 0.9, ridge: 0.9, oldgrowth: 1, cave: 1, night: 0.9, nightfog: 0.7, 'rain-canopy': 1, 'rain-open': 0.9, dawn: 0.9 },
     wet: { cabin: 0.4, den: 0.55, oldgrowth: 0.3, bowl: 0.12 }, zones: PINE_AUDIO_ZONES },
   routing: [

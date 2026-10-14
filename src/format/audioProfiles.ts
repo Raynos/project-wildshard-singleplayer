@@ -164,8 +164,23 @@ export type AudioPhraseSchedule = v.InferOutput<typeof AudioPhraseScheduleSchema
 const zone = v.pipe(v.strictObject({ id, x: finite, z: finite, inner: v.pipe(finite, v.minValue(0), v.maxValue(2000)), outer: v.pipe(finite, v.minValue(0), v.maxValue(2000)), gain,
   fade: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))), open: v.optional(v.boolean()), source: v.optional(id) }), v.check((row) => row.inner < row.outer && (row.fade === undefined || row.outer === row.inner + row.fade), 'audio zone fade must extend outside its inner radius'));
 const rectangle = v.pipe(v.strictObject({ id, zone: id, x0: finite, x1: finite, z0: finite, z1: finite }), v.check((row) => row.x0 < row.x1 && row.z0 < row.z1, 'positive rectangular audio region'));
+/** Native audio lifecycle policy; observations and decoded samples are supplied by the resident owner. */
+export const AudioAmbienceRoutingSchema = v.strictObject({
+  warm:v.pipe(v.array(id),v.maxLength(32)),prewarm:v.pipe(v.array(id),v.maxLength(32)),listener:v.picklist(['context','port']),
+  underwater:v.exactOptional(v.tuple([finite,finite])),
+  bounds:v.pipe(v.array(v.strictObject({id,from:id,key:id})),v.maxLength(64)),
+  near:v.pipe(v.array(v.strictObject({id,radius:v.pipe(finite,v.minValue(0.001))})),v.maxLength(64)),
+  steer:v.pipe(v.array(v.strictObject({pan:id,toward:id,width:finite,tau:finite})),v.maxLength(32)),
+  rooms:v.strictObject({from:id,to:id,input:v.exactOptional(id),prewarmMissing:v.exactOptional(v.boolean()),
+    list:v.pipe(v.array(v.strictObject({id,ir:id,weight:id,level:mixExpr,feeds:v.exactOptional(list)})),v.maxLength(16))}),
+  zoneNames:list,
+  samples:v.exactOptional(v.strictObject({startDelay:finite,tap:id,
+    beds:v.pipe(v.array(v.strictObject({id,out:id,panned:v.boolean()})),v.maxLength(32))})),
+  activeGains:v.exactOptional(v.pipe(v.array(v.tuple([id,v.union([id,finite])])),v.maxLength(16)))
+});
+export type AudioAmbienceRouting = v.InferOutput<typeof AudioAmbienceRoutingSchema>;
 /** Bounded zone/mixer data. Terrain, moving emitters and bespoke synthesis remain trusted runtime ports. */
-export const AudioZonesSchema = v.strictObject({ id, nodes:v.exactOptional(v.pipe(v.array(AudioNodeSchema),v.maxLength(64))), schedules:v.exactOptional(v.pipe(v.array(AudioOneShotScheduleSchema),v.maxLength(32))), programs:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
+export const AudioZonesSchema = v.strictObject({ id, routing:v.exactOptional(AudioAmbienceRoutingSchema), nodes:v.exactOptional(v.pipe(v.array(AudioNodeSchema),v.maxLength(64))), schedules:v.exactOptional(v.pipe(v.array(AudioOneShotScheduleSchema),v.maxLength(32))), programs:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
   silentSeconds: v.pipe(finite, v.minValue(0), v.maxValue(600)), holdSeconds: v.pipe(finite, v.minValue(0), v.maxValue(60)),
   levels: v.pipe(v.record(id, gain), v.check((levels) => Object.keys(levels).length <= 64, 'bounded levels')),
   blendMetres: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))),

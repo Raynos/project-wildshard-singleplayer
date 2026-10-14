@@ -1,7 +1,7 @@
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { windUniforms } from '@wildshard/engine/world/TreeFactory';
-import { AmbienceMix } from './ambienceMix';
-import { ISLAND_MIX, type IslandZone } from './islandMix';
+import { AmbienceMix } from '@wildshard/engine/audio/ambience';
+import type { IslandZone } from '../../data/ambienceRouting';
 import { IslandBed, ISLAND_BED } from './sfx';
 /**
  * IslandAmbience — Driftwood Isle's zoned soundscape (S1) and reverb zones + underwater (S2), project/archive/2026-09-23-driftwood-remaster.md;
@@ -59,11 +59,12 @@ export interface IslandAmbienceOpts {
   cove?: { fall: { foot: [number, number] }; cave: { x: number; z: number; yaw: number; depth: number } } | null;
 }
 
+const profileZoneNames=new Map<string,Zone>((['sea','beach','palms','jungle','cove','lookout','hold','cave','shrine'] as const).map(id=>[id,id] as const));
 const PROFILE = requireAudioProfile(source.audio.zones, 'ambience.driftwood');
 
 /** Driftwood's ambience profile: the island synth bed until the zoned mix is built, then the mix of runtime/audio/islandMix.ts. */
 export class IslandAmbience {
-  private readonly mix: AmbienceMix<Zone>;
+  private readonly mix: AmbienceMix;
 
   constructor(audio: Audio, o: IslandAmbienceOpts, profile: AudioZoneProfile = PROFILE) {
     const CAVE = requireAudioZone(profile, 'cave');
@@ -73,7 +74,7 @@ export class IslandAmbience {
     const cave = c ? { x: c.x - Math.sin(c.yaw) * c.depth * 0.5, z: c.z - Math.cos(c.yaw) * c.depth * 0.5 } : { x: CAVE.x, z: CAVE.z };
     // the synth island bed (breeze, surf hiss, swells) until the zoned graph is built (the mix's first build: `islandBed.zone()`)
     const islandBed = new IslandBed(audio,o.wind);
-    this.mix = new AmbienceMix(audio, profile, ISLAND_MIX, {
+    this.mix = new AmbienceMix(audio, profile, {
       random: Math.random, scope: 'audio.island.ambience', heightAt: o.heightAt, sea: o.sea,
       objects: { wreck: o.wreck, cove: o.cove }, near: { palms: o.palms },
       points: { fall: { x: fall.x, y: o.heightAt(fall.x, fall.z) + 1, z: fall.z }, cave },
@@ -88,7 +89,7 @@ export class IslandAmbience {
   get night(): number { return this.mix.night; }
   set night(v: number) { this.mix.night = v; }
   /** the dominant zone */
-  get zone(): Zone { return this.mix.zone; }
+  get zone(): Zone { const id=this.mix.zone;const zone=requireAudioProfile(profileZoneNames.get(id),'island zone');return zone; }
   /** the live mix: every bed's level and every reverb send (logging / tests) */
   get diag(): Readonly<Record<string, number>> { return this.mix.diag; }
 

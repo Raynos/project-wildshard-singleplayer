@@ -1,17 +1,10 @@
-// SHARD-PLATFORM M3 (audio rows): Driftwood Isle's ambience mix as data (runtime/audio/ambience.ts runs it through
-// runtime/audio/ambienceMix): the surf's shoreline emitter and the waterfall's, the zone weights, every bed's level,
-// the occlusion of the hold and the cave, the reverb rooms, the diag, the dominant zone and the one-shots (the swells on the
-// surf, the jungle birds, the cave drips). Names: the profile's zones (`jungle.x`, `cave.inner` …), levels (`level.surf`)
-// and wet sends (`wet.hold`); the ports `ground`, `sea`, `night`, `underwater`, `t`, `windTime`, `windStrength`, the
-// bounds `holdBox` / `caveBox`, the points `fall` and `cave`, the palms' nearness `palms.sum` / `.dx` / `.dz`.
-import type { AmbienceMixRows } from './ambienceMix';
-
 /** The island's dominant zones. */
 export type IslandZone = 'sea' | 'beach' | 'palms' | 'jungle' | 'cove' | 'lookout' | 'hold' | 'cave' | 'shrine';
 
 /** Driftwood's mix: the beds of ./islandBeds, the zone weights (the hold and the cave muffle the outdoor beds and feed
  *  their reverbs, the shrine court its own), the levels and the one-shots. */
-export const ISLAND_MIX: AmbienceMixRows<IslandZone> = {
+export const ISLAND_ROUTING = {
+  listener: 'context',
   warm: ['noise-pink', 'noise-white', 'bubble-bed'],
   prewarm: ['bubble-bed', 'ir-shrine', 'ir-cave', 'ir-hold'],
   underwater: [500, 0.15],

@@ -1,3 +1,4 @@
+import { ISLAND_ROUTING } from './ambienceRouting';
 import { ISLAND_ZONE_PROGRAMS, ISLAND_ZONE_SCHEDULES } from './audioOneShots';
 import { ISLAND_SURF, ISLAND_GULL } from './audioPhrases';
 import { ISLAND_BEDS } from './islandBeds';
@@ -14,7 +15,7 @@ export const DRIFTWOOD_AUDIO = parseAudioData({ cues: [], synth:{gull:ISLAND_GUL
   music: { catalogue: { mode: 'bank', extraStings: [], stingSets: {} }, id: 'score.driftwood', base: 'island', slots: ['island'], bootSlots: ['title', 'island'], synthLead: 'marimba', minFade: 0,
     source: null, sets: { island: 'base' }, selectMode: 'first', selection: [{ slots: ['island'], when: [] }] },
   samples: { catalogue: { ownMusic: false, priorityOwn: false, overlaySamples: true, inventoryOmitSlots: [], loopOrder: ['island', 'underwater', 'pickup', 'shrine'] }, set: 'driftwood-isle', bed: 'island', loopGains: { island: 0.5 } },
-  zones: { nodes: [
+  zones: { routing:ISLAND_ROUTING,nodes: [
     { id: 'occl', out: 'ambient', filter: ['lowpass', 20000, 0.5] },
     { id: 'surfPan', out: 'occl', panner: [12, 1, 400], follow: { zone: 'shore', rays: 256, step: 2, refine: 3, diag: 'shoreDist' } },
     { id: 'fallPan', out: 'ambient', panner: [6, 1.1, 250], at: 'fall' },
