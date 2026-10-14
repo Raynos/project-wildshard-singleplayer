@@ -1,5 +1,5 @@
-import type { PrimitivePartRow } from './primitiveParts';
-import type { StandInPersonRow } from '../npc/standInPerson';
+import type { PrimitivePartRow } from '../runtime/kit/primitiveParts';
+import type { StandInPersonRow } from '../runtime/npc/standInPerson';
 
 /**
  * The hamlet's stand-in people (PINE-HOLLOW-REMASTER PH-C1 / C6) as primitive parts in add order (@wildshard/sdk/kit/primitiveParts,
