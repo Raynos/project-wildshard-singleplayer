@@ -948,6 +948,11 @@ export function installRewardedQuest(ctx: ShardContext, source: Shardfile, o: Re
   return { quest, reward, view };
 }
 
+/** A real prompt awaiting its admitted page action; using it before binding refuses. */
+export function questPagePrompt(label:string,position:Vector3,radius:number):Interactable {
+  return {label,position,radius,onInteract:()=>{throw new Error('Quest prompt is not bound');}};
+}
+
 /** Borrowed view ports for declared page interaction presentation. Native rules remain the state owner. */
 export interface QuestPageInteractionPorts {
   readonly flags:Pick<Flags,'has'|'set'>; readonly rules?:InteractionRules;
@@ -1015,9 +1020,15 @@ export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,por
   }));
   const initial=(data.initial??[]).map(row=>({when:row.when,effects:compile(row.effects)}));
   const read=(id:string):(()=>boolean)=>{const action=actions.get(id);if(action===undefined)throw new Error(`Unknown page interaction ${id}`);return action;};
+  const prompts=(data.bindings?.prompts??[]).map(row=>{
+    const prompt=readBorrowedOwner(owners,row),action=read(row.target);
+    if(prompt===null||typeof prompt.value!=='function')throw new Error(`Invalid borrowed prompt ${row.target}`);
+    return ()=>{prompt.receiver[prompt.key]=()=>{action();};};
+  });
   for(const row of data.world??[])if(row.action!==undefined)read(row.action);
   const world=bindQuestWorldReactions(data.world??[],{flags:{has:id=>rules.has(id),set:id=>{ports.flags.set(id);}},run:id=>read(id)(),toast:ports.toast,
     point:row=>{const pointField=readBorrowedOwner(owners,row);if(!(pointField?.value instanceof Vector3))throw new Error('Quest world reaction needs its actual point');return pointField.value;}});
+  for(const bind of prompts)bind();
   for(const row of initial)if(testFlags(view,row.when))for(const effect of row.effects)effect();
   return {run:id=>read(id)(),action:id=>{const action=read(id);return ()=>{action();};},world};
 }

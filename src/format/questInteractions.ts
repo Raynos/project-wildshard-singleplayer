@@ -69,7 +69,7 @@ const pageRaw=v.pipe(v.strictObject({
     denied:v.exactOptional(v.record(name,pageText)),before:v.exactOptional(pageEffects),after:v.exactOptional(pageEffects)})),v.maxLength(128)),
   world:v.exactOptional(QuestWorldReactionsSchema),
   bindings:v.exactOptional(v.strictObject({ labels:v.exactOptional(ownerPaths), visible:v.exactOptional(ownerPaths),
-    observations:v.exactOptional(ownerPaths), calls:v.exactOptional(ownerCalls) })),
+    observations:v.exactOptional(ownerPaths), calls:v.exactOptional(ownerCalls), prompts:v.exactOptional(ownerPaths) })),
   initial:v.exactOptional(v.pipe(v.array(v.strictObject({when:condition,effects:pageEffects})),v.maxLength(64))),
 }),v.check(data=>unique(data.actions.map(action=>action.id)),'unique page interaction ids'));
 /** Validated page action and restore-view rows; no new durable state is introduced. */

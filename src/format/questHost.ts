@@ -76,6 +76,9 @@ export function questHostRules(row: QuestHostRow): readonly string[] {
     if(action.interaction!==undefined&&!interactionIds.has(action.interaction))errors.push('Declared page interaction rule');
     for(const effect of [...action.before??[],...action.after??[]])if(effect.kind==='mark'&&!marks.has(effect.target))errors.push('Declared page interaction mark');
   }
+  const pageActions=new Set(row.page?.actions.map(action=>action.id));
+  for(const prompt of row.page?.bindings?.prompts??[])if(!pageActions.has(prompt.target))errors.push('Declared page prompt action');
+  for(const reaction of row.page?.world??[])if(reaction.action!==undefined&&!pageActions.has(reaction.action))errors.push('Declared world reaction action');
   for(const seed of row.page?.initial??[])for(const effect of seed.effects)if(effect.kind==='mark'&&!marks.has(effect.target))errors.push('Declared page interaction mark');
   return errors;
 }
@@ -115,6 +118,7 @@ export function questHostBindingRules(row: QuestHostRow | null | undefined, flag
     for(const need of action.needs??[])pageCheck(need);
     for(const effect of [...action.before??[],...action.after??[]])if(effect.kind==='toast'&&effect.progress!==undefined)check(effect.progress.flags,true);
   }
+  for(const reaction of row.page?.world??[]){if(reaction.needs!==undefined)pageCheck(reaction.needs);check(reaction.sets??[],true);}
   for(const seed of row.page?.initial??[])pageCheck(seed.when);
   return [...new Set(errors)];
 }

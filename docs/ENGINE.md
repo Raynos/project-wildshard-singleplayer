@@ -4783,3 +4783,9 @@ ContactWorldTargets and a cone scan using the engine contact-distance law.
 Both page and native owners use the same bounded rows; marks and saved
 flags remain with their existing rules. Required points/actions refuse
 before restore effects.
+
+Quest page `bindings.prompts` resolve bounded owner paths to actual prompt
+callbacks and named actions before any saved view effect runs.
+`questPagePrompt(label, position, radius)` supplies the unbound real
+prompt; interacting before admitted binding refuses. Both worlds use
+the same prompt factory and binding.

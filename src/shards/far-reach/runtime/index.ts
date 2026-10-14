@@ -114,7 +114,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const page = bindQuestPageInteractions(source, { flags, toast,
       owners: new Map<string,unknown>([['world',built],['plugin',this]]) });
     this.questWorld = page.world;
-    built.notes.onInteract = page.action('notes'); built.winch.onInteract = page.action('winch');
     // the world pins, chip, map and minimap marks are the quest presentation's (data/questPage.ts)
     if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');
     const questStages = bindPageQuestStages(ctx, source, { flags, actor: this.actor.bind(this),

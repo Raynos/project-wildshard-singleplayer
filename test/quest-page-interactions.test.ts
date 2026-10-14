@@ -15,7 +15,7 @@ test('Signal refuses unraised oil, runs the crank and restores saved page state'
   const labels=new Map([['well',well],['logbook',logbook],...['0','1','2'].map(id=>[`brazier.${id}`,{label:'brazier'}] as const)]);
   const visible=new Map([['jar',jar],...['0','1','2'].flatMap(id=>[[`oil.${id}`,{visible:false}] as const,[`fire.${id}`,{visible:false}] as const])]);
   const calls=new Map<string,()=>void>([['catch-fire',()=>undefined],['summon',()=>{summoned=true;}],...['0','1','2'].map(id=>[`glow.${id}`,()=>undefined] as const)]);
-  const ports={flags,labels,visible,calls,owners:new Map([['world',{well:{crankAt:new Vector3()},braziers:['0','1','2'].map(()=>({parts:{bowlAt:new Vector3()}}))}]]),toast:(text:string)=>{toasts.push(text);}};
+  const ports={flags,labels,visible,calls,owners:new Map([['world',{logbook:{onInteract:()=>undefined},fire:{brazier:{onInteract:()=>undefined}},well:{crankAt:new Vector3()},braziers:['0','1','2'].map(()=>({spot:{onInteract:()=>undefined},parts:{bowlAt:new Vector3()}}))}]]),toast:(text:string)=>{toasts.push(text);}};
   const page=bindQuestPageInteractions({questHost:parseQuestHost(signal)},ports);
   expect(page.run('well')).toBe(false);expect(jar.visible).toBe(true);expect(toasts).not.toEqual([]);
   expect(page.run('crank')).toBe(true);expect(page.run('well')).toBe(true);expect(flags.has(FLAG.oil)).toBe(true);expect(jar.visible).toBe(false);
@@ -31,7 +31,7 @@ test('Signal refuses unraised oil, runs the crank and restores saved page state'
 test('Sky notes unlock the quest, winch needs both permissions and a raised winch stays silent',()=>{
   const flags=new Flags('page-beats-sky',false);let up=false,commanded=false;
   const page=bindQuestPageInteractions({questHost:parseQuestHost(sky)},{flags,toast:()=>undefined,
-    observations:new Map([['winch-up',()=>up]]),calls:new Map([['winch',()=>{commanded=true;}]])});
+    owners:new Map([['world',{notes:{onInteract:()=>undefined},winch:{onInteract:()=>undefined}}]]),observations:new Map([['winch-up',()=>up]]),calls:new Map([['winch',()=>{commanded=true;}]])});
   page.action('notes')();expect(flags.has(FLAGS.notes)).toBe(true);expect(page.run('winch')).toBe(false);
   flags.set(FLAGS.roost);flags.set(FLAGS.vanes);expect(page.run('winch')).toBe(true);expect(commanded).toBe(true);
   commanded=false;up=true;expect(page.run('winch')).toBe(false);expect(commanded).toBe(false);
@@ -60,3 +60,11 @@ test('borrowed rows restore actual views and methods keep their receiver; path e
   expect(()=>bindQuestPageInteractions(source,{flags,owners:new Map(),toast:()=>undefined})).toThrow('Missing borrowed owner');
   expect(world.label).toBe('unchanged');
 });
+
+ test('borrowed prompt binds its named page action and preflights before restore',()=>{
+  const flags=new Flags('prompt-bindings',false),world={onInteract:()=>undefined,label:'before'};let called=false;
+  const page={actions:[{id:'take',after:[{kind:'call',target:'take'}]}],bindings:{prompts:[{target:'take',owner:'world',path:['onInteract']}],labels:[{target:'label',owner:'world',path:['label']}]},initial:[{when:{},effects:[{kind:'label',target:'label',text:'restored'}]}]};
+  const source={questHost:parseQuestHost({...signal,page})};
+  bindQuestPageInteractions(source,{flags,owners:new Map([['world',world]]),calls:new Map([['take',()=>{called=true;}]]),toast:()=>undefined});world.onInteract();expect(called).toBe(true);expect(world.label).toBe('restored');
+  const broken={onInteract:0,label:'before'};expect(()=>bindQuestPageInteractions(source,{flags,owners:new Map([['world',broken]]),calls:new Map([['take',()=>undefined]]),toast:()=>undefined})).toThrow('Invalid borrowed prompt');expect(broken.label).toBe('before');
+ });

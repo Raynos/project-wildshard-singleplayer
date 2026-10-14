@@ -2,7 +2,7 @@ import { InteractionRules } from '@wildshard/game/quest/interactionRows';
 import { PointLight, type Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { bindClientChannels, bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
+import { questPagePrompt, bindClientChannels, bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
 import type { SignalDunesPlugin } from '../plugin';
 import source from '../runtime/source';
 
@@ -54,8 +54,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   let page: (id: string) => boolean = () => { throw new Error('Quest page interactions are not bound'); };
 
   // The logbook on the caravan's tailboard: read it once, it points the way to the well.
-  const logbook: Interactable = { label: STRINGS.readLog, position: caravan.logbookAt, radius: 2.4,
-    onInteract: () => { page('logbook'); } };
+  const logbook = questPagePrompt(STRINGS.readLog,caravan.logbookAt,2.4);
 
   // The well: a heavy crack on the crank hauls the bucket up; then take the oil jar.
   const programs = source.clientChannels;
@@ -74,9 +73,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
     const oiled = `oiled.${String(i)}`, lit = `lit.${String(i)}`;
     const brazier: Brazier = { parts, get oiled() { return rules.has(oiled); }, set oiled(value) { rules.mark(oiled, value); }, get lit() { return rules.has(lit); }, set lit(value) { rules.mark(lit, value); },
       // radius 3: the bowl stands on its plinth, 2.35 m up, and is reached from the sand round it
-      spot: { label: STRINGS.needOil, position: parts.bowlAt, radius: 3, onInteract: () => {
-        page(`pour.${String(i)}`);
-      } },
+      spot: questPagePrompt(STRINGS.needOil,parts.bowlAt,3),
       light: () => page(`light.${String(i)}`) };
     return brazier;
   });
@@ -86,9 +83,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   // The signal fire on the tower deck: lit by hand once the three waymarks burn.
   const fireCaught = (caught: SignalFire): void => { caught.tower.fire.visible = true; caught.tower.light.intensity = TOWER_LIGHT; caught.brazier.label = STRINGS.lit; };
   const fire: SignalFire = { tower, get lit() { return rules.has('fire'); }, set lit(value) { rules.mark('fire', value); }, onLight: null,
-    brazier: { label: STRINGS.light, position: tower.brazierAt, radius: 2.6, onInteract: () => {
-      page('fire');
-    } },
+    brazier: questPagePrompt(STRINGS.light,tower.brazierAt,2.6),
     // a load that finds the fire lit: it burns at once, whatever the transient waymarks say
     light: () => {
       if (rules.has('fire')) return;

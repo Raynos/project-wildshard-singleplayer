@@ -4,7 +4,7 @@ import { SKY_GROUND } from '../data/groundScene.generated';
 import { SKY_ROUTE_FRAMES, SKY_ROUTE_SCENE, SKY_ROUTES } from '../data/routeScene.generated';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc } from '@wildshard/engine/world/registry';
-import { bindClientChannels, bindWorldSceneParts, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
+import { questPagePrompt, bindClientChannels, bindWorldSceneParts, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
 import type { SkyReachPlugin } from '../runtime/index';
 import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
 import { SKY_LIBRARY, skyHd } from './meshes';
@@ -116,13 +116,13 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
 
   await pause();
   pieces.add('far.winch', createClientScene(REST_SCENES.winch, { geometry: SKY_LIBRARY.geometry }).root, { colliders: propColliders('far.winch') });
-  const handle: Interactable = { label: STRINGS.turnWinch, position: winchAt, radius: 3, onInteract: () => { if (!state.raised) state.raising = true; } };
+  const handle = questPagePrompt(STRINGS.turnWinch,winchAt,3);
 
   pieces.add('far.notes', bookStand(false), { colliders: propColliders('far.notes') });
   // the keeper's own book stand and lantern beside him at the spawn (E399, mockup B)
   const stand = bookStand(true); stand.position.set(KEEPER_STAND.x, SUNREST.y, KEEPER_STAND.z); stand.rotation.y = KEEPER_STAND.yaw;
   pieces.add('far.keeper.stand', stand, { colliders: [boxDesc({ x: KEEPER_STAND.x, z: KEEPER_STAND.z, hw: BOOK_STAND.footprint, hd: BOOK_STAND.footprint, rot: KEEPER_STAND.yaw, yBottom: stand.position.y, yTop: stand.position.y + BOOK_STAND.height }, 'wood')] });
-  const notes: Interactable = { label: STRINGS.readNotes, position: notesAt, radius: 2.6, onInteract: () => undefined };
+  const notes = questPagePrompt(STRINGS.readNotes,notesAt,2.6);
 
   await pause();
   const vanes: BuiltWorld['vanes'][number][] = [];
