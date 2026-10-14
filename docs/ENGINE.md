@@ -4962,3 +4962,13 @@ SavedHuntMemory and restores real Vector3 path corners. Callers retain
 schemas, snapshot versions and save ownership. Complete field/type
 preflight or an authored historical subset precedes all mutation; the
 codec never advances the brain, clock, RNG or body.
+
+
+`createNativeTargetQueries<T>({pose?, fore?})` in
+`@wildshard/game/plugin/simulation` owns reusable posed head/body/fore
+volumes and result storage. `ray(bodies, origin, unitDirection, max)` visits
+at most 512 bodies in original order, retaining alive/hidden, coarse range
+and nearest-contact fences. `closest(body, origin, limit, out)` writes a
+borrowed skin-contact result. The optional pose reader lends synchronized
+hitboxes; `fore:false` keeps a head/body-only contact recipe. Both methods
+reuse `nativeVolumeContact`; neither changes actor or physics state.

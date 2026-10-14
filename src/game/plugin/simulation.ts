@@ -1371,3 +1371,69 @@ export function nativeVolumeContact(origin: Vector3, direction: Vector3 | null, 
   out.distance = best;
   return best <= limit;
 }
+
+
+/** Trusted posed-volume reader; a roster can lend its last synchronized pose. */
+export interface NativeTargetPose {
+  readonly headWorld: (out: Vector3) => Vector3;
+  readonly bodyCapsule: (rear: Vector3, front: Vector3) => void;
+  readonly foreCapsule?: (rear: Vector3, front: Vector3) => boolean;
+}
+/** Minimal actor query port. Ownership, bodies and hit events stay with the host. */
+export interface NativeTargetBody extends NativeTargetPose {
+  readonly alive: boolean; readonly hidden?: boolean; readonly scale: number;
+  readonly position: Vector3;
+  readonly dims: { readonly headRadius: number; readonly bodyRadius: number;
+    readonly bodyHalfLen: number; readonly bodyY: number; readonly fore?: { readonly radius: number } };
+}
+/** Reused nearest ray result. Copy its point before another query if retained. */
+export interface NativeTargetHit<T extends NativeTargetBody> {
+  body: T | null; head: boolean; distance: number; point: Vector3;
+}
+/** One owned pose/scratch reader, with bounded original-order roster queries. */
+export interface NativeTargetQueries<T extends NativeTargetBody> {
+  readonly ray: (bodies: readonly T[], origin: Vector3, direction: Vector3, max: number) => NativeTargetHit<T> | null;
+  readonly closest: (body: T, origin: Vector3, limit: number, out: NativeVolumeContact) => boolean;
+}
+/** Construct the shared ray-roster/closest-skin query owner. No actor or Rapier
+ * state is changed; the optional pose port borrows a synchronized hitbox view.
+ * Fore capsules are enabled unless a contact row explicitly omits them.
+ */
+export function createNativeTargetQueries<T extends NativeTargetBody>(ports: {
+  readonly pose?: (body: T) => NativeTargetPose; readonly fore?: boolean;
+} = {}): NativeTargetQueries<T> {
+  const volumes: { head: Vector3; headRadius: number; a: Vector3; b: Vector3; bodyRadius: number;
+    fore: { a: Vector3; b: Vector3; radius: number } | null } = {
+      head: new Vector3(), headRadius: 0, a: new Vector3(), b: new Vector3(), bodyRadius: 0, fore: null,
+    };
+  const fore = { a: new Vector3(), b: new Vector3(), radius: 0 };
+  const result = { distance: 0, point: new Vector3(), head: false };
+  const hit: NativeTargetHit<T> = { body: null, head: false, distance: 0, point: new Vector3() };
+  const read = (body: T): void => {
+    const pose = ports.pose?.(body) ?? body, d = body.dims, s = body.scale;
+    pose.headWorld(volumes.head); volumes.headRadius = d.headRadius * s;
+    pose.bodyCapsule(volumes.a, volumes.b); volumes.bodyRadius = d.bodyRadius * s;
+    volumes.fore = null;
+    if (ports.fore !== false && d.fore !== undefined && pose.foreCapsule?.(fore.a, fore.b) === true) {
+      fore.radius = d.fore.radius * s; volumes.fore = fore;
+    }
+  };
+  return {
+    ray: (bodies, origin, direction, max) => {
+      let found = false, best = max;
+      for (let i = 0; i < 512; i++) {
+        const body = bodies[i]; if (body === undefined) break;
+        if (!body.alive || body.hidden === true) continue;
+        const d = body.dims, s = body.scale;
+        if (body.position.distanceTo(origin) > best + (d.bodyHalfLen + d.bodyRadius + d.headRadius) * s + d.bodyY * s + 2) continue;
+        read(body);
+        if (nativeVolumeContact(origin, direction, best, volumes, result) && result.distance < best) {
+          best = result.distance; found = true; hit.body = body; hit.head = result.head;
+          hit.distance = best; hit.point.copy(result.point);
+        }
+      }
+      return found ? hit : null;
+    },
+    closest: (body, origin, limit, out) => { read(body); return nativeVolumeContact(origin, null, limit, volumes, out); },
+  };
+}

@@ -1,59 +1,30 @@
-import { nativeVolumeContact } from '@wildshard/game/plugin/simulation';
+import { createNativeTargetQueries } from '@wildshard/game/plugin/simulation';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { castSegment, sweepBall, type Hit } from '@wildshard/engine/physics/query';
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
-import { rangedVolumes, type RangedVolumes } from '../rangedVolumes';
+import { rangedVolumes } from '../rangedVolumes';
 
 /** The page Player's eye over its feet (player/Player.ts EYE): every aim line starts there. */
 export const EYE = 1.68;
 /** A body's hit along a ray: the body, head or not, the distance along the ray, the point (the result is reused). */
 export interface BodyHit { body: AnimalSim | null; head: boolean; distance: number; point: Vector3 }
-/** The most bodies a shot is tested against (the roster's live cap). */
-const MAX_BODIES = 512;
 const SQRT_CONE = { radius: 'sqrt', axisScale: 1 } as const;
 const LINEAR_CONE = { radius: 'linear', axisScale: 1 } as const;
 
-type ForeBody = RangedVolumes & { foreCapsule: (a: Vector3, b: Vector3) => boolean };
 type RibBody = AnimalSim & { ribsWorld: (out: Vector3) => Vector3 };
-const hasFore = (body: RangedVolumes): body is ForeBody => 'foreCapsule' in body && typeof body.foreCapsule === 'function';
 const hasRibs = (body: AnimalSim): body is RibBody => 'ribsWorld' in body && typeof body.ribsWorld === 'function';
 
-const contactBody: { head: Vector3; headRadius: number; a: Vector3; b: Vector3; bodyRadius: number;
-  fore: { a: Vector3; b: Vector3; radius: number } | null } = { head: new Vector3(), headRadius: 0,
-  a: new Vector3(), b: new Vector3(), bodyRadius: 0, fore: null };
-const foreBody = { a: new Vector3(), b: new Vector3(), radius: 0 };
-const contactResult = { distance: 0, point: new Vector3(), head: false };
+const targetQueries = createNativeTargetQueries<AnimalSim>({ pose: rangedVolumes });
 const _a = new Vector3(), _b = new Vector3();
-const hitResult: BodyHit = { body: null, head: false, distance: 0, point: new Vector3() };
 /**
  * A shot against the creatures' hitboxes (physics/creatures.ts CreatureBodies: a head ball, main capsule and optional chest capsule per live,
  * unhidden body: the Ghost Stag's fade and a parked King take none), from the host body's own head and body capsule
  * (AnimalSim.headWorld / bodyCapsule): the nearest along the ray within `max`, or null.
  */
 export function bodyHit(bodies: readonly AnimalSim[], origin: Vector3, dir: Vector3, max: number): BodyHit | null {
-  let found = false, bestT = max;
-  for (let i = 0; i < MAX_BODIES; i++) {
-    const body = bodies[i];
-    if (body === undefined) break;
-    if (!body.alive || ('hidden' in body && body.hidden === true)) continue;
-    const s = body.scale, d = body.dims;
-    // a cheap reject: the segment never comes within reach of the body
-    if (body.position.distanceTo(origin) > bestT + (d.bodyHalfLen + d.bodyRadius + d.headRadius) * s + d.bodyY * s + 2) continue;
-    const volumes = rangedVolumes(body);
-    volumes.headWorld(contactBody.head); contactBody.headRadius = d.headRadius * s;
-    volumes.bodyCapsule(contactBody.a, contactBody.b); contactBody.bodyRadius = d.bodyRadius * s;
-    contactBody.fore = null;
-    if (d.fore !== undefined && hasFore(volumes) && volumes.foreCapsule(foreBody.a, foreBody.b)) {
-      foreBody.radius = d.fore.radius * s; contactBody.fore = foreBody;
-    }
-    if (nativeVolumeContact(origin, dir, bestT, contactBody, contactResult) && contactResult.distance < bestT) {
-      bestT = contactResult.distance; found = true; hitResult.body = body; hitResult.head = contactResult.head;
-      hitResult.distance = bestT; hitResult.point.copy(contactResult.point);
-    }
-  }
-  return found ? hitResult : null;
+  return targetQueries.ray(bodies, origin, dir, max);
 }
 
 /** The page's `worldHit` (combat/view/ranged.ts): a ball of `radius` (a ray at 0) swept from a to b through the host's world,
