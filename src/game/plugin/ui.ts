@@ -2,8 +2,9 @@ import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import type { MoverView, MoverRuntime } from './mover';
 import { commandSocketLift } from './simulation';
 import "../quest/presentation.css";
-import { compileTubeCurve, parseClientChannels, parsePrivateScene, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
+import { compileTubeCurve, parseClientChannels, parsePrivateScene, parseWorldScene, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import { BufferAttribute, AdditiveBlending, Matrix4, InstancedMesh, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ParticlePool, pointScale } from '@wildshard/engine/fx/ParticlePool';
 import { CLIENT_SCRIPT_LIMITS, type ClientScriptFrame } from '@wildshard/engine/script/client';
@@ -32,7 +33,7 @@ import type { SpeciesPageCatalogue } from './brain';
 import type { BossViewRows } from '../shardfile/bossRow';
 import { type Shardfile, parseShardfile } from '@wildshard/format/shardSchema';
 import { npcDef, type NpcRow } from './quests';
-import { installPivotNpc, pivotNpcParts, type PivotNpcGeometry, type PivotNpcLevel, type PivotNpcPorts } from './geometry';
+import { installPivotNpc, pivotNpcParts, type ModelFit, type PivotNpcGeometry, type PivotNpcLevel, type PivotNpcPorts } from './geometry';
 import { parseQuestNpcBinding } from '@wildshard/format/npcs';
 import { parseBossProfile, parseMarkedBossPresentation, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import { bossFight, type HeldBossBrain } from './bossPhase';
@@ -1519,6 +1520,36 @@ export interface ClientScene {
   mesh: (id: string) => Mesh<BufferGeometry, MeshStandardMaterial> | null;
   standardMaterial: (id: string) => MeshStandardMaterial | null;
   dispose: () => void;
+}
+
+/** Borrowed world-bake result, including actual kind objects for native effect owners. */
+export interface WorldSceneObject { readonly root: Object3D; readonly colliders: ColliderDesc[]; readonly kinds?: ReadonlyMap<string, Object3D> }
+/** Explicit constructors supplied by the owning world; content selects only named, bounded resources. */
+export interface WorldScenePorts extends ClientScenePorts {
+  readonly model: (name: string, fit: ModelFit) => Object3D | null;
+  readonly baked: (piece: string, only?: Readonly<Record<string, string | number | boolean>>, each?: (material: MeshStandardMaterial) => void) => WorldSceneObject;
+  readonly materialCollectors?: ReadonlyMap<string, (material: MeshStandardMaterial) => void>;
+}
+/** One admitted world hierarchy and its borrowed bake metadata. */
+export interface WorldScene extends ClientScene { readonly root: Group; readonly baked: ReadonlyMap<string, WorldSceneObject> }
+/** Bind resource rows through real model/bake ports, then use the existing private-scene assembler. */
+export function createWorldScene(input: unknown, ports: WorldScenePorts): WorldScene {
+  const recipe = parseWorldScene(input), objects = new Map<string, unknown>(ports.objects), baked = new Map<string, WorldSceneObject>();
+  if (recipe.scene.nodes.find(node => node.id === recipe.scene.root)?.kind !== 'group') throw new Error('World scene requires a group root');
+  for (const row of recipe.imports) {
+    if (objects.has(row.id)) throw new Error('World import crosses an existing object port');
+    if (row.kind === 'baked' && row.materials !== undefined && !ports.materialCollectors?.has(row.materials)) throw new Error('World import requires its material collector');
+  }
+  for (const row of recipe.imports) {
+    if (row.kind === 'model') objects.set(row.id, ports.model(row.model, row.fit));
+    else {
+      const made = ports.baked(row.piece, row.only, row.materials === undefined ? undefined : ports.materialCollectors?.get(row.materials));
+      objects.set(row.id, made.root); baked.set(row.id, made);
+    }
+  }
+  const made = createClientScene(recipe.scene, { ...ports, objects });
+  if (!sceneGroup(made.root)) { made.dispose(); throw new Error('World scene lost its group root'); }
+  return { ...made, root: made.root, baked };
 }
 function sceneRepeat(value: unknown): value is readonly [number,number] { return Array.isArray(value) && value.length === 2 && value.every(item => typeof item === 'number' && Number.isFinite(item) && Math.abs(item) <= 1e5); }
 function sceneGroup(value: unknown): value is Group { return value instanceof Group; }

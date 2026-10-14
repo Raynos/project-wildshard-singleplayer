@@ -4575,3 +4575,17 @@ Unknown actions refuse before installation. Dispatch uses the existing
 spot callback or paired lift/gate commands; a retired mover is inert.
 The original function binding remains supported. Sky lift prompts and
 Signal well prompts use these rows on their existing input owners.
+
+### Static world scene recipes
+
+`format/clientChannels.parseWorldScene` admits bounded private scene rows
+with named baked-piece and model imports. `game/plugin/ui.createWorldScene`
+uses the caller's real geometry, model and baked ports, returning its Group,
+named parts and borrowed baked metadata in `baked`. Material collectors stay
+owned ports. `game/shardfile/bakedKinds.worldPieces.scene` registers named
+parts without reparenting them or applying placement transforms twice.
+
+ModelLibrary `paintedModels` pairs named rest geometry with an existing
+painted atlas and optional four-slot pivots. `painted(name)` clones geometry
+for each owner and shares its atlas; `preload(pause)` retains preparation
+yields. `model(name, fit)` validates a recipe's hero name before copying it.

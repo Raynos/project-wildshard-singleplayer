@@ -55,6 +55,8 @@ export interface HdLookRow {
 
 /** A model library's files and looks, as data. */
 export interface ModelLibraryRows<M extends string, H extends string> {
+  /** Named rest geometry paired with existing painted atlases; never fitted at runtime. */
+  readonly paintedModels?: readonly PaintedModelRow[];
   /** the facet models preloaded, and every facet model's file */
   readonly meshes: readonly M[];
   /** One identity-space, non-indexed rest mesh with final float32 position/normal/colour channels; never refit or renormalize. */
@@ -82,13 +84,17 @@ export interface ModelFit { readonly size: number; readonly by: 'span' | 'height
 /** A loaded model library: preload once, then take copies. */
 export interface ModelLibrary<M extends string, H extends string> {
   /** Load every listed model once (a failed one is skipped and faulted). */
-  preload: () => Promise<void>;
+  preload: (pause?: () => Promise<void>) => Promise<void>;
+  /** Owned prepared geometry copies sharing their declared original atlas. */
+  painted: (name: string) => PaintedModel | null;
   /** A copy of a loaded facet model's geometry, or null (not loaded: the caller's code model stands in). */
   mesh: (name: M) => BufferGeometry | null;
   /** An independent owned copy of a named rest primitive, without facet flattening or normal recomputation. */
   geometry: (name: string) => BufferGeometry | null;
   /** A hero model fitted as `fit`, as a group sharing the loaded geometry and maps; null when it did not load. */
   hd: (name: H, fit: ModelFit) => Group | null;
+  /** A recipe's named hero, validated against this library before copying its existing fit. */
+  model: (name: string, fit: ModelFit) => Group | null;
   readonly rig: (name: string) => AnimalSpecies;
   readonly bakedRig: (name: string) => AnimalSpecies | null;
   readonly looks: readonly SpeciesLook[];
@@ -129,17 +135,51 @@ function dressHd(m: MeshStandardMaterial, look: HdLookRow | undefined, inputs: S
  * A model library over `rows`. `fault` opens every page fault a failed file logs (e.g. the shard's name in brackets);
  * `surfaceInputs` are the live uniforms the hero models' surface rows read.
  */
-export function createModelLibrary<M extends string, H extends string>(rows: ModelLibraryRows<M, H>, fault: string, surfaceInputs: SurfaceInputs = {}): ModelLibrary<M, H> {
+/** A rest primitive paired with a painted GLB and optional body/head/arm/fore slots; null explicitly declares an empty slot. */
+export interface PaintedModelRow { readonly name: string; readonly url: string; readonly geometry: string; readonly pivots?: readonly (string | null)[]; readonly releaseImage?: boolean }
+/** Geometry stays in the authored frame; the map is shared, and reads clone every geometry. */
+export interface PaintedModel { readonly geometry: BufferGeometry; readonly map: Texture; readonly pivots?: { readonly body: BufferGeometry; readonly head: BufferGeometry; readonly arm: BufferGeometry; readonly fore: BufferGeometry } }
+/** Load named resources once; each owner takes independent geometry over shared painted textures. */
+export function createModelLibrary<M extends string, H extends string>(rows: ModelLibraryRows<M, H>, fault: string, surfaceInputs: SurfaceInputs = {}, readModel: (url: string) => Promise<{ readonly scene: Object3D }> = loadRigFile): ModelLibrary<M, H> {
   const ready = new Map<M, BufferGeometry>(), hd = new Map<H, Object3D>();
+  const painted = new Map<string, PaintedModel>(), paintedRows = rows.paintedModels ?? [];
   const rest = new Map<string, BufferGeometry>();
   const rigs = rows.rigs === undefined ? null : rigLibrary(rows.rigs);
   let loading: Promise<void> | null = null;
   const pools = rows.geometryPools ?? [], parts = pools.flatMap(pool => pool.parts);
   if (pools.length > 16 || parts.length > 128 || new Set(parts).size !== parts.length) throw new Error('Model library requires unique bounded rest geometry parts');
+  if (paintedRows.length > 128 || new Set(paintedRows.map(row => row.name)).size !== paintedRows.length
+    || paintedRows.some(row => !parts.includes(row.geometry) || row.pivots !== undefined && (row.pivots.length !== 4 || row.pivots.some(part => part !== null && !parts.includes(part))))) throw new Error('Painted models require declared rest primitives and four pivot slots');
+
+  async function loadPainted(row: PaintedModelRow): Promise<void> {
+    try {
+      const source = await readModel(row.url), maps: Texture[] = [];
+      source.scene.traverse(node => {
+        if (maps.length > 0 || !isMesh(node)) return;
+        const material = Array.isArray(node.material) ? node.material[0] : node.material;
+        if (material instanceof MeshStandardMaterial && material.map !== null && node.geometry.hasAttribute('uv') && node.geometry.index !== null) maps.push(material.map);
+      });
+      const map = maps[0], geometry = rest.get(row.geometry);
+      if (map === undefined || geometry === undefined) throw new Error('Prepared painted resources unavailable');
+      const part = (index: number): BufferGeometry => {
+        const name = row.pivots?.[index];
+        if (name === undefined) throw new Error('Missing declared pivot slot');
+        if (name !== null) { const found = rest.get(name); if (found === undefined) throw new Error('Missing declared pivot geometry'); return found; }
+        const empty = new BufferGeometry();
+        for (const [channel, size] of [['position', 3], ['normal', 3], ['uv', 2]] as const) empty.setAttribute(channel, new Float32BufferAttribute([], size));
+        empty.computeBoundingBox(); empty.computeBoundingSphere(); return empty;
+      };
+      const made: PaintedModel = { geometry, map, ...(row.pivots === undefined ? {} : { pivots: { body: part(0), head: part(1), arm: part(2), fore: part(3) } }) };
+      const image: unknown = map.image;
+      if (row.releaseImage === true && typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap) releaseOnUpload(map.source, () => { image.close(); });
+      retainCachedResources(made); painted.set(row.name, made);
+      cacheUntilDisposed(made, () => { if (painted.get(row.name) === made) { painted.delete(row.name); loading = null; } });
+    } catch (error: unknown) { console.error(`${fault} the painted model ${row.name} did not load:`, error); }
+  }
 
   async function loadPool(pool: { readonly url: string; readonly parts: readonly string[] }): Promise<void> {
     try {
-      const gltf = await loadRigFile(pool.url), nodes: Mesh[] = [];
+      const gltf = await readModel(pool.url), nodes: Mesh[] = [];
       gltf.scene.updateMatrixWorld(true); gltf.scene.traverse(node => { if (isMesh(node)) nodes.push(node); });
       if (nodes.length !== pool.parts.length || new Set(nodes.map(node => node.name)).size !== nodes.length) throw new Error('Rest pool part roster differs');
       const prepared = new Map<string, BufferGeometry>();
@@ -194,7 +234,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
 
   async function load(name: M): Promise<void> {
     try {
-      const gltf = await loadRigFile(rows.meshUrls[name]);
+      const gltf = await readModel(rows.meshUrls[name]);
       gltf.scene.updateMatrixWorld(true);
       let g: BufferGeometry;
       if (rows.preparedMeshes?.includes(name) === true) {
@@ -218,7 +258,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
 
   async function loadHd(name: H): Promise<void> {
     try {
-      const gltf = await loadRigFile(rows.hdUrls[name]), look = rows.hdLooks[name];
+      const gltf = await readModel(rows.hdUrls[name]), look = rows.hdLooks[name];
       gltf.scene.traverse((o) => {
         if (!isMesh(o)) return;
         for (const m of Array.isArray(o.material) ? o.material : [o.material]) if (m instanceof MeshStandardMaterial) dressHd(m, look, surfaceInputs);
@@ -228,10 +268,28 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
     } catch (e: unknown) { console.error(`${fault} the generated model ${name} did not load:`, e); }
   }
 
+  const heroCopy = (name: H, o: ModelFit): Group | null => {
+      const src = hd.get(name); if (!src) return null;
+      const inner = src.clone(true), holder = new Group(), turn = new Group();
+      turn.rotation.y = o.yaw ?? 0; turn.add(inner); holder.add(turn); holder.updateMatrixWorld(true);
+      const b = new Box3().setFromObject(holder);
+      const span = o.by === 'height' ? b.max.y - b.min.y : Math.max(b.max.x - b.min.x, b.max.z - b.min.z), k = o.size / Math.max(1e-6, span);
+      turn.position.set(-(b.min.x + b.max.x) / 2, -b.min.y, -(b.min.z + b.max.z) / 2);
+      const out = new Group(); out.add(holder); holder.scale.setScalar(k); holder.position.y = o.floor ?? 0;
+      return out;
+  };
+
   return {
-    preload: () => {
-      loading ??= Promise.all([...rows.meshes.filter(name => !ready.has(name)).map(load), ...rows.hd.filter(name => !hd.has(name)).map(loadHd),
-        ...pools.filter(pool => pool.parts.some(name => !rest.has(name))).map(loadPool)]).then(() => undefined);
+    preload: (pause) => {
+      loading ??= (async () => {
+        try {
+        await Promise.all([...rows.meshes.filter(name => !ready.has(name)).map(load), ...rows.hd.filter(name => !hd.has(name)).map(loadHd),
+          ...pools.filter(pool => pool.parts.some(name => !rest.has(name))).map(loadPool)]);
+        const missing = paintedRows.filter(row => !painted.has(row.name));
+        if (pause === undefined) await Promise.all(missing.map(loadPainted));
+        else for (const row of missing) { await loadPainted(row); await pause(); }
+        } catch (error: unknown) { loading = null; throw error; }
+      })();
       return rigs === null || rows.rigLoad === 'manual' ? loading : Promise.all([loading, rigs.bodies.preload()]).then(() => undefined);
     },
     rig: name => { if (rigs === null) throw new Error('Model library has no declared rigs'); return rigs.bodies.bodyOrStandIn(name); },
@@ -241,16 +299,12 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
     models: specimens => modelCatalogue(specimens, { rig: name => { if (rigs === null) throw new Error('Model library has no declared rigs'); return rigs.bodies.bodyOrStandIn(name); } }),
     mesh: name => ready.get(name)?.clone() ?? null,
     geometry: name => rest.get(name)?.clone() ?? null,
-    hd: (name, o) => {
-      const src = hd.get(name); if (!src) return null;
-      const inner = src.clone(true), holder = new Group(), turn = new Group();
-      turn.rotation.y = o.yaw ?? 0; turn.add(inner); holder.add(turn); holder.updateMatrixWorld(true);
-      const b = new Box3().setFromObject(holder);
-      const span = o.by === 'height' ? b.max.y - b.min.y : Math.max(b.max.x - b.min.x, b.max.z - b.min.z), k = o.size / Math.max(1e-6, span);
-      turn.position.set(-(b.min.x + b.max.x) / 2, -b.min.y, -(b.min.z + b.max.z) / 2);
-      const out = new Group(); out.add(holder); holder.scale.setScalar(k); holder.position.y = o.floor ?? 0;
-      return out;
+    painted: name => {
+      const model = painted.get(name); if (model === undefined) return null;
+      return { geometry: model.geometry.clone(), map: model.map, ...(model.pivots === undefined ? {} : { pivots: { body: model.pivots.body.clone(), head: model.pivots.head.clone(), arm: model.pivots.arm.clone(), fore: model.pivots.fore.clone() } }) };
     },
+    hd: heroCopy,
+    model: (name, fit) => { const key = rows.hd.find(candidate => candidate === name); if (key === undefined) throw new Error('Unknown declared hero model'); return heroCopy(key, fit); },
   };
 }
 

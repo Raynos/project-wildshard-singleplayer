@@ -209,6 +209,21 @@ export const PrivateSceneSchema = v.pipe(privateScene, v.check(row => {
 /** Admit authored private scene rows; functions and unknown properties cannot cross this boundary. */
 export function parsePrivateScene(input: unknown): PrivateScene { return v.parse(PrivateSceneSchema, input); }
 
+const worldFit = v.strictObject({ size: v.pipe(v.number(), v.finite(), v.minValue(1e-6), v.maxValue(1e5)), by: v.picklist(['height', 'span']),
+  floor: v.exactOptional(sceneCoordinate), yaw: v.exactOptional(sceneCoordinate), centre: v.exactOptional(v.literal('base')) });
+const worldSelector = v.pipe(v.record(name, v.union([v.pipe(v.string(), v.maxLength(128)), sceneCoordinate, v.boolean()])), v.check(row => Object.keys(row).length <= 16));
+const worldImport = v.variant('kind', [
+  v.strictObject({ id: name, kind: v.literal('baked'), piece: name, only: v.exactOptional(worldSelector), materials: v.exactOptional(name) }),
+  v.strictObject({ id: name, kind: v.literal('model'), model: name, fit: worldFit }),
+]);
+/** An admitted private hierarchy plus named borrowed baked/model resources; no scripts or constructors in content. */
+export const WorldSceneSchema = v.pipe(v.strictObject({ scene: PrivateSceneSchema, imports: v.pipe(v.array(worldImport), v.maxLength(128)) }),
+  v.check(row => new Set(row.imports.map(item => item.id)).size === row.imports.length, 'unique world scene imports'));
+/** Data for the shared world-scene resource binder. */
+export type WorldSceneRecipe = v.InferOutput<typeof WorldSceneSchema>;
+/** Validate every import and hierarchy before any host constructor runs. */
+export function parseWorldScene(input: unknown): WorldSceneRecipe { return v.parse(WorldSceneSchema, input); }
+
 
 const phaseSeconds = v.pipe(v.number(), v.finite(), v.minValue(0.000001), v.maxValue(60));
 const phaseMove = v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(15));

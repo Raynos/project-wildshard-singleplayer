@@ -274,6 +274,8 @@ export type BuiltPiece = Object3D | { readonly root: Object3D; readonly collider
 export interface BakedPart { readonly root: Object3D; readonly colliders: ColliderDesc[] }
 /** A shard's world pieces placed from their rows. */
 export interface WorldPieces {
+  /** Mount one admitted hierarchy and register its named parts without detaching or applying their poses twice. */
+  readonly scene: (made: { readonly root: Object3D; readonly parts: ReadonlyMap<string, Object3D>; readonly baked?: ReadonlyMap<string, { readonly colliders: ColliderDesc[] }> }, bindings: readonly { readonly piece: string; readonly part: string; readonly baked?: string }[], pause?: () => Promise<void>) => Promise<void>;
   /** Place row `id`'s built object (at its row's pose), add it under the root and register it; `extra` adds fields (colliders, active). */
   readonly add: <T extends BuiltPiece>(id: string, built: T, extra?: Pick<Piece, 'colliders' | 'active'>) => T;
   /** Place a row drawn straight from the bake (`baked`): its kinds and its baked colliders. */
@@ -299,7 +301,23 @@ export function worldPieces<B extends string>(register: (piece: Piece) => void, 
       ...(r.surface === undefined ? {} : { surface: r.surface }), ...(r.mode === undefined ? {} : { mode: r.mode }), ...(extra.active === undefined ? {} : { active: extra.active }) });
     return built;
   };
-  return { add, colliders: (id, expectedSurface) => {
+  return { add, scene: async (made, bindings, pause) => {
+    if (bindings.length > 128 || new Set(bindings.map(binding => binding.piece)).size !== bindings.length) throw new Error('World scene requires bounded unique piece bindings');
+    const prepared = bindings.map(binding => {
+      const definition = row(binding.piece), object = made.parts.get(binding.part);
+      if (object === undefined) throw new Error('World scene piece has no declared part');
+      const imported = binding.baked === undefined ? undefined : made.baked?.get(binding.baked);
+      if (binding.baked !== undefined && imported === undefined) throw new Error('World scene piece has no declared baked import');
+      const declared = shapes.get(binding.piece), colliders = imported?.colliders ?? (declared === undefined ? undefined : bakedColliders(declared));
+      return { definition, object, colliders };
+    });
+    root.add(made.root);
+    for (const { definition: r, object, colliders } of prepared) {
+      register({ id: r.id, name: r.name, category: r.category, file: r.file, object,
+        ...(colliders === undefined ? {} : { colliders }), ...(r.surface === undefined ? {} : { surface: r.surface }), ...(r.mode === undefined ? {} : { mode: r.mode }) });
+      if (pause !== undefined) await pause();
+    }
+  }, colliders: (id, expectedSurface) => {
     const label = typeof id === 'string' ? id : 'inline shapes', declared = typeof id === 'string' ? shapes.get(id) : id; if (declared === undefined) throw new Error(`world piece ${label}: no colliders`);
     const made = bakedColliders(declared);
     if (expectedSurface !== undefined && made.some(shape => shape.surface !== expectedSurface)) throw new Error(`world piece ${label}: collider surface differs`);
