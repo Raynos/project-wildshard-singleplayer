@@ -34,7 +34,7 @@
 import * as THREE from 'three';
 import {
   ConditionalNode, ConvertNode, JoinNode, MathNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, OperatorNode,
-  PhysicalLightingModel, SplitNode, TextureNode, type Node, type NodeBuilder, type NodeMaterial, type UniformArrayNode,
+  Node as BaseNode, PhysicalLightingModel, SplitNode, TextureNode, type Node, type NodeBuilder, type NodeMaterial, type UniformArrayNode,
 } from 'three/webgpu';
 import {
   Fn, Loop, OnBeforeFrameUpdate, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, frontFacing, hash,
@@ -361,11 +361,22 @@ function lentStandIn(): THREE.DataTexture {
   return standIn;
 }
 
-/** Vertex samples use base mip explicitly; fragment samples keep their derivative-selected mip.
- * level() references the same base texture node, including a lent texture retargeted after compilation. */
-function stagedTexture(sample: TextureNode): Node<'vec4'> {
-  return Fn((builder: NodeBuilder): Node<'vec4'> => Reflect.get(builder, 'shaderStage') === 'vertex' ? sample.level(float(0)) : sample)();
+/** Stage selection happens during generation, not a shared Fn setup. Both samples
+ * reference one texture owner, so a lent texture remains retargetable in both stages. */
+class GraphTextureSample extends BaseNode<'vec4'> {
+  private readonly vertexSample: TextureNode;
+  private readonly fragmentSample: TextureNode;
+  constructor(sample: TextureNode) {
+    super('vec4'); this.fragmentSample = sample; this.vertexSample = sample.level(float(0));
+  }
+  override generate(builder: NodeBuilder, output?: string | null): string {
+    const sample = Reflect.get(builder, 'shaderStage') === 'vertex' ? this.vertexSample : this.fragmentSample;
+    const snippet: unknown = sample.build(builder, output ?? 'vec4');
+    if (typeof snippet !== 'string') throw new Error('material graph: texture sample generated no code');
+    return snippet;
+  }
 }
+function stagedTexture(sample: TextureNode): Node<'vec4'> { return new GraphTextureSample(sample); }
 
 /**
  * Compile a graph to a node material. Throws (with every reason) when validation refuses it. Call it only after

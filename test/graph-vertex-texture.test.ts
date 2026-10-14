@@ -56,7 +56,10 @@ test('front-facing is fragment-only and admitted/lent textures sample both stage
     expect(shader.fragmentShader).toContain('gl_FrontFacing');
     expect(shader.fragmentShader).toContain('texture(');
     compiled.setTexture('cover', cover);
-    expect(Object.values(shader.uniforms).some(u => u instanceof TextureNode && u.value === cover)).toBe(true);
+    const coverSamplers = Object.entries(shader.uniforms).filter(([, u]) => u instanceof TextureNode && u.value === cover).map(([name]) => name);
+    expect(coverSamplers.length).toBeGreaterThan(0);
+    expect(coverSamplers.some(name => shader.vertexShader.includes(`textureLod( ${name},`))).toBe(true);
+    expect(coverSamplers.some(name => shader.fragmentShader.includes(`texture( ${name},`))).toBe(true);
     expect(Object.values(shader.uniforms).some(u => u instanceof TextureNode && u.value === paint)).toBe(true);
     expect(compiled.material.version).toBe(version);
     expect(() => compiled.setTexture('albedo', cover)).toThrow();
