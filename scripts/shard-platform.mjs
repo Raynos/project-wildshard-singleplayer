@@ -51,7 +51,8 @@ const SourceOutputs = v.strictObject({ schema: v.literal('source-generation-outp
 // Its users are the shards whose own files import it, directly or through declarations of other engine/game/SDK/commons
 // modules they reach. Where the reading is ambiguous the rule picks the one that never hides a real use:
 //   - names match top-level bindings lexically (no scope analysis): a local that shadows one still counts as a use;
-//   - a bare namespace use, `import()`, `require()` or unqualified `import('x')` type uses every export of the target;
+//   - literal members and destructuring of an awaited import reach those exports; escaping namespaces, import
+//     promises, `require()` and unqualified `import('x')` types conservatively reach every export;
 //   - a shard's own non-test files are roots in full: every declaration, named import and re-export in them is used;
 //   - evaluating a module runs its non-declaration top-level statements, so what they reference is used by every shard
 //     that reaches the file; a variable initialiser belongs to its binding. Import lines and top-level statements of a
@@ -193,7 +194,8 @@ function sourceInfo(source, path) {
 }
 // G294 per export: a module's top-level bindings, what each one's declaration references, and how its exports map
 // onto them. `refs` holds local names, `ns\0member` for a namespace-import member, and `\0spec` (`\0spec\0name` with an
-// import-type qualifier) for an expression or import-type module reference; a bare one is charged as every export. Matching is lexical, without scope analysis.
+// import-type qualifier) for an expression or import-type module reference; an empty member evaluates only the module.
+// A bare module reference reaches every export. Matching is lexical, without scope analysis.
 const MEMBER_KEYS = new Set(['Property', 'MethodDefinition', 'PropertyDefinition', 'AccessorProperty', 'TSPropertySignature',
   'TSMethodSignature', 'TSAbstractMethodDefinition', 'TSAbstractPropertyDefinition', 'TSAbstractAccessorProperty', 'ImportAttribute']);
 const OWN_IDS = new Set(['FunctionDeclaration', 'FunctionExpression', 'ClassDeclaration', 'ClassExpression', 'TSInterfaceDeclaration',
@@ -215,6 +217,49 @@ function moduleSymbols(program) {
     namespaces.add(node.id.name);
   }
   const collect = (root, refs) => {
+    // A local constant holding import() is a namespace too. Keep its initializer
+    // from claiming the whole module when only named members are read. A root
+    // binding remains conservative because another module may import that object.
+    const dynamicNamespaces = new Map(), boundImports = new Map();
+    const importedValue = input => {
+      let value = input, awaited = false;
+      while (value?.type === 'ParenthesizedExpression' || value?.type === 'AwaitExpression') {
+        if (value.type === 'AwaitExpression') awaited = true;
+        value = value.expression ?? value.argument;
+      }
+      return awaited && value?.type === 'ImportExpression' ? value : null;
+    };
+    const findNamespaces = node => {
+      if (node === null || typeof node !== 'object') return;
+      if (Array.isArray(node)) { node.forEach(findNamespaces); return; }
+      if (node.type === 'VariableDeclaration' && node.kind === 'const') for (const row of node.declarations) {
+        const value = importedValue(row.init);
+        const spec = value?.type === 'ImportExpression' ? literal(value.source) : null;
+        if (row !== root && row.id.type === 'Identifier' && spec !== null) {
+          if (!dynamicNamespaces.has(row.id.name)) dynamicNamespaces.set(row.id.name, new Set());
+          dynamicNamespaces.get(row.id.name).add(spec); boundImports.set(value, []);
+        }
+      }
+      if (node.type === 'VariableDeclarator' && node.id.type === 'ObjectPattern') {
+        const value = importedValue(node.init);
+        if (value?.type === 'ImportExpression' && literal(value.source) !== null) {
+          const members = node.id.properties.map(row => row.type === 'Property'
+            ? row.computed ? literal(row.key) : nameOf(row.key) : null);
+          if (members.every(name => name !== null)) boundImports.set(value, members);
+        }
+      }
+      if (node.type === 'MemberExpression') {
+        const value = importedValue(node.object);
+        const member = node.computed ? literal(node.property) : nameOf(node.property);
+        if (value?.type === 'ImportExpression' && literal(value.source) !== null && member !== null) boundImports.set(value, [member]);
+      }
+      for (const child of Object.values(node)) if (child && typeof child === 'object') findNamespaces(child);
+    };
+    findNamespaces(root);
+    const namespaceRef = (name, member) => {
+      if (namespaces.has(name)) refs.add(member === null ? name : `${name}\0${member}`);
+      for (const spec of dynamicNamespaces.get(name) ?? []) refs.add(`\0${spec}${member === null ? '' : `\0${member}`}`);
+    };
     const visit = (node, parent, key, binding) => {
       if (node === null || typeof node !== 'object') return;
       if (Array.isArray(node)) { for (const child of node) visit(child, parent, key, binding); return; }
@@ -224,7 +269,10 @@ function moduleSymbols(program) {
           || (key === 'key' && MEMBER_KEYS.has(parent.type) && !parent.computed) || (key === 'right' && parent.type === 'TSQualifiedName')
           || (key === 'label') || (key === 'id' && (parent.type === 'TSEnumMember' || OWN_IDS.has(parent.type)))
           || (key === 'name' && parent.type === 'TSTypeParameter');
-        if (!skip) refs.add(node.name);
+        if (!skip) {
+          if (dynamicNamespaces.has(node.name)) namespaceRef(node.name, null);
+          else refs.add(node.name);
+        }
         visit(node.typeAnnotation, node, 'typeAnnotation', false);
         visit(node.decorators, node, 'decorators', false);
         return;
@@ -233,15 +281,22 @@ function moduleSymbols(program) {
         if ((key === 'name' && /^(?:JSXOpening|JSXClosing)Element$/u.test(parent.type)) || (key === 'object' && parent.type === 'JSXMemberExpression')) refs.add(node.name);
         return;
       }
-      // Namespace members resolve to the one export they name; a bare namespace use charges every export.
-      if ((node.type === 'MemberExpression' && !node.computed && node.object.type === 'Identifier' && namespaces.has(node.object.name) && node.property.type === 'Identifier')
-        || (node.type === 'TSQualifiedName' && node.left.type === 'Identifier' && namespaces.has(node.left.name))) {
-        refs.add(`${node.object?.name ?? node.left.name}\0${node.property?.name ?? node.right.name}`);
-        return;
+      // Literal member reads are narrow; passing/spreading the object or an
+      // unknown computed key still reaches every export through the identifier.
+      if (node.type === 'MemberExpression' && node.object.type === 'Identifier'
+        && (namespaces.has(node.object.name) || dynamicNamespaces.has(node.object.name))) {
+        const member = node.computed ? literal(node.property) : nameOf(node.property);
+        if (member !== null) { namespaceRef(node.object.name, member); return; }
+      }
+      if (node.type === 'TSQualifiedName' && node.left.type === 'Identifier' && namespaces.has(node.left.name)) {
+        namespaceRef(node.left.name, node.right.name); return;
       }
       if (node.type === 'ImportExpression' || node.type === 'TSImportType') {
         const spec = literal(node.source), member = node.qualifier?.type === 'Identifier' ? `\0${node.qualifier.name}` : '';
-        if (spec !== null) refs.add(`\0${spec}${member}`);
+        if (spec !== null) {
+          refs.add(`\0${spec}${boundImports.has(node) ? '\0' : member}`);
+          for (const name of boundImports.get(node) ?? []) refs.add(`\0${spec}\0${name}`);
+        }
         if (node.type === 'TSImportType') { visit(node.typeArguments, node, 'typeArguments', false); return; }
       }
       if (node.type === 'CallExpression' && node.callee.type === 'Identifier' && node.callee.name === 'require') { const spec = literal(node.arguments[0]); if (spec !== null) refs.add(`\0${spec}`); }
@@ -517,7 +572,11 @@ export function shardLines(root = ROOT, includeSources = false) {
     const reach = (path, sym, refs) => {
       for (const ref of refs) {
         const [head, member] = ref.split('\0', 2), parts = ref.split('\0');
-        if (head === '') exported(resolveEdge(path, parts[1]).to, parts[2] ?? '*');
+        if (head === '') {
+          const target = resolveEdge(path, parts[1]).to;
+          if (parts[2] === '') { if (target !== null) queue.push([target, null]); }
+          else exported(target, parts[2] ?? '*');
+        }
         else if (member !== undefined) { const row = sym.imports.get(head); if (row) exported(resolveEdge(path, row.spec).to, member); }
         else if (sym.bindings.has(ref)) queue.push([path, ref]);
         else if (sym.imports.has(ref)) { const row = sym.imports.get(ref); exported(resolveEdge(path, row.spec).to, row.name); }

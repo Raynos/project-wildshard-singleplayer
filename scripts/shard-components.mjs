@@ -78,6 +78,8 @@ const questOwners=new Set([
 ]);
 // Reviewed W2 baseline owners. Exact paths/exports only; mixed AST ownership below still applies.
 const reviewedW2Owners = new Map([
+  // Graph look-material collection. The decoded texture loan is committed.
+  ['src/game/plugin/shaderFamily.ts#lookGraphMaterials', 'C2'],
   // Static scene geometry, placements, building assembly and their bake contracts.
   ['src/engine/sim/shore.ts#SHORE_REVETMENT_INNER_FACE', 'C1'],
   ['src/game/shardfile/bakedKinds.ts#loadBakedKinds', 'C1'],
