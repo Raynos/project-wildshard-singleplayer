@@ -1,7 +1,7 @@
 import { parseQuestData } from '@wildshard/sdk/quests';
 import { DECK, ROOST, SPAWN, VANES, WINCH } from './layout';
 import { STRINGS } from './strings';
-import { FLAGS, vaneFlag } from '../quest/flags';
+import { FLAGS, vaneFlag } from '../quests/flags';
 
 /** Authored keeper placement shared by the declared marker and the native view. */
 export const KEEPER_AT = { x: -2.4, z: -13.6, yaw: Math.atan2(SPAWN.x + 2.4, SPAWN.z + 13.6) };

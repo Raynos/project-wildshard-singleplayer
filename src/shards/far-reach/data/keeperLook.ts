@@ -1,5 +1,5 @@
 import { KEEPER_FIGURE } from './keeperFigure';
-import { FLAGS } from '../quest/flags';
+import { FLAGS } from '../quests/flags';
 import { SPAWN } from './layout';
 import { KEEPER_AT } from './quests';
 import { KEEPER_NPC } from './keeperDialogue';

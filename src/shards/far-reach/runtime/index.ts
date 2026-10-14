@@ -5,7 +5,7 @@ import { ROC_STRIKES } from '../data/brains';
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { worldBuildYield } from '@wildshard/game/shard/plugin';
-import source from '../shard.config';
+import source from '../runtime/source';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { ROC_SLATE_EDITS } from '../data/paintLook';
@@ -33,7 +33,7 @@ import { meadow } from '../world/meadow';
 import { installPersistedQuest, bindDeclaredFight, bindQuestPageInteractions, bindPageQuestStages, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
 import { SKY_QUEST_PAGE } from '../data/questPage';
-import { FLAGS, vaneFlag } from '../quest/flags';
+import { FLAGS, vaneFlag } from '../quests/flags';
 import { HybridRuntimePlugin, bindRuntimeMelee, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import { bindRuntimeProductProps, prepareClientWorld, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 

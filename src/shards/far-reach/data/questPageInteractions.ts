@@ -1,4 +1,4 @@
-import { FLAGS } from '../quest/flags';
+import { FLAGS } from '../quests/flags';
 import { STRINGS } from './strings';
 
 /** Notes and native winch permissions, with the existing hint/toast beats. */

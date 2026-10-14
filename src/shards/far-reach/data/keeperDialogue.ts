@@ -1,4 +1,4 @@
-import { FLAGS } from '../quest/flags';
+import { FLAGS } from '../quests/flags';
 import { STRINGS } from './strings';
 
 /** Ordered shipping branches: completed bridge, notes already read, then the first conversation. */

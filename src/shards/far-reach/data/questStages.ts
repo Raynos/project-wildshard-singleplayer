@@ -1,4 +1,4 @@
-import { FLAGS, vaneFlag } from '../quest/flags';
+import { FLAGS, vaneFlag } from '../quests/flags';
 import { VANES } from './layout';
 
 /** Independent stage rows preserve the original same-tick roost, vane and raised effects.

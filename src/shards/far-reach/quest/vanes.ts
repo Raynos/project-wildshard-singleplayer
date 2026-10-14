@@ -2,7 +2,7 @@ import type { Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { FAN_GUST } from '../data/items';
 import { inCone } from '../runtime/weapons/coneStrikes';
-import { FLAGS, vaneFlag } from './flags';
+import { FLAGS, vaneFlag } from '../quests/flags';
 
 /** How close a GUST must reach a vane to turn it (metres; the cone is the fan's GUST cone, a little longer). */
 export const VANE_REACH = FAN_GUST.reach + 2;

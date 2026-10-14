@@ -2,7 +2,7 @@ import { SKY_QUEST_PAGE_INTERACTIONS } from './questPageInteractions';
 import { SKY_ACTIONS, SKY_GRAPH } from './questGraph';
 import { SKY_QUEST_STAGES, SKY_QUEST_STAGE_INITIAL } from './questStages';
 import { ROOST_IDS, SKY_ACT, QUEST_STEP } from './questPrompts';
-import { FLAGS } from '../quest/flags';
+import { FLAGS } from '../quests/flags';
 
 /** The keeper, roost, vanes and winch retain their original command and fixed-step order. */
 export const QUEST_HOST = {

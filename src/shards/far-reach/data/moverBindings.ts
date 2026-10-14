@@ -1,4 +1,4 @@
-import { FLAGS } from '../quest/flags';
+import { FLAGS } from '../quests/flags';
 /** Stable mover owner and view identities; static ropes already collide through the native world bake. */
 export const SKY_MOVER_BINDING = {
   systemId: 'far.movers',

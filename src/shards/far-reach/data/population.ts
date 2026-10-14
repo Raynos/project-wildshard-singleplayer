@@ -1,6 +1,6 @@
 import stages from './bossStages.json' with { type: 'json' };
 import { ROC_DEFINITION, ROC_BOSS_PROFILE, ROC_ID, BOSS_REWARD } from './rocFight';
-import { FLAGS } from '../quest/flags';
+import { FLAGS } from '../quests/flags';
 import { STRINGS } from './strings';
 import { SKY_RIG_LIBRARY } from './rigLibrary';
 import { SKY_CREATURE_ROWS, SKY_CREATURE_STRIKES, SKY_PAGE_ROWS, SKY_PAGE_HOMES } from './brains';

@@ -963,3 +963,6 @@ src/shards/far-reach/data/crownInstances.generated.json
 
 # Fire cards and ground pools are restored from their author recipe.
 /public/assets/sunscar-dunes/baked/rest-fire.glb
+
+# Sky runtime declaration is rebuilt from authored rows (G405).
+/src/shards/far-reach/data/product.generated.json

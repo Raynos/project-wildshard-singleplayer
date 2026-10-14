@@ -2,7 +2,7 @@ import { defineSceneModels } from '@wildshard/engine/models/model';
 import { fanParts } from '../runtime/weapons/heldFan';
 import { bridgeKit, windmill, vane } from '../world/shapes';
 import { questNpcSpecimen } from '@wildshard/game/plugin/ui';
-import source from '../shard.config';
+import source from '../runtime/source';
 import { skyHd } from '../world/meshes';
 import { skyMappedLook } from '../world/looks';
 import { GEAR_SCENE_ROWS } from '../data/gearModels';
