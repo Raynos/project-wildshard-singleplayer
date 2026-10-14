@@ -2,8 +2,7 @@
 // (@wildshard/sdk/kit/kitParts: body, campfire, code head, waving arm, flames) and the smoke over his campfire
 // (@wildshard/sdk/looks/smokeColumn: the breadcrumb the intro objective points at, seen from the pier). The palette:
 // skin '#c98d62', beard '#cfcac0', straw hat '#d8b867', striped shirt '#e9e3d4' / '#3d6fae', canvas trousers '#b59f77'.
-import type { KitMeshRow } from '../kit/kitParts';
-import type { SmokeColumnRow } from './smokeColumn';
+import type { KitMeshRow, SmokeColumnRow } from './lookRows';
 
 /**
  * 42 puffs climbing 21 m over 13 s each (life speeds 0.85–1.15: uneven spacing, a broken column), from 1.2 m over the

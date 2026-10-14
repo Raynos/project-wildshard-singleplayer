@@ -2,7 +2,7 @@
 // (@wildshard/sdk/kit/kitParts: body, head, upper arm, forearm), Wendell's proportions and scale. The palette: skin
 // '#a86e48', teal headscarf '#2f9490' with gold trim '#e2bf62', orange tunic '#dd7a2e', cream shirt '#eee6d6', red sash
 // '#7a3a34', brown trousers '#6f5a45', travel boots '#5a3d27', leather satchel '#7a5234', gold '#d8a93c'.
-import type { KitMeshRow } from '../kit/kitParts';
+import type { KitMeshRow } from './lookRows';
 
 /** The trader's body (turns with the figure): travel boots and trousers, the tunic's flared skirt and hem, the sash knotted at the hip with two tails lifting in the wind, the torso's bands, the collar and the shirt's V, the neck, the satchel and its strap, the left arm with its fist on her hip and a gold bangle. */
 export const TRADER_BODY: KitMeshRow = {

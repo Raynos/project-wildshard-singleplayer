@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { log, plank, rock, rope } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
+import type { KitMeshRow, KitPartRow } from '../../data/lookRows';
 
 /**
  * A low-poly kit mesh as rows (SHARD-PLATFORM M3, look-family rows): one flat-shaded, vertex-coloured geometry built by
@@ -13,36 +14,6 @@ import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
  *   const geometry = buildKitMesh(row);                 // or buildKitMesh(row, fireLocal) for `rel` parts
  *   const mesh = new THREE.Mesh(geometry, lowPolyMaterial(sky));
  */
-
-/** A primitive's kind; `args` are the constructor's (`log`: a, b, r0, r1, sides, twist; `rope`: r then the points
- *  flattened; `rock`: r, detail, squash, rough; `plank`: length, width, thickness, wobble), the kit's rng implied. */
-export type KitPartKind = 'box' | 'icosa' | 'cone' | 'cylinder' | 'torus' | 'sphere' | 'log' | 'rope' | 'rock' | 'plank';
-
-/** One part of a kit mesh as data. */
-export interface KitPartRow {
-  readonly kind: KitPartKind;
-  readonly args: readonly number[];
-  /** its colour (any CSS colour three parses) */
-  readonly color: string;
-  /** transforms applied to the primitive first, in order: ['rotateX' | 'rotateY' | 'rotateZ', rad] or ['translate', x, y, z] */
-  readonly pre?: readonly (readonly [string, ...number[]])[];
-  /** where: [x, y, z, ry, rx, rz, sx, sy, sz] (trailing defaults 0 / 1 may be left off); or `matrix` (16, column-major) */
-  readonly at?: readonly number[];
-  readonly matrix?: readonly number[];
-  /** the kit's per-vertex wobble (m), per-face jitter and wind sway */
-  readonly wobble?: number;
-  readonly jitter?: number;
-  readonly sway?: { readonly w: number; readonly phase?: number; readonly hang?: boolean };
-  /** placed off the build's origin (its position, or a log's two ends) */
-  readonly rel?: boolean;
-}
-
-/** A kit mesh as data: the kit's seed, its finish (baked ambient occlusion or none) and its parts in add order. */
-export interface KitMeshRow {
-  readonly seed: number;
-  readonly ao: { readonly floorY: number; readonly strength: number } | false;
-  readonly parts: readonly KitPartRow[];
-}
 
 const num = (a: readonly number[], i: number, fallback: number): number => a[i] ?? fallback;
 
