@@ -4708,3 +4708,7 @@ optional borrowed attachment rows, rest/tip and caught-wrap bindings.
 and Explorer. `createDeclaredHeldMelee(app, recipe, ports)` supplies it to the
 existing held factory; targets/raycast, charge and shader/texture/geometry
 resources remain owned ports. No recipe advances gameplay or installs actors.
+
+`questNpcSpecimen(source, npcId, provider)` reads the model identity from
+the admitted NPC figure. The provider still borrows the original mesh or
+prepared pivots and material; an explicit model row remains supported.

@@ -1063,9 +1063,15 @@ function questNpcModelReader(row: QuestNpcModelRow, source: QuestNpcModelSource)
   };
 }
 /** An Explorer specimen uses the same admitted figure row and model provider as its live NPC. */
-export function questNpcSpecimen(source: Pick<Shardfile, 'questNpcs'>, id: string, model: QuestNpcModelRow, ports: QuestNpcModelSource): Group {
+export function questNpcSpecimen(source: Pick<Shardfile, 'questNpcs'>, id: string, ports: QuestNpcModelSource): Group;
+export function questNpcSpecimen(source: Pick<Shardfile, 'questNpcs'>, id: string, model: QuestNpcModelRow, ports: QuestNpcModelSource): Group;
+/** The admitted figure supplies its model identity; the borrowed provider supplies the preparation form. */
+export function questNpcSpecimen(source: Pick<Shardfile, 'questNpcs'>, id: string, modelOrPorts: QuestNpcModelRow | QuestNpcModelSource, borrowed?: QuestNpcModelSource): Group {
   const binding = source.questNpcs?.find(row => row.npc.id === id);
   if (binding === undefined) throw new Error(`Undeclared quest NPC ${id}`);
+  let model: QuestNpcModelRow, ports: QuestNpcModelSource;
+  if ('read' in modelOrPorts) { ports = modelOrPorts; model = { id: binding.npc.figure.model, kind: ports.kind }; }
+  else { if (borrowed === undefined) throw new Error('Missing quest model provider'); model = modelOrPorts; ports = borrowed; }
   const copied = questNpcModelReader(model, ports)(binding.npc.figure.model);
   return copied === null ? new Group() : pivotNpcParts(binding.npc, copied.geometry, copied.material).root;
 }

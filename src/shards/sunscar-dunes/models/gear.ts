@@ -5,7 +5,6 @@ import { lastBakedWorld } from '../world/baked';
 import { buildBrazier, buildCaravan, buildWell } from '../world/places';
 import { questNpcSpecimen } from '@wildshard/game/plugin/ui';
 import source from '../runtime/source';
-import { SIGNAL_QUEST_PAGE } from '../data/questPage';
 import { duneMesh } from '../world/meshes';
 import { GEAR_SCENE_ROWS } from '../data/gearModels';
 
@@ -15,5 +14,5 @@ export const GEAR_MODELS = defineSceneModels(GEAR_SCENE_ROWS,[
   ['caravan',()=>buildCaravan(lastBakedWorld()??new Map())],
   ['well',()=>buildWell(lastBakedWorld()??new Map())],
   ['brazier',()=>buildBrazier(lastBakedWorld()??new Map(),0,[])],
-  ['scout',()=>questNpcSpecimen(source,SIGNAL_QUEST_PAGE.npc,SIGNAL_QUEST_PAGE.model,{kind:'mesh',read:()=>duneMesh('caravan-scout')})],
+  ['scout',()=>questNpcSpecimen(source,'sunscar.scout',{kind:'mesh',read:()=>duneMesh('caravan-scout')})],
 ]);
