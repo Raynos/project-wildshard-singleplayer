@@ -1064,3 +1064,5 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # Fitted bird geometry (pine-ambient-birds).
 /public/assets/pine-hollow/life/birds-rest-*.glb
+
+/src/shards/driftwood-isle/data/islandClips.generated.json

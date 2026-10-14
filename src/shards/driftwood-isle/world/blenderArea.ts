@@ -1,3 +1,4 @@
+import { ISLAND_GRID } from '../data/islandClipRows';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { CELL, type BlenderArea } from '@wildshard/engine/world/blenderArea';
 
@@ -8,8 +9,8 @@ import { CELL, type BlenderArea } from '@wildshard/engine/world/blenderArea';
  * no per-shard table), so the export (scripts/blender/lib/export-scene.mjs) and the game clip at the same lines.
  */
 export const area: BlenderArea = {
-  x0: -CHUNK_HALF + 71 * CELL, x1: -CHUNK_HALF + 184 * CELL,
-  z0: -CHUNK_HALF + 18 * CELL, z1: -CHUNK_HALF + 117 * CELL,
+  x0: -CHUNK_HALF + ISLAND_GRID.x0 * CELL, x1: -CHUNK_HALF + ISLAND_GRID.x1 * CELL,
+  z0: -CHUNK_HALF + ISLAND_GRID.z0 * CELL, z1: -CHUNK_HALF + ISLAND_GRID.z1 * CELL,
 };
 
 export function inArea(x: number, z: number, margin = 0): boolean {

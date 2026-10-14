@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
-import { CHUNK_HALF, TERRAIN_RES } from '@wildshard/engine/core/config';
+import ISLAND_TERRAIN_CLIP from '../../data/islandClips.generated.json' with { type: 'json' };
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { CELL, type BlenderArea as IslandRect } from '@wildshard/engine/world/blenderArea';
+import type { BlenderArea as IslandRect } from '@wildshard/engine/world/blenderArea';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { editShader, spliceEdits, type ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
 import type { ISLAND_PROPS, ISLAND_TERRAIN } from './islandLook';
@@ -75,23 +75,16 @@ export function dropTriangles(geo: THREE.BufferGeometry, keep: (x: number, z: nu
   return dropped / 3;
 }
 
-/** The procedural low-poly terrain loses `rect`'s whole cells (its index is (iz·(res−1) + ix)·6); a terrain of another
- *  layout loses the triangles `inside` holds. */
-export function clipGridTerrain(mesh: THREE.Mesh, rect: IslandRect, inside: (x: number, z: number) => boolean): void {
-  const idx = mesh.geometry.getIndex();
-  if (idx === null) return;
-  const n = TERRAIN_RES - 1;
-  if (idx.count !== n * n * 6) { dropTriangles(mesh.geometry, (x, z) => !inside(x, z)); return; }
-  const cx0 = Math.round((rect.x0 + CHUNK_HALF) / CELL), cx1 = Math.round((rect.x1 + CHUNK_HALF) / CELL);
-  const cz0 = Math.round((rect.z0 + CHUNK_HALF) / CELL), cz1 = Math.round((rect.z1 + CHUNK_HALF) / CELL);
-  const out = new Uint32Array(idx.count - (cx1 - cx0) * (cz1 - cz0) * 6);
-  let k = 0;
-  for (let iz = 0; iz < n; iz++) for (let ix = 0; ix < n; ix++) {
-    if (ix >= cx0 && ix < cx1 && iz >= cz0 && iz < cz1) continue;
-    const o = (iz * n + ix) * 6;
-    for (let j = 0; j < 6; j++) out[k++] = idx.getX(o + j);
+/** Install the authored grid's retained index runs; another topology is not this island bake. */
+export function clipGridTerrain(mesh: THREE.Mesh): void {
+  const geometry = mesh.geometry, source = geometry.getIndex();
+  if (source === null || source.count !== ISLAND_TERRAIN_CLIP.sourceIndices || geometry.getAttribute('position').count !== ISLAND_TERRAIN_CLIP.sourceVertices || ISLAND_TERRAIN_CLIP.ranges.length > 512) throw new Error('Baked island terrain topology differs; rebuild its declared clipping facts');
+  const out = new Uint32Array(ISLAND_TERRAIN_CLIP.outputIndices); let offset = 0;
+  for (let i = 0; i < 512; i++) { // At most two retained runs per authored grid row.
+    const row = ISLAND_TERRAIN_CLIP.ranges[i]; if (row === undefined) break;
+    out.set(source.array.subarray(row.start, row.start + row.count), offset); offset += row.count;
   }
-  mesh.geometry.setIndex(new THREE.BufferAttribute(out, 1));
+  geometry.setIndex(new THREE.BufferAttribute(out, 1));
 }
 
 /** Each triangle belongs to the nearest of `points` (searched in `cell` m buckets, the 3×3 round it); drops the

@@ -217,7 +217,7 @@ export class BlenderIsland {
     const unclaimed = await this.placeModels(models, f, used, meta, protos, makePropsMat(null, false));
 
     // ── hide what the area replaces ──
-    clipGridTerrain(ctx.terrain, area, (x, z) => inArea(x, z));
+    clipGridTerrain(ctx.terrain);
     await slice();
     if (ctx.palms) {
       // a triangle belongs to the nearest palm (its fronds reach 5 m out); drop the palms standing in the area
