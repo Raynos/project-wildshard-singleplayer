@@ -25,3 +25,8 @@ const ITEM_LABELS = {
 
 /** Existing local bag kinds, registered by both page and trusted native inventory owners. */
 export const DRIFTWOOD_ITEMS = Object.entries(ITEM_LABELS).map(([id, row]) => ({ id, label: row.label, icon: row.icon, travels: false }));
+
+/** Native continuation policy: positive safe stacks and complete first-pickup order. */
+export const DRIFTWOOD_NATIVE_PACK = { kinds: Object.keys(ITEM_LABELS), slots: 12,
+  counts: { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true, complete: true }, quantity: 'positive-safe-integer', snapshot: 'order',
+  stackLimit: Number.MAX_SAFE_INTEGER, restoreError: 'Incompatible Driftwood pack continuation' } as const;

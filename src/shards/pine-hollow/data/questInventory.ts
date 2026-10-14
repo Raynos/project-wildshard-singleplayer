@@ -29,6 +29,11 @@ export type PineItem = (typeof PINE_PACK_KINDS)[number];
 /** one slot per kept kind: Pine Hollow's pack can never be full */
 export const PINE_PACK_SLOTS = PINE_PACK_KINDS.length;
 
+/** Preserve historical native numeric stacks and the seven-kind snapshot roster. */
+export const PINE_NATIVE_PACK = { kinds: PINE_PACK_KINDS, slots: PINE_PACK_SLOTS,
+  counts: { min: -1_000_000, max: 1_000_000, integer: false, complete: false }, quantity: 'unchecked', snapshot: 'roster',
+  restoreError: 'Incompatible Pine pack continuation' } as const;
+
 /** Authored rewards and trade goods, including legacy ids used by save migration. */
 export const PINE_BAG_ITEMS = [
   { id: 'ironhide-tusk', label: "Ironhide's broken tusk", icon: 'tusk', travels: false },

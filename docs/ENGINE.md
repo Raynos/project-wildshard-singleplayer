@@ -4922,3 +4922,10 @@ hit and whether it hit the head; `null` reports the nearest skin point. It
 refills caller-owned `out` (`distance`, `point`, `head`) without allocating
 result objects. Actors, posed-volume lending, ordered target scans, damage,
 cover and Rapier remain with their original owners.
+
+The game/inventoryLaw NativeInventoryProfile declares native roster, slots,
+count bounds, quantity checks and snapshot ordering. NativeInventory uses
+the existing stacking/trade laws without owning persistence;
+nativeInventorySchema admits the same counts/order save representation.
+Profiles preserve historical numeric and complete-order policies. Restore
+copies admitted state without pickups, flags, facts or writes.
