@@ -11,7 +11,7 @@ export interface ConversionMeasure {
    * shard reaches inside a file two or more shards reach.
    */
   gameSystemAttribution: { status: 'import-graph'; review: 'G294-primary-reach'; lines: number; modules: { path: string; lines: number }[];
-    exports: { path: string; name: string; exported: boolean; lines: number }[] };
+    exports: { path: string; name: string; exported: boolean; lines: number }[]; pendingSecondUser?: PendingPlatformCharge[] };
 }
 export interface CustomSource {path:string;kind:'runtime-ts'|'additional-glsl'|'sole-module'|'sole-export';lines:number;name?:string}
 export interface ShardLines {
@@ -36,3 +36,14 @@ export interface PortHeadline {customPercent:number|null;world:'yes'|'partial'|'
 export function declarationOnlyConfig(source:string,path?:string):boolean;
 export function portHeadline(customPercent:number|null,content:{status:string;tiles:{total:number}|null;privateBinaries:readonly string[]}):PortHeadline;
 export function portAverage(rows:Record<string,{port:PortHeadline}>):number|null;
+
+/** G419 allowance: reviewed again when W3 ends; this is not an actual user. */
+export interface PendingPlatformUser {
+  module:string; export?:string; shard:'driftwood-isle'|'pine-hollow'|'nalati-grasslands'|'nine-dragon-stack';
+  plan:{path:string;row:string}; documentation:string; 'rechecked-by':'end of W3';
+}
+export interface PendingPlatformCharge {path:string;name?:string;lines:number;status:'pending second user';users:PendingPlatformUser[]}
+export function pendingPlatformUsers(root:string):PendingPlatformUser[];
+export function partitionPendingPlatformUsers(slug:string,modules:{path:string;lines:number}[],exports:{path:string;name:string;exported:boolean;lines:number}[],allowances:PendingPlatformUser[]):{
+  modules:{path:string;lines:number}[];exports:{path:string;name:string;exported:boolean;lines:number}[];pending:PendingPlatformCharge[];
+};

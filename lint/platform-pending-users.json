@@ -1,0 +1,27 @@
+{
+  "schema": "platform-pending-users/1",
+  "entries": [
+    {
+      "module": "src/engine/world/bakedTerrainField.ts",
+      "export": "BakedTerrainMetadata",
+      "shard": "driftwood-isle",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "Big-three / Nine ports to tiles (G384)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/engine/world/bakedTerrainField.ts",
+      "export": "createBakedTerrainField",
+      "shard": "driftwood-isle",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "Big-three / Nine ports to tiles (G384)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
+    }
+  ]
+}

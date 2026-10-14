@@ -350,12 +350,59 @@ function cachedSourceInfo(source, path, directory, recipe) {
   return facts;
 }
 
+// G419: planned users are an explicit, temporary allowance, never actual import-graph users.
+const PendingUsers = v.strictObject({ schema:v.literal('platform-pending-users/1'), entries:v.array(v.strictObject({
+  module:v.pipe(producerPath,v.regex(/^src\/(?:engine|game|sdk)\//u)), export:v.optional(v.string()),
+  shard:v.picklist(['driftwood-isle','pine-hollow','nalati-grasslands','nine-dragon-stack']),
+  plan:v.strictObject({path:v.pipe(producerPath,v.regex(/^docs\/plans\//u)),row:v.string()}),
+  documentation:v.pipe(producerPath,v.regex(/^docs\//u)), 'rechecked-by':v.literal('end of W3'),
+})) });
+/** Read only documented general platform declarations with a real later-wave plan row.
+ * @param {string} root @returns {import('./shard-platform.mjs').PendingPlatformUser[]} */
+export function pendingPlatformUsers(root) {
+  const file=resolve(root,'lint/platform-pending-users.json');
+  if(!existsSync(file))return [];
+  const {entries}=v.parse(PendingUsers,JSON.parse(readFileSync(file,'utf8'))),seen=new Set();
+  const names={'driftwood-isle':'Driftwood','pine-hollow':'Pine','nalati-grasslands':'Nalati','nine-dragon-stack':'Nine'};
+  for(const entry of entries){
+    const key=`${entry.module}#${entry.export??'*'}:${entry.shard}`;
+    if(seen.has(key))throw new Error(`Duplicate pending platform user: ${key}`);seen.add(key);
+    const source=readFileSync(resolve(root,entry.module),'utf8');
+    if(/src\/shards\/|@wildshard\/shards\/|sunscar-dunes|far-reach|driftwood-isle|pine-hollow|nalati-grasslands|nine-dragon-stack/u.test(source))
+      throw new Error(`Pending feature names a shard: ${entry.module}`);
+    const symbols=moduleSymbols(parseSync(entry.module,source).program);
+    if(entry.export!==undefined&&!symbols.exports.has(entry.export))throw new Error(`Missing pending platform export: ${key}`);
+    const documentation=readFileSync(resolve(root,entry.documentation),'utf8');
+    if(!documentation.includes(entry.module.replace(/^src\//u,'').replace(/\.ts$/u,'')))
+      throw new Error(`Pending feature lacks documentation: ${key}`);
+    const row=readFileSync(resolve(root,entry.plan.path),'utf8').split('\n').find(line=>line.split('|')[1]?.trim()===entry.plan.row);
+    if(!row||!row.includes(names[entry.shard]))throw new Error(`Missing later-wave plan row: ${key}`);
+  }
+  return entries;
+}
+/** Separate temporary planned users from the remaining sole-user charges.
+ * @param {string} slug
+ * @param {{path:string;lines:number}[]} modules
+ * @param {{path:string;name:string;exported:boolean;lines:number}[]} exports
+ * @param {import('./shard-platform.mjs').PendingPlatformUser[]} allowances */
+export function partitionPendingPlatformUsers(slug,modules,exports,allowances) {
+  /** @type {import('./shard-platform.mjs').PendingPlatformCharge[]} */
+  const pending=[];
+  const charged=(row)=>{
+    const matches=W1_SHARDS.includes(slug)?allowances.filter(entry=>entry.module===row.path
+      && (entry.export===undefined||('name' in row&&row.exported&&entry.export===row.name))):[];
+    if(matches.length===0)return true;
+    pending.push({...row,status:'pending second user',users:matches});return false;
+  };
+  return {modules:modules.filter(charged),exports:exports.filter(charged),pending};
+}
+
 export function shardLines(root = ROOT, includeSources = false) {
   // One measurement reads one immutable tree: memoize file probes, package targets and edges (pnpm gen, ~3 s).
   const probes = new Map(), targets = new Map(), edges = new Map();
   const exists = (path) => { let hit = probes.get(path); if (hit === undefined) { hit = existsSync(resolve(root, path)); probes.set(path, hit); } return hit; };
   const texts = new Map(), graphs = new Map(), sources = new Map(), counts = new Map();
-  const frozen = legacyInventory(root);
+  const frozen = legacyInventory(root), pendingUsers = pendingPlatformUsers(root);
   const generated = new Set(exists('scripts/generation-jobs.json') ? discoverGeneration(root).jobs.flatMap(job => job.outputs) : []);
   // Retained source tables also have exact producer/output identities; older tooling predates generation jobs.
   const sourceOutputs = 'scripts/source-generation-outputs.json';
@@ -570,7 +617,7 @@ export function shardLines(root = ROOT, includeSources = false) {
         .reduce((total, path) => total + count(`src/shards/${folder}/${path}`), 0);
       if (legacyLines <= 0) throw new Error(`${slug}: frozen legacy has no authored TypeScript lines`);
     }
-    const modules = privateModules.get(slug), exports = privateExports.get(slug);
+    const {modules,exports,pending} = partitionPendingPlatformUsers(slug,privateModules.get(slug),privateExports.get(slug),pendingUsers);
     const attributedLines = [...modules, ...exports].reduce((total, module) => total + module.lines, 0);
     const customRuntimeLines = shardRuntimeLines + additionalGlslLines + attributedLines;
     row.conversion = {
@@ -578,7 +625,7 @@ export function shardLines(root = ROOT, includeSources = false) {
       legacyLines, legacyFolder: pair?.[0] ?? null, legacyRevision: pair?.[1].source ?? null,
       runtimeShare: legacyLines === null ? null : customRuntimeLines / legacyLines,
       passed: legacyLines === null ? null : customRuntimeLines <= legacyLines * 0.2,
-      gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: attributedLines, modules, exports },
+      gameSystemAttribution: { status: 'import-graph', review: 'G294-primary-reach', lines: attributedLines, modules, exports, pendingSecondUser:pending },
     };
     if (collectSources) {
       for (const module of modules) customSources.push({path:module.path, lines:module.lines, kind:'sole-module'});
@@ -629,6 +676,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
       console.log(`${slug.padEnd(22)} ${String(measure.shardRuntimeLines).padStart(8)} ${String(measure.gameSystemAttribution.lines).padStart(14)} ${String(measure.legacyLines ?? '—').padStart(10)} ${ratio.padStart(16)}  ${(passed === null ? 'NATIVE' : passed ? 'PASS' : 'FAIL').padEnd(10)} ${RULES.enforcement}`);
       console.log(`  proofs ${JSON.stringify(milestoneFlags(slug, row))}`);
       const sole = measure.gameSystemAttribution, byModule = new Map();
+      for(const pending of sole.pendingSecondUser??[]) console.log(`  pending second user ${pending.path}${pending.name?`#${pending.name}`:''}: ${pending.lines} lines; ${pending.users.map(user=>`${user.shard} / ${user.plan.row}; rechecked ${user['rechecked-by']}`).join(', ')}`);
       for (const entry of sole.exports) byModule.set(entry.path, [...byModule.get(entry.path) ?? [], entry]);
       const wholeLines = sole.modules.reduce((total, module) => total + module.lines, 0);
       const listed = (rows, separator) => rows.length > 0 ? rows.join(separator) : 'none';
