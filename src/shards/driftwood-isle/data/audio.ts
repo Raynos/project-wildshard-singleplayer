@@ -10,7 +10,7 @@ import { parseAudioData } from '@wildshard/sdk/audio';
 const enemies = ['boar', 'crab', 'monkey', 'sailor'] as const;
 const death = enemies.map((kind) => ({ voice: `island.kill.${kind}`, overrides: { gain: 1.3 }, when: [{ op: 'equals', field: 'killed', value: true }, { op: 'equals', field: 'kind', value: kind }] }));
 /** Today's island bank calls, in their original mixer/combat order; the trusted recipes keep their taps and random draws. */
-export const DRIFTWOOD_AUDIO = parseAudioData({ playback:ISLAND_PLAYBACK, surfaces:{fallback:'sand',rules:[
+export const DRIFTWOOD_AUDIO = parseAudioData({ emitters:{shrine:{scope:'audio.shrine.hum',sample:'shrine',graph:'shrine',out:'ambient',tap:'shrine.bed',level:0.5,initial:'scheduled',connect:'always',offset:'fixed',fadeIn:{mode:'linear',seconds:1.5},fadeOut:{mode:'linear',seconds:0.4},stop:{mode:'scheduled',after:0.45,order:[]},disconnect:{node:'panner',after:0.6},proximity:{reference:4,max:22,build:30,drop:36,duckNear:10,duckFar:13,duckGain:0.7079457843841379}}}, playback:ISLAND_PLAYBACK, surfaces:{fallback:'sand',rules:[
     {kind:'floor',source:'decks',tolerance:0.45,surface:'planks'},{kind:'floor',source:'stone',tolerance:0.45,surface:'stone'},
     {kind:'value',source:'height',op:'lt',threshold:0.02,surface:'water'},
     {kind:'value',source:'slope',op:'gt',threshold:0.32,surface:'rock'},

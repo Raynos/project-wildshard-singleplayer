@@ -1437,6 +1437,11 @@ to actual floors, terrain, weather and optional points. Floors use the
 specified feet tolerance; height and slope are queried only when reached,
 and the first matching rule wins. Pine and Driftwood use the same host.
 
+`audio.emitters` declares sample-first loop graphs, native output routing,
+fade curves, stop/disconnect timing and optional proximity ducking.
+`Audio.loopEmitter(recipe, graphs, ports)` leaves the context locked until
+the existing gesture and borrows the actual point, scope and music bus.
+
 Ambience schedules can play a named recorded shot through a borrowed
 player, with declared chance, gain and radial placement. `start: built`
 runs after graph construction; `entered: true` cancels it on exit and

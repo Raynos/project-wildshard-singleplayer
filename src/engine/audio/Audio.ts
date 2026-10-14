@@ -1,6 +1,6 @@
-import type { AudioSurfaceRecipe, AudioLoopGraph } from '@wildshard/format/audioProfiles';
+import type { AudioLoopEmitterRecipe, AudioSurfaceRecipe, AudioLoopGraph } from '@wildshard/format/audioProfiles';
 import { SynthBeds } from './synth';
-import { AmbienceZones } from './ambience';
+import { LoopEmitter, type LoopEmitterPorts, type LoopEmitterVoice, AmbienceZones } from './ambience';
 import { resourceScope } from '../app/resources';
 import { loopAt, audioRandom, panFromYaw } from './util';
 import { PlayerVoices } from './playerVoices';
@@ -57,6 +57,8 @@ import { audioUnlocked, claimPageAudioContext, releasePageAudioContext, whenAudi
  * `installSynthBed`.
  */
 
+const PICKUP_EMITTER:AudioLoopEmitterRecipe={scope:'Audio',sample:'pickup',graph:'pickup',out:'sfx',level:0.11,initial:'value',connect:'sample',offset:'random',
+  fadeIn:{mode:'target',seconds:0.12},fadeOut:{mode:'target',seconds:0.16},stop:{mode:'timer',after:0.7,order:[1,2,0]},disconnect:{node:'out',after:0.7}};
 const PICKUP_GRAPH:AudioLoopGraph=[
   {kind:'gain',id:'trem',value:0.7},{kind:'oscillator',id:'lfo',type:'sine',frequency:5.5},{kind:'gain',id:'lg',value:0.3},
   {kind:'connect',from:'lfo',to:'lg'},{kind:'connect',from:'lg',to:'trem',param:'gain'},{kind:'start',id:'lfo'},
@@ -65,6 +67,8 @@ const PICKUP_GRAPH:AudioLoopGraph=[
   {kind:'connect',from:'o1',to:'lp'},{kind:'connect',from:'o2',to:'g2'},{kind:'connect',from:'g2',to:'lp'},
   {kind:'connect',from:'lp',to:'trem'},{kind:'connect',from:'trem',to:'out'},{kind:'connect',from:'out',to:'sfx'},{kind:'start',id:'o1'},{kind:'start',id:'o2'}
 ];
+
+const PICKUP_GRAPHS:Readonly<Record<string,AudioLoopGraph>>={pickup:PICKUP_GRAPH};
 
 export type ImpactKind = 'wood' | 'ground' | 'flesh';
 /** the mixer's own creature calls; a level adds its own ids with `registerCalls` (any string reaches `animal`) */
@@ -105,6 +109,8 @@ export class Audio extends PlayerVoices {
   /** Bind declared step surfaces to the real terrain/floor owners without another audio clock. */
   surfaceMap<T extends string>(recipe:AudioSurfaceRecipe,names:readonly T[],ports:AudioSurfacePorts):AudioSurfaceMap<T> {return new AudioSurfaceMap(recipe,names,ports);}
 
+  /** Bind emitted loop/fade policy to the original audio buses, graph and optional spatial owner. */
+  loopEmitter(recipe:AudioLoopEmitterRecipe,graphs:Readonly<Record<string,AudioLoopGraph>>,ports:LoopEmitterPorts={}):LoopEmitter {const graph=graphs[recipe.graph];if(graph===undefined)throw new Error('Missing loop emitter graph');return new LoopEmitter(this,recipe,graph,ports);}
   private readonly scope = resourceScope().child('Audio');
   listenerYaw = 0;
   listenerPosition: Vector3 | null = null;
@@ -154,7 +160,7 @@ export class Audio extends PlayerVoices {
   private _worldMuted = false;
   private bed: AmbientBed;
   private bedNodes: AudioNode[] = [];
-  private hum: { out: GainNode; level: number; sample: boolean; stop: () => void } | undefined;
+  private hum:LoopEmitterVoice|undefined;
   private humOn = false;
   private underwater = false; private underGain?: GainNode; private bubbleTimer: ReturnType<typeof setTimeout> | 0 = 0;
   /** the synth hum's sources under water (swapped for the underwater bed when one decodes) */
@@ -330,22 +336,10 @@ export class Audio extends PlayerVoices {
     if (!this.g) return;
     const c = this.ctx, t = c.currentTime;
     if (on) {
-      const sample = this.loops.get('pickup');
-      if (!this.hum && sample) {
-        const out = c.createGain(); out.gain.value = 0;
-        const s = this.loopSource(sample); s.connect(out).connect(this.sfx);
-        this.hum = { out, level: sample.gain, sample: true, stop: () => { s.stop(); out.disconnect(); } };
-      }
-      if (!this.hum) {
-        const out = c.createGain(); out.gain.value = 0;
-        const sources=this.loopGraph(PICKUP_GRAPH,out,t);
-        this.hum={out,level:0.11,sample:false,stop:()=>{sources[1]?.stop();sources[2]?.stop();sources[0]?.stop();out.disconnect();}};
-      }
-      this.hum.out.gain.cancelScheduledValues(t); this.hum.out.gain.setTargetAtTime(this.hum.level, t, 0.12);
+      this.hum??=this.loopEmitter(PICKUP_EMITTER,PICKUP_GRAPHS,{scope:this.scope}).start(t);
+      this.hum.fadeIn(t);
     } else if (this.hum) {
-      const h = this.hum; this.hum = undefined;
-      h.out.gain.cancelScheduledValues(t); h.out.gain.setTargetAtTime(0, t, 0.16);
-      this.scope.timeout(700, () => h.stop());
+      const voice=this.hum;this.hum=undefined;voice.fadeOut(t);
     }
   }
 

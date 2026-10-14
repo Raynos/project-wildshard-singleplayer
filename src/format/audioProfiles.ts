@@ -280,3 +280,14 @@ export const AudioPlaybackSchema = v.strictObject({ mode:v.picklist(['voices','s
     options:v.pipe(v.array(v.tuple([v.picklist(['gain','rate','pan','panTo','delay','jitter']),mixExpr])),v.maxLength(6)),tap:v.exactOptional(id)})),v.check(rows=>Object.keys(rows).length<=128)),
   sample:v.exactOptional(v.strictObject({reach:v.pipe(finite,v.minValue(0)),scale:v.pipe(finite,v.minValue(0.001)),power:v.pipe(finite,v.minValue(0)),cutoffScale:v.pipe(finite,v.minValue(0.001)),delay:v.pipe(finite,v.minValue(0)),jitter:v.pipe(finite,v.minValue(0)),outOfRangeHandled:v.boolean()})) });
 export type AudioPlaybackRecipe = v.InferOutput<typeof AudioPlaybackSchema>;
+
+/** Recorded/synth loop ownership and fades, with optional native proximity and music ducking. */
+const emitterFade=v.strictObject({mode:v.picklist(['linear','target']),seconds:v.pipe(finite,v.minValue(0.001),v.maxValue(60))});
+export const AudioLoopEmitterSchema=v.pipe(v.strictObject({scope:id,sample:id,graph:id,out:v.picklist(['ambient','sfx']),
+  tap:v.exactOptional(id),level:gain,initial:v.picklist(['value','scheduled']),connect:v.picklist(['always','sample']),offset:v.picklist(['random','fixed']),
+  fadeIn:emitterFade,fadeOut:emitterFade,
+  stop:v.strictObject({mode:v.picklist(['scheduled','timer']),after:v.pipe(finite,v.minValue(0),v.maxValue(60)),order:v.pipe(v.array(v.pipe(finite,v.safeInteger(),v.minValue(0),v.maxValue(63))),v.maxLength(64))}),
+  disconnect:v.strictObject({after:v.pipe(finite,v.minValue(0),v.maxValue(60)),node:v.picklist(['out','panner'])}),
+  proximity:v.exactOptional(v.pipe(v.strictObject({reference:v.pipe(finite,v.minValue(0)),max:v.pipe(finite,v.minValue(0)),build:v.pipe(finite,v.minValue(0)),drop:v.pipe(finite,v.minValue(0)),
+    duckNear:v.pipe(finite,v.minValue(0)),duckFar:v.pipe(finite,v.minValue(0)),duckGain:v.pipe(finite,v.minValue(0),v.maxValue(1))}),v.check(row=>row.reference<row.max&&row.build<row.drop&&row.duckNear<row.duckFar))) }),v.check(row=>row.disconnect.node==='out'?(row.stop.mode==='timer'&&row.disconnect.after===row.stop.after):(row.stop.mode==='scheduled'&&row.proximity!==undefined),'native loop disconnect policy')); 
+export type AudioLoopEmitterRecipe=v.InferOutput<typeof AudioLoopEmitterSchema>;

@@ -11,7 +11,6 @@ import { Cove } from '../../world/Cove';
 import { IslandSfx } from './sfx';
 import { ISLAND_SURFACES } from '../../data/audioSurfaces';
 import { IslandAmbience } from './ambience';
-import { ShrineHum } from './shrineHum';
 import { driftwoodCueMap } from './cues';
 import { installDriftwoodScore } from './score';
 
@@ -23,7 +22,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const audioRows = runtimeAudio(ctx, source.audio);
   installDriftwoodScore(audio, music, ctx.scope, requireAudioProfile(audioRows.music, 'score.driftwood'));
   const built = driftwoodWorld(shell), { trailDistance } = await import('@wildshard/engine/world/Heightfield');
-  const shrineHum = built.shrine === null ? null : new ShrineHum(audio, music, { x: SHRINE.x, y: heightAt(SHRINE.x, SHRINE.z) + 2.5, z: SHRINE.z },requireAudioProfile(audioRows.loopGraphs?.['shrine'],'shrine loop graph'));
+  const shrineHum = built.shrine === null ? null : audio.loopEmitter(requireAudioProfile(audioRows.emitters?.['shrine'],'shrine emitter'),requireAudioProfile(audioRows.loopGraphs,'audio loop graphs'),{position:{x:SHRINE.x,y:heightAt(SHRINE.x,SHRINE.z)+2.5,z:SHRINE.z},duck:gain=>{music.duck(gain);}});
   const islandSfx = new IslandSfx(audio, ctx.scope);
   const sea = LOWERED_SEA; // SF46 (G164): the lowered sea at road height
   const surfaces = audio.surfaceMap(requireAudioProfile(audioRows.surfaces,'island step surfaces'),ISLAND_SURFACES,{sea,heightAt,values:{trail:trailDistance},floors:{decks: [built.pier, ...built.jetties, built.boat, built.hut, built.lookout, built.bridge, built.wreck], stone: [built.shrine] } });

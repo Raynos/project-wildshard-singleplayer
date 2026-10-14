@@ -2,7 +2,7 @@ import type { Camera } from 'three';
 import { Scope } from '../app/scope';
 import { audioLog } from './audioLog';
 import { tap, ambientTick } from '../core/harnessTap';
-import type { AudioAmbienceRouting, AudioMixExpr as MixExpr, AudioOneShotSchedule } from '@wildshard/format/audioProfiles';
+import type { AudioLoopEmitterRecipe, AudioLoopGraph, AudioAmbienceRouting, AudioMixExpr as MixExpr, AudioOneShotSchedule } from '@wildshard/format/audioProfiles';
 import { requireAudioProfile, requireAudioLevel, audioMixValue, evaluateAudioMix, type AudioZoneProfile } from './audioProfiles';
 import type { Audio, SampleLoop } from './Audio';
 import type { AudioMixer } from './levelAudio';
@@ -476,4 +476,70 @@ function boundsOf(o: object | null | undefined, key: string): Record<(typeof BOU
   const n = (k: string): number => { const x: unknown = Reflect.get(v, k); return typeof x === 'number' ? x : Number.NaN; };
   const b = { x: n('x'), z: n('z'), r: n('r'), yMin: n('yMin'), yMax: n('yMax') };
   return Number.isFinite(b.x + b.z + b.r + b.yMin + b.yMax) && b.r > 0 ? b : undefined;
+}
+
+/** A live loop retains its original gain and source teardown, whether sampled or synthesized. */
+export interface LoopEmitterVoice {
+  startedAt:number;out:GainNode;level:number;sample:boolean;buf:AudioBuffer|undefined;panner:PannerNode|undefined;srcs:AudioScheduledSourceNode[];
+  stop:()=>void;fadeIn:(time:number)=>void;fadeOut:(time:number)=>void;
+}
+export interface LoopEmitterPorts {position?:{x:number;y:number;z:number};duck?:(gain:number)=>void;scope?:Scope}
+/** Shared loop source, fade and proximity lifecycle. Construction never unlocks an audio context. */
+export class LoopEmitter {
+  dist=Infinity;
+  private nodes:LoopEmitterVoice|undefined;
+  private readonly audio:Audio;private readonly recipe:AudioLoopEmitterRecipe;private readonly graph:AudioLoopGraph;private readonly ports:LoopEmitterPorts;
+  private readonly scope:Scope;private readonly ownsScope:boolean;
+  constructor(audio:Audio,recipe:AudioLoopEmitterRecipe,graph:AudioLoopGraph,ports:LoopEmitterPorts={}) {
+    if(recipe.proximity!==undefined&&(ports.position===undefined||ports.duck===undefined))throw new Error('Missing loop emitter proximity ports');
+    this.audio=audio;this.recipe=recipe;this.graph=graph;this.ports=ports;this.ownsScope=ports.scope===undefined;this.scope=ports.scope??new Scope(recipe.scope);
+  }
+  get active():boolean {return this.nodes!==undefined;}
+  get source():'sample'|'synth'|undefined {return this.nodes===undefined?undefined:this.nodes.sample?'sample':'synth';}
+  start(time?:number):LoopEmitterVoice {
+    if(this.nodes!==undefined)return this.nodes;
+    const recipe=this.recipe;if(recipe.tap!==undefined)tap.sound?.(recipe.tap);
+    const c=this.audio.ctx,t=time??c.currentTime,range=recipe.proximity,position=this.ports.position;
+    let panner:PannerNode|undefined;
+    if(range!==undefined&&position!==undefined){panner=c.createPanner();panner.panningModel='equalpower';panner.distanceModel='linear';panner.refDistance=range.reference;panner.maxDistance=range.max;panner.rolloffFactor=1;panner.positionX.value=position.x;panner.positionY.value=position.y;panner.positionZ.value=position.z;}
+    const out=c.createGain();if(recipe.initial==='scheduled')out.gain.setValueAtTime(0,t);else out.gain.value=0;
+    const sink=recipe.out==='ambient'?this.audio.ambient:this.audio.sfx;
+    if(recipe.connect==='always'){if(panner===undefined)out.connect(sink);else out.connect(panner).connect(sink);}
+    const srcs:AudioScheduledSourceNode[]=[],sample=this.audio.loop(recipe.sample);let level=recipe.level;
+    if(sample!==undefined){
+      const source=ownAudioSource(c.createBufferSource());
+      if(recipe.offset==='random'){loopAt(source,sample.buffer,sample,audioRandom,c.currentTime);source.connect(out);}
+      else{source.buffer=sample.buffer;source.loop=true;source.loopStart=sample.loopStart;source.loopEnd=sample.loopEnd;source.connect(out);source.start(t,sample.loopStart);}
+      if(recipe.connect==='sample')out.connect(sink);srcs.push(source);level=sample.gain;
+    }else{srcs.push(...this.audio.loopGraph(this.graph,out,t));}
+    const stop=():void=>{
+      if(sample===undefined&&recipe.stop.order.length>0){for(const index of recipe.stop.order)srcs[index]?.stop();}else for(const source of srcs)source.stop();
+      out.disconnect();
+    };
+    const voice:LoopEmitterVoice={startedAt:t,out,level,sample:sample!==undefined,buf:sample?.buffer,panner,srcs,stop,
+      fadeIn:at=>{if(recipe.fadeIn.mode==='target'){out.gain.cancelScheduledValues(at);out.gain.setTargetAtTime(level,at,recipe.fadeIn.seconds);}else out.gain.linearRampToValueAtTime(level,at+recipe.fadeIn.seconds);},
+      fadeOut:at=>{
+        if(this.nodes===voice)this.nodes=undefined;
+        out.gain.cancelScheduledValues(at);
+        if(recipe.fadeOut.mode==='linear'){out.gain.setValueAtTime(out.gain.value,at);out.gain.linearRampToValueAtTime(0,at+recipe.fadeOut.seconds);}else out.gain.setTargetAtTime(0,at,recipe.fadeOut.seconds);
+        if(recipe.stop.mode==='timer')this.scope.timeout(recipe.stop.after*1000,stop);else for(const source of srcs)source.stop(at+recipe.stop.after);
+        if(recipe.disconnect.node==='panner')this.scope.timeout(recipe.disconnect.after*1000,()=>{try{panner?.disconnect();}catch{/* Already disconnected. */}});
+      }};
+    this.nodes=voice;return voice;
+  }
+  update(camera:Camera):void {
+    if(!this.audio.ready)return;
+    const range=this.recipe.proximity,position=this.ports.position;if(range===undefined||position===undefined)return;
+    const m=camera.matrixWorld.elements,px=m[12],py=m[13],pz=m[14],dx=px-position.x,dy=py-position.y,dz=pz-position.z,distance=Math.sqrt(dx*dx+dy*dy+dz*dz);this.dist=distance;
+    this.ports.duck?.(distance<=range.duckNear?range.duckGain:distance>=range.duckFar?1:1+(range.duckGain-1)*((range.duckFar-distance)/(range.duckFar-range.duckNear)));
+    if(distance>range.drop){this.nodes?.fadeOut(this.audio.ctx.currentTime);return;}
+    if(this.nodes===undefined){if(distance>range.build)return;const voice=this.start();voice.fadeIn(voice.startedAt);}
+    else if(this.audio.loop(this.recipe.sample)?.buffer!==this.nodes.buf){this.nodes.fadeOut(this.audio.ctx.currentTime);const voice=this.start();voice.fadeIn(voice.startedAt);}
+    const listener=this.audio.ctx.listener;listener.positionX.value=px;listener.positionY.value=py;listener.positionZ.value=pz;listener.forwardX.value=-m[8];listener.forwardY.value=-m[9];listener.forwardZ.value=-m[10];listener.upX.value=m[4];listener.upY.value=m[5];listener.upZ.value=m[6];
+  }
+  dispose():void {
+    const voice=this.nodes;this.nodes=undefined;
+    if(voice!==undefined){for(const source of voice.srcs){try{source.stop();}catch{/* Already stopped. */}source.disconnect();}voice.out.disconnect();voice.panner?.disconnect();}
+    if(this.ownsScope)this.scope.dispose();this.ports.duck?.(1);
+  }
 }
