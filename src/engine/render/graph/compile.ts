@@ -188,6 +188,8 @@ interface LitHooks {
   readonly grade: ((lit: Node<'vec3'>) => Node<'vec3'>) | null;
   /** whether the model keeps any specular (the graph declared `sunSpecular`) */
   readonly specular: boolean;
+  /** The toon family excludes environment diffuse while retaining reflected radiance. */
+  readonly replaceEnvironmentDiffuse?: boolean;
 }
 /** a clone's placeholder until `copy` hands it the source's hooks: the plain physical light, no grade */
 const PHYSICAL_HOOKS: LitHooks = { sun: null, ambient: null, grade: null, specular: true };
@@ -248,7 +250,19 @@ class GraphLightingModel extends PhysicalLightingModel {
       const indirect: unknown = typeof reflected === 'object' && reflected !== null ? Reflect.get(reflected, 'indirectDiffuse') : null;
       accumulate(indirect, ambient(vec3Of(irradiance, 'the irradiance')));
     }
-    if (this.hooks.specular) this.indirectSpecular(builder);
+    if (this.hooks.specular) {
+      if (ambient === null || this.hooks.replaceEnvironmentDiffuse !== true) this.indirectSpecular(builder);
+      else {
+        // Physical indirectSpecular also accumulates environment diffuse. Toon
+        // ambient already replaced that term; keep radiance specular without adding it back.
+        const context: unknown = builder.context;
+        if (typeof context !== 'object' || context === null) throw new Error('material graph: missing lighting context');
+        const ibl: unknown = Reflect.get(context, 'iblIrradiance');
+        Reflect.set(context, 'iblIrradiance', vec3(0));
+        try { this.indirectSpecular(builder); }
+        finally { Reflect.set(context, 'iblIrradiance', ibl); }
+      }
+    }
     this.ambientOcclusion(builder);
   }
 }
@@ -776,7 +790,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     scope.memo.set('rough', { t: 'float', n: property('float', 'roughness') });
     const lighting = preset.stages.lighting;
     if (lighting === undefined) throw new Error('Missing toon lighting');
-    return litHooks(lighting, scope);
+    return { ...litHooks(lighting, scope), replaceEnvironmentDiffuse: true };
   };
   /** Authored scalar factors multiply borrowed PBR slots, as native material factors do. */
   const mappedFactor = (base: Node<'float'>, slot: 'roughnessMap' | 'aoMap'): Node<'float'> => Fn((builder: NodeBuilder): Node<'float'> => {

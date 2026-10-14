@@ -5234,3 +5234,9 @@ produce existing quest text; transition order is toast, sting, borrowed beat.
 `game/plugin/ui.ts`'s `QuestPresentationOptions.messages` consumes these rows.
 Its optional `afterStep` preserves caller-owned dawn/stage timing. No quest,
 flag or save is created by the message handlers; existing options are unchanged.
+
+The graph `toon` model excludes environment diffuse, matching the classic
+toon family's shade band. Its physical environment specular remains;
+compilation restores the lighting context after substituting zero IBL
+irradiance for that calculation. Standard graphs, including authored
+lighting stages, retain their existing physical environment lighting.
