@@ -1,30 +1,42 @@
 import { expect, it } from 'vitest';
-import { BoxGeometry, Group, MeshStandardMaterial, type Object3D } from 'three';
+import { BoxGeometry, Group, Mesh, MeshStandardMaterial, Texture } from 'three';
 import { bindWorldSceneParts, createWorldScene } from '../src/game/plugin/ui';
 import { MILL_SCENE } from '../src/shards/far-reach/data/millScene.generated';
 import { SKY_ROUTE_FRAMES } from '../src/shards/far-reach/data/routeScene.generated';
 
 it('keeps mill parts borrowed under a native spinning hub', () => {
-  const objects = new Map<string, Object3D | null>([...MILL_SCENE.parts, 'model.tower', 'model.foot'].map(name => {
-    const part = new Group(); part.name = name; return [name, part];
-  }));
-  const made = createWorldScene(MILL_SCENE.recipe, { objects, geometry: () => null, model: () => null, baked: () => ({ root: new Group(), colliders: [] }) });
+  const parts = new Map<string, Group>(MILL_SCENE.parts.map(name => { const part = new Group(); part.name = name; return [name, part]; }));
+  const geometry = new BoxGeometry(), material = new MeshStandardMaterial(), texture = new Texture();
+  const made = createWorldScene(MILL_SCENE.recipe, {
+    geometry: () => geometry.clone(), model: () => null,
+    materials: new Map([['tower', material], ['foot', material]]), textures: new Map([['ready', texture]]),
+    baked: (piece, only) => {
+      expect(piece).toBe('mill'); const part = parts.get(String(only?.['name']));
+      if (part === undefined) throw new Error('Missing declared mill part');
+      return { root: part, colliders: [] };
+    },
+  });
   const bound = bindWorldSceneParts(made, { hub: 'group', hubAt: 'vector' }, MILL_SCENE.bindings);
-  expect(made.root.children.map(part => part.name)).toEqual(['shaft', 'model.tower', 'model.foot', '']);
-  expect(bound.hub.children).toEqual(MILL_SCENE.parts.slice(1).map(name => objects.get(name)));
+  expect(made.root.children.map(part => part.name)).toEqual(['shaft', 'far.mill.tower', 'far.mill.foot', '']);
+  expect(bound.hub.children).toEqual(MILL_SCENE.parts.slice(1).map(name => parts.get(name)));
   expect(bound.hubAt.toArray()).toEqual(bound.hub.position.toArray());
   bound.hub.rotation.z = 0.25;
-  expect(objects.get('frame')?.parent).toBe(bound.hub);
-  expect(objects.get('shaft')?.parent).toBe(made.root);
-  made.dispose();
+  expect(parts.get('frame')?.parent).toBe(bound.hub);
+  expect(parts.get('shaft')?.parent).toBe(made.root);
+  made.dispose(); geometry.dispose(); material.dispose(); texture.dispose();
 });
 
 it('keeps the native hub available when optional baked parts fail to load', () => {
-  const objects = new Map([...MILL_SCENE.parts, 'model.tower', 'model.foot'].map(name => [name, null]));
-  const made = createWorldScene(MILL_SCENE.recipe, { objects, geometry: () => null, model: () => null, baked: () => ({ root: new Group(), colliders: [] }) });
+  const made = createWorldScene(MILL_SCENE.recipe, {
+    geometry: () => null, model: () => null, textures: new Map([['ready', null]]),
+    baked: () => ({ root: new Group(), colliders: [] }),
+  });
   const bound = bindWorldSceneParts(made, { hub: 'group', hubAt: 'vector' }, MILL_SCENE.bindings);
-  expect(made.root.children).toEqual([bound.hub]);
-  expect(bound.hub.children).toHaveLength(0);
+  expect(bound.hub.parent).toBe(made.root);
+  let drawn = 0; made.root.traverse(part => { if (part instanceof Mesh) drawn++; });
+  expect(drawn).toBe(0);
+  expect(bound.hub.children).toHaveLength(MILL_SCENE.parts.length - 1);
+  expect(bound.hub.children.every(part => part.children.length === 0)).toBe(true);
   made.dispose();
 });
 
