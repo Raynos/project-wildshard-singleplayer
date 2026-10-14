@@ -141,6 +141,52 @@ export interface HuntMemory {
   path: Vector3[]; pathI: number; goalX: number; goalZ: number; repathAt: number;
 }
 
+
+/** Plain hunt continuation values; the owning roster retains its schema and version. */
+export type SavedHuntMemory=Record<string,number|boolean|[number,number,number][]>;
+const savedPathPoint=(value:unknown):Vector3=>{
+  if(!Array.isArray(value)||value.length!==3)throw new Error('Invalid hunting path point');
+  const x:unknown=value[0],y:unknown=value[1],z:unknown=value[2];
+  if(typeof x!=='number'||typeof y!=='number'||typeof z!=='number'||!Number.isFinite(x)||!Number.isFinite(y)||!Number.isFinite(z))throw new Error('Invalid hunting path point');
+  return new Vector3(x,y,z);
+};
+/** Copy/restore only memory values; no brain, body, clock or RNG owner is created. */
+export const huntMemoryCodec={
+  /** Save the live record, or an authored historical field list, with plain path triples. */
+  save(memory:HuntMemory,fields:readonly string[]=Object.keys(memory)):SavedHuntMemory {
+    if(fields.length>256||new Set(fields).size!==fields.length)throw new Error('Invalid hunting memory fields');
+    const saved:SavedHuntMemory={};
+    for(const key of fields){
+      if(!Object.hasOwn(memory,key))throw new Error(`Missing hunting memory ${key}`);
+      const value:unknown=Reflect.get(memory,key);
+      if(Array.isArray(value))saved[key]=value.map((point:unknown):[number,number,number]=>{
+        if(!(point instanceof Vector3))throw new Error('Unsaveable hunting path');return [point.x,point.y,point.z];
+      });
+      else if(typeof value==='boolean'||typeof value==='number')saved[key]=value;
+      else throw new Error(`Unsaveable hunting memory ${key}`);
+    }
+    return saved;
+  },
+  /** Preflight complete or historical subset fields before mutating the brain's actual record. */
+  restore(memory:HuntMemory,input:unknown,complete=true):void {
+    if(input===null||typeof input!=='object'||Array.isArray(input))throw new Error('Invalid hunting memory continuation');
+    const fields=Object.keys(input),known=Object.keys(memory);
+    if(fields.length>256||(complete&&fields.length!==known.length))throw new Error('Incompatible hunting memory');
+    const changes=fields.map(key=>{
+      if(!Object.hasOwn(memory,key))throw new Error(`Incompatible hunting memory ${key}`);
+      const value:unknown=Reflect.get(input,key),current:unknown=Reflect.get(memory,key);
+      if(Array.isArray(value)){
+        if(!Array.isArray(current))throw new Error(`Incompatible hunting memory ${key}`);
+        return {key,value:value.map((point:unknown)=>savedPathPoint(point))};
+      }
+      if(typeof value!==typeof current||(typeof value!=='number'&&typeof value!=='boolean')
+        ||(typeof value==='number'&&!Number.isFinite(value)))throw new Error(`Incompatible hunting memory ${key}`);
+      return {key,value};
+    });
+    for(const change of changes)Reflect.set(memory,change.key,change.value);
+  },
+};
+
 /** What the brain drives: the native body plus the two view facts it reads (a hidden rig, the 10 Hz slope sample). */
 export interface HuntBody extends AnimalSim {
   readonly hidden: boolean;

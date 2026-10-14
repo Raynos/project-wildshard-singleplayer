@@ -4956,3 +4956,9 @@ metadata. `step(dt)` invokes trusted integration, contact, advanced, moved
 and expired ports in that order without allocating per-step result data.
 Integration laws, damage, sticking, render meshes and tracers remain with
 the original owners; the pool installs no physics or rendering service.
+
+The engine/ai/huntPattern huntMemoryCodec copies live hunt memory to
+SavedHuntMemory and restores real Vector3 path corners. Callers retain
+schemas, snapshot versions and save ownership. Complete field/type
+preflight or an authored historical subset precedes all mutation; the
+codec never advances the brain, clock, RNG or body.

@@ -17,3 +17,7 @@ export const DRIFTWOOD_FAUNA_PLANS: FaunaPlan[] = [
   { kind: 'bear', count: 1, variants: ['brown'], anchor: { x: 56, z: -84, rMin: 4, rMax: 16 }, canopy: false, trailBand: [8, 600] },
   { kind: 'bear', count: 1, variants: ['black', 'black-blaze'], anchor: { x: -122, z: -100, rMin: 4, rMax: 14 }, canopy: false, trailBand: [8, 600] },
 ];
+
+/** Historical fauna continuation fields; future fields remain on their existing native defaults. */
+export const DRIFTWOOD_HUNT_MEMORY_FIELDS=['timer','tx','tz','fleeT','fleeUntil','chargeCd','callT','awareness','freeze',
+  'spooked','wary','sensed','windup','backoff','side','committed','path','pathI','goalX','goalZ','repathAt'] as const;

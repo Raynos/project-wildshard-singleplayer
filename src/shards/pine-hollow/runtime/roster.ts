@@ -2,7 +2,8 @@ import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import { spawnRolls, type HuntBody, type HuntMemory, type HuntNav } from '@wildshard/engine/ai/hunt';
+import { spawnRolls, type HuntBody, type HuntNav } from '@wildshard/engine/ai/hunt';
+import { huntMemoryCodec } from '@wildshard/engine/ai/huntPattern';
 import { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { creatureFloor as structureFloor } from '@wildshard/game/shardfile/homeKeeper';
@@ -61,28 +62,6 @@ const Saved = v.strictObject({ version: v.literal(3), rng: Stream, clock: finite
 const Point = v.strictObject({ x: finite, y: finite, z: finite });
 /** The host's own recipe of a live spawn (SimHost.spawn's `runtime.actor.<id>` contract), checked before it is reinstalled. */
 const Recipe = v.looseObject({ id: v.string(), spec: v.looseObject({ kind: v.string(), variant: v.string() }), seed: finite, scale: finite, at: Point, yaw: finite });
-type SavedMemory = v.InferOutput<typeof Memory>;
-const point = (p: unknown): [number, number, number] => { if (!(p instanceof Vector3)) throw new Error('Unsaveable Pine hunting path'); return [p.x, p.y, p.z]; };
-/** A body's hunting memory as plain values (its path's points as triples). */
-function saveMemory(memory: HuntMemory): SavedMemory {
-  const out: SavedMemory = {};
-  Object.keys(memory).forEach(key => {
-    const value: unknown = Reflect.get(memory, key);
-    out[key] = Array.isArray(value) ? value.map(point) : typeof value === 'boolean' ? value : Number(value);
-  });
-  return out;
-}
-/** Write a saved memory back into the brain's own record, field for field (a missing or retyped field refuses). */
-function loadMemory(memory: HuntMemory, saved: SavedMemory): void {
-  const keys = Object.keys(memory);
-  if (keys.length !== Object.keys(saved).length) throw new Error('Incompatible Pine hunting memory');
-  keys.forEach(key => {
-    const value = saved[key], known: unknown = Reflect.get(memory, key);
-    if (value === undefined || Array.isArray(value) !== Array.isArray(known) || (!Array.isArray(value) && typeof value !== typeof known)) throw new Error(`Incompatible Pine hunting memory ${key}`);
-    Reflect.set(memory, key, Array.isArray(value) ? value.map(([x, y, z]) => new Vector3(x, y, z)) : value);
-  });
-}
-
 /**
  * Pine Hollow's creature manager in a renderer-free host (SF72), as the shipping AnimalManager builds and thinks it. The boot
  * roster comes from the one creature stream `Rng(1337 + 31)` in the page's exact order, every id, kind, variant, seed and scale
@@ -266,7 +245,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
     snapshot: () => ({ version: 3, rng: { ...rng.snapshot() }, clock, speed: { ...speed }, next,
       bodies: list.map((b, i) => {
         const memory = hunt.memory(b.actor); if (memory === undefined) throw new Error(`Pine body ${b.id} has no memory`);
-        return { id: b.id, kind: b.kind, seen: seen[i] === true, memory: saveMemory(memory) };
+        return { id: b.id, kind: b.kind, seen: seen[i] === true, memory: huntMemoryCodec.save(memory) };
       }),
       herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]) }),
     restore: value => {
@@ -278,7 +257,7 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
       state.bodies.forEach((b, i) => {
         const body = list[i], memory = body === undefined ? undefined : hunt.memory(body.actor);
         if (memory === undefined) throw new Error('Incompatible Pine roster continuation');
-        seen[i] = b.seen; loadMemory(memory, b.memory);
+        seen[i] = b.seen; huntMemoryCodec.restore(memory,b.memory);
       });
       state.herds.forEach(([cx, cz], i) => { const herd = hunt.herds[i]; if (herd !== undefined) { herd.cx = cx; herd.cz = cz; } });
     },

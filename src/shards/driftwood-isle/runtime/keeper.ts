@@ -1,4 +1,4 @@
-import { DRIFTWOOD_FAUNA_TUNING } from '../data/fauna';
+import { DRIFTWOOD_FAUNA_TUNING, DRIFTWOOD_HUNT_MEMORY_FIELDS } from '../data/fauna';
 import { attachDriftwoodPose, type DriftwoodPosedVolumes, type DriftwoodPoseRecipe } from './posedVolumes';
 import { animateCrab } from '../species/crabPose';
 import { animateMonkey } from '../species/monkeyPose';
@@ -11,7 +11,8 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { WeightedTable } from '@wildshard/engine/ai/weighted';
-import { ATTACK_TURN, type HuntBody, type HuntGround, type HuntMemory, type HuntNav } from '@wildshard/engine/ai/hunt';
+import { ATTACK_TURN, type HuntBody, type HuntGround, type HuntNav } from '@wildshard/engine/ai/hunt';
+import { huntMemoryCodec } from '@wildshard/engine/ai/huntPattern';
 import { StalkerBrain } from '@wildshard/engine/ai/stalker';
 import { canReach } from '@wildshard/engine/ai/reach';
 import { castRay } from '@wildshard/engine/physics/query';
@@ -97,13 +98,6 @@ const Saved = v.strictObject({ version: v.literal(8), rng: Stream, ecology: v.st
   bodies: v.array(v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, live: v.boolean(), pose: v.nullable(v.string()), policy: v.nullable(v.string()) })),
   captain: v.nullable(v.strictObject({ id: v.string(), pose: v.string(), policy: v.boolean() })),
   practice: v.strictObject({ dead: finite, fade: finite }), ids: v.strictObject({ next: v.pipe(v.number(), v.integer(), v.minValue(0)), used: v.array(v.string()) }) });
-
-/** HuntMemory as plain data: every field, the path's corners as points. */
-function memoryData(m: HuntMemory): v.InferOutput<typeof Memory> {
-  return { timer: m.timer, tx: m.tx, tz: m.tz, fleeT: m.fleeT, fleeUntil: m.fleeUntil, chargeCd: m.chargeCd, callT: m.callT, awareness: m.awareness,
-    freeze: m.freeze, spooked: m.spooked, wary: m.wary, sensed: m.sensed, windup: m.windup, backoff: m.backoff, side: m.side, committed: m.committed,
-    path: m.path.map(p => [p.x, p.y, p.z] as [number, number, number]), pathI: m.pathI, goalX: m.goalX, goalZ: m.goalZ, repathAt: m.repathAt };
-}
 
 /**
  * Driftwood Isle's creatures in a renderer-free host (SF72), as the shipping AnimalManager and creatures/Enemies.ts keep
@@ -466,7 +460,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       coconuts: { rng: { ...placed.stream.snapshot() }, ...volley.snapshot(th => bodies.findIndex(b => b.actor === th)) },
       tokens: [...bodies, ...(captain === null ? [] : [captain])].flatMap(b => b.actor !== null && hunt.tokens.enabled && hunt.tokens.holds(b.actor) ? [b.id] : []),
       fauna: { clock: tracked.clock, speed: tracked.speed, prev: tracked.seen ? [tracked.prev.x, tracked.prev.y, tracked.prev.z] as [number, number, number] : null,
-        memories: bodies.map(b => { const m = b.actor === null || b.brain !== null ? undefined : hunt.memory(b.actor); return m === undefined ? null : memoryData(m); }), sight: [...sight] },
+        memories: bodies.map(b => { const m = b.actor === null || b.brain !== null ? undefined : hunt.memory(b.actor); return m === undefined ? null : huntMemoryCodec.save(m,DRIFTWOOD_HUNT_MEMORY_FIELDS); }), sight: [...sight] },
       herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]), practice: { dead: practice.dead, fade: practice.fade }, ids: entityIds.snapshot(),
       bodies: bodies.map(b => ({ id: b.id, kind: b.kind, variant: b.variant, herd: b.herd, live: b.actor !== null, pose: b.actor === null ? null : poses.get(b.id)?.snapshot() ?? null, policy: b.brain === null ? null : JSON.stringify(b.brain.snapshot()) })),
       captain: captain === null ? null : { id: captain.id, pose: poses.get(captain.id)?.snapshot() ?? '', policy: v.parse(v.boolean(), captain.brain?.snapshot()) } }),
@@ -494,7 +488,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
       state.fauna.memories.forEach((m, i) => {
         const a = bodies[i]?.actor ?? null, memory = a === null ? undefined : hunt.memory(a);
         if ((m === null) !== (memory === undefined || bodies[i]?.brain !== null)) throw new Error('Incompatible Driftwood fauna memory');
-        if (m !== null && memory !== undefined) Object.assign(memory, { ...m, path: m.path.map(p => new Vector3(...p)) });
+        if (m !== null && memory !== undefined) huntMemoryCodec.restore(memory,m,false);
       });
     },
     // the restored world holds the coconuts' native bodies: a body service over it adopts them by handle
