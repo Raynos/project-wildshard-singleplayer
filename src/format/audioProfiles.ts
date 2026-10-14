@@ -10,6 +10,31 @@ const catalogue = v.strictObject({ ownMusic: v.boolean(), priorityOwn: v.boolean
 const optionalIds = v.optional(v.pipe(v.array(id), v.maxLength(128), v.check((ids) => new Set(ids).size === ids.length, 'unique sample ids')));
 const scalar = v.union([finite, v.boolean(), id, v.null()]);
 const conditions = v.pipe(v.array(v.strictObject({ field: id, op: v.picklist(['equals', 'not-equals', 'greater']), value: scalar })), v.maxLength(16));
+/** Bounded numerical mix expressions over supplied listener/clock/geometry values. */
+export type AudioMixOp = '+' | '-' | '*' | '/' | 'min' | 'max' | 'abs' | 'sin' | 'hypot' | 'ss' | 'in' | 'lt' | 'gt' | 'if' | 'and' | 'or' | 'not' | 'clamp' | 'zone' | 'dist';
+export type AudioMixExpr = number | string | readonly [AudioMixOp, ...AudioMixExpr[]];
+function boundedMix(expr:AudioMixExpr):boolean {
+  const pending:{value:AudioMixExpr;depth:number}[]=[{value:expr,depth:0}];
+  for(let count=0;count<256;count++){
+    const current=pending.pop();if(current===undefined)return true;if(current.depth>16)return false;
+    if(typeof current.value!=='number'&&typeof current.value!=='string') {
+      const arity=current.value.length-1,op=current.value[0];
+      const wanted=op==='ss'||op==='in'||op==='if'||op==='clamp'?3:op==='-'||op==='/'||op==='min'||op==='max'||op==='hypot'||op==='lt'||op==='gt'?2:op==='abs'||op==='sin'||op==='not'||op==='zone'||op==='dist'?1:null;
+      if(arity<1||arity>8||(wanted!==null&&arity!==wanted)||((op==='dist'||op==='zone')&&typeof current.value[1]!=='string'))return false;
+      for(const value of current.value.slice(1))pending.push({value,depth:current.depth+1});
+    }
+  }
+  return pending.length===0;
+}
+const mixExpr:v.GenericSchema<AudioMixExpr> = v.pipe(v.lazy(()=>v.union([finite,id,v.tupleWithRest([v.picklist(['+','-','*','/','min','max','abs','sin','hypot','ss','in','lt','gt','if','and','or','not','clamp','zone','dist'])],mixExpr)])),v.check(value=>boundedMix(value),'bounded mix expression'));
+const mixValues=(max:number)=>v.pipe(v.array(v.tuple([id,mixExpr])),v.maxLength(max));
+/** Ordered weights, levels, filters, sends and diagnostics. All graph/geometry ports remain native. */
+export const AudioMixSchema = v.strictObject({values:mixValues(256),levels:mixValues(64),cutoffs:mixValues(16),
+  rooms:v.pipe(v.array(v.strictObject({id,weight:mixExpr,level:mixExpr})),v.maxLength(16)),diag:mixValues(64),zones:mixValues(32),
+  zoneMode:v.picklist(['first','max']),zoneFloor:v.pipe(finite,v.minValue(0),v.maxValue(1)),defaultZone:id,
+  shade:v.exactOptional(v.tuple([mixExpr,mixExpr]))});
+export type AudioMixRecipe = v.InferOutput<typeof AudioMixSchema>;
+
 /** Bounded music catalogue selection; the engine keeps today's bar-grid calm/tension/boss stem decoding. */
 export const AudioMusicSchema = v.pipe(v.strictObject({ id, base: id, slots: list, bootSlots: list,
   synthLead: v.picklist(['pluck', 'marimba']), minFade: v.pipe(finite, v.minValue(0), v.maxValue(60)),
@@ -27,7 +52,7 @@ const zone = v.pipe(v.strictObject({ id, x: finite, z: finite, inner: v.pipe(fin
   fade: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))), open: v.optional(v.boolean()), source: v.optional(id) }), v.check((row) => row.inner < row.outer && (row.fade === undefined || row.outer === row.inner + row.fade), 'audio zone fade must extend outside its inner radius'));
 const rectangle = v.pipe(v.strictObject({ id, zone: id, x0: finite, x1: finite, z0: finite, z1: finite }), v.check((row) => row.x0 < row.x1 && row.z0 < row.z1, 'positive rectangular audio region'));
 /** Bounded zone/mixer data. Terrain, moving emitters and bespoke synthesis remain trusted runtime ports. */
-export const AudioZonesSchema = v.strictObject({ id, smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
+export const AudioZonesSchema = v.strictObject({ id, mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
   silentSeconds: v.pipe(finite, v.minValue(0), v.maxValue(600)), holdSeconds: v.pipe(finite, v.minValue(0), v.maxValue(60)),
   levels: v.pipe(v.record(id, gain), v.check((levels) => Object.keys(levels).length <= 64, 'bounded levels')),
   blendMetres: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))),

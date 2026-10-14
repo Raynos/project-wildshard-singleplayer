@@ -41,8 +41,8 @@ import { CABIN_SITES, POND, hasPond } from '@wildshard/engine/world/Heightfield'
  * Settings ▸ Sound effects = Synth: no beds (Audio's synth forest bed plays), the reverb still works.
  */
 import type { Camera } from 'three';
-import { PineHollowSfx, type PhBed } from './sfx';
-import { requireAudioProfile, requireAudioLevel, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
+import { PineHollowSfx, PH_BEDS, type PhBed } from './sfx';
+import { requireAudioProfile, requireAudioLevel, evaluateAudioMix, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
 import source from '../../shard.config';
 
 export type ForestZone = 'hollow' | 'pond' | 'cabin' | 'creek' | 'waterfall' | 'mill' | 'ridge' | 'oldgrowth' | 'cave';
@@ -68,6 +68,9 @@ const PANNED = new Set<PhBed>(['pond', 'creek', 'waterfall', 'mill']);
 /** a cabin's inside: its floor, and within the smallest cabin's half-width of the site along the door axis (the porch is past it) */
 const CABIN_HALF_W = 2.45;
 const ROCK_SLOPE = 0.32;
+const FOREST_ZONES = ['hollow','pond','cabin','creek','waterfall','mill','ridge','oldgrowth','cave'] as const;
+const ROOMS = ['cabin','den','oldgrowth','bowl'] as const;
+const SPOT_KEYS = ['creek','waterfall','mill','ridge','oldgrowth','cave'] as const;
 
 interface Bed extends ZoneVoice { name: PhBed; pending: boolean; idle: number; heard: boolean }
 
@@ -77,6 +80,12 @@ export class ForestAmbience {
   private readonly outLevel: number;
   /** Wet levels at full weight; the original room impulse responses stay native. */
   private readonly wet: Readonly<Record<Room, number>>;
+  private readonly values = new Map<string,number>();
+  private readonly mixPorts:Parameters<typeof evaluateAudioMix>[1];
+  private readonly bedNames = new Map<string,PhBed>(PH_BEDS.map(name=>[name,name] as const));
+  private readonly roomNames = new Map<string,Room>(ROOMS.map(name=>[name,name] as const));
+  private readonly zoneNames = new Map<string,ForestZone>(FOREST_ZONES.map(name=>[name,name] as const));
+  private mixDt=0;private mixTime=0;private mixListed=false;
   private active = true;
   night = 0; dawn = 0; rain = 0;
   /** the thralls' far calls (0 … 1); defaults to following the night when never set */
@@ -109,6 +118,42 @@ export class ForestAmbience {
     this.zones = new AmbienceZones(audio, audioRandom, o.scope === undefined ? undefined : this.scope);
     this.sfx = new PineHollowSfx(audio);
     this.spots = [...(o.spots ?? [])];
+    for(let i=0;i<4;i++){const id=ROOMS[i];if(id!==undefined)this.values.set(`wet.${id}`,this.wet[id]);}
+    this.mixPorts = {
+      read:id=>{const value=this.values.get(id);if(value===undefined)throw new Error(`Missing forest mix value: ${id}`);return value;},
+      write:(id,value)=>{this.values.set(id,value);},
+      level:(id,value)=>{
+        const name=this.bedNames.get(id);
+        const t=this.mixTime,dt=this.mixDt,TAU=this.profile.smoothSeconds,DROP_S=this.profile.silentSeconds,D=this.diag,listed=this.mixListed;if(name===undefined)throw new Error('Unknown forest bed');
+        const w=Number.isFinite(value)?value:0;
+      let b = this.beds.get(name);
+      if (!b && w > 0.01 && listed) b = this.openBed(name);
+      if (!b) return;
+      b.level = w; b.gain.gain.setTargetAtTime(w, t, TAU);
+      // the trigger log: a bed coming up (audible, > 0.05) or going down (< 0.02) — `ok` = its loop is decoded and playing
+      if (!b.heard && w > 0.05) { b.heard = true; audioLog('bed', name, b.src !== undefined, `up ${w.toFixed(2)}${b.pending ? ' (decoding)' : ''}`); }
+      else if (b.heard && w < 0.02) { b.heard = false; audioLog('bed', name, true, 'down'); }
+      b.idle = w > 0.005 ? 0 : b.idle + dt;
+      if (b.idle > DROP_S && !b.pending) this.dropBed(b);
+      else if (b.src) D.beds.push(name);
+      },afterLevels:()=>{
+        const x=this.px,z=this.pz,a=this.audio,t=this.mixTime;
+    // pan the positional beds toward their centre
+    for (const [name, px, pz] of this.panTargets()) {
+      const b = this.beds.get(name); if (!b?.pan) continue;
+      const dx = px - x, dz = pz - z, d = Math.hypot(dx, dz), l = a.ctx.listener;
+      const rx = -l.forwardZ.value, rz = l.forwardX.value;
+      b.pan.pan.setTargetAtTime(d > 1 ? Math.max(-0.75, Math.min(0.75, (dx * rx + dz * rz) / d * 0.75 * ss(4, 20, d))) : 0, t, 0.2);
+    }
+      },
+      cutoff:(id,value)=>{if(id!=='occl')throw new Error('Unknown forest filter');this.occl?.frequency.setTargetAtTime(value,this.mixTime,this.profile.smoothSeconds);},
+      shade:(gain,cutoff)=>{this.audio.shadeAmbient(gain,cutoff);},
+      room:(id,weight,level)=>{
+        const room=this.roomNames.get(id);if(room===undefined)throw new Error('Unknown forest room');
+        const gain=weight>0.001?this.send(room):this.sends.get(room);gain?.gain.setTargetAtTime(level,this.mixTime,this.profile.smoothSeconds);this.diag.sends[room]=weight;
+      },
+      diag:(id,value)=>{if(!(id in this.diag)||id==='beds'||id==='sends')throw new Error('Unknown forest diagnostic');Reflect.set(this.diag,id,value);},
+    };
   }
 
   addSpot(s: ZoneSpot): void { this.spots.push(s); }
@@ -204,12 +249,9 @@ export class ForestAmbience {
 
   /** the zone weights → every bed's target level, the ambient shade and every reverb send (10 Hz, 300 ms crossfades) */
   private mix(dt: number): void {
-    const TAU = this.profile.smoothSeconds, DROP_S = this.profile.silentSeconds, WET = this.wet;
     const a = this.audio, t = a.ctx.currentTime, x = this.px, y = this.py, z = this.pz, D = this.diag;
     if (!Number.isFinite(x + y + z + this.night + this.dawn + this.rain)) return; // hold the last mix rather than feed NaN to the AudioParams (E278)
-    const uw = this.underwater ? 1 : 0, dry = 1 - uw;
-    const night = Math.max(0, Math.min(1, this.night)), dawn = Math.max(0, Math.min(1, this.dawn)), rain = Math.max(0, Math.min(1, this.rain));
-    const cabin = this.inCabin(x, z, y), outside = 1 - cabin;
+    const cabin = this.inCabin(x, z, y);
     const pond = hasPond() ? ss(POND.r + 40, POND.r + 4, Math.hypot(x - POND.x, z - POND.z)) : 0;
     const spot: Record<string, number> = { creek: 0, waterfall: 0, mill: 0, ridge: 0, oldgrowth: 0, cave: 0 };
     let open = pond > 0.5 ? 1 : 0;
@@ -218,61 +260,17 @@ export class ForestAmbience {
       spot[s.zone] = Math.max(spot[s.zone] ?? 0, w);
       if (s.open) open = Math.max(open, w);
     }
-    const cave = spot['cave'] ?? 0, oldgrowth = spot['oldgrowth'] ?? 0, ridge = spot['ridge'] ?? 0;
-    const others = Math.max(pond * 0.6, cave, ridge * 0.7, oldgrowth * 0.8);
-    const hollow = (1 - others) * outside * (1 - 0.75 * night);
     // fire crackle: inside, or beside a fire pit
     let fire = cabin;
     for (const p of this.o.cabins?.firePits ?? []) fire = Math.max(fire, 0.55 * ss(9, 2, Math.hypot(x - p.x, z - p.z)));
-    const walls = 1 - 0.8 * cabin, hush = 1 - 0.85 * cave;
-    const thr = this.thrallLevel();
-    const want: [PhBed, number][] = [
-      ['hollow', hollow], ['pond', pond * (1 - 0.4 * night) * walls], ['cabin', fire],
-      ['creek', (spot['creek'] ?? 0) * walls], ['waterfall', (spot['waterfall'] ?? 0) * walls], ['mill', (spot['mill'] ?? 0) * walls],
-      ['ridge', ridge * outside], ['oldgrowth', oldgrowth * outside * (1 - 0.5 * night)], ['cave', cave],
-      ['night', night * walls * hush], ['nightfog', night * thr * walls * hush], ['dawn', dawn * (1 - night) * walls * hush],
-      ['rain-canopy', rain * (1 - open) * walls * hush], ['rain-open', rain * open * walls * hush],
-    ];
-    const listed = this.sfx.available;
-    D.beds = [];
-    for (let index = 0; index < 14; index++) {
-      const row = want[index]; if (row === undefined) continue;
-      const [name, w0] = row;
-      const w = Number.isFinite(w0) ? w0 * dry : 0; // a NaN weight throws in setTargetAtTime and the loop switches this system off (E278)
-      let b = this.beds.get(name);
-      if (!b && w > 0.01 && listed) b = this.openBed(name);
-      if (!b) continue;
-      b.level = w; b.gain.gain.setTargetAtTime(w, t, TAU);
-      // the trigger log: a bed coming up (audible, > 0.05) or going down (< 0.02) — `ok` = its loop is decoded and playing
-      if (!b.heard && w > 0.05) { b.heard = true; audioLog('bed', name, b.src !== undefined, `up ${w.toFixed(2)}${b.pending ? ' (decoding)' : ''}`); }
-      else if (b.heard && w < 0.02) { b.heard = false; audioLog('bed', name, true, 'down'); }
-      b.idle = w > 0.005 ? 0 : b.idle + dt;
-      if (b.idle > DROP_S && !b.pending) this.dropBed(b);
-      else if (b.src) D.beds.push(name);
-    }
-    // pan the positional beds toward their centre
-    for (const [name, px, pz] of this.panTargets()) {
-      const b = this.beds.get(name); if (!b?.pan) continue;
-      const dx = px - x, dz = pz - z, d = Math.hypot(dx, dz), l = a.ctx.listener;
-      const rx = -l.forwardZ.value, rz = l.forwardX.value;
-      b.pan.pan.setTargetAtTime(d > 1 ? Math.max(-0.75, Math.min(0.75, (dx * rx + dz * rz) / d * 0.75 * ss(4, 20, d))) : 0, t, 0.2);
-    }
-    // walls: the outdoor beds and the shard's own bed muffled inside; the day bed lowered at night
-    this.occl?.frequency.setTargetAtTime(20000 * (1 - cabin) + 650 * cabin, t, TAU);
-    a.shadeAmbient((1 - 0.7 * cabin) * (1 - 0.55 * night) * (1 - 0.6 * cave), 20000 * (1 - cabin) + 700 * cabin);
-    // reverb sends
-    const rooms: [Room, number][] = [['cabin', cabin], ['den', cave], ['oldgrowth', oldgrowth * outside], ['bowl', hollow > 0 ? 0.5 * (1 - others) * outside : 0]];
-    for (const [room, w] of rooms) {
-      const g = w > 0.001 ? this.send(room) : this.sends.get(room);
-      g?.gain.setTargetAtTime(WET[room] * w * dry, t, TAU);
-      D.sends[room] = w;
-    }
-    D.hollow = hollow; D.pond = pond; D.cabin = cabin; D.cave = cave; D.oldgrowth = oldgrowth; D.ridge = ridge;
-    D.creek = spot['creek'] ?? 0; D.waterfall = spot['waterfall'] ?? 0; D.mill = spot['mill'] ?? 0;
-    D.night = night; D.rain = rain; D.dawn = dawn; D.underwater = uw;
-    const ranked: [ForestZone, number][] = [['cabin', cabin], ['cave', cave], ['pond', pond], ['waterfall', D.waterfall], ['mill', D.mill], ['creek', D.creek], ['ridge', ridge], ['oldgrowth', oldgrowth]];
-    const top = ranked.reduce<[ForestZone, number]>((b, r) => (r[1] > b[1] ? r : b), ['hollow', 0.5]);
-    if (top[0] !== this.zone) { this.zone = top[0]; audioLog('zone', top[0]); this.onZone?.(top[0]); }
+    const values=this.values;
+    values.set('x',x);values.set('y',y);values.set('z',z);values.set('cabin',cabin);values.set('pond',pond);values.set('open',open);values.set('fire',fire);
+    values.set('underwater',this.underwater?1:0);values.set('rawNight',this.night);values.set('rawDawn',this.dawn);values.set('rawRain',this.rain);values.set('thr',this.thrallLevel());
+    for(let i=0;i<6;i++){const key=SPOT_KEYS[i];if(key!==undefined)values.set(key,spot[key]??0);}
+    this.mixDt=dt;this.mixTime=t;this.mixListed=this.sfx.available;D.beds=[];
+    const selected=evaluateAudioMix(requireAudioProfile(this.profile.mix,'ambience.mix'),this.mixPorts);
+    const next=requireAudioProfile(this.zoneNames.get(selected),'forest.zone');
+    if(next!==this.zone){this.zone=next;audioLog('zone',next);this.onZone?.(next);}
   }
   private panTargets(): [PhBed, number, number][] {
     const out: [PhBed, number, number][] = [];

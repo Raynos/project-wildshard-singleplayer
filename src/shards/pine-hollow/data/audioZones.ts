@@ -555,3 +555,38 @@ export const PINE_AUDIO_ZONES = [
     "fade": 12
   }
 ];
+
+
+/** The original ordered forest mix, fed by the actual cabin/pond/spot ports. */
+export const PINE_AUDIO_MIX = {
+  zoneMode:'max',zoneFloor:0.5,defaultZone:'hollow',
+  values:[
+    ['uw','underwater'],['dry',['-',1,'uw']],
+    ['night',['clamp','rawNight',0,1]],['dawn',['clamp','rawDawn',0,1]],['rain',['clamp','rawRain',0,1]],
+    ['outside',['-',1,'cabin']],
+    ['others',['max',['max',['max',['*','pond',0.6],'cave'],['*','ridge',0.7]],['*','oldgrowth',0.8]]],
+    ['hollow',['*',['-',1,'others'],'outside',['-',1,['*',0.75,'night']]]],
+    ['walls',['-',1,['*',0.8,'cabin']]],['hush',['-',1,['*',0.85,'cave']]],
+    ['room.oldgrowth',['*','oldgrowth','outside']],
+    ['room.bowl',['if',['gt','hollow',0],['*',0.5,['-',1,'others'],'outside'],0]],
+  ],
+  levels:[
+    ['hollow',['*','hollow','dry']],['pond',['*','pond',['-',1,['*',0.4,'night']],'walls','dry']],['cabin',['*','fire','dry']],
+    ['creek',['*','creek','walls','dry']],['waterfall',['*','waterfall','walls','dry']],['mill',['*','mill','walls','dry']],
+    ['ridge',['*','ridge','outside','dry']],['oldgrowth',['*','oldgrowth','outside',['-',1,['*',0.5,'night']],'dry']],['cave',['*','cave','dry']],
+    ['night',['*','night','walls','hush','dry']],['nightfog',['*','night','thr','walls','hush','dry']],
+    ['dawn',['*','dawn',['-',1,'night'],'walls','hush','dry']],
+    ['rain-canopy',['*','rain',['-',1,'open'],'walls','hush','dry']],['rain-open',['*','rain','open','walls','hush','dry']],
+  ],
+  cutoffs:[['occl',['+',['*',20000,['-',1,'cabin']],['*',650,'cabin']]]],
+  shade:[['*',['-',1,['*',0.7,'cabin']],['-',1,['*',0.55,'night']],['-',1,['*',0.6,'cave']]],['+',['*',20000,['-',1,'cabin']],['*',700,'cabin']]],
+  rooms:[
+    {id:'cabin',weight:'cabin',level:['*','wet.cabin','cabin','dry']},
+    {id:'den',weight:'cave',level:['*','wet.den','cave','dry']},
+    {id:'oldgrowth',weight:'room.oldgrowth',level:['*','wet.oldgrowth','room.oldgrowth','dry']},
+    {id:'bowl',weight:'room.bowl',level:['*','wet.bowl','room.bowl','dry']},
+  ],
+  diag:[['hollow','hollow'],['pond','pond'],['cabin','cabin'],['cave','cave'],['oldgrowth','oldgrowth'],['ridge','ridge'],
+    ['creek','creek'],['waterfall','waterfall'],['mill','mill'],['night','night'],['rain','rain'],['dawn','dawn'],['underwater','uw']],
+  zones:[['cabin','cabin'],['cave','cave'],['pond','pond'],['waterfall','waterfall'],['mill','mill'],['creek','creek'],['ridge','ridge'],['oldgrowth','oldgrowth']],
+} as const;

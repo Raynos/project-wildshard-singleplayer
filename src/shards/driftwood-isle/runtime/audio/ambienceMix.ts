@@ -2,7 +2,8 @@ import type { Camera } from 'three';
 import { Scope } from '@wildshard/engine/app/scope';
 import { AmbienceZones } from '@wildshard/engine/audio/ambience';
 import type { Audio } from '@wildshard/engine/audio/Audio';
-import type { AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
+import { requireAudioProfile, audioMixValue, evaluateAudioMix, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
+import type { AudioMixExpr as MixExpr } from '@wildshard/format/audioProfiles';
 import { ownAudioSource } from '@wildshard/engine/audio/ownership';
 import { audioRandom } from '@wildshard/engine/audio/util';
 import type { FamilyName } from '@wildshard/engine/audio/Voices';
@@ -28,14 +29,6 @@ import { SynthBeds, type SynthBedGraph } from './synthBeds';
  *  listener; `dist` (a point prefix) the ground distance from the listener to `<p>.x`, `<p>.z`; `ss` a smoothstep (a, b, x);
  *  `in` 1 when a > lo and a < hi; `lt` / `gt` 1 or 0; `if` the second argument when the first is truthy, else the third;
  *  `and` / `or` / `not` truthiness; `+` and `*` fold left. */
-export type MixOp = '+' | '-' | '*' | '/' | 'min' | 'max' | 'abs' | 'sin' | 'hypot' | 'ss' | 'in' | 'lt' | 'gt' | 'if' | 'and' | 'or' | 'not' | 'clamp' | 'zone' | 'dist';
-
-/** A mix expression: a number, a named value or an operator over expressions. */
-export type MixExpr = number | string | readonly [MixOp, ...MixExpr[]];
-
-/** A named value the mix computes in order (later rows read earlier ones). */
-export type MixValueRow = readonly [string, MixExpr];
-
 /** A node the mix builds before the beds: a biquad or a positional panner, into another node; a panner may sit at a point
  *  or follow a zone's shoreline (rays marched in from the zone's outer radius until the ground breaks the sea, refined by
  *  bisection; the nearest point of that closed polyline each frame, at the sea's height). */
@@ -140,16 +133,12 @@ export interface AmbienceMixRows<Z extends string = string> {
   readonly beds: SynthBedGraph;
   readonly bounds: readonly MixBoundsRow[];
   readonly near: readonly MixNearRow[];
-  readonly values: readonly MixValueRow[];
   /** every bed's level: [bed id, expression] */
-  readonly levels: readonly MixValueRow[];
   readonly steer: readonly MixSteerRow[];
   /** filter params set every mix: [node, expression] → its frequency */
-  readonly cutoffs: readonly MixValueRow[];
   readonly rooms: { readonly from: string; readonly to: string; readonly list: readonly MixRoomRow[] };
-  readonly diag: readonly MixValueRow[];
   /** the dominant zone: the first row whose expression holds (the last should always hold) */
-  readonly zones: readonly (readonly [Z, MixExpr])[];
+  readonly zoneNames: readonly Z[];
   readonly oneShots: readonly MixOneShotRow[];
 }
 
@@ -171,7 +160,6 @@ export interface AmbienceMixPorts {
   readonly onBuild?: () => void;
 }
 
-const ss = (a: number, b: number, x: number): number => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const BOUNDS_KEYS = ['x', 'z', 'r', 'yMin', 'yMax'] as const;
 
 /** Builds and runs a profile's mix from rows. */
@@ -186,6 +174,12 @@ export class AmbienceMix<Z extends string = string> {
   readonly scope: Scope;
   /** the profile's zoned beds */
   readonly zones: AmbienceZones;
+  private readonly mixPorts:Parameters<typeof evaluateAudioMix>[1];
+  private readonly inputRows:readonly [string,()=>number][];
+  private readonly readValue=(id:string):number=>this.value(id);
+  private readonly roomDefs = new Map<string,MixRoomRow>();
+  private readonly zoneNames = new Map<string,Z>();
+  private mixTime=0;
   private readonly audio: Audio;
   private readonly profile: AudioZoneProfile;
   private readonly rows: AmbienceMixRows<Z>;
@@ -206,10 +200,32 @@ export class AmbienceMix<Z extends string = string> {
 
   constructor(audio: Audio, profile: AudioZoneProfile, rows: AmbienceMixRows<Z>, ports: AmbienceMixPorts, zone: Z) {
     this.audio = audio; this.profile = profile; this.rows = rows; this.ports = ports; this.zone = zone;
+    this.inputRows=Object.entries(ports.inputs??{});
+    if(rows.rooms.list.length>16||rows.zoneNames.length>32||rows.steer.length>32||this.inputRows.length>64)throw new Error('Ambience port rows exceed their bound');
+    for(let i=0;i<16;i++){const room=rows.rooms.list[i];if(room!==undefined)this.roomDefs.set(room.id,room);}
+    for(let i=0;i<32;i++){const id=rows.zoneNames[i];if(id!==undefined)this.zoneNames.set(id,id);}
+    this.mixPorts = {
+      read:id=>this.value(id),write:(id,value)=>{this.values.set(id,value);},
+      level:(id,value)=>{const bed=this.zones.beds.get(id);if(bed!==undefined){bed.level=value;bed.gain.gain.setTargetAtTime(value,this.mixTime,this.profile.smoothSeconds);}},
+      afterLevels:()=>{
+        const mixture=this.rows,a=this.audio,t=this.mixTime;
+    for (let index=0;index<32;index++) {
+      const s=mixture.steer[index];if(s===undefined)continue;
+      const p = this.pans.get(s.pan), pd = this.value(`${s.toward}.sum`);
+      if (!p || !(pd > 0)) continue;
+      const pdx = this.value(`${s.toward}.dx`), pdz = this.value(`${s.toward}.dz`), rx = -a.ctx.listener.forwardZ.value, rz = a.ctx.listener.forwardX.value;
+      p.pan.setTargetAtTime(Math.max(-s.width, Math.min(s.width, (pdx * rx + pdz * rz) / (Math.hypot(pdx, pdz) + 1e-3) * s.width)), t, s.tau);
+    }
+      },
+      cutoff:(id,value)=>{this.filters.get(id)?.frequency.setTargetAtTime(value,this.mixTime,this.profile.smoothSeconds);},
+      room:(id,weight,level)=>{const room=this.roomDefs.get(id);if(room===undefined)throw new Error('Unknown ambience room');const gain=weight>0.001?this.send(room):this.sends.get(id);gain?.gain.setTargetAtTime(level,this.mixTime,this.profile.smoothSeconds);},
+      diag:(id,value)=>{this.diag[id]=value;},
+    };
     this.scope = new Scope(ports.scope);
     this.zones = new AmbienceZones(audio, audioRandom);
     this.synth = new SynthBeds(audio, this.zones, ports.random);
-    for (const [k] of rows.diag) this.diag[k] = 0;
+    const diag=requireAudioProfile(profile.mix,'ambience.mix').diag;
+    for(let i=0;i<64;i++){const row=diag[i];if(row!==undefined)this.diag[row[0]]=0;}
     for (const z of profile.zones) for (const k of ['x', 'z', 'inner', 'outer', 'gain'] as const) this.values.set(`${z.id}.${k}`, z[k]);
     for (const [k, v] of Object.entries(profile.levels)) this.values.set(`level.${k}`, v);
     for (const [k, v] of Object.entries(profile.wet)) this.values.set(`wet.${k}`, v);
@@ -223,11 +239,14 @@ export class AmbienceMix<Z extends string = string> {
     const zone = this.profile.zones.find((z) => z.id === id);
     if (!zone) throw new Error(`ambienceMix: no zone '${id}'`);
     const { heightAt: H, sea } = this.ports, out = new Float32Array(rays * 2);
-    for (let i = 0; i < rays; i++) {
+    if(!Number.isSafeInteger(rays)||rays<1||rays>8192||!Number.isSafeInteger(refine)||refine<0||refine>64||!(step>0))throw new Error('Invalid ambience shore bounds');
+    for (let i = 0; i < 8192; i++) {
+      if(i>=rays)break;
       const a = (i / rays) * Math.PI * 2, cx = Math.cos(a), cz = Math.sin(a);
       let r = zone.outer, hit = -1;
-      for (; r > step; r -= step) if (H(zone.x + cx * r, zone.z + cz * r) > sea) { hit = r; break; }
-      if (hit > 0) { let lo = hit, hi = hit + step; for (let k = 0; k < refine; k++) { const m = (lo + hi) / 2; if (H(zone.x + cx * m, zone.z + cz * m) > sea) lo = m; else hi = m; } r = lo; }
+      for (let march=0; march<8192; march++){if(r<=step)break;if(H(zone.x+cx*r,zone.z+cz*r)>sea){hit=r;break;}r-=step;}
+      if(hit<0&&r>step)throw new Error('Ambience shore march exceeds its bound');
+      if (hit > 0) { let lo = hit, hi = hit + step; for (let k = 0; k < 64; k++) { if(k>=refine)break; const m = (lo + hi) / 2; if (H(zone.x + cx * m, zone.z + cz * m) > sea) lo = m; else hi = m; } r = lo; }
       else r = zone.inner;
       out[i * 2] = zone.x + cx * r; out[i * 2 + 1] = zone.z + cz * r;
     }
@@ -395,52 +414,15 @@ export class AmbienceMix<Z extends string = string> {
 
   private truthy(v: number): boolean { return v !== 0 && !Number.isNaN(v); }
 
-  private arg(e: readonly MixExpr[], i: number): number {
-    const x = e[i];
-    if (x === undefined) throw new Error('ambienceMix: missing argument');
-    return this.eval(x);
-  }
-
-  private eval(e: MixExpr): number {
-    if (typeof e === 'number') return e;
-    if (typeof e === 'string') return this.value(e);
-    const op = e[0], A = (i: number): number => this.arg(e, i);
-    switch (op) {
-      case '+': { let v = A(1); for (let i = 2; i < e.length; i++) v += A(i); return v; }
-      case '*': { let v = A(1); for (let i = 2; i < e.length; i++) v *= A(i); return v; }
-      case '-': return A(1) - A(2);
-      case '/': return A(1) / A(2);
-      case 'min': return Math.min(A(1), A(2));
-      case 'max': return Math.max(A(1), A(2));
-      case 'clamp': return Math.max(A(2), Math.min(A(3), A(1)));
-      case 'abs': return Math.abs(A(1));
-      case 'sin': return Math.sin(A(1));
-      case 'hypot': return Math.hypot(A(1), A(2));
-      case 'ss': return ss(A(1), A(2), A(3));
-      case 'in': { const v = A(1); return v > A(2) && v < A(3) ? 1 : 0; }
-      case 'lt': return A(1) < A(2) ? 1 : 0;
-      case 'gt': return A(1) > A(2) ? 1 : 0;
-      case 'if': return this.truthy(A(1)) ? A(2) : A(3);
-      case 'and': { for (let i = 1; i < e.length; i++) if (!this.truthy(A(i))) return 0; return 1; }
-      case 'or': { for (let i = 1; i < e.length; i++) if (this.truthy(A(i))) return 1; return 0; }
-      case 'not': return this.truthy(A(1)) ? 0 : 1;
-      case 'dist': case 'zone': {
-        const p = e[1];
-        if (typeof p !== 'string') throw new Error(`ambienceMix: ${op} takes a name`);
-        const d = Math.hypot(this.value('x') - this.value(`${p}.x`), this.value('z') - this.value(`${p}.z`));
-        return op === 'dist' ? d : ss(this.value(`${p}.outer`), this.value(`${p}.inner`), d);
-      }
-      default: throw new Error('ambienceMix: unknown operator');
-    }
-  }
+  private eval(e:MixExpr):number { return audioMixValue(e,this.readValue); }
 
   /** the ports and rows → every bed's target level, panners, filters, reverb sends, the diag and the zone */
   private mix(): void {
-    const a = this.audio, rows = this.rows, V = this.values, t = a.ctx.currentTime, tau = this.profile.smoothSeconds;
+    const a = this.audio, rows = this.rows, V = this.values, t = a.ctx.currentTime;
     const x = this.value('x'), z = this.value('z');
     V.set('night', this.night); V.set('underwater', this.underwater ? 1 : 0); V.set('t', this.t);
     V.set('ground', this.ports.heightAt(x, z));
-    for (const [k, read] of Object.entries(this.ports.inputs ?? {})) V.set(k, read());
+    for(let i=0;i<64;i++){const row=this.inputRows[i];if(row!==undefined)V.set(row[0],row[1]());}
     for (const b of rows.bounds) {
       const box = boundsOf(this.ports.objects?.[b.from], b.key);
       V.set(b.id, box ? 1 : 0);
@@ -452,21 +434,9 @@ export class AmbienceMix<Z extends string = string> {
       for (const p of this.ports.near?.[n.id] ?? []) { const dx = p.x - x, dz = p.z - z, dd = dx * dx + dz * dz; if (dd < r2) { const w = 1 - Math.sqrt(dd) / n.radius; pd += w; pdx += dx * w; pdz += dz * w; } }
       V.set(`${n.id}.sum`, pd); V.set(`${n.id}.dx`, pdx); V.set(`${n.id}.dz`, pdz);
     }
-    for (const [k, e] of rows.values) V.set(k, this.eval(e));
-    for (const [id, e] of rows.levels) { const v = this.eval(e), b = this.zones.beds.get(id); if (!b) continue; b.level = v; b.gain.gain.setTargetAtTime(v, t, tau); }
-    for (const s of rows.steer) {
-      const p = this.pans.get(s.pan), pd = this.value(`${s.toward}.sum`);
-      if (!p || !(pd > 0)) continue;
-      const pdx = this.value(`${s.toward}.dx`), pdz = this.value(`${s.toward}.dz`), rx = -a.ctx.listener.forwardZ.value, rz = a.ctx.listener.forwardX.value;
-      p.pan.setTargetAtTime(Math.max(-s.width, Math.min(s.width, (pdx * rx + pdz * rz) / (Math.hypot(pdx, pdz) + 1e-3) * s.width)), t, s.tau);
-    }
-    for (const [id, e] of rows.cutoffs) this.filters.get(id)?.frequency.setTargetAtTime(this.eval(e), t, tau);
-    for (const room of rows.rooms.list) {
-      const w = this.value(room.weight), g = w > 0.001 ? this.send(room) : this.sends.get(room.id);
-      g?.gain.setTargetAtTime(this.eval(room.level), t, tau);
-    }
-    for (const [k, e] of rows.diag) this.diag[k] = this.eval(e);
-    for (const [zone, e] of rows.zones) if (this.truthy(this.eval(e))) { this.zone = zone; break; }
+    this.mixTime=t;
+    const selected=evaluateAudioMix(requireAudioProfile(this.profile.mix,'ambience.mix'),this.mixPorts);
+    const zone=requireAudioProfile(this.zoneNames.get(selected),'ambience.zone');this.zone=zone;
     this.mixed = true;
   }
 
