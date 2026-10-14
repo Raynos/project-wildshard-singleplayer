@@ -839,7 +839,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const toonHooks = (): LitHooks => {
     const look = opts.toon ?? new ToonLook(), row = parseFamilyMaterial({ family: 'toon' });
     if (row.family !== 'toon') throw new Error('Missing toon family');
-    const preset = toonGraph(row, look.params), u = look.uniforms;
+    const params = ir.toonCaustics === false ? { ...look.params, caustics: { ...look.params.caustics, level: null } } : look.params;
+    const preset = toonGraph(row, params), u = look.uniforms;
     const values = new Map<string, Val>([
       ['face', { t: 'vec2', n: reference('value', 'vec2', u.famToonFace) }],
       ['shadowEdge', { t: 'vec2', n: reference('value', 'vec2', u.famToonShadow) }],

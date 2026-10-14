@@ -146,6 +146,8 @@ export interface GraphSpec {
   readonly doubleSided?: boolean;
   /** false: borrowed normal maps keep the front-face basis on back faces; culling is unchanged. */
   readonly flipBackfaceNormals?: boolean;
+  /** false: omit underwater caustics on this toon material, leaving its shared look unchanged. */
+  readonly toonCaustics?: boolean;
   readonly flatShading?: boolean;
   /** shadow:true reuses displacement and alpha/discard in the shadow camera. */
   readonly vertex?: { readonly offset: GraphValue; readonly shadow?: boolean };
@@ -292,7 +294,7 @@ export function graph(spec: GraphSpec): GraphIr {
   const kind = spec.kind ?? (spec.post !== undefined ? 'post' : 'material');
   const ir = {
     version: 1, kind, ...(spec.budget === undefined ? {} : { budget: spec.budget }), ...(kind === 'material' ? { model: spec.model ?? 'standard' } : {}),
-    ...(spec.doubleSided === undefined ? {} : { doubleSided: spec.doubleSided }), ...(spec.flipBackfaceNormals === undefined ? {} : { flipBackfaceNormals: spec.flipBackfaceNormals }), ...(spec.flatShading === undefined ? {} : { flatShading: spec.flatShading }),
+    ...(spec.doubleSided === undefined ? {} : { doubleSided: spec.doubleSided }), ...(spec.flipBackfaceNormals === undefined ? {} : { flipBackfaceNormals: spec.flipBackfaceNormals }), ...(spec.toonCaustics === undefined ? {} : { toonCaustics: spec.toonCaustics }), ...(spec.flatShading === undefined ? {} : { flatShading: spec.flatShading }),
     ...(Object.keys(paramDefs).length === 0 ? {} : { params: paramDefs }), nodes, stages,
   };
   const checked = validateGraph(structuredClone(ir), { trustedBudget: true });
@@ -337,6 +339,8 @@ export interface ToonMaterialOptions extends CatalogueOptions {
   readonly doubleSided?: boolean;
   /** false: borrowed normal maps keep the front-face basis on back faces; culling is unchanged. */
   readonly flipBackfaceNormals?: boolean;
+  /** false: omit underwater caustics on this toon material, leaving its shared look unchanged. */
+  readonly toonCaustics?: boolean;
   readonly roughness?: number;
   readonly metalness?: number;
   /** hard cel bands (2–8); absent: the family's own two-band ramp. Set, the material bakes to a cel graph. */
@@ -379,6 +383,8 @@ export interface PainterlyMaterialOptions extends CatalogueOptions {
   readonly doubleSided?: boolean;
   /** false: borrowed normal maps keep the front-face basis on back faces; culling is unchanged. */
   readonly flipBackfaceNormals?: boolean;
+  /** false: omit underwater caustics on this toon material, leaving its shared look unchanged. */
+  readonly toonCaustics?: boolean;
   /** rim-light strength 0–1 (default 0.35) */
   readonly rim?: number;
   /** cel strength 0 (Lambert) … 1 (the full three-band ramp) (default 0.8) */

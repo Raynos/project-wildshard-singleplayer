@@ -5423,3 +5423,11 @@ from the atmosphere/day owner. `fogColour` reads the scene fog colour.
 `fogZenithColour` reads the active material/page FogModel.node colour-ramp
 zenith; without a ramp it reads scene fog colour, and without fog it is
 black. All are vec3 inputs; none installs a clock or owns a new uniform.
+
+### Toon graph caustics
+
+A `model: 'toon'` graph may set `toonCaustics: false` to omit its underwater
+caustic term, for example on the water surface itself. It keeps the same
+shared ToonLook bands, clock and other lighting; other materials and the
+shared water-level/strength uniforms are unchanged. Absent/true follows
+the existing family caustics. Other lighting models refuse this option.
