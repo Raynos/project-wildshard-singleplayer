@@ -78,6 +78,7 @@
  */
 import { cacheUntilDisposed } from '../app/cachedAssets';
 import type * as THREE from 'three';
+import { Group, Object3D } from 'three';
 import type { ColliderDesc, ModelCategory, Pipeline } from '../world/registry';
 import type { Material } from '../physics/surface';
 import type { Rng } from '../core/rng';
@@ -312,4 +313,37 @@ export type BakedModelMetadata = Pick<ModelDef<Record<string, never>>, 'id' | 'n
 export function defineBakedModels(rows: readonly BakedModelMetadata[], build: (index: number) => ReturnType<ModelDef<Record<string, never>>['build']>): readonly ModelDef<Record<string, never>>[] {
   if (rows.length > 1024 || new Set(rows.map(row => row.id)).size !== rows.length) throw new Error('Baked model catalogue must be bounded and unique');
   return rows.map((row, index) => defineModel({ ...row, defaults: {}, build: () => build(index) }));
+}
+
+/** A lazy specimen borrows its actual builder; rows declare only framing and shown parts. */
+export interface SceneModelRow {
+  readonly model: BakedModelMetadata; readonly builder: string; readonly show?: readonly string[];
+  readonly position?: readonly [number,number,number]; readonly subtractY?: string;
+}
+/** Actual page/Explorer owners keep geometry, materials and effects. */
+export type SceneModelPort = Object3D | {readonly root:Object3D;readonly part?:(id:string)=>Object3D|null};
+/** Define an ordered private-scene catalogue without constructing or preloading any model. */
+export function defineSceneModels<Rows extends readonly SceneModelRow[]>(rows:Rows,builds:readonly (readonly [string,()=>SceneModelPort])[]):{readonly [Index in keyof Rows]:ModelDef<Record<string,never>>} {
+  const builders=new Map(builds);
+  const key=(value:string):boolean=>/^[a-zA-Z][a-zA-Z0-9.-]{0,127}$/u.test(value);
+  if(rows.length>1024||builds.length>1024||builders.size!==builds.length||rows.some(row=>!key(row.builder)||!builders.has(row.builder)||(row.show?.length??0)>64||(row.show?.some(id=>!key(id))??false)
+    ||(row.position?.some(value=>!Number.isFinite(value)||Math.abs(value)>1e5)??false)
+    ||row.subtractY!==undefined&&(row.position===undefined||!key(row.subtractY))))throw new Error('Invalid scene model row');
+  return defineBakedModels(rows.map(row=>row.model),index=>{
+    const row=rows[index],build=row===undefined?undefined:builders.get(row.builder);
+    if(row===undefined||build===undefined)throw new Error('Missing scene model builder');
+    const made=build(),root=made instanceof Object3D?made:made.root;
+    if(!(root instanceof Object3D))throw new Error('Scene model builder requires its private root');
+    for(const id of row.show??[]){
+      const owned:unknown=Object.hasOwn(made,id)?Reflect.get(made,id):undefined;
+      const part=owned instanceof Object3D?owned:made instanceof Object3D?made.getObjectByName(id):made.part?.(id);
+      if(!(part instanceof Object3D))throw new Error(`Missing scene model part ${id}`);
+      part.visible=true;
+    }
+    if(row.position===undefined)return root;
+    const y:unknown=row.subtractY===undefined?0:Object.hasOwn(made,row.subtractY)?Reflect.get(made,row.subtractY):undefined;
+    if(typeof y!=='number'||!Number.isFinite(y))throw new Error('Scene model requires its owned vertical anchor');
+    root.position.set(row.position[0],row.position[1]-y,row.position[2]);
+    const group=new Group();group.add(root);return group;
+  }) as {readonly [Index in keyof Rows]:ModelDef<Record<string,never>>};
 }

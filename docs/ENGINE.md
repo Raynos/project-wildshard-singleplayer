@@ -4674,3 +4674,9 @@ the already-admitted tick stream; `worldActor` supplies the trusted quest
 identity. The contact owner samples that stream once per tick, keeps command
 order and the last pitch, and shares it with held release. Existing direct
 `commands` callers remain supported when no mapping is declared.
+
+`defineSceneModels(rows, builders)` extends the lazy model catalogue with
+bounded named builder ports, visible owned parts and optional specimen
+framing. A position creates a fresh outer group; `subtractY` reads a finite
+owned builder anchor. Geometry, materials and effects remain on the actual
+page/Explorer builder. Construction stays lazy and catalogue order is kept.
