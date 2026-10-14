@@ -1,5 +1,5 @@
-import type { ShardPlugin } from '@wildshard/game/shard/plugin';
-import { standaloneEntry } from './runtime/standalone';
+import { standaloneHybridEntry, type ShardPlugin } from '@wildshard/game/plugin/context';
+import { shardfileEntry, prepareStandaloneHybrid } from '@wildshard/game/shard/runtimeVariant';
 import RuntimePlugin from './runtime/index';
 import HybridRuntimePlugin from './runtime/hybrid';
 
@@ -12,7 +12,8 @@ export function resolveTrustedRuntime(entry: string): new () => ShardPlugin {
   return HybridRuntimePlugin;
 }
 
-const DriftwoodHybrid = standaloneEntry(RuntimePlugin);
+const DriftwoodHybrid = standaloneHybridEntry(RuntimePlugin,ctx=>prepareStandaloneHybrid(ctx,{name:'Driftwood',
+  source:()=>import('./shard.config'),runtime:{entry:'runtime/hybrid.ts',load:()=>import('./runtime/hybrid')}}),shardfileEntry,'Driftwood');
 
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin loaders share a default constructor contract.
 export default DriftwoodHybrid;

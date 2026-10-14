@@ -1,3 +1,4 @@
+import type { prepareHybridShard as PrepareHybrid } from '../shardfile/hybrid';
 import { isDev } from '@wildshard/engine/core/devMode';
 import { type ShardContext, type ShardPlugin, type TrustedRuntimeEntry, standaloneHybridEntry } from '../plugin/context';
 import { currentPageMode } from '../grid/pageMode';
@@ -33,13 +34,31 @@ export function shardfileEntry(context: Pick<ShardContext, 'manifest'>): boolean
  */
 export function firstPartyStandaloneEntry(Native: new () => ShardPlugin, name: string, source: () => Promise<{ readonly default: Shardfile }>,
   index: TrustedRuntimeEntry['load'], stagesOwner?: 'runtime'): ReturnType<typeof standaloneHybridEntry> {
-  const admit = async (ctx: ShardContext): Promise<ShardPlugin> => {
-    const [{ prepareHybridShard }, { default: shard }] = await Promise.all([import('../shardfile/hybrid'), source()]);
-    return prepareHybridShard(shard, { firstParty: true }, {
-      residencyContext: ctx, retainHomeRuntime: true, ...(stagesOwner === undefined ? {} : { stagesOwner }),
-      catalogue: [], items: new Map(), recipes: new Map(), voices: () => new Map(),
-      icon: () => { throw new Error(`Transitional ${name} has no declared item icon`); },
-    }, [{ slug: shard.identity.slug, entry: 'runtime/index.ts', load: index }]);
-  };
+  const admit = (ctx: ShardContext): Promise<ShardPlugin> => prepareStandaloneHybrid(ctx, {
+    name, source, runtime: { entry: 'runtime/index.ts', load: index }, retainHomeRuntime: true,
+    ...(stagesOwner === undefined ? {} : { stagesOwner }),
+  });
   return standaloneHybridEntry(Native, admit, shardfileEntry, name);
+}
+
+/** Explicit first-party source and native entry, with the original home/stage
+ * ownership policy. The caller supplies loaders, never a shard-name lookup. */
+export interface StandaloneHybridRows {
+  readonly name:string;
+  readonly source:()=>Promise<{readonly default:Shardfile}>;
+  readonly runtime:Pick<TrustedRuntimeEntry,'entry'|'load'>;
+  readonly retainHomeRuntime?:boolean;
+  readonly stagesOwner?:'declared'|'runtime';
+}
+/** Admit the same native/data composite used by standalone constructors. An
+ * injected preparation port preserves trusted fixture/host admission checks. */
+export async function prepareStandaloneHybrid(ctx:ShardContext,rows:StandaloneHybridRows,
+  prepare?:typeof PrepareHybrid):Promise<ShardPlugin> {
+  const [{prepareHybridShard},{default:source}]=await Promise.all([import('../shardfile/hybrid'),rows.source()]);
+  return (prepare??prepareHybridShard)(source,{firstParty:true},{residencyContext:ctx,
+    ...(rows.retainHomeRuntime===undefined?{}:{retainHomeRuntime:rows.retainHomeRuntime}),
+    ...(rows.stagesOwner===undefined?{}:{stagesOwner:rows.stagesOwner}),
+    catalogue:[],items:new Map(),recipes:new Map(),voices:()=>new Map(),
+    icon:()=>{throw new Error(`Transitional ${rows.name} has no declared item icon`);},
+  },[{slug:source.identity.slug,...rows.runtime}]);
 }
