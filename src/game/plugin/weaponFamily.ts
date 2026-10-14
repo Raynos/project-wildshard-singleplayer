@@ -1,6 +1,7 @@
+import { readBorrowedOwner, type BorrowedOwnerPath } from './headless';
 import { bindMeleeContacts } from './simulation';
 import { createClientChannelView, createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts, type ClientGeometryKernels } from './ui';
-import { type Object3D, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
+import { type Object3D, BufferGeometry, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
 import type { ContactFamily, ContactScanTarget, ContactFamilyPorts, ContactWorldTarget } from "@wildshard/engine/combat/contactWeapon";
 import { Weapon, type WeaponState, type AimInfo } from "@wildshard/engine/combat/Weapon";
@@ -567,41 +568,103 @@ export function createHeldMelee(app: App, row: EquipmentRow, phases: unknown, po
   });
 }
 
+
+/** Named resource bindings reuse the same bounded owner/path capability as quest presentation. */
+export interface HeldResourceBinding {
+  readonly id:string; readonly from:BorrowedOwnerPath; readonly args?:readonly unknown[];
+  readonly result?:readonly (string|number)[]; readonly requires?:string; readonly bytes?:number;
+  readonly copyGeometry?:boolean; readonly indexArray?:boolean; readonly emptyGeometry?:boolean;
+}
+export interface HeldResourceRows {
+  readonly reads?:readonly (HeldResourceBinding&{readonly discardGeometry?:boolean})[];
+  readonly geometry:readonly HeldResourceBinding[]; readonly objects?:readonly HeldResourceBinding[];
+  readonly textures?:readonly HeldResourceBinding[]; readonly repeats?:readonly {readonly id:string;readonly value:readonly [number,number]}[];
+  readonly decorators?:readonly HeldResourceBinding[];
+}
 /** Authored scene/playback/item rows; no builder, shader or contact authority in a recipe. */
 export interface HeldMeleeRecipe {
   readonly equipment: EquipmentRow; readonly phases: Readonly<Record<string,unknown>>;
-  readonly playback: Readonly<Record<string,readonly unknown[]>>; readonly scene:unknown;
-  readonly attachments?:readonly {readonly id:string;readonly row:unknown;readonly parent:string}[];
+  readonly playback: Readonly<Record<string,readonly unknown[]>>; readonly scene:unknown; readonly resources?:HeldResourceRows;
+  readonly attachments?:readonly {readonly id:string;readonly row:unknown;readonly parent:string;readonly requires?:string;readonly resources?:HeldResourceRows}[];
   readonly tip?:readonly [number,number,number]; readonly restingGroup?:string;
   readonly caught?:{readonly row:unknown;readonly part:string};
 }
-/** Private borrowed resources are resolved by their actual owners before construction. */
+/** Sealed resource owners or original explicit ports; no authoritative actor/world ports are exposed here. */
 export interface HeldPresentationPorts {
-  readonly scene:ClientScenePorts; readonly attachments?:ReadonlyMap<string,ClientScenePorts|null>;
+  readonly scene?:ClientScenePorts; readonly attachments?:ReadonlyMap<string,ClientScenePorts|null>; readonly owners?:ReadonlyMap<string,unknown>;
 }
-/** Construct one shared held hierarchy for page and Explorer, including declared optional attachments. */
-export function createHeldPresentation(recipe:HeldMeleeRecipe,ports:HeldPresentationPorts):HeldPlayback {
-  const rows=recipe.attachments??[];
+const heldMethod=(value:unknown):value is(...args:unknown[])=>unknown=>typeof value==='function';
+function heldJson(value:unknown,depth=0):boolean {
+  if(depth>8)return false;
+  if(value===null||typeof value==='boolean')return true;
+  if(typeof value==='string')return value.length<=4096;
+  if(typeof value==='number')return Number.isFinite(value);
+  if(Array.isArray(value))return value.length<=1024&&value.every((entry:unknown)=>heldJson(entry,depth+1));
+  return typeof value==='object'&&Object.keys(value).length<=128&&Object.entries(value).every(([key,entry])=>!['constructor','prototype','__proto__'].includes(key)&&heldJson(entry,depth+1));
+}
+function heldResources(rows:HeldResourceRows,owners:ReadonlyMap<string,unknown>,locals:Record<string,unknown>):ClientScenePorts {
+  const sources=new Map(owners);sources.set('locals',locals);
+  const check=(bindings:readonly HeldResourceBinding[]):void=>{
+    if(bindings.length>64||new Set(bindings.map(row=>row.id)).size!==bindings.length||bindings.some(row=>!/^[a-zA-Z][a-zA-Z0-9.-]{0,127}$/u.test(row.id)
+      ||row.args!==undefined&&(row.args.length>16||!heldJson(row.args))||row.result!==undefined&&(row.result.length===0||row.result.length>16)))throw new Error('Invalid held resource bindings');
+  };
+  const roster=[rows.reads??[],rows.geometry,rows.objects??[],rows.textures??[],rows.decorators??[]];for(const entries of roster)check(entries);
+  const resolve=(row:HeldResourceBinding):unknown=>{
+    if(row.requires!==undefined&&(locals[row.requires]===null||locals[row.requires]===undefined))return null;
+    const borrowed=readBorrowedOwner(sources,row.from);if(borrowed===null)return null;
+    let value=borrowed.value;
+    if(row.args!==undefined){if(!heldMethod(value))throw new Error('Held resource requires its borrowed method');value=value.apply(borrowed.receiver,[...row.args]);}
+    if(row.result!==undefined&&value!==null&&value!==undefined)value=readBorrowedOwner(new Map([['value',value]]),{owner:'value',path:row.result})?.value;
+    if(row.bytes!==undefined&&(!(value instanceof Uint8Array)||value.byteLength!==row.bytes))return null;
+    return value??null;
+  };
+  for(const row of rows.reads??[]){
+    const value=resolve(row);locals[row.id]=value;
+    if(row.discardGeometry===true&&value!==null){const geometry=readBorrowedOwner(new Map([['value',value]]),{owner:'value',path:['geometry']})?.value;if(!(geometry instanceof BufferGeometry))throw new Error('Held resource requires its owned geometry copy');geometry.dispose();}
+  }
+  const geometryRows=new Map(rows.geometry.map(row=>[row.id,row])),objects=new Map((rows.objects??[]).map(row=>[row.id,resolve(row)])),textures=new Map((rows.textures??[]).map(row=>[row.id,resolve(row)]));
+  const decorators=new Map<string,(material:MeshStandardMaterial)=>void>();
+  for(const row of rows.decorators??[]){const borrowed=readBorrowedOwner(sources,row.from),method=borrowed?.value;if(borrowed===null||!heldMethod(method))throw new Error('Held decorator requires its owned method');decorators.set(row.id,material=>{method.apply(borrowed.receiver,[material,...row.args??[]]);});}
+  const repeats=rows.repeats??[];
+  if(repeats.length>32||new Set(repeats.map(row=>row.id)).size!==repeats.length||repeats.some(row=>row.value.some(value=>!Number.isFinite(value)||Math.abs(value)>1e5)))throw new Error('Invalid held texture repeat rows');
+  return {objects,textures,decorators,textureRepeat:new Map(repeats.map(row=>[row.id,row.value])),geometry:id=>{
+    const row=geometryRows.get(id);if(row===undefined)throw new Error(`Undeclared held geometry ${id}`);
+    const value=resolve(row);if(value===null)return row.emptyGeometry===true?new BufferGeometry():null;
+    if(!(value instanceof BufferGeometry))throw new Error('Held geometry requires its owned buffer');
+    const geometry=row.copyGeometry===true?value.clone():value,index=geometry.getIndex();if(row.indexArray===true&&index!==null)geometry.setIndex(Array.from(index.array));return geometry;
+  }};
+}
+function heldPresentation(recipe:HeldMeleeRecipe,ports:HeldPresentationPorts):{readonly model:HeldPlayback;readonly scene:ClientScenePorts} {
+  const rows=recipe.attachments??[],locals:Record<string,unknown>={};
   if(rows.length>16||new Set(rows.map(row=>row.id)).size!==rows.length||rows.some(row=>!/^[a-z][a-zA-Z0-9.-]{0,127}$/u.test(row.id)))throw new Error('Invalid held attachment roster');
-  const model=new HeldPlayback(recipe.playback,new Map(),undefined,{row:recipe.scene,ports:ports.scene});
+  if(recipe.resources!==undefined&&ports.owners===undefined)throw new Error('Held recipe needs its sealed resource owners');
+  const scene=recipe.resources===undefined?ports.scene:heldResources(recipe.resources,ports.owners??new Map(),locals);
+  if(scene===undefined)throw new Error('Held recipe requires its private scene ports');
+  const model=new HeldPlayback(recipe.playback,new Map(),undefined,{row:recipe.scene,ports:scene});
   try {
-    for(const row of rows){const borrowed=ports.attachments?.get(row.id);if(borrowed!==undefined&&borrowed!==null)model.createPart({row:row.row,ports:borrowed},row.parent);}
-    return model;
+    for(const row of rows){
+      if(row.requires!==undefined&&(locals[row.requires]===null||locals[row.requires]===undefined))continue;
+      const borrowed=row.resources===undefined?ports.attachments?.get(row.id):heldResources(row.resources,ports.owners??new Map(),locals);
+      if(borrowed!==undefined&&borrowed!==null)model.createPart({row:row.row,ports:borrowed},row.parent);
+    }
+    return {model,scene};
   } catch(error){model.dispose();throw error;}
 }
+/** Construct one shared held hierarchy for page and Explorer, including declared optional attachments. */
+export function createHeldPresentation(recipe:HeldMeleeRecipe,ports:HeldPresentationPorts):HeldPlayback {return heldPresentation(recipe,ports).model;}
 /** Query/phase ports stay owned; presentation assembly is declared once for both melee families. */
 export interface DeclaredHeldMeleePorts extends Omit<HeldMeleeScenePorts,'presentation'|'tip'|'restingGroup'|'caught'> {
   readonly model:HeldPresentationPorts; readonly charge?:number;
 }
 /** Bind the recipe to the existing held controller; never installs a second actor or phase owner. */
 export function createDeclaredHeldMelee(app:App,recipe:HeldMeleeRecipe,ports:DeclaredHeldMeleePorts):ReturnType<typeof createHeldMelee> {
-  const model=createHeldPresentation(recipe,ports.model);
+  const {model,scene}=heldPresentation(recipe,ports.model);
   try {
     return createHeldMelee(app,recipe.equipment,ports.charge===undefined?recipe.phases:{...recipe.phases,charge:ports.charge},{
       presentation:model,contacts:ports.contacts,
       ...(ports.targets===undefined?{}:{targets:ports.targets}),...(ports.raycast===undefined?{}:{raycast:ports.raycast}),
       ...(recipe.tip===undefined?{}:{tip:recipe.tip}),...(recipe.restingGroup===undefined?{}:{restingGroup:recipe.restingGroup}),
-      ...(recipe.caught===undefined?{}:{caught:{scene:{row:recipe.caught.row,ports:{geometry:ports.model.scene.geometry}},part:recipe.caught.part}}),
+      ...(recipe.caught===undefined?{}:{caught:{scene:{row:recipe.caught.row,ports:{geometry:scene.geometry}},part:recipe.caught.part}}),
     });
   } catch(error){model.dispose();throw error;}
 }

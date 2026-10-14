@@ -4743,3 +4743,11 @@ borrowed model/material/flag paths, resource dressing and capture actions.
 the shard play hook, and exposes the resident `pageQuest`. Libraries stay
 borrowed; prepared pivots, null model policy, reward coins and saved flags
 keep their existing owners. The native headless installer is unchanged.
+
+Held recipe `resources` lend named geometry/object/texture/decorator ports
+through the defining `readBorrowedOwner` capability. Ordered bounded local
+reads retain method receivers and JSON arguments. Optional missing heroes
+stay absent; geometry copies/index reconstruction, exact byte-length checks
+and literal texture repeats are declared explicitly. Sealed owner maps lend
+only model/world-resource providers and private material decorators. The
+resource binder never reads an authoritative actor or advances gameplay.
