@@ -4,9 +4,17 @@
  * attribute blocks in a binary, the colliders, deck floors and anchors as a row); here a row and its blocks become the
  * timber again, ready to `finish` (./timber.ts `Timber.baked`), exactly as the builder's own timber was.
  */
+import type * as THREE from 'three';
 import * as v from 'valibot';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { MatKey } from './homestead';
+
+/** a baked draw's `moss` hint (the roof's and the stone's), named as the moss graphs read it (`aMoss`, ../data/cabinLook.ts) */
+export function mossHint(g: THREE.BufferGeometry): THREE.BufferGeometry {
+  if (!g.hasAttribute('moss')) return g;
+  const moss = g.getAttribute('moss'); g.deleteAttribute('moss');
+  return g.setAttribute('aMoss', moss);
+}
 
 const num = v.pipe(v.number(), v.finite());
 const xyz = v.strictObject({ x: num, y: num, z: num });

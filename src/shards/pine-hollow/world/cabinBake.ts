@@ -12,6 +12,7 @@ import * as v from 'valibot';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { loadSiteTimbers } from './timberSites';
+import { mossHint } from './timberBake';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { BakedBuildingAssembly, NO_BUILDING_OWNER, type BakedBuildingOwner, type BakedBuildingRole, type BakedBuildingTier } from '../runtime/props/bakedBuilding';
 import { CABIN_BUILD } from '../runtime/props/cabinBuild';
@@ -36,7 +37,7 @@ export class CabinGeometries {
     if (seeds !== undefined) return new THREE.BufferGeometry().setAttribute('seed', new THREE.BufferAttribute(Float32Array.from(seeds), 4));
     const view = this.views.get(`cabin-geometry-${String(ordinal)}`);
     if (view === undefined) throw new Error(`[cabins] missing original geometry ${String(ordinal)}`);
-    return view.geometry.clone();
+    return mossHint(view.geometry.clone());
   }
 }
 

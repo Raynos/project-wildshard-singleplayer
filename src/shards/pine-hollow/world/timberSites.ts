@@ -12,7 +12,7 @@ import type { ModelContext } from '@wildshard/engine/models/model';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { readWholeGeometry, type WholeGeometryView } from '@wildshard/game/plugin/geometry';
 import { Timber } from './timber';
-import { colliderOf, TimberRowSchema, type TimberRow } from './timberBake';
+import { colliderOf, mossHint, TimberRowSchema, type TimberRow } from './timberBake';
 import siteJson from '../data/siteTimbers.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import source from '../shard.config';
@@ -70,7 +70,7 @@ export function timberFromViews(ctx: ModelContext, name: string, identity: strin
   const draw = (key: string): THREE.BufferGeometry => {
     const view = ready.get(`${identity}-${key}`);
     if (view === undefined) throw new Error(`[timber] missing original draw ${identity}-${key}`);
-    return view.geometry.clone();
+    return mossHint(view.geometry.clone());
   };
   const parts = new Map(row.parts.filter(part => part.counts.length > 0).map(part => [part.key, [draw(part.key)]]));
   const glass = row.glass.length === 0 ? [] : [draw('glass')];

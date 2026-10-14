@@ -8,7 +8,6 @@ import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { paintCanvas } from '@wildshard/sdk/looks/canvasAtlas';
-import { installMossOverlay } from '../runtime/looks/mossOverlay';
 import { flattenGlbParts, loadLodGlb } from '../runtime/kit/lodGlb';
 import { BuildingLife } from '../runtime/props/buildingLife';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
@@ -16,14 +15,14 @@ import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
 import { END_GRAIN_PAINT, GLOW_PAINT } from '../data/cabinPaint';
-import { CABIN_DOOR_LOOK, CABIN_LIFE, CABIN_MOSS_EDITS } from '../data/cabinLook';
+import { CABIN_DOOR_LOOK, CABIN_LIFE, cabinMossLook } from '../data/cabinLook';
 import { HEARTH_LOOKS } from '../data/hearthLook';
-import { pineLook, pineMappedLook, setPineLookParam } from '../runtime/looks/graphLooks';
+import { pineLook, pineMappedLook, setPineLookParam, setPineLookTexture } from '../runtime/looks/graphLooks';
 import { mergeParts, type PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind } from './logKit';
 import { pineModels } from './context';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
-import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT, CABIN_MOSS_BINDINGS } from '../data/cabinAssembly';
+import { CABIN_PBR, CABIN_MATERIALS, CABIN_GLASS_EMISSIVE, CABIN_LIGHT } from '../data/cabinAssembly';
 import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinGeometries } from './cabinBake';
 
 /**
@@ -57,8 +56,8 @@ import { CABIN_ROWS, LogBuilding, loadCabinBake, type BuildingOwner, type CabinG
 
 export interface Mats {
   log: THREE.MeshStandardMaterial; endGrain: THREE.MeshStandardMaterial; chink: THREE.MeshStandardMaterial;
-  roof: THREE.MeshStandardMaterial; beam: THREE.MeshStandardMaterial; deck: THREE.MeshStandardMaterial;
-  door: THREE.Material; stone: THREE.MeshStandardMaterial; glass: THREE.MeshStandardMaterial;
+  roof: THREE.Material; beam: THREE.MeshStandardMaterial; deck: THREE.MeshStandardMaterial;
+  door: THREE.Material; stone: THREE.Material; glass: THREE.MeshStandardMaterial;
   bark: THREE.MeshStandardMaterial; iron: THREE.MeshStandardMaterial; cloth: THREE.MeshStandardMaterial;
   char: THREE.MeshStandardMaterial;
   smoke: THREE.Material; flame: THREE.Material; ember: THREE.Material; glow: THREE.MeshBasicMaterial;
@@ -84,16 +83,21 @@ async function loadMats(sky: Sky): Promise<Mats> {
   };
   const m: Mats = {
     log: scan('log'), endGrain: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.endGrain, map: makeEndGrainTexture() }),
-    chink: new THREE.MeshStandardMaterial(CABIN_MATERIALS.chink), roof: scan('roof'), beam: scan('beam'), deck: scan('deck'),
+    chink: new THREE.MeshStandardMaterial(CABIN_MATERIALS.chink), roof: pineMappedLook(cabinMossLook('roof'), scan('roof')), beam: scan('beam'), deck: scan('deck'),
     door: pineMappedLook(CABIN_DOOR_LOOK, scan('door')), // the scan pulled toward a weathered grey-brown, over the set's maps (../data/cabinLook.ts)
-    stone: scan('stone'),
+    stone: pineMappedLook(cabinMossLook('stone'), scan('stone')), // the roof and the stone mossed over their scans' maps (../data/cabinLook.ts)
     glass: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.glass, emissive: new THREE.Color(...CABIN_GLASS_EMISSIVE) }), bark: scan('bark'),
     iron: new THREE.MeshStandardMaterial(CABIN_MATERIALS.iron), cloth: new THREE.MeshStandardMaterial(CABIN_MATERIALS.cloth), char: new THREE.MeshStandardMaterial(CABIN_MATERIALS.char),
     smoke: pineLook(HEARTH_LOOKS.smoke), flame: pineLook(HEARTH_LOOKS.flame), ember: pineLook(HEARTH_LOOKS.ember),
     glow: new THREE.MeshBasicMaterial({ map: makeGlowTexture(), color: 0xff7a1a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
   };
-  for (const row of CABIN_MOSS_BINDINGS) installMossOverlay(m[row.key], { id: 'pine.cabin-moss', key: 'cabin-moss', sunDir: sky.sunDir, strength: row.strength, upOnly: row.upOnly, edits: CABIN_MOSS_EDITS });
-  for (const k of ['log', 'endGrain', 'chink', 'roof', 'beam', 'deck', 'stone', 'glass', 'bark', 'iron', 'cloth', 'char'] as const) sky.setupMaterial(m[k]);
+  // the moss graphs light their scans' normal maps themselves (their authored shading normal replaces the borrowed one)
+  for (const key of ['roof', 'stone'] as const) {
+    const normal = scan(key).normalMap;
+    if (normal === null) throw new Error(`Cabin scan ${key} has no normal map`);
+    setPineLookTexture(cabinMossLook(key), 'normalMap', normal);
+  }
+  for (const k of ['log', 'endGrain', 'chink', 'beam', 'deck', 'glass', 'bark', 'iron', 'cloth', 'char'] as const) sky.setupMaterial(m[k]);
   return m;
 }
 
