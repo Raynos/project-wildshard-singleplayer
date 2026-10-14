@@ -4560,3 +4560,10 @@ plugin's admitted item contexts in the existing play phase. The source
 is required for that binding; absent rows retain the previous behaviour.
 Discovery, encounter, completion and population values may all be authored
 in the shard's data recipe, leaving its plugin only the native bindings.
+
+`createHeldMelee(app, equipmentRow, phaseRows, scenePorts)` in
+`@wildshard/game/plugin/weaponFamily` constructs the existing held-melee
+owner directly. It admits item contacts, binds the HeldPlayback scene, and
+borrows optional body-raycast and caught-scene ports. Signal and Sky use
+this factory instead of private weapon subclasses; phases and contacts
+keep their existing owners.

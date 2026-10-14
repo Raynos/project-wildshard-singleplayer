@@ -1,3 +1,4 @@
+import { bindMeleeContacts } from './simulation';
 import { createClientChannelView, createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts, type ClientGeometryKernels } from './ui';
 import { type Object3D, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
@@ -536,4 +537,32 @@ export class HeldMeleeWeapon<T extends ContactScanTarget, P> extends HeldContact
     observed.taut = Number(this.caughtT > 0); observed.caughtX = this.end.x; observed.caughtY = this.end.y; observed.caughtZ = this.end.z;
     this.presentation.apply(row.channels.deformation, observed);
   }
+}
+
+type PageMeleeTarget = ReturnType<App['combat']['targets']>[number];
+/** Borrowed query and owned scene ports for an admitted held melee item. */
+export interface HeldMeleeScenePorts {
+  readonly presentation: HeldPlayback; readonly contacts: unknown;
+  readonly targets?: () => readonly PageMeleeTarget[];
+  readonly raycast?: (from: Vector3, dir: Vector3, reach: number) => { readonly animal: Parameters<App['combat']['target']>[0]; readonly point: Vector3 } | null;
+  readonly tip?: readonly [number, number, number]; readonly restingGroup?: string;
+  readonly caught?: { readonly scene: Parameters<HeldPlayback['createPart']>[0]; readonly part: string };
+}
+/** Construct the existing held owner directly from its rows and scene; no private subclass/controller. */
+export function createHeldMelee(app: App, row: EquipmentRow, phases: unknown, ports: HeldMeleeScenePorts): HeldMeleeWeapon<PageMeleeTarget, HeldPlayback> {
+  const model = ports.presentation, caught = ports.caught;
+  return new HeldMeleeWeapon(app, row, phases, { model: model.root, parts: model, presentation: model, nodes: model.model?.parts ?? new Map(),
+    ...(ports.tip === undefined ? {} : { tip: new Vector3(...ports.tip) }),
+    ...(ports.restingGroup === undefined ? {} : { restingVisible: model.model?.group(ports.restingGroup) === null }),
+    ...(caught === undefined ? {} : { caughtPart: () => { const mesh = model.createPart(caught.scene).mesh(caught.part); if (mesh === null) throw new Error('Declared caught part unavailable'); return mesh; } }),
+    targets: ports.targets ?? (() => app.combat.targets()),
+    contacts: bound => bindMeleeContacts(row.id, ports.contacts, { ...bound, owner: 'env',
+      ...(ports.raycast === undefined ? {} : { body: (from: Vector3, dir: Vector3, reach: number) => {
+        const hit = ports.raycast?.(from, dir, reach) ?? null, target = hit === null ? null : app.combat.target(hit.animal);
+        return hit === null || target === null ? null : { port: target, point: hit.point };
+      } }),
+      react: target => ({ actor: target.actor, ...(target.impulse === undefined ? {} : { impulse: target.impulse }),
+        stagger: (dir: Vector3, strength: number) => { target.target.stagger?.(dir, strength); } }),
+    }),
+  });
 }

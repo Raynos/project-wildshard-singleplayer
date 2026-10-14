@@ -15,12 +15,12 @@ import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_MOVER_BINDING, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
-import { commandSocketLift, bindMeleeContacts, createMeleeScriptDriver, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
+import { commandSocketLift, createMeleeScriptDriver, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
 import { RISING_ISLETS } from '../world/islets';
 import type { RisingIslet } from '../data/isletDesign';
-import { WarFan, type WarFanWeapon, type ConeFanTarget } from './weapons/heldFan';
+import { createFan, type WarFanWeapon, type ConeFanTarget } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
 import { FAN_ROW } from '../data/equipment';
@@ -113,7 +113,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const targets = (): readonly ConeFanTarget[] => ctx.app.combat.targets().filter((t) => t.hittable);
     const row = source.items.rows.find(item => item.id === 'weapon.far-reach.fan');
     if (row?.kind !== 'weapon' || row.contacts === undefined) throw new Error('Sky fan needs admitted contact rows');
-    this.fan = new WarFan(ctx.app, targets, ports => bindMeleeContacts(row.id, row.contacts, { owner: 'env', ...ports }));
+    this.fan = createFan(ctx.app, targets, row.contacts);
     if (this.leaf !== null) paintFanLeaf(this.fan.parts, this.leaf);
   }
   protected override arm(): WarFanWeapon { const fan = this.fan; if (fan === null) throw new Error('Sky Reach: the war fan was not built'); return fan; }
