@@ -594,7 +594,11 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
         if (n.name === undefined || t === undefined || t === 'bool') break;
         return { t, n: attribute(n.name, t) };
       }
-      case 'varying': { const v = one(); return { t: v.t, n: varying(v.n) }; }
+      case 'varying': {
+        const v = one(), carried = varying(v.n);
+        if (n.interpolation === 'flat') carried.setInterpolation('flat');
+        return { t: v.t, n: carried };
+      }
       case 'normalView': return { t: 'vec3', n: normalView };
       case 'viewDirection': return { t: 'vec3', n: positionViewDirection };
       case 'albedo': return { t: 'vec3', n: diffuseContribution };

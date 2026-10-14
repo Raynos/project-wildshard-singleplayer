@@ -217,7 +217,8 @@ export function graph(spec: GraphSpec): GraphIr {
     }
     if (key instanceof VaryingNode) {
       const source = key.node instanceof SubBuildNode ? key.node.node : key.node; // varying() wraps its input in the vertex sub-build
-      return define(key, name, { op: 'varying', in: [refOf(source)] });
+      if ((key.interpolationType !== null && key.interpolationType !== 'flat') || key.interpolationSampling !== null) throw new Error('graph: varying interpolation supports flat or the default only');
+      return define(key, name, { op: 'varying', in: [refOf(source)], ...(key.interpolationType === 'flat' ? { interpolation: 'flat' } : {}) });
     }
     if (key instanceof OperatorNode) {
       const graphOp = OPERATORS[key.op];

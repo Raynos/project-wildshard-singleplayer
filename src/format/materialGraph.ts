@@ -77,6 +77,8 @@ export interface GraphNode {
   readonly name?: string;
   /** `attribute`: the attribute's type */
   readonly type?: GraphValueType;
+  /** varying only: use the primitive's provoking vertex instead of interpolating; absent retains ordinary perspective interpolation. */
+  readonly interpolation?: 'flat';
 }
 /** a loop's body: its own nodes (they may read the outer graph's nodes too) and the node that is the next `acc` */
 export interface GraphLoopBody {
@@ -466,6 +468,7 @@ const VARYING_SOURCE: Readonly<Partial<Record<GraphPlace, GraphPlace>>> = { frag
 
 /** an object read from content, with the fields this module looks at named (each still unknown) */
 interface Raw {
+  readonly interpolation?: unknown;
   readonly [k: string]: unknown;
   readonly version?: unknown; readonly kind?: unknown; readonly model?: unknown; readonly doubleSided?: unknown; readonly flatShading?: unknown;
   readonly primitive?: unknown; readonly effectState?: unknown; readonly blend?: unknown; readonly fog?: unknown;
@@ -656,6 +659,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     if (typeof op !== 'string' || !Object.hasOwn(GRAPH_OPS, op)) return fail(`${at}: unknown op ${String(op)}`);
     const spec = GRAPH_OPS[op];
     if (spec === undefined) return fail(`${at}: unknown op ${op}`);
+    if (raw.interpolation !== undefined && (op !== 'varying' || raw.interpolation !== 'flat')) return fail(`${at}: interpolation is flat on a varying only`);
     if (spec.places && !spec.places.includes(place)) return fail(`${at}: ${op} cannot run in the ${place} stage`);
     if (op === 'pointCoord' && primitive !== 'points') return fail(`${at}: pointCoord needs a points primitive`);
     const ins = raw.in ?? [];
@@ -946,6 +950,7 @@ function toNodes(raw: Raw): Record<string, GraphNode> {
       ...(n.value !== undefined ? { value: isFiniteNumber(n.value) ? n.value : Array.isArray(n.value) ? n.value.filter(isFiniteNumber) : 0 } : {}),
       ...(typeof n.param === 'string' ? { param: n.param } : {}),
       ...(typeof n.mask === 'string' ? { mask: n.mask } : {}),
+      ...(n.interpolation === 'flat' ? { interpolation: 'flat' } : {}),
       ...(typeof n.count === 'number' ? { count: n.count } : {}),
       ...(typeof n.name === 'string' ? { name: n.name } : {}),
       ...(n.type === 'float' || n.type === 'vec2' || n.type === 'vec3' || n.type === 'vec4' ? { type: n.type } : {}),

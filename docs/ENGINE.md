@@ -5268,3 +5268,10 @@ figure-first/talk-first frame order, greeting hysteresis, optional one-time
 approach and weapon stow run at the caller's original update phase. Rows refuse
 invalid reach, source escapes or missing greeting owners before construction;
 entry ownership and save/flag authorities remain with the caller.
+
+A numeric `varying` node accepts `interpolation: 'flat'`. The vertex and
+fragment declarations use matching flat qualifiers, so every fragment
+reads the primitive's provoking vertex value with no geometry duplication.
+Absent interpolation preserves ordinary perspective interpolation. The
+SDK retains `varying(value).setInterpolation('flat')`; other interpolation
+modes/sampling modifiers and interpolation fields on other ops refuse.
