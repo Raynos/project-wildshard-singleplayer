@@ -34,3 +34,6 @@ export const IMPERIAL_BULL_BRAIN = { id: 'pine.elite.imperial-bull', kind: 'elit
 export const PINE_ELITE_MODULES: Readonly<Record<string, string>> = {
   [ironhide.module]: ironhide.bytes, [ghostStag.module]: ghostStag.bytes, [blackpaw.module]: blackpaw.bytes, [imperialBull.module]: imperialBull.bytes,
 };
+
+/** Fight declarations in the same native encounter order. */
+export const PINE_ELITE_FIGHTS:Readonly<Record<string,typeof IRONHIDE_BRAIN|typeof GHOST_STAG_BRAIN|typeof BLACKPAW_BRAIN|typeof IMPERIAL_BULL_BRAIN>>={ironhide:IRONHIDE_BRAIN,'ghost-stag':GHOST_STAG_BRAIN,blackpaw:BLACKPAW_BRAIN,'imperial-bull':IMPERIAL_BULL_BRAIN};

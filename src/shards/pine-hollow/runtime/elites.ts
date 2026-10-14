@@ -4,7 +4,7 @@ import { canReach } from '@wildshard/engine/ai/reach';
 import type { SimHost } from '@wildshard/engine/sim';
 import { EliteCore, memoryElitePersistence, type EliteCoreRule } from '@wildshard/game/eliteSystem';
 import { PINE_ELITE_ANIMALS } from '../combat/eliteRoster';
-import { pineEliteScripts, type Blackpaw, type GhostStag, type ImperialBull, type Ironhide, type PineEliteScript, type PineEliteWorld } from '../combat/eliteScripts';
+import { pineEliteScripts, type PineEliteScript, type PineEliteWorld } from '../combat/eliteScripts';
 import { Lane } from '../combat/lane';
 import type { PineBody, PineHuntBody } from './roster';
 
@@ -63,7 +63,7 @@ export interface PineElitesPorts {
  */
 export function installPineElites(host: SimHost, ports: PineElitesPorts): {
   core: EliteCore<PineEliteScript<PineHuntBody>>;
-  scripts: readonly [Ironhide<PineHuntBody>, GhostStag<PineHuntBody>, Blackpaw<PineHuntBody>, ImperialBull<PineHuntBody>]; initialize: () => void;
+  scripts: readonly [PineEliteScript<PineHuntBody>, PineEliteScript<PineHuntBody>, PineEliteScript<PineHuntBody>, PineEliteScript<PineHuntBody>]; initialize: () => void;
 } {
   const player = host.player, half = host.level.ground.size / 2;
   const reach = (a: PineHuntBody, target: { x: number; y: number; z: number }): boolean => canReach(a, target, host.physics);
