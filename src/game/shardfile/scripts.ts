@@ -39,3 +39,18 @@ export function prepareShardfileScriptOptions(content: ShardScriptContent, asset
 export function createShardfileScriptLane(content: ShardScriptContent, assets: ReadonlyMap<string, Uint8Array>, ports: ShardScriptPorts): ScriptLane {
   return new ScriptLane(prepareShardfileScriptOptions(content, assets, ports));
 }
+
+/** Read only admitted asset handles; verification detaches bytes before any host can install them. */
+export type ScriptModuleAssets = ReadonlyMap<string, Uint8Array> | ((hash: string) => Promise<Uint8Array>);
+/** Shared content-hash admission for mover and item roles; ABI, memory and fuel checks remain with their existing host. */
+export async function verifiedScriptModules(assets: ScriptModuleAssets, refs: readonly string[]): Promise<ReadonlyMap<string, Uint8Array>> {
+  const names = [...new Set(refs)];
+  if (names.length > 512 || names.some(hash => !/^(?:commons:)?[a-f0-9]{64}$/u.test(hash))) throw new Error('Invalid declared script modules');
+  return new Map(await Promise.all(names.map(async hash => {
+    const source = typeof assets === 'function' ? await assets(hash) : assets.get(hash);
+    if (source === undefined) throw new Error('Script module was not admitted');
+    const bytes = Uint8Array.from(source), digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+    if ([...digest].map(byte => byte.toString(16).padStart(2, '0')).join('') !== hash.replace(/^commons:/u, '')) throw new Error('Script module hash mismatch');
+    return [hash, bytes] as const;
+  })));
+}

@@ -44,7 +44,7 @@ import { createQuestScriptPorts, DeclaredQuests, type QuestDataPorts, type Quest
 import { installDeclaredEncounters } from "../shard/declaredEncounters";
 import type { Shardfile } from "@wildshard/format/shardSchema";
 import { speciesResolver, simStrikes } from "./brain";
-import { createShardfileScriptLane, prepareShardfileScriptOptions, type ShardScriptPorts } from "../shardfile/scripts";
+import { createShardfileScriptLane, prepareShardfileScriptOptions, verifiedScriptModules, type ScriptModuleAssets, type ShardScriptPorts } from "../shardfile/scripts";
 import { installDeclaredBrains, type DeclaredBrainPorts } from "../shardfile/brainRuntime";
 import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from "../shardfile/scriptComposition";
 import { dataCreaturePorts } from "../shardfile/dataCreaturePorts";
@@ -770,14 +770,9 @@ export class MeleeScriptDriver {
   }
 }
 /** Detach and hash-verify every declared item module before building its role; normal ABI/memory/fuel admission stays fatal. */
-export async function createMeleeScriptDriver(input: unknown, actorId: string, assets: ReadonlyMap<string, Uint8Array>, seed: number): Promise<MeleeScriptDriver> {
-  const items = parseItems(input), names = [...new Set(items.rows.flatMap(row => row.hook === null ? [] : [row.hook.module]))];
-  const modules = new Map(await Promise.all(names.map(async name => {
-    const source = assets.get(name); if (source === undefined) throw new Error('Missing admitted item module');
-    const bytes = Uint8Array.from(source), digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
-    if ([...digest].map(byte => byte.toString(16).padStart(2, '0')).join('') !== name.replace(/^commons:/u, '')) throw new Error('Item module hash mismatch');
-    return [name, bytes] as const;
-  })));
+export async function createMeleeScriptDriver(input: unknown, actorId: string, assets: ScriptModuleAssets, seed: number): Promise<MeleeScriptDriver> {
+  const items = parseItems(input), refs = items.rows.flatMap(row => row.hook === null ? [] : [row.hook.module]);
+  const modules = await verifiedScriptModules(assets, refs);
   return new MeleeScriptDriver(items, actorId, modules, seed);
 }
 

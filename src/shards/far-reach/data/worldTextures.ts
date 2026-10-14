@@ -6,8 +6,7 @@ export const SKY_WORLD_PREPARATION = {
     { id: 'leaf', url: FAN_LEAF_URL, name: 'far.fan-leaf', warn: '[far-reach] far.fan-leaf not loaded:', phase: 0, sampler: { release: true } },
     { id: 'millStone', url: TEX_URL.millStone, name: 'far.mill-stone', warn: '[far-reach] far.mill-stone not loaded:', phase: 1,
       sampler: { release: true, wrapS: 1000, wrapT: 1000, mips: true, minFilter: 1008, anisotropy: 4 } },
-    { id: 'vortex', url: TEX_URL.stormeye, name: 'far.stormeye', warn: '[far-reach] far.stormeye not loaded:', phase: 1,
-      sampler: { release: true, wrapS: 1002, wrapT: 1002 } },
+
   ],
   requiredMaterials: ['deck-wood', 'hover-frame'],
 } as const;

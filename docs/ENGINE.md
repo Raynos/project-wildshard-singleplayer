@@ -4533,3 +4533,11 @@ requires the complete boss, interaction and crack-spot metadata as well.
 The reader validates finite positions and nonnegative radii; collision
 rows continue through `addBakedWorld` and native population keeps body
 and behaviour ownership.
+
+`verifiedScriptModules(assets, refs)` in `game/shardfile/scripts` reads
+an admitted byte map or async asset reader, detaches each module, and
+checks its SHA-256 identity before installation. Mover and melee roles
+share this verifier; their existing ABI, memory, fuel and entity caps
+remain in force. `createMeleeScriptDriver` accepts the same asset-reader
+port, so a page can read verified product modules without its own copy
+loop. Every restore still constructs its own role and uses one host.

@@ -14,7 +14,7 @@ import type { World } from "@wildshard/engine/core/bootstrap";
 import type { SimHost } from "@wildshard/engine/sim";
 import type { LevelContext } from "@wildshard/engine/level/context";
 import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from "../shardfile/scriptComposition";
-import type { ShardScriptContent, ShardScriptPorts } from "../shardfile/scripts";
+import { verifiedScriptModules, type ShardScriptContent, type ShardScriptPorts } from "../shardfile/scripts";
 import type { ScriptRole, ScriptSchedule } from "@wildshard/engine/script/composition";
 import type { Scope } from "@wildshard/engine/app/scope";
 import { KinematicMover, type MoverPose } from "@wildshard/engine/physics/mover";
@@ -348,24 +348,15 @@ export async function createComposedMoverHost(data: MoverData, assets: ReadonlyM
   extra: MoverRoleComposition): Promise<ReturnType<typeof createShardfileComposedLane>> {
   if (!Number.isSafeInteger(extra.seed) || extra.seed < 0) throw new Error('Invalid composed mover seed');
   const driver = new MoverScriptDriver(data, physicsQueries), modules = new Map(await verifiedMoverModules(assets, driver.data));
-  for (const [hash, source] of extra.modules) {
-    const bytes = Uint8Array.from(source), digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
-    if (!/^(?:commons:)?[a-f0-9]{64}$/u.test(hash) || [...digest].map(value => value.toString(16).padStart(2, '0')).join('') !== hash.replace(/^commons:/u, '')) throw new Error('Extra mover module hash mismatch');
-    modules.set(hash, bytes);
-  }
+  for (const [hash, bytes] of await verifiedScriptModules(extra.modules, [...extra.modules.keys()])) modules.set(hash, bytes);
   return createShardfileComposedLane({ identity: { seed: extra.seed }, sim: { scripts: [...modules.keys()], bindings: [], scriptTickDivisor: 1 },
     state: { shared: [], player: [] } }, modules, { rules: { fields: {}, archetypes: [], events: [], maxEntities: 32 }, entities: [], actors: new Map(), query: () => [] },
   undefined, { roles: [driver.role(), ...extra.roles], schedules: extra.schedules ?? [], transientModules: driver.transientModules });
 }
 
 /** Copy and SHA-256-check each declared module before constructing a headless host. */
-export async function verifiedMoverModules(assets: ReadonlyMap<string, Uint8Array>, rows: MoverData): Promise<ReadonlyMap<string, Uint8Array>> {
-  return new Map(await Promise.all([...new Set(parseMovers(rows).map(row => row.module))].map(async hash => {
-    const bytes = assets.get(hash); if (bytes === undefined) throw new Error('Mover module was not admitted');
-    const copy = Uint8Array.from(bytes), digest = new Uint8Array(await crypto.subtle.digest('SHA-256', copy));
-    if ([...digest].map(b => b.toString(16).padStart(2, '0')).join('') !== hash) throw new Error('Mover module hash mismatch');
-    return [hash, copy] as const;
-  })));
+export function verifiedMoverModules(assets: ReadonlyMap<string, Uint8Array>, rows: MoverData): Promise<ReadonlyMap<string, Uint8Array>> {
+  return verifiedScriptModules(assets, parseMovers(rows).map(row => row.module));
 }
 
 /** The platform's cable/deck law, used by author rows and both native hosts. */

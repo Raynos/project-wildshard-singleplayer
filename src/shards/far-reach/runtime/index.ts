@@ -30,7 +30,6 @@ import { loadSkyBaked } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
 import { setSkyLooks, skyLook } from '../world/looks';
 import { setMillTextures } from '../world/mill';
-import { setStormPaint } from '../world/storm';
 import { wakeRibbon } from './looks/wakeRibbon';
 import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow, type Meadow } from '../world/meadow';
@@ -90,7 +89,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     await Promise.all([preloadSkyMeshes(() => worldBuildYield(ctx, 4)), loadSkyBaked()]);
     const compiled = await prepareClientWorld(ctx, source, SKY_WORLD_PREPARATION);
     this.leaf = compiled.painted.get('leaf') ?? null; this.board = () => ctx.app.player?.mode === 'board';
-    setStormPaint(compiled.painted.get('vortex') ?? null); setMillTextures({ stone: compiled.painted.get('millStone') ?? null });
+    setMillTextures({ stone: compiled.painted.get('millStone') ?? null });
     // op-hitch41: in work slices (a grid cell builds Sky Reach on the road, in play: one 366 ms task on the Simulator,
     // then the meadow's 59 ms in the same frame); the meadow starts on a task of its own
     // the static islands from the shardfile's props tiles (runtime.binds props; generators/isleProps.ts), every tile resident
@@ -154,12 +153,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       }
     } });
     const product = runtimeProduct(source);
-    const itemAssets = new Map<string, Uint8Array>();
-    for (let index = 0; index < 64; index++) {
-      const item = source.items.rows[index]; if (item === undefined) break;
-      if (item.hook !== null && !itemAssets.has(item.hook.module)) itemAssets.set(item.hook.module, await product.assets.read(item.hook.module));
-    }
-    const items = await createMeleeScriptDriver(source.items, 'actor.player', itemAssets, source.identity.seed);
+    const items = await createMeleeScriptDriver(source.items, 'actor.player', hash => product.assets.read(hash), source.identity.seed);
     this.movers = await installDeclaredMovers(ctx, rt.world, { data: source.movers, modules: new Map(), views: channels.movers,
       admitted: product.assets.retained, read: hash => product.assets.read(hash), systemId: SKY_MOVER_BINDING.systemId,
       composition: { modules: items.modules, roles: [items.role()], seed: items.seed },
