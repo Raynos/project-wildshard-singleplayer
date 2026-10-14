@@ -44,7 +44,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   // Water callbacks stay synchronous: dive/surface synth, plunge bank, mixer, zoned bed, score.
   const previousUnderwater = audio.setUnderwater.bind(audio);
   audio.setUnderwater = (on) => { previousUnderwater(on); ambience.setUnderwater(on); };
-  driftwoodAudioSystems(ctx, game.camera, { clock: () => sky.dayNight, shrine: built.shrine, hum: shrineHum, ambience });
+  driftwoodAudioSystems(ctx, game.camera, { clock: () => sky.dayNight, shrine: built.shrine, hum: shrineHum, ambience },requireAudioProfile(audioRows.observations,'island audio observations'));
   const handles = { shrineHum, islandSfx, surfaces, ambience };
   Object.assign(shell.objects, handles);
   ctx.debug.expose('driftwood.audio', handles);

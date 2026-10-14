@@ -222,3 +222,16 @@ export const AudioPcmProgramSchema=v.pipe(v.strictObject({seed:v.tuple([finite,f
     v.strictObject({kind:v.literal('repeat'),count:mixExpr,max:v.pipe(finite,v.safeInteger(),v.minValue(1),v.maxValue(32)),index:id,while:v.exactOptional(mixExpr),body:v.pipe(v.array(pcmStep),v.maxLength(32))})])),v.maxLength(64)),
   finish:v.tuple([finite,finite])}),v.check(program=>program.steps.reduce((sum,row)=>sum+(row.kind==='repeat'?row.max*row.body.length:1),0)<=2048,'bounded PCM recipe'));
 export type AudioPcmProgram=v.InferOutput<typeof AudioPcmProgramSchema>;
+
+/** Ordered gameplay observations; the native owner lends scalar/actor readers and existing sound operations. */
+const observationNames=v.pipe(v.array(id),v.maxLength(32));
+export const AudioObservationSystemSchema=v.strictObject({id,before:observationNames,after:observationNames,
+  interval:v.pipe(finite,v.minValue(0),v.maxValue(60)),initial:v.pipe(v.record(id,finite),v.check(rows=>Object.keys(rows).length<=64)),
+  frame:v.pipe(v.array(v.strictObject({write:id,value:mixExpr,when:v.exactOptional(mixExpr)})),v.maxLength(32)),
+  steps:v.pipe(v.array(v.variant('kind',[
+    v.strictObject({kind:v.literal('state'),id,value:mixExpr,when:v.exactOptional(mixExpr),changed:v.exactOptional(id)}),
+    v.strictObject({kind:v.literal('call'),call:id,when:v.exactOptional(mixExpr),remember:v.exactOptional(id)}),
+    v.strictObject({kind:v.literal('entities'),list:id,actorKind:id,state:id,exclude:observationNames,
+      gap:v.pipe(finite,v.minValue(0),v.maxValue(600)),radius:v.pipe(finite,v.minValue(0),v.maxValue(2000)),remember:id,call:id})
+  ])),v.maxLength(64))});
+export type AudioObservationSystem=v.InferOutput<typeof AudioObservationSystemSchema>;

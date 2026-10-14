@@ -4,7 +4,17 @@ import { PINE_AUDIO_ZONES, PINE_AUDIO_MIX, PINE_AUDIO_NODES } from './audioZones
 import { PINE_AUDIO_SAMPLES } from './runtimeCost';
 
 /** Existing forest samples, score/boss slots, scoped rifle echo and authored ambience zones. */
-export const PINE_AUDIO = parseAudioData({ cues: [], ambience: { phrases:[PINE_BIRD], bed: 'forest', winds: [
+export const PINE_AUDIO = parseAudioData({ observations:[{
+  id:'audio',after:['hud.combat'],before:['shard.pine.weather.state','shard.pine.weather','world.life','first hints','main.frame'],
+  interval:0.2,initial:{night:0,elite:0,eliteT:0,snortAt:-99},
+  frame:[{write:'ambience.night',value:'night',when:'hasClock'}],
+  steps:[
+    {kind:'state',id:'night',when:'hasClock',value:['if','state.night',['gt','night',0.35],['gt','night',0.55]],changed:'clock.change'},
+    {kind:'call',call:'score.scene',when:['and','hasClock',['not','pinned'],['not','boss']]},
+    {kind:'state',id:'elite',value:'engaged',changed:'elite.change'},
+    {kind:'call',call:'combat',when:['and','state.elite',['gt',['-','t','state.eliteT'],1]],remember:'eliteT'},
+    {kind:'entities',list:'animals',actorKind:'deer',state:'alert',exclude:['alert','flee'],gap:3,radius:70,remember:'snortAt',call:'deer.snort'}
+  ]}], cues: [], ambience: { phrases:[PINE_BIRD], bed: 'forest', winds: [
     { frequency:260,q:0.5,pan:-0.55,rate:0.07,gain:0.11 }, { frequency:620,q:0.8,pan:0.55,rate:0.11,gain:0.06 },
     { frequency:140,q:0.4,pan:0,rate:0.05,gain:0.09 }, { frequency:2400,q:0.5,pan:0.2,rate:0.09,gain:0.012 }
   ], gust: { scope:'audio.pine.bed',scopeFirst:false,startTap:'audio.startForest',tap:'audio.gust',gentle:1,wait:[5,12],rise:[1.5,3],fall:[2,4],amount:[0.5,1.6] } }, score: 'default',

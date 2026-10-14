@@ -1,4 +1,4 @@
-import type { AudioAmbienceRouting, AudioNodeRow, AudioOneShotSchedule, AudioPhraseProgram, SynthBedGraph, AudioMixExpr, AudioMixRecipe } from '@wildshard/format/audioProfiles';
+import type { AudioObservationSystem, AudioAmbienceRouting, AudioNodeRow, AudioOneShotSchedule, AudioPhraseProgram, SynthBedGraph, AudioMixExpr, AudioMixRecipe } from '@wildshard/format/audioProfiles';
 import type { ScoreSelection } from './scoreSelection';
 
 /** Same-byte platform sample catalogue; gains apply to admitted named loops. */
@@ -88,4 +88,56 @@ export function evaluateAudioMix(rows:AudioMixRecipe,ports:{read:(id:string)=>nu
   let selected=rows.defaultZone,best=rows.zoneFloor;
   for(const [id,expr] of rows.zones){const weight=value(expr);if(rows.zoneMode==='first'){if(weight!==0&&!Number.isNaN(weight)){selected=id;break;}}else if(weight>best){selected=id;best=weight;}}
   return selected;
+}
+
+/** Borrowed living actor identity; transition history is retained without copying the native roster. */
+export interface AudioObservationEntity {readonly kind:string;readonly state:string;readonly alive:boolean;readonly position:{readonly x:number;readonly y:number;readonly z:number}}
+export interface AudioObservationEvent {readonly value?:number;readonly previous?:number;readonly entity?:AudioObservationEntity}
+export interface AudioObservationPorts {
+  readonly read:(id:string)=>number;
+  readonly write:(id:string,value:number)=>void;
+  readonly commands:ReadonlyMap<string,(dt:number,t:number,event:AudioObservationEvent)=>void>;
+  readonly entities?:Readonly<Record<string,()=>readonly AudioObservationEntity[]>>;
+}
+/** Compile bounded observation order once; clocks, actor states and sound calls remain actual native loans. */
+export function createAudioObserver(row:AudioObservationSystem,ports:AudioObservationPorts):{run:(dt:number,t:number)=>void;state:(id:string)=>number} {
+  const state=new Map(Object.entries(row.initial)),history=new Map<Extract<AudioObservationSystem['steps'][number],{kind:'entities'}>,WeakMap<AudioObservationEntity,string>>(),empty:AudioObservationEvent={};let elapsed=0;
+  const command=(id:string):NonNullable<ReturnType<AudioObservationPorts['commands']['get']>>=>{const fn=ports.commands.get(id);if(fn===undefined)throw new Error(`Missing audio observation command: ${id}`);return fn;};
+  for(const step of row.steps){
+    if(step.kind==='state'&&step.changed!==undefined)command(step.changed);
+    if(step.kind==='call'||step.kind==='entities')command(step.call);
+    if(step.kind==='entities'){if(ports.entities?.[step.list]===undefined)throw new Error('Missing audio observation roster');history.set(step,new WeakMap());}
+  }
+  let time=0;
+  const read=(id:string):number=>id==='t'?time:id.startsWith('state.')?(state.get(id.slice(6))??0):ports.read(id);
+  const evaluate=(expr:AudioMixExpr):number=>audioMixValue(expr,read);
+  return {state:id=>state.get(id)??0,run:(dt,t)=>{
+    time=t;
+    for(const field of row.frame)if(field.when===undefined||evaluate(field.when)!==0)ports.write(field.write,evaluate(field.value));
+    elapsed+=dt;if(elapsed<row.interval)return;elapsed=0;
+    for(const step of row.steps){
+      switch(step.kind){
+        case 'state':{
+          if(step.when!==undefined&&evaluate(step.when)===0)break;
+          const previous=state.get(step.id)??0,value=evaluate(step.value);state.set(step.id,value);
+          if(value!==previous&&step.changed!==undefined)command(step.changed)(dt,t,{value,previous});break;
+        }
+        case 'call':if(step.when===undefined||evaluate(step.when)!==0){if(step.remember!==undefined)state.set(step.remember,t);command(step.call)(dt,t,empty);}break;
+        case 'entities':{
+          const previous=history.get(step),actors=ports.entities?.[step.list]?.();
+          if(previous===undefined||actors===undefined)throw new Error('Missing audio observation roster');
+          if(actors.length>8192)throw new Error('Audio observation roster exceeds its bound');
+          const x=read('listener.x'),y=read('listener.y'),z=read('listener.z');
+          for(const actor of actors){
+            const was=previous.get(actor);previous.set(actor,actor.state);
+            if(actor.kind!==step.actorKind||!actor.alive||actor.state!==step.state||was===undefined||step.exclude.includes(was))continue;
+            const dx=actor.position.x-x,dy=actor.position.y-y,dz=actor.position.z-z;
+            if(t-(state.get(step.remember)??0)<step.gap||dx*dx+dy*dy+dz*dz>step.radius*step.radius)continue;
+            state.set(step.remember,t);command(step.call)(dt,t,{entity:actor});
+          }break;
+        }
+        default:throw new Error('Unsupported audio observation');
+      }
+    }
+  }};
 }

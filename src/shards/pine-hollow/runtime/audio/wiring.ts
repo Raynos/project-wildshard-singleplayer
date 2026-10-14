@@ -1,4 +1,4 @@
-import { runtimeAudio } from '@wildshard/game/plugin/audio';
+import { runtimeAudio, audioObserverSystems } from '@wildshard/game/plugin/audio';
 import type { AudioZones } from '@wildshard/format/audioProfiles';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
@@ -7,7 +7,6 @@ import { audioLog } from '@wildshard/engine/audio/audioLog';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { Music } from '@wildshard/engine/audio/Music';
 import type { Game } from '@wildshard/engine/core/Game';
-import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ForestAmbience, ZoneSpot } from './ambience';
@@ -46,8 +45,6 @@ export interface PineAudioHost {
   params: URLSearchParams;
 }
 
-const NIGHT_ON = 0.55, NIGHT_OFF = 0.35;
-const SNORT_R = 70, SNORT_GAP = 3;
 
 /** The shardfile's exact baked zone rows; only a live mill-wheel query remains a trusted runtime port. */
 export function pineZoneSpots(wheel: () => number, profile: AudioZones = requireAudioProfile(source.audio.zones, 'ambience.pine')): ZoneSpot[] {
@@ -75,37 +72,28 @@ export function installPineAudio(h: PineAudioHost): void {
 
   const score = pineScore(music);
   const pinned = pineScorePick() !== 'auto'; // Debug ▸ Audio ▸ Pine Hollow score holds the scene (Music.ts reads it)
-  const prev = new WeakMap<Animal, Animal['state']>();
-  let night = false, slowT = 0, snortAt = -99, elite = false, eliteT = 0;
-  const system: Parameters<ShardContext['system']>[0] = { id: 'audio', phase: 'update', after: ['hud.combat'], before: ['shard.pine.weather.state', 'shard.pine.weather', 'world.life', 'first hints', 'main.frame'], run: (dt, t) => {
-    const dn = sky.dayNight;
-    if (dn) amb.night = dn.night;
-    slowT += dt;
-    if (slowT < 0.2) return;
-    slowT = 0;
-    // the clock → the music's scene (the King's fight owns it while it runs)
-    if (dn) {
-      const was = night;
-      night = night ? dn.night > NIGHT_OFF : dn.night > NIGHT_ON;
-      if (night !== was) audioLog('wire', night ? 'clock:night' : 'clock:day', true, dn.night.toFixed(2));
-      if (!pinned && score.sceneName !== 'boss') score.setPineScene(night ? 'night' : 'day');
-    }
-    // an engaged elite: combat, refreshed each second (Music.combat decays to alert 8 s after the last one)
-    const on = h.eliteEngaged();
-    if (on !== elite) { elite = on; audioLog('wire', on ? 'elite:engaged' : 'elite:clear'); }
-    if (on && t - eliteT > 1) { eliteT = t; music.combat(0.8); }
-    // a deer's alarm snort: one going alert near you (not one already running), one snort per few seconds
-    const p = game.camera.position;
-    for (const a of animals.animals) {
-      const was = prev.get(a);
-      prev.set(a, a.state);
-      if (a.kind !== 'deer' || !a.alive || a.state !== 'alert' || was === undefined || was === 'alert' || was === 'flee') continue;
-      if (t - snortAt < SNORT_GAP || a.position.distanceToSquared(p) > SNORT_R * SNORT_R) continue;
-      snortAt = t;
-      amb.sfx.shot('deer_snort', { at: a.position });
-    }
-  } };
-  const diagnostic = { spots, get night() { return night; } };
+  const observer:ReturnType<typeof audioObserverSystems>=audioObserverSystems(requireAudioProfile(rows.observations,'pine audio observations'),{
+    read:id=>{
+      const dn=sky.dayNight,p=game.camera.position;
+      switch(id){
+        case 'hasClock':return dn?1:0;case 'night':return dn?.night??0;
+        case 'pinned':return pinned?1:0;case 'boss':return score.sceneName==='boss'?1:0;
+        case 'engaged':return h.eliteEngaged()?1:0;
+        case 'listener.x':return p.x;case 'listener.y':return p.y;case 'listener.z':return p.z;
+        default:throw new Error(`Unknown audio observation: ${id}`);
+      }
+    },
+    write:(id,value)=>{if(id!=='ambience.night')throw new Error('Unknown audio observation target');amb.night=value;},
+    entities:{animals:()=>animals.animals},commands:new Map<string,NonNullable<ReturnType<Parameters<typeof audioObserverSystems>[1]['commands']['get']>>>([
+      ['clock.change',(_dt,_t,event)=>{audioLog('wire',event.value===1?'clock:night':'clock:day',true,(sky.dayNight?.night??0).toFixed(2));}],
+      ['score.scene',()=>{score.setPineScene(observer.value('audio','night')!==0?'night':'day');}],
+      ['elite.change',(_dt,_t,event)=>{audioLog('wire',event.value===1?'elite:engaged':'elite:clear');}],
+      ['combat',()=>{music.combat(0.8);}],
+      ['deer.snort',(_dt,_t,event)=>{if(event.entity===undefined)throw new Error('Missing audio observation actor');amb.sfx.shot('deer_snort',{at:event.entity.position});}],
+    ])
+  });
+  const system=requireAudioProfile(observer.systems.find(row=>row.id==='audio'),'pine audio system');
+  const diagnostic={spots,get night(){return observer.value('audio','night')!==0;}};
   if (retained && h.context !== undefined) {
     installEnteredRuntimeObserver(h.context, '__pineAudio', diagnostic);
     installEnteredRuntimeService(h.context, (scope) => {

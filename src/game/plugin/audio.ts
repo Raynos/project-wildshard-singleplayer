@@ -1,3 +1,4 @@
+import { createAudioObserver, type AudioObservationPorts } from '@wildshard/engine/audio/audioProfiles';
 import { createCueRouter } from '@wildshard/engine/audio/cueRouting';
 import type { CombatCueMap, CombatCueOpts, CombatCues } from '@wildshard/engine/combat/cues';
 import type { Audio } from '@wildshard/engine/audio/Audio';
@@ -100,4 +101,16 @@ export function declaredWeaponVoices(audio: Audio): ReadonlyMap<string, (opts: C
 export function installDeclaredCombatCues(audio: Audio, cues: CombatCues, scope: Scope, routing: AudioData['routing']): void {
   const voices = new Map([...declaredWeaponVoices(audio)].map(([id, voice]) => [id, (opts: CombatCueOpts): undefined => { voice(opts); }]));
   cues.use(createCueRouter(routing, { voices }), scope);
+}
+
+/** Native audio phase host, shared by entered observers and ordinary page systems. */
+export type AudioObserverHost=Pick<ShardContext,'system'>;
+/** Bind emitted observation rows without installing or touching a mixer during construction. */
+export function audioObserverSystems(rows:NonNullable<AudioData['observations']>,ports:AudioObservationPorts):{
+  systems:Parameters<ShardContext['system']>[0][];value:(system:string,id:string)=>number
+} {
+  if(rows.length>16)throw new Error('Audio observation system capacity');
+  const controllers=new Map(rows.map(row=>[row.id,createAudioObserver(row,ports)]));
+  return {systems:rows.map(row=>({id:row.id,phase:'update',after:row.after,before:row.before,run:(dt,t)=>{controllers.get(row.id)?.run(dt,t);}})),
+    value:(system,id)=>{const controller=controllers.get(system);if(controller===undefined)throw new Error('Missing audio observation system');return controller.state(id);}};
 }
