@@ -37,5 +37,5 @@ export function installDriftwoodKills(host: SimHost, feats: readonly Achievement
     snapshot: () => ({ ...counts }),
     restore: value => { counts = v.parse(Saved, value); },
   });
-  return { count: id => counts[id] ?? 0 };
+  return { count: id => Object.hasOwn(counts, id) ? counts[id] ?? 0 : 0 };
 }
