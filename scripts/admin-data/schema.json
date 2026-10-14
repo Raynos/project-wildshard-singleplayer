@@ -1112,14 +1112,6 @@
                   "slug": {
                     "type": "string"
                   },
-                  "publicLines": {
-                    "type": "number",
-                    "minimum": 0
-                  },
-                  "customLines": {
-                    "type": "number",
-                    "minimum": 0
-                  },
                   "runtimeLines": {
                     "type": "number",
                     "minimum": 0
@@ -1127,11 +1119,6 @@
                   "trustedRuntimeLines": {
                     "type": "number",
                     "minimum": 0
-                  },
-                  "publicShare": {
-                    "type": "number",
-                    "minimum": 0,
-                    "maximum": 1
                   },
                   "baseline": {
                     "type": "number",
@@ -1147,46 +1134,17 @@
                   "proofs": {
                     "type": "object",
                     "properties": {
-                      "boot": {
-                        "type": "boolean"
-                      },
                       "headless": {
-                        "type": "boolean"
-                      },
-                      "replay": {
-                        "type": "boolean"
-                      },
-                      "ledger": {
-                        "type": "boolean"
-                      },
-                      "gridReady": {
-                        "type": "boolean"
-                      },
-                      "compatible": {
-                        "type": "boolean"
-                      },
-                      "transitional": {
                         "type": "boolean"
                       }
                     },
                     "required": [
-                      "boot",
-                      "headless",
-                      "replay",
-                      "ledger",
-                      "gridReady",
-                      "compatible",
-                      "transitional"
+                      "headless"
                     ],
                     "additionalProperties": false
                   },
                   "proofsPassing": {
                     "type": "integer",
-                    "minimum": 0,
-                    "maximum": 6
-                  },
-                  "legacyShare": {
-                    "type": "number",
                     "minimum": 0,
                     "maximum": 1
                   },
@@ -1196,7 +1154,7 @@
                       "metric": {
                         "enum": [
                           "runtime-vs-legacy",
-                          "legacy-share"
+                          "native"
                         ]
                       },
                       "customRuntimeLines": {
@@ -1339,8 +1297,15 @@
                     "type": "object",
                     "properties": {
                       "customPercent": {
-                        "type": "number",
-                        "minimum": 0
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
                       },
                       "world": {
                         "enum": [
@@ -1429,11 +1394,8 @@
                 },
                 "required": [
                   "slug",
-                  "publicLines",
-                  "customLines",
                   "runtimeLines",
                   "trustedRuntimeLines",
-                  "publicShare",
                   "baseline",
                   "ceiling",
                   "enforced",
