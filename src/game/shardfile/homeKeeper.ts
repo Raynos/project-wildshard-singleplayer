@@ -22,6 +22,21 @@ export function creatureFloor(host: Pick<SimHost, 'physics'>, terrainAt: (x: num
   };
 }
 
+/** Reinstall trusted actors at their original adapter boundaries, then settle deferred play-time spawns. */
+export function orderedNativeReinstall<B extends { readonly id: string }>(saved: Pick<SimSnapshot, 'adapters'>, step: string, live: readonly B[],
+  reinstall: (body: B) => void, installStep?: () => void): () => void {
+  const ids = saved.adapters.map(adapter => adapter.id), boundary = ids.indexOf(step);
+  if (boundary === -1 || live.length > 1024) throw new Error('Incompatible native roster boundary');
+  const at = (body: B): number => ids.indexOf(`runtime.actor.${body.id}`);
+  if (live.some(body => at(body) === -1)) throw new Error('Missing native roster actor');
+  const ordered = [...live].sort((a, b) => at(a) - at(b));
+  const first = ids.findIndex((id, i) => i > boundary && !id.startsWith('runtime.actor.'));
+  const deferred: B[] = [];
+  if (installStep !== undefined) { ordered.forEach(body => { if (at(body) < boundary) reinstall(body); }); installStep(); }
+  ordered.forEach(body => { if (installStep !== undefined && at(body) < boundary) return; if (first === -1 || at(body) < first) reinstall(body); else deferred.push(body); });
+  return () => { deferred.forEach(reinstall); deferred.length = 0; };
+}
+
 /** A declared home the keeper refills (`runtime.spawns.homes`): `respawn` seconds after its body falls, a fresh one (0: never
  *  refilled, the fallen body stays). A `late` home spawns on the keeper's first step instead of at install, after every
  *  install-time registration (a body that lands once the world it stands on is in place). */
@@ -162,7 +177,6 @@ export function installHomeKeeper(host: SimHost, spec: HomeKeeperSpec, saved?: R
       const policy = state.boss?.policy; if (policy !== undefined && policy !== null) boss?.brain?.restore(v.parse(Value, JSON.parse(policy)));
     },
   });
-  const deferred: Body[] = [];
   let settle = (): void => undefined;
   if (saved === undefined) homes.forEach(home => { if (!home.late) respawn(home); });
   else {
@@ -178,11 +192,8 @@ export function installHomeKeeper(host: SimHost, spec: HomeKeeperSpec, saved?: R
     };
     // The host snapshots its adapters in registration order: a body spawned while the keeper installed sits before the
     // runtime's later steps, one spawned in play after them. Reinstall each at its own point, in the saved order.
-    const ids = saved.adapters.map(adapter => adapter.id), at = (id: string): number => ids.indexOf(`runtime.actor.${id}`);
-    const first = ids.findIndex((id, i) => i > ids.indexOf(step) && id !== step && !id.startsWith('runtime.actor.'));
-    const live = bodies.filter((_, i) => (i < homeCount ? keeper.homes[i]?.live : keeper.boss?.live) === true).sort((a, b) => at(a.id) - at(b.id));
-    live.forEach(body => { if (first === -1 || at(body.id) < first) reinstall(body); else deferred.push(body); });
-    settle = () => { deferred.forEach(reinstall); deferred.length = 0; };
+    const live = bodies.filter((_, i) => (i < homeCount ? keeper.homes[i]?.live : keeper.boss?.live) === true);
+    settle = orderedNativeReinstall(saved, step, live, reinstall);
   }
   return { settle, homes: () => homes,
     boss: boss === null ? null : { draw: () => drawBody(boss), free: () => { freeBody(boss); }, actor: () => boss.actor } };

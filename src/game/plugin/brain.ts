@@ -1,3 +1,7 @@
+import type { CombatTag } from '@wildshard/engine/combat/pipeline';
+import { StalkerBrain } from "@wildshard/engine/ai/stalker";
+import { huntMemoryCodec } from "@wildshard/engine/ai/huntPattern";
+import type { HuntBody, HuntGround, HuntNav, HuntConfig } from "@wildshard/engine/ai/hunt";
 import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import type { AnimalSimSpec, AnimalSim } from "@wildshard/engine/entities/AnimalSim";
 import type { SimStrike, SimValue, SimHost } from "@wildshard/engine/sim";
@@ -1003,4 +1007,76 @@ export interface SpeciesProgramRows {
 export function admitSpeciesProgram(rows: SpeciesProgramRows): SpeciesBrains {
   return admitSpeciesBrains(rows.species, rows.strikes.map(row => v.parse(CreatureStrikeSchema, row)),
     new Map(Object.entries(rows.modules ?? {}).map(([hash, base64]) => [hash, moduleBytes(base64)] as const)));
+}
+
+/** Authored native hunting setup on the existing sim and stalker owners. */
+export interface NativeHuntRow {
+  readonly limit: number;
+  readonly fight: HuntConfig['fight']; readonly tuning?: ReturnType<HuntConfig['faunaTuning']>;
+  readonly player: 'host' | 'origin';
+  readonly bands: { readonly states: readonly string[]; readonly scripted?: boolean; readonly legacyKinds: readonly string[] };
+  readonly hit: { readonly namespace: string; readonly tags: readonly CombatTag[] };
+}
+/** Keep the native manager's existing clocks, charge source, navigation and terrain cadence. */
+export function createNativeHunt(host: SimHost, row: NativeHuntRow, ports: {
+  readonly rng: Rng; readonly ground: HuntGround; readonly nav: HuntNav | null;
+  readonly species: NonNullable<HuntConfig['species']>;
+  readonly wanderGoal?: (herd: number) => { x: number; z: number; r: number } | null;
+  readonly present?: (actor: AnimalSim) => boolean;
+}): { readonly hunt: StalkerBrain<HuntBody>; readonly reach: (actor: HuntBody, point: Vector3) => boolean } {
+  if (!Number.isInteger(row.limit) || row.limit < 1 || row.limit > 1024 || row.bands.states.length > 32 || row.bands.legacyKinds.length > 32) throw new Error('Invalid native hunt bound');
+  host.useBodyBands({ rate: body => body.driven || (row.bands.scripted === true && body.scripted) || row.bands.states.includes(body.state) ? 'always'
+    : row.bands.legacyKinds.includes(body.kind) ? 'legacy' : 'ai', ...(ports.present === undefined ? {} : { present: ports.present }) });
+  const reach = (actor: HuntBody, point: Vector3): boolean => canReach(actor, point, host.physics);
+  const hunt = new StalkerBrain<HuntBody>({ pattern: 'hunt', config: { rng: ports.rng, fight: row.fight, faunaTuning: () => row.tuning, species: ports.species },
+    ports: { ground: ports.ground, nav: () => ports.nav, reach, wanderGoal: actor => ports.wanderGoal?.(actor.herd) ?? null, unaware: () => false,
+      now: () => host.clock.now * 1000, sound: () => undefined,
+      charge: (actor, damage) => { host.combat.hit({ source: 'env', sourceTags: [`${row.hit.namespace}.${actor.kind}`, ...row.hit.tags], target: host.player.health,
+        amount: damage, point: actor.position.clone(), dir: new Vector3(), cause: { kind: actor.kind, label: actor.label } }); } },
+    player: row.player === 'host' ? host.player.position : new Vector3(), sampleTerrain: actor => { actor.sampleTerrain(); } });
+  return { hunt, reach };
+}
+export interface NativeHuntContinuation {
+  readonly clock: number; readonly rng: ReturnType<Rng['snapshot']>;
+  readonly noise: { readonly seen: boolean; readonly speed: number; readonly prev: readonly [number, number, number] };
+  readonly sight: readonly (boolean | null | undefined)[]; readonly memories: readonly unknown[];
+  readonly herds: readonly (readonly [number, number])[];
+}
+/** Detached scalar/vector state; adapters map it into their existing saved wire. */
+export interface NativeHuntSnapshot {
+  clock: number; rng: { [K in keyof ReturnType<Rng['snapshot']>]: ReturnType<Rng['snapshot']>[K] };
+  noise: { seen: boolean; speed: number; prev: [number, number, number] };
+  sight: (boolean | null)[]; memories: (ReturnType<typeof huntMemoryCodec.save> | null)[];
+  herds: [number, number][];
+}
+/** Common native continuation; shard adapters retain their versioned field names and policy payloads. */
+export function huntRosterContinuation<B>(hunt: StalkerBrain<HuntBody>, row: { readonly limit: number; readonly memoryFields?: readonly string[] }, ports: {
+  readonly rng: Rng; readonly bodies: () => readonly B[]; readonly actor: (body: B) => HuntBody | null;
+  readonly participates?: (body: B) => boolean;
+  readonly noise: { seen: boolean; speed: number; prev: Vector3 }; readonly sight: (boolean | null | undefined)[];
+}): { readonly clock: number; advance: (dt: number) => void; snapshot: () => NativeHuntSnapshot; restore: (state: NativeHuntContinuation) => void } {
+  let clock = 0;
+  const memory = (body: B) => { const actor = ports.actor(body); return actor === null || ports.participates?.(body) === false ? undefined : hunt.memory(actor); };
+  return {
+    get clock(): number { return clock; },
+    advance(dt: number): void { hunt.beginTick(dt); clock += dt; },
+    snapshot(): NativeHuntSnapshot {
+      const bodies = ports.bodies(); if (bodies.length > row.limit) throw new Error('Native hunt roster exceeds its bound');
+      return { clock, rng: { ...ports.rng.snapshot() }, noise: { seen: ports.noise.seen, speed: ports.noise.speed, prev: [ports.noise.prev.x, ports.noise.prev.y, ports.noise.prev.z] as [number, number, number] },
+        sight: ports.sight.map(value => value ?? null), memories: bodies.map(body => { const m = memory(body); return m === undefined ? null : huntMemoryCodec.save(m, row.memoryFields); }),
+        herds: hunt.herds.map(herd => [herd.cx, herd.cz] as [number, number]) };
+    },
+    restore(state: NativeHuntContinuation): void {
+      const bodies = ports.bodies();
+      if (bodies.length > row.limit || state.memories.length !== bodies.length || state.sight.length !== ports.sight.length || state.herds.length !== hunt.herds.length || !Number.isFinite(state.clock)) throw new Error('Incompatible native hunt continuation');
+      ports.rng.restore(state.rng); hunt.beginTick(state.clock - clock); clock = state.clock;
+      ports.noise.seen = state.noise.seen; ports.noise.speed = state.noise.speed; ports.noise.prev.set(...state.noise.prev);
+      state.sight.forEach((seen, i) => { ports.sight[i] = seen; });
+      state.herds.forEach(([cx, cz], i) => { const herd = hunt.herds[i]; if (herd !== undefined) { herd.cx = cx; herd.cz = cz; } });
+      bodies.forEach((body, i) => { const m = memory(body), saved = state.memories[i];
+        if ((saved === null) !== (m === undefined)) throw new Error('Incompatible native hunt memory');
+        if (m !== undefined) huntMemoryCodec.restore(m, saved, row.memoryFields === undefined);
+      });
+    },
+  };
 }

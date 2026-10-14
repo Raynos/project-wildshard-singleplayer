@@ -5473,3 +5473,14 @@ observations. Borrowed call arguments use the existing safe owner/path
 reader. An optional bounded `delay` borrows `timer.timeout`; no new clock
 is installed. Keyed `refused` effects follow their original denial toast.
 All paths, arguments and effects resolve before registration or writes.
+
+### Native hunting keepers
+
+`createNativeHunt(host, row, ports)` binds the existing body bands and
+StalkerBrain to the host's navigation, reach queries and creature blows.
+`huntRosterContinuation` shares clock/noise/sight/memory/herd continuation
+with authored roster bounds and optional historical memory fields; shard
+adapters retain their existing versioned wire fields and policy state.
+`orderedNativeReinstall` restores actor registration order before/after
+the keeper step and returns an idempotent settle callback for later spawns.
+No helper creates a second simulation or random stream.

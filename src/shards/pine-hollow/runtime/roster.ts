@@ -3,9 +3,8 @@ import { Vector3 } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { AnimalSim, AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
 import { spawnRolls, type HuntBody, type HuntNav } from '@wildshard/engine/ai/hunt';
-import { huntMemoryCodec } from '@wildshard/engine/ai/huntPattern';
-import { StalkerBrain } from '@wildshard/engine/ai/stalker';
-import { canReach } from '@wildshard/engine/ai/reach';
+import { createNativeHunt, huntRosterContinuation } from '@wildshard/game/plugin/brain';
+import { PINE_NATIVE_HUNT } from '../data/nativeHunt';
 import { creatureFloor as structureFloor } from '@wildshard/game/shardfile/homeKeeper';
 import type { BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import type { SimHost, SimSpawn } from '@wildshard/engine/sim';
@@ -92,7 +91,7 @@ const Recipe = v.looseObject({ id: v.string(), spec: v.looseObject({ kind: v.str
  * single native weather/shelter owner before this roster's tick.
  */
 export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
-  bodies: () => readonly PineBody[]; parked: () => readonly PineParked[]; hunt: StalkerBrain<HuntBody>;
+  bodies: () => readonly PineBody[]; parked: () => readonly PineParked[]; hunt: ReturnType<typeof createNativeHunt>['hunt'];
   /** AnimalManager.spawn in play: a live creature (the stream's draws, the next entity id), at the end of the list */
   spawn: (kind: string, x: number, z: number, yaw: number, variant: string) => PineHuntBody;
   /** the same live spawn kept out of the list (a fight's own body that thinks nothing: a fallen Antler King's next night) */
@@ -112,21 +111,12 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
   // (every frame within 60 m, every other frame to 160 m, paused beyond; decisions at 20 / 10 Hz), 'always' for a scripted
   // elite (pinned: it thinks every frame), and the creature body LOD (a capsule within 45 m, released past 55). Before any
   // spawn, and on a restoring host before the host restores its clocks.
-  host.useBodyBands({ rate: body => body.driven || body.scripted || body.state === SCRIPTED ? 'always' : 'ai',
-    present: body => made.get(body.entityId)?.hidden !== true });
   const kingRow = bake.parked[0];
   if (kingRow?.kind !== PINE_KING_KIND) throw new Error('Pine bake has no Antler King prewarm');
   const species = pineSpawnSpecies({ id: kingRow.variant, label: kingRow.spec.label, weight: 1, rarity: kingRow.spec.rarity, scale: [kingRow.scale, kingRow.scale] });
   const ground = pineHuntGround(grid), heightAt = ground.heightAt;
-  const charge = (a: HuntBody, damage: number): void => {
-    // PlayerHurt.creature: an environmental blow at the creature, the host's knockback away from it
-    host.combat.hit({ source: 'env', sourceTags: [`creature.${a.kind}`, 'feel.blow', 'cover.checked'], target: host.player.health, amount: damage,
-      point: a.position.clone(), dir: new Vector3(), cause: { kind: a.kind, label: a.label } });
-  };
-  const hunt = new StalkerBrain<HuntBody>({ pattern: 'hunt', config: { rng, fight: { telegraphed: false }, faunaTuning: () => undefined, species }, ports: {
-    ground, nav: () => ports.nav, reach: (a, p) => canReach(a, p, host.physics), wanderGoal: a => ports.wanderGoal?.(a.herd) ?? null, unaware: () => false,
-    now: () => host.clock.now * 1000, sound: () => undefined, charge,
-  }, player: new Vector3(), sampleTerrain: actor => { actor.sampleTerrain(); } });
+  const { hunt, reach } = createNativeHunt(host, PINE_NATIVE_HUNT, { rng, ground, nav: ports.nav, species,
+    ...(ports.wanderGoal === undefined ? {} : { wanderGoal: ports.wanderGoal }), present: body => made.get(body.entityId)?.hidden !== true });
   const list: PineBody[] = [], parked: PineParked[] = [];
   const baked = new Map(bake.actors.map(a => [a.id, a] as const)), bakedParked = new Map(bake.parked.map(a => [a.id, a] as const));
   let next = 0, booted = false;
@@ -207,14 +197,14 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
 
   booted = true;
   const speed = { seen: false, prev: new Vector3(), speed: 0 };
-  let clock = 0;
+  const continuation = huntRosterContinuation(hunt, PINE_NATIVE_HUNT, { rng, bodies: () => list, actor: body => body.actor, noise: speed, sight: seen });
   const cadence = hunt.bindRoster({ limit: LIVE_MAX, order: 'combined', at: i => list[i], actor: body => body.actor,
-    id: body => body.id, player, noise: speed, sight: seen, reach: (actor, point) => canReach(actor, point, host.physics),
+    id: body => body.id, player, noise: speed, sight: seen, reach,
     brainDt: (id, urgent) => host.brainDt(id, urgent) });
   host.events.on('damage.dealt', ({ req, killed }) => { cadence.damaged(req.target, killed); }, host.scope);
 
   host.onStep(ROSTER_STEP, dt => {
-    cadence.observe(dt); hunt.beginTick(dt); clock += dt; cadence.decide();
+    cadence.observe(dt); continuation.advance(dt); cadence.decide();
     // a running charge on the body clock: its band's step (0 on a paused or off frame, both frames' time on the next)
     for (let i = 0; i < LIVE_MAX; i++) {
       const body = list[i], a = body?.actor;
@@ -223,24 +213,18 @@ export function installPineRoster(host: SimHost, ports: PineRosterPorts): {
       const step = host.bodyDt(body.id); if (step > 0) hunt.advanceCharge(a, step, player);
     }
   }, {
-    snapshot: () => ({ version: 3, rng: { ...rng.snapshot() }, clock, speed: { init: speed.seen, x: speed.prev.x, z: speed.prev.z, v: speed.speed }, next,
+    snapshot: () => { const common = continuation.snapshot(); return ({ version: 3, rng: common.rng, clock: common.clock, speed: { init: common.noise.seen, x: common.noise.prev[0], z: common.noise.prev[2], v: common.noise.speed }, next,
       bodies: list.map((b, i) => {
-        const memory = hunt.memory(b.actor); if (memory === undefined) throw new Error(`Pine body ${b.id} has no memory`);
-        return { id: b.id, kind: b.kind, seen: seen[i] === true, memory: huntMemoryCodec.save(memory) };
+        const memory = common.memories[i]; if (memory === undefined || memory === null) throw new Error(`Pine body ${b.id} has no memory`);
+        return { id: b.id, kind: b.kind, seen: seen[i] === true, memory };
       }),
-      herds: hunt.herds.map(h => [h.cx, h.cz] as [number, number]) }),
+      herds: common.herds }); },
     restore: value => {
       const state = v.parse(Saved, value);
       if (state.bodies.length !== list.length || state.herds.length !== hunt.herds.length || state.bodies.some((b, i) => b.id !== list[i]?.id)) throw new Error('Incompatible Pine roster continuation');
-      rng.restore(state.rng); speed.seen = state.speed.init; speed.prev.set(state.speed.x, 0, state.speed.z); speed.speed = state.speed.v; next = state.next;
-      // the brain's clock is a sum of the same steps: a fresh brain (clock 0) takes the saved sum exactly
-      hunt.beginTick(state.clock - clock); clock = state.clock;
-      state.bodies.forEach((b, i) => {
-        const body = list[i], memory = body === undefined ? undefined : hunt.memory(body.actor);
-        if (memory === undefined) throw new Error('Incompatible Pine roster continuation');
-        seen[i] = b.seen; huntMemoryCodec.restore(memory,b.memory);
-      });
-      state.herds.forEach(([cx, cz], i) => { const herd = hunt.herds[i]; if (herd !== undefined) { herd.cx = cx; herd.cz = cz; } });
+      next = state.next;
+      continuation.restore({ rng: state.rng, clock: state.clock, noise: { seen: state.speed.init, prev: [state.speed.x, 0, state.speed.z], speed: state.speed.v },
+        memories: state.bodies.map(body => body.memory), sight: state.bodies.map(body => body.seen), herds: state.herds });
     },
   });
   // a restoring install: the saved list's live spawns from the host's own recipes, in order (a body retired in play leaves it)
