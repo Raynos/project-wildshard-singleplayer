@@ -5290,3 +5290,10 @@ impact marker geometry/material ports are borrowed, with original facing,
 distance scale and expiry. `publish(time,camera,resolution,life?)` runs at the
 existing after-pose phase, retaining a caller's live segment-life knob. Pool
 sizes remain caller-owned; no shader, physics or damage owner changes.
+
+Graph wind inputs `windTime`, `windGust` and `windDirection` borrow the
+engine's existing wind owner. `windGustAt(worldXZ)` samples its gust front
+on mesh vertices or fragments. The SDK exposes the inputs and the same
+authoring op. CPU sampling and graph nodes use one renderer-free gust
+front kernel through typed arithmetic adapters; no new clock or update
+system is installed. Its bounded arithmetic counts in the graph budget.

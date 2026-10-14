@@ -75,6 +75,9 @@ export function noise(at: GraphValue): Node<'float'> { return op('noise', 'float
 export function viewToWorld(direction: GraphValue): Node<'vec3'> { return op('viewToWorld', 'vec3', [direction]); }
 /** A world direction into the model space `vertex.offset` is added in (`worldToLocal`). */
 export function worldToLocal(direction: GraphValue): Node<'vec3'> { return op('worldToLocal', 'vec3', [direction]); }
+/** The engine's gust front at world xz; reads the existing wind clock and gust owner. */
+export function windGustAt(at: GraphValue): Node<'float'> { return op('windGustAt', 'float', [at]); }
+
 /** The scene colour at a uv (a post tap, `sceneColourAt`). */
 export function sceneColourAt(at: GraphValue): Node<'vec4'> { return op('sceneColourAt', 'vec4', [at]); }
 /** The scene depth (linear metres) at a uv, or at the pixel (a post tap, `sceneDepth`). */
@@ -87,6 +90,8 @@ export const graphInputs = {
   /** toward the light (the `sun` sub-graph only) */
   /** true for a front-facing fragment; vertex stages refuse this input */
   frontFacing: op('frontFacing', 'bool'),
+  /** shared wind clock (seconds), current gust, and prevailing xz direction */
+  windTime: op('windTime', 'float'), windGust: op('windGust', 'float'), windDirection: op('windDirection', 'vec2'),
   sunDirection: op('sunDirection', 'vec3'),
   /** the light's colour × intensity, unshadowed (the `sun` sub-graph only) */
   sunColour: op('sunColour', 'vec3'),

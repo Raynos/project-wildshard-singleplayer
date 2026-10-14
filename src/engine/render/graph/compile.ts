@@ -42,6 +42,8 @@ import {
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, reference, positionGeometry, positionLocal,
   positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
+import { FRONT_LEN, FRONT_SPEED, FRONT2_LEN, WIND_DIR, windUniforms } from '../../world/wind';
+import { sampleWindField, type WindFieldMath } from '../../world/windField';
 import { GERSTNER_TERMS } from '../../world/waves';
 import { ToonLook } from '../families/toon';
 import { toonGraph } from './presets';
@@ -58,6 +60,10 @@ import {
 /** a select side costing at most this many estimated instructions is evaluated unconditionally (branch-free) */
 export const BRANCH_LIGHT_COST = 16;
 const DIV_EPSILON = 1e-6;
+const windMath: WindFieldMath<Node<'float'>> = {
+  constant: value => float(value), add: (a, b) => a.add(b), sub: (a, b) => a.sub(b), mul: (a, b) => a.mul(b), div: (a, b) => a.div(b),
+  sin: value => value.sin(), cos: value => value.cos(), fract: value => value.fract(),
+};
 
 /** what the compiler needs beyond the graph */
 export interface CompileGraphOptions extends GraphValidationOptions {
@@ -528,6 +534,14 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
         if (row === undefined) throw new Error('material graph: unknown uniform list');
         const index = new ConvertNode<'int'>(new MathNode('floor', clamp(asFloat(one()), 0, row.length - 1)), 'int');
         return { t: row.type, n: row.node.element(index) };
+      }
+      case 'windTime': return { t: 'float', n: reference('value', 'float', windUniforms.uWindTime) };
+      case 'windGust': return { t: 'float', n: reference('value', 'float', windUniforms.uGust) };
+      case 'windDirection': return { t: 'vec2', n: vec2(WIND_DIR.x, WIND_DIR.z) };
+      case 'windGustAt': {
+        const p = asVec2(one());
+        return { t: 'float', n: sampleWindField(windMath, p.x, p.y, reference('value', 'float', windUniforms.uWindTime),
+          reference('value', 'float', windUniforms.uGust), { x: WIND_DIR.x, z: WIND_DIR.z, frontLength: FRONT_LEN, frontSpeed: FRONT_SPEED, secondaryLength: FRONT2_LEN }) };
       }
       case 'frontFacing': return { t: 'bool', n: frontFacing };
       case 'uv': return { t: 'vec2', n: uv() };

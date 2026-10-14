@@ -12,19 +12,38 @@ export function clockGust(time: number, boost: number): number {
   return Math.min(1, Math.max(0, gust));
 }
 
-const TAU = 6.283185307;
-function front(value: number): number {
-  const fraction = value - Math.floor(value), warped = fraction + 0.12 * (1 - Math.cos(TAU * fraction));
-  const cosine = 0.5 + 0.5 * Math.cos(TAU * warped);
-  return cosine * cosine;
+/** Arithmetic adapter for the same gust-front law on CPU numbers and renderer nodes. */
+export interface WindFieldMath<T> {
+  readonly constant: (value: number) => T;
+  readonly add: (a: T, b: T) => T;
+  readonly sub: (a: T, b: T) => T;
+  readonly mul: (a: T, b: T) => T;
+  readonly div: (a: T, b: T) => T;
+  readonly sin: (value: T) => T;
+  readonly cos: (value: T) => T;
+  readonly fract: (value: T) => T;
 }
-
-/** CPU gust-front sampler for projectile/sound laws and the live shader's mirror, using explicit time and gust. */
+/** One renderer-free gust-front kernel; the world owns direction, front policy, time and gust. */
+export function sampleWindField<T>(math: WindFieldMath<T>, x: T, z: T, time: T, gust: T, field: WindFieldSpec): T {
+  const { constant: n, add, sub, mul, div, sin, cos, fract } = math;
+  const front = (value: T): T => {
+    const fraction = fract(value), warped = add(fraction, mul(n(0.12), sub(n(1), cos(mul(n(6.283185307), fraction)))));
+    const cosine = add(n(0.5), mul(n(0.5), cos(mul(n(6.283185307), warped))));
+    return mul(cosine, cosine);
+  };
+  const along = add(mul(x, n(field.x)), mul(z, n(field.z))), across = add(mul(x, n(-field.z)), mul(z, n(field.x)));
+  const bend = add(mul(n(22), sin(add(mul(across, n(0.021)), mul(time, n(0.043))))), mul(n(9), sin(sub(mul(across, n(0.057)), mul(time, n(0.031))))));
+  const distance = sub(add(along, bend), mul(time, n(field.frontSpeed)));
+  const fronts = add(mul(n(0.75), front(div(distance, n(field.frontLength)))), mul(n(0.25), front(add(div(distance, n(field.secondaryLength)), n(0.37)))));
+  const patchPhase = sub(add(mul(across, n(0.025)), mul(along, n(0.004))), mul(time, n(0.05)));
+  const patchy = add(n(0.62), mul(n(0.38), sin(patchPhase)));
+  return mul(add(n(0.3), mul(n(0.7), gust)), add(n(0.3), mul(mul(n(0.9), fronts), patchy)));
+}
+const numbers: WindFieldMath<number> = {
+  constant: value => value, add: (a, b) => a + b, sub: (a, b) => a - b, mul: (a, b) => a * b, div: (a, b) => a / b,
+  sin: Math.sin, cos: Math.cos, fract: value => value - Math.floor(value),
+};
+/** CPU sampler for projectile/sound laws, using explicit time and gust. */
 export function fieldGustAt(x: number, z: number, time: number, gust: number, field: WindFieldSpec): number {
-  const along = x * field.x + z * field.z, across = -x * field.z + z * field.x;
-  const bend = 22 * Math.sin(across * 0.021 + time * 0.043) + 9 * Math.sin(across * 0.057 - time * 0.031);
-  const distance = along + bend - time * field.frontSpeed;
-  const fronts = 0.75 * front(distance / field.frontLength) + 0.25 * front(distance / field.secondaryLength + 0.37);
-  const patchy = 0.62 + 0.38 * Math.sin(across * 0.025 + along * 0.004 - time * 0.05);
-  return (0.3 + 0.7 * gust) * (0.3 + 0.9 * fronts * patchy);
+  return sampleWindField(numbers, x, z, time, gust, field);
 }
