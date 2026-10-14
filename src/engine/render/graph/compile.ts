@@ -788,6 +788,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     if (position !== null) m.positionNode = new ConvertNode<'vec3'>(widen(position, 'vec3'), 'vec3');
     const offset = out(st['vertex.offset']?.offset);
     if (offset !== null) m.positionNode = positionLocal.add(new ConvertNode<'vec3'>(widen(offset, 'vec3'), 'vec3'));
+    const clip = out(st['vertex.clip']?.position);
+    if (clip !== null) m.vertexNode = new ConvertNode<'vec4'>(clip.n, 'vec4');
     m.side = ir.doubleSided === true ? THREE.DoubleSide : THREE.FrontSide;
     if (m instanceof MeshStandardNodeMaterial) m.flatShading = ir.flatShading ?? ir.model === 'toon';
     if (lit?.grade !== undefined) m.toneMapped = false; // a graded colour is display linear already

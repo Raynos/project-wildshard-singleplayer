@@ -5089,3 +5089,9 @@ object-space normal before its ordinary view/world transform and lighting
 interpolation. The existing vertex position remains independent. Mesh
 normal output rejects fragment-only ops and point primitives; it installs
 no geometry builder and changes no CPU attributes or collider state.
+
+Graph materials may declare `stages['vertex.clip'].position` as a vec4
+raw homogeneous clip-space output. It becomes gl_Position directly,
+without model/view/projection transforms. It excludes vertex.position
+and vertex.offset. Vertex-only admission still refuses derivatives; CPU
+geometry, bounds and colliders remain the authored rest geometry.

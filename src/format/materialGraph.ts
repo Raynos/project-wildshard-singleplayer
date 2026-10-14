@@ -172,6 +172,8 @@ export interface GraphStages {
   readonly points?: { readonly size: GraphRef };
   readonly 'vertex.offset'?: GraphVertexOffset;
   readonly 'vertex.position'?: GraphVertexPosition;
+  /** Raw homogeneous clip-space position; excludes model-space position/offset outputs. */
+  readonly 'vertex.clip'?: { readonly position: GraphRef };
     /** Object-space vertex normal, replacing the input before lighting interpolation. */
     readonly 'vertex.normal'?: { readonly normal: GraphRef };
   readonly surface?: GraphSurface;
@@ -779,7 +781,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   // stages
   const stages = input.stages;
   if (!isRecord(stages)) return { ok: false, errors: [...errors, 'graph: stages is not an object'] };
-  for (const k of Object.keys(stages)) if (!['vertex.offset', 'vertex.position', 'vertex.normal', 'surface', 'lighting', 'outline', 'points', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
+  for (const k of Object.keys(stages)) if (!['vertex.offset', 'vertex.position', 'vertex.clip', 'vertex.normal', 'surface', 'lighting', 'outline', 'points', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
   const want = (ref: unknown, place: GraphPlace, type: GraphValueType, at: string): void => {
     const t = typeRef(ref, root, place, at, 1);
     if (t !== null && t !== type && !(t === 'float' && type !== 'bool')) fail(`${at}: is a ${t}, wants a ${type}`);
@@ -803,6 +805,16 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       else {
         for (const key of Object.keys(vn)) if (key !== 'normal') fail(`stages.vertex.normal: unknown output ${key}`);
         want(vn['normal'], 'vertex', 'vec3', 'stages.vertex.normal.normal');
+      }
+    }
+    const clip = stages['vertex.clip'];
+    if (clip !== undefined) {
+      if (stages['vertex.position'] !== undefined || stages['vertex.offset'] !== undefined) fail('stages: vertex.clip excludes model-space position and offset');
+      if (!isRecord(clip)) fail('stages.vertex.clip: not an object');
+      else {
+        for (const key of Object.keys(clip)) if (key !== 'position') fail(`stages.vertex.clip: unknown output ${key}`);
+        const type = typeRef(clip.position, root, 'vertex', 'stages.vertex.clip.position', 1);
+        if (type !== null && type !== 'vec4') fail('stages.vertex.clip.position: wants a vec4');
       }
     }
     const vp = stages['vertex.position'];
@@ -859,7 +871,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       }
     }
   } else if (kind === 'post') {
-    for (const k of ['vertex.offset', 'vertex.position', 'vertex.normal', 'surface', 'lighting', 'outline', 'points'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
+    for (const k of ['vertex.offset', 'vertex.position', 'vertex.clip', 'vertex.normal', 'surface', 'lighting', 'outline', 'points'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
     const p = stages.post;
     if (!isRecord(p)) fail('stages.post: a post graph needs { colour }');
     else want(p.colour, 'post', 'vec3', 'stages.post.colour');
@@ -925,12 +937,14 @@ function toNodes(raw: Raw): Record<string, GraphNode> {
 }
 function toStages(raw: Raw): GraphStages {
   const vn = raw['vertex.normal'];
+  const clip = raw['vertex.clip'];
   const vp = raw['vertex.position'], vo = raw['vertex.offset'], s = raw.surface, p = raw.post, l = raw.lighting, o = raw.outline;
   const surface: Record<string, GraphRef | number> = {};
   if (isRecord(s)) for (const [k, v] of Object.entries(s)) surface[k] = k === 'alphaCutoff' && isFiniteNumber(v) ? v : toRef(v);
   return {
     ...(isRecord(raw.points) ? { points: { size: toRef(raw.points.size) } } : {}),
     ...(isRecord(vn) ? { 'vertex.normal': { normal: toRef(vn['normal']) } } : {}),
+    ...(isRecord(clip) ? { 'vertex.clip': { position: toRef(clip.position) } } : {}),
     ...(isRecord(vp) ? { 'vertex.position': { position: toRef(vp.position), ...(vp.shadow === false ? { shadow: false } : {}) } } : {}),
     ...(isRecord(vo) ? { 'vertex.offset': { offset: toRef(vo.offset), ...(vo.shadow === false ? { shadow: false } : {}) } } : {}),
     ...(isRecord(s) ? { surface } : {}),
