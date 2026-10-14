@@ -23,7 +23,7 @@ import type { RisingIslet } from '../data/isletDesign';
 import { createFan, type WarFanWeapon, type ConeFanTarget } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
-import { FAN_ROW } from '../data/equipment';
+import { FAN_ROW, FAN_PRESENTATION } from '../data/equipment';
 import { preloadSkyMeshes } from '../world/meshes';
 import { loadSkyBaked, skyMeadowBlades } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
@@ -36,9 +36,8 @@ import { bindDeclaredFight, bindPageQuestStages, bindClientChannels } from '@wil
 import { ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
 import { FLAGS, vaneFlag } from '../quest/flags';
-import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
+import { HybridRuntimePlugin, bindRuntimeMelee, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import { bindRuntimeProductProps, prepareClientWorld, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
-import { bindSkyItems } from './items';
 
 declare module '@wildshard/engine/input/InputService' {
   interface ActionMap { 'far.gust': true }
@@ -157,7 +156,12 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     if (fanRow?.kind !== 'weapon' || fanRow.secondary === undefined) throw new Error('Sky fan needs its admitted secondary');
     const secondary = fanRow.secondary, hook = hooks.get(fanRow.id);
     if (hook === undefined) throw new Error('Sky fan needs its admitted gust hook');
-    bindSkyItems(ctx, fan, hooks, family => startMeleeSecondary(family, hook, { tick: host.currentTick, dt: 1 / 60, action: secondary.code, move: secondary.move }));
+    const native = fan.row;
+    bindRuntimeMelee(ctx, source, {presentation:FAN_PRESENTATION,icon:()=> 'sword',hooks,create:(row,spec,ports)=>{
+      if(ports.contacts===undefined||ports.secondary===undefined||ports.hook===undefined)throw new Error('Fan requires admitted contacts and composed hook');
+      fan.bindSecondary(family=>startMeleeSecondary(family,hook,{tick:host.currentTick,dt:1/60,action:secondary.code,move:secondary.move}),spec.charge);
+      fan.row={...row,legacySlot:'far-fan',meta:native.meta};return fan;
+    }});
     if (flags.has(FLAGS.raised)) this.movers.command('far.winch.bridge', 3);
     // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
     channels.bindPrompts({ socketLifts: { entryways: source.entryways, runtime: () => this.movers } });

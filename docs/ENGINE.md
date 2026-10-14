@@ -4602,3 +4602,9 @@ its optional third argument. Its existing frame checks and link parsers
 still refuse malformed or missing matching links. Omission retains the
 ordinary entry output. Cloning detaches binding data with the normal
 scene state; Sky's authoring recipe now uses the shared Entry directly.
+
+`bindRuntimeMelee(ctx, source, ports)` in `@wildshard/game/plugin/headless`
+resolves the declared primary weapon family and installs exactly the
+created or adopted owner. Its normal loader retains contact/profile
+admission, presentation, and actor-bound composed hooks. Signal and Sky
+use this path instead of private item registry modules.

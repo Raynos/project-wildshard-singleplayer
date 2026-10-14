@@ -232,6 +232,33 @@ export function bindRuntimeItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game
   });
 }
 
+type RuntimeWeaponFamily = Extract<ItemFamily, { kind: 'weapon' }>;
+/** One declared primary melee family, created or adopted inside the existing equipment flow. */
+export interface RuntimeMeleePorts<W extends ReturnType<RuntimeWeaponFamily['create']>> {
+  readonly create: (...args: Parameters<RuntimeWeaponFamily['create']>) => W;
+  readonly icon: RuntimeItemPorts['icon']; readonly hooks?: RuntimeItemPorts['hooks'];
+  readonly presentation?: RuntimeWeaponFamily['presentation'];
+}
+/** Resolve the primary row's family and retain that exact instance; no second controller or actor. */
+export function bindRuntimeMelee<W extends ReturnType<RuntimeWeaponFamily['create']>>(
+  ctx: Parameters<typeof bindRuntimeItems>[0], source: Shardfile, ports: RuntimeMeleePorts<W>): W {
+  const primary = source.items.rows.find(row => row.id === source.items.loadout.primary);
+  if (primary?.kind !== 'weapon') throw new Error('Declared melee needs its primary weapon row');
+  const owner: { weapon: W | null } = { weapon: null };
+  const family: RuntimeWeaponFamily = { kind: 'weapon',
+    ...(primary.profile === undefined ? {} : { profiles: [primary.profile.family] }),
+    ...(ports.presentation === undefined ? {} : { presentation: ports.presentation }),
+    create: (row, spec, binding) => {
+      if (owner.weapon !== null) throw new Error('Declared melee family must own one primary');
+      const weapon = ports.create(row, spec, binding); owner.weapon = weapon; return weapon;
+    },
+  };
+  const bound = bindRuntimeItems(ctx, source, { families: new Map([[primary.family, family]]), icon: ports.icon,
+    ...(ports.hooks === undefined ? {} : { hooks: ports.hooks }) });
+  if (owner.weapon === null || bound.primary !== owner.weapon) throw new Error('Declared melee primary differs from its owned instance');
+  return owner.weapon;
+}
+
 /**
  * Resolve declared item input definitions in the runtime's play stage. Retained homes keep definitions until disposal,
  * with actions enabled and binding descriptions installed only while entered; ordinary levels keep their level scope.

@@ -1,9 +1,9 @@
 import { SIGNAL_RUNTIME_ROWS } from './data/runtimeRows';
-import { bindSignalItems } from './runtime/items';
+import { whipIcon } from './weapons/rows';
 import { firstPartyStandaloneEntry } from '@wildshard/game/shard/runtimeVariant';
 import type { ScopedLoot } from '@wildshard/game/loot/runtime';
 import { installEnteredRuntimeService } from '@wildshard/game/shard/retainedHooks';
-import { HybridRuntimePlugin, bindRuntimeCoins, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/shardfile/hybridRows';
+import { HybridRuntimePlugin, bindRuntimeCoins, bindRuntimeMelee, type HybridRuntimeRows, type HybridTargets } from '@wildshard/game/plugin/headless';
 import source from './runtime/source';
 import { Flags } from '@wildshard/engine/world/interact/flags';
 import { buildWorld, type SignalFire, type SignalWorld } from './world/build';
@@ -11,7 +11,7 @@ import { lastLightAll } from './look/light';
 import { DUSK, setDusk, stepDusk } from './look/dusk';
 import { preloadDuneMeshes } from './world/meshes';
 import { loadBakedWorld } from './world/baked';
-import type { Bullwhip } from './runtime/items/heldWhip';
+import { createWhip, type Bullwhip } from './runtime/items/heldWhip';
 import { installQuest } from './quest/install';
 import { FLAG, SCOUT_FLAG } from './data/flags';
 import { bindDeclaredFight, bindPageQuestStages } from '@wildshard/game/plugin/ui';
@@ -76,7 +76,10 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     if (ctx.cube !== null) SKIRT.fit(ctx.cube.half);
   }
   // SF50-p / M3: the whip is its shardfile's declared item row; the platform installs it, resolving this runtime's own family.
-  protected override arm(ctx: ShardContext, targets: HybridTargets): Bullwhip { return bindSignalItems(ctx, targets, (whip) => { this.whip = whip; }); }
+  protected override arm(ctx: ShardContext, targets: HybridTargets): Bullwhip {
+    const whip = bindRuntimeMelee(ctx, source, {icon:whipIcon,create:(_row,spec,ports)=>createWhip(ctx.app,targets,ports.contacts,spec.charge)});
+    this.whip = whip; return whip;
+  }
   protected override armed(): Bullwhip | null { return this.whip; }
   // loop 4: the style bible's dusk rim on the whip and glove too, so the weapon separates from the sand behind it
   protected override dress(ctx: ShardContext): void { const whip = this.whip; if (whip !== null) { lastLightAll(whip.model, ctx.scope); ctx.scope.ownPrimitives(whip.model); } }
