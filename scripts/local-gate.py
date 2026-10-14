@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """G416: validate a real build, not historical outputs or process receipts."""
 import json
+import re
 import os
 from pathlib import Path
 import subprocess
@@ -34,8 +35,13 @@ def main():
             source_list.write_text(json.dumps(present))
             commands = [['pnpm', 'gen'], ['node', 'scripts/check-graph.mjs', '--source-only'],
                         ['node', 'scripts/local-gate-checks.mjs', 'types', str(source_list)]]
-            if present:
-                commands.append(['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *present])
+            # oxlint exits 1 on 'No files found to lint' when every file is in its ignorePatterns.
+            # .oxlintrc.json is JSONC (comments, globs with '/*'), so read only its ignorePatterns array.
+            listing = re.search(r'"ignorePatterns"\s*:\s*\[([^\]]*)\]', (tree / '.oxlintrc.json').read_text())
+            ignored = re.findall(r'"([^"]+)"', listing.group(1)) if listing else []
+            lintable = [path for path in present if not any(path.startswith(prefix) for prefix in ignored)]
+            if lintable:
+                commands.append(['pnpm', 'exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', *lintable])
             commands.extend([['pnpm', 'test'], ['pnpm', 'build']])
             for command in commands:
                 subprocess.run(command, cwd=tree, env=env, check=True)

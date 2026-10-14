@@ -1,6 +1,6 @@
 // G416: compiler and lint/layer checks on the actual private/pathspec staged tree.
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { linkNodeModules } from './link-node-modules.mjs';
@@ -24,7 +24,12 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
     if (present.length > 0) {
       const input = resolve(scratch, '.staged-source-changes.json'); writeFileSync(input, JSON.stringify(present));
       run(process.execPath, ['scripts/local-gate-checks.mjs', 'types', input]);
-      run('pnpm', ['exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', ...present]);
+      // oxlint exits 1 on 'No files found to lint' when every staged file is in its ignorePatterns (e.g. test/fixtures/).
+      // .oxlintrc.json is JSONC (comments, globs with '/*'), so read only its ignorePatterns array.
+      const ignoreList = /"ignorePatterns"\s*:\s*\[([^\]]*)\]/u.exec(readFileSync(resolve(scratch, '.oxlintrc.json'), 'utf8'))?.[1] ?? '';
+      const ignored = [...ignoreList.matchAll(/"([^"]+)"/gu)].map(match => match[1]);
+      const lintable = present.filter(file => !ignored.some(prefix => file.startsWith(prefix)));
+      if (lintable.length > 0) run('pnpm', ['exec', 'oxlint', '--type-aware', '-c', '.oxlintrc.json', ...lintable]);
       run(process.execPath, ['scripts/check-graph.mjs', '--source-only']);
     }
   } finally { rmSync(scratch, { recursive: true, force: true }); }
