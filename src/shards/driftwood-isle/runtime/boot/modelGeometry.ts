@@ -37,6 +37,8 @@ export interface ModelGeometry {
   load: (bytes?: Uint8Array | BufferGeometry) => Promise<void>;
   /** A deep attribute copy, safe to scale, merge, change collectible slots or release after GPU upload. */
   copy: () => BufferGeometry;
+  /** Transfer a template into one owner; neither loader nor cache retains its attributes afterwards. */
+  take: () => BufferGeometry;
 }
 
 /** A single identity-space, unquantized baked triangle mesh. Custom GLB channels map back to authored shader names. */
@@ -83,6 +85,7 @@ export function modelGeometry(url: string, channels: Readonly<Record<string, str
       pending ??= start(bytes);
       return pending;
     },
+    take: () => { if (template === undefined) throw new Error(`Baked model was not loaded: ${url}`); const geometry = template; template = undefined; pending = undefined; return geometry; },
     copy: () => { if (template === undefined) throw new Error(`Baked model was not loaded: ${url}`); return template.clone(); },
   };
 }
