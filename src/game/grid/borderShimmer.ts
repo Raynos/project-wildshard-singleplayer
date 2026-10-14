@@ -23,6 +23,8 @@ export type CrossingSaveStatus = 'saving' | 'failed' | null;
 export interface BorderShimmerState { readonly borders: number; readonly status: CrossingSaveStatus }
 
 const SEGMENTS = 64, HEIGHT = 1.5, FOOT = 0.25, PANEL_RANGE = 40, CYAN = new Color(0x8fe3ff);
+/** Within this many metres of the eye the ribbon stays a line: its foot glow thins with the distance, its rise fades. */
+const CLOSE = 12;
 /** The crossing's refusal when its source checkpoint is not durable (`GridCrossing.step`). */
 const NOT_DURABLE = 'Local checkpoint is not durable';
 
@@ -53,11 +55,16 @@ void main() {
   float near = 1.0 - smoothstep(70.0, 150.0, d);
   if (near <= 0.0) discard;
   float h = vUv.y; // metres above the line's foot
-  float foot = exp(-abs(h - ${FOOT.toFixed(2)}) * 5.0);
+  // up close the ribbon stands across the view (a road socket's lip is a few metres from it): its foot glow keeps the
+  // height it shows from CLOSE metres and its rise fades out, so it stays a line on the ground, never a glowing sheet
+  float eye = max(length(vWorld - cameraPosition), 0.01);
+  float thin = max(1.0, ${CLOSE.toFixed(1)} / eye);
+  float close = smoothstep(${(CLOSE / 4).toFixed(1)}, ${CLOSE.toFixed(1)}, eye);
+  float foot = exp(-abs(h - ${FOOT.toFixed(2)}) * 5.0 * thin);
   float streak = pow(0.5 + 0.5 * sin(vUv.x * 2.1 + uTime * 1.7) * sin(vUv.x * 0.37 - uTime * 0.9), 6.0);
   float rise = (1.0 - smoothstep(${FOOT.toFixed(2)}, ${HEIGHT.toFixed(2)}, h)) * step(${FOOT.toFixed(2)}, h);
   float shimmer = 0.75 + 0.25 * sin(vUv.x * 0.6 - uTime * 3.0);
-  float a = (foot * 1.7 * shimmer + streak * rise * 0.7 + rise * 0.08) * near;
+  float a = (foot * 1.7 * shimmer + (streak * rise * 0.7 + rise * 0.08) * close) * near;
   gl_FragColor = vec4(uColour * a, 1.0);
 }`;
 
