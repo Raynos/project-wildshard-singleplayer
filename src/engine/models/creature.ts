@@ -13,7 +13,7 @@
  * shard lists them (`listRoster`, ./live.ts) with the count alive of their species.
  */
 import { AnimalFactory, type AnimalStyle } from '../entities/AnimalFactory';
-import { speciesDef } from '../entities/species/registry';
+import { speciesDef, type SpeciesDef } from '../entities/species/registry';
 import type { SkyRig as Sky } from '../world/skyRig';
 import type { ModelCategory } from '../world/registry';
 import { modelContext, type ModelContext, type ModelDef } from './model';
@@ -40,9 +40,10 @@ export function creatureContext(sky: Sky, style: AnimalStyle, renderer: Renderer
   return { get sky(): Sky { return ctx.sky; }, renderer: ctx.renderer, once: <T>(key: string, make: () => T): T => (key === FACTORY ? (made ??= new AnimalFactory(sky, { style })) as T : once(key, make)) };
 }
 
-/** The fields of the model of one species (all but its id, file and pipeline). */
-export function creature(kind: string, o: { name?: string; category?: ModelCategory; spawnOnly?: boolean } = {}): Omit<ModelDef<CreatureParams>, 'id' | 'file' | 'pipeline'> {
-  const sp = speciesDef(kind);
+/** The fields of the model of one species (all but its id, file and pipeline). `species`: the rows its name and coats are
+ *  read from when the kind is a level's own (registered with the level, not at import); else the registered kind's. */
+export function creature(kind: string, o: { name?: string; category?: ModelCategory; spawnOnly?: boolean; species?: Pick<SpeciesDef, 'label' | 'variants' | 'spawnOnly'> } = {}): Omit<ModelDef<CreatureParams>, 'id' | 'file' | 'pipeline'> {
+  const sp = o.species ?? speciesDef(kind);
   const coats = [...sp.variants, ...(o.spawnOnly === true ? sp.spawnOnly ?? [] : [])];
   return {
     name: o.name ?? sp.label, category: o.category ?? 'creatures', surface: 'flesh',

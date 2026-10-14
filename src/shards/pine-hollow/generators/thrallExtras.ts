@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { Rng } from '@wildshard/engine/core/rng';
 import type { BoneDef, SpeciesDef, VariantDef } from '@wildshard/engine/entities/species/registry';
-import { ELK } from '@wildshard/game/systems/species/elk';
 import { BOAR_LOOK } from '@wildshard/game/systems/species/view/boar';
 import { PINE_HULLS } from '../data/creatureHulls';
+import { PINE_LOFTS } from './creatureLofts';
 
 /**
  * Pine Hollow's thralls' extras, baked offline (SHARD-PLATFORM W2 C2; was runtime/looks/riggedHulls.ts): each thrall
@@ -21,7 +21,7 @@ const THRALLS: readonly (readonly [string, string, Readonly<Record<string, numbe
 ];
 
 /** the procedural species whose eye spots a thrall's glass eyes go on */
-const BUILDS: Readonly<Record<string, Pick<SpeciesDef, 'build'>>> = { boar: BOAR_LOOK, elk: ELK };
+const BUILDS: Readonly<Record<string, Pick<SpeciesDef, 'build'>>> = { boar: BOAR_LOOK, elk: { build: PINE_LOFTS.elk } };
 
 /** the page's model seed (AnimalFactory `hashSeed`) */
 function hashSeed(s: string): number { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.codePointAt(i) ?? 0; h = Math.imul(h, 16777619); } return h >>> 0; }

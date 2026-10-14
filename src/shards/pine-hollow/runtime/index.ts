@@ -9,7 +9,7 @@ import { installPineLandmarkUpdate } from './landmarkLifetime';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
 import { PINE_SPAWNS } from '../combat/spawns';
-import { PINE_SPECIES, pineElk } from '../species/rows';
+import { PINE_SPECIES, pineDeer, pineElk } from '../species/rows';
 import { pineLooks } from '../species/looks';
 import { PINE_FEATS, PINE_BAG_ITEMS as PINE_ITEMS } from '../data/questInventory';
 import { PINE_HOLLOW_COMPENDIUM } from '../compendium';
@@ -147,7 +147,7 @@ export class PineHollow extends ShardPlugin {
     if (audio === null) throw new Error('Pine synth bed needs its mixer');
     installEnteredPineVoices(ctx, audio);
     registerKing();
-    ctx.rows.species([...PINE_SPECIES, pineElk()]);
+    ctx.rows.species([...PINE_SPECIES, pineDeer(), pineElk()]);
     ctx.rows.speciesLook(pineLooks());
     ctx.rows.spawnTable(PINE_SPAWNS);
     ctx.rows.item(PINE_ITEMS);

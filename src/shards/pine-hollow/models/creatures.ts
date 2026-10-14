@@ -7,8 +7,9 @@
  */
 import { creature, type CreatureParams } from '@wildshard/engine/models/creature';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
+import { ELK } from '@wildshard/game/systems/species/elk';
 
 /** the elk: cows, bulls and their rare coats (the royal bull, the pale elk, the imperial bull), and the King's thrall —
  *  the Hunyuan3D-2 hulls (elk-cow / elk-bull[.phone].rigged.glb, src/engine/entities/pineCreatures.ts) on the elk's code rig
- *  (src/engine/entities/species/elk.ts), which is also the fallback when Debug ▸ Creatures = Procedural */
-export const elk: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'pine-hollow/elk', file: 'src/shards/pine-hollow/models/creatures.ts', pipeline: ['hunyuan', 'code'], ...creature('elk', { spawnOnly: true }) });
+ *  (the skeleton of species/bodies.ts; a hull that is not loaded refuses) */
+export const elk: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'pine-hollow/elk', file: 'src/shards/pine-hollow/models/creatures.ts', pipeline: ['hunyuan', 'code'], ...creature('elk', { spawnOnly: true, species: ELK }) });

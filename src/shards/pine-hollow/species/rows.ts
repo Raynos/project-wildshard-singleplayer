@@ -1,7 +1,9 @@
 import { deriveSpecies, type SpeciesRow } from '@wildshard/engine/ai/species';
-import { speciesDef, type VariantDef } from '@wildshard/engine/entities/species/registry';
+import type { VariantDef } from '@wildshard/engine/entities/species/registry';
 import { BEAR } from '@wildshard/game/systems/species/bear';
 import { BOAR } from '@wildshard/game/systems/species/boar';
+import { DEER } from '@wildshard/game/systems/species/deer';
+import { ELK } from '@wildshard/game/systems/species/elk';
 
 /** The night-only thrall is authored by Pine; ordinary weighted variants retain their original order. */
 export const PINE_BOAR = deriveSpecies(BOAR, {
@@ -15,7 +17,12 @@ export const PINE_BEAR = deriveSpecies(BEAR, { id: 'pine.creature.bear' });
  *  night and in his fight, never rolled (PH-U9 / PH-M2; E405: the thrall is Pine's, not the engine's or the kit's); its coat
  *  and stiff gait are the elk look's (./looks.ts) */
 export function pineElk(): SpeciesRow {
-  const { build: _build, fur: _fur, rigContract: _rig, pose: _pose, gait: _gait, postPose: _postPose, rig: _rigKind, animate: _animate, ...sim } = speciesDef('elk');
+  const { fur: _fur, rigContract: _rig, pose: _pose, gait: _gait, postPose: _postPose, rig: _rigKind, animate: _animate, ...sim } = ELK;
   return { ...sim, id: 'pine.creature.elk', spawnOnly: [PINE_ELK_THRALL] };
+}
+/** Pine's deer: the deer's simulation fields (its look and baked body are ./looks.ts's). */
+export function pineDeer(): SpeciesRow {
+  const { fur: _fur, rigContract: _rig, pose: _pose, gait: _gait, postPose: _postPose, rig: _rigKind, animate: _animate, ...sim } = DEER;
+  return { ...sim, id: 'pine.creature.deer' };
 }
 export const PINE_SPECIES = [PINE_BOAR, PINE_BEAR];
