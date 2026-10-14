@@ -16,8 +16,9 @@ import type { Scope } from '@wildshard/engine/app/scope';
 import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
 import { UnitParts, mergeOrNull, nearProxy, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { Cabins, Mats, MatKey } from '../world/homestead';
-import { CABIN_ROWS, DETAIL_KEYS, FAR_KEYS, LogBuilding, NO_OWNER } from '../world/cabinBake';
+import { CABIN_ROWS, LogBuilding, NO_OWNER } from '../world/cabinBake';
 import { PROP_KINDS } from '../world/logKit';
+import { TIMBER_DRAWS } from '../data/timberDraws';
 
 /** one (geometry, material, world matrix) part of a flattened glTF prop */
 export interface PropPart { geometry: THREE.BufferGeometry; material: THREE.Material; matrix: THREE.Matrix4 }
@@ -28,15 +29,10 @@ export interface PropPart { geometry: THREE.BufferGeometry; material: THREE.Mate
  * static shadow casters as two position-only proxies (the silhouette set, and the far set that goes with the far list).
  */
 export function finishParts(parts: Map<MatKey, THREE.BufferGeometry[]>, mats: Mats, root: THREE.Object3D, detailList: THREE.Object3D[], farList: THREE.Object3D[]): void {
-  // (the bands are markers here: the timber tags its lists with its own distances)
+  // The declared bands are markers; the live tier and copy pad resolve their distances.
   const DETAIL = 1, FAR = 2;
   const unit = new UnitParts();
-  for (const [key, geometries] of parts) {
-    const material = mats[key];
-    if (DETAIL_KEYS.has(key)) unit.add([{ material, geometries, until: DETAIL, depth: 'near', receiveShadow: true, castShadow: true }]);
-    else if (FAR_KEYS.has(key)) unit.add([{ material, geometries, until: FAR, depth: 'proxy', receiveShadow: true }]);
-    else unit.add([{ material, geometries, depth: 'proxy', receiveShadow: true }]);
-  }
+  for (const [key, geometries] of parts) unit.add([{ ...TIMBER_DRAWS[key], material: mats[key], geometries }]);
   parts.clear();
   const drawn = unit.draw(root, false);
   for (const { mesh, part } of drawn.meshes) {

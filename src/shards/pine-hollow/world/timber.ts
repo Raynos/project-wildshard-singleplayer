@@ -14,6 +14,7 @@ import type { ModelContext } from '@wildshard/engine/models/model';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { cabinMats, type Mats, type MatKey } from './homestead';
 import { finishParts } from '../models/logCabin';
+import { TIMBER_GLASS } from '../data/timberDraws';
 
 type V3 = THREE.Vector3;
 const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);
@@ -33,12 +34,9 @@ export class Timber {
   readonly detail: THREE.Object3D[] = [];
   readonly far: THREE.Object3D[] = [];
   private readonly glass: THREE.BufferGeometry[] = [];
-  private readonly out: ColliderDesc[] = [];
-  private readonly floors: Floor[] = [];
-  private readonly anchors: Record<string, V3> = {};
   private readonly parts = new Map<MatKey, THREE.BufferGeometry[]>();
 
-  private constructor(name: string) { this.root.name = name; }
+  private constructor(name: string, private readonly factsRow: TimberFacts) { this.root.name = name; }
 
   /**
    * Merge the parts per material, add the glass, and tag what drops with distance: the detail set within the cabins'
@@ -46,13 +44,10 @@ export class Timber {
    */
   finish(mats: Mats, pad: number): THREE.Group {
     finishParts(this.parts, mats, this.root, this.detail, this.far);
-    if (this.glass.length > 0) {
-      const merged = this.glass.length === 1 ? this.glass[0] : mergeList(this.glass);
-      if (merged) {
-        const gm = new THREE.Mesh(merged, mats.glass);
-        gm.renderOrder = 2; gm.receiveShadow = true;
-        this.root.add(gm); this.detail.push(gm);
-      }
+    const glass = this.glass[0];
+    if (glass !== undefined) {
+      const gm = Object.assign(new THREE.Mesh(glass, mats.glass), TIMBER_GLASS);
+      this.root.add(gm); this.detail.push(gm);
     }
     if (!TIER_CONFIG.cabinDetailShadows) for (const o of this.detail) o.traverse((c) => { c.castShadow = false; });
     const dd = TIER_CONFIG.cabinDetailDist;
@@ -60,30 +55,15 @@ export class Timber {
     for (const o of this.far) o.userData['until'] = dd * 2 + pad;
     return this.root;
   }
-  facts(): TimberFacts { return { colliders: this.out, floors: this.floors, anchors: this.anchors }; }
+  facts(): TimberFacts { return this.factsRow; }
   /** a timber from its offline bake: its parts, glass and facts as the builder left them, ready to `finish` */
   static baked(name: string, parts: ReadonlyMap<MatKey, THREE.BufferGeometry[]>, glass: readonly THREE.BufferGeometry[], facts: TimberFacts): Timber {
-    const t = new Timber(name);
+    if (glass.length > 1) throw new Error('[timber] authored glass must be one original draw');
+    const t = new Timber(name, facts);
     for (const [key, list] of parts) t.parts.set(key, list);
-    t.glass.push(...glass); t.out.push(...facts.colliders); t.floors.push(...facts.floors); Object.assign(t.anchors, facts.anchors);
+    t.glass.push(...glass);
     return t;
   }
-}
-
-function mergeList(list: THREE.BufferGeometry[]): THREE.BufferGeometry | undefined {
-  const pos: number[] = [], nor: number[] = [], uv: number[] = [];
-  for (const g0 of list) {
-    const g = g0.index ? g0.toNonIndexed() : g0;
-    const p = g.getAttribute('position'), n = g.getAttribute('normal'), u = g.getAttribute('uv');
-    for (let i = 0; i < p.count; i++) { pos.push(p.getX(i), p.getY(i), p.getZ(i)); nor.push(n.getX(i), n.getY(i), n.getZ(i)); uv.push(u.getX(i), u.getY(i)); }
-  }
-  if (pos.length === 0) return undefined;
-  const out = new THREE.BufferGeometry();
-  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  out.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
-  out.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  out.computeBoundingSphere();
-  return out;
 }
 
 const MATS = 'pine-hollow/timber:mats';

@@ -63,11 +63,6 @@ export const NO_OWNER: BuildingOwner = NO_BUILDING_OWNER;
 /** `standalone`: one of the three cabins; `member`: a mill-hamlet building; `specimen`: the Model Explorer's copy */
 export type BuildingRole = BakedBuildingRole;
 
-/** small parts drawn only within the detail distance (TIER_CONFIG.cabinDetailDist): their depth only through the near proxy */
-export const DETAIL_KEYS = new Set<KitMat>(CABIN_BUILD.detail);
-/** merged parts that go past 2× the detail distance (log ends, woodpile bark, door frame) */
-export const FAR_KEYS = new Set<KitMat>(CABIN_BUILD.far);
-
 /** the tier's cabin settings, read live */
 const TIER: BakedBuildingTier = {
   get detailDist() { return TIER_CONFIG.cabinDetailDist; },
