@@ -193,7 +193,7 @@ export interface DirectorActionHostSpec {
   readonly initial: readonly Readonly<Record<string, boolean>>[];
 }
 /** The same stage cursor, with declared ordered native actions and silent restore. */
-export interface BoundDirectorActions { advance: () => void; snapshot: () => string; restore: (value: string) => void }
+export interface BoundDirectorActions { advance: () => void; snapshot: () => string; restore: (value: string) => void; validate: (value: string) => void }
 function actionIdentity(action: DirectorAction): string {
   if ('spawn' in action) return JSON.stringify(['spawn', action.spawn]);
   if ('despawn' in action) return JSON.stringify(['despawn', action.despawn]);
@@ -244,6 +244,7 @@ export function bindDirectorActions(data: unknown, spec: DirectorActionHostSpec)
       }
     },
     snapshot: () => lane.snapshot(), restore: value => { lane.restore(value); },
+    validate: value => { new DirectorStageLane(definition).restore(value); },
   };
 }
 

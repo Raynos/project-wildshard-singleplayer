@@ -5352,3 +5352,7 @@ samples the caller's actual flock/time/body into a borrowed point; `face` accept
 the native transition's bank gain. Driftwood's wheeling gulls lend their existing
 poses and clock; perch, flush, landing and guide owners remain native. No new
 clock, body roster, wing draw or RNG is allocated by the circling law.
+
+`bindDirectorActions(...).validate(saved)` checks the installed immutable
+stage contract and cursor without mutating its lane or calling native ports.
+Use it before an aggregate encounter restore applies any body effects.
