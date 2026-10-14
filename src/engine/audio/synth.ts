@@ -35,7 +35,15 @@ export abstract class Synth {
   }
 
   /** oscillator with pitch glide */
-  tone(opts: { t?: number; type?: OscillatorType; f0: number; f1?: number; glide?: number; gain: number; attack?: number; decay: number; hold?: number; pan?: number; out?: AudioNode; vibrato?: { rate: number; depth: number }; lowpass?: number }): GainNode {
+  tone(opts: { t?: number; type?: OscillatorType; f0: number; f1?: number; glide?: number; gain: number; attack?: number; decay: number; hold?: number; pan?: number; out?: AudioNode; vibrato?: { rate: number; depth: number }; lowpass?: number; envelope?: {end:number;stop:readonly number[]} }): GainNode {
+    if(opts.envelope){
+      const c=this.ctx,t=opts.t??c.currentTime,o=ownAudioSource(c.createOscillator());
+      if(opts.type!==undefined)o.type=opts.type;
+      o.frequency.setValueAtTime(opts.f0,t);o.frequency.exponentialRampToValueAtTime(opts.f1??opts.f0,t+(opts.glide??0));
+      const g=c.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(opts.gain,t+(opts.attack??0));g.gain.exponentialRampToValueAtTime(0.0001,t+opts.envelope.end);
+      if(opts.lowpass===undefined)o.connect(g);else{const filter=c.createBiquadFilter();filter.type='lowpass';filter.frequency.value=opts.lowpass;o.connect(filter).connect(g);}
+      g.connect(opts.out??this.sfx);let stop=t;for(const offset of opts.envelope.stop)stop+=offset;o.start(t);o.stop(stop);return g;
+    }
     const c = this.ctx, t = opts.t ?? c.currentTime;
     const o = ownAudioSource(c.createOscillator()); o.type = opts.type ?? 'sine';
     o.frequency.setValueAtTime(opts.f0, t);
@@ -56,9 +64,9 @@ export abstract class Synth {
   }
 
   /** Play validated ordered phrase rows with the existing tone/burst envelopes and owned bus routing. */
-  playPhrase(program:AudioPhraseProgram,out:AudioNode,params:Readonly<Record<string,number>>={},random:()=>number=audioRandom):void {
-    const values=new Map(Object.entries(params)),nodes=new Map<string,AudioNode>([['out',out]]);
-    values.set('t',this.ctx.currentTime);
+  playPhrase(program:AudioPhraseProgram,out:AudioNode,params:Readonly<Record<string,number>>={},random:()=>number=audioRandom,bindings:Readonly<Record<string,AudioNode>>={}):void {
+    const values=new Map(Object.entries(params)),nodes=new Map<string,AudioNode>([['out',out],...Object.entries(bindings)]);
+    values.set('t',this.ctx.currentTime);if(program.tap!==undefined)tap.sound?.(program.tap);
     const read=(id:string):number=>{if(id==='random')return random();const value=values.get(id);if(value===undefined)throw new Error(`Missing phrase value: ${id}`);return value;};
     const value=(expr:AudioMixExpr):number=>{const result=audioMixValue(expr,read);if(!Number.isFinite(result))throw new Error('Nonfinite phrase value');return result;};
     const target=(id:string):AudioNode=>{const node=nodes.get(id);if(node===undefined)throw new Error(`Missing phrase output: ${id}`);return node;};
@@ -66,17 +74,24 @@ export abstract class Synth {
     type Step=AudioPhraseProgram['steps'][number];
     const run=(step:Exclude<Step,{kind:'repeat'}>):void=>{
       if(++work>1024)throw new Error('Phrase work capacity');
+      if('when' in step&&value(step.when)===0)return;
       if(step.kind==='value'){values.set(step.id,value(step.value));return;}
       if(step.kind==='bus'){
         const bus=this.ctx.createGain();bus.gain.value=value(step.gain);let tail:AudioNode=bus;
         if(step.filter){const filter=this.ctx.createBiquadFilter();filter.type=step.filter.type;filter.frequency.value=value(step.filter.frequency);if(step.filter.q!==undefined)filter.Q.value=value(step.filter.q);bus.connect(filter);tail=filter;}
-        this.route(tail,value(step.pan),target(step.out));nodes.set(step.id,bus);return;
+        const pan=value(step.pan),outNode=target(step.out);if(step.alwaysPan===true){const p=this.ctx.createStereoPanner();p.pan.value=pan;tail.connect(p).connect(outNode);}else this.route(tail,pan,outNode);nodes.set(step.id,bus);return;
+      }
+      if(step.kind==='envelope'){
+        const node=target(step.out);if(!(node instanceof GainNode))throw new Error('Envelope requires a gain');
+        const time=value(step.t),gain=node.gain;gain.cancelScheduledValues(time);gain.setValueAtTime(gain.value,time);
+        for(const ramp of step.ramps){if(ramp.kind==='linear')gain.linearRampToValueAtTime(value(ramp.value),value(ramp.t));else gain.setTargetAtTime(value(ramp.value),value(ramp.t),value(ramp.tau));}return;
       }
       if(step.kind==='tone'){
         const opts:Parameters<Synth['tone']>[0]={f0:value(step.f0),gain:value(step.gain),decay:value(step.decay),out:target(step.out)};
         if(step.type!==undefined)opts.type=step.type;
         for(const key of ['t','f1','glide','attack','hold','lowpass'] as const){const expr=step[key];if(expr!==undefined)opts[key]=value(expr);}
         if(step.vibrato)opts.vibrato={rate:value(step.vibrato.rate),depth:value(step.vibrato.depth)};
+        if(step.envelope)opts.envelope={end:value(step.envelope.end),stop:step.envelope.stop.map(value)};
         this.tone(opts);return;
       }
       const opts:Parameters<Synth['burst']>[0]={freq:value(step.freq),gain:value(step.gain),decay:value(step.decay),out:target(step.out)};
@@ -86,8 +101,11 @@ export abstract class Synth {
     };
     for(const step of program.steps){
       if(step.kind!=='repeat'){run(step);continue;}
-      const count=value(step.count);if(!Number.isInteger(count)||count<0||count>step.max)throw new Error('Phrase repeat capacity');
-      for(let i=0;i<count;i++)for(const child of step.body)run(child);
+      const fixed=step.eachTest===true?undefined:value(step.count);
+      for(let i=0;i<=step.max;i++){
+        const count=fixed??value(step.count);if(!Number.isInteger(count)||count<0||count>step.max)throw new Error('Phrase repeat capacity');if(i>=count)break;
+        if(step.index!==undefined)values.set(step.index,i);for(const child of step.body)run(child);
+      }
     }
   }
 

@@ -34,17 +34,4 @@ export const ISLAND_MIX: AmbienceMixRows<IslandZone> = {
   
   
   zoneNames: ['sea','beach','palms','jungle','cove','lookout','hold','cave','shrine'],
-  oneShots: [
-    { mark: 'swell', tick: 'island.swell', every: [4, 5, 0.4],
-      swell: { beds: [['surfBody', 0.35, 1.0], ['surfHiss', 0.12, 0.75]], size: [0.7, 0.5], nightDrop: 0.35, build: [1.4, 0.9], wash: [2.4, 1.6], crest: 0.45, early: 0.8, hold: 0.3, decay: 3 } },
-    { mark: 'birds', tick: 'island.bird', every: [2.5, 6, 0], when: ['and', ['gt', 'bed.jungle', 0.05], ['lt', 'night', 0.6], ['not', 'underwater']],
-      voice: { to: 'jungle', tap: 'island.bird', pan: [1.6, 0.8], gain: [0.35, 0.5, 0.5], phrases: [
-        { chance: 0.45, pitch: [380, 120], count: [2, 3], gap: 0.22, step: 1, note: { wave: 'sawtooth', drop: 0.8, glide: 0.14, attack: 0.02, peak: 0.5, end: 0.14, stop: [0.14, 0.05], lowpass: 1400 } },
-        { pitch: [2200, 900], count: [3, 3], gap: 0.16, step: 0.9, note: { wave: 'sine', drop: 0.86, glide: 0.12, attack: 0.02, peak: 0.6, end: 0.12, stop: [0.12, 0.05], lowpass: 8000 } },
-      ] } },
-    { mark: 'drips', tick: 'island.drip', every: [0.7, 2.2, 0], when: ['and', ['gt', 'cave', 0.05], ['not', 'underwater']],
-      voice: { to: 'sfx', tap: 'island.drip', scale: 'cave', phrases: [
-        { pitch: [1300, 1400], count: [1, 0], gap: 0, step: 1, note: { drop: 0.7, glide: 0.05, attack: 0.003, peak: 0.12, end: 0.09, stop: [0.12] } },
-      ] } },
-  ],
 };

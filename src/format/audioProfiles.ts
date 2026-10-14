@@ -130,21 +130,25 @@ export const SynthBedGraphSchema = v.pipe(v.strictObject({tap:v.exactOptional(id
   v.check(graph=>new Set(graph.beds.map(row=>row.id)).size===graph.beds.length,'unique synth bed ids'),
   v.check(graph=>graph.chains.every(row=>'mark' in row||graph.beds.some(bed=>bed.id===row.to)),'declared synth bed target'));
 /** Bounded ordered mixer primitives. Randomness is an explicit numeric input named `random`. */
-const phraseTone = v.strictObject({kind:v.literal('tone'),out:id,type:v.exactOptional(synthWave),
+const phraseTone = v.strictObject({kind:v.literal('tone'),when:v.exactOptional(mixExpr),out:id,type:v.exactOptional(synthWave),
   f0:mixExpr,gain:mixExpr,decay:mixExpr,t:v.exactOptional(mixExpr),f1:v.exactOptional(mixExpr),glide:v.exactOptional(mixExpr),
   attack:v.exactOptional(mixExpr),hold:v.exactOptional(mixExpr),lowpass:v.exactOptional(mixExpr),
-  vibrato:v.exactOptional(v.strictObject({rate:mixExpr,depth:mixExpr}))});
-const phraseBurst = v.strictObject({kind:v.literal('burst'),out:id,type:v.exactOptional(v.picklist(['lowpass','highpass','bandpass','lowshelf','highshelf','peaking','notch','allpass'])),
+  vibrato:v.exactOptional(v.strictObject({rate:mixExpr,depth:mixExpr})),envelope:v.exactOptional(v.strictObject({end:mixExpr,stop:v.pipe(v.array(mixExpr),v.maxLength(16))}))});
+const phraseBurst = v.strictObject({kind:v.literal('burst'),when:v.exactOptional(mixExpr),out:id,type:v.exactOptional(v.picklist(['lowpass','highpass','bandpass','lowshelf','highshelf','peaking','notch','allpass'])),
   freq:mixExpr,gain:mixExpr,decay:mixExpr,t:v.exactOptional(mixExpr),freqEnd:v.exactOptional(mixExpr),q:v.exactOptional(mixExpr),
   attack:v.exactOptional(mixExpr),hold:v.exactOptional(mixExpr),rate:v.exactOptional(mixExpr)});
-const phraseValue = v.strictObject({kind:v.literal('value'),id,value:mixExpr});
+const phraseValue = v.strictObject({kind:v.literal('value'),when:v.exactOptional(mixExpr),id,value:mixExpr});
+const phraseEnvelope = v.strictObject({kind:v.literal('envelope'),out:id,t:mixExpr,ramps:v.pipe(v.array(v.variant('kind',[v.strictObject({kind:v.literal('linear'),value:mixExpr,t:mixExpr}),v.strictObject({kind:v.literal('target'),value:mixExpr,t:mixExpr,tau:mixExpr})])),v.maxLength(16))});
 const phraseBody = v.variant('kind',[phraseValue,phraseTone,phraseBurst]);
-export const AudioPhraseProgramSchema = v.pipe(v.strictObject({steps:v.pipe(v.array(v.variant('kind',[phraseValue,phraseTone,phraseBurst,
-  v.strictObject({kind:v.literal('bus'),id,out:id,gain:mixExpr,pan:mixExpr,filter:v.exactOptional(v.strictObject({type:v.picklist(['lowpass','highpass','bandpass']),frequency:mixExpr,q:v.exactOptional(mixExpr)}))}),
-  v.strictObject({kind:v.literal('repeat'),count:mixExpr,max:v.pipe(finite,v.safeInteger(),v.minValue(1),v.maxValue(32)),body:v.pipe(v.array(phraseBody),v.maxLength(64))})])),v.maxLength(64))}),
+export const AudioPhraseProgramSchema = v.pipe(v.strictObject({tap:v.exactOptional(id),steps:v.pipe(v.array(v.variant('kind',[phraseValue,phraseTone,phraseBurst,phraseEnvelope,
+  v.strictObject({kind:v.literal('bus'),id,out:id,gain:mixExpr,pan:mixExpr,alwaysPan:v.exactOptional(v.boolean()),filter:v.exactOptional(v.strictObject({type:v.picklist(['lowpass','highpass','bandpass']),frequency:mixExpr,q:v.exactOptional(mixExpr)}))}),
+  v.strictObject({kind:v.literal('repeat'),eachTest:v.exactOptional(v.boolean()),index:v.exactOptional(id),count:mixExpr,max:v.pipe(finite,v.safeInteger(),v.minValue(1),v.maxValue(32)),body:v.pipe(v.array(phraseBody),v.maxLength(64))})])),v.maxLength(64))}),
   v.check(program=>program.steps.reduce((sum,step)=>sum+(step.kind==='repeat'?step.max*step.body.length:1),0)<=1024,'bounded phrase work'));
 /** Validated tone/noise envelopes and owned filtered buses; no executable author callbacks. */
 export type AudioPhraseProgram = v.InferOutput<typeof AudioPhraseProgramSchema>;
+/** A native graph mark scheduler; predicates read actual mixer observations. */
+export const AudioOneShotScheduleSchema = v.strictObject({mark:id,tick:id,every:v.tuple([v.pipe(finite,v.minValue(0.001),v.maxValue(600)),v.pipe(finite,v.minValue(0),v.maxValue(600)),v.pipe(finite,v.minValue(0),v.maxValue(10))]),when:v.exactOptional(mixExpr),program:id,targets:v.pipe(v.array(id),v.minLength(1),v.maxLength(32))});
+export type AudioOneShotSchedule = v.InferOutput<typeof AudioOneShotScheduleSchema>;
 /** A scoped ambient scheduler for an admitted phrase. */
 export const AudioPhraseScheduleSchema = v.strictObject({tick:id,wait:v.pipe(v.tuple([finite,finite]),v.check(values=>values[0]>0&&values[1]>=values[0]&&values[1]<=600)),program:AudioPhraseProgramSchema});
 export type AudioPhraseSchedule = v.InferOutput<typeof AudioPhraseScheduleSchema>;
@@ -153,7 +157,7 @@ const zone = v.pipe(v.strictObject({ id, x: finite, z: finite, inner: v.pipe(fin
   fade: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))), open: v.optional(v.boolean()), source: v.optional(id) }), v.check((row) => row.inner < row.outer && (row.fade === undefined || row.outer === row.inner + row.fade), 'audio zone fade must extend outside its inner radius'));
 const rectangle = v.pipe(v.strictObject({ id, zone: id, x0: finite, x1: finite, z0: finite, z1: finite }), v.check((row) => row.x0 < row.x1 && row.z0 < row.z1, 'positive rectangular audio region'));
 /** Bounded zone/mixer data. Terrain, moving emitters and bespoke synthesis remain trusted runtime ports. */
-export const AudioZonesSchema = v.strictObject({ id, graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
+export const AudioZonesSchema = v.strictObject({ id, schedules:v.exactOptional(v.pipe(v.array(AudioOneShotScheduleSchema),v.maxLength(32))), programs:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
   silentSeconds: v.pipe(finite, v.minValue(0), v.maxValue(600)), holdSeconds: v.pipe(finite, v.minValue(0), v.maxValue(60)),
   levels: v.pipe(v.record(id, gain), v.check((levels) => Object.keys(levels).length <= 64, 'bounded levels')),
   blendMetres: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))),

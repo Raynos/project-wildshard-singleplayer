@@ -3,11 +3,10 @@ import { Scope } from '@wildshard/engine/app/scope';
 import { AmbienceZones } from '@wildshard/engine/audio/ambience';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { requireAudioProfile, audioMixValue, evaluateAudioMix, type AudioZoneProfile } from '@wildshard/engine/audio/audioProfiles';
-import type { AudioMixExpr as MixExpr } from '@wildshard/format/audioProfiles';
-import { ownAudioSource } from '@wildshard/engine/audio/ownership';
+import type { AudioOneShotSchedule, AudioMixExpr as MixExpr } from '@wildshard/format/audioProfiles';
 import { audioRandom } from '@wildshard/engine/audio/util';
 import type { FamilyName } from '@wildshard/engine/audio/Voices';
-import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
+import { ambientTick } from '@wildshard/engine/core/harnessTap';
 
 /**
  * A zoned soundscape's mix as rows (SHARD-PLATFORM M3): the listener, the emitters, the zone weights, every bed's level,
@@ -59,68 +58,6 @@ export interface MixSteerRow { readonly pan: string; readonly toward: string; re
  *  `weight` value is above 0.001 (built then); `feeds` names other nodes that also feed it. */
 export interface MixRoomRow { readonly id: string; readonly ir: FamilyName; readonly weight: string; readonly level: MixExpr; readonly feeds?: readonly string[] }
 
-/** A swell on beds: per bed [id, base, peak]; size = (size[0] + r·size[1]) · (1 − night·nightDrop), rise = build[0] +
- *  r·build[1], wash = wash[0] + r·wash[1]; a linear rise to `crest` of the way at `early`·rise, the peak at rise, then back
- *  to base from rise + hold with the time constant wash / decay. */
-export interface MixSwellRow {
-  readonly beds: readonly (readonly [string, number, number])[];
-  readonly size: readonly [number, number];
-  readonly nightDrop: number;
-  readonly build: readonly [number, number];
-  readonly wash: readonly [number, number];
-  readonly crest: number;
-  readonly early: number;
-  readonly hold: number;
-  readonly decay: number;
-}
-
-/** One oscillator note of a phrase: f1 = f0·drop reached at `glide`; an exponential envelope to `peak` at `attack`, down at
- *  `end`; stopped at the sum of `stop`'s offsets; through a low-pass when `lowpass` is set. */
-export interface MixNoteRow {
-  readonly wave?: OscillatorType;
-  readonly drop: number;
-  readonly glide: number;
-  readonly attack: number;
-  readonly peak: number;
-  readonly end: number;
-  readonly stop: readonly number[];
-  readonly lowpass?: number;
-}
-
-/** A phrase: taken when a draw is under `chance` (or always without one); its first pitch = pitch[0] + r·pitch[1]; notes
- *  `gap` apart while k < count[0] + ⌊r·count[1]⌋ (redrawn before each note; no draw when count[1] is 0), each pitch ×
- *  `step` after the last. */
-export interface MixPhraseRow {
-  readonly chance?: number;
-  readonly pitch: readonly [number, number];
-  readonly count: readonly [number, number];
-  readonly gap: number;
-  readonly step: number;
-  readonly note: MixNoteRow;
-}
-
-/** A voice: into a bed or a named node, through a random stereo pan (r·pan[0] − pan[1]) and a gain (g[0]·(g[1] + r·g[2]))
- *  when given; the notes' peaks scaled by `scale`; the first phrase taken plays. */
-export interface MixVoiceRow {
-  readonly to: string;
-  readonly tap: string;
-  readonly pan?: readonly [number, number];
-  readonly gain?: readonly [number, number, number];
-  readonly scale?: MixExpr;
-  readonly phrases: readonly MixPhraseRow[];
-}
-
-/** A one-shot scheduler, started at its synth-bed mark: every (every[0] + r·every[1]·(1 + night·every[2])) seconds an
- *  ambient tick `tick`; when `when` holds (once the mix has run) the swell or the voice plays. */
-export interface MixOneShotRow {
-  readonly mark: string;
-  readonly tick: string;
-  readonly every: readonly [number, number, number];
-  readonly when?: MixExpr;
-  readonly swell?: MixSwellRow;
-  readonly voice?: MixVoiceRow;
-}
-
 /** A profile's whole mix as rows. */
 export interface AmbienceMixRows<Z extends string = string> {
   /** the families rendered before the graph is built, and the ones prewarmed once it is */
@@ -137,7 +74,6 @@ export interface AmbienceMixRows<Z extends string = string> {
   readonly rooms: { readonly from: string; readonly to: string; readonly list: readonly MixRoomRow[] };
   /** the dominant zone: the first row whose expression holds (the last should always hold) */
   readonly zoneNames: readonly Z[];
-  readonly oneShots: readonly MixOneShotRow[];
 }
 
 /** A point port. */
@@ -183,6 +119,7 @@ export class AmbienceMix<Z extends string = string> {
   private readonly rows: AmbienceMixRows<Z>;
   private readonly ports: AmbienceMixPorts;
   private readonly synth: ReturnType<Audio['createSynthBeds']>;
+  private readonly marks:Record<string,()=>void>={};
   private readonly values = new Map<string, number>();
   private readonly nodes = new Map<string, AudioNode>();
   private readonly panners = new Map<string, PannerNode>();
@@ -198,6 +135,9 @@ export class AmbienceMix<Z extends string = string> {
 
   constructor(audio: Audio, profile: AudioZoneProfile, rows: AmbienceMixRows<Z>, ports: AmbienceMixPorts, zone: Z) {
     this.audio = audio; this.profile = profile; this.rows = rows; this.ports = ports; this.zone = zone;
+    const schedules=requireAudioProfile(profile.schedules,'ambient schedules');
+    if(schedules.length>32)throw new Error('Ambient schedule capacity');
+    for(let i=0;i<32;i++){const row=schedules[i];if(row!==undefined)this.marks[row.mark]=()=>{this.scheduleOneShot(row);};}
     this.inputRows=Object.entries(ports.inputs??{});
     if(rows.rooms.list.length>16||rows.zoneNames.length>32||rows.steer.length>32||this.inputRows.length>64)throw new Error('Ambience port rows exceed their bound');
     for(let i=0;i<16;i++){const room=rows.rooms.list[i];if(room!==undefined)this.roomDefs.set(room.id,room);}
@@ -289,9 +229,7 @@ export class AmbienceMix<Z extends string = string> {
       }
     }
     const outs: Record<string, AudioNode> = Object.fromEntries(this.nodes);
-    const marks: Record<string, () => void> = {};
-    for (const row of rows.oneShots) marks[row.mark] = () => { this.scheduleOneShot(row); };
-    this.pans = this.synth.assemble(requireAudioProfile(this.profile.graph, 'Missing declared synth graph'), outs, marks).pans;
+    this.pans = this.synth.assemble(requireAudioProfile(this.profile.graph, 'Missing declared synth graph'), outs, this.marks).pans;
     const sendIn = c.createGain(); sendIn.gain.value = 1; this.node(rows.rooms.from).connect(sendIn); this.sendIn = sendIn;
   }
 
@@ -309,64 +247,25 @@ export class AmbienceMix<Z extends string = string> {
   }
 
   // ─────────────── timers (not per frame) ───────────────
-  private scheduleOneShot(row: MixOneShotRow): void {
+  private scheduleOneShot(row: AudioOneShotSchedule): void {
     const [base, spread, night] = row.every;
     this.scope.timeout((base + this.ports.random() * spread * (1 + this.night * night)) * 1000, () => {
       ambientTick(row.tick, () => {
         this.values.set('night', this.night); this.values.set('underwater', this.underwater ? 1 : 0);
         if (row.when === undefined || (this.mixed && this.truthy(this.eval(row.when)))) {
-          if (row.swell) this.swell(row.swell);
-          if (row.voice) this.voice(row.voice);
+          this.playProgram(row);
         }
         this.scheduleOneShot(row);
       });
     });
   }
 
-  private swell(row: MixSwellRow): void {
-    const gains: AudioParam[] = [];
-    for (const [id] of row.beds) { const b = this.zones.beds.get(id); if (!b) return; gains.push(b.gain.gain); }
-    const r = this.ports.random, t = this.audio.ctx.currentTime, size = (row.size[0] + r() * row.size[1]) * (1 - row.nightDrop * this.night);
-    const build = row.build[0] + r() * row.build[1], wash = row.wash[0] + r() * row.wash[1];
-    for (const [i, [, base, peak]] of row.beds.entries()) {
-      const g = gains[i]; if (!g) continue;
-      g.cancelScheduledValues(t); g.setValueAtTime(g.value, t);
-      g.linearRampToValueAtTime(base + (peak - base) * size * row.crest, t + build * row.early);
-      g.linearRampToValueAtTime(base + (peak - base) * size, t + build);
-      g.setTargetAtTime(base, t + build + row.hold, wash / row.decay);
-    }
-  }
-
-  private voice(row: MixVoiceRow): void {
-    const dest = this.zones.beds.get(row.to)?.gain ?? this.nodes.get(row.to); if (!dest) return;
-    const c = this.audio.ctx, t = c.currentTime, r = this.ports.random;
-    tap.sound?.(row.tap);
-    let into: AudioNode = dest;
-    if (row.pan || row.gain) {
-      let head: AudioNode = dest;
-      if (row.pan) { const pan = c.createStereoPanner(); pan.pan.value = r() * row.pan[0] - row.pan[1]; pan.connect(head); head = pan; }
-      if (row.gain) { const out = c.createGain(); out.gain.value = row.gain[0] * (row.gain[1] + r() * row.gain[2]); out.connect(head); head = out; }
-      into = head;
-    }
-    const scale = row.scale === undefined ? undefined : this.eval(row.scale);
-    for (const ph of row.phrases) {
-      if (ph.chance !== undefined && !(r() < ph.chance)) continue;
-      let f = ph.pitch[0] + r() * ph.pitch[1];
-      for (let k = 0; k < ph.count[0] + (ph.count[1] > 0 ? Math.floor(r() * ph.count[1]) : 0); k++) { this.note(t + k * ph.gap, f, ph.note, scale, into); f *= ph.step; }
-      return;
-    }
-  }
-
-  private note(t0: number, f0: number, n: MixNoteRow, scale: number | undefined, into: AudioNode): void {
-    const c = this.audio.ctx, o = ownAudioSource(c.createOscillator());
-    if (n.wave !== undefined) o.type = n.wave;
-    o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f0 * n.drop, t0 + n.glide);
-    const e = c.createGain(); e.gain.setValueAtTime(0.0001, t0); e.gain.exponentialRampToValueAtTime(scale === undefined ? n.peak : n.peak * scale, t0 + n.attack); e.gain.exponentialRampToValueAtTime(0.0001, t0 + n.end);
-    if (n.lowpass === undefined) o.connect(e);
-    else { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = n.lowpass; o.connect(f).connect(e); }
-    e.connect(into);
-    let stop = t0; for (const s of n.stop) stop += s;
-    o.start(t0); o.stop(stop);
+  private playProgram(row:AudioOneShotSchedule):void {
+    const targets:Record<string,AudioNode>={};let first:AudioNode|undefined;
+    for(let i=0;i<32;i++){const id=row.targets[i];if(id===undefined)continue;const node=this.zones.beds.get(id)?.gain??this.nodes.get(id);if(node===undefined)return;targets[id]=node;first??=node;}
+    if(first===undefined)return;
+    const program=requireAudioProfile(this.profile.programs?.[row.program],'ambient phrase');
+    this.audio.playPhrase(program,first,Object.fromEntries(this.values),this.ports.random,targets);
   }
 
   // ─────────────── per frame ───────────────
