@@ -23,17 +23,17 @@ import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
 import { SKY_ITEM_ROLE } from '../data/items';
 import { FAN_ROW, FAN_PRESENTATION } from '../data/equipment';
-import { preloadSkyMeshes } from '../world/meshes';
+import { preloadSkyMeshes, skyHd } from '../world/meshes';
 import { loadSkyBaked, skyMeadowBlades } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
-import { setSkyLooks, skyLook } from '../world/looks';
+import { setSkyLooks, skyLook, skyMappedLook } from '../world/looks';
 import { setMillTextures } from '../world/mill';
 import { wakeRibbon } from './looks/wakeRibbon';
 import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow } from '../world/meadow';
-import { bindDeclaredFight, bindQuestPageInteractions, bindPageQuestStages, bindClientChannels } from '@wildshard/game/plugin/ui';
+import { installPersistedQuest, bindDeclaredFight, bindQuestPageInteractions, bindPageQuestStages, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
-import { installQuest } from '../quest/install';
+import { SKY_QUEST_PAGE } from '../data/questPage';
 import { FLAGS, vaneFlag } from '../quest/flags';
 import { HybridRuntimePlugin, bindRuntimeMelee, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import { bindRuntimeProductProps, prepareClientWorld, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
@@ -117,7 +117,10 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const rt = ctx.game.runtime, built = this.built, fan = this.fan, position = rt?.world?.player.position ?? this.player;
     if (built === null || fan === null) throw new Error('Sky Reach: world and kit must run before play');
     const toast = (text: string): void => { rt?.play?.hud.toast(text); };
-    const { quest, flags, burst, finished, persistence } = installQuest(ctx, position, loot?.purse ? (share) => { loot.purse?.add(share); } : undefined);
+    const { quest, flags, reward, finished, persistence } = installPersistedQuest(ctx, source, SKY_QUEST_PAGE, { player: position,
+      ...(loot?.purse ? { coins: (share: number) => { loot.purse?.add(share); } } : {}),
+      model: { kind: 'pivots', read: () => skyHd('keeper-hd'), material: map => skyMappedLook('keeper-scarf', map) },
+      dress: group => { ctx.scope.ownPrimitives(group, { instances: true }); } });
     persistence.bindProgress(rt?.play?.progress);
     this.quest = quest; this.flags = flags; this.questFinished = finished;
     await worldBuildYield(ctx, 4);
@@ -125,7 +128,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const page = bindQuestPageInteractions(source, { flags, toast,
       observations: new Map([['winch-up', () => built.state.raised]]), calls: new Map([['winch', () => { this.isletCalls?.runtime?.command('far.winch.bridge', 1); }]]) });
     built.notes.onInteract = page.action('notes'); built.winch.onInteract = page.action('winch');
-    // the world pins, chip, map and minimap marks are the quest presentation's (quest/install.ts)
+    // the world pins, chip, map and minimap marks are the quest presentation's (data/questPage.ts)
     if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');
     const questStages = bindPageQuestStages(ctx, source, { flags, actor: this.actor.bind(this),
       observations: new Map([['winch-up', () => built.state.raised]]) });
@@ -230,7 +233,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
 
     // The boss: the Storm Roc on the crown, the shared BossBar, 25 coins once.
     const fight = bindDeclaredFight(ctx, this.rows.fight, { kind: 'held', player: position, held: this.actor(ROC_ID), catalogue: this.populationCatalogue,
-      flags, facts: persistence.facts, reward: burst, armed: true, record: { saved: persistence.boss.read(), persist: persistence.boss.write } });
+      flags, facts: persistence.facts, reward: reward.spawn, armed: true, record: { saved: persistence.boss.read(), persist: persistence.boss.write } });
     this.populationControl = fight.control; this.presentedBoss = fight.boss;
     // Phase 2's gale wall: a pale sheet of wind that thickens over the windup along the lane it will sweep.
     const wall = new Mesh(new BoxGeometry(GALE_WALL.shape.kind === 'lane' ? GALE_WALL.shape.width : 6, 5, 0.4),

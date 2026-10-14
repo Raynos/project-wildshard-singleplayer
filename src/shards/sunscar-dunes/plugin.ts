@@ -12,9 +12,9 @@ import { DUSK, setDusk, stepDusk } from './look/dusk';
 import { preloadDuneMeshes, DUNE_LIBRARY } from './world/meshes';
 import { loadBakedWorld } from './world/baked';
 import { createWhip, type Bullwhip } from './runtime/items/heldWhip';
-import { installQuest } from './quest/install';
+import { SIGNAL_QUEST_PAGE } from './data/questPage';
 import { FLAG, SCOUT_FLAG } from './data/flags';
-import { bindDeclaredFight, bindPageQuestStages } from '@wildshard/game/plugin/ui';
+import { bindDeclaredFight, bindPageQuestStages, installPersistedQuest } from '@wildshard/game/plugin/ui';
 import { SAND, SKIRT } from './look/render';
 import { lentMaterial } from './runtime/looks/bakedGround';
 import { prepareFireFx } from './world/fireFx';
@@ -88,7 +88,8 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
     const coins = bindRuntimeCoins(ctx, loot?.purse ?? null);
     if (places) {
       // SF14 / SF50-p: the quest's and the Matriarch's feats are ledger facts; the platform grants their achievements once.
-      const installed = installQuest(ctx, position, places, coins), facts = installed.facts;
+      const installed = installPersistedQuest(ctx, source, SIGNAL_QUEST_PAGE, { player: position, flags: places.flags, coins,
+        model: { kind: 'mesh', read: () => DUNE_LIBRARY.mesh('caravan-scout') }, dress: group => { ctx.scope.ownPrimitives(group); lastLightAll(group, ctx.scope); } }), facts = installed.facts;
       this.quest = installed.quest; this.whip?.aimAt(places.crackables);
       // The signal fire summons the Dune Matriarch from the basin (C5). A save that beat her before facts existed emits hers on load.
       const fight = bindDeclaredFight(ctx, this.rows.fight, { kind: 'spawned', source, player: position, flags: places.flags, facts, coins, armed: places.fire.lit,
