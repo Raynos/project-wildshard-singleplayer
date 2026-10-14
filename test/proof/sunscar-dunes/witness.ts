@@ -12,11 +12,11 @@ import { Ledger, LedgerEmitter, type LedgerReceipt } from '../../../src/game/led
 import type { HeadlessRuntimeInstallation, HeadlessRuntimePlan } from '../../../src/sdk/headlessRuntime';
 import type { HeadlessCommand, HeadlessEffect } from '../../../src/sdk/tickProtocol';
 import { HeadlessSimulation } from '../../../src/sdk/headless';
-import { prepareHeadlessRuntime, signalSpots } from '../../../src/shards/sunscar-dunes/runtime/headless';
+import { prepareHeadlessRuntime } from '../../../src/shards/sunscar-dunes/runtime/headless';
 import type { QuestGraphSpot as SignalSpot } from '../../../src/game/plugin/quests';
 import { SIGNAL_ACT, SIGNAL_INTERACT, SIGNAL_INTERACTIONS } from '../../../src/shards/sunscar-dunes/data/signalInteractions';
 import { MATRIARCH_ID } from '../../../src/shards/sunscar-dunes/data/matriarchEncounter';
-import { nativeMeleeVolumeHit } from '../../../src/game/plugin/simulation';
+import { readRuntimeWorldMetadata, nativeMeleeVolumeHit } from '../../../src/game/plugin/simulation';
 import { weaponContactDistance } from '../../../src/engine/combat/contactWeapon';
 import { WHIP_ITEM, WHIP_PROFILE } from '../../../src/shards/sunscar-dunes/data/items';
 import { SCOUT_AT } from '../../../src/shards/sunscar-dunes/data/flags';
@@ -133,7 +133,7 @@ function lashable(host: SimHost, actor: AnimalSim): boolean {
 /** The quest's walk: where to go, and the interaction the player presses once its prompt is in reach. */
 interface Leg { to: readonly [number, number]; act?: number; ready?: (host: SimHost) => boolean }
 function legs(): Leg[] {
-  const { interact, crack } = signalSpots(), spot = (list: readonly SignalSpot[], id: string): SignalSpot => requireValue(list.find(s => s.id === id), `missing spot ${id}`);
+  const { interact, crack } = readRuntimeWorldMetadata(baked, true).spots, spot = (list: readonly SignalSpot[], id: string): SignalSpot => requireValue(list.find(s => s.id === id), `missing spot ${id}`);
   const sefa = (host: SimHost): boolean => selected(host) === SIGNAL_ACT.talk;
   const waymark = (i: number, x: number, z: number): Leg[] => [
     { to: [x, z], act: SIGNAL_ACT.pour + i, ready: host => sees(host, spot(interact, `brazier.${String(i)}`)) },
