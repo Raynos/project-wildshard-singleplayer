@@ -8,7 +8,6 @@ import { ownAudioSource } from '@wildshard/engine/audio/ownership';
 import { audioRandom } from '@wildshard/engine/audio/util';
 import type { FamilyName } from '@wildshard/engine/audio/Voices';
 import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
-import { SynthBeds, type SynthBedGraph } from './synthBeds';
 
 /**
  * A zoned soundscape's mix as rows (SHARD-PLATFORM M3): the listener, the emitters, the zone weights, every bed's level,
@@ -130,7 +129,6 @@ export interface AmbienceMixRows<Z extends string = string> {
   /** the master low-pass's underwater cutoff (Hz) and ramp (s) */
   readonly underwater: readonly [number, number];
   readonly nodes: readonly MixNodeRow[];
-  readonly beds: SynthBedGraph;
   readonly bounds: readonly MixBoundsRow[];
   readonly near: readonly MixNearRow[];
   /** every bed's level: [bed id, expression] */
@@ -184,7 +182,7 @@ export class AmbienceMix<Z extends string = string> {
   private readonly profile: AudioZoneProfile;
   private readonly rows: AmbienceMixRows<Z>;
   private readonly ports: AmbienceMixPorts;
-  private readonly synth: SynthBeds;
+  private readonly synth: ReturnType<Audio['createSynthBeds']>;
   private readonly values = new Map<string, number>();
   private readonly nodes = new Map<string, AudioNode>();
   private readonly panners = new Map<string, PannerNode>();
@@ -223,7 +221,7 @@ export class AmbienceMix<Z extends string = string> {
     };
     this.scope = new Scope(ports.scope);
     this.zones = new AmbienceZones(audio, audioRandom);
-    this.synth = new SynthBeds(audio, this.zones, ports.random);
+    this.synth = audio.createSynthBeds(this.zones, ports.random);
     const diag=requireAudioProfile(profile.mix,'ambience.mix').diag;
     for(let i=0;i<64;i++){const row=diag[i];if(row!==undefined)this.diag[row[0]]=0;}
     for (const z of profile.zones) for (const k of ['x', 'z', 'inner', 'outer', 'gain'] as const) this.values.set(`${z.id}.${k}`, z[k]);
@@ -293,7 +291,7 @@ export class AmbienceMix<Z extends string = string> {
     const outs: Record<string, AudioNode> = Object.fromEntries(this.nodes);
     const marks: Record<string, () => void> = {};
     for (const row of rows.oneShots) marks[row.mark] = () => { this.scheduleOneShot(row); };
-    this.pans = this.synth.assemble(rows.beds, outs, marks).pans;
+    this.pans = this.synth.assemble(requireAudioProfile(this.profile.graph, 'Missing declared synth graph'), outs, marks).pans;
     const sendIn = c.createGain(); sendIn.gain.value = 1; this.node(rows.rooms.from).connect(sendIn); this.sendIn = sendIn;
   }
 

@@ -1,9 +1,9 @@
 // SHARD-PLATFORM M3 (audio rows): Driftwood Isle's synth ambience beds as data (runtime/audio/ambience.ts builds them
-// through runtime/audio/synthBeds; the zone mix there sets each bed's level). Outputs the profile names: `occl`
+// through the declared engine synth graph; the zone mix there sets each bed's level). Outputs the profile names: `occl`
 // (the outdoor beds' occlusion low-pass, muffled in the hold and the cave), `ambient` (the bus), `surfPan` (the surf's
 // line emitter on the shoreline) and `fallPan` (the waterfall's emitter at the plunge pool, not occluded). The marks start
 // the profile's schedulers (the swells, the birds, the cave drips) in their place in the build.
-import type { SynthBedGraph } from './synthBeds';
+import type { SynthBedGraph } from '@wildshard/format/audioProfiles';
 
 /** The island's beds: surf (body + hiss on the shoreline emitter; the swells ride their gains), lapping under a pier, the
  *  breeze, palm rustle (bright leaf noise through a noise-driven flutter, panned toward the palms), the lookout's high wind

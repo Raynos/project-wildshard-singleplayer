@@ -1,3 +1,5 @@
+import { SynthBeds } from './synth';
+import { AmbienceZones } from './ambience';
 import { resourceScope } from '../app/resources';
 import { loopAt, audioRandom, panFromYaw } from './util';
 import { PlayerVoices } from './playerVoices';
@@ -614,24 +616,19 @@ export class Audio extends PlayerVoices {
 
   /** a looping noise band: bandpass + lowpass, slow amplitude and filter LFOs, panned into the ambient bus */
   mkWind(freq: number, q: number, pan: number, lfoRate: number, base: number, lowpass = 1200): GainNode {
-    const c = this.ctx;
-    const src = ownAudioSource(c.createBufferSource()); src.buffer = this.noise; src.loop = true; src.start(0, audioRandom());
-    const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = q;
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = lowpass;
-    const g = c.createGain(); g.gain.value = base;
-    const lfo = ownAudioSource(c.createOscillator()); lfo.type = 'sine'; lfo.frequency.value = lfoRate;
-    const lg = c.createGain(); lg.gain.value = base * 0.6;
-    lfo.connect(lg).connect(g.gain); lfo.start();
-    // slow filter drift for movement
-    const lfo2 = ownAudioSource(c.createOscillator()); lfo2.frequency.value = lfoRate * 0.7 + 0.01;
-    const lg2 = c.createGain(); lg2.gain.value = freq * 0.35;
-    lfo2.connect(lg2).connect(f.frequency); lfo2.start();
-    src.connect(f).connect(lp).connect(g);
-    const p = c.createStereoPanner(); p.pan.value = pan;
-    g.connect(p).connect(this.ambient);
-    this.bedNodes.push(g, src, lfo, lfo2);
-    return g;
+    const graph = this.createSynthBeds(new AmbienceZones(this, audioRandom), audioRandom);
+    const made = graph.assemble({ beds:[{id:'wind',out:'ambient',gain:base,pan,
+      lfos:[{rate:lfoRate,depth:base*0.6}]}], chains:[{noise:'native-white',
+      filters:[['bandpass',freq,q],['lowpass',lowpass,1]],
+      sweeps:[[0,{rate:lfoRate*0.7+0.01,depth:freq*0.35}]],to:'wind'}] }, {ambient:this.ambient});
+    const gain = made.beds.get('wind');
+    if (!gain) throw new Error('Missing wind graph gain');
+    this.bedNodes.push(gain,...graph.sources);
+    return gain;
   }
+
+  /** Lazy declared synthesis; no context or procedural bank is read until a graph is built. */
+  createSynthBeds(zones: AmbienceZones, random: () => number): SynthBeds { return new SynthBeds(this,zones,random); }
 
   dispose(): void { this.queuedResume?.cancel(); this.queuedResume = undefined; for (const bed of this.synthBeds.values()) bed.stop(); this.scope.cancelTimer(this.bubbleTimer); if (this.g) { releasePageAudioContext(this.g.ctx); void this.g.ctx.close(); } }
 }

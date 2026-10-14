@@ -5,7 +5,6 @@
 // and wet sends (`wet.hold`); the ports `ground`, `sea`, `night`, `underwater`, `t`, `windTime`, `windStrength`, the
 // bounds `holdBox` / `caveBox`, the points `fall` and `cave`, the palms' nearness `palms.sum` / `.dx` / `.dz`.
 import type { AmbienceMixRows } from './ambienceMix';
-import { ISLAND_BEDS } from './islandBeds';
 
 /** The island's dominant zones. */
 export type IslandZone = 'sea' | 'beach' | 'palms' | 'jungle' | 'cove' | 'lookout' | 'hold' | 'cave' | 'shrine';
@@ -21,7 +20,6 @@ export const ISLAND_MIX: AmbienceMixRows<IslandZone> = {
     { id: 'surfPan', out: 'occl', panner: [12, 1, 400], follow: { zone: 'shore', rays: 256, step: 2, refine: 3, diag: 'shoreDist' } },
     { id: 'fallPan', out: 'ambient', panner: [6, 1.1, 250], at: 'fall' },
   ],
-  beds: ISLAND_BEDS,
   bounds: [{ id: 'holdBox', from: 'wreck', key: 'holdBounds' }, { id: 'caveBox', from: 'cove', key: 'caveBounds' }],
   near: [{ id: 'palms', radius: 22 }],
   

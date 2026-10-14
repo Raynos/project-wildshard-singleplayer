@@ -1,4 +1,4 @@
-import type { AudioMixExpr, AudioMixRecipe } from '@wildshard/format/audioProfiles';
+import type { SynthBedGraph, AudioMixExpr, AudioMixRecipe } from '@wildshard/format/audioProfiles';
 import type { ScoreSelection } from './scoreSelection';
 
 /** Same-byte platform sample catalogue; gains apply to admitted named loops. */
@@ -16,6 +16,7 @@ export interface AudioZone { id: string; x: number; z: number; inner: number; ou
 /** Mixer timing, bed levels, room sends and named zones consumed by a trusted catalogue recipe. */
 export interface AudioZoneProfile {
   mix?: AudioMixRecipe | undefined;
+  graph?: SynthBedGraph | undefined;
   id: string; smoothSeconds: number; tickHz: number; silentSeconds: number; holdSeconds: number;
   levels: Readonly<Record<string, number>>;
   /** Rectangle-distance blend regions and admitted bed/sample names, for enclosed scenes. */

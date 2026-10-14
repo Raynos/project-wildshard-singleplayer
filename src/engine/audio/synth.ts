@@ -1,4 +1,7 @@
 import { ownAudioSource } from './ownership';
+import type { AmbienceZones } from './ambience';
+import type { SynthNoise, SynthLfoRow, SynthChainRow, SynthBedGraph } from '@wildshard/format/audioProfiles';
+import { tap } from '../core/harnessTap';
 import { audioRandom } from './util';
 
 /** Shared WebAudio oscillator/noise/envelope blocks; content owns sound ids. */
@@ -56,4 +59,128 @@ export abstract class Synth {
     else node.connect(out ?? this.sfx);
   }
 
+}
+
+/** The bank the beds draw their noise and loops from (an engine Voices). */
+export interface SynthBank {
+  readonly buffer: (name: string) => AudioBuffer | undefined;
+}
+
+/** Where the beds are built: the audio context (read only when building, so nothing creates it before the first gesture)
+ *  and the bank (an engine Audio). */
+export interface SynthHost {
+  readonly ctx: AudioContext;
+  readonly noise: AudioBuffer;
+  readonly voices: SynthBank;
+}
+
+/** Builds synth bed graphs into a profile's AmbienceZones; one pool of noise sources per instance. */
+export class SynthBeds {
+  /** Scheduled sources borrowed by the owning bed lifecycle. */
+  readonly sources: AudioScheduledSourceNode[] = [];
+  private readonly host: SynthHost;
+  private readonly zones: AmbienceZones;
+  private readonly random: () => number;
+  private readonly poolW: AudioBufferSourceNode[] = [];
+  private readonly poolP: AudioBufferSourceNode[] = [];
+  private poolN = 0;
+
+  constructor(host: SynthHost, zones: AmbienceZones, random: () => number) {
+    this.host = host; this.zones = zones; this.random = random;
+  }
+
+  private get ctx(): AudioContext { return this.host.ctx; }
+
+  /** a looping noise source from the pool (two of each kind; past that the pool alternates between them) */
+  noise(name: SynthNoise): AudioBufferSourceNode | undefined {
+    if (name === 'native-white') {
+      const s = ownAudioSource(this.ctx.createBufferSource()); s.buffer = this.host.noise; s.loop = true; s.start(0, this.random()); this.sources.push(s); return s;
+    }
+    const list = name === 'noise-white' ? this.poolW : this.poolP;
+    this.poolN++;
+    if (list.length >= 2) return list[this.poolN % 2];
+    const buf = this.host.voices.buffer(name); if (!buf) return undefined;
+    const c = this.ctx, s = ownAudioSource(c.createBufferSource()); s.buffer = buf; s.loop = true; s.playbackRate.value = 0.97 + this.random() * 0.06;
+    s.start(c.currentTime, this.random() * buf.duration);
+    list.push(s); this.sources.push(s);
+    return s;
+  }
+
+  /** a biquad filter */
+  biquad(type: BiquadFilterType, f: number, q = 0.7): BiquadFilterNode {
+    const b = this.ctx.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q; return b;
+  }
+
+  /** an LFO summed onto `param` */
+  lfo(row: SynthLfoRow, param: AudioParam): OscillatorNode {
+    const c = this.ctx, o = ownAudioSource(c.createOscillator()); o.type = row.type ?? 'sine'; o.frequency.value = row.rate;
+    const g = c.createGain(); g.gain.value = row.depth; this.sources.push(o); o.connect(g).connect(param); o.start();
+    return o;
+  }
+
+  /** assembles the graph: the beds, then every chain (and mark) in order; returns the named panners */
+  assemble(graph: SynthBedGraph, outs: Readonly<Record<string, AudioNode>>, marks: Readonly<Record<string, () => void>> = {}): { readonly pans: Map<string, StereoPannerNode>; readonly beds: Map<string, GainNode> } {
+    const beds = new Map<string, GainNode>(), pans = new Map<string, StereoPannerNode>();
+    const target = (id: string): AudioNode => {
+      const node = beds.get(id) ?? outs[id];
+      if (node === undefined) throw new Error(`synthBeds: no bed or output '${id}'`);
+      return node;
+    };
+    for (const b of graph.beds) {
+      const out = target(b.out);
+      if (graph.tap !== undefined) tap.sound?.(`${graph.tap}:${b.id}`);
+      const voice = this.zones.ensure({ id: b.id, panned: b.pan !== undefined, out: () => out, started: () => { /* no sampled loop: a synth bed's gain */ } });
+      const gain = voice.gain;
+      if (voice.pan && b.pan !== undefined) voice.pan.pan.value = b.pan;
+      if (b.gain !== undefined) gain.gain.value = b.gain;
+      beds.set(b.id, gain);
+      for (const row of b.lfos ?? []) this.lfo(row, gain.gain);
+    }
+    for (const ch of graph.chains) {
+      if ('mark' in ch) marks[ch.mark]?.();
+      else this.chain(ch, target(ch.to), pans);
+    }
+    return { pans, beds };
+  }
+
+  private chain(ch: SynthChainRow, bed: AudioNode, pans: Map<string, StereoPannerNode>): void {
+    const c = this.ctx;
+    // the tail first (stages → panner → bed), then the source and its filters into its head
+    let head: AudioNode = bed;
+    if (ch.pan !== undefined) { const p = c.createStereoPanner(); p.connect(head); pans.set(ch.pan, p); head = p; }
+    const stages = ch.stages ?? [];
+    const gains: GainNode[] = [];
+    for (let i = stages.length - 1; i >= 0; i--) { const g = c.createGain(); g.gain.value = stages[i]?.gain ?? 1; g.connect(head); gains.unshift(g); head = g; }
+    const src = this.source(ch);
+    const filters = (ch.filters ?? []).map(([type, f, q]) => this.biquad(type, f, q));
+    let from: AudioNode | undefined = src;
+    for (const f of filters) { from?.connect(f); from = src === undefined ? undefined : f; }
+    from?.connect(head);
+    for (const [i, row] of ch.sweeps ?? []) { const f = filters[i]; if (f) this.lfo(row, f.frequency); }
+    for (const [i, st] of stages.entries()) {
+      const g = gains[i]; if (!g) continue;
+      for (const l of st.lfos ?? []) this.lfo(l, g.gain);
+      if (st.flutter) {
+        const n = this.noise(st.flutter.noise);
+        if (n) {
+          const d = c.createGain(); d.gain.value = st.flutter.depth;
+          let at: AudioNode = n;
+          for (const [type, f, q] of st.flutter.filters) at = at.connect(this.biquad(type, f, q));
+          at.connect(d).connect(g.gain);
+        }
+      }
+    }
+  }
+
+  private source(ch: SynthChainRow): AudioNode | undefined {
+    const c = this.ctx;
+    if (ch.noise !== undefined) return this.noise(ch.noise);
+    if (ch.osc !== undefined) { const o = ownAudioSource(c.createOscillator()); o.frequency.value = ch.osc; o.start(); this.sources.push(o); return o; }
+    if (ch.sample !== undefined) {
+      const b = this.host.voices.buffer(ch.sample); if (!b) return undefined;
+      const s = ownAudioSource(c.createBufferSource()); s.buffer = b; s.loop = true; s.start(c.currentTime, this.random() * b.duration); this.sources.push(s);
+      return s;
+    }
+    return undefined;
+  }
 }

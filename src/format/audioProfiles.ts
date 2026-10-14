@@ -49,11 +49,91 @@ export const AudioMusicSchema = v.pipe(v.strictObject({ id, base: id, slots: lis
   && Object.keys(music.sets).every((slot) => music.slots.includes(slot)), 'every selected, base and boot slot belongs to the score (the platform title is allowed)'));
 /** Same-byte sample catalogue and loop gain selection, without author decoder callbacks. */
 export const AudioSamplesSchema = v.strictObject({ catalogue: v.exactOptional(catalogue), set: id, bed: id, loopGains: v.pipe(v.record(id, gain), v.check((gains) => Object.keys(gains).length <= 32, 'bounded loop gains')), omitLoops: optionalIds, omitShots: optionalIds, omitSlots: optionalIds });
+/** A biquad: its type, frequency (Hz) and Q (default 0.7). */
+export type SynthFilterRow = readonly [BiquadFilterType, number, number?];
+
+/** An LFO summed onto a parameter: rate (Hz), depth (the parameter's units) and waveform (default sine). */
+export interface SynthLfoRow {
+  readonly rate: number;
+  readonly depth: number;
+  readonly type?: OscillatorType;
+}
+
+/** A gain stage after the filters: its level, LFOs on that level and a flutter (a noise through filters, × depth, onto it). */
+export interface SynthStageRow {
+  readonly gain: number;
+  readonly lfos?: readonly SynthLfoRow[];
+  readonly flutter?: { readonly noise: SynthNoise; readonly filters: readonly SynthFilterRow[]; readonly depth: number };
+}
+
+/** A pooled looping noise. */
+export type SynthNoise = 'noise-white' | 'noise-pink' | 'native-white';
+
+/** One chain into a bed: exactly one of noise / osc (Hz) / sample, then filters, stages and an optional named panner. */
+export interface SynthChainRow {
+  readonly noise?: SynthNoise;
+  readonly osc?: number;
+  readonly sample?: string;
+  readonly filters?: readonly SynthFilterRow[];
+  /** LFOs on a filter's frequency: its index in `filters`, then the LFO */
+  readonly sweeps?: readonly (readonly [number, SynthLfoRow])[];
+  readonly stages?: readonly SynthStageRow[];
+  /** a stereo panner after the stages, returned under this name for the caller to steer */
+  readonly pan?: string;
+  /** the bed it feeds */
+  readonly to: string;
+}
+
+/** A bed: its id in the zones, where it goes (another bed's id or a caller-named node) and its starting level (default 0). */
+export interface SynthBedRow {
+  readonly id: string;
+  readonly out: string;
+  readonly gain?: number;
+  readonly pan?: number;
+  readonly lfos?: readonly SynthLfoRow[];
+}
+
+/** A mark among the chains: the caller's `marks[mark]` runs at that point of the build (a scheduler whose first draw from
+ *  the shared random stream must stay in its place). */
+export interface SynthMarkRow {
+  readonly mark: string;
+}
+
+/** A synth bed graph: its beds (in order: a bed's `out` bed comes first), its chains (and marks) and the tap's id prefix. */
+export interface SynthBedGraph {
+  readonly tap?: string;
+  readonly beds: readonly SynthBedRow[];
+  readonly chains: readonly (SynthChainRow | SynthMarkRow)[];
+}
+
+
+/** Ordered bounded WebAudio graphs; output ids and scheduler marks are supplied by the native host. */
+const synthFrequency = v.pipe(finite,v.minValue(0),v.maxValue(96000));
+const synthWave = v.picklist(['sine','square','sawtooth','triangle']);
+const synthNoise = v.picklist(['noise-white','noise-pink','native-white']);
+const synthLfo = v.strictObject({rate:synthFrequency,depth:finite,type:v.exactOptional(synthWave)});
+const synthFilter = v.union([
+  v.tuple([v.picklist(['lowpass','highpass','bandpass','lowshelf','highshelf','peaking','notch','allpass']),synthFrequency]),
+  v.tuple([v.picklist(['lowpass','highpass','bandpass','lowshelf','highshelf','peaking','notch','allpass']),synthFrequency,finite])]);
+const synthFilters = v.pipe(v.array(synthFilter),v.maxLength(16));
+const synthStage = v.strictObject({gain,lfos:v.exactOptional(v.pipe(v.array(synthLfo),v.maxLength(8))),
+  flutter:v.exactOptional(v.strictObject({noise:synthNoise,filters:synthFilters,depth:finite}))});
+const synthChain = v.pipe(v.strictObject({noise:v.exactOptional(synthNoise),osc:v.exactOptional(synthFrequency),sample:v.exactOptional(id),
+  filters:v.exactOptional(synthFilters),sweeps:v.exactOptional(v.pipe(v.array(v.tuple([v.pipe(finite,v.safeInteger(),v.minValue(0),v.maxValue(15)),synthLfo])),v.maxLength(16))),
+  stages:v.exactOptional(v.pipe(v.array(synthStage),v.maxLength(16))),pan:v.exactOptional(id),to:id}),
+  v.check(row=>Number(row.noise!==undefined)+Number(row.osc!==undefined)+Number(row.sample!==undefined)===1,'one synth source'),
+  v.check(row=>(row.sweeps??[]).every(([index])=>index<(row.filters?.length??0)),'declared sweep filter'));
+export const SynthBedGraphSchema = v.pipe(v.strictObject({tap:v.exactOptional(id),
+  beds:v.pipe(v.array(v.strictObject({id,out:id,gain:v.exactOptional(gain),pan:v.exactOptional(v.pipe(finite,v.minValue(-1),v.maxValue(1))),
+    lfos:v.exactOptional(v.pipe(v.array(synthLfo),v.maxLength(8)))})),v.minLength(1),v.maxLength(64)),
+  chains:v.pipe(v.array(v.union([synthChain,v.strictObject({mark:id})])),v.maxLength(256))}),
+  v.check(graph=>new Set(graph.beds.map(row=>row.id)).size===graph.beds.length,'unique synth bed ids'),
+  v.check(graph=>graph.chains.every(row=>'mark' in row||graph.beds.some(bed=>bed.id===row.to)),'declared synth bed target'));
 const zone = v.pipe(v.strictObject({ id, x: finite, z: finite, inner: v.pipe(finite, v.minValue(0), v.maxValue(2000)), outer: v.pipe(finite, v.minValue(0), v.maxValue(2000)), gain,
   fade: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))), open: v.optional(v.boolean()), source: v.optional(id) }), v.check((row) => row.inner < row.outer && (row.fade === undefined || row.outer === row.inner + row.fade), 'audio zone fade must extend outside its inner radius'));
 const rectangle = v.pipe(v.strictObject({ id, zone: id, x0: finite, x1: finite, z0: finite, z1: finite }), v.check((row) => row.x0 < row.x1 && row.z0 < row.z1, 'positive rectangular audio region'));
 /** Bounded zone/mixer data. Terrain, moving emitters and bespoke synthesis remain trusted runtime ports. */
-export const AudioZonesSchema = v.strictObject({ id, mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
+export const AudioZonesSchema = v.strictObject({ id, graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
   silentSeconds: v.pipe(finite, v.minValue(0), v.maxValue(600)), holdSeconds: v.pipe(finite, v.minValue(0), v.maxValue(60)),
   levels: v.pipe(v.record(id, gain), v.check((levels) => Object.keys(levels).length <= 64, 'bounded levels')),
   blendMetres: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))),
