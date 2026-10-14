@@ -26,6 +26,7 @@ import { FALL_GRAPH } from './data/fallLook';
 import { MILL_CANVAS_GRAPH, MILL_TOWER_GRAPH } from './data/millLook';
 import { RAY_WAKE_GRAPH } from './data/rayWakeLook';
 import { WIND_GRAPHS } from './data/windLook';
+import { STORM_RING_GRAPH } from './data/stormLook';
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
 // SF49-g (G99 / G183) and SF8c's socketLift: every entry meets the road over the cloud sea's void (no ground below y = 0
@@ -47,7 +48,7 @@ export default parseShardfile({ ...base, ...SKY_SECTIONS, navigation: navigation
   look: { ...base.look, materials: { ...base.look.materials, 'deck-wood': { family: 'graph', graph: DECK_WOOD_GRAPH }, 'hover-frame': { family: 'graph', graph: HOVER_FRAME_GRAPH },
     'dressing-clump': { family: 'graph', graph: CLUMP_GRAPH }, 'dressing-flower': { family: 'graph', graph: FLOWER_GRAPH }, 'dressing-stone': { family: 'graph', graph: BOULDER_GRAPH }, falls: { family: 'graph', graph: FALL_GRAPH },
     ...Object.fromEntries(Object.entries(ISLE_GRAPHS).map(([id, graph]) => [id, { family: 'graph', graph }])),
-    ...Object.fromEntries(Object.entries({ 'crown-dais': CROWN_DAIS_GRAPH, 'lantern-glow': LANTERN_GLOW_GRAPH, 'keeper-scarf': KEEPER_SCARF_GRAPH, 'fan-silk': FAN_SILK_GRAPH, 'post-weather': POST_WEATHER_GRAPH, 'tree-bark': TREE_BARK_GRAPH, 'sky-isle': SKY_ISLE_GRAPH, 'sky-isle-keel': SKY_ISLE_KEEL_GRAPH, 'mill-tower': MILL_TOWER_GRAPH, 'mill-canvas': MILL_CANVAS_GRAPH, 'ray-wake': RAY_WAKE_GRAPH, ...WIND_GRAPHS })
+    ...Object.fromEntries(Object.entries({ 'crown-dais': CROWN_DAIS_GRAPH, 'lantern-glow': LANTERN_GLOW_GRAPH, 'keeper-scarf': KEEPER_SCARF_GRAPH, 'fan-silk': FAN_SILK_GRAPH, 'post-weather': POST_WEATHER_GRAPH, 'tree-bark': TREE_BARK_GRAPH, 'sky-isle': SKY_ISLE_GRAPH, 'sky-isle-keel': SKY_ISLE_KEEL_GRAPH, 'mill-tower': MILL_TOWER_GRAPH, 'mill-canvas': MILL_CANVAS_GRAPH, 'ray-wake': RAY_WAKE_GRAPH, 'storm-ring': STORM_RING_GRAPH, ...WIND_GRAPHS })
       .map(([id, graph]) => [id, { family: 'graph', graph }])),
     ...Object.fromEntries(Object.entries(SHACK_GRAPHS).map(([kind, graph]) => [`shack-${kind}`, { family: 'graph', graph }])) },
     // the islands' and boulders' library maps tile (data/skyMapSources.json's sampler rows)

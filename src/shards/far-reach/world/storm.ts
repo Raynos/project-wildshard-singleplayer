@@ -1,9 +1,8 @@
-import { AdditiveBlending, BufferGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, RingGeometry, Vector3, type Texture } from 'three';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, DoubleSide, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, RingGeometry, type Vector3, type Texture } from 'three';
 import { onPaintedDispose } from '../look/image';
+import { skyLook } from './looks';
 
 import { STORM } from '../data/storm';
-import { STORM_PROGRAMS } from '../data/stormLook';
 
 /** The storm's palette (sRGB): belly, mid, the gold of the lit edges, the violet-white of the lightning, the haze it melts into. */
 export const STORM_COLORS = { belly: 0x343046, mid: 0x7e7286, top: 0xe8c6a8, gold: 0xffc983, bolt: 0xe2d6ff, haze: 0xedc9b0 } as const;
@@ -41,15 +40,14 @@ export function setStormPaint(t: Texture | null): void {
 }
 
 /** Build the storm, centred at the group's origin (place it over the crown at `STORM.lift`). */
-export function crownStorm(sun: Vector3, tex: Texture, random: () => number): CrownStorm {
+export function crownStorm(_sun: Vector3, _tex: Texture, random: () => number): CrownStorm {
   const group = new Group(); group.name = 'far.storm';
-  const time = { value: 0 }, flash = { value: 0 }, centre = new Vector3(), family = new ShaderFamily({}, STORM_PROGRAMS);
-  // the vortex program (data/stormLook.ts): one dished ring, the first layer's (the painted vortex is the first layer's
-  // alone: the upper one drew nothing over it); without the painting no ring shows
-  const layer = STORM.layers[0], radius = STORM.radius * layer.r, geometry = new RingGeometry(0.5, radius, 72, 10); geometry.rotateX(-Math.PI / 2);
-  const material = family.material('ring', {}, { uniforms: { tex: { value: tex }, paint: { value: PAINT }, time, flash, sunDir: { value: sun }, twist: { value: layer.twist },
-    spin: { value: layer.spin }, radius: { value: radius }, dish: { value: 6 }, centre: { value: centre } } });
-  const ring = new Mesh(geometry, material); ring.position.y = layer.dy; ring.renderOrder = 3; ring.frustumCulled = false; ring.visible = PAINT !== null; group.add(ring);
+  // the vortex (data/stormLook.ts, look.materials `storm-ring`): one dished ring, the first layer's (the painted vortex is
+  // the first layer's alone); `aFlash` carries the lightning to it; before the looks are set (a test) no ring shows
+  const layer = STORM.layers[0], geometry = new RingGeometry(0.5, STORM.radius * layer.r, 72, 10); geometry.rotateX(-Math.PI / 2);
+  const flashes = new Float32Array(geometry.getAttribute('position').count), flash = new BufferAttribute(flashes, 1); geometry.setAttribute('aFlash', flash);
+  const material = skyLook('storm-ring');
+  const ring = new Mesh(geometry, material); ring.position.y = layer.dy; ring.renderOrder = 3; ring.frustumCulled = false; ring.visible = material !== undefined; group.add(ring);
   const boltMaterial = new MeshBasicMaterial({ color: STORM_COLORS.bolt, transparent: true, opacity: 0.95, blending: AdditiveBlending, depthWrite: false, fog: false, side: DoubleSide });
   const bolts = [0, 1, 2].map((i) => {
     const bolt = new Mesh(boltGeometry(random, 18 + i * 6), boltMaterial); const a = random() * Math.PI * 2, rr = 8 + random() * 18;
@@ -58,12 +56,11 @@ export function crownStorm(sun: Vector3, tex: Texture, random: () => number): Cr
   // the lightning schedule: a strike every 3.5–8 s, a double flicker, one bolt shown
   let next = 2, strike = -10, which = 0;
   let pending: number | null = null;
-  return { group, strike: (delay = 0) => { pending = delay; }, update: (dt, t) => {
-    time.value += dt; group.getWorldPosition(centre);
+  return { group, strike: (delay = 0) => { pending = delay; }, update: (_dt, t) => {
     if (pending !== null) { next = t + pending; pending = null; }
     if (t >= next) { strike = t; which = Math.floor(random() * bolts.length); next = t + 3.5 + random() * 4.5; }
     const s = t - strike, k = s < 0.08 ? 1 : s < 0.14 ? 0.15 : s < 0.24 ? 0.8 : Math.max(0, 1 - (s - 0.24) / 0.5) * 0.3;
-    flash.value = k;
+    if (flashes[0] !== k) { flashes.fill(k); flash.needsUpdate = true; }
     bolts.forEach((bolt, i) => { bolt.visible = i === which && s < 0.26 && k > 0.5; });
   } };
 }
