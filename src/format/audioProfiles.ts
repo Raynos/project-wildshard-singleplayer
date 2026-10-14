@@ -53,13 +53,13 @@ export const AudioMusicSchema = v.pipe(v.strictObject({ id, base: id, slots: lis
 /** Same-byte sample catalogue and loop gain selection, without author decoder callbacks. */
 export const AudioSamplesSchema = v.strictObject({ catalogue: v.exactOptional(catalogue), set: id, bed: id, loopGains: v.pipe(v.record(id, gain), v.check((gains) => Object.keys(gains).length <= 32, 'bounded loop gains')), omitLoops: optionalIds, omitShots: optionalIds, omitSlots: optionalIds });
 /** A biquad: its type, frequency (Hz) and Q (default 0.7). */
-export type SynthFilterRow = readonly [BiquadFilterType, number, number?];
+export type SynthFilterRow = readonly [v.InferOutput<typeof synthFilters>[number][0], number, number?];
 
 /** An LFO summed onto a parameter: rate (Hz), depth (the parameter's units) and waveform (default sine). */
 export interface SynthLfoRow {
   readonly rate: number;
   readonly depth: number;
-  readonly type?: OscillatorType;
+  readonly type?: v.InferOutput<typeof synthWave>;
 }
 
 /** A gain stage after the filters: its level, LFOs on that level and a flutter (a noise through filters, × depth, onto it). */

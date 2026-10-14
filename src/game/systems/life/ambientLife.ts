@@ -399,7 +399,7 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
 
   /** the nearest place the journal has not seen (the breadcrumbs' and the owl's heading) */
   const guide = new PlaceGuide(data.guide.policy, { points: () => h.places?.() ?? [], discovered: h.visited,
-    position: () => player.position, fly: flyCrumbs, time: now, random: (lo, hi) => rng.range(lo, hi) });
+    position: () => player.position, fly: flyCrumbs, time: now, random: (lo: number, hi: number) => rng.range(lo, hi) });
 
   // ── the owl (night) ──
   let owlNextT = 0, owlHootT = 0;
