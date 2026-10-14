@@ -4871,3 +4871,11 @@ specimens. Baked/scene catalogues accept the same optional preparation callback.
 Held modelCatalogue rows memoize their dynamic renderer import behind that door;
 declaring a catalogue in a cold generator never imports the UI or builds a model.
 Models without prepare keep their original listing/build path.
+
+Model libraries borrow compiled world looks through `bindLooks(scope,
+ports)`, keeping the original material identities and mesh-map binder.
+`look(id)` remains optional before preparation; `material(id)` requires
+an admitted material. `mappedLook(id, map)` uses the compiled binder or
+the authored `mappedFallback` roughness/metalness in a model viewer.
+Sky world materials and Signal's fire book use these same library ports.
+They borrow resources and release the look-book references with the scope.

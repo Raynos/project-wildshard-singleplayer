@@ -1,6 +1,6 @@
+import { SKY_LIBRARY } from './meshes';
 import type { Material } from 'three';
 import dressing from '../data/dressing.json' with { type: 'json' };
-import { skyLook } from './looks';
 import { DRESSING_LOOKS } from '../data/dressingLook';
 
 /**
@@ -21,4 +21,4 @@ export function heroStoneDiscs(): [number, number, number][] {
  * own the foreground, the flowers grow in past the near meadow's own (their graphs, `look.materials`); the boulders wear
  * the islands' painted rock and moss with their own near detail over it (E392).
  */
-export const dressingMaterial = (kind: string): Material | undefined => skyLook(DRESSING_LOOKS[kind] ?? '');
+export const dressingMaterial = (kind: string): Material | undefined => SKY_LIBRARY.look(DRESSING_LOOKS[kind] ?? '');

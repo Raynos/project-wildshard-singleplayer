@@ -8,7 +8,6 @@ import { questPagePrompt, bindClientChannels, bindWorldSceneParts, createClientS
 import type { SkyReachPlugin } from '../runtime/index';
 import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
 import { SKY_LIBRARY, skyHd, hdMaterial } from './meshes';
-import { skyLook, skyMappedLook } from './looks';
 import { AdditiveBlending, MeshBasicMaterial, Group, type Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
 import { CROWN, FALLEN_BRIDGE, SUNREST } from '../data/layout';
 import { STRINGS } from '../data/strings';
@@ -68,11 +67,11 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   await pause();
   const staticRows = skyPlacements(ctx.cube);
   const models = new Map(staticRows.models.map(name => [name, skyHd(name)]));
-  const materials = new Map<string, Material | null>([['falls', skyLook('falls') ?? null]]);
+  const materials = new Map<string, Material | null>([['falls', SKY_LIBRARY.look('falls') ?? null]]);
   for (const row of staticRows.recipe.scene.materials) {
     if (row.kind !== 'port' || row.source === 'falls') continue;
     const [look, name] = row.source.split(':'), model = name === undefined ? undefined : models.get(name);
-    materials.set(row.source, look === undefined || model === undefined || model === null ? null : skyMappedLook(look, model.map));
+    materials.set(row.source, look === undefined || model === undefined || model === null ? null : SKY_LIBRARY.mappedLook(look, model.map));
   }
   const staticScene = createWorldScene(staticRows.recipe, {
     geometry: name => name === 'fall' ? WORLD.geometry('geometries','fall',{index:'identity',empty:true}) : models.get(name.slice('hero-'.length))?.geometry ?? null,
@@ -150,7 +149,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
 function bookStand(withLantern:boolean):Group {
   const lectern=skyHd('lectern-hd'),lantern=withLantern?skyHd('lantern-hd'):null,ready=lectern!==null&&(!withLantern||lantern!==null);
   const materials=new Map<string,Material|null>([['lectern',ready?hdMaterial(lectern.map):null],
-    ['lantern',ready&&lantern!==null?skyMappedLook('lantern-glow',lantern.map):null],
+    ['lantern',ready&&lantern!==null?SKY_LIBRARY.mappedLook('lantern-glow',lantern.map):null],
     ['halo',ready&&withLantern?new MeshBasicMaterial({color:0xffb860,transparent:true,opacity:0.18,blending:AdditiveBlending,depthWrite:false}):null]]);
   return createWorldScene(REST_SCENES.books[withLantern?'keeper':'notes'],{model:SKY_LIBRARY.model,baked:WORLD.object,materials,
     textures:new Map([['ready',ready?lectern.map:null]]),

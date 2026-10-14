@@ -1,5 +1,5 @@
+import { SKY_LIBRARY } from '../world/meshes';
 import { type MeshStandardMaterial, Mesh, type Object3D, Texture } from 'three';
-import { skyMappedLook } from '../world/looks';
 
 /**
  * The war fan to mockup C (round-18-council-mockups; E399 seats: "the fan is plain and bright, thin gold ribs on flat
@@ -15,7 +15,7 @@ import { skyMappedLook } from '../world/looks';
  *  (data/paintLook.ts FAN_SILK_GRAPH: the leaf toward the mockups' muted, lighter teal, E399 round 6). */
 export function paintFanLeaf(parts: { readonly root: Object3D; readonly material:(id:string)=>MeshStandardMaterial }, leaf: Texture): void {
   if (!(leaf instanceof Texture)) throw new Error('Fan leaf must be its owned texture');
-  const original=parts.material('silk'), silk = skyMappedLook('fan-silk', leaf);
+  const original=parts.material('silk'), silk = SKY_LIBRARY.mappedLook('fan-silk', leaf);
   parts.root.traverse((part) => { if (part instanceof Mesh && part.material === original) part.material = silk; });
 }
 

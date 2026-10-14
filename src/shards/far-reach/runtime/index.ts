@@ -16,10 +16,9 @@ import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
 import { FAN_HELD_OWNERS, type WarFanWeapon } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';
 import { FAN_ROW } from '../data/equipment';
-import { preloadSkyMeshes, HERO_LIBRARY } from '../world/meshes';
+import { SKY_LIBRARY, preloadSkyMeshes, HERO_LIBRARY } from '../world/meshes';
 import { loadSkyBaked, skyMeadowBlades } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
-import { setSkyLooks, skyLook, skyMappedLook } from '../world/looks';
 import { wakeRibbon } from './looks/wakeRibbon';
 import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow } from '../world/meadow';
@@ -59,7 +58,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
 
-  protected readonly rows: HybridRuntimeRows = { ...SKY_RUNTIME_ROWS, source, owners: { ...FAN_HELD_OWNERS, heldStyle: { paint: paintFanLeaf }, models: HERO_LIBRARY, looks: { mapped: skyMappedLook } } };
+  protected readonly rows: HybridRuntimeRows = { ...SKY_RUNTIME_ROWS, source, owners: { ...FAN_HELD_OWNERS, heldStyle: { paint: paintFanLeaf }, models: HERO_LIBRARY, looks: { mapped: SKY_LIBRARY.mappedLook } } };
 
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
@@ -76,13 +75,13 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // the shard's look materials (look.materials, material graphs switched on for Sky, G387): the rope decks, the hover frames,
     // the shacks' kinds, the dressing's clumps and flowers, the falls (world/looks.ts)
     // and the looks over a model's own map (meshMap: the crown dais, the lantern, the keeper, the posts), each bound to it on its one compiled graph
-    const looks = compiled.materials, deck = compiled.material('deck-wood'), frame = compiled.material('hover-frame');
-    setSkyLooks(looks, compiled.bindMeshMap);
+    const deck = compiled.material('deck-wood'), frame = compiled.material('hover-frame');
+    SKY_LIBRARY.bindLooks(ctx.scope, compiled);
     const built = this.built = await buildWorld(ctx, () => worldBuildYield(ctx, 4), isles, { deck, frame, channels: source.clientChannels ?? [] });
     await worldBuildYield(ctx, 4);
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
     ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
-    const field = meadow(skyMeadowBlades(), skyLook('meadow'), ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades);
+    const field = meadow(skyMeadowBlades(), SKY_LIBRARY.look('meadow'), ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades);
     ctx.root.add(field.group); ctx.scope.onDispose(field.dispose);
     ctx.game.runtime?.interactables.push(this.built.winch, this.built.notes);
     const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
@@ -136,7 +135,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // The wind's seeded fields (data/windLook.ts), moved by their graphs: the updraft's spiral up the ramp, and GUST, a cone
     // of streaks and petals leaving the fan (style bible §7); a vane inside the cone starts turning (step 3).
     const wind = (key: keyof typeof WIND_FIELDS): ReturnType<typeof effectField> => {
-      const look = skyLook(WIND_LOOKS[key]); if (look === undefined) throw new Error(`Sky Reach: look.materials lacks ${WIND_LOOKS[key]}`);
+      const look = SKY_LIBRARY.look(WIND_LOOKS[key]); if (look === undefined) throw new Error(`Sky Reach: look.materials lacks ${WIND_LOOKS[key]}`);
       const field = effectField(WIND_FIELDS[key], look); ctx.root.add(field.object); ctx.scope.own(field.geometry); ctx.scope.onDispose(() => { field.object.removeFromParent(); }); return field;
     };
     const axis = [new Vector3(...UPDRAFT_AXIS.at), new Vector3(...UPDRAFT_AXIS.aim)] as const, fxRandom = ctx.app.rng.stream('cosmetic'), gust = [wind('gustStreaks'), wind('gustPetals')] as const;

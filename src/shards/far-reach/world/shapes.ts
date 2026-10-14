@@ -2,7 +2,6 @@ import { PALETTE, flat } from './materials';
 import type { Group, Material, MeshStandardMaterial } from 'three';
 import { createWorldScene, type WorldScenePorts } from '@wildshard/game/plugin/ui';
 import { SKY_LIBRARY, skyHd, skyMesh } from './meshes';
-import { skyMappedLook } from './looks';
 import { SKY_BRIDGE_KIT, SKY_VANE } from '../data/routeScene.generated';
 import { WORLD } from './baked';
 
@@ -13,7 +12,7 @@ export function routeScenePorts(rails: MeshStandardMaterial, deck: Material, ext
     const geometry = name === 'post-hd' ? post?.geometry ?? null : SKY_LIBRARY.geometry(name);
     if (geometry === null && name !== 'post-hd') throw new Error(`Missing route part ${name}`);
     return geometry;
-  }, materials: new Map<string, Material | null>([...extra, ['rails', rails], ['deck', deck], ['posts', post === null ? null : skyMappedLook('post-weather', post.map)]]),
+  }, materials: new Map<string, Material | null>([...extra, ['rails', rails], ['deck', deck], ['posts', post === null ? null : SKY_LIBRARY.mappedLook('post-weather', post.map)]]),
   model: SKY_LIBRARY.model, baked: WORLD.object };
 }
 /** The Explorer's one bridge segment uses the original vertex-coloured deck and rope looks. */

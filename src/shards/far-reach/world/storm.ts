@@ -3,7 +3,6 @@ import { createClientScene } from '@wildshard/game/plugin/ui';
 import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
 import { STORM } from '../data/storm';
 import { SKY_LIBRARY } from './meshes';
-import { skyLook } from './looks';
 
 /** The built storm: its group, `update(dt, t)` firing the lightning on the shard's play clock (seconds), and `strike(delay)`. */
 export type CrownStorm = ReturnType<typeof crownStorm>;
@@ -15,7 +14,7 @@ export type CrownStorm = ReturnType<typeof crownStorm>;
  * `delay` seconds from the next update (captures and tests use it through `__wildshard.shard.farReach`).
  */
 export function crownStorm(random: () => number): { readonly group: Object3D; readonly update: (dt: number, t: number) => void; readonly strike: (delay?: number) => void } {
-  const look = skyLook('storm-ring'), bolt = new MeshBasicMaterial({ color: STORM.bolt, transparent: true, opacity: 0.95, blending: AdditiveBlending, depthWrite: false, fog: false, side: DoubleSide });
+  const look = SKY_LIBRARY.look('storm-ring'), bolt = new MeshBasicMaterial({ color: STORM.bolt, transparent: true, opacity: 0.95, blending: AdditiveBlending, depthWrite: false, fog: false, side: DoubleSide });
   const scene = createClientScene(REST_SCENES.storm, { geometry: SKY_LIBRARY.geometry, materials: new Map([['storm-ring', look ?? bolt], ['storm-bolt', bolt]]) });
   const ring = scene.parts.get('storm-ring'), shape: unknown = ring instanceof Mesh ? ring.geometry : null, bolts = Array.from({ length: STORM.bolts }, (_, i) => scene.parts.get(`storm-bolt-${String(i)}`));
   if (ring === undefined || !(shape instanceof BufferGeometry)) throw new Error('far-reach: the storm scene lost its ring');

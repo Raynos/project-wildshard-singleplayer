@@ -1,6 +1,6 @@
+import { SKY_LIBRARY } from '../../world/meshes';
 import type { WakeRibbonRow } from '../../data/rayWakeLook';
 import { AdditiveBlending, BufferAttribute, BufferGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Material } from 'three';
-import { skyLook } from '../../world/looks';
 
 /**
  * A luminous wake as a generic system (SHARD-PLATFORM M3; ex Sky Reach's world/rayWake.ts, E399 round 10): a ribbon along a
@@ -20,7 +20,7 @@ export function wakeRibbon(row: WakeRibbonRow): WakeRibbon {
   for (let i = 0; i < n; i++) { const f = 1 - i / (n - 1); fade[i * 2] = f; fade[i * 2 + 1] = f; sideA[i * 2] = 1; sideA[i * 2 + 1] = -1; }
   const g = new BufferGeometry();
   g.setAttribute('position', new BufferAttribute(pos, 3)); g.setAttribute('aFade', new BufferAttribute(fade, 1)); g.setAttribute('aSide', new BufferAttribute(sideA, 1)); g.setIndex(index);
-  const material = skyLook('ray-wake') ?? new MeshBasicMaterial({ color: 0x9fe8ff, transparent: true, opacity: 0.4, depthWrite: false, blending: AdditiveBlending, side: DoubleSide, fog: false });
+  const material = SKY_LIBRARY.look('ray-wake') ?? new MeshBasicMaterial({ color: 0x9fe8ff, transparent: true, opacity: 0.4, depthWrite: false, blending: AdditiveBlending, side: DoubleSide, fog: false });
   const mesh = new Mesh(g, material); mesh.frustumCulled = false; mesh.name = row.name; mesh.visible = false;
   const trail: Vector3[] = Array.from({ length: n }, () => new Vector3()), side = new Vector3(), dir = new Vector3(), toCam = new Vector3();
   let clock = 0, seeded = false;

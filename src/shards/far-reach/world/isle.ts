@@ -1,7 +1,7 @@
+import { SKY_LIBRARY } from './meshes';
 import { BufferGeometry, Mesh, MeshStandardMaterial, type Material, type Object3D } from 'three';
 import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import isleRows from '../data/isles.json' with { type: 'json' };
-import { skyLook } from './looks';
 
 let pack: InstanceType<typeof GeometryPack> | null = null;
 /** Take the islands' bake (generators/isles.ts → baked/isles.bin, loaded with the other baked pieces); null leaves them undrawn. */
@@ -12,7 +12,7 @@ export type IsleLook = 'isle-paint' | 'isle-paint-cut' | 'isle-paint-cut-mill';
 /** The painted island material (`look.materials[look]`, the islands' paint graph), faceted: the crags read as cut rock, the
  *  meadow top as a low-poly painted lawn; before the looks are set (the Model Explorer, a test) plain faceted vertex colour. */
 export const isleMaterial = (look: IsleLook = 'isle-paint'): Material =>
-  skyLook(look) ?? new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, flatShading: true });
+  SKY_LIBRARY.look(look) ?? new MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, flatShading: true });
 
 /** A moving islet (`islet.<edge>`) from its bake, in the painted island material. */
 export function islandMesh(id: string): Mesh<BufferGeometry, Material> {

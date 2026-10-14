@@ -35,7 +35,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the strider's look read them synchronously.
     const [, baked] = await Promise.all([DUNE_LIBRARY.preload(), WORLD.load()]);
-    await prepareFireFx(ctx, source, DUNE_LIBRARY.geometry);
+    await prepareFireFx(ctx, source, DUNE_LIBRARY);
     this.places = buildWorld(ctx, new Flags(ctx.manifest.slug), baked, this.keepClientChannels.bind(this, ctx)); this.fire = this.places.fire;
     // G345: the data client draws the tiles in the look's sand and lends it: the skirt wears it, the fires light it, and
     // its dusk curves read DUSK (the host field shared.dusk). In a grid cell the region lends it the same way.

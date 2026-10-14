@@ -58,6 +58,8 @@ export interface HdLookRow {
 
 /** A model library's files and looks, as data. */
 export interface ModelLibraryRows<M extends string, H extends string> {
+  /** Plain mapped material before a compiled look is borrowed (for model viewers). */
+  readonly mappedFallback?: { readonly roughness: number; readonly metalness: number };
   /** Named rest geometry paired with existing painted atlases; never fitted at runtime. */
   readonly paintedModels?: readonly PaintedModelRow[];
   /** the facet models preloaded, and every facet model's file */
@@ -86,6 +88,11 @@ export interface ModelFit { readonly size: number; readonly by: 'span' | 'height
 
 /** A loaded model library: preload once, then take copies. */
 export interface ModelLibrary<M extends string, H extends string> {
+  /** Borrow the caller's compiled look book until its scope ends; no material is copied. */
+  readonly bindLooks: (scope: ResourceScope, ports: { readonly materials: ReadonlyMap<string, Material>; readonly bindMeshMap: (id: string, map: Texture) => Material }) => void;
+  readonly look: (id: string) => Material | undefined;
+  readonly material: (id: string) => Material;
+  readonly mappedLook: (id: string, map: Texture) => Material;
   /** Load every listed model once (a failed one is skipped and faulted). */
   preload: (pause?: () => Promise<void>) => Promise<void>;
   /** Owned prepared geometry copies sharing their declared original atlas. */
@@ -144,6 +151,9 @@ export interface PaintedModelRow { readonly name: string; readonly url: string; 
 export interface PaintedModel { readonly geometry: BufferGeometry; readonly map: Texture; readonly pivots?: { readonly body: BufferGeometry; readonly head: BufferGeometry; readonly arm: BufferGeometry; readonly fore: BufferGeometry } }
 /** Load named resources once; each owner takes independent geometry over shared painted textures. */
 export function createModelLibrary<M extends string, H extends string>(rows: ModelLibraryRows<M, H>, fault: string, surfaceInputs: SurfaceInputs = {}, readModel: (url: string) => Promise<{ readonly scene: Object3D }> = loadRigFile): ModelLibrary<M, H> {
+  let lookPorts: Parameters<ModelLibrary<M, H>['bindLooks']>[1] | null = null;
+  const fallback = rows.mappedFallback;
+  if (fallback !== undefined && [fallback.roughness, fallback.metalness].some(value => !Number.isFinite(value) || value < 0 || value > 1)) throw new Error('Invalid mapped look fallback');
   const ready = new Map<M, BufferGeometry>(), hd = new Map<H, Object3D>();
   const painted = new Map<string, PaintedModel>(), paintedRows = rows.paintedModels ?? [];
   const rest = new Map<string, BufferGeometry>();
@@ -283,6 +293,17 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
   };
 
   return {
+    bindLooks: (scope, ports) => {
+      if (scope.disposed) throw new Error('Cannot borrow looks from a disposed scope');
+      lookPorts = ports; scope.onDispose(() => { if (lookPorts === ports) lookPorts = null; });
+    },
+    look: id => lookPorts?.materials.get(id),
+    material: id => { const material = lookPorts?.materials.get(id); if (material === undefined) throw new Error(`Missing borrowed model material ${id}`); return material; },
+    mappedLook: (id, map) => {
+      if (lookPorts?.materials.has(id) === true) return lookPorts.bindMeshMap(id, map);
+      if (fallback === undefined) throw new Error('Model library has no declared mapped fallback');
+      return new MeshStandardMaterial({ map, ...fallback });
+    },
     preload: (pause) => {
       loading ??= (async () => {
         try {

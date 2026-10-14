@@ -2,6 +2,7 @@ import { Mesh, Vector4, type BufferGeometry, type Group, type Material, type Obj
 import { cardGroup, type CardGroupRow, type CardPrograms } from '@wildshard/sdk/looks/cardField';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { prepareClientWorld } from '@wildshard/game/shardfile/runtimeProduct';
+import type { ModelLibrary } from '@wildshard/sdk/looks/modelLibrary';
 import { FIRE_GRAPH_IDS, fireRows, lampRows, type FireCard, type FireSize } from '../data/fire';
 import type source from '../runtime/source';
 
@@ -24,15 +25,16 @@ let fire: Fire | null = null;
 const current = (): Fire => { if (fire === null) throw new Error('Signal Dunes: the fire graphs compile before the world builds (prepareFireFx)'); return fire; };
 
 /** Compile every fire program (required graphs, bound to the host field `shared.firetime`) before buildWorld adds meshes. */
-export async function prepareFireFx(ctx: Parameters<typeof prepareClientWorld>[0], shard: typeof source, geometry: (id: string) => BufferGeometry | null): Promise<void> {
+export async function prepareFireFx(ctx: Parameters<typeof prepareClientWorld>[0], shard: typeof source, library: Pick<ModelLibrary<string, string>, 'geometry' | 'bindLooks' | 'material'>): Promise<void> {
   const ids = Object.values(FIRE_GRAPH_IDS), looks = await prepareClientWorld(ctx, shard, { materials: ids, requiredMaterials: ids });
+  library.bindLooks(ctx.scope, looks);
   let time = 0;
   looks.graphs.bind({ state: (scope, name) => scope === 'shared' && name === 'firetime' ? time : undefined });
   if (looks.graphs.readout.fallback !== 0) throw new Error('Fire graph compilation refused');
   // the tongues' and plume's quad stands on its foot; the wisp's has 16 rows, so its sway curls it rather than tilting it
-  const read = (id: string): BufferGeometry => { const made = geometry(id); if (made === null) throw new Error(`Missing declared fire geometry: ${id}`); return made; };
+  const read = (id: string): BufferGeometry => { const made = library.geometry(id); if (made === null) throw new Error(`Missing declared fire geometry: ${id}`); return made; };
   const quads = { flame: read('fire-flame'), wisp: read('fire-wisp'), glow: read('fire-glow') };
-  const made: Fire = { cards: { material: (program) => looks.material(FIRE_GRAPH_IDS[program]) }, embers: looks.material(FIRE_GRAPH_IDS.embers), pool: looks.material(FIRE_GRAPH_IDS.pool), quads, made: [], setTime: value => { time = value; looks.tick(0); }, slot: 0 };
+  const made: Fire = { cards: { material: (program) => library.material(FIRE_GRAPH_IDS[program]) }, embers: library.material(FIRE_GRAPH_IDS.embers), pool: library.material(FIRE_GRAPH_IDS.pool), quads, made: [], setTime: value => { time = value; looks.tick(0); }, slot: 0 };
   for (const v of FIRE_LIGHTS.value) v.w = 0;
   fire = made; for (const quad of Object.values(quads)) ctx.scope.own(quad);
   ctx.scope.onDispose(() => { for (const g of made.made) g.dispose(); if (fire === made) fire = null; });
