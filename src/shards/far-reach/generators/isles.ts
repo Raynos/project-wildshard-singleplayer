@@ -1,10 +1,10 @@
 import { BufferGeometry, Color, Float32BufferAttribute } from 'three';
 import { GeometryPackWriter, type PackedGeometryRows } from '@wildshard/sdk/kit/geometryPack';
 import { ISLES, type Isle } from '../data/layout';
-import { ISLE_DRAWS } from '../data/isleLook';
 import { ISLET } from '../data/isletDesign';
 import { apothem } from '../layout';
 import { RISING_ISLETS } from './risingIslets';
+import { COSMETIC_SEED, ISLE_RIM, fbm, isleRim, isleStream, lastOf, ringNoise, seeded } from './isleRim';
 
 /**
  * Build-time only (SHARD-PLATFORM M3, offline bakes): every island Sky Reach draws from its builder, baked by
@@ -20,21 +20,8 @@ import { RISING_ISLETS } from './risingIslets';
  * ISLE_DRAWS values each takes from the level's cosmetic stream (the page still takes them, so every piece built after the
  * islands keeps its look) under the harness seed; the gate isles' and the moving islets' come from their own fixed streams.
  */
-export const ISLE_SHAPE = { segments: 72, topRings: 10, keelRings: 16, spurs: 28 } as const;
+export const ISLE_SHAPE = { segments: ISLE_RIM, topRings: 10, keelRings: 16, spurs: 28 } as const;
 
-function seeded(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-}
-const hash = (x: number, y: number): number => { const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return s - Math.floor(s); };
-function vnoise(x: number, y: number): number {
-  const xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi, ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
-  const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
-  return a + (b - a) * ux + (c - a) * uy + (a - b - c + d) * ux * uy;
-}
-const fbm = (x: number, y: number): number => vnoise(x, y) * 0.55 + vnoise(x * 2.1 + 7.3, y * 2.1) * 0.3 + vnoise(x * 4.3 - 3.1, y * 4.3) * 0.15;
-/** periodic noise round the island (angle a in radians), so the rim closes without a seam */
-const ringNoise = (a: number, k: number, seed: number, y = 0): number => fbm(Math.cos(a) * k + seed, Math.sin(a) * k + y);
 const smooth = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /** The island palette (sRGB): meadow ground under the grass, worn path dirt, soil, strata and shade. */
@@ -43,25 +30,16 @@ export const ISLE_PALETTE = {
   sand: 0xbca78c, ochre: 0xa48a72, clay: 0x8c7466, rockGrey: 0x8f8890, mauve: 0x8a7385, violet: 0x5d4c67, moss: 0x6f7d3a,
 } as const;
 
-/** The 12-gon's radius at angle `a` (corners at multiples of 30°, as the colliders and the old top). */
-function polyRadius(isle: Isle, a: number): number {
-  const step = Math.PI / 6, t = ((a % step) + step) % step;
-  return apothem(isle) / Math.cos(t - step / 2);
-}
-
 function isleGeometry(isle: Isle, draw: number): BufferGeometry {
-  const rnd = seeded(Math.floor(draw * 4294967296) ^ Math.round(isle.x * 131 + isle.z * 17));
+  const rnd = isleStream(isle, draw);
   const S = ISLE_SHAPE.segments, seed = rnd() * 50, pos: number[] = [], col: number[] = [], idx: number[] = [];
   const c = new Color(), c2 = new Color();
   const vert = (x: number, y: number, z: number, hex: number, mix?: { hex: number; k: number }): number => {
     c.setHex(hex); if (mix) c.lerp(c2.setHex(mix.hex), Math.min(1, Math.max(0, mix.k)));
     pos.push(x, y, z); col.push(c.r, c.g, c.b); return pos.length / 3 - 1;
   };
-  // the rim: a soft noisy curve inside the 12-gon
-  const rim = Array.from({ length: S }, (_, i) => { const a = (i / S) * Math.PI * 2;
-    // loop 5 (council R1C-9): a broken lip, a few sharp bites out of the soft curve
-    const notch = 0.09 * Math.max(0, Math.sin(a * 5 + seed * 3)) ** 8 + 0.05 * Math.max(0, Math.sin(a * 11 - seed)) ** 10;
-    return Math.min(polyRadius(isle, a) * 0.995, apothem(isle) * (0.94 + 0.08 * ringNoise(a, 1.6, seed) - notch)); });
+  // the rim: a soft noisy curve inside the 12-gon (generators/isleRim.ts, which the meadow's blades stand inside)
+  const rim = isleRim(isle, seed);
   const rows: number[][] = [];
   // the meadow top: rings out to the rim, a faint swell inside (≤ 6 cm, under the capsule's tolerance)
   const centre = vert(0, 0.04, 0, ISLE_PALETTE.ground);
@@ -139,11 +117,8 @@ function isleGeometry(isle: Isle, draw: number): BufferGeometry {
 }
 
 
-/** The cosmetic stream's seed under the harness's page seed (engine/core/rng.ts: fnv1a32(`${0x2545f491}:cosmetic`)). */
-const COSMETIC_SEED = 1418055759;
 /** A Park-Miller stream, as world/build.ts and world/risingIslet.ts drew the gate isles and the islets. */
 function parkMiller(seed: number): () => number { let s = seed; return () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; }
-const lastOf = (random: () => number): number => { let draw = 0; for (let i = 0; i < ISLE_DRAWS; i++) draw = random(); return draw; };
 /** An island's shape as the builder makes it, its ISLE_DRAWS values taken from `random` (the far proxy's bake decimates it). */
 export const builtIsleGeometry = (isle: Isle, random: () => number): BufferGeometry => isleGeometry(isle, lastOf(random));
 

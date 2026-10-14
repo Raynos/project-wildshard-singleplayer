@@ -36,8 +36,9 @@ export const MEADOW = {
 } as const;
 
 /** A baked blade's 8 bytes (aBladeA: x, z across the chunk; y over the chunk's base; height. aBladeB: random, tone,
- *  grass + 4 × flower kind, room): the metres per step of the scaled ones, and the near copies' most room. */
-export const MEADOW_BLADES = { y: 0.01, h: 0.005, safe: 0.01, room: 1 } as const;
+ *  grass + 4 × flower kind, room): the metres per step of the scaled ones, the near copies' most room, and the room byte's
+ *  flag for a room the island's rim cut short (its copies keep their height: only a hole or a rock clears a ring). */
+export const MEADOW_BLADES = { y: 0.01, h: 0.005, safe: 0.01, room: 1, rimCut: 128 } as const;
 
 /**
  * The sward (E407 row 4, a green, varied meadow): three grasses (data/swardAtlas.ts), each its own height (metres, at the
@@ -105,7 +106,8 @@ export function meadowGraph(): GraphIr {
   const A = k.attr('aBladeA', 'vec4'), B = k.attr('aBladeB', 'vec4'), card = k.attr('aCard', 'vec4'), layer = k.attr('aLayer', 'float');
   const { tile, range, near } = MEADOW;
   // the blade: its random (turned per copy), tone, grass, flower kind and room
-  const r0 = swz(B, 'x'), tone = swz(B, 'y'), code = op('floor', [add(mul(swz(B, 'z'), 255), 0.5)]), room = mul(swz(B, 'w'), 255 * MEADOW_BLADES.safe);
+  const r0 = swz(B, 'x'), tone = swz(B, 'y'), code = op('floor', [add(mul(swz(B, 'z'), 255), 0.5)]), roomByte = op('floor', [add(mul(swz(B, 'w'), 255), 0.5)]);
+  const rimCut = op('gte', [roomByte, MEADOW_BLADES.rimCut - 0.5]), room = mul(op('mod', [roomByte, MEADOW_BLADES.rimCut]), MEADOW_BLADES.safe);
   const species = op('mod', [code, 4]), kind = op('floor', [div(code, 4)]);
   const copy = op('step', [0.5, layer]), r = fr(add(r0, mul(layer, 0.2718)));
   const origin = op('objectOrigin'), cam = op('cameraPosition'), camXZ = swz(cam, 'xz');
@@ -128,9 +130,11 @@ export function meadowGraph(): GraphIr {
   const dist = op('length', [sub(pW, camXZ)]);
   // shrinking away: the blades by `range`, the copies by `near` (raggedly); each copy a little shorter or taller than its blade
   const fade = mix(one(smooth(range * 0.55, range, dist)), one(smooth(near - 2.5, near, add(dist, mul(fr(mul(r0, 7.77)), 1.5)))), copy);
-  // where a rim, a hole or a rock cuts the room short, a copy shifted toward it shortens as the blades there do (the old
-  // field's clearing round a disc), so a rock never stands in a full-height ring of copies
-  const edge = sel(lt(roomCopy, MEADOW_BLADES.room - 0.01), mix(1, 0.35, smooth(0.35, 1, div(sm, op('max', [roomCopy, 0.01])))), 1);
+  // where a hole or a rock cuts the room short, a copy shifted toward it shortens as the blades there do (the old field's
+  // clearing round a disc), so a rock never stands in a full-height ring of copies; by a rim the copies keep their blade's
+  // height (shortened there they read as low dark slabs over the drop)
+  const cut = op('and', [lt(roomCopy, MEADOW_BLADES.room - 0.01), op('not', [rimCut])]);
+  const edge = sel(cut, mix(1, 0.35, smooth(0.35, 1, div(sm, op('max', [roomCopy, 0.01])))), 1);
   const h = mul(mul(mul(swz(A, 'w'), 255 * MEADOW_BLADES.h), fade), mix(1, mul(edge, mix(0.8, 1.05, fr(add(mul(r0, 17.3), mul(layer, 0.37))))), copy));
   const isFlower = op('and', [gt(kind, 0.5), op('gte', [dist, 0.6])]);
   const ang = mul(r, 40), dir = op('combine', [op('cos', [ang]), op('sin', [ang])]);

@@ -11630,7 +11630,7 @@
         "src/sdk/bake/json.mjs",
         "src/shards/far-reach/generators/meadowBlades.ts",
         "bakeMeadowBlades",
-        "public/assets/far-reach/baked/a977ed8a82e49ff6212e43b8aee35e4ef6e8f0a2438a1cc45967c3265d3596a1.bin",
+        "public/assets/far-reach/baked/851f80fb000e621ab1b6e22edd9a9ac7fbcb6ecfeda1047a86f3f919d779e33f.bin",
         "--bytes"
       ],
       "inputRoots": [
@@ -11641,21 +11641,25 @@
         "src/sdk",
         "src/shards/far-reach/data/dressing.json",
         "src/shards/far-reach/data/graphKit.ts",
+        "src/shards/far-reach/data/isleLook.ts",
         "src/shards/far-reach/data/layout.ts",
         "src/shards/far-reach/data/meadowLook.ts",
         "src/shards/far-reach/data/placements.json",
+        "src/shards/far-reach/data/skyIsles.ts",
         "src/shards/far-reach/data/skyLook.ts",
+        "src/shards/far-reach/data/skyMapSources.json",
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/data/swardAtlas.ts",
+        "src/shards/far-reach/generators/isleRim.ts",
         "src/shards/far-reach/generators/meadowBlades.ts"
       ],
       "outputs": [
-        "public/assets/far-reach/baked/a977ed8a82e49ff6212e43b8aee35e4ef6e8f0a2438a1cc45967c3265d3596a1.bin"
+        "public/assets/far-reach/baked/851f80fb000e621ab1b6e22edd9a9ac7fbcb6ecfeda1047a86f3f919d779e33f.bin"
       ],
       "seedOutputs": [],
       "platform": "portable",
       "buildTimeOutputs": [
-        "public/assets/far-reach/baked/a977ed8a82e49ff6212e43b8aee35e4ef6e8f0a2438a1cc45967c3265d3596a1.bin"
+        "public/assets/far-reach/baked/851f80fb000e621ab1b6e22edd9a9ac7fbcb6ecfeda1047a86f3f919d779e33f.bin"
       ]
     },
     {
