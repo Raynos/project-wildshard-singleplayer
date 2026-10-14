@@ -1,5 +1,5 @@
 import { expect, vi } from 'vitest';
-import { Color, type Material, MeshStandardMaterial, type Texture, Vector3 } from 'three';
+import { BufferGeometry, Color, type Material, MeshStandardMaterial, type Texture, Vector3 } from 'three';
 import { Grass } from '../../src/engine/world/Grass';
 import type { Forest } from '../../src/engine/world/forest/Forest';
 import type { SkyRig } from '../../src/engine/world/skyRig';
@@ -37,7 +37,8 @@ export function vegetationCanvasLifetime(enabled: boolean): void {
     vi.stubGlobal('HTMLCanvasElement', Canvas); vi.stubGlobal('document', { createElement: () => new Canvas() });
     let previous: readonly Texture[] = [];
     for (let visit = 0; visit < 2; visit++) {
-      const grass = new Grass(sky, forest).build(), under = new Undergrowth(sky, forest).build();
+      const shapes = { ferns: new BufferGeometry(), shrubs: new BufferGeometry(), litter: new BufferGeometry(), stones: new BufferGeometry(), moss: new BufferGeometry(), reeds: new BufferGeometry() };
+      const grass = new Grass(sky, forest).build(), under = new Undergrowth(sky, forest, shapes).build();
       const textures = [map(grass.material), map(grass.flowers.material), ...Object.values(under.kinds).map(kind => map(kind.material))];
       expect(textures).toHaveLength(8);
       expect(textures.every(texture => !previous.includes(texture))).toBe(true);
