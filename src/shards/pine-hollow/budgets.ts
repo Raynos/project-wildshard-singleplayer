@@ -1,4 +1,4 @@
-import { BUDGET_CEILINGS } from './budgetCeilings';
+import { BUDGET_CEILINGS } from './data/budgetCeilings';
 import type { LevelSpec } from '@wildshard/engine/level/spec';
 
 /** E357 S1.6 allocation inputs; all count targets rederive after a stable M5 calibration. */

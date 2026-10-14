@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { log } from '@wildshard/engine/world/geometryKit';
 import { addDriftLog, DRIFT } from '../world/driftLogs';
-import { ISLAND } from '../manifest';
+import { ISLAND } from '../data/layout';
 
 /** Native dune-log recipe shared by the world and its offline clipping compiler; no serialized geometry. */
 export function duneLogs(heightAt:(x:number,z:number)=>number,trailDistance:(x:number,z:number)=>number,avoid:readonly{x:number;z:number;r:number}[],seaLevel:number,seed:number):{geometry:THREE.BufferGeometry;logs:{a:THREE.Vector3;b:THREE.Vector3;r:number;tone:number}[]} {

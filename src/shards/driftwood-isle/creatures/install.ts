@@ -4,7 +4,7 @@ import { DRIFTWOOD_SPECIES, DRIFTWOOD_LOOKS } from '../species/install';
 import { registerDriftwoodToonPaints } from '../species/toonPaints';
 import { installDriftwoodLootTables, DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES } from '../loot/tables';
 import { driftwoodWorld } from '../world/build';
-import { PRACTICE_CRAB } from '../manifest';
+import { PRACTICE_CRAB } from '../data/layout';
 import { ISLAND_BOAR, ISLAND_BEAR } from './species';
 import { DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE } from './tables';
 import { Enemies } from './Enemies';
