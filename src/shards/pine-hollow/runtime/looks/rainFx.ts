@@ -41,7 +41,7 @@ import { pineLook, setPineLookParam } from './graphLooks';
  * and dry).
  *
  * A practice room (`practiceRoom.open`) has none of it. Draws: 0 while dry (all hidden); raining: the rain + the puddles +
- * the splashes + the lens = 4. Programs: +3 (the rain, the splashes, the lens graph), built at boot (the meshes are in the scene,
+ * the splashes + the lens = 4. Programs: +3 (the rain, the splash and lens graphs), built at boot (the meshes are in the scene,
  * hidden, when the precompile walks it).
  */
 
@@ -65,11 +65,8 @@ export async function loadRainBake(url: string, rows: PackedGeometryJson): Promi
   return { puddles: pack.geometry(0), crowns: pack.floats(1) };
 }
 
-/** The rain's two programs (`@{fog}` splices the atmosphere's fog GLSL). */
-export interface RainFxPrograms {
-  readonly rain: ShaderProgramRow;
-  readonly splash: ShaderProgramRow;
-}
+/** The rain's program (`@{fog}` splices the atmosphere's fog GLSL). */
+export interface RainFxPrograms { readonly rain: ShaderProgramRow }
 
 /** A hood where no rain falls: a box in a frame at (x, z) turned by `rot` (lx across, lz in), under `top` (world y). */
 export interface RainHood { readonly x: number; readonly z: number; readonly rot: number; readonly hw: number; readonly lz0: number; readonly lz1: number; readonly top: number }
@@ -115,7 +112,8 @@ export class RainFx {
   splashes!: THREE.Mesh;
   /** the drops on the lens */
   lens!: THREE.Mesh;
-  private readonly splashU = { uTime: { value: 0 }, uCol: { value: new THREE.Color(0.8, 0.84, 0.9) }, uAlpha: { value: 0.5 } };
+  /** the splashes' clock (s): a slot's born time is on it */
+  private splashTime = 0;
   private splashAttr!: THREE.InstancedBufferAttribute;
   private splashNext = 0;
   private splashAcc = 0;
@@ -217,8 +215,8 @@ export class RainFx {
 
   // ─────────────────────────── splashes at the feet ───────────────────────────
   /**
-   * One instanced draw: per slot a flat ripple ring (verts 0–3) and an upright crown of droplets facing the eye (4–7), both
-   * built in the vertex shader from (x, y, z, born) and the clock; a dead slot collapses off screen.
+   * One instanced draw in the look.materials graph `RAIN_LOOKS.splash` (data/weatherLook.ts): per slot a flat ripple ring
+   * (verts 0–3) and an upright crown of droplets facing the eye (4–7), both posed from (x, y, z, born) and the clock.
    */
   private buildSplashes(): THREE.Mesh {
     const n = this.o.phone ? this.o.look.splashes.phone : this.o.look.splashes.desktop;
@@ -231,15 +229,14 @@ export class RainFx {
     geo.setAttribute('aSplash', this.splashAttr);
     geo.instanceCount = n;
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    const mat = this.family.material('splash', {}, { uniforms: this.splashU });
-    const m = new THREE.Mesh(geo, mat);
+    const m = new THREE.Mesh(geo, pineLook(RAIN_LOOKS.splash));
     m.frustumCulled = false; m.renderOrder = 21; m.visible = false; m.name = 'rain-splashes';
     return m;
   }
 
   /** new splashes this frame round the eye (more in front of it), none where no rain lands, fewer under the crowns */
   private spawnSplashes(dt: number, rain: number): void {
-    const a = this.splashAttr, arr = a.array, n = a.count, rng = this.xrng, t = this.splashU.uTime.value;
+    const a = this.splashAttr, arr = a.array, n = a.count, rng = this.xrng, t = this.splashTime;
     this.splashAcc += dt * rain * (this.o.phone ? 70 : 110);
     const phys = app.physics;
     let wrote = false;
@@ -346,11 +343,12 @@ export class RainFx {
     if (practiceRoom.open) { this.splashes.visible = false; this.lens.visible = false; this.drops.length = 0; return; }
     if (cam) { cam.getWorldPosition(this.eye); cam.getWorldDirection(this.fwd); }
     if (cam instanceof THREE.PerspectiveCamera) setPineLookParam(RAIN_LOOKS.lens, 'aspect', cam.aspect); // the screen's shape
-    this.splashU.uTime.value += dt;
+    this.splashTime += dt;
+    setPineLookParam(RAIN_LOOKS.splash, 'time', this.splashTime);
     this.splashes.visible = rainOn;
     if (rainOn) {
-      this.splashU.uCol.value.copy(fogColor).multiplyScalar(1.4).addScalar(0.05);
-      this.splashU.uAlpha.value = 0.24 + 0.26 * w.rain;
+      setPineLookParam(RAIN_LOOKS.splash, 'colour', this.tint(fogColor, 1.4, 0.05));
+      setPineLookParam(RAIN_LOOKS.splash, 'alpha', 0.24 + 0.26 * w.rain);
       this.spawnSplashes(dt, w.rain);
       setPineLookParam(RAIN_LOOKS.lens, 'sky', this.tint(fogColor, 1.45, 0.06));
       setPineLookParam(RAIN_LOOKS.lens, 'ground', this.tint(fogColor, 0.35, 0));

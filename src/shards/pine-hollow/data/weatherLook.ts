@@ -3,7 +3,7 @@ import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGra
 /**
  * Pine Hollow's rain as data (PH-L10, E322 F-L5; SHARD-PLATFORM M3): the sizes of the SDK rain system's pieces
  * (runtime/looks/rainFx — the curtain with the canopy's drips, the puddles, the splashes at the feet, the drops on
- * the lens), its programs and its SF59 material graphs (`RAIN_GRAPHS`, the shardfile's look.materials). `@{fog}` is the
+ * the lens), the curtain's program and the splashes' and lens drops' SF59 material graphs (`RAIN_GRAPHS`, the shardfile's look.materials). `@{fog}` is the
  * atmosphere's fog GLSL, spliced in by the system. The cave's hood is the bear cave's mouth in its own frame (lx across,
  * lz into the rock; the mouth faces −lz): half width, from, to, height over the mouth's ground — the arch's opening is
  * 2.6 × 4.8 m (caveArch.ts `openCaveArch`); the cover map takes over at lz ≈ 1.5.
@@ -21,7 +21,7 @@ export const PINE_RAIN = {
 /** The bear cave's hood, where no rain falls (its frame is the layout's BEAR_CAVE). */
 export const PINE_CAVE_HOOD = { hw: 3.2, lz0: -1.4, lz1: 4.5, up: 5.6 } as const;
 
-/** The rain's programs: the curtain (the cover map's crowns and roofs, the cave's hood) and the splashes. */
+/** The curtain's program (the cover map's crowns and roofs, the cave's hood). */
 export const PINE_RAIN_PROGRAMS = {
   rain: {
     vertex: /* glsl */`
@@ -68,57 +68,10 @@ export const PINE_RAIN_PROGRAMS = {
           gl_FragColor = vec4( col, a );
         }`,
   },
-  splash: {
-    transparent: true, depthWrite: false, side: 'double',
-    vertex: /* glsl */`
-        attribute vec4 aSplash;
-        uniform float uTime;
-        varying vec2 vUv; varying float vAge; varying float vKind; varying float vSeed;
-        void main() {
-          float age = ( uTime - aSplash.w ) / 0.42;
-          vUv = position.xy; vKind = position.z; vAge = age;
-          vSeed = fract( sin( dot( aSplash.xz, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
-          if ( age < 0.0 || age > 1.0 ) { gl_Position = vec4( 2.0, 2.0, 2.0, 1.0 ); return; }
-          vec3 p = aSplash.xyz;
-          if ( position.z < 0.5 ) {
-            float r = mix( 0.02, 0.17, sqrt( age ) ) * ( 0.7 + 0.6 * vSeed );
-            p += vec3( position.x * r, 0.012, position.y * r );
-          } else {
-            vec3 toEye = cameraPosition - p; toEye.y = 0.0;
-            vec3 side = normalize( vec3( - toEye.z, 0.0, toEye.x ) + 1e-4 );
-            float w = 0.045 + 0.035 * age, h = 0.07 * ( 0.7 + 0.6 * vSeed );
-            p += side * position.x * w + vec3( 0.0, position.y * h, 0.0 );
-          }
-          gl_Position = projectionMatrix * viewMatrix * vec4( p, 1.0 );
-        }`,
-    fragment: /* glsl */`
-        uniform vec3 uCol; uniform float uAlpha;
-        varying vec2 vUv; varying float vAge; varying float vKind; varying float vSeed;
-        void main() {
-          float a;
-          if ( vKind < 0.5 ) {
-            // a ripple ring widening and thinning out
-            float d = length( vUv );
-            a = smoothstep( 0.14, 0.0, abs( d - 0.85 ) ) * ( 1.0 - vAge ) * 0.55;
-          } else {
-            // the crown: five droplets thrown up and out on arcs, falling back
-            a = 0.0;
-            for ( int i = 0; i < 5; i++ ) {
-              float fi = float( i ), s = ( fi - 2.0 ) / 2.0 + ( vSeed - 0.5 ) * 0.3;
-              vec2 c = vec2( s * 0.75 * vAge, 4.0 * vAge * ( 1.0 - vAge ) * ( 0.95 - 0.35 * abs( s ) ) * 1.9 - 0.9 );
-              a += smoothstep( 0.16, 0.06, length( ( vUv - c ) * vec2( 1.0, 0.8 ) ) );
-            }
-            a *= 1.0 - vAge * vAge;
-          }
-          a *= uAlpha;
-          if ( a < 0.01 ) discard;
-          gl_FragColor = vec4( uCol, a );
-        }`,
-  },
 } as const;
 
 /** the look.materials ids the rain's graphs are worn under */
-export const RAIN_LOOKS = { lens: 'pine-rain-lens' } as const;
+export const RAIN_LOOKS = { splash: 'pine-rain-splash', lens: 'pine-rain-lens' } as const;
 
 /** One graph's node table and its builders (ids `r0`, `r1`, …). */
 function kit() {
@@ -135,6 +88,48 @@ function kit() {
   const param = (name: string): string => op('param', undefined, { param: name });
   const attr = (name: string): string => op('attribute', undefined, { name, type: 'vec4' });
   return { nodes, op, add, sub, mul, swz, ss, fall, param, attr };
+}
+
+/**
+ * The splashes at the feet: per instance slot (`aSplash`: x, y, z, born on the `time` param's clock, set each frame) a flat
+ * ripple ring (corners with z 0) and an upright crown facing the eye (z 1), both posed from the slot's age over 0.42 s;
+ * a dead slot collapses to a point. The ring widens and thins out; the crown throws five droplets up and out on arcs.
+ * `colour` and `alpha` follow the rain and the fog colour, set each frame.
+ */
+function splashGraph(): GraphIr {
+  const k = kit(), { op, add, sub, mul, swz, fall, param } = k;
+  const slot = k.attr('aSplash'), corner = op('positionGeometry'), cx = swz(corner, 'x'), cy = swz(corner, 'y'), kind = swz(corner, 'z');
+  const age = mul(sub(param('time'), swz(slot, 'w')), 1 / 0.42);
+  const seed = op('fract', [mul(op('sin', [op('dot', [swz(slot, 'xz'), [12.9898, 78.233]])]), 43758.5453)]);
+  const grow = add(0.7, mul(seed, 0.6)), at = swz(slot, 'xyz');
+  const r = mul(op('mix', [0.02, 0.17, op('pow', [age, 0.5])]), grow);
+  const ring = op('combine', [mul(cx, r), 0.012, mul(cy, r)]);
+  const toEye = sub(op('cameraPosition'), at);
+  const side = op('normalize', [add(op('combine', [op('negate', [swz(toEye, 'z')]), 0, swz(toEye, 'x')]), 1e-4)]);
+  const crown = add(mul(side, mul(cx, add(0.045, mul(age, 0.035)))), op('combine', [0, mul(cy, mul(grow, 0.07)), 0]));
+  const isRing = op('lt', [kind, 0.5]);
+  const alive = mul(op('step', [0, age]), op('step', [age, 1]));
+  const position = add(at, mul(op('select', [isRing, ring, crown]), alive));
+  const uv = op('varying', [swz(corner, 'xy')]), vAge = op('varying', [age]), vSeed = op('varying', [seed]), fragRing = op('lt', [op('varying', [kind]), 0.5]);
+  // a ripple ring widening and thinning out
+  const ringA = mul(mul(fall(0, 0.14, op('abs', [sub(op('length', [uv]), 0.85)])), op('oneMinus', [vAge])), 0.55);
+  // the crown: five droplets thrown up and out on arcs, falling back
+  const arc = mul(mul(vAge, op('oneMinus', [vAge])), 4 * 1.9);
+  let crownA: GraphRef = 0;
+  for (let i = 0; i < 5; i++) {
+    const s = add((i - 2) / 2, mul(sub(vSeed, 0.5), 0.3));
+    const c = op('combine', [mul(mul(s, 0.75), vAge), sub(mul(arc, sub(0.95, mul(op('abs', [s]), 0.35))), 0.9)]);
+    crownA = add(crownA, fall(0.06, 0.16, op('length', [mul(sub(uv, c), [1, 0.8])])));
+  }
+  crownA = mul(crownA, op('oneMinus', [mul(vAge, vAge)]));
+  const alpha = mul(op('select', [fragRing, ringA, crownA]), param('alpha'));
+  return { version: 1, kind: 'material', model: 'unlit', budget: { nodes: 200, samplers: 1, instructions: 500 }, doubleSided: true, effectState: { blend: 'alpha', depthWrite: false, fog: false, singlePass: true },
+    params: {
+      time: { type: 'float', value: 0, min: 0, max: 1e9 },
+      colour: { type: 'vec3', value: [0.8, 0.84, 0.9], min: 0, max: 64 },
+      alpha: { type: 'float', value: 0.5, min: 0, max: 1 },
+    },
+    nodes: k.nodes, stages: { 'vertex.position': { position }, surface: { colour: param('colour'), alpha, discard: op('lt', [alpha, 0.01]) } } };
 }
 
 /**
@@ -168,7 +163,7 @@ function lensGraph(): GraphIr {
 }
 
 /** The rain's graphs by look.materials id. */
-export const RAIN_GRAPHS: Readonly<Record<string, GraphIr>> = { [RAIN_LOOKS.lens]: lensGraph() };
+export const RAIN_GRAPHS: Readonly<Record<string, GraphIr>> = { [RAIN_LOOKS.splash]: splashGraph(), [RAIN_LOOKS.lens]: lensGraph() };
 
 /** C7: in the rain the grazing herds drift in under the nearest big trees (the bear sits it out), and back out after. */
 export const PINE_HERD_SHELTER = { kinds: ['deer', 'elk', 'boar'], bigTree: 20, reach: 90, homeHold: 90, clear: 2.2, spotR: 3.5, homeR: 10, wet: 0.3, dry: 0.05 } as const;
