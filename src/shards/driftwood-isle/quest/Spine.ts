@@ -10,15 +10,15 @@
 import * as THREE from 'three';
 import { app } from '@wildshard/engine/app/runtime';
 import { ownSceneTree, sceneObjectOwner } from '@wildshard/engine/app/sceneOwnership';
-import { boxInFrame } from '@wildshard/engine/physics/box';
 import type { QuestState } from '@wildshard/engine/quest/core';
-import { NpcTalk, type LiveMarker } from '@wildshard/engine/quest/view';
+import type { LiveMarker } from '@wildshard/engine/quest/view';
 import { DialogueBox, type ObjectiveLine } from '@wildshard/engine/quest/view/ui';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { bindRuntimeQuest, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
 import source from '../shard.config';
 import { DRIFTWOOD_MARKERS } from '../data/quests';
-import { presentQuest } from '@wildshard/game/quest/presentation';
+import { presentQuest, installNpcTalk } from '@wildshard/game/plugin/ui';
+import { CASTAWAY_TALK } from '../data/questNpcs';
 import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { CASTAWAY, DRIFTWOOD_QUEST } from '../data/questStory';
 import type { Castaway } from '../npc/Castaway';
@@ -35,7 +35,6 @@ export interface Spine {
   markers: () => LiveMarker[];
 }
 
-const TALK_R = 3.2;
 
 /** SF57: a subtree one home entry built belongs to that entry's scope: it leaves the scene and frees what it alone holds
  *  when the entry ends (a re-entered borrowed home runs its installs again; the page scene must not keep every copy). */
@@ -69,17 +68,12 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   const fire = place({ poi: 'hut', x: 0.7, z: -9.8 });
   const npc = castawayRig(w.sky, feet, fire), castaway = npc.model;
   w.scope?.onDispose(() => { npc.dispose(); });
-  // SF57: Wendell, his piece and its body belong to this entry, not the page (a re-entered borrowed home builds him again)
-  const entry = w.scope;
-  w.game.scene.add(castaway.group);
-  const wendell = (): void => { (w.registry ?? app.registry).add({ id: 'npc-castaway', name: 'Wendell', category: 'people', file: 'src/shards/driftwood-isle/quest/Spine.ts', colliders: [boxInFrame(castaway.collider, castaway.group, 'wood', false)], follows: castaway.group, followRotation: false }); };
-  if (entry === undefined) wendell();
-  else { ownEnteredTree(castaway.group, entry); entry.run(wendell); }
-  castaway.group.updateMatrixWorld(true);
-  const talkAt = castaway.headWorld(new THREE.Vector3());
-  let waved = false, stowed = false;
-  const talk = new NpcTalk({ dialogue, flags, npc: CASTAWAY, at: talkAt, radius: TALK_R, label: 'Talk to Wendell', speaker: castaway, onOpen: () => { w.audio.weaponSwap(); } });
-  w.prompts.push(talk.prompt);
+  const talk = installNpcTalk(CASTAWAY_TALK, { npc: CASTAWAY, dialogue: () => dialogue, flags, create: () => castaway,
+    scene: w.game.scene, registry: w.registry ?? app.registry, prompts: w.prompts,
+    own: (fig, register) => { const entry = w.scope; if (entry === undefined) register(); else { ownEnteredTree(fig.group, entry); entry.run(register); } },
+    at: fig => { fig.group.updateMatrixWorld(true); return fig.headWorld(new THREE.Vector3()); },
+    advance: (_fig, dt, t, pp) => { npc.update(dt, t, pp); }, open: () => { w.audio.weaponSwap(); },
+    stow: on => { w.stowWeapon?.(on); }, approach: { at: fig => fig.position, run: fig => { fig.wave(); } } });
 
   // ── the quest's beats: a toast + the chunk sting on every step, a fanfare at the end ──
 
@@ -100,11 +94,7 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   w.game.onUpdate((dt, t) => {
     const pp = w.player.position;
     dialogue.update(dt);
-    talk.update(pp);
-    npc.update(dt, t, pp);
-    // the sword goes down while you talk to Wendell and comes back up when the talk ends (E129)
-    if (talk.talking !== stowed) { stowed = talk.talking; w.stowWeapon?.(stowed); }
-    if (!waved && !flags.has('talked:castaway') && pp.distanceToSquared(castaway.position) < 16 * 16) { waved = true; castaway.wave(); }
+    talk.update(dt, t, pp);
     presentation.update(dt, t);
   }, 'shard.driftwood-isle.installSpine');
   return { quest, castaway, dialogue, objective, markers };

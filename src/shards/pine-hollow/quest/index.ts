@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { interactionRules } from '@wildshard/sdk/interactions';
+import { QUEST_NPCS } from '../data/questNpcs';
 import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { PINE_KIT_EVENTS } from '../data/questEvents';
 import { pineQuestRows } from './graph';
@@ -11,11 +12,10 @@ import type { Game } from '@wildshard/engine/core/Game';
 import { perfLap } from '@wildshard/engine/core/perfLap';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { place as placeModel } from '@wildshard/engine/models/place';
-import { boxInFrame } from '@wildshard/engine/physics/box';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
 import type { NpcDef } from '@wildshard/engine/quest/core';
-import type { NpcTalk } from '@wildshard/engine/quest/view';
+import type { NpcTalkInstallation } from '@wildshard/game/plugin/ui';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { jsonSchema } from '@wildshard/engine/saves/slots';
 import type { HUD } from '@wildshard/engine/ui/HUD';
@@ -118,19 +118,18 @@ export interface PineQuest {
   stagAt: () => THREE.Vector3 | null;
 }
 
-const TALK_R = 3.2;
 const _v = new THREE.Vector3();
 
 /** `deps`: the people's preload and the quest UI's loader (the page's by default; a test passes its own) */
 /** the quest views, loaded after the NPC models (`deps.loadQuest` lets a test fail it) */
 async function loadQuest() {
-  const [{ NpcTalk }, { DialogueBox, RewardCaption }, { presentQuest }] = await Promise.all([import('@wildshard/engine/quest/view'), import('@wildshard/engine/quest/view/ui'), import('@wildshard/game/plugin/ui')]);
-  return { presentQuest, NpcTalk, DialogueBox, RewardCaption };
+  const [{ DialogueBox, RewardCaption }, { presentQuest, installNpcTalk }] = await Promise.all([import('@wildshard/engine/quest/view/ui'), import('@wildshard/game/plugin/ui')]);
+  return { presentQuest, installNpcTalk, DialogueBox, RewardCaption };
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
   await (deps.preload ?? preloadNpcModels)();
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
-  const { DialogueBox, presentQuest, NpcTalk, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
+  const { DialogueBox, presentQuest, installNpcTalk, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
   const { ctx } = h;
   const { game, sky, player, animals, hud, inventory, progress } = h;
   const flags = new Flags(h.chunkId);
@@ -388,33 +387,25 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the people ──
   const dialogue = ui.view('dialogue', (scope) => new DialogueBox(scope));
-  interface Person { kind: NpcKind; def: NpcDef; fig: NpcFigure; prompt: Interactable; talk: NpcTalk; barked: boolean; after: (() => void) | undefined }
-  const people: Person[] = [];
-  const addPerson = (kind: NpcKind, def: NpcDef, feet: { x: number; z: number }, yaw: number, label: string, after?: () => void): Person => {
-    const y = floorAt(feet.x, feet.z);
-    const fig = makeNpcFigure(kind, sky, { x: feet.x, y, z: feet.z }, yaw);
-    game.scene.add(fig.group);
-    h.registry.add({ id: `npc-${kind}`, name: def.name, category: 'people', file: 'src/shards/pine-hollow/quest/index.ts', colliders: [boxInFrame(fig.collider, fig.group, 'wood', false)], follows: fig.group, followRotation: false });
-    const talk = new NpcTalk({ get dialogue() { return dialogue(); }, flags, npc: def, at: fig.talkPoint, radius: TALK_R, label, speaker: fig,
-      onOpen: () => { sfx?.bark(kind, fig.talkPoint); }, onDone: () => { after?.(); }, onEmpty: () => { after?.(); } });
-    // Mott's hatch moves the cloned prompt out in front of the stall.
-    const prompt = talk.prompt; prompt.position = fig.talkPoint.clone();
-    h.interactables.push(prompt);
-    const person: Person = { kind, def, fig, prompt, talk, barked: false, after };
-    people.push(person);
-    return person;
+  const people: (NpcTalkInstallation<NpcFigure> & { kind: NpcKind })[] = [];
+  const addPerson = (kind: NpcKind, def: NpcDef, feet: { x: number; z: number }, yaw: number, after?: () => void): NpcTalkInstallation<NpcFigure> => {
+    const person = installNpcTalk(QUEST_NPCS[kind], { npc: def, dialogue, flags, scene: game.scene, registry: h.registry, prompts: h.interactables,
+      create: () => makeNpcFigure(kind, sky, { x: feet.x, y: floorAt(feet.x, feet.z), z: feet.z }, yaw), at: fig => fig.talkPoint,
+      advance: (fig, dt, t, pp) => { fig.update(dt, t, pp); }, lod: (fig, distance) => { fig.lod(distance); },
+      open: fig => { sfx?.bark(kind, fig.talkPoint); }, bark: fig => { sfx?.bark(kind, fig.talkPoint); }, ...(after === undefined ? {} : { done: after }) });
+    people.push(Object.assign(person, { kind })); return person;
   };
   // Hale out front of the ranger's cabin (the kit's frame: the door on local +X), facing the path in; at local z 0.2,
   // clear of the porch's stone exit (at z 1.7 his collider stalled the walk route there, SHARD-PLATFORM SF22d finding)
   const rc = CABIN_SITES[0] ?? { x: -14, z: -34, rot: 0.35 };
   const rl = { x: 6.0, z: 0.2 }, rcos = Math.cos(rc.rot), rsin = Math.sin(rc.rot);
   const rangerAt = { x: rc.x + rl.x * rcos + rl.z * rsin, z: rc.z - rl.x * rsin + rl.z * rcos };
-  addPerson('ranger', RANGER, rangerAt, Math.atan2(rcos, -rsin), 'Talk to Hale');
+  addPerson('ranger', RANGER, rangerAt, Math.atan2(rcos, -rsin));
   const front = (site: { x: number; z: number; rot: number }, d: number): { x: number; z: number } => ({ x: site.x - Math.sin(site.rot) * d, z: site.z - Math.cos(site.rot) * d });
   const millerAt = front(HAMLET_SITES.miller, 2.5 + 1.8 + 1.4);
-  addPerson('miller', MILLER, millerAt, HAMLET_SITES.miller.rot + Math.PI, 'Talk to Brandt, the miller', () => { if (flags.has('errand:thanked') && !flags.has('errand:paid')) payMiller(); });
+  addPerson('miller', MILLER, millerAt, HAMLET_SITES.miller.rot + Math.PI, () => { if (flags.has('errand:thanked') && !flags.has('errand:paid')) payMiller(); });
   const traderAt = front(HAMLET_SITES.trader, 0.55);
-  const traderPerson = addPerson('trader', TRADER, traderAt, HAMLET_SITES.trader.rot + Math.PI, 'Trade with Mott', () => { trade().open(); });
+  const traderPerson = addPerson('trader', TRADER, traderAt, HAMLET_SITES.trader.rot + Math.PI, () => { trade().open(); });
   // the trader stands behind his hatch: his prompt is out front of it
   { const f = front(HAMLET_SITES.trader, 2.6); traderPerson.prompt.position.set(f.x, floorAt(f.x, f.z) + 1.4, f.z); traderVoice.copy(traderPerson.fig.talkPoint); }
 
@@ -543,13 +534,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   ctx.system({ id: 'quest', phase: 'update', after: ['quest.kit', 'quest.pool', 'quest.shelf'], before: ['hud.combat', 'main.frame'], run: (dt, t) => {
     const pp = player.position;
     dialogue().update(dt);
-    for (const p of people) {
-      p.fig.update(dt, t, pp);
-      const d2 = p.fig.talkPoint.distanceToSquared(pp);
-      p.talk.update(pp);
-      if (!p.barked && d2 < 7 * 7) { p.barked = true; sfx?.bark(p.kind, p.fig.talkPoint); }
-      else if (p.barked && d2 > 16 * 16) p.barked = false;
-    }
+    for (const p of people) p.update(dt, t, pp);
     zip?.update(dt, player, game.camera);
     canoe?.update(dt, t, player);
     if (ff && sky.dayNight) {
@@ -567,7 +552,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     if (t - slowT > 0.5) {
       slowT = t;
       const cam = game.camera.position;
-      for (const p of people) p.fig.lod(cam.distanceTo(p.fig.talkPoint));
+      for (const p of people) p.lod(cam);
       if (zip) zip.trolley.visible = zip.isRiding || cam.distanceToSquared(zip.trolley.position) < 160 * 160;
       if (!perfLap.active) for (const p of PINE_HOLLOW_POIS) if (!flags.has(`seen:${p.id}`) && Math.hypot(p.x - pp.x, p.z - pp.z) < p.r) flags.set(`seen:${p.id}`); // E350 F-J1: a lap's spot is not discovered
       if (!perfLap.active && hollow && !flags.has('secret:log') && hollow.mid.distanceToSquared(_v.set(pp.x, hollow.floorY, pp.z)) < 2.2 * 2.2 && Math.abs(pp.y - hollow.floorY) < 0.8) {

@@ -5260,3 +5260,11 @@ compiler uses explicit mip zero there and preserves derivative-selected
 fragment sampling. Admitted texture roles and runtime `role: 'lent'`
 slots share this path; retargeting a lent slot still updates every sample
 without rebuilding the shader. Texture limits/accounting remain unchanged.
+
+Quest figure installation (`game/plugin/ui`, `installNpcTalk`) accepts bounded
+`NpcInstallationRow` policies and borrowed `NpcInstallationPorts`. It keeps the
+existing figure, box collider, prompt and `NpcTalk`/DialogueBox clock. Authored
+figure-first/talk-first frame order, greeting hysteresis, optional one-time
+approach and weapon stow run at the caller's original update phase. Rows refuse
+invalid reach, source escapes or missing greeting owners before construction;
+entry ownership and save/flag authorities remain with the caller.

@@ -3,7 +3,7 @@ import { bindQuestWorldReactions, type QuestWorldReactions, commandSocketLift, d
 import "../quest/presentation.css";
 import { compileTubeCurve, parseClientChannels, parsePrivateScene, parseWorldScene, parseWorldSceneBindings, type WorldSceneBindingKind, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import { BufferAttribute, AdditiveBlending, Matrix4, InstancedMesh, Euler, PerspectiveCamera, PointLight, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ParticlePool, pointScale } from '@wildshard/engine/fx/ParticlePool';
 import { CLIENT_SCRIPT_LIMITS, type ClientScriptFrame } from '@wildshard/engine/script/client';
@@ -14,6 +14,7 @@ import type { HudVerbs, LevelContext } from '@wildshard/engine/level/context';
 import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
 import type { MapMark } from '@wildshard/engine/ui/Minimap';
 import { Flags, flagValue, test as testFlags } from '@wildshard/engine/world/interact/flags';
+import { boxInFrame, type BoxSpec } from '@wildshard/engine/physics/box';
 import type { MoverPose } from '@wildshard/engine/physics/mover';
 import type { Place, Interactable } from '@wildshard/engine/world/interact/types';
 import { questMessageHandlers, type QuestMessageRows, QuestState, type QuestDef, type QuestStep, type NpcDef } from '@wildshard/engine/quest/core';
@@ -888,6 +889,81 @@ export function createClientChannelPrompt(input: unknown,
   };
   return Object.freeze({ spot, reads: lane.reads, evaluate });
 }
+/** Bounded installation policy for an existing quest figure and its talk prompt.
+ * Figure geometry, placement, dialogue, flags and save owners are borrowed.
+ */
+export interface NpcInstallationRow {
+  readonly id: string; readonly label: string; readonly radius: number; readonly file: string;
+  readonly copyPrompt: boolean; readonly updateOrder: 'figure-first' | 'talk-first';
+  readonly bark?: { readonly enter: number; readonly leave: number };
+  readonly approach?: { readonly radius: number; readonly unlessFlag: string };
+}
+/** A figure already knows its pose and its collider; the installer changes neither. */
+export interface QuestTalkFigure {
+  readonly group: Object3D; readonly collider: BoxSpec; talking: boolean;
+}
+/** Borrowed owners for an NPC's original scene, registry and reading clock. */
+export interface NpcInstallationPorts<F extends QuestTalkFigure> {
+  readonly create: () => F; readonly npc: NpcDef; readonly dialogue: () => DialogueBox; readonly flags: Flags;
+  readonly scene: Object3D; readonly registry: Pick<WorldRegistry, 'add'>; readonly prompts: Interactable[];
+  readonly at: (figure: F) => Vector3;
+  readonly advance: (figure: F, dt: number, time: number, player: Vector3) => void;
+  readonly own?: (figure: F, register: () => void) => void;
+  readonly open?: (figure: F) => void; readonly done?: () => void;
+  readonly bark?: (figure: F) => void;
+  readonly approach?: { readonly at: (figure: F) => Vector3; readonly run: (figure: F) => void };
+  readonly stow?: (talking: boolean) => void; readonly lod?: (figure: F, distance: number) => void;
+}
+/** The same installed figure, talk and prompt, advanced at the caller's original phase. */
+export interface NpcTalkInstallation<F extends QuestTalkFigure> {
+  readonly fig: F; readonly talk: NpcTalk; readonly prompt: Interactable;
+  readonly update: (dt: number, time: number, player: Vector3) => void;
+  readonly lod: (camera: Vector3) => void;
+}
+/** Install a preflighted NPC row through the existing NpcTalk. No second timer,
+ * saved state or resource owner is created; optional entry ownership is lent.
+ * Greeting hysteresis and one-time approach actions retain their authored order.
+ */
+export function installNpcTalk<F extends QuestTalkFigure>(row: NpcInstallationRow, ports: NpcInstallationPorts<F>): NpcTalkInstallation<F> {
+  const text = (value: string): boolean => typeof value === 'string' && value.length > 0 && value.length <= 4096;
+  const radius = (value: number): boolean => Number.isFinite(value) && value > 0 && value <= 1000;
+  if (!text(row.id) || !text(row.label) || !text(row.file) || row.file.startsWith('/') || row.file.split('/').some(part => part === '..') ||
+    !radius(row.radius) || typeof row.copyPrompt !== 'boolean' || !['figure-first', 'talk-first'].includes(row.updateOrder) ||
+    !text(ports.npc.id) || !text(ports.npc.name) || ports.npc.dialogue.length > 1024) throw new Error('Invalid NPC installation row');
+  if (row.bark !== undefined && (!radius(row.bark.enter) || !radius(row.bark.leave) || row.bark.leave <= row.bark.enter || ports.bark === undefined)) throw new Error('Invalid NPC greeting owner or range');
+  if (row.approach !== undefined && (!radius(row.approach.radius) || !text(row.approach.unlessFlag) || ports.approach === undefined)) throw new Error('Invalid NPC approach owner or range');
+  const fig = ports.create();
+  ports.scene.add(fig.group);
+  const register = (): void => { ports.registry.add({ id: row.id, name: ports.npc.name, category: 'people', file: row.file,
+    colliders: [boxInFrame(fig.collider, fig.group, 'wood', false)], follows: fig.group, followRotation: false }); };
+  if (ports.own === undefined) register(); else ports.own(fig, register);
+  const at = ports.at(fig);
+  const talk = new NpcTalk({ get dialogue() { return ports.dialogue(); }, flags: ports.flags, npc: ports.npc,
+    at, radius: row.radius, label: row.label, speaker: fig,
+    onOpen: () => { ports.open?.(fig); }, onDone: () => { ports.done?.(); }, onEmpty: () => { ports.done?.(); } });
+  const prompt = talk.prompt;
+  if (row.copyPrompt) prompt.position = at.clone();
+  ports.prompts.push(prompt);
+  let barked = false, approached = false, stowed = false;
+  return { fig, talk, prompt,
+    update: (dt, time, player) => {
+      if (row.updateOrder === 'figure-first') ports.advance(fig, dt, time, player);
+      talk.update(player);
+      if (row.updateOrder === 'talk-first') ports.advance(fig, dt, time, player);
+      if (talk.talking !== stowed) { stowed = talk.talking; ports.stow?.(stowed); }
+      if (row.bark !== undefined) {
+        const distance = at.distanceToSquared(player);
+        if (!barked && distance < row.bark.enter ** 2) { barked = true; ports.bark?.(fig); }
+        else if (barked && distance > row.bark.leave ** 2) barked = false;
+      }
+      if (row.approach !== undefined && !approached && !ports.flags.has(row.approach.unlessFlag) &&
+        ports.approach !== undefined && player.distanceToSquared(ports.approach.at(fig)) < row.approach.radius ** 2) {
+        approached = true; ports.approach.run(fig);
+      }
+    }, lod: camera => { ports.lod?.(fig, camera.distanceTo(at)); },
+  };
+}
+
 /** A quest's coin reward: the burst that flies the coins to the player, `pay`, which pays once per save, and `spawn`, any other coins through the same burst. */
 export interface QuestReward { readonly burst: CoinBurst; readonly pay: () => undefined; readonly spawn: (amount: number, toast: string) => void }
 
