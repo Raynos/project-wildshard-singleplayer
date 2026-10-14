@@ -1,13 +1,21 @@
-# SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
+# PAUSED 2026-10-14 ~15:10Z (Jake flying; resume tonight) — SHARD-PLATFORM State (coordinator wildshard-new; ≤ 3 KB)
 
-**W1 (Sky + Signal) CLOSED: 90/10 (Sky 9.69 %, Signal 9.95 %, 0 unknown) and the G420 by-eye grid check PASSES for both** after o201's fixes: entry asphalt kept road-lit under Signal's dusk `76a3bfe55` (the black quad), duplicate save-slot definition on re-entry `7fa853e6e` (the refused west entry); Sky's crossing passes (`a7f7091f2`). Grid refused DW and Nalati cells (query terrain asked for a material; pre-existing since `8be4e615d`): x5 fix landing. With DW admitted, the grid reads 1060/1000 MB (DW 323 % of budget): over Jake's 1.0 GB Explorer limit, so x7 now owns cutting DW resident memory.
-**W2 (Pine + Driftwood), 14:45Z clean generated `be64e1b80`: Pine 84.47 %, Driftwood 77.42 %, 0 unknown** (start 107.6 / 104.2). Pine/DW: C1 4655/4923 · C2 2104/2752 · C3 269/0 · C4 4333/2260 · C5 2506/1459 · C6 3106/1232 · C7 12/0 · C8 360/189 · C9 579/475. This hour: King kit, cabin moss, contact + held parts, hut/lookout −61, terrain bindings. Blocker found: graph lit receivers read an uninitialised shadow value in the last-cascade branch (x8 E2; fix approved, pairs pending). It blocks the DW ocean (−173), DW ground/toon materials, Pine crags and the Pine water retry. Memory: shader warm leaked shadow maps (−168 MB GPU, `2ca20f6bf`); DW's claim is admission-critical, so x7 re-measures it with the G258 paired protocol while cutting decoded audio (8 MB loop windows, then streamed music). Lanes: Opus o211 Explorer faults, o212 DW boar/bear bake, o213 E2 diagnosis; Codex x1 C6, x4 undergrowth records (258 KB), x5 G424 JSON (generated glue), x6 DW C1, x7 DW memory, x8 E2.
-**Waves (G413):** W1 Sky + Signal (done) → W2 Pine + Driftwood (after W1 at 90/10) → W3 Nalati + Nine (after W2 at 80/20); M2 closes with W3 and is DONE when the grid plays from the menu with seamless travel and Jake's three phone runs have no tab kill (G417; no Sim ms targets). Part B → `SHARD-PLATFORM-NEXT.md` (G417, nothing cut).
-**Whole products:** Template, Pastel, Signal.
+**W1 CLOSED** (90/10 + G420 grid check). **W2 at 14:45Z `be64e1b80`: Pine 84.47 %, Driftwood 77.42 %, 0 unknown** (start 107.6 / 104.2). Resume by re-measuring on a clean generated export.
 
-**G415–G419 in force:** port bar = no glitches, graphically similar, no major regressions; biggest real cuts only, no relabels, no exact-number tests or Sim/frame gating; one measure (custom ÷ frozen legacy); proofs headless only; G416 sweep `819a36b8d`; watchdog `67d4f0045` (G418); Opus 4, no usage stop (G421).
+**Resume point per lane**:
+- x1 PAUSED: model-pool parts draft parked `refs/sp-lanes/sp-x1/native-pools-20261014` (qualify memory, rifle/tool pairs). Then Pine loadout/skins, DW keepsakes/swords.
+- x4 PAUSED: undergrowth records parked `refs/sp-lanes/sp-x4/w2-pine-under-records` (258 KB, green; needs the fern/edge pair + resident census, then land). Cabin cut parked for good (+1.47 MB GPU).
+- x5 PAUSED: G424 manifest JSON parked `refs/sp-lanes/sp-x5/g424-manifest-json` (Sky 9.58 / Signal 9.75 %); rebase, re-run checks, land W1 then W2.
+- x6 PAUSED: landed `712cf8319`; dune-log bake parked `refs/sp-lanes/sp-x6/dw-dune-logs` (geometry identical; still needs TS/lint fixes, memory check, 0-stuck walk). Then GroundCover/ropeBridge.
+- x7 (no pause reply yet): DW G258 claim landed `fb64049e3` (304.7 MB); SFX loop cut (8.15 MB) approved, not landed; then DW music on the AAC path after an iOS check. Grid ~1025/1000 MB until those land.
+- x8 PAUSED: E2 landed `78258e147` (h20 ocean re-check still owed); dispose-rebind fix parked `refs/sp-lanes/sp-x8/gpu-rebind` (incomplete). Then G (Pine water far sun).
+- Opus: o214 paused before any frame: DW ocean port applies cleanly on `78258e147`, patch in scratch `sp-o214/ocean-port-on-78258e147.patch` (resume: band check h20/lagoon-high, then pairs + land, ≈DW −173); o211 done: Explorer back (56/56 Pine cards) via `3388936dc` (graph re-upload no longer clears ctx caches; overlaps x8's parked rebind fix, reconcile); timber fault unproven, Driftwood/Sky/Signal Explorer not re-checked. o213 done: one uninitialised last-cascade read explained all four repros, fixed by `78258e147` (note `cb0124625`; it also fixes Pine's already-shipped lit graphs, since Pine has one cascade).
+- Unblocked by E2, next Opus: DW ground/toon (`refs/parked/sp-o207-ground`), Pine crags (patch in scratch `sp-o209/`), Pine water retry (`data/waterLook.ts` PARKED), DW palm graph (`refs/parked/sp-o199-palm`).
 
-**For wildshard-v:** G424 consumed: manifest.ts → schema-validated JSON, wave by wave → x5 after its terrain slice (Sky + Signal + Template first, then Pine + Driftwood). G425/G426 noted. PICK for Jake: Pine's night crown shadow makes ground under dense pines near-black and hides the crossbow (board `progress/shard-platform/w2-visual-qa-2026-10-14/n10-pine-night-crown-shadow.jpg`, `5095f3c48`); rec: soften the night shadow (intensity ~0.8, no cost); alt: crossbow ignores the key shadow.
-**Calls for Jake (2026-10-13; reverse any):** in commit bodies and `open-x-queue.md` (calls 6–49).
+**Known risks:** foreign staged + modified `.gitignore`, `generation-jobs.json`, `download-diet.md`, `lint/ratchet.json`, `scripts/shard-components.mjs`, checkpoint manifests (owner unknown; never commit as-is). Stale index entries matching HEAD were re-pointed. Two stuck old `git commit` PIDs 43018/58108, not ours.
 
-Paused: SF22, SF57, SF67.
+**Waves (G413):** W1 done → W2 Pine + Driftwood (to 80/20) → W3 Nalati + Nine. M2 = grid from the menu, seamless travel, Jake's three phone runs with no tab kill (G417).
+**In force:** G415–G426.
+
+**For wildshard-v:** PICK for Jake: Pine's night crown shadow hides ground and crossbow under dense pines (board `progress/shard-platform/w2-visual-qa-2026-10-14/n10-pine-night-crown-shadow.jpg`); rec: soften night shadow (~0.8).
+Paused rows: SF22, SF57, SF67.
