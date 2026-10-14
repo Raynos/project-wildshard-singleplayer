@@ -13,7 +13,7 @@ import type { Events } from '@wildshard/engine/events/events';
 import type { HudVerbs, LevelContext } from '@wildshard/engine/level/context';
 import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
 import type { MapMark } from '@wildshard/engine/ui/Minimap';
-import { Flags, test as testFlags } from '@wildshard/engine/world/interact/flags';
+import { Flags, flagValue, test as testFlags } from '@wildshard/engine/world/interact/flags';
 import type { MoverPose } from '@wildshard/engine/physics/mover';
 import type { Place, Interactable } from '@wildshard/engine/world/interact/types';
 import { QuestState, type QuestDef, type QuestStep, type NpcDef } from '@wildshard/engine/quest/core';
@@ -774,7 +774,7 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
       runtime = await installDeclaredMovers(ctx, world, { data: source.movers, modules: new Map(), views: movers,
         admitted: assets.retained, read: hash => assets.read(hash), systemId: row.systemId,
         ...(composition === undefined ? {} : { composition }),
-        permissions: () => new Map(grants.map(grant => [grant.mover, grant.flags.reduce((sum, flag) => sum + Number(flags.has(flag.name)) * flag.bit, 0)])),
+        permissions: () => new Map(grants.map(grant => [grant.mover, flagValue(flags, grant.flags)])),
         onDispose: () => { runtime = null; } });
       return runtime;
     },

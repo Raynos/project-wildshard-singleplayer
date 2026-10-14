@@ -4680,3 +4680,9 @@ bounded named builder ports, visible owned parts and optional specimen
 framing. A position creates a fresh outer group; `subtractY` reads a finite
 owned builder anchor. Geometry, materials and effects remain on the actual
 page/Explorer builder. Construction stays lazy and catalogue order is kept.
+
+`flagValue(flags, terms)` in `@wildshard/engine/world/interact/flags` reads
+at most 64 authored `{name, bit}` terms in their declared order. It sums
+Boolean flags with bounded integer coefficients without allocation or state
+writes. Director observations retain Boolean outputs; native and client
+motion permissions retain their numeric grants.

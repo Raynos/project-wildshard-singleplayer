@@ -82,3 +82,15 @@ export function test(flags: { has: (f: string) => boolean }, c: Cond | undefined
   if (c.none?.some((f) => flags.has(f))) return false;
   return true;
 }
+
+/** Read bounded numeric flag grants without state writes or temporary storage.
+ * Terms retain authored order; a Boolean contributes its declared numeric bit. */
+export function flagValue(flags: Pick<Flags, 'has'>, terms: readonly { readonly name: string; readonly bit: number }[]): number {
+  if (terms.length > 64) throw new RangeError('Too many flag value terms');
+  let value = 0;
+  for (const term of terms) {
+    if (term.name.length === 0 || term.name.length > 128 || !Number.isSafeInteger(term.bit) || Math.abs(term.bit) > 65536) throw new Error('Invalid flag value term');
+    value += Number(flags.has(term.name)) * term.bit;
+  }
+  return value;
+}

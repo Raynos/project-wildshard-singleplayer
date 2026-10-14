@@ -11,7 +11,7 @@ import { prepareNativePopulation } from '@wildshard/game/shardfile/bossRow';
 import { ROC_OWNER } from '../data/rocFight';
 import { FAN_ID, SKY_ITEM_ROLE } from '../data/items';
 import { turnVanes, VANE_HUB } from '../quest/vanes';
-import { skyWinchPermission } from './quest';
+import { flagValue } from '@wildshard/engine/world/interact/flags';
 import { SKY_SPOTS } from '../data/questPrompts';
 import { SKY_MOVER_BINDING } from '../data/moverBindings';
 import { MoverScriptDriver, verifiedMoverModules } from '@wildshard/game/plugin/mover';
@@ -46,7 +46,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     // `mode: 'board'`) in the host's board mode; a restore brings them back with the physics (SimSnapshot.boardColliders)
     if (!context.restoring) addBakedWorld(host, baked.pieces);
     host.setFloorQuery((x, z, fromY, maxDrop) => floorBelow(host.physics, x, z, fromY, maxDrop));
-    const movers = installMovers(host, context.restoring, () => new Map([[SKY_MOVER_BINDING.winch, skyWinchPermission(host.flags)]]));
+    const movers = installMovers(host, context.restoring, () => new Map([[SKY_MOVER_BINDING.winch, flagValue(host.flags, SKY_MOVER_BINDING.permissions)]]));
     const ledger = ledgerPorts(context.emit);
     const { keeper, encounter } = population.install(host, ledger, context.snapshot);
     // the browser disables the player's weapons through the Roc's intro (BossPorts.lockInput) and stows the fan on the board

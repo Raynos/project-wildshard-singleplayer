@@ -1,3 +1,4 @@
+import { flagValue } from '@wildshard/engine/world/interact/flags';
 import * as v from "valibot";
 import { BossBrain, type BossContinuation, type BossDefinition, type BossPorts, type BossPresentation, type BossSaved, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import { ScriptHost, SCRIPT_PARAMETER_QUERY, type ScriptQuery } from "@wildshard/engine/script/host";
@@ -214,8 +215,12 @@ export function bindDirectorActions(data: unknown, spec: DirectorActionHostSpec)
   if (spec.read === undefined && Object.values(definition.inputs).some(binding => binding.startsWith('flag:') ? flags === undefined : observe === undefined)) {
     throw new Error('Unbound native director observation');
   }
+  const flagTerms = new Map(Object.values(definition.inputs).filter(binding => binding.startsWith('flag:')).map(binding => [binding, [{ name: binding.slice(5), bit: 1 }]]));
   const read = spec.read ?? (() => Object.fromEntries(Object.entries(definition.inputs).map(([name, binding]) => {
-    if (binding.startsWith('flag:') && flags !== undefined) return [name, flags.has(binding.slice(5))];
+    if (binding.startsWith('flag:') && flags !== undefined) {
+      const terms = flagTerms.get(binding); if (terms === undefined) throw new Error('Unbound native director flag');
+      return [name, flagValue(flags, terms) !== 0];
+    }
     if (observe !== undefined) return [name, observe(binding)];
     throw new Error('Unbound native director observation');
   })));

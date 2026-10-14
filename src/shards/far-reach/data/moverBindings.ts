@@ -3,6 +3,7 @@ import { FLAGS } from '../quest/flags';
 export const SKY_MOVER_BINDING = {
   systemId: 'far.movers',
   winch: 'far.winch.bridge',
+  permissions: [{ name: FLAGS.roost, bit: 1 }, { name: FLAGS.vanes, bit: 2 }],
   staticPrefix: 'far.rope.',
   socketPrefix: 'far.islet.',
 } as const;
@@ -15,4 +16,4 @@ export const FALLEN_ANGLE = -1.25;
 
 /** Scoped page motion installation and the native permission bit order. */
 export const SKY_CLIENT_MOTION = { systemId: SKY_MOVER_BINDING.systemId,
-  permissions: [{ mover: SKY_MOVER_BINDING.winch, flags: [{ name: FLAGS.roost, bit: 1 }, { name: FLAGS.vanes, bit: 2 }] }] } as const;
+  permissions: [{ mover: SKY_MOVER_BINDING.winch, flags: SKY_MOVER_BINDING.permissions }] } as const;
