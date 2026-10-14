@@ -3814,7 +3814,6 @@
         "public/assets/far-reach/baked/bridges.bin",
         "public/assets/far-reach/baked/isles.bin",
         "public/assets/far-reach/baked/mill-model.bin",
-        "public/assets/far-reach/baked/sward-atlas.bin",
         "src/shards/far-reach/data/props.json",
         "src/shards/far-reach/assets/1b1322de534d9f98d10df53949afe7a7f8242f3ee0cf5384012c83270388d860",
         "src/shards/far-reach/assets/1b72669a301cd41df32ac196eb822d7c10c7c83cd6fb0121165f4ab42e5627f3",
@@ -11468,6 +11467,42 @@
       "buildOutputs": {
         "src/shards/far-reach/assets/607c53f28dbdd88423b39fd32419ba735f9a13c3c1ecabaf1cadb68715d63f0b": "607c53f28dbdd88423b39fd32419ba735f9a13c3c1ecabaf1cadb68715d63f0b"
       },
+      "seedOutputs": [],
+      "platform": "portable"
+    },
+    {
+      "id": "sky-meadow-blades",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/meadowBlades.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/meadowBlades.ts",
+        "bakeMeadowBlades",
+        "public/assets/far-reach/baked/meadow-blades.bin",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/data/dressing.json",
+        "src/shards/far-reach/data/graphKit.ts",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/meadowLook.ts",
+        "src/shards/far-reach/data/placements.json",
+        "src/shards/far-reach/data/skyLook.ts",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/data/swardAtlas.ts",
+        "src/shards/far-reach/generators/meadowBlades.ts"
+      ],
+      "outputs": [
+        "public/assets/far-reach/baked/meadow-blades.bin"
+      ],
       "seedOutputs": [],
       "platform": "portable"
     },

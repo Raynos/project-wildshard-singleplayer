@@ -1,62 +1,31 @@
-import { KNOLL_GLSL } from '../runtime/looks/knollGlsl';
-import { Color, type Texture, type InstancedBufferGeometry, Mesh, type ShaderMaterial, Vector2, Vector3, Vector4 } from 'three';
-import { ShaderFamily, uniformsFrom } from '@wildshard/sdk/looks/shaderFamily';
-import { tileFieldGeometry, tileOrigin } from '@wildshard/sdk/looks/tileField';
-import { ISLES, type Isle } from '../data/layout';
-import PLACEMENTS from '../data/placements.json' with { type: 'json' };
-import { MEADOW, MEADOW_CARD, MEADOW_GLSL, MEADOW_PROGRAMS, SWARD } from '../data/meadowLook';
-import { apothem } from '../layout';
-import { SKY, SKY_FOG as FOG } from '../data/skyLook';
-import { SWARD_ATLAS_FRAGMENTS } from '../data/swardAtlas';
-import { skySwardAtlas } from './baked';
+import { BufferAttribute, Group, InstancedBufferGeometry, InstancedInterleavedBuffer, InterleavedBufferAttribute, LOD, type Material, Mesh, Object3D, Sphere, Vector3 } from 'three';
+import { MEADOW, meadowCard } from '../data/meadowLook';
 
 /**
- * The near meadow (loop 4): a field of tuft cards and flowers that travels with the camera, drawn by data/meadowLook.ts's
- * program on an SDK tile field (one 8 m tile of blades as a grid of instances round the camera; nothing is uploaded per
- * frame). The lattice, the card outline, the sward's paint and the GLSL are data; this module adds what only the world
- * knows: the islands, the holes round the structures and the worn paths (both baked, generators/placements.ts), the rocks,
- * and the numbers the program splices.
+ * The near meadow (loop 4): the baked blades (generators/meadowBlades.ts, world/baked.ts `skyMeadowBlades`) as one level
+ * of detail per 8 m chunk, drawn in the `meadow` graph (data/meadowLook.ts): near, every blade and its copies; farther,
+ * the blades alone; beyond `range`, nothing. The phone draws each chunk's first (its) blades. Nothing runs per frame.
  */
-
-function glslColor(hex: number): string { const c = new Color(hex); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; }
-
-const FAMILY = new ShaderFamily({ meadowNoise: MEADOW_GLSL, knoll: KNOLL_GLSL }, MEADOW_PROGRAMS);
-
-export interface Meadow { readonly mesh: Mesh<InstancedBufferGeometry, ShaderMaterial>; readonly atlas: Texture; update: (camera: Vector3, t: number) => void }
-
-/** Build the meadow with `blades` blades per tile (a tier knob), seeded so every load grows the same field. */
-/**
- * `rocks`: discs (x, z, radius) where the grass only grows short, round the foreground boulders (E399: the 0.5 m rocks
- * hid in 0.6 m grass; the mockups' rocks stand out of a lower sward round them).
- */
-export function meadow(sunDir: Vector3, blades: number, isles: readonly Isle[] = ISLES, rocks: readonly (readonly [number, number, number])[] = []): Meadow {
-  const atlas = skySwardAtlas();
-  const g = tileFieldGeometry({ across: MEADOW.across, layers: MEADOW.layers, seed: MEADOW.seed, card: MEADOW_CARD }, blades);
-  const isleU = isles.map((isle) => new Vector4(isle.x, isle.z, apothem(isle), isle.y));
-  // the holes round the structures and the worn paths in from the landings, placed offline (generators/placements.ts)
-  const v4 = ([x = 0, y = 0, z = 0, w = 0]: readonly number[]): Vector4 => new Vector4(x, y, z, w);
-  const holes = [...PLACEMENTS.meadow.holes.map(v4), ...rocks.map(([x, z, r]) => new Vector4(x, z, r, 1))], paths = PLACEMENTS.meadow.paths.map(v4);
-  const paint = uniformsFrom({ uRootC: { rgb: SWARD.root }, uLowC: { rgb: SWARD.low }, uLawnC: { rgb: SWARD.lawn }, uBroadC: { rgb: SWARD.broad },
-    uWildC: { rgb: SWARD.wild }, uTipC: { rgb: SWARD.tip }, uSunC: { rgb: SWARD.sun },
-    uLight: { v4: [SWARD.light.floor, SWARD.light.gain, SWARD.light.through, SWARD.light.edge] }, uTop: SWARD.light.top });
-  const uniforms = {
-    uOrigin: { value: new Vector2() }, uCam: { value: new Vector3() }, uTime: { value: 0 }, uSun: { value: sunDir },
-    uAtlas: { value: atlas }, uIsles: { value: isleU }, uIsleGrass: { value: isles.map((isle) => MEADOW.grass[isle.id] ?? 1) }, uIsleKeep: { value: isles.map((isle) => MEADOW.keep[isle.id] ?? 1) }, uHoles: { value: holes }, uPaths: { value: paths },
-    // the paint as uniforms (constant: set once here; a capture sweep can read them back off the material)
-    ...paint,
-  };
-  const heights = (h: readonly number[]): string => h.map((v) => v.toFixed(2)).join(', ');
-  const material = FAMILY.material('meadow', {}, { uniforms, fragments: {
-    tile: MEADOW.tile.toFixed(1), range: MEADOW.range.toFixed(1), near: MEADOW.near.toFixed(1),
-    isles: String(isleU.length), holes: String(holes.length), paths: String(paths.length),
-    share0: SWARD.share[0].toFixed(2), share1: SWARD.share[1].toFixed(2), lawn: heights(SWARD.height.lawn), broad: heights(SWARD.height.broad), wild: heights(SWARD.height.wild),
-    ...SWARD_ATLAS_FRAGMENTS,
-    strawBody: SWARD.straw.body.toFixed(2), strawTip: SWARD.straw.tip.toFixed(2), leaf: glslColor(SWARD.leaf),
-    fogNear: FOG.near.toFixed(1), fogSpan: (FOG.far - FOG.near).toFixed(1), fogMax: FOG.max.toFixed(2), fog: glslColor(SKY.fog),
-  } });
-  const mesh = new Mesh(g, material); mesh.frustumCulled = false; mesh.name = 'far.meadow';
-  return { mesh, atlas, update: (camera, t) => {
-    uniforms.uCam.value.copy(camera); uniforms.uTime.value = t;
-    tileOrigin(uniforms.uOrigin.value, camera, MEADOW.tile);
-  } };
+export function meadow(bytes: Uint8Array | undefined, material: Material | undefined, blades: number): { readonly group: Group; readonly dispose: () => void } {
+  const group = new Group(), geometries: InstancedBufferGeometry[] = []; group.name = 'far.meadow';
+  const dispose = (): void => { group.removeFromParent(); for (const g of geometries) g.dispose(); };
+  if (bytes === undefined || material === undefined || bytes.length < 4) return { group, dispose };
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), chunks = view.getUint32(0, true);
+  const cards = [1, 1 + MEADOW.layers].map((copies) => { const c = meadowCard(copies); return { card: new BufferAttribute(c.card, 4), layer: new BufferAttribute(c.layer, 1), index: new BufferAttribute(c.index, 1), position: new BufferAttribute(new Float32Array(c.layer.length * 3), 3) }; });
+  let at = 4 + chunks * 20;
+  for (let i = 0; i < chunks; i++) {
+    const o = 4 + i * 20, count = view.getUint32(o + 12, true), drawn = blades >= MEADOW.blades ? count : view.getUint32(o + 16, true);
+    const buffer = new InstancedInterleavedBuffer(bytes.subarray(at, at + count * 8), 8); at += count * 8;
+    const lod = new LOD(); lod.position.set(view.getFloat32(o, true) + MEADOW.tile / 2, view.getFloat32(o + 8, true), view.getFloat32(o + 4, true) + MEADOW.tile / 2);
+    for (const [level, c] of cards.entries()) {
+      const g = new InstancedBufferGeometry(); geometries.push(g); g.instanceCount = drawn; g.setIndex(c.index);
+      g.setAttribute('position', c.position); g.setAttribute('aCard', c.card); g.setAttribute('aLayer', c.layer);
+      g.setAttribute('aBladeA', new InterleavedBufferAttribute(buffer, 4, 0, true)); g.setAttribute('aBladeB', new InterleavedBufferAttribute(buffer, 4, 4, true));
+      g.boundingSphere = new Sphere(new Vector3(MEADOW.tile / 2, 1.5, MEADOW.tile / 2), MEADOW.tile);
+      const mesh = new Mesh(g, material); mesh.position.set(-MEADOW.tile / 2, 0, -MEADOW.tile / 2);
+      lod.addLevel(mesh, level === 0 ? MEADOW.lods[0] : 0);
+    }
+    lod.addLevel(new Object3D(), MEADOW.lods[1]); group.add(lod);
+  }
+  return { group, dispose };
 }

@@ -3,7 +3,7 @@ import BRIDGE_PHYSICS from '../data/bridgePhysics.generated.json' with { type:'j
 import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type:'json' };
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { bakedMeshWorld, worldPieces, type BakedMeshKindRow, type DrawnBakedMeshPiece, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
-import { BufferGeometry, DataTexture, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, UnsignedByteType, type Mesh, type Object3D } from 'three';
+import { BufferGeometry, type Mesh, type Object3D } from 'three';
 import { SKY_PIECES } from '../data/pieces';
 import winchHouse from '../data/winchHouse.json' with { type: 'json' };
 import roost from '../data/roost.json' with { type: 'json' };
@@ -16,7 +16,6 @@ import geometries from '../data/geometries.json' with { type: 'json' };
 import isletRig from '../data/isletRig.json' with { type: 'json' };
 import dressing from '../data/dressing.json' with { type: 'json' };
 import { BAKED_URLS, WORLD_BYTES, type BakedPiece } from '../data/files';
-import { SWARD_ATLAS } from '../data/swardAtlas';
 import { shackMaterial, type ShackKind } from './shack';
 import { isleMaterial, setIslePack } from './isle';
 import { dressingMaterial } from './dressing';
@@ -42,22 +41,13 @@ const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(PIECES, BAKED_URLS, '
     return shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : 'paint' in kind ? isleMaterial() : undefined; },
   attributes: { _shk: 'aShk', _farcloth: 'aFarCloth' },
 });
-/** Load every baked piece, the islands and the sward atlas (the plugin's `world` hook, before the world is built); a piece that fails to load is empty. */
+/** Load every baked piece, the islands and the meadow's blades (the plugin's `world` hook, before the world is built); a piece that fails to load is empty. */
 export async function loadSkyBaked(): Promise<void> {
   await WORLD.load(); setIslePack(WORLD.bytes('isles'));
 }
 
-/**
- * The sward's tuft atlas (data/swardAtlas.ts) from its bake (generators/swardAtlas.ts → baked/sward-atlas.bin): a new
- * texture over the loaded texels, mipmapped; all zero (no blades) when the bake did not load.
- */
-export function skySwardAtlas(): DataTexture {
-  const { variants, w, h } = SWARD_ATLAS, sward = WORLD.bytes('sward'), texels = sward?.length === w * variants * h * 4 ? sward : new Uint8Array(w * variants * h * 4);
-  const tex = new DataTexture(texels, w * variants, h, RGBAFormat, UnsignedByteType);
-  tex.minFilter = LinearMipmapLinearFilter; tex.magFilter = LinearFilter; tex.generateMipmaps = true; tex.needsUpdate = true;
-  tex.name = 'far.sward-atlas';
-  return tex;
-}
+/** The meadow's baked blades (generators/meadowBlades.ts → baked/meadow-blades.bin, inflated); undefined when they did not load. */
+export const skyMeadowBlades = (): Uint8Array | undefined => WORLD.bytes('blades') ?? undefined;
 
 /**
  * A world piece from its bake: its kinds as instanced meshes (undrawn if its GLB did not load; a tinted kind gets its rows'

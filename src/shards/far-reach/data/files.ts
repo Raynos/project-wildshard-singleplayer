@@ -66,8 +66,8 @@ export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { 'winch-house':
   crown: '/assets/far-reach/baked/crown.glb', mill: '/assets/far-reach/baked/mill.glb',
   'book-stand': '/assets/far-reach/baked/book-stand.glb', knolls: '/assets/far-reach/baked/knolls.glb',
   geometries: '/assets/far-reach/baked/geometries.glb', 'islet-rig': '/assets/far-reach/baked/islet-rig.glb', dressing: '/assets/far-reach/baked/dressing.glb' };
-/** The sward's tuft atlas texels, deflated RGBA (world/meadow.ts; SHARD-PLATFORM M3, generators/swardAtlas.ts). */
-export const SWARD_ATLAS_URL = '/assets/far-reach/baked/sward-atlas.bin';
+/** The meadow's blades, deflated (world/meadow.ts; SHARD-PLATFORM M3, generators/meadowBlades.ts). */
+export const MEADOW_BLADES_URL = '/assets/far-reach/baked/meadow-blades.bin';
 /** Every island's baked shape (world/isle.ts `islandMesh`; SHARD-PLATFORM M3, generators/isles.ts). */
 export const ISLES_URL = '/assets/far-reach/baked/isles.bin';
 /** The rope bridges' baked geometry pack (world/shapes.ts `ropeBridge`; SHARD-PLATFORM M3, generators/bridges.ts). */
@@ -88,6 +88,6 @@ export const PANO_URL = { desktop: '/assets/far-reach/sky/panorama.webp', phone:
 
 /** Byte companions of the mesh world, consumed by the existing grass and island views. */
 export const WORLD_BYTES = [
-  { id: 'sward', url: SWARD_ATLAS_URL, compression: 'deflate', fault: { level: 'warn', message: '[far-reach] the sward atlas did not load; the meadow stands bare:' } },
+  { id: 'blades', url: MEADOW_BLADES_URL, compression: 'deflate', fault: { level: 'warn', message: '[far-reach] the meadow blades did not load; the meadow stands bare:' } },
   { id: 'isles', url: ISLES_URL, compression: 'deflate', fault: { level: 'error', message: '[far-reach] the baked islands did not load; they stand undrawn:' } },
 ] as const;

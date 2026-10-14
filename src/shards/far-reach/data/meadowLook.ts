@@ -1,34 +1,32 @@
-/**
- * The near meadow's look as data (SHARD-PLATFORM M3: a row of an SDK shader family drawn on an SDK tile field; world/meadow.ts
- * builds it): the field's lattice and card outline, the sward's paint and its one program. `@{name}` splices what the data
- * cannot hold as text — the field's numbers formatted for GLSL, the island, hole and path counts, the knoll and noise
- * fragments, the sward atlas's layout and the shard's fog — which world/meadow.ts passes when it builds the material.
- */
+import type { GraphIr, GraphRef } from '@wildshard/format/materialGraph';
+import { graphKit } from './graphKit';
+import { SKY_SUN } from './skyLook';
+import { SWARD_ATLAS, SWARD_ATLAS_FILE } from './swardAtlas';
 
 /**
- * The near meadow (loop 4; the targets' foreground is knee-deep golden grass, not a green plane): a field of single blades
- * that travels with the camera. One 8 m tile of blades is drawn as a grid of instances around the camera (the vertex
- * shader snaps the grid to the tile lattice, so nothing is uploaded per frame); a blade survives only on an island top,
- * off the bridge landings, the worn paths and the structures, and it shortens to nothing at the field's edge so the
- * grid's border never shows. Unlit-by-the-rig, painted in the shader (E407 row 4): three grasses by noise and slope,
- * dark green roots to warm lit tips, some strands catching the low sun, the sun through the blades when you look toward
- * it, the shard's rose fog. No colliders; the island dressing's clumps carry the far view.
+ * The near meadow (loop 4; the targets' foreground is knee-deep golden grass, not a green plane): single tuft cards and
+ * flowers over every island top, baked (generators/meadowBlades.ts → baked/meadow-blades.bin: where each blade stands and
+ * what its place decided) and drawn by the `meadow` material graph below (world/meadow.ts: an 8 m chunk of blades per
+ * mesh, its near copies close by, nothing beyond `range`). Unlit-by-the-rig, painted in the graph (E407 row 4): three
+ * grasses, dark green roots to warm lit tips, some strands catching the low sun, the sun through the blades when you look
+ * toward it. No colliders; the island dressing's clumps carry the far view.
  */
 export const MEADOW = {
-  /** the cards' seed (every load grows the same field) */
+  /** the blades' seed (every bake grows the same field) */
   seed: 6417,
-  /** a tile's side (metres) */
+  /** a chunk's side (metres): the old camera tile's lattice */
   tile: 8,
-  /** tiles across the field (odd, the camera's tile in the middle): 7 × 8 m = a 56 m square, blades out to `range` */
-  across: 7,
+  /** a tile's seeded blades (desktop), and the phone's share of them (the first ones: each chunk's prefix) */
+  blades: 3200, phone: 1600,
   /** where the blades have shrunk to nothing (metres from the camera) */
   range: 24,
   /**
-   * E392 foreground: the inner 3 × 3 tiles are drawn `layers` more times with the blades shuffled, so the near field is
-   * (1 + layers) × as dense with no more blades in the buffer; the extra layers shrink away by `near` metres (inside
-   * the inner tiles' 8 m reach), and a frustum test drops every blade off screen before its island and hole loops
+   * E392 foreground: each near blade is drawn `layers` more times, shifted within its baked room and turned, so the near
+   * field is (1 + layers) × as dense with no more blades in the buffer; the copies shrink away by `near` metres
    */
   layers: 4, near: 7.5,
+  /** a chunk's level switches (metres from the chunk's centre to the camera): its copies to `lods[0]`, its blades to `lods[1]` */
+  lods: [14, 31] as const,
   /** an island's grass height scale (1 when absent): the crown's arena a little shorter, so the dais reads (E399: mockup D's meadow is lush to the dais) */
   // (round 6: the seats: 'cut to 0.42 against mockup D's lush meadow'; from the rise's top the dais clears ~0.9 m of grass)
   grass: { crown: 0.85 } as Readonly<Record<string, number>>,
@@ -36,12 +34,15 @@ export const MEADOW = {
   keep: { crown: 1 } as Readonly<Record<string, number>>,
 } as const;
 
+/** A baked blade's 8 bytes (aBladeA: x, z across the chunk; y over the chunk's base; height. aBladeB: random, tone,
+ *  grass + 4 × flower kind, room): the metres per step of the scaled ones, and the near copies' most room. */
+export const MEADOW_BLADES = { y: 0.01, h: 0.005, safe: 0.01, room: 1 } as const;
+
 /**
  * The sward (E407 row 4, a green, varied meadow): three grasses (data/swardAtlas.ts), each its own height (metres, at the
  * tuft's full size) and body green, on one root-to-tip ramp (sRGB): dark roots, green bodies, warm tips. `light`: the
- * shade floor deep in the sward, the gain up the blade, the sun through the blades when you look toward it (one term for
- * every distance: the round-6-to-10 glow coefficients and their near/far split are gone) and the sun-side edge of a
- * broad blade. `share`: where the noise field turns lawn into broad blades, and broad blades into the wild grass.
+ * shade floor deep in the sward, the gain up the blade, the sun through the blades when you look toward it and the
+ * sun-side edge of a broad blade. `share`: where the noise field turns lawn into broad blades, and broad blades into the wild grass.
  */
 export const SWARD = {
   height: { lawn: [0.2, 0.38], broad: [0.34, 0.6], wild: [0.5, 0.9] },
@@ -55,184 +56,120 @@ export const SWARD = {
   leaf: 0xc8e070,
 } as const;
 
-/** One blade = 7 vertices (three pairs up the blade and the tip), 5 triangles: it tapers and bends (council R1C-15 / R1A-7);
- *  a flower reuses the same 7: a thin stem (the root pair to the head's bottom pair), then a kite head whose round middle is
- *  the flower (its corners are drawn as green sepals). */
-export const MEADOW_CARD = {
-  shape: [[-1, 0], [1, 0], [-0.82, 0.34], [0.82, 0.34], [-0.52, 0.68], [0.52, 0.68], [0, 1]] as [number, number][],
-  triangles: [0, 1, 3, 0, 3, 2, 2, 3, 5, 2, 5, 4, 4, 5, 6],
-};
+/**
+ * One blade = 7 vertices, 5 triangles. A tuft card uses them as its bottom, middle and top pairs (the tip folds onto the
+ * top right corner); a flower as a thin stem (the root pair to the head's bottom pair), then a kite head whose round
+ * middle is the flower (its corners are drawn as green sepals). Each vertex: [across, up] of the card, [x, y] of the kite.
+ */
+const CARD: readonly (readonly [number, number, number, number])[] = [
+  [-1, 0, -0.1, -3], [1, 0, 0.1, -3], [-1, 0.5, -0.16, -0.97], [1, 0.5, 0.16, -0.97], [-1, 1, -1.05, -0.05], [1, 1, 1.05, -0.05], [1, 1, 0, 1.05],
+];
+const TRIANGLES = [0, 1, 3, 0, 3, 2, 2, 3, 5, 2, 5, 4, 4, 5, 6];
 
-/** The hash both the grass and the ground paint use for patchiness (GLSL). */
-export const MEADOW_GLSL = /* glsl */`
-  float mh(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-  float mn(vec2 p){ vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(mix(mh(i), mh(i + vec2(1.0, 0.0)), u.x), mix(mh(i + vec2(0.0, 1.0)), mh(i + vec2(1.0, 1.0)), u.x), u.y); }
-  float mfbm(vec2 p){ return mn(p) * 0.55 + mn(p * 2.1 + 7.3) * 0.3 + mn(p * 4.3 - 3.1) * 0.15; }
-  float segDist(vec2 p, vec2 a, vec2 b){ vec2 ab = b - a; float t = clamp(dot(p - a, ab) / max(dot(ab, ab), 1e-4), 0.0, 1.0); return length(p - a - ab * t); }
-`;
+/** The blade outline `copies` times (aCard per vertex, aLayer the copy) with its triangles: the far mesh draws one, the near one 1 + `layers`. */
+export function meadowCard(copies: number): { card: Float32Array; layer: Float32Array; index: Uint16Array } {
+  const card = new Float32Array(copies * CARD.length * 4), layer = new Float32Array(copies * CARD.length), index = new Uint16Array(copies * TRIANGLES.length);
+  for (let c = 0; c < copies; c++) {
+    CARD.forEach((v, i) => { card.set(v, (c * CARD.length + i) * 4); layer[c * CARD.length + i] = c; });
+    index.set(TRIANGLES.map((k) => k + c * CARD.length), c * TRIANGLES.length);
+  }
+  return { card, layer, index };
+}
 
-/** The meadow's program (its uniforms are world/meadow.ts's: the tile origin, camera, time, sun, sward atlas, islands,
- *  holes, paths and the sward's paint). */
-export const MEADOW_PROGRAMS = {
-  meadow: { side: 'double', vertex: /* glsl */`
-      #define TILE @{tile}
-      #define RANGE @{range}
-      #define NEAR @{near}
-      #define NI @{isles}
-      #define NH @{holes}
-      #define NP @{paths}
-      uniform vec2 uOrigin; uniform vec3 uCam; uniform float uTime;
-      uniform vec4 uIsles[NI]; uniform float uIsleGrass[NI]; uniform float uIsleKeep[NI]; uniform vec4 uHoles[NH]; uniform vec4 uPaths[NP];
-      attribute vec3 aRoot; attribute vec2 aShape; attribute vec3 aTile;
-      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross; varying vec2 vUv; varying float vDist; varying float vSpecies;
-      @{meadowNoise}
-      @{knoll}
-      void cull(){ gl_Position = vec4(0.0, 0.0, 2.0, 1.0); vH = 0.0; vTone = 0.0; vWorld = vec3(0.0); vShade = 0.0; vFlower = 0.0; vPetal = vec2(0.0); vAcross = 0.0; vUv = vec2(0.0); vDist = 0.0; vSpecies = 0.0; }
-      void main(){
-        // a layer above 0 is the same tile's blades shuffled (offset, mirrored), so the near field thickens without a seam
-        float layer = aTile.z; vec2 j = aRoot.xy; float r = aRoot.z;
-        if (layer > 0.5) { j = fract((mod(layer, 2.0) > 0.5 ? j.yx : j) + vec2(0.6180, 0.3819) * layer); r = fract(r + 0.2718 * layer); }
-        vec2 p = uOrigin + (aTile.xy + j) * TILE;
-        // tufts (E399, every seat: 'even upright blades'; the mockups' sward grows in clumps of mixed height with darker gaps):
-        // three blades in four lean in toward their cell's tuft centre, and each tuft has its own height
-        vec2 tCell = floor(p * 1.4); vec2 tCentre = (tCell + 0.25 + 0.5 * vec2(mh(tCell), mh(tCell + 7.1))) / 1.4;
-        p = mix(p, tCentre, step(0.25, fract(r * 61.3)) * 0.25);
-        float tuftK = 0.7 + 0.7 * mh(tCell + 3.3);
-        float dist = distance(p, uCam.xz);
-        // off screen (behind, or a metre past either side) or out of reach: drop it before the loops
-        // the blades are in the level's own frame (uCam too): its root's matrix places them, at a grid cell's offset (G321)
-        vec4 probe = projectionMatrix * viewMatrix * modelMatrix * vec4(p.x, uCam.y - 1.5, p.y, 1.0);
-        if (dist > (layer > 0.5 ? NEAR : RANGE) || probe.w < -1.0 || abs(probe.x) > probe.w + 3.0) { cull(); return; }
-        float y = -1.0e4, rim = 1.0, tall = 1.0, keep = 1.0;
-        for (int i = 0; i < NI; i++) { vec4 s = uIsles[i]; float d = distance(p, s.xy);
-          // a ragged edge just short of the rim, by noise (E392 foreground: close enough that no bare band shows between the
-          // blades and the grassy lip). The rim is the 12-gon's (layout rimAlong: a vertex every 30 deg from +x), not a circle:
-          // round the apothem the corners stayed bare, a band C's camera saw 4-5 m ahead as a smooth olive dome (round 6)
-          float edge = s.z / cos(mod(atan(p.y - s.y, p.x - s.x), 0.5236) - 0.2618) * (0.975 + 0.02 * mn(p * 0.6));
-          // an island's trodden arena (the crown) is trodden only in its middle: the outer ring stays a full meadow
-          if (d < edge) { y = s.w; rim = d / edge; float wild = smoothstep(0.55, 0.8, rim); tall = mix(uIsleGrass[i], 1.0, wild); keep = mix(uIsleKeep[i], 1.0, wild); } }
-        // the grassy rises (layout KNOLLS)
-        if (y > -1.0e3) y += farKnoll(p);
-        float clear = 1.0, worn = 1.0;
-        for (int i = 0; i < NH; i++) { vec4 h = uHoles[i]; float o = smoothstep(h.z, h.z + 0.6, distance(p, h.xy)); clear = min(clear, h.w > 0.5 ? mix(0.3, 1.0, o) : o); }
-        // a worn path keeps a short, thin sward (E392 foreground: a cleared path showed the bare ground as a grey band); round 7
-        // (the seats: A's foreground, on the bridge landing's apron, read as mown; mockup A's meadow grows to the posts): faint
-        for (int i = 0; i < NP; i++) { vec4 s = uPaths[i]; worn = min(worn, smoothstep(0.15, 0.7, segDist(p, s.xy, s.zw) + 0.3 * mn(p * 1.7))); }
-        float pt = mfbm(p * 0.23);
-        // three grasses (E407 row 4): placed by a noise field, the lawn on the slopes of the rises and the worn ground, the
-        // wild grass toward the rims; each its own height, the patches of one grass running into the next
-        vec2 kd = vec2(farKnoll(p + vec2(0.4, 0.0)) - farKnoll(p - vec2(0.4, 0.0)), farKnoll(p + vec2(0.0, 0.4)) - farKnoll(p - vec2(0.0, 0.4))) / 0.8;
-        float spN = mfbm(p * 0.19 + 31.0) + 0.3 * (fract(r * 37.7) - 0.5) - 0.6 * min(length(kd), 0.6) - 0.15 * (1.0 - worn) + 0.1 * smoothstep(0.8, 1.0, rim);
-        float species = spN < @{share0} ? 0.0 : spN < @{share1} ? 1.0 : 2.0;
-        vec2 hr = species < 0.5 ? vec2(@{lawn}) : species < 1.5 ? vec2(@{broad}) : vec2(@{wild});
-        float h = mix(hr.x, hr.y, smoothstep(0.2, 0.8, pt) * 0.4 + r * 0.6) * mix(0.85, 1.15, mn(p * 0.37 + 11.0));
-        h *= tall * mix(0.85, 1.15, (tuftK - 0.7) / 0.7) * (1.0 - 0.3 * smoothstep(0.85, 1.0, rim)) * clear * mix(0.8, 1.0, worn);
-        h *= 1.0 - smoothstep(layer > 0.5 ? NEAR - 2.5 : RANGE * 0.55, layer > 0.5 ? NEAR : RANGE, dist + (layer > 0.5 ? 1.5 * mn(p * 0.9) : 0.0));
-        if (y < -1.0e3 || h < 0.04 || fract(r * 53.1) > keep * mix(0.88, 1.0, worn)) { cull(); return; }
-        float ang = r * 40.0; vec2 dir = vec2(cos(ang), sin(ang));
-        vec2 toCam = normalize(uCam.xz - p + 1e-3);
-        // flowers: clustered drifts (daisies, buttercup patches), a few strays; never on a path
-        // tight drifts (council round 3: 'scattered evenly where the mockups cluster daisies'): patches a metre or two across
-        float drift = smoothstep(0.55, 0.72, mfbm(p * 0.16 + 4.0)) * smoothstep(0.45, 0.65, mn(p * 0.9 + 2.0));
-        // (E399 seat: 'an even field of large white daisies'; the mockups' flowers are sparse, small, white and yellow)
-        // (round 6, seat A: 'fewer, smaller round flower heads')
-        // (round 10, seat A: 'small embedded daisy groups'): tighter, denser drifts, the heads small and low
-        // (E407 row 4, mockups A, B and D: small white daisies in clumps all through the near meadow, a yellow and an
-        // orange wildflower among them)
-        float flower = step(fract(r * 91.7), (0.004 + 0.3 * drift * drift) * worn) * step(0.6, dist);
-        float kind = (mn(p * 0.45 + 20.0) + 0.35 * fract(r * 17.3)) > 0.82 ? (fract(r * 41.9) > 0.6 ? 3.0 : 2.0) : 1.0;
-        vec2 wind = normalize(vec2(0.6, 0.8));
-        float sway = (0.16 + 0.1 * sin(uTime * 1.3 + dot(p, wind) * 0.35)) + 0.05 * sin(uTime * 4.1 + r * 30.0);
-        vec3 world = vec3(p.x, y, p.y);
-        float t = aShape.y;
-        vShade = 0.55 + 0.45 * fract(r * 3.3); vTone = pt; vSpecies = 0.0; vFlower = 0.0; vPetal = vec2(0.0, -3.0); vAcross = aShape.x; vUv = vec2(0.0); vDist = dist;
-        if (flower > 0.5) {
-          // a stem in the grass, the head a kite tilted half up, half to you (a daisy reads round, a buttercup a cup)
-          float stem = mix(0.07, 0.18, fract(r * 5.7));
-          float R = (kind > 1.5 ? 0.017 : 0.021) * mix(0.8, 1.2, fract(r * 7.9)) * clamp(dist / 6.0, 1.0, 1.4);
-          vec3 sideV = vec3(-toCam.y, 0.0, toCam.x), upV = normalize(mix(vec3(0.0, 1.0, 0.0), vec3(-toCam.x, 0.0, -toCam.y), 0.5));
-          vec2 nod = dir * stem * 0.12 + wind * sway * stem * 0.3;
-          vec3 head = world + vec3(nod.x, stem, nod.y);
-          vec2 q = t < 0.2 ? vec2(aShape.x * 0.1, -3.0) : t < 0.5 ? vec2(sign(aShape.x) * 0.16, -0.97) : t < 0.9 ? vec2(sign(aShape.x) * 1.05, -0.05) : vec2(0.0, 1.05);
-          world = t < 0.2 ? world + sideV * q.x * R : head + sideV * q.x * R + upV * q.y * R;
-          vH = t; vPetal = q; vFlower = kind;
-        } else {
-          // a tuft card (E399, the council every round: 'a flat lit plane under dark tufts'): a quad of the sward atlas
-          // (world/swardAtlas.ts), seventy fine strands each, facing you, so the blades overlap into a carpet. The 7-vertex
-          // blade maps onto it: its pairs at 0 / 0.34 / 0.68 become the card's bottom, middle and top, the tip folds onto
-          // the top right corner (a degenerate triangle)
-          float cy = t < 0.2 ? 0.0 : t < 0.5 ? 0.5 : 1.0, cx = t > 0.9 ? 1.0 : sign(aShape.x);
-          float wCard = (species < 0.5 ? mix(0.5, 0.75, fract(r * 13.7)) : species < 1.5 ? mix(0.4, 0.62, fract(r * 13.7)) : mix(0.36, 0.55, fract(r * 13.7))) * mix(0.9, 1.25, smoothstep(2.0, 12.0, dist));
-          vec2 face = normalize(mix(dir, toCam, 0.85)), side = vec2(-face.y, face.x);
-          float bend = 0.1 + 0.25 * fract(r * 7.1);
-          vec2 lean = dir * bend + wind * sway;
-          h *= mix(0.8, 1.0, smoothstep(0.5, 3.0, dist));
-          // seen from above (D's rise, the aerials) an upright card squashes to a dark blot: its top leans back, away from
-          // the camera, by how steeply the camera looks down on it, so the tuft's face stays toward you
-          float down = clamp((uCam.y - y) / max(dist, 0.5) - 0.15, 0.0, 1.2);
-          world.xz += side * cx * wCard * 0.5 + lean * h * cy * cy - toCam * h * cy * down * 0.8;
-          world.y += h * cy - 0.04;
-          vUv = vec2(species * @{perSpecies} + floor(fract(r * 29.3) * @{perSpecies}) + (cx * 0.5 + 0.5) * (fract(r * 5.1) > 0.5 ? 1.0 : -1.0) + (fract(r * 5.1) > 0.5 ? 0.0 : 1.0), cy);
-          vH = cy; vAcross = 0.0; vSpecies = species;
-        }
-        vWorld = world;
-        gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(world, 1.0);
-      }`,
-    fragment: /* glsl */`
-      uniform vec3 uCam; uniform vec3 uSun; uniform sampler2D uAtlas;
-      uniform vec3 uRootC; uniform vec3 uLowC; uniform vec3 uLawnC; uniform vec3 uBroadC; uniform vec3 uWildC; uniform vec3 uTipC; uniform vec3 uSunC; uniform vec4 uLight; uniform float uTop;
-      varying float vH; varying float vTone; varying vec3 vWorld; varying float vShade; varying float vFlower; varying vec2 vPetal; varying float vAcross; varying vec2 vUv; varying float vDist; varying float vSpecies;
-      void main(){
-        vec3 view = normalize(vWorld - uCam);
-        float back = pow(max(dot(view, uSun), 0.0), 3.0);
-        // the sun through a blade: a tight forward-scattering lobe (E407 row 4), so the grass you look along toward the low
-        // sun glows and the grass at your feet, seen from above, does not (one term at every distance)
-        float through = pow(max(dot(view, uSun), 0.0), 8.0);
-        vec3 lit;
-        if (vFlower > 0.5 && (vPetal.y < -0.96 || length(vPetal) > 0.74)) {
-          // a flower's stem, and the kite's corners round the round head: a thin dark green, lit like the blades round it
-          lit = vec3(0.1022, 0.1946, 0.0194) * (0.55 + 0.25 * vH) * vShade + vec3(0.5841, 0.7157, 0.1070) * back * 0.2;
-        } else if (vFlower > 0.5) {
-          // the head: a daisy's white petal ring round a gold eye, or a buttercup's glossy yellow cup
-          float d = length(vPetal) / 0.74, a = atan(vPetal.y, vPetal.x);
-          vec3 petal = vFlower > 2.5 ? vec3(0.8714, 0.2542, 0.0116) : vFlower > 1.5 ? vec3(0.9047, 0.5395, 0.0137) : vec3(0.9647, 0.9301, 0.8550);
-          petal *= 0.82 + 0.18 * cos(a * (vFlower > 1.5 ? 5.0 : 13.0)) * smoothstep(0.25, 0.6, d);
-          petal *= 1.0 - 0.25 * smoothstep(0.75, 1.05, d);
-          vec3 eye = vFlower > 1.5 ? vec3(0.7454, 0.3564, 0.0070) : vec3(0.8070, 0.4621, 0.0232);
-          vec3 c = mix(eye, petal, smoothstep(0.24, 0.34, d));
-          lit = c * (0.95 + 0.2 * back);
-        } else {
-          // the tuft: each strand's own shade (R) and how far along it this texel is (G); thin strands thin out in the far
-          // mips, so the cut-off eases with distance
-          vec4 tx = texture2D(uAtlas, vec2(vUv.x / @{variants}, vUv.y));
-          if (tx.a < mix(0.5, 0.22, smoothstep(3.0, 16.0, vDist))) discard;
-          // the data channels are 0 off the strands, so a filtered (far, mipped) texel holds them scaled by its coverage:
-          // divide it back out (E407 row 4: without it the far sward read as roots, dark and unlit, and no strand caught the sun)
-          vec3 dat = min(tx.rgb / max(tx.a, 0.004), vec3(1.0));
-          float along = dat.g, sh = dat.r, across = dat.b;
-          // E407 row 4: dark roots deep in the sward, each grass its own green body (patches warmer by the tone field), warm
-          // lit tips; the sun-side edge of a broad blade catches the light, the sun shines through the blades toward it
-          vec3 body = vSpecies < 0.5 ? uLawnC : vSpecies < 1.5 ? uBroadC : uWildC;
-          body = mix(body, uTipC * vec3(0.78, 0.74, 0.5), smoothstep(0.5, 1.0, vTone + (vShade - 0.8) * 0.4) * @{strawBody});
-          float up = along * mix(0.55, 1.0, vH);
-          vec3 c = mix(uRootC, uLowC, smoothstep(0.0, 0.25, up));
-          c = mix(c, body, smoothstep(0.2, 0.6, up));
-          c = mix(c, uTipC, smoothstep(0.8, 1.0, up) * @{strawTip});
-          lit = c * (uLight.x + uLight.y * up) * (0.3 + 1.0 * sh) * (0.85 + 0.3 * vTone);
-          lit *= 1.0 + uLight.w * smoothstep(0.62, 1.0, across) * up;
-          // the low sun on the sward's top layer, whatever way you look (the blades below lie in their neighbours' shade):
-          // the mockups' gold-lit tips over green bodies
-          // only some strands catch it (by each strand's own shade), so the field is green blades and gold blades side by
-          // side, as the mockups' sward is, not one even olive-gold
-          float catchS = smoothstep(0.62, 0.95, sh);
-          lit += uSunC * uTipC * smoothstep(0.3, 0.9, up) * catchS * uTop;
-          // the light through a blade glows at its thin edges and tip (the mockups' backlit sward: dark bodies, gold rims)
-          float rimB = smoothstep(0.5, 1.0, abs(across * 2.0 - 1.0));
-          lit += uSunC * @{leaf} * through * up * up * (0.2 + 0.8 * catchS) * uLight.z * (0.3 + 0.7 * rimB);
-        }
-        lit *= vec3(1.0000, 0.9216, 0.8388) * 1.1;
-        float f = clamp((length(vWorld - uCam) - @{fogNear}) / @{fogSpan}, 0.0, 1.0) * @{fogMax};
-        gl_FragColor = vec4(mix(lit, @{fog}, f), 1.0);
-      }` },
-} as const;
+const linear = (hex: number): [number, number, number] => [16, 8, 0].map((s) => { const c = ((hex >> s) & 255) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }) as [number, number, number];
+
+/**
+ * The meadow as one SF59 material graph (`meadow` in look.materials; world/meadow.ts draws the chunks in it). Only what
+ * moves with the camera and the clock is here: the copies' shift, the cards facing you and leaning back when seen from
+ * above, the wind, the distance fades, the flower heads, the atlas (`atlas`, data role: its channels are a strand's
+ * shade, how far along it, where across it, coverage) and the paint. A blade whose fade has taken it collapses to its root.
+ */
+export function meadowGraph(): GraphIr {
+  const k = graphKit(), { op, add, sub, mul, div, swz, smooth, clamp, mix } = k;
+  const fr = (x: GraphRef): string => op('fract', [x]), one = (x: GraphRef): string => op('oneMinus', [x]);
+  const sel = (c: string, a: GraphRef, b: GraphRef): string => op('select', [c, a, b]);
+  const lt = (a: GraphRef, b: GraphRef): string => op('lt', [a, b]), gt = (a: GraphRef, b: GraphRef): string => op('gt', [a, b]);
+  const A = k.attr('aBladeA', 'vec4'), B = k.attr('aBladeB', 'vec4'), card = k.attr('aCard', 'vec4'), layer = k.attr('aLayer', 'float');
+  const { tile, range, near } = MEADOW;
+  // the blade: its random (turned per copy), tone, grass, flower kind and room
+  const r0 = swz(B, 'x'), tone = swz(B, 'y'), code = op('floor', [add(mul(swz(B, 'z'), 255), 0.5)]), room = mul(swz(B, 'w'), 255 * MEADOW_BLADES.safe);
+  const species = op('mod', [code, 4]), kind = op('floor', [div(code, 4)]);
+  const copy = op('step', [0.5, layer]), r = fr(add(r0, mul(layer, 0.2718)));
+  // a copy stands within its blade's room (never over a rim, into a hole or up a slope)
+  const sa = mul(fr(add(mul(r0, 7.31), mul(layer, 0.381966))), 6.2832), sm = mul(mul(room, op('pow', [fr(add(mul(r0, 23.1), mul(layer, 0.618))), 0.5])), copy);
+  const pL = add(mul(swz(A, 'xy'), tile), mul(op('combine', [op('cos', [sa]), op('sin', [sa])]), sm));
+  const origin = op('objectOrigin'), cam = op('cameraPosition'), camXZ = swz(cam, 'xz');
+  const pW = add(pL, swz(origin, 'xz')), yL = mul(swz(A, 'z'), 255 * MEADOW_BLADES.y), yW = add(yL, swz(origin, 'y'));
+  const dist = op('length', [sub(pW, camXZ)]);
+  // shrinking away: the blades by `range`, the copies by `near` (raggedly)
+  const fade = mix(one(smooth(range * 0.55, range, dist)), one(smooth(near - 2.5, near, add(dist, mul(fr(mul(r0, 7.77)), 1.5)))), copy);
+  const h = mul(mul(swz(A, 'w'), 255 * MEADOW_BLADES.h), fade);
+  const isFlower = op('and', [gt(kind, 0.5), op('gte', [dist, 0.6])]);
+  const ang = mul(r, 40), dir = op('combine', [op('cos', [ang]), op('sin', [ang])]);
+  const toCam = op('normalize', [add(sub(camXZ, pW), 0.001)]), wind: [number, number] = [0.6, 0.8], t = op('time');
+  const sway = add(add(0.16, mul(0.1, op('sin', [add(mul(t, 1.3), mul(op('dot', [pW, wind]), 0.35))]))), mul(0.05, op('sin', [add(mul(t, 4.1), mul(r, 30))])));
+  const cx = swz(card, 'x'), cy = swz(card, 'y'), q = swz(card, 'zw'), qx = swz(q, 'x'), qy = swz(q, 'y');
+  const px = swz(pL, 'x'), pz = swz(pL, 'y'), root = op('combine', [px, yL, pz]);
+  // a tuft card: a quad of the sward atlas facing you, leaning with the wind, its top back from you when you look down on it
+  const wLo = sel(lt(species, 0.5), 0.5, sel(lt(species, 1.5), 0.4, 0.36)), wHi = sel(lt(species, 0.5), 0.75, sel(lt(species, 1.5), 0.62, 0.55));
+  const wCard = mul(mix(wLo, wHi, fr(mul(r, 13.7))), mix(0.9, 1.25, smooth(2, 12, dist)));
+  const face = op('normalize', [mix(dir, toCam, 0.85)]), side = op('combine', [op('negate', [swz(face, 'y')]), swz(face, 'x')]);
+  const lean = add(mul(dir, add(0.1, mul(0.25, fr(mul(r, 7.1))))), mul(wind, sway));
+  const hc = mul(h, mix(0.8, 1, smooth(0.5, 3, dist)));
+  const down = clamp(sub(div(sub(swz(cam, 'y'), yW), op('max', [dist, 0.5])), 0.15), 0, 1.2);
+  const cxz = sub(add(mul(side, mul(cx, mul(wCard, 0.5))), mul(lean, mul(hc, mul(cy, cy)))), mul(toCam, mul(mul(hc, cy), mul(down, 0.8))));
+  const cardPos = op('combine', [add(px, swz(cxz, 'x')), add(yL, sub(mul(hc, cy), 0.04)), add(pz, swz(cxz, 'y'))]);
+  // a flower: a stem in the grass, the head a kite tilted half up, half to you (a daisy reads round, a buttercup a cup)
+  const stem = mix(0.07, 0.18, fr(mul(r, 5.7)));
+  const R = mul(mul(sel(gt(kind, 1.5), 0.017, 0.021), mix(0.8, 1.2, fr(mul(r, 7.9)))), clamp(div(dist, 6), 1, 1.4));
+  const tx = swz(toCam, 'x'), tz = swz(toCam, 'y');
+  const sideV = op('combine', [op('negate', [tz]), 0, tx]), upV = op('normalize', [op('combine', [mul(tx, -0.5), 0.5, mul(tz, -0.5)])]);
+  const nod = add(mul(dir, mul(stem, 0.12)), mul(wind, mul(sway, mul(stem, 0.3))));
+  const head = add(root, op('combine', [swz(nod, 'x'), stem, swz(nod, 'y')])), across = mul(sideV, mul(qx, R));
+  const flowerPos = sel(lt(cy, 0.25), add(root, across), add(add(head, across), mul(upV, mul(qy, R))));
+  const position = sel(op('gte', [h, 0.04]), sel(isFlower, flowerPos, cardPos), root);
+  // the atlas cell: the grass's two tufts, mirrored by half the blades
+  const c01 = add(mul(cx, 0.5), 0.5), u = add(add(mul(species, SWARD_ATLAS.perSpecies), op('floor', [mul(fr(mul(r, 29.3)), SWARD_ATLAS.perSpecies)])), sel(gt(fr(mul(r, 5.1)), 0.5), c01, one(c01)));
+  const v1 = k.varying(op('combine', [div(u, SWARD_ATLAS.variants), cy, dist, add(0.55, mul(0.45, fr(mul(r, 3.3))))]));
+  const v2 = k.varying(op('combine', [tone, species, sel(isFlower, kind, 0), 0])), petal = k.varying(q), world = k.varying(add(position, origin));
+  const vUv = swz(v1, 'xy'), vH = swz(v1, 'y'), vDist = swz(v1, 'z'), vShade = swz(v1, 'w'), vTone = swz(v2, 'x'), vSpecies = swz(v2, 'y'), vFlower = swz(v2, 'z');
+  // the fragment: the sun through a blade, a tight forward-scattering lobe (one term at every distance)
+  const sun = [...SKY_SUN], sd = op('max', [op('dot', [op('normalize', [sub(world, cam)]), sun]), 0]);
+  const back = op('pow', [sd, 3]), through = op('pow', [sd, 8]);
+  // a flower's stem and the kite's corners round the head: a thin dark green, lit like the blades round it
+  const stemC = add(mul([0.1022, 0.1946, 0.0194], mul(add(0.55, mul(0.25, vH)), vShade)), mul([0.5841, 0.7157, 0.107], mul(back, 0.2)));
+  // the head: a daisy's white petal ring round a gold eye, a buttercup's glossy yellow cup, an orange wildflower
+  const pd = div(op('length', [petal]), 0.74), pa = op('atan', [swz(petal, 'y'), swz(petal, 'x')]), big = gt(vFlower, 1.5);
+  let petalC = sel(gt(vFlower, 2.5), [0.8714, 0.2542, 0.0116], sel(big, [0.9047, 0.5395, 0.0137], [0.9647, 0.9301, 0.855]));
+  petalC = mul(petalC, add(0.82, mul(mul(0.18, op('cos', [mul(pa, sel(big, 5, 13))])), smooth(0.25, 0.6, pd))));
+  petalC = mul(petalC, one(mul(0.25, smooth(0.75, 1.05, pd))));
+  const headC = mul(mix(sel(big, [0.7454, 0.3564, 0.007], [0.807, 0.4621, 0.0232]), petalC, smooth(0.24, 0.34, pd)), add(0.95, mul(0.2, back)));
+  // the tuft: each strand's own shade (R), how far along it (G), where across it (B); a filtered texel holds them scaled by
+  // its coverage, so divide it back out (E407 row 4); thin strands thin out in the far mips, so the cut-off eases with distance
+  const tex = k.tex('atlas', vUv), cover = swz(tex, 'w');
+  const dat = op('min', [div(swz(tex, 'xyz'), op('max', [cover, 0.004])), [1, 1, 1]]), along = swz(dat, 'y'), sh = swz(dat, 'x'), acr = swz(dat, 'z');
+  const s = SWARD, L = s.light, tipC = linear(s.tip), sunC = linear(s.sun);
+  let body = sel(lt(vSpecies, 0.5), linear(s.lawn), sel(lt(vSpecies, 1.5), linear(s.broad), linear(s.wild)));
+  body = mix(body, mul(tipC, [0.78, 0.74, 0.5]), mul(smooth(0.5, 1, add(vTone, mul(sub(vShade, 0.8), 0.4))), s.straw.body));
+  const up = mul(along, mix(0.55, 1, vH));
+  let c = mix(linear(s.root), linear(s.low), smooth(0, 0.25, up));
+  c = mix(c, body, smooth(0.2, 0.6, up));
+  c = mix(c, tipC, mul(smooth(0.8, 1, up), s.straw.tip));
+  let lit = mul(mul(mul(c, add(L.floor, mul(L.gain, up))), add(0.3, sh)), add(0.85, mul(0.3, vTone)));
+  lit = mul(lit, add(1, mul(mul(L.edge, smooth(0.62, 1, acr)), up)));
+  // the low sun on the sward's top layer, caught by only some strands: green blades and gold blades side by side
+  const catchS = smooth(0.62, 0.95, sh);
+  lit = add(lit, mul([sunC[0] * tipC[0], sunC[1] * tipC[1], sunC[2] * tipC[2]], mul(mul(smooth(0.3, 0.9, up), catchS), L.top)));
+  // the light through a blade glows at its thin edges and tip (the mockups' backlit sward: dark bodies, gold rims)
+  const rimB = smooth(0.5, 1, op('abs', [sub(mul(acr, 2), 1)])), leaf = linear(s.leaf);
+  lit = add(lit, mul([sunC[0] * leaf[0], sunC[1] * leaf[1], sunC[2] * leaf[2]], mul(mul(mul(mul(through, mul(up, up)), add(0.2, mul(0.8, catchS))), L.through), add(0.3, mul(0.7, rimB)))));
+  const flower = gt(vFlower, 0.5), stemPart = op('or', [lt(swz(petal, 'y'), -0.96), gt(op('length', [petal]), 0.74)]);
+  const colour = mul(sel(flower, sel(stemPart, stemC, headC), lit), [1.1, 1.0138, 0.9227]);
+  const discard = op('and', [op('not', [flower]), lt(cover, mix(0.5, 0.22, smooth(3, 16, vDist)))]);
+  return { version: 1, kind: 'material', model: 'unlit', doubleSided: true, budget: { nodes: 480, samplers: 1, instructions: 1600 },
+    params: { atlas: { type: 'texture', value: SWARD_ATLAS_FILE.hash, role: 'data' } }, nodes: k.nodes,
+    stages: { 'vertex.position': { position }, surface: { colour, discard } }, effectState: { fog: false } };
+}
+
+/** The meadow's look (look.materials `meadow`). */
+export const MEADOW_GRAPH = meadowGraph();

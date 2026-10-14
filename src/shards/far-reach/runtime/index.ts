@@ -11,7 +11,7 @@ import { ROC_SLATE_EDITS } from '../data/paintLook';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture } from 'three';
 import { STRINGS } from '../data/strings';
-import { CROWN, DAIS, ISLES, ROC, VANES } from '../data/layout';
+import { CROWN, DAIS, ROC, VANES } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_MOVER_BINDING, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
@@ -25,15 +25,13 @@ import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
 import { FAN_ROW } from '../data/equipment';
 import { preloadSkyMeshes } from '../world/meshes';
-import { loadSkyBaked } from '../world/baked';
+import { loadSkyBaked, skyMeadowBlades } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
 import { setSkyLooks, skyLook } from '../world/looks';
 import { setMillTextures } from '../world/mill';
 import { wakeRibbon } from './looks/wakeRibbon';
 import { RAY_WAKE } from '../data/rayWakeLook';
-import { meadow, type Meadow } from '../world/meadow';
-import { heroStoneDiscs } from '../world/dressing';
-import { SKY_SUN } from '../data/skyLook';
+import { meadow } from '../world/meadow';
 import { bindDeclaredFight, bindPageQuestStages, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
@@ -75,8 +73,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   private isletCalls: ReturnType<typeof bindClientChannels> | null = null;
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
-  /** The near meadow that travels with the camera (loop 4). */
-  meadow: Meadow | null = null;
 
   protected readonly rows: HybridRuntimeRows = { ...SKY_RUNTIME_ROWS, source };
 
@@ -102,9 +98,8 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     await worldBuildYield(ctx, 4);
     const blades = ctx.manifest.tiers?.phone?.['far.meadowBlades'] ?? 0;
     ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
-    const field = meadow(new Vector3(...SKY_SUN), ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades, ISLES, heroStoneDiscs());
-    this.meadow = field; ctx.root.add(field.mesh); ctx.scope.own(field.mesh.geometry); ctx.scope.own(field.mesh.material); ctx.scope.own(field.atlas);
-    ctx.scope.onDispose(() => { field.mesh.removeFromParent(); });
+    const field = meadow(skyMeadowBlades(), skyLook('meadow'), ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades);
+    ctx.root.add(field.group); ctx.scope.onDispose(field.dispose);
     ctx.game.runtime?.interactables.push(this.built.winch, this.built.notes);
   }
   protected override prepare(ctx: ShardContext): void {
@@ -188,9 +183,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     ctx.system({ id: 'far.dressing', phase: 'update', run: (dt, t) => {
       const riding = this.board();
       built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.16;
-      // the eye in the level's own frame (G321; the meadow stands at its root): inside a grid cell the root is at the cell's
-      // render offset and the page camera in the page's frame; standalone the root is the origin and this is the camera's own
-      const cam = rt.world?.game.camera; if (cam && this.meadow) this.meadow.update(this.meadow.mesh.worldToLocal(cam.getWorldPosition(eye)), t);
       // SF49-g (G183): the Rising Islets ride their movers (fixed ride driver, in the fixed step); draw them and their chains
       const movers = this.movers; if (movers !== null) { built.islets.updateMovers(moverPose); this.isletCalls?.updateMovers(moverPose); }
       built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t);
@@ -224,7 +216,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     boundedRows(wakes);
     ctx.system({ id: 'far.rayWake', phase: 'late', run: (dt) => {
       const cam = rt.world?.game.camera; if (!cam) return;
-      // each wake in the level's own frame (it stands at the root), as the meadow's eye
+      // each wake in the level's own frame (it stands at the root): inside a grid cell the root is at the cell's render offset
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) { const row = wakes[i]; if (row === undefined) break; row.w.update(row.ray.position, row.ray.alive, row.w.mesh.worldToLocal(cam.getWorldPosition(eye)), dt); }
     } });
     // the Roc's plumage to mockup D (E399 round 6, seat A: 'a slate / white split'; the generated texture's wings and back are

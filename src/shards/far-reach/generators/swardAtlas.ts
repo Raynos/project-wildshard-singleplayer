@@ -3,9 +3,9 @@ import { bakeRawColourTexture } from '@wildshard/sdk/bake/texture';
 import { SWARD_ATLAS } from '../data/swardAtlas';
 
 /**
- * Build-time only (SHARD-PLATFORM M3): the sward's tuft atlas texels (data/swardAtlas.ts), baked by
- * `bake-sky-world.mjs` into `baked/sward-atlas.bin` (deflated RGBA); the client wraps the bytes in a DataTexture
- * (world/baked.ts `skySwardAtlas`). The same strands, seeded, drawn here once instead of on every load.
+ * Build-time only (SHARD-PLATFORM M3): the sward's tuft atlas texels (data/swardAtlas.ts), baked by the generation job
+ * `sky-sward-atlas` into a library texture the meadow graph samples (data/meadowLook.ts). The same strands, seeded,
+ * drawn here once instead of on every load.
  */
 
 /** One grass: how many strands, how long (share of the tuft's height), how wide at the root (texels), how they arch. */

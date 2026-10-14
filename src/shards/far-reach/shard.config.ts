@@ -1,6 +1,6 @@
 import { SKY_SECTIONS } from './data/sections';
 import { STORM_NOISE } from './data/stormNoise';
-import { SWARD_ATLAS_FILE } from './data/swardAtlas';
+import { SWARD_ATLAS_FILE, SWARD_ATLAS_SAMPLER } from './data/swardAtlas';
 import skyMaps from './data/skyMaps.json' with { type: 'json' };
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { SKY_REACH_RUNTIME_COST } from './data/budgets';
@@ -28,6 +28,7 @@ import { MILL_CANVAS_GRAPH, MILL_TOWER_GRAPH } from './data/millLook';
 import { RAY_WAKE_GRAPH } from './data/rayWakeLook';
 import { WIND_GRAPHS } from './data/windLook';
 import { STORM_RING_GRAPH } from './data/stormLook';
+import { MEADOW_GRAPH } from './data/meadowLook';
 
 // Legacy trusted runtime retains today's geometry/spawn; SF29 binds only its audio.
 // SF49-g (G99 / G183) and SF8c's socketLift: every entry meets the road over the cloud sea's void (no ground below y = 0
@@ -49,11 +50,11 @@ export default parseShardfile({ ...base, ...SKY_SECTIONS, navigation: navigation
   look: { ...base.look, materials: { ...base.look.materials, 'deck-wood': { family: 'graph', graph: DECK_WOOD_GRAPH }, 'hover-frame': { family: 'graph', graph: HOVER_FRAME_GRAPH },
     'dressing-clump': { family: 'graph', graph: CLUMP_GRAPH }, 'dressing-flower': { family: 'graph', graph: FLOWER_GRAPH }, 'dressing-stone': { family: 'graph', graph: BOULDER_GRAPH }, falls: { family: 'graph', graph: FALL_GRAPH },
     ...Object.fromEntries(Object.entries(ISLE_GRAPHS).map(([id, graph]) => [id, { family: 'graph', graph }])),
-    ...Object.fromEntries(Object.entries({ 'crown-dais': CROWN_DAIS_GRAPH, 'lantern-glow': LANTERN_GLOW_GRAPH, 'keeper-scarf': KEEPER_SCARF_GRAPH, 'fan-silk': FAN_SILK_GRAPH, 'post-weather': POST_WEATHER_GRAPH, 'tree-bark': TREE_BARK_GRAPH, 'sky-isle': SKY_ISLE_GRAPH, 'sky-isle-keel': SKY_ISLE_KEEL_GRAPH, 'mill-tower': MILL_TOWER_GRAPH, 'mill-canvas': MILL_CANVAS_GRAPH, 'ray-wake': RAY_WAKE_GRAPH, 'storm-ring': STORM_RING_GRAPH, ...WIND_GRAPHS })
+    ...Object.fromEntries(Object.entries({ 'crown-dais': CROWN_DAIS_GRAPH, 'lantern-glow': LANTERN_GLOW_GRAPH, 'keeper-scarf': KEEPER_SCARF_GRAPH, 'fan-silk': FAN_SILK_GRAPH, 'post-weather': POST_WEATHER_GRAPH, 'tree-bark': TREE_BARK_GRAPH, 'sky-isle': SKY_ISLE_GRAPH, 'sky-isle-keel': SKY_ISLE_KEEL_GRAPH, 'mill-tower': MILL_TOWER_GRAPH, 'mill-canvas': MILL_CANVAS_GRAPH, 'ray-wake': RAY_WAKE_GRAPH, 'storm-ring': STORM_RING_GRAPH, meadow: MEADOW_GRAPH, ...WIND_GRAPHS })
       .map(([id, graph]) => [id, { family: 'graph', graph }])),
     ...Object.fromEntries(Object.entries(SHACK_GRAPHS).map(([kind, graph]) => [`shack-${kind}`, { family: 'graph', graph }])) },
     // the islands' and boulders' library maps tile (data/skyMapSources.json's sampler rows)
-    samplers: { ...base.look.samplers, [ISLE_MAPS.rock]: { wrap: 'repeat', anisotropy: 4 }, [ISLE_MAPS.meadow]: { wrap: 'repeat', anisotropy: 4 } } },
+    samplers: { ...base.look.samplers, [ISLE_MAPS.rock]: { wrap: 'repeat', anisotropy: 4 }, [ISLE_MAPS.meadow]: { wrap: 'repeat', anisotropy: 4 }, [SWARD_ATLAS_FILE.hash]: SWARD_ATLAS_SAMPLER } },
   clientChannels: [...SKY_MOVER_VIEWS, ...SKY_LIFT_PROMPTS],
   entryways: base.entryways.map(({ edge, at, width }) => {
     const lift = lifts.get(edge); if (lift === undefined) throw new Error(`Sky Reach entry ${edge} has no Rising Islet`);
