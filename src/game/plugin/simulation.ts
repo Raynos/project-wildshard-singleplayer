@@ -1027,3 +1027,16 @@ export function installDeclaredQuestHost(host: SimHost, source: Shardfile, ports
   return installQuestHost(host, source.quests, source.questHost, ports);
 }
 
+
+
+const nativeActorMetadata = v.object({ kind: v.string(), spec: v.unknown() });
+const nativeWorldMetadata = v.object({ actors: v.array(nativeActorMetadata) });
+const nativeQuestSpot = v.strictObject({ id: v.string(), x: bakedNumber, y: bakedNumber, z: bakedNumber, radius: v.pipe(bakedNumber, v.minValue(0)) });
+const nativeQuestMetadata = v.object({ actors: v.array(nativeActorMetadata), bosses: v.array(nativeActorMetadata),
+  spots: v.strictObject({ interact: v.array(nativeQuestSpot), crack: v.array(nativeQuestSpot) }), promptRegistrations: v.optional(v.unknown()) });
+/** Read native actor metadata, requiring complete quest spots and boss rows when requested. Collision rows remain addBakedWorld's responsibility. */
+export function readRuntimeWorldMetadata(input: unknown, quests: true): v.InferOutput<typeof nativeQuestMetadata>;
+export function readRuntimeWorldMetadata(input: unknown): v.InferOutput<typeof nativeWorldMetadata>;
+export function readRuntimeWorldMetadata(input: unknown, quests = false): v.InferOutput<typeof nativeWorldMetadata> | v.InferOutput<typeof nativeQuestMetadata> {
+  return quests ? v.parse(nativeQuestMetadata, input) : v.parse(nativeWorldMetadata, input);
+}

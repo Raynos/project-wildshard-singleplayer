@@ -4525,3 +4525,11 @@ required materials and an unloaded owner refuse. `painted` contains the
 named texture handles, `material(id)` requires a compiled material, and
 the existing graph/material bindings remain available on the result.
 Sky world boot and Signal graph preparation consume the same binding.
+
+
+`@wildshard/game/plugin/simulation` defines `readRuntimeWorldMetadata`
+for generated native actor rows. Passing `true` as the second argument
+requires the complete boss, interaction and crack-spot metadata as well.
+The reader validates finite positions and nonnegative radii; collision
+rows continue through `addBakedWorld` and native population keeps body
+and behaviour ownership.

@@ -1,5 +1,4 @@
-import * as v from 'valibot';
-import { addBakedWorld, installDeclaredQuestHost, admittedTerrain, ledgerPorts, pickCommands, trustedLevel, weaponRow, installNativeMelee, type NativeMeleeCommand, type NativeMeleeWorld, type NativeMeleeOwner } from '@wildshard/game/plugin/simulation';
+import { readRuntimeWorldMetadata, addBakedWorld, installDeclaredQuestHost, admittedTerrain, ledgerPorts, pickCommands, trustedLevel, weaponRow, installNativeMelee, type NativeMeleeCommand, type NativeMeleeWorld, type NativeMeleeOwner } from '@wildshard/game/plugin/simulation';
 import { prepareNativePopulation } from '@wildshard/game/shardfile/bossRow';
 import type { QuestGraphPorts } from '@wildshard/game/plugin/quests';
 import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
@@ -11,13 +10,8 @@ import { SIGNAL_LEVEL } from '../data/headlessLevel';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 import { SignalLashInput } from './lashInput';
 
-const finite = v.pipe(v.number(), v.finite());
-const Spot = v.strictObject({ id: v.string(), x: finite, y: finite, z: finite, radius: v.pipe(finite, v.minValue(0)) });
-/** The bake's native metadata (generators/physics.ts, authored rows only); its pieces are admitted strictly by `addBakedWorld`. */
-const Baked = v.object({ actors: v.array(v.object({ kind: v.string(), spec: v.unknown() })), bosses: v.array(v.object({ kind: v.string(), spec: v.unknown() })),
-  spots: v.strictObject({ interact: v.array(Spot), crack: v.array(Spot) }), promptRegistrations: v.optional(v.unknown()) });
 /** The baked prompt spots and crack targets (the built world's order), strictly. */
-export function bakedSpots(input: unknown): QuestGraphPorts['spots'] { return v.parse(Baked, input).spots; }
+export function bakedSpots(input: unknown): QuestGraphPorts['spots'] { return readRuntimeWorldMetadata(input, true).spots; }
 
 /** The held whip input's quiet continuation; the existing lash adapter owns unroll, cooldown and both contacts. */
 export const SIGNAL_LASH_INPUT = 'sunscar.whip-input';
@@ -25,7 +19,7 @@ const manifest = { ...SIGNAL_HEADLESS, baked };
 
 /** Compose Signal's existing native owners in-shard, preserving their install order and adding the shipping hold/release input. */
 export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) => {
-  const rows = v.parse(Baked, baked), spots = rows.spots;
+  const rows = readRuntimeWorldMetadata(baked, true), spots = rows.spots;
   const quest = shard.questHost, terrain = admittedTerrain(shard, assets), { heightAt } = terrain;
   if (quest === null || quest === undefined) throw new Error('Missing admitted Signal quest host');
   const population = prepareNativePopulation(SIGNAL_NATIVE_POPULATION, [...rows.actors, ...rows.bosses], SIGNAL_BOSS_OWNER);

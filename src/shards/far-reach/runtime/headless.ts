@@ -2,7 +2,7 @@ import { Vector3 } from 'three';
 import type { HeadlessRuntimeInstallation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import type { SimHost } from '@wildshard/engine/sim';
 import { floorBelow } from '@wildshard/engine/physics/query';
-import { addBakedWorld, installDeclaredQuestHost, ledgerPorts, pickCommands, trustedLevel, weaponRow, createMeleeScriptDriver, MeleeScriptDriver, installNativeMelee, type NativeMeleeCommand } from '@wildshard/game/plugin/simulation';
+import { readRuntimeWorldMetadata, addBakedWorld, installDeclaredQuestHost, ledgerPorts, pickCommands, trustedLevel, weaponRow, createMeleeScriptDriver, MeleeScriptDriver, installNativeMelee, type NativeMeleeCommand } from '@wildshard/game/plugin/simulation';
 import { DECK, SPAWN, VANES } from '../data/layout';
 import { SKY_ANALYTIC_FLOOR } from '../data/spawns';
 import { SKY_NATIVE_POPULATION } from '../data/population';
@@ -22,7 +22,7 @@ export const UPDRAFT_STEP = 'far.updraft';
 
 /** The shipping native world, bodies, quest and movers in a renderer-free host. */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets }) => {
-  const fanRow = weaponRow(shard, FAN_ID);
+  const rows = readRuntimeWorldMetadata(baked), fanRow = weaponRow(shard, FAN_ID);
   // Prepare detached, verified module bytes; every actual host binds its own player and role below.
   const itemModules = (await createMeleeScriptDriver(shard.items, 'actor.player', assets, shard.identity.seed)).modules;
   const updraft = shard.modes?.traverse.find(row => row.id === 'far.updraft');
@@ -41,7 +41,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
       activation: { ground: () => host.hasPlayerMotor ? host.player.motor.result : undefined } });
     return { runtime, failures: () => lane.host.failureCount, hook: items.hooks(lane.host).get(FAN_ID) ?? null, hookTick: () => lane.host.currentTick };
   };
-  const population = prepareNativePopulation({ ...SKY_NATIVE_POPULATION, seed: shard.identity.seed }, baked.actors, ROC_OWNER);
+  const population = prepareNativePopulation({ ...SKY_NATIVE_POPULATION, seed: shard.identity.seed }, rows.actors, ROC_OWNER);
   // the shipping spawn (manifest `spawn`, layout SPAWN) standing on Sunrest's deck, not the shardfile's grid datum; the
   // host's player strike is the zero-damage probe, never the War Fan (a declared item, data/items.ts)
   const level = trustedLevel(shard, { at: { x: SPAWN.x, y: DECK, z: SPAWN.z }, yaw: SPAWN.yaw, speed: 5 }, { size: 500, height: SKY_ANALYTIC_FLOOR });
