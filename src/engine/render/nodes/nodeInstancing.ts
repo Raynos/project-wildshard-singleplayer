@@ -78,7 +78,10 @@ export function instanceAttributeShader(shader: string, object: Object3D, multiD
   if (object instanceof BatchedMesh) {
     // The same stock helpers and draw-ID fallback as classic BatchedMesh. This
     // adds no draw path: WebGLRenderer still dispatches the existing batches.
-    return `${multiDraw ? '#extension GL_ANGLE_multi_draw : require\n' : ''}#define USE_BATCHING\n${batchHasColour(object) ? '#define USE_BATCHING_COLOR\n' : ''}${ShaderChunk.batching_pars_vertex}\n${shader}`;
+    const extensions = shader.match(/^#extension[^\n]*$/gmu) ?? [];
+    const body = shader.replaceAll(/^#extension[^\n]*\n?/gmu, '');
+    const drawExtension = multiDraw && !extensions.some(line => line.includes('GL_ANGLE_multi_draw')) ? '#extension GL_ANGLE_multi_draw : require\n' : '';
+    return `${drawExtension}${extensions.join('\n')}\n#define USE_BATCHING\n${batchHasColour(object) ? '#define USE_BATCHING_COLOR\n' : ''}${ShaderChunk.batching_pars_vertex}\n${body}`;
   }
   if (!(object instanceof InstancedMesh)) return shader;
   return `in mat4 instanceMatrix;\n${object.instanceColor === null ? '' : 'in vec3 instanceColor;\n'}${shader}`;

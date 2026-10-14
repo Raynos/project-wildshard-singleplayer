@@ -56,7 +56,10 @@ test('existing batches share graph placement with live renderer-owned textures a
     a.setMatrixAt(ai, new THREE.Matrix4().makeTranslation(3, 2, 1));
     expect(texture.version).toBeGreaterThan(version);
     expect(Reflect.get(a, '_matricesTexture')).not.toBe(Reflect.get(b, '_matricesTexture'));
-    expect(instanceAttributeShader('void main() {}', a, true)).toContain('#extension GL_ANGLE_multi_draw : require');
+    const prologue = instanceAttributeShader('#extension GL_ANGLE_multi_draw : require\nvoid main() {}', a, true);
+    expect(prologue.match(/#extension GL_ANGLE_multi_draw/gu)).toHaveLength(1);
+    expect(prologue.indexOf('#extension')).toBeLessThan(prologue.indexOf('uniform highp sampler2D'));
+    expect(first.vertexShader.lastIndexOf('#extension')).toBeLessThan(first.vertexShader.indexOf('uniform highp sampler2D'));
     expect(Reflect.get(material.userData, 'graphShadowDepth')).toBe(true);
   } finally { a.dispose(); b.dispose(); box.dispose(); material.dispose(); }
 });
