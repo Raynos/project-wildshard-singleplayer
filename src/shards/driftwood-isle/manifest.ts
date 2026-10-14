@@ -1,3 +1,4 @@
+import { SHRINE_SITES } from './data/shrineSites';
 import { WRECK_SITES } from './data/wreckSites';
 import { DRIFTWOOD_BUDGET_INPUTS } from './budgets';
 import { DRIFTWOOD_RUNTIME_COST } from './data/runtimeCost';
@@ -94,7 +95,7 @@ export const HEADLAND = { x: 98, z: 96, r: 48, h: 22, shoulderR: 80, shoulderH: 
 export const COVE = { ang: -0.02, depth: 46, width: 0.5 };
 export const WRECK = WRECK_SITES.world;
 /** the ring shrine on a knoll in the north-west jungle (rot: its stair faces south-east toward the hut path; its back points at the planet, so the ring frames it from the stair head) */
-export const SHRINE = { x: -98, z: 108, rot: 2.51 };
+export const SHRINE = SHRINE_SITES.world;
 /** the tidal creek across the hut → lookout path (a ravine cut below sea level, so the lagoon runs into it) and the rope bridge over it */
 export const GULLY = { x: 24, z: 22, width: 11, depth: 7, length: 64 };
 export const BRIDGE = { a: [16, 14] as [number, number], b: [32, 30] as [number, number], sag: 0.9 };

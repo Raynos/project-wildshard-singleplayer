@@ -28,6 +28,12 @@ export const WRECK_GLOW_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.wreckGlow);
 export const WRECK_ROCKS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.wreckRocks);
 export const SHIPWRECK_KIT_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.shipwreckKit, { _sway: 'aSway' });
 export const SHIPWRECK_GLOW_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.shipwreckGlow);
+export const SHRINE_KIT_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.shrineKit);
+export const SHRINE_WATER_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.shrineWater);
+export const SHRINE_GLYPHS_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.shrineGlyphs);
+export const SHRINE_SPECIMEN_KIT_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.shrineSpecimenKit);
+export const SHRINE_SPECIMEN_WATER_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.shrineSpecimenWater);
+export const SHRINE_SPECIMEN_GLYPHS_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.shrineSpecimenGlyphs);
 let ready = false;
 /** Explorer may open these models before the island's world hook has run. */
 export function fixedGeometryReady(): boolean { return ready; }
@@ -37,6 +43,12 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
   const admitted = product?.templates ?? bytes;
   try {
   await Promise.all([
+    SHRINE_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineKit)),
+    SHRINE_WATER_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineWater)),
+    SHRINE_GLYPHS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineGlyphs)),
+    SHRINE_SPECIMEN_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineSpecimenKit)),
+    SHRINE_SPECIMEN_WATER_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineSpecimenWater)),
+    SHRINE_SPECIMEN_GLYPHS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineSpecimenGlyphs)),
     loadTrailsideGeometry(admitted),
     loadCoveGeometry(admitted),
     loadCoverGeometry(admitted),

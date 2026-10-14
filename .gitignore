@@ -1027,3 +1027,17 @@ src/shards/far-reach/data/crownInstances.generated.json
 /src/shards/driftwood-isle/assets/78bef12a62f10a560d67522b2d656911d559bb192f798ac819aa1b0510d5a006
 /src/shards/driftwood-isle/assets/b169e5f167116fd43c402fefcff07f952db72d15f7117b910021634789891874
 /src/shards/driftwood-isle/assets/d7737c770136ac1d0fc446ed1309a805e1f1dff2f57113aa23efb14e0282de52
+
+# Authored Ring Shrine scene and Explorer specimen (G405).
+src/shards/driftwood-isle/data/shrineBake.json
+public/assets/driftwood-isle/baked/fixed-models/shrine-kit.glb
+public/assets/driftwood-isle/baked/fixed-models/shrine-water.glb
+public/assets/driftwood-isle/baked/fixed-models/shrine-glyphs.glb
+public/assets/driftwood-isle/baked/fixed-models/shrine-specimen-kit.glb
+public/assets/driftwood-isle/baked/fixed-models/shrine-specimen-water.glb
+public/assets/driftwood-isle/baked/fixed-models/shrine-specimen-glyphs.glb
+src/shards/driftwood-isle/assets/0011ca788361da31965e5d3ae7b05d5b2a80c7b27e3e7154ba04d95c0123af6d
+src/shards/driftwood-isle/assets/456ece68041b41729d1d311eed0091fa018a8e414195261a8c193142644fe007
+src/shards/driftwood-isle/assets/9d7299ecc0e8d86da25d49578adf4ac2be5f0f3703e8bb44a3d61a455fc04ce4
+src/shards/driftwood-isle/assets/b2b261ead396aae07bae50b9724b76d6a258d901ece0005a88a4ae78f0c819bd
+src/shards/driftwood-isle/assets/d59ec07d7fa51fffe08d7f5a5da46c6aa69e2954de0061131feedd7c6183f41c

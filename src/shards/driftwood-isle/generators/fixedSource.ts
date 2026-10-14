@@ -11,6 +11,7 @@ import { coverGeometry } from './groundCover';
 import { originalTrailside } from './driftwoodTrailside.mjs';
 import { originalCove } from './driftwoodCove.mjs';
 import { originalHut, originalLookout } from './driftwoodHut.mjs';
+import { originalShrine } from './driftwoodShrine.mjs';
 import { originalWreck } from './driftwoodWreck.mjs';
 
 /** The original ordered fixed builders, shared by their retained byte oracle and the scene producer. */
@@ -48,5 +49,11 @@ export function driftwoodFixedSource(): {
   }
   geometries.set('shipwreck-kit', wreck.specimen.geometry); geometries.set('shipwreck-glow', wreck.specimen.glow);
   rows['wreckBake'] = wreck.world.rows;
+  const shrine=originalShrine(),o=shrine.world.rows.origin;
+  for(const [part,geometry] of Object.entries(shrine.world.geometry)){
+    const id=`shrine-${part}`;geometries.set(id,geometry);world.set(id,new Matrix4().makeTranslation(o.x,o.y,o.z));
+  }
+  for(const [part,geometry] of Object.entries(shrine.specimen.geometry))geometries.set(`shrine-specimen-${part}`,geometry);
+  rows['shrineBake']={world:shrine.world.rows,specimen:shrine.specimen.rows};
   return { geometries, world, rows };
 }

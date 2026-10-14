@@ -1,5 +1,12 @@
 /** Fixed low-poly geometry, baked offline without changing its vertex colours or wind channels. */
 export const FIXED_MODEL_FILES = {
+  shrineKit: '/assets/driftwood-isle/baked/fixed-models/shrine-kit.glb',
+  shrineWater: '/assets/driftwood-isle/baked/fixed-models/shrine-water.glb',
+  shrineGlyphs: '/assets/driftwood-isle/baked/fixed-models/shrine-glyphs.glb',
+  shrineSpecimenKit: '/assets/driftwood-isle/baked/fixed-models/shrine-specimen-kit.glb',
+  shrineSpecimenWater: '/assets/driftwood-isle/baked/fixed-models/shrine-specimen-water.glb',
+  shrineSpecimenGlyphs: '/assets/driftwood-isle/baked/fixed-models/shrine-specimen-glyphs.glb',
+
   trailside: '/assets/driftwood-isle/baked/fixed-models/trailside.glb',
   coveStructure: '/assets/driftwood-isle/baked/fixed-models/cove-structure.glb',
   coveRocks: '/assets/driftwood-isle/baked/fixed-models/cove-rocks.glb',
