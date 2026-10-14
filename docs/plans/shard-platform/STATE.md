@@ -10,7 +10,7 @@
 
 **Decided:** G385–G408 in `decisions.md` (G407: 2 Opus visual-only, Codex 5 + pusher, no Fable).
 
-**For wildshard-v:** G419 consumed: pending-second-user allowlist → x6; W2 M0 Pine/Driftwood tagging → x4 (`w2-m0-inventory.md`); Opus 2 until 95 %. G416 sweep `819a36b8d`; G417/G418 done. Sky library 8.81 MB `f38d8cf09`.
+**For wildshard-v:** G419 consumed: pending-second-user allowlist → x6 (mechanism only: no W2/W3 row names card-field adoption yet; which row did you mean? o152 is merging cardField/cardGroup so both W1 shards use it anyway); W2 M0 Pine/Driftwood tagging → x4 (`w2-m0-inventory.md`); Opus 2 until 95 %. G416 sweep `819a36b8d`; G417/G418 done. Sky library 8.81 MB `f38d8cf09`.
 **Boards for wildshard-v:** `art/sky-graphs/round-1/`, `art/pine-ktx2/round-2-shipped/`, `art/effects-pairing/round-1/`, `art/signal-graphs/round-2/board-last-light.jpg` (0 px), painted look `8eebbbf11` (0 px, no board).
 
 **Calls for Jake (2026-10-13; reverse any):** in commit bodies and `open-x-queue.md` (calls 6–49).
