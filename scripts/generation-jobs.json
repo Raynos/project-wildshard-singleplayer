@@ -11853,7 +11853,9 @@
         "src/shards/far-reach/data/strings.ts",
         "src/shards/far-reach/data/isletDesign.ts",
         "src/shards/far-reach/data/restScenes.generated.json",
-        "src/shards/far-reach/data/bridgeRest.generated.json"
+        "src/shards/far-reach/data/bridgeRest.generated.json",
+        "src/shards/far-reach/data/moverBindings.ts",
+        "src/shards/far-reach/quests/flags.ts"
       ],
       "outputs": [
         "src/shards/far-reach/data/routeScene.generated.ts"
@@ -12097,6 +12099,36 @@
       "buildTimeOutputs": [
         "src/shards/sunscar-dunes/data/worldBakes.generated.json"
       ]
+    },
+    {
+      "id": "sky-mill-scene",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/millScene.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/millScene.ts",
+        "millSceneSource",
+        "src/shards/far-reach/data/millScene.generated.ts",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/generators/millScene.ts",
+        "src/shards/far-reach/data/millModel.json"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/millScene.generated.ts"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/millScene.generated.ts"
+      ],
+      "platform": "portable"
     }
   ]
 }

@@ -1,18 +1,16 @@
 import STATIC_SCENES from '../data/staticScenes.generated.json' with { type: 'json' };
 import ISLET_SCENES from '../data/isletScenes.generated.json' with { type: 'json' };
 import { SKY_GROUND } from '../data/groundScene.generated';
-import { SKY_ROUTE_SCENE, SKY_ROUTES } from '../data/routeScene.generated';
+import { SKY_ROUTE_FRAMES, SKY_ROUTE_SCENE, SKY_ROUTES } from '../data/routeScene.generated';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc } from '@wildshard/engine/world/registry';
-import { bindClientChannels, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
+import { bindClientChannels, bindWorldSceneParts, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
 import type { SkyReachPlugin } from '../runtime/index';
-import { spanYaw } from '../layout';
-import { FALLEN_ANGLE } from '../data/moverBindings';
 import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
 import { SKY_LIBRARY, skyHd } from './meshes';
 import { skyLook, skyMappedLook } from './looks';
 import { Group, Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, FALLEN_BRIDGE, NOTES, SUNREST, VANES, WINCH } from '../data/layout';
+import { CROWN, FALLEN_BRIDGE, SUNREST, VANES } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { islandMesh, staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
@@ -108,8 +106,9 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
   const state = { raised: false, raising: false };
-  const fallen = new Group(), deck = ropeBridge(FALLEN_BRIDGE.id, rope, looks.deck);
-  fallen.add(deck); fallen.position.set(FALLEN_BRIDGE.x0, FALLEN_BRIDGE.y, FALLEN_BRIDGE.z0); fallen.rotation.set(FALLEN_ANGLE, spanYaw(FALLEN_BRIDGE), 0, 'YXZ');
+  const frames = createWorldScene(SKY_ROUTE_FRAMES.recipe, { objects: new Map([['fallen-deck', ropeBridge(FALLEN_BRIDGE.id, rope, looks.deck)]]),
+    geometry: SKY_LIBRARY.geometry, model: SKY_LIBRARY.model, baked: WORLD.object });
+  const { fallen, winchAt, notesAt } = bindWorldSceneParts(frames, { fallen: 'group', winchAt: 'vector', notesAt: 'vector' }, SKY_ROUTE_FRAMES.bindings);
   pieces.add(FALLEN_BRIDGE.id, fallen, { colliders: spanColliders(FALLEN_BRIDGE.id), active: () => state.raised });
 
   await pause();
@@ -117,14 +116,12 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
 
   await pause();
   pieces.add('far.winch', createClientScene(REST_SCENES.winch, { geometry: SKY_LIBRARY.geometry }).root, { colliders: propColliders('far.winch') });
-  const winchAt = new Vector3(WINCH.x, WINCH.y + 1.2, WINCH.z);
   const handle: Interactable = { label: STRINGS.turnWinch, position: winchAt, radius: 3, onInteract: () => { if (!state.raised) state.raising = true; } };
 
   pieces.add('far.notes', bookStand(false), { colliders: propColliders('far.notes') });
   // the keeper's own book stand and lantern beside him at the spawn (E399, mockup B)
   const stand = bookStand(true); stand.position.set(KEEPER_STAND.x, SUNREST.y, KEEPER_STAND.z); stand.rotation.y = KEEPER_STAND.yaw;
   pieces.add('far.keeper.stand', stand, { colliders: [boxDesc({ x: KEEPER_STAND.x, z: KEEPER_STAND.z, hw: BOOK_STAND.footprint, hd: BOOK_STAND.footprint, rot: KEEPER_STAND.yaw, yBottom: stand.position.y, yTop: stand.position.y + BOOK_STAND.height }, 'wood')] });
-  const notesAt = new Vector3(NOTES.x, NOTES.y + 1.3, NOTES.z);
   const notes: Interactable = { label: STRINGS.readNotes, position: notesAt, radius: 2.6, onInteract: () => undefined };
 
   await pause();

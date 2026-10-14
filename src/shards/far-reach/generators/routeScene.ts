@@ -1,7 +1,8 @@
 import { parsePrivateScene, type PrivateScene } from '@wildshard/format/clientChannels';
 import BRIDGES from '../data/bridgeRest.generated.json' with { type: 'json' };
 import REST from '../data/restScenes.generated.json' with { type: 'json' };
-import { SPANS, UPDRAFT } from '../data/layout';
+import { FALLEN_BRIDGE, NOTES, SPANS, UPDRAFT, WINCH } from '../data/layout';
+import { FALLEN_ANGLE } from '../data/moverBindings';
 import { STRINGS } from '../data/strings';
 import { RISING_ISLETS } from './risingIslets';
 
@@ -27,5 +28,12 @@ export function skyRouteSource(): Uint8Array {
   }
   const scene: PrivateScene = { version: 1, root: root.id, nodes, textures: [], materials: ['deck', 'posts', 'rails', 'glass', 'frame'].map(id => ({ kind: 'port', id, source: id })) };
   parsePrivateScene(scene);
-  return new TextEncoder().encode(`import type { PrivateScene } from '@wildshard/format/clientChannels';\n/** Static rope spans and hover decks, generated from their authored frames. */\nexport const SKY_ROUTE_SCENE: PrivateScene = ${JSON.stringify(scene)};\n/** Registry identities and board-only policy accompany the scene. */\nexport const SKY_ROUTES = ${JSON.stringify({ registry, bindings })} as const;\n`);
+  const fallen: PrivateScene = { version: 1, root: 'fallen', materials: [], textures: [], nodes: [
+    { kind: 'group', id: 'fallen', position: [FALLEN_BRIDGE.x0, FALLEN_BRIDGE.y, FALLEN_BRIDGE.z0],
+      rotation: [FALLEN_ANGLE, Math.atan2(-(FALLEN_BRIDGE.x1 - FALLEN_BRIDGE.x0), -(FALLEN_BRIDGE.z1 - FALLEN_BRIDGE.z0)), 0], order: 'YXZ', children: ['deck'] },
+    { kind: 'object', id: 'deck', source: 'fallen-deck', missing: 'refuse', children: [] },
+  ] };
+  const frames = { recipe: { scene: fallen, imports: [] }, bindings: { fallen: { kind: 'group', part: 'fallen' },
+    winchAt: { kind: 'vector', value: [WINCH.x, WINCH.y + 1.2, WINCH.z] }, notesAt: { kind: 'vector', value: [NOTES.x, NOTES.y + 1.3, NOTES.z] } } };
+  return new TextEncoder().encode(`import type { PrivateScene } from '@wildshard/format/clientChannels';\n/** Static rope spans and hover decks, generated from their authored frames. */\nexport const SKY_ROUTE_SCENE: PrivateScene = ${JSON.stringify(scene)};\n/** Registry identities and board-only policy accompany the scene. */\nexport const SKY_ROUTES = ${JSON.stringify({ registry, bindings })} as const;\n/** Native moving pivot and copied interaction anchors. */\nexport const SKY_ROUTE_FRAMES = ${JSON.stringify(frames)} as const;\n`);
 }
