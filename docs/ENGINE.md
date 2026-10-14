@@ -4701,3 +4701,10 @@ available. The installer creates no second clock or collision owner.
 flag writes and borrowed gameplay callbacks. The inherited `stage(name)`
 runs those same owners; unknown names do nothing. The rows do not add a
 save cursor, bypass interaction rules or substitute a reconstructed world.
+
+`HeldMeleeRecipe` declares equipment, phase, playback and private-scene rows,
+optional borrowed attachment rows, rest/tip and caught-wrap bindings.
+`createHeldPresentation(recipe, ports)` builds the same hierarchy for page
+and Explorer. `createDeclaredHeldMelee(app, recipe, ports)` supplies it to the
+existing held factory; targets/raycast, charge and shader/texture/geometry
+resources remain owned ports. No recipe advances gameplay or installs actors.

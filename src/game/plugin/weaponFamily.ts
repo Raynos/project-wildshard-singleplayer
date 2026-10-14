@@ -566,3 +566,42 @@ export function createHeldMelee(app: App, row: EquipmentRow, phases: unknown, po
     }),
   });
 }
+
+/** Authored scene/playback/item rows; no builder, shader or contact authority in a recipe. */
+export interface HeldMeleeRecipe {
+  readonly equipment: EquipmentRow; readonly phases: Readonly<Record<string,unknown>>;
+  readonly playback: Readonly<Record<string,readonly unknown[]>>; readonly scene:unknown;
+  readonly attachments?:readonly {readonly id:string;readonly row:unknown;readonly parent:string}[];
+  readonly tip?:readonly [number,number,number]; readonly restingGroup?:string;
+  readonly caught?:{readonly row:unknown;readonly part:string};
+}
+/** Private borrowed resources are resolved by their actual owners before construction. */
+export interface HeldPresentationPorts {
+  readonly scene:ClientScenePorts; readonly attachments?:ReadonlyMap<string,ClientScenePorts|null>;
+}
+/** Construct one shared held hierarchy for page and Explorer, including declared optional attachments. */
+export function createHeldPresentation(recipe:HeldMeleeRecipe,ports:HeldPresentationPorts):HeldPlayback {
+  const rows=recipe.attachments??[];
+  if(rows.length>16||new Set(rows.map(row=>row.id)).size!==rows.length||rows.some(row=>!/^[a-z][a-zA-Z0-9.-]{0,127}$/u.test(row.id)))throw new Error('Invalid held attachment roster');
+  const model=new HeldPlayback(recipe.playback,new Map(),undefined,{row:recipe.scene,ports:ports.scene});
+  try {
+    for(const row of rows){const borrowed=ports.attachments?.get(row.id);if(borrowed!==undefined&&borrowed!==null)model.createPart({row:row.row,ports:borrowed},row.parent);}
+    return model;
+  } catch(error){model.dispose();throw error;}
+}
+/** Query/phase ports stay owned; presentation assembly is declared once for both melee families. */
+export interface DeclaredHeldMeleePorts extends Omit<HeldMeleeScenePorts,'presentation'|'tip'|'restingGroup'|'caught'> {
+  readonly model:HeldPresentationPorts; readonly charge?:number;
+}
+/** Bind the recipe to the existing held controller; never installs a second actor or phase owner. */
+export function createDeclaredHeldMelee(app:App,recipe:HeldMeleeRecipe,ports:DeclaredHeldMeleePorts):ReturnType<typeof createHeldMelee> {
+  const model=createHeldPresentation(recipe,ports.model);
+  try {
+    return createHeldMelee(app,recipe.equipment,ports.charge===undefined?recipe.phases:{...recipe.phases,charge:ports.charge},{
+      presentation:model,contacts:ports.contacts,
+      ...(ports.targets===undefined?{}:{targets:ports.targets}),...(ports.raycast===undefined?{}:{raycast:ports.raycast}),
+      ...(recipe.tip===undefined?{}:{tip:recipe.tip}),...(recipe.restingGroup===undefined?{}:{restingGroup:recipe.restingGroup}),
+      ...(recipe.caught===undefined?{}:{caught:{scene:{row:recipe.caught.row,ports:{geometry:ports.model.scene.geometry}},part:recipe.caught.part}}),
+    });
+  } catch(error){model.dispose();throw error;}
+}
