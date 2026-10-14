@@ -23,7 +23,7 @@ import { questMessageHandlers, type QuestMessageRows, QuestState, type QuestDef,
 import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places, type NpcTalkOpts } from '@wildshard/engine/quest/view';
 import { DialogueBox } from '@wildshard/engine/quest/view/ui';
 import { InteractionRules } from '../quest/interactionRows';
-import type { QuestPageInteractionsData } from '@wildshard/format/questInteractions';
+import { parseQuestPageInteractions, type QuestPageInteractionsData } from '@wildshard/format/questInteractions';
 import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from '../quest/reward';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
 import { type ShardContext, gridCells, pageGridInstance, type PageMode, sourceManifest } from './context';
@@ -1172,21 +1172,47 @@ export function questPagePrompt(label:string,position:Vector3,radius:number):Int
 }
 
 /** Create named prompt frames from admitted rows, borrowing the actual world positions. */
-export function createQuestPagePrompts<const Names extends readonly string[]>(source:Pick<Shardfile,'questHost'>,
-  owners:ReadonlyMap<string,unknown>,names:Names):{readonly [K in keyof Names]:Interactable} {
+/** Admitted shard page rows, or independently admitted presentation over caller-owned native rules. */
+type QuestPageSource=Pick<Shardfile,'questHost'>|({readonly actions:readonly unknown[]}&Readonly<Record<string,unknown>>);
+function questPageData(source:QuestPageSource):QuestPageInteractionsData {
+  const data='actions' in source?source:source.questHost?.page;
+  if(data===undefined)throw new Error('Page interactions need admitted presentation rows');
+  return parseQuestPageInteractions(data);
+}
+function questPageObservations(data:QuestPageInteractionsData,owners:ReadonlyMap<string,unknown>,provided?:ReadonlyMap<string,()=>boolean>,needed?:ReadonlySet<string>):Map<string,()=>boolean> {
+  const observations=new Map(provided);
+  for(const row of data.bindings?.observations??[])if(!observations.has(row.target)&&(needed===undefined||needed.has(row.target))){
+    const target=readBorrowedOwner(owners,row);if(target===null||typeof target.value!=='boolean')throw new Error(`Invalid borrowed observation ${row.target}`);
+    observations.set(row.target,()=>{const current=readBorrowedOwner(owners,row);if(current===null||typeof current.value!=='boolean')throw new Error('Borrowed observation changed type');return current.value;});
+  }
+  return observations;
+}
+/** Resolve selected positions and conditional label/reach owners before returning any unregistered prompt. */
+export function createQuestPagePrompts<const Names extends readonly string[]>(source:QuestPageSource,
+  owners:ReadonlyMap<string,unknown>,names:Names,ports?:{readonly flags:Pick<Flags,'has'>;readonly observations?:ReadonlyMap<string,()=>boolean>}):{readonly [K in keyof Names]:Interactable} {
   if(names.length>128)throw new Error('Quest prompt selection must be bounded');
-  const rows=source.questHost?.page?.prompts;
+  const data=questPageData(source);
   const frames=names.map(id=>{
-    const row=rows?.find(entry=>entry.id===id);if(row===undefined)throw new Error(`Undeclared quest prompt ${id}`);
+    const row=data.prompts?.find(entry=>entry.id===id);if(row===undefined)throw new Error(`Undeclared quest prompt ${id}`);
+    if((row.when!==undefined||(row.labels?.length??0)>0)&&ports===undefined)throw new Error('Conditional quest prompt needs its flag owner');
     const field=readBorrowedOwner(owners,row.at);if(!(field?.value instanceof Vector3))throw new Error('Quest prompt needs its actual position');
     return {row,position:field.value};
   });
-  return frames.map(({row,position})=>questPagePrompt(row.label,position,row.radius)) as {readonly [K in keyof Names]:Interactable};
+  const needed=new Set(frames.flatMap(({row})=>[row.when].concat((row.labels??[]).map(label=>label.when))).flatMap(condition=>(condition?.all??[]).concat(condition?.any??[],condition?.none??[])));
+  const observations=questPageObservations(data,owners,ports?.observations,needed);
+  const state={has:(id:string):boolean=>observations.get(id)?.()??ports?.flags.has(id)??false};
+  return frames.map(({row,position})=>row.when===undefined&&row.labels===undefined?questPagePrompt(row.label,position,row.radius):{
+    position,get label(){return row.labels?.find(label=>testFlags(state,label.when))?.text??row.label;},
+    get radius(){return testFlags(state,row.when)?row.radius:0;},onInteract:()=>{throw new Error('Quest page prompt is not bound');},
+  }) as {readonly [K in keyof Names]:Interactable};
 }
 
 /** Borrowed view ports for declared page interaction presentation. Native rules remain the state owner. */
 export interface QuestPageInteractionPorts {
   readonly flags:Pick<Flags,'has'|'set'>; readonly rules?:InteractionRules;
+  readonly interactions?:ConstructorParameters<typeof InteractionRules>[1];
+  /** Construct these admitted prompts under the reserved borrowed owner `prompts`. */
+  readonly promptIds?:readonly string[];
   /** Register the preflighted actual prompts in their declared binding order. */
   readonly interactables?:Interactable[];
   readonly labels?:ReadonlyMap<string,Pick<Interactable,'label'>>;
@@ -1194,18 +1220,24 @@ export interface QuestPageInteractionPorts {
   readonly calls?:ReadonlyMap<string,()=>void>;
   readonly observations?:ReadonlyMap<string,()=>boolean>;
   readonly toast:(text:string)=>void;
+  /** Borrow the entered quest timer; exit cancellation remains with its original scope. */
+  readonly timer?:Pick<QuestViews,'timeout'>;
   /** Actual world objects, named by the admitted bounded binding rows. */
   readonly owners?:ReadonlyMap<string,unknown>;
 }
 /** Validated presentation actions; run returns the native acceptance and action supplies a prompt callback. */
-export interface QuestPageInteractions {readonly run:(id:string)=>boolean;readonly action:(id:string)=>()=>void;readonly world:QuestWorldReactions}
+export interface QuestPageInteractions {readonly run:(id:string)=>boolean;readonly action:(id:string)=>()=>void;readonly prompt:(id:string)=>Interactable;readonly world:QuestWorldReactions}
 /** Bind page view rows only after every native rule and borrowed target resolves; seed saved view state once. */
-export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,ports:QuestPageInteractionPorts):QuestPageInteractions {
-  const host=source.questHost;
-  if(host===null||host===undefined||host.page===undefined)throw new Error('Page interactions need admitted presentation rows');
-  const data=host.page;
-  const owners=ports.owners??new Map<string,unknown>();
-  const labels=new Map(ports.labels), visible=new Map(ports.visible), calls=new Map(ports.calls), observations=new Map(ports.observations);
+export function bindQuestPageInteractions(source:QuestPageSource,ports:QuestPageInteractionPorts):QuestPageInteractions {
+  const data=questPageData(source);
+  const promptOwners=new Map(ports.owners),owners=ports.promptIds===undefined?(ports.owners??promptOwners):promptOwners,made=new Map<string,Interactable>();
+  if(ports.promptIds!==undefined){
+    if(owners.has('prompts'))throw new Error('Quest prompt owner already bound');
+    const prompts=createQuestPagePrompts(source,owners,ports.promptIds,{flags:ports.flags,...(ports.observations===undefined?{}:{observations:ports.observations})});
+    for(const [i,id] of ports.promptIds.entries()){const prompt=prompts[i];if(prompt===undefined||made.has(id))throw new Error('Duplicate quest prompt selection');made.set(id,prompt);}
+    promptOwners.set('prompts',Object.fromEntries(made));
+  }
+  const labels=new Map(ports.labels), visible=new Map(ports.visible), calls=new Map(ports.calls), observations=questPageObservations(data,owners,ports.observations);
   const field=(row:BorrowedOwnerPath):ReturnType<typeof readBorrowedOwner>=>readBorrowedOwner(owners,row);
   for(const row of data.bindings?.labels??[])if(!labels.has(row.target)){
     const target=field(row);if(target===null||typeof target.value!=='string')throw new Error(`Invalid borrowed label ${row.target}`);
@@ -1215,18 +1247,21 @@ export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,por
     const target=field(row);if(target===null||typeof target.value!=='boolean')throw new Error(`Invalid borrowed visibility ${row.target}`);
     visible.set(row.target,{get visible(){return target.receiver[target.key]===true;},set visible(value){target.receiver[target.key]=value;}});
   }
-  for(const row of data.bindings?.observations??[])if(!observations.has(row.target)){
-    const target=field(row);if(target===null||typeof target.value!=='boolean')throw new Error(`Invalid borrowed observation ${row.target}`);
-    observations.set(row.target,()=>{const current=field(row);if(current===null||typeof current.value!=='boolean')throw new Error('Borrowed observation changed type');return current.value;});
-  }
   const callable=(value:unknown):value is (...args:readonly unknown[])=>unknown=>typeof value==='function';
   for(const row of data.bindings?.calls??[])if(!calls.has(row.target)){
     const initial=readBorrowedOwner(owners,row);
     if(!(row.optional===true&&(initial?.value??null)===null)&&(initial===null||!callable(initial.value)))throw new Error(`Invalid borrowed call ${row.target}`);
-    calls.set(row.target,()=>{const current=readBorrowedOwner(owners,row);if(row.optional===true&&(current?.value??null)===null)return;
-      if(current===null||!callable(current.value))throw new Error(`Invalid borrowed call ${row.target}`);current.value.call(current.receiver,...row.args??[]);});
+    const argument=(arg:NonNullable<typeof row.args>[number]):unknown=>{
+      if(typeof arg!=='object')return arg;
+      const value=readBorrowedOwner(owners,arg);if(!(value?.value instanceof Vector3)||!Number.isFinite(value.value.x)||!Number.isFinite(value.value.y)||!Number.isFinite(value.value.z))throw new Error(`Missing borrowed point argument ${row.target}`);return value.value;
+    };
+    for(const arg of row.args??[])argument(arg);
+    const timer=ports.timer;if(row.delay!==undefined&&timer===undefined)throw new Error(`Missing quest timer ${row.target}`);
+    const invoke=():void=>{const current=readBorrowedOwner(owners,row);if(row.optional===true&&(current?.value??null)===null)return;
+      if(current===null||!callable(current.value))throw new Error(`Invalid borrowed call ${row.target}`);current.value.call(current.receiver,...(row.args??[]).map(argument));};
+    calls.set(row.target,()=>{if(row.delay===undefined)invoke();else timer?.timeout(row.delay,invoke);});
   }
-  const rules=ports.rules??InteractionRules.fromDeclared(source,ports.flags);
+  const rules=ports.rules??('actions' in source?new InteractionRules(ports.flags,ports.interactions??{marks:[],rows:[]}):InteractionRules.fromDeclared(source,ports.flags));
   const view={has:(id:string):boolean=>observations.get(id)?.()??rules.has(id)};
   type Effect=QuestPageInteractionsData['actions'][number]['after'];
   const compile=(rows:Effect):(()=>void)[] => (rows??[]).map(row=>{
@@ -1242,11 +1277,12 @@ export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,por
   });
   const actions=new Map(data.actions.map(row=>{
     if(row.interaction!==undefined)rules.row(row.interaction);
-    const before=compile(row.before),after=compile(row.after);
+    const before=compile(row.before),after=compile(row.after),refused=new Map(Object.entries(row.refused??{}).map(([reason,effects])=>[reason,compile(effects)]));
+    const refusal=(reason:string):false=>{const text=row.denied?.[reason];if(text!==undefined)ports.toast(text);for(const effect of refused.get(reason)??[])effect();return false;};
     return [row.id,():boolean=>{
-      for(const need of row.needs??[])if(!testFlags(view,need)){const text=row.denied?.[need.else??'refused'];if(text!==undefined)ports.toast(text);return false;}
+      for(const need of row.needs??[])if(!testFlags(view,need))return refusal(need.else??'refused');
       const beat=():void=>{for(const effect of before)effect();};
-      if(row.interaction!==undefined){const result=rules.run(row.interaction,beat);if(!result.ok){const text=row.denied?.[result.reason];if(text!==undefined)ports.toast(text);return false;}}
+      if(row.interaction!==undefined){const result=rules.run(row.interaction,beat);if(!result.ok)return refusal(result.reason);}
       else beat();
       for(const effect of after)effect();return true;
     }] as const;
@@ -1268,7 +1304,7 @@ export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,por
   for(const bind of prompts)bind();
   for(const row of initial)if(testFlags(view,row.when))for(const effect of row.effects)effect();
   ports.interactables?.push(...registered);
-  return {run:id=>read(id)(),action:id=>{const action=read(id);return ()=>{action();};},world};
+  return {run:id=>read(id)(),action:id=>{const action=read(id);return ()=>{action();};},prompt:id=>{const prompt=made.get(id);if(prompt===undefined)throw new Error(`Undeclared quest prompt ${id}`);return prompt;},world};
 }
 
 /** Live page owners lent to the already admitted quest stages. */

@@ -5460,3 +5460,16 @@ borrow the existing Bodies service, original collider recipe and contact,
 landing/removal callbacks; caller-owned fixed phases and pose scratch remain
 unchanged. Tossed Drop and native/page volleys use the same owner. Restore
 loads counters before reattaching saved Rapier handles after world replacement.
+
+### Conditional quest page prompts
+
+`createQuestPagePrompts` and `bindQuestPageInteractions` accept admitted
+shard page content or parsed standalone presentation rows. Standalone
+interaction actions must resolve against lent `rules` or `interactions`;
+missing native rows still refuse. `promptIds` constructs prompts for the
+reserved `prompts` owner; `prompt(id)` returns the actual registered object.
+Prompt `when` and ordered `labels` borrow flags and bounded Boolean
+observations. Borrowed call arguments use the existing safe owner/path
+reader. An optional bounded `delay` borrows `timer.timeout`; no new clock
+is installed. Keyed `refused` effects follow their original denial toast.
+All paths, arguments and effects resolve before registration or writes.

@@ -14,7 +14,8 @@ const ownerPath = v.strictObject({ target: name, owner: name,
   path: v.pipe(v.array(v.union([pathKey, v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(1024))])), v.minLength(1), v.maxLength(16)) });
 const ownerPaths = v.pipe(v.array(ownerPath), v.maxLength(128), v.check(rows => unique(rows.map(entry => entry.target)), 'unique borrowed targets'));
 const ownerCalls = v.pipe(v.array(v.strictObject({ ...ownerPath.entries, optional: v.exactOptional(v.boolean()),
-  args: v.exactOptional(v.pipe(v.array(v.union([v.pipe(v.string(), v.maxLength(4096)), v.pipe(v.number(), v.finite()), v.boolean()])), v.maxLength(16))) })),
+  delay: v.exactOptional(v.pipe(v.number(),v.safeInteger(),v.minValue(0),v.maxValue(60000))),
+  args: v.exactOptional(v.pipe(v.array(v.union([v.pipe(v.string(), v.maxLength(4096)), v.pipe(v.number(), v.finite()), v.boolean(), v.strictObject({owner:name,path:ownerPath.entries.path})])), v.maxLength(16))) })),
   v.maxLength(128), v.check(rows => unique(rows.map(entry => entry.target)), 'unique borrowed calls'));
 const worldFinite = v.pipe(v.number(), v.finite());
 const worldPoint = v.variant('kind', [
@@ -66,10 +67,11 @@ const pageEffects=v.pipe(v.array(pageEffect),v.maxLength(64));
 const pageRaw=v.pipe(v.strictObject({
   actions:v.pipe(v.array(v.strictObject({id:name,interaction:v.exactOptional(name),
     needs:v.exactOptional(v.pipe(v.array(need),v.maxLength(16))),
-    denied:v.exactOptional(v.record(name,pageText)),before:v.exactOptional(pageEffects),after:v.exactOptional(pageEffects)})),v.maxLength(128)),
+    denied:v.exactOptional(v.record(name,pageText)),refused:v.exactOptional(v.pipe(v.record(name,pageEffects),v.check(value=>Object.keys(value).length<=16,'bounded refusal effects'))),before:v.exactOptional(pageEffects),after:v.exactOptional(pageEffects)})),v.maxLength(128)),
   world:v.exactOptional(QuestWorldReactionsSchema),
   prompts:v.exactOptional(v.pipe(v.array(v.strictObject({id:name,label:pageText,at:v.strictObject({owner:name,path:ownerPath.entries.path}),
-    radius:v.pipe(worldFinite,v.minValue(0),v.maxValue(100))})),v.maxLength(128),v.check(rows=>unique(rows.map(entry=>entry.id)),'unique page prompts'))),
+    radius:v.pipe(worldFinite,v.minValue(0),v.maxValue(100)),when:v.exactOptional(condition),
+    labels:v.exactOptional(v.pipe(v.array(v.strictObject({when:condition,text:pageText})),v.maxLength(16)))})),v.maxLength(128),v.check(rows=>unique(rows.map(entry=>entry.id)),'unique page prompts'))),
   bindings:v.exactOptional(v.strictObject({ labels:v.exactOptional(ownerPaths), visible:v.exactOptional(ownerPaths),
     observations:v.exactOptional(ownerPaths), calls:v.exactOptional(ownerCalls), prompts:v.exactOptional(ownerPaths) })),
   initial:v.exactOptional(v.pipe(v.array(v.strictObject({when:condition,effects:pageEffects})),v.maxLength(64))),

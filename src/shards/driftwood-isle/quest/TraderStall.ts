@@ -14,7 +14,8 @@
 import * as THREE from 'three';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
-import type { Interactable } from '@wildshard/engine/world/interact/types';
+import { bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
+import { TRADER_PAGE } from '../data/traderPage';
 import { trader, tradeCounter, traderOf, traderRigOf } from '../models/trader';
 import type { Trader } from '../npc/Trader';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
@@ -68,21 +69,17 @@ export function installTrader<A extends AdvAnimal>(adv: Adventure, w: AdventureW
   const at = new THREE.Vector3(ax, adv.floorAt(ax, az) + 1.35, az);
   const stall: TraderStall = { trader: t, at, shop: null };
   let pitchBefore = 0, wasOpen = false;
-  const prompt: Interactable = {
-    position: at,
-    get radius() { return stall.shop === null || stall.shop.isOpen ? 0 : TRADE_R; },
-    label: `Trade with ${TRADER_NAME}`,
-    onInteract: () => {
-      if (!stall.shop || stall.shop.isOpen) return;
-      // face her and look down a little, so she and her counter sit in the gap above the shop's sheet (board 5 C);
-      // the view's tilt comes back when the shop closes
-      const p = w.player.position, her = t.position;
-      w.player.yaw = Math.atan2(-(her.x - p.x), -(her.z - p.z));
-      pitchBefore = w.player.pitch; w.player.pitch = SHOP_PITCH;
-      stall.shop.open(); t.offer(); wasOpen = true;
-    },
-  };
-  w.prompts.push(prompt);
+  bindQuestPageInteractions(TRADER_PAGE, { flags: adv.flags, promptIds: ['trade'], interactables: w.prompts,
+    toast: text => { w.hud.toast(text); }, owners: new Map<string, unknown>([
+      ['shop', { at, get ready() { return stall.shop !== null; }, get open() { return stall.shop?.isOpen === true; } }],
+      ['commands', { trade: () => {
+        if (!stall.shop || stall.shop.isOpen) return;
+        const p = w.player.position, her = t.position;
+        w.player.yaw = Math.atan2(-(her.x - p.x), -(her.z - p.z));
+        pitchBefore = w.player.pitch; w.player.pitch = SHOP_PITCH;
+        stall.shop.open(); t.offer(); wasOpen = true;
+      } }],
+    ]) });
   w.game.onUpdate((dt, time) => {
     npcRig?.update(dt, time, w.player.position);
     // walking off the counter closes the shop (as a talk closes, core.ts NpcTalk)

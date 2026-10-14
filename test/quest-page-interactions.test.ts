@@ -1,7 +1,13 @@
+// @vitest-environment happy-dom
+import { Scope } from '../src/engine/app/scope';
+import type { Interactable } from '../src/engine/world/interact/types';
+import { parseInteractionRows } from '../src/format/questInteractions';
+import { PINE_LANTERN_PAGE } from '../src/shards/pine-hollow/data/questPageInteractions';
+import { PINE_LANTERN_ROWS } from '../src/shards/pine-hollow/data/interactions';
+import { TRADER_PAGE } from '../src/shards/driftwood-isle/data/traderPage';
 import { InteractionRules } from '../src/game/quest/interactionRows';
 import { Vector3 } from 'three';
-// @vitest-environment happy-dom
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { Flags } from '../src/engine/world/interact/flags';
 import { parseQuestHost } from '../src/format/questHost';
 import { createQuestPagePrompts, bindQuestPageInteractions } from '../src/game/plugin/ui';
@@ -92,4 +98,40 @@ test('prompt registration preserves real object order and refuses before appendi
   expect(interactables).toEqual([first,second]);expect(()=>first.onInteract()).not.toThrow();
   const refused:typeof first[]=[];
   expect(()=>bindQuestPageInteractions(source,{flags,owners:new Map([['world',{first,second:{onInteract:()=>undefined}}]]),interactables:refused,toast:()=>undefined})).toThrow('Invalid registered');expect(refused).toEqual([]);
+});
+
+
+test('paired conditional prompts retain native rules, sound timing and borrowed shop actions; bad paths have no effects', async () => {
+  vi.useFakeTimers();
+  const flags=new Flags('paired-prompt-rows',false),scope=new Scope('paired-prompt-rows');
+  const events:string[]=[],points={pond:new Vector3(1,2,3),ridge:new Vector3(4,5,6),den:new Vector3(7,8,9)};
+  const owners=new Map<string,unknown>([['points',points],['lamps',{setLit:(id:string,on:boolean)=>{events.push(`lit:${id}:${String(on)}`);}}],
+    ['sound',{shot:(name:string,at:Vector3)=>{expect(Object.values(points)).toContain(at);events.push(name);}}],
+    ['sfx',{interact:(name:string,at:Vector3)=>{expect(Object.values(points)).toContain(at);events.push(name);}}]]);
+  const prompts:Interactable[]=[];
+  try {
+    const page=bindQuestPageInteractions(PINE_LANTERN_PAGE,{flags,interactions:parseInteractionRows({marks:[],rows:PINE_LANTERN_ROWS}),
+      timer:scope,promptIds:['pond','ridge','den'],owners,interactables:prompts,toast:text=>{events.push(text);}});
+    const pond=page.prompt('pond');expect(pond.position).toBe(points.pond);expect(prompts).toContain(pond);
+    expect(pond.label).toBe('The pond lantern is cold — its glass is gone');pond.onInteract();
+    expect(flags.has('lit:pond')).toBe(false);expect(events).toEqual(['The pond lantern is cold — its glass is gone','locked']);
+    events.length=0;flags.set('taken:pond-glass');expect(pond.label).toBe('Relight the pond lantern');pond.onInteract();
+    expect(flags.has('lit:pond')).toBe(true);expect(pond.radius).toBe(0);
+    expect(events).toEqual(['lit:pond:true','lanternCreak','ignite','The pond lantern burns again']);
+    await vi.advanceTimersByTimeAsync(350);expect(events.at(-1)).toBe('lanternLight');
+    events.length=0;pond.onInteract();expect(events).toEqual([]);
+    flags.set('taken:ridge-flint');page.prompt('ridge').onInteract();scope.dispose();events.length=0;
+    await vi.advanceTimersByTimeAsync(1000);expect(events).toEqual([]);
+    const refused:Interactable[]=[];
+    expect(()=>bindQuestPageInteractions(PINE_LANTERN_PAGE,{flags,promptIds:['pond'],owners,interactables:refused,toast:()=>{throw new Error('effect');}})).toThrow('Missing quest timer');
+    expect(refused).toEqual([]);
+    expect(()=>createQuestPagePrompts(PINE_LANTERN_PAGE,owners,['pond'])).toThrow('flag owner');
+    expect(()=>bindQuestPageInteractions({...PINE_LANTERN_PAGE,bindings:{...PINE_LANTERN_PAGE.bindings,calls:[{target:'bad',owner:'sound',path:['shot'],args:[{owner:'points',path:['__proto__']}]}]}},
+      {flags,owners,toast:()=>{throw new Error('effect');}})).toThrow();
+    const shop={at:new Vector3(),ready:false,open:false},commands={trade(){shop.open=true;events.push('trade');}};
+    const trader=bindQuestPageInteractions(TRADER_PAGE,{flags,promptIds:['trade'],owners:new Map<string,unknown>([['shop',shop],['commands',commands]]),toast:()=>{throw new Error('unexpected toast');}}).prompt('trade');
+    expect(trader.position).toBe(shop.at);expect(trader.radius).toBe(0);shop.ready=true;
+    expect(trader.label).toBe('Trade with Maren');expect(trader.radius).toBeGreaterThan(0);trader.onInteract();
+    expect(shop.open).toBe(true);expect(trader.radius).toBe(0);expect(events).toEqual(['trade']);
+  } finally {scope.dispose();vi.useRealTimers();}
 });

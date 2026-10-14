@@ -74,7 +74,7 @@ export function questHostRules(row: QuestHostRow): readonly string[] {
   const interactionIds=new Set(row.interactions.rows.map(entry=>entry.id)),marks=new Set(row.interactions.marks.map(mark=>mark.id));
   for(const action of row.page?.actions??[]) {
     if(action.interaction!==undefined&&!interactionIds.has(action.interaction))errors.push('Declared page interaction rule');
-    for(const effect of [...action.before??[],...action.after??[]])if(effect.kind==='mark'&&!marks.has(effect.target))errors.push('Declared page interaction mark');
+    for(const effect of [...action.before??[],...action.after??[],...Object.values(action.refused??{}).flat()])if(effect.kind==='mark'&&!marks.has(effect.target))errors.push('Declared page interaction mark');
   }
   const pageActions=new Set(row.page?.actions.map(action=>action.id));
   for(const prompt of row.page?.bindings?.prompts??[])if(!pageActions.has(prompt.target))errors.push('Declared page prompt action');
@@ -113,11 +113,12 @@ export function questHostBindingRules(row: QuestHostRow | null | undefined, flag
     for (const command of stage.row.stages.flatMap(entry => entry.do)) if ('flag' in command) check([command.flag.key]);
   }
   const observed=new Set(row.observations.flatMap(entry=>entry.kind==='owner'?[entry.owner]:[]));
-  const pageCheck=(condition:{all?:string[];any?:string[];none?:string[]}):void=>check(reads(condition).filter(flag=>!observed.has(flag)),true);
+  const pageCheck=(condition:{all?:string[];any?:string[];none?:string[]}):void=>check(reads(condition).filter(flag=>!observed.has(flag)&&!row.page?.bindings?.observations?.some(binding=>binding.target===flag)),true);
   for(const action of row.page?.actions??[]) {
     for(const need of action.needs??[])pageCheck(need);
-    for(const effect of [...action.before??[],...action.after??[]])if(effect.kind==='toast'&&effect.progress!==undefined)check(effect.progress.flags,true);
+    for(const effect of [...action.before??[],...action.after??[],...Object.values(action.refused??{}).flat()])if(effect.kind==='toast'&&effect.progress!==undefined)check(effect.progress.flags,true);
   }
+  for(const prompt of row.page?.prompts??[]){if(prompt.when!==undefined)pageCheck(prompt.when);for(const label of prompt.labels??[])pageCheck(label.when);}
   for(const reaction of row.page?.world??[]){if(reaction.needs!==undefined)pageCheck(reaction.needs);check(reaction.sets??[],true);}
   for(const seed of row.page?.initial??[])pageCheck(seed.when);
   return [...new Set(errors)];

@@ -1,10 +1,10 @@
 import * as v from 'valibot';
-import { interactionRules } from '@wildshard/sdk/interactions';
+import { PINE_LANTERN_PAGE } from '../data/questPageInteractions';
 import { QUEST_NPCS } from '../data/questNpcs';
 import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { PINE_KIT_EVENTS } from '../data/questEvents';
 import { pineQuestRows } from './graph';
-import { PINE_LANTERN_IDS, RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES } from '../data/interactions';
+import { RESIN_COUNT, RESIN_FLAG, TOKEN_FLAG, TOKEN_NAMES } from '../data/interactions';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import type { Music } from '@wildshard/engine/audio/Music';
@@ -123,13 +123,13 @@ const _v = new THREE.Vector3();
 /** `deps`: the people's preload and the quest UI's loader (the page's by default; a test passes its own) */
 /** the quest views, loaded after the NPC models (`deps.loadQuest` lets a test fail it) */
 async function loadQuest() {
-  const [{ DialogueBox, RewardCaption }, { presentQuest, installNpcTalk, QuestViews }] = await Promise.all([import('@wildshard/engine/quest/view/ui'), import('@wildshard/game/plugin/ui')]);
-  return { presentQuest, installNpcTalk, QuestViews, DialogueBox, RewardCaption };
+  const [{ DialogueBox, RewardCaption }, { presentQuest, installNpcTalk, QuestViews, bindQuestPageInteractions }] = await Promise.all([import('@wildshard/engine/quest/view/ui'), import('@wildshard/game/plugin/ui')]);
+  return { presentQuest, installNpcTalk, QuestViews, bindQuestPageInteractions, DialogueBox, RewardCaption };
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
   await (deps.preload ?? preloadNpcModels)();
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
-  const { DialogueBox, presentQuest, installNpcTalk, QuestViews, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
+  const { DialogueBox, presentQuest, installNpcTalk, QuestViews, bindQuestPageInteractions, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
   const { ctx } = h;
   const { game, sky, player, animals, hud, inventory, progress } = h;
   const flags = new Flags(h.chunkId);
@@ -162,7 +162,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the table's sites ──
   const table = pineTableFromPlacements(authoredSpots.rows);
-  const graph = interactionRules(flags, pineQuestRows(table));
+  const lanternRules = pineQuestRows(table);
   const kit = new Interactables({ scene: game.scene, sky, player, flags, place, floorAt, prompts: h.interactables }).build(table);
   ctx.system({ id: 'quest.kit', phase: 'update', after: ['engine.compendium.installCompendium'], before: ['quest.pool', 'hud.combat', 'main.frame'], run: (dt, t) => { kit.update(dt, t); } });
 
@@ -206,32 +206,11 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const lanternId = (f: string): LanternId => (f === 'lit:pond' ? 'pond' : f === 'lit:ridge' ? 'ridge' : 'den');
   const syncLanterns = (): void => { if (lm) for (const f of LANTERN_FLAGS) lm.setLit(lanternId(f), flags.has(f) || flags.has(QUEST_DONE)); };
   syncLanterns();
-  const NEEDS: Record<LanternId, { needs: string; cold: string; name: string }> = {
-    pond: { needs: 'taken:pond-glass', cold: "The pond lantern is cold — its glass is gone", name: 'the pond lantern' },
-    ridge: { needs: 'taken:ridge-flint', cold: 'The ridge lantern is cold — you have nothing to light it with', name: 'the ridge lantern' },
-    den: { needs: 'talked:ranger', cold: 'A cold waystone lantern', name: 'the den lantern' },
-  };
-  const lanternPrompts: Partial<Record<LanternId, Interactable>> = {};
-  for (const id of ['pond', 'ridge', 'den'] as const) {
-    const s = WS[id], flag = `lit:${id}`, n = NEEDS[id];
-    const y = floorAt(s.x, s.z);
-    const it: Interactable = {
-      position: new THREE.Vector3(s.x, y + 1.2, s.z),
-      get radius() { return flags.has(flag) ? 0 : 2.8; },
-      get label() { return flags.has(n.needs) ? `Relight ${n.name}` : n.cold; },
-      onInteract: () => {
-        if (flags.has(flag)) return;
-        if (!graph.run(PINE_LANTERN_IDS[id]).ok) { hud.toast(n.cold); kitSfx.interact('locked', it.position); return; }
-        lm?.setLit(id, true);
-        shot('lanternCreak', it.position); // its little door swung open, then the wick takes
-        ui.timeout(350, () => { shot('lanternLight', it.position); });
-        kitSfx.interact('ignite', it.position);
-        hud.toast(`${n.name[0]?.toUpperCase() ?? ''}${n.name.slice(1)} burns again`);
-      },
-    };
-    h.interactables.push(it);
-    lanternPrompts[id] = it;
-  }
+  const points = Object.fromEntries((['pond', 'ridge', 'den'] as const).map(id => [id, new THREE.Vector3(WS[id].x, floorAt(WS[id].x, WS[id].z) + 1.2, WS[id].z)]));
+  const lanternPage = bindQuestPageInteractions(PINE_LANTERN_PAGE, { flags, interactions: lanternRules, timer: ui,
+    promptIds: ['pond', 'ridge', 'den'], interactables: h.interactables, toast: text => { hud.toast(text); },
+    owners: new Map<string, unknown>([['points', points], ['lamps', lm], ['sound', { shot }], ['sfx', kitSfx]]) });
+  const lanternPrompts = { pond: lanternPage.prompt('pond'), ridge: lanternPage.prompt('ridge'), den: lanternPage.prompt('den') };
 
   // ── the miller's errand: the wheel stands still until the race is clear ──
   const payMiller = (): void => {
