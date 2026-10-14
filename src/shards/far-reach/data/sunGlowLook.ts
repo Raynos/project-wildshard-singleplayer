@@ -1,6 +1,7 @@
 import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGraph';
-import type { CardFieldRow, CardGroupRow } from '@wildshard/sdk/looks/cardField';
+import type { CardGroupRow } from '@wildshard/sdk/looks/cardField';
 import { SKY_CARDS } from './skyCards';
+import { fieldCards } from './skyCardsLook';
 
 /** The sun's three card programs and each one's weights in the glow graph's mix (`aMix`: bloom, wide, shaft). */
 export const SUN_GLOW_PROGRAMS = { sunBloom: [1, 0, 0], sunWide: [0, 1, 0], sunShaft: [0, 0, 1] } as const;
@@ -68,13 +69,13 @@ const pair = (card: GlowCard, name: string): readonly [number, number] => { cons
  * field for the glow graph: each card's size, angle and lift (`aCard`; a shaft's foot stands on the sun, a bloom card is
  * centred on it), its pulse (`aPulse`: base, amplitude, rate, phase) and its program's weights (`aMix`).
  */
-function glowField(row: CardGroupRow<SunGlowProgram>): CardFieldRow<'sunGlow'> & { readonly distance: number } {
+function glowField(row: CardGroupRow<SunGlowProgram>): CardGroupRow<'sunGlow'> & { readonly distance: number } {
   const card = row.cards.flatMap((c) => { const [w, h] = pair(c, 'uSize'); return [w, h, num(c, 'uAngle', 0), h > w ? 0.5 : 0]; });
   const pulse = row.cards.flatMap((c) => (c.pulse === undefined ? [num(c, 'uPulse', 1), 0, 0, 0] : [c.pulse.base, c.pulse.amp, c.pulse.rate, c.pulse.phase]));
   const mix = row.cards.flatMap((c) => SUN_GLOW_PROGRAMS[c.program]);
   const first = row.cards[0];
-  return { name: row.name, order: row.order, plane: [1, 1], program: 'sunGlow', distance: first === undefined ? 820 : num(first, 'uDist', 820),
-    attributes: { aCard: { size: 4, float32: floats(card) }, aPulse: { size: 4, float32: floats(pulse) }, aMix: { size: 3, float32: floats(mix) } } };
+  return { ...fieldCards({ name: row.name, order: row.order, plane: [1, 1], program: 'sunGlow',
+    attributes: { aCard: { size: 4, float32: floats(card) }, aPulse: { size: 4, float32: floats(pulse) }, aMix: { size: 3, float32: floats(mix) } } }), distance: first === undefined ? 820 : num(first, 'uDist', 820) };
 }
 /** The sun's glow field (its graph: `sunGlowGraph(SKY_SUN, SUN_GLOW_FIELD.distance)`). */
 export const SUN_GLOW_FIELD = glowField(SKY_CARDS.sunGlow);

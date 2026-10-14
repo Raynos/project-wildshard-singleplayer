@@ -6,9 +6,9 @@ import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { loadPanorama, skyDome } from './sky';
 import { discLayer } from '../runtime/looks/discLayer';
 import { SEA_DISCS, SEA_LAYERS, paintedMaelstromGraph, paintedSeaGraph } from '../data/cloudSeaLook';
-import { cardField } from '@wildshard/sdk/looks/cardField';
+import { cardGroup } from '@wildshard/sdk/looks/cardField';
 import { SKY_CARDS } from '../data/skyCards';
-import { cumulusGraph } from '../data/skyCardsLook';
+import { cumulusGraph, fieldCards } from '../data/skyCardsLook';
 import { SUN_GLOW_FIELD, sunGlowGraph } from '../data/sunGlowLook';
 import { SKY, SKY_DAY, SKY_FOG, SKY_HAZE, SKY_KEY, SKY_PAINTER_LIGHT, SKY_RAYS, SKY_SUN } from '../data/skyLook';
 import { PANO_FOG_SRGB } from './panoramaData';
@@ -30,7 +30,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
     const group = new Group(); group.name = 'far.sky-dressing';
     // the sun's bloom and light shafts at the painted sun (E392): one instanced draw of its material graph
     const glow = await ctx.graph(sunGlowGraph(SKY_SUN, SUN_GLOW_FIELD.distance));
-    group.add(cardField({ material: () => glow }, SUN_GLOW_FIELD, {}));
+    cardGroup({ material: () => glow }, SUN_GLOW_FIELD, {}, { into: group });
     // the painted cloud sea (E392) and the painted maelstrom under the crown; without their textures, no sea is drawn
     if (seaPaint !== null) {
       if (vortex !== null) group.add(discLayer(await ctx.graph(paintedMaelstromGraph('far.maelstrom'), () => vortex), SEA_DISCS.paintedMaelstrom));
@@ -40,7 +40,7 @@ export async function skyReachLook(): Promise<LookStrategy> {
       }
     }
     // cumulus over the sea (loop 5): the islands rise out of billowing cloud (the camera-facing puffs baked by generators/skyCards.ts)
-    if (cloudAtlas !== null) { const puff = await ctx.graph(cumulusGraph(SKY_SUN, 'far.cumulus'), () => cloudAtlas); group.add(cardField({ material: () => puff }, SKY_CARDS.cumulus, {})); }
+    if (cloudAtlas !== null) { const puff = await ctx.graph(cumulusGraph(SKY_SUN, 'far.cumulus'), () => cloudAtlas); cardGroup({ material: () => puff }, fieldCards(SKY_CARDS.cumulus), {}, { into: group }); }
     return { group, textures: [], update: () => undefined };
   };
   const textures = [pano, cloudAtlas, seaPaint, vortex].filter((texture): texture is Texture => texture !== null);

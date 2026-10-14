@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
-import type { CardFieldRow, CardGroupRow, CardRow } from '@wildshard/sdk/looks/cardField';
-import type { SkyCardRows } from '../data/skyCardsLook';
+import type { CardGroupRow, CardRow } from '@wildshard/sdk/looks/cardField';
+import type { SkyCardField, SkyCardRows } from '../data/skyCardsLook';
 import { ISLES, SPANS } from '../data/layout';
 import { SKY_ISLES } from '../data/skyIsles';
 import { SKY_SUN } from '../data/skyLook';
@@ -110,7 +110,7 @@ function cloudBanks(): [number, number, number, number][] {
 }
 
 /** The cumulus field's per-instance attributes: the ring field, the spiral, the keel puffs, then the banks. */
-function cumulusField(): CardFieldRow<'cumulus'> {
+function cumulusField(): SkyCardField<'cumulus'> {
   const keels = keelPuffs(), banks = cloudBanks();
   let a = 9317 >>> 0;
   const rnd = (): number => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };

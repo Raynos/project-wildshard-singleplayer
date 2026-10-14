@@ -1,5 +1,5 @@
 import type { GraphIr } from '@wildshard/format/materialGraph';
-import type { CardFieldRow, CardGroupRow } from '@wildshard/sdk/looks/cardField';
+import type { CardAttributeRow, CardGroupRow } from '@wildshard/sdk/looks/cardField';
 import { graphKit } from './graphKit';
 import type { SunGlowProgram } from './sunGlowLook';
 
@@ -50,8 +50,22 @@ export function cumulusGraph(sun: readonly [number, number, number], atlas: stri
     effectState: { blend: 'alpha', depthWrite: false, fog: false } };
 }
 
+/** A baked instanced card field: its mesh name, render order, the quad's size, its program and per-instance attributes. */
+export interface SkyCardField<P extends string> {
+  readonly name: string;
+  readonly order: number;
+  readonly plane: readonly [number, number];
+  readonly program: P;
+  readonly attributes: Readonly<Record<string, CardAttributeRow>>;
+}
+
+/** A baked field as a card group: one card, drawn once per instance row on the field's plane. */
+export function fieldCards<P extends string>(field: SkyCardField<P>): CardGroupRow<P> {
+  return { name: field.name, order: field.order, plane: field.plane, cards: [{ program: field.program, instances: field.attributes }] };
+}
+
 /** The baked cards (generators/skyCards.ts → data/skyCards.ts): the cumulus field and the sun's glow. */
 export interface SkyCardRows {
-  readonly cumulus: CardFieldRow<'cumulus'>;
+  readonly cumulus: SkyCardField<'cumulus'>;
   readonly sunGlow: CardGroupRow<SunGlowProgram>;
 }
