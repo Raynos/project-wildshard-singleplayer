@@ -1051,3 +1051,9 @@ src/shards/driftwood-isle/data/bridgeBake.json
 # Cheap held weapon pools are rebuilt from their authoring recipes.
 /public/assets/pine-hollow/baked/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159.glb
 /public/assets/driftwood-isle/baked/c00e6ad0f0384c1208d5b56a125f21793bd209ed59cfce9acd9e65c96a5bc981.glb
+
+src/shards/driftwood-isle/data/islandFacts.generated.json
+
+/public/assets/models/driftwood-blender/island-cover.phone.bin
+
+/public/assets/models/driftwood-blender/island-cover.desktop.bin

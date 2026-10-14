@@ -207,9 +207,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   registry.add({ id: 'paths', name: 'Paths', category: 'ground', file: 'src/engine/physics/paths.ts', surface: 'ground',
     colliders: pathRampDescs(TRAILS, heightAt, (x, z) => normalAt(x, z)[1], { carried: (x, z) => registry.floorAt(x, z) !== undefined }) });
   // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52; the only island since E136): it sits on the procedural cove.
-  // The island is in the boot pack, so its failure already fails the boot: the procedural cove underneath is no longer a
-  // live fallback, only load cost (E461 audit). SF67 fix 3 bakes what the island computes (its cover splat so far,
-  // scripts/bake-island-cover.mjs); building the procedural cove only when the island fails is still open
+  // The island and tier cover file are required boot content. Let the level loader dispose and
+  // report a failed world stage; never substitute procedural scenery for damaged assets.
   await slice(completed + 1, total, 'Bridge physics and paths');
   const blenderIsland = await import('./BlenderIsland').then(async ({ BlenderIsland: B }) => {
     const island = await B.install({
@@ -220,7 +219,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     game.onLate(() => { island.late(sky); }, 'shard.driftwood.blenderIsland.instances'); // G144: the instanced placements repack after the camera is posed
     cover.excludeArea(B.area); // E156: the cove dresses its own area
     return island;
-  }).catch((e: unknown) => { console.warn('[island] the Blender island did not load; procedural', e); return null; });
+  });
   await slice(total, total, 'Baked island');
   return { ocean, pier, jetties, boat, rocks, hut, lookout, wreck, shrine, bushes, gulls, trailside, bridge, seabed, palmSpecs, cove, palms, cover, bridgeDeck, blenderIsland };
 }

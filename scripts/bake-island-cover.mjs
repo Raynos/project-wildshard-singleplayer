@@ -6,7 +6,7 @@
 // island.glb, placements.bin and island.json alone, so this runs the build's own functions (islandProtos, islandSets,
 // coverTrianglesOf, islandCoverBlock) in Node, once per tier (the tile counts and the phone's cover share are the tier's:
 // a child process each, the tier set before the modules load), and writes public/assets/models/driftwood-blender/
-// island-cover.<tier>.bin (beside island.glb: the shard's own asset folder, so its reads stay inside the shard sandbox). The page writes it back and splats only when it is missing or does not fit (BlenderIsland.ts).
+// island-cover.<tier>.bin (beside island.glb: the shard's own asset folder, so its reads stay inside the shard sandbox). The page requires this file; it never rebuilds the splat during loading.
 // Every run bakes in memory and writes only differing bytes; --check (bake-check.mjs) fails when a source or asset changed
 // without a rebake.
 //
@@ -40,7 +40,7 @@ if (tierArg === undefined) {
     const THREE = await import('three');
     const { GLTFLoader } = await import('three/examples/jsm/loaders/GLTFLoader.js');
     const { MeshoptDecoder } = await import('three/examples/jsm/libs/meshopt_decoder.module.js');
-    const island = await src('shards/driftwood-isle/world/BlenderIsland.ts');
+    const island = await src('shards/driftwood-isle/generators/islandCover.ts');
     const { coverTrianglesOf } = await src('shards/driftwood-isle/runtime/looks/instancedTiles.ts');
     const dir = resolve(ROOT, 'public/assets/models/driftwood-blender');
     const glb = readFileSync(resolve(dir, 'island.glb')), bin = readFileSync(resolve(dir, 'placements.bin'));
@@ -53,7 +53,7 @@ if (tierArg === undefined) {
     const protos = island.islandProtos(found, meta);
     const f = island.islandPlacements(bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength));
     const used = island.islandUsed(f, meta, tierArg === 'phone');
-    const { covers, bigs } = island.islandSets(f, meta, used);
+    const { covers, bigs } = island.islandSets(f, meta, used, tierArg === 'phone');
     const t0 = performance.now();
     const block = island.islandCoverBlock(coverTrianglesOf(protos, f, [covers, bigs]));
     const bytes = island.encodeIslandCover(block, used);

@@ -12717,6 +12717,122 @@
         "public/assets/driftwood-isle/baked/c00e6ad0f0384c1208d5b56a125f21793bd209ed59cfce9acd9e65c96a5bc981.glb",
         "src/shards/driftwood-isle/data/swordPool.generated.json"
       ]
+    },
+    {
+      "id": "driftwood-island-facts",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/islandFacts.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/driftwood-isle/generators/islandFacts.ts",
+        "islandPrototypeFacts",
+        "src/shards/driftwood-isle/data/islandFacts.generated.json",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/driftwood-isle",
+        "scripts/bake-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/models/driftwood-blender/island.glb",
+        "public/assets/models/driftwood-blender/island.json"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/islandFacts.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/islandFacts.generated.json"
+      ],
+      "seedOutputs": [],
+      "platform": "native"
+    },
+    {
+      "id": "driftwood-island-cover-phone",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/islandCover.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/driftwood-isle/generators/islandCover.ts",
+        "phoneIslandCover",
+        "public/assets/models/driftwood-blender/island-cover.phone.bin",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/driftwood-isle",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-island-cover.mjs",
+        "scripts/bake-output.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/models/driftwood-blender/island.glb",
+        "public/assets/models/driftwood-blender/placements.bin",
+        "public/assets/models/driftwood-blender/island.json"
+      ],
+      "outputs": [
+        "public/assets/models/driftwood-blender/island-cover.phone.bin"
+      ],
+      "buildTimeOutputs": [
+        "public/assets/models/driftwood-blender/island-cover.phone.bin"
+      ],
+      "seedOutputs": [],
+      "platform": "native"
+    },
+    {
+      "id": "driftwood-island-cover-desktop",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/islandCover.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/driftwood-isle/generators/islandCover.ts",
+        "desktopIslandCover",
+        "public/assets/models/driftwood-blender/island-cover.desktop.bin",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/driftwood-isle",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-island-cover.mjs",
+        "scripts/bake-output.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/models/driftwood-blender/island.glb",
+        "public/assets/models/driftwood-blender/placements.bin",
+        "public/assets/models/driftwood-blender/island.json"
+      ],
+      "outputs": [
+        "public/assets/models/driftwood-blender/island-cover.desktop.bin"
+      ],
+      "buildTimeOutputs": [
+        "public/assets/models/driftwood-blender/island-cover.desktop.bin"
+      ],
+      "seedOutputs": [],
+      "platform": "native"
     }
   ]
 }
