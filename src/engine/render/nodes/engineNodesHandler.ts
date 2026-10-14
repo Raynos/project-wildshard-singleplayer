@@ -447,7 +447,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const t0 = diagnosticNow();
     if (material instanceof NodeMaterial) buildWithInstanceAttributes(material, () => { super.build(material, object, parameters); });
     else super.build(material, object, parameters);
-    parameters.vertexShader = instanceAttributeShader(parameters.vertexShader, object);
+    parameters.vertexShader = instanceAttributeShader(parameters.vertexShader, object, parameters.extensionMultiDraw);
     // Three's classic node builder hardcodes GL_POINTS to one pixel. A compiler-owned
     // size property replaces only that epilogue; content still supplies no shader code.
     if (material.userData['graphPointSize'] === true) {

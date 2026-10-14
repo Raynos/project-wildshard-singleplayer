@@ -134,7 +134,7 @@ function frameViewMatrix(): Node<'mat4'> {
 /** World origin follows the renderer's live instance matrix, including cull compaction. */
 function objectOriginNode(): Node<'vec3'> {
   return Fn((builder: NodeBuilder): Node<'vec3'> => {
-    if (!(builder.object instanceof THREE.InstancedMesh)) return modelPosition;
+    if (!(builder.object instanceof THREE.InstancedMesh || builder.object instanceof THREE.BatchedMesh)) return modelPosition;
     return modelWorldMatrix.mul(instanceTransformNode(vec4(0, 0, 0, 1))).xyz;
   }, 'vec3')();
 }

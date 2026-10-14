@@ -5553,3 +5553,11 @@ renderer, sky and the existing world scope; lookGraphMaterials accepts this
 context directly. Standalone and regional worlds await preparation once per
 look and scope, after the sky exists and before Terrain.build. Failure or
 disposal refuses construction. With no hook, the old build order remains.
+
+Graph materials on existing BatchedMesh objects use the classic renderer's
+batchingTexture, batchingIdTexture and optional batchingColorTexture. The
+existing draw-ID dispatch and its uniform fallback remain responsible for
+selecting each member. Positions, normals, colours, displaced shadow depth and
+objectOrigin all follow the current member's placement. No graph-only batch
+buffers or dispatch are created. This support admits existing non-facade
+batches; facade multi-draw remains prohibited.
