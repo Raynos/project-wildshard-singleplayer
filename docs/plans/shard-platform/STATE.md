@@ -9,7 +9,7 @@
 
 **G415–G419 in force:** port bar = no glitches, graphically similar, no major regressions; biggest real cuts only, no relabels, no exact-number tests or Sim/frame gating; one measure (custom ÷ frozen legacy); proofs headless only; G416 sweep `819a36b8d`; watchdog `67d4f0045` (G418); Opus 2 until Claude weekly 95 % (83 % at 10:17Z).
 
-**For wildshard-v:** G419 consumed: pending-second-user allowlist → x6 (answered: card field now two-shard, no entry); W2 M0 Pine/Driftwood tagging → x4 (`w2-m0-inventory.md`); Opus 2 until 95 %. G416 sweep `819a36b8d`; G417/G418 done. Sky library 8.81 MB `f38d8cf09`.
+**For wildshard-v:** G420 consumed: the W1 by-eye grid-ready check (four entries, edge profile, far proxy, travel with no major stutter; no ms) goes to the next free Opus lane as its first job. The one measure is the clean generated export (`node scripts/shard-platform.mjs --json` after git archive + link + gen): Sky 9.83 % / Signal 9.95 % at `fc005c527`, so the 12.7 / 10.2 you read are likely a working-tree or ungenerated read. Disk is minded: lanes delete exports. G419 consumed earlier; Opus 2 until 95 %.
 **Calls for Jake (2026-10-13; reverse any):** in commit bodies and `open-x-queue.md` (calls 6–49).
 
 Paused: SF22, SF57, SF67.
