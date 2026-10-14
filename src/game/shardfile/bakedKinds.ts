@@ -200,20 +200,33 @@ export function bakedMeshKindsGroup<K extends BakedMeshKindRow>(nodes: ReadonlyM
 export type LoadedMeshBake<P extends string> = ReadonlyMap<P, ReadonlyMap<string, Mesh>>;
 /** One drawn mixed piece, its unchanged collider rows and meshes in authored order. */
 export interface DrawnBakedMeshPiece { readonly root: Group; readonly colliders: ColliderDesc[]; readonly kinds: ReadonlyMap<string, Mesh> }
+/** A declared companion bake, loaded with its mesh world and borrowed by its existing native view owner. */
+export interface BakedByteResource {
+  readonly id: string; readonly url: string; readonly compression: 'deflate';
+  readonly fault: { readonly level: 'warn' | 'error'; readonly message: string };
+}
 /** Load and draw a static bake containing both ordinary and instanced mesh kinds. */
 export interface BakedMeshWorld<P extends string, K extends BakedMeshKindRow> {
   readonly load: () => Promise<LoadedMeshBake<P>>;
   readonly last: () => LoadedMeshBake<P> | null;
+  /** Loaded companion bytes, or null before loading or after its declared failure. */
+  readonly bytes: (id: string) => Uint8Array | null;
   readonly piece: (piece: P, call?: { readonly nodes?: ReadonlyMap<string, Mesh> | undefined; readonly only?: ((kind: K) => boolean) | undefined; readonly each?: ((material: MeshStandardMaterial) => void) | undefined }) => DrawnBakedMeshPiece;
 }
 
 /** The ordinary-mesh counterpart of bakedWorld: the same piece rows, collider law and material hooks, with no instancing conversion. */
-export function bakedMeshWorld<P extends string, K extends BakedMeshKindRow>(pieces: Readonly<Record<P, BakedPieceRows<K>>>, urls: Readonly<Record<P, string>>, label: string, draw: BakedKindsDraw<K> = {}): BakedMeshWorld<P, K> {
+export function bakedMeshWorld<P extends string, K extends BakedMeshKindRow>(pieces: Readonly<Record<P, BakedPieceRows<K>>>, urls: Readonly<Record<P, string>>, label: string, draw: BakedKindsDraw<K> & { readonly resources?: readonly BakedByteResource[]; readonly readBytes?: (url: string) => Promise<Uint8Array> } = {}): BakedMeshWorld<P, K> {
   const names = Object.keys(pieces).filter((name): name is P => Object.hasOwn(pieces, name));
   let loaded: LoadedMeshBake<P> | null = null;
+  const resources = draw.resources ?? [], readBytes = draw.readBytes, bytes = new Map<string, Uint8Array | null>();
+  if (resources.length > 0 && typeof readBytes !== 'function') throw new Error('Missing baked byte reader');
+  if (resources.length > 32 || new Set(resources.map(row => row.id)).size !== resources.length
+    || resources.some(row => !/^[a-zA-Z0-9_.-]{1,96}$/u.test(row.id) || row.url.length === 0 || row.url.length > 2048
+      || !['warn','error'].includes(row.fault.level) || row.fault.message.length === 0 || row.fault.message.length > 512)) throw new Error('Invalid baked byte resources');
+  for (const row of resources) bytes.set(row.id, null);
   return {
     load: async () => {
-      const meshes = await Promise.all(names.map(async name => {
+      const [meshes] = await Promise.all([Promise.all(names.map(async name => {
         const result = new Map<string, Mesh>();
         try {
           const gltf = await loadRigFile(urls[name]), nodes: Mesh[] = [];
@@ -222,10 +235,15 @@ export function bakedMeshWorld<P extends string, K extends BakedMeshKindRow>(pie
           pieces[name].kinds.forEach((kind, i) => { const node = nodes[i]; if (node !== undefined) result.set(kind.name, node); });
         } catch (error: unknown) { console.error(`[baked] ${label} ${name} did not load; it stands undrawn:`, error); }
         return result;
-      }));
+      })), Promise.all(resources.map(async row => {
+        if (readBytes === undefined) throw new Error('Missing baked byte reader');
+        try { bytes.set(row.id, await readBytes(row.url)); }
+        catch (error: unknown) { bytes.set(row.id, null); console[row.fault.level](row.fault.message, error); }
+      }))]);
       loaded = new Map(names.map((name, i) => [name, meshes[i] ?? new Map<string, Mesh>()])); return loaded;
     },
     last: () => loaded,
+    bytes: id => { if (!bytes.has(id)) throw new Error(`Unknown baked byte resource ${id}`); return bytes.get(id) ?? null; },
     piece: (piece, call = {}) => {
       const rows = pieces[piece], nodes = call.nodes ?? loaded?.get(piece), kinds = call.only === undefined ? rows.kinds : rows.kinds.filter(call.only);
       const root = bakedMeshKindsGroup(nodes, kinds, { ...draw, decorate: (material, kind) => { draw.decorate?.(material, kind); call.each?.(material); } });

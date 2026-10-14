@@ -1,3 +1,4 @@
+import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { bakedMeshWorld, worldPieces, type BakedMeshKindRow, type LoadedMeshBake, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
 import type { Group, MeshStandardMaterial, Object3D } from 'three';
@@ -9,8 +10,7 @@ import caravan from '../data/caravan.json' with { type: 'json' };
 import well from '../data/well.json' with { type: 'json' };
 import lash from '../data/lash.json' with { type: 'json' };
 import braziers from '../data/braziers.json' with { type: 'json' };
-import { BAKED_URLS, PLAIT_URL, type BakedPiece } from '../data/files';
-import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
+import { BAKED_URLS, WORLD_BYTES, type BakedPiece } from '../data/files';
 import { warmByFire } from './meshes';
 
 /**
@@ -21,18 +21,14 @@ import { warmByFire } from './meshes';
  */
 interface KindRow extends BakedMeshKindRow { readonly warm?: boolean; readonly brazier?: number }
 const WORLD = bakedMeshWorld<BakedPiece, KindRow>({ rocks, dressing, tower, caravan, well, braziers, lash }, BAKED_URLS, 'sunscar-dunes',
-  { decorate: (material, kind) => { if (kind.warm === true) warmByFire(material); } });
+  { resources: WORLD_BYTES, readBytes: fetchDeflated, decorate: (material, kind) => { if (kind.warm === true) warmByFire(material); } });
 
 /** A loaded bake: each piece's instanced meshes (their geometry and transforms), keyed by the kind's name. */
 export type BakedWorld = LoadedMeshBake<BakedPiece>;
-let plait: Uint8Array | null = null;
-/** Load every baked piece and the lash's plait texels behind the loading screen (the plugin's `world` hook); a piece that fails to load is empty. */
-export async function loadBakedWorld(): Promise<BakedWorld> {
-  const [baked, texels] = await Promise.all([WORLD.load(), fetchDeflated(PLAIT_URL).catch((e: unknown) => { console.error('[sunscar-dunes] the lash plait did not load; the hero coil stands undrawn:', e); return null; })]);
-  plait = texels; return baked;
-}
-/** The lash's plait tile texels (`generators/lash.ts` plaitTexels), or null before they load. */
-export const lastPlait = (): Uint8Array | null => plait;
+/** Load the declared mesh world and its companion texels behind the loading screen. */
+export const loadBakedWorld = WORLD.load;
+/** The held coil borrows the declared plait bytes after the same world preload. */
+export const lastPlait = (): Uint8Array | null => WORLD.bytes('plait');
 /** The bake loaded last (the Model Explorer's specimens draw from it), or null before the first load. */
 export const lastBakedWorld = WORLD.last;
 

@@ -85,3 +85,9 @@ export const FAN_LEAF_URL = '/assets/far-reach/fan/leaf.webp';
 /** The painted 360° sky (look/sky.ts), one strip per tier. */
 export const PANO_URL = { desktop: '/assets/far-reach/sky/panorama.webp', phone: '/assets/far-reach/sky/panorama.phone.webp' } as const;
 
+
+/** Byte companions of the mesh world, consumed by the existing grass and island views. */
+export const WORLD_BYTES = [
+  { id: 'sward', url: SWARD_ATLAS_URL, compression: 'deflate', fault: { level: 'warn', message: '[far-reach] the sward atlas did not load; the meadow stands bare:' } },
+  { id: 'isles', url: ISLES_URL, compression: 'deflate', fault: { level: 'error', message: '[far-reach] the baked islands did not load; they stand undrawn:' } },
+] as const;

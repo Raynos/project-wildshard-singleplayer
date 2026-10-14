@@ -62,6 +62,8 @@ export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = {
 };
 /** The held lash's plait tile texels, deflated RGBA (`generators/lash.ts` plaitTexels), read by `world/baked.ts`. */
 export const PLAIT_URL = '/assets/sunscar-dunes/baked/plait.bin';
+/** Companion texels read by the existing held-coil material. */
+export const WORLD_BYTES = [{ id: 'plait', url: PLAIT_URL, compression: 'deflate', fault: { level: 'error', message: '[sunscar-dunes] the lash plait did not load; the hero coil stands undrawn:' } }] as const;
 /** The creature bodies baked offline as skinned rig files (SF72: `generators/species.ts`, G345 `generators/hulls.ts` → `generators/bake-signal-rigs.mjs`), loaded by `world/meshes.ts` (the game's `creatureBodies`). */
 export const DUNE_RIGS = ['skitterer', 'strider', 'ray', 'matriarch'] as const;
 export type DuneRigName = (typeof DUNE_RIGS)[number];
