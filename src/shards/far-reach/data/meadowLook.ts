@@ -1,5 +1,6 @@
 import type { GraphIr, GraphRef } from '@wildshard/format/materialGraph';
 import { graphKit } from './graphKit';
+import { KNOLLS } from './layout';
 import { SKY_SUN } from './skyLook';
 import { SWARD_ATLAS, SWARD_ATLAS_FILE } from './swardAtlas';
 
@@ -76,6 +77,18 @@ export function meadowCard(copies: number): { card: Float32Array; layer: Float32
   return { card, layer, index };
 }
 
+/**
+ * The rises as caps (data/layout.ts KNOLLS) and the hole and rock discs that touch them: on a rise the bake's room is cut
+ * short by the slope (a copy shifted flat would float or sink), so the graph lets the copies there spread as far as on
+ * the flat and lifts each onto the rise where it lands. Rises sit well inside their islands' rims, so only the rock discs bound them.
+ */
+const RISES = KNOLLS.map((k) => ({ x: k.x, z: k.z, base: k.base, R: (k.base * k.base + k.h * k.h) / (2 * k.h), h: k.h }));
+// (x, z, radius: data/dressing.json's rock discs within 1.5 m of a rise; placements.json has no hole there)
+const RISE_DISCS: readonly (readonly [number, number, number])[] = [
+  [7.13, 5.02, 0.49], [4.69, 4.76, 0.44],
+  [-5.8, -172.6, 0.68], [-5.8, -175.9, 0.83], [-3.6, -181.4, 0.75], [-4.8, -183.2, 0.45], [3.9, -182, 0.6], [-2.4, -186, 0.87], [-2.44, -175.89, 0.44],
+];
+
 const linear = (hex: number): [number, number, number] => [16, 8, 0].map((s) => { const c = ((hex >> s) & 255) / 255; return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }) as [number, number, number];
 
 /**
@@ -95,15 +108,30 @@ export function meadowGraph(): GraphIr {
   const r0 = swz(B, 'x'), tone = swz(B, 'y'), code = op('floor', [add(mul(swz(B, 'z'), 255), 0.5)]), room = mul(swz(B, 'w'), 255 * MEADOW_BLADES.safe);
   const species = op('mod', [code, 4]), kind = op('floor', [div(code, 4)]);
   const copy = op('step', [0.5, layer]), r = fr(add(r0, mul(layer, 0.2718)));
-  // a copy stands within its blade's room (never over a rim, into a hole or up a slope)
-  const sa = mul(fr(add(mul(r0, 7.31), mul(layer, 0.381966))), 6.2832), sm = mul(mul(room, op('pow', [fr(add(mul(r0, 23.1), mul(layer, 0.618))), 0.5])), copy);
-  const pL = add(mul(swz(A, 'xy'), tile), mul(op('combine', [op('cos', [sa]), op('sin', [sa])]), sm));
   const origin = op('objectOrigin'), cam = op('cameraPosition'), camXZ = swz(cam, 'xz');
-  const pW = add(pL, swz(origin, 'xz')), yL = mul(swz(A, 'z'), 255 * MEADOW_BLADES.y), yW = add(yL, swz(origin, 'y'));
+  const bL = mul(swz(A, 'xy'), tile), bW = add(bL, swz(origin, 'xz'));
+  // the rises' height at a world xz (RISES: sphere caps)
+  const riseAt = (p: GraphRef): GraphRef => {
+    let y: GraphRef = 0;
+    for (const rise of RISES) { const d = op('length', [sub(p, [rise.x, rise.z])]); y = add(y, sel(lt(d, rise.base), sub(op('pow', [op('max', [sub(rise.R * rise.R, mul(d, d)), 0]), 0.5]), rise.R - rise.h), 0)); }
+    return y;
+  };
+  // on a rise the bake's room is the slope's (a few cm): there a copy may spread as on the flat, clear of the discs, and is lifted onto the rise
+  const onRise = RISES.map((rise) => lt(op('length', [sub(bW, [rise.x, rise.z])]), rise.base + 0.5)).reduce((a, b) => op('or', [a, b]));
+  let discRoom: GraphRef = MEADOW_BLADES.room;
+  for (const [x, z, rr] of RISE_DISCS) discRoom = op('min', [discRoom, sub(op('length', [sub(bW, [x, z])]), rr + 0.05)]);
+  const roomCopy = sel(onRise, op('max', [room, clamp(discRoom, 0, MEADOW_BLADES.room)]), room);
+  // a copy stands within its blade's room (never over a rim or into a hole)
+  const sa = mul(fr(add(mul(r0, 7.31), mul(layer, 0.381966))), 6.2832), sm = mul(mul(roomCopy, op('pow', [fr(add(mul(r0, 23.1), mul(layer, 0.618))), 0.5])), copy);
+  const pL = add(bL, mul(op('combine', [op('cos', [sa]), op('sin', [sa])]), sm));
+  const pW = add(pL, swz(origin, 'xz')), yL = add(mul(swz(A, 'z'), 255 * MEADOW_BLADES.y), mul(sub(riseAt(pW), riseAt(bW)), copy)), yW = add(yL, swz(origin, 'y'));
   const dist = op('length', [sub(pW, camXZ)]);
-  // shrinking away: the blades by `range`, the copies by `near` (raggedly)
+  // shrinking away: the blades by `range`, the copies by `near` (raggedly); each copy a little shorter or taller than its blade
   const fade = mix(one(smooth(range * 0.55, range, dist)), one(smooth(near - 2.5, near, add(dist, mul(fr(mul(r0, 7.77)), 1.5)))), copy);
-  const h = mul(mul(swz(A, 'w'), 255 * MEADOW_BLADES.h), fade);
+  // where a rim, a hole or a rock cuts the room short, a copy shifted toward it shortens as the blades there do (the old
+  // field's clearing round a disc), so a rock never stands in a full-height ring of copies
+  const edge = sel(lt(roomCopy, MEADOW_BLADES.room - 0.01), mix(1, 0.35, smooth(0.35, 1, div(sm, op('max', [roomCopy, 0.01])))), 1);
+  const h = mul(mul(mul(swz(A, 'w'), 255 * MEADOW_BLADES.h), fade), mix(1, mul(edge, mix(0.8, 1.05, fr(add(mul(r0, 17.3), mul(layer, 0.37))))), copy));
   const isFlower = op('and', [gt(kind, 0.5), op('gte', [dist, 0.6])]);
   const ang = mul(r, 40), dir = op('combine', [op('cos', [ang]), op('sin', [ang])]);
   const toCam = op('normalize', [add(sub(camXZ, pW), 0.001)]), wind: [number, number] = [0.6, 0.8], t = op('time');
