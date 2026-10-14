@@ -5244,3 +5244,12 @@ lighting stages, retain their existing physical environment lighting.
 
 `engine/render/viewmodelFeel.RangedFrame` owns a ranged view's ADS/FOV, camera recoil recovery and heading spring. Supply explicit `clock` (`frame` or `world`), `fovWhen` (`always` or `active`), recoil/lag coefficients and post-step clamping. The original `viewmodel.step` keeps its world-scaled default; an optional fourth time-scale argument permits an already-scaled frame without multiplying it twice. `shot(kick)` runs at the weapon's original shot phase; `sampleFrame` runs after its action/flash phases, returns ADS, and precedes its held pose. Camera/heading/frustum ports are borrowed; the owner never advances reloads, flight or contacts.
 `RangedFrame.presentEffects` advances the borrowed puff pool after pose/contact work, samples the drawing-buffer size once and paints a bounded (≤128) tracer roster through an owned callback. Style/material/contact ownership remains with the existing effect objects.
+
+`FogModel.node` also accepts `{ colourRamp: { start, end, near, zenith } }`.
+Each field borrows a live `{ value }` uniform: metre distances and linear
+`Color` values. The engine combines the distance ramp, height contrast,
+zenith tint and sun scattering with integrated height/distance fog; dense
+underwater fog wins. Day-clock changes and map suspension update the same
+uniforms without rebuilding shaders. It uses the level frame and optional
+vertex fog scale from the existing node-fog context. Classic fog installs
+and callback replacements keep their current path.

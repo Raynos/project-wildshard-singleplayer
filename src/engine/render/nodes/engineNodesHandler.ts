@@ -48,7 +48,7 @@ import { ConvertNode, NodeMaterial, PMREMNode, TextureNode, type Node, type Node
 import { and, cameraPosition, context, mix, modelWorldMatrix, nodeObject, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
-import { engineFog } from './engineFog';
+import { colourRampFog, engineFog } from './engineFog';
 import { tentShadowFilter } from './tentShadowFilter';
 import { planeBiasShadowFilter } from './planeBiasShadowFilter';
 import { EngineDirectionalLightNode } from './cascadeLightNode';
@@ -283,8 +283,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       if (patch === undefined) return engine;
       const origin = bound?.origin ?? layerFrameOf(ctx.material)?.origin;
       const shift = origin === undefined ? null : reference('value', 'vec3', origin);
-      return patch(out, { engine, fog: ctx.fog, position: shift === null ? positionWorld : positionWorld.sub(shift),
-        camera: shift === null ? cameraPosition : cameraPosition.sub(shift), ...(node === undefined ? {} : { scale: node }) });
+      const fogContext = { engine, fog: ctx.fog, position: shift === null ? positionWorld : positionWorld.sub(shift),
+        camera: shift === null ? cameraPosition : cameraPosition.sub(shift), ...(node === undefined ? {} : { scale: node }) };
+      return typeof patch === 'function' ? patch(out, fogContext) : colourRampFog(out, fogContext, patch.colourRamp);
     });
     // a layered backdrop's node dressing fades by its owner weight last, where a classic piece's gl_FragColor is faded
     this.epilogue.push((out, ctx) => {

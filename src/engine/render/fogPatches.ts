@@ -1,4 +1,4 @@
-import type { Fog, FogExp2, Material, Vector3 } from 'three';
+import type { Color, Fog, FogExp2, Material, Vector3 } from 'three';
 import type { Node } from 'three/webgpu';
 import type { Scope } from '../app/scope';
 
@@ -20,7 +20,15 @@ export interface NodeFogContext {
   readonly scale?: Node<'float'>;
 }
 /** A node equivalent of a classic fog chunk replacement; no shader text is parsed. */
-export type NodeFogPatch = (out: Node<'vec4'>, context: NodeFogContext) => Node<'vec4'>;
+export interface NodeFogColourRamp {
+  /** Borrowed live range and linear colours; the day clock and map capture keep ownership. */
+  readonly start: { readonly value: number };
+  readonly end: { readonly value: number };
+  readonly near: { readonly value: Color };
+  readonly zenith: { readonly value: Color };
+}
+/** A trusted callback or the engine's distance/height colour ramp; both replace classic fog in the same slot. */
+export type NodeFogPatch = ((out: Node<'vec4'>, context: NodeFogContext) => Node<'vec4'>) | { readonly colourRamp: NodeFogColourRamp };
 export interface FogPatchEntry { id: string; order: number; readonly node?: NodeFogPatch }
 /** A region's replacement (absent node: retain engine fog) and its borrowed origin. */
 export interface MaterialNodeFog { readonly id: string; readonly node?: NodeFogPatch; readonly origin: { readonly value: Vector3 } }

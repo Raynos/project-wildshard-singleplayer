@@ -15,7 +15,7 @@
 import type { LookStrategy } from '@wildshard/engine/render/look';
 import { STYLIZED_BACKDROP } from './backdrop';
 import { LOWPOLY_TERRAIN } from './terrainPainter';
-import { installRampFog, installToonLighting, resumeRampFog, suspendRampFog } from './toon';
+import { installRampFog, installToonLighting, resumeRampFog, suspendRampFog, toonUniforms } from './toon';
 
 /** the island's shadow rig: a low sun (golden hour, dawn) grazes the flat decks, so more normal bias, or the planks speckle */
 const DRIFTWOOD_SHADOWS: LookStrategy['shadows'] = { rig: 'phoneSplits', filter: 'tent', fade: true, normalBias: 0.14, radius: 0.6, texelBias: 'phone', depth16: 'phone' };
@@ -25,7 +25,9 @@ export const shardRender = (): LookStrategy => ({
   chain: 'clean',
   compose: (c) => ({ chain: c.engineChain('clean') }),
   lighting: { install: installToonLighting },
-  fog: { order: 200, install: installRampFog },
+  fog: { order: 200, install: installRampFog, node: { colourRamp: {
+    start: toonUniforms.uFogStart, end: toonUniforms.uFogEnd, near: toonUniforms.uFogNear, zenith: toonUniforms.uFogZenith,
+  } } },
   fogControl: { suspend: suspendRampFog, resume: resumeRampFog },
   shadows: DRIFTWOOD_SHADOWS,
   backdrop: STYLIZED_BACKDROP,

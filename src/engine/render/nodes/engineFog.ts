@@ -10,6 +10,7 @@
 import type * as THREE from 'three';
 import type { Node } from 'three/webgpu';
 import { abs, cameraPosition, clamp, dot, exp, float, length, max, mix, positionWorld, pow, reference, select, smoothstep, vec4 } from 'three/tsl';
+import type { NodeFogColourRamp, NodeFogContext } from '../fogPatches';
 import { atmosphereTerms, fogUniforms, weatherFogUniforms, weatherUniforms } from '../../world/Atmosphere';
 
 const f = (u: { value: number }): Node<'float'> => reference('value', 'float', u);
@@ -59,4 +60,25 @@ export function engineFog(out: Node<'vec4'>, fog: THREE.Fog | THREE.FogExp2 | nu
     rgb = mix(rgb, col(weatherFogUniforms.fogWeatherColor), scale === undefined ? weatherFactor : weatherFactor.mul(clamp(scale, 0, 1)));
   }
   return vec4(rgb, out.a);
+}
+
+/** A level's live near-to-zenith colour ramp over the integrated height/distance fog.
+ * Borrowed tunables keep day, underwater and map-capture updates on the existing owner. */
+export function colourRampFog(out: Node<'vec4'>, context: NodeFogContext, ramp: NodeFogColourRamp): Node<'vec4'> {
+  const u = fogUniforms, position = context.position, camera = context.camera;
+  const fogColor = reference('color', 'color', context.fog);
+  const ray = position.sub(camera), rayLen = length(ray), viewDir = ray.div(max(rayLen, 1e-3));
+  const falloff = f(u.fogHeightFalloff), dy = position.y.sub(camera.y);
+  const camF = exp(falloff.negate().mul(camera.y.sub(f(u.fogHeight))));
+  const t = falloff.mul(dy);
+  const integ = select(abs(t).greaterThan(1e-3), float(1).sub(exp(t.negate())).div(t), float(1));
+  const expF = clamp(float(1).sub(exp(f(u.fogHeightDensity).mul(camF).mul(integ).mul(rayLen).add(f(u.fogDistDensity).mul(rayLen)).negate())), 0, 1);
+  const r = smoothstep(f(ramp.start), f(ramp.end), rayLen);
+  const rampF = pow(r, 0.8).mul(mix(1, 0.72, smoothstep(4, 40, position.y)));
+  const sky = mix(fogColor, col(ramp.zenith), pow(smoothstep(0, 0.75, max(viewDir.y, 0)), 0.62));
+  let colour = mix(col(ramp.near), sky, smoothstep(0, 0.55, r));
+  colour = colour.add(col(u.fogSunColor).mul(pow(max(dot(viewDir, v3(u.fogSunDir)), 0), 8)).mul(0.3).mul(r));
+  colour = mix(colour, fogColor, clamp(expF.sub(rampF).mul(4), 0, 1));
+  const factor = max(rampF, expF);
+  return vec4(mix(out.rgb, colour, context.scale === undefined ? factor : factor.mul(clamp(context.scale, 0, 1))), out.a);
 }
