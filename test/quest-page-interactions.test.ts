@@ -4,7 +4,7 @@ import { Vector3 } from 'three';
 import { expect, test } from 'vitest';
 import { Flags } from '../src/engine/world/interact/flags';
 import { parseQuestHost } from '../src/format/questHost';
-import { bindQuestPageInteractions } from '../src/game/plugin/ui';
+import { createQuestPagePrompts, bindQuestPageInteractions } from '../src/game/plugin/ui';
 import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/data/questHost';
 import { QUEST_HOST as sky } from '../src/shards/far-reach/data/questHost';
 import { FLAG } from '../src/shards/sunscar-dunes/data/flags';
@@ -16,7 +16,7 @@ test('Signal refuses unraised oil, runs the crank and restores saved page state'
   const labels=new Map([['well',well],['logbook',logbook],...['0','1','2'].map(id=>[`brazier.${id}`,{label:'brazier'}] as const)]);
   const visible=new Map([['jar',jar],...['0','1','2'].flatMap(id=>[[`oil.${id}`,{visible:false}] as const,[`fire.${id}`,{visible:false}] as const])]);
   const calls=new Map<string,()=>void>([['catch-fire',()=>undefined],['summon',()=>{summoned=true;}],...['0','1','2'].map(id=>[`glow.${id}`,()=>undefined] as const)]);
-  const ports={flags,labels,visible,calls,owners:new Map([['world',{logbook:{onInteract:()=>undefined},fire:{brazier:{onInteract:()=>undefined}},well:{crankAt:new Vector3()},braziers:['0','1','2'].map(()=>({spot:{onInteract:()=>undefined},parts:{bowlAt:new Vector3()}}))}]]),toast:(text:string)=>{toasts.push(text);}};
+  const ports={flags,labels,visible,calls,owners:new Map([['world',{logbook:{onInteract:()=>undefined},fire:{brazier:{onInteract:()=>undefined}},well:{crankAt:new Vector3(),spot:{onInteract:()=>undefined}},braziers:['0','1','2'].map(()=>({spot:{onInteract:()=>undefined},parts:{bowlAt:new Vector3()}}))}]]),toast:(text:string)=>{toasts.push(text);}};
   const page=bindQuestPageInteractions({questHost:parseQuestHost(signal)},ports);
   expect(page.run('well')).toBe(false);expect(jar.visible).toBe(true);expect(toasts).not.toEqual([]);
   expect(page.run('crank')).toBe(true);expect(page.run('well')).toBe(true);expect(flags.has(FLAG.oil)).toBe(true);expect(jar.visible).toBe(false);
@@ -72,4 +72,24 @@ test('borrowed rows restore actual views and methods keep their receiver; path e
 
 test('admitted interaction rules refuse a missing host without changing flags',()=>{
  const flags=new Flags('missing-interaction-host',false);expect(()=>InteractionRules.fromDeclared({},flags)).toThrow('Missing admitted interaction host');expect(flags.has(FLAG.oil)).toBe(false);
+});
+
+test('declared prompts borrow their real positions and refuse missing or unsafe frames',()=>{
+  const at=new Vector3(4,5,6),source={questHost:parseQuestHost({...sky,page:{...sky.page,prompts:[{id:'notes',label:'Read notes',radius:2.6,at:{owner:'world',path:['at']}}]}})};
+  const [prompt]=createQuestPagePrompts(source,new Map([['world',{at}]]),['notes']);
+  expect(prompt.position).toBe(at);expect(prompt.label).toBe('Read notes');expect(prompt.radius).toBeGreaterThan(0);
+  expect(()=>prompt.onInteract()).toThrow('not bound');
+  expect(()=>createQuestPagePrompts(source,new Map([['world',{at:0}]]),['notes'])).toThrow('actual position');
+  expect(()=>createQuestPagePrompts(source,new Map([['world',{at}]]),['missing'])).toThrow('Undeclared');
+  expect(()=>parseQuestHost({...sky,page:{actions:[],prompts:[{id:'bad',label:'Bad',radius:1,at:{owner:'world',path:['__proto__']}}]}})).toThrow();
+});
+
+test('prompt registration preserves real object order and refuses before appending',()=>{
+  const flags=new Flags('registered-prompts',false),first={label:'First',position:new Vector3(),radius:2,onInteract:()=>undefined},second={label:'Second',position:new Vector3(1,0,0),radius:3,onInteract:()=>undefined};
+  const source={questHost:parseQuestHost({...sky,page:{actions:[{id:'a'},{id:'b'}],bindings:{prompts:[{target:'a',owner:'world',path:['first','onInteract']},{target:'b',owner:'world',path:['second','onInteract']}]}}})};
+  const interactables:typeof first[]=[];
+  bindQuestPageInteractions(source,{flags,owners:new Map([['world',{first,second}]]),interactables,toast:()=>undefined});
+  expect(interactables).toEqual([first,second]);expect(()=>first.onInteract()).not.toThrow();
+  const refused:typeof first[]=[];
+  expect(()=>bindQuestPageInteractions(source,{flags,owners:new Map([['world',{first,second:{onInteract:()=>undefined}}]]),interactables:refused,toast:()=>undefined})).toThrow('Invalid registered');expect(refused).toEqual([]);
 });

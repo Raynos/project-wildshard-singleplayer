@@ -68,6 +68,8 @@ const pageRaw=v.pipe(v.strictObject({
     needs:v.exactOptional(v.pipe(v.array(need),v.maxLength(16))),
     denied:v.exactOptional(v.record(name,pageText)),before:v.exactOptional(pageEffects),after:v.exactOptional(pageEffects)})),v.maxLength(128)),
   world:v.exactOptional(QuestWorldReactionsSchema),
+  prompts:v.exactOptional(v.pipe(v.array(v.strictObject({id:name,label:pageText,at:v.strictObject({owner:name,path:ownerPath.entries.path}),
+    radius:v.pipe(worldFinite,v.minValue(0),v.maxValue(100))})),v.maxLength(128),v.check(rows=>unique(rows.map(entry=>entry.id)),'unique page prompts'))),
   bindings:v.exactOptional(v.strictObject({ labels:v.exactOptional(ownerPaths), visible:v.exactOptional(ownerPaths),
     observations:v.exactOptional(ownerPaths), calls:v.exactOptional(ownerCalls), prompts:v.exactOptional(ownerPaths) })),
   initial:v.exactOptional(v.pipe(v.array(v.strictObject({when:condition,effects:pageEffects})),v.maxLength(64))),

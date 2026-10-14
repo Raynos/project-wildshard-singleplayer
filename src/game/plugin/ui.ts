@@ -991,9 +991,24 @@ export function questPagePrompt(label:string,position:Vector3,radius:number):Int
   return {label,position,radius,onInteract:()=>{throw new Error('Quest prompt is not bound');}};
 }
 
+/** Create named prompt frames from admitted rows, borrowing the actual world positions. */
+export function createQuestPagePrompts<const Names extends readonly string[]>(source:Pick<Shardfile,'questHost'>,
+  owners:ReadonlyMap<string,unknown>,names:Names):{readonly [K in keyof Names]:Interactable} {
+  if(names.length>128)throw new Error('Quest prompt selection must be bounded');
+  const rows=source.questHost?.page?.prompts;
+  const frames=names.map(id=>{
+    const row=rows?.find(entry=>entry.id===id);if(row===undefined)throw new Error(`Undeclared quest prompt ${id}`);
+    const field=readBorrowedOwner(owners,row.at);if(!(field?.value instanceof Vector3))throw new Error('Quest prompt needs its actual position');
+    return {row,position:field.value};
+  });
+  return frames.map(({row,position})=>questPagePrompt(row.label,position,row.radius)) as {readonly [K in keyof Names]:Interactable};
+}
+
 /** Borrowed view ports for declared page interaction presentation. Native rules remain the state owner. */
 export interface QuestPageInteractionPorts {
   readonly flags:Pick<Flags,'has'|'set'>; readonly rules?:InteractionRules;
+  /** Register the preflighted actual prompts in their declared binding order. */
+  readonly interactables?:Interactable[];
   readonly labels?:ReadonlyMap<string,Pick<Interactable,'label'>>;
   readonly visible?:ReadonlyMap<string,{visible:boolean}>;
   readonly calls?:ReadonlyMap<string,()=>void>;
@@ -1058,9 +1073,13 @@ export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,por
   }));
   const initial=(data.initial??[]).map(row=>({when:row.when,effects:compile(row.effects)}));
   const read=(id:string):(()=>boolean)=>{const action=actions.get(id);if(action===undefined)throw new Error(`Unknown page interaction ${id}`);return action;};
+  const registered:Interactable[]=[];
+  const isPrompt=(target:Record<string,unknown>):target is Record<string,unknown>&Interactable=>typeof target['label']==='string'
+    &&target['position'] instanceof Vector3&&typeof target['radius']==='number'&&Number.isFinite(target['radius'])&&target['radius']>=0&&typeof target['onInteract']==='function';
   const prompts=(data.bindings?.prompts??[]).map(row=>{
     const prompt=readBorrowedOwner(owners,row),action=read(row.target);
     if(prompt===null||typeof prompt.value!=='function')throw new Error(`Invalid borrowed prompt ${row.target}`);
+    if(ports.interactables!==undefined){if(prompt.key!=='onInteract'||!isPrompt(prompt.receiver))throw new Error(`Invalid registered quest prompt ${row.target}`);registered.push(prompt.receiver);}
     return ()=>{prompt.receiver[prompt.key]=()=>{action();};};
   });
   for(const row of data.world??[])if(row.action!==undefined)read(row.action);
@@ -1068,6 +1087,7 @@ export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,por
     point:row=>{const pointField=readBorrowedOwner(owners,row);if(!(pointField?.value instanceof Vector3))throw new Error('Quest world reaction needs its actual point');return pointField.value;}});
   for(const bind of prompts)bind();
   for(const row of initial)if(testFlags(view,row.when))for(const effect of row.effects)effect();
+  ports.interactables?.push(...registered);
   return {run:id=>read(id)(),action:id=>{const action=read(id);return ()=>{action();};},world};
 }
 

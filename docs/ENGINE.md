@@ -4896,3 +4896,13 @@ The caller advances `step(dt, pick)` in its existing adapter and borrows
 `snapshot`/`restore` for the original `{held, swap}` continuation; creating
 the owner registers no clock. `select`, `held`, `swapping`, `owned` and `live`
 serve both immediate melee kits and timed ranged kits.
+
+`game/plugin/ui#createQuestPagePrompts` creates selected prompt frames from
+admitted quest page rows. Rows declare labels, radii and bounded borrowed
+position paths; the actual `Vector3` is retained. Every requested row and
+position resolves before creation. Existing page action binding and save
+restoration remain the owners of interaction and restored presentation.
+
+`QuestPageInteractionPorts.interactables` optionally registers the actual
+preflighted prompts in binding-row order, after restored presentation is
+seeded. Invalid prompt objects refuse before the host list is changed.

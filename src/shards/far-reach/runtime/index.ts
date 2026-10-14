@@ -83,7 +83,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     ctx.tiers.knobs({ id: 'far', defaults: { 'far.meadowBlades': blades } });
     const field = meadow(skyMeadowBlades(), SKY_LIBRARY.look('meadow'), ctx.manifest.tiers?.[ctx.app.render?.tier ?? 'phone']?.['far.meadowBlades'] ?? blades);
     ctx.root.add(field.group); ctx.scope.onDispose(field.dispose);
-    ctx.game.runtime?.interactables.push(this.built.winch, this.built.notes);
     const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
     if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
     this.keepClientChannels(ctx, bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_WORLD.motion.nativeOwners, bindings: [built.islets], observed: (_id, observation) => {
@@ -103,7 +102,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const { flags } = quest; this.flags = flags;
     await worldBuildYield(ctx, 4);
 
-    const page = bindQuestPageInteractions(source, { flags, toast,
+    const page = bindQuestPageInteractions(source, { flags, toast, interactables:rt.interactables,
       owners: new Map<string,unknown>([['world',built],['plugin',this]]) });
     this.questWorld = page.world;
     // the world pins, chip, map and minimap marks are the quest presentation's (data/questPage.ts)

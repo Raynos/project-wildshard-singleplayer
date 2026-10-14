@@ -4,9 +4,12 @@ import { FLAGS } from '../quests/flags';
 import { STRINGS } from './strings';
 
 /** Notes and native winch permissions, with the existing hint/toast beats. */
-export const SKY_QUEST_PAGE_INTERACTIONS={world:VANES.map(vane=>({id:vane.id,at:{kind:'point',x:vane.x,y:vane.y+3.3,z:vane.z},radius:0,
+export const SKY_QUEST_PAGE_INTERACTIONS={prompts:[
+  {id:'winch',label:STRINGS.turnWinch,at:{owner:'frames',path:['winchAt']},radius:3},
+  {id:'notes',label:STRINGS.readNotes,at:{owner:'frames',path:['notesAt']},radius:2.6},
+],world:VANES.map(vane=>({id:vane.id,at:{kind:'point',x:vane.x,y:vane.y+3.3,z:vane.z},radius:0,
   cone:{reach:FAN_GUST.reach+2,halfAngle:FAN_GUST.halfAngle+0.15},needs:{all:[FLAGS.notes],none:[vane.flag]},sets:[vane.flag],toast:STRINGS.vaneTurned})),bindings:{
-  prompts:[{target:'notes',owner:'world',path:['notes','onInteract']},{target:'winch',owner:'world',path:['winch','onInteract']}],
+  prompts:[{target:'winch',owner:'world',path:['winch','onInteract']},{target:'notes',owner:'world',path:['notes','onInteract']}],
   observations:[{target:'winch-up',owner:'world',path:['state','raised']}],
   calls:[{target:'winch',owner:'plugin',path:['clientChannels','runtime','command'],args:['far.winch.bridge',1],optional:true}],
 },actions:[
