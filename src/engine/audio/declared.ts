@@ -1,3 +1,4 @@
+import type { AudioData } from '@wildshard/format/audio';
 import type { Scope } from '../app/scope';
 import type { Audio } from './Audio';
 import type { CombatCues, CombatCueOpts } from '../combat/cues';
@@ -11,7 +12,7 @@ export interface DeclaredAudioData {
   music?: AudioMusicProfile | undefined; samples?: AudioSampleProfile | undefined; zones?: AudioZoneProfile | undefined;
   /** Ordered cue rules resolve the same admitted voice catalogue, with scoped delayed playback. */
   routing?: readonly CueRoute[] | undefined;
-  ambience: { bed: string; winds: readonly { frequency: number; q: number; pan: number; rate: number; gain: number }[] } | null;
+  ambience: AudioData['ambience'];
   score: 'silent' | 'default';
 }
 /** Audio source lifetime and cue/score ports, independent of content packages and renderer state. */
@@ -31,6 +32,7 @@ export interface DeclaredAudioPorts {
 }
 /** Admit every voice before installing; route real engine cues and stop all bed sources with the level scope. */
 export function installDeclaredAudio(data: DeclaredAudioData, ports: DeclaredAudioPorts): void {
+  if (data.ambience?.gust !== undefined) throw new Error('Gust beds require their declared native driver');
   if (ports.scope.disposed) throw new Error('Audio scope is disposed');
   if ((data.music !== undefined && ports.profiles?.music === undefined) || (data.samples !== undefined && ports.profiles?.samples === undefined) || (data.zones !== undefined && ports.profiles?.zones === undefined)) throw new Error('Audio profile requires its trusted catalogue installer');
   const voices = new Map(data.cues.map((cue) => {

@@ -48,6 +48,7 @@ export interface Bounds { x: number; z: number; r: number; yMin: number; yMax: n
 
 /** The island's ports. */
 export interface IslandAmbienceOpts {
+  wind?: ConstructorParameters<typeof IslandBed>[1];
   sea: number;
   heightAt: (x: number, z: number) => number;
   /** the palms' trunks (Palms.scatterIsland specs) */
@@ -71,7 +72,7 @@ export class IslandAmbience {
     // the cave's interior: `depth / 2` in from the mouth along its facing
     const cave = c ? { x: c.x - Math.sin(c.yaw) * c.depth * 0.5, z: c.z - Math.cos(c.yaw) * c.depth * 0.5 } : { x: CAVE.x, z: CAVE.z };
     // the synth island bed (breeze, surf hiss, swells) until the zoned graph is built (the mix's first build: `islandBed.zone()`)
-    const islandBed = new IslandBed(audio);
+    const islandBed = new IslandBed(audio,o.wind);
     this.mix = new AmbienceMix(audio, profile, ISLAND_MIX, {
       random: Math.random, scope: 'audio.island.ambience', heightAt: o.heightAt, sea: o.sea,
       objects: { wreck: o.wreck, cove: o.cove }, near: { palms: o.palms },

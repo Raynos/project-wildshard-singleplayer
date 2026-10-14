@@ -3,7 +3,10 @@ import { parseAudioData } from '@wildshard/sdk/audio';
 const enemies = ['boar', 'crab', 'monkey', 'sailor'] as const;
 const death = enemies.map((kind) => ({ voice: `island.kill.${kind}`, overrides: { gain: 1.3 }, when: [{ op: 'equals', field: 'killed', value: true }, { op: 'equals', field: 'kind', value: kind }] }));
 /** Today's island bank calls, in their original mixer/combat order; the trusted recipes keep their taps and random draws. */
-export const DRIFTWOOD_AUDIO = parseAudioData({ cues: [], ambience: null, score: 'default',
+export const DRIFTWOOD_AUDIO = parseAudioData({ cues: [], ambience: { bed:'island', winds:[
+    { frequency:180,q:0.4,pan:-0.3,rate:0.05,gain:0.05,cutoff:900 }, { frequency:420,q:0.6,pan:0.3,rate:0.08,gain:0.03,cutoff:1100 },
+    { frequency:1500,q:0.35,pan:0,rate:0.03,gain:0.02,cutoff:5000 }
+  ], gust:{scope:'audio.ocean.surf',scopeFirst:true,startTap:'audio.startIsland',tap:'audio.gust',gentle:1.4,wait:[5,12],rise:[1.5,3],fall:[2,4],amount:[0.5,1.6]} }, score: 'default',
   music: { id: 'score.driftwood', base: 'island', slots: ['island'], bootSlots: ['title', 'island'], synthLead: 'marimba', minFade: 0,
     source: null, sets: { island: 'base' }, selectMode: 'first', selection: [{ slots: ['island'], when: [] }] },
   samples: { catalogue: { ownMusic: false, priorityOwn: false, overlaySamples: true, inventoryOmitSlots: [], loopOrder: ['island', 'underwater', 'pickup', 'shrine'] }, set: 'driftwood-isle', bed: 'island', loopGains: { island: 0.5 } },

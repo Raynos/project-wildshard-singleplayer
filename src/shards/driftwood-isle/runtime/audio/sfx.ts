@@ -1,7 +1,8 @@
-import { Scope } from '@wildshard/engine/app/scope';
+import source from '../../shard.config';
+import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { impact } from '@wildshard/engine/audio/gen';
-import { audioRandom, panFromYaw } from '@wildshard/engine/audio/util';
+import { audioRandom, panFromYaw, WindGustBed } from '@wildshard/engine/audio/util';
 import type { VoiceTable } from '@wildshard/engine/audio/Voices';
 import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
 import type { Vector3 } from 'three';
@@ -157,16 +158,10 @@ export const ISLAND_BED = 'island';
  * warmer breeze than the pines (two wind bands with gentle gusts), the constant far surf hiss, and a swell rolling up the
  * beach every 6–9 s. Its gust and swell schedulers run on the bed's own Scope, disposed when the bed stops.
  */
-export class IslandBed {
-  private surfScope: Scope | undefined;
-  private windGain: GainNode | undefined;
-  private windGain2: GainNode | undefined;
+export class IslandBed extends WindGustBed {
   private zoned = false;
-
-  constructor(private readonly audio: Audio) {}
-
-  start(): void { if (!this.zoned) this.startIsland(); }
-  stop(): void { this.surfScope?.dispose(); this.surfScope = undefined; this.windGain = this.windGain2 = undefined; }
+  constructor(audio:Audio,preset=source.audio.ambience) { if(preset===null)throw new Error('Missing declared island wind'); super(audio,preset); }
+  override start():void { if (!this.zoned) { super.start(); this.scheduleSurf(); } }
   /** a zoned ambience replaces the synth bed: it is stopped / never started (a sampled bed still plays) */
   zone(): void {
     if (this.zoned) return;
@@ -174,40 +169,9 @@ export class IslandBed {
     this.audio.restartSynthBed(ISLAND_BED);
   }
 
-  private startIsland(): void {
-    this.surfScope = new Scope('audio.ocean.surf');
-    tap.sound?.('audio.startIsland');
-    this.windGain = this.audio.mkWind(180, 0.4, -0.3, 0.05, 0.05, 900);   // a lighter, warmer breeze than the pines
-    this.windGain2 = this.audio.mkWind(420, 0.6, 0.3, 0.08, 0.03, 1100);
-    this.audio.mkWind(1500, 0.35, 0.0, 0.03, 0.02, 5000);                  // the constant far surf hiss
-    this.scheduleGust(1.4);
-    this.scheduleSurf();
-  }
-
-  /** a gust over the two wind bands every 5–12 s (× `gentle`): a rise, then the fall back to the band's base */
-  private scheduleGust(gentle = 1): void {
-    const wait = rnd(5, 12) * gentle;
-    this.surfScope?.timeout(wait * 1000, () => {
-      ambientTick('audio.gust', () => {
-        const w1 = this.windGain, w2 = this.windGain2;
-        if (this.audio.ambientOn && w1 && w2) {
-          const t = this.audio.ctx.currentTime, rise = rnd(1.5, 3), fall = rnd(2, 4), amt = 1 + rnd(0.5, 1.6) / gentle;
-          for (const g of [w1, w2]) {
-            const base = g === w1 ? 0.05 : 0.03;
-            g.gain.cancelScheduledValues(t);
-            g.gain.setValueAtTime(g.gain.value, t);
-            g.gain.linearRampToValueAtTime(base * amt, t + rise);
-            g.gain.linearRampToValueAtTime(base, t + rise + fall);
-          }
-        }
-        this.scheduleGust(gentle);
-      });
-    });
-  }
-
   private scheduleSurf(): void {
     const wait = rnd(6, 9);
-    this.surfScope?.timeout(wait * 1000, () => {
+    this.queue(wait * 1000, () => {
       ambientTick('audio.surf', () => {
         if (this.audio.ambientOn) this.surfSwell();
         this.scheduleSurf();
