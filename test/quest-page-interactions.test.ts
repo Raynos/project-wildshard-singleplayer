@@ -1,3 +1,4 @@
+import { InteractionRules } from '../src/game/quest/interactionRows';
 import { Vector3 } from 'three';
 // @vitest-environment happy-dom
 import { expect, test } from 'vitest';
@@ -68,3 +69,7 @@ test('borrowed rows restore actual views and methods keep their receiver; path e
   bindQuestPageInteractions(source,{flags,owners:new Map([['world',world]]),calls:new Map([['take',()=>{called=true;}]]),toast:()=>undefined});world.onInteract();expect(called).toBe(true);expect(world.label).toBe('restored');
   const broken={onInteract:0,label:'before'};expect(()=>bindQuestPageInteractions(source,{flags,owners:new Map([['world',broken]]),calls:new Map([['take',()=>undefined]]),toast:()=>undefined})).toThrow('Invalid borrowed prompt');expect(broken.label).toBe('before');
  });
+
+test('admitted interaction rules refuse a missing host without changing flags',()=>{
+ const flags=new Flags('missing-interaction-host',false);expect(()=>InteractionRules.fromDeclared({},flags)).toThrow('Missing admitted interaction host');expect(flags.has(FLAG.oil)).toBe(false);
+});

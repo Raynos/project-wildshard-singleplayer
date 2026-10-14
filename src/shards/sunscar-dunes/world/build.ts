@@ -13,7 +13,6 @@ import { WORLD, type BakedWorld } from './baked';
 import { fireLight, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
-import { SIGNAL_INTERACTIONS } from '../data/signalInteractions';
 
 type ShardContext = Parameters<SignalDunesPlugin['world']>[0];
 
@@ -49,7 +48,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
   const pieces = WORLD.placements(ctx.piece, ctx.root, baked);
   const tower = pieces.add('sunscar.tower', buildPlace('tower',baked)), caravan = pieces.add('sunscar.caravan', buildPlace('caravan',baked)), wellParts = pieces.add('sunscar.well', buildPlace('well',baked));
   pieces.baked('sunscar.rocks'); pieces.baked('sunscar.dressing');
-  const interactables = ctx.game.runtime?.interactables, rules = new InteractionRules(flags, SIGNAL_INTERACTIONS);
+  const interactables = ctx.game.runtime?.interactables, rules = InteractionRules.fromDeclared(source, flags);
 
   let page: (id: string) => boolean = () => { throw new Error('Quest page interactions are not bound'); };
 

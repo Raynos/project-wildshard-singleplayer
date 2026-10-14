@@ -4837,3 +4837,8 @@ and existing `bindings` to the same mover pose publisher. An optional
 `ClientMoverInstallation.viewSystemId` updates those views in the normal
 page update phase; `socketLiftPrompts` binds admitted entry prompts after
 the existing mover installation. There is no extra simulation clock.
+
+`InteractionRules.fromDeclared(source, flags)` requires the admitted
+quest host and creates its original transient marks over the supplied
+durable owner. Both early world and default page bindings use it; no
+second interaction table or continuation is created.

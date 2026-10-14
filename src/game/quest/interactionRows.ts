@@ -23,6 +23,11 @@ export type InteractionResult = { readonly ok: true } | { readonly ok: false; re
  * rows from tick commands. Marks are exact continuation (`snapshot` / `restore`); flags stay the flags' own.
  */
 export class InteractionRules {
+  /** Create page rules only from the required admitted quest composition. */
+  static fromDeclared(source:{readonly questHost?:{readonly interactions:InteractionRowsData}|null},flags:Pick<Flags,'has'|'set'>):InteractionRules {
+    if(source.questHost===undefined||source.questHost===null)throw new Error('Missing admitted interaction host');
+    return new InteractionRules(flags,source.questHost.interactions);
+  }
   readonly data: InteractionRowsData;
   private readonly flags: Pick<Flags, 'has' | 'set'>;
   private readonly marks = new Map<string, boolean>();

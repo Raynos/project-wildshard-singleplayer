@@ -1031,7 +1031,7 @@ export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,por
     calls.set(row.target,()=>{const current=readBorrowedOwner(owners,row);if(row.optional===true&&(current?.value??null)===null)return;
       if(current===null||!callable(current.value))throw new Error(`Invalid borrowed call ${row.target}`);current.value.call(current.receiver,...row.args??[]);});
   }
-  const rules=ports.rules??new InteractionRules(ports.flags,host.interactions);
+  const rules=ports.rules??InteractionRules.fromDeclared(source,ports.flags);
   const view={has:(id:string):boolean=>observations.get(id)?.()??rules.has(id)};
   type Effect=QuestPageInteractionsData['actions'][number]['after'];
   const compile=(rows:Effect):(()=>void)[] => (rows??[]).map(row=>{
