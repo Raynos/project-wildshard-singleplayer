@@ -84,7 +84,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   // The braziers: pour oil by hand, light with a crack.
   resetFireLights();
   const braziers: Brazier[] = BRAZIERS.map((_, i) => {
-    const parts = pieces.add(`sunscar.brazier.${String(i)}`, buildBrazier(baked, i, groundAt));
+    const parts = pieces.add(`sunscar.brazier.${String(i)}`, buildBrazier(baked, i, groundAt, pieces.colliders(`sunscar.brazier.${String(i)}`)));
     const oiled = `oiled.${String(i)}`, lit = `lit.${String(i)}`;
     const brazier: Brazier = { parts, get oiled() { return rules.has(oiled); }, set oiled(value) { rules.mark(oiled, value); }, get lit() { return rules.has(lit); }, set lit(value) { rules.mark(lit, value); },
       // radius 3: the bowl stands on its plinth, 2.35 m up, and is reached from the sand round it

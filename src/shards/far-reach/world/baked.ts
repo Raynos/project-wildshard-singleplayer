@@ -1,3 +1,5 @@
+import BRIDGE_PHYSICS from '../data/bridgePhysics.generated.json' with { type:'json' };
+import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type:'json' };
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { bakedMeshWorld, worldPieces, type BakedMeshKindRow, type DrawnBakedMeshPiece, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
 import { BufferGeometry, DataTexture, LinearFilter, LinearMipmapLinearFilter, RGBAFormat, UnsignedByteType, type Mesh, type Object3D } from 'three';
@@ -83,4 +85,4 @@ export function skyBakedGeometry(kind: 'clump' | 'flower' | 'boulder' | 'pine' |
 }
 
 /** Sky's world pieces (data/pieces.ts) placed under `root` and registered, the baked ones drawn from the loaded bake. */
-export const skyPieces = (register: Parameters<typeof worldPieces>[0], root: Object3D): WorldPieces => worldPieces(register, root, SKY_PIECES, (piece) => skyBakedPiece(piece));
+export const skyPieces = (register: Parameters<typeof worldPieces>[0], root: Object3D): WorldPieces => worldPieces(register, root, SKY_PIECES, (piece) => skyBakedPiece(piece), [...BRIDGE_PHYSICS,...PLACEMENTS]);

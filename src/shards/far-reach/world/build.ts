@@ -1,7 +1,7 @@
 import ISLET_SCENES from '../data/isletScenes.generated.json' with { type: 'json' };
 import { ISLE_DRAWS } from '../data/isleLook';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
+import { boxDesc, type Piece } from '@wildshard/engine/world/registry';
 import { bindClientChannels, createClientScene } from '@wildshard/game/plugin/ui';
 import type { SkyReachPlugin } from '../runtime/index';
 import { spanLength, spanYaw, spanPitch } from '../layout';
@@ -16,8 +16,6 @@ import { crownArena } from './crown';
 import { trees } from './trees';
 import { ISLE_KEEL_CUT } from '../data/skyIsles';
 import PLACEMENTS_BAKED from '../data/placements.json' with { type: 'json' };
-import BRIDGE_PHYSICS from '../data/bridgePhysics.generated.json' with { type: 'json' };
-import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type: 'json' };
 import { skyIsleModels } from './skyIsleHd';
 import { skyBakedPiece, skyKnollHulls, skyPieces } from './baked';
 import { skyline } from './distant';
@@ -41,30 +39,6 @@ const FILE = 'src/shards/far-reach/world/build.ts';
 /** The updraft's climb (radians; under the 40° walk limit) and its run along the slope. */
 export const UPDRAFT_ANGLE = spanPitch(UPDRAFT);
 export const UPDRAFT_LENGTH = spanLength(UPDRAFT);
-/** A baked row's colliders (data/*.generated.json, compiled by the shard's generators): boxes and hulls, by piece id. */
-interface BakedCollider {
-  readonly kind: string; readonly x: number; readonly y: number; readonly z: number; readonly surface: string;
-  readonly hx?: number; readonly hy?: number; readonly hz?: number; readonly yaw?: number;
-  readonly rot?: { readonly x: number; readonly y: number; readonly z: number; readonly w: number }; readonly points?: readonly number[];
-}
-const SURFACES = ['wood', 'grass', 'stone'] as const;
-/** The row's colliders; `surface` (when set) is the one surface every collider must have. */
-function bakedColliders(rows: readonly { readonly id: string; readonly colliders: readonly BakedCollider[] }[], id: string, surface?: typeof SURFACES[number]): ColliderDesc[] {
-  const row = rows.find((p) => p.id === id);
-  if (row === undefined) throw new Error(`far-reach: no baked colliders for ${id}`);
-  return row.colliders.map((c): ColliderDesc => {
-    const own = SURFACES.find((k) => k === c.surface);
-    if (own === undefined || (surface !== undefined && own !== surface)) throw new Error(`far-reach: ${id} holds a ${c.kind} ${c.surface} collider`);
-    if (c.kind === 'hull' && c.points !== undefined) return { kind: 'hull', x: c.x, y: c.y, z: c.z, points: new Float32Array(c.points), surface: own };
-    if (c.kind !== 'box' || c.hx === undefined || c.hy === undefined || c.hz === undefined) throw new Error(`far-reach: ${id} holds a ${c.kind} collider`);
-    return c.rot === undefined ? { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, yaw: c.yaw ?? 0, surface: own }
-      : { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, rot: { x: c.rot.x, y: c.rot.y, z: c.rot.z, w: c.rot.w }, surface: own };
-  });
-}
-/** The rope spans' sagged decks and rails, the hover decks, the updraft and the fallen bridge (generators/bridgeColliders.ts). */
-const spanColliders = (id: string): ColliderDesc[] => bakedColliders(BRIDGE_PHYSICS, id, 'wood');
-/** The windmill (its tower and rock drum), the winch, the notes and the vanes (generators/physicsPlacements.ts). */
-const propColliders = (id: string): ColliderDesc[] => bakedColliders(PLACEMENTS, id);
 /** The baked placements for this session's cube (G99): standalone, or a grid cell of the half width they were baked for. */
 function skyPlacements(cube: { readonly half: number } | null): typeof PLACEMENTS_BAKED.standalone {
   if (cube === null) return PLACEMENTS_BAKED.standalone;
@@ -109,7 +83,7 @@ const CUT = ISLE_KEEL_CUT;
  */
 export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, isles: IsleMeshes, looks: { readonly deck: Material; readonly frame: Material; readonly channels: Parameters<typeof bindClientChannels>[0] }): Promise<BuiltWorld> {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
-  const pieces = skyPieces(ctx.piece, root);
+  const pieces = skyPieces(ctx.piece, root), spanColliders = (id: string) => pieces.colliders(id,'wood'), propColliders = pieces.colliders;
   const names: Record<string, string> = { sunrest: STRINGS.sunrest, windmill: STRINGS.windmill, roost: STRINGS.roost, grove: STRINGS.grove,
     keeper: STRINGS.keeper, ruin: STRINGS.ruin, step: STRINGS.step, crown: STRINGS.crown };
   // SF49-g (G183): the four gate isles join the islands (every shape baked, generators/isles.ts; drawn from the props tiles,
@@ -121,7 +95,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
     // round it; the top, the lip and every collider are unchanged (a gate isle has no keel model: its code keel stays whole)
     const gate = RISING_ISLETS.map(entry => entry.gate).includes(isle), mesh = staticIsle(isles, isle.id, gate ? 'isle-paint' : CUT[isle.id] === undefined ? 'isle-paint-cut' : 'isle-paint-cut-mill'); root.add(mesh);
     if (!gate) for (let i = 0; i < ISLE_DRAWS; i++) rnd();
-    ctx.piece({ id: `far.isle.${isle.id}`, name: names[isle.id] ?? (gate ? STRINGS.gateIsle : isle.id), category: 'ground', file: FILE, object: mesh, colliders: bakedColliders(PLACEMENTS, `far.isle.${isle.id}`, 'grass'), surface: 'grass' });
+    ctx.piece({ id: `far.isle.${isle.id}`, name: names[isle.id] ?? (gate ? STRINGS.gateIsle : isle.id), category: 'ground', file: FILE, object: mesh, colliders: pieces.colliders(`far.isle.${isle.id}`,'grass'), surface: 'grass' });
     await pause();
   }
   // the grassy rises (E399: proposal B's hill on the bridge's axis, mockup D's look down into the arena), walkable on their hulls
@@ -175,7 +149,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   // G200: played alone (no road beyond the lips) each lip ends at a railed timber sky dock with a beacon; in a grid cell the
   // road socket continues there, so no dock
   const staticIslets = createClientScene(ISLET_SCENES.staticScene, { geometry: SKY_LIBRARY.geometry }); root.add(staticIslets.root);
-  for (const row of ISLET_SCENES.pieces) { const object = staticIslets.parts.get(row.id); ctx.piece({ ...row, category: row.category === 'buildings' ? 'buildings' : 'props', surface: row.surface === 'stone' ? 'stone' : 'wood', ...(object === undefined ? {} : { object }), colliders: bakedColliders(ISLET_SCENES.pieces, row.id) }); }
+  for (const row of ISLET_SCENES.pieces) { const object = staticIslets.parts.get(row.id); ctx.piece({ ...row, category: row.category === 'buildings' ? 'buildings' : 'props', surface: row.surface === 'stone' ? 'stone' : 'wood', ...(object === undefined ? {} : { object }), colliders: pieces.colliders(row.colliders) }); }
   const posts = skyBakedPiece('islet-rig'); root.add(posts.root); ctx.piece({ id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: posts.root, colliders: posts.colliders, surface: 'wood' });
   for (const piece of [...bridges, ...skyDocksFor(ctx.cube)]) { if (piece.object !== undefined) root.add(piece.object); ctx.piece(piece); }
   await pause();

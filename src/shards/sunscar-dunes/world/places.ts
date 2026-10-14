@@ -68,7 +68,7 @@ export interface BrazierParts { root: Group; colliders: ColliderDesc[]; fire: Gr
  * Waymark `i`: the generated brazier (loop 6, mockup C) on its baked footing, the oil, the baked log crown and a hidden
  * fire (`fireFx.ts`; no light of its own, one rides to the lit waymark nearest the player).
  */
-export function buildBrazier(baked: BakedWorld, i: number, groundAt: (x: number, z: number) => number): BrazierParts {
+export function buildBrazier(baked: BakedWorld, i: number, groundAt: (x: number, z: number) => number, colliders: ColliderDesc[]): BrazierParts {
   const spot = BRAZIERS[i], row = brazierRows.braziers[i]; if (spot === undefined || row === undefined) throw new Error(`no waymark ${String(i)}`);
   const { x, z } = spot, { y } = row, root = new Group(), bowl = HD.brazier * HD.bowlAt;
   root.position.set(x, y, z);
@@ -76,13 +76,13 @@ export function buildBrazier(baked: BakedWorld, i: number, groundAt: (x: number,
   const oil = createClientScene(REST_SCENES.oil, { geometry: DUNE_LIBRARY.geometry }).mesh('oil');
   if (oil === null) throw new Error('Missing declared waymark oil'); root.add(oil);
   // the baked charred log crown (generators/places.ts waymarkCrown), its ember lit with the fire
-  const embers: MeshStandardMaterial[] = [], logs = bakedPiece(baked, 'braziers', (kind) => kind.brazier === i, (m) => { embers.push(m); }, row.colliders); root.add(logs.root);
+  const embers: MeshStandardMaterial[] = [], logs = bakedPiece(baked, 'braziers', (kind) => kind.brazier === i, (m) => { embers.push(m); }); root.add(logs.root);
   oil.visible = false;
   const fire = new Group(); fire.position.set(0, bowl, 0); fire.visible = false; root.add(fire);
   // The fire (P2 #8): layered flame, glow, embers downwind, a smoke column and a warm pool on the sand.
   addFire(fire, WAYMARK_FIRE, { at: new Vector3(x, y + bowl, z), groundAt });
   const light = fireLight(new Vector3(x, y + bowl + 0.4, z));
-  return { root, colliders: logs.colliders, fire, bowlAt: new Vector3(x, y + 1.6, z), oil, glow: (lit: boolean) => {
+  return { root, colliders, fire, bowlAt: new Vector3(x, y + 1.6, z), oil, glow: (lit: boolean) => {
     light(lit); for (const ember of embers) ember.emissiveIntensity = lit ? 1.1 : 0;
   } };
 }

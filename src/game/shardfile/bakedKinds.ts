@@ -53,13 +53,19 @@ const SURFACES: Readonly<Record<Material, true>> = { sand: true, wetSand: true, 
   flesh: true, shell: true, ground: true, edge: true, felt: true, earth: true };
 const isSurface = (s: string): s is Material => Object.hasOwn(SURFACES, s);
 const surface = (s: string): Material => { if (!isSurface(s)) throw new Error(`baked collider: unknown surface ${s}`); return s; };
-const box = (c: BakedColliderRow): ColliderDesc => {
-  if (c.kind !== 'box') throw new Error('baked collider: a box');
-  return { kind: 'box', x: c.x, y: c.y, z: c.z, hx: c.hx, hy: c.hy, hz: c.hz, ...(c.yaw === undefined ? {} : { yaw: c.yaw }), ...(c.rot === undefined ? {} : { rot: { ...c.rot } }), surface: surface(c.surface) };
-};
-
-/** Baked collider rows as the registry takes them. */
-export const bakedColliders = (rows: readonly BakedColliderRow[]): ColliderDesc[] => rows.map(box);
+/** Authored static collider rows shared by placed props and baked mesh pieces. */
+export interface BakedColliderInput {
+  readonly kind: string; readonly x: number; readonly y: number; readonly z: number; readonly surface: string;
+  readonly hx?: number; readonly hy?: number; readonly hz?: number; readonly yaw?: number;
+  readonly rot?: { readonly x: number; readonly y: number; readonly z: number; readonly w: number }; readonly points?: readonly number[];
+}
+/** Decode owned hull words and box poses before handing them to the registry. */
+export const bakedColliders = (rows: readonly BakedColliderInput[]): ColliderDesc[] => rows.map((c): ColliderDesc => {
+  const own = surface(c.surface);
+  if (c.kind === 'hull' && c.points !== undefined) return { kind:'hull',x:c.x,y:c.y,z:c.z,points:new Float32Array(c.points),surface:own };
+  if (c.kind !== 'box' || c.hx === undefined || c.hy === undefined || c.hz === undefined) throw new Error('Invalid baked collider shape');
+  return { kind:'box',x:c.x,y:c.y,z:c.z,hx:c.hx,hy:c.hy,hz:c.hz,...(c.yaw===undefined?{}:{yaw:c.yaw}),...(c.rot===undefined?{}:{rot:{...c.rot}}),surface:own };
+});
 
 export interface BakedKindsDraw<K extends BakedKindRow> {
   /** A kind's own material (a shard's shader-drawn surface); otherwise the row's standard material is built. */
@@ -254,13 +260,16 @@ export interface WorldPieces {
   readonly add: <T extends BuiltPiece>(id: string, built: T, extra?: Pick<Piece, 'colliders' | 'active'>) => T;
   /** Place a row drawn straight from the bake (`baked`): its kinds and its baked colliders. */
   readonly baked: (id: string) => BakedPart;
+  /** The declared static collider rows for an existing piece identity. */
+  readonly colliders: (id: string | readonly BakedColliderInput[], expectedSurface?: Material) => ColliderDesc[];
 }
 /**
  * Place world pieces from rows, shared by Signal Dunes and Sky Reach (G345): each row poses its object, adds it under `root`
  * and registers it with the level's one world registry (`register`, the level's `ctx.piece`), in the order the shard calls.
  */
-export function worldPieces<B extends string>(register: (piece: Piece) => void, root: Object3D, rows: readonly WorldPieceRow<B>[], bake?: (piece: B) => BakedPart): WorldPieces {
-  const byId = new Map(rows.map((row) => [row.id, row]));
+export function worldPieces<B extends string>(register: (piece: Piece) => void, root: Object3D, rows: readonly WorldPieceRow<B>[], bake?: (piece: B) => BakedPart, colliderRows: readonly { readonly id: string; readonly colliders: readonly BakedColliderInput[] }[] = []): WorldPieces {
+  const byId = new Map(rows.map((row) => [row.id, row])), shapes = new Map(colliderRows.map(row => [row.id,row.colliders]));
+  if (shapes.size !== colliderRows.length) throw new Error('Duplicate declared collider piece');
   const row = (id: string): WorldPieceRow<B> => { const found = byId.get(id); if (found === undefined) throw new Error(`world piece ${id}: no row`); return found; };
   const add = <T extends BuiltPiece>(id: string, built: T, extra: Pick<Piece, 'colliders' | 'active'> = {}): T => {
     const r = row(id), object = built instanceof Object3D ? built : built.root, colliders = extra.colliders ?? (built instanceof Object3D ? undefined : built.colliders);
@@ -272,7 +281,12 @@ export function worldPieces<B extends string>(register: (piece: Piece) => void, 
       ...(r.surface === undefined ? {} : { surface: r.surface }), ...(r.mode === undefined ? {} : { mode: r.mode }), ...(extra.active === undefined ? {} : { active: extra.active }) });
     return built;
   };
-  return { add, baked: (id) => {
+  return { add, colliders: (id, expectedSurface) => {
+    const label = typeof id === 'string' ? id : 'inline shapes', declared = typeof id === 'string' ? shapes.get(id) : id; if (declared === undefined) throw new Error(`world piece ${label}: no colliders`);
+    const made = bakedColliders(declared);
+    if (expectedSurface !== undefined && made.some(shape => shape.surface !== expectedSurface)) throw new Error(`world piece ${label}: collider surface differs`);
+    return made;
+  }, baked: (id) => {
     const piece = row(id).baked; if (piece === undefined || bake === undefined) throw new Error(`world piece ${id}: not baked`);
     return add(id, bake(piece));
   } };

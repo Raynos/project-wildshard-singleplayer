@@ -1,5 +1,5 @@
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { bakedMeshWorld, bakedColliders, worldPieces, type BakedColliderRow, type BakedMeshKindRow, type LoadedMeshBake, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
+import { bakedMeshWorld, worldPieces, type BakedMeshKindRow, type LoadedMeshBake, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
 import type { Group, MeshStandardMaterial, Object3D } from 'three';
 import { SIGNAL_PIECES } from '../data/pieces';
 import rocks from '../data/rocks.json' with { type: 'json' };
@@ -37,9 +37,8 @@ export const lastPlait = (): Uint8Array | null => plait;
 export const lastBakedWorld = WORLD.last;
 
 /** A world piece from its bake: each kind one `InstancedMesh` in its own material; `only` picks some kinds (one waymark's), `each` sees their materials. */
-export function bakedPiece(baked: BakedWorld, piece: BakedPiece, only?: (kind: KindRow) => boolean, each?: (material: MeshStandardMaterial) => void, colliders?: readonly BakedColliderRow[]): { root: Group; colliders: ColliderDesc[] } {
-  const made = WORLD.piece(piece, { nodes: baked.get(piece) ?? new Map(), only, each });
-  return colliders === undefined ? made : { root: made.root, colliders: bakedColliders(colliders) };
+export function bakedPiece(baked: BakedWorld, piece: BakedPiece, only?: (kind: KindRow) => boolean, each?: (material: MeshStandardMaterial) => void): { root: Group; colliders: ColliderDesc[] } {
+  return WORLD.piece(piece, { nodes: baked.get(piece) ?? new Map(), only, each });
 }
 /** Signal's world pieces (data/pieces.ts) placed under `root` and registered, the baked ones drawn from `baked`. */
-export const signalPieces = (register: Parameters<typeof worldPieces>[0], root: Object3D, baked: BakedWorld): WorldPieces => worldPieces(register, root, SIGNAL_PIECES, (piece) => bakedPiece(baked, piece));
+export const signalPieces = (register: Parameters<typeof worldPieces>[0], root: Object3D, baked: BakedWorld): WorldPieces => worldPieces(register, root, SIGNAL_PIECES, (piece) => bakedPiece(baked, piece), braziers.braziers.map((row,index)=>({id:`sunscar.brazier.${String(index)}`,colliders:row.colliders})));

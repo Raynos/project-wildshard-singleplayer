@@ -32,7 +32,7 @@ export const wellModel = defineModel({ id: 'sunscar-dunes/dry-well', name: STRIN
   build: () => centred(buildWell(lastBakedWorld() ?? new Map()).root, WELL.x, wellY, WELL.z) });
 export const brazierModel = defineModel({ id: 'sunscar-dunes/waymark-brazier', name: STRINGS.waymark, category: 'props', pipeline: ['hunyuan', 'code'], file: FILE, defaults: {},
   build: () => {
-    const parts = buildBrazier(lastBakedWorld() ?? new Map(), 0, () => brazierY); parts.fire.visible = true; parts.oil.visible = true;
+    const parts = buildBrazier(lastBakedWorld() ?? new Map(), 0, () => brazierY, []); parts.fire.visible = true; parts.oil.visible = true;
     return centred(parts.root, BRAZIERS[0]?.x ?? 0, brazierY, BRAZIERS[0]?.z ?? 0);
   } });
 /** Sefa, the caravan scout who gives the quest (loop 2): the generated figure at her own origin. */
