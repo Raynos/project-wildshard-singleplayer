@@ -2,7 +2,7 @@ import { InteractionRules } from '@wildshard/game/quest/interactionRows';
 import { PointLight, type Vector3 } from 'three';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { bindClientChannels } from '@wildshard/game/plugin/ui';
+import { bindClientChannels, bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
 import type { SignalDunesPlugin } from '../plugin';
 import source from '../runtime/source';
 
@@ -55,28 +55,22 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   pieces.baked('sunscar.rocks'); pieces.baked('sunscar.dressing');
   const interactables = ctx.game.runtime?.interactables, rules = new InteractionRules(flags, SIGNAL_INTERACTIONS);
 
+  let page: (id: string) => boolean = () => { throw new Error('Quest page interactions are not bound'); };
+
   // The logbook on the caravan's tailboard: read it once, it points the way to the well.
-  const logbook: Interactable = { label: STRINGS.readLog, position: caravan.logbookAt, radius: 2.4, onInteract: () => {
-    if (!rules.run('logbook').ok) return; logbook.label = STRINGS.logRead; toast(ctx, STRINGS.logText);
-  } };
-  if (flags.has(FLAG.logbook)) logbook.label = STRINGS.logRead;
+  const logbook: Interactable = { label: STRINGS.readLog, position: caravan.logbookAt, radius: 2.4,
+    onInteract: () => { page('logbook'); } };
 
   // The well: a heavy crack on the crank hauls the bucket up; then take the oil jar.
   const programs = source.clientChannels;
   if (programs?.length !== 2) throw new Error('Missing declared bucket motion');
   const channels = bindClientChannels(programs, { targets: new Map<string, unknown>([['bucket', wellParts.bucket], ['rope', wellParts.rope]]) });
   channels.evaluate(programs[0]?.id ?? '', { time: 0, delta: 0, values: [Number(flags.has(FLAG.oil)), Number(rules.has('raised')), wellParts.drop] });
-  channels.bindPrompts({ named: new Map([['sunscar.well.take', spot => {
-      const result = rules.run('well');
-      if (!result.ok) { if (result.reason === 'unraised') toast(ctx, STRINGS.wellHint); return; }
-      wellParts.jar.visible = false; spot.label = STRINGS.oilTaken; toast(ctx, STRINGS.oilGot);
-    }]]) });
+  channels.bindPrompts({ named: new Map([['sunscar.well.take', () => { page('well'); }]]) });
   channels.evaluate(programs[1]?.id ?? '', { time: 0, delta: 0, values: [wellParts.jarAt.x, wellParts.jarAt.y, wellParts.jarAt.z] });
   const wellSpot = channels.prompt(programs[1]?.id ?? '');
-  const well: SignalWorld['well'] = { ...wellParts, get raised() { return rules.has('raised'); }, spot: wellSpot, pull: () => {
-    if (!rules.run('crank').ok) return false; wellSpot.label = STRINGS.takeOil; return true;
-  } };
-  if (flags.has(FLAG.oil)) { wellParts.jar.visible = false; wellSpot.label = STRINGS.oilTaken; }
+  const well: SignalWorld['well'] = { ...wellParts, get raised() { return rules.has('raised'); }, spot: wellSpot,
+    pull: () => page('crank') };
 
   // The braziers: pour oil by hand, light with a crack.
   const braziers: Brazier[] = BRAZIERS.map((_, i) => {
@@ -85,17 +79,9 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
     const brazier: Brazier = { parts, get oiled() { return rules.has(oiled); }, set oiled(value) { rules.mark(oiled, value); }, get lit() { return rules.has(lit); }, set lit(value) { rules.mark(lit, value); },
       // radius 3: the bowl stands on its plinth, 2.35 m up, and is reached from the sand round it
       spot: { label: STRINGS.needOil, position: parts.bowlAt, radius: 3, onInteract: () => {
-        const result = rules.run(`pour.${String(i)}`);
-        if (!result.ok) { if (result.reason === 'missing') toast(ctx, STRINGS.needOilHint); return; }
-        parts.oil.visible = true; brazier.spot.label = STRINGS.crackToLight; toast(ctx, STRINGS.crackToLight);
+        page(`pour.${String(i)}`);
       } },
-      light: () => {
-        if (!rules.run(`light.${String(i)}`, () => { parts.fire.visible = true; parts.glow(true); brazier.spot.label = STRINGS.waymarkLit; }).ok) return false;
-        const n = braziers.filter((x) => x.lit).length; toast(ctx, n < braziers.length ? `${STRINGS.waymarkLit} · ${String(n)}/${String(braziers.length)}` : STRINGS.allLit);
-        return true;
-      } };
-    if (flags.has(`${FLAG.brazierPrefix}${String(i)}`)) { brazier.oiled = true; brazier.lit = true; parts.oil.visible = true; parts.fire.visible = true; parts.glow(true); brazier.spot.label = STRINGS.waymarkLit; }
-    else if (flags.has(FLAG.oil)) brazier.spot.label = STRINGS.pourOil;
+      light: () => page(`light.${String(i)}`) };
     return brazier;
   });
   // the caravan's lantern lights its own wagon (the fourth firelight slot; always burning)
@@ -105,9 +91,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   const fireCaught = (caught: SignalFire): void => { caught.tower.fire.visible = true; caught.tower.light.intensity = TOWER_LIGHT; caught.brazier.label = STRINGS.lit; };
   const fire: SignalFire = { tower, get lit() { return rules.has('fire'); }, set lit(value) { rules.mark('fire', value); }, onLight: null,
     brazier: { label: STRINGS.light, position: tower.brazierAt, radius: 2.6, onInteract: () => {
-      const result = rules.run('fire', () => { fireCaught(fire); });
-      if (!result.ok) { if (result.reason === 'unlit') toast(ctx, STRINGS.fireHint); return; }
-      fire.onLight?.();
+      page('fire');
     } },
     // a load that finds the fire lit: it burns at once, whatever the transient waymarks say
     light: () => {
@@ -115,6 +99,12 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
       rules.mark('fire'); fireCaught(fire); flags.set(FLAG.lit);
       fire.onLight?.();
     } };
+  page = bindQuestPageInteractions(source, { flags, rules,
+    labels: new Map([['logbook', logbook], ['well', wellSpot], ...braziers.map((b, i) => [`brazier.${String(i)}`, b.spot] as const)]),
+    visible: new Map<string, { visible: boolean }>([['jar', wellParts.jar], ...braziers.flatMap((b, i) => [[`oil.${String(i)}`, b.parts.oil] as const, [`fire.${String(i)}`, b.parts.fire] as const])]),
+    calls: new Map([['catch-fire', () => { fireCaught(fire); }], ['summon', () => { fire.onLight?.(); }], ...braziers.map((b, i) => [`glow.${String(i)}`, () => { b.parts.glow(true); }] as const)]),
+    toast: text => { toast(ctx, text); } }).run;
+
   if (flags.has(FLAG.lit)) fire.light();
   interactables?.push(logbook, wellSpot, ...braziers.map((b) => b.spot), fire.brazier);
 

@@ -1,0 +1,45 @@
+// @vitest-environment happy-dom
+import { expect, test } from 'vitest';
+import { Flags } from '../src/engine/world/interact/flags';
+import { parseQuestHost } from '../src/format/questHost';
+import { bindQuestPageInteractions } from '../src/game/plugin/ui';
+import { QUEST_HOST as signal } from '../src/shards/sunscar-dunes/data/questHost';
+import { QUEST_HOST as sky } from '../src/shards/far-reach/data/questHost';
+import { FLAG } from '../src/shards/sunscar-dunes/data/flags';
+import { FLAGS } from '../src/shards/far-reach/quest/flags';
+
+test('Signal refuses unraised oil, runs the crank and restores saved page state',()=>{
+  const flags=new Flags('page-beats-signal',false),well={label:'well'},logbook={label:'logbook'},jar={visible:true},toasts:string[]=[];
+  let summoned=false;
+  const labels=new Map([['well',well],['logbook',logbook],...['0','1','2'].map(id=>[`brazier.${id}`,{label:'brazier'}] as const)]);
+  const visible=new Map([['jar',jar],...['0','1','2'].flatMap(id=>[[`oil.${id}`,{visible:false}] as const,[`fire.${id}`,{visible:false}] as const])]);
+  const calls=new Map<string,()=>void>([['catch-fire',()=>undefined],['summon',()=>{summoned=true;}],...['0','1','2'].map(id=>[`glow.${id}`,()=>undefined] as const)]);
+  const ports={flags,labels,visible,calls,toast:(text:string)=>{toasts.push(text);}};
+  const page=bindQuestPageInteractions({questHost:parseQuestHost(signal)},ports);
+  expect(page.run('well')).toBe(false);expect(jar.visible).toBe(true);expect(toasts).not.toEqual([]);
+  expect(page.run('crank')).toBe(true);expect(page.run('well')).toBe(true);expect(flags.has(FLAG.oil)).toBe(true);expect(jar.visible).toBe(false);
+  expect(page.run('well')).toBe(false);expect(page.run('fire')).toBe(false);
+  for(const id of ['0','1','2']){expect(page.run(`pour.${id}`)).toBe(true);expect(page.run(`light.${id}`)).toBe(true);}
+  expect(page.run('fire')).toBe(true);expect(summoned).toBe(true);summoned=false;expect(page.run('fire')).toBe(false);expect(summoned).toBe(false);
+  jar.visible=true;well.label='old';
+  bindQuestPageInteractions({questHost:parseQuestHost(signal)},ports);
+  expect(jar.visible).toBe(false);expect(well.label).not.toBe('old');
+  expect(()=>page.run('missing')).toThrow('Unknown page interaction');
+});
+
+test('Sky notes unlock the quest, winch needs both permissions and a raised winch stays silent',()=>{
+  const flags=new Flags('page-beats-sky',false);let up=false,commanded=false;
+  const page=bindQuestPageInteractions({questHost:parseQuestHost(sky)},{flags,toast:()=>undefined,
+    observations:new Map([['winch-up',()=>up]]),calls:new Map([['winch',()=>{commanded=true;}]])});
+  page.action('notes')();expect(flags.has(FLAGS.notes)).toBe(true);expect(page.run('winch')).toBe(false);
+  flags.set(FLAGS.roost);flags.set(FLAGS.vanes);expect(page.run('winch')).toBe(true);expect(commanded).toBe(true);
+  commanded=false;up=true;expect(page.run('winch')).toBe(false);expect(commanded).toBe(false);
+});
+
+test('unknown fields or missing borrowed targets refuse before initial effects',()=>{
+  const flags=new Flags('page-beats-invalid',false),view={label:'unchanged'};
+  expect(()=>bindQuestPageInteractions({questHost:parseQuestHost({...signal,page:{actions:[],unexpected:true}})},{flags,toast:()=>undefined})).toThrow();
+  expect(()=>bindQuestPageInteractions({questHost:parseQuestHost({...signal,page:{actions:[{id:'a',after:[{kind:'call',target:'missing'}]}],initial:[{when:{},effects:[{kind:'label',target:'view',text:'changed'}]}]}})},
+    {flags,labels:new Map([['view',view]]),toast:()=>undefined})).toThrow('Missing page interaction command');
+  expect(view.label).toBe('unchanged');
+});

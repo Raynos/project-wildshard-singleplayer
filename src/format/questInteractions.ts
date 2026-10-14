@@ -27,3 +27,26 @@ export type InteractionRowsData = v.InferOutput<typeof InteractionRowsSchema>;
 export type InteractionRow = InteractionRowsData['rows'][number];
 /** Compile authored interaction rows; an unknown field, a duplicate id or act, or an empty `sets` refuses. */
 export function parseInteractionRows(input: unknown): InteractionRowsData { return v.parse(InteractionRowsSchema, input); }
+
+const pageText=v.pipe(v.string(),v.maxLength(4096));
+const pageEffect=v.variant('kind',[
+  v.strictObject({kind:v.literal('label'),target:name,text:pageText}),
+  v.strictObject({kind:v.literal('visible'),target:name,value:v.boolean()}),
+  v.strictObject({kind:v.literal('call'),target:name}),
+  v.strictObject({kind:v.literal('toast'),text:pageText,progress:v.exactOptional(v.strictObject({flags:names,complete:pageText}))}),
+  v.strictObject({kind:v.literal('mark'),target:name,value:v.boolean()}),
+]);
+const pageEffects=v.pipe(v.array(pageEffect),v.maxLength(64));
+/** Bounded page presentation over admitted native interaction rules, with borrowed view/command identities. */
+const pageRaw=v.pipe(v.strictObject({
+  actions:v.pipe(v.array(v.strictObject({id:name,interaction:v.exactOptional(name),
+    needs:v.exactOptional(v.pipe(v.array(need),v.maxLength(16))),
+    denied:v.exactOptional(v.record(name,pageText)),before:v.exactOptional(pageEffects),after:v.exactOptional(pageEffects)})),v.maxLength(128)),
+  initial:v.exactOptional(v.pipe(v.array(v.strictObject({when:condition,effects:pageEffects})),v.maxLength(64))),
+}),v.check(data=>unique(data.actions.map(action=>action.id)),'unique page interaction ids'));
+/** Validated page action and restore-view rows; no new durable state is introduced. */
+export type QuestPageInteractionsData=v.InferOutput<typeof pageRaw>;
+/** Named schema boundary keeps the optional page rows out of recursive shardfile inference. */
+export const QuestPageInteractionsSchema:v.GenericSchema<unknown,QuestPageInteractionsData>=pageRaw;
+/** Refuse malformed/unknown presentation fields and duplicate actions before any borrowed view is changed. */
+export function parseQuestPageInteractions(input:unknown):QuestPageInteractionsData{return v.parse(QuestPageInteractionsSchema,input);}

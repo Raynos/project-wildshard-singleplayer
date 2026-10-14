@@ -1,3 +1,4 @@
+import { SIGNAL_QUEST_PAGE_INTERACTIONS } from './questPageInteractions';
 import { SIGNAL_GRAPH } from './signalGraph';
 import { SIGNAL_INTERACTIONS } from './signalInteractions';
 import { SCOUT_ROW } from './questPresentation';
@@ -6,7 +7,7 @@ import { FLAG } from './flags';
 
 /** The accepted fire edge retains its original quiet loaded seed and individual saved cursor. */
 export const QUEST_HOST = {
-  version: 1, graph: SIGNAL_GRAPH, interactions: SIGNAL_INTERACTIONS, npcs: [SCOUT_ROW], drive: 'commands',
+  version: 1, page: SIGNAL_QUEST_PAGE_INTERACTIONS, graph: SIGNAL_GRAPH, interactions: SIGNAL_INTERACTIONS, npcs: [SCOUT_ROW], drive: 'commands',
   actors: { ids: [], error: 'Missing Signal quest body' }, observations: [],
   stages: [{ row: signalStages, initial: [{ lit: false }],
     seed: { flag: FLAG.lit, initial: [{ lit: false }, { lit: true }] }, tick: false,

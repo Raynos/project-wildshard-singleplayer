@@ -1,0 +1,26 @@
+import { FLAG } from './flags';
+import { STRINGS } from './strings';
+
+/** Page beats for the same admitted logbook, well and crank rules. */
+export const SIGNAL_QUEST_PAGE_INTERACTIONS={actions:[
+  {id:'logbook',interaction:'logbook',after:[{kind:'label',target:'logbook',text:STRINGS.logRead},{kind:'toast',text:STRINGS.logText}]},
+  {id:'well',interaction:'well',denied:{unraised:STRINGS.wellHint},after:[
+    {kind:'visible',target:'jar',value:false},{kind:'label',target:'well',text:STRINGS.oilTaken},{kind:'toast',text:STRINGS.oilGot}]},
+  {id:'crank',interaction:'crank',after:[{kind:'label',target:'well',text:STRINGS.takeOil}]},
+  {id:'pour.0',interaction:'pour.0',denied:{missing:STRINGS.needOilHint},after:[{kind:'visible',target:'oil.0',value:true},{kind:'label',target:'brazier.0',text:STRINGS.crackToLight},{kind:'toast',text:STRINGS.crackToLight}]},
+  {id:'light.0',interaction:'light.0',before:[{kind:'visible',target:'fire.0',value:true},{kind:'call',target:'glow.0'},{kind:'label',target:'brazier.0',text:STRINGS.waymarkLit}],after:[{kind:'toast',text:STRINGS.waymarkLit,progress:{flags:['lit.0','lit.1','lit.2'],complete:STRINGS.allLit}}]},
+  {id:'pour.1',interaction:'pour.1',denied:{missing:STRINGS.needOilHint},after:[{kind:'visible',target:'oil.1',value:true},{kind:'label',target:'brazier.1',text:STRINGS.crackToLight},{kind:'toast',text:STRINGS.crackToLight}]},
+  {id:'light.1',interaction:'light.1',before:[{kind:'visible',target:'fire.1',value:true},{kind:'call',target:'glow.1'},{kind:'label',target:'brazier.1',text:STRINGS.waymarkLit}],after:[{kind:'toast',text:STRINGS.waymarkLit,progress:{flags:['lit.0','lit.1','lit.2'],complete:STRINGS.allLit}}]},
+  {id:'pour.2',interaction:'pour.2',denied:{missing:STRINGS.needOilHint},after:[{kind:'visible',target:'oil.2',value:true},{kind:'label',target:'brazier.2',text:STRINGS.crackToLight},{kind:'toast',text:STRINGS.crackToLight}]},
+  {id:'light.2',interaction:'light.2',before:[{kind:'visible',target:'fire.2',value:true},{kind:'call',target:'glow.2'},{kind:'label',target:'brazier.2',text:STRINGS.waymarkLit}],after:[{kind:'toast',text:STRINGS.waymarkLit,progress:{flags:['lit.0','lit.1','lit.2'],complete:STRINGS.allLit}}]},
+  {id:'fire',interaction:'fire',denied:{unlit:STRINGS.fireHint},before:[{kind:'call',target:'catch-fire'}],after:[{kind:'call',target:'summon'}]},
+],initial:[
+  {when:{all:[FLAG.logbook]},effects:[{kind:'label',target:'logbook',text:STRINGS.logRead}]},
+  {when:{all:[FLAG.oil]},effects:[{kind:'visible',target:'jar',value:false},{kind:'label',target:'well',text:STRINGS.oilTaken}]},
+  {when:{all:[`${FLAG.brazierPrefix}0`]},effects:[{kind:'mark',target:'oiled.0',value:true},{kind:'mark',target:'lit.0',value:true},{kind:'visible',target:'oil.0',value:true},{kind:'visible',target:'fire.0',value:true},{kind:'call',target:'glow.0'},{kind:'label',target:'brazier.0',text:STRINGS.waymarkLit}]},
+  {when:{all:[FLAG.oil],none:[`${FLAG.brazierPrefix}0`]},effects:[{kind:'label',target:'brazier.0',text:STRINGS.pourOil}]},
+  {when:{all:[`${FLAG.brazierPrefix}1`]},effects:[{kind:'mark',target:'oiled.1',value:true},{kind:'mark',target:'lit.1',value:true},{kind:'visible',target:'oil.1',value:true},{kind:'visible',target:'fire.1',value:true},{kind:'call',target:'glow.1'},{kind:'label',target:'brazier.1',text:STRINGS.waymarkLit}]},
+  {when:{all:[FLAG.oil],none:[`${FLAG.brazierPrefix}1`]},effects:[{kind:'label',target:'brazier.1',text:STRINGS.pourOil}]},
+  {when:{all:[`${FLAG.brazierPrefix}2`]},effects:[{kind:'mark',target:'oiled.2',value:true},{kind:'mark',target:'lit.2',value:true},{kind:'visible',target:'oil.2',value:true},{kind:'visible',target:'fire.2',value:true},{kind:'call',target:'glow.2'},{kind:'label',target:'brazier.2',text:STRINGS.waymarkLit}]},
+  {when:{all:[FLAG.oil],none:[`${FLAG.brazierPrefix}2`]},effects:[{kind:'label',target:'brazier.2',text:STRINGS.pourOil}]},
+]} as const;

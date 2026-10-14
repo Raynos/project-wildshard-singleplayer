@@ -31,7 +31,7 @@ import { setMillTextures } from '../world/mill';
 import { wakeRibbon } from './looks/wakeRibbon';
 import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow } from '../world/meadow';
-import { bindDeclaredFight, bindPageQuestStages, bindClientChannels } from '@wildshard/game/plugin/ui';
+import { bindDeclaredFight, bindQuestPageInteractions, bindPageQuestStages, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
 import { installQuest } from '../quest/install';
 import { FLAGS, vaneFlag } from '../quest/flags';
@@ -122,11 +122,9 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     this.quest = quest; this.flags = flags; this.questFinished = finished;
     await worldBuildYield(ctx, 4);
 
-    // Step 1: the keeper's notes.
-    built.notes.onInteract = () => { flags.set(FLAGS.notes); toast(STRINGS.notesToast); };
-    // Step 4: the winch answers only once the roost is quiet and the vanes turn (the notes say so).
-    const unlocked = (): boolean => flags.has(FLAGS.roost) && flags.has(FLAGS.vanes);
-    built.winch.onInteract = () => { if (built.state.raised) return; if (unlocked()) this.isletCalls?.runtime?.command('far.winch.bridge', 1); else toast(STRINGS.winchLocked); };
+    const page = bindQuestPageInteractions(source, { flags, toast,
+      observations: new Map([['winch-up', () => built.state.raised]]), calls: new Map([['winch', () => { this.isletCalls?.runtime?.command('far.winch.bridge', 1); }]]) });
+    built.notes.onInteract = page.action('notes'); built.winch.onInteract = page.action('winch');
     // the world pins, chip, map and minimap marks are the quest presentation's (quest/install.ts)
     if (rt?.world === null || rt?.world === undefined) throw new Error('Sky movers need their world host');
     const questStages = bindPageQuestStages(ctx, source, { flags, actor: this.actor.bind(this),

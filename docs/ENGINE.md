@@ -4657,3 +4657,11 @@ The player impulse binding's `columns(routes, feet, enabled, register)`
 selects admitted column modes and supplies callbacks under their declared
 ids. It validates the bounded roster before registering any callback. The
 caller supplies its existing fixed-step registration and player owner.
+
+`bindQuestPageInteractions(source, ports)` in `@wildshard/game/plugin/ui`
+consumes admitted `questHost.page` rows, validated with the format's
+`QuestPageInteractionsSchema`. Native `InteractionRules` keep marks, flags and
+ordered needs; borrowed label/visibility/command targets must resolve before
+any effect. Accepted actions run before/after view beats around native flag
+writes; denied reasons select declared hints. Initial conditions restore only
+view state. Sky notes/winch and Signal logbook/well/crank share the binding.

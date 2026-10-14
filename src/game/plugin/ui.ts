@@ -14,12 +14,14 @@ import type { Events } from '@wildshard/engine/events/events';
 import type { HudVerbs, LevelContext } from '@wildshard/engine/level/context';
 import type { MapPoi, MapQuest } from '@wildshard/engine/ui/Map';
 import type { MapMark } from '@wildshard/engine/ui/Minimap';
-import { Flags } from '@wildshard/engine/world/interact/flags';
+import { Flags, test as testFlags } from '@wildshard/engine/world/interact/flags';
 import type { MoverPose } from '@wildshard/engine/physics/mover';
 import type { Place, Interactable } from '@wildshard/engine/world/interact/types';
 import { QuestState, type QuestDef, type QuestStep, type NpcDef } from '@wildshard/engine/quest/core';
 import { QuestChip, NpcTalk, placesWithDiscovery, type LiveMarker, type PlacePoint, type Places, type NpcTalkOpts } from '@wildshard/engine/quest/view';
 import { DialogueBox } from '@wildshard/engine/quest/view/ui';
+import { InteractionRules } from '../quest/interactionRows';
+import type { QuestPageInteractionsData } from '@wildshard/format/questInteractions';
 import { QuestRewardBeat, type QuestRewardSpec, type QuestRewardPlayer } from '../quest/reward';
 import { createLevelInstallation } from '@wildshard/engine/level/installation';
 import { type ShardContext, gridCells, pageGridInstance, type PageMode, sourceManifest } from './context';
@@ -944,6 +946,53 @@ export function installRewardedQuest(ctx: ShardContext, source: Shardfile, o: Re
     presentation: { ...o.presentation, introTitle: s.quest, ...(npc === null ? {} : { npc }) },
     beat: { kicker: s.rewardKicker, title: s.quest, subtitle: s.rewardSubtitle, ...o.beat } });
   return { quest, reward, view };
+}
+
+/** Borrowed view ports for declared page interaction presentation. Native rules remain the state owner. */
+export interface QuestPageInteractionPorts {
+  readonly flags:Pick<Flags,'has'|'set'>; readonly rules?:InteractionRules;
+  readonly labels?:ReadonlyMap<string,Pick<Interactable,'label'>>;
+  readonly visible?:ReadonlyMap<string,{visible:boolean}>;
+  readonly calls?:ReadonlyMap<string,()=>void>;
+  readonly observations?:ReadonlyMap<string,()=>boolean>;
+  readonly toast:(text:string)=>void;
+}
+/** Validated presentation actions; run returns the native acceptance and action supplies a prompt callback. */
+export interface QuestPageInteractions {readonly run:(id:string)=>boolean;readonly action:(id:string)=>()=>void}
+/** Bind page view rows only after every native rule and borrowed target resolves; seed saved view state once. */
+export function bindQuestPageInteractions(source:Pick<Shardfile,'questHost'>,ports:QuestPageInteractionPorts):QuestPageInteractions {
+  const host=source.questHost;
+  if(host===null||host===undefined||host.page===undefined)throw new Error('Page interactions need admitted presentation rows');
+  const data=host.page;
+  const rules=ports.rules??new InteractionRules(ports.flags,host.interactions);
+  const view={has:(id:string):boolean=>ports.observations?.get(id)?.()??rules.has(id)};
+  type Effect=QuestPageInteractionsData['actions'][number]['after'];
+  const compile=(rows:Effect):(()=>void)[] => (rows??[]).map(row=>{
+    if(row.kind==='toast')return ()=>{
+      const progress=row.progress;if(progress===undefined){ports.toast(row.text);return;}
+      const lit=progress.flags.filter(flag=>rules.has(flag)).length;
+      ports.toast(lit<progress.flags.length?`${row.text} · ${String(lit)}/${String(progress.flags.length)}`:progress.complete);
+    };
+    if(row.kind==='mark'){if(!rules.data.marks.some(mark=>mark.id===row.target))throw new Error(`Unknown page interaction mark ${row.target}`);return ()=>{rules.mark(row.target,row.value);};}
+    if(row.kind==='call'){const call=ports.calls?.get(row.target);if(call===undefined)throw new Error(`Missing page interaction command ${row.target}`);return call;}
+    if(row.kind==='label'){const target=ports.labels?.get(row.target);if(target===undefined)throw new Error(`Missing page interaction label ${row.target}`);return ()=>{target.label=row.text;};}
+    const target=ports.visible?.get(row.target);if(target===undefined)throw new Error(`Missing page interaction visibility ${row.target}`);return ()=>{target.visible=row.value;};
+  });
+  const actions=new Map(data.actions.map(row=>{
+    if(row.interaction!==undefined)rules.row(row.interaction);
+    const before=compile(row.before),after=compile(row.after);
+    return [row.id,():boolean=>{
+      for(const need of row.needs??[])if(!testFlags(view,need)){const text=row.denied?.[need.else??'refused'];if(text!==undefined)ports.toast(text);return false;}
+      const beat=():void=>{for(const effect of before)effect();};
+      if(row.interaction!==undefined){const result=rules.run(row.interaction,beat);if(!result.ok){const text=row.denied?.[result.reason];if(text!==undefined)ports.toast(text);return false;}}
+      else beat();
+      for(const effect of after)effect();return true;
+    }] as const;
+  }));
+  const initial=(data.initial??[]).map(row=>({when:row.when,effects:compile(row.effects)}));
+  for(const row of initial)if(testFlags(view,row.when))for(const effect of row.effects)effect();
+  const read=(id:string):(()=>boolean)=>{const action=actions.get(id);if(action===undefined)throw new Error(`Unknown page interaction ${id}`);return action;};
+  return {run:id=>read(id)(),action:id=>{const action=read(id);return ()=>{action();};}};
 }
 
 /** Live page owners lent to the already admitted quest stages. */

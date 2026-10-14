@@ -1,3 +1,4 @@
+import { SKY_QUEST_PAGE_INTERACTIONS } from './questPageInteractions';
 import { SKY_ACTIONS, SKY_GRAPH } from './questGraph';
 import { SKY_QUEST_STAGES, SKY_QUEST_STAGE_INITIAL } from './questStages';
 import { ROOST_IDS, SKY_ACT, QUEST_STEP } from './questPrompts';
@@ -5,7 +6,7 @@ import { FLAGS } from '../quest/flags';
 
 /** The keeper, roost, vanes and winch retain their original command and fixed-step order. */
 export const QUEST_HOST = {
-  version: 1, graph: SKY_GRAPH, interactions: SKY_ACTIONS, npcs: [], drive: 'external',
+  version: 1, page: SKY_QUEST_PAGE_INTERACTIONS, graph: SKY_GRAPH, interactions: SKY_ACTIONS, npcs: [], drive: 'external',
   actors: { ids: ROOST_IDS, error: 'Sky Reach installs its quest after the roost rays' },
   observations: [
     { binding: 'event:quest.roost-down', kind: 'all-dead', actors: ROOST_IDS },

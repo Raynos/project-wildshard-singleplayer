@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { QuestGraphSchema } from './questGraph';
-import { InteractionRowsSchema } from './questInteractions';
+import { InteractionRowsSchema, QuestPageInteractionsSchema } from './questInteractions';
 import { NpcRowSchema } from './npcs';
 import { DirectorStagesSchema } from './directorStages';
 import { compileDirectorWhen } from './directorWhen';
@@ -12,6 +12,7 @@ const initial = v.pipe(v.array(observations), v.maxLength(64));
 const inputs = v.pipe(v.record(name, v.pipe(name, v.regex(/^(?:flag|event):[a-z][a-z0-9.-]*$/u))), v.check(value => Object.keys(value).length <= 16, 'Bounded quest command inputs'));
 const raw = v.strictObject({
   version: v.literal(1), graph: QuestGraphSchema, interactions: InteractionRowsSchema,
+  page: v.exactOptional(QuestPageInteractionsSchema),
   npcs: v.pipe(v.array(NpcRowSchema), v.maxLength(64)), drive: v.picklist(['commands', 'external']),
   actors: v.strictObject({ ids: names, error: name }),
   observations: v.pipe(v.array(v.variant('kind', [
@@ -70,6 +71,12 @@ export function questHostRules(row: QuestHostRow): readonly string[] {
     try { compileDirectorWhen(route.when, Object.keys(row.commands.inputs)); } catch { errors.push('Bounded quest command condition'); }
     if (route.action.kind === 'row' && !row.interactions.rows.some(entry => entry.id === route.action.id)) errors.push('Declared quest command row');
   }
+  const interactionIds=new Set(row.interactions.rows.map(entry=>entry.id)),marks=new Set(row.interactions.marks.map(mark=>mark.id));
+  for(const action of row.page?.actions??[]) {
+    if(action.interaction!==undefined&&!interactionIds.has(action.interaction))errors.push('Declared page interaction rule');
+    for(const effect of [...action.before??[],...action.after??[]])if(effect.kind==='mark'&&!marks.has(effect.target))errors.push('Declared page interaction mark');
+  }
+  for(const seed of row.page?.initial??[])for(const effect of seed.effects)if(effect.kind==='mark'&&!marks.has(effect.target))errors.push('Declared page interaction mark');
   return errors;
 }
 
@@ -102,5 +109,12 @@ export function questHostBindingRules(row: QuestHostRow | null | undefined, flag
     if (stage.seed !== undefined) check([stage.seed.flag]);
     for (const command of stage.row.stages.flatMap(entry => entry.do)) if ('flag' in command) check([command.flag.key]);
   }
+  const observed=new Set(row.observations.flatMap(entry=>entry.kind==='owner'?[entry.owner]:[]));
+  const pageCheck=(condition:{all?:string[];any?:string[];none?:string[]}):void=>check(reads(condition).filter(flag=>!observed.has(flag)),true);
+  for(const action of row.page?.actions??[]) {
+    for(const need of action.needs??[])pageCheck(need);
+    for(const effect of [...action.before??[],...action.after??[]])if(effect.kind==='toast'&&effect.progress!==undefined)check(effect.progress.flags,true);
+  }
+  for(const seed of row.page?.initial??[])pageCheck(seed.when);
   return [...new Set(errors)];
 }
