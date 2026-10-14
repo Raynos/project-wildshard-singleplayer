@@ -5582,3 +5582,10 @@ rule and first/repeated glance impact ordering. Live radius, shaft length and
 sticking observations stay with the weapon. Synchronous hit/stop/rest/impact
 ports retain damage, material, attachment and effects ownership; no Rapier
 service or actor is created or mutated by this owner.
+
+
+`@wildshard/engine/models/place` `placeModelSite(model, origin, layout, options)` places one authored fixed site through
+ordinary merged model placement. Its origin translates existing own-space geometry, legacy boxes, anchors and floor;
+it never reapplies authored rotation. The returned `ModelSite` lends the actual `Placed` object and collider descriptors.
+`ModelSiteLayout` supplies authored boxes/anchors and the existing floor evaluator. Invalid origins and unsafe anchors
+refuse before placement. A null registry builds the same export specimen without registering it.

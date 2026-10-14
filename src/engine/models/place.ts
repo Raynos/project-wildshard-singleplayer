@@ -1,3 +1,4 @@
+import type { BoxSpec } from '../physics/box';
 /**
  * `place(model, placements, options)` — the world composes models (E306 / E315; the guide is ./model.ts). One call:
  * builds the copies the way `draw` says (merged / instanced / batched / single, with the model's LODs and per-copy
@@ -1277,4 +1278,42 @@ function* placeSteps<P extends object>(def: ModelDef<P>, placements: readonly Pl
   if (w !== undefined && o.draw === 'merged') registered = new Promise((resolve) => { w.defer(() => { register(); resolve(); }); });
   else register();
   return placed;
+}
+
+
+/** Authored own-space site metadata; its existing floor evaluator owns the site's walkable profile. */
+export interface ModelSiteLayout {
+  readonly colliders: readonly BoxSpec[];
+  readonly anchors: Readonly<Record<string, { readonly x: number; readonly y: number; readonly z: number; readonly yaw: number }>>;
+  readonly floorHeightAt: (x: number, z: number) => number | undefined;
+}
+/** One actual placed model and its world-space metadata, without a second registration or draw. */
+export interface ModelSite {
+  readonly group: THREE.Object3D;
+  readonly placed: Placed;
+  readonly colliders: BoxSpec[];
+  readonly anchors: Record<string, { x: number; y: number; z: number; yaw: number }>;
+  readonly colliderDescs: () => ColliderDesc[];
+  readonly floorHeightAt: (x: number, z: number) => number | undefined;
+}
+/** Place an already authored fixed site through the ordinary model builder, then translate its metadata once.
+ * The origin is a translation, not another turn: the site's geometry, floor and anchor yaw already carry their authored
+ * rotation. The existing place path keeps model seed, registration, colliders, drawing and ownership unchanged.
+ */
+export function placeModelSite<P extends object>(model: ModelDef<P>, origin: { readonly x: number; readonly y: number; readonly z: number },
+  layout: ModelSiteLayout, options: Omit<PlaceOptions, 'draw'>): ModelSite {
+  if (![origin.x, origin.y, origin.z].every(Number.isFinite) || layout.colliders.length > 100000 || Object.keys(layout.anchors).length > 1024) throw new Error('Invalid model site metadata');
+  const entries = Object.entries(layout.anchors);
+  if (entries.some(([key, anchor]) => ['__proto__', 'prototype', 'constructor'].includes(key) || key.length === 0 || key.length > 256
+    || ![anchor.x, anchor.y, anchor.z, anchor.yaw].every(Number.isFinite))) throw new Error('Invalid model site anchor');
+  const floorHeightAt = (x: number, z: number): number | undefined => {
+    const y = layout.floorHeightAt(x - origin.x, z - origin.z);
+    return y === undefined ? undefined : y + origin.y;
+  };
+  const placed = place(model, [{ ...origin, params: {} }], { ...options, draw: 'merged',
+    piece: { ...options.piece, floor: floorHeightAt, solidFloor: true } });
+  return { group: placed.object, placed,
+    colliders: layout.colliders.map(box => ({ ...box, x: box.x + origin.x, z: box.z + origin.z, yTop: box.yTop + origin.y, yBottom: box.yBottom + origin.y })),
+    anchors: Object.fromEntries(entries.map(([key, anchor]) => [key, { x: anchor.x + origin.x, y: anchor.y + origin.y, z: anchor.z + origin.z, yaw: anchor.yaw }])),
+    colliderDescs: () => [...placed.colliders], floorHeightAt };
 }

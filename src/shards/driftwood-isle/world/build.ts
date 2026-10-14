@@ -20,8 +20,8 @@ import { Ocean } from './Ocean';
 import { Pier } from './Pier';
 import { Boat } from './Boat';
 import { Boulders } from './Boulders';
-import { Hut } from './Hut';
-import { Lookout } from './Lookout';
+import { hut as hutModel, hutOrigin, hutLayout } from '../models/hut';
+import { lookout as lookoutModel, lookoutOrigin, lookoutLayout } from '../models/lookout';
 import { Wreck } from './Wreck';
 import { Shrine } from './Shrine';
 import { Bushes } from './Bushes';
@@ -41,12 +41,12 @@ import { ENTRY_DECKS } from '../data/entryDecks';
 import { entryDeck } from '../models/entryDeck';
 import { loadFixedGeometry } from '../boot/fixedGeometry';
 import { modelContext } from '@wildshard/engine/models/model';
-import { place } from '@wildshard/engine/models/place';
+import { place, placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
 
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
   ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: Boulders | null;
-  hut: Hut | null; lookout: Lookout | null; wreck: Wreck | null; shrine: Shrine | null; bushes: Bushes | null;
+  hut: ModelSite | null; lookout: ModelSite | null; wreck: Wreck | null; shrine: Shrine | null; bushes: Bushes | null;
   gulls: Gulls | null; trailside: Trailside | null; bridge: RopeBridge | null; seabed: Seabed | null;
   palmSpecs: PalmSpec[]; cove: Cove | null; palms: Palms | null; cover: GroundCover | null;
   bridgeDeck: RopeChain | null; blenderIsland: BlenderIsland | null;
@@ -131,11 +131,12 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   statics.push(...rocks.colliders);
   await slice(++completed, total, 'Shore boulders');
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
-  const hut = new Hut(sky, HUT).place(registry);
+  const hut = placeModelSite(hutModel, hutOrigin(HUT), hutLayout(HUT), { ctx: modelContext(sky), registry, piece: { id: 'hut' } });
   statics.push(...hut.colliders);
   await slice(++completed, total, 'Hut');
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
-  const lookout = new Lookout(sky, LOOKOUT).place(registry);
+  const lookoutSite = { site: LOOKOUT, zipTo: { x: Cove.forIsland().cave.x, z: Cove.forIsland().cave.z } };
+  const lookout = placeModelSite(lookoutModel, lookoutOrigin(lookoutSite), lookoutLayout(lookoutSite), { ctx: modelContext(sky), registry, piece: { id: 'lookout' } });
   statics.push(...lookout.colliders);
   await slice(++completed, total, 'Lookout');
   // E315 M1: the shipwreck model (../models/shipwreck.ts) with the cove's cargo, drift logs and reef

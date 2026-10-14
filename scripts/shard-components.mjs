@@ -106,6 +106,10 @@ const reviewedW2Owners = new Map([
   ['src/game/plugin/shaderFamily.ts#lookGraphMaterials', 'C2'],
   ['src/game/plugin/shaderFamily.ts#SPLICER', 'C2'],
   ['src/game/plugin/shaderFamily.ts#spliceEdits', 'C2'],
+  // Fixed authored site placement and metadata translation; actual sole-user charging is retained.
+  ['src/engine/models/place.ts#ModelSiteLayout', 'C1'],
+  ['src/engine/models/place.ts#ModelSite', 'C1'],
+  ['src/engine/models/place.ts#placeModelSite', 'C1'],
   // Static scene geometry, placements, building assembly and their bake contracts.
   ['src/engine/sim/shore.ts#SHORE_REVETMENT_INNER_FACE', 'C1'],
   ['src/game/shardfile/bakedKinds.ts#loadBakedKinds', 'C1'],

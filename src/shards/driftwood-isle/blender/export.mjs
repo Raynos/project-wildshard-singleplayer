@@ -30,7 +30,9 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const { Bushes } = await imp('src/shards/driftwood-isle/world/Bushes.ts');
   const { Trailside } = await imp('src/shards/driftwood-isle/world/Trailside.ts');
   const { Pier } = await imp('src/shards/driftwood-isle/world/Pier.ts');
-  const { Hut } = await imp('src/shards/driftwood-isle/world/Hut.ts');
+  const { hut, hutOrigin, hutLayout } = await imp('src/shards/driftwood-isle/models/hut.ts');
+  const { modelContext } = await imp('src/engine/models/model.ts');
+  const { placeModelSite } = await imp('src/engine/models/place.ts');
   const { HUT, LOOKOUT, SHRINE, WRECK } = island;
   const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
   const palms = Palms.scatterIsland(def.seed, undefined, AVOID);
@@ -42,7 +44,7 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const sky = { setupMaterial() { /* no CSM in Node */ }, viewCamera: new THREE.PerspectiveCamera() };
   const pier = new Pier(sky, { x: 0, z: -CHUNK_HALF, length: ROAD_LENGTH, width: 4, deckY: wl + 1.2, landing: true }).build();
   addObject(pier.group);
-  tryBuild('hut', () => new Hut(sky, HUT).build().group);
+  tryBuild('hut', () => placeModelSite(hut, hutOrigin(HUT), hutLayout(HUT), { ctx: modelContext(sky), registry: null }).group);
   tryBuild('trailside', () => new Trailside(sky).build(trailside).mesh);
 
   return {
