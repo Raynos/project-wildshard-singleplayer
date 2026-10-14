@@ -227,7 +227,12 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const layer = layerFrameOf(this);
       return `${stockKey.call(this)}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}|${nodeInstanceKey(object)}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
     };
-    this.epilogue.push((out, ctx) => (this.engineFogOn() && Reflect.get(ctx.material, 'fog') === true ? engineFog(out, ctx.fog) : out));
+    this.epilogue.push((out, ctx) => {
+      if (!this.engineFogOn() || Reflect.get(ctx.material, 'fog') !== true) return out;
+      const scale: unknown = Reflect.get(ctx.material, 'graphFogScale');
+      const node = typeof scale === 'object' && scale !== null && isNode(scale) ? new ConvertNode<'float'>(scale, 'float') : undefined;
+      return engineFog(out, ctx.fog, node);
+    });
     // a layered backdrop's node dressing fades by its owner weight last, where a classic piece's gl_FragColor is faded
     this.epilogue.push((out, ctx) => {
       const layer = layerFrameOf(ctx.material);

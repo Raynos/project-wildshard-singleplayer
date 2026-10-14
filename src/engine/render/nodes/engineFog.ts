@@ -17,8 +17,9 @@ const v3 = (u: { value: THREE.Vector3 }): Node<'vec3'> => reference('value', 've
 const v4 = (u: { value: THREE.Vector4 }): Node<'vec4'> => reference('value', 'vec4', u);
 const col = (u: { value: THREE.Color }): Node<'color'> => reference('value', 'color', u);
 
-/** fog `out` (a colour after the output transform) the way Atmosphere.ts's chunk fogs a classic material; unfogged when the scene has no fog (USE_FOG off) */
-export function engineFog(out: Node<'vec4'>, fog: THREE.Fog | THREE.FogExp2 | null): Node<'vec4'> {
+/** Optional interpolated scale attenuates both scene and weather blends; absent is neutral.
+ * fog `out` (a colour after the output transform) the way Atmosphere.ts's chunk fogs a classic material; unfogged when the scene has no fog (USE_FOG off) */
+export function engineFog(out: Node<'vec4'>, fog: THREE.Fog | THREE.FogExp2 | null, scale?: Node<'float'>): Node<'vec4'> {
   if (fog === null) return out;
   const fogColor = reference('color', 'color', fog); // classic three's `fogColor` uniform
   const terms = atmosphereTerms();
@@ -48,12 +49,14 @@ export function engineFog(out: Node<'vec4'>, fog: THREE.Fog | THREE.FogExp2 | nu
   }
   const sunAmt = max(dot(viewDir, v3(u.fogSunDir)), 0);
   const fogCol = mix(fogColor, col(u.fogSunColor), pow(sunAmt, 6).mul(0.7));
+  if (scale !== undefined) factor = factor.mul(clamp(scale, 0, 1));
   let rgb = mix(out.rgb, fogCol, factor);
   if (terms.weather) {
     // the weather fog (E390), over the level's own fog
     const w = v4(weatherFogUniforms.fogWeather);
     const wAmt = w.x.add(w.y.mul(camF).mul(integ)).mul(rayLen);
-    rgb = mix(rgb, col(weatherFogUniforms.fogWeatherColor), clamp(float(1).sub(exp(wAmt.negate())).mul(w.z), 0, 1));
+    const weatherFactor = clamp(float(1).sub(exp(wAmt.negate())).mul(w.z), 0, 1);
+    rgb = mix(rgb, col(weatherFogUniforms.fogWeatherColor), scale === undefined ? weatherFactor : weatherFactor.mul(clamp(scale, 0, 1)));
   }
   return vec4(rgb, out.a);
 }

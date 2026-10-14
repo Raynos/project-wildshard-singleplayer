@@ -179,13 +179,15 @@ interface Val { readonly t: GraphValueType; readonly n: Node }
 /** what a lit graph hands its material: each lighting output, built on demand from the engine's light inputs */
 interface LitHooks {
   /** the radiance one directional light adds, and the factor on its physical specular (null: no specular) */
-  readonly sun: (direction: Node<'vec3'>, colour: Node<'vec3'>, shadow: Node<'float'>) => { readonly radiance: Node<'vec3'>; readonly specular: Node<'float'> | null };
+  readonly sun: ((direction: Node<'vec3'>, colour: Node<'vec3'>, shadow: Node<'float'>) => { readonly radiance: Node<'vec3'>; readonly specular: Node<'float'> | null }) | null;
+  readonly sunScale?: Node<'float'>;
   readonly ambient: ((irradiance: Node<'vec3'>) => Node<'vec3'>) | null;
   readonly grade: ((lit: Node<'vec3'>) => Node<'vec3'>) | null;
   /** whether the model keeps any specular (the graph declared `sunSpecular`) */
   readonly specular: boolean;
 }
 /** a clone's placeholder until `copy` hands it the source's hooks: the plain physical light, no grade */
+const PHYSICAL_HOOKS: LitHooks = { sun: null, ambient: null, grade: null, specular: true };
 const UNLIT_HOOKS: LitHooks = { sun: () => { throw new Error('GraphLitMaterial: hooks missing (copy one with clone())'); }, ambient: null, grade: null, specular: true };
 const isNodeValue = (v: unknown): v is Node => typeof v === 'object' && v !== null && Reflect.get(v, 'isNode') === true;
 /** the lighting context's accumulators are vec3 var nodes */
@@ -214,12 +216,14 @@ class GraphLightingModel extends PhysicalLightingModel {
     const light: unknown = Reflect.get(input.lightNode, 'light');
     if (!(light instanceof THREE.DirectionalLight)) { this.physical(input, builder, true, this.hooks.specular); return; }
     const shadowed = vec3Of(input.lightColor, 'a light colour');
+    const scale = this.hooks.sunScale, hook = this.hooks.sun;
+    if (hook === null) { this.physical({ ...input, lightColor: scale === undefined ? shadowed : shadowed.mul(scale) }, builder, true, true); return; }
     const baseNode: unknown = Reflect.get(input.lightNode, 'baseColorNode');
     const base = isNodeValue(baseNode) ? vec3Of(baseNode, 'a light colour') : shadowed;
     const shadow = clamp(dot(shadowed, vec3(1)).div(max(dot(base, vec3(1)), 1e-5)), 0, 1);
-    const sun = this.hooks.sun(vec3Of(input.lightDirection, 'a light direction'), base, shadow);
-    accumulate(input.reflectedLight.directDiffuse, sun.radiance);
-    if (sun.specular !== null) this.physical({ ...input, lightColor: base.mul(sun.specular) }, builder, false, true);
+    const sun = hook(vec3Of(input.lightDirection, 'a light direction'), base, shadow);
+    accumulate(input.reflectedLight.directDiffuse, scale === undefined ? sun.radiance : sun.radiance.mul(scale));
+    if (sun.specular !== null) this.physical({ ...input, lightColor: base.mul(scale === undefined ? sun.specular : sun.specular.mul(scale)) }, builder, false, true);
   }
 
   /** three's physical direct term for this light, keeping its diffuse and / or its specular */
@@ -254,24 +258,26 @@ class GraphLightingModel extends PhysicalLightingModel {
 /** Apply authored geometry normals before morph/skin/instance transforms. */
 class GraphNormalMaterial extends MeshStandardNodeMaterial {
   vertexNormal: Node<'vec3'> | null = null;
+  graphFogScale: Node<'float'> | null = null;
   override setupPosition(builder: NodeBuilder): Node {
     const normal = this.vertexNormal;
     if (normal !== null) Fn(() => { normalLocal.assign(normal); }, 'void')();
     return super.setupPosition(builder);
   }
   override copy(source: MeshStandardNodeMaterial): this {
-    super.copy(source); if (source instanceof GraphNormalMaterial) this.vertexNormal = source.vertexNormal; return this;
+    super.copy(source); if (source instanceof GraphNormalMaterial) { this.vertexNormal = source.vertexNormal; this.graphFogScale = source.graphFogScale; } return this;
   }
 }
 class GraphUnlitNormalMaterial extends MeshBasicNodeMaterial {
   vertexNormal: Node<'vec3'> | null = null;
+  graphFogScale: Node<'float'> | null = null;
   override setupPosition(builder: NodeBuilder): Node {
     const normal = this.vertexNormal;
     if (normal !== null) Fn(() => { normalLocal.assign(normal); }, 'void')();
     return super.setupPosition(builder);
   }
   override copy(source: MeshBasicNodeMaterial): this {
-    super.copy(source); if (source instanceof GraphUnlitNormalMaterial) this.vertexNormal = source.vertexNormal; return this;
+    super.copy(source); if (source instanceof GraphUnlitNormalMaterial) { this.vertexNormal = source.vertexNormal; this.graphFogScale = source.graphFogScale; } return this;
   }
 }
 class GraphLitMaterial extends GraphNormalMaterial {
@@ -766,8 +772,12 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   /** a material graph: the lighting model's material with the surface and vertex stages in its slots */
   const surfaceMaterial = (): NodeMaterial => {
     const s = st.surface ?? {};
+    const scales = st['vertex.scale'];
+    const sunScale = scales?.sun === undefined ? undefined : varying(clamp(asFloat(ref(scales.sun, root)), 0, 1), 'wildshardGraphSunScale');
+    const fogScale = scales?.fog === undefined ? undefined : varying(clamp(asFloat(ref(scales.fog, root)), 0, 1), 'wildshardGraphFogScale');
+    const withScale = (hooks: LitHooks): LitHooks => sunScale === undefined ? hooks : { ...hooks, sunScale };
     const lit = st.lighting, vertexNormal = out(st['vertex.normal']?.normal);
-    const m = ir.model === 'unlit' ? vertexNormal === null ? new MeshBasicNodeMaterial() : new GraphUnlitNormalMaterial() : ir.model === 'toon' ? new GraphLitMaterial(toonHooks()) : lit !== undefined ? new GraphLitMaterial(litHooks(lit)) : vertexNormal === null ? new MeshStandardNodeMaterial() : new GraphNormalMaterial();
+    const m = ir.model === 'unlit' ? vertexNormal === null && fogScale === undefined ? new MeshBasicNodeMaterial() : new GraphUnlitNormalMaterial() : ir.model === 'toon' ? new GraphLitMaterial(withScale(toonHooks())) : lit !== undefined ? new GraphLitMaterial(withScale(litHooks(lit))) : sunScale !== undefined ? new GraphLitMaterial(withScale(PHYSICAL_HOOKS)) : vertexNormal === null && fogScale === undefined ? new MeshStandardNodeMaterial() : new GraphNormalMaterial();
     if (vertexNormal !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.vertexNormal = new ConvertNode<'vec3'>(vertexNormal.n, 'vec3');
     const colour = out(s.colour);
     if (colour !== null) m.colorNode = new ConvertNode<'vec3'>(widen(colour, 'vec3'), 'vec3');
@@ -794,6 +804,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     if (m instanceof MeshStandardNodeMaterial) m.flatShading = ir.flatShading ?? ir.model === 'toon';
     if (lit?.grade !== undefined) m.toneMapped = false; // a graded colour is display linear already
     m.fog = ir.effectState?.fog ?? true;
+    if (fogScale !== undefined && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.graphFogScale = fogScale;
     const effect = ir.effectState;
     if (effect?.blend !== undefined) {
       m.transparent = true;

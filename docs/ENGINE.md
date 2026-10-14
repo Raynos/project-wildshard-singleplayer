@@ -5095,3 +5095,10 @@ raw homogeneous clip-space output. It becomes gl_Position directly,
 without model/view/projection transforms. It excludes vertex.position
 and vertex.offset. Vertex-only admission still refuses derivatives; CPU
 geometry, bounds and colliders remain the authored rest geometry.
+
+Graph materials accept `stages['vertex.scale']` with optional float
+`sun` and `fog` outputs. Each evaluates per vertex, clamps to 0..1 and
+interpolates across the surface. Sun attenuates directional diffuse and
+specular (including toon/custom lighting); local lights and ambient stay
+unchanged. Fog attenuates the engine scene and weather fog blends. An
+unlit graph refuses sun. Omitted factors retain the existing shader path.
