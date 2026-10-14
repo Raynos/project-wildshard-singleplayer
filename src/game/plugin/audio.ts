@@ -103,8 +103,6 @@ export function installDeclaredCombatCues(audio: Audio, cues: CombatCues, scope:
   cues.use(createCueRouter(routing, { voices }), scope);
 }
 
-/** Native audio phase host, shared by entered observers and ordinary page systems. */
-export type AudioObserverHost=Pick<ShardContext,'system'>;
 /** Bind emitted observation rows without installing or touching a mixer during construction. */
 export function audioObserverSystems(rows:NonNullable<AudioData['observations']>,ports:AudioObservationPorts):{
   systems:Parameters<ShardContext['system']>[0][];value:(system:string,id:string)=>number

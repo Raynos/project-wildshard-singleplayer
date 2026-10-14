@@ -1,4 +1,4 @@
-import { runtimeAudio } from '@wildshard/game/plugin/audio';
+import { runtimeAudio, audioObserverSystems } from '@wildshard/game/plugin/audio';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import source from '../../shard.config';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -14,7 +14,6 @@ import { IslandAmbience } from './ambience';
 import { ShrineHum } from './shrineHum';
 import { driftwoodCueMap } from './cues';
 import { installDriftwoodScore } from './score';
-import { driftwoodAudioSystems } from './systems';
 
 /** Runs in level.play after the shell supplies its host. Constructors make no cosmetic draws. */
 export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
@@ -44,7 +43,12 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   // Water callbacks stay synchronous: dive/surface synth, plunge bank, mixer, zoned bed, score.
   const previousUnderwater = audio.setUnderwater.bind(audio);
   audio.setUnderwater = (on) => { previousUnderwater(on); ambience.setUnderwater(on); };
-  driftwoodAudioSystems(ctx, game.camera, { clock: () => sky.dayNight, shrine: built.shrine, hum: shrineHum, ambience },requireAudioProfile(audioRows.observations,'island audio observations'));
+  const observers=audioObserverSystems(requireAudioProfile(audioRows.observations,'island audio observations'),{
+    inputs:new Map([['clock',()=>sky.dayNight]]),
+    writers:new Map<string,(value:number)=>void>([['shrine.dusk',value=>{built.shrine?.setDusk(value);}],['ambience.night',value=>{ambience.night=value;}]]),
+    commands:new Map<string,NonNullable<ReturnType<Parameters<typeof audioObserverSystems>[1]['commands']['get']>>>([['hum',()=>{shrineHum?.update(game.camera);}],['ambience',(dt)=>{ambience.update(dt,game.camera);}]])
+  });
+  for(let index=0;index<16;index++){const system=observers.systems[index];if(system!==undefined)ctx.system(system);}
   const handles = { shrineHum, islandSfx, surfaces, ambience };
   Object.assign(shell.objects, handles);
   ctx.debug.expose('driftwood.audio', handles);

@@ -226,6 +226,7 @@ export type AudioPcmProgram=v.InferOutput<typeof AudioPcmProgramSchema>;
 /** Ordered gameplay observations; the native owner lends scalar/actor readers and existing sound operations. */
 const observationNames=v.pipe(v.array(id),v.maxLength(32));
 export const AudioObservationSystemSchema=v.strictObject({id,before:observationNames,after:observationNames,
+  inputs:v.pipe(v.array(v.strictObject({id,source:id,path:v.pipe(v.array(id),v.maxLength(8)),op:v.picklist(['number','truth','present','equals']),value:v.exactOptional(scalar),fallback:v.exactOptional(finite)})),v.maxLength(64)),
   interval:v.pipe(finite,v.minValue(0),v.maxValue(60)),initial:v.pipe(v.record(id,finite),v.check(rows=>Object.keys(rows).length<=64)),
   frame:v.pipe(v.array(v.strictObject({write:id,value:mixExpr,when:v.exactOptional(mixExpr)})),v.maxLength(32)),
   steps:v.pipe(v.array(v.variant('kind',[

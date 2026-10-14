@@ -73,17 +73,8 @@ export function installPineAudio(h: PineAudioHost): void {
   const score = pineScore(music);
   const pinned = pineScorePick() !== 'auto'; // Debug ▸ Audio ▸ Pine Hollow score holds the scene (Music.ts reads it)
   const observer:ReturnType<typeof audioObserverSystems>=audioObserverSystems(requireAudioProfile(rows.observations,'pine audio observations'),{
-    read:id=>{
-      const dn=sky.dayNight,p=game.camera.position;
-      switch(id){
-        case 'hasClock':return dn?1:0;case 'night':return dn?.night??0;
-        case 'pinned':return pinned?1:0;case 'boss':return score.sceneName==='boss'?1:0;
-        case 'engaged':return h.eliteEngaged()?1:0;
-        case 'listener.x':return p.x;case 'listener.y':return p.y;case 'listener.z':return p.z;
-        default:throw new Error(`Unknown audio observation: ${id}`);
-      }
-    },
-    write:(id,value)=>{if(id!=='ambience.night')throw new Error('Unknown audio observation target');amb.night=value;},
+    inputs:new Map<string,()=>unknown>([['clock',()=>sky.dayNight],['pinned',()=>pinned],['score',()=>score],['engaged',()=>h.eliteEngaged()],['listener',()=>game.camera.position]]),
+    writers:new Map([['ambience.night',(value)=>{amb.night=value;}]]),
     entities:{animals:()=>animals.animals},commands:new Map<string,NonNullable<ReturnType<Parameters<typeof audioObserverSystems>[1]['commands']['get']>>>([
       ['clock.change',(_dt,_t,event)=>{audioLog('wire',event.value===1?'clock:night':'clock:day',true,(sky.dayNight?.night??0).toFixed(2));}],
       ['score.scene',()=>{score.setPineScene(observer.value('audio','night')!==0?'night':'day');}],

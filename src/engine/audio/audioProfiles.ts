@@ -94,13 +94,16 @@ export function evaluateAudioMix(rows:AudioMixRecipe,ports:{read:(id:string)=>nu
 export interface AudioObservationEntity {readonly kind:string;readonly state:string;readonly alive:boolean;readonly position:{readonly x:number;readonly y:number;readonly z:number}}
 export interface AudioObservationEvent {readonly value?:number;readonly previous?:number;readonly entity?:AudioObservationEntity}
 export interface AudioObservationPorts {
-  readonly read:(id:string)=>number;
-  readonly write:(id:string,value:number)=>void;
+  readonly inputs:ReadonlyMap<string,()=>unknown>;
+  readonly writers:ReadonlyMap<string,(value:number)=>void>;
   readonly commands:ReadonlyMap<string,(dt:number,t:number,event:AudioObservationEvent)=>void>;
   readonly entities?:Readonly<Record<string,()=>readonly AudioObservationEntity[]>>;
 }
 /** Compile bounded observation order once; clocks, actor states and sound calls remain actual native loans. */
 export function createAudioObserver(row:AudioObservationSystem,ports:AudioObservationPorts):{run:(dt:number,t:number)=>void;state:(id:string)=>number} {
+  const inputRows=new Map(row.inputs.map(input=>[input.id,input])),native=new Map<string,unknown>();
+  for(const input of row.inputs)if(!ports.inputs.has(input.source))throw new Error(`Missing audio observation owner: ${input.source}`);
+  for(const field of row.frame)if(!ports.writers.has(field.write))throw new Error(`Missing audio observation target: ${field.write}`);
   const state=new Map(Object.entries(row.initial)),history=new Map<Extract<AudioObservationSystem['steps'][number],{kind:'entities'}>,WeakMap<AudioObservationEntity,string>>(),empty:AudioObservationEvent={};let elapsed=0;
   const command=(id:string):NonNullable<ReturnType<AudioObservationPorts['commands']['get']>>=>{const fn=ports.commands.get(id);if(fn===undefined)throw new Error(`Missing audio observation command: ${id}`);return fn;};
   for(const step of row.steps){
@@ -109,11 +112,24 @@ export function createAudioObserver(row:AudioObservationSystem,ports:AudioObserv
     if(step.kind==='entities'){if(ports.entities?.[step.list]===undefined)throw new Error('Missing audio observation roster');history.set(step,new WeakMap());}
   }
   let time=0;
-  const read=(id:string):number=>id==='t'?time:id.startsWith('state.')?(state.get(id.slice(6))??0):ports.read(id);
+  const read=(id:string):number=>{
+    if(id==='t')return time;if(id.startsWith('state.'))return state.get(id.slice(6))??0;
+    const input=inputRows.get(id);if(input===undefined)throw new Error(`Missing audio observation input: ${id}`);
+    if(!native.has(input.source))native.set(input.source,ports.inputs.get(input.source)?.());
+    let value:unknown=native.get(input.source);
+    for(const key of input.path)value=typeof value==='object'&&value!==null?Reflect.get(value,key):undefined;
+    switch(input.op){
+      case 'present':return value===undefined||value===null?0:1;
+      case 'truth':return Number(Boolean(value));
+      case 'equals':return value===input.value?1:0;
+      case 'number':if(typeof value==='number'&&Number.isFinite(value))return value;if(input.fallback!==undefined)return input.fallback;throw new Error(`Non-numeric audio observation: ${id}`);
+      default:throw new Error('Unsupported audio observation input');
+    }
+  };
   const evaluate=(expr:AudioMixExpr):number=>audioMixValue(expr,read);
   return {state:id=>state.get(id)??0,run:(dt,t)=>{
-    time=t;
-    for(const field of row.frame)if(field.when===undefined||evaluate(field.when)!==0)ports.write(field.write,evaluate(field.value));
+    time=t;native.clear();
+    for(const field of row.frame)if(field.when===undefined||evaluate(field.when)!==0)ports.writers.get(field.write)?.(evaluate(field.value));
     elapsed+=dt;if(elapsed<row.interval)return;elapsed=0;
     for(const step of row.steps){
       switch(step.kind){

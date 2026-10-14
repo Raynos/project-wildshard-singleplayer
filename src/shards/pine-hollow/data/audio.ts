@@ -5,7 +5,12 @@ import { PINE_AUDIO_SAMPLES } from './runtimeCost';
 
 /** Existing forest samples, score/boss slots, scoped rifle echo and authored ambience zones. */
 export const PINE_AUDIO = parseAudioData({ observations:[{
-  id:'audio',after:['hud.combat'],before:['shard.pine.weather.state','shard.pine.weather','world.life','first hints','main.frame'],
+  id:'audio',inputs:[
+    {id:'hasClock',source:'clock',path:[],op:'present'},{id:'night',source:'clock',path:['night'],op:'number',fallback:0},
+    {id:'pinned',source:'pinned',path:[],op:'truth'},{id:'boss',source:'score',path:['sceneName'],op:'equals',value:'boss'},
+    {id:'engaged',source:'engaged',path:[],op:'truth'},
+    {id:'listener.x',source:'listener',path:['x'],op:'number'},{id:'listener.y',source:'listener',path:['y'],op:'number'},{id:'listener.z',source:'listener',path:['z'],op:'number'}
+  ],after:['hud.combat'],before:['shard.pine.weather.state','shard.pine.weather','world.life','first hints','main.frame'],
   interval:0.2,initial:{night:0,elite:0,eliteT:0,snortAt:-99},
   frame:[{write:'ambience.night',value:'night',when:'hasClock'}],
   steps:[
