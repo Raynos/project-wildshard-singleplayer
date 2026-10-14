@@ -5,7 +5,7 @@ import { WELL_RIG, HD, CAMP_HD, COOK, LANTERN, WAYMARK_HD, DECK_BRAZIER } from '
 import { BRAZIERS, CARAVAN, TOWER, WELL } from '../data/layout';
 import { signalDunesTiles, signalDunesField } from './tiles';
 import { decodeTerrainTile, terrainTileHeight } from '@wildshard/format/terrainTileBytes';
-import { fireRows, lampRows, COOKFIRE, WAYMARK_FIRE, type FirePool } from '../data/fire';
+import { fireRows, lampRows, COOKFIRE, WAYMARK_FIRE, KEEPER_LAMP, SIGNAL_FIRE, type FireSize, type FirePool } from '../data/fire';
 import { towerAnchors } from './tower';
 import { waymarkFrame } from './places';
 import { parsePrivateScene, parseWorldScene, type PrivateScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
@@ -36,7 +36,7 @@ export function oilRest(): ClientSceneBake {
 }
 
 /** The SDK JSON/byte driver owns I/O for these finite existing declarations. */
-export function restScenes(): { well: ClientSceneBake['scene']; oil: ClientSceneBake['scene']; frames: PlaceFrames; places: ReturnType<typeof placeRecipes> } { return { well: wellRest().scene, oil: oilRest().scene, frames: placeFrames(), places: placeRecipes() }; }
+export function restScenes(): { well: ClientSceneBake['scene']; oil: ClientSceneBake['scene']; frames: PlaceFrames; places: ReturnType<typeof placeRecipes>; bindings: ReturnType<typeof placeBindings> } { return { well: wellRest().scene, oil: oilRest().scene, frames: placeFrames(), places: placeRecipes(), bindings: placeBindings() }; }
 export function restPools(): readonly { readonly url: string; readonly parts: readonly string[] }[] { return [wellRest(), oilRest(), fireRest()].map((made,index) => {
   const url = REST_URLS[index]; if (url === undefined) throw new Error('Undeclared place pool');
   return { url, parts: made.scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : []) };
@@ -148,3 +148,28 @@ export function fireRest(): ClientSceneBake {
   return clientSceneGlb(root,new Map([[material,'fire-geometry']]));
 }
 export function fireGlb(): Uint8Array { return fireRest().glb; }
+
+/** Place fields and live-effect attachments; geometry, frames and material ownership remain the existing recipes. */
+interface PlaceBinding { recipe:WorldSceneRecipe;fields:Record<string,unknown>;fires:{part:string;size:FireSize;pool:string|null}[];lamps:{part:string;glow:number;pool:string}[];lights:{id:string;color:number;intensity:number;distance:number;decay:number}[];glowAt:readonly number[]|null }
+export function placeBindings():Record<'caravan'|'tower'|'well',PlaceBinding>&{braziers:PlaceBinding[]} {
+  const places=placeRecipes(), recipe=(row:WorldSceneRecipe)=>({scene:row.scene,imports:row.imports});
+  const group=(part:string)=>({kind:'group',part}), mesh=(part:string)=>({kind:'mesh',part}), vector=(value:readonly number[])=>({kind:'vector',value});
+  const root={root:group('root'),colliders:{kind:'colliders',part:'baked'}};
+  const lamp=(part:string,glow:number,pool:string)=>({part,glow,pool});
+  const fire=(part:string,size:typeof COOKFIRE|typeof WAYMARK_FIRE|typeof KEEPER_LAMP|typeof SIGNAL_FIRE,pool:string|null)=>({part,size,pool});
+  const tower=recipe(places.tower);
+  const fireNode=tower.scene.nodes.find(node=>node.id==='live.fire');
+  if(fireNode===undefined)throw new Error('Missing tower fire anchor');
+  fireNode.children.push('native-light');
+  tower.scene.nodes.push({kind:'object',id:'native-light',source:'native-light',missing:'refuse',position:[0,1,0],rotation:[0,0,0],scale:[1,1,1],visible:true,castShadow:false,receiveShadow:false,frustumCulled:true,renderOrder:0,children:[]});
+  return {
+    caravan:{recipe:recipe(places.caravan),fields:{...root,logbookAt:vector(places.caravan.anchors.logbook),lampAt:vector(places.caravan.anchors.lamp)},
+      fires:[fire('live.cook',COOKFIRE,'pool-cook')],lamps:[lamp('live.lamp',0.5,'pool-caravan-lamp')],lights:[],glowAt:null},
+    well:{recipe:recipe(places.well),fields:{...root,bucket:group('live.bucket'),rope:mesh('live.rope'),jar:mesh('live.jar'),crankAt:vector(places.well.anchors.crank),jarAt:vector(places.well.anchors.jar),drop:{kind:'number',value:places.well.anchors.drop}},fires:[],lamps:[],lights:[],glowAt:null},
+    tower:{recipe:tower,fields:{...root,fire:group('live.fire'),light:{kind:'point-light',part:'native-light'},brazierAt:vector(places.tower.anchors.brazier),deckY:{kind:'number',value:places.tower.anchors.deckY}},
+      fires:[fire('live.lamp-flame',KEEPER_LAMP,null),fire('live.fire',SIGNAL_FIRE,null)],lamps:[lamp('live.keeper-lamp',1.1,'pool-keeper-lamp')],
+      lights:[{id:'native-light',color:0xff8a3a,intensity:0,distance:40,decay:1.6}],glowAt:null},
+    braziers:places.braziers.map((row,index)=>({recipe:recipe(row),fields:{...root,fire:group('fire'),oil:mesh('live.oil'),bowlAt:vector(row.anchors.bowl),glowAt:vector(row.anchors.light)},
+      fires:[fire('fire',WAYMARK_FIRE,`pool-brazier-${String(index)}`)],lamps:[],lights:[],glowAt:row.anchors.light})),
+  };
+}

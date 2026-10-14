@@ -317,3 +317,14 @@ export function compileTubeCurve(input: TubeCurveProfile): {
     }
   }};
 }
+
+/** Named native ports on an admitted world scene; values never construct geometry or install services. */
+const worldBinding = v.variant('kind', [
+  ...(['group','mesh','object','point-light','standard-material','colliders'] as const).map(kind => v.strictObject({kind:v.literal(kind),part:name})),
+  v.strictObject({kind:v.literal('vector'),value:v.tuple([sceneCoordinate,sceneCoordinate,sceneCoordinate])}),
+  v.strictObject({kind:v.literal('number'),value:sceneCoordinate}),
+]);
+export type WorldSceneBindingKind = v.InferOutput<typeof worldBinding>['kind'];
+export const WorldSceneBindingsSchema = v.pipe(v.record(name,worldBinding),v.check(rows=>Object.keys(rows).length<=128,'bounded world bindings'));
+/** Refuse functions, unknown fields and unbounded anchor values before binding native parts. */
+export function parseWorldSceneBindings(input:unknown):v.InferOutput<typeof WorldSceneBindingsSchema>{return v.parse(WorldSceneBindingsSchema,input);}

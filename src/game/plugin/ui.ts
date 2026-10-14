@@ -1,8 +1,8 @@
 import { installDeclaredMovers, type MoverView, type MoverRuntime, type MoverRoleComposition } from './mover';
 import { commandSocketLift } from './simulation';
 import "../quest/presentation.css";
-import { compileTubeCurve, parseClientChannels, parsePrivateScene, parseWorldScene, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
-import { BufferAttribute, AdditiveBlending, Matrix4, InstancedMesh, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
+import { compileTubeCurve, parseClientChannels, parsePrivateScene, parseWorldScene, parseWorldSceneBindings, type WorldSceneBindingKind, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
+import { BufferAttribute, AdditiveBlending, Matrix4, InstancedMesh, Euler, PerspectiveCamera, PointLight, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ParticlePool, pointScale } from '@wildshard/engine/fx/ParticlePool';
@@ -1905,4 +1905,25 @@ export function createHeldMeleeBinding(input: unknown, parts: ReadonlyMap<string
   const isNode = (value: unknown): value is Object3D => value instanceof Object3D;
   const node = (id: string): Object3D => { const value = parts.get(id); if (!isNode(value)) throw new Error('Held phase requires its owned scene part'); return value; };
   return { row, phases, moving: node(row.bindings.moving), resting: node(row.bindings.resting), deformation: node(row.bindings.deformation) };
+}
+
+/** Native identities and copied anchors selected from one admitted scene. */
+export type WorldSceneBoundParts<K extends Readonly<Record<string,WorldSceneBindingKind>>> = K extends Readonly<Record<string,WorldSceneBindingKind>> ? {
+  readonly [P in keyof K]: K[P] extends 'group' ? Group : K[P] extends 'mesh' ? Mesh<BufferGeometry,MeshStandardMaterial> :
+  K[P] extends 'object' ? Object3D : K[P] extends 'point-light' ? PointLight : K[P] extends 'standard-material' ? MeshStandardMaterial :
+  K[P] extends 'vector' ? Vector3 : K[P] extends 'number' ? number : ColliderDesc[];
+} : never;
+/** Bind a typed native contract without cloning owned scene parts, changing poses or registering collision. */
+export function bindWorldSceneParts<K extends Readonly<Record<string,WorldSceneBindingKind>>>(made:WorldScene,kinds:K,input:unknown):WorldSceneBoundParts<K> {
+  const rows=parseWorldSceneBindings(input), out:Record<string,Object3D|MeshStandardMaterial|Vector3|number|ColliderDesc[]>={};
+  if(Object.keys(kinds).length!==Object.keys(rows).length)throw new Error('World scene binding contract differs');
+  for(const [key,row] of Object.entries(rows)) {
+    if(!Object.hasOwn(kinds,key)||kinds[key]!==row.kind)throw new Error(`World scene binding kind differs: ${key}`);
+    const value=row.kind==='vector'?new Vector3(...row.value):row.kind==='number'?row.value:row.kind==='colliders'?made.baked.get(row.part)?.colliders:
+      row.kind==='standard-material'?made.standardMaterial(row.part):row.kind==='group'?made.group(row.part):row.kind==='mesh'?made.mesh(row.part):made.parts.get(row.part);
+    if(value===null||value===undefined||(row.kind==='point-light'&&!(value instanceof PointLight)))throw new Error(`Missing world scene binding: ${key}`);
+    out[key]=value;
+  }
+  // Every requested key and kind was validated against its actual native value above.
+  return out as WorldSceneBoundParts<K>;
 }

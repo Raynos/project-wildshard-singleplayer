@@ -1,75 +1,31 @@
-import { addFire, addLampGlow, fireLight } from './fireFx';
-import { COOKFIRE, WAYMARK_FIRE } from '../data/fire';
-import { type Group, type Mesh, type MeshStandardMaterial, Vector3 } from 'three';
+import { PointLight, Vector3, type MeshStandardMaterial } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { createWorldScene } from '@wildshard/game/plugin/ui';
-import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
+import { bindWorldSceneParts, createWorldScene, type WorldSceneBoundParts } from '@wildshard/game/plugin/ui';
+import REST_SCENES from '../data/restScenes.generated.json' with { type:'json' };
+import { PLACE_BINDINGS } from '../data/placeBindings';
+import { addFire, addLampGlow, fireLight } from './fireFx';
 import { WORLD, type BakedWorld } from './baked';
 import { DUNE_LIBRARY } from './meshes';
 
-/**
- * Signal Dunes' places (SHARD-PLATFORM SF72): the caravan's and the well's code-built parts and every place's colliders
- * are an offline bake (`generators/places.ts`); here are the generated models on the baked frames and what lives: the
- * caravan's lantern glass and cookfire, the well's bucket, rope, jar and crank, the waymarks' oil and fire. A
- * generated model that did not load stands undrawn, its colliders in place, as a baked piece does.
- */
-
-/** Bind declared baked parts and painted models through the shared world-scene ports. */
-export const placeScene = (recipe: { readonly scene: unknown; readonly imports: unknown }, baked: BakedWorld, each?: (material: MeshStandardMaterial) => void): ReturnType<typeof createWorldScene> & { colliders: ColliderDesc[] } => {
-  const made = createWorldScene({ scene: recipe.scene, imports: recipe.imports }, { geometry: DUNE_LIBRARY.geometry, model: DUNE_LIBRARY.model,
-    baked: (piece, only, material) => WORLD.object(piece, only, material, baked),
-    ...(each === undefined ? {} : { materialCollectors: new Map([['embers',each]]) }),
+type Place = keyof typeof PLACE_BINDINGS;
+type Parts<Id extends Place> = WorldSceneBoundParts<typeof PLACE_BINDINGS[Id]> & {glow:(lit:boolean)=>void};
+export type TowerParts = Parts<'tower'>;
+export type WellParts = Parts<'well'>;
+export type BrazierParts = Parts<'brazier'>;
+/** One native scene binder for the page and each separate Model Explorer specimen. */
+export function buildPlace<Id extends Place>(id:Id,baked:BakedWorld,index=0,colliders?:ColliderDesc[]):Parts<Id> {
+  const rows={...REST_SCENES.bindings,brazier:REST_SCENES.bindings.braziers[index]},row=rows[id];
+  if(row===undefined)throw new Error('Missing declared place');
+  const embers:MeshStandardMaterial[]=[], objects=new Map(row.lights.map(light=>[light.id,new PointLight(light.color,light.intensity,light.distance,light.decay)]));
+  const made=createWorldScene(row.recipe,{geometry:DUNE_LIBRARY.geometry,model:DUNE_LIBRARY.model,objects,
+    baked:(piece,only,each)=>WORLD.object(piece,only,each,baked),materialCollectors:new Map([['embers',(material:MeshStandardMaterial)=>{embers.push(material);}]]),
   });
-  const part = made.baked.get('baked'); if (part === undefined) throw new Error('Missing declared place bake');
-  return { ...made, colliders: part.colliders };
-};
-
-export interface CaravanParts { root: Group; colliders: ColliderDesc[]; logbookAt: Vector3; lampAt: Vector3 }
-
-/**
- * The half-buried caravan: the generated wagon (sunk to its axles and tipped by the drift), the crate pair, the sack pile
- * and the pack horse on the baked camp (the barrel, the logbook on the tailboard, the lantern's iron, the tent, the
- * cookfire's stones); the lantern's lit glass and halo and the cookfire live.
- */
-export function buildCaravan(baked: BakedWorld): CaravanParts {
-  const row = REST_SCENES.places.caravan, made = placeScene(row, baked), { root, colliders } = made;
-  const lamp = made.group('live.lamp'), cook = made.group('live.cook');
-  if (lamp === null || cook === null) throw new Error('Missing declared caravan anchors');
-  // The lantern's glass in its baked iron (loop 4, mockup B), the logbook's warm light in the dusk.
-  addLampGlow(lamp, 0.5, DUNE_LIBRARY.geometry('pool-caravan-lamp'));
-  // E399 (mockup B): a smouldering cookfire on the lee side, its thin smoke column rising behind the wagon
-  addFire(cook, COOKFIRE, DUNE_LIBRARY.geometry('pool-cook'));
-  return { root, colliders, logbookAt: new Vector3(...row.anchors.logbook), lampAt: new Vector3(...row.anchors.lamp) };
-}
-
-export interface WellParts { root: Group; colliders: ColliderDesc[]; bucket: Group; rope: Mesh; jar: Mesh; crankAt: Vector3; jarAt: Vector3; drop: number }
-
-/**
- * The dry well: the generated ring, posts and windlass (C6, Hunyuan3D-2 from `ref-well.jpg`; its bucket and crank cut
- * away) by the baked marker pole, the dark shaft, and the live crank (the whip's pull target) and rope down to a bucket
- * that holds a sealed clay oil jar. `drop` is how far below the axle the bucket hangs.
- */
-export function buildWell(baked: BakedWorld): WellParts {
-  const row = REST_SCENES.places.well, made = placeScene(row,baked), {root,colliders} = made;
-  const bucket = made.group('live.bucket'), rope = made.mesh('live.rope'), jar = made.mesh('live.jar');
-  if (bucket === null || rope === null || jar === null) throw new Error('Missing declared well rest parts');
-  return {root,colliders,bucket,rope,jar,crankAt:new Vector3(...row.anchors.crank),jarAt:new Vector3(...row.anchors.jar),drop:row.anchors.drop};
-}
-
-export interface BrazierParts { root: Group; colliders: ColliderDesc[]; fire: Group; bowlAt: Vector3; oil: Mesh; glow: (lit: boolean) => void }
-
-/**
- * Waymark `i`: the generated brazier (loop 6, mockup C) on its baked footing, the oil, the baked log crown and a hidden
- * fire (`fireFx.ts`; no light of its own, one rides to the lit waymark nearest the player).
- */
-export function buildBrazier(baked: BakedWorld, i: number, colliders: ColliderDesc[]): BrazierParts {
-  const row = REST_SCENES.places.braziers[i]; if (row === undefined) throw new Error(`no waymark ${String(i)}`);
-  const embers: MeshStandardMaterial[] = [], made = placeScene(row,baked,material=>{embers.push(material);}), {root} = made;
-  const oil = made.mesh('live.oil'), fire = made.group('fire');
-  if (oil === null || fire === null) throw new Error('Missing declared waymark rest parts');
-  addFire(fire, WAYMARK_FIRE, DUNE_LIBRARY.geometry(`pool-brazier-${String(i)}`));
-  const light = fireLight(new Vector3(...row.anchors.light));
-  return {root,colliders,fire,bowlAt:new Vector3(...row.anchors.bowl),oil,glow:(lit:boolean)=>{
-    light(lit); for (const ember of embers) ember.emissiveIntensity = lit ? 1.1 : 0;
-  }};
+  const parts=bindWorldSceneParts(made,PLACE_BINDINGS[id],row.fields);
+  for(const effect of [...row.lamps,...row.fires]) {
+    const group=made.group(effect.part);if(group===null)throw new Error('Missing declared effect anchor');
+    const pool=effect.pool===null?null:DUNE_LIBRARY.geometry(effect.pool);
+    if('size' in effect)addFire(group,effect.size,pool);else addLampGlow(group,effect.glow,pool);
+  }
+  const light=row.glowAt===null?null:fireLight(new Vector3().fromArray(row.glowAt));
+  return Object.assign(parts,{colliders:colliders??parts.colliders,glow:(lit:boolean)=>{light?.(lit);for(const ember of embers)ember.emissiveIntensity=lit?1.1:0;}});
 }

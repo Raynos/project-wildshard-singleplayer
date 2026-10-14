@@ -8,8 +8,7 @@ import source from '../runtime/source';
 
 import { BRAZIERS } from '../data/layout';
 import { STRINGS } from '../data/strings';
-import { buildTower, type TowerParts } from './tower';
-import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellParts } from './places';
+import { buildPlace, type TowerParts, type BrazierParts, type WellParts } from './places';
 import { signalPieces, type BakedWorld } from './baked';
 import { fireLight, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
@@ -48,7 +47,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   // SF72: the tower's frame, the places' code-built parts and colliders, the rock field and its dressing are baked offline
   // (generators/*.ts); the client adds the models and what lives (data/pieces.ts lists them)
   const pieces = signalPieces(ctx.piece, ctx.root, baked);
-  const tower = pieces.add('sunscar.tower', buildTower(baked)), caravan = pieces.add('sunscar.caravan', buildCaravan(baked)), wellParts = pieces.add('sunscar.well', buildWell(baked));
+  const tower = pieces.add('sunscar.tower', buildPlace('tower',baked)), caravan = pieces.add('sunscar.caravan', buildPlace('caravan',baked)), wellParts = pieces.add('sunscar.well', buildPlace('well',baked));
   pieces.baked('sunscar.rocks'); pieces.baked('sunscar.dressing');
   const interactables = ctx.game.runtime?.interactables, rules = new InteractionRules(flags, SIGNAL_INTERACTIONS);
 
@@ -71,7 +70,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
 
   // The braziers: pour oil by hand, light with a crack.
   const braziers: Brazier[] = BRAZIERS.map((_, i) => {
-    const parts = pieces.add(`sunscar.brazier.${String(i)}`, buildBrazier(baked, i, pieces.colliders(`sunscar.brazier.${String(i)}`)));
+    const parts = pieces.add(`sunscar.brazier.${String(i)}`, buildPlace('brazier',baked, i, pieces.colliders(`sunscar.brazier.${String(i)}`)));
     const oiled = `oiled.${String(i)}`, lit = `lit.${String(i)}`;
     const brazier: Brazier = { parts, get oiled() { return rules.has(oiled); }, set oiled(value) { rules.mark(oiled, value); }, get lit() { return rules.has(lit); }, set lit(value) { rules.mark(lit, value); },
       // radius 3: the bowl stands on its plinth, 2.35 m up, and is reached from the sand round it

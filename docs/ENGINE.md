@@ -4728,3 +4728,9 @@ and prompt spots. The existing contact owner resolves each crack row's
 world target and quest actor before registering its step, refusing missing
 spots. Original light/heavy crack outcomes remain on the timed contact
 family; direct owned `world` targets remain supported.
+
+`bindWorldSceneParts(scene, kinds, rows)` in `game/plugin/ui` binds named
+native groups, meshes, point lights, materials and baked collider arrays.
+Vector and scalar rows copy bounded authored anchors; scene parts remain
+borrowed identities. `format/clientChannels.parseWorldSceneBindings` admits
+the finite field rows. Missing parts or a mismatched typed contract refuse.
