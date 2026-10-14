@@ -2,7 +2,9 @@ import type { Audio } from '@wildshard/engine/audio/Audio';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
 import { FOREST_AUDIO, FOREST_WIND_BED } from './profile';
-import { installForestVoices, type ForestVoices } from './synth';
+import { installForestVoices } from './synth';
+
+type ForestVoices = ReturnType<typeof installForestVoices>;
 
 /** Keep Pine's original kit registration outside retained mode; retained voices exist only during a home entry. */
 export function installEnteredPineVoices(context: ShardContext, audio: Audio): () => ForestVoices | null {

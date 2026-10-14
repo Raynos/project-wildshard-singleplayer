@@ -51,7 +51,7 @@ export function audioMixValue(expr:AudioMixExpr,read:(id:string)=>number):number
     case '-':return arg(1)-arg(2);case '/':return arg(1)/arg(2);
     case 'min':return Math.min(arg(1),arg(2));case 'max':return Math.max(arg(1),arg(2));
     case 'clamp':return Math.max(arg(2),Math.min(arg(3),arg(1)));
-    case 'abs':return Math.abs(arg(1));case 'sin':return Math.sin(arg(1));case 'hypot':return Math.hypot(arg(1),arg(2));
+    case 'floor':return Math.floor(arg(1));case 'abs':return Math.abs(arg(1));case 'sin':return Math.sin(arg(1));case 'hypot':return Math.hypot(arg(1),arg(2));
     case 'ss':{const a=arg(1),b=arg(2),x=arg(3),t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);}
     case 'in':{const value=arg(1);return value>arg(2)&&value<arg(3)?1:0;}
     case 'lt':return arg(1)<arg(2)?1:0;case 'gt':return arg(1)>arg(2)?1:0;

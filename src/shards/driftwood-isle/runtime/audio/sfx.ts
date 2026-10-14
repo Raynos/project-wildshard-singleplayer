@@ -2,9 +2,9 @@ import source from '../../shard.config';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { impact } from '@wildshard/engine/audio/gen';
-import { audioRandom, panFromYaw, WindGustBed } from '@wildshard/engine/audio/util';
+import { panFromYaw, WindGustBed } from '@wildshard/engine/audio/util';
 import type { VoiceTable } from '@wildshard/engine/audio/Voices';
-import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
+import { tap } from '@wildshard/engine/core/harnessTap';
 import type { Vector3 } from 'three';
 import type { Surface } from './surface';
 import { vocal, windup } from './creatureVoices';
@@ -37,7 +37,6 @@ export type WindupEnemy = 'boar' | 'crab' | 'sailor';
 export type InteractSound = 'chest' | 'locked' | 'lever' | 'plate' | 'door' | 'grate' | 'chime' | 'glyph' | 'ignite';
 interface At { x: number; y: number; z: number }
 
-const rnd = (a: number, b: number): number => a + audioRandom() * (b - a);
 
 /** each surface's level at a walk (the bank is peak-normalised; these sit the steps where Audio.footstep's synth ones sat) */
 const STEP_LEVEL: Record<Surface, number> = { sand: 0.34, wetSand: 0.36, grass: 0.3, rock: 0.34, planks: 0.42, stone: 0.36, water: 0.34 };
@@ -118,23 +117,8 @@ export class IslandSfx {
     const a = this.audio;
     tap.sound?.('gullCall');
     if (!a.ready || a.shot('gull', { pan, gain, out: a.ambient })) return;
-    const c = a.ctx, t = c.currentTime;
-    const bus = c.createGain(); bus.gain.value = 0.28 * gain;
-    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1900; bp.Q.value = 0.7;
-    bus.connect(bp); a.route(bp, pan, a.ambient);
-    const base = rnd(1050, 1350);
-    // note 1: rises fast then bends down, wide fast vibrato (the rasp)
-    a.tone({ t, type: 'sawtooth', f0: base * 0.85, f1: base * 1.25, glide: 0.06, gain: 1, attack: 0.015, hold: 0.05, decay: 0.09, vibrato: { rate: 42, depth: 90 }, lowpass: 4200, out: bus });
-    a.tone({ t: t + 0.06, type: 'sawtooth', f0: base * 1.25, f1: base * 0.9, glide: 0.12, gain: 0.7, attack: 0.005, decay: 0.12, vibrato: { rate: 42, depth: 90 }, lowpass: 3600, out: bus });
-    a.burst({ t, type: 'bandpass', freq: base * 2, q: 2, gain: 0.25, attack: 0.02, hold: 0.06, decay: 0.1, out: bus });
-    // note 2: lower, shorter
-    const t2 = t + rnd(0.2, 0.27);
-    a.tone({ t: t2, type: 'sawtooth', f0: base * 0.95, f1: base * 0.62, glide: 0.16, gain: 0.8, attack: 0.012, hold: 0.03, decay: 0.15, vibrato: { rate: 36, depth: 70 }, lowpass: 3200, out: bus });
-    a.burst({ t: t2, type: 'bandpass', freq: base * 1.6, q: 2, gain: 0.18, attack: 0.02, decay: 0.12, out: bus });
-    if (audioRandom() < 0.35) {
-      const t3 = t2 + rnd(0.2, 0.28);
-      a.tone({ t: t3, type: 'sawtooth', f0: base * 0.8, f1: base * 0.55, glide: 0.14, gain: 0.55, attack: 0.012, decay: 0.14, vibrato: { rate: 30, depth: 60 }, lowpass: 2800, out: bus });
-    }
+    const phrase=source.audio.synth?.['gull'];if(phrase===undefined)throw new Error('Missing declared gull phrase');
+    a.playPhrase(phrase,a.ambient,{pan,gain});
   }
 
   /** gullCall positioned like `audio.animal()`: distance attenuation + a stereo pan from the listener yaw */
@@ -161,7 +145,7 @@ export const ISLAND_BED = 'island';
 export class IslandBed extends WindGustBed {
   private zoned = false;
   constructor(audio:Audio,preset=source.audio.ambience) { if(preset===null)throw new Error('Missing declared island wind'); super(audio,preset); }
-  override start():void { if (!this.zoned) { super.start(); this.scheduleSurf(); } }
+  override start():void { if (!this.zoned) { super.start(); } }
   /** a zoned ambience replaces the synth bed: it is stopped / never started (a sampled bed still plays) */
   zone(): void {
     if (this.zoned) return;
@@ -169,29 +153,4 @@ export class IslandBed extends WindGustBed {
     this.audio.restartSynthBed(ISLAND_BED);
   }
 
-  private scheduleSurf(): void {
-    const wait = rnd(6, 9);
-    this.queue(wait * 1000, () => {
-      ambientTick('audio.surf', () => {
-        if (this.audio.ambientOn) this.surfSwell();
-        this.scheduleSurf();
-      });
-    });
-  }
-
-  /** one wave: a low rumble building over ~2 s, the break (a wide bright hiss), then the wash sliding back down the sand */
-  private surfSwell(): void {
-    const a = this.audio, c = a.ctx, t = c.currentTime;
-    const pan = rnd(-0.35, 0.35), size = rnd(0.7, 1.15);
-    const bus = c.createGain(); bus.gain.value = 0.42 * size;
-    a.route(bus, pan, a.ambient);
-    const build = rnd(1.6, 2.4), wash = rnd(2.6, 4.0);
-    // the build: low noise rising in pitch and level
-    a.burst({ t, type: 'lowpass', freq: 240, freqEnd: 700, gain: 0.5, attack: build, decay: 1.2, hold: 0.2, out: bus });
-    // the break: wide, bright, a fast swell then the long wash tail that darkens as it drains
-    a.burst({ t: t + build * 0.75, type: 'bandpass', freq: 1800, freqEnd: 500, q: 0.4, gain: 0.55, attack: 0.5, hold: 0.4, decay: wash, out: bus });
-    a.burst({ t: t + build * 0.85, type: 'highpass', freq: 2600, gain: 0.16, attack: 0.35, hold: 0.3, decay: wash * 0.6, out: bus });
-    // the foam fizz on the sand at the end
-    a.burst({ t: t + build + 1.2, type: 'bandpass', freq: 4200, q: 0.6, gain: 0.08, attack: 0.6, decay: wash * 0.7, out: bus });
-  }
 }

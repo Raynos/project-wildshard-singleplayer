@@ -1,6 +1,7 @@
 import { ownAudioSource } from './ownership';
 import type { AmbienceZones } from './ambience';
-import type { SynthNoise, SynthLfoRow, SynthChainRow, SynthBedGraph } from '@wildshard/format/audioProfiles';
+import type { AudioPhraseProgram, AudioMixExpr, SynthNoise, SynthLfoRow, SynthChainRow, SynthBedGraph } from '@wildshard/format/audioProfiles';
+import { audioMixValue } from './audioProfiles';
 import { tap } from '../core/harnessTap';
 import { audioRandom } from './util';
 
@@ -52,6 +53,42 @@ export abstract class Synth {
     o.start(t); o.stop(t + (opts.attack ?? 0.002) + (opts.hold ?? 0) + opts.decay + 0.05);
     this.route(g, opts.pan ?? 0, opts.out);
     return g;
+  }
+
+  /** Play validated ordered phrase rows with the existing tone/burst envelopes and owned bus routing. */
+  playPhrase(program:AudioPhraseProgram,out:AudioNode,params:Readonly<Record<string,number>>={},random:()=>number=audioRandom):void {
+    const values=new Map(Object.entries(params)),nodes=new Map<string,AudioNode>([['out',out]]);
+    values.set('t',this.ctx.currentTime);
+    const read=(id:string):number=>{if(id==='random')return random();const value=values.get(id);if(value===undefined)throw new Error(`Missing phrase value: ${id}`);return value;};
+    const value=(expr:AudioMixExpr):number=>{const result=audioMixValue(expr,read);if(!Number.isFinite(result))throw new Error('Nonfinite phrase value');return result;};
+    const target=(id:string):AudioNode=>{const node=nodes.get(id);if(node===undefined)throw new Error(`Missing phrase output: ${id}`);return node;};
+    let work=0;
+    type Step=AudioPhraseProgram['steps'][number];
+    const run=(step:Exclude<Step,{kind:'repeat'}>):void=>{
+      if(++work>1024)throw new Error('Phrase work capacity');
+      if(step.kind==='value'){values.set(step.id,value(step.value));return;}
+      if(step.kind==='bus'){
+        const bus=this.ctx.createGain();bus.gain.value=value(step.gain);let tail:AudioNode=bus;
+        if(step.filter){const filter=this.ctx.createBiquadFilter();filter.type=step.filter.type;filter.frequency.value=value(step.filter.frequency);if(step.filter.q!==undefined)filter.Q.value=value(step.filter.q);bus.connect(filter);tail=filter;}
+        this.route(tail,value(step.pan),target(step.out));nodes.set(step.id,bus);return;
+      }
+      if(step.kind==='tone'){
+        const opts:Parameters<Synth['tone']>[0]={f0:value(step.f0),gain:value(step.gain),decay:value(step.decay),out:target(step.out)};
+        if(step.type!==undefined)opts.type=step.type;
+        for(const key of ['t','f1','glide','attack','hold','lowpass'] as const){const expr=step[key];if(expr!==undefined)opts[key]=value(expr);}
+        if(step.vibrato)opts.vibrato={rate:value(step.vibrato.rate),depth:value(step.vibrato.depth)};
+        this.tone(opts);return;
+      }
+      const opts:Parameters<Synth['burst']>[0]={freq:value(step.freq),gain:value(step.gain),decay:value(step.decay),out:target(step.out)};
+      if(step.type!==undefined)opts.type=step.type;
+      for(const key of ['t','freqEnd','q','attack','hold','rate'] as const){const expr=step[key];if(expr!==undefined)opts[key]=value(expr);}
+      this.burst(opts);
+    };
+    for(const step of program.steps){
+      if(step.kind!=='repeat'){run(step);continue;}
+      const count=value(step.count);if(!Number.isInteger(count)||count<0||count>step.max)throw new Error('Phrase repeat capacity');
+      for(let i=0;i<count;i++)for(const child of step.body)run(child);
+    }
   }
 
   route(node: AudioNode, pan: number, out?: AudioNode): void {

@@ -28,7 +28,7 @@ export function loopAt(source: AudioBufferSourceNode, buffer: AudioBuffer,
 
 /** Shared wind bands and gust envelopes; each declared preset retains its scope,
  * tap IDs, band order, random draws and native AudioContext scheduling.
- * Subclasses lend only the original independent bird/wave schedulers.
+ * Declared phrases retain their independent timer and random-draw order.
  */
 export class WindGustBed {
   private scope: Scope | undefined;
@@ -47,11 +47,18 @@ export class WindGustBed {
     tap.sound?.(this.gust.startTap);
     this.gains = this.rows.winds.map(row => this.audio.mkWind(row.frequency,row.q,row.pan,row.rate,row.gain,row.cutoff));
     this.scheduleGust();
+    for(const phrase of this.rows.phrases??[])this.schedulePhrase(phrase);
   }
   /** Preserve lazy timer ownership or the preset's explicitly started scope. */
   protected queue(milliseconds: number, run: () => void): void {
     if (!this.gust.scopeFirst) this.scope ??= new Scope(this.gust.scope);
     this.scope?.timeout(milliseconds,run);
+  }
+  private schedulePhrase(phrase:NonNullable<NonNullable<AudioData['ambience']>['phrases']>[number]):void {
+    this.queue(this.sample(phrase.wait)*1000,()=>{ambientTick(phrase.tick,()=>{
+      if(this.audio.ambientOn)this.audio.playPhrase(phrase.program,this.audio.ambient);
+      this.schedulePhrase(phrase);
+    });});
   }
   private sample(range: readonly [number,number]): number { return range[0] + audioRandom() * (range[1]-range[0]); }
   private scheduleGust(): void {

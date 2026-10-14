@@ -11,7 +11,7 @@ const optionalIds = v.optional(v.pipe(v.array(id), v.maxLength(128), v.check((id
 const scalar = v.union([finite, v.boolean(), id, v.null()]);
 const conditions = v.pipe(v.array(v.strictObject({ field: id, op: v.picklist(['equals', 'not-equals', 'greater']), value: scalar })), v.maxLength(16));
 /** Bounded numerical mix expressions over supplied listener/clock/geometry values. */
-export type AudioMixOp = '+' | '-' | '*' | '/' | 'min' | 'max' | 'abs' | 'sin' | 'hypot' | 'ss' | 'in' | 'lt' | 'gt' | 'if' | 'and' | 'or' | 'not' | 'clamp' | 'zone' | 'dist';
+export type AudioMixOp = '+' | '-' | '*' | '/' | 'min' | 'max' | 'floor' | 'abs' | 'sin' | 'hypot' | 'ss' | 'in' | 'lt' | 'gt' | 'if' | 'and' | 'or' | 'not' | 'clamp' | 'zone' | 'dist';
 /** Recursive bounded scalar expression; schema metadata keeps its lazy factory opaque. */
 export type AudioMixExpr = number | string | readonly [AudioMixOp, ...AudioMixExpr[]];
 function boundedMix(expr:AudioMixExpr):boolean {
@@ -20,14 +20,14 @@ function boundedMix(expr:AudioMixExpr):boolean {
     const current=pending.pop();if(current===undefined)return true;if(current.depth>16)return false;
     if(typeof current.value!=='number'&&typeof current.value!=='string') {
       const arity=current.value.length-1,op=current.value[0];
-      const wanted=op==='ss'||op==='in'||op==='if'||op==='clamp'?3:op==='-'||op==='/'||op==='min'||op==='max'||op==='hypot'||op==='lt'||op==='gt'?2:op==='abs'||op==='sin'||op==='not'||op==='zone'||op==='dist'?1:null;
+      const wanted=op==='ss'||op==='in'||op==='if'||op==='clamp'?3:op==='-'||op==='/'||op==='min'||op==='max'||op==='hypot'||op==='lt'||op==='gt'?2:op==='floor'||op==='abs'||op==='sin'||op==='not'||op==='zone'||op==='dist'?1:null;
       if(arity<1||arity>8||(wanted!==null&&arity!==wanted)||((op==='dist'||op==='zone')&&typeof current.value[1]!=='string'))return false;
       for(const value of current.value.slice(1))pending.push({value,depth:current.depth+1});
     }
   }
   return pending.length===0;
 }
-const mixExpr:v.GenericSchema<AudioMixExpr> = v.pipe(v.lazy(()=>v.union([finite,id,v.tupleWithRest([v.picklist(['+','-','*','/','min','max','abs','sin','hypot','ss','in','lt','gt','if','and','or','not','clamp','zone','dist'])],mixExpr)])),v.check(value=>boundedMix(value),'bounded mix expression'));
+const mixExpr:v.GenericSchema<AudioMixExpr> = v.pipe(v.lazy(()=>v.union([finite,id,v.tupleWithRest([v.picklist(['+','-','*','/','min','max','floor','abs','sin','hypot','ss','in','lt','gt','if','and','or','not','clamp','zone','dist'])],mixExpr)])),v.check(value=>boundedMix(value),'bounded mix expression'));
 const mixValues=(max:number)=>v.pipe(v.array(v.tuple([id,mixExpr])),v.maxLength(max));
 /** Ordered weights, levels, filters, sends and diagnostics. All graph/geometry ports remain native. */
 export const AudioMixSchema = v.strictObject({values:mixValues(256),levels:mixValues(64),cutoffs:mixValues(16),
@@ -129,6 +129,26 @@ export const SynthBedGraphSchema = v.pipe(v.strictObject({tap:v.exactOptional(id
   chains:v.pipe(v.array(v.union([synthChain,v.strictObject({mark:id})])),v.maxLength(256))}),
   v.check(graph=>new Set(graph.beds.map(row=>row.id)).size===graph.beds.length,'unique synth bed ids'),
   v.check(graph=>graph.chains.every(row=>'mark' in row||graph.beds.some(bed=>bed.id===row.to)),'declared synth bed target'));
+/** Bounded ordered mixer primitives. Randomness is an explicit numeric input named `random`. */
+const phraseTone = v.strictObject({kind:v.literal('tone'),out:id,type:v.exactOptional(synthWave),
+  f0:mixExpr,gain:mixExpr,decay:mixExpr,t:v.exactOptional(mixExpr),f1:v.exactOptional(mixExpr),glide:v.exactOptional(mixExpr),
+  attack:v.exactOptional(mixExpr),hold:v.exactOptional(mixExpr),lowpass:v.exactOptional(mixExpr),
+  vibrato:v.exactOptional(v.strictObject({rate:mixExpr,depth:mixExpr}))});
+const phraseBurst = v.strictObject({kind:v.literal('burst'),out:id,type:v.exactOptional(v.picklist(['lowpass','highpass','bandpass','lowshelf','highshelf','peaking','notch','allpass'])),
+  freq:mixExpr,gain:mixExpr,decay:mixExpr,t:v.exactOptional(mixExpr),freqEnd:v.exactOptional(mixExpr),q:v.exactOptional(mixExpr),
+  attack:v.exactOptional(mixExpr),hold:v.exactOptional(mixExpr),rate:v.exactOptional(mixExpr)});
+const phraseValue = v.strictObject({kind:v.literal('value'),id,value:mixExpr});
+const phraseBody = v.variant('kind',[phraseValue,phraseTone,phraseBurst]);
+export const AudioPhraseProgramSchema = v.pipe(v.strictObject({steps:v.pipe(v.array(v.variant('kind',[phraseValue,phraseTone,phraseBurst,
+  v.strictObject({kind:v.literal('bus'),id,out:id,gain:mixExpr,pan:mixExpr,filter:v.exactOptional(v.strictObject({type:v.picklist(['lowpass','highpass','bandpass']),frequency:mixExpr,q:v.exactOptional(mixExpr)}))}),
+  v.strictObject({kind:v.literal('repeat'),count:mixExpr,max:v.pipe(finite,v.safeInteger(),v.minValue(1),v.maxValue(32)),body:v.pipe(v.array(phraseBody),v.maxLength(64))})])),v.maxLength(64))}),
+  v.check(program=>program.steps.reduce((sum,step)=>sum+(step.kind==='repeat'?step.max*step.body.length:1),0)<=1024,'bounded phrase work'));
+/** Validated tone/noise envelopes and owned filtered buses; no executable author callbacks. */
+export type AudioPhraseProgram = v.InferOutput<typeof AudioPhraseProgramSchema>;
+/** A scoped ambient scheduler for an admitted phrase. */
+export const AudioPhraseScheduleSchema = v.strictObject({tick:id,wait:v.pipe(v.tuple([finite,finite]),v.check(values=>values[0]>0&&values[1]>=values[0]&&values[1]<=600)),program:AudioPhraseProgramSchema});
+export type AudioPhraseSchedule = v.InferOutput<typeof AudioPhraseScheduleSchema>;
+
 const zone = v.pipe(v.strictObject({ id, x: finite, z: finite, inner: v.pipe(finite, v.minValue(0), v.maxValue(2000)), outer: v.pipe(finite, v.minValue(0), v.maxValue(2000)), gain,
   fade: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))), open: v.optional(v.boolean()), source: v.optional(id) }), v.check((row) => row.inner < row.outer && (row.fade === undefined || row.outer === row.inner + row.fade), 'audio zone fade must extend outside its inner radius'));
 const rectangle = v.pipe(v.strictObject({ id, zone: id, x0: finite, x1: finite, z0: finite, z1: finite }), v.check((row) => row.x0 < row.x1 && row.z0 < row.z1, 'positive rectangular audio region'));

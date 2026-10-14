@@ -1,9 +1,10 @@
+import { PINE_BIRD } from './audioPhrases';
 import { parseAudioData } from '@wildshard/sdk/audio';
 import { PINE_AUDIO_ZONES, PINE_AUDIO_MIX } from './audioZones';
 import { PINE_AUDIO_SAMPLES } from './runtimeCost';
 
 /** Existing forest samples, score/boss slots, scoped rifle echo and authored ambience zones. */
-export const PINE_AUDIO = parseAudioData({ cues: [], ambience: { bed: 'forest', winds: [
+export const PINE_AUDIO = parseAudioData({ cues: [], ambience: { phrases:[PINE_BIRD], bed: 'forest', winds: [
     { frequency:260,q:0.5,pan:-0.55,rate:0.07,gain:0.11 }, { frequency:620,q:0.8,pan:0.55,rate:0.11,gain:0.06 },
     { frequency:140,q:0.4,pan:0,rate:0.05,gain:0.09 }, { frequency:2400,q:0.5,pan:0.2,rate:0.09,gain:0.012 }
   ], gust: { scope:'audio.pine.bed',scopeFirst:false,startTap:'audio.startForest',tap:'audio.gust',gentle:1,wait:[5,12],rise:[1.5,3],fall:[2,4],amount:[0.5,1.6] } }, score: 'default',
