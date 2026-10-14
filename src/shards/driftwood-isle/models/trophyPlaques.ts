@@ -17,7 +17,7 @@ import * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { SlotGeometry } from '../runtime/models/slots';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
 import { TROPHY_DROP_GEOMETRY, TROPHY_PLAQUES_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 import bakedSlots from '../data/trophySlots.json' with { type: 'json' };
@@ -80,7 +80,7 @@ export class TrophyPlaques extends THREE.Mesh<THREE.BufferGeometry, THREE.Materi
 }
 
 export function buildTrophyPlaques(ctx: ModelContext, filled: Partial<Record<TrophyId, boolean>> = {}, gap: number = PLAQUE_GAP): TrophyPlaques {
-  return new TrophyPlaques(gap, lowPolyMaterial(ctx.sky), filled);
+  return new TrophyPlaques(gap, lowPolyLookMaterial(ctx.sky), filled);
 }
 
 /**
@@ -88,7 +88,7 @@ export function buildTrophyPlaques(ctx: ModelContext, filled: Partial<Record<Tro
  * on its origin (it hangs off the peg in the plaques' space), facing +z. One mesh, one draw, the island's material.
  */
 export function buildTrophy(ctx: ModelContext, id: TrophyId): THREE.Group {
-  const m = new TrophyPlaques(0, lowPolyMaterial(ctx.sky), {});
+  const m = new TrophyPlaques(0, lowPolyLookMaterial(ctx.sky), {});
   m.trophyOnly(id);
   m.position.set(0, -(MOUNT_Y + (id === 'boar' ? 0.13 : 0.01)), -FRONT - 0.04);
   const g = new THREE.Group();

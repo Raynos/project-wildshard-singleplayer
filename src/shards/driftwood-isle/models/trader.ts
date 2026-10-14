@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import { defineModel, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Trader } from '../npc/Trader';
 import { traderRig } from '../quest/people';
@@ -44,7 +44,7 @@ export const tradeCounter: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/trade-counter', name: 'The trader\'s counter', category: 'props', pipeline: 'code', file: 'src/shards/driftwood-isle/models/trader.ts', surface: 'wood',
   defaults: {},
   build: (ctx) => {
-    const parts = (): readonly ModelPart[] => [{ geometry: COUNTER_GEOMETRY.copy(), material: lowPolyMaterial(ctx.sky), castShadow: true, receiveShadow: true }];
+    const parts = (): readonly ModelPart[] => [{ geometry: COUNTER_GEOMETRY.copy(), material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true }];
     if (fixedGeometryReady()) return parts();
     return loadingSpecimen('driftwood-isle/trade-counter', [TOP.w, TOP.y + 0.4, TOP.d], async () => {
       await loadFixedGeometry();

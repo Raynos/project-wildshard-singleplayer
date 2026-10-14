@@ -1,7 +1,7 @@
 /**
  * The token shelf (E315 M2; PINE-HOLLOW-REMASTER PH-C8's last piece): a pine display rack with the eight carved tokens in
  * a row — once all eight are found it stands on the ranger's mantel (the "Whittled Down" achievement's cabin side). Built
- * in code as ONE merged mesh on the shared `lowPolyMaterial` (the tokens' own pickup material, no new program): the rack
+ * in code as ONE merged mesh on the shared `lowPolyLookMaterial` (the tokens' own pickup material, no new program): the rack
  * (a plank, a slotted back rail, two end posts) and the pickup's `carvedToken` eight times, on edge, leaning back a touch.
  * Its own space: the origin on the mantel top under the rack's centre, +Z out into the room. No shadow, no light. The
  * quest places it on the ranger's mantel and shows it (src/shards/pine-hollow/quest/tokenShelf.ts).
@@ -10,7 +10,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { defineModel } from '@wildshard/engine/models/model';
 import { plank } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { LowPolyKit, lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { carvedTokenGeometry as carvedToken } from '@wildshard/game/models/pickups';
 
 const TOKENS = 8, SCALE = 0.6, PITCH = 0.185, LEAN = -0.14;
@@ -41,5 +41,5 @@ export const tokenShelf = defineModel<Record<string, never>>({
   id: 'pine-hollow/token-shelf', name: 'Token shelf', category: 'props', pipeline: 'code',
   file: 'src/shards/pine-hollow/models/tokenShelf.ts', surface: 'wood',
   defaults: {},
-  build: (ctx) => [{ geometry: ctx.once('pine-hollow/token-shelf', tokenShelfGeometry), material: lowPolyMaterial(ctx.sky), receiveShadow: true }],
+  build: (ctx) => [{ geometry: ctx.once('pine-hollow/token-shelf', tokenShelfGeometry), material: lowPolyLookMaterial(ctx.sky), receiveShadow: true }],
 });

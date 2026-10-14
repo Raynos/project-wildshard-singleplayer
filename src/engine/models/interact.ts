@@ -5,14 +5,14 @@
  * places them as each kind's rows.
  */
 import * as THREE from 'three';
-import { lowPolyMaterial } from '../world/lowpolyKit';
+import { lowPolyLookMaterial } from '../world/lowpolyKit';
 import { defineModel, type ModelContext, type ModelDef, type ModelPart } from './model';
 
 const FILE = 'src/engine/models/interact.ts';
 
 /** a lit part (the shared low-poly material) and a glowing one (unlit, as the kit's glow batch), posed at `m` */
 export const lit = (ctx: ModelContext, g: THREE.BufferGeometry, m?: THREE.Matrix4): ModelPart =>
-  ({ geometry: m ? g.applyMatrix4(m) : g, material: lowPolyMaterial(ctx.sky), castShadow: true, receiveShadow: true });
+  ({ geometry: m ? g.applyMatrix4(m) : g, material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true });
 export const glow = (ctx: ModelContext, g: THREE.BufferGeometry, m?: THREE.Matrix4): ModelPart =>
   ({ geometry: m ? g.applyMatrix4(m) : g, material: ctx.once('shared/interact:glow', () => new THREE.MeshBasicMaterial({ vertexColors: true, fog: true, toneMapped: true })) });
 

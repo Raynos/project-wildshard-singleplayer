@@ -16,7 +16,7 @@ import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import bake from '../data/hutBake.json' with { type: 'json' };
 import { HUT_FLAMES_GEOMETRY, HUT_KIT_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
@@ -69,7 +69,7 @@ export function hutLayout(site: HutSite): HutLayout {
 const own = (g: THREE.BufferGeometry): THREE.BufferGeometry => { g.computeBoundingSphere(); g.computeBoundingBox(); return g; };
 function hutParts(ctx: ModelContext): ModelPart[] {
   return [
-    { geometry: own(HUT_KIT_GEOMETRY.copy()), material: lowPolyMaterial(ctx.sky), castShadow: true, receiveShadow: true },
+    { geometry: own(HUT_KIT_GEOMETRY.copy()), material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true },
     { geometry: own(HUT_FLAMES_GEOMETRY.copy()), material: new THREE.MeshBasicMaterial({ vertexColors: true }) },
   ];
 }

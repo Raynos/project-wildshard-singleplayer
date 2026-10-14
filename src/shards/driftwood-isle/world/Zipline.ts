@@ -21,7 +21,7 @@ import * as THREE from 'three';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { zipline, ziplineGeometry } from '../models/zipline';
@@ -62,7 +62,7 @@ export class Zipline {
 
   build(): this {
     const { rig, trolley } = ziplineGeometry(this.lay);
-    const mat = lowPolyMaterial(this.sky);
+    const mat = lowPolyLookMaterial(this.sky);
     const mesh = new THREE.Mesh(rig, mat);
     mesh.castShadow = true; mesh.receiveShadow = true; mesh.name = 'zipline';
     this.trolley = new THREE.Mesh(trolley, mat);

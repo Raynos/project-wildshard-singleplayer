@@ -34,7 +34,7 @@ import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BlenderArea } from '@wildshard/engine/world/blenderArea';
 import { normalAt, trailDistance } from '@wildshard/engine/world/Heightfield';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { StreamedCover, type StreamedCoverHooks, type StreamedCover as StreamedCoverSet, type StreamedCoverStats } from '../runtime/looks/streamedCover';
@@ -162,7 +162,7 @@ export class GroundCover {
   /** bleached driftwood logs (the E149 painter, driftwood.ts) along the dune line all round the island, one every ~9 m (one static mesh) */
   private buildDriftwood(): void {
     const {geometry:geo,logs}=duneLogs(heightAt,trailDistance,this.avoid,this.opts.sea,SEED);
-    const mesh = new THREE.Mesh(geo, lowPolyMaterial(this.sky));
+    const mesh = new THREE.Mesh(geo, lowPolyLookMaterial(this.sky));
     mesh.name = 'ground-cover-driftwood';
     mesh.userData['coverProp'] = true; // static logs, not instanced cover: the perf probe's cover rows leave it (E405)
     mesh.castShadow = true; mesh.receiveShadow = true;

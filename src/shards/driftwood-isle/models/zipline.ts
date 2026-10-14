@@ -3,7 +3,7 @@
  * src/shards/driftwood-isle/world/Zipline.ts) — the traversal reward (DRIFTWOOD-REMASTER A7): a plank launch deck jutting out over a cliff lip
  * (planks, two stringers, four posts down to the rock, a back rail, a red flag board), the launch A-frame with the cable's
  * anchor block, a steel cable sagging down to a stout landing post with a padded stop board and a straw pile, and the
- * pulley trolley with its T-bar (the rig and the trolley: two draws, the low-poly kit on lowPolyMaterial, no AO).
+ * pulley trolley with its T-bar (the rig and the trolley: two draws, the low-poly kit on lowPolyLookMaterial, no AO).
  *
  * Its params are the cable's two ends in the world: `top` = the deck's outer edge (on the floor), `bottom` = the landing
  * (on the floor); the deck turns to face down the line. Its own space: the origin is `top`. The ride (src/shards/driftwood-isle/world/Zipline.ts)
@@ -14,7 +14,7 @@
 import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
 import { log, beam, plank, rope, rock } from '@wildshard/engine/world/geometryKit';
-import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { LowPolyKit, lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { CableLayout } from '@wildshard/sdk/movers';
 
 
@@ -78,7 +78,7 @@ export const zipline = defineModel<ZiplineParams>({
     const { rig, trolley } = ziplineGeometry(lay);
     const at = new THREE.Vector3(), yaw = lay.park(at);
     trolley.applyMatrix4(new THREE.Matrix4().compose(at, new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), yaw), V(1, 1, 1)));
-    const mat = lowPolyMaterial(ctx.sky);
+    const mat = lowPolyLookMaterial(ctx.sky);
     return [{ geometry: rig, material: mat, castShadow: true, receiveShadow: true }, { geometry: trolley, material: mat, castShadow: true }];
   },
 });

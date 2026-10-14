@@ -18,7 +18,7 @@ import * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { SlotGeometry } from '../runtime/models/slots';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 
 import { CHIME_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
@@ -51,7 +51,7 @@ export class SeaGlassChime extends THREE.Mesh<THREE.BufferGeometry, THREE.Materi
 
 /** a chime showing `count` pieces */
 export function buildSeaGlassChime(ctx: ModelContext, count = 0): SeaGlassChime {
-  return new SeaGlassChime(new SlotGeometry(CHIME_GEOMETRY.copy(), bakedSlots), lowPolyMaterial(ctx.sky), count);
+  return new SeaGlassChime(new SlotGeometry(CHIME_GEOMETRY.copy(), bakedSlots), lowPolyLookMaterial(ctx.sky), count);
 }
 
 export interface SeaGlassChimeParams {

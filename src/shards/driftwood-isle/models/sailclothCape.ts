@@ -15,7 +15,7 @@ import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { CAPE_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 
 /** A fresh copy of the admitted cape; worn/specimen scaling never changes its template. */
@@ -23,7 +23,7 @@ export function sailclothCapeGeometry(): THREE.BufferGeometry { return CAPE_GEOM
 
 /** the cape as one mesh (a specimen, the worn cape) */
 export function buildSailclothCape(ctx: ModelContext): THREE.Mesh {
-  const m = new THREE.Mesh(sailclothCapeGeometry(), lowPolyMaterial(ctx.sky));
+  const m = new THREE.Mesh(sailclothCapeGeometry(), lowPolyLookMaterial(ctx.sky));
   m.name = 'sailcloth-cape';
   m.castShadow = true;
   m.receiveShadow = true;
@@ -43,7 +43,7 @@ export const sailclothCape = defineModel<SailclothCapeParams>({
   specimenYaw: Math.PI, // the Explorer opens on its outside (the back)
   build: (ctx, p): readonly ModelPart[] | THREE.Object3D => fixedGeometryReady() ? [{
     geometry: ctx.once(`sailcloth-cape:${p.size}`, () => (p.size === 1 ? sailclothCapeGeometry() : sailclothCapeGeometry().scale(p.size, p.size, p.size))),
-    material: lowPolyMaterial(ctx.sky), castShadow: true, receiveShadow: true, customDepthMaterial: swayDepthMaterial(),
+    material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true, customDepthMaterial: swayDepthMaterial(),
   }] : loadingSpecimen('driftwood-isle/sailcloth-cape', [0.7 * p.size, p.size, 0.4 * p.size], async () => {
     await loadFixedGeometry();
     const mesh = buildSailclothCape(ctx);

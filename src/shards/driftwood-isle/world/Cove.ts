@@ -8,7 +8,7 @@
  * vertex colours (no runtime light); the flames / crystals are one unlit draw. Tidepools among rock rims on the cove flats
  * (a ripple shader, the reef crabs' homes) and the cascade (the look-agent's Waterfall curtain, W5) over the crag into its plunge pool.
  *
- * Draws: rocks + cave (one LowPolyKit mesh on lowPolyMaterial), glow, pools, cascade.
+ * Draws: rocks + cave (one LowPolyKit mesh on lowPolyLookMaterial), glow, pools, cascade.
  *
  * E306 / E315 M1 (second pass): the cove is WORLD — the sea cave is welded into the crag (its floor cuts the physics
  * terrain, `terrainCuts`), the pools and the cascade are water. Its loose outdoor rocks (the tidepool rims, the plunge
@@ -38,7 +38,7 @@ import { reefRock } from '../models/reefRock';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -102,7 +102,7 @@ export class Cove {
     this.colliders=structuredClone(built.native.colliders);
     this.anchors=structuredClone(built.native.anchors);
     this.cuts=built.native.cuts;
-    const rocks = new THREE.Mesh(built.geometry.structure, lowPolyMaterial(this.sky));
+    const rocks = new THREE.Mesh(built.geometry.structure, lowPolyLookMaterial(this.sky));
     rocks.castShadow = true; rocks.receiveShadow = true;
     this.group.add(rocks);
     const sm = new THREE.Mesh(built.geometry.rocks, rockMaterial(this.sky));

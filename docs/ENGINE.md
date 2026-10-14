@@ -5567,3 +5567,4 @@ batches; facade multi-draw remains prohibited.
 Optional `when` alternatives match kind/variant/label; all matching rows run once in order. Effects lend existing
 flag, achievement kill/event, named callback or toast owners. Missing owners refuse before any effects. The caller
 keeps actual actor lookup, subscription priority, key placement, contract persistence and save continuation.
+rity, key placement, contract persistence and save continuation.

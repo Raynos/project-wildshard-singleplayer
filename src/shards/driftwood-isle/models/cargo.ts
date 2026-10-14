@@ -14,7 +14,7 @@
  */
 import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { LowPolyKit, lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
 const C = { barrel: '#8a5a34', barrelB: '#76492a', band: '#3b3b3f', crate: '#a47b4b', crateB: '#8b6538', rope: '#b99d6c' };
 
@@ -50,7 +50,7 @@ export function addCoil(kit: LowPolyKit, m: THREE.Matrix4, r = 0.3): void {
 function specimen(ctx: ModelContext, seed: number, floorY: number, add: (kit: LowPolyKit, m: THREE.Matrix4) => void): ModelPart[] {
   const kit = new LowPolyKit(seed);
   add(kit, new THREE.Matrix4());
-  return [{ geometry: kit.finish({ ao: { floorY } }), material: lowPolyMaterial(ctx.sky), castShadow: true, receiveShadow: true }];
+  return [{ geometry: kit.finish({ ao: { floorY } }), material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true }];
 }
 
 export interface BarrelParams { readonly lying: boolean }

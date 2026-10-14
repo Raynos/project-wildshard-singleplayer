@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { ShrineAnchor, ShrineParams, ShrineSite } from '../assets/contracts/shrine';
@@ -87,7 +87,7 @@ export function shrineMaterials(ctx: ModelContext): { water: THREE.Material; gly
 function shrineParts(ctx:ModelContext,kind:keyof typeof SHRINE_SITES):ModelPart[] {
   const m=shrineMaterials(ctx),world=kind==='world';
   return [
-    {geometry:(world?SHRINE_KIT_GEOMETRY:SHRINE_SPECIMEN_KIT_GEOMETRY).copy(),material:lowPolyMaterial(ctx.sky),castShadow:true,receiveShadow:true},
+    {geometry:(world?SHRINE_KIT_GEOMETRY:SHRINE_SPECIMEN_KIT_GEOMETRY).copy(),material:lowPolyLookMaterial(ctx.sky),castShadow:true,receiveShadow:true},
     {geometry:(world?SHRINE_WATER_GEOMETRY:SHRINE_SPECIMEN_WATER_GEOMETRY).copy(),material:m.water,receiveShadow:true,renderOrder:1},
     {geometry:(world?SHRINE_GLYPHS_GEOMETRY:SHRINE_SPECIMEN_GLYPHS_GEOMETRY).copy(),material:m.glyphs,renderOrder:1},
   ];

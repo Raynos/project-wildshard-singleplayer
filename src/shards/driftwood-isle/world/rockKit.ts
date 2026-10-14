@@ -16,7 +16,7 @@
 import * as THREE from 'three';
 import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import type { Rng } from '@wildshard/engine/core/rng';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { bakedGeometry } from '@wildshard/engine/world/geometryBake';
@@ -50,7 +50,7 @@ export interface RockOpts {
 /** the rocks' material: a smooth-shaded copy of the shared low-poly program (the rocks carry their own smooth normals,
  * so they don't merge into a flat-shaded LowPolyKit) */
 export function rockMaterial(sky: Sky): THREE.Material {
-  return lowPolyMaterial(sky, 'rock-smooth', (m) => { m.flatShading = false; m.roughness = 0.82; });
+  return lowPolyLookMaterial(sky, 'rock-smooth', (m) => { m.flatShading = false; m.roughness = 0.82; });
 }
 
 /** a palette's bake id: the rock's id and every colour, so a palette edit is a different key */

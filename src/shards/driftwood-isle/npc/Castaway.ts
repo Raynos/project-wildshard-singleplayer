@@ -1,6 +1,6 @@
 /**
  * Castaway — Wendell, the marooned sailor who gives Driftwood Isle's quest (A1, D5). Built with the low-poly kit
- * (his meshes are rows, data/castawayLook.ts, built by @wildshard/sdk/kit/kitParts; the shared lowPolyMaterial): a lanky old salt in a torn blue-and-white striped
+ * (his meshes are rows, data/castawayLook.ts, built by @wildshard/sdk/kit/kitParts; the shared lowPolyLookMaterial): a lanky old salt in a torn blue-and-white striped
  * shirt, rolled canvas trousers, bare feet, a rope belt, a frayed straw hat over a big grey beard, leaning on a
  * driftwood staff — and his campfire beside him (stone ring, logs, flames, a smoke column you can see from the pier:
  * the breadcrumb the intro objective points at).
@@ -27,7 +27,7 @@
 import * as THREE from 'three';
 import { loadFaceHead, type FaceHead } from './faceHeads';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { buildKitMesh } from '../runtime/kit/kitParts';
 import { SmokeColumn } from '../runtime/looks/smokeColumn';
@@ -103,7 +103,7 @@ export class Castaway {
   }
 
   build(): this {
-    const mat = lowPolyMaterial(this.sky);
+    const mat = lowPolyLookMaterial(this.sky);
     this.group.position.set(this.feet.x, this.feet.y, this.feet.z);
     this.group.rotation.y = this.bodyYaw;
     this.group.name = 'castaway';

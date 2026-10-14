@@ -1,7 +1,7 @@
 /**
  * Bushes — where Driftwood Isle's hibiscus shrubs stand (E306 / E315 M1: the bush itself is the model
  * src/shards/driftwood-isle/models/hibiscusBush.ts, the user's E116 leaf clump; this is the world side). A quarter of
- * them are in flower. `place()` merges them into one flat-shaded vertex-coloured mesh on the shared lowPolyMaterial
+ * them are in flower. `place()` merges them into one flat-shaded vertex-coloured mesh on the shared lowPolyLookMaterial
  * through src/engine/models/place.ts — one registry piece, `bushes`, with no colliders (you walk through them).
  *
  *   const bushes = new Bushes(sky).place(Bushes.scatterIsland(seed), registry);   // the game (main.ts)
@@ -20,7 +20,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { islandKnobs } from '../tiers';
 import { hibiscusBush, type HibiscusBushParams } from '../models/hibiscusBush';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 import { loadHibiscusWorld } from '../boot/hibiscusGeometry';
 
@@ -78,7 +78,7 @@ export class Bushes {
   async placeSliced(specs: BushSpec[], registry: WorldRegistry, due: () => Promise<void> | null): Promise<this> {
     this.specs.push(...specs);
     const batch = await loadHibiscusWorld(specs.length); await due();
-    const mesh = new THREE.Mesh(batch.geometry, lowPolyMaterial(this.sky));
+    const mesh = new THREE.Mesh(batch.geometry, lowPolyLookMaterial(this.sky));
     mesh.name = hibiscusBush.id;
     mesh.castShadow = islandKnobs().bushShadows; mesh.receiveShadow = true; mesh.customDepthMaterial = swayDepthMaterial();
     mesh.userData['islandDressingClipped'] = true;

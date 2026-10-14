@@ -3,7 +3,7 @@ import { MeshBasicMaterial, WebGLRenderer } from 'three';
 import { MeshStandardNodeMaterial } from 'three/webgpu';
 import { Scope } from '../src/engine/app/scope';
 import { SkyRig } from '../src/engine/world/skyRig';
-import { bindLowPolyMaterial, lowPolyMaterial } from '../src/engine/world/lowpolyKit';
+import { bindLowPolyMaterial, lowPolyLookMaterial, lowPolyMaterial } from '../src/engine/world/lowpolyKit';
 import { prepareWorldLook, type LookStrategy } from '../src/engine/render/look';
 
 test('world preparation lends kit materials once, unwinds scopes and preserves the classic fallback', async () => {
@@ -23,11 +23,11 @@ test('world preparation lends kit materials once, unwinds scopes and preserves t
     await Promise.all([prepareWorldLook(look, context), prepareWorldLook(look, context)]);
     events.push('terrain');
     expect(events).toEqual(['prepare', 'terrain']);
-    expect(lowPolyMaterial(sky, 'default', init)).toBe(graph);
-    expect(init).not.toHaveBeenCalled(); expect(setup).toHaveBeenCalledTimes(1);
+    expect(lowPolyLookMaterial(sky, 'default', init)).toBe(graph);
+    expect(lowPolyMaterial(sky)).toBe(classic); expect(init).not.toHaveBeenCalled(); expect(setup).toHaveBeenCalledTimes(1);
     bindLowPolyMaterial(sky, 'default', overlay, newer);
-    expect(lowPolyMaterial(sky)).toBe(overlay);
-    newer.dispose(); expect(lowPolyMaterial(sky)).toBe(graph);
+    expect(lowPolyLookMaterial(sky)).toBe(overlay);
+    newer.dispose(); expect(lowPolyLookMaterial(sky)).toBe(graph);
     owner.dispose(); expect(lowPolyMaterial(sky)).toBe(classic);
     expect(disposed).not.toHaveBeenCalled();
     expect(() => bindLowPolyMaterial(sky, 'default', graph, owner)).toThrow('live scope');

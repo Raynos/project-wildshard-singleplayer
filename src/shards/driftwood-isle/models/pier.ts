@@ -20,7 +20,7 @@ import type { Rng } from '@wildshard/engine/core/rng';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import { patchSway } from '@wildshard/engine/world/wind';
 
@@ -111,7 +111,7 @@ function patchFlutter(shader: { vertexShader: string }, dir: readonly [number, n
 /** the pennant's materials (lit and shadow pass), one pair per shard */
 function pennantMaterials(ctx: ModelContext, dir: readonly [number, number]): { lit: THREE.Material; depth: THREE.MeshDepthMaterial } {
   return ctx.once('driftwood-isle/pier:pennant', () => {
-    const lit = lowPolyMaterial(ctx.sky, 'pennant', (m) => {
+    const lit = lowPolyLookMaterial(ctx.sky, 'pennant', (m) => {
       patchShader(m, 'driftwood.pennant-flutter', PATCH_ORDER.decorate, (sh) => { patchFlutter(sh, dir); });
     });
     const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });

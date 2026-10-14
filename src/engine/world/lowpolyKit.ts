@@ -400,9 +400,14 @@ function patchShadowNormal(shader: { uniforms: Record<string, THREE.IUniform>; v
  * program and the scene pays one material state). `variant` keys an extra copy (e.g. 'glow' with an
  * emissive), everything else should take the default.
  */
-export function lowPolyMaterial(sky: Sky, variant = 'default', init?: (m: THREE.MeshStandardMaterial) => void): THREE.Material {
+/** Binding-aware kit intake. Borrowed node materials never enter the classic factory. */
+export function lowPolyLookMaterial(sky: Sky, variant = 'default', init?: (m: THREE.MeshStandardMaterial) => void): THREE.Material {
   const borrowed = borrowedMaterials.get(sky)?.get(variant)?.at(-1);
-  if (borrowed !== undefined) return borrowed.material;
+  return borrowed?.material ?? lowPolyMaterial(sky, variant, init);
+}
+
+/** Classic cached factory, retaining its established concrete return type. */
+export function lowPolyMaterial(sky: Sky, variant = 'default', init?: (m: THREE.MeshStandardMaterial) => void): THREE.MeshStandardMaterial {
   let bySky = materials.get(sky);
   if (!bySky) { bySky = new Map(); materials.set(sky, bySky); }
   let m = bySky.get(variant);

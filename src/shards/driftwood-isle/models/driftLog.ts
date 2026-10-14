@@ -10,7 +10,7 @@
  */
 import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
-import { LowPolyKit, lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { LowPolyKit, lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { addDriftLog } from '../world/driftLogs';
 
 export interface DriftLogParams {
@@ -34,7 +34,7 @@ export const driftLog = defineModel<DriftLogParams>({
   build: (ctx, p) => {
     const kit = new LowPolyKit(0xd21f7 ^ p.tone);
     addDriftLog(kit, new THREE.Vector3(-p.len / 2, p.r0 * 0.8, 0), new THREE.Vector3(p.len / 2, p.r1 * 0.8, 0), p.r0, p.r1, { sides: 7, twist: 0.3, tone: p.tone, wobble: 0.03 });
-    return [{ geometry: kit.finish({ ao: { floorY: 0 } }), material: lowPolyMaterial(ctx.sky), castShadow: true, receiveShadow: true }];
+    return [{ geometry: kit.finish({ ao: { floorY: 0 } }), material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true }];
   },
 });
 

@@ -1,7 +1,7 @@
 /**
  * Trader — Driftwood Isle's travelling trader (E314, Jake's pick on board 9: "a trader at Wendell's hut"): the second
  * NPC, who keeps the shop at the hut while Wendell (./Castaway.ts) stays the quest giver. Built exactly as Wendell is —
- * the low-poly kit (her meshes are rows, data/traderLook.ts, built by @wildshard/sdk/kit/kitParts; the shared lowPolyMaterial), flat-shaded vertex colour, his
+ * the low-poly kit (her meshes are rows, data/traderLook.ts, built by @wildshard/sdk/kit/kitParts; the shared lowPolyLookMaterial), flat-shaded vertex colour, his
  * proportions and scale — a sea-weathered woman in a teal headscarf knotted at the nape (gold trim, two tails that lift
  * in the wind), gold hoop earrings, a sleeveless orange tunic over a cream shirt with short puffed sleeves, a red sash knotted at the hip, a
  * leather satchel on a strap across her chest, brown trousers tucked into travel boots, one fist on her hip.
@@ -24,7 +24,7 @@
  * Draw calls: body (the shadow caster), head, upper arm, forearm — four, past NEAR_R none. No lights.
  */
 import * as THREE from 'three';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { buildKitMesh } from '../runtime/kit/kitParts';
 import { TRADER_BODY, TRADER_FORE, TRADER_HEAD, TRADER_UPPER } from '../data/traderLook';
@@ -67,7 +67,7 @@ export class Trader {
   constructor(sky: Sky) { this.sky = sky; }
 
   build(): this {
-    const mat = lowPolyMaterial(this.sky);
+    const mat = lowPolyLookMaterial(this.sky);
     this.group.name = 'trader';
 
     // ── body (turns with the figure), head (pivot at the neck), the right arm's upper arm (pivot at the shoulder, hanging

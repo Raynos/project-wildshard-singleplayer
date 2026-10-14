@@ -17,7 +17,7 @@ import * as THREE from 'three';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
@@ -59,7 +59,7 @@ export class Boat {
       piece: { id: 'boat', follows: 'copy', floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true } });
     this.group = placed.object;
     this.placed = placed;
-    const mat = lowPolyMaterial(this.sky);
+    const mat = lowPolyLookMaterial(this.sky);
 
     // mooring lines: bow / stern cleats → the posts, in world space (a separate static mesh so they don't bob)
     if (this.spec.moorTo?.length) {

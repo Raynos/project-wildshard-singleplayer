@@ -13,7 +13,7 @@ import * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { BOAT_HULL_GEOMETRY, BOAT_SAIL_GEOMETRY, BOAT_GEAR_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 import { BOAT_LAYOUT } from '../data/boatLayout';
@@ -51,12 +51,12 @@ export function boatColliders(): ColliderDesc[] {
 
 /** Original three-mesh hierarchy and material/shadow policy; only geometry comes from the offline bake. */
 function buildBoat(ctx: ModelContext): THREE.Group {
-  const mesh = new THREE.Mesh(BOAT_HULL_GEOMETRY.copy(), lowPolyMaterial(ctx.sky, 'solid', (m) => { m.side = THREE.FrontSide; }));
+  const mesh = new THREE.Mesh(BOAT_HULL_GEOMETRY.copy(), lowPolyLookMaterial(ctx.sky, 'solid', (m) => { m.side = THREE.FrontSide; }));
   mesh.castShadow = true; mesh.receiveShadow = true;
-  const sail = new THREE.Mesh(BOAT_SAIL_GEOMETRY.copy(), lowPolyMaterial(ctx.sky));
+  const sail = new THREE.Mesh(BOAT_SAIL_GEOMETRY.copy(), lowPolyLookMaterial(ctx.sky));
   sail.castShadow = true; sail.receiveShadow = false;
   sail.customDepthMaterial = swayDepthMaterial();
-  const gearMesh = new THREE.Mesh(BOAT_GEAR_GEOMETRY.copy(), lowPolyMaterial(ctx.sky));
+  const gearMesh = new THREE.Mesh(BOAT_GEAR_GEOMETRY.copy(), lowPolyLookMaterial(ctx.sky));
   gearMesh.castShadow = false; gearMesh.receiveShadow = true;
   mesh.add(gearMesh);
   const group = new THREE.Group();

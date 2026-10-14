@@ -2,7 +2,7 @@
  * The hibiscus bush (E306 / E315 M1: a model on the contract, src/engine/models/model.ts; it was src/world/bushKit.ts) —
  * Driftwood Isle's LEAF CLUMP the user picked (E116, 2026-09-25): a dark welded core wrapped in 50 (phone) / 90 broad
  * folded leaves (6 tris each) fanning up and out, the palms' frond language at bush scale; flat-shaded on the shared
- * lowPolyMaterial (no program of its own); dark inside → sunlit tips. ~350 tris a bush on the phone.
+ * lowPolyLookMaterial (no program of its own); dark inside → sunlit tips. ~350 tris a bush on the phone.
  *
  *   Every flowering bush (the scatter's 28 %) wears 4–7 five-petal hibiscus (18 tris: rounded cupped petals, dark
  *   throat, yellow stamen; red mostly, deep red / pink / coral per bush) and 2–3 closed buds, facing out and up.
@@ -14,7 +14,7 @@
  */
 import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
-import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 import { islandKnobs } from '../tiers';
 import { copyHibiscusVariant, loadHibiscusVariants, hibiscusVariantsReady } from '../boot/hibiscusGeometry';
@@ -37,9 +37,9 @@ export const hibiscusBush = defineModel<HibiscusBushParams>({
   seed: 0x5ea1 ^ 0xb5 ^ 0xe116,
   // the shared kit material (no program of its own) and the swaying shadow pass; the shadows are the tier's call
   prepare: loadHibiscusVariants,
-  build: (ctx, p) => hibiscusVariantsReady() ? [{ geometry: copyHibiscusVariant(p), material: lowPolyMaterial(ctx.sky), castShadow: islandKnobs().bushShadows, receiveShadow: true, customDepthMaterial: swayDepthMaterial() }] : loadingSpecimen('driftwood-isle/hibiscus-bush', [p.r * 2, p.r * 2, p.r * 2], async () => {
+  build: (ctx, p) => hibiscusVariantsReady() ? [{ geometry: copyHibiscusVariant(p), material: lowPolyLookMaterial(ctx.sky), castShadow: islandKnobs().bushShadows, receiveShadow: true, customDepthMaterial: swayDepthMaterial() }] : loadingSpecimen('driftwood-isle/hibiscus-bush', [p.r * 2, p.r * 2, p.r * 2], async () => {
     await loadHibiscusVariants();
-    const mesh = new THREE.Mesh(copyHibiscusVariant(p), lowPolyMaterial(ctx.sky));
+    const mesh = new THREE.Mesh(copyHibiscusVariant(p), lowPolyLookMaterial(ctx.sky));
     mesh.castShadow = islandKnobs().bushShadows; mesh.receiveShadow = true; mesh.customDepthMaterial = swayDepthMaterial(); return mesh;
   }),
 });

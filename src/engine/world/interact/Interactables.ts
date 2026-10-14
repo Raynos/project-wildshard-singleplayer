@@ -1,7 +1,7 @@
 import { engineString } from '../../strings';
 /**
  * Interactables — the runtime of the interactables kit (A2): builds every row of an `InteractTable` (types.ts) into TWO
- * BatchedMeshes for the whole shard (lit parts on the shared `lowPolyMaterial`, glowing parts unlit — 2 draw calls,
+ * BatchedMeshes for the whole shard (lit parts on the shared `lowPolyLookMaterial`, glowing parts unlit — 2 draw calls,
  * per-instance frustum culling), wires one E-prompt per row into the game's interactable list, adds colliders, and
  * runs the behaviour: lids and doors swing, levers throw, plates sink under you or a barrel (an overlap query of the
  * PLAYER / ITEM groups), the barrel is a dynamic body your capsule pushes (PHYSICS P7-L1: it tips, rolls, stops at
@@ -24,7 +24,7 @@ import { engineString } from '../../strings';
  */
 import * as THREE from 'three';
 import { app } from '../../app/runtime';
-import { lowPolyMaterial } from '../lowpolyKit';
+import { lowPolyLookMaterial } from '../lowpolyKit';
 import type { SkyRig as Sky } from '../skyRig';
 import { boxInFrame, type BoxSpec as Collider } from '../../physics/box';
 import { boxDesc, type Piece } from '../registry';
@@ -177,7 +177,7 @@ export class Interactables {
     }
     // pass 2: the two batches sized to fit, then instances
     const size = (b: BatchId) => this.pending.filter((p) => p.batch === b).reduce((a, p) => a + p.geo.getAttribute('position').count, 0);
-    const litMat = lowPolyMaterial(this.host.sky);
+    const litMat = lowPolyLookMaterial(this.host.sky);
     const glowMat = new THREE.MeshBasicMaterial({ vertexColors: true, fog: true, toneMapped: true });
     glowMat.name = 'interact-glow';
     this.batches = {
