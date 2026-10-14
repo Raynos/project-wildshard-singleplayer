@@ -13,31 +13,24 @@
  *     white (`creekFoamAt`). The waterfall is a curved sheet down the Ridge's face (standing off the rock where it is
  *     steep, bulged at its middle), quickening with the drop, white all the way, ending on the pond's surface in a foam
  *     ring that spreads outward.
- *   · `spray`: a few soft puffs (Particles' mist texture + its fog) rising and fading at the foot of the fall's face and
+ *   · `spray`: a few soft puffs (their graph, ../data/streamLook.ts) rising and fading at the foot of the fall's face and
  *     where it hits the pond, tinted by the fog / sun colours so they follow the clock.
  */
 import * as THREE from 'three';
-import { fogGLSL } from '@wildshard/game/systems/looks/fogProgram';
-import { makeMistTexture } from '@wildshard/game/systems/looks/particles';
 import * as v from 'valibot';
 import streamJson from '../data/streams.json' with { type: 'json' };
-import { SPRAY_ANCHORS, SPRAY_PROGRAMS } from '../data/streamLook';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
+import { SPRAY_ANCHORS, SPRAY_LOOK } from '../data/streamLook';
+import { pineLook } from '../runtime/looks/graphLooks';
 import { loadSiteTimbers } from './timberSites';
 import { pineModels } from './context';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
-import { windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
 
 const num = v.pipe(v.number(), v.finite()), xyz = v.tuple([num, num, num]);
 /** ../data/streams.json: the water mesh's counts and index width, the fall's plunge and face-foot anchors */
 const StreamRows = v.strictObject({ bin: v.string(), bytes: num, vertices: num, indices: num, wide: v.boolean(), plunge: xyz, faceFoot: xyz });
 /** the bake's rows, parsed strictly once */
 export const STREAM_ROWS = v.parse(StreamRows, streamJson);
-/** the spray's program rows, spliced with the fog GLSL (data/streamLook.ts) */
-const SPRAY_FAMILY = new ShaderFamily({ fog: fogGLSL }, SPRAY_PROGRAMS);
 
 export class PineStreams {
   readonly group = new THREE.Group();
@@ -72,7 +65,7 @@ export class PineStreams {
     return this;
   }
 
-  /** mist puffs: each rises and swells over its own few-second cycle, drifting downwind */
+  /** mist puffs: each rises and swells over its own few-second cycle, drifting downwind (posed by its graph, ../data/streamLook.ts) */
   private buildSpray(): THREE.InstancedMesh {
     const anchors: { p: THREE.Vector3; n: number; size: number; rise: number }[] = [
       { p: this.faceFoot, ...SPRAY_ANCHORS.faceFoot },
@@ -80,36 +73,20 @@ export class PineStreams {
     ];
     const total = anchors.reduce((a, x) => a + x.n, 0);
     const geo = new THREE.PlaneGeometry(1, 1);
-    const seed = new Float32Array(total * 4), m = new THREE.Matrix4();
-    const mesh = new THREE.InstancedMesh(geo, this.sprayMaterial(), total);
+    const seed = new Float32Array(total * 4), size = new Float32Array(total * 3), m = new THREE.Matrix4();
+    const mesh = new THREE.InstancedMesh(geo, pineLook(SPRAY_LOOK), total);
     let i = 0;
     for (const a of anchors) for (let k = 0; k < a.n; k++, i++) {
       const j = (i * 0.618034) % 1;
-      m.makeScale(a.size * (0.8 + 0.4 * j), a.size * (0.8 + 0.4 * ((j * 7.3) % 1)), a.rise);
-      m.setPosition(a.p.x + Math.cos(i * 2.4) * 1.2, a.p.y, a.p.z + Math.sin(i * 2.4) * 1.2);
-      mesh.setMatrixAt(i, m);
+      size.set([a.size * (0.8 + 0.4 * j), a.size * (0.8 + 0.4 * ((j * 7.3) % 1)), a.rise], i * 3);
+      mesh.setMatrixAt(i, m.makeTranslation(a.p.x + Math.cos(i * 2.4) * 1.2, a.p.y, a.p.z + Math.sin(i * 2.4) * 1.2));
       seed[i * 4] = j; seed[i * 4 + 1] = 2.6 + 1.6 * ((j * 3.7) % 1); seed[i * 4 + 2] = (j * 5.1) % 1 - 0.5; seed[i * 4 + 3] = 0.8 + 0.4 * ((j * 11.3) % 1);
     }
-    geo.setAttribute('spraySeed', new THREE.InstancedBufferAttribute(seed, 4));
+    geo.setAttribute('aSeed', new THREE.InstancedBufferAttribute(seed, 4));
+    geo.setAttribute('aSize', new THREE.InstancedBufferAttribute(size, 3));
     mesh.renderOrder = 7;
     mesh.name = 'waterfall-spray';
-    mesh.computeBoundingSphere();
+    mesh.frustumCulled = false; // the puffs are posed in the vertex stage, metres off their anchors
     return mesh;
-  }
-
-  private sprayMaterial(): THREE.ShaderMaterial {
-    const u = THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {}]) as Record<string, THREE.IUniform>;
-    attachFogUniforms({ uniforms: u });
-    u['uTex'] = { value: makeMistTexture() };
-    u['uWindTime'] = windUniforms.uWindTime;
-    u['uSunColor'] = { value: this.sky.sunColor };
-    const wind = { windX: WIND_DIR.x.toFixed(3), windZ: WIND_DIR.z.toFixed(3) };
-    const mat = new THREE.ShaderMaterial({
-      uniforms: u, transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: true,
-      vertexShader: SPRAY_FAMILY.glsl(SPRAY_PROGRAMS.spray.vertex, wind),
-      fragmentShader: SPRAY_FAMILY.glsl(SPRAY_PROGRAMS.spray.fragment),
-    });
-    patchShader(mat, 'pine.stream-fog', PATCH_ORDER.material, (shader) => { attachFogUniforms(shader); }, { mode: 'replace' });
-    return mat;
   }
 }
