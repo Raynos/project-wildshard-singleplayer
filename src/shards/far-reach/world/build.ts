@@ -7,9 +7,9 @@ import { boxDesc } from '@wildshard/engine/world/registry';
 import { questPagePrompt, bindClientChannels, bindWorldSceneParts, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
 import type { SkyReachPlugin } from '../runtime/index';
 import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
-import { SKY_LIBRARY, skyHd } from './meshes';
+import { SKY_LIBRARY, skyHd, hdMaterial } from './meshes';
 import { skyLook, skyMappedLook } from './looks';
-import { Group, type Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
+import { AdditiveBlending, MeshBasicMaterial, Group, type Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
 import { CROWN, FALLEN_BRIDGE, SUNREST } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { islandMesh, staticIsle, type IsleMeshes } from './isle';
@@ -18,7 +18,6 @@ import { WORLD } from './baked';
 import { PALETTE, flat } from './materials';
 import { ropeBridge, vaneGeometry } from './shapes';
 import { towerMill } from './mill';
-import { bookStand } from './bookStand';
 import { BOOK_STAND } from '../data/bookStand';
 import { KEEPER_STAND } from '../data/keeperStand';
 import { crownStorm, type CrownStorm } from './storm';
@@ -151,4 +150,15 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   root.add(scene.root);
   ctx.root.add(root); ctx.scope.ownPrimitives(root, { instances: true });
   return { hoverDeck, fallen, millHub: mill.hub, storm, vanes, winch: handle, notes, notesAt, state, islets };
+}
+
+/** Models keep their native paint/glow; authored rows own the stand and lantern hierarchy. */
+function bookStand(withLantern:boolean):Group {
+  const lectern=skyHd('lectern-hd'),lantern=withLantern?skyHd('lantern-hd'):null,ready=lectern!==null&&(!withLantern||lantern!==null);
+  const materials=new Map<string,Material|null>([['lectern',ready?hdMaterial(lectern.map):null],
+    ['lantern',ready&&lantern!==null?skyMappedLook('lantern-glow',lantern.map):null],
+    ['halo',ready&&withLantern?new MeshBasicMaterial({color:0xffb860,transparent:true,opacity:0.18,blending:AdditiveBlending,depthWrite:false}):null]]);
+  return createWorldScene(REST_SCENES.books[withLantern?'keeper':'notes'],{model:SKY_LIBRARY.model,baked:WORLD.object,materials,
+    textures:new Map([['ready',ready?lectern.map:null]]),
+    geometry:name=>name==='lectern'?lectern?.geometry??null:name==='lantern'?lantern?.geometry??null:SKY_LIBRARY.geometry(name)}).root;
 }

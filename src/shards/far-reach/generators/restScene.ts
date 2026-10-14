@@ -1,5 +1,7 @@
+import { parseWorldScene, type WorldSceneRecipe } from '@wildshard/format/clientChannels';
+import { LECTERN } from '../data/bookStand';
 import { REST_URLS } from '../data/restFiles';
-import { BoxGeometry, BufferGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, RingGeometry } from 'three';
+import { BoxGeometry, BufferGeometry, CylinderGeometry, Float32BufferAttribute, Group, Mesh, MeshStandardMaterial, RingGeometry, SphereGeometry } from 'three';
 import { clientSceneGlb, type ClientSceneBake } from '@wildshard/sdk/bake/glb';
 import { SPANS, UPDRAFT } from '../data/layout';
 import { STORM } from '../data/storm';
@@ -45,12 +47,12 @@ export function hoverRestRows(): ReturnType<typeof hoverRest>[] {
 }
 
 /** The existing finite scene and file catalogues; the SDK JSON driver owns all I/O. */
-export function restScenes(): { readonly winch: ClientSceneBake['scene']; readonly hover: readonly { readonly id: string; readonly scene: ClientSceneBake['scene'] }[]; readonly storm: ClientSceneBake['scene'] } {
+export function restScenes(): { readonly winch: ClientSceneBake['scene']; readonly hover: readonly { readonly id: string; readonly scene: ClientSceneBake['scene'] }[]; readonly storm: ClientSceneBake['scene']; readonly books:{readonly notes:WorldSceneRecipe;readonly keeper:WorldSceneRecipe} } {
   const ids = [...SPANS.filter(span => span.kind === 'hover'), UPDRAFT].map(span => span.id);
-  return { winch: winchRest().scene, hover: hoverRestRows().map((made, index) => { const id = ids[index]; if (id === undefined) throw new Error('Undeclared hover span'); return { id, scene: made.scene }; }), storm: stormRest().scene };
+  return { winch: winchRest().scene, hover: hoverRestRows().map((made, index) => { const id = ids[index]; if (id === undefined) throw new Error('Undeclared hover span'); return { id, scene: made.scene }; }), storm: stormRest().scene, books:{notes:bookStandRows(false),keeper:bookStandRows(true)} };
 }
 export function restPools(): readonly { readonly url: string; readonly parts: readonly string[] }[] {
-  const scenes = [winchRest(), ...hoverRestRows(), stormRest()];
+  const scenes = [winchRest(), ...hoverRestRows(), stormRest(), bookHaloRest()];
   return scenes.map((made, index) => {
     const url = REST_URLS[index]; if (url === undefined) throw new Error('Undeclared hover pool');
     return { url, parts: made.scene.nodes.flatMap(node => node.kind === 'mesh' ? [node.geometry] : []) };
@@ -103,3 +105,24 @@ export function stormRest(): ClientSceneBake {
   return made;
 }
 export function stormGlb(): Uint8Array { return stormRest().glb; }
+
+/** Only the static halo is a new pool; fitted painted models and their maps stay borrowed. */
+function bookHaloRest():ClientSceneBake {
+  const root=new Group(),material=new MeshStandardMaterial();root.name='book-halo-pool';
+  const halo=new Mesh(new SphereGeometry(0.12,12,8),material);halo.name='stand-halo';root.add(halo);
+  return clientSceneGlb(root,new Map([[material,'halo']]));
+}
+export function bookStandGlb():Uint8Array { return bookHaloRest().glb; }
+/** Notes and keeper use the same original named hierarchy and explicit whole-model fallback. */
+function bookStandRows(withLantern:boolean):WorldSceneRecipe {
+  const [x,y,z]=LECTERN.hook;
+  return parseWorldScene({scene:{version:1,root:'stand',textures:[{kind:'port',id:'ready',source:'ready'}],
+    nodes:[{kind:'group',id:'stand',name:'far.book-stand',children:['carved','book']},
+      {kind:'group',id:'carved',children:withLantern?['lectern','lantern','halo']:['lectern'],whenTexture:{texture:'ready',present:true}},
+      {kind:'mesh',id:'lectern',name:'far.lectern',geometry:'lectern',material:'lectern',missing:'omit'},
+      ...(withLantern?[{kind:'mesh',id:'lantern',name:'far.lectern-lantern',geometry:'lantern',material:'lantern',position:[x,y-LECTERN.lantern,z],missing:'omit'},
+        {kind:'mesh',id:'halo',geometry:'stand-halo',material:'halo',position:[x,y-LECTERN.lantern*(1-LECTERN.glass),z],missing:'empty'}]:[]),
+      {kind:'object',id:'book',source:'book',missing:'refuse'}],
+    materials:[{kind:'port',id:'lectern',source:'lectern'},...(withLantern?[{kind:'port',id:'lantern',source:'lantern'},{kind:'port',id:'halo',source:'halo'}]:[])]},
+    imports:[{kind:'baked',id:'book',piece:'book-stand'}]});
+}

@@ -969,3 +969,5 @@ src/shards/far-reach/data/crownInstances.generated.json
 
 # Signal static world metadata is rebuilt from its author declaration.
 /src/shards/sunscar-dunes/data/worldBakes.generated.json
+
+/public/assets/far-reach/baked/rest-books.glb
