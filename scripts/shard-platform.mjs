@@ -11,7 +11,7 @@ import { resolveSpecifier } from './check-graph.mjs';
 import { legacyInventory } from './legacy-shards.mjs';
 import { shardContent } from './shard-platform-content.mjs';
 import { discoverGeneration } from './generate.mjs';
-import { componentInventory, componentWave, COMPONENT_SHARDS, SHARD_WAVES, W1_SHARDS } from './shard-components.mjs';
+import { componentInventory, componentWave, COMPONENT_SHARDS, SHARD_WAVES } from './shard-components.mjs';
 import { generatorInventory } from './generator-inventory.mjs';
 
 // The compiler's declarations globally replace Array.at's optional return with T. Load its JS API
@@ -389,7 +389,7 @@ export function partitionPendingPlatformUsers(slug,modules,exports,allowances) {
   /** @type {import('./shard-platform.mjs').PendingPlatformCharge[]} */
   const pending=[];
   const charged=(row)=>{
-    const matches=W1_SHARDS.includes(slug)?allowances.filter(entry=>entry.module===row.path
+    const matches=SHARD_WAVES.some(wave=>(wave.current||wave.status.startsWith('closed'))&&wave.shards.some(shard=>shard.slug===slug))?allowances.filter(entry=>entry.module===row.path
       && (entry.export===undefined||('name' in row&&row.exported&&entry.export===row.name))):[];
     if(matches.length===0)return true;
     pending.push({...row,status:'pending second user',users:matches});return false;
