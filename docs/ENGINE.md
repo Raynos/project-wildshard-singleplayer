@@ -4789,3 +4789,10 @@ callbacks and named actions before any saved view effect runs.
 `questPagePrompt(label, position, radius)` supplies the unbound real
 prompt; interacting before admitted binding refuses. Both worlds use
 the same prompt factory and binding.
+
+ClientMoverInstallation.itemRole optionally lends an admitted item role to
+the existing client mover host. The installation verifies its module files
+through the product asset reader and composes aliases on the same clock.
+The scoped channel binding exposes that host item hooks and clears them on
+disposal. Omission preserves ordinary channel/mover installation and
+creates no item role. Existing extra declarations and schedules remain.

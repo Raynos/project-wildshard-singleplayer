@@ -1,5 +1,5 @@
 import { installDeclaredMovers, type MoverView, type MoverRuntime, type MoverRoleComposition } from './mover';
-import { bindQuestWorldReactions, type QuestWorldReactions, commandSocketLift } from './simulation';
+import { bindQuestWorldReactions, type QuestWorldReactions, commandSocketLift, declaredItemScriptBindings } from './simulation';
 import "../quest/presentation.css";
 import { compileTubeCurve, parseClientChannels, parsePrivateScene, parseWorldScene, parseWorldSceneBindings, type WorldSceneBindingKind, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import { BufferAttribute, AdditiveBlending, Matrix4, InstancedMesh, Euler, PerspectiveCamera, PointLight, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
@@ -718,6 +718,8 @@ function moverChannelValues(reads: readonly string[], pose: MoverPose, fields: R
 
 /** Authored native installation and flag bit grants on the existing motion owner. */
 export interface ClientMoverInstallation {
+  /** Compose admitted item aliases and verified modules into the existing mover host. */
+  readonly itemRole?: NonNullable<MoverRoleComposition['declarations']>[number]['row'];
   readonly systemId: string;
   readonly permissions?: readonly { readonly mover: string; readonly flags: readonly { readonly name: string; readonly bit: number }[] }[];
 }
@@ -728,6 +730,7 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
 }): {
   readonly movers: ReadonlyMap<string, MoverView>; readonly interactables: readonly Interactable[];
   readonly runtime: MoverRuntime | null;
+  readonly hooks: ReturnType<ReturnType<typeof declaredItemScriptBindings>['hooks']>;
   readonly installMovers: (ctx: LevelContext, world: Parameters<typeof installDeclaredMovers>[1], source: Shardfile, row: ClientMoverInstallation, flags: Pick<Flags, 'has'>, assets: { readonly retained: ReadonlyMap<string, Uint8Array>; readonly read: (hash: string) => Promise<Uint8Array> }, composition?: MoverRoleComposition) => Promise<MoverRuntime>;
   readonly evaluate: (id: string, observation: ClientChannelObservation) => void;
   readonly view: (id: string) => ReturnType<typeof createClientChannelView>;
@@ -736,6 +739,7 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
   readonly updateMovers: (pose?: (id: string) => MoverPose) => void;
 } {
   let runtime: MoverRuntime | null = null, installed = false;
+  let hooks: ReturnType<ReturnType<typeof declaredItemScriptBindings>['hooks']> = new Map();
   const owners = ports.nativeOwners ?? [];
   if (owners.length > 32 || new Set(owners).size !== owners.length) throw new Error('Invalid native mover view owners');
   const copiedOwners = ports.copiedOwners ?? [];
@@ -762,7 +766,7 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
   const prompts = new Map<string, ReturnType<typeof createClientChannelPrompt>>();
   let promptRows: readonly { id: string; lane: ReturnType<typeof createClientChannelPrompt> }[] = [];
   let interactables: readonly Interactable[] = Object.freeze([]), promptsBound = false;
-  return Object.freeze({ movers, get runtime() { return runtime; }, get interactables() { return interactables; },
+  return Object.freeze({ movers, get runtime() { return runtime; }, get hooks() { return hooks; }, get interactables() { return interactables; },
     installMovers: async (ctx: LevelContext, world: Parameters<typeof installDeclaredMovers>[1], source: Shardfile, row: ClientMoverInstallation, flags: Pick<Flags, 'has'>, assets: { readonly retained: ReadonlyMap<string, Uint8Array>; readonly read: (hash: string) => Promise<Uint8Array> }, composition?: MoverRoleComposition) => {
       if (installed) throw new Error('Client motion is already installed');
       const grants = row.permissions ?? [];
@@ -771,11 +775,19 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
           || new Set(grant.flags.map(flag => flag.name)).size !== grant.flags.length
           || grant.flags.some(flag => flag.name.length === 0 || !Number.isSafeInteger(flag.bit) || flag.bit < 0 || flag.bit > 65536))) throw new Error('Invalid client mover flag grants');
       installed = true;
+      const items = row.itemRole === undefined ? undefined : declaredItemScriptBindings(source.items, 'actor.player');
+      const modules = items === undefined ? undefined : await items.modules(hash => assets.read(hash));
+      const composed = row.itemRole === undefined || items === undefined || modules === undefined ? composition : {
+        modules: new Map([...(composition?.modules ?? []), ...modules]), roles: composition?.roles ?? [],
+        declarations: [...(composition?.declarations ?? []), { row: row.itemRole, entities: items.entities, actors: items.actors }],
+        ...(composition?.schedules === undefined ? {} : { schedules: composition.schedules }), seed: composition?.seed ?? source.identity.seed,
+      };
       runtime = await installDeclaredMovers(ctx, world, { data: source.movers, modules: new Map(), views: movers,
         admitted: assets.retained, read: hash => assets.read(hash), systemId: row.systemId,
-        ...(composition === undefined ? {} : { composition }),
+        ...(composed === undefined ? {} : { composition: composed }),
         permissions: () => new Map(grants.map(grant => [grant.mover, flagValue(flags, grant.flags)])),
-        onDispose: () => { runtime = null; } });
+        onDispose: () => { runtime = null; hooks = new Map(); } });
+      hooks = items?.hooks(runtime.scriptHost) ?? new Map();
       return runtime;
     },
     view: (id: string) => { const view = views.get(id); if (view === undefined) throw new Error('Unknown declared visual channel'); return view; },

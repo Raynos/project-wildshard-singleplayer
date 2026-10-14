@@ -10,13 +10,13 @@ import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture
 import { STRINGS } from '../data/strings';
 import { CROWN, DAIS, ROC } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
-import { SKY_CLIENT_MOTION, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
-import { declaredItemScriptBindings, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
+import { SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
+import { SKY_NATIVE_WORLD } from '../data/nativeWorld';
+import { startMeleeSecondary } from '@wildshard/game/plugin/simulation';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
 import { createFan, type WarFanWeapon, type ConeFanTarget } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';
-import { SKY_ITEM_ROLE } from '../data/items';
 import { FAN_ROW, FAN_PRESENTATION } from '../data/equipment';
 import { preloadSkyMeshes, HERO_LIBRARY } from '../world/meshes';
 import { loadSkyBaked, skyMeadowBlades } from '../world/baked';
@@ -130,11 +130,9 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       }
     } });
     const product = runtimeProduct(source);
-    const items = declaredItemScriptBindings(source.items, 'actor.player'), itemModules = await items.modules(hash => product.assets.read(hash));
-    const motion = await channels.installMovers(ctx, rt.world, source, SKY_CLIENT_MOTION, flags, product.assets,
-      { modules: itemModules, roles: [], declarations: [{ row: SKY_ITEM_ROLE, entities: items.entities, actors: items.actors }], seed: source.identity.seed });
+    const motion = await channels.installMovers(ctx, rt.world, source, SKY_NATIVE_WORLD.motion, flags, product.assets);
     await worldBuildYield(ctx, 4);
-    const host = motion.scriptHost, hooks = items.hooks(host), fanRow = source.items.rows.find(item => item.id === 'weapon.far-reach.fan');
+    const host = motion.scriptHost, hooks = channels.hooks, fanRow = source.items.rows.find(item => item.id === 'weapon.far-reach.fan');
     if (fanRow?.kind !== 'weapon' || fanRow.secondary === undefined) throw new Error('Sky fan needs its admitted secondary');
     const secondary = fanRow.secondary, hook = hooks.get(fanRow.id);
     if (hook === undefined) throw new Error('Sky fan needs its admitted gust hook');
