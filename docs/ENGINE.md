@@ -4824,3 +4824,10 @@ The caller still owns the one SimHost and its tick input/effect boundary.
 channels with explicit index preservation, array reconstruction or identity-index
 removal. `placements(register, root, snapshot?)` mounts its declared piece and
 collider rows; an explicit snapshot never falls back to a later load.
+
+`HybridRuntimePlugin.keepClientChannels(ctx, channels)` retains a page's
+actual channel binding once, and clears it when that page scope ends. Sky's
+winch/lift views and Signal's well use the same protected `clientChannels`
+owner. `bindClientChannels().dispose()` releases borrowed view and prompt
+references; it does not dispose their caller-owned geometry or materials.
+The hybrid module imports this renderer-facing contract only as a type.

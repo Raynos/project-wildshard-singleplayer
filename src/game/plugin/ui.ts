@@ -730,6 +730,8 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
 }): {
   readonly movers: ReadonlyMap<string, MoverView>; readonly interactables: readonly Interactable[];
   readonly runtime: MoverRuntime | null;
+  /** Release borrowed view/prompt references; their geometry and materials stay caller-owned. */
+  readonly dispose: () => void;
   readonly hooks: ReturnType<ReturnType<typeof declaredItemScriptBindings>['hooks']>;
   readonly installMovers: (ctx: LevelContext, world: Parameters<typeof installDeclaredMovers>[1], source: Shardfile, row: ClientMoverInstallation, flags: Pick<Flags, 'has'>, assets: { readonly retained: ReadonlyMap<string, Uint8Array>; readonly read: (hash: string) => Promise<Uint8Array> }, composition?: MoverRoleComposition) => Promise<MoverRuntime>;
   readonly evaluate: (id: string, observation: ClientChannelObservation) => void;
@@ -767,6 +769,11 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
   let promptRows: readonly { id: string; lane: ReturnType<typeof createClientChannelPrompt> }[] = [];
   let interactables: readonly Interactable[] = Object.freeze([]), promptsBound = false;
   return Object.freeze({ movers, get runtime() { return runtime; }, get hooks() { return hooks; }, get interactables() { return interactables; },
+    dispose: () => {
+      movers.clear(); views.clear(); prompts.clear(); pending.clear(); copiedViews.length = 0;
+      promptRows = []; interactables = Object.freeze([]); runtime = null; hooks = new Map();
+      installed = true; promptsBound = true;
+    },
     installMovers: async (ctx: LevelContext, world: Parameters<typeof installDeclaredMovers>[1], source: Shardfile, row: ClientMoverInstallation, flags: Pick<Flags, 'has'>, assets: { readonly retained: ReadonlyMap<string, Uint8Array>; readonly read: (hash: string) => Promise<Uint8Array> }, composition?: MoverRoleComposition) => {
       if (installed) throw new Error('Client motion is already installed');
       const grants = row.permissions ?? [];

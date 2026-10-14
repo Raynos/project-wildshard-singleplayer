@@ -1,6 +1,6 @@
 import type { HeldMeleeRecipe, createDeclaredHeldMelee } from './weaponFamily';
 import type { startMeleeSecondary } from './simulation';
-import type { PersistedQuest, PersistedQuestRows, QuestPageStageBindings, PageQuestStages, bindBorrowedPageQuestStages } from './ui';
+import type { PersistedQuest, PersistedQuestRows, QuestPageStageBindings, PageQuestStages, bindBorrowedPageQuestStages, bindClientChannels } from './ui';
 import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import * as v from 'valibot';
 import { rigLibrary, type RigLibraryRows } from "./geometry";
@@ -584,6 +584,17 @@ export type HybridWeapon = Awaited<ReturnType<BuildEquipment>>['primary'] & { on
  */
 export abstract class HybridRuntimePlugin extends ShardPlugin {
   protected abstract readonly rows: HybridRuntimeRows;
+  /** The page's borrowed channel views and motion owner, retired with its scope. */
+  protected clientChannels: ReturnType<typeof bindClientChannels> | null = null;
+  protected keepClientChannels(ctx: ShardContext, channels: ReturnType<typeof bindClientChannels>): ReturnType<typeof bindClientChannels> {
+    if (ctx.scope.disposed || this.clientChannels !== null) throw new Error('Page channels require one living scope');
+    this.clientChannels = channels;
+    ctx.scope.onDispose(() => {
+      channels.dispose();
+      if (this.clientChannels === channels) this.clientChannels = null;
+    });
+    return channels;
+  }
   /** The player's position when the world has no motor (a renderer-free page). */
   readonly player = new Vector3();
   /** The runtime's quest, once `install` has made it. */

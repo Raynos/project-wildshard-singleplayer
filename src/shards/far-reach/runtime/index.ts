@@ -57,7 +57,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   flags: Flags | null = null;
   /** SF8c: the Rising Islets' RIDE / CALL prompts (world/risingIslet.ts). */
   private questWorld: ReturnType<typeof bindQuestPageInteractions>['world'] | null = null;
-  private isletCalls: ReturnType<typeof bindClientChannels> | null = null;
   /** The war fan's painted silk (loop 4), loaded behind the loading screen and owned by the level scope. */
   leaf: Texture | null = null;
 
@@ -104,7 +103,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const questStages = this.bindPageStages(ctx);
     const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
     if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
-    const channels = this.isletCalls = bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_MOVER_OWNERS, observed: (_id, frame) => {
+    const channels = this.keepClientChannels(ctx, bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_MOVER_OWNERS, observed: (_id, frame) => {
       const previouslyRaised = built.state.raised;
       if (frame.value === undefined || frame.turn === undefined) throw new Error('Missing winch channel observations');
       built.state.raised = frame.value !== 0; built.state.raising = frame.turn === 1;
@@ -112,7 +111,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
         built.winch.label = STRINGS.raised;
         if (!flags.has(FLAGS.raised)) { questStages.advance('far.quest.raised'); toast(STRINGS.raised); }
       }
-    } });
+    } }));
     const product = runtimeProduct(source);
     const motion = await channels.installMovers(ctx, rt.world, source, SKY_NATIVE_WORLD.motion, flags, product.assets);
     await worldBuildYield(ctx, 4);
@@ -218,7 +217,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   }
   /** Snap the crown bridge up (the winch's end state, also restored from a save). */
   /** Borrowed capture command on the actual bridge owner. */
-  finishRaise(): void { if (this.built !== null) this.isletCalls?.runtime?.command('far.winch.bridge', 3); }
+  finishRaise(): void { if (this.built !== null) this.clientChannels?.runtime?.command('far.winch.bridge', 3); }
 
 }
 // oxlint-disable-next-line import/no-default-export -- Manifest plugin constructor contract.

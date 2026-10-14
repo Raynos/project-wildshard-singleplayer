@@ -43,7 +43,7 @@ const WAY_LIGHT = 9;
 /** The caravan lantern's share of the same light: a lantern, not a fire. */
 const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales the point lights on flat sand (x0.55 of round 24's)
 
-export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): SignalWorld {
+export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, keepChannels: (channels: ReturnType<typeof bindClientChannels>) => ReturnType<typeof bindClientChannels> = channels => channels): SignalWorld {
   // SF72: the tower's frame, the places' code-built parts and colliders, the rock field and its dressing are baked offline
   // (generators/*.ts); the client adds the models and what lives (data/pieces.ts lists them)
   const pieces = WORLD.placements(ctx.piece, ctx.root, baked);
@@ -59,7 +59,7 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): 
   // The well: a heavy crack on the crank hauls the bucket up; then take the oil jar.
   const programs = source.clientChannels;
   if (programs?.length !== 2) throw new Error('Missing declared bucket motion');
-  const channels = bindClientChannels(programs, { targets: new Map<string, unknown>([['bucket', wellParts.bucket], ['rope', wellParts.rope]]) });
+  const channels = keepChannels(bindClientChannels(programs, { targets: new Map<string, unknown>([['bucket', wellParts.bucket], ['rope', wellParts.rope]]) }));
   channels.evaluate(programs[0]?.id ?? '', { time: 0, delta: 0, values: [Number(flags.has(FLAG.oil)), Number(rules.has('raised')), wellParts.drop] });
   channels.bindPrompts({ named: new Map([['sunscar.well.take', () => { page('well'); }]]) });
   channels.evaluate(programs[1]?.id ?? '', { time: 0, delta: 0, values: [wellParts.jarAt.x, wellParts.jarAt.y, wellParts.jarAt.z] });
