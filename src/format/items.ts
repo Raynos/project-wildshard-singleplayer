@@ -55,6 +55,10 @@ export function parseNativeMeleeBinding(input: unknown, contactsInput: unknown):
     return contact === undefined || (native.mode === 'timed') !== (contact.lands.length > 0)
       || action.hook !== null && contact.lane !== 'secondary';
   })) throw new TypeError('Native melee action does not match its admitted contact');
+  if(native.held!==undefined){
+    const action=native.actions.find(row=>row.action===native.held?.action),contact=action===undefined?undefined:contacts[action.move];
+    if(action?.hook!==null||contact?.lane!=='primary'||!contact.heavy)throw new TypeError('Held release requires an admitted primary heavy contact');
+  }
   return { native, contacts };
 }
 /** Declared item families, numeric contacts, input contexts, script hooks and initial loadout. */

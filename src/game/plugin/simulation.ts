@@ -786,9 +786,13 @@ export function nativeMeleeVolumeHit(from: Vector3, dir: Vector3, reach: number,
   for (const t of [nativeMeleeBall(from, dir, body.a, body.bodyRadius), nativeMeleeBall(from, dir, body.b, body.bodyRadius), nativeMeleeBall(from, dir, body.head, body.headRadius)]) if (t !== null && t < best) best = t;
   return best <= reach ? best : null;
 }
+/** Minimal admitted input view; other commands keep their original routes. */
+export interface NativeHeldCommand { readonly kind:string; readonly heavy?: { readonly targetId?:string|undefined }|undefined }
 /** Runtime authority and command ports are injected; no imported module installs a host. */
 export interface NativeMeleePorts {
   readonly commands: () => readonly NativeMeleeCommand[];
+  /** Full admitted player input; sampled once when the owner declares held release. */
+  readonly heldCommands?: () => readonly NativeHeldCommand[]; readonly enabled?: () => boolean;
   readonly world?: readonly NativeMeleeWorld[];
   readonly hook?: NativeMeleeHook | null;
   /** The existing composed ScriptHost's current tick; never starts a second script clock. */
@@ -797,10 +801,13 @@ export interface NativeMeleePorts {
 }
 /** The shared controller and the current tick's world outcome. */
 export interface NativeMeleeOwner { readonly family: ContactFamily<NativeMeleeTarget>; readonly cracked: () => number | null }
+const NativeHoldState = v.strictObject({version:v.literal(1),held:v.pipe(v.number(),v.finite(),v.minValue(0)),wasHeld:v.boolean(),
+  target:v.nullable(v.pipe(v.string(),v.minLength(1),v.maxLength(128)))});
 /** Install immediate and delayed item contacts on one renderer-free owner, retaining ordered commands and wire bindings. */
 export function installNativeMelee(host: SimHost, weapon: { readonly id: string; readonly contacts?: readonly NativeMeleeContact[] },
   input: unknown, ports: NativeMeleePorts): NativeMeleeOwner {
   const { native: row, contacts } = parseNativeMeleeBinding(input, weapon.contacts);
+  if(row.held!==undefined&&ports.heldCommands===undefined)throw new Error('Held input requires its admitted player stream');
   const aimed = { target: null as string | null, world: null as number | null, dir: new Vector3(0, 0, -1) };
   const from = new Vector3(), direction = new Vector3(), targets = ports.world ?? [];
   const volumes = { head: new Vector3(), headRadius: 0, a: new Vector3(), b: new Vector3(), bodyRadius: 0 };
@@ -843,6 +850,29 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
       return best;
     } }),
   });
+  const holdRow=row.held, release={released:false,target:null as string|null}, heavy={kind:'move' as const,action:holdRow?.action??0,targetId:''};
+  const releasedCommands:NativeMeleeCommand[]=[heavy], none:NativeMeleeCommand[]=[], noHeld:NativeHeldCommand[]=[];
+  let heldTarget:string|null=null;
+  const noRelease=():void=>undefined;
+  const sampleHeld=(dt:number):void=>{
+    release.released=false;release.target=null;
+    if(!(ports.enabled?.()??true)){family.hold.reset();heldTarget=null;return;}
+    const commands=ports.heldCommands?.()??noHeld;
+    if(commands.length>MAX_TICK_COMMANDS)throw new RangeError('Held player input exceeds its tick bound');
+    let held=false,target:string|null=null;
+    for(const command of commands)if(command.kind==='player'){held=command.heavy!==undefined;target=command.heavy?.targetId??null;}
+    release.released=family.hold.held&&!held;release.target=release.released?heldTarget:target;
+    family.hold.step(dt,true,held,noRelease);heldTarget=held?target:null;
+  };
+  const holdSnapshot=():string=>JSON.stringify({version:1,held:family.hold.elapsed,wasHeld:family.hold.held,target:heldTarget});
+  const restoreHold=(saved:unknown):void=>{
+    if(saved===undefined){family.hold.reset();heldTarget=null;return;}
+    if(typeof saved!=='string')throw new Error('Invalid melee hold continuation');
+    const state=v.parse(NativeHoldState,JSON.parse(saved));
+    if(!state.wasHeld&&(state.held!==0||state.target!==null))throw new Error('Invalid inactive melee hold');
+    family.hold.elapsed=state.held;family.hold.held=state.wasHeld;heldTarget=state.target;
+  };
+  if(holdRow?.continuation.kind==='step')host.onStep(holdRow.continuation.id,sampleHeld,{snapshot:holdSnapshot,restore:restoreHold});
   const snapshot = (): SimValue => {
     const state: Record<string, SimValue> = {};
     for (const field of row.continuation.fields) {
@@ -859,12 +889,15 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
         default: throw new Error('Unknown native melee snapshot binding');
       }
     }
+    if(holdRow?.continuation.kind==='field')state[holdRow.continuation.key]=holdSnapshot();
     return row.continuation.encoding === 'json' ? JSON.stringify(state) : state;
   };
   const restore = (inputState: unknown): void => {
     if (row.continuation.encoding === 'json' && typeof inputState !== 'string') throw new Error('Invalid native melee JSON continuation');
     const saved = v.parse(v.record(v.string(), v.unknown()), typeof inputState === 'string' && row.continuation.encoding === 'json' ? JSON.parse(inputState) : inputState);
-    if (Object.keys(saved).length !== row.continuation.fields.length) throw new Error('Unexpected native melee continuation field');
+    const holdKey=holdRow?.continuation.kind==='field'?holdRow.continuation.key:undefined;
+    if(holdKey!==undefined)restoreHold(saved[holdKey]);
+    if (Object.keys(saved).length !== row.continuation.fields.length+(holdKey!==undefined&&Object.hasOwn(saved,holdKey)?1:0)) throw new Error('Unexpected native melee continuation field');
     const values = { primary: 0, secondary: 0, time: -1, heavy: false, landed: 0, target: null as string | null, world: null as number | null, direction: [0, 0, -1] };
     for (const field of row.continuation.fields) {
       const value = saved[field.key];
@@ -887,26 +920,30 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
     family.cooldown = values.primary; family.secondaryCooldown = values.secondary; family.t = values.time; family.move = move; family.landed = values.landed;
     aimed.target = values.target; aimed.world = values.world; aimed.dir.fromArray(values.direction);
   };
-  host.onStep(row.step, dt => {
-    if (row.commandsAfterCool) family.cool(dt);
-    const commands = ports.commands(); // The policy retains the owner's held-release/cooldown ordering.
-    if (commands.length > MAX_TICK_COMMANDS) throw new RangeError('Native melee commands exceed the protocol allowance');
-    cracked = null; if (!row.commandsAfterCool) family.cool(dt); pitch = 0;
-    if (row.pitchLimit !== null) for (const command of commands) if (command.kind === 'aim') pitch = Math.max(-row.pitchLimit, Math.min(row.pitchLimit, command.pitch));
-    for (const command of commands) {
-      if (command.kind === 'aim') continue;
-      const action = row.actions.find(candidate => candidate.action === command.action); if (action === undefined) continue;
-      if (action.aim === 'selected' && command.world === undefined && (command.targetId === undefined || !host.entities.has(command.targetId))) continue;
-      if (row.mode === 'immediate' && action.aim === 'selected') { aimed.target = command.targetId ?? null; aimed.world = command.world ?? null; if (!selected(from, direction)) continue; }
+  const processCommand=(command:NativeMeleeCommand,dt:number):void=>{
+      if (command.kind === 'aim') return;
+      const action = row.actions.find(candidate => candidate.action === command.action); if (action === undefined) return;
+      if (action.aim === 'selected' && command.world === undefined && (command.targetId === undefined || !host.entities.has(command.targetId))) return;
+      if (row.mode === 'immediate' && action.aim === 'selected') { aimed.target = command.targetId ?? null; aimed.world = command.world ?? null; if (!selected(from, direction)) return; }
       const claimed = action.hook === null ? row.mode === 'timed' ? family.swing(action.move) : family.claim(action.move)
         : startMeleeSecondary(family, ports.hook ?? null, { tick: ports.hookTick?.() ?? host.state.tick, dt, action: action.hook, move: action.move }) !== null;
-      if (!claimed) continue;
+      if (!claimed) return;
       if (row.mode === 'timed') { aimed.target = command.targetId ?? null; aimed.world = command.world ?? null; }
       else {
         if (action.aim === 'facing') { eye(from); const cos = Math.cos(pitch); direction.set(-Math.sin(host.player.yaw) * cos, Math.sin(pitch), -Math.cos(host.player.yaw) * cos); }
         family.land(action.move, 0, from, direction); ports.landed?.(command.action, from, direction);
       }
-    }
+  };
+  host.onStep(row.step, dt => {
+    if (row.commandsAfterCool) family.cool(dt);
+    if(holdRow?.continuation.kind==='field')sampleHeld(dt);
+    let commands=ports.enabled?.()===false?none:ports.commands();
+    if(holdRow?.mode==='replace'&&release.released&&release.target!==null){family.cooldown=0;heavy.targetId=release.target;commands=releasedCommands;}
+    if (commands.length > MAX_TICK_COMMANDS) throw new RangeError('Native melee commands exceed the protocol allowance');
+    cracked = null; if (!row.commandsAfterCool) family.cool(dt); pitch = 0;
+    if (row.pitchLimit !== null) for (const command of commands) if (command.kind === 'aim') pitch = Math.max(-row.pitchLimit, Math.min(row.pitchLimit, command.pitch));
+    for(const command of commands)processCommand(command,dt);
+    if(holdRow?.mode==='after'&&release.released){family.cooldown=0;heavy.targetId=release.target??'';processCommand(heavy,dt);}
     if (row.mode === 'timed') family.advance(dt);
   }, { snapshot, restore });
   return { family, cracked: () => cracked };

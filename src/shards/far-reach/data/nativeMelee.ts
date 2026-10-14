@@ -7,7 +7,7 @@ export const FAN_STEP = 'item.weapon.far-reach.fan';
 export const FAN_PITCH_LIMIT = 1.45;
 /** The shared host retains immediate contacts, the camera pitch clamp and both original cooldown fields. */
 export const SKY_MELEE_HOST = {
-  step: FAN_STEP, eye: 1.68, mode: 'immediate', pitchLimit: FAN_PITCH_LIMIT, zeroAim: 'refuse',
+  step: FAN_STEP, held:{action:1,mode:'after',continuation:{kind:'field',key:'hold'}}, eye: 1.68, mode: 'immediate', pitchLimit: FAN_PITCH_LIMIT, zeroAim: 'refuse',
   body: 'none', liveTargetsOnly: true, commandsAfterCool: true,
   actions: [{ action: 0, move: 0, aim: 'selected', hook: null }, { action: 1, move: 1, aim: 'facing', hook: null },
     { action: 2, move: 2, aim: 'facing', hook: 3 }],

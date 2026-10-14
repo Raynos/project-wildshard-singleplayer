@@ -4644,3 +4644,11 @@ action roles have no query grants or scheduled bindings. Mover compositions
 forward these declarations without creating another host or fixed clock.
 `declaredItemScriptBindings` supplies actor-bound aliases, verified modules
 and hook maps for both native equipment and the data client.
+
+Native melee rows may declare held player input and its release action.
+`installNativeMelee` samples a bounded admitted stream once per tick,
+using the same ContactFamily.hold clock as page held weapons. A named
+step preserves an existing hold save slot; an inline continuation field
+is optional when reading older saves. Disabled input cancels quietly.
+Signal replaces its timed command on release; Sky applies the held heavy
+after its existing ordered commands. Original contact/AS owners remain.

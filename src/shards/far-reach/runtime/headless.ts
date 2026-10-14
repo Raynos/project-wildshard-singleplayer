@@ -60,10 +60,10 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
       if (command.kind === 'script' && command.actorId === FAN_AIM) return { kind: 'aim', pitch: command.value };
       if (command.kind !== 'script' || command.actorId !== FAN_ACTOR) return undefined;
       return command.value === FAN_ACT.heavy ? { kind: 'move', action: 1 } : command.value === FAN_ACT.gust ? { kind: 'move', action: 2 } : undefined;
-    }), none: NativeMeleeCommand[] = [];
+    });
     // the browser disables the player's weapons through the Roc's intro (BossPorts.lockInput) and stows the fan on the board
     const vanes = VANES.map(vane => ({ id: vane.id, at: new Vector3(vane.x, vane.y + VANE_HUB, vane.z) }));
-    installNativeMelee(host, fanRow, fanRow.native, { commands: () => encounter.locked() || host.playerBoard.on ? none : fan(),
+    installNativeMelee(host, fanRow, fanRow.native, { commands: fan, heldCommands:context.commands, enabled:()=>!encounter.locked()&&!host.playerBoard.on,
       hook: movers.hook, hookTick: movers.hookTick, landed: (action, from, dir) => { if (action === 2) turnVanes(host.flags, vanes, from, dir); } });
     installDeclaredQuestHost(host, shard, { ...ledger, commands: pickCommands(context.commands, command => command.kind === 'script' ? command : undefined),
       spots: { interact: SKY_SPOTS, crack: [] }, observations: new Map([['winch-up', () => movers.runtime.pose(SKY_MOVER_BINDING.winch).enabled]]),

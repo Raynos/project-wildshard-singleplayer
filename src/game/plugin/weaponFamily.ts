@@ -2,7 +2,7 @@ import { bindMeleeContacts } from './simulation';
 import { createClientChannelView, createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts, type ClientGeometryKernels } from './ui';
 import { type Object3D, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
-import { HeldWeaponClock, type ContactFamily, type ContactScanTarget, type ContactFamilyPorts, type ContactWorldTarget } from "@wildshard/engine/combat/contactWeapon";
+import type { ContactFamily, ContactScanTarget, ContactFamilyPorts, ContactWorldTarget } from "@wildshard/engine/combat/contactWeapon";
 import { Weapon, type WeaponState, type AimInfo } from "@wildshard/engine/combat/Weapon";
 import { Tool } from "@wildshard/engine/combat/Tool";
 import type { EquipmentRow, EquipContext } from "@wildshard/engine/combat/Equipment";
@@ -144,7 +144,7 @@ export abstract class HeldContactWeapon<T extends ContactScanTarget = ContactSca
   protected readonly vm: ReturnType<typeof blocks.viewmodel>;
   protected readonly contact: ReturnType<typeof blocks.melee>;
   protected readonly spring = { yaw: 0, pitch: 0, yawVelocity: 0, pitchVelocity: 0 };
-  protected readonly hold = new HeldWeaponClock();
+  protected get hold(): ContactFamily<T>['hold'] { return this.moves.hold; }
   protected chargeSeconds: number;
   /** the family's move rows at work */
   protected abstract readonly moves: ContactFamily<T>;

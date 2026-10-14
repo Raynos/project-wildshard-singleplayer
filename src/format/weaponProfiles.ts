@@ -118,9 +118,12 @@ const nativeBinding = v.strictObject({ key: nativeKey,
   source: v.picklist(['constant', 'primary', 'secondary', 'time', 'heavy', 'landed', 'target', 'world', 'direction']),
   constant: v.exactOptional(v.pipe(v.number(), v.finite())),
   min: v.exactOptional(v.pipe(v.number(), v.finite())), max: v.exactOptional(v.pipe(v.number(), v.finite())) });
+const nativeHeld = v.strictObject({ action: v.pipe(count, v.maxValue(15)), mode: v.picklist(['replace', 'after']),
+  continuation: v.variant('kind', [v.strictObject({ kind: v.literal('step'), id: nativeKey }),
+    v.strictObject({ kind: v.literal('field'), key: nativeKey })]) });
 /** Fixed-step melee owner policy. Contacts stay on the item; continuation fields preserve an existing wire contract. */
 export const NativeMeleeRowSchema = v.pipe(v.strictObject({
-  step: nativeKey, eye: v.pipe(scalar, v.maxValue(20)), mode: v.picklist(['timed', 'immediate']),
+  step: nativeKey, held: v.exactOptional(nativeHeld), eye: v.pipe(scalar, v.maxValue(20)), mode: v.picklist(['timed', 'immediate']),
   pitchLimit: v.nullable(v.pipe(positive, v.maxValue(Math.PI))), zeroAim: v.picklist(['retain', 'refuse']),
   body: v.picklist(['volumes', 'none']), liveTargetsOnly: v.boolean(), commandsAfterCool: v.boolean(),
   actions: v.pipe(v.array(v.strictObject({ action: v.pipe(count, v.maxValue(15)), move: v.pipe(count, v.maxValue(15)),
@@ -129,6 +132,8 @@ export const NativeMeleeRowSchema = v.pipe(v.strictObject({
 }), v.check(row => new Set(row.actions.map(action => action.action)).size === row.actions.length
   && new Set(row.continuation.fields.map(field => field.key)).size === row.continuation.fields.length
   && new Set(row.continuation.fields.map(field => field.source)).size === row.continuation.fields.length
+  && (row.held === undefined || row.actions.some(action => action.action === row.held?.action)
+    && (row.held.continuation.kind === 'step' ? row.held.continuation.id !== row.step : !row.continuation.fields.some(field => field.key === (row.held?.continuation.kind === 'field' ? row.held.continuation.key : undefined))))
   && row.continuation.fields.every(field => (field.source === 'constant') === (field.constant !== undefined)
     && (field.min === undefined || field.max === undefined || field.min <= field.max))
   && (row.mode === 'timed' ? ['primary', 'time', 'heavy', 'landed', 'target', 'world', 'direction'] : ['primary', 'secondary'])
