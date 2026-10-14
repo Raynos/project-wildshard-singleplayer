@@ -7,7 +7,7 @@ import type { GraphLiteral } from '@wildshard/format/materialGraph';
  */
 let looks: {
   readonly materials: ReadonlyMap<string, Material>; readonly setParam: (id: string, name: string, value: GraphLiteral) => void;
-  readonly setTexture: (id: string, name: string, texture: Texture) => void; readonly bindMeshMap: (id: string, map: Material) => Material;
+  readonly setTexture: (id: string, name: string, texture: Texture) => void; readonly bindMeshMap: (id: string, map: Texture | Material) => Material;
 } | null = null;
 
 /** lend the compiled looks (`runtimeLookMaterials`) */
@@ -20,8 +20,9 @@ export function pineLook(id: string): Material {
   return m;
 }
 
-/** a lent look worn over `source`'s own maps (colour, normal, roughness, AO), one per look and source; throws when none was lent */
-export function pineMappedLook(id: string, source: Material): Material {
+/** a lent look worn over `source`'s own maps (a material's colour, normal, roughness, AO; a texture as the colour map), one per
+ *  look and source; throws when none was lent */
+export function pineMappedLook(id: string, source: Texture | Material): Material {
   if (looks === null) throw new Error(`[pine-hollow] no compiled look ${id}`);
   return looks.bindMeshMap(id, source);
 }

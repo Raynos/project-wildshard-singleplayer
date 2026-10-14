@@ -4,7 +4,6 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { paintCanvas, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
 import { GroundCover, type GroundCoverDraw, type GroundCoverKind } from '../runtime/looks/groundCover';
 import type { UnderShapes } from './undergrowthKit';
-import { UNDER_EDITS, UNDER_VERTEX_EDITS } from '../data/forestLook';
 import { UNDER_LOOK } from '../data/undergrowthLook';
 import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PAINT } from '../data/undergrowthPaint';
 
@@ -26,11 +25,11 @@ import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PA
  *  - ~5000 twig/needle-litter quads and ~3000 dark pebble clusters lying flat under the trees.
  *  - ~3000 moss patches (flat, soft mottled alpha) hugging the base of trunks.
  *  - ~1500 reed / sedge clumps (tall thin blades, 0.8–1.2 m) on the pond shore and in the shallows.
- * Six draw calls (+ fern & shrub shadow passes). Instances scale to 0 beyond `fadeFar` metres
- * in the vertex shader so distant ones cost nothing in the fragment stage.
+ * Six draw calls (+ fern, shrub & reed shadow passes). Instances scale to 0 beyond the tier's fade
+ * in the graph's vertex stage so distant ones cost nothing in the fragment stage.
  *
- * The field is the SDK's ground cover (@wildshard/sdk/looks/groundCover): one program for every kind, the distance fade
- * and the wind; its look is data/undergrowthLook.ts, its edits data/forestLook.ts; its textures are data/undergrowthPaint.ts
+ * The field is the shard's ground cover (runtime/looks/groundCover.ts): one graph program for every kind, the distance
+ * fade and the wind; its look and graph are data/undergrowthLook.ts; its textures are data/undergrowthPaint.ts
  * (@wildshard/sdk/looks/canvasAtlas rows, painted from the level seed when the field builds).
  *
  * Public: `group` (the kinds' placed meshes go in it), `kinds` (each kind's parts), `layout`, `counts`, `view`.
@@ -44,12 +43,12 @@ export type UnderKind = GroundCoverKind;
 /** a kind's painter: its row painted from the level's seed when the field builds */
 const paint = (row: CanvasAtlasRow) => (): HTMLCanvasElement => paintCanvas(row, { SEED });
 
-/** Pine Hollow's forest floor: the SDK ground cover with its look, shapes, edits and painted textures. */
+/** Pine Hollow's forest floor: the ground cover with its look, shapes and painted textures. */
 export class Undergrowth extends GroundCover {
   /** the field over `forest`, lit by `sky` */
   constructor(sky: Sky, forest: Forest, shapes: UnderShapes) {
     super({
-      sky, forest, look: UNDER_LOOK, shapes, edits: { lit: UNDER_EDITS, vertex: UNDER_VERTEX_EDITS },
+      sky, forest, look: UNDER_LOOK, shapes,
       paint: { ferns: paint(FERN_PAINT), shrubs: paint(SHRUB_PAINT), litter: paint(LITTER_PAINT), stones: paint(STONE_PAINT), moss: paint(MOSS_PAINT), reeds: paint(REED_PAINT) },
     });
   }
