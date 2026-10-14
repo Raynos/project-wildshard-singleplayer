@@ -5,10 +5,27 @@ import { GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import source from '../data/bridges.json' with { type: 'json' };
 import { BRIDGES_URL } from '../data/files';
 import { BRIDGE_REST_URL } from '../data/restFiles';
+import type { PrivateScene } from '@wildshard/format/clientChannels';
 
 type ReadAsset = (url: string) => Uint8Array;
+interface BridgeSpan { id: string; deckGeometry: string; deck: number[]; posts: number[]; ropes: string[] }
+/** Static bridge hierarchy; materials and the prepared anchor-post geometry remain borrowed visual ports. */
+function bridgeScene(span: BridgeSpan): PrivateScene {
+  const nodes: PrivateScene['nodes'] = [
+    { kind: 'group', id: 'bridge', children: ['deck', 'posts', ...span.ropes] },
+    { kind: 'mesh', id: 'deck', geometry: span.deckGeometry, material: 'deck', instances: span.deck.length / 16,
+      matrices: span.deck, missing: 'empty', children: [] },
+    { kind: 'mesh', id: 'posts', geometry: 'post-hd', material: 'posts', instances: span.posts.length / 16,
+      matrices: span.posts, missing: 'omit', children: [] },
+    ...span.ropes.map(name => ({ kind: 'mesh' as const, id: name, geometry: name, material: 'rails', missing: 'empty' as const, children: [] })),
+  ];
+  return { version: 1, root: 'bridge', nodes, textures: [], materials: [
+    { kind: 'port', id: 'deck', source: 'deck' }, { kind: 'port', id: 'posts', source: 'posts' },
+    { kind: 'port', id: 'rails', source: 'rails' },
+  ] };
+}
 /** Compile all static decks, curved rails and ties; the native owners retain instancing and materials. */
-async function make(read: ReadAsset): Promise<{ glb: Uint8Array; rows: { pool: { url: string; parts: string[] }; spans: { id: string; deckGeometry: string; deck: number[]; posts: number[]; ropes: string[] }[] } }> {
+async function make(read: ReadAsset): Promise<{ glb: Uint8Array; rows: { pool: { url: string; parts: string[] }; spans: (BridgeSpan & { scene: PrivateScene })[] } }> {
   const inflated = await new Response(new Blob([new Uint8Array(read(BRIDGES_URL))]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer();
   const pack = new GeometryPack(new Uint8Array(inflated), packedRows(source), 'Sky bridge author');
   const root = new Group(), material = new MeshStandardMaterial(); root.name = 'bridge-rest';
@@ -35,7 +52,8 @@ async function make(read: ReadAsset): Promise<{ glb: Uint8Array; rows: { pool: {
         for (const tie of ties) tie.dispose();
       }
     }
-    return { id: span.id, deckGeometry, deck: Array.from(pack.floats(span.deck.at)), posts: Array.from(pack.floats(span.posts)), ropes };
+    const row = { id: span.id, deckGeometry, deck: Array.from(pack.floats(span.deck.at)), posts: Array.from(pack.floats(span.posts)), ropes };
+    return Object.assign(row, { scene: bridgeScene(row) });
   });
   try {
     const made = clientSceneGlb(root, new Map([[material, 'bridge-material']]));

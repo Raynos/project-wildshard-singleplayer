@@ -11822,6 +11822,41 @@
         "src/shards/far-reach/data/groundScene.generated.ts"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "sky-route-scene",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/routeScene.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/routeScene.ts",
+        "skyRouteSource",
+        "src/shards/far-reach/data/routeScene.generated.ts",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/generators/routeScene.ts",
+        "src/shards/far-reach/generators/risingIslets.ts",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/strings.ts",
+        "src/shards/far-reach/data/isletDesign.ts",
+        "src/shards/far-reach/data/restScenes.generated.json",
+        "src/shards/far-reach/data/bridgeRest.generated.json"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/routeScene.generated.ts"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/routeScene.generated.ts"
+      ],
+      "platform": "portable"
     }
   ]
 }

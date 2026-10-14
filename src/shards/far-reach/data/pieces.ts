@@ -1,6 +1,7 @@
 import { FALLEN_BRIDGE, MILL, NOTES, STEP, VANES, WINCH, WINCH_HOUSE } from './layout';
 import { STRINGS } from './strings';
 import { SKY_GROUND } from './groundScene.generated';
+import { SKY_ROUTES } from './routeScene.generated';
 
 const FILE = 'src/shards/far-reach/world/build.ts';
 /**
@@ -10,10 +11,10 @@ const FILE = 'src/shards/far-reach/world/build.ts';
  */
 export const SKY_PIECES = [
   ...SKY_GROUND.registry,
+  ...SKY_ROUTES.registry,
   { id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE },
   { id: 'far.pines', name: STRINGS.pines, category: 'props', file: FILE },
   { id: 'far.dressing', name: STRINGS.meadow, category: 'props', file: FILE },
-  { id: 'far.updraft', name: STRINGS.updraft, category: 'buildings', file: FILE, surface: 'wood', mode: 'board' },
   { id: FALLEN_BRIDGE.id, name: STRINGS.fallen, category: 'buildings', file: FILE, surface: 'wood' },
   { id: 'far.windmill', name: STRINGS.mill, category: 'buildings', file: FILE, surface: 'stone', at: [MILL.x, 30, MILL.z], yaw: MILL.yaw },
   { id: 'far.winch', name: STRINGS.winch, category: 'props', file: FILE, surface: 'wood', at: [WINCH.x, WINCH.y, WINCH.z] },

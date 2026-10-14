@@ -1,17 +1,18 @@
 import STATIC_SCENES from '../data/staticScenes.generated.json' with { type: 'json' };
 import ISLET_SCENES from '../data/isletScenes.generated.json' with { type: 'json' };
 import { SKY_GROUND } from '../data/groundScene.generated';
+import { SKY_ROUTE_SCENE, SKY_ROUTES } from '../data/routeScene.generated';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { boxDesc, type Piece } from '@wildshard/engine/world/registry';
+import { boxDesc } from '@wildshard/engine/world/registry';
 import { bindClientChannels, createClientScene, createWorldScene } from '@wildshard/game/plugin/ui';
 import type { SkyReachPlugin } from '../runtime/index';
-import { spanYaw, spanPitch } from '../layout';
+import { spanYaw } from '../layout';
 import { FALLEN_ANGLE } from '../data/moverBindings';
 import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
 import { SKY_LIBRARY, skyHd } from './meshes';
 import { skyLook, skyMappedLook } from './looks';
 import { Group, Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
-import { CROWN, FALLEN_BRIDGE, NOTES, SPANS, SUNREST, UPDRAFT, VANES, WINCH } from '../data/layout';
+import { CROWN, FALLEN_BRIDGE, NOTES, SUNREST, VANES, WINCH } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { islandMesh, staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
@@ -27,7 +28,6 @@ import { RISING_ISLETS } from '../data/islets.generated';
 import { skyDocksFor } from './skyDock';
 
 type ShardContext = Parameters<SkyReachPlugin['world']>[0];
-const HOVER_SCENES = new Map(REST_SCENES.hover.map(row => [row.id, row.scene]));
 const FILE = 'src/shards/far-reach/world/build.ts';
 /** The baked placements for this session's cube (G99): standalone, or a grid cell of the half width they were baked for. */
 function skyPlacements(cube: { readonly half: number } | null): typeof STATIC_SCENES.standalone {
@@ -90,30 +90,20 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   // faint glass while you walk (E399, the council: 'translucent rectangles' over the windmill isle from the spawn): the glowing
   // frame shows the path; the plugin fills the glass in while you ride
   const hoverDeck = flat(PALETTE.glow, { emissive: PALETTE.glow, emissiveIntensity: 0.25, transparent: true, opacity: 0.16, depthWrite: false, flatShading: false, roughness: 0.15, metalness: 0.1 });
-  // SF49-g (G183): each gate isle's rope bridge to its island is one more rope span of the same builder
-  const bridges: Piece[] = [];
-  for (const span of [...SPANS, ...RISING_ISLETS.map((entry) => entry.bridge)]) {
-    const hover = span.kind === 'hover', bridge = hover ? createClientScene(HOVER_SCENES.get(span.id), { geometry: SKY_LIBRARY.geometry, materials: new Map([['glass', hoverDeck], ['frame', looks.frame]]) }).root : ropeBridge(span.id, rope, looks.deck);
-    bridge.position.set(span.x0, span.y, span.z0); bridge.rotation.set(spanPitch(span), spanYaw(span), 0, 'YXZ');
-    const piece: Piece = { id: span.id, name: hover ? STRINGS.hover : STRINGS.rope, category: 'buildings', file: FILE, object: bridge,
-      colliders: spanColliders(span.id), surface: 'wood' };
-    if (hover) piece.mode = 'board'; // SF34: a hover-only deck, solid only under the board
-    bridges.push(piece);
-    await pause();
-  }
+  const post = skyHd('post-hd'), routes = createClientScene(SKY_ROUTE_SCENE, {
+    geometry: name => { const geometry = name === 'post-hd' ? post?.geometry ?? null : SKY_LIBRARY.geometry(name);
+      if (geometry === null && name !== 'post-hd') throw new Error(`Missing route part ${name}`); return geometry; },
+    materials: new Map<string, Material | null>([['rails', rope], ['deck', looks.deck], ['glass', hoverDeck], ['frame', looks.frame],
+      ['posts', post === null ? null : skyMappedLook('post-weather', post.map)]]),
+  });
+  await pieces.scene(routes, SKY_ROUTES.bindings, pause);
   // SF49-g (G183): the Rising Islets' static parts (the road lips, the chain posts); the islets move in the plugin's movers
   // G200: played alone (no road beyond the lips) each lip ends at a railed timber sky dock with a beacon; in a grid cell the
   // road socket continues there, so no dock
   const staticIslets = createClientScene(ISLET_SCENES.staticScene, { geometry: SKY_LIBRARY.geometry }); root.add(staticIslets.root);
   for (const row of ISLET_SCENES.pieces) { const object = staticIslets.parts.get(row.id); ctx.piece({ ...row, category: row.category === 'buildings' ? 'buildings' : 'props', surface: row.surface === 'stone' ? 'stone' : 'wood', ...(object === undefined ? {} : { object }), colliders: pieces.colliders(row.colliders) }); }
   const posts = skyBakedPiece('islet-rig'); root.add(posts.root); ctx.piece({ id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: posts.root, colliders: posts.colliders, surface: 'wood' });
-  for (const piece of [...bridges, ...skyDocksFor(ctx.cube)]) { if (piece.object !== undefined) root.add(piece.object); ctx.piece(piece); }
-  await pause();
-
-  // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
-  const ramp = createClientScene(HOVER_SCENES.get(UPDRAFT.id), { geometry: SKY_LIBRARY.geometry, materials: new Map([['glass', hoverDeck], ['frame', looks.frame]]) }).root;
-  ramp.position.set(UPDRAFT.x0, UPDRAFT.y, UPDRAFT.z0); ramp.rotation.set(spanPitch(UPDRAFT), spanYaw(UPDRAFT), 0, 'YXZ');
-  pieces.add('far.updraft', ramp, { colliders: spanColliders('far.updraft') });
+  for (const piece of skyDocksFor(ctx.cube)) { if (piece.object !== undefined) root.add(piece.object); ctx.piece(piece); }
   await pause();
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
