@@ -35,6 +35,9 @@ const creatureOwners=new Set([
   'src/shards/pine-hollow/runtime/fauna.ts',
   'src/shards/driftwood-isle/runtime/keeper.ts',
   'src/shards/driftwood-isle/runtime/fauna.ts',
+  'src/shards/pine-hollow/runtime/herds.ts',
+  'src/shards/driftwood-isle/runtime/ecology.ts',
+  'src/shards/driftwood-isle/runtime/captain.ts',
 ]);
 const questOwners=new Set([
   'src/shards/pine-hollow/runtime/facts.ts',
@@ -43,6 +46,17 @@ const questOwners=new Set([
   'src/shards/pine-hollow/runtime/trader.ts',
   'src/shards/pine-hollow/runtime/questLifetime.ts',
   'src/shards/driftwood-isle/runtime/reward.ts',
+  'src/shards/pine-hollow/runtime/dialogue.ts',
+  'src/shards/pine-hollow/runtime/directorClock.ts',
+  'src/shards/pine-hollow/runtime/pack.ts',
+  'src/shards/pine-hollow/runtime/npc/standInPerson.ts',
+  'src/shards/driftwood-isle/runtime/pack.ts',
+  'src/shards/driftwood-isle/runtime/kills.ts',
+  'src/shards/driftwood-isle/npc/Castaway.ts',
+  'src/shards/driftwood-isle/npc/Trader.ts',
+  'src/shards/driftwood-isle/npc/faceHeads.ts',
+  'src/game/systems/npc/npcRig.ts',
+  'src/game/complete/ShardComplete.ts',
 ]);
 function namedRole(name,path='') {
   if(creatureOwners.has(path)&&/keeper/iu.test(name))return 'C4'; return roles.find(([, pattern]) => pattern.test(name))?.[0] ?? null; }
