@@ -13104,11 +13104,11 @@
         "pnpm-workspace.yaml"
       ],
       "outputs": [
-        "public/assets/driftwood-isle/creatures/bodies-23550b30c9b851af6d594dcc1108ec44091cecfe04e8cc6d781f97d808fce79c.bin",
+        "public/assets/driftwood-isle/creatures/bodies-3cc97fab831593ffccebd201f84adcafc9bb5f25caed70db4fe8ee029148dcc2.bin",
         "src/shards/driftwood-isle/data/creatureBodies.generated.json"
       ],
       "buildTimeOutputs": [
-        "public/assets/driftwood-isle/creatures/bodies-23550b30c9b851af6d594dcc1108ec44091cecfe04e8cc6d781f97d808fce79c.bin",
+        "public/assets/driftwood-isle/creatures/bodies-3cc97fab831593ffccebd201f84adcafc9bb5f25caed70db4fe8ee029148dcc2.bin",
         "src/shards/driftwood-isle/data/creatureBodies.generated.json"
       ],
       "platform": "native"

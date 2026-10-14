@@ -5,7 +5,7 @@ import type { AnimalSpecies } from '@wildshard/engine/entities/species/registry'
 import bake from '../data/creatureBodies.generated.json' with { type: 'json' };
 
 const n = v.pipe(v.number(), v.finite()), whole = v.pipe(v.number(), v.integer(), v.minValue(0));
-const Part = v.nullable(v.strictObject({ offset: whole, row: v.strictObject({
+const Part = v.nullable(v.strictObject({ offsets: v.array(whole), row: v.strictObject({
   attrs: v.array(v.tuple([v.string(), v.picklist(['f32', 'f16', 'u16', 'i8', 'u8']), whole, v.boolean()])),
   count: whole, index: v.nullable(v.picklist(['u16', 'u32'])), indexCount: whole, box: v.boolean() }) }));
 const Body = v.strictObject({ kind: v.string(), variant: v.string(),
@@ -39,7 +39,17 @@ export function creatureBody(kind: string, variant: string): AnimalSpecies {
   const read = readGeometry;
   const bytes = unzlibSync(deflated);
   if (bytes.length !== BAKE.bytes) throw new Error('[driftwood-isle] the creature bodies bake does not match its rows');
-  const part = (p: v.InferOutput<typeof Part>): AnimalSpecies['furParts'] => (p === null ? [] : [read(bytes, p.offset, p.row)]);
+  /** one group: each attribute (position first, so the bounds) and then the index from its own shared block */
+  const part = (p: v.InferOutput<typeof Part>): AnimalSpecies['furParts'] => {
+    if (p === null) return [];
+    const at = (i: number): number => { const offset = p.offsets[i]; if (offset === undefined) throw new Error(`[driftwood-isle] ${kind}.${variant}: a block is missing`); return offset; };
+    const one = { ...p.row, index: null, indexCount: 0 }, [first, ...rest] = p.row.attrs;
+    if (first === undefined) throw new Error(`[driftwood-isle] ${kind}.${variant}: a group without attributes`);
+    const g = read(bytes, at(0), { ...one, attrs: [first] });
+    rest.forEach((attr, i) => { g.setAttribute(attr[0], read(bytes, at(i + 1), { ...one, attrs: [attr] }).getAttribute(attr[0])); });
+    if (p.row.index !== null) g.setIndex(read(bytes, at(p.row.attrs.length), { ...p.row, attrs: [] }).index);
+    return [g];
+  };
   const { capsuleAxis, ...dims } = body.dims;
   return { bones: body.bones.map((b) => ({ name: b.name, parent: b.parent, pos: [b.pos[0], b.pos[1], b.pos[2]] })),
     furParts: part(body.fur), hardParts: part(body.hard), eyeParts: part(body.eye),

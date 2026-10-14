@@ -1,7 +1,7 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { DRIFTWOOD_SPECIES, DRIFTWOOD_LOOKS } from '../species/install';
-import { registerDriftwoodToonPaints } from '../species/toonPaints';
+import { ISLAND_BEAR_LOOK, ISLAND_BOAR_LOOK } from '../species/fauna';
 import { installDriftwoodLootTables, DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES } from '../loot/tables';
 import { driftwoodWorld } from '../world/build';
 import { PRACTICE_CRAB } from '../data/layout';
@@ -12,8 +12,7 @@ import { Enemies } from './Enemies';
 /** Kit rows precede AnimalManager construction; the ready hook preserves the original placement stage. */
 export function installDriftwoodCreatures(ctx: ShardContext, species = DRIFTWOOD_SPECIES): void {
   ctx.rows.species([...species, ISLAND_BOAR, ISLAND_BEAR]);
-  ctx.rows.speciesLook(DRIFTWOOD_LOOKS);
-  registerDriftwoodToonPaints(ctx.scope); // the boar / bear toon palettes (B50)
+  ctx.rows.speciesLook([...DRIFTWOOD_LOOKS, ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK]); // the boar and bear from the bake
   ctx.rows.spawnTable([DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE]);
   ctx.rows.lootTable([DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES]);
   installDriftwoodLootTables(ctx.scope);

@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 // SHARD-PLATFORM C4: Driftwood Isle's lofted creature bodies (reef crab, coconut monkey, Drowned Sailor with its Hunyuan
-// head), built offline by ./creatureBodies.ts exactly as the page's low-poly factory built them, written as one deflated,
-// hash-named bake (public/assets/driftwood-isle/creatures/bodies-<sha256>.bin: every material group's attributes as
-// built, @wildshard/sdk/kit/bakedGeometry blocks) and its rows (data/creatureBodies.generated.json). The page reads it
-// back (species/bodies.ts) and faceted, tints and skins it as before. `--check` refuses stale outputs.
+// head, and the shared boar and bear in the island's toon palette), built offline by ./creatureBodies.ts exactly as the
+// page's low-poly factory built them, written as one deflated, hash-named bake
+// (public/assets/driftwood-isle/creatures/bodies-<sha256>.bin: every material group's attributes as built,
+// @wildshard/sdk/kit/bakedGeometry blocks, each identical one once) and its rows (data/creatureBodies.generated.json). The
+// page reads it back (species/bodies.ts) and faceted, tints and skins it as before. `--check` refuses stale outputs.
 // Usage: node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/driftwood-isle/generators/bake-driftwood-creatures.mjs [--check]
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
@@ -40,27 +41,41 @@ const typeOf = (attr, what) => {
   if (a instanceof Uint8Array) return 'u8';
   throw new Error(`${what}: an attribute type the bake does not store`);
 };
-/** one geometry's blocks and its row (offset into the inflated bake) */
+/** the blocks written so far by their bytes: an attribute (or index) identical to one already written (the boar coats
+ *  share every channel but the colour, a kind's eye pairs all of them) points at the same block, as the reader copies
+ *  each one out fresh */
+const written = new Map();
+const blockAt = (bytes) => {
+  const digest = createHash('sha256').update(bytes).digest('hex'), seen = written.get(digest);
+  if (seen !== undefined) return seen;
+  const offset = size;
+  push(bytes);
+  written.set(digest, offset);
+  return offset;
+};
+/** one geometry's row and each of its blocks' offsets into the inflated bake (its attributes in order, then its index) */
 const write = (g, what) => {
   if (g === null) return null;
-  const offset = size, attrs = [];
+  const attrs = [], offsets = [];
   for (const [name, attr] of Object.entries(g.attributes)) {
     if (!(attr instanceof BufferAttribute)) throw new Error(`${what}: '${name}' is interleaved`);
     const type = typeOf(attr, what);
     attrs.push([name, type, attr.itemSize, attr.normalized]);
-    push(new Uint8Array(attr.array.buffer, attr.array.byteOffset, attr.count * attr.itemSize * BAKED_BYTES[type]));
+    offsets.push(blockAt(new Uint8Array(attr.array.buffer, attr.array.byteOffset, attr.count * attr.itemSize * BAKED_BYTES[type])));
   }
+  // the reader computes each group's bounds as it reads the first block
+  if (attrs[0]?.[0] !== 'position') throw new Error(`${what}: position must come first`);
   const index = g.index;
   if (index !== null) {
     const deltas = new Int32Array(index.count);
     let last = 0;
     for (let i = 0; i < index.count; i++) { const v = index.getX(i); deltas[i] = v - last; last = v; }
-    push(new Uint8Array(deltas.buffer));
+    offsets.push(blockAt(new Uint8Array(deltas.buffer)));
   }
   const count = g.getAttribute('position').count;
   const row = { attrs, count, index: index === null ? null : count > 65535 ? 'u32' : 'u16', indexCount: index === null ? 0 : index.count, box: false };
   g.dispose();
-  return { offset, row };
+  return { offsets, row };
 };
 const rows = bodies.map((b) => ({
   kind: b.kind, variant: b.variant, bones: b.bones, dims: b.dims,
