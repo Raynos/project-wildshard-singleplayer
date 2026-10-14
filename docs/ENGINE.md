@@ -5150,3 +5150,9 @@ idle guides retain progress, retry and cooldown order. `target()` retains
 the authored point identity; `attempt()` does not change schedule state.
 There is no save owner, flight/pose code or random generator in the controller.
 Malformed profiles, invalid points/steps/clocks and missing periodic ports refuse.
+
+The node handler pairs compiled programs and selects their original uniforms
+on the first draw, even when renderer.compile selected a program without a
+program-switch callback. A material shared by a main/composer scene and a
+PMREM scene retains every program's own uniform blocks and sampler list.
+Actual material disposal releases them; environment refresh does not.

@@ -406,7 +406,13 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const properties: unknown = real.properties.get(material);
       const current: unknown = typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'currentProgram') : undefined;
       const entry = self.programCache.get(material)?.get(current);
-      if (entry !== undefined) this.updateNodeList(entry.updateNodes);
+      // compile() can select a new program without onUpdateProgram. After an offscreen
+      // draw, setProgram may see matching material flags and skip its switch callback.
+      // Pair queued builds and select their uniforms before that first real draw.
+      if (typeof properties === 'object' && properties !== null && current !== undefined &&
+        (this.pendingBuilds.has(material) || entry === undefined || Reflect.get(properties, 'uniforms') !== entry.uniforms ||
+          Reflect.get(properties, 'uniformsList') !== entry.uniformsList)) this.onUpdateProgram(material, current, properties);
+      else if (entry !== undefined) this.updateNodeList(entry.updateNodes);
     }
     const hash = `${String(typeof object === 'object' && object !== null ? Reflect.get(object, 'receiveShadow') : undefined)}|${nodeInstanceKey(object)}`;
     if (Reflect.get(material, 'prevObjectHash') !== hash) { Reflect.set(material, 'prevObjectHash', hash); material.needsUpdate = true; }
