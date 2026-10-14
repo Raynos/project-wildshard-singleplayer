@@ -5396,3 +5396,13 @@ map path and authored vertex normals still feed lighting. This is independent
 of `doubleSided`: the draw's side/culling stays unchanged, and clones retain
 the option. Absent/true keeps the existing back-face flip. Derivative-built
 flat geometry normals retain their existing winding behavior.
+
+`RangedFrame.publishHitscan` uses the defining hitscan solver, then preserves
+hit callbacks, tracer publication and impact callbacks in that order. The
+weapon supplies its live profile/bloom, source time, muzzle row and borrowed
+trace/puff roster and scratch vectors; it does not advance weapon phases.
+`combat/view/brass.brassRoster` allocates a bounded original case roster from
+borrowed geometry/material. `ejectBrass` consumes a `BrassEjectionRow` with
+ordered camera-axis velocity, spin coefficients, rotation and floor offset;
+six cosmetic RNG draws and the live floor query stay in their original order.
+Vectors/quaternion are borrowed, with no additional effect buffer backing.

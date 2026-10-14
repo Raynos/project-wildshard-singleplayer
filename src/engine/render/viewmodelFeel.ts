@@ -11,6 +11,8 @@ import { weaponActionGate } from '../input/weaponActions';
 import type { InputService } from '../input/InputService';
 import type { Scope } from '../app/scope';
 import type { Weapon } from '../combat/Weapon';
+import { hitscan, type HitscanProfile } from '../combat/view/hitscan';
+import { getSetting } from '../ui/Settings';
 import type { Targets } from '../combat/types';
 
 /** Drawing-buffer port used by viewmodel effects without exposing a renderer backend. */
@@ -201,6 +203,21 @@ export class RangedFrame {
     const hit = targets.raycast(origin, direction, wall?.distance ?? row.range);
     if (hit?.animal.alive) { this.aimCache.kind = hit.animal.kind; this.aimCache.distance = hit.distance; weapon.aimInfo = this.aimCache; }
     else weapon.aimInfo = null;
+  }
+  /** Resolve the existing hit law, then publish callbacks and borrowed effects in shot order. */
+  publishHitscan(weapon: Weapon, targets: Targets | undefined, profile: HitscanProfile, bloom: number, speedFactor: number,
+    model: Object3D, muzzle: readonly [number, number, number], time: number, tracers: readonly RangedTrace[], puffs: Puffs,
+    directionScratch: Vector3, pointScratch: Vector3): void {
+    if (tracers.length === 0 || tracers.length > 128) throw new RangeError('Invalid hitscan trace roster');
+    const {point, direction, surface, hit, killed} = hitscan((origin, dir) => weapon.aimRay(origin, dir), targets, profile, this.adsBlend, bloom, speedFactor);
+    if (hit) weapon.onHit?.(hit.animal.kind, hit.headshot, killed);
+    directionScratch.copy(direction);
+    if (getSetting('tracers')) {
+      const first = tracers[0]; if (first === undefined) throw new Error('Missing hitscan trace');
+      const trace = tracers.reduce((oldest, next) => next.t0 < oldest.t0 ? next : oldest, first);
+      model.updateMatrixWorld(); model.localToWorld(pointScratch.set(...muzzle)); trace.show(pointScratch, point, time);
+    }
+    if (surface) { puffs.emit(point, directionScratch, surface); weapon.onImpact?.(surface, point); }
   }
   /** Returns the published ADS state, after the action/flash phases and before the held pose. */
   sampleFrame(dt: number, heading: RangedHeading, controls: RangedControls, camera: RangedCamera,

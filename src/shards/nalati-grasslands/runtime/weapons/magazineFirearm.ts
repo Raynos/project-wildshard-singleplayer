@@ -1,16 +1,15 @@
 import { app } from '@wildshard/engine/app/runtime';
 import { RangedFrame, RangedTrace, RangedFlash } from '@wildshard/engine/render/viewmodelFeel';
-import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_RELOAD } from '../../data/rangedFrame';
+import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_RELOAD, RANGED_HIT, RANGED_BRASS } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Firearm, RangedReload } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';
-import { brassFloor, stepBrass } from '@wildshard/engine/combat/view/brass';
-import { hitscan, type HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
+import { stepBrass, brassRoster, ejectBrass, type BrassCase } from '@wildshard/engine/combat/view/brass';
+import type { HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
 import { Puffs, FOV_HIP, FOV_ADS, isMesh, whiteColors, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { sstep } from '@wildshard/engine/player/viewmodelTextures';
-import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
 
@@ -75,7 +74,6 @@ export interface MagazineFirearmOptions<P extends MagazineFirearmProfile> extend
   muzzleLight?: boolean;
 }
 
-interface Brass { mesh: THREE.Mesh; vel: THREE.Vector3; spin: THREE.Vector3; life: number; down: boolean; /** where it lands (PHYSICS P7: ray-landed at the eject) */ floor: number }
 
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
 const _q = new THREE.Quaternion();
@@ -105,10 +103,11 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   private glowRing!: THREE.Mesh;
   /** geometry + material pairs for `displayModel()` (a world pickup) */
   private displayParts: { geo: THREE.BufferGeometry; mat: THREE.Material; pos?: THREE.Vector3 }[] = [];
-  private brass: Brass[] = [];
+  private brass: BrassCase[] = [];
   private brassMat!: THREE.MeshStandardMaterial;
   private tracers: RangedTrace[] = []; private readonly paintTracer = (trace: RangedTrace, time: number, _camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.publish(time, _camera, resolution, this.tracerLife); };
   private puffs = new Puffs();
+  private readonly hitMuzzle: [number,number,number] = [...RANGED_HIT.magazine.muzzle];
 
   // animation state
   private cooldown = 0;
@@ -192,20 +191,8 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   }
 
   private hitscan(): void {
-    const result = hitscan((origin, dir) => this.aimRay(origin, dir), this.targets, this.profile, this.feel.adsBlend, this.bloom, this.player.speedFactor);
-    const { point, direction, surface, hit, killed } = result;
-    if (hit) this.onHit?.(hit.animal.kind, hit.headshot, killed);
-    _d.copy(direction);
-    if (getSetting('tracers')) {
-      const tr = this.tracers.reduce((acc, x) => (x.t0 < acc.t0 ? x : acc));
-      this.model.updateMatrixWorld();
-      this.model.localToWorld(_v3.set(0, 0.004, this.profile.ads.muzzleZ));
-      tr.show(_v3, point, this.time);
-    }
-    if (surface) {
-      this.puffs.emit(point, _d, surface);
-      this.onImpact?.(surface, point);
-    }
+    const muzzle = this.hitMuzzle; muzzle[2] = this.profile.ads.muzzleZ;
+    this.feel.publishHitscan(this, this.targets, this.profile, this.bloom, this.player.speedFactor, this.model, muzzle, this.time, this.tracers, this.puffs, _d, _v3);
   }
 
   // ── viewmodel ──
@@ -246,31 +233,14 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   private buildEffects() {
     const [radius, length] = this.view.brassCase;
     const caseGeo = new THREE.CylinderGeometry(radius, radius, length, 8); caseGeo.rotateX(Math.PI / 2); whiteColors(caseGeo); // brassMat reads vertex colours
-    for (let i = 0; i < this.profile.brass.count; i++) {
-      const mesh = new THREE.Mesh(caseGeo, this.brassMat);
-      mesh.visible = false; mesh.frustumCulled = false;
-      this.game.scene.add(mesh);
-      this.brass.push({ mesh, vel: new THREE.Vector3(), spin: new THREE.Vector3(), life: 0, down: false, floor: 0 });
-    }
+    this.brass.push(...brassRoster(this.game.scene, caseGeo, this.brassMat, this.profile.brass.count));
     this.tracers.push(...RangedTrace.roster(this.game.scene, RANGED_TRACE.segment, this.profile.tracer.count));
   }
 
-  private ejectBrass() {
-    const b = this.brass.find((x) => x.life <= 0) ?? this.brass.reduce((a, x) => (x.life < a.life ? x : a));
-    const cam = this.game.camera;
-    this.model.updateMatrixWorld();
-    this.model.localToWorld(b.mesh.position.copy(this.port));
-    _v1.set(1, 0, 0).applyQuaternion(cam.quaternion); // camera right
-    _v2.set(0, 1, 0).applyQuaternion(cam.quaternion);
-    cam.getWorldDirection(_v3);
-    b.vel.copy(_v1).multiplyScalar(2.2 + app.rng.stream('cosmetic').next() * 0.8).addScaledVector(_v2, 1.6 + app.rng.stream('cosmetic').next() * 0.6).addScaledVector(_v3, -0.4 + app.rng.stream('cosmetic').next() * 0.3);
-    b.spin.set((app.rng.stream('cosmetic').next() - 0.5) * 30, (app.rng.stream('cosmetic').next() - 0.5) * 30, (app.rng.stream('cosmetic').next() - 0.5) * 30);
-    b.mesh.quaternion.copy(cam.quaternion).multiply(_q.setFromAxisAngle(_v1.set(0, 1, 0), Math.PI / 2));
-    b.life = this.profile.brass.life; b.down = false; b.mesh.visible = true;
-    b.floor = brassFloor(b.mesh.position, b.vel) + 0.005;
+  private ejectBrass(): void {
+    ejectBrass(this.brass, RANGED_BRASS.magazine, this.model, this.game.camera, this.port, this.profile.brass.life, _v1, _v2, _v3, _q);
   }
 
-  private stepBrass(dt: number): void { stepBrass(this.brass, dt); }
 
   /** Shouldered pose: rotation 0, sight line on the eye, rear aperture at near + margin. Depends on the scale only. */
   private solveAds(scale: number) {
@@ -340,7 +310,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
 
     this.feel.scanAim(this, this.targets, this.active, _o, _d, _v2, this.model);
 
-    this.stepBrass(dt);
+    stepBrass(this.brass, dt);
     this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.tracers, this.paintTracer);
   }
   protected override animateAction(_t: number, _dt: number): void {

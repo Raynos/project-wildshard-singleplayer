@@ -2,19 +2,18 @@ import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
 import { RangedFrame, RangedTrace, RangedFlash } from '@wildshard/engine/render/viewmodelFeel';
-import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH } from '../../data/rangedFrame';
+import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_HIT, RANGED_BRASS } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Firearm } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';
-import { stepBrass, brassFloor } from '@wildshard/engine/combat/view/brass';
-import { hitscan, type HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
+import { stepBrass, brassRoster, ejectBrass, type BrassCase } from '@wildshard/engine/combat/view/brass';
+import type { HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
 import { Puffs, whiteColors, FOV_HIP, FOV_ADS, isMesh, fixIBL, VIEWMODEL_GROUP, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
 import { SHADOW_LAYER } from '@wildshard/engine/core/shadowLayer';
 import { mergeOrNull } from '@wildshard/engine/models/weld';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { sstep } from '@wildshard/engine/player/viewmodelTextures';
-import { getSetting } from '@wildshard/engine/ui/Settings';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
 
@@ -128,7 +127,6 @@ export interface LeverFirearmOptions<P extends LeverFirearmProfile> extends Rang
   muzzleLight?: boolean;
 }
 
-interface Brass { mesh: THREE.Mesh; vel: THREE.Vector3; spin: THREE.Vector3; life: number; down: boolean; floor: number }
 
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
 const _q = new THREE.Quaternion();
@@ -187,11 +185,12 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   private readonly lever: THREE.Mesh; private readonly hammer: THREE.Mesh; private readonly bolt: THREE.Mesh; private readonly round: THREE.Mesh;
   private readonly flash: RangedFlash; private readonly flashLight: THREE.PointLight;
   private readonly displayParts: { geo: THREE.BufferGeometry; mat: THREE.Material; pos?: THREE.Vector3; rot?: THREE.Euler }[] = [];
-  private readonly brass: Brass[] = [];
+  private readonly brass: BrassCase[] = [];
   private readonly brassMat: THREE.MeshPhysicalMaterial;
   private readonly caseGeo: THREE.BufferGeometry;
   private readonly tracers: RangedTrace[] = []; private readonly paintTracer = (trace: RangedTrace, time: number, _camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.publish(time, _camera, resolution, this.tracerLife); };
   private readonly puffs = new Puffs();
+  private readonly hitMuzzle: [number,number,number] = [...RANGED_HIT.lever.muzzle];
   /** the shard's hands on the model (LeverFirearmOptions.hands), null without */
   private hands: LeverFirearmHands | null = null;
   private readonly makeHands: ((model: THREE.Group) => LeverFirearmHandsBuilt) | null;
@@ -277,12 +276,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     });
 
     whiteColors(this.caseGeo);
-    for (let i = 0; i < this.view.brass.count; i++) {
-      const mesh = new THREE.Mesh(this.caseGeo, this.brassMat);
-      mesh.visible = false; mesh.frustumCulled = false;
-      this.game.scene.add(mesh);
-      this.brass.push({ mesh, vel: new THREE.Vector3(), spin: new THREE.Vector3(), life: 0, down: false, floor: 0 });
-    }
+    this.brass.push(...brassRoster(this.game.scene, this.caseGeo, this.brassMat, this.view.brass.count));
     this.tracers.push(...RangedTrace.roster(this.game.scene, RANGED_TRACE.segment, this.view.tracer.count));
 
     const cam = this.game.camera;
@@ -385,17 +379,8 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   override aimRay(origin: THREE.Vector3, dir: THREE.Vector3): THREE.Vector3 { return super.aimRay(origin, dir); }
 
   private hitscan(): void {
-    const result = hitscan((origin, dir) => this.aimRay(origin, dir), this.targets, this.profile, this.feel.adsBlend, 0, this.player.speedFactor);
-    const { point, direction, surface, hit, killed } = result;
-    if (hit) this.onHit?.(hit.animal.kind, hit.headshot, killed);
-    _d.copy(direction);
-    if (getSetting('tracers')) {
-      const tr = this.tracers.reduce((acc, x) => (x.t0 < acc.t0 ? x : acc));
-      this.model.updateMatrixWorld();
-      this.model.localToWorld(_v3.set(0, 0, this.view.sight.muzzleZ));
-      tr.show(_v3, point, this.time);
-    }
-    if (surface) { this.puffs.emit(point, _d, surface); this.onImpact?.(surface, point); }
+    const muzzle = this.hitMuzzle; muzzle[2] = this.view.sight.muzzleZ;
+    this.feel.publishHitscan(this, this.targets, this.profile, 0, this.player.speedFactor, this.model, muzzle, this.time, this.tracers, this.puffs, _d, _v3);
   }
 
   /** A world-space copy for the cabin pickup / the skin drops: the same geometry, its own copies of the materials (one
@@ -445,19 +430,8 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   }
 
   private ejectCase(): void {
-    const b = this.brass.find((x) => x.life <= 0) ?? this.brass.reduce((acc, x) => (x.life < acc.life ? x : acc));
-    const cam = this.game.camera;
-    this.model.updateMatrixWorld();
-    this.model.localToWorld(b.mesh.position.copy(this.port));
-    _v1.set(1, 0, 0).applyQuaternion(cam.quaternion); _v2.set(0, 1, 0).applyQuaternion(cam.quaternion); cam.getWorldDirection(_v3);
-    // Winchester top eject: up and a little right and back, spinning end over end
-    b.vel.copy(_v2).multiplyScalar(2.6 + app.rng.stream('cosmetic').next() * 0.6).addScaledVector(_v1, 0.8 + app.rng.stream('cosmetic').next() * 0.5).addScaledVector(_v3, -0.6 + app.rng.stream('cosmetic').next() * 0.2);
-    b.spin.set(18 + app.rng.stream('cosmetic').next() * 12, (app.rng.stream('cosmetic').next() - 0.5) * 8, (app.rng.stream('cosmetic').next() - 0.5) * 8);
-    b.mesh.quaternion.copy(cam.quaternion).multiply(_q.setFromAxisAngle(_v1.set(1, 0, 0), -Math.PI / 2));
-    b.life = this.view.brass.life; b.down = false; b.mesh.visible = true;
-    b.floor = brassFloor(b.mesh.position, b.vel) + 0.006;
+    ejectBrass(this.brass, RANGED_BRASS.lever, this.model, this.game.camera, this.port, this.view.brass.life, _v1, _v2, _v3, _q);
   }
-  private stepBrass(dt: number): void { stepBrass(this.brass, dt); }
 
   /** Sighted: rotation 0, the eye on the comb on the sight line — the bead in the notch on the crosshair. */
   private solveAds(scale: number): LeverFirearm['adsPose'] {
@@ -510,7 +484,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
 
     this.feel.scanAim(this, this.targets, this.active, _o, _d, _v2, this.model);
 
-    this.stepBrass(dt);
+    stepBrass(this.brass, dt);
     this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.tracers, this.paintTracer);
   }
 
