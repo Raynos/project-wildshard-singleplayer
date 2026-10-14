@@ -9,6 +9,7 @@ import type { Renderer } from './renderer';
 import type { OffscreenPass } from './look';
 import type { Game } from '../core/Game';
 import { chunkShadowCastersSliced } from '../world/shadowChunks';
+import { CompileLights } from './compileLights';
 import { recordGpuCheckpoint } from '../boot/gpuTrace';
 import { familyCompileJobs } from './families/registry';
 import { shaderPatchTextures } from './shaderPatches';
@@ -69,6 +70,8 @@ export interface CompileJob {
   dispose?: () => void;
   /** Diagnostic family of this job (scene, shadow, exterior…): new programs are counted per kind in the stage trace. */
   kind?: string;
+  /** Detached compile lights; their shadow storage ends with this warm. */
+  lights?: CompileLights;
 }
 
 export interface PrecompileReport { materials: number; jobs: number; programs: number; parallel: boolean }
@@ -118,10 +121,11 @@ function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, sh
   const state = exteriorLighting.get(scene);
   if (state === undefined) return [];
   const target = new THREE.Scene();
+  const lights = new CompileLights();
   target.fog = scene.fog; target.environment = state.environment;
   const visit = (object: THREE.Object3D): void => {
     if (!object.visible || state.roots.has(object)) return;
-    if (object instanceof THREE.Light) target.add(object.clone(false));
+    if (object instanceof THREE.Light) target.add(lights.copy(object));
     for (const child of object.children) visit(child);
   };
   visit(scene);
@@ -134,7 +138,7 @@ function exteriorJobs(scene: THREE.Scene, rt: THREE.WebGLRenderTarget | null, sh
     ? [...exterior, ...familyCompileJobs(scene, rt, per, excludedMaterials), ...(shadows ? shadowJobs(scene, rt, per, state.roots) : [])]
     : exterior;
   // Passes with their own scene keep their authored state. Only the page world/depth variants transition outside.
-  for (const job of jobs) if (job.target === scene) job.target = target;
+  for (const job of jobs) if (job.target === scene) { job.target = target; job.lights = lights; }
   return jobs;
 }
 
@@ -355,7 +359,9 @@ export function includeFutureLights(jobs: readonly CompileJob[], target: THREE.S
   };
   visit(future);
   for (const job of jobs) if (job.target === target) {
-    for (const light of added) job.root.add(light.clone(false));
+    const lights = job.lights ?? new CompileLights();
+    for (const light of added) job.root.add(lights.copy(light));
+    job.lights = lights;
     if (environment !== null) job.environment = environment;
   }
 }
@@ -668,7 +674,10 @@ export async function runPrecompile(
   };
   for (const texture of textures) watch(texture);
   try { return await runPrecompileWork(renderer, camera, jobs, materials, onProgress, textures, current, retired, watch, isolateImageUploads, pause, uploadBudget, onStage, sliceMs); }
-  finally { observer.dispose(); }
+  finally {
+    observer.dispose();
+    for (const lights of new Set(jobs.flatMap(job => job.lights === undefined ? [] : [job.lights]))) lights.dispose();
+  }
 }
 
 async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs: CompileJob[], materials: number,
@@ -717,6 +726,7 @@ async function runPrecompileWork(renderer: Renderer, camera: THREE.Camera, jobs:
       if (job.environment !== undefined && job.target) job.target.environment = job.environment;
       if (job.toneMapping !== undefined) renderer.toneMapping = job.toneMapping;
       renderer.setRenderTarget(job.rt);
+      job.lights?.prepare();
       renderer.compile(job.root, job.camera ?? camera, job.target ?? undefined);
       job.root.traverse(object => { for (const material of materialsOf(object)) jobPrograms.add(currentProgram(renderer, material)); });
     } finally {
