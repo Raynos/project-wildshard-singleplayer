@@ -3,7 +3,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { audioLog } from '@wildshard/engine/audio/audioLog';
 import { cachedBytes, decodeBytes } from '@wildshard/engine/audio/preload';
-import { publicBytes, sfxManifests } from '@wildshard/engine/boot/tables';
+import { cueFile, cueManifest, cueFamilyNames, cueSprite, cutCueSprite, type SampleClip } from '@wildshard/engine/audio/Cues';
 import { tap } from '@wildshard/engine/core/harnessTap';
 import { getSfxSet } from '@wildshard/engine/ui/Settings';
 /**
@@ -53,29 +53,23 @@ export interface PhLoop { buffer: AudioBuffer; loopStart: number; loopEnd: numbe
 export interface PhPlay { at?: { x: number; y: number; z: number } | undefined; gain?: number; pan?: number; out?: AudioNode }
 
 const SET = 'pine-hollow';
-const DIR = `/assets/sfx/${SET}/`;
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
 const num = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : d);
-const file = (v: unknown): string | undefined => (typeof v === 'string' && !v.includes('..') && !v.includes('/') && `${DIR}${v}` in publicBytes() ? `${DIR}${v}` : undefined);
+const file = (value:unknown):string|undefined => cueFile(SET,value);
 /** each bark's level against the one-shots (-18 LUFS): a voice sits a little under a gunshot */
 const BARK_GAIN = 0.8;
 
 /** one take of a family: a slice of a decoded buffer — the sprite's (no copy: `start(when, offset, duration)`), or a whole file's */
-interface Clip { buffer: AudioBuffer; offset: number; duration: number }
-const whole = (buffer: AudioBuffer): Clip => ({ buffer, offset: 0, duration: buffer.duration });
+type Clip = SampleClip;
+const whole = (buffer: AudioBuffer): Clip => ({ buffer, offset: 0, duration: buffer.duration, gain:1 });
 
 /** the one-shots + barks decoded at the loading bar (`decodePineShots`), shared by every PineHollowSfx */
 const barShots = new Map<string, Clip[]>();
-const manifestOf = (): Record<string, unknown> | undefined => { const m = sfxManifests()[SET]; return isObj(m) ? m : undefined; };
+const manifestOf = ():Record<string,unknown>|undefined => cueManifest(SET);
 /** the file names one-shot `family` lists in `manifest` (its takes; packed into the sprite or files of their own) */
-function familyNames(manifest: Record<string, unknown> | undefined, family: string): string[] {
-  const o = manifest?.['oneshots'], v = isObj(o) ? o[family] : undefined;
-  const list: unknown[] = Array.isArray(v) ? v : isObj(v) && Array.isArray(v['files']) ? v['files'] : [];
-  return list.filter((f): f is string => typeof f === 'string');
-}
 /** the files of one-shot `family` in `manifest` (URLs) — a set without a sprite */
 const familyFiles = (manifest: Record<string, unknown> | undefined, family: string): string[] =>
-  familyNames(manifest, family).map(file).filter((u): u is string => u !== undefined);
+  cueFamilyNames(manifest, family).map(file).filter((u): u is string => u !== undefined);
 
 /**
  * The audio sprite (scripts/music/gen/sfx_sprite.py): every one-shot + bark packed into ONE file, so the loading bar fetches
@@ -83,30 +77,10 @@ const familyFiles = (manifest: Record<string, unknown> | undefined, family: stri
  * still list their takes by name. undefined = a set without one (an older build, a regeneration not yet packed): one file
  * per take, as before.
  */
-interface Sprite { url: string; clips: ReadonlyMap<string, Readonly<{ offset: number; duration: number }>> }
-function spriteOf(manifest: Record<string, unknown> | undefined): Sprite | undefined {
-  const s = manifest?.['sprite'], url = isObj(s) ? file(s['file']) : undefined, c = isObj(s) ? s['clips'] : undefined;
-  if (url === undefined || !isObj(c)) return undefined;
-  const clips = new Map<string, { offset: number; duration: number }>();
-  for (const [name, v] of Object.entries(c)) {
-    const pair: unknown[] = Array.isArray(v) ? v : [], offset = pair[0], duration = pair[1];
-    if (typeof offset === 'number' && typeof duration === 'number' && offset >= 0 && duration > 0) clips.set(name, { offset, duration });
-  }
-  return { url, clips };
-}
-/** every family of `manifest` cut from the decoded sprite `buffer` into `into` (a take past the buffer's end is left out) */
-function cutSprite(manifest: Record<string, unknown> | undefined, sprite: Sprite, buffer: AudioBuffer, into: Map<string, Clip[]>): void {
-  const o = manifest?.['oneshots'];
-  if (!isObj(o)) return;
-  for (const family of Object.keys(o)) {
-    const clips: Clip[] = [];
-    for (const name of familyNames(manifest, family)) {
-      const c = sprite.clips.get(name);
-      if (c && c.offset + c.duration <= buffer.duration + 0.001) clips.push({ buffer, offset: c.offset, duration: c.duration });
-    }
-    if (clips.length > 0) into.set(family, clips);
-  }
-}
+const spriteOf = (manifest:Record<string,unknown>|undefined):ReturnType<typeof cueSprite> => cueSprite(SET,manifest);
+const cutSprite = (manifest:Record<string,unknown>|undefined,sprite:NonNullable<ReturnType<typeof cueSprite>>,buffer:AudioBuffer,into:Map<string,Clip[]>):void => {
+  cutCueSprite(manifest,sprite,buffer,into,{tolerance:0.001,arrayFamilies:true,familyGain:false});
+};
 const why = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
 /** every one-shot + bark file of the set (URLs) — what the loading bar decodes (`decodePineShots`): the sprite, or one per take */

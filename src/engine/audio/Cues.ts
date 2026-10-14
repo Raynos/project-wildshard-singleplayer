@@ -18,6 +18,44 @@ const obj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' 
 const num = (v: unknown, d: number): number => typeof v === 'number' && Number.isFinite(v) ? v : d;
 const file = (dir: string, v: unknown): string | undefined => typeof v === 'string' && !v.includes('..') && !v.includes('/') && shipped(`${dir}${v}`) ? `${dir}${v}` : undefined;
 
+/** One shipped sprite and its original take offsets; no PCM is copied. */
+export interface CueSprite { url:string;clips:ReadonlyMap<string,Readonly<{offset:number;duration:number}>> }
+/** The installed recording catalogue, shared by eager banks and lazy family players. */
+export function cueManifest(key:string):Record<string,unknown>|undefined {const raw=sfxManifests()[key];return obj(raw)?raw:undefined;}
+/** Resolve only a confined filename present in the shipped byte table. */
+export function cueFile(key:string,value:unknown):string|undefined {return file(`/assets/sfx/${key}/`,value);}
+/** Original family order for array and object-form manifests. */
+export function cueFamilyNames(manifest:Record<string,unknown>|undefined,family:string):string[] {
+  const rows=manifest?.['oneshots'],value=obj(rows)?rows[family]:undefined;
+  const list:unknown[]=Array.isArray(value)?value:obj(value)&&Array.isArray(value['files'])?value['files']:[];
+  return list.filter((name):name is string=>typeof name==='string');
+}
+/** Admit a sprite's shipped file and positive slice bounds without decoding it. */
+export function cueSprite(key:string,manifest:Record<string,unknown>|undefined):CueSprite|undefined {
+  const sprite=manifest?.['sprite'],url=obj(sprite)?cueFile(key,sprite['file']):undefined,raw=obj(sprite)?sprite['clips']:undefined;
+  if(url===undefined||!obj(raw))return undefined;
+  const clips=new Map<string,{offset:number;duration:number}>();
+  for(const [name,value]of Object.entries(raw)){
+    const pair:unknown[]=Array.isArray(value)?value:[],offset=pair[0],duration=pair[1];
+    if(typeof offset==='number'&&typeof duration==='number'&&offset>=0&&duration>0)clips.set(name,{offset,duration});
+  }
+  return {url,clips};
+}
+/** Cut named slices on one buffer, retaining each caller's end tolerance and gain policy. */
+export function cutCueSprite(manifest:Record<string,unknown>|undefined,sprite:CueSprite,buffer:AudioBuffer,
+  into:Map<string,SampleClip[]>,policy:{tolerance:number;arrayFamilies:boolean;familyGain:boolean}):void {
+  const families=manifest?.['oneshots'];if(!obj(families))return;
+  for(const [family,value]of Object.entries(families)){
+    if(!policy.arrayFamilies&&(!obj(value)||!Array.isArray(value['files'])))continue;
+    const clips:SampleClip[]=[];
+    for(const name of cueFamilyNames(manifest,family)){
+      const clip=sprite.clips.get(name);
+      if(clip!==undefined&&clip.offset+clip.duration<=buffer.duration+policy.tolerance)clips.push({buffer,offset:clip.offset,duration:clip.duration,gain:policy.familyGain&&obj(value)?num(value['gain'],1):1});
+    }
+    if(clips.length>0)into.set(family,clips);
+  }
+}
+
 /** An own set uses one sprite for shots, plus its beds and positional loops. */
 export function cueFiles(key: string): string[] {
   const raw = sfxManifests()[key], dir = `/assets/sfx/${key}/`;
@@ -69,22 +107,8 @@ export async function decodeCueSet(key: string, read: AudioRead, decode: AudioDe
     }
     return bank;
   }
-  if (!obj(sprite['clips'])) return bank;
-  const url = file(dir, sprite['file']), buffer = url ? buffers.get(url) : undefined;
-  if (!buffer) return bank;
-  const clips = sprite['clips'];
-  for (const [family, value] of Object.entries(shots)) {
-    if (!obj(value) || !Array.isArray(value['files'])) continue;
-    const decoded: SampleClip[] = [];
-    for (const name of value['files']) {
-      if (typeof name !== 'string') continue;
-      const bounds = clips[name];
-      if (!Array.isArray(bounds)) continue;
-      const offset = num(bounds[0], -1), duration = num(bounds[1], -1);
-      if (offset >= 0 && duration > 0 && offset + duration <= buffer.duration + 0.05) decoded.push({ buffer, offset, duration, gain: num(value['gain'], 1) });
-    }
-    if (decoded.length > 0) bank.shots.set(family, decoded);
-  }
+  const parsed=cueSprite(key,raw),buffer=parsed===undefined?undefined:buffers.get(parsed.url);
+  if(parsed!==undefined&&buffer!==undefined)cutCueSprite(raw,parsed,buffer,bank.shots,{tolerance:0.05,arrayFamilies:false,familyGain:true});
   return bank;
 }
 
