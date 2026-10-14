@@ -10,15 +10,14 @@ import { addDriftLog, DRIFT } from '../world/driftLogs';
 import type { WreckSpec, WreckAnchor, HoldBounds } from '../assets/contracts/wreck';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
+import { wreckCatalogue } from './wreckCatalogue';
 
 /** Authored draw and native layout of the canonical Wreck Cove site. */
 export interface WreckSiteBake {
   geometry: {kit:THREE.BufferGeometry;glow:THREE.BufferGeometry;rocks:THREE.BufferGeometry};
   rows: {spec:WreckSpec;floorY:number;colliders:BoxSpec[];descs:ColliderDesc[];
     anchors:Record<string,WreckAnchor>;holdBounds:HoldBounds;floor:ReturnType<ShipwreckBuilder['floorRows']>;shipBox:number[];
-    cargo:{kind:CargoCopy['kind'];matrix:number[];size:number}[];
-    logs:{a:number[];b:number[];r:number;tone:number}[];
-    rocks:{matrix:number[];r:number;moss:number;min:number[];max:number[]}[]};
+    catalogue:ReturnType<typeof wreckCatalogue>};
 }
 
 /** Build the complete Wreck Cove draw with its original ordered surroundings and shared AO. */
@@ -133,7 +132,5 @@ export function wreckSite(spec: WreckSpec, heightAt: (x: number, z: number) => n
   return { geometry: { kit: geometry.geometry, glow: geometry.glow, rocks: reefGeometry },
     rows: { spec, floorY: ship.floorY, colliders: ship.colliders, descs: ship.colliderDescs(),
       anchors: ship.anchors, holdBounds: ship.holdBounds, floor: ship.floorRows(), shipBox: [...box.min, ...box.max],
-      cargo: [...ship.cargo, ...cargo].map(row => ({ kind: row.kind, matrix: row.matrix.toArray(), size: row.size })),
-      logs: logs.map(row => ({ a: row.a.toArray(), b: row.b.toArray(), r: row.r, tone: row.tone })),
-      rocks: rocks.map(row => ({ matrix: row.m.toArray(), r: row.r, moss: row.moss, min: row.box.min.toArray(), max: row.box.max.toArray() })) } };
+      catalogue: wreckCatalogue([...ship.cargo,...cargo],logs,rocks) } };
 }
