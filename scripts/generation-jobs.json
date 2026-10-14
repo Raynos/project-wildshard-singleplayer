@@ -12261,6 +12261,38 @@
         "src/shards/far-reach/data/millScene.generated.ts"
       ],
       "platform": "portable"
+    },
+    {
+      "id": "sky-crown-scene",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/crownScene.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/crownScene.ts",
+        "crownSceneSource",
+        "src/shards/far-reach/data/crownScene.generated.ts",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/generators/crownScene.ts",
+        "src/shards/far-reach/data/crownInstances.generated.json",
+        "src/shards/far-reach/data/layout.ts",
+        "src/shards/far-reach/data/strings.ts"
+      ],
+      "outputs": [
+        "src/shards/far-reach/data/crownScene.generated.ts"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/far-reach/data/crownScene.generated.ts"
+      ],
+      "platform": "portable"
     }
   ]
 }
