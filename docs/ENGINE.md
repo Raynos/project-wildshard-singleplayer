@@ -5035,3 +5035,10 @@ Vertex use refuses before compilation. `cross(vec3, vec3)` returns vec3;
 `normalize(cross(dFdx(positionWorld), dFdy(positionWorld)))` derives a
 faceted surface normal without geometry or a content shader. Each op is
 counted in the declared graph instruction budget.
+
+Material graph `gerstner(restXZ, seconds, damping)` returns the engine
+ocean's vec3 surface displacement. Its four fixed waves read the same
+`engine/world/waves.GERSTNER_TERMS` as CPU `waveDisplace`; there is no
+authored program, extra wave clock or CPU allocation per sample. Inputs
+are vec2, float, float; use the result in vertex displacement or fragment
+work. The graph admission charges 120 estimated instructions per call.

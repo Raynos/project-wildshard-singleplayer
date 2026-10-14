@@ -268,7 +268,7 @@ type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade' |
 /** how an op types its inputs */
 type TypeRule =
   | 'input' | 'const' | 'param' | 'same' | 'unary' | 'vecUnary' | 'length' | 'dot' | 'mix' | 'compare' | 'logic' | 'not'
-  | 'cross' | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'point3' | 'pointPair' | 'dir3' | 'sceneTap'
+  | 'cross' | 'gerstner' | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'point3' | 'pointPair' | 'dir3' | 'sceneTap'
   | 'varying' | 'attribute' | 'arrayElement' | 'cameraBillboard';
 /** one op of the vocabulary */
 export interface GraphOpSpec {
@@ -355,6 +355,8 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   param: { arity: [0, 0], rule: 'param', cost: 0 },
   // Float index is floored and clamped to the declared fixed-capacity list.
   arrayElement: { arity: [1, 1], rule: 'arrayElement', cost: 4 },
+  // Fixed CPU ocean coefficients: rest XZ, seconds, damping.
+  gerstner: { arity: [3, 3], rule: 'gerstner', cost: 120, type: 'vec3' },
   // arithmetic (a float broadcasts to a vector)
   add: { arity: [2, 2], rule: 'same', cost: 1 },
   sub: { arity: [2, 2], rule: 'same', cost: 1 },
@@ -698,6 +700,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       case 'vecUnary': return ins[0] !== undefined && VEC_LEN[ins[0]] > 1 && isNumeric(ins[0]) ? ins[0] : fail(`${at}: ${op} takes a vector`);
       case 'length': return ins[0] !== undefined && isNumeric(ins[0]) ? 'float' : fail(`${at}: length takes a number`);
       case 'cross': return ins[0] === 'vec3' && ins[1] === 'vec3' ? 'vec3' : fail(`${at}: cross takes two vec3 values`);
+      case 'gerstner': return ins[0] === 'vec2' && ins[1] === 'float' && ins[2] === 'float' ? 'vec3' : fail(`${at}: gerstner takes vec2, float, float`);
       case 'dot': return ins[0] !== undefined && ins[0] === ins[1] && VEC_LEN[ins[0]] > 1 && isNumeric(ins[0]) ? 'float' : fail(`${at}: dot takes two vectors of one size`);
       case 'mix': {
         const t = broadcast([ins[0] ?? 'bool', ins[1] ?? 'bool']);

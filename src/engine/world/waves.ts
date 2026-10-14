@@ -25,19 +25,22 @@ export function seaDamp(depth: number): number {
 
 const TAU = Math.PI * 2;
 
+/** Shared CPU/material-graph Gerstner coefficients, derived once from the immutable wave rows. */
+export const GERSTNER_TERMS = Object.freeze(WAVES.map(([x, z, amplitude, length, speed, q]) => {
+  const k = TAU / length, qa = (q / (k * amplitude * WAVES.length)) * amplitude;
+  return Object.freeze({ x, z, amplitude, k, speed, horizontalX: x * qa, horizontalZ: z * qa });
+}));
+
 /** displacement (dx, dy, dz) of the surface point whose rest position is (x, z) */
 export function waveDisplace(x: number, z: number, t: number, damp: number, out: { x: number; y: number; z: number }): { x: number; y: number; z: number } {
   let dx = 0, dy = 0, dz = 0;
   // an index loop: the destructuring for-of was garbage in every call (the boat, the floats, the foam — E186)
-  for (let w = 0; w < WAVES.length; w++) {
-    const wave = WAVES[w];
+  for (let w = 0; w < GERSTNER_TERMS.length; w++) {
+    const wave = GERSTNER_TERMS[w];
     if (wave === undefined) continue;
-    const wx = wave[0], wz = wave[1], a = wave[2], len = wave[3], speed = wave[4], q = wave[5];
-    const k = TAU / len;
-    const ph = k * (wx * x + wz * z - speed * t);
-    const c = Math.cos(ph), s = Math.sin(ph);
-    const qa = (q / (k * a * WAVES.length)) * a;
-    dx += wx * qa * c; dz += wz * qa * c; dy += a * s;
+    const ph = wave.k * (wave.x * x + wave.z * z - wave.speed * t);
+    const c = Math.cos(ph), sine = Math.sin(ph);
+    dx += wave.horizontalX * c; dz += wave.horizontalZ * c; dy += wave.amplitude * sine;
   }
   out.x = dx * damp; out.y = dy * damp; out.z = dz * damp;
   return out;

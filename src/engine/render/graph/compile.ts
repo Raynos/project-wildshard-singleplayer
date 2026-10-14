@@ -41,6 +41,7 @@ import {
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, reference, positionGeometry, positionLocal,
   positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
+import { GERSTNER_TERMS } from '../../world/waves';
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
 import { layerFrameOf } from '../nodeLayerFrame';
@@ -559,6 +560,16 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       }
       case 'oneMinus': { const v = one(); return { t: v.t, n: new OperatorNode('-', widen({ t: 'float', n: float(1) }, v.t), v.n) }; }
       case 'saturate': { const v = one(); return { t: v.t, n: new MathNode('clamp', v.n, float(0), float(1)) }; }
+      case 'gerstner': {
+        const [point, clock, damping] = three(), p = asVec2(point), t = asFloat(clock);
+        let sum: Node<'vec3'> = vec3(0);
+        for (const wave of GERSTNER_TERMS) {
+          const phase = p.x.mul(wave.x).add(p.y.mul(wave.z)).sub(t.mul(wave.speed)).mul(wave.k);
+          const cosine = phase.cos();
+          sum = sum.add(vec3(cosine.mul(wave.horizontalX), phase.sin().mul(wave.amplitude), cosine.mul(wave.horizontalZ)));
+        }
+        return { t: 'vec3', n: sum.mul(asFloat(damping)) };
+      }
       case 'length': return { t: 'float', n: new MathNode('length', one().n) };
       case 'viewToWorld': return { t: 'vec3', n: new MathNode('normalize', new SplitNode(new OperatorNode('*', new JoinNode([one().n, float(0)]), cameraViewMatrix), 'xyz')) };
       case 'worldToLocal': return { t: 'vec3', n: new SplitNode(new OperatorNode('*', new JoinNode([one().n, float(0)]), modelWorldMatrix), 'xyz') };
