@@ -10,7 +10,6 @@ import { BRAZIERS } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { buildTower, type TowerParts } from './tower';
 import { buildBrazier, buildCaravan, buildWell, type BrazierParts, type WellParts } from './places';
-import { drapeGroundAt } from './drapeGround';
 import { signalPieces, type BakedWorld } from './baked';
 import { fireLight, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
@@ -46,8 +45,9 @@ const WAY_LIGHT = 9;
 const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales the point lights on flat sand (x0.55 of round 24's)
 
 export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): SignalWorld {
-  // the pools drape over the original ground lattice's blocks round their sites (world/drapeGround.ts), not the live collider
-  const groundAt = drapeGroundAt();
+  const ground = ctx.manifest.ground.terrain;
+  if (ground === undefined) throw new Error('Signal fire pools require admitted terrain');
+  const groundAt = ground.heightAt;
   // SF72: the tower's frame, the places' code-built parts and colliders, the rock field and its dressing are baked offline
   // (generators/*.ts); the client adds the models and what lives (data/pieces.ts lists them)
   const pieces = signalPieces(ctx.piece, ctx.root, baked);
