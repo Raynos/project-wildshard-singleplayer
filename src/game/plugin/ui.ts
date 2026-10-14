@@ -1,8 +1,8 @@
 import { ktx2TranscodeSupport } from '@wildshard/engine/core/ktx2';
 import type { MoverView } from './mover';
 import "../quest/presentation.css";
-import { parseClientChannels, parsePrivateScene, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
-import { AdditiveBlending, Matrix4, InstancedMesh, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
+import { compileTubeCurve, parseClientChannels, parsePrivateScene, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
+import { BufferAttribute, AdditiveBlending, Matrix4, InstancedMesh, Euler, PerspectiveCamera, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { ParticlePool, pointScale } from '@wildshard/engine/fx/ParticlePool';
 import { CLIENT_SCRIPT_LIMITS, type ClientScriptFrame } from '@wildshard/engine/script/client';
@@ -635,6 +635,19 @@ export function createClientChannels(input: unknown): {
 /** A trusted private view supplies its own declared geometry kernel; admission never accepts a function. */
 export type ClientGeometryKernels = ReadonlyMap<string, (row: NonNullable<ClientChannelProgram['geometry']>, target: unknown) => (frame: ClientTubeFrame, time: number) => void>;
 
+function bindTubeCurve(row: NonNullable<ClientChannelProgram['geometry']>, target: unknown): (frame: ClientTubeFrame,time:number)=>void {
+  if(!(target instanceof Mesh))throw new Error('Tube target requires its owned mesh');
+  const candidate: unknown=target.geometry;
+  if(!(candidate instanceof BufferGeometry))throw new Error('Tube target requires its owned geometry');
+  const geometry=candidate,position:unknown=geometry.getAttribute('position'),attributes:unknown=geometry.attributes;
+  if(attributes===null||typeof attributes!=='object')throw new Error('Missing tube attributes');
+  if(position===undefined&&Object.keys(attributes).length===0&&geometry.index===null)return ()=>undefined;
+  const tube=compileTubeCurve({segments:row.segments,radial:row.radial,bend:row.bend,ripple:row.ripple,drop:row.drop,radius:row.radius});
+  if(!(position instanceof BufferAttribute)||!(position.array instanceof Float32Array)||position.itemSize!==3||position.count!==tube.vertices)throw new Error('Tube mesh layout differs');
+  const positions=position.array;
+  return (frame,time)=>{tube.write(positions,frame,time);position.needsUpdate=true;geometry.computeVertexNormals();geometry.computeBoundingSphere();};
+}
+
 /** Bind admitted numeric outputs only to named private scene objects; authoritative player/shared objects refuse. */
 export function createClientChannelView(input: unknown, targets: ReadonlyMap<string, unknown>, kernels?: ClientGeometryKernels, changed?: (mesh: InstancedMesh) => void): ReturnType<typeof createClientChannels> {
   const program = parseClientChannels([input])[0];
@@ -643,8 +656,7 @@ export function createClientChannelView(input: unknown, targets: ReadonlyMap<str
   if (program.geometry !== undefined) {
     const target = targets.get(program.geometry.target), kernel = kernels?.get(program.geometry.target);
     if (!(target instanceof Object3D)) throw new Error('Geometry target must be a private scene object');
-    if (kernel === undefined) throw new Error('Missing trusted private geometry kernel');
-    curve = kernel(program.geometry, target);
+    curve = kernel === undefined ? bindTubeCurve(program.geometry, target) : kernel(program.geometry, target);
   }
   const bindings = (program.bindings ?? []).map(binding => {
     const object = targets.get(binding.target);

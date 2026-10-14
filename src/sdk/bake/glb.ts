@@ -1,19 +1,60 @@
-import { BufferAttribute, Float16BufferAttribute, Box3, Matrix4, type Color, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3, Group, Mesh, type Material, type Object3D, type BufferGeometry } from 'three';
+import { BufferAttribute, Float16BufferAttribute, Box3, Matrix4, type Color, MeshBasicMaterial, MeshStandardMaterial, Quaternion, Vector3, Group, Mesh, type Material, type Object3D, BufferGeometry, Euler } from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { parseGlb } from '../assets';
-import { parsePrivateScene, type PrivateScene } from '@wildshard/format/clientChannels';
+import { parsePrivateScene, compileTubeCurve, type TubeCurveProfile, type TubeCurveFrame, type PrivateScene } from '@wildshard/format/clientChannels';
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
 
 /** Geometry GLB and the existing private-scene rows; actual materials remain owned client ports. */
 export interface ClientSceneBake { readonly glb: Uint8Array; readonly scene: PrivateScene }
 
+/** A bounded authored strand, optionally placed within its named scene mesh. */
+export interface ClientSceneCurve {
+  readonly profile: TubeCurveProfile; readonly frame: TubeCurveFrame; readonly time?: number;
+  readonly position?: readonly [number, number, number]; readonly rotation?: readonly [number, number, number];
+}
+/** Named curve meshes share the runtime tube sampler; absent preserves ordinary geometry. */
+export interface ClientSceneOptions { readonly curves?: ReadonlyMap<string, readonly ClientSceneCurve[]> }
+function curveGeometry(rows: readonly ClientSceneCurve[]): BufferGeometry {
+  if (rows.length === 0 || rows.length > 32) throw new Error('Authored curves exceed their bounded roster');
+  const parts: BufferGeometry[] = []; let vertices = 0;
+  try {
+    for (const row of rows) {
+      const tube = compileTubeCurve(row.profile); vertices += tube.vertices;
+      if (vertices > 65536) throw new Error('Authored curve mesh exceeds its vertex budget');
+      const positions = new Float32Array(tube.vertices * 3); tube.write(positions, row.frame, row.time ?? 0);
+      const { segments, radial, caps } = row.profile, indices: number[] = [];
+      for (let s = 0; s < segments; s++) for (let r = 0; r < radial; r++) {
+        const a = s * radial + r, b = s * radial + (r + 1) % radial, c = a + radial, d = b + radial;
+        indices.push(a, b, c, b, d, c);
+      }
+      if (caps === true) {
+        const bottom = (segments + 1) * radial, top = bottom + radial + 1;
+        for (let r = 0; r < radial; r++) {
+          const next = (r + 1) % radial;
+          indices.push(bottom, bottom + next + 1, bottom + r + 1, top, top + r + 1, top + next + 1);
+        }
+      }
+      const geometry = new BufferGeometry(); parts.push(geometry);
+      geometry.setAttribute('position', new BufferAttribute(positions, 3));
+      geometry.setIndex(new BufferAttribute(new Uint16Array(indices), 1)); geometry.computeVertexNormals();
+      const position = row.position ?? [0, 0, 0], rotation = row.rotation ?? [0, 0, 0];
+      if ([...position, ...rotation].some(value => !Number.isFinite(value) || Math.abs(value) > 1e5)) throw new Error('Invalid authored curve pose');
+      geometry.applyMatrix4(new Matrix4().compose(new Vector3(...position), new Quaternion().setFromEuler(new Euler(...rotation)), new Vector3(1, 1, 1)));
+    }
+    const result = mergeGeometries(parts);
+    result.computeBoundingBox(); result.computeBoundingSphere(); return result;
+  } finally { for (const geometry of parts) geometry.dispose(); }
+}
+
 function ordinaryMesh(value: Object3D): value is Mesh { return value instanceof Mesh && value.type === 'Mesh'; }
 
 /** Bake named ordinary groups and meshes without fitting geometry or serializing shader/material owners. */
-export function clientSceneGlb(root: Group, ports: ReadonlyMap<Material, string>): ClientSceneBake {
+export function clientSceneGlb(root: Group, ports: ReadonlyMap<Material, string>, options: ClientSceneOptions = {}): ClientSceneBake {
   const nodes: PrivateScene['nodes'] = [], materials: PrivateScene['materials'] = [], primitives: GlbPrimitive[] = [];
   const identities = new Set<string>(), namedMaterials = new Map<string, Material>();
-  const geometryMaterial = new MeshStandardMaterial();
+  const geometryMaterial = new MeshStandardMaterial(), ownedCurves: BufferGeometry[] = [], usedCurves = new Set<string>();
+  if ((options.curves?.size ?? 0) > 128) throw new Error('Too many authored curve targets');
   const visit = (object: Object3D): void => {
     if (identities.size >= 128) throw new Error('Rest scene exceeds its bounded part roster');
     if (!/^[a-z][a-zA-Z0-9-]{0,95}$/u.test(object.name) || identities.has(object.name)) throw new Error('Rest scene requires unique loader-safe part names');
@@ -34,7 +75,9 @@ export function clientSceneGlb(root: Group, ports: ReadonlyMap<Material, string>
         if (namedMaterials.size >= 32) throw new Error('Rest scene exceeds its bounded material roster');
         namedMaterials.set(material, object.material); materials.push({ kind: 'port', id: material, source: material });
       }
-      const geometry: BufferGeometry = object.geometry; const sphere = geometry.boundingSphere, box = geometry.boundingBox;
+      const curves = options.curves?.get(object.name), geometry = curves === undefined ? object.geometry : curveGeometry(curves);
+      if (curves !== undefined) { ownedCurves.push(geometry); usedCurves.add(object.name); }
+      const sphere = geometry.boundingSphere, box = geometry.boundingBox;
       for (const [channel, attribute] of Object.entries(geometry.attributes)) {
         const width = ['uv','uv1'].includes(channel) ? 2 : channel === 'tangent' ? 4 : ['position', 'normal', 'color'].includes(channel) ? 3 : undefined;
         if (width === undefined || !(attribute instanceof BufferAttribute) || !(attribute.array instanceof Float32Array)
@@ -53,9 +96,10 @@ export function clientSceneGlb(root: Group, ports: ReadonlyMap<Material, string>
   };
   try {
     visit(root);
+    if (usedCurves.size !== (options.curves?.size ?? 0)) throw new Error('Authored curve target is not a declared mesh');
     const scene = parsePrivateScene({ version: 1, root: root.name, nodes, materials });
     return { scene, glb: staticGlb(primitives, root.name) };
-  } finally { geometryMaterial.dispose(); }
+  } finally { geometryMaterial.dispose(); for (const geometry of ownedCurves) geometry.dispose(); }
 }
 /** A primitive's geometry, material and optional instanced local transforms; textures are separate declared assets. */
 export interface GlbPrimitive {

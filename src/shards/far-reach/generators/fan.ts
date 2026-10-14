@@ -190,14 +190,17 @@ export async function bakeSkyFan(read: (url: string) => Uint8Array): Promise<{ g
   const rivet = new SphereGeometry(0.008, 8, 6); rivet.translate(0, 0, 0.019); plates.push(rivet);
   const platesAt = add(mergeGeometries(plates.map((g) => g.index === null ? g : g.toNonIndexed())));
   // the tassel's long silk fringe (mockup C)
-  const fringe: BufferGeometry[] = [];
+  type Curve = NonNullable<Parameters<typeof clientSceneGlb>[2]>['curves'] extends ReadonlyMap<string, readonly (infer Row)[]> | undefined ? Row : never;
+  const fringe: Curve[] = [];
   for (let i = 0; i < 11; i++) {
-    const a = (i / 11) * Math.PI * 2, r = i === 0 ? 0 : 0.0045, len = 0.075 + ((i * 37) % 7) * 0.003, g = new CylinderGeometry(0.0016, 0.0024, len, 3);
-    g.translate(0, -len / 2, 0); g.rotateZ(Math.cos(a) * 0.07); g.rotateX(Math.sin(a) * 0.07); g.translate(Math.cos(a) * r, -0.076, Math.sin(a) * r); fringe.push(g.toNonIndexed());
+    const a = (i / 11) * Math.PI * 2, r = i === 0 ? 0 : 0.0045, len = 0.075 + ((i * 37) % 7) * 0.003;
+    fringe.push({profile:{segments:1,radial:3,caps:true,bend:[0,0],ripple:[0,0,0],drop:[0,0],radius:[0.0008,1,0.0016,1,0]},
+      frame:{fromX:0,fromY:-len,fromZ:0,toX:0,toY:0,toZ:0,extent:1,wave:0},
+      rotation:[Math.sin(a)*0.07,0,Math.cos(a)*0.07],position:[Math.cos(a)*r,-0.076,Math.sin(a)*r]});
   }
   const source = await readSourceModel(read(HD_URLS['hand-hd'])), hd = hdGeometry(source.gltf.scene, (material) => source.texture(material) !== null);
   if (hd === null) throw new Error(`far-reach fan: ${HD_URLS['hand-hd']} has no textured mesh`);
-  const strands = add(mergeGeometries(fringe)), hand = add(heroHand(hd.geometry));
+  const strands = add(new BufferGeometry()), hand = add(heroHand(hd.geometry));
   // the ring at the hand's handle foot; the tassel (mockup C; row 3: from the pivot boss in front of the fist): a red cord,
   // a knot, its loops, a bronze bead and cap, and the long silk fringe (the page swings the tassel from its group)
   const part = (g: BufferGeometry, bronze: boolean, at: readonly [number, number, number], scale: readonly [number, number, number] = [1, 1, 1], fan = false): TasselPart => ({ shape: add(g), bronze, fan, at, scale });
@@ -208,7 +211,7 @@ export async function bakeSkyFan(read: (url: string) => Uint8Array): Promise<{ g
   if (geometries.length !== 14) throw new Error('Fan pool differs from its declared shape roster');
   const root = new Group(), material = new MeshStandardMaterial(); root.name = 'fan-pool';
   for (const [index, geometry] of geometries.entries()) { const mesh = new Mesh(geometry, material); mesh.name = `shape${index}`; root.add(mesh); }
-  try { return { glb: clientSceneGlb(root, new Map([[material, 'geometry']])).glb,
+  try { return { glb: clientSceneGlb(root, new Map([[material, 'geometry']]), {curves:new Map([[`shape${strands}`,fringe]])}).glb,
     rows: { panels, sticks, straps: strapsAt, guards, rim, plates: platesAt, strands, hand, grip: HERO_HAND.handle, tassel } }; }
   finally { material.dispose(); for (const geometry of geometries) geometry.dispose(); }
 

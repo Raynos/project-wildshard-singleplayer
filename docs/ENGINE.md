@@ -4541,3 +4541,15 @@ share this verifier; their existing ABI, memory, fuel and entity caps
 remain in force. `createMeleeScriptDriver` accepts the same asset-reader
 port, so a page can read verified product modules without its own copy
 loop. Every restore still constructs its own role and uses one host.
+
+### Declared held and authored tube curves
+
+`compileTubeCurve(profile)` in format/clientChannels admits a bounded ring
+profile and caches its coefficients. Its `write(positions, frame, time)`
+updates an owned Float32 position lattice without frame allocations. The
+client UI binds declared tubeCurve rows to the named private scene mesh.
+SDK `clientSceneGlb(root, materialPorts, {curves})` may generate a named
+mesh from up to 32 authored tube profiles, with optional closed caps and
+local placement. All curves merge into that original mesh; absent options
+keep the ordinary scene path. Signal's animated cord and Sky's baked tassel
+use the same sampler.

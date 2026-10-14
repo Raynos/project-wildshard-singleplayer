@@ -2,8 +2,7 @@ import playback from '../../data/heldPlayback.generated.json' with {type:'json'}
 import { HeldPlayback, HeldMeleeWeapon } from '@wildshard/game/plugin/weaponFamily';
 import { bindMeleeContacts } from '@wildshard/game/plugin/simulation';
 import { Vector3, type BufferGeometry } from 'three';
-import { LashCord } from './lashView';
-import { HD_GLOVE_SIZE, LASH_CORD, WHIP_SCENE, WHIP_WRAP_SCENE } from '../../data/whip';
+import { HD_GLOVE_SIZE, WHIP_SCENE, WHIP_WRAP_SCENE } from '../../data/whip';
 import { COIL_SURFACE } from '../../data/surfaces';
 import lash from '../../data/lash.json' with { type: 'json' };
 import { lastBakedWorld, lastPlait } from '../../world/baked';
@@ -16,12 +15,7 @@ const bakedLash = (kind: string): BufferGeometry | null => { const g = lastBaked
 /** Geometry and shader ports remain private; the admitted scene owns every held-model part. */
 export function buildWhipModel(): HeldPlayback {
   const hd=duneHd('glove-hd4',{size:HD_GLOVE_SIZE,by:'span'}), texels=hd===null?null:lastPlait();
-  return new HeldPlayback(playback,new Map(),(_parts,model)=>{
-    const mesh=model?.mesh('cord');
-    if(mesh===null||mesh===undefined)throw new Error('Cord scene binding unavailable');
-    const cord=new LashCord(LASH_CORD,mesh);
-    return new Map([['cord',(profile,target)=>cord.bindCurve(profile,target)]]);
-  },{row:WHIP_SCENE,ports:{geometry:bakedLash,objects:new Map([['hero',hd]]),
+  return new HeldPlayback(playback,new Map(),undefined,{row:WHIP_SCENE,ports:{geometry:bakedLash,objects:new Map([['hero',hd]]),
     textures:new Map([['plait',texels?.length===196608?texels:null]]),textureRepeat:new Map([['plait.repeat',[lash.along,1] as const]]),
     decorators:new Map([['plait',(material)=>{heldSurface(material,COIL_SURFACE);}]]),
   }});

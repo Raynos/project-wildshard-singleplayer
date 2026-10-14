@@ -238,3 +238,64 @@ export const HeldMeleePhaseSchema = v.pipe(v.variant('mode', [
       && new Set(Object.values(row.bindings)).size === 3), 'ordered distinct phases and bounded delayed intervals'));
 /** Admit a detached scheduling row; function ports and authoritative state are not data. */
 export function parseHeldMeleePhase(input: unknown): v.InferOutput<typeof HeldMeleePhaseSchema> { return v.parse(HeldMeleePhaseSchema, input); }
+
+/** Coefficients for an owned tube; caps are useful for authored closed strands. */
+const tubeProfile = v.pipe(v.strictObject({
+  segments: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(1024)),
+  radial: v.pipe(v.number(), v.integer(), v.minValue(3), v.maxValue(64)),
+  bend: v.tuple([coefficient, coefficient]), ripple: v.tuple([coefficient, coefficient, coefficient]),
+  drop: v.tuple([coefficient, coefficient]),
+  radius: v.tuple([v.pipe(coefficient, v.minValue(0)), v.pipe(coefficient, v.minValue(0), v.maxValue(8)),
+    v.pipe(coefficient, v.minValue(0)), v.pipe(coefficient, v.minValue(0), v.maxValue(1)), v.pipe(coefficient, v.minValue(0))]),
+  caps: v.exactOptional(v.boolean()),
+}), v.check(row => (row.segments + 1) * row.radial + (row.caps === true ? 2 * (row.radial + 1) : 0) <= 4096, 'bounded tube vertices'));
+export type TubeCurveProfile = v.InferOutput<typeof tubeProfile>;
+export interface TubeCurveFrame {
+  readonly fromX: number; readonly fromY: number; readonly fromZ: number;
+  readonly toX: number; readonly toY: number; readonly toZ: number;
+  readonly extent: number; readonly wave: number;
+}
+/** Compile bounded coefficients once, then write a curve without allocating per vertex or per frame. */
+export function compileTubeCurve(input: TubeCurveProfile): {
+  readonly vertices: number;
+  readonly write: (positions: Float32Array, frame: TubeCurveFrame, time: number) => void;
+} {
+  const row = v.parse(tubeProfile, input), {segments,radial} = row;
+  const [bendPhase,extentLoss] = row.bend, [ripplePhase,speed,gain] = row.ripple;
+  const [dropPhase,dropGain] = row.drop, [taper,exponent,base,tipAt,tipGain] = row.radius;
+  const rings = Array.from({length:segments+1},(_,s)=>{
+    const u=s/segments;return {u,bend:Math.sin(u*bendPhase),ripple:u*ripplePhase,drop:-Math.sin(u*dropPhase),
+      radius:taper*(1-u)**exponent+base+(u>tipAt?tipGain:0)};
+  });
+  const circle=Array.from({length:radial},(_,r)=>{const angle=r/radial*Math.PI*2;return {cosine:Math.cos(angle),sine:Math.sin(angle)};});
+  const sides=(segments+1)*radial, vertices=sides+(row.caps===true?2*(radial+1):0);
+  return {vertices,write:(positions,frame,time)=>{
+    if(positions.length!==vertices*3)throw new Error('Tube positions differ from admitted layout');
+    const ext=frame.extent,wave=frame.wave;
+    if(ext<0||ext>1||Math.abs(wave)>1000||!Number.isFinite(time)
+      || !Number.isFinite(ext) || !Number.isFinite(wave) || !Number.isFinite(frame.fromX) || !Number.isFinite(frame.fromY) || !Number.isFinite(frame.fromZ)
+      || !Number.isFinite(frame.toX) || !Number.isFinite(frame.toY) || !Number.isFinite(frame.toZ))throw new Error('Invalid tube frame');
+    const dx=frame.toX-frame.fromX,dy=frame.toY-frame.fromY,dz=frame.toZ-frame.fromZ;
+    const length=Math.sqrt(dx*dx+dy*dy+dz*dz),inverse=1/(length||1);
+    const tx=dx*inverse,ty=dy*inverse,tz=dz*inverse,si=1/(Math.sqrt(tz*tz+ty*ty)||1),sy=-tz*si,sz=ty*si;
+    const ax=ty*sz-tz*sy,ay=-tx*sz,az=tx*sy,ui=1/(Math.sqrt(ax*ax+ay*ay+az*az)||1);
+    const ux=ax*ui,uy=ay*ui,uz=az*ui;
+    for(let s=0;s<=segments;s++) {
+      const ring=rings[s];if(ring===undefined)throw new Error('Missing tube ring');
+      const along=ring.u*length*ext,lift=ring.bend*wave*(1-ext*extentLoss)+Math.sin(ring.ripple-time*speed)*wave*gain*ring.u;
+      const drop=ring.drop*dropGain*length*(1-ext);
+      const px=frame.fromX+tx*along+ux*drop,py=frame.fromY+ty*along+sy*lift+uy*drop,pz=frame.fromZ+tz*along+sz*lift+uz*drop;
+      for(let r=0;r<radial;r++) {
+        const c=circle[r];if(c===undefined)throw new Error('Missing tube radial sample');
+        const side=c.cosine*ring.radius,up=c.sine*ring.radius,at=(s*radial+r)*3;
+        positions[at]=px+ux*up;positions[at+1]=py+sy*side+uy*up;positions[at+2]=pz+sz*side+uz*up;
+      }
+      if(row.caps===true&&(s===0||s===segments)) {
+        const start=sides+(s===0?0:radial+1),at=start*3;
+        positions[at]=px;positions[at+1]=py;positions[at+2]=pz;
+        for(let r=0;r<radial;r++) {const from=(s*radial+r)*3,to=(start+r+1)*3;
+          positions[to]=positions[from]??0;positions[to+1]=positions[from+1]??0;positions[to+2]=positions[from+2]??0;}
+      }
+    }
+  }};
+}
