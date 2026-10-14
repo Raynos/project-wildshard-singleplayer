@@ -33,6 +33,7 @@ export function loopAt(source: AudioBufferSourceNode, buffer: AudioBuffer,
 export class WindGustBed {
   private scope: Scope | undefined;
   private gains: GainNode[] = [];
+  private zoned = false;
   private readonly gust: NonNullable<NonNullable<AudioData['ambience']>['gust']>;
   protected readonly audio: Audio;
   private readonly rows: NonNullable<AudioData['ambience']>;
@@ -42,7 +43,10 @@ export class WindGustBed {
     this.gust = rows.gust;
   }
   stop(): void { this.scope?.dispose(); this.scope = undefined; this.gains = []; }
+  /** Hand fallback wind over to the declared zoned mix, once. */
+  zone():void {if(this.zoned)return;this.zoned=true;this.audio.restartSynthBed(this.rows.bed);}
   start(): void {
+    if(this.zoned)return;
     if (this.gust.scopeFirst) this.scope = new Scope(this.gust.scope);
     tap.sound?.(this.gust.startTap);
     this.gains = this.rows.winds.map(row => this.audio.mkWind(row.frequency,row.q,row.pan,row.rate,row.gain,row.cutoff));

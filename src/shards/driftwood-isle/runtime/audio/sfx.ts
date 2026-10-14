@@ -3,7 +3,7 @@ import { ISLAND_FAMILIES } from '../../data/audioPlayback';
 import type { Scope } from '@wildshard/engine/app/scope';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { impact, renderPcm } from '@wildshard/engine/audio/gen';
-import { panFromYaw, WindGustBed } from '@wildshard/engine/audio/util';
+import { panFromYaw } from '@wildshard/engine/audio/util';
 import type { VoiceTable } from '@wildshard/engine/audio/Voices';
 import { tap } from '@wildshard/engine/core/harnessTap';
 import type { Vector3 } from 'three';
@@ -27,8 +27,6 @@ import type { Surface } from '../../data/audioSurfaces';
  *                                       //   · 'chime' · 'glyph' · 'ignite'; o.delay / o.gain
  *   sfx.gullCallAt(position, listenerPos, yaw?)   // Gulls.onCall: a squawk with distance attenuation and a pan from the yaw
  *
- *   const bed = new IslandBed(audio);   // the ambience profile installs it: audio.installSynthBed(ISLAND_BED, bed, scope)
- *   bed.zone()                          // the zoned ambience took over the island's beds: the synth bed stops / never starts
  */
 
 export type Material = 'flesh' | 'shell' | 'wood' | 'stone';
@@ -94,23 +92,3 @@ export class IslandSfx {
   }
 }
 
-/** the bed id the island's synth bed answers to (the mixer's `setAmbient` id; the set's sampled `island` bed wins over it) */
-export const ISLAND_BED = 'island';
-
-/**
- * The island's synth bed (the mixer starts it when `island` is the bed and no sampled island bed decoded): a lighter,
- * warmer breeze than the pines (two wind bands with gentle gusts), the constant far surf hiss, and a swell rolling up the
- * beach every 6–9 s. Its gust and swell schedulers run on the bed's own Scope, disposed when the bed stops.
- */
-export class IslandBed extends WindGustBed {
-  private zoned = false;
-  constructor(audio:Audio,preset=source.audio.ambience) { if(preset===null)throw new Error('Missing declared island wind'); super(audio,preset); }
-  override start():void { if (!this.zoned) { super.start(); } }
-  /** a zoned ambience replaces the synth bed: it is stopped / never started (a sampled bed still plays) */
-  zone(): void {
-    if (this.zoned) return;
-    this.zoned = true;
-    this.audio.restartSynthBed(ISLAND_BED);
-  }
-
-}

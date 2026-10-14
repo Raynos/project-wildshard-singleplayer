@@ -5191,3 +5191,8 @@ The page registry forwards the node hook once; `scopeLookChunks` lends
 a region's hook and origin to its own materials and restores them on
 unload. A region without a node hook retains engine fog. No shader text
 is parsed and importing the registry does not load the graph backend.
+
+`Audio.windBed(ambience, scope?)` constructs the declared fallback wind and
+registers it when a scope is supplied. Its `zone()` handoff stops that fallback
+once the declared spatial mix takes over, while sampled beds keep their
+existing precedence.

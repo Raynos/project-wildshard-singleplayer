@@ -2,7 +2,7 @@ import type { AudioLoopEmitterRecipe, AudioSurfaceRecipe, AudioLoopGraph } from 
 import { SynthBeds } from './synth';
 import { LoopEmitter, type LoopEmitterPorts, type LoopEmitterVoice, AmbienceZones } from './ambience';
 import { resourceScope } from '../app/resources';
-import { loopAt, audioRandom, panFromYaw } from './util';
+import { loopAt, audioRandom, panFromYaw, WindGustBed } from './util';
 import { PlayerVoices } from './playerVoices';
 import { AudioSurfaceMap, type AudioSurfacePorts, type StepSurface } from './surface';
 import { ownAudioSource } from './ownership';
@@ -110,6 +110,9 @@ export class Audio extends PlayerVoices {
   surfaceMap<T extends string>(recipe:AudioSurfaceRecipe,names:readonly T[],ports:AudioSurfacePorts):AudioSurfaceMap<T> {return new AudioSurfaceMap(recipe,names,ports);}
 
   /** Bind emitted loop/fade policy to the original audio buses, graph and optional spatial owner. */
+  /** Build a declared fallback bed; registration borrows the caller's scope. */
+  windBed(rows:ConstructorParameters<typeof WindGustBed>[1],scope?:Scope):WindGustBed {const bed=new WindGustBed(this,rows);if(scope!==undefined)this.installSynthBed(rows.bed,bed,scope);return bed;}
+
   loopEmitter(recipe:AudioLoopEmitterRecipe,graphs:Readonly<Record<string,AudioLoopGraph>>,ports:LoopEmitterPorts={}):LoopEmitter {const graph=graphs[recipe.graph];if(graph===undefined)throw new Error('Missing loop emitter graph');return new LoopEmitter(this,recipe,graph,ports);}
   private readonly scope = resourceScope().child('Audio');
   listenerYaw = 0;

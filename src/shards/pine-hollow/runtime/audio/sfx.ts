@@ -1,9 +1,8 @@
-import { resourceScope } from '@wildshard/engine/app/resources';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { audioLog } from '@wildshard/engine/audio/audioLog';
 import { cachedBytes, decodeBytes } from '@wildshard/engine/audio/preload';
-import { cueFile, CueCatalogue, type SampleClip } from '@wildshard/engine/audio/Cues';
+import { CueCatalogue, type SampleClip } from '@wildshard/engine/audio/Cues';
 import source from '../../shard.config';
 import { getSfxSet } from '@wildshard/engine/ui/Settings';
 /**
@@ -54,7 +53,6 @@ export interface PhPlay { at?: { x: number; y: number; z: number } | undefined; 
 
 const SET = 'pine-hollow';
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const file = (value:unknown):string|undefined => cueFile(SET,value);
 const BARK_GAIN = 0.8;
 const barShots=new Map<string,SampleClip[]>();
 const catalogue=(read:Parameters<typeof decodePineShots>[0]=cachedBytes):CueCatalogue=>new CueCatalogue(SET,read,decodeBytes,{tolerance:0.001,arrayFamilies:true,familyGain:false,loopGain:0.5,available:()=>getSfxSet()!=='synth',shared:barShots});
@@ -68,7 +66,6 @@ export class PineHollowSfx {
   private readonly catalogue:CueCatalogue;
   private lastBark = new Map<Npc, string>();
   private readonly playback:ReturnType<Audio['voices']['playback']>;
-  private prefetched = false;
 
   constructor(audio: Audio) {
     this.catalogue=catalogue();this.manifest=this.catalogue.manifest;const rows=source.audio.playback;if(rows===undefined)throw new Error('Missing forest playback');this.playback=audio.voices.playback(rows,{available:()=>this.available,samples:{clips:id=>this.catalogue.clips(id),load:id=>{this.catalogue.load(id);}}});
@@ -82,13 +79,6 @@ export class PineHollowSfx {
 
   setListener(x: number, y: number, z: number, yaw: number): void {
     this.playback.listener(x,y,z,yaw);
-  }
-
-  /** the beds sfx.json lists, with their zone and whether that zone is in the world today */
-  bedsListed(): { name: string; zone: string | undefined; live: boolean }[] {
-    const b = this.manifest?.['beds'];
-    if (!isObj(b)) return [];
-    return Object.entries(b).map(([name, v]) => ({ name, zone: isObj(v) && typeof v['zone'] === 'string' ? v['zone'] : undefined, live: isObj(v) && v['live'] === true }));
   }
 
   /** a bed, decoded once (its promise is shared); undefined when the set / bed is not in the build or will not decode */
@@ -125,24 +115,4 @@ export class PineHollowSfx {
     return ok;
   }
 
-  /** every file of the set (URLs) */
-  allFiles(): string[] {
-    const out: string[] = [];
-    const walk = (v: unknown): void => {
-      if (typeof v === 'string') { const u = file(v); if (u !== undefined && /\.(m4a|mp3|ogg|opus)$/.test(u)) out.push(u); }
-      else if (Array.isArray(v)) for (const x of v) walk(x);
-      else if (isObj(v)) for (const [k, x] of Object.entries(v)) if (k !== 'provenance') walk(x);
-    };
-    walk(this.manifest);
-    return [...new Set(out)];
-  }
-  /** pull the whole set into the offline cache when the browser is idle (once): later decodes never wait on the network */
-  prefetch(): void {
-    if (this.prefetched || !this.available) return;
-    this.prefetched = true;
-    const files = this.allFiles();
-    const idle: { requestIdleCallback?: (fn: () => void) => void } = window;
-    const go = (): void => { void (async () => { for (const f of files) { try { await cachedBytes(f); } catch { /* offline: decoded later, or silent */ } } })(); };
-    if (idle.requestIdleCallback) idle.requestIdleCallback(go); else resourceScope().timeout(3000, go);
-  }
 }

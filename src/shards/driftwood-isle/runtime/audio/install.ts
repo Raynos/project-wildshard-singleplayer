@@ -10,7 +10,7 @@ import { driftwoodWorld } from '../../world/build';
 import { Cove } from '../../world/Cove';
 import { IslandSfx } from './sfx';
 import { ISLAND_SURFACES } from '../../data/audioSurfaces';
-import { IslandAmbience } from './ambience';
+import { createIslandAmbience } from './ambience';
 import { driftwoodCueMap } from './cues';
 import { installDriftwoodScore } from './score';
 
@@ -26,7 +26,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const islandSfx = new IslandSfx(audio, ctx.scope);
   const sea = LOWERED_SEA; // SF46 (G164): the lowered sea at road height
   const surfaces = audio.surfaceMap(requireAudioProfile(audioRows.surfaces,'island step surfaces'),ISLAND_SURFACES,{sea,heightAt,values:{trail:trailDistance},floors:{decks: [built.pier, ...built.jetties, built.boat, built.hut, built.lookout, built.bridge, built.wreck], stone: [built.shrine] } });
-  const ambience = new IslandAmbience(audio, { wind: requireAudioProfile(audioRows.ambience ?? undefined,'ambience.island.wind'), sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: Cove.forIsland() }, requireAudioProfile(audioRows.zones, 'ambience.driftwood'));
+  const ambience = createIslandAmbience(audio, { wind: requireAudioProfile(audioRows.ambience ?? undefined,'ambience.island.wind'), sea, heightAt, palms: built.palmSpecs, wreck: built.wreck, cove: Cove.forIsland() }, requireAudioProfile(audioRows.zones, 'ambience.driftwood'));
   const cues = driftwoodCueMap(islandSfx, player, audioRows.routing);
   audio.installCues(cues, ctx.scope);
   ctx.answer('player.stepSurface', (request) => ({ ...request, surface: surfaces.surfaceAt(request.x, request.z, request.y) }));
@@ -44,7 +44,7 @@ export async function installDriftwoodAudio(ctx: ShardContext): Promise<void> {
   const observers=audioObserverSystems(requireAudioProfile(audioRows.observations,'island audio observations'),{
     inputs:new Map([['clock',()=>sky.dayNight]]),
     writers:new Map<string,(value:number)=>void>([['shrine.dusk',value=>{built.shrine?.setDusk(value);}],['ambience.night',value=>{ambience.night=value;}]]),
-    commands:new Map<string,NonNullable<ReturnType<Parameters<typeof audioObserverSystems>[1]['commands']['get']>>>([['hum',()=>{shrineHum?.update(game.camera);}],['ambience',(dt)=>{ambience.update(dt,game.camera);}]])
+    commands:new Map<string,NonNullable<ReturnType<Parameters<typeof audioObserverSystems>[1]['commands']['get']>>>([['hum',()=>{shrineHum?.update(game.camera);}],['ambience',(dt)=>{ambience.frame(dt,game.camera);}]])
   });
   for(let index=0;index<16;index++){const system=observers.systems[index];if(system!==undefined)ctx.system(system);}
   const handles = { shrineHum, islandSfx, surfaces, ambience };
