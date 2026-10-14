@@ -22,7 +22,8 @@ export const coconutMonkey: ModelDef<CreatureParams> = defineModel<CreatureParam
 export const drownedSailor: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'driftwood-isle/drowned-sailor', file: FILE, pipeline: 'code', ...creature('sailor') });
 
 /** the Drowned Captain, the island's boss: a Hunyuan3D-2 mesh (public/assets/models/driftwood-hero/captain/captain.glb,
- *  src/engine/entities/species/captainMesh.ts) bound to the sailor's humanoid rig as it loads; a code stand-in until it has */
+ *  ../species/captainMesh.ts) bound to the sailor's humanoid rig, code eye spheres on top; no stand-in (a build refuses
+ *  before the file loads) */
 export const drownedCaptain: ModelDef<CreatureParams> = defineModel<CreatureParams>({ id: 'driftwood-isle/drowned-captain', file: FILE, pipeline: ['hunyuan', 'code'], ...creature('captain') });
 
 /** the herring gull: one faceted gull of src/shards/driftwood-isle/world/Gulls.ts (perched, wings folded) — the island's flocks are one
