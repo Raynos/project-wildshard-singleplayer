@@ -1,5 +1,5 @@
 {
-  "about": "SF62 reviewed exact transition debt. Counts and site identities only shrink; outside projects have no allowance.",
+  "about": "SF62 reviewed transition debt. Re-key an edited or moved function only to a lint-confirmed site by retiring real predecessor allowance of the same kind and row; total count per kind and row never grows. Deleted sites drop; no new allowances.",
   "baselineAt": "fadcee06196f345f706aa9f7e01a3bb027968a20",
   "sites": {
     "src/shards/driftwood-isle/runtime/audio/ambience.ts:frame-allocation:d107e1a57ecc0cb08b745166a6d3c35eaa9add78f53ff246fa03a122f8738550": {

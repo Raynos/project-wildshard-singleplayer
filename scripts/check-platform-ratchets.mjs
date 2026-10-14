@@ -11,6 +11,8 @@ import { compareLegacyInventory, legacyInventory, registeredLegacyFile, LEGACY_I
 
 export const PLATFORM_LISTS = ['lint/row-functions.json', 'lint/edge-exemptions.json', 'lint/shard-platform.json', 'lint/sim-closure.json', 'lint/sim-schema-leaves.json', 'lint/shard-coupling.json', WEAPON_TRANSFER_LIST, CLASS_MOVE_LIST, 'lint/runtime-performance.json', LEGACY_INVENTORY];
 
+const RUNTIME_REKEY_ABOUT = 'SF62 reviewed transition debt. Re-key an edited or moved function only to a lint-confirmed site by retiring real predecessor allowance of the same kind and row; total count per kind and row never grows. Deleted sites drop; no new allowances.';
+
 // Consume removed predecessor syntax once, across all destinations. Immutable source trees establish
 // whether an implementation actually moved; neither the new allowance nor a review label can grant debt.
 function siteCounts(source, filename) {
@@ -59,6 +61,35 @@ function verbatimRuntimeMoves(before, after, trees) {
     if ((targets.get(file).get(key) ?? 0) < item.count || (removed.get(key) ?? 0) < item.count) continue;
     removed.set(key, removed.get(key) - item.count);
     admitted.add(site);
+  }
+  return admitted;
+}
+
+// Re-key edited/moved functions only by spending removed, real predecessor sites.
+// Neither another kind nor another plan row can fund a replacement.
+function rekeyedRuntimeSites(before, after, trees) {
+  const admitted = new Set();
+  if (trees === undefined) return admitted;
+  const counts = new Map(), credit = new Map();
+  const actual = (root, site) => {
+    const match = /^(src\/[^:]+\.ts):([^:]+):([a-f0-9]{64})$/u.exec(site);
+    if (match === null || match[1].split('/').includes('..')) return 0;
+    const [, file, kind, hash] = match, path = join(root, file);
+    if (!existsSync(path)) return 0;
+    if (!counts.has(path)) counts.set(path, siteCounts(readFileSync(path, 'utf8'), file));
+    return counts.get(path).get(`${kind}:${hash}`) ?? 0;
+  };
+  const group = (site, item) => JSON.stringify([site.split(':')[1], item.row]);
+  for (const [site, item] of Object.entries(before.sites)) {
+    const retained = after.sites[site]?.row === item.row ? after.sites[site].count : 0;
+    const removed = Math.min(item.count, actual(trees.baselineRoot, site)) - retained;
+    if (removed > 0) credit.set(group(site, item), (credit.get(group(site, item)) ?? 0) + removed);
+  }
+  for (const [site, item] of Object.entries(after.sites)) {
+    if (Object.hasOwn(before.sites, site)) continue;
+    const key = group(site, item), available = credit.get(key) ?? 0;
+    if (!Number.isSafeInteger(item.count) || item.count <= 0 || actual(trees.candidateRoot, site) !== item.count || available < item.count) continue;
+    credit.set(key, available - item.count); admitted.add(site);
   }
   return admitted;
 }
@@ -232,10 +263,21 @@ export function comparePlatformList(list, baselineFile, candidateFile, trees) {
       return digest === '77308f0fdfbbb38ae8d19cd97d5d9940a396fd1f16edf1a009ef878f5aace0de' && after.baselineAt === 'fadcee06196f345f706aa9f7e01a3bb027968a20' ? [] : [`${list}: bootstrap differs from the reviewed inventory`];
     }
     const before = JSON.parse(readFileSync(baselineFile, 'utf8')), failures = [];
+    const totals = sites => {
+      const result = new Map();
+      for (const [site, item] of Object.entries(sites)) {
+        const key = JSON.stringify([site.split(':')[1], item.row]);
+        result.set(key, (result.get(key) ?? 0) + item.count);
+      }
+      return result;
+    };
+    const ceilings = totals(before.sites);
+    for (const [key, count] of totals(after.sites)) if (count > (ceilings.get(key) ?? 0)) failures.push(`${list}: ${key} total rose`);
     const migrated = verbatimRuntimeMoves(before, after, trees);
+    for (const site of rekeyedRuntimeSites(before, after, trees)) migrated.add(site);
     for (const site of frozenRuntimeRetentions(after, trees)) migrated.add(site);
     for (const site of legacyRuntimeCopies(after, trees)) migrated.add(site);
-    if (after.baselineAt !== before.baselineAt || after.about !== before.about || Object.keys(after).sort().join(',') !== Object.keys(before).sort().join(',')) failures.push(`${list}: review metadata changed`);
+    if (after.baselineAt !== before.baselineAt || (after.about !== before.about && after.about !== RUNTIME_REKEY_ABOUT) || Object.keys(after).sort().join(',') !== Object.keys(before).sort().join(',')) failures.push(`${list}: review metadata changed`);
     for (const [site, item] of Object.entries(after.sites)) {
       const previous = before.sites[site];
       if (!previous) { if (!migrated.has(site)) failures.push(`${list}: new runtime site ${site}`); }
