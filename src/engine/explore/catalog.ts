@@ -105,8 +105,11 @@ export function catalogEntries(sky: Sky, animals: readonly { kind: string }[], s
     e.object = () => { if (!built) { built = true; e.rebuild?.(); } return group; };
   };
   // the roster's creatures (E315 M5): listed on the species rigs, alive now or not
+  // (a species is known when the level registered its rows — ctx.rows.species, scoped to the level — or when it is on the
+  // import-time registry; a species registered later — a boss's — keeps the model's own specimen)
+  const known = (kind: string): boolean => app.species.get(kind) !== undefined || hasSpecies(kind);
   const listed = new Set<string>();
-  for (const e of out) if (e.species !== undefined && hasSpecies(e.species)) { listed.add(e.species); standUp(e, e.species); } // (a species registered later — a boss's — keeps the model's own specimen)
+  for (const e of out) if (e.species !== undefined && known(e.species)) { listed.add(e.species); standUp(e, e.species); }
   // (M6: the cards made off the live animal list before M5 are gone — every species is a model on its shard's roster; a
   // live animal whose species no model lists is a roster gap, said once here)
   for (const kind of new Set(animals.map((a) => a.kind))) if (!listed.has(kind)) console.warn(`[models] a live '${kind}' is no model on this level's roster (ShardManifest.roster, src/engine/models/live.ts)`);
