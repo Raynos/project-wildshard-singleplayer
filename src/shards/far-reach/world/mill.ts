@@ -2,7 +2,7 @@ import { Mesh, type Group, type InstancedMesh, type Object3D } from 'three';
 import { hdMaterial, skyHd, SKY_LIBRARY } from './meshes';
 import { skyLook, skyMappedLook } from './looks';
 import millModel from '../data/millModel.json' with { type: 'json' };
-import { WORLD, skyBakedPiece } from './baked';
+import { WORLD } from './baked';
 import { bindWorldSceneParts, createWorldScene } from '@wildshard/game/plugin/ui';
 import { MILL_SCENE } from '../data/millScene.generated';
 
@@ -47,7 +47,7 @@ function modelledSet(): Made | null {
  * frames and the canvases the painted canvas lands on), which the plugin spins.
  */
 export function towerMill(nodes?: ReadonlyMap<string, InstancedMesh>): { group: Group; hub: Object3D; hubAt: { y: number; z: number } } {
-  const models = modelledSet(), baked = skyBakedPiece('mill', nodes), cloth = skyLook('mill-canvas');
+  const models = modelledSet(), baked = WORLD.piece('mill', { nodes }), cloth = skyLook('mill-canvas');
   for (const name of MILL_SCENE.cloth) {
     const mesh = baked.kinds.get(name); if (mesh === undefined || cloth === undefined) continue;
     for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) material.dispose();

@@ -3,7 +3,7 @@ import { CROWN, DAIS } from '../data/layout';
 import { hdMaterial, skyHd } from './meshes';
 import { skyMappedLook } from './looks';
 import STONES from '../data/crownInstances.generated.json' with { type: 'json' };
-import { skyBakedPiece } from './baked';
+import { WORLD } from './baked';
 
 /**
  * The arena (loop 4, mockup D), in world space (add it to the level root): the modelled standing stones with cut spiral
@@ -11,8 +11,8 @@ import { skyBakedPiece } from './baked';
  * the pennant ropes and flags, built offline (`generators/crown.ts` → `baked/crown.glb`); its colliders are the rows'
  * (the dais and each stone).
  */
-export function crownArena(): { group: Group; colliders: ReturnType<typeof skyBakedPiece>['colliders'] } {
-  const baked = skyBakedPiece('crown'), group = baked.root; group.name = 'far.crown.arena';
+export function crownArena(): { group: Group; colliders: ReturnType<typeof WORLD.piece>['colliders'] } {
+  const baked = WORLD.piece('crown'), group = baked.root; group.name = 'far.crown.arena';
   group.add(...carvedSet());
   return { group, colliders: baked.colliders };
 }

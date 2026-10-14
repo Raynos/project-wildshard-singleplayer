@@ -9,7 +9,7 @@ import source from '../runtime/source';
 import { BRAZIERS } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { buildPlace, type TowerParts, type BrazierParts, type WellParts } from './places';
-import { signalPieces, type BakedWorld } from './baked';
+import { WORLD, type BakedWorld } from './baked';
 import { fireLight, tickFires } from './fireFx';
 import { lastLightAll } from '../look/light';
 import { FLAG } from '../data/flags';
@@ -46,7 +46,7 @@ const LANTERN_LIGHT = 5; // round 25: the steeper key-facing term also scales th
 export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld): SignalWorld {
   // SF72: the tower's frame, the places' code-built parts and colliders, the rock field and its dressing are baked offline
   // (generators/*.ts); the client adds the models and what lives (data/pieces.ts lists them)
-  const pieces = signalPieces(ctx.piece, ctx.root, baked);
+  const pieces = WORLD.placements(ctx.piece, ctx.root, baked);
   const tower = pieces.add('sunscar.tower', buildPlace('tower',baked)), caravan = pieces.add('sunscar.caravan', buildPlace('caravan',baked)), wellParts = pieces.add('sunscar.well', buildPlace('well',baked));
   pieces.baked('sunscar.rocks'); pieces.baked('sunscar.dressing');
   const interactables = ctx.game.runtime?.interactables, rules = new InteractionRules(flags, SIGNAL_INTERACTIONS);

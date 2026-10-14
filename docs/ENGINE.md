@@ -4819,3 +4819,8 @@ quest spot intake and director summons, world reactions, impulse columns
 and optional terrain entry proofs. Original owner installers run in order:
 world/motion, population, melee, quests, columns, then keeper settling.
 The caller still owns the one SimHost and its tick input/effect boundary.
+
+`BakedMeshWorld.geometry(piece, kind, {index, empty})` lends independent original
+channels with explicit index preservation, array reconstruction or identity-index
+removal. `placements(register, root, snapshot?)` mounts its declared piece and
+collider rows; an explicit snapshot never falls back to a later load.

@@ -2,7 +2,7 @@ import { AdditiveBlending, Group, Mesh, MeshBasicMaterial, SphereGeometry } from
 import { LECTERN } from '../data/bookStand';
 import { hdMaterial, skyHd } from './meshes';
 import { skyMappedLook } from './looks';
-import { skyBakedPiece } from './baked';
+import { WORLD } from './baked';
 
 /**
  * The keeper's book stand (E399, mockup B: beside the bridge-keeper a carved wooden lectern holds an open book, a lit
@@ -32,6 +32,6 @@ function modelled(group: Group, withLantern: boolean): void {
 /** A stand in its own frame: the modelled lectern with the baked book on its desk. */
 export function bookStand(withLantern: boolean): Group {
   const group = new Group(); group.name = 'far.book-stand';
-  const carved = new Group(); modelled(carved, withLantern); group.add(carved, ...skyBakedPiece('book-stand').kinds.values());
+  const carved = new Group(); modelled(carved, withLantern); group.add(carved, ...WORLD.piece('book-stand').kinds.values());
   return group;
 }

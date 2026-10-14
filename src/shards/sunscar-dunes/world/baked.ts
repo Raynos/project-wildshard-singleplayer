@@ -1,6 +1,5 @@
 import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
-import { bakedMeshWorld, worldPieces, type BakedMeshKindRow, type LoadedMeshBake, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
-import type { Object3D } from 'three';
+import { bakedMeshWorld, type BakedMeshKindRow, type LoadedMeshBake } from '@wildshard/game/shardfile/bakedKinds';
 import WORLD_ROWS from '../data/worldBakes.generated.json' with { type: 'json' };
 import { SIGNAL_PIECES } from '../data/pieces';
 import { BAKED_URLS, WORLD_BYTES, type BakedPiece } from '../data/files';
@@ -14,10 +13,8 @@ import { warmByFire } from './meshes';
  */
 interface KindRow extends BakedMeshKindRow { readonly warm?: boolean; readonly brazier?: number }
 export const WORLD = bakedMeshWorld<BakedPiece, KindRow>(WORLD_ROWS, BAKED_URLS, 'sunscar-dunes',
-  { resources: WORLD_BYTES, readBytes: fetchDeflated, decorate: (material, kind) => { if (kind.warm === true) warmByFire(material); } });
+  { resources: WORLD_BYTES, readBytes: fetchDeflated, placements:{rows:SIGNAL_PIECES,colliders:WORLD_ROWS.braziers.braziers.map((row,index)=>({id:`sunscar.brazier.${String(index)}`,colliders:row.colliders}))}, decorate: (material, kind) => { if (kind.warm === true) warmByFire(material); } });
 
 /** A loaded bake: each piece's instanced meshes (their geometry and transforms), keyed by the kind's name. */
 export type BakedWorld = LoadedMeshBake<BakedPiece>;
 
-/** Signal's world pieces (data/pieces.ts) placed under `root` and registered, the baked ones drawn from `baked`. */
-export const signalPieces = (register: Parameters<typeof worldPieces>[0], root: Object3D, baked: BakedWorld): WorldPieces => worldPieces(register, root, SIGNAL_PIECES, (piece) => WORLD.object(piece, undefined, undefined, baked), WORLD_ROWS.braziers.braziers.map((row,index)=>({id:`sunscar.brazier.${String(index)}`,colliders:row.colliders})));

@@ -1,7 +1,7 @@
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import type { Material } from '@wildshard/engine/physics/surface';
 import type { ColliderDesc, Piece, PieceCategory } from '@wildshard/engine/world/registry';
-import { DoubleSide, FrontSide, Group, InstancedBufferAttribute, InstancedMesh, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, type Material as DrawMaterial } from 'three';
+import { BufferGeometry, DoubleSide, FrontSide, Group, InstancedBufferAttribute, InstancedMesh, Mesh, MeshBasicMaterial, MeshStandardMaterial, Object3D, type Material as DrawMaterial } from 'three';
 
 /**
  * SHARD-PLATFORM SF72 (SF67 fix 3, "bake the code-built worlds"): the client side of a shard's instanced-kinds bake
@@ -207,6 +207,11 @@ export interface BakedByteResource {
 }
 /** Load and draw a static bake containing both ordinary and instanced mesh kinds. */
 export interface BakedMeshWorld<P extends string, K extends BakedMeshKindRow> {
+  /** Owned original channels; only the authored index policy changes the clone. */
+  readonly geometry: { (piece:P,kind:string,options:{readonly index?:'preserve'|'array'|'identity';readonly empty:true}):BufferGeometry;
+    (piece:P,kind:string,options?:{readonly index?:'preserve'|'array'|'identity';readonly empty?:boolean}):BufferGeometry|null };
+  /** Mount this world's declared registry rows, retaining an optional exact loaded snapshot. */
+  readonly placements:(register:(piece:Piece)=>void,root:Object3D,snapshot?:LoadedMeshBake<P>)=>WorldPieces;
   readonly load: () => Promise<LoadedMeshBake<P>>;
   readonly last: () => LoadedMeshBake<P> | null;
   /** Loaded companion bytes, or null before loading or after its declared failure. */
@@ -217,7 +222,7 @@ export interface BakedMeshWorld<P extends string, K extends BakedMeshKindRow> {
 }
 
 /** The ordinary-mesh counterpart of bakedWorld: the same piece rows, collider law and material hooks, with no instancing conversion. */
-export function bakedMeshWorld<P extends string, K extends BakedMeshKindRow>(pieces: Readonly<Record<P, BakedPieceRows<K>>>, urls: Readonly<Record<P, string>>, label: string, draw: BakedKindsDraw<K> & { readonly resources?: readonly BakedByteResource[]; readonly readBytes?: (url: string) => Promise<Uint8Array> } = {}): BakedMeshWorld<P, K> {
+export function bakedMeshWorld<P extends string, K extends BakedMeshKindRow>(pieces: Readonly<Record<P, BakedPieceRows<K>>>, urls: Readonly<Record<P, string>>, label: string, draw: BakedKindsDraw<K> & { readonly resources?: readonly BakedByteResource[]; readonly readBytes?: (url: string) => Promise<Uint8Array>; readonly placements?:{readonly rows:readonly WorldPieceRow<P>[];readonly colliders?:readonly {readonly id:string;readonly colliders:readonly BakedColliderInput[]}[]} } = {}): BakedMeshWorld<P, K> {
   const names = Object.keys(pieces).filter((name): name is P => Object.hasOwn(pieces, name));
   let loaded: LoadedMeshBake<P> | null = null;
   const resources = draw.resources ?? [], readBytes = draw.readBytes, bytes = new Map<string, Uint8Array | null>();
@@ -226,7 +231,19 @@ export function bakedMeshWorld<P extends string, K extends BakedMeshKindRow>(pie
     || resources.some(row => !/^[a-zA-Z0-9_.-]{1,96}$/u.test(row.id) || row.url.length === 0 || row.url.length > 2048
       || !['warn','error'].includes(row.fault.level) || row.fault.message.length === 0 || row.fault.message.length > 512)) throw new Error('Invalid baked byte resources');
   for (const row of resources) bytes.set(row.id, null);
+  function geometry(piece:P,kind:string,options:{readonly index?:'preserve'|'array'|'identity';readonly empty:true}):BufferGeometry;
+  function geometry(piece:P,kind:string,options?:{readonly index?:'preserve'|'array'|'identity';readonly empty?:boolean}):BufferGeometry|null;
+  function geometry(piece:P,kind:string,options:{readonly index?:'preserve'|'array'|'identity';readonly empty?:boolean}={}):BufferGeometry|null {
+    if(!Object.hasOwn(pieces,piece))throw new Error('Unknown declared baked piece');
+    if(Object.keys(options).some(key=>key!=='empty'&&key!=='index')||(options.empty!==undefined&&typeof options.empty!=='boolean')||(options.index!==undefined&&!['preserve','array','identity'].includes(options.index)))throw new Error('Invalid baked geometry options');
+    const node=loaded?.get(piece)?.get(kind);if(node===undefined)return options.empty===true?new BufferGeometry():null;
+    const owned=node.geometry.clone(),index=owned.getIndex();
+    if(index!==null&&options.index==='array')owned.setIndex(Array.from(index.array));
+    else if(index!==null&&options.index==='identity'&&Array.from(index.array).every((value,i)=>value===i))owned.setIndex(null);
+    return owned;
+  }
   const world: BakedMeshWorld<P, K> = {
+    geometry, placements:(register,root,snapshot)=>{const declared=draw.placements;if(declared===undefined)throw new Error('Missing declared world placements');return worldPieces(register,root,declared.rows,piece=>world.object(piece,undefined,undefined,snapshot),declared.colliders);},
     load: async () => {
       const [meshes] = await Promise.all([Promise.all(names.map(async name => {
         const result = new Map<string, Mesh>();

@@ -14,7 +14,7 @@ import { CROWN, FALLEN_BRIDGE, SUNREST, VANES } from '../data/layout';
 import { STRINGS } from '../data/strings';
 import { islandMesh, staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
-import { WORLD, skyBakedGeometry, skyBakedPiece, skyPieces } from './baked';
+import { WORLD } from './baked';
 import { PALETTE, flat } from './materials';
 import { ropeBridge, vane, windmill } from './shapes';
 import { bookStand } from './bookStand';
@@ -61,7 +61,7 @@ export interface BuiltWorld {
  */
 export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, isles: IsleMeshes, looks: { readonly deck: Material; readonly frame: Material; readonly channels: Parameters<typeof bindClientChannels>[0] }): Promise<BuiltWorld> {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
-  const pieces = skyPieces(ctx.piece, root), spanColliders = (id: string) => pieces.colliders(id,'wood'), propColliders = pieces.colliders;
+  const pieces = WORLD.placements(ctx.piece, root), spanColliders = (id: string) => pieces.colliders(id,'wood'), propColliders = pieces.colliders;
   const ground = createWorldScene(SKY_GROUND.recipe, {
     geometry: SKY_LIBRARY.geometry, model: SKY_LIBRARY.model, baked: WORLD.object,
     objects: new Map(SKY_GROUND.isles.map(row => [`isle.${row.id}`, staticIsle(isles, row.id, row.look)])),
@@ -78,7 +78,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
     materials.set(row.source, look === undefined || model === undefined || model === null ? null : skyMappedLook(look, model.map));
   }
   const staticScene = createWorldScene(staticRows.recipe, {
-    geometry: name => name === 'fall' ? skyBakedGeometry('fall') : models.get(name.slice('hero-'.length))?.geometry ?? null,
+    geometry: name => name === 'fall' ? WORLD.geometry('geometries','fall',{index:'identity',empty:true}) : models.get(name.slice('hero-'.length))?.geometry ?? null,
     materials, model: SKY_LIBRARY.model, baked: WORLD.object,
   });
   await pieces.scene(staticScene, staticRows.bindings, pause);
@@ -100,7 +100,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   // road socket continues there, so no dock
   const staticIslets = createClientScene(ISLET_SCENES.staticScene, { geometry: SKY_LIBRARY.geometry }); root.add(staticIslets.root);
   for (const row of ISLET_SCENES.pieces) { const object = staticIslets.parts.get(row.id); ctx.piece({ ...row, category: row.category === 'buildings' ? 'buildings' : 'props', surface: row.surface === 'stone' ? 'stone' : 'wood', ...(object === undefined ? {} : { object }), colliders: pieces.colliders(row.colliders) }); }
-  const posts = skyBakedPiece('islet-rig'); root.add(posts.root); ctx.piece({ id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: posts.root, colliders: posts.colliders, surface: 'wood' });
+  const posts = WORLD.piece('islet-rig'); root.add(posts.root); ctx.piece({ id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: posts.root, colliders: posts.colliders, surface: 'wood' });
   for (const piece of skyDocksFor(ctx.cube)) { if (piece.object !== undefined) root.add(piece.object); ctx.piece(piece); }
   await pause();
 

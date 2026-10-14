@@ -1,8 +1,7 @@
 import { fetchDeflated } from '@wildshard/sdk/kit/geometryPack';
 import BRIDGE_PHYSICS from '../data/bridgePhysics.generated.json' with { type:'json' };
 import PLACEMENTS from '../data/physicsPlacements.generated.json' with { type:'json' };
-import { bakedMeshWorld, worldPieces, type BakedMeshKindRow, type DrawnBakedMeshPiece, type WorldPieces } from '@wildshard/game/shardfile/bakedKinds';
-import { BufferGeometry, type Mesh, type Object3D } from 'three';
+import { bakedMeshWorld, type BakedMeshKindRow } from '@wildshard/game/shardfile/bakedKinds';
 import { SKY_PIECES } from '../data/pieces';
 import { WORLD_BAKES } from '../data/worldBakes';
 import { SKY_GROUND_COLLIDERS } from '../data/groundScene.generated';
@@ -26,7 +25,7 @@ const shackKind = (kind: object): ShackKind | undefined => {
 };
 
 export const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(WORLD_BAKES, BAKED_URLS, 'far-reach', {
-  resources: WORLD_BYTES, readBytes: fetchDeflated,
+  resources: WORLD_BYTES, readBytes: fetchDeflated, placements:{rows:SKY_PIECES,colliders:[...BRIDGE_PHYSICS,...PLACEMENTS,...SKY_GROUND_COLLIDERS]},
   material: (kind) => { const shack = shackKind(kind), dressed: unknown = 'dressing' in kind ? kind.dressing : undefined;
     return shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : 'paint' in kind ? isleMaterial() : undefined; },
   attributes: { _shk: 'aShk', _farcloth: 'aFarCloth' },
@@ -39,22 +38,3 @@ export async function loadSkyBaked(): Promise<void> {
 /** The meadow's baked blades (generators/meadowBlades.ts → baked/meadow-blades.bin, inflated); undefined when they did not load. */
 export const skyMeadowBlades = (): Uint8Array | undefined => WORLD.bytes('blades') ?? undefined;
 
-/**
- * A world piece from its bake: its kinds as instanced meshes (undrawn if its GLB did not load; a tinted kind gets its rows'
- * per-instance colours) and its baked colliders. `nodes` defaults to the loaded bake (a test passes the GLB's nodes it parsed itself).
- */
-export const skyBakedPiece = (piece: BakedPiece, nodes?: ReadonlyMap<string, Mesh>): DrawnBakedMeshPiece => WORLD.piece(piece, { nodes });
-
-/**
- * One of the baked shapes Sky Reach instances itself (`generators/geometries.ts`: the grass clump, the daisy, the boulder,
- * the code pine, the fir, the falls' sheet): a copy its caller owns, unindexed as built; empty when the bake did not load.
- */
-export function skyBakedGeometry(kind: 'clump' | 'flower' | 'boulder' | 'pine' | 'fir' | 'fall'): BufferGeometry {
-  const node = WORLD.last()?.get('geometries')?.get(kind); if (node === undefined) return new BufferGeometry();
-  const g = node.geometry.clone(), index = g.getIndex();
-  if (index !== null && Array.from(index.array).every((n, i) => n === i)) g.setIndex(null);
-  return g;
-}
-
-/** Sky's world pieces (data/pieces.ts) placed under `root` and registered, the baked ones drawn from the loaded bake. */
-export const skyPieces = (register: Parameters<typeof worldPieces>[0], root: Object3D): WorldPieces => worldPieces(register, root, SKY_PIECES, (piece) => skyBakedPiece(piece), [...BRIDGE_PHYSICS,...PLACEMENTS,...SKY_GROUND_COLLIDERS]);

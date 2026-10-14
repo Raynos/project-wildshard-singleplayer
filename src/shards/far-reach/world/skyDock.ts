@@ -1,7 +1,7 @@
 import type { Piece } from '@wildshard/engine/world/registry';
 import type { ShardCube } from '@wildshard/game/shard/context';
 import { STRINGS } from '../data/strings';
-import { skyBakedPiece } from './baked';
+import { WORLD } from './baked';
 
 /**
  * SHARD-PLATFORM G200: the timber sky docks at the end of each Rising Islet's lip, standalone only (in a grid cell the road
@@ -14,7 +14,7 @@ const NAMES = ['far.dock.timber', 'far.dock.beacon'] as const;
 
 /** The four docks' look and collision as one piece. */
 export function skyDockPiece(): Piece {
-  const docks = skyBakedPiece('docks'); docks.root.name = 'far.docks';
+  const docks = WORLD.piece('docks'); docks.root.name = 'far.docks';
   docks.root.children.forEach((mesh, i) => { mesh.name = NAMES[i] ?? mesh.name; });
   return { id: 'far.docks', name: STRINGS.skyDock, category: 'buildings', file: FILE, object: docks.root, colliders: docks.colliders, surface: 'wood' };
 }
