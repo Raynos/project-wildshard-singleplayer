@@ -104,6 +104,9 @@ export class ForestAmbience {
   private occl: BiquadFilterNode | undefined;
   private beds = new Map<PhBed, Bed>();
   private sendIn: GainNode | undefined;
+  private readonly synth:ReturnType<Audio['createSynthBeds']>;
+  private readonly nodePorts:Record<string,AudioNode>={};
+  private readonly nodeRead:(id:string)=>number;
   private sends = new Map<Room, GainNode>();
   private spots: ZoneSpot[];
   private tick = 0;
@@ -117,6 +120,8 @@ export class ForestAmbience {
     this.scope = (o.scope ?? resourceScope()).child('ForestAmbience');
     this.zones = new AmbienceZones(audio, audioRandom, o.scope === undefined ? undefined : this.scope);
     this.sfx = new PineHollowSfx(audio);
+    this.synth=audio.createSynthBeds(this.zones,audioRandom);
+    this.nodeRead=id=>requireAudioLevel(this.profile.levels,id);
     this.spots = [...(o.spots ?? [])];
     for(let i=0;i<4;i++){const id=ROOMS[i];if(id!==undefined)this.values.set(`wet.${id}`,this.wet[id]);}
     this.mixPorts = {
@@ -161,10 +166,9 @@ export class ForestAmbience {
   // ─────────────── build ───────────────
   private build(): void {
     this.built = true;
-    const a = this.audio, c = a.ctx;
-    const out = c.createGain(); out.gain.value = this.outLevel; out.connect(a.world); this.out = out;
-    const occl = c.createBiquadFilter(); occl.type = 'lowpass'; occl.frequency.value = 20000; occl.Q.value = 0.5; occl.connect(out); this.occl = occl;
-    const sendIn = c.createGain(); sendIn.gain.value = 1; a.sfx.connect(sendIn); this.sendIn = sendIn;
+    const a=this.audio;this.nodePorts['world']=a.world;this.nodePorts['sfx']=a.sfx;
+    const made=this.synth.nodes(requireAudioProfile(this.profile.nodes,'forest nodes'),this.nodePorts,this.nodeRead);
+    this.out=requireAudioProfile(made.gains.get('out'),'forest output');this.occl=requireAudioProfile(made.filters.get('occl'),'forest occlusion');this.sendIn=requireAudioProfile(made.gains.get('sendIn'),'forest room input');
     a.voices.prewarm(['ir-cabin', 'ir-bowl']);
     // the set's files (and the Pine Hollow music) were downloaded at the loading bar and the one-shots decoded there (E44):
     // nothing is fetched from here on — a bed decodes from the offline cache when its zone first wants it
@@ -197,11 +201,7 @@ export class ForestAmbience {
   /** the room's send (and convolver), built the first time it is needed */
   private send(room: Room): GainNode | undefined {
     const have = this.sends.get(room); if (have) return have;
-    const a = this.audio, ir = a.voices.buffer(`ir-${room}`);
-    if (!ir || !this.sendIn) { a.voices.prewarm([`ir-${room}`]); return undefined; }
-    const c = a.ctx, g = c.createGain(); g.gain.value = 0;
-    const conv = c.createConvolver(); conv.normalize = false; conv.buffer = ir;
-    this.sendIn.connect(g).connect(conv).connect(a.world);
+    const g=this.synth.reverb(`ir-${room}`,this.sendIn,()=>this.audio.world,true);if(g===undefined)return undefined;
     this.sends.set(room, g);
     return g;
   }

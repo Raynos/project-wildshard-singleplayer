@@ -1,6 +1,6 @@
 import { ownAudioSource } from './ownership';
 import type { AmbienceZones } from './ambience';
-import type { AudioPhraseProgram, AudioMixExpr, SynthNoise, SynthLfoRow, SynthChainRow, SynthBedGraph } from '@wildshard/format/audioProfiles';
+import type { AudioNodeRow, AudioPhraseProgram, AudioMixExpr, SynthNoise, SynthLfoRow, SynthChainRow, SynthBedGraph } from '@wildshard/format/audioProfiles';
 import { audioMixValue } from './audioProfiles';
 import { tap } from '../core/harnessTap';
 import { audioRandom } from './util';
@@ -119,6 +119,7 @@ export abstract class Synth {
 /** The bank the beds draw their noise and loops from (an engine Voices). */
 export interface SynthBank {
   readonly buffer: (name: string) => AudioBuffer | undefined;
+  readonly prewarm:(names:readonly string[])=>void;
 }
 
 /** Where the beds are built: the audio context (read only when building, so nothing creates it before the first gesture)
@@ -145,6 +146,30 @@ export class SynthBeds {
   }
 
   private get ctx(): AudioContext { return this.host.ctx; }
+
+  /** Construct a declared node graph once, retaining native output and point reads. */
+  nodes(rows:readonly AudioNodeRow[],outs:Readonly<Record<string,AudioNode>>,read:(id:string)=>number):{
+    nodes:Map<string,AudioNode>;gains:Map<string,GainNode>;filters:Map<string,BiquadFilterNode>;panners:Map<string,PannerNode>
+  } {
+    const nodes=new Map(Object.entries(outs)),gains=new Map<string,GainNode>(),filters=new Map<string,BiquadFilterNode>(),panners=new Map<string,PannerNode>();
+    const target=(id:string):AudioNode=>{const node=nodes.get(id);if(node===undefined)throw new Error(`Missing audio node: ${id}`);return node;};
+    for(const row of rows){
+      const out=row.out===undefined?undefined:target(row.out);let node:AudioNode;
+      if(row.filter){const [kind,hz,q]=row.filter;const filter=this.biquad(kind,hz,q);filters.set(row.id,filter);node=filter;}
+      else if(row.panner){
+        const p=this.ctx.createPanner(),[ref,rolloff,max]=row.panner;p.panningModel='equalpower';p.distanceModel='inverse';p.refDistance=ref;p.rolloffFactor=rolloff;p.maxDistance=max;
+        if(row.at!==undefined){p.positionX.value=read(`${row.at}.x`);p.positionY.value=read(`${row.at}.y`);p.positionZ.value=read(`${row.at}.z`);}panners.set(row.id,p);node=p;
+      }else{if(row.gain===undefined)throw new Error('Missing audio node kind');const gain=this.ctx.createGain();gain.gain.value=audioMixValue(row.gain,read);gains.set(row.id,gain);node=gain;}
+      if(out!==undefined)node.connect(out);if(row.input!==undefined)target(row.input).connect(node);nodes.set(row.id,node);
+    }
+    return {nodes,gains,filters,panners};
+  }
+
+  /** Lazy unnormalised room return with the original missing-bank warming policy. */
+  reverb(name:string,input:AudioNode|undefined,out:()=>AudioNode,prewarmMissing=false):GainNode|undefined {
+    const ir=this.host.voices.buffer(name);if(!ir||input===undefined){if(prewarmMissing)this.host.voices.prewarm([name]);return undefined;}
+    const gain=this.ctx.createGain();gain.gain.value=0;const conv=this.ctx.createConvolver();conv.normalize=false;conv.buffer=ir;input.connect(gain).connect(conv).connect(out());return gain;
+  }
 
   /** a looping noise source from the pool (two of each kind; past that the pool alternates between them) */
   noise(name: SynthNoise): AudioBufferSourceNode | undefined {

@@ -27,23 +27,6 @@ import { ambientTick } from '@wildshard/engine/core/harnessTap';
  *  listener; `dist` (a point prefix) the ground distance from the listener to `<p>.x`, `<p>.z`; `ss` a smoothstep (a, b, x);
  *  `in` 1 when a > lo and a < hi; `lt` / `gt` 1 or 0; `if` the second argument when the first is truthy, else the third;
  *  `and` / `or` / `not` truthiness; `+` and `*` fold left. */
-/** A node the mix builds before the beds: a biquad or a positional panner, into another node; a panner may sit at a point
- *  or follow a zone's shoreline (rays marched in from the zone's outer radius until the ground breaks the sea, refined by
- *  bisection; the nearest point of that closed polyline each frame, at the sea's height). */
-export interface MixNodeRow {
-  readonly id: string;
-  readonly out: string;
-  /** a biquad: type, frequency, Q */
-  readonly filter?: readonly [BiquadFilterType, number, number];
-  /** an equal-power inverse-distance panner: refDistance, rolloffFactor, maxDistance */
-  readonly panner?: readonly [number, number, number];
-  /** the panner's fixed point (a point port) */
-  readonly at?: string;
-  /** the panner follows this zone's shoreline: rays, march step, bisection steps; `diag` names the distance (a diag key
-   *  and a value, refreshed every frame) */
-  readonly follow?: { readonly zone: string; readonly rays: number; readonly step: number; readonly refine: number; readonly diag: string };
-}
-
 /** A bounds port: `<id>` is 1 while `objects[from][key]` is a valid { x, z, r, yMin, yMax } (then `<id>.x` … are set), else 0. */
 export interface MixBoundsRow { readonly id: string; readonly from: string; readonly key: string }
 
@@ -65,7 +48,6 @@ export interface AmbienceMixRows<Z extends string = string> {
   readonly prewarm: readonly FamilyName[];
   /** the master low-pass's underwater cutoff (Hz) and ramp (s) */
   readonly underwater: readonly [number, number];
-  readonly nodes: readonly MixNodeRow[];
   readonly bounds: readonly MixBoundsRow[];
   readonly near: readonly MixNearRow[];
   /** every bed's level: [bed id, expression] */
@@ -121,9 +103,11 @@ export class AmbienceMix<Z extends string = string> {
   private readonly synth: ReturnType<Audio['createSynthBeds']>;
   private readonly marks:Record<string,()=>void>={};
   private readonly values = new Map<string, number>();
-  private readonly nodes = new Map<string, AudioNode>();
-  private readonly panners = new Map<string, PannerNode>();
-  private readonly filters = new Map<string, BiquadFilterNode>();
+  private nodes = new Map<string, AudioNode>();
+  private readonly nodePorts:Record<string,AudioNode>={};
+  private readonly nodeRows:NonNullable<AudioZoneProfile['nodes']>;
+  private panners = new Map<string, PannerNode>();
+  private filters = new Map<string, BiquadFilterNode>();
   private readonly shores = new Map<string, Float32Array>();
   private readonly sends = new Map<string, GainNode>();
   private pans = new Map<string, StereoPannerNode>();
@@ -135,6 +119,7 @@ export class AmbienceMix<Z extends string = string> {
 
   constructor(audio: Audio, profile: AudioZoneProfile, rows: AmbienceMixRows<Z>, ports: AmbienceMixPorts, zone: Z) {
     this.audio = audio; this.profile = profile; this.rows = rows; this.ports = ports; this.zone = zone;
+    this.nodeRows=requireAudioProfile(profile.nodes,'island nodes');if(this.nodeRows.length>64)throw new Error('Audio node capacity');
     const schedules=requireAudioProfile(profile.schedules,'ambient schedules');
     if(schedules.length>32)throw new Error('Ambient schedule capacity');
     for(let i=0;i<32;i++){const row=schedules[i];if(row!==undefined)this.marks[row.mark]=()=>{this.scheduleOneShot(row);};}
@@ -169,7 +154,7 @@ export class AmbienceMix<Z extends string = string> {
     for (const [k, v] of Object.entries(profile.wet)) this.values.set(`wet.${k}`, v);
     for (const [id, p] of Object.entries(ports.points ?? {})) { this.values.set(`${id}.x`, p.x); this.values.set(`${id}.z`, p.z); if (p.y !== undefined) this.values.set(`${id}.y`, p.y); }
     this.values.set('sea', ports.sea);
-    for (const n of rows.nodes) if (n.follow) this.shores.set(n.id, this.traceShore(n.follow.zone, n.follow.rays, n.follow.step, n.follow.refine));
+    for (let index=0;index<64;index++){const n=this.nodeRows[index];if(n?.follow) this.shores.set(n.id, this.traceShore(n.follow.zone, n.follow.rays, n.follow.step, n.follow.refine));}
   }
 
   /** a zone's shoreline: rays from its centre, each marched in from its outer radius until the ground breaks the sea */
@@ -217,17 +202,9 @@ export class AmbienceMix<Z extends string = string> {
     this.ports.onBuild?.();
     const [cutoff, ramp] = rows.underwater; a.underwaterCutoff = cutoff; a.underwaterRamp = ramp;
     a.voices.prewarm([...rows.prewarm]);
-    this.nodes.set('ambient', a.ambient); this.nodes.set('world', a.world); this.nodes.set('sfx', a.sfx);
-    for (const n of rows.nodes) {
-      const out = this.node(n.out);
-      if (n.filter) { const f = this.synth.biquad(...n.filter); f.connect(out); this.nodes.set(n.id, f); this.filters.set(n.id, f); }
-      else if (n.panner) {
-        const p = c.createPanner(), [ref, rolloff, max] = n.panner;
-        p.panningModel = 'equalpower'; p.distanceModel = 'inverse'; p.refDistance = ref; p.rolloffFactor = rolloff; p.maxDistance = max;
-        if (n.at !== undefined) { p.positionX.value = this.value(`${n.at}.x`); p.positionY.value = this.value(`${n.at}.y`); p.positionZ.value = this.value(`${n.at}.z`); }
-        p.connect(out); this.nodes.set(n.id, p); this.panners.set(n.id, p);
-      }
-    }
+    this.nodePorts['ambient']=a.ambient;this.nodePorts['world']=a.world;this.nodePorts['sfx']=a.sfx;
+    const made=this.synth.nodes(this.nodeRows,this.nodePorts,this.readValue);
+    this.nodes=made.nodes;this.filters=made.filters;this.panners=made.panners;
     const outs: Record<string, AudioNode> = Object.fromEntries(this.nodes);
     this.pans = this.synth.assemble(requireAudioProfile(this.profile.graph, 'Missing declared synth graph'), outs, this.marks).pans;
     const sendIn = c.createGain(); sendIn.gain.value = 1; this.node(rows.rooms.from).connect(sendIn); this.sendIn = sendIn;
@@ -236,11 +213,7 @@ export class AmbienceMix<Z extends string = string> {
   /** a room's send (and convolver), built the first time it is needed */
   private send(room: MixRoomRow): GainNode | undefined {
     const have = this.sends.get(room.id); if (have) return have;
-    const a = this.audio, ir = a.voices.buffer(room.ir);
-    if (!ir || !this.sendIn) return undefined;
-    const c = a.ctx, g = c.createGain(); g.gain.value = 0;
-    const conv = c.createConvolver(); conv.normalize = false; conv.buffer = ir;
-    this.sendIn.connect(g).connect(conv).connect(this.node(this.rows.rooms.to));
+    const g=this.synth.reverb(room.ir,this.sendIn,()=>this.node(this.rows.rooms.to));if(g===undefined)return undefined;
     for (const f of room.feeds ?? []) this.nodes.get(f)?.connect(g);
     this.sends.set(room.id, g);
     return g;
@@ -288,7 +261,8 @@ export class AmbienceMix<Z extends string = string> {
     l.forwardX.value = -m[8]; l.forwardY.value = -m[9]; l.forwardZ.value = -m[10];
     l.upX.value = m[4]; l.upY.value = m[5]; l.upZ.value = m[6];
     a.voices.setListener(x, y, z, Math.atan2(m[8], m[10])); // forward = (−sin, −cos)
-    for (const n of this.rows.nodes) {
+    for (let index=0;index<64;index++) {
+      const n=this.nodeRows[index];if(n===undefined)continue;
       const shore = this.shores.get(n.id), p = this.panners.get(n.id);
       if (!shore || !n.follow) continue;
       const d = this.nearest(shore, x, z, this.q);

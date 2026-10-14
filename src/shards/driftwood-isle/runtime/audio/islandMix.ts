@@ -15,11 +15,6 @@ export const ISLAND_MIX: AmbienceMixRows<IslandZone> = {
   warm: ['noise-pink', 'noise-white', 'bubble-bed'],
   prewarm: ['bubble-bed', 'ir-shrine', 'ir-cave', 'ir-hold'],
   underwater: [500, 0.15],
-  nodes: [
-    { id: 'occl', out: 'ambient', filter: ['lowpass', 20000, 0.5] },
-    { id: 'surfPan', out: 'occl', panner: [12, 1, 400], follow: { zone: 'shore', rays: 256, step: 2, refine: 3, diag: 'shoreDist' } },
-    { id: 'fallPan', out: 'ambient', panner: [6, 1.1, 250], at: 'fall' },
-  ],
   bounds: [{ id: 'holdBox', from: 'wreck', key: 'holdBounds' }, { id: 'caveBox', from: 'cove', key: 'caveBounds' }],
   near: [{ id: 'palms', radius: 22 }],
   

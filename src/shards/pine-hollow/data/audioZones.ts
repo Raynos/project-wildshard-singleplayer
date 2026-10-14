@@ -1,3 +1,5 @@
+import type { AudioNodeRow } from '@wildshard/format/audioProfiles';
+
 /** Existing Pine layout zone rows captured without changing positions, radii or fade distances. */
 export const PINE_AUDIO_ZONES = [
   {
@@ -590,3 +592,6 @@ export const PINE_AUDIO_MIX = {
     ['creek','creek'],['waterfall','waterfall'],['mill','mill'],['night','night'],['rain','rain'],['dawn','dawn'],['underwater','uw']],
   zones:[['cabin','cabin'],['cave','cave'],['pond','pond'],['waterfall','waterfall'],['mill','mill'],['creek','creek'],['ridge','ridge'],['oldgrowth','oldgrowth']],
 } as const;
+
+/** Original forest bus, occlusion filter and lazy reverb feed. */
+export const PINE_AUDIO_NODES = [{id:"out",gain:"out",out:"world"},{id:"occl",filter:["lowpass",20000,0.5],out:"out"},{id:"sendIn",gain:1,input:"sfx"}] satisfies AudioNodeRow[];

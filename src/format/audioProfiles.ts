@@ -107,6 +107,14 @@ export interface SynthBedGraph {
 }
 
 
+/** Named buses, filters and positional emitters; output and point ids are native graph loans. */
+export const AudioNodeSchema = v.pipe(v.strictObject({id,out:v.exactOptional(id),input:v.exactOptional(id),gain:v.exactOptional(mixExpr),
+  filter:v.exactOptional(v.union([v.tuple([v.picklist(['lowpass','highpass','bandpass','lowshelf','highshelf','peaking','notch','allpass']),finite]),v.tuple([v.picklist(['lowpass','highpass','bandpass','lowshelf','highshelf','peaking','notch','allpass']),finite,finite])])),
+  panner:v.exactOptional(v.tuple([finite,finite,finite])),at:v.exactOptional(id),
+  follow:v.exactOptional(v.strictObject({zone:id,rays:v.pipe(finite,v.safeInteger(),v.minValue(1),v.maxValue(8192)),step:v.pipe(finite,v.minValue(0.001)),refine:v.pipe(finite,v.safeInteger(),v.minValue(0),v.maxValue(64)),diag:id}))}),
+  v.check(row=>Number(row.gain!==undefined)+Number(row.filter!==undefined)+Number(row.panner!==undefined)===1,'one audio node kind'),
+  v.check(row=>(row.at===undefined&&row.follow===undefined)||row.panner!==undefined,'positional emitter fields require a panner'));
+export type AudioNodeRow = v.InferOutput<typeof AudioNodeSchema>;
 /** Ordered bounded WebAudio graphs; output ids and scheduler marks are supplied by the native host. */
 const synthFrequency = v.pipe(finite,v.minValue(0),v.maxValue(96000));
 const synthWave = v.picklist(['sine','square','sawtooth','triangle']);
@@ -157,7 +165,7 @@ const zone = v.pipe(v.strictObject({ id, x: finite, z: finite, inner: v.pipe(fin
   fade: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))), open: v.optional(v.boolean()), source: v.optional(id) }), v.check((row) => row.inner < row.outer && (row.fade === undefined || row.outer === row.inner + row.fade), 'audio zone fade must extend outside its inner radius'));
 const rectangle = v.pipe(v.strictObject({ id, zone: id, x0: finite, x1: finite, z0: finite, z1: finite }), v.check((row) => row.x0 < row.x1 && row.z0 < row.z1, 'positive rectangular audio region'));
 /** Bounded zone/mixer data. Terrain, moving emitters and bespoke synthesis remain trusted runtime ports. */
-export const AudioZonesSchema = v.strictObject({ id, schedules:v.exactOptional(v.pipe(v.array(AudioOneShotScheduleSchema),v.maxLength(32))), programs:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
+export const AudioZonesSchema = v.strictObject({ id, nodes:v.exactOptional(v.pipe(v.array(AudioNodeSchema),v.maxLength(64))), schedules:v.exactOptional(v.pipe(v.array(AudioOneShotScheduleSchema),v.maxLength(32))), programs:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), graph:v.exactOptional(SynthBedGraphSchema), mix:v.exactOptional(AudioMixSchema), smoothSeconds: v.pipe(finite, v.minValue(0.001), v.maxValue(10)), tickHz: v.pipe(finite, v.minValue(0.1), v.maxValue(120)),
   silentSeconds: v.pipe(finite, v.minValue(0), v.maxValue(600)), holdSeconds: v.pipe(finite, v.minValue(0), v.maxValue(60)),
   levels: v.pipe(v.record(id, gain), v.check((levels) => Object.keys(levels).length <= 64, 'bounded levels')),
   blendMetres: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))),

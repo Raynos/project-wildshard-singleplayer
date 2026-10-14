@@ -1,4 +1,4 @@
-import type { AudioOneShotSchedule, AudioPhraseProgram, SynthBedGraph, AudioMixExpr, AudioMixRecipe } from '@wildshard/format/audioProfiles';
+import type { AudioNodeRow, AudioOneShotSchedule, AudioPhraseProgram, SynthBedGraph, AudioMixExpr, AudioMixRecipe } from '@wildshard/format/audioProfiles';
 import type { ScoreSelection } from './scoreSelection';
 
 /** Same-byte platform sample catalogue; gains apply to admitted named loops. */
@@ -19,6 +19,7 @@ export interface AudioZoneProfile {
   graph?: SynthBedGraph | undefined;
   programs?: Readonly<Record<string,AudioPhraseProgram>> | undefined;
   schedules?: readonly AudioOneShotSchedule[] | undefined;
+  nodes?: readonly AudioNodeRow[] | undefined;
   id: string; smoothSeconds: number; tickHz: number; silentSeconds: number; holdSeconds: number;
   levels: Readonly<Record<string, number>>;
   /** Rectangle-distance blend regions and admitted bed/sample names, for enclosed scenes. */
