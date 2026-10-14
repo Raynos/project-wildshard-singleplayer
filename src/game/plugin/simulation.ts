@@ -1025,7 +1025,7 @@ export function installDeclaredQuestHost(host: SimHost, source: Shardfile, ports
 
 
 const nativeActorMetadata = v.object({ kind: v.string(), spec: v.unknown() });
-const nativeWorldMetadata = v.object({ actors: v.array(nativeActorMetadata) });
+const nativeWorldMetadata = v.object({ actors: v.array(v.object({ kind: v.exactOptional(v.string()), spec: v.unknown() })) });
 const nativeQuestSpot = v.strictObject({ id: v.string(), x: bakedNumber, y: bakedNumber, z: bakedNumber, radius: v.pipe(bakedNumber, v.minValue(0)) });
 const nativeQuestMetadata = v.object({ actors: v.array(nativeActorMetadata), bosses: v.array(nativeActorMetadata),
   spots: v.strictObject({ interact: v.array(nativeQuestSpot), crack: v.array(nativeQuestSpot) }), promptRegistrations: v.optional(v.unknown()) });
