@@ -21,6 +21,7 @@
  *   graph without an outline, or any graph while the row is off, draws exactly as before. The outline's instructions are
  *   already in the graph's admitted cost (`validateGraph` counts the `outlineVertex` / `outline` programs).
  */
+import type { ToonLook } from '@wildshard/engine/render/families/toon';
 import { Color, Mesh, PointsMaterial, SRGBColorSpace, type Material, type Object3D, type Texture } from 'three';
 import { DEFAULT_GRAPH_BUDGET, validateGraph, type GraphBinding, type GraphBudget, type GraphIr, type GraphParamType, type GraphLiteral } from '@wildshard/format/materialGraph';
 import { DATA_LOOK_DAY, dataLookClock, lookSample, sampleLook, type LookSample } from '@wildshard/engine/render/dataLook';
@@ -158,9 +159,10 @@ export function graphParamFeeds(source: Pick<Shardfile, 'look' | 'state'>): Grap
 }
 
 /** A family entry a graph falls back to: the plain preset of its lighting model. */
-export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided'>): Readonly<Record<string, unknown>> {
+export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided' | 'flatShading'>): Readonly<Record<string, unknown>> {
   // as clientMaterials' implicit family surfaces: plain and vertex-coloured, PBR dielectric
   const doubleSided = graph.doubleSided ?? false;
+  if (graph.model === 'toon') return { family: 'toon', vertexColours: true, doubleSided, faceted: graph.flatShading ?? true };
   return graph.model === 'unlit' ? { family: 'emissive', vertexColours: true, doubleSided } : { family: 'pbr', vertexColours: true, metalness: 0, doubleSided };
 }
 
@@ -170,7 +172,7 @@ export function graphFallbackEntry(graph: Pick<GraphIr, 'model' | 'doubleSided'>
  * `trustedGraphs` is host authority from an admitted runtime, never a field read from graph JSON.
  * An explicit budget refuses on admission failure instead of using a family material.
  */
-export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial<Pick<Shardfile, 'runtime'>>, options: { compiler: GraphCompiler | null; trustedGraphs?: boolean; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string, role?: 'colour' | 'data') => Texture; file?: (hash: string) => Uint8Array | undefined }): {
+export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial<Pick<Shardfile, 'runtime'>>, options: { compiler: GraphCompiler | null; toon?: ToonLook; trustedGraphs?: boolean; fallback: (entry: Readonly<Record<string, unknown>>) => Material; textures: (ref: string, role?: 'colour' | 'data') => Texture; file?: (hash: string) => Uint8Array | undefined }): {
   /** Update a compiled material uniform; unknown/fallback materials and invalid values refuse. */
   setParam: (material: Material, name: string, value: GraphLiteral) => void;
   compile: (entry: GraphMaterialEntry) => Material; tick: (dt: number) => void; bind: (sources: GraphSources) => void; readout: GraphReadout;
@@ -219,14 +221,14 @@ export function clientGraphs(source: Pick<Shardfile, 'look' | 'state'> & Partial
       const shape: object = typeof graph === 'object' && graph !== null ? graph : {};
       readout.fallback++; readout.reasons.push(checked.errors.join('; '));
       if (Reflect.get(shape, 'primitive') === 'points') return pointFallback();
-      return options.fallback(graphFallbackEntry({ model: Reflect.get(shape, 'model') === 'unlit' ? 'unlit' : 'standard', doubleSided: Reflect.get(shape, 'doubleSided') === true }));
+      return options.fallback(graphFallbackEntry({ model: Reflect.get(shape, 'model') === 'toon' ? 'toon' : Reflect.get(shape, 'model') === 'unlit' ? 'unlit' : 'standard', doubleSided: Reflect.get(shape, 'doubleSided') === true }));
     }
     const ir = checked.graph;
     if (options.compiler === null) {
       readout.fallback++; readout.reasons.push('graph materials row off');
       return ir.primitive === 'points' ? pointFallback() : options.fallback(graphFallbackEntry(ir));
     }
-    const compiler = options.compiler, compiled = compiler.compileGraph(ir, { dayKeys, stateFields, budget, trustedBudget: options.trustedGraphs === true, textures: options.textures });
+    const compiler = options.compiler, compiled = compiler.compileGraph(ir, { ...(options.toon === undefined ? {} : { toon: options.toon }), dayKeys, stateFields, budget, trustedBudget: options.trustedGraphs === true, textures: options.textures });
     if (resolved.preset) for (const name of PRESET_CLOCK_PARAMS) if (ir.params?.[name] !== undefined) { compiled.setParam(name, elapsed); clocks.push(() => { compiled.setParam(name, elapsed); }); }
     setters.set(compiled.material, compiled.setParam);
     const hull = compiled.outline;

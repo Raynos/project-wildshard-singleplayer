@@ -185,7 +185,7 @@ export interface GraphIr {
   /** a material (vertex.offset + surface) or a screen pass (post) */
   readonly kind: 'material' | 'post';
   /** a material's lighting model: three's physical standard model, or unlit */
-  readonly model?: 'standard' | 'unlit';
+  readonly model?: 'standard' | 'unlit' | 'toon';
   /** Absent: mesh. Points require an unlit graph and a points.size vertex output. */
   readonly primitive?: 'mesh' | 'points';
   /** Optional material-only effect state; omission preserves every prior render default. */
@@ -521,7 +521,8 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   if (input.version !== GRAPH_IR_VERSION) fail(`graph: version ${String(input.version)} (this engine reads ${GRAPH_IR_VERSION})`);
   const kind = input.kind, primitive = input.primitive;
   if (kind !== 'material' && kind !== 'post') fail(`graph: kind ${String(kind)} (material or post)`);
-  if (input.model !== undefined && input.model !== 'standard' && input.model !== 'unlit') fail(`graph: model ${JSON.stringify(input.model)} (standard or unlit)`);
+  if (input.model !== undefined && input.model !== 'standard' && input.model !== 'unlit' && input.model !== 'toon') fail(`graph: model ${JSON.stringify(input.model)} (standard, unlit or toon)`);
+  if (input.model === 'toon' && input.kind !== 'material') fail('graph: toon is a material lighting model');
   if (input.doubleSided !== undefined && typeof input.doubleSided !== 'boolean') fail('graph: doubleSided is not a boolean');
   if (input.flatShading !== undefined && typeof input.flatShading !== 'boolean') fail('graph: flatShading is not a boolean');
   for (const k of Object.keys(input)) if (!['version', 'kind', 'model', 'primitive', 'effectState', 'doubleSided', 'flatShading', 'budget', 'params', 'arrays', 'nodes', 'stages'].includes(k)) fail(`graph: unknown field ${k}`);
@@ -821,6 +822,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     }
     const lit = stages.lighting;
     if (lit !== undefined) {
+      if (input.model === 'toon') fail('stages.lighting: toon supplies its family lighting; use standard for an authored lighting stage');
       if (input.model === 'unlit') fail('stages.lighting: an unlit graph has no lighting model');
       if (!isRecord(lit)) fail('stages.lighting: not an object');
       else {
@@ -872,7 +874,7 @@ function asGraph(input: Raw): GraphIr {
     stages: isRecord(input.stages) ? toStages(input.stages) : {},
     ...(input.primitive === 'mesh' || input.primitive === 'points' ? { primitive: input.primitive } : {}),
     ...(isRecord(input.effectState) ? { effectState: toEffectState(input.effectState) } : {}),
-    ...(input.model === 'standard' || input.model === 'unlit' ? { model: input.model } : {}),
+    ...(input.model === 'standard' || input.model === 'unlit' || input.model === 'toon' ? { model: input.model } : {}),
     ...(typeof input.doubleSided === 'boolean' ? { doubleSided: input.doubleSided } : {}),
     ...(typeof input.flatShading === 'boolean' ? { flatShading: input.flatShading } : {}),
     ...(isRecord(input.params) ? { params: toParams(input.params) } : {}),

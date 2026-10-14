@@ -5042,3 +5042,12 @@ ocean's vec3 surface displacement. Its four fixed waves read the same
 authored program, extra wave clock or CPU allocation per sample. Inputs
 are vec2, float, float; use the result in vertex displacement or fragment
 work. The graph admission charges 120 estimated instructions per call.
+
+A material graph may set `model: 'toon'` to use the existing graph lit
+path with the toon family's face/shadow bands, rim, lift, cloud shading
+and caustics. `clientMaterials` supplies `look.familyLooks.toon` and its
+existing family clock; `compileGraph({ ... }, { toon: existingToonLook })`
+can borrow that owner directly. Authored surface and uniform names are
+isolated from the family recipe. Faceted normals default on (override
+with `flatShading:false`). Point/spot lights retain physical lighting.
+An authored lighting stage instead uses `model:'standard'`.

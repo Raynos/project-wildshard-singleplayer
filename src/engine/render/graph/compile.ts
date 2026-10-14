@@ -42,6 +42,9 @@ import {
   positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
 import { GERSTNER_TERMS } from '../../world/waves';
+import { ToonLook } from '../families/toon';
+import { toonGraph } from './presets';
+import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
 import { layerFrameOf } from '../nodeLayerFrame';
@@ -57,6 +60,8 @@ const DIV_EPSILON = 1e-6;
 
 /** what the compiler needs beyond the graph */
 export interface CompileGraphOptions extends GraphValidationOptions {
+  /** Existing family owner supplies toon bands and its cloud/caustic clock. */
+  readonly toon?: ToonLook;
   /** resolves a texture param's file reference (an admitted texture); required when the graph samples one */
   readonly textures?: (ref: string, role?: 'colour' | 'data') => THREE.Texture;
   /** a post graph's scene colour: the engine's render target texture, sampled upright (`targetTexture`) */
@@ -393,7 +398,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     return sample.node;
   };
   const weight = uniform(1);
-  interface Scope { readonly nodes: Readonly<Record<string, GraphNode>>; readonly parent: Scope | null; readonly memo: Map<string, Val>; readonly acc: Val | null; readonly index: Val | null }
+  interface Scope { readonly uniforms?: ReadonlyMap<string, Val>; readonly lightDeps?: ReadonlySet<string>; readonly lightMemo?: Map<string, Val>; readonly nodes: Readonly<Record<string, GraphNode>>; readonly parent: Scope | null; readonly memo: Map<string, Val>; readonly acc: Val | null; readonly index: Val | null }
   const root: Scope = { nodes: ir.nodes, parent: null, memo: new Map(), acc: null, index: null };
   // Implicit texture derivatives need coherent execution on both sides of a select.
   // Follow references in their lexical scope, including a loop's actual output.
@@ -427,7 +432,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     for (let s: Scope | null = scope; s !== null; s = s.parent) {
       const n = s.nodes[r];
       if (n === undefined) continue;
-      const memo = s === root && perLight.has(r) ? lightMemo : s.memo;
+      const memo = s === root && perLight.has(r) ? lightMemo : s.lightDeps?.has(r) === true ? s.lightMemo ?? s.memo : s.memo;
       const hit = memo.get(r);
       if (hit !== undefined) return hit;
       const v = build(n, s);
@@ -538,7 +543,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       }
       case 'const': return literal(n.value ?? 0);
       case 'param': {
-        const u = n.param === undefined ? undefined : uniforms.get(n.param);
+        const u = n.param === undefined ? undefined : (scope.uniforms ?? uniforms).get(n.param);
         if (u === undefined) throw new Error(`material graph: unknown param ${String(n.param)}`);
         return u;
       }
@@ -672,17 +677,17 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     return m;
   };
   /** the lighting stage's hooks: each builds its sub-graph with its inputs live (the material calls them while it builds) */
-  const litHooks = (lit: NonNullable<GraphIr['stages']['lighting']>): LitHooks => {
-    const asVec3 = (r: GraphRef): Node<'vec3'> => new ConvertNode<'vec3'>(widen(ref(r, root), 'vec3'), 'vec3');
+  const litHooks = (lit: NonNullable<GraphIr['stages']['lighting']>, scope: Scope = root): LitHooks => {
+    const asVec3 = (r: GraphRef): Node<'vec3'> => new ConvertNode<'vec3'>(widen(ref(r, scope), 'vec3'), 'vec3');
     const specularRef = lit.sunSpecular;
     const ambientRef = lit.ambient, gradeRef = lit.grade;
     return {
       specular: specularRef !== undefined,
       sun(direction, colour, shadow) {
         sunIn = { direction, colour, shadow };
-        lightMemo = new Map();
+        if (scope.lightMemo !== undefined) scope.lightMemo.clear(); else lightMemo = new Map();
         try {
-          return { radiance: asVec3(lit.sun), specular: specularRef === undefined ? null : asFloat(ref(specularRef, root)) };
+          return { radiance: asVec3(lit.sun), specular: specularRef === undefined ? null : asFloat(ref(specularRef, scope)) };
         } finally { sunIn = null; }
       },
       ambient: ambientRef === undefined ? null : (irradiance) => {
@@ -695,11 +700,36 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       },
     };
   };
+  /** Reuse the family recipe in an isolated scope: authored names cannot alter its bands. */
+  const toonHooks = (): LitHooks => {
+    const look = opts.toon ?? new ToonLook(), row = parseFamilyMaterial({ family: 'toon' });
+    if (row.family !== 'toon') throw new Error('Missing toon family');
+    const preset = toonGraph(row, look.params), u = look.uniforms;
+    const values = new Map<string, Val>([
+      ['face', { t: 'vec2', n: reference('value', 'vec2', u.famToonFace) }],
+      ['shadowEdge', { t: 'vec2', n: reference('value', 'vec2', u.famToonShadow) }],
+      ['grade', { t: 'vec2', n: reference('value', 'vec2', u.famToonGrade) }],
+      ['lift', { t: 'vec3', n: new ConvertNode<'vec3'>(reference('value', 'color', u.famToonLift), 'vec3') }],
+      ['rim', { t: 'vec3', n: new ConvertNode<'vec3'>(reference('value', 'color', u.famToonRim), 'vec3') }],
+      ['terminator', { t: 'vec3', n: new ConvertNode<'vec3'>(reference('value', 'color', u.famToonTerm), 'vec3') }],
+      ['gloss', { t: 'float', n: reference('value', 'float', u.famToonGloss) }],
+      ['cloud', { t: 'vec4', n: reference('value', 'vec4', u.famToonCloud) }],
+      ['cloudTime', { t: 'float', n: reference('value', 'float', u.famToonTime) }],
+      ['water', { t: 'vec2', n: reference('value', 'vec2', u.famToonWater) }],
+    ]);
+    const scope: Scope = { nodes: preset.nodes, parent: null, memo: new Map(), acc: null, index: null,
+      uniforms: values, lightDeps: lightDependents(preset), lightMemo: new Map() };
+    // Use the actual mapped/graph roughness prepared by the physical material, not the preset's surface.
+    scope.memo.set('rough', { t: 'float', n: property('float', 'roughness') });
+    const lighting = preset.stages.lighting;
+    if (lighting === undefined) throw new Error('Missing toon lighting');
+    return litHooks(lighting, scope);
+  };
   /** a material graph: the lighting model's material with the surface and vertex stages in its slots */
   const surfaceMaterial = (): NodeMaterial => {
     const s = st.surface ?? {};
     const lit = st.lighting;
-    const m = ir.model === 'unlit' ? new MeshBasicNodeMaterial() : lit !== undefined ? new GraphLitMaterial(litHooks(lit)) : new MeshStandardNodeMaterial();
+    const m = ir.model === 'unlit' ? new MeshBasicNodeMaterial() : ir.model === 'toon' ? new GraphLitMaterial(toonHooks()) : lit !== undefined ? new GraphLitMaterial(litHooks(lit)) : new MeshStandardNodeMaterial();
     const colour = out(s.colour);
     if (colour !== null) m.colorNode = new ConvertNode<'vec3'>(widen(colour, 'vec3'), 'vec3');
     const alpha = out(s.alpha);
@@ -720,7 +750,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     const offset = out(st['vertex.offset']?.offset);
     if (offset !== null) m.positionNode = positionLocal.add(new ConvertNode<'vec3'>(widen(offset, 'vec3'), 'vec3'));
     m.side = ir.doubleSided === true ? THREE.DoubleSide : THREE.FrontSide;
-    if (m instanceof MeshStandardNodeMaterial) m.flatShading = ir.flatShading === true;
+    if (m instanceof MeshStandardNodeMaterial) m.flatShading = ir.flatShading ?? ir.model === 'toon';
     if (lit?.grade !== undefined) m.toneMapped = false; // a graded colour is display linear already
     m.fog = ir.effectState?.fog ?? true;
     const effect = ir.effectState;

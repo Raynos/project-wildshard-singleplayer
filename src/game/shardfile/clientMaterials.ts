@@ -142,7 +142,7 @@ export async function clientMaterials(shard: Shardfile, assets: ReadonlyMap<stri
   // graph entries: the lazy compiler loads only when the row is on and the shard carries one (a shard without pays nothing)
   const compiler = graphsOn && carriesGraph(shard, assets) ? await loadGraphCompiler(renderer) : null;
   if (scope.disposed) throw new Error('Material scope unloaded during the graph compiler load');
-  const graphs = clientGraphs(shard, { compiler, trustedGraphs: options.trustedGraphs === true, fallback: (entry) => familyMaterial(entry, context), textures: (ref, role = 'colour') => resolveTexture(ref, role), file: (hash) => assets.get(hash) });
+  const graphs = clientGraphs(shard, { compiler, toon, trustedGraphs: options.trustedGraphs === true, fallback: (entry) => familyMaterial(entry, context), textures: (ref, role = 'colour') => resolveTexture(ref, role), file: (hash) => assets.get(hash) });
   if (options.sources !== undefined) graphs.bind(options.sources);
   const compile = (entry: unknown, meshMap?: Texture): Material => {
     if (!isGraphEntry(entry)) return scope.own(familyMaterial(entry, context));
