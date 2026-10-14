@@ -5,7 +5,8 @@ import { buildDriftwoodWorld, keepDriftwoodWorld, type DriftwoodWorld } from '..
 import { releaseDriftwoodCopies } from '../world/gpuOnlyCopies';
 import { islandSystems } from '../world/systems';
 import { installDriftwoodAudio } from './audio/install';
-import type { World } from '@wildshard/engine/core/bootstrap';
+import { withPreparedScriptMemories } from '@wildshard/engine/script/host';
+import { driftwoodDirectorBytes } from './director';
 import type { Vector3 } from 'three';
 import { DRIFTWOOD_FEATS, DRIFTWOOD_ITEMS } from '../data/questInventory';
 import { DRIFTWOOD_EFFECTS, GOODS } from '../data/economy';
@@ -14,6 +15,8 @@ import type { Adventure } from '../quest/adventure';
 import { installDriftwoodCreatures } from '../creatures/install';
 import { driftwoodLoadoutRows, clearDriftwoodDrop } from '../loadout/rows';
 import { installDriftwoodLoadout } from './loadout';
+
+type World = NonNullable<NonNullable<ShardContext['game']['runtime']>['world']>;
 
 type WorldBuilder = (world: World, viewer: () => Vector3, progress: ShardContext['progress']) => Promise<DriftwoodWorld>;
 const PROBE_KEYS = ['ocean', 'pier', 'jetties', 'boat', 'hut', 'lookout', 'wreck', 'shrine', 'bushes', 'gulls', 'bridge', 'bridgeDeck', 'cove', 'enemies'] as const;
@@ -71,7 +74,9 @@ export class DriftwoodPlugin extends ShardPlugin {
 
   override async play(ctx: ShardContext): Promise<void> {
     await installDriftwoodAudio(ctx);
-    this.adventure = await installDriftwoodAdventure(ctx);
+    // Warm the actual finale memory after audio, then install the same adventure in its owner.
+    this.adventure = await withPreparedScriptMemories([driftwoodDirectorBytes()], ctx.scope,
+      null, () => installDriftwoodAdventure(ctx));
     ctx.scope.onDispose(() => { this.adventure = null; });
   }
 }

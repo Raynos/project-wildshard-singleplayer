@@ -22,11 +22,10 @@ const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: explo
   ] };
 
 /** Authored discovery and boot metadata; native policies remain explicit bindings. */
-export const DRIFTWOOD_MANIFEST = {
+const DISCOVERY_ROWS = {
 gridShardfile: '/shardfiles/driftwood-isle/shard.json',
 entries: { legacy: true, shardfile: true, public: 'shardfile' },
 runtimeCost: DRIFTWOOD_RUNTIME_COST,
-budgets: DRIFTWOOD_BUDGET_INPUTS,
 uses: ['dayCycle'],
 api: 1,
 kitLook: 'toon',
@@ -54,7 +53,6 @@ loadout: { weapons: ['weapon.sword', 'weapon.sword-iron'], tools: ['tool.hoverbo
     pickups: [{ id: 'weapon.sword-iron', at: 'wreck.deck' }] },
 explore: EXPLORE,
 trees: { factory: 'none', noun: 'trees' },
-spawns: DRIFTWOOD_FAUNA_PLANS,
 fight: { input: { bufferMs: 120, coyoteMs: 100 }, telegraphed: true, maxHitDamage: 20, capExempt: ['captain'], attackers: 2 },
 loot: { coins: true },
 bodyShadow: true,
@@ -86,3 +84,8 @@ grade: {
   },
 runtimeEntry: 'runtime/hybrid.ts',
 } as const;
+
+/** Public row types retain the defining budget and spawn declarations. */
+export const DRIFTWOOD_MANIFEST: typeof DISCOVERY_ROWS & { readonly budgets: typeof DRIFTWOOD_BUDGET_INPUTS; readonly spawns: typeof DRIFTWOOD_FAUNA_PLANS } = {
+  ...DISCOVERY_ROWS, budgets: DRIFTWOOD_BUDGET_INPUTS, spawns: DRIFTWOOD_FAUNA_PLANS,
+};

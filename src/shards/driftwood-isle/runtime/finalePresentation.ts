@@ -136,10 +136,10 @@ export async function installDirectorFinale<A extends AdvAnimal>(adv: FinaleAdve
   const recipe = finaleRecipe(adv, w, app), scope = context.scope;
   const create = await prepareDriftwoodDirector();
   if (scope.disposed) throw new Error('Finale scope left during admission');
-  const clock = new DirectorScriptStageLane(stages, create(), { observe: recipe.observe, publish: action => {
+  const clock = scope.run(() => new DirectorScriptStageLane(stages, create(), { observe: recipe.observe, publish: action => {
     if (!('emit' in action) || action.value !== 0) throw new Error('Invalid finale stage action');
     recipe.publish(action.emit);
-  } });
+  } }));
   scope.onDispose(adv.flags.onChange((flag, on) => {
     if (on && (flag === 'used:altar' || flag === 'dead:captain')) clock.changed();
   }));

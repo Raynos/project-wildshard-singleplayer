@@ -64,12 +64,14 @@ function takePreparedMemory(initial: number, maximum: number): WebAssembly.Memor
   return undefined;
 }
 /**
- * Allocate fresh, never-used script memories between caller-supplied frame yields, then consume them only during
+ * Allocate fresh, never-used script memories between caller-supplied frame yields (null uses the standard
+ * owned macrotask yield), then consume them only during
  * the owned installer. Async installers carry their owner across awaits as usual. Each module describes one default-limit host; custom limits use a fresh allocation
  * when their descriptor differs. No seed, initialization, call or snapshot runs before the installer. Unused references
  * are dropped on return, failure or owner disposal; allocation attribution includes every prepared memory.
  */
-export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array[], owner: Scope, pause: () => Promise<void>, install: () => T | Promise<T>): Promise<T> {
+export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array[], owner: Scope, pause: (() => Promise<void>) | null, install: () => T | Promise<T>): Promise<T> {
+  const wait = pause ?? (() => new Promise<void>(resolve => { owner.timeout(0, resolve); }));
   requirePreparationOwner(owner);
   if (modules.length > SCRIPT_LIMITS.instances) throw new Error('Invalid script memory preparation');
   if (preparingOwners.has(owner)) throw new Error('Script memory preparation already active');
@@ -86,7 +88,7 @@ export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array
   const forget = owner.capture('disposers', clear);
   try {
     for (const plan of plans) {
-      await preparationWait(owner, pause);
+      await preparationWait(owner, wait);
       requirePreparationOwner(owner);
       const memory = owner.run(() => {
         const allocated = new WebAssembly.Memory(plan);
@@ -95,7 +97,7 @@ export async function withPreparedScriptMemories<T>(modules: readonly Uint8Array
       });
       memories.push({ ...plan, memory });
     }
-    await preparationWait(owner, pause);
+    await preparationWait(owner, wait);
     requirePreparationOwner(owner);
     if (preparedMemories.has(owner)) throw new Error('Script memory preparation owner unavailable');
     preparedMemories.set(owner, memories);

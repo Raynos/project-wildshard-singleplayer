@@ -1,5 +1,6 @@
+import { trustedLevel } from '@wildshard/game/plugin/simulation';
 import { installNativeCollision, type HeadlessRuntimeInstallation, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
-import { SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
+import type { SimHost } from '@wildshard/engine/sim';
 import { parseNavmesh, type Navmesh } from '@wildshard/engine/physics/navmesh';
 import { DRIFTWOOD_SEA, LOWERED_SEA } from '../world/sea';
 import { waveHeight } from '@wildshard/engine/world/waves';
@@ -75,10 +76,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   if (navigation === undefined) throw new Error('Driftwood requires its admitted navigation asset');
   const createDirector = await prepareDriftwoodDirector();
   const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh(navigation), swords = driftwoodSwordProfiles(shard.items.rows), spots = driftwoodSpots();
-  const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: 500, height: 0 },
-    player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
-    // the host's player strike is a zero-damage probe, never a sword: the swords are declared items (runtime/swords.ts)
-    entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
+  const level = trustedLevel(shard, { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z },
+    yaw: shard.spawn.yaw, speed: 5 }, { size: 500, height: 0 });
   return { level, ports: { ground: false, heightAt }, proveEntries: host => proveTerrainEntries(host.physics, shard.entryways, heightAt, ENTRY_WALK), install: (host, context) => {
     // the page's own day clock, stepped by the host before every tick's steps (a restoring install builds it again)
     host.useDayClock(driftwoodDayClock());

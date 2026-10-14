@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import { parseCrossbowProfile } from '../weapons/crossbow/profiles';
 import { BowWeaponProfileSchema } from '@wildshard/format/weaponProfiles';
 import { installNativeCollision, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
-import { createSimHost, SIM_API_VERSION, type SimHost, type SimLevel } from '@wildshard/engine/sim';
+import { createSimHost, type SimHost } from '@wildshard/engine/sim';
 import { parseNavmesh } from '@wildshard/engine/physics/navmesh';
 import { bakedSamplers, parseBakedTerrain, type BakedGrid } from '@wildshard/engine/world/BakedTerrain';
 import { PINE_GROUND_RES, pineBake, type PineBake, type PineSolid } from './baked';
@@ -17,7 +17,7 @@ import { installPineLever } from './weapons/headlessLever';
 import { parseLeverProfile } from '../weapons/leverAction';
 import { installPineLongbow } from './weapons/headlessLongbow';
 import { AIM_COMMAND, AIM_MIDDLE, aimShare } from './weapons/headlessRanged';
-import { createNativeLoadout } from '@wildshard/game/plugin/simulation';
+import { createNativeLoadout, trustedLevel } from '@wildshard/game/plugin/simulation';
 import { PINE_NATIVE_LOADOUT, PINE_WEAPON, WEAPON_COMMAND, LOADOUT_STEP, LEVER_FLAG } from '../data/nativeLoadout';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
@@ -89,10 +89,8 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   // this host configures no level and shifts nothing: the navmesh's queries stand in the bake's own (authored) frame
   nav.datum = () => 0;
   const heightAt = bakedSamplers(grid).heightAt;
-  const level: SimLevel = { version: SIM_API_VERSION, id: shard.identity.slug, seed: shard.identity.seed, ground: { size: 500, height: 0 },
-    player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
-    // the host's player strike is a zero-damage probe, never a crossbow: the weapons are declared items (data/items.ts)
-    entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
+  const level = trustedLevel(shard, { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z },
+    yaw: shard.spawn.yaw, speed: 5 }, { size: 500, height: 0 });
   return { level, ports: { ground: false, heightAt }, proveEntries: () => {
     // on a fresh host of the grid's world (the bake without the standalone edge walls), its query pipeline built by a step
     const fresh = createSimHost(level, { ground: false, heightAt, rapier });

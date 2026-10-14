@@ -23,11 +23,10 @@ const EXPLORE = { art: { world: exploreWorld, models: exploreModels, sets: explo
   ] };
 
 /** Authored discovery and boot metadata; native policies remain explicit bindings. */
-export const PINE_MANIFEST = {
+const DISCOVERY_ROWS = {
 runtimeCost: PINE_RUNTIME_COST,
 gridShardfile: '/shardfiles/pine-hollow/shard.json',
 entries: { legacy: true, shardfile: true, public: 'shardfile' },
-budgets: PINE_BUDGET_INPUTS,
 uses: ['dayCycle', 'weather'],
 horizonStrips: {
     day: '/assets/horizon/pine-hollow-day.webp', night: '/assets/horizon/pine-hollow-night.webp', elMin: -30, elMax: 14, scale: 4,
@@ -64,7 +63,6 @@ assets: {
       grassTint: [0.8, 0.74, 0.55] as [number, number, number],
     },
   },
-spawns: PINE_FAUNA,
 sky: {
     hdri: 'qwantani_sunset_puresky',
     sunColor: [1.0, 0.76, 0.5] as [number, number, number],
@@ -100,3 +98,8 @@ weapon: 'crossbow',
 style: 'pbr',
 runtimeEntry: 'runtime/index.ts',
 } as const;
+
+/** Public row types retain the defining budget and spawn declarations. */
+export const PINE_MANIFEST: typeof DISCOVERY_ROWS & { readonly budgets: typeof PINE_BUDGET_INPUTS; readonly spawns: typeof PINE_FAUNA } = {
+  ...DISCOVERY_ROWS, budgets: PINE_BUDGET_INPUTS, spawns: PINE_FAUNA,
+};
