@@ -1275,7 +1275,7 @@ their final world position, including instances. The port itself imports no TSL.
 `out highp` / `in highp` declarations; node shaders use their native mask because they have no classic chunk anchors.
 
 **Material graphs (SF59, lazy, not on the default path).** TSL is reached only through `render/graphBackend.ts`:
-`loadGraphBackend(renderer)` installs `EngineNodesHandler` (the output transform, the upright target sample, the fog
+`loadGraphBackend(renderer)` installs `EngineNodesHandler` (the output transform, the upright target sample and scene environment, the fog
 epilogue, the tent and cascade shadows as nodes, and the coarse-mask port); `loadGraphCompiler(renderer)` then loads `compileGraph(ir)`
 (`render/graph/compile.ts`), which turns a graph IR into a node material. The renderer-neutral IR (`core/materialGraph.ts`,
 `GRAPH_IR_VERSION` 1) is data: `nodes` of an allowlisted vocabulary (`GRAPH_OPS`: inputs, safe maths, comparisons and a

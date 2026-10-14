@@ -32,14 +32,20 @@
  *    is built with the level frame's view as its model-view (`material.contextNode`), the graph compiler's camera reads
  *    shifted by the frame's origin, and its output faded by the owner weight as the last epilogue stage; its programs
  *    keep a key of their own.
+ * 7. **The scene's environment is upright** (`ClassicPMREMNode`). three's PMREM node assumes WebGPURenderer's PMREM: a
+ *    render-target PMREM stored upside down with its directions' y negated, so it flips both. The classic
+ *    PMREMGenerator writes the standard convention upright (`cube_uv_reflection_fragment` reads it unflipped), so a lit
+ *    node material's image-based light came from below the horizon: a standard graph under a sky environment drew
+ *    about a quarter as bright as its classic twin (Pine Hollow's cabin door, near black in shade). A classic PMREM
+ *    (`CubeUVReflectionMapping`) environment reaches node materials through this node instead.
  *
  * Load it lazily (`render/graphBackend.ts`): it pulls in `three/webgpu` + `three/tsl` (≈ +117 KB gzip), which a shard
  * without a graph material never pays for. Nothing on the default render path imports this module.
  */
 import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
-import { ConvertNode, NodeMaterial, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
-import { and, context, mix, modelWorldMatrix, nodeObject, positionWorld, reference, step, uniform, vec2, vec4, workingToColorSpace } from 'three/tsl';
+import { ConvertNode, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
+import { and, context, mix, modelWorldMatrix, nodeObject, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
 import { fogPatches } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
 import { engineFog } from './engineFog';
@@ -99,6 +105,42 @@ export function retargetableTexture(map: THREE.Texture, uvNode?: Node<'vec2'>): 
   return { node: nodeObject(texture), retarget: (next) => { texture.value = next; } };
 }
 
+/** a texture, typed as three's default texture (`instanceof` alone narrows to `Texture<any>`) */
+function isTexture(value: unknown): value is THREE.Texture { return value instanceof THREE.Texture; }
+
+/** a direction node's y negated (a vec3 node: three's d.ts types context reads as unknown) */
+function negateY(direction: unknown): Node<'vec3'> {
+  if (typeof direction !== 'object' || direction === null || !isNode(direction)) throw new Error('EngineNodesHandler: an environment direction that is not a node');
+  const d = new ConvertNode<'vec3'>(direction, 'vec3');
+  return vec3(d.x, d.y.negate(), d.z);
+}
+
+/**
+ * The classic renderer's PMREM environment sampled as `cube_uv_reflection_fragment` samples it (module comment, 7):
+ * the atlas upright (its texture node never flips) and the lookup direction as it is. PMREMNode negates a render-target
+ * PMREM's direction y in `setup`; the direction it is handed is pre-negated so the two cancel.
+ */
+class ClassicPMREMNode extends PMREMNode {
+  constructor(value: THREE.Texture) {
+    super(value);
+    const stock: unknown = Reflect.get(this, '_texture');
+    if (!(stock instanceof TextureNode)) throw new Error('EngineNodesHandler: PMREMNode keeps no texture node');
+    Reflect.set(this, '_texture', new TargetTextureNode(stock.value));
+  }
+
+  override setup(builder: NodeBuilder): Node {
+    const outer: unknown = builder.context;
+    const getUV: unknown = typeof outer === 'object' && outer !== null ? Reflect.get(outer, 'getUV') : undefined;
+    if (typeof outer !== 'object' || outer === null || this.uvNode !== null || typeof getUV !== 'function') throw new Error('EngineNodesHandler: an environment read without a lighting context');
+    builder.context = { ...outer, getUV: (node: unknown, b: unknown): Node<'vec3'> => negateY(Reflect.apply(getUV, undefined, [node, b])) };
+    try {
+      const built: unknown = super.setup(builder);
+      if (typeof built !== 'object' || built === null || !isNode(built)) throw new Error('EngineNodesHandler: PMREMNode built no node');
+      return built;
+    } finally { builder.context = outer; }
+  }
+}
+
 /** a colour-space node is a vec4 node (its d.ts types it without the vec4 extensions) */
 function asVec4(node: object): Node<'vec4'> {
   if (!isNode(node)) throw new Error('EngineNodesHandler: the output transform is not a node');
@@ -124,7 +166,7 @@ interface ProgramEntry {
 interface StockInternals {
   getOutputCallback: (outputNode: Node<'vec4'>, builder: NodeBuilder) => Node<'vec4'>;
   customProgramCacheKeyCallback: (this: THREE.Material) => string;
-  renderStack: { sceneContext: { fogNode: Node | null; scene: THREE.Object3D } }[];
+  renderStack: { sceneContext: { fogNode: Node | null; environmentNode: Node | null; scene: THREE.Object3D } }[];
   programCache: Map<THREE.Material, Map<unknown, ProgramEntry>>;
   collectUniformsGroups: (builder: unknown) => unknown[];
   onBeforeRenderCallback: (this: THREE.Material, ...args: unknown[]) => void;
@@ -195,6 +237,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private blocks: NodeUniformBuffers | null = null;
   /** builds of each material not yet paired with their programs (see `onUpdateProgram`) */
   private readonly pendingBuilds = new WeakMap<object, PendingBuild[]>();
+  /** each classic PMREM environment's upright node (`ClassicPMREMNode`) */
+  private readonly environments = new WeakMap<THREE.Texture, Node>();
 
   constructor() {
     super();
@@ -296,6 +340,14 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (this.engineFogOn()) {
       const top = internals(this).renderStack.at(-1);
       if (top !== undefined) top.sceneContext.fogNode = null;
+    }
+    // a classic PMREM environment reaches node materials upright (module comment, 7); one node per texture keeps one key
+    const sceneContext = internals(this).renderStack.at(-1)?.sceneContext;
+    const environment: unknown = sceneContext === undefined ? null : Reflect.get(sceneContext.scene, 'environment');
+    if (sceneContext !== undefined && isTexture(environment) && environment.mapping === THREE.CubeUVReflectionMapping) {
+      let node = this.environments.get(environment);
+      if (node === undefined) { node = nodeObject(new ClassicPMREMNode(environment)); this.environments.set(environment, node); }
+      sceneContext.environmentNode = node;
     }
   }
 
