@@ -23,5 +23,9 @@ export const SWARD_ATLAS_FILE = {
   critical: false,
 } as const;
 
-/** Match the DataTexture: linear filtering over GPU-built mips, clamped. */
-export const SWARD_ATLAS_SAMPLER = { filter: 'linear', mips: 'gpu' } as const;
+/**
+ * Linear filtering over GPU-built mips, clamped, and 4 anisotropic samples: a tuft is 192 × 512 texels on a card about
+ * as wide as tall, so past ~12 m an isotropic sample picks its mip by the squeezed height, the thin strands fade under
+ * the cut-off and each far card keeps only its dense lower strip (flat horizontal slabs on the knolls' flanks).
+ */
+export const SWARD_ATLAS_SAMPLER = { filter: 'linear', mips: 'gpu', anisotropy: 4 } as const;
