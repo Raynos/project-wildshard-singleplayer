@@ -20,8 +20,6 @@ export function islandMesh(id: string): Mesh<BufferGeometry, Material> {
   return new Mesh(g, isleMaterial());
 }
 
-/** A static island's node in its props tile (generators/isleProps.ts; `gate.north` → `isle_gate-north`), by which it is found. */
-export const isleNode = (id: string): string => `isle_${id.replace('.', '-')}`;
 /** The static islands drawn from their props tiles (generators/isleProps.ts), by island id; the world build paints each. */
 export type IsleMeshes = ReadonlyMap<string, Mesh>;
 /** The runtime's props view: take a tile's islands (each at its own position, its baked triangles and paint as built). */
@@ -32,10 +30,4 @@ export function adoptIsleTile(tile: Object3D, into: Map<string, Mesh>): void {
     // the sphere from the shape's own points (the loader's is the box's), so each island culls as it always did
     node.geometry.computeBoundingSphere(); into.set(node.name, node);
   });
-}
-/** A static island from its tile, at the tile node's own position, painted (an island whose tile did not load stands undrawn). */
-export function staticIsle(meshes: IsleMeshes, id: string, look?: IsleLook): Mesh<BufferGeometry, Material> {
-  const node = meshes.get(isleNode(id)), mesh = new Mesh(node?.geometry ?? new BufferGeometry(), isleMaterial(look));
-  if (node !== undefined) { mesh.position.copy(node.position); mesh.quaternion.copy(node.quaternion); mesh.scale.copy(node.scale); node.removeFromParent(); }
-  return mesh;
 }

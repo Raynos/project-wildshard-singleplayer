@@ -8,10 +8,10 @@ import { questPagePrompt, bindClientChannels, bindWorldSceneParts, createClientS
 import type { SkyReachPlugin } from '../runtime/index';
 import REST_SCENES from '../data/restScenes.generated.json' with { type: 'json' };
 import { SKY_LIBRARY, skyHd, hdMaterial } from './meshes';
-import { AdditiveBlending, MeshBasicMaterial, Group, type Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
+import { AdditiveBlending, MeshBasicMaterial, Group, type BufferGeometry, type Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
 import { CROWN, FALLEN_BRIDGE, SUNREST } from '../data/layout';
 import { STRINGS } from '../data/strings';
-import { islandMesh, staticIsle, type IsleMeshes } from './isle';
+import { islandMesh, isleMaterial, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
 import { WORLD } from './baked';
 import { PALETTE, flat } from './materials';
@@ -58,9 +58,10 @@ export interface BuiltWorld {
 export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, isles: IsleMeshes, looks: { readonly deck: Material; readonly frame: Material; readonly channels: Parameters<typeof bindClientChannels>[0] }): Promise<BuiltWorld> {
   const random = ctx.app.rng.stream('cosmetic'), rnd = (): number => random.next(), root = new Group();
   const pieces = WORLD.placements(ctx.piece, root), spanColliders = (id: string) => pieces.colliders(id,'wood'), propColliders = pieces.colliders;
+  const groundGeometry = new Map<string, BufferGeometry | null>(SKY_GROUND.isles.map(row => [row.id, isles.get(row.node)?.geometry ?? null]));
   const ground = createWorldScene(SKY_GROUND.recipe, {
-    geometry: SKY_LIBRARY.geometry, model: SKY_LIBRARY.model, baked: WORLD.object,
-    objects: new Map(SKY_GROUND.isles.map(row => [`isle.${row.id}`, staticIsle(isles, row.id, row.look)])),
+    geometry: name => groundGeometry.get(name) ?? null, model: SKY_LIBRARY.model, baked: WORLD.object,
+    materials: new Map(SKY_GROUND.looks.map(look => [look, isleMaterial(look)])),
   });
   for (let i = 0; i < SKY_GROUND.cosmeticDraws; i++) rnd();
   await pieces.scene(ground, SKY_GROUND.bindings, pause);
