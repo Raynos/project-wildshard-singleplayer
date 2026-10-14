@@ -30,11 +30,12 @@
  *   cutTerrain(physics, crags.terrainCuts()); terrain.punch(crags.holeTest());  game.onUpdate(() => crags.update(t))
  */
 import * as THREE from 'three';
+import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import { pineSetCap } from '../debug/options';
 import { PINE_CRAG_DIR } from './heroFiles';
 import { pineModels } from './context';
 import { CRAG_LOD, useCragKit } from './cragKit';
-import { CAVE_FRAME, SKIN_TILE, loadCragSkin, type CragPlace, type CragSkin } from './cragBake';
+import { CAVE_FRAME, loadCragSkin, type CragPlace, type CragSkin } from './cragBake';
 import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
 import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
 import { SCREE_MODULES, scree as screeFan } from '../models/scree';
@@ -45,7 +46,7 @@ import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { TerrainCut } from '@wildshard/engine/physics/terrain';
 import { PATCH_ORDER, patchShader, setProgramKey } from '@wildshard/engine/render/shaderPatches';
-import { BatchedLodSet, geometrySize, type BatchedLodSet as BatchedLodSetView, type LodPlanRow } from '../runtime/cull/batchedLod';
+import { BatchedLodSet, type BatchedLodSet as BatchedLodSetView, type LodPlanRow } from '../runtime/cull/batchedLod';
 import { CaveInterior, type CaveInterior as CaveInteriorView, type CaveMeta } from '../runtime/kit/caveInterior';
 import { loadGlbNodes, trimeshDesc } from '../runtime/kit/glbNodes';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
@@ -175,26 +176,15 @@ export class PineCrags {
     this.places = places;
     // the world's own geometry: the face skin (one geometry per tile per resolution, identity matrix: its vertices are
     // world positions) and the cave (its interior + hood near, the hood alone (simplified) far)
-    const geos: THREE.BufferGeometry[] = [];
-    const plan: LodPlanRow[] = [];
-    if (this.mat) {
-      for (const [g0, g1] of this.skin) {
-        const i0 = geos.length; geos.push(g0); const i1 = geos.length; geos.push(g1);
-        const bs = g0.boundingSphere ?? new THREE.Sphere(new THREE.Vector3(), SKIN_TILE);
-        plan.push({ matrix: new THREE.Matrix4(), lod0: i0, lod1: i1, near: LOD.big * 0.8, far: LOD.bigFar, r: bs.radius, x: bs.center.x, y: bs.center.y, z: bs.center.z });
-      }
-    }
-    const caveM = new THREE.Matrix4().makeRotationY(CAVE_FRAME.yaw).setPosition(CAVE_FRAME.x, 0, CAVE_FRAME.z);
-    const caveG = this.caveGeo.get('cave'), hoodG = this.caveGeo.get('cave-far');
-    if (caveG) {
-      const cave0 = geos.length; geos.push(caveG);
-      const bs = caveG.boundingSphere ?? new THREE.Sphere(new THREE.Vector3(), 30);
-      const c = bs.center.clone().applyMatrix4(caveM);
-      plan.push({ matrix: caveM.clone(), lod0: cave0, lod1: cave0, near: 1e9, far: LOD.cave, r: bs.radius, x: c.x, y: c.y, z: c.z });
-      if (hoodG) {
-        const hoodFar = geos.length; geos.push(hoodG);
-        plan.push({ matrix: caveM.clone(), lod0: hoodFar, lod1: hoodFar, near: 1e9, far: 1200, r: bs.radius, x: c.x, y: c.y, z: c.z });
-      }
+    const assembly=authored.cragAssembly.tiers[TIER], skin=this.skin.flat();
+    const geos: THREE.BufferGeometry[] = this.mat ? assembly.slots.map(slot => {
+      const geometry=slot.skin>=0?skin[slot.skin]:this.caveGeo.get(slot.cave);
+      if(geometry===undefined)throw new Error('[crags] authored batch geometry missing');return geometry;
+    }) : [];
+    const caveM = new THREE.Matrix4().makeRotationY(CAVE_FRAME.yaw).setPosition(CAVE_FRAME.x,0,CAVE_FRAME.z);
+    const plan: LodPlanRow[] = this.mat ? assembly.plans.map(({cave,...row})=>({...row,matrix:cave?caveM.clone():new THREE.Matrix4()})) : [];
+    const caveG=this.caveGeo.get('cave');
+    if(caveG){
       const col = this.caveGeo.get('cave-col') ?? caveG;
       this.caveColliders.push(trimeshDesc(col, caveM, CAVE_LOOK.surface));
     }
@@ -204,14 +194,8 @@ export class PineCrags {
     const of = (ids: readonly string[]): CragPlace[] => places.filter((p) => ids.includes(p.id) && this.kit.has(p.id));
     const byKind = [of(CLIFF_MODULES), of(BOULDER_MODULES), of(SCREE_MODULES)] as const;
     if (this.mat && (plan.length > 0 || byKind.some((l) => l.length > 0))) {
-      // sized for all of it: the modules the placements use (each at both levels) and the world's own
-      let v = 0, ix = 0, n = plan.length;
-      for (const list of byKind) {
-        n += list.length;
-        for (const id of new Set(list.map((p) => p.id))) for (const g of [this.kit.get(id), this.kit.get(`${id}-lod1`) ?? this.kit.get(id)]) { const s0 = geometrySize(g); v += s0.v; ix += s0.i; }
-      }
-      for (const g of geos) { const s0 = geometrySize(g); v += s0.v; ix += s0.i; }
-      const bm = this.batch = new THREE.BatchedMesh(n, v, ix, this.mat);
+      const capacity=assembly.reserve;
+      const bm = this.batch = new THREE.BatchedMesh(capacity.instances,capacity.vertices,capacity.indices,this.mat);
       bm.name = 'pine-crags';
       bm.sortObjects = false; bm.perObjectFrustumCulled = true;
       bm.castShadow = true; bm.receiveShadow = true;

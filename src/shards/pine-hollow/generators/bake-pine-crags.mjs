@@ -31,10 +31,10 @@ export function pineCragGround() {
 }
 
 /** the kit's nodes as the page's PineCrags.load reads them: float positions in the node's world frame, bounds computed */
-export async function pineCragKit() {
+export async function pineCragKit(files = ['crags.glb', 'crags-b.glb']) {
   await MeshoptDecoder.ready;
   const kit = new Map();
-  for (const file of ['crags.glb', 'crags-b.glb']) {
+  for (const file of files) {
     const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).parseAsync(read(`public/assets/models/pine-hollow-crags/${file}`), '');
     gltf.scene.updateMatrixWorld(true);
     gltf.scene.traverse((o) => {
@@ -43,8 +43,9 @@ export async function pineCragKit() {
       for (let i = 0; i < a.count; i++) for (let k = 0; k < 3; k++) pos[i * 3 + k] = a.getComponent(i, k);
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const index = o.geometry.getIndex(); if (index) g.setIndex(new THREE.BufferAttribute(Uint32Array.from({ length: index.count }, (_v, i) => index.getX(i)), 1));
       g.applyMatrix4(o.matrixWorld);
-      g.computeBoundingBox();
+      g.computeBoundingBox(); g.computeBoundingSphere();
       kit.set(o.name, g);
     });
   }

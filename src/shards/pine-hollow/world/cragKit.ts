@@ -6,7 +6,7 @@
  */
 import * as THREE from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
-import { vertexHull } from '@wildshard/engine/models/glb';
+import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import type { ModelContext, ModelPart } from '@wildshard/engine/models/model';
 
 /** LOD / range per kind (m, camera to the module less half its radius): the cliffs' full model near, their LOD1 to the slab's edge */
@@ -38,9 +38,10 @@ export function cragPart(ctx: ModelContext, id: string, lod1: boolean): ModelPar
 /** a module's collision hull: ≤ `maxPts` of its LOD1's vertices (LOD0's when it has none), own space */
 export function cragHull(ctx: ModelContext, id: string, maxPts: number): Float32Array | null {
   return ctx.once(`${KEY}:hull:${id}`, () => {
-    const { kit } = kitOf(ctx);
-    const g = kit.get(`${id}-lod1`) ?? kit.get(id);
-    return g ? vertexHull(g, maxPts) : null;
+    const row = (authored.cragAssembly.hulls as Readonly<Record<string, {cap:number;points:readonly number[]}>>)[id];
+    if (row === undefined) return null;
+    if (row.cap !== maxPts) throw new Error('[crags] authored hull cap differs');
+    return new Float32Array(row.points);
   });
 }
 

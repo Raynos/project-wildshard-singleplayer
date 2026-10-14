@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CHUNK_SIZE, TERRAIN_RES } from '@wildshard/engine/core/config';
+import authored from '../../data/timberWorld.generated.json' with { type: 'json' };
 import type { Material as SurfaceMaterial } from '@wildshard/engine/physics/surface';
 import type { TerrainCut } from '@wildshard/engine/physics/terrain';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -153,35 +153,21 @@ export class CaveInterior {
    * was pushed below the cave's floor, so the ground up there (on the slope above the mouth) comes back as this.
    */
   roofPatch(): ColliderDesc[] {
-    const cuts = this.terrainCuts();
-    if (cuts.length === 0) return [];
-    const res = TERRAIN_RES, d = CHUNK_SIZE / (res - 1), half = CHUNK_SIZE / 2;
-    const hole = this.holeTest();
-    const cells = new Set<number>();
-    for (const c of cuts) {
-      const cos = Math.cos(c.yaw), sin = Math.sin(c.yaw), r = Math.hypot(c.hw, c.hd) + 3 * d;
-      const i0 = Math.max(0, Math.floor((c.x - r + half) / d)), i1 = Math.min(res - 2, Math.ceil((c.x + r + half) / d));
-      const k0 = Math.max(0, Math.floor((c.z - r + half) / d)), k1 = Math.min(res - 2, Math.ceil((c.z + r + half) / d));
-      for (let iz = k0; iz <= k1; iz++) for (let ix = i0; ix <= i1; ix++) {
-        const dx = ix * d - half - c.x, dz = iz * d - half - c.z;
-        const lx = dx * cos - dz * sin, lz = dx * sin + dz * cos;
-        if (Math.abs(lx) > c.hw + 2.5 * d || Math.abs(lz) > c.hd + 2.5 * d) continue;
-        cells.add(iz * res + ix);
-      }
-    }
+    const row=authored.cragAssembly.roof;
+    const res=row.resolution,d=row.size/(res-1),half=row.size/2;
     const verts: number[] = [], idx: number[] = [];
     const ox = this.frame.x, oz = this.frame.z;
     const tri = (ax: number, az: number, bx: number, bz: number, cx: number, cz: number): void => {
       const ay = heightAt(ax, az), by = heightAt(bx, bz), cy = heightAt(cx, cz);
-      if (hole(ax, ay, az, bx, by, bz, cx, cy, cz)) return;
       const b = verts.length / 3;
       verts.push(ax - ox, ay, az - oz, bx - ox, by, bz - oz, cx - ox, cy, cz - oz);
       idx.push(b, b + 1, b + 2);
     };
-    for (const cell of cells) {
-      const ix = cell % res, iz = Math.floor(cell / res);
-      const x0 = ix * d - half, x1 = x0 + d, z0 = iz * d - half, z1 = z0 + d;
-      tri(x0, z0, x0, z1, x1, z0); tri(x0, z1, x1, z1, x1, z0);
+    if(row.triangles.length>131072)throw new Error('Cave roof exceeds terrain triangle count');
+    for(let i=0;i<Math.min(row.triangles.length,131072);i++){
+      const ordinal=row.triangles[i];if(ordinal===undefined)throw new Error('Cave roof triangle missing');
+      const cell=Math.floor(ordinal/2),ix=cell%res,iz=Math.floor(cell/res),x0=ix*d-half,x1=x0+d,z0=iz*d-half,z1=z0+d;
+      if(ordinal%2===0)tri(x0,z0,x0,z1,x1,z0);else tri(x0,z1,x1,z1,x1,z0);
     }
     if (idx.length === 0) return [];
     return [{ kind: 'trimesh', x: ox, y: 0, z: oz, vertices: Float32Array.from(verts), indices: Uint32Array.from(idx), surface: this.look.surface }];

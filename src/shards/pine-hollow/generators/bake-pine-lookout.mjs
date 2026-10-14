@@ -22,7 +22,8 @@ import { wildlifeWordLanes as shuffleLanes } from './wildlifeWords.ts';
 import { parseGlb } from '@wildshard/sdk/assets';
 import { pineTimberWorldBake, pineTimberPlacements } from './timberWorld.ts';
 import { bakeSiteTimberRows } from './bake-pine-site-timbers.mjs';
-import { bakeCragRows } from './bake-pine-crags.mjs';
+import { pineCragAssembly } from './cragAssembly.ts';
+import { bakeCragRows, pineCragKit } from './bake-pine-crags.mjs';
 
 const root = resolve(import.meta.dirname, '../../../..');
 
@@ -35,9 +36,27 @@ export function bakeLookoutRows() {
 /** Original renderer lattice, read explicitly with no active world or engine service. */
 export function pineTimberGround() { return readNativeTerrain(readFileSync(resolve(root, 'public/assets/baked/pine-hollow/terrain.bin'))); }
 
+/** Identical byte views share storage; every accessor, type and native shape stays independent. */
+function compactLibraryGlb(original) {
+  const bytes=Buffer.from(original), length=bytes.readUInt32LE(12), doc=JSON.parse(bytes.subarray(20,20+length).toString()), input=bytes.subarray(28+length), pieces=[], seen=new Map();
+  let offset=0;
+  for(const view of doc.bufferViews){const block=input.subarray(view.byteOffset ?? 0,(view.byteOffset ?? 0)+view.byteLength), key=JSON.stringify([createHash('sha256').update(block).digest('hex'),view.byteStride ?? 0,view.target ?? null]);
+    const existing=seen.get(key);
+    if(existing!==undefined)view.byteOffset=existing;
+    else{view.byteOffset=offset;seen.set(key,offset);pieces.push(block,Buffer.alloc((-block.length)&3));offset+=block.length+((-block.length)&3);}
+  }
+  doc.buffers[0].byteLength=offset;
+  const json=Buffer.from(JSON.stringify(doc)), text=Buffer.concat([json,Buffer.alloc((-json.length)&3,0x20)]), bin=Buffer.concat(pieces), header=Buffer.from(bytes.subarray(0,20)), binaryHeader=Buffer.alloc(8);
+  header.writeUInt32LE(28+text.length+bin.length,8);header.writeUInt32LE(text.length,12);binaryHeader.writeUInt32LE(bin.length);binaryHeader.writeUInt32LE(0x004e4942,4);
+  return Buffer.concat([header,text,binaryHeader,bin]);
+}
+
 /** Write the admitted world tiles and Explorer library through the same confined launcher. */
 async function writeTimberWorld() {
   const crags = await bakeCragRows(), ground = pineTimberGround();
+  const [kit,cave]=await Promise.all([pineCragKit(),pineCragKit(['cave.glb'])]);
+  const caveMeta=JSON.parse(readFileSync(resolve(root,'public/assets/models/pine-hollow-crags/cave.json'),'utf8'));
+  const cragAssembly=pineCragAssembly(kit,cave,caveMeta,{phone:{bin:crags.bins.phone,tiles:crags.rows.skin.phone.tiles},desktop:{bin:crags.bins.desktop,tiles:crags.rows.skin.desktop.tiles}},crags.rows.places,ground);
   const materialFiles = pinePropMaterialFiles();
   for (const [path, bytes] of Object.entries(materialFiles.outputs)) { mkdirSync(resolve(root, path, '..'), { recursive: true }); writeFileSync(resolve(root, path), bytes); }
   const shapes = pinePropShapes({ rocks: await pinePropScan('rock_moss_set_01'), stumps: await pinePropScan('tree_stump_01'), logs: await pinePropScan('dead_tree_trunk') });
@@ -45,9 +64,9 @@ async function writeTimberWorld() {
   const piece = baked.pieces.find(row => row.name === 'pine-timber-explorer'), cabins = baked.pieces.find(row => row.name === 'pine.cabins'), under = baked.pieces.find(row => row.name === 'pine.undergrowth'), propsPiece = baked.pieces.find(row => row.name === 'pine.props');
   if (piece === undefined || cabins === undefined || under === undefined || propsPiece === undefined || baked.props === null) throw new Error('Pine timber Scene omitted its declared sources');
   const library = [piece, cabins, under, propsPiece].map(part => {
-    const hash = createHash('sha256').update(part.glb).digest('hex'); baked.assets.set(hash, part.glb);
-    const file = { hash, kind: 'glb', compressed: part.glb.length };
-    const parsed = Object.assign(file, parseGlb(part.glb));
+    const bytes=compactLibraryGlb(part.glb), hash = createHash('sha256').update(bytes).digest('hex'); baked.assets.set(hash,bytes);
+    const file = { hash, kind: 'glb', compressed: bytes.length };
+    const parsed = Object.assign(file, parseGlb(bytes));
     return Object.assign(parsed, { dependencies: [], critical: false });
   });
   const props = { ...baked.props.props, wholeLibrary: library.map(file => file.hash) };
@@ -56,7 +75,7 @@ async function writeTimberWorld() {
   const shardfile = { ...baked.shardfile, terrain: query.terrain, critical: [...baked.shardfile.critical, ...query.critical], library: [...baked.shardfile.library ?? [], ...props.wholeLibrary], files: [...baked.shardfile.files, ...library, ...query.files].sort((a,b) => a.hash.localeCompare(b.hash)) };
   const out = resolve(root, 'src/shards/pine-hollow/assets'); mkdirSync(out, { recursive: true });
   for (const [ref, bytes] of baked.assets) writeFileSync(resolve(out, ref), bytes);
-  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, propShapes: shapes.rows, propMaterials: materialFiles.aliases, propMaterialCosts: materialFiles.costs, landmarks: pineLandmarkSites(ground.heightAt), placements: pineTimberPlacements(ground.heightAt), lookout: bakeLookoutRows().rows, sites: bakeSiteTimberRows().rows, cabins: cabins.rows })}\n`);
+  writeFileSync(resolve(root, 'src/shards/pine-hollow/data/timberWorld.generated.json'), `${JSON.stringify({ scene: baked.sceneHash, props, shardfile, cragAssembly, propShapes: shapes.rows, propMaterials: materialFiles.aliases, propMaterialCosts: materialFiles.costs, landmarks: pineLandmarkSites(ground.heightAt), placements: pineTimberPlacements(ground.heightAt), lookout: bakeLookoutRows().rows, sites: bakeSiteTimberRows().rows, cabins: cabins.rows })}\n`);
   console.info(`Pine timber product: ${shardfile.tiles.length} tiles, ${shardfile.files.length} charged files, 3 world copies and 2 library copies`);
 }
 
