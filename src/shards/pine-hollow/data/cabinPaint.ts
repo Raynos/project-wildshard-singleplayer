@@ -47,9 +47,3 @@ export const GLOW_PAINT: CanvasAtlasRow = {
   w: 128, h: 128,
   steps: [{ op: 'radial', from: [64, 64, 0], to: [64, 64, 64], stops: [[0, 'rgba(255,255,255,1)'], [0.35, 'rgba(255,255,255,0.45)'], [1, 'rgba(255,255,255,0)']], x: 0, y: 0, w: 128, h: 128 }],
 };
-
-/** The smoke / flame / ember particles' noise, 128²: value noise of 8², 16² and 32² lattices, amplitudes 0.55 halving. */
-export const NOISE_PAINT: CanvasAtlasRow = {
-  w: 128, h: 128,
-  steps: [{ op: 'rng', seed: 'SEED + 77' }, { op: 'valueNoise', size: 128, octaves: [8, 16, 32], amp: 0.55, gain: 0.5 }],
-};

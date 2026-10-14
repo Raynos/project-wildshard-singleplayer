@@ -5418,7 +5418,7 @@
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
     },
-    "src/shards/pine-hollow/runtime/props/bakedBuilding.ts:unbounded-loop:f9fb2e31a7f67a09bad86fee97658c72928e71e75dc2035c1d9f210a6efea238": {
+    "src/shards/pine-hollow/runtime/props/bakedBuilding.ts:unbounded-loop:21e552747c8203c98f8bd9daf1355ce462be0f76e7dd90d05f88491191dff72c": {
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
     },
@@ -5535,10 +5535,6 @@
       "row": "SF76 G303 Pine verbatim move"
     },
     "src/shards/pine-hollow/runtime/props/buildingLife.ts:unbounded-loop:3c7f8395f6ded4a639d813d2864d784c23d47299715d634f5fc2f14151716f82": {
-      "count": 1,
-      "row": "SF76 G303 Pine verbatim move"
-    },
-    "src/shards/pine-hollow/runtime/props/buildingLife.ts:unbounded-loop:cb133c5c0a27a4c61bacc40d4c4d05d9cbdb99d1954b314e8822e1fd66751255": {
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
     },

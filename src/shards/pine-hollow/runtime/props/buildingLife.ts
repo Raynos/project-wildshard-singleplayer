@@ -5,7 +5,7 @@ import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 
 /**
  * A settlement's buildings as a living place (SHARD-PLATFORM M3, the props system): whatever builds the buildings hands
- * their moving parts here (the doors, the fires and lamps, the lantern swings, the particle clocks, the wheels, the
+ * their moving parts here (the doors, the fires and lamps, the lantern swings, the wheels, the
  * floors and the static solids), and this runs them: the doors swing on use (eased, barred by the caller's rule, heard
  * by listeners) with a kinematic leaf piece each; fires flicker on the clock and lamps light at dusk, by intensity only;
  * a small pool of shared point lights (the phone's) follows the nearest lit site's anchors, its room lights first once
@@ -67,7 +67,6 @@ export class BuildingLife {
   private doors: BuildingDoor[] = [];
   private fires: BuildingFlicker[] = [];
   private swings: BuildingSwing[] = [];
-  private particleMats = new Set<THREE.ShaderMaterial>();
   private floors: BuildingFloor[] = [];
   /** static solids that are only in colliderDescs() (floors, porch, step, plinth, furniture, props) */
   private solids: ColliderDesc[] = [];
@@ -116,7 +115,7 @@ export class BuildingLife {
     return undefined;
   }
 
-  /** Per frame, the eye at `eye`, the night's `lamps` (0 day … 1 night): wheels, the shared lights, doors, flicker, glass, swings, particle clocks. */
+  /** Per frame, the eye at `eye`, the night's `lamps` (0 day … 1 night): wheels, the shared lights, doors, flicker, glass, swings. */
   tick(dt: number, t: number, eye: THREE.Vector3, lamps: number): void {
     const look = this.lifeLook;
     let nearest = -1, nearestD2 = Infinity;
@@ -173,7 +172,6 @@ export class BuildingLife {
       for (const w of look.swing.z) z += wave(t, sw.seed, w);
       sw.pivot.rotation.z = z; sw.pivot.rotation.x = Math.cos(t * look.swing.x[0] + sw.seed) * look.swing.x[1];
     }
-    for (const m of this.particleMats) { const u = m.uniforms['uTime']; if (u !== undefined) u.value = t; }
   }
 
   /** bar a door: while `barred()` says true its use does nothing (the caller toasts / plays why) */
@@ -194,8 +192,6 @@ export class BuildingLife {
   _lamp(mat: THREE.MeshStandardMaterial, full: number): void { this.lampMats.push({ mat, full }); }
   /** a swinging pivot */
   _swing(sw: BuildingSwing): void { this.swings.push(sw); }
-  /** a particle material whose `uTime` follows the clock */
-  _particles(m: THREE.ShaderMaterial): void { this.particleMats.add(m); }
   /** a floor / deck */
   _floor(f: BuildingFloor): void { this.floors.push(f); }
   /** a static solid (only in colliderDescs) */

@@ -32,7 +32,9 @@ import type { Particles } from '@wildshard/game/systems/looks/particles';
 import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
 import { Crossbow, prepareCrossbowHands } from './weapons/crossbow/Crossbow';
 import { crossbowDisplayModel } from '../weapons/crossbow/display';
-import { Cabins } from '../world/homestead';
+import { Cabins, setHearthLooks } from '../world/homestead';
+import { HEARTH_LOOKS } from '../data/hearthLook';
+import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import { loadUnderShapes } from '../world/undergrowthKit';
 import { pineModels } from '../world/context';
 import { Undergrowth } from '../world/undergrowth';
@@ -98,6 +100,8 @@ export class PineHollow extends ShardPlugin {
     this.particles = carpet.particles;
     rt.overhead.push(carpet.grass.group, carpet.under.group, carpet.particles.group);
     await step('cabins', async () => {
+      // the look.materials graphs the cabins' hearth particles wear (data/hearthLook.ts), owned by this scope
+      setHearthLooks(await runtimeLookMaterials(ctx, source, true, Object.values(HEARTH_LOOKS)));
       const content = game.scene, cabins = new Cabins(sky, content);
       const built = await cabins.build();
       content.add(built.group);

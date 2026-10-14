@@ -11,7 +11,6 @@ import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches
 import { paintCanvas } from '@wildshard/sdk/looks/canvasAtlas';
 import { editShader } from '@wildshard/sdk/looks/shaderEdits';
 import { installMossOverlay } from '../runtime/looks/mossOverlay';
-import { riseParticleMaterial } from '../runtime/looks/riseParticles';
 import { flattenGlbParts, loadLodGlb } from '../runtime/kit/lodGlb';
 import { BuildingLife } from '../runtime/props/buildingLife';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
@@ -19,8 +18,10 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
-import { END_GRAIN_PAINT, GLOW_PAINT, NOISE_PAINT } from '../data/cabinPaint';
-import { CABIN_DOOR_EDITS, CABIN_LIFE, CABIN_MOSS_EDITS, CABIN_PARTICLE_GLSL, CABIN_PARTICLE_KINDS } from '../data/cabinLook';
+import { END_GRAIN_PAINT, GLOW_PAINT } from '../data/cabinPaint';
+import { CABIN_DOOR_EDITS, CABIN_LIFE, CABIN_MOSS_EDITS } from '../data/cabinLook';
+import { HEARTH_LOOKS } from '../data/hearthLook';
+import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import { mergeParts, type PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind } from './logKit';
 import { pineModels } from './context';
@@ -62,7 +63,7 @@ export interface Mats {
   door: THREE.MeshStandardMaterial; stone: THREE.MeshStandardMaterial; glass: THREE.MeshStandardMaterial;
   bark: THREE.MeshStandardMaterial; iron: THREE.MeshStandardMaterial; cloth: THREE.MeshStandardMaterial;
   char: THREE.MeshStandardMaterial;
-  smoke: THREE.ShaderMaterial; flame: THREE.ShaderMaterial; ember: THREE.ShaderMaterial; glow: THREE.MeshBasicMaterial;
+  smoke: THREE.Material; flame: THREE.Material; ember: THREE.Material; glow: THREE.MeshBasicMaterial;
 }
 export type MatKey = Exclude<keyof Mats, 'smoke' | 'flame' | 'ember' | 'glow' | 'glass'>;
 
@@ -99,9 +100,7 @@ async function loadMats(sky: Sky): Promise<Mats> {
     iron: new THREE.MeshStandardMaterial({ color: 0x2b2724, roughness: 0.6, metalness: 0.75 }),
     cloth: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, metalness: 0, vertexColors: true }),
     char: new THREE.MeshStandardMaterial({ color: 0x14100d, roughness: 0.95, metalness: 0, emissive: 0xff4a08, emissiveIntensity: 0.12 }),
-    smoke: makeParticleMaterial('smoke', sky),
-    flame: makeParticleMaterial('flame', sky),
-    ember: makeParticleMaterial('ember', sky),
+    smoke: hearthLook('smoke'), flame: hearthLook('flame'), ember: hearthLook('ember'),
     glow: new THREE.MeshBasicMaterial({ map: makeGlowTexture(), color: 0xff7a1a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
   };
   installMoss(m.roof, sky, 'roof');
@@ -124,24 +123,17 @@ export function makeGlowTexture(): THREE.CanvasTexture {
   return new THREE.CanvasTexture(paintCanvas(GLOW_PAINT));
 }
 
-function makeNoiseTexture() {
-  const t = new THREE.CanvasTexture(paintCanvas(NOISE_PAINT, { SEED })); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+/** the hearth particles' compiled look.materials (../data/hearthLook.ts) and their live params, lent by the world hook */
+let hearth: { readonly materials: ReadonlyMap<string, THREE.Material>; readonly setParam: (id: string, name: string, value: GraphLiteral) => void } | null = null;
+/** lend the compiled hearth looks (runtime/index.ts, before the cabins build) */
+export function setHearthLooks(looks: NonNullable<typeof hearth>): void { hearth = looks; }
+function hearthLook(kind: keyof typeof HEARTH_LOOKS): THREE.Material {
+  const m = hearth?.materials.get(HEARTH_LOOKS[kind]);
+  if (m === undefined) throw new Error(`[pine-hollow] no compiled hearth look ${kind}`);
+  return m;
 }
-
-let noiseTex: THREE.Texture | undefined;
-
-/** the night's hold on the cabins' particles: uShade dims the smoke's shadow side, uLamps lights the chimney glow (Cabins.update) */
-const cabinNight = { uShade: { value: 1 }, uLamps: { value: 1 } };
 /** the phone's pooled cabin lights (PH-L3) */
 const SHARED_CABIN_LIGHTS = 2;
-
-/** Billboard particle material driven entirely by uTime (no per-frame CPU work): @wildshard/sdk/looks/riseParticles, one program for smoke / flame / ember (../data/cabinLook.ts) */
-function makeParticleMaterial(kind: 'smoke' | 'flame' | 'ember', sky: Sky) {
-  noiseTex ??= cacheUntilDisposed(makeNoiseTexture(), () => { noiseTex = undefined; });
-  // the sky's own sun (the clock moves it) and the night's hold, shared by every kind
-  return riseParticleMaterial(CABIN_PARTICLE_KINDS[kind], { smoke: 0, flame: 1, ember: 2 }[kind], CABIN_PARTICLE_GLSL,
-    { noise: noiseTex, uniforms: { uSunDir: { value: sky.sunDir }, uSunColor: { value: sky.sunColor }, uShade: cabinNight.uShade, uLamps: cabinNight.uLamps } });
-}
 
 /**
  * Procedural moss / lichen overlay (@wildshard/sdk/looks/mossOverlay, the GLSL edits ../data/cabinLook.ts `CABIN_MOSS_EDITS`):
@@ -184,7 +176,7 @@ export interface CabinBuilding {
 /**
  * The homestead: the buildings built from the bake, and their life (@wildshard/sdk/props/buildingLife, the look
  * ../data/cabinLook.ts `CABIN_LIFE`: doors, fires and lamps on the clock, the phone's pooled lights, swings, the wheel,
- * floors and solids). The particles' night hold is Pine's (`cabinNight`).
+ * floors and solids). The smoke's sun and night hold are Pine's (`update`).
  */
 export class Cabins extends BuildingLife implements BuildingOwner {
   group = new THREE.Group();
@@ -194,6 +186,7 @@ export class Cabins extends BuildingLife implements BuildingOwner {
   clusterPad = 0;
   private cabinCount = 0;
   private tmpV = new THREE.Vector3();
+  private sunColour = [1, 1, 1];
   /** every building, as its model sees it (E315 M2) */
   readonly buildings: CabinBuilding[] = [];
   /** what the buildings were built from: kept for the Model Explorer's specimens */
@@ -285,11 +278,14 @@ export class Cabins extends BuildingLife implements BuildingOwner {
   get roots(): readonly THREE.Object3D[] { return this.buildings.slice(0, this.cabinCount).map((b) => b.root); }
 
   /** per frame: the buildings' life from the eye and the clock (the phone's pooled lights, doors, flicker, swings, the
-   *  wheel), then the particles' night hold */
+   *  wheel), then the smoke's sun colour and night hold (its shade dims at night, the chimney glow lights with the lamps) */
   update(dt: number, t: number): void {
-    const cam = this.sky.viewCamera; cam.getWorldPosition(this.tmpV);
-    this.tick(dt, t, this.tmpV, this.sky.lamps);
-    cabinNight.uLamps.value = this.sky.lamps; cabinNight.uShade.value = 1 - 0.8 * this.sky.night;
+    const cam = this.sky.viewCamera, sky = this.sky; cam.getWorldPosition(this.tmpV);
+    this.tick(dt, t, this.tmpV, sky.lamps);
+    if (hearth === null) return;
+    const id = HEARTH_LOOKS.smoke, c = sky.sunColor;
+    this.sunColour[0] = c.r; this.sunColour[1] = c.g; this.sunColour[2] = c.b;
+    hearth.setParam(id, 'sunColour', this.sunColour); hearth.setParam(id, 'lamps', sky.lamps); hearth.setParam(id, 'shade', 1 - 0.8 * sky.night);
   }
 }
 

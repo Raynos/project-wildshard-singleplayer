@@ -95,7 +95,7 @@ export interface BakedBuildingTier {
 /** The materials a building draws with: its kit materials, its particle programs, its glass and its glow. */
 export interface BakedBuildingMats<K extends string, P extends string> {
   readonly parts: Readonly<Record<K, THREE.MeshStandardMaterial>>;
-  readonly particles: Readonly<Record<P, THREE.ShaderMaterial>>;
+  readonly particles: Readonly<Record<P, THREE.Material>>;
   readonly glass: THREE.MeshStandardMaterial;
   readonly glow: THREE.MeshBasicMaterial;
 }
@@ -117,7 +117,6 @@ export interface BakedBuildingOwner {
   readonly _fire: (f: BuildingFlicker) => void;
   readonly _lamp: (mat: THREE.MeshStandardMaterial, full: number) => void;
   readonly _swing: (sw: BuildingSwing) => void;
-  readonly _particles: (m: THREE.ShaderMaterial) => void;
   readonly _wheel: (o: THREE.Object3D) => void;
   readonly _firePit: (at: { x: number; y: number; z: number }) => void;
 }
@@ -125,7 +124,7 @@ export interface BakedBuildingOwner {
 /** The owner that keeps nothing (a specimen's): a door toggles on use. */
 export const NO_BUILDING_OWNER: BakedBuildingOwner = {
   _collider: () => undefined, _solid: () => undefined, _floor: () => undefined, _door: () => undefined, _doorUse: (_d, toggle) => { toggle(); }, _fire: () => undefined,
-  _lamp: () => undefined, _swing: () => undefined, _particles: () => undefined, _wheel: () => undefined, _firePit: () => undefined,
+  _lamp: () => undefined, _swing: () => undefined, _wheel: () => undefined, _firePit: () => undefined,
 };
 
 /**
@@ -211,7 +210,6 @@ export class BakedBuildingAssembly<K extends string, P extends string> {
           const p = particles(mats.particles[node.mat], geometries.geometry(node.seeds), this.look.particles);
           p.position.set(...node.at); p.renderOrder = node.order;
           this.root.add(p); if (node.detail) this.detail.push(p);
-          owner._particles(mats.particles[node.mat]);
           break;
         }
         case 'lantern': this.lantern(models.lantern, node.pivot, geometries.geometry(node.ring), node.light, node.swing); break;
@@ -401,15 +399,15 @@ export class BakedBuildingAssembly<K extends string, P extends string> {
   }
 }
 
-/** a particle cloud: one instanced quad per seed row */
-function particles(mat: THREE.ShaderMaterial, seeds: THREE.BufferGeometry, bounds: BakedBuildingLook['particles']): THREE.Mesh {
+/** a particle cloud: one instanced quad per seed row (`aSeed`), posed by its look's graph */
+function particles(mat: THREE.Material, seeds: THREE.BufferGeometry, bounds: BakedBuildingLook['particles']): THREE.Mesh {
   const geo = new THREE.InstancedBufferGeometry();
   const quad = new THREE.PlaneGeometry(1, 1);
   geo.setAttribute('position', quad.getAttribute('position'));
   geo.setAttribute('uv', quad.getAttribute('uv'));
   geo.setIndex(quad.index);
   const seed = seeds.getAttribute('seed');
-  geo.setAttribute('seed', new THREE.InstancedBufferAttribute(Float32Array.from({ length: seed.count * 4 }, (_, i) => seed.getComponent(Math.floor(i / 4), i % 4)), 4));
+  geo.setAttribute('aSeed', new THREE.InstancedBufferAttribute(Float32Array.from({ length: seed.count * 4 }, (_, i) => seed.getComponent(Math.floor(i / 4), i % 4)), 4));
   geo.instanceCount = seed.count;
   geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(...bounds.center), bounds.radius);
   return new THREE.Mesh(geo, mat);
