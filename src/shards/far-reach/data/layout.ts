@@ -94,8 +94,8 @@ export const MILL_DRUM = { r: 3.0, h: 1.2, sides: 16 } as const;
 /** The bridge-keeper's notes (quest step 1), on the broken-bridge isle. */
 export const NOTES = { x: KEEPER.x - 3, z: KEEPER.z - 2, y: KEEPER.y };
 /** The three wind vanes (quest step 3): GUST each one to set it turning. */
-export const VANES: readonly { readonly id: string; readonly x: number; readonly z: number; readonly y: number }[] = [
-  { id: 'grove', x: GROVE.x + 4, z: GROVE.z - 5, y: GROVE.y }, { id: 'keeper', x: KEEPER.x + 4, z: KEEPER.z + 4, y: KEEPER.y }, { id: 'ruin', x: RUIN.x - 3, z: RUIN.z - 4, y: RUIN.y },
+export const VANES: readonly { readonly id: string; readonly flag: string; readonly x: number; readonly z: number; readonly y: number }[] = [
+  { id: 'grove', flag: 'far.vane.grove', x: GROVE.x + 4, z: GROVE.z - 5, y: GROVE.y }, { id: 'keeper', flag: 'far.vane.keeper', x: KEEPER.x + 4, z: KEEPER.z + 4, y: KEEPER.y }, { id: 'ruin', flag: 'far.vane.ruin', x: RUIN.x - 3, z: RUIN.z - 4, y: RUIN.y },
 ];
 /** The storm crown's last platform: the Roc grounds itself here in its third phase. */
 export const DAIS = { x: CROWN.x, z: CROWN.z - 6, r: 5, h: 0.3 };

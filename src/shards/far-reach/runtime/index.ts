@@ -26,7 +26,7 @@ import { RAY_WAKE } from '../data/rayWakeLook';
 import { meadow } from '../world/meadow';
 import { bindDeclaredFight, bindQuestPageInteractions, bindClientChannels } from '@wildshard/game/plugin/ui';
 import { ROC_ID } from '../data/rocFight';
-import { FLAGS, vaneFlag } from '../quests/flags';
+import { FLAGS } from '../quests/flags';
 import { HybridRuntimePlugin, type HybridRuntimeRows } from '@wildshard/game/plugin/headless';
 import { bindRuntimeProductProps, prepareClientWorld, runtimeProduct } from '@wildshard/game/shardfile/runtimeProduct';
 
@@ -128,7 +128,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
 
     await worldBuildYield(ctx, 4);
     const poses = motion.pose.bind(motion);
-    const vanes = boundedRows(built.vanes).map(vane => ({ vane, flag: vaneFlag(vane.id) }));
+    const vanes = boundedRows(built.vanes).map(vane => ({ vane, flag: vane.flag }));
     const eye = new Vector3();
     // Dressing: the hover decks glow while you ride; the mill and the turned vanes spin; the updraft's rings rise.
     ctx.system({ id: 'far.dressing', phase: 'update', run: (dt, t) => {

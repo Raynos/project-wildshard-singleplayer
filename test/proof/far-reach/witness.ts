@@ -19,7 +19,7 @@ import { prepareHeadlessRuntime } from '../../../src/shards/far-reach/runtime/he
 import { CROWN, DECK, FALLEN_BRIDGE, KEEPER, ROOST, RUIN, STEP, UPDRAFT, VANES, WINCH } from '../../../src/shards/far-reach/data/layout';
 import { KEEPER_AT } from '../../../src/shards/far-reach/data/quests';
 import { FAN_SWING } from '../../../src/shards/far-reach/data/items';
-import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quests/flags';
+import { FLAGS } from '../../../src/shards/far-reach/quests/flags';
 import { FAN_ACT, FAN_ACTOR, FAN_AIM } from '../../../src/shards/far-reach/data/nativeMelee';
 import { ROOST_IDS, SKY_ACT, SKY_INTERACT } from '../../../src/shards/far-reach/data/questPrompts';
 import { ROC_STEP, ROC_ID } from '../../../src/shards/far-reach/data/rocFight';
@@ -224,7 +224,7 @@ export class SkyTape {
         return [{ kind: 'script', actorId: SKY_INTERACT, value: leg.value }, { kind: 'player', moveX: 0, moveZ: 0, yaw: host.player.yaw }];
       }
       case 'gust': {
-        if (host.flags.has(vaneFlag(leg.vane))) return null;
+        if (host.flags.has(`far.vane.${leg.vane}`)) return null;
         return [{ kind: 'player', moveX: 0, moveZ: 0, yaw: leg.yaw }, { kind: 'script', actorId: FAN_ACTOR, value: FAN_ACT.gust }];
       }
       case 'roost': {
@@ -458,7 +458,7 @@ export async function stepSlice(rapier: Rapier): Promise<object> {
       return tape.atStep;
     }, SLICE), host = session.host, p = host.player.position;
     const onStep = Math.hypot(p.x - STEP.x, p.z - STEP.z) < STEP.r && Math.abs(p.y - STEP.y) < 0.6, stepTick = host.state.tick;
-    const flags = { vanes: VANES.every(row => host.flags.has(vaneFlag(row.id))), roost: host.flags.has(FLAGS.roost) };
+    const flags = { vanes: VANES.every(row => host.flags.has(row.flag)), roost: host.flags.has(FLAGS.roost) };
     if (!onStep || !flags.vanes || !flags.roost) throw new Error(`Not on the step with the vanes turned and the roost quiet: ${JSON.stringify({ at: p.toArray(), flags })}`);
     // on to the platform's 10,000 headless ticks (the slice budget's cap): the winch, its quest fact and the raised bridge
     const more = playUntil(session, tape, () => host.state.tick >= SLICE, SLICE);

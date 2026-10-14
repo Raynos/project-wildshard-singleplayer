@@ -41,7 +41,7 @@ export interface BuiltWorld {
   readonly millHub: Object3D;
   /** The crown's storm vortex (the plugin turns it and fires its lightning). */
   readonly storm: CrownStorm;
-  readonly vanes: readonly { readonly id: string; readonly at: Vector3; readonly rotor: Object3D }[];
+  readonly vanes: readonly { readonly id: string; readonly flag: string; readonly at: Vector3; readonly rotor: Object3D }[];
   readonly winch: Interactable;
   readonly winchAt: Vector3;
   readonly notes: Interactable;
@@ -128,7 +128,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   const vanes: BuiltWorld['vanes'][number][] = [];
   for (const v of VANES) {
     const built = vane(); pieces.add(`far.vane.${v.id}`, built.group, { colliders: propColliders(`far.vane.${v.id}`) });
-    vanes.push({ id: v.id, at: new Vector3(v.x, v.y + 3.3, v.z), rotor: built.rotor });
+    vanes.push({ id: v.id, flag: v.flag, at: new Vector3(v.x, v.y + 3.3, v.z), rotor: built.rotor });
     await pause();
   }
 

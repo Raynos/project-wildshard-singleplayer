@@ -1,4 +1,4 @@
-import { FLAGS, vaneFlag } from '../quests/flags';
+import { FLAGS } from '../quests/flags';
 import { VANES } from './layout';
 
 /** Independent stage rows preserve the original same-tick roost, vane and raised effects.
@@ -11,7 +11,7 @@ export const SKY_QUEST_STAGES = {
         { target: 'set', when: 'notes && !done && dead' }, { target: 'waiting', when: '!(notes && !done && dead)' }] },
     ] },
   vanes: { version: 2, script: null, id: 'far.quest.vanes', inputs: { done: `flag:${FLAGS.vanes}`,
-    ...Object.fromEntries(VANES.map((vane, index) => [`vane${index}`, `flag:${vaneFlag(vane.id)}`])) },
+    ...Object.fromEntries(VANES.map((vane, index) => [`vane${index}`, `flag:${vane.flag}`])) },
     stages: [
       { id: 'waiting', do: [], next: [{ target: 'set', when: '!done && vane0 && vane1 && vane2' }] },
       { id: 'set', do: [{ flag: { key: FLAGS.vanes, value: true } }], next: [

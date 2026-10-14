@@ -2,7 +2,7 @@ import { CROWN, HIGH, STEP, VANES } from './layout';
 import { STRINGS } from './strings';
 import { SKY_PLACES } from './places';
 import { SKY_PERSISTENCE } from './persistence';
-import { FLAGS, vaneFlag } from '../quests/flags';
+import { FLAGS } from '../quests/flags';
 
 /** Keeper quest composition and held crown-bridge reward view. */
 export const SKY_QUEST_PAGE = {
@@ -15,5 +15,5 @@ export const SKY_QUEST_PAGE = {
     'quest-winch': [{ flag: FLAGS.notes }, { flag: FLAGS.roost }, { flag: FLAGS.vanes },
       { flag: 'far.vane.grove' }, { flag: 'far.vane.keeper' }, { flag: 'far.vane.ruin' }],
   },
-  finishFlags: [...VANES.map(vane => vaneFlag(vane.id)), FLAGS.notes, FLAGS.roost, FLAGS.vanes, FLAGS.raised],
+  finishFlags: [...VANES.map(vane => vane.flag), FLAGS.notes, FLAGS.roost, FLAGS.vanes, FLAGS.raised],
 } as const;

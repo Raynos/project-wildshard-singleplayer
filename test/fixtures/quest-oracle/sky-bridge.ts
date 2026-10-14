@@ -4,7 +4,7 @@ import type { QuestData } from '@wildshard/format/quests';
 import { DeclaredQuests } from '@wildshard/game/quest/declared';
 import { DECK, NOTES, ROOST_RAYS, VANES, WINCH } from '../../../src/shards/far-reach/data/layout';
 import { KEEPER_AT } from '../../../src/shards/far-reach/data/quests';
-import { FLAGS, vaneFlag } from '../../../src/shards/far-reach/quests/flags';
+import { FLAGS } from '../../../src/shards/far-reach/quests/flags';
 
 /** The script command actor that carries Sky's [E] prompts (`{ kind: 'script', actorId: SKY_INTERACT, value: SKY_ACT.* }`). */
 export const SKY_INTERACT = 'far.interact';
@@ -71,7 +71,7 @@ export function installSkyQuest(host: SimHost, ports: SkyQuestPorts): DeclaredQu
     // the browser toasts "locked" otherwise; nothing moves
     if (flags.has(FLAGS.roost) && flags.has(FLAGS.vanes)) ports.winch.command();
   };
-  const vaneFlags = VANES.map(vane => vaneFlag(vane.id));
+  const vaneFlags = VANES.map(vane => vane.flag);
   if (vaneFlags.length > MAX_ROWS || ROOST_IDS.length > MAX_ROWS) throw new RangeError('Sky quest rows exceed their finite bound');
   const roostDown = (): boolean => {
     for (let i = 0; i < MAX_ROWS; i++) { const id = ROOST_IDS[i]; if (id === undefined) break; if (host.entities.get(id)?.alive !== false) return false; }
