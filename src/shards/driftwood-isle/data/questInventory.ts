@@ -30,3 +30,6 @@ export const DRIFTWOOD_ITEMS = Object.entries(ITEM_LABELS).map(([id, row]) => ({
 export const DRIFTWOOD_NATIVE_PACK = { kinds: Object.keys(ITEM_LABELS), slots: 12,
   counts: { min: 1, max: Number.MAX_SAFE_INTEGER, integer: true, complete: true }, quantity: 'positive-safe-integer', snapshot: 'order',
   stackLimit: Number.MAX_SAFE_INTEGER, restoreError: 'Incompatible Driftwood pack continuation' } as const;
+
+/** Page feat counters retain floor totals and update after stable emission. */
+export const DRIFTWOOD_FEAT_COUNTERS={feats:DRIFTWOOD_FEATS,prefix:'driftwood.',floorTotals:true,validateTotals:true,write:'after'} as const;

@@ -4937,3 +4937,10 @@ following the flare and checking grounded support, lane, floor and stalls.
 The default remains the ground-height walk. `engine/physics/terrain` defines
 `isStandaloneEdgeWall` beside `addEdgeWalls` for grid admission of native
 bakes without the standalone rim slabs. Neither API changes collision.
+
+The game/achievements AchievementCounterRows declares matching, saturation,
+fact prefixes and historical total/write policy. createAchievementCounters
+uses AchievementCounterPorts read/write/emit on the existing saved owner;
+kill/event/count emit newly reached identities, replay submits old saved
+identities for the ledger's normal deduplication. No flags, rewards or save
+slots are allocated by the counter.

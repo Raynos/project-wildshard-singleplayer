@@ -1,7 +1,8 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
 import type { Progress } from '@wildshard/game/Progress';
 import { bindRuntimeLedger, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
-import { DRIFTWOOD_FEATS } from '../data/questInventory';
+import { createAchievementCounters } from '@wildshard/game/achievements';
+import { DRIFTWOOD_FEATS, DRIFTWOOD_FEAT_COUNTERS } from '../data/questInventory';
 import source from '../shard.config';
 
 export interface DriftwoodFacts {
@@ -15,17 +16,10 @@ export function bindDriftwoodFacts(ctx: Pick<ShardContext, 'app'>, previous: rea
   const facts: RuntimeFacts = Object.assign((name: string, entity: string) => {
     const receipt = emit(name, entity); progress?.refreshLedger?.(); return receipt;
   }, { flush: emit.flush, achievement: emit.achievement });
-  const counts = new Map(DRIFTWOOD_FEATS.map(feat => [feat.id, emit.achievement(feat.id)?.count ?? 0]));
-  const count = (id: string, total: number): void => {
-    const feat = DRIFTWOOD_FEATS.find(row => row.id === id); if (feat === undefined) throw new Error(`Unknown Driftwood feat ${id}`);
-    const value = Math.min(feat.count, Math.max(counts.get(id) ?? 0, Math.floor(total)));
-    if (!Number.isFinite(value) || value < 0) throw new RangeError('Invalid Driftwood feat count');
-    for (let n = (counts.get(id) ?? 0) + 1; n <= value; n++) facts(`driftwood.${id}`, `${id}:${String(n)}`);
-    counts.set(id, value);
-  };
+  let counts:Record<string,number>=Object.fromEntries(DRIFTWOOD_FEATS.map(feat=>[feat.id,emit.achievement(feat.id)?.count??0] as const));
+  const counter=createAchievementCounters(DRIFTWOOD_FEAT_COUNTERS,{read:()=>({...counts}),write:current=>{counts=current;},emit:(name,entity)=>{facts(name,entity);}});
+  const count=counter.count;
   for (const row of previous) if (DRIFTWOOD_FEATS.some(feat => feat.id === row.def.id)) count(row.def.id, row.count);
   progress?.bindLedger?.({ count: id => emit.achievement(id)?.count ?? 0, earned: id => emit.achievement(id)?.earned ?? false, checkpoint: emit.flush });
-  return { facts, count, kill: (kind: string): void => {
-    for (const feat of DRIFTWOOD_FEATS) if (feat.kind === kind) count(feat.id, (counts.get(feat.id) ?? 0) + 1);
-  } };
+  return {facts,count,kill:counter.kill};
 }

@@ -45,3 +45,6 @@ export const PINE_BAG_ITEMS = [
   { id: 'amber-resin', label: 'Amber resin', icon: 'seaglass', travels: false },
   { id: 'lodge-ribbon', label: 'Lodge ribbon', icon: 'laurel', travels: false },
 ] as const;
+
+/** Native/page feat counters retain numeric totals and write before stable emission. */
+export const PINE_FEAT_COUNTERS={feats:PINE_FEATS,prefix:'pine.feat.',floorTotals:false,validateTotals:false,write:'before'} as const;
