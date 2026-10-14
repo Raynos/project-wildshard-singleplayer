@@ -4608,3 +4608,10 @@ resolves the declared primary weapon family and installs exactly the
 created or adopted owner. Its normal loader retains contact/profile
 admission, presentation, and actor-bound composed hooks. Signal and Sky
 use this path instead of private item registry modules.
+
+`bindPlayerImpulse(apply)` in `@wildshard/game/shardfile/dataCreaturePorts`
+loans one reusable velocity vector to the real player impulse owner. Its
+`directed(yaw, speed, lift)` projects a creature shove; `column(row, feet,
+enabled)` admits a wind-column row and returns a fixed-step callback. The
+caller retains phase and clock ownership. Columns keep strict side and upper
+bounds, with no lower floor, and act only while the supplied mode is enabled.

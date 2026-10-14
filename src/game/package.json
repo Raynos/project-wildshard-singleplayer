@@ -100,7 +100,8 @@
     "./plugin/audio": "./plugin/audio.ts",
     "./plugin/shaderFamily": "./plugin/shaderFamily.ts",
     "./shardfile/socketLift": "./shardfile/socketLift.ts",
-    "./shardfile/portalLink": "./shardfile/portalLink.ts"
+    "./shardfile/portalLink": "./shardfile/portalLink.ts",
+    "./shardfile/dataCreaturePorts": "./shardfile/dataCreaturePorts.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

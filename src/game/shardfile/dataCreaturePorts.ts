@@ -6,6 +6,7 @@ import { CharacterMotor } from '@wildshard/engine/physics/CharacterMotor';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { StrikeSpec } from '@wildshard/engine/ai/strikes';
+import { UpdraftModeSchema, type UpdraftMode } from '@wildshard/format/modes';
 import type { ShardCreatures } from '@wildshard/format/creatures';
 import type { ShardRows } from '@wildshard/format/rows';
 import type { DeclaredBrainPorts } from './brainRuntime';
@@ -13,6 +14,36 @@ import type { DeclaredGroupPorts, DeclaredPackRecipe } from './groupRuntime';
 
 const finite = v.pipe(v.number(), v.finite());
 const motionSchema = v.strictObject({ x: finite, z: finite, speed: v.pipe(finite, v.minValue(0)) });
+/** Bind bounded player impulses to the real owner without a host, phase or clock.
+ * Directed hits preserve their yaw/speed projection; column callbacks read feet and
+ * board state in the caller's existing fixed phase. Each binding owns one vector. */
+export function bindPlayerImpulse(apply: (velocity: Vector3) => void): {
+  directed: (yaw: number, speed: number, lift: number) => void;
+  column: (input: UpdraftMode, feet: () => Readonly<{ x: number; y: number; z: number }>, enabled: () => boolean) => (dt: number) => void;
+} {
+  const impulse = new Vector3();
+  return {
+    directed: (yaw, speed, lift) => {
+      if (![yaw, speed, lift].every(Number.isFinite)) throw new Error('Invalid directed player impulse');
+      apply(impulse.set(Math.sin(yaw) * speed, lift, Math.cos(yaw) * speed));
+    },
+    column: (input, feet, enabled) => {
+      const row = v.parse(UpdraftModeSchema, input);
+      return dt => {
+        if (!Number.isFinite(dt) || dt < 0 || dt > 1) throw new Error('Invalid column impulse step');
+        if (!enabled()) return;
+        const p = feet(), ux = row.to.x - row.from.x, uz = row.to.z - row.from.z, len = Math.hypot(ux, uz);
+        const along = ((p.x - row.from.x) * ux + (p.z - row.from.z) * uz) / len;
+        const across = Math.abs((p.x - row.from.x) * uz - (p.z - row.from.z) * ux) / len;
+        if (across < row.width / 2 + row.margin && along > 0 && along < len && p.y < row.to.y + row.margin) {
+          impulse.set(0, 0, 0); impulse.y += row.lift * dt;
+          if (impulse.y !== 0) apply(impulse);
+        }
+      };
+    },
+  };
+}
+
 /** Default data-only herd and diver recipes over one real host; injected trusted recipes remain separate. */
 export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardCreatures['spawns'] = [], borrowedImpulse?: (velocity: Vector3) => void): {
   brains: DeclaredBrainPorts; groups: DeclaredGroupPorts; install: () => void;
@@ -22,7 +53,7 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
   const directors = new Map<AnimalSim, Parameters<DeclaredPackRecipe['ports']['register']>[1]>();
   const phases = new Map(spawns.map(row => [row.id, row.phaseOffset]));
   const impulse = borrowedImpulse ?? (host.embedded ? undefined : (velocity: Vector3) => { host.impulsePlayer(velocity); });
-  const push = new Vector3();
+  const forces = impulse === undefined ? undefined : bindPlayerImpulse(impulse);
   const motion = { x: host.player.position.x, z: host.player.position.z, speed: 0 };
   const from = new Vector3(), to = new Vector3(), direction = new Vector3(), point = new Vector3();
   const strikes = new Map<string, StrikeSpec>(rows.strikes.map(({ weight, speed, ...row }) =>
@@ -81,10 +112,10 @@ export function dataCreaturePorts(host: SimHost, rows: ShardRows, spawns: ShardC
         steer: (body, yaw, speed, turn) => { body.setMotion(yaw, speed, turn); },
       }), body: () => undefined };
     }, burstFlyer: (actor, row) => {
-      if (impulse === undefined) throw new Error('Missing borrowed data-host player impulse');
+      if (forces === undefined) throw new Error('Missing borrowed data-host player impulse');
       const recipe = diver(actor, row.strike);
       return { strike: recipe.strike, body: recipe.body, observe: dt => ({ ...recipe.observe(dt),
-        shove: (yaw: number, speed: number, lift: number) => { impulse(push.set(Math.sin(yaw) * speed, lift, Math.cos(yaw) * speed)); },
+        shove: forces.directed,
       }) };
     }, orbitDiver: (actor, row) => diver(actor, row.strike), patrolDiver: (actor, row) => diver(actor, row.strike) },
     groups: { pack: (group, members) => {

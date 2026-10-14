@@ -1,3 +1,4 @@
+import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import type { AnimalSimSpec, AnimalSim } from "@wildshard/engine/entities/AnimalSim";
 import type { SimStrike, SimValue, SimHost } from "@wildshard/engine/sim";
 import { type StrikeSpec, StrikeRunner, type StrikeContext } from "@wildshard/engine/ai/strikes";
@@ -735,7 +736,8 @@ export function bindSpeciesBody(actor: AnimalSim, input: CreatureBodyRecipe, sha
     throw new Error('Species body requires its actual host and declared motor');
   if (recipe.attack !== attacks.kind || attacks.kind === 'unlimited' && attacks.limit !== Infinity)
     throw new Error('Species body requires its actual attack authority');
-  const player = host.player.position, point = new Vector3(), dir = new Vector3(), from = new Vector3(), push = new Vector3();
+  const player = host.player.position, point = new Vector3(), dir = new Vector3(), from = new Vector3();
+  const impulse = bindPlayerImpulse(velocity => { host.impulsePlayer(velocity); });
   const tags: readonly `${string}.${string}`[] = [`creature.${actor.kind}`, 'feel.blow', 'cover.checked'];
   const reach = (body: AnimalSim): boolean => canReach(body, player, host.physics);
   const claim = attacks.kind === 'keeper' ? attacks.claim : (): boolean => true;
@@ -755,7 +757,7 @@ export function bindSpeciesBody(actor: AnimalSim, input: CreatureBodyRecipe, sha
   const ports: SpeciesBodyObservation = { dt: 0, t: 0, player, calm: false, phaseOffset, rng: shared.stream, reach, claim, mayAttack: claim, hurt,
     steer: (body, yaw, speed, turn) => { body.setMotion(yaw, speed, turn); },
     flight: { steer: (body, yaw, speed, altitude, turn) => { body.fly(yaw, speed, altitude, turn); } },
-    shove: (yaw, speed, lift) => { host.impulsePlayer(push.set(Math.sin(yaw) * speed, lift, Math.cos(yaw) * speed)); } };
+    shove: impulse.directed };
   const brain = create(ports), observe = (dt: number): void => { ports.dt = dt; ports.t = host.clock.now; };
   return {
     decide: dt => {

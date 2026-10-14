@@ -1,4 +1,5 @@
 import { Vector3 } from 'three';
+import { bindPlayerImpulse } from '@wildshard/game/shardfile/dataCreaturePorts';
 import type { HeadlessRuntimeInstallation, PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import type { SimHost } from '@wildshard/engine/sim';
 import { floorBelow } from '@wildshard/engine/physics/query';
@@ -14,7 +15,7 @@ import { turnVanes, VANE_HUB } from '../quest/vanes';
 import { skyWinchPermission } from './quest';
 import { SKY_SPOTS } from '../data/questPrompts';
 import { SKY_MOVER_BINDING } from '../data/moverBindings';
-import { UpdraftDriver, MoverScriptDriver, verifiedMoverModules } from '@wildshard/game/plugin/mover';
+import { MoverScriptDriver, verifiedMoverModules } from '@wildshard/game/plugin/mover';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
 /** The updraft's fixed-step id (its whole state is the player's board and impulse, so it carries no continuation). */
@@ -69,11 +70,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
       actions: new Map([['winch', () => { movers.runtime.command(SKY_MOVER_BINDING.winch, 1); }]]), directorActions: new Map() });
     // the updraft (G24): riding the board inside its column, a steady upward push through the host impulse, as the
     // browser's `far.updraft` fixed.pre system; read after this tick's move, it feeds the next one, as the browser's does
-    const force = new UpdraftDriver(updraft), lift = new Vector3();
-    host.onStep(UPDRAFT_STEP, dt => {
-      force.step(dt, host.player.position, host.playerBoard.on, lift.set(0, 0, 0));
-      if (lift.y !== 0) host.impulsePlayer(lift);
-    });
+    host.onStep(UPDRAFT_STEP, bindPlayerImpulse(velocity => { host.impulsePlayer(velocity); }).column(updraft, () => host.player.position, () => host.playerBoard.on));
     keeper.settle();
   };
   return { level, ports, install };

@@ -1,3 +1,4 @@
+import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import * as v from 'valibot';
 import { rigLibrary, type RigLibraryRows } from "./geometry";
 import { bossesSave } from '../saves';
@@ -613,9 +614,7 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
     const host = ctx.app.equipmentHost, weapon = this.armed(), rt = ctx.game.runtime;
     if (host !== null && weapon !== null) { host.viewmodel.add(weapon.model); ctx.scope.onDispose(() => { weapon.model.removeFromParent(); }); this.dress(ctx, weapon); }
     if (typeof this.rows.species !== 'function' && this.rows.species.shove === true) {
-      const velocity = new Vector3(), push = (yaw: number, speed: number, lift: number): void => {
-        ctx.app.player?.impulse(velocity.set(Math.sin(yaw) * speed, lift, Math.cos(yaw) * speed));
-      };
+      const push = bindPlayerImpulse(velocity => { ctx.app.player?.impulse(velocity); }).directed;
       installEnteredRuntimeService(ctx, scope => { this.populationPush = push; scope.onDispose(() => { if (this.populationPush === push) this.populationPush = null; }); });
     }
     const boot = this.rows.boot;

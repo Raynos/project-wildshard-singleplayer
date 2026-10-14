@@ -1,7 +1,7 @@
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { castRay, floorBelow, lineOfSight } from '@wildshard/engine/physics/query';
 import { MathUtils, Vector3 } from 'three';
-import { ZiplineModeSchema, type ZiplineMode, UpdraftModeSchema, type UpdraftMode, GrappleModeSchema, type GrappleMode } from '@wildshard/format/modes';
+import { ZiplineModeSchema, type ZiplineMode, GrappleModeSchema, type GrappleMode } from '@wildshard/format/modes';
 import { tagOf } from "@wildshard/engine/physics/surface";
 import { CharacterMotor, type MotorOptions } from "@wildshard/engine/physics/CharacterMotor";
 import type { Physics } from "@wildshard/engine/physics/Physics";
@@ -463,22 +463,6 @@ export class ZiplineDriver {
     const saved = v.parse(Saved, value);
     if (saved.v > this.row.maxSpeed) throw new Error('Zipline continuation exceeds its admitted speed');
     this.riding = saved.riding; this.s = saved.s; this.v = saved.v;
-  }
-}
-
-/** The directional column keeps the native strict sides and upper ceiling, with no invented lower boundary. */
-export function inUpdraft(row: UpdraftMode, x: number, y: number, z: number): boolean {
-  const ux = row.to.x - row.from.x, uz = row.to.z - row.from.z, len = Math.hypot(ux, uz);
-  const along = ((x - row.from.x) * ux + (z - row.from.z) * uz) / len, across = Math.abs((x - row.from.x) * uz - (z - row.from.z) * ux) / len;
-  return across < row.width / 2 + row.margin && along > 0 && along < len && y < row.to.y + row.margin;
-}
-/** The board wind law reads real feet and hover state; one host owns when the impulse reaches its player phase. */
-export class UpdraftDriver {
-  private readonly row: UpdraftMode;
-  constructor(row: UpdraftMode) { this.row = v.parse(UpdraftModeSchema, row); }
-  /** Add the native lift only while the board is actually inside the admitted column. */
-  step(dt: number, feet: { x: number; y: number; z: number }, hovering: boolean, impulse: Vector3): void {
-    if (hovering && inUpdraft(this.row, feet.x, feet.y, feet.z)) impulse.y += this.row.lift * dt;
   }
 }
 

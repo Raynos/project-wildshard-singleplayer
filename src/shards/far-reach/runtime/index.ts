@@ -1,3 +1,4 @@
+import { bindPlayerImpulse } from '@wildshard/game/shardfile/dataCreaturePorts';
 import { SKY_RUNTIME_ROWS } from '../data/runtimeRows';
 import { SKY_WORLD_PREPARATION } from '../data/worldTextures';
 import { ROC_STRIKES } from '../data/brains';
@@ -14,7 +15,7 @@ import { STRINGS } from '../data/strings';
 import { CROWN, DAIS, ROC, VANES } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
 import { SKY_MOVER_BINDING, SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
-import { UpdraftDriver, installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
+import { installDeclaredMovers, type MoverRuntime } from '@wildshard/game/plugin/mover';
 import { createMeleeScriptDriver, startMeleeSecondary } from '@wildshard/game/plugin/simulation';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
@@ -170,11 +171,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     // like an animal's, so a constant feed holds about updraft.lift / 3.5 m/s) floats you off the ramp to the high step.
     const updraft = source.modes?.traverse.find(row => row.id === 'far.updraft');
     if (updraft?.kind !== 'updraft') throw new Error('Sky Reach requires its admitted updraft row');
-    const force = new UpdraftDriver(updraft), lift = new Vector3();
-    ctx.system({ id: 'far.updraft', phase: 'fixed.pre', run: (dt) => {
-      force.step(dt, position, this.board(), lift.set(0, 0, 0));
-      if (lift.y !== 0) ctx.app.player?.impulse(lift);
-    } });
+    ctx.system({ id: updraft.id, phase: 'fixed.pre', run: bindPlayerImpulse(velocity => { ctx.app.player?.impulse(velocity); }).column(updraft, () => position, this.board) });
 
     await worldBuildYield(ctx, 4);
     const moverPose = (id: string): ReturnType<MoverRuntime['pose']> => {
