@@ -1,3 +1,4 @@
+import { createNativeLoadout } from '@wildshard/game/plugin/simulation';
 import { parseWeaponProfile } from '@wildshard/format/weaponProfiles';
 import { applyMeleeCombatProfile, type MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import * as v from 'valibot';
@@ -78,7 +79,8 @@ const Saved = v.strictObject({ held: v.picklist([0, 1]), queued: v.boolean(), st
  * command is the one the crosshair is on), the first contact's hit-stop and the clang off walls.
  */
 export function installDriftwoodSwords(host: SimHost, profiles: readonly [MeleeProfile, MeleeProfile], island: SwordIsland, input: () => SwordInput): DriftwoodSwords {
-  const state = { held: 0 as SwordIndex, queued: false, struck: false, target: null as string | null, swings: 0, hits: 0 };
+  const loadout = createNativeLoadout({ slots: [0, 1] as const, initial: 0, lower: 0, raise: 0 }, { owned: () => true, locked: () => false });
+  const state = { queued: false, struck: false, target: null as string | null, swings: 0, hits: 0 };
   /** SweptMelee.findLunge on the command's crosshair target, then the same dash law as startSwing. */
   const lunge = (profile: MeleeProfile, move: Move): void => {
     const actor = state.target === null ? undefined : host.entities.get(state.target), p = host.player.position;
@@ -142,7 +144,7 @@ export function installDriftwoodSwords(host: SimHost, profiles: readonly [MeleeP
     island.staggered(actor, MathUtils.clamp(move.stagger, 0, 1), running);
   };
   host.onStep(SWORDS_STEP, () => {
-    const index = state.held, clock = clocks[index], profile = profiles[index];
+    const index = loadout.held(), clock = clocks[index], profile = profiles[index];
     const command = input(), target = command.attack;
     if (command.heavy) state.target = command.heavyTarget;
     if (target !== null) {
@@ -160,15 +162,15 @@ export function installDriftwoodSwords(host: SimHost, profiles: readonly [MeleeP
     if (skin(actor) > (move.reach ?? profile.reach) || bladeBlocked(host.physics, eye, point, host.player.motor.collider)) return;
     state.struck = true;
     strike(actor, move, index);
-  }, { snapshot: () => JSON.stringify({ ...state, clocks: [clocks[0].snapshot(), clocks[1].snapshot()] }), restore: value => {
+  }, { snapshot: () => JSON.stringify({ held: loadout.held(), ...state, clocks: [clocks[0].snapshot(), clocks[1].snapshot()] }), restore: value => {
     if (typeof value !== 'string') throw new Error('Invalid Driftwood swords continuation');
     const saved = v.parse(Saved, JSON.parse(value));
-    state.held = saved.held; state.queued = saved.queued; state.struck = saved.struck; state.target = saved.target; state.swings = saved.swings; state.hits = saved.hits;
+    loadout.restore({ held: saved.held, swap: null }); state.queued = saved.queued; state.struck = saved.struck; state.target = saved.target; state.swings = saved.swings; state.hits = saved.hits;
     clocks[0].restore(saved.clocks[0]); clocks[1].restore(saved.clocks[1]);
   } }, 'afterBodies');
   return {
-    held: () => state.held,
-    equip: index => { if (index === state.held) return; clocks[state.held].stop(); state.queued = false; state.target = null; state.held = index; },
+    held: loadout.held,
+    equip: index => { if (index === loadout.held()) return; clocks[loadout.held()].stop(); state.queued = false; state.target = null; loadout.select(index); },
     swings: () => state.swings, hits: () => state.hits,
   };
 }

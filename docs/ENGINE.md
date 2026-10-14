@@ -4885,3 +4885,14 @@ held scenes. `BorrowedNpcSpecimen` and `borrowedNpcSpecimen` borrow the
 admitted figure, copied geometry and original material methods; a
 bounded prepare path loads the original library before cold Explorer
 builds. The page and Explorer share one copier admission path.
+
+### Native equipment selection
+
+`createNativeLoadout(row, ports)` in `game/plugin/simulation` owns a bounded
+ordered set of numeric equipment slots. `row` declares `slots`, `initial`,
+`lower` and `raise` seconds; zero timings select immediately. Borrowed
+`owned(slot)` and `locked()` ports retain the caller's unlock and input laws.
+The caller advances `step(dt, pick)` in its existing adapter and borrows
+`snapshot`/`restore` for the original `{held, swap}` continuation; creating
+the owner registers no clock. `select`, `held`, `swapping`, `owned` and `live`
+serve both immediate melee kits and timed ranged kits.

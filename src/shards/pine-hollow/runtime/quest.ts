@@ -15,7 +15,7 @@ import { PINE_PHASES } from '../look/dayKeys';
 import { createPineFacts, recordPineFeatKill, syncPineFlagFeats, isPineThrall } from '../quest/featLaw';
 import { pineDirectorClock, type PineClockEvent } from './directorClock';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
-import { LEVER_FLAG } from './weapons/headlessLoadout';
+import { LEVER_FLAG } from '../data/nativeLoadout';
 import { ZIP_LAUNCH_V, ZIP_START, ZipWire } from '../quest/zipWire';
 import { createPinePack, PinePackSchema } from './pack';
 import { PinePeople } from './people';

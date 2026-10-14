@@ -1237,3 +1237,65 @@ export function readRuntimeWorldMetadata(input: unknown): v.InferOutput<typeof n
 export function readRuntimeWorldMetadata(input: unknown, quests = false): v.InferOutput<typeof nativeWorldMetadata> | v.InferOutput<typeof nativeQuestMetadata> {
   return quests ? v.parse(nativeQuestMetadata, input) : v.parse(nativeWorldMetadata, input);
 }
+
+
+/** Bounded ordered native equipment slots and their lower/raise clocks. */
+export interface NativeLoadoutRow<Slot extends number> {
+  readonly slots: readonly Slot[]; readonly initial: Slot;
+  readonly lower: number; readonly raise: number;
+}
+/** Borrowed ownership and input lock; creating a loadout installs no step. */
+export interface NativeLoadoutPorts<Slot extends number> {
+  readonly owned: (slot: Slot) => boolean; readonly locked: () => boolean;
+}
+/** Detached native slot continuation; the old held/swap save shape is retained. */
+export interface NativeLoadoutSnapshot<Slot extends number> extends Readonly<Record<string, SimValue>> {
+  readonly held: Slot;
+  readonly swap: { readonly to: Slot; readonly t: number; readonly switched: boolean } | null;
+}
+/** One selection owner, borrowed by an existing simulation adapter. */
+export interface NativeLoadout<Slot extends number> {
+  readonly held: () => Slot; readonly swapping: () => boolean;
+  readonly owned: (slot: Slot) => boolean; readonly live: (slot: Slot) => boolean;
+  readonly select: (slot: Slot) => void; readonly step: (dt: number, pick: Slot | null) => void;
+  readonly snapshot: () => NativeLoadoutSnapshot<Slot>; readonly restore: (value: unknown) => void;
+}
+/** One renderer-free equipment selection owner for timed and immediate kits.
+ * The caller registers step/snapshot in its existing adapter, preserving order.
+ */
+export function createNativeLoadout<Slot extends number>(row: NativeLoadoutRow<Slot>, ports: NativeLoadoutPorts<Slot>): NativeLoadout<Slot> {
+  if (row.slots.length === 0 || row.slots.length > 32 || new Set(row.slots).size !== row.slots.length
+    || row.slots.some(slot => !Number.isInteger(slot) || slot < 0 || slot > 31)
+    || !row.slots.includes(row.initial) || !Number.isFinite(row.lower) || row.lower < 0 || row.lower > 60
+    || !Number.isFinite(row.raise) || row.raise < 0 || row.raise > 60) throw new Error('Invalid native equipment slots');
+  const slot = v.custom<Slot>(value => row.slots.some(candidate => candidate === value));
+  const Saved = v.strictObject({ held: slot, swap: v.nullable(v.strictObject({ to: slot,
+    t: v.pipe(v.number(), v.finite(), v.minValue(0)), switched: v.boolean() })) });
+  let held = row.initial;
+  const swap = { on: false, to: row.initial, t: 0, switched: false };
+  const finish = (): void => { if (swap.on) { held = swap.to; swap.on = false; } };
+  const select = (to: Slot): void => {
+    if (!row.slots.includes(to) || !ports.owned(to)) return;
+    if (swap.on) { if (swap.to === to) return; finish(); }
+    if (to === held) return;
+    swap.on = true; swap.to = to; swap.t = 0; swap.switched = false;
+    if (row.lower === 0) { held = to; swap.switched = true; }
+    if (row.lower + row.raise === 0) finish();
+  };
+  const step = (dt: number, pick: Slot | null): void => {
+    if (pick !== null) select(pick);
+    if (!swap.on) return;
+    swap.t += dt;
+    if (swap.t >= row.lower && !swap.switched) { swap.switched = true; held = swap.to; }
+    if (swap.t >= row.lower + row.raise) finish();
+  };
+  return { held: (): Slot => held, swapping: (): boolean => swap.on, owned: ports.owned, select, step,
+    live: (value: Slot): boolean => held === value && !swap.on && !ports.locked(),
+    snapshot: (): NativeLoadoutSnapshot<Slot> => ({ held, swap: swap.on ? { to: swap.to, t: swap.t, switched: swap.switched } : null }),
+    restore: (value: unknown): void => {
+      const saved = v.parse(Saved, value);
+      held = saved.held; swap.on = saved.swap !== null;
+      if (saved.swap !== null) { swap.to = saved.swap.to; swap.t = saved.swap.t; swap.switched = saved.swap.switched; }
+    },
+  };
+}

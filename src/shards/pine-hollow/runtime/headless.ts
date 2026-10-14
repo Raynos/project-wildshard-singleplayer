@@ -13,13 +13,14 @@ import { preparePineNightDirector } from './nightDirector';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { installPineRoster, type PineRosterPorts } from './roster';
 import { installPineElites } from './elites';
-import { installPineKing } from './king';
+import { installPineKing, KING_RECORD } from './king';
 import { installPineCrossbow } from './weapons/headlessCrossbow';
 import { installPineLever } from './weapons/headlessLever';
 import { parseLeverProfile } from '../weapons/leverAction';
 import { installPineLongbow } from './weapons/headlessLongbow';
 import { AIM_COMMAND, AIM_MIDDLE, aimShare } from './weapons/headlessRanged';
-import { installPineLoadout, PINE_WEAPON, WEAPON_COMMAND } from './weapons/headlessLoadout';
+import { createNativeLoadout } from '@wildshard/game/plugin/simulation';
+import { PINE_NATIVE_LOADOUT, PINE_WEAPON, WEAPON_COMMAND, LOADOUT_STEP, LEVER_FLAG } from '../data/nativeLoadout';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { PINE_DAY } from '../look/dayKeys';
@@ -143,7 +144,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
       // `pine.weapon` script command picks a weapon (the tick's last)
       shots: () => context.commands().flatMap(command => command.kind === 'player' && command.attack !== undefined ? [command.attack.targetId] : []),
       heavy: () => { const held = context.commands().find(command => command.kind === 'player' && command.heavy !== undefined); return held?.kind === 'player' ? held.heavy ?? null : null; },
-      pick: () => context.commands().reduce<number | null>((pick, command) => command.kind === 'script' && command.actorId === WEAPON_COMMAND ? command.value : pick, null),
+      pick: () => { let picked: number | null = null; const commands = context.commands(); for (let i = 0; i < 1024; i++) { const command = commands[i]; if (command === undefined) break; if (command.kind === 'script' && command.actorId === WEAPON_COMMAND) picked = command.value; } return picked; },
       // a `pine.aim` script command says where on the target's body the tick's shots go (the tick's last; none: its middle)
       aim: () => context.commands().reduce((aim, command) => command.kind === 'script' && command.actorId === AIM_COMMAND ? aimShare(command.value) : aim, AIM_MIDDLE),
       // a `pine.interact` script command presses a quest prompt (runtime/quest.ts PINE_ACT)
@@ -192,7 +193,7 @@ export interface PineInstall {
 /** Install Pine's world, elites, King and roster on a host, in the page's order (the trusted runtime's `install`). */
 export function installPine(host: SimHost, parts: PineInstall): {
   roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites>; king: ReturnType<typeof installPineKing>; crossbow: ReturnType<typeof installPineCrossbow>;
-  lever: ReturnType<typeof installPineLever>; longbow: ReturnType<typeof installPineLongbow>; loadout: ReturnType<typeof installPineLoadout>;
+  lever: ReturnType<typeof installPineLever>; longbow: ReturnType<typeof installPineLongbow>; loadout: ReturnType<typeof createNativeLoadout<0 | 1 | 2>>;
   quest: ReturnType<typeof installHollowQuest>;
   air: ReturnType<typeof installPineAir>;
   thralls: ReturnType<typeof installPineNight>;
@@ -222,8 +223,15 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // publication comes last, matching render propagation after equipment's cached-pose queries.
   const shots = parts.shots ?? ((): readonly string[] => []), heavy = parts.heavy ?? ((): null => null), pick = parts.pick ?? ((): null => null);
   // the quest (installed after the weapons) stows the weapons for the zipline's ride, and its lever-action pickup selects the rifle
-  const loadout = installPineLoadout(host, { locked: () => king.locked() || (quest?.riding() ?? false) || (quest?.talking() ?? false),
-    pick: () => { const picked = pick(), took = quest?.takeRifle() ?? false; return picked ?? (took ? PINE_WEAPON.lever : null); } });
+  const loadout = createNativeLoadout(PINE_NATIVE_LOADOUT, {
+    owned: slot => slot === PINE_WEAPON.crossbow || (slot === PINE_WEAPON.lever && host.flags.has(LEVER_FLAG))
+      || (slot === PINE_WEAPON.longbow && host.flags.has(KING_RECORD.paid)),
+    locked: () => king.locked() || (quest?.riding() ?? false) || (quest?.talking() ?? false),
+  });
+  host.onStep(LOADOUT_STEP, dt => {
+    const picked = pick(), took = quest?.takeRifle() ?? false, slot = picked ?? (took ? PINE_WEAPON.lever : null);
+    loadout.step(dt, slot === 0 || slot === 1 || slot === 2 ? slot : null);
+  }, { snapshot: loadout.snapshot, restore: loadout.restore }, 'afterBodies');
   // the bodies a bolt can hit: every host body (the roster's list, a fight's own), one buffer refilled a tick
   const bodyBuffer: AnimalSim[] = [];
   const bodies = (): readonly AnimalSim[] => { bodyBuffer.length = 0; host.entities.forEach(body => { bodyBuffer.push(body); }); return bodyBuffer; };
