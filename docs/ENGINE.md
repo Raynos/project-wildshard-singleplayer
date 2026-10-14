@@ -5523,3 +5523,14 @@ damage are separate. `stoppedProjectileSaved(capacity)` retains the version-one
 position/direction/body/local/localDirection/recoverable envelope and update
 count; restore validates before changing the roster. Bone-frame saves belong to
 the page owner and are refused by this native envelope.
+
+### Native quest table and captured spots
+
+`game/plugin/quests.bindQuestTableSpots(table, spots, flags, bounds)`
+preflights the complete bounded id/kind index before binding the engine's
+read-only interaction state. Values borrow the original spots; Map
+iteration follows table order. Optional `ordered` requires the capture to
+match that order too, and `rows` / `items` bound the table and chest size.
+Duplicates, missing/foreign/mismatched spots and excess contents refuse
+without flag writes. Reach, command dispatch, rewards and save envelopes
+remain caller-owned. Pine and Driftwood use this same native intake.

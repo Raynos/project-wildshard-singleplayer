@@ -9,6 +9,7 @@ import type { SimHost } from "@wildshard/engine/sim";
 import { DeclaredQuests } from "../quest/declared";
 import { bindHeadlessPrompts, type HeadlessPrompt, type PromptRegistration, eyeReaches, installInteractionRows, InteractionRules, parseInteractionRows, type InteractionRowsData, type InteractionSpot } from "../quest/interactionRows";
 import { autoFlag, type InteractTable } from "@wildshard/engine/world/interact/types";
+import { bindInteractionState, type Flags } from "@wildshard/engine/world/interact/flags";
 import type { QuestData } from "@wildshard/format/quests";
 
 /** Mutable pose lent by a reward's player owner; this law creates no player, motor, camera or view. */
@@ -138,4 +139,30 @@ export function compileQuestTable(table: InteractTable, bindings: readonly { rea
       ...(row.kind === 'bench' ? [] : [{ none: [flag] }])];
     return { id: row.id, act: binding.act, at: row.id, needs, sets: [flag, ...(row.kind === 'lever' ? [] : row.sets ?? [])] };
   }) });
+}
+
+/** Preflight table/spot identity before borrowing the native interaction states.
+ * Each value retains its actual captured spot. Iteration follows the table's
+ * order; ordered profiles also refuse a differently ordered capture. This
+ * adapter commits no flags and owns no command, reach, grant or continuation.
+ */
+export function bindQuestTableSpots<Spot extends { readonly id: string; readonly kind: string }>(table: InteractTable,
+  spots: readonly Spot[], flags: Pick<Flags, 'has'>, bounds: { readonly rows?: number; readonly items?: number; readonly ordered?: boolean } = {}):
+  ReadonlyMap<string, ReturnType<typeof bindInteractionState> & { readonly spot: Spot }> {
+  const limit = bounds.rows ?? 4096, items = bounds.items ?? 4096;
+  if (![limit, items].every(value => Number.isSafeInteger(value) && value >= 0 && value <= 4096)) throw new RangeError('Invalid quest table bounds');
+  if (table.rows.length > limit || spots.length !== table.rows.length) throw new Error('Quest spots do not match the table');
+  const index = new Map<string, Spot>();
+  for (const spot of spots) {
+    if (spot.id.length === 0 || spot.id.length > 256 || index.has(spot.id)) throw new Error('Invalid or duplicate quest spot');
+    index.set(spot.id, spot);
+  }
+  const ids = new Set<string>();
+  const matched = table.rows.map((d, i) => {
+    const spot = index.get(d.id);
+    if (ids.has(d.id) || spot === undefined || spot.kind !== d.kind || (bounds.ordered === true && spots[i]?.id !== d.id)) throw new Error(`Quest spot does not match row ${d.id}`);
+    if (d.kind === 'chest' && d.contents.length > items) throw new RangeError('Quest chest exceeds its item bound');
+    ids.add(d.id); return { d, spot };
+  });
+  return new Map(matched.map(({ d, spot }) => [d.id, Object.assign(bindInteractionState(d, flags), { spot })]));
 }

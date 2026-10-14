@@ -6,10 +6,10 @@ import type { Collider } from '@dimforge/rapier3d-simd';
 import { BARREL_BODY, BARREL_HALF, BarrelWatch, barrelAtPlate, type BarrelEnv } from '@wildshard/engine/world/interact/barrel';
 import type { GroupName } from '@wildshard/engine/physics/groups';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
-import { bindInteractionState, bindInteractionTransitions } from '@wildshard/engine/world/interact/flags';
+import { bindInteractionTransitions, type InteractionState } from '@wildshard/engine/world/interact/flags';
 import type { QuestData } from '@wildshard/format/quests';
 import type { DeclaredQuests } from '@wildshard/game/quest/declared';
-import { installQuestGraph } from '@wildshard/game/plugin/quests';
+import { installQuestGraph, bindQuestTableSpots } from '@wildshard/game/plugin/quests';
 import { createAchievementCounters } from '@wildshard/game/achievements';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../data/questInventory';
 import { DRIFTWOOD_GRAPH, DRIFTWOOD_ACTIONS } from '../data/questGraph';
@@ -106,7 +106,7 @@ function barrelState(handle: number, watch: BarrelWatch): { handle: number; watc
 }
 
 /** One table row with its flag spellings made once (the step reads them every tick). */
-interface Rule extends ReturnType<typeof bindInteractionState> { readonly spot:DriftwoodSpots['rows'][number] }
+interface Rule extends InteractionState { readonly spot:DriftwoodSpots['rows'][number] }
 
 const Watch = v.strictObject({ lost: finite, wedge: finite, from: v.strictObject(xyz) });
 const Saved = v.strictObject({ key: v.nullable(v.strictObject(xyz)), finale: v.string(), iron: v.boolean(), counts: v.record(v.string(), v.pipe(finite, v.integer(), v.minValue(0))),
@@ -136,13 +136,8 @@ const BARREL_OWNER = { kind: 'barrel', id: 'tide-barrel' } as const;
  */
 export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts): { quests: DeclaredQuests; pack: DriftwoodPack; act: (value: number) => void } {
   const { table, spots } = ports, flags = host.flags;
-  if (table.rows.length > MAX_ROWS || spots.rows.length !== table.rows.length) throw new Error('Driftwood spots do not match the interactables table');
-  const rules = table.rows.map((d, i): Rule => {
-    const spot = spots.rows[i];
-    if (spot?.id !== d.id || spot.kind !== d.kind) throw new Error(`Driftwood spot ${String(i)} does not match row ${d.id}`);
-    if (d.kind === 'chest' && d.contents.length > MAX_ROWS) throw new RangeError('Driftwood chest contents exceed their finite bound');
-    return Object.assign(bindInteractionState(d,flags),{spot});
-  });
+  const rules: Rule[] = [...bindQuestTableSpots(table, spots.rows, flags, { rows: MAX_ROWS, items: MAX_ROWS, ordered: true }).values()];
+
   const graph = installQuestGraph(host, { quests: ports.quests, interactions: DRIFTWOOD_ACTIONS, npcs: [], graph: DRIFTWOOD_GRAPH },
     { spots: { interact: [], crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins, drive: 'external' });
   const quests = graph.quests;

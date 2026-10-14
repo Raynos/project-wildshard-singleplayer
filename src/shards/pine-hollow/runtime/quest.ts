@@ -3,14 +3,14 @@ import { ZIPLINE, ZIP_RIDE } from '../data/zipline';
 import * as v from 'valibot';
 import { Vector3 } from 'three';
 import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
-import { bindInteractionState, bindInteractionTransitions } from '@wildshard/engine/world/interact/flags';
+import { bindInteractionTransitions, type InteractionState } from '@wildshard/engine/world/interact/flags';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/format/quests';
-import { installQuestGraph } from '@wildshard/game/plugin/quests';
+import { installQuestGraph, bindQuestTableSpots } from '@wildshard/game/plugin/quests';
 import { PINE_GRAPH, pineQuestRows } from '../quest/graph';
 import { PINE_READING_DELAY, PINE_LANTERN_IDS, RESIN_COUNT, TOKEN_NAMES } from '../data/interactions';
 import { LANTERN_FLAGS } from '../data/wardensHollow';
-import { pineTable } from '../quest/table';
+import { pineTableFromPlacements } from '../quest/table';
 import { StagWalk } from '../quest/stagWalk';
 import { PINE_PHASES } from '../look/dayKeys';
 import { createPineFacts, recordPineFeatKill, isPineThrall } from '../quest/featLaw';
@@ -109,7 +109,7 @@ export interface PineQuest {
 }
 
 /** One kit row of the quest's table, with its flag spellings made once. */
-interface Rule extends ReturnType<typeof bindInteractionState> { readonly prompt:{x:number;y:number;z:number}|null }
+interface Rule extends InteractionState { readonly spot: PineSpots['rows'][number]; readonly prompt:{x:number;y:number;z:number}|null }
 
 /**
  * "The Warden's Hollow" in the renderer-free host (SF72): the declared quest rows through the game's declared quest path
@@ -141,38 +141,22 @@ interface Rule extends ReturnType<typeof bindInteractionState> { readonly prompt
 export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQuest {
   const { spots } = ports, flags = host.flags;
   if (RESIN_COUNT !== 30) throw new Error('Pine resin continuation requires its thirty authored drops');
-  // the table's own rules for the quest's rows (their placements are the bake's; the sites only place the rows)
-  const resinSpots = Array.from({ length: RESIN_COUNT }, (_, i) => {
-    const id = `resin-${i + 1}`, matches = spots.rows.filter(row => row.id === id);
-    const spot = matches[0];
-    if (matches.length !== 1 || spot?.kind !== 'pickup') throw new Error(`Pine spots do not have one resin pickup ${id}`);
-    return spot;
-  });
-  const tokenSpots = Array.from({ length: TOKEN_NAMES.length }, (_, i) => {
-    const id = `token-${i + 1}`, matches = spots.rows.filter(row => row.id === id), spot = matches[0];
-    if (matches.length !== 1 || spot?.kind !== 'pickup' || spot.prompt === null) throw new Error(`Pine spots do not have one token pickup ${id}`);
-    return spot;
-  });
-  const benches = spots.rows.filter(row => row.id === 'lookout-bench'), bench = benches[0];
-  if (benches.length !== 1 || bench?.kind !== 'bench' || bench.prompt === null) throw new Error('Pine spots do not have one lookout bench');
-  const table = pineTable({ resin: resinSpots.map(spot => ({ x: spot.x, y: spot.y, z: spot.z, dy: 0 })), tokens: tokenSpots.map(spot => ({ x: spot.x, y: spot.y, z: spot.z, dy: 0 })),
-    dam: { x: 0, z: 0, fx: 0, fz: 1, ax: 1, az: 0 }, finder: { x: 0, y: 0, z: 0 }, bench });
+  const table = pineTableFromPlacements(spots.rows), indexed = bindQuestTableSpots(table, spots.rows, flags);
   const pack = createPinePack();
-  const rules = QUEST_ROWS.map((id): Rule => {
-    const d = table.rows.find(row => row.id === id), spot = spots.rows.find(row => row.id === id);
-    if (d === undefined || spot?.kind !== d.kind) throw new Error(`Pine spots do not match the table's row ${id}`);
-    return Object.assign(bindInteractionState(d,flags),{prompt:spot.prompt});
-  });
-  const [logA, logB, sluice, glass, flint] = rules;
+  const required = (id: string): Rule => {
+    const row = indexed.get(id);
+    if (row === undefined) throw new Error(`Missing Pine quest row ${id}`);
+    return { ...row, prompt: row.spot.prompt };
+  };
+  const [logA, logB, sluice, glass, flint] = QUEST_ROWS.map(required);
   if (logA === undefined || logB === undefined || sluice === undefined || glass === undefined || flint === undefined) throw new Error('Pine\'s quest rows are missing');
-  const tokenRules = tokenSpots.map((spot): Rule => {
-    const d = table.rows.find(row => row.id === spot.id);
-    if (d?.kind !== 'pickup' || d.look !== 'token') throw new Error(`Pine table has no token take law ${spot.id}`);
-    return Object.assign(bindInteractionState(d,flags),{prompt:spot.prompt});
+  const tokenRules = TOKEN_NAMES.map((_name, i) => {
+    const row = required(`token-${i + 1}`);
+    if (row.d.kind !== 'pickup' || row.d.look !== 'token' || row.prompt === null) throw new Error('Pine needs its token take law and prompt');
+    return row;
   });
-  const seat = table.rows.find(row => row.id === bench.id);
-  if (seat?.kind !== 'bench') throw new Error('Pine table has no lookout bench law');
-  const benchRule:Rule={...bindInteractionState(seat,flags),prompt:bench.prompt};
+  const benchRule = required('lookout-bench'), bench = benchRule.spot;
+  if (benchRule.d.kind !== 'bench' || benchRule.prompt === null) throw new Error('Pine needs its lookout bench law and prompt');
   /** a command's table row (the prompts' order: the two logs, the glass, the flint) */
   const rowOf = (value: number): Rule | null => value === PINE_ACT.logA ? logA : value === PINE_ACT.logB ? logB : value === PINE_ACT.glass ? glass : value === PINE_ACT.flint ? flint
     : value === PINE_ACT.bench ? benchRule : Number.isInteger(value) && value >= PINE_ACT.token1 && value <= PINE_ACT.token8 ? tokenRules[value - PINE_ACT.token1] ?? null : null;
@@ -216,10 +200,10 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
       host.player.yaw = pose.yaw; host.playerFall.vy = 0;
     }
   };
-  const resin = resinSpots.map(spot => {
-    const d = table.rows.find(row => row.id === spot.id);
-    if (d?.kind !== 'pickup' || d.touch !== true || d.item !== 'amber-resin') throw new Error(`Pine table has no resin take law ${spot.id}`);
-    return Object.assign(bindInteractionState(d,flags),{spot});
+  const resin = Array.from({ length: RESIN_COUNT }, (_unused, i) => {
+    const row = required(`resin-${i + 1}`);
+    if (row.d.kind !== 'pickup' || row.d.touch !== true || row.d.item !== 'amber-resin') throw new Error('Pine needs its resin take law');
+    return row;
   });
   const transitions=bindInteractionTransitions([...resin,sluice],flags,{rowLimit:RESIN_COUNT+1,flagLimit:MAX_SETS,touch:'direct',
     commit:id=>graph.run(id),item:()=>{pack.add('amber-resin');},
