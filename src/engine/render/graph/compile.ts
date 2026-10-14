@@ -251,7 +251,30 @@ class GraphLightingModel extends PhysicalLightingModel {
  * viewmodel's transparent copy, for one) builds `new this.constructor()` with no hooks and then `copy`s: `copy` carries the
  * hooks over, so a cloned graph material keeps its lighting stage.
  */
-class GraphLitMaterial extends MeshStandardNodeMaterial {
+/** Apply authored geometry normals before morph/skin/instance transforms. */
+class GraphNormalMaterial extends MeshStandardNodeMaterial {
+  vertexNormal: Node<'vec3'> | null = null;
+  override setupPosition(builder: NodeBuilder): Node {
+    const normal = this.vertexNormal;
+    if (normal !== null) Fn(() => { normalLocal.assign(normal); }, 'void')();
+    return super.setupPosition(builder);
+  }
+  override copy(source: MeshStandardNodeMaterial): this {
+    super.copy(source); if (source instanceof GraphNormalMaterial) this.vertexNormal = source.vertexNormal; return this;
+  }
+}
+class GraphUnlitNormalMaterial extends MeshBasicNodeMaterial {
+  vertexNormal: Node<'vec3'> | null = null;
+  override setupPosition(builder: NodeBuilder): Node {
+    const normal = this.vertexNormal;
+    if (normal !== null) Fn(() => { normalLocal.assign(normal); }, 'void')();
+    return super.setupPosition(builder);
+  }
+  override copy(source: MeshBasicNodeMaterial): this {
+    super.copy(source); if (source instanceof GraphUnlitNormalMaterial) this.vertexNormal = source.vertexNormal; return this;
+  }
+}
+class GraphLitMaterial extends GraphNormalMaterial {
   private hooks: LitHooks;
   constructor(hooks: LitHooks = UNLIT_HOOKS) { super(); this.hooks = hooks; }
   override copy(source: MeshStandardNodeMaterial): this { super.copy(source); if (source instanceof GraphLitMaterial) this.hooks = source.hooks; return this; }
@@ -743,8 +766,9 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   /** a material graph: the lighting model's material with the surface and vertex stages in its slots */
   const surfaceMaterial = (): NodeMaterial => {
     const s = st.surface ?? {};
-    const lit = st.lighting;
-    const m = ir.model === 'unlit' ? new MeshBasicNodeMaterial() : ir.model === 'toon' ? new GraphLitMaterial(toonHooks()) : lit !== undefined ? new GraphLitMaterial(litHooks(lit)) : new MeshStandardNodeMaterial();
+    const lit = st.lighting, vertexNormal = out(st['vertex.normal']?.normal);
+    const m = ir.model === 'unlit' ? vertexNormal === null ? new MeshBasicNodeMaterial() : new GraphUnlitNormalMaterial() : ir.model === 'toon' ? new GraphLitMaterial(toonHooks()) : lit !== undefined ? new GraphLitMaterial(litHooks(lit)) : vertexNormal === null ? new MeshStandardNodeMaterial() : new GraphNormalMaterial();
+    if (vertexNormal !== null && (m instanceof GraphNormalMaterial || m instanceof GraphUnlitNormalMaterial)) m.vertexNormal = new ConvertNode<'vec3'>(vertexNormal.n, 'vec3');
     const colour = out(s.colour);
     if (colour !== null) m.colorNode = new ConvertNode<'vec3'>(widen(colour, 'vec3'), 'vec3');
     const alpha = out(s.alpha);

@@ -5083,3 +5083,9 @@ an item through the actual inventory port. Unknown effects, excessive
 rows and unbound callback/inventory owners refuse before any effect.
 Rows own no flags, quest decisions or saved state; omitted event types
 do nothing. Existing `interact()` callers keep their current behaviour.
+
+Material graph `stages['vertex.normal']:{normal: vec3Ref}` replaces the
+object-space normal before its ordinary view/world transform and lighting
+interpolation. The existing vertex position remains independent. Mesh
+normal output rejects fragment-only ops and point primitives; it installs
+no geometry builder and changes no CPU attributes or collider state.

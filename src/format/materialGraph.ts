@@ -172,6 +172,8 @@ export interface GraphStages {
   readonly points?: { readonly size: GraphRef };
   readonly 'vertex.offset'?: GraphVertexOffset;
   readonly 'vertex.position'?: GraphVertexPosition;
+    /** Object-space vertex normal, replacing the input before lighting interpolation. */
+    readonly 'vertex.normal'?: { readonly normal: GraphRef };
   readonly surface?: GraphSurface;
   readonly lighting?: GraphLighting;
   readonly outline?: GraphOutline;
@@ -777,7 +779,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   // stages
   const stages = input.stages;
   if (!isRecord(stages)) return { ok: false, errors: [...errors, 'graph: stages is not an object'] };
-  for (const k of Object.keys(stages)) if (!['vertex.offset', 'vertex.position', 'surface', 'lighting', 'outline', 'points', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
+  for (const k of Object.keys(stages)) if (!['vertex.offset', 'vertex.position', 'vertex.normal', 'surface', 'lighting', 'outline', 'points', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
   const want = (ref: unknown, place: GraphPlace, type: GraphValueType, at: string): void => {
     const t = typeRef(ref, root, place, at, 1);
     if (t !== null && t !== type && !(t === 'float' && type !== 'bool')) fail(`${at}: is a ${t}, wants a ${type}`);
@@ -794,6 +796,15 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         want(points.size, 'vertex', 'float', 'stages.points.size');
       }
     } else if (points !== undefined) fail('stages.points: needs a points primitive');
+    const vn = stages['vertex.normal'];
+    if (vn !== undefined) {
+      if (input.primitive === 'points') fail('stages.vertex.normal: mesh normals only');
+      if (!isRecord(vn)) fail('stages.vertex.normal: not an object');
+      else {
+        for (const key of Object.keys(vn)) if (key !== 'normal') fail(`stages.vertex.normal: unknown output ${key}`);
+        want(vn['normal'], 'vertex', 'vec3', 'stages.vertex.normal.normal');
+      }
+    }
     const vp = stages['vertex.position'];
     if (vp !== undefined) {
       if (stages['vertex.offset'] !== undefined) fail('stages: vertex.position and vertex.offset are exclusive');
@@ -848,7 +859,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       }
     }
   } else if (kind === 'post') {
-    for (const k of ['vertex.offset', 'vertex.position', 'surface', 'lighting', 'outline', 'points'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
+    for (const k of ['vertex.offset', 'vertex.position', 'vertex.normal', 'surface', 'lighting', 'outline', 'points'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
     const p = stages.post;
     if (!isRecord(p)) fail('stages.post: a post graph needs { colour }');
     else want(p.colour, 'post', 'vec3', 'stages.post.colour');
@@ -913,11 +924,13 @@ function toNodes(raw: Raw): Record<string, GraphNode> {
   return out;
 }
 function toStages(raw: Raw): GraphStages {
+  const vn = raw['vertex.normal'];
   const vp = raw['vertex.position'], vo = raw['vertex.offset'], s = raw.surface, p = raw.post, l = raw.lighting, o = raw.outline;
   const surface: Record<string, GraphRef | number> = {};
   if (isRecord(s)) for (const [k, v] of Object.entries(s)) surface[k] = k === 'alphaCutoff' && isFiniteNumber(v) ? v : toRef(v);
   return {
     ...(isRecord(raw.points) ? { points: { size: toRef(raw.points.size) } } : {}),
+    ...(isRecord(vn) ? { 'vertex.normal': { normal: toRef(vn['normal']) } } : {}),
     ...(isRecord(vp) ? { 'vertex.position': { position: toRef(vp.position), ...(vp.shadow === false ? { shadow: false } : {}) } } : {}),
     ...(isRecord(vo) ? { 'vertex.offset': { offset: toRef(vo.offset), ...(vo.shadow === false ? { shadow: false } : {}) } } : {}),
     ...(isRecord(s) ? { surface } : {}),
