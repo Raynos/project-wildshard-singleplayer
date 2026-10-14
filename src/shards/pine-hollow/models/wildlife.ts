@@ -1,6 +1,6 @@
 /**
  * The small wildlife of Pine Hollow (PINE-HOLLOW-REMASTER PH-M5) in ONE instanced draw: the raven, the great grey owl, the
- * pileated woodpecker and the snowshoe hare. Each is built offline (G285: ../generators/wildlife.ts → baked/wildlife.bin,
+ * pileated woodpecker and the snowshoe hare. Each is built offline (G285: ../generators/wildlife.ts → baked/wildlife.glb,
  * read by `preloadPineWildlife` before `installPineLife`) from ellipsoids, cones and feather sheets at its real size (forward = +z, up = +y), smooth-shaded, PBR (per-vertex roughness: a raven's glossy
  * black, an owl's matte down), vertex-coloured with feather / fur mottling — no textures. All four models live in one
  * geometry; an instance draws only its own kind (the others collapse to a point in the vertex shader), so the whole
@@ -66,26 +66,11 @@ export type WildRows = vb.InferOutput<typeof WildRowsSchema>;
 export const WILD_BAKE_KINDS: readonly WildKind[] = [KIND.raven, KIND.owl, KIND.woodpecker, KIND.hare];
 /** the bake's rows, parsed strictly once */
 export const WILD_ROWS: WildRows = vb.parse(WildRowsSchema, wildJson);
-/** the bake's binary (`src/shards/pine-hollow/generators/bake-pine-wildlife.mjs`); listed in the boot's world reads (../boot/files.ts) */
+/** The authored wildlife model library, loaded before the live instances are installed. */
 export const WILDLIFE_BAKE_URL = '/assets/pine-hollow/baked/wildlife.glb';
 
 /** one kind's baked blocks: position, normal, colour, pivot (3 a vertex), info, atlas (4 a vertex), its local triangles */
 interface WildShape { readonly pos: Float32Array; readonly nor: Float32Array; readonly col: Float32Array; readonly pivot: Float32Array; readonly info: Float32Array; readonly tex: Float32Array; readonly idx: Uint32Array }
-
-/** the procedural kinds from the bake's bytes (inflated, lanes put back) */
-export function wildShapes(bytes: Uint8Array): ReadonlyMap<WildKind, WildShape> {
-  if (bytes.length !== WILD_ROWS.bytes) throw new Error(`[wildlife] the bake holds ${String(bytes.length)} bytes, its rows ${String(WILD_ROWS.bytes)}`);
-  const buffer = new ArrayBuffer(bytes.length); new Uint8Array(buffer).set(bytes);
-  const out = new Map<WildKind, WildShape>();
-  let at = 0;
-  const floats = (count: number): Float32Array => { const a = new Float32Array(buffer, at, count); at += count * 4; return a; };
-  for (const { kind, vertices: n, indices } of WILD_ROWS.kinds) {
-    const pos = floats(n * 3), nor = floats(n * 3), col = floats(n * 3), pivot = floats(n * 3), info = floats(n * 4), tex = floats(n * 4);
-    out.set(kind, { pos, nor, col, pivot, info, tex, idx: new Uint32Array(buffer, at, indices) });
-    at += indices * 4;
-  }
-  return out;
-}
 
 let shapes: ReadonlyMap<WildKind, WildShape> | null = null;
 let loading: Promise<void> | null = null;
@@ -120,8 +105,6 @@ export function preloadPineWildlife(): Promise<void> {
   })();
   return loading;
 }
-/** the bake's bytes handed in instead of fetched (a test reading the committed file) */
-export function useWildShapes(bytes: Uint8Array): void { shapes = wildShapes(bytes); loading = Promise.resolve(); }
 /** whether the bake has been read */
 export const wildlifeBaked = (): boolean => shapes !== null;
 
