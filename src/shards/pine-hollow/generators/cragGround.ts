@@ -19,14 +19,7 @@ function segmentSquared(px: number, pz: number, ax: number, az: number, bx: numb
 export function pineCragQueries(source: NativeTerrainSource): CragGround {
   return {
     heightAt: source.heightAt, normalAt: source.normalAt,
-    trailDistance: (x, z) => {
-      let distance = Infinity;
-      for (const poly of trails) for (let i = 0; i < poly.length - 1; i++) {
-        const a = poly[i], b = poly[i + 1];
-        if (a !== undefined && b !== undefined) distance = Math.min(distance, segmentSquared(x, z, a[0], a[1], b[0], b[1]));
-      }
-      return Math.sqrt(distance);
-    },
+    trailDistance: pineTrailDistance,
     cabinMask: (x, z) => {
       let mask = 0;
       for (const cabin of CABIN_SITES) {
@@ -36,4 +29,14 @@ export function pineCragQueries(source: NativeTerrainSource): CragGround {
       return mask;
     },
   };
+}
+
+/** Original analytic trail query used by authored crags and herd anchors. */
+export function pineTrailDistance(x: number, z: number): number {
+  let distance = Infinity;
+  for (const poly of trails) for (let i = 0; i < poly.length - 1; i++) {
+    const a = poly[i], b = poly[i + 1];
+    if (a !== undefined && b !== undefined) distance = Math.min(distance, segmentSquared(x, z, a[0], a[1], b[0], b[1]));
+  }
+  return Math.sqrt(distance);
 }

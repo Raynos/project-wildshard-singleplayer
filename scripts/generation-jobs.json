@@ -13061,6 +13061,41 @@
         "src/shards/driftwood-isle/data/creatureBodies.generated.json"
       ],
       "platform": "native"
+    },
+    {
+      "id": "pine-fauna",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/fauna.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/pine-hollow/generators/fauna.ts",
+        "pineFaunaFiles",
+        "src/shards/pine-hollow",
+        "--files"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/pine-hollow/generators/fauna.ts",
+        "src/shards/pine-hollow/generators/seedStream.ts",
+        "src/shards/pine-hollow/generators/cragGround.ts",
+        "src/shards/pine-hollow/data/layout.ts",
+        "src/shards/pine-hollow/behaviour/layout.ts"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/fauna.generated.ts"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/pine-hollow/data/fauna.generated.ts": "c280384f87c9208dd64a396b41565f9e120009b0e497999d103e1999eceafed0"
+      },
+      "seedOutputs": []
     }
   ]
 }

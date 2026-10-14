@@ -1,7 +1,7 @@
 import { PINE_BUDGET_INPUTS } from '../budgets';
 import { PINE_RUNTIME_COST } from './runtimeCost';
 import { pineTiers } from '../look/viewDistance';
-import { PINE_FAUNA } from '../runtime/fauna';
+import { PINE_FAUNA } from './fauna.generated';
 import thumbnail from '../thumbs/pine-hollow.jpg';
 import heroPortrait from '../thumbs/pine-hollow-portrait.jpg';
 import heroLandscape from '../thumbs/pine-hollow-landscape.jpg';
