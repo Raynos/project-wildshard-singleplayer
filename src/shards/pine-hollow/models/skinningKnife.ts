@@ -20,7 +20,9 @@ import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { HeldTool, heldToolSpecimen, type HeldToolRow } from '../runtime/kit/heldTool';
 import { KNIFE_LOOK } from '../runtime/kit/skinningKnifeLook';
-import { BEAT } from '../life/lifeMath';
+import { PINE_LIFE } from '../data/ambientLife';
+
+const BEAT=PINE_LIFE.harvest;
 
 /** the Blender knife's file */
 export const KNIFE_MODEL_URL = '/assets/pine-hollow/weapons/skinning-knife.glb';

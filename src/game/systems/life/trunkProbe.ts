@@ -1,12 +1,3 @@
-/**
- * Where a tree's bark actually is (PH-M5): the woodpecker clings to it and the owl sits on a snag's broken top. The
- * placement record (`TreeInstance`: x, z, the capsule radius) is the collider's, not the model's — a Blender snag leans
- * and forks, so a bird set at `r` from (x, z) hangs in the air. This walks the variant's own trunk geometry instead, once
- * per variant: a SPINE, from the base up every 0.5 m, of where a horizontal plane cuts the bark (the triangles' crossing
- * points within reach of the spine so far — a limb reaching out is left out), its median centre and radius; the spine
- * ends where the bark near it ends (a snag's broken top). World = the variant's local answer turned by the tree's `rot`,
- * scaled, moved to its base (Forest.ts composes the instance the same way).
- */
 import type * as THREE from 'three';
 import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
 

@@ -234,6 +234,7 @@ function fileRole(path, name = '') {
   const reviewed = reviewedW2Owners.get(name ? `${path}#${name}` : path) ?? reviewedW2Owners.get(path);
   if (reviewed !== undefined) return reviewed;
   if (path === 'src/shards/pine-hollow/runtime/birds.ts')return 'C4';
+  if (/\/systems\/life\//u.test(path)||path==='src/engine/ai/ambientFlight.ts'||name==='installAmbientLife')return 'C4';
   if (path === 'src/engine/world/waves.ts' && name === 'GERSTNER_TERMS') return 'C2';
   if (['src/format/materialGraph.ts', 'src/game/shardfile/clientMaterials.ts', 'src/game/shardfile/clientGraphs.ts'].includes(path)) return 'C2';
   if (path === 'src/shards/driftwood-isle/runtime/hybrid.ts' || path === 'src/game/shardfile/hybrid.ts') return 'C9';

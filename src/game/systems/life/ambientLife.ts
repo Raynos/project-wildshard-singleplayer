@@ -1,72 +1,38 @@
-import { sharedWeaponVoices } from '@wildshard/game/systems/audio/weaponVoices';
-import { installEnteredRuntimeObserver, installEnteredRuntimeService, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
-import type { ShardContext } from '@wildshard/game/shard/context';
+import * as THREE from 'three';
+import { Rng } from '@wildshard/engine/core/rng';
 import { app } from '@wildshard/engine/app/runtime';
 import { TickScheduler } from '@wildshard/engine/app/scheduler';
 import { PlaceGuide } from '@wildshard/engine/quest/view';
-import { PINE_GUIDE } from '../data/guide';
+import { audioRandom } from '@wildshard/engine/audio/util';
 import { ownAudioSource } from '@wildshard/engine/audio/ownership';
+import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
+import { CameraFX } from '@wildshard/engine/player/CameraFX';
+import { cabinMask, inChunk, normalAt, pondMask, streamAt, waterLevel } from '@wildshard/engine/world/Heightfield';
+import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { smoothstep } from '@wildshard/engine/core/noise';
 import type { EquipmentService } from '@wildshard/engine/combat/EquipmentService';
 import type { Game } from '@wildshard/engine/core/Game';
-import { tap, ambientTick } from '@wildshard/engine/core/harnessTap';
-import { Rng } from '@wildshard/engine/core/rng';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
-import { CameraFX } from '@wildshard/engine/player/CameraFX';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
-import { cabinMask, inChunk, normalAt, pondMask, streamAt, waterLevel } from '@wildshard/engine/world/Heightfield';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-/**
- * Pine Hollow's ambient life without wolves (PINE-HOLLOW-REMASTER PH-M5) and the harvest's skinning beat (PH-F2), in one
- * call from main.ts (`installPineLife`, before the boot's precompile: the one draw below is parked in the scene then).
- *
- *   ravens       2–3 come to every fresh deer / boar / elk / bear kill 18–52 s after it (never past the minute): they
- *                sail in high, circle it, drop down beside it and feed (pecking bouts, a look round, a hop); walk up
- *                and they lift off and wait overhead, landing again once you have backed away; after a minute or so
- *                of feeding they leave for good. They croak as they come in, now and then over the kill, and lift off
- *                with a clatter of wings. A harvested carcass stays (dimmed: the hide is off) until they have
- *                been and gone, then it sinks away (`carcassMayGo`).
- *   the owl      after dark, a great grey owl on a snag top near you (a branch of a big pine when no snag is near),
- *                its head swivelling after you, eye-shine in the dark, hooting every 14–28 s; walk under it and it glides
- *                off (silently) — toward the nearest place your journal has not seen, when there is one.
- *   woodpecker   by day, a pileated woodpecker on a snag / pine trunk, drumming in bursts, calling now and then,
- *                hitching up the trunk; flushes (calling) to another trunk when you come close.
- *   breadcrumbs  every ~1.5–2.5 min by day, when no fight is on, 2–3 ravens overtake you low under the crowns and fly on
- *                toward the nearest place the journal has not seen (Driftwood's `gulls.breadcrumb` idea, the shared place guide;
- *                the Hollow's ravens show the way — folklore; a small songbird was a speck on the phone), croaking as
- *                they pass so you look up.
- *   hares        5 snowshoe hares on open ground around you: they graze, hop, sit up alert when you are near and
- *                bolt in zig-zags when you come closer; the ones left far behind are quietly re-seated around you.
- *
- * Every animal here is ONE instance of `WildlifeMesh` (one draw, one program, no shadow cast); the birds are generated
- * models (birdModels.ts: perched + flying each, one atlas; Debug ▸ Pine Hollow birds = Procedural). Not shootable: the herd
- * (AnimalManager) is the hunt; these are the forest's life. `window.__pineLife` has the pieces
- * (captures: `crumbs()`, `owlNow()`, `ravensTo(x, z)`, `beat()`).
- *
- * The voices are PineHollowSfx one-shots (`h.sfx`, ForestAmbience's set: raven_caw / raven_pair / raven_flap, owl_hoot,
- * woodpecker_drum / woodpecker_call, skinCut-a / -b), placed in the world; each logs to `window.__audioLog`. Without the
- * set (Settings ▸ Sound effects = Synth, or not decoded yet) the woodpecker keeps its synth roll and the knife Audio's
- * blade-in-flesh; the birds are quiet.
- *
- * The skinning beat (`harvest(carcass, give)`): ~1.5 s — the weapon lowered, the view kneels and pitches down to the
- * carcass, a gloved hand brings the skinning knife up (src/shards/pine-hollow/models/skinningKnife.ts: the Blender model on
- * the viewmodels' program), two knife strokes (the Pine Hollow set's two skinning strokes, a small kick each), then the drops land (`give`: the pack + the toast), the
- * knife drops away and the view comes back up.
- */
-import * as THREE from 'three';
-import type { PhShot, PineHollowSfx } from '../runtime/audio/sfx';
-import { TrunkProbe } from './trunks';
-import { SkinKnife } from '../models/skinningKnife';
-import type { BirdSet } from '../runtime/birds';
-import { KIND, WildlifeMesh, newPose, type WildKind, type WildPose } from '../models/wildlife';
-import { BEAT, RAVEN_CARCASS, beatEnvelope, carcassMayGo, hareMayDraw, ravenCount, ravenDelay, type PlaceSpot, type RavenVisit } from './lifeMath';
-import { pineMemoryTrim } from '../debug/options';
-import { smoothstep } from '@wildshard/engine/core/noise';
+import type { ShardContext } from '../../plugin/context';
+import { installEnteredRuntimeObserver,installEnteredRuntimeService,retainsRuntimeServices } from '../../shard/retainedHooks';
+import { sharedWeaponVoices } from '../../plugin/audio';
+import { CirclingFlyer } from '@wildshard/engine/ai/ambientFlight';
+import { TrunkProbe } from './trunkProbe';
+import type { AmbientLifeData, CirclingLifeData } from '@wildshard/format/ambientLife';
 
-export interface PineLifeHost {
-  birdModels:BirdSet|null;
+type WildKind=number;
+interface PlaceSpot {id:string;x:number;z:number;r:number}
+type RavenVisit='waiting'|'overhead'|'feeding'|'gone';
+export interface WildPose {kind:number;x:number;y:number;z:number;yaw:number;pitch:number;roll:number;scale:number;a0:number;a1:number;a2:number;a3:number;b1:number;b2:number}
+const newPose=(kind:number):WildPose=>({kind,x:0,y:-999,z:0,yaw:0,pitch:0,roll:0,scale:1,a0:0,a1:0,a2:0,a3:0,b1:0,b2:0});
+export interface AmbientLifeView {mesh:THREE.InstancedMesh;glow:{value:number};begin:()=>void;add:(pose:WildPose)=>void;commit:()=>void}
+function beatEnvelope(t:number,beat:AmbientLifeData['harvest']):number {if(t<=0||t>=beat.len)return 0;const ease=(u:number):number=>u*u*(3-2*u);if(t<beat.kneelIn)return ease(t/beat.kneelIn);if(t>beat.rise)return ease(1-(t-beat.rise)/(beat.len-beat.rise));return 1;}
+
+export interface AmbientLifeHost<Birds> {
   ctx: ShardContext;
   game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService; audio: Parameters<typeof sharedWeaponVoices>[0];
   trees: readonly TreeInstance[];
@@ -77,27 +43,22 @@ export interface PineLifeHost {
   visited: (id: string) => boolean;
   /** a fight is on (no breadcrumbs then) */
   inCombat: () => boolean;
-  params: URLSearchParams;
-  /** Pine Hollow's generated one-shots (ForestAmbience's `sfx`): the birds' voices, the knife's strokes; null = none */
-  sfx?: PineHollowSfx | null;
+  /** ambient's generated one-shots (ForestAmbience's `sfx`): the birds' voices, the knife's strokes; null = none */
+  sfx?: { shot:(name:string,options?:{at?:{x:number;y:number;z:number}|undefined;gain?:number})=>boolean } | null;
+  view: AmbientLifeView;
+  /** One-shot owned intake; released after the view copies its vertex channels. */
+  birds: Birds|null;
+  swapBirds: (set:Birds,renderer:Game['renderer']) => void;
+  knife: () => { update:(time:number)=>void };
+  trimShadows: boolean;
 }
-export interface PineLife {
+export interface AmbientLife {
   mesh: THREE.InstancedMesh;
   /** the skinning beat over `carcass`; `give` hands out the drops at its end. The carcass then waits for the ravens. */
   harvest: (carcass: Animal, give: () => void, cancel?: () => void) => void;
   /** the beat is running */
   readonly busy: boolean;
 }
-
-const N_RAVEN = 4, N_GUIDE = 3, N_HARE = 5;
-const SLOT = { raven: 0, owl: N_RAVEN, wood: N_RAVEN + 1, guide: N_RAVEN + 2, hare: N_RAVEN + 2 + N_GUIDE } as const;
-const CAPACITY = SLOT.hare + N_HARE;
-/** the ravens lift off when you come this close to them (sprinting: further) */
-const RAVEN_FLUSH = 8, RAVEN_FLUSH_RUN = 12, RAVEN_RELAND = 16;
-/** a carcass's body half-length by kind: the ravens stand just off it */
-const BODY: Readonly<Record<string, number>> = { deer: 0.75, boar: 0.6, elk: 1.1, bear: 0.95 };
-/** body centre over the feet: a raven standing (legs 0.12 m from a hip 0.06 m under the centre, ×1.1), an upright owl */
-const RAVEN_STAND = 0.2, OWL_STAND = 0.16;
 
 type Mode = 'off' | 'fly' | 'circle' | 'ground' | 'perch';
 interface Bird {
@@ -130,22 +91,33 @@ const TAU = Math.PI * 2;
 const flying = (b: { mode: string }): boolean => b.mode !== 'off';
 const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 
-export function installPineLife(h: PineLifeHost): PineLife | null {
-  if (pineMemoryTrim()) h.animals.shadowBatch = false; // G180 B5: the herd shadows from the visible herd (Pine memory trim)
+export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHost<Birds>): AmbientLife | null {
+  if (h.trimShadows) h.animals.shadowBatch = false; // G180 B5: the herd shadows from the visible herd (ambient memory trim)
   const { game, sky, player, animals } = h;
+  const KIND={raven:data.scavenger.model,owl:data.sentinel.model,woodpecker:data.trunkForager.model,hare:data.forager.model};
+  const N_RAVEN=data.scavenger.count,N_GUIDE=data.guide.count,N_HARE=data.forager.count;
+  const SLOT={raven:0,owl:N_RAVEN,wood:N_RAVEN+1,guide:N_RAVEN+2,hare:N_RAVEN+2+N_GUIDE};
+  const RAVEN_FLUSH=data.scavenger.flush,RAVEN_FLUSH_RUN=data.scavenger.flushRun,RAVEN_RELAND=data.scavenger.reland;
+  const BODY=data.scavenger.bodyWidths,RAVEN_STAND=data.scavenger.stand,OWL_STAND=data.sentinel.stand;
+  const BEAT=data.harvest;
+  const ravenDelay=(u:number):number=>data.scavenger.arrival[0]+Math.max(0,Math.min(1,u))*(data.scavenger.arrival[1]-data.scavenger.arrival[0]);
+  const ravenCount=(kind:string):number=>data.scavenger.visitors[kind]??data.scavenger.defaultVisitors;
+  const carcassMayGo=(visit:RavenVisit,since:number):boolean=>visit==='gone'||since>data.scavenger.giveUp;
+  const hareMayDraw=(distance:number,inView:boolean):boolean=>distance<=data.forager.range&&(distance<=data.forager.visibleRange||inView);
+  const flight=new CirclingFlyer(data.flight);
   const retained = retainsRuntimeServices(h.ctx);
   let lifeTime = app.clock.now;
   const now = (): number => retained ? lifeTime : app.clock.now;
 
-  const rng = new Rng(0x71fe);
-  const wild = new WildlifeMesh(sky, CAPACITY);
+  const rng = new Rng(data.seed);
+  const wild = h.view;
   game.scene.add(wild.mesh);
-  if(h.birdModels===null)throw new Error('Missing required bird assets');
-  wild.useBirds(h.birdModels,game.renderer);h.birdModels=null;
+  if(h.birds===null)throw new Error('Missing required ambient models');
+  h.swapBirds(h.birds,game.renderer);h.birds=null;
   const cam = game.camera;
   const trunks = new TrunkProbe(h.trunks);
 
-  // ── the trees, by 16 m cell: trunks the hares keep off, snags / pines the birds perch on ──
+  // ── the trees, by 16 m cell: trunks the hares keep off, snags / ambients the birds perch on ──
   const CELL = 16, cells = new Map<number, TreeInstance[]>();
   const key = (cx: number, cz: number): number => (cx + 512) * 1024 + (cz + 512);
   for (const t of h.trees) {
@@ -196,7 +168,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   const owl = bird(SLOT.owl, KIND.owl);
   const wood = bird(SLOT.wood, KIND.woodpecker);
   const guides = Array.from({ length: N_GUIDE }, (_, i) => bird(SLOT.guide + i, KIND.raven));
-  for (const b of [...ravens, owl, wood, ...guides]) b.pose.scale = b.pose.kind === KIND.raven ? 1.1 : 1.05;
+  for (const b of [...ravens, owl, wood, ...guides]) b.pose.scale = b.pose.kind === KIND.raven ? data.scavenger.scale : data.sentinel.scale;
 
   const place = (b: Bird, x: number, y: number, z: number): void => { b.pose.x = x; b.pose.y = y; b.pose.z = z; };
   /** fly from where it is to (x, y, z) at `speed` m/s, the path bowing along its heading (and up by `lift`) */
@@ -214,22 +186,22 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     b.pose.a1 = 0; b.pose.b1 = 1; b.pose.b2 = 0; b.pose.a2 = 0; b.pose.a3 = 0; b.mode = 'fly'; b.burst = 4; b.flapT = 0;
   };
   const off = (b: Bird): void => { b.mode = 'off'; b.after = null; };
-  // ── the voices (PineHollowSfx one-shots, placed at the bird) ──
-  const voice = (family: PhShot, at: { x: number; y: number; z: number } | undefined, gain = 1): boolean => h.sfx?.shot(family, { at, gain }) ?? false;
+  // ── the voices (ambientSfx one-shots, placed at the bird) ──
+  const voice = (family: string, at: { x: number; y: number; z: number } | undefined, gain = 1): boolean => h.sfx?.shot(family, { at, gain }) ?? false;
   let ravenVoiceT = 0, flapT = 0;
   /** a raven's croak from `r` (two ravens trading croaks when `pair`): one at a time across the flock, a few seconds apart */
   const caw = (r: Bird, pair = false): void => {
     const t = now(); // the game clock: seeded runs repeat (E357 F2)
     if (t < ravenVoiceT) return;
     ravenVoiceT = t + rng.range(3, 6);
-    voice(pair ? 'raven_pair' : 'raven_caw', r.pose, 0.9);
+    voice(pair ? data.sounds.pair : data.sounds.call, r.pose, 0.9);
   };
   /** a raven's wings as it lifts off (one clatter for a flock going up together) */
   const flap = (r: Bird): void => {
     const t = now(); // the game clock: seeded runs repeat (E357 F2)
     if (t < flapT) return;
     flapT = t + 0.6;
-    voice('raven_flap', r.pose, 0.8);
+    voice(data.sounds.flap, r.pose, 0.8);
   };
   /** the wingbeat: bursts of beats, then a glide; the woodpecker bounds (beats, then wings shut) */
   const wings = (b: Bird, dt: number): void => {
@@ -248,15 +220,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     }
   };
   /** turn to face a motion (dx, dy, dz): heading, pitch into it, bank into the turn */
-  const face = (b: Bird, dx: number, dy: number, dz: number, dt: number): void => {
-    const dh = Math.hypot(dx, dz);
-    if (dh < 1e-5) return;
-    const yaw = Math.atan2(dx, dz), dyaw = wrap(yaw - b.pose.yaw);
-    b.pose.yaw += dyaw;
-    b.pose.pitch += (Math.atan2(dy, dh) * 0.6 - b.pose.pitch) * Math.min(1, dt * 4);
-    const roll = THREE.MathUtils.clamp((dyaw / Math.max(dt, 1e-3)) * -0.5, -0.7, 0.7);
-    b.pose.roll += (roll - b.pose.roll) * Math.min(1, dt * 3);
-  };
+  const face=(b:Bird,dx:number,dy:number,dz:number,dt:number):void=>{flight.face(b.pose,dx,dy,dz,dt);};
   const _p = new THREE.Vector3();
   const bez = (b: Bird, u: number, out: THREE.Vector3): THREE.Vector3 => {
     const v = 1 - u, w0 = v * v, w1 = 2 * v * u, w2 = u * u;
@@ -289,7 +253,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   // a kill, through the combat pipeline's event (no chained onKill: E357 AG19)
   h.ctx.on('actor.died', ({ actor }) => {
     const a = animals.animals.find((x) => x.combatActor() === actor);
-    if (a === undefined || !RAVEN_CARCASS.has(a.kind)) return;
+    if (a === undefined || !Object.hasOwn(data.scavenger.visitors,a.kind)) return;
     const t = now();
     carcasses.push({ a, killT: t, comeT: t + ravenDelay(rng.next()), harvestT: -1, visit: 'waiting', ravens: [], feedLeft: rng.range(45, 80), leaveT: 0, dimmed: false });
   });
@@ -387,10 +351,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     switch (r.mode) {
       case 'fly': stepFly(r, dt); break;
       case 'circle': {
-        r.oph += r.ow * dt; r.timer -= dt;
-        const x = r.ox + Math.cos(r.oph) * r.orad, z = r.oz + Math.sin(r.oph) * r.orad, y = r.oalt + Math.sin(r.oph * 0.7) * 1.2;
-        face(r, x - p.x, y - p.y, z - p.z, dt);
-        place(r, x, y, z);
+        flight.step(p,r,dt);r.timer-=dt;
         p.b1 = 1;
         // soaring: mostly held wings, the odd few beats
         if (r.burst > 0 || rng.next() < dt * 0.25) wings(r, dt); else { p.a0 += (0.1 - p.a0) * Math.min(1, dt * 4); p.a1 += (0 - p.a1) * Math.min(1, dt * 4); }
@@ -437,7 +398,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   };
 
   /** the nearest place the journal has not seen (the breadcrumbs' and the owl's heading) */
-  const guide = new PlaceGuide(PINE_GUIDE, { points: () => h.places?.() ?? [], discovered: h.visited,
+  const guide = new PlaceGuide(data.guide.policy, { points: () => h.places?.() ?? [], discovered: h.visited,
     position: () => player.position, fly: flyCrumbs, time: now, random: (lo, hi) => rng.range(lo, hi) });
 
   // ── the owl (night) ──
@@ -477,7 +438,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     if (d >= 45) lookAbout(owl, dt, 1.6, 0.35); else p.a2 += (owl.headTo - p.a2) * Math.min(1, dt * 2.5);
     p.a3 = 1.1 + Math.sin(now() * 0.7) * 0.05; p.a0 += (-0.05 - p.a0) * Math.min(1, dt * 5); p.a1 += (1 - p.a1) * Math.min(1, dt * 5);
     place(owl, p.x, owl.gy + OWL_STAND, p.z);
-    if (now() >= owlHootT) { owlHootT = now() + rng.range(14, 28); if (d < 150) voice('owl_hoot', p, 0.9); }
+    if (now() >= owlHootT) { owlHootT = now() + rng.range(14, 28); if (d < 150) voice(data.sounds.hoot, p, 0.9); }
     if (night < 0.4) { p.b2 = 0; p.pitch = 0; owl.burst = 4; flyOff(owl); return; } // dawn: it leaves
     if (d < 14 || d > 120) {
       // flushed (or left far behind): a silent glide on — toward the nearest place the journal has not seen, if any
@@ -491,7 +452,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   // ── the woodpecker (day) ──
   let woodNextT = 0, drumT = 0, drumOn = 0, drumVoiced = false;
   const trunkSpot = (near: { x: number; z: number }, rMin: number, rMax: number): { x: number; y: number; z: number; yaw: number } | null => {
-    const tree = perchTree(near.x, near.z, rMin, rMax, (t) => (t.species === 'snag' ? 3 : t.species === 'birch' ? 1.5 : t.species === 'pine' ? 1 : 0));
+    const tree = perchTree(near.x, near.z, rMin, rMax, (t) => (t.species === 'snag' ? 3 : t.species === 'birch' ? 1.5 : t.species === 'ambient' ? 1 : 0));
     if (!tree) return null;
     const y = tree.y + rng.range(3.2, 5.5), sec = trunks.section(tree, y);
     if (!sec) return null;
@@ -512,10 +473,10 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     const au = h.audio;
     if (!au.ready) return;
     const c = au.ctx;
-    if (noiseBuf === null) { noiseBuf = c.createBuffer(1, Math.floor(c.sampleRate * 0.03), c.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 3; }
-    tap.sound?.('pineLife.knock');
+    if (noiseBuf === null) { noiseBuf = c.createBuffer(1, Math.floor(c.sampleRate * 0.03), c.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (audioRandom() * 2 - 1) * (1 - i / d.length) ** 3; }
+    tap.sound?.(data.taps.knock);
     const s = ownAudioSource(c.createBufferSource()); s.buffer = noiseBuf;
-    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 850 + Math.random() * 120; bp.Q.value = 2.2;
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 850 + audioRandom() * 120; bp.Q.value = 2.2;
     const g = c.createGain(); g.gain.value = gain;
     let node: AudioNode = s.connect(bp).connect(g);
     if ('createStereoPanner' in c) { const pn = c.createStereoPanner(); pn.pan.value = pan; node = node.connect(pn); }
@@ -543,26 +504,26 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
       // the drum roll: ~16 knocks a second for ~1.2 s, the head a blur against the trunk
       drumOn -= dt; drumT += dt * 16;
       p.a3 = 0.75 + 0.35 * Math.abs(Math.sin(drumT * Math.PI));
-      if (drumT >= 1) { ambientTick('pineLife.drum', () => { drumT -= 1; const g = 0.5 / (1 + d / 12) ** 1.3 * Math.min(1, drumOn + 0.3); if (d < 60 && !drumVoiced) knock(g, THREE.MathUtils.clamp(((p.x - pp.x) * Math.cos(player.yaw) - (p.z - pp.z) * Math.sin(player.yaw)) / (d || 1), -1, 1) * 0.8);  }); }
+      if (drumT >= 1) { ambientTick(data.taps.drum, () => { drumT -= 1; const g = 0.5 / (1 + d / 12) ** 1.3 * Math.min(1, drumOn + 0.3); if (d < 60 && !drumVoiced) knock(g, THREE.MathUtils.clamp(((p.x - pp.x) * Math.cos(player.yaw) - (p.z - pp.z) * Math.sin(player.yaw)) / (d || 1), -1, 1) * 0.8);  }); }
     } else {
       p.a3 += (0.35 - p.a3) * Math.min(1, dt * 6);
       lookAbout(wood, dt, 0.7, 0.8);
       if (wood.timer <= 0) {
         // the perch's countdown is a scheduler: its plays are ambient (E357 F2, 03 §2.3)
-        ambientTick('pineLife.woodpecker', () => {
+        ambientTick(data.taps.perch, () => {
           wood.timer = rng.range(3.5, 8);
           const r = rng.next();
           if (r < 0.3) { place(wood, p.x, p.y + 0.18, p.z); } // hitches up the trunk
-          else if (r < 0.42 && d < 110) voice('woodpecker_call', p, 0.8);
+          else if (r < 0.42 && d < 110) voice(data.sounds.foragerCall, p, 0.8);
           // the drum: the set's burst (the synth roll when the set is not there)
-          else { drumOn = rng.range(0.9, 1.4); drumT = 0; drumVoiced = d < 60 && voice('woodpecker_drum', p, 0.8); if (drumVoiced) drumOn = 1.9; } // the set's bursts run ~2 s
+          else { drumOn = rng.range(0.9, 1.4); drumT = 0; drumVoiced = d < 60 && voice(data.sounds.drum, p, 0.8); if (drumVoiced) drumOn = 1.9; } // the set's bursts run ~2 s
         });
       }
     }
     if (night > 0.45 || d > 110) { p.b2 = 0; p.pitch = 0; wood.burst = 3; flyOff(wood); woodNextT = now() + 30; return; }
     if (d < 9) {
       p.b2 = 0; p.pitch = 0; wood.burst = 3; p.b1 = 1;
-      voice('woodpecker_call', p, 0.8); // flushed: it calls as it goes
+      voice(data.sounds.foragerCall, p, 0.8); // flushed: it calls as it goes
       const s = trunkSpot({ x: p.x, z: p.z }, 22, 45);
       if (s) woodSettle(s); else flyOff(wood);
     }
@@ -599,7 +560,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     slot: SLOT.hare + i, pose: newPose(KIND.hare), mode: 'graze', x: 0, z: 0, yaw: 0, fx: 0, fz: 0, tx: 0, tz: 0, t: 1, dur: 1, h: 0,
     timer: 0, fleeLeft: 0, zig: 0, retry: 0, headPitch: 0.5, ears: 0.2, sit: 0,
   }));
-  for (const hr of hares) hr.pose.scale = 1.12;
+  for (const hr of hares) hr.pose.scale = data.forager.scale;
   const seatHare = (hr: Hare, rMin: number, rMax: number, hidden: boolean): boolean => {
     const pp = player.position;
     for (let k = 0; k < 24; k++) {
@@ -694,7 +655,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   let addPitch = 0, addY = 0, lastRx = Number.NaN, lastPy = Number.NaN;
   const fx = CameraFX.for(game);
   // the gloved hand and the skinning knife the strokes are made with (the weapon is holstered for the beat)
-  const knife = new SkinKnife(game, sky, h.ctx);
+  const knife = h.knife();
   let interrupted: { enabled: boolean; visible: boolean } | undefined;
   let previousWeapons: { enabled: boolean; visible: boolean } | undefined;
   const harvest = (carcass: Animal, give: () => void, cancel?: () => void): void => {
@@ -715,7 +676,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     if (beatT < 0) { lastRx = Number.NaN; lastPy = Number.NaN; knife.update(-1); return; }
     beatT += dt;
     knife.update(beatT);
-    const env = beatEnvelope(beatT);
+    const env = beatEnvelope(beatT,BEAT);
     // kneel: down 0.55 m and the view tipped toward the carcass (at most ~35°, never past it)
     let tip = 0.35;
     if (beatCarcass) {
@@ -727,7 +688,7 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     const cut = BEAT.cuts[cutsDone];
     if (cut !== undefined && beatT >= cut) {
       cutsDone++;
-      if (!voice(cutsDone % 2 === 1 ? 'skinCut-a' : 'skinCut-b', undefined, 0.85)) sharedWeaponVoices(h.audio).swordHit('flesh', (Math.random() - 0.5) * 0.3, 0.42);
+      if (!voice(cutsDone % 2 === 1 ? data.sounds.cutA : data.sounds.cutB, undefined, 0.85)) sharedWeaponVoices(h.audio).swordHit('flesh', (audioRandom() - 0.5) * 0.3, 0.42);
       fx.kick(-1.1, cutsDone % 2 === 0 ? 0.8 : -0.8);
     }
     if (beatT >= BEAT.len) {
@@ -765,11 +726,10 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
   });
 
   // ── the frame ──
-  let perfMs = 0;
+
   const scheduler = new TickScheduler();
-  const ambient = { id: 'shard.pine.life', phase: 'update' as const, tick: 'fx', run: (): void => undefined };
-  h.ctx.system({ id: 'world.life', phase: 'update', after: ['shard.pine.weather'], before: ['first hints', 'main.frame'], run: (dt) => {
-    const t0 = performance.now();
+  const ambient = { id:data.system.ambient, phase: 'update' as const, tick: 'fx', run: (): void => undefined };
+  h.ctx.system({ id:data.system.id, phase: 'update', after:data.system.after, before:data.system.before, run: (dt) => {
     if (retained) lifeTime += dt;
     scheduler.beginFrame(dt, player.position);
     wild.begin();
@@ -815,12 +775,11 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
       }
     }
     wild.commit();
-    perfMs = perfMs * 0.95 + (performance.now() - t0) * 0.05;
   } });
 
-  const life: PineLife = { mesh: wild.mesh, harvest, get busy() { return beatT >= 0; } };
+  const life: AmbientLife = { mesh: wild.mesh, harvest, get busy() { return beatT >= 0; } };
   const probe = {
-    wild, ravens, owl, wood, guides, hares, carcasses, get ms() { return perfMs; },
+    wild, ravens, owl, wood, guides, hares, carcasses, 
     /** a breadcrumb flock now (captures); the place it heads for */
     crumbs: () => guide.attempt(true),
     /** the owl onto a perch near you now (captures; set the clock to night first) — or onto the snag nearest (x, z) */
@@ -845,7 +804,19 @@ export function installPineLife(h: PineLifeHost): PineLife | null {
     /** the skinning beat's clock (−1 idle) */
     beat: () => beatT,
   };
-  h.ctx.debug.expose('pineLife', probe);
-  installEnteredRuntimeObserver(h.ctx, '__pineLife', probe);
+  h.ctx.debug.expose(data.debug.id,probe);
+  installEnteredRuntimeObserver(h.ctx,data.debug.window,probe);
   return life;
+}
+
+/** Native ports for independent circling populations. */
+export interface CirclingLifeHost { ctx:ShardContext;game:Game;view:AmbientLifeView }
+/** A circling role with real posed bodies; its caller owns the view and orbit declarations. */
+export function createCirclingLife(data:CirclingLifeData,host:CirclingLifeHost):AmbientLife {
+  const flight=new CirclingFlyer(data.flight),bodies=data.flock.map(row=>({pose:{...newPose(row.model),scale:row.scale,x:row.x+Math.cos(row.phase)*row.radius,y:row.y,z:row.z+Math.sin(row.phase)*row.radius},orbit:{ox:row.x,oz:row.z,orad:row.radius,oalt:row.y,ow:row.speed,oph:row.phase},row,wing:0}));
+  host.game.scene.add(host.view.mesh);
+  host.ctx.system({id:data.system.id,after:data.system.after,before:data.system.before,phase:'update',run:dt=>{
+    host.view.begin();for(const body of bodies){flight.step(body.pose,body.orbit,dt);body.wing+=dt*body.row.wingSpeed;body.pose.a0=Math.sin(body.wing)*body.row.wingAmplitude;host.view.add(body.pose);}host.view.commit();
+  }});
+  return {mesh:host.view.mesh,harvest:()=>{throw new Error('Circling population cannot harvest');},busy:false};
 }

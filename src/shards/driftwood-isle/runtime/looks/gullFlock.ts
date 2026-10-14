@@ -122,7 +122,7 @@ export class GullFlock {
   private readonly family: ShaderFamily;
   private readonly C: Record<keyof GullPalette, THREE.Color>;
 
-  constructor(private sky: Sky, private readonly look: GullLook) {
+  constructor(private sky: Sky, private readonly look: GullLook, private readonly flight: {face:(pose:Gull,dx:number,dy:number,dz:number,dt:number,bank:number)=>void;wheel:(orbit:Flock,body:Gull,time:number,out:THREE.Vector3)=>void}) {
     const p = look.palette;
     this.C = {
       white: new THREE.Color(p.white), belly: new THREE.Color(p.belly), grey: new THREE.Color(p.grey), greyDark: new THREE.Color(p.greyDark),
@@ -176,7 +176,8 @@ export class GullFlock {
     const perched = Math.min(spec.perches.length, Math.round(n * 0.6));
     const order = spec.perches.map((_, i) => i);
     for (let i = order.length - 1; i > 0; i--) { const j = rng.int(0, i); const oi = order[i] ?? 0, oj = order[j] ?? 0; order[i] = oj; order[j] = oi; }
-    for (let i = 0; i < n; i++) {
+    for (let i = 0; i < 40; i++) {
+      if(i>=n)break;
       const g: Gull = {
         state: S.Wheel, x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, flap: 0.12, fold: 0, head: 0, legs: 1,
         perch: -1, flock: this.flockAt(i % 3), phase: rng.range(0, 6.28), scale: rng.range(0.75, 1.2), altOff: rng.range(-4, 8),
@@ -187,12 +188,12 @@ export class GullFlock {
       };
       const perch = order[i];
       if (i < perched && perch !== undefined) this.perchOn(g, perch);
-      else { g.t = rng.range(0, 100); this.wheelPos(g, this.time, _p); g.x = _p.x; g.y = _p.y; g.z = _p.z; }
+      else { g.t = rng.range(0, 100); this.flight.wheel(g.flock,g,this.time,_p); g.x = _p.x; g.y = _p.y; g.z = _p.z; }
       this.gulls.push(g);
     }
 
     this.buildMesh(n);
-    for (let i = 0; i < n; i++) this.writeInstance(i);
+    for (let i = 0; i < 40; i++) {if(i>=n)break;this.writeInstance(i);}
     this.mesh.instanceMatrix.needsUpdate = true; this.anim.needsUpdate = true;
     return this;
   }
@@ -315,16 +316,6 @@ export class GullFlock {
     g.headFrom = g.headTo = 0; g.headT = 1; g.headDur = 1;
   }
 
-  /** the wheel path of gull g at time t (flock loop + the gull's own phase / scale / altitude) */
-  private wheelPos(g: Gull, t: number, out: THREE.Vector3) {
-    const f = g.flock;
-    const a = f.w * t + g.phase, r = f.r * g.scale;
-    out.x = f.cx + r * (Math.sin(a + f.p1) + 0.22 * Math.sin(2 * a + f.p2));
-    out.z = f.cz + r * 0.85 * (Math.cos(a + f.p1) + 0.18 * Math.cos(3 * a + f.p3));
-    out.y = f.alt + g.altOff + 3.5 * Math.sin(0.45 * a + f.p4) + 1.2 * Math.sin(1.7 * a + g.phase);
-    return out;
-  }
-
   private freePerch(g: Gull, player: THREE.Vector3): number {
     let best = -1, bestScore = Infinity;
     for (let i = 0; i < this.perches.length; i++) {
@@ -400,24 +391,13 @@ export class GullFlock {
     return out;
   }
 
-  private face(g: Gull, dx: number, dy: number, dz: number, dt: number, bankK: number) {
-    const dh = Math.hypot(dx, dz);
-    if (dh < 1e-4) return;
-    const yaw = Math.atan2(dx, dz);
-    let dyaw = yaw - g.yaw; dyaw = Math.atan2(Math.sin(dyaw), Math.cos(dyaw));
-    g.yaw += dyaw;
-    const pitch = Math.atan2(dy, dh);
-    g.pitch += (pitch * 0.7 - g.pitch) * Math.min(1, dt * 4);
-    const roll = THREE.MathUtils.clamp((dyaw / Math.max(dt, 1e-3)) * bankK, -0.75, 0.75);
-    g.roll += (roll - g.roll) * Math.min(1, dt * 2.5);
-  }
-
   update(dt: number, player: THREE.Vector3): void {
     if (dt <= 0) return;
     this.time += dt; this.uniforms.uTime.value = this.time;
     const t = this.time;
     let flying = 0;
-    for (let i = 0; i < this.gulls.length; i++) {
+    for (let i = 0; i < 40; i++) {
+      if(i>=this.gulls.length)break;
       const g = this.gulls[i];
       if (g === undefined) continue;
       switch (g.state) {
@@ -446,9 +426,9 @@ export class GullFlock {
         case S.Takeoff: {
           g.t += dt;
           const u = Math.min(1, g.t / g.dur), e = u * u * (3 - 2 * u);
-          this.wheelPos(g, t, _q);
+          this.flight.wheel(g.flock,g,t,_q);
           this.bez(g, _q.x, _q.y, _q.z, e, _p);
-          this.face(g, _p.x - g.x, _p.y - g.y, _p.z - g.z, dt, 0.35);
+          this.flight.face(g, _p.x - g.x, _p.y - g.y, _p.z - g.z, dt, 0.35);
           g.x = _p.x; g.y = _p.y; g.z = _p.z;
           g.legs += (1 - g.legs) * Math.min(1, dt * 2);
           this.flapBurst(g, dt, true);
@@ -457,8 +437,8 @@ export class GullFlock {
           break;
         }
         case S.Wheel: {
-          this.wheelPos(g, t, _p);
-          this.face(g, _p.x - g.x, _p.y - g.y, _p.z - g.z, dt, 0.9);
+          this.flight.wheel(g.flock,g,t,_p);
+          this.flight.face(g, _p.x - g.x, _p.y - g.y, _p.z - g.z, dt, 0.9);
           g.x = _p.x; g.y = _p.y; g.z = _p.z;
           g.legs = 1;
           this.flapBurst(g, dt, true);
@@ -474,7 +454,7 @@ export class GullFlock {
           g.t += dt;
           const u = Math.min(1, g.t / g.dur);
           this.bez(g, g.tx, g.ty, g.tz, u, _p);
-          this.face(g, _p.x - g.x, _p.y - g.y, _p.z - g.z, dt, 0.5);
+          this.flight.face(g, _p.x - g.x, _p.y - g.y, _p.z - g.z, dt, 0.5);
           g.x = _p.x; g.y = _p.y; g.z = _p.z;
           this.flapBurst(g, dt, true);
           if (g.call && u > 0.4) { g.call = false; this.onCall?.(_q.set(g.x, g.y, g.z)); }
@@ -486,7 +466,7 @@ export class GullFlock {
           g.t += dt;
           const u = Math.min(1, g.t / g.dur), e = u < 0.5 ? 2 * u * u : 1 - (2 * (1 - u) * (1 - u)) * 0.85 - 0.15 * (1 - u); // ease-in, then a steady glide down
           this.bez(g, g.tx, g.ty, g.tz, e, _p);
-          this.face(g, _p.x - g.x, _p.y - g.y, _p.z - g.z, dt, 0.5);
+          this.flight.face(g, _p.x - g.x, _p.y - g.y, _p.z - g.z, dt, 0.5);
           g.x = _p.x; g.y = _p.y; g.z = _p.z;
           if (u > 0.82) { // the flare: legs down, pitch up, a last flap burst
             g.legs += (0 - g.legs) * Math.min(1, dt * 4);
@@ -541,7 +521,8 @@ export class GullFlock {
     if (free < 3) return false;
     for (let k = 0; k < 3; k++) {
       let best = -1, bestScore = -Infinity;
-      for (let i = 0; i < this.gulls.length; i++) {
+      for (let i = 0; i < 40; i++) {
+      if(i>=this.gulls.length)break;
         const g = this.gulls[i];
         if (g === undefined || (g.state !== S.Wheel && g.state !== S.Perched)) continue;
         const d = Math.hypot(g.x - player.x, g.z - player.z);
@@ -573,7 +554,7 @@ export class GullFlock {
     g.ax = g.x; g.ay = g.y; g.az = g.z;
     g.bx = g.x + hx * 60; g.by = g.y + 14; g.bz = g.z + hz * 60;
     g.flock = this.flockAt(this.rng.int(0, 2)); g.phase = this.rng.range(0, 6.28);
-    this.wheelPos(g, this.time, _q);
+    this.flight.wheel(g.flock,g,this.time,_q);
     g.state = S.Takeoff; g.t = 0; g.dur = Math.max(8, Math.hypot(_q.x - g.x, _q.z - g.z) / 10);
     g.timer = this.rng.range(20, 40); g.call = false;
   }

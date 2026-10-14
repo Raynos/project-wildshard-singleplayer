@@ -43,7 +43,7 @@ export type V3 = readonly [number, number, number];
 
 /** one instance's pose for `WildlifeMesh.write` */
 export interface WildPose {
-  kind: WildKind;
+  kind: number;
   x: number; y: number; z: number;
   /** heading (forward = (sin yaw, cos yaw)), nose-up pitch, bank */
   yaw: number; pitch: number; roll: number;

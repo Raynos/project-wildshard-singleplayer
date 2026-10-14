@@ -5316,3 +5316,39 @@ actor classes refuse. `apply(frame)` writes the evaluated numbers;
 `capture()` returns a restore callback for rows marked `restore`. No clock,
 body, scene object or state grant is created. Pine weather and Signal well
 transforms use this binding.
+
+`game/plugin/ui.installAmbientLife(rows, ports)` installs bounded scavenger,
+sentinel, trunk-forager, ground-forager and guide populations. Supply the
+actual posed view, scoped world, herd, terrain and knife/model owners; the
+host retains the native observation clock and harvest cancellation policy.
+Role counts, model ids, cues and tuning live in author rows. One-user roles
+remain charged to their shard.
+
+`engine/ai/ambientFlight.CirclingFlyer` is the reusable circling-flyer law.
+Its bounded tuning controls vertical waves, pitch and bank; `step` borrows
+the caller's phase/radius/home and `face` reuses its existing pose channels.
+Nalati's W3 valley raptors are the documented pending user.
+
+The `circling-flyer` role selects `game/systems/life/ambientLife.createCirclingLife` through the same installer;
+it needs only `{ctx, game, view}`. Declare each model/scale and orbit's centre,
+radius, altitude, angular speed, phase and wing tuning in `flock`. The view is
+borrowed and the scope owns the actual frame system. Forest-only perch,
+carcass and forager laws retain their one-user charge. Driftwood's circling
+gulls are the W2 adopter; Nalati's valley raptors follow in W3.
+
+```ts
+installAmbientLife({kind:'circling-flyer',
+  flight:{wave:0.7,amplitude:1.2,pitch:0.6,pitchRate:4,
+    bank:-0.5,bankLimit:0.7,bankRate:3},
+  system:{id:'wildlife',after:[],before:['main.frame']},
+  flock:[{model:0,scale:1,x:0,y:18,z:0,radius:20,speed:0.5,
+    phase:0,wingSpeed:6,wingAmplitude:0.4}]
+}, {ctx,game,view});
+```
+
+
+CirclingFlyer also accepts an optional bounded harmonic wheel row. Its `wheel`
+samples the caller's actual flock/time/body into a borrowed point; `face` accepts
+the native transition's bank gain. Driftwood's wheeling gulls lend their existing
+poses and clock; perch, flush, landing and guide owners remain native. No new
+clock, body roster, wing draw or RNG is allocated by the circling law.

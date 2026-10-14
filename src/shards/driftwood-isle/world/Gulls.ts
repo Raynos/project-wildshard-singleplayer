@@ -13,10 +13,10 @@
  *   game.onUpdate((dt) => gulls.update(dt, player.position));
  */
 import type * as THREE from 'three';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { CirclingFlyer } from '@wildshard/engine/ai/ambientFlight';
 import { GullFlock } from '../runtime/looks/gullFlock';
 import { GULLS_GLSL } from '../runtime/looks/gullsGlsl';
-import { GULL_CORRIDORS, GULL_PALETTE } from '../data/gullsLook';
+import { GULL_CORRIDORS, GULL_PALETTE, GULL_FLIGHT, GULL_WHEEL } from '../data/gullsLook';
 
 const LOOK = { palette: GULL_PALETTE, glsl: GULLS_GLSL, patchId: 'driftwood.gulls' };
 /** the N/S and E/W pier corridors */
@@ -24,7 +24,7 @@ const pierCorridor = (x: number, z: number): boolean =>
   (Math.abs(x) < GULL_CORRIDORS.half && Math.abs(z) > GULL_CORRIDORS.beyond) || (Math.abs(z) < GULL_CORRIDORS.half && Math.abs(x) > GULL_CORRIDORS.beyond);
 
 export class Gulls extends GullFlock {
-  constructor(sky: Sky) { super(sky, LOOK); }
+  constructor(sky: ConstructorParameters<typeof GullFlock>[0]) { super(sky, LOOK,new CirclingFlyer(GULL_FLIGHT,GULL_WHEEL)); }
 
   /** Sand perches: spots on the beach just above the water line, away from the pier corridors. */
   static override beachPerches(seed: number, count = 8, near?: { x: number; z: number; r: number }): THREE.Vector3[] {

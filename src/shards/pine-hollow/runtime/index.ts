@@ -14,8 +14,7 @@ import { pineLooks } from '../species/looks';
 import { PINE_FEATS, PINE_BAG_ITEMS as PINE_ITEMS } from '../data/questInventory';
 import { PINE_HOLLOW_COMPENDIUM } from '../compendium';
 import { installPineCompendium } from '../compendium/install';
-import type { ShardContext } from '@wildshard/game/shard/context';
-import { ShardPlugin } from '@wildshard/game/shard/plugin';
+import { ShardPlugin,type ShardContext } from '@wildshard/game/plugin/context';
 import type { ShardRuntime } from '@wildshard/game/shard/runtime';
 import { installAiDebug } from '@wildshard/engine/ai/view/DebugOverlay';
 import { macrotask, slicer } from '@wildshard/engine/boot/plan';
@@ -50,9 +49,12 @@ import { installPineLoadout } from '../loadout/loadout';
 import { installPineCombat } from '../combat/install';
 import { pinePickupStream } from '../combat/eliteStreams';
 import { installPineQuest } from '../quest/index';
-import { installPineLife } from '../life/index';
+import { installAmbientLife } from '@wildshard/game/plugin/ui';
+import { PINE_LIFE,LIFE_CAPACITY } from '../data/ambientLife';
+import { SkinKnife } from '../models/skinningKnife';
+import { pineMemoryTrim } from '../debug/options';
 import { loadBirdModels } from './birds';
-import { preloadPineWildlife } from '../models/wildlife';
+import { WildlifeMesh,preloadPineWildlife } from '../models/wildlife';
 import { installPineAudio } from './audio/wiring';
 import { ForestAmbience } from './audio/ambience';
 import { installWeather, loadPineRain } from '../world/weather';
@@ -259,7 +261,8 @@ export class PineHollow extends ShardPlugin {
     installWeather(ctx, { game, sky, trees: forest.trees, rain: await loadPineRain(), animals, particles, ambience,
       roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.inCave(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
     await preloadPineWildlife(); // the procedural animals' baked shapes (G285), behind the loading screen
-    const life = installPineLife({ birdModels:await loadBirdModels(), ctx, game, sky, player, animals, weapons, audio, sfx: ambience.sfx, trees: forest.trees, trunks: forest.factory.variants, params,
+    const wildlife=new WildlifeMesh(sky,LIFE_CAPACITY);
+    const life = installAmbientLife(PINE_LIFE,{view:wildlife,birds:await loadBirdModels(),swapBirds:(set,backend)=>{wildlife.useBirds(set,backend);},knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(PINE_LIFE.sounds).find(id=>id===name);if(family===undefined)throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees, trunks: forest.factory.variants,
       places: compendium ? () => compendium.state.def.entries.flatMap((entry) => entry.place ? [{ id: entry.id, ...entry.place }] : []) : null,
       visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' });
     Object.assign(rt.objects, { pineLife: life, ambience });
