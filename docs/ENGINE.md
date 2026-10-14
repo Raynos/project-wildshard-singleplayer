@@ -4912,3 +4912,13 @@ argument. It lends the compiled look book at the return boundary, after
 ordered paint/material preparation and bumps, before caller graph state
 bindings. Sky and Signal use this same step; absent ports keep the original
 preparation result with no library binding.
+
+### Native posed-volume contacts
+
+`nativeVolumeContact(origin, direction, limit, volumes, out)` in
+`game/plugin/simulation` queries the caller's posed head sphere, body capsule
+and optional fore capsule. A unit ray direction reports the nearest solid
+hit and whether it hit the head; `null` reports the nearest skin point. It
+refills caller-owned `out` (`distance`, `point`, `head`) without allocating
+result objects. Actors, posed-volume lending, ordered target scans, damage,
+cover and Rapier remain with their original owners.

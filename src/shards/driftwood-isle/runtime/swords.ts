@@ -1,4 +1,4 @@
-import { createNativeLoadout } from '@wildshard/game/plugin/simulation';
+import { createNativeLoadout, nativeVolumeContact } from '@wildshard/game/plugin/simulation';
 import { parseWeaponProfile } from '@wildshard/format/weaponProfiles';
 import { applyMeleeCombatProfile, type MeleeProfile } from '@wildshard/engine/combat/meleeProfile';
 import * as v from 'valibot';
@@ -105,21 +105,16 @@ export function installDriftwoodSwords(host: SimHost, profiles: readonly [MeleeP
   const tagsOf = (profile: MeleeProfile): readonly CombatTag[] => ['actor.player', profile.id, 'dmg.melee', 'cover.checked'];
   const tags = [tagsOf(profiles[0]), tagsOf(profiles[1])] as const;
   const eye = new Vector3(), centre = new Vector3(), a = new Vector3(), b = new Vector3(), near = new Vector3(), point = new Vector3();
-  const fwd = new Vector3(), left = new Vector3(), dir = new Vector3(), push = new Vector3(), ab = new Vector3(), ea = new Vector3();
+  const fwd = new Vector3(), left = new Vector3(), dir = new Vector3(), push = new Vector3();
   /** the page's reused contact (SweptMelee's _hitPoint / _v1 / _aimOrigin): the pipeline copies it at its input boundary */
   const req: DamageRequest = { source: 'env', sourceTags: [], target: host.player.health, amount: 0, point, dir, from: eye, weaponId: '', moveId: '' };
-  /** the nearest skin point of `actor` to the eye (its head ball or body capsule) into `point`; its distance */
+  const contactBody = { head: near, headRadius: 0, a, b, bodyRadius: 0 };
+  const contactResult = { distance: 0, point, head: false };
   const skin = (actor: AnimalSim): number => {
-    actor.headWorld(near);
-    let best = Math.max(0, near.distanceTo(eye) - actor.dims.headRadius * actor.scale);
-    point.copy(near).sub(eye).setLength(best).add(eye);
-    actor.bodyCapsule(a, b);
-    ab.subVectors(b, a);
-    const f = ab.lengthSq() < 1e-12 ? 0 : MathUtils.clamp(ea.subVectors(eye, a).dot(ab) / ab.lengthSq(), 0, 1);
-    near.copy(a).addScaledVector(ab, f);
-    const body = Math.max(0, near.distanceTo(eye) - actor.dims.bodyRadius * actor.scale);
-    if (body < best) { best = body; point.copy(near).sub(eye).setLength(body).add(eye); }
-    return best;
+    actor.headWorld(contactBody.head); contactBody.headRadius = actor.dims.headRadius * actor.scale;
+    actor.bodyCapsule(a, b); contactBody.bodyRadius = actor.dims.bodyRadius * actor.scale;
+    nativeVolumeContact(eye, null, Infinity, contactBody, contactResult);
+    return contactResult.distance;
   };
   /** SweptMelee.strike on `actor` with `move` from the hand's sword */
   const strike = (actor: AnimalSim, move: Move, index: SwordIndex): void => {

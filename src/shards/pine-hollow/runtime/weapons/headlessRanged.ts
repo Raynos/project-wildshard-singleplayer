@@ -1,3 +1,4 @@
+import { nativeVolumeContact } from '@wildshard/game/plugin/simulation';
 import { Vector3 } from 'three';
 import type { SimHost } from '@wildshard/engine/sim';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
@@ -19,38 +20,12 @@ type RibBody = AnimalSim & { ribsWorld: (out: Vector3) => Vector3 };
 const hasFore = (body: RangedVolumes): body is ForeBody => 'foreCapsule' in body && typeof body.foreCapsule === 'function';
 const hasRibs = (body: AnimalSim): body is RibBody => 'ribsWorld' in body && typeof body.ribsWorld === 'function';
 
-const _ap = new Vector3(), _ab = new Vector3(), _ao = new Vector3(), _a = new Vector3(), _b = new Vector3();
-/** The distance along the unit ray (origin, dir) to a ball, within `max`, or Infinity (0 from inside it, as Rapier's solid cast). */
-function raySphere(origin: Vector3, dir: Vector3, centre: Vector3, r: number, max: number): number {
-  _ap.subVectors(origin, centre);
-  const b = _ap.dot(dir), c = _ap.lengthSq() - r * r;
-  if (c <= 0) return 0;
-  const disc = b * b - c;
-  if (b > 0 || disc < 0) return Infinity;
-  const t = -b - Math.sqrt(disc);
-  return t <= max ? t : Infinity;
-}
-/** The distance along the unit ray to a capsule (segment a–b, radius r), within `max`, or Infinity: the analytic cast (the
- *  side of the cylinder, else the nearer end ball), 0 from inside it, as Rapier's solid cast of the page's hitbox. */
-function rayCapsule(origin: Vector3, dir: Vector3, a: Vector3, b: Vector3, r: number, max: number): number {
-  _ab.subVectors(b, a); _ao.subVectors(origin, a);
-  const baba = _ab.lengthSq();
-  if (baba < 1e-12) return raySphere(origin, dir, a, r, max);
-  const u = Math.min(1, Math.max(0, _ao.dot(_ab) / baba));
-  if (_ap.copy(a).addScaledVector(_ab, u).distanceToSquared(origin) <= r * r) return 0;
-  const bard = _ab.dot(dir), baoa = _ab.dot(_ao), rdoa = dir.dot(_ao), oaoa = _ao.lengthSq();
-  const k2 = baba - bard * bard, k1 = baba * rdoa - baoa * bard, k0 = baba * oaoa - baoa * baoa - r * r * baba;
-  let t = Infinity;
-  if (k2 > 1e-12) {
-    const h = k1 * k1 - k2 * k0;
-    if (h < 0) return Infinity;
-    const side = (-k1 - Math.sqrt(h)) / k2, y = baoa + side * bard;
-    if (y > 0 && y < baba && side >= 0) t = side;
-  }
-  if (t === Infinity) t = Math.min(raySphere(origin, dir, a, r, max), raySphere(origin, dir, b, r, max));
-  return t <= max ? t : Infinity;
-}
-
+const contactBody: { head: Vector3; headRadius: number; a: Vector3; b: Vector3; bodyRadius: number;
+  fore: { a: Vector3; b: Vector3; radius: number } | null } = { head: new Vector3(), headRadius: 0,
+  a: new Vector3(), b: new Vector3(), bodyRadius: 0, fore: null };
+const foreBody = { a: new Vector3(), b: new Vector3(), radius: 0 };
+const contactResult = { distance: 0, point: new Vector3(), head: false };
+const _a = new Vector3(), _b = new Vector3();
 const hitResult: BodyHit = { body: null, head: false, distance: 0, point: new Vector3() };
 /**
  * A shot against the creatures' hitboxes (physics/creatures.ts CreatureBodies: a head ball, main capsule and optional chest capsule per live,
@@ -67,16 +42,16 @@ export function bodyHit(bodies: readonly AnimalSim[], origin: Vector3, dir: Vect
     // a cheap reject: the segment never comes within reach of the body
     if (body.position.distanceTo(origin) > bestT + (d.bodyHalfLen + d.bodyRadius + d.headRadius) * s + d.bodyY * s + 2) continue;
     const volumes = rangedVolumes(body);
-    const th = raySphere(origin, dir, volumes.headWorld(_a), d.headRadius * s, bestT);
-    volumes.bodyCapsule(_a, _b);
-    const tb = rayCapsule(origin, dir, _a, _b, d.bodyRadius * s, Math.min(bestT, th));
-    const fore = d.fore;
-    let tf = Infinity;
-    if (fore !== undefined && hasFore(volumes) && volumes.foreCapsule(_a, _b)) {
-      tf = rayCapsule(origin, dir, _a, _b, fore.radius * s, Math.min(bestT, th, tb));
+    volumes.headWorld(contactBody.head); contactBody.headRadius = d.headRadius * s;
+    volumes.bodyCapsule(contactBody.a, contactBody.b); contactBody.bodyRadius = d.bodyRadius * s;
+    contactBody.fore = null;
+    if (d.fore !== undefined && hasFore(volumes) && volumes.foreCapsule(foreBody.a, foreBody.b)) {
+      foreBody.radius = d.fore.radius * s; contactBody.fore = foreBody;
     }
-    const t = Math.min(th, tb, tf);
-    if (t < bestT) { bestT = t; found = true; hitResult.body = body; hitResult.head = th <= Math.min(tb, tf); hitResult.distance = t; hitResult.point.copy(origin).addScaledVector(dir, t); }
+    if (nativeVolumeContact(origin, dir, bestT, contactBody, contactResult) && contactResult.distance < bestT) {
+      bestT = contactResult.distance; found = true; hitResult.body = body; hitResult.head = contactResult.head;
+      hitResult.distance = bestT; hitResult.point.copy(contactResult.point);
+    }
   }
   return found ? hitResult : null;
 }

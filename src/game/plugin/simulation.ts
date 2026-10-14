@@ -1299,3 +1299,75 @@ export function createNativeLoadout<Slot extends number>(row: NativeLoadoutRow<S
     },
   };
 }
+
+
+/** Posed geometric contact volumes; the caller retains actor/physics authority. */
+export interface NativeContactVolumes extends NativeMeleeVolumes {
+  readonly fore?: { readonly a: Vector3; readonly b: Vector3; readonly radius: number } | null;
+}
+/** Caller-owned result storage, refilled without per-query allocation. */
+export interface NativeVolumeContact { distance: number; point: Vector3; head: boolean }
+const contactAp = new Vector3(), contactAb = new Vector3(), contactAo = new Vector3();
+/** The distance along the unit ray (origin, dir) to a ball, within `max`, or Infinity (0 from inside it, as Rapier's solid cast). */
+function contactSphereRay(origin: Vector3, dir: Vector3, centre: Vector3, r: number, max: number): number {
+  contactAp.subVectors(origin, centre);
+  const b = contactAp.dot(dir), c = contactAp.lengthSq() - r * r;
+  if (c <= 0) return 0;
+  const disc = b * b - c;
+  if (b > 0 || disc < 0) return Infinity;
+  const t = -b - Math.sqrt(disc);
+  return t <= max ? t : Infinity;
+}
+/** The distance along the unit ray to a capsule (segment a–b, radius r), within `max`, or Infinity: the analytic cast (the
+ *  side of the cylinder, else the nearer end ball), 0 from inside it, as Rapier's solid cast of the page's hitbox. */
+function contactCapsuleRay(origin: Vector3, dir: Vector3, a: Vector3, b: Vector3, r: number, max: number): number {
+  contactAb.subVectors(b, a); contactAo.subVectors(origin, a);
+  const baba = contactAb.lengthSq();
+  if (baba < 1e-12) return contactSphereRay(origin, dir, a, r, max);
+  const u = Math.min(1, Math.max(0, contactAo.dot(contactAb) / baba));
+  if (contactAp.copy(a).addScaledVector(contactAb, u).distanceToSquared(origin) <= r * r) return 0;
+  const bard = contactAb.dot(dir), baoa = contactAb.dot(contactAo), rdoa = dir.dot(contactAo), oaoa = contactAo.lengthSq();
+  const k2 = baba - bard * bard, k1 = baba * rdoa - baoa * bard, k0 = baba * oaoa - baoa * baoa - r * r * baba;
+  let t = Infinity;
+  if (k2 > 1e-12) {
+    const h = k1 * k1 - k2 * k0;
+    if (h < 0) return Infinity;
+    const side = (-k1 - Math.sqrt(h)) / k2, y = baoa + side * bard;
+    if (y > 0 && y < baba && side >= 0) t = side;
+  }
+  if (t === Infinity) t = Math.min(contactSphereRay(origin, dir, a, r, max), contactSphereRay(origin, dir, b, r, max));
+  return t <= max ? t : Infinity;
+}
+
+const contactNear = new Vector3(), contactDelta = new Vector3();
+function contactCapsuleSkin(origin: Vector3, a: Vector3, b: Vector3, radius: number, best: number, out: NativeVolumeContact): number {
+  contactAb.subVectors(b, a);
+  const along = contactAb.lengthSq() < 1e-12 ? 0 : Math.min(1, Math.max(0, contactDelta.subVectors(origin, a).dot(contactAb) / contactAb.lengthSq()));
+  contactNear.copy(a).addScaledVector(contactAb, along);
+  const skinDistance = Math.max(0, contactNear.distanceTo(origin) - radius);
+  if (skinDistance < best) { out.point.copy(contactNear).sub(origin).setLength(skinDistance).add(origin); out.head = false; return skinDistance; }
+  return best;
+}
+/** Query one posed head/body/fore volume set. A unit direction selects a solid
+ * ray hit; null selects the nearest skin point to origin. World cover, target
+ * ordering, damage and hit events remain with the original weapon owner.
+ */
+export function nativeVolumeContact(origin: Vector3, direction: Vector3 | null, limit: number,
+  body: NativeContactVolumes, out: NativeVolumeContact): boolean {
+  if (direction !== null) {
+    const head = contactSphereRay(origin, direction, body.head, body.headRadius, limit);
+    const trunk = contactCapsuleRay(origin, direction, body.a, body.b, body.bodyRadius, Math.min(limit, head));
+    const fore = body.fore === undefined || body.fore === null ? Infinity
+      : contactCapsuleRay(origin, direction, body.fore.a, body.fore.b, body.fore.radius, Math.min(limit, head, trunk));
+    out.distance = Math.min(head, trunk, fore); out.head = head <= Math.min(trunk, fore);
+    if (!Number.isFinite(out.distance) || out.distance > limit) return false;
+    out.point.copy(origin).addScaledVector(direction, out.distance);
+    return true;
+  }
+  let best = Math.max(0, body.head.distanceTo(origin) - body.headRadius);
+  out.point.copy(body.head).sub(origin).setLength(best).add(origin); out.head = true;
+  best = contactCapsuleSkin(origin, body.a, body.b, body.bodyRadius, best, out);
+  if (body.fore !== undefined && body.fore !== null) best = contactCapsuleSkin(origin, body.fore.a, body.fore.b, body.fore.radius, best, out);
+  out.distance = best;
+  return best <= limit;
+}
