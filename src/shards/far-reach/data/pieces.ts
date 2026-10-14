@@ -10,6 +10,7 @@ const FILE = 'src/shards/far-reach/world/build.ts';
  * the three vanes, the crown arena, and the winch house and the Roost's nest drawn straight from the bake.
  */
 export const SKY_PIECES = [
+  { id: 'far.docks', name: STRINGS.skyDock, category: 'buildings', file: FILE, surface: 'wood', baked: 'docks', node: 'far.docks' },
   ...SKY_GROUND.registry,
   ...SKY_ROUTES.registry,
   { id: 'far.sky-isles', name: STRINGS.skyIsles, category: 'props', file: FILE },

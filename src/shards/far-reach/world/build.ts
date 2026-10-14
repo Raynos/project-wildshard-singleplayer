@@ -22,7 +22,6 @@ import { BOOK_STAND } from '../data/bookStand';
 import { KEEPER_STAND } from '../data/keeperStand';
 import { crownStorm, type CrownStorm } from './storm';
 import { STORM } from '../data/storm';
-import { skyDocksFor } from './skyDock';
 
 type ShardContext = Parameters<SkyReachPlugin['world']>[0];
 const FILE = 'src/shards/far-reach/world/build.ts';
@@ -99,7 +98,7 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   const staticIslets = createClientScene(ISLET_SCENES.staticScene, { geometry: SKY_LIBRARY.geometry }); root.add(staticIslets.root);
   for (const row of ISLET_SCENES.pieces) { const object = staticIslets.parts.get(row.id); ctx.piece({ ...row, category: row.category === 'buildings' ? 'buildings' : 'props', surface: row.surface === 'stone' ? 'stone' : 'wood', ...(object === undefined ? {} : { object }), colliders: pieces.colliders(row.colliders) }); }
   const posts = WORLD.piece('islet-rig'); root.add(posts.root); ctx.piece({ id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: posts.root, colliders: posts.colliders, surface: 'wood' });
-  for (const piece of skyDocksFor(ctx.cube)) { if (piece.object !== undefined) root.add(piece.object); ctx.piece(piece); }
+  if (ctx.cube === null) pieces.baked('far.docks');
   await pause();
 
   // The fallen bridge hangs from its pivot until the winch raises it; it collides only once it is fully up.
