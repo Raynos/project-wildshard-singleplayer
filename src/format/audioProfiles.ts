@@ -4,6 +4,9 @@ const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
 const finite = v.pipe(v.number(), v.finite());
 const gain = v.pipe(finite, v.minValue(0), v.maxValue(8));
 const list = v.pipe(v.array(id), v.minLength(1), v.maxLength(32));
+/** Boot inventory/overlay policy; playback and decoders retain the original recordings. */
+const catalogue = v.strictObject({ ownMusic: v.boolean(), priorityOwn: v.boolean(), overlaySamples: v.boolean(),
+  inventoryOmitSlots: v.pipe(v.array(id), v.maxLength(32)), loopOrder: v.pipe(v.array(id), v.maxLength(32)) });
 const optionalIds = v.optional(v.pipe(v.array(id), v.maxLength(128), v.check((ids) => new Set(ids).size === ids.length, 'unique sample ids')));
 const scalar = v.union([finite, v.boolean(), id, v.null()]);
 const conditions = v.pipe(v.array(v.strictObject({ field: id, op: v.picklist(['equals', 'not-equals', 'greater']), value: scalar })), v.maxLength(16));
@@ -18,7 +21,7 @@ export const AudioMusicSchema = v.pipe(v.strictObject({ id, base: id, slots: lis
   && music.selection.every((row) => row.slots.every((slot) => music.slots.includes(slot)))
   && Object.keys(music.sets).every((slot) => music.slots.includes(slot)), 'every selected, base and boot slot belongs to the score (the platform title is allowed)'));
 /** Same-byte sample catalogue and loop gain selection, without author decoder callbacks. */
-export const AudioSamplesSchema = v.strictObject({ set: id, bed: id, loopGains: v.pipe(v.record(id, gain), v.check((gains) => Object.keys(gains).length <= 32, 'bounded loop gains')), omitLoops: optionalIds, omitShots: optionalIds, omitSlots: optionalIds });
+export const AudioSamplesSchema = v.strictObject({ catalogue: v.exactOptional(catalogue), set: id, bed: id, loopGains: v.pipe(v.record(id, gain), v.check((gains) => Object.keys(gains).length <= 32, 'bounded loop gains')), omitLoops: optionalIds, omitShots: optionalIds, omitSlots: optionalIds });
 const zone = v.pipe(v.strictObject({ id, x: finite, z: finite, inner: v.pipe(finite, v.minValue(0), v.maxValue(2000)), outer: v.pipe(finite, v.minValue(0), v.maxValue(2000)), gain,
   fade: v.optional(v.pipe(finite, v.minValue(0.001), v.maxValue(2000))), open: v.optional(v.boolean()), source: v.optional(id) }), v.check((row) => row.inner < row.outer && (row.fade === undefined || row.outer === row.inner + row.fade), 'audio zone fade must extend outside its inner radius'));
 const rectangle = v.pipe(v.strictObject({ id, zone: id, x0: finite, x1: finite, z0: finite, z1: finite }), v.check((row) => row.x0 < row.x1 && row.z0 < row.z1, 'positive rectangular audio region'));

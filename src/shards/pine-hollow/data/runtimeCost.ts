@@ -31,4 +31,4 @@ export const PINE_RUNTIME_COST = {
 } as const;
 
 /** Pure sample literals shared by the eager manifest and the validated shardfile audio section. */
-export const PINE_AUDIO_SAMPLES = { set: 'pine-hollow', bed: 'forest', loopGains: { forest: 0.5 } };
+export const PINE_AUDIO_SAMPLES = { catalogue: { ownMusic: true, priorityOwn: true, overlaySamples: false, inventoryOmitSlots: ['island'], loopOrder: [] }, set: 'pine-hollow', bed: 'forest', loopGains: { forest: 0.5 } };

@@ -6,7 +6,7 @@ const death = enemies.map((kind) => ({ voice: `island.kill.${kind}`, overrides: 
 export const DRIFTWOOD_AUDIO = parseAudioData({ cues: [], ambience: null, score: 'default',
   music: { id: 'score.driftwood', base: 'island', slots: ['island'], bootSlots: ['title', 'island'], synthLead: 'marimba', minFade: 0,
     source: null, sets: { island: 'base' }, selectMode: 'first', selection: [{ slots: ['island'], when: [] }] },
-  samples: { set: 'driftwood-isle', bed: 'island', loopGains: { island: 0.5 } },
+  samples: { catalogue: { ownMusic: false, priorityOwn: false, overlaySamples: true, inventoryOmitSlots: [], loopOrder: ['island', 'underwater', 'pickup', 'shrine'] }, set: 'driftwood-isle', bed: 'island', loopGains: { island: 0.5 } },
   zones: { id: 'ambience.driftwood', smoothSeconds: 0.1, tickHz: 10, silentSeconds: 0, holdSeconds: 0,
     levels: { surf: 0.85, 'surf-night': 0.3, lap: 0.22, breeze: 0.07, 'breeze-height': 0.1, palms: 0.2, lookout: 0.22, jungle: 0.14, waterfall: 0.45, cove: 0.1, underwater: 0.5 },
     wet: { hold: 0.45, cave: 0.55, shrine: 0.3 }, zones: [
