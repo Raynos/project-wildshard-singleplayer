@@ -3,6 +3,7 @@ import type { startMeleeSecondary } from './simulation';
 import type { PersistedQuest, PersistedQuestRows, QuestPageStageBindings, PageQuestStages, bindDeclaredFight, bindBorrowedPageQuestStages, bindClientChannels } from './ui';
 import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import * as v from 'valibot';
+import type { SaveSlot, SaveStore } from '@wildshard/engine/saves/store';
 import { rigLibrary, type RigLibraryRows } from "./geometry";
 import { bossesSave } from '../saves';
 import { bossFlagRecord, parseBossRecord, type BossRecordRow, type BossRowFlags, type BossViewRows, type installBossOwnerRow } from '../shardfile/bossRow';
@@ -930,6 +931,17 @@ export interface RuntimePersistenceRows {
   readonly reward: { readonly kind: 'state' | 'flag'; readonly key: string; readonly legacy: string };
   readonly boss?: { readonly record: BossRecordRow; readonly defeated: { readonly fact: string; readonly entity: string } };
 }
+/** One read-only legacy reward slot per save store and key. A runtime admitted again (a grid cell entered a second time
+ *  after its region retired) binds its persistence again, and the store refuses a second definition of one id
+ *  ("Duplicate save definition: shard/sunscar.signal" refused Signal's re-entry, W1 grid-ready check 2026-10-14). */
+const legacyRewardSlots = new WeakMap<SaveStore, Map<string, SaveSlot<boolean>>>();
+function legacyRewardSlot(saves: SaveStore, key: string): SaveSlot<boolean> {
+  let slots = legacyRewardSlots.get(saves);
+  if (slots === undefined) { slots = new Map(); legacyRewardSlots.set(saves, slots); }
+  let slot = slots.get(key);
+  if (slot === undefined) { slot = saves.define({ key, scope: 'shard', version: 1, schema: v.boolean(), initial: () => false }); slots.set(key, slot); }
+  return slot;
+}
 /** One reward owner and one projected ledger for browser continuation. */
 export interface RuntimePersistence {
   readonly facts: RuntimeFacts;
@@ -947,7 +959,7 @@ export function bindRuntimePersistence(ctx: Pick<ShardContext, 'app' | 'scope'>,
 export function bindRuntimePersistence(ctx: Pick<ShardContext, 'app' | 'scope'>, source: Shardfile,
   rows: RuntimePersistenceRows, flags?: Pick<Flags, 'has' | 'set'>, instance = source.identity.slug): RuntimePersistence {
   const row = rows.reward;
-  const legacy = ctx.app.saves.define({ key: row.legacy, scope: 'shard', version: 1, schema: v.boolean(), initial: () => false });
+  const legacy = legacyRewardSlot(ctx.app.saves, row.legacy);
   const state = row.kind === 'state' ? bindRuntimeState(ctx, source, row.key, () => legacy.read(source.identity.slug), instance) : null;
   if (row.kind === 'flag' && flags === undefined) throw new Error('Declared reward needs its flag owner');
   const rewarded = { read: (): boolean => {
