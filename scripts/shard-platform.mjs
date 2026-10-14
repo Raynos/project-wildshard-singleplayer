@@ -389,7 +389,7 @@ export function partitionPendingPlatformUsers(slug,modules,exports,allowances) {
   /** @type {import('./shard-platform.mjs').PendingPlatformCharge[]} */
   const pending=[];
   const charged=(row)=>{
-    const matches=SHARD_WAVES.some(wave=>(wave.current||wave.status.startsWith('closed'))&&wave.shards.some(shard=>shard.slug===slug))?allowances.filter(entry=>entry.module===row.path
+    const matches=SHARD_WAVES.some(wave=>(wave.current||wave.status.startsWith('closed'))&&wave.shards.some(shard=>shard.slug===slug))?allowances.filter(entry=>entry.shard!==slug&&entry.module===row.path
       && (entry.export===undefined||('name' in row&&row.exported&&entry.export===row.name))):[];
     if(matches.length===0)return true;
     pending.push({...row,status:'pending second user',users:matches});return false;
