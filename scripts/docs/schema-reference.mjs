@@ -5,7 +5,7 @@ const sorted = value => Array.isArray(value) ? value.map(sorted) : record(value)
   ? Object.fromEntries(Object.keys(value).sort(order).map(key => [key, sorted(value[key])])) : value;
 const describe = value => value instanceof RegExp ? value.toString() : typeof value === 'function' ? '[function; not executed]'
   : value === undefined ? 'undefined' : JSON.stringify(sorted(value));
-const schemas = new Set(['array', 'boolean', 'custom', 'exact_optional', 'literal', 'null', 'nullable', 'number', 'object', 'optional', 'picklist', 'record', 'strict_object', 'string', 'tuple', 'tuple_with_rest', 'union', 'unknown', 'variant']);
+const schemas = new Set(['array', 'boolean', 'custom', 'exact_optional', 'lazy', 'literal', 'null', 'nullable', 'number', 'object', 'optional', 'picklist', 'record', 'strict_object', 'string', 'tuple', 'tuple_with_rest', 'union', 'unknown', 'variant']);
 const actions = new Set(['check', 'finite', 'integer', 'length', 'max_length', 'max_entries', 'max_value', 'min_length', 'min_value', 'raw_check', 'raw_transform', 'transform', 'regex', 'safe_integer']);
 
 /** Extract every declared path, preserving alternative branches and refusing unknown metadata. */
@@ -48,6 +48,7 @@ export function schemaInventory(schema, root = '$') {
       if (base.type === 'picklist') row.values = base.options.map(describe);
       if (base.type === 'variant') row.discriminator = base.key;
       if (base.type === 'custom') row.constraints.push('custom predicate; not executed');
+      if (base.type === 'lazy') row.constraints.push('lazy schema factory; not executed');
       rows.push(row);
       if (base.type === 'object' || base.type === 'strict_object') {
         if (!record(base.entries)) throw new Error(`Missing object fields at ${path}`);

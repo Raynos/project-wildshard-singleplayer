@@ -12,6 +12,7 @@ const scalar = v.union([finite, v.boolean(), id, v.null()]);
 const conditions = v.pipe(v.array(v.strictObject({ field: id, op: v.picklist(['equals', 'not-equals', 'greater']), value: scalar })), v.maxLength(16));
 /** Bounded numerical mix expressions over supplied listener/clock/geometry values. */
 export type AudioMixOp = '+' | '-' | '*' | '/' | 'min' | 'max' | 'abs' | 'sin' | 'hypot' | 'ss' | 'in' | 'lt' | 'gt' | 'if' | 'and' | 'or' | 'not' | 'clamp' | 'zone' | 'dist';
+/** Recursive bounded scalar expression; schema metadata keeps its lazy factory opaque. */
 export type AudioMixExpr = number | string | readonly [AudioMixOp, ...AudioMixExpr[]];
 function boundedMix(expr:AudioMixExpr):boolean {
   const pending:{value:AudioMixExpr;depth:number}[]=[{value:expr,depth:0}];
