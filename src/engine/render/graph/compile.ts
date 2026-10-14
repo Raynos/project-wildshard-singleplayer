@@ -553,7 +553,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'step': return same((x, y) => new MathNode('step', x, y), two());
       case 'clamp': return same((x, lo, hi) => new MathNode('clamp', x, lo, hi), three());
       case 'smoothstep': return same((e0, e1, x) => new MathNode('smoothstep', e0, e1, x), three());
-      case 'abs': case 'floor': case 'fract': case 'sin': case 'cos': case 'exp': case 'negate': case 'fwidth': case 'normalize': {
+      case 'abs': case 'floor': case 'fract': case 'sin': case 'cos': case 'exp': case 'negate': case 'fwidth': case 'dFdx': case 'dFdy': case 'normalize': {
         const v = one();
         return { t: v.t, n: new MathNode(n.op, v.n) };
       }
@@ -562,6 +562,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'length': return { t: 'float', n: new MathNode('length', one().n) };
       case 'viewToWorld': return { t: 'vec3', n: new MathNode('normalize', new SplitNode(new OperatorNode('*', new JoinNode([one().n, float(0)]), cameraViewMatrix), 'xyz')) };
       case 'worldToLocal': return { t: 'vec3', n: new SplitNode(new OperatorNode('*', new JoinNode([one().n, float(0)]), modelWorldMatrix), 'xyz') };
+      case 'cross': { const [x, y] = two(); return { t: 'vec3', n: new MathNode('cross', x.n, y.n) }; }
       case 'dot': { const [x, y] = two(); return { t: 'float', n: new MathNode('dot', x.n, y.n) }; }
       case 'mix': {
         const [x, y, f] = three(), t = widest([x, y]);

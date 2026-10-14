@@ -268,7 +268,7 @@ type GraphPlace = 'vertex' | 'fragment' | 'post' | 'sun' | 'ambient' | 'grade' |
 /** how an op types its inputs */
 type TypeRule =
   | 'input' | 'const' | 'param' | 'same' | 'unary' | 'vecUnary' | 'length' | 'dot' | 'mix' | 'compare' | 'logic' | 'not'
-  | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'point3' | 'pointPair' | 'dir3' | 'sceneTap'
+  | 'cross' | 'select' | 'swizzle' | 'combine' | 'noise' | 'texture' | 'loop' | 'acc' | 'index' | 'point3' | 'pointPair' | 'dir3' | 'sceneTap'
   | 'varying' | 'attribute' | 'arrayElement' | 'cameraBillboard';
 /** one op of the vocabulary */
 export interface GraphOpSpec {
@@ -375,6 +375,10 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   negate: { arity: [1, 1], rule: 'unary', cost: 1 },
   oneMinus: { arity: [1, 1], rule: 'unary', cost: 1 },
   saturate: { arity: [1, 1], rule: 'unary', cost: 1 },
+  // Screen derivatives are fragment-only, including lighting/post stages.
+  dFdx: { arity: [1, 1], rule: 'unary', cost: 1, places: FRAG },
+  dFdy: { arity: [1, 1], rule: 'unary', cost: 1, places: FRAG },
+  cross: { arity: [2, 2], rule: 'cross', cost: 3 },
   fwidth: { arity: [1, 1], rule: 'unary', cost: 3, places: FRAG },
   normalize: { arity: [1, 1], rule: 'vecUnary', cost: 3 },
   // SF59 step 7: space changes for a vec3 direction. `viewToWorld` turns a view-space direction (`normalView`, faceted
@@ -693,6 +697,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       case 'unary': return isNumeric(ins[0] ?? 'bool') ? (ins[0] ?? null) : fail(`${at}: ${op} takes a number`);
       case 'vecUnary': return ins[0] !== undefined && VEC_LEN[ins[0]] > 1 && isNumeric(ins[0]) ? ins[0] : fail(`${at}: ${op} takes a vector`);
       case 'length': return ins[0] !== undefined && isNumeric(ins[0]) ? 'float' : fail(`${at}: length takes a number`);
+      case 'cross': return ins[0] === 'vec3' && ins[1] === 'vec3' ? 'vec3' : fail(`${at}: cross takes two vec3 values`);
       case 'dot': return ins[0] !== undefined && ins[0] === ins[1] && VEC_LEN[ins[0]] > 1 && isNumeric(ins[0]) ? 'float' : fail(`${at}: dot takes two vectors of one size`);
       case 'mix': {
         const t = broadcast([ins[0] ?? 'bool', ins[1] ?? 'bool']);

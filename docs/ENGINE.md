@@ -5028,3 +5028,10 @@ The declared scalar/vector shape, finite components and inclusive min/max
 are checked before mutation; colours take three sRGB components. Unknown
 catalogue/param names, texture params, fallback materials and disposed
 scopes refuse. Borrowed mesh-map variants share their graph's uniforms.
+
+Material graph `dFdx(value)` and `dFdy(value)` preserve a numeric scalar
+or vector type and run only in fragment, lighting, outline or post work.
+Vertex use refuses before compilation. `cross(vec3, vec3)` returns vec3;
+`normalize(cross(dFdx(positionWorld), dFdy(positionWorld)))` derives a
+faceted surface normal without geometry or a content shader. Each op is
+counted in the declared graph instruction budget.
