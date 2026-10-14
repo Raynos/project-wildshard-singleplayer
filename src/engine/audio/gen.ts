@@ -137,7 +137,7 @@ const finish = (buf: Float32Array, sr: number, peak = 0.9, outS = 0.02): Float32
 
 /** Render admitted offline layers with the bank's actual sample rate, variant seed and original DSP primitives. */
 export function renderPcm(program:AudioPcmProgram,sr:number,seed:number):Float32Array {
-  if(!Number.isFinite(sr)||sr<8000||sr>192000||!Number.isFinite(seed))throw new Error('Invalid PCM rate or seed');
+  if(!Number.isFinite(sr)||sr<=0||sr>384000||!Number.isFinite(seed))throw new Error('Invalid PCM rate or seed');
   const r=new Rand(seed*program.seed[0]+program.seed[1]),values=new Map<string,number>([['seed',seed],['sr',sr]]),vowels=new Map<string,[number,number,number][]>();
   const read=(id:string):number=>{if(id==='random')return r.next();const value=values.get(id);if(value===undefined)throw new Error(`Missing PCM value: ${id}`);return value;};
   const value=(expr:AudioMixExpr):number=>audioMixValue(expr,read);

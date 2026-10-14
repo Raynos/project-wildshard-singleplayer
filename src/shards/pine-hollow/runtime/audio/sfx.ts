@@ -3,7 +3,7 @@ import { app } from '@wildshard/engine/app/runtime';
 import type { Audio } from '@wildshard/engine/audio/Audio';
 import { audioLog } from '@wildshard/engine/audio/audioLog';
 import { cachedBytes, decodeBytes } from '@wildshard/engine/audio/preload';
-import { cueFile, cueManifest, cueFamilyNames, cueSprite, cutCueSprite, type SampleClip } from '@wildshard/engine/audio/Cues';
+import { cueFile, CueCatalogue, type SampleClip } from '@wildshard/engine/audio/Cues';
 import { tap } from '@wildshard/engine/core/harnessTap';
 import { getSfxSet } from '@wildshard/engine/ui/Settings';
 /**
@@ -54,86 +54,31 @@ export interface PhPlay { at?: { x: number; y: number; z: number } | undefined; 
 
 const SET = 'pine-hollow';
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
-const num = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 const file = (value:unknown):string|undefined => cueFile(SET,value);
-/** each bark's level against the one-shots (-18 LUFS): a voice sits a little under a gunshot */
 const BARK_GAIN = 0.8;
-
-/** one take of a family: a slice of a decoded buffer — the sprite's (no copy: `start(when, offset, duration)`), or a whole file's */
-type Clip = SampleClip;
-const whole = (buffer: AudioBuffer): Clip => ({ buffer, offset: 0, duration: buffer.duration, gain:1 });
-
-/** the one-shots + barks decoded at the loading bar (`decodePineShots`), shared by every PineHollowSfx */
-const barShots = new Map<string, Clip[]>();
-const manifestOf = ():Record<string,unknown>|undefined => cueManifest(SET);
-/** the file names one-shot `family` lists in `manifest` (its takes; packed into the sprite or files of their own) */
-/** the files of one-shot `family` in `manifest` (URLs) — a set without a sprite */
-const familyFiles = (manifest: Record<string, unknown> | undefined, family: string): string[] =>
-  cueFamilyNames(manifest, family).map(file).filter((u): u is string => u !== undefined);
-
-/**
- * The audio sprite (scripts/music/gen/sfx_sprite.py): every one-shot + bark packed into ONE file, so the loading bar fetches
- * and decodes one file, not 63. sfx.json `sprite: {file, clips: {<take's file name>: [startSec, durSec]}}`; the families
- * still list their takes by name. undefined = a set without one (an older build, a regeneration not yet packed): one file
- * per take, as before.
- */
-const spriteOf = (manifest:Record<string,unknown>|undefined):ReturnType<typeof cueSprite> => cueSprite(SET,manifest);
-const cutSprite = (manifest:Record<string,unknown>|undefined,sprite:NonNullable<ReturnType<typeof cueSprite>>,buffer:AudioBuffer,into:Map<string,Clip[]>):void => {
-  cutCueSprite(manifest,sprite,buffer,into,{tolerance:0.001,arrayFamilies:true,familyGain:false});
-};
-const why = (e: unknown): string => (e instanceof Error ? e.message : String(e));
-
-/** every one-shot + bark file of the set (URLs) — what the loading bar decodes (`decodePineShots`): the sprite, or one per take */
-export function pineShotFiles(): string[] {
-  const m = manifestOf(), sprite = spriteOf(m);
-  if (sprite) return [sprite.url];
-  const o = m?.['oneshots'];
-  return isObj(o) ? [...new Set(Object.keys(o).flatMap((f) => familyFiles(m, f)))] : [];
-}
-/**
- * Decode every one-shot + bark of the set at the loading bar (src/engine/boot/extras.ts) from `read` (the bar's counted fetch):
- * `onFile` ticks per file of `pineShotFiles()` (the sprite: once). A file that fails is skipped (its family plays its other
- * takes, or nothing — the sprite: every family decodes lazily on its first play instead); never rejects.
- */
-export async function decodePineShots(read: (url: string) => Promise<ArrayBuffer>, onFile?: () => void): Promise<void> {
-  const m = manifestOf(), o = m?.['oneshots'];
-  if (!isObj(o)) return;
-  const sprite = spriteOf(m);
-  if (sprite) {
-    try { cutSprite(m, sprite, await decodeBytes(await read(sprite.url)), barShots); } catch (e) { console.info(`[sfx] ${sprite.url}: ${why(e)} — the one-shots decode on first play`); }
-    onFile?.();
-    return;
-  }
-  await Promise.all(Object.keys(o).map(async (family) => {
-    const clips: Clip[] = [];
-    for (const u of familyFiles(m, family)) {
-      try { clips.push(whole(await decodeBytes(await read(u)))); } catch (e) { console.info(`[sfx] ${u}: ${why(e)} — that take is skipped`); }
-      onFile?.();
-    }
-    if (clips.length > 0) barShots.set(family, clips);
-  }));
-}
+const barShots=new Map<string,SampleClip[]>();
+const catalogue=(read:Parameters<typeof decodePineShots>[0]=cachedBytes):CueCatalogue=>new CueCatalogue(SET,read,decodeBytes,{tolerance:0.001,arrayFamilies:true,familyGain:false,loopGain:0.5,available:()=>getSfxSet()!=='synth',shared:barShots});
+/** The loading bar's exact sprite or family URLs, without decoding or copying PCM. */
+export function pineShotFiles():string[]{return catalogue().shotFiles();}
+/** Counted boot decoding retains the shared sprite slices and skipped-take policy. */
+export async function decodePineShots(read:(url:string)=>Promise<ArrayBuffer>,onFile?:()=>void):Promise<void>{await catalogue(read).decodeShots(onFile);}
 
 export class PineHollowSfx {
   private readonly manifest: Record<string, unknown> | undefined;
-  private beds = new Map<string, Promise<PhLoop | undefined>>();
-  private shots = new Map<string, Clip[]>();
-  private loading = new Set<string>();
-  /** the sprite's lazy decode (the bar did not decode it): once, shared by every family; cleared if it fails */
-  private spriteLoad: Promise<void> | undefined;
+  private readonly catalogue:CueCatalogue;
   private lastBark = new Map<Npc, string>();
   private lx = 0; private ly = 0; private lz = 0;
   private prefetched = false;
 
   constructor(private readonly audio: Audio) {
-    this.manifest = manifestOf();
+    this.catalogue=catalogue();this.manifest=this.catalogue.manifest;
   }
 
   /** the build ships the set and Settings plays generated sound effects */
-  get available(): boolean { return this.manifest !== undefined && getSfxSet() !== 'synth'; }
+  get available(): boolean { return this.catalogue.available; }
   /** diagnostics: which families are decoded */
-  get decoded(): string[] { return [...new Set([...barShots.keys(), ...this.shots.keys()])]; }
-  private buffers(family: string): Clip[] | undefined { return this.shots.get(family) ?? barShots.get(family); }
+  get decoded(): string[] { return this.catalogue.decoded; }
+  private buffers(family:string):SampleClip[]|undefined{return this.catalogue.clips(family);}
 
   setListener(x: number, y: number, z: number, yaw: number): void {
     this.lx = x; this.ly = y; this.lz = z;
@@ -149,52 +94,10 @@ export class PineHollowSfx {
 
   /** a bed, decoded once (its promise is shared); undefined when the set / bed is not in the build or will not decode */
   bed(name: PhBed): Promise<PhLoop | undefined> {
-    const have = this.beds.get(name);
-    if (have) return have;
-    const p = (async (): Promise<PhLoop | undefined> => {
-      if (!this.available) return undefined;
-      const b = this.manifest?.['beds'], v = isObj(b) ? b[name] : undefined;
-      if (!isObj(v)) return undefined;
-      const url = file(v['file']);
-      if (url === undefined) return undefined;
-      try {
-        const buffer = await decodeBytes(await cachedBytes(url));
-        const loopEnd = Math.min(buffer.duration, num(v['loopEnd'], buffer.duration)), loopStart = Math.max(0, Math.min(loopEnd - 0.05, num(v['loopStart'], 0)));
-        return { buffer, loopStart, loopEnd, gain: num(v['gain'], 0.5), zone: typeof v['zone'] === 'string' ? v['zone'] : undefined, live: v['live'] === true };
-      } catch (e) { console.info(`[sfx] ${url}: ${e instanceof Error ? e.message : String(e)} — that bed stays silent`); return undefined; }
-    })();
-    this.beds.set(name, p);
-    return p;
+    return this.catalogue.bed(name);
   }
-  /** let a bed's buffer go (a zone left far behind); the next `bed()` decodes it again */
-  dropBed(name: PhBed): void { this.beds.delete(name); }
-
-  /** the files of one-shot `family` in the manifest (URLs) */
-  private files(family: string): string[] { return familyFiles(this.manifest, family); }
-  /** decode these one-shot families in the background (the first play of an undecoded family is otherwise silent) */
-  prewarm(families: readonly string[]): void { for (const f of families) this.load(f); }
-  private load(family: string): void {
-    if (!this.available || this.buffers(family) || this.loading.has(family)) return;
-    const sprite = spriteOf(this.manifest);
-    if (sprite) { // one decode of the one file cuts every family
-      this.spriteLoad ??= (async () => {
-        try { cutSprite(this.manifest, sprite, await decodeBytes(await cachedBytes(sprite.url)), this.shots); } catch (e) {
-          console.info(`[sfx] ${sprite.url}: ${why(e)} — the one-shots stay silent for now`);
-          this.spriteLoad = undefined; // the next play tries again
-        }
-      })();
-      return;
-    }
-    const urls = this.files(family);
-    if (urls.length === 0) return;
-    this.loading.add(family);
-    void (async () => {
-      const clips: Clip[] = [];
-      for (const u of urls) { try { clips.push(whole(await decodeBytes(await cachedBytes(u)))); } catch { /* that variant is skipped */ } }
-      this.loading.delete(family);
-      if (clips.length > 0) this.shots.set(family, clips);
-    })();
-  }
+  dropBed(name:PhBed):void {this.catalogue.dropBed(name);}
+  prewarm(families:readonly string[]):void {this.catalogue.prewarm(families);}
 
   /** a random variant of `family` (±40 cents), placed in the world when `at` is given; false = not decoded (yet) or not shipped */
   shot(family: PhShot, o: PhPlay = {}): boolean { const ok = this.play(family, o); audioLog('sfx', family, ok); return ok; }
@@ -202,7 +105,7 @@ export class PineHollowSfx {
   play(family: string, o: PhPlay = {}): boolean {
     if (!this.audio.ready || !this.available) return false;
     const clips = this.buffers(family);
-    if (!clips) { this.load(family); return false; }
+    if (!clips) { this.catalogue.load(family); return false; }
     if (o.at) {
       const distance = Math.hypot(o.at.x - this.lx, o.at.y - this.ly, o.at.z - this.lz);
       if (distance > 220) return true;
