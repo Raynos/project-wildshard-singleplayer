@@ -53,7 +53,11 @@ export const PINE_AUDIO = parseAudioData({ playback:{mode:'samples',initial:{},p
     activeGains:[['out','out'],['sendIn',1]]}, nodes:PINE_AUDIO_NODES,mix:PINE_AUDIO_MIX, id: 'ambience.pine', smoothSeconds: 0.1, tickHz: 10, silentSeconds: 60, holdSeconds: 0,
     levels: { out: 0.55, hollow: 0.7, pond: 1, cabin: 1.1, creek: 0.9, waterfall: 1.1, mill: 0.9, ridge: 0.9, oldgrowth: 1, cave: 1, night: 0.9, nightfog: 0.7, 'rain-canopy': 1, 'rain-open': 0.9, dawn: 0.9 },
     wet: { cabin: 0.4, den: 0.55, oldgrowth: 0.3, bowl: 0.12 }, zones: PINE_AUDIO_ZONES },
-  routing: [
+  voiceBindings:[
+    ...(['leverShot','leverDry','leverCycle','longbowLoose'] as const).map(name=>({id:`pine.${name}`,owner:'ports',method:'shot',args:[{kind:'literal',value:name}]})),
+    {id:'pine.leverEcho',owner:'ports',method:'shot',args:[{kind:'literal',value:'leverEcho'},{kind:'options',fields:{gain:{kind:'owner',owner:'ports',key:'echoGain'}}}]},
+    ...(['leverRoundIn','longbowDraw'] as const).map(name=>({id:`pine.${name}`,owner:'ports',method:'shot',args:[{kind:'literal',value:name},{kind:'options',fields:{gain:{kind:'field',field:'gain',fallback:name==='leverRoundIn'?0.9:0.8}}}]}))
+  ], routing: [
     { id: 'cue.lever.fire', actions: [{ voice: 'pine.leverShot' }, { voice: 'pine.leverEcho', delay: 0.42, overrides: { gain: 0.55 } }] },
     { id: 'cue.lever.dry', actions: [{ voice: 'pine.leverDry' }] },
     { id: 'cue.lever.reload', actions: [] },

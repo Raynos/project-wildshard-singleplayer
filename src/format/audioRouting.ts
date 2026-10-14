@@ -24,3 +24,14 @@ export const AudioRoutingSchema = v.pipe(v.array(v.strictObject({ id, bus: v.opt
 export type AudioRouting = v.InferOutput<typeof AudioRoutingSchema>;
 /** Validate author cue routing before any sound is scheduled or installed. */
 export function parseAudioRouting(input: unknown): AudioRouting { return v.parse(AudioRoutingSchema, input); }
+
+const member=v.pipe(id,v.regex(/^[A-Za-z][A-Za-z0-9_]*$/u),v.check(key=>!['constructor','prototype','__proto__','caller','callee','arguments'].includes(key)));
+const voiceValue=v.variant('kind',[
+  v.strictObject({kind:v.literal('literal'),value:scalar}),
+  v.strictObject({kind:v.literal('field'),field,fallback:v.exactOptional(scalar)}),
+  v.strictObject({kind:v.literal('owner'),owner:id,key:member})
+]);
+const voiceArgument=v.union([voiceValue,v.strictObject({kind:v.literal('options'),fields:v.pipe(v.record(member,voiceValue),v.check(rows=>Object.keys(rows).length<=16))})]);
+/** Bounded argument loans to existing voice methods; caller objects and point references remain native. */
+export const AudioVoiceBindingsSchema=v.pipe(v.array(v.strictObject({id,owner:id,method:member,when:v.optional(conditions,[]),args:v.pipe(v.array(voiceArgument),v.maxLength(8))})),v.maxLength(128),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length));
+export type AudioVoiceBindings=v.InferOutput<typeof AudioVoiceBindingsSchema>;

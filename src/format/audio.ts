@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { AudioRoutingSchema } from './audioRouting';
+import { AudioRoutingSchema, AudioVoiceBindingsSchema } from './audioRouting';
 import { AudioLoopEmitterSchema, AudioPlaybackSchema, AudioSurfaceSchema, AudioLoopGraphSchema, AudioObservationSystemSchema, AudioPcmProgramSchema, AudioMusicSchema, AudioSamplesSchema, AudioZonesSchema, AudioPhraseProgramSchema, AudioPhraseScheduleSchema } from './audioProfiles';
 
 const id = v.pipe(v.string(), v.minLength(1), v.maxLength(128));
@@ -14,7 +14,7 @@ const gust = v.strictObject({ scope:id, scopeFirst:v.boolean(), startTap:id, tap
 /** The thin audio declaration: catalogue voices, bounded wind beds and a silent/default score. */
 export const AudioDataSchema = v.pipe(v.strictObject({ cues: v.pipe(v.array(v.strictObject({ id, voice: id })), v.maxLength(64), v.check((rows) => new Set(rows.map((row) => row.id)).size === rows.length, 'unique cue ids')),
   emitters:v.exactOptional(v.pipe(v.record(id,AudioLoopEmitterSchema),v.check(rows=>Object.keys(rows).length<=32))), playback:v.exactOptional(AudioPlaybackSchema), surfaces:v.exactOptional(AudioSurfaceSchema), loopGraphs:v.exactOptional(v.pipe(v.record(id,AudioLoopGraphSchema),v.check(rows=>Object.keys(rows).length<=32))), observations:v.exactOptional(v.pipe(v.array(AudioObservationSystemSchema),v.maxLength(16),v.check(rows=>new Set(rows.map(row=>row.id)).size===rows.length))), pcm:v.exactOptional(v.pipe(v.record(id,AudioPcmProgramSchema),v.check(rows=>Object.keys(rows).length<=64))), synth:v.exactOptional(v.pipe(v.record(id,AudioPhraseProgramSchema),v.check(rows=>Object.keys(rows).length<=32))), recordings: v.optional(recordings), music: v.optional(AudioMusicSchema), samples: v.optional(AudioSamplesSchema), zones: v.optional(AudioZonesSchema),
-  routing: v.optional(AudioRoutingSchema, []), ambience: v.nullable(v.strictObject({ phrases:v.exactOptional(v.pipe(v.array(AudioPhraseScheduleSchema),v.maxLength(8))), gust: v.exactOptional(gust), bed: id, winds: v.pipe(v.array(wind), v.minLength(1), v.maxLength(4)) })), score: v.picklist(['silent', 'default']) }),v.check(audio=>Object.values(audio.emitters??{}).every(row=>audio.loopGraphs?.[row.graph]!==undefined),'declared loop emitter graph')); 
+  voiceBindings:v.exactOptional(AudioVoiceBindingsSchema), routing: v.optional(AudioRoutingSchema, []), ambience: v.nullable(v.strictObject({ phrases:v.exactOptional(v.pipe(v.array(AudioPhraseScheduleSchema),v.maxLength(8))), gust: v.exactOptional(gust), bed: id, winds: v.pipe(v.array(wind), v.minLength(1), v.maxLength(4)) })), score: v.picklist(['silent', 'default']) }),v.check(audio=>Object.values(audio.emitters??{}).every(row=>audio.loopGraphs?.[row.graph]!==undefined),'declared loop emitter graph')); 
 /** Validated audio data; voice ids are resolved only through the platform's admitted catalogue. */
 export type AudioData = v.InferOutput<typeof AudioDataSchema>;
 /** Compile the TypeScript-authored cue map, ambience and score without executable audio closures. */

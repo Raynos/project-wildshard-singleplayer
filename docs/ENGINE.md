@@ -5207,3 +5207,8 @@ changes. A page lends its actual `DialogueClock` lazily, uses `select()` /
 Driving or restoring a lent page clock refuses; no second timer/save owner
 is created. Positions, radius, delay and native step are bounded/finite.
 `DialoguePoint` is the borrowed world point read by this session.
+
+Audio `voiceBindings` loans explicit native methods to cue routing. Each
+binding declares its owner, method, argument fields and optional refusal
+conditions; bounded options keep the caller's point and direction references.
+Supply the actual owners to `createCueRouter` alongside those bindings.

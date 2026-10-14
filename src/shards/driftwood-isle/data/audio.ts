@@ -46,7 +46,17 @@ export const DRIFTWOOD_AUDIO = parseAudioData({ emitters:{shrine:{scope:'audio.s
       { id: 'lookout', x: 94, z: 94, inner: 18, outer: 40, gain: 1 },
       { id: 'headland', x: 98, z: 96, inner: 40, outer: 70, gain: 0.5 },
       { id: 'cave', x: 120, z: 19, inner: 1.2, outer: 3.2, gain: 1, source: 'cove.interior' },
-    ] }, routing: [
+    ] }, voiceBindings:[
+    {id:'island.whoosh',owner:'sfx',method:'whoosh',when:[{op:'number',field:'dir'}],args:[{kind:'field',field:'speed',fallback:1},{kind:'options',fields:{heavy:{kind:'field',field:'heavy',fallback:false},dir:{kind:'field',field:'dir'}}}]},
+    ...(['flesh','shell','wood','stone'] as const).map(material=>({id:`island.impact.${material}`,owner:'sfx',method:'impact',args:[{kind:'literal',value:material},{kind:'field',field:'strength',fallback:1},{kind:'field',field:'point'}]})),
+    ...(['boar','crab','monkey','sailor'] as const).map(kind=>({id:`island.vocal.${kind}`,owner:'sfx',method:'vocal',args:[{kind:'literal',value:kind},{kind:'field',field:'point'},{kind:'field',field:'gain',fallback:1.3}]})),
+    ...(['boar','crab','sailor'] as const).map(kind=>({id:`island.windup.${kind}`,owner:'sfx',method:'windup',args:[{kind:'literal',value:kind},{kind:'field',field:'point'}]})),
+    ...(['sand','wetSand','grass','rock','planks','stone','water'] as const).map(surface=>({id:`island.step.${surface}`,owner:'sfx',method:'footstep',args:[{kind:'literal',value:surface},{kind:'field',field:'speed',fallback:0}]})),
+    {id:'island.dive',owner:'sfx',method:'plunge',args:[{kind:'literal',value:false}]},
+    {id:'island.surface',owner:'sfx',method:'plunge',args:[{kind:'literal',value:true}]},
+    {id:'island.chime',owner:'sfx',method:'interact',args:[{kind:'literal',value:'chime'}]},
+    {id:'island.gull',owner:'sfx',method:'gullCallAt',when:[{op:'present',field:'point'}],args:[{kind:'field',field:'point'},{kind:'owner',owner:'listener',key:'position'},{kind:'owner',owner:'listener',key:'yaw'}]}
+  ], routing: [
   { bus: 'audio', id: 'cue.weapon.fire', when: [{ op: 'number', field: 'dir' }], actions: [{ voice: 'island.whoosh', defaults: { speed: 1, heavy: false } }] },
   ...(['flesh', 'shell', 'wood', 'stone'] as const).flatMap((material) => [`cue.hit.${material}`, `cue.weapon.clang.${material}`].map((id) => ({
     bus: 'audio', id, actions: [{ voice: `island.impact.${material}`, defaults: { strength: 1 } }],
