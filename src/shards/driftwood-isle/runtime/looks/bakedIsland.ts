@@ -3,9 +3,11 @@ import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.mo
 import { CHUNK_HALF, TERRAIN_RES } from '@wildshard/engine/core/config';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { CELL } from '@wildshard/engine/world/blenderArea';
+import { CELL, type BlenderArea as IslandRect } from '@wildshard/engine/world/blenderArea';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { editShader, spliceEdits, type ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
+import type { ISLAND_CLIP, ISLAND_PROPS, ISLAND_TERRAIN } from './islandLook';
+import type { ISLAND_LOOK } from '../../data/islandRows';
 
 /**
  * A baked island's generic parts (SHARD-PLATFORM M3; ex a shard's Blender-island install): an area of the world rebuilt
@@ -26,70 +28,39 @@ import { editShader, spliceEdits, type ShaderEditRow } from '@wildshard/game/plu
 /** a prototype as the bake holds it: world-space positions, Uint8 RGBA (alpha: its baked AO), index */
 export interface IslandProto { pos: Float32Array; col: Uint8Array; index: Uint32Array }
 
-/** an axis-aligned rect in world xz */
-export interface IslandRect { readonly x0: number; readonly x1: number; readonly z0: number; readonly z1: number }
-
-/** a patch as data: its patch id, its program key and its edit rows (`@{name}` splices what the caller formats) */
-export interface IslandPatchRow {
-  readonly patch: string;
-  readonly key: string;
-  readonly edits: readonly ShaderEditRow[];
-}
-
-/** the baked terrain's material settings and its patch (`@{aoDirect}`: the share of the AO on the direct sun) */
-export interface BakedTerrainRow extends IslandPatchRow {
-  readonly roughness: number;
-  readonly aoDirect: number;
-}
-
-/** the baked props' material settings and patches: the AO edits, the per-instance tint and the cover fade */
-export interface BakedPropsRow {
-  readonly patch: string;
-  /** the program key of an uncovered props material */
-  readonly key: string;
-  /** appended to the program key of a tinted (instanced) material */
-  readonly tintKey: string;
-  readonly roughness: number;
-  readonly ao: readonly ShaderEditRow[];
-  readonly tint: readonly ShaderEditRow[];
-  /** `@{edgeNear}`, `@{far}`, `@{grow}`: the cover's reach, formatted to one decimal */
-  readonly fade: readonly ShaderEditRow[];
-}
-
 /** a cover fade: every plant stands to `near`, each has its own edge in [near + grow, far] and takes on its ground's
  *  colour over the `grow` m before it; `key` is its program key */
 export interface IslandCoverFade { readonly near: number; readonly far: number; readonly grow: number; readonly key: string }
 
 /** The baked terrain's toon material: vertex colours, flat shading, the baked AO and the bounce lightmap (intensity 0
  *  until `sunBounceLevel` sets it), fog and the sky rig's setup. */
-export function bakedTerrainMaterial(row: BakedTerrainRow, ao: THREE.Texture, bounce: THREE.Texture, sky: Sky): THREE.MeshStandardMaterial {
+export function bakedTerrainMaterial(row: typeof ISLAND_TERRAIN, ao: THREE.Texture, bounce: THREE.Texture, sky: Sky): THREE.MeshStandardMaterial {
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: row.roughness, metalness: 0, aoMap: ao, aoMapIntensity: 1, lightMap: bounce, lightMapIntensity: 0 });
-  const edits = spliceEdits(row.edits, { aoDirect: row.aoDirect.toFixed(2) });
-  patchShader(mat, row.patch, PATCH_ORDER.material, (sh) => {
+  return toon(mat, row.patch, spliceEdits(row.edits, { aoDirect: row.aoDirect.toFixed(2) }), row.key, sky);
+}
+
+/** `mat` with the island's fog and edits (its whole program replaced, keyed `key`) and the sky rig's setup */
+function toon(mat: THREE.MeshStandardMaterial, patch: string, edits: readonly ShaderEditRow[], key: string, sky: Sky): THREE.MeshStandardMaterial {
+  patchShader(mat, patch, PATCH_ORDER.material, (sh) => {
     attachFogUniforms(sh);
     editShader(sh, edits);
-  }, { mode: 'replace', key: row.key });
+  }, { mode: 'replace', key });
   sky.setupMaterial(mat);
   return mat;
 }
 
 /** The baked props' toon material (double-sided, vertex colours whose alpha is the baked AO), tinted per instance when
  *  `tinted`, with the cover's fade when `cover` is given. */
-export function bakedPropsMaterial(row: BakedPropsRow, sky: Sky, cover: IslandCoverFade | null, tinted = true): THREE.MeshStandardMaterial {
+export function bakedPropsMaterial(row: typeof ISLAND_PROPS, sky: Sky, cover: IslandCoverFade | null, tinted = true): THREE.MeshStandardMaterial {
   const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: row.roughness, metalness: 0, side: THREE.DoubleSide });
-  const edits = [...row.ao, ...(tinted ? row.tint : [])];
+  const edits: ShaderEditRow[] = [...row.ao, ...(tinted ? row.tint : [])];
   if (cover !== null) edits.push(...spliceEdits(row.fade, { edgeNear: (cover.near + cover.grow).toFixed(1), far: cover.far.toFixed(1), grow: cover.grow.toFixed(1) }));
-  patchShader(mat, row.patch, PATCH_ORDER.material, (s) => {
-    attachFogUniforms(s);
-    editShader(s, edits);
-  }, { mode: 'replace', key: (cover !== null ? cover.key : row.key) + (tinted ? row.tintKey : '') });
-  sky.setupMaterial(mat);
-  return mat;
+  return toon(mat, row.patch, edits, (cover !== null ? cover.key : row.key) + (tinted ? row.tintKey : ''), sky);
 }
 
 /** Collapses an instance of `mat` whose origin is inside `rect` (vertex shader, no discard, no CPU per frame):
  *  `@{x0}` … `@{z1}` splice the rect to three decimals; the program key gains `|<row.key>`. */
-export function clipInstancedRect(mat: THREE.Material, rect: IslandRect, row: IslandPatchRow): void {
+export function clipInstancedRect(mat: THREE.Material, rect: IslandRect, row: typeof ISLAND_CLIP): void {
   const f = (v: number) => v.toFixed(3);
   const edits = spliceEdits(row.edits, { x0: f(rect.x0), x1: f(rect.x1), z0: f(rect.z0), z1: f(rect.z1) });
   patchShader(mat, row.patch, PATCH_ORDER.decorate, (shader) => {
@@ -211,20 +182,9 @@ export function usedPlacements(f: Float32Array, mustDraw: number, share: number)
   return mustDraw + Math.round((f.length / 10 - mustDraw) * share);
 }
 
-/** How the placements sort: by prototype kind and name (RegExp sources), and the tile counts per side. */
-export interface PlacementSetsRow {
-  /** tiles per side of the casters' set and of the two cover sets */
-  readonly casterTiles: number;
-  readonly coverTiles: number;
-  /** the kinds that cast (their own tile set, with far copies) */
-  readonly casterKinds: readonly string[];
-  /** names never placed here (drawn by something else) */
-  readonly skip: string;
-  /** names set apart for the caller (rebuilt otherwise) */
-  readonly apart: string;
-  /** cover names that go to the big cover's set */
-  readonly big: string;
-}
+/** How the placements sort: by prototype kind and name (data/islandRows.ts `names`), and the tile counts per side (the
+ *  casters' set and the two cover sets). */
+type PlacementSetsRow = typeof ISLAND_LOOK.names & { readonly casterTiles: number; readonly coverTiles: number };
 
 /** The placements of a baked set by set and tile, and the ones set apart. */
 export interface PlacementSets { casters: number[][]; covers: number[][]; bigs: number[][]; apart: number[] }

@@ -25,13 +25,9 @@
  *   tiles.update(camera, csmLights);   // once a frame, the camera posed
  */
 import * as THREE from 'three';
+import type { BlenderArea as TileRect } from '@wildshard/engine/world/blenderArea';
 import { FrameCamera } from '@wildshard/engine/world/frameCamera';
-
-/** a prototype as the caller loads it: positions in the prototype's frame, Uint8 RGBA (alpha: its baked AO), index */
-export interface InstProto { readonly pos: Float32Array; readonly col: Uint8Array; readonly index: Uint32Array }
-
-/** a tile's rect in the group's xz */
-export interface TileRect { readonly x0: number; readonly x1: number; readonly z0: number; readonly z1: number }
+import type { IslandProto as InstProto } from './bakedIsland';
 
 /** one tile set: its placements per tile, the tiles' rects, its material and how it draws */
 export interface InstanceSetSpec {
@@ -131,8 +127,8 @@ export class TiledInstances {
       if (pr === undefined) continue;
       const rows = e.perTile.reduce((a, l) => a + l.length, 0);
       if (rows === 0) continue;
-      const radius = protoRadius(pr);
-      const geo = protoGeometry(pr);
+      const geo = protoGeometry(pr), bs = geo.boundingSphere;
+      const radius = bs === null ? 0 : bs.center.length() + bs.radius; // round the prototype's origin (a bound of its reach)
       const mesh = new THREE.InstancedMesh(geo, spec.material, rows);
       mesh.name = `${this.namePrefix}${spec.tag}-${e.role}-${this.names[e.proto] ?? e.proto}`;
       mesh.castShadow = spec.cast; mesh.receiveShadow = true;
@@ -273,12 +269,6 @@ function included(role: Role, code: number): boolean {
 
 /** the cascade masks' union (bit i: cascade i) */
 function orBits(a: number, b: number): number { let out = 0; for (let i = 0; i < 8; i++) if (((a >> i) & 1) === 1 || ((b >> i) & 1) === 1) out += 1 << i; return out; }
-
-function protoRadius(p: InstProto): number {
-  let r2 = 0;
-  for (let k = 0; k < p.pos.length; k += 3) r2 = Math.max(r2, (p.pos[k] ?? 0) ** 2 + (p.pos[k + 1] ?? 0) ** 2 + (p.pos[k + 2] ?? 0) ** 2);
-  return Math.sqrt(r2);
-}
 
 /** one prototype's geometry: its positions, its Uint8 colour and index, normals for the CSM normal bias (as merged) */
 function protoGeometry(p: InstProto): THREE.BufferGeometry {

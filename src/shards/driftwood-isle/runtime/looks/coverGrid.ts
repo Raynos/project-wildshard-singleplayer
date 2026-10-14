@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
 import { ShaderFamily } from '@wildshard/game/plugin/shaderFamily';
+import type { COVER_GLSL, COVER_TINT } from './coverGlsl';
 
 /**
  * The ground wears the cover (SHARD-PLATFORM M3, look-family rows): a shard whose ground cover is drawn only round the
@@ -12,7 +13,7 @@ import { ShaderFamily } from '@wildshard/game/plugin/shaderFamily';
  * placed (`writeBlock`). Terrains sample it per vertex (`aCover`, `flat`, like their colour) through `tintTerrain`, and
  * their shader mixes the facet towards the cover colour by how much of the ground the plants hide *from where you look*:
  * a little from above, nearly all of it at the grazing angle far ground is seen at. Nothing here knows a shard's look:
- * the GLSL (`CoverTintGlsl`) and the patch's id are the shard's.
+ * the GLSL (`COVER_GLSL`, runtime/looks/coverGlsl.ts) and the patch's id are the shard's.
  *
  *   const grid = CoverGrid.create();          // the shard's cover fills it (grid.fill), a baked area splats its own
  *   tintTerrain(terrain.mesh, row);           // after the fill: aCover per vertex + the shader
@@ -108,24 +109,11 @@ export class CoverGrid {
 /** ×0.88 … ×1.12 per point, a hash of where it is (the facets of covered ground keep their light / dark mosaic). */
 export const coverJitter = (x: number, z: number): number => { const h = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return 0.88 + (h - Math.floor(h)) * 0.24; };
 
-/** The terrain tint's GLSL as data (the shard's): `coverSeen`, and the vertex / fragment edits (`@{coverSeen}` splices). */
-export interface CoverTintGlsl {
-  readonly coverSeen: string;
-  readonly vertexCommon: string;
-  readonly vertexBegin: string;
-  readonly fragmentCommon: string;
-  readonly fragmentNormal: string;
-}
-
-/** The terrain tint as a row: its GLSL, the patch id, and the suffix its program key takes. */
-export interface CoverTintRow {
-  readonly glsl: CoverTintGlsl;
-  readonly patchId: string;
-  readonly keySuffix: string;
-}
+/** The terrain tint as a row: its GLSL (`@{coverSeen}` splices), the patch id, and the suffix its program key takes. */
+export type CoverTintRow = typeof COVER_TINT & { readonly glsl: typeof COVER_GLSL };
 
 /** `coverSeen` spliced as a shader fragment (the GLSL a plant fading into its ground uses too). */
-export function coverSeenGlsl(glsl: CoverTintGlsl): string {
+export function coverSeenGlsl(glsl: typeof COVER_GLSL): string {
   return new ShaderFamily({ ...glsl }, {}).glsl(glsl.coverSeen);
 }
 
