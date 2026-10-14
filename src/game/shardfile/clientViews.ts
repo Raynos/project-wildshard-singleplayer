@@ -39,7 +39,7 @@ export interface ClientTileViews {
  * The view ports: the terrain family's material id, the family `materials`, admitted `textures`, the graph outline hook and
  * the named prop surfaces (SF55; null or absent: every prop draws with `props.family`) and the optional shared terrain lattice.
  */
-interface ViewPorts { terrain: string | null; materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; outline?: GraphOutlineHook; surfaces?: ((name: string) => PropSurfaceBinding) | null;
+interface ViewPorts { terrain: string | NonNullable<Shardfile['terrain']> | null; materials: ReadonlyMap<string, Material>; textures: ReadonlyMap<string, Texture>; outline?: GraphOutlineHook; surfaces?: ((name: string) => PropSurfaceBinding) | null;
   /** The decoded terrain collider every tile was cut from: each tile's normals come from it, so tile edges light alike (absent: each tile's own grid). */
   lattice?: TerrainTileData;
   /** The terrain's shadow flags (`terrain.shadow`): a tile casts only when `cast` (and the shadow disc says so), receives only when `receive` (absent: both). */
@@ -59,9 +59,11 @@ function outlineProps(root: Object3D, ports: ViewPorts, family: Material | undef
 }
 const surfacePort = (ports: ViewPorts): { surfaces?: (name: string) => PropSurfaceBinding } => (ports.surfaces === null || ports.surfaces === undefined ? {} : { surfaces: ports.surfaces });
 
-/** Ring-tile views over the terrain family's material id (null: no terrain), the family `materials` and admitted `textures`. */
+/** Ring-tile views over a terrain declaration or family id (query/null: no drawn terrain), the family `materials` and admitted `textures`. */
 export function clientTileViews(ports: ViewPorts): ClientTileViews {
-  const material = ports.terrain === null ? null : ports.materials.get(ports.terrain);
+  const terrain = ports.terrain;
+  const terrainFamily = typeof terrain === 'string' ? terrain : terrain === null || terrain.form === 'query' ? null : terrain.family;
+  const material = terrainFamily === null ? null : ports.materials.get(terrainFamily);
   if (material === undefined) throw new Error('shardfile views: the terrain family has no resolved material');
   const cast = ports.terrainShadow?.cast ?? true, receive = ports.terrainShadow?.receive ?? true;
   return {
