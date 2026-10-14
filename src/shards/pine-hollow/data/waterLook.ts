@@ -1,6 +1,11 @@
 import type { GraphIr, GraphNode, GraphParam, GraphRef } from '@wildshard/format/materialGraph';
 
 /**
+ * PARKED (2026-10-14): nothing draws these yet. The wiring that dressed the pond, creek, beaver pool and puddles in them
+ * was reverted (the upper waterfall lost its sunlit white and the far pond its bright cliff mirror against the classic
+ * waterSurface.ts, which Pine draws again); test/graph-water-surface.test.ts still compiles them. Retry the port from
+ * here, with before / after pairs of the upper fall and the wide pond at midday.
+ *
  * Pine Hollow's photoreal water (PINE-HOLLOW-REMASTER PH-L9; SHARD-PLATFORM W2 C2) as SF59 material graphs: the pond, the
  * creek and beaver pool, the dam's trickle and the rain's puddles all wear one program (the four ids differ only in their
  * params), compiled by runtime/looks/water.ts. No extra render pass:

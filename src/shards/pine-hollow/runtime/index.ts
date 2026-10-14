@@ -35,8 +35,6 @@ import { crossbowDisplayModel } from '../weapons/crossbow/display';
 import { Cabins } from '../world/homestead';
 import { PINE_GRAPHS } from '../data/graphLooks';
 import { lendPineLooks } from './looks/graphLooks';
-import { lendPineWater, syncPineWater } from '../world/water';
-import { WATER_LOOKS } from '../data/waterLook';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import { loadUnderShapes } from '../world/undergrowthKit';
 import { pineModels } from '../world/context';
@@ -97,8 +95,6 @@ export class PineHollow extends ShardPlugin {
     ctx.app.registerTrample(trample, ctx.scope);
     // the look.materials graphs the spray, the cabins' hearth particles and the cave's shaft wear (data/graphLooks.ts), owned by this scope
     lendPineLooks(await runtimeLookMaterials(ctx, source, true, Object.keys(PINE_GRAPHS)));
-    // the water's graphs (data/waterLook.ts): the creek, beaver pool and puddles wear them, and the session's pond now
-    lendPineWater(await runtimeLookMaterials(ctx, source, true, Object.values(WATER_LOOKS)), ctx.scope, game);
     // the small wildlife's posed look (data/wildlifeLook.ts), before the forest's draw and any Model Explorer specimen
     lendPineWildlifeLook(await runtimeLookMaterials(ctx, source, true, [WILDLIFE_LOOK]));
     const streams = await new PineStreams(sky).build();
@@ -145,7 +141,6 @@ export class PineHollow extends ShardPlugin {
       carpet.grass.update(dt, rt.viewer());
       carpet.under.update(dt, rt.viewer());
       carpet.particles.update(dt, rt.viewer(), game.camera);
-      syncPineWater();
       this.cabins?.update(dt, t);
     };
   }

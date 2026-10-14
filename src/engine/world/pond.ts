@@ -174,8 +174,6 @@ export class Water {
     geo.computeVertexNormals();
     const mesh = new THREE.Mesh(geo, material);
     mesh.name = 'pond';
-    // the probe, for a shard that dresses the pond in its own water look (Pine Hollow's graphs)
-    mesh.userData['waterSkyline'] = skyline;
     mesh.receiveShadow = true;
     mesh.renderOrder = 5;
     return mesh;
