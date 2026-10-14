@@ -51,6 +51,7 @@ import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
 import { layerFrameOf } from '../nodeLayerFrame';
+import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { fogUniforms } from '../../world/Atmosphere';
 import {
   GRAPH_OPS, SUN_OPS, validateGraph, graphUsesMeshMap, type GraphArrayParam, type GraphBinding, type GraphCost, type GraphIr, type GraphLiteral, type GraphNode,
@@ -566,6 +567,12 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'normalWorld': return { t: 'vec3', n: normalWorldGeometry };
       case 'cameraPosition': return { t: 'vec3', n: frameCameraPosition() };
       case 'time': return { t: 'float', n: time };
+      case 'fogZenithColour': return { t: 'vec3', n: Fn((builder: NodeBuilder): Node<'vec3'> => {
+        const bound = materialNodeFogOf(builder.material), patch = bound === undefined ? fogPatches().at(-1)?.node : bound.node;
+        if (patch !== undefined && typeof patch !== 'function') return new ConvertNode<'vec3'>(reference('value', 'color', patch.colourRamp.zenith), 'vec3');
+        const scene: unknown = Reflect.get(builder, 'scene'), fog = scene instanceof THREE.Scene ? scene.fog : null;
+        return fog === null ? vec3(0) : new ConvertNode<'vec3'>(reference('color', 'color', fog), 'vec3');
+      })() };
       case 'fogColour': return { t: 'vec3', n: Fn((builder: NodeBuilder): Node<'vec3'> => {
         const scene: unknown = Reflect.get(builder, 'scene');
         const value: unknown = scene instanceof THREE.Scene ? scene.fog : null;

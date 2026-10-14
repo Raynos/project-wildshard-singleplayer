@@ -97,6 +97,12 @@ export const graphInputs = {
   frontFacing: op('frontFacing', 'bool'),
   /** shared wind clock (seconds), current gust, and prevailing xz direction */
   windTime: op('windTime', 'float'), windGust: op('windGust', 'float'), windDirection: op('windDirection', 'vec2'),
+  /** Live fog sun direction/linear colour, from the existing atmosphere owner. */
+  atmosphereSunDirection: op('atmosphereSunDirection', 'vec3'), atmosphereSunColour: op('atmosphereSunColour', 'vec3'),
+  /** Scene fog colour; black without fog. */
+  fogColour: op('fogColour', 'vec3'),
+  /** Active material/page FogModel.node colour-ramp zenith; scene fog colour if no ramp, black without fog. */
+  fogZenithColour: op('fogZenithColour', 'vec3'),
   sunDirection: op('sunDirection', 'vec3'),
   /** the light's colour × intensity, unshadowed (the `sun` sub-graph only) */
   sunColour: op('sunColour', 'vec3'),

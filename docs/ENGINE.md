@@ -5414,3 +5414,12 @@ a unit, upward wave normal. Its analytic tangents use `GERSTNER_TERMS`,
 the same coefficients as CPU `waveDisplace` and graph `gerstner`. Evaluate
 it at the rest point, not the displaced position; damping zero is flat.
 It costs 200 estimated instructions and adds no clock or sampler.
+
+### Live graph atmosphere inputs
+
+`graphInputs.atmosphereSunDirection` and `atmosphereSunColour` expose the
+existing IR inputs: live `fogSunDir` and linear `fogSunColor` references
+from the atmosphere/day owner. `fogColour` reads the scene fog colour.
+`fogZenithColour` reads the active material/page FogModel.node colour-ramp
+zenith; without a ramp it reads scene fog colour, and without fog it is
+black. All are vec3 inputs; none installs a clock or owns a new uniform.

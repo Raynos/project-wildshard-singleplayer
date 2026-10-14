@@ -328,6 +328,8 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   time: { arity: [0, 0], rule: 'input', cost: 0, type: 'float' },
   // the day's sun as the engine's atmosphere holds it (Atmosphere.ts `fogUniforms`, read by reference like the fog
   // epilogue): the unit world direction toward the sun and its colour (linear), so an unlit graph shades with the clock
+  // The active material/page colour ramp's live zenith, else the scene fog colour (black if unfogged).
+  fogZenithColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3' },
   fogColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3' },
   atmosphereSunDirection: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3' },
   atmosphereSunColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3' },
