@@ -52,13 +52,15 @@ export class EngineDirectionalLightNode extends DirectionalLightNode {
     // the shadow went in when setupShadow swapped the colour for colour × shadow (it keeps the plain one as baseColorNode)
     const baseNode: unknown = Reflect.get(this, 'baseColorNode');
     const received = isColour(baseNode) && baseNode !== data.lightColor;
-    const shadowedIn = colour(data.lightColor);
+    // Both last-cascade branches read this lookup. Build it in the outer
+    // lighting stack so TSL cannot initialise it in only the first branch.
+    const shadowedIn = colour(data.lightColor).toVar();
     const base = received ? colour(baseNode) : shadowedIn;
-    let shadowed = shadowedIn;
+    let shadowed: Node<'vec3'> = shadowedIn;
     const ghost = ghostOf(set, index);
     if (received && ghost !== undefined) {
       // E147: the cascade fades in from its ghost's shadow (the direction before the step)
-      const ghostShadow = this.ghostShadow ?? colour(shadow(ghost)); // a shadow node is the light's colour factor
+      const ghostShadow = (this.ghostShadow ?? colour(shadow(ghost))).toVar(); // a shadow node is the light's colour factor
       this.ghostShadow = ghostShadow;
       shadowed = mix(base.mul(ghostShadow), shadowed, reference('value', 'float', set.fade));
     }
