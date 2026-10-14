@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { ShaderFamily } from '@wildshard/game/plugin/shaderFamily';
+import { editShader, spliceEdits } from '@wildshard/game/plugin/shaderFamily';
 import type { COVER_GLSL, COVER_TINT } from './coverGlsl';
 
 /**
@@ -112,25 +112,17 @@ export const coverJitter = (x: number, z: number): number => { const h = Math.si
 /** The terrain tint as a row: its GLSL (`@{coverSeen}` splices), the patch id, and the suffix its program key takes. */
 export type CoverTintRow = typeof COVER_TINT & { readonly glsl: typeof COVER_GLSL };
 
-/** `coverSeen` spliced as a shader fragment (the GLSL a plant fading into its ground uses too). */
+/** `coverSeen` as a shader fragment (the GLSL a plant fading into its ground uses too). */
 export function coverSeenGlsl(glsl: typeof COVER_GLSL): string {
-  return new ShaderFamily({ ...glsl }, {}).glsl(glsl.coverSeen);
+  return glsl.coverSeen;
 }
 
 const patched = new WeakSet<THREE.Material>();
 function patchTerrainMaterial(mat: THREE.Material, row: CoverTintRow): void {
   if (patched.has(mat)) return;
   patched.add(mat);
-  const family = new ShaderFamily({ ...row.glsl }, {}), suffix = row.keySuffix;
-  patchShader(mat, row.patchId, PATCH_ORDER.decorate, (sh) => {
-    sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', family.glsl(row.glsl.vertexCommon))
-      .replace('#include <begin_vertex>', family.glsl(row.glsl.vertexBegin));
-    // after the normal is known (flat: from derivatives) and before the lights read diffuseColor
-    sh.fragmentShader = sh.fragmentShader
-      .replace('#include <common>', family.glsl(row.glsl.fragmentCommon))
-      .replace('#include <normal_fragment_maps>', family.glsl(row.glsl.fragmentNormal));
-  }, { key: (k) => `${k}${suffix}` });
+  const edits = spliceEdits(row.glsl.edits, { coverSeen: row.glsl.coverSeen }), suffix = row.keySuffix;
+  patchShader(mat, row.patchId, PATCH_ORDER.decorate, (sh) => { editShader(sh, edits); }, { key: (k) => `${k}${suffix}` });
   mat.needsUpdate = true;
 }
 
