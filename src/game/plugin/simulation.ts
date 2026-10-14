@@ -9,7 +9,7 @@ import { parseItems, parseMeleeContacts, parseNativeMeleeBinding } from '@wildsh
 import { scriptItemHook } from '@wildshard/engine/combat/items';
 import { flagValue, test as testQuestFlags, type Flags } from '@wildshard/engine/world/interact/flags';
 import { Vector3 } from 'three';
-import { createHeadlessPromptPicker } from '../quest/interactionRows';
+import { parsePromptRegistrations, createHeadlessPromptPicker } from '../quest/interactionRows';
 import { GridAssembly } from '../grid/assembly';
 import { GridSimulation } from '../grid/simulation';
 import { ResidencyAllocator } from '../grid/allocator';
@@ -50,12 +50,12 @@ import { speciesResolver, simStrikes } from "./brain";
 import { createShardfileScriptLane, verifiedScriptModules, type ScriptModuleAssets, type ShardScriptPorts } from "../shardfile/scripts";
 import { installDeclaredBrains, type DeclaredBrainPorts } from "../shardfile/brainRuntime";
 import { createShardfileComposedLane, type DeclaredScriptBrainPorts } from "../shardfile/scriptComposition";
-import { dataCreaturePorts } from "../shardfile/dataCreaturePorts";
+import { bindPlayerImpulse, dataCreaturePorts } from "../shardfile/dataCreaturePorts";
 import { prepareDeclaredGroupBrains, type DeclaredGroupPorts, type DeclaredGroupPolicy } from "../shardfile/groupRuntime";
 import { prepareDeclaredCrowds, type DeclaredCrowdPorts, type PreparedCrowds } from "../shardfile/crowdRuntime";
 import { installLadders, type LadderClientPorts } from '../shardfile/ladder';
 import type { LiftApproachSource } from '@wildshard/format/liftApproach';
-import { MoverScriptDriver, verifiedMoverModules, type DeclaredMoverComposition, type MoverRuntime } from "./mover";
+import { MoverScriptDriver, verifiedMoverModules, proveTerrainEntries, type TerrainEntryWalk, type DeclaredMoverComposition, type MoverRuntime } from "./mover";
 import { socketLiftEntries, socketLiftRules, type SocketLiftEntry } from "@wildshard/format/socketLiftAssets";
 import { portalLinkEntries, portalLinkRules } from "@wildshard/format/portalLinkAssets";
 import { validatePortalFloors } from "@wildshard/format/portalFloor";
@@ -177,6 +177,64 @@ export async function prepareRuntimeWorld(shard: Shardfile, assets: ReadonlyMap<
     const ledger = ledgerPorts(context.emit);
     return { ...environment, ledger, ...population.install(host, ledger, context.snapshot) };
   } };
+}
+interface NativeRuntimeRecipe extends RuntimeWorldRecipe {
+  readonly runtime: {
+    readonly weapon: { readonly id: string; readonly stowOnBoard?: boolean; readonly questWorld?: boolean; readonly worldReactionAction?: number };
+    readonly quest: { readonly spots: 'metadata' | QuestGraphPorts['spots']; readonly crack?: boolean;
+      readonly summons: readonly { readonly director: string; readonly spawn: string }[] };
+    readonly columns?: boolean;
+    readonly entries?: TerrainEntryWalk;
+  };
+}
+interface NativeRuntimeContext {
+  readonly restoring: boolean; readonly snapshot?: Readonly<SimSnapshot>;
+  readonly emit: Parameters<typeof ledgerPorts>[0]; readonly commands: () => readonly NativeMeleeInput[];
+}
+interface NativeRuntimePlan {
+  readonly level: SimLevel; readonly ports: Awaited<ReturnType<typeof prepareRuntimeWorld>>['ports'];
+  readonly install: (host: SimHost, context: NativeRuntimeContext) => void;
+  readonly proveEntries?: (host: SimHost) => ReturnType<typeof proveTerrainEntries>;
+}
+/** Complete declared native owners on the caller's one host, with original install phases and restore authority. */
+export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<string, Uint8Array>, baked: unknown, recipe: NativeRuntimeRecipe): Promise<NativeRuntimePlan> {
+  const row = recipe.runtime, weapon = weaponRow(shard, row.weapon.id);
+  const world = await prepareRuntimeWorld(shard, assets, baked, recipe);
+  const quest = shard.questHost;
+  if (quest === undefined || quest === null) throw new Error('Missing admitted native quest host');
+  const metadata = row.quest.spots === 'metadata' ? readRuntimeWorldMetadata(baked, true) : undefined;
+  const spots = metadata?.spots ?? row.quest.spots;
+  if (spots === 'metadata') throw new Error('Missing admitted native quest spots');
+  if (row.quest.summons.length > 64 || new Set(row.quest.summons.map(value => value.director)).size !== row.quest.summons.length) throw new Error('Invalid native director bindings');
+  const plan: NativeRuntimePlan = { level: world.level, ports: world.ports, install: (host, context) => {
+    const environment = world.install(host, context), { ledger, keeper, encounter } = environment;
+    const reactions = row.weapon.worldReactionAction === undefined ? undefined : (() => {
+      const declarations = quest.page?.world;
+      if (declarations === undefined) throw new Error('Missing admitted quest world reactions');
+      return bindQuestWorldReactions(declarations, { flags: host.flags });
+    })();
+    const melee = installNativeMelee(host, weapon, weapon.native, { inputCommands: context.commands,
+      enabled: () => !encounter.locked() && (!row.weapon.stowOnBoard || !host.playerBoard.on),
+      ...(row.weapon.questWorld ? { questWorld: { row: quest, spots } } : {}),
+      hook: environment.hooks.get(weapon.id) ?? null, hookTick: environment.hookTick,
+      ...(reactions === undefined ? {} : { landed: (action: number, from: Vector3, dir: Vector3) => { if (action === row.weapon.worldReactionAction) reactions.scan(from, dir); } }),
+    });
+    installDeclaredQuestHost(host, shard, { ...ledger, spots,
+      ...(row.quest.crack ? { crack: { reach: { light: weapon.light.range, heavy: weapon.heavy.range }, cracked: melee.cracked } } : {}),
+      ...(metadata === undefined ? {} : { promptRegistrations: parsePromptRegistrations(metadata.promptRegistrations) }),
+      commands: pickCommands(context.commands, command => {
+        if (command.kind !== 'script') return undefined;
+        if (command.actorId === undefined || command.value === undefined || !Number.isFinite(command.value)) throw new Error('Invalid admitted native script command');
+        return { actorId: command.actorId, value: command.value };
+      }), observations: environment.observations, actions: environment.actions,
+      directorActions: new Map(row.quest.summons.map(binding => [binding.director, [{ action: { spawn: binding.spawn }, run: encounter.summon }]])),
+    });
+    if (row.columns) bindPlayerImpulse(velocity => { host.impulsePlayer(velocity); }).columns(shard.modes?.traverse ?? [], () => host.player.position, () => host.playerBoard.on,
+      (id, run) => { host.onStep(id, run); });
+    keeper.settle();
+  } };
+  const entries = row.entries;
+  return entries === undefined ? plan : { ...plan, proveEntries: host => proveTerrainEntries(host.physics, shard.entryways, world.ports.heightAt, entries) };
 }
 /** A declared weapon row (`shard.items`) by id; an absent or non-weapon row refuses. */
 export function weaponRow(shard: Pick<Shardfile, 'items'>, id: string): Extract<Shardfile['items']['rows'][number], { kind: 'weapon' }> {

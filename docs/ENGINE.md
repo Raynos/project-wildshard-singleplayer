@@ -4812,3 +4812,10 @@ event owner paths. `HybridRuntimePlugin.bindPageStages(ctx, extraOwners)`
 uses the resident saved flags at the original installation point.
 Required fields preflight before quiet initial observations; no saved
 cursor or replacement flag owner is introduced.
+
+prepareRuntimePlan(shard, assets, baked, recipe) returns a complete native
+runtime plan from paired world recipes. Runtime rows select weapon gating,
+quest spot intake and director summons, world reactions, impulse columns
+and optional terrain entry proofs. Original owner installers run in order:
+world/motion, population, melee, quests, columns, then keeper settling.
+The caller still owns the one SimHost and its tick input/effect boundary.
