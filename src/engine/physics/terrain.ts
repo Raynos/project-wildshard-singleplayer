@@ -98,6 +98,14 @@ export function cutTerrain(physics: Physics, cuts: readonly TerrainCut[]): numbe
   return changed;
 }
 
+/** Recognise the engine's standalone rim slabs in a native bake; a grid admission omits them. */
+export function isStandaloneEdgeWall(solid: { readonly shape: number; readonly at: readonly [number, number, number]; readonly half?: readonly [number, number, number] | undefined }): boolean {
+  const reach = CHUNK_HALF - EDGE_WALL_INSET + 1, span = CHUNK_HALF + 2, h = solid.half, [x, y, z] = solid.at;
+  const near = (a: number, b: number): boolean => Math.abs(a - b) < 1e-3;
+  if (solid.shape !== 1 || h === undefined || !near(y, 170) || !near(h[1], 230)) return false;
+  return (near(Math.abs(x), reach) && near(z, 0) && near(h[0], 1) && near(h[2], span)) || (near(Math.abs(z), reach) && near(x, 0) && near(h[2], 1) && near(h[0], span));
+}
+
 /** Four walls a little inside the chunk edge — the chunk floats; there is nothing to walk onto. */
 export function addEdgeWalls(physics: Physics): Collider[] {
   const { R, world } = physics;

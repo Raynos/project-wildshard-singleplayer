@@ -16,7 +16,8 @@ import { installDriftwoodKills } from './kills';
 import { DRIFTWOOD_FEATS } from '../data/questInventory';
 import { DRIFTWOOD_INTERACT } from '../data/interactables';
 import { driftwoodSpots, installDriftwoodQuest } from './quest';
-import { proveDriftwoodEntries } from './entries';
+import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
+import { ENTRY_WALK } from '../data/entryWalk';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { DRIFTWOOD_DAY, type Preset } from '../look/dayKeys';
 
@@ -73,7 +74,7 @@ export function addDriftwoodWorld(host: SimHost, bake: DriftwoodBake): void {
  * Wendell, the chest, the beacon, the hold key / pump / winch / strongbox, the shards, the plates and the sluice, the altar,
  * the reward beat, the iron sword's pickup; the flag feats' ledger facts, runtime/quest.ts).
  * the puzzle barrel the player pushes onto the second tide plate (the kit's body and never-jam rule), and the open sluice.
- * The entry proof (runtime/entries.ts): every lane of the four 8 m entries walks up its flared sea ramp onto the deck.
+ * The declared entry walk: every lane of the four 8 m entries walks up its flared sea ramp onto the deck.
  */
 /** The walk the tick's last `player` command asks for (m/s): the host's walk (SimHost.step: the stick clamped to 1, times
  * the level's speed), the velocity the page's Player asks for and the barrel's watch reads. */
@@ -93,7 +94,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     player: { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z }, yaw: shard.spawn.yaw, speed: Math.min(5, shard.authorCaps.speed) },
     // the host's player strike is a zero-damage probe, never a sword: the swords are declared items (runtime/swords.ts)
     entities: [], quests: [], weapon: { id: 'host.probe', shape: { kind: 'point', radius: 1 }, windup: 0.1, active: 0.1, recover: 0.2, cooldown: 0.3, range: 1, damage: 0, tags: [] } };
-  return { level, ports: { ground: false, heightAt }, proveEntries: host => proveDriftwoodEntries(host.physics, shard.entryways), install: (host, context) => {
+  return { level, ports: { ground: false, heightAt }, proveEntries: host => proveTerrainEntries(host.physics, shard.entryways, heightAt, ENTRY_WALK), install: (host, context) => {
     // the page's own day clock, stepped by the host before every tick's steps (a restoring install builds it again)
     host.useDayClock(driftwoodDayClock());
     // The registered sea's dry entry sockets and rest height, with the page's Gerstner swell on this host's own clock.

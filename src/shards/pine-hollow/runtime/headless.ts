@@ -26,7 +26,9 @@ import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { PINE_DAY } from '../look/dayKeys';
 import { PINE_QUESTS } from '../data/quests';
 import { installHollowQuest, pineSpots, PINE_INTERACT, type PineQuestPorts } from './quest';
-import { isPineEdgeWall, provePineEntries } from './entries';
+import { isStandaloneEdgeWall } from '@wildshard/engine/physics/terrain';
+import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
+import { ENTRY_WALK } from '../data/entryWalk';
 import { installPineAir } from './air';
 import { installPineRainShelter } from './rainShelter';
 import { PineAmmunition } from './weapons/ammunition';
@@ -44,7 +46,7 @@ const buffer = (bytes: Uint8Array): ArrayBuffer => { const copy = new ArrayBuffe
 
 /** Install the browser-baked native world into the host's physics, owned by its scope: Rapier's own 256² heightfield (the
  *  crag cave's cuts included) and the 2082 solid WORLD colliders the page built (cuboids, capsules, meshes, convex hulls).
- *  `skip` leaves solids out (the entry proof's grid world: the standalone page's four edge walls, `isPineEdgeWall`). */
+ *  `skip` leaves solids out (the entry proof's grid world: the standalone page's four edge walls, `isStandaloneEdgeWall`). */
 export function addPineWorld(host: SimHost, bake: PineBake, skip?: (solid: PineSolid) => boolean): ReadonlyMap<string, object | string> {
   // One native Piece identity spans all its colliders; declared string owners remain a separate namespace.
   const owners = new Map<string, object | string>();
@@ -137,7 +139,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   return { level, ports: { ground: false, heightAt }, proveEntries: () => {
     // on a fresh host of the grid's world (the bake without the standalone edge walls), its query pipeline built by a step
     const fresh = createSimHost(level, { ground: false, heightAt, rapier });
-    try { addPineWorld(fresh, bake, isPineEdgeWall); fresh.step(); return provePineEntries(fresh.physics, shard.entryways, heightAt); } finally { fresh.dispose(); }
+    try { addPineWorld(fresh, bake, isStandaloneEdgeWall); fresh.step(); return proveTerrainEntries(fresh.physics, shard.entryways, heightAt, ENTRY_WALK); } finally { fresh.dispose(); }
   }, install: (host, context) => {
     installPine(host, { bake, grid, nav, heightAt, director, nightDirector, bowProfile, leverProfile, crossbowProfile, spawnY: shard.spawn.y, saved: context.snapshot, quests: shard.quests, fact: (name, actorId) => { context.emit({ kind: 'fact', name, actorId }); },
       // a player command's attack pulls the held weapon's trigger at that body; its HEAVY hold draws the longbow; a

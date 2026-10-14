@@ -5,7 +5,7 @@ import { ZiplineModeSchema, type ZiplineMode, GrappleModeSchema, type GrappleMod
 import { tagOf } from "@wildshard/engine/physics/surface";
 import { CharacterMotor, type MotorOptions } from "@wildshard/engine/physics/CharacterMotor";
 import type { Physics } from "@wildshard/engine/physics/Physics";
-import { ENTRY_ASPHALT, ENTRY_WIDTH } from "@wildshard/engine/core/config";
+import { CHUNK_HALF, ENTRY_ASPHALT, ENTRY_WIDTH } from "@wildshard/engine/core/config";
 import * as v from "valibot";
 import { SCRIPT_PARAMETER_QUERY, ScriptHost, type ScriptQuery } from "@wildshard/engine/script/host";
 import { ScriptWorld } from "@wildshard/engine/script/effects";
@@ -25,7 +25,12 @@ import { parseMovers, type MoverData } from "@wildshard/format/movers";
 /** One declared entryway as the shardfile states it (a midpoint opening on an edge). */
 export interface TerrainEntryway { readonly edge: 'north' | 'east' | 'south' | 'west'; readonly kind?: string | undefined }
 /** The walk: lanes per opening, metres walked in, where on the axis the feet start, and the step budget per lane. */
-export interface TerrainEntryWalk { readonly lanes: number; readonly walk: number; readonly start: number; readonly maxTicks: number }
+export interface TerrainEntryWalk {
+  readonly lanes: number; readonly walk: number; readonly start: number; readonly maxTicks: number;
+  /** Optional socket-to-deck flare. Start/walk are distances in from the edge for this profile. */
+  readonly ramp?: { readonly at: number; readonly run: number; readonly height: number;
+    readonly halfWidths: Readonly<Record<TerrainEntryway['edge'], number>>; readonly stride: number; readonly look: number };
+}
 /** The player's capsule (the engine's edge walk's). */
 const CAPSULE = { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0.2, group: 'PLAYER', blockedBy: ['WORLD'] } as const;
 
@@ -37,10 +42,60 @@ const CAPSULE = { radius: 0.35, height: 1.8, step: 0.3, maxClimbDeg: 45, snap: 0
  * climbs. A stall, a fall, a drift out of the lane or an unwalkable slope refuses the proof.
  */
 export function proveTerrainEntries(physics: Physics, entryways: readonly TerrainEntryway[], heightAt: (x: number, z: number) => number, spec: TerrainEntryWalk): { lanes: number; steps: number } {
-  if (entryways.length !== 4 || entryways.some(entry => (entry.kind ?? 'ground') !== 'ground')) throw new Error('The terrain entry proof needs four ground entryways');
+  const ramp = spec.ramp;
+  if (ramp !== undefined) {
+    if (!Number.isInteger(spec.lanes) || spec.lanes < 2 || spec.lanes > 64 || !Number.isInteger(spec.maxTicks)
+      || spec.maxTicks < 1 || spec.maxTicks > 1200 || [spec.start, spec.walk, ramp.at, ramp.run, ramp.height, ramp.stride, ramp.look,
+        ...Object.values(ramp.halfWidths)].some(value => !Number.isFinite(value) || value <= 0 || value > CHUNK_HALF)
+      || spec.walk <= spec.start || ramp.run < 0.1 || ramp.stride > 1 || ramp.look > 10
+      || Object.values(ramp.halfWidths).some(width => width <= CAPSULE.radius)) throw new Error('Invalid bounded entry ramp');
+    if (entryways.length !== 4 || entryways.some(entry => entry.kind !== 'socketOverWater')) throw new Error('The ramp entry proof needs four socket-over-water entryways');
+  }
+  if (ramp === undefined && (entryways.length !== 4 || entryways.some(entry => (entry.kind ?? 'ground') !== 'ground'))) throw new Error('The terrain entry proof needs four ground entryways');
   const motor = new CharacterMotor(physics, CAPSULE), half = ENTRY_WIDTH / 2 - CAPSULE.radius, slope = Math.cos(Math.PI / 4);
   let lanes = 0, steps = 0;
   try {
+    if (ramp !== undefined) {
+      for (const edge of ['north', 'east', 'south', 'west'] as const) {
+        if (!entryways.some(entry => entry.edge === edge)) throw new Error(`Missing ${edge} entryway`);
+        const open = half, top = ramp.halfWidths[edge] - CAPSULE.radius;
+        // the lane's offset across at `a` metres in: the opening's, narrowing with the ramp's flare to the deck's
+        const across = (share: number, a: number): number => {
+          const t = Math.min(1, Math.max(0, (a - ramp.at) / ramp.run));
+          return share * (open + (top - open) * t);
+        };
+        const floor = (a: number): number => (a < ramp.at ? 0 : a < ramp.at + ramp.run ? ramp.height * (a - ramp.at) / ramp.run : ramp.height);
+        const ns = edge === 'north' || edge === 'south', sign = edge === 'north' || edge === 'east' ? -1 : 1;
+        // level space ↔ (in from the edge, across)
+        const toWorld = (a: number, c: number): { x: number; z: number } => (ns ? { x: c, z: -sign * CHUNK_HALF + sign * a } : { x: -sign * CHUNK_HALF + sign * a, z: c });
+        const inOf = (p: { x: number; z: number }): number => sign * (ns ? p.z : p.x) + CHUNK_HALF;
+        const acrossOf = (p: { x: number; z: number }): number => (ns ? p.x : p.z);
+        for (let lane = 0; lane < spec.lanes; lane++) {
+          const share = -1 + lane * 2 / (spec.lanes - 1), start = toWorld(spec.start, across(share, spec.start));
+          const feet = { x: start.x, y: 0.5, z: start.z };
+          // dropped from 0.5 m onto the socket first (a capsule started skin-deep in the floor falls through it)
+          for (let k = 0; k < 20; k++) { steps++; if (motor.move(feet, { x: 0, y: -0.05, z: 0 }).grounded) break; }
+          let stalled = 0, reached = false;
+          for (let tick = 0; tick < spec.maxTicks; tick++) {
+            const a = inOf(feet);
+            if (a >= spec.walk) { reached = true; break; }
+            const goal = toWorld(a + ramp.look, across(share, a + ramp.look)), dx = goal.x - feet.x, dz = goal.z - feet.z, d = Math.hypot(dx, dz);
+            const result = motor.move(feet, { x: dx / d * ramp.stride, y: -9.81 / 3600, z: dz / d * ramp.stride }); steps++;
+            const now = inOf(feet);
+            stalled = now - a < ramp.stride * 0.5 ? stalled + 1 : 0;
+            const where = `${edge} lane ${String(lane)} at ${now.toFixed(2)} m in`;
+            if (stalled >= 5) throw new Error(`Stalled on ramp entry ${where}`);
+            if (!result.grounded) throw new Error(`Off the ground on ramp entry ${where}`);
+            if (Math.abs(acrossOf(feet) - across(share, now)) > CAPSULE.radius) throw new Error(`Out of its lane on ramp entry ${where}`);
+            if (Math.abs(feet.y - floor(now)) > 0.15) throw new Error(`Off the floor on ramp entry ${where}: feet ${feet.y.toFixed(3)} m, floor ${floor(now).toFixed(3)} m`);
+            if (now < ENTRY_ASPHALT && result.groundNormalY < 0.99) throw new Error(`Socket not flat on ramp entry ${where}`);
+          }
+          if (!reached) throw new Error(`Blocked ramp entry ${edge} lane ${String(lane)}: ${String(spec.maxTicks)} steps`);
+          lanes++;
+        }
+      }
+      return { lanes, steps };
+    }
     for (const edge of ['north', 'east', 'south', 'west'] as const) for (let lane = 0; lane < spec.lanes; lane++) {
       if (!entryways.some(entry => entry.edge === edge)) throw new Error(`Missing the ${edge} entryway`);
       const offset = -half + lane * (2 * half) / (spec.lanes - 1), along = edge === 'north' || edge === 'east' ? spec.start : -spec.start, sign = edge === 'north' || edge === 'east' ? -1 : 1;

@@ -4929,3 +4929,11 @@ the existing stacking/trade laws without owning persistence;
 nativeInventorySchema admits the same counts/order save representation.
 Profiles preserve historical numeric and complete-order policies. Restore
 copies admitted state without pickups, flags, facts or writes.
+
+`plugin/mover.proveTerrainEntries` also accepts a bounded optional `ramp`
+profile: socket-to-deck run, height, per-edge half-widths, stride and look
+ahead. It walks the real capsule through all four admitted water sockets,
+following the flare and checking grounded support, lane, floor and stalls.
+The default remains the ground-height walk. `engine/physics/terrain` defines
+`isStandaloneEdgeWall` beside `addEdgeWalls` for grid admission of native
+bakes without the standalone rim slabs. Neither API changes collision.
