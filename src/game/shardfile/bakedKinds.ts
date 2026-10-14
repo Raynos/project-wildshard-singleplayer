@@ -212,6 +212,8 @@ export interface BakedMeshWorld<P extends string, K extends BakedMeshKindRow> {
   /** Loaded companion bytes, or null before loading or after its declared failure. */
   readonly bytes: (id: string) => Uint8Array | null;
   readonly piece: (piece: P, call?: { readonly nodes?: ReadonlyMap<string, Mesh> | undefined; readonly only?: ((kind: K) => boolean) | undefined; readonly each?: ((material: MeshStandardMaterial) => void) | undefined }) => DrawnBakedMeshPiece;
+  /** Named recipe resource; an explicit snapshot never falls back to the latest loaded bake. */
+  readonly object: (piece: string, only?: Readonly<Record<string, string | number | boolean>>, each?: (material: MeshStandardMaterial) => void, snapshot?: LoadedMeshBake<P>) => DrawnBakedMeshPiece;
 }
 
 /** The ordinary-mesh counterpart of bakedWorld: the same piece rows, collider law and material hooks, with no instancing conversion. */
@@ -224,7 +226,7 @@ export function bakedMeshWorld<P extends string, K extends BakedMeshKindRow>(pie
     || resources.some(row => !/^[a-zA-Z0-9_.-]{1,96}$/u.test(row.id) || row.url.length === 0 || row.url.length > 2048
       || !['warn','error'].includes(row.fault.level) || row.fault.message.length === 0 || row.fault.message.length > 512)) throw new Error('Invalid baked byte resources');
   for (const row of resources) bytes.set(row.id, null);
-  return {
+  const world: BakedMeshWorld<P, K> = {
     load: async () => {
       const [meshes] = await Promise.all([Promise.all(names.map(async name => {
         const result = new Map<string, Mesh>();
@@ -244,6 +246,18 @@ export function bakedMeshWorld<P extends string, K extends BakedMeshKindRow>(pie
     },
     last: () => loaded,
     bytes: id => { if (!bytes.has(id)) throw new Error(`Unknown baked byte resource ${id}`); return bytes.get(id) ?? null; },
+    object: (id, only, each, snapshot) => {
+      const name = names.find(value => value === id), fields = Object.entries(only ?? {});
+      if (name === undefined) throw new Error('Unknown declared baked piece');
+      if (fields.length > 16 || fields.some(([key, value]) => !/^[a-zA-Z0-9_.-]{1,96}$/u.test(key)
+        || typeof value === 'string' && value.length > 96 || typeof value === 'number' && !Number.isFinite(value)
+        || !['string','number','boolean'].includes(typeof value))) throw new Error('Invalid baked kind selector');
+      return world.piece(name, {
+        ...(snapshot === undefined ? {} : { nodes: snapshot.get(name) ?? new Map<string, Mesh>() }),
+        ...(only === undefined ? {} : { only: kind => fields.every(([key, value]) => Object.hasOwn(kind, key) && Reflect.get(kind, key) === value) }),
+        ...(each === undefined ? {} : { each }),
+      });
+    },
     piece: (piece, call = {}) => {
       const rows = pieces[piece], nodes = call.nodes ?? loaded?.get(piece), kinds = call.only === undefined ? rows.kinds : rows.kinds.filter(call.only);
       const root = bakedMeshKindsGroup(nodes, kinds, { ...draw, decorate: (material, kind) => { draw.decorate?.(material, kind); call.each?.(material); } });
@@ -257,6 +271,7 @@ export function bakedMeshWorld<P extends string, K extends BakedMeshKindRow>(pie
       return { root, colliders: bakedColliders(rows.colliders), kinds: byName };
     },
   };
+  return world;
 }
 
 /**
