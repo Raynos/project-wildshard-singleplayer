@@ -156,6 +156,8 @@ export interface GraphSpec {
   readonly flatShading?: boolean;
   /** shadow:true reuses displacement and alpha/discard in the shadow camera. */
   readonly vertex?: { readonly offset: GraphValue; readonly shadow?: boolean };
+  /** World-space shadow RECEIVER lookup shift, independent of vertex displacement/caster depth. Lit mesh only. */
+  readonly shadow?: { readonly offset: GraphValue };
   readonly surface?: {
     readonly colour?: GraphValue; readonly alpha?: GraphValue; readonly alphaCutoff?: number; readonly emissive?: GraphValue;
     readonly roughness?: GraphValue; readonly metalness?: GraphValue; readonly occlusion?: GraphValue;
@@ -293,6 +295,7 @@ export function graph(spec: GraphSpec): GraphIr {
   const outline: GraphStages['outline'] = spec.outline === undefined ? undefined : { offset: refOf(spec.outline.offset), colour: refOf(spec.outline.colour) };
   const post: GraphStages['post'] = spec.post === undefined ? undefined : { colour: refOf(spec.post.colour) };
   const stages: GraphStages = {
+    ...(spec.shadow === undefined ? {} : { 'shadow.offset': { offset: refOf(spec.shadow.offset) } }),
     ...(vertex === undefined ? {} : { 'vertex.offset': vertex }), ...(surface === undefined ? {} : { surface }), ...(lighting === undefined ? {} : { lighting }),
     ...(outline === undefined ? {} : { outline }), ...(post === undefined ? {} : { post }),
   };

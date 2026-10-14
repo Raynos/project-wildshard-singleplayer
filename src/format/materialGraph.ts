@@ -184,6 +184,8 @@ export interface GraphStages {
   readonly 'vertex.scale'?: { readonly sun?: GraphRef; readonly fog?: GraphRef };
   /** Object-space vertex normal, replacing the input before lighting interpolation. */
   readonly 'vertex.normal'?: { readonly normal: GraphRef };
+  /** World-space receiver lookup shift; leaves geometry and caster depth unchanged. Lit meshes only. */
+  readonly 'shadow.offset'?: { readonly offset: GraphRef };
   readonly surface?: GraphSurface;
   readonly lighting?: GraphLighting;
   readonly outline?: GraphOutline;
@@ -810,7 +812,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   // stages
   const stages = input.stages;
   if (!isRecord(stages)) return { ok: false, errors: [...errors, 'graph: stages is not an object'] };
-  for (const k of Object.keys(stages)) if (!['vertex.offset', 'vertex.position', 'vertex.clip', 'vertex.normal', 'vertex.scale', 'surface', 'lighting', 'outline', 'points', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
+  for (const k of Object.keys(stages)) if (!['vertex.offset', 'vertex.position', 'vertex.clip', 'vertex.normal', 'vertex.scale', 'shadow.offset', 'surface', 'lighting', 'outline', 'points', 'post'].includes(k)) fail(`stages: unknown stage ${k}`);
   const want = (ref: unknown, place: GraphPlace, type: GraphValueType, at: string): void => {
     const t = typeRef(ref, root, place, at, 1);
     if (t !== null && t !== type && !(t === 'float' && type !== 'bool')) fail(`${at}: is a ${t}, wants a ${type}`);
@@ -880,6 +882,15 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         if (vo.shadow === true && stages['vertex.clip'] !== undefined) fail('stages.vertex.offset.shadow: clip-position has no matching shadow camera');
       }
     }
+    const shadowOffset = stages['shadow.offset'];
+    if (shadowOffset !== undefined) {
+      if (input.primitive === 'points' || input.model === 'unlit') fail('stages.shadow.offset: lit mesh only');
+      if (!isRecord(shadowOffset)) fail('stages.shadow.offset: not an object');
+      else {
+        for (const key of Object.keys(shadowOffset)) if (key !== 'offset') fail(`stages.shadow.offset: unknown output ${key}`);
+        want(shadowOffset.offset, 'fragment', 'vec3', 'stages.shadow.offset.offset');
+      }
+    }
     const s = stages.surface;
     if (s === undefined) fail('stages.surface: a material graph needs a surface');
     else if (!isRecord(s)) fail('stages.surface: not an object');
@@ -916,7 +927,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
       }
     }
   } else if (kind === 'post') {
-    for (const k of ['vertex.offset', 'vertex.position', 'vertex.clip', 'vertex.normal', 'vertex.scale', 'surface', 'lighting', 'outline', 'points'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
+    for (const k of ['vertex.offset', 'vertex.position', 'vertex.clip', 'vertex.normal', 'vertex.scale', 'shadow.offset', 'surface', 'lighting', 'outline', 'points'] as const) if (stages[k] !== undefined) fail(`stages.${k}: a post graph has only a post stage`);
     const p = stages.post;
     if (!isRecord(p)) fail('stages.post: a post graph needs { colour }');
     else want(p.colour, 'post', 'vec3', 'stages.post.colour');
@@ -991,6 +1002,7 @@ function toStages(raw: Raw): GraphStages {
   const surface: Record<string, GraphRef | number> = {};
   if (isRecord(s)) for (const [k, v] of Object.entries(s)) surface[k] = k === 'alphaCutoff' && isFiniteNumber(v) ? v : toRef(v);
   return {
+    ...(isRecord(raw['shadow.offset']) ? { 'shadow.offset': { offset: toRef(raw['shadow.offset'].offset) } } : {}),
     ...(isRecord(raw.points) ? { points: { size: toRef(raw.points.size) } } : {}),
     ...(isRecord(scale) ? { 'vertex.scale': { ...(scale.sun !== undefined ? { sun: toRef(scale.sun) } : {}), ...(scale.fog !== undefined ? { fog: toRef(scale.fog) } : {}) } } : {}),
     ...(isRecord(vn) ? { 'vertex.normal': { normal: toRef(vn['normal']) } } : {}),

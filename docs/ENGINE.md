@@ -5441,3 +5441,13 @@ instanceMatrix attribute, allocating no matrix copies or new buffers.
 Apply placement once: `positionLocal` already includes instancing. A
 `vertex.position` output should transform `vec4(positionGeometry, 1)`;
 transforming positionLocal again applies placement twice.
+
+### Graph shadow receiver shift
+
+`shadow: { offset }` in the SDK (`stages['shadow.offset']` in the IR)
+adds a world-space vec3 to the receiver's shadow lookup position. For a
+sun shift, use the live atmosphereSunDirection times an admitted distance
+param. This output is charged by the existing graph budget and is limited
+to lit meshes. It leaves vertex placement, visible geometry and caster
+depth unchanged; clones retain it and parameter updates need no rebuild.
+Absent keeps the normal lookup. It is separate from vertex shadow:true.
