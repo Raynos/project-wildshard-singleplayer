@@ -39,3 +39,44 @@ Frames (603 px JPEG): `progress/shard-platform/w1-grid-ready-2026-10-14/`. No vi
 2. Signal west re-entry refused after a south exit (the crossing refusal path).
 3. Sky Reach: the 75 % loading wall at the north landing; the crossing needs a driver that presses the lift's ride action
    (or a by-hand pass on the phone).
+
+## Re-check, 2026-10-14 (sp-o201)
+
+**Builds:** before = clean HEAD `d72803fe0`; after = that export plus the two fixes below (now `7fa853e6e`, `76a3bfe55`).
+Same profile as above (phone tier, render scale 2, iPhone 16 Pro portrait, muted), driven by `driveFloorGrid` legs.
+Frames: `progress/shard-platform/w1-grid-ready-2026-10-14/r01`–`r15`.
+
+### What the three findings were
+
+1. **Signal's black quad was the road's own entry asphalt, not a Signal mesh.** G103 forces 15 m of the platform's
+   asphalt (`grid-asphalt`'s turn-in apron, `roadLook.ts`) into every entry. Inside a cell the cell's light owns the frame
+   (G165), and under Signal's dusk key (1.85 at 11° elevation), its brown sky fill and its grade, the dark Lambert asphalt
+   crushed to (8, 0, 0): every Signal entry had it (east `r03` too), the south was just the one seen from afar. Not a
+   regression from today's graph / IBL commits (the asphalt is not a graph material; Signal holds dusk by design).
+   **Fix `76a3bfe55`:** the asphalt and junction overlays keep the road's light where a cell owns the frame (the road's frame
+   weight drives a lit share and the same map as emissive; on the road they are unchanged, nothing compiles at a
+   crossing). The apron now reads dark asphalt with its edge lines, (25, 23, 34): `r01` → `r02`, `r03` → `r04`. Signal holds
+   dusk (its clock never advances), so there is no midday inside it; from the road, under road light, the entry was
+   already asphalt grey (`r05`).
+   The **dark translucent wall** behind the south road is the Blender Template neighbour's rim, dithering out under G321
+   part 4's horizon fade (60–140 m) as seen from inside Signal: by design, not a Signal glitch.
+2. **The refused re-entry was a duplicate save definition.** Leaving a cell on the owned-home grid retires its region; the
+   next entry re-installs the trusted runtime, and `bindRuntimePersistence` (`src/game/plugin/headless.ts`) defined the
+   read-only legacy reward slot `shard/sunscar.signal` with a fresh definition object, which the save store refuses
+   (`Duplicate save definition`). The catch-all classified it as FAILED SAFETY CHECK and latched it. It refused any
+   second entry, not only the west (`r06`, a south re-entry). **Fix `7fa853e6e`:** one slot per store and key.
+3. **Sky Reach's 75 % wall is a short, graceful wait.** Driving from 60 m along the road, the player was held at the north
+   landing's soft wall for about **2.5 s** (feet stopped at z −298 from 9 s to 11.6 s) while the G217 cell screen showed
+   LOADING 75 % (3 of 4 stages; `r10`), then walked in. Admission had started on the road; a longer approach hides more of
+   it. It reads as the loading screen doing its job, not a glitch.
+
+### Verdicts
+
+| Shard | Verdict | Evidence |
+| --- | --- | --- |
+| **Signal** | **PASS** (on `76a3bfe55`) | East in (12 s), south out, road to the west midpoint, **west re-entry admitted in 3.3 s** (`r07`), ~340 m on foot west → north, north out. Every apron reads as asphalt (`r02`, `r04`, `r08`, `r09`). 15.5 k frames over the pass: none over 100 ms. |
+| **Sky Reach** | **PASS** | North landing (2.5 s wall), **RIDE THE ISLET** up 25 m in 14 s (`r11`, `r12`), the gate bridge to Sunrest (`r13`), Sunrest → Grove → the west gate bridge, **CALL THE ISLET** and ride it down (`r14`), out by the west entry onto the road (`r15`). East and south lifts are the same declared rows, not driven. |
+
+Harness notes: the touch USE button is pressed with `app.input.pressGesture('use')` (Playwright's tap reports the touch
+layer intercepting it). A docked islet waits about 6 s at the top before it returns; boarding later drops you into the
+cloud sea and respawns you on Sunrest. Off the 2.4 m rope bridges the same happens. Neither is a fault.
