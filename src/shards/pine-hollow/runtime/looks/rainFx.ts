@@ -13,6 +13,8 @@ import { GeometryPack, packedRows, type PackedGeometryJson } from '@wildshard/sd
 import { fogGLSL } from '@wildshard/game/systems/looks/fogProgram';
 import { rainCurtain } from '@wildshard/game/systems/looks/rainCurtain';
 import { ShaderFamily, type ShaderProgramRow } from '@wildshard/game/plugin/shaderFamily';
+import { RAIN_LOOKS } from '../../data/weatherLook';
+import { pineLook, setPineLookParam } from './graphLooks';
 
 /**
  * A wooded level's rain as rows (SHARD-PLATFORM M3): the rain round the camera with the canopy's drips in it, the puddles in
@@ -34,11 +36,12 @@ import { ShaderFamily, type ShaderProgramRow } from '@wildshard/game/plugin/shad
  * cover map are baked offline (generators/bake-pine-rain.mjs over the page's ground and forest; `loadRainBake`), so the
  * page builds only the roofs' half.
  * THE EXTRAS: the splashes (a ring of crowns + ripples on the ground within a few metres of the eye, respawned on the CPU,
- * one instanced draw; none under a roof or the hood, fewer under the crowns) and the lens drops (screen-space quads: they
- * land while you face the open sky and bead, slide and dry).
+ * one instanced draw; none under a roof or the hood, fewer under the crowns) and the lens drops (screen-space quads in
+ * the look.materials graph `RAIN_LOOKS.lens`, data/weatherLook.ts: they land while you face the open sky and bead, slide
+ * and dry).
  *
  * A practice room (`practiceRoom.open`) has none of it. Draws: 0 while dry (all hidden); raining: the rain + the puddles +
- * the splashes + the lens = 4. Programs: +3 (the rain, the splashes, the lens), built at boot (the meshes are in the scene,
+ * the splashes + the lens = 4. Programs: +3 (the rain, the splashes, the lens graph), built at boot (the meshes are in the scene,
  * hidden, when the precompile walks it).
  */
 
@@ -62,11 +65,10 @@ export async function loadRainBake(url: string, rows: PackedGeometryJson): Promi
   return { puddles: pack.geometry(0), crowns: pack.floats(1) };
 }
 
-/** The rain's three programs (`@{fog}` splices the atmosphere's fog GLSL). */
+/** The rain's two programs (`@{fog}` splices the atmosphere's fog GLSL). */
 export interface RainFxPrograms {
   readonly rain: ShaderProgramRow;
   readonly splash: ShaderProgramRow;
-  readonly lens: ShaderProgramRow;
 }
 
 /** A hood where no rain falls: a box in a frame at (x, z) turned by `rot` (lx across, lz in), under `top` (world y). */
@@ -117,9 +119,6 @@ export class RainFx {
   private splashAttr!: THREE.InstancedBufferAttribute;
   private splashNext = 0;
   private splashAcc = 0;
-  private readonly lensU = {
-    uAspect: { value: 1 }, uSky: { value: new THREE.Color(0.8, 0.82, 0.86) }, uGround: { value: new THREE.Color(0.2, 0.22, 0.2) },
-  };
   private lensAttr!: THREE.InstancedBufferAttribute;
   private readonly drops: { x: number; y: number; r: number; age: number; life: number; vy: number; slide: number }[] = [];
   private lensAcc = 0;
@@ -275,11 +274,10 @@ export class RainFx {
     geo.setAttribute('aDrop', this.lensAttr);
     geo.instanceCount = 0;
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
-    const mat = this.family.material('lens', {}, { uniforms: this.lensU });
+    const mat = pineLook(RAIN_LOOKS.lens);
+    mat.depthTest = false; // over everything
     const m = new THREE.Mesh(geo, mat);
     m.frustumCulled = false; m.renderOrder = 1000; m.visible = false; m.name = 'rain-lens';
-    // the screen's shape, read as it draws
-    m.onBeforeRender = (_r, _s, cam) => { if (cam instanceof THREE.PerspectiveCamera) this.lensU.uAspect.value = cam.aspect; };
     return m;
   }
 
@@ -317,6 +315,13 @@ export class RainFx {
   }
 
   // ─────────────────────────────── per frame ───────────────────────────────
+  private readonly rgb = [0, 0, 0];
+  /** `c` · k + add as a param's rgb (one array, copied by the param setter) */
+  private tint(c: THREE.Color, k: number, add: number): number[] {
+    this.rgb[0] = c.r * k + add; this.rgb[1] = c.g * k + add; this.rgb[2] = c.b * k + add;
+    return this.rgb;
+  }
+
   /** `fogColor` the scene fog's (the rain's tint), `wind` the world wind (m/s, xz) for the slant, `cam` the view (the extras) */
   update(dt: number, w: RainReading, fogColor: THREE.Color, wind: { x: number; z: number }, cam?: THREE.Camera): void {
     // the curtain is camera-local, so it would follow the eye into a practice room: none there, like the extras below
@@ -340,14 +345,15 @@ export class RainFx {
     // the extras — none in a practice room (its x / z is no spot on the level)
     if (practiceRoom.open) { this.splashes.visible = false; this.lens.visible = false; this.drops.length = 0; return; }
     if (cam) { cam.getWorldPosition(this.eye); cam.getWorldDirection(this.fwd); }
+    if (cam instanceof THREE.PerspectiveCamera) setPineLookParam(RAIN_LOOKS.lens, 'aspect', cam.aspect); // the screen's shape
     this.splashU.uTime.value += dt;
     this.splashes.visible = rainOn;
     if (rainOn) {
       this.splashU.uCol.value.copy(fogColor).multiplyScalar(1.4).addScalar(0.05);
       this.splashU.uAlpha.value = 0.24 + 0.26 * w.rain;
       this.spawnSplashes(dt, w.rain);
-      this.lensU.uSky.value.copy(fogColor).multiplyScalar(1.45).addScalar(0.06);
-      this.lensU.uGround.value.copy(fogColor).multiplyScalar(0.35);
+      setPineLookParam(RAIN_LOOKS.lens, 'sky', this.tint(fogColor, 1.45, 0.06));
+      setPineLookParam(RAIN_LOOKS.lens, 'ground', this.tint(fogColor, 0.35, 0));
     }
     this.updateLens(dt, rainOn ? w.rain : 0);
   }

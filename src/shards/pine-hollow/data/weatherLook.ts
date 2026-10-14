@@ -1,10 +1,12 @@
+import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGraph';
+
 /**
  * Pine Hollow's rain as data (PH-L10, E322 F-L5; SHARD-PLATFORM M3): the sizes of the SDK rain system's pieces
  * (runtime/looks/rainFx — the curtain with the canopy's drips, the puddles, the splashes at the feet, the drops on
- * the lens) and its three programs. `@{fog}` is the atmosphere's fog GLSL, spliced in by the system. The cave's hood is
- * the bear cave's mouth in its own frame (lx across, lz into the rock; the mouth faces −lz): half width, from, to, height
- * over the mouth's ground — the arch's opening is 2.6 × 4.8 m (caveArch.ts `openCaveArch`); the cover map takes over at
- * lz ≈ 1.5.
+ * the lens), its programs and its SF59 material graphs (`RAIN_GRAPHS`, the shardfile's look.materials). `@{fog}` is the
+ * atmosphere's fog GLSL, spliced in by the system. The cave's hood is the bear cave's mouth in its own frame (lx across,
+ * lz into the rock; the mouth faces −lz): half width, from, to, height over the mouth's ground — the arch's opening is
+ * 2.6 × 4.8 m (caveArch.ts `openCaveArch`); the cover map takes over at lz ≈ 1.5.
  */
 
 /** The rain's sizes per tier: the cover map's texels, the streaks, the splash and lens-drop slots, the puddles. */
@@ -19,7 +21,7 @@ export const PINE_RAIN = {
 /** The bear cave's hood, where no rain falls (its frame is the layout's BEAR_CAVE). */
 export const PINE_CAVE_HOOD = { hw: 3.2, lz0: -1.4, lz1: 4.5, up: 5.6 } as const;
 
-/** The rain's programs: the curtain (the cover map's crowns and roofs, the cave's hood), the splashes, the lens drops. */
+/** The rain's programs: the curtain (the cover map's crowns and roofs, the cave's hood) and the splashes. */
 export const PINE_RAIN_PROGRAMS = {
   rain: {
     vertex: /* glsl */`
@@ -113,38 +115,60 @@ export const PINE_RAIN_PROGRAMS = {
           gl_FragColor = vec4( uCol, a );
         }`,
   },
-  lens: {
-    transparent: true, depthTest: false, depthWrite: false,
-    vertex: /* glsl */`
-        attribute vec4 aDrop;
-        uniform float uAspect;
-        varying vec2 vUv; varying float vA; varying float vSeed;
-        void main() {
-          vUv = position.xy; vA = aDrop.w;
-          vSeed = fract( sin( aDrop.x * 91.3 + aDrop.y * 47.1 ) * 1753.1 );
-          // a bead is a little taller than wide once it runs
-          gl_Position = vec4( aDrop.xy + position.xy * aDrop.z * vec2( 1.0 / uAspect, 1.15 ), 0.0, 1.0 );
-        }`,
-    fragment: /* glsl */`
-        uniform vec3 uSky; uniform vec3 uGround;
-        varying vec2 vUv; varying float vA; varying float vSeed;
-        void main() {
-          // an uneven outline (a bead is never a circle)
-          float ang = atan( vUv.y, vUv.x );
-          float r = length( vUv ) * ( 1.0 + 0.07 * sin( ang * 3.0 + vSeed * 6.3 ) + 0.04 * sin( ang * 5.0 - vSeed * 4.0 ) );
-          if ( r > 1.0 ) discard;
-          // the lens a drop makes shows the world upside down and small: the bright sky pooled low, the dark ground high
-          float body = smoothstep( 1.0, 0.0, r );
-          vec3 col = mix( uGround, uSky, smoothstep( 0.5, -0.6, vUv.y ) );
-          float rim = smoothstep( 0.72, 0.95, r ) * smoothstep( 1.0, 0.95, r );
-          col = mix( col, uGround * 0.35, rim * 0.8 );
-          float glint = smoothstep( 0.22, 0.0, length( vUv - vec2( -0.32, 0.4 ) ) );
-          col += glint * 0.9;
-          float a = ( 0.28 + 0.4 * rim + 0.5 * glint ) * smoothstep( 1.0, 0.9, r ) * vA * mix( 0.8, 1.0, body );
-          gl_FragColor = vec4( col, a );
-        }`,
-  },
 } as const;
+
+/** the look.materials ids the rain's graphs are worn under */
+export const RAIN_LOOKS = { lens: 'pine-rain-lens' } as const;
+
+/** One graph's node table and its builders (ids `r0`, `r1`, …). */
+function kit() {
+  const nodes: Record<string, GraphNode> = {};
+  let next = 0;
+  const op = (name: string, inputs?: readonly GraphRef[], extra?: Omit<GraphNode, 'op' | 'in'>): string => {
+    const id = `r${String(next++)}`; nodes[id] = { op: name, ...(inputs === undefined ? {} : { in: inputs }), ...extra }; return id;
+  };
+  const add = (a: GraphRef, b: GraphRef): string => op('add', [a, b]), sub = (a: GraphRef, b: GraphRef): string => op('sub', [a, b]);
+  const mul = (a: GraphRef, b: GraphRef): string => op('mul', [a, b]), swz = (a: GraphRef, mask: string): string => op('swizzle', [a], { mask });
+  const ss = (a: GraphRef, b: GraphRef, x: GraphRef): string => op('smoothstep', [a, b, x]);
+  /** GLSL's reversed smoothstep(b, a, x) for a < b */
+  const fall = (a: GraphRef, b: GraphRef, x: GraphRef): string => op('oneMinus', [ss(a, b, x)]);
+  const param = (name: string): string => op('param', undefined, { param: name });
+  const attr = (name: string): string => op('attribute', undefined, { name, type: 'vec4' });
+  return { nodes, op, add, sub, mul, swz, ss, fall, param, attr };
+}
+
+/**
+ * The drops on the lens: one clip-space quad per drop (`aDrop`: ndc x, y, radius in ndc y, alpha), a bead a little
+ * taller than wide; the fragment is an uneven bead showing the world upside down and small (the bright sky pooled low,
+ * the dark ground high) with a dark rim and a glint. `aspect` (the camera's), `sky` and `ground` (from the fog colour)
+ * are set each frame; depth testing is switched off on the worn material (runtime/looks/rainFx).
+ */
+function lensGraph(): GraphIr {
+  const k = kit(), { op, add, sub, mul, swz, ss, fall, param } = k;
+  const drop = k.attr('aDrop'), corner = swz(op('positionGeometry'), 'xy');
+  const scale = mul(mul(corner, swz(drop, 'z')), op('combine', [op('div', [1, param('aspect')]), 1.15]));
+  const clip = op('combine', [add(swz(drop, 'xy'), scale), 0, 1]);
+  const uv = op('varying', [corner]), vA = op('varying', [swz(drop, 'w')]);
+  const vSeed = op('varying', [op('fract', [mul(op('sin', [add(mul(swz(drop, 'x'), 91.3), mul(swz(drop, 'y'), 47.1))]), 1753.1)])]);
+  const uy = swz(uv, 'y'), ang = op('atan', [uy, swz(uv, 'x')]);
+  const wob = add(add(1, mul(op('sin', [add(mul(ang, 3), mul(vSeed, 6.3))]), 0.07)), mul(op('sin', [sub(mul(ang, 5), mul(vSeed, 4))]), 0.04));
+  const r = mul(op('length', [uv]), wob);
+  const body = fall(0, 1, r), sky = param('sky'), ground = param('ground');
+  const rim = mul(ss(0.72, 0.95, r), fall(0.95, 1, r));
+  const glint = fall(0, 0.22, op('length', [sub(uv, [-0.32, 0.4])]));
+  const col = add(op('mix', [op('mix', [ground, sky, fall(-0.6, 0.5, uy)]), mul(ground, 0.35), mul(rim, 0.8)]), mul(glint, 0.9));
+  const alpha = mul(mul(mul(add(add(0.28, mul(rim, 0.4)), mul(glint, 0.5)), fall(0.9, 1, r)), vA), op('mix', [0.8, 1, body]));
+  return { version: 1, kind: 'material', model: 'unlit', budget: { nodes: 120, samplers: 1, instructions: 300 }, effectState: { blend: 'alpha', depthWrite: false, fog: false },
+    params: {
+      aspect: { type: 'float', value: 1, min: 0.05, max: 20 },
+      sky: { type: 'vec3', value: [0.8, 0.82, 0.86], min: 0, max: 64 },
+      ground: { type: 'vec3', value: [0.2, 0.22, 0.2], min: 0, max: 64 },
+    },
+    nodes: k.nodes, stages: { 'vertex.clip': { position: clip }, surface: { colour: col, alpha, discard: op('gt', [r, 1]) } } };
+}
+
+/** The rain's graphs by look.materials id. */
+export const RAIN_GRAPHS: Readonly<Record<string, GraphIr>> = { [RAIN_LOOKS.lens]: lensGraph() };
 
 /** C7: in the rain the grazing herds drift in under the nearest big trees (the bear sits it out), and back out after. */
 export const PINE_HERD_SHELTER = { kinds: ['deer', 'elk', 'boar'], bigTree: 20, reach: 90, homeHold: 90, clear: 2.2, spotR: 3.5, homeR: 10, wet: 0.3, dry: 0.05 } as const;
