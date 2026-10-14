@@ -1,3 +1,4 @@
+import { FAN_PRESENTATION } from '../data/equipment';
 import { registerWeaponFamily } from '@wildshard/game/plugin/weaponFamily';
 import type { ShardContext } from '@wildshard/game/plugin/context';
 import { bindRuntimeItems } from '@wildshard/game/plugin/headless';
@@ -9,7 +10,7 @@ import source from '../shard.config';
 export function bindSkyItems(ctx: Pick<ShardContext, 'app' | 'scope' | 'game'>, fan: WarFanWeapon,
   hooks: NonNullable<Parameters<typeof bindRuntimeItems>[2]['hooks']>, start: Parameters<WarFanWeapon['bindSecondary']>[0]): void {
   const native = fan.row;
-  const family: ItemFamily = { kind: 'weapon', profiles: ['cone'], presentation: { ...(native.cues === undefined ? {} : { cues: native.cues }), ui: { touch: 'melee', lockOn: true, melee: true, tracers: false } },
+  const family: ItemFamily = { kind: 'weapon', profiles: ['cone'], presentation: FAN_PRESENTATION,
     create: (row, spec, ports) => {
       if (ports.contacts === undefined || ports.secondary === undefined || ports.hook === undefined) throw new Error('Sky fan needs admitted contacts and composed gust hook');
       fan.bindSecondary(start, spec.charge); fan.row = { ...row, legacySlot: 'far-fan', meta: native.meta }; return fan;

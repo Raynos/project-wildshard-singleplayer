@@ -17,7 +17,7 @@ import { DUSK, setDusk, stepDusk } from './look/dusk';
 import { preloadDuneMeshes } from './world/meshes';
 import { loadBakedWorld } from './world/baked';
 import type { Bullwhip } from './runtime/items/heldWhip';
-import { WHIP_ROW } from './weapons/rows';
+import { WHIP_ROW } from './data/equipment';
 import { installQuest } from './quest/install';
 import { FLAG, SCOUT_FLAG } from './data/flags';
 import { bindDeclaredFight } from '@wildshard/game/plugin/ui';
@@ -41,7 +41,7 @@ export class SignalDunesPlugin extends HybridRuntimePlugin {
   fire: SignalFire | null = null; places: SignalWorld | null = null;
   // SF27: the ray, the skitterer (an admitted species script), the strider and the Matriarch (species/matriarch.ts, a phased flyer) run their rows' declared brains
   protected readonly rows: HybridRuntimeRows = { expose: 'sunscar', strings: STRINGS, weapon: WHIP_ROW, encounters: [{ id: 'sunscar.matriarch', displayName: STRINGS.matriarch }], complete: 'sunscar.complete',
-    audio: source.audio, boot: { ...SIGNAL_RUNTIME_BOOT, itemContexts: source }, ...SIGNAL_PAGE_PROGRAM };
+    source, boot: { ...SIGNAL_RUNTIME_BOOT, itemContexts: source }, ...SIGNAL_PAGE_PROGRAM };
   /**
    * Quest state for a capture (E399; council round 1: run the player's own path, every side effect with it). Each step is
    * what play does: Sefa's first talk sets her flag (her dialogue's only effect), the logbook's interact, the crank's

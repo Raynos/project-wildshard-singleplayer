@@ -1,7 +1,7 @@
 import { HeldMeleeWeapon, HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.generated.json' with {type:'json'};
 import { FAN_PHASE } from '../../data/meleePhase';
-import { FAN_ROW } from '../../weapons/rows';
+import { FAN_ROW } from '../../data/equipment';
 import { fanSource } from '../../weapons/fanModel';
 
 export type ConeFanTarget = ReturnType<ConstructorParameters<typeof HeldMeleeWeapon>[3]['targets']>[number];

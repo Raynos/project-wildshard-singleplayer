@@ -8,7 +8,7 @@ import { COIL_SURFACE } from '../../data/surfaces';
 import lash from '../../data/lash.json' with { type: 'json' };
 import { lastBakedWorld, lastPlait } from '../../world/baked';
 import { duneHd, heldSurface } from '../../world/meshes';
-import { WHIP_ROW } from '../../weapons/rows';
+import { WHIP_ROW } from '../../data/equipment';
 import { WHIP_ITEM } from '../../data/items';
 import { WHIP_PHASE } from '../../data/meleePhase';
 

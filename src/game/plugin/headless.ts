@@ -448,7 +448,8 @@ export interface HybridRuntimeRows {
   readonly encounters: Parameters<ShardContext['rows']['encounter']>[0];
   /** the flag the session's quest probe reports once `quest` is complete */
   readonly complete: string;
-  readonly audio: Parameters<typeof installRuntimeAudio>[1];
+  readonly source?: Shardfile;
+  readonly audio?: Parameters<typeof installRuntimeAudio>[1];
   readonly cues?: Parameters<typeof installRuntimeAudio>[2];
   /** Serializable entry configuration; the host supplies all callbacks. */
   readonly boot?: {
@@ -603,7 +604,9 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
       this.input(ctx, { ...definition, ...(definition.touch === undefined ? {} : { touch: { ...definition.touch, verbs } }) }, description);
     }
     this.enter(ctx);
-    installRuntimeAudio(ctx, this.rows.audio, this.rows.cues);
+    const audio = this.rows.audio ?? this.rows.source?.audio;
+    if (audio === undefined) throw new Error('Hybrid runtime needs its admitted audio rows');
+    installRuntimeAudio(ctx, audio, this.rows.cues);
     const loot = installRuntimeLoot(ctx, { gear: (purse) => ({ coins: purse.coins }), finds: null, marks: null, charted: () => false, chime: () => { rt?.play?.cues.cue('cue.swap'); } });
     await this.install(ctx, loot);
     if (rt) rt.hooks.questFlags = () => this.quest?.isComplete === true ? [this.rows.complete] : [];

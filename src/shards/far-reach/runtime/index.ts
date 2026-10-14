@@ -24,7 +24,7 @@ import type { RisingIslet } from '../data/isletDesign';
 import { WarFan, type WarFanWeapon, type ConeFanTarget } from './weapons/heldFan';
 import { paintFanLeaf } from '../weapons/fanModel';
 import { turnVanes } from '../quest/vanes';
-import { FAN_ROW } from '../weapons/rows';
+import { FAN_ROW } from '../data/equipment';
 import { preloadSkyMeshes } from '../world/meshes';
 import { loadSkyBaked } from '../world/baked';
 import { adoptIsleTile } from '../world/isle';
@@ -84,7 +84,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
   meadow: Meadow | null = null;
 
   protected readonly rows: HybridRuntimeRows = { expose: 'farReach', strings: STRINGS, weapon: FAN_ROW, encounters: { id: ROC_ID, displayName: STRINGS.roc }, complete: FLAGS.complete,
-    audio: source.audio, boot: SKY_RUNTIME_BOOT, ...SKY_PAGE_PROGRAM };
+    source, boot: SKY_RUNTIME_BOOT, ...SKY_PAGE_PROGRAM };
 
   protected override async build(ctx: ShardContext): Promise<void> {
     // The generated models (C6) load behind the loading screen; the world and the creature looks read them synchronously.
