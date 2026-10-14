@@ -91,6 +91,7 @@
     "./looks/cardField": "./looks/cardField.ts",
     "./looks/effectField": "./looks/effectField.ts",
     "./looks/dayLookPresets": "./looks/dayLookPresets.ts",
+    "./looks/riggedHulls": "./looks/riggedHulls.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/mergedPrimitives": "./kit/mergedPrimitives.ts",
     "./species/clips": "./species/clips.ts",
@@ -508,6 +509,10 @@
       "./looks/dayLookPresets": {
         "types": "./dist/types/sdk/looks/dayLookPresets.d.ts",
         "default": "./dist/looks/dayLookPresets.js"
+      },
+      "./looks/riggedHulls": {
+        "types": "./dist/types/sdk/looks/riggedHulls.d.ts",
+        "default": "./dist/looks/riggedHulls.js"
       },
       "./kit/bakedGeometry": {
         "types": "./dist/types/sdk/kit/bakedGeometry.d.ts",

@@ -2118,6 +2118,16 @@ when the ground is, the sand maps, the `TintedTileGround` and the held `CubeSkir
 fault)` uploads the dune-shadow, trail and grain maps with the grain tile's means. Signal Dunes' `look/render.ts` is its
 binding (row `data/renderLook.ts` SIGNAL_DUSK_LOOK).
 
+**Rigged creature hulls (SHARD-PLATFORM W2 C2).** `@wildshard/sdk/looks/riggedHulls` (`src/sdk/looks/riggedHulls.ts`)
+`riggedHulls(row, urls)` is a shard's family of generated creature hulls pre-skinned offline to the procedural species'
+skeletons, from one `RiggedHullFamilyRow` (pure data: the log label, the rigs to preload, `kind:variant` → hull, each
+hull's generator flap `RiggedHullFlap` and each coat's fur sheen and rim `RiggedHullFur`) and its `RiggedHullUrls` (a
+hull's rig file per tier, a baked coat's KTX2 key and lossless image, and an optional per-variant `extras` builder that
+returns the hull plus rigid extra geometry in the same draw, flagged `overgrown`). `preload()` loads every rig and adopts
+its baked coats once; `skin(kind, variant, bones, eyes, def)` is a species look's `skin` (null keeps the procedural mesh:
+no hull, not loaded, or baked against other bones). `pressFlap(pos, nrm, index, flap)` collapses a flap in place.
+Pine Hollow's `species/hulls.ts` is its binding (row `data/creatureHulls.ts` PINE_HULLS).
+
 Shared species take a plain `{ ...BOAR, variants: [...] }` spread to add a variant (the template's Greyback elite).
 
 ## 22. Explore, practice, playgrounds
