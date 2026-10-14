@@ -11479,7 +11479,7 @@
         "src/sdk/bake/json.mjs",
         "src/shards/far-reach/generators/meadowBlades.ts",
         "bakeMeadowBlades",
-        "public/assets/far-reach/baked/meadow-blades.bin",
+        "public/assets/far-reach/baked/a977ed8a82e49ff6212e43b8aee35e4ef6e8f0a2438a1cc45967c3265d3596a1.bin",
         "--bytes"
       ],
       "inputRoots": [
@@ -11499,10 +11499,13 @@
         "src/shards/far-reach/generators/meadowBlades.ts"
       ],
       "outputs": [
-        "public/assets/far-reach/baked/meadow-blades.bin"
+        "public/assets/far-reach/baked/a977ed8a82e49ff6212e43b8aee35e4ef6e8f0a2438a1cc45967c3265d3596a1.bin"
       ],
       "seedOutputs": [],
-      "platform": "portable"
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "public/assets/far-reach/baked/a977ed8a82e49ff6212e43b8aee35e4ef6e8f0a2438a1cc45967c3265d3596a1.bin"
+      ]
     },
     {
       "id": "sky-hero-library",

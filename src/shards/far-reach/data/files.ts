@@ -67,7 +67,7 @@ export const BAKED_URLS: Readonly<Record<BakedPiece, string>> = { 'winch-house':
   'book-stand': '/assets/far-reach/baked/book-stand.glb', knolls: '/assets/far-reach/baked/knolls.glb',
   geometries: '/assets/far-reach/baked/geometries.glb', 'islet-rig': '/assets/far-reach/baked/islet-rig.glb', dressing: '/assets/far-reach/baked/dressing.glb' };
 /** The meadow's blades, deflated (world/meadow.ts; SHARD-PLATFORM M3, generators/meadowBlades.ts). */
-export const MEADOW_BLADES_URL = '/assets/far-reach/baked/meadow-blades.bin';
+export const MEADOW_BLADES_URL = '/assets/far-reach/baked/a977ed8a82e49ff6212e43b8aee35e4ef6e8f0a2438a1cc45967c3265d3596a1.bin';
 /** Every island's baked shape (world/isle.ts `islandMesh`; SHARD-PLATFORM M3, generators/isles.ts). */
 export const ISLES_URL = '/assets/far-reach/baked/isles.bin';
 /** The rope bridges' baked geometry pack (world/shapes.ts `ropeBridge`; SHARD-PLATFORM M3, generators/bridges.ts). */

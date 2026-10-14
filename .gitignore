@@ -957,3 +957,6 @@ src/shards/far-reach/data/crownInstances.generated.json
 
 /src/shards/far-reach/data/millRest.generated.json
 /public/assets/far-reach/baked/mill-rest.glb
+
+# G412: fast derived meadow transport has an immutable content address.
+/public/assets/far-reach/baked/a977ed8a82e49ff6212e43b8aee35e4ef6e8f0a2438a1cc45967c3265d3596a1.bin
