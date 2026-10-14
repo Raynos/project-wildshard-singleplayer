@@ -393,6 +393,26 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const weight = uniform(1);
   interface Scope { readonly nodes: Readonly<Record<string, GraphNode>>; readonly parent: Scope | null; readonly memo: Map<string, Val>; readonly acc: Val | null; readonly index: Val | null }
   const root: Scope = { nodes: ir.nodes, parent: null, memo: new Map(), acc: null, index: null };
+  // Implicit texture derivatives need coherent execution on both sides of a select.
+  // Follow references in their lexical scope, including a loop's actual output.
+  const sampleOps = new Set(['texture', 'meshMap', 'sceneColour', 'sceneColourAt', 'sceneDepth', 'sceneNormal']);
+  function samples(r: GraphRef | undefined, scope: Scope, seen = new Set<GraphNode>()): boolean {
+    if (typeof r !== 'string') return false;
+    for (let s: Scope | null = scope; s !== null; s = s.parent) {
+      const node = s.nodes[r];
+      if (node === undefined) continue;
+      if (seen.has(node)) return false;
+      seen.add(node);
+      if (sampleOps.has(node.op)) return true;
+      if ((node.in ?? []).some(argument => samples(argument, s, seen))) return true;
+      if (node.body !== undefined) {
+        const body: Scope = { nodes: node.body.nodes, parent: s, memo: new Map(), acc: null, index: null };
+        return samples(node.body.out, body, seen);
+      }
+      return false;
+    }
+    return false;
+  }
   // the lighting stage's inputs, live only while its sub-graph builds; a node reading a sun input memoizes per light
   let sunIn: { readonly direction: Node<'vec3'>; readonly colour: Node<'vec3'>; readonly shadow: Node<'float'> } | null = null;
   let irradianceIn: Node<'vec3'> | null = null;
@@ -554,9 +574,14 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'not': return { t: 'bool', n: not(asBool(one())) };
       case 'select': {
         const [cond, x, y] = three();
+        const bothSample = samples(n.in?.[1], scope) && samples(n.in?.[2], scope);
+        if (x.t === 'bool' && y.t === 'bool' && bothSample) {
+          selects.light++;
+          return { t: 'bool', n: new ConvertNode<'bool'>(new MathNode('mix', new ConvertNode<'float'>(y.n, 'float'), new ConvertNode<'float'>(x.n, 'float'), new ConvertNode<'float'>(cond.n, 'float')), 'bool') };
+        }
         if (x.t === 'bool' && y.t === 'bool') { selects.branch++; return { t: 'bool', n: new ConditionalNode(asBool(cond), x.n, y.n) }; }
         const t = widest([x, y]);
-        if (scope.parent === null && Math.max(ownCost(n.in?.[1]), ownCost(n.in?.[2])) > BRANCH_LIGHT_COST) {
+        if (scope.parent === null && !bothSample && Math.max(ownCost(n.in?.[1]), ownCost(n.in?.[2])) > BRANCH_LIGHT_COST) {
           selects.branch++;
           return { t, n: new ConditionalNode(asBool(cond), widen(x, t), widen(y, t)) };
         }
