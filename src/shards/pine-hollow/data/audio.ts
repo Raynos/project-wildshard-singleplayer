@@ -34,7 +34,7 @@ export const PINE_AUDIO = parseAudioData({ playback:{mode:'samples',initial:{},p
       { slots: ['boss'], when: [{ field: 'scene', op: 'equals', value: 'boss' }] },
     ] },
   samples: PINE_AUDIO_SAMPLES,
-  zones: { routing:{probeFinite:['x','y','z','rawNight','rawDawn','rawRain'],probes:[
+  zones: { schedules:[{mark:'thrall',tick:'forest.thrall',every:[9,16,0],start:'built',entered:true,random:'global',when:['and',['gt','thr',0.05],['not','underwater'],['lt','diag.cabin',0.5]],shot:{family:'thrall_call',chance:['+',0.35,['*',0.5,'thr']],gain:['*',0.9,'thr'],radius:[25,35]},targets:[]}], routing:{probeFinite:['x','y','z','rawNight','rawDawn','rawRain'],probes:[
     {kind:'footprint',id:'cabin',floor:'cabins',sites:'cabins',minY:0,maxY:3.2,x:[-6,2.45],z:[-6,6]},
     {kind:'circle',id:'pond',source:'pond',inner:4,outer:40,pan:'pond'},
     {kind:'spots',source:'spots',ids:['creek','waterfall','mill','ridge','oldgrowth','cave'],fade:25,open:'open',initial:['gt','pond',0.5],pans:['creek','waterfall','mill']},

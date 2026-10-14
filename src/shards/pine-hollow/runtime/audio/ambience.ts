@@ -5,7 +5,6 @@ import type { Audio } from '@wildshard/engine/audio/Audio';
 import { audioLog } from '@wildshard/engine/audio/audioLog';
 import type { StepSurface } from '@wildshard/engine/audio/surface';
 import { audioRandom } from '@wildshard/engine/audio/util';
-import { ambientTick } from '@wildshard/engine/core/harnessTap';
 import { CABIN_SITES, POND, hasPond } from '@wildshard/engine/world/Heightfield';
 /**
  * ForestAmbience — Pine Hollow's zoned soundscape and reverb zones (PINE-HOLLOW-REMASTER PH-A2 / PH-A5), the IslandAmbience
@@ -77,7 +76,6 @@ export class ForestAmbience {
   private readonly bedNames = new Map<string,PhBed>(PH_BEDS.map(name=>[name,name] as const));
   private readonly roomNames = new Map<string,Room>(ROOMS.map(name=>[name,name] as const));
   private readonly zoneNames = new Map<string,ForestZone>(FOREST_ZONES.map(name=>[name,name] as const));
-  private active = true;
   night = 0; dawn = 0; rain = 0;
   /** the thralls' far calls (0 … 1); defaults to following the night when never set */
   thralls: number | undefined;
@@ -90,9 +88,6 @@ export class ForestAmbience {
   };
 
   private spots: ZoneSpot[];
-  private px = 0; private py = 0; private pz = 0;
-  private underwater = false;
-  private timers: (ReturnType<typeof setTimeout> | 0)[] = [];
 
   constructor(audio: Audio, o: ForestAmbienceOpts, profile: AudioZoneProfile = DEFAULT_PROFILE) {
     this.scope = (o.scope ?? resourceScope()).child('ForestAmbience');
@@ -105,8 +100,8 @@ export class ForestAmbience {
       sampleLive:ids=>{this.diag.beds=ids;},
       floors:{cabins:o.cabins},sites:{cabins:CABIN_SITES},circles:{pond:()=>hasPond()?POND:undefined},spots:{spots:()=>this.spots},pointLists:{fire:()=>o.cabins?.firePits??[]},
       inputs:{rawNight:()=>this.night,rawDawn:()=>this.dawn,rawRain:()=>this.rain,thr:()=>this.thrallLevel()},
-      listener:(x,y,z,yaw)=>{this.px=x;this.py=y;this.pz=z;this.sfx.setListener(x,y,z,yaw);},
-      onBuild:()=>{this.scheduleThrall();},
+      listener:(x,y,z,yaw)=>{this.sfx.setListener(x,y,z,yaw);},
+      shot:(family,options)=>{if(family!=='thrall_call')throw new Error('Unknown forest scheduled sample');return this.sfx.shot(family,options);},
       diagnostic:(id,value)=>{if(!(id in this.diag)||id==='beds'||id==='sends')throw new Error('Unknown forest diagnostic');Reflect.set(this.diag,id,value);},
       roomWeight:(id,value)=>{this.diag.sends[requireAudioProfile(this.roomNames.get(id),'forest room')]=value;},
       onZone:id=>{this.zone=requireAudioProfile(this.zoneNames.get(id),'forest zone');audioLog('zone',this.zone);this.onZone?.(this.zone);},
@@ -115,21 +110,6 @@ export class ForestAmbience {
 
   addSpot(s: ZoneSpot): void { this.spots.push(s); }
 
-  // ─────────────── timers (not per frame) ───────────────
-  private later(sec: number, fn: () => void): void { this.timers.push(this.scope.timeout(sec * 1000, fn)); if (this.timers.length > 16) this.timers.shift(); }
-  /** the King's thralls calling from the fog at night: a far, eerie call from a random side, 25-60 m out */
-  private scheduleThrall(): void {
-    this.later(9 + Math.random() * 16, () => {
-      ambientTick('forest.thrall', () => {
-        const k = this.thrallLevel();
-        if (k > 0.05 && !this.underwater && this.diag.cabin < 0.5 && Math.random() < 0.35 + 0.5 * k) {
-          const a = Math.random() * Math.PI * 2, d = 25 + Math.random() * 35;
-          this.sfx.shot('thrall_call', { at: { x: this.px + Math.cos(a) * d, y: this.py, z: this.pz + Math.sin(a) * d }, gain: 0.9 * k });
-        }
-        this.scheduleThrall();
-      });
-    });
-  }
   private thrallLevel(): number { return Math.max(0, Math.min(1, this.thralls ?? this.night * 0.5)); }
 
   // ─────────────── per frame ───────────────
@@ -143,19 +123,12 @@ export class ForestAmbience {
   }
 
   /** head under / over the pond's surface: the beds and sends drop while under */
-  setUnderwater(on: boolean): void { this.underwater=on;this.routing.setUnderwater(on); }
+  setUnderwater(on: boolean): void { this.routing.setUnderwater(on); }
 
   /** Stop entered beds and schedulers, and cut the reverb input before another cell borrows the shared audio buses. */
   setActive(on: boolean): void {
-    if (this.active === on) return;
-    this.active = on;
-    if (!on) {
-      for (const id of this.timers) this.scope.cancelTimer(id);
-      this.timers = [];
-    }
     this.routing.setActive(on);
-    if(on&&this.routing.ready)this.scheduleThrall();
   }
 
-  dispose(): void { for (const id of this.timers) this.scope.cancelTimer(id); this.timers = []; this.routing.dropSamples(); }
+  dispose(): void { this.routing.dropSchedules();this.routing.dropSamples(); }
 }

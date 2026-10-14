@@ -103,6 +103,7 @@ export interface AmbienceMixPorts {
   readonly afterLevels?: () => void;
   readonly sample?: { available:()=>boolean; load:(id:string)=>Promise<SampleLoop|undefined>; drop:(id:string)=>void };
   readonly sampleLive?: (ids:string[])=>void;
+  readonly shot?:(family:string,options:{at:{x:number;y:number;z:number};gain:number})=>boolean;
   readonly onZone?: (zone:string)=>void;
   readonly stereoTargets?: ()=>readonly (readonly [string,number,number])[];
   readonly floors?:Readonly<Record<string,{floorHeightAt:(x:number,z:number)=>number|undefined}|null|undefined>>;
@@ -161,6 +162,7 @@ export class AmbienceMix {
   private sendIn: GainNode | undefined;
   private built = false; private warming = false; private mixed = false;
   private underwater = false;
+  private enteredTimers:(ReturnType<Scope['timeout']>)[]=[];
   private tick = 0; private t = 0; private mixDt=0; private active=true;
   private readonly samples=new Map<string,{pending:boolean;idle:number;heard:boolean}>();
   private readonly sampleDefs=new Map<string,ZoneBed>();
@@ -171,6 +173,7 @@ export class AmbienceMix {
     this.nodeRows=requireAudioProfile(profile.nodes,'ambience nodes');if(this.nodeRows.length>64)throw new Error('Audio node capacity');
     const schedules=profile.schedules??[];
     if(schedules.length>32)throw new Error('Ambient schedule capacity');
+    if(schedules.some(row=>row.shot!==undefined)&&ports.shot===undefined)throw new Error('Missing scheduled sample owner');
     for(let i=0;i<32;i++){const row=schedules[i];if(row!==undefined)this.marks[row.mark]=()=>{this.scheduleOneShot(row);};}
     this.probeRows=[...rows.bounds.map(row=>({kind:'bounds' as const,...row})),...rows.near.map(row=>({kind:'near' as const,...row})),...(rows.probes??[])];
     if(this.probeRows.length>128)throw new Error('Audio spatial probe capacity');
@@ -270,6 +273,7 @@ export class AmbienceMix {
     if(rows.rooms.input){const input=this.node(rows.rooms.input);if(!(input instanceof GainNode))throw new Error('Ambience room input must be a gain');this.sendIn=input;}
     else {const sendIn=c.createGain();sendIn.gain.value=1;this.node(rows.rooms.from).connect(sendIn);this.sendIn=sendIn;}
     if(this.rows.listener==='port'){a.voices.prewarm([...rows.prewarm]);this.ports.onBuild?.();}
+    for(const row of this.profile.schedules??[])if(row.start==='built')this.scheduleOneShot(row);
   }
 
   /** a room's send (and convolver), built the first time it is needed */
@@ -284,22 +288,34 @@ export class AmbienceMix {
   // ─────────────── timers (not per frame) ───────────────
   private scheduleOneShot(row: AudioOneShotSchedule): void {
     const [base, spread, night] = row.every;
-    this.scope.timeout((base + this.ports.random() * spread * (1 + this.night * night)) * 1000, () => {
+    const random=row.random==='global'?()=>Math.random():this.ports.random;
+    const timer=this.scope.timeout((base + random() * spread * (1 + this.night * night)) * 1000, () => {
       ambientTick(row.tick, () => {
         this.values.set('night', this.night); this.values.set('underwater', this.underwater ? 1 : 0);
-        if (row.when === undefined || (this.mixed && this.truthy(this.eval(row.when)))) {
-          this.playProgram(row);
+        if(row.shot!==undefined)for(const [id,read]of this.inputRows)this.values.set(id,read());
+        if (row.when === undefined || ((row.shot!==undefined||this.mixed) && this.truthy(this.eval(row.when)))) {
+          if(row.shot!==undefined){
+            const shot=row.shot;
+            if(random()<this.eval(shot.chance)){
+              const angle=random()*Math.PI*2,distance=shot.radius[0]+random()*shot.radius[1];
+              this.ports.shot?.(shot.family,{at:{x:this.value('x')+Math.cos(angle)*distance,y:this.value('y'),z:this.value('z')+Math.sin(angle)*distance},gain:this.eval(shot.gain)});
+            }
+          }else{this.playProgram(row);}
         }
         this.scheduleOneShot(row);
       });
     });
+    if(row.entered===true){this.enteredTimers.push(timer);if(this.enteredTimers.length>16)this.enteredTimers.shift();}
   }
+  /** Cancel entered schedulers without changing their parent's room/node ownership. */
+  dropSchedules():void {for(const timer of this.enteredTimers)this.scope.cancelTimer(timer);this.enteredTimers=[];}
+
 
   private playProgram(row:AudioOneShotSchedule):void {
     const targets:Record<string,AudioNode>={};let first:AudioNode|undefined;
     for(let i=0;i<32;i++){const id=row.targets[i];if(id===undefined)continue;const node=this.zones.beds.get(id)?.gain??this.nodes.get(id);if(node===undefined)return;targets[id]=node;first??=node;}
     if(first===undefined)return;
-    const program=requireAudioProfile(this.profile.programs?.[row.program],'ambient phrase');
+    const program=requireAudioProfile(this.profile.programs?.[requireAudioProfile(row.program,'ambient program id')],'ambient phrase');
     this.audio.playPhrase(program,first,Object.fromEntries(this.values),this.ports.random,targets);
   }
 
@@ -342,6 +358,7 @@ export class AmbienceMix {
   private value(name: string): number {
     const v = this.values.get(name);
     if (v !== undefined) return v;
+    if(name.startsWith('diag.'))return this.diag[name.slice(5)]??0;
     if (name.startsWith('bed.')) return this.zones.beds.get(name.slice(4))?.level ?? 0;
     throw new Error(`ambienceMix: no value '${name}'`);
   }
@@ -440,10 +457,11 @@ export class AmbienceMix {
   /** Entered-owner bus gating; decoded beds are released before another cell borrows the buses. */
   setActive(on:boolean):void {
     if(this.active===on)return;this.active=on;
-    if(!on){this.dropSamples();this.ports.sampleLive?.([]);}
+    if(!on){this.dropSchedules();this.dropSamples();this.ports.sampleLive?.([]);}
     if(!this.built)return;const time=this.audio.ctx.currentTime;
     for(const [id,value] of this.rows.activeGains??[]){const node=this.node(id);if(!(node instanceof GainNode))throw new Error('Active audio bus must be a gain');node.gain.cancelScheduledValues(time);node.gain.setValueAtTime(on?(typeof value==='number'?value:requireAudioLevel(this.profile.levels,value)):0,time);}
     for(const [id,send] of this.sends){send.gain.cancelScheduledValues(time);send.gain.setValueAtTime(0,time);this.ports.roomWeight?.(id,0);}
+    if(on)for(const row of this.profile.schedules??[])if(row.entered===true)this.scheduleOneShot(row);
   }
 
   /** the schedulers stop (the mixer's unloadLevel fades what is left) */

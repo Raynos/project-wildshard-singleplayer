@@ -158,7 +158,11 @@ export const AudioPhraseProgramSchema = v.pipe(v.strictObject({tap:v.exactOption
 /** Validated tone/noise envelopes and owned filtered buses; no executable author callbacks. */
 export type AudioPhraseProgram = v.InferOutput<typeof AudioPhraseProgramSchema>;
 /** A native graph mark scheduler; predicates read actual mixer observations. */
-export const AudioOneShotScheduleSchema = v.strictObject({mark:id,tick:id,every:v.tuple([v.pipe(finite,v.minValue(0.001),v.maxValue(600)),v.pipe(finite,v.minValue(0),v.maxValue(600)),v.pipe(finite,v.minValue(0),v.maxValue(10))]),when:v.exactOptional(mixExpr),program:id,targets:v.pipe(v.array(id),v.minLength(1),v.maxLength(32))});
+export const AudioOneShotScheduleSchema = v.pipe(v.strictObject({mark:id,tick:id,every:v.tuple([v.pipe(finite,v.minValue(0.001),v.maxValue(600)),v.pipe(finite,v.minValue(0),v.maxValue(600)),v.pipe(finite,v.minValue(0),v.maxValue(10))]),when:v.exactOptional(mixExpr),
+  start:v.exactOptional(v.picklist(['mark','built'])),entered:v.exactOptional(v.boolean()),random:v.exactOptional(v.picklist(['host','global'])),
+  shot:v.exactOptional(v.strictObject({family:id,chance:mixExpr,gain:mixExpr,radius:v.tuple([v.pipe(finite,v.minValue(0),v.maxValue(2000)),v.pipe(finite,v.minValue(0),v.maxValue(2000))])})),
+  program:v.exactOptional(id),targets:v.pipe(v.array(id),v.maxLength(32))}),v.check(row=>row.shot===undefined?(row.program!==undefined&&row.targets.length>0):row.program===undefined,'one scheduled phrase or sample'));
+
 export type AudioOneShotSchedule = v.InferOutput<typeof AudioOneShotScheduleSchema>;
 /** A scoped ambient scheduler for an admitted phrase. */
 export const AudioPhraseScheduleSchema = v.strictObject({tick:id,wait:v.pipe(v.tuple([finite,finite]),v.check(values=>values[0]>0&&values[1]>=values[0]&&values[1]<=600)),program:AudioPhraseProgramSchema});

@@ -1437,6 +1437,11 @@ to actual floors, terrain, weather and optional points. Floors use the
 specified feet tolerance; height and slope are queried only when reached,
 and the first matching rule wins. Pine and Driftwood use the same host.
 
+Ambience schedules can play a named recorded shot through a borrowed
+player, with declared chance, gain and radial placement. `start: built`
+runs after graph construction; `entered: true` cancels it on exit and
+restarts on entry. The declared global/host random source is preserved.
+
 Ambience routing `probes` reads native bounds, nearby point lists, oriented
 floor footprints, circular regions and live zone spots. Ordered rows feed
 the existing mixer expressions; `probeFinite` holds the mix on invalid
