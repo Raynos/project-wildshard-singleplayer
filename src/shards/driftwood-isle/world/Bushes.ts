@@ -13,13 +13,16 @@ import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import { Noise2D } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, type Placement } from '@wildshard/engine/models/model';
-import { place, placeSliced, type Placed } from '@wildshard/engine/models/place';
+import { place, type Placed } from '@wildshard/engine/models/place';
 import { normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { islandKnobs } from '../tiers';
 import { hibiscusBush, type HibiscusBushParams } from '../models/hibiscusBush';
+import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
+import { swayDepthMaterial } from '@wildshard/engine/world/wind';
+import { loadHibiscusWorld } from '../boot/hibiscusGeometry';
 
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
 
@@ -74,7 +77,12 @@ export class Bushes {
   /** `place`, its merged copies built a slice at a time (SF67: `due` is the load's task budget); the same bushes */
   async placeSliced(specs: BushSpec[], registry: WorldRegistry, due: () => Promise<void> | null): Promise<this> {
     this.specs.push(...specs);
-    return this.take(await placeSliced(hibiscusBush, Bushes.placements(specs), { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'bushes' } }, due));
+    const batch = await loadHibiscusWorld(specs.length); await due();
+    const mesh = new THREE.Mesh(batch.geometry, lowPolyMaterial(this.sky));
+    mesh.name = hibiscusBush.id;
+    mesh.castShadow = islandKnobs().bushShadows; mesh.receiveShadow = true; mesh.customDepthMaterial = swayDepthMaterial();
+    mesh.userData['islandDressingClipped'] = true;
+    return this.take(place(hibiscusBush, Bushes.placements(specs), { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'bushes' }, drawnInto: { object: mesh, boxes: batch.boxes } }));
   }
 
   private draw(specs: BushSpec[], registry: WorldRegistry | null): this {

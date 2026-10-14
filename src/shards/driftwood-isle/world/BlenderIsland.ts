@@ -224,7 +224,7 @@ export class BlenderIsland {
       clipIslandDressing(ctx.palms.geometry,DRESSING[TIER].palms);
       await slice();
     }
-    for (const r of ctx.replace) if (r) { clipIslandDressing(r.geometry,DRESSING[TIER].bushes); await slice(); }
+    for (const r of ctx.replace) if (r) { if (r.userData['islandDressingClipped'] !== true) clipIslandDressing(r.geometry,DRESSING[TIER].bushes); await slice(); }
     if (ctx.cover) {
       // Streamed cover excludes the baked area before its first refill; only
       // non-instanced drift logs still need their replaced triangles removed.

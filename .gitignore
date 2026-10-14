@@ -1070,3 +1070,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/driftwood-isle/data/islandDressing.generated.json
 
 /public/assets/driftwood-isle/baked/island-cover-*.bin
+
+/public/assets/driftwood-isle/baked/hibiscus-*.bin
+
+/public/assets/driftwood-isle/baked/hibiscus-*.glb

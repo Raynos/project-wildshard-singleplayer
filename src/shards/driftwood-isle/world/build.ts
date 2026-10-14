@@ -156,6 +156,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   await slice();
   const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
   const bushes = await new Bushes(sky).placeSliced(Bushes.scatterIsland(manifest.seed, undefined, AVOID), registry, slice.due);
+  game.scene.add(bushes.mesh); // The compact batch is an explicitly owned drawnInto object.
   await slice(++completed, total, 'Bushes');
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
   const gulls = new Gulls(sky).build({
