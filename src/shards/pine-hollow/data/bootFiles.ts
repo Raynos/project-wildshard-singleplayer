@@ -1,4 +1,5 @@
 import heldPool from './crossbowPool.generated.json' with {type:'json'};
+import handsPool from './handsPool.generated.json' with {type:'json'};
 /** Ordered boot selections; GPU inventory and admitted prop/coat aliases are borrowed at resolution. */
 export const PINE_BOOT_FILES = {
   "skyHdr": {
@@ -220,6 +221,7 @@ export const PINE_BOOT_FILES = {
           "/assets/pine-hollow/journal/chalk.webp",
           "/assets/pine-hollow/baked/wildlife.glb",
           heldPool.pool.url,
+          handsPool.pool.url,
           "/assets/pine-hollow/creatures/thrall-extras.phone.glb",
           "/assets/pine-hollow/baked/rain.phone.bin"
         ],
@@ -237,6 +239,7 @@ export const PINE_BOOT_FILES = {
           "/assets/pine-hollow/journal/chalk.webp",
           "/assets/pine-hollow/baked/wildlife.glb",
           heldPool.pool.url,
+          handsPool.pool.url,
           "/assets/pine-hollow/creatures/thrall-extras.glb",
           "/assets/pine-hollow/baked/rain.bin"
         ]

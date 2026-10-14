@@ -12730,6 +12730,39 @@
       ]
     },
     {
+      "id": "pine-hollow-hands-pool",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-hands-pool.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-hands-pool.mjs"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format",
+        "src/shards/pine-hollow/generators/bake-hands-pool.mjs",
+        "src/shards/pine-hollow/generators/handsPool.ts",
+        "src/shards/pine-hollow/runtime/viewmodel",
+        "scripts/bake-loader.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "public/assets/pine-hollow/baked/e9ca424824e8b66289cd3593b2fa66b7e9c7a546d03fe289ec404af59d7d90b2.glb",
+        "src/shards/pine-hollow/data/handsPool.generated.json"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "public/assets/pine-hollow/baked/e9ca424824e8b66289cd3593b2fa66b7e9c7a546d03fe289ec404af59d7d90b2.glb",
+        "src/shards/pine-hollow/data/handsPool.generated.json"
+      ]
+    },
+    {
       "id": "driftwood-isle-held-sword-pool",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-sword-pool.mjs",

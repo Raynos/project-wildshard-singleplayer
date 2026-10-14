@@ -11,6 +11,7 @@ later diet items, not permission to lower texture quality.
 
 | Pine Hollow | Held weapon geometry pool (`baked/f2082acfcfb9c9bdce0a6af1745f44de33d38c89ed6fd261f5d6dc346ec46159.glb`) | — | — | 542,748 B (+542,748 B net) | G412 | Hash-named immutable URL; second visit must transfer 0 bytes; pack losslessly after the waves |
 | Driftwood Isle | Held weapon geometry pool (`baked/c00e6ad0f0384c1208d5b56a125f21793bd209ed59cfce9acd9e65c96a5bc981.glb`) | — | — | 178,680 B (+178,680 B net) | G412 | Hash-named immutable URL; second visit must transfer 0 bytes; pack losslessly after the waves |
+| Pine Hollow | Baked first-person hands and Longbow parts (`baked/e9ca424824e8b66289cd3593b2fa66b7e9c7a546d03fe289ec404af59d7d90b2.glb`, a pool of the held library; replaces ~3.9 MB of geometry the kit built at runtime, the same resident bytes) | — | — | 4,036,220 B raw, ~2.40 MB gzip (+ net) | G412 | Hash-named immutable URL (sp-o190); second visit must transfer 0 bytes; the two rider sleeves are 2.08 MB of it (19-20 k vertices each): decimate or pack losslessly after the waves |
 
 The ordinary SF66 packer adds the existing 23,404-byte map raster to the
 compiled library, giving 10 files / 8,835,217 B. It charges that same
