@@ -108,7 +108,71 @@ const rawSchema = v.strictObject({
   spawn: v.optional(SpawnSchema, { x: 0, y: 2, z: 0, yaw: 0 }),
 });
 /** A serialisable shardfile v0, independent of renderer and placement. */
-export type Shardfile = v.InferOutput<typeof rawSchema>;
+/** Public parsed output, independently named by section. The unchanged schema
+ * is checked against this interface, so consumers need not expand its input tree. */
+export interface Shardfile {
+  version: typeof SHARDFILE_VERSION;
+  accent: v.InferOutput<typeof AccentSchema>;
+  identity: v.InferOutput<typeof IdentitySchema>;
+  presentation?: v.InferOutput<typeof PresentationSchema>;
+  map?: v.InferOutput<typeof MapSchema>;
+  requires: v.InferOutput<typeof RequiresSchema>;
+  budgets: v.InferOutput<typeof BudgetsSchema>;
+  sim: v.InferOutput<typeof SimSchema>;
+  state: v.InferOutput<typeof StateSchema>;
+  migrations: v.InferOutput<typeof MigrationsSchema>;
+  authorCaps: v.InferOutput<typeof AuthorCapsSchema>;
+  serverBudget: v.InferOutput<typeof ServerBudgetSchema>;
+  edge: v.InferOutput<typeof EdgeProfilesSchema>;
+  entryways: v.InferOutput<typeof EntrywaysSchema>;
+  movers: v.InferOutput<typeof MoversSchema>;
+  modes?: v.InferOutput<typeof ModesSchema>;
+  files: v.InferOutput<typeof FilesSchema>;
+  tiles: v.InferOutput<typeof TilesSchema>;
+  library: v.InferOutput<typeof LibrarySchema>;
+  critical: v.InferOutput<typeof CriticalSchema>;
+  far: v.InferOutput<typeof FarSchema>;
+  near?: v.InferOutput<typeof NearPlaceholderSchema>;
+  ui: v.InferOutput<typeof UiSchema>;
+  rows: v.InferOutput<typeof RowsSchema>;
+  terrain: v.InferOutput<typeof TerrainSchema> | null;
+  meshCollision: v.InferOutput<typeof MeshCollisionSchema> | null;
+  navigation: v.InferOutput<typeof NavigationSchema> | null;
+  nativeGround: v.InferOutput<typeof NativeGroundSchema> | null;
+  water: v.InferOutput<typeof WaterSchema>;
+  crowds: v.InferOutput<typeof FlockSchema>[];
+  creatures: v.InferOutput<typeof CreaturesSchema>;
+  encounters: v.InferOutput<typeof EncountersSchema>;
+  directors?: v.InferOutput<typeof DirectorsSchema>;
+  quests: v.InferOutput<typeof QuestDataSchema>;
+  questNpcs?: v.InferOutput<typeof QuestNpcBindingsSchema>;
+  questHost?: v.InferOutput<typeof QuestHostSchema> | null;
+  audio: v.InferOutput<typeof AudioDataSchema>;
+  ledger: v.InferOutput<typeof LedgerRulesSchema>;
+  hooks: v.InferOutput<typeof HooksSchema>;
+  plumbing: v.InferOutput<typeof PlumbingSchema> | null;
+  items: v.InferOutput<typeof ItemsSchema>;
+  props: v.InferOutput<typeof PropsSchema> | null;
+  targets: v.InferOutput<typeof TargetsSchema>;
+  traversal: v.InferOutput<typeof TraversalSchema>;
+  clientScripts: v.InferOutput<typeof ClientScriptsSchema>;
+  clientChannels?: v.InferOutput<typeof ClientChannelsSchema>;
+  runtime: v.InferOutput<typeof RuntimeSchema> | null;
+  spawn: v.InferOutput<typeof SpawnSchema>;
+  look: {
+    families: v.InferOutput<typeof names>;
+    materials: v.InferOutput<typeof MaterialsSchema>;
+    familyLooks: v.InferOutput<typeof FamilyLooksSchema>;
+    curves?: v.InferOutput<typeof MaterialCurvesSchema>;
+    samplers?: v.InferOutput<typeof TextureSamplersSchema>;
+    post?: v.InferOutput<typeof PostStackSchema>;
+    grade: { exposure: number; saturation: number; contrast: number; lut: string | null };
+    clock: 'engine';
+    day?: v.InferOutput<typeof day> | undefined;
+    dayOverride: number | null;
+    keys: v.InferOutput<typeof key>[];
+  };
+}
 
 /** Semantic format violations, including reference integrity and the acyclic dependency graph. */
 export function shardfileRules(s: Shardfile): string[] {
