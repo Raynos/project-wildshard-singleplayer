@@ -144,7 +144,7 @@ const scenePose = {
 };
 const sceneNode = v.variant('kind', [
   v.strictObject({ kind: v.literal('group'), id: name, ...scenePose }),
-  v.strictObject({ kind: v.literal('mesh'), id: name, geometry: name, material: name, missing: v.picklist(['empty', 'group', 'omit']), ...scenePose }),
+  v.strictObject({ kind: v.literal('mesh'), id: name, geometry: name, material: name, instances: v.exactOptional(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(8192))), missing: v.picklist(['empty', 'group', 'omit']), ...scenePose }),
   v.strictObject({ kind: v.literal('object'), id: name, source: name, missing: v.picklist(['omit', 'refuse']), ...scenePose }),
   v.strictObject({ kind: v.literal('anchor'), id: name, source: name, path: v.pipe(v.array(v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(127))), v.minLength(1), v.maxLength(8)), missing: v.picklist(['omit', 'refuse']), children: v.optional(sceneChildren, []) }),
 ]);
@@ -177,6 +177,7 @@ const privateScene = v.strictObject({ version: v.literal(1), root: name,
 export type PrivateScene = v.InferOutput<typeof privateScene>;
 /** Refuse duplicate identities, crossed references, cycles and unreachable parts before allocating a scene. */
 export const PrivateSceneSchema = v.pipe(privateScene, v.check(row => {
+  if (row.nodes.reduce((sum, entry) => sum + (entry.kind === 'mesh' ? entry.instances ?? 0 : 0), 0) > 8192) return false;
   const nodes = new Map(row.nodes.map(entry => [entry.id, entry])), materials = new Set(row.materials.map(material => material.id));
   if (nodes.size !== row.nodes.length || materials.size !== row.materials.length || !nodes.has(row.root) || !['group','mesh'].includes(nodes.get(row.root)?.kind ?? '')) return false;
   const textures = new Set(row.textures.map(texture => texture.id));

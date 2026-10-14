@@ -16,6 +16,7 @@ export function wellRest(): ClientSceneBake {
   const pail = new Mesh(new CylinderGeometry(0.26, 0.2, 0.36, 8, 1, true), wood); pail.name = 'pail'; bucket.add(pail);
   const jar = new Mesh(new SphereGeometry(0.17, 8, 6), clay); jar.name = 'jar'; jar.scale.set(1, 1.3, 1); jar.position.y = 0.14; bucket.add(jar);
   const made = clientSceneGlb(root, new Map([[wood, 'wood'], [cord, 'rope'], [clay, 'clay']]));
+  for (const node of made.scene.nodes) if (node.kind === 'mesh' && node.id === 'rope') node.instances = 1;
   return { ...made, scene: { ...made.scene, materials: [
     { kind: 'standard', id: 'wood', properties: { color: 0xa07656, roughness: 0.92, flatShading: true, side: 2 } },
     { kind: 'standard', id: 'rope', properties: { color: 0x6b5236, roughness: 0.92, flatShading: true } },

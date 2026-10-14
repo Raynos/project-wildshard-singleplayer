@@ -1,3 +1,4 @@
+import { ISLET_POOL } from '../data/restFiles';
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
 import { releaseDecodedOnUpload } from '../look/image';
@@ -19,7 +20,7 @@ import { BufferGeometry, Float32BufferAttribute, Mesh, MeshStandardMaterial, Sph
 
 let loading: Promise<void> | null = null;
 /** The facet models, through the SDK model library (its facet intake is the bakes' `generators/modelIntake.ts`). */
-export const SKY_LIBRARY = createModelLibrary<SkyMeshName, never>({ meshes: SKY_MESHES, preparedMeshes: SKY_MESHES, meshUrls: MODEL_URLS, hd: [], hdUrls: {}, aoFloor: SKY_AO_FLOOR, hdLooks: {}, geometryPools: [FAN_POOL,...REST_POOLS, BRIDGES.pool], rigs: SKY_RIG_LIBRARY, rigLoad: 'manual' }, '[far-reach]');
+export const SKY_LIBRARY = createModelLibrary<SkyMeshName, never>({ meshes: SKY_MESHES, preparedMeshes: SKY_MESHES, meshUrls: MODEL_URLS, hd: [], hdUrls: {}, aoFloor: SKY_AO_FLOOR, hdLooks: {}, geometryPools: [FAN_POOL,...REST_POOLS, BRIDGES.pool, ISLET_POOL], rigs: SKY_RIG_LIBRARY, rigLoad: 'manual' }, '[far-reach]');
 
 /** A textured hero model: one indexed geometry (float position, normal, uv in the file's frame) and its painted map. */
 export interface SkyHd { readonly geometry: BufferGeometry; readonly map: Texture; readonly pivots?: { readonly body: BufferGeometry; readonly head: BufferGeometry; readonly arm: BufferGeometry; readonly fore: BufferGeometry } }

@@ -1,3 +1,4 @@
+import ISLET_SCENES from '../data/isletScenes.generated.json' with { type: 'json' };
 import { ISLE_DRAWS } from '../data/isleLook';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc, type Piece } from '@wildshard/engine/world/registry';
@@ -10,7 +11,7 @@ import { SKY_LIBRARY } from './meshes';
 import { Group, Vector3, type Material, type MeshStandardMaterial, type Object3D } from 'three';
 import { CROWN, FALLEN_BRIDGE, ISLES, KNOLLS, NOTES, SPANS, SUNREST, UPDRAFT, VANES, WINCH } from '../data/layout';
 import { STRINGS } from '../data/strings';
-import { staticIsle, type IsleMeshes } from './isle';
+import { islandMesh, staticIsle, type IsleMeshes } from './isle';
 import { crownArena } from './crown';
 import { trees } from './trees';
 import { ISLE_KEEL_CUT } from '../data/skyIsles';
@@ -31,7 +32,6 @@ import { updraftFx, type UpdraftFx } from '../runtime/looks/windFx';
 import { UPDRAFT_FX } from '../data/windLook';
 import { SKY_SUN } from '../data/skyLook';
 import { seaTexture } from '../look/cloudSea';
-import { GATE_ISLES, isletPieces, isletViews, type IsletViews } from './risingIslet';
 import { RISING_ISLETS } from './islets';
 import { skyDocksFor } from './skyDock';
 
@@ -89,7 +89,7 @@ export interface BuiltWorld {
   /** Gameplay state the pieces' `active()` read. */
   readonly state: { raised: boolean; raising: boolean };
   /** SF49-g (G183): the moving islets and their chains, drawn at the movers' published poses. */
-  readonly islets: IsletViews;
+  readonly islets: ReturnType<typeof bindClientChannels>;
 }
 
 /**
@@ -115,11 +115,11 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   // SF49-g (G183): the four gate isles join the islands (every shape baked, generators/isles.ts; drawn from the props tiles,
   // generators/isleProps.ts, each at its own position); a playable island still takes its ISLE_DRAWS cosmetic values, so
   // every draw after the islands is unchanged
-  for (const isle of [...ISLES, ...GATE_ISLES]) {
+  for (const isle of [...ISLES, ...RISING_ISLETS.map(entry => entry.gate)]) {
     // the code keel ends a little under the lip (E399 round 3, item 2: 'under the bridge a grey-green cliff wall where the
     // mockups show open cloud'): the textured keel model below (far.isle-keels) is the rock you see, narrower, with sky
     // round it; the top, the lip and every collider are unchanged (a gate isle has no keel model: its code keel stays whole)
-    const gate = GATE_ISLES.includes(isle), mesh = staticIsle(isles, isle.id, gate ? 'isle-paint' : CUT[isle.id] === undefined ? 'isle-paint-cut' : 'isle-paint-cut-mill'); root.add(mesh);
+    const gate = RISING_ISLETS.map(entry => entry.gate).includes(isle), mesh = staticIsle(isles, isle.id, gate ? 'isle-paint' : CUT[isle.id] === undefined ? 'isle-paint-cut' : 'isle-paint-cut-mill'); root.add(mesh);
     if (!gate) for (let i = 0; i < ISLE_DRAWS; i++) rnd();
     ctx.piece({ id: `far.isle.${isle.id}`, name: names[isle.id] ?? (gate ? STRINGS.gateIsle : isle.id), category: 'ground', file: FILE, object: mesh, colliders: bakedColliders(PLACEMENTS, `far.isle.${isle.id}`, 'grass'), surface: 'grass' });
     await pause();
@@ -174,7 +174,10 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   // SF49-g (G183): the Rising Islets' static parts (the road lips, the chain posts); the islets move in the plugin's movers
   // G200: played alone (no road beyond the lips) each lip ends at a railed timber sky dock with a beacon; in a grid cell the
   // road socket continues there, so no dock
-  for (const piece of [...bridges, ...isletPieces(), ...skyDocksFor(ctx.cube)]) { if (piece.object !== undefined) root.add(piece.object); ctx.piece(piece); }
+  const staticIslets = createClientScene(ISLET_SCENES.staticScene, { geometry: SKY_LIBRARY.geometry }); root.add(staticIslets.root);
+  for (const row of ISLET_SCENES.pieces) { const object = staticIslets.parts.get(row.id); ctx.piece({ ...row, category: row.category === 'buildings' ? 'buildings' : 'props', surface: row.surface === 'stone' ? 'stone' : 'wood', ...(object === undefined ? {} : { object }), colliders: bakedColliders(ISLET_SCENES.pieces, row.id) }); }
+  const posts = skyBakedPiece('islet-rig'); root.add(posts.root); ctx.piece({ id: 'far.islet.posts', name: STRINGS.islet, category: 'props', file: FILE, object: posts.root, colliders: posts.colliders, surface: 'wood' });
+  for (const piece of [...bridges, ...skyDocksFor(ctx.cube)]) { if (piece.object !== undefined) root.add(piece.object); ctx.piece(piece); }
   await pause();
 
   // The updraft: a board-only rising wind ramp (a hover deck tilted up the wind column) from the windmill isle to the step.
@@ -232,8 +235,11 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   const storm = crownStorm(new Vector3(...SKY_SUN), stormTex, rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
 
   await pause();
-  const islets = isletViews((targets, ids) => bindClientChannels(looks.channels.filter(row => row.mover !== undefined && ids.includes(row.mover) && row.connectors !== undefined), { targets, copiedOwners: ids }).updateMovers);
-  root.add(islets.group);
+  const scene = createClientScene(ISLET_SCENES.scene, { geometry: SKY_LIBRARY.geometry, objects: new Map(RISING_ISLETS.map(entry => [`islet.${entry.edge}`, islandMesh(`islet.${entry.edge}`)])) });
+  const rest = new Map(ISLET_SCENES.rest.map(row => [row.id, row])), ids = [...rest.keys()];
+  const islets = bindClientChannels(looks.channels.filter(row => row.mover !== undefined && ids.includes(row.mover) && row.connectors !== undefined), { targets: scene.parts, copiedOwners: ids });
+  islets.updateMovers(id => { const pose = rest.get(id); if (pose === undefined) throw new Error('Missing initial islet pose'); return pose; });
+  root.add(scene.root);
   ctx.root.add(root); ctx.scope.ownPrimitives(root, { instances: true });
   return { hoverDeck, wind, fallen, millHub: mill.hub, storm, vanes, winch: handle, winchAt, notes, notesAt, state, islets };
 }

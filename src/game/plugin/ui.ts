@@ -1546,7 +1546,7 @@ export function createClientScene(input: unknown, ports: ClientScenePorts): Clie
         if (material === undefined) throw new Error('Private mesh material disappeared');
         let backing = source;
         if (backing === null && node.missing === 'empty') { backing = new BufferGeometry(); emptyGeometry.push(backing); }
-        object = backing === null ? null : new Mesh(backing, material);
+        object = backing === null ? null : node.instances === undefined ? new Mesh(backing, material) : new InstancedMesh(backing, material, node.instances);
         }
       }
       if (object === null) continue;

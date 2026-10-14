@@ -10,7 +10,7 @@ import { KEEPER_AT } from '../data/quests';
 import { KEEPER_STAND } from '../quest/keeper';
 import { spireAt } from '../layout';
 import { TREE_MODELS, TREES, type TreeModel } from '../data/trees';
-import { GATE_ISLES } from '../world/risingIslet';
+import { RISING_ISLETS } from '../world/islets';
 import type { SkyIsleFrame } from '../world/skyIsleHd';
 import type { SkyIslePine } from './skyIslePines';
 
@@ -200,7 +200,7 @@ export async function bakeSkyPlacements(read: (url: string) => Uint8Array, frame
   // the spots the playable islands' pines and the gate isles' pine (beside the chain posts) stand on, before the sky isles' firs
   const base: [number, number, number, number][] = [];
   for (const isle of ISLES) for (const [dx, dz, s] of PINES[isle.id] ?? []) base.push([isle.x + dx, isle.y, isle.z + dz, s]);
-  for (const isle of GATE_ISLES) base.push([isle.x + 3, isle.y, isle.z - 3, 0.9]);
+  for (const isle of RISING_ISLETS.map(entry => entry.gate)) base.push([isle.x + 3, isle.y, isle.z - 3, 0.9]);
   const cube = (half: number | null): CubePlacements => {
     const skyIsles = skyIslesIn(half === null ? null : { half }), { placed, poses } = placeIsles(skyIsles, units, false);
     const at = [...base];

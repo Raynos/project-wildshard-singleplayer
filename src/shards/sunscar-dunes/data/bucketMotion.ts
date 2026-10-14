@@ -18,7 +18,7 @@ bucket.output('scaleY', bucket.select(moved, rope, bucket.select(progress, bucke
 const finalHeight = bucket.select(moved, height, bucket.select(progress, loaded, rest));
 const finalScale = bucket.select(moved, rope, bucket.select(progress, bucket.constant(0.2), one));
 bucket.connector({ target: 'bucket', from: [zero, finalHeight, zero], to: [zero, finalHeight, zero], scale: [one, one, one], enabled: one });
-bucket.connector({ target: 'rope', from: [zero, zero, zero], to: [zero, drop, zero], scale: [one, finalScale, one], enabled: one, aim: [0, 1, 0] });
+bucket.connector({ target: 'rope', from: [zero, zero, zero], to: [zero, drop, zero], scale: [one, finalScale, one], enabled: one, aim: [0, 1, 0], instances: { start: 0, capacity: 1 } });
 
 /** The shipping frame-delta ramp; oil is copied only at boot, and these scalars own no interaction authority. */
 const prompt = new ClientChannels('sunscar.well.prompt');

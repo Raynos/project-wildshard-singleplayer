@@ -217,7 +217,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       // render offset and the page camera in the page's frame; standalone the root is the origin and this is the camera's own
       const cam = rt.world?.game.camera; if (cam && this.meadow) this.meadow.update(this.meadow.mesh.worldToLocal(cam.getWorldPosition(eye)), t);
       // SF49-g (G183): the Rising Islets ride their movers (fixed ride driver, in the fixed step); draw them and their chains
-      const movers = this.movers; if (movers !== null) { built.islets.update(moverPose); this.isletCalls?.updateMovers(moverPose); }
+      const movers = this.movers; if (movers !== null) { built.islets.updateMovers(moverPose); this.isletCalls?.updateMovers(moverPose); }
       built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t); built.wind.update(t);
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
         const row = vanes[i]; if (row === undefined) break;

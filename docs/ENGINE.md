@@ -4490,3 +4490,8 @@ first-party discovery and boot metadata from data rows. `runtimeEntry`,
 and fixed colour callbacks. Native render, plugin, roster, GPU table and
 terrain owners remain explicit bindings. Sky and Signal use the same
 constructor; it copies mutable host arrays from readonly authored rows.
+
+Private scene mesh rows accept optional `instances` (1–8192, at most
+8192 per scene). The shared scene host allocates InstancedMesh storage;
+existing channel connectors populate its bounded slots. Geometry and
+material ownership remain with the existing scene ports.
