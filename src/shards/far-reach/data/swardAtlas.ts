@@ -10,3 +10,20 @@ export const SWARD_ATLAS = { variants: 6, perSpecies: 2, w: 192, h: 512 } as con
 
 /** Exact author tokens consumed by the meadow's existing shader template. */
 export const SWARD_ATLAS_FRAGMENTS = { perSpecies: SWARD_ATLAS.perSpecies.toFixed(1), variants: SWARD_ATLAS.variants.toFixed(1) };
+
+/** The atlas as a cached, hash-named library texture (generators/swardAtlas.ts `bakeSwardAtlasTexture`): lossless, linear
+ *  (its channels are data), one level; the meadow graph samples it with GPU mips, as the DataTexture did. */
+export const SWARD_ATLAS_FILE = {
+  hash: '607c53f28dbdd88423b39fd32419ba735f9a13c3c1ecabaf1cadb68715d63f0b',
+  kind: 'ktx2',
+  compressed: 663989,
+  decoded: 0,
+  gpu: 2359296,
+  triangles: 0,
+  draws: 0,
+  dependencies: [],
+  critical: false,
+} as const;
+
+/** Match the DataTexture: linear filtering over GPU-built mips, clamped. */
+export const SWARD_ATLAS_SAMPLER = { filter: 'linear', mips: 'gpu' } as const;

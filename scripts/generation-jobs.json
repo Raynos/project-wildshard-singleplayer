@@ -11398,6 +11398,38 @@
       "buildTimeOutputs": [
         "src/shards/far-reach/data/millRest.generated.json"
       ]
+    },
+    {
+      "id": "sky-sward-atlas",
+      "shard": "far-reach",
+      "entry": "src/shards/far-reach/generators/swardAtlas.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/far-reach/generators/swardAtlas.ts",
+        "bakeSwardAtlasTexture",
+        "src/shards/far-reach/assets/607c53f28dbdd88423b39fd32419ba735f9a13c3c1ecabaf1cadb68715d63f0b",
+        "--bytes"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "src/format",
+        "src/sdk",
+        "src/shards/far-reach/data/swardAtlas.ts",
+        "src/shards/far-reach/generators/swardAtlas.ts"
+      ],
+      "outputs": [
+        "src/shards/far-reach/assets/607c53f28dbdd88423b39fd32419ba735f9a13c3c1ecabaf1cadb68715d63f0b"
+      ],
+      "buildOutputs": {
+        "src/shards/far-reach/assets/607c53f28dbdd88423b39fd32419ba735f9a13c3c1ecabaf1cadb68715d63f0b": "607c53f28dbdd88423b39fd32419ba735f9a13c3c1ecabaf1cadb68715d63f0b"
+      },
+      "seedOutputs": [],
+      "platform": "portable"
     }
   ]
 }

@@ -1,5 +1,6 @@
 import { SKY_SECTIONS } from './data/sections';
 import { STORM_NOISE } from './data/stormNoise';
+import { SWARD_ATLAS_FILE } from './data/swardAtlas';
 import skyMaps from './data/skyMaps.json' with { type: 'json' };
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { SKY_REACH_RUNTIME_COST } from './data/budgets';
@@ -61,8 +62,8 @@ export default parseShardfile({ ...base, ...SKY_SECTIONS, navigation: navigation
   // The authored clips declare every bridge, islet and gate; both hosts install this admitted order once.
   movers: MOVERS,
   // the twelve static islands' compiled props tiles (generators/isleProps.ts), drawn by the runtime (runtime.binds props)
-  library: [...base.library, ...skyMaps.library, STORM_NOISE.hash], tiles: isleProps.tiles, files: [...skyMaps.files, { ...STORM_NOISE, dependencies: [] }, wasm(BRIDGE_MODULE), wasm(LIFT_MODULE), wasm(FAN_GUST_MODULE), ...navigation.files, ...isleProps.files], critical: [BRIDGE_MODULE.hash, LIFT_MODULE.hash, FAN_GUST_MODULE.hash, ...navigation.critical],
-  budgets: { ...base.budgets, library: { ...skyMaps.budget, compressed: skyMaps.budget.compressed + STORM_NOISE.compressed, resident: skyMaps.budget.resident + STORM_NOISE.decoded + STORM_NOISE.gpu, downloadAllowance: 8_811_813 + STORM_NOISE.compressed }, sim: { resident: 1_000_000 + 65_536 + FAN_GUST_MODULE.bytes + navigation.files.reduce((sum, file) => sum + file.decoded, 0), compressed: LIFT_MODULE.bytes + BRIDGE_MODULE.bytes + FAN_GUST_MODULE.bytes + navigation.files.reduce((sum, file) => sum + file.compressed, 0) } },
+  library: [...base.library, ...skyMaps.library, STORM_NOISE.hash, SWARD_ATLAS_FILE.hash], tiles: isleProps.tiles, files: [...skyMaps.files, { ...STORM_NOISE, dependencies: [] }, { ...SWARD_ATLAS_FILE, dependencies: [] }, wasm(BRIDGE_MODULE), wasm(LIFT_MODULE), wasm(FAN_GUST_MODULE), ...navigation.files, ...isleProps.files], critical: [BRIDGE_MODULE.hash, LIFT_MODULE.hash, FAN_GUST_MODULE.hash, ...navigation.critical],
+  budgets: { ...base.budgets, library: { ...skyMaps.budget, compressed: skyMaps.budget.compressed + STORM_NOISE.compressed + SWARD_ATLAS_FILE.compressed, resident: skyMaps.budget.resident + STORM_NOISE.decoded + STORM_NOISE.gpu + SWARD_ATLAS_FILE.gpu, downloadAllowance: 8_811_813 + STORM_NOISE.compressed + SWARD_ATLAS_FILE.compressed }, sim: { resident: 1_000_000 + 65_536 + FAN_GUST_MODULE.bytes + navigation.files.reduce((sum, file) => sum + file.decoded, 0), compressed: LIFT_MODULE.bytes + BRIDGE_MODULE.bytes + FAN_GUST_MODULE.bytes + navigation.files.reduce((sum, file) => sum + file.compressed, 0) } },
   sim: { ...base.sim, scripts: [BRIDGE_MODULE.hash, LIFT_MODULE.hash, FAN_GUST_MODULE.hash] },
   props: { version: 1, family: 'toon', tiles: isleProps.props.tiles, panels: [], models: [], far: null, textures: [],
     colliders: [...RISING_ISLETS.map((entry) => ({ id: `landing.${entry.edge}`, panel: null, initialActive: true, shapes: [{ ...entry.landing }] })),
