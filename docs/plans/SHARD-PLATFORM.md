@@ -1,6 +1,6 @@
 # Plan: SHARD-PLATFORM — MMO-compatible shardfiles in the singleplayer game (E431, E435)
 
-**State:** `in progress`, worked in **waves** (G403–G408). **Now: W1 = Sky Reach + Signal Dunes to 90/10 each, grid-ready. Components closed: 0 of 9.** Custom on clean HEAD, 2026-10-13 ~14:00Z: Sky 47.6 %, Signal 44.3 % (bar 10 %). Shards at 80/20: 1 of 7 (the template). The live status, per-component lines and lanes are [STATE.md](shard-platform/STATE.md) (the coordinator's, ≤ 3 KB, G275); the full State history is [history.md](shard-platform/history.md). Lanes (G407): 2 Opus (visual only), 5 Codex + the pusher, no Fable.
+**State:** `in progress`, worked in **waves** (G403–G408). **Now: W1 = Sky Reach + Signal Dunes to 90/10 each, grid-ready. Components closed: 0 of 9.** Custom on clean HEAD, 2026-10-13 ~14:00Z: Sky 47.6 %, Signal 44.3 % (bar 10 %). Shards at 80/20: 1 of 7 (the template). The live status, per-component lines and lanes are [STATE.md](shard-platform/STATE.md) (the coordinator's, ≤ 3 KB, G275); the full State history is [history.md](shard-platform/history.md). Lanes (G421): 4 Opus (visual only), 5 Codex + the pusher, no Fable.
 
 **Reviews:** [Wildshard MMO Review](../reviews/wildshard-mmo-review.md) (the clean-room audits, E435); [SHARD-PLATFORM mockups](../reviews/shard-platform-mockups.md) (Jake's E438 picks G72–G107, boards in `art/`).
 
@@ -481,7 +481,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G420+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G421+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.
