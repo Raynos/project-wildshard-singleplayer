@@ -2511,7 +2511,8 @@
         "src/shards/driftwood-isle/assets/f12dc04f6f186cafce4d25689916c08737c7e7809835c509b57852087e2173bb",
         "src/shards/driftwood-isle/assets/f88561216dac439ed1d9efcd967f9d5692eced70540c8c5ea808328082b1f8e2",
         "src/shards/driftwood-isle/assets/fab3be0e055f56bc498d1489a67226aa84a630540bfe6a2651d93c3523a6a889",
-        "src/shards/driftwood-isle/data/coveBake.json"
+        "src/shards/driftwood-isle/data/coveBake.json",
+        "src/shards/driftwood-isle/data/trailsideBake.json"
       ]
     },
     {

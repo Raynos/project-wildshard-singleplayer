@@ -1,0 +1,73 @@
+import * as THREE from 'three';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { flightOf, type TrailsideSpec, type StepsSpec } from '../world/trailsideLayout';
+
+/** Native trail treads and rail boxes, evaluated by the existing static trail author job. */
+export function trailColliders(spec:TrailsideSpec,heightAt:(x:number,z:number)=>number):ColliderDesc[] {
+    const out: ColliderDesc[] = [];
+    for (const s of spec.steps) out.push(...stepTreads(s,heightAt));
+    for (const f of (spec.flights ?? [])) {
+      const fl = flightOf(f, heightAt), { ux, uz, sx, sz, w, m } = fl;
+      // the treads (solid down to the foot of the flight), and a rail each side along the slope, 1.1 m over them
+      out.push({ kind: 'treads', from: { x: f.bottom[0], y: fl.yb, z: f.bottom[1] }, to: { x: f.bottom[0] + ux * fl.len, y: fl.yt, z: f.bottom[1] + uz * fl.len }, width: w, count: m });
+      const pitch = Math.atan2(fl.yt - fl.yb, fl.len), q = new THREE.Quaternion().setFromEuler(new THREE.Euler(-pitch, Math.atan2(ux, uz), 0, 'YXZ'));
+      for (const s of [-1, 1]) {
+        const ac = s * (w / 2 + 0.07), mx = f.bottom[0] + ux * fl.len / 2 + sx * ac, mz = f.bottom[1] + uz * fl.len / 2 + sz * ac;
+        out.push({ kind: 'box', x: mx, y: (fl.yb + fl.yt) / 2 + 0.55, z: mz, hx: 0.06, hy: 0.6, hz: Math.hypot(fl.len, fl.yt - fl.yb) / 2, rot: { x: q.x, y: q.y, z: q.z, w: q.w } });
+      }
+    }
+    return out;
+}
+
+/**
+ * The character's stair rule (CharacterMotor: 0.38 m capsule, autostep 0.35 m), measured on Rapier: a tread under
+ * 0.35 m deep lets the capsule's sphere rest on the next tread's edge at a 45° contact and it jams, whatever the rise;
+ * from 0.354 m deep it climbs every rise to 0.33 m. So: treads ≥ 0.354 m deep, risers ≤ 0.32 m.
+ */
+const TREAD_RUN = 0.354, TREAD_RISE = 0.32, MAX_LIFT = 0.3;
+
+/**
+ * A flight of plank steps as solid treads. The planks follow the ground (a plank every ~0.7 m, its top 9 cm over
+ * `heightAt` at its centre), and the plateau ramp's ground climbs at up to ~46° (0.73 m from one plank to the next),
+ * past the character's 40° / 0.35 m. So the flight is cut into equal treads ≥ 0.354 m deep (two per plank gap), each
+ * at the plank line (the drawn plank tops, joined) or 3 cm over the ground under its middle 1.2 m (where the capsule
+ * walks), whichever is higher, so no slope between two planks pokes through as a wedge the capsule can't climb. Where
+ * that still leaves a riser over 0.32 m (the 46° stretch rises ~0.37 m a tread) the treads before it are lifted, by at
+ * most 0.3 m, until every riser is ≤ 0.32 m: the stair eases into the steep bit a little above the planks. A riser that
+ * needs more lift than that is a cliff (the headland flight crosses two, 1–1.9 m between planks) and stays a wall, as
+ * the ground is. Every tread is a solid box down to 0.3 m under the lowest ground at its corners, so none floats.
+ */
+function stepTreads(s: StepsSpec,heightAt:(x:number,z:number)=>number): ColliderDesc[] {
+  const w = s.width ?? 2.4, hx = w / 2;
+  const dx = s.to[0] - s.from[0], dz = s.to[1] - s.from[1], len = Math.hypot(dx, dz), n = Math.floor(len / 0.7);
+  if (n < 1) return [];
+  const ux = dx / len, uz = dz / len, yaw = Math.atan2(dx, dz), gap = len / n;
+  const ground = (al: number, ac: number) => heightAt(s.from[0] + ux * al + uz * ac, s.from[1] + uz * al - ux * ac);
+  const plank: number[] = [];
+  for (let i = 0; i <= n; i++) plank.push(ground(gap * i, 0) + 0.09);   // the drawn plank: y + 0.02, 0.14 thick
+  const plankLine = (al: number) => {
+    const f = Math.min(n, Math.max(0, al / gap)), i = Math.min(n - 1, Math.floor(f)), t = f - i;
+    return (plank[i] ?? 0) * (1 - t) + (plank[i + 1] ?? 0) * t;
+  };
+  // equal treads from the first plank's front edge to the last plank's back edge
+  const start = -0.21, span = len + 0.42, m = Math.max(1, Math.floor(span / TREAD_RUN)), run = span / m;
+  const need: number[] = [], top: number[] = [];
+  for (let i = 0; i < m; i++) {
+    const a = start + i * run, b = a + run;
+    let y = plankLine(a + run / 2);
+    for (const al of [a, a + run / 2, b]) for (const ac of [-0.6, 0, 0.6]) y = Math.max(y, ground(al, ac) + 0.03);
+    need.push(y); top.push(y);
+  }
+  // ease the steep bits: lift a tread (≤ MAX_LIFT) so neither neighbour is more than TREAD_RISE above it
+  for (let i = 1; i < m; i++) top[i] = Math.min((need[i] ?? 0) + MAX_LIFT, Math.max(top[i] ?? 0, (top[i - 1] ?? 0) - TREAD_RISE));
+  for (let i = m - 2; i >= 0; i--) top[i] = Math.min((need[i] ?? 0) + MAX_LIFT, Math.max(top[i] ?? 0, (top[i + 1] ?? 0) - TREAD_RISE));
+  const out: ColliderDesc[] = [];
+  for (let i = 0; i < m; i++) {
+    const a = start + i * run, b = a + run, y = top[i] ?? 0, mid = (a + b) / 2;
+    let lo = y;
+    for (const al of [a, b]) for (const ac of [-hx, hx]) lo = Math.min(lo, ground(al, ac));
+    const hy = (y - (lo - 0.3)) / 2;
+    out.push({ kind: 'box', x: s.from[0] + ux * mid, y: y - hy, z: s.from[1] + uz * mid, hx, hy, hz: run / 2, yaw });
+  }
+  return out;
+}

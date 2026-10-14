@@ -1,5 +1,6 @@
 import type { BufferGeometry } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { staticColliders } from '../runtime/boot/staticColliders';
 import { modelGeometry } from '../runtime/boot/modelGeometry';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
 import bake from '../data/coveBake.json' with { type: 'json' };
@@ -39,14 +40,7 @@ export function copyCoveGeometry(spec: CoveSpec): {
   };
 }
 
-const n=(v:number|undefined):number=>{if(v===undefined||!Number.isFinite(v))throw new Error('Cove collider lacks a finite value');return v;};
-const point=(v:{x:number;y:number;z:number}|undefined):{x:number;y:number;z:number}=>{if(v===undefined)throw new Error('Cove stair lacks an endpoint');return {x:n(v.x),y:n(v.y),z:n(v.z)};};
 /** Fresh native descriptors from the admitted static cave facts. */
 export function coveColliderDescs(): ColliderDesc[] {
-  return bake.native.descs.map((d):ColliderDesc=>{
-    if(d.surface!=='rock')throw new Error('Unexpected cave collider surface');
-    if(d.kind==='treads')return {kind:'treads',from:point(d.from),to:point(d.to),width:n(d.width),count:n(d.count),surface:'rock'};
-    if(d.kind==='box')return {kind:'box',x:n(d.x),y:n(d.y),z:n(d.z),hx:n(d.hx),hy:n(d.hy),hz:n(d.hz),yaw:n(d.yaw),surface:'rock'};
-    throw new Error('Unexpected cave collider shape');
-  });
+  return staticColliders(bake.native.descs, 'rock');
 }

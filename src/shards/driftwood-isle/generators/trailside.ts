@@ -3,6 +3,8 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, type ModelBuild, type ModelPart, type Placement } from '@wildshard/engine/models/model';
+import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { trailColliders } from './trailColliders';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import { fencePost, plankStep, signpost, trailPart, TRAIL_COLOURS as C, type PlankStepParams, type SignpostParams } from '../models/trailside';
 import { flightOf, trailsideSpecKey, type TrailsideSpec } from '../world/trailsideLayout';
@@ -17,6 +19,7 @@ export interface TrailsideGeometry {
     signs: { pls: Placement<SignpostParams>[]; boxes: number[] };
     planks: { pls: Placement<PlankStepParams>[]; boxes: number[] };
     colliders: BoxSpec[];
+    worldColliders: ColliderDesc[];
   };
 }
 /** Offline original weld; the supplied native height binding is the sole terrain authority. */
@@ -145,5 +148,5 @@ export function trailsideGeometry(spec: TrailsideSpec, heightAt: (x: number, z: 
     geo.computeBoundingSphere();
   for (const part of parts) part.dispose();
   material.dispose();
-  return { geometry: geo, metadata: { specKey: trailsideSpecKey(spec), posts, signs, planks, colliders } };
+  return { geometry: geo, metadata: { specKey: trailsideSpecKey(spec), posts, signs, planks, colliders, worldColliders: trailColliders(spec, heightAt) } };
 }
