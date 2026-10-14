@@ -134,7 +134,7 @@ function frameViewMatrix(): Node<'mat4'> {
 /** World origin follows the renderer's live instance matrix, including cull compaction. */
 function objectOriginNode(): Node<'vec3'> {
   return Fn((builder: NodeBuilder): Node<'vec3'> => {
-    if (!(builder.object instanceof THREE.InstancedMesh || builder.object instanceof THREE.BatchedMesh)) return modelPosition;
+    if (!(builder.object instanceof THREE.InstancedMesh)) return modelPosition;
     return modelWorldMatrix.mul(instanceTransformNode(vec4(0, 0, 0, 1))).xyz;
   }, 'vec3')();
 }
@@ -325,7 +325,15 @@ class GraphLitMaterial extends GraphNormalMaterial {
   }
 }
 
-/** the root nodes that read a sun input, directly or through their inputs and loop bodies */
+/**
+ * The lighting stage's inputs a material hands its hooks afresh on every build (the sun's per light; the ambient's
+ * irradiance and environment and the grade's lit colour per lighting context). A node that reads one is rebuilt per hook
+ * call: memoized across builds, it would carry an earlier build's lighting-context variable into the next program, where
+ * it is declared twice (three renames it `irradiance_1`) and never written.
+ */
+const HOOK_INPUT_OPS: ReadonlySet<string> = new Set([...SUN_OPS, 'irradiance', 'radiance', 'environmentIrradiance', 'litColour']);
+
+/** the root nodes that read a hook input (HOOK_INPUT_OPS), directly or through their inputs and loop bodies */
 function lightDependents(ir: GraphIr): ReadonlySet<string> {
   type Nodes = Readonly<Record<string, GraphNode>>;
   const memo = new Map<string, boolean>();
@@ -339,7 +347,7 @@ function lightDependents(ir: GraphIr): ReadonlySet<string> {
     return false;
   }
   function depNode(chain: readonly Nodes[], n: GraphNode): boolean {
-    if (SUN_OPS.has(n.op) || (n.in ?? []).some((x) => depRef(chain, x))) return true;
+    if (HOOK_INPUT_OPS.has(n.op) || (n.in ?? []).some((x) => depRef(chain, x))) return true;
     const body = n.body;
     if (body === undefined) return false;
     const inner = [...chain, body.nodes];
@@ -822,24 +830,25 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   /** the lighting stage's hooks: each builds its sub-graph with its inputs live (the material calls them while it builds) */
   const litHooks = (lit: NonNullable<GraphIr['stages']['lighting']>, scope: Scope = root): LitHooks => {
     const asVec3 = (r: GraphRef): Node<'vec3'> => new ConvertNode<'vec3'>(widen(ref(r, scope), 'vec3'), 'vec3');
+    /** each hook call brings fresh inputs: forget the nodes built off the last call's */
+    const fresh = (): void => { if (scope.lightMemo !== undefined) scope.lightMemo.clear(); else lightMemo = new Map(); };
     const specularRef = lit.sunSpecular;
     const ambientRef = lit.ambient, gradeRef = lit.grade;
     return {
       specular: specularRef !== undefined,
       sun(direction, colour, shadow) {
-        sunIn = { direction, colour, shadow };
-        if (scope.lightMemo !== undefined) scope.lightMemo.clear(); else lightMemo = new Map();
+        sunIn = { direction, colour, shadow }; fresh();
         try {
           return { radiance: asVec3(lit.sun), specular: specularRef === undefined ? null : asFloat(ref(specularRef, scope)) };
         } finally { sunIn = null; }
       },
       ownsEnvironment: ambientRef !== undefined && readsEnvironment(scope),
       ambient: ambientRef === undefined ? null : (irradiance, environment) => {
-        irradianceIn = irradiance; environmentIn = environment;
+        irradianceIn = irradiance; environmentIn = environment; fresh();
         try { return asVec3(ambientRef); } finally { irradianceIn = null; environmentIn = null; }
       },
       grade: gradeRef === undefined ? null : (litColour) => {
-        litIn = litColour;
+        litIn = litColour; fresh();
         try { return asVec3(gradeRef); } finally { litIn = null; }
       },
     };
