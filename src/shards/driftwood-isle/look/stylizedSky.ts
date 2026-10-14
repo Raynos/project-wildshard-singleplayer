@@ -4,8 +4,8 @@
  * SHARD-PLATFORM M3: the dome, the cumulus ring and their materials are the SDK faceted sky (@wildshard/sdk/looks/facetedSky);
  * Driftwood's programs are material graphs (data/skyLook.ts), its midday palette data (data/skyPalette.ts).
  *
- *   the backdrop (backdrop.ts) builds the FacetedSky from SKY_GRAPHS, MIDDAY_SKY and CUMULUS_SEED:
- *   const s = new FacetedSky(sunDir, graphs, MIDDAY_SKY, CUMULUS_SEED).build(compiler);  // s.dome follows the camera (Game.ts moves `sky.clouds`, which is the dome)
+ *   the backdrop (backdrop.ts) builds the FacetedSky from SKY_GRAPHS, MIDDAY_SKY and the baked cumulus rows (data/cumulusPuffs.json):
+ *   const s = new FacetedSky(sunDir, MIDDAY_SKY, puffs).build(looks);  // s.dome follows the camera (Game.ts moves `sky.clouds`, which is the dome)
  *   s.envScene                                   // a copy of the dome at the origin for PMREMGenerator.fromScene (IBL specular)
  *   s.u.*                                        // colours DayNight blends (zenith, horizon, sun, cloud lit / shade, night), via setPalette
  *
@@ -31,6 +31,3 @@ export const MIDDAY_SKY: SkyPalette = {
   cloudShade: rgb(MIDDAY_SKY_ROWS.cloudShade),
   night: MIDDAY_SKY_ROWS.night,
 };
-
-/** the cumulus ring's seed */
-export const CUMULUS_SEED = 0xc10d;

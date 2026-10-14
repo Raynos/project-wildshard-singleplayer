@@ -4,7 +4,7 @@
  * the clock moves on), and the sun starts where the clock puts it. The clock (`facetedDay`'s row) turns the lights, the
  * fog, the toon light's tunables, the dome's palette, the disc and the planet's lit side from `bind` on; it steps its own
  * shadow light, so it runs after the cascades (`updateAt: 'late'`), and the planet keeps its opacity by night. Nothing here
- * knows a shard: the shard passes its day, its sky's graph ids, palette and seed, its light's tunables and its cycle.
+ * knows a shard: the shard passes its day, its sky's graph ids, palette and cumulus rows, its light's tunables and its cycle.
  *
  *   ?tod=0.5    // start phase (default the row's start)
  *   ?clock=120  // cycle length in seconds (default the shard's)
@@ -41,7 +41,7 @@ export interface FacetedDayBackdropSpec {
   readonly sky: {
     /** the shard's declaration and the look.materials ids of the dome's and the cumulus's graphs */
     readonly looks: { readonly source: Parameters<typeof lookGraphMaterials>[2]; readonly dome: string; readonly clouds: string };
-    readonly palette: SkyPalette; readonly seed: number;
+    readonly palette: SkyPalette; readonly puffs: readonly (readonly number[])[];
   };
   readonly light: FacetedDayLight;
   /** the cycle's default length in seconds */
@@ -169,7 +169,7 @@ export function facetedDayBackdrop(spec: FacetedDayBackdropSpec): SkyBackdropFac
       return found;
     };
     sky.sunDir.copy(startSun);
-    const st = new FacetedSky(sky.sunDir, spec.sky.palette, spec.sky.seed).build({ dome: material(ids.dome), clouds: material(ids.clouds),
+    const st = new FacetedSky(sky.sunDir, spec.sky.palette, spec.sky.puffs).build({ dome: material(ids.dome), clouds: material(ids.clouds),
       setParam: (part, name, value) => { looks.setParam(part === 'dome' ? ids.dome : ids.clouds, name, value); } });
     scene.add(st.dome);
     scene.background = null;

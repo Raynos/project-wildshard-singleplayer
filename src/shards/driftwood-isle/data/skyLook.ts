@@ -9,9 +9,11 @@ import { MIDDAY_SKY_ROWS } from './skyPalette';
  * - **dome** (`SKY_DOME_LOOK`): a saturated zenith → pale horizon gradient by the view direction's height, the colour
  *   below the horizon, a thin bright band on it, a glow round the sun (dimmed at night) and, at night, stars on a hashed
  *   cell grid (twinkle-free). The backdrop draws it back-faced with no depth test, behind everything.
- * - **cumulus** (`SKY_CLOUD_LOOK`): the faceted puffs turned slowly about the dome's centre on the frame clock (a full turn
- *   in ~3 h), lit in a two-band sun ramp (lit / shade), darker flatter bellies (the geometry's `aBelly`), a silver-lining
- *   fresnel on rims facing away from the eye when the sun is behind them, the lowest puffs melting into the horizon haze.
+ * - **cumulus** (`SKY_CLOUD_LOOK`): one icosahedron instanced per puff row (`aPuff` its centre and radius, `aLump` its
+ *   lump phases and the cut its base is flattened at; data/cumulusPuffs.json), lumped and squashed in the vertex stage,
+ *   turned slowly about the dome's centre on the frame clock (a full turn in ~3 h), faceted by derivative normals, lit in
+ *   a two-band sun ramp (lit / shade), darker flat bellies, a silver-lining fresnel on rims facing away from the eye
+ *   when the sun is behind them, the lowest puffs melting into the horizon haze.
  *
  * The palette is params (linear RGB, pre-tonemap, as the day clock blends it): the clock writes them every frame through
  * the compiled graphs' checked `setParam`; `night` 0 … 1; `sunDir` the unit direction toward the sun (or the moon).
@@ -66,17 +68,26 @@ function cloudGraph(): GraphIr {
   const add = (a: GraphRef, b: GraphRef): string => op('add', [a, b]), sub = (a: GraphRef, b: GraphRef): string => op('sub', [a, b]);
   const mul = (a: GraphRef, b: GraphRef): string => op('mul', [a, b]), swz = (a: GraphRef, mask: string): string => op('swizzle', [a], { mask });
   const smooth = (e0: GraphRef, e1: GraphRef, x: GraphRef): string => op('smoothstep', [e0, e1, x]);
+  // one shared icosahedron per puff row (data/cumulusPuffs.json, instanced): lumpy, squashed, its base cut flat
+  const puff = op('attribute', undefined, { name: 'aPuff', type: 'vec4' }), lump = op('attribute', undefined, { name: 'aLump', type: 'vec3' });
+  const l = mul(op('positionGeometry'), swz(puff, 'w')), baseY = swz(lump, 'z');
+  const kk = add(1, mul(mul(op('sin', [add(mul(swz(l, 'x'), 0.13), swz(lump, 'x'))]), op('cos', [add(mul(swz(l, 'z'), 0.11), swz(lump, 'y'))])), 0.12));
+  const d = mul(mul(l, kk), [1.15, 0.8, 1.15]), y = op('max', [add(swz(d, 'y'), swz(puff, 'y')), baseY]);
+  const above = op('varying', [sub(y, baseY)]);
   // the slow drift: the whole ring turns about the dome's centre
   const a = mul(op('time'), 0.0006), c = op('cos', [a]), s = op('sin', [a]);
   const turn = (v: string): string => op('combine', [sub(mul(c, swz(v, 'x')), mul(s, swz(v, 'z'))), swz(v, 'y'), add(mul(s, swz(v, 'x')), mul(c, swz(v, 'z')))]);
-  const position = turn(op('positionGeometry'));
-  const n = op('normalize', [op('varying', [turn(op('normalLocal'))])]);
+  const position = turn(op('combine', [add(swz(d, 'x'), swz(puff, 'x')), y, add(swz(d, 'z'), swz(puff, 'z'))]));
   const sunDir = p('sunDir'), cloudShade = p('cloudShade'), sunGlow = p('sunGlow');
-  const v = op('normalize', [sub(op('cameraPosition'), op('positionWorld'))]);
+  const world = op('positionWorld'), v = op('normalize', [sub(op('cameraPosition'), world)]);
+  // faceted: each facet's own normal from the position's screen derivatives, turned toward the eye (front faces only)
+  const face = op('normalize', [op('cross', [op('dFdx', [world]), op('dFdy', [world])])]);
+  const n = mul(face, sub(mul(op('step', [0, op('dot', [face, v])]), 2), 1));
   const ndl = op('dot', [n, sunDir]);
   const lit = mul(smooth(-0.05, 0.2, ndl), add(0.82, mul(0.18, ndl)));
   let col = op('mix', [cloudShade, p('cloudLit'), lit]);
-  col = op('mix', [col, mul(cloudShade, 0.82), mul(op('attribute', undefined, { name: 'aBelly', type: 'float' }), 0.55)]);   // darker, flatter bellies
+  const belly = mul(op('step', [swz(n, 'y'), -0.9]), op('step', [above, 2]));   // the flat bases: facing down, on the cut
+  col = op('mix', [col, mul(cloudShade, 0.82), mul(belly, 0.55)]);   // darker, flatter bellies
   // silver lining: rims facing away from the eye glow when the sun sits behind the cloud (clamped: a facet square to the
   // eye rounds |N·V| past 1, and one NaN pixel smeared by bloom's mip chain is a flickering black square, E91)
   const fres = op('pow', [op('clamp', [op('oneMinus', [op('abs', [op('dot', [n, v])])]), 0, 1]), 2.5]);
