@@ -13,13 +13,15 @@
 import * as THREE from 'three';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import { ShaderFamily } from '@wildshard/sdk/looks/shaderFamily';
-import { REEF_GLSL } from '../runtime/looks/reefGlsl';
+import { REEF_LOOK } from '../data/reefLook';
 
-/** the GLSL is data (data/reefGlsl.ts); `@{name}` splices the fragments this module passes */
-const REEF_FAMILY = new ShaderFamily(REEF_GLSL, {});
+let reefLook: { material: THREE.Material; follow: () => void } | null = null;
+/** hand the reef its compiled graph (look.materials, data/reefLook.ts) and its toon look's once-a-frame follow */
+export function setReefLook(materials: ReadonlyMap<string, THREE.Material>, follow: () => void): void {
+  const material = materials.get(REEF_LOOK);
+  if (material === undefined) throw new Error('Missing Driftwood reef look');
+  reefLook = { material, follow };
+}
 
 
 export interface ReefParams {
@@ -40,18 +42,13 @@ const CORAL = [
 const WEED = [new THREE.Color('#3f9a4a'), new THREE.Color('#5cb35a'), new THREE.Color('#2f7d5c'), new THREE.Color('#8bbf4a')];
 const STAR = [new THREE.Color('#f07a3e'), new THREE.Color('#e35b6a'), new THREE.Color('#f4c04a')];
 
-/** the reef's one material: flat-shaded vertex colour, two-sided, the fronds swaying in the current */
-export function reefMaterial(ctx: ModelContext): { material: THREE.MeshStandardMaterial; uniforms: { uTime: THREE.IUniform<number> } } {
+/** the reef's one material: its graph (data/reefLook.ts: toon lit, the fronds swaying in the current), its toon look
+ *  following the day clock once a frame; a page outside the hybrid world (no graph handed over) draws it still */
+export function reefMaterial(ctx: ModelContext): { material: THREE.Material; uniforms: { uTime: THREE.IUniform<number> }; update?: () => void } {
   return ctx.once('driftwood-isle/reef:material', () => {
-    const uniforms = { uTime: { value: 0 } };
+    const uniforms = { uTime: { value: 0 } }, look = reefLook;
+    if (look !== null) return { material: look.material, uniforms, update: look.follow };
     const material = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.8, metalness: 0, side: THREE.DoubleSide });
-    patchShader(material, 'driftwood.seabed-sway', PATCH_ORDER.material, (shader) => {
-      attachFogUniforms(shader);
-      Object.assign(shader.uniforms, uniforms);
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nattribute vec2 sway; uniform float uTime;')
-        .replace('#include <begin_vertex>', REEF_FAMILY.glsl(REEF_GLSL.swayBegin));
-    }, { mode: 'replace', key: 'seabed-sway' });
     ctx.sky.setupMaterial(material);
     return { material, uniforms };
   });
@@ -193,7 +190,7 @@ function reefGeometry(kind: Kind, p: ReefParams, rng: Rng): THREE.BufferGeometry
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  geo.setAttribute('sway', new THREE.Float32BufferAttribute(sway, 2));
+  geo.setAttribute('aSway', new THREE.Float32BufferAttribute(sway, 2));
   return geo;
 }
 

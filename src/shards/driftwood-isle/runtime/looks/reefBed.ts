@@ -90,7 +90,7 @@ export function scatterReefBed(row: ReefBedRow, ground: ReefGround, seed: number
 /** The reef's models: one per kind, the weld's material (with its sway clock) and the school's fish and tints. */
 export interface ReefBedModels<P extends ReefBedParams> {
   readonly kinds: Readonly<Record<string, ModelDef<P>>>;
-  readonly material: (ctx: ModelContext) => { material: THREE.Material; uniforms: { uTime: THREE.IUniform<number> } };
+  readonly material: (ctx: ModelContext) => { material: THREE.Material; uniforms: { uTime: THREE.IUniform<number> }; update?: () => void };
   readonly fish: ModelDef<Record<string, never>>;
   readonly fishColours: readonly number[];
 }
@@ -113,6 +113,8 @@ export class ReefBed<P extends ReefBedParams> {
   private readonly params: (spec: ReefBedSpec) => P;
   /** the reef's sway clock (its material's) */
   private uniforms: { uTime: THREE.IUniform<number> } | null = null;
+  /** the material's own once-a-frame step, when it has one */
+  private step: (() => void) | null = null;
   private school?: ReefSchool & { seeds: Float32Array };
   private readonly tmp = { m: new THREE.Matrix4(), p: new THREE.Vector3(), q: new THREE.Quaternion(), e: new THREE.Euler(), s: new THREE.Vector3(), f: new THREE.Vector3() };
 
@@ -154,8 +156,8 @@ export class ReefBed<P extends ReefBedParams> {
     const geo = mergeGeometries(parts, false);
     geo.computeBoundingSphere();
     this.tris = geo.getAttribute('position').count / 3;
-    const { material, uniforms } = this.models.material(ctx);
-    this.uniforms = uniforms;
+    const { material, uniforms, update } = this.models.material(ctx);
+    this.uniforms = uniforms; this.step = update ?? null;
     const mesh = new THREE.Mesh(geo, material);
     this.weld = mesh;
     mesh.castShadow = false; mesh.receiveShadow = true;
@@ -194,6 +196,7 @@ export class ReefBed<P extends ReefBedParams> {
   update(dt: number): void {
     const clock = this.uniforms;
     if (clock) clock.uTime.value += dt;
+    this.step?.();
     const s = this.school, mesh = this.fish;
     if (!s || !mesh) return;
     const t = (clock?.uTime.value ?? 0) * 0.35, { m, p, q, e, s: sc, f } = this.tmp;

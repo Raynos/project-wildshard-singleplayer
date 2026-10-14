@@ -38,12 +38,20 @@ import { reefRock } from '../models/reefRock';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { lowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
+import { POOL_LOOK } from '../data/poolLook';
+
+let poolLook: { material: THREE.Material; follow: () => void } | null = null;
+/** hand the pools their compiled graph (look.materials, data/poolLook.ts: the ripple rings) and its toon look's
+ *  once-a-frame follow, before the world builds */
+export function setPoolLook(materials: ReadonlyMap<string, THREE.Material>, follow: () => void): void {
+  const material = materials.get(POOL_LOOK);
+  if (material === undefined) throw new Error('Driftwood: look.materials lacks the cove pool graph');
+  poolLook = { material, follow };
+}
 
 export class Cove {
   group = new THREE.Group();
@@ -51,8 +59,8 @@ export class Cove {
   crabSites: { x: number; z: number }[] = [];
   anchors: Record<string, CoveAnchor> = {};
   caveBounds: CaveBounds = { x: 0, z: 0, r: 0, yMin: 0, yMax: 0 };
-  private uniforms = { uTime: { value: 0 } };
-  private t = 0;
+  /** the pools' toon look follows the day clock once a frame (their ripple runs on the graph's own frame clock) */
+  private follow: (() => void) | null = null;
   private fall: WaterfallLike | null = null;
   private cave: CoveSpec['cave'] = { x: 0, z: 0, yaw: 0, w: 0, h: 0, depth: 0 };
   /** Registration facts borrow the existing baked reef draw; no retained matrix/box copies. */
@@ -102,10 +110,10 @@ export class Cove {
     this.group.add(sm); this.rockMesh = sm;
     const glowMesh = new THREE.Mesh(built.geometry.glow, new THREE.MeshBasicMaterial({ vertexColors: true }));
     glowMesh.name = 'cove-glow'; this.group.add(glowMesh);
-    const pmat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#0a2540'), roughness: 0.4, metalness: 0, transparent: true, opacity: 0.9, flatShading: true });
-    this.patchRipple(pmat, 'cove-pool');
-    this.sky.setupMaterial(pmat);
-    const poolMesh = new THREE.Mesh(built.geometry.pools, pmat);
+    // the pools: concentric ripple rings drift outward, the sun catches their crests (data/poolLook.ts)
+    if (poolLook === null) throw new Error('Driftwood: the cove pool graph was not compiled before the world build');
+    this.follow = poolLook.follow;
+    const poolMesh = new THREE.Mesh(built.geometry.pools, poolLook.material);
     poolMesh.receiveShadow = true; poolMesh.renderOrder = 1;
     this.group.add(poolMesh);
 
@@ -155,29 +163,7 @@ export class Cove {
     return coveFloorAt(lz);
   }
 
-  /** the pools: concentric ripple rings drift outward, the sun catches their crests */
-  private patchRipple(mat: THREE.MeshStandardMaterial, key: string) {
-    const u = this.uniforms;
-    patchShader(mat, 'driftwood.cove', PATCH_ORDER.material, (shader) => {
-      attachFogUniforms(shader);
-      shader.uniforms['uTime'] = u.uTime;
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nvarying vec3 vWp;')
-        .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-      shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', '#include <common>\nuniform float uTime; varying vec3 vWp;')
-        .replace('#include <color_fragment>', `#include <color_fragment>
-          {
-            float r = length(fract(vWp.xz * 0.11) - 0.5) * 9.0;          // a ripple centre per 9 m cell (each pool gets its own)
-            float w = 0.5 + 0.5 * sin(r * 6.0 - uTime * 2.2) * sin(vWp.x * 3.1 + uTime) ;
-            float crest = smoothstep(0.75, 1.0, w);
-            diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.4, 0.5), crest * 0.4 + 0.06 * sin(vWp.z * 5.0 + uTime * 1.7));
-          }`);
-    }, { mode: 'replace', key });
-  }
-
-  update(dt: number): void {
-    this.t += dt;
-    this.uniforms.uTime.value = this.t;
+  update(_dt: number): void {
+    this.follow?.();
   }
 }

@@ -34,6 +34,7 @@
 import { ToonLight, type ToonLightUniforms } from '../runtime/looks/toonLight';
 import { TOON_GLSL_ROWS } from '../runtime/looks/toonGlsl';
 import { TOON_TUNE } from '../data/toonLook';
+import type { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 
 /**
  * L3 — colour-ramp fog (Firewatch): distance × height. Before `uFogStart` the island is crisp; out to `uFogEnd` the
@@ -44,6 +45,12 @@ import { TOON_TUNE } from '../data/toonLook';
 const TOON = new ToonLight(TOON_GLSL_ROWS, TOON_TUNE);
 
 export const toonUniforms: ToonLightUniforms = TOON.uniforms;
+
+/** The catalogue's live toon look (the graph toon materials', data/reefLook.ts) as it follows these tunables, once a frame. */
+export function followToon(look: Awaited<ReturnType<typeof runtimeLookMaterials>>['toon']): () => void {
+  const u = toonUniforms, t = look.uniforms;
+  return () => { t.famToonLift.value.copy(u.uToonLift.value); t.famToonRim.value.copy(u.uToonRim.value); t.famToonCloud.value.x = u.uCloudShadow.value; t.famToonWater.value.x = u.uSeaLevel.value; t.famToonTime.value = u.uCloudTime.value; };
+}
 
 /** the toon light model: one patch of three's `lights_physical_pars_fragment` (the look's `lighting`) */
 export function installToonLighting(): void { TOON.installLighting(); }
