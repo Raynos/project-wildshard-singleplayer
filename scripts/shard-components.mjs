@@ -12,7 +12,7 @@ export const COMPONENTS = {
 // Ordered semantic roles apply to owner APIs, declarations and imported bindings.
 // File roles supply a baseline; explicit owner declarations/calls split mixed code.
 const roles = [
-  ['C3', /fireFx|gustFx|windFx|wakeRibbon|discLayer|heroStoneDiscs|GUST_FX|RAY_WAKE/iu],
+  ['C3', /fireFx|gustFx|windFx|windLook|WIND_FIELDS|WIND_LOOKS|UPDRAFT_AXIS|wakeRibbon|discLayer|heroStoneDiscs|GUST_FX|RAY_WAKE/iu],
   ['C5', /quest|bindDirectorActions|signalStages|PivotNpc|NpcSurface|NpcLevel|scout|sefa|keeper|turnVanes|vaneFlag|QUEST|LATER_FLAGS|PAID_FLAG|SCOUT_FLAG|COMPLETE_FLAG/iu],
   ['C7', /mover|updraft|SocketLift|isletCalls|IsletCalls|RisingIslet|RISING_ISLETS|winch|commandSocketLift/iu],
   ['C6', /weapon|lash|whip|fan|strike|swings|cracks|worldCommands|heavy|released|bindRuntimeItemContexts|item/iu],
@@ -74,6 +74,9 @@ function runtimeTags(source, path, fallback) {
     } else if(node.type==='MethodDefinition') { const name=nodeName(node.key);role=(Object.hasOwn(methods,name)?methods[name]:null)??namedRole(name);reason=`method ${name}`;
     } else if(node.type==='Property'||node.type==='PropertyDefinition') {
       const name=nodeName(node.key);role=namedRole(name);reason=`property ${name}`;
+      // A world's winch prompt and its anchor are quest interaction handles,
+      // distinct from the kinematic mover command/pose owners.
+      if (path.endsWith('/world/build.ts') && ['winch', 'winchAt'].includes(name)) role='C5';
     } else if(node.type==='CallExpression'||node.type==='NewExpression') {
       const name=calledName(node.callee);role=imports.get(name)??namedRole(name);reason=`owner API ${name}`;
     }

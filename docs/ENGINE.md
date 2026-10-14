@@ -4831,3 +4831,9 @@ winch/lift views and Signal's well use the same protected `clientChannels`
 owner. `bindClientChannels().dispose()` releases borrowed view and prompt
 references; it does not dispose their caller-owned geometry or materials.
 The hybrid module imports this renderer-facing contract only as a type.
+
+Declared channel setup may lend bounded `initialPoses` to copied views
+and existing `bindings` to the same mover pose publisher. An optional
+`ClientMoverInstallation.viewSystemId` updates those views in the normal
+page update phase; `socketLiftPrompts` binds admitted entry prompts after
+the existing mover installation. There is no extra simulation clock.

@@ -10,7 +10,6 @@ import { BoxGeometry, DoubleSide, Mesh, MeshBasicMaterial, Vector3, type Texture
 import { STRINGS } from '../data/strings';
 import { CROWN, DAIS, ROC } from '../data/layout';
 import { buildWorld, type BuiltWorld } from '../world/build';
-import { SKY_NATIVE_MOVER_OWNERS } from '../data/moverBindings';
 import { SKY_NATIVE_WORLD } from '../data/nativeWorld';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { UPDRAFT_AXIS, WIND_FIELDS, WIND_LOOKS } from '../data/windLook';
@@ -103,7 +102,7 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const questStages = this.bindPageStages(ctx);
     const channelRows = source.clientChannels?.filter(row => row.connectors === undefined);
     if (channelRows === undefined) throw new Error('Missing admitted Sky mover views');
-    const channels = this.keepClientChannels(ctx, bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_MOVER_OWNERS, observed: (_id, frame) => {
+    const channels = this.keepClientChannels(ctx, bindClientChannels(channelRows, { targets: new Map([['winch', built.fallen]]), nativeOwners: SKY_NATIVE_WORLD.motion.nativeOwners, bindings: [built.islets], observed: (_id, frame) => {
       const previouslyRaised = built.state.raised;
       if (frame.value === undefined || frame.turn === undefined) throw new Error('Missing winch channel observations');
       built.state.raised = frame.value !== 0; built.state.raising = frame.turn === 1;
@@ -118,7 +117,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
     const host = motion.scriptHost; this.bindHeldScripts(ctx, channels.hooks, () => host.currentTick);
     if (flags.has(FLAGS.raised)) motion.command('far.winch.bridge', 3);
     // SF8c socketLift: the Rising Islets answer the normal INTERACT through the platform's command (islet + road gate)
-    channels.bindPrompts({ socketLifts: { entryways: source.entryways, runtime: () => channels.runtime } });
     rt.interactables.push(...channels.interactables);
     // The updraft lifts (G24): riding the board up the wind column, a steady upward push (`app.player.impulse`, decaying
     // like an animal's, so a constant feed holds about updraft.lift / 3.5 m/s) floats you off the ramp to the high step.
@@ -126,7 +124,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       (id, run) => { ctx.system({ id, phase: 'fixed.pre', run }); });
 
     await worldBuildYield(ctx, 4);
-    const poses = motion.pose.bind(motion);
     const vanes = boundedRows(built.vanes).map(vane => ({ vane, flag: vane.flag }));
     const eye = new Vector3();
     // Dressing: the hover decks glow while you ride; the mill and the turned vanes spin; the updraft's rings rise.
@@ -134,7 +131,6 @@ export class SkyReachPlugin extends HybridRuntimePlugin {
       const riding = this.board();
       built.hoverDeck.emissiveIntensity = riding ? 0.9 + Math.sin(t * 4) * 0.15 : 0.25; built.hoverDeck.opacity = riding ? 0.75 : 0.16;
       // SF49-g (G183): the Rising Islets ride their movers (fixed ride driver, in the fixed step); draw them and their chains
-      built.islets.updateMovers(poses); channels.updateMovers();
       built.millHub.rotation.z += dt * 0.35; built.storm.update(dt, t);
       for (let i = 0; i < MAX_RUNTIME_ROWS; i++) {
         const row = vanes[i]; if (row === undefined) break;

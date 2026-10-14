@@ -718,6 +718,8 @@ function moverChannelValues(reads: readonly string[], pose: MoverPose, fields: R
 
 /** Authored native installation and flag bit grants on the existing motion owner. */
 export interface ClientMoverInstallation {
+  readonly viewSystemId?: string;
+  readonly socketLiftPrompts?: boolean;
   /** Compose admitted item aliases and verified modules into the existing mover host. */
   readonly itemRole?: NonNullable<MoverRoleComposition['declarations']>[number]['row'];
   readonly systemId: string;
@@ -726,6 +728,8 @@ export interface ClientMoverInstallation {
 /** Declared visual channels and input prompts, with clocks lent by their existing owners. */
 export function bindClientChannels(programs: readonly ClientChannelProgram[], ports: {
   readonly targets: ReadonlyMap<string, unknown>; readonly nativeOwners?: readonly string[]; readonly copiedOwners?: readonly string[];
+  readonly initialPoses?: readonly (MoverPose & { readonly id: string })[];
+  readonly bindings?: readonly { readonly updateMovers: (pose: (id: string) => MoverPose) => void }[];
   readonly kernels?: ClientGeometryKernels; readonly observed?: (id: string, frame: ClientChannelFrame) => void;
 }): {
   readonly movers: ReadonlyMap<string, MoverView>; readonly interactables: readonly Interactable[];
@@ -768,7 +772,7 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
   const prompts = new Map<string, ReturnType<typeof createClientChannelPrompt>>();
   let promptRows: readonly { id: string; lane: ReturnType<typeof createClientChannelPrompt> }[] = [];
   let interactables: readonly Interactable[] = Object.freeze([]), promptsBound = false;
-  return Object.freeze({ movers, get runtime() { return runtime; }, get hooks() { return hooks; }, get interactables() { return interactables; },
+  const binding = Object.freeze({ movers, get runtime() { return runtime; }, get hooks() { return hooks; }, get interactables() { return interactables; },
     dispose: () => {
       movers.clear(); views.clear(); prompts.clear(); pending.clear(); copiedViews.length = 0;
       promptRows = []; interactables = Object.freeze([]); runtime = null; hooks = new Map();
@@ -795,6 +799,14 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
         permissions: () => new Map(grants.map(grant => [grant.mover, flagValue(flags, grant.flags)])),
         onDispose: () => { runtime = null; hooks = new Map(); } });
       hooks = items?.hooks(runtime.scriptHost) ?? new Map();
+      if (row.socketLiftPrompts === true) binding.bindPrompts({ socketLifts: { entryways: source.entryways, runtime: () => runtime } });
+      if (row.viewSystemId !== undefined) ctx.system({ id: row.viewSystemId, phase: 'update', run: () => {
+        const active = runtime;
+        if (active === null) return;
+        const pose = active.pose.bind(active);
+        for (const child of ports.bindings ?? []) child.updateMovers(pose);
+        binding.updateMovers();
+      } });
       return runtime;
     },
     view: (id: string) => { const view = views.get(id); if (view === undefined) throw new Error('Unknown declared visual channel'); return view; },
@@ -828,6 +840,13 @@ export function bindClientChannels(programs: readonly ClientChannelProgram[], po
       }
     },
   });
+  const initial = ports.initialPoses;
+  if (initial !== undefined) {
+    if (initial.length > 32 || new Set(initial.map(pose => pose.id)).size !== initial.length) throw new Error('Invalid initial channel poses');
+    const poses = new Map(initial.map(pose => [pose.id, pose]));
+    binding.updateMovers(id => { const pose = poses.get(id); if (pose === undefined) throw new Error('Missing initial channel pose'); return pose; });
+  }
+  return binding;
 }
 
 /** Declarative prompt dispatch over existing named handlers and admitted lift/mover owners. */

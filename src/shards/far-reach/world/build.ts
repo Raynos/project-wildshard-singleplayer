@@ -23,7 +23,6 @@ import { BOOK_STAND } from '../data/bookStand';
 import { KEEPER_STAND } from '../data/keeperStand';
 import { crownStorm, type CrownStorm } from './storm';
 import { STORM } from '../data/storm';
-import { RISING_ISLETS } from '../data/islets.generated';
 import { skyDocksFor } from './skyDock';
 
 type ShardContext = Parameters<SkyReachPlugin['world']>[0];
@@ -44,7 +43,6 @@ export interface BuiltWorld {
   readonly storm: CrownStorm;
   readonly vanes: readonly { readonly id: string; readonly flag: string; readonly at: Vector3; readonly rotor: Object3D }[];
   readonly winch: Interactable;
-  readonly winchAt: Vector3;
   readonly notes: Interactable;
   readonly notesAt: Vector3;
   /** Gameplay state the pieces' `active()` read. */
@@ -147,11 +145,10 @@ export async function buildWorld(ctx: ShardContext, pause: () => Promise<void>, 
   const storm = crownStorm(rnd); storm.group.position.set(CROWN.x, CROWN.y + STORM.lift, CROWN.z - STORM.ahead); storm.group.rotation.x = STORM.lean; root.add(storm.group);
 
   await pause();
-  const scene = createClientScene(ISLET_SCENES.scene, { geometry: SKY_LIBRARY.geometry, objects: new Map(RISING_ISLETS.map(entry => [`islet.${entry.edge}`, islandMesh(`islet.${entry.edge}`)])) });
-  const rest = new Map(ISLET_SCENES.rest.map(row => [row.id, row])), ids = [...rest.keys()];
-  const islets = bindClientChannels(looks.channels.filter(row => row.mover !== undefined && ids.includes(row.mover) && row.connectors !== undefined), { targets: scene.parts, copiedOwners: ids });
-  islets.updateMovers(id => { const pose = rest.get(id); if (pose === undefined) throw new Error('Missing initial islet pose'); return pose; });
+  const scene = createClientScene(ISLET_SCENES.scene, { geometry: SKY_LIBRARY.geometry, objects: new Map(ISLET_SCENES.scene.nodes.flatMap(row => row.kind === 'object' && row.source !== undefined ? [[row.source, islandMesh(row.source)] as const] : [])) });
+  const ids = ISLET_SCENES.rest.map(row => row.id);
+  const islets = bindClientChannels(looks.channels.filter(row => row.mover !== undefined && ids.includes(row.mover) && row.connectors !== undefined), { targets: scene.parts, copiedOwners: ids, initialPoses: ISLET_SCENES.rest });
   root.add(scene.root);
   ctx.root.add(root); ctx.scope.ownPrimitives(root, { instances: true });
-  return { hoverDeck, fallen, millHub: mill.hub, storm, vanes, winch: handle, winchAt, notes, notesAt, state, islets };
+  return { hoverDeck, fallen, millHub: mill.hub, storm, vanes, winch: handle, notes, notesAt, state, islets };
 }
