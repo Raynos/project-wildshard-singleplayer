@@ -11,5 +11,5 @@ import isletRig from './isletRig.json' with { type: 'json' };
 import dressing from './dressing.json' with { type: 'json' };
 
 /** Authored static kind, pose, material and collider rows, in their original preload order. */
-export const WORLD_BAKES = { 'winch-house': winchHouse, roost, docks, crown, mill, 'book-stand': bookStand,
+export const WORLD_BAKES = { 'winch-house': winchHouse, roost, docks, crown, mill: { ...mill, kinds: mill.kinds.map(kind => kind.name.startsWith('cloth-') ? Object.assign(structuredClone(kind), { look: 'mill-canvas' }) : kind) }, 'book-stand': bookStand,
   knolls, geometries, 'islet-rig': isletRig, dressing } as const satisfies Readonly<Record<BakedPiece, unknown>>;

@@ -11,9 +11,9 @@ export function millSceneSource(): Uint8Array {
     { kind: 'group', id: 'hub', position: [0, model.hubAt.y, model.hubAt.z], children: parts.slice(1) },
     ...parts.map(name => ({ kind: 'object' as const, id: name, source: name, missing: 'omit' as const, children: [],
       ...(name === 'shaft' ? { position: shaft } : {}) })),
-    { kind: 'object', id: 'model.tower', source: 'model.tower', missing: 'omit', children: [] },
-    { kind: 'object', id: 'model.foot', source: 'model.foot', missing: 'omit', children: [] },
+    { kind: 'mesh', id: 'model.tower', name: 'far.mill.tower', geometry: 'mill-tower', material: 'tower', missing: 'omit', whenTexture: { texture: 'ready', present: true }, children: [] },
+    { kind: 'mesh', id: 'model.foot', name: 'far.mill.foot', geometry: 'mill-foot', material: 'foot', missing: 'omit', whenTexture: { texture: 'ready', present: true }, children: [] },
   ];
-  const recipe: WorldSceneRecipe = { scene: { version: 1, root: 'mill', nodes, materials: [], textures: [] }, imports: [] };
+  const recipe: WorldSceneRecipe = { scene: { version: 1, root: 'mill', nodes, materials: [{kind:'port',id:'tower',source:'tower'},{kind:'port',id:'foot',source:'foot'}], textures: [{kind:'port',id:'ready',source:'ready'}] }, imports: parts.map(name => ({id:name,kind:'baked',piece:'mill',only:{name}})) };
   return new TextEncoder().encode(`/** Authored mill assembly and borrowed motion ports; generated during the build. */\nexport const MILL_SCENE = ${JSON.stringify({ recipe, parts, cloth, bindings: { hub: { kind: 'group', part: 'hub' }, hubAt: { kind: 'vector', value: hub } } })} as const;\n`);
 }

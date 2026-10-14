@@ -9,6 +9,7 @@ import { BAKED_URLS, WORLD_BYTES, type BakedPiece } from '../data/files';
 import { shackMaterial, type ShackKind } from './shack';
 import { isleMaterial, setIslePack } from './isle';
 import { dressingMaterial } from './dressing';
+import { skyLook } from './looks';
 
 /**
  * SHARD-PLATFORM SF72: Sky Reach's world pieces drawn from their offline bake. The shapes are built at build time
@@ -27,7 +28,7 @@ const shackKind = (kind: object): ShackKind | undefined => {
 export const WORLD = bakedMeshWorld<BakedPiece, BakedMeshKindRow>(WORLD_BAKES, BAKED_URLS, 'far-reach', {
   resources: WORLD_BYTES, readBytes: fetchDeflated, placements:{rows:SKY_PIECES,colliders:[...BRIDGE_PHYSICS,...PLACEMENTS,...SKY_GROUND_COLLIDERS]},
   material: (kind) => { const shack = shackKind(kind), dressed: unknown = 'dressing' in kind ? kind.dressing : undefined;
-    return shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : 'paint' in kind ? isleMaterial() : undefined; },
+    return 'look' in kind && typeof kind.look === 'string' ? skyLook(kind.look) : shack !== undefined ? shackMaterial(shack) : typeof dressed === 'string' ? dressingMaterial(dressed) : 'paint' in kind ? isleMaterial() : undefined; },
   attributes: { _shk: 'aShk', _farcloth: 'aFarCloth' },
 });
 /** Load every baked piece, the islands and the meadow's blades (the plugin's `world` hook, before the world is built); a piece that fails to load is empty. */
