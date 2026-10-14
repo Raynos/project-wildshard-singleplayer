@@ -1,4 +1,4 @@
-import { readRuntimeWorldMetadata, addBakedWorld, installDeclaredQuestHost, admittedTerrain, ledgerPorts, pickCommands, trustedLevel, weaponRow, installNativeMelee, type NativeMeleeWorld } from '@wildshard/game/plugin/simulation';
+import { readRuntimeWorldMetadata, addBakedWorld, installDeclaredQuestHost, admittedTerrain, ledgerPorts, pickCommands, trustedLevel, weaponRow, installNativeMelee } from '@wildshard/game/plugin/simulation';
 import { prepareNativePopulation } from '@wildshard/game/shardfile/bossRow';
 import type { QuestGraphPorts } from '@wildshard/game/plugin/quests';
 import { proveTerrainEntries } from '@wildshard/game/plugin/mover';
@@ -21,19 +21,13 @@ export const prepareSignalRuntime: PrepareHeadlessRuntime = ({ shard, assets }) 
   if (quest === null || quest === undefined) throw new Error('Missing admitted Signal quest host');
   const population = prepareNativePopulation(SIGNAL_NATIVE_POPULATION, [...rows.actors, ...rows.bosses], SIGNAL_BOSS_OWNER);
   const row = weaponRow(shard, manifest.lash.id);
-  const cracks = quest.interactions.rows.flatMap((entry): NativeMeleeWorld[] => {
-    if (entry.crack === undefined) return [];
-    const spot = spots.crack.find(s => `crack.${s.id}` === entry.at);
-    if (spot === undefined) throw new Error(`Missing Signal crack ${entry.id}`);
-    return [{ act: entry.act, at: spot, radius: spot.radius, crack: entry.crack }];
-  });
   const at = { x: shard.spawn.x, y: heightAt(shard.spawn.x, shard.spawn.z) + SIGNAL_LEVEL.player.lift, z: shard.spawn.z };
   return { level: trustedLevel(shard, { at, yaw: shard.spawn.yaw, speed: SIGNAL_LEVEL.player.speed }, SIGNAL_LEVEL.ground), ports: { ground: false, heightAt },
     proveEntries: host => proveTerrainEntries(host.physics, shard.entryways, heightAt, manifest.entries), install: (host, context) => {
     if (!context.restoring) addBakedWorld(host, baked.pieces, terrain.bytes);
     const ledger = ledgerPorts(context.emit);
     const { keeper, encounter } = population.install(host, ledger, context.snapshot);
-    const lash = installNativeMelee(host, row, row.native, {world:cracks,worldActor:quest.graph.actor,inputCommands:context.commands,enabled:()=>!encounter.locked()});
+    const lash = installNativeMelee(host, row, row.native, {questWorld:{row:quest,spots},inputCommands:context.commands,enabled:()=>!encounter.locked()});
     installDeclaredQuestHost(host, shard, { spots, crack: { reach: { light: row.light.range, heavy: row.heavy.range }, cracked: lash.cracked },
       promptRegistrations: parsePromptRegistrations(rows.promptRegistrations),
       commands: pickCommands(context.commands, command => command.kind === 'script' ? command : undefined), ...ledger,

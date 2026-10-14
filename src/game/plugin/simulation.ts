@@ -799,6 +799,7 @@ export interface NativeMeleePorts {
   /** Full admitted player input; sampled once when the owner declares held release. */
   readonly heldCommands?: () => readonly NativeHeldCommand[]; readonly enabled?: () => boolean;
   readonly world?: readonly NativeMeleeWorld[];
+  readonly questWorld?:{readonly row:QuestHostRow;readonly spots:QuestGraphPorts['spots']};
   readonly hook?: NativeMeleeHook | null;
   /** The existing composed ScriptHost's current tick; never starts a second script clock. */
   readonly hookTick?: () => number;
@@ -814,7 +815,15 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
   const { native: row, contacts } = parseNativeMeleeBinding(input, weapon.contacts);
   if(row.held!==undefined&&ports.heldCommands===undefined&&ports.inputCommands===undefined)throw new Error('Held input requires its admitted player stream');
   if(row.input===undefined?ports.commands===undefined:ports.inputCommands===undefined)throw new Error('Native melee requires its declared command stream');
-  if(row.input?.world!==undefined&&ports.worldActor===undefined)throw new Error('Native world commands require their quest actor');
+  const questWorld=ports.questWorld,worldActor=ports.worldActor??questWorld?.row.graph.actor;
+  const worldTargets=ports.world??questWorld?.row.interactions.rows.flatMap((entry):NativeMeleeWorld[]=>{
+    if(entry.crack===undefined)return [];
+    const spot=questWorld.spots.crack.find(point=>`crack.${point.id}`===entry.at);
+    if(spot===undefined)throw new Error(`Missing admitted melee world spot ${entry.id}`);
+    return [{act:entry.act,at:spot,radius:spot.radius,crack:entry.crack}];
+  })??[];
+  if(worldTargets.length>1024)throw new RangeError('Native melee world roster exceeds its bound');
+  if(row.input?.world!==undefined&&worldActor===undefined)throw new Error('Native world commands require their quest actor');
   let inputTick=-1, inputStream:readonly NativeMeleeInput[]=[];
   const inputCommands=():readonly NativeMeleeInput[]=>{
     if(inputTick!==host.state.tick){inputStream=ports.inputCommands?.()??[];if(inputStream.length>MAX_TICK_COMMANDS)throw new RangeError('Native melee input exceeds its tick bound');inputTick=host.state.tick;}
@@ -828,14 +837,14 @@ export function installNativeMelee(host: SimHost, weapon: { readonly id: string;
       if(command.kind==='player'&&command.attack!==undefined)mapped.push({kind:'move',action:policy.attack,...(command.attack.targetId===undefined?{}:{targetId:command.attack.targetId})});
       else if(command.kind==='script'){
         if(command.actorId===policy.aimActor&&command.value!==undefined)mapped.push({kind:'aim',pitch:command.value});
-        else if(policy.world!==undefined&&command.actorId===ports.worldActor){const target=ports.world?.find(entry=>entry.act===command.value);if(target!==undefined)mapped.push({kind:'move',world:target.act,action:target.crack==='heavy'?policy.world.heavy:policy.world.light});}
+        else if(policy.world!==undefined&&command.actorId===worldActor){const target=worldTargets.find(entry=>entry.act===command.value);if(target!==undefined)mapped.push({kind:'move',world:target.act,action:target.crack==='heavy'?policy.world.heavy:policy.world.light});}
         else {const move=policy.scripts.find(entry=>entry.actor===command.actorId&&entry.value===command.value);if(move!==undefined)mapped.push({kind:'move',action:move.action});}
       }
     }
     return mapped;
   };
   const aimed = { target: null as string | null, world: null as number | null, dir: new Vector3(0, 0, -1) };
-  const from = new Vector3(), direction = new Vector3(), targets = ports.world ?? [];
+  const from = new Vector3(), direction = new Vector3(), targets = worldTargets;
   const volumes = { head: new Vector3(), headRadius: 0, a: new Vector3(), b: new Vector3(), bodyRadius: 0 };
   let cracked: number | null = null, pitch = 0;
   const port = (id: string): NativeMeleeTarget | null => {

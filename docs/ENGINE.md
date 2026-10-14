@@ -4722,3 +4722,9 @@ views. Calls retain the actual receiver; optional null owners keep their
 existing absence policy. Explicit maps remain supported. Prototype and
 traversal keys refuse. `readBorrowedOwner` in `plugin/headless` is the same
 reader for other runtime ports; it returns the field, receiver and key.
+
+The native melee `questWorld` port borrows an already-admitted quest host
+and prompt spots. The existing contact owner resolves each crack row's
+world target and quest actor before registering its step, refusing missing
+spots. Original light/heavy crack outcomes remain on the timed contact
+family; direct owned `world` targets remain supported.
