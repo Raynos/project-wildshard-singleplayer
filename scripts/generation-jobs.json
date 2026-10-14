@@ -3234,11 +3234,12 @@
         "src/shards/pine-hollow/assets/e070988cbecf1eeccf79cf8322abb350847f277f8411ec8138a188414112797e",
         "src/shards/pine-hollow/assets/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e",
         "src/shards/pine-hollow/assets/f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2",
-        "src/shards/pine-hollow/assets/78629da1c49ee7f0b7f44b26be5ad1c282e67271a0be409356e49902c634a1d6"
+        "src/shards/pine-hollow/assets/78629da1c49ee7f0b7f44b26be5ad1c282e67271a0be409356e49902c634a1d6",
+        "src/shards/pine-hollow/assets/d70f282e106c7be59516705ffb0832d59462d02c617295e3979e4341d1f92269"
       ],
       "platform": "native",
       "buildOutputs": {
-        "src/shards/pine-hollow/data/timberWorld.generated.json": "eaadc1e7698117bd91e9bc4d4597ef249e7c62135127c43f4d66c008b9ad1a9c",
+        "src/shards/pine-hollow/data/timberWorld.generated.json": "30de41fe75c25d4939f5413f2cbbfd6c46fd7145ae81dc6e73c5bac1a6f7d1b9",
         "src/shards/pine-hollow/assets/0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680": "0c1f2a18108703f5513afb09cafae11beb63fc858bcc1c6589d38d41c0a13680",
         "src/shards/pine-hollow/assets/184a783069239d81057d9d8179f46769cd2b204c5ef4989d6a8d340a06c5e902": "184a783069239d81057d9d8179f46769cd2b204c5ef4989d6a8d340a06c5e902",
         "src/shards/pine-hollow/assets/1dda8218279874f1e7d13c6ee348d6553b896c10595cf4d9ee4a79be9550d70d": "1dda8218279874f1e7d13c6ee348d6553b896c10595cf4d9ee4a79be9550d70d",
@@ -3267,7 +3268,8 @@
         "src/shards/pine-hollow/assets/e070988cbecf1eeccf79cf8322abb350847f277f8411ec8138a188414112797e": "e070988cbecf1eeccf79cf8322abb350847f277f8411ec8138a188414112797e",
         "src/shards/pine-hollow/assets/f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e": "f8498086fe700232cfada1a7145db43079bc9db6bd3754b8a2768aa5b88af24e",
         "src/shards/pine-hollow/assets/f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2": "f96e9da304df9b0ea12f84d93551b9efc565c0d578f38f66989637b77f63acd2",
-        "src/shards/pine-hollow/assets/78629da1c49ee7f0b7f44b26be5ad1c282e67271a0be409356e49902c634a1d6": "78629da1c49ee7f0b7f44b26be5ad1c282e67271a0be409356e49902c634a1d6"
+        "src/shards/pine-hollow/assets/78629da1c49ee7f0b7f44b26be5ad1c282e67271a0be409356e49902c634a1d6": "78629da1c49ee7f0b7f44b26be5ad1c282e67271a0be409356e49902c634a1d6",
+        "src/shards/pine-hollow/assets/d70f282e106c7be59516705ffb0832d59462d02c617295e3979e4341d1f92269": "d70f282e106c7be59516705ffb0832d59462d02c617295e3979e4341d1f92269"
       }
     },
     {

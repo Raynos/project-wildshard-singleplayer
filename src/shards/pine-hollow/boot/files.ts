@@ -61,8 +61,7 @@ export function bootSources(tier: Tier, tex: TexMode = 'img'): ChunkFiles {
   const { gpu, layer, pbr } = filePolicy(tier, tex, table);
   const gltf = (id: string): string[] => [`/assets/models/${id}/${id}.gltf`, `/assets/models/${id}/${id}.bin`, ...['diff', 'nor_gl', 'arm'].map((kind) => `/assets/models/${id}/textures/${id}_${kind}_1k.jpg`)];
   const lod = (id: string): string => `/assets/models/${id}/${id}_lod.glb`;
-  const baked = `${bakedDir}terrain.bin`;
-  const terrain = uniq([...(baked in publicBytes() ? [baked] : []), ...['forrest_ground_03', 'leafy_grass', 'rock_ground', 'stony_dirt_path'].flatMap(pbr).map(layer), ...pbr('rock_ground')]);
+  const terrain = uniq([...['forrest_ground_03', 'leafy_grass', 'rock_ground', 'stony_dirt_path'].flatMap(pbr).map(layer), ...pbr('rock_ground')]);
   const trees = uniq(['trees.glb', 'cards-albedo.png', 'cards-normal.jpg', 'cards-arm.jpg', 'impostor-albedo.png', 'impostor-normal.jpg'].map((name) => `${treeSet}/${name}`).concat(['pine_bark', 'fir_bark', 'metasequoia_bark', 'birch_bark', 'bark_willow_02'].flatMap(pbr).map(layer)));
   const layered = new Set([...terrain, ...trees].map(gpu));
   const cabins = uniq([...['wood_trunk_wall', 'wood_planks_grey', 'wood_planks_dirt', 'rough_pine_door', 'stone_wall', 'pine_bark'].flatMap(pbr), ...['stone_fire_pit', 'wooden_crate_02', 'wine_barrel_01', 'wooden_bucket_01', 'hatchet'].flatMap(gltf), lod('Lantern_01')].map(gpu)).filter((url) => !layered.has(url));

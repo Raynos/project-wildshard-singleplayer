@@ -57,7 +57,7 @@ const KEY = 'pine-hollow/timber:views';
 /** Fetch the site timbers' bake into this shard's context (once). */
 export async function loadSiteTimbers(ctx: ModelContext): Promise<Map<string, WholeGeometryView>> {
   if (source.props === null) throw new Error('[timber] missing admitted props');
-  const refs = authored.shardfile.files.map(file => file.hash);
+  const refs = authored.shardfile.files.filter(file => file.kind === 'glb').map(file => file.hash);
   const pending = ctx.once(KEY, () => readWholeGeometry(resourceScope(), source,
     refs));
   const ready = await pending; ctx.once('pine-hollow/timber:ready', () => ready);
