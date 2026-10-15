@@ -1,3 +1,4 @@
+import treeRest from './treeRest.generated.json' with {type:'json'};
 import painted from './paintedTextures.generated.json' with {type:'json'};
 import skins from './npcSkins.generated.json' with {type:'json'};
 import floor from './floor.generated.json' with { type: 'json' };
@@ -112,7 +113,7 @@ export const PINE_BOOT_FILES = {
   "treeMeshes": {
     "source": {
       "urls": [
-        "/assets/models/pine-hollow-trees/trees.glb",
+        treeRest.geometry,
         "/assets/models/pine-hollow-trees/cards-albedo.png",
         "/assets/models/pine-hollow-trees/cards-normal.jpg",
         "/assets/models/pine-hollow-trees/cards-arm.jpg",

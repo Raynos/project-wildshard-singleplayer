@@ -5762,3 +5762,11 @@ hit result as `H`; the target and damage ports exchange that value without
 conversion. Default page callers retain `TargetHit`. Surface policy, nearest
 world fence, flight slots and stopped-shaft continuation keep their existing
 owners; the host never installs physics or applies damage itself.
+
+ModelLibrary geometry pools may declare up to 16 Float32 application
+channels with `{name, source, width, parts?}`. Width is 1–4; source names
+are glTF loader application semantics, and optional parts restrict the
+required channel to an explicit subset. Admission refuses undeclared,
+missing or colliding channels. Aliasing lends the original BufferAttribute
+without copying, transforming or normalizing it. Absent channels retain
+the original strict rest-pool path; native source pools do not accept them.

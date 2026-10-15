@@ -95,6 +95,8 @@ export interface NativeModelPartPolicy { readonly first?: boolean; readonly requ
 export interface ModelPbrAtlas { readonly map: Texture; readonly normalMap: Texture; readonly armMap: Texture }
 export interface ModelGeometryPool {
   readonly url: string; readonly parts: readonly string[]; readonly native?: NativeModelPartPolicy;
+  /** Explicit Float32 application channels; a part subset requires that channel on exactly those meshes. */
+  readonly channels?: readonly { readonly name: string; readonly source: string; readonly width: number; readonly parts?: readonly string[] }[];
   readonly atlases?: readonly { readonly id: string; readonly part: string; readonly anisotropy: number; readonly refresh?: boolean }[];
 }
 
@@ -178,6 +180,14 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
   if (atlasRows.length > 128 || new Set(atlasRows.map(row => row.id)).size !== atlasRows.length
     || pools.some(pool => pool.native?.first === true && pool.parts.length !== 1
       || (pool.atlases ?? []).some(row => !pool.parts.includes(row.part) || !Number.isFinite(row.anisotropy) || row.anisotropy < 1 || row.anisotropy > 32))) throw new Error('Invalid declared native pool/atlas slots');
+  for (const pool of pools) {
+    const channels = pool.channels ?? [];
+    if (channels.length > 16 || pool.native !== undefined && channels.length > 0
+      || new Set(channels.map(row => row.name)).size !== channels.length || new Set(channels.map(row => row.source)).size !== channels.length
+      || channels.some(row => !/^[A-Za-z][A-Za-z0-9_]{0,63}$/u.test(row.name) || ['position','normal','color','uv','uv1','tangent','constructor','prototype','__proto__'].includes(row.name)
+        || (!/^_[a-z0-9_]{1,63}$/u.test(row.source) || row.source === '__proto__') || ![1,2,3,4].includes(row.width)
+        || row.parts !== undefined && (row.parts.length === 0 || row.parts.length > pool.parts.length || new Set(row.parts).size !== row.parts.length || row.parts.some(part => !pool.parts.includes(part))))) throw new Error('Invalid declared rest channels');
+  }
   if (paintedRows.length > 128 || new Set(paintedRows.map(row => row.name)).size !== paintedRows.length
     || paintedRows.some(row => !parts.includes(row.geometry) || row.pivots !== undefined && (row.pivots.length !== 4 || row.pivots.some(part => part !== null && !parts.includes(part))))) throw new Error('Painted models require declared rest primitives and four pivot slots');
 
@@ -250,10 +260,16 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
         if (node?.type !== 'Mesh' || !node.matrixWorld.equals(new Matrix4())) throw new Error('Rest pool requires named identity-space ordinary meshes');
         const geometry = node.geometry, position = geometry.getAttribute('position');
         if (!(position instanceof BufferAttribute) || position.count === 0 || position.count > 400_000 || Object.keys(geometry.morphAttributes).length > 0) throw new Error('Rest pool requires bounded rigid positions');
+        const channels = (pool.channels ?? []).filter(row => row.parts === undefined || row.parts.includes(name));
         for (const [channel, attribute] of Object.entries(geometry.attributes)) {
-          const width = ['uv','uv1'].includes(channel) ? 2 : channel === 'tangent' ? 4 : ['position', 'normal', 'color'].includes(channel) ? 3 : undefined;
+          const width = ['uv','uv1'].includes(channel) ? 2 : channel === 'tangent' ? 4 : ['position', 'normal', 'color'].includes(channel) ? 3 : channels.find(row => row.source === channel)?.width;
           if (width === undefined || !(attribute instanceof BufferAttribute) || !(attribute.array instanceof Float32Array)
             || attribute.normalized || attribute.itemSize !== width || attribute.count !== position.count || attribute.array.some(value => !Number.isFinite(value))) throw new Error('Rest pool has incompatible Float32 channels');
+        }
+        for (const row of channels) {
+          const attribute: unknown = geometry.attributes[row.source];
+          if (!(attribute instanceof BufferAttribute) || geometry.hasAttribute(row.name)) throw new Error('Missing or colliding declared rest channel');
+          geometry.deleteAttribute(row.source); geometry.setAttribute(row.name, attribute);
         }
         const index = geometry.index;
         if (index !== null && (!(index.array instanceof Uint16Array) && !(index.array instanceof Uint32Array)

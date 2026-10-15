@@ -4,9 +4,11 @@ import { publicBytes } from '@wildshard/engine/boot/tables';
 import { loadTexture, loadPBRArray } from '@wildshard/engine/core/assets';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { LookReplaceContext } from '@wildshard/engine/render/look';
-import { BARK_LAYERS, loadTreeSetGeometry, treeSetUrls } from '@wildshard/engine/world/forest/treeSet';
+import { BARK_LAYERS, treeSetUrls } from '@wildshard/engine/world/forest/treeSet';
 import { TreeFactory, isTreeMaterial, type FadeBand, type TreeMaterial } from '@wildshard/engine/world/TreeFactory';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
+import { createModelLibrary } from '@wildshard/game/plugin/geometry';
+import treeRest from '../data/treeRest.generated.json';
 import source from '../shard.config';
 import { FOREST_LOOKS } from '../data/forestLook';
 import { PINE_TREE_ASSETS, PINE_TREE_SET as TREE_SPECS_V2 } from './treeSet';
@@ -15,14 +17,8 @@ export interface PineTreeFactoryOptions { set: string }
 
 type ForestLooks = Awaited<ReturnType<typeof lookGraphMaterials>>;
 
-/** the set's attributes, named as the forest's graphs read them (../data/forestLook.ts `aWindWeight` / `aBarkLayer`) */
-function graphNamed(g: THREE.BufferGeometry): THREE.BufferGeometry {
-  for (const [from, to] of [['windWeight', 'aWindWeight'], ['barkLayer', 'aBarkLayer']] as const) {
-    if (!g.hasAttribute(from)) continue;
-    const a = g.getAttribute(from); g.deleteAttribute(from); g.setAttribute(to, a);
-  }
-  return g;
-}
+const treeLibrary = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
+  geometryPools: [{url: treeRest.geometry, parts: treeRest.parts, channels: treeRest.channels}] }, '[trees]');
 
 /**
  * Pine Hollow's trees: the Blender species set (PH-B4), its geometry, card and impostor atlases baked offline. Shipped content
@@ -64,8 +60,8 @@ export class PineTreeFactory extends TreeFactory {
     // The loader fences compressed maps before returning; choose the final sampler while mips exist.
     const cards = (texture: THREE.Texture): void => { texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping; texture.anisotropy = 8; };
     const far = (texture: THREE.Texture): void => { texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping; texture.anisotropy = 4; };
-    const [geo, cardAlbedo, cardNormal, cardArm, farAlbedo, farNormal, bark, looks] = await Promise.all([
-      loadTreeSetGeometry(U.glb, TREE_SPECS_V2),
+    const [, cardAlbedo, cardNormal, cardArm, farAlbedo, farNormal, bark, looks] = await Promise.all([
+      treeLibrary.preload(),
       loadTexture(U.cardsAlbedo, true, 1, undefined, cards), loadTexture(U.cardsNormal, false, 1, undefined, cards), loadTexture(U.cardsArm, false, 1, undefined, cards),
       loadTexture(U.farAlbedo, true, 1, undefined, far), loadTexture(U.farNormal, false, 1, undefined, far),
       loadPBRArray([...BARK_LAYERS], TIER_CONFIG.layerSize),
@@ -87,10 +83,12 @@ export class PineTreeFactory extends TreeFactory {
     this.farMaterial = look(FOREST_LOOKS.far, { farMap: farAlbedo, farNormal });
 
     for (const s of TREE_SPECS_V2) {
-      const g = geo.get(s.name);
-      if (!g) throw new Error(`[trees] the set has no ${s.name}`);
-      for (const part of Object.values(g)) graphNamed(part);
-      this.variants.push({ trunk: g.trunk, trunkLo: g.trunkLo, cardsHi: g.hi, cardsLo: g.lo, twigs: g.twigs, far: g.far, height: s.height, trunkRadius: s.trunk, species: s.species, collider: s.collider });
+      const part = (id: string): THREE.BufferGeometry => {
+        const geometry = treeLibrary.geometry(`${s.name}__${id}`, {borrow: true});
+        if (geometry === null) throw new Error(`[trees] the set has no ${s.name}__${id}`);
+        return geometry;
+      };
+      this.variants.push({ trunk: part('trunk'), trunkLo: part('trunkLo'), cardsHi: part('hi'), cardsLo: part('lo'), twigs: part('twigs'), far: part('far'), height: s.height, trunkRadius: s.trunk, species: s.species, collider: s.collider });
     }
     return this;
   }
@@ -98,7 +96,7 @@ export class PineTreeFactory extends TreeFactory {
 
 /** Awaited by the cards boot step: the species set, which every build ships (its trees.glb in the public byte table). */
 export function pineFactory(renderer: LookReplaceContext['renderer']): Promise<TreeFactory> {
-  const { set } = PINE_TREE_ASSETS, glb = `/assets/models/${set}/trees.glb`;
+  const { set } = PINE_TREE_ASSETS, glb = treeRest.geometry;
   if (!(glb in publicBytes())) throw new Error(`[trees] Pine Hollow's tree set is missing: ${glb}`);
   return new PineTreeFactory(renderer, { set }).build();
 }

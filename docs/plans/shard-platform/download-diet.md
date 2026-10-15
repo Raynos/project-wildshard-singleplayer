@@ -79,3 +79,5 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   before (the painters made RGBA8 textures). No runtime painter remains.
 
 | Driftwood Isle | Authored Blender-cove placement plans (immutable per-tier JSON; no new geometry) | — | — | Phone 666,785 B raw / 400,547 B gzip-9; desktop 874,449 B raw / 537,717 B gzip-9 | W2 cove-plan call | Existing placement indices plus exact Float32 picking boxes; same 400 small-rock poses, ordered 16 model families and 200 collider claims. Parsed sidecar and decode buffers are released after placement; no retained template or second world payload. |
+
+| Pine Hollow | Authored tree rest geometry | Hash-named immutable `baked/trees-9c39e53e….glb`: 2,702,644 B raw, replaces 1,422,848 B quantized trees.glb (+1,279,796 B). Gzip-9 estimate 1,676,163 B versus 833,763 B. G438 approves the download increase. Cheap pine-tree-rest job; no new binary committed. | All 84 original part channels, indices, bounds and shader wind/bark values retained; ModelLibrary borrows decoded attributes without a template/clone pair. Existing graph materials, tree placement, LODs and colliders unchanged. |
