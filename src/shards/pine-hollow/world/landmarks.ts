@@ -30,7 +30,7 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { CullOptions } from '@wildshard/engine/models/cull';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
-import { place, type Placed } from '@wildshard/engine/models/place';
+import { ModelPlacementBatch, modelPoseMatrix as placeMatrix, type ModelPose as Place } from '@wildshard/engine/models/placementBatch';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { Cabins } from './homestead';
@@ -53,8 +53,6 @@ import { zipCable } from '../models/zipCable';
 import { PineCrags } from './crags';
 import { CRAG_ROWS } from './cragBake';
 
-type V3 = THREE.Vector3;
-const V = (x: number, y: number, z: number): V3 => new THREE.Vector3(x, y, z);
 
 
 // ───────────────────────────── the fire lookout, the zipline and the footbridge (models: ../chunks/pine-hollow/models/) ─────
@@ -77,11 +75,6 @@ function floorIn(floors: readonly Floor[], x: number, z: number): number | undef
 // ───────────────────────────── the image-to-3D hero props ─────────────────────────────
 
 /** every prop the landmarks can place (src/shards/pine-hollow/world/heroFiles.ts lists the ones built so far: the rest are skipped) */
-type HeroId = PineHeroId;
-interface Place { x: number; y: number; z: number; yaw: number; scale: number; pitch?: number; roll?: number }
-const placeMatrix = (p: Place): THREE.Matrix4 => new THREE.Matrix4().compose(
-  V(p.x, p.y, p.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(p.pitch ?? 0, p.yaw, p.roll ?? 0, 'YXZ')), V(p.scale, p.scale, p.scale));
-
 /** Native quest readers borrow the same generated landmark facts as the world. */
 export const CANOE_SITE = { x: -67.8, z: 119 };
 export function contractBoardSite(): { x: number; z: number; yaw: number } { return { ...authored.landmarks.contractBoardSite }; }
@@ -93,7 +86,7 @@ export function waystoneSites(): Record<WaystoneId, { x: number; z: number; yaw:
 export interface PineLandmarksHandle {
   group: THREE.Group;
   /** the zipline's cable ends (world) and where you stand to ride / where you land */
-  zip: { top: V3; bottom: V3; launch: V3; landing: V3 };
+  zip: { top: THREE.Vector3; bottom: THREE.Vector3; launch: THREE.Vector3; landing: THREE.Vector3 };
   setLit: (id: WaystoneId, on: boolean) => void;
   setCanoeAway: (away: boolean) => void;
   isLit: (id: WaystoneId) => boolean;
@@ -102,14 +95,14 @@ export interface PineLandmarksHandle {
 
 export class PineLandmarks implements PineLandmarksHandle {
   readonly group = new THREE.Group();
-  zip = { top: V(0, 0, 0), bottom: V(0, 0, 0), launch: V(0, 0, 0), landing: V(0, 0, 0) };
+  zip = { top: new THREE.Vector3(0, 0, 0), bottom: new THREE.Vector3(0, 0, 0), launch: new THREE.Vector3(0, 0, 0), landing: new THREE.Vector3(0, 0, 0) };
   /** the timber models' colliders, then the props' (world space: the navmesh bake reads them) */
   readonly timberColliders: ColliderDesc[] = [];
   readonly propColliders: ColliderDesc[] = [];
   private floors: Floor[] = [];
   private lit: Record<WaystoneId, boolean> = { pond: true, ridge: true, den: true };
   /** the drawn-up canoe: its place and its copies (PH-C8 hides it while you paddle) */
-  private canoe: { place: Place; placed: Placed } | null = null;
+  private canoe: { place: Place; placed: Awaited<ReturnType<ModelPlacementBatch['place']>> } | null = null;
   private glow: THREE.Points | null = null;
   private glowMat: THREE.PointsMaterial | null = null;
   private anchors: Record<WaystoneId, THREE.Object3D> | null = null;
@@ -127,21 +120,26 @@ export class PineLandmarks implements PineLandmarksHandle {
     const crags = PineCrags.load(this.sky); // the kit + the cave + their textures, fetched while the timber builds
     const ctx = pineModels(this.sky);
     await Promise.all([loadTimber(ctx), loadSiteTimbers(ctx)]);
+    const batch = new ModelPlacementBatch({ ctx, registry, fallbackParent: this.group, colliders: this.timberColliders });
+    const placeTimber = async <P extends object>(model: ModelDef<P>, frame: THREE.Matrix4, params: P | undefined, id: keyof typeof authored.landmarks.timberFloors): Promise<void> => {
+      const mine: readonly Floor[] = authored.landmarks.timberFloors[id];
+      await batch.frames(model, [frame], params, { draw: 'single', piece: { id, solidFloor: true, floor: (x, z) => floorIn(mine, x, z) } });
+      this.floors.push(...mine);
+    };
     // the timber landmarks (models), one task each, at the frames their world-space builders used
     const lookoutAt = lookoutSite();
-    this.placeTimber(fireLookout, lookoutAt, undefined, 'pine-lookout', registry);
+    await placeTimber(fireLookout, lookoutAt, undefined, 'pine-lookout');
     await macrotask();
     const landingAt = landingSite().at, atSite = { site: 'world' } as const;
-    this.placeTimber(ziplineLanding, landingAt, atSite, 'pine-zip-landing', registry);
+    await placeTimber(ziplineLanding, landingAt, atSite, 'pine-zip-landing');
     const zip=authored.landmarks.zip;
     this.zip={top:new THREE.Vector3(...zip.top),bottom:new THREE.Vector3(...zip.bottom),launch:new THREE.Vector3(...zip.launch),landing:new THREE.Vector3(...zip.landing)};
     // the steel cable between the two gantries
     const { top, bottom } = this.zip;
-    const cable = place(zipCable, [{ x: top.x, y: top.y, z: top.z, params: { span: [bottom.x - top.x, bottom.y - top.y, bottom.z - top.z] } }], { ctx, draw: 'single', registry, piece: { id: 'pine-zip-cable' } });
-    if (registry === null) this.group.add(cable.object);
+    await batch.place(zipCable, [{ x: top.x, y: top.y, z: top.z, params: { span: [bottom.x - top.x, bottom.y - top.y, bottom.z - top.z] } }], { draw: 'single', piece: { id: 'pine-zip-cable' } });
     await macrotask();
     const bridge = bridgeSite();
-    this.placeTimber(creekFootbridge, bridge.at, atSite, 'pine-footbridge', registry);
+    await placeTimber(creekFootbridge, bridge.at, atSite, 'pine-footbridge');
     await macrotask();
     this.crags = await crags;
     await this.buildProps(cabins, registry);
@@ -155,52 +153,33 @@ export class PineLandmarks implements PineLandmarksHandle {
     return this;
   }
 
-  /**
-   * Place a timber model once at its frame: drawn, colliding, its decks the piece's floors (`facts` reads them once the
-   * copy is built: the build keeps them).
-   */
-  private placeTimber<P extends object>(model: ModelDef<P>, frame: THREE.Matrix4, params: P | undefined, id: keyof typeof authored.landmarks.timberFloors, registry: WorldRegistry | null): void {
-    const mine: readonly Floor[] = authored.landmarks.timberFloors[id], e = frame.elements;
-    const placed = place(model, [{ x: e[12], y: e[13], z: e[14], matrix: frame, ...(params === undefined ? {} : { params }) }], { ctx: pineModels(this.sky), draw: 'single', registry,
-      piece: { id, solidFloor: true, floor: (x, z) => floorIn(mine, x, z) } });
-    this.floors.push(...mine);
-    this.timberColliders.push(...placed.colliders);
-    if (registry === null) this.group.add(placed.object);
-  }
-
   private async buildProps(cabins: Cabins | null, registry: WorldRegistry | null): Promise<void> {
-    const ctx = pineModels(this.sky);
+    const ctx = pineModels(this.sky), batch = new ModelPlacementBatch({ ctx, registry, fallbackParent: this.group, colliders: this.propColliders });
     await Promise.all(PINE_HERO_IDS.map((id) => loadPineHero(ctx, id)));
     // the props' own draw distance: the forest props' (phone 220 m), capped at 260 m on desktop — a 3 m stone is a few
     // pixels there, and desktop's 700 m kept every set (and its shadows) drawn from anywhere on the slab. Each type is a
     // set: its LOD from the nearest copy on the ground (E315 M2: the models' `lods`, `place`'s `lodBy: 'set'`)
     const cull: CullOptions = { lodBy: 'set', flat: true, from: 'origin', far: Math.min(TIER_CONFIG.propsFar, 260) };
-    const add = <P extends object>(model: ModelDef<P>, id: HeroId, places: Place[], extra: Pick<Placement<P>, 'variant' | 'params'> = {}): { places: Place[]; placed: Placed } | null => {
-      if (!heroLod0(ctx, id) || places.length === 0) return null;
-      const turned = places.map((p) => ({ ...p, yaw: p.yaw + HERO_FRONT[id] }));
-      const placed = place(model, turned.map((p): Placement<P> => ({ x: p.x, y: p.y, z: p.z, matrix: placeMatrix(p), ...extra })), { ctx, draw: 'instanced', cull, registry });
-      this.propColliders.push(...placed.colliders);
-      if (registry === null) this.group.add(placed.object);
-      return { places: turned, placed };
-    };
+    const add = <P extends object>(model: ModelDef<P>, id: PineHeroId, places: Place[], extra: Pick<Placement<P>, 'variant' | 'params'> = {}) =>
+      heroLod0(ctx, id) ? batch.poses(model, places, HERO_FRONT[id], extra, { draw: 'instanced', cull }) : null;
     const sites = authored.landmarks;
-    for (const row of sites.stones) { const kind = STONE_KINDS.find(value => value === row.kind); if (kind) add(standingStone, kind, row.places, { variant: kind }); }
+    for (const row of sites.stones) { const kind = STONE_KINDS.find(value => value === row.kind); if (kind) await add(standingStone, kind, row.places, { variant: kind }); }
     // Deck support remains the live timber owner's; the base terrain site is authored.
     const wsPlaces = sites.waystones.map((p): Place => ({ ...p, y: (this.floorHeightAt(p.x, p.z) ?? p.y) - 0.15 }));
-    const waySet = add(waystone, 'waystone', wsPlaces);
+    const waySet = await add(waystone, 'waystone', wsPlaces);
     const wayGeo = heroLod0(ctx, 'waystone')?.geometry;
     if (waySet && wayGeo) this.lanterns(waySet.places, cabins, await loadPainted('glow'));
 
-    add(beaverDam, 'beaver-dam', sites.dam);
-    const drawnUp = add(canoe, 'canoe', sites.canoe);
+    await add(beaverDam, 'beaver-dam', sites.dam);
+    const drawnUp = await add(canoe, 'canoe', sites.canoe);
     const canoePlace = drawnUp?.places[0];
     this.canoe = drawnUp && canoePlace ? { place: canoePlace, placed: drawnUp.placed } : null;
 
-    add(contractBoard, 'contract-board', sites.board);
+    await add(contractBoard, 'contract-board', sites.board);
     const arch = sites.arch;
     const hollow = (this.crags?.caveMetaData ?? null) !== null;
     if (hollow && heroLod0(ctx, 'cave-arch')) openCaveArch(ctx);
-    add(caveArch, 'cave-arch', [arch], hollow ? {} : { variant: 'closed' });
+    await add(caveArch, 'cave-arch', [arch], hollow ? {} : { variant: 'closed' });
   }
 
   /** the waystones' flames (emissive, one instanced draw) and their glow (one Points draw), both on sky.lamps */

@@ -5944,3 +5944,20 @@ The caller retains geometry, material, shader semantics, colours, bounds,
 clocks and visibility decisions. Pine wildlife is the current user; G441
 registers Nalati `creatures/flock.ts` (`iAnim`, `writeInstances`, `useRig`)
 as its W3 adopter, rechecked at the end of W3.
+
+### Ordered model placement batches
+
+`src/engine/models/placementBatch.ts` provides `ModelPlacementBatch` over
+existing `place` / `placeSliced`. It borrows a model context and registry,
+optionally collecting collider descriptors and attaching unregistered
+objects to a fallback parent. Await successive typed calls to retain
+heterogeneous model order. A supplied `due` uses the existing slicer.
+`frames` keeps full matrices and params; `poses` applies a front yaw then
+composes the authored YXZ transform with `modelPoseMatrix`. Corrected pose
+rows and the original `Placed` result remain available to callers.
+Floors, materials, lights and gameplay remain caller-owned.
+
+G441's W3 users are Nine's `world/squareProps.ts` (ordered matrices,
+per-copy params, parent/culler and sliced registration) and
+`world/props3d.ts#place` (authored yaw/scale frames). Their existing share
+selection, names and named sets remain local; pending credit ends at W3.

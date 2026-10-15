@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./models/placementBatch": "./models/placementBatch.ts",
     "./models/glbNodes": "./models/glbNodes.ts",
     "./models/ownedGeometry": "./models/ownedGeometry.ts",
     "./player/modeData": "./player/modeData.ts",
