@@ -20,7 +20,7 @@ import * as THREE from 'three';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext } from '@wildshard/engine/models/model';
-import { place, type Placed } from '@wildshard/engine/models/place';
+import { placeModelSite, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -76,17 +76,14 @@ export class Shrine {
   build(): this { return this.draw(null); }
 
   private draw(registry: WorldRegistry | null): this {
-    const { x, y: y0, z } = this.o;
-    const ctx = modelContext(this.sky);
-    const placed = place(shrine, [{ x, y: y0, z, params: this.params }], { ctx, draw: 'single', registry,
-      piece: { id: 'shrine', floor: (px, pz) => this.floorHeightAt(px, pz), solidFloor: true } });
-    this.group = placed.object;
-    this.placed = placed;
-    this.descs = [...placed.colliders];
-    const lay = this.lay = shrineLayout(this.params);
+    const y0 = this.o.y, ctx = modelContext(this.sky), lay = this.lay = shrineLayout(this.params);
+    const site = placeModelSite(shrine, this.o, lay, { ctx, registry, params: this.params, piece: { id: 'shrine' } });
+    this.group = site.group;
+    this.placed = site.placed;
+    this.descs = site.colliderDescs();
     this.baseY = y0 + lay.baseY;
-    for (const c of lay.colliders) this.colliders.push({ ...c, x: c.x + x, z: c.z + z, yTop: c.yTop + y0, yBottom: c.yBottom + y0 });
-    for (const [k, a] of Object.entries(lay.anchors)) this.anchors[k] = { x: a.x + x, y: a.y + y0, z: a.z + z, yaw: a.yaw };
+    this.colliders.push(...site.colliders);
+    Object.assign(this.anchors, site.anchors);
     const m = shrineMaterials(ctx);
     this.glyphMat = m.glyphs;
     this.buildFireflies(new Rng(SEED ^ 0x5418), y0 + lay.terrace);

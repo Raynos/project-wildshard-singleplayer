@@ -14,10 +14,10 @@
  */
 import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
+import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { libraryModel } from '@wildshard/game/models/libraryModel';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import bake from '../data/hutBake.json' with { type: 'json' };
 import { HUT_FLAMES_GEOMETRY, HUT_KIT_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
@@ -31,16 +31,10 @@ export interface HutLayout {
   readonly colliders: Collider[];
   readonly anchors: Record<string, HutAnchor>;
   readonly floorY: number;
-  readonly colliderDescs: () => ColliderDesc[];
+  readonly colliderDescs: () => ReturnType<typeof readColliderRows>;
   readonly floorHeightAt: (x: number, z: number) => number | undefined;
 }
 
-const n = (v: number | undefined): number => { if (v === undefined) throw new Error('hutBake.json: a descriptor lacks a number'); return v; };
-const v3 = (p: { x: number; y: number; z: number } | undefined): { x: number; y: number; z: number } => { if (p === undefined) throw new Error('hutBake.json: treads lack an end'); return { x: p.x, y: p.y, z: p.z }; };
-/** The baked physics descriptors, typed again (fresh objects each call): boxes and the front steps' treads. */
-const bakedDescs = (): ColliderDesc[] => bake.descs.map((d): ColliderDesc => d.kind === 'treads'
-  ? { kind: 'treads', from: v3(d.from), to: v3(d.to), width: n(d.width), count: n(d.count) }
-  : { kind: 'box', x: n(d.x), y: n(d.y), z: n(d.z), hx: n(d.hx), hy: n(d.hy), hz: n(d.hz), yaw: n(d.yaw) });
 const sameSite = (site: HutSite): boolean => site.x === bake.site.x && site.z === bake.site.z && site.rot === bake.site.rot;
 
 /** The baked site's origin: its centre on the ground (world). */
@@ -52,7 +46,7 @@ export function hutOrigin(site: HutSite): { x: number; y: number; z: number } {
 /** The hut's layout on its baked site (fresh copies: the caller may place them). */
 export function hutLayout(site: HutSite): HutLayout {
   if (!sameSite(site)) throw new Error('Hut site changed; regenerate its fixed geometry');
-  const descs = bakedDescs();
+  const descs = readColliderRows(bake.descs, { kinds: ['box', 'treads'], surfaces: [] });
   const { cos, sin, lift, deck, steps } = bake.floor, floorY = bake.floorY;
   return {
     colliders: structuredClone(bake.colliders), anchors: structuredClone(bake.anchors), floorY,
@@ -76,7 +70,7 @@ export const hut = defineModel<Record<string, never>>({
     draws: () => [{ draw: 'kit', material: 'kit', castShadow: true, receiveShadow: true }, { draw: 'flames', material: 'flames' }],
     geometry: (_, draw) => DRAWS[draw].copy(),
     material: (ctx, key) => key === 'kit' ? lowPolyLookMaterial(ctx.sky, 'still') : ctx.once('driftwood-isle/hut:flames', () => new THREE.MeshBasicMaterial({ vertexColors: true })),
-    colliders: () => bakedDescs(),
+    colliders: () => readColliderRows(bake.descs, { kinds: ['box', 'treads'], surfaces: [] }),
     loading: { id: 'driftwood-isle/hut', ready: fixedGeometryReady, load: () => loadFixedGeometry(), size: () => [11, 7, 8] },
   }),
 });

@@ -1307,9 +1307,10 @@ export interface ModelSite {
  * The origin is a translation, not another turn: the site's geometry, floor and anchor yaw already carry their authored
  * rotation. The existing place path keeps model seed, registration, colliders, drawing and ownership unchanged. Its one
  * copy is drawn `single`, so a model that builds a whole object (a library model) places as one that builds parts does.
+ * Optional params override the model defaults for that copy; absent params retain the default build.
  */
 export function placeModelSite<P extends object>(model: ModelDef<P>, origin: { readonly x: number; readonly y: number; readonly z: number },
-  layout: ModelSiteLayout, options: Omit<PlaceOptions, 'draw'>): ModelSite {
+  layout: ModelSiteLayout, options: Omit<PlaceOptions, 'draw'> & { readonly params?: Partial<P> }): ModelSite {
   if (![origin.x, origin.y, origin.z].every(Number.isFinite) || layout.colliders.length > 100000 || Object.keys(layout.anchors).length > 1024) throw new Error('Invalid model site metadata');
   const entries = Object.entries(layout.anchors);
   if (entries.some(([key, anchor]) => ['__proto__', 'prototype', 'constructor'].includes(key) || key.length === 0 || key.length > 256
@@ -1318,7 +1319,8 @@ export function placeModelSite<P extends object>(model: ModelDef<P>, origin: { r
     const y = layout.floorHeightAt(x - origin.x, z - origin.z);
     return y === undefined ? undefined : y + origin.y;
   };
-  const placed = place(model, [{ ...origin, params: {} }], { ...options, draw: 'single',
+  const { params, ...placementOptions } = options;
+  const placed = place(model, [{ ...origin, params: params ?? {} }], { ...placementOptions, draw: 'single',
     piece: { ...options.piece, floor: floorHeightAt, solidFloor: true } });
   return { group: placed.object, placed,
     colliders: layout.colliders.map(box => ({ ...box, x: box.x + origin.x, z: box.z + origin.z, yTop: box.yTop + origin.y, yBottom: box.yBottom + origin.y })),

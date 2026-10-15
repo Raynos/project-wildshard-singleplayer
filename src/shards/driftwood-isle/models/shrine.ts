@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
+import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { libraryModel } from '@wildshard/game/models/libraryModel';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { ShrineAnchor, ShrineParams, ShrineSite } from '../assets/contracts/shrine';
 import { SHRINE_SITES } from '../data/shrineSites';
 import bake from '../data/shrineBake.json' with {type:'json'};
@@ -32,19 +32,13 @@ export function shrineOrigin(p:ShrineParams):{x:number;y:number;z:number}{return
 /** Borrowed layout values are copied for each native owner; floor queries keep the original stair/terrace/causeway law. */
 export interface ShrineLayout {
   colliders:BoxSpec[];anchors:Record<string,ShrineAnchor>;baseY:number;waterY:number;terrace:number;
-  colliderDescs:()=>ColliderDesc[];floorHeightAt:(x:number,z:number)=>number|undefined;
+  colliderDescs:()=>ReturnType<typeof readColliderRows>;floorHeightAt:(x:number,z:number)=>number|undefined;
 }
-const n=(v:number|undefined):number=>{if(v===undefined)throw new Error('Shrine collider lacks a number');return v;};
-const end=(v:{x:number;y:number;z:number}|undefined):{x:number;y:number;z:number}=>{if(v===undefined)throw new Error('Shrine tread lacks an end');return {...v};};
 /** Independent native collision and floor callbacks over the admitted layout. */
 export function shrineLayout(p:ShrineParams):ShrineLayout {
   const row=bake[shrineSiteKind(p.site)],cs=Math.cos(p.site.rot),sn=Math.sin(p.site.rot);
   return {colliders:structuredClone(row.colliders),anchors:structuredClone(row.anchors),baseY:row.baseY,waterY:row.waterY,terrace:row.terrace,
-    colliderDescs:()=>row.descs.map((d):ColliderDesc=>{
-      if(d.kind==='treads')return {kind:'treads',from:end(d.from),to:end(d.to),width:n(d.width),count:n(d.count),surface:'stone'};
-      if(d.kind!=='box')throw new Error('Unsupported shrine collider');
-      return {kind:'box',x:n(d.x),y:n(d.y),z:n(d.z),hx:n(d.hx),hy:n(d.hy),hz:n(d.hz),yaw:n(d.yaw),surface:'stone'};
-    }),
+    colliderDescs:()=>readColliderRows(row.descs, { kinds: ['box', 'treads'], surfaces: ['stone'], requireSurface: true }),
     floorHeightAt:(x,z)=>{
     const lx=x*cs-z*sn,lz=x*sn+z*cs,b=row.baseY;
     if (Math.abs(lx) < STAIR.hw && lz >= STAIR.z0 && lz <= STAIR.z1) return b + TIERS[2].top * ((STAIR.z1 - lz) / (STAIR.z1 - STAIR.z0));

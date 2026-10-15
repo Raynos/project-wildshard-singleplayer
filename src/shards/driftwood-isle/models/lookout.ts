@@ -15,10 +15,10 @@
  * it; the cable leaves the pulley 2.5 m above it), stairFoot (y = ground).
  */
 import { defineModel } from '@wildshard/engine/models/model';
+import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { libraryModel } from '@wildshard/game/models/libraryModel';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import bake from '../data/lookoutBake.json' with { type: 'json' };
 import { LOOKOUT_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
@@ -34,16 +34,10 @@ export interface LookoutLayout {
   readonly colliders: Collider[];
   readonly anchors: Record<string, LookoutAnchor>;
   readonly platformY: number;
-  readonly colliderDescs: () => ColliderDesc[];
+  readonly colliderDescs: () => ReturnType<typeof readColliderRows>;
   readonly floorHeightAt: (x: number, z: number) => number | undefined;
 }
 
-const n = (v: number | undefined): number => { if (v === undefined) throw new Error('lookoutBake.json: a descriptor lacks a number'); return v; };
-const v3 = (p: { x: number; y: number; z: number } | undefined): { x: number; y: number; z: number } => { if (p === undefined) throw new Error('lookoutBake.json: treads lack an end'); return { x: p.x, y: p.y, z: p.z }; };
-/** The baked physics descriptors, typed again (fresh objects each call): boxes, the platform slab and the stair's treads. */
-const bakedDescs = (): ColliderDesc[] => bake.descs.map((d): ColliderDesc => d.kind === 'treads'
-  ? { kind: 'treads', from: v3(d.from), to: v3(d.to), width: n(d.width), count: n(d.count) }
-  : { kind: 'box', x: n(d.x), y: n(d.y), z: n(d.z), hx: n(d.hx), hy: n(d.hy), hz: n(d.hz), yaw: n(d.yaw) });
 const baked = (p: LookoutPlacement): boolean => p.site.x === bake.site.x && p.site.z === bake.site.z && p.site.rot === bake.site.rot && p.zipTo.x === bake.zipTo.x && p.zipTo.z === bake.zipTo.z;
 
 /** The baked site's origin: its centre on the ground (world). */
@@ -55,7 +49,7 @@ export function lookoutOrigin(p: LookoutPlacement): { x: number; y: number; z: n
 /** The tower's layout on its baked site (fresh copies: the caller may place them). */
 export function lookoutLayout(p: LookoutPlacement): LookoutLayout {
   if (!baked(p)) throw new Error('Lookout site changed; regenerate its fixed geometry');
-  const descs = bakedDescs();
+  const descs = readColliderRows(bake.descs, { kinds: ['box', 'treads'], surfaces: [] });
   const { cos, sin, plat, h, stair } = bake.floor, platformY = bake.platformY;
   return {
     colliders: structuredClone(bake.colliders), anchors: structuredClone(bake.anchors), platformY,
@@ -76,7 +70,7 @@ export const lookout = defineModel<Record<string, never>>({
   defaults: {},
   ...libraryModel<Record<string, never>, 'kit', 'lookout'>({
     draws: () => [{ draw: 'lookout', material: 'kit', castShadow: true, receiveShadow: true }],
-    geometry: () => LOOKOUT_GEOMETRY.copy(), material: (ctx) => lowPolyLookMaterial(ctx.sky), colliders: () => bakedDescs(),
+    geometry: () => LOOKOUT_GEOMETRY.copy(), material: (ctx) => lowPolyLookMaterial(ctx.sky), colliders: () => readColliderRows(bake.descs, { kinds: ['box', 'treads'], surfaces: [] }),
     loading: { id: 'driftwood-isle/lookout', ready: fixedGeometryReady, load: () => loadFixedGeometry(), size: () => [6, 11, 9] },
   }),
 });

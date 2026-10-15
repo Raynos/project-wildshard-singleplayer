@@ -5723,7 +5723,7 @@ service or actor is created or mutated by this owner.
 ordinary `single` model placement (a parts build or a whole object, such as a library model). Its origin translates
 existing own-space geometry, legacy boxes, anchors and floor; it never reapplies authored rotation. The returned `ModelSite` lends the actual `Placed` object and collider descriptors.
 `ModelSiteLayout` supplies authored boxes/anchors and the existing floor evaluator. Invalid origins and unsafe anchors
-refuse before placement. A null registry builds the same export specimen without registering it.
+refuse before placement. A null registry builds the same export specimen without registering it. Optional typed `options.params` override the model defaults for this copy; absent params keep the default build.
 
 Held ranged playback uses the same admitted `HeldPlayback` groups for root
 poses and moving parts. Pine's loaded bolt, lever, hammer and cartridge, and
