@@ -18,9 +18,10 @@ def main():
         print('vercel-gate: ' + sha[:9] + ' build already passed')
         return 0
     if not inside:
-        # Build the commit in the locked `gate` slot of the build mirror (one persistent full copy under ./tmp, synced
-        # file by file) instead of a fresh 5 GB export per push; this script re-runs itself there.
-        mirror = [str(root / 'scripts/build-mirror.mjs'), 'run', sha, '--slot', 'gate', '--full', '--']
+        # Build the commit in the locked `gate` slot of the build mirror: one persistent copy under ./tmp, without art/,
+        # progress/ and sources/ like Vercel's .vercelignore tree, synced file by file instead of a fresh 5 GB export per
+        # push. This script re-runs itself there.
+        mirror = [str(root / 'scripts/build-mirror.mjs'), 'run', sha, '--slot', 'gate', '--']
         return subprocess.run(['node', *mirror, sys.executable, str(root / 'scripts/local-gate.py'), sha],
                               env=dict(os.environ, WS_GATE_REPO=str(root))).returncode
     try:
