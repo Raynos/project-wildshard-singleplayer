@@ -2,11 +2,9 @@ import * as THREE from 'three';
 import {SEED} from '@wildshard/engine/core/config';
 import {defineModel,type ModelContext,type ModelPart} from '@wildshard/engine/models/model';
 import {loadingSpecimen} from '@wildshard/engine/models/gear';
-import {PATCH_ORDER,patchShader} from '@wildshard/engine/render/shaderPatches';
 import {lowPolyLookMaterial} from '@wildshard/engine/world/lowpolyKit';
 import {boxDesc,type ColliderDesc} from '@wildshard/engine/world/registry';
 import {pierBoxes} from '../world/pierLayout';
-import {patchSway} from '@wildshard/engine/world/wind';
 import {pierParamsKey,pierSpecKey,type PierParams,type PierSpec} from '../assets/contracts/pier';
 import {PIER_DEFAULTS,PIER_VARIANTS} from '../data/pierRows';
 import rows from '../data/piers.generated.json' with {type:'json'};
@@ -22,34 +20,6 @@ export function pierWorldParams(spec:PierSpec):PierParams {
   landing:p.landing===null?null:{...p.landing,postGround:pair(p.landing.postGround)},
   ...(p.pennantAt===undefined?{}:{pennantAt:p.pennantAt}),...(p.seaRamp===undefined?{}:{seaRamp:p.seaRamp})};
 }
-/** a travelling ripple from the hoist to the fly, across the cloth (object space: the south pier stands unturned).
- * wind.ts's sway mostly leans along the wind, which is along this flag, so on its own it would stretch the pennant
- * rather than wave it */
-function patchFlutter(shader: { vertexShader: string }, dir: readonly [number, number]): void {
-  const [dx, dz] = dir, n = Math.hypot(dx, dz), sx = (-dz / n).toFixed(3), sz = (dx / n).toFixed(3);
-  shader.vertexShader = shader.vertexShader.replace('#include <project_vertex>', `{
-    float fw = aSway.x;
-    if (fw > 0.0) {
-      float ripple = sin(uWindTime * 5.2 - fw * 7.0 + aSway.y) * 0.7 + sin(uWindTime * 8.3 - fw * 11.0) * 0.3;
-      transformed += vec3(${sx}, 0.0, ${sz}) * ripple * 0.075 * fw * (0.45 + 0.55 * uGust);
-    }
-  }
-  #include <project_vertex>`);
-}
-
-/** the pennant's materials (lit and shadow pass), one pair per shard */
-function pennantMaterials(ctx: ModelContext, dir: readonly [number, number]): { lit: THREE.Material; depth: THREE.MeshDepthMaterial } {
-  return ctx.once('driftwood-isle/pier:pennant', () => {
-    const lit = lowPolyLookMaterial(ctx.sky, 'pennant', (m) => {
-      patchShader(m, 'driftwood.pennant-flutter', PATCH_ORDER.decorate, (sh) => { patchFlutter(sh, dir); });
-    });
-    const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
-    patchShader(depth, 'driftwood.pennant-depth', PATCH_ORDER.material, (sh) => { patchSway(sh); patchFlutter(sh, dir); }, { mode: 'replace', key: 'pennant-depth' });
-    return { lit, depth };
-  });
-}
-
-
 /** Resolve one of the seven authored parameter sets; there is no procedural fallback. */
 export function pierGeometryKey(p:PierParams):string {
  const row=rows.find(r=>r.paramKey===pierParamsKey(p));
@@ -60,7 +30,8 @@ function pierParts(ctx:ModelContext,p:PierParams):ModelPart[] {
  const geometry=PIER_GEOMETRIES.get(pierGeometryKey(p));if(geometry===undefined)throw new Error('Missing authored pier geometry');
  const deck=lowPolyLookMaterial(ctx.sky,'still');
  const parts:ModelPart[]=[{geometry:geometry.deck.copy(),material:deck,castShadow:true,receiveShadow:true}];
- if(geometry.cloth!==null){const {lit,depth}=pennantMaterials(ctx,p.pennantDir);parts.push({geometry:geometry.cloth.copy(),material:lit,castShadow:true,receiveShadow:false,customDepthMaterial:depth});}
+ // the pennant flutters in its graph, its shadow too (data/kitLook.ts)
+ if(geometry.cloth!==null)parts.push({geometry:geometry.cloth.copy(),material:lowPolyLookMaterial(ctx.sky,'pennant'),castShadow:true,receiveShadow:false});
  return parts;
 }
 /**
@@ -109,6 +80,6 @@ export const pier=defineModel<PierParams>({
   pierGeometryKey(p);
   if(fixedGeometryReady())return pierParts(ctx,p);
   return loadingSpecimen('driftwood-isle/pier',[p.width+2,10,p.length],async()=>{await loadFixedGeometry();const group=new THREE.Group();
-   for(const part of pierParts(ctx,p)){const mesh=new THREE.Mesh(part.geometry,part.material);mesh.castShadow=part.castShadow??false;mesh.receiveShadow=part.receiveShadow??false;if(part.customDepthMaterial)mesh.customDepthMaterial=part.customDepthMaterial;group.add(mesh);}return group;});
+   for(const part of pierParts(ctx,p)){const mesh=new THREE.Mesh(part.geometry,part.material);mesh.castShadow=part.castShadow??false;mesh.receiveShadow=part.receiveShadow??false;group.add(mesh);}return group;});
  },colliders:p=>pierColliders(p),
 });

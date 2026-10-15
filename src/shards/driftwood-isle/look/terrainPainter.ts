@@ -11,14 +11,15 @@ import type { TerrainPainter, WorldLookContext } from '@wildshard/engine/render/
 import source from '../shard.config';
 import { followToon } from './toon';
 import { GROUND_LOOK, GROUND_PATHS } from '../data/groundLook';
+import { KIT_LENDS } from '../data/kitLook';
 import { OCEAN } from '../world/sites';
 import { LP, hash2, lowPolyGroundColor } from './groundColor';
 
 const _pathC = new THREE.Color();
 const ss = THREE.MathUtils.smoothstep;
 
-/** The ground's graph materials compiled under the world's scope before it builds (the look's `prepareWorld`). */
-export function prepareGround(context: WorldLookContext): Promise<void> { return prepareFacetedGround(context, source, GROUND_LOOK, followToon); }
+/** The ground's and the kit's graph materials compiled under the world's scope before it builds (the look's `prepareWorld`). */
+export function prepareGround(context: WorldLookContext): Promise<void> { return prepareFacetedGround(context, source, GROUND_LOOK, followToon, KIT_LENDS); }
 
 /** Driftwood's ground: no textures at all, two draw calls, facets of solid colour. */
 export const LOWPOLY_TERRAIN: TerrainPainter = facetedGroundPainter(GROUND_LOOK, OCEAN.level, (c, { h, slope, x, z, y, lip }, f) => {

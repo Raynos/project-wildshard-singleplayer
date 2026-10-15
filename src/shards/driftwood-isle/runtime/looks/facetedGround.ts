@@ -3,6 +3,7 @@ import { macrotask } from '@wildshard/engine/boot/plan';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '@wildshard/engine/core/config';
 import type { PainterField, TerrainPainter, WorldLookContext } from '@wildshard/engine/render/look';
 import type { Terrain } from '@wildshard/engine/world/Terrain';
+import { bindLowPolyMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { FacetedGroundRow } from '../../data/lookRows';
@@ -28,11 +29,16 @@ interface GroundLoan { readonly ground: THREE.Material; readonly slab: THREE.Mat
 const loans: GroundLoan[] = [];
 
 /** Compile the row's graph materials under the world's scope and lend them to the next ground built (a look's
- *  `prepareWorld`); `follow` makes their toon look track the shard's day clock once a frame. */
-export async function prepareFacetedGround(context: WorldLookContext, source: Shardfile, row: FacetedGroundRow, follow: (toon: ToonLookOf) => () => void): Promise<void> {
-  const { materials, toon } = await runtimeLookMaterials(context, source, true, [row.materials.ground, row.materials.slab]);
+ *  `prepareWorld`); `follow` makes their toon look track the shard's day clock once a frame. `kit` (variant → graph id)
+ *  compiles the shard's low-poly kit graphs in the same pass and binds each to its kit variant for the world's scope. */
+export async function prepareFacetedGround(context: WorldLookContext, source: Shardfile, row: FacetedGroundRow, follow: (toon: ToonLookOf) => () => void, kit: Readonly<Record<string, string>> = {}): Promise<void> {
+  const { materials, toon } = await runtimeLookMaterials(context, source, true, [row.materials.ground, row.materials.slab, ...Object.values(kit)]);
   const ground = materials.get(row.materials.ground), slab = materials.get(row.materials.slab);
   if (ground === undefined || slab === undefined) throw new Error('Faceted ground: look.materials lacks its graphs');
+  Object.entries(kit).forEach(([variant, id]) => {
+    const material = materials.get(id); if (material === undefined) throw new Error(`Faceted ground: look.materials lacks the kit graph ${id}`);
+    bindLowPolyMaterial(context.sky, variant, material, context.scope);
+  });
   const loan: GroundLoan = { ground, slab, follow: follow(toon) };
   loans.push(loan);
   context.scope.onDispose(() => { const at = loans.indexOf(loan); if (at !== -1) loans.splice(at, 1); });
