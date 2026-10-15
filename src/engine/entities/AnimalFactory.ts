@@ -342,8 +342,12 @@ export class AnimalFactory {
         // a generated hull skinned to this skeleton (Debug ▸ Creatures = Models, glbCreatures.ts). While it is still loading the
         // procedural mesh stands in, and every rig made from it is upgraded in place when the hull arrives (upgradeHull)
         const hull = look.skin?.(v, sp.bones, eyes) ?? null;
-        const geometry = hull?.geometry ?? procedural();
-        if (hull === null) {
+        // a `faceted` look on a low-poly level keeps the faceted body (flat facets, the per-facet jitter) in one group, its
+        // glowing eye faces marked by `aGlow` for the look's material to read
+        const faceted = lowPoly && look.faceted === true;
+        const geometry = hull?.geometry ?? (faceted ? facetGeometry(procedural(), sp.facetJitter) : procedural());
+        if (hull === null && faceted) oneMaterial(geometry, species.eyeGlow !== undefined ? 2 : null);
+        else if (hull === null) {
           const count = geometry.index !== null ? geometry.index.count : (geometry.getAttribute('position') as THREE.BufferAttribute).count;
           geometry.clearGroups(); geometry.addGroup(0, count, 0);
         }
@@ -563,7 +567,8 @@ export class AnimalFactory {
     if (model.render.lowPoly && model.geometry.hasAttribute('aGlow') && fur instanceof THREE.MeshStandardMaterial) patchEyeGlow(fur, model.eye.emissive, model.eye.emissiveIntensity);
     const v = (tint - 0.5) * model.render.tintRange;
     fur.color.setRGB(0.9 + v, 0.9 + v * 0.9, 0.9 + v * 0.7);
-    this.sky.setupMaterial(fur);
+    // a compiled graph body reads its cascades through the engine's light nodes: no classic CSM patch
+    if (Reflect.get(fur, 'isNodeMaterial') !== true) this.sky.setupMaterial(fur);
     // low-poly rigs are one group (oneMaterial): one draw, and the per-animal body clone is the whole body (the hit flash)
     // a generated hull (Pine Hollow) is one group too: one draw, and one shadow draw without animalShadow's caster
     const mesh = new THREE.SkinnedMesh(model.geometry, model.render.oneMaterial || model.hull !== undefined ? [fur] : [fur, model.hard, model.eye]);

@@ -138,6 +138,10 @@ export const graphInputs = {
   vertexColour: op('vertexColour', 'vec3'),
   /** Original geometry colour alpha; 1 for RGB colour attributes or no colour attribute. */
   vertexColourAlpha: op('vertexColourAlpha', 'float'),
+  /** The material's own colour (linear), read live: a per-material tint a runtime sets (a creature's per-animal coat). */
+  materialColour: op('materialColour', 'vec3'),
+  /** The material's emissive × emissiveIntensity (linear), read live: the hit-flash port a runtime drives. */
+  materialEmissive: op('materialEmissive', 'vec3'),
   /** Camera-space vertex position after skinning/instancing; forward is negative Z. */
   positionView: op('positionView', 'vec3'),
   /** Toward the first visible scene directional light (shadow casters first), world space; zero when absent. */

@@ -3124,7 +3124,9 @@ shader code (G306).
   `viewToWorld`, `worldToLocal`, `sceneColourAt`, `sceneDepth`, `sceneNormal` and
   `graphInputs` (`sunDirection`, `sunColour`, `sunShadow`, `albedo`,
   `irradiance`, `litColour`, `instanceHash`, `objectOrigin`, `vertexColour`,
-  `vertexColourAlpha` (1 where colour is RGB or absent),
+  `vertexColourAlpha` (1 where colour is RGB or absent), `materialColour` and
+  `materialEmissive` (the material's own colour and emissive × intensity, read
+  live: the per-animal tint and hit-flash ports a creature's runtime drives),
   `sceneColour`) are the graph-only inputs. Anything else (`uniform()`, a `Fn`,
   `sqrt`, a node-valued conversion, `loop`) is refused with its name.
 - The vocabulary for a trusted shard's own programs (SF51-p, Nine Dragon's GLSL):

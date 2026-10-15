@@ -23,6 +23,8 @@ import { setShrinePoolLook } from '../models/shrine';
 import { setPoolLook } from '../world/Cove';
 import { OCEAN_LOOK } from '../data/oceanLook';
 import { setOceanLook } from './looks/facetedOcean';
+import { CREATURE_LOOKS } from '../data/creatureLook';
+import { setCreatureLooks } from './looks/creatureLooks';
 import { COVER_LOOKS } from '../data/coverLook';
 import { setCoverLooks } from './looks/streamedCover';
 import { GULL_GRAPH_LOOK } from '../data/gullGraphLook';
@@ -43,11 +45,11 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
       // painted pieces are read from the build-time bakes (SF67, scripts/bake-voxel-ao.mjs, scripts/bake-geometry.mjs),
       // built in code only on a miss
       // the look.materials graphs the runtime's own meshes wear (data/waterfallLook.ts, data/smokeLook.ts, data/fireflyLook.ts, data/reefLook.ts,
-      // data/poolLook.ts, data/oceanLook.ts, data/gullGraphLook.ts), owned by the resident; the toon graphs follow the day clock's toon tunables once a frame
+      // data/poolLook.ts, data/oceanLook.ts, data/gullGraphLook.ts, data/creatureLook.ts), owned by the resident; the toon graphs follow the day clock's toon tunables once a frame
       const built = await residentWorld.load(context, async (owner) => {
-        const { materials, setParam, setTexture, toon } = await runtimeLookMaterials({ scope: owner, game: context.game }, source, true, [...Object.values(CASCADE_LOOKS), SMOKE_LOOK, FIREFLY_LOOK, REEF_LOOK, POOL_LOOK, SHRINE_POOL_LOOK, OCEAN_LOOK, GULL_GRAPH_LOOK, ...COVER_LOOKS]);
+        const { materials, setParam, setTexture, toon } = await runtimeLookMaterials({ scope: owner, game: context.game }, source, true, [...Object.values(CASCADE_LOOKS), SMOKE_LOOK, FIREFLY_LOOK, REEF_LOOK, POOL_LOOK, SHRINE_POOL_LOOK, OCEAN_LOOK, GULL_GRAPH_LOOK, ...COVER_LOOKS, ...Object.values(CREATURE_LOOKS)]);
         const follow = followToon(toon);
-        setWaterfallLooks(materials); setSmokeLook(materials); setFireflyLook(materials, setParam); setReefLook(materials, follow); setPoolLook(materials, follow); setShrinePoolLook(materials); setOceanLook(materials, setParam, setTexture, follow); setGullLook(materials); setCoverLooks({ materials, setParam, follow });
+        setWaterfallLooks(materials); setSmokeLook(materials); setFireflyLook(materials, setParam); setReefLook(materials, follow); setPoolLook(materials, follow); setShrinePoolLook(materials); setOceanLook(materials, setParam, setTexture, follow); setGullLook(materials); setCoverLooks({ materials, setParam, follow }); setCreatureLooks(materials, setParam);
         return withGeometryBake('/assets/models/driftwood-blender/geometry.bin',
         () => withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress))); });
       return built;

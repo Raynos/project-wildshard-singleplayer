@@ -1,4 +1,5 @@
 import type { ShardContext } from '@wildshard/game/shard/context';
+import { developerToolsEnabled } from '@wildshard/game/shard/runtimeVariant';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { DRIFTWOOD_SPECIES, DRIFTWOOD_LOOKS } from '../species/install';
 import { ISLAND_BEAR_LOOK, ISLAND_BOAR_LOOK } from '../species/fauna';
@@ -8,11 +9,16 @@ import { PRACTICE_CRAB } from '../data/layout';
 import { ISLAND_BOAR, ISLAND_BEAR } from './species';
 import { DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE } from './tables';
 import { Enemies } from './Enemies';
+import { CAPTAIN_LOOK } from '../species/captain';
+import { graphCreatureLook } from '../runtime/looks/creatureLooks';
 
 /** Kit rows precede AnimalManager construction; the ready hook preserves the original placement stage. */
 export function installDriftwoodCreatures(ctx: ShardContext, species = DRIFTWOOD_SPECIES): void {
   ctx.rows.species([...species, ISLAND_BOAR, ISLAND_BEAR]);
-  ctx.rows.speciesLook([...DRIFTWOOD_LOOKS, ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK]); // the boar and bear from the bake
+  // the boar and bear from the bake. Developer on (G439, unfinished: sp-x8's unbound-UBO race and node builder retention):
+  // every creature but the Drowned Captain (its painted body) on the graph toon look; Developer off, the classic bodies
+  const looks = [...DRIFTWOOD_LOOKS, ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK];
+  ctx.rows.speciesLook(developerToolsEnabled() ? looks.map((look) => (look === CAPTAIN_LOOK ? look : graphCreatureLook(look))) : looks);
   ctx.rows.spawnTable([DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE]);
   ctx.rows.lootTable([DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES]);
   installDriftwoodLootTables(ctx.scope);

@@ -1,7 +1,7 @@
 /** Untimed real-renderer oracle for additive graph inputs. */
 import { Bone, DataArrayTexture, DataTexture, DirectionalLight, Float32BufferAttribute, LinearSRGBColorSpace, Mesh, NearestFilter, NoToneMapping, OrthographicCamera, PlaneGeometry, Scene, Skeleton, SkinnedMesh, Uint16BufferAttribute, WebGLRenderer } from 'three';
 import { attribute, dot, max, uv, vec3 } from 'three/tsl';
-import { MeshStandardNodeMaterial } from 'three/webgpu';
+import { MeshBasicNodeMaterial, MeshStandardNodeMaterial } from 'three/webgpu';
 import { Scope } from '../../src/engine/app/scope';
 import type { AnimalMaterial } from '../../src/engine/entities/AnimalFactory';
 import { clientMaterials } from '../../src/game/shardfile/clientMaterials';
@@ -27,6 +27,8 @@ async function prove(): Promise<unknown> {
     const layers = param('layers',{type: 'texture', value: 'array-slot', role: 'lent'});
     Object.assign(source.look.materials, { array: {family: 'graph', graph: graph({model: 'unlit', effectState: {fog: false},
       surface: {colour: sampleArray(layers,uv(),attribute('aLayer','float')).rgb} })} });
+    Object.assign(source.look.materials, { tint: {family: 'graph', graph: graph({model: 'unlit', effectState: {fog: false}, surface: {colour: graphInputs.materialColour}})} });
+    Object.assign(source.look.materials, { flash: {family: 'graph', graph: graph({model: 'standard', effectState: {fog: false}, surface: {colour: vec3(0), emissive: graphInputs.materialEmissive}})} });
     const client = await clientMaterials(source, new Map(), renderer, scope, { graphs: true });
     const material = client.materials.get('alpha');
     if (material === undefined) throw new Error('Missing alpha graph');
@@ -127,7 +129,23 @@ async function prove(): Promise<unknown> {
       && JSON.stringify(swappedArray) === JSON.stringify([[0,0,255,255],[255,255,0,255],[0,0,255,255]])
       && refused2d && refusedMixed && arrayPrograms === swappedPrograms && gl.getError() === gl.NO_ERROR;
     if (!pass) throw new Error(JSON.stringify({unset,firstArray,swappedArray,refused2d,refusedMixed,arrayPrograms,swappedPrograms}));
-    return { pass, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels, skyLight: lightPixels,
+    // the per-material ports: two clones of one tint graph differ by their own colour (one program); the flash graph's
+    // emissive follows the material's emissive × intensity live (a creature's hit flash)
+    scene.clear();
+    const tintGraph = client.materials.get('tint'), flashGraph = client.materials.get('flash');
+    if (!(tintGraph instanceof MeshStandardNodeMaterial) && !(tintGraph instanceof MeshBasicNodeMaterial)) throw new Error('Missing material-colour graph');
+    if (!(flashGraph instanceof MeshStandardNodeMaterial)) throw new Error('Missing material-emissive graph');
+    const tintA = scope.own(tintGraph.clone()), tintB = scope.own(tintGraph.clone()), flashBody: AnimalMaterial = flashGraph;
+    tintA.color.setRGB(1, 0, 0); tintB.color.setRGB(0, 0.5, 0);
+    for (const [i, m] of [tintA, tintB, flashBody].entries()) { const mesh = new Mesh(scope.own(new PlaneGeometry(1, 1)), m); mesh.position.x = i - 1; scene.add(mesh); }
+    const readPorts = (): number[][] => { renderer.render(scene, camera); return [32, 96, 160].map(x => { const words = new Uint8Array(4); gl.readPixels(x, 32, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, words); return Array.from(words); }); };
+    flashBody.emissive.setRGB(0, 0, 0); const portsDark = readPorts(), portPrograms = renderer.info.programs?.length ?? 0;
+    flashBody.emissive.setRGB(1, 1, 1); flashBody.emissiveIntensity = 0.5; const portsFlash = readPorts();
+    const near = (got: readonly number[][], want: readonly number[][]): boolean => want.every((pixel, i) => pixel.every((value, j) => Math.abs(value - (got[i]?.[j] ?? -1000)) <= 1));
+    const portsPass = near(portsDark, [red, [0, 128, 0, 255], black]) && near(portsFlash, [red, [0, 128, 0, 255], [128, 128, 128, 255]])
+      && portPrograms === (renderer.info.programs?.length ?? -1) && gl.getError() === gl.NO_ERROR;
+    if (!portsPass) throw new Error(JSON.stringify({portsDark, portsFlash}));
+    return { pass, materialPorts: {portsDark, portsFlash}, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels, skyLight: lightPixels,
       textureArray: {unset,firstArray,swappedArray,refused2d,refusedMixed,arrayPrograms,swappedPrograms} };
   } finally { scope.dispose(); renderer.dispose(); renderer.forceContextLoss(); }
 }

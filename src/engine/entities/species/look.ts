@@ -16,6 +16,9 @@ export interface SpeciesLook extends Pick<SpeciesDef, 'rigContract' | 'fur' | 'b
   standMem?: Readonly<Record<string, number>>;
   variants?: Readonly<Record<string, Pick<VariantDef, 'tint' | 'fur' | 'traits'>>>;
   material?: (sky: Sky, glow?: [number, number, number], intensity?: number) => AnimalMaterial;
+  /** with `material` on a low-poly level: the body stays faceted (flat facets, per-facet jitter) in one group, glowing eye
+   *  faces marked by an `aGlow` attribute (1 on the eyes) for the material to read; absent, the smooth loft as before */
+  faceted?: true;
   /** Decorate the existing instance materials after lighting is installed; preserve their hit-flash owners. */
   decorateMaterials?: (materials: readonly AnimalMaterial[]) => void;
   hasSkin?: (variant: VariantDef) => boolean;

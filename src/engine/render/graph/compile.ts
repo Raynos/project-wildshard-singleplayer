@@ -642,6 +642,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'instanceHash': return { t: 'float', n: hash(instanceIndex) };
       case 'vertexColour': return { t: 'vec3', n: new SplitNode(vertexColor(), 'xyz') };
       case 'vertexColourAlpha': return { t: 'float', n: new SplitNode(vertexColor(), 'w') };
+      case 'materialColour': return { t: 'vec3', n: new ConvertNode<'vec3'>(materialReference('color', 'color'), 'vec3') };
+      case 'materialEmissive': return { t: 'vec3', n: new ConvertNode<'vec3'>(materialReference('emissive', 'color'), 'vec3').mul(new ConvertNode<'float'>(materialReference('emissiveIntensity', 'float'), 'float')) };
       case 'skyLightDirection': return { t: 'vec3', n: skyLightInput(false) };
       case 'skyLightColour': return { t: 'vec3', n: skyLightInput(true) };
       case 'positionView': return { t: 'vec3', n: positionView };
