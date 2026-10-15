@@ -24,6 +24,8 @@
  * Draw calls: body (the shadow caster), head, upper arm, forearm — four, past NEAR_R none. No lights.
  */
 import * as THREE from 'three';
+import { stepNpcHeadFocus, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
+import { TRADER_HEAD_FOCUS } from '../data/npcFocus';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { buildKitMesh } from '../runtime/kit/kitParts';
@@ -39,7 +41,6 @@ const GREET_R = 11;        // m: coming inside this she beckons you over (once, 
 const REARM_R = 18;
 const TURN_K = 3;          // 1/s: the body's ease toward the facing it wants …
 const TURN_MAX = 2.2;      // … capped at this many rad/s (180° in ~1.5 s): Wendell's rates (E129)
-const HEAD_MAX = 0.9;      // rad: the head's turn on top of the body's (her scarf tails clear her shoulders to here)
 
 type Gesture = 'none' | 'beckon' | 'tidy' | 'offer';
 const GESTURE_S: Record<Gesture, number> = { none: 0, beckon: 2.4, tidy: 2.6, offer: 1.8 };
@@ -53,8 +54,8 @@ export class Trader {
   private upper = new THREE.Mesh();
   private fore = new THREE.Mesh();
   private turn = 0;
-  private headYaw = 0; private headPitch = 0;
-  private glanceT = 0; private glanceYaw = 0; private glancePitch = 0.1;
+  private readonly focus: NpcHeadFocusInput = { distance: 0, relativeYaw: 0, playerY: 0, headY: 0 };
+  private readonly gaze = { headYaw: 0, headPitch: 0, glanceT: 0, glanceYaw: 0, glancePitch: 0.1 };
   private gesture: Gesture = 'none'; private gT = 0;
   private idleT = 6;        // seconds to the next idle tidy
   private offerT = 3;       // seconds to the next "take a look" while you stand at the counter
@@ -125,27 +126,14 @@ export class Trader {
     this.figure.position.x = shift * 0.012;
 
     // ── the head leads: at you when you're near, else a glance about; down at the goods while she tidies them ──
-    let wantYaw: number, wantPitch: number;
     const g = this.gesture, gu = g === 'none' ? 0 : ease(this.gT / GESTURE_S[g]);
-    if (g === 'tidy') { wantYaw = -0.25; wantPitch = 0.45; }
-    else if (d < GREET_R) {
-      wantYaw = THREE.MathUtils.clamp(wrap(toYou - bodyYaw - this.turn), -HEAD_MAX, HEAD_MAX);
-      wantPitch = THREE.MathUtils.clamp(-Math.atan2(player.y + 1.6 - (gp.y + NECK + 0.1), Math.max(0.5, d)), -0.4, 0.4);
-      if (g === 'offer') { wantYaw += -0.35 * gu; wantPitch += 0.3 * gu; }   // a look down at what she offers
-    } else {
-      this.glanceT -= dt;
-      if (this.glanceT <= 0) {
-        this.glanceT = 2 + (Math.sin(t * 1.9) + 1) * 1.8;
-        this.glanceYaw = Math.sin(t * 0.41) * 0.75;
-        this.glancePitch = Math.sin(t * 0.7) > 0.4 ? 0.35 : 0.05;   // now and then down at the counter
-      }
-      wantYaw = this.glanceYaw; wantPitch = this.glancePitch;
-    }
-    wantYaw = THREE.MathUtils.clamp(wantYaw, -HEAD_MAX, HEAD_MAX);
-    this.headYaw += (wantYaw - this.headYaw) * Math.min(1, dt * 5);
-    this.headPitch += (wantPitch - this.headPitch) * Math.min(1, dt * 5);
+    const focus = this.focus; focus.distance = d; focus.relativeYaw = toYou - bodyYaw - this.turn;
+    focus.playerY = player.y; focus.headY = gp.y + NECK + 0.1;
+    focus.overrideYaw = g === 'tidy' ? -0.25 : undefined; focus.overridePitch = g === 'tidy' ? 0.45 : undefined;
+    focus.offsetYaw = g === 'offer' && d < GREET_R ? -0.35 * gu : 0; focus.offsetPitch = g === 'offer' && d < GREET_R ? 0.3 * gu : 0;
+    stepNpcHeadFocus(this.gaze, TRADER_HEAD_FOCUS, focus, dt, t);
     const breathe = Math.sin(t * 1.5 + 0.7);
-    this.head.rotation.set(this.headPitch + breathe * 0.02, this.headYaw, Math.sin(t * 0.55) * 0.05 - shift * 0.03);
+    this.head.rotation.set(this.gaze.headPitch + breathe * 0.02, this.gaze.headYaw, Math.sin(t * 0.55) * 0.05 - shift * 0.03);
     this.head.position.y = NECK + breathe * 0.006;
     this.body.scale.set(1, 1 + breathe * 0.006, 1);
 

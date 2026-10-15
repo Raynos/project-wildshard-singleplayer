@@ -25,6 +25,8 @@
  * No lights; the flames are unlit colour that blooms.
  */
 import * as THREE from 'three';
+import { stepNpcHeadFocus, type NpcHeadFocusInput } from '@wildshard/game/plugin/animation';
+import { CASTAWAY_HEAD_FOCUS } from '../data/npcFocus';
 import { WENDELL_HEAD_GEOMETRY } from '../boot/fixedGeometry';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -61,9 +63,10 @@ export class Castaway {
   private head = new THREE.Mesh();
   private arm = new THREE.Mesh();
   private flames = new THREE.Mesh();
-  private headYaw = 0; private headPitch = 0; private readonly bodyYaw: number;
+  private readonly focus: NpcHeadFocusInput = { distance: 0, relativeYaw: 0, playerY: 0, headY: 0 };
+  private readonly gaze = { headYaw: 0, headPitch: 0, glanceT: 0, glanceYaw: 0, glancePitch: .15 };
+  private readonly bodyYaw: number;
   private waveT = -1;
-  private glanceT = 0; private glanceYaw = 0;
   private fireLocal: THREE.Vector3;
 
   private readonly sky: Sky;
@@ -135,20 +138,11 @@ export class Castaway {
     this.turn = wrap(this.turn + THREE.MathUtils.clamp(dTurn, -TURN_MAX * dt, TURN_MAX * dt));
     this.figure.rotation.y = this.turn;
     // the head leads: it turns toward you whenever you are near, on top of the body's turn
-    let wantYaw: number, wantPitch: number;
-    if (d < 9) {
-      wantYaw = THREE.MathUtils.clamp(wrap(toYou - this.bodyYaw - this.turn), -1.1, 1.1);
-      wantPitch = THREE.MathUtils.clamp(-Math.atan2(player.y + 1.6 - (gp.y + NECK + 0.1), Math.max(0.5, d)), -0.4, 0.4);
-    } else {
-      // idle: glance at the fire, the sea, the fire again
-      this.glanceT -= dt;
-      if (this.glanceT <= 0) { this.glanceT = 2.5 + (Math.sin(t * 1.7) + 1) * 2; this.glanceYaw = Math.sin(t * 0.37) * 0.8; }
-      wantYaw = this.glanceYaw; wantPitch = 0.15;
-    }
-    this.headYaw += (wantYaw - this.headYaw) * Math.min(1, dt * 5);
-    this.headPitch += (wantPitch - this.headPitch) * Math.min(1, dt * 5);
+    const focus = this.focus; focus.distance = d; focus.relativeYaw = toYou - this.bodyYaw - this.turn;
+    focus.playerY = player.y; focus.headY = gp.y + NECK + 0.1;
+    stepNpcHeadFocus(this.gaze, CASTAWAY_HEAD_FOCUS, focus, dt, t);
     const breathe = Math.sin(t * 1.6);
-    this.head.rotation.set(this.headPitch + breathe * 0.02, this.headYaw, Math.sin(t * 0.5) * 0.05);
+    this.head.rotation.set(this.gaze.headPitch + breathe * 0.02, this.gaze.headYaw, Math.sin(t * 0.5) * 0.05);
     this.head.position.y = NECK + breathe * 0.006;
     this.body.scale.set(1, 1 + breathe * 0.006, 1);
     // the arm: hangs and sways; a wave is a big overhead arc for 2.2 s

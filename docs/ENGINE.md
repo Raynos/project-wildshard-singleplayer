@@ -6119,3 +6119,16 @@ flags and ownership; missing required ownership refuses. This owner never
 grants rewards or changes UI layout. Driftwood is the first user. G441's
 W3 match is Nalati `bag.ts#nalatiFinds`, whose elite/place counters and
 prize stickers use the same catalogue; Nalati's skin painter stays local.
+
+**NPC head attention (G441).** `game/plugin/animation` defines
+`stepNpcHeadFocus` and its `NpcHeadFocusState`, `NpcHeadFocusProfile` and
+`NpcHeadFocusInput` ports. The caller retains transient head/glance state
+and reuses its numeric input. Profiles select near-focus bounds, linear
+or exponential response, and a sine/cycle idle cadence. Glance time only
+advances while idle is selected; trusted gesture targets or offsets keep
+their existing caller phase. No renderer, random stream, dialogue clock
+or save owner is installed. Driftwood's two NPCs keep their original
+head equations, gesture timing and body/rig ownership. The W3 Nalati
+user is `models/npc/figureMotion.ts#stepNpcFigure`: retain its phase clock,
+talking head accent, motion/orbit and pose matrix ownership when adopting
+the focus/glance law at the end of W2.
