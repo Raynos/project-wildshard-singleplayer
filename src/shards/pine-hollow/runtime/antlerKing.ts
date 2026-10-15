@@ -50,7 +50,7 @@ import { ANTLER_KING_ENCOUNTER } from '../data/antlerKing';
  *     bark and skull ×0.25).
  *   II · LANTERNS FALL (60 → 30 %): his three antler lanterns drop and burn where they land (a fire ring each, 9 a bite
  *     inside); he rings his bells and calls THRALLS out of the fog (2 at a time, up to 3; the creature lane's 'thrall'
- *     variant of elk / boar, until it lands a moss-tinted bull / black boar) — they charge down lanes. Stomps come in pairs.
+ *     variant of elk / boar) — they charge down lanes. Stomps come in pairs.
  *   III · THE LAST LIGHT (30 → 0 %): the clearing goes dark (fog thick and black, moon and sky light down) but for his
  *     ribcage and the lantern you carry (the fight's one pooled light moves to you); he charges DOWN LANES across the
  *     clearing, chaining two or three, the ribcage flaring open at every skid.
@@ -96,17 +96,11 @@ export function registerKing(): void {
 /** the move the King's rig plays for the attack about to start (kingRig.ts ACT_*) */
 const act = (k: Animal, move: number): void => { k.mem['act'] = move; };
 
-/** a thrall of `kind`: the creature lane's 'thrall' variant when it exists, else a moss-tinted stand-in */
-/** The variant a thrall of `kind` is spawned as (the registered 'thrall', else a tinted stand-in). */
-export function thrallVariant(kind: 'elk' | 'boar'): { variant: string; tinted: boolean } {
-  if (variantDef(kind, 'thrall').id === 'thrall') return { variant: 'thrall', tinted: false };
-  return { variant: kind === 'elk' ? 'bull' : 'black', tinted: true };
-}
-const MOSS = new THREE.Color(0.5, 0.62, 0.42);
-function tintThrall(a: Animal): void {
-  a.label = 'Thrall';
-  const m = Array.isArray(a.mesh.material) ? a.mesh.material[0] : a.mesh.material;
-  if (m instanceof THREE.MeshStandardMaterial) m.color.multiply(MOSS);
+/** The variant a thrall of `kind` is spawned as: the creature lane's registered 'thrall' (Pine registers one for elk and
+ *  boar); a missing one is a content error, never a stand-in. */
+export function thrallVariant(kind: 'elk' | 'boar'): string {
+  if (variantDef(kind, 'thrall').id !== 'thrall') throw new Error(`[antler-king] no 'thrall' variant registered for ${kind}`);
+  return 'thrall';
 }
 
 interface LanternView { group: THREE.Group; flame: THREE.Object3D; ring: GroundTell; from: THREE.Vector3 }
@@ -147,11 +141,7 @@ export class AntlerKingFight extends AntlerKingCore<Animal> {
 
   constructor(protected override readonly ctx: PineCtx, entered?: (install: () => () => void) => void, private readonly body?: () => Animal) {
     super();
-    this.spawner = thrallSpawner(ctx.animals, (kind, x, z, yaw) => {
-      const v = thrallVariant(kind), actor = ctx.animals.spawn(kind, x, z, yaw, v.variant);
-      if (v.tinted) tintThrall(actor);
-      return actor;
-    });
+    this.spawner = thrallSpawner(ctx.animals, (kind, x, z, yaw) => ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind)));
     const scene = ctx.game.scene;
     this.kit = makeKingKit(ctx.sky);
     this.tellRing = new GroundTell(scene, 'ring', AMBER_TELL);
@@ -193,10 +183,8 @@ export class AntlerKingFight extends AntlerKingCore<Animal> {
     if (TIER_CONFIG.furShells) { k.setShellLevel(8); k.setShellLevel(0); }
     this.present = true; this.setPresent(false);
     for (const kind of ['elk', 'boar'] as const) {
-      const v = thrallVariant(kind);
       try {
-        const a = this.ctx.animals.spawn(kind, C.x, C.z, 0, v.variant);
-        if (v.tinted) tintThrall(a);
+        const a = this.ctx.animals.spawn(kind, C.x, C.z, 0, thrallVariant(kind));
         this.parkKing(a); this.parked.push(a);
       } catch (e) { console.warn('[antler-king] a thrall did not build', e); }
     }
@@ -239,11 +227,7 @@ export class AntlerKingFight extends AntlerKingCore<Animal> {
     return a;
   }
   protected override spawnThrall(kind: 'elk' | 'boar', x: number, z: number, yaw: number): Animal {
-    const a = spawnThrallFrom(this.spawner, kind, x, z, yaw, () => {
-      const v = thrallVariant(kind), actor = this.ctx.animals.spawn(kind, x, z, yaw, v.variant);
-      if (v.tinted) tintThrall(actor);
-      return actor;
-    });
+    const a = spawnThrallFrom(this.spawner, kind, x, z, yaw, () => this.ctx.animals.spawn(kind, x, z, yaw, thrallVariant(kind)));
     own(a);
     return a;
   }

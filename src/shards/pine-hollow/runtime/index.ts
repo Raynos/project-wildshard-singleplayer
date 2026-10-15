@@ -244,7 +244,7 @@ export class PineHollow extends ShardPlugin {
       retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);
     // SF67: the King's and his parked thralls' models, each in its own task before the combat install's prewarm spawns them
     // (the same cached models it would build in one stretch; the factory builds each from its own key's seed)
-    const warm = [[KING_KIND, 'warden'], ['elk', thrallVariant('elk').variant], ['boar', thrallVariant('boar').variant]] as const;
+    const warm = [[KING_KIND, 'warden'], ['elk', thrallVariant('elk')], ['boar', thrallVariant('boar')]] as const;
     for (let i = 0; i < 3; i++) {
       const [kind, variant] = warm[i] ?? warm[0];
       ctx.scope.run(() => animals.factory.model(kind, variant)); await macrotask();
