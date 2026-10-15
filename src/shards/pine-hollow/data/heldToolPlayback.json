@@ -1,0 +1,846 @@
+{
+  "description": "Skinning knife raise, two strokes and return. Beat clocks are copied observations; transform coefficients are authored here.",
+  "nodeNames": {
+    "0": "beatTime",
+    "1": "aspect",
+    "2": "length",
+    "3": "kneelIn",
+    "4": "rise",
+    "5": "cut.0",
+    "6": "cut.1",
+    "7": "zero",
+    "8": "one",
+    "9": "rise fraction",
+    "10": "rise into hold",
+    "11": "time past drop",
+    "12": "drop length",
+    "13": "drop fraction",
+    "14": "drop below frame",
+    "15": "drop remainder",
+    "16": "hold envelope",
+    "17": "portrait aspect",
+    "18": "portrait factor",
+    "19": "portrait gain",
+    "20": "portrait cap",
+    "21": "portrait pull",
+    "22": "stroke lead",
+    "23": "stroke 0 starts",
+    "24": "stroke 0 phase",
+    "25": "stroke 0 wind",
+    "26": "stroke 0 draw",
+    "27": "stroke 1 starts",
+    "28": "stroke 1 phase",
+    "29": "stroke 1 wind",
+    "30": "stroke 1 draw",
+    "31": "x low",
+    "32": "x travel",
+    "33": "x raised",
+    "34": "x hold",
+    "35": "x portrait shift",
+    "36": "x portrait offset",
+    "37": "x portrait",
+    "38": "x wind travel 0",
+    "39": "x wind 0",
+    "40": "x draw travel 0",
+    "41": "x draw 0",
+    "42": "x stroke 0",
+    "43": "x posed 0",
+    "44": "x wind travel 1",
+    "45": "x wind 1",
+    "46": "x draw travel 1",
+    "47": "x draw 1",
+    "48": "x stroke 1",
+    "49": "x posed 1",
+    "50": "y low",
+    "51": "y travel",
+    "52": "y raised",
+    "53": "y hold",
+    "54": "y portrait shift",
+    "55": "y portrait offset",
+    "56": "y portrait",
+    "57": "y wind travel 0",
+    "58": "y wind 0",
+    "59": "y draw travel 0",
+    "60": "y draw 0",
+    "61": "y stroke 0",
+    "62": "y posed 0",
+    "63": "y wind travel 1",
+    "64": "y wind 1",
+    "65": "y draw travel 1",
+    "66": "y draw 1",
+    "67": "y stroke 1",
+    "68": "y posed 1",
+    "69": "z low",
+    "70": "z travel",
+    "71": "z raised",
+    "72": "z hold",
+    "73": "z wind travel 0",
+    "74": "z wind 0",
+    "75": "z draw travel 0",
+    "76": "z draw 0",
+    "77": "z stroke 0",
+    "78": "z posed 0",
+    "79": "z wind travel 1",
+    "80": "z wind 1",
+    "81": "z draw travel 1",
+    "82": "z draw 1",
+    "83": "z stroke 1",
+    "84": "z posed 1",
+    "85": "pitch held",
+    "86": "away envelope",
+    "87": "away angle",
+    "88": "away amount",
+    "89": "away tilt",
+    "90": "pitch draw angle 0",
+    "91": "pitch stroke 0",
+    "92": "pitch wind tilt 0",
+    "93": "pitch wind angle 0",
+    "94": "pitch wind+draw 0",
+    "95": "pitch posed 0",
+    "96": "pitch draw angle 1",
+    "97": "pitch stroke 1",
+    "98": "pitch wind tilt 1",
+    "99": "pitch wind angle 1",
+    "100": "pitch wind+draw 1",
+    "101": "pitch posed 1",
+    "102": "yaw held",
+    "103": "yaw draw angle 0",
+    "104": "yaw stroke 0",
+    "105": "yaw posed 0",
+    "106": "yaw draw angle 1",
+    "107": "yaw stroke 1",
+    "108": "yaw posed 1",
+    "109": "roll held",
+    "110": "roll draw angle 0",
+    "111": "roll stroke 0",
+    "112": "roll posed 0",
+    "113": "roll draw angle 1",
+    "114": "roll stroke 1",
+    "115": "roll posed 1",
+    "116": "negative beat time",
+    "117": "after beat start",
+    "118": "before beat end",
+    "119": "during beat"
+  },
+  "pose": [
+    {
+      "id": "knife.beat",
+      "reads": [
+        "beatTime",
+        "aspect",
+        "length",
+        "kneelIn",
+        "rise",
+        "cut.0",
+        "cut.1"
+      ],
+      "nodes": [
+        {
+          "op": "read",
+          "index": 0
+        },
+        {
+          "op": "read",
+          "index": 1
+        },
+        {
+          "op": "read",
+          "index": 2
+        },
+        {
+          "op": "read",
+          "index": 3
+        },
+        {
+          "op": "read",
+          "index": 4
+        },
+        {
+          "op": "read",
+          "index": 5
+        },
+        {
+          "op": "read",
+          "index": 6
+        },
+        {
+          "op": "constant",
+          "value": 0
+        },
+        {
+          "op": "constant",
+          "value": 1
+        },
+        {
+          "op": "div",
+          "a": 0,
+          "b": 3
+        },
+        {
+          "op": "sample",
+          "a": 9,
+          "interpolation": "smoothstep",
+          "keys": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        {
+          "op": "sub",
+          "a": 0,
+          "b": 4
+        },
+        {
+          "op": "sub",
+          "a": 2,
+          "b": 4
+        },
+        {
+          "op": "div",
+          "a": 11,
+          "b": 12
+        },
+        {
+          "op": "sample",
+          "a": 13,
+          "interpolation": "smoothstep",
+          "keys": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        {
+          "op": "sub",
+          "a": 8,
+          "b": 14
+        },
+        {
+          "op": "mul",
+          "a": 10,
+          "b": 15
+        },
+        {
+          "op": "sub",
+          "a": 8,
+          "b": 1
+        },
+        {
+          "op": "constant",
+          "value": 1.6
+        },
+        {
+          "op": "mul",
+          "a": 17,
+          "b": 18
+        },
+        {
+          "op": "min",
+          "a": 8,
+          "b": 19
+        },
+        {
+          "op": "max",
+          "a": 7,
+          "b": 20
+        },
+        {
+          "op": "constant",
+          "value": 0.16
+        },
+        {
+          "op": "sub",
+          "a": 5,
+          "b": 22
+        },
+        {
+          "op": "sub",
+          "a": 0,
+          "b": 23
+        },
+        {
+          "op": "sample",
+          "a": 24,
+          "interpolation": "smoothstep",
+          "keys": [
+            [
+              0,
+              0
+            ],
+            [
+              0.12,
+              1
+            ],
+            [
+              0.24,
+              0
+            ]
+          ]
+        },
+        {
+          "op": "sample",
+          "a": 24,
+          "interpolation": "smoothstep",
+          "keys": [
+            [
+              0.1,
+              0
+            ],
+            [
+              0.24000000000000002,
+              1
+            ],
+            [
+              0.3,
+              1
+            ],
+            [
+              0.42,
+              0
+            ]
+          ]
+        },
+        {
+          "op": "sub",
+          "a": 6,
+          "b": 22
+        },
+        {
+          "op": "sub",
+          "a": 0,
+          "b": 27
+        },
+        {
+          "op": "sample",
+          "a": 28,
+          "interpolation": "smoothstep",
+          "keys": [
+            [
+              0,
+              0
+            ],
+            [
+              0.12,
+              1
+            ],
+            [
+              0.24,
+              0
+            ]
+          ]
+        },
+        {
+          "op": "sample",
+          "a": 28,
+          "interpolation": "smoothstep",
+          "keys": [
+            [
+              0.1,
+              0
+            ],
+            [
+              0.24000000000000002,
+              1
+            ],
+            [
+              0.3,
+              1
+            ],
+            [
+              0.42,
+              0
+            ]
+          ]
+        },
+        {
+          "op": "constant",
+          "value": 0.2
+        },
+        {
+          "op": "constant",
+          "value": -0.09000000000000001
+        },
+        {
+          "op": "mul",
+          "a": 32,
+          "b": 16
+        },
+        {
+          "op": "add",
+          "a": 31,
+          "b": 33
+        },
+        {
+          "op": "constant",
+          "value": -0.075
+        },
+        {
+          "op": "mul",
+          "a": 21,
+          "b": 35
+        },
+        {
+          "op": "add",
+          "a": 34,
+          "b": 36
+        },
+        {
+          "op": "constant",
+          "value": 0.03
+        },
+        {
+          "op": "mul",
+          "a": 38,
+          "b": 25
+        },
+        {
+          "op": "constant",
+          "value": -0.075
+        },
+        {
+          "op": "mul",
+          "a": 40,
+          "b": 26
+        },
+        {
+          "op": "add",
+          "a": 39,
+          "b": 41
+        },
+        {
+          "op": "add",
+          "a": 37,
+          "b": 42
+        },
+        {
+          "op": "constant",
+          "value": 0.03
+        },
+        {
+          "op": "mul",
+          "a": 44,
+          "b": 29
+        },
+        {
+          "op": "constant",
+          "value": -0.03
+        },
+        {
+          "op": "mul",
+          "a": 46,
+          "b": 30
+        },
+        {
+          "op": "add",
+          "a": 45,
+          "b": 47
+        },
+        {
+          "op": "add",
+          "a": 43,
+          "b": 48
+        },
+        {
+          "op": "constant",
+          "value": -0.46
+        },
+        {
+          "op": "constant",
+          "value": 0.34500000000000003
+        },
+        {
+          "op": "mul",
+          "a": 51,
+          "b": 16
+        },
+        {
+          "op": "add",
+          "a": 50,
+          "b": 52
+        },
+        {
+          "op": "constant",
+          "value": 0.04
+        },
+        {
+          "op": "mul",
+          "a": 21,
+          "b": 54
+        },
+        {
+          "op": "add",
+          "a": 53,
+          "b": 55
+        },
+        {
+          "op": "constant",
+          "value": 0.035
+        },
+        {
+          "op": "mul",
+          "a": 57,
+          "b": 25
+        },
+        {
+          "op": "constant",
+          "value": -0.055
+        },
+        {
+          "op": "mul",
+          "a": 59,
+          "b": 26
+        },
+        {
+          "op": "add",
+          "a": 58,
+          "b": 60
+        },
+        {
+          "op": "add",
+          "a": 56,
+          "b": 61
+        },
+        {
+          "op": "constant",
+          "value": 0.035
+        },
+        {
+          "op": "mul",
+          "a": 63,
+          "b": 29
+        },
+        {
+          "op": "constant",
+          "value": -0.05
+        },
+        {
+          "op": "mul",
+          "a": 65,
+          "b": 30
+        },
+        {
+          "op": "add",
+          "a": 64,
+          "b": 66
+        },
+        {
+          "op": "add",
+          "a": 62,
+          "b": 67
+        },
+        {
+          "op": "constant",
+          "value": -0.3
+        },
+        {
+          "op": "constant",
+          "value": -0.030000000000000027
+        },
+        {
+          "op": "mul",
+          "a": 70,
+          "b": 16
+        },
+        {
+          "op": "add",
+          "a": 69,
+          "b": 71
+        },
+        {
+          "op": "constant",
+          "value": 0.02
+        },
+        {
+          "op": "mul",
+          "a": 73,
+          "b": 25
+        },
+        {
+          "op": "constant",
+          "value": -0.02
+        },
+        {
+          "op": "mul",
+          "a": 75,
+          "b": 26
+        },
+        {
+          "op": "add",
+          "a": 74,
+          "b": 76
+        },
+        {
+          "op": "add",
+          "a": 72,
+          "b": 77
+        },
+        {
+          "op": "constant",
+          "value": 0.02
+        },
+        {
+          "op": "mul",
+          "a": 79,
+          "b": 29
+        },
+        {
+          "op": "constant",
+          "value": 0.06
+        },
+        {
+          "op": "mul",
+          "a": 81,
+          "b": 30
+        },
+        {
+          "op": "add",
+          "a": 80,
+          "b": 82
+        },
+        {
+          "op": "add",
+          "a": 78,
+          "b": 83
+        },
+        {
+          "op": "constant",
+          "value": -0.3
+        },
+        {
+          "op": "sub",
+          "a": 8,
+          "b": 16
+        },
+        {
+          "op": "constant",
+          "value": 0.5
+        },
+        {
+          "op": "mul",
+          "a": 86,
+          "b": 87
+        },
+        {
+          "op": "add",
+          "a": 85,
+          "b": 88
+        },
+        {
+          "op": "constant",
+          "value": -0.16
+        },
+        {
+          "op": "mul",
+          "a": 90,
+          "b": 26
+        },
+        {
+          "op": "constant",
+          "value": 0.1
+        },
+        {
+          "op": "mul",
+          "a": 92,
+          "b": 25
+        },
+        {
+          "op": "add",
+          "a": 93,
+          "b": 91
+        },
+        {
+          "op": "add",
+          "a": 89,
+          "b": 94
+        },
+        {
+          "op": "constant",
+          "value": -0.16
+        },
+        {
+          "op": "mul",
+          "a": 96,
+          "b": 30
+        },
+        {
+          "op": "constant",
+          "value": 0.1
+        },
+        {
+          "op": "mul",
+          "a": 98,
+          "b": 29
+        },
+        {
+          "op": "add",
+          "a": 99,
+          "b": 97
+        },
+        {
+          "op": "add",
+          "a": 95,
+          "b": 100
+        },
+        {
+          "op": "constant",
+          "value": 0.95
+        },
+        {
+          "op": "constant",
+          "value": 0.22
+        },
+        {
+          "op": "mul",
+          "a": 103,
+          "b": 26
+        },
+        {
+          "op": "add",
+          "a": 102,
+          "b": 104
+        },
+        {
+          "op": "constant",
+          "value": -0.14
+        },
+        {
+          "op": "mul",
+          "a": 106,
+          "b": 30
+        },
+        {
+          "op": "add",
+          "a": 105,
+          "b": 107
+        },
+        {
+          "op": "constant",
+          "value": -0.45
+        },
+        {
+          "op": "constant",
+          "value": -0.12
+        },
+        {
+          "op": "mul",
+          "a": 110,
+          "b": 26
+        },
+        {
+          "op": "add",
+          "a": 109,
+          "b": 111
+        },
+        {
+          "op": "constant",
+          "value": 0.1
+        },
+        {
+          "op": "mul",
+          "a": 113,
+          "b": 30
+        },
+        {
+          "op": "add",
+          "a": 112,
+          "b": 114
+        },
+        {
+          "op": "gt",
+          "a": 7,
+          "b": 0
+        },
+        {
+          "op": "select",
+          "test": 116,
+          "yes": 7,
+          "no": 8
+        },
+        {
+          "op": "gt",
+          "a": 2,
+          "b": 0
+        },
+        {
+          "op": "mul",
+          "a": 117,
+          "b": 118
+        }
+      ],
+      "bindings": [
+        {
+          "property": "x",
+          "target": "pivot"
+        },
+        {
+          "property": "y",
+          "target": "pivot"
+        },
+        {
+          "property": "z",
+          "target": "pivot"
+        },
+        {
+          "property": "pitch",
+          "target": "pivot",
+          "order": "YXZ"
+        },
+        {
+          "property": "yaw",
+          "target": "pivot",
+          "order": "YXZ"
+        },
+        {
+          "property": "roll",
+          "target": "pivot",
+          "order": "YXZ"
+        },
+        {
+          "property": "visible",
+          "target": "root"
+        }
+      ],
+      "channels": [
+        {
+          "property": "x",
+          "value": 49
+        },
+        {
+          "property": "y",
+          "value": 68
+        },
+        {
+          "property": "z",
+          "value": 84
+        },
+        {
+          "property": "pitch",
+          "value": 101
+        },
+        {
+          "property": "yaw",
+          "value": 108
+        },
+        {
+          "property": "roll",
+          "value": 115
+        },
+        {
+          "property": "visible",
+          "value": 119
+        }
+      ]
+    }
+  ]
+}

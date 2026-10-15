@@ -4,6 +4,7 @@ import type { Game } from '@wildshard/engine/core/Game';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { ShardContext } from '@wildshard/game/plugin/context';
+import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import { createModelLibrary, paintedPrimitives, type PaintedPrimitiveRow } from '@wildshard/game/plugin/geometry';
 
 /**
@@ -15,13 +16,8 @@ import { createModelLibrary, paintedPrimitives, type PaintedPrimitiveRow } from 
  * Every number is the shard's row; the Model Explorer's specimen is `heldToolSpecimen`.
  */
 
-type Xyz = readonly [number, number, number];
-
 /** A beat's clock (seconds): its length, the rise-in, the cuts, and where it starts to drop out. */
 export interface HeldToolBeat { readonly len: number; readonly kneelIn: number; readonly cuts: readonly number[]; readonly rise: number }
-
-/** One stroke's direction and wrist turn while drawing (camera space; the turns about y and z, radians). */
-export interface HeldToolStroke { readonly dir: Xyz; readonly turn: readonly [y: number, z: number] }
 
 /** A held tool's look and motion (a shard's data row). */
 export interface HeldToolRow {
@@ -35,33 +31,14 @@ export interface HeldToolRow {
   readonly anisotropy: number;
   readonly loadDelayMs: number;
   readonly renderOrder: number;
-  /** the hold (camera space), its turn (YXZ), where it comes from and goes to, and the extra tip-up while away */
-  readonly hold: Xyz;
-  readonly holdRot: Xyz;
-  readonly low: Xyz;
-  readonly lowTilt: number;
-  /** portrait: k = min(1, (1 − aspect) × gain) pulls the hold in by (x, y) × k */
-  readonly portrait: { readonly gain: number; readonly x: number; readonly y: number };
-  /**
-   * The strokes: each starts `lead` s before its cut and lasts `span`; the wind-up rises over `windIn`, falls from
-   * `windOut` over `windFall` and moves the hand by `windMove` and tips it by `windTilt`; the draw rises from `drawAt` over
-   * `drawIn`, falls from `drawOut` over `drawFall` and tips it by `drawTilt`, moving it along its cut's row (the last row
-   * for any later cut).
-   */
-  readonly stroke: {
-    readonly lead: number; readonly span: number;
-    readonly windIn: number; readonly windOut: number; readonly windFall: number; readonly windMove: Xyz; readonly windTilt: number;
-    readonly drawAt: number; readonly drawIn: number; readonly drawOut: number; readonly drawFall: number; readonly drawTilt: number;
-    readonly cuts: readonly HeldToolStroke[];
-  };
+  /** Admitted, read-only held transform programme; its phase reads the existing harvest clock. */
+  readonly playback: readonly unknown[];
   /** the stand-in: painted primitive rows in the GLB's model space */
   readonly parts: readonly PaintedPrimitiveRow[];
 }
 
 /** A held tool's file: its one mesh as plain float geometry and its atlas (albedo, normal, ARM). */
 export interface HeldToolFile { geo: THREE.BufferGeometry; tex: { map: THREE.Texture; normalMap: THREE.Texture; arm: THREE.Texture } }
-
-const ease = (x: number): number => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 
 /** The existing model library owns one immutable decoded primitive and its original atlas. */
 export async function loadHeldToolFile(row: Pick<HeldToolRow, 'name' | 'url' | 'anisotropy'>): Promise<HeldToolFile> {
@@ -91,14 +68,15 @@ export class HeldTool {
   private readonly game: Game;
   private readonly ctx: ShardContext;
   private readonly row: HeldToolRow;
-  private readonly beat: HeldToolBeat;
-  private readonly holdRot: THREE.Euler;
+  private readonly playback: HeldPlayback;
+  private readonly observations: Record<string, number>;
 
   /** `row` its look and motion, `beat` the clock `update` reads; `schedule` is handed the file's fetch to start when the
    *  shard is ready (after its boot, off the load's requests and bytes) */
   constructor(game: Game, sky: SkyRig, ctx: ShardContext, row: HeldToolRow, beat: HeldToolBeat, schedule: (fetch: () => void) => void) {
-    this.game = game; this.ctx = ctx; this.row = row; this.beat = beat;
-    this.holdRot = new THREE.Euler(row.holdRot[0], row.holdRot[1], row.holdRot[2], 'YXZ');
+    this.game = game; this.ctx = ctx; this.row = row;
+    this.playback = new HeldPlayback({ pose: row.playback }, new Map([['root', this.group], ['pivot', this.pivot]]));
+    this.observations = { beatTime: -1, aspect: 1, length: beat.len, kneelIn: beat.kneelIn, rise: beat.rise, ...Object.fromEntries(beat.cuts.map((cut, at) => [`cut.${at}`, cut])) };
     this.mat = viewmodelMaterial(sky, row.name, { roughness: row.standIn.roughness, metalness: row.standIn.metalness });
     this.group.name = row.name;
     this.group.add(this.pivot);
@@ -138,28 +116,9 @@ export class HeldTool {
 
   /** the beat's clock (−1 = none): place the hand for it */
   update(t: number): void {
-    const B = this.beat, R = this.row, S = R.stroke;
-    if (t < 0 || t >= B.len) { this.group.visible = false; return; }
-    this.group.visible = true;
-    const cam = this.game.camera;
-    const port = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * R.portrait.gain) : 0; // portrait: the frame is narrow — pull it in
-    const up = ease(t / B.kneelIn) * (1 - ease((t - B.rise) / (B.len - B.rise)));
-    const p = this.pivot.position.set(R.low[0], R.low[1], R.low[2]).lerp(new THREE.Vector3(R.hold[0], R.hold[1], R.hold[2]), up);
-    p.x += port * R.portrait.x; p.y += port * R.portrait.y;
-    const r = this.pivot.rotation; r.copy(this.holdRot);
-    r.x += (1 - up) * R.lowTilt;
-    for (let i = 0; i < B.cuts.length; i++) {
-      const cut = B.cuts[i], row = S.cuts[Math.min(i, S.cuts.length - 1)];
-      if (cut === undefined || row === undefined) continue;
-      const s = t - (cut - S.lead);
-      if (s < 0 || s > S.span) continue;
-      const wind = ease(s / S.windIn) * (1 - ease((s - S.windOut) / S.windFall));
-      const draw = ease((s - S.drawAt) / S.drawIn) * (1 - ease((s - S.drawOut) / S.drawFall));
-      const dir = row.dir;
-      p.x += S.windMove[0] * wind + dir[0] * draw; p.y += S.windMove[1] * wind + dir[1] * draw; p.z += S.windMove[2] * wind + dir[2] * draw;
-      // a wrist flick, not an arm swing: small turns about the grip
-      r.x += S.windTilt * wind + S.drawTilt * draw; r.y += row.turn[0] * draw; r.z += row.turn[1] * draw;
-    }
+    if (t < 0) { this.group.visible = false; return; }
+    this.observations['beatTime'] = t; this.observations['aspect'] = this.game.camera.aspect;
+    this.playback.apply('pose', this.observations);
   }
 }
 
