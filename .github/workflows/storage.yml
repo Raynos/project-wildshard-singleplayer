@@ -1,0 +1,55 @@
+# Storage policy (docs/process/STORAGE.md) over every pushed commit: the check on a bypassed local hook. It runs on
+# every push and pull request, including the docs / art / progress / sources-only pushes that deploy.yml's
+# paths-ignore skips (those carry most of the bytes). The checkout is blobless and sparse; only the pushed range is
+# checked (the rolling week is the local pre-push hook's), and the checker fetches that range's new blobs in one batch.
+name: storage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: storage-${{ github.sha }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  storage-range:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: blob:none
+          sparse-checkout: |
+            /scripts/repo-size.mjs
+            /scripts/storage-policy.json
+          sparse-checkout-cone-mode: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Storage policy (pushed range)
+        env:
+          TIP: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          zero=0000000000000000000000000000000000000000
+          migration=$(node -e 'const p = JSON.parse(require("fs").readFileSync("scripts/storage-policy.json", "utf8")); process.stdout.write(p.migrationBase ?? "")')
+          git fetch --no-tags --filter=blob:none --depth=1 origin "$TIP"
+          # A force-push's old tip may be gone: then the range starts at the migration base.
+          if [ "$BASE" = "$zero" ] || ! git fetch --no-tags --filter=blob:none --depth=1 origin "$BASE"; then BASE="$migration"; fi
+          if [ -z "$BASE" ]; then echo '::error::No advertised base and no migrationBase: cannot bound the pushed range.'; exit 1; fi
+          [ -z "$migration" ] || git fetch --no-tags --filter=blob:none --depth=1 origin "$migration"
+          # Deepen (commits and trees only) until the base is reached, so every range commit has its parent.
+          for deepen in 20 100 500 2000 10000; do
+            git merge-base --is-ancestor "$BASE" "$TIP" && break
+            git fetch --no-tags --filter=blob:none --deepen="$deepen" origin "$TIP"
+          done
+          git merge-base --is-ancestor "$BASE" "$TIP" || { echo "::error::$BASE is not an ancestor of $TIP"; exit 1; }
+          printf 'refs/heads/main %s refs/heads/main %s\n' "$TIP" "$BASE" | node scripts/repo-size.mjs --pre-push --range-only
