@@ -10,6 +10,7 @@ import { authoredManifestSource } from '../scripts/authored-manifest.mjs';
 import { MANIFEST as sky } from '../src/shards/far-reach/discovery.generated';
 import { MANIFEST as signal } from '../src/shards/sunscar-dunes/discovery.generated';
 import { MANIFEST as template } from '../src/shards/_template/discovery.generated';
+import templateProduct from '../src/shards/_template/shard.config';
 import * as v from 'valibot';
 
 const root = resolve(import.meta.dirname, '..');
@@ -39,7 +40,7 @@ describe('authored JSON discovery', () => {
     expect(() => defineAuthoredShard(row, 'far-reach', {accent: 'pink', bootBindings: {files: []}}, {}, {})).toThrow(/not bundled/);
   });
   test('the full shardfile schema uses the same authored metadata contract', () => {
-    const file = v.parse(ShardfileSchema, JSON.parse(readFileSync(resolve(root, 'public/shardfiles/_template/shard.json'), 'utf8')));
+    const file = v.parse(ShardfileSchema, templateProduct);
     const row = parseManifestMetadata(metadata('_template'));
     expect(v.parse(ShardfileSchema, {...file, manifest: row}).manifest).toEqual(row);
     expect(() => v.parse(ShardfileSchema, {...file, manifest: {...row, name: ''}})).toThrow();
