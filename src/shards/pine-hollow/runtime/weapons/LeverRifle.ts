@@ -9,8 +9,7 @@ import { LEVER_WEAPON_PROFILE } from '../../data/leverProfile';
 import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, MAGAZINE, RELOAD_IN, RELOAD_OUT, RESERVE_START, ROUND_TIME } from '../../weapons/leverAction';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+import { createModelLibrary } from '@wildshard/game/plugin/geometry';
 
 /**
  * LeverRifle — Pine Hollow's rifle (PINE-HOLLOW-REMASTER PH-U5 / PH-C11), a row over the platform's lever firearm
@@ -98,74 +97,22 @@ const MODEL_PARTS = ['steel', 'forend', 'stock', 'lever', 'hammer', 'bolt'] as c
 type ModelPart = (typeof MODEL_PARTS)[number];
 /** the loaded model: plain float geometry per part (model space, as the procedural build's) + the two atlases */
 export interface LeverModel { geo: Record<ModelPart, THREE.BufferGeometry>; steel: TexSet; wood: TexSet }
+const LEVER_LIBRARY = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
+  geometryPools: [{ url: LEVER_MODEL_URL, parts: MODEL_PARTS, native: { requireIndex: true, white: true, disposeSource: true },
+    atlases: [{ id: 'steel', part: 'steel', anisotropy: 8, refresh: true }, { id: 'wood', part: 'forend', anisotropy: 8, refresh: true }] }],
+}, '[lever-action]');
 let modelLoad: Promise<LeverModel | null> | null = null;
 let modelReady: LeverModel | null = null;
 
 /** Fetch + decode the Blender model once (main.ts starts it early; the weapon step awaits it). null = the procedural build. */
 export function preloadLeverModel(): Promise<LeverModel | null> {
-  modelLoad ??= new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(LEVER_MODEL_URL)
-    .then((gltf) => {
-      const ready = retainCachedResources(parseLeverModel(gltf.scene)); modelReady = ready;
-      cacheUntilDisposed(ready, () => { if (modelReady === ready) { modelReady = null; modelLoad = null; } });
-      return ready;
-    })
-    .catch((e: unknown) => { console.warn('[lever-action] the Blender model did not load — the procedural build stands in:', e); return null; });
+  modelLoad ??= LEVER_LIBRARY.preload().then(() => {
+      const part = (name: ModelPart): THREE.BufferGeometry => { const geometry = LEVER_LIBRARY.geometry(name, { borrow: true }); if (geometry === null) throw new Error(`Missing lever geometry ${name}`); return geometry; };
+      const steel = LEVER_LIBRARY.atlas('steel'), wood = LEVER_LIBRARY.atlas('wood'); if (steel === null || wood === null) throw new Error('Missing lever PBR atlases');
+      const ready = retainCachedResources({ geo: { steel: part('steel'), forend: part('forend'), stock: part('stock'), lever: part('lever'), hammer: part('hammer'), bolt: part('bolt') }, steel, wood }); modelReady = ready;
+      cacheUntilDisposed(ready, () => { if (modelReady === ready) { modelReady = null; modelLoad = null; } }); return ready;
+    }).catch((e: unknown) => { console.warn('[lever-action] the Blender model did not load — the procedural build stands in:', e); return null; });
   return modelLoad;
-}
-
-/** one GLB mesh as plain float geometry: meshopt's quantised streams decoded, its node's dequantising transform applied,
- *  only what the viewmodel program reads (position, normal, uv; the colour attribute is added white by the constructor) */
-function plainGeometry(mesh: THREE.Mesh): THREE.BufferGeometry {
-  const src = mesh.geometry, g = new THREE.BufferGeometry();
-  const copy = (name: string, size: number): Float32Array => {
-    const a = src.getAttribute(name) as THREE.BufferAttribute | THREE.InterleavedBufferAttribute | undefined;
-    if (!a) throw new Error(`[lever-action] ${mesh.name}: no ${name}`);
-    const out = new Float32Array(a.count * size);
-    for (let i = 0; i < a.count; i++) {
-      out[i * size] = a.getX(i); out[i * size + 1] = a.getY(i);
-      if (size > 2) out[i * size + 2] = a.getZ(i);
-    }
-    return out;
-  };
-  g.setAttribute('position', new THREE.BufferAttribute(copy('position', 3), 3));
-  g.setAttribute('normal', new THREE.BufferAttribute(copy('normal', 3), 3));
-  g.setAttribute('uv', new THREE.BufferAttribute(copy('uv', 2), 2));
-  const idx = src.getIndex();
-  if (!idx) throw new Error(`[lever-action] ${mesh.name}: not indexed`);
-  g.setIndex(new THREE.BufferAttribute(Uint32Array.from(idx.array), 1));
-  mesh.updateWorldMatrix(true, false);
-  g.applyMatrix4(mesh.matrixWorld);
-  g.computeBoundingSphere();
-  src.dispose();
-  return g;
-}
-
-/** the atlas a GLB mesh's material carries: albedo, normal, ARM (the glTF's occlusion + metallic-roughness image) */
-function atlasOf(mesh: THREE.Mesh): TexSet {
-  const m = mesh.material;
-  if (Array.isArray(m) || !(m instanceof THREE.MeshStandardMaterial)) throw new Error(`[lever-action] ${mesh.name}: not a PBR material`);
-  const { map, normalMap, roughnessMap } = m;
-  if (map === null || normalMap === null || roughnessMap === null) throw new Error(`[lever-action] ${mesh.name}: an atlas map is missing`);
-  for (const t of [map, normalMap, roughnessMap]) { t.anisotropy = 8; t.needsUpdate = true; }
-  return { map, normalMap, armMap: roughnessMap };
-}
-
-function parseLeverModel(root: THREE.Object3D): LeverModel {
-  root.updateMatrixWorld(true);
-  const meshes = new Map<string, THREE.Mesh>();
-  root.traverse((o) => { if (isMesh(o)) meshes.set(o.name, o); });
-  const need = (p: ModelPart): THREE.Mesh => {
-    const m = meshes.get(p);
-    if (!m) throw new Error(`[lever-action] ${LEVER_MODEL_URL} has no mesh '${p}'`);
-    return m;
-  };
-  // the atlases first (plainGeometry disposes the GLB's own buffers)
-  const steel = atlasOf(need('steel')), wood = atlasOf(need('forend'));
-  const geo: Record<ModelPart, THREE.BufferGeometry> = {
-    steel: plainGeometry(need('steel')), forend: plainGeometry(need('forend')), stock: plainGeometry(need('stock')),
-    lever: plainGeometry(need('lever')), hammer: plainGeometry(need('hammer')), bolt: plainGeometry(need('bolt')),
-  };
-  return { geo, steel, wood };
 }
 
 /** a build's parts, in model space (the lever / hammer about their pivots) */

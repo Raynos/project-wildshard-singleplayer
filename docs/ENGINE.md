@@ -5620,3 +5620,15 @@ or exports fail generation or typechecking. Handwritten native providers remain
 ordinary counted source. The exact discovery outputs are listed under this
 producer in `scripts/source-generation-outputs.json`.
 Missing source images and mismatched folder identities refuse admission.
+
+Model-library `geometryPools` can declare an optional `native` policy for
+original rigid GLBs: bounded named parts (or one first mesh), original
+position/normal/UV accessor decoding to Float32, U32 indices with optional
+index requirement, and the original world transform. `white` initializes
+the original held vertex-colour channel before immutable borrowing;
+`disposeSource` drops replaced source buffers. Absent keeps every existing
+strict identity-space rest-pool refusal. A pool's bounded `atlases` declare
+PBR map/normal/ARM loans by original part plus anisotropy/refresh policy.
+`library.atlas(id)` returns those original textures or null; consumers
+never mutate/dispose borrowed geometry. Independent materials keep their
+existing normal scale, map repeats and other presentation factors.

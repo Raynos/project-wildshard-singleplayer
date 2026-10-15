@@ -1,12 +1,10 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { isMesh, viewmodelMaterial, whiteColors } from '@wildshard/engine/combat/view/ranged';
+import { viewmodelMaterial, whiteColors } from '@wildshard/engine/combat/view/ranged';
 import type { Game } from '@wildshard/engine/core/Game';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { ShardContext } from '@wildshard/game/plugin/context';
-import { paintedPrimitives, type PaintedPrimitiveRow } from '@wildshard/game/plugin/geometry';
+import { createModelLibrary, paintedPrimitives, type PaintedPrimitiveRow } from '@wildshard/game/plugin/geometry';
 
 /**
  * A first-person tool held through a timed beat (SHARD-PLATFORM M3, the kit system): a gloved hand holding a knife, a
@@ -65,40 +63,15 @@ export interface HeldToolFile { geo: THREE.BufferGeometry; tex: { map: THREE.Tex
 
 const ease = (x: number): number => { const t = Math.min(1, Math.max(0, x)); return t * t * (3 - 2 * t); };
 
-/** The tool's GLB scene's first mesh as plain float geometry (position, normal, uv; its index kept) and its atlas. */
-export function parseHeldToolFile(root: THREE.Object3D, row: Pick<HeldToolRow, 'name' | 'url' | 'anisotropy'>): HeldToolFile {
-  root.updateMatrixWorld(true);
-  const found: THREE.Mesh[] = [];
-  root.traverse((o) => { if (isMesh(o)) found.push(o); });
-  const mesh = found[0];
-  if (mesh === undefined) throw new Error(`[${row.name}] ${row.url} has no mesh`);
-  const src = mesh.geometry, g = new THREE.BufferGeometry();
-  const copy = (name: string, size: number): Float32Array => {
-    const a = src.getAttribute(name) as THREE.BufferAttribute | THREE.InterleavedBufferAttribute | undefined;
-    if (!a) throw new Error(`[${row.name}] no ${name}`);
-    const out = new Float32Array(a.count * size);
-    for (let i = 0; i < a.count; i++) { out[i * size] = a.getX(i); out[i * size + 1] = a.getY(i); if (size > 2) out[i * size + 2] = a.getZ(i); }
-    return out;
-  };
-  g.setAttribute('position', new THREE.BufferAttribute(copy('position', 3), 3));
-  g.setAttribute('normal', new THREE.BufferAttribute(copy('normal', 3), 3));
-  g.setAttribute('uv', new THREE.BufferAttribute(copy('uv', 2), 2));
-  const idx = src.getIndex();
-  if (idx) g.setIndex(new THREE.BufferAttribute(Uint32Array.from(idx.array), 1));
-  g.applyMatrix4(mesh.matrixWorld);
-  g.computeBoundingSphere();
-  const m = mesh.material;
-  if (Array.isArray(m) || !(m instanceof THREE.MeshStandardMaterial)) throw new Error(`[${row.name}] not a PBR material`);
-  const { map, normalMap, roughnessMap } = m;
-  if (map === null || normalMap === null || roughnessMap === null) throw new Error(`[${row.name}] an atlas map is missing`);
-  for (const t of [map, normalMap, roughnessMap]) t.anisotropy = row.anisotropy;
-  return { geo: g, tex: { map, normalMap, arm: roughnessMap } };
-}
-
-/** Fetch and parse the tool's GLB (meshopt-decoded). */
+/** The existing model library owns one immutable decoded primitive and its original atlas. */
 export async function loadHeldToolFile(row: Pick<HeldToolRow, 'name' | 'url' | 'anisotropy'>): Promise<HeldToolFile> {
-  const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(row.url);
-  return parseHeldToolFile(gltf.scene, row);
+  const library = createModelLibrary({ meshes: [], meshUrls: {}, hd: [], hdUrls: {}, hdLooks: {}, aoFloor: 1,
+    geometryPools: [{ url: row.url, parts: ['held'], native: { first: true, requireIndex: false, white: true, disposeSource: true },
+      atlases: [{ id: 'held', part: 'held', anisotropy: row.anisotropy }] }],
+  }, `[${row.name}]`);
+  await library.preload(); const geo = library.geometry('held', { borrow: true }), atlas = library.atlas('held');
+  if (geo === null || atlas === null) throw new Error(`[${row.name}] held resources unavailable`);
+  return { geo, tex: { map: atlas.map, normalMap: atlas.normalMap, arm: atlas.armMap } };
 }
 
 /** the atlas on a viewmodel material: albedo, normal (glTF's v runs down the image) and ARM, full factors */
@@ -113,6 +86,7 @@ export class HeldTool {
   readonly group = new THREE.Group();
   private readonly pivot = new THREE.Group();
   private mesh: THREE.Mesh | null = null;
+  private ownsGeometry = true;
   private readonly mat: THREE.MeshPhysicalMaterial;
   private readonly game: Game;
   private readonly ctx: ShardContext;
@@ -134,13 +108,13 @@ export class HeldTool {
     this.use(paintedPrimitives(row.parts), null);
     // the stand-in holds until the file lands
     schedule(() => { void this.load(); });
-    ctx.scope.onDispose(() => { this.group.removeFromParent(); this.mesh?.geometry.dispose(); this.mat.dispose(); });
+    ctx.scope.onDispose(() => { this.group.removeFromParent(); if (this.ownsGeometry) this.mesh?.geometry.dispose(); this.mat.dispose(); });
   }
 
   private async load(): Promise<void> {
     try {
       const m = await loadHeldToolFile(this.row);
-      if (this.ctx.scope.disposed) { m.geo.dispose(); for (const t of Object.values(m.tex)) t.dispose(); return; }
+      if (this.ctx.scope.disposed) return; // cached immutable resources remain with the asset owner
       this.use(m.geo, m.tex);
     } catch (e: unknown) { console.warn(`[${this.row.name}] the model did not load — the stand-in stays:`, e); }
   }
@@ -153,13 +127,13 @@ export class HeldTool {
       // upload now, not on the first harvest
       for (const t of [tex.map, tex.normalMap, tex.arm]) this.game.renderer.initTexture(t);
     } else { m.roughness = this.row.standIn.roughness; m.metalness = this.row.standIn.metalness; } // one set of factors over every part
-    const old = this.mesh;
+    const old = this.mesh, disposeOld = this.ownsGeometry; this.ownsGeometry = tex === null;
     const mesh = new THREE.Mesh(geo, m);
     mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.renderOrder = this.row.renderOrder;
     m.transparent = true; m.depthWrite = true;
     this.pivot.add(mesh);
     this.mesh = mesh;
-    if (old) { old.removeFromParent(); old.geometry.dispose(); }
+    if (old) { old.removeFromParent(); if (disposeOld) old.geometry.dispose(); }
   }
 
   /** the beat's clock (−1 = none): place the hand for it */

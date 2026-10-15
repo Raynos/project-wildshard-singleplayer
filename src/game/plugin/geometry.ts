@@ -68,7 +68,7 @@ export interface ModelLibraryRows<M extends string, H extends string> {
   /** One identity-space, non-indexed rest mesh with final float32 position/normal/colour channels; never refit or renormalize. */
   readonly preparedMeshes?: readonly M[];
   /** Named ordinary rest primitives, with exact authored channels/index/groups; materials remain caller-owned ports. */
-  readonly geometryPools?: readonly { readonly url: string; readonly parts: readonly string[] }[];
+  readonly geometryPools?: readonly ModelGeometryPool[];
   readonly meshUrls: Readonly<Record<M, string>>;
   /** the hero models preloaded, and every hero model's file */
   readonly hd: readonly H[];
@@ -87,6 +87,17 @@ export interface ModelLibraryRows<M extends string, H extends string> {
 /** How `fitGeometry` frames a model; `centre: 'base'` centres x / z on its footing (the lowest tenth), not its whole box. */
 export interface ModelFit { readonly size: number; readonly by: 'span' | 'height'; readonly floor?: number; readonly yaw?: number; readonly centre?: 'base' }
 
+/** Original rigid GLB streams, decoded through attribute accessors before their world transform.
+ * Absent retains strict identity-space rest-pool admission. first selects one mesh into one declared slot.
+ * white creates the same immutable vertex-colour channel formerly initialized by held callers.
+ */
+export interface NativeModelPartPolicy { readonly first?: boolean; readonly requireIndex: boolean; readonly white?: boolean; readonly disposeSource?: boolean }
+export interface ModelPbrAtlas { readonly map: Texture; readonly normalMap: Texture; readonly armMap: Texture }
+export interface ModelGeometryPool {
+  readonly url: string; readonly parts: readonly string[]; readonly native?: NativeModelPartPolicy;
+  readonly atlases?: readonly { readonly id: string; readonly part: string; readonly anisotropy: number; readonly refresh?: boolean }[];
+}
+
 /** A loaded model library: preload once, then take copies. */
 export interface ModelLibrary<M extends string, H extends string> {
   /** Borrow the caller's compiled look book until its scope ends; no material is copied. */
@@ -102,6 +113,8 @@ export interface ModelLibrary<M extends string, H extends string> {
   mesh: (name: M) => BufferGeometry | null;
   /** An owned copy by default. borrow:true lends the immutable cached primitive: never transform, recolour, change attributes or dispose it. */
   geometry: (name: string, options?: { readonly borrow?: boolean }) => BufferGeometry | null;
+  /** Borrow immutable original PBR textures; no texture clone, retint or new upload is introduced. */
+  readonly atlas: (id: string) => ModelPbrAtlas | null;
   /** A hero model fitted as `fit`, as a group sharing the loaded geometry and maps; null when it did not load. */
   hd: (name: H, fit: ModelFit) => Group | null;
   /** A recipe's named hero, validated against this library before copying its existing fit. */
@@ -157,11 +170,14 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
   if (fallback !== undefined && [fallback.roughness, fallback.metalness].some(value => !Number.isFinite(value) || value < 0 || value > 1)) throw new Error('Invalid mapped look fallback');
   const ready = new Map<M, BufferGeometry>(), hd = new Map<H, Object3D>();
   const painted = new Map<string, PaintedModel>(), paintedRows = rows.paintedModels ?? [];
-  const rest = new Map<string, BufferGeometry>();
+  const rest = new Map<string, BufferGeometry>(), atlases = new Map<string, ModelPbrAtlas>();
   const rigs = rows.rigs === undefined ? null : rigLibrary(rows.rigs);
   let loading: Promise<void> | null = null;
-  const pools = rows.geometryPools ?? [], parts = pools.flatMap(pool => pool.parts);
+  const pools = rows.geometryPools ?? [], parts = pools.flatMap(pool => pool.parts), atlasRows = pools.flatMap(pool => pool.atlases ?? []);
   if (pools.length > 16 || parts.length > 128 || new Set(parts).size !== parts.length) throw new Error('Model library requires unique bounded rest geometry parts');
+  if (atlasRows.length > 128 || new Set(atlasRows.map(row => row.id)).size !== atlasRows.length
+    || pools.some(pool => pool.native?.first === true && pool.parts.length !== 1
+      || (pool.atlases ?? []).some(row => !pool.parts.includes(row.part) || !Number.isFinite(row.anisotropy) || row.anisotropy < 1 || row.anisotropy > 32))) throw new Error('Invalid declared native pool/atlas slots');
   if (paintedRows.length > 128 || new Set(paintedRows.map(row => row.name)).size !== paintedRows.length
     || paintedRows.some(row => !parts.includes(row.geometry) || row.pivots !== undefined && (row.pivots.length !== 4 || row.pivots.some(part => part !== null && !parts.includes(part))))) throw new Error('Painted models require declared rest primitives and four pivot slots');
 
@@ -191,12 +207,44 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
     } catch (error: unknown) { console.error(`${fault} the painted model ${row.name} did not load:`, error); }
   }
 
-  async function loadPool(pool: { readonly url: string; readonly parts: readonly string[] }): Promise<void> {
+  async function loadPool(pool: ModelGeometryPool): Promise<void> {
     try {
       const gltf = await readModel(pool.url), nodes: Mesh[] = [];
       gltf.scene.updateMatrixWorld(true); gltf.scene.traverse(node => { if (isMesh(node)) nodes.push(node); });
+      if (nodes.length > 128 || new Set(nodes.map(node => node.name)).size !== nodes.length) throw new Error('Rest pool has repeated or excessive meshes');
+      const prepared = new Map<string, BufferGeometry>(), borrowed = new Map<string, ModelPbrAtlas>();
+      const selected = (name: string): Mesh => {
+        const node = pool.native?.first === true ? nodes[0] : nodes.find(candidate => candidate.name === name);
+        if (node?.type !== 'Mesh') throw new Error('Rest pool is missing an ordinary declared mesh'); return node;
+      };
+      for (const row of pool.atlases ?? []) {
+        const material = selected(row.part).material;
+        if (Array.isArray(material) || !(material instanceof MeshStandardMaterial)) throw new Error('Declared native atlas requires one PBR material');
+        const {map, normalMap, roughnessMap} = material;
+        if (map === null || normalMap === null || roughnessMap === null) throw new Error('Declared native PBR atlas map is missing');
+        for (const texture of [map, normalMap, roughnessMap]) { texture.anisotropy = row.anisotropy; if (row.refresh === true) texture.needsUpdate = true; }
+        borrowed.set(row.id, {map, normalMap, armMap: roughnessMap});
+      }
+      if (pool.native !== undefined) {
+        for (const name of pool.parts) {
+          const node = selected(name), source = node.geometry, position = source.attributes['position'], geometry = new BufferGeometry();
+          if (position === undefined || position.count < 1 || position.count > 400_000 || Object.keys(source.morphAttributes).length > 0) throw new Error('Native pool requires bounded rigid positions');
+          for (const [channel, width] of [['position',3],['normal',3],['uv',2]] as const) {
+            const input = source.attributes[channel]; if (input === undefined || input.count !== position.count || input.itemSize !== width) throw new Error('Native pool is missing its original vertex channels');
+            const values = new Float32Array(input.count * width);
+            for (let i = 0; i < input.count; i++) { values[i * width] = input.getX(i); values[i * width + 1] = input.getY(i); if (width > 2) values[i * width + 2] = input.getZ(i); }
+            if (values.some(value => !Number.isFinite(value))) throw new Error('Native pool has nonfinite vertices');
+            geometry.setAttribute(channel, new BufferAttribute(values, width));
+          }
+          const index = source.getIndex();
+          if (index === null && pool.native.requireIndex) throw new Error('Native pool requires the original index');
+          if (index !== null) { if (index.array.some(value => !Number.isInteger(value) || value < 0 || value >= position.count)) throw new Error('Native index is outside its vertex roster'); geometry.setIndex(new BufferAttribute(Uint32Array.from(index.array),1)); }
+          node.updateWorldMatrix(true, false); geometry.applyMatrix4(node.matrixWorld); geometry.computeBoundingSphere();
+          if (pool.native.white === true) geometry.setAttribute('color', new BufferAttribute(new Float32Array(position.count * 3).fill(1), 3));
+          if (pool.native.disposeSource === true) source.dispose(); prepared.set(name, geometry);
+        }
+      } else {
       if (nodes.length !== pool.parts.length || new Set(nodes.map(node => node.name)).size !== nodes.length) throw new Error('Rest pool part roster differs');
-      const prepared = new Map<string, BufferGeometry>();
       for (const name of pool.parts) {
         const node = nodes.find(candidate => candidate.name === name);
         if (node?.type !== 'Mesh' || !node.matrixWorld.equals(new Matrix4())) throw new Error('Rest pool requires named identity-space ordinary meshes');
@@ -238,6 +286,11 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
           geometry.boundingSphere = new Sphere(new Vector3(x, y, z), radius);
         }
         prepared.set(name, geometry);
+      }
+      }
+      for (const [id, atlas] of borrowed) {
+        retainCachedResources(atlas); atlases.set(id, atlas);
+        cacheUntilDisposed(atlas, () => { if (atlases.get(id) === atlas) { atlases.delete(id); loading = null; } });
       }
       for (const [name, geometry] of prepared) {
         retainCachedResources(geometry); rest.set(name, geometry);
@@ -310,7 +363,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
       loading ??= (async () => {
         try {
         await Promise.all([...rows.meshes.filter(name => !ready.has(name)).map(load), ...rows.hd.filter(name => !hd.has(name)).map(loadHd),
-          ...pools.filter(pool => pool.parts.some(name => !rest.has(name))).map(loadPool)]);
+          ...pools.filter(pool => pool.parts.some(name => !rest.has(name)) || (pool.atlases ?? []).some(row => !atlases.has(row.id))).map(loadPool)]);
         const missing = paintedRows.filter(row => !painted.has(row.name));
         if (pause === undefined) await Promise.all(missing.map(loadPainted));
         else for (const row of missing) { await loadPainted(row); await pause(); }
@@ -325,6 +378,7 @@ export function createModelLibrary<M extends string, H extends string>(rows: Mod
     models: specimens => modelCatalogue(specimens, { rig: name => { if (rigs === null) throw new Error('Model library has no declared rigs'); return rigs.bodies.bodyOrStandIn(name); } }),
     mesh: name => ready.get(name)?.clone() ?? null,
     geometry: (name, options) => { const value=rest.get(name); return value===undefined?null:options?.borrow===true?value:value.clone(); },
+    atlas: id => atlases.get(id) ?? null,
     painted: name => {
       const model = painted.get(name); if (model === undefined) return null;
       return { geometry: model.geometry.clone(), map: model.map, ...(model.pivots === undefined ? {} : { pivots: { body: model.pivots.body.clone(), head: model.pivots.head.clone(), arm: model.pivots.arm.clone(), fore: model.pivots.fore.clone() } }) };
