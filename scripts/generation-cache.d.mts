@@ -18,3 +18,14 @@ export function generationKey(root: string, job: GenerationJob, host?: {platform
 export function generationOutputHashes(directory: string, outputs: string[]): Record<string, string>;
 /** Coalesced, atomic cold generation; verified warm hits; optional fresh regenerate-and-compare. */
 export function runGenerationJob(root: string, job: GenerationJob, options: GenerationOptions): Promise<GenerationResult>;
+/** G430 eviction knobs: newest entries kept per job, the whole-cache cap, directories that always survive. */
+export interface PruneOptions { keep?: number; capBytes?: number; protect?: string[]; dryRun?: boolean }
+/** What a prune deleted (or, dry, would delete) and what it kept. */
+export interface PruneReport {
+  deleted: { job: string; key: string; bytes: number; reason: 'keep' | 'cap' }[];
+  keptBytes: number; keptEntries: number; locked: number; freedBytes: number;
+}
+/** Keep the newest entries per job, then cap the cache, least recently used first; locked entries are never touched. */
+export function pruneGenerationCache(cacheDir: string, options?: PruneOptions): PruneReport;
+/** Prune at most once per 10 minutes per cache; never throws. */
+export function maybePruneGenerationCache(cacheDir: string, options?: PruneOptions): PruneReport | undefined;

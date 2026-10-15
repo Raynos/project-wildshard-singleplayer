@@ -1,6 +1,6 @@
 // G292: one verified, content-addressed cache for generated assets and native checkpoints.
 import { createHash } from 'node:crypto';
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, isAbsolute, resolve, sep } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -93,7 +93,10 @@ export function runGenerationJob(root, descriptor, options) {
   const token = `${directory}:${options.forceCompare === true ? 'compare' : 'ensure'}`;
   const prior = active.get(token);
   if (prior !== undefined) return prior;
-  const task = execute(root, directory, key, job, options).finally(() => { active.delete(token); });
+  const task = execute(root, directory, key, job, options).then(result => {
+    if (!result.hit) maybePruneGenerationCache(options.cacheDir ?? generationCacheRoot(), { protect: [directory] });
+    return result;
+  }).finally(() => { active.delete(token); });
   active.set(token, task); return task;
 }
 /** @param {string} root @param {string} directory @param {string} key
@@ -104,7 +107,7 @@ async function execute(root, directory, key, job, options) {
   const started = performance.now(), lock = `${directory}.lock`, until = Date.now() + 600_000;
   mkdirSync(dirname(directory), { recursive: true });
   for (;;) {
-    if (options.forceCompare !== true && valid(directory, key, job.outputs)) return { directory, key, hit: true, hashes: generationOutputHashes(directory, job.outputs), elapsedMs: performance.now() - started };
+    if (options.forceCompare !== true && valid(directory, key, job.outputs)) return { directory: touch(directory), key, hit: true, hashes: generationOutputHashes(directory, job.outputs), elapsedMs: performance.now() - started };
     try { mkdirSync(lock); break; } catch (error) {
       if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') throw error;
       if (abandoned(lock)) { reclaim(lock); continue; }
@@ -116,7 +119,7 @@ async function execute(root, directory, key, job, options) {
   const stage = mkdtempSync(resolve(dirname(directory), 'generating-'));
   try {
     const hadCache = valid(directory, key, job.outputs);
-    if (options.forceCompare !== true && hadCache) return { directory, key, hit: true, hashes: generationOutputHashes(directory, job.outputs), elapsedMs: performance.now() - started };
+    if (options.forceCompare !== true && hadCache) return { directory: touch(directory), key, hit: true, hashes: generationOutputHashes(directory, job.outputs), elapsedMs: performance.now() - started };
     await options.generate(stage);
     // A producer that changed its inputs cannot publish under the old key.
     if (generationKey(root, job, options) !== key) throw new Error(`Generation inputs changed during job: ${job.id}`);
@@ -129,4 +132,105 @@ async function execute(root, directory, key, job, options) {
     renameSync(stage, directory);
     return { directory, key, hit: false, hashes, elapsedMs: performance.now() - started };
   } finally { rmSync(stage, { recursive: true, force: true }); rmSync(lock, { recursive: true, force: true }); }
+}
+
+/** Mark an entry as used now, so pruning sees warm hits as recent. @param {string} directory */
+function touch(directory) {
+  try { const now = new Date(); utimesSync(directory, now, now); } catch { /* A missing entry regenerates; never fail a hit on it. */ }
+  return directory;
+}
+
+const ENTRY = /^[0-9a-f]{64}$/u, EVICTING = /^evicting-[0-9a-f]{64}-(\d+)$/u, GIB = 1024 ** 3, PRUNE_EVERY_MS = 600_000;
+/** Allocated bytes under a path, never following symlinks. @param {string} path @returns {number} */
+function diskBytes(path) {
+  try {
+    const stat = lstatSync(path);
+    let bytes = stat.blocks * 512;
+    if (stat.isDirectory()) for (const child of readdirSync(path)) bytes += diskBytes(resolve(path, child));
+    return bytes;
+  } catch { return 0; /* Removed while counting. */ }
+}
+/** @param {number} pid */
+function alive(pid) {
+  try { process.kill(pid, 0); return true; } catch (error) { return !(error instanceof Error && 'code' in error && error.code === 'ESRCH'); }
+}
+/** Delete one entry under its own lock, so a job never reads it half-deleted; a held lock leaves it in place.
+ * @param {string} jobDir @param {string} key */
+function evict(jobDir, key) {
+  const lock = resolve(jobDir, `${key}.lock`), doomed = resolve(jobDir, `evicting-${key}-${process.pid}`);
+  try { mkdirSync(lock); } catch { return false; }
+  try {
+    writeFileSync(resolve(lock, 'owner.json'), JSON.stringify({ pid: process.pid }));
+    renameSync(resolve(jobDir, key), doomed);
+  } catch { return false; } finally { rmSync(lock, { recursive: true, force: true }); }
+  rmSync(doomed, { recursive: true, force: true });
+  return true;
+}
+
+/** G430 eviction: per job keep the newest `keep` entries (by last use), then delete least-recently-used entries until
+ * the cache fits `capBytes`. The newest entry of every job, `protect`ed directories (the current inputs), entries with
+ * a lock and `generating-*` staging dirs are never deleted.
+ * @param {string} cacheDir @param {import('./generation-cache.mjs').PruneOptions} [options]
+ * @returns {import('./generation-cache.mjs').PruneReport} */
+export function pruneGenerationCache(cacheDir, options = {}) {
+  const keep = options.keep ?? 3, capBytes = options.capBytes ?? 20 * GIB, dryRun = options.dryRun === true;
+  const protect = new Set((options.protect ?? []).map(path => resolve(path)));
+  /** @type {import('./generation-cache.mjs').PruneReport} */
+  const report = { deleted: [], keptBytes: 0, keptEntries: 0, locked: 0, freedBytes: 0 };
+  if (!existsSync(cacheDir)) return report;
+  /** @type {{job:string,key:string,path:string,mtimeMs:number,newest:boolean,pinned:boolean,bytes:number}[]} */
+  const survivors = [];
+  /** @param {{job:string,key:string}} entry @param {number} bytes @param {'keep'|'cap'} reason */
+  const drop = (entry, bytes, reason) => {
+    if (!dryRun && !evict(resolve(cacheDir, entry.job), entry.key)) return false;
+    report.deleted.push({ job: entry.job, key: entry.key, bytes, reason }); report.freedBytes += bytes; return true;
+  };
+  for (const job of readdirSync(cacheDir).sort()) {
+    const jobDir = resolve(cacheDir, job);
+    if (!lstatSync(jobDir).isDirectory()) continue;
+    const names = readdirSync(jobDir);
+    for (const child of names) {
+      const match = EVICTING.exec(child);
+      if (match !== null && !dryRun && !alive(Number(match[1]))) rmSync(resolve(jobDir, child), { recursive: true, force: true });
+    }
+    const entries = names.filter(child => ENTRY.test(child)).flatMap(key => {
+      const path = resolve(jobDir, key);
+      try {
+        const stat = lstatSync(path);
+        return stat.isDirectory() ? [{ key, path, mtimeMs: stat.mtimeMs, locked: names.includes(`${key}.lock`) }] : [];
+      } catch { return []; }
+    }).sort((a, b) => b.mtimeMs - a.mtimeMs);
+    entries.forEach((entry, index) => {
+      const pinned = protect.has(entry.path) || entry.locked;
+      if (entry.locked) report.locked += 1;
+      const bytes = diskBytes(entry.path);
+      if (index >= keep && !pinned && drop({ job, key: entry.key }, bytes, 'keep')) return;
+      survivors.push({ job, key: entry.key, path: entry.path, mtimeMs: entry.mtimeMs, newest: index === 0, pinned, bytes });
+    });
+  }
+  let total = survivors.reduce((sum, entry) => sum + entry.bytes, 0);
+  const kept = new Set(survivors);
+  for (const entry of [...survivors].sort((a, b) => a.mtimeMs - b.mtimeMs)) {
+    if (total <= capBytes) break;
+    if (entry.newest || entry.pinned) continue;
+    if (drop(entry, entry.bytes, 'cap')) { total -= entry.bytes; kept.delete(entry); }
+  }
+  report.keptEntries = kept.size; report.keptBytes = total;
+  return report;
+}
+
+/** Prune after a generation, at most once per 10 minutes per cache (a stamp file); never fails the job.
+ * @param {string} cacheDir @param {import('./generation-cache.mjs').PruneOptions} [options] */
+export function maybePruneGenerationCache(cacheDir, options = {}) {
+  const stamp = resolve(cacheDir, '.prune-stamp');
+  try {
+    if (Date.now() - statSync(stamp).mtimeMs < PRUNE_EVERY_MS) return undefined;
+  } catch { /* Never pruned. */ }
+  try {
+    writeFileSync(stamp, `${new Date().toISOString()}\n`);
+    return pruneGenerationCache(cacheDir, options);
+  } catch (error) {
+    console.warn(`generation-cache: prune failed: ${error instanceof Error ? error.message : String(error)}`);
+    return undefined;
+  }
 }

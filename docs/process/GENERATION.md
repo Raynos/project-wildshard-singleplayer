@@ -34,6 +34,10 @@ Keys include exact input SHA256s, command/tool identity and Node version; native
 Independent processes coalesce on one key. A failed job publishes nothing; corrupt warm hits regenerate. Forced
 comparison preserves an existing valid cache if new output differs. Cache files live outside git, under
 `WILDSHARD_GENERATE_CACHE` or `~/.cache/wildshard/generate`.
+**Eviction (G430):** after a cold generation (at most every 10 minutes) the cache keeps the newest 3 entries per job by
+last use (a warm hit counts as a use) and then caps itself at 20 GB, least recently used first; the current entry,
+each job's newest entry, locked entries and `generating-*` staging dirs survive. By hand:
+`node scripts/generation-cache-prune.mjs [--dry-run] [--keep=3] [--cap-gb=20]`.
 
 The backend elapsedMs includes waiting, isolated copying, generation, post-run input verification and publication.
 Warm elapsedMs includes output-hash verification. Initial input-map collection and key verification precede that timer. Neither is a fabricated per-producer estimate. Record cold time and portability evidence before allowing

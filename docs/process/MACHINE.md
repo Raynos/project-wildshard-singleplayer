@@ -127,6 +127,8 @@ login progress bar for hours: macOS empties both at boot, before login.
   `boot-temp-warn.sh` recount. A run that skips `vitest.config.ts` (`--config <other>`) still writes to `$TMPDIR`.
 - **Node's compile cache lives in `~/Library/Caches/node-compile-cache`** (`NODE_COMPILE_CACHE`, set in the dotfiles'
   `.bash_profile`), not `$TMPDIR`: it had 110k files there.
+- **The generation cache (`~/.cache/wildshard/generate`) evicts itself** to the newest 3 entries per job and 20 GB
+  (G430, GENERATION.md); it reached 376 GB without that.
 - **Pre-commit warns** (never refuses) through `scripts/boot-temp-warn.sh` when `/private/tmp` or `$TMPDIR` (two separate counts) passes 500,000
   files or `./tmp/build-mirror` holds a slot beyond the three; `scripts/boot-temp-warn.sh --top` lists the biggest
   folders. Delete your own; ask before touching another agent's.
