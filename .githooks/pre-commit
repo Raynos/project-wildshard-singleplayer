@@ -5,4 +5,7 @@ python3 scripts/commit-message-lock.py "$PPID"
 finish() { local rc=$?; python3 scripts/commit-message-lock.py --record "$PPID" "$rc"; exit "$rc"; }
 trap finish EXIT
 python3 scripts/check-commit-index.py "$PPID"
+# Storage policy (docs/process/STORAGE.md): the staged objects of this commit's own index (GIT_INDEX_FILE), plus the
+# unpushed and rolling-week budgets. Restores the progress-image / .blend / raw-archive guards removed in 819a36b8d.
+node scripts/repo-size.mjs --index
 node scripts/precommit-inputs.mjs
