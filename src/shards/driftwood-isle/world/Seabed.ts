@@ -6,55 +6,29 @@
  * scatter order from one rng stream, each kind placed `drawnInto` it; the seaweed sways in the vertex shader; nothing
  * collides (you swim through it — underwater is decorative, no underworld).
  *
- *   const seabed = new Seabed(sky).build(Seabed.scatterLagoon(seed));   // where the water is 1.5–8 m deep
+ *   const seabed = await new Seabed(sky).build();   // the baked layout: where the water is 1.5–8 m deep
  *   scene.add(seabed.mesh);
  *   game.onUpdate((dt) => seabed.update(dt));                           // the sway clock, the school
  *
  * `seabed.fish`: the school — the reef fish placed instanced (one more draw call), circling a lissajous path over the
- * reef; built when the layout has a `school` (scatterLagoon adds one).
+ * reef; built when the baked layout has a `school`.
  */
 import type * as THREE from 'three';
-import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
 import type { Placed } from '@wildshard/engine/models/place';
-import { normalAt, inChunk } from '@wildshard/engine/world/Heightfield';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { ReefBed, scatterReefBed, type ReefBedLayout, type ReefBed as ReefBedSet, type ReefBedSpec, type ReefGround } from '../runtime/looks/reefBed';
+import { ReefBed, type ReefBed as ReefBedSet } from '../runtime/looks/reefBed';
 import { loadReefWorld } from '../boot/reefGeometry';
-import { OCEAN } from '../world/sites';
 import { SEABED } from '../data/seabedLook';
+import REEF_LAYOUT from '../data/reefLayout.generated.json' with { type: 'json' };
 import { REEF, reefMaterial, type ReefParams } from '../models/reef';
-import { REEF_FISH_COLOURS, reefFish } from '../models/reefFish';
-
-/** One scattered copy (a coral, weed or star). */
-export type SeabedSpec = ReefBedSpec;
-/** A scatter and its school. */
-export type SeabedLayout = ReefBedLayout;
-
-/** the lagoon's ground: the sea's level, the terrain, and off the four entry sandbars (the jetties) */
-const LAGOON: ReefGround = {
-  level: OCEAN.level,
-  heightAt,
-  normalY: (x, z, reach) => normalAt(x, z, reach)[1],
-  clear: (x, z) => {
-    if (!inChunk(x, z, SEABED.margin)) return false;
-    if (Math.abs(x) < ROAD_WIDTH / 2 + 5 && Math.abs(z) > CHUNK_HALF - 75) return false; // the S / N jetties' sandbars
-    if (Math.abs(z) < ROAD_WIDTH / 2 + 5 && Math.abs(x) > CHUNK_HALF - 120) return false; // the W / E ones (the E jetty runs on into the cove)
-    return true;
-  },
-};
+import { reefFish } from '../models/reefFish';
 
 export class Seabed {
   private readonly bed: ReefBedSet<ReefParams>;
 
   constructor(sky: Sky) {
-    this.bed = new ReefBed<ReefParams>(sky, SEABED, { kinds: REEF, material: reefMaterial, fish: reefFish, fishColours: REEF_FISH_COLOURS }, (p) => ({ s: p.s, rot: p.rot, v: p.v }));
-  }
-
-  /** Lagoon rule (data/seabedLook.ts): corals in noise-clustered reefs, seaweed in beds, a starfish here and there.
-   *  `avoid` clears the wreck / anything else on the sand. */
-  static scatterLagoon(seed: number, count = 360, avoid: { x: number; z: number; r: number }[] = []): SeabedLayout {
-    return scatterReefBed(SEABED, LAGOON, seed, count, avoid);
+    this.bed = new ReefBed<ReefParams>(sky, SEABED, { kinds: REEF, material: reefMaterial, fish: reefFish }, (p) => ({ s: p.s, rot: p.rot, v: p.v }));
   }
 
   /** its placements (the named places' sets read them, src/shards/driftwood-isle/world/places.ts) */
@@ -64,9 +38,10 @@ export class Seabed {
   get count(): number { return this.bed.count; }
   get tris(): number { return this.bed.tris; }
 
-  async build(layout: SeabedLayout | SeabedSpec[]): Promise<this> {
-    const batch = await loadReefWorld(Array.isArray(layout) ? layout.length : layout.items.length);
-    this.bed.build(layout, heightAt, batch);
+  /** the baked lagoon layout (generators/reefScatter.ts: 360 copies, the wreck kept clear) on the baked weld */
+  async build(): Promise<this> {
+    const batch = await loadReefWorld(REEF_LAYOUT.items.length);
+    this.bed.build(REEF_LAYOUT, heightAt, batch);
     return this;
   }
 

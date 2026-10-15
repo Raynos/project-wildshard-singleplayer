@@ -189,7 +189,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   statics.push(...bridge.colliders);
   await slice(++completed, total, 'Rope bridge');
   // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
-  const seabed = await new Seabed(sky).build(Seabed.scatterLagoon(manifest.seed, 360, [{ x: WRECK.x, z: WRECK.z, r: 18 }]));
+  const seabed = await new Seabed(sky).build();
   game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish);
   await slice(++completed, total, 'Seabed');
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)

@@ -14,7 +14,7 @@ import manifest from '../discovery.generated';
 import {SEABED} from '../data/seabedLook.ts';
 import {REEF_SPECIMENS} from '../data/reefSpecimenRows.ts';
 import {REEF} from '../models/reef.ts';
-import {Seabed} from '../world/Seabed.ts';
+import {reefLayoutJson,scatterLagoon} from './reefScatter.ts';
 import {reefGeometry} from './reef.ts';
 import {driftwoodGroundBytes} from './groundRows.ts';
 import {foliageTransport} from './hibiscusTransport.ts';
@@ -30,8 +30,9 @@ const level={id:manifest.slug,ground:{terrain},spawn:manifest.spawn,sky:manifest
 const restoreLevel=bindLevelSelection(level),binding=new HeightfieldBinding(level);
 binding.install(readNativeTerrain(driftwoodGroundBytes()));const restoreGround=bindHeightfield(binding);
 try{
- // The world's one call (world/build.ts): 360 copies, the wreck kept clear, welded in scatter order from one stream.
- const layout=Seabed.scatterLagoon(manifest.seed,360,[{x:WRECK.x,z:WRECK.z,r:18}]),rng=new Rng(SEABED.buildSeed);
+ // The lagoon's layout (world/Seabed.ts reads it): 360 copies, the wreck kept clear, welded in scatter order from one stream.
+ const layout=scatterLagoon(manifest.seed,360,[{x:WRECK.x,z:WRECK.z,r:18}]),rng=new Rng(SEABED.buildSeed);
+ writeFileSync(new URL('src/shards/driftwood-isle/data/reefLayout.generated.json',root),reefLayoutJson(layout));
  const originals=layout.items.map(p=>{
   if(p.kind!=='coral'&&p.kind!=='weed'&&p.kind!=='star')throw new Error('Unknown authored reef kind');
   return reefGeometry(p.kind,{s:p.s,rot:p.rot,v:p.v},rng).translate(p.x,terrainHeight(p.x,p.z),p.z);

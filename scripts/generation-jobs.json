@@ -464,6 +464,7 @@
         "public/assets/horizon/driftwood-isle-night.webp"
       ],
       "outputs": [
+        "src/shards/driftwood-isle/data/reefLayout.generated.json",
         "public/assets/driftwood-isle/baked/reef-02f2b47255677bc4a8cd39bd108b926f880c5537cd3b1cc2c1a6d7f19f4aab9c.glb",
         "public/assets/driftwood-isle/baked/reef-2485e39982beb460e69e164562f178b6214cc080bedfa8e17281d8bd86a9f8f6.bin",
         "public/assets/driftwood-isle/baked/reef-3f47d6ebfe8205ec34f7719102d6f9e5d9a7373d78643a49d475793175f22b13.glb",
@@ -478,6 +479,7 @@
         "public/assets/driftwood-isle/baked/reef-c0858d03822e7b99f4f259ac5e3adff466f3e600d15a1d4021b7b8ed853bf719.glb"
       ],
       "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/reefLayout.generated.json",
         "public/assets/driftwood-isle/baked/reef-02f2b47255677bc4a8cd39bd108b926f880c5537cd3b1cc2c1a6d7f19f4aab9c.glb",
         "public/assets/driftwood-isle/baked/reef-2485e39982beb460e69e164562f178b6214cc080bedfa8e17281d8bd86a9f8f6.bin",
         "public/assets/driftwood-isle/baked/reef-3f47d6ebfe8205ec34f7719102d6f9e5d9a7373d78643a49d475793175f22b13.glb",

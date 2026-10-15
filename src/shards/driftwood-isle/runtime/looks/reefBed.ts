@@ -1,97 +1,38 @@
 import * as THREE from 'three';
-import { CHUNK_HALF } from '@wildshard/engine/core/config';
-import { Noise2D } from '@wildshard/engine/core/noise';
-import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, type ModelContext, type ModelDef, type Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ReefBedRow } from '../../data/lookRows';
 
 /**
- * A sea floor's reef as rows (SHARD-PLATFORM M3, look-family rows): where the water is shallow enough, noise-clustered
- * reefs of one kind, beds of another and a scatter of a third (`scatterReefBed`, from the shard's numbers), welded into ONE
- * flat-shaded mesh (one draw call) from the shard's models in scatter order, from one rng stream, each kind placed
- * `drawnInto` that mesh (`ReefBed.build`); and a school of fish placed instanced over the densest reef, swum round a
- * lissajous loop every frame. Nothing collides. Nothing here knows a shard: its numbers are a row in its `data/`, its
- * models, material, depth and clear ground are its own.
+ * A sea floor's reef as rows (SHARD-PLATFORM M3, look-family rows; W2 C2 baked its scatter): a baked layout of reefs, beds
+ * and a scatter (generators/reefScatter.ts, data/reefLayout.generated.json) welded into ONE flat-shaded mesh (one draw
+ * call; the weld is baked too), each kind placed `drawnInto` that mesh (`ReefBed.build`); and a school of fish placed
+ * instanced over the densest reef, swum round a lissajous loop every frame. Nothing collides. Nothing here knows a shard:
+ * its numbers are a row in its `data/`, its models, material and layout are its own.
  *
- *   const bed = new ReefBed(sky, models).build(scatterReefBed(row, ground, seed, count, avoid));
+ *   const bed = new ReefBed(sky, row, models, params).build(layout, heightAt, batch);
  *   scene.add(bed.mesh);
  *   game.onUpdate((dt) => bed.update(dt));
  */
 
-/** One copy's numbers: size, turn about +Y and which tint (0‥1). */
+/** One copy's numbers: size, turn about +Y and which tint (0..1). */
 export interface ReefBedParams { readonly s: number; readonly rot: number; readonly v: number }
-/** One scattered copy: its kind (the row's names) and where. */
-export interface ReefBedSpec { kind: string; x: number; z: number; s: number; rot: number; v: number }
-/** The school's centre, radius and count. */
-export interface ReefSchool { x: number; z: number; y: number; r: number; n: number }
-/** A scatter: its copies and the school over the densest reef. */
-export interface ReefBedLayout { items: ReefBedSpec[]; school?: ReefSchool | undefined }
-
-/** The ground the scatter reads. */
-export interface ReefGround {
-  /** the water surface's height */
-  readonly level: number;
-  readonly heightAt: (x: number, z: number) => number;
-  /** the ground's normal y at (x, z), sampled `reach` m wide */
-  readonly normalY: (x: number, z: number, reach: number) => number;
-  /** whether a copy may stand at (x, z) (inside the chunk, off the shard's own keep-clear ground) */
-  readonly clear: (x: number, z: number) => boolean;
+/** One baked copy: its kind (the row's names) and where. */
+export interface ReefBedSpec { readonly kind: string; readonly x: number; readonly z: number; readonly s: number; readonly rot: number; readonly v: number }
+/** The baked school: centre, radius, count and each fish's tint and swim seeds. */
+export interface ReefSchool {
+  readonly x: number; readonly z: number; readonly y: number; readonly r: number; readonly n: number;
+  readonly fish: readonly { readonly colour: number; readonly ph: number; readonly spd: number; readonly off: number }[];
 }
+/** A baked layout: its copies and the school over the densest reef. */
+export interface ReefBedLayout { readonly items: readonly ReefBedSpec[]; readonly school: ReefSchool | null }
 
-/** The reef's rule: copies where the water is `depth` deep on gentle slopes, `avoid` kept clear; the school over the densest reef. */
-export function scatterReefBed(row: ReefBedRow, ground: ReefGround, seed: number, count: number, avoid: readonly { x: number; z: number; r: number }[] = []): ReefBedLayout {
-  const rng = new Rng(seed ^ row.salt), reefN = new Noise2D(seed + row.reefNoise.seed), bedN = new Noise2D(seed + row.bedNoise.seed);
-  const level = ground.level, m = row.margin, R = row.reef, B = row.bed, S = row.scatter;
-  const items: ReefBedSpec[] = [];
-  let tries = 0;
-  const ok = (x: number, z: number, minD: number) => {
-    if (!ground.clear(x, z)) return false;
-    if (avoid.some((a) => Math.hypot(a.x - x, a.z - z) < a.r)) return false;
-    return !items.some((p) => Math.hypot(p.x - x, p.z - z) < minD);
-  };
-  while (items.length < count && tries++ < count * row.tries) {
-    const x = rng.range(-CHUNK_HALF + m, CHUNK_HALF - m), z = rng.range(-CHUNK_HALF + m, CHUNK_HALF - m);
-    const d = level - ground.heightAt(x, z);
-    if (d < row.depth[0] || d > row.depth[1]) continue;
-    const ny = ground.normalY(x, z, row.normalReach);
-    if (ny < row.minNy) continue;
-    const rn = row.reefNoise, bn = row.bedNoise;
-    const r = reefN.fbm(x * rn.freq + rn.offset, z * rn.freq, rn.octaves), b = bedN.fbm(x * bn.freq + bn.offset, z * bn.freq, bn.octaves);
-    const roll = rng.next();
-    if (r > R.above && roll < R.roll) {
-      // a reef: denser toward the reef's heart
-      if (rng.next() > (r - R.above) * R.gain + R.base) continue;
-      if (!ok(x, z, R.spacing)) continue;
-      items.push({ kind: R.kind, x, z, s: rng.range(R.scale[0], R.scale[1]) * (1 + Math.max(0, r) * R.grow), rot: rng.range(0, Math.PI * 2), v: rng.next() });
-    } else if (b > B.above && roll < B.roll) {
-      if (rng.next() > (b - B.above) * B.gain + B.base) continue;
-      if (!ok(x, z, B.spacing)) continue;
-      items.push({ kind: B.kind, x, z, s: rng.range(B.scale[0], B.scale[1]) * (B.from + Math.min(1, d / B.full) * B.grow), rot: rng.range(0, Math.PI * 2), v: rng.next() });
-    } else if (roll >= B.roll && rng.next() < S.chance) {
-      if (!ok(x, z, S.spacing)) continue;
-      items.push({ kind: S.kind, x, z, s: rng.range(S.scale[0], S.scale[1]), rot: rng.range(0, Math.PI * 2), v: rng.next() });
-    }
-  }
-  // the fish school: over the densest reef patch placed, at mid-depth
-  const sc = row.school;
-  let best: ReefBedSpec | undefined, bestN = -1;
-  for (const p of items) {
-    if (p.kind !== R.kind) continue;
-    let n = 0; for (const q of items) if (q.kind === R.kind && Math.hypot(q.x - p.x, q.z - p.z) < sc.radius) n++;
-    if (n > bestN) { bestN = n; best = p; }
-  }
-  const school = best ? { x: best.x, z: best.z, y: level - Math.min(sc.maxDepth, (level - ground.heightAt(best.x, best.z)) * sc.depthShare), r: sc.r, n: sc.n } : undefined;
-  return { items, school };
-}
-
-/** The reef's models: one per kind, the weld's material (with its sway clock) and the school's fish and tints. */
+/** The reef's models: one per kind, the weld's material (with its sway clock) and the school's fish. */
 export interface ReefBedModels<P extends ReefBedParams> {
   readonly kinds: Readonly<Record<string, ModelDef<P>>>;
   readonly material: (ctx: ModelContext) => { material: THREE.Material; uniforms: { uTime: THREE.IUniform<number> }; update?: () => void };
   readonly fish: ModelDef<Record<string, never>>;
-  readonly fishColours: readonly number[];
 }
 
 const isInstanced = (o: THREE.Object3D): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh;
@@ -113,7 +54,7 @@ export class ReefBed<P extends ReefBedParams> {
   private uniforms: { uTime: THREE.IUniform<number> } | null = null;
   /** the material's own once-a-frame step, when it has one */
   private step: (() => void) | null = null;
-  private school?: ReefSchool & { seeds: Float32Array };
+  private school?: ReefSchool;
   private readonly tmp = { m: new THREE.Matrix4(), p: new THREE.Vector3(), q: new THREE.Quaternion(), e: new THREE.Euler(), s: new THREE.Vector3(), f: new THREE.Vector3() };
 
   /** The weld (after `build`). */
@@ -127,9 +68,9 @@ export class ReefBed<P extends ReefBedParams> {
     this.sky = sky; this.row = row; this.models = models; this.params = params;
   }
 
-  /** Welds every copy in scatter order (one rng stream across the kinds), places each kind drawnInto it, builds the school. */
-  build(layout: ReefBedLayout | ReefBedSpec[], heightAt: (x: number, z: number) => number, batch: {geometry: THREE.BufferGeometry; boxes: Float32Array}): this {
-    const specs = Array.isArray(layout) ? layout : layout.items;
+  /** Places each kind of the baked layout drawnInto the baked weld, in scatter order, and builds the school. */
+  build(layout: ReefBedLayout, heightAt: (x: number, z: number) => number, batch: {geometry: THREE.BufferGeometry; boxes: Float32Array}): this {
+    const specs = layout.items;
     const ctx = modelContext(this.sky), row = this.row;
     if (specs.length > 512 || batch.boxes.length !== specs.length * 6) throw new Error('Reef batch differs from its authored scatter');
     const kinds = new Map<string, { pls: Placement<P>[]; boxes: number[] }>();
@@ -160,20 +101,14 @@ export class ReefBed<P extends ReefBedParams> {
       const def = this.models.kinds[kind];
       if (def !== undefined) this.placed.push(place(def, k.pls, { ctx, draw: 'merged', drawnInto: { object: mesh, boxes: Float32Array.from(k.boxes) }, piece: { id: `${row.piecePrefix}${kind}` } }));
     }
-    if (!Array.isArray(layout) && layout.school) this.buildSchool(ctx, layout.school);
+    if (layout.school !== null) this.buildSchool(ctx, layout.school);
     return this;
   }
 
-  /** the school: the fish placed instanced (their colours per copy), swum round a lissajous loop over the reef */
+  /** the school: the fish placed instanced (their baked colours per copy), swum round a lissajous loop over the reef */
   private buildSchool(ctx: ModelContext, s: ReefSchool): void {
-    const rng = new Rng(this.row.schoolSeed), colours = this.models.fishColours;
-    const n = s.n, seeds = new Float32Array(n * 3), pls: Placement<Record<string, never>>[] = [];
-    for (let i = 0; i < n; i++) {
-      const cc = colours[Math.floor(rng.next() * colours.length)];
-      if (cc === undefined) throw new Error('[reefBed] fish tint index out of range');
-      pls.push({ x: s.x, y: s.y, z: s.z, color: cc });
-      seeds[i * 3] = rng.range(0, Math.PI * 2); seeds[i * 3 + 1] = rng.range(0.6, 1); seeds[i * 3 + 2] = rng.range(-1, 1);
-    }
+    if (s.fish.length !== s.n || s.n > 64) throw new Error('[reefBed] a school is its baked fish, at most 64');
+    const pls: Placement<Record<string, never>>[] = s.fish.map((f) => ({ x: s.x, y: s.y, z: s.z, color: f.colour }));
     const placed = place(this.models.fish, pls, { ctx, draw: 'instanced', piece: { id: this.row.fishPiece } });
     this.placed.push(placed);
     const mesh = placed.object;
@@ -182,7 +117,7 @@ export class ReefBed<P extends ReefBedParams> {
     mesh.frustumCulled = false;
     mesh.name = this.row.fishMesh;
     this.fish = mesh;
-    this.school = { ...s, seeds };
+    this.school = s;
     this.update(0);
   }
 
@@ -194,8 +129,10 @@ export class ReefBed<P extends ReefBedParams> {
     const s = this.school, mesh = this.fish;
     if (!s || !mesh) return;
     const t = (clock?.uTime.value ?? 0) * 0.35, { m, p, q, e, s: sc, f } = this.tmp;
-    for (let i = 0; i < s.n; i++) {
-      const ph = s.seeds[i * 3] ?? 0, spd = s.seeds[i * 3 + 1] ?? 0, off = s.seeds[i * 3 + 2] ?? 0;
+    for (let i = 0; i < 64; i++) { // a school is at most 64 fish (buildSchool)
+      const fish = s.fish[i];
+      if (fish === undefined) break;
+      const { ph, spd, off } = fish;
       const u = t * spd + ph;
       // lissajous loop around the school centre, each fish on its own offset ring; a little bob
       const x = s.x + Math.sin(u) * s.r * (1 + off * 0.25) + Math.cos(u * 2.3 + ph) * 0.6;
