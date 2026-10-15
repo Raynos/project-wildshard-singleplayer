@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RangedTrace, type RangedTraceRow } from '../../render/viewmodelFeel';
 import type { Game } from '../../core/Game';
 import type { SkyRig as Sky } from '../../world/skyRig';
 import type { Player } from '../../player/Player';
@@ -287,4 +288,99 @@ function segmentCapsule(o: THREE.Vector3, d: THREE.Vector3, len: number, feet: T
   if (t < 0 || t > len) return -1;
   const y = o.y + d.y * t - feet.y;
   return y >= 0 && y <= h ? t : -1;
+}
+
+/** Bounded drawn-projectile continuation. Flight/contact clocks and damage remain caller-owned.
+ * Geometry/materials are borrowed. Solved stopped poses use StoppedProjectileSlots solely as a retained FIFO;
+ * recovery is never stepped here. A borrowed publish port can retain an existing instanced writer.
+ */
+export class ProjectilePresentation {
+  readonly traces: RangedTrace[] = [];
+  readonly paint = (trace: RangedTrace, time: number, camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.publish(time, camera, resolution); };
+  private readonly stopped: StoppedProjectileSlots<{ mesh: THREE.Object3D | null; index: number }, never>[] = [];
+  private stopCursor = 0;
+  private readonly axis: THREE.Vector3;
+  private readonly rotation = new THREE.Quaternion(); private readonly spin = new THREE.Quaternion();
+  private readonly direction = new THREE.Vector3(); private readonly at = new THREE.Vector3();
+  private made = 0;
+  private readonly scene: THREE.Scene; private readonly geometry: THREE.BufferGeometry; private readonly material: THREE.Material;
+  private readonly row: ConstructorParameters<typeof ProjectilePresentation>[3];
+  private readonly glow: ConstructorParameters<typeof ProjectilePresentation>[4];
+  private readonly flights: ConstructorParameters<typeof ProjectilePresentation>[5];
+  private readonly writer: ConstructorParameters<typeof ProjectilePresentation>[6];
+  constructor(scene: THREE.Scene, geometry: THREE.BufferGeometry, material: THREE.Material,
+    row: { readonly flying: number; readonly stopped: number; readonly axis: readonly [number, number, number]; readonly spin: number; readonly tip: number; readonly nock: number; readonly trace: RangedTraceRow; readonly traceCount: number; readonly markerScale: number; readonly order: number },
+    glow: { readonly material: THREE.MeshBasicMaterial; readonly flight: THREE.BufferGeometry; readonly stuck: THREE.BufferGeometry; readonly impact: THREE.BufferGeometry; readonly ring: THREE.BufferGeometry },
+    flights: () => readonly { tracer: RangedTrace | null }[],
+    writer?: { readonly publish: (object: THREE.Object3D, index: number, phase: 'flying' | 'stopped') => void; readonly retire: (index: number) => void }) {
+    this.scene = scene; this.geometry = geometry; this.material = material; this.row = row; this.glow = glow; this.flights = flights; this.writer = writer;
+    if (!Number.isInteger(row.flying) || row.flying < 1 || row.flying > 1024 || !Number.isInteger(row.traceCount) || row.traceCount < 1 || row.traceCount > 128
+      || !Number.isInteger(row.stopped) || row.stopped < 1 || row.stopped > 1024
+      || ![row.spin, row.tip, row.nock, row.markerScale, row.order, ...row.axis].every(Number.isFinite)) throw new RangeError('Invalid projectile presentation row');
+    this.axis = new THREE.Vector3(...row.axis); if (Math.abs(this.axis.lengthSq() - 1) > 1e-6) throw new RangeError('Projectile axis must be a unit vector');
+    // Each retained page keeps the existing 128-slot cap; one cursor preserves FIFO across the full declared roster.
+    for (let offset = 0; offset < row.stopped; offset += 128) {
+    this.stopped.push(new StoppedProjectileSlots<{ mesh: THREE.Object3D | null; index: number }, never>({ capacity: Math.min(128, row.stopped - offset), length: 0, bury: 0, radius: 0, reach: { radius: 0, up: 0, down: 0 }, recover: 0, recoveryStride: 1 }, {
+      feet: new THREE.Vector3(), floorAt: () => 0, body: () => undefined, canRecover: () => false, recover: () => undefined, random: () => { throw new Error('Display roster has no recovery RNG'); },
+      removed: slot => { slot.data.mesh?.removeFromParent(); this.writer?.retire(slot.data.index); slot.data.mesh = null; },
+    }, index => ({ mesh: null, index: row.flying + offset + index })));
+    }
+  }
+  /** Each call is the data factory of the existing bounded ProjectileSlots owner. */
+  flight(): { mesh: THREE.Object3D; glow: THREE.Mesh; roll: number; traced: boolean; tracer: RangedTrace | null; viewIndex: number } {
+    if (this.made >= this.row.flying) throw new RangeError('Projectile draw roster exceeded');
+    const mesh = this.writer === undefined ? new THREE.Mesh(this.geometry, this.material) : new THREE.Object3D();
+    mesh.visible = false; mesh.castShadow = true; mesh.frustumCulled = false;
+    const glow = new THREE.Mesh(this.glow.flight, this.glow.material); glow.renderOrder = this.row.order; glow.position.set(0, 0, this.row.tip + .05); glow.visible = false; mesh.add(glow);
+    if (this.writer === undefined) this.scene.add(mesh);
+    return { mesh, glow, roll: 0, traced: false, tracer: null, viewIndex: this.made++ };
+  }
+  /** Preserve the caller's original allocation phase, after its flight meshes. */
+  prepareTraces(): void {
+    if (this.traces.length > 0) throw new Error('Projectile traces already prepared');
+    this.traces.push(...RangedTrace.roster(this.scene, this.row.trace, this.row.traceCount, () => {
+      const material = this.glow.material.clone(), group = new THREE.Group();
+      const ball = new THREE.Mesh(this.glow.impact, material), ring = new THREE.Mesh(this.glow.ring, material);
+      ball.renderOrder = this.row.order; ring.renderOrder = this.row.order; group.add(ball, ring); return { group, ring, material };
+    }));
+  }
+  launch(slot: ReturnType<ProjectilePresentation['flight']>, position: THREE.Vector3, direction: THREE.Vector3, material: THREE.Material, traced: boolean, time: number): void {
+    if (slot.mesh instanceof THREE.Mesh) slot.mesh.material = material;
+    slot.mesh.visible = true; slot.mesh.position.copy(position); slot.mesh.quaternion.setFromUnitVectors(this.axis, direction);
+    if (slot.tracer !== null) slot.tracer.finish(position, time);
+    slot.traced = traced; slot.tracer = traced ? this.takeTrace() : null; slot.tracer?.begin(position); slot.glow.visible = traced;
+    this.writer?.publish(slot.mesh, slot.viewIndex, 'flying');
+  }
+  move(slot: ReturnType<ProjectilePresentation['flight']>, position: THREE.Vector3, velocity: THREE.Vector3, dt: number, camera: THREE.PerspectiveCamera): void {
+    slot.mesh.position.copy(position); this.direction.copy(velocity).normalize(); slot.roll += dt * this.row.spin;
+    slot.mesh.quaternion.setFromUnitVectors(this.axis, this.direction).multiply(this.spin.setFromAxisAngle(this.axis, slot.roll));
+    if (slot.traced) slot.glow.scale.setScalar(Math.max(1, this.row.markerScale * position.distanceTo(camera.position)));
+    this.writer?.publish(slot.mesh, slot.viewIndex, 'flying');
+  }
+  finishTrace(slot: { tracer: RangedTrace | null }, point: THREE.Vector3, time: number): void { slot.tracer?.finish(point, time); slot.tracer = null; }
+  stick(point: THREE.Vector3, direction: THREE.Vector3, roll: number, material: THREE.Material, traced: boolean, bury: number, parent: THREE.Object3D | null): void {
+    const mesh = this.writer === undefined ? new THREE.Mesh(this.geometry, material) : new THREE.Object3D(); mesh.castShadow = true;
+    mesh.position.copy(point).addScaledVector(direction, bury + this.row.tip);
+    mesh.quaternion.setFromUnitVectors(this.axis, direction).multiply(this.rotation.setFromAxisAngle(this.axis, roll));
+    if (traced) { const dot = new THREE.Mesh(this.glow.stuck, this.glow.material); dot.renderOrder = this.row.order; dot.position.set(0, 0, this.row.nock); mesh.add(dot); }
+    this.at.copy(mesh.position);
+    const page = this.stopped[Math.floor(this.stopCursor / 128)]; if (page === undefined) throw new Error('Missing stopped presentation page');
+    this.stopCursor = (this.stopCursor + 1) % this.row.stopped;
+    page.settle(this.at, direction, slot => {
+      slot.data.mesh = mesh; if (this.writer === undefined) { this.scene.add(mesh); parent?.attach(mesh); }
+      else this.writer.publish(mesh, slot.data.index, 'stopped');
+    });
+  }
+  get stuckCount(): number { return this.stopped.reduce((count, page) => count + page.count, 0); }
+  static movingFrame(owner: unknown): THREE.Object3D | null {
+    if (typeof owner !== 'object' || owner === null || !('follows' in owner)) return null;
+    return owner.follows instanceof THREE.Object3D ? owner.follows : null;
+  }
+  private takeTrace(): RangedTrace | null {
+    let best: RangedTrace | null = null;
+    for (const trace of this.traces) { if (!trace.active) return trace; if (trace.endTime >= 0 && (best === null || trace.endTime < best.endTime)) best = trace; }
+    best ??= this.traces[0] ?? null;
+    for (const slot of this.flights()) if (slot.tracer === best) slot.tracer = null;
+    return best;
+  }
 }

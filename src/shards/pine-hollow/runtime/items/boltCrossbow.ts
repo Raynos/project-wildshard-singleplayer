@@ -3,15 +3,16 @@ import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import inputs from '../../data/heldInputs.json' with { type: 'json' };
 import sights from '../../data/heldSights.json' with { type: 'json' };
+import { ProjectilePresentation } from '@wildshard/engine/combat/view/projectile';
 import { ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import { app, gameplayRandom } from '@wildshard/engine/app/runtime';
 import type { AmmoRow } from '@wildshard/engine/combat/ammo';
-import { RangedFrame, RangedTrace } from '@wildshard/engine/render/viewmodelFeel';
+import { RangedFrame } from '@wildshard/engine/render/viewmodelFeel';
 import { RANGED_FRAME, RANGED_TRACE, RANGED_RELOAD } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import type { TargetHit, Targets } from '@wildshard/engine/combat/types';
-import { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, isMesh, whiteColors, TRACER_ORDER, TRACER_RED, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { Puffs, worldHit, impactSurfaceOf, FOV_HIP, FOV_ADS, isMesh, whiteColors, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import { quiverState, Weapon, type ImpactSurface } from '@wildshard/engine/combat/Weapon';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import type { Game } from '@wildshard/engine/core/Game';
@@ -122,7 +123,7 @@ const MAX_TRACERS = RANGED_TRACE.trail.roster;
 /** markers + the flying glow are scaled with distance (never below 1×) so they stay ~25 px on screen at any range */
 const TRACER_PX = RANGED_TRACE.trail.markerScale;
 /** shared: the glow on flying bolts, impact-marker spheres, stuck-bolt nock dots (never fades) */
-const glowMat = new THREE.MeshBasicMaterial({ color: TRACER_RED, transparent: true, depthTest: false, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide });
+const glowMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(...RANGED_TRACE.trail.color), transparent: true, depthTest: false, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide });
 const boltGlowGeo = new THREE.SphereGeometry(0.035, 12, 8);   // 7 cm on the flying bolt
 const stuckDotGeo = new THREE.SphereGeometry(0.025, 10, 6);   // 5 cm on a stuck bolt's nock
 const markerGeo = new THREE.SphereGeometry(0.06, 14, 10);     // 12 cm at the impact point
@@ -130,15 +131,12 @@ const ringGeo = new THREE.RingGeometry(0.10, 0.14, 28);
 
 // ───────────────────────────── the crossbow ─────────────────────────────
 
-interface BoltData { mesh: THREE.Mesh; roll: number; traced: boolean; tracer: RangedTrace | null; glow: THREE.Mesh; mod: BoltMod; ammo?: AmmoRow | undefined }
+type BoltData = ReturnType<ProjectilePresentation['flight']> & { mod: BoltMod; ammo?: AmmoRow | undefined };
 type Bolt = FlightSlot<BoltData>;
 
-interface Stuck { mesh: THREE.Mesh }
 
 const _v1 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
-const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion();
 const _aimEnd = new THREE.Vector3();
-const NEG_Z = new THREE.Vector3(0, 0, -1);
 
 /** A bolt crossbow: the shard's parts, hands and rows on the platform's trigger, string, bolts, tracers, sights and pose. */
 export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> extends Weapon {
@@ -210,10 +208,8 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   // projectiles
   private readonly flightPool: ProjectileSlots<BoltData>;
   private get bolts(): Bolt[] { return this.flightPool.slots; }
-  private stuck: Stuck[] = [];
+  private readonly presentation: ProjectilePresentation;
   private puffs = new Puffs();
-  private tracers: RangedTrace[] = [];
-  private readonly paintTracer = (trace: RangedTrace, time: number, camera: THREE.PerspectiveCamera, resolution: THREE.Vector2): void => { trace.publish(time, camera, resolution); };
   private time = 0;
 
   constructor(world: RangedWorld, targets: Targets | undefined, opts: BoltCrossbowOptions<P>) {
@@ -231,6 +227,9 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.feel = new RangedFrame(RANGED_FRAME.crossbow, this.player, FOV_HIP, FOV_ADS);
     this.buildViewmodel();
+    this.presentation = new ProjectilePresentation(this.game.scene, this.boltGeo, this.boltMat,
+      { flying: this.profile.maxFlying, stopped: this.profile.maxStuck, axis: [0, 0, -1], spin: 14, tip: this.tipLocal.z, nock: this.nockZ, trace: RANGED_TRACE.trail, traceCount: MAX_TRACERS, markerScale: TRACER_PX, order: RANGED_TRACE.trail.order + 1 },
+      { material: glowMat, flight: boltGlowGeo, stuck: stuckDotGeo, impact: markerGeo, ring: ringGeo }, () => this.bolts);
     this.flightPool = this.buildProjectiles();
     this.game.viewmodel.add(this.model);
     this.game.scene.add(this.puffs.points);
@@ -300,50 +299,19 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   }
 
   private buildProjectiles(): ProjectileSlots<BoltData> {
-    const pool = new ProjectileSlots<BoltData>(this.profile.maxFlying, () => {
-      const mesh = new THREE.Mesh(this.boltGeo, this.boltMat);
-      mesh.visible = false; mesh.castShadow = true; mesh.frustumCulled = false;
-      // red glow riding on the flying bolt (a child, so it hides with it; shown only on traced shots)
-      const glow = new THREE.Mesh(boltGlowGeo, glowMat); glow.renderOrder = TRACER_ORDER + 1; glow.position.set(0, 0, this.tipLocal.z + 0.05); glow.visible = false;
-      mesh.add(glow);
-      this.game.scene.add(mesh);
-      return { mesh, roll: 0, traced: false, tracer: null, glow, mod: PLAIN_BOLT };
-    }, {
+    const pool = new ProjectileSlots<BoltData>(this.profile.maxFlying, () => ({ ...this.presentation.flight(), mod: PLAIN_BOLT }), {
       substeps: this.profile.substeps ?? 4, extent: CHUNK_HALF + 60, floor: -150, lifetime: this.profile.lifetime ?? 12,
       integrate: (bolt, h) => {
         const flight = bolt.ammo && this.equipEvents ? this.equipEvents.ask('projectile.modify', { ammo: bolt.ammo, gravity: bolt.ammo.flight.gravity, drag: bolt.ammo.flight.drag }) : bolt.mod;
         this.flight(bolt.pos, bolt.vel, h, flight, this.profile);
       },
       contact: (bolt, previous) => this.testHit(bolt, previous), advanced: bolt => { bolt.tracer?.addPoint(bolt.pos); },
-      expired: bolt => { bolt.mesh.visible = false; this.endTracer(bolt, bolt.pos); },
-      moved: (bolt, dt) => {
-        bolt.mesh.position.copy(bolt.pos); _dir.copy(bolt.vel).normalize(); bolt.roll += dt * 14;
-        bolt.mesh.quaternion.setFromUnitVectors(NEG_Z, _dir).multiply(_q2.setFromAxisAngle(NEG_Z, bolt.roll));
-        if (bolt.traced) bolt.glow.scale.setScalar(Math.max(1, TRACER_PX * bolt.pos.distanceTo(this.game.camera.position)));
-      },
+      expired: bolt => { bolt.mesh.visible = false; this.presentation.finishTrace(bolt, bolt.pos, this.time); },
+      moved: (bolt, dt) => { this.presentation.move(bolt, bolt.pos, bolt.vel, dt, this.game.camera); },
     });
-    this.tracers.push(...RangedTrace.roster(this.game.scene, RANGED_TRACE.trail, MAX_TRACERS, () => {
-      const material = glowMat.clone(), group = new THREE.Group();
-      const ball = new THREE.Mesh(markerGeo, material), ring = new THREE.Mesh(ringGeo, material);
-      ball.renderOrder = TRACER_ORDER + 1; ring.renderOrder = TRACER_ORDER + 1; group.add(ball, ring);
-      return { group, ring, material };
-    }));
+    this.presentation.prepareTraces();
     return pool;
   }
-  /** a free tracer, else the one closest to expiring (oldest) */
-  private takeTracer(): RangedTrace | null {
-    let best: RangedTrace | null = null;
-    for (const t of this.tracers) { if (!t.active) return t; if (t.endTime >= 0 && (!best || t.endTime < best.endTime)) best = t; }
-    best ??= this.tracers[0] ?? null; // all 8 still flying: recycle the first
-    for (const b of this.bolts) if (b.tracer === best) b.tracer = null;
-    return best;
-  }
-  private endTracer(b: Bolt, point: THREE.Vector3): void {
-    if (!b.tracer) return;
-    b.tracer.finish(point, this.time);
-    b.tracer = null;
-  }
-
   /** world position of the loaded bolt's broadhead tip (the iron sight) */
   tipWorld(out: THREE.Vector3): THREE.Vector3 { return this.loadedBolt.localToWorld(out.copy(this.tipLocal)); }
   /** The aim line is ALWAYS the camera forward (the crosshair / the peep ring's centre), hip or sighted — the user
@@ -362,16 +330,8 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     // Simulation launches from command data; the drawn bolt never chooses a shot's origin.
     b.pos.copy(_v3).addScaledVector(_fwd, this.profile.muzzle ?? 0.35);
     b.vel.copy(_dir).multiplyScalar(this.profile.speed);
-    b.roll = 0;
-    b.mod = this.boltMod; b.ammo = this.nextAmmo(); this.onShot(b); b.mesh.material = b.mod.material ?? this.boltMat;
-    b.mesh.visible = true;
-    b.mesh.position.copy(b.pos);
-    b.mesh.quaternion.setFromUnitVectors(NEG_Z, _dir);
-    if (b.tracer) b.tracer.finish(b.pos, this.time); // slot stolen mid-flight: close its old trail
-    b.traced = getSetting('tracers'); // read per shot: a pause-menu flip applies to the next bolt
-    b.tracer = b.traced ? this.takeTracer() : null;
-    b.tracer?.begin(b.pos);
-    b.glow.visible = b.traced;
+    b.roll = 0; b.mod = this.boltMod; b.ammo = this.nextAmmo(); this.onShot(b);
+    this.presentation.launch(b, b.pos, _dir, b.mod.material ?? this.boltMat, getSetting('tracers'), this.time);
   }
 
   // ── per-frame ──
@@ -423,7 +383,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.feel.scanAim(this, this.targets, true, _v3, _fwd, _aimEnd, this.model);
 
     this.stepBolts(dt);
-    this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.tracers, this.paintTracer);
+    this.feel.presentEffects(dt, t, this.game.renderer, cam, this.puffs, this.presentation.traces, this.presentation.paint);
   }
 
   private stepBolts(dt: number): void { this.flightPool.step(dt); }
@@ -449,7 +409,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
       const frame = hit.animal.stuckFrame?.(hit.point) ?? null, attached = frame instanceof THREE.Object3D ? frame : null;
       this.stopBolt(bolt, hit.point, direction, 'flesh', attached !== null, this.profile.bury, false, attached);
     },
-    stop: (bolt, at, direction, wall) => { this.stopBolt(bolt, at, direction, impactSurfaceOf(wall.material), true, this.profile.bury, false, movingOwner(wall.owner)); },
+    stop: (bolt, at, direction, wall) => { this.stopBolt(bolt, at, direction, impactSurfaceOf(wall.material), true, this.profile.bury, false, ProjectilePresentation.movingFrame(wall.owner)); },
     rest: (bolt, at, direction) => { this.stopBolt(bolt, at, direction, 'ground', true, 0, true); },
     impact: (at, direction, wall) => { const surface = impactSurfaceOf(wall.material); this.puffs.emit(at, direction, surface); this.onImpact?.(surface, at); },
     expire: bolt => { bolt.active = false; bolt.mesh.visible = false; },
@@ -459,46 +419,20 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   /** `bury`: how deep the broadhead goes in; `quiet`: no puff / impact event (a spent bolt settling) */
   private stopBolt(b: Bolt, point: THREE.Vector3, dir: THREE.Vector3, surface: ImpactSurface, stick: boolean, bury = this.profile.bury, quiet = false, rideOn: THREE.Object3D | null = null): void {
     b.active = false; b.mesh.visible = false;
-    this.endTracer(b, point);
+    this.presentation.finishTrace(b, point, this.time);
     if (!quiet) {
       this.puffs.emit(point, dir, surface);
       this.onImpact?.(surface, point);
     }
     if (!stick) return;
-    // stick: a static mesh, permanent, with the broadhead this.profile.bury into the surface and the shaft + fletching
-    // standing proud. The geometry origin sits -tipLocal.z (≈ 21.5 cm, measured from the bounding box) behind
-    // the tip, so the origin goes this.profile.bury + tipLocal.z along the flight direction from the hit point.
-    if (this.stuck.length >= this.profile.maxStuck) this.removeStuck(0);
-    const mesh = new THREE.Mesh(this.boltGeo, b.mod.material ?? this.boltMat);
-    mesh.castShadow = true;
-    mesh.position.copy(point).addScaledVector(dir, bury + this.tipLocal.z);
-    mesh.quaternion.setFromUnitVectors(NEG_Z, dir).multiply(_q.setFromAxisAngle(NEG_Z, b.roll));
-    if (b.traced) { // permanent red dot on the nock so a traced bolt reads from a distance
-      const dot = new THREE.Mesh(stuckDotGeo, glowMat); dot.renderOrder = TRACER_ORDER + 1;
-      dot.position.set(0, 0, this.nockZ);
-      mesh.add(dot);
-    }
-    this.game.scene.add(mesh);
-    if (rideOn !== null) rideOn.attach(mesh); // stuck in something that moves (the boat, a door): it rides along (P5-L1)
-    this.stuck.push({ mesh });
-  }
-  private removeStuck(i: number): void {
-    const s = this.stuck.splice(i, 1)[0];
-    if (s !== undefined) s.mesh.removeFromParent();
+    this.presentation.stick(point, dir, b.roll, b.mod.material ?? this.boltMat, b.traced, bury, rideOn);
   }
 
   /** the iron bolt's material (special bolts dress a uniform-only clone of it — BoltMod.material) */
   get boltMaterial(): THREE.Material { return this.boltMat; }
   /** flying bolt count (for debugging / HUD) */
   get inFlight(): number { let n = 0; for (const b of this.bolts) if (b.active) n++; return n; }
-  get stuckCount(): number { return this.stuck.length; }
-}
-
-/** The Object3D a hit collider moves with: a registered piece that `follows` one (the boat, a cabin door), else null. */
-function movingOwner(owner: unknown): THREE.Object3D | null {
-  if (typeof owner !== 'object' || owner === null || !('follows' in owner)) return null;
-  const f = (owner as { follows?: unknown }).follows;
-  return f instanceof THREE.Object3D ? f : null;
+  get stuckCount(): number { return this.presentation.stuckCount; }
 }
 
 /** A shard's crossbow as a row: its default profile, parts and hands builders, flight law and view. */

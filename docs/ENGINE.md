@@ -5977,3 +5977,18 @@ Pine uses this instead of its private outer encounter wrapper. G441's real
 W3 adopters are Nalati `combat/stormTitan.ts#bind` and
 `combat/goldenKing.ts#bind`, with `runtime/index.ts`'s score-event callback;
 its storm/tie/leash and mounted-respawn policies stay native, with no new body.
+
+
+`engine/combat/view/projectile.ProjectilePresentation` composes the existing
+flight data factory, `StoppedProjectileSlots` retained FIFO and `RangedTrace`.
+It borrows geometry/materials and bounds flying, stopped and trace rosters.
+The row supplies the model axis, spin, tip/nock offsets and trace style; the
+caller keeps flight/contact/ammunition/damage and source time. `flight`,
+`launch`, `move`, `finishTrace` and `stick` replace private draw loops, with
+`prepareTraces` retaining their allocation phase. Stopped poses use `settle`
+only: no recovery step or random draw runs. A global FIFO cursor pages retained draws
+into unchanged 128-slot stopped rosters, preserving larger declared limits. An optional borrowed writer keeps
+an existing instanced draw via `publish(object,index,phase)` and `retire(index)`;
+the pose frames then remain outside the scene. The pending W3 adopter is
+Nalati `runtime/weapons/javelinSpear.ts`'s world roster/matrix publication;
+its Y axis, instancing, contact and recovery law remain its own.
