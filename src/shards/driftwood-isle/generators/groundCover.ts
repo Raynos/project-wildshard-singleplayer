@@ -5,7 +5,7 @@ import { Rng } from '@wildshard/engine/core/rng';
 import { rock, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit, fern, hibiscus, grassTuft, broadClump, PLANT, type Part } from '@wildshard/engine/world/lowpolyKit';
 import { rockGeometry } from '../world/rockKit';
-import { triAreas } from '../world/coverTint';
+import { triAreas } from './coverTris';
 
 interface CoverLook { r: number; g: number; b: number; top: number; side: number }
 

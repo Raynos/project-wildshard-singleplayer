@@ -27,19 +27,6 @@ export interface CoverSample { r: number; g: number; b: number; top: number; sid
 export const coverSample = (): CoverSample => ({ r: 0, g: 0, b: 0, top: 0, side: 0 });
 const W = 5;
 
-/** One triangle of cover for a generator's splat: centre (x, z), ground (top) and upright (side) areas, colour. */
-export interface CoverTri { x: number; z: number; top: number; side: number; r: number; g: number; b: number }
-
-/**
- * A triangle's ground area (its XZ projection) and its upright cross-section (the mean of its XY and ZY projections: a
- * plant stands at any yaw), as CoverTri.top / side.
- */
-export function triAreas(ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number): { top: number; side: number } {
-  const ux = bx - ax, uy = by - ay, uz = bz - az, vx = cx - ax, vy = cy - ay, vz = cz - az;
-  const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
-  return { top: Math.abs(ny) / 2, side: (Math.abs(nx) + Math.abs(nz)) / 4 };
-}
-
 /** A chunk-wide grid of the cover's look: r, g, b (linear, like the vertex colours), top, side (1 − e^−τ) per cell. */
 export class CoverGrid {
   /** metres per cell */
@@ -84,7 +71,6 @@ export class CoverGrid {
     return out;
   }
 
-
 }
 
 /** ×0.88 … ×1.12 per point, a hash of where it is (the facets of covered ground keep their light / dark mosaic). */
@@ -92,11 +78,6 @@ export const coverJitter = (x: number, z: number): number => { const h = Math.si
 
 /** The terrain tint as a row: its GLSL (`@{coverSeen}` splices), the patch id, and the suffix its program key takes. */
 export type CoverTintRow = typeof COVER_TINT & { readonly glsl: typeof COVER_GLSL };
-
-/** `coverSeen` as a shader fragment (the GLSL a plant fading into its ground uses too). */
-export function coverSeenGlsl(glsl: typeof COVER_GLSL): string {
-  return glsl.coverSeen;
-}
 
 const patched = new WeakSet<THREE.Material>();
 function patchTerrainMaterial(mat: THREE.Material, row: CoverTintRow): void {

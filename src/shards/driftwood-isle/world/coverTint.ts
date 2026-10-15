@@ -12,21 +12,17 @@
  * Always on (E318: the decided Debug row "Ground tint" is gone).
  */
 import type * as THREE from 'three';
-import { CoverGrid as SdkCoverGrid, coverJitter as sdkCoverJitter, coverSample as sdkCoverSample, coverSeenGlsl, tintTerrain as sdkTintTerrain, triAreas as sdkTriAreas, type CoverSample as SdkCoverSample, type CoverTintRow, type CoverTri as SdkCoverTri } from '../runtime/looks/coverGrid';
+import { CoverGrid as SdkCoverGrid, coverJitter as sdkCoverJitter, coverSample as sdkCoverSample, tintTerrain as sdkTintTerrain, type CoverSample as SdkCoverSample, type CoverTintRow } from '../runtime/looks/coverGrid';
 import { COVER_GLSL, COVER_TINT } from '../runtime/looks/coverGlsl';
 
 const TINT: CoverTintRow = { glsl: COVER_GLSL, ...COVER_TINT };
 
 /** `coverSeen` as a shader fragment: how much of the ground the cover hides seen at `facing` (the plants fade into it). */
-export const COVER_SEEN_GLSL = coverSeenGlsl(COVER_GLSL);
+export const COVER_SEEN_GLSL = COVER_GLSL.coverSeen;
 /** What the grid holds at a point. */
 export type CoverSample = SdkCoverSample;
-/** One triangle of cover for CoverGrid.splat. */
-export type CoverTri = SdkCoverTri;
 /** An empty sample to fill. */
 export const coverSample: typeof sdkCoverSample = sdkCoverSample;
-/** A triangle's ground area and upright cross-section (GroundCover's per-kind look and the Blender cove's splat). */
-export const triAreas: typeof sdkTriAreas = sdkTriAreas;
 /** The chunk's cover grid (4 m cells). */
 export const CoverGrid: typeof SdkCoverGrid = SdkCoverGrid;
 /** ×0.88 … ×1.12 per point (the facets of covered ground keep their light / dark mosaic). */
