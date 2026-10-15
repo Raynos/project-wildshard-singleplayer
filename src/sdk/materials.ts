@@ -130,6 +130,8 @@ export const graphInputs = {
   objectOrigin: op('objectOrigin', 'vec3'),
   /** the geometry's `color` attribute (rgb, linear; white where it has none) */
   vertexColour: op('vertexColour', 'vec3'),
+  /** Original geometry colour alpha; 1 for RGB colour attributes or no colour attribute. */
+  vertexColourAlpha: op('vertexColourAlpha', 'float'),
   /** the scene colour at the pixel (a post input) */
   sceneColour: op('sceneColour', 'vec4'),
 } as const;

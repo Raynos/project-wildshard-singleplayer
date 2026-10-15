@@ -3106,6 +3106,7 @@ shader code (G306).
   `viewToWorld`, `worldToLocal`, `sceneColourAt`, `sceneDepth`, `sceneNormal` and
   `graphInputs` (`sunDirection`, `sunColour`, `sunShadow`, `albedo`,
   `irradiance`, `litColour`, `instanceHash`, `objectOrigin`, `vertexColour`,
+  `vertexColourAlpha` (1 where colour is RGB or absent),
   `sceneColour`) are the graph-only inputs. Anything else (`uniform()`, a `Fn`,
   `sqrt`, a node-valued conversion, `loop`) is refused with its name.
 - The vocabulary for a trusted shard's own programs (SF51-p, Nine Dragon's GLSL):

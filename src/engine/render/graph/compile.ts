@@ -593,6 +593,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'atmosphereSunColour': return { t: 'vec3', n: new ConvertNode<'vec3'>(reference('value', 'color', fogUniforms.fogSunColor), 'vec3') };
       case 'instanceHash': return { t: 'float', n: hash(instanceIndex) };
       case 'vertexColour': return { t: 'vec3', n: new SplitNode(vertexColor(), 'xyz') };
+      case 'vertexColourAlpha': return { t: 'float', n: new SplitNode(vertexColor(), 'w') };
       case 'screenUV': return { t: 'vec2', n: uv() };
       case 'pointCoord': return { n: pointUV, t: 'vec2' };
       case 'viewBillboard': {
