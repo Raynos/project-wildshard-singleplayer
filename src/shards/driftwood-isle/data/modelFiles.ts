@@ -1,5 +1,17 @@
 /** Fixed low-poly geometry, baked offline without changing its vertex colours or wind channels. */
 export const FIXED_MODEL_FILES = {
+  pierWorld0Deck: '/assets/driftwood-isle/baked/fixed-models/pier-world-0-deck.glb',
+  pierWorld0Cloth: '/assets/driftwood-isle/baked/fixed-models/pier-world-0-cloth.glb',
+  pierWorld1Deck: '/assets/driftwood-isle/baked/fixed-models/pier-world-1-deck.glb',
+  pierWorld1Cloth: '/assets/driftwood-isle/baked/fixed-models/pier-world-1-cloth.glb',
+  pierWorld2Deck: '/assets/driftwood-isle/baked/fixed-models/pier-world-2-deck.glb',
+  pierWorld3Deck: '/assets/driftwood-isle/baked/fixed-models/pier-world-3-deck.glb',
+  pierWorld3Cloth: '/assets/driftwood-isle/baked/fixed-models/pier-world-3-cloth.glb',
+  pierSpecimenJettyDeck: '/assets/driftwood-isle/baked/fixed-models/pier-specimen-jetty-deck.glb',
+  pierSpecimenLongDeck: '/assets/driftwood-isle/baked/fixed-models/pier-specimen-long-deck.glb',
+  pierSpecimenLandingDeck: '/assets/driftwood-isle/baked/fixed-models/pier-specimen-landing-deck.glb',
+  pierSpecimenLandingCloth: '/assets/driftwood-isle/baked/fixed-models/pier-specimen-landing-cloth.glb',
+
   shrineKit: '/assets/driftwood-isle/baked/fixed-models/shrine-kit.glb',
   shrineWater: '/assets/driftwood-isle/baked/fixed-models/shrine-water.glb',
   shrineGlyphs: '/assets/driftwood-isle/baked/fixed-models/shrine-glyphs.glb',

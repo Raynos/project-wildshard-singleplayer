@@ -1,7 +1,7 @@
 import { loadTrailsideGeometry } from './trailsideGeometry';
 import { loadCoverGeometry } from './coverGeometry';
 import { loadCoveGeometry } from './coveGeometry';
-import { modelGeometry, readProductGeometry } from '../runtime/boot/modelGeometry';
+import { modelGeometry, readProductGeometry, type ModelGeometry } from '../runtime/boot/modelGeometry';
 import type { BufferGeometry } from 'three';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
 
@@ -43,6 +43,27 @@ export const BRIDGE_SPECIMEN_POSTS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.br
 export const WATERFALL_SHEET_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.waterfallSheet, { _astep: 'aStep' });
 export const WATERFALL_RINGS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.waterfallRings);
 export const WATERFALL_PUFFS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.waterfallPuffs, { _acentre: 'aCentre', _ainfo: 'aInfo' });
+const PIER_WORLD_0_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Deck);
+const PIER_WORLD_0_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld0Cloth,{_sway:'aSway'});
+const PIER_WORLD_1_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld1Deck);
+const PIER_WORLD_1_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld1Cloth,{_sway:'aSway'});
+const PIER_WORLD_2_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld2Deck);
+const PIER_WORLD_3_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld3Deck);
+const PIER_WORLD_3_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierWorld3Cloth,{_sway:'aSway'});
+const PIER_SPECIMEN_JETTY_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierSpecimenJettyDeck);
+const PIER_SPECIMEN_LONG_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierSpecimenLongDeck);
+const PIER_SPECIMEN_LANDING_DECK_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierSpecimenLandingDeck);
+const PIER_SPECIMEN_LANDING_CLOTH_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.pierSpecimenLandingCloth,{_sway:'aSway'});
+/** Immutable templates for the four world piers and three existing Explorer variants. */
+export const PIER_GEOMETRIES:ReadonlyMap<string,{deck:ModelGeometry;cloth:ModelGeometry|null}>=new Map([
+ ['world-0',{deck:PIER_WORLD_0_DECK_GEOMETRY,cloth:PIER_WORLD_0_CLOTH_GEOMETRY}],
+ ['world-1',{deck:PIER_WORLD_1_DECK_GEOMETRY,cloth:PIER_WORLD_1_CLOTH_GEOMETRY}],
+ ['world-2',{deck:PIER_WORLD_2_DECK_GEOMETRY,cloth:null}],
+ ['world-3',{deck:PIER_WORLD_3_DECK_GEOMETRY,cloth:PIER_WORLD_3_CLOTH_GEOMETRY}],
+ ['specimen-jetty',{deck:PIER_SPECIMEN_JETTY_DECK_GEOMETRY,cloth:null}],
+ ['specimen-long',{deck:PIER_SPECIMEN_LONG_DECK_GEOMETRY,cloth:null}],
+ ['specimen-landing',{deck:PIER_SPECIMEN_LANDING_DECK_GEOMETRY,cloth:PIER_SPECIMEN_LANDING_CLOTH_GEOMETRY}],
+]);
 let ready = false;
 /** Explorer may open these models before the island's world hook has run. */
 export function fixedGeometryReady(): boolean { return ready; }
@@ -58,6 +79,17 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
     SHRINE_SPECIMEN_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineSpecimenKit)),
     SHRINE_SPECIMEN_WATER_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineSpecimenWater)),
     SHRINE_SPECIMEN_GLYPHS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineSpecimenGlyphs)),
+    PIER_WORLD_0_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld0Deck)),
+    PIER_WORLD_0_CLOTH_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld0Cloth)),
+    PIER_WORLD_1_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld1Deck)),
+    PIER_WORLD_1_CLOTH_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld1Cloth)),
+    PIER_WORLD_2_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld2Deck)),
+    PIER_WORLD_3_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld3Deck)),
+    PIER_WORLD_3_CLOTH_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld3Cloth)),
+    PIER_SPECIMEN_JETTY_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierSpecimenJettyDeck)),
+    PIER_SPECIMEN_LONG_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierSpecimenLongDeck)),
+    PIER_SPECIMEN_LANDING_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierSpecimenLandingDeck)),
+    PIER_SPECIMEN_LANDING_CLOTH_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierSpecimenLandingCloth)),
     loadTrailsideGeometry(admitted),
     loadCoveGeometry(admitted),
     loadCoverGeometry(admitted),

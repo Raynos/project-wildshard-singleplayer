@@ -9,8 +9,8 @@
  *   scene.add(pier.group); its registry piece.push(...pier.colliders);
  *   player.platforms.push((x, z) => pier.floorHeightAt(x, z)); // the deck is walkable
  *
- * The pier runs from (x, z) along its heading (`rot`, 0 = +z, north) for `length` metres. The landing is measured here:
- * it marches on over the shallows to the first dry sand and steps down onto it (the model is handed the sand's height).
+ * The pier runs from (x, z) along its heading (`rot`, 0 = +z, north) for `length` metres. The landing is measured by the author job:
+ * it marches over the shallows to the first dry sand; the native floor receives those admitted parameters.
  * `floorHeightAt` returns the deck's top for any (x, z) over the deck, else undefined — same contract as `Cabins`.
  * `bollards` are the two tall rope-wrapped posts at the sea end (the sailboat moors to them); `posts` every piling.
  * `mooringsFor(x, z)` picks the bollard and the piling nearest a boat moored alongside at (x, z) — pass it as
@@ -20,32 +20,12 @@ import type * as THREE from 'three';
 import { modelContext, type Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { waterLevel } from '@wildshard/engine/world/Heightfield';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { PENNANT_WIND, pier, pierBoxes, pierDeckAt, pierHalfWidthAt, pierPosts, type PierParams } from '../models/pier';
+import {pier,pierWorldParams} from '../models/pier';
+import {pierBoxes,pierDeckAt,pierHalfWidthAt,pierPosts} from './pierLayout';
+import type {PierSpec,PierParams} from '../assets/contracts/pier';
 
-export interface PierSpec {
-  x: number; z: number;
-  /** metres along +z from (x, z) */
-  length: number;
-  /** deck width, metres */
-  width: number;
-  /** world y of the deck top */
-  deckY: number;
-  /** direction along the pier in radians about +y (0 = +z); the sea end is at (x, z) */
-  rot?: number;
-  /** how far below the deck the pilings reach (the sea floor is ~6 m down) */
-  pileDepth?: number;
-  /** Step down onto sand: true extends through the shallows; 'end' keeps the authored extent. */
-  landing?: boolean | 'end';
-  /** with a landing: the pennant flies from the piling this many metres from the sea end (E308), not the sea-end bollard */
-  pennantAt?: number;
-  /** SF46 (G164): the deck ramps up over this many metres from road height (y = 0) at its sea end, where it meets the
-   *  platform's entry socket (the lowered world's entries) */
-  seaRamp?: { readonly run: number; readonly flare: number };
-}
 
 export class Pier {
   /** what it draws: the deck's one mesh (+ the pennant's, on the south pier) */
@@ -61,11 +41,11 @@ export class Pier {
   readonly deckY: number;
   private cos: number; private sin: number;
   /** the model's params (its landing measured on the sand) */
-  private params!: PierParams;
+  private readonly params: PierParams;
   private descs: ColliderDesc[] = [];
 
   constructor(private sky: Sky, private spec: PierSpec) {
-    this.deckY = spec.deckY;
+    this.deckY = spec.deckY;this.params=pierWorldParams(spec);
     const r = spec.rot ?? 0;
     this.cos = Math.cos(r); this.sin = Math.sin(r);
   }
@@ -82,23 +62,7 @@ export class Pier {
   build(): this { return this.draw(null, 'pier'); }
 
   private draw(registry: WorldRegistry | null, id: string): this {
-    const { width, deckY } = this.spec, yaw = this.spec.rot ?? 0;
-    let length = this.spec.length, landing: PierParams['landing'] = null;
-    if (this.spec.landing === true || this.spec.landing === 'end') {
-      // march on over the shallows to the first dry sand, then 5 m more: the last 6 m step down onto the beach
-      const wl = waterLevel();
-      let a = length;
-      while (this.spec.landing !== 'end' && a < length + 80) { const [x, z] = this.toWorld(a, 0); if (heightAt(x, z) > wl + 0.1) break; a += 0.5; }
-      const end = this.spec.landing === 'end' ? length : a + 4, [ex, ez] = this.toWorld(end, 0);
-      const ground = (s: number): number => heightAt(...this.toWorld(end - 0.4, s * (width / 2 + 0.3))) - deckY;
-      landing = { rampFrom: end - 5.5, landY: heightAt(ex, ez) + 0.12 - deckY, postGround: [ground(-1), ground(1)] };
-      length = end;
-    }
-    // the pennant streams downwind: the world's wind turned into the pier's frame
-    const [wx, wz] = PENNANT_WIND, c = Math.cos(yaw), s = Math.sin(yaw);
-    const pennantDir: [number, number] = yaw === 0 ? [wx, wz] : [wx * c - wz * s, wx * s + wz * c];
-    const seaRamp = this.spec.seaRamp === undefined ? {} : { seaRamp: { ...this.spec.seaRamp, landY: -deckY } };
-    this.params = { length, width, pileDepth: this.spec.pileDepth ?? 8, landing, pennantDir, ...(this.spec.pennantAt === undefined ? {} : { pennantAt: this.spec.pennantAt }), ...seaRamp };
+    const {deckY}=this.spec,yaw=this.spec.rot??0;
     const pl: Placement<PierParams> = { x: this.spec.x, y: deckY, z: this.spec.z, ...(yaw === 0 ? {} : { yaw }), params: this.params };
     const placed = place(pier, [pl], { ctx: modelContext(this.sky), draw: 'merged', registry,
       piece: { id, floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true } });

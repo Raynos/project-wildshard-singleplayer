@@ -47,3 +47,11 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   cheap registered producer regenerates it from source, not a Git blob.
 
 | Pine Hollow | Cabin prop geometry in the existing props library (`d5fea0cf…`) | — | — | 1,309,752 B library, plus material-only hash-named glTFs | G434 | Cheap regenerated build outputs, no binary Git blobs. Replaces live cabin scan merging; original materials, doors and floors retained. Approved end-of-plan memory item: +1.47 MB GPU / +1.31 MB RAM. |
+
+- 2026-10-15 DW piers (G434): 11 regenerated source meshes replace live
+  sculpting for 4 world sites and 3 Explorer variants. Added authored
+  assets: 5,458,192 B raw / 1,553,406 B gzip9; no Git binary blobs.
+  Source geometry templates total 4,186,944 B. Historical measured
+  resident +6.58 MB (11.51 -> 18.09 MB), approved for the end-of-plan
+  memory pass; current file admission adds 9,646,676 B decoded+GPU
+  accounting. Original deck material, pennant sway and colliders stay.
