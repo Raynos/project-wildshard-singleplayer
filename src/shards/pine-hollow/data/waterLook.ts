@@ -1,10 +1,15 @@
 import type { GraphIr, GraphNode, GraphParam, GraphRef } from '@wildshard/format/materialGraph';
 
 /**
- * PARKED (2026-10-14): nothing draws these yet. The wiring that dressed the pond, creek, beaver pool and puddles in them
- * was reverted (the upper waterfall lost its sunlit white and the far pond its bright cliff mirror against the classic
- * waterSurface.ts, which Pine draws again); test/graph-water-surface.test.ts still compiles them. Retry the port from
- * here, with before / after pairs of the upper fall and the wide pond at midday.
+ * PARKED (2026-10-14; retried 2026-10-15, sp-o218): nothing draws these yet; test/graph-water-surface.test.ts compiles
+ * them. On HEAD with the cascade-shadow fix (78258e147) the upper fall, the creek, the beaver pool, rain and the views from
+ * the shore match the classic waterSurface.ts. Two causes of the darker shore mirror: the mirrored crowns took
+ * the shadow at the water (canopy blotches on the mirror; fixed below: they take the unshadowed sun) and, likely (open), the
+ * forest's sky light: the classic lights the mirrored shore with the environment's irradiance toward the shore
+ * (getIBLIrradiance at the crown normal), the graph can only read it at the water's normal (× 0.75). From the water's level
+ * (swimming, the pond at midday) the cliff's mirror stays ~40 % darker in linear light (~10 % at sunset). Retry with an
+ * environment-irradiance-at-a-direction graph input, then the pairs in
+ * progress/shard-platform/pine-water-graph-2026-10-15/sp-o218/.
  *
  * Pine Hollow's photoreal water (PINE-HOLLOW-REMASTER PH-L9; SHARD-PLATFORM W2 C2) as SF59 material graphs: the pond, the
  * creek and beaver pool, the dam's trickle and the rain's puddles all wear one program (the four ids differ only in their
@@ -144,7 +149,8 @@ function waterGraph(sinEl: number, skyline: boolean, puddle: boolean): GraphIr {
   // the trees facing the water, lit by the sun on their crowns (they face back along the reflected ray, tipped up)
   const crown = op('normalize', [op('combine', [op('negate', [swz(rg, 'x')]), 0.35, op('negate', [swz(rg, 'z')])])]);
 
-  // the sun: its diffuse on the body and foam, the GGX glint, the sunlit crowns in the reflection (all shadowed)
+  // the sun: its diffuse on the body and foam and the GGX glint (shadowed where the water is), and the sunlit crowns in
+  // the reflection: those are lit where they stand, so a canopy's shade on the water never darkens the shore's mirror
   const L = op('sunDirection'), nV = op('normalView'), vV = op('viewDirection');
   const sunIn = mul(op('sunColour'), op('sunShadow'));
   const nDotL = clamp01(dot(nV, L)), hV = op('normalize', [add(L, vV)]), nDotH = clamp01(dot(nV, hV)), vDotH = clamp01(dot(vV, hV));
@@ -156,7 +162,7 @@ function waterGraph(sinEl: number, skyline: boolean, puddle: boolean): GraphIr {
   const fVH = add(0.02, mul(op('pow', [op('oneMinus', [vDotH]), 5]), 0.98));
   const glint = mul(mul(mul(ggxD, vis), fVH), specK);
   const crownLit = mul(mul(mul(shoreAlb, INV_PI * 0.6), clamp01(dot(crown, op('viewToWorld', [L])))), mul(mul(f0, occ), specK));
-  const sun = add(mul(mul(sunIn, nDotL), add(mul(op('albedo'), INV_PI), glint)), mul(sunIn, crownLit));
+  const sun = add(mul(mul(sunIn, nDotL), add(mul(op('albedo'), INV_PI), glint)), mul(op('sunColour'), crownLit));
   // the sky: its diffuse on the body and foam, and its reflection (the forest's where the ray meets the shore)
   const envIrr = op('environmentIrradiance');
   const forest = mul(shoreAlb, mul(envIrr, INV_PI * 0.75));
