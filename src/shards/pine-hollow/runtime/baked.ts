@@ -1,70 +1,21 @@
-import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats, nativeBakeBytes, nativeGroundSchema, nativeBakeGround, nativeBakeActors } from '@wildshard/sdk/headlessRuntime';
+import { createNativeBakeReader, nativeBodySpecSchema, nativeColliderSchema } from '@wildshard/sdk/headlessRuntime';
 import * as v from 'valibot';
-import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import type { PineShelterTree } from './rainShelter';
 import { PINE_TERRAIN } from '../data/terrainBindings';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
-/** The baked floor's lattice: Rapier's own 256² heightfield over the 500 m chunk, as the page built it (crag cuts included). */
+/** The exact captured native lattice, including the crag cuts. */
 export const PINE_GROUND_RES = PINE_TERRAIN.res, PINE_GROUND_SIZE = PINE_TERRAIN.size;
-
 const finite = v.pipe(v.number(), v.finite()), triple = v.tuple([finite, finite, finite]);
-/** One baked native simulation spec, strictly: an unknown or missing field refuses the bake rather than defaulting. */
-const BakedSpec = nativeBodySpecSchema('segments');
-const Actor = v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), herd: finite, spec: BakedSpec, seed: finite, scale: finite, scripted: v.boolean() });
-const Parked = v.strictObject({ id: v.string(), kind: v.string(), variant: v.string(), spec: BakedSpec, seed: finite, scale: finite });
-const Solid = nativeColliderSchema([1, 2, 6, 9], 'piece');
 const KingHit = v.strictObject({ head: triple, body: v.tuple([triple, triple]), fore: v.tuple([triple, triple]), ribs: triple, radius: v.pipe(finite, v.minValue(0.001)) });
 const ShelterTree = v.tuple([finite, finite, v.pipe(finite, v.minValue(0)), v.pipe(finite, v.minValue(0)), v.pipe(finite, v.minValue(0), v.maxValue(1))]);
-const Bake = v.object({ version: v.literal(1),
-  ground: nativeGroundSchema(PINE_GROUND_RES),
-  kingHit: KingHit, shelterTrees: v.array(ShelterTree), solids: v.array(Solid), actors: v.array(Actor), parked: v.array(Parked), herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })) });
-
-/** One baked fixed WORLD collider: a cuboid, a capsule, a triangle mesh or a convex hull, at its load pose (doors included). */
-export interface PineSolid {
-  readonly shape: 1 | 2 | 6 | 9; readonly groups: number; readonly friction: number;
-  readonly at: readonly [number, number, number]; readonly rot: readonly [number, number, number, number];
-  readonly half?: readonly [number, number, number]; readonly halfHeight?: number; readonly radius?: number;
-  /** Actual page query-owner provenance: registry object identity or declared string, never a geometric guess. */
-  readonly ownerId?: string;
-  /** Actual native collider material when tagged; absence retains the query's legacy wood fallback. */
-  readonly material?: NonNullable<v.InferOutput<typeof Solid>['material']>;
-  readonly points?: Float32Array; readonly indices?: Uint32Array;
-}
-/** A baked body at load: the manager's id, kind / variant, herd slot (−1: none), native spec, seed, scale; elites are `scripted`. */
-export interface PineBakedActor { readonly id: string; readonly kind: string; readonly variant: string; readonly herd: number; readonly spec: AnimalSimSpec; readonly seed: number; readonly scale: number; readonly scripted: boolean }
-/** Pine's physics product (generators/physics.ts, G350-PH), parsed strictly and decoded once. */
-export interface PineBake {
-  readonly ground: { readonly heights: Float32Array; readonly friction: number; readonly groups: number; readonly scale: { x: number; y: number; z: number }; readonly at: { x: number; y: number; z: number } };
-  /** Page-rig rest-space head/main/chest hit volumes and ribcage, measured from the native inverse binds. */
-  readonly kingHit: v.InferOutput<typeof KingHit>;
-  /** Real tree height and crown-cover metadata, captured from the page's shelter inputs. */
-  readonly shelterTrees: readonly PineShelterTree[];
-  readonly solids: readonly PineSolid[];
-  readonly actors: readonly PineBakedActor[];
-  /** the Antler King's prewarm (his body, an elk thrall, a boar thrall): spawned at boot, parked out of the manager's list */
-  readonly parked: readonly Omit<PineBakedActor, 'herd' | 'scripted'>[];
-  readonly herds: readonly { readonly kind: string; readonly members: readonly string[] }[];
-}
-
-/** Decode one trusted native solid, preserving optional exact query-owner provenance. Unknown fields refuse. */
-export function parsePineSolid(input: unknown): PineSolid {
-  return decodeSolid(v.parse(Solid, input));
-}
-
-function decodeSolid({ vertices, indices, body: _body, ...rest }: v.InferOutput<typeof Solid>): PineSolid {
-  if ((rest.shape === 6 || rest.shape === 9) !== (vertices !== undefined) || (rest.shape === 6) !== (indices !== undefined)) throw new Error('Unbuildable baked Pine collider');
-  return { ...rest, ...(vertices === undefined ? {} : { points: nativeBakeFloats(vertices) }), ...(indices === undefined ? {} : { indices: new Uint32Array(nativeBakeBytes(indices).buffer) }) };
-}
-
-let parsed: PineBake | null = null;
-/** Pine Hollow's trusted native bake, strictly parsed and decoded once. */
-export function pineBake(): PineBake {
-  if (parsed !== null) return parsed;
-  const bake = v.parse(Bake, baked), ground = nativeBakeGround(bake.ground, PINE_GROUND_RES, PINE_GROUND_SIZE, 'Pine');
-  const solids = bake.solids.map(decodeSolid);
-  parsed = { kingHit: bake.kingHit, shelterTrees: bake.shelterTrees, ground, solids,
-    actors: nativeBakeActors(bake.actors, 'Pine'),
-    parked: nativeBakeActors(bake.parked, 'Pine'), herds: bake.herds };
-  return parsed;
-}
+const reader = createNativeBakeReader(baked, { label: 'Pine', resolution: PINE_GROUND_RES, size: PINE_GROUND_SIZE, parked: true,
+  spec: nativeBodySpecSchema('segments'), solid: nativeColliderSchema([1, 2, 6, 9], 'piece'),
+  extra: v.object({ kingHit: KingHit, shelterTrees: v.array(ShelterTree) }) });
+/** Strict native world with the original King hit volumes and tree shelter metadata. */
+export type PineBake = ReturnType<typeof reader.read>;
+export type PineSolid = PineBake['solids'][number];
+export type PineBakedActor = PineBake['actors'][number];
+/** Independent collider admission uses the same original shape and query-owner law. */
+export const parsePineSolid = reader.solid;
+/** Decode once; invalid products never publish a cached value. */
+export const pineBake = reader.read;

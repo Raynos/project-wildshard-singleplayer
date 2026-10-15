@@ -6029,3 +6029,17 @@ to the supplied `parent` in order, appends selected values to `collect`, then re
 Missing attachment/collection ports refuse before construction; failed work never reports completion.
 `next(detail)` completes work kept local. Optional `total` supplies progress units (1..512); without it the
 borrowed slice is called without progress arguments. The caller retains constructors, disposal and physics.
+
+`src/sdk/headlessRuntime.ts` also defines `createNativeBakeReader(input,
+options)`, a typed one-time native-world intake composed from those readers.
+`NativeBakedActor` and `NativePhysicsBake` retain ordered body/herd metadata,
+owned ground/collider buffers and optional parked-body recipes. The returned
+`NativeBakeReader` admits individual solids through the same caller-provided
+strict provenance schema. The caller supplies its body recipe schema, extra
+root metadata schema and optional cross-record check; failed admission or
+checks never populate the memo. A declared parked roster cannot be missing,
+and extra metadata cannot shadow world fields. No bodies, transforms, samples
+or random draws are produced. Pine keeps King hit volumes and shelter checks
+in its reader declaration. G441's real W3 user is Nalati
+`runtime/baked.ts` (lattice, solids, actors and parsed-world memo); its
+flock/tree/group/spawn cross-record checks remain its own admission callback.

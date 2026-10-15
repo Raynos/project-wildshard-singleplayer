@@ -81,6 +81,8 @@ Jake, 2026-10-15 (G441): a new platform host built for Pine or Driftwood counts 
 | W3 Nalati numeric taming pose (G441) | `src/game/plugin/animation.ts#NativeCreaturePose`, `#NativeCreaturePoseRecipe`, `#attachNativeCreaturePose` | Nalati `src/shards/nalati-grasslands/runtime/tamingHorsePose.ts`: scalar pose / quadruped joints, root and head queries, and quiet bounded transform continuation. Keep wind overlay, dynamic scale, body cadence and the old saved transform envelope in Nalati's adapter. | sp-x6 |
 
 
+| W3 Nalati typed native bake reader (G441) | `src/sdk/headlessRuntime.ts#createNativeBakeReader` + `NativeBakeReader`, `NativePhysicsBake`, `NativeBakedActor` | Nalati `src/shards/nalati-grasslands/runtime/baked.ts`: strict ground/solid/actor admission, owned lattice/collider buffers, matching recipe identity and parsed-world memo. Keep marmot/flock/tree metadata schemas and group/spawn cross-record checks caller-owned. | sp-x5 |
+
 ## Part B: deferred (not started without Jake's word)
 
 S1 population / LOD-AI · S2 interior / vertical streaming · S3 physics toys and vehicles · S4 climb / drive / author-AS modes ·

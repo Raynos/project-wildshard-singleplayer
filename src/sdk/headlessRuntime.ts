@@ -244,3 +244,57 @@ export function installNativeCollision<S extends NativeCollisionSolid>(host:SimH
 export type NativeColliderRecord<S extends 1|2|6|9 = 1|2|6|9> = Omit<NativeCollisionSolid,'points'|'indices'|'shape'> & {
   readonly shape:S;readonly body?:number|null;readonly vertices?:string;readonly indices?:string;
 };
+
+/** Ordered body recipe captured at native boot; no body or new random stream is created by intake. */
+export interface NativeBakedActor {
+  readonly id: string; readonly kind: string; readonly variant: string; readonly herd: number;
+  readonly spec: AnimalSimSpec; readonly seed: number; readonly scale: number; readonly scripted: boolean;
+}
+/** Common native world payload; encounter, shelter and other owner metadata is admitted separately. */
+export interface NativePhysicsBake extends NativeCollisionBake {
+  readonly actors: readonly NativeBakedActor[];
+  readonly parked: readonly Omit<NativeBakedActor, 'herd' | 'scripted'>[];
+  readonly herds: readonly { readonly kind: string; readonly members: readonly string[] }[];
+}
+/** Strict one-time intake and independent solid parsing over the same declared provenance schema. */
+export interface NativeBakeReader<E> {
+  readonly read: () => NativePhysicsBake & E;
+  readonly solid: (input: unknown) => NativeCollisionSolid;
+}
+/** Compose the existing native lattice, collider and actor readers. Cache only a fully admitted result, and keep
+ * owner-specific root schemas/checks explicit. Neither failed parsing nor a failed owner check publishes a memo.
+ */
+export function createNativeBakeReader<E extends object>(input: unknown, options: {
+  readonly label: string; readonly resolution: number; readonly size: number; readonly parked: boolean;
+  readonly spec: v.GenericSchema<unknown, AnimalSimSpec>;
+  readonly solid: v.GenericSchema<unknown, NativeColliderRecord>;
+  readonly extra: v.GenericSchema<unknown, E>;
+  readonly check?: (bake: NativePhysicsBake & E) => void;
+}): NativeBakeReader<E> {
+  const finite = v.pipe(v.number(), v.finite());
+  const body = { id: v.string(), kind: v.string(), variant: v.string(), spec: options.spec, seed: finite, scale: finite };
+  const schema = v.object({ version: v.literal(1), ground: nativeGroundSchema(options.resolution), solids: v.array(options.solid),
+    actors: v.array(v.strictObject({ id: body.id, kind: body.kind, variant: body.variant, herd: finite, spec: body.spec, seed: finite, scale: finite, scripted: v.boolean() })),
+    parked: v.exactOptional(v.array(v.strictObject(body))),
+    herds: v.array(v.strictObject({ kind: v.string(), members: v.array(v.string()) })) });
+  const decodeSolid = ({ vertices, indices, body: _body, ...rest }: NativeColliderRecord): NativeCollisionSolid => {
+    if ((rest.shape === 6 || rest.shape === 9) !== (vertices !== undefined) || (rest.shape === 6) !== (indices !== undefined)) throw new Error(`Unbuildable baked ${options.label} collider`);
+    return { ...rest, ...(vertices === undefined ? {} : { points: nativeBakeFloats(vertices) }), ...(indices === undefined ? {} : { indices: new Uint32Array(nativeBakeBytes(indices).buffer) }) };
+  };
+  let parsed: (NativePhysicsBake & E) | null = null;
+  return {
+    solid: value => decodeSolid(v.parse(options.solid, value)),
+    read: () => {
+      if (parsed !== null) return parsed;
+      const bake = v.parse(schema, input), extra = v.parse(options.extra, input);
+      if (Object.keys(extra).some(key => ['ground', 'solids', 'actors', 'parked', 'herds'].includes(key))) throw new Error('Native bake metadata shadows a world field');
+      if (options.parked && bake.parked === undefined) throw new Error(`Missing baked ${options.label} parked roster`);
+      const result = { ...extra, ground: nativeBakeGround(bake.ground, options.resolution, options.size, options.label),
+        solids: bake.solids.map(decodeSolid), actors: nativeBakeActors(bake.actors, options.label),
+        parked: nativeBakeActors(bake.parked ?? [], options.label), herds: bake.herds };
+      options.check?.(result);
+      parsed = result;
+      return result;
+    },
+  };
+}
