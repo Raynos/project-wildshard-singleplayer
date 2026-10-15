@@ -180,12 +180,13 @@ interface ProgramEntry {
 }
 /** the parts of three's (untyped) stock handler the engine handler reaches */
 interface StockInternals {
+  updateNodes: (nodes: unknown) => void;
   getOutputCallback: (outputNode: Node<'vec4'>, builder: NodeBuilder) => Node<'vec4'>;
   customProgramCacheKeyCallback: (this: THREE.Material) => string;
   renderStack: { camera: THREE.Camera; sceneContext: { fogNode: Node | null; environmentNode: Node | null; scene: THREE.Object3D } }[];
   programCache: Map<THREE.Material, Map<unknown, ProgramEntry>>;
   collectUniformsGroups: (builder: unknown) => unknown[];
-  onBeforeRenderCallback: (this: THREE.Material, ...args: unknown[]) => void;
+  onBeforeRenderCallback: THREE.Material['onBeforeRender'];
   onDisposeMaterialCallback: (this: THREE.Material) => void;
   updateGeometryAttributes: (builder: unknown, geometry: THREE.BufferGeometry) => void;
 }
@@ -198,6 +199,20 @@ function isBlockGroup(v: unknown): v is BlockGroup {
   return typeof v === 'object' && v !== null && typeof Reflect.get(v, 'name') === 'string' && Array.isArray(Reflect.get(v, 'uniforms'));
 }
 
+/** Validated runtime view of one paired program. */
+interface DrawEntry {
+  readonly program: unknown;
+  readonly entry: ProgramEntry;
+  readonly groups: readonly BlockGroup[];
+  readonly linked: WebGLProgram | null;
+}
+interface MaterialProperties {
+  currentProgram?: unknown;
+  uniforms?: unknown;
+  uniformsList?: unknown;
+  __version?: unknown;
+}
+function isMaterialProperties(value: unknown): value is MaterialProperties { return typeof value === 'object' && value !== null; }
 /**
  * one node build not yet paired with the program the renderer acquired for it: the renderer files that program in the
  * material's program map (`programs`, key → program) at `slot`, the map's size when the build ran
@@ -285,6 +300,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** node-material programs this handler built (the validator's and the bench's count) */
   builds = 0;
   private readonly textureUpdates: TextureUpdates;
+  private readonly frame: NodeFrame;
+  /** The material's active program view, including its validated block list. */
+  private readonly drawEntries = new WeakMap<THREE.Material, DrawEntry>();
   /** ms spent in the node builder (JS), summed */
   buildMs = 0;
   private real: Renderer | null = null;
@@ -301,6 +319,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     super();
     const textureFrame: unknown = Reflect.get(this, 'nodeFrame');
     if (!(textureFrame instanceof NodeFrame)) throw new Error('Missing node frame');
+    this.frame = textureFrame;
     const textures = new TextureUpdates(textureFrame); this.textureUpdates = textures;
     Reflect.set(this, 'updateNodes', (nodes: unknown): void => { textures.update(nodes); });
     installNodeCoarseMask(nodeCoarseMask);
@@ -308,9 +327,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const self = internals(this);
     // the stock per-draw and dispose callbacks, as three writes them, plus the engine's uniform blocks: every draw binds
     // its program's blocks once their nodes are updated, and a disposed material's blocks free their buffers
-    const before = (material: THREE.Material, renderer: unknown, object: unknown): void => { this.beforeDraw(material, renderer, object); };
+    const before = (material: THREE.Material, object: THREE.Object3D): void => { this.beforeDraw(material, object); };
     const disposed = (material: THREE.Material): void => { this.disposeMaterial(material); };
-    self.onBeforeRenderCallback = function onBeforeRenderCallback(this: THREE.Material, ...args: unknown[]): void { before(this, args[0], args[4]); };
+    self.onBeforeRenderCallback = function onBeforeRenderCallback(this: THREE.Material, _renderer, _scene, _camera, _geometry, object): void { before(this, object); };
     self.onDisposeMaterialCallback = function onDisposeMaterialCallback(this: THREE.Material): void { disposed(this); };
     // Only new bindings need the stock handler's geometry refresh. A rebind
     // keeps uploaded-only buffers and live memos; it is not a retirement.
@@ -397,6 +416,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (previous !== renderer && typeof stock === 'function') {
       const draw = renderer.renderBufferDirect.bind(renderer);
       renderer.renderBufferDirect = (camera, scene, geometry, material, object, group): void => {
+        // Ordinary draws need no shadow continuation closure.
+        if (!(material instanceof THREE.MeshDepthMaterial || material instanceof THREE.MeshDistanceMaterial)) {
+          if (!(material instanceof NodeMaterial)) this.blocks?.invalidateBindings();
+          draw(camera, scene, geometry, material, object, group); return;
+        }
         this.drawShadow(camera, material, object, group, next => {
           if (!(next instanceof NodeMaterial)) this.blocks?.invalidateBindings();
           draw(camera, scene, geometry, next, object, group);
@@ -460,7 +484,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     top.camera = camera; Reflect.set(frame, 'camera', camera);
     try {
       this.setObject(object, depth);
-      this.beforeDraw(depth, this.classicRenderer(), object);
+      this.beforeDraw(depth, object);
       draw(depth);
     } finally {
       top.camera = oldCamera;
@@ -604,47 +628,59 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    * per-draw binding (`nodeUniformBuffers.ts`) and leave the classic renderer none of them: its global binding point
    * per group runs out after a dozen node programs.
    */
-  private bindBlocks(material: THREE.Material, program: unknown): void {
-    const blocks = this.blocks;
-    if (blocks === null) return;
-    const properties: unknown = this.classicRenderer().properties.get(material);
-    const current: unknown = program ?? (typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'currentProgram') : undefined);
-    const entry = current === undefined ? undefined : internals(this).programCache.get(material)?.get(current);
-    if (Reflect.get(material, 'uniformsGroups') !== NO_GROUPS) Reflect.set(material, 'uniformsGroups', NO_GROUPS);
-    const linked: unknown = typeof current === 'object' && current !== null ? Reflect.get(current, 'program') : undefined;
-    if (entry === undefined || !(typeof WebGLProgram !== 'undefined' && linked instanceof WebGLProgram)) return;
-    blocks.bind(linked, entry.uniformsGroups.filter(isBlockGroup));
+  private drawEntry(material: THREE.Material, program: unknown): DrawEntry | undefined {
+    const cached = this.drawEntries.get(material);
+    if (cached?.program === program) return cached;
+    const entry = internals(this).programCache.get(material)?.get(program);
+    if (entry === undefined) return undefined;
+    const linked: unknown = typeof program === 'object' && program !== null ? Reflect.get(program, 'program') : undefined;
+    const draw = { program, entry, groups: entry.uniformsGroups.filter(isBlockGroup),
+      linked: typeof WebGLProgram !== 'undefined' && linked instanceof WebGLProgram ? linked : null };
+    this.drawEntries.set(material, draw); return draw;
   }
 
-  /**
-   * a node material is about to draw (three's onBeforeRenderCallback): point the node frame at it, force the per-draw
-   * update, select a warm object-layout program, update its nodes; then bind its blocks
-   */
-  private beforeDraw(material: THREE.Material, renderer: unknown, object: unknown): void {
-    const self = internals(this), frame: unknown = Reflect.get(this, 'nodeFrame');
-    if (typeof frame === 'object' && frame !== null) { Reflect.set(frame, 'material', material); Reflect.set(frame, 'object', object); }
-    const info: unknown = typeof renderer === 'object' && renderer !== null ? Reflect.get(renderer, 'info') : undefined;
-    const render: unknown = typeof info === 'object' && info !== null ? Reflect.get(info, 'render') : undefined;
-    if (typeof render === 'object' && render !== null) Reflect.set(render, 'frame', Number(Reflect.get(render, 'frame')) + 1);
-    const real = this.classicRenderer();
+  private bindBlocks(material: THREE.Material, program: unknown): void {
+    if (this.blocks === null) return;
+    const properties: unknown = this.classicRenderer().properties.get(material);
+    if (!isMaterialProperties(properties)) throw new Error('Missing node material properties');
+    const draw = this.drawEntry(material, program ?? properties.currentProgram);
+    // Stock onUpdateProgram restores its groups. The classic renderer owns none.
+    this.bindDraw(material, draw);
+  }
+
+  private bindDraw(material: THREE.Material, draw: DrawEntry | undefined): void {
+    const blocks = this.blocks;
+    if (blocks === null) return;
+    Reflect.set(material, 'uniformsGroups', NO_GROUPS);
+    if (draw !== undefined && draw.linked !== null) blocks.bind(draw.linked, draw.groups);
+  }
+
+  /** Warm draws borrow the paired program view without rebuilding block lists.
+   * Renderer version/layout checks and custom node dispatch remain live. */
+  private beforeDraw(material: THREE.Material, object: THREE.Object3D): void {
+    const self = internals(this), frame = this.frame;
+    frame.material = material;
+    frame.object = object;
+    const real = this.classicRenderer(); real.info.render.frame++;
     if (real.properties.has(material)) {
       const properties: unknown = real.properties.get(material);
-      if (typeof properties === 'object' && properties !== null && !this.objectVariants.select(material, material.customProgramCacheKey(), properties)) {
+      if (!isMaterialProperties(properties)) throw new Error('Missing node material properties');
+      if (!this.objectVariants.select(material, material.customProgramCacheKey(), properties)) {
         // A cold variant needs one normal lookup, without invalidating every
         // other warm variant by incrementing the material's version.
-        Reflect.set(properties, '__version', -1);
+        properties.__version = -1;
       }
-      const current: unknown = typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'currentProgram') : undefined;
-      const entry = self.programCache.get(material)?.get(current);
+      const current = properties.currentProgram, draw = this.drawEntry(material, current), entry = draw?.entry;
       // compile() can select a new program without onUpdateProgram. After an offscreen
       // draw, setProgram may see matching material flags and skip its switch callback.
-      // Pair queued builds and select their uniforms before that first real draw.
-      if (typeof properties === 'object' && properties !== null && current !== undefined &&
-        (this.pendingBuilds.has(material) || entry === undefined || Reflect.get(properties, 'uniforms') !== entry.uniforms ||
-          Reflect.get(properties, 'uniformsList') !== entry.uniformsList)) this.onUpdateProgram(material, current, properties);
-      else if (entry !== undefined) this.updateNodeList(entry.updateNodes);
+      if (current !== undefined && (this.pendingBuilds.has(material) || entry === undefined ||
+        properties.uniforms !== entry.uniforms || properties.uniformsList !== entry.uniformsList)) {
+        this.onUpdateProgram(material, current, properties);
+      } else {
+        if (entry !== undefined) self.updateNodes(entry.updateNodes);
+        this.bindDraw(material, draw);
+      }
     }
-    this.bindBlocks(material, null);
     this.bindAttributeDefaults(material, object);
   }
 
@@ -657,15 +693,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     bindGraphAttributeDefaults(material, object, current, gl);
   }
 
-  /** run the stock node update over a program's update nodes */
-  private updateNodeList(nodes: unknown): void {
-    const update: unknown = Reflect.get(this, 'updateNodes');
-    if (typeof update === 'function') Reflect.apply(update, this, [nodes]);
-  }
-
   /** a node material was disposed (three's onDisposeMaterialCallback): its uniform groups and block buffers go */
   private disposeMaterial(material: THREE.Material): void {
-    this.pendingBuilds.delete(material); this.objectVariants.forget(material);
+    this.pendingBuilds.delete(material); this.objectVariants.forget(material); this.drawEntries.delete(material);
     Reflect.deleteProperty(material, '_latestBuilder');
     const self = internals(this), programs = self.programCache.get(material), blocks = this.blocks;
     if (programs !== undefined) {
