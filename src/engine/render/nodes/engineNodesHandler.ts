@@ -264,19 +264,19 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const disposed = (material: THREE.Material): void => { this.disposeMaterial(material); };
     self.onBeforeRenderCallback = function onBeforeRenderCallback(this: THREE.Material, ...args: unknown[]): void { before(this, args[0], args[4]); };
     self.onDisposeMaterialCallback = function onDisposeMaterialCallback(this: THREE.Material): void { disposed(this); };
-    // the stock build sets the node attributes on the drawn geometry, then disposes it so the renderer rebinds them: the
-    // same attributes and the same rebind, sent as a rebind (`rebindGeometry`), so a memo holding a live geometry (a
-    // shard's loaded views, its ground cover's kinds) does not take its first graph draw for its retirement
+    // Only new bindings need the stock handler's geometry refresh. A rebind
+    // keeps uploaded-only buffers and live memos; it is not a retirement.
     self.updateGeometryAttributes = function updateGeometryAttributes(builder: unknown, geometry: THREE.BufferGeometry): void {
       const attributes: unknown = typeof builder === 'object' && builder !== null ? Reflect.get(builder, 'bufferAttributes') : undefined;
       if (!Array.isArray(attributes)) throw new Error('Node build carries no buffer attribute list');
+      let changed = false;
       for (const entry of attributes) {
         const name: unknown = Reflect.get(entry, 'name'), node: unknown = Reflect.get(entry, 'node');
         const attribute: unknown = typeof node === 'object' && node !== null ? Reflect.get(node, 'attribute') : undefined;
         if (typeof name !== 'string' || !(attribute instanceof THREE.BufferAttribute || attribute instanceof THREE.InterleavedBufferAttribute)) throw new Error('Node buffer attribute is malformed');
-        geometry.setAttribute(name, attribute);
+        if (geometry.getAttribute(name) !== attribute) { geometry.setAttribute(name, attribute); changed = true; }
       }
-      queueMicrotask(() => { rebindGeometry(geometry); });
+      if (changed) queueMicrotask(() => { rebindGeometry(geometry); });
     };
     self.getOutputCallback = (outputNode, builder) => {
       const renderer = this.classicRenderer();

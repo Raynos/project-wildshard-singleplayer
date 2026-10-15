@@ -1,4 +1,4 @@
-import { Object3D, type BufferGeometry } from 'three';
+import { BufferAttribute, Object3D, type BufferGeometry } from 'three';
 import { app } from './runtime';
 import { containerResources, sceneResources } from './sceneOwnership';
 
@@ -16,13 +16,22 @@ export function retainCachedResources<T>(value: T): T {
 const rebinding = new WeakSet();
 
 /**
- * Drop a live geometry's GPU buffers and binding states so the renderer uploads it again with the attributes a node
- * build just set (three's node handler does this through `dispose()`). The geometry stays in use: memos that hold it
+ * Refresh a live geometry's binding states after a node build adds attributes (three does this through `dispose()`).
+ * CPU-backed buffers may upload again; buffers whose CPU arrays were released stay live. Memos that hold the geometry
  * (`cacheUntilDisposed`) keep their value, so a shard's loaded views and built fields survive their first graph draw.
  */
 export function rebindGeometry(geometry: BufferGeometry): void {
+  // Static attributes can relinquish their CPU arrays after upload. A
+  // binding refresh must retain those GPU buffers until real retirement.
+  const retained = Object.entries(geometry.attributes).filter(([, attribute]) =>
+    attribute instanceof BufferAttribute && attribute.count > 0 && attribute.array.byteLength === 0);
   rebinding.add(geometry);
-  try { geometry.dispose(); } finally { rebinding.delete(geometry); }
+  for (const [name] of retained) geometry.deleteAttribute(name);
+  try { geometry.dispose(); }
+  finally {
+    for (const [name, attribute] of retained) geometry.setAttribute(name, attribute);
+    rebinding.delete(geometry);
+  }
 }
 
 /** A memo may outlive a scene: forget its value when any owned resource retires instead of returning freed GPU data.

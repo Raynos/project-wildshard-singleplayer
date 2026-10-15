@@ -38,7 +38,7 @@ test('a GPU rebind reaches the renderer but keeps a memo; a real dispose still r
   expect(makes).toBe(2);
 });
 
-test('a graph build rebinds the drawn geometry without retiring the memo that holds it (Pine ground cover)', async () => {
+test('a graph build with unchanged bindings keeps the drawn geometry and its memo (Pine ground cover)', async () => {
   const ir: GraphIr = { version: 1, kind: 'material', model: 'standard', nodes: {
     origin: { op: 'objectOrigin' }, carried: { op: 'varying', in: ['origin'] },
   }, stages: { surface: { colour: 'carried' } } };
@@ -55,6 +55,6 @@ test('a graph build rebinds the drawn geometry without retiring the memo that ho
   if (!isParameters(parameters)) throw new Error('Missing parameters');
   try { handler.build(compiled.material, mesh, parameters); } finally { handler.renderEnd(); }
   await Promise.resolve();
-  expect(rebinds).toBe(1);
+  expect(rebinds).toBe(0);
   expect(ctx.once('field', () => { throw new Error('[field] not built'); })).toBe(field);
 });
