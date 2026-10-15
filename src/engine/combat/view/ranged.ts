@@ -375,11 +375,12 @@ export class Puffs {
  * Direct parts retain borrowed materials; optional geometry copies alone may receive white vertex colours.
  * Merged displays own one decorated material clone per source material and retain a position-only shadow proxy.
  * No input geometry, transform or material is mutated; callers retain disposal of borrowed model-library resources. */
-export function weaponDisplay(parts: readonly { readonly geo: THREE.BufferGeometry; readonly mat: THREE.Material; readonly pos?: THREE.Vector3; readonly rot?: THREE.Euler }[],
+export function weaponDisplay(parts: readonly { readonly geo: THREE.BufferGeometry; readonly mat: THREE.Material; readonly pos?: THREE.Vector3; readonly rot?: THREE.Euler; readonly matrix?: THREE.Matrix4 }[],
   options?: { readonly mode: 'parts'; readonly copyGeometry?: boolean; readonly whiteColors?: boolean }
-    | { readonly mode: 'merged'; readonly sky: Pick<Sky, 'setupMaterial'> }): THREE.Group {
+    | { readonly mode: 'merged'; readonly sky: Pick<Sky, 'setupMaterial'>; readonly opaque?: boolean }): THREE.Group {
   const policy = options ?? { mode: 'parts' as const };
   if (parts.length === 0 || parts.length > 128) throw new RangeError('Weapon display parts exceed their bound');
+  for (const part of parts) if (part.matrix !== undefined && (part.pos !== undefined || part.rot !== undefined || !part.matrix.elements.every(Number.isFinite))) throw new Error('Invalid weapon display matrix');
   const group = new THREE.Group();
   if (policy.mode === 'parts') {
     if (policy.whiteColors === true && policy.copyGeometry !== true) throw new Error('Display colours require owned geometry');
@@ -389,14 +390,15 @@ export function weaponDisplay(parts: readonly { readonly geo: THREE.BufferGeomet
       const mesh = new THREE.Mesh(geometry, part.mat); mesh.castShadow = true; mesh.receiveShadow = true;
       if (part.pos !== undefined) mesh.position.copy(part.pos);
       if (part.rot !== undefined) mesh.rotation.copy(part.rot);
+      if (part.matrix !== undefined) mesh.applyMatrix4(part.matrix);
       group.add(mesh);
     }
     return group;
   }
   const owned = new Map<THREE.Material, THREE.Material>(), byMaterial = new Map<THREE.Material, THREE.BufferGeometry[]>();
   const matrix = new THREE.Matrix4(), rotation = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
-  for (const { geo, mat, pos, rot } of parts) {
-    const geometry = pos || rot ? geo.clone().applyMatrix4(matrix.compose(pos ?? new THREE.Vector3(), rot ? rotation.setFromEuler(rot) : rotation.identity(), one)) : geo;
+  for (const { geo, mat, pos, rot, matrix: supplied } of parts) {
+    const geometry = supplied !== undefined ? geo.clone().applyMatrix4(supplied) : pos || rot ? geo.clone().applyMatrix4(matrix.compose(pos ?? new THREE.Vector3(), rot ? rotation.setFromEuler(rot) : rotation.identity(), one)) : geo;
     const list = byMaterial.get(mat) ?? []; list.push(geometry); byMaterial.set(mat, list);
   }
   const positions: THREE.BufferGeometry[] = [];
@@ -404,7 +406,7 @@ export function weaponDisplay(parts: readonly { readonly geo: THREE.BufferGeomet
     const merged = geometries.length > 1 ? mergeOrNull(geometries) : geometries[0] ?? null;
     for (const geometry of merged === null ? geometries : [merged]) {
       let copy = owned.get(material);
-      if (copy === undefined) { copy = material.clone(); copy.name = material.name; fixIBL(copy, VIEWMODEL_GROUP); policy.sky.setupMaterial(copy); owned.set(material, copy); }
+      if (copy === undefined) { copy = material.clone(); copy.name = material.name; if (policy.opaque === true) { copy.transparent = false; copy.depthWrite = true; } fixIBL(copy, VIEWMODEL_GROUP); policy.sky.setupMaterial(copy); owned.set(material, copy); }
       const mesh = new THREE.Mesh(geometry, copy); mesh.castShadow = false; mesh.receiveShadow = true; group.add(mesh);
       const position = new THREE.BufferGeometry(); position.setAttribute('position', geometry.getAttribute('position')); position.setIndex(geometry.getIndex()); positions.push(position);
     }

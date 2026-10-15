@@ -6087,3 +6087,14 @@ refuses absence. Strict fields, finite numbers, positive integer tread counts an
 malformed input. Hull/trimesh lanes become independent typed arrays; nested points and rotations are fresh.
 Limits are 65,536 rows and 6,000,000 values per geometry lane. This reader never installs colliders; return
 the descriptors through the normal model/world registry and engine physics owner.
+
+### World display part transforms
+
+`engine/combat/view/ranged.ts#weaponDisplay` accepts a borrowed per-part
+`matrix` as an alternative to `pos`/`rot`; crossed or non-finite transforms
+refuse. Direct parts apply it to the owned mesh; merged parts transform an
+owned geometry copy, leaving source buffers unchanged. The merged policy's
+optional `opaque: true` restores normal world material flags on its owned
+clones. Omission preserves existing direct/merged material ownership.
+Tree cloning, content selection and the crossbow's three cord-rest rows
+remain Pine-owned; there is no tree-copy host or extra pending-user credit.
