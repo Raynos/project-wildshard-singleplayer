@@ -1,6 +1,9 @@
 import type { BufferGeometry } from 'three';
-import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { createOwnedGeometryBatch } from '@wildshard/engine/models/ownedGeometry';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
+
+const preload = createOwnedGeometryBatch();
+const modelGeometry = preload.geometry;
 
 /** Immutable templates; runtime instance channels are attached only to independent copies. */
 const templates = {
@@ -21,21 +24,7 @@ const templates = {
 
 /** Explicit boot intake, including the same bytes-only path for portable fixtures. */
 export async function loadCoverGeometry(bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>): Promise<void> {
-  await Promise.all([
-    templates.tuft.load(bytes?.get(FIXED_MODEL_FILES.coverTuft)),
-    templates.fern.load(bytes?.get(FIXED_MODEL_FILES.coverFern)),
-    templates.hibiscus.load(bytes?.get(FIXED_MODEL_FILES.coverHibiscus)),
-    templates.daisy.load(bytes?.get(FIXED_MODEL_FILES.coverDaisy)),
-    templates.pebble.load(bytes?.get(FIXED_MODEL_FILES.coverPebble)),
-    templates.shells.load(bytes?.get(FIXED_MODEL_FILES.coverShells)),
-    templates.starfish.load(bytes?.get(FIXED_MODEL_FILES.coverStarfish)),
-    templates.bush.load(bytes?.get(FIXED_MODEL_FILES.coverBush)),
-    templates.tuftFar.load(bytes?.get(FIXED_MODEL_FILES.coverTuftFar)),
-    templates.fernFar.load(bytes?.get(FIXED_MODEL_FILES.coverFernFar)),
-    templates.hibiscusFar.load(bytes?.get(FIXED_MODEL_FILES.coverHibiscusFar)),
-    templates.daisyFar.load(bytes?.get(FIXED_MODEL_FILES.coverDaisyFar)),
-    templates.bushFar.load(bytes?.get(FIXED_MODEL_FILES.coverBushFar)),
-  ]);
+  await preload.load(bytes);
 }
 
 /** Keep the near/far double-buffer attributes independent of the immutable source geometry. */

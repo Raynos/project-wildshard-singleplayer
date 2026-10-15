@@ -71,3 +71,28 @@ export function createOwnedGeometry(url: string, channels: Readonly<Record<strin
     copy: () => { if (template === undefined) throw new Error(`Baked model was not loaded: ${url}`); return template.clone(); },
   };
 }
+
+/** A bounded declaration of owned templates. Register all handles before loading;
+ * each handle keeps its own copy/adopt/take ownership and failed-load retry policy. */
+export interface OwnedGeometryBatch {
+  /** Declare one unique source/key (at most 128); retains no decoded attributes itself. */
+  geometry: (url: string, channels?: Readonly<Record<string, string>>) => OwnedGeometry;
+  /** Start every declared intake together. An absent map entry keeps the ordinary URL fetch path. */
+  load: (bytes?: ReadonlyMap<string, Uint8Array | BufferGeometry>) => Promise<void>;
+}
+
+/** Group preloads without changing the single-template decoder or owning a second copy. */
+export function createOwnedGeometryBatch(): OwnedGeometryBatch {
+  const entries = new Map<string, OwnedGeometry>();
+  return {
+    geometry: (url, channels = {}) => {
+      if (!url || entries.has(url) || entries.size >= 128) throw new Error('Invalid owned geometry declaration');
+      const geometry = createOwnedGeometry(url, channels);
+      entries.set(url, geometry);
+      return geometry;
+    },
+    load: async (bytes) => {
+      await Promise.all([...entries].map(([url, geometry]) => geometry.load(bytes?.get(url))));
+    },
+  };
+}

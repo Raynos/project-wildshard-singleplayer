@@ -1,10 +1,13 @@
 import { loadTrailsideGeometry } from './trailsideGeometry';
 import { loadCoverGeometry } from './coverGeometry';
 import { loadCoveGeometry } from './coveGeometry';
-import { createOwnedGeometry as modelGeometry, type OwnedGeometry as ModelGeometry } from '@wildshard/engine/models/ownedGeometry';
+import { createOwnedGeometryBatch, type OwnedGeometry as ModelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { readProductGeometry } from '../runtime/boot/modelGeometry';
 import type { BufferGeometry } from 'three';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
+
+const preload = createOwnedGeometryBatch();
+const modelGeometry = preload.geometry;
 
 /** Prepared head; the original talk rig borrows a mutable copy, without a second source download or runtime fitter. */
 export const WENDELL_HEAD_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.wendellHead);
@@ -77,45 +80,10 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
   const admitted = product?.templates ?? bytes;
   try {
   await Promise.all([
-    WENDELL_HEAD_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.wendellHead)),
-    SHRINE_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineKit)),
-    SHRINE_WATER_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineWater)),
-    SHRINE_GLYPHS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineGlyphs)),
-    SHRINE_SPECIMEN_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineSpecimenKit)),
-    SHRINE_SPECIMEN_WATER_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineSpecimenWater)),
-    SHRINE_SPECIMEN_GLYPHS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineSpecimenGlyphs)),
-    PIER_WORLD_0_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld0Deck)),
-    PIER_WORLD_0_CLOTH_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld0Cloth)),
-    PIER_WORLD_1_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld1Deck)),
-    PIER_WORLD_1_CLOTH_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld1Cloth)),
-    PIER_WORLD_2_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld2Deck)),
-    PIER_WORLD_3_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld3Deck)),
-    PIER_WORLD_3_CLOTH_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierWorld3Cloth)),
-    PIER_SPECIMEN_JETTY_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierSpecimenJettyDeck)),
-    PIER_SPECIMEN_LONG_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierSpecimenLongDeck)),
-    PIER_SPECIMEN_LANDING_DECK_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierSpecimenLandingDeck)),
-    PIER_SPECIMEN_LANDING_CLOTH_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.pierSpecimenLandingCloth)),
+    preload.load(admitted),
     loadTrailsideGeometry(admitted),
     loadCoveGeometry(admitted),
     loadCoverGeometry(admitted),
-    DUNE_LOGS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.duneLogs)),
-    BRIDGE_POSTS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.bridgePosts)), BRIDGE_SPECIMEN_POSTS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.bridgeSpecimenPosts)),
-    WATERFALL_SHEET_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.waterfallSheet)), WATERFALL_RINGS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.waterfallRings)),
-    WATERFALL_PUFFS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.waterfallPuffs)),
-    IRON_SWORD_BLADE_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.ironSwordBlade)), IRON_SWORD_FITTINGS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.ironSwordFittings)),
-    HAT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.hat)), CHIME_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.chime)),
-    CAPE_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.cape)), BOAT_HULL_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.boatHull)),
-    BOAT_SAIL_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.boatSail)), BOAT_GEAR_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.boatGear)),
-    TROPHY_PLAQUES_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.trophyPlaques)), TROPHY_DROP_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.trophyDrop)),
-    COUNTER_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.tradeCounter)),
-    HUT_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.hutKit)), HUT_FLAMES_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.hutFlames)),
-    LOOKOUT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.lookout)),
-    WRECK_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.wreckKit)),
-    WRECK_GLOW_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.wreckGlow)),
-    WRECK_ROCKS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.wreckRocks)),
-    SHIPWRECK_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shipwreckKit)),
-    SHIPWRECK_GLOW_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shipwreckGlow)),
-
   ]);
   ready = true;
   } finally { product?.release(); }
