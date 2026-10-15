@@ -8,18 +8,20 @@
 // the engine's SwordMoves timing — adds 15 finger bones a hand and the swim clips, and skins it). It is played by the
 // shared arm player (src/game/systems/viewmodel/rigArms.ts): three skeleton clones of one parse — the wooden sword, the iron sword and the
 // swimming hands — sharing the geometry. Driftwood's toon look: flat facets, vertex colour, no textures, lit like the
-// island (sky.setupMaterial: the CSM shadows and the fog). ~9.5 k triangles of arms + ~0.8 k of sword, two draws + the
-// engine's trail.
+// island (the graph toon look, data/fpArmsLook.ts FP_ARMS_GRAPHS). ~9.5 k triangles of arms + ~0.8 k of sword, two draws +
+// the engine's trail.
 //
-// SHARD-PLATFORM M3: the arms are the SDK toon arms (@wildshard/sdk/viewmodel/toonArms); the look is data
-// (data/fpArmsLook.ts), the GLSL too (data/fpArmsGlsl.ts).
+// SHARD-PLATFORM M3: the arms are the toon arms (runtime/viewmodel/toonArms.ts); the look is data (data/fpArmsLook.ts).
 import type { Object3D } from 'three';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { ToonArms } from './runtime/viewmodel/toonArms';
-import { FP_ARMS_GLSL } from './runtime/looks/fpArmsGlsl';
+import { ToonArms, type ToonArmsLooks } from './runtime/viewmodel/toonArms';
 import { FP_ARMS_LOOK } from './data/fpArmsLook';
 
-const ARMS = new ToonArms(FP_ARMS_LOOK, FP_ARMS_GLSL);
+const ARMS = new ToonArms(FP_ARMS_LOOK);
+
+/** lend the compiled arm graphs (FP_ARMS_MATERIALS) and their toon look's follow, before any arms are dressed; returns
+ *  the release */
+export function lendCastawayArms(looks: ToonArmsLooks, follow: () => void): () => void { return ARMS.lend(looks, follow); }
 
 /** the rigs, loaded as ShardManifest.sword: the wooden sword's arms, the iron sword's, the swimming hands */
 export function castawayArms(): ReturnType<InstanceType<typeof ToonArms>['load']> { return ARMS.load(); }
