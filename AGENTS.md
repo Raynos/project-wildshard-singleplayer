@@ -118,7 +118,7 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   session scratchpad for anything big, and never `mv` trees to `/tmp/delete-me-*`: macOS empties those at boot before
   login, and millions of leftover export files held the laptop at the login progress bar for hours (2026-10-15).
   **At most three mirror slots machine-wide** (`gate`, `commit`, `check`), never one per lane or agent; one served build
-  of HEAD reused; Node's compile cache lives outside `$TMPDIR`; pre-commit warns past 500k files in `/tmp` + `$TMPDIR`
+  of HEAD reused; Node's compile cache lives outside `$TMPDIR`; pre-commit warns past 500k files in `/tmp` or in `$TMPDIR` (each counted)
   (`scripts/boot-temp-warn.sh`).
 
 ## Subagents → [docs/process/SUBAGENTS.md](docs/process/SUBAGENTS.md)

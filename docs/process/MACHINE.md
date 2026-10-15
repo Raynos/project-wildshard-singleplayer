@@ -124,7 +124,7 @@ login progress bar for hours: macOS empties both at boot, before login.
   scratchpad (also under `/private/tmp`) for anything big.
 - **Node's compile cache lives in `~/Library/Caches/node-compile-cache`** (`NODE_COMPILE_CACHE`, set in the dotfiles'
   `.bash_profile`), not `$TMPDIR`: it had 110k files there.
-- **Pre-commit warns** (never refuses) through `scripts/boot-temp-warn.sh` when `/private/tmp` + `$TMPDIR` pass 500,000
+- **Pre-commit warns** (never refuses) through `scripts/boot-temp-warn.sh` when `/private/tmp` or `$TMPDIR` (two separate counts) passes 500,000
   files or `./tmp/build-mirror` holds a slot beyond the three; `scripts/boot-temp-warn.sh --top` lists the biggest
   folders. Delete your own; ask before touching another agent's.
 

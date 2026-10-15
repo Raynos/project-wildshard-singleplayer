@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # boot-temp-warn.sh: a pre-commit warning (it never refuses a commit) for the two things that make a reboot hurt.
-#   1. The folders macOS empties at boot before login (/private/tmp and $TMPDIR) hold over 500,000 files. On 2026-10-15
+#   1. A folder macOS empties at boot before login holds over 500,000 files: /private/tmp and $TMPDIR, each counted on
+#      its own (Jake, 2026-10-15: two separate thresholds). On 2026-10-15
 #      millions of leftover export files there held the laptop at the login progress bar for hours.
 #   2. ./tmp/build-mirror holds a slot other than gate, commit and check (G429: no per-lane or per-agent copies).
 # Counting takes seconds, so the hook prints the last count at once and starts a background recount when that count is
@@ -17,10 +18,10 @@ count_files() { find "$1" -xdev 2>/dev/null | wc -l | tr -d ' '; }
 
 case "${1:-}" in
   --count)
-    total=0
-    for d in "${temp_dirs[@]}"; do total=$((total + $(count_files "$d"))); done
+    line="$(date +%s)"
+    for d in "${temp_dirs[@]}"; do line="$line $(count_files "$d")"; done
     mkdir -p "$root/tmp"
-    printf '%s %s\n' "$(date +%s)" "$total" > "$stamp.new.$$" && mv "$stamp.new.$$" "$stamp"
+    printf '%s\n' "$line" > "$stamp.new.$$" && mv "$stamp.new.$$" "$stamp"
     exit 0 ;;
   --top)
     for d in "${temp_dirs[@]}"; do
@@ -29,16 +30,22 @@ case "${1:-}" in
     exit 0 ;;
 esac
 
-at=0; files=0
-[ -f "$stamp" ] && read -r at files < "$stamp"
+at=0; rest=""; counts=()
+[ -f "$stamp" ] && read -r at rest < "$stamp"
+read -r -a counts <<< "$rest"
 if [ $(( $(date +%s) - ${at:-0} )) -gt 600 ]; then
-  mkdir -p "$root/tmp" && printf '%s %s\n' "$(date +%s)" "${files:-0}" > "$stamp"
+  mkdir -p "$root/tmp" && printf '%s %s\n' "$(date +%s)" "$rest" > "$stamp"
   nohup "$0" --count >/dev/null 2>&1 &
 fi
-if [ "${files:-0}" -gt "$limit" ]; then
-  echo "boot-temp: WARNING ${files} files in /private/tmp + \$TMPDIR (over ${limit}); macOS deletes them all at boot before login." >&2
-  echo "boot-temp: find the biggest with scripts/boot-temp-warn.sh --top and delete your own (docs/process/MACHINE.md)." >&2
-fi
+warned=""
+for i in "${!temp_dirs[@]}"; do
+  n="${counts[$i]:-0}"
+  if [ "$n" -gt "$limit" ]; then
+    echo "boot-temp: WARNING ${n} files in ${temp_dirs[$i]} (over ${limit}); macOS deletes them all at boot before login." >&2
+    warned=1
+  fi
+done
+[ -n "$warned" ] && echo "boot-temp: find the biggest with scripts/boot-temp-warn.sh --top and delete your own (docs/process/MACHINE.md)." >&2
 extra=""
 if [ -d "$root/tmp/build-mirror" ]; then
   for slot in "$root"/tmp/build-mirror/*/; do
