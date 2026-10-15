@@ -33,7 +33,8 @@ import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { makeGlowTexture, type Cabins } from './homestead';
+import type { Cabins } from './homestead';
+import { loadPainted } from '../runtime/looks/paintedTextures';
 import { PINE_HERO_IDS, type PineHeroId } from './heroFiles';
 import { pineModels } from './context';
 import { HERO_FRONT, heroLod0, loadPineHero } from './hero';
@@ -188,7 +189,7 @@ export class PineLandmarks implements PineLandmarksHandle {
     const wsPlaces = sites.waystones.map((p): Place => ({ ...p, y: (this.floorHeightAt(p.x, p.z) ?? p.y) - 0.15 }));
     const waySet = add(waystone, 'waystone', wsPlaces);
     const wayGeo = heroLod0(ctx, 'waystone')?.geometry;
-    if (waySet && wayGeo) this.lanterns(waySet.places, cabins);
+    if (waySet && wayGeo) this.lanterns(waySet.places, cabins, await loadPainted('glow'));
 
     add(beaverDam, 'beaver-dam', sites.dam);
     const drawnUp = add(canoe, 'canoe', sites.canoe);
@@ -203,7 +204,7 @@ export class PineLandmarks implements PineLandmarksHandle {
   }
 
   /** the waystones' flames (emissive, one instanced draw) and their glow (one Points draw), both on sky.lamps */
-  private lanterns(places: readonly Place[], cabins: Cabins | null): void {
+  private lanterns(places: readonly Place[], cabins: Cabins | null, glow: THREE.Texture): void {
     const lamp = new THREE.Vector3(...authored.landmarks.lamp);
     const glowPos = new Float32Array(places.length * 3);
     const anchors = {} as Record<WaystoneId, THREE.Object3D>;
@@ -217,7 +218,7 @@ export class PineLandmarks implements PineLandmarksHandle {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(glowPos, 3));
     // the flame: one additive point per lantern (the lantern's own glass is in its baked texture), bright core, soft halo
-    this.glowMat = new THREE.PointsMaterial({ map: makeGlowTexture(), color: 0xffa050, size: 0.95, sizeAttenuation: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
+    this.glowMat = new THREE.PointsMaterial({ map: glow, color: 0xffa050, size: 0.95, sizeAttenuation: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false });
     this.glow = new THREE.Points(g, this.glowMat);
     this.glow.name = 'waystone-glow';
     this.glow.renderOrder = 6;

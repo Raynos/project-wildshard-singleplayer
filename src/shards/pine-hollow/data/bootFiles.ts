@@ -1,3 +1,4 @@
+import painted from './paintedTextures.generated.json' with {type:'json'};
 import skins from './npcSkins.generated.json' with {type:'json'};
 import floor from './floor.generated.json' with { type: 'json' };
 import birds from './ambientBirds.generated.json' with {type:'json'};
@@ -223,7 +224,7 @@ export const PINE_BOOT_FILES = {
           "/assets/pine-hollow/npcs/ranger.glb", skins.ranger.phone.url,
           "/assets/pine-hollow/npcs/trader.glb", skins.trader.phone.url,
           "/assets/pine-hollow/npcs/miller.glb", skins.miller.phone.url,
-          "/assets/pine-hollow/journal/chalk.webp",
+          ...painted.urls,
           heldPool.pool.url,
           leverDetails.pool.url,
           handsPool.pool.url,
@@ -243,7 +244,7 @@ export const PINE_BOOT_FILES = {
           "/assets/pine-hollow/npcs/ranger.glb", skins.ranger.desktop.url,
           "/assets/pine-hollow/npcs/trader.glb", skins.trader.desktop.url,
           "/assets/pine-hollow/npcs/miller.glb", skins.miller.desktop.url,
-          "/assets/pine-hollow/journal/chalk.webp",
+          ...painted.urls,
           heldPool.pool.url,
           leverDetails.pool.url,
           handsPool.pool.url,

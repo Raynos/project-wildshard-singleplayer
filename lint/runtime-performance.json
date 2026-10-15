@@ -5010,16 +5010,8 @@
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
     },
-    "src/shards/pine-hollow/runtime/compendium/trophyWall.ts:dom:03d7519b1a2130338258733b6f773e9fd79655efef24e24134697be08ae35ec3": {
-      "count": 3,
-      "row": "SF76 G303 Pine verbatim move"
-    },
     "src/shards/pine-hollow/runtime/compendium/trophyWall.ts:unbounded-loop:f598511a14c3064a5ee5a9eb2ace0c384121bb29391647fab22f91c140d2f940": {
       "count": 1,
-      "row": "SF76 G303 Pine verbatim move"
-    },
-    "src/shards/pine-hollow/runtime/compendium/trophyWall.ts:dom:c8e6a9539e06501a45204aa28fd2e4701e8a44894d5916d1f885fe6d7abccacf": {
-      "count": 2,
       "row": "SF76 G303 Pine verbatim move"
     },
     "src/shards/pine-hollow/runtime/compendium/trophyWall.ts:raw-render:f5f311e90f0808c671ed25b813b6845bad909d24b7e6453a55018be9c12fedf6": {
@@ -5047,18 +5039,6 @@
       "row": "SF76 G303 Pine verbatim move"
     },
     "src/shards/pine-hollow/runtime/compendium/trophyWall.ts:unbounded-loop:ac7828a74d98841fa938ff5edc504c89cc4404ae5eb8a1ca2e6297e032d2225d": {
-      "count": 1,
-      "row": "SF76 G303 Pine verbatim move"
-    },
-    "src/shards/pine-hollow/runtime/compendium/trophyWall.ts:raw-render:c758ee5338f12a69cffced2d20ac11b2cf013ff5d2f1b0b76e33b6070e3a7208": {
-      "count": 1,
-      "row": "SF76 G303 Pine verbatim move"
-    },
-    "src/shards/pine-hollow/runtime/compendium/trophyWall.ts:unbounded-loop:81f6361191422c921b72e747b8fb9b7372d6434936b75e8f52854955c5c7c3b0": {
-      "count": 1,
-      "row": "SF76 G303 Pine verbatim move"
-    },
-    "src/shards/pine-hollow/runtime/compendium/trophyWall.ts:unbounded-loop:0fd60e6104e825afa7d9cf2b7bf0d7947a730a2fbb83189af6f8e81a44f874e8": {
       "count": 1,
       "row": "SF76 G303 Pine verbatim move"
     },

@@ -2,19 +2,17 @@ import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { loadPBR, loadGLTF, pbrMaterial } from '@wildshard/engine/core/assets';
-import { SEED } from '@wildshard/engine/core/config';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { twoSidedPositions, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { paintCanvas } from '@wildshard/sdk/looks/canvasAtlas';
 import { flattenGlbParts, loadLodGlb } from '../runtime/kit/lodGlb';
 import { BuildingLife } from '../runtime/props/buildingLife';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineSetCap } from '../debug/options';
-import { END_GRAIN_PAINT, GLOW_PAINT } from '../data/cabinPaint';
+import { loadPainted } from '../runtime/looks/paintedTextures';
 import { CABIN_DOOR_LOOK, CABIN_LIFE, cabinMossLook } from '../data/cabinLook';
 import { HEARTH_LOOKS } from '../data/hearthLook';
 import { pineLook, pineMappedLook, setPineLookParam, setPineLookTexture } from '../runtime/looks/graphLooks';
@@ -75,6 +73,7 @@ export function cabinMats(sky: Sky): Promise<Mats> {
 
 async function loadMats(sky: Sky): Promise<Mats> {
   const cap = pineSetCap(TIER_CONFIG.maxTexture); // G180 B1: 512² on the phone with the memory trim on
+  const [endGrain, glow] = await Promise.all([loadPainted('endGrain'), loadPainted('glow')]); // the log ends' and the lamps' (baked offline)
   const scans = new Map(await Promise.all(CABIN_PBR.map(async row => [row.key, pbrMaterial(await loadPBR(row.scan, 1, cap), {
     metalness: 0, color: new THREE.Color(...row.color), normalScale: new THREE.Vector2(...row.normal),
   })] as const)));
@@ -82,14 +81,14 @@ async function loadMats(sky: Sky): Promise<Mats> {
     const material = scans.get(key); if (material === undefined) throw new Error(`Missing cabin material ${key}`); return material;
   };
   const m: Mats = {
-    log: scan('log'), endGrain: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.endGrain, map: makeEndGrainTexture() }),
+    log: scan('log'), endGrain: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.endGrain, map: endGrain }),
     chink: new THREE.MeshStandardMaterial(CABIN_MATERIALS.chink), roof: pineMappedLook(cabinMossLook('roof'), scan('roof')), beam: scan('beam'), deck: scan('deck'),
     door: pineMappedLook(CABIN_DOOR_LOOK, scan('door')), // the scan pulled toward a weathered grey-brown, over the set's maps (../data/cabinLook.ts)
     stone: pineMappedLook(cabinMossLook('stone'), scan('stone')), // the roof and the stone mossed over their scans' maps (../data/cabinLook.ts)
     glass: new THREE.MeshStandardMaterial({ ...CABIN_MATERIALS.glass, emissive: new THREE.Color(...CABIN_GLASS_EMISSIVE) }), bark: scan('bark'),
     iron: new THREE.MeshStandardMaterial(CABIN_MATERIALS.iron), cloth: new THREE.MeshStandardMaterial(CABIN_MATERIALS.cloth), char: new THREE.MeshStandardMaterial(CABIN_MATERIALS.char),
     smoke: pineLook(HEARTH_LOOKS.smoke), flame: pineLook(HEARTH_LOOKS.flame), ember: pineLook(HEARTH_LOOKS.ember),
-    glow: new THREE.MeshBasicMaterial({ map: makeGlowTexture(), color: 0xff7a1a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
+    glow: new THREE.MeshBasicMaterial({ map: glow, color: 0xff7a1a, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }),
   };
   // the moss graphs light their scans' normal maps themselves (their authored shading normal replaces the borrowed one)
   for (const key of ['roof', 'stone'] as const) {
@@ -99,15 +98,6 @@ async function loadMats(sky: Sky): Promise<Mats> {
   }
   for (const k of ['log', 'endGrain', 'chink', 'beam', 'deck', 'glass', 'bark', 'iron', 'cloth', 'char'] as const) sky.setupMaterial(m[k]);
   return m;
-}
-
-function makeEndGrainTexture() {
-  const t = new THREE.CanvasTexture(paintCanvas(END_GRAIN_PAINT, { SEED })); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
-}
-
-/** the lamps' soft glow (../data/cabinPaint.ts `GLOW_PAINT`) */
-export function makeGlowTexture(): THREE.CanvasTexture {
-  return new THREE.CanvasTexture(paintCanvas(GLOW_PAINT));
 }
 
 /** the phone's pooled cabin lights (PH-L3) */

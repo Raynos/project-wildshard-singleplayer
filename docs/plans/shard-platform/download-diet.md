@@ -66,4 +66,16 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   second runtime source GLB. Geometry attributes and materials stay
   unchanged; no binary Git blobs.
 
+- 2026-10-15 Pine painted textures (sp-o236): the log ends' grain, the
+  lamps' glow, the coat's three canvas maps and the trophy wall's chalk
+  atlas are baked by the `pine-painted` job into
+  `public/assets/pine-hollow/painted/<name>-<sha256>` instead of painted
+  on a canvas at every launch. Downloads add 258,616 B (chalk WebP
+  157,720; coat normal 38,658, ARM 14,294, albedo 11,470 PNG; end grain
+  WebP 23,072; glow PNG 13,402) and drop the 80,232 B `journal/chalk.webp`
+  and the hand font from the wall's path: net +178,384 B. The chalk atlas
+  holds each outline once (1024 x 512, was a 1024 x 640 canvas), so its
+  GPU texture shrinks; the other maps keep their size. Uncompressed as
+  before (the painters made RGBA8 textures). No runtime painter remains.
+
 | Driftwood Isle | Authored Blender-cove placement plans (immutable per-tier JSON; no new geometry) | — | — | Phone 666,785 B raw / 400,547 B gzip-9; desktop 874,449 B raw / 537,717 B gzip-9 | W2 cove-plan call | Existing placement indices plus exact Float32 picking boxes; same 400 small-rock poses, ordered 16 model families and 200 collider claims. Parsed sidecar and decode buffers are released after placement; no retained template or second world payload. |

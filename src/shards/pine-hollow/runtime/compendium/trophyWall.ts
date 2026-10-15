@@ -1,4 +1,3 @@
-import { versionedUrl } from '@wildshard/engine/boot/bytes';
 import { declarePanel, type PanelView } from '@wildshard/engine/ui/panel';
 import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
 /**
@@ -16,7 +15,7 @@ import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
  *
  * `anchor`'s local frame: origin on the wall face at floor level, +x along the wall (the viewer's right), +y up, +z out
  * of the wall into the room. Cheap: ONE merged mesh for every mount + shield (vertex colours, one MeshStandardMaterial)
- * and ONE merged mesh for every chalk decal (a canvas atlas); no lights, nothing per frame but a ray-plane test.
+ * and ONE merged mesh for every chalk decal (the baked chalk atlas, generators/paintedPage.ts); no lights, nothing per frame but a ray-plane test.
  * Each mount (its shield and the species' head and shoulders, its coat in its vertex colours) is baked offline, posed on
  * the wall (generators/trophyMounts.ts → data/trophyMounts.json + a hash-named geometry pack), fetched only
  * when a slot is taken.
@@ -25,7 +24,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { fetchDeflated, GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
 import mounts from '../../data/trophyMounts.json' with { type: 'json' };
-import { loadHandFont } from "@wildshard/game/compendium/Journal";
+import { CHALK_LAYOUT, loadPainted } from '../looks/paintedTextures';
 import type { CompendiumState } from "@wildshard/game/compendium/state";
 import type { TrophySlot } from "@wildshard/game/compendium/types";
 
@@ -43,7 +42,6 @@ export interface TrophyWallOptions {
 
 interface Placed { slot: TrophySlot; x: number; y: number; w: number; h: number }
 
-const CELL_W = 256, CELL_H = 320, COLS = 4;
 /** how far the eye may be from a slot to read it (m) */
 const LOOK_RANGE = 4.2;
 /** past this (m) the wall is not drawn */
@@ -62,7 +60,6 @@ export class TrophyWall {
   private chalk: THREE.Mesh | null = null;
   private readonly mountMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0, envMapIntensity: 0.35 });
   private chalkMat: THREE.MeshStandardMaterial | null = null;
-  private chalkImg: HTMLImageElement | null = null;
   private looked: Placed | null = null;
   private builds = 0;
   private tip: PanelView | null = null;
@@ -121,60 +118,33 @@ export class TrophyWall {
     this.group.add(this.mounts);
   }
 
-  /** the outline atlas + the hand font, then the chalk decals */
+  /** the baked chalk atlas, then the chalk decals */
   private async loadChalk(): Promise<void> {
-    const url = this.opts.state.def.skin.chalk?.atlas;
-    if (url === undefined) return;
-    const img = new Image();
-    img.decoding = 'async';
-    img.src = versionedUrl(url); // the `?v=` the worker caches it under (E160), as the background download fetched it
-    try { await Promise.all([img.decode(), loadHandFont()]); } catch { return; }
-    this.chalkImg = img;
+    const map = await loadPainted('chalk');
+    this.chalkMat = new THREE.MeshStandardMaterial({ map, transparent: true, depthWrite: false, roughness: 1, metalness: 0, opacity: 0.62, polygonOffset: true, polygonOffsetFactor: -2 });
     this.buildChalk();
   }
 
-  /** a canvas atlas, one cell per slot (outline + chalk name), white chalk as alpha; planes for the untaken slots */
+  /** per untaken slot, its outline over its label (its name once seen, else ???): two planes on their atlas cells */
   private buildChalk(): void {
-    const img = this.chalkImg, cells = this.opts.state.def.skin.chalk?.cells;
-    if (!img || !cells) return;
+    const mat = this.chalkMat;
+    if (!mat) return;
     if (this.chalk) { this.group.remove(this.chalk); this.chalk.geometry.dispose(); this.chalk = null; }
-    const rows = Math.ceil(this.placed.length / COLS);
-    const canvas = document.createElement('canvas');
-    canvas.width = CELL_W * COLS; canvas.height = CELL_H * rows;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    const planes: THREE.BufferGeometry[] = [];
-    this.placed.forEach((p, i) => {
-      if (this.taken(p)) return;
-      const cx = (i % COLS) * CELL_W, cy = Math.floor(i / COLS) * CELL_H;
-      const c = cells[p.slot.outline];
-      if (c) ctx.drawImage(img, c.x * img.naturalWidth, c.y * img.naturalHeight, c.w * img.naturalWidth, c.h * img.naturalHeight, cx + 8, cy + 4, CELL_W - 16, CELL_W - 16);
-      const e = this.opts.state.entry(p.slot.entry);
-      const named = this.opts.state.state(p.slot.entry) !== 'unknown';
-      ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = '600 44px "WS Hand", "Bradley Hand", cursive';
-      ctx.fillText(named && e ? e.name.replace(/^The /, '') : '???', cx + CELL_W / 2, cy + CELL_W + 26, CELL_W - 12);
-      // a plane the slot's size, its UVs on this cell (canvas y runs down, UV v up)
-      const w = Math.min(p.w * 0.96, p.h * 0.8), h = w * (CELL_H / CELL_W);
-      const g = new THREE.PlaneGeometry(w, h);
-      const uv = g.getAttribute('uv');
-      const u0 = cx / canvas.width, u1 = (cx + CELL_W) / canvas.width, v1 = 1 - cy / canvas.height, v0 = 1 - (cy + CELL_H) / canvas.height;
-      for (let k = 0; k < uv.count; k++) uv.setXY(k, uv.getX(k) > 0.5 ? u1 : u0, uv.getY(k) > 0.5 ? v1 : v0);
-      g.translate(p.x, p.y + 0.02 - (h - w) / 2 * 0.9, 0.012);
-      planes.push(g);
+    const [aw = 1, ah = 1] = CHALK_LAYOUT.size, outlines: Readonly<Record<string, readonly number[]>> = CHALK_LAYOUT.outlines, labels: Readonly<Record<string, readonly number[]>> = CHALK_LAYOUT.labels;
+    const quad = (rect: readonly number[] | undefined, w: number, h: number, x: number, y: number): THREE.BufferGeometry => {
+      if (rect === undefined) throw new Error('[trophy-wall] a slot has no baked chalk');
+      const [rx = 0, ry = 0, rw = 0, rh = 0] = rect, g = new THREE.PlaneGeometry(w, h), uv = g.getAttribute('uv');
+      for (const k of [0, 1, 2, 3]) uv.setXY(k, (rx + uv.getX(k) * rw) / aw, 1 - (ry + (1 - uv.getY(k)) * rh) / ah); // a plane's four corners
+      return g.translate(x, y, 0.012);
+    };
+    const planes = this.placed.flatMap((p) => {
+      if (this.taken(p)) return [];
+      const w = Math.min(p.w * 0.96, p.h * 0.8), h = w * 1.25, y = p.y + 0.02 - (h - w) / 2 * 0.9;
+      const label = labels[this.opts.state.state(p.slot.entry) === 'unknown' ? '???' : p.slot.entry];
+      return [quad(outlines[p.slot.outline], w, h * 0.8, p.x, y + h * 0.1), quad(label, w, h * 0.2, p.x, y - h * 0.4)];
     });
-    // white chalk: luminance → alpha
-    const data = ctx.getImageData(0, 0, canvas.width, canvas.height), d = data.data;
-    for (let k = 0; k < d.length; k += 4) { const l = Math.max(d[k] ?? 0, d[k + 1] ?? 0, d[k + 2] ?? 0); d[k] = 214; d[k + 1] = 206; d[k + 2] = 190; d[k + 3] = l; }
-    ctx.putImageData(data, 0, 0);
     if (planes.length === 0) return;
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    tex.anisotropy = 4;
-    if (this.chalkMat) { this.chalkMat.map?.dispose(); this.chalkMat.map = tex; this.chalkMat.needsUpdate = false; }
-    else this.chalkMat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false, roughness: 1, metalness: 0, opacity: 0.62, polygonOffset: true, polygonOffsetFactor: -2 });
-    this.chalk = new THREE.Mesh(mergeGeometries(planes, false), this.chalkMat);
+    this.chalk = new THREE.Mesh(mergeGeometries(planes, false), mat);
     for (const g of planes) g.dispose();
     this.chalk.name = 'trophy-chalk';
     this.chalk.renderOrder = 1;
