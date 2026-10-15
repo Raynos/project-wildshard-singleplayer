@@ -7,7 +7,7 @@ import { ragdollsFor, type Ragdoll } from '../physics/ragdoll';
 import { TIER } from '../core/tier';
 import { frameCost } from '../core/frameCost';
 import { heightAt } from '../world/Heightfield';
-import type { AnimalModel, AnimalRig } from './AnimalFactory';
+import type { AnimalMaterial, AnimalModel, AnimalRig } from './AnimalFactory';
 import { variantMods, type RigAnimCtx } from './species/registry';
 import { app, gameplayRandom } from '../app/runtime';
 import type { DamageRequest } from '../combat/pipeline';
@@ -87,7 +87,7 @@ const FLASH_T = 0.14, FLASH_I = 0.9;
 export class Animal extends AnimalSim {
   mesh: THREE.SkinnedMesh;
   readonly custom: boolean;
-  private flashMat: THREE.MeshStandardMaterial | THREE.MeshLambertMaterial | null = null;
+  private flashMat: AnimalMaterial | null = null;
   private flashBase = new THREE.Color();
   private flashBaseI = 1;
   private flash = 0;

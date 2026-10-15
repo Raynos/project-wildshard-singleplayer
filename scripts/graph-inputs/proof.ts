@@ -1,7 +1,9 @@
 /** Untimed real-renderer oracle for additive graph inputs. */
 import { Float32BufferAttribute, LinearSRGBColorSpace, Mesh, NoToneMapping, OrthographicCamera, PlaneGeometry, Scene, WebGLRenderer } from 'three';
 import { vec3 } from 'three/tsl';
+import { MeshStandardNodeMaterial } from 'three/webgpu';
 import { Scope } from '../../src/engine/app/scope';
+import type { AnimalMaterial } from '../../src/engine/entities/AnimalFactory';
 import { clientMaterials } from '../../src/game/shardfile/clientMaterials';
 import { emptyShardfile } from '../../src/sdk/author';
 import { graph, graphInputs } from '../../src/sdk/materials';
@@ -16,6 +18,8 @@ async function prove(): Promise<unknown> {
     const source = emptyShardfile({ slug: 'inputs-oracle', name: 'Inputs oracle', author: 'proof', seed: 1, revision: 1 });
     Object.assign(source.look.materials, { alpha: { family: 'graph', graph: graph({ model: 'unlit',
       effectState: { fog: false }, surface: { colour: vec3(graphInputs.vertexColourAlpha, graphInputs.vertexColourAlpha, graphInputs.vertexColourAlpha) } }) } });
+    Object.assign(source.look.materials, { animal: { family: 'graph', graph: graph({ model: 'standard',
+      effectState: { fog: false }, surface: { colour: vec3(0), emissive: vec3(1, 0, 0) } }) } });
     const client = await clientMaterials(source, new Map(), renderer, scope, { graphs: true });
     const material = client.materials.get('alpha');
     if (material === undefined) throw new Error('Missing alpha graph');
@@ -34,10 +38,19 @@ async function prove(): Promise<unknown> {
       const bytes = new Uint8Array(4); gl.readPixels(x, 32, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, bytes); return Array.from(bytes);
     });
     const expected = [64, 255, 255];
-    const pass = pixels.every((pixel, i) => pixel.slice(0, 3).every(value => Math.abs(value - (expected[i] ?? -1000)) <= 1) && pixel[3] === 255)
+    const alphaPass = pixels.every((pixel, i) => pixel.slice(0, 3).every(value => Math.abs(value - (expected[i] ?? -1000)) <= 1) && pixel[3] === 255)
       && gl.getError() === gl.NO_ERROR;
-    if (!pass) throw new Error(JSON.stringify({pixels, expected}));
-    return { pass, vertexColourAlpha: {pixels, expected} };
+    if (!alphaPass) throw new Error(JSON.stringify({pixels, expected}));
+    const compiled = client.materials.get('animal');
+    if (!(compiled instanceof MeshStandardNodeMaterial)) throw new Error('Missing compiled lit body material');
+    const body: AnimalMaterial = compiled;
+    scene.clear();
+    const animal = new Mesh(scope.own(new PlaneGeometry(1, 1)), body); scene.add(animal);
+    renderer.render(scene, camera);
+    const animalPixel = new Uint8Array(4); gl.readPixels(96, 32, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, animalPixel);
+    const pass = animalPixel[0] === 255 && animalPixel[1] === 0 && animalPixel[2] === 0 && animalPixel[3] === 255 && gl.getError() === gl.NO_ERROR;
+    if (!pass) throw new Error(JSON.stringify({animalPixel: Array.from(animalPixel)}));
+    return { pass, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel) };
   } finally { scope.dispose(); renderer.dispose(); renderer.forceContextLoss(); }
 }
 let result: unknown;

@@ -5650,3 +5650,5 @@ contiguous per-kind index ranges and the original atlas. It lends one
 attribute/index set to the live view and Explorer wrappers: cards change
 only drawRange and their own instance pose. Missing channels, repeated
 kinds, gaps and out-of-range indices refuse before the view is installed.
+
+**Animal graph materials.** `AnimalMaterial` also accepts a compiled standard/toon node material; body colour, map and emissive hit-flash ports retain the same types. This is a type-only extension and adds no eager graph-backend import.

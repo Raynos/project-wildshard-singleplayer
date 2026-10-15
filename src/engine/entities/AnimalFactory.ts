@@ -2,6 +2,7 @@ import { bindRig } from '../anim/rig';
 import type { CreatureRenderSpec } from '../level/spec';
 import { selectedLevel } from '../level/selection';
 import * as THREE from 'three';
+import type { MeshStandardNodeMaterial } from 'three/webgpu';
 import { mergeAnimalGeometry } from '../models/animalGeometry';
 import { Rng } from '../core/rng';
 import type { SkyRig as Sky } from '../world/skyRig';
@@ -125,8 +126,8 @@ export interface AnimalRig {
   materials: AnimalMaterial[];
 }
 
-/** what an animal is drawn with: the PBR / low-poly standard materials, or the painterly Lambert */
-export type AnimalMaterial = THREE.MeshStandardMaterial | THREE.MeshLambertMaterial;
+/** Lit body materials retain colour, map and emissive hit-flash ports, including compiled standard/toon graphs. */
+export type AnimalMaterial = THREE.MeshStandardMaterial | THREE.MeshLambertMaterial | MeshStandardNodeMaterial;
 
 // ─────────────────────────────────────────────────────────────────────────────────────────
 // Procedural fur textures
