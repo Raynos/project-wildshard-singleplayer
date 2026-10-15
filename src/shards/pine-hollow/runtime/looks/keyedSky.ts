@@ -411,6 +411,9 @@ export class KeyedSky {
     const want = this.want.copy(lightDir).negate();
     if (snap || want.angleTo(T.lightDirection) > SHADOW_STEP) T.lightDirection.copy(want);
     for (const l of T.lights) { l.color.copy(C.light); l.intensity = C.lightI * fade; }
+    // the shadow's depth: full by day, the style's `nightShadow` by night (a uniform: no program changes; ≤ 4 cascades)
+    const shade = 1 + (this.style.nightShadow - 1) * this.night;
+    for (let i = 0; i < Math.min(T.lights.length, 4); i++) { const l = T.lights[i]; if (l !== undefined) l.shadow.intensity = shade; }
     T.sunColor.copy(C.light).multiplyScalar(Math.max(0.05, fade * C.lightI / 3.8));
     T.hemi.color.copy(C.hemiSky); T.hemi.groundColor.copy(C.hemiGround); T.hemi.intensity = C.hemiI;
     this.scene.environmentIntensity = C.env;

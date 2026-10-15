@@ -92,6 +92,8 @@ export const PINE_SKY = {
   moon: { az: 115, azSpan: 130, el: 26, elRise: 32 },
   night: { rise: [-0.012, 0.04], set: [0.962, 0.997] },
   moonFade: { rise: [0.012, 0.045], set: [0.968, 0.994] },
+  // G427: the moon's shadow under dense crowns was near-black and hid the held crossbow; softened at night only
+  nightShadow: 0.8,
   dusk: [0.06, 0.35],
   dawn: { at: 0.008, width: [0.01, 0.07] },
   dome: { name: 'pine-sky-dome', radius: 2300, segments: [64, 32] },

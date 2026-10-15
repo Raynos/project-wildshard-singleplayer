@@ -92,6 +92,8 @@ export interface KeyedSkyStyle {
   readonly night: { readonly rise: readonly [number, number]; readonly set: readonly [number, number] };
   /** the night light body's fade: in over dayFraction + `rise`, out over `set` (the day's follows the sun's height) */
   readonly moonFade: { readonly rise: readonly [number, number]; readonly set: readonly [number, number] };
+  /** the key light's shadow intensity at full night (1 by day, blended by the night curve): the moon's shade is not black */
+  readonly nightShadow: number;
   /** the dusk curve's sun heights (1 → 0) */
   readonly dusk: readonly [number, number];
   /** the dawn curve: its phase and the distance window it fades over */
