@@ -1,7 +1,7 @@
 import type { CombatTag } from '@wildshard/engine/combat/pipeline';
 import { StalkerBrain } from "@wildshard/engine/ai/stalker";
 import { huntMemoryCodec } from "@wildshard/engine/ai/huntPattern";
-import type { HuntBody, HuntGround, HuntNav, HuntConfig } from "@wildshard/engine/ai/hunt";
+import { HURT_ARC, type HuntBody, type HuntGround, type HuntNav, type HuntConfig } from "@wildshard/engine/ai/hunt";
 import { bindPlayerImpulse } from '../shardfile/dataCreaturePorts';
 import type { AnimalSimSpec, AnimalSim } from "@wildshard/engine/entities/AnimalSim";
 import type { SimStrike, SimValue, SimHost } from "@wildshard/engine/sim";
@@ -1036,6 +1036,51 @@ export function createNativeHunt(host: SimHost, row: NativeHuntRow, ports: {
     player: row.player === 'host' ? host.player.position : new Vector3(), sampleTerrain: actor => { actor.sampleTerrain(); } });
   return { hunt, reach };
 }
+/** Native species observations over an existing body and hunt owner. Policy and continuation remain caller-owned.
+ * The context allocates once per body; each policy call refreshes only its dt and the actual host clock. */
+export function createNativeSpeciesContext<W, A extends HuntBody = HuntBody>(shared: {
+  readonly host: SimHost; readonly hunt: StalkerBrain<A>; readonly rng: Rng;
+  readonly world: W; readonly heightAt: (x: number, z: number) => number; readonly waterLevel: number;
+}, actor: A, herd: readonly A[] | null, label = actor.label): {
+  observation: {
+    dt: number; t: number; player: Vector3; playerSpeed: number; calm: boolean; rng: Rng;
+    herd: readonly A[] | null; world: W; heightAt: (x: number, z: number) => number; waterLevel: () => number;
+    attackRandom: { range: (min: number, max: number) => number };
+    hurt: (damage: number) => void; sound: (name: string) => void;
+    steer: (body: A, yaw: number, speed: number, turn: number) => void;
+    confine: (body: A) => void; reach: (body: A) => boolean;
+    claim: (body: A) => boolean; mayAttack: (body: A) => boolean;
+  };
+  bind: <P extends { dt: number; t: number }>(observation: P,
+    brain: { think: (ports: P) => void; act: (ports: P) => void },
+    policy: { snapshot: () => SimValue; restore: (value: SimValue) => void }) => KeptPolicy;
+} {
+  const { host, hunt } = shared;
+  if (host.entities.get(actor.entityId) !== actor) throw new Error('Native species context requires its actual host body');
+  const player = host.player.position, dir = new Vector3(), attackRandom = host.rng.stream('ai');
+  const tags: readonly CombatTag[] = [`creature.${actor.kind}`, 'feel.blow', 'cover.checked'], cause = { kind: actor.kind, label };
+  const reach = (body: A): boolean => canReach(body, player, host.physics);
+  const observation = {
+    dt: 0, t: 0, player, playerSpeed: 0, calm: false, rng: shared.rng, herd, world: shared.world,
+    heightAt: shared.heightAt, waterLevel: (): number => shared.waterLevel,
+    attackRandom: { range: (min: number, max: number): number => attackRandom.range(min, max) },
+    hurt: (damage: number): void => {
+      if (!hunt.facing(actor, player, HURT_ARC) || !reach(actor)) return;
+      host.combat.hit({ source: 'env', sourceTags: tags, target: host.player.health, amount: damage,
+        point: actor.position.clone(), dir, cause });
+    },
+    sound: (_name: string): void => undefined,
+    steer: (body: A, yaw: number, speed: number, turn: number): void => { hunt.steerAny(body, yaw, speed, turn); },
+    confine: (body: A): void => { hunt.confine(body); }, reach,
+    claim: (body: A): boolean => hunt.tokens.take(body), mayAttack: (body: A): boolean => hunt.tokens.free(body),
+  };
+  return { observation, bind: (ports, brain, policy) => ({
+    decide: dt => { ports.dt = dt; ports.t = host.clock.now; brain.think(ports); },
+    move: dt => { ports.dt = dt; ports.t = host.clock.now; brain.act(ports); },
+    snapshot: () => policy.snapshot(), restore: value => { policy.restore(value); },
+  }) };
+}
+
 export interface NativeHuntContinuation {
   readonly clock: number; readonly rng: ReturnType<Rng['snapshot']>;
   readonly noise: { readonly seen: boolean; readonly speed: number; readonly prev: readonly [number, number, number] };

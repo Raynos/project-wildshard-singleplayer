@@ -5916,3 +5916,20 @@ fresh Float32 vertices relative to the matrix translation, retaining mesh
 index order (or sequential indices for a non-indexed mesh). Register the
 returned descriptor through the normal world physics registry. Nalati's
 W3 `world/solid.ts#hullAt` adopts the same hull projection (G441).
+
+### Native species observations
+
+`game/plugin/brain.createNativeSpeciesContext` lends one native body its
+existing host, hunt authority, creature stream, herd and world. The context
+uses the host's clock and shared AI stream, checks facing and physics reach
+before environment damage, and delegates steering, confinement and attack
+tokens to that hunt owner. `bind` adapts caller-owned think/act and save
+policies without another state envelope, scheduler or random stream.
+Foreign bodies refuse before any ports are installed. The engine's existing
+`EnemyWorld<A = Animal>` type also describes a renderer-free body's world;
+its default retains the browser contract.
+
+G441 pending second user: Nalati's native `headlessCreatures.ts` think
+context and clock refresh (its current `c` / `context` bindings). Nalati
+keeps pack/group token selection, body lookup and observed player speed.
+This pending allowance is rechecked at the end of W3.

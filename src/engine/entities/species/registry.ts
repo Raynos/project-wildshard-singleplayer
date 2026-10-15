@@ -6,7 +6,7 @@ import type { Rng } from '../../core/rng';
 import type { DamageRequest } from '../../combat/pipeline';
 import type { HuntTuning } from '../../ai/hunt';
 import type { Animal } from '../AnimalView';
-import type { AnimalState } from '../AnimalSim';
+import type { AnimalSim, AnimalState } from '../AnimalSim';
 import type { SpeciesFlight } from '../../ai/flight';
 
 /**
@@ -128,12 +128,12 @@ export interface RigAnimCtx {
  * palm crowns for the monkeys to perch in, the coconut thrower, the wreck's hold for the sailor. Everything optional —
  * a species falls back to ground behaviour when its piece is missing.
  */
-export interface EnemyWorld {
+export interface EnemyWorld<A extends AnimalSim = Animal> {
   /** palm frond crowns (world) — Coconut Monkey perches — and, index-matched, the foot of each trunk (where it climbs from) */
   perches?: THREE.Vector3[];
   perchBases?: THREE.Vector3[];
   /** lob a coconut from `from` at `target` (Enemies.ts owns the projectile pool + the hit test against the player) */
-  throwCoconut?: (from: THREE.Vector3, target: THREE.Vector3, thrower: Animal) => void;
+  throwCoconut?: (from: THREE.Vector3, target: THREE.Vector3, thrower: A) => void;
   /** a splash burst of water droplets at a world point (the sailor rising / dying) */
   splash?: (at: THREE.Vector3, strength: number) => void;
   /** the wreck's hold: centre, radius that counts as "inside" (the player entering it wakes the sailor), the radius the
