@@ -47,7 +47,7 @@ import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { TerrainCut } from '@wildshard/engine/physics/terrain';
-import { BatchedLodSet, type BatchedLodSet as BatchedLodSetView, type LodPlanRow } from '../runtime/cull/batchedLod';
+import { BatchedCull } from '@wildshard/engine/models/cull';
 import { CaveInterior, type CaveInterior as CaveInteriorView, type CaveMeta } from '../runtime/kit/caveInterior';
 import { loadGlbNodes, trimeshDesc } from '../runtime/kit/glbNodes';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
@@ -105,7 +105,7 @@ export class PineCrags {
   places: CragPlace[] = [];
   private batch: THREE.BatchedMesh | null = null;
   /** the world's own instances in the batch: the face skin's tiles, the cave and its far hood */
-  private own: BatchedLodSetView | null = null;
+  private own: BatchedCull[] = [];
   /** the bear cave (null: no cave.json in this build); live (updated) once built */
   private readonly cave: CaveInteriorView | null;
   private caveLive = false;
@@ -156,7 +156,7 @@ export class PineCrags {
    * Draw (when a material exists) and collide the placements and the cave. The modules are placed as models into the ONE
    * batch, registered on `registry` 90 hulls a `yieldTask` apart (the phone's per-task collider budget); `registry`
    * null: built only (the navmesh bake reads `colliders`). The face skin and the cave are this world's own instances
-   * (@wildshard/sdk/cull/batchedLod).
+   * (@wildshard/engine/models/cull).
    */
   async build(places: CragPlace[], registry: WorldRegistry | null = null, yieldTask: () => Promise<void> = () => Promise.resolve()): Promise<this> {
     this.places = places;
@@ -168,7 +168,7 @@ export class PineCrags {
       if(geometry===undefined)throw new Error('[crags] authored batch geometry missing');return geometry;
     }) : [];
     const caveM = new THREE.Matrix4().makeRotationY(CAVE_FRAME.yaw).setPosition(CAVE_FRAME.x,0,CAVE_FRAME.z);
-    const plan: LodPlanRow[] = this.mat ? assembly.plans.map(({cave,...row})=>({...row,matrix:cave?caveM.clone():new THREE.Matrix4()})) : [];
+    const plan = this.mat ? assembly.plans.map(({cave,...row})=>({...row,matrix:cave?caveM.clone():new THREE.Matrix4()})) : [];
     const caveG=this.caveGeo.get('cave');
     if(caveG){
       const col = this.caveGeo.get('cave-col') ?? caveG;
@@ -209,8 +209,18 @@ export class PineCrags {
     }
     const bm = this.batch;
     if (bm) {
-      this.own = new BatchedLodSet(bm);
-      this.own.add(geos, plan);
+      const ids = geos.map(geometry => bm.addGeometry(geometry));
+      this.own = plan.flatMap(row => {
+        const near = ids[row.lod0], far = ids[row.lod1];
+        if (near === undefined || far === undefined) return [];
+        const instance = bm.addInstance(near);
+        bm.setMatrixAt(instance, row.matrix);
+        return [new BatchedCull(
+          [{ mesh: bm, instance, geometry: Int32Array.of(near, far), until2: null }],
+          Uint32Array.of(0, 1), Float64Array.of(row.x, row.y, row.z, row.r),
+          [0, row.near], { far: row.far, frustum: false, radiusBias: 0.5, step: 1 },
+        )];
+      });
       if (registry === null) this.group.add(bm);
     }
     if (this.cave) {
@@ -248,7 +258,7 @@ export class PineCrags {
     const sky = this.sky;
     if (!sky) return;
     const cam = sky.viewCamera; cam.getWorldPosition(this.tmp);
-    this.own?.update(this.tmp);
+    for (const cull of this.own) cull.update(cam);
     if (this.cave && this.caveLive) this.cave.update(t, this.tmp, sky);
     if (this.mat) setPineLookParam(CRAG_LOOK, 'caveFill', CAVE_FILL.value);
   }

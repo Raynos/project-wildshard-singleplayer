@@ -408,7 +408,7 @@ export class BatchedCull {
   private readonly slots: readonly BatchedSlot[];
   private readonly start: Uint32Array;
   /** `slots` are grouped per copy: copy i owns slots [start[i], start[i + 1]); `fades` each level's dissolve band */
-  constructor(slots: readonly BatchedSlot[], start: Uint32Array, bounds: Float32Array, from: readonly number[], o: CullOptions,
+  constructor(slots: readonly BatchedSlot[], start: Uint32Array, bounds: Float32Array | Float64Array, from: readonly number[], o: CullOptions,
     origins: Float32Array | Float64Array | null = null, fades: readonly number[] = []) {
     this.slots = slots;
     this.start = start;
