@@ -1,11 +1,12 @@
 /**
  * The reef fish (E306 / E315 M1: a model on the contract, src/engine/models/model.ts; it was built inside src/shards/driftwood-isle/world/Seabed.ts):
- * a small faceted fish — a flattened diamond body (8 tris) and a tail fin (2), nose along −z, ~0.35 m long — on a plain
- * flat-shaded material, its colour per copy (instanceColor). The lagoon places a school of them instanced (one draw) over
+ * a small faceted fish — a flattened diamond body (8 tris) and a tail fin (2), nose along −z, ~0.35 m long — on the kit's
+ * still material, its colour per copy (instanceColor). The lagoon places a school of them instanced (one draw) over
  * its densest reef and swims them round a lissajous loop every frame (src/shards/driftwood-isle/world/Seabed.ts).
  */
 import * as THREE from 'three';
 import { defineModel } from '@wildshard/engine/models/model';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
 /** the fish's colours: each copy takes one (Placement.color) */
 export const REEF_FISH_COLOURS = [0xffb347, 0x4fc3f7, 0xf06292, 0xfff176] as const;
@@ -23,11 +24,8 @@ export const reefFish = defineModel<Record<string, never>>({
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     geometry.computeVertexNormals();
-    const material = ctx.once('driftwood-isle/reef-fish:material', () => {
-      const m = new THREE.MeshStandardMaterial({ flatShading: true, roughness: 0.6, metalness: 0.1 });
-      ctx.sky.setupMaterial(m);
-      return m;
-    });
-    return [{ geometry, material }];
+    // white vertex colour under the kit's still material (one shared graph toon material): each copy's tint shows
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(pos.length).fill(1), 3));
+    return [{ geometry, material: lowPolyLookMaterial(ctx.sky, 'still') }];
   },
 });

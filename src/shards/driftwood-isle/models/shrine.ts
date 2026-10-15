@@ -67,20 +67,12 @@ export function setShrinePoolLook(materials: ReadonlyMap<string, THREE.Material>
   poolLook = material;
 }
 
-/** the pool's material: its graph (soft ripples, a caustic shimmer at their crests); a page outside the hybrid world (no
- *  graph handed over, the Model Explorer's specimen) draws the still teal water */
-function poolMaterial(ctx: ModelContext): THREE.Material {
-  if (poolLook !== null) return poolLook;
-  const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#2aa7b0'), roughness: 0.25, metalness: 0, transparent: true, opacity: 0.82, flatShading: true });
-  ctx.sky.setupMaterial(mat);
-  return mat;
-}
-
-/** the shrine's own materials on a shard — the pool (and its clock) and the glyphs — which the world animates */
-export function shrineMaterials(ctx: ModelContext): { water: THREE.Material; glyphs: THREE.MeshBasicMaterial; uniforms: { uTime: THREE.IUniform<number> } } {
+/** the shrine's own materials on a shard — the pool (its graph: soft ripples, a caustic shimmer at their crests, lent before
+ *  the world builds; a shrine built before that refuses) and the glyphs, which the world pulses */
+export function shrineMaterials(ctx: ModelContext): { water: THREE.Material; glyphs: THREE.MeshBasicMaterial } {
   return ctx.once('driftwood-isle/shrine:materials', () => {
-    const uniforms = { uTime: { value: 0 } };
-    return { water: poolMaterial(ctx), glyphs: new THREE.MeshBasicMaterial({ color: SHRINE_RUNE, side: THREE.DoubleSide }), uniforms };
+    if (poolLook === null) throw new Error('Driftwood shrine: no pool graph material lent (the runtime compiles it before the world builds)');
+    return { water: poolLook, glyphs: new THREE.MeshBasicMaterial({ color: SHRINE_RUNE, side: THREE.DoubleSide }) };
   });
 }
 

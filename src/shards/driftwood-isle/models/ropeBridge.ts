@@ -34,7 +34,9 @@ export interface DeckPoses { pose: (i: number, alpha: number, p: { x: number; y:
 /** one deck segment at rest: centre, rotation (local +z along the span, +y up), half length */
 export interface DeckSegment { x: number; y: number; z: number; rot: { x: number; y: number; z: number; w: number }; hz: number }
 
-const C = { rope: new THREE.Color('#d2bd85') };
+const ROPE = new THREE.Color('#d2bd85');
+/** a white vertex colour, so the kit's vertex-coloured material shows each copy's own tint */
+const white = (g: THREE.BufferGeometry): THREE.BufferGeometry => g.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(g.getAttribute('position').count * 3).fill(1), 3));
 /** a deck segment's length before it is fitted to the span (m), its half thickness, its weight (kg) */
 const SEG_HY = 0.05, SEG_KG = 14;
 
@@ -88,14 +90,13 @@ class RopeBridgeBuilder {
     const n=this.segs.length;
     this.live = new Float32Array(n + 1);
     this.plankSpecs=structuredClone(facts.planks);
-    const plankMat = new THREE.MeshStandardMaterial({ flatShading: true, roughness: 0.88, metalness: 0 });
-    this.sky.setupMaterial(plankMat);
-    this.planks = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), plankMat, this.plankSpecs.length);
+    // the planks and ropes wear the kit's still material (one shared graph toon material), their tints per copy
+    const still = lowPolyLookMaterial(this.sky, 'still');
+    this.planks = new THREE.InstancedMesh(white(new THREE.BoxGeometry(1, 1, 1)), still, this.plankSpecs.length);
     const col = new THREE.Color();
     facts.colours.forEach((c,i)=>{this.planks.setColorAt(i,col.setRGB(c.r,c.g,c.b));});
-    const ropeMat = new THREE.MeshStandardMaterial({ color: C.rope, flatShading: true, roughness: 0.9, metalness: 0 });
-    this.sky.setupMaterial(ropeMat);
-    this.ropes = new THREE.InstancedMesh(new THREE.CylinderGeometry(1, 1, 1, 4, 1, true).translate(0, 0.5, 0), ropeMat, 2 * (2 * n + Math.ceil(n / 2)));
+    this.ropes = new THREE.InstancedMesh(white(new THREE.CylinderGeometry(1, 1, 1, 4, 1, true).translate(0, 0.5, 0)), still, 2 * (2 * n + Math.ceil(n / 2)));
+    for (let i = 0; i < this.ropes.count; i++) this.ropes.setColorAt(i, ROPE);
     for (const m of [this.planks, this.ropes]) {
       m.castShadow = true; m.receiveShadow = true;
       m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);

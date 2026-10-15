@@ -10,7 +10,7 @@
  * `drawnInto` that mesh (its copies and card). The material (its sway clock, `reefMaterial(ctx).uniforms.uTime`) is the
  * shard's, through the model context.
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { reefSpecimen } from '../boot/reefGeometry';
 import { REEF_SPECIMENS, type ReefKind } from '../data/reefSpecimenRows';
@@ -37,14 +37,12 @@ export interface ReefParams {
 }
 
 /** the reef's one material: its graph (data/reefLook.ts: toon lit, the fronds swaying in the current), its toon look
- *  following the day clock once a frame; a page outside the hybrid world (no graph handed over) draws it still */
+ *  following the day clock once a frame; the runtime lends it before the world builds, and a reef built before that refuses */
 export function reefMaterial(ctx: ModelContext): { material: THREE.Material; uniforms: { uTime: THREE.IUniform<number> }; update?: () => void } {
   return ctx.once('driftwood-isle/reef:material', () => {
-    const uniforms = { uTime: { value: 0 } }, look = reefLook;
-    if (look !== null) return { material: look.material, uniforms, update: look.follow };
-    const material = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.8, metalness: 0, side: THREE.DoubleSide });
-    ctx.sky.setupMaterial(material);
-    return { material, uniforms };
+    const look = reefLook;
+    if (look === null) throw new Error('Driftwood reef: no graph material lent (the runtime compiles it before the world builds)');
+    return { material: look.material, uniforms: { uTime: { value: 0 } }, update: look.follow };
   });
 }
 

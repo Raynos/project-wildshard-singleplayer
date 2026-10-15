@@ -56,7 +56,6 @@ export class Shrine {
   placed: Placed | null = null;
   private baseY = 0;
   private glyphMat!: THREE.MeshBasicMaterial;
-  private uniforms!: { uTime: THREE.IUniform<number> };
   private dusk = 0.35;
   private readonly look = fireflyLook;
   private t = 0;
@@ -90,7 +89,6 @@ export class Shrine {
     for (const [k, a] of Object.entries(lay.anchors)) this.anchors[k] = { x: a.x + x, y: a.y + y0, z: a.z + z, yaw: a.yaw };
     const m = shrineMaterials(ctx);
     this.glyphMat = m.glyphs;
-    this.uniforms = m.uniforms;
     this.buildFireflies(new Rng(SEED ^ 0x5418), y0 + lay.terrace);
     return this;
   }
@@ -125,7 +123,6 @@ export class Shrine {
   update(dt: number): void {
     this.t += dt;
     const t = this.t;
-    this.uniforms.uTime.value = t;
     const pulse = 0.55 + 0.45 * Math.sin(t * 1.1) * Math.sin(t * 0.37 + 1);
     this.glyphMat.color.copy(SHRINE_RUNE).multiplyScalar(1.6 + 2.6 * pulse * (0.6 + 0.4 * this.dusk));
   }
