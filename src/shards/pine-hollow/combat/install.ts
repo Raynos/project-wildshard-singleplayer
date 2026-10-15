@@ -1,4 +1,4 @@
-import type { SkinLocker } from '@wildshard/game/cosmetics/locker';
+import { installBossEncounter } from '@wildshard/game/Boss';
 import { Elites, GroundTell, type EliteRule } from '@wildshard/game/Elite';
 import type { Inventory } from '@wildshard/game/Inventory';
 import { bindRuntimeBoss } from '@wildshard/game/shardfile/hybridRows';
@@ -34,7 +34,12 @@ import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { voice, type PineCtx } from './ctx';
 import { installPinePresentation } from './chargeTells';
 import { makePineElites, swapRolledElites, isPineElite } from './elites';
-import { AntlerKing, KING_KIND } from '../runtime/antlerKing';
+import { AntlerKingFight, KING_KIND } from '../runtime/antlerKing';
+import { ANTLER_KING_PRESENTATION } from '../data/antlerKing';
+import { KINGS_CLEARING } from '../data/layout';
+import { PINE_PHASES } from '../look/dayKeys';
+import { pineScore } from '../runtime/audio/score';
+import { kingTick } from './kingFight';
 
 import { registerPineLap } from '../dev/perfLap';
 import type { ShardContext } from '@wildshard/game/shard/context';
@@ -57,7 +62,7 @@ import { installPineCombatAttachments, installPineCombatCallbacks, installPineCo
 export interface PineCombatHost {
   context?: ShardContext;
   game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService;
-  crossbow: Weapon; rifle: { displayModel: () => THREE.Group }; skins: SkinLocker; wearSkin: (s: SkinDef) => void;
+  crossbow: Weapon; rifle: { displayModel: () => THREE.Group }; skins: { own: (id: string) => void }; wearSkin: (s: SkinDef) => void;
   /** the Warden's Longbow (PH-C11): the King's orb shows it, taking it hands it over (loadout.grantLongbow) */
   longbow?: { displayModel: () => THREE.Group; grant: () => void } | null;
   /** before a checkpoint's bolt refill: the loadout goes back to iron bolts, so the refill never tops up a special stack */
@@ -148,18 +153,34 @@ export function installPineCombat(h: PineCombatHost): PineCombat {
   const pineElites = makePineElites(ctx, elites);
 
   // ── the Antler King ── (his name, not his kind, in the aim readout; no floating plate: he has the boss bar)
-  const king = new AntlerKing({
-    ...(persistence === undefined ? {} : { persistence: persistence.bosses }), ...(body === undefined ? {} : { body: (): Animal => {
+  let forcedNight = false;
+  const kingNight = (): boolean => forcedNight || ctx.night() > 0.5;
+  const king = installBossEncounter(ANTLER_KING_PRESENTATION, () => {
+    const fight = new AntlerKingFight(ctx, entered === undefined ? undefined : install => {
+      installEnteredRuntimeService(entered, scope => { scope.onDispose(install()); });
+    }, body === undefined ? undefined : () => {
       const animal = body.spawn(); if (animal === null) throw new Error('The declared Antler King body needs its runtime animals'); return animal;
-    } }),
-    ...(entered === undefined ? {} : { entered: (install: () => () => void) => {
-      installEnteredRuntimeService(entered, (scope) => { scope.onDispose(install()); });
-    } }),
-    ctx, interactables: h.interactables, params, music: h.music,
-    refill: () => { h.ironFirst?.(); h.crossbow.addBolts(MAX_BOLTS - (h.crossbow.state.bolts ?? MAX_BOLTS)); },
-    setWeaponsEnabled: (on) => { introLock = !on; legs(); weapons.setEnabled(on); },
-    pickupHum: (on) => { h.audio.pickupHum(on); },
+    });
+    fight.prewarm(); return fight;
+  }, {
+    game, player, scope: app.levelScope, chunkId: 'pine-hollow', interactables: h.interactables,
+    ...(persistence === undefined ? {} : { persistence: persistence.bosses }),
+    reward: { model: () => ctx.longbow?.model() ?? ctx.skinModel('warden'), grant: () => { ctx.ownSkin('warden'); ctx.longbow?.grant(); }, trophy: () => { ctx.addItem('amber-resin', 3); } },
+    lockInput: on => { player.carried = on; introLock = on; legs(); weapons.setEnabled(!on); },
+    respawn: (pos, yaw) => { player.spawn(pos.x, pos.z, yaw); player.pitch = 0; h.ironFirst?.(); h.crossbow.addBolts(MAX_BOLTS - (h.crossbow.state.bolts ?? MAX_BOLTS)); },
+    skipHeld: () => app.input.held('skip') || app.input.held('jump') || app.input.held('use') || app.input.held('confirm'),
+    toast: ctx.toast, feed: ctx.feed, pickupHum: on => { h.audio.pickupHum(on); },
+    score: () => pineScore(h.music), ambientScene: () => kingNight() ? 'night' : 'day', scorePhase: fight => fight.phase,
+    advance: (boss, fight, dt, t) => { kingTick(boss, fight, player.position, kingNight(), dt, t); },
   });
+  if (params.get('boss') === KING_KIND) {
+    forcedNight = true; void ctx.sky.dayNight?.set(PINE_PHASES.night);
+    const from = Number(params.get('from') ?? '26');
+    player.spawn(KINGS_CLEARING.x, KINGS_CLEARING.z + (Number.isFinite(from) ? from : 26), 0);
+    king.fight.setPresent(true); king.boss.arm();
+    const phase = Number(params.get('bossPhase') ?? '1');
+    if (phase > 1) king.boss.devStartAt(phase - 1);
+  }
   if (entered !== undefined) installPineCombatAttachments(entered, eliteUi, king.ui);
 
   // dev: `?elite=<id>` — out now, you `&from=` m off it (toward the Hollow), facing it

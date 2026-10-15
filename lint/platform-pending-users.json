@@ -224,6 +224,72 @@
       },
       "documentation": "docs/ENGINE.md",
       "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/Boss.ts",
+      "export": "BossScoreAction",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati rendered boss encounter presentation (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/Boss.ts",
+      "export": "BossEncounterRows",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati rendered boss encounter presentation (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/Boss.ts",
+      "export": "BossEncounterScore",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati rendered boss encounter presentation (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/Boss.ts",
+      "export": "BossEncounterPorts",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati rendered boss encounter presentation (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/Boss.ts",
+      "export": "BossEncounter",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati rendered boss encounter presentation (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/game/Boss.ts",
+      "export": "installBossEncounter",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati rendered boss encounter presentation (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
     }
   ]
 }

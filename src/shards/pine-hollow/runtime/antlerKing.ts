@@ -1,12 +1,10 @@
-import { pineScore } from '../runtime/audio/score';
 import { installEnteredKingBindings } from './kingLifetime';
-import { AntlerKingCore, KING_FOG_R, kingTick, type KingLantern } from '../combat/kingFight';
+import { AntlerKingCore, KING_FOG_R, type KingLantern } from '../combat/kingFight';
 import { pineBackdrop } from '../look/skyBackdrop';
 import { PINE_LANES } from '../combat/strikes';
 import type { Spawner } from '@wildshard/engine/ai/encounters';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
 import { app } from '@wildshard/engine/app/runtime';
-import type { Music } from '@wildshard/engine/audio/Music';
 import type { DamageDealt } from '@wildshard/engine/combat/pipeline';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -15,16 +13,13 @@ import { ELK } from '@wildshard/game/systems/species/elk';
 import { hullBody } from '../species/bodies';
 import { Impacts } from '@wildshard/engine/fx/Impacts';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
-import { BossBar } from '@wildshard/engine/ui/BossBar';
 import { fogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { thrallSpawner, spawnThrallFrom } from '../combat/spawns';
 import * as THREE from 'three';
-import { Boss, type BossDef, type BossPersistence } from '@wildshard/game/Boss';
+import type { BossEncounter } from '@wildshard/game/Boss';
 import { GroundTell } from '@wildshard/game/Elite';
-import { PINE_PHASES } from '../look/dayKeys';
 import { KINGS_CLEARING } from '../data/layout';
-import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { Puffs } from '../combat/fxKit';
 import { effectField } from '@wildshard/sdk/looks/effectField';
 import { KING_FX_LOOKS } from '../data/kingFxLook';
@@ -32,7 +27,6 @@ import { pineLook, setPineLookParam } from './looks/graphLooks';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingOwnSpecies, type KingKit, type KingLook } from '../models/antlerKing';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
 import { own, retire, voice, LaneCharge, type PineCtx } from '../combat/ctx';
-import { ANTLER_KING_ENCOUNTER } from '../data/antlerKing';
 
 /**
  * THE ANTLER KING, Warden of Pine Hollow (PINE-HOLLOW-REMASTER PH-C2; board B2 pick A, the Bark Warden). The engine's
@@ -337,81 +331,5 @@ export class AntlerKingFight extends AntlerKingCore<Animal> {
 
 // ─────────────────────────────── the wiring ───────────────────────────────
 
-export interface AntlerKingHost {
-  /** The platform owns encounter records and declared body placement; the fight keeps its native recipe. */
-  persistence?: BossPersistence;
-  body?: () => Animal;
-  /** The resident fight remains frozen while these borrowed bindings leave with its entered scope. */
-  entered?: (install: () => () => void) => void;
-  ctx: PineCtx;
-  interactables: Interactable[];
-  params: URLSearchParams;
-  music: Music;
-  refill: () => void;
-  setWeaponsEnabled: (on: boolean) => void;
-  pickupHum: (on: boolean) => void;
-}
-
-export class AntlerKing {
-  readonly fight: AntlerKingFight;
-  readonly boss: Boss;
-  readonly ui = new BossBar();
-  private forcedNight = false;
-
-  constructor(private readonly host: AntlerKingHost) {
-    const { ctx } = host;
-    this.fight = new AntlerKingFight(ctx, host.entered, host.body);
-    this.fight.prewarm();
-    const def: BossDef = {
-      ...ANTLER_KING_ENCOUNTER, phases: ANTLER_KING_ENCOUNTER.phases.map(({ at, caption, name }) => ({ at, caption, name })),
-      reward: {
-        tier: 'LEGENDARY', name: "THE WARDEN'S LONGBOW", flavour: 'his bow, and his amber for your crossbow', prompt: "Take the Warden's Longbow",
-        model: () => ctx.longbow?.model() ?? ctx.skinModel('warden'),
-        // the bow is kept by the loadout (Owned 'warden-longbow'), never by a pack slot (E314 C: a full pack lost it for good)
-        grant: () => { ctx.ownSkin('warden'); ctx.longbow?.grant(); },
-        trophy: () => { ctx.addItem('amber-resin', 3); }, // a re-fight's prize (was amber heartwood, which nothing used)
-      },
-    };
-    const pl = ctx.player;
-    this.boss = new Boss(def, this.fight, {
-      scene: ctx.game.scene, player: pl, camera: ctx.game.camera, renderer: ctx.game.renderer,
-      lockInput: (on) => { pl.carried = on; host.setWeaponsEnabled(!on); },
-      respawn: (pos, yaw) => { pl.spawn(pos.x, pos.z, yaw); pl.pitch = 0; host.refill(); },
-      addInteractable: (it) => { host.interactables.push(it); },
-      removeInteractable: (it) => { const i = host.interactables.indexOf(it); if (i !== -1) host.interactables.splice(i, 1); },
-      skipHeld: () => app.input.held('skip') || app.input.held('jump') || app.input.held('use') || app.input.held('confirm'),
-      toast: ctx.toast, feed: ctx.feed, pickupHum: host.pickupHum,
-      music: (e) => this.music(e),
-    }, this.ui, 'pine-hollow', host.persistence);
-    const scope = app.levelScope;
-    if (scope !== null) app.encounters.boss(KING_KIND, this.boss, scope);
-    // dev: `?boss=antler-king` — night, you at the stones' N gap; `&bossPhase=2|3` at that checkpoint
-    if (host.params.get('boss') === KING_KIND) {
-      this.forcedNight = true;
-      void ctx.sky.dayNight?.set(PINE_PHASES.night);
-      const from = Number(host.params.get('from') ?? '26');
-      pl.spawn(C.x, C.z + (Number.isFinite(from) ? from : 26), 0);
-      this.fight.setPresent(true); this.boss.arm();
-      const ph = Number(host.params.get('bossPhase') ?? '1');
-      if (ph > 1) this.boss.devStartAt(ph - 1);
-    }
-  }
-
-  private music(e: 'intro' | 'phase' | 'victory' | 'death' | 'pickup'): void {
-    const m = pineScore(this.host.music);
-    if (e === 'intro') { m.setScene('boss'); m.setBossPhase(1); m.combat(1); }
-    else if (e === 'phase') { const ph = this.fight.phase + 1; m.setBossPhase(ph === 3 ? 3 : ph === 2 ? 2 : 1); }
-    else if (e === 'victory') { m.setScene(this.night() ? 'night' : 'day'); m.playSting('chunk'); }
-    else if (e === 'death') { m.setScene(this.night() ? 'night' : 'day'); m.playSting('death'); }
-    else m.playSting('pickup');
-  }
-
-  private night(): boolean { return this.forcedNight || this.host.ctx.night() > 0.5; }
-
-  /** every frame: the King comes at night when you are near, goes by day / when you are far; the fight runs */
-  update(dt: number, t: number): void {
-    kingTick(this.boss, this.fight, this.host.ctx.player.position, this.night(), dt, t);
-  }
-
-  onPlayerDeath(): boolean { return this.boss.onPlayerDeath(); }
-}
+/** The page's encounter handle retains its actual King fight and bar for the existing combat owners. */
+export type AntlerKing = BossEncounter<AntlerKingFight>;

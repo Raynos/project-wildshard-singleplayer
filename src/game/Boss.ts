@@ -1,9 +1,10 @@
+import type { Scope } from '@wildshard/engine/app/scope';
 import { BossBrain, type BossScript } from '@wildshard/engine/ai/BossBrain';
 import { app } from '@wildshard/engine/app/runtime';
 import type { Player } from '@wildshard/engine/player/Player';
 import { WeaponPickup } from '@wildshard/engine/player/WeaponPickup';
 import type { Renderer } from '@wildshard/engine/render/renderer';
-import type { BossBar } from '@wildshard/engine/ui/BossBar';
+import { BossBar } from '@wildshard/engine/ui/BossBar';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { bossesSave, saveSlug } from './saves';
 import * as THREE from 'three';
@@ -14,7 +15,7 @@ import * as THREE from 'three';
  * phase segments, phase changes that change the room, adds and hazards, a checkpoint per phase, and a legendary reward.
  * This class is the GENERIC half — the state machine, the bar, the cards, the checkpoints, the retry, the reward pickup
  * and the persistence. Everything particular to one fight (what the boss does, what the room does) is a `BossScript`
- * (the Golden King's: src/shards/nalati-grasslands/combat/goldenKing.ts). Nalati has two bosses; every later shard reuses this.
+ * supplied by the content owner. Every encounter reuses the same presentation and checkpoint host.
  *
  *   const boss = new Boss(def, script, host, ui);     // ui = new BossBar() (src/engine/ui/BossBar.ts)
  *   boss.arm();                                        // the player is at the door: the next step over the threshold starts it
@@ -77,7 +78,7 @@ export interface BossDef {
 
 export interface BossHost {
   scene: THREE.Scene;
-  player: Player;
+  player: Pick<Player, 'position' | 'yaw' | 'pitch'>;
   camera: THREE.PerspectiveCamera;
   renderer?: Renderer;
   /** a point light that is always in the scene from boot (intensity 0): hidden while the reward orb's own light is up,
@@ -163,4 +164,90 @@ export class Boss extends BossBrain {
     pl.yaw += dy * k;
     pl.pitch += (THREE.MathUtils.clamp(pitch, -0.6, 0.8) - pl.pitch) * k;
   }
+}
+
+/** Ordered score actions at the existing encounter clock's five music boundaries. */
+export type BossScoreAction =
+  | { readonly kind: 'scene'; readonly value: string }
+  | { readonly kind: 'ambient' }
+  | { readonly kind: 'phase'; readonly value: 1 | 2 | 3 }
+  | { readonly kind: 'phase-index'; readonly values: readonly (1 | 2 | 3)[]; readonly otherwise: 1 | 2 | 3 }
+  | { readonly kind: 'combat'; readonly value: number }
+  | { readonly kind: 'sting'; readonly value: 'chunk' | 'death' | 'pickup' };
+/** Encounter and reward cards are authored rows; executable reward ownership stays lent by the caller. */
+export interface BossEncounterRows {
+  readonly definition: Omit<BossDef, 'reward' | 'phases'> & { readonly phases: readonly BossPhaseDef[] };
+  readonly reward: Omit<BossReward, 'model' | 'grant' | 'trophy'>;
+  readonly score?: Readonly<Record<'intro' | 'phase' | 'victory' | 'death' | 'pickup', readonly BossScoreAction[]>>;
+}
+/** A lazy score owner: using the host does not open an audio context or start music at construction. */
+export interface BossEncounterScore {
+  setScene?: (scene: string) => void;
+  setBossPhase?: (phase: 1 | 2 | 3) => void;
+  combat: (intensity: number) => void;
+  playSting: (sting: 'chunk' | 'death' | 'pickup') => void;
+}
+/** Native fight, equipment, presence, save and reward owners remain borrowed; no replacement body is created. */
+export interface BossEncounterPorts<S extends BossScript> extends Omit<BossHost, 'scene' | 'camera' | 'renderer' | 'addInteractable' | 'removeInteractable' | 'music'> {
+  readonly game: Pick<BossHost, 'scene' | 'camera' | 'renderer'>;
+  readonly interactables: Interactable[];
+  readonly scope: Scope | null;
+  readonly chunkId: string;
+  readonly persistence?: BossPersistence;
+  readonly reward: Pick<BossReward, 'model' | 'grant' | 'trophy'>;
+  readonly score?: () => BossEncounterScore;
+  readonly ambientScene?: () => string;
+  readonly scorePhase?: (script: S) => number;
+  readonly music?: BossHost['music'];
+  readonly advance?: (boss: Boss, script: S, dt: number, t: number) => void;
+}
+/** The original bar, reward pickup and boss record over the caller's exact fight. */
+export interface BossEncounter<S extends BossScript> {
+  readonly fight: S;
+  readonly boss: Boss;
+  readonly ui: BossBar;
+  update: (dt: number, t: number) => void;
+  onPlayerDeath: () => boolean;
+}
+/** Assemble the existing rendered Boss once. Bar construction precedes fight preparation/prewarm, and registration
+ * follows Boss construction. Optional score rows preserve action order; presence/dormant stepping stays with the caller.
+ */
+export function installBossEncounter<S extends BossScript>(rows: BossEncounterRows, makeScript: () => S, ports: BossEncounterPorts<S>): BossEncounter<S> {
+  if (rows.score !== undefined && (ports.score === undefined || ports.music !== undefined)) throw new Error('Encounter score rows require one score owner');
+  for (const actions of Object.values(rows.score ?? {})) {
+    if (actions.length > 16) throw new RangeError('Too many encounter score actions');
+    for (const action of actions) {
+      if (action.kind === 'combat' && (!Number.isFinite(action.value) || action.value < 0 || action.value > 1)) throw new RangeError('Invalid encounter intensity');
+      if (action.kind === 'scene' && (action.value.length === 0 || action.value.length > 512)) throw new RangeError('Invalid encounter score scene');
+      if (action.kind === 'ambient' && ports.ambientScene === undefined) throw new Error('Encounter requires its ambient scene owner');
+      if (action.kind === 'phase-index' && (ports.scorePhase === undefined || action.values.length === 0 || action.values.length > 16)) throw new Error('Encounter requires its bounded phase owner');
+    }
+  }
+  const ui = new BossBar(), fight = makeScript();
+  const scoreRows = rows.score, scoreOwner = ports.score;
+  const music: BossHost['music'] = scoreRows === undefined || scoreOwner === undefined ? ports.music : event => {
+    const score = scoreOwner(), actions = scoreRows[event];
+    // Refuse missing borrowed methods before the first effect of this event.
+    for (const action of actions) {
+      if ((action.kind === 'scene' || action.kind === 'ambient') && score.setScene === undefined) throw new Error('Encounter score cannot select a scene');
+      if ((action.kind === 'phase' || action.kind === 'phase-index') && score.setBossPhase === undefined) throw new Error('Encounter score cannot select a phase');
+    }
+    for (const action of actions) {
+      if (action.kind === 'scene') score.setScene?.(action.value);
+      else if (action.kind === 'ambient') { const scene = ports.ambientScene?.(); if (scene === undefined) throw new Error('Missing ambient scene'); score.setScene?.(scene); }
+      else if (action.kind === 'phase') score.setBossPhase?.(action.value);
+      else if (action.kind === 'phase-index') { const phase = ports.scorePhase?.(fight); if (phase === undefined) throw new Error('Missing encounter phase'); score.setBossPhase?.(action.values[phase] ?? action.otherwise); }
+      else if (action.kind === 'combat') score.combat(action.value);
+      else score.playSting(action.value);
+    }
+  };
+  const def: BossDef = { ...rows.definition, phases: rows.definition.phases.map(phase => ({ ...phase })), reward: { ...rows.reward, ...ports.reward } };
+  const boss = new Boss(def, fight, { scene: ports.game.scene, player: ports.player, camera: ports.game.camera, ...(ports.game.renderer === undefined ? {} : { renderer: ports.game.renderer }),
+    lockInput: ports.lockInput, respawn: ports.respawn, skipHeld: ports.skipHeld,
+    addInteractable: it => { ports.interactables.push(it); }, removeInteractable: it => { const index = ports.interactables.indexOf(it); if (index !== -1) ports.interactables.splice(index, 1); },
+    ...(ports.spareLight === undefined ? {} : { spareLight: ports.spareLight }), ...(ports.toast === undefined ? {} : { toast: ports.toast }),
+    ...(ports.feed === undefined ? {} : { feed: ports.feed }), ...(ports.pickupHum === undefined ? {} : { pickupHum: ports.pickupHum }), ...(music === undefined ? {} : { music }),
+  }, ui, ports.chunkId, ports.persistence);
+  if (ports.scope !== null) app.encounters.boss(rows.definition.id, boss, ports.scope);
+  return { fight, boss, ui, update: (dt, t) => { if (ports.advance === undefined) boss.update(dt, t); else ports.advance(boss, fight, dt, t); }, onPlayerDeath: () => boss.onPlayerDeath() };
 }

@@ -5961,3 +5961,19 @@ G441's W3 users are Nine's `world/squareProps.ts` (ordered matrices,
 per-copy params, parent/culler and sliced registration) and
 `world/props3d.ts#place` (authored yaw/scale frames). Their existing share
 selection, names and named sets remain local; pending credit ends at W3.
+
+`game/Boss.installBossEncounter(rows, makeScript, ports)` assembles the existing
+rendered `Boss`: the original `BossBar` is made before `makeScript` prepares
+and prewarms the actual fight, then the reward card/callbacks, persistence,
+interactable list and encounter registration are bound in that order. The
+returned `BossEncounter` retains `fight`, `boss`, `ui`, `update` and death
+checkpoint forwarding. Caller-owned presence, weather, mount/weapon locking,
+respawn and dormant-room stepping remain borrowed through `advance`.
+`BossEncounterRows`, `BossEncounterPorts` and `BossEncounterScore` retain typed
+cards and callbacks; ordered `BossScoreAction` rows select scenes, mapped fight
+phases, combat intensity and existing stings at the five original Boss events.
+Score ownership is lazy and missing ports refuse; no music starts at install.
+Pine uses this instead of its private outer encounter wrapper. G441's real
+W3 adopters are Nalati `combat/stormTitan.ts#bind` and
+`combat/goldenKing.ts#bind`, with `runtime/index.ts`'s score-event callback;
+its storm/tie/leash and mounted-respawn policies stay native, with no new body.
