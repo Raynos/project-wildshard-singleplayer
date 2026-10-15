@@ -2538,6 +2538,9 @@
         "public/assets/driftwood-isle/baked/fixed-models/shrine-specimen-water.glb",
         "public/assets/driftwood-isle/baked/fixed-models/shrine-specimen-glyphs.glb",
         "src/shards/driftwood-isle/data/fixedTiles.generated.json",
+        "src/shards/driftwood-isle/data/bridgeBake.json",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-driftwood.glb",
+        "src/shards/driftwood-isle/data/duneLogsBake.json",
         "src/shards/driftwood-isle/assets/0011ca788361da31965e5d3ae7b05d5b2a80c7b27e3e7154ba04d95c0123af6d",
         "src/shards/driftwood-isle/assets/00268188baf07b6a96e449add801904354513cc04ac0b8b45e3572d21c6b9157",
         "src/shards/driftwood-isle/assets/0318cec04aeccd1db2e61064aab12c7e5b59edf2ec8595f414a6644d6486c4fe",
@@ -2581,11 +2584,11 @@
         "src/shards/driftwood-isle/assets/d59ec07d7fa51fffe08d7f5a5da46c6aa69e2954de0061131feedd7c6183f41c",
         "src/shards/driftwood-isle/assets/d7737c770136ac1d0fc446ed1309a805e1f1dff2f57113aa23efb14e0282de52",
         "src/shards/driftwood-isle/assets/db53f78711dd7b8b87ca34b0c8943d00da071e0b1415eedd4cd4148922b2c985",
+        "src/shards/driftwood-isle/assets/e8c1ff5f599561bc7340780bf19aa8e1a196a36960913a6e85ee715762bf2acd",
         "src/shards/driftwood-isle/assets/ed63f773f7d44365a171f18431da1d571aa9a4a5085ad3143dabc9155a753a35",
         "src/shards/driftwood-isle/assets/f12dc04f6f186cafce4d25689916c08737c7e7809835c509b57852087e2173bb",
         "src/shards/driftwood-isle/assets/f88561216dac439ed1d9efcd967f9d5692eced70540c8c5ea808328082b1f8e2",
-        "src/shards/driftwood-isle/assets/fab3be0e055f56bc498d1489a67226aa84a630540bfe6a2651d93c3523a6a889",
-        "src/shards/driftwood-isle/data/bridgeBake.json"
+        "src/shards/driftwood-isle/assets/fab3be0e055f56bc498d1489a67226aa84a630540bfe6a2651d93c3523a6a889"
       ],
       "seedOutputs": [],
       "platform": "native",
@@ -2604,6 +2607,11 @@
         "public/assets/driftwood-isle/baked/fixed-models/shrine-specimen-water.glb",
         "public/assets/driftwood-isle/baked/fixed-models/shrine-specimen-glyphs.glb",
         "src/shards/driftwood-isle/data/fixedTiles.generated.json",
+        "src/shards/driftwood-isle/data/coveBake.json",
+        "src/shards/driftwood-isle/data/trailsideBake.json",
+        "src/shards/driftwood-isle/data/bridgeBake.json",
+        "public/assets/driftwood-isle/baked/fixed-models/cover-driftwood.glb",
+        "src/shards/driftwood-isle/data/duneLogsBake.json",
         "src/shards/driftwood-isle/assets/0011ca788361da31965e5d3ae7b05d5b2a80c7b27e3e7154ba04d95c0123af6d",
         "src/shards/driftwood-isle/assets/00268188baf07b6a96e449add801904354513cc04ac0b8b45e3572d21c6b9157",
         "src/shards/driftwood-isle/assets/0318cec04aeccd1db2e61064aab12c7e5b59edf2ec8595f414a6644d6486c4fe",
@@ -2647,13 +2655,11 @@
         "src/shards/driftwood-isle/assets/d59ec07d7fa51fffe08d7f5a5da46c6aa69e2954de0061131feedd7c6183f41c",
         "src/shards/driftwood-isle/assets/d7737c770136ac1d0fc446ed1309a805e1f1dff2f57113aa23efb14e0282de52",
         "src/shards/driftwood-isle/assets/db53f78711dd7b8b87ca34b0c8943d00da071e0b1415eedd4cd4148922b2c985",
+        "src/shards/driftwood-isle/assets/e8c1ff5f599561bc7340780bf19aa8e1a196a36960913a6e85ee715762bf2acd",
         "src/shards/driftwood-isle/assets/ed63f773f7d44365a171f18431da1d571aa9a4a5085ad3143dabc9155a753a35",
         "src/shards/driftwood-isle/assets/f12dc04f6f186cafce4d25689916c08737c7e7809835c509b57852087e2173bb",
         "src/shards/driftwood-isle/assets/f88561216dac439ed1d9efcd967f9d5692eced70540c8c5ea808328082b1f8e2",
-        "src/shards/driftwood-isle/assets/fab3be0e055f56bc498d1489a67226aa84a630540bfe6a2651d93c3523a6a889",
-        "src/shards/driftwood-isle/data/coveBake.json",
-        "src/shards/driftwood-isle/data/trailsideBake.json",
-        "src/shards/driftwood-isle/data/bridgeBake.json"
+        "src/shards/driftwood-isle/assets/fab3be0e055f56bc498d1489a67226aa84a630540bfe6a2651d93c3523a6a889"
       ]
     },
     {

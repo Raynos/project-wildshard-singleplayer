@@ -34,6 +34,8 @@ export const SHRINE_GLYPHS_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.shrineGlyphs
 export const SHRINE_SPECIMEN_KIT_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.shrineSpecimenKit);
 export const SHRINE_SPECIMEN_WATER_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.shrineSpecimenWater);
 export const SHRINE_SPECIMEN_GLYPHS_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.shrineSpecimenGlyphs);
+/** The world owns the static dune ring; transfer its buffer instead of retaining a template. */
+export const DUNE_LOGS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.duneLogs);
 let ready = false;
 /** Explorer may open these models before the island's world hook has run. */
 export function fixedGeometryReady(): boolean { return ready; }
@@ -52,6 +54,7 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
     loadTrailsideGeometry(admitted),
     loadCoveGeometry(admitted),
     loadCoverGeometry(admitted),
+    DUNE_LOGS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.duneLogs)),
     IRON_SWORD_BLADE_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.ironSwordBlade)), IRON_SWORD_FITTINGS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.ironSwordFittings)),
     HAT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.hat)), CHIME_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.chime)),
     CAPE_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.cape)), BOAT_HULL_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.boatHull)),

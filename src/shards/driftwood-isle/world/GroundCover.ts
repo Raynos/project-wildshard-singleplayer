@@ -20,14 +20,15 @@ import { DENSITY, beach, ss, type Site } from '../runtime/looks/coverSites';
  * switches (Jake, 2026-09-25); every decided Debug row is gone (E318).
  */
 import * as THREE from 'three';
-import { duneLogs } from '../models/duneLogs';
+import { DUNE_LOGS_GEOMETRY } from '../boot/fixedGeometry';
+import duneLogs from '../data/duneLogsBake.json' with { type: 'json' };
 import { HUT, LOOKOUT, SHRINE, WRECK } from '../manifest';
 import { Cove } from './Cove';
 import { copyCoverGeometry } from '../boot/coverGeometry';
 import { GROUND_COVER } from '../runtime/looks/groundCoverLook';
 import { lowPolyGroundColor } from '../look/groundColor';
 import { CoverGrid, COVER_SEEN_GLSL, coverSample, coverJitter } from './coverTint';
-import { driftLog, driftLogBox } from '../models/driftLog';
+import { driftLog } from '../models/driftLog';
 import { SEED } from '@wildshard/engine/core/config';
 import type { Rng } from '@wildshard/engine/core/rng';
 import { modelContext } from '@wildshard/engine/models/model';
@@ -161,20 +162,13 @@ export class GroundCover {
 
   /** bleached driftwood logs (the E149 painter, driftwood.ts) along the dune line all round the island, one every ~9 m (one static mesh) */
   private buildDriftwood(): void {
-    const {geometry:geo,logs}=duneLogs(heightAt,trailDistance,this.avoid,this.opts.sea,SEED);
+    const geo = DUNE_LOGS_GEOMETRY.take();
     const mesh = new THREE.Mesh(geo, lowPolyLookMaterial(this.sky));
     mesh.name = 'ground-cover-driftwood';
     mesh.userData['coverProp'] = true; // static logs, not instanced cover: the perf probe's cover rows leave it (E405)
     mesh.castShadow = true; mesh.receiveShadow = true;
     this.group.add(mesh);
     // E315 M1: each is the drift log model (src/shards/driftwood-isle/models/driftLog.ts), placed drawnInto this mesh
-    const boxes: number[] = [], box = new THREE.Box3();
-    const pls = logs.map((l) => {
-      driftLogBox(l.a, l.b, l.r, box);
-      boxes.push(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z);
-      const d = l.b.clone().sub(l.a);
-      return { x: (l.a.x + l.b.x) / 2, y: (l.a.y + l.b.y) / 2, z: (l.a.z + l.b.z) / 2, yaw: Math.atan2(-d.z, d.x), params: { len: d.length(), r0: l.r, r1: l.r * 0.7, tone: ((l.tone % 3) + 3) % 3 } };
-    });
-    if (pls.length > 0) this.placed.push(place(driftLog, pls, { ctx: modelContext(this.sky), draw: 'merged', drawnInto: { object: mesh, boxes: Float32Array.from(boxes) }, piece: { id: 'cover-drift-logs' } }));
+    if (duneLogs.placements.length > 0) this.placed.push(place(driftLog, duneLogs.placements, { ctx: modelContext(this.sky), draw: 'merged', drawnInto: { object: mesh, boxes: Float32Array.from(duneLogs.boxes) }, piece: { id: 'cover-drift-logs' } }));
   }
 }

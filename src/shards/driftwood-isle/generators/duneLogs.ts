@@ -4,7 +4,7 @@ import { log } from '@wildshard/engine/world/geometryKit';
 import { addDriftLog, DRIFT } from '../world/driftLogs';
 import { ISLAND } from '../data/layout';
 
-/** Native dune-log recipe shared by the world and its offline clipping compiler; no serialized geometry. */
+/** Author-only dune-log sculpt and scatter, shared by the fixed mesh and clipping compilers. */
 export function duneLogs(heightAt:(x:number,z:number)=>number,trailDistance:(x:number,z:number)=>number,avoid:readonly{x:number;z:number;r:number}[],seaLevel:number,seed:number):{geometry:THREE.BufferGeometry;logs:{a:THREE.Vector3;b:THREE.Vector3;r:number;tone:number}[]} {
     const kit = new LowPolyKit(seed ^ 0x6c08), rng = kit.rng, sea = seaLevel;
     const logs: { a: THREE.Vector3; b: THREE.Vector3; r: number; tone: number }[] = [];
@@ -30,3 +30,4 @@ export function duneLogs(heightAt:(x:number,z:number)=>number,trailDistance:(x:n
     const geo = kit.finish({ ao: { ground: heightAt, cell: 0.35, strength: 0.5 } });
     return {geometry:geo,logs};
 }
+

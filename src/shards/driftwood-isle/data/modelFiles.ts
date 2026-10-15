@@ -44,4 +44,5 @@ export const FIXED_MODEL_FILES = {
   wreckRocks: '/assets/driftwood-isle/baked/fixed-models/wreck-rocks.glb',
   shipwreckKit: '/assets/driftwood-isle/baked/fixed-models/shipwreck-kit.glb',
   shipwreckGlow: '/assets/driftwood-isle/baked/fixed-models/shipwreck-glow.glb',
+  duneLogs: '/assets/driftwood-isle/baked/fixed-models/cover-driftwood.glb',
 } as const;

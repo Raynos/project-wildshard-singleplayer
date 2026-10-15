@@ -14,7 +14,7 @@ import { palmGeometry } from './palm';
 import { hibiscusBush } from '../models/hibiscusBush';
 import { leafClump } from './hibiscus';
 import { driftwoodGroundBytes } from './groundRows';
-import { duneLogs } from '../models/duneLogs';
+import { duneLogs } from './duneLogs';
 import { bakeFullIslandCover } from './islandCover';
 import { inArea } from '../world/blenderArea';
 
