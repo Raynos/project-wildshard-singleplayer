@@ -8,7 +8,8 @@ import { createHash } from 'node:crypto';
 
 const root = resolve(import.meta.dirname, '..');
 const scratch = mkdtempSync(join(tmpdir(), 'wildshard-sdk-proof-'));
-const run = (command, args, cwd = root) => execFileSync(command, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+// The consumer project is a throwaway copy: no compile cache keyed by its paths (disk audit finding 2).
+const run = (command, args, cwd = root) => execFileSync(command, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NODE_DISABLE_COMPILE_CACHE: '1' } });
 const hashes = (directory, prefix = '') => readdirSync(join(directory, prefix)).sort().flatMap((name) => {
   const path = join(prefix, name), absolute = join(directory, path);
   return statSync(absolute).isDirectory() ? hashes(directory, path) : [[path, createHash('sha256').update(readFileSync(absolute)).digest('hex')]];

@@ -8,7 +8,8 @@ import { join, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..'), project = resolve(root, process.argv[2] ?? 'src/shards/blender-template');
 const scratch = mkdtempSync(join(tmpdir(), 'sf55-project-copy-'));
-const run = (command, args, cwd = root) => execFileSync(command, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+// The consumer project is a throwaway copy: no compile cache keyed by its paths (disk audit finding 2).
+const run = (command, args, cwd = root) => execFileSync(command, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, NODE_DISABLE_COMPILE_CACHE: '1' } });
 const hashes = directory => readdirSync(directory).sort().map(name => [name, createHash('sha256').update(readFileSync(join(directory, name))).digest('hex')]);
 try {
   run('pnpm', ['--dir', 'src/sdk', 'pack', '--pack-destination', scratch]);

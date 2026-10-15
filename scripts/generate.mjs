@@ -100,7 +100,9 @@ function catalogueProjection(root, job, catalog) {
 /** Run a Node producer without a shell, in its own copied source tree. @param {string} cwd @param {string[]} command */
 function nodeProducer(cwd,command) {
   return new Promise((_resolve,reject)=>{
-    const child=spawn(process.execPath,command,{cwd,stdio:['ignore','inherit','inherit']});
+    // cwd is a throwaway mkdtemp copy (here and in generation-clean-room.mjs): Node keys its compile cache by path, so
+    // every job wrote a full cache that was never read again (~400k files an hour into $TMPDIR, disk audit finding 2).
+    const child=spawn(process.execPath,command,{cwd,env:{...process.env,NODE_DISABLE_COMPILE_CACHE:'1'},stdio:['ignore','inherit','inherit']});
     child.on('error',reject);child.on('exit',code=>code===0?_resolve(undefined):reject(new Error(`Generator exited ${String(code)}`)));
   });
 }
