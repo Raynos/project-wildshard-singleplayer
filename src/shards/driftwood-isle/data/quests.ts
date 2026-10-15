@@ -1,5 +1,6 @@
 import { parseQuestData } from '@wildshard/sdk/quests';
 import { DRIFTWOOD_QUEST, CASTAWAY } from './questStory';
+import { QUEST_FLAGS } from './questHost';
 
 // Declared markers carry their stable IDs; the trusted placement port restores the original POI/anchor/dy recipe.
 const markers = [...(DRIFTWOOD_QUEST.intro?.markers ?? []), ...DRIFTWOOD_QUEST.steps.flatMap(step => step.markers ?? [])];
@@ -8,7 +9,7 @@ const declaredMarker = (marker: (typeof markers)[number]) => ({ ...marker, at: {
 const reads = (condition: { all?: readonly string[]; any?: readonly string[]; none?: readonly string[] } | undefined): readonly string[] => [...(condition?.all ?? []), ...(condition?.any ?? []), ...(condition?.none ?? [])];
 const declaredStep = (step: (typeof DRIFTWOOD_QUEST.steps)[number]) => ({ ...step, markers: step.markers?.map(declaredMarker) ?? [] });
 export const DRIFTWOOD_QUESTS = parseQuestData({
-  flags: [...new Set([DRIFTWOOD_QUEST.completeFlag, ...reads(DRIFTWOOD_QUEST.startWhen), ...DRIFTWOOD_QUEST.steps.flatMap(step => [...reads(step.done), ...(step.count ?? [])]), ...markers.flatMap(marker => reads(marker.hideWhen)), ...CASTAWAY.dialogue.flatMap(entry => reads(entry.when).concat(entry.sets ?? []))])],
+  flags: [...new Set([...QUEST_FLAGS, DRIFTWOOD_QUEST.completeFlag, ...reads(DRIFTWOOD_QUEST.startWhen), ...DRIFTWOOD_QUEST.steps.flatMap(step => [...reads(step.done), ...(step.count ?? [])]), ...markers.flatMap(marker => reads(marker.hideWhen)), ...CASTAWAY.dialogue.flatMap(entry => reads(entry.when).concat(entry.sets ?? []))])],
   quests: [{ ...DRIFTWOOD_QUEST,
     ...(DRIFTWOOD_QUEST.intro === undefined ? {} : { intro: { ...DRIFTWOOD_QUEST.intro, markers: DRIFTWOOD_QUEST.intro.markers?.map(declaredMarker) ?? [] } }),
     steps: DRIFTWOOD_QUEST.steps.map(declaredStep),

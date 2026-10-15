@@ -7,12 +7,12 @@ import { BARREL_BODY, BARREL_HALF, BarrelWatch, barrelAtPlate, type BarrelEnv } 
 import type { GroupName } from '@wildshard/engine/physics/groups';
 import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import { bindInteractionTransitions, type InteractionState } from '@wildshard/engine/world/interact/flags';
-import type { QuestData } from '@wildshard/format/quests';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { DeclaredQuests } from '@wildshard/game/quest/declared';
-import { installQuestGraph, bindQuestTableSpots, QuestRewardController } from '@wildshard/game/plugin/quests';
+import { bindQuestTableSpots, QuestRewardController } from '@wildshard/game/plugin/quests';
+import { installDeclaredQuestHost } from '@wildshard/game/plugin/simulation';
 import { createAchievementCounters } from '@wildshard/game/achievements';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../data/questInventory';
-import { DRIFTWOOD_GRAPH, DRIFTWOOD_ACTIONS } from '../data/questGraph';
 import baked from '../data/spots.generated.json' with { type: 'json' };
 import { DriftwoodPack } from './pack';
 import { ZiplineDriver } from '@wildshard/sdk/movers';
@@ -28,15 +28,13 @@ export const QUEST_STEP = 'driftwood.quest';
 /** The finale's last flag (runtime/finalePresentation.ts: the reward view's end). */
 export const REWARD_FLAG = 'seen:reward';
 
-/** The browser player's eye above the feet (engine Player EYE): prompts pick by eye distance (Interactables.pickInteractable). */
-const EYE = 1.68;
 /** Interactables.ts: the kit's prompt radius, its walk-in take radius (feet), the walk-in's height window and the plate slab. */
 const TOUCH_R = 1.1, TOUCH_DY = 2.2, PLATE_INSET = 0.1, PLATE_DEPTH = 0.1;
 /** Wendell's talk radius from his head (quest/Spine.ts TALK_R). */
 const TALK_R = 3.2;
 /** The iron sword's prompt (weapons/IronSword.ts): 2.6 m from the eye once no drowned sailor guards it. */
 const SWORD_R = 2.6;
-const MAX_COMMANDS = 1024, MAX_ROWS = 64, MAX_BODIES = 64;
+const MAX_ROWS = 64, MAX_BODIES = 64;
 const PLATE_SEES: readonly GroupName[] = ['PLAYER', 'ITEM'], anyOwner = (): boolean => true;
 
 const finite = v.pipe(v.number(), v.finite()), xyz = { x: finite, y: finite, z: finite };
@@ -58,7 +56,7 @@ export function driftwoodSpots(): DriftwoodSpots {
 export interface QuestBody { readonly kind: string; readonly actor: { readonly alive: boolean; readonly position: { readonly x: number; readonly z: number }; readonly combatActor: () => unknown } | null }
 /** What the quest keeper is lent. */
 export interface DriftwoodQuestPorts {
-  readonly quests: QuestData;
+  readonly source: Shardfile;
   readonly table: InteractTable;
   readonly spots: DriftwoodSpots;
   /** The admitted cable row; the native quest remains the sole carry owner. */
@@ -133,13 +131,10 @@ const BARREL_OWNER = { kind: 'barrel', id: 'tide-barrel' } as const;
  * never-jam rule (BarrelWatch, each tick on the walk the player asks for); the open sluice drops its baked collider (on the
  * page it parks the tick its gate starts to lift, here in the tick it opens).
  */
-export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts): { quests: DeclaredQuests; pack: DriftwoodPack; act: (value: number) => void } {
+export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts): { quests: DeclaredQuests; pack: DriftwoodPack } {
   const { table, spots } = ports, flags = host.flags;
   const rules: Rule[] = [...bindQuestTableSpots(table, spots.rows, flags, { rows: MAX_ROWS, items: MAX_ROWS, ordered: true }).values()];
 
-  const graph = installQuestGraph(host, { quests: ports.quests, interactions: DRIFTWOOD_ACTIONS, npcs: [], graph: DRIFTWOOD_GRAPH },
-    { spots: { interact: [], crack: [] }, commands: ports.commands, fact: ports.fact, coins: ports.coins, drive: 'external' });
-  const quests = graph.quests;
   const pack = new DriftwoodPack();
   // The page's carried branch leaves the motor alone and clears impulse/velocity before the ride's post-player update.
   // This one player owner will also host the reward carry; an inactive ride retains the ordinary host motion law.
@@ -167,7 +162,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     },
   });
   host.scope.onDispose(() => { reward.dispose(); });
-  const eye = new Vector3(), at = new Vector3(), keyPrompt = { x: 0, y: 0, z: 0 }, slab = { x: 0, y: 0, z: 0 }, half = { x: 0, y: PLATE_DEPTH, z: 0 };
+  const keyPrompt = { x: 0, y: 0, z: 0 }, slab = { x: 0, y: 0, z: 0 }, half = { x: 0, y: PLATE_DEPTH, z: 0 };
   const state: { key: { x: number; y: number; z: number } | null; iron: boolean } = { key: null, iron: false };
   const feats=ports.feats.filter(f=>f.kind===undefined);
   if(feats.length>MAX_ROWS||feats.some(f=>f.count>MAX_ROWS))throw new RangeError('Driftwood feats exceed their finite bound');
@@ -175,10 +170,6 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   const flagRows=feats.map(feat=>DRIFTWOOD_FEAT_COUNTERS.flags.find(row=>row.id===feat.id)??{id:feat.id,method:'count' as const,value:{constant:0 as const}});
   const counter=createAchievementCounters({...DRIFTWOOD_FEAT_COUNTERS,feats,flags:flagRows,write:'each'},
     {read:()=>({...counts}),write:current=>{counts=current;},emit:ports.fact});
-  const near = (p: { x: number; y: number; z: number }, radius: number): boolean => {
-    eye.copy(host.player.position); eye.y += EYE;
-    return at.set(p.x, p.y, p.z).distanceTo(eye) < radius;
-  };
   /** the row's prompt point: the hold key's follows where the sailor fell (Interactables.moveTo, 1 m over the key) */
   const promptOf = (r: Rule): { x: number; y: number; z: number } | undefined => {
     if (r.d.kind !== 'key' || state.key === null) return r.spot.prompt;
@@ -196,8 +187,9 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     slab.x = r.spot.x; slab.y = r.spot.y + PLATE_DEPTH / 2; slab.z = r.spot.z; half.x = h; half.z = h;
     return overlapBox(host.physics, slab, half, r.spot.yaw, PLATE_SEES, anyOwner);
   };
+  let commit: ReturnType<typeof installDeclaredQuestHost>['run'] = () => { throw new Error('Native quest graph is not installed'); };
   const transitions=bindInteractionTransitions(rules,flags,{rowLimit:MAX_ROWS,flagLimit:MAX_ROWS,
-    commit:id=>graph.run(id),item:(id,n)=>{pack.add(id,n);},plate:plateDown,
+    commit:id=>commit(id),item:(id,n)=>{pack.add(id,n);},plate:plateDown,
     touched:r=>{const feet=host.player.position,dx=feet.x-r.spot.x,dz=feet.z-r.spot.z;
       return dx*dx+dz*dz<TOUCH_R*TOUCH_R&&Math.abs(feet.y-r.spot.y)<TOUCH_DY;}});
   const picker = createHeadlessPromptPicker(host);
@@ -210,21 +202,21 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     const prompt: HeadlessPrompt = { act: DRIFTWOOD_ACT.row + i, get position() { return promptOf(r) ?? r.spot; }, get radius() { return r.promptRadius(); } };
     return prompt;
   });
-  const act = (value: number): void => {
-    if (picker.pick(prompts)?.act !== value) return;
-    if (value === DRIFTWOOD_ACT.talk) { if (near(spots.talk, TALK_R)) graph.run('castaway.talk'); return; }
-    if (value === DRIFTWOOD_ACT.sword) {
-      // while guarded the prompt shrinks to the rack (1.4 m) and E only says why (weapons/IronSword.ts)
-      if (!state.iron && !guarded() && near(spots.sword, SWORD_R)) { state.iron = true; ports.ironTaken(); }
-      return;
-    }
-    if (value === DRIFTWOOD_ACT.zipline) {
-      if (!zipline.isRiding && near(spots.zipline.prompt, spots.zipline.prompt.radius)) zipline.start();
-      return;
-    }
-    const r = rules[value - DRIFTWOOD_ACT.row], p = r === undefined ? undefined : promptOf(r);
-    if (r !== undefined && p !== undefined && near(p, r.promptRadius())) transitions.interact(r);
-  };
+  const interact = spots.promptRegistrations.flatMap((registration, index) => {
+    const prompt = prompts[index];
+    if (registration.id === null || prompt === undefined) return [];
+    return prompt.act === null ? [] : [{ id: registration.id,
+      get x() { return prompt.position.x; }, get y() { return prompt.position.y; }, get z() { return prompt.position.z; },
+      get radius() { return picker.pick(prompts)?.act === prompt.act ? prompt.radius : 0; } }];
+  });
+  const graph = installDeclaredQuestHost(host, ports.source, { spots: { interact, crack: [] }, commands: ports.commands,
+    fact: ports.fact, coins: ports.coins, directorActions: new Map(),
+    observations: new Map([['sword-free', () => !state.iron && !guarded()], ['zipline-idle', () => !zipline.isRiding]]),
+    actions: new Map<string, () => void>([
+      ['iron-sword', () => { state.iron = true; ports.ironTaken(); }], ['zipline', () => { zipline.start(); }],
+      ...rules.map(row => [row.d.id, () => { transitions.interact(row); }] as const),
+    ]) });
+  commit = graph.run;
 
   // the sailor's fall drops the hold key on the floor there (quest/Spine.ts's kill hook, order 10)
   host.events.on('actor.died', ({ actor }) => {
@@ -264,11 +256,6 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
   let sluice: Collider | null = null;
   const findSluice = (): void => { sluice = sluiceRule?.spot.collider === undefined ? null : bakedBox(host.physics, sluiceRule.spot.collider); };
   host.onStep(QUEST_STEP, dt => {
-    const list = ports.commands();
-    for (let c = 0; c < MAX_COMMANDS; c++) {
-      const command = list[c]; if (command === undefined) break;
-      if (command.actorId === DRIFTWOOD_INTERACT) act(command.value);
-    }
     // the barrel first (Interactables.update: its pose from the body, then the never-jam rule; plates feel the body itself)
     const b = barrel;
     if (b !== null) {
@@ -310,5 +297,5 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     },
   });
   if (!ports.restoring) { spawnBarrel(); findSluice(); }
-  return { quests, pack, act };
+  return { quests: graph.quests, pack };
 }
