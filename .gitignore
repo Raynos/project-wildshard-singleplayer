@@ -1169,3 +1169,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/pine-hollow/assets/096ee8b7f6f258065a3c1aa637eb9fb942d85e6bbbeda5eabcb98858679ad6a4
 /src/shards/pine-hollow/assets/344021b1fb8ae25b830af2437f12f39e53ac77eb402d001164a269f92f12bc60
 /src/shards/pine-hollow/assets/78629da1c49ee7f0b7f44b26be5ad1c282e67271a0be409356e49902c634a1d6
+
+# Fixed-model producer emits the static dune-log catalogue at build time.
+/src/shards/driftwood-isle/data/duneLogsBake.json
