@@ -283,6 +283,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   readonly epilogue: EpilogueStage[] = [];
   /** node-material programs this handler built (the validator's and the bench's count) */
   builds = 0;
+  private readonly textureUpdates: TextureUpdates;
   /** ms spent in the node builder (JS), summed */
   buildMs = 0;
   private real: Renderer | null = null;
@@ -299,7 +300,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     super();
     const textureFrame: unknown = Reflect.get(this, 'nodeFrame');
     if (!(textureFrame instanceof NodeFrame)) throw new Error('Missing node frame');
-    const textures = new TextureUpdates(textureFrame);
+    const textures = new TextureUpdates(textureFrame); this.textureUpdates = textures;
     Reflect.set(this, 'updateNodes', (nodes: unknown): void => { textures.update(nodes); });
     installNodeCoarseMask(nodeCoarseMask);
     installNodeLayerFrame(nodeLayerFrame);
@@ -370,6 +371,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       return layer.whole ? out.mul(fade) : vec4(out.xyz, out.w.mul(fade));
     });
   }
+
+  override renderEnd(): void { try { super.renderEnd(); } finally { this.textureUpdates.endRender(); } }
 
   /** Clone-safe optional attributes use the renderer's existing constant-value binding. */
   override setObject(object: THREE.Object3D, material: THREE.Material): void {
@@ -478,7 +481,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    * bakes of one build differed); three's stock fog node is dropped wherever the engine epilogue fogs
    */
   override renderStart(scene: THREE.Object3D, camera: THREE.Camera, targetScene?: THREE.Object3D): void {
-    super.renderStart(scene, camera, targetScene);
+    super.renderStart(scene, camera, targetScene); this.textureUpdates.beginRender();
     const frame: unknown = Reflect.get(this, 'nodeFrame');
     if (worldTime.t !== null && typeof frame === 'object' && frame !== null) {
       Reflect.set(frame, 'time', worldTime.t);

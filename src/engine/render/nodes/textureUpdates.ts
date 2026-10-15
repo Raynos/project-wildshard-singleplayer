@@ -1,4 +1,4 @@
-/** Coalesce pure sampler reads without caching across object-dependent updates. */
+/** Schedule render inputs and coalesce stock pure reads between callbacks. */
 import type { Texture } from 'three';
 import { NodeUpdateType, TextureNode, type Node, type NodeFrame } from 'three/webgpu';
 
@@ -28,20 +28,34 @@ function textureFlip(texture: SampleTexture): boolean {
     texture.isRenderTargetTexture || texture.isFramebufferTexture === true || texture.isDepthTexture === true;
 }
 
-/** Stock frame/render scheduling remains on every generic updater. Only stock,
- * matrix-free OBJECT samplers share a pure read until the next generic update.
+/** RENDER nodes share a camera-pass epoch. Object inputs and custom callbacks
+ * keep NodeFrame dispatch. Matrix-free
+ * samplers share a pure read only until the next object-dependent updater.
  * No texture, clock, shader, buffer or program key is modified. */
 export class TextureUpdates {
   private readonly plans = new WeakMap<object, Plan>();
   private readonly frame: NodeFrame;
+  private serial = 0;
+  private readonly passes: { id: number; camera: NodeFrame['camera'] }[] = [];
   constructor(frame: NodeFrame) { this.frame = frame; }
+  /** A render and each nested/shadow camera pass have their own RENDER epoch. */
+  beginRender(): void { this.passes.push({ id: ++this.serial, camera: this.frame.camera }); }
+  endRender(): void {
+    this.passes.pop(); const outer = this.passes.at(-1);
+    if (outer !== undefined) { outer.id = ++this.serial; outer.camera = this.frame.camera; }
+  }
 
   update(nodes: unknown): void {
     if (!Array.isArray(nodes)) throw new Error('Missing node update list');
     let plan = this.plans.get(nodes);
     if (plan === undefined) { plan = this.prepare(nodes); this.plans.set(nodes, plan); }
     const frame = this.frame;
-    frame.renderId++;
+    const pass = this.passes.at(-1);
+    if (pass === undefined) frame.renderId = ++this.serial;
+    else {
+      if (pass.camera !== frame.camera) { pass.id = ++this.serial; pass.camera = frame.camera; }
+      frame.renderId = pass.id;
+    }
     let epoch = ++plan.epoch;
     for (const entry of plan.updates) {
       if (entry.kind === 'sample') {
