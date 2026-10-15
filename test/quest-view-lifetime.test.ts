@@ -7,7 +7,7 @@ import { shardContext } from '../src/game/plugin/context';
 import { QuestViews } from '../src/game/plugin/ui';
 import { RetainedRuntimeHooks } from '../src/game/shard/retainedHooks';
 import { DialogueBox } from '../src/engine/quest/view/ui';
-import { TEMPLATE } from '../src/shards/_template/manifest';
+import { MANIFEST as TEMPLATE } from '../src/shards/_template/discovery.generated';
 
 test('quest views borrow home ownership, recreate modal clocks and refuse stale or duplicate widgets', () => {
   const scope = new Scope('quest-view-test'), app = new App();

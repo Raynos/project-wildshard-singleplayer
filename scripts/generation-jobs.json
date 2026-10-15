@@ -3748,7 +3748,8 @@
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
         "public/assets/baked/pine-hollow/terrain.bin",
-        "scripts/generation-level.mjs"
+        "scripts/generation-level.mjs",
+        "scripts/authored-manifest.mjs"
       ],
       "outputs": [
         "public/assets/hdri/qwantani_dawn_puresky_2k.key.jpg",
@@ -4012,7 +4013,8 @@
         "package.json",
         "pnpm-lock.yaml",
         "pnpm-workspace.yaml",
-        "public/assets/baked/nalati-grasslands/terrain.bin"
+        "public/assets/baked/nalati-grasslands/terrain.bin",
+        "scripts/authored-manifest.mjs"
       ],
       "outputs": [
         "public/assets/nalati/baked/bodies.bin",
@@ -4197,7 +4199,8 @@
         "pnpm-workspace.yaml",
         "public/assets/baked/nalati-grasslands/terrain.bin",
         "budgets",
-        "scripts/bake-output.mjs"
+        "scripts/bake-output.mjs",
+        "scripts/authored-manifest.mjs"
       ],
       "outputs": [
         "public/assets/nalati/baked/places.bin",
@@ -4270,7 +4273,8 @@
         "src/shards/far-reach",
         "src/shards/far-reach/data/restPools.generated.json",
         "src/shards/far-reach/data/restScenes.generated.json",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/world/materials.ts",
+        "scripts/authored-manifest.mjs"
       ],
       "outputs": [
         "public/assets/far-reach/rigs/storm-roc.glb",
@@ -4313,7 +4317,8 @@
         "src/shards/far-reach/data/restFiles.ts",
         "src/shards/far-reach/data/restPools.generated.json",
         "src/shards/far-reach/data/restScenes.generated.json",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/world/materials.ts",
+        "scripts/authored-manifest.mjs"
       ],
       "outputs": [
         "public/assets/far-reach/baked/winch-house.glb",
@@ -11826,7 +11831,8 @@
         "src/shards/far-reach/data/restPools.generated.json",
         "src/shards/far-reach/data/restScenes.generated.json",
         "src/shards/far-reach/generators/bridgeRest.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/world/materials.ts",
+        "scripts/authored-manifest.mjs"
       ],
       "outputs": [
         "public/assets/far-reach/baked/mill-rest.glb"
@@ -11964,7 +11970,8 @@
         "src/shards/far-reach/data/restPools.generated.json",
         "src/shards/far-reach/data/restScenes.generated.json",
         "src/shards/far-reach/generators/bridgeRest.ts",
-        "src/shards/far-reach/world/materials.ts"
+        "src/shards/far-reach/world/materials.ts",
+        "scripts/authored-manifest.mjs"
       ],
       "outputs": [
         "src/shards/far-reach/data/millRest.generated.json"

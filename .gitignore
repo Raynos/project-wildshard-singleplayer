@@ -1099,3 +1099,5 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /progress/**/*.webm
 /progress/**/*.gif
 /docs/**/*.pdf
+
+/src/shards/*/discovery.generated.ts

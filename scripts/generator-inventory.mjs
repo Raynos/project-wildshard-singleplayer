@@ -146,6 +146,12 @@ export function generatorInventory(root) {
       }
     });
   }
+  for (const slug of slugs) {
+    const file = `src/shards/${slug}/manifest.json`;
+    if (!existsSync(resolve(root, file))) continue;
+    const manifest = JSON.parse(readFileSync(resolve(root, file), 'utf8'));
+    for (const row of manifest.pois ?? []) if (text(row?.id)) add(slug, 'World', row.id, text(row.name), file, file);
+  }
   rows.sort((a,b)=>[a.shard,a.explorer,a.id].join('\0').localeCompare([b.shard,b.explorer,b.id].join('\0')));
   const totals=slugs.map(shard=>{
     const entries=rows.filter(row=>row.shard===shard),ported=entries.filter(row=>row.status==='generator in shard folder'),left=entries.filter(row=>row.status!=='generator in shard folder');

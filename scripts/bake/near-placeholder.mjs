@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { shardManifestPath } from '../authored-manifest.mjs';
 // G342: bake one shard's near placeholder (public/assets/baked/<slug>/near.glb + near.json). Its drawn static world is
 // built in Node from the shard's own authored world through the bake world host, as the physics bakes build it (no
 // browser, no game page), harvested as prototypes with their placed copies, reduced by the SDK producer
@@ -61,7 +62,7 @@ const sky = new Proxy({ setupMaterial: noop, csm: { lights: [new THREE.Direction
 { get: (target, key) => key in target ? target[key] : typeof key === 'string' && key.endsWith('Color')
   ? new THREE.Color(1, 1, 1) : typeof key === 'string' && key.endsWith('Dir') ? new THREE.Vector3(0, 1, 0) : undefined });
 (await at('src/engine/core/tier.ts')).initializeTier('phone');
-const { default: manifest } = await at(`src/shards/${slug}/manifest.ts`);
+const { default: manifest } = await at(shardManifestPath(root, slug));
 (await at('src/game/shard/list.ts')).installShards([manifest]);
 (await at('src/game/shard/registry.ts')).setActiveChunk(manifest.slug);
 const { Terrain, terrainChunkGeometry } = await at('src/engine/world/Terrain.ts');

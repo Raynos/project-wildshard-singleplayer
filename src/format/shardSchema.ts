@@ -1,3 +1,4 @@
+import { ManifestMetadataSchema } from '@wildshard/format/minimap';
 import { diverPreset } from '@wildshard/format/flyers';
 import { grazerPreset } from '@wildshard/format/grazers';
 import { ShardFiniteSchema as finite, ShardReferenceSchema as ref, ShardNamesSchema as names, IdentitySchema, RequiresSchema, BudgetsSchema, SimSchema, AuthorCapsSchema, ServerBudgetSchema, FilesSchema, TilesSchema, LibrarySchema, CriticalSchema, FarSchema, SpawnSchema } from '@wildshard/format/shardSections';
@@ -63,6 +64,7 @@ const rawSchema = v.strictObject({
   accent: AccentSchema,
   identity: IdentitySchema,
   presentation: v.exactOptional(PresentationSchema),
+  manifest: v.exactOptional(ManifestMetadataSchema),
   map: v.exactOptional(MapSchema),
   requires: RequiresSchema,
   budgets: BudgetsSchema,
@@ -115,6 +117,7 @@ export interface Shardfile {
   accent: v.InferOutput<typeof AccentSchema>;
   identity: v.InferOutput<typeof IdentitySchema>;
   presentation?: v.InferOutput<typeof PresentationSchema>;
+  manifest?: v.InferOutput<typeof ManifestMetadataSchema>;
   map?: v.InferOutput<typeof MapSchema>;
   requires: v.InferOutput<typeof RequiresSchema>;
   budgets: v.InferOutput<typeof BudgetsSchema>;

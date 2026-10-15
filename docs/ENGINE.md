@@ -5606,3 +5606,17 @@ the weapon. Apply parts after action/reload progress and before hand placement,
 then apply the root after the frame/ADS inputs. Begin presentation once per
 source frame. Rows can initialize a private smoothing slot from a borrowed
 part's initial angle; no shared gameplay state is published or retained.
+
+G424 authored discovery uses `manifest.json`, checked by the defining
+`ManifestMetadataSchema` in `@wildshard/format/minimap` and the shardfile schema's
+optional `manifest` section. `defineAuthoredShard` in
+`@wildshard/game/shard/manifest` combines those admitted rows with explicit lazy
+native loaders and generated boot/navigation/budget bindings. Folder discovery
+emits `discovery.generated.ts`: every `/src/` image string becomes a literal
+bundler import, while public map images and inline card art keep their URLs.
+`bindings` names existing shard-local exports. The general generator emits
+literal typed imports for resources and lazy imports for loaders; unknown modules
+or exports fail generation or typechecking. Handwritten native providers remain
+ordinary counted source. The exact discovery outputs are listed under this
+producer in `scripts/source-generation-outputs.json`.
+Missing source images and mismatched folder identities refuse admission.

@@ -27,7 +27,7 @@ export function shardWordData(root, shard) {
   // the lint guard resolves their inventoried paths to the same primary, while all hard rules remain active.
   const aliases = legacyInventory(root).shards;
   const requested = shard !== undefined && Object.hasOwn(aliases, shard) ? aliases[shard].primary : shard;
-  if (requested !== undefined && (!/^[a-z0-9_-]+$/.test(requested) || !existsSync(resolve(root, 'src/shards', requested, 'manifest.ts')))) {
+  if (requested !== undefined && (!/^[a-z0-9_-]+$/.test(requested) || !(existsSync(resolve(root, 'src/shards', requested, 'manifest.ts')) || existsSync(resolve(root, 'src/shards', requested, 'manifest.json'))))) {
     throw new Error(`gen-shards: unknown shard ${shard}`);
   }
   const modules = new Map(), resolving = new Set();
@@ -122,9 +122,10 @@ export function shardWordData(root, shard) {
     if (requested !== undefined && entry.name !== requested) continue;
     if (!entry.isDirectory()) continue;
     const file = resolve(root, 'src/shards', entry.name, 'manifest.ts');
-    if (!existsSync(file)) continue;
-    const mod = module(file);
-    const data = [...mod.exports.values()].map((n) => value(n, mod)).find((v) => v && typeof v === 'object' && typeof v.slug === 'string');
+    const json = resolve(root, 'src/shards', entry.name, 'manifest.json');
+    if (!existsSync(file) && !existsSync(json)) continue;
+    const mod = existsSync(json) ? null : module(file);
+    const data = existsSync(json) ? JSON.parse(readFileSync(json, 'utf8')) : [...mod.exports.values()].map((n) => value(n, mod)).find((v) => v && typeof v === 'object' && typeof v.slug === 'string');
     const settings = new Set(data?.debugOptions);
     const ids = new Set();
     const plugins = new Set([find(resolve(dirname(file), 'plugin'))]);

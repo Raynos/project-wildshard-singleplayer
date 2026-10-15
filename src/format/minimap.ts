@@ -1,3 +1,5 @@
+import * as v from 'valibot';
+
 /**
  * The minimap's pure row contracts (DS1.1): a named place on the maps, as a level's map palette declares it (the
  * minimap's labels, the full map's pins), and a whole map palette as declared rows (SHARD-PLATFORM M3). The engine's
@@ -176,4 +178,89 @@ export function mapPalette(row: MapPaletteRow): MapPaletteLook {
   };
   const pois = (): MapPoi[] => row.pois.map((p) => ({ x: p.x, z: p.z, label: p.label, color: p.color }));
   return { ground, overlay, pois };
+}
+
+/** Authored discovery metadata. Source image paths are resolved by generated
+ * discovery imports; shardfile presentation hashes retain their own contract. */
+const text = v.pipe(v.string(), v.minLength(1), v.maxLength(512));
+const number = v.pipe(v.number(), v.minValue(-1e9), v.maxValue(1e9));
+const rgb = v.tuple([number, number, number]);
+const image = v.pipe(v.string(), v.maxLength(16384), v.regex(/^(?:\/src\/|\/assets\/|data:image\/)/u));
+const art = v.strictObject({ world: image, models: image, sets: image, practice: image });
+const band = v.strictObject({ azimuth: number, spread: number, height: number, rough: number });
+const ring = v.strictObject({ r: number, base: number, color: rgb, top: rgb, snowLine: number, haze: number,
+  bands: v.pipe(v.array(band), v.maxLength(128)), floor: number });
+/** JSON metadata shared by discovery and the shardfile schema. Native loaders,
+ * generated inventories and terrain/model owners are explicit typed bindings. */
+const bindingModule = v.pipe(text, v.regex(/^\.\/[a-zA-Z0-9_-]+(?:[./][a-zA-Z0-9_-]+)*$/u));
+const bindingName = v.pipe(text, v.regex(/^[a-zA-Z_$][a-zA-Z0-9_$]*$/u));
+const binding = v.strictObject({module: bindingModule, export: bindingName});
+const moduleBinding = v.strictObject({module: bindingModule});
+const bindings = v.strictObject({
+  accent: text, budgets: binding, runtimeCost: v.exactOptional(binding), navigation: v.exactOptional(binding),
+  mapPalette: v.exactOptional(binding), poses: v.exactOptional(binding), audioCues: v.exactOptional(binding),
+  boot: v.exactOptional(v.strictObject({files: binding, sources: binding, lateReads: binding})),
+  ground: v.exactOptional(binding), render: v.exactOptional(binding), load: v.exactOptional(moduleBinding),
+  ktx2: v.exactOptional(moduleBinding), roster: v.exactOptional(v.strictObject({...binding.entries, call: v.boolean()})),
+});
+const tier = v.objectWithRest({godRays: v.exactOptional(v.boolean()), ao: v.exactOptional(v.boolean()),
+  textures: v.exactOptional(v.picklist(['img', 'ktx2']))}, number);
+const strings = v.pipe(v.array(text), v.maxLength(256));
+export const ManifestMetadataSchema = v.strictObject({
+  bindings,
+  boot: v.exactOptional(v.strictObject({viewmodelSets: v.pipe(v.array(v.picklist(['walnut', 'brushed-steel', 'leather', 'cord', 'bolt', 'anodised', 'polymer', 'gunmetal'])), v.maxLength(8)), shaders: v.strictObject({background: v.boolean()}), audio: strings, precache: strings})),
+  entries: v.exactOptional(v.strictObject({legacy: v.boolean(), shardfile: v.boolean(), public: v.picklist(['legacy', 'shardfile'])})),
+  gridShardfile: v.exactOptional(text), shardfile: v.exactOptional(text), runtimeEntry: v.exactOptional(v.literal('runtime/index.ts')),
+  ground: v.exactOptional(v.strictObject({structures: v.literal(true), paths: v.exactOptional(v.literal('plugin'))})),
+  groundColour: v.exactOptional(rgb), world: v.exactOptional(v.strictObject({killY: number})),
+  boundary: v.exactOptional(v.strictObject({visible: v.boolean()})),
+  uses: v.exactOptional(v.pipe(v.array(v.picklist(['weather', 'dayCycle', 'bosses', 'elites', 'spawns', 'quests', 'swim', 'hover', 'explore', 'practice', 'coins', 'loot', 'compendium', 'feats', 'bag.pack'])), v.maxLength(64))),
+  loadout: v.exactOptional(v.strictObject({weapons: strings, tools: strings, start: strings, held: v.exactOptional(text)})),
+  species: strings, encounters: v.exactOptional(strings),
+  fight: v.exactOptional(v.strictObject({attackers: v.exactOptional(number), telegraphed: v.exactOptional(v.boolean()),
+    input: v.exactOptional(v.strictObject({bufferMs: number, coyoteMs: number}))})),
+  creatures: v.exactOptional(v.strictObject({lowPoly: v.boolean(), waitForModels: v.boolean(), furRim: v.boolean(), tintRange: number, oneMaterial: v.boolean()})),
+  tiers: v.exactOptional(v.strictObject({phone: v.exactOptional(tier), desktop: v.exactOptional(tier)})),
+  loot: v.exactOptional(v.strictObject({coins: v.exactOptional(v.boolean())})),
+  hud: v.exactOptional(v.strictObject({bands: v.pipe(v.array(v.picklist(['band.1', 'band.2', 'band.3', 'band.4', 'band.5', 'band.6'])), v.maxLength(6))})),
+  bag: v.exactOptional(v.strictObject({tabs: strings, pack: v.strictObject({slots: number})})),
+  regionalSimCost: v.exactOptional(v.strictObject({residentMB: number, rev: text, device: text, evidence: text})),
+  spawns: v.pipe(v.array(v.strictObject({kind: text, count: number, variants: v.exactOptional(strings),
+    anchor: v.exactOptional(v.strictObject({x: number, z: number, rMin: number, rMax: number})), canopy: v.boolean(), trailBand: v.tuple([number, number])})), v.maxLength(256)),
+  audio: v.strictObject({ambience: text, score: text}),
+  api: v.literal(1), slug: v.pipe(text, v.regex(/^(?:_[a-z]+|[a-z][a-z0-9-]*)$/u)),
+  order: number, status: v.picklist(['live', 'experimental', 'earlyAccess', 'hidden']),
+  name: text, label: text, seed: v.pipe(number, v.integer()),
+  biome: text, blurb: text, card: v.strictObject({ thumb: image, portrait: image, landscape: image }),
+  style: text, kitLook: v.picklist(['toon', 'painterly', 'pbr']), hands: v.exactOptional(v.picklist(['toon', 'pbr'])),
+  weapon: v.picklist(['crossbow', 'sword', 'custom']), treeCount: v.pipe(number, v.integer(), v.minValue(0)),
+  trees: v.strictObject({ factory: v.literal('none'), noun: text }),
+  assetGlobs: v.pipe(v.array(text), v.maxLength(128)),
+  spawn: v.strictObject({ x: number, y: v.exactOptional(number), z: number, yaw: number }),
+  bounds: v.exactOptional(v.strictObject({ x0: number, x1: number, z0: number, z1: number, floor: number })),
+  sky: v.strictObject({ hdri: v.exactOptional(image), sunColor: rgb, sunIntensity: number,
+    envIntensity: number, bgIntensity: number, fogSunColor: rgb, cloudSunColor: rgb,
+    hemiSky: number, hemiGround: number, hemiIntensity: number,
+    sun: v.exactOptional(v.strictObject({ azimuth: number, elevation: number })),
+    planet: v.exactOptional(v.strictObject({ azimuth: number, elevation: number, size: number, tilt: number, roll: v.exactOptional(number) })),
+    painted: v.exactOptional(v.strictObject({ zenith: rgb, horizon: rgb, ground: rgb, glow: rgb })) }),
+  atmosphere: v.strictObject({ edgeHaze: v.exactOptional(v.boolean()), wetSurfaces: v.exactOptional(v.boolean()),
+    weather: v.exactOptional(v.boolean()), fogHeight: number, fogHeightFalloff: number,
+    fogHeightDensity: number, fogDistDensity: number, volumetricSunColor: rgb,
+    volumetric: v.exactOptional(v.strictObject({ height: number, falloff: number, density: number, strength: number })) }),
+  grade: v.strictObject({ saturation: number, brightness: number, contrast: number, bloomIntensity: number,
+    bloomThreshold: number, shadowTint: rgb, highTint: rgb, lift: rgb, gain: rgb, gamma: number }),
+  horizon: v.exactOptional(v.strictObject({ rings: v.pipe(v.array(ring), v.maxLength(32)), cloudSea: v.boolean() })),
+  minimap: v.strictObject({ image }),
+  pois: v.pipe(v.array(v.strictObject({ id: text, name: text, x: number, z: number, r: v.exactOptional(number) })), v.maxLength(256)),
+  explore: v.strictObject({ art }),
+});
+/** Validated authored discovery output, with plain image paths. */
+export type ManifestMetadata = v.InferOutput<typeof ManifestMetadataSchema>;
+/** Parse authored JSON without loading native code or constructing services. */
+export function parseManifestMetadata(input: unknown, expectedSlug?: string): ManifestMetadata {
+  const data = v.parse(ManifestMetadataSchema, input);
+  const { slug: identity } = data;
+  if (expectedSlug !== undefined && identity !== expectedSlug) throw new Error('Manifest identity differs from its folder');
+  return data;
 }

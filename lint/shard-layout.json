@@ -12,7 +12,9 @@
     "strings.ts",
     "layout.ts",
     "debug.ts",
-    "shard.config.ts"
+    "shard.config.ts",
+    "manifest.json",
+    "discovery.generated.ts"
   ],
   "folders": [
     "audio",

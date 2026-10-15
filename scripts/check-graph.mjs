@@ -80,7 +80,7 @@ export function reachViolation(from, to, dynamic) {
     return null;
   }
   const slug = toLayer.slice('shards/'.length);
-  if (from === GENERATED_TABLE && to === `src/shards/${slug}/manifest.ts`) return null;
+  if (from === GENERATED_TABLE && (to === `src/shards/${slug}/manifest.ts` || to === `src/shards/${slug}/discovery.generated.ts`)) return null;
   return `${from} reaches into ${to}: only ${GENERATED_TABLE} imports a shard (its manifest), and a plugin loads only by import() from its own manifest`;
 }
 

@@ -86,7 +86,7 @@ export function checkLegacyInventory(root, inventory = legacyInventory(root)) {
       const path = resolve(root, `src/shards/${slug}/${file}`);
       if (!existsSync(path) || hash(readFileSync(path)) !== digest) failures.push(`${slug}/${file}: frozen bytes changed without an inventory update`);
     }
-    if (!existsSync(resolve(root, `src/shards/${row.primary}/manifest.ts`))) failures.push(`${slug}: primary manifest missing`);
+    if (!existsSync(resolve(root, `src/shards/${row.primary}/manifest.ts`)) && !existsSync(resolve(root, `src/shards/${row.primary}/manifest.json`))) failures.push(`${slug}: primary manifest missing`);
   }
   return failures;
 }

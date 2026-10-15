@@ -11,7 +11,7 @@ import type { LookReplaceContext, LookStrategy } from '@wildshard/engine/render/
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { HudBand } from '@wildshard/engine/ui/hudSlots';
 import type { MinimapPalette } from '@wildshard/engine/ui/Minimap';
-import { mapPalette, type MapPaletteRow } from '@wildshard/format/minimap';
+import { mapPalette, parseManifestMetadata, type ManifestMetadata, type MapPaletteRow } from '@wildshard/format/minimap';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SpeciesWeights, TreeSpeciesTraits, TreeSetVariant } from '@wildshard/engine/world/forest/treeSpecies';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
@@ -685,4 +685,29 @@ export function formatGrid(grid: readonly [number, number]): string {
 /** Authored terrain, or the analytic placement floor for a structures-only manifest (y = -1000 m). */
 export function terrainFor(manifest: Pick<ShardManifest, 'ground' | 'slug'>): ChunkTerrain {
   return terrainFieldFor(manifest.ground, manifest.slug);
+}
+
+/** The generated discovery root lends only native/generated fields. */
+export type AuthoredShardBindings = Omit<ShardManifestRows, keyof ManifestMetadata> & { readonly mapPalette?: MapPaletteRow; readonly audioBindings?: Pick<NonNullable<ShardManifest['audio']>, 'cues'>; readonly bootBindings?: Pick<BootSpec, 'files' | 'sources' | 'lateReads'> };
+/** Validate authored metadata, resolve literal bundled image imports and compose
+ * the unchanged native boot owners. Missing source images refuse admission. */
+export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: AuthoredShardBindings,
+  native: Parameters<typeof defineShard>[1], images: Readonly<Record<string, string>>): ShardManifest {
+  const {bindings: _declaredBindings, boot: bootData, ...data} = parseManifestMetadata(input, slug);
+  const image = (path: string): string => {
+    if (!path.startsWith('/src/')) return path;
+    const url = images[path];
+    if (url === undefined) throw new Error('Manifest source image is not bundled');
+    return url;
+  };
+  const { mapPalette: palette, audioBindings, bootBindings, ...bindings } = rows;
+  if (bootData !== undefined && bootBindings === undefined) throw new Error('Manifest boot inventory has no native binding');
+  return defineShard({ ...bindings, ...data, slug, audio: {...data.audio, ...audioBindings},
+    ...(bootBindings === undefined ? {} : { boot: { ...bootData, ...bootBindings, explore: { art: Object.values(data.explore.art).map(image) } } }),
+    card: { thumb: image(data.card.thumb), portrait: image(data.card.portrait), landscape: image(data.card.landscape) },
+    sky: { ...data.sky, ...(data.sky.hdri === undefined ? {} : { hdri: image(data.sky.hdri) }) },
+    minimap: { image: image(data.minimap.image), ...(palette === undefined ? {} : { palette }) },
+    explore: { art: { world: image(data.explore.art.world), models: image(data.explore.art.models),
+      sets: image(data.explore.art.sets), practice: image(data.explore.art.practice) } },
+  }, native);
 }
