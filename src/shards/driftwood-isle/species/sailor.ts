@@ -1,3 +1,4 @@
+import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
 import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { animateSailor } from './sailorPose';
@@ -49,25 +50,9 @@ export function preloadSailorHead(): Promise<void> { return preloadCreatureBodie
 // ── AI ───────────────────────────────────────────────────────────────────────────────────
 
 const ST_ATTACK = 2;
-const HIT_R = 1.9, SWING_DAMAGE = 14, WINDUP = 0.6, SWING_DUR = 0.9, SHAMBLE = 1.1;
+const HIT_R = 1.9, WINDUP = 0.6, SWING_DUR = 0.9;
 
-export const SAILOR: SpeciesRow = {
-  lockable: true,
-  id: 'creature.sailor',
-  kind: 'sailor',
-  label: 'Drowned sailor',
-  aggressive: true,
-  walkSpeed: SHAMBLE,
-  chargeDamage: SWING_DAMAGE,
-  corpseFade: 60, // was 2.5 s — gone before you could reach it; now it lies a minute to be looted (harvesting dissolves it at once)
-  sounds: { call: 'sailor_groan', hurt: 'sailor_groan', callEvery: [12, 30] },
-  variants: [
-    { id: 'sailor', label: 'Drowned sailor', weight: 100, rarity: 'uncommon', scale: [1.0, 1.05], hp: 60 },
-  ],
-  tick: 'ai',
-  act: actSailor,
-  think: thinkSailor,
-};
+export const SAILOR: SpeciesRow = { ...ENEMY_SPECIES_METADATA.sailor, act: actSailor, think: thinkSailor };
 
 export const SAILOR_LOOK: SpeciesLook = {
   rigContract: { skeleton: 'sailor.v1', clips: [], sockets: ['body', 'head'] },

@@ -1,3 +1,4 @@
+import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
 import { animateCaptain } from './captainPose';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
@@ -7,7 +8,7 @@ import type { AnimalSpecies, BoneDef, ThinkCtx } from '@wildshard/engine/entitie
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
 import * as THREE from 'three';
 import { captainMesh, type CaptainMesh } from './captainMesh';
-import { CaptainBrain, SWING_DMG } from './captainPolicy';
+import { CaptainBrain } from './captainPolicy';
 
 /**
  * The Drowned Captain — Driftwood Isle's guardian boss (DRIFTWOOD-REMASTER A6, D5): Captain Brine of the Gull's Lament,
@@ -78,23 +79,7 @@ function buildCaptain(mesh: CaptainMesh = captainMesh): AnimalSpecies {
 
 
 
-export const CAPTAIN: SpeciesRow = {
-  lockable: true,
-  id: 'creature.captain',
-  kind: 'captain',
-  label: 'The Drowned Captain',
-  aggressive: true,
-  walkSpeed: 1.2,
-  chargeDamage: SWING_DMG,
-  corpseFade: 90,
-  sounds: { call: 'sailor_groan', hurt: 'sailor_groan', callEvery: [8, 20] },
-  variants: [
-    { id: 'captain', label: 'The Drowned Captain', weight: 100, rarity: 'uncommon', scale: [1.35, 1.35], hp: 320 },
-  ],
-  // The authored fight keeps its 10 Hz decision windows; contact is applied by the body step.
-  act: actCaptain,
-  think: thinkCaptain,
-};
+export const CAPTAIN: SpeciesRow = { ...ENEMY_SPECIES_METADATA.captain, act: actCaptain, think: thinkCaptain };
 
 /** the captain's look over a mesh (the page's by default; a test passes its own) */
 export function captainLook(mesh: CaptainMesh = captainMesh): SpeciesLook { return {

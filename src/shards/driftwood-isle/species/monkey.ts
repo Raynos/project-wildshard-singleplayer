@@ -1,3 +1,4 @@
+import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
 import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
 import { animateMonkey } from './monkeyPose';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
@@ -8,8 +9,7 @@ import { creatureBody } from './bodies';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
 import type { ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import { MONKEY_VARIANTS } from './monkeyVariants';
-import { MonkeyBrain, pickPerch, setPerch, BITE_DAMAGE } from './monkeyPolicy';
+import { MonkeyBrain, pickPerch, setPerch } from './monkeyPolicy';
 
 /**
  * Coconut Monkey — the palm-grove troop (art/driftwood-isle/round-3-enemies/driftwood-enemy-2-monkey.png): tan faceted fur, a dark face with a pale
@@ -36,20 +36,7 @@ import { MonkeyBrain, pickPerch, setPerch, BITE_DAMAGE } from './monkeyPolicy';
 /** G51: preserve the existing shared cooldown stream and its lazy creation order. */
 export function monkeyAttackRandom(): Pick<Rng, 'range'> { return app.rng.stream('ai'); }
 
-export const MONKEY: SpeciesRow = {
-  lockable: true,
-  id: 'creature.monkey',
-  kind: 'monkey',
-  label: 'Coconut monkey',
-  aggressive: true,
-  walkSpeed: 1.2,
-  chargeDamage: BITE_DAMAGE,
-  sounds: { call: 'monkey_chatter', hurt: 'monkey_shriek', callEvery: [6, 18] },
-  variants: MONKEY_VARIANTS,
-  tick: 'ai',
-  act: actMonkey,
-  think: thinkMonkey,
-};
+export const MONKEY: SpeciesRow = { ...ENEMY_SPECIES_METADATA.monkey, act: actMonkey, think: thinkMonkey };
 
 export const MONKEY_LOOK: SpeciesLook = {
   rigContract: { skeleton: 'monkey.v1', clips: [], sockets: ['body', 'head'] },

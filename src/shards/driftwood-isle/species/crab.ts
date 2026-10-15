@@ -1,3 +1,4 @@
+import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
 import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { animateCrab } from './crabPose';
 import { driftwoodSpeciesBrains } from '../runtime/speciesBrains';
@@ -34,7 +35,7 @@ import type * as THREE from 'three';
 
 // ── AI ───────────────────────────────────────────────────────────────────────────────────
 
-const ST_ATTACK = 2, SNAP_R = 1.6, SNAP_DAMAGE = 10, WINDUP = 0.5, SNAP_DUR = 0.78;
+const ST_ATTACK = 2, SNAP_R = 1.6, WINDUP = 0.5, SNAP_DUR = 0.78;
 
 /** the shell: a blow from within 60° of the crab's heading does half damage */
 function crabDamageMul(a: Animal, _hit: THREE.Vector3, dir: THREE.Vector3): number {
@@ -43,23 +44,7 @@ function crabDamageMul(a: Animal, _hit: THREE.Vector3, dir: THREE.Vector3): numb
   return dot < -0.5 ? 0.5 : 1;
 }
 
-export const CRAB: SpeciesRow = {
-  lockable: true,
-  id: 'creature.crab',
-  kind: 'crab',
-  label: 'Reef crab',
-  aggressive: true,
-  walkSpeed: 0.5,
-  chargeDamage: SNAP_DAMAGE,
-  sounds: { call: 'crab_click', hurt: 'crab_click', callEvery: [8, 25] },
-  variants: [
-    { id: 'small', label: 'Reef crab', weight: 75, rarity: 'common', scale: [0.78, 0.95], hp: 25 },
-    { id: 'big', label: 'Big reef crab', weight: 25, rarity: 'uncommon', scale: [1.7, 1.9], hp: 70, mods: { chargeDamage: 14 } },
-  ],
-  tick: 'ai',
-  act: actCrab,
-  think: thinkCrab,
-};
+export const CRAB: SpeciesRow = { ...ENEMY_SPECIES_METADATA.crab, act: actCrab, think: thinkCrab };
 
 export const CRAB_LOOK: SpeciesLook = {
   rigContract: { skeleton: 'crab.v1', clips: [], sockets: ['body', 'head'] },
