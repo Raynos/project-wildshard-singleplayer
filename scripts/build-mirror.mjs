@@ -81,6 +81,11 @@ function buildTree(repo, sha, full) {
 }
 
 /** Lock the slot, bring its tree to `rev`, return { dir, sha, release }. The lock also releases at process exit. */
+/** The slot when none is named: `WILDSHARD_MIRROR_SLOT` (a lane's assigned check2 / check3 while W2 runs, G435), else `check`. */
+export function defaultSlot(env = process.env) {
+  return env.WILDSHARD_MIRROR_SLOT ?? 'check';
+}
+
 export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env = process.env, linkModules = true } = {}) {
   if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(slot)) throw new Error(`build-mirror: invalid slot ${slot}`);
   const root = join(mirrorRoot(env, repo), slot);
@@ -127,7 +132,7 @@ if (isMain) {
   const head = dash === -1 ? args : args.slice(0, dash);
   const command = dash === -1 ? [] : args.slice(dash + 1);
   const slotAt = head.indexOf('--slot');
-  const slot = slotAt === -1 ? 'check' : head[slotAt + 1];
+  const slot = slotAt === -1 ? defaultSlot() : head[slotAt + 1];
   const full = head.includes('--full');
   const [action, rev = 'HEAD'] = head.filter((a, i) => a !== '--full' && (slotAt === -1 || (i !== slotAt && i !== slotAt + 1)));
   if (action === 'status') {
