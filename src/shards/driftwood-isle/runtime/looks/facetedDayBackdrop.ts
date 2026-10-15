@@ -24,7 +24,8 @@ import { preloadBakedTextures, loadLUT } from '@wildshard/engine/boot/bakedApi';
 import type { SkyBackdropFactory, SkyBackdropTargets } from '@wildshard/engine/render/look';
 import type { DayCycle, DayCycleClock } from '@wildshard/engine/world/dayCycle';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
-import { driveDayLight, runDayClock, type DayClock } from '@wildshard/sdk/looks/dayClock';
+import type { DayClock } from '@wildshard/sdk/looks/dayClock';
+import { driveDayLight, runDayClock } from '@wildshard/sdk/looks/daySky';
 import type { FACETED_DAY_PRESET, FacetedDayPreset, FacetedDayStyle } from '../../data/facetedDayRows';
 import { FacetedSky, type SkyPalette } from './facetedSky';
 

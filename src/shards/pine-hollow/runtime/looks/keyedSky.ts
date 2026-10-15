@@ -6,7 +6,8 @@ import type { OptionValue } from '@wildshard/engine/ui/Settings';
 import type { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
-import { driveDayLight, runDayClock, type DayClock } from '@wildshard/sdk/looks/dayClock';
+import type { DayClock } from '@wildshard/sdk/looks/dayClock';
+import { driveDayLight, runDayClock } from '@wildshard/sdk/looks/daySky';
 import * as THREE from 'three';
 import { skyKeyFiles, type KeyedSkyStyle, type SKY_PRESET, type SkyPreset } from '../../data/keyedSkyRows';
 

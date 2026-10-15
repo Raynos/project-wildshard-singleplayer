@@ -92,6 +92,7 @@
     "./looks/effectField": "./looks/effectField.ts",
     "./looks/dayLookPresets": "./looks/dayLookPresets.ts",
     "./looks/dayClock": "./looks/dayClock.ts",
+    "./looks/daySky": "./looks/daySky.ts",
     "./looks/riggedHulls": "./looks/riggedHulls.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/mergedPrimitives": "./kit/mergedPrimitives.ts",
@@ -514,6 +515,10 @@
       "./looks/dayClock": {
         "types": "./dist/types/sdk/looks/dayClock.d.ts",
         "default": "./dist/looks/dayClock.js"
+      },
+      "./looks/daySky": {
+        "types": "./dist/types/sdk/looks/daySky.d.ts",
+        "default": "./dist/looks/daySky.js"
       },
       "./looks/riggedHulls": {
         "types": "./dist/types/sdk/looks/riggedHulls.d.ts",
