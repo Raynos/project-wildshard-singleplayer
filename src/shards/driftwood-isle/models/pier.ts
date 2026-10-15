@@ -370,11 +370,7 @@ export const pier = defineModel<PierParams>({
   ],
   seed: SEED ^ 0x9e37,
   build: (ctx, p, rng) => {
-    const deck = ctx.once('driftwood-isle/pier:deck', () => {
-      const m = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.85, metalness: 0 });
-      ctx.sky.setupMaterial(m);
-      return m;
-    });
+    const deck = lowPolyLookMaterial(ctx.sky, 'still');
     const { deck: geometry, cloth } = deckGeometry(p, rng);
     const parts: ModelPart[] = [{ geometry, material: deck, castShadow: true, receiveShadow: true }];
     if (cloth !== null) {
