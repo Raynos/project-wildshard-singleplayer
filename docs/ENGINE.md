@@ -6011,3 +6011,10 @@ the numeric joint/scalar/root lifecycle and continuation. Nalati retains
 its wind overlay, body cadence, dynamic scale and old saved transform
 envelope through its adapter. These export-scoped allowances are reviewed
 at the end of W3; no Nalati runtime adoption is claimed yet.
+
+`src/engine/boot/plan.ts#BuildStages<T>` sequences up to 512 world-build completions on a borrowed `Slice`.
+`build(detail, work, {objects?, values?})` returns the original constructor result, attaches selected objects
+to the supplied `parent` in order, appends selected values to `collect`, then reports completion and yields.
+Missing attachment/collection ports refuse before construction; failed work never reports completion.
+`next(detail)` completes work kept local. Optional `total` supplies progress units (1..512); without it the
+borrowed slice is called without progress arguments. The caller retains constructors, disposal and physics.

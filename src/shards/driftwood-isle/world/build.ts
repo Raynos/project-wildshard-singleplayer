@@ -8,7 +8,7 @@ import { area as BLENDER_AREA } from './blenderArea';
  * one. The plugin (../plugin.ts) runs it in the level's world stage.
  */
 import * as THREE from 'three';
-import { macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
+import { BuildStages, macrotask, slicer, type StepProgress } from '@wildshard/engine/boot/plan';
 import type { World } from '@wildshard/engine/core/bootstrap';
 import { CHUNK_HALF, ENTRY_WIDTH, ROAD_LENGTH } from '@wildshard/engine/core/config';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
@@ -96,8 +96,8 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // src/engine/models/place.ts, the world's welds — the trail, the cove — as world pieces, E315)
   const statics: Collider[] = [];
   const slice = slicer(30, progress);
-  let completed = 0;
   const total = 16 + JETTIES.length;
+  const stages = new BuildStages({ slice, total, parent: game.scene, collect: statics });
   progress?.set(0, total, 'Preparing world builders'); // between the builders below: a task ends once it has run ~30 ms (the pier … cove were one 0.3–0.5 s task)
   // G170: the ocean is clipped out under each whole road deck (the socket and its landing), not only the socket
   const deckRows = lowered.landings.map(({ edge }) => {
@@ -128,45 +128,33 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   const boat = new Boat(sky, { x: BOAT_MOOR.x, z: BOAT_MOOR.z, heading: 0, waterY: sea.level, moorTo: pier.mooringsFor(BOAT_MOOR.x, BOAT_MOOR.z) }).place(registry);
   statics.push(...boat.colliders);
   if (boat.ropes) game.scene.add(boat.ropes);
-  await slice(++completed, total, 'Pier and boat');
+  await stages.next('Pier and boat');
   // faceted shore boulders along the beach
   const rockSpecs = Boulders.scatterShore(manifest.seed);
   // E306 M0b: a model (../models/shoreBoulder.ts) placed through src/engine/models/place.ts, which registers piece `rocks`
-  const rocks = await new Boulders(sky).placeSliced(rockSpecs, registry, slice.due); // SF67: a copy at a time within the task budget
-  statics.push(...rocks.colliders);
-  await slice(++completed, total, 'Shore boulders');
+  const rocks = await stages.build('Shore boulders', () => new Boulders(sky).placeSliced(rockSpecs, registry, slice.due), { values: value => value.colliders });
   // the thatched stilt hut on the plateau (porch, floor and front steps are walkable)
-  const hut = placeModelSite(hutModel, hutOrigin(HUT), hutLayout(HUT), { ctx: modelContext(sky), registry, piece: { id: 'hut' } });
-  statics.push(...hut.colliders);
-  await slice(++completed, total, 'Hut');
+  const hut = await stages.build('Hut', () => placeModelSite(hutModel, hutOrigin(HUT), hutLayout(HUT), { ctx: modelContext(sky), registry, piece: { id: 'hut' } }), { values: value => value.colliders });
   // the NE headland's lookout tower (platform + stair ramp walkable) and the wreck heeled on the east reef (deck walkable)
   const lookoutSite = { site: LOOKOUT, zipTo: { x: Cove.forIsland().cave.x, z: Cove.forIsland().cave.z } };
-  const lookout = placeModelSite(lookoutModel, lookoutOrigin(lookoutSite), lookoutLayout(lookoutSite), { ctx: modelContext(sky), registry, piece: { id: 'lookout' } });
-  statics.push(...lookout.colliders);
-  await slice(++completed, total, 'Lookout');
+  const lookout = await stages.build('Lookout', () => placeModelSite(lookoutModel, lookoutOrigin(lookoutSite), lookoutLayout(lookoutSite), { ctx: modelContext(sky), registry, piece: { id: 'lookout' } }), { values: value => value.colliders });
   // E315 M1: the shipwreck model (../models/shipwreck.ts) with the cove's cargo, drift logs and reef
   // rocks, placed drawnInto the wreck site's meshes (piece `wreck`: the site's colliders; the Wreck cove set)
-  const wreck = new Wreck(sky, WRECK).place(registry);
-  game.scene.add(wreck.group); statics.push(...wreck.colliders);
-  await slice(++completed, total, 'Wreck');
+  const wreck = await stages.build('Wreck', () => new Wreck(sky, WRECK).place(registry), { objects: value => [value.group], values: value => value.colliders });
   // the ring shrine in the NW jungle; the N / W / E jetties (the other entry roads); hibiscus bushes
-  const shrine = new Shrine(sky, SHRINE).place(registry);
-  statics.push(...shrine.colliders);
-  await slice(++completed, total, 'Shrine');
+  const shrine = await stages.build('Shrine', () => new Shrine(sky, SHRINE).place(registry), { values: value => value.colliders });
   // the three jetties: three more placements of the pier model, pieces `jetty-0..2`
   const jetties: Pier[] = [];
   for (const [i, j] of JETTIES.entries()) {
     const x = j.x + Math.sin(j.rot) * cut, z = j.z + Math.cos(j.rot) * cut; // `rot` 0 runs +z
-    const jetty = new Pier(sky, { x, z, rot: j.rot, length: j.length - cut, width: 3, deckY: sea.level + 1.2, landing: j.landing ?? false, ...seaRamp }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await slice(++completed, total, `Jetty ${i + 1}`);
+    const jetty = new Pier(sky, { x, z, rot: j.rot, length: j.length - cut, width: 3, deckY: sea.level + 1.2, landing: j.landing ?? false, ...seaRamp }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await stages.next(`Jetty ${i + 1}`);
   }
   await slice();
   if (FOLIAGE.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
   const foliage: AuthoredFoliage<typeof FOLIAGE.tiers.phone> = FOLIAGE.tiers[game.tier];
-  const bushes = await new Bushes(sky).placeSliced(foliage.bushes, registry, slice.due);
-  game.scene.add(bushes.mesh); // The compact batch is an explicitly owned drawnInto object.
-  await slice(++completed, total, 'Bushes');
+  const bushes = await stages.build('Bushes', () => new Bushes(sky).placeSliced(foliage.bushes, registry, slice.due), { objects: value => [value.mesh] });
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
-  const gulls = new Gulls().build({
+  const gulls = await stages.build('Gulls', () => new Gulls().build({
     perches: [
       ...pier.posts.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.02, p.z)),
       ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
@@ -175,32 +163,26 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
       ...Gulls.beachPerches(manifest.seed, 10, { x: 0, z: -195, r: 90 }),
     ],
     centre: new THREE.Vector3(0, 0, -205), radius: 90,
-  });
-  game.scene.add(gulls.group);
-  await slice(++completed, total, 'Gulls');
+  }), { objects: value => [value.group] });
   // sand paths between the POIs: plank steps up the crag, rope fences, signposts
   const trailside = new Trailside(sky).build(Trailside.forIsland());
   // E315 M1: its fence posts, signposts and plank steps are models placed drawnInto the trail's weld (pieces `trail-*`, their
   // colliders with them); the trail's own piece keeps its steps' and stairs' treads
   statics.push(...trailside.colliders); trailside.place(registry);
-  await slice(++completed, total, 'Trailside');
+  await stages.next('Trailside');
   // the rope bridge over the tidal creek on the hut → lookout path (its deck: a RopeChain, below)
-  const bridge = new RopeBridge(sky, BRIDGE).place(registry);
-  statics.push(...bridge.colliders);
-  await slice(++completed, total, 'Rope bridge');
+  const bridge = await stages.build('Rope bridge', () => new RopeBridge(sky, BRIDGE).place(registry), { values: value => value.colliders });
   // coral, kelp, starfish and a fish school on the lagoon shelf (what you dive for)
-  const seabed = await new Seabed(sky).build();
-  game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish);
-  await slice(++completed, total, 'Seabed');
+  const seabed = await stages.build('Seabed', () => new Seabed(sky).build(), { objects: value => [value.mesh, value.fish] });
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
   const palmSpecs = [...foliage.palms.specs];
-  await slice(++completed, total, 'Palm placement');
+  await stages.next('Palm placement');
   // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
   // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model
   const cove = new Cove(sky).place(registry, Cove.forIsland());
   statics.push(...cove.colliders);
   cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
-  await slice(++completed, total, 'Cove');
+  await stages.next('Cove');
   const palms = await new Palms(sky).placeSliced(foliage.palms, registry, slice.due);
   game.scene.add(palms.mesh); // The registry borrows the compacted batch and its native boxes.
   statics.push(...palms.colliders);
@@ -210,7 +192,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   cover.build();
   game.scene.add(cover.group); game.onUpdate((dt) => cover.update(dt, viewer()), 'shard.driftwood.cover'); tintTerrain(world.terrain.mesh); // E156: the ground wears the cover
   ocean.foamAround(statics); // foam rings around every pile, rock and hull standing in the sea (Ocean W2)
-  await slice(++completed, total, 'Palms and ground cover');
+  await stages.next('Palms and ground cover');
   await macrotask();
   // the rope bridge's deck hangs as a jointed chain (PHYSICS.md): it sags and bounces under you, the drawn planks follow
   // SF30 activation stays held until SF46 parity: keep the legacy model's live terrain, widths and owners exactly.
@@ -223,7 +205,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   // the Blender-built spawn cove (DRIFTWOOD-REMASTER X2, E52; the only island since E136): it sits on the procedural cove.
   // The island and tier cover file are required boot content. Let the level loader dispose and
   // report a failed world stage; never substitute procedural scenery for damaged assets.
-  await slice(completed + 1, total, 'Bridge physics and paths');
+  await slice(stages.completed + 1, total, 'Bridge physics and paths');
   const blenderIsland = await import('./BlenderIsland').then(async ({ BlenderIsland: B }) => {
     const island = await B.install({
       scene: game.scene, sky, registry, terrain: world.terrain.mesh, palms: palms.mesh, palmSpecs,
