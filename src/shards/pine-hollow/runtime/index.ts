@@ -173,7 +173,7 @@ export class PineHollow extends ShardPlugin {
       await macrotask();
       await prepareLeverHands(due);
       await macrotask();
-      const rifle = new LeverRifle(world, targets, { row: LEVER, allowUnlocked: nolock, woodFrom: primary.model });
+      const rifle = new LeverRifle(world, targets, { row: LEVER, allowUnlocked: nolock });
       await macrotask();
       await prepareLongbowHands(due);
       await macrotask();

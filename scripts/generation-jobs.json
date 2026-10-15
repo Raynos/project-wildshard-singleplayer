@@ -13458,6 +13458,33 @@
         "public/assets/pine-hollow/baked/floor/1c535380ab9c118bac7cb0bd57dc64e927f20f68b45427e18b751e63c643271e.bin"
       ],
       "seedOutputs": []
+    },
+    {
+      "id": "pine-hollow-lever-details",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-lever-details.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-lever-details.mjs"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/sdk",
+        "src/format",
+        "src/shards/pine-hollow/generators/crossbowPool.ts",
+        "src/shards/pine-hollow/generators/bake-lever-details.mjs",
+        "src/shards/pine-hollow/data/leverDetails.json"
+      ],
+      "outputs": [
+        "public/assets/pine-hollow/baked/621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52.glb"
+      ],
+      "platform": "portable",
+      "buildTimeOutputs": [
+        "public/assets/pine-hollow/baked/621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52.glb"
+      ]
     }
   ]
 }

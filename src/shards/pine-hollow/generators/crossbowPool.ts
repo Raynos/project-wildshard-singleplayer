@@ -278,3 +278,29 @@ export function crossbowPool():{glb:Uint8Array;rows:{pool:{url:string;parts:stri
   const hierarchy={...result.scene,nodes:result.scene.nodes.map(node=>node.kind==='group'&&node.id!=='root'?Object.assign(node,{kind:'object',source:node.id,missing:'refuse'}):node.kind==='mesh'&&node.id==='string-right'?Object.assign(node,{geometry:'string-left'}):node)};
   return {glb,rows:{pool:{url:'/assets/pine-hollow/baked/crossbow-pool.glb',parts:[...source.keys()]},hierarchy}};
 }
+
+function cartridgeGeometry(live: boolean): THREE.BufferGeometry {
+  const parts: THREE.BufferGeometry[] = [];
+  parts.push(cyl(0.0053, 0.0053, 0.0015, 10, 0, 0, 0.0255, Math.PI / 2, 0, 0)); // the rim
+  parts.push(cyl(0.0052, 0.0054, 0.036, 10, 0, 0, 0.007, Math.PI / 2, 0, 0));
+  parts.push(cyl(0.0042, 0.0052, 0.008, 10, 0, 0, -0.015, Math.PI / 2, 0, 0)); // the shoulder
+  parts.push(cyl(0.0042, 0.0042, 0.006, 10, 0, 0, -0.022, Math.PI / 2, 0, 0)); // the neck
+  if (live) { parts.push(cyl(0.0022, 0.0039, 0.014, 10, 0, 0, -0.032, Math.PI / 2, 0, 0)); parts.push(cyl(0.0015, 0.0022, 0.003, 8, 0, 0, -0.0405, Math.PI / 2, 0, 0)); } // the flat-nose bullet
+  const g = mergeGeometries(parts.map(stripExtra), false);
+  whiteColors(g);
+  return g;
+}
+
+
+/** The rifle's unchanged sight bead and live/empty cartridges; no fallback rifle is authored. */
+export function leverDetailPool(): Uint8Array {
+  const bead=new THREE.SphereGeometry(.0055,12,10);bead.translate(0,.045,-.512-.0035);
+  bead.setAttribute('color',new THREE.BufferAttribute(new Float32Array(bead.getAttribute('position').count*3).fill(2.2),3));
+  const material=new THREE.MeshStandardMaterial();
+  return staticGlb([['sight-bead',bead],['round-live',cartridgeGeometry(true)],['round-case',cartridgeGeometry(false)]].map(([name,geometry])=>{
+    if(typeof name!=='string'||!(geometry instanceof THREE.BufferGeometry))throw new Error('Invalid rifle detail');
+    return {name,geometry,material,compactIndex:true,extras:{restGroups:geometry.groups.map(group=>[group.start,group.count,group.materialIndex??0]),
+      restBox:geometry.boundingBox===null?null:[geometry.boundingBox.min.x,geometry.boundingBox.min.y,geometry.boundingBox.min.z,geometry.boundingBox.max.x,geometry.boundingBox.max.y,geometry.boundingBox.max.z],
+      restSphere:geometry.boundingSphere===null?null:[geometry.boundingSphere.center.x,geometry.boundingSphere.center.y,geometry.boundingSphere.center.z,geometry.boundingSphere.radius]}};
+  }),'lever-details');
+}

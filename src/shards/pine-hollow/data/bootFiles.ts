@@ -1,6 +1,7 @@
 import floor from './floor.generated.json' with { type: 'json' };
 import birds from './ambientBirds.generated.json' with {type:'json'};
 import heldPool from './crossbowPool.generated.json' with {type:'json'};
+import leverDetails from './leverDetails.json' with {type:'json'};
 import handsPool from './handsPool.generated.json' with {type:'json'};
 import kingKit from './kingKit.generated.json' with {type:'json'};
 /** Ordered boot selections; GPU inventory and admitted prop/coat aliases are borrowed at resolution. */
@@ -223,6 +224,7 @@ export const PINE_BOOT_FILES = {
           "/assets/pine-hollow/npcs/miller.glb",
           "/assets/pine-hollow/journal/chalk.webp",
           heldPool.pool.url,
+          leverDetails.pool.url,
           handsPool.pool.url,
           kingKit.pool.url,
           floor.url,
@@ -242,6 +244,7 @@ export const PINE_BOOT_FILES = {
           "/assets/pine-hollow/npcs/miller.glb",
           "/assets/pine-hollow/journal/chalk.webp",
           heldPool.pool.url,
+          leverDetails.pool.url,
           handsPool.pool.url,
           kingKit.pool.url,
           floor.url,
