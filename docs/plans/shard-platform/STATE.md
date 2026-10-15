@@ -1,14 +1,15 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**RESUMED 2026-10-15 15:40Z** after Jake's pause. **W1 CLOSED** (90/10 + G420 grid check). **W2 at `54549d4ff` (clean generated, build mirror): Pine 82.31 %, Driftwood 76.98 %, 0 unknown** (start 107.6 / 104.2; target 80/20).
-Pine/DW: C1 4653/4924 · C2 2011/2699 · C3 269/0 · C4 3971/2238 · C5 2506/1459 · C6 3106/1232 · C7 12/0 · C8 360/189 · C9 579/475.
+**RESUMED 2026-10-15.** **W1 CLOSED** (90/10 + G420; G424 JSON `2efd1ec7f`: Sky 9.58 %, Signal 9.75 %, 0 unknown). **W2 at 16:39Z `5638bb0f4` (clean generated, build mirror): Pine 80.85 %, Driftwood 75.72 %, 0 unknown** (start 107.6 / 104.2; resume 82.31 / 76.98; target 80/20).
+Pine/DW: C1 4511/4877 · C2 1886/2528 · C3 269/0 · C4 3971/2238 · C5 2506/1459 · C6 3062/1232 · C7 12/0 · C8 360/189 · C9 579/475.
+Since resume: DW ocean on graphs `3ef50911b` (−173), DW ground on graph toon `596aea742`, Pine crags on a graph `d8b780f1b`, night crown shadow softened (G427) `e701650de`, Explorer card isolation `02b3b2959`, Pine undergrowth records `2fae57cc5` (−125), native rifle/tool pools `dff718bf9` (−70), DW dune logs/wrappers −71, DW music on AAC `ef70dd7ff` + SFX loop cut `5716c350b` (≈ −36 MB prepared audio), graph buffer rebind fix `4179daade`. Disk (G429): one shared `check` mirror slot (`3bee8d371`), ./tmp 32 → 14 GB.
 
 **Lanes (G421 4 Opus visual-only; G428 burn Claude to 100 %, Codex reset):**
-- Opus o215 DW ocean re-land (`refs/parked/sp-o198-ocean`, ≈ DW −173) on the E2 fix `78258e147`; o216 DW ground + toon materials (`refs/parked/sp-o207-ground`, then kit, island, palms, pier, creatures, arms, then delete toonGlsl/toonLight); o217 Pine crags + forest on batched graphs (rebuild; the patch was lost in the reboot); o218 Pine water retry on E2 (`data/waterLook.ts` PARKED), then G427 night crown shadow ~0.8, then the Explorer check for DW/Sky/Signal + timber.
-- Codex x1 native model pools (`refs/sp-lanes/sp-x1/native-pools-20261014`), then Pine loadout/skins, DW keepsakes/swords; x4 undergrowth records (258 KB) landing; x5 G424 manifest JSON (W1 first, ≤ 10 %), then Pine + DW; x6 dune-log bake, then GroundCover/ropeBridge; x7 SFX loop cut (8.15 MB) then DW music on AAC (iOS check first); x8 reconcile dispose-rebind with `3388936dc`, re-test the parked palm.
-- Memory: the grid sits ≈ 1025/1000 MB after the G258 DW claim (`fb64049e3`) and the shadow-leak fix (`2ca20f6bf`); x7's audio cuts take it under.
+- Opus: o217 Pine forest on batched graphs (crags landed); o218 Pine water retry + Explorer DW/Sky/Signal check; o219 DW reef + rope bridge bakes; o220 DW toon families (island, pier, creatures, arms), then ramp fog + day backdrop so toonGlsl/toonLight can go. DW kit/rocks/palms parked (`refs/parked/sp-o216-kit`) on two engine bugs (x8 I/II).
+- Codex: x1 Pine held-tool + finishes; x4 Pine wildlife bake (tree set waits for o217's forest); x5 W2 Pine + DW manifest JSON; x6 DW C1 dead code; x7 grid memory re-measure (G258, 3 runs) after the audio cuts; x8 H (cheaper graph shadow taps) then I/II.
+- Memory: grid ≈ 1025/1000 MB before the audio cuts landed; x7's re-measure decides if it's under.
 
-**New rules (AGENTS.md 10-15):** push manually with `scripts/push-main.sh`; never copy the repo (build mirror, `./tmp/<task>` scratch); storage policy (`scripts/repo-size.mjs`); no worktrees. Leave the untracked nine-dragon-stack files and foreign staged files alone (owner unknown). The reboot wiped `/private/tmp`, so the old scratch patches are gone.
+**New rules (AGENTS.md 10-15):** push manually with `scripts/push-main.sh`; never copy the repo (build mirror, `./tmp/<task>` scratch); storage policy (`scripts/repo-size.mjs`); no worktrees. Leave the untracked nine-dragon-stack files and foreign staged files alone (owner unknown).
 
 **Waves (G413):** W1 done → W2 Pine + Driftwood (to 80/20) → W3 Nalati + Nine. M2 = grid from the menu, seamless travel, Jake's three phone runs with no tab kill (G417).
 **In force:** G415–G428.
