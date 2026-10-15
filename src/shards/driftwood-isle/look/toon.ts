@@ -1,9 +1,9 @@
 /**
- * Driftwood's toon lighting and colour-ramp fog (DRIFTWOOD-REMASTER L1, the user's pick D1: "toon two-band ramp +
- * coloured shadows + rim", BotW / Wind Waker / Rime). Moved from the engine's stylize.ts (E357 S4.3); the look declares
+ * Driftwood's toon lighting, day light and colour-ramp fog (DRIFTWOOD-REMASTER L1, the user's pick D1: "toon two-band
+ * ramp + coloured shadows + rim", BotW / Wind Waker / Rime). Moved from the engine's stylize.ts (E357 S4.3); the look declares
  *
  *   lighting: { install: installToonLighting }   // Sky.build runs it first, before anything compiles
- *   fog: { order: 200, install: installRampFog } // Game.buildSky runs it after the engine fog (slot 100), before the sky
+ *   fog: rampFog.model(200)                      // the engine's colour ramp, after its own fog (slot 100), before the sky
  *
  * One patch of three's `lights_physical_pars_fragment` chunk, so EVERY MeshStandard / MeshPhysical material on the
  * shard — lowpolyKit models, the terrain, animals, enemies, the viewmodel — is lit the same way with no per-material
@@ -24,41 +24,40 @@
  * - **specular** from the sun: three's GGX times the lit band, skipped on rough materials (roughness > 0.72,
  *   which is every lowpolyKit model) — the phone pays a Lambert, not a GGX, for the island.
  *
- * The trusted runtime owns the light model and ramp fog. GLSL lives in runtime/glsl/toonGlsl.ts;
- * tunable starting values remain data in data/toonLook.ts.
- *
- * Tunables are `toonUniforms` (the day / night clock drives them); they reach every material through
- * `attachFogUniforms` (the ramp fog's install adds them with `addFogUniforms`), which every fogged material already calls. A material that never attaches them gets zeros: no rim, no lift,
- * no cloud shadow — still the ramp.
+ * The trusted runtime owns the light model (GLSL in runtime/looks/toonGlsl.ts); starting values are data in
+ * data/toonLook.ts. The day / night clock turns `dayLight`; the graph toon looks follow it once a frame (`followToon`) and
+ * the classic light model reads the same uniforms, which reach every material through
+ * `attachFogUniforms` (the light's install adds them with `addFogUniforms`). A material that never attaches them gets
+ * zeros: no rim, no lift, no cloud shadow.
  */
-import { ToonLight, type ToonLightUniforms } from '../runtime/looks/toonLight';
-import { TOON_GLSL_ROWS } from '../runtime/looks/toonGlsl';
-import { TOON_TUNE } from '../data/toonLook';
+import * as THREE from 'three';
+import { ColourRampFog } from '@wildshard/engine/world/Atmosphere';
+import { ToonLight } from '../runtime/looks/toonLight';
+import { TOON_GLSL } from '../runtime/looks/toonGlsl';
+import { DAY_LIGHT, RAMP_FOG, TOON_TUNE } from '../data/toonLook';
 import type { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 
+/** the day light the clock turns (look/backdrop.ts); the sea sets its caustics' level */
+export const dayLight = {
+  uToonLift: { value: new THREE.Color(...DAY_LIGHT.uToonLift) }, uToonRim: { value: new THREE.Color(...DAY_LIGHT.uToonRim) },
+  uCloudShadow: { value: DAY_LIGHT.uCloudShadow }, uToonNight: { value: DAY_LIGHT.uToonNight }, uSeaLevel: { value: DAY_LIGHT.uSeaLevel }, uCloudTime: { value: DAY_LIGHT.uCloudTime },
+};
+
 /**
- * L3 — colour-ramp fog (Firewatch): distance × height. Before `uFogStart` the island is crisp; out to `uFogEnd` the
- * colour ramps from a cool aerial blue-violet into the sky dome's own gradient in that direction (so the sea's horizon
- * dissolves into the sky seamlessly), warmer toward the sun; high ground keeps more contrast than the water line. The
- * old exponential terms still run (with Driftwood's thin dry densities) so the underwater blend in Atmosphere.ts works.
+ * L3 — colour-ramp fog (Firewatch): distance × height. Before its start the island is crisp; out to its end the colour
+ * ramps from a cool aerial blue-violet into the sky dome's own gradient in that direction (so the sea's horizon dissolves
+ * into the sky seamlessly), warmer toward the sun; high ground keeps more contrast than the water line. The engine's
+ * exponential terms still run (with Driftwood's thin dry densities) so the underwater blend in Atmosphere.ts works.
  */
-const TOON = new ToonLight(TOON_GLSL_ROWS, TOON_TUNE);
+export const rampFog = new ColourRampFog(RAMP_FOG);
 
-export const toonUniforms: ToonLightUniforms = TOON.uniforms;
+const TOON = new ToonLight(TOON_GLSL, TOON_TUNE, dayLight);
 
-/** The catalogue's live toon look (the graph toon materials', data/reefLook.ts) as it follows these tunables, once a frame. */
+/** The catalogue's live toon look (the graph toon materials', data/reefLook.ts) as it follows the day light, once a frame. */
 export function followToon(look: Awaited<ReturnType<typeof runtimeLookMaterials>>['toon']): () => void {
-  const u = toonUniforms, t = look.uniforms;
+  const u = dayLight, t = look.uniforms;
   return () => { t.famToonLift.value.copy(u.uToonLift.value); t.famToonRim.value.copy(u.uToonRim.value); t.famToonCloud.value.x = u.uCloudShadow.value; t.famToonWater.value.x = u.uSeaLevel.value; t.famToonTime.value = u.uCloudTime.value; };
 }
 
 /** the toon light model: one patch of three's `lights_physical_pars_fragment` (the look's `lighting`) */
 export function installToonLighting(): void { TOON.installLighting(); }
-
-/** L3: the colour-ramp fog replaces Atmosphere's exponential fog (installAtmosphere ran first, in Game), and the toon
- *  uniforms ride every fogged material's `attachFogUniforms` (the look's `fog`, slot 200) */
-export function installRampFog(): void { TOON.installRampFog(); }
-
-/** Explore's overhead map: the ramp haze off for the shot, then back (the look's `fogControl`) */
-export function suspendRampFog(): void { TOON.suspendRampFog(); }
-export function resumeRampFog(): void { TOON.resumeRampFog(); }

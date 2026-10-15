@@ -1,7 +1,5 @@
-// SHARD-PLATFORM M3 (look-family rows): look/toon.ts's trusted GLSL for the existing shader family.
-// `@{name}` splices another fragment here, or what that module passes (another module's GLSL, a number from its layout).
-export const TOON_GLSL_ROWS = {
-  toon: /* glsl */`
+// SHARD-PLATFORM M3 (look-family rows): look/toon.ts's trusted GLSL for the classic toon light model (toonLight.ts).
+export const TOON_GLSL = /* glsl */`
 #ifndef NO_TOON
 uniform vec3 uToonLift;
 uniform vec3 uToonRim;
@@ -102,32 +100,4 @@ void RE_IndirectSpecular_Toon( const in vec3 radiance, const in vec3 irradiance,
 #define RE_IndirectDiffuse		RE_IndirectDiffuse_Toon
 #define RE_IndirectSpecular		RE_IndirectSpecular_Toon
 #endif
-`,
-  rampFogPars: /* glsl */`
-#ifdef USE_FOG
-  uniform vec3 uFogZenith; uniform vec3 uFogNear; uniform float uFogStart; uniform float uFogEnd;
-#endif`,
-  rampFog: /* glsl */`
-#ifdef USE_FOG
-  {
-    vec3 ray = vFogWorldPos - cameraPosition;
-    float rayLen = length( ray );
-    vec3 viewDir = ray / max( rayLen, 1e-3 );
-    // the old exponential height + distance fog (underwater drives these up)
-    float dy = vFogWorldPos.y - cameraPosition.y;
-    float camF = exp( - fogHeightFalloff * ( cameraPosition.y - fogHeight ) );
-    float t = fogHeightFalloff * dy;
-    float integ = abs( t ) > 1e-3 ? ( 1.0 - exp( - t ) ) / t : 1.0;
-    float expF = clamp( 1.0 - exp( - ( fogHeightDensity * camF * integ * rayLen + fogDistDensity * rayLen ) ), 0.0, 1.0 );
-    // the ramp
-    float r = smoothstep( uFogStart, uFogEnd, rayLen );
-    float rampF = pow( r, 0.8 ) * mix( 1.0, 0.72, smoothstep( 4.0, 40.0, vFogWorldPos.y ) );
-    float e = max( viewDir.y, 0.0 );
-    vec3 skyCol = mix( fogColor, uFogZenith, pow( smoothstep( 0.0, 0.75, e ), 0.62 ) );
-    vec3 col = mix( uFogNear, skyCol, smoothstep( 0.0, 0.55, r ) );
-    col += fogSunColor * pow( max( dot( viewDir, fogSunDir ), 0.0 ), 8.0 ) * 0.3 * r;
-    col = mix( col, fogColor, clamp( ( expF - rampF ) * 4.0, 0.0, 1.0 ) );   // under the sea the dense turquoise fog wins, in its own colour
-    gl_FragColor.rgb = mix( gl_FragColor.rgb, col, max( rampF, expF ) );
-  }
-#endif`,
-};
+`;

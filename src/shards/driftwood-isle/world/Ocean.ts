@@ -30,11 +30,11 @@ import { FacetedOcean } from '../runtime/looks/facetedOcean';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { OCEAN } from '../manifest';
 import { islandKnobs } from '../tiers';
-import { toonUniforms } from '../look/toon';
+import { dayLight } from '../look/toon';
 
 export class Ocean extends FacetedOcean {
   /** the grid is 2.75 m fine on desktop, 4 m on the phone (57 k -> 30 k verts) */
   constructor(_sky: Sky) {
-    super({ cell: islandKnobs().oceanCell, light: toonUniforms }, OCEAN);
+    super({ cell: islandKnobs().oceanCell, light: dayLight }, OCEAN);
   }
 }

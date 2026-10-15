@@ -5,7 +5,7 @@
  *                   fringe; faint rays, the learned LUT last) in the colour pass. The phone's FXAA and no god rays are
  *                   the manifest's tier knobs (E189)
  *   lighting        the toon light model (toon.ts, D1), patched in before anything compiles
- *   fog             the colour-ramp fog (toon.ts, L3), slot 200; the toon uniforms ride every fogged material
+ *   fog             the engine's colour-ramp fog (toon.ts, L3), slot 200, classic and graph materials alike
  *   fogControl      Explore's overhead map switches the ramp haze off for its shot
  *   shadows         the phone's three split cascades (E123 / E147), tent filter (E138), stepped-sun crossfade (E147 / E153),
  *                   16-bit maps (E174), the deck-acne biases
@@ -16,7 +16,7 @@
 import type { LookStrategy } from '@wildshard/engine/render/look';
 import { STYLIZED_BACKDROP } from './backdrop';
 import { LOWPOLY_TERRAIN, prepareGround } from './terrainPainter';
-import { installRampFog, installToonLighting, resumeRampFog, suspendRampFog, toonUniforms } from './toon';
+import { installToonLighting, rampFog } from './toon';
 
 /** the island's shadow rig: a low sun (golden hour, dawn) grazes the flat decks, so more normal bias, or the planks speckle */
 const DRIFTWOOD_SHADOWS: LookStrategy['shadows'] = { rig: 'phoneSplits', filter: 'tent', fade: true, normalBias: 0.14, radius: 0.6, texelBias: 'phone', depth16: 'phone' };
@@ -26,10 +26,8 @@ export const shardRender = (): LookStrategy => ({
   chain: 'clean',
   compose: (c) => ({ chain: c.engineChain('clean') }),
   lighting: { install: installToonLighting },
-  fog: { order: 200, install: installRampFog, node: { colourRamp: {
-    start: toonUniforms.uFogStart, end: toonUniforms.uFogEnd, near: toonUniforms.uFogNear, zenith: toonUniforms.uFogZenith,
-  } } },
-  fogControl: { suspend: suspendRampFog, resume: resumeRampFog },
+  fog: rampFog.model(200),
+  fogControl: rampFog.control,
   shadows: DRIFTWOOD_SHADOWS,
   backdrop: STYLIZED_BACKDROP,
   prepareWorld: prepareGround,

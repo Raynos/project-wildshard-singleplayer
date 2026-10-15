@@ -2,9 +2,10 @@
  * A faceted sky backdrop with its day / night clock, as a look-family system (SHARD-PLATFORM M3): no HDRI at all — the
  * faceted gradient dome + cumulus (`FacetedSky`, the shard's material graphs) is the background, a PMREM of the dome is the environment (re-rendered as
  * the clock moves on), and the sun starts where the clock puts it. The clock (`facetedDay`'s row) turns the lights, the
- * fog, the toon light's tunables, the dome's palette, the disc and the planet's lit side from `bind` on; it steps its own
- * shadow light, so it runs after the cascades (`updateAt: 'late'`), and the planet keeps its opacity by night. Nothing here
- * knows a shard: the shard passes its day, its sky's graph ids, palette and cumulus rows, its light's tunables and its cycle.
+ * fog and its colour ramp, the day light the toon looks follow, the dome's palette, the disc and the planet's lit side
+ * from `bind` on; it steps its own shadow light, so it runs after the cascades (`updateAt: 'late'`), and the planet keeps
+ * its opacity by night. Nothing here knows a shard: the shard passes its day, its sky's graph ids, palette and cumulus
+ * rows, its day light, ramp fog and cycle.
  *
  *   ?tod=0.5    // start phase (default the row's start)
  *   ?clock=120  // cycle length in seconds (default the shard's)
@@ -12,7 +13,7 @@
  *
  * Every frame it moves the sun and, at night, the moon, and blends the keyed presets into every knob the look reads: the
  * CSM light (direction in `shadowStepDeg` steps, colour, intensity — the same lights, never added or removed), the
- * hemisphere fill, the light's tunables, the fog colour / sun in-scatter, the dome + cumulus palette, the disc and the
+ * hemisphere fill, the day light, the fog colour / sun in-scatter and ramp, the dome + cumulus palette, the disc and the
  * planet's lit side. The light fades to nothing at the horizon, swaps sun ↔ moon while dark, and fades back.
  */
 import * as THREE from 'three';
@@ -27,11 +28,14 @@ import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import { cloneFacetedDayPreset, type FacetedDay, type FacetedDayPreset } from './facetedDay';
 import { FacetedSky, type SkyPalette } from './facetedSky';
 
-/** the light model's tunables the clock turns */
+/** the day light the clock turns (linear colours), which the shard's toon looks follow */
 export interface FacetedDayLight {
-  uToonLift: { value: THREE.Color }; uToonRim: { value: THREE.Color }; uFogZenith: { value: THREE.Color }; uFogNear: { value: THREE.Color };
+  uToonLift: { value: THREE.Color }; uToonRim: { value: THREE.Color };
   uCloudShadow: { value: number }; uToonNight: { value: number }; uCloudTime: { value: number };
 }
+
+/** the colour-ramp fog's colours the clock turns (the engine's `ColourRampFog`) */
+export interface FacetedDayFog { readonly near: { value: THREE.Color }; readonly zenith: { value: THREE.Color } }
 
 /** what a faceted day backdrop is built from */
 export interface FacetedDayBackdropSpec {
@@ -44,6 +48,7 @@ export interface FacetedDayBackdropSpec {
     readonly palette: SkyPalette; readonly puffs: readonly (readonly number[])[];
   };
   readonly light: FacetedDayLight;
+  readonly fog: FacetedDayFog;
   /** the cycle's default length in seconds */
   readonly cycleSeconds: number;
 }
@@ -57,6 +62,7 @@ interface DayNightTargets {
   fog: THREE.Fog;
   fogSunDir: THREE.Vector3; fogSunColor: THREE.Color;
   toon: FacetedDayLight;
+  ramp: FacetedDayFog;
   setSkyPalette: (p: SkyPalette, sunDir: THREE.Vector3) => void;
   disc: THREE.Mesh;
   planetSun: THREE.Vector3; planetHaze: THREE.Color;
@@ -140,8 +146,8 @@ class FacetedDayClock {
     if (snap || (want.angleTo(T.lightDirection) > this.shadowStep && !(T.shadowBusy?.() ?? false))) T.lightDirection.copy(want);
     for (const l of T.lights) { l.color.copy(P.sunColor); l.intensity = P.sunI * this.sunIScale * fade; }
     T.hemi.color.copy(P.hemiSky); T.hemi.groundColor.copy(P.hemiGround); T.hemi.intensity = P.hemiI;
-    T.toon.uToonLift.value.copy(P.lift); T.toon.uToonRim.value.copy(P.rim); T.toon.uFogNear.value.copy(P.fogNear);
-    T.toon.uFogZenith.value.copy(P.sky.zenith); T.toon.uCloudShadow.value = P.cloudShadow;
+    T.toon.uToonLift.value.copy(P.lift); T.toon.uToonRim.value.copy(P.rim); T.toon.uCloudShadow.value = P.cloudShadow;
+    T.ramp.near.value.copy(P.fogNear); T.ramp.zenith.value.copy(P.sky.zenith);
     T.fog.color.copy(P.sky.horizon);
     T.fogSunDir.copy(lightDir); T.fogSunColor.copy(P.fogSun);
     T.setSkyPalette(P.sky, day ? this.sun : this.moon);
@@ -197,7 +203,7 @@ export function facetedDayBackdrop(spec: FacetedDayBackdropSpec): SkyBackdropFac
       scene.environment = envRT.texture;
     } catch (error) { prepared.generator?.dispose(); throw error; }
     scene.environmentIntensity = level.sky.envIntensity;
-    spec.light.uFogZenith.value.copy(st.u.uZenith.value); // the colour-ramp fog fades into the dome's own gradient
+    spec.fog.zenith.value.copy(st.u.uZenith.value); // the colour-ramp fog fades into the dome's own gradient
     let clock: FacetedDayClock | null = null;
     return {
       get clock(): DayCycleClock {
@@ -215,7 +221,7 @@ export function facetedDayBackdrop(spec: FacetedDayBackdropSpec): SkyBackdropFac
         // the day / night clock turns every knob above from here on
         clock = new FacetedDayClock(spec.day, {
           sunDir: T.sunDir, lights: T.lights, lightDirection: T.lightDirection, hemi: T.hemi, fog: T.fog,
-          fogSunDir: T.fogU.fogSunDir.value, fogSunColor: T.fogU.fogSunColor.value, toon: spec.light,
+          fogSunDir: T.fogU.fogSunDir.value, fogSunColor: T.fogU.fogSunColor.value, toon: spec.light, ramp: spec.fog,
           setSkyPalette: (pal, dir) => { st.setPalette(pal, dir); },
           disc: T.disc, planetSun: T.planet.uSunDir.value, planetHaze: T.planet.uHaze.value,
           refreshEnvironment, shadowBusy: T.shadowBusy,
