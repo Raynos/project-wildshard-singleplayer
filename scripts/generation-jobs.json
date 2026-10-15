@@ -580,6 +580,51 @@
       "platform": "native"
     },
     {
+      "id": "driftwood-ocean",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-driftwood-ocean.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/driftwood-isle/generators/bake-driftwood-ocean.mjs",
+        "--generation-shard=driftwood-isle"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/driftwood-isle",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-island-cover.mjs",
+        "scripts/bake-output.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/generation-level.mjs",
+        "scripts/authored-manifest.mjs",
+        "public/assets/driftwood-isle/map/top.webp",
+        "public/assets/horizon/driftwood-isle-day.webp",
+        "public/assets/horizon/driftwood-isle-night.webp"
+      ],
+      "outputs": [
+        "public/assets/driftwood-isle/baked/ocean-e29cd70d60cff4eed17da3621629db3cc7de24f9b98a4a9738470026ea4c9328.glb",
+        "public/assets/driftwood-isle/baked/ocean-93422f68838c3c52f063ad95964c770570ff11f395e78e71a111077558378022.glb",
+        "public/assets/driftwood-isle/baked/ocean-4594171dad0831c9522dd54adc6c3c5f306ada75dec05bdfaea40699eb934ad8.bin"
+      ],
+      "buildTimeOutputs": [
+        "public/assets/driftwood-isle/baked/ocean-e29cd70d60cff4eed17da3621629db3cc7de24f9b98a4a9738470026ea4c9328.glb",
+        "public/assets/driftwood-isle/baked/ocean-93422f68838c3c52f063ad95964c770570ff11f395e78e71a111077558378022.glb",
+        "public/assets/driftwood-isle/baked/ocean-4594171dad0831c9522dd54adc6c3c5f306ada75dec05bdfaea40699eb934ad8.bin"
+      ],
+      "seedOutputs": [],
+      "platform": "native"
+    },
+    {
       "id": "sky-rest-scenes",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/restScene.ts",

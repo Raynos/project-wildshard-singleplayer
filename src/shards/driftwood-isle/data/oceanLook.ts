@@ -34,8 +34,10 @@ export const OCEAN_DRY_SLOTS = 4;
 /** an empty dry rectangle (min past max): clips nothing */
 export const OCEAN_NO_DRY: readonly [number, number, number, number] = [1e9, 1e9, -1e9, -1e9];
 
-/** the sea-floor texture's resolution (runtime/looks/facetedOcean.ts bakes it): one texel over in each axis */
-const SEA_TEXEL = 1 / 512;
+/** the sea-floor texture's resolution (texels per side; generators/oceanGrid.ts bakes it) */
+export const SEA_RES = 512;
+/** one texel over in each axis */
+const SEA_TEXEL = 1 / SEA_RES;
 
 function oceanGraph(): GraphIr {
   const nodes: Record<string, GraphNode> = {};

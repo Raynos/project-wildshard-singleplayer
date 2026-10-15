@@ -1,31 +1,28 @@
 /**
  * A faceted, stylized open sea as a look-family system (SHARD-PLATFORM M3): one mesh over the level's chunk that coarsens
  * out to the horizon, Gerstner waves (the engine's `waves.ts`, the same function the boats and swimmers call), a sea-floor
- * texture baked from the heightfield (per-pixel depth, no depth pre-pass), foam rings round whatever stands in the water.
+ * texture of the heightfield (per-pixel depth, no depth pre-pass), foam rings round whatever stands in the water.
  * The surface is the shard's sea graph (look.materials, data/oceanLook.ts), handed over with `setOceanLook` before the
- * world builds; this system builds the grid and the sea floor, lends the graph the floor texture and moves its params.
+ * world builds; this system takes the baked grid and sea floor, lends the graph the floor texture and moves its params.
  *
- *   const sea = new FacetedOcean(sky, look, def).build(level, dry, edgeInset);
+ *   const sea = new FacetedOcean(look, def).build(bake, level, dry, edgeInset);   // bake: the loaded grid and floor
  *   scene.add(sea.group);               // sea.mesh is the surface
  *   sea.foamAround(boxes);              // foam rings wherever a collider box pierces the surface
  *   game.onUpdate((dt) => sea.update(dt));
  *
- * - **grid**: `cell` metres fine over the chunk (plus 30 m), then each ring ×1.16 wider (×1.25 when the cell is over 3 m)
- *   out to 4.2 km; alternate diagonals so the facets don't all lean one way. Vertex attributes `aDepth` (the still level
- *   less the floor) and `aSeed` (a per-vertex hash).
- * - **sea floor**: a 512² RG half-float texture over the chunk (R = floor height, G = obstacle proximity, `foamAround`),
- *   lent to the graph as `tSea`.
+ * - **grid** (baked: generators/oceanGrid.ts, the driftwood-ocean job, per tier): fine over the chunk, coarsening out to
+ *   4.2 km, with `aDepth` (the still level less the floor) and `aSeed` (a per-vertex hash).
+ * - **sea floor**: a 512² RG half-float texture over the chunk (R = floor height, baked; G = obstacle proximity,
+ *   `foamAround`), lent to the graph as `tSea`.
  * - **material**: the sea graph (transparent, double-sided in one pass, toon lit without caustics, fogged by the engine
  *   epilogue); renderOrder 4, never frustum-culled. With no graph handed over the build throws: no procedural stand-in.
  */
 import * as THREE from 'three';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
-import { inChunk } from '@wildshard/engine/world/Heightfield';
 import { HORIZON_RADIUS } from '@wildshard/engine/world/HorizonMatte';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { waveClock, waterExtent } from '@wildshard/engine/world/waves';
-import { OCEAN_DRY_SLOTS, OCEAN_LOOK, OCEAN_NO_DRY } from '../../data/oceanLook';
+import { OCEAN_DRY_SLOTS, OCEAN_LOOK, OCEAN_NO_DRY, SEA_RES } from '../../data/oceanLook';
 
 /** the sea as data: its still level (m), colours (linear albedo) and the depth it is fully deep at (m) */
 export interface FacetedOceanDef {
@@ -41,12 +38,13 @@ export interface FacetedOceanLight {
   readonly uToonNight: { value: number };
 }
 
-/** a shard's sea look: the grid's fine cell and the light it reads */
+/** a shard's sea look: the light it reads */
 export interface FacetedOceanLook {
-  /** the grid's fine cell (m) */
-  readonly cell: number;
   readonly light: FacetedOceanLight;
 }
+
+/** the baked sea, loaded: the level it was baked at, the grid and the sea floor's heights (half-float bits, `SEA_RES`²) */
+export interface FacetedOceanBake { readonly level: number; readonly grid: THREE.BufferGeometry; readonly floor: Uint16Array }
 
 /** a level-space rectangle the sea is clipped out of */
 export interface OceanDryRect { readonly minX: number; readonly minZ: number; readonly maxX: number; readonly maxZ: number }
@@ -71,8 +69,6 @@ export function setOceanLook(materials: ReadonlyMap<string, THREE.Material>, set
   oceanGraph = { material, follow, param: (name, value) => { setParam(OCEAN_LOOK, name, value); }, texture: (name, texture) => { setTexture(OCEAN_LOOK, name, texture); } };
 }
 
-const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
-
 /** A faceted stylized sea from a shard's look and def: build it, ring its standing colliders with foam, step its waves. */
 export class FacetedOcean {
   group = new THREE.Group();
@@ -87,60 +83,25 @@ export class FacetedOcean {
 
   constructor(private readonly look: FacetedOceanLook, private readonly def: FacetedOceanDef) {}
 
-  /** `level`: the still level (default the def's). `dry`: up to four level-space rectangles the sea is clipped out of;
-   *  none by default. `edgeInset`: metres inside its confining square (`uWaterHalf`: a grid cell; unbounded standalone)
-   *  the sea stops; 0 by default */
-  build(level = this.def.level, dry: readonly OceanDryRect[] = [], edgeInset = 0): this {
+  /** `bake`: the baked grid and floor (at `bake.level`, which must be the level). `dry`: up to four level-space
+   *  rectangles the sea is clipped out of; none by default. `edgeInset`: metres inside its confining square (`uWaterHalf`:
+   *  a grid cell; unbounded standalone) the sea stops; 0 by default */
+  build(bake: FacetedOceanBake, level = this.def.level, dry: readonly OceanDryRect[] = [], edgeInset = 0): this {
     if (dry.length > OCEAN_DRY_SLOTS) throw new RangeError('The ocean clips at most four dry rectangles');
     if (!(edgeInset >= 0)) throw new RangeError('The ocean edge inset is a distance');
+    if (bake.level !== level) throw new Error('The baked ocean is for another sea level');
     const graph = oceanGraph;
     if (graph === null) throw new Error('Driftwood: the ocean draws only with its look.materials graph (setOceanLook)');
     this.graph = graph;
     const def = { ...this.def, level }, look = this.look;
     this.level = def.level;
     look.light.uSeaLevel.value = def.level; // the caustics under it
-
-    // ── grid coordinates: fine over the chunk, coarsening outward to the horizon ──
-    const fine = look.cell, inner = CHUNK_HALF + 30, far = 4200;
-    const half: number[] = [];
-    for (let v = 0; v <= inner + 1e-6; v += fine) half.push(v);
-    let v = half[half.length - 1] ?? 0, step = fine;
-    const grow = fine > 3 ? 1.25 : 1.16; // a coarse cell's far ring coarsens faster
-    while (v < far) { step *= grow; v += step; half.push(v); }
-    const coords = [...half.slice(1).reverse().map((c) => -c), ...half];
-    const N = coords.length;
-
-    const pos = new Float32Array(N * N * 3), depth = new Float32Array(N * N), seed = new Float32Array(N * N);
-    for (let iz = 0; iz < N; iz++) for (let ix = 0; ix < N; ix++) {
-      const i = iz * N + ix, x = coords[ix] ?? 0, z = coords[iz] ?? 0;
-      pos[i * 3] = x; pos[i * 3 + 1] = 0; pos[i * 3 + 2] = z;
-      depth[i] = inChunk(x, z) ? def.level - heightAt(x, z) : def.deepDepth * 2;
-      seed[i] = hash2(ix, iz);
-    }
-    const idx = new Uint32Array((N - 1) * (N - 1) * 6);
-    let k = 0;
-    for (let iz = 0; iz < N - 1; iz++) for (let ix = 0; ix < N - 1; ix++) {
-      const a = iz * N + ix, b = a + 1, c = a + N, d = c + 1;
-      // alternate diagonals so the facets don't all lean one way
-      idx[k++] = a; idx[k++] = c;
-      if ((ix + iz) & 1) { idx[k++] = d; idx[k++] = a; idx[k++] = d; idx[k++] = b; }
-      else { idx[k++] = b; idx[k++] = b; idx[k++] = c; idx[k++] = d; }
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute('aDepth', new THREE.BufferAttribute(depth, 1));
-    geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
-    geo.setIndex(new THREE.BufferAttribute(idx, 1));
+    const { grid: geo, floor } = bake;
+    if (floor.length !== SEA_RES * SEA_RES) throw new Error('The baked sea floor has another size');
     geo.computeBoundingSphere();
-
-    // ── the sea-floor texture: R = floor height (m), G = obstacle proximity (foamAround fills it) ──
+    // the sea-floor texture: R = floor height (m, baked), G = obstacle proximity (foamAround fills it)
     this.seaData = new Uint16Array(SEA_RES * SEA_RES * 2);
-    const h0 = THREE.DataUtils.toHalfFloat(0);
-    for (let iz = 0; iz < SEA_RES; iz++) for (let ix = 0; ix < SEA_RES; ix++) {
-      const x = -CHUNK_HALF + ((ix + 0.5) / SEA_RES) * CHUNK_SIZE, z = -CHUNK_HALF + ((iz + 0.5) / SEA_RES) * CHUNK_SIZE;
-      const i = (iz * SEA_RES + ix) * 2;
-      this.seaData[i] = THREE.DataUtils.toHalfFloat(heightAt(x, z)); this.seaData[i + 1] = h0;
-    }
+    floor.forEach((h, i) => { this.seaData[i * 2] = h; });
     this.seaTex = new THREE.DataTexture(this.seaData, SEA_RES, SEA_RES, THREE.RGFormat, THREE.HalfFloatType);
     this.seaTex.magFilter = this.seaTex.minFilter = THREE.LinearFilter;
     this.seaTex.wrapS = this.seaTex.wrapT = THREE.ClampToEdgeWrapping;
@@ -207,5 +168,3 @@ export class FacetedOcean {
     graph.follow();
   }
 }
-
-function hash2(x: number, z: number) { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); }

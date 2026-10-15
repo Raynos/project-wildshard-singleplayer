@@ -18,7 +18,7 @@ import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight
 import { HUT, LOOKOUT, WRECK, SHRINE, JETTIES, BRIDGE, BOAT_MOOR } from '../world/sites';
 import manifest from '../discovery.generated';
 import { PIER_PENNANT_AT } from '../data/layout';
-import { Ocean } from './Ocean';
+import { Ocean, loadOcean } from './Ocean';
 import { Pier } from './Pier';
 import { Boat } from './Boat';
 import { Boulders } from './Boulders';
@@ -105,7 +105,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     if (row === undefined) throw new Error('Missing admitted entry deck');
     return row;
   }), decks = deckRows.map(({ rect }) => rect);
-  const ocean = new Ocean(sky).build(sea.level, decks, lowered.edgeInset);
+  const ocean = new Ocean(sky).build(await loadOcean(), sea.level, decks, lowered.edgeInset);
   game.scene.add(ocean.group);
   // the south entry road is a wooden pier over the water; the player spawns on its deck
   // E315 M1: the pier model (../models/pier.ts) placed through src/engine/models/place.ts, which registers piece `pier`
