@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { BowView, GripPose } from '@wildshard/engine/combat/view/bowProfile';
+import { BowShape, type BowView, type GripPose } from '@wildshard/engine/combat/view/bowProfile';
 import type { FistOpts } from '@wildshard/engine/player/nalatiArms';
 import type { ArmPaletteRow } from './gloveHands';
 import { BAKED_BOW, handsPart } from '../../boot/handsGeometry';
@@ -59,8 +59,6 @@ export interface StaveBowLook {
 /** A grip pose as data: the bow's place and aim point in rig space, its cant and pitch. */
 export interface GripPoseRow { readonly pos: readonly [number, number, number]; readonly aim: readonly [number, number, number]; readonly cant: number; readonly pitch: number }
 
-const STRING_RINGS = 4;
-
 /** The bake's Longbow rows, checked against `look` (a look the pool was not baked with refuses). */
 function bakedBow(look: StaveBowLook): typeof BAKED_BOW {
   if (JSON.stringify(look) !== BAKED_BOW.look) throw new Error('[pine-hollow hands] this stave bow is not baked: run src/shards/pine-hollow/generators/bake-hands-pool.mjs');
@@ -72,7 +70,6 @@ export function arrowGeometry(look: ArrowLook): THREE.BufferGeometry {
   return handsPart('bow-arrow');
 }
 
-const _b1 = new THREE.Vector3(), _b2 = new THREE.Vector3(), _b3 = new THREE.Vector3();
 /** Baked rest geometries whose position / normal arrays a stave already bends (the next one bends its own copies). */
 const taken = new WeakSet<THREE.BufferGeometry>();
 const ownArray = (a: THREE.BufferAttribute | THREE.InterleavedBufferAttribute): Float32Array => {
@@ -89,18 +86,13 @@ export class StaveBowMesh {
   readonly dynVerts: number;
   readonly tipTop = new THREE.Vector3(); readonly tipBot = new THREE.Vector3(); readonly nock = new THREE.Vector3();
   private readonly look: StaveBowLook;
-  private readonly bowLen: number;
-  private readonly ringU: readonly number[];
-  private readonly ringSign: readonly number[];
   private readonly pos: Float32Array; private readonly nrm: Float32Array;
   private readonly posAttr: THREE.BufferAttribute; private readonly nrmAttr: THREE.BufferAttribute;
-  private readonly limbVerts: number;
-  private lastP = -1; private lastNock = -1;
+  private readonly shapeOwner: BowShape;
 
   constructor(look: StaveBowLook, rest: THREE.BufferGeometry, rows: { readonly ringU: readonly number[]; readonly ringSign: readonly number[]; readonly limbVerts: number; readonly dynVerts: number }) {
     this.look = look;
-    this.bowLen = look.gripH + look.limbW + look.nockL;
-    this.ringU = rows.ringU; this.ringSign = rows.ringSign; this.limbVerts = rows.limbVerts; this.dynVerts = rows.dynVerts;
+    this.dynVerts = rows.dynVerts;
     const restPos = ownArray(rest.getAttribute('position')), restNrm = ownArray(rest.getAttribute('normal'));
     if (taken.has(rest)) {
       this.pos = restPos.slice(); this.nrm = restNrm.slice();
@@ -117,6 +109,14 @@ export class StaveBowMesh {
     this.geometry.setAttribute('position', this.posAttr);
     this.geometry.setAttribute('normal', this.nrmAttr);
     this.geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 2);
+    this.shapeOwner = new BowShape({ ...rows, radial: look.radial, backScale: 0.55,
+      tipArc: look.gripH + look.limbW + look.nockL - 0.014, tipOffset: 0.004,
+      nockX: look.arrowX * 0.3, nockY: look.arrowY - 0.004, drawZ: look.braceZ + look.drawLen,
+      stringRadial: look.stringRadial, stringRadius: look.stringR, serving: look.serving }, {
+      position: this.posAttr, normal: this.nrmAttr, tipTop: this.tipTop, tipBot: this.tipBot, nock: this.nock,
+      limbAt: (u, sign, draw, at, tan) => { this.limbAt(u, sign, draw, at, tan); },
+      section: u => this.limbSection(u), ridge: (u, angle, sign) => this.gripWrap(u, angle, sign),
+    });
     this.shape(0, 0);
   }
 
@@ -143,67 +143,9 @@ export class StaveBowMesh {
   }
   private gripWrap(u: number, ph: number, sign: number): number { return u < this.look.gripH ? 1 + 0.06 * Math.max(0, Math.sin(u * 300 * sign + ph * 2)) ** 3 : 1; }
 
-  /** bend the limbs for draw `p` (0..1) and pull the string to `nockDraw` (0 = braced, 1 = full, < 0 overshoot) */
-  shape(p: number, nockDraw: number): void {
-    const pc = Math.max(0, Math.min(1.08, p));
-    if (Math.abs(pc - this.lastP) < 0.0015 && Math.abs(nockDraw - this.lastNock) < 0.0015) return;
-    this.lastP = pc; this.lastNock = nockDraw;
-    const RADIAL = this.look.radial, BOW_LEN = this.bowLen;
-    const P = this.pos, N = this.nrm;
-    const c = _b1, t = _b2, n = _b3;
-    const rings = this.ringU.length;
-    for (let r = 0; r < rings; r++) {
-      const u = this.ringU[r] ?? 0, sign = this.ringSign[r] ?? 1;
-      this.limbAt(u, sign, pc, c, t);
-      n.set(0, -t.z * sign, t.y * sign);
-      const [hw, ht] = this.limbSection(u);
-      for (let k = 0; k <= RADIAL; k++) {
-        const ph = (k / RADIAL) * Math.PI * 2, cp = Math.cos(ph), sp = Math.sin(ph);
-        // a D section: the back (sp < 0) flat-ish, the belly rounded
-        const flat = sp < 0 ? 0.55 : 1;
-        const j = (r * (RADIAL + 1) + k) * 3;
-        const rr = this.gripWrap(u, ph, sign);
-        P[j] = cp * hw * rr; P[j + 1] = c.y + n.y * sp * ht * flat * rr; P[j + 2] = c.z + n.z * sp * ht * flat * rr;
-        const ex = cp / hw, en = sp / (ht * flat), l = Math.hypot(ex, en) || 1;
-        N[j] = ex / l; N[j + 1] = (n.y * en) / l; N[j + 2] = (n.z * en) / l;
-      }
-      if (r === 0 || r === rings - 1) {
-        const j = (rings * (RADIAL + 1) + (r === 0 ? 0 : 1)) * 3;
-        P[j] = 0; P[j + 1] = c.y + t.y * 0.004; P[j + 2] = c.z + t.z * 0.004;
-        N[j] = 0; N[j + 1] = t.y; N[j + 2] = t.z;
-      }
-    }
-    this.limbAt(BOW_LEN - 0.014, 1, pc, this.tipTop, t); this.tipTop.z += 0.004;
-    this.limbAt(BOW_LEN - 0.014, -1, pc, this.tipBot, t); this.tipBot.z += 0.004;
-    const braceZ = (this.tipTop.z + this.tipBot.z) / 2;
-    this.nock.set(this.look.arrowX * 0.3, this.look.arrowY - 0.004, braceZ + (this.look.braceZ + this.look.drawLen - braceZ) * Math.max(-0.12, nockDraw));
-    this.nock.z = Math.max(this.nock.z, braceZ - 0.03);
-    this.writeLeg(0, this.tipBot, this.nock);
-    this.writeLeg(1, this.tipTop, this.nock);
-    this.posAttr.clearUpdateRanges(); this.posAttr.addUpdateRange(0, this.dynVerts * 3); this.posAttr.needsUpdate = true;
-    this.nrmAttr.clearUpdateRanges(); this.nrmAttr.addUpdateRange(0, this.dynVerts * 3); this.nrmAttr.needsUpdate = true;
-  }
+  /** The common traversal borrows this stave's owned dynamic channels and local section laws. */
+  shape(p: number, nockDraw: number): void { this.shapeOwner.shape(p, nockDraw); }
 
-  private writeLeg(leg: number, a: THREE.Vector3, b: THREE.Vector3): void {
-    const STRING_RADIAL = this.look.stringRadial, STRING_R = this.look.stringR;
-    const d = _b1.subVectors(b, a).normalize();
-    const e1 = _b2.set(1, 0, 0); e1.addScaledVector(d, -e1.dot(d)).normalize();
-    const e2 = _b3.crossVectors(d, e1);
-    const o = this.limbVerts + leg * STRING_RINGS * STRING_RADIAL;
-    const len = a.distanceTo(b), sv = Math.max(0, 1 - this.look.serving / Math.max(len, 1e-3));
-    const at = [0, Math.max(0, sv - 0.004), sv, 1];
-    for (let ring = 0; ring < STRING_RINGS; ring++) {
-      const f = at[ring] ?? 1, rad = STRING_R * (ring >= 2 ? 1.3 : 1);
-      const cx = a.x + (b.x - a.x) * f, cy = a.y + (b.y - a.y) * f, cz = a.z + (b.z - a.z) * f;
-      for (let k = 0; k < STRING_RADIAL; k++) {
-        const ph = (k / STRING_RADIAL) * Math.PI * 2, cp = Math.cos(ph), sp = Math.sin(ph);
-        const j = (o + ring * STRING_RADIAL + k) * 3;
-        const nx = e1.x * cp + e2.x * sp, ny = e1.y * cp + e2.y * sp, nz = e1.z * cp + e2.z * sp;
-        this.pos[j] = cx + nx * rad; this.pos[j + 1] = cy + ny * rad; this.pos[j + 2] = cz + nz * rad;
-        this.nrm[j] = nx; this.nrm[j + 1] = ny; this.nrm[j + 2] = nz;
-      }
-    }
-  }
 }
 
 /** The braced stave with the left glove on it (the bow's one mesh) in the look's hand palette: a display card's geometry. */

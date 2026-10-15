@@ -6144,3 +6144,20 @@ memo/preload state. Pine keeps its own NPC skin admission, PBR and pose law.
 The G441 W3 user is Nalati `species/hulls.ts#CreatureRigs`: replace its
 ready/loading maps and disposal invalidation while preserving coat adoption,
 preload policy, generated rig decoding and existing failure behaviour.
+
+### Bow shape publication (G441)
+
+`src/engine/combat/view/bowProfile.ts#BowShape` rewrites bounded dynamic
+limb/cap/string ranges in caller-owned Float32 position/normal attributes.
+Its row declares ring samples, side signs, radial counts, dynamic range,
+back-section scale, tip anchors, nock offsets and served-string dimensions.
+The caller supplies the centreline, section and grip laws plus stable
+endpoint vectors. Static channels, indices and vertices stay untouched;
+cloning, disposal and baked-buffer transfer remain the caller's ownership.
+Construction refuses crossed channel lengths, non-Float32 attributes,
+non-finite coefficients and layouts beyond 1024 rings / 64 radial samples
+/ 65,536 dynamic vertices. `shape(draw, nock)` retains the original draw
+clamp and dirty-range cadence; it does not advance combat or input clocks.
+Pine's stave is the current user. The named G441 W3 consumer is Nalati
+`weapons/recurve.ts#BowMesh.shape` and `writeLeg`, with its original limb,
+section, grip, palette and repaint policies retained locally.

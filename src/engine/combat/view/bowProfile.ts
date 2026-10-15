@@ -1,4 +1,4 @@
-import type * as THREE from 'three';
+import * as THREE from 'three';
 import type { BowDrawProfile } from '../bowDraw';
 import type { ShotCone } from '../shotSpread';
 import type { EquipmentRow } from '../Equipment';
@@ -32,4 +32,94 @@ export interface BowProfile<Style extends string = string> {
   poses: Record<'rest' | 'drawn' | 'restPort' | 'drawnPort' | 'aim' | 'aimPort', GripPose>;
   arrowX: number; arrowY: number; arrowLength: number;
   build: (sky: Sky) => BowView<Style>; arrow: (sky: Sky) => ProjectileKind; wind: WindField;
+}
+
+/** Bounded limb/cap/string publication into the caller's owned Float32 channels.
+ * The caller retains baked ownership and its own centreline, section and grip laws.
+ * Static vertices, colours, UVs and indices are never rewritten. */
+export class BowShape {
+  private readonly c = new THREE.Vector3(); private readonly t = new THREE.Vector3(); private readonly n = new THREE.Vector3();
+  private readonly ringU: readonly number[]; private readonly ringSign: readonly number[];
+  private readonly pos: Float32Array; private readonly nrm: Float32Array;
+  private lastP = -1; private lastNock = -1;
+  private readonly row: {
+    readonly ringU: readonly number[]; readonly ringSign: readonly number[];
+    readonly radial: number; readonly limbVerts: number; readonly dynVerts: number;
+    readonly backScale: number; readonly tipArc: number; readonly tipOffset: number;
+    readonly nockX: number; readonly nockY: number; readonly drawZ: number;
+    readonly stringRadial: number; readonly stringRadius: number; readonly serving: number;
+  };
+  private readonly ports: {
+    readonly position: THREE.BufferAttribute; readonly normal: THREE.BufferAttribute;
+    readonly tipTop: THREE.Vector3; readonly tipBot: THREE.Vector3; readonly nock: THREE.Vector3;
+    readonly limbAt: (u: number, sign: number, draw: number, at: THREE.Vector3, tangent: THREE.Vector3) => void;
+    readonly section: (u: number) => readonly [number, number];
+    readonly ridge: (u: number, angle: number, sign: number) => number;
+  };
+  constructor(row: BowShape['row'], ports: BowShape['ports']) {
+    this.row=row;this.ports=ports;
+    const {ringU,ringSign,radial,stringRadial,limbVerts,dynVerts}=row;
+    if(ringU.length<2||ringU.length>1024||ringU.length!==ringSign.length
+      ||!Number.isInteger(radial)||radial<3||radial>64||!Number.isInteger(stringRadial)||stringRadial<3||stringRadial>64
+      ||limbVerts!==ringU.length*(radial+1)+2||dynVerts!==limbVerts+8*stringRadial||dynVerts>65536
+      ||!ringU.every(u=>Number.isFinite(u)&&u>=0)||!ringSign.every(sign=>sign===-1||sign===1)
+      ||![row.backScale,row.tipArc,row.tipOffset,row.nockX,row.nockY,row.drawZ,row.stringRadius,row.serving].every(Number.isFinite)
+      ||row.backScale<=0||row.stringRadius<=0||row.serving<0
+      ||ports.position.itemSize!==3||ports.normal.itemSize!==3||ports.position.count!==ports.normal.count
+      ||ports.position.count<dynVerts||!(ports.position.array instanceof Float32Array)||!(ports.normal.array instanceof Float32Array))
+      throw new Error('Invalid bow shape layout');
+    this.ringU=[...ringU];this.ringSign=[...ringSign];
+    this.pos=ports.position.array;this.nrm=ports.normal.array;
+  }
+  /** Draw clamps and dirty-range cadence match the existing bow view owner. */
+  shape(p: number, nockDraw: number): void {
+    if(!Number.isFinite(p)||!Number.isFinite(nockDraw))throw new Error('Invalid bow draw');
+    const pc=Math.max(0,Math.min(1.08,p));
+    if(Math.abs(pc-this.lastP)<0.0015&&Math.abs(nockDraw-this.lastNock)<0.0015)return;
+    this.lastP=pc;this.lastNock=nockDraw;
+    const {radial}=this.row,P=this.pos,N=this.nrm,c=this.c,t=this.t,n=this.n,rings=this.ringU.length;
+    for(let r=0;r<rings;r++) {
+      const u=this.ringU[r]??0,sign=this.ringSign[r]??1;
+      this.ports.limbAt(u,sign,pc,c,t);n.set(0,-t.z*sign,t.y*sign);
+      const [hw,ht]=this.ports.section(u);
+      for(let k=0;k<=radial;k++) {
+        const ph=(k/radial)*Math.PI*2,cp=Math.cos(ph),sp=Math.sin(ph),flat=sp<0?this.row.backScale:1;
+        const j=(r*(radial+1)+k)*3,rr=this.ports.ridge(u,ph,sign);
+        P[j]=cp*hw*rr;P[j+1]=c.y+n.y*sp*ht*flat*rr;P[j+2]=c.z+n.z*sp*ht*flat*rr;
+        const ex=cp/hw,en=sp/(ht*flat),l=Math.hypot(ex,en)||1;
+        N[j]=ex/l;N[j+1]=(n.y*en)/l;N[j+2]=(n.z*en)/l;
+      }
+      if(r===0||r===rings-1) {
+        const j=(rings*(radial+1)+(r===0?0:1))*3;
+        P[j]=0;P[j+1]=c.y+t.y*0.004;P[j+2]=c.z+t.z*0.004;
+        N[j]=0;N[j+1]=t.y;N[j+2]=t.z;
+      }
+    }
+    const {tipTop,tipBot,nock}=this.ports,{tipArc,tipOffset}=this.row;
+    this.ports.limbAt(tipArc,1,pc,tipTop,t);tipTop.z+=tipOffset;
+    this.ports.limbAt(tipArc,-1,pc,tipBot,t);tipBot.z+=tipOffset;
+    const braceZ=(tipTop.z+tipBot.z)/2;
+    nock.set(this.row.nockX,this.row.nockY,braceZ+(this.row.drawZ-braceZ)*Math.max(-0.12,nockDraw));
+    nock.z=Math.max(nock.z,braceZ-0.03);
+    this.writeLeg(0,tipBot,nock);this.writeLeg(1,tipTop,nock);
+    for(const attr of [this.ports.position,this.ports.normal]) {
+      attr.clearUpdateRanges();attr.addUpdateRange(0,this.row.dynVerts*3);attr.needsUpdate=true;
+    }
+  }
+  private writeLeg(leg: number,a: THREE.Vector3,b: THREE.Vector3): void {
+    const d=this.c.subVectors(b,a).normalize(),e1=this.t.set(1,0,0);e1.addScaledVector(d,-e1.dot(d)).normalize();
+    const e2=this.n.crossVectors(d,e1),{stringRadial,stringRadius,serving}=this.row;
+    const o=this.row.limbVerts+leg*4*stringRadial,len=a.distanceTo(b),sv=Math.max(0,1-serving/Math.max(len,1e-3));
+    const at=[0,Math.max(0,sv-0.004),sv,1];
+    for(let ring=0;ring<4;ring++) {
+      const f=at[ring]??1,rad=stringRadius*(ring>=2?1.3:1);
+      const cx=a.x+(b.x-a.x)*f,cy=a.y+(b.y-a.y)*f,cz=a.z+(b.z-a.z)*f;
+      for(let k=0;k<stringRadial;k++) {
+        const ph=(k/stringRadial)*Math.PI*2,cp=Math.cos(ph),sp=Math.sin(ph),j=(o+ring*stringRadial+k)*3;
+        const nx=e1.x*cp+e2.x*sp,ny=e1.y*cp+e2.y*sp,nz=e1.z*cp+e2.z*sp;
+        this.pos[j]=cx+nx*rad;this.pos[j+1]=cy+ny*rad;this.pos[j+2]=cz+nz*rad;
+        this.nrm[j]=nx;this.nrm[j+1]=ny;this.nrm[j+2]=nz;
+      }
+    }
+  }
 }
