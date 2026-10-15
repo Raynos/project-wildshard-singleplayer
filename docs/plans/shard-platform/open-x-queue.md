@@ -67,6 +67,7 @@ Jake, 2026-10-15 (G441): a new platform host built for Pine or Driftwood counts 
 | W3 Nalati weapon pickup displays (G441) | `src/engine/combat/view/ranged.ts#weaponDisplay` | Nalati: `src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts#displayModel` replaces its ordered geometry/material/position mesh loop with the default direct-parts policy; existing borrowed material identity, shadow flags and local transforms stay. | sp-x1 |
 
 
+| W3 Nalati single-active NPC reading roster (G441) | `src/game/plugin/quests.ts#createReadingRoster` + its `QuestReading`, `QuestReadingSpot`, `QuestReadingRows`, `QuestReadingRoster` port types | Nalati `src/shards/nalati-grasslands/adventure.ts`: ordered `CAMP_NPCS` / `NpcTalk` construction, current dialogue USE routing and walk-away cancellation. Borrow its existing `DialogueBox` clock, speaker gestures and prompt registrations; native continuation stays optional, with no new Nalati save format. | sp-x5 |
 ## Part B: deferred (not started without Jake's word)
 
 S1 population / LOD-AI · S2 interior / vertical streaming · S3 physics toys and vehicles · S4 climb / drive / author-AS modes ·

@@ -5867,3 +5867,14 @@ the caller retains its existing disposal policy. No animation, contact, ammo or
 pickup policy is installed. The pending W3 consumer is Nalati's
 `runtime/weapons/magazineFirearm.ts#displayModel`, whose direct mesh/position
 loop adopts the default borrowed `parts` policy.
+
+`@wildshard/game/plugin/quests` `createReadingRoster(rows, spots, create, completed)`
+borrows ordered reading handles and captured head/prompt positions. One active
+speaker owns USE; range cancellation and restore never invoke completion payouts.
+The native continuation policy declares its bare speaker and wrapped speakers,
+retaining old save envelopes and validating the selected reading before any
+mutation. Page handles may omit save ports; their existing panel/clock and
+speaker animation remain borrowed. Pine uses its existing native `NpcReading`;
+G441's W3 match is Nalati `adventure.ts`'s ordered `CAMP_NPCS` / `NpcTalk`
+roster, shared dialogue USE routing and walk-away cancellation. W3 adopts that
+roster without inventing native saves or replacing its `DialogueBox`.

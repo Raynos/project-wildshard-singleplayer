@@ -7,7 +7,7 @@ import { NpcReading } from '@wildshard/engine/quest/dialogueClock';
 import { bindInteractionTransitions, type InteractionState } from '@wildshard/engine/world/interact/flags';
 import { walkInPickup } from '@wildshard/engine/world/interact/pickup';
 import type { QuestData } from '@wildshard/format/quests';
-import { installQuestGraph, bindQuestTableSpots, bindQuestDeathEffects } from '@wildshard/game/plugin/quests';
+import { installQuestGraph, bindQuestTableSpots, bindQuestDeathEffects, createReadingRoster } from '@wildshard/game/plugin/quests';
 import { PINE_GRAPH, pineQuestRows } from '../quest/graph';
 import { PINE_READING_DELAY, PINE_LANTERN_IDS, RESIN_COUNT, TOKEN_NAMES } from '../data/interactions';
 import { LANTERN_FLAGS } from '../data/wardensHollow';
@@ -19,7 +19,7 @@ import { pineDirectorClock, type PineClockEvent } from './directorClock';
 import type { DirectorLane } from '@wildshard/game/plugin/director';
 import { LEVER_FLAG } from '../data/nativeLoadout';
 import { createPinePack, PinePackSchema } from './pack';
-import { PinePeople } from './people';
+import { PINE_READINGS } from '../data/readings';
 import { PineLodge, PINE_LODGE, PINE_LODGE_ACT } from './lodge';
 import { eliteOf } from '../quest/contracts';
 import { pineBenchPose } from '../quest/benchPose';
@@ -179,7 +179,7 @@ export function installHollowQuest(host: SimHost, ports: PineQuestPorts): PineQu
     addAmmo: (kind, n) => { if (ports.ammunition === undefined) throw new Error('Pine shop requires an ammunition owner'); ports.ammunition.add(kind, n); },
     ownSkin: skin => { tradeSkins.add(skin); } });
   const initialTrader = trader.snapshot();
-  const dialogue = new PinePeople((npc, head, radius) => new NpcReading(npc, flags, head, radius, PINE_READING_DELAY), people, kind => {
+  const dialogue = createReadingRoster(PINE_READINGS, people, (npc, head, radius) => new NpcReading(npc, flags, head, radius, PINE_READING_DELAY), kind => {
     if (kind === 'miller' && flags.has('errand:thanked') && !flags.has('errand:paid')) {
       flags.set('errand:paid'); pack.add('lodge-ribbon', 3); pack.add('amber-resin', 4);
     }

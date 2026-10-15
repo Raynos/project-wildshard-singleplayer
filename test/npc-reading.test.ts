@@ -2,7 +2,8 @@ import {expect,test} from 'vitest';
 import {DialogueClock,NpcDialogue,NpcReading} from '../src/engine/quest/dialogueClock';
 import oldPine from './fixtures/pine-reading-before.json' with { type: 'json' };
 import { RANGER, MILLER } from '../src/shards/pine-hollow/quest/wardensHollow';
-import { PinePeople } from '../src/shards/pine-hollow/runtime/people';
+import { createReadingRoster } from '../src/game/plugin/quests';
+import { PINE_READINGS } from '../src/shards/pine-hollow/data/readings';
 import type {NpcDef} from '../src/engine/quest/core';
 
 test('old reading resumes on the same clock, completes once, and refuses corrupt continuation before flags',()=>{
@@ -50,7 +51,7 @@ test('actual old Pine readings resume silently, retain key/reach law and refuse 
   cancelled.prepareRestore(oldPine.miller.reading)(); cancelled.step(0.1, { x: 20, y: 0, z: 0 });
   expect(cancelled.active).toBe(false); expect(values.has('errand:asked')).toBe(false);
   const spots = (['ranger', 'miller', 'trader'] as const).map(kind => ({ kind, at, prompt: { ...at, radius: 3.2 } }));
-  const completed: string[] = [], people = new PinePeople((npc, point, radius) => new NpcReading(npc, flags, point, radius, 0.15), spots, kind => { completed.push(kind); });
+  const completed: string[] = [], people = createReadingRoster(PINE_READINGS, spots, (npc, point, radius) => new NpcReading(npc, flags, point, radius, 0.15), kind => { completed.push(kind); });
   people.prepareRestore(oldPine.miller)(); expect(people.active).toBe(true); expect(completed).toEqual([]);
   people.advanceReading(0.11, feet);
   for (let i = 0; i < 32 && people.active; i++) people.press('ranger');
@@ -76,4 +77,51 @@ test('page reading lends its actual clock lazily and keeps cancellation/completi
   expect(clock.isOpen).toBe(false); expect(writes).toEqual(['talked:speaker']);
   expect(() => new NpcReading(npc, flags, at, -1)).toThrow(); expect(() => new NpcReading(npc, flags, at, 2, Infinity)).toThrow();
   const own = new NpcReading(npc, flags, at, 2, 0.15); expect(() => own.step(-1, at)).toThrow();
+});
+
+
+test('the roster preserves each legacy speaker envelope and never pays on restore, cancel or leaving reach', () => {
+  const at = { x: 0, y: 1.6, z: 0 }, feet = { x: 0, y: 0, z: 0 };
+  const spots = Object.keys(PINE_READINGS.speakers).map(kind => ({ kind, at, prompt: { ...at, radius: 3.2 } }));
+  for (const [id, npc] of Object.entries(PINE_READINGS.speakers)) {
+    const values = new Set<string>(), completed: string[] = [];
+    const flags = { has: (flag: string) => values.has(flag), set: (flag: string) => { values.add(flag); } };
+    const original = new NpcReading(npc, flags, at, 3.2, 0.15);
+    original.use(); original.step(0.05, feet);
+    const reading = original.snapshot(), saved = id === 'ranger' ? reading : { kind: id, reading };
+    const roster = createReadingRoster(PINE_READINGS, spots,
+      (source, head, radius) => new NpcReading(source, flags, head, radius, 0.15), kind => { completed.push(kind); });
+    const restore = roster.prepareRestore(saved);
+    expect(roster.snapshot()).toBeNull(); expect(completed).toEqual([]); expect(values.size).toBe(0);
+    restore(); expect(roster.snapshot()).toEqual(saved); expect(completed).toEqual([]);
+    expect(() => roster.prepareRestore({ kind: 'foreign', reading })).toThrow();
+    expect(() => roster.prepareRestore({ kind: 'miller', reading: null })).toThrow();
+    expect(roster.snapshot()).toEqual(saved); expect(values.size).toBe(0);
+    roster.press(id === 'ranger' ? 'trader' : 'ranger'); // key delay and current speaker remain the owner
+    expect(roster.snapshot()).toEqual(saved);
+    roster.dismiss(); expect(roster.snapshot()).toBeNull(); expect(completed).toEqual([]); expect(values.size).toBe(0);
+    restore(); roster.advanceReading(0.1, { x: 20, y: 0, z: 0 });
+    expect(roster.active).toBe(false); expect(completed).toEqual([]); expect(values.size).toBe(0);
+    restore(); roster.advanceReading(0.11, feet);
+    for (let step = 0; step < 64 && roster.active; step++) roster.press(id === 'ranger' ? 'trader' : 'ranger');
+    expect(roster.active).toBe(false); expect(completed).toEqual([id]); expect(values.size).toBeGreaterThan(0);
+    roster.prepareRestore(null)(); expect(completed).toEqual([id]);
+  }
+});
+
+test('roster admission refuses missing, duplicate and invalid captured heads before creating readings', () => {
+  const at = { x: 0, y: 1, z: 0 }, spot = { kind: 'guide', at, prompt: { ...at, radius: 2 } };
+  let made = 0; const events: string[] = [];
+  const create = () => { made++; return { active: false, use: () => { events.push('use'); }, dismiss: () => { events.push('dismiss'); }, step: () => { events.push('step'); } }; };
+  const rows = { speakers: { guide: 'Guide' } }, completed = () => { events.push('complete'); };
+  expect(() => createReadingRoster(rows, [], create, completed)).toThrow();
+  expect(() => createReadingRoster(rows, [spot, spot], create, completed)).toThrow();
+  expect(() => createReadingRoster(rows, [{ ...spot, kind: 'foreign' }], create, completed)).toThrow();
+  expect(() => createReadingRoster(rows, [{ ...spot, at: { ...at, x: Number.NaN } }], create, completed)).toThrow();
+  expect(() => createReadingRoster(rows, [{ ...spot, prompt: { ...spot.prompt, radius: 0 } }], create, completed)).toThrow();
+  expect(() => createReadingRoster({ ...rows, continuation: { bare: 'foreign', wrapped: [] } }, [spot], create, completed)).toThrow();
+  expect(made).toBe(0);
+  const page = createReadingRoster(rows, [spot], create, completed);
+  expect(made).toBe(1); expect(() => page.press('foreign')).toThrow();
+  expect(() => page.prepareRestore({})).toThrow(); expect(page.active).toBe(false); expect(events).toEqual([]);
 });

@@ -307,3 +307,94 @@ export function bindQuestDeathEffects<Subject extends QuestDeathSubject>(input: 
     }
   };
 }
+
+/** A borrowed reading owns its own text, clock and completion flags. Page ports may omit native continuation. */
+export interface QuestReading<Saved> {
+  readonly active: boolean;
+  use: () => void;
+  dismiss: () => void;
+  step: (dt: number, feet: Readonly<{ x: number; y: number; z: number }>) => void;
+  snapshot?: () => Saved;
+  prepareRestore?: (value: unknown) => () => void;
+}
+/** Captured speaker heads and prompt positions need not coincide. */
+export interface QuestReadingSpot {
+  readonly kind: string;
+  readonly at: Readonly<{ x: number; y: number; z: number }>;
+  readonly prompt: Readonly<{ x: number; y: number; z: number; radius: number }>;
+}
+/** Ordered speaker definitions and an optional existing native save envelope. */
+export interface QuestReadingRows<Source> {
+  readonly speakers: Readonly<Record<string, Source>>;
+  readonly continuation?: { readonly bare: string; readonly wrapped: readonly string[] };
+}
+/** A roster routes one modal and lends continuation to the existing save owner. */
+export interface QuestReadingRoster<Saved> {
+  readonly active: boolean;
+  press: (id: string) => void;
+  dismiss: () => void;
+  advanceReading: (dt: number, feet: QuestReadingSpot['at']) => void;
+  snapshot: () => Saved | { kind: string; reading: Saved } | null;
+  prepareRestore: (value: unknown) => () => void;
+}
+/** One active speaker routes USE even when another prompt was selected. Completion belongs only to USE;
+ * range cancellation and silent, preflighted restore never run completion effects. No clock or UI is installed.
+ */
+export function createReadingRoster<Source, Saved>(rows: QuestReadingRows<Source>, spots: readonly QuestReadingSpot[],
+  create: (source: Source, at: QuestReadingSpot['at'], radius: number) => QuestReading<Saved>, completed: (id: string) => void): QuestReadingRoster<Saved> {
+  const sources = Object.entries(rows.speakers), readings = new Map<string, QuestReading<Saved>>();
+  if (sources.length === 0 || sources.length > 256 || spots.length !== sources.length) throw new RangeError('Reading roster needs one spot per speaker');
+  const captured = sources.map(([id, source]) => {
+    const matches = spots.filter(spot => spot.kind === id), spot = matches[0];
+    if (matches.length !== 1 || spot === undefined || spot.prompt.radius <= 0
+      || ![spot.at.x, spot.at.y, spot.at.z, spot.prompt.x, spot.prompt.y, spot.prompt.z, spot.prompt.radius].every(Number.isFinite)) throw new RangeError(`Missing captured speaker ${id}`);
+    return { id, source, spot };
+  });
+  const continuation = rows.continuation;
+  if (continuation !== undefined && (!sources.some(([id]) => id === continuation.bare)
+    || continuation.wrapped.length !== sources.length - 1 || new Set(continuation.wrapped).size !== continuation.wrapped.length
+    || continuation.wrapped.some(id => id === continuation.bare || !sources.some(([key]) => key === id)))) throw new RangeError('Invalid reading continuation speakers');
+  const Wrapped = continuation === undefined ? null : v.strictObject({ kind: v.picklist(continuation.wrapped), reading: v.unknown() });
+  for (const { id, source, spot } of captured) readings.set(id, create(source, spot.at, spot.prompt.radius));
+  const required = (id: string): QuestReading<Saved> => {
+    const reading = readings.get(id);
+    if (reading === undefined) throw new RangeError(`Unknown reading speaker ${id}`);
+    return reading;
+  };
+  let current: string | null = null;
+  const active = (): boolean => current !== null && required(current).active;
+  const dismiss = (): void => { if (current !== null) required(current).dismiss(); current = null; };
+  return {
+    get active(): boolean { return active(); },
+    press(id: string): void {
+      const selected = active() ? current : id;
+      if (selected === null) throw new Error('Missing active speaker');
+      const reading = required(selected); current = selected; reading.use();
+      if (!reading.active) { current = null; completed(selected); }
+    },
+    dismiss,
+    advanceReading(dt: number, feet: QuestReadingSpot['at']): void {
+      if (current === null) return;
+      const reading = required(current); reading.step(dt, feet);
+      if (!reading.active) current = null;
+    },
+    snapshot(): Saved | { kind: string; reading: Saved } | null {
+      if (current === null) return null;
+      const port = required(current);
+      if (continuation === undefined || port.snapshot === undefined) throw new Error('Reading has no native continuation');
+      const reading = port.snapshot();
+      return current === continuation.bare ? reading : { kind: current, reading };
+    },
+    prepareRestore(value: unknown): () => void {
+      if (value === null) return dismiss;
+      if (continuation === undefined || Wrapped === null) throw new Error('Reading has no native continuation');
+      const wrapped = v.safeParse(Wrapped, value), id = wrapped.success ? wrapped.output.kind : continuation.bare;
+      const reading = wrapped.success ? wrapped.output.reading : value;
+      if (reading === null) throw new RangeError('A saved speaker must still be reading');
+      const port = required(id);
+      if (port.prepareRestore === undefined) throw new Error('Reading has no native continuation');
+      const commit = port.prepareRestore(reading);
+      return () => { dismiss(); commit(); current = id; };
+    },
+  };
+}
