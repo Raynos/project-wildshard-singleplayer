@@ -116,6 +116,8 @@ export class ModelExplorer implements ExplorePane {
   private readonly overlays: THREE.Object3D[] = [];
   private readonly thumbs = new Map<string, HTMLCanvasElement>();
   private thumbQueue: CatalogEntry[] = [];
+  /** cards whose model threw while its thumbnail was drawn: kept out of the queue until the model says it is ready again */
+  private readonly failedThumbs = new Set<string>();
   private frame = 0;
   // orbit
   private readonly target = new THREE.Vector3();
@@ -189,7 +191,7 @@ export class ModelExplorer implements ExplorePane {
       const id = (event as CustomEvent<{ id: string }>).detail.id;
       const entry = this.entries.find((candidate) => candidate.id === id);
       if (!entry) return;
-      this.thumbs.delete(id);
+      this.thumbs.delete(id); this.failedThumbs.delete(id);
       this.thumbQueue = this.thumbQueue.filter((candidate) => candidate.id !== id);
       this.grid.querySelector(`.ws-x-model[data-id="${id}"] .ws-x-model-thumb`)?.replaceChildren();
       if (this.el.dataset['view'] === 'catalog') this.thumbQueue.push(entry);
@@ -290,7 +292,7 @@ export class ModelExplorer implements ExplorePane {
     this.closeModel();
     this.el.dataset['view'] = 'catalog';
     this.renderGrid();
-    this.thumbQueue = this.entries.filter((e) => !this.thumbs.has(e.id));
+    this.thumbQueue = this.entries.filter((e) => !this.thumbs.has(e.id) && !this.failedThumbs.has(e.id));
   }
 
   /** the entries the catalog is showing, in its order — what PREV / NEXT walk (E181) */
@@ -890,13 +892,31 @@ export class ModelExplorer implements ExplorePane {
     if (this.thumbQueue.length > 0 && this.frame % 2 === 0) this.thumbnail();
   }
 
-  /** render one catalog card through the game's composer: isolate, frame, draw, copy the canvas, put everything back */
+  /**
+   * Render one catalog card through the game's composer. A card whose model throws is reported once and left blank: the
+   * throw never reaches the update loop (whose throw switch would stop the whole Explorer), and the card is not queued
+   * again until its model is ready again (`ws:model-ready`).
+   */
   private thumbnail(): void {
     const e = this.thumbQueue.shift();
     if (!e) return;
+    const cam = this.world.game.camera;
+    const pos = cam.position.clone(), quat = cam.quaternion.clone();
+    try {
+      this.drawThumbnail(e);
+    } catch (error) {
+      this.failedThumbs.add(e.id);
+      this.unisolate();
+      console.error(`[explorer] the card ${e.id} did not build; left blank`, error);
+    } finally {
+      cam.position.copy(pos); cam.quaternion.copy(quat);
+    }
+  }
+
+  /** isolate the card's model, frame, draw, copy the canvas, put everything back but the camera */
+  private drawThumbnail(e: CatalogEntry): void {
     const { game } = this.world;
     const cam = game.camera;
-    const pos = cam.position.clone(), quat = cam.quaternion.clone();
     const o = e.object();
     if (!e.live && o.parent !== this.studio) { this.studio.add(o); this.fresh.add(o); }
     this.isolate(o);
@@ -927,7 +947,6 @@ export class ModelExplorer implements ExplorePane {
     this.thumbs.set(e.id, c);
     this.unisolate();
     if (!e.live) o.removeFromParent();
-    cam.position.copy(pos); cam.quaternion.copy(quat);
     const slot = this.grid.querySelector(`.ws-x-model[data-id="${e.id}"] .ws-x-model-thumb`);
     if (slot && !slot.firstChild) slot.append(c);
     const small = this.grid.querySelector(`.ws-x-model[data-id="${e.id}"] small:last-of-type`); // (the first is how it's made)
