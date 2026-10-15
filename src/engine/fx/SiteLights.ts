@@ -12,7 +12,7 @@ import * as THREE from 'three';
  *   const lights = new SiteLights({ flicker: { depth: 1, waves: [[11, 0, 0.07], [23, 1, 0.05]] } });
  *   lights.addLight(pooledLight);
  *   lights.addLamp(anchor, 0xff7a30, 9, 10, () => brazierLit);  // anchor: an Object3D in the scene, where the light sits
- *   lights.step(t, eye, { fire: 1, lamp: 1 });                  // per frame: the clock, the eye (world), each kind's gain
+ *   lights.step(t, eye);                                        // per frame: the clock, the eye (world), [each kind's gain]
  */
 
 /** `fire`: a flame (a hearth, a brazier); `lamp`: a lantern or a room light. The caller sets each kind's gain a frame. */
@@ -35,6 +35,8 @@ export interface SiteLightsLook {
   readonly indoor?: { readonly doorRadius: number; readonly ranks: readonly number[] };
 }
 
+/** every kind at full strength (the default gain) */
+const FULL: Readonly<Record<SiteLightKind, number>> = { fire: 1, lamp: 1 };
 /** the most shared lights a pool moves (a phone's pool holds a handful) */
 const POOL_MAX = 8;
 
@@ -57,7 +59,7 @@ export class SiteLights {
   /** a site the shared lights may visit (ties go to the one added first) */
   addSite(site: LightSite): void { this.sites.push(site); }
   /** a shared light the nearest site's anchors take (dark until a site is lit) */
-  addLight(light: THREE.PointLight): void { this.shared.push(light); }
+  addLight(light: THREE.PointLight): THREE.PointLight { this.shared.push(light); return light; }
   /** a light of its own that flickers in place */
   addFlicker(f: SiteFlicker): void { this.flickers.push(f); }
   /**
@@ -68,8 +70,8 @@ export class SiteLights {
     this.sites.push({ root: anchor, anchors: [{ anchor, color, intensity, distance, decay: 2, seed: anchor.position.x * 0.37, kind, rank: 0 }], lit });
   }
 
-  /** Per frame: the clock `t`, the eye in world space and each kind's gain (e.g. the night's lamps). */
-  step(t: number, eye: THREE.Vector3, gain: Readonly<Record<SiteLightKind, number>>): void {
+  /** Per frame: the clock `t`, the eye in world space and each kind's gain (e.g. the night's lamps; default 1). */
+  step(t: number, eye: THREE.Vector3, gain: Readonly<Record<SiteLightKind, number>> = FULL): void {
     if (this.shared.length > 0) this.visit(eye);
     const { depth, waves } = this.look.flicker;
     for (const f of this.flickers) {

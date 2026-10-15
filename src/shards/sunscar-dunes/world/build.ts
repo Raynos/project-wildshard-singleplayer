@@ -104,15 +104,14 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
   // the lit waymark nearest the player and flickers (the engine's SiteLights); one light for all three keeps the shaders'
   // light count fixed (it is in the scene from the start, dark until a waymark burns). E409 second top-10 row 8 (mockup
   // B): the caravan's lantern, always burning, is one of its sites; round 21/23 (seat C, B): its light amber-yellow
-  const wayLights = new SiteLights({ flicker: { depth: 1, waves: [[11, 0, 0.07], [23, 1, 0.05]] } }), wayLight = new PointLight(0xff7a30, 0, 10, 2);
+  const wayLights = new SiteLights({ flicker: { depth: 1, waves: [[11, 0, 0.07], [23, 1, 0.05]] } });
   const site = (at: Vector3, lift: number): Object3D => { const o = new Object3D(); o.position.copy(at).setY(at.y + lift); ctx.root.add(o); return o; };
-  ctx.root.add(wayLight); wayLights.addLight(wayLight);
+  ctx.root.add(wayLights.addLight(new PointLight(0xff7a30, 0, 10, 2)));
   for (const b of braziers) wayLights.addLamp(site(b.parts.bowlAt, 0.5), 0xff7a30, WAY_LIGHT, 10, () => b.lit, 'fire');
   wayLights.addLamp(site(caravan.lampAt, 0), 0xffd27a, LANTERN_LIGHT, 10);
-  const gain = { fire: 1, lamp: 1 };
   ctx.system({ id: 'sunscar.fire', phase: 'update', run: (dt, t) => {
     tickFires(t);
-    const me = ctx.game.runtime?.world?.player.position; if (me) wayLights.step(t, me, gain);
+    const me = ctx.game.runtime?.world?.player.position; if (me) wayLights.step(t, me);
     channels.evaluate(programs[0]?.id ?? '', { time: t, delta: dt, values: [Number(flags.has(FLAG.oil)), Number(well.raised), wellParts.drop] });
       if (!fire.lit) return;
     const flick = 1 + Math.sin(t * 13) * 0.06 + Math.sin(t * 29 + 1.3) * 0.04;
