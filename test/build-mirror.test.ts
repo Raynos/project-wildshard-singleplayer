@@ -1,7 +1,7 @@
 // oxlint-disable-next-line import/no-nodejs-modules -- Commit into an owned throwaway Git repository.
 import { execFileSync, spawnSync } from 'node:child_process';
 // oxlint-disable-next-line import/no-nodejs-modules -- Every write is confined to an owned fixture under ./tmp.
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readlinkSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, readlinkSync, rmSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- Fixture paths.
 import { dirname, join, resolve } from 'node:path';
 // oxlint-disable-next-line import/no-nodejs-modules -- The mirror root comes from the fixture's environment.
@@ -69,13 +69,17 @@ it('syncs only what differs, drops art/progress/sources, and leaves the checkout
   expect(readFileSync(join(full.dir, 'art/big.png'), 'utf8')).toBe('x');
 });
 
-it('links workspace packages to the mirror sources, takes over a dead lock and rejects bad slots', () => {
+it('links workspace packages to the mirror sources, takes over a dead lock and queue ticket, rejects bad slots', () => {
   const { repo, commit, env } = fixture();
   const sha = commit({ 'src/engine/package.json': '{"name":"@wildshard/engine"}', 'src/engine/index.ts': 'e' });
   const lock = join(env['WILDSHARD_BUILD_MIRROR'] ?? '', 'check.lock');
   mkdirSync(lock, { recursive: true });
   writeFileSync(join(lock, 'owner'), '999999\n');
+  const queue = join(env['WILDSHARD_BUILD_MIRROR'] ?? '', 'check.queue');
+  mkdirSync(queue, { recursive: true });
+  writeFileSync(join(queue, '000000000000001-999999'), '');
   const mirror = openMirror(sha, { repo, env });
+  expect(readdirSync(queue)).toEqual([]);
   expect(resolve(join(mirror.dir, 'node_modules', '@wildshard'), readlinkSync(join(mirror.dir, 'node_modules', '@wildshard', 'engine')))).toBe(join(mirror.dir, 'src', 'engine'));
   mirror.release();
   expect(existsSync(lock)).toBe(false);

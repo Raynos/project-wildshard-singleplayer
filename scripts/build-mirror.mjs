@@ -32,21 +32,43 @@ function alive(pid) {
   try { process.kill(pid, 0); return true; } catch (error) { return error.code === 'EPERM'; }
 }
 
+// Waiters queue FIFO (sp-x5 waited 10+ min while newer arrivals won the mkdir race): each takes a ticket in
+// `<slot>.queue/`, only the oldest live ticket may take the lock, and it polls fast so it also beats old-style waiters.
+function tickets(queueDir) {
+  const live = [];
+  for (const name of existsSync(queueDir) ? readdirSync(queueDir).sort() : []) {
+    const pid = Number(name.slice(name.lastIndexOf('-') + 1));
+    if (pid && alive(pid)) live.push(name);
+    else rmSync(join(queueDir, name), { force: true });
+  }
+  return live;
+}
+
 function acquire(lockDir) {
   const deadline = Date.now() + LOCK_WAIT_MS;
+  const queueDir = lockDir.replace(/\.lock$/, '.queue');
+  mkdirSync(queueDir, { recursive: true });
+  const ticket = `${String(Date.now()).padStart(15, '0')}-${process.pid}`;
+  writeFileSync(join(queueDir, ticket), '');
+  const leave = () => rmSync(join(queueDir, ticket), { force: true });
+  process.once('exit', leave);
   for (;;) {
-    try {
-      mkdirSync(lockDir);
-      writeFileSync(join(lockDir, 'owner'), `${process.pid}\n`);
-      return () => rmSync(lockDir, { recursive: true, force: true });
-    } catch (error) {
-      if (error.code !== 'EEXIST') throw error;
+    const head = tickets(queueDir)[0] === ticket;
+    if (head) {
+      try {
+        mkdirSync(lockDir);
+        writeFileSync(join(lockDir, 'owner'), `${process.pid}\n`);
+        leave();
+        return () => rmSync(lockDir, { recursive: true, force: true });
+      } catch (error) {
+        if (error.code !== 'EEXIST') { leave(); throw error; }
+      }
     }
     let owner = 0;
-    try { owner = Number(readFileSync(join(lockDir, 'owner'), 'utf8')); } catch { /* owner not written yet */ }
+    try { owner = Number(readFileSync(join(lockDir, 'owner'), 'utf8')); } catch { /* owner not written yet, or no lock */ }
     if (owner && !alive(owner)) { rmSync(lockDir, { recursive: true, force: true }); continue; }
-    if (Date.now() > deadline) throw new Error(`build-mirror: ${lockDir} still held by pid ${owner} after ${LOCK_WAIT_MS / 60_000} min`);
-    sleep(2000);
+    if (Date.now() > deadline) { leave(); throw new Error(`build-mirror: ${lockDir} still held by pid ${owner} after ${LOCK_WAIT_MS / 60_000} min`); }
+    sleep(head ? 250 : 2000);
   }
 }
 
@@ -111,7 +133,7 @@ if (isMain) {
   if (action === 'status') {
     const root = mirrorRoot();
     console.info(root);
-    for (const name of existsSync(root) ? readdirSync(root).filter((n) => !n.endsWith('.lock')) : []) {
+    for (const name of existsSync(root) ? readdirSync(root).filter((n) => !n.endsWith('.lock') && !n.endsWith('.queue')) : []) {
       const at = existsSync(join(root, name, 'HEAD')) ? readFileSync(join(root, name, 'HEAD'), 'utf8').trim() : '-';
       console.info(`${name}\t${at}\t${existsSync(join(root, `${name}.lock`)) ? 'locked' : 'free'}`);
     }
