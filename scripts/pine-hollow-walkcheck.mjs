@@ -19,7 +19,7 @@ import { writeFileSync } from 'node:fs';
 
 await import('./bake-loader.mjs'); // lets Node import the game's TypeScript chunk modules
 if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('http://localhost/') });
-const { PINE_HOLLOW } = await import('../src/shards/pine-hollow/manifest.ts');
+const { MANIFEST: PINE_HOLLOW } = await import('../src/shards/pine-hollow/discovery.generated.ts');
 const L = await import('../src/shards/pine-hollow/data/layout.ts');
 const { ziplineAt } = await import('../src/shards/pine-hollow/behaviour/layout.ts');
 

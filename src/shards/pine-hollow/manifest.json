@@ -1,0 +1,826 @@
+{
+  "gridShardfile": "/shardfiles/pine-hollow/shard.json",
+  "entries": {
+    "legacy": true,
+    "shardfile": true,
+    "public": "shardfile"
+  },
+  "uses": [
+    "dayCycle",
+    "weather"
+  ],
+  "horizonStrips": {
+    "day": "/assets/horizon/pine-hollow-day.webp",
+    "night": "/assets/horizon/pine-hollow-night.webp",
+    "elMin": -30,
+    "elMax": 14,
+    "scale": 4,
+    "phone": {
+      "day": "/assets/horizon/pine-hollow-day-phone.webp",
+      "night": "/assets/horizon/pine-hollow-night-phone.webp"
+    }
+  },
+  "api": 1,
+  "kitLook": "pbr",
+  "loadout": {
+    "weapons": [
+      "weapon.crossbow",
+      "weapon.lever-rifle",
+      "weapon.longbow"
+    ],
+    "tools": [
+      "tool.hoverboard"
+    ],
+    "start": [
+      "weapon.crossbow",
+      "tool.hoverboard"
+    ]
+  },
+  "fight": {
+    "input": {
+      "bufferMs": 120,
+      "coyoteMs": 100
+    },
+    "telegraphed": false
+  },
+  "creatures": {
+    "lowPoly": false,
+    "waitForModels": true,
+    "furRim": true,
+    "tintRange": 0.2,
+    "oneMaterial": false
+  },
+  "debugOptions": [],
+  "assetGlobs": [
+    "public/assets/models/pine-hollow-crags/**",
+    "public/assets/models/pine-hollow-hero/**",
+    "public/assets/models/pine-hollow-trees/**",
+    "public/assets/gpu/models/pine-hollow-hero/**",
+    "public/assets/gpu/models/pine-hollow-trees/**",
+    "public/assets/gpu/pine-hollow/**",
+    "public/assets/gpu/baked/pine-hollow/**",
+    "public/assets/music/pine-hollow-folk/**",
+    "public/assets/music/pine-hollow-orchestral/**",
+    "public/assets/music/pine-hollow-piano/**",
+    "public/assets/sfx/pine-hollow/**",
+    "public/assets/horizon/pine-hollow-*",
+    "public/assets/gpu/horizon/pine-hollow-*",
+    "public/assets/lut/pine-hollow.bin",
+    "public/assets/title/pine-hollow-portrait.jpg",
+    "public/assets/pine-hollow/map/**",
+    "public/assets/pine-hollow/baked/**"
+  ],
+  "order": 2,
+  "status": "earlyAccess",
+  "slug": "pine-hollow",
+  "name": "Pine Hollow",
+  "label": "(+3, \u22122)",
+  "seed": 1337,
+  "treeCount": 2600,
+  "biome": "Boreal pine forest",
+  "blurb": "A photoreal boreal forest, from dawn fog to lantern-lit night. Hunt deer, boar, elk and bear through the pines, relight the ranger's three dark waystone lanterns and face the Antler King in the old-growth \u2014 his thralls walk the fog until dawn.",
+  "card": {
+    "thumb": "/src/shards/pine-hollow/thumbs/pine-hollow.jpg",
+    "portrait": "/src/shards/pine-hollow/thumbs/pine-hollow-portrait.jpg",
+    "landscape": "/src/shards/pine-hollow/thumbs/pine-hollow-landscape.jpg"
+  },
+  "explore": {
+    "art": {
+      "world": "/src/shards/pine-hollow/explore/world-pine-hollow.webp",
+      "models": "/src/shards/pine-hollow/explore/models-pine-hollow.webp",
+      "sets": "/src/shards/pine-hollow/explore/sets-pine-hollow.webp",
+      "practice": "/src/shards/pine-hollow/explore/practice-pine-hollow.webp"
+    },
+    "compare": [
+      {
+        "id": "ridge",
+        "label": "The ridge",
+        "model": "pine-ridge",
+        "target": "art/pine-hollow/round-17-look-loop-3/ridge/mockup-1-fp-front.jpg",
+        "live": "/src/shards/pine-hollow/explore/pine-ridge-live.jpg",
+        "image": "/src/shards/pine-hollow/explore/pine-ridge-target.jpg"
+      },
+      {
+        "id": "den",
+        "label": "The den",
+        "model": "pine-den",
+        "target": "art/pine-hollow/round-17-look-loop-3/den/mockup-1-fp-front.jpg",
+        "live": "/src/shards/pine-hollow/explore/pine-den-live.jpg",
+        "image": "/src/shards/pine-hollow/explore/pine-den-target.jpg"
+      },
+      {
+        "id": "hamlet",
+        "label": "Mill hamlet",
+        "model": "pine-hamlet",
+        "target": "art/pine-hollow/round-17-look-loop-3/hamlet/mockup-1-fp-front.jpg",
+        "live": "/src/shards/pine-hollow/explore/pine-hamlet-live.jpg",
+        "image": "/src/shards/pine-hollow/explore/pine-hamlet-target.jpg"
+      }
+    ]
+  },
+  "assets": {
+    "groundLayers": [
+      "forrest_ground_03",
+      "leafy_grass",
+      "rock_ground",
+      "stony_dirt_path"
+    ],
+    "groundTints": [
+      [
+        0.86,
+        0.78,
+        0.68
+      ],
+      [
+        0.72,
+        0.8,
+        0.6
+      ],
+      [
+        1,
+        0.98,
+        0.94
+      ],
+      [
+        0.95,
+        0.8,
+        0.6
+      ]
+    ],
+    "slabRock": "rock_ground",
+    "boreal": {
+      "normalK": [
+        1.2,
+        1,
+        1.4,
+        1.1
+      ],
+      "trailDust": [
+        1.25,
+        1.02,
+        0.7,
+        0.6
+      ],
+      "grassTint": [
+        0.8,
+        0.74,
+        0.55
+      ]
+    }
+  },
+  "sky": {
+    "hdri": "qwantani_sunset_puresky",
+    "sunColor": [
+      1,
+      0.76,
+      0.5
+    ],
+    "sunIntensity": 3.8,
+    "envIntensity": 1.1,
+    "bgIntensity": 0.95,
+    "fogSunColor": [
+      1,
+      0.78,
+      0.5
+    ],
+    "cloudSunColor": [
+      1,
+      0.82,
+      0.62
+    ],
+    "hemiSky": 9414864,
+    "hemiGround": 4864552,
+    "hemiIntensity": 0.45
+  },
+  "tiers": {
+    "phone": {
+      "treeHiDist": 60,
+      "shadowFar": 60,
+      "animalShadowDist": 60,
+      "grassSlots": 40,
+      "slices": true,
+      "skipRaysOffscreen": true,
+      "envSteps": true,
+      "pointLightSkip": true,
+      "textures": "ktx2"
+    },
+    "desktop": {
+      "pointLightSkip": true
+    }
+  },
+  "atmosphere": {
+    "edgeHaze": true,
+    "wetSurfaces": true,
+    "fogHeight": -14,
+    "fogHeightFalloff": 0.12,
+    "fogHeightDensity": 0.005,
+    "fogDistDensity": 0.00045,
+    "volumetricSunColor": [
+      1,
+      0.72,
+      0.42
+    ]
+  },
+  "grade": {
+    "saturation": 0.18,
+    "brightness": -0.015,
+    "contrast": 0.2,
+    "bloomIntensity": 0.55,
+    "bloomThreshold": 0.85,
+    "shadowTint": [
+      0.9,
+      0.95,
+      1.08
+    ],
+    "highTint": [
+      1.06,
+      1,
+      0.92
+    ],
+    "lift": [
+      -0.01,
+      -0.008,
+      0
+    ],
+    "gain": [
+      1.03,
+      1.02,
+      1
+    ],
+    "gamma": 1
+  },
+  "look": {
+    "grade": {
+      "shadowTint": [
+        0.95,
+        0.97,
+        1.03
+      ]
+    },
+    "curve": 0.2,
+    "vibrance": 0.2,
+    "vol": 0.5,
+    "fogDist": 0.55,
+    "sat": 0.04,
+    "dayMist": 0.25,
+    "ambient": 1.3,
+    "sky": 1.18
+  },
+  "pondLilyExclusions": [
+    {
+      "x": -122,
+      "z": 86,
+      "r": 10
+    },
+    {
+      "x": -88.3,
+      "z": 140,
+      "r": 10
+    }
+  ],
+  "bag": {
+    "tabs": [
+      "map",
+      "gear",
+      "finds",
+      "pack",
+      "feats"
+    ],
+    "pack": {
+      "slots": 7,
+      "keeps": [
+        "venison",
+        "deer-hide",
+        "boar-hide",
+        "boar-tusk",
+        "bear-pelt",
+        "amber-resin",
+        "lodge-ribbon"
+      ]
+    }
+  },
+  "weapon": "crossbow",
+  "style": "pbr",
+  "audio": {
+    "bed": "forest",
+    "samples": {
+      "loopGains": {
+        "forest": 0.5
+      }
+    },
+    "ambience": "ambience.pine",
+    "score": "score.pine"
+  },
+  "boot": {
+    "viewmodelSets": [
+      "walnut",
+      "brushed-steel",
+      "leather",
+      "cord",
+      "bolt",
+      "anodised",
+      "polymer",
+      "gunmetal"
+    ],
+    "precache": [],
+    "stagedWorld": true,
+    "steps": {
+      "sky": {
+        "label": "Sky \u00b7 dawn to moonlight",
+        "weight": 1
+      },
+      "terrain": {
+        "label": "Terrain \u00b7 boreal ground",
+        "weight": 2
+      },
+      "cards": {
+        "label": "Tree species \u00b7 pine \u00b7 fir \u00b7 birch",
+        "weight": 1
+      },
+      "forest": {
+        "label": "Forest \u00b7 pines \u00b7 old-growth giants",
+        "weight": 2
+      },
+      "edge": {
+        "label": "Pond \u00b7 creek \u00b7 waterfall \u00b7 far country",
+        "weight": 1
+      },
+      "grass": {
+        "label": "Grass \u00b7 ferns \u00b7 bilberry",
+        "weight": 2
+      },
+      "cabins": {
+        "label": "Cabins \u00b7 hamlet \u00b7 lookout \u00b7 crags \u00b7 cave",
+        "weight": 2
+      },
+      "props": {
+        "label": "Rocks \u00b7 logs",
+        "weight": 1
+      },
+      "animals": {
+        "label": "Herds \u00b7 deer \u00b7 boar \u00b7 elk \u00b7 bears",
+        "weight": 1
+      },
+      "weapon": {
+        "label": "Crossbow \u00b7 lever-action \u00b7 longbow",
+        "weight": 1
+      },
+      "audio": {
+        "label": "Audio \u00b7 score \u00b7 forest sound",
+        "weight": 3
+      }
+    },
+    "bytes": {
+      "sky": "sky keys \u00b7 dawn to moonlight",
+      "trees": "tree species \u00b7 bark \u00b7 needles",
+      "cabins": "cabin timber \u00b7 stone \u00b7 props",
+      "props": "landmarks \u00b7 crags \u00b7 creatures",
+      "music": "score \u00b7 day \u00b7 night \u00b7 the King \u00b7 dawn",
+      "sfx": "forest beds \u00b7 rain \u00b7 calls \u00b7 barks"
+    }
+  },
+  "blender": {
+    "area": {
+      "x0": -79.41176470588235,
+      "x1": 79.41176470588232,
+      "z0": -120.58823529411765,
+      "z1": 40.19607843137254
+    },
+    "models": []
+  },
+  "trees": {
+    "bark": "pine_bark",
+    "twigAtlas": "pine_tree_01",
+    "set": "pine-hollow-trees",
+    "setVariants": [
+      {
+        "name": "pine-a",
+        "species": "pine",
+        "height": 22,
+        "trunk": 0.42,
+        "collider": 1
+      },
+      {
+        "name": "pine-b",
+        "species": "pine",
+        "height": 17,
+        "trunk": 0.34,
+        "collider": 1
+      },
+      {
+        "name": "pine-c",
+        "species": "pine",
+        "height": 26,
+        "trunk": 0.5,
+        "collider": 1
+      },
+      {
+        "name": "pine-young",
+        "species": "pine",
+        "height": 13,
+        "trunk": 0.27,
+        "collider": 1
+      },
+      {
+        "name": "fir-a",
+        "species": "fir",
+        "height": 24,
+        "trunk": 0.45,
+        "collider": 1
+      },
+      {
+        "name": "fir-b",
+        "species": "fir",
+        "height": 30,
+        "trunk": 0.56,
+        "collider": 1
+      },
+      {
+        "name": "giant-a",
+        "species": "giant",
+        "height": 44,
+        "trunk": 2,
+        "collider": 1.2
+      },
+      {
+        "name": "giant-b",
+        "species": "giant",
+        "height": 52,
+        "trunk": 2.4,
+        "collider": 1.2
+      },
+      {
+        "name": "birch-a",
+        "species": "birch",
+        "height": 16,
+        "trunk": 0.2,
+        "collider": 1
+      },
+      {
+        "name": "birch-twin",
+        "species": "birch",
+        "height": 13,
+        "trunk": 0.16,
+        "collider": 1.6
+      },
+      {
+        "name": "snag-a",
+        "species": "snag",
+        "height": 14,
+        "trunk": 0.38,
+        "collider": 1
+      },
+      {
+        "name": "snag-b",
+        "species": "snag",
+        "height": 10,
+        "trunk": 0.3,
+        "collider": 1
+      },
+      {
+        "name": "sapling-pine",
+        "species": "sapling",
+        "height": 3.2,
+        "trunk": 0.06,
+        "collider": 1
+      },
+      {
+        "name": "sapling-fir",
+        "species": "sapling",
+        "height": 4.5,
+        "trunk": 0.08,
+        "collider": 1
+      }
+    ],
+    "noun": "trees",
+    "drawnBy": "model"
+  },
+  "forest": {
+    "spacing": 8.5,
+    "densityFreq": 0.008,
+    "clearings": [
+      -0.45,
+      0.35
+    ],
+    "maxSlope": 0.72,
+    "tintHue": 0.25,
+    "tintHueJitter": [
+      -0.04,
+      0.03
+    ],
+    "tintSat": [
+      0.25,
+      0.5
+    ],
+    "tintLight": [
+      0.5,
+      0.68
+    ],
+    "largeVariantChance": 0.1,
+    "understory": {
+      "ferns": 1,
+      "shrubs": 2.5,
+      "fernCanopy": false
+    },
+    "speciesTraits": [
+      {
+        "id": "pine",
+        "scale": [
+          0.8,
+          1.2
+        ],
+        "grows": true,
+        "girth": 0.15,
+        "spacing": "normal"
+      },
+      {
+        "id": "fir",
+        "scale": [
+          0.8,
+          1.2
+        ],
+        "grows": true,
+        "girth": 0.15,
+        "spacing": "normal"
+      },
+      {
+        "id": "giant",
+        "scale": [
+          0.88,
+          1.08
+        ],
+        "grows": false,
+        "girth": 0.15,
+        "spacing": "wide"
+      },
+      {
+        "id": "birch",
+        "scale": [
+          0.8,
+          1.2
+        ],
+        "grows": false,
+        "girth": 0.15,
+        "spacing": "normal",
+        "hue": -0.03
+      },
+      {
+        "id": "snag",
+        "scale": [
+          0.8,
+          1.2
+        ],
+        "grows": false,
+        "girth": 0.15,
+        "spacing": "normal"
+      },
+      {
+        "id": "sapling",
+        "scale": [
+          0.7,
+          1.3
+        ],
+        "grows": false,
+        "girth": 0.04,
+        "spacing": "tight"
+      }
+    ]
+  },
+  "spawn": {
+    "x": 0,
+    "z": -235,
+    "yaw": 3.141592653589793
+  },
+  "minimap": {
+    "image": "/assets/pine-hollow/map/top.webp"
+  },
+  "pois": [
+    {
+      "id": "gate",
+      "name": "South gate",
+      "x": 0,
+      "z": -215,
+      "r": 18
+    },
+    {
+      "id": "crossroads",
+      "name": "Crossroads",
+      "x": 0,
+      "z": -10,
+      "r": 16
+    },
+    {
+      "id": "cabin-1",
+      "name": "Ranger's cabin",
+      "x": -14,
+      "z": -34,
+      "r": 12
+    },
+    {
+      "id": "cabin-2",
+      "name": "West cabin",
+      "x": 62,
+      "z": 30,
+      "r": 12
+    },
+    {
+      "id": "cabin-3",
+      "name": "Ridge cabin",
+      "x": 118,
+      "z": 142,
+      "r": 12
+    },
+    {
+      "id": "zipline",
+      "name": "Zipline landing",
+      "x": 4,
+      "z": 20,
+      "r": 10
+    },
+    {
+      "id": "lookout",
+      "name": "Fire lookout",
+      "x": 36,
+      "z": 214,
+      "r": 16
+    },
+    {
+      "id": "pond",
+      "name": "Still pond",
+      "x": -100,
+      "z": 110,
+      "r": 36
+    },
+    {
+      "id": "waterfall",
+      "name": "Waterfall",
+      "x": -88,
+      "z": 150,
+      "r": 18
+    },
+    {
+      "id": "islet",
+      "name": "The islet",
+      "x": -94,
+      "z": 118,
+      "r": 10
+    },
+    {
+      "id": "dam",
+      "name": "Beaver dam",
+      "x": -138,
+      "z": 64,
+      "r": 10
+    },
+    {
+      "id": "bridge",
+      "name": "Creek bridge",
+      "x": -151,
+      "z": -3,
+      "r": 10
+    },
+    {
+      "id": "den",
+      "name": "The Den",
+      "x": 190,
+      "z": 186,
+      "r": 26
+    },
+    {
+      "id": "cave",
+      "name": "Bear cave",
+      "x": 200,
+      "z": 200,
+      "r": 12
+    },
+    {
+      "id": "clearing",
+      "name": "King's clearing",
+      "x": 150,
+      "z": -30,
+      "r": 34
+    },
+    {
+      "id": "hamlet",
+      "name": "Mill hamlet",
+      "x": -150,
+      "z": -138,
+      "r": 40
+    },
+    {
+      "id": "lodge",
+      "name": "Hunting lodge",
+      "x": -162,
+      "z": -118,
+      "r": 12
+    },
+    {
+      "id": "mill",
+      "name": "Watermill",
+      "x": -181,
+      "z": -144,
+      "r": 12
+    }
+  ],
+  "runtimeEntry": "runtime/index.ts",
+  "bindings": {
+    "accent": "moss",
+    "budgets": {
+      "module": "./budgets",
+      "export": "PINE_BUDGET_INPUTS"
+    },
+    "runtimeCost": {
+      "module": "./data/runtimeCost",
+      "export": "PINE_RUNTIME_COST"
+    },
+    "spawns": {
+      "module": "./data/fauna.generated",
+      "export": "PINE_FAUNA"
+    },
+    "ground": {
+      "module": "./world/terrain",
+      "export": "GROUND"
+    },
+    "render": {
+      "module": "./look/render",
+      "export": "shardRender"
+    },
+    "load": {
+      "module": "./plugin"
+    },
+    "roster": {
+      "module": "./roster",
+      "export": "ROSTER",
+      "call": false
+    },
+    "audioPreload": {
+      "module": "./runtime/audio/files",
+      "export": "createPineAudio"
+    },
+    "posesLoader": {
+      "module": "./boot/poses",
+      "export": "poses"
+    },
+    "boot": {
+      "files": {
+        "module": "./boot/files",
+        "export": "bootFiles"
+      },
+      "sources": {
+        "module": "./boot/files",
+        "export": "bootSources"
+      },
+      "audio": {
+        "module": "./runtime/audio/files",
+        "export": "BOOT_AUDIO"
+      },
+      "bakedUnread": {
+        "module": "./boot/files",
+        "export": "BAKED_UNREAD"
+      }
+    },
+    "forestQueries": {
+      "module": "./world/terrain",
+      "export": "FOREST_QUERIES"
+    },
+    "tierPolicy": {
+      "module": "./world/terrain",
+      "export": "pineTiers"
+    },
+    "treeFactory": {
+      "module": "./world/treeFactory",
+      "export": "pineFactory"
+    },
+    "pondClip": {
+      "module": "./behaviour/layout",
+      "export": "inBeaverPool"
+    },
+    "ktx2": {
+      "module": "./boot/gpuTable",
+      "export": "pineKtx2"
+    }
+  },
+  "captureProbes": [
+    {
+      "name": "gate",
+      "x": 0,
+      "z": -200,
+      "yaw": 3.141592653589793,
+      "pitch": 0
+    },
+    {
+      "name": "cabin",
+      "x": -14,
+      "z": -62,
+      "yaw": 3.141592653589793,
+      "pitch": 0
+    },
+    {
+      "name": "pond",
+      "x": -56,
+      "z": 95,
+      "yaw": 3.141592653589793,
+      "pitch": 0
+    }
+  ]
+}

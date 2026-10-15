@@ -22,7 +22,7 @@ import { DENSITY, beach, ss, type Site } from '../runtime/looks/coverSites';
 import * as THREE from 'three';
 import { DUNE_LOGS_GEOMETRY } from '../boot/fixedGeometry';
 import duneLogs from '../data/duneLogsBake.json' with { type: 'json' };
-import { HUT, LOOKOUT, SHRINE, WRECK } from '../manifest';
+import { HUT, LOOKOUT, SHRINE, WRECK } from '../world/sites';
 import { Cove } from './Cove';
 import { copyCoverGeometry } from '../boot/coverGeometry';
 import { GROUND_COVER } from '../runtime/looks/groundCoverLook';

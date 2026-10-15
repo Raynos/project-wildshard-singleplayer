@@ -28,7 +28,7 @@
  */
 import { FacetedOcean } from '../runtime/looks/facetedOcean';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { OCEAN } from '../manifest';
+import { OCEAN } from '../world/sites';
 import { islandKnobs } from '../tiers';
 import { dayLight } from '../look/toon';
 

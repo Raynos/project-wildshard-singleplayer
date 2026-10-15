@@ -23,7 +23,8 @@ export async function groundColor({ THREE, imp, hf, def }) {
 }
 
 export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF, ROAD_LENGTH }) {
-  const island = await imp('src/shards/driftwood-isle/manifest.ts');
+  const island = await imp('src/shards/driftwood-isle/world/sites.ts');
+  const terrainLayout = await imp('src/shards/driftwood-isle/data/layout.ts');
   const wl = def.ocean.level - (def.ground.terrain?.datum ?? 0); // the authored frame of the raw bake (G164's datum undone)
   // ── layout specs (desktop tier, as the bake's reference) ──
   const { Boulders } = await imp('src/shards/driftwood-isle/world/Boulders.ts');
@@ -51,7 +52,7 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
       palms, rocks, bushes,
       trailside: { steps: trailside.steps ?? null, fences: trailside.fences ?? null, signs: trailside.signs ?? null },
       pier: { posts: pier.posts, bollards: pier.bollards, deckY: pier.deckY, colliders: pier.colliders },
-      paths: island.PATHS, plateau: island.PLATEAU, hut: HUT,
+      paths: terrainLayout.PATHS, plateau: terrainLayout.PLATEAU, hut: HUT,
     },
     summary: `palms ${palms.length}, rocks ${rocks.length}, bushes ${bushes.length}`,
   };

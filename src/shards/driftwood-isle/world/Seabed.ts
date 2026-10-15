@@ -21,7 +21,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { ReefBed, scatterReefBed, type ReefBedLayout, type ReefBed as ReefBedSet, type ReefBedSpec, type ReefGround } from '../runtime/looks/reefBed';
 import { loadReefWorld } from '../boot/reefGeometry';
-import { OCEAN } from '../manifest';
+import { OCEAN } from '../world/sites';
 import { SEABED } from '../data/seabedLook';
 import { REEF, reefMaterial, type ReefParams } from '../models/reef';
 import { REEF_FISH_COLOURS, reefFish } from '../models/reefFish';

@@ -1,6 +1,6 @@
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import * as THREE from 'three';
-import { WRECK } from '../manifest';
+import { WRECK } from '../world/sites';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';

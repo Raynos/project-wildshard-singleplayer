@@ -320,7 +320,10 @@
         "--experimental-transform-types",
         "--import",
         "./scripts/bake-loader.mjs",
-        "src/shards/driftwood-isle/generators/bake-reef.mjs"
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/driftwood-isle/generators/bake-reef.mjs",
+        "--generation-shard=driftwood-isle"
       ],
       "inputRoots": [
         "src/engine",
@@ -334,7 +337,12 @@
         "scripts/bake",
         "package.json",
         "pnpm-lock.yaml",
-        "pnpm-workspace.yaml"
+        "pnpm-workspace.yaml",
+        "scripts/generation-level.mjs",
+        "scripts/authored-manifest.mjs",
+        "public/assets/driftwood-isle/map/top.webp",
+        "public/assets/horizon/driftwood-isle-day.webp",
+        "public/assets/horizon/driftwood-isle-night.webp"
       ],
       "outputs": [
         "public/assets/driftwood-isle/baked/reef-02f2b47255677bc4a8cd39bd108b926f880c5537cd3b1cc2c1a6d7f19f4aab9c.glb",
@@ -3995,7 +4003,12 @@
         "pnpm-workspace.yaml",
         "public/assets/baked/pine-hollow/terrain.bin",
         "scripts/generation-level.mjs",
-        "scripts/authored-manifest.mjs"
+        "scripts/authored-manifest.mjs",
+        "public/assets/pine-hollow/map/top.webp",
+        "public/assets/horizon/pine-hollow-day.webp",
+        "public/assets/horizon/pine-hollow-night.webp",
+        "public/assets/horizon/pine-hollow-day-phone.webp",
+        "public/assets/horizon/pine-hollow-night-phone.webp"
       ],
       "outputs": [
         "public/assets/hdri/qwantani_dawn_puresky_2k.key.jpg",
@@ -13069,7 +13082,10 @@
         "--experimental-transform-types",
         "--import",
         "./scripts/bake-loader.mjs",
-        "src/shards/driftwood-isle/generators/bake-island-dressing.mjs"
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/driftwood-isle/generators/bake-island-dressing.mjs",
+        "--generation-shard=driftwood-isle"
       ],
       "inputRoots": [
         "src/engine",
@@ -13086,7 +13102,12 @@
         "pnpm-workspace.yaml",
         "public/assets/models/driftwood-blender/island.glb",
         "public/assets/models/driftwood-blender/placements.bin",
-        "public/assets/models/driftwood-blender/island.json"
+        "public/assets/models/driftwood-blender/island.json",
+        "scripts/generation-level.mjs",
+        "scripts/authored-manifest.mjs",
+        "public/assets/driftwood-isle/map/top.webp",
+        "public/assets/horizon/driftwood-isle-day.webp",
+        "public/assets/horizon/driftwood-isle-night.webp"
       ],
       "outputs": [
         "src/shards/driftwood-isle/data/islandDressing.generated.json",

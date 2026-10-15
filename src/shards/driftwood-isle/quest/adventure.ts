@@ -13,7 +13,7 @@ import { ITEMS } from '@wildshard/game/bag/itemCatalog';
 import type { ItemId } from '@wildshard/game/Inventory';
 import type { Progress, ProgressSink } from '@wildshard/game/Progress';
 import type { ShardContext } from '@wildshard/game/shard/context';
-import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '../manifest';
+import { HUT, LOOKOUT, WRECK, SHRINE, PIER, OCEAN } from '../world/sites';
 import { Cove } from '../world/Cove';
 import { DRIFTWOOD_KIT_EVENTS } from '../data/questEvents';
 import { SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';

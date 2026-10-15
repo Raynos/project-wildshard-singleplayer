@@ -1,0 +1,408 @@
+{
+  "gridShardfile": "/shardfiles/driftwood-isle/shard.json",
+  "entries": {
+    "legacy": true,
+    "shardfile": true,
+    "public": "shardfile"
+  },
+  "uses": [
+    "dayCycle"
+  ],
+  "api": 1,
+  "kitLook": "toon",
+  "hands": "toon",
+  "horizonStrips": {
+    "day": "/assets/horizon/driftwood-isle-day.webp",
+    "night": "/assets/horizon/driftwood-isle-night.webp",
+    "elMin": -4,
+    "elMax": 24
+  },
+  "creatures": {
+    "lowPoly": true,
+    "waitForModels": true,
+    "furRim": false,
+    "tintRange": 0.3,
+    "oneMaterial": true
+  },
+  "debugOptions": [],
+  "assetGlobs": [
+    "public/assets/models/driftwood-blender/**",
+    "public/assets/models/driftwood-cc0/**",
+    "public/assets/models/driftwood-fp/**",
+    "public/assets/models/driftwood-hero/**",
+    "public/assets/gpu/models/driftwood-blender/**",
+    "public/assets/gpu/models/driftwood-hero/**",
+    "public/assets/gpu/baked/driftwood-isle/**",
+    "public/assets/horizon/driftwood-isle-*",
+    "public/assets/gpu/horizon/driftwood-isle-*",
+    "public/assets/lut/driftwood-isle.bin",
+    "public/assets/title/driftwood-isle-portrait.jpg",
+    "public/assets/sfx/driftwood-isle/**",
+    "public/assets/driftwood-isle/map/**",
+    "public/assets/driftwood-isle/baked/fixed-models/**"
+  ],
+  "order": 1,
+  "tiers": {
+    "phone": {
+      "slices": true,
+      "skipRaysOffscreen": true,
+      "aa": "fxaa",
+      "godRays": false
+    }
+  },
+  "status": "live",
+  "slug": "driftwood-isle",
+  "next": "nalati-grasslands",
+  "name": "Driftwood Isle",
+  "label": "(−1, +6)",
+  "seed": 24225,
+  "treeCount": 0,
+  "biome": "Low-poly island, open ocean",
+  "blurb": "A small low-poly island in a bright ocean, in the spirit of Wind Waker. A pier, a moored sailboat, a hut on the plateau, a ring shrine in the jungle and a wreck in the cove — island boar hunted with a wooden sword.",
+  "card": {
+    "thumb": "/src/shards/driftwood-isle/thumbs/driftwood-isle.jpg",
+    "portrait": "/src/shards/driftwood-isle/thumbs/driftwood-isle-portrait.jpg",
+    "landscape": "/src/shards/driftwood-isle/thumbs/driftwood-isle-landscape.jpg"
+  },
+  "style": "toon",
+  "weapon": "sword",
+  "loadout": {
+    "weapons": [
+      "weapon.sword",
+      "weapon.sword-iron"
+    ],
+    "tools": [
+      "tool.hoverboard"
+    ],
+    "start": [
+      "weapon.sword",
+      "tool.hoverboard"
+    ],
+    "pickups": [
+      {
+        "id": "weapon.sword-iron",
+        "at": "wreck.deck"
+      }
+    ]
+  },
+  "explore": {
+    "art": {
+      "world": "/src/shards/driftwood-isle/explore/world-driftwood-isle.webp",
+      "models": "/src/shards/driftwood-isle/explore/models-driftwood-isle.webp",
+      "sets": "/src/shards/driftwood-isle/explore/sets-driftwood-isle.webp",
+      "practice": "/src/shards/driftwood-isle/explore/practice-driftwood-isle.webp"
+    },
+    "compare": [
+      {
+        "id": "spawn",
+        "label": "Spawn · pier",
+        "model": "driftwood-spawn",
+        "target": "art/driftwood-isle/round-4-remaster/mockup-1-fp-front.jpg",
+        "live": "/src/shards/driftwood-isle/explore/compare/driftwood-spawn-live.jpg",
+        "image": "/src/shards/driftwood-isle/explore/compare/driftwood-spawn-target.jpg"
+      },
+      {
+        "id": "right",
+        "label": "Spawn · right",
+        "model": "driftwood-right",
+        "target": "art/driftwood-isle/round-4-remaster/mockup-3-fp-right.jpg",
+        "live": "/src/shards/driftwood-isle/explore/compare/driftwood-right-live.jpg",
+        "image": "/src/shards/driftwood-isle/explore/compare/driftwood-right-target.jpg"
+      },
+      {
+        "id": "overlook",
+        "label": "Island overlook",
+        "model": "driftwood-overlook",
+        "target": "art/driftwood-isle/round-4-remaster/mockup-6-diag-front.jpg",
+        "live": "/src/shards/driftwood-isle/explore/compare/driftwood-overlook-live.jpg",
+        "image": "/src/shards/driftwood-isle/explore/compare/driftwood-overlook-target.jpg"
+      }
+    ]
+  },
+  "trees": {
+    "factory": "none",
+    "noun": "trees"
+  },
+  "fight": {
+    "input": {
+      "bufferMs": 120,
+      "coyoteMs": 100
+    },
+    "telegraphed": true,
+    "maxHitDamage": 20,
+    "capExempt": [
+      "captain"
+    ],
+    "attackers": 2
+  },
+  "loot": {
+    "coins": true
+  },
+  "bodyShadow": true,
+  "faunaTuning": {
+    "boar": {
+      "sightRange": 42,
+      "sightRangeGraze": 26,
+      "sightCone": 1.22,
+      "hearWalk": 18,
+      "hearSprint": 34,
+      "noticeRate": 0.65,
+      "impactAlert": 28
+    }
+  },
+  "sky": {
+    "sunColor": [
+      1,
+      0.97,
+      0.9
+    ],
+    "sunIntensity": 2.7,
+    "envIntensity": 0.7,
+    "bgIntensity": 1,
+    "fogSunColor": [
+      1,
+      0.98,
+      0.92
+    ],
+    "cloudSunColor": [
+      1,
+      0.98,
+      0.94
+    ],
+    "hemiSky": 8098036,
+    "hemiGround": 14198904,
+    "hemiIntensity": 0.9,
+    "planet": {
+      "azimuth": 36,
+      "elevation": 38,
+      "size": 17,
+      "tilt": 24,
+      "roll": -16
+    }
+  },
+  "atmosphere": {
+    "fogHeight": -20,
+    "fogHeightFalloff": 0.08,
+    "fogHeightDensity": 0.0004,
+    "fogDistDensity": 0.00014,
+    "volumetricSunColor": [
+      1,
+      0.97,
+      0.9
+    ]
+  },
+  "grade": {
+    "saturation": 0.3,
+    "brightness": 0,
+    "contrast": 0.2,
+    "bloomIntensity": 0.4,
+    "bloomThreshold": 1,
+    "shadowTint": [
+      0.94,
+      0.98,
+      1.06
+    ],
+    "highTint": [
+      1.04,
+      1.01,
+      0.96
+    ],
+    "lift": [
+      0,
+      0,
+      0.005
+    ],
+    "gain": [
+      1.02,
+      1.02,
+      1
+    ],
+    "gamma": 1
+  },
+  "audio": {
+    "bed": "island",
+    "samples": {
+      "loopGains": {
+        "island": 0.5
+      }
+    },
+    "ambience": "ambience.driftwood",
+    "score": "score.driftwood"
+  },
+  "blender": {
+    "area": {
+      "x0": -110.7843137254902,
+      "x1": 110.78431372549016,
+      "z0": -214.7058823529412,
+      "z1": -20.588235294117652
+    },
+    "models": []
+  },
+  "boot": {
+    "precache": []
+  },
+  "ocean": {
+    "level": 0,
+    "shallowColor": [
+      0,
+      0.8,
+      0.88
+    ],
+    "deepColor": [
+      0.008,
+      0.15,
+      0.52
+    ],
+    "deepDepth": 6
+  },
+  "spawn": {
+    "x": 0,
+    "y": 1.2,
+    "z": -194,
+    "yaw": 3.141592653589793
+  },
+  "minimap": {
+    "image": "/assets/driftwood-isle/map/top.webp",
+    "openWater": {
+      "level": 0,
+      "deepDepth": 6
+    },
+    "outside": "rgb(22,74,128)"
+  },
+  "pois": [
+    {
+      "id": "jetty",
+      "name": "Jetty",
+      "x": 0,
+      "z": -226,
+      "r": 16
+    },
+    {
+      "id": "hut",
+      "name": "Hut",
+      "x": -22,
+      "z": -64,
+      "r": 12
+    },
+    {
+      "id": "shrine",
+      "name": "Ring shrine",
+      "x": -98,
+      "z": 108,
+      "r": 16
+    },
+    {
+      "id": "lookout",
+      "name": "Lookout",
+      "x": 94,
+      "z": 94,
+      "r": 12
+    },
+    {
+      "id": "wreck",
+      "name": "Wreck cove",
+      "x": 153,
+      "z": 2,
+      "r": 20
+    },
+    {
+      "id": "bridge",
+      "name": "Rope bridge",
+      "x": 24,
+      "z": 22,
+      "r": 12
+    }
+  ],
+  "runtimeEntry": "runtime/hybrid.ts",
+  "bindings": {
+    "accent": "marigold",
+    "budgets": {
+      "module": "./budgets",
+      "export": "DRIFTWOOD_BUDGET_INPUTS"
+    },
+    "runtimeCost": {
+      "module": "./data/runtimeCost",
+      "export": "DRIFTWOOD_RUNTIME_COST"
+    },
+    "spawns": {
+      "module": "./data/fauna",
+      "export": "DRIFTWOOD_FAUNA_PLANS"
+    },
+    "ground": {
+      "module": "./boot/ground",
+      "export": "GROUND"
+    },
+    "render": {
+      "module": "./look/render",
+      "export": "shardRender"
+    },
+    "load": {
+      "module": "./plugin"
+    },
+    "roster": {
+      "module": "./roster",
+      "export": "ROSTER",
+      "call": false
+    },
+    "audioPreload": {
+      "module": "./runtime/audio/files",
+      "export": "createDriftwoodAudio"
+    },
+    "posesLoader": {
+      "module": "./boot/poses",
+      "export": "poses"
+    },
+    "boot": {
+      "files": {
+        "module": "./boot/sources",
+        "export": "bootFiles"
+      },
+      "sources": {
+        "module": "./boot/sources",
+        "export": "bootSources"
+      },
+      "audio": {
+        "module": "./runtime/audio/files",
+        "export": "BOOT_AUDIO"
+      },
+      "lateReads": {
+        "module": "./boot/lateReads",
+        "export": "lateReads"
+      }
+    },
+    "navigation": {
+      "module": "./data/navigation.generated.json",
+      "export": "default"
+    },
+    "sword": {
+      "module": "./runtime/loadout",
+      "export": "loadSword"
+    },
+    "ktx2": {
+      "module": "./ktx2.generated"
+    }
+  },
+  "captureProbes": [
+    {
+      "name": "pier",
+      "x": 0,
+      "z": -194,
+      "yaw": 3.141592653589793,
+      "pitch": 0
+    },
+    {
+      "name": "beach",
+      "x": -10,
+      "z": -150,
+      "yaw": 4.3,
+      "pitch": 0
+    },
+    {
+      "name": "wreck",
+      "x": 105,
+      "z": 0,
+      "yaw": -1.5707963267948966,
+      "pitch": 0
+    }
+  ]
+}

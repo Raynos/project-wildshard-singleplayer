@@ -1,12 +1,15 @@
+import { basinBody, type WaterBody } from '@wildshard/engine/world/water/body';
+import { surfaceReflect } from '@wildshard/engine/world/water/view';
 import { smoothstep, lerp } from '@wildshard/engine/core/noise';
-import type { Vec2 } from '@wildshard/engine/level/data';
-import type { SpeciesWeights } from '@wildshard/engine/world/forest/treeSpecies';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
 import { PINE_TERRAIN } from '../data/terrainBindings';
 import { PINE_TREE_IDS } from './treeSet';
-import { CABIN_SITES, RIDGE, LOOKOUT, ZIPLINE, POND, WATERFALL, CREEK, CREEK_BRIDGE, DEN, BEAR_CAVE, OLD_GROWTH, KINGS_CLEARING, HAMLET, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS } from '../data/layout';
+import { type XZ as Vec2, CABIN_SITES, RIDGE, LOOKOUT, ZIPLINE, POND, WATERFALL, CREEK, CREEK_BRIDGE, DEN, BEAR_CAVE, OLD_GROWTH, KINGS_CLEARING, HAMLET, S_ROAD, N_ROAD, W_ROAD, E_ROAD, SPURS } from '../data/layout';
 import { ridgeFootZ, nearestOnPolyline, creekWaterAt } from '../behaviour/layout';
+
+type SpeciesWeights = Partial<Record<string, number>>;
+
 /** 0 → 1 inside the old-growth's soft ellipse */
 export function oldGrowthMask(x: number, z: number): number {
   const e = Math.hypot((x - OLD_GROWTH.x) / OLD_GROWTH.ax, (z - OLD_GROWTH.z) / OLD_GROWTH.az);
@@ -85,3 +88,48 @@ export function speciesMix(x: number, z: number): SpeciesWeights {
   return mixW(w, KINGS_RING_MIX, ring);
 }
 
+
+/** the creek: water wherever `creekWaterAt` answers, at the surface it answers */
+function creekBody(): WaterBody {
+  return {
+    id: 'creek', get level() { return TERRAIN.waterLevel(); }, 
+    restAt: creekWaterAt,
+    surfaceAt: (x, z) => creekWaterAt(x, z) ?? TERRAIN.waterLevel(),
+    inside: (x, z, y) => { const s = creekWaterAt(x, z); return s !== null && y < s; },
+    reflect: surfaceReflect,
+  };
+}
+
+export const PINE_WATER: readonly WaterBody[] = [basinBody('pond', TERRAIN, surfaceReflect), creekBody()];
+
+export const GROUND = { terrain: TERRAIN, water: PINE_WATER };
+
+/** Native forest query ports; authored tuning and species stay in JSON. */
+export const FOREST_QUERIES = { density: forestDensity, scale: (x: number, z: number): number => 1 + oldGrowthMask(x, z) * 0.25, species: speciesMix };
+
+/**
+ * G187 (Jake, 2026-10-07, `art/pine-hollow/round-36-content-cut/` board-view-distance B): on the phone, with the Pine
+ * memory trim on (the grid's default), every reach the content-cut board scaled is 75 % of the phone row's: the trees' hi /
+ * lo / twig bands, the cabins' detail meshes, the animals' draw, eye and shadow bands, the sun's shadow reach and the
+ * pickup orbs. −6.5 MB of GL on the board (the cabin detail meshes that never build); the fog already hides the reach it cuts.
+ * The numbers are 0.75 × the phone tier's own (Pine's row where it sets one, else the engine's phone row, render/tiers.ts).
+ * Trim off (standalone) keeps the phone row's reach.
+ */
+const VIEW_B = {
+  treeHiDist: 45, treeLoDist: 97.5, treeTwigDist: 18, cabinDetailDist: 52.5,
+  animalHideDist: 112.5, animalShadowDist: 45, animalEyeDist: 33.75, animalOneDrawDist: 75,
+  shadowFar: 45, pickupOrbDist: 90,
+} as const;
+
+let trimmed: () => boolean = () => false;
+/** Bind the memory trim (debug/options.ts `pineMemoryTrim`). The plugin binds it when it is constructed, before its
+ *  level boots, so the manifest's cold closure stays free of the save slots; unbound keeps today's reach */
+export function bindPineViewTrim(read: () => boolean): void { trimmed = read; }
+
+/** Pine's tier rows with view distance B laid over the phone's while the trim is on (read when the level applies its row) */
+export function pineTiers<P extends object, D extends object>(rows: { phone: P; desktop: D }): { readonly phone: P; desktop: D } {
+  return {
+    get phone(): P { return trimmed() ? { ...rows.phone, ...VIEW_B } : rows.phone; },
+    desktop: rows.desktop,
+  };
+}

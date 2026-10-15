@@ -11,7 +11,7 @@ import type { TerrainPainter, WorldLookContext } from '@wildshard/engine/render/
 import source from '../shard.config';
 import { followToon } from './toon';
 import { GROUND_LOOK, GROUND_PATHS } from '../data/groundLook';
-import { OCEAN } from '../manifest';
+import { OCEAN } from '../world/sites';
 import { LP, hash2, lowPolyGroundColor } from './groundColor';
 
 const _pathC = new THREE.Color();

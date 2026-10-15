@@ -11,7 +11,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt, terrainWaterLevel as waterLevel } from '@wildshard/engine/world/terrainHeight';
 import { waveHeight } from '@wildshard/engine/world/waves';
 import type { PalmSpec } from '../world/Palms';
-import { WRECK } from '../manifest';
+import { WRECK } from '../world/sites';
 import { enemyCount, DRIFTWOOD_PRACTICE } from './tables';
 import { COCONUT_R, COCONUTS, Coconuts } from '../combat/coconuts';
 import { preloadSailorHead } from '../species/sailor';

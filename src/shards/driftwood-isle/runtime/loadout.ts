@@ -46,3 +46,12 @@ export function buildIronSwordDisplay(sky: World['sky']): Group {
   });
   const root=made.group('pickup');if(root===null)throw new Error('Iron sword display requires its declared group');return root;
 }
+
+/** Preserve the native sword loader and its explicit code-built fallback. */
+export async function loadSword(): Promise<ShardSword> {
+  try { return await (await import('../fpArms')).castawayArms(); }
+  catch (error) {
+    console.warn('driftwood-isle: the castaway arms did not load, the code-built sword stands in', error);
+    return {};
+  }
+}

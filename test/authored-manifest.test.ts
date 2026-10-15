@@ -11,12 +11,14 @@ import { MANIFEST as sky } from '../src/shards/far-reach/discovery.generated';
 import { MANIFEST as signal } from '../src/shards/sunscar-dunes/discovery.generated';
 import { MANIFEST as template } from '../src/shards/_template/discovery.generated';
 import templateProduct from '../src/shards/_template/shard.config';
+import { MANIFEST as pine } from '../src/shards/pine-hollow/discovery.generated';
+import { MANIFEST as driftwood } from '../src/shards/driftwood-isle/discovery.generated';
 import * as v from 'valibot';
 
 const root = resolve(import.meta.dirname, '..');
 const metadata = (slug: string): unknown => JSON.parse(readFileSync(resolve(root, `src/shards/${slug}/manifest.json`), 'utf8'));
 describe('authored JSON discovery', () => {
-  for (const manifest of [sky, signal, template]) test(`${manifest.slug} composes typed native bindings and complete images`, () => {
+  for (const manifest of [sky, signal, template, pine, driftwood]) test(`${manifest.slug} composes typed native bindings and complete images`, () => {
     const row = parseManifestMetadata(metadata(manifest.slug));
     expect(manifest.name).toBe(row.name); expect(manifest.spawn).toEqual(row.spawn);
     expect(manifest.bounds).toEqual(row.bounds); expect(manifest.sky).toEqual(row.sky);
@@ -25,7 +27,7 @@ describe('authored JSON discovery', () => {
     const source = authoredManifestSource(root, manifest.slug);
     for (const path of Object.values(row.card).concat(Object.values(row.explore.art))) {
       if (path.startsWith('/src/')) { expect(source).toContain(path); expect(existsSync(resolve(root, path.slice(1)))).toBe(true); }
-      else expect(path.startsWith('data:image/')).toBe(true);
+      else expect(path.startsWith('data:image/') || path.startsWith('/assets/')).toBe(true);
     }
     expect(manifest.card.thumb).toBeTruthy(); expect(manifest.card.portrait).toBeTruthy(); expect(manifest.card.landscape).toBeTruthy();
     expect(existsSync(resolve(root, 'public', row.minimap.image.slice(1)))).toBe(true);

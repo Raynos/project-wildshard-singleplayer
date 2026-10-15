@@ -4,7 +4,7 @@ import { shardfileEntry, prepareStandaloneHybrid } from '@wildshard/game/shard/r
 import type { prepareHybridShard as prepareTrustedHybrid } from '@wildshard/game/shardfile/hybrid';
 import RuntimePlugin from './runtime/index';
 import { pineMemoryTrim } from './debug/options';
-import { bindPineViewTrim } from './look/viewDistance';
+import { bindPineViewTrim } from './world/terrain';
 
 /** Compatibility callers keep the unchanged trusted runtime hooks. */
 export class PineHollow extends RuntimePlugin {}

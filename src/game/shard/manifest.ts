@@ -688,7 +688,15 @@ export function terrainFor(manifest: Pick<ShardManifest, 'ground' | 'slug'>): Ch
 }
 
 /** The generated discovery root lends only native/generated fields. */
-export type AuthoredShardBindings = Omit<ShardManifestRows, keyof ManifestMetadata> & { readonly mapPalette?: MapPaletteRow; readonly audioBindings?: Pick<NonNullable<ShardManifest['audio']>, 'cues'>; readonly bootBindings?: Pick<BootSpec, 'files' | 'sources' | 'lateReads'> };
+export type AuthoredShardBindings = Omit<ShardManifestRows, keyof ManifestMetadata | 'trees'> & {
+  readonly spawns?: ShardManifestRows['spawns'];
+  readonly mapPalette?: MapPaletteRow;
+  readonly audioBindings?: Pick<NonNullable<ShardManifest['audio']>, 'cues' | 'preload'>;
+  readonly bootBindings?: Pick<BootSpec, 'files' | 'sources' | 'lateReads' | 'bakedUnread' | 'audio'>;
+  readonly treeFactory?: ChunkTrees['factory'];
+  readonly forestQueries?: Pick<ChunkForest, 'density' | 'scale' | 'species'>;
+  readonly tierPolicy?: (rows: Required<TierOverrides>) => TierOverrides;
+};
 /** Validate authored metadata, resolve literal bundled image imports and compose
  * the unchanged native boot owners. Missing source images refuse admission. */
 export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: AuthoredShardBindings,
@@ -700,14 +708,29 @@ export function defineAuthoredShard(input: unknown, slug: ShardSlug, rows: Autho
     if (url === undefined) throw new Error('Manifest source image is not bundled');
     return url;
   };
-  const { mapPalette: palette, audioBindings, bootBindings, ...bindings } = rows;
+  const { mapPalette: palette, audioBindings, bootBindings, treeFactory, forestQueries, tierPolicy, ...bindings } = rows;
+  const compare = data.explore.compare?.map(row => ({...row, live: image(row.live), image: image(row.image)}));
+  const factory = treeFactory ?? data.trees.factory;
+  if (factory === undefined) throw new Error('Manifest trees have no declared factory');
+  const trees: ChunkTrees = {...data.trees, factory};
+  const spawns = data.spawns ?? bindings.spawns;
+  if (spawns === undefined) throw new Error('Manifest has no declared spawn inventory');
+  const tiers = (() => {
+    if (tierPolicy === undefined) return data.tiers;
+    const {phone, desktop} = data.tiers ?? {};
+    if (phone === undefined || desktop === undefined) throw new Error('Manifest tier policy requires both tier rows');
+    return tierPolicy({phone, desktop});
+  })();
   if (bootData !== undefined && bootBindings === undefined) throw new Error('Manifest boot inventory has no native binding');
-  return defineShard({ ...bindings, ...data, slug, audio: {...data.audio, ...audioBindings},
-    ...(bootBindings === undefined ? {} : { boot: { ...bootData, ...bootBindings, explore: { art: Object.values(data.explore.art).map(image) } } }),
+  return defineShard({ ...bindings, ...data, slug, trees, spawns,
+    ...(data.forest === undefined ? {} : {forest: {...data.forest, ...forestQueries}}),
+    ...(tiers === undefined ? {} : {tiers}),
+    audio: {...data.audio, ...audioBindings},
+    ...(bootBindings === undefined ? {} : { boot: { ...bootData, ...bootBindings, explore: { art: [...Object.values(data.explore.art).map(image), ...(compare?.flatMap(({live, image: target}) => [live, target]) ?? [])] } } }),
     card: { thumb: image(data.card.thumb), portrait: image(data.card.portrait), landscape: image(data.card.landscape) },
     sky: { ...data.sky, ...(data.sky.hdri === undefined ? {} : { hdri: image(data.sky.hdri) }) },
-    minimap: { image: image(data.minimap.image), ...(palette === undefined ? {} : { palette }) },
+    minimap: { ...data.minimap, image: image(data.minimap.image), ...(palette === undefined ? {} : { palette }) },
     explore: { art: { world: image(data.explore.art.world), models: image(data.explore.art.models),
-      sets: image(data.explore.art.sets), practice: image(data.explore.art.practice) } },
+      sets: image(data.explore.art.sets), practice: image(data.explore.art.practice) }, ...(compare === undefined ? {} : {compare}) },
   }, native);
 }
