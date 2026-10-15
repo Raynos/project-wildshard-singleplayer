@@ -49,7 +49,8 @@ import { place, type Placed } from '@wildshard/engine/models/place';
 import type { TerrainCut } from '@wildshard/engine/physics/terrain';
 import { BatchedCull } from '@wildshard/engine/models/cull';
 import { CaveInterior, type CaveInterior as CaveInteriorView, type CaveMeta } from '../runtime/kit/caveInterior';
-import { loadGlbNodes, trimeshDesc } from '../runtime/kit/glbNodes';
+import { loadGlbNodes } from '@wildshard/engine/models/glbNodes';
+import { placedGeometryCollider } from '@wildshard/engine/models/colliders';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
@@ -92,7 +93,7 @@ function cragMaterial(rock: PBRSet, grit: Pick<PBRSet, 'map' | 'normalMap'>): TH
 const LOD = CRAG_LOD;
 
 /** the kit's vertex colour and tint UV, as the granite's graph reads them (../data/cragLook.ts) */
-const KIT_ATTRS = { color: 'aCdata', uv: 'aCtint' } as const;
+const KIT_ATTRS = { position: { source: 'position', size: 3 }, normal: { source: 'normal', size: 3 }, aCdata: { source: 'color', size: 4, fill: 1 }, aCtint: { source: 'uv', size: 2, fill: 0 } } as const;
 
 
 export class PineCrags {
@@ -172,7 +173,7 @@ export class PineCrags {
     const caveG=this.caveGeo.get('cave');
     if(caveG){
       const col = this.caveGeo.get('cave-col') ?? caveG;
-      this.caveColliders.push(trimeshDesc(col, caveM, CAVE_LOOK.surface));
+      this.caveColliders.push(placedGeometryCollider({ kind: 'trimesh', geometry: col }, caveM, CAVE_LOOK.surface));
     }
     if (this.cave) this.caveColliders.push(...this.cave.roofPatch());
 

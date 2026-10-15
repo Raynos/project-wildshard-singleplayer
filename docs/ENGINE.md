@@ -5878,3 +5878,23 @@ speaker animation remain borrowed. Pine uses its existing native `NpcReading`;
 G441's W3 match is Nalati `adventure.ts`'s ordered `CAMP_NPCS` / `NpcTalk`
 roster, shared dialogue USE routing and walk-away cancellation. W3 adopts that
 roster without inventing native saves or replacing its `DialogueBox`.
+
+### Named GLB nodes and placed geometry colliders
+
+`src/engine/models/glbNodes.ts#loadGlbNodes(source, attributes?, prepare?)` reads
+all named mesh nodes from a URL (Meshopt supported) or an existing Object3D.
+It dequantizes before applying each complete file-space world transform,
+computes bounds, and returns owned geometries by name. With no projection,
+all channels remain. A projection maps output names to `{source,size,fill?}`
+float channels (at most 16; widths 1–4). Position stays a vec3; missing
+channels require a finite fill, and wider channels pad with 1. Materials
+are borrowed; optional `prepare` receives them without transferring ownership.
+Nalati's W3 `world/glbPaint.ts` adopts this reader while retaining its AO
+and material policy (G441).
+
+`src/engine/models/colliders.ts#placedGeometryCollider(source,matrix,surface)`
+accepts `{kind:'trimesh',geometry}` or `{kind:'hull',points}`. It transforms
+fresh Float32 vertices relative to the matrix translation, retaining mesh
+index order (or sequential indices for a non-indexed mesh). Register the
+returned descriptor through the normal world physics registry. Nalati's
+W3 `world/solid.ts#hullAt` adopts the same hull projection (G441).
