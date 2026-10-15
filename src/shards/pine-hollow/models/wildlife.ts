@@ -18,26 +18,17 @@
  * No shadow is cast (a bird-sized caster would add the cascades' draws); the forest's shadows fall on them.
  */
 import * as THREE from 'three';
-import type { BirdMesh, BirdSet } from '../runtime/birds';
+import { loadBirdModels, type BirdSet } from '../runtime/birds';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { PosedInstances, PosedPacker, type PosedInstances as PosedInstancesView } from '../runtime/looks/posedInstances';
+import { PosedInstances, type PosedInstances as PosedInstancesView } from '../runtime/looks/posedInstances';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
-import * as vb from 'valibot';
 import { WILDLIFE_LOOK } from '../data/wildlifeLook';
-import wildJson from '../data/wildlife.json' with { type: 'json' };
-import { loadBakedKinds } from '@wildshard/game/shardfile/bakedKinds';
-import glbRows from '../data/wildlifeGlb.generated.json' with { type: 'json' };
 
 export const KIND = { raven: 0, owl: 1, woodpecker: 2, hare: 4 } as const;
 export type WildKind = (typeof KIND)[keyof typeof KIND];
-
-/** vertex part ids (aPart): what the vertex shader turns */
-export const P = { body: 0, wingL: 1, wingR: 2, head: 3, legs: 4, tail: 5, hBody: 10, hHead: 11, hEars: 12, hHind: 13, hFore: 14 } as const;
-
-export type V3 = readonly [number, number, number];
 
 /** one instance's pose for `WildlifeMesh.write` */
 export interface WildPose {
@@ -55,87 +46,16 @@ export interface WildPose {
 }
 export const newPose = (kind: WildKind): WildPose => ({ kind, x: 0, y: -999, z: 0, yaw: 0, pitch: 0, roll: 0, scale: 1, a0: 0, a1: 0, a2: 0, a3: 0, b1: 0, b2: 0 });
 
-// ─────────────── the baked shapes ───────────────
-const num = vb.pipe(vb.number(), vb.finite());
-const WildRowsSchema = vb.strictObject({ bin: vb.string(), bytes: num, kinds: vb.array(vb.strictObject({ kind: vb.picklist([KIND.raven, KIND.owl, KIND.woodpecker, KIND.hare]), vertices: num, indices: num })) });
-/** ../data/wildlife.json: the bake's hash and size, and each kind's vertex and index counts in the binary's order */
-export type WildRows = vb.InferOutput<typeof WildRowsSchema>;
-/** the order the bake writes the procedural kinds in (../generators/wildlife.ts) */
-export const WILD_BAKE_KINDS: readonly WildKind[] = [KIND.raven, KIND.owl, KIND.woodpecker, KIND.hare];
-/** the bake's rows, parsed strictly once */
-export const WILD_ROWS: WildRows = vb.parse(WildRowsSchema, wildJson);
-/** The authored wildlife model library, loaded before the live instances are installed. */
-export const WILDLIFE_BAKE_URL = '/assets/pine-hollow/baked/wildlife.glb';
-
-/** one kind's baked blocks: position, normal, colour, pivot (3 a vertex), info, atlas (4 a vertex), its local triangles */
-interface WildShape { readonly pos: Float32Array; readonly nor: Float32Array; readonly col: Float32Array; readonly pivot: Float32Array; readonly info: Float32Array; readonly tex: Float32Array; readonly idx: Uint32Array }
-
-let shapes: ReadonlyMap<WildKind, WildShape> | null = null;
+/** One required authored draw, shared by the forest and Explorer cards. */
+let shapes: BirdSet | null = null;
 let loading: Promise<void> | null = null;
-/** Restore the original wildlife channels from the standard, authored model library. */
-export function wildlifeGlbShapes(nodes: ReadonlyMap<string, THREE.InstancedMesh>): ReadonlyMap<WildKind, WildShape> {
-  const out = new Map<WildKind, WildShape>();
-  for (const { kind, vertices, indices } of WILD_ROWS.kinds) {
-    const node = nodes.get(`wildlife-${String(kind)}`);
-    if (node?.count !== 1) throw new Error(`[wildlife] missing authored kind ${String(kind)}`);
-    const channel = (name: string, width: number): Float32Array => {
-      const attribute = node.geometry.getAttribute(name);
-      if (!(attribute instanceof THREE.BufferAttribute) || !(attribute.array instanceof Float32Array)
-        || attribute.itemSize !== width || attribute.count !== vertices) throw new Error(`[wildlife] invalid authored ${name}`);
-      return attribute.array;
-    };
-    const index = node.geometry.getIndex();
-    if (index === null || !(index.array instanceof Uint32Array) || index.count !== indices
-      || index.array.some(value => value >= vertices)) throw new Error('[wildlife] invalid authored triangles');
-    out.set(kind, { pos: channel('position', 3), nor: channel('normal', 3), col: channel('color', 3),
-      pivot: channel('_pivot', 3), info: channel('_info', 4), tex: channel('_tex', 4), idx: index.array });
-  }
-  if (nodes.size !== out.size) throw new Error('[wildlife] unexpected authored kind');
-  return out;
-}
-/** Fetch the bake behind the loading screen (the play hook awaits it before `installPineLife`), once. A bake that fails
- *  to load is a page fault (`console.error`), and the procedural animals stand absent. */
 export function preloadPineWildlife(): Promise<void> {
-  loading ??= (async (): Promise<void> => {
-    try {
-      shapes = wildlifeGlbShapes(await loadBakedKinds(WILDLIFE_BAKE_URL, glbRows.kinds, 'pine-hollow wildlife'));
-    } catch (error: unknown) { console.error('[pine-hollow] the baked wildlife did not load:', error); }
-  })();
-  return loading;
+  return (loading ??= loadBirdModels().then(set => { shapes = set; return undefined; }));
 }
-/** whether the bake has been read */
 export const wildlifeBaked = (): boolean => shapes !== null;
-
-/** the shared geometry's arrays (@wildshard/sdk/looks/posedInstances), filled from baked kinds and the modelled birds in draw order */
-class Packer extends PosedPacker {
-  /** a procedural kind from the bake (nothing while the bake is absent) */
-  baked(kind: WildKind): void {
-    const s = shapes?.get(kind);
-    if (s !== undefined) this.block(s);
-  }
-}
-
-// ─────────────── a modelled bird (birdModels.ts) ───────────────
-/**
- * One of the six generated bird meshes into the shared geometry: textured (its atlas tile), its vertices in the parts the
- * vertex shader turns (birdModels.ts tells them: flying, the wings flap about their shoulders; the head turns about the
- * neck; the rest is body).
- * The mesh arrives already in the pose frame the life code drives (birdModels.ts: the perched ones pre-tilted against
- * the pitch their perch gives them, the feet at the stand height).
- */
-function modelled(b: Packer, m: BirdMesh): void {
-  const pos = m.geo.getAttribute('position'), nor = m.geo.getAttribute('normal'), uv = m.geo.getAttribute('uv');
-  const white = new THREE.Color(1, 1, 1);
-  const base = b.pos.length / 3;
-  const PART = [P.body, P.wingL, P.wingR, P.head] as const, PIVOT: readonly V3[] = [[0, 0, 0], m.shoulderL, m.shoulderR, m.neck];
-  for (let i = 0; i < pos.count; i++) {
-    const p: V3 = [pos.getX(i), pos.getY(i), pos.getZ(i)], n: V3 = [nor.getX(i), nor.getY(i), nor.getZ(i)];
-    const k = m.parts[i] ?? 0, part = PART[k] ?? P.body, pivot = PIVOT[k] ?? [0, 0, 0];
-    b.vert(p, n, white, pivot, [part, m.kind, m.rough, m.eyes && part === P.head ? 1 : 0], [uv.getX(i), uv.getY(i), 1, m.fly ? 1 : 0]);
-  }
-  const idx = m.geo.getIndex();
-  if (idx) for (let i = 0; i < idx.count; i++) b.idx.push(base + idx.getX(i));
-  else for (let i = 0; i < pos.count; i++) b.idx.push(base + i);
+function authoredWildlife(): BirdSet {
+  if (shapes === null) throw new Error('[wildlife] required posed draw is not loaded');
+  return shapes;
 }
 
 // ─────────────── the mesh ───────────────
@@ -169,32 +89,17 @@ export class WildlifeMesh {
   constructor(readonly sky: Sky, capacity: number) {
     this.capacity = capacity;
     const look = wildlifeLook();
-    this.posed = new PosedInstances(capacity, WILDLIFE_LOOK, look.material, () => WildlifeMesh.packed(null));
+    this.posed = new PosedInstances(capacity, WILDLIFE_LOOK, look.material, () => authoredWildlife().geometry);
     this.mesh = this.posed.mesh;
     let glow = 0;
     this.glow = { get value() { return glow; }, set value(v: number) { if (v !== glow) { glow = v; look.looks.setParam(WILDLIFE_LOOK, 'glow', v); } } };
   }
 
-  /** the shared geometry: the hare (and, without `birds`, the procedural birds) + the modelled birds' two poses each */
-  private static packed(birds: BirdSet | null): THREE.BufferGeometry {
-    const b = new Packer();
-    if (birds) { for (const m of birds.meshes) modelled(b, m); } else { b.baked(KIND.raven); b.baked(KIND.owl); b.baked(KIND.woodpecker); }
-    b.baked(KIND.hare);
-    return b.geometry();
-  }
-
-  /** the modelled birds (birdModels.ts) in place of the procedural ones: same draw, same program — a new geometry and the
-   *  atlas bound to the sampler that was there from the start (uploaded now, not on the first frame that draws one) */
-  useBirds(birds: BirdSet, renderer: Renderer): void {
-    const old = this.mesh.geometry;
-    this.mesh.geometry = this.posed.wrap(WildlifeMesh.packed(birds), true);
+  /** Bind the original atlas before the first drawn instance; channels already belong to the authored draw. */
+  useBirds(birds: BirdSet, renderer: Renderer | null): void {
     wildlifeLook().looks.setTexture(WILDLIFE_LOOK, 'atlas', birds.atlas);
-    renderer.initTexture(birds.atlas);
-    old.dispose();
+    renderer?.initTexture(birds.atlas);
   }
-
-  /** `src` on an instanced geometry carrying this mesh's per-instance pose (no bounding sphere: a specimen's cut-down model) */
-  wrap(src: THREE.BufferGeometry): THREE.InstancedBufferGeometry { return this.posed.wrap(src, false); }
 
   /** vertices in the shared geometry (all four models) */
   get vertexCount(): number { return this.posed.vertexCount; }
@@ -226,29 +131,15 @@ const REST: Readonly<Record<WildKind, Partial<Omit<WildPose, 'kind'>>>> = {
   [KIND.hare]: { y: 0, pitch: 0.18, scale: 1.12, a2: -0.5, a3: -0.15 },
 };
 
-/** one kind's own model in the shared geometry's layout (WildlifeMesh's `build`, the other kinds left out): the hare, or a
- *  bird — its two generated poses when `birds` has landed, else the procedural one; `wild` lends the per-instance pose */
-function kindGeometry(kind: WildKind, birds: BirdSet | null, wild: WildlifeMesh): THREE.InstancedBufferGeometry {
-  const b = new Packer();
-  if (kind === KIND.hare) b.baked(kind);
-  else if (birds) { for (const m of birds.meshes) if (m.kind === kind) modelled(b, m); }
-  else b.baked(kind);
-  return wild.wrap(b.geometry());
-}
-
-/**
- * One copy of `kind` as the forest draws it, for its Model Explorer card: a WildlifeMesh of one instance (the same material,
- * program and vertex-shader pose), its geometry cut down to this kind's own model, held at rest (`REST`) with its feet on
- * the origin. `birds`: the generated birds (birdModels.ts) once they have landed, swapped in as the life code does.
- */
-export function wildlifeSpecimen(ctx: ModelContext, kind: WildKind, birds: BirdSet | null = null): THREE.InstancedMesh {
+/** One kind of the authored draw, sharing its immutable arrays and original pose shader. */
+export function wildlifeSpecimen(ctx: ModelContext, kind: WildKind): THREE.InstancedMesh {
+  const set = authoredWildlife(), range = set.ranges.find(row => row.kind === kind);
+  if (range === undefined) throw new Error('Missing authored wildlife kind');
   const wild = new WildlifeMesh(ctx.sky, 1);
-  let set: BirdSet | null = null;
-  if (birds !== null && ctx.renderer !== null) { wild.useBirds(birds, ctx.renderer); set = birds; } // the atlas bound as the life code binds it
-  wild.mesh.geometry = kindGeometry(kind, set, wild);
-  wild.begin();
-  wild.add({ ...newPose(kind), ...REST[kind] });
-  wild.commit();
+  wild.useBirds(set, ctx.renderer);
+  wild.mesh.geometry.setDrawRange(range.start, range.count);
+  wild.mesh.geometry.boundingBox = new THREE.Box3(new THREE.Vector3(...range.box.slice(0, 3)), new THREE.Vector3(...range.box.slice(3)));
+  wild.begin(); wild.add({ ...newPose(kind), ...REST[kind] }); wild.commit();
   return wild.mesh;
 }
 

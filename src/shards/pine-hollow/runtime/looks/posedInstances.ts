@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 /**
  * Posed instances (SHARD-PLATFORM M3, moved from Pine Hollow's models/wildlife.ts): several small posable models (birds,
- * a hare…) packed into ONE geometry and drawn as ONE instanced mesh — one draw call, one program. Each instance draws only
+ * a hare…) authored into ONE geometry and drawn as ONE instanced mesh — one draw call, one program. Each instance draws only
  * its own model (the shard's material collapses the others' vertices to a point) and moves that model's parts from two
  * per-instance vec4s (`aAnim`, `aAnim2`). The packing, the instance buffers and the per-frame packing of the live instances
  * are here; the parts' motion, what the packed scalars mean and the look are the shard's material graph (its `data/`).
@@ -10,50 +10,10 @@ import * as THREE from 'three';
  * Per vertex: position, normal, colour, the part's pivot (`aPivot`) and two packed vec4s, `aInfo` and `aTexV` (WebGL's 16
  * attribute slots: the instance matrix takes four). The mesh casts no shadow and receives them; it is never frustum culled.
  *
- *   const posed = new PosedInstances(24, 'pine-wildlife', material, () => packer.geometry());
+ *   const posed = new PosedInstances(24, 'pine-wildlife', material, () => authoredGeometry);
  *   scene.add(posed.mesh);
  *   posed.begin(); posed.add(x, y, z, pitch, yaw, roll, scale, a0, a1, a2, a3, b0, b1, b2, b3); posed.commit();
  */
-
-/** One model's packed blocks: position, normal, colour, pivot (3 a vertex), info, atlas (4 a vertex) and its local triangles. */
-export interface PosedBlock {
-  readonly pos: ArrayLike<number> & Iterable<number>;
-  readonly nor: ArrayLike<number> & Iterable<number>;
-  readonly col: ArrayLike<number> & Iterable<number>;
-  readonly pivot: ArrayLike<number> & Iterable<number>;
-  readonly info: ArrayLike<number> & Iterable<number>;
-  readonly tex: ArrayLike<number> & Iterable<number>;
-  readonly idx: Iterable<number>;
-}
-
-/** The shared geometry's arrays, filled block by block (or vertex by vertex) in draw order. */
-export class PosedPacker {
-  readonly pos: number[] = []; readonly nor: number[] = []; readonly col: number[] = []; readonly pivot: number[] = [];
-  readonly info: number[] = []; readonly tex: number[] = []; readonly idx: number[] = [];
-  /** append a model's blocks, its triangles offset past the vertices already packed */
-  block(s: PosedBlock): void {
-    const base = this.pos.length / 3;
-    this.pos.push(...s.pos); this.nor.push(...s.nor); this.col.push(...s.col); this.pivot.push(...s.pivot); this.info.push(...s.info); this.tex.push(...s.tex);
-    for (const i of s.idx) this.idx.push(base + i);
-  }
-  /** one vertex: its place, normal, colour, the part's pivot, its info vec4 and its atlas vec4 */
-  vert(p: readonly [number, number, number], n: readonly [number, number, number], c: THREE.Color, pivot: readonly [number, number, number], info: readonly [number, number, number, number], tex: readonly [number, number, number, number]): void {
-    this.pos.push(p[0], p[1], p[2]); this.nor.push(n[0], n[1], n[2]); this.col.push(c.r, c.g, c.b); this.pivot.push(pivot[0], pivot[1], pivot[2]);
-    this.info.push(...info); this.tex.push(...tex);
-  }
-  /** the packed geometry (position, normal, color, aPivot, aInfo, aTexV, the index) */
-  geometry(): THREE.BufferGeometry {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.Float32BufferAttribute(this.pos, 3));
-    g.setAttribute('normal', new THREE.Float32BufferAttribute(this.nor, 3));
-    g.setAttribute('color', new THREE.Float32BufferAttribute(this.col, 3));
-    g.setAttribute('aPivot', new THREE.Float32BufferAttribute(this.pivot, 3));
-    g.setAttribute('aInfo', new THREE.BufferAttribute(new Float32Array(this.info), 4));
-    g.setAttribute('aTexV', new THREE.BufferAttribute(new Float32Array(this.tex), 4));
-    g.setIndex(this.idx);
-    return g;
-  }
-}
 
 const ZERO = new THREE.Matrix4().makeScale(0, 0, 0);
 
@@ -67,7 +27,7 @@ export class PosedInstances {
   private readonly p = new THREE.Vector3(); private readonly s = new THREE.Vector3();
   private n = 0;
 
-  /** `capacity` instances of the packed `src` (a `PosedPacker` geometry) drawn in `material` (the shard's posed look) */
+  /** `capacity` instances of the packed `src` (authored geometry) drawn in `material` (the shard's posed look) */
   constructor(capacity: number, name: string, material: THREE.Material, src: () => THREE.BufferGeometry) {
     this.capacity = capacity;
     this.anim = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 4), 4); this.anim.setUsage(THREE.DynamicDrawUsage);
@@ -93,13 +53,6 @@ export class PosedInstances {
     geo.setAttribute('aAnim', this.anim); geo.setAttribute('aAnim2', this.anim2);
     if (bound) geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e5);
     return geo;
-  }
-
-  /** draw a new packed geometry (the old one disposed) */
-  setGeometry(src: THREE.BufferGeometry): void {
-    const old = this.mesh.geometry;
-    this.mesh.geometry = this.wrap(src, true);
-    old.dispose();
   }
 
   /** vertices in the shared geometry */

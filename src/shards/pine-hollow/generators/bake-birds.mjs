@@ -10,5 +10,5 @@ const desktop=await bakeBirds(new Uint8Array(readFileSync(resolve(directory,'bir
 const phone=await bakeBirds(new Uint8Array(readFileSync(resolve(directory,'birds.phone.glb'))),sidecar);
 const key=hash(Buffer.concat([desktop.glb,phone.glb])),geometry=`birds-rest-${key}.glb`,phoneGeometry=`birds-rest-${key}.phone.glb`;
 mkdirSync(directory,{recursive:true});writeFileSync(resolve(directory,geometry),desktop.glb);writeFileSync(resolve(directory,phoneGeometry),phone.glb);
-writeFileSync(resolve(root,'src/shards/pine-hollow/data/ambientBirds.generated.json'),`${JSON.stringify({geometry:`/assets/pine-hollow/life/${geometry}`,atlasModel:'/assets/pine-hollow/life/birds.glb',models:desktop.models.map((model,index)=>({name:`bird_${index}`,...model}))})}\n`);
-console.log(JSON.stringify({geometry,geometryBytes:desktop.glb.length,phoneGeometry,phoneGeometryBytes:phone.glb.length,models:desktop.models.length}));
+writeFileSync(resolve(root,'src/shards/pine-hollow/data/ambientBirds.generated.json'),`${JSON.stringify({geometry:`/assets/pine-hollow/life/${geometry}`,atlasModel:'/assets/pine-hollow/life/birds.glb',name:'wildlife',channels:[{name:'position',source:'position',width:3},{name:'normal',source:'normal',width:3},{name:'color',source:'color',width:3},{name:'aPivot',source:'_pivot',width:3},{name:'aInfo',source:'_info',width:4},{name:'aTexV',source:'_tex',width:4}],ranges:desktop.ranges})}\n`);
+console.log(JSON.stringify({geometry,geometryBytes:desktop.glb.length,phoneGeometry,phoneGeometryBytes:phone.glb.length,ranges:desktop.ranges.length}));

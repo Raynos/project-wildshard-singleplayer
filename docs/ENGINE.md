@@ -5642,3 +5642,10 @@ PBR map/normal/ARM loans by original part plus anisotropy/refresh policy.
 `library.atlas(id)` returns those original textures or null; consumers
 never mutate/dispose borrowed geometry. Independent materials keep their
 existing normal scale, map repeats and other presentation factors.
+
+**Authored posed draws.** `@wildshard/game/plugin/geometry#posedAssets`
+reads one identity-space GLB mesh, its declared Float32 shader channels,
+contiguous per-kind index ranges and the original atlas. It lends one
+attribute/index set to the live view and Explorer wrappers: cards change
+only drawRange and their own instance pose. Missing channels, repeated
+kinds, gaps and out-of-range indices refuse before the view is installed.

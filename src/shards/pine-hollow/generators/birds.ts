@@ -1,6 +1,12 @@
 import * as THREE from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { wildlifeGeometry } from './wildlife';
+import { KIND } from '../data/wildlifeKinds';
+import { NodeIO, VertexLayout } from '@gltf-transform/core';
+import { EXTMeshoptCompression } from '@gltf-transform/extensions';
+import { MeshoptEncoder, MeshoptDecoder } from 'meshoptimizer';
 import { BIRD_FRAMES } from '../data/birdFrames';
 import { clingPose,inflateBody,type ClingFeet } from './birdFrames';
 
@@ -142,15 +148,58 @@ function parseBirds(root: THREE.Object3D,side:Sidecar):PreparedBird[] {
   return meshes;
 }
 
-/** Normalize generated bird frames once during authoring; runtime only reads their named geometry and atlas. */
-export async function bakeBirds(bytes:Uint8Array,sidecar:Sidecar):Promise<{glb:Uint8Array;image:Uint8Array;mimeType:string;models:Omit<PreparedBird,'geo'|'parts'>[]}> {
-  const source=await readSourceModel(bytes);const textures:NonNullable<ReturnType<typeof source.texture>>[]=[];
-  source.gltf.scene.traverse(node=>{if(isMesh(node)&&!Array.isArray(node.material)){const texture=source.texture(node.material);if(texture!==null)textures.push(texture);}});
-  const atlas=textures[0];if(atlas===undefined)throw new Error('Missing generated bird atlas');
-  const prepared=parseBirds(source.gltf.scene,sidecar),material=new THREE.MeshStandardMaterial();
+interface PackedRange {kind: number; start: number; count: number; box: [number, number, number, number, number, number]}
+function packedBox(geometry: THREE.BufferGeometry): PackedRange['box'] {
+  geometry.computeBoundingBox(); const box = geometry.boundingBox;
+  if (box === null) throw new Error('Missing authored wildlife bounds');
+  return [box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z];
+}
+/** Author the final one-draw channels; live instances only supply their pose. */
+export async function bakeBirds(bytes: Uint8Array, sidecar: Sidecar): Promise<{
+  glb: Uint8Array; ranges: PackedRange[];
+}> {
+  const source = await readSourceModel(bytes), prepared = parseBirds(source.gltf.scene, sidecar);
+  const parts: THREE.BufferGeometry[] = [], ranges: PackedRange[] = [];
+  const material = new THREE.MeshStandardMaterial();
+  let start = 0;
+  for (const bird of prepared) {
+    const geometry = bird.geo, position = geometry.getAttribute('position'), uv = geometry.getAttribute('uv');
+    const pivot = new Float32Array(position.count * 3), info = new Float32Array(position.count * 4), tex = new Float32Array(position.count * 4);
+    const pivots = [[0, 0, 0], bird.shoulderL, bird.shoulderR, bird.neck] as const, ids = [0, 1, 2, 3];
+    for (let i = 0; i < position.count; i++) {
+      const slot = bird.parts[i] ?? 0, part = ids[slot] ?? 0;
+      pivot.set(pivots[slot] ?? [0, 0, 0], i * 3);
+      info.set([part, bird.kind, bird.rough, bird.eyes && part === 3 ? 1 : 0], i * 4);
+      tex.set([uv.getX(i), uv.getY(i), 1, bird.fly ? 1 : 0], i * 4);
+    }
+    geometry.deleteAttribute('uv');
+    geometry.setAttribute('color', new THREE.BufferAttribute(new Float32Array(position.count * 3).fill(1), 3));
+    geometry.setAttribute('aPivot', new THREE.BufferAttribute(pivot, 3));
+    geometry.setAttribute('aInfo', new THREE.BufferAttribute(info, 4));
+    geometry.setAttribute('aTexV', new THREE.BufferAttribute(tex, 4));
+    const count = geometry.getIndex()?.count ?? position.count;
+    const previous = ranges.at(-1), box = packedBox(geometry);
+    if (previous?.kind === bird.kind) {
+      previous.count += count;
+      previous.box = [Math.min(previous.box[0], box[0]), Math.min(previous.box[1], box[1]), Math.min(previous.box[2], box[2]),
+        Math.max(previous.box[3], box[3]), Math.max(previous.box[4], box[4]), Math.max(previous.box[5], box[5])];
+    } else ranges.push({kind: bird.kind, start, count, box});
+    start += count; parts.push(geometry);
+  }
+  const hare = wildlifeGeometry(KIND.hare), texture = hare.getAttribute('aTex');
+  hare.setAttribute('aTexV', texture); hare.deleteAttribute('aTex'); parts.push(hare);
+  ranges.push({kind: KIND.hare, start, count: hare.getIndex()?.count ?? 0, box: packedBox(hare)});
+  const geometry = mergeGeometries(parts);
   try {
-    const glb=staticGlb(prepared.map((part,index)=>{part.geo.setAttribute('parts',new THREE.BufferAttribute(part.parts,1));return {name:`bird_${String(index)}`,geometry:part.geo,material,customAttributes:{_PARTS:'parts'},nativeAttributes:true,compactIndex:true};}),'ambient-birds');
-    const models=prepared.map(({kind,fly,shoulderL,shoulderR,neck,rough,eyes})=>({kind,fly,shoulderL,shoulderR,neck,rough,eyes}));
-    return {glb,image:atlas.image,mimeType:atlas.mimeType,models};
-  } finally {material.dispose();for(const part of prepared)part.geo.dispose();}
+    const raw = staticGlb([{name: 'wildlife', geometry, material, compactIndex: true,
+      customAttributes: {_PIVOT: 'aPivot', _INFO: 'aInfo', _TEX: 'aTexV'}}], 'ambient-wildlife');
+    await Promise.all([MeshoptEncoder.ready, MeshoptDecoder.ready]);
+    const io = new NodeIO().setVertexLayout(VertexLayout.SEPARATE).registerExtensions([EXTMeshoptCompression])
+      .registerDependencies({'meshopt.encoder': MeshoptEncoder, 'meshopt.decoder': MeshoptDecoder});
+    const document = await io.readBinary(raw);
+    // No reorder, quantize or filters: the codec preserves the authored Float32 words.
+    document.createExtension(EXTMeshoptCompression).setRequired(true)
+      .setEncoderOptions({method: EXTMeshoptCompression.EncoderMethod.QUANTIZE});
+    return {glb: await io.writeBinary(document), ranges};
+  } finally {material.dispose(); geometry.dispose(); for (const part of parts) part.dispose();}
 }

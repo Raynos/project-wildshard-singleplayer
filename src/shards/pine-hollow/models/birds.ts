@@ -7,42 +7,17 @@
  * has not seen, the owl at night, the woodpecker by day. A card is one bird at rest on the same program — the procedural
  * one, then the generated one the moment the file is in (`ws:model-ready`).
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
-import { loadBirdModels, type BirdSet } from '../runtime/birds';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { KIND, preloadPineWildlife, wildlifeBaked, wildlifeSpecimen, type WildKind } from './wildlife';
 
 const FILE = 'src/shards/pine-hollow/models/birds.ts';
 
-/** the generated birds, fetched once per shard for the cards (the life code fetches its own once the game is up) */
-interface Birds { set: BirdSet | null; readonly ready: Promise<BirdSet | null> }
-function birdsOf(ctx: ModelContext): Birds {
-  return ctx.once('pine-hollow/birds:set', (): Birds => {
-    const b: Birds = { set: null, ready: loadBirdModels().then((s) => { b.set = s; return s; }) };
-    return b;
-  });
-}
-
-/** a bird's specimen: the generated one when it has landed, else the procedural stand-in, swapped when it lands */
+/** Cards wait for the same required authored draw as the living forest. */
 function bird(id: string, kind: WildKind): (ctx: ModelContext) => THREE.Object3D {
-  const card = (ctx: ModelContext): THREE.Object3D => {
-    // the procedural stand-ins are an offline bake (G285): read first, as the play hook reads it
-    if (!wildlifeBaked()) return loadingSpecimen(id, [0.6, 0.3, 0.8], async () => { await preloadPineWildlife(); return card(ctx); });
-    const birds = birdsOf(ctx);
-    const holder = new THREE.Group();
-    holder.add(wildlifeSpecimen(ctx, kind, birds.set));
-    if (birds.set === null) {
-      void (async (): Promise<void> => {
-        const set = await birds.ready;
-        if (set === null) return; // it failed: the procedural bird stays, as in the forest
-        holder.clear();
-        holder.add(wildlifeSpecimen(ctx, kind, set));
-        if ('document' in globalThis) document.dispatchEvent(new CustomEvent('ws:model-ready', { detail: { id } }));
-      })();
-    }
-    return holder;
-  };
+  const card = (ctx: ModelContext): THREE.Object3D => wildlifeBaked() ? wildlifeSpecimen(ctx, kind)
+    : loadingSpecimen(id, [0.6, 0.3, 0.8], async () => { await preloadPineWildlife(); return wildlifeSpecimen(ctx, kind); });
   return card;
 }
 

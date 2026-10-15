@@ -248,6 +248,11 @@ export function bakePineWildlife(): { rows: Omit<WildRows, 'bin' | 'bytes'>; bin
   return { rows: { kinds: parts.map(({ kind, vertices, indices }) => ({ kind, vertices, indices })) }, bin };
 }
 
+/** Original rest channels for a single authored wildlife kind. */
+export function wildlifeGeometry(kind: WildKind): THREE.BufferGeometry {
+  const builder = new Builder(); MODELS[kind](builder); return builder.geometry();
+}
+
 /** Four named local-space models in one author scene; native controllers still own their live poses. */
 export function pineWildlifeScene(): THREE.Scene {
   const scene = new THREE.Scene(); scene.name = 'pine-hollow.wildlife';

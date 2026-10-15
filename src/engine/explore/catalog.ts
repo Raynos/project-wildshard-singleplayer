@@ -146,7 +146,8 @@ export function measure(o: THREE.Object3D): { tris: number; calls: number; meshe
   o.traverse((c) => {
     if (!(c instanceof THREE.Mesh) || !c.visible) return;
     const g = c.geometry as THREE.BufferGeometry;
-    const n = g.index ? g.index.count : g.getAttribute('position').count;
+    const available = g.index ? g.index.count : g.getAttribute('position').count;
+    const n = Math.max(0, Math.min(g.drawRange.count, available - g.drawRange.start));
     const inst = c instanceof THREE.InstancedMesh ? c.count : 1;
     tris += (n / 3) * inst;
     calls += Array.isArray(c.material) ? c.material.length : 1;

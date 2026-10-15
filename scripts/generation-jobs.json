@@ -49,24 +49,24 @@
         "src/shards/pine-hollow/generators/birdFrames.ts",
         "src/shards/pine-hollow/generators/bake-birds.mjs",
         "src/shards/pine-hollow/data/birdFrames.ts",
-        "src/sdk/bake",
         "src/format",
-        "src/sdk/package.json",
         "package.json",
         "pnpm-lock.yaml",
         "public/assets/pine-hollow/life/birds.glb",
         "public/assets/pine-hollow/life/birds.json",
-        "src/sdk/assets.ts",
-        "public/assets/pine-hollow/life/birds.phone.glb"
+        "public/assets/pine-hollow/life/birds.phone.glb",
+        "src/shards/pine-hollow/generators/wildlife.ts",
+        "src/shards/pine-hollow/data/wildlifeKinds.ts",
+        "src/sdk"
       ],
       "outputs": [
-        "public/assets/pine-hollow/life/birds-rest-08c7c2580ed1056d4b2e4b71d61cca4381820ce4546736e836812b8ab6cd9bd3.glb",
-        "public/assets/pine-hollow/life/birds-rest-08c7c2580ed1056d4b2e4b71d61cca4381820ce4546736e836812b8ab6cd9bd3.phone.glb",
+        "public/assets/pine-hollow/life/birds-rest-40ce24a5c35abe5ff6bf415c75548df28c167c70025760972e2b6e90822553b4.glb",
+        "public/assets/pine-hollow/life/birds-rest-40ce24a5c35abe5ff6bf415c75548df28c167c70025760972e2b6e90822553b4.phone.glb",
         "src/shards/pine-hollow/data/ambientBirds.generated.json"
       ],
       "buildTimeOutputs": [
-        "public/assets/pine-hollow/life/birds-rest-08c7c2580ed1056d4b2e4b71d61cca4381820ce4546736e836812b8ab6cd9bd3.glb",
-        "public/assets/pine-hollow/life/birds-rest-08c7c2580ed1056d4b2e4b71d61cca4381820ce4546736e836812b8ab6cd9bd3.phone.glb",
+        "public/assets/pine-hollow/life/birds-rest-40ce24a5c35abe5ff6bf415c75548df28c167c70025760972e2b6e90822553b4.glb",
+        "public/assets/pine-hollow/life/birds-rest-40ce24a5c35abe5ff6bf415c75548df28c167c70025760972e2b6e90822553b4.phone.glb",
         "src/shards/pine-hollow/data/ambientBirds.generated.json"
       ],
       "platform": "portable"
