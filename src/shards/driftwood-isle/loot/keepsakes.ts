@@ -13,16 +13,16 @@
  *     boars) drops it — a walk-over pickup in the game's loot-drop orb (ItemPickup, tossed out of the body like Pine
  *     Hollow's legendaries). Walking into it takes it (Owned bear-claw / boar-tusk, saved): its plaque fills, FINDS lights
  *     it, and its perk is on — the claw: the charged heavy hits 20 % harder; the tusk: a hit that lands while a dodge
- *     carries you does nothing (dodge i-frames; the damage rules read `perks.dodgeGuard`).
+ *     carries you does nothing (dodge i-frames; the shared effect grants own these attributes and tags).
  *   - The captain's hat (board 4 C): the Drowned Captain's death drops it (gold orb) between you and where he fell; taking
  *     it grants captain-hat and puts it on. GEAR wears it / takes it off; FINDS shows it with the trophies. Left lying and
  *     the game reloaded, it waits at the ring's reward spot (he only dies once).
  *   - Worn cosmetics (the hat, the trader's cape) dress the body shadow (src/game/cosmetics/bodyShadow.ts), following GEAR.
  *
- * Wired in main.ts on Driftwood (after installLoot; the damage rules read `perks.dodgeGuard` + `player.dodging`).
+ * Wired after the player and weapon effect bindings; this owner only presents their keepsakes.
  * Seen in the game: scripts/e314-keepsakes-capture.mjs, progress/294-e314-keepsakes-stage3.jpg.
  *
- *   installKeepsakes({ owned, adventure, sky, game, player, animals, hud, audio, music, swords, body, registry })
+ *   installKeepsakes({ effectsManaged: true, owned, adventure, sky, game, player, hud, audio, music, swords, body, registry })
  *   ctx.debug.expose('driftwood.keepsakes', { chime, plaques, glass(n), drop(id), drops }   // dev / captures: set the found count, drop a
  *                                                                        // trophy in front of you
  */
@@ -50,7 +50,7 @@ import type { BodyShadow } from '@wildshard/game/cosmetics/bodyShadow';
 import type { Owned } from '@wildshard/game/loot/Owned';
 import type { ShardContext } from '@wildshard/game/shard/context';
 import { seaGlassFound } from './finds';
-import { charmsFor, chimeCount, dodgeCooldownScale, heavyMult, nightGlow } from './perks';
+import { charmsFor, chimeCount, nightGlow } from './perks';
 
 export type TrophyDropId = 'bear-claw' | 'boar-tusk' | 'captain-hat';
 /** which death drops which keepsake (while you don't own it) */
@@ -86,14 +86,14 @@ export interface KeepsakeHost<A extends KeepsakeAnimal> {
   adventure: Adventure;
   sky: Sky;
   game: { scene: THREE.Scene; camera: THREE.PerspectiveCamera; renderer: Renderer; onUpdate: (fn: (dt: number, t: number) => void, label?: string) => void };
-  player: { position: THREE.Vector3; yaw: number; dodgeCooldownScale: number };
+  player: { position: THREE.Vector3; yaw: number };
   hud: { toast: (text: string) => void };
   audio: Audio;
   music: { sting: (name: 'pickup' | 'death' | 'chunk') => void };
-  /** the island's swords (wooden, iron): the claw's heavy and charm III's glow */
-  swords: readonly { heavyMult: number; bladeGlow: number }[];
+  /** The island's swords retain charm III's visual glow; effects own their damage attributes. */
+  swords: readonly { bladeGlow: number }[];
   /** C5 applies the perks to live attributes once, before these presentation hooks. */
-  effectsManaged?: boolean;
+  effectsManaged: true;
   /** the body shadow (ShardManifest.bodyShadow): the worn hat and cape ride on it */
   body: BodyShadow | null;
   registry?: WorldRegistry | undefined;
@@ -157,10 +157,6 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
   const apply = (): void => {
     plaques?.setFilled('bear', owned.has('bear-claw'));
     plaques?.setFilled('boar', owned.has('boar-tusk'));
-    if (h.effectsManaged !== true) {
-      h.player.dodgeCooldownScale = dodgeCooldownScale(owned);
-      for (const s of h.swords) s.heavyMult = heavyMult(owned);
-    }
     dress();
   };
   apply();
