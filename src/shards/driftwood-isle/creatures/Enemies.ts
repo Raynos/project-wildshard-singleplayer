@@ -8,6 +8,7 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { ParticlePool } from '@wildshard/engine/fx/ParticlePool';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { terrainHeight as heightAt, terrainWaterLevel as waterLevel } from '@wildshard/engine/world/terrainHeight';
 import { waveHeight } from '@wildshard/engine/world/waves';
 import type { PalmSpec } from '../world/Palms';
@@ -113,8 +114,7 @@ export class Enemies {
     for (const actor of this.spawned) this.animals.retire(actor);
     this.spawned.clear(); this.group.removeFromParent();
     if (this.opts.scope === undefined) {
-      this.coconutMesh?.geometry.dispose();
-      const mat = this.coconutMesh?.material; if (Array.isArray(mat)) mat.forEach((m) => { m.dispose(); }); else mat?.dispose();
+      this.coconutMesh?.geometry.dispose(); // the kit's shared still material stays with the kit
       this.dropPool?.points.geometry.dispose();
       const material = this.dropPool?.points.material; if (material instanceof THREE.PointsMaterial) { material.map?.dispose(); material.dispose(); }
     }
@@ -135,13 +135,12 @@ export class Enemies {
     }
     W.throwCoconut = (from, to, thrower) => { this.throwCoconut(from, to, thrower); };
     W.splash = (at, strength) => { this.splash(at, strength); };
-    // ── coconuts: one InstancedMesh ──
+    // ── coconuts: one InstancedMesh in the kit's still look, the husk's brown as its vertex paint ──
     {
-      const g = new THREE.IcosahedronGeometry(COCONUT_R, 0);
-      const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color('#5a3d22'), flatShading: true, roughness: 0.85, metalness: 0 });
-      opts.sky.setupMaterial(mat);
-      opts.scope?.own(g); opts.scope?.own(mat);
-      this.coconutMesh = new THREE.InstancedMesh(g, mat, COCONUTS);
+      const g = new THREE.IcosahedronGeometry(COCONUT_R, 0), husk = new THREE.Color('#5a3d22').toArray(), n = g.getAttribute('position').count;
+      g.setAttribute('color', new THREE.BufferAttribute(Float32Array.from({ length: n * 3 }, (_, i) => husk[i % 3] ?? 0), 3));
+      opts.scope?.own(g);
+      this.coconutMesh = new THREE.InstancedMesh(g, lowPolyLookMaterial(opts.sky, 'still'), COCONUTS);
       opts.scope?.own(this.coconuts);
       this.coconuts.castShadow = true; this.coconuts.frustumCulled = false;
       for (let i = 0; i < COCONUTS; i++) this.coconuts.setMatrixAt(i, _m.makeScale(0, 0, 0));

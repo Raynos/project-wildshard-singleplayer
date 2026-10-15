@@ -12,7 +12,8 @@ import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGra
  * - `still`: the pieces that never sway (the pier deck, the hut, the shrine, the trail, the entry deck, cargo, logs);
  * - `rock-smooth`: the rocks (world/rockKit.ts carries its own smooth normals), smooth-shaded, roughness 0.82;
  * - `pennant`: the pier's pennant, the kit's sway plus a ripple travelling from the hoist to the fly across the cloth;
- * - `palm`: the palms' fronds (models/palm.ts) from their `aSway` (weight, phase), stronger in a gust, roughness 0.85.
+ * - `palm`: the palms' fronds (models/palm.ts) from their `aSway` (weight, phase), stronger in a gust, roughness 0.85;
+ * - `solid`: the still kit drawn one-sided (the boat's hull, models/boat.ts).
  */
 
 /** the look.materials ids the kit wears */
@@ -21,6 +22,7 @@ export const KIT_STILL_LOOK = 'driftwood-kit-still';
 export const KIT_ROCK_LOOK = 'driftwood-kit-rock';
 export const KIT_PENNANT_LOOK = 'driftwood-kit-pennant';
 export const KIT_PALM_LOOK = 'driftwood-kit-palm';
+export const KIT_SOLID_LOOK = 'driftwood-kit-solid';
 
 /** the prevailing wind (unit xz, from the sea in the south-east), as the engine's sway has it; the pennant streams along it */
 const WIND = [-0.55, 0.83] as const;
@@ -28,12 +30,12 @@ const WIND = [-0.55, 0.83] as const;
 type Op = (name: string, inputs?: readonly GraphRef[], extra?: Omit<GraphNode, 'op' | 'in'>) => string;
 
 /** a toon kit graph: `offset` (given the node builder) is the vertex stage's, in its shadow too; none stays put */
-function kitGraph(flatShading: boolean, roughness: number, offset?: (op: Op) => string): GraphIr {
+function kitGraph(flatShading: boolean, roughness: number, offset?: (op: Op) => string, doubleSided = true): GraphIr {
   const nodes: Record<string, GraphNode> = { paint: { op: 'vertexColour' } };
   let next = 0;
   const op: Op = (name, inputs, extra) => { const id = `k${String(next++)}`; nodes[id] = { op: name, ...(inputs === undefined ? {} : { in: inputs }), ...extra }; return id; };
   const moved = offset?.(op);
-  return { version: 1, kind: 'material', model: 'toon', doubleSided: true, flatShading, nodes,
+  return { version: 1, kind: 'material', model: 'toon', doubleSided, flatShading, nodes,
     stages: { ...(moved === undefined ? {} : { 'vertex.offset': { offset: moved, shadow: true } }), surface: { colour: 'paint', roughness, metalness: 0 } } };
 }
 
@@ -69,9 +71,10 @@ const palmSway = (op: Op): string => {
 export const KIT_GRAPHS: Readonly<Record<string, GraphIr>> = {
   [KIT_LOOK]: kitGraph(true, 0.88, kitSway(false)), [KIT_STILL_LOOK]: kitGraph(true, 0.88), [KIT_ROCK_LOOK]: kitGraph(false, 0.82),
   [KIT_PENNANT_LOOK]: kitGraph(true, 0.88, kitSway(true)), [KIT_PALM_LOOK]: kitGraph(true, 0.85, palmSway),
+  [KIT_SOLID_LOOK]: kitGraph(true, 0.88, undefined, false),
 };
 
 /** The kit variant each graph is lent to (engine/world/lowpolyKit.ts `lowPolyLookMaterial(sky, variant)`). */
 export const KIT_LENDS: Readonly<Record<string, string>> = {
-  default: KIT_LOOK, still: KIT_STILL_LOOK, 'rock-smooth': KIT_ROCK_LOOK, pennant: KIT_PENNANT_LOOK, palm: KIT_PALM_LOOK,
+  default: KIT_LOOK, still: KIT_STILL_LOOK, 'rock-smooth': KIT_ROCK_LOOK, pennant: KIT_PENNANT_LOOK, palm: KIT_PALM_LOOK, solid: KIT_SOLID_LOOK,
 };

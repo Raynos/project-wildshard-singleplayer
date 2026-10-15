@@ -9,13 +9,14 @@ import { ISLAND_BOAR, ISLAND_BEAR } from './species';
 import { DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE } from './tables';
 import { Enemies } from './Enemies';
 import { CAPTAIN_LOOK } from '../species/captain';
-import { graphCreatureLook } from '../runtime/looks/creatureLooks';
+import { captainMesh } from '../species/captainMesh';
+import { graphCaptainLook, graphCreatureLook } from '../runtime/looks/creatureLooks';
 
 /** Kit rows precede AnimalManager construction; the ready hook preserves the original placement stage. */
 export function installDriftwoodCreatures(ctx: ShardContext, species = DRIFTWOOD_SPECIES): void {
   ctx.rows.species([...species, ISLAND_BOAR, ISLAND_BEAR]);
-  // the boar and bear from the bake; every creature but the Drowned Captain (its painted body) on the graph toon look
-  ctx.rows.speciesLook([...DRIFTWOOD_LOOKS, ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK].map((look) => (look === CAPTAIN_LOOK ? look : graphCreatureLook(look))));
+  // the boar and bear from the bake; every creature on the graph toon look, the Drowned Captain on his painted coat
+  ctx.rows.speciesLook([...DRIFTWOOD_LOOKS, ISLAND_BOAR_LOOK, ISLAND_BEAR_LOOK].map((look) => (look === CAPTAIN_LOOK ? graphCaptainLook(look, () => captainMesh.textureFor()) : graphCreatureLook(look))));
   ctx.rows.spawnTable([DRIFTWOOD_FAUNA, DRIFTWOOD_ENEMIES, DRIFTWOOD_PRACTICE]);
   ctx.rows.lootTable([DRIFTWOOD_COINS, DRIFTWOOD_TROPHIES]);
   installDriftwoodLootTables(ctx.scope);

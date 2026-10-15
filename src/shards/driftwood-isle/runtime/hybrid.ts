@@ -51,7 +51,7 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
       const built = await residentWorld.load(context, async (owner) => {
         const { materials, setParam, setTexture, toon } = await runtimeLookMaterials({ scope: owner, game: context.game }, source, true, [...Object.values(CASCADE_LOOKS), SMOKE_LOOK, FIREFLY_LOOK, REEF_LOOK, POOL_LOOK, SHRINE_POOL_LOOK, OCEAN_LOOK, GULL_GRAPH_LOOK, ...COVER_LOOKS, ...Object.values(CREATURE_LOOKS), ...Object.values(ISLAND_LOOKS)]);
         const follow = followToon(toon);
-        setWaterfallLooks(materials); setSmokeLook(materials); setFireflyLook(materials, setParam); setReefLook(materials, follow); setPoolLook(materials, follow); setShrinePoolLook(materials); setOceanLook(materials, setParam, setTexture, follow); setGullLook(materials); setCoverLooks({ materials, setParam, follow }); setCreatureLooks(materials, setParam); setIslandLooks(materials, setParam, setTexture, follow);
+        setWaterfallLooks(materials); setSmokeLook(materials); setFireflyLook(materials, setParam); setReefLook(materials, follow); setPoolLook(materials, follow); setShrinePoolLook(materials); setOceanLook(materials, setParam, setTexture, follow); setGullLook(materials); setCoverLooks({ materials, setParam, follow }); setCreatureLooks(materials, setParam, setTexture); setIslandLooks(materials, setParam, setTexture, follow);
         return withGeometryBake('/assets/models/driftwood-blender/geometry.bin',
         () => withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress))); });
       return built;
