@@ -154,9 +154,9 @@ function waterGraph(sinEl: number, skyline: boolean, puddle: boolean): GraphIr {
   const sun = mul(mul(sunIn, nDotL), add(mul(op('albedo'), INV_PI), glint));
   // the sky: its diffuse on the body and foam, and its reflection (the forest's where the ray meets the shore: the sky's
   // irradiance and the scene's sun on the crowns, unshadowed, so a canopy's shade on the water never darkens the mirror)
-  const envIrr = op('environmentIrradiance');
+  const envIrr = op('environmentIrradiance'), crownIrr = op('environmentIrradianceAt', [crown]);
   const crownSun = mul(op('skyLightColour'), mul(clamp01(dot(crown, op('skyLightDirection'))), 0.6));
-  const forest = mul(shoreAlb, mul(add(mul(envIrr, 0.75), crownSun), INV_PI));
+  const forest = mul(shoreAlb, mul(add(mul(crownIrr, 0.75), crownSun), INV_PI));
   const ambient = add(mul(op('albedo'), mul(add(op('irradiance'), envIrr), INV_PI)), mul(mix(op('radiance'), forest, occ), mul(f0, specK)));
 
   const lent = (slot: string): GraphParam => ({ type: 'texture', value: slot, role: 'lent' });

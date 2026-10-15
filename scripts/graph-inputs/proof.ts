@@ -1,13 +1,13 @@
 /** Untimed real-renderer oracle for additive graph inputs. */
 import { programVariants } from './variants';
-import { Bone, DataArrayTexture, DataTexture, DirectionalLight, Float32BufferAttribute, LinearSRGBColorSpace, Mesh, NearestFilter, NoToneMapping, OrthographicCamera, PlaneGeometry, Scene, Skeleton, SkinnedMesh, Uint16BufferAttribute, WebGLRenderer } from 'three';
+import { Bone, CubeTexture, DataArrayTexture, DataTexture, DirectionalLight, Float32BufferAttribute, LinearSRGBColorSpace, Mesh, NearestFilter, NoToneMapping, OrthographicCamera, PlaneGeometry, PMREMGenerator, Scene, Skeleton, SkinnedMesh, Uint16BufferAttribute, WebGLRenderer } from 'three';
 import { attribute, dot, max, uv, vec3 } from 'three/tsl';
 import { MeshBasicNodeMaterial, MeshStandardNodeMaterial } from 'three/webgpu';
 import { Scope } from '../../src/engine/app/scope';
 import type { AnimalMaterial } from '../../src/engine/entities/AnimalFactory';
 import { clientMaterials } from '../../src/game/shardfile/clientMaterials';
 import { emptyShardfile } from '../../src/sdk/author';
-import { graph, graphInputs, param, sample, sampleArray } from '../../src/sdk/materials';
+import { environmentIrradianceAt, graph, graphInputs, param, sample, sampleArray } from '../../src/sdk/materials';
 
 async function prove(): Promise<unknown> {
   const canvas = document.getElementById('proof');
@@ -18,18 +18,28 @@ async function prove(): Promise<unknown> {
   try {
     const source = emptyShardfile({ slug: 'inputs-oracle', name: 'Inputs oracle', author: 'proof', seed: 1, revision: 1 });
     Object.assign(source.look.materials, { alpha: { family: 'graph', graph: graph({ model: 'unlit',
-      effectState: { fog: false }, surface: { colour: vec3(graphInputs.vertexColourAlpha, graphInputs.vertexColourAlpha, graphInputs.vertexColourAlpha) } }) } });
+      surface: { colour: vec3(graphInputs.vertexColourAlpha, graphInputs.vertexColourAlpha, graphInputs.vertexColourAlpha) } }) } });
     Object.assign(source.look.materials, { animal: { family: 'graph', graph: graph({ model: 'standard',
-      effectState: { fog: false }, surface: { colour: vec3(0), emissive: vec3(1, 0, 0) } }) } });
-    Object.assign(source.look.materials, { view: { family: 'graph', graph: graph({ model: 'unlit', effectState: {fog: false},
-      surface: {colour: vec3(graphInputs.positionView.x.div(3).add(0.5), graphInputs.positionView.z.mul(-0.125), 0)} }) } });
-    Object.assign(source.look.materials, { skyLight: { family: 'graph', graph: graph({model: 'unlit', effectState: {fog: false},
-      surface: {colour: graphInputs.skyLightColour.mul(max(dot(graphInputs.skyLightDirection,vec3(0,0,1)),0))} }) } });
+      surface: { colour: vec3(0), emissive: vec3(1, 0, 0) } }) } });
+    Object.assign(source.look.materials, { view: { family: 'graph', graph: graph({ model: 'unlit', surface: {colour: vec3(graphInputs.positionView.x.div(3).add(0.5), graphInputs.positionView.z.mul(-0.125), 0)} }) } });
+    Object.assign(source.look.materials, { skyLight: { family: 'graph', graph: graph({model: 'unlit', surface: {colour: graphInputs.skyLightColour.mul(max(dot(graphInputs.skyLightDirection,vec3(0,0,1)),0))} }) } });
     const layers = param('layers',{type: 'texture', value: 'array-slot', role: 'lent'});
-    Object.assign(source.look.materials, { array: {family: 'graph', graph: graph({model: 'unlit', effectState: {fog: false},
-      surface: {colour: sampleArray(layers,uv(),attribute('aLayer','float')).rgb} })} });
-    Object.assign(source.look.materials, { tint: {family: 'graph', graph: graph({model: 'unlit', effectState: {fog: false}, surface: {colour: graphInputs.materialColour}})} });
-    Object.assign(source.look.materials, { flash: {family: 'graph', graph: graph({model: 'standard', effectState: {fog: false}, surface: {colour: vec3(0), emissive: graphInputs.materialEmissive}})} });
+    Object.assign(source.look.materials, { array: {family: 'graph', graph: graph({model: 'unlit', surface: {colour: sampleArray(layers,uv(),attribute('aLayer','float')).rgb} })} });
+    Object.assign(source.look.materials, { tint: {family: 'graph', graph: graph({model: 'unlit', surface: {colour: graphInputs.materialColour}})} });
+    Object.assign(source.look.materials, { flash: {family: 'graph', graph: graph({model: 'standard', surface: {colour: vec3(0), emissive: graphInputs.materialEmissive}})} });
+    const direction = param('direction', {type: 'vec3', value: [0, 1, 0]});
+    Object.assign(source.look.materials, {
+      environmentAt: {family: 'graph', graph: graph({model: 'standard', surface: {colour: vec3(1)},
+        lighting: {sun: vec3(0), ambient: environmentIrradianceAt(direction).mul(1 / Math.PI)}})},
+      environmentNormal: {family: 'graph', graph: graph({model: 'standard', surface: {colour: vec3(1)},
+        lighting: {sun: vec3(0), ambient: graphInputs.environmentIrradiance.mul(1 / Math.PI)}})},
+    });
+    let refusedDirection = false, refusedPlace = false;
+    try { graph({model: 'standard', lighting: {sun: vec3(0), ambient: environmentIrradianceAt(1)}}); }
+    catch (error: unknown) { refusedDirection = error instanceof Error && error.message.includes('vec3 direction'); }
+    try { graph({model: 'unlit', surface: {colour: environmentIrradianceAt(vec3(0, 1, 0))}}); }
+    catch (error: unknown) { refusedPlace = error instanceof Error && error.message.includes('environmentIrradianceAt'); }
+    if (!refusedDirection || !refusedPlace) throw new Error('Directional irradiance must refuse wrong input types/stages');
     const client = await clientMaterials(source, new Map(), renderer, scope, { graphs: true });
     const material = client.materials.get('alpha');
     if (material === undefined) throw new Error('Missing alpha graph');
@@ -80,7 +90,7 @@ async function prove(): Promise<unknown> {
     if (viewMaterial === undefined) throw new Error('Missing view-position graph');
     scene.add(new Mesh(scope.own(new PlaneGeometry(10, 5)), viewMaterial));
     const viewPixels: number[][] = [];
-    for (const [x,z] of [[0,2],[0.75,4]]) {
+    for (const [x,z] of [[0,2],[0.75,4]] as const) {
       camera.position.set(x,0,z); renderer.render(scene,camera);
       const words = new Uint8Array(4); gl.readPixels(96,32,1,1,gl.RGBA,gl.UNSIGNED_BYTE,words); viewPixels.push(Array.from(words));
     }
@@ -146,8 +156,34 @@ async function prove(): Promise<unknown> {
     const portsPass = near(portsDark, [red, [0, 128, 0, 255], black]) && near(portsFlash, [red, [0, 128, 0, 255], [128, 128, 128, 255]])
       && portPrograms === (renderer.info.programs?.length ?? -1) && gl.getError() === gl.NO_ERROR;
     if (!portsPass) throw new Error(JSON.stringify({portsDark, portsFlash}));
+    // One anisotropic environment: sky red above, blue below, green at the horizon.
+    // Compare directions and the existing normal input, never implementation-number goldens.
+    const faces = ['#00ff00', '#00ff00', '#ff0000', '#0000ff', '#00ff00', '#00ff00'].map(colour => {
+      const face = document.createElement('canvas'); face.width = 16; face.height = 16;
+      const paint = face.getContext('2d'); if (paint === null) throw new Error('Missing environment canvas context');
+      paint.fillStyle = colour; paint.fillRect(0, 0, 16, 16); return face;
+    });
+    const cube = scope.own(new CubeTexture(faces)); cube.needsUpdate = true;
+    const pmrem = scope.own(new PMREMGenerator(renderer)), environment = scope.own(pmrem.fromCubemap(cube));
+    const directionalMaterial = client.materials.get('environmentAt'), normalMaterial = client.materials.get('environmentNormal');
+    if (!(directionalMaterial instanceof MeshStandardNodeMaterial) || !(normalMaterial instanceof MeshStandardNodeMaterial)) throw new Error('Missing environment graphs');
+    scene.clear(); scene.environment = environment.texture;
+    const environmentMesh = new Mesh(scope.own(new PlaneGeometry(1, 1)), directionalMaterial); scene.add(environmentMesh);
+    const readEnvironment = (): number[] => {
+      renderer.render(scene, camera); const bytes = new Uint8Array(4); gl.readPixels(96, 32, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, bytes); return Array.from(bytes);
+    };
+    const above = readEnvironment(); client.setParam('environmentAt', 'direction', [0, -1, 0]); const below = readEnvironment();
+    client.setParam('environmentAt', 'direction', [0, 0, 2]); const atNormal = readEnvironment();
+    environmentMesh.material = normalMaterial; const legacyNormal = readEnvironment();
+    environmentMesh.material = directionalMaterial; scene.environmentIntensity = 0.5; const dimmed = readEnvironment();
+    scene.environment = null; const noEnvironment = readEnvironment();
+    const environmentPass = (above[0] ?? 0) > (above[2] ?? 255) + 20 && (below[2] ?? 0) > (below[0] ?? 255) + 20
+      && atNormal.every((value, i) => Math.abs(value - (legacyNormal[i] ?? -1000)) <= 2)
+      && dimmed.slice(0, 3).every((value, i) => Math.abs(value * 2 - (atNormal[i] ?? -1000)) <= 3)
+      && noEnvironment.slice(0, 3).every(value => value <= 1) && gl.getError() === gl.NO_ERROR;
+    if (!environmentPass) throw new Error(JSON.stringify({above, below, atNormal, legacyNormal, dimmed, noEnvironment}));
     const variants = await programVariants(renderer, scope);
-    return { pass, variants, materialPorts: {portsDark, portsFlash}, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels, skyLight: lightPixels,
+    return { pass, environmentIrradianceAt: {above, below, atNormal, legacyNormal, dimmed, noEnvironment, refusedDirection, refusedPlace}, variants, materialPorts: {portsDark, portsFlash}, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels, skyLight: lightPixels,
       textureArray: {unset,firstArray,swappedArray,refused2d,refusedMixed,arrayPrograms,swappedPrograms} };
   } finally { scope.dispose(); renderer.dispose(); renderer.forceContextLoss(); }
 }

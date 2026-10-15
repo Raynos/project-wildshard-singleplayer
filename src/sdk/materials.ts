@@ -79,6 +79,10 @@ export const meshMap = op('meshMap', 'vec4');
 export function noise(at: GraphValue): Node<'float'> { return op('noise', 'float', [at]); }
 /** A view-space direction as a unit world one (`viewToWorld`). */
 export function viewToWorld(direction: GraphValue): Node<'vec3'> { return op('viewToWorld', 'vec3', [direction]); }
+/** Diffuse sky irradiance (× π) along a nonzero world direction, normalized by the compiler.
+ * Ambient lighting only; follows the live scene environment, rotation and intensity, or black without an environment.
+ * Reading this makes the ambient stage own the whole indirect term, like graphInputs.environmentIrradiance. */
+export function environmentIrradianceAt(direction: GraphValue): Node<'vec3'> { return op('environmentIrradianceAt', 'vec3', [direction]); }
 /** A world direction into the model space `vertex.offset` is added in (`worldToLocal`). */
 export function worldToLocal(direction: GraphValue): Node<'vec3'> { return op('worldToLocal', 'vec3', [direction]); }
 /** Apply the full instance matrix to a homogeneous vector in the vertex stage (identity on ordinary meshes).

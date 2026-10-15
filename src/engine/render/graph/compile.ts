@@ -33,13 +33,13 @@
  */
 import * as THREE from 'three';
 import {
-  ConditionalNode, ConvertNode, JoinNode, MathNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, OperatorNode,
+  ConditionalNode, ContextNode, ConvertNode, JoinNode, MathNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, OperatorNode,
   Node as BaseNode, PhysicalLightingModel, SplitNode, TextureNode, type Node, type NodeBuilder, type NodeFrame, type NodeMaterial, type UniformArrayNode,
 } from 'three/webgpu';
 import {
   Fn, Loop, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, frontFacing, hash,
-  instanceIndex, max, materialNormal, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
-  mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, reference, positionGeometry, positionLocal,
+  instanceIndex, isolate, max, materialEnvIntensity, materialNormal, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
+  mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, pmremTexture, property, reference, positionGeometry, positionLocal,
   positionView, positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
 import { FRONT_LEN, FRONT_SPEED, FRONT2_LEN, WIND_DIR, windUniforms } from '../../world/wind';
@@ -332,7 +332,7 @@ class GraphLitMaterial extends GraphNormalMaterial {
  * call: memoized across builds, it would carry an earlier build's lighting-context variable into the next program, where
  * it is declared twice (three renames it `irradiance_1`) and never written.
  */
-const HOOK_INPUT_OPS: ReadonlySet<string> = new Set([...SUN_OPS, 'irradiance', 'radiance', 'environmentIrradiance', 'litColour']);
+const HOOK_INPUT_OPS: ReadonlySet<string> = new Set([...SUN_OPS, 'irradiance', 'radiance', 'environmentIrradiance', 'environmentIrradianceAt', 'litColour']);
 
 /** the root nodes that read a hook input (HOOK_INPUT_OPS), directly or through their inputs and loop bodies */
 function lightDependents(ir: GraphIr): ReadonlySet<string> {
@@ -705,6 +705,18 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'irradiance': if (irradianceIn !== null) return { t: 'vec3', n: irradianceIn }; break;
       case 'radiance': if (environmentIn !== null) return { t: 'vec3', n: environmentIn.radiance }; break;
       case 'environmentIrradiance': if (environmentIn !== null) return { t: 'vec3', n: environmentIn.irradiance }; break;
+      case 'environmentIrradianceAt': {
+        const direction = new ConvertNode<'vec3'>(one().n, 'vec3').normalize();
+        return { t: 'vec3', n: Fn((builder: NodeBuilder): Node<'vec3'> => {
+          const environment: unknown = Reflect.get(builder, 'environmentNode');
+          if (!isNodeValue(environment)) return vec3(0);
+          // Match EnvironmentNode's diffuse PMREM context, including rotation,
+          // intensity and the classic-renderer orientation adapter.
+          const env = environment instanceof TextureNode ? pmremTexture(environment.value) : environment;
+          return new ConvertNode<'vec3'>(isolate(new ConvertNode<'vec3'>(new ContextNode(env, { getUV: () => direction, getTextureLevel: () => float(1) }), 'vec3')
+            .mul(Math.PI).mul(materialEnvIntensity)), 'vec3');
+        })() };
+      }
       case 'litColour': if (litIn !== null) return { t: 'vec3', n: litIn }; break;
       case 'sceneColour': {
         if (opts.scene === undefined) throw new Error('material graph: a post graph reads sceneColour, so compile it with { scene }');
@@ -881,7 +893,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   };
   /** whether a scope's nodes (loop bodies included) read the environment's radiance or irradiance */
   const readsEnvironment = (scope: Scope): boolean => {
-    const reads = (nodes: Readonly<Record<string, GraphNode>>): boolean => Object.values(nodes).some((n) => n.op === 'radiance' || n.op === 'environmentIrradiance' || (n.body !== undefined && reads(n.body.nodes)));
+    const reads = (nodes: Readonly<Record<string, GraphNode>>): boolean => Object.values(nodes).some((n) => n.op === 'radiance' || n.op === 'environmentIrradiance' || n.op === 'environmentIrradianceAt' || (n.body !== undefined && reads(n.body.nodes)));
     return reads(scope.nodes);
   };
   /** the lighting stage's hooks: each builds its sub-graph with its inputs live (the material calls them while it builds) */

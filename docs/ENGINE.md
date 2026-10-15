@@ -1297,7 +1297,12 @@ material only) has four outputs: `sun`, the radiance a directional light adds, b
 `grade`, the lit colour (`litColour`) before the output transform, which turns tone mapping off. An `ambient` that
 reads `radiance` (the environment's prefiltered radiance along the reflected view ray) or `environmentIrradiance` owns
 the whole indirect term: the physical model adds no environment diffuse or specular of its own (Pine Hollow's water
-writes its Fresnel reflection there). `surface.normal` (vec3, world space, lit models only) replaces the shading normal
+writes its Fresnel reflection there). The SDK's `environmentIrradianceAt(direction)` (`vec3 → vec3`, ambient only)
+reads diffuse sky irradiance along a nonzero **world-space** direction, normalized by the compiler, instead of the
+surface normal. It includes the environment's rotation and live intensity, keeps three's × π convention, and returns
+black without an environment. It also makes ambient own the whole indirect term. A reflected crown can sample its
+own normal while the water body retains `environmentIrradiance`.
+`surface.normal` (vec3, world space, lit models only) replaces the shading normal
 the lights, the environment and the lighting stage's `normalView` use: a per-pixel ripple or detail normal. The compiler's
 `GraphLitMaterial` keeps three's physical model and the engine's light nodes (tent, cascades, fade) underneath, so the
 epilogue is unchanged. `toonGraph` refuses caustics and `painterlyGraph` a wind sway (not ported yet);

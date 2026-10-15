@@ -387,6 +387,8 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   // makes `ambient` own the whole indirect term: the physical model adds no environment diffuse or specular of its own
   radiance: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['ambient'] },
   environmentIrradiance: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['ambient'] },
+  // Diffuse PMREM at a normalized world direction (same intensity and × π as environmentIrradiance).
+  environmentIrradianceAt: { arity: [1, 1], rule: 'dir3', cost: 32, places: ['ambient'] },
   litColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: ['grade'] }, // the lit colour, emissive included
   sceneColour: { arity: [0, 0], rule: 'input', cost: 2, type: 'vec4', places: ['post'] },
   // SF59 (2b), the post inputs, each its own sampler once a graph reads it (however many taps): the scene colour at a uv
