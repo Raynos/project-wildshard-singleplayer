@@ -23,15 +23,7 @@ if [ "${LEDGER_AUTOCOMMIT:-0}" != 1 ] && ! git -C "$repo" diff --quiet HEAD -- "
   echo "  - dirty sweep ledger deferred until parent PID $PPID exits" >&2
 fi
 
-# SF74 W14: the automatic pusher. Record which herdr pane made this commit (a red push pings that lane), then start
-# scripts/auto-push.sh detached in its own session so the commit returns at once; it batches, queues behind a push in
-# flight and is single-instance. Off: `touch .git/auto-push.off`. A feature worktree / other branch is skipped inside.
-if [ -n "$common" ] && [ -n "${HERDR_PANE_ID:-}" ]; then
-  printf '{"sha":"%s","pane":"%s","at":%s}\n' "$(git -C "$repo" rev-parse HEAD)" "$HERDR_PANE_ID" "$(date +%s)" >> "$common/commit-lanes.jsonl" 2>/dev/null || true
-fi
-if [ -f "$repo/scripts/auto-push.sh" ]; then
-  (cd "$repo" && exec python3 -c 'import os, sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' bash scripts/auto-push.sh) \
-    < /dev/null > /dev/null 2>&1 &
-fi
+# No automatic push (Jake, 2026-10-15): a commit stays local until someone runs scripts/push-main.sh. The SF74 W14
+# auto-pusher started a full push gate and a production deploy after every commit.
 
 exit 0

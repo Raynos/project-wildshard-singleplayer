@@ -89,8 +89,8 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   author; kill only your own processes, by PID.
 - **Commit with a pathspec** (`git commit -m "…" -- <paths>`; `git add` only new files). A file with someone else's
   uncommitted hunk: wait, or commit your hunks through a private index.
-- **Pushes are automatic** (SF74): post-commit starts `scripts/auto-push.sh`, which runs `scripts/push-main.sh` for
-  you; never `git push`. The pre-push gate builds what Vercel builds; a red gate pings your lane and is yours to fix.
+- **Push with `scripts/push-main.sh`** when your work is green; never `git push`. Commits do not push themselves
+  (auto-push is off, Jake 2026-10-15). The pre-push gate builds what Vercel builds; a red gate is yours to fix.
 - **Strict means strict**: no `any`, no `!`, no `@ts-ignore`, no `as unknown as`, no blanket `oxlint-disable`. Fix the
   type, never the gate.
 - Never open a shared file for writing before you've read it. No tree-wide destructive git.
@@ -98,7 +98,8 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   (boards 500 KB, JPEG / WebP), no video / audio / archives / `.jsonl` / PDF / `.blend` outside `public/`, at most
   10 MB of new binary per push and 50 MB a week outside the runtime roots (Jake, 2026-10-15). `scripts/repo-size.mjs`
   enforces it in pre-commit, pre-push (every outgoing commit) and CI; a big shipped file needs an exact pin.
-- Feature worktrees never push; the main checkout lands them.
+- **No worktrees or feature branches by default** (Jake, 2026-10-15): everyone works on `main` in this one checkout.
+  A worktree only for an exceptional case Jake approves, under `./tmp`, removed when done.
 
 ## The shared Mac → [docs/process/MACHINE.md](docs/process/MACHINE.md)
 

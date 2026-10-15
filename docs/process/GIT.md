@@ -5,7 +5,7 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 
 ## The rules
 
-- **Commit early and often** with small commits; the commit pushes itself (below). Before you push, HEAD
+- **Commit early and often** with small commits; push with `scripts/push-main.sh` (below). Before you push, HEAD
   must pass the CI gates on a clean export of the tree (`tsc --noEmit`, `oxlint`, `node scripts/check-css.mjs`,
   `vite build`), not just the files you touched. The pre-push gate does this for you (below).
 - **The gpu-gate parity jobs run nightly and at milestones, not on every push** (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`); the node checks still run per push.
@@ -51,18 +51,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
     Native pathspec commits use Git's own PID-named `next-index` and ref CAS: unrelated shared stages do not become
     the commit, and a parent moving during the hooks refuses the ref update. The ancestor heuristic applies to
     caller-owned indexes, not Git's validated temporary pathspec index; every other hook still checks that index.
-- **Pushes are automatic** (SF74 W14, 2026-10-09: commit → origin was p90 54 min because nobody ran the pusher).
-  `.githooks/post-commit` records the commit's herdr pane in `.git/commit-lanes.jsonl` and starts `scripts/auto-push.sh`
-  detached: single-instance, it waits 10 s to batch a burst, waits out `.git/quiet` (the coordinator's measurement
-  windows), then runs `scripts/push-main.sh` queued behind any push in flight (`PUSH_WAIT=1`), with
-  `.git/generated-approval.json` as `GENERATED_APPROVAL_FILE` when the coordinator keeps one. The detached auto-pusher
-  clears the Git-local environment names reported by `git rev-parse --local-env-vars` before resolving its checkout.
-  A private-index hook cannot lend its index, repository or object-store overrides to gates and their Git fixtures;
-  the committing process retains its own context. A red push is not retried
-  on the same tip: it pings each lane whose commit is in the red range once (the coordinator when none is known, or for
-  a missing approval receipt) and waits for the next commit. Log `.git/auto-push.log`, each run's output in
-  `.git/auto-push/`; off switch `touch .git/auto-push.off`. Commits that never ran post-commit (a private-index
-  `update-ref` landing) go up with the next commit, or run `scripts/push-main.sh` yourself.
+- **Push with `scripts/push-main.sh`** when your work is green (`PUSH_WAIT=1` queues behind a push in flight). Commits
+  do not push themselves: the SF74 W14 auto-pusher (2026-10-09) ran a full push gate and a production deploy after
+  every commit and is off (Jake, 2026-10-15; `.githooks/post-commit` no longer starts `scripts/auto-push.sh`). Pending
+  binary counts toward the storage policy's 10 MB per-push budget, so push binary work promptly.
 - **A red gate can identify and release a green prefix** (SF74 W25). The pusher bisects failed test files, typechecks,
   lint, CSS, generated shard/plugin contracts and Node bakers on clean committed exports using their exact gate
   commands; mixed failures must all pass. Unsupported build/browser steps refuse selection. A candidate still needs
@@ -122,7 +114,7 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   imports (shard → engine / game / sdk / commons) are not counted at all** (Jake, G288, 2026-10-09:
   `APPROVED_DOWNWARD` in `scripts/check-graph.mjs`; their rises made ~80 regeneration commits a day): upward imports stay
   refused by the `layer` / `shard-sandbox` lint rules, one shard reaching into another by the reach check, and
-  every other layer pair is still counted. The auto-pusher passes the coordinator's `.git/generated-approval.json`. Hard rules,
+  every other layer pair is still counted. Pass the coordinator's `.git/generated-approval.json` to `push-main.sh` as `GENERATED_APPROVAL_FILE`. Hard rules,
   zero-debt promotion and ambient checks stay fatal.
 - **Source guards require their pinned JSON.** Pre-commit and the detached commit ratchet copy only JSON whose bytes
   match the immutable tree's generation catalogue. Missing pins refuse before lint, naming the output and job;
@@ -183,17 +175,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   holds the old blobs and reads as a staged revert. For each committed path not staged by someone else:
   `git update-index --cacheinfo 100644,$(git rev-parse HEAD:<path>),<path>`. Then write HEAD's copy of each path
   you landed, so a stale disk copy can't revert it in someone's later pathspec commit.
-- **Feature worktrees never push.** A worktree is local development; the main checkout lands it. A playable preview of
-  a branch deploys a clean export to its **own** Vercel project, never the main one.
-- **Landing a worktree or a subagent's branch:**
-  1. `git worktree add --detach <scratch>/landN <main tip>` → `git cherry-pick <merge-base>..<branch>` → gate.
-  2. `git update-ref refs/heads/main NEW OLD` (atomic: it refuses if main moved). Write only the changed files from
-     NEW, `git merge-file` 3-way for files with someone's uncommitted hunk, then `git reset NEW -- <paths>`.
-  3. `scripts/push-main.sh`. A big binary landing goes up first to a side branch
-     (`SKIP_PUSHLOCK=1 git push origin <sha>:refs/heads/<x>-upload`), then the main push sends almost nothing.
-  4. New npm deps: `pnpm install --frozen-lockfile --prefer-offline --config.enable-global-virtual-store=false` in the
-     main checkout first, or the gate refuses the push.
-  - Never chain `cd <worktree>` with `;` after a fallible step: when the add fails, the rest runs in the main checkout.
-    Use `&&` or `git -C`.
+- **No worktrees, feature branches or landings by default** (Jake, 2026-10-15). Everyone, subagents included, commits
+  to `main` in this checkout. A worktree is only for an exceptional case Jake approves: under `./tmp`, removed when
+  done, never pushed. Exact-commit checks use the build mirror (`node scripts/build-mirror.mjs run <rev> -- <cmd>`).
+- **New npm deps:** `pnpm install --frozen-lockfile --prefer-offline --config.enable-global-virtual-store=false` in the
+  checkout first, or the gate refuses the push.
 - **Deleting a branch** (`git branch -d`) is blocked for agents by dcg. Check it is merged, prune its worktree, and hand
   Jake the one-line `! git branch -d …` command.
