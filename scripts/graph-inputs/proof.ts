@@ -1,5 +1,5 @@
 /** Untimed real-renderer oracle for additive graph inputs. */
-import { Float32BufferAttribute, LinearSRGBColorSpace, Mesh, NoToneMapping, OrthographicCamera, PlaneGeometry, Scene, WebGLRenderer } from 'three';
+import { Bone, Float32BufferAttribute, LinearSRGBColorSpace, Mesh, NoToneMapping, OrthographicCamera, PlaneGeometry, Scene, Skeleton, SkinnedMesh, Uint16BufferAttribute, WebGLRenderer } from 'three';
 import { vec3 } from 'three/tsl';
 import { MeshStandardNodeMaterial } from 'three/webgpu';
 import { Scope } from '../../src/engine/app/scope';
@@ -48,9 +48,24 @@ async function prove(): Promise<unknown> {
     const animal = new Mesh(scope.own(new PlaneGeometry(1, 1)), body); scene.add(animal);
     renderer.render(scene, camera);
     const animalPixel = new Uint8Array(4); gl.readPixels(96, 32, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, animalPixel);
-    const pass = animalPixel[0] === 255 && animalPixel[1] === 0 && animalPixel[2] === 0 && animalPixel[3] === 255 && gl.getError() === gl.NO_ERROR;
-    if (!pass) throw new Error(JSON.stringify({animalPixel: Array.from(animalPixel)}));
-    return { pass, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel) };
+    const animalPass = animalPixel[0] === 255 && animalPixel[1] === 0 && animalPixel[2] === 0 && animalPixel[3] === 255 && gl.getError() === gl.NO_ERROR;
+    if (!animalPass) throw new Error(JSON.stringify({animalPixel: Array.from(animalPixel)}));
+    scene.clear();
+    const skinGeometry = scope.own(new PlaneGeometry(0.6, 0.6));
+    skinGeometry.setAttribute('skinIndex', new Uint16BufferAttribute(new Uint16Array(16), 4));
+    skinGeometry.setAttribute('skinWeight', new Float32BufferAttribute([1,0,0,0, 1,0,0,0, 1,0,0,0, 1,0,0,0], 4));
+    const skin = new SkinnedMesh(skinGeometry, body), bone = new Bone();
+    skin.add(bone); skin.position.x = -1; skin.frustumCulled = false; scene.add(skin); scene.updateMatrixWorld(true);
+    const skeleton = scope.own(new Skeleton([bone])); skin.bind(skeleton);
+    const skinPixels = (): number[][] => {
+      renderer.render(scene, camera);
+      return [32, 160].map(x => { const words = new Uint8Array(4); gl.readPixels(x, 32, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, words); return Array.from(words); });
+    };
+    const skinRest = skinPixels(); bone.position.x = 2; const skinMoved = skinPixels();
+    const red = [255,0,0,255], black = [0,0,0,255];
+    const pass = JSON.stringify(skinRest) === JSON.stringify([red,black]) && JSON.stringify(skinMoved) === JSON.stringify([black,red]) && gl.getError() === gl.NO_ERROR;
+    if (!pass) throw new Error(JSON.stringify({skinRest,skinMoved}));
+    return { pass, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved} };
   } finally { scope.dispose(); renderer.dispose(); renderer.forceContextLoss(); }
 }
 let result: unknown;
