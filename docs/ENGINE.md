@@ -1646,7 +1646,7 @@ build a `DamageRequest` → occlusion (`lineOfSight`, unless `throughWalls`) →
 | `AggressionDirector`, `AggressionService` | attack tokens: `manifest.fight.attackers` (2 on Driftwood, unlimited elsewhere) |
 | `resolveHitStop`, `HitStopProfile` | hit-stop |
 | `Targets`, `TargetAnimal`, `TargetHit`, `authoredTargets`, `RayTargets`, `getAimTargets`, `lockOn`, `meleeLock`, `targetRadius`, `AimTarget`, `bladeBlocked`, `bladeContact`, `Clang` | what a weapon can hit, aim assist and lock-on, blade occlusion |
-| `CameraFX`, `Impacts`, `BladeGlow`, `dodgeFx`, `dodgeEnv`, `fxMaterial`, `annulus`, `FX`, `FxMaterial`, `FxMode`, `LightPool`, `ParticlePool`, `ParticlePoolSpec`, `ParticleAttr`, `pointScale` | feel and FX |
+| `CameraFX`, `Impacts`, `BladeGlow`, `dodgeFx`, `dodgeEnv`, `fxMaterial`, `annulus`, `FX`, `FxMaterial`, `FxMode`, `LightPool`, `SiteLights`, `LightSite`, `SiteLightAnchor`, `SiteLightKind`, `SiteFlicker`, `SiteRoom`, `SiteWave`, `SiteLightsLook`, `ParticlePool`, `ParticlePoolSpec`, `ParticleAttr`, `pointScale` | feel and FX (`SiteLights`: shared point lights that visit the nearest lit site's anchors and flicker by intensity) |
 
 **Damage request motion fields (G21).** These optional fields are currently metadata, not movement commands.
 `CombatPipeline.hit` preserves them through modifiers and in `DamageDealt.req`, but neither the built-in Animal
