@@ -154,7 +154,7 @@ it('pre-push checks every outgoing commit, including a payload added and then de
   expect(() => f.push(tip, base)).toThrow(/art\/hidden\.mp4: forbidden/u);
 });
 
-it('pre-push sums distinct additions across commits and the rolling week includes published ones', () => {
+it('pre-push sums distinct additions across commits; the rolling week only warns', () => {
   const f = fixture();
   f.policy({ maxPushBytes: 1500, maxWeeklyBytes: 2000 });
   const root = f.commit();
@@ -166,7 +166,7 @@ it('pre-push sums distinct additions across commits and the rolling week include
   expect(f.push(two, one).pushBytes).toBe(900);
   f.stage('art/three.bin', binary(900, 3));
   const three = f.commit();
-  expect(() => f.push(three, two)).toThrow(/last 7 days are 0\.00 MB, over the 0\.00 MB rolling budget/u);
+  expect(f.push(three, two)).toMatchObject({ weekOver: true });
   expect(f.push(three, two, true).weekBytes).toBeNull();
   const later = createChecker({ cwd: f.cwd, env: f.env, now: () => Date.now() + 8 * 24 * 3_600_000 });
   expect(later.checkPush(`refs/heads/main ${three} refs/heads/main ${two}\n`).weekBytes).toBe(0);

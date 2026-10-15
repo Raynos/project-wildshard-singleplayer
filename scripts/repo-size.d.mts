@@ -9,6 +9,7 @@ export interface IndexResult {
   commitBytes: number;
   pushBytes: number;
   weekBytes: number;
+  weekOver: boolean;
   maxPushBytes: number;
   maxWeeklyBytes: number;
 }
@@ -17,6 +18,7 @@ export interface PushResult {
   commits: number;
   pushBytes: number;
   weekBytes: number | null;
+  weekOver: boolean;
 }
 
 export interface TreeResult {

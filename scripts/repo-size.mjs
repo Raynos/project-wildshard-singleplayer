@@ -19,7 +19,7 @@ const POLICY = 'scripts/storage-policy.json';
 const OID = /^[0-9a-f]{40}(?:[0-9a-f]{24})?$/u;
 const ZERO = /^0+$/u;
 /** The policy may lower these, never raise them. */
-const CEILINGS = { maxBlobBytes: MB, maxPreviewBytes: 250_000, maxBoardBytes: 500_000, maxPushBytes: 10 * MB, maxWeeklyBytes: 50 * MB };
+const CEILINGS = { maxBlobBytes: MB, maxPreviewBytes: 250_000, maxBoardBytes: 500_000, maxPushBytes: 10 * MB, maxWeeklyBytes: 100 * MB };
 /** Shipped bytes: the website, the native app resources and each shard's content-addressed runtime assets. */
 const RUNTIME_ROOTS = ['public/', 'android/app/src/main/res/', 'ios/App/App/Assets.xcassets/'];
 const SHARD_ASSETS = /^src\/shards\/[^/]+\/assets\//u;
@@ -407,12 +407,14 @@ export function createChecker({ cwd = process.cwd(), env = process.env, now = Da
     }
     const week = head ? weekOf([head], policy.migrationBase) : { added: [], known: new Set() };
     const weekBytes = counted([...week.added, ...added.filter((item) => !week.known.has(item.oid))]);
-    if (weekBytes > policy.maxWeeklyBytes) {
-      errors.push(`binary bytes outside the runtime roots over the last 7 days would be ${mb(weekBytes)}, over the ${mb(policy.maxWeeklyBytes)} ` +
-        'rolling budget; keep this media outside Git until the week rolls on');
+    // Advisory (Jake, 2026-10-15): the weekly budget warns until the repository is compacted; it never refuses.
+    const weekOver = weekBytes > policy.maxWeeklyBytes;
+    if (weekOver) {
+      console.warn(`repo-size: WARNING binary bytes outside the runtime roots over the last 7 days would be ${mb(weekBytes)}, over the ` +
+        `${mb(policy.maxWeeklyBytes)} weekly budget; keep media outside Git where you can`);
     }
     refuse(errors, 'REFUSED by scripts/repo-size.mjs: storage budget');
-    return { changed: changes.length, commitBytes, pushBytes, weekBytes, maxPushBytes: policy.maxPushBytes, maxWeeklyBytes: policy.maxWeeklyBytes };
+    return { changed: changes.length, commitBytes, pushBytes, weekBytes, weekOver, maxPushBytes: policy.maxPushBytes, maxWeeklyBytes: policy.maxWeeklyBytes };
   }
 
   /** @param {string} input git pre-push records @param {{ rangeOnly?: boolean }} [options] */
@@ -448,14 +450,17 @@ export function createChecker({ cwd = process.cwd(), env = process.env, now = Da
       errors.push(`outgoing binary bytes outside the runtime roots are ${mb(pushBytes)}, over the ${mb(tipPolicy.maxPushBytes)} per-push budget`);
     }
     let weekBytes = null;
+    let weekOver = false;
     if (!rangeOnly) {
       weekBytes = counted(weekOf(tips, tipPolicy.migrationBase).added);
-      if (weekBytes > tipPolicy.maxWeeklyBytes) {
-        errors.push(`binary bytes outside the runtime roots over the last 7 days are ${mb(weekBytes)}, over the ${mb(tipPolicy.maxWeeklyBytes)} rolling budget`);
+      weekOver = weekBytes > tipPolicy.maxWeeklyBytes;
+      if (weekOver) {
+        console.warn(`repo-size: WARNING binary bytes outside the runtime roots over the last 7 days are ${mb(weekBytes)}, over the ` +
+          `${mb(tipPolicy.maxWeeklyBytes)} weekly budget (advisory until the repository is compacted)`);
       }
     }
     refuse(errors, 'REFUSED by scripts/repo-size.mjs: storage budget');
-    return { commits: commits.length, pushBytes, weekBytes };
+    return { commits: commits.length, pushBytes, weekBytes, weekOver };
   }
 
   /** @param {string} rev @param {{ strict?: boolean }} [options] */

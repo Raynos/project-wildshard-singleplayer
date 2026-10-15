@@ -2,7 +2,7 @@
 
 Linked from [AGENTS.md → Version control](../../AGENTS.md) and [GIT.md](GIT.md). Ported from Rockhop's storage policy
 (2026-10-15) without its history rewrite: the rewrite stays [REPO-WEIGHT](../plans/REPO-WEIGHT.md) RW9–RW12. Jake set
-the growth budget at **50 MB a week**.
+the growth budget at **100 MB a week, advisory**: it warns and never refuses until the repository is compacted.
 
 Git keeps code, docs, the runtime assets the game ships and small preview pictures. Videos, audio candidates, raw
 captures, archives, logs, PDFs, `.blend` files and generated trees do not belong in it: every push crosses the shared
@@ -20,7 +20,7 @@ may lower a cap, never raise one.
 | A preview image (`.png` / `.jpg` / `.webp` / `.avif` outside the runtime roots) | 250 KB |
 | A board (`*board*`, `*sheet*`, `contact*` in the file name) | 500 KB |
 | New binary bytes outside the runtime roots waiting to push (and per push) | 10 MB |
-| The same over the rolling 7 days | 50 MB |
+| The same over the rolling 7 days (warning only) | 100 MB |
 
 - **Runtime roots** (shipped bytes): `public/`, `android/app/src/main/res/`, `ios/App/App/Assets.xcassets/` and each
   shard's content-addressed `src/shards/<slug>/assets/`. They are not counted in the budgets, but a blob over 1 MB there
@@ -66,10 +66,10 @@ when `node scripts/repo-size.mjs --tree HEAD --strict` passes.
 
 - **Pre-commit** runs `node scripts/repo-size.mjs --index`. It reads the commit's own index (`GIT_INDEX_FILE`), so a
   pathspec commit's temporary index and a lane's private index are checked, never the shared index or the disk. It also
-  refuses a commit that would push the unpushed binary bytes over 10 MB or the rolling week over 50 MB: a refusal at
-  commit time keeps a shared `main` from holding a push the pre-push hook must refuse.
+  refuses a commit that would push the unpushed binary bytes over 10 MB (a refusal at commit time keeps a shared `main`
+  from holding a push the pre-push hook must refuse) and warns when the rolling week passes 100 MB.
 - **Pre-push** runs `--pre-push` on every outgoing commit of every pushed ref (adding and later deleting a payload still
-  costs every clone), then the rolling week, before the Vercel gate. `SKIP_VERCEL_GATE` does not skip it.
+  costs every clone), then warns on the rolling week, before the Vercel gate. `SKIP_VERCEL_GATE` does not skip it.
 - **CI** (`.github/workflows/storage.yml`) checks the pushed range of every push and pull request, including the
   docs / art / progress-only pushes `deploy.yml` skips. Its checkout is blobless; the checker fetches only the range's
   new blobs. It cannot undo bytes already uploaded: a bypassed hook (`--no-verify`, a hook-less `commit-tree`) is a

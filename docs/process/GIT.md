@@ -129,7 +129,7 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   (the commit's own index), in pre-push over every outgoing commit before the Vercel gate (`SKIP_VERCEL_GATE` does not
   skip it) and in CI (`.github/workflows/storage.yml`): blobs ≤ 1 MB unless exactly pinned, preview images ≤ 250 KB
   (boards 500 KB; save JPEG / WebP), no video / audio / archive / `.jsonl` / PDF / `.blend` outside `public/`, no
-  generated paths, ≤ 10 MB of new binary per push and 50 MB a week outside the runtime roots. Existing debt is
+  generated paths, ≤ 10 MB of new binary per push and a 100 MB a week warning outside the runtime roots. Existing debt is
   grandfathered until it changes. `.gitattributes` marks binaries `-delta`.
 - **The local gate takes at most 120 seconds** (G363). It checks the exact
   committed Vercel tree, changed-file types and lint, and only affected tests.

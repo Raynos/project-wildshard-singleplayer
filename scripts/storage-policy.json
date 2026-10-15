@@ -4,7 +4,7 @@
   "maxPreviewBytes": 250000,
   "maxBoardBytes": 500000,
   "maxPushBytes": 10000000,
-  "maxWeeklyBytes": 50000000,
+  "maxWeeklyBytes": 100000000,
   "migrationBase": "51a68db06eeaceda20a1c571e509724f535a7086",
   "pins": []
 }
