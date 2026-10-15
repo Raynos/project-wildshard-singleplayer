@@ -7,7 +7,7 @@
  *
  * Two draws, no extra render pass, no per-frame CPU:
  *   · `water`: one mesh for the creek ribbon, the waterfall sheet and the plunge ring, in the pond's photoreal water
- *     (waterSurface.ts — the same program: the clock's sky, Fresnel, depth tint, flow-scrolled ripples, foam, the wet line
+ *     (../data/waterLook.ts — the creek look: the clock's sky, Fresnel, depth tint, flow-scrolled ripples, foam, the wet line
  *     on the banks). The creek follows the layout's polyline and `creekSurfaceAt` (the bed + 0.45 m, a thin sheet over the
  *     dam's crest), its uv.y is travel time so the ripples ride the flow and stretch where it is fast; the dam's face is
  *     white (`creekFoamAt`). The waterfall is a curved sheet down the Ridge's face (standing off the rock where it is
@@ -24,7 +24,7 @@ import { pineLook } from '../runtime/looks/graphLooks';
 import { loadSiteTimbers } from './timberSites';
 import { pineModels } from './context';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
+import { pineWater } from './water';
 
 const num = v.pipe(v.number(), v.finite()), xyz = v.tuple([num, num, num]);
 /** ../data/streams.json: the water mesh's counts and index width, the fall's plunge and face-foot anchors */
@@ -52,9 +52,8 @@ export class PineStreams {
       return original;
     }).catch((error: unknown) => { console.error('[pine-hollow] the baked streams did not load:', error); return null; });
     if (geometry !== null) {
-      // the gully's banks and the forest over them fill the low reflections (sin 0.3 ≈ 17°)
-      const { material } = createWaterMaterial(this.sky, { skyline: null, forestSinEl: 0.3 });
-      const water = this.water = new THREE.Mesh(geometry, material);
+      // the creek's water look (../data/waterLook.ts): the gully's banks and the forest over them fill the low reflections
+      const water = this.water = new THREE.Mesh(geometry, pineWater('creek'));
       water.name = 'creek-waterfall';
       water.receiveShadow = true;
       water.renderOrder = 6; // after the pond: the plunge ring lies on it

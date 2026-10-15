@@ -1,5 +1,5 @@
 import { basinBody, type WaterBody } from '@wildshard/engine/world/water/body';
-import { surfaceReflect } from '@wildshard/engine/world/water/view';
+import { waterReflect } from './water';
 import { smoothstep, lerp } from '@wildshard/engine/core/noise';
 import { createBakedTerrainField } from '@wildshard/engine/world/bakedTerrainField';
 import { buildTerrainMetadata } from '@wildshard/engine/world/terrainField';
@@ -96,11 +96,11 @@ function creekBody(): WaterBody {
     restAt: creekWaterAt,
     surfaceAt: (x, z) => creekWaterAt(x, z) ?? TERRAIN.waterLevel(),
     inside: (x, z, y) => { const s = creekWaterAt(x, z); return s !== null && y < s; },
-    reflect: surfaceReflect,
+    reflect: waterReflect,
   };
 }
 
-export const PINE_WATER: readonly WaterBody[] = [basinBody('pond', TERRAIN, surfaceReflect), creekBody()];
+export const PINE_WATER: readonly WaterBody[] = [basinBody('pond', TERRAIN, waterReflect), creekBody()];
 
 export const GROUND = { terrain: TERRAIN, water: PINE_WATER };
 

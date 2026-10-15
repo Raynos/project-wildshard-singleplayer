@@ -5,9 +5,8 @@ import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { Rng } from '@wildshard/engine/core/rng';
 import { floorBelow } from '@wildshard/engine/physics/query';
 import { pondMask, streamAt } from '@wildshard/engine/world/Heightfield';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
+import { pineWater, setWaterFade } from '../../world/water';
 import { fetchLaneBake } from '@wildshard/game/plugin/geometry';
 import { GeometryPack, packedRows, type PackedGeometryJson } from '@wildshard/sdk/kit/geometryPack';
 import { rainCurtainGeometry } from '@wildshard/game/systems/looks/rainCurtain';
@@ -19,7 +18,7 @@ import { pineLook, setPineLookParam, setPineLookTexture } from './graphLooks';
  * (rain, wet); nothing here decides anything. The shard gives its sizes and its three graphs' look.materials ids as data,
  * its bake, where its roofs are and, optionally, one hood (a cave's mouth) where no rain falls.
  *
- *   const fx = new RainFx({ sky, roofAt, phone, seed, look, programs, baked, hood }).build();  scene.add(fx.group)
+ *   const fx = new RainFx({ roofAt, phone, seed, look, programs, baked, hood }).build();  scene.add(fx.group)
  *   fx.update(dt, weather, fogColor, wind, camera)   // the camera: the extras (splashes round it, drops on its lens)
  *
  * THE RAIN: a camera-local curtain (`rainCurtainGeometry`) — N streak quads in a box round the eye, world-anchored by a
@@ -73,7 +72,6 @@ export interface RainReading { readonly rain: number; readonly wet: number }
 export interface RainFxOptions {
   /** the group's name (a capture finds it by it) */
   name: string;
-  sky: Sky;
   /** a roof over (x, z) */
   roofAt: (x: number, z: number) => boolean;
   phone: boolean;
@@ -102,7 +100,6 @@ export class RainFx {
   /** the curtain's wrapped world offset and fall velocity */
   private readonly offset = new THREE.Vector3();
   private readonly vel = new THREE.Vector3();
-  private readonly puddleFade = { value: 0 };
   private readonly rainCount: number;
   /** the splashes at the feet */
   splashes!: THREE.Mesh;
@@ -190,15 +187,11 @@ export class RainFx {
 
   // ─────────────────────────── puddles in the low spots ───────────────────────────
   private buildPuddles(): THREE.Mesh {
-    // the bake leaves out what the positions give: the uv (world x / z) and the normals
-    const geo = this.o.baked.puddles, p = geo.getAttribute('position'), uv = new Float32Array(p.count * 2);
-    for (let i = 0; i < Math.min(p.count, 65536); i++) { uv[i * 2] = p.getX(i); uv[i * 2 + 1] = p.getZ(i); }
-    geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    // the bake leaves out the normals; the puddle look (../../data/waterLook.ts) maps world x / z and sits on the ground
+    const geo = this.o.baked.puddles;
     geo.computeVertexNormals();
     geo.computeBoundingSphere();
-    const { material } = createWaterMaterial(this.o.sky, { skyline: null, forestSinEl: 0.12, fade: this.puddleFade });
-    material.polygonOffset = true; material.polygonOffsetFactor = -2; material.polygonOffsetUnits = -4; // on the ground, not in it
-    const mesh = new THREE.Mesh(geo, material);
+    const mesh = new THREE.Mesh(geo, pineWater('puddle'));
     mesh.name = 'puddles';
     mesh.receiveShadow = true; // the creek's flags: the same water program
     mesh.renderOrder = 4;
@@ -305,8 +298,9 @@ export class RainFx {
       setPineLookParam(id, 'alpha', 0.16 + 0.2 * w.rain);
       this.rain.geometry.setDrawRange(0, Math.ceil(this.rainCount * Math.min(1, w.rain * 1.1)) * 6);
     }
-    this.puddleFade.value = THREE.MathUtils.smoothstep(w.wet, 0.05, 0.6);
-    this.puddles.visible = this.puddleFade.value > 0.01;
+    const puddles = THREE.MathUtils.smoothstep(w.wet, 0.05, 0.6);
+    setWaterFade('puddle', puddles);
+    this.puddles.visible = puddles > 0.01;
     // the extras — none in a practice room (its x / z is no spot on the level)
     if (practiceRoom.open) { this.splashes.visible = false; this.lens.visible = false; this.lensWet = 0; return; }
     if (cam) { cam.getWorldPosition(this.eye); cam.getWorldDirection(this.fwd); }

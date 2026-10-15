@@ -37,7 +37,7 @@ import { setting, onSettingChange } from '@wildshard/engine/ui/Settings';
 import { fogUniforms, weatherUniforms, volumetricFog } from '@wildshard/engine/world/Atmosphere';
 import type { TreeInstance } from '@wildshard/engine/world/forest/placement';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { waterWeather } from '@wildshard/engine/world/waterSurface';
+import { waterWeather } from './water';
 import { windBoost, windUniforms, WIND_DIR } from '@wildshard/engine/world/wind';
 import type { Particles } from '@wildshard/game/systems/looks/particles';
 import type { ForestAmbience } from '../runtime/audio/ambience';
@@ -91,7 +91,7 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
   weather.setMode(setting('weather'), atT);
   // the rain (PH-L10, E322 F-L5): the cover map's crowns and roofs, and the bear cave's mouth under its arch, where none falls
   const hood = { x: BEAR_CAVE.x, z: BEAR_CAVE.z, rot: BEAR_CAVE.rot, hw: PINE_CAVE_HOOD.hw, lz0: PINE_CAVE_HOOD.lz0, lz1: PINE_CAVE_HOOD.lz1, top: terrainHeight(BEAR_CAVE.x, BEAR_CAVE.z) + PINE_CAVE_HOOD.up };
-  const fx = new RainFx({ name: 'pine-weather', sky: h.sky, roofAt: h.roofAt, phone: TIER === 'phone', seed: SEED, look: PINE_RAIN, programs: PINE_RAIN_PROGRAMS, baked: h.rain, hood }).build();
+  const fx = new RainFx({ name: 'pine-weather', roofAt: h.roofAt, phone: TIER === 'phone', seed: SEED, look: PINE_RAIN, programs: PINE_RAIN_PROGRAMS, baked: h.rain, hood }).build();
   h.game.scene.add(fx.group); // hidden while dry; in the scene before the boot's precompile, so the rain's program is built then
   if (entered === undefined) {
     const stopSetting = onSettingChange('weather', (m) => { weather.setMode(m, atT); });

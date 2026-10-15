@@ -20,7 +20,7 @@
 import * as THREE from 'three';
 import * as v from 'valibot';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { createWaterMaterial } from '@wildshard/engine/world/waterSurface';
+import { pineWater, setWaterFade } from './water';
 import { BEAVER_POOL, beaverPoolLevel } from '../data/layout';
 import { smoothstep } from '@wildshard/engine/core/noise';
 import { loadSiteTimbers } from './timberSites';
@@ -42,7 +42,6 @@ export class BeaverPool {
   private t = 0;
   private open = false;
   private ground = new Float32Array(0);
-  private readonly trickleFade = { value: 0 };
 
   constructor(private sky: Sky) {}
 
@@ -91,15 +90,15 @@ export class BeaverPool {
       pos.setY(k, y); aw.setX(k, code);
     }
     pos.needsUpdate = true; aw.needsUpdate = true;
-    this.trickleFade.value = smoothstep(0.45, 0.9, this.t);
-    this.trickle.visible = this.trickleFade.value > 0.001;
+    const fade = smoothstep(0.45, 0.9, this.t);
+    setWaterFade('trickle', fade);
+    this.trickle.visible = fade > 0.001;
   }
 
   /** the pool's still surface on the pond surface's grid (baked: the cells in the pool's reach, not always above its water) */
   private buildStill(geo: THREE.BufferGeometry): THREE.Mesh {
     this.ground = Float32Array.from(v.parse(v.array(v.pipe(v.number(), v.finite())), authored.poolGround));
-    const { material } = createWaterMaterial(this.sky, { skyline: null, forestSinEl: 0.3 });
-    const mesh = new THREE.Mesh(geo, material);
+    const mesh = new THREE.Mesh(geo, pineWater('creek'));
     mesh.name = 'beaver-pool';
     mesh.receiveShadow = true;
     mesh.renderOrder = 5;                                                   // with the pond
@@ -108,8 +107,7 @@ export class BeaverPool {
 
   /** the trickle: the channel's line from the riffle's crest to under the dam, a few cm over the bed (baked) */
   private buildTrickle(geo: THREE.BufferGeometry): THREE.Mesh {
-    const { material } = createWaterMaterial(this.sky, { skyline: null, forestSinEl: 0.3, fade: this.trickleFade });
-    const mesh = new THREE.Mesh(geo, material);
+    const mesh = new THREE.Mesh(geo, pineWater('trickle'));
     mesh.name = 'beaver-pool-trickle';
     mesh.receiveShadow = true;
     mesh.renderOrder = 6;

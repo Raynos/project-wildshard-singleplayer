@@ -1,19 +1,9 @@
 import type { GraphIr, GraphNode, GraphParam, GraphRef } from '@wildshard/format/materialGraph';
 
 /**
- * PARKED (2026-10-14; retried 2026-10-15, sp-o218): nothing draws these yet; test/graph-water-surface.test.ts compiles
- * them. On HEAD with the cascade-shadow fix (78258e147) the upper fall, the creek, the beaver pool, rain and the views from
- * the shore match the classic waterSurface.ts. Two causes of the darker shore mirror: the mirrored crowns took
- * the shadow at the water (canopy blotches on the mirror; fixed below: they take the unshadowed sun) and, likely (open), the
- * forest's sky light: the classic lights the mirrored shore with the environment's irradiance toward the shore
- * (getIBLIrradiance at the crown normal), the graph can only read it at the water's normal (× 0.75). From the water's level
- * (swimming, the pond at midday) the cliff's mirror stays ~40 % darker in linear light (~10 % at sunset). Retry with an
- * environment-irradiance-at-a-direction graph input, then the pairs in
- * progress/shard-platform/pine-water-graph-2026-10-15/sp-o218/.
- *
  * Pine Hollow's photoreal water (PINE-HOLLOW-REMASTER PH-L9; SHARD-PLATFORM W2 C2) as SF59 material graphs: the pond, the
- * creek and beaver pool, the dam's trickle and the rain's puddles all wear one program (the four ids differ only in their
- * params), compiled by runtime/looks/water.ts. No extra render pass:
+ * creek and beaver pool, the dam's trickle and the rain's puddles wear two programs (still and running water; otherwise the
+ * four ids differ only in their params), lent with Pine's other looks (./graphLooks.ts) and worn by world/water.ts. No extra render pass:
  *
  *   · REFLECTION = the scene's environment (the clock's sky) along the rippled reflected ray, Fresnel F0 0.02 (water's
  *     ior 1.333). Where the reflected ray would hit the shore instead of the sky its radiance is the forest's: on the pond an
@@ -28,9 +18,9 @@ import type { GraphIr, GraphNode, GraphParam, GraphRef } from '@wildshard/format
  *     at the shore, lit as a white diffuse layer. WET LINE: vertices just above the water (depth < 0) draw a dark glossy film.
  *
  * The lighting stage owns the whole light: the sun's diffuse and GGX glint (shadowed), the sky's diffuse and its reflection
- * (`radiance`, swapped for the forest where occluded); each term is divided by the alpha so the straight-alpha blend writes
- * (spec + body · aBody) over the bed. Vertex data: `uv` (still water: world x / z in metres; running water: across metres,
- * travel seconds), `aWater` vec4 = (depth m (< 0 the wet film), flowing 0 | 1, foam 0..1, kAbs per m (< 0 a foam-only
+ * (`radiance`, swapped for the forest where occluded, its crowns lit by the scene's sun light, `skyLightColour`); each term
+ * is divided by the alpha so the straight-alpha blend writes (spec + body · aBody) over the bed. Vertex data: `uv` (running
+ * water only: across metres, travel seconds; still water maps world x / z), `aWater` vec4 = (depth m (< 0 the wet film), flowing 0 | 1, foam 0..1, kAbs per m (< 0 a foam-only
  * overlay)). Fogged half as much as the air (`vertex.scale.fog`).
  */
 
@@ -62,7 +52,8 @@ function waterGraph(sinEl: number, skyline: boolean, puddle: boolean): GraphIr {
 
   const water = op('attribute', undefined, { name: 'aWater', type: 'vec4' });
   const depthW = swz(water, 'x'), flowK = swz(water, 'y'), kAbs = swz(water, 'w');
-  const pw = op('positionWorld'), eye = op('cameraPosition'), uvm = op('uv'), T = op('windTime'), wd = op('windDirection');
+  // still water's map coordinates are world x / z (the pond, the puddles: no uv attribute needed), running water's its uv
+  const pw = op('positionWorld'), eye = op('cameraPosition'), uvm = skyline || puddle ? swz(pw, 'xz') : op('uv'), T = op('windTime'), wd = op('windDirection');
   const rain = param('rain');
   const gust = op('clamp', [op('varying', [op('windGustAt', [swz(pw, 'xz')])]), 0, 1.2]);
   // still water: three scales drift downwind; running water: all ride the flow (uv.y = travel time × 1 m/s)
@@ -149,8 +140,7 @@ function waterGraph(sinEl: number, skyline: boolean, puddle: boolean): GraphIr {
   // the trees facing the water, lit by the sun on their crowns (they face back along the reflected ray, tipped up)
   const crown = op('normalize', [op('combine', [op('negate', [swz(rg, 'x')]), 0.35, op('negate', [swz(rg, 'z')])])]);
 
-  // the sun: its diffuse on the body and foam and the GGX glint (shadowed where the water is), and the sunlit crowns in
-  // the reflection: those are lit where they stand, so a canopy's shade on the water never darkens the shore's mirror
+  // the sun: its diffuse on the body and foam and the GGX glint (shadowed where the water is)
   const L = op('sunDirection'), nV = op('normalView'), vV = op('viewDirection');
   const sunIn = mul(op('sunColour'), op('sunShadow'));
   const nDotL = clamp01(dot(nV, L)), hV = op('normalize', [add(L, vV)]), nDotH = clamp01(dot(nV, hV)), vDotH = clamp01(dot(vV, hV));
@@ -161,11 +151,12 @@ function waterGraph(sinEl: number, skyline: boolean, puddle: boolean): GraphIr {
   const vis = div(0.5, op('max', [add(mul(nDotL, sqrt(add(mul(mul(nvV, nvV), oneA), a2))), mul(nvV, sqrt(add(mul(mul(nDotL, nDotL), oneA), a2)))), 1e-6]));
   const fVH = add(0.02, mul(op('pow', [op('oneMinus', [vDotH]), 5]), 0.98));
   const glint = mul(mul(mul(ggxD, vis), fVH), specK);
-  const crownLit = mul(mul(mul(shoreAlb, INV_PI * 0.6), clamp01(dot(crown, op('viewToWorld', [L])))), mul(mul(f0, occ), specK));
-  const sun = add(mul(mul(sunIn, nDotL), add(mul(op('albedo'), INV_PI), glint)), mul(op('sunColour'), crownLit));
-  // the sky: its diffuse on the body and foam, and its reflection (the forest's where the ray meets the shore)
+  const sun = mul(mul(sunIn, nDotL), add(mul(op('albedo'), INV_PI), glint));
+  // the sky: its diffuse on the body and foam, and its reflection (the forest's where the ray meets the shore: the sky's
+  // irradiance and the scene's sun on the crowns, unshadowed, so a canopy's shade on the water never darkens the mirror)
   const envIrr = op('environmentIrradiance');
-  const forest = mul(shoreAlb, mul(envIrr, INV_PI * 0.75));
+  const crownSun = mul(op('skyLightColour'), mul(clamp01(dot(crown, op('skyLightDirection'))), 0.6));
+  const forest = mul(shoreAlb, mul(add(mul(envIrr, 0.75), crownSun), INV_PI));
   const ambient = add(mul(op('albedo'), mul(add(op('irradiance'), envIrr), INV_PI)), mul(mix(op('radiance'), forest, occ), mul(f0, specK)));
 
   const lent = (slot: string): GraphParam => ({ type: 'texture', value: slot, role: 'lent' });
