@@ -11,13 +11,13 @@ import { castRay } from '@wildshard/engine/physics/query';
  * WORLD hit under `fromY` at (x, z), else `terrainAt` (also when the hit is the ground's heightfield), and whether it
  * stands on a structure.
  */
-export function creatureFloor(host: Pick<SimHost, 'physics'>, terrainAt: (x: number, z: number) => number): (x: number, z: number, fromY: number) => { y: number; structure: boolean } {
+export function creatureFloor(host: Pick<SimHost, 'physics'>, terrainAt: (x: number, z: number) => number, heightfield: 'ground' | 'any' = 'ground'): (x: number, z: number, fromY: number) => { y: number; structure: boolean } {
   const origin = { x: 0, y: 0, z: 0 }, down = { x: 0, y: -1, z: 0 }, sees = ['WORLD'] as const;
   return (x, z, fromY) => {
     const terrain = terrainAt(x, z);
     origin.x = x; origin.y = fromY; origin.z = z;
     const hit = castRay(host.physics, origin, down, Math.max(201, fromY - terrain + 1), sees);
-    if (hit === null || (hit.material === 'ground' && hit.collider.shape.type === host.physics.R.ShapeType.HeightField)) return { y: terrain, structure: false };
+    if (hit === null || ((heightfield === 'any' || hit.material === 'ground') && hit.collider.shape.type === host.physics.R.ShapeType.HeightField)) return { y: terrain, structure: false };
     return { y: hit.point.y, structure: true };
   };
 }
@@ -197,4 +197,103 @@ export function installHomeKeeper(host: SimHost, spec: HomeKeeperSpec, saved?: R
   }
   return { settle, homes: () => homes,
     boss: boss === null ? null : { draw: () => drawBody(boss), free: () => { freeBody(boss); }, actor: () => boss.actor } };
+}
+
+/** Baked native creature intake. Callers retain pose/policy, herd membership, ecology and their save envelope.
+ * Spawn draws use the supplied stream in scale/rig-seed/body-seed/memory order; reinstall never draws.
+ * The registry owns kind/variant admission and structure-aware placement, not a shard's decision schedule. */
+export function createNativeCreatureRoster<B extends {
+  id: string; kind: string; variant: string; readonly recipe: SimSpawn;
+  range: readonly [number, number]; actor: AnimalSim | null;
+}>(host: SimHost, ports: {
+  readonly specs: Iterable<AnimalSimSpec>;
+  readonly variants: ReadonlyMap<string, readonly { readonly id: string; readonly scale: readonly [number, number] }[]>;
+  readonly rng: Rng; readonly spawnY: number; readonly attackTurnCap: number;
+  readonly heightfield?: 'ground' | 'any';
+  readonly preflight?: (body: B) => void;
+  readonly attach: (native: AnimalSim, body: B) => NonNullable<B['actor']>;
+  readonly joined: (body: B, actor: NonNullable<B['actor']>) => void;
+  readonly ground?: (body: B, x: number, z: number, fromY: number) => number | undefined;
+}): {
+  body: (id: string, kind: string, variant: string, herd: number, at: { x: number; z: number }, yaw: number,
+    range?: readonly [number, number], authored?: { seed: number; scale: number }) => {
+      id: string; kind: string; variant: string; herd: number; range: readonly [number, number]; actor: null; recipe: SimSpawn };
+  spec: (kind: string, variant: string) => AnimalSimSpec;
+  byId: Map<string, B>;
+  floor: (x: number, z: number, fromY: number) => number;
+  materialize: (body: B, recipe: SimSpawn, structure: boolean) => void;
+  arrive: (body: B) => void;
+  draw: (body: B, consumeMemory?: boolean) => void;
+  retarget: (body: (B & { herd: number }) | undefined, kind: string, variant: string | undefined, herd: number,
+    x: number, z: number, allocate: () => { id: string; yaw: number }) => B & { herd: number };
+  bindBodyStep: (callbacks: { before: (body: B, actor: NonNullable<B['actor']>, dt: number) => void;
+    after: (body: B, actor: NonNullable<B['actor']>, dt: number) => void }) => void;
+  reinstall: (body: B, saved: Readonly<SimSnapshot>) => void;
+} {
+  const recipes = new Map<string, Map<string, AnimalSimSpec>>(), byId = new Map<string, B>();
+  for (const known of ports.specs) {
+    let group = recipes.get(known.kind);
+    if (group === undefined) { group = new Map(); recipes.set(known.kind, group); }
+    group.set(known.variant, known);
+  }
+  const sample = creatureFloor(host, (x, z) => host.groundHeightAt(x, z), ports.heightfield);
+  const floor = (x: number, z: number, fromY: number): number => sample(x, z, fromY).y;
+  const spec = (kind: string, variant: string): AnimalSimSpec => {
+    const known = recipes.get(kind)?.get(variant);
+    if (known === undefined) throw new Error(`Missing native creature recipe: ${kind}.${variant}`);
+    return known;
+  };
+  const body = (id: string, kind: string, variant: string, herd: number, at: { x: number; z: number }, yaw: number,
+    range?: readonly [number, number], authored?: { seed: number; scale: number }) => {
+    const scale = range ?? ports.variants.get(kind)?.find(row => row.id === variant)?.scale;
+    if (scale === undefined) throw new Error(`Missing native creature scale: ${kind}.${variant}`);
+    return { id, kind, variant, herd, range: scale, actor: null,
+      recipe: { id, spec: spec(kind, variant), seed: authored?.seed ?? 0, scale: authored?.scale ?? 1, at: { x: at.x, y: 0, z: at.z }, yaw } };
+  };
+  const materialize = (item: B, recipe: SimSpawn, structure: boolean): void => {
+    ports.preflight?.(item);
+    const actor = ports.attach(host.spawn(recipe), item);
+    actor.levelGround = structure;
+    if (structure) actor.groundHeight = (x, z, fromY) => ports.ground?.(item, x, z, fromY) ?? floor(x, z, fromY);
+    actor.attackTurnCap = ports.attackTurnCap;
+    item.actor = actor; byId.set(item.id, item); ports.joined(item, actor);
+  };
+  const arrive = (item: B): void => {
+    const at = item.recipe.at, found = sample(at.x, at.z, Math.max(ports.spawnY, host.groundHeightAt(at.x, at.z)) + 1);
+    at.y = found.y; materialize(item, item.recipe, found.structure);
+  };
+  const draw = (item: B, consumeMemory = true): void => {
+    item.recipe.scale = ports.rng.range(item.range[0], item.range[1]); ports.rng.next(); item.recipe.seed = ports.rng.next();
+    if (consumeMemory) { ports.rng.next(); ports.rng.next(); ports.rng.next(); }
+  };
+  const retarget = (item: (B & { herd: number }) | undefined, kind: string, variant: string | undefined, herd: number,
+    x: number, z: number, allocate: () => { id: string; yaw: number }): B & { herd: number } => {
+    if (variant === undefined) throw new Error('Missing native creature variant');
+    if (item === undefined) throw new Error('Missing native creature recipe slot');
+    const range = ports.variants.get(kind)?.find(row => row.id === variant)?.scale, native = spec(kind, variant);
+    if (range === undefined) throw new Error(`Missing native creature scale: ${kind}.${variant}`);
+    const { id, yaw } = allocate();
+    item.id = id; item.kind = kind; item.variant = variant; item.herd = herd; item.range = range;
+    item.recipe.id = id; item.recipe.spec = native; item.recipe.at.x = x; item.recipe.at.z = z; item.recipe.yaw = yaw;
+    return item;
+  };
+  const bindBodyStep = (callbacks: {
+    before: (body: B, actor: NonNullable<B['actor']>, dt: number) => void;
+    after: (body: B, actor: NonNullable<B['actor']>, dt: number) => void;
+  }): void => { host.useBodyStep({
+    before: (id, actor, dt) => { const item = byId.get(id); if (item?.actor === actor) callbacks.before(item, item.actor, dt); },
+    after: (id, actor, dt) => { const item = byId.get(id); if (item?.actor === actor) callbacks.after(item, item.actor, dt); },
+  }); };
+  const reinstall = (item: B, saved: Readonly<SimSnapshot>): void => {
+    const contract = saved.adapters.find(adapter => adapter.id === `runtime.actor.${item.id}`)?.state;
+    if (typeof contract !== 'string') throw new Error(`Missing saved native creature ${item.id}`);
+    const recipe = v.parse(Placed, JSON.parse(contract));
+    if (recipe.id !== item.id) throw new Error(`Incompatible saved native creature ${item.id}`);
+    item.recipe.yaw = recipe.yaw; item.recipe.seed = recipe.seed; item.recipe.scale = recipe.scale;
+    Object.assign(item.recipe.at, recipe.at);
+    const found = sample(recipe.at.x, recipe.at.z, recipe.at.y + 1);
+    const level = saved.entities.find(entity => entity.id === item.id)?.state.flags.levelGround;
+    materialize(item, item.recipe, level ?? found.structure);
+  };
+  return { body, spec, byId, floor, materialize, arrive, draw, retarget, bindBodyStep, reinstall };
 }

@@ -63,6 +63,7 @@ Jake, 2026-10-15 (G441): a new platform host built for Pine or Driftwood counts 
 |---|---|---|---|
 | W3 Nalati bodyless forager policies | `src/game/systems/life/bodylessForager.ts#BodylessForager` | Nalati `src/shards/nalati-grasslands/creatures/marmotBrain.ts`: forage/sentry/threat/retreat decisions and burrow retreat rows; retain colony whistle, private RNG and band clocks | sp-x4 |
 | W3 Nine owned specimen geometry (G441) | `src/engine/models/ownedGeometry.ts#createOwnedGeometry` | Nine: `src/shards/nine-dragon-stack/world/specimens.ts` (`SpecimenBake.geometry` copies; `take` transfers and deletes the retained geometry), with `world/modelLook.ts` consuming those owned specimens. Replace each keyed template with the host, adopting the geometry supplied by `runtime/geometry.ts`. | sp-x7 |
+| W3 Nalati native creature recipe intake (G441) | `game/shardfile/homeKeeper#createNativeCreatureRoster` | Nalati: `src/shards/nalati-grasslands/runtime/headlessCreatures.ts` — `makeBody`, `spawnPack`, `spawnElite`, `spawnBondedHorse`, `restoreRoster`; baked recipe/scale intake, structure-aware native spawn and saved reinstallation; owner policies and save envelope stay | sp-x6 |
 
 ## Part B: deferred (not started without Jake's word)
 

@@ -5835,3 +5835,20 @@ small foragers are the first user. G441's W3 user is Nalati's
 onto the runner with burrow retreat rows, while its colony whistle and
 band clocks remain the native owners. Pending credit is rechecked at the
 end of W3.
+
+### Native creature recipe intake
+
+`game/shardfile/homeKeeper.createNativeCreatureRoster` owns baked
+kind/variant and scale lookup, caller-stream spawn draws, native body
+materialization, structure-aware floors, identity-indexed body callbacks
+and saved-recipe reinstallation. Attachment preflight precedes spawn; the
+caller retains poses, herd membership, policies, death/respawn scheduling
+and its existing save envelope. `retarget` reuses a cold recipe slot; it
+creates no actor until `arrive` or `materialize`. `reinstall` restores the
+original adapter placement and structure flag without drawing RNG.
+`creatureFloor` defaults to the existing ground-material heightfield rule;
+its explicit `any` policy treats every heightfield hit as terrain.
+
+G441 pending second user: Nalati's native creature manager will use this
+intake for its pack/elite/bonded spawns and restored roster. The allowance
+is rechecked at the end of W3; it is not an actual second-user claim.
