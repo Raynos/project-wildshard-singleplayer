@@ -1,4 +1,4 @@
-import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
+import { ResourceMemo } from '@wildshard/engine/app/cachedAssets';
 import { loadRigFile } from '@wildshard/engine/anim/rig';
 import { TIER } from '@wildshard/engine/core/tier';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -63,18 +63,14 @@ export interface NpcRig {
  * its own file loader instead of reloading the module or spying on a loader (E422).
  */
 export class NpcModels {
-  private readonly sources = new Map<NpcKind, Source>();
-  private readonly loading = new Map<NpcKind, Promise<Source | null>>();
-  private readonly sharedMats = new Map<NpcKind, THREE.MeshStandardMaterial>();
+  private readonly sharedMats = new ResourceMemo<NpcKind, THREE.MeshStandardMaterial>();
+  private readonly sources = new ResourceMemo<NpcKind, Source>(kind => { this.sharedMats.invalidate(kind); });
   private readonly loadFile: (url: string) => Promise<GLTF>;
   constructor(loadFile: (url: string) => Promise<GLTF> = loadRigFile) { this.loadFile = loadFile; }
 
   /** Required baked intake; missing or invalid skins refuse, with no runtime fitting. */
   load(kind: NpcKind): Promise<Source | null> {
-    let p = this.loading.get(kind);
-    if (!p) {
-      const fetchSkin = async (): Promise<Source> => {
-        try {
+    return this.sources.load(kind, async () => {
         const [gltf, appearance] = await Promise.all([this.loadFile(npcModelUrl(kind)), this.loadFile(skins[kind][TIER].material)]);
         const meshes: THREE.SkinnedMesh[] = [];
         gltf.scene.traverse(node => { if (isSkin(node)) meshes.push(node); });
@@ -104,35 +100,23 @@ export class NpcModels {
         for (const surface of surfaces) surface.dispose();
         for (const surface of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) surface.dispose();
         mesh.skeleton.dispose();
-        this.sources.set(kind, hit);
-        cacheUntilDisposed(hit, () => {
-          if (this.sources.get(kind) !== hit) return;
-          this.sources.delete(kind); this.loading.delete(kind); this.sharedMats.delete(kind);
-        });
         return hit;
-        } catch (error: unknown) { this.loading.delete(kind); throw error; }
-      };
-      p = fetchSkin();
-      this.loading.set(kind, p);
-    }
-    return p;
+    });
   }
 
   async preload(): Promise<void> { await Promise.all(NPC_KINDS.map((kind) => this.load(kind))); }
 
   /** a skinned instance of `kind`'s model, or null until it has loaded */
   rig(kind: NpcKind, sky: Sky): NpcRig | null {
-    const src = this.sources.get(kind);
+    const src = this.sources.peek(kind);
     if (!src) return null;
-    let mat = this.sharedMats.get(kind);
-    if (!mat) {
-      mat = new THREE.MeshStandardMaterial({ map: src.map, normalMap: src.normalMap, normalScale: new THREE.Vector2(1, -1), roughness: 0.85, metalness: 0 });
-      mat.name = `ph-npc-${kind}`;
-      if (mat.map) mat.map.colorSpace = THREE.SRGBColorSpace;
-      sky.setupMaterial(mat);
-      this.sharedMats.set(kind, mat);
-      const cached = mat; cacheUntilDisposed(cached, () => { if (this.sharedMats.get(kind) === cached) this.sharedMats.delete(kind); });
-    }
+    const mat = this.sharedMats.acquire(kind, () => {
+      const material = new THREE.MeshStandardMaterial({ map: src.map, normalMap: src.normalMap, normalScale: new THREE.Vector2(1, -1), roughness: 0.85, metalness: 0 });
+      material.name = `ph-npc-${kind}`;
+      if (material.map) material.map.colorSpace = THREE.SRGBColorSpace;
+      sky.setupMaterial(material);
+      return material;
+    });
     // E322 F-M3: legs, a clavicle and a twist bone, the walk clip (npcRig.ts)
     const lb = src.rig, lbones = legBones(lb), pose = legPose(lbones, lb);
     const mesh = new THREE.SkinnedMesh(lb.geometry, mat);

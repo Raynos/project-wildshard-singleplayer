@@ -6132,3 +6132,15 @@ head equations, gesture timing and body/rig ownership. The W3 Nalati
 user is `models/npc/figureMotion.ts#stepNpcFigure`: retain its phase clock,
 talking head accent, motion/orbit and pose matrix ownership when adopting
 the focus/glance law at the end of W2.
+
+**Resource acquisition memo (W2 C5/C9).**
+`@wildshard/engine/app/cachedAssets#ResourceMemo` shares keyed asynchronous
+`load` promises and synchronous `acquire` values. `peek` never starts a load;
+`entries` visits ready values. Resources remain borrowed: `invalidate` only
+forgets, and `cacheUntilDisposed` invalidates on real retirement, preserving
+geometry rebinding. Failed factories retry; invalidated late promises cannot
+overwrite newer values. The optional invalidation callback clears dependent
+memo/preload state. Pine keeps its own NPC skin admission, PBR and pose law.
+The G441 W3 user is Nalati `species/hulls.ts#CreatureRigs`: replace its
+ready/loading maps and disposal invalidation while preserving coat adoption,
+preload policy, generated rig decoding and existing failure behaviour.

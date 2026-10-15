@@ -60,3 +60,58 @@ export function cacheUntilDisposed<T>(value: T, invalidate: () => void): T {
   }
   return value;
 }
+
+/** Keyed borrowed resources: share acquisition, forget retired values, and retry failures without caching them. */
+export class ResourceMemo<K extends string, V extends object> {
+  private readonly ready = new Map<K, V>();
+  private readonly pending = new Map<K, { promise: Promise<V>; token: symbol }>();
+  private readonly invalidated: (key: K) => void;
+  constructor(invalidated: (key: K) => void = () => undefined) { this.invalidated = invalidated; }
+  peek(key: K): V | undefined { return this.ready.get(key); }
+  entries(): IterableIterator<[K, V]> { return this.ready.entries(); }
+  /** Forget without disposing borrowed resources; the owning scope still releases them. */
+  invalidate(key: K): void {
+    const known = this.ready.has(key) || this.pending.has(key);
+    this.ready.delete(key); this.pending.delete(key);
+    if (known) this.invalidated(key);
+  }
+  private publish(key: K, value: V): V {
+    cacheUntilDisposed(value, () => { if (this.ready.get(key) === value) this.invalidate(key); });
+    this.ready.set(key, value);
+    return value;
+  }
+  /** Synchronous factories run only on a miss; thrown errors never publish a value. */
+  acquire(key: K, create: () => V): V {
+    const known = this.ready.get(key);
+    if (known !== undefined) return known;
+    const value = create();
+    const made = this.publish(key, value);
+    this.pending.delete(key);
+    return made;
+  }
+  /** Begin immediately, sharing one promise per key through completion. Late invalidated loads cannot replace a newer value. */
+  load(key: K, create: () => Promise<V>): Promise<V> {
+    const known = this.pending.get(key);
+    if (known !== undefined) return known.promise;
+    const ready = this.ready.get(key);
+    if (ready !== undefined) {
+      const pending = Promise.resolve(ready); this.pending.set(key, { promise: pending, token: Symbol('resource') }); return pending;
+    }
+    const token = Symbol('resource');
+    // Invoke now, converting even a synchronous factory throw into a rejected load.
+    const loading = new Promise<V>(resolve => { resolve(create()); });
+    const settle = async (): Promise<V> => {
+      try {
+        const value = await loading;
+        if (this.pending.get(key)?.token === token) this.publish(key, value);
+        return value;
+      } catch (error: unknown) {
+        if (this.pending.get(key)?.token === token) this.pending.delete(key);
+        throw error;
+      }
+    };
+    const pending = settle();
+    this.pending.set(key, { promise: pending, token });
+    return pending;
+  }
+}
