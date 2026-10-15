@@ -10,6 +10,7 @@ const burst=v.strictObject({phase:v.pipe(v.array(positive),v.minLength(2),v.maxL
 /** Ambient populations borrow actual models and world owners. No resources or callbacks are encoded in rows. */
 export const ForestLifeSchema=v.pipe(v.strictObject({kind:v.literal('forest-community'),seed:v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),
   scavenger:v.strictObject({model,count,scale:positive,stand:finite,flush:positive,flushRun:positive,reland:positive,arrival:range,visitors:v.record(id,count),defaultVisitors:count,bodyWidths:v.record(id,positive),giveUp:positive}),
+  perches:v.pipe(v.strictObject({step:positive,spines:v.pipe(v.array(v.pipe(v.array(v.strictObject({y:finite,cx:finite,cz:finite,r:positive})),v.maxLength(256))),v.minLength(1),v.maxLength(32))}),v.check(row=>row.spines.every(spine=>spine.every((knot,index)=>knot.y===(index+1)*row.step)),'ordered equal-step perch knots')),
   sentinel:v.strictObject({model,scale:positive,stand:finite}),trunkForager:v.strictObject({model}),forager:v.strictObject({model,count,scale:positive,range:positive,visibleRange:positive}),
   guide:v.strictObject({count,policy:v.strictObject({distance:v.literal('centre'),min:positive,max:positive,schedule:v.strictObject({kind:v.literal('periodic'),initial:finite,period:range})})}),
   flight:v.strictObject({wave:finite,amplitude:finite,pitch:finite,pitchRate:positive,bank:finite,bankLimit:positive,bankRate:positive}),

@@ -272,7 +272,7 @@ export class PineHollow extends ShardPlugin {
       roofAt: (x, z) => cabins?.floorHeightAt(x, z) !== undefined || (landmarks?.crags?.inCave(x, z) ?? false), stagAt: () => quest.stagAt(), viewer: rt.viewer, horizonVeil: rt.horizonVeil });
     await preloadPineWildlife(); // the procedural animals' baked shapes (G285), behind the loading screen
     const wildlife=new WildlifeMesh(sky,LIFE_CAPACITY);
-    const life = installAmbientLife(PINE_LIFE,{view:wildlife,birds:await loadBirdModels(),swapBirds:(set,backend)=>{wildlife.useBirds(set,backend);},knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(PINE_LIFE.sounds).find(id=>id===name);if(family===undefined)throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees, trunks: forest.factory.variants,
+    const life = installAmbientLife(PINE_LIFE,{view:wildlife,birds:await loadBirdModels(),swapBirds:(set,backend)=>{wildlife.useBirds(set,backend);},knife:()=>new SkinKnife(game,sky,ctx),trimShadows:pineMemoryTrim(), ctx, game, sky, player, animals, weapons, audio, sfx: {shot:(name,options)=>{const family=Object.values(PINE_LIFE.sounds).find(id=>id===name);if(family===undefined)throw new Error(`Undeclared wildlife voice ${name}`);return ambience.sfx.shot(family,options);}}, trees: forest.trees,
       places: compendium ? () => compendium.state.def.entries.flatMap((entry) => entry.place ? [{ id: entry.id, ...entry.place }] : []) : null,
       visited: (id) => compendium?.state.reached(id, 'seen') ?? true, inCombat: () => music.state.mode === 'combat' });
     Object.assign(rt.objects, { pineLife: life, ambience });

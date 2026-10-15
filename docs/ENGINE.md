@@ -5746,3 +5746,11 @@ never exposes those objects to the channel evaluator, and refuses missing or
 non-numeric fields before use. `apply(group, values)` retains the existing
 frame-local overrides and phase order; omitted reads use the admitted owner
 bindings. Native action clocks, ADS solves and springs remain caller-owned.
+
+Forest-community ambient rows declare bounded local `perches` profiles
+(step and per-variant knots). TrunkProbe applies the existing planted tree
+rotation/scale and section interpolation; no bark geometry is traversed
+at runtime. The shard-owned cheap producer derives profiles from the
+original authored tree GLB. Ambient clocks, RNG and flock owners remain
+with installAmbientLife.
+

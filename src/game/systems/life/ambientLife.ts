@@ -36,8 +36,6 @@ export interface AmbientLifeHost<Birds> {
   ctx: ShardContext;
   game: Game; sky: Sky; player: Player; animals: AnimalManager; weapons: EquipmentService; audio: Parameters<typeof sharedWeaponVoices>[0];
   trees: readonly TreeInstance[];
-  /** the tree variants' bark geometry (Forest's factory): where a trunk really is (`TrunkProbe`) */
-  trunks: readonly { trunk: THREE.BufferGeometry }[];
   /** the journal's places (id, spot, radius) and whether one is visited (seen) — null = no journal on this build */
   places: (() => PlaceSpot[]) | null;
   visited: (id: string) => boolean;
@@ -115,7 +113,7 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   if(h.birds===null)throw new Error('Missing required ambient models');
   h.swapBirds(h.birds,game.renderer);h.birds=null;
   const cam = game.camera;
-  const trunks = new TrunkProbe(h.trunks);
+  const trunks = new TrunkProbe(data.perches);
 
   // ── the trees, by 16 m cell: trunks the hares keep off, snags / ambients the birds perch on ──
   const CELL = 16, cells = new Map<number, TreeInstance[]>();
