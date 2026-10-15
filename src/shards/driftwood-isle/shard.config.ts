@@ -16,6 +16,7 @@ import { FIREFLY_GRAPHS } from './data/fireflyLook';
 import { REEF_GRAPHS } from './data/reefLook';
 import { POOL_GRAPHS } from './data/poolLook';
 import { OCEAN_GRAPHS } from './data/oceanLook';
+import { GROUND_GRAPHS } from './data/groundLook';
 import { SKY_GRAPHS } from './data/skyLook';
 import navigation from './data/navigation.generated.json' with { type: 'json' };
 import { MOVERS } from './data/movers';
@@ -52,8 +53,9 @@ export default parseShardfile({
     compressed: simulationFiles.reduce((sum, file) => sum + file.compressed, 0) } },
   accent: 'marigold',
   // the material graphs the runtime draws its own meshes in (runtime/hybrid.ts): the cove's cascade, the castaway's smoke, the shrine's fireflies, the lagoon's reef, the cove's pools;
-  // the faceted sky's dome and cumulus (compiled by the sky backdrop before the world stage, runtime/looks/facetedDayBackdrop.ts)
-  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...CASCADE_GRAPHS, ...SMOKE_GRAPHS, ...FIREFLY_GRAPHS, ...REEF_GRAPHS, ...POOL_GRAPHS, ...OCEAN_GRAPHS, ...SKY_GRAPHS }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
+  // the faceted sky's dome and cumulus (compiled by the sky backdrop before the world stage, runtime/looks/facetedDayBackdrop.ts);
+  // the faceted ground and its slab (compiled by the look's prepareWorld before the ground builds, look/terrainPainter.ts)
+  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...CASCADE_GRAPHS, ...SMOKE_GRAPHS, ...FIREFLY_GRAPHS, ...REEF_GRAPHS, ...POOL_GRAPHS, ...OCEAN_GRAPHS, ...SKY_GRAPHS, ...GROUND_GRAPHS }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers'], spawns: DRIFTWOOD_SPAWNS },
   quests: DRIFTWOOD_QUESTS, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },

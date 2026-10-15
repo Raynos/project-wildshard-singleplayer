@@ -1,18 +1,24 @@
 /**
  * Driftwood's faceted ground (E357 S4.3 step 3, 08 §6.3 B): the look's `terrainPainter`, built by `Terrain.build` in
- * place of the engine's default ground. SHARD-PLATFORM M3: the faceted grid, its flat-colour patch and the slab walls are
- * @wildshard/sdk/looks/facetedGround from data/groundLook.ts; this keeps the island's paint: sand / grass / rock by height
+ * place of the engine's default ground. SHARD-PLATFORM M3: the faceted grid and the slab walls are
+ * runtime/looks/facetedGround.ts from data/groundLook.ts, worn by the ground's graph toon materials (`prepareGround`, the
+ * look's `prepareWorld`, compiles and lends them first); this keeps the island's paint: sand / grass / rock by height
  * and slope (./groundColor.ts) and the sand paths over the grass. The sea level is the manifest's `OCEAN.level`.
  */
 import * as THREE from 'three';
-import { facetedGroundPainter } from '../runtime/looks/facetedGround';
-import type { TerrainPainter } from '@wildshard/engine/render/look';
+import { facetedGroundPainter, prepareFacetedGround } from '../runtime/looks/facetedGround';
+import type { TerrainPainter, WorldLookContext } from '@wildshard/engine/render/look';
+import source from '../shard.config';
+import { followToon } from './toon';
 import { GROUND_LOOK, GROUND_PATHS } from '../data/groundLook';
 import { OCEAN } from '../manifest';
 import { LP, hash2, lowPolyGroundColor } from './groundColor';
 
 const _pathC = new THREE.Color();
 const ss = THREE.MathUtils.smoothstep;
+
+/** The ground's graph materials compiled under the world's scope before it builds (the look's `prepareWorld`). */
+export function prepareGround(context: WorldLookContext): Promise<void> { return prepareFacetedGround(context, source, GROUND_LOOK, followToon); }
 
 /** Driftwood's ground: no textures at all, two draw calls, facets of solid colour. */
 export const LOWPOLY_TERRAIN: TerrainPainter = facetedGroundPainter(GROUND_LOOK, OCEAN.level, (c, { h, slope, x, z, y, lip }, f) => {

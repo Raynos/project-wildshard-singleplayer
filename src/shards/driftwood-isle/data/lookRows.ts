@@ -110,11 +110,8 @@ export interface ReefBedRow {
 
 /** A faceted ground's numbers as data. */
 export interface FacetedGroundRow {
-  /** the material patch's registry id and program cache key */
-  readonly patch: { readonly id: string; readonly key: string };
-  /** the grid's and the slab's roughness */
-  readonly roughness: number;
-  readonly slabRoughness: number;
+  /** the look.materials ids the grid and the slab wear (graph toon materials the look lends before the ground builds) */
+  readonly materials: { readonly ground: string; readonly slab: string };
   /** rows built per task */
   readonly band: number;
   /** a cliff's top lip: below this normal y, the highest ground within `reach` m, smoothstepped `from` → `to` m above */

@@ -1,23 +1,41 @@
 import * as THREE from 'three';
 import { macrotask } from '@wildshard/engine/boot/plan';
 import { CHUNK_SIZE, CHUNK_HALF, CHUNK_DEPTH, TERRAIN_RES } from '@wildshard/engine/core/config';
-import type { PainterField, TerrainPainter } from '@wildshard/engine/render/look';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
+import type { PainterField, TerrainPainter, WorldLookContext } from '@wildshard/engine/render/look';
 import type { Terrain } from '@wildshard/engine/world/Terrain';
+import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
+import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { FacetedGroundRow } from '../../data/lookRows';
 
 /**
  * A faceted, texture-free ground as a terrain painter (SHARD-PLATFORM M3, look-family rows): the level's heightfield as
- * ONE indexed grid with `flatShading` (the normal from screen-space derivatives) and a `flat`-qualified colour varying, so
- * each triangle takes its provoking (last) vertex's colour: solid facets with no per-vertex duplication (the phone is
- * vertex-bound). The grid is built a band of rows per task. Each vertex's colour is the shard's paint, from its height
+ * ONE indexed grid worn by the shard's graph material (flat-shaded, its colour a `flat` varying, so each triangle takes its
+ * provoking (last) vertex's colour: solid facets with no per-vertex duplication; the phone is vertex-bound). The grid is built a band of rows per task. Each vertex's colour is the shard's paint, from its height
  * above the sea, its slope and whether it is a cliff's top lip; a facet climbing out of the sea is painted as a wall at
  * its middle height, not as seabed. The chunk's four slab walls are the same idea in rock darkening with depth. Two draw
  * calls, no maps. Nothing here knows a shard: its numbers are a row in its `data/`, its paint and sea level are its own.
+ * The look compiles the two graph materials before the ground builds and lends them for its world's scope:
  *
+ *   look.prepareWorld = (context) => prepareFacetedGround(context, source, row, followToon);
  *   look.terrainPainter = facetedGroundPainter(row, OCEAN.level, (c, cell, field) => { …paint c… });
  */
+
+type ToonLookOf = Awaited<ReturnType<typeof runtimeLookMaterials>>['toon'];
+/** a world's compiled ground materials and their toon look's once-a-frame follow of the day clock */
+interface GroundLoan { readonly ground: THREE.Material; readonly slab: THREE.Material; readonly follow: () => void }
+/** the live loans, newest last (a world's scope removes its own) */
+const loans: GroundLoan[] = [];
+
+/** Compile the row's graph materials under the world's scope and lend them to the next ground built (a look's
+ *  `prepareWorld`); `follow` makes their toon look track the shard's day clock once a frame. */
+export async function prepareFacetedGround(context: WorldLookContext, source: Shardfile, row: FacetedGroundRow, follow: (toon: ToonLookOf) => () => void): Promise<void> {
+  const { materials, toon } = await runtimeLookMaterials(context, source, true, [row.materials.ground, row.materials.slab]);
+  const ground = materials.get(row.materials.ground), slab = materials.get(row.materials.slab);
+  if (ground === undefined || slab === undefined) throw new Error('Faceted ground: look.materials lacks its graphs');
+  const loan: GroundLoan = { ground, slab, follow: follow(toon) };
+  loans.push(loan);
+  context.scope.onDispose(() => { const at = loans.indexOf(loan); if (at !== -1) loans.splice(at, 1); });
+}
 
 /** One grid vertex as the paint reads it: height above the sea (a wall's middle height), slope (1 − normal y), where,
  *  the ground's height and the cliff-lip weight (0‥1). */
@@ -35,24 +53,17 @@ export function facetedGroundPainter(row: FacetedGroundRow, seaLevel: number, pa
 
 async function buildFacetedGround(t: Terrain, f: PainterField, row: FacetedGroundRow, seaLevel: number, paint: FacetedGroundPaint): Promise<void> {
   await f.ready();
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: row.roughness, metalness: 0 });
-  patchShader(mat, row.patch.id, PATCH_ORDER.material, (shader) => {
-    attachFogUniforms(shader);
-    // `flat` interpolation: the whole triangle gets its last vertex's colour. The declaration lives inside the
-    // color_pars includes, which are still unexpanded here, so expand them first
-    const flat = (chunk: string) => chunk.replace('varying vec4 vColor;', 'flat varying vec4 vColor;');
-    shader.vertexShader = shader.vertexShader.replace('#include <color_pars_vertex>', flat(THREE.ShaderChunk.color_pars_vertex));
-    shader.fragmentShader = shader.fragmentShader.replace('#include <color_pars_fragment>', flat(THREE.ShaderChunk.color_pars_fragment));
-  }, { mode: 'replace', key: row.patch.key });
-  t.material = mat;
+  const loan = loans.at(-1);
+  if (loan === undefined) throw new Error('Faceted ground: no graph materials lent (the look prepares them before the ground builds)');
   const rows = facetedGrid(f, row, seaLevel, paint);
   let r = rows.next();
   while (r.done !== true) { await macrotask(); r = rows.next(); }
-  t.mesh = new THREE.Mesh(r.value, mat);
+  t.mesh = new THREE.Mesh(r.value, loan.ground);
   t.mesh.receiveShadow = true;
   t.mesh.castShadow = true;
+  t.mesh.onBeforeRender = loan.follow; // the ground draws every frame: its toon look follows the day clock here
   t.group.add(t.mesh);
-  t.group.add(facetedSlab(f, row));
+  t.group.add(facetedSlab(f, row, loan.slab));
 }
 
 /** The grid; yields after every band of rows (the caller ends the task there). */
@@ -108,9 +119,8 @@ function* facetedGrid(f: PainterField, row: FacetedGroundRow, wl: number, paint:
 }
 
 /** The chunk's four slab walls and its bottom, rock darkening with depth, each side jittered by a fixed hash. */
-function facetedSlab(f: PainterField, row: FacetedGroundRow): THREE.Mesh {
+function facetedSlab(f: PainterField, row: FacetedGroundRow, mat: THREE.Material): THREE.Mesh {
   const slab = row.slab;
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: row.slabRoughness, metalness: 0 });
   const segs = slab.segs;
   const verts: number[] = [], cols: number[] = [];
   const H = CHUNK_HALF, D = -CHUNK_DEPTH;

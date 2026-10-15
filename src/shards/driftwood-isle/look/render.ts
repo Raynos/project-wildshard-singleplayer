@@ -10,11 +10,12 @@
  *   shadows         the phone's three split cascades (E123 / E147), tent filter (E138), stepped-sun crossfade (E147 / E153),
  *                   16-bit maps (E174), the deck-acne biases
  *   backdrop        the stylized dome and the day / night clock (backdrop.ts; the keys in dayKeys.ts)
+ *   prepareWorld    the ground's graph toon materials, compiled and lent before it builds (terrainPainter.ts)
  *   terrainPainter  the faceted ground coloured by height and slope (terrainPainter.ts)
  */
 import type { LookStrategy } from '@wildshard/engine/render/look';
 import { STYLIZED_BACKDROP } from './backdrop';
-import { LOWPOLY_TERRAIN } from './terrainPainter';
+import { LOWPOLY_TERRAIN, prepareGround } from './terrainPainter';
 import { installRampFog, installToonLighting, resumeRampFog, suspendRampFog, toonUniforms } from './toon';
 
 /** the island's shadow rig: a low sun (golden hour, dawn) grazes the flat decks, so more normal bias, or the planks speckle */
@@ -31,5 +32,6 @@ export const shardRender = (): LookStrategy => ({
   fogControl: { suspend: suspendRampFog, resume: resumeRampFog },
   shadows: DRIFTWOOD_SHADOWS,
   backdrop: STYLIZED_BACKDROP,
+  prepareWorld: prepareGround,
   terrainPainter: LOWPOLY_TERRAIN,
 });
