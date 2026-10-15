@@ -62,8 +62,14 @@ export class QuestRewardController {
   private elapsed = -1;
   private carried = false;
   private disposed = false;
-  constructor(private readonly player: QuestRewardCarryPlayer, private readonly day: { phase: number } | null | undefined,
-    private readonly spec: QuestRewardControllerSpec, private readonly effects: QuestRewardEffects = {}) {}
+  private readonly player: QuestRewardCarryPlayer;
+  private readonly day: { phase: number } | null | undefined;
+  private readonly spec: QuestRewardControllerSpec;
+  private readonly effects: QuestRewardEffects;
+  constructor(player: QuestRewardCarryPlayer, day: { phase: number } | null | undefined,
+    spec: QuestRewardControllerSpec, effects: QuestRewardEffects = {}) {
+    this.player = player; this.day = day; this.spec = spec; this.effects = effects;
+  }
   get active(): boolean { return this.elapsed >= 0; }
   /** The admitted director may own completion; otherwise the authored hold duration finishes the beat. */
   update(dt: number, authoritativeFinish?: boolean): void {
