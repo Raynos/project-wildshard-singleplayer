@@ -202,6 +202,39 @@ function isBlockGroup(v: unknown): v is BlockGroup {
  */
 interface PendingBuild { readonly uniformsGroups: unknown[]; readonly updateNodes: unknown; readonly uniforms: Record<string, unknown>; readonly programs: unknown; readonly slot: number }
 
+/** Node buffer names contain process-global node IDs. Equal cloned graphs share a
+ * program, so both its GLSL blocks and each build's runtime groups need names
+ * based on build order instead. Values, layouts and node ownership stay local. */
+function stableBufferNames(builder: unknown, parameters: THREE.WebGLProgramParametersWithUniforms, groups: readonly unknown[]): void {
+  const uniforms: unknown = typeof builder === 'object' && builder !== null ? Reflect.get(builder, 'uniforms') : undefined;
+  if (typeof uniforms !== 'object' || uniforms === null) return;
+  const names = new Map<string, string>();
+  let count = 0;
+  for (const stage of ['vertex', 'fragment']) {
+    const list: unknown = Reflect.get(uniforms, stage);
+    if (!Array.isArray(list)) continue;
+    const entries: readonly unknown[] = list;
+    for (const entry of entries) {
+      if (typeof entry !== 'object' || entry === null || Reflect.get(entry, 'type') !== 'buffer') continue;
+      const node: unknown = Reflect.get(entry, 'node'), member: unknown = Reflect.get(entry, 'name');
+      const block: unknown = typeof node === 'object' && node !== null ? Reflect.get(node, 'name') : undefined;
+      if (typeof block !== 'string' || !/^NodeBuffer_\d+$/u.test(block) || typeof member !== 'string' || !/^buffer\d+$/u.test(member)) continue;
+      if (names.has(block)) continue;
+      names.set(block, `engineNodeBuffer${count}`); names.set(member, `engineNodeBufferData${count}`); count++;
+    }
+  }
+  if (names.size === 0) return;
+  const replace = (source: string): string => source.replaceAll(/\b(?:NodeBuffer_\d+|buffer\d+)\b/gu, name => names.get(name) ?? name);
+  parameters.vertexShader = replace(parameters.vertexShader); parameters.fragmentShader = replace(parameters.fragmentShader);
+  for (const [old, name] of names) {
+    const bufferUniform = parameters.uniforms[old];
+    if (bufferUniform !== undefined) { parameters.uniforms[name] = bufferUniform; delete parameters.uniforms[old]; }
+  }
+  for (const group of groups) if (isBlockGroup(group)) {
+    const name = names.get(group.name); if (name !== undefined) Reflect.set(group, 'name', name);
+  }
+}
+
 /** the program's active uniforms that the build declares (three's `generateUniformsList`, WebGLUniforms.seqWithValue) */
 function uniformsListOf(program: unknown, uniforms: Record<string, unknown>): unknown[] {
   const getUniforms: unknown = typeof program === 'object' && program !== null ? Reflect.get(program, 'getUniforms') : null;
@@ -235,6 +268,11 @@ const nodeLayerFrame: NodeLayerFrameInstaller = (material, frame) => {
   material.contextNode = context({ modelViewMatrix: reference('value', 'mat4', frame.view).mul(modelWorldMatrix) });
   return true;
 };
+
+// A bone buffer's declared array length is part of the linked program's layout.
+function nodeObjectKey(object: unknown): string {
+  return `${nodeInstanceKey(object)}${object instanceof THREE.SkinnedMesh ? `|bones:${object.skeleton.bones.length}` : ''}`;
+}
 
 const PROGRAM_KEY = 'engine-nodes';
 
@@ -306,7 +344,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
       const layer = layerFrameOf(this);
       const fog = materialNodeFogOf(this) ?? fogPatches().at(-1);
       const fogKey = fog?.node === undefined ? '' : `|fog:${fog.id}`;
-      return `${stockKey.call(this)}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}|${nodeInstanceKey(object)}${fogKey}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
+      return `${stockKey.call(this)}|${PROGRAM_KEY}|${this.toneMapped ? 'tm' : 'raw'}|${nodeObjectKey(object)}${fogKey}${layer === null ? '' : `|layer:${layer.whole ? 'whole' : 'alpha'}`}`;
     };
     this.epilogue.push((out, ctx) => {
       const bound = materialNodeFogOf(ctx.material);
@@ -497,14 +535,18 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const programs: unknown = typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'programs') : undefined;
     const pending = this.pendingBuilds.get(material) ?? [];
     const updateNodes: unknown = typeof builder === 'object' && builder !== null ? Reflect.get(builder, 'updateNodes') : undefined;
-    pending.push({ uniformsGroups: internals(this).collectUniformsGroups(builder), updateNodes,
+    const uniformsGroups = internals(this).collectUniformsGroups(builder);
+    stableBufferNames(builder, parameters, uniformsGroups);
+    pending.push({ uniformsGroups, updateNodes,
       uniforms: parameters.uniforms, programs, slot: programs instanceof Map ? programs.size : -1 });
     // A cold precompile may never draw. Retain only the stock fallback's runtime
     // view, not the builder's graph caches, source strings, scene and geometry.
     if (typeof builder === 'object' && builder !== null) {
-      const uniformGroups: unknown = Reflect.get(builder, 'uniformGroups');
-      const uniforms: unknown = Reflect.get(builder, 'uniforms');
-      Reflect.set(material, '_latestBuilder', { uniformGroups, uniforms, updateNodes });
+      const uniformGroups: Record<string, { uniforms: { nodeUniform: unknown }[] }> = {};
+      for (const group of uniformsGroups) if (isBlockGroup(group)) {
+        uniformGroups[group.name] = { uniforms: group.uniforms.map((nodeUniform: unknown) => ({ nodeUniform })) };
+      }
+      Reflect.set(material, '_latestBuilder', { uniformGroups, uniforms: { vertex: [], fragment: [] }, updateNodes });
     }
     this.pendingBuilds.set(material, pending);
   }
@@ -585,7 +627,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
           Reflect.get(properties, 'uniformsList') !== entry.uniformsList)) this.onUpdateProgram(material, current, properties);
       else if (entry !== undefined) this.updateNodeList(entry.updateNodes);
     }
-    const hash = `${String(typeof object === 'object' && object !== null ? Reflect.get(object, 'receiveShadow') : undefined)}|${nodeInstanceKey(object)}`;
+    const hash = `${String(typeof object === 'object' && object !== null ? Reflect.get(object, 'receiveShadow') : undefined)}|${nodeObjectKey(object)}`;
     if (Reflect.get(material, 'prevObjectHash') !== hash) { Reflect.set(material, 'prevObjectHash', hash); material.needsUpdate = true; }
     this.bindBlocks(material, null);
     this.bindAttributeDefaults(material, object);

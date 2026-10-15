@@ -15,8 +15,10 @@ class Buffers {
   readonly live = new Set<WebGLBuffer>();
   private uploadBuffer: WebGLBuffer | null = null;
   private readonly sizes = new Map<WebGLBuffer, number>();
+  readonly declared = new Map<WebGLProgram, ReadonlySet<string>>();
+  missing = 0;
   writes = 0;
-  getParameter(): number { return 24; }
+  getParameter(parameter: number): number { return parameter === this.MAX_UNIFORM_BUFFER_BINDINGS ? 24 : 65536; }
   createBuffer(): WebGLBuffer { const buffer = {}; this.live.add(buffer); return buffer; }
   deleteBuffer(buffer: WebGLBuffer): void { this.live.delete(buffer); }
   bindBuffer(_target: number, buffer: WebGLBuffer | null): void { this.uploadBuffer = buffer; }
@@ -29,6 +31,7 @@ class Buffers {
   }
   bindBufferBase(_target: number, point: number, buffer: WebGLBuffer | null): void { this.bound.set(point, buffer); }
   getUniformBlockIndex(program: WebGLProgram, name: string): number {
+    if (this.declared.has(program) && this.declared.get(program)?.has(name) !== true) { this.missing++; return this.INVALID_INDEX; }
     let names = this.indices.get(program); if (names === undefined) { names = new Map(); this.indices.set(program, names); }
     let index = names.get(name); if (index === undefined) { index = names.size; names.set(name, index); } return index;
   }
@@ -104,4 +107,58 @@ test('a shared material pairs its precompiled composer program after an environm
   }
   expect(handler.builds).toBe(2); expect(gl.writes).toBeGreaterThan(0);
   material.dispose(); geometry.dispose(); expect(gl.live.size).toBe(0);
+});
+
+
+test('skinned graph clones bind their own bone buffers to one shared program', () => {
+  const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
+  if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
+  const properties = new WeakMap<THREE.Material, { programs: Map<string, object>; currentProgram?: object; uniforms?: object; uniformsList?: unknown }>();
+  const get = (material: THREE.Material): NonNullable<ReturnType<typeof properties.get>> => {
+    let value = properties.get(material); if (value === undefined) { value = { programs: new Map() }; properties.set(material, value); } return value;
+  };
+  const gl = new Buffers();
+  const fields: Record<string, unknown> = {
+    extensions: { has: () => false, get: () => null }, getContext: () => gl, getRenderTarget: () => null,
+    toneMapping: THREE.NoToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.LinearSRGBColorSpace,
+    coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
+    debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get, has: (m: THREE.Material) => properties.has(m) },
+  };
+  for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
+  const handler = new EngineNodesHandler(); handler.setRenderer(renderer);
+  const base = compileGraph({ version: 1, kind: 'material', model: 'unlit', nodes: {}, stages: { surface: { colour: [1, 0, 0] } }, effectState: { fog: false } }).material;
+  const geometry = new THREE.BoxGeometry(), count = geometry.getAttribute('position').count;
+  geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(new Uint16Array(count * 4), 4));
+  const weights = new Float32Array(count * 4); for (let i = 0; i < count; i++) weights[i * 4] = 1;
+  geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(weights, 4));
+  const camera = new THREE.PerspectiveCamera(), scene = new THREE.Scene(), linked = new LinkedProgram();
+  let program: { program: WebGLProgram; getUniforms: () => { seq: { id: string }[] } } | undefined;
+  let blocks: string[] | undefined;
+  for (let i = 0; i < 2; i++) {
+    const material = base.clone(), bone = new THREE.Bone(), mesh = new THREE.SkinnedMesh(geometry, material);
+    mesh.add(bone); mesh.bind(new THREE.Skeleton([bone])); scene.add(mesh);
+    handler.renderStart(scene, camera); handler.updateLights([]); handler.setObject(mesh, material);
+    const parameters: object = {};
+    const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
+    if (!isParameters(parameters)) throw new Error('Missing parameters');
+    handler.build(material, mesh, parameters);
+    const key = material.customProgramCacheKey(), other = new THREE.SkinnedMesh(geometry, material);
+    other.bind(new THREE.Skeleton([new THREE.Bone(), new THREE.Bone()]));
+    handler.setObject(other, material); expect(material.customProgramCacheKey()).not.toBe(key);
+    handler.setObject(mesh, material); other.skeleton.dispose();
+    const names = [...parameters.vertexShader.matchAll(/uniform\s+(\w+)\s*\{/gu)].map(match => match[1] ?? '');
+    expect(names.some(name => name.startsWith('engineNodeBuffer'))).toBe(true);
+    if (blocks === undefined) { blocks = names; gl.declared.set(linked, new Set(names)); }
+    else expect(names).toEqual(blocks);
+    program ??= { program: linked, getUniforms: () => ({ seq: Object.keys(parameters.uniforms).map(id => ({ id })) }) };
+    const props = get(material); props.programs.set('shared', program); props.currentProgram = program; props.uniforms = parameters.uniforms;
+    // The compact stock fallback must expose the same canonical block names.
+    const pending: unknown = Reflect.get(handler, 'pendingBuilds');
+    if (!(pending instanceof WeakMap)) throw new Error('Missing pending builds');
+    if (i === 1) pending.delete(material);
+    handler.onUpdateProgram(material, program, props);
+    expect(gl.missing).toBe(0); expect(gl.ready(linked)).toBe(true);
+    handler.renderEnd(); material.dispose(); mesh.skeleton.dispose(); scene.remove(mesh);
+  }
+  base.dispose(); geometry.dispose(); expect(gl.live.size).toBe(0);
 });
