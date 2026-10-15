@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { PINE_LANTERN_PAGE } from '../data/questPageInteractions';
-import { QUEST_NPCS } from '../data/questNpcs';
+import NPC_ROSTER from '../data/questNpcs.generated.json' with { type: 'json' };
 import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { PINE_KIT_EVENTS } from '../data/questEvents';
 import { pineQuestRows } from './graph';
@@ -14,8 +14,7 @@ import type { AnimalManager } from '@wildshard/engine/entities/AnimalManager';
 import { place as placeModel } from '@wildshard/engine/models/place';
 import type { Player } from '@wildshard/engine/player/Player';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
-import type { NpcDef } from '@wildshard/engine/quest/core';
-import type { NpcTalkInstallation } from '@wildshard/game/plugin/ui';
+import type { QuestNpcTalkPorts } from '@wildshard/game/plugin/ui';
 import { saves } from '@wildshard/engine/saves/runtime';
 import { jsonSchema } from '@wildshard/engine/saves/slots';
 import type { HUD } from '@wildshard/engine/ui/HUD';
@@ -64,12 +63,11 @@ import { installPineClock, type PineClockEvent } from '../runtime/directorClock'
 import { waystoneSites, contractBoardSite, CANOE_SITE, type PineLandmarks } from '../world/landmarks';
 import { ZIP_YAW } from '../world/timberSites';
 import { hamletRoofs } from '../world/cabinBake';
-import { CABIN_SITES, HAMLET_SITES, ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND } from '../data/layout';
-import { RANGER, MILLER, TRADER } from './wardensHollow';
+import { ISLET, LOOKOUT, PINE_HOLLOW_POIS, PINE_HOLLOW_ZONES, POND } from '../data/layout';
 import { QUEST_DONE, LANTERN_FLAGS, type LanternId } from '../data/wardensHollow';
 import { pineTableFromPlacements } from './table';
 import authoredSpots from '../data/spots.generated.json' with { type: 'json' };
-import { makeNpcFigure, type NpcFigure, type NpcKind } from '../models/people';
+import { makeNpcFigure, type NpcFigure } from '../models/people';
 import { preloadNpcModels } from './npcModels';
 import { loadBoard, saveBoard, recordKill, claim, reroll, eliteOf, isFilled, type Board } from './contracts';
 import { pineBenchPose } from './benchPose';
@@ -123,13 +121,13 @@ const _v = new THREE.Vector3();
 /** `deps`: the people's preload and the quest UI's loader (the page's by default; a test passes its own) */
 /** the quest views, loaded after the NPC models (`deps.loadQuest` lets a test fail it) */
 async function loadQuest() {
-  const [{ DialogueBox, RewardCaption }, { presentQuest, installNpcTalk, QuestViews, bindQuestPageInteractions }] = await Promise.all([import('@wildshard/engine/quest/view/ui'), import('@wildshard/game/plugin/ui')]);
-  return { presentQuest, installNpcTalk, QuestViews, bindQuestPageInteractions, DialogueBox, RewardCaption };
+  const [{ DialogueBox, RewardCaption }, { presentQuest, installDeclaredNpcTalks, QuestViews, bindQuestPageInteractions }] = await Promise.all([import('@wildshard/engine/quest/view/ui'), import('@wildshard/game/plugin/ui')]);
+  return { presentQuest, installDeclaredNpcTalks, QuestViews, bindQuestPageInteractions, DialogueBox, RewardCaption };
 }
 export async function installPineQuest(h: PineQuestHost, deps: { preload?: () => Promise<void>; loadQuest?: typeof loadQuest } = {}): Promise<PineQuest> {
   await (deps.preload ?? preloadNpcModels)();
   if (h.ctx.scope.disposed) throw new Error('Pine Hollow was unloaded during the NPC model load');
-  const { DialogueBox, presentQuest, installNpcTalk, QuestViews, bindQuestPageInteractions, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
+  const { DialogueBox, presentQuest, installDeclaredNpcTalks, QuestViews, bindQuestPageInteractions, RewardCaption } = await (deps.loadQuest ?? loadQuest)();
   const { ctx } = h;
   const { game, sky, player, animals, hud, inventory, progress } = h;
   const flags = new Flags(h.chunkId);
@@ -332,27 +330,15 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the people ──
   const dialogue = ui.view('dialogue', (scope) => new DialogueBox(scope));
-  const people: (NpcTalkInstallation<NpcFigure> & { kind: NpcKind })[] = [];
-  const addPerson = (kind: NpcKind, def: NpcDef, feet: { x: number; z: number }, yaw: number, after?: () => void): NpcTalkInstallation<NpcFigure> => {
-    const person = installNpcTalk(QUEST_NPCS[kind], { npc: def, dialogue, flags, scene: game.scene, registry: h.registry, prompts: h.interactables,
-      create: () => makeNpcFigure(kind, sky, { x: feet.x, y: floorAt(feet.x, feet.z), z: feet.z }, yaw), at: fig => fig.talkPoint,
-      advance: (fig, dt, t, pp) => { fig.update(dt, t, pp); }, lod: (fig, distance) => { fig.lod(distance); },
-      open: fig => { sfx?.bark(kind, fig.talkPoint); }, bark: fig => { sfx?.bark(kind, fig.talkPoint); }, ...(after === undefined ? {} : { done: after }) });
-    people.push(Object.assign(person, { kind })); return person;
-  };
-  // Hale out front of the ranger's cabin (the kit's frame: the door on local +X), facing the path in; at local z 0.2,
-  // clear of the porch's stone exit (at z 1.7 his collider stalled the walk route there, SHARD-PLATFORM SF22d finding)
-  const rc = CABIN_SITES[0] ?? { x: -14, z: -34, rot: 0.35 };
-  const rl = { x: 6.0, z: 0.2 }, rcos = Math.cos(rc.rot), rsin = Math.sin(rc.rot);
-  const rangerAt = { x: rc.x + rl.x * rcos + rl.z * rsin, z: rc.z - rl.x * rsin + rl.z * rcos };
-  addPerson('ranger', RANGER, rangerAt, Math.atan2(rcos, -rsin));
-  const front = (site: { x: number; z: number; rot: number }, d: number): { x: number; z: number } => ({ x: site.x - Math.sin(site.rot) * d, z: site.z - Math.cos(site.rot) * d });
-  const millerAt = front(HAMLET_SITES.miller, 2.5 + 1.8 + 1.4);
-  addPerson('miller', MILLER, millerAt, HAMLET_SITES.miller.rot + Math.PI, () => { if (flags.has('errand:thanked') && !flags.has('errand:paid')) payMiller(); });
-  const traderAt = front(HAMLET_SITES.trader, 0.55);
-  const traderPerson = addPerson('trader', TRADER, traderAt, HAMLET_SITES.trader.rot + Math.PI, () => { trade().open(); });
-  // the trader stands behind his hatch: his prompt is out front of it
-  { const f = front(HAMLET_SITES.trader, 2.6); traderPerson.prompt.position.set(f.x, floorAt(f.x, f.z) + 1.4, f.z); traderVoice.copy(traderPerson.fig.talkPoint); }
+  const figures: QuestNpcTalkPorts<NpcFigure>['figures'] = new Map((['ranger', 'miller', 'trader'] as const).map(kind => [kind, {
+    kind: 'posed', create: (at, yaw) => makeNpcFigure(kind, sky, at, yaw), bark: fig => { sfx?.bark(kind, fig.talkPoint); },
+  }]));
+  const people = installDeclaredNpcTalks(source, { dialogue, flags, scene: game.scene, registry: h.registry,
+    prompts: h.interactables, figures, groundAt: floorAt, calls: new Map([['pay-miller', payMiller], ['trade', () => { trade().open(); }]]) });
+  const { at: rangerAt, cos: rcos, sin: rsin } = NPC_ROSTER.ranger;
+  const trader = people.find(person => person.kind === 'trader');
+  if (trader === undefined) throw new Error('The declared trader is required');
+  traderVoice.copy(trader.fig.talkPoint);
 
   // ── kills: the King, thralls, the contracts ──
   const killed = bindQuestDeathEffects(PINE_PAGE_DEATH_EFFECTS, { flags, kill: featFacts.kill, event: featFacts.event,

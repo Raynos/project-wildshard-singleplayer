@@ -87,22 +87,44 @@ export const QuestNpcBindingSchema: v.GenericSchema<v.InferInput<typeof questBin
 /** Admit the quest NPC's policy before constructing a figure or registering any system or collider. */
 export function parseQuestNpcBinding(input: unknown): QuestNpcBinding { return v.parse(QuestNpcBindingSchema, input); }
 
-const questBindings = v.pipe(v.array(QuestNpcBindingSchema), v.maxLength(64),
+const posedTalkBinding = v.pipe(v.strictObject({
+  kind: v.literal('posed-talk'), npc: NpcDialogueRowSchema, figure: npcRowName,
+  at: v.exactOptional(npcRowPoint), yaw: v.exactOptional(npcRowFinite),
+  install: v.pipe(v.strictObject({ id: npcRowName, label: text,
+    radius: v.pipe(npcRowFinite, v.minValue(Number.MIN_VALUE), v.maxValue(1000)), file: text,
+    copyPrompt: v.boolean(), updateOrder: v.picklist(['figure-first', 'talk-first']),
+    bark: v.exactOptional(v.strictObject({ enter: positive, leave: positive })),
+    approach: v.exactOptional(v.strictObject({ radius: v.pipe(npcRowFinite, v.minValue(Number.MIN_VALUE), v.maxValue(1000)), unlessFlag: npcRowName })),
+  }), v.check(policy => !policy.file.startsWith('/') && !policy.file.split('/').includes('..') &&
+    (policy.bark === undefined || policy.bark.enter > 0 && policy.bark.leave > policy.bark.enter && policy.bark.leave <= 1000))),
+  prompt: v.exactOptional(v.strictObject({ at: npcRowPoint, height: npcRowFinite })),
+  done: v.exactOptional(v.strictObject({ call: npcRowName, when: v.exactOptional(condition) })),
+}), v.check(binding => (binding.at === undefined) === (binding.yaw === undefined), 'An authored figure placement needs both position and yaw'));
+/** A posed figure keeps its existing model and motion; the root declares its talk and placement. */
+export type QuestNpcTalkBinding = v.InferOutput<typeof posedTalkBinding>;
+
+const questBindings = v.pipe(v.array(v.union([QuestNpcBindingSchema, posedTalkBinding])), v.maxLength(64),
   v.check(rows => ['id', 'spot', 'system'].every(key => {
-    const values = rows.map(binding => key === 'system' ? binding.system : key === 'spot' ? binding.npc.spot : binding.npc.id);
+    const values = rows.flatMap(binding => 'kind' in binding
+      ? key === 'system' ? [] : [key === 'spot' ? binding.install.id : binding.npc.id]
+      : [key === 'system' ? binding.system : key === 'spot' ? binding.npc.spot : binding.npc.id]);
     return new Set(values).size === values.length;
   }), 'Quest NPC identities, talk spots and update systems must be unique'));
 /** Bounded native NPC placements; each row owns one identity, talk spot and update system. */
-export const QuestNpcBindingsSchema: v.GenericSchema<unknown, QuestNpcBinding[]> = questBindings;
+export const QuestNpcBindingsSchema: v.GenericSchema<unknown, (QuestNpcBinding | QuestNpcTalkBinding)[]> = questBindings;
 
 /** Root NPC rows require their native quest owner and declared dialogue/met flags. */
-export function questNpcBindingRules(rows: readonly QuestNpcBinding[], flags: readonly string[], owned: boolean): string[] {
+export function questNpcBindingRules(rows: readonly (QuestNpcBinding | QuestNpcTalkBinding)[], flags: readonly string[], owned: boolean): string[] {
   if (rows.length === 0) return [];
   const errors: string[] = [], declared = new Set(flags);
   if (!owned) errors.push('quest NPCs require runtime.binds quests');
   for (const binding of rows) {
     const referenced = binding.npc.dialogue.flatMap(entry => [...entry.when?.all ?? [], ...entry.when?.any ?? [], ...entry.when?.none ?? [], ...entry.sets ?? []]);
-    if (binding.met === 'flag') referenced.push(binding.npc.metFlag);
+    if ('kind' in binding) {
+      referenced.push(...binding.done?.when?.all ?? [], ...binding.done?.when?.any ?? [], ...binding.done?.when?.none ?? []);
+      if (binding.install.approach !== undefined) referenced.push(binding.install.approach.unlessFlag);
+    }
+    else if (binding.met === 'flag') referenced.push(binding.npc.metFlag);
     for (const flag of referenced) if (!declared.has(flag)) errors.push(`undeclared quest NPC flag ${flag}`);
   }
   return errors;

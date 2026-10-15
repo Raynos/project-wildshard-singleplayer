@@ -38,7 +38,7 @@ import type { BossViewRows } from '../shardfile/bossRow';
 import { type Shardfile, parseShardfile } from '@wildshard/format/shardSchema';
 import { npcDef, type NpcRow } from './quests';
 import { installPivotNpc, pivotNpcParts, type ModelFit, type PivotNpcGeometry, type PivotNpcLevel, type PivotNpcPorts } from './geometry';
-import { parseQuestNpcBinding } from '@wildshard/format/npcs';
+import { parseQuestNpcBinding, type QuestNpcTalkBinding } from '@wildshard/format/npcs';
 import { parseBossProfile, parseMarkedBossPresentation, type MarkedBossPresentation } from '@wildshard/format/bossProfiles';
 import { bossFight, type HeldBossBrain } from './bossPhase';
 import { bossStorm } from './bossStorm';
@@ -1062,6 +1062,52 @@ export function installNpcTalk<F extends QuestTalkFigure>(row: NpcInstallationRo
   };
 }
 
+/** Posed people already implement their native head, update and distance policy. */
+export interface PosedQuestTalkFigure extends QuestTalkFigure {
+  readonly talkPoint: Vector3; update: (dt: number, time: number, player: Vector3) => void; lod: (distance: number) => void;
+}
+type QuestNpcTalkModel<F extends QuestTalkFigure> = {
+  readonly kind: 'posed'; readonly create: (at: { x: number; y: number; z: number }, yaw: number) => F & PosedQuestTalkFigure;
+  readonly bark: (figure: F) => void;
+} | (Omit<NpcInstallationPorts<F>, 'dialogue' | 'flags' | 'scene' | 'registry' | 'prompts' | 'npc' | 'done'> & { readonly kind: 'borrowed' });
+/** Root rows select real posed or borrowed figure factories and named completion owners. */
+export type QuestNpcTalkPorts<F extends QuestTalkFigure> = Pick<NpcInstallationPorts<F>, 'dialogue' | 'flags' | 'scene' | 'registry' | 'prompts'> & {
+  readonly figures: ReadonlyMap<string, QuestNpcTalkModel<F>>;
+  readonly groundAt?: (x: number, z: number) => number;
+  readonly calls: ReadonlyMap<string, () => void>;
+};
+/** Install posed NPCs in their declared order, retaining the caller's update clock and actual figure ownership. */
+export function installDeclaredNpcTalks<F extends QuestTalkFigure>(source: Pick<Shardfile, 'questNpcs'>, ports: QuestNpcTalkPorts<F>): (NpcTalkInstallation<F> & { readonly kind: string })[] {
+  const rows = (source.questNpcs ?? []).filter((row): row is QuestNpcTalkBinding => 'kind' in row);
+  if (rows.length === 0) throw new Error('Missing declared posed quest NPCs');
+  const bound = rows.map(row => {
+    const model = ports.figures.get(row.figure), done = row.done === undefined ? undefined : ports.calls.get(row.done.call);
+    if (model === undefined || row.done !== undefined && done === undefined) throw new Error('Unbound quest NPC figure or completion');
+    const ground = ports.groundAt;
+    if ((model.kind === 'posed' || row.prompt !== undefined) && ground === undefined) throw new Error('Unbound quest NPC ground');
+    if (model.kind === 'posed' && (row.at === undefined || row.yaw === undefined || row.install.approach !== undefined)) throw new Error('Missing posed quest NPC placement or approach owner');
+    if (model.kind === 'borrowed' && row.at !== undefined) throw new Error('Borrowed quest NPC placement belongs to its native owner');
+    if (model.kind === 'borrowed' && (row.install.bark !== undefined && model.bark === undefined || row.install.approach !== undefined && model.approach === undefined)) throw new Error('Unbound quest NPC greeting or approach');
+    return { row, model, done, ground };
+  });
+  const installed: (NpcTalkInstallation<F> & { readonly kind: string })[] = [];
+  for (const { row, model, done, ground } of bound) {
+    const common = { ...ports, npc: row.npc, done: () => { if (done !== undefined && testFlags(ports.flags, row.done?.when)) done(); } };
+    let person: NpcTalkInstallation<F>;
+    if (model.kind === 'borrowed') person = installNpcTalk(row.install, { ...common, ...model });
+    else {
+      if (row.at === undefined || row.yaw === undefined || ground === undefined) throw new Error('Missing posed quest NPC placement');
+      const at = row.at, yaw = row.yaw;
+      person = installNpcTalk(row.install, { ...common, create: () => model.create({ ...at, y: ground(at.x, at.z) }, yaw),
+        at: figure => figure.talkPoint, advance: (figure, dt, time, player) => { figure.update(dt, time, player); },
+        lod: (figure, distance) => { figure.lod(distance); }, open: model.bark, bark: model.bark });
+    }
+    if (row.prompt !== undefined && ports.groundAt !== undefined) person.prompt.position.set(row.prompt.at.x, ports.groundAt(row.prompt.at.x, row.prompt.at.z) + row.prompt.height, row.prompt.at.z);
+    installed.push({ ...person, kind: row.figure });
+  }
+  return installed;
+}
+
 /** A quest's coin reward: the burst that flies the coins to the player, `pay`, which pays once per save, and `spawn`, any other coins through the same burst. */
 export interface QuestReward { readonly burst: CoinBurst; readonly pay: () => undefined; readonly spawn: (amount: number, toast: string) => void }
 
@@ -1413,7 +1459,7 @@ export function questNpcSpecimen(source: Pick<Shardfile, 'questNpcs'>, id: strin
 /** The admitted figure supplies its model identity; the borrowed provider supplies the preparation form. */
 export function questNpcSpecimen(source: Pick<Shardfile, 'questNpcs'>, id: string, modelOrPorts: QuestNpcModelRow | QuestNpcModelSource, borrowed?: QuestNpcModelSource): Group {
   const binding = source.questNpcs?.find(row => row.npc.id === id);
-  if (binding === undefined) throw new Error(`Undeclared quest NPC ${id}`);
+  if (binding === undefined || 'kind' in binding) throw new Error(`Undeclared pivot quest NPC ${id}`);
   let model: QuestNpcModelRow, ports: QuestNpcModelSource;
   if ('read' in modelOrPorts) { ports = modelOrPorts; model = { id: binding.npc.figure.model, kind: ports.kind }; }
   else { if (borrowed === undefined) throw new Error('Missing quest model provider'); model = modelOrPorts; ports = borrowed; }
@@ -1487,7 +1533,7 @@ export async function prepareBorrowedNpcSpecimen(row:BorrowedNpcSpecimen,owners:
 /** Build the admitted figure through the page copier; no world or quest is installed. */
 export function borrowedNpcSpecimen(source:Pick<Shardfile,'questNpcs'>,row:BorrowedNpcSpecimen,owners:ReadonlyMap<string,unknown>):Group {
   const binding=source.questNpcs?.find(entry=>entry.npc.id===row.npc);
-  if(binding===undefined)throw new Error(`Undeclared quest NPC ${row.npc}`);
+  if(binding===undefined||'kind'in binding)throw new Error(`Undeclared pivot quest NPC ${row.npc}`);
   const model={id:binding.npc.figure.model,kind:row.figure.kind,...(row.figure.materialId===undefined?{}:{material:row.figure.materialId})};
   return questNpcSpecimen(source,row.npc,model,borrowedNpcModel(model,row.figure,owners));
 }

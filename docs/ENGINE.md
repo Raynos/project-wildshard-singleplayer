@@ -2749,6 +2749,14 @@ limits. `installDeclaredQuestHost` selects that admitted composition before
 borrowing native ports. Bound presentation projections retain no quest host;
 omission leaves the previous serialized bytes unchanged.
 
+Root `questNpcs` also accepts `kind: "posed-talk"`: unchanged dialogue,
+named figure, reading policy, optional authored placement and named conditional
+completion. `installDeclaredNpcTalks(source, ports)` preflights every figure and
+completion owner, then installs the roster in order through `installNpcTalk`.
+The figure ports retain their native head position, animation, entry ownership,
+weapon stow and approach callbacks. An optional prompt offset borrows an explicit
+ground query. No new clock, save slot or figure fallback is installed.
+
 `installDeclaredQuestNpc(ctx, source, id, ports)` selects the root's `questNpcs`
 binding by NPC identity. Missing identities refuse before resource lookup. Root
 admission requires native quest ownership, declared dialogue/met flags and unique

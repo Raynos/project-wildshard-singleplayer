@@ -1,6 +1,7 @@
 import { emptyShardfile } from '@wildshard/sdk/author';
 import { parseShardfile } from '@wildshard/sdk/shardfile';
 import { DRIFTWOOD_QUESTS } from './data/quests';
+import { QUEST_NPCS } from './data/questNpcs';
 import { DRIFTWOOD_LEDGER } from './data/ledger';
 import { DRIFTWOOD_SWORDS } from './data/items';
 import { DRIFTWOOD_SPAWNS } from './data/spawns';
@@ -59,7 +60,7 @@ export default parseShardfile({
   // the castaway arms, their swords and their swimming (compiled by the kit hook, runtime/index.ts)
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...CASCADE_GRAPHS, ...SMOKE_GRAPHS, ...FIREFLY_GRAPHS, ...REEF_GRAPHS, ...POOL_GRAPHS, ...OCEAN_GRAPHS, ...SKY_GRAPHS, ...GROUND_GRAPHS, ...FP_ARMS_GRAPHS }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers'], spawns: DRIFTWOOD_SPAWNS },
-  quests: DRIFTWOOD_QUESTS, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
+  quests: DRIFTWOOD_QUESTS, questNpcs: QUEST_NPCS, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },
   audio: DRIFTWOOD_AUDIO, modes: DRIFTWOOD_MODES,
   // G164 (SHARDFILE.md socketOverWater): every entry meets the road over the lowered sea. The sea row clips the four 8 × 15 m

@@ -18,10 +18,9 @@ import { DRIFTWOOD_PAGE_DEATH_EFFECTS } from '../data/questDeaths';
 import { bindRuntimeQuest, type RuntimeFacts } from '@wildshard/game/shardfile/hybridRows';
 import source from '../shard.config';
 import { DRIFTWOOD_MARKERS } from '../data/quests';
-import { presentQuest, installNpcTalk, QuestViews } from '@wildshard/game/plugin/ui';
-import { CASTAWAY_TALK } from '../data/questNpcs';
+import { presentQuest, installDeclaredNpcTalks, QuestViews, type QuestNpcTalkPorts } from '@wildshard/game/plugin/ui';
 import { QUEST_PRESENTATION } from '../data/questPresentation';
-import { CASTAWAY, DRIFTWOOD_QUEST } from '../data/questStory';
+import { DRIFTWOOD_QUEST } from '../data/questStory';
 import type { Castaway } from '../npc/Castaway';
 import { castawayRig } from './people';
 import type { Adventure, AdventureWorld, AdvAnimal } from './adventure';
@@ -69,12 +68,13 @@ export function installSpine<A extends AdvAnimal>(adv: Adventure, w: AdventureWo
   const fire = place({ poi: 'hut', x: 0.7, z: -9.8 });
   const npc = castawayRig(w.sky, feet, fire), castaway = npc.model;
   w.scope?.onDispose(() => { npc.dispose(); });
-  const talk = installNpcTalk(CASTAWAY_TALK, { npc: CASTAWAY, dialogue, flags, create: () => castaway,
-    scene: w.game.scene, registry: w.registry ?? app.registry, prompts: w.prompts,
+  const figures: QuestNpcTalkPorts<Castaway>['figures'] = new Map([['castaway', { kind: 'borrowed', create: () => castaway,
     own: (fig, register) => { const entry = w.scope; if (entry === undefined) register(); else { ownEnteredTree(fig.group, entry); entry.run(register); } },
     at: fig => { fig.group.updateMatrixWorld(true); return fig.headWorld(new THREE.Vector3()); },
     advance: (_fig, dt, t, pp) => { npc.update(dt, t, pp); }, open: () => { w.audio.weaponSwap(); },
-    stow: on => { w.stowWeapon?.(on); }, approach: { at: fig => fig.position, run: fig => { fig.wave(); } } });
+    stow: on => { w.stowWeapon?.(on); }, approach: { at: fig => fig.position, run: fig => { fig.wave(); } } }]]);
+  const talk = installDeclaredNpcTalks(source, { dialogue, flags, scene: w.game.scene, registry: w.registry ?? app.registry, prompts: w.prompts, calls: new Map(), figures })[0];
+  if (talk === undefined) throw new Error('The declared castaway is required');
 
   // ── the quest's beats: a toast + the chunk sting on every step, a fanfare at the end ──
 

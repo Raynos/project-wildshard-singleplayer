@@ -11,6 +11,7 @@ import { PINE_RUNTIME_COST } from './data/runtimeCost';
 import { PINE_LOOK_GRAPHS } from './data/graphLooks';
 import { WILDLIFE_GRAPHS } from './data/wildlifeLook';
 import timbers from './data/timberWorld.generated.json' with { type: 'json' };
+import people from './data/questNpcs.generated.json' with { type: 'json' };
 
 // The trusted legacy entry keeps the live world; SF29 binds its existing audio to these rows.
 // SF47-g edges (G93 / G99 / G103 / G131): the starter's four 8 m midpoint entryways (kind ground: Pine's terrain is the
@@ -31,5 +32,5 @@ export default parseShardfile({
   look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...PINE_LOOK_GRAPHS, ...WILDLIFE_GRAPHS }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   edge: { north: row(PINE_EDGE_HEIGHTS.north), east: row(PINE_EDGE_HEIGHTS.east), south: row(PINE_EDGE_HEIGHTS.south), west: row(PINE_EDGE_HEIGHTS.west) },
   runtime: { entry: 'runtime/index.ts', cost: PINE_RUNTIME_COST, binds: ['terrain', 'props', 'quests', 'ledger', 'items', 'spawns', 'state'], spawns: PINE_RUNTIME_SPAWNS },
-  quests: PINE_QUESTS, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: PINE_AUDIO, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
+  quests: PINE_QUESTS, questNpcs: people.rows, ledger: PINE_LEDGER, items: PINE_ITEMS, state: PINE_STATE, audio: PINE_AUDIO, spawn: { x: 0, y: 0, z: -235, yaw: Math.PI },
 });

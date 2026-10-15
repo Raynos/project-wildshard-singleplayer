@@ -3,6 +3,40 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "pine-quest-npcs",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/questNpcs.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/pine-hollow/generators/questNpcs.ts",
+        "pineQuestNpcs",
+        "src/shards/pine-hollow/data/questNpcs.generated.json"
+      ],
+      "inputRoots": [
+        "src/shards/pine-hollow/generators/questNpcs.ts",
+        "src/shards/pine-hollow/data/layout.ts",
+        "src/shards/pine-hollow/data/questNpcs.ts",
+        "src/shards/pine-hollow/data/wardensHollow.ts",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/questNpcs.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/pine-hollow/data/questNpcs.generated.json"
+      ],
+      "seedOutputs": [],
+      "platform": "portable"
+    },
+    {
       "id": "driftwood-island-clips",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/islandClips.ts",
