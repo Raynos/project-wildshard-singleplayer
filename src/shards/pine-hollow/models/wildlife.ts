@@ -23,7 +23,7 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { PosedInstances, type PosedInstances as PosedInstancesView } from '../runtime/looks/posedInstances';
+import { PosedInstances, type PosedInstances as PosedInstancesView } from '@wildshard/sdk/looks/posedInstances';
 import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import { WILDLIFE_LOOK } from '../data/wildlifeLook';
 
@@ -89,7 +89,7 @@ export class WildlifeMesh {
   constructor(readonly sky: Sky, capacity: number) {
     this.capacity = capacity;
     const look = wildlifeLook();
-    this.posed = new PosedInstances(capacity, WILDLIFE_LOOK, look.material, () => authoredWildlife().geometry);
+    this.posed = new PosedInstances(capacity, WILDLIFE_LOOK, look.material, () => authoredWildlife().geometry, ['aAnim', 'aAnim2']);
     this.mesh = this.posed.mesh;
     let glow = 0;
     this.glow = { get value() { return glow; }, set value(v: number) { if (v !== glow) { glow = v; look.looks.setParam(WILDLIFE_LOOK, 'glow', v); } } };

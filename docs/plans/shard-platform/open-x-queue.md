@@ -61,6 +61,7 @@ Jake, 2026-10-15 (G441): a new platform host built for Pine or Driftwood counts 
 
 | Row | Host (module#export) | W3 shard and file(s) that move onto it | Lane |
 |---|---|---|---|
+| W3 Nalati shader-posed instance owner (G441) | `src/sdk/looks/posedInstances.ts#PosedInstances` | Nalati `src/shards/nalati-grasslands/creatures/flock.ts`: dynamic `iAnim` allocation, `writeInstances()` matrix/vec4 packing and `useRig()` attribute rebinding; retain wool colours, culling bounds, material/shadow looks and native flock clock. | sp-x4 |
 | W3 Nalati GLB node intake (G441) | `src/engine/models/glbNodes.ts#loadGlbNodes` | Nalati `src/shards/nalati-grasslands/world/glbPaint.ts`: replace `floatAttr` and `rawFromGltf` mesh traversal/dequantization/file-space transform with the named-node reader. Keep AO colour treatment, texture setup and material ownership in Nalati. | sp-x8 |
 | W3 Nalati placed geometry colliders (G441) | `src/engine/models/colliders.ts#placedGeometryCollider` | Nalati `src/shards/nalati-grasslands/world/solid.ts`: replace `hullAt` with the hull-points projection, retaining support candidates, placement matrices, surfaces and registry order. | sp-x8 |
 | W3 Nalati bodyless forager policies | `src/game/systems/life/bodylessForager.ts#BodylessForager` | Nalati `src/shards/nalati-grasslands/creatures/marmotBrain.ts`: forage/sentry/threat/retreat decisions and burrow retreat rows; retain colony whistle, private RNG and band clocks | sp-x4 |

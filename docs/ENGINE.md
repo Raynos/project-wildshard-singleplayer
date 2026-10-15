@@ -5933,3 +5933,14 @@ G441 pending second user: Nalati's native `headlessCreatures.ts` think
 context and clock refresh (its current `c` / `context` bindings). Nalati
 keeps pack/group token selection, body lookup and observed player speed.
 This pending allowance is rechecked at the end of W3.
+
+### Shader-posed instance owner
+
+`src/sdk/looks/posedInstances.ts` defines `PosedInstances`: one bounded
+(1–4096) instanced draw with one or two named dynamic vec4 channels.
+`begin/add/commit` packs the current visible roster; `wrap` lends the same
+channel buffers to replacement geometry without copying its source arrays.
+The caller retains geometry, material, shader semantics, colours, bounds,
+clocks and visibility decisions. Pine wildlife is the current user; G441
+registers Nalati `creatures/flock.ts` (`iAnim`, `writeInstances`, `useRig`)
+as its W3 adopter, rechecked at the end of W3.

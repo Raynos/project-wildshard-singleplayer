@@ -125,7 +125,8 @@
     "./bake/navigationAsset": "./bake/navigationAsset.ts",
     "./productOutput": "./productOutput.ts",
     "./projectMap": "./projectMap.ts",
-    "./random": "./random.ts"
+    "./random": "./random.ts",
+    "./looks/posedInstances": "./looks/posedInstances.ts"
   },
   "bin": {
     "wildshard": "./bin/wildshard.mjs"
