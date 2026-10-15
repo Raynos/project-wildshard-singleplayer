@@ -83,6 +83,7 @@ const reviewedW2Owners = new Map([
   ['src/shards/driftwood-isle/boot/hibiscusGeometry.ts', 'C1'],
   ['src/shards/driftwood-isle/boot/foliageGeometry.ts', 'C1'],
   ['src/shards/driftwood-isle/boot/palmGeometry.ts', 'C1'],
+  ['src/shards/driftwood-isle/boot/reefGeometry.ts', 'C1'],
   // Reviewed runtime tile views, lent looks, terrain admission and combat status.
   ['src/game/shardfile/runtimeProduct.ts#bindRuntimeProductProps', 'C1'],
   ['src/game/shardfile/runtimeWorld.ts#RuntimePropsPorts', 'C1'],

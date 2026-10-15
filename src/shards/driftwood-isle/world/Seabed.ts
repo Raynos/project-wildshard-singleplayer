@@ -20,6 +20,7 @@ import { normalAt, inChunk } from '@wildshard/engine/world/Heightfield';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { ReefBed, scatterReefBed, type ReefBedLayout, type ReefBed as ReefBedSet, type ReefBedSpec, type ReefGround } from '../runtime/looks/reefBed';
+import { loadReefWorld } from '../boot/reefGeometry';
 import { OCEAN } from '../manifest';
 import { SEABED } from '../data/seabedLook';
 import { REEF, reefMaterial, type ReefParams } from '../models/reef';
@@ -63,8 +64,9 @@ export class Seabed {
   get count(): number { return this.bed.count; }
   get tris(): number { return this.bed.tris; }
 
-  build(layout: SeabedLayout | SeabedSpec[]): this {
-    this.bed.build(layout, heightAt);
+  async build(layout: SeabedLayout | SeabedSpec[]): Promise<this> {
+    const batch = await loadReefWorld(Array.isArray(layout) ? layout.length : layout.items.length);
+    this.bed.build(layout, heightAt, batch);
     return this;
   }
 

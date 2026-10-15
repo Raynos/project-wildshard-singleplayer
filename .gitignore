@@ -1101,3 +1101,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /docs/**/*.pdf
 
 /src/shards/*/discovery.generated.ts
+
+/public/assets/driftwood-isle/baked/reef-*.bin
+
+/public/assets/driftwood-isle/baked/reef-*.glb

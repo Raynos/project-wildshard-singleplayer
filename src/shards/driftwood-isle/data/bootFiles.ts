@@ -1,3 +1,4 @@
+import { REEF_FILES } from './reefFiles';
 import { PALM_FILES } from './palmFiles';
 import { HIBISCUS_FILES } from './hibiscusFiles';
 import { ISLAND_COVER_FILES } from './islandCoverFiles';
@@ -81,6 +82,7 @@ export const DRIFTWOOD_BOOT_FILES = {
       "gpu"
     ]
   },
+  "reef": {source: {urls: [REEF_FILES.world]}},
   "palms": { source: { urls: { phone: [PALM_FILES.phone.world], desktop: [PALM_FILES.desktop.world] } } },
   "hibiscus": { source: { urls: { phone: [HIBISCUS_FILES.phone.world], desktop: [HIBISCUS_FILES.desktop.world] } } },
   "cover": {
@@ -116,6 +118,7 @@ export const DRIFTWOOD_BOOT_FILES = {
         "cover",
         "hibiscus",
         "palms",
+        "reef",
         "captain"
       ]
     },

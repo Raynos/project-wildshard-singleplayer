@@ -1,9 +1,8 @@
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { Noise2D } from '@wildshard/engine/core/noise';
 import { Rng } from '@wildshard/engine/core/rng';
-import { modelContext, type ModelContext, type ModelDef, type ModelPart, type Placement } from '@wildshard/engine/models/model';
+import { modelContext, type ModelContext, type ModelDef, type Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import type { ReefBedRow } from '../../data/lookRows';
@@ -95,7 +94,6 @@ export interface ReefBedModels<P extends ReefBedParams> {
   readonly fishColours: readonly number[];
 }
 
-const isParts = (b: readonly ModelPart[] | THREE.Object3D): b is readonly ModelPart[] => Array.isArray(b);
 const isInstanced = (o: THREE.Object3D): o is THREE.InstancedMesh => o instanceof THREE.InstancedMesh;
 
 /** A welded reef and its school (see the module comment). */
@@ -130,30 +128,26 @@ export class ReefBed<P extends ReefBedParams> {
   }
 
   /** Welds every copy in scatter order (one rng stream across the kinds), places each kind drawnInto it, builds the school. */
-  build(layout: ReefBedLayout | ReefBedSpec[], heightAt: (x: number, z: number) => number): this {
+  build(layout: ReefBedLayout | ReefBedSpec[], heightAt: (x: number, z: number) => number, batch: {geometry: THREE.BufferGeometry; boxes: Float32Array}): this {
     const specs = Array.isArray(layout) ? layout : layout.items;
     const ctx = modelContext(this.sky), row = this.row;
-    const rng = new Rng(row.buildSeed);
-    const parts: THREE.BufferGeometry[] = [];
+    if (specs.length > 512 || batch.boxes.length !== specs.length * 6) throw new Error('Reef batch differs from its authored scatter');
     const kinds = new Map<string, { pls: Placement<P>[]; boxes: number[] }>();
-    const box = new THREE.Box3();
-    for (const p of specs) {
+    // The owned transport admits at most 512 copies; preserve that bound during registration.
+    for (let index = 0; index < 512; index++) {
+      if (index === specs.length) break;
+      const p = specs[index];
+      if (p === undefined) throw new Error('Missing authored reef copy');
       const def = this.models.kinds[p.kind];
-      if (def === undefined) continue;
+      if (def === undefined) throw new Error('Unknown authored reef kind');
       const y = heightAt(p.x, p.z), params = this.params(p);
-      const built = def.build(ctx, params, rng), part = isParts(built) ? built[0] : undefined;
-      if (!part) continue;
-      const g = part.geometry.translate(p.x, y, p.z);
-      parts.push(g);
-      g.computeBoundingBox();
-      box.copy(g.boundingBox ?? box);
       let k = kinds.get(p.kind);
       if (!k) { k = { pls: [], boxes: [] }; kinds.set(p.kind, k); }
       k.pls.push({ x: p.x, y, z: p.z, params });
-      k.boxes.push(box.min.x, box.min.y, box.min.z, box.max.x, box.max.y, box.max.z);
+      k.boxes.push(...batch.boxes.subarray(index * 6, (index + 1) * 6));
       this.count++;
     }
-    const geo = mergeGeometries(parts, false);
+    const geo = batch.geometry;
     geo.computeBoundingSphere();
     this.tris = geo.getAttribute('position').count / 3;
     const { material, uniforms, update } = this.models.material(ctx);
