@@ -1,0 +1,60 @@
+{
+  "kind": "swept",
+  "step": "item.driftwood-isle.swords",
+  "eye": 1.68,
+  "initial": 0,
+  "source": "env",
+  "slots": [
+    {
+      "item": "weapon.driftwood-isle.wood",
+      "weapon": "weapon.sword",
+      "tags": [
+        "actor.player",
+        "weapon.sword",
+        "dmg.melee",
+        "cover.checked"
+      ],
+      "combo": [
+        "move.slash",
+        "move.backhand",
+        "move.finisher"
+      ],
+      "heavy": "move.heavy"
+    },
+    {
+      "item": "weapon.driftwood-isle.iron",
+      "weapon": "weapon.sword-iron",
+      "tags": [
+        "actor.player",
+        "weapon.sword-iron",
+        "dmg.melee",
+        "cover.checked"
+      ],
+      "combo": [
+        "move.slash",
+        "move.backhand",
+        "move.finisher"
+      ],
+      "heavy": "move.heavy"
+    }
+  ],
+  "contact": {
+    "slack": 0.3,
+    "direction": [
+      0.7,
+      0.7,
+      0.35
+    ],
+    "push": [
+      0.8,
+      0.5
+    ],
+    "running": 1.5
+  },
+  "lunge": {
+    "maxHeight": 2,
+    "minDistance": 0.01,
+    "minRadius": 0.3,
+    "lengthScale": 0.6
+  }
+}

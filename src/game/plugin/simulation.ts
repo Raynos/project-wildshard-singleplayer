@@ -5,9 +5,10 @@ import { parseQuestHost, type QuestHostRow } from '@wildshard/format/questHost';
 import type { QuestData } from '@wildshard/format/quests';
 import { compileDirectorWhen, evaluateDirectorWhen } from '@wildshard/format/directorWhen';
 import { weaponContactDistance, type ContactWorldTarget, ContactFamily, type ContactFamilyPorts, type ContactScanTarget } from '@wildshard/engine/combat/contactWeapon';
-import { parseItems, parseMeleeContacts, parseNativeMeleeBinding } from '@wildshard/format/items';
+import { parseItems, parseMeleeContacts, parseNativeMeleeBinding, parseNativeSweptMeleeBinding } from '@wildshard/format/items';
 import { scriptItemHook } from '@wildshard/engine/combat/items';
 import { flagValue, test as testQuestFlags, type Flags } from '@wildshard/engine/world/interact/flags';
+import { SweptMeleeCore, sweptLunge, sweptMoveDamage } from '@wildshard/engine/combat/sweptMeleeCore';
 import { Vector3 } from 'three';
 import { parsePromptRegistrations, createHeadlessPromptPicker } from '../quest/interactionRows';
 import { GridAssembly } from '../grid/assembly';
@@ -34,8 +35,7 @@ import { installScriptLane, type ScriptLanePort } from "@wildshard/engine/script
 import type { EffectRules, ScriptEntity } from "@wildshard/engine/script/effects";
 import { declaredWaterBody } from "@wildshard/engine/world/water/declared";
 import { WaterBodies } from "@wildshard/engine/world/water/body";
-import type { PropColliderPort, PropColliderState } from "@wildshard/engine/physics/declaredProps";
-import { floorBelow, canStandAt } from "@wildshard/engine/physics/query";
+import { floorBelow, canStandAt, lineOfSight } from "@wildshard/engine/physics/query";
 import { installShardfileColliders, shardfileColliderIds } from "../shardfile/collisionBindings";
 import { validateMeshCollisionAssets } from "@wildshard/format/meshCollisionAssets";
 import { validateMeshEntryways } from "@wildshard/format/meshEntryways";
@@ -67,6 +67,8 @@ import { installEntrySockets } from "@wildshard/engine/physics/entrySockets";
 import { addPiece, type AddedPiece } from "@wildshard/engine/physics/pieces";
 
 type Physics = SimHost['physics'];
+type PropColliderPort = NonNullable<ReturnType<ReturnType<typeof installShardfileColliders>['get']>>;
+type PropColliderState = ReturnType<PropColliderPort['snapshot']>;
 
 /** The most collider pieces one node bake may register. */
 const MAX_BAKED_PIECES = 1024;
@@ -925,8 +927,105 @@ export interface NativeMeleePorts {
 export interface NativeMeleeOwner { readonly family: ContactFamily<NativeMeleeTarget>; readonly cracked: () => number | null }
 const NativeHoldState = v.strictObject({version:v.literal(1),held:v.pipe(v.number(),v.finite(),v.minValue(0)),wasHeld:v.boolean(),
   target:v.nullable(v.pipe(v.string(),v.minLength(1),v.maxLength(128)))});
+/** Last sampled player input; target selection remains with the entered runtime. */
+export interface NativeSweptMeleeInput { readonly attack: string | null; readonly heavy: boolean; readonly heavyTarget: string | null }
+type NativeSweptActor = NonNullable<ReturnType<SimHost['entities']['get']>>;
+/** Borrowed world reactions for swept phases; no secondary clock or body service is installed. */
+export interface NativeSweptMeleePorts {
+  readonly input: () => NativeSweptMeleeInput; readonly alarm: () => void;
+  readonly staggered: (actor: NativeSweptActor, strength: number, running: boolean) => void;
+}
+export interface NativeSweptMeleeOwner {
+  readonly held: () => number; readonly equip: (slot: number) => void;
+  readonly swings: () => number; readonly hits: () => number;
+}
+interface NativeMeleeWeapon { readonly id: string; readonly contacts?: readonly NativeMeleeContact[] }
+function nativeMeleeKit(weapon: NativeMeleeWeapon | readonly unknown[]): weapon is readonly unknown[] { return Array.isArray(weapon); }
+/** The same native melee host accepts admitted contact phases or a bounded swept kit. */
+export function installNativeMelee(host: SimHost, weapon: NativeMeleeWeapon, input: unknown, ports: NativeMeleePorts): NativeMeleeOwner;
+export function installNativeMelee(host: SimHost, weapons: readonly unknown[], input: unknown, ports: NativeSweptMeleePorts): NativeSweptMeleeOwner;
+export function installNativeMelee(host: SimHost, weapon: NativeMeleeWeapon | readonly unknown[], input: unknown,
+  ports: NativeMeleePorts | NativeSweptMeleePorts): NativeMeleeOwner | NativeSweptMeleeOwner {
+  if (nativeMeleeKit(weapon)) {
+    if (!('input' in ports)) throw new Error('Swept melee requires its player input');
+    return installNativeSweptMelee(host, weapon, input, ports);
+  }
+  if ('input' in ports) throw new Error('Contact melee requires its contact ports');
+  return installNativeContactMelee(host, weapon, input, ports);
+}
+/** SweptMeleeCore remains the single combo/charge clock; this branch binds native rows and existing target queries. */
+function installNativeSweptMelee(host: SimHost, items: readonly unknown[], input: unknown, ports: NativeSweptMeleePorts): NativeSweptMeleeOwner {
+  const { row, profiles } = parseNativeSweptMeleeBinding(input, items);
+  type Profile = typeof profiles[number]; type Move = Profile['moves']['heavy'];
+  const slots = profiles.map((_profile, index) => index);
+  const loadout = createNativeLoadout({ slots, initial: row.initial, lower: 0, raise: 0 }, { owned: () => true, locked: () => false });
+  const state = { queued: false, struck: false, target: null as string | null, swings: 0, hits: 0 };
+  const yAxis = new Vector3(0, 1, 0);
+  const lunge = (profile: Profile, move: Move): void => {
+    const actor = state.target === null ? undefined : host.entities.get(state.target), player = host.player.position;
+    if (actor === undefined || !actor.alive || Math.abs(actor.position.y - player.y) > row.lunge.maxHeight) return;
+    const dx = actor.position.x - player.x, dz = actor.position.z - player.z, span = Math.hypot(dx, dz);
+    if (span < row.lunge.minDistance || Math.acos(Math.max(-1, Math.min(1,
+      (-dx * Math.sin(host.player.yaw) - dz * Math.cos(host.player.yaw)) / span))) > profile.lunge.cone) return;
+    const radius = Math.max(row.lunge.minRadius, Math.max(actor.dims.bodyRadius, actor.dims.bodyHalfLen * row.lunge.lengthScale)) * actor.scale;
+    const dash = sweptLunge(profile.lunge, move === profile.moves.heavy, dx, dz, radius);
+    if (dash !== null) host.dashTo(actor.position.x, actor.position.z, dash.stopAt, dash.time);
+  };
+  const clocks = profiles.map(profile => new SweptMeleeCore<Move>(profile.moves, profile,
+    { queue: () => { state.queued = true; }, consume: () => { const queued = state.queued; state.queued = false; return queued; } },
+    { start: (move, dash) => { state.struck = false; state.swings++; if (dash) lunge(profile, move); ports.alarm(); }, charge: () => { /* presentation owns the charge tell */ } }));
+  const eye = new Vector3(), centre = new Vector3(), point = new Vector3(), forward = new Vector3(), left = new Vector3(), direction = new Vector3(), push = new Vector3();
+  const request: Parameters<SimHost['combat']['hit']>[0] = { source: row.source === 'env' ? 'env' : host.player.health,
+    sourceTags: [], target: host.player.health, amount: 0, point, dir: direction, from: eye, weaponId: '', moveId: '' };
+  const queries = createNativeTargetQueries<NativeSweptActor>({ fore: false }), contact = { distance: 0, point, head: false };
+  const strike = (actor: NativeSweptActor, move: Move, profile: Profile): void => {
+    centre.copy(actor.position); centre.y += actor.dims.bodyY * actor.scale;
+    forward.subVectors(centre, eye); if (forward.lengthSq() < 1e-12) forward.set(-Math.sin(host.player.yaw), 0, -Math.cos(host.player.yaw)); forward.normalize();
+    left.copy(forward).applyAxisAngle(yAxis, Math.PI / 2);
+    direction.copy(forward).multiplyScalar(row.contact.direction[0]).addScaledVector(left, row.contact.direction[1] * move.sweep).normalize();
+    if (Math.abs(move.sweep) < 0.6) direction.y -= row.contact.direction[2] * (1 - Math.abs(move.sweep));
+    direction.normalize();
+    request.sourceTags = profile.tags; request.target = actor.combatActor(); request.weaponId = profile.weapon; request.moveId = move.id;
+    request.amount = Math.round(sweptMoveDamage(profile.damage, move, move === profile.moves.heavy, 1));
+    const dealt = host.combat.hit(request); if (dealt === null) return;
+    state.hits++; if (dealt.killed) return;
+    push.set(forward.x, 0, forward.z).normalize().multiplyScalar(row.contact.push[0]).addScaledVector(left, row.contact.push[1] * move.sweep);
+    const running = actor.speed > row.contact.running;
+    actor.stagger(push, move.stagger); ports.staggered(actor, Math.max(0, Math.min(move.stagger, 1)), running);
+  };
+  host.onStep(row.step, () => {
+    const index = loadout.held(), clock = clocks[index], profile = profiles[index];
+    if (clock === undefined || profile === undefined) throw new Error('Missing selected swept melee slot');
+    const command = ports.input(), target = command.attack;
+    if (command.heavy) state.target = command.heavyTarget;
+    if (target !== null) {
+      const idle = clock.move === null, swings = state.swings, previous = state.target;
+      state.target = target; clock.tryFire(); if (idle && state.swings === swings) state.target = previous;
+    }
+    const dt = 1 / 60, { move, active } = clock.step(dt, host.state.tick * dt, profile.swingScale, command.heavy);
+    if (move === null || !active || state.struck || state.target === null) return;
+    const actor = host.entities.get(state.target); if (actor === undefined || !actor.alive) return;
+    eye.copy(host.player.position); eye.y += row.eye;
+    queries.closest(actor, eye, Infinity, contact);
+    if (contact.distance > (move.reach ?? profile.reach) || !lineOfSight(host.physics, eye, point, row.contact.slack, host.player.motor.collider)) return;
+    state.struck = true; strike(actor, move, profile);
+  }, { snapshot: () => JSON.stringify({ held: loadout.held(), ...state, clocks: clocks.map(clock => clock.snapshot()) }), restore: value => {
+    if (typeof value !== 'string') throw new Error('Invalid swept melee continuation');
+    const finite = v.pipe(v.number(), v.finite()), count = v.pipe(finite, v.integer(), v.minValue(0));
+    const clock = v.strictObject({ move: v.nullable(count), swingT: finite, comboIdx: count, lastSwingEnd: finite, cooldown: finite, charging: v.boolean(), chargeT: finite,
+      releaseQueued: v.boolean(), chargePending: v.boolean(), heldPrev: v.boolean(), time: finite });
+    const saved = v.parse(v.strictObject({ held: v.pipe(count, v.maxValue(profiles.length - 1)), queued: v.boolean(), struck: v.boolean(), target: v.nullable(v.string()),
+      swings: count, hits: count, clocks: v.pipe(v.array(clock), v.length(clocks.length)) }), JSON.parse(value));
+    loadout.restore({ held: saved.held, swap: null }); Object.assign(state, { queued: saved.queued, struck: saved.struck, target: saved.target, swings: saved.swings, hits: saved.hits });
+    for (const [index, savedClock] of saved.clocks.entries()) { const restoredClock = clocks[index]; if (restoredClock === undefined) throw new Error('Missing saved swept clock'); restoredClock.restore(savedClock); }
+  } }, 'afterBodies');
+  return { held: loadout.held,
+    equip: index => { if (!slots.includes(index)) throw new Error('Invalid swept melee slot'); if (index === loadout.held()) return; clocks[loadout.held()]?.stop(); state.queued = false; state.target = null; loadout.select(index); },
+    swings: () => state.swings, hits: () => state.hits };
+}
+
 /** Install immediate and delayed item contacts on one renderer-free owner, retaining ordered commands and wire bindings. */
-export function installNativeMelee(host: SimHost, weapon: { readonly id: string; readonly contacts?: readonly NativeMeleeContact[] },
+function installNativeContactMelee(host: SimHost, weapon: { readonly id: string; readonly contacts?: readonly NativeMeleeContact[] },
   input: unknown, ports: NativeMeleePorts): NativeMeleeOwner {
   const { native: row, contacts } = parseNativeMeleeBinding(input, weapon.contacts);
   if(row.held!==undefined&&ports.heldCommands===undefined&&ports.inputCommands===undefined)throw new Error('Held input requires its admitted player stream');

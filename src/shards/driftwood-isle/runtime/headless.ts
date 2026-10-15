@@ -1,4 +1,4 @@
-import { trustedLevel } from '@wildshard/game/plugin/simulation';
+import { installNativeMelee, trustedLevel } from '@wildshard/game/plugin/simulation';
 import { installNativeCollision, type HeadlessRuntimeInstallation, type PrepareHeadlessRuntime } from '@wildshard/sdk/headlessRuntime';
 import type { SimHost } from '@wildshard/engine/sim';
 import { readNavmesh, type Navmesh } from '@wildshard/engine/physics/navmesh';
@@ -10,7 +10,7 @@ import { installCaptain } from './captain';
 import { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
 import { prepareDriftwoodDirector } from './director';
 import finaleStages from '../data/finaleStages.json' with { type: 'json' };
-import { driftwoodSwordProfiles, installDriftwoodSwords } from './swords';
+import NATIVE_SWORDS from '../data/nativeSwords.json' with { type: 'json' };
 import { installDriftwoodKills } from './kills';
 import { DRIFTWOOD_FEATS } from '../data/questInventory';
 import { DRIFTWOOD_INTERACT } from '../data/interactables';
@@ -71,7 +71,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
   const navigation = shard.navigation === null ? undefined : assets.get(shard.navigation.file);
   if (navigation === undefined) throw new Error('Driftwood requires its admitted navigation asset');
   const createDirector = await prepareDriftwoodDirector();
-  const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh(navigation), swords = driftwoodSwordProfiles(shard.items.rows), spots = driftwoodSpots();
+  const bake = driftwoodBake(), specs = driftwoodSpecs(bake), heightAt = bake.floorAt, nav = driftwoodNavmesh(navigation), spots = driftwoodSpots();
   const level = trustedLevel(shard, { at: { x: shard.spawn.x, y: Math.max(shard.spawn.y, heightAt(shard.spawn.x, shard.spawn.z) + 0.1), z: shard.spawn.z },
     yaw: shard.spawn.yaw, speed: 5 }, { size: 500, height: 0 });
   return { level, ports: { ground: false, heightAt }, proveEntries: host => proveTerrainEntries(host.physics, shard.entryways, heightAt, ENTRY_WALK), install: (host, context) => {
@@ -102,7 +102,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
     host.scope.onDispose(offFinale);
     // the swords after the keeper: a swing's wake decides in the frame the keeper already stepped (a zero step)
     const input = { attack: null as string | null, heavy: false, heavyTarget: null as string | null };
-    const held = installDriftwoodSwords(host, swords, island, () => {
+    const held = installNativeMelee(host, shard.items.rows, NATIVE_SWORDS, { alarm: () => island.alarm(), staggered: (actor, strength, running) => island.staggered(actor, strength, running), input: () => {
       input.attack = null; input.heavy = false; input.heavyTarget = null;
       const list = context.commands();
       for (let i = 0; i < MAX_COMMANDS; i++) {
@@ -110,7 +110,7 @@ export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, as
         if (command.kind === 'player') { input.attack = command.attack?.targetId ?? null; input.heavy = command.heavy !== undefined; input.heavyTarget = command.heavy?.targetId ?? null; }
       }
       return input;
-    });
+    } });
     const fact = (name: string, actorId: string): void => { context.emit({ kind: 'fact', name, actorId }); };
     const coins = (amount: number, actorId: string): void => { context.emit({ kind: 'coins', amount, actorId }); };
     // the kill hooks: the sailor's flag and the kill feats' ledger facts

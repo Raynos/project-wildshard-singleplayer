@@ -61,6 +61,46 @@ export function parseNativeMeleeBinding(input: unknown, contactsInput: unknown):
   }
   return { native, contacts };
 }
+/** Declared swept phases share the existing melee owner; no new actor or physics authority. */
+const sweptCoefficient = v.pipe(finite, v.minValue(-10000), v.maxValue(10000));
+const sweptPolicy = v.strictObject({ kind: v.literal('swept'), step: name,
+  eye: v.pipe(finite, v.minValue(0), v.maxValue(20)), initial: v.pipe(finite, v.integer(), v.minValue(0), v.maxValue(15)),
+  source: v.picklist(['env', 'owner']),
+  slots: v.pipe(v.array(v.strictObject({ item: weaponId, weapon: weaponId, tags: v.pipe(v.array(tag), v.maxLength(32)),
+    combo: v.pipe(v.array(name), v.minLength(1), v.maxLength(16)), heavy: name })), v.minLength(1), v.maxLength(16)),
+  contact: v.strictObject({ slack: v.pipe(finite, v.minValue(0), v.maxValue(2)), direction: v.tuple([sweptCoefficient, sweptCoefficient, sweptCoefficient]),
+    push: v.tuple([sweptCoefficient, sweptCoefficient]), running: v.pipe(finite, v.minValue(0), v.maxValue(100)) }),
+  lunge: v.strictObject({ maxHeight: v.pipe(finite, v.minValue(0), v.maxValue(20)), minDistance: v.pipe(finite, v.minValue(0.000001), v.maxValue(10)),
+    minRadius: v.pipe(finite, v.minValue(0), v.maxValue(20)), lengthScale: v.pipe(finite, v.minValue(0), v.maxValue(10)) }),
+});
+/** Admit a bounded swept kit against real item profiles before installing clocks or contacts. */
+interface NativeSweptMove extends Omit<Extract<v.InferOutput<typeof WeaponProfileSchema>, {family: 'melee'}>['moves']['heavy'], 'stagger' | 'sweep'> {
+  id: string; stagger: number; sweep: number;
+}
+interface NativeSweptProfile extends Omit<Extract<v.InferOutput<typeof WeaponProfileSchema>, {family: 'melee'}>, 'moves'> {
+  weapon: v.InferOutput<typeof weaponId>; tags: v.InferOutput<typeof tag>[]; moves: {combo: NativeSweptMove[]; heavy: NativeSweptMove};
+}
+/** Admitted numeric phases and item profiles, detached from renderer or actor authority. */
+export interface NativeSweptMeleeBinding { row: v.InferOutput<typeof sweptPolicy>; profiles: NativeSweptProfile[] }
+/** Parse a complete swept kit before any clocks, callbacks or native state are installed. */
+export function parseNativeSweptMeleeBinding(input: unknown, itemsInput: unknown): NativeSweptMeleeBinding {
+  v.assert(v.custom(isJsonData, 'JSON-only swept melee policy'), input);
+  const row = v.parse(sweptPolicy, input), items = v.parse(v.pipe(v.array(v.union([weapon, tool])), v.maxLength(512)), itemsInput);
+  if (row.initial >= row.slots.length || new Set(row.slots.map(entry => entry.item)).size !== row.slots.length) throw new Error('Invalid swept melee slots');
+  const profiles = row.slots.map(entry => {
+    const item = items.find(candidate => candidate.id === entry.item);
+    if (item?.kind !== 'weapon' || item.profile?.family !== 'melee' || item.profile.moves.combo.length !== entry.combo.length) throw new Error('Swept melee requires matching admitted item moves');
+    const profile = item.profile;
+    if (new Set([...entry.combo, entry.heavy]).size !== entry.combo.length + 1) throw new Error('Unique swept move ids required');
+    const move = (numbers: typeof profile.moves.heavy, id: string) => {
+      if (numbers.stagger === undefined || numbers.sweep === undefined) throw new Error('Swept melee requires explicit stagger and sweep');
+      return { ...numbers, stagger: numbers.stagger, sweep: numbers.sweep, id };
+    };
+    return { ...profile, weapon: entry.weapon, tags: entry.tags,
+      moves: { combo: profile.moves.combo.map((numbers, index) => { const id = entry.combo[index]; if (id === undefined) throw new Error('Missing swept move id'); return move(numbers, id); }), heavy: move(profile.moves.heavy, entry.heavy) } };
+  });
+  return { row, profiles };
+}
 /** Declared item families, numeric contacts, input contexts, script hooks and initial loadout. */
 export type ShardItems = v.InferOutput<typeof raw>;
 /** Local references plus optional script catalogue checks; global format composition supplies admitted module ids. */

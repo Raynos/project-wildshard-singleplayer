@@ -5770,3 +5770,11 @@ required channel to an explicit subset. Admission refuses undeclared,
 missing or colliding channels. Aliasing lends the original BufferAttribute
 without copying, transforming or normalizing it. Absent channels retain
 the original strict rest-pool path; native source pools do not accept them.
+
+The existing `installNativeMelee` also accepts an admitted item array and a
+`kind: "swept"` policy through `parseNativeSweptMeleeBinding` in format/items.
+The bounded slots declare item/profile IDs, ordered combo/heavy move IDs,
+source tags, lunge limits and contact tuning. SweptMeleeCore owns combo,
+heavy-charge and queued-follow-up timing; existing posed queries and the
+native loadout retain contacts, switching and old saved clock envelopes.
+Borrowed input, alarm and stagger ports preserve each world's reactions.
