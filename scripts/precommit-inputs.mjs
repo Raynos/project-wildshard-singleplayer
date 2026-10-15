@@ -5,6 +5,17 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { openMirror } from './build-mirror.mjs';
+import { discoverGeneration, generateShardJob } from './generate.mjs';
+
+/** A warm mirror still needs newly declared cheap outputs before resolving typed imports. */
+export async function prepareMissingCheapInputs(root = resolve(import.meta.dirname, '..')) {
+  for (const job of discoverGeneration(root).jobs) {
+    const outputs = job.buildTimeOutputs ?? [];
+    if (outputs.some(file => !existsSync(resolve(root, file)))) {
+      await generateShardJob(root, job, { restore: true, restoreOutputs: outputs });
+    }
+  }
+}
 
 /** Check source in the `commit` slot of the build mirror, synced to the staged tree; generated inputs stay cached there
  * (generated once per slot, so type-aware lint can resolve them; the push gate regenerates them from scratch). */
@@ -22,6 +33,7 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
     // The stamp sits beside the slot's tree: the sync deletes untracked files inside it, but keeps ignored outputs.
     const generated = resolve(scratch, '..', 'precommit-generated');
     if (!existsSync(generated)) { run(process.execPath, ['scripts/gen.mjs', '--build-inputs']); writeFileSync(generated, `${new Date().toISOString()}\n`); }
+    run(process.execPath, ['scripts/precommit-inputs.mjs', '--missing-cheap']);
     // Discovery changes when authored manifests change, even in an already warm
     // slot. Refresh this cheap source glue before typed lint resolves imports.
     run(process.execPath, ['scripts/gen-shards.mjs']);
@@ -41,5 +53,8 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
   } finally { mirror.release(); }
 }
 if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
-  try { precommitInputs(); } catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
+  try {
+    if (process.argv.includes('--missing-cheap')) await prepareMissingCheapInputs();
+    else precommitInputs();
+  } catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }
