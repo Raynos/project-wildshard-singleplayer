@@ -16,6 +16,9 @@ import type { COVER_GLSL, COVER_TINT } from './coverGlsl';
  *
  *   const grid = CoverGrid.create(admitted, bounds);  // full grid, no second allocation
  *   tintTerrain(terrain.mesh, row);           // after the fill: aCover per vertex + the shader
+ *
+ * A graph terrain (the faceted ground's toon graph, data/groundLook.ts) mixes the cover in its own graph: it declares the
+ * attributes zeroed when it builds (`coverAttributes`) and `tintTerrain` fills them in place without patching it.
  */
 
 /** What the grid holds at a point: mean colour (linear), and top / side packed as 1 − e^−τ. */
@@ -112,7 +115,10 @@ function patchTerrainMaterial(mat: THREE.Material, row: CoverTintRow): void {
 export function tintTerrain(mesh: THREE.Mesh, row: CoverTintRow, matrixWorld = mesh.matrixWorld): void {
   const grid = CoverGrid.get();
   if (!grid) return;
-  const geo = mesh.geometry, pos = geo.getAttribute('position'), cover = new Uint8Array(pos.count * 4), side = new Uint8Array(pos.count);
+  const geo = mesh.geometry, pos = geo.getAttribute('position');
+  // a graph ground declared its own (zeroed, `coverAttributes`) and reads them itself: fill those in place, no patch
+  const own = ownCover(geo, pos.count);
+  const cover = own?.cover ?? new Uint8Array(pos.count * 4), side = own?.side ?? new Uint8Array(pos.count);
   const p = new THREE.Vector3(), s = coverSample(), byte = (v: number) => Math.round(Math.min(1, Math.max(0, v)) * 255);
   for (let i = 0; i < pos.count; i++) {
     p.fromBufferAttribute(pos, i).applyMatrix4(matrixWorld);
@@ -122,8 +128,24 @@ export function tintTerrain(mesh: THREE.Mesh, row: CoverTintRow, matrixWorld = m
     cover[i * 4] = byte(s.r * j); cover[i * 4 + 1] = byte(s.g * j); cover[i * 4 + 2] = byte(s.b * j); cover[i * 4 + 3] = byte(s.top);
     side[i] = byte(s.side);
   }
+  if (own !== null) { own.coverAttr.needsUpdate = true; own.sideAttr.needsUpdate = true; return; }
   geo.setAttribute('aCover', new THREE.BufferAttribute(cover, 4, true));
   geo.setAttribute('aCoverSide', new THREE.BufferAttribute(side, 1, true));
   const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
   for (const mat of mats) patchTerrainMaterial(mat, row);
+}
+
+/** A graph terrain's cover attributes, zeroed (no tint until `tintTerrain` fills them in place): `aCover` (rgb, top) and
+ *  `aCoverSide`, normalized bytes, so its program reads them from its first draw and the fill allocates nothing more. */
+export function coverAttributes(geo: THREE.BufferGeometry, count: number): void {
+  geo.setAttribute('aCover', new THREE.BufferAttribute(new Uint8Array(count * 4), 4, true));
+  geo.setAttribute('aCoverSide', new THREE.BufferAttribute(new Uint8Array(count), 1, true));
+}
+
+function ownCover(geo: THREE.BufferGeometry, count: number): { cover: Uint8Array; side: Uint8Array; coverAttr: THREE.BufferAttribute; sideAttr: THREE.BufferAttribute } | null {
+  const coverAttr = geo.getAttribute('aCover'), sideAttr = geo.getAttribute('aCoverSide');
+  if (!(coverAttr instanceof THREE.BufferAttribute) || !(sideAttr instanceof THREE.BufferAttribute)) return null;
+  const cover = coverAttr.array, side = sideAttr.array;
+  if (!(cover instanceof Uint8Array) || !(side instanceof Uint8Array) || cover.length !== count * 4 || side.length !== count) return null;
+  return { cover, side, coverAttr, sideAttr };
 }

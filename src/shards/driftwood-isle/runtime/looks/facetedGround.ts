@@ -6,6 +6,7 @@ import type { Terrain } from '@wildshard/engine/world/Terrain';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { FacetedGroundRow } from '../../data/lookRows';
+import { coverAttributes } from './coverGrid';
 
 /**
  * A faceted, texture-free ground as a terrain painter (SHARD-PLATFORM M3, look-family rows): the level's heightfield as
@@ -58,6 +59,7 @@ async function buildFacetedGround(t: Terrain, f: PainterField, row: FacetedGroun
   const rows = facetedGrid(f, row, seaLevel, paint);
   let r = rows.next();
   while (r.done !== true) { await macrotask(); r = rows.next(); }
+  coverAttributes(r.value, r.value.getAttribute('position').count); // the graph reads the cover tint's attributes (zero until tintTerrain fills them)
   t.mesh = new THREE.Mesh(r.value, loan.ground);
   t.mesh.receiveShadow = true;
   t.mesh.castShadow = true;
