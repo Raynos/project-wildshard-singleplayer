@@ -15,7 +15,6 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { BOAT_HULL_GEOMETRY, BOAT_SAIL_GEOMETRY, BOAT_GEAR_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 import { BOAT_LAYOUT } from '../data/boatLayout';
 import { boatStation as authoredBoatStation } from '../world/boatFrame';
 
@@ -55,7 +54,6 @@ function buildBoat(ctx: ModelContext): THREE.Group {
   mesh.castShadow = true; mesh.receiveShadow = true;
   const sail = new THREE.Mesh(BOAT_SAIL_GEOMETRY.copy(), lowPolyLookMaterial(ctx.sky));
   sail.castShadow = true; sail.receiveShadow = false;
-  sail.customDepthMaterial = swayDepthMaterial();
   const gearMesh = new THREE.Mesh(BOAT_GEAR_GEOMETRY.copy(), lowPolyLookMaterial(ctx.sky, 'still'));
   gearMesh.castShadow = false; gearMesh.receiveShadow = true;
   mesh.add(gearMesh);

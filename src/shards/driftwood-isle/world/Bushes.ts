@@ -15,7 +15,6 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { islandKnobs } from '../tiers';
 import { hibiscusBush, type HibiscusBushParams } from '../models/hibiscusBush';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 import { loadHibiscusWorld } from '../boot/hibiscusGeometry';
 
 export interface BushSpec { x: number; z: number; r: number; flowers: boolean }
@@ -39,7 +38,7 @@ export class Bushes {
     const batch = await loadHibiscusWorld(specs.length); await due();
     const mesh = new THREE.Mesh(batch.geometry, lowPolyLookMaterial(this.sky));
     mesh.name = hibiscusBush.id;
-    mesh.castShadow = islandKnobs().bushShadows; mesh.receiveShadow = true; mesh.customDepthMaterial = swayDepthMaterial();
+    mesh.castShadow = islandKnobs().bushShadows; mesh.receiveShadow = true;
     mesh.userData['islandDressingClipped'] = true;
     return this.take(place(hibiscusBush, placements, { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'bushes' }, drawnInto: { object: mesh, boxes: batch.boxes } }));
   }

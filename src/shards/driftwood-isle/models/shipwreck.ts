@@ -2,7 +2,6 @@ import { Group, Mesh, MeshBasicMaterial } from 'three';
 import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 import { fixedGeometryReady, loadFixedGeometry, SHIPWRECK_KIT_GEOMETRY, SHIPWRECK_GLOW_GEOMETRY, WRECK_KIT_GEOMETRY, WRECK_GLOW_GEOMETRY } from '../boot/fixedGeometry';
 import { WRECK_SITES } from '../data/wreckSites';
 import type { WreckSpec } from '../assets/contracts/wreck';
@@ -22,7 +21,7 @@ export interface ShipwreckParams { readonly site: WreckSpec; readonly ground: (x
 function shipParts(ctx:ModelContext,world:boolean):ModelPart[] {
   return [
     { geometry: (world ? WRECK_KIT_GEOMETRY : SHIPWRECK_KIT_GEOMETRY).copy(), material: lowPolyLookMaterial(ctx.sky),
-      castShadow: true, receiveShadow: true, customDepthMaterial: swayDepthMaterial() },
+      castShadow: true, receiveShadow: true },
     { geometry: (world ? WRECK_GLOW_GEOMETRY : SHIPWRECK_GLOW_GEOMETRY).copy(),
       material: ctx.once('driftwood-isle/shipwreck:lanterns', () => new MeshBasicMaterial({ vertexColors: true })) },
   ];
@@ -41,7 +40,6 @@ export const shipwreck = defineModel<ShipwreckParams>({
       for(const part of shipParts(ctx,world)) {
         const mesh=new Mesh(part.geometry,part.material);
         mesh.castShadow=part.castShadow??false;mesh.receiveShadow=part.receiveShadow??false;
-        if(part.customDepthMaterial)mesh.customDepthMaterial=part.customDepthMaterial;
         group.add(mesh);
       }
       return group;

@@ -17,7 +17,6 @@ import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engin
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { HAT_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
-import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 
 /** A fresh copy of the admitted offline hat; scaling never changes the shared template. */
 export function captainHatGeometry(): THREE.BufferGeometry { return HAT_GEOMETRY.copy(); }
@@ -28,7 +27,6 @@ export function buildCaptainHat(ctx: ModelContext): THREE.Mesh {
   m.name = 'captain-hat';
   m.castShadow = true;
   m.receiveShadow = true;
-  m.customDepthMaterial = swayDepthMaterial();
   return m;
 }
 
@@ -43,7 +41,7 @@ export const captainHat = defineModel<CaptainHatParams>({
   defaults: { size: 1 },
   build: (ctx, p): readonly ModelPart[] | THREE.Object3D => fixedGeometryReady() ? [{
     geometry: ctx.once(`captain-hat:${p.size}`, () => (p.size === 1 ? captainHatGeometry() : captainHatGeometry().scale(p.size, p.size, p.size))),
-    material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true, customDepthMaterial: swayDepthMaterial(),
+    material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true,
   }] : loadingSpecimen('driftwood-isle/captain-hat', [0.48 * p.size, 0.13 * p.size, 0.48 * p.size], async () => {
     await loadFixedGeometry();
     const mesh = buildCaptainHat(ctx);

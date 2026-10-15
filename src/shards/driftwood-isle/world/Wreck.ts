@@ -6,7 +6,6 @@ import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 import { rockMaterial } from './rockKit';
 import { shipwreck, wreckSiteKind } from '../models/shipwreck';
 import type { WreckAnchor, HoldBounds, WreckSpec } from '../assets/contracts/wreck';
@@ -43,7 +42,7 @@ export class Wreck {
   build(): this { return this.draw(null); }
   private draw(registry: WorldRegistry | null): this {
     this.mesh = new THREE.Mesh(WRECK_KIT_GEOMETRY.copy(),lowPolyLookMaterial(this.sky));
-    this.mesh.castShadow = true; this.mesh.receiveShadow = true; this.mesh.customDepthMaterial = swayDepthMaterial();
+    this.mesh.castShadow = true; this.mesh.receiveShadow = true;
     this.glow = new THREE.Mesh(WRECK_GLOW_GEOMETRY.copy(),new THREE.MeshBasicMaterial({vertexColors:true})); this.glow.name='wreck-lanterns';
     const reef = new THREE.Mesh(WRECK_ROCKS_GEOMETRY.copy(),rockMaterial(this.sky)); reef.name='wreck-rocks';reef.castShadow=true;reef.receiveShadow=true;
     this.group.add(reef,this.mesh,this.glow);

@@ -6,7 +6,7 @@
  *
  * One mesh, one draw on the island's shared low-poly material, ~130 triangles. The cloth sways in the island's one wind in
  * the vertex shader (the kit's `sway`: still at the shoulders, most at the hem; nothing runs per frame) and its shadow
- * sways with it (swayDepthMaterial). src/engine/player/Cosmetics.ts hangs it on the player's shoulder socket.
+ * sways with it (the kit graph sways its shadow pass too). src/engine/player/Cosmetics.ts hangs it on the player's shoulder socket.
  *
  * Own space: the wearer's axis is x = 0, z = 0, the wearer faces +Z (the cape hangs behind, at −z); y = 0 is the hem's
  * lowest line and the neck is at CAPE_H. No colliders.
@@ -16,7 +16,6 @@ import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engin
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { CAPE_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 
 /** A fresh copy of the admitted cape; worn/specimen scaling never changes its template. */
 export function sailclothCapeGeometry(): THREE.BufferGeometry { return CAPE_GEOMETRY.copy(); }
@@ -27,7 +26,6 @@ export function buildSailclothCape(ctx: ModelContext): THREE.Mesh {
   m.name = 'sailcloth-cape';
   m.castShadow = true;
   m.receiveShadow = true;
-  m.customDepthMaterial = swayDepthMaterial();
   return m;
 }
 
@@ -43,7 +41,7 @@ export const sailclothCape = defineModel<SailclothCapeParams>({
   specimenYaw: Math.PI, // the Explorer opens on its outside (the back)
   build: (ctx, p): readonly ModelPart[] | THREE.Object3D => fixedGeometryReady() ? [{
     geometry: ctx.once(`sailcloth-cape:${p.size}`, () => (p.size === 1 ? sailclothCapeGeometry() : sailclothCapeGeometry().scale(p.size, p.size, p.size))),
-    material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true, customDepthMaterial: swayDepthMaterial(),
+    material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true,
   }] : loadingSpecimen('driftwood-isle/sailcloth-cape', [0.7 * p.size, p.size, 0.4 * p.size], async () => {
     await loadFixedGeometry();
     const mesh = buildSailclothCape(ctx);

@@ -7,7 +7,7 @@
  * One mesh, one draw on the island's shared low-poly material (flat-shaded vertex colour): every piece is in the
  * geometry and `setCount(n)` shows the first n (src/engine/models/slots.ts: an index rewrite, no allocation, one small upload
  * when the count changes). The strands sway in the island's one wind in the vertex shader (the kit's `sway`, wind.ts):
- * nothing runs per frame, and the shadow sways with them (swayDepthMaterial). Each strand has its own phase, so they
+ * nothing runs per frame, and the shadow sways with them (the kit graph, data/kitLook.ts). Each strand has its own phase, so they
  * drift apart and back like a chime; a piece and its thread share their strand's weight at every height, so they never
  * part.
  *
@@ -19,7 +19,6 @@ import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { SlotGeometry } from '../runtime/models/slots';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 
 import { CHIME_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 import bakedSlots from '../data/chimeSlots.json' with { type: 'json' };
@@ -37,7 +36,6 @@ export class SeaGlassChime extends THREE.Mesh<THREE.BufferGeometry, THREE.Materi
     this.name = 'sea-glass-chime';
     this.castShadow = true;
     this.receiveShadow = true;
-    this.customDepthMaterial = swayDepthMaterial();
     this.setCount(count);
   }
   /** pieces shown (0 … 15) */

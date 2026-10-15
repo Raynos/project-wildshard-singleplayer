@@ -20,7 +20,6 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { swayDepthMaterial } from '@wildshard/engine/world/wind';
 import bake from '../data/lookoutBake.json' with { type: 'json' };
 import { LOOKOUT_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 
@@ -75,7 +74,7 @@ function lookoutParts(ctx: ModelContext): ModelPart[] {
   const geometry = LOOKOUT_GEOMETRY.copy();
   geometry.computeBoundingSphere(); geometry.computeBoundingBox();
   // the banner's shadow moves with it (M5)
-  return [{ geometry, material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true, customDepthMaterial: swayDepthMaterial() }];
+  return [{ geometry, material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true }];
 }
 
 export const lookout = defineModel<Record<string, never>>({
