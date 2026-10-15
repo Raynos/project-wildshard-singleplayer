@@ -25,16 +25,29 @@ export function setAnisotropy(renderer: Renderer): void { gpu = renderer; maxAni
  * thread, bytes counted by the boot plan) and is capped at the tier's texture size — on a phone a
  * 2048² Poly Haven set becomes 1024², a quarter of the GPU memory and upload time.
  */
-const images = new Map<string, Promise<ImageBitmap | HTMLImageElement>>();
+// The textures own completed decodes. A retired world's image must not stay
+// alive merely because this page loaded its URL once (including saver OFF).
+const images = new Map<string, WeakRef<ImageBitmap | HTMLImageElement>>();
+const imageLoads = new Map<string, Promise<ImageBitmap | HTMLImageElement>>();
 /** the decode cache's key: a decode below the tier's own cap (a level's memory trim) is another image */
 const imageKey = (url: string, maxSize: number): string => (maxSize === TIER_CONFIG.maxTexture ? url : `${url}@${maxSize}`);
-/** decodes the cache holds now (SF57: a released decode leaves it, trimmed or not) */
-export function decodedImageCount(): number { return images.size; }
+/** Live and in-flight decodes known to the cache; collected weak entries are pruned. */
+export function decodedImageCount(): number {
+  for (const [key, image] of images) if (image.deref() === undefined) images.delete(key);
+  return images.size + imageLoads.size;
+}
 export function loadImage(url: string, maxSize = TIER_CONFIG.maxTexture): Promise<ImageBitmap | HTMLImageElement> {
   const key = imageKey(url, maxSize);
-  let p = images.get(key);
-  if (!p) { p = fetchImage(url, maxSize); images.set(key, p); }
-  return p;
+  const image = images.get(key)?.deref();
+  if (image !== undefined) return Promise.resolve(image);
+  const pending = imageLoads.get(key);
+  if (pending !== undefined) return pending;
+  const load = fetchImage(url, maxSize).then(decoded => {
+    images.set(key, new WeakRef(decoded));
+    return decoded;
+  }).finally(() => { imageLoads.delete(key); });
+  imageLoads.set(key, load);
+  return load;
 }
 
 /**
