@@ -9,7 +9,8 @@
 // The mirror is a work tree with its own index (GIT_INDEX_FILE), so `read-tree -u` rewrites only the files that differ
 // from the commit it last held: a sync to a nearby commit writes kilobytes, never a fresh 23k-file export. It holds the
 // commit minus art/, progress/ and sources/ (what the exports always excluded; --full keeps them). There is one mirror
-// per slot under the git-ignored ./tmp/build-mirror: never /tmp, $TMPDIR or a session scratchpad (macOS empties those
+// per slot under the git-ignored ./tmp/build-mirror (Jake 2026-10-15: three slots machine-wide, gate, commit and the
+// shared default `check` that every lane queues for; no per-lane slots): never /tmp, $TMPDIR or a session scratchpad (macOS empties those
 // at boot, before login, and the piled-up exports stalled the boot for hours on 2026-10-15), and `du -sh tmp` shows
 // what this repo holds. A lock serializes users of a slot: the mirror cannot change under a running build.
 // node_modules is linked by link-node-modules.mjs (E432): @wildshard/* resolves to the mirror's own sources.
@@ -58,7 +59,7 @@ function buildTree(repo, sha, full) {
 }
 
 /** Lock the slot, bring its tree to `rev`, return { dir, sha, release }. The lock also releases at process exit. */
-export function openMirror(rev, { repo = REPO, slot = 'build', full = false, env = process.env, linkModules = true } = {}) {
+export function openMirror(rev, { repo = REPO, slot = 'check', full = false, env = process.env, linkModules = true } = {}) {
   if (!/^[a-z0-9][a-z0-9-]{0,31}$/.test(slot)) throw new Error(`build-mirror: invalid slot ${slot}`);
   const root = join(mirrorRoot(env, repo), slot);
   const dir = join(root, 'tree');
@@ -104,7 +105,7 @@ if (isMain) {
   const head = dash === -1 ? args : args.slice(0, dash);
   const command = dash === -1 ? [] : args.slice(dash + 1);
   const slotAt = head.indexOf('--slot');
-  const slot = slotAt === -1 ? 'build' : head[slotAt + 1];
+  const slot = slotAt === -1 ? 'check' : head[slotAt + 1];
   const full = head.includes('--full');
   const [action, rev = 'HEAD'] = head.filter((a, i) => a !== '--full' && (slotAt === -1 || (i !== slotAt && i !== slotAt + 1)));
   if (action === 'status') {

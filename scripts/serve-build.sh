@@ -76,7 +76,7 @@ done
 # synced file by file) instead of a fresh export per preview; this script re-runs itself there and exits, releasing
 # the slot, once the preview is up.
 if [ $HEAD_ONLY -eq 1 ] && [ -z "${SERVE_IN_MIRROR:-}" ]; then
-  SERVE_IN_MIRROR=1 exec node "$REPO/scripts/build-mirror.mjs" run "$REV" --slot serve -- bash "$REPO/scripts/serve-build.sh" "${ARGS[@]}"
+  SERVE_IN_MIRROR=1 exec node "$REPO/scripts/build-mirror.mjs" run "$REV" --slot check -- bash "$REPO/scripts/serve-build.sh" "${ARGS[@]}"
 fi
 
 # caps (E317 follow-up: one session held 26 previews registered for 8–12 h): --hours at most SERVE_MAX_HOURS (4), and at
