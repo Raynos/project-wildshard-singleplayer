@@ -6,8 +6,8 @@ Since resume: DW ocean on graphs `3ef50911b` (−173), DW ground on graph toon `
 
 **Lanes (G421 4 Opus visual-only; G428 burn Claude to 100 %, Codex reset):**
 - Opus: o217 Pine forest on batched graphs (crags landed); o218 Pine water retry + Explorer DW/Sky/Signal check; o219 DW reef + rope bridge bakes; o220 DW toon families (island, pier, creatures, arms), then ramp fog + day backdrop so toonGlsl/toonLight can go. DW kit/rocks/palms parked (`refs/parked/sp-o216-kit`) on two engine bugs (x8 I/II).
-- Codex: x1 Pine held-tool + finishes; x4 Pine wildlife bake (tree set waits for o217's forest); x5 W2 Pine + DW manifest JSON; x6 DW C1 dead code; x7 grid memory re-measure (G258, 3 runs) after the audio cuts; x8 H (cheaper graph shadow taps) then I/II.
-- Memory: grid ≈ 1025/1000 MB before the audio cuts landed; x7's re-measure decides if it's under.
+- Codex: x1 Pine held-tool + finishes; x4 Pine wildlife bake (tree set waits for o217's forest); x5 W2 Pine + DW manifest JSON; x6 DW C1 dead code; x7 = push + commit + keep git clean (Jake via wildshard-v): commits the ~500 uncommitted files in logical commits, lists what the storage policy refuses; x8 H (cheaper graph shadow taps), then the grid memory gap (Pine neighbour fully prepared at DW centre: ~85 MB), then I/II.
+- Memory: G258 re-measure after the audio cuts: DW claim 304.7 → 283.8 MB, grid model at DW centre ≈ 1054/1000 MB, still ~54 MB over.
 
 **New rules (AGENTS.md 10-15):** push manually with `scripts/push-main.sh`; never copy the repo (build mirror, `./tmp/<task>` scratch); storage policy (`scripts/repo-size.mjs`); no worktrees. Leave the untracked nine-dragon-stack files and foreign staged files alone (owner unknown).
 
