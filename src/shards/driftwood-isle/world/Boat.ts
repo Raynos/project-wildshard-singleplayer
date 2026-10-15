@@ -5,7 +5,6 @@
  * bob; SHARD-PLATFORM M3: @wildshard/sdk/props/mooringLines from data/boatLook.ts) and bobs it on the swell in `update(dt)`. Its colliders ride it on a kinematic body (`follows: 'copy'`).
  *
  *   const boat = new Boat(sky, { x: -4.2, z: -244, heading: 0, waterY: 0.8, moorTo: pier.mooringsFor(-4.2, -244) }).place(registry);
- *   const boat = new Boat(sky, { … }).build();                       // a dev page: not registered
  *   scene.add(boat.group); if (boat.ropes) scene.add(boat.ropes);
  *   its registry piece.push(...boat.colliders);
  *   player.platforms.push((x, z) => boat.floorHeightAt(x, z));   // you can jump in
@@ -18,13 +17,13 @@ import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
-import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { waveHeight, seaDamp } from '@wildshard/engine/world/waves';
 import { MooringLines, type MooringLines as MooringLinesSet } from '../runtime/props/mooringLines';
 import { BOAT_MOORING } from '../data/boatLook';
-import { BEAM, BOAT_CLEATS, BOAT_FLOOR, LENGTH, boat, boatColliders } from '../models/boat';
+import { BEAM, BOAT_CLEATS, BOAT_FLOOR, LENGTH, boat } from '../models/boat';
 
 export interface BoatSpec {
   x: number; z: number;
@@ -48,12 +47,7 @@ export class Boat {
   constructor(private sky: Sky, private spec: BoatSpec) { this.floorY = spec.waterY + BOAT_FLOOR; }
 
   /** the game's: placed and registered (piece `boat`, the catalog's Sailboat; its colliders ride it) */
-  place(registry: WorldRegistry): this { return this.draw(registry); }
-
-  /** a dev page's: the same boat, not registered */
-  build(): this { return this.draw(null); }
-
-  private draw(registry: WorldRegistry | null): this {
+  place(registry: WorldRegistry): this {
     const heading = this.spec.heading ?? 0;
     const placed = place(boat, [{ x: this.spec.x, y: this.spec.waterY, z: this.spec.z, ...(heading === 0 ? {} : { yaw: heading }) }], { ctx: modelContext(this.sky), draw: 'single', registry,
       piece: { id: 'boat', follows: 'copy', floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true } });
@@ -77,30 +71,6 @@ export class Boat {
       wall(-BEAM / 2, 0, 0.08, LENGTH / 2); wall(BEAM / 2, 0, 0.08, LENGTH / 2); wall(0, -LENGTH / 2, BEAM / 2, 0.08); wall(0, LENGTH / 2, BEAM / 2, 0.08);
     }
     return this;
-  }
-
-  /** triangles in the hull + sail meshes (the mooring lines aside) */
-  get triangles(): number {
-    let n = 0;
-    this.group.traverse((o) => { if (o instanceof THREE.Mesh) n += (o.geometry as THREE.BufferGeometry).getAttribute('position').count / 3; });
-    return n;
-  }
-
-  /** PHYSICS P4: the boat's collision in its own (the group's LOCAL) frame — the model's colliders; they ride the swell */
-  colliderLocalDescs(): ColliderDesc[] { return boatColliders(); }
-
-  /**
-   * PHYSICS P4: this builder's static collision in world space — its walls (the legacy boxes) and the floor
-   * `floorHeightAt` describes, as real geometry: `colliderLocalDescs()` placed at the boat's rest pose.
-   */
-  colliderDescs(): ColliderDesc[] {
-    const h = this.spec.heading ?? 0, cs = Math.cos(h), sn = Math.sin(h);
-    const out: ColliderDesc[] = [];
-    for (const d of this.colliderLocalDescs()) {
-      if (d.kind !== 'box') continue; // the local set is boxes only
-      out.push({ ...d, x: this.spec.x + d.x * cs + d.z * sn, y: this.spec.waterY + d.y, z: this.spec.z - d.x * sn + d.z * cs, yaw: h + (d.yaw ?? 0) });
-    }
-    return out;
   }
 
   /** static mesh with the mooring lines (world space) — add it to the scene beside `group` */

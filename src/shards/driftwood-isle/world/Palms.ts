@@ -16,7 +16,7 @@ import { modelContext, type Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
-import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
+import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { windUniforms, updateWind } from '@wildshard/engine/world/wind';
@@ -35,9 +35,6 @@ export class Palms {
   mesh!: THREE.Mesh;
   /** the legacy upright box of every trunk: the ocean's foam rings and the melee sweep */
   colliders: Collider[] = [];
-  count = 0;
-  /** PHYSICS P4: each trunk as capsules along its bent axis (see colliderDescs) */
-  private trunks: ColliderDesc[] = [];
 
   constructor(private sky: Sky) {}
 
@@ -85,19 +82,10 @@ export class Palms {
     // (an empty scatter — a stale terrain, a def with no land — places nothing: an empty mesh stands in, as it always did)
     this.mesh = isMesh(placed.object) ? placed.object : new THREE.Mesh();
     this.placed = placed;
-    this.trunks = [...placed.colliders];
-    this.count = placed.copies;
     // the legacy upright box of every trunk, from 1 m under its foot to its crown
     pls.forEach((pl, i) => { const p = specs[i]; if (p) this.colliders.push({ x: p.x, z: p.z, hw: 0.3, hd: 0.3, rot: 0, yTop: pl.y + p.h, yBottom: pl.y - 1 }); });
     return this;
   }
-
-  /**
-   * PHYSICS P4: this builder's static collision in world space — every trunk as three capsules following its lean
-   * and bend (in place of the legacy upright 0.6 m box, which `colliders` still carries for foam). src/engine/physics/pieces.ts
-   * turns it into Rapier colliders. Palms have no floors.
-   */
-  colliderDescs(): ColliderDesc[] { return this.trunks.slice(); }
 
   /** the island's wind gust, 0 calm … 1 gusting (wind.ts) — what the fronds, bushes, grass, sails and banner sway with; the
    * sound agent's palm rustle reads it */
