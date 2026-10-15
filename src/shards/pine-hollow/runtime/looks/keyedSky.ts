@@ -5,6 +5,7 @@ import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import type { DayClock } from '@wildshard/sdk/looks/dayClock';
 import { driveDayLight, runDayClock } from '@wildshard/sdk/looks/daySky';
 import { graphDaySkyBackdrop, type DaySkyBody, type DaySkyGraphs } from '@wildshard/sdk/looks/graphDaySky';
+import { overcastOver } from '@wildshard/sdk/looks/overcast';
 import * as THREE from 'three';
 import { skyKeyFiles, type KeyedSkyStyle, type SKY_PRESET, type SkyPreset } from '../../data/keyedSkyRows';
 
@@ -261,7 +262,7 @@ export class KeyedSky {
     const [a, b, t] = this.segment(p);
     this.clock.key(this.cur);
     const C = this.cur;
-    const ov = weatherOver(C, this.mod);
+    const ov = weatherOver(C, this.mod, this.style);
     C.vol *= this.look.vol; C.fogDist *= this.look.fogDist; C.sat += this.look.sat;
     const fill = 1 + (this.look.ambient - 1) * (1 - day0.nightAt(p)); // by day: the night's moonlight is its own
     C.env *= fill; C.hemiI *= fill;
@@ -353,27 +354,11 @@ function horizonOf(tex: THREE.DataTexture): THREE.Color {
   return out.multiplyScalar(1 / Math.max(1, n));
 }
 
-/** lay the weather over the blended preset (in place); returns the overcast it applied */
-function weatherOver(C: SkyPreset, mod: SkyWeather): number {
-  const ov = Math.min(1, Math.max(0, mod.overcast));
+/** lay the weather over the blended preset (in place: the fog's multipliers, then the style's overcast rows); returns the
+ *  overcast it applied */
+function weatherOver(C: SkyPreset, mod: SkyWeather, style: KeyedSkyStyle): number {
   C.fogDist *= mod.fogDist; C.fogHeight *= mod.fogHeight;
-  if (ov <= 0) return 0;
-  const k = 1 - ov;
-  C.lightI *= 1 - 0.82 * ov;                        // the sun behind the deck: soft shadows, little direct light
-  C.env *= 1 - 0.3 * ov;
-  C.hemiI *= 1 + 0.15 * ov;                         // the diffuse sky takes over
-  const grey = (col: THREE.Color, amt: number): void => { const l = col.r * 0.2126 + col.g * 0.7152 + col.b * 0.0722; col.lerp(tmpC.setRGB(l * 0.95, l * 0.98, l * 1.04), amt); };
-  grey(C.hemiSky, 0.7 * ov); grey(C.light, 0.6 * ov); grey(C.fogSun, 0.9 * ov); grey(C.far, 0.8 * ov); grey(C.cloudLit, 0.9 * ov); grey(C.cloudSun, 0.9 * ov);
-  C.cloudLit.multiplyScalar(1 - 0.45 * ov);
-  C.far.multiplyScalar(1 - 0.35 * ov);
-  C.fogSun.multiplyScalar(1 - 0.5 * ov);
-  C.cloudA *= 1 - 0.75 * ov;                        // the painted cloud layer melts into the deck
-  C.vol *= 1 - 0.75 * ov; C.rays *= k;
-  C.haloO *= k; C.glow.multiplyScalar(k);          // (the disc shrinks away in apply: a darkened disc reads as a black dot)
-  C.fogDist *= 1 + 1.6 * ov;                        // rain haze
-  C.sat -= 0.12 * ov;
-  C.lamps = Math.max(C.lamps, 0.35 * ov);           // the lights come on under a dark sky
-  return ov;
+  return overcastOver(C, style.overcast, mod.overcast);
 }
 
 /**

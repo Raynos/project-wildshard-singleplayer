@@ -1,5 +1,8 @@
 import type { KeyedSkyStyle } from './keyedSkyRows';
 
+/** the overcast's grey: a colour's luminance, a touch cool */
+const GREY = [0.95, 0.98, 1.04] as const;
+
 /**
  * Pine Hollow's day / night sky as a keyed-sky row (`runtime/looks/keyedSky`; PINE-HOLLOW-REMASTER PH-L2, Jake's
  * PH-U7: "the full cycle, 20 + 4 min, dawn / day / golden hour / night, like Driftwood, in photoreal"; picked over the
@@ -99,4 +102,17 @@ export const PINE_SKY = {
   dusk: [0.06, 0.35],
   dawn: { at: 0.008, width: [0.01, 0.07] },
   dome: { name: 'pine-sky-dome', radius: 2300, segments: [64, 32] },
+  // the weather's cloud deck over the blended preset, in order: the sun behind it (soft shadows, little direct light), the
+  // diffuse sky taking over, the colours greyed and dimmed, the painted cloud layer melting into it, the shafts and rays out,
+  // rain haze, colour drained, the lights on under a dark sky (the disc shrinks away in the backdrop: a darkened disc reads
+  // as a black dot)
+  overcast: [
+    { op: 'scale', key: 'lightI', by: -0.82 }, { op: 'scale', key: 'env', by: -0.3 }, { op: 'scale', key: 'hemiI', by: 0.15 },
+    { op: 'grey', key: 'hemiSky', by: 0.7, tint: GREY }, { op: 'grey', key: 'light', by: 0.6, tint: GREY }, { op: 'grey', key: 'fogSun', by: 0.9, tint: GREY },
+    { op: 'grey', key: 'far', by: 0.8, tint: GREY }, { op: 'grey', key: 'cloudLit', by: 0.9, tint: GREY }, { op: 'grey', key: 'cloudSun', by: 0.9, tint: GREY },
+    { op: 'scale', key: 'cloudLit', by: -0.45 }, { op: 'scale', key: 'far', by: -0.35 }, { op: 'scale', key: 'fogSun', by: -0.5 },
+    { op: 'scale', key: 'cloudA', by: -0.75 }, { op: 'scale', key: 'vol', by: -0.75 }, { op: 'scale', key: 'rays', by: -1 },
+    { op: 'scale', key: 'haloO', by: -1 }, { op: 'scale', key: 'glow', by: -1 }, { op: 'scale', key: 'fogDist', by: 1.6 },
+    { op: 'add', key: 'sat', by: -0.12 }, { op: 'atLeast', key: 'lamps', by: 0.35 },
+  ],
 } as const satisfies KeyedSkyStyle;

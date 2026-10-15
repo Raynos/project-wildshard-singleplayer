@@ -1,5 +1,6 @@
 import type { DayClockStyle } from '@wildshard/sdk/looks/dayClock';
 import type { DayLookPreset, DayLookSchema } from '@wildshard/sdk/looks/dayLookPresets';
+import type { OvercastRow } from '@wildshard/sdk/looks/overcast';
 
 /**
  * A keyed sky's row types (SHARD-PLATFORM M3, look-family rows; the shared day clock is its clock, `keyedSky` its backdrop) and its
@@ -81,6 +82,8 @@ export interface KeyedSkyStyle extends DayClockStyle<typeof SKY_PRESET> {
   readonly dusk: readonly [number, number];
   /** the dome: its object name, radius and sphere segments */
   readonly dome: { readonly name: string; readonly radius: number; readonly segments: readonly [number, number] };
+  /** the weather's cloud deck over the blended preset (`@wildshard/sdk/looks/overcast`), in order */
+  readonly overcast: readonly OvercastRow<SkyPreset>[];
 }
 
 /** A key's file URLs: the colour JPEG and its gain map. */

@@ -2206,6 +2206,14 @@ their GPU bytes. The shard's `build(context, graphs)` returns a `DaySkyBody`: it
 (`runDayClock`) and frame (`drive(targets, post, snap)`), plus what it holds beyond them. Pine Hollow's keyed sky
 (`runtime/looks/keyedSky.ts`) and Driftwood's faceted day (`runtime/looks/facetedDayBackdrop.ts`) are its users.
 
+**Overcast rows (SHARD-PLATFORM W2 C2).** `@wildshard/sdk/looks/overcast` (`src/sdk/looks/overcast.ts`)
+`overcastOver(look, rows, s, level)` lays a cloud deck `s` (0 … 1) over the hour's blended look in place from
+`OvercastRow` data: `scale` (× 1 + by·s, optionally through a smoothstep `curve`), `add`, `atLeast`, `grey` (toward the
+colour's luminance × a tint) and `toward` (a storm palette colour, × the caller's light `level` when `lit`). Pine
+Hollow's keyed sky reads its rows from `data/sky.ts` (`PINE_SKY.overcast`); G441's W3 match is Nalati
+`world/installWeather.ts` `stormLook`, whose deck terms (key light, slate palette × the hour's level, disc curve, fill,
+grade, shafts) become rows; its rain fog, wet-after and lightning flash stay Nalati's.
+
 Shared species take a plain `{ ...BOAR, variants: [...] }` spread to add a variant (the template's Greyback elite).
 
 ## 22. Explore, practice, playgrounds
