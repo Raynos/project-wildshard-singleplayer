@@ -1,152 +1,131 @@
-// Pine Hollow's crag and cave looks as data (SHARD-PLATFORM M3, look-family rows): the triplanar granite's edits of the
-// standard material (world/crags.ts `cragMaterial` applies them through @wildshard/sdk/looks/shaderEdits inside its
-// patch) and the cave's look near its mouth (CAVE_LOOK: @wildshard/sdk/kit/caveInterior; the shaft's look is data/caveShaftLook.ts). The vertex `cdata` = (AO, sun reach, wet, rock): AO multiplies the indirect light,
-// sun reach the directional lights only; `ctint` = (tint shade, tint path / face skin).
+// Pine Hollow's crag and cave looks as data (SHARD-PLATFORM M3, look-family rows): the triplanar granite's SF59 material
+// graph (CRAG_GRAPHS: world/crags.ts draws the one BatchedMesh in it) and the cave's look near its mouth (CAVE_LOOK:
+// @wildshard/sdk/kit/caveInterior; the shaft's look is data/caveShaftLook.ts). The vertex `aCdata` = (AO, sun reach, wet,
+// rock): AO multiplies the indirect light, sun reach the directional lights and the haze; `aCtint` = (tint shade, tint
+// path / face skin).
+import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGraph';
 import type { CaveLookRow } from '../runtime/kit/caveInterior';
 import { CAVE_SHAFT_LOOK } from './caveShaftLook';
-import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
 
 /** the granite's albedo lift (E322 F-L1) */
 const CRAG_LIFT = 1.3;
 /** the granite's tile (m): one mossy_rock repeat per 4.6 m on the faces, the grit per 3.4 m */
 const ROCK_TILE = 4.6, GRIT_TILE = 3.4;
 
+/** the look.materials id the crags, the face skin and the cave wear */
+export const CRAG_LOOK = 'pine-crag';
+/** the granite's lent textures (world/crags.ts lends `mossy_rock`'s albedo / normal / ARM and `rock_ground`'s albedo / normal) */
+export const CRAG_TEXTURES = ['rockMap', 'rockNormal', 'rockArm', 'gritMap', 'gritNormal'] as const;
+
+/** One graph's node table and its builders (ids `c0`, `c1`, …; a node built twice is one node). */
+function kit() {
+  const nodes: Record<string, GraphNode> = {}, seen = new Map<string, string>();
+  let next = 0;
+  const op = (name: string, inputs?: readonly GraphRef[], extra?: Omit<GraphNode, 'op' | 'in'>): string => {
+    const node: GraphNode = { op: name, ...(inputs === undefined ? {} : { in: inputs }), ...extra }, key = JSON.stringify(node);
+    const known = seen.get(key);
+    if (known !== undefined) return known;
+    const id = `c${String(next++)}`; nodes[id] = node; seen.set(key, id); return id;
+  };
+  const add = (a: GraphRef, b: GraphRef): string => op('add', [a, b]), sub = (a: GraphRef, b: GraphRef): string => op('sub', [a, b]);
+  const mul = (a: GraphRef, b: GraphRef): string => op('mul', [a, b]), mix = (a: GraphRef, b: GraphRef, t: GraphRef): string => op('mix', [a, b, t]);
+  const swz = (a: GraphRef, mask: string): string => op('swizzle', [a], { mask });
+  const smooth = (a: GraphRef, b: GraphRef, x: GraphRef): string => op('smoothstep', [a, b, x]);
+  /** the old program's value noise: a fract hash at the cell's corners, a smoothstep fade between them */
+  const noise = (p: GraphRef): string => {
+    const hash = (q: GraphRef): string => {
+      const f = op('fract', [mul(q, [123.34, 456.21])]), g = add(f, op('dot', [f, add(f, 45.32)]));
+      return op('fract', [mul(swz(g, 'x'), swz(g, 'y'))]);
+    };
+    const i = op('floor', [p]), f = op('fract', [p]), u = mul(mul(f, f), sub(3, mul(f, 2))), ux = swz(u, 'x');
+    return mix(mix(hash(i), hash(add(i, [1, 0])), ux), mix(hash(add(i, [0, 1])), hash(add(i, [1, 1])), ux), swz(u, 'y'));
+  };
+  return { nodes, op, add, sub, mul, mix, swz, smooth, noise };
+}
+
 /**
  * Triplanar granite in world space for the BatchedMesh (and the cave inside it): albedo / normal / ARM from `mossy_rock`
  * on the X and Z projections and on the Y one blended with `rock_ground` grit on the ledges, moss on the up-facing,
- * dark rain streaks down the faces, and a tint path for the cave's bedding and bones.
+ * dark rain streaks down the faces, warm stains, the pale lift, and a tint path for the cave's bedding and bones. The
+ * face skin (aCtint.y = 1) is projected by its facets (its smoothed normals averaged a riser with the tread above it,
+ * laying the tread's texture down the riser) and lit half by them. The cave's wet darkens and glosses; its fill (the
+ * `caveFill` param, world/crags.ts sets it each frame) is an emissive on the inside; sun reach scales the sun and the
+ * haze (the fog's bright sky colour stays off the cave's rock); AO and reach scale the indirect light.
  */
-export const CRAG_EDITS: readonly ShaderEditRow[] = [
-  { stage: 'vertex', find: '#include <common>', put: `#include <common>
-        attribute vec4 cdata;
-        attribute vec2 ctint;
-        varying vec3 vCW;
-        varying vec3 vCN;
-        varying vec4 vCD;
-        varying vec2 vCT;` },
-  { stage: 'vertex', find: '#include <project_vertex>', put: `#include <project_vertex>
-        {
-          vec4 cw = vec4( transformed, 1.0 );
-          vec3 cn = objectNormal;
-          #ifdef USE_BATCHING
-            cw = batchingMatrix * cw; cn = mat3( batchingMatrix ) * cn;
-          #endif
-          #ifdef USE_INSTANCING
-            cw = instanceMatrix * cw; cn = mat3( instanceMatrix ) * cn;
-          #endif
-          vCW = ( modelMatrix * cw ).xyz;
-          vCN = normalize( mat3( modelMatrix ) * cn );
-          vCD = cdata; vCT = ctint;
-        }` },
-  { stage: 'fragment', find: '#include <common>', put: `#include <common>
-        uniform sampler2D tRockD, tRockN, tRockA, tGritD, tGritN;
-        uniform float uCaveFill;
-        varying vec3 vCW;
-        varying vec3 vCN;
-        varying vec4 vCD;
-        varying vec2 vCT;
-        float cHash( vec2 p ) { p = fract( p * vec2( 123.34, 456.21 ) ); p += dot( p, p + 45.32 ); return fract( p.x * p.y ); }
-        float cNoise( vec2 p ) {
-          vec2 i = floor( p ), f = fract( p ); f = f * f * ( 3.0 - 2.0 * f );
-          return mix( mix( cHash( i ), cHash( i + vec2( 1, 0 ) ), f.x ), mix( cHash( i + vec2( 0, 1 ) ), cHash( i + vec2( 1, 1 ) ), f.x ), f.y );
-        }
-        // whiteout-blended tangent normal → world, for a projection whose tangent plane is (a, b) and axis c
-        vec3 cUnpack( vec4 t ) { return t.xyz * 2.0 - 1.0; }
-        ` },
-  { stage: 'fragment', find: '#include <map_fragment>', put: `
-        vec3 cwn = normalize( vCN );
-        vec3 cln = cwn; // the base normal the lighting sees
-        // the face skin (ctint.y = 1) is projected by its facets: its smoothed normals average a riser with the tread
-        // above it, and the projection laid the tread's texture down the riser (the stretch). It is lit half by its
-        // facets, half smooth: fully faceted, a 0.7 m grid read as low-poly
-        {
-          vec3 cfn = normalize( cross( dFdx( vCW ), dFdy( vCW ) ) );
-          cfn *= sign( dot( cfn, cwn ) + 1e-4 );
-          float skin = step( 0.5, vCT.y ) * step( 0.5, vCD.a );
-          cln = normalize( mix( cwn, cfn, 0.5 * skin ) );
-          cwn = normalize( mix( cwn, cfn, skin ) );
-        }
-        vec3 cb = pow( abs( cwn ), vec3( 4.0 ) ); cb /= max( cb.x + cb.y + cb.z, 1e-5 );
-        vec3 sg = sign( cwn + 1e-4 );
-        vec2 uvX = vec2( vCW.z * sg.x, vCW.y ) * ${(1 / ROCK_TILE).toFixed(4)};
-        vec2 uvY = vec2( vCW.x * sg.y, vCW.z ) * ${(1 / ROCK_TILE).toFixed(4)};
-        vec2 uvZ = vec2( -vCW.x * sg.z, vCW.y ) * ${(1 / ROCK_TILE).toFixed(4)};
-        float up = smoothstep( 0.45, 0.9, cwn.y );
-        float outside = vCD.g;
-        float rockW = step( 0.5, vCD.a );
-        // the grit on the ledges (the Y projection): patchy
-        float gritN = cNoise( vCW.xz * 0.35 ) * 0.65 + cNoise( vCW.xz * 1.3 ) * 0.35;
-        float grit = up * smoothstep( 0.35, 0.65, gritN ) * rockW;
-        vec3 aX = texture2D( tRockD, uvX ).rgb, aZ = texture2D( tRockD, uvZ ).rgb;
-        vec3 aY = texture2D( tRockD, uvY ).rgb;
-        vec2 uvG = vCW.xz * ${(1 / GRIT_TILE).toFixed(4)};
-        if ( grit > 0.01 ) aY = mix( aY, texture2D( tGritD, uvG ).rgb * vec3( 0.95, 0.93, 0.9 ), grit );
-        vec3 alb = aX * cb.x + aY * cb.y + aZ * cb.z;
-        vec3 armX = texture2D( tRockA, uvX ).rgb, armY = texture2D( tRockA, uvY ).rgb, armZ = texture2D( tRockA, uvZ ).rgb;
-        vec3 carm = armX * cb.x + armY * cb.y + armZ * cb.z;
-        // granite, not a lichen carpet: the lichen's green / yellow cools toward grey on the steep faces and in the dark
-        float lum = dot( alb, vec3( 0.299, 0.587, 0.114 ) );
-        float keep = mix( 0.58, 0.9, up ) * mix( 0.5, 1.0, outside );
-        alb = mix( vec3( lum ) * vec3( 0.98, 1.0, 1.04 ), alb, keep );
-        // rain streaks down the faces: dark vertical stains under the ledges
-        float streak = cNoise( vec2( ( vCW.x + vCW.z ) * 0.9, vCW.y * 0.06 ) ) * cNoise( vec2( ( vCW.x - vCW.z ) * 0.33, vCW.y * 0.02 + 7.0 ) );
-        alb *= 1.0 - 0.2 * smoothstep( 0.12, 0.45, streak ) * ( 1.0 - up ) * outside;
-        // moss on the up-facing, outside (the cave's floor stays bare)
-        float mossN = cNoise( vCW.xz * 0.21 + 3.0 ) * 0.6 + cNoise( vCW.xz * 0.9 ) * 0.4;
-        float moss = smoothstep( 0.62, 0.92, cwn.y ) * smoothstep( 0.42, 0.62, mossN ) * outside * rockW * ( 1.0 - grit * 0.6 );
-        alb = mix( alb, vec3( 0.075, 0.095, 0.035 ) * ( 0.8 + 0.4 * mossN ), moss * 0.85 );
-        // a macro variation so a face does not tile
-        alb *= 0.86 + 0.28 * cNoise( vCW.xz * 0.045 + vCW.y * 0.03 );
-        alb *= mix( vec3( 1.0 ), vec3( 1.1, 1.0, 0.86 ), smoothstep( 0.35, 0.75, cNoise( vCW.xz * 0.018 + 9.0 ) ) * rockW ); // warm iron-stained patches
-        // E322 F-L1: the look targets' pale granite (the Ridge's rock was ΔE00 8.8 darker and blotchier): lifted, the
-        // blotches pulled toward their mean
-        {
-          float gl = dot( alb, vec3( 0.299, 0.587, 0.114 ) );
-          alb = mix( alb, mix( vec3( gl ), vec3( 0.36, 0.35, 0.33 ), 0.35 ), 0.3 * rockW * ( 1.0 - moss ) ) * mix( 1.0, ${CRAG_LIFT.toFixed(3)}, rockW );
-        }
-        // the tint path (the cave's bedding, bones, twigs): its own albedo, the granite's normal for grain
-        vec3 tintCol = vCT.y < 0.25 ? vec3( 0.62, 0.58, 0.49 ) : vCT.y < 0.5 ? vec3( 0.42, 0.33, 0.19 ) : vec3( 0.19, 0.13, 0.08 );
-        alb = mix( tintCol * vCT.x * ( 0.85 + 0.3 * cNoise( vCW.xz * 6.0 ) ), alb, rockW );
-        diffuseColor.rgb *= alb;
-        float cRough = mix( 0.95, carm.g, rockW );
-        cRough = mix( cRough, 0.9, moss );
-        float cAO = mix( 1.0, carm.r, 0.75 * rockW );
-        // the cave's wet (drips, the damp floor): darker, glossier
-        diffuseColor.rgb *= 1.0 - 0.35 * vCD.b;
-        cRough = mix( cRough, 0.28, vCD.b );` },
-  { stage: 'fragment', find: '#include <roughnessmap_fragment>', put: 'float roughnessFactor = roughness * cRough;' },
-  { stage: 'fragment', find: '#include <metalnessmap_fragment>', put: 'float metalnessFactor = 0.0;' },
-  { stage: 'fragment', find: '#include <normal_fragment_maps>', put: `
-        {
-          vec3 nX = cUnpack( texture2D( tRockN, uvX ) ), nY = cUnpack( texture2D( tRockN, uvY ) ), nZ = cUnpack( texture2D( tRockN, uvZ ) );
-          if ( grit > 0.01 ) nY = normalize( mix( nY, cUnpack( texture2D( tGritN, uvG ) ), grit ) );
-          nX.x *= sg.x; nY.x *= sg.y; nZ.x *= -sg.z;
-          float str = mix( 0.35, 1.0, rockW ) * ( 1.0 - 0.6 * moss );
-          nX.xy *= str; nY.xy *= str; nZ.xy *= str;
-          // whiteout blend (the tangent frames: X ← (z, y), Y ← (x, z), Z ← (x, y))
-          vec3 tX = vec3( nX.xy + cln.zy, abs( nX.z ) * cln.x );
-          vec3 tY = vec3( nY.xy + cln.xz, abs( nY.z ) * cln.y );
-          vec3 tZ = vec3( nZ.xy + vec2( -cln.x, cln.y ), abs( nZ.z ) * cln.z );
-          vec3 wN = normalize( tX.zyx * cb.x + tY.xzy * cb.y + vec3( -tZ.x, tZ.y, tZ.z ) * cb.z );
-          normal = normalize( ( viewMatrix * vec4( wN, 0.0 ) ).xyz );
-        }` },
-  { stage: 'fragment', find: '#include <emissivemap_fragment>', put: `#include <emissivemap_fragment>
-        totalEmissiveRadiance += diffuseColor.rgb * uCaveFill * vCD.r * ( 1.0 - vCD.g );` },
-  // the directional lights (the sun / the moon through CSM) × sun reach; point lights (the lantern, the lamps) untouched
-  { stage: 'fragment', find: '#include <lights_fragment_begin>', put: { chunk: 'lights_fragment_begin', edits: [{ find: 'getDirectionalLightInfo\\(([^;]+)\\);', flags: 'g', put: 'getDirectionalLightInfo($1); directLight.color *= vCD.g;' }] } },
-  // the haze belongs outside: in the cave (sun reach 0) the fog's bright sky colour is kept off the rock
-  { stage: 'fragment', find: '#include <fog_fragment>', put: `vec3 cPreFog = gl_FragColor.rgb;
-        #include <fog_fragment>
-        gl_FragColor.rgb = mix( cPreFog, gl_FragColor.rgb, mix( 0.06, 1.0, vCD.g ) );` },
-  { stage: 'fragment', find: '#include <aomap_fragment>', put: `
-        {
-          // inside, the fill (the emissive term) is the cave's light
-          // (the sky's own light has no business under the roof: there the fill carries it, the same from every side)
-          float amb = cAO * max( vCD.r, 0.012 ) * mix( 0.08, 1.0, vCD.g );
-          reflectedLight.indirectDiffuse *= amb;
-          reflectedLight.indirectSpecular *= amb * mix( 0.35, 1.0, vCD.g );
-        }` },
-];
+function cragGraph(): GraphIr {
+  const k = kit(), { op, add, sub, mul, mix, swz, smooth, noise } = k;
+  const cd = op('attribute', undefined, { name: 'aCdata', type: 'vec4' }), ct = op('attribute', undefined, { name: 'aCtint', type: 'vec2' });
+  const ao = swz(cd, 'x'), reach = swz(cd, 'y'), wet = swz(cd, 'z'), rockW = op('step', [0.5, swz(cd, 'w')]);
+  const pw = op('positionWorld'), px = swz(pw, 'x'), py = swz(pw, 'y'), pz = swz(pw, 'z'), xz = swz(pw, 'xz');
+  const base = op('normalize', [op('normalWorld')]);
+  // the face skin, by its facets: lit half faceted, projected fully faceted
+  const facet0 = op('normalize', [op('cross', [op('dFdx', [pw]), op('dFdy', [pw])])]);
+  const facet = mul(facet0, op('select', [op('gt', [add(op('dot', [facet0, base]), 1e-4), 0]), 1, -1]));
+  const skin = mul(op('step', [0.5, swz(ct, 'y')]), rockW);
+  const lit = op('normalize', [mix(base, facet, mul(skin, 0.5))]), n = op('normalize', [mix(base, facet, skin)]);
+  const n2 = mul(n, n), n4 = mul(n2, n2);
+  const cb = op('div', [n4, op('max', [op('dot', [n4, [1, 1, 1]]), 1e-5])]), cbx = swz(cb, 'x'), cby = swz(cb, 'y'), cbz = swz(cb, 'z');
+  const sg = sub(mul(op('step', [-1e-4, n]), 2), 1), sgx = swz(sg, 'x'), sgy = swz(sg, 'y'), sgz = swz(sg, 'z');
+  const tile = 1 / ROCK_TILE;
+  const uvX = mul(op('combine', [mul(pz, sgx), py]), tile), uvY = mul(op('combine', [mul(px, sgy), pz]), tile);
+  const uvZ = mul(op('combine', [mul(op('negate', [px]), sgz), py]), tile), uvG = mul(xz, 1 / GRIT_TILE);
+  const tex = (param: (typeof CRAG_TEXTURES)[number], uv: GraphRef): string => swz(op('texture', [uv], { param }), 'xyz');
+  const up = smooth(0.45, 0.9, swz(n, 'y'));
+  // the grit on the ledges (the Y projection): patchy
+  const gritN = add(mul(noise(mul(xz, 0.35)), 0.65), mul(noise(mul(xz, 1.3)), 0.35));
+  const grit = mul(mul(up, smooth(0.35, 0.65, gritN)), rockW);
+  const aY = mix(tex('rockMap', uvY), mul(tex('gritMap', uvG), [0.95, 0.93, 0.9]), grit);
+  let alb = add(add(mul(tex('rockMap', uvX), cbx), mul(aY, cby)), mul(tex('rockMap', uvZ), cbz));
+  const arm = add(add(mul(tex('rockArm', uvX), cbx), mul(tex('rockArm', uvY), cby)), mul(tex('rockArm', uvZ), cbz));
+  // granite, not a lichen carpet: the lichen's green / yellow cools toward grey on the steep faces and in the dark
+  const luma = (c: GraphRef): string => op('dot', [c, [0.299, 0.587, 0.114]]);
+  alb = mix(mul(luma(alb), [0.98, 1, 1.04]), alb, mul(mix(0.58, 0.9, up), mix(0.5, 1, reach)));
+  // rain streaks down the faces: dark vertical stains under the ledges
+  const streak = mul(noise(op('combine', [mul(add(px, pz), 0.9), mul(py, 0.06)])), noise(op('combine', [mul(sub(px, pz), 0.33), add(mul(py, 0.02), 7)])));
+  alb = mul(alb, sub(1, mul(mul(mul(smooth(0.12, 0.45, streak), 0.2), op('oneMinus', [up])), reach)));
+  // moss on the up-facing, outside (the cave's floor stays bare)
+  const mossN = add(mul(noise(add(mul(xz, 0.21), 3)), 0.6), mul(noise(mul(xz, 0.9)), 0.4));
+  const moss = mul(mul(mul(mul(smooth(0.62, 0.92, swz(n, 'y')), smooth(0.42, 0.62, mossN)), reach), rockW), sub(1, mul(grit, 0.6)));
+  alb = mix(alb, mul([0.075, 0.095, 0.035], add(0.8, mul(mossN, 0.4))), mul(moss, 0.85));
+  // a macro variation so a face does not tile; warm iron-stained patches
+  alb = mul(alb, add(0.86, mul(noise(add(mul(xz, 0.045), mul(py, 0.03))), 0.28)));
+  alb = mul(alb, mix([1, 1, 1], [1.1, 1, 0.86], mul(smooth(0.35, 0.75, noise(add(mul(xz, 0.018), 9))), rockW)));
+  // E322 F-L1: the look targets' pale granite: lifted, the blotches pulled toward their mean
+  alb = mul(mix(alb, mix(luma(alb), [0.36, 0.35, 0.33], 0.35), mul(mul(rockW, op('oneMinus', [moss])), 0.3)), mix(1, CRAG_LIFT, rockW));
+  // the tint path (the cave's bedding, bones, twigs): its own albedo, the granite's normal for grain
+  const ty = swz(ct, 'y');
+  const tint = op('select', [op('lt', [ty, 0.25]), [0.62, 0.58, 0.49], op('select', [op('lt', [ty, 0.5]), [0.42, 0.33, 0.19], [0.19, 0.13, 0.08]])]);
+  alb = mix(mul(mul(tint, swz(ct, 'x')), add(0.85, mul(noise(mul(xz, 6)), 0.3))), alb, rockW);
+  // the cave's wet (drips, the damp floor): darker, glossier
+  const colour = mul(alb, sub(1, mul(wet, 0.35)));
+  const roughness = mix(mix(mix(0.95, swz(arm, 'y'), rockW), 0.9, moss), 0.28, wet);
+  // inside, the fill is the cave's light: the sky's own light has no business under the roof
+  const occlusion = mul(mul(mix(1, swz(arm, 'x'), mul(rockW, 0.75)), op('max', [ao, 0.012])), mix(0.08, 1, reach));
+  // the normal: each projection's tangent normal, whiteout-blended onto the lit base (tangent frames X ← (z, y), Y ← (x, z), Z ← (x, y))
+  const unpack = (t: GraphRef): string => sub(mul(t, 2), 1);
+  const str = mul(mix(0.35, 1, rockW), sub(1, mul(moss, 0.6)));
+  const nX = unpack(tex('rockNormal', uvX)), nZ = unpack(tex('rockNormal', uvZ));
+  const nY = op('normalize', [mix(unpack(tex('rockNormal', uvY)), unpack(tex('gritNormal', uvG)), grit)]);
+  const bent = (t: string, sign: GraphRef): string => mul(op('combine', [mul(swz(t, 'x'), sign), swz(t, 'y')]), str);
+  const tX = op('combine', [add(bent(nX, sgx), swz(lit, 'zy')), mul(op('abs', [swz(nX, 'z')]), swz(lit, 'x'))]);
+  const tY = op('combine', [add(bent(nY, sgy), swz(lit, 'xz')), mul(op('abs', [swz(nY, 'z')]), swz(lit, 'y'))]);
+  const tZ = op('combine', [add(bent(nZ, op('negate', [sgz])), op('combine', [op('negate', [swz(lit, 'x')]), swz(lit, 'y')])), mul(op('abs', [swz(nZ, 'z')]), swz(lit, 'z'))]);
+  const zFlip = op('combine', [op('negate', [swz(tZ, 'x')]), swz(tZ, 'y'), swz(tZ, 'z')]);
+  const normal = op('normalize', [add(add(mul(swz(tX, 'zyx'), cbx), mul(swz(tY, 'xzy'), cby)), mul(zFlip, cbz))]);
+  const emissive = mul(mul(mul(colour, op('param', undefined, { param: 'caveFill' })), ao), op('oneMinus', [reach]));
+  return { version: 1, kind: 'material', model: 'standard', budget: { nodes: 720, samplers: 5, instructions: 1080 }, nodes: k.nodes,
+    params: {
+      ...Object.fromEntries(CRAG_TEXTURES.map((name) => [name, { type: 'texture' as const, value: `pine-crag-${name}`, role: 'lent' as const }])),
+      caveFill: { type: 'float', value: 1, min: 0, max: 8 },
+    },
+    stages: {
+      'vertex.scale': { sun: reach, fog: mix(0.06, 1, reach) },
+      surface: { colour, normal, roughness, metalness: 0, occlusion, emissive },
+    } };
+}
+
+/** the crags' graph by look.materials id */
+export const CRAG_GRAPHS: Readonly<Record<string, GraphIr>> = { [CRAG_LOOK]: cragGraph() };
 
 /**
  * The bear cave near its mouth (world/crags.ts hands it to @wildshard/sdk/kit/caveInterior): the shaft and the drips draw

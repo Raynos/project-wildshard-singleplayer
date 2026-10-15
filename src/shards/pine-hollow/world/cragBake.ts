@@ -55,6 +55,15 @@ export type SkinRows = CragRows['skin'][Tier];
 
 /** the bake's rows, parsed strictly once */
 export const CRAG_ROWS: CragRows = v.parse(CragRowsSchema, cragJson);
+/** the bake's `cdata` / `ctint`, named as the granite's graph reads them (`aCdata` / `aCtint`, ../data/cragLook.ts) */
+function graphNamed(g: THREE.BufferGeometry): THREE.BufferGeometry {
+  for (const [from, to] of [['cdata', 'aCdata'], ['ctint', 'aCtint']] as const) {
+    if (!g.hasAttribute(from)) continue;
+    const a = g.getAttribute(from); g.deleteAttribute(from); g.setAttribute(to, a);
+  }
+  return g;
+}
+
 /** Original per-tier draws reconstructed from the charged Scene's exact source ordinals. */
 export class CragSkin {
   private readonly views: ReadonlyMap<string, WholeGeometryView>;
@@ -67,7 +76,7 @@ export class CragSkin {
       const geometry = (resolution: string): THREE.BufferGeometry => {
         const key = `${this.tier}-skin-${String(i)}-${resolution}`, view = this.views.get(key);
         if (view === undefined) throw new Error(`[crags] missing original source ${key}`);
-        const shape = view.geometry; shape.computeBoundingBox(); shape.computeBoundingSphere(); return shape;
+        const shape = graphNamed(view.geometry); shape.computeBoundingBox(); shape.computeBoundingSphere(); return shape;
       };
       out.push([geometry('near'), geometry('far')]);
       await yieldTask();

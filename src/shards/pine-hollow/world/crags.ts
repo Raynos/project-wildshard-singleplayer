@@ -19,10 +19,11 @@
  * Draws: ONE BatchedMesh (WEBGL_multi_draw) for everything — every module's two LODs (the models, `place`'s `batch`),
  * the face skin, the cave, its far hood — so the crags cost one draw + one per shadow cascade; per instance, the LOD is a
  * geometry id and the range a visibility bit, and three culls each live instance against every camera it renders. The
- * shaft and the drips are drawn only near the cave. One program (+ its depth program): triplanar granite in world space (Poly Haven CC0 `mossy_rock`, the lichened
- * boreal granite), ledge grit from the terrain's own `rock_ground`, moss on the up-facing, rain streaks down the faces;
- * the vertex colour carries (AO → the indirect light, sun reach → the directional light only (the cave's lantern and
- * the lamps stay), wet, rock / tint).
+ * shaft and the drips are drawn only near the cave. One program (+ its depth program), the `pine-crag` material graph
+ * (../data/cragLook.ts): triplanar granite in world space (Poly Haven CC0 `mossy_rock`, the lichened boreal granite),
+ * ledge grit from the terrain's own `rock_ground`, moss on the up-facing, rain streaks down the faces; the vertex colour
+ * (read as `aCdata`) carries AO → the indirect light, sun reach → the directional light and the haze only (the cave's
+ * lantern and the lamps stay), wet, rock / tint.
  *
  *   const crags = await PineCrags.load(sky);                        // null: the kit is missing (a dev server without it)
  *   await crags.prepareSkin(macrotask);                             // the baked face skin's tiles
@@ -39,18 +40,16 @@ import { CAVE_FRAME, loadCragSkin, type CragPlace, type CragSkin } from './cragB
 import { CLIFF_MODULES, cragCliff } from '../models/cragCliff';
 import { BOULDER_MODULES, cragBoulder } from '../models/cragBoulder';
 import { SCREE_MODULES, scree as screeFan } from '../models/scree';
-import { CAVE_LOOK, CRAG_EDITS } from '../data/cragLook';
+import { CAVE_LOOK, CRAG_LOOK } from '../data/cragLook';
+import { pineLook, setPineLookParam, setPineLookTexture } from '../runtime/looks/graphLooks';
 import { loadPBR, loadTexture, texUrl, type PBRSet } from '@wildshard/engine/core/assets';
 import { TIER, TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { ModelDef, Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { TerrainCut } from '@wildshard/engine/physics/terrain';
-import { PATCH_ORDER, patchShader, setProgramKey } from '@wildshard/engine/render/shaderPatches';
 import { BatchedLodSet, type BatchedLodSet as BatchedLodSetView, type LodPlanRow } from '../runtime/cull/batchedLod';
 import { CaveInterior, type CaveInterior as CaveInteriorView, type CaveMeta } from '../runtime/kit/caveInterior';
 import { loadGlbNodes, trimeshDesc } from '../runtime/kit/glbNodes';
-import { editShader } from '@wildshard/sdk/looks/shaderEdits';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
@@ -74,30 +73,17 @@ const CAVE_FILL = { value: 1.0 };
 
 
 /**
- * Triplanar granite in world space for the BatchedMesh (and the cave inside it): albedo / normal / ARM from `mossy_rock`
- * on the X and Z projections and on the Y one blended with `rock_ground` grit on the ledges, moss on the up-facing,
- * dark rain streaks down the faces, and a tint path for the cave's bedding and bones. The vertex `cdata` = (AO, sun reach,
- * wet, rock): AO multiplies the indirect light, sun reach the directional lights only. The GLSL edits are data
- * (../data/cragLook.ts `CRAG_EDITS`).
+ * The granite (../data/cragLook.ts `CRAG_GRAPHS`, compiled with Pine's other look.materials graphs before the world
+ * builds): `mossy_rock`'s albedo / normal / ARM and `rock_ground`'s albedo / normal, repeating, lent to its texture
+ * params; the cave's fill (`CAVE_FILL`) reaches it each frame through PineCrags.update.
  */
-function cragMaterial(sky: Sky, rock: PBRSet, grit: Pick<PBRSet, 'map' | 'normalMap'>): THREE.MeshStandardMaterial {
-  const mat = new THREE.MeshStandardMaterial({ roughness: 1, metalness: 0 });
-  const u = {
-    tRockD: { value: rock.map }, tRockN: { value: rock.normalMap }, tRockA: { value: rock.armMap },
-    tGritD: { value: grit.map }, tGritN: { value: grit.normalMap },
-    /** the cave's fill: the light the mouth and the crack let in, scattered off every wall (no direction) — day-driven */
-    uCaveFill: CAVE_FILL,
-  };
-  for (const t of [rock.map, rock.normalMap, rock.armMap, grit.map, grit.normalMap]) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1); t.needsUpdate = true; }
-  setProgramKey(mat, 'pine-crag');
-  sky.setupMaterial(mat);
-  // chained after sky.setupMaterial's CSM uniforms (its lights_fragment_begin is the global chunk, patched below)
-  patchShader(mat, 'pine.crag', PATCH_ORDER.material, (shader) => {
-    attachFogUniforms(shader);
-    Object.assign(shader.uniforms, u);
-    editShader(shader, CRAG_EDITS); // ../data/cragLook.ts
-  }, { textures: [rock.map, rock.normalMap, rock.armMap] });
-  return mat;
+function cragMaterial(rock: PBRSet, grit: Pick<PBRSet, 'map' | 'normalMap'>): THREE.Material {
+  const lent = { rockMap: rock.map, rockNormal: rock.normalMap, rockArm: rock.armMap, gritMap: grit.map, gritNormal: grit.normalMap };
+  for (const [name, t] of Object.entries(lent)) {
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1, 1); t.needsUpdate = true;
+    setPineLookTexture(CRAG_LOOK, name, t);
+  }
+  return pineLook(CRAG_LOOK);
 }
 
 // ─────────────────────────────────────────────────────── the set ───────────────────────────────────────────────────
@@ -105,8 +91,8 @@ function cragMaterial(sky: Sky, rock: PBRSet, grit: Pick<PBRSet, 'map' | 'normal
 /** LOD / range per kind (m, camera to the instance less half its radius): the kit's models' (world/cragKit.ts) */
 const LOD = CRAG_LOD;
 
-/** the kit's vertex colour and tint UV, as the granite's program reads them (../data/cragLook.ts) */
-const KIT_ATTRS = { color: 'cdata', uv: 'ctint' } as const;
+/** the kit's vertex colour and tint UV, as the granite's graph reads them (../data/cragLook.ts) */
+const KIT_ATTRS = { color: 'aCdata', uv: 'aCtint' } as const;
 
 
 export class PineCrags {
@@ -151,7 +137,7 @@ export class PineCrags {
           .then(([map, normalMap]) => ({ map, normalMap }))]) : Promise.resolve(null), // G180 B1: only the grit samplers the shader uses; an eagerly uploaded unused ARM has no owner.
         sky ? loadCragSkin(TIER, pineModels(sky)) : Promise.resolve(null), // only drawn builds need the skin (G285: ./cragBake.ts)
       ]);
-      const mat = sky && tex ? cragMaterial(sky, tex[0], tex[1]) : null;
+      const mat = sky && tex ? cragMaterial(tex[0], tex[1]) : null;
       for (const [name, g] of kitB) kit.set(name, g);
       return new PineCrags(sky, kit, caveGeo, caveMeta, mat, skin);
     } catch (e: unknown) {
@@ -264,5 +250,6 @@ export class PineCrags {
     const cam = sky.viewCamera; cam.getWorldPosition(this.tmp);
     this.own?.update(this.tmp);
     if (this.cave && this.caveLive) this.cave.update(t, this.tmp, sky);
+    if (this.mat) setPineLookParam(CRAG_LOOK, 'caveFill', CAVE_FILL.value);
   }
 }
