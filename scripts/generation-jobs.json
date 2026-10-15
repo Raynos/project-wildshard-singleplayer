@@ -13343,7 +13343,9 @@
         "public/assets/driftwood-isle/baked/palm-f602a3eaae282c8dd8ac6deab657f2e48f07f10c29222c5e2ae3f6c1e0553055.glb",
         "public/assets/driftwood-isle/baked/palm-558b3f163eae01e096627eab4aee28e80fa108de7b50c0a29d9781b245da16d3.glb",
         "public/assets/driftwood-isle/baked/palm-f1068c4fcd0adadb4f85e0c48b99391046f09a722b182de67ca1d04bab0220f6.glb",
-        "src/shards/driftwood-isle/data/foliagePlacements.generated.json"
+        "src/shards/driftwood-isle/data/foliagePlacements.generated.json",
+        "public/assets/driftwood-isle/baked/island-plan-bbe7282cde6bf8a130140dd7c952b4b3c86159c59daf1b5f56f93fb04ddf8bee.json",
+        "public/assets/driftwood-isle/baked/island-plan-cbf54035425a3adeaffdb5648b055437c27453980f670e8dda8234ef874b8bba.json"
       ],
       "buildTimeOutputs": [
         "src/shards/driftwood-isle/data/islandDressing.generated.json",
@@ -13365,7 +13367,9 @@
         "public/assets/driftwood-isle/baked/palm-f602a3eaae282c8dd8ac6deab657f2e48f07f10c29222c5e2ae3f6c1e0553055.glb",
         "public/assets/driftwood-isle/baked/palm-558b3f163eae01e096627eab4aee28e80fa108de7b50c0a29d9781b245da16d3.glb",
         "public/assets/driftwood-isle/baked/palm-f1068c4fcd0adadb4f85e0c48b99391046f09a722b182de67ca1d04bab0220f6.glb",
-        "src/shards/driftwood-isle/data/foliagePlacements.generated.json"
+        "src/shards/driftwood-isle/data/foliagePlacements.generated.json",
+        "public/assets/driftwood-isle/baked/island-plan-bbe7282cde6bf8a130140dd7c952b4b3c86159c59daf1b5f56f93fb04ddf8bee.json",
+        "public/assets/driftwood-isle/baked/island-plan-cbf54035425a3adeaffdb5648b055437c27453980f670e8dda8234ef874b8bba.json"
       ],
       "seedOutputs": [],
       "platform": "native"

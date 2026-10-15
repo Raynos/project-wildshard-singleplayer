@@ -7,7 +7,6 @@ import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { editShader, spliceEdits, type ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
 import type { ISLAND_PROPS, ISLAND_TERRAIN } from './islandLook';
-import type { ISLAND_LOOK } from '../../data/islandRows';
 
 /**
  * A baked island's generic parts (SHARD-PLATFORM M3; ex a shard's Blender-island install): an area of the world rebuilt
@@ -20,7 +19,7 @@ import type { ISLAND_LOOK } from '../../data/islandRows';
  *   sky rig's setup, the AO edits, per-instance tint and the cover's fade-out past each plant's own edge).
  * - `clipGridTerrain`: install the authored terrain clipping facts.
  * - `simplifiedProto`: a prototype's far copy (meshoptimizer), so a tile's far copies keep its near copies' shape.
- * - `protosFromMeshes`, `droppedPlacements`, `usedPlacements`, `placementSets`, `tileRect`: read and sort the bake.
+ * - `protosFromMeshes`, `droppedPlacements`, `usedPlacements`, `tileRect`: read and sort the bake.
  * - `decodeFloatBlock`: a baked float block's file (a 16-byte header, then the f32s; the generator writes it).
  * - `sunBounceLevel`: how much of the baked bounce the live sun lights.
  */
@@ -129,37 +128,6 @@ export function droppedPlacements(buf: ArrayBuffer, drop: number): Float32Array 
  *  tier's set is a prefix). */
 export function usedPlacements(f: Float32Array, mustDraw: number, share: number): number {
   return mustDraw + Math.round((f.length / 10 - mustDraw) * share);
-}
-
-/** How the placements sort: by prototype kind and name (data/islandRows.ts `names`), and the tile counts per side (the
- *  casters' set and the two cover sets). */
-type PlacementSetsRow = typeof ISLAND_LOOK.names & { readonly casterTiles: number; readonly coverTiles: number };
-
-/** The placements of a baked set by set and tile, and the ones set apart. */
-export interface PlacementSets { casters: number[][]; covers: number[][]; bigs: number[][]; apart: number[] }
-
-/** The tile of `rect` (`n` × `n`) holding (x, z), clamped to the rect. */
-function tileOf(rect: IslandRect, x: number, z: number, n: number): number {
-  const tx = Math.min(n - 1, Math.max(0, Math.floor((x - rect.x0) / (rect.x1 - rect.x0) * n)));
-  const tz = Math.min(n - 1, Math.max(0, Math.floor((z - rect.z0) / (rect.z1 - rect.z0) * n)));
-  return tz * n + tx;
-}
-
-/** The first `used` placements by set and tile (the casters `casterTiles`², the small and big cover `coverTiles`²). */
-export function placementSets(f: Float32Array, protos: readonly { readonly name: string; readonly kind: string }[], used: number, rect: IslandRect, row: PlacementSetsRow): PlacementSets {
-  const CT = row.casterTiles, VT = row.coverTiles;
-  const skip = new RegExp(row.skip), apartRe = new RegExp(row.apart), big = new RegExp(row.big);
-  const casters: number[][] = Array.from({ length: CT * CT }, () => []), covers: number[][] = Array.from({ length: VT * VT }, () => []), bigs: number[][] = Array.from({ length: VT * VT }, () => []);
-  const apart: number[] = [];
-  for (let i = 0; i < used; i++) {
-    const pi = f[i * 10] ?? 0, kind = protos[pi]?.kind ?? 'small';
-    const x = f[i * 10 + 1] ?? 0, z = f[i * 10 + 3] ?? 0;
-    const name = protos[pi]?.name ?? '';
-    if (skip.test(name)) continue;
-    if (apartRe.test(name)) { apart.push(i); continue; }
-    if (row.casterKinds.includes(kind)) casters[tileOf(rect, x, z, CT)]?.push(i); else (big.test(name) ? bigs : covers)[tileOf(rect, x, z, VT)]?.push(i);
-  }
-  return { casters, covers, bigs, apart };
 }
 
 /** Tile `k` of `rect` split `n` × `n`. */

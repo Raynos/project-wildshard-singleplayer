@@ -1,5 +1,6 @@
 import {mkdirSync,readFileSync,writeFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
+import {bakeIslandPlan,islandPlacements} from './islandCover.ts';
 import {islandDressing} from './islandDressing.ts';
 import {palmGeometry} from './palm.ts';
 import {palm} from '../models/palm.ts';
@@ -45,3 +46,14 @@ console.log('Island dressing: native triangle runs and two cropped full cover gr
 console.log(`cover-files ${JSON.stringify(Object.fromEntries(Object.entries(tiers).map(([tier,row])=>[tier,row.cover])))}`);
 
 writeFileSync(new URL('../data/foliagePlacements.generated.json',import.meta.url),`${JSON.stringify({seed:data.seed,tiers:Object.fromEntries(data.tiers.map(row=>[row.tier,row.foliage]))})}\n`);
+
+const islandBase=new URL('public/assets/models/driftwood-blender/',root);
+const islandMeta=JSON.parse(readFileSync(new URL('island.json',islandBase),'utf8'));
+const placementBytes=readFileSync(new URL('placements.bin',islandBase)),planFiles={};
+for(const tier of ['phone','desktop']){
+ const plan=bakeIslandPlan(islandPlacements(Uint8Array.from(placementBytes).buffer),islandMeta,tier==='phone');
+ const packed={...plan,families:plan.families.map(row=>({...row,boxes:Buffer.from(Float32Array.from(row.boxes).buffer).toString('base64')}))};
+ const bytes=new TextEncoder().encode(JSON.stringify(packed));
+ planFiles[tier]={url:emit(bytes,'json','island-plan'),bytes:bytes.length,used:plan.used};
+}
+console.log(`island-plan-files ${JSON.stringify(planFiles)}`);

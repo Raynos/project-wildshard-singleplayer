@@ -65,3 +65,5 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   gzip). World and Explorer borrow one prepared library entry; no
   second runtime source GLB. Geometry attributes and materials stay
   unchanged; no binary Git blobs.
+
+| Driftwood Isle | Authored Blender-cove placement plans (immutable per-tier JSON; no new geometry) | — | — | Phone 666,785 B raw / 400,547 B gzip-9; desktop 874,449 B raw / 537,717 B gzip-9 | W2 cove-plan call | Existing placement indices plus exact Float32 picking boxes; same 400 small-rock poses, ordered 16 model families and 200 collider claims. Parsed sidecar and decode buffers are released after placement; no retained template or second world payload. |

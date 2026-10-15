@@ -1,3 +1,4 @@
+import { ISLAND_PLAN_FILES as PLAN_FILES } from './islandPlanFiles';
 import { REEF_FILES } from './reefFiles';
 import { PALM_FILES } from './palmFiles';
 import { HIBISCUS_FILES } from './hibiscusFiles';
@@ -57,10 +58,10 @@ export const DRIFTWOOD_BOOT_FILES = {
   },
   "records": {
     "source": {
-      "urls": [
-        "/assets/models/driftwood-blender/island.json",
-        "/assets/models/driftwood-blender/placements.bin"
-      ]
+      "urls": {
+        phone: ["/assets/models/driftwood-blender/island.json", "/assets/models/driftwood-blender/placements.bin", PLAN_FILES.phone.url],
+        desktop: ["/assets/models/driftwood-blender/island.json", "/assets/models/driftwood-blender/placements.bin", PLAN_FILES.desktop.url]
+      }
     }
   },
   "lights": {

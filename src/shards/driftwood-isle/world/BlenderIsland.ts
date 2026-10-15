@@ -36,26 +36,29 @@ import { ISLAND_COVER_FILES } from '../data/islandCoverFiles';
  * families' pieces, `placeModels`), no longer on the P2 bridge. `palmSpecs` gains the new palms (the monkeys climb them).
  */
 import * as THREE from 'three';
+import * as v from 'valibot';
+import { assetBytes } from '@wildshard/sdk/assets';
+import { ISLAND_PLAN_FILES as PLAN_FILES } from '../data/islandPlanFiles';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import ISLAND_FACTS from '../data/islandFacts.generated.json' with { type: 'json' };
 import { area, BLENDER_MODELS } from './blenderArea';
 import type { PalmSpec } from './Palms';
 import { WORLD_DROP } from './sea';
-import { smallRock, type SmallRockParams } from '../models/smallRock';
-import { COVE_MODELS, coveFamilyOf, coveProtos, type CoveFamily, type CoveParams } from '../models/cove';
+import { smallRock } from '../models/smallRock';
+import { COVE_MODELS, coveProtos, type CoveFamily } from '../models/cove';
 import { ISLAND_PROPS, ISLAND_TERRAIN } from '../runtime/looks/islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
 import { CoverGrid, tintTerrain, coverSample, coverJitter } from './coverTint';
-import { bakedPropsMaterial, bakedTerrainMaterial, clipGridTerrain, droppedPlacements, placementSets, protosFromMeshes, simplifiedProto, simplifierReady, sunBounceLevel, tileRect, usedPlacements, type IslandCoverFade, type IslandProto } from '../runtime/looks/bakedIsland';
+import { bakedPropsMaterial, bakedTerrainMaterial, clipGridTerrain, droppedPlacements, protosFromMeshes, simplifiedProto, simplifierReady, sunBounceLevel, tileRect, usedPlacements, type IslandCoverFade, type IslandProto } from '../runtime/looks/bakedIsland';
 import { TiledInstances, type TiledInstances as TiledInstanceSet } from '../runtime/looks/instancedTiles';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
 import { TIER } from '@wildshard/engine/core/tier';
-import { modelContext, type ModelContext, type Placement } from '@wildshard/engine/models/model';
+import { modelContext, type ModelContext } from '@wildshard/engine/models/model';
 import { place as placeModel, placeSliced } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { boxDesc, type ColliderDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
+import { boxDesc, type WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 const BASE = BLENDER_MODELS; // Driftwood's build: its palms / toon / sea are this file's own
@@ -98,6 +101,29 @@ const isInstanced = (o: THREE.Object3D): o is THREE.InstancedMesh => o instanceo
 
 function load<T>(f: (ok: (v: T) => void, bad: (e: unknown) => void) => void): Promise<T> { return new Promise<T>((resolve, reject) => { f(resolve, reject); }); }
 
+const planFloat=v.pipe(v.number(),v.finite()),planIndex=v.pipe(planFloat,v.integer(),v.minValue(0),v.maxValue(50_000));
+const planPoint={x:planFloat,y:planFloat,z:planFloat};
+const planBox=v.object({x:planFloat,z:planFloat,hw:planFloat,hd:planFloat,rot:planFloat,yTop:planFloat,yBottom:planFloat});
+const planIndices=v.pipe(v.array(planIndex),v.maxLength(50_000));
+const planBoxes=v.pipe(v.string(),v.maxLength(1_600_000),v.regex(/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u),v.transform(assetBytes),v.check(bytes=>bytes.length%4===0),v.transform(bytes=>new Float32Array(bytes.buffer)),v.check(values=>values.every(Number.isFinite)));
+const placementPlan=v.object({
+  version:v.literal(1),used:planIndex,
+  sets:v.object({casters:v.pipe(v.array(planIndices),v.maxLength(64)),covers:v.pipe(v.array(planIndices),v.maxLength(64)),bigs:v.pipe(v.array(planIndices),v.maxLength(64))}),
+  smallRocks:v.pipe(v.array(v.object({...planPoint,matrix:v.pipe(v.array(planFloat),v.length(16)),params:v.object({r:planFloat,sq:planFloat})})),v.maxLength(512)),
+  families:v.pipe(v.array(v.object({key:v.custom<CoveFamily>(value=>typeof value==='string'&&Object.hasOwn(COVE_MODELS,value)),indices:planIndices,boxes:planBoxes,colliders:v.pipe(v.array(planBox),v.maxLength(512))})),v.maxLength(16)),
+  unclaimed:v.pipe(v.array(planBox),v.maxLength(512)),
+});
+async function readPlacementPlan():Promise<v.InferOutput<typeof placementPlan>> {
+  const file=PLAN_FILES[TIER],response=await fetch(file.url,{cache:'force-cache'});
+  if(!response.ok)throw new Error(`Required island plan load failed (${response.status})`);
+  const bytes=new Uint8Array(await response.arrayBuffer());
+  const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),value=>value.toString(16).padStart(2,'0')).join('');
+  if(bytes.length!==file.bytes||!file.url.includes(hash))throw new Error('Required island plan content differs');
+  const plan=v.parse(placementPlan,JSON.parse(new TextDecoder().decode(bytes)));
+  if(plan.used!==file.used||plan.sets.casters.length!==CT*CT||plan.sets.covers.length!==VT*VT||plan.sets.bigs.length!==VT*VT||plan.families.some(row=>row.boxes.length!==row.indices.length*6||row.indices.some(i=>i>=plan.used))||Object.values(plan.sets).some(tiles=>tiles.some(items=>items.some(i=>i>=plan.used))))throw new Error('Required island plan layout differs');
+  return plan;
+}
+
 export class BlenderIsland {
   /** the area the island covers (GroundCover leaves it to the island's own dressing, E156) */
   static readonly area = area;
@@ -122,16 +148,16 @@ export class BlenderIsland {
       const url = `${BASE}${name}${phone ? '.phone' : ''}.webp`;
       return (await ktx2Texture(url)) ?? load<THREE.Texture>((ok, bad) => { tex.load(url, ok, undefined, bad); });
     };
-    const [gltf, meta, place, ao, bounce] = await Promise.all([
+    const [gltf, meta, place, ao, bounce, plan] = await Promise.all([
       load<{ scene: THREE.Group }>((ok, bad) => { loader.load(`${BASE}island.glb`, ok, undefined, bad); }),
       fetch(`${BASE}island.json`).then((r) => r.json() as Promise<IslandMeta>),
       fetch(`${BASE}placements.bin`).then((r) => r.arrayBuffer()),
-      lm('lm-ao'), lm('lm-bounce'),
+      lm('lm-ao'), lm('lm-bounce'), readPlacementPlan(),
     ]);
     const f = droppedPlacements(place, WORLD_DROP); // G164: each placement's y
     const used = usedPlacements(f, meta.mustDraw, TIER_LOOK.share);
     const coverGrid = CoverGrid.get();
-    if(coverGrid===null||used!==ISLAND_COVER_FILES[TIER].used)throw new Error('Required full island cover does not match its placements');
+    if(coverGrid===null||used!==ISLAND_COVER_FILES[TIER].used||used!==plan.used)throw new Error('Required full island cover does not match its placements');
     // G164: the cove was baked on the authored heights; it drops with the whole world (its tiles,
     // every placement and every collider box), so it stays on the dropped terrain exactly
     const drop = WORLD_DROP;
@@ -177,7 +203,7 @@ export class BlenderIsland {
     await simplifierReady();
     // E117: far = near, simplified (not the file's hand-made `_lo` palms: a whole tile changed shape at the swap)
     for (const [pi, lo] of lodOf) { const near = protos[pi]; if (near) protos[lo] = simplifiedProto(near, ISLAND_LOOK.far.ratio, ISLAND_LOOK.far.error); await slice(); }
-    const { casters, covers, bigs, apart: smallRocks } = placementSets(f, meta.protos, used, area, { casterTiles: CT, coverTiles: VT, ...ISLAND_LOOK.names });
+    const { casters, covers, bigs } = plan.sets;
     // G144: one InstancedMesh per prototype × set, the tiles kept as the unit of reach and view (@wildshard/sdk/looks/instancedTiles)
     const ins = this.instances = new TiledInstances(this.group, protos, meta.protos.map((p) => p.name), f, lodOf, ISLAND_LOOK.meshPrefix);
     ins.add({ tag: 'casters', tiles: casters, rects: casters.map((_, k) => tileRect(area, k, CT)), material: propsMat, cast: true, reach: 0, lod: ISLAND_LOOK.lod, cover: false });
@@ -199,14 +225,14 @@ export class BlenderIsland {
       for (const tile of terrainTiles) tintTerrain(tile);
       await slice();
     }
-    if (smallRocks.length > 0) {
+    if (plan.smallRocks.length > 0) {
       // E315 M1: the small-rock model, merged into one mesh (piece `cove-small-rocks`; it used to hang in this group)
-      await placeSliced(smallRock, this.smallRocks(smallRocks, f), { ctx: models, draw: 'merged', piece: { id: 'cove-small-rocks' } }, slice.due);
+      await placeSliced(smallRock, plan.smallRocks.map(row=>({...row,matrix:new THREE.Matrix4().fromArray(row.matrix)})), { ctx: models, draw: 'merged', piece: { id: 'cove-small-rocks' } }, slice.due);
     }
     this.group.name = 'blender-island';
     ctx.scene.add(this.group);
     // the specimens draw with an untinted props material (a single specimen has no per-instance `aTint`)
-    const unclaimed = await this.placeModels(models, f, used, meta, protos, makePropsMat(null, false));
+    const unclaimed = await this.placeModels(models, f, plan, meta, protos, makePropsMat(null, false));
 
     // ── hide what the area replaces ──
     clipGridTerrain(ctx.terrain);
@@ -232,20 +258,6 @@ export class BlenderIsland {
   }
 
   /**
-   * E114: the scattered small rocks as rockKit rocks — each at its placement's spot, tilt and yaw, as wide and as tall as
-   * the Blender rock it replaces; one lighter build (detail −1) since there are ~400: the small-rock model's placements.
-   */
-  private smallRocks(items: number[], f: Float32Array): Placement<SmallRockParams>[] {
-    const q = new THREE.Quaternion(), t = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
-    return items.map((i) => {
-      const o = i * 10, pi = f[o] ?? 0, sc = f[o + 8] ?? 1, { half, top } = ISLAND_FACTS[pi] ?? {half:0.4,top:0.25};
-      t.set(f[o + 1] ?? 0, f[o + 2] ?? 0, f[o + 3] ?? 0); q.set(f[o + 4] ?? 0, f[o + 5] ?? 0, f[o + 6] ?? 0, f[o + 7] ?? 1);
-      const r = (half * sc) / 1.1, sq = THREE.MathUtils.clamp((top * sc) / (0.92 * r), 0.4, 0.9);
-      return { x: t.x, y: t.y, z: t.z, matrix: new THREE.Matrix4().compose(t, q, one), params: { r, sq } };
-    });
-  }
-
-  /**
    * E315 M1: the cove's prototypes are models (one per family, src/shards/driftwood-isle/models/cove.ts). The instanced
    * meshes above are their drawing, so each family is placed `drawnInto` this group: its copies (the placements this tier
    * builds), each copy's world box, and the model's catalog card; `place` draws nothing. The specimens read the loaded
@@ -259,38 +271,18 @@ export class BlenderIsland {
    * mirrored (`boxDesc`: the same centre, half extents and turn) in 'wood', as the bridge tagged it. Returns the boxes no
    * copy claims (none: they would stay on the bridge).
    */
-  private async placeModels(models: ModelContext, f: Float32Array, used: number, meta: IslandMeta, protos: Proto[], material: THREE.Material): Promise<Collider[]> {
-    const byName = new Map<string, Proto>();
-    meta.protos.forEach((p, i) => { const pr = protos[i]; if (pr) byName.set(p.name, pr); });
-    coveProtos(models, { protos: byName, material });
-    const local = ISLAND_FACTS.map(fact=>!fact.present?undefined:fact.empty?new THREE.Box3():new THREE.Box3(new THREE.Vector3(fact.min.x,fact.min.y,fact.min.z),new THREE.Vector3(fact.max.x,fact.max.y,fact.max.z)));
-    const fam = new Map<CoveFamily, { pls: Placement<CoveParams>[]; boxes: number[]; colliders: ColliderDesc[] }>();
-    // the boxes by the spot they stand on, as placements.bin holds it (f32)
-    const spot = (x: number, z: number): string => `${x},${z}`;
-    const claim = new Map<string, Collider>();
-    for (const c of meta.colliders) claim.set(spot(Math.fround(c.x), Math.fround(c.z)), c);
-    const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), t = new THREE.Vector3(), b = new THREE.Box3();
-    for (let i = 0; i < used; i++) {
-      const o = i * 10, pi = f[o] ?? 0, name = meta.protos[pi]?.name ?? '', key = coveFamilyOf(name), lb = local[pi];
-      if (key === undefined || lb === undefined) continue;
-      t.set(f[o + 1] ?? 0, f[o + 2] ?? 0, f[o + 3] ?? 0); q.set(f[o + 4] ?? 0, f[o + 5] ?? 0, f[o + 6] ?? 0, f[o + 7] ?? 1);
-      const sc = f[o + 8] ?? 1;
-      b.copy(lb).applyMatrix4(m.compose(t, q, s.set(sc, sc, sc)));
-      let e = fam.get(key);
-      if (!e) { e = { pls: [], boxes: [], colliders: [] }; fam.set(key, e); }
-      // the copy's pose lives in placements.bin (the instanced meshes draw it): a placement carries where it stands and which prototype
-      e.pls.push({ x: t.x, y: t.y, z: t.z, variant: name });
-      e.boxes.push(b.min.x, b.min.y, b.min.z, b.max.x, b.max.y, b.max.z);
-      const own = claim.get(spot(t.x, t.z));
-      if (own !== undefined) { e.colliders.push(boxDesc(own, 'wood')); claim.delete(spot(t.x, t.z)); }
-    }
-    const slice = slicer(); // (~16 k copies on the desktop: a task ends once it has run 30 ms)
-    for (const [key, e] of fam) {
-      placeModel(COVE_MODELS[key], e.pls, { ctx: models, draw: 'merged', drawnInto: { object: this.group, boxes: Float32Array.from(e.boxes), ...(e.colliders.length > 0 ? { colliders: e.colliders } : {}) }, piece: { id: `cove-${key}` } });
+  private async placeModels(models:ModelContext,f:Float32Array,plan:v.InferOutput<typeof placementPlan>,meta:IslandMeta,protos:Proto[],material:THREE.Material):Promise<Collider[]> {
+    const byName=new Map<string,Proto>();
+    meta.protos.forEach((p,i)=>{const pr=protos[i];if(pr)byName.set(p.name,pr);});
+    coveProtos(models,{protos:byName,material});
+    const slice=slicer();
+    for(const row of plan.families){
+      const placements=row.indices.map(i=>({x:f[i*10+1]??0,y:f[i*10+2]??0,z:f[i*10+3]??0,variant:meta.protos[f[i*10]??0]?.name??''}));
+      placeModel(COVE_MODELS[row.key],placements,{ctx:models,draw:'merged',drawnInto:{object:this.group,boxes:row.boxes,...(row.colliders.length>0?{colliders:row.colliders.map(c=>boxDesc(c,'wood'))}:{})},piece:{id:`cove-${row.key}`}});
       await slice();
     }
-    if (claim.size > 0) console.warn(`[island] ${claim.size} collider boxes stand on no cove copy: they stay on the P2 bridge`);
-    return [...claim.values()];
+    if(plan.unclaimed.length>0)console.warn(`[island] ${plan.unclaimed.length} collider boxes stand on no cove copy: they stay on the P2 bridge`);
+    return plan.unclaimed;
   }
 
   /** G144: once a frame with the camera posed (the late phase): the instanced placements repack for the view */
