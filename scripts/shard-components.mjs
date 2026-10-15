@@ -137,7 +137,7 @@ const reviewedW2Owners = new Map([
   // Animal/boss goals, bodies, pose and ambient wildlife.
   ['src/engine/entities/lowpoly.ts#crestSpikes', 'C4'],
   ['src/sdk/phasedBoss.ts#RoamingBossRow', 'C4'],
-  ['src/shards/driftwood-isle/runtime/posedVolumes.ts', 'C4'],
+  ...['NativeCreaturePoseRecipe', 'NativeCreaturePose', 'attachNativeCreaturePose'].map(name => [`src/game/plugin/animation.ts#${name}`, 'C4']),
   ['src/shards/pine-hollow/combat/combatMath.ts', 'C4'],
   ['src/shards/pine-hollow/combat/ctx.ts', 'C4'],
   ['src/shards/pine-hollow/combat/eliteStreams.ts', 'C4'],

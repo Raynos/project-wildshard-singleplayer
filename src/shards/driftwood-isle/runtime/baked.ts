@@ -2,7 +2,7 @@ import { terrainTileHeight } from '@wildshard/format/terrainTileBytes';
 import { nativeBodySpecSchema, nativeColliderSchema, nativeBakeFloats, nativeGroundSchema, nativeBakeGround, nativeBakeActors } from '@wildshard/sdk/headlessRuntime';
 import * as v from 'valibot';
 import type { AnimalSimSpec } from '@wildshard/engine/entities/AnimalSim';
-import type { DriftwoodPoseRecipe } from './posedVolumes';
+import type { NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
 import { DRIFTWOOD_TERRAIN } from '../data/terrainBindings';
 import baked from '../data/physics.generated.json' with { type: 'json' };
 
@@ -28,7 +28,7 @@ const Bake = v.object({ version: v.literal(1),
 /** One baked fixed WORLD collider: a cuboid (half extents), a capsule (half height, radius) or a convex hull (vertices). */
 export type DriftwoodSolid = Omit<v.InferOutput<typeof Solid>, 'indices'> & { readonly points?: Float32Array };
 /** A baked body: the manager's spawn order, kind / variant, herd slot, native spec, seed, scale and spawn point. */
-export interface DriftwoodBakedActor { readonly id: string; readonly kind: string; readonly variant: string; readonly herd: number; readonly spec: AnimalSimSpec; readonly pose: DriftwoodPoseRecipe; readonly seed: number; readonly scale: number; readonly at: { readonly x: number; readonly z: number } | null }
+export interface DriftwoodBakedActor { readonly id: string; readonly kind: string; readonly variant: string; readonly herd: number; readonly spec: AnimalSimSpec; readonly pose: NativeCreaturePoseRecipe; readonly seed: number; readonly scale: number; readonly at: { readonly x: number; readonly z: number } | null }
 /** The trusted browser bake, parsed strictly once. */
 export interface DriftwoodBake {
   readonly ground: { readonly heights: Float32Array; readonly friction: number; readonly groups: number; readonly scale: { x: number; y: number; z: number }; readonly at: { x: number; y: number; z: number } };
@@ -37,7 +37,7 @@ export interface DriftwoodBake {
   readonly herds: readonly { readonly kind: string; readonly members: readonly string[] }[];
   readonly habitat: v.InferOutput<typeof Bake>['habitat'];
   /** The Drowned Captain as the finale spawns him: his native spec, his pool (spawn point, spawn yaw) and arena radius (m). */
-  readonly captain: { readonly spec: AnimalSimSpec; readonly pose: DriftwoodPoseRecipe; readonly pool: { readonly x: number; readonly z: number; readonly yaw: number }; readonly arena: number };
+  readonly captain: { readonly spec: AnimalSimSpec; readonly pose: NativeCreaturePoseRecipe; readonly pool: { readonly x: number; readonly z: number; readonly yaw: number }; readonly arena: number };
   /** The baked floor anywhere, on Rapier's own triangle split (physics/terrain.ts). */
   readonly floorAt: (x: number, z: number) => number;
   /** The wreck hold's deck / hull floor (Wreck.floorHeightAt), the baked 0.5 m lattice's nearest vertex; undefined off it. */

@@ -5992,3 +5992,22 @@ an existing instanced draw via `publish(object,index,phase)` and `retire(index)`
 the pose frames then remain outside the scene. The pending W3 adopter is
 Nalati `runtime/weapons/javelinSpear.ts`'s world roster/matrix publication;
 its Y axis, instancing, contact and recovery law remain its own.
+
+### Native creature pose and contact publication
+
+`game/plugin/animation.NativeCreaturePose` runs the existing scalar animal
+pose law, quadruped joints or a borrowed custom animation callback over a
+numeric `NativeCreaturePoseRecipe`. It owns no renderer, geometry, body,
+scheduler or random stream. `advance` changes current locals; `publish`
+alone updates the cached contact frame read by `headWorld`, `bodyCapsule`
+and `foreCapsule`. The bounded saved wire keeps both sets independently.
+`restore` validates recipe identity, scalar history, transform sizes and
+Euler orders before changing live state, without posing or publishing
+current locals. `attachNativeCreaturePose` binds that contact provider to
+the caller's actual native actor and lends its terrain-sampling callback.
+
+G441 pending second user: Nalati's `runtime/tamingHorsePose.ts` will adopt
+the numeric joint/scalar/root lifecycle and continuation. Nalati retains
+its wind overlay, body cadence, dynamic scale and old saved transform
+envelope through its adapter. These export-scoped allowances are reviewed
+at the end of W3; no Nalati runtime adoption is claimed yet.

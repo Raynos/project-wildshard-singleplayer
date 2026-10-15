@@ -1,7 +1,7 @@
 import { DRIFTWOOD_NATIVE_HUNT } from '../data/nativeHunt';
 import { createNativeHunt, huntRosterContinuation } from '@wildshard/game/plugin/brain';
 import { createNativeCreatureRoster, orderedNativeReinstall } from '@wildshard/game/shardfile/homeKeeper';
-import { attachDriftwoodPose, type DriftwoodPosedVolumes, type DriftwoodPoseRecipe } from './posedVolumes';
+import { attachNativeCreaturePose, type NativeCreaturePose, type NativeCreaturePoseRecipe } from '@wildshard/game/plugin/animation';
 import { animateCrab } from '../species/crabPose';
 import { animateMonkey } from '../species/monkeyPose';
 import { animateSailor } from '../species/sailorPose';
@@ -154,7 +154,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
   // Refusals are cold-created along with the recipe pool; the step itself allocates nothing.
   const NO_RECIPE = new Error('Missing native Driftwood recipe');
   const FULL_ROSTER = new Error('Driftwood ecology roster exceeds its native bound');
-  const poses = new Map<string, DriftwoodPosedVolumes>();
+  const poses = new Map<string, NativeCreaturePose>();
   const { bake, specs } = ports, rng = new Rng(ports.seed + 31), bodies: IslandBody[] = [], heightAt = bake.floorAt, player = host.player.position;
   // the page's distance bands (AnimalManager.tickRate): 'ai' for every body (crab, sailor and monkey declare `tick: 'ai'`,
   // the fauna's default), 'always' while a crab sidesteps, the creature manager's 'legacy' for the captain (a self-thinking
@@ -195,7 +195,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     throwCoconut: (from: Vector3, to: Vector3, thrower: HuntBody): void => { volley.throw(from, to, thrower); },
   };
   const brainPorts = { host, hunt, rng, world, heightAt, waterLevel: ports.waterLevel };
-  const poseRecipes = new Map<string, Map<string, DriftwoodPoseRecipe>>();
+  const poseRecipes = new Map<string, Map<string, NativeCreaturePoseRecipe>>();
   bake.actors.forEach(row => { let group = poseRecipes.get(row.kind); if (group === undefined) { group = new Map(); poseRecipes.set(row.kind, group); } group.set(row.variant, row.pose); });
   const intake = createNativeCreatureRoster<IslandBody>(host, {
     specs: specs.values(), variants: new Map([...ENEMIES, ['boar', ISLAND_BOAR.variants], ['bear', ISLAND_BEAR.variants]]),
@@ -204,7 +204,7 @@ export function installIsland(host: SimHost, ports: IslandPorts, saved?: Readonl
     attach: (native, body) => {
       const rig = body.kind === 'captain' ? bake.captain.pose : poseRecipes.get(body.kind)?.get(body.variant);
       if (rig === undefined) throw NO_RECIPE;
-      const attached = attachDriftwoodPose(native, rig, POSE_CALLBACKS.get(body.kind));
+      const attached = attachNativeCreaturePose(native, rig, POSE_CALLBACKS.get(body.kind));
       poses.set(body.id, attached.pose); return attached.body;
     },
     ground: (body, x, z) => body.kind === 'sailor' ? bake.holdFloorAt(x, z) : undefined,
