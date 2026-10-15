@@ -14,7 +14,7 @@ import { Rng } from '../../../../src/engine/core/rng';
 import { BOAR } from '../../../../src/game/systems/species/boar';
 import { BOAR_LOOK } from '../../../../src/game/systems/species/view/boar';
 import { GREY_BLOB_SOURCE, GREY_BLOB_SOURCE_LOOK } from './greyBlobSource';
-import { rigLegs } from '../../../../src/shards/pine-hollow/quest/npcRig';
+import { rigLegs } from '../../../../src/shards/pine-hollow/generators/npcSkin';
 import { legBones, legPose } from '../../../../src/game/systems/npc/npcRig';
 import { MeshStandardMaterial as StandardMaterial } from 'three';
 import type { ClipName } from '../../../../src/engine/anim/rig';
@@ -46,7 +46,7 @@ export async function rangerSkinSource(): Promise<SkinSource> {
   const geometry = new BufferGeometry();
   for (const [semantic, key] of [['POSITION', 'position'], ['NORMAL', 'normal'], ['TEXCOORD_0', 'uv']] as const) { const attr = primitive.getAttribute(semantic); if (attr === null) continue; const width = attr.getElementSize(), values = new Float32Array(attr.getCount() * width), element: number[] = []; for (let i = 0; i < attr.getCount(); i++) { attr.getElement(i, element); values.set(element, i * width); } geometry.setAttribute(key, new BufferAttribute(values, width)); }
   const indices = primitive.getIndices()?.getArray(); if (indices !== null && indices !== undefined) geometry.setIndex(Array.from(indices)); geometry.applyMatrix4(new Matrix4().fromArray(node.getWorldMatrix())); geometry.computeBoundingBox(); const box = geometry.boundingBox; if (box === null || box.max.y - box.min.y < 1 || box.max.y - box.min.y > 3) throw new Error('Ranger hull must retain its metre scale');
-  const built = rigLegs('ranger', geometry), bones = legBones(built), material: MeshStandardMaterial = new StandardMaterial({ roughness: 0.85, metalness: 0 }), mesh = new SkinnedMesh(built.geometry, material), root = bones[0]; if (root === undefined) throw new Error('Missing ranger root'); mesh.add(root); mesh.updateMatrixWorld(true); mesh.bind(new Skeleton(bones)); mesh.castShadow = true;
+  const built = rigLegs({id:'pine.ranger',lantern:true}, geometry), bones = legBones(built), material: MeshStandardMaterial = new StandardMaterial({ roughness: 0.85, metalness: 0 }), mesh = new SkinnedMesh(built.geometry, material), root = bones[0]; if (root === undefined) throw new Error('Missing ranger root'); mesh.add(root); mesh.updateMatrixWorld(true); mesh.bind(new Skeleton(bones)); mesh.castShadow = true;
   const pose = legPose(bones, built), clips: readonly ClipName[] = ['idle', 'walk', 'idle.talk', 'idle.point'];
   return { mesh, skeleton: 'npc.pine.ranger.v1', clips, sockets: ['head', 'handR'], pose: (clip, t, _dt, phase) => pose({ t, talk: clip === 'idle.talk' ? 1 : 0, point: clip === 'idle.point' ? 1 : 0, pointYaw: 0.4, look: 0.2, walk: clip === 'walk' ? 1 : 0, phase: phase ?? t % 1 }), dispose: () => { geometry.dispose(); built.geometry.dispose(); material.dispose(); mesh.skeleton.dispose(); } };
 }

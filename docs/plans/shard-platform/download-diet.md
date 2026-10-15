@@ -55,3 +55,5 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   resident +6.58 MB (11.51 -> 18.09 MB), approved for the end-of-plan
   memory pass; current file admission adds 9,646,676 B decoded+GPU
   accounting. Original deck material, pennant sway and colliders stay.
+
+| Pine Hollow | Offline NPC skins (ranger/trader/miller, immutable SHA256 names) | Desktop 1,511,556 B / phone 1,030,920 B, in addition to the existing tier-aware material GLBs. Cheap SDK skinnedGlb outputs, not Git binaries. Original tier-aware colour/normal files remain material loans. | Runtime hull fitting and its source geometry retire; only the same fitted vertex/weight channels remain, with native legBones/legPose and shared PBR material loans. Phone geometry RAM 2,719,420 → 1,688,712 B (−1,030,708), desktop 4,120,334 → 2,552,274 B (−1,568,060); drawn geometry GPU bytes and tier-aware maps unchanged. No runtime fitting fallback. |

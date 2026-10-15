@@ -1,0 +1,134 @@
+{
+  "ranger/desktop": {
+    "position": {
+      "sha256": "2e45ae2ef14d1a1fca171e65835fc704cca3f34bae73f786a2028141f203853b",
+      "maximum": 0
+    },
+    "normal": {
+      "sha256": "f5c789fe193fee653c8dd4b644d70acbca1bff65f9fe5b4929b1b0120ead61d7",
+      "maximum": 0
+    },
+    "uv": {
+      "sha256": "7fdcaed2172c6d9b02ef65e3ba7b1291ef0b6263dd415ba2c0c2eb7160d222d2",
+      "maximum": 0
+    },
+    "skinIndex": {
+      "sha256": "e256ef8d314ef66218590636b42ce8aabe370c9999f4a5d09f487741b4337ecb",
+      "maximum": 0
+    },
+    "skinWeight": {
+      "sha256": "541ab36fd5160100e9edf55320d60c5975e85fc112025e7450c396071f0c26ed",
+      "maximum": 2.9802322387695312e-8
+    }
+  },
+  "ranger/phone": {
+    "position": {
+      "sha256": "c7ff3c97ee0b91f1bc377e76ea844f37bf1acb4f77292ff75dd046d6cfe12b7d",
+      "maximum": 0
+    },
+    "normal": {
+      "sha256": "3754ed083eec92d9e1310ba008967004559c15b9e046e3e1194d7e448e4f8f01",
+      "maximum": 0
+    },
+    "uv": {
+      "sha256": "b9678cfb57171de4f800b7916211270c4c8cd7c39166e06ba26e3922fa129240",
+      "maximum": 0
+    },
+    "skinIndex": {
+      "sha256": "bf6fa3a3b416622e920325b81658c3aaa73cbf76e63d0f5df723d63885359977",
+      "maximum": 0
+    },
+    "skinWeight": {
+      "sha256": "faf6459b1a1b084ceedbabbcf0daf136d7b029dda9ca8da4a23c884e4cf21556",
+      "maximum": 5.960464477539063e-8
+    }
+  },
+  "trader/desktop": {
+    "position": {
+      "sha256": "6a04a79e9f6316627176cc276186bca72558addbe94101e95c735381b17cfed4",
+      "maximum": 0
+    },
+    "normal": {
+      "sha256": "0f848dee5fcb125547f611a6549e7241c9a6d95b34e08123b9643b39586b8ce3",
+      "maximum": 0
+    },
+    "uv": {
+      "sha256": "9722cc13ed23b61ba2c7eb215df8431b16fe774516530f6003bbca1b81d13f7d",
+      "maximum": 0
+    },
+    "skinIndex": {
+      "sha256": "aa9d405453d3a829fbf2d30f2e30e4c596588bf2f5b029679c8c2e8aef910b27",
+      "maximum": 0
+    },
+    "skinWeight": {
+      "sha256": "2c997ac69af9ddbe0161bc9815d7756a4e4d56d0aafeca47e29b95aa2b3e778b",
+      "maximum": 2.9802322387695312e-8
+    }
+  },
+  "trader/phone": {
+    "position": {
+      "sha256": "5349cfe344b4d51aad6f2521e7b353bfb13b2ad45d78eca75993beca41d6f455",
+      "maximum": 0
+    },
+    "normal": {
+      "sha256": "16c44aa08f40e4d8658ac2ada0ee4eeb47cdc029a41b156be9794517d194485b",
+      "maximum": 0
+    },
+    "uv": {
+      "sha256": "b27c1d8fd20dbeea4c94a7824ed819fbf3d8805253af48020d6319d2f9464a19",
+      "maximum": 0
+    },
+    "skinIndex": {
+      "sha256": "d9d48dd395862745a85117ac12bb5d36c80354f4a5f1c5fa912190673ff0526a",
+      "maximum": 0
+    },
+    "skinWeight": {
+      "sha256": "bdd80b6cd80501a3ff5a725c42a4b0db58aff0661bcd618ba98a21361273c1e6",
+      "maximum": 5.960464477539063e-8
+    }
+  },
+  "miller/desktop": {
+    "position": {
+      "sha256": "8a50150d70c73d4cf1e893cc81e667f11c78c6a94c8d61421a3c8eb90073f985",
+      "maximum": 0
+    },
+    "normal": {
+      "sha256": "31fc62a1f48f8497a295dd320621e2418f8b411e2f020d7f2e8259e26162e59c",
+      "maximum": 0
+    },
+    "uv": {
+      "sha256": "a72752106d89471b53b1e4bc4933d54181733dabdf3f0a61c47bd7a8697cc359",
+      "maximum": 0
+    },
+    "skinIndex": {
+      "sha256": "2164203f5408c5c88d08ba31b297f21f359aaad731edd61bf06df1fd9789a982",
+      "maximum": 0
+    },
+    "skinWeight": {
+      "sha256": "6ac836d31479169d17b7a86a920071e7eada12c54076526fc0caffdede224402",
+      "maximum": 5.960464477539063e-8
+    }
+  },
+  "miller/phone": {
+    "position": {
+      "sha256": "6fe21b9ca5e02e7f769d28f6dd110542fb324ff819548870e8d2edc49b70d6c7",
+      "maximum": 0
+    },
+    "normal": {
+      "sha256": "86a9e066a03c7c2463097381f244be68ccae2a721873169f723f55307561e0ba",
+      "maximum": 0
+    },
+    "uv": {
+      "sha256": "b4be278c1a7b228fd7db60489078d334b73b255afd469c3b0f0e3a1e5cc21ad1",
+      "maximum": 0
+    },
+    "skinIndex": {
+      "sha256": "b342c963a3cd33c3f0e9a7581d4c0a9c334424770929db1172f725cf8e187a6e",
+      "maximum": 0
+    },
+    "skinWeight": {
+      "sha256": "ac91a3b1cc20c5620ef42e8a9f6687de90af2cedcc0b76f517e82054a7af3281",
+      "maximum": 5.960464477539063e-8
+    }
+  }
+}

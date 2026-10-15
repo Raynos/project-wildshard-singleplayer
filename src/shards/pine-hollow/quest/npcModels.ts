@@ -14,7 +14,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
  *   await preloadNpcModels();                 // the quest's install: every person behind the loading screen
  *   const r = npcRig(kind);                   // null until loaded → { mesh (SkinnedMesh), pose(dt, t, s), lanternAt }
  *
- * The rig is built at load, from the hull itself (no offline bake — three people, ~5–9 k verts each): npcRig.ts's
+ * The hull, skin weights and bind frames are baked offline through SDK skinnedGlb. The page keeps npcRig.ts's
  * (E322 F-M3, Jake picked B; the upper-body-only rig A went with its Debug row) — legs, a clavicle and an upper-arm twist,
  * bound in the arms' natural hang. The clips are procedural bone poses:
  *   idle   breathing, a slow weight shift, the arms hanging, the head on the player
@@ -25,32 +25,18 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { NpcKind } from '../models/people';
-import { legRigOf, legRigReady } from './npcRig';
-import { legBones, legPose } from '@wildshard/game/systems/npc/npcRig';
+import skins from '../data/npcSkins.generated.json' with { type: 'json' };
+import { legBones, legPose, LEG_BONE_NAMES, type LegBuilt } from '@wildshard/game/systems/npc/npcRig';
 
 export const NPC_KINDS: readonly NpcKind[] = ['ranger', 'trader', 'miller'];
 
 /** the file each tier loads (Node-safe: the boot manifest may declare them) */
 export function npcModelUrl(kind: NpcKind, tier: 'phone' | 'desktop' = TIER): string {
-  return `/assets/pine-hollow/npcs/${kind}${tier === 'phone' ? '.phone' : ''}.glb`;
+  return skins[kind][tier].url;
 }
 
-interface Source { geometry: THREE.BufferGeometry; map: THREE.Texture | null; normalMap: THREE.Texture | null }
-
-const isMesh = (o: THREE.Object3D): o is THREE.Mesh => (o as Partial<THREE.Mesh>).isMesh === true;
-
-function asFloat(src: THREE.BufferGeometry): THREE.BufferGeometry {
-  const g = new THREE.BufferGeometry();
-  for (const key of ['position', 'normal', 'uv'] as const) {
-    if (!src.hasAttribute(key)) continue;
-    const a = src.getAttribute(key), n = a.count, k = a.itemSize, out = new Float32Array(n * k);
-    for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) out[i * k + j] = a.getComponent(i, j);
-    g.setAttribute(key, new THREE.BufferAttribute(out, k));
-  }
-  const idx = src.getIndex();
-  if (idx) g.setIndex(Array.from(idx.array));
-  return g;
-}
+const isSkin = (node: THREE.Object3D): node is THREE.SkinnedMesh => node instanceof THREE.SkinnedMesh;
+interface Source { rig: LegBuilt; map: THREE.Texture | null; normalMap: THREE.Texture | null }
 
 export interface NpcRig {
   mesh: THREE.SkinnedMesh;
@@ -83,33 +69,50 @@ export class NpcModels {
   private readonly loadFile: (url: string) => Promise<GLTF>;
   constructor(loadFile: (url: string) => Promise<GLTF> = loadRigFile) { this.loadFile = loadFile; }
 
-  /** load one person's model (cached; null when it fails — the stand-in stays) */
+  /** Required baked intake; missing or invalid skins refuse, with no runtime fitting. */
   load(kind: NpcKind): Promise<Source | null> {
     let p = this.loading.get(kind);
     if (!p) {
-      p = this.loadFile(npcModelUrl(kind)).then(async (gltf) => {
-        gltf.scene.updateMatrixWorld(true);
-        const found: Source[] = [];
-        gltf.scene.traverse((o) => {
-          if (found.length > 0 || !isMesh(o)) return;
-          const g = asFloat(o.geometry).applyMatrix4(o.matrixWorld);
-          const mat = Array.isArray(o.material) ? o.material[0] : o.material;
-          const std = mat instanceof THREE.MeshStandardMaterial ? mat : null;
-          found.push({ geometry: g, map: std?.map ?? null, normalMap: std?.normalMap ?? null });
+      const fetchSkin = async (): Promise<Source> => {
+        try {
+        const [gltf, appearance] = await Promise.all([this.loadFile(npcModelUrl(kind)), this.loadFile(skins[kind][TIER].material)]);
+        const meshes: THREE.SkinnedMesh[] = [];
+        gltf.scene.traverse(node => { if (isSkin(node)) meshes.push(node); });
+        const mesh = meshes[0];
+        if (mesh === undefined || meshes.length !== 1 || mesh.skeleton.bones.length !== LEG_BONE_NAMES.length ||
+            mesh.skeleton.bones.some((bone, i) => bone.name !== LEG_BONE_NAMES[i])) throw new Error(`Invalid baked NPC skin ${kind}`);
+        const surfaces: THREE.MeshStandardMaterial[] = [];
+        appearance.scene.traverse(node => {
+          if (!('isMesh' in node) || node.isMesh !== true || !('material' in node)) return;
+          const material: unknown = Array.isArray(node.material) ? node.material[0] : node.material;
+          if (material instanceof THREE.MeshStandardMaterial) surfaces.push(material);
         });
-        const hit = found[0] ?? null;
-        if (hit !== null) {
-          // the rig in slices (op-hitch49: ~85 ms a person in one frame of Pine's play); the source is offered only once it
-          // is built, so `rig()` never builds it synchronously
-          const rig = await legRigReady(kind, hit.geometry);
-          this.sources.set(kind, hit);
-          cacheUntilDisposed({ ...hit, rigGeometry: rig.geometry }, () => {
-            if (this.sources.get(kind) !== hit) return;
-            this.sources.delete(kind); this.loading.delete(kind); this.sharedMats.delete(kind);
-          });
-        }
+        const material = surfaces[0];
+        if (!(material instanceof THREE.MeshStandardMaterial) || material.map === null || material.normalMap === null) throw new Error(`Baked NPC lacks PBR maps ${kind}`);
+        const row = skins[kind][TIER], geometry = mesh.geometry;
+        if (!geometry.hasAttribute('skinIndex') || !geometry.hasAttribute('skinWeight')) throw new Error(`Baked NPC lacks skin channels ${kind}`);
+        geometry.computeBoundingBox(); geometry.computeBoundingSphere();
+        if (geometry.boundingSphere !== null) geometry.boundingSphere.radius += 0.5;
+        const right = row.ball[0], left = row.ball[1];
+        if (right === undefined || left === undefined || row.rest.length !== LEG_BONE_NAMES.length) throw new Error(`Invalid baked NPC rest frame ${kind}`);
+        const rig: LegBuilt = { geometry, rest: row.rest.map(point => new THREE.Vector3().fromArray(point)),
+          height: row.height, y0: row.y0, lantern: row.lantern === null ? null : new THREE.Vector3().fromArray(row.lantern),
+          ball: [new THREE.Vector3().fromArray(right), new THREE.Vector3().fromArray(left)],
+          walkSpeed: row.walkSpeed, walkCycle: row.walkCycle, webs: row.webs };
+        const hit = { rig, map: material.map, normalMap: material.normalMap };
+        appearance.scene.traverse(node => { if ('geometry' in node && node.geometry instanceof THREE.BufferGeometry) node.geometry.dispose(); });
+        for (const surface of surfaces) surface.dispose();
+        for (const surface of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) surface.dispose();
+        mesh.skeleton.dispose();
+        this.sources.set(kind, hit);
+        cacheUntilDisposed(hit, () => {
+          if (this.sources.get(kind) !== hit) return;
+          this.sources.delete(kind); this.loading.delete(kind); this.sharedMats.delete(kind);
+        });
         return hit;
-      }).catch((e: unknown) => { console.warn(`[pine-hollow] npc model ${kind} failed`, e); return null; });
+        } catch (error: unknown) { this.loading.delete(kind); throw error; }
+      };
+      p = fetchSkin();
       this.loading.set(kind, p);
     }
     return p;
@@ -131,7 +134,7 @@ export class NpcModels {
       const cached = mat; cacheUntilDisposed(cached, () => { if (this.sharedMats.get(kind) === cached) this.sharedMats.delete(kind); });
     }
     // E322 F-M3: legs, a clavicle and a twist bone, the walk clip (npcRig.ts)
-    const lb = legRigOf(kind, src.geometry), lbones = legBones(lb), pose = legPose(lbones, lb);
+    const lb = src.rig, lbones = legBones(lb), pose = legPose(lbones, lb);
     const mesh = new THREE.SkinnedMesh(lb.geometry, mat);
     const root = lbones[0];
     if (root) mesh.add(root);
@@ -147,7 +150,7 @@ export class NpcModels {
 
 /** the page's people */
 export const npcModels = new NpcModels();
-/** load one person's model (cached; null when it fails — the stand-in stays) */
+/** Required baked intake; missing or invalid skins refuse, with no runtime fitting. */
 export function loadNpcModel(kind: NpcKind): Promise<Source | null> { return npcModels.load(kind); }
 export function preloadNpcModels(): Promise<void> { return npcModels.preload(); }
 /** a skinned instance of `kind`'s model, or null until it has loaded */

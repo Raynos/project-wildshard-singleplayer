@@ -1595,3 +1595,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # Required rifle detail pool (cheap generation output).
 /public/assets/pine-hollow/baked/621ad7aae8c997f8249f86d55d90a4faa95c9d1aba612d7c51837d34908beb52.glb
+
+# Pine offline NPC hulls (registered cheap skinned producer).
+/public/assets/pine-hollow/npcs/*-skin-*.glb

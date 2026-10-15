@@ -36,8 +36,6 @@ import { bindRig, type RigContract } from '@wildshard/engine/anim/rig';
  */
 import * as THREE from 'three';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { pageScope } from '@wildshard/engine/app/resources';
-import { workSlice, type WorkSlice } from '@wildshard/engine/core/workSlice';
 /** Authored hull traits; the seed rig contains no shard names or model paths. */
 export interface NpcRigProfile { id: string; lantern: boolean }
 
@@ -314,22 +312,8 @@ function* splitWebs(g: THREE.BufferGeometry, si: Uint16Array, sw: Float32Array, 
   return { split, coatOnly };
 }
 
-/** place the bones by the A-pose's proportions and weight every vertex (see the header); pure — the test runs it in Node */
+/** Frozen legacy intake only (SF73 removes it with that consumer). Current shards load offline skins. */
 export function rigLegs(profile: NpcRigProfile, source: THREE.BufferGeometry): LegBuilt { return runSteps(rigSteps(profile, source)); }
-
-/**
- * `rigLegs` in slices (op-hitch49, E435 frame floor: a person's rig was ~85 ms of one desktop frame in Pine's play): the same
- * steps, so the same rig to the byte (test/shards/pine-hollow/pine-npc-rig.test.ts), with `slice` letting frames through
- * between them. The default slice holds its yields on the page scope: the rig is a page-lifetime memo (`legRigReady`).
- */
-export async function rigLegsSliced(profile: NpcRigProfile, source: THREE.BufferGeometry, slice: WorkSlice = workSlice(undefined, pageScope)): Promise<LegBuilt> {
-  const steps = rigSteps(profile, source);
-  for (;;) {
-    const r = steps.next();
-    if (r.done === true) return r.value;
-    if (slice.due()) await slice.yield();
-  }
-}
 
 /** rigLegs' body: every `yield` is a point where a sliced run may let a frame through; nothing else differs */
 function* rigSteps(profile: NpcRigProfile, source: THREE.BufferGeometry): Steps<LegBuilt> {
@@ -536,33 +520,11 @@ function* rigSteps(profile: NpcRigProfile, source: THREE.BufferGeometry): Steps<
 }
 
 const built = new Map<string, LegBuilt>();
-const building = new Map<string, Promise<LegBuilt>>();
-/** rigLegs, once per person per shard visit */
+/** Frozen legacy memo only; current NPCs never invoke a runtime fitter. */
 export function legRigOf(profile: NpcRigProfile, source: THREE.BufferGeometry): LegBuilt {
   let b = built.get(profile.id);
   if (!b) { b = rigLegs(profile, source); built.set(profile.id, b); }
   return b;
-}
-
-/**
- * `legRigOf`'s rig built in slices (`rigLegsSliced`), so a person loaded in play costs no long frame: resolves with the
- * memo `legRigOf` then returns at once. Callers asking while it builds share the one build.
- */
-export function legRigReady(profile: NpcRigProfile, source: THREE.BufferGeometry, slice?: WorkSlice): Promise<LegBuilt> {
-  const done = built.get(profile.id);
-  if (done) return Promise.resolve(done);
-  let p = building.get(profile.id);
-  if (!p) {
-    const id = profile.id;
-    p = rigLegsSliced(profile, source, slice).then((b) => {
-      building.delete(id);
-      const have = built.get(id) ?? b;
-      built.set(id, have);
-      return have;
-    }).catch((e: unknown) => { building.delete(id); throw e; });
-    building.set(id, p);
-  }
-  return p;
 }
 
 /** the rig's bones at rest (LEG_BONE_NAMES order), parented, the root first */

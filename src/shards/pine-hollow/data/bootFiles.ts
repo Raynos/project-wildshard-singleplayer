@@ -1,3 +1,4 @@
+import skins from './npcSkins.generated.json' with {type:'json'};
 import floor from './floor.generated.json' with { type: 'json' };
 import birds from './ambientBirds.generated.json' with {type:'json'};
 import heldPool from './crossbowPool.generated.json' with {type:'json'};
@@ -219,9 +220,9 @@ export const PINE_BOOT_FILES = {
           "/assets/pine-hollow/weapons/skinning-knife.glb",
           birds.geometry,
           birds.atlasModel,
-          "/assets/pine-hollow/npcs/ranger.glb",
-          "/assets/pine-hollow/npcs/trader.glb",
-          "/assets/pine-hollow/npcs/miller.glb",
+          "/assets/pine-hollow/npcs/ranger.glb", skins.ranger.desktop.url, skins.ranger.phone.url,
+          "/assets/pine-hollow/npcs/trader.glb", skins.trader.desktop.url, skins.trader.phone.url,
+          "/assets/pine-hollow/npcs/miller.glb", skins.miller.desktop.url, skins.miller.phone.url,
           "/assets/pine-hollow/journal/chalk.webp",
           heldPool.pool.url,
           leverDetails.pool.url,

@@ -3,6 +3,53 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "pine-npc-skins",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/bake-npcs.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/shards/pine-hollow/generators/bake-npcs.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/pine-hollow/generators/bake-npcs.mjs",
+        "src/shards/pine-hollow/generators/npcSkin.ts",
+        "src/sdk/bake/skinned.ts",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/pine-hollow/npcs/ranger.glb",
+        "public/assets/pine-hollow/npcs/ranger.phone.glb",
+        "public/assets/pine-hollow/npcs/trader.glb",
+        "public/assets/pine-hollow/npcs/trader.phone.glb",
+        "public/assets/pine-hollow/npcs/miller.glb",
+        "public/assets/pine-hollow/npcs/miller.phone.glb"
+      ],
+      "outputs": [
+        "public/assets/pine-hollow/npcs/ranger-skin-9c7275405ae7a543b5a119f60fdd52cd8e8c3008c3d97d9f4860a2181c55cbf5.glb",
+        "public/assets/pine-hollow/npcs/ranger-skin-67fc5df5b526df0351828deae1b86f6fb0c2ca31f098032abc14d04af8bcf7e1.phone.glb",
+        "public/assets/pine-hollow/npcs/trader-skin-d5884ac7b4dbb65f8a58fbd34d5fe2b894335be858b3113aaa70e1d4ccbd9baf.glb",
+        "public/assets/pine-hollow/npcs/trader-skin-d7836ef63983f692e124cc61055410a561accdaf49d7700f0109eec60ac3d432.phone.glb",
+        "public/assets/pine-hollow/npcs/miller-skin-2b9749b34d2abbe09f22fa093767762b0d6c5315c6a8003263371fceb3802228.glb",
+        "public/assets/pine-hollow/npcs/miller-skin-e331296bcff9471b87a3ba06571cc269058a897649d20e21c54c82d059080b81.phone.glb",
+        "src/shards/pine-hollow/data/npcSkins.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "public/assets/pine-hollow/npcs/ranger-skin-9c7275405ae7a543b5a119f60fdd52cd8e8c3008c3d97d9f4860a2181c55cbf5.glb",
+        "public/assets/pine-hollow/npcs/ranger-skin-67fc5df5b526df0351828deae1b86f6fb0c2ca31f098032abc14d04af8bcf7e1.phone.glb",
+        "public/assets/pine-hollow/npcs/trader-skin-d5884ac7b4dbb65f8a58fbd34d5fe2b894335be858b3113aaa70e1d4ccbd9baf.glb",
+        "public/assets/pine-hollow/npcs/trader-skin-d7836ef63983f692e124cc61055410a561accdaf49d7700f0109eec60ac3d432.phone.glb",
+        "public/assets/pine-hollow/npcs/miller-skin-2b9749b34d2abbe09f22fa093767762b0d6c5315c6a8003263371fceb3802228.glb",
+        "public/assets/pine-hollow/npcs/miller-skin-e331296bcff9471b87a3ba06571cc269058a897649d20e21c54c82d059080b81.phone.glb",
+        "src/shards/pine-hollow/data/npcSkins.generated.json"
+      ],
+      "seedOutputs": [],
+      "platform": "portable"
+    },
+    {
       "id": "pine-quest-npcs",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/questNpcs.ts",
