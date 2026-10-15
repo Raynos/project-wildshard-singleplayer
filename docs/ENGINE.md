@@ -5277,6 +5277,12 @@ uniforms without rebuilding shaders. It uses the level frame and optional
 vertex fog scale from the existing node-fog context. Classic fog installs
 and callback replacements keep their current path.
 
+`engine/world/Atmosphere.ColourRampFog` owns one such ramp for both
+paths: `new ColourRampFog({ start, end, near, zenith })` (metres, linear
+RGB) holds the live uniforms, `model(order)` is the look's `fog` (the
+engine fog chunk compiled with the ramp term for classic materials, the
+`{ colourRamp }` node for graphs) and `control` its `fogControl`.
+
 Graphs expose fragment-only `frontFacing` (bool), also accepted as the TSL
 builtin by the SDK author. `texture` now samples in vertex stages too: the
 compiler uses explicit mip zero there and preserves derivative-selected

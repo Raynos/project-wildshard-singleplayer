@@ -3,7 +3,7 @@
 // (terrain, instanced trees, glTF props, animals) gets it for free.
 import * as THREE from 'three';
 import { setInheritedPatch } from '../render/shaderPatches';
-import { FOG_SLOT, installFogPatch } from '../render/fogPatches';
+import { FOG_SLOT, installFogPatch, type NodeFogPatch } from '../render/fogPatches';
 
 export const fogUniforms = {
   fogSunDir: { value: new THREE.Vector3(0, 1, 0) },
@@ -144,7 +144,41 @@ function writeAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean; we
       varying vec3 vFogWorldPos;
     #endif`;
 
-  THREE.ShaderChunk.fog_fragment = /* glsl */`
+  THREE.ShaderChunk.fog_fragment = fogFragment(edge, weather, false);
+
+  if (edge) {
+    // the rain's wet PBR (PH-L10): after the geometry normal exists, before the normal map and the lighting read the surface
+    THREE.ShaderChunk.normal_fragment_begin = `${THREE.ShaderChunk.normal_fragment_begin}
+      #if defined( STANDARD ) && defined( USE_FOG )
+      {
+        float wetUp = ( vec4( normal, 0.0 ) * viewMatrix ).y;   // the face's world up-ness (view → world: the transpose)
+        float wetK = uWet * mix( 0.4, 1.0, smoothstep( -0.3, 0.6, wetUp ) ) * ( 1.0 - metalnessFactor );
+        diffuseColor.rgb *= 1.0 - 0.42 * wetK * smoothstep( 0.3, 0.85, roughnessFactor );
+        roughnessFactor = mix( roughnessFactor, roughnessFactor * 0.5 + 0.12, wetK );
+      }
+      #endif`;
+    THREE.ShaderChunk.fog_pars_fragment += /* glsl */`
+    #if defined( STANDARD ) && defined( USE_FOG )
+      uniform float uWet;
+    #endif`;
+  }
+
+  // Inject the shared uniform objects into every material that compiles with fog.
+  setInheritedPatch((shader) => { attachFogUniforms(shader); });
+}
+
+/** a level's colour ramp over the integrated fog (ColourRampFog): crisp to `fogRampStart`, then from the aerial `fogRampNear`
+ *  into the sky's own gradient (horizon `fogColor` to `fogRampZenith`) by `fogRampEnd`, warmer toward the sun, high ground
+ *  keeping more contrast; under the sea the dense fog wins in its own colour (engineFog.ts `colourRampFog` is its node twin) */
+const RAMP_COLOUR = `float rampR = smoothstep( fogRampStart, fogRampEnd, rayLen );
+        float rampF = pow( rampR, 0.8 ) * mix( 1.0, 0.72, smoothstep( 4.0, 40.0, vFogWorldPos.y ) );
+        vec3 fogCol = mix( fogRampNear, mix( fogColor, fogRampZenith, pow( smoothstep( 0.0, 0.75, max( viewDir.y, 0.0 ) ), 0.62 ) ), smoothstep( 0.0, 0.55, rampR ) );
+        fogCol = mix( fogCol + fogSunColor * pow( sunAmt, 8.0 ) * 0.3 * rampR, fogColor, clamp( ( fogFactor - rampF ) * 4.0, 0.0, 1.0 ) );
+        fogFactor = max( rampF, fogFactor );`;
+
+/** the fog chunk: the engine's height + distance fog with the policy's optional terms (each compiled in only where used) */
+function fogFragment(edge: boolean, weather: boolean, ramp: boolean): string {
+  return /* glsl */`
     #ifdef USE_FOG
       {
         vec3 ray = vFogWorldPos - cameraPosition;
@@ -167,33 +201,49 @@ function writeAtmosphere(policy: { edgeHaze?: boolean; wetSurfaces?: boolean; we
         float fogB = fogBlobAmt * ( 1.0 - smoothstep( 0.1, 1.0, length( vFogWorldPos - fogBlob.xyz ) / fogBlob.w ) ) * smoothstep( 5.0, 24.0, rayLen );
         fogFactor = 1.0 - ( 1.0 - fogFactor ) * ( 1.0 - fogB );` : ''}
         float sunAmt = max( dot( viewDir, fogSunDir ), 0.0 );
-        vec3 fogCol = mix( fogColor, fogSunColor, pow( sunAmt, 6.0 ) * 0.7 );
+        ${ramp ? RAMP_COLOUR : 'vec3 fogCol = mix( fogColor, fogSunColor, pow( sunAmt, 6.0 ) * 0.7 );'}
         gl_FragColor.rgb = mix( gl_FragColor.rgb, fogCol, fogFactor );${weather ? `
         // the weather fog (E390), over the level's own fog
         float wAmt = ( fogWeather.x + fogWeather.y * camF * integ ) * rayLen;
         gl_FragColor.rgb = mix( gl_FragColor.rgb, fogWeatherColor, clamp( ( 1.0 - exp( - wAmt ) ) * fogWeather.z, 0.0, 1.0 ) );` : ''}
       }
     #endif`;
+}
 
-  if (edge) {
-    // the rain's wet PBR (PH-L10): after the geometry normal exists, before the normal map and the lighting read the surface
-    THREE.ShaderChunk.normal_fragment_begin = `${THREE.ShaderChunk.normal_fragment_begin}
-      #if defined( STANDARD ) && defined( USE_FOG )
-      {
-        float wetUp = ( vec4( normal, 0.0 ) * viewMatrix ).y;   // the face's world up-ness (view → world: the transpose)
-        float wetK = uWet * mix( 0.4, 1.0, smoothstep( -0.3, 0.6, wetUp ) ) * ( 1.0 - metalnessFactor );
-        diffuseColor.rgb *= 1.0 - 0.42 * wetK * smoothstep( 0.3, 0.85, roughnessFactor );
-        roughnessFactor = mix( roughnessFactor, roughnessFactor * 0.5 + 0.12, wetK );
-      }
-      #endif`;
-    THREE.ShaderChunk.fog_pars_fragment += /* glsl */`
-    #if defined( STANDARD ) && defined( USE_FOG )
-      uniform float uWet;
-    #endif`;
+type Rgb = readonly [number, number, number];
+
+/**
+ * A level's colour-ramp fog (Firewatch-style distance × height haze into the sky's own gradient), one live set of
+ * uniforms for both paths: `model(order)` is the look's `fog` (the classic chunk with the ramp term above, and the graph
+ * node `{ colourRamp }`), `control` its `fogControl` (Explore's overhead map turns the haze off for its shot). A day clock
+ * moves `near` / `zenith` (linear colours) and the range (m) in place; no shader rebuilds.
+ */
+export class ColourRampFog {
+  readonly start: { value: number }; readonly end: { value: number };
+  readonly near: { value: THREE.Color }; readonly zenith: { value: THREE.Color };
+  private readonly uniforms: Record<string, THREE.IUniform>;
+  private readonly held = { start: 0, end: 0 };
+
+  constructor(spec: { readonly start: number; readonly end: number; readonly near: Rgb; readonly zenith: Rgb }) {
+    this.start = { value: spec.start }; this.end = { value: spec.end };
+    this.near = { value: new THREE.Color(...spec.near) }; this.zenith = { value: new THREE.Color(...spec.zenith) };
+    this.uniforms = { fogRampStart: this.start, fogRampEnd: this.end, fogRampNear: this.near, fogRampZenith: this.zenith };
   }
 
-  // Inject the shared uniform objects into every material that compiles with fog.
-  setInheritedPatch((shader) => { attachFogUniforms(shader); });
+  /** the look's fog in its slot: the ramp replaces the engine's fog chunk (installed first) and rides every fogged material */
+  model(order: number): { readonly order: number; readonly install: () => void; readonly node: NodeFogPatch } {
+    return { order, node: { colourRamp: this }, install: () => {
+      THREE.ShaderChunk.fog_pars_fragment += '\n#ifdef USE_FOG\n  uniform vec3 fogRampZenith; uniform vec3 fogRampNear; uniform float fogRampStart; uniform float fogRampEnd;\n#endif';
+      THREE.ShaderChunk.fog_fragment = fogFragment(false, false, true);
+      addFogUniforms(this.uniforms);
+    } };
+  }
+
+  /** the look's fogControl: the haze off around an off-screen shot, then back */
+  readonly control = {
+    suspend: (): void => { this.held.start = this.start.value; this.held.end = this.end.value; this.start.value = 1e6; this.end.value = 2e6; },
+    resume: (): void => { this.start.value = this.held.start; this.end.value = this.held.end; },
+  };
 }
 
 export function attachFogUniforms(shader: { uniforms: Record<string, THREE.IUniform> }): void {

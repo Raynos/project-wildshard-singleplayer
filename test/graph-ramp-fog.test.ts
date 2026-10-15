@@ -5,7 +5,7 @@ import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
 import { materialNodeFogOf, type NodeFogPatch } from '../src/engine/render/fogPatches';
 import { noLookChunks, scopeLookChunks } from '../src/engine/render/regionLook';
-import { installAtmosphere } from '../src/engine/world/Atmosphere';
+import { attachFogUniforms, ColourRampFog, installAtmosphere } from '../src/engine/world/Atmosphere';
 import type { GraphIr } from '../src/format/materialGraph';
 
 vi.stubGlobal('ImageBitmap', class ImageBitmap { readonly width = 0; });
@@ -64,5 +64,31 @@ test('colour ramp fog borrows live level tunables without changing classic chunk
     expect(mapShader.fragmentShader).toBe(shader.fragmentShader);
     expect(Object.values(mapShader.uniforms).some(u => u.value === 1e6)).toBe(true);
     expect(Object.values(mapShader.uniforms).some(u => u.value === 2e6)).toBe(true);
+  } finally { Object.assign(THREE.ShaderChunk, chunks); }
+});
+
+test('a ColourRampFog lends one set of uniforms to the classic chunk, the node and the map shot', () => {
+  const chunks = { ...THREE.ShaderChunk };
+  try {
+    installAtmosphere();
+    const engine = THREE.ShaderChunk.fog_fragment;
+    const fog = new ColourRampFog({ start: 180, end: 1700, near: [0.5, 0.6, 0.98], zenith: [0.055, 0.2, 0.78] });
+    const model = fog.model(200);
+    expect(model.order).toBe(200);
+    expect(model.node).toEqual({ colourRamp: fog });
+    model.install();
+    expect(THREE.ShaderChunk.fog_fragment).not.toBe(engine);
+    for (const name of ['fogRampStart', 'fogRampEnd', 'fogRampNear', 'fogRampZenith']) {
+      expect(THREE.ShaderChunk.fog_fragment).toContain(name);
+      expect(THREE.ShaderChunk.fog_pars_fragment).toContain(`uniform ${name === 'fogRampNear' || name === 'fogRampZenith' ? 'vec3' : 'float'} ${name};`);
+    }
+    const shader = { uniforms: {} as Record<string, THREE.IUniform> };
+    attachFogUniforms(shader);
+    expect(shader.uniforms['fogRampNear']).toBe(fog.near);
+    expect(shader.uniforms['fogRampZenith']).toBe(fog.zenith);
+    fog.control.suspend();
+    expect(shader.uniforms['fogRampStart']?.value).toBe(1e6);
+    fog.control.resume();
+    expect([fog.start.value, fog.end.value]).toEqual([180, 1700]);
   } finally { Object.assign(THREE.ShaderChunk, chunks); }
 });
