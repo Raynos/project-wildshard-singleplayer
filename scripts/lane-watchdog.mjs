@@ -15,7 +15,7 @@ import { promisify } from 'node:util';
 import { setTimeout } from 'node:timers/promises';
 import * as v from 'valibot';
 
-const run = promisify(execFile), root = resolve(import.meta.dirname, '..');
+const root = resolve(import.meta.dirname, '..');
 const agentsSchema = v.object({ result: v.object({ agents: v.array(v.object({
   name: v.optional(v.string()), pane_id: v.string(), agent_status: v.string(),
   agent_session: v.optional(v.object({ value: v.string() })),
@@ -28,17 +28,20 @@ const stop = new AbortController();
 process.once('SIGINT', () => { stop.abort(); });
 process.once('SIGTERM', () => { stop.abort(); });
 
-/** @param {string} executable @param {string[]} args */
-async function command(executable, args) {
-  return (await run(executable, args, { cwd: root, timeout: 15_000, maxBuffer: 4 * 1024 * 1024 })).stdout;
+/** The callback adapter deliberately returns void; the child handle is not a completion signal.
+ * @param {string} executable @param {string[]} args
+ * @param {(error: Error | null, stdout: string, stderr: string) => void} complete */
+function execute(executable, args, complete) {
+  execFile(executable, args, { cwd: root, timeout: 15_000, maxBuffer: 4 * 1024 * 1024 }, complete);
 }
+const command = promisify(execute);
 
 async function poll() {
   const [listed, history, ledger] = await Promise.all([
     command('herdr', ['agent', 'list']),
     command('git', ['log', '--since=2 hours ago', '-512', '--format=%H%x00%ct%x00%an%x00%B%x1e']),
-    readFile(resolve(root, '.git/commit-lanes.jsonl'), 'utf8').catch(error => {
-      if (error?.code === 'ENOENT') return '';
+    readFile(resolve(root, '.git/commit-lanes.jsonl'), 'utf8').catch((/** @type {unknown} */ error) => {
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return '';
       throw error;
     }),
   ]);
@@ -65,8 +68,9 @@ async function poll() {
     }
     // git log is newest-first. Never attribute an ordinary body mentioning a peer.
     for (const record of history.split('\u001E')) {
-      const [sha, seconds, author, body] = record.trim().split('\0');
-      if (sha === undefined || seconds === undefined || author === undefined || body === undefined) continue;
+      const fields = record.trim().split('\0');
+      if (fields.length < 4) continue;
+      const [sha, seconds, author, body] = fields;
       const explicit = [author, ...body.split('\n').filter(line => /^(?:Assisted-by|Lane|Agent):/u.test(line))];
       const named = explicit.some(line => line.match(/\bsp-x\d+\b/gu)?.includes(name));
       if (!named && panes.get(sha) !== agent.pane_id) continue;
