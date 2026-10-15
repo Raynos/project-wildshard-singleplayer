@@ -1,5 +1,6 @@
 import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.json' with { type: 'json' };
+import inputs from '../../data/heldInputs.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
 import { RangedFrame, RangedTrace, RangedFlash } from '@wildshard/engine/render/viewmodelFeel';
 import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_HIT, RANGED_BRASS } from '../../data/rangedFrame';
@@ -207,8 +208,8 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   private readonly feel: RangedFrame;
   private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
   private readonly posePlayback: HeldPlayback;
+  private readonly poseFrame = { portrait: 0, ads: 0, scale: 0, cycle: 0 };
   private readonly partValues = { open: 0, leverAngle: 0, boltTravel: 0, cocked: 0, hammerCocked: 0, hammerDown: 0, hammerAngle: 0, reloading: 0, phaseT: 0, reloadIn: 0, roundTime: 0, fed: 0, planned: 0, gateX: 0, gateY: 0, gateZ: 0 };
-  private readonly poseValues = { time: 0, bob: 0, speed: 0, portrait: 0, recoil: 0, ads: 0, sprint: 0, reloadTilt: 0, reloadProgress: 0, reloading: 0, loadBlend: 0, lagYaw: 0, lagPitch: 0, holster: 0, inspect: 0, inspectYaw: 0, hipX: 0, hipY: 0, hipZ: 0, hipPitch: 0, hipYaw: 0, hipRoll: 0, adsX: 0, adsY: 0, adsZ: 0, adsPitch: 0, adsMotion: 0, cycle: 0, cycleX: 0, cycleY: 0, cycleZ: 0, cyclePitch: 0, cycleYaw: 0, cycleRoll: 0, scale: 0 };
 
   private sprintBlend = 0; private loadBlend = 0;
   private time = 0;
@@ -288,6 +289,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     this.syncState();
     this.buildHands();
     this.posePlayback = new HeldPlayback({ pose: playback.lever, parts: playback.leverParts }, new Map<string, unknown>([['root', this.model], ['lever', this.lever], ['hammer', this.hammer], ['bolt', this.bolt], ['round', this.round]]));
+    this.posePlayback.bindInputs('pose', inputs.lever, new Map([['weapon', this]]));
   }
 
   private buildHands(): void {
@@ -471,17 +473,10 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
     const a = sstep(0, 1, this.feel.adsBlend);
     const port = portrait, scale = this.hip.scale * (1 - port * 0.14);
-    const ads = a > 0 ? this.solveAds(scale) : this.adsPose, v = this.poseValues, hip = this.hip, cycle = this.cyclePose;
-    v.time = t; v.bob = p.bobTime; v.speed = p.speedFactor; v.portrait = portrait;
-    v.recoil = this.feel.recoil; v.ads = a; v.sprint = this.sprintBlend; v.loadBlend = this.loadBlend;
-    v.lagYaw = this.feel.lag.yaw; v.lagPitch = this.feel.lag.pitch; v.holster = this.holster;
-    v.inspect = this.inspect; v.inspectYaw = this.inspectYaw; v.scale = scale; v.cycle = open;
-    v.hipX = hip.px; v.hipY = hip.py; v.hipZ = hip.pz; v.hipPitch = hip.rx; v.hipYaw = hip.ry; v.hipRoll = hip.rz;
-    v.adsX = ads.px; v.adsY = ads.py; v.adsZ = ads.pz; v.adsMotion = this.view.adsMotion;
-    v.cycleX = cycle.px; v.cycleY = cycle.py; v.cycleZ = cycle.pz; v.cyclePitch = cycle.rx; v.cycleYaw = cycle.ry; v.cycleRoll = cycle.rz;
+    if (a > 0) this.solveAds(scale);
     this.stock.visible = a < 0.85 || this.inspect > 0;
     this.model.scale.setScalar(scale);
-    this.posePlayback.apply('pose', v);
+    this.poseFrame.portrait = portrait; this.poseFrame.ads = a; this.poseFrame.scale = scale; this.poseFrame.cycle = open; this.posePlayback.apply('pose', this.poseFrame);
 
     this.feel.scanAim(this, this.targets, this.active, _o, _d, _v2, this.model);
 

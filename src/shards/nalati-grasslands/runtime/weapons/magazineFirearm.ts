@@ -1,5 +1,6 @@
 import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.json' with { type: 'json' };
+import inputs from '../../data/heldInputs.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
 import { RangedFrame, RangedTrace, RangedFlash } from '@wildshard/engine/render/viewmodelFeel';
 import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_RELOAD, RANGED_HIT, RANGED_BRASS } from '../../data/rangedFrame';
@@ -119,10 +120,8 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   private readonly feel: RangedFrame;
   private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
   private readonly posePlayback: HeldPlayback;
+  private readonly poseFrame = { portrait: 0, ads: 0 };
   private readonly partValues = { reloading: 0, reloadProgress: 0, magX: 0, magY: 0, magZ: 0 };
-  private readonly poseValues = { time: 0, bob: 0, speed: 0, portrait: 0, recoil: 0, ads: 0, sprint: 0, reloadTilt: 0,
-    lagYaw: 0, lagPitch: 0, holster: 0, hipX: 0, hipY: 0, hipZ: 0, hipPitch: 0, hipYaw: 0, hipRoll: 0,
-    adsX: 0, adsY: 0, adsZ: 0, adsMotion: 0 };
   private sprintBlend = 0; private reloadTilt = 0;
   private time = 0;
   /** tracer line life (s) — a dev knob for screenshots */
@@ -156,6 +155,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     this.buildViewmodel();
     this.posePlayback = new HeldPlayback({ pose: playback.magazine, parts: playback.magazineParts },
       new Map<string, unknown>([['root', this.model], ['magazine', this.mag], ['handle', this.handle], ['bolt', this.bolt]]));
+    this.posePlayback.bindInputs('pose', inputs.magazine, new Map([['weapon', this]]));
     this.buildEffects();
     this.game.viewmodel.add(this.model);
     this.game.scene.add(this.puffs.points);
@@ -288,14 +288,9 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     this.reloadTilt += (rl - this.reloadTilt) * Math.min(1, dt * 10);
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
     const a = sstep(0, 1, this.feel.adsBlend), scale = this.hip.scale * (1 - portrait * 0.12);
-    const ads = a > 0 ? this.solveAds(scale) : this.adsPose, v = this.poseValues, hip = this.hip;
-    v.time = t; v.bob = p.bobTime; v.speed = p.speedFactor; v.portrait = portrait;
-    v.recoil = this.feel.recoil; v.ads = a; v.sprint = this.sprintBlend; v.reloadTilt = this.reloadTilt;
-    v.lagYaw = this.feel.lag.yaw; v.lagPitch = this.feel.lag.pitch; v.holster = this.holster;
-    v.hipX = hip.px; v.hipY = hip.py; v.hipZ = hip.pz; v.hipPitch = hip.rx; v.hipYaw = hip.ry; v.hipRoll = hip.rz;
-    v.adsX = ads.px; v.adsY = ads.py; v.adsZ = ads.pz; v.adsMotion = this.profile.ads.motion;
+    if (a > 0) this.solveAds(scale);
     this.glowRing.visible = a > 0.001; (this.rearGlow as THREE.MeshBasicMaterial).opacity = a * 0.85;
-    this.model.scale.setScalar(scale); this.posePlayback.apply('pose', v);
+    this.model.scale.setScalar(scale); this.poseFrame.portrait = portrait; this.poseFrame.ads = a; this.posePlayback.apply('pose', this.poseFrame);
 
     this.feel.scanAim(this, this.targets, this.active, _o, _d, _v2, this.model);
 

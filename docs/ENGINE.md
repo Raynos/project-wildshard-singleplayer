@@ -5733,3 +5733,11 @@ model, ownership/grant callbacks and separate loot/visual random streams.
 `spawn` refuses unknown rows and full rosters; optional uniqueness checks
 only pending drops. `update` retains the declared after-take grace and
 never steps physics. `drops` exposes pending identities for diagnostics.
+
+HeldPlayback numeric inputs: `bindInputs(group, rows, owners)` admits at most
+128 unique `{input, owner, path}` rows, each path bounded to 16 safe field
+keys. It borrows only finite numeric values from supplied owned capabilities,
+never exposes those objects to the channel evaluator, and refuses missing or
+non-numeric fields before use. `apply(group, values)` retains the existing
+frame-local overrides and phase order; omitted reads use the admitted owner
+bindings. Native action clocks, ADS solves and springs remain caller-owned.

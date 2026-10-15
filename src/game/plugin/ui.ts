@@ -3,7 +3,7 @@ import { parseAmbientLife } from '@wildshard/format/ambientLife';
 import { installDeclaredMovers, type MoverView, type MoverRuntime, type MoverRoleComposition } from './mover';
 import { bindQuestWorldReactions, type QuestWorldReactions, commandSocketLift, declaredItemScriptBindings } from './simulation';
 import "../quest/presentation.css";
-import { compileTubeCurve, parseClientChannels, parsePrivateScene, parseWorldScene, parseWorldSceneBindings, type WorldSceneBindingKind, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
+import { compileTubeCurve, parseClientChannelInputs, parseClientChannels, parsePrivateScene, parseWorldScene, parseWorldSceneBindings, type WorldSceneBindingKind, parseHeldMeleePhase, type ClientChannelProgram, type ClientChannelProperty } from '@wildshard/format/clientChannels';
 import { BufferAttribute, AdditiveBlending, Matrix4, InstancedMesh, Euler, PerspectiveCamera, PointLight, Quaternion, Scene, ShaderMaterial, Vector3, Object3D, Group, Mesh, MeshStandardMaterial, BufferGeometry, Texture, DataTexture, RGBAFormat, UnsignedByteType, Material } from 'three';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { Scope } from '@wildshard/engine/app/scope';
@@ -765,6 +765,21 @@ function createClientNumericPorts(rows: readonly ClientNumericPortRow[], targets
 const CLIENT_SCALAR_TRANSFORMS = { x: ['position', 'x'], y: ['position', 'y'], z: ['position', 'z'],
   pitch: ['rotation', 'x'], yaw: ['rotation', 'y'], roll: ['rotation', 'z'],
   scaleX: ['scale', 'x'], scaleY: ['scale', 'y'], scaleZ: ['scale', 'z'] } as const;
+
+/** Borrow admitted scalar fields from supplied owners, never publishing their objects to the channel evaluator. */
+export function bindClientChannelInputs(input: unknown, owners: ReadonlyMap<string, unknown>, reads: ReadonlySet<string>): ReadonlyMap<string, () => number> {
+  const rows = parseClientChannelInputs(input), bound = new Map<string, () => number>();
+  for (const row of rows) {
+    if (!reads.has(row.input)) throw new Error(`Unused numeric input ${row.input}`);
+    const read = (): number => {
+      const field = readBorrowedOwner(owners, row), value = field?.value;
+      if (typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > 1e12) throw new Error(`Invalid numeric input ${row.input}`);
+      return value;
+    };
+    read(); bound.set(row.input, read);
+  }
+  return bound;
+}
 
 /** Bind admitted numeric outputs only to named private scene objects; authoritative player/shared objects refuse. */
 export function createClientChannelView(input: unknown, targets: ReadonlyMap<string, unknown>, kernels?: ClientGeometryKernels, changed?: (mesh: InstancedMesh) => void): ReturnType<typeof createClientChannels> {

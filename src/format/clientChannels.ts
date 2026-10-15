@@ -129,6 +129,15 @@ export type ClientChannelProperty = v.InferOutput<typeof ClientChannelPropertySc
 /** Strictly parse detached author data before the trusted view owner binds it. */
 export function parseClientChannels(input: unknown): ClientChannelProgram[] { return v.parse(ClientChannelsSchema, input); }
 
+/** Bounded read-only numeric capabilities for a privately owned playback group. */
+const inputPathKey = v.pipe(v.string(), v.regex(/^[A-Za-z][A-Za-z0-9_-]*$/u), v.maxLength(96),
+  v.check(key => !['constructor', 'prototype', '__proto__', 'caller', 'callee', 'arguments'].includes(key), 'safe numeric input path'));
+const numericInputs = v.pipe(v.array(v.strictObject({ input: name, owner: v.pipe(name, v.maxLength(96)),
+  path: v.pipe(v.array(v.union([inputPathKey, v.pipe(v.number(), v.safeInteger(), v.minValue(0), v.maxValue(1024))])), v.minLength(1), v.maxLength(16)),
+})), v.maxLength(128), v.check(rows => new Set(rows.map(row => row.input)).size === rows.length, 'unique numeric input bindings'));
+/** Admit only bounded paths; trusted owners are supplied separately and are never writable channels. */
+export function parseClientChannelInputs(input: unknown): v.InferOutput<typeof numericInputs> { return v.parse(numericInputs, input); }
+
 /** Data-only private scene construction: geometry, textures and graph materials stay in trusted owned ports. */
 const sceneCoordinate = v.pipe(v.number(), v.finite(), v.minValue(-1e5), v.maxValue(1e5));
 const sceneVector = v.tuple([sceneCoordinate, sceneCoordinate, sceneCoordinate]);
