@@ -39,6 +39,10 @@ export const DUNE_LOGS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.duneLogs);
 /** The rope bridge's four anchor posts (own space) on the island span and the Explorer span; the deck stays live. */
 export const BRIDGE_POSTS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.bridgePosts);
 export const BRIDGE_SPECIMEN_POSTS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.bridgeSpecimenPosts);
+/** The cove's toon cascade (generators/cascade.ts, world space): its curtain, pool rings and foam puffs. */
+export const WATERFALL_SHEET_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.waterfallSheet, { _astep: 'aStep' });
+export const WATERFALL_RINGS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.waterfallRings);
+export const WATERFALL_PUFFS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.waterfallPuffs, { _acentre: 'aCentre', _ainfo: 'aInfo' });
 let ready = false;
 /** Explorer may open these models before the island's world hook has run. */
 export function fixedGeometryReady(): boolean { return ready; }
@@ -59,6 +63,8 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
     loadCoverGeometry(admitted),
     DUNE_LOGS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.duneLogs)),
     BRIDGE_POSTS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.bridgePosts)), BRIDGE_SPECIMEN_POSTS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.bridgeSpecimenPosts)),
+    WATERFALL_SHEET_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.waterfallSheet)), WATERFALL_RINGS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.waterfallRings)),
+    WATERFALL_PUFFS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.waterfallPuffs)),
     IRON_SWORD_BLADE_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.ironSwordBlade)), IRON_SWORD_FITTINGS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.ironSwordFittings)),
     HAT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.hat)), CHIME_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.chime)),
     CAPE_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.cape)), BOAT_HULL_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.boatHull)),

@@ -18,7 +18,9 @@ const write = (url, bytes) => {
 if (!check) mkdirSync(assets, { recursive: true });
 const material = new MeshStandardMaterial({ vertexColors: true });
 const emit = (name, geometry) => {
-  const glb = staticGlb([{ geometry, material, customAttributes: geometry.hasAttribute('aSway') ? { _SWAY: 'aSway' } : {} }], name);
+  const customAttributes = Object.fromEntries(Object.keys(geometry.attributes).filter((key) => !['position', 'normal', 'color', 'uv'].includes(key))
+    .map((key) => [key === 'aSway' ? '_SWAY' : `_${key.toUpperCase()}`, key]));
+  const glb = staticGlb([{ geometry, material, customAttributes }], name);
   write(new URL(`${name}.glb`, assets), glb);
   geometry.dispose();
 };

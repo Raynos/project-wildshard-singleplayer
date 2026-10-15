@@ -47,4 +47,7 @@ export const FIXED_MODEL_FILES = {
   duneLogs: '/assets/driftwood-isle/baked/fixed-models/cover-driftwood.glb',
   bridgePosts: '/assets/driftwood-isle/baked/fixed-models/bridge-posts.glb',
   bridgeSpecimenPosts: '/assets/driftwood-isle/baked/fixed-models/bridge-specimen-posts.glb',
+  waterfallSheet: '/assets/driftwood-isle/baked/fixed-models/waterfall-sheet.glb',
+  waterfallRings: '/assets/driftwood-isle/baked/fixed-models/waterfall-rings.glb',
+  waterfallPuffs: '/assets/driftwood-isle/baked/fixed-models/waterfall-puffs.glb',
 } as const;

@@ -32,7 +32,7 @@
 import * as THREE from 'three';
 import { copyCoveGeometry, coveColliderDescs } from '../boot/coveGeometry';
 import { coveFloorAt, coveHalfWidth, islandCoveSpec, type CoveSpec, type CaveBounds, type CoveAnchor } from './coveLayout';
-import { waterfallFor, type WaterfallLike } from './Waterfall';
+import { waterfall } from './Waterfall';
 import { rockMaterial } from './rockKit';
 import { reefRock } from '../models/reefRock';
 import { modelContext } from '@wildshard/engine/models/model';
@@ -41,7 +41,6 @@ import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc, WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { POOL_LOOK } from '../data/poolLook';
 
 let poolLook: { material: THREE.Material; follow: () => void } | null = null;
@@ -61,7 +60,6 @@ export class Cove {
   caveBounds: CaveBounds = { x: 0, z: 0, r: 0, yMin: 0, yMax: 0 };
   /** the pools' toon look follows the day clock once a frame (their ripple runs on the graph's own frame clock) */
   private follow: (() => void) | null = null;
-  private fall: WaterfallLike | null = null;
   private cave: CoveSpec['cave'] = { x: 0, z: 0, yaw: 0, w: 0, h: 0, depth: 0 };
   /** Registration facts borrow the existing baked reef draw; no retained matrix/box copies. */
   private catalogue: ReturnType<typeof copyCoveGeometry>['catalogue'] = {placements:[],boxes:[]};
@@ -117,13 +115,8 @@ export class Cove {
     poolMesh.receiveShadow = true; poolMesh.renderOrder = 1;
     this.group.add(poolMesh);
 
-    {
-      const [tx, tz] = spec.fall.top, [fx, fz] = spec.fall.foot, dx = fx - tx, dz = fz - tz, len = Math.hypot(dx, dz);
-      const px = fx + (dx / len) * 1.2, pz = fz + (dz / len) * 1.2;
-      // E150: the toon cascade in three terraces; its foam rings stay inside the 2.4 m pool
-      this.fall = waterfallFor({ lip: new THREE.Vector3(tx, heightAt(tx, tz) + 0.3, tz), foot: new THREE.Vector3(px, heightAt(fx, fz) + 0.06, pz), width: 2.2, ground: heightAt, poolRadius: 2.3, steps: 3 }).build();
-      this.group.add(this.fall.group);
-    }
+    // E150: the toon cascade in three terraces, baked from spec.fall with the cove (generators/driftwoodCove.mjs)
+    this.group.add(waterfall());
 
     return this;
   }

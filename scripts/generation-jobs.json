@@ -2818,7 +2818,13 @@
         "public/assets/driftwood-isle/baked/fixed-models/bridge-posts.glb",
         "public/assets/driftwood-isle/baked/fixed-models/bridge-specimen-posts.glb",
         "src/shards/driftwood-isle/assets/1a1bc6150cd0bdf7431d31b6a3c7402848af0106187c3d01e119a92edce89f2c",
-        "src/shards/driftwood-isle/assets/41c9752a32dacdc24bfc94e87d4a8a8023a02b3979fdba927c01b22a94355c06"
+        "src/shards/driftwood-isle/assets/41c9752a32dacdc24bfc94e87d4a8a8023a02b3979fdba927c01b22a94355c06",
+        "public/assets/driftwood-isle/baked/fixed-models/waterfall-sheet.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/waterfall-rings.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/waterfall-puffs.glb",
+        "src/shards/driftwood-isle/assets/2ca7c5b3c9a4bb724afc08b115307cb4b04eee0c3b08e9cc66c5b616f10ff36e",
+        "src/shards/driftwood-isle/assets/c6d08b85ed309fa1ea620f18548206c6c62bd0e13ee2fcde0742424315e600a5",
+        "src/shards/driftwood-isle/assets/f8fb551749db9c017cc2a1b7bd2a0b0b68ed844b0014c757bee72a3e3dd9dccb"
       ],
       "seedOutputs": [],
       "platform": "native",
@@ -2893,7 +2899,13 @@
         "public/assets/driftwood-isle/baked/fixed-models/bridge-posts.glb",
         "public/assets/driftwood-isle/baked/fixed-models/bridge-specimen-posts.glb",
         "src/shards/driftwood-isle/assets/1a1bc6150cd0bdf7431d31b6a3c7402848af0106187c3d01e119a92edce89f2c",
-        "src/shards/driftwood-isle/assets/41c9752a32dacdc24bfc94e87d4a8a8023a02b3979fdba927c01b22a94355c06"
+        "src/shards/driftwood-isle/assets/41c9752a32dacdc24bfc94e87d4a8a8023a02b3979fdba927c01b22a94355c06",
+        "public/assets/driftwood-isle/baked/fixed-models/waterfall-sheet.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/waterfall-rings.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/waterfall-puffs.glb",
+        "src/shards/driftwood-isle/assets/2ca7c5b3c9a4bb724afc08b115307cb4b04eee0c3b08e9cc66c5b616f10ff36e",
+        "src/shards/driftwood-isle/assets/c6d08b85ed309fa1ea620f18548206c6c62bd0e13ee2fcde0742424315e600a5",
+        "src/shards/driftwood-isle/assets/f8fb551749db9c017cc2a1b7bd2a0b0b68ed844b0014c757bee72a3e3dd9dccb"
       ]
     },
     {

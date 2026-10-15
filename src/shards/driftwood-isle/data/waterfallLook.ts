@@ -2,8 +2,8 @@ import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGra
 
 /**
  * Driftwood's toon cascade (E150) as SF59 material graphs (SHARD-PLATFORM W2 C2; the shardfile's `look.materials`,
- * compiled by the runtime and drawn on runtime/looks/cascade.ts's three meshes): the curtain, the plunge pool's foam rings
- * and the foam puffs. All three are unlit, alpha-blended, fogged and write no depth; each shades with the day's sun the
+ * compiled by the runtime and drawn on the baked cascade's three meshes, world/Waterfall.ts): the curtain, the plunge
+ * pool's foam rings and the foam puffs. All three are unlit, alpha-blended, fogged and write no depth; each shades with the day's sun the
  * fog holds (`atmosphereSunDirection` / `atmosphereSunColour`), lit `0.35 + 0.75 × sun`, as the GLSL programs did.
  *
  * - `curtain`: three toon bands across the pleats (the face normal against the sun), glassy cyan pouring into deeper teal
@@ -17,7 +17,7 @@ import type { GraphIr, GraphNode, GraphRef } from '@wildshard/format/materialGra
  *   is thrown up, shrinking away; toon-lit in two bands (sunlit white, a pale-blue shade), the spray paler.
  */
 
-/** the shelf's share of each terrace (the flat run before the drop): runtime/looks/cascade.ts builds the rows on it */
+/** the shelf's share of each terrace (the flat run before the drop): generators/cascade.ts builds the rows on it */
 export const CASCADE_SHELF = 0.28;
 /** the look.materials ids the cascade's three meshes wear */
 export const CASCADE_LOOKS = { curtain: 'driftwood-cascade-curtain', pool: 'driftwood-cascade-pool', puffs: 'driftwood-cascade-puffs' } as const;

@@ -63,5 +63,7 @@ export function driftwoodFixedSource(): {
   rows['duneLogsBake'] = logs.catalogue;
   const posts = originalBridgePosts();
   geometries.set('bridge-posts', posts.world); geometries.set('bridge-specimen-posts', posts.specimen);
+  // the toon cascade's three draws (generators/cascade.ts), last so the earlier templates keep their keys
+  for (const [name, geometry] of Object.entries(cove.fall)) geometries.set(`waterfall-${name}`, geometry);
   return { geometries, world, rows };
 }

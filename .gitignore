@@ -1172,3 +1172,11 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # Fixed-model producer emits the static dune-log catalogue at build time.
 /src/shards/driftwood-isle/data/duneLogsBake.json
+
+# The toon cascade, baked with the cove (generators/cascade.ts).
+/public/assets/driftwood-isle/baked/fixed-models/waterfall-sheet.glb
+/public/assets/driftwood-isle/baked/fixed-models/waterfall-rings.glb
+/public/assets/driftwood-isle/baked/fixed-models/waterfall-puffs.glb
+/src/shards/driftwood-isle/assets/2ca7c5b3c9a4bb724afc08b115307cb4b04eee0c3b08e9cc66c5b616f10ff36e
+/src/shards/driftwood-isle/assets/c6d08b85ed309fa1ea620f18548206c6c62bd0e13ee2fcde0742424315e600a5
+/src/shards/driftwood-isle/assets/f8fb551749db9c017cc2a1b7bd2a0b0b68ed844b0014c757bee72a3e3dd9dccb

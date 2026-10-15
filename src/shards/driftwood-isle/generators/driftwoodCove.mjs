@@ -6,6 +6,7 @@ import { addVoxelAOBake } from '@wildshard/engine/world/voxelAO';
 import { driftwoodGroundSampler } from './groundSampling.ts';
 import { coveGeometry } from './cove.ts';
 import { coveNative } from './coveNative.ts';
+import { cascadeGeometry } from './cascade.ts';
 import { coveSpecKey, islandCoveSpec } from '../world/coveLayout.ts';
 
 export function originalCove() {
@@ -14,8 +15,12 @@ export function originalCove() {
   const release = addVoxelAOBake(ao.buffer);
   try {
     const spec = islandCoveSpec(), built = coveGeometry(spec, ground);
+    // E150: the toon cascade in three terraces over the crag; its foam rings stay inside the 2.4 m pool
+    const [tx, tz] = spec.fall.top, [fx, fz] = spec.fall.foot, dx = fx - tx, dz = fz - tz, len = Math.hypot(dx, dz);
+    const fall = cascadeGeometry({ lip: new Vector3(tx, ground(tx, tz) + 0.3, tz), foot: new Vector3(fx + (dx / len) * 1.2, ground(fx, fz) + 0.06, fz + (dz / len) * 1.2),
+      width: 2.2, ground, poolRadius: 2.3, steps: 3 });
     return {
-      geometry: built.geometry,
+      geometry: built.geometry, fall,
       metadata: { specKey: coveSpecKey(spec), native:coveNative(spec,ground), catalogue: {
         placements: built.placements.map(row => {
           const at = new Vector3().setFromMatrixPosition(row.m);
