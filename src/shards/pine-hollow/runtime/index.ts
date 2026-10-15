@@ -1,3 +1,5 @@
+import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
+import SKIN_PICKUPS from '../data/skinPickups.json' with { type: 'json' };
 import { CROSSBOW_GEOMETRY } from '../boot/crossbowGeometry';
 import { preloadKingKit } from '../models/antlerKing';
 import { installEnteredRuntimeService, installRetainedPlayerEffects, retainsRuntimeServices } from '@wildshard/game/shard/retainedHooks';
@@ -68,7 +70,7 @@ import { prepareLongbowHands } from '../weapons/longbowView';
 import { CROSSBOW, LEVER, LONGBOW } from '../weapons/equipment';
 import { AMMO_ROWS } from '../loadout/effects';
 import { PINE_FINISH_EFFECTS, pineFinishes, finishPick } from '../loadout/finishes';
-import { SKINS, PINE_FINISHES } from '../loadout/skins';
+import { SKINS, PINE_FINISHES, type SkinId } from '../loadout/skins';
 import { bindLoadoutDeath } from '../loadout/events';
 import { mottLine } from '../quest/trades';
 import { isPineItem } from '../items';
@@ -213,20 +215,19 @@ export class PineHollow extends ShardPlugin {
       clearSkin(pick.skin.weapon === 'rifle' ? rifle.model : crossbow.model);
       ctx.app.effects?.sync(weapons.get(pick.skin.weapon), []); skins.wear(pick.skin.weapon, null);
     };
-    const skinDrops: InstanceType<typeof WeaponPickup>[] = [], skinDropRandom = pinePickupStream('skin-drops');
+    const skinDrops = new ClaimedPickupRoster<SkinId>(SKIN_PICKUPS, {
+      scene: game.scene, has: id => skins.has(id), random: () => ctx.app.rng.stream('loot').next(), visualRandom: pinePickupStream('skin-drops'),
+      model: id => { const skin = SKINS[id], item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbowDisplayModel(crossbow, sky); applySkin(item, skin, sky); return item; },
+      enter: (_id, drop) => { rt.interactables.push(drop.interactable); },
+      take: id => { const skin = SKINS[id], label = skin.weapon === 'rifle' ? 'lever-action' : 'crossbow'; skins.own(skin.id); wearSkin(skin); if (skin.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle'); } audio.hitMarker(); hud.toast(`${skin.name} ${label} — ${skin.blurb}`); },
+    });
     ctx.on('actor.died', ({ actor }) => {
       const animal = animals.animals.find((a) => a.combatActor() === actor);
       if (animal === undefined) return;
       const skin = Object.values(SKINS).find((row) => row.dropsFrom?.kind === animal.kind && row.dropsFrom.variant === animal.variant);
       if (!skin || skins.has(skin.id) || rt.hooks.isElite?.(animal) === true) return;
-      const item = skin.weapon === 'rifle' ? rifle.displayModel() : crossbowDisplayModel(crossbow, sky);
-      applySkin(item, skin, sky);
-      const label = skin.weapon === 'rifle' ? 'lever-action' : 'crossbow';
-      const toss = ctx.app.rng.stream('loot').next() * Math.PI * 2;
       const at = animal.position;
-      const drop = new WeaponPickup({ scene: game.scene, item, position: new THREE.Vector3(at.x, Math.max(at.y, heightAt(at.x, at.z)), at.z), tier: 'rare', prompt: `Take the ${skin.name} ${label}`, scale: skin.weapon === 'rifle' ? 1.35 : 1.6, toss: { x: Math.sin(toss) * 1.2, y: 3.5, z: Math.cos(toss) * 1.2 }, random: skinDropRandom });
-      rt.interactables.push(drop.interactable); skinDrops.push(drop);
-      drop.onPickup = () => { skins.own(skin.id); wearSkin(skin); if (skin.weapon === 'rifle') { weapons.unlock('rifle'); weapons.select('rifle'); } audio.hitMarker(); hud.toast(`${skin.name} ${label} — ${skin.blurb}`); skinDrops.splice(skinDrops.indexOf(drop), 1); };
+      skinDrops.spawn(skin.id, new THREE.Vector3(at.x, Math.max(at.y, heightAt(at.x, at.z)), at.z), true);
     });
     const loadout = installPineLoadout({ scene: game.scene, sky, weapons, crossbow, rifle, longbow, inventory, owned, hud, audio, params, scope: ctx.scope, cues: h.cues, context: ctx });
     const rifleDrop = (() => {
@@ -240,7 +241,7 @@ export class PineHollow extends ShardPlugin {
     })();
     if (loadout.hasRifle || params.get('weapon') === 'rifle' || params.get('weapon') === 'lever') rifleDrop?.dispose();
     rt.hooks.disposeRifleDrop = () => { rifleDrop?.dispose(); };
-    rt.hooks.updatePickups = (dt, t) => { rifleDrop?.update(dt, t, game.renderer, game.camera); for (const drop of skinDrops) drop.update(dt, t, game.renderer, game.camera); };
+    rt.hooks.updatePickups = (dt, t) => { rifleDrop?.update(dt, t, game.renderer, game.camera); skinDrops.update(dt, t, game.renderer, game.camera, player.position); };
     if (retainsRuntimeServices(ctx)) installRetainedPlayerEffects(ctx, { movement: player, position: () => player.position });
     installStarterEffects(ctx, { player, health: ctx.app.player, effects: ctx.app.effects },
       retainsRuntimeServices(ctx) ? (install) => { installEnteredRuntimeService(ctx, install); } : undefined);

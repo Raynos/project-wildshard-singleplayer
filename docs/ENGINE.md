@@ -5724,3 +5724,12 @@ buffer binding; a missing attribute uses the declared constant. No filler
 vertex buffers or per-geometry programs are created. Constants are restored
 on each draw because they are context state, rather than VAO state. Defaults
 survive material clones, outlines and displaced/alpha-cut shadow variants.
+### Claimed pickup ownership
+
+`ClaimedPickupRoster` in `@wildshard/game/loot/runtime` owns at most 128
+active or fading item pickups. Authored rows retain tier, scale, tilt,
+walk-in radius, toss and retirement policy. Content supplies the original
+model, ownership/grant callbacks and separate loot/visual random streams.
+`spawn` refuses unknown rows and full rosters; optional uniqueness checks
+only pending drops. `update` retains the declared after-take grace and
+never steps physics. `drops` exposes pending identities for diagnostics.

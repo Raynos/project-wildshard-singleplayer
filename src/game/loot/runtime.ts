@@ -1,7 +1,7 @@
 import { bagMenu } from '../bag/tabs';
 import * as THREE from 'three';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
-import type { LevelContext } from '@wildshard/engine/level/context';
+import { ItemPickup } from '@wildshard/engine/player/WeaponPickup';
 import type { GameMenu } from '@wildshard/engine/ui/Menu';
 import type { MapMark } from '@wildshard/engine/ui/Minimap';
 import type { GearLoot, FindsView } from '../bag/bag';
@@ -28,7 +28,7 @@ export interface LootPresentation {
 }
 export interface LootBody extends CreatureDeathSource { kind: string; position: THREE.Vector3; herd: number; alive: boolean }
 export interface ScopedLootHost<A extends LootBody> {
-  ctx: Pick<LevelContext, 'scope' | 'on' | 'system' | 'debug'>;
+  ctx: Pick<ShardContext, 'scope' | 'on' | 'system' | 'debug'>;
   owned: Owned;
   manifest: LootGate & { slug: string };
   scene: THREE.Scene;
@@ -96,4 +96,74 @@ export function installRuntimeLoot(ctx: ShardContext, presentation: LootPresenta
   return installLoot({ ctx, manifest: ctx.manifest, owned: runtime.play.owned, scene: runtime.world.game.scene,
     player: runtime.world.player, camera: runtime.world.game.camera, animals: () => runtime.play?.animals.animals ?? [],
     menu: runtime.play.menu, presentation });
+}
+
+/** Bounded authored presentation and retirement of an already claimed loot identity. */
+export interface ClaimedPickupRow {
+  readonly options: Pick<ConstructorParameters<typeof ItemPickup>[0], 'scale' | 'tilt' | 'glow' | 'prompt'> & { readonly tier?: string };
+  readonly toss: { readonly horizontal: number; readonly up: number };
+  readonly walkIn: { readonly radius: number; readonly height: number } | null;
+  readonly takenGrace: number;
+  readonly unique: boolean;
+  readonly disposeItemOnTake: boolean;
+  readonly retireBeforeCallback: boolean;
+}
+/** Content retains its model, grant/wear callbacks and independent cosmetic/loot RNG streams. */
+export interface ClaimedPickupPorts<I extends string> {
+  readonly scene: THREE.Scene;
+  readonly has: (id: I) => boolean;
+  readonly model: (id: I) => THREE.Object3D;
+  readonly take: (id: I, item: THREE.Object3D) => void;
+  readonly random: () => number;
+  readonly visualRandom?: () => number;
+  readonly enter?: (id: I, drop: ItemPickup) => void;
+}
+/** One owner for floating claimed items and their original after-take grace policy; never advances physics itself. */
+export class ClaimedPickupRoster<I extends string> {
+  readonly drops = new Map<I, ItemPickup>();
+  private readonly active = new Map<ItemPickup, { id: I; row: ClaimedPickupRow }>();
+  private readonly fading: { drop: ItemPickup; left: number }[] = [];
+  constructor(private readonly rows: Readonly<Record<I, ClaimedPickupRow>>, private readonly ports: ClaimedPickupPorts<I>) {
+    const keys = Object.keys(rows);
+    if (keys.length === 0 || keys.length > 128) throw new Error('Claimed pickup rows exceed their bound');
+    for (const id in rows) {
+      if (!Object.hasOwn(rows, id)) continue;
+      const row = rows[id];
+      if (row === undefined || !Number.isFinite(row.takenGrace) || row.takenGrace < 0 || row.takenGrace > 60
+        || !Number.isFinite(row.toss.horizontal) || !Number.isFinite(row.toss.up)
+        || (row.walkIn !== null && (!(row.walkIn.radius > 0) || !(row.walkIn.height > 0)))) throw new Error('Invalid claimed pickup row');
+    }
+  }
+  spawn(id: I, at: THREE.Vector3, toss: boolean): ItemPickup | null {
+    const row = this.rows[id];
+    if (row === undefined) throw new Error('Unknown claimed pickup row');
+    if (this.ports.has(id) || (row.unique && this.drops.has(id))) return null;
+    if (this.active.size + this.fading.length >= 128) throw new Error('Claimed pickup roster is full');
+    const { tier, ...options } = row.options;
+    if (tier !== undefined && tier !== 'common' && tier !== 'rare' && tier !== 'legendary') throw new Error('Invalid claimed pickup tier');
+    const item = this.ports.model(id), angle = this.ports.random() * Math.PI * 2;
+    const drop = new ItemPickup({ ...options, ...(tier === undefined ? {} : { tier }), scene: this.ports.scene, item, position: at.clone(),
+      ...(toss ? { toss: { x: Math.sin(angle) * row.toss.horizontal, y: row.toss.up, z: Math.cos(angle) * row.toss.horizontal } } : {}),
+      ...(this.ports.visualRandom === undefined ? {} : { random: this.ports.visualRandom }) });
+    this.ports.enter?.(id, drop);
+    const retire = (): void => {
+      this.active.delete(drop); if (this.drops.get(id) === drop) this.drops.delete(id);
+      if (row.takenGrace > 0) this.fading.push({ drop, left: row.takenGrace });
+      if (row.disposeItemOnTake) item.traverse(o => { if (o instanceof THREE.Mesh) { const geometry: unknown = o.geometry; if (geometry instanceof THREE.BufferGeometry) geometry.dispose(); } });
+    };
+    drop.onPickup = () => { if (row.retireBeforeCallback) retire(); this.ports.take(id, item); if (!row.retireBeforeCallback) retire(); };
+    this.active.set(drop, { id, row }); this.drops.set(id, drop);
+    return drop;
+  }
+  update(dt: number, t: number, renderer: Parameters<ItemPickup['update']>[2], camera: Parameters<ItemPickup['update']>[3], player: THREE.Vector3): void {
+    for (let i = this.fading.length - 1; i >= 0; i--) {
+      const entry = this.fading[i]; if (entry === undefined) continue;
+      entry.drop.update(dt, t, renderer, camera); if ((entry.left -= dt) <= 0) this.fading.splice(i, 1);
+    }
+    for (const [drop, { row }] of this.active) {
+      drop.update(dt, t, renderer, camera);
+      const reach = row.walkIn, at = drop.group.position;
+      if (reach !== null && Math.hypot(at.x - player.x, at.z - player.z) < reach.radius && Math.abs(at.y - player.y) < reach.height) drop.take();
+    }
+  }
 }

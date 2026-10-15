@@ -1,0 +1,65 @@
+{
+  "bear-claw": {
+    "options": {
+      "tier": "rare",
+      "scale": 1.7,
+      "glow": false,
+      "tilt": 0.1
+    },
+    "toss": {
+      "horizontal": 1.1,
+      "up": 3.4
+    },
+    "walkIn": {
+      "radius": 1.4,
+      "height": 2
+    },
+    "takenGrace": 5,
+    "unique": true,
+    "disposeItemOnTake": true,
+    "retireBeforeCallback": true,
+    "toast": "Bear claw \u00b7 your heavy attack hits 20 % harder \u2014 it hangs in Wendell's hut"
+  },
+  "boar-tusk": {
+    "options": {
+      "tier": "rare",
+      "scale": 2.4,
+      "glow": false,
+      "tilt": 0.1
+    },
+    "toss": {
+      "horizontal": 1.1,
+      "up": 3.4
+    },
+    "walkIn": {
+      "radius": 1.4,
+      "height": 2
+    },
+    "takenGrace": 5,
+    "unique": true,
+    "disposeItemOnTake": true,
+    "retireBeforeCallback": true,
+    "toast": "Boar tusk \u00b7 no hit lands while you dodge \u2014 it hangs in Wendell's hut"
+  },
+  "captain-hat": {
+    "options": {
+      "tier": "legendary",
+      "scale": 1.7,
+      "glow": false,
+      "tilt": 0.15
+    },
+    "toss": {
+      "horizontal": 1.1,
+      "up": 3.4
+    },
+    "walkIn": {
+      "radius": 1.4,
+      "height": 2
+    },
+    "takenGrace": 5,
+    "unique": true,
+    "disposeItemOnTake": true,
+    "retireBeforeCallback": true,
+    "toast": "Captain's hat \u00b7 you wear it now (GEAR to take it off)"
+  }
+}

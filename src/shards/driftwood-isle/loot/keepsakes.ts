@@ -33,7 +33,8 @@ import { InteractSfx } from '@wildshard/engine/audio/interactSfx';
 import { practiceRoom } from '@wildshard/engine/core/practiceRoom';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place } from '@wildshard/engine/models/place';
-import { ItemPickup, type PickupTier } from '@wildshard/engine/player/WeaponPickup';
+import { ClaimedPickupRoster } from '@wildshard/game/loot/runtime';
+import KEEPSAKE_PICKUPS from '../data/keepsakePickups.json' with { type: 'json' };
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -63,13 +64,6 @@ const CHARM_TOAST: Record<'charm-1' | 'charm-2' | 'charm-3', string> = {
   'charm-2': 'Sea glass charm II · your dodge recharges faster',
   'charm-3': 'Sea glass charm III · your sword glows at night',
 };
-const DROP: Record<TrophyDropId, { tier: PickupTier; scale: number; toast: string }> = {
-  'bear-claw': { tier: 'rare', scale: 1.7, toast: 'Bear claw · your heavy attack hits 20 % harder — it hangs in Wendell\'s hut' },
-  'boar-tusk': { tier: 'rare', scale: 2.4, toast: 'Boar tusk · no hit lands while you dodge — it hangs in Wendell\'s hut' },
-  'captain-hat': { tier: 'legendary', scale: 1.7, toast: 'Captain\'s hat · you wear it now (GEAR to take it off)' },
-};
-/** walk-over reach (m, feet to the drop, flat) and the height band it counts in */
-const TAKE_R = 1.4, TAKE_DY = 2;
 /** a charm's toast waits for the adventure's own "Sea glass · n / 15" */
 const CHARM_DELAY = 1.3;
 
@@ -174,31 +168,16 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
   scope?.onDispose(offOwned);
 
   // ── the trophy drops ──
-  const drops = new Map<TrophyDropId, ItemPickup>();
-  /** taken drops still playing their collapse + shockwave (ItemPickup disposes itself at the end; a few seconds' grace) */
-  const fading: { drop: ItemPickup; left: number }[] = [];
-  const itemFor = (id: TrophyDropId): THREE.Object3D => (id === 'captain-hat' ? buildCaptainHat(ctx) : buildTrophy(ctx, id === 'bear-claw' ? 'bear' : 'boar'));
-  const spawnDrop = (id: TrophyDropId, at: THREE.Vector3, toss: boolean): void => {
-    if (owned.has(id) || drops.has(id)) return;
-    const item = itemFor(id), d = DROP[id];
-    const a = app.rng.stream('loot').next() * Math.PI * 2;
-    const drop = new ItemPickup({
-      scene: h.game.scene, item, position: at.clone(), tier: d.tier, scale: d.scale, glow: false, tilt: id === 'captain-hat' ? 0.15 : 0.1,
-      ...(toss ? { toss: { x: Math.sin(a) * 1.1, y: 3.4, z: Math.cos(a) * 1.1 } } : {}),
-    });
-    h.owner?.scope.own(drop);
-    drop.onPickup = () => {
-      drops.delete(id);
-      fading.push({ drop, left: 5 });
-      item.traverse((o) => { if ((o as Partial<THREE.Mesh>).isMesh === true) (o as THREE.Mesh).geometry.dispose(); }); // hidden at once; the orb's burst plays on
-      owned.grant(id);
-      if (id === 'captain-hat') owned.wear('captain-hat');
-      h.hud.toast(d.toast);
-      sfx.interact('chime', undefined, { gain: 0.8 });
-      h.music.sting('pickup');
-    };
-    drops.set(id, drop);
-  };
+  const roster = new ClaimedPickupRoster<TrophyDropId>(KEEPSAKE_PICKUPS, {
+    scene: h.game.scene, has: id => owned.has(id),
+    model: id => id === 'captain-hat' ? buildCaptainHat(ctx) : buildTrophy(ctx, id === 'bear-claw' ? 'bear' : 'boar'),
+    random: () => app.rng.stream('loot').next(), enter: (_id, drop) => { h.owner?.scope.own(drop); },
+    take: id => {
+      owned.grant(id); if (id === 'captain-hat') owned.wear('captain-hat');
+      h.hud.toast(KEEPSAKE_PICKUPS[id].toast); sfx.interact('chime', undefined, { gain: 0.8 }); h.music.sting('pickup');
+    },
+  });
+  const spawnDrop = (id: TrophyDropId, at: THREE.Vector3, toss: boolean): void => { roster.spawn(id, at, toss); };
   const killed = (a: A): void => {
     if (practiceRoom.open) return;
     const id = trophyFor(a);
@@ -221,25 +200,14 @@ export function installKeepsakes<A extends KeepsakeAnimal>(h: KeepsakeHost<A>): 
       const next = pending.shift();
       if (next) { h.hud.toast(next.text); sfx.interact('chime', undefined, { gain: 0.9 }); h.music.sting('pickup'); }
     }
-    const pl = h.player.position;
-    for (let i = fading.length - 1; i >= 0; i--) {
-      const f = fading[i];
-      if (f === undefined) continue;
-      f.drop.update(dt, t, h.game.renderer, h.game.camera);
-      if ((f.left -= dt) <= 0) fading.splice(i, 1);
-    }
-    for (const [, drop] of drops) {
-      drop.update(dt, t, h.game.renderer, h.game.camera);
-      const g = drop.group.position;
-      if (Math.hypot(g.x - pl.x, g.z - pl.z) < TAKE_R && Math.abs(g.y - pl.y) < TAKE_DY) drop.take();
-    }
+    roster.update(dt, t, h.game.renderer, h.game.camera, h.player.position);
     const glow = nightGlow(owned, h.sky.night);
     for (const s of h.swords) s.bladeGlow = glow;
   }, 'keepsakes');
 
   // dev console / capture scripts (not a URL switch)
   const dev = {
-    chime, plaques, drops,
+    chime, plaques, drops: roster.drops,
     /** set the beach's found sea glass to `n` (flags glass:1 … n on, the rest off) */
     glass: (n: number) => { for (let i = 1; i <= SEA_GLASS_COUNT; i++) flags.set(`${SEA_GLASS_FLAG}${i}`, i <= n); },
     /** drop a keepsake 2.5 m in front of you (the kill's toss) */

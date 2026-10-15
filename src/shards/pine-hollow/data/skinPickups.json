@@ -1,0 +1,114 @@
+{
+  "ghost-stag": {
+    "options": {
+      "tier": "rare",
+      "prompt": "Take the Ghost Stag crossbow",
+      "scale": 1.6
+    },
+    "toss": {
+      "horizontal": 1.2,
+      "up": 3.5
+    },
+    "walkIn": null,
+    "takenGrace": 0,
+    "unique": false,
+    "disposeItemOnTake": false,
+    "retireBeforeCallback": false
+  },
+  "hollow-ash": {
+    "options": {
+      "tier": "rare",
+      "prompt": "Take the Hollow Ash crossbow",
+      "scale": 1.6
+    },
+    "toss": {
+      "horizontal": 1.2,
+      "up": 3.5
+    },
+    "walkIn": null,
+    "takenGrace": 0,
+    "unique": false,
+    "disposeItemOnTake": false,
+    "retireBeforeCallback": false
+  },
+  "ironhide": {
+    "options": {
+      "tier": "rare",
+      "prompt": "Take the Ironhide lever-action",
+      "scale": 1.35
+    },
+    "toss": {
+      "horizontal": 1.2,
+      "up": 3.5
+    },
+    "walkIn": null,
+    "takenGrace": 0,
+    "unique": false,
+    "disposeItemOnTake": false,
+    "retireBeforeCallback": false
+  },
+  "blackpaw": {
+    "options": {
+      "tier": "rare",
+      "prompt": "Take the Blackpaw crossbow",
+      "scale": 1.6
+    },
+    "toss": {
+      "horizontal": 1.2,
+      "up": 3.5
+    },
+    "walkIn": null,
+    "takenGrace": 0,
+    "unique": false,
+    "disposeItemOnTake": false,
+    "retireBeforeCallback": false
+  },
+  "imperial": {
+    "options": {
+      "tier": "rare",
+      "prompt": "Take the Imperial crossbow",
+      "scale": 1.6
+    },
+    "toss": {
+      "horizontal": 1.2,
+      "up": 3.5
+    },
+    "walkIn": null,
+    "takenGrace": 0,
+    "unique": false,
+    "disposeItemOnTake": false,
+    "retireBeforeCallback": false
+  },
+  "warden": {
+    "options": {
+      "tier": "rare",
+      "prompt": "Take the Warden crossbow",
+      "scale": 1.6
+    },
+    "toss": {
+      "horizontal": 1.2,
+      "up": 3.5
+    },
+    "walkIn": null,
+    "takenGrace": 0,
+    "unique": false,
+    "disposeItemOnTake": false,
+    "retireBeforeCallback": false
+  },
+  "scarback-furnace": {
+    "options": {
+      "tier": "rare",
+      "prompt": "Take the Scarback Furnace lever-action",
+      "scale": 1.35
+    },
+    "toss": {
+      "horizontal": 1.2,
+      "up": 3.5
+    },
+    "walkIn": null,
+    "takenGrace": 0,
+    "unique": false,
+    "disposeItemOnTake": false,
+    "retireBeforeCallback": false
+  }
+}
