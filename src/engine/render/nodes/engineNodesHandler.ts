@@ -61,6 +61,7 @@ import type { Renderer } from '../renderer';
 import { NodeUniformBuffers, type BlockGroup } from './nodeUniformBuffers';
 import { installNodeCoarseMask, type NodeCoarseMask } from '../nodeCoarseMask';
 import { installNodeLayerFrame, layerFrameOf, type NodeLayerFrameInstaller } from '../nodeLayerFrame';
+import { bindGraphAttributeDefaults, copyGraphAttributeDefaults, prepareGraphAttributeDefaults } from './graphAttributes';
 import { buildWithInstanceAttributes, instanceAttributeShader, nodeInstanceKey } from './nodeInstancing';
 
 /** Depth displacement reads the same authored local normal as its surface. */
@@ -325,6 +326,12 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     });
   }
 
+  /** Clone-safe optional attributes use the renderer's existing constant-value binding. */
+  override setObject(object: THREE.Object3D, material: THREE.Material): void {
+    prepareGraphAttributeDefaults(material);
+    super.setObject(object, material);
+  }
+
   /** the classic renderer this handler serves (after `renderer.setNodesHandler(handler)`) */
   classicRenderer(): Renderer {
     if (this.real === null) throw new Error('EngineNodesHandler: renderer.setNodesHandler(handler) first');
@@ -388,6 +395,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     // Nodes and their live uniforms are borrowed; stock selection retains side/clipping/map policy.
     const normal: unknown = Reflect.get(source, 'vertexNormal');
     depth.vertexNormal = typeof normal === 'object' && normal !== null && isNode(normal) ? normal : null;
+    copyGraphAttributeDefaults(source, depth);
     depth.contextNode = source.contextNode;
     depth.positionNode = source.positionNode; depth.opacityNode = source.opacityNode;
     depth.maskNode = source.maskNode; depth.alphaTestNode = source.alphaTestNode;
@@ -519,6 +527,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const stock: unknown = Reflect.get(WebGLNodesHandler.prototype, 'onUpdateProgram');
     if (typeof stock === 'function') Reflect.apply(stock, this, [material, program, materialProperties]);
     this.bindBlocks(material, program);
+    const frame: unknown = Reflect.get(this, 'nodeFrame');
+    this.bindAttributeDefaults(material, typeof frame === 'object' && frame !== null ? Reflect.get(frame, 'object') : undefined, program);
   }
 
   /**
@@ -564,6 +574,16 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const hash = `${String(typeof object === 'object' && object !== null ? Reflect.get(object, 'receiveShadow') : undefined)}|${nodeInstanceKey(object)}`;
     if (Reflect.get(material, 'prevObjectHash') !== hash) { Reflect.set(material, 'prevObjectHash', hash); material.needsUpdate = true; }
     this.bindBlocks(material, null);
+    this.bindAttributeDefaults(material, object);
+  }
+
+  private bindAttributeDefaults(material: THREE.Material, object: unknown, program?: unknown): void {
+    if (material.userData['graphAttributeDefaults'] === undefined) return;
+    const renderer = this.classicRenderer(), gl: unknown = renderer.getContext();
+    if (!(typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext)) return;
+    const properties: unknown = renderer.properties.get(material);
+    const current: unknown = program ?? (typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'currentProgram') : undefined);
+    bindGraphAttributeDefaults(material, object, current, gl);
   }
 
   /** run the stock node update over a program's update nodes */

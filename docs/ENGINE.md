@@ -5681,3 +5681,20 @@ optional build-only `GeometryBakeProducer`. It supplies raw geometry for
 retired procedural builders while the existing numeric inputs and RNG
 continuation still determine each table record. Returning null delegates
 to the caller's build callback; runtime lookup is unchanged.
+
+
+### Optional graph attributes
+
+An `attribute` node may declare `default`, a finite numeric literal exactly
+matching its `type`: for example `{ op: 'attribute', name: 'aSway',
+type: 'vec2', default: [0, 0] }`. The SDK author route is
+`graph({ attributeDefaults: { aSway: [0, 0] }, ... })` around ordinary TSL
+`attribute('aSway', 'vec2')` reads. Without a default, existing attribute
+behaviour is unchanged. Conflicting defaults for one name are refused.
+
+The shader always declares the same typed input, whichever geometry builds
+first. Present vertex or instance attributes use the renderer's ordinary
+buffer binding; a missing attribute uses the declared constant. No filler
+vertex buffers or per-geometry programs are created. Constants are restored
+on each draw because they are context state, rather than VAO state. Defaults
+survive material clones, outlines and displaced/alpha-cut shadow variants.

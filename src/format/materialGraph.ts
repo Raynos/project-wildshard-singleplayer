@@ -77,6 +77,8 @@ export interface GraphNode {
   readonly name?: string;
   /** `attribute`: the attribute's type */
   readonly type?: GraphValueType;
+  /** attribute only: optional numeric default, exactly matching type, used when a mesh omits the channel. */
+  readonly default?: GraphLiteral;
   /** varying only: use the primitive's provoking vertex instead of interpolating; absent retains ordinary perspective interpolation. */
   readonly interpolation?: 'flat';
 }
@@ -691,6 +693,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
     if (typeof op !== 'string' || !Object.hasOwn(GRAPH_OPS, op)) return fail(`${at}: unknown op ${String(op)}`);
     const spec = GRAPH_OPS[op];
     if (spec === undefined) return fail(`${at}: unknown op ${op}`);
+    if (raw['default'] !== undefined && op !== 'attribute') return fail(`${at}: default belongs to an attribute only`);
     if (raw.interpolation !== undefined && (op !== 'varying' || raw.interpolation !== 'flat')) return fail(`${at}: interpolation is flat on a varying only`);
     if (spec.places && !spec.places.includes(place)) return fail(`${at}: ${op} cannot run in the ${place} stage`);
     if (op === 'pointCoord' && primitive !== 'points') return fail(`${at}: pointCoord needs a points primitive`);
@@ -789,6 +792,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         const name = raw.name, type = raw.type;
         if (typeof name !== 'string' || !GRAPH_ATTRIBUTE_NAME.test(name)) return fail(`${at}: attribute name ${String(name)} (a, then a capital: aSeed)`);
         if (type !== 'float' && type !== 'vec2' && type !== 'vec3' && type !== 'vec4') return fail(`${at}: attribute type ${String(type)} (float, vec2, vec3 or vec4)`);
+        if (raw['default'] !== undefined && literalType(raw['default']) !== type) return fail(`${at}: attribute default must be a finite ${type}`);
         return type;
       }
       case 'sceneTap':
@@ -1008,6 +1012,7 @@ function toNodes(raw: Raw): Record<string, GraphNode> {
       ...(n.value !== undefined ? { value: isFiniteNumber(n.value) ? n.value : Array.isArray(n.value) ? n.value.filter(isFiniteNumber) : 0 } : {}),
       ...(typeof n.param === 'string' ? { param: n.param } : {}),
       ...(typeof n.mask === 'string' ? { mask: n.mask } : {}),
+      ...(n['default'] !== undefined ? { default: isFiniteNumber(n['default']) ? n['default'] : Array.isArray(n['default']) ? n['default'].filter(isFiniteNumber) : 0 } : {}),
       ...(n.interpolation === 'flat' ? { interpolation: 'flat' } : {}),
       ...(typeof n.count === 'number' ? { count: n.count } : {}),
       ...(typeof n.name === 'string' ? { name: n.name } : {}),

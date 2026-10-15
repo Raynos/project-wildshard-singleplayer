@@ -161,6 +161,8 @@ const SWIZZLE: Readonly<Record<string, string>> = { r: 'x', g: 'y', b: 'z', a: '
 
 /** What `graph()` compiles: TSL values in the graph's stages, plus the graph's own switches. */
 export interface GraphSpec {
+  /** Optional geometry channels: numeric literals matching each attribute's type; omitted channels use these constants. */
+  readonly attributeDefaults?: Readonly<Record<string, GraphLiteral>>;
   /** Validated author declaration; only an admitted host may grant this budget at runtime. */
   readonly budget?: GraphBudget;
   /** a material (the default) or a post pass (`post` only) */
@@ -262,7 +264,8 @@ export function graph(spec: GraphSpec): GraphIr {
       if (typeof attributeName !== 'string' || (type !== 'float' && type !== 'vec2' && type !== 'vec3' && type !== 'vec4')) {
         throw new Error(`graph: attribute ${String(attributeName)} needs a float / vec2 / vec3 / vec4 type: attribute('aSeed', 'float')`);
       }
-      return define(key, name, { op: 'attribute', name: attributeName, type });
+      const fallback = spec.attributeDefaults?.[attributeName];
+      return define(key, name, { op: 'attribute', name: attributeName, type, ...(fallback === undefined ? {} : { default: fallback }) });
     }
     if (key instanceof VaryingNode) {
       const source = key.node instanceof SubBuildNode ? key.node.node : key.node; // varying() wraps its input in the vertex sub-build

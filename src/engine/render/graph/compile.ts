@@ -51,6 +51,7 @@ import { parseFamilyMaterial } from '@wildshard/format/materialFamilies';
 import { Pass } from 'postprocessing';
 import { retargetableTexture } from '../nodes/engineNodesHandler';
 import { EngineDirectionalLightNode } from '../nodes/cascadeLightNode';
+import { optionalGraphAttribute } from '../nodes/graphAttributes';
 import { instanceTransformNode } from '../nodes/nodeInstancing';
 import { layerFrameOf } from '../nodeLayerFrame';
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
@@ -439,6 +440,19 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const ir: GraphIr = checked.graph;
   const selects = { light: 0, branch: 0 };
   const meshMapUsed = graphUsesMeshMap(ir);
+  const attributeDefaults: Record<string, number[]> = {};
+  const collectDefaults = (nodes: Readonly<Record<string, GraphNode>>): void => {
+    for (const row of Object.values(nodes)) {
+      if (row.op === 'attribute' && row.name !== undefined && row.default !== undefined) {
+        const values = typeof row.default === 'number' ? [row.default] : [...row.default];
+        const previous = attributeDefaults[row.name];
+        if (previous !== undefined && JSON.stringify(previous) !== JSON.stringify(values)) throw new Error(`material graph: conflicting defaults for ${row.name}`);
+        attributeDefaults[row.name] = values;
+      }
+      if (row.body !== undefined) collectDefaults(row.body.nodes);
+    }
+  };
+  collectDefaults(ir.nodes);
 
   // params → uniforms (a colour is written in sRGB and held linear, as the families hold theirs)
   const uniforms = new Map<string, Val>();
@@ -673,7 +687,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'attribute': {
         const t = n.type;
         if (n.name === undefined || t === undefined || t === 'bool') break;
-        return { t, n: attribute(n.name, t) };
+        return { t, n: n.default === undefined ? attribute(n.name, t) : optionalGraphAttribute(n.name, t) };
       }
       case 'varying': {
         const v = one(), carried = varying(v.n);
@@ -1006,11 +1020,13 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   };
   const material = ir.kind === 'post' ? postMaterial() : surfaceMaterial();
   material.name = `graph:${ir.kind}`;
+  if (Object.keys(attributeDefaults).length > 0) material.userData['graphAttributeDefaults'] = attributeDefaults;
   if (meshMapUsed) material.userData['graphMeshMap'] = true;
   // A boolean survives Material.clone(); the handler caches each clone's own depth variant.
   if (st['vertex.position']?.shadow === true || st['vertex.offset']?.shadow === true) material.userData['graphShadowDepth'] = true;
   if (ir.kind === 'material' && ir.model !== 'unlit') material.userData['graphPbrMaps'] = true;
   const outline = ir.kind === 'post' ? null : outlineMaterial();
+  if (outline !== null && Object.keys(attributeDefaults).length > 0) outline.userData['graphAttributeDefaults'] = attributeDefaults;
 
   return {
     material, cost: checked.cost, bindings, selects, outline,
