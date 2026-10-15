@@ -1,14 +1,14 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**W2 at 19:15Z `9296a81cc`: Pine 78.66 %, Driftwood 71.74 % custom** (target ≤ 20 %; 16:39Z 80.85 / 75.72; start 107.6 / 104.2). 0 unknown. W1 closed (Sky 9.58, Signal 9.75).
-Pine/DW: C1 4401/4615 · C2 1805/2126 · C3 209/0 · C4 3922/2237 · C5 2503/1459 · C6 2952/1266 · C7 12/0 · C8 356/186 · C9 532/426.
-Pace: about −0.9 pt/h Pine and −1.6 pt/h DW over the last 2.5 h. G432's 24 h needs roughly 2.4 / 2.1 pt/h.
-Since 17:50Z: DW rock table `25fb99192` (−199), arms on graph toon `a1602d555` (−71), backdrop + ramp fog `3b651edbd` `e4841389d` (≈−49), W2 manifest JSON `a5e53cc7d` (Pine −51, DW −26), Pine elite brain `4c12492ec` (−32), King FX on graphs `5d7fbf38b` (C3 −60), lens drops + cover `fc7868cf4` `5d378a55d` (−53); DW re-entry fix `66984dac5`; engine I `9296a81cc`; six graph inputs (sp-x4).
+**W2 at 19:30Z `5a7f30425`: Pine 74.72 %, Driftwood 69.70 % custom** (target ≤ 20 %; previous measure 78.66 / 71.74; start 107.6 / 104.2). 0 unknown. W1 closed (Sky 9.58, Signal 9.73).
+Pine/DW: C1 4184/4497 · C2 1579/2079 · C3 162/0 · C4 3707/2146 · C5 2491/1399 · C6 2830/1227 · C7 12/0 · C8 356/185 · C9 534/433.
+Pace since the last measure: Pine about −3 pt/h (above G432's ~2.4), DW about −1.6 pt/h (under its ~2.1). Lanes report honest cuts well below their estimates; Pine C1 is mostly bake readers.
+Since then: Pine water on graphs `de1b7286f` (−282), forest on graphs `659d7935c` (≈−220), King clips baked (−217, landing), rifle required `e845be765` (−129), site lights shared `1a6252237` (−45), cabin props `0ec8d4984` (G434); DW rock table `25fb99192` (−199), piers `b919778e6` (−104, G434), arms `a1602d555` (−71), gulls `45e79bb0f` (−43), reward controller `e575681af` (−59), species rows `eb23978d4` (−57), swords `c5b1f0b2f` (−23), pickup roster `960eb5d03` (−29), burst/glide `a504ad97f`; engine I/II `9296a81cc` `9101de089`; gen red fixed `71cf233d2`. Pending: Pine NPC bake (−363), DW kit/palms (cand-e).
 
 **Lanes (G432 5 Opus while Claude < 50 %; Codex 5 + pusher; slots G435):**
-- Opus: o225 DW island + creatures (island HELD on graph per-draw CPU cost); o227 Pine forest; o228 Pine water; o229 DW kit/rocks/palms (waits engine II); o230 Pine site lights shared with Signal, then DW gulls.
-- Codex: x1 Pine rifle, then DW swords; x4 Pine cabin (G434), then C4 ambient; x5 Pine C5 quests; x6 DW pier (G434), then DW C4; x7 push, git, maps; x8 engine II, then node per-draw cost (~45 vs 8 µs, profile from o225).
-- Slots: check = x1 x5 o225 o228 · check2 = x4 x7 o230 o229 · check3 = x6 x8 o227 measure.
+- Opus: o229 DW kit/palms (landing cand-e; sway + rock-smooth parked on CPU); o231 DW streamed cover; o232 Pine King; o233 forest landed; o234 DW bridge/reef/shrine. Parked on engine fixes: refs/sp-lanes/sp-o225/island + creatures.
+- Codex: x1 held-playback bindings (Pine + Nalati); x4 Pine ambientLife, then tree set; x5 Pine NPC bake; x6 DW C5 (castaway head); x7 push, git, maps (next batch ~2 h); x8 node per-draw CPU (second variant), then builder retention + UBO race.
+- Slots: check = x1 x5 o231 o232 · check2 = x4 x7 o229 o234 · check3 = x6 x8 o233 measure.
 
 **For the end-of-plan memory pass (G433/G434):** Pine cabin props (+1.47 MB GPU, +1.31 MB RAM, sp-x4); DW piers (+6.58 MB resident, +3.73 MB wire, sp-x6); map accounting correction `bf2f3fcb2`; parked `refs/parked/sp-x8-weak-cache`, `refs/parked/sp-x8-h`.
 
