@@ -111,4 +111,5 @@ The two that matter most:
 - **Gate everything before Jake sees it:** every keyframe and every shot through a contact sheet; send phone copies;
   labelled boards for stills.
 - **Production hygiene:** one local model at a time (the model lock); respect `.git/quiet` (pause heavy encodes);
-  subagents get their own scratch subfolders; generated art committed as JPEG ≤ 500 KB with a README of prompts.
+  subagents get their own scratch subfolders; generated art committed as JPEG ≤ 250 KB (boards ≤ 500 KB,
+  [STORAGE.md](STORAGE.md)) with a README of prompts; the video itself stays outside Git.

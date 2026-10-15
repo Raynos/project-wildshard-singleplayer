@@ -35,8 +35,10 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
   `>` onto computed paths; `guard-rm.py` blocks `rm -r` of `/`, `~`, `~/projects`, system dirs and shallow paths.
   A plain `rm -rf <literal path>` is allowed (2026-10-02).
 - **Pushes are serialized.** Six parallel pushes of one pack once hung 15+ minutes (E19). Push only through
-  `scripts/push-main.sh` (it holds `.git/push.lock`), and keep packs small: `.githooks/pre-commit` refuses a
-  `progress/` image over 500 KB, and mockups under `art/<subject>/round-<n>-<label>/` are committed as JPEG.
+  `scripts/push-main.sh` (it holds `.git/push.lock`), and keep packs small: the storage check
+  (`scripts/repo-size.mjs`, docs/process/STORAGE.md) in pre-commit and pre-push refuses a preview image over 250 KB
+  (boards 500 KB), video / audio / archives / `.blend` outside `public/` and more than 10 MB of new binary per push;
+  mockups under `art/<subject>/round-<n>-<label>/` are committed as JPEG.
 - **What ships is a clean export of HEAD** (CI checks out the commit), never the working tree — so *HEAD* is what
   has to be green, and other agents' dirty files never ship.
 - **Game browsers are a shared lane: at most 4 open machine-wide, enforced by `scripts/browser-lane.sh` and its hook (E312).**
@@ -68,7 +70,8 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
      C=$(git commit-tree $T -p $BASE -m "<subject>"); git update-ref refs/heads/main $C $BASE   # refuses if HEAD moved → redo
      unset GIT_INDEX_FILE
      ```
-     `commit-tree` skips `.githooks`, so check any `progress/` image you add is ≤ 500 KB yourself.
+     `commit-tree` skips `.githooks`: before it, run `node scripts/repo-size.mjs --index` with the same
+     `GIT_INDEX_FILE` (the storage check), or run the real pre-commit hook as GIT.md's lane path does.
    - A Conventional Commits subject (≤ 50 characters) that states the finding, and the `Assisted-by:` trailer per
      AGENTS.md "Version control" (no `Co-Authored-By:`; the commit-msg hook refuses it). Say plainly
      what is red and whose it is — another agent's uncommitted WIP is not your red, but a red *HEAD* is everyone's.

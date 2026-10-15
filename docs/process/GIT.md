@@ -133,8 +133,12 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   regeneration and every push gate still run. Hard rules, unknown failures and partly covered rises remain red.
 - **No tree-wide destructive git, no escape:** `git restore .` / `checkout .`, a bare `git stash`, `git reset --hard`
   and `git clean -f` without paths are blocked. Name the paths you authored.
-- **Keep pushes small.** `.githooks/pre-commit` refuses a `progress/` image over 500 KB (save JPEG / WebP) and any
-  `.blend`. `.gitattributes` marks binaries `-delta`.
+- **Keep pushes small: the storage policy** ([STORAGE.md](STORAGE.md)). `scripts/repo-size.mjs` runs in pre-commit
+  (the commit's own index), in pre-push over every outgoing commit before the Vercel gate (`SKIP_VERCEL_GATE` does not
+  skip it) and in CI (`.github/workflows/storage.yml`): blobs ≤ 1 MB unless exactly pinned, preview images ≤ 250 KB
+  (boards 500 KB; save JPEG / WebP), no video / audio / archive / `.jsonl` / PDF / `.blend` outside `public/`, no
+  generated paths, ≤ 10 MB of new binary per push and 50 MB a week outside the runtime roots. Existing debt is
+  grandfathered until it changes. `.gitattributes` marks binaries `-delta`.
 - **The local gate takes at most 120 seconds** (G363). It checks the exact
   committed Vercel tree, changed-file types and lint, and only affected tests.
   A deadline kills the gate's own child groups and refuses the push. Each step
@@ -147,8 +151,9 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   regeneration bot no longer runs in `push-main.sh`; green-prefix remains on.
 - **Hooks on:** every checkout runs `git config core.hooksPath .githooks` once (the session brief warns when it's off).
   The pre-commit hook also runs the architecture guards and `scripts/asks.mjs check`; commit-msg runs the lock check and
-  the legacy-shard check (no plan-State check since 2026-10-09, [ASKS.md](ASKS.md)). The pre-commit hook refuses new raw
-  soak / receipt archives under `progress/` (`.gz` / `.br` / `.zst` / `.jsonl`, [MACHINE.md](MACHINE.md)). Claude hooks live in `.claude/settings.json` and take effect on restart.
+  the legacy-shard check (no plan-State check since 2026-10-09, [ASKS.md](ASKS.md)). Its storage check (`scripts/repo-size.mjs
+  --index`, [STORAGE.md](STORAGE.md)) refuses raw soak / receipt archives (`.gz` / `.br` / `.zst` / `.jsonl`,
+  [MACHINE.md](MACHINE.md)) anywhere outside `public/`. Claude hooks live in `.claude/settings.json` and take effect on restart.
 - **Never open a shared file for writing before you've read it.** `open(p, 'w').write(f(open(p).read()))` truncates
   first and reads nothing: it emptied 16 files once (src/main.ts with others' WIP, lost) and wiped the ASKS table once.
   Read into a variable, check it is non-empty, then write. Append with `>>` or Edit, never `>` onto a shared file.

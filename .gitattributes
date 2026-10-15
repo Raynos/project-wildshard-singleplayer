@@ -1,5 +1,5 @@
 # Already-compressed binaries: skip git's delta search on commit / push (it finds nothing in them and costs CPU on
-# every push; E21). Keep them small at the source: progress/ images ≤ 500 KB (.githooks/pre-commit).
+# every push; E21). Keep them small at the source: preview images ≤ 250 KB (docs/process/STORAGE.md).
 *.png   binary -delta
 *.jpg   binary -delta
 *.jpeg  binary -delta

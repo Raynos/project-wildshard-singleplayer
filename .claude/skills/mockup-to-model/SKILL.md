@@ -194,7 +194,8 @@ Read `docs/design/blender-practice.md` first.
   - memory is 1.8 GB while loading and 1.0 GB in the Explorer;
   - one model's copies are one draw (instanced or merged), and its card must say which.
   - A new drawing technique needs a physical-iPhone memory reading, not a desktop number (E271 / E272).
-- **Commit JPEG / WebP**, not PNG, and keep `progress/` images under 500 KB. The uplink is 10–100 KB/s.
+- **Commit JPEG / WebP**, not PNG: preview images ≤ 250 KB, boards ≤ 500 KB (docs/process/STORAGE.md; the hooks
+  refuse more). The uplink is 10–100 KB/s.
 
 ## 6. Register it
 

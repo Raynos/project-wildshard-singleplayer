@@ -93,8 +93,11 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   you; never `git push`. The pre-push gate builds what Vercel builds; a red gate pings your lane and is yours to fix.
 - **Strict means strict**: no `any`, no `!`, no `@ts-ignore`, no `as unknown as`, no blanket `oxlint-disable`. Fix the
   type, never the gate.
-- Never open a shared file for writing before you've read it. No tree-wide destructive git. `progress/` images ≤ 500 KB
-  (JPEG / WebP); never commit a `.blend`.
+- Never open a shared file for writing before you've read it. No tree-wide destructive git.
+- **Storage policy** → [docs/process/STORAGE.md](docs/process/STORAGE.md): blobs ≤ 1 MB, preview images ≤ 250 KB
+  (boards 500 KB, JPEG / WebP), no video / audio / archives / `.jsonl` / PDF / `.blend` outside `public/`, at most
+  10 MB of new binary per push and 50 MB a week outside the runtime roots (Jake, 2026-10-15). `scripts/repo-size.mjs`
+  enforces it in pre-commit, pre-push (every outgoing commit) and CI; a big shipped file needs an exact pin.
 - Feature worktrees never push; the main checkout lands them.
 
 ## The shared Mac → [docs/process/MACHINE.md](docs/process/MACHINE.md)
