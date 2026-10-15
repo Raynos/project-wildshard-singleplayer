@@ -23,8 +23,9 @@ import type { KeyedSkyStyle } from './keyedSkyRows';
  * THE PATHS: the sun rises in the NE (compass 54 deg), stands 52 deg up in the south at noon and sets in the NW (306 deg: the
  * old sunset's azimuth); the moon rides high in the south (about 58 deg, where the night key's moon is).
  */
+const DAY = 0.8333333333333334; // 20 / 24
 export const PINE_SKY = {
-  dayFraction: 0.8333333333333334, // 20 / 24
+  dayFraction: DAY,
   cycleMinutes: 24,
   start: 0.135, // morning + 0.05
   schedule: [{ phase: 'day', from: 6, to: 18, minutes: 20 }, { phase: 'night', from: 18, to: 30, minutes: 4 }],
@@ -87,11 +88,12 @@ export const PINE_SKY = {
   ],
   phases: { sunrise: 0.008, morning: 0.085, day: 0.4167, midday: 0.4167, noon: 0.4167, golden: 0.735, sunset: 0.8, dusk: 0.85, night: 0.92, dawn: 0.985 },
   fixed: { midday: 0.4167, golden: 0.735, sunset: 0.8, night: 0.92 },
-  lightPresets: { dawn: 0.985, noon: 0.4167, dusk: 0.85, night: 0.92 },
-  sun: { riseAz: 54, setAz: 306, noonEl: 52, nightDip: 24 },
-  moon: { az: 115, azSpan: 130, el: 26, elRise: 32 },
-  night: { rise: [-0.012, 0.04], set: [0.962, 0.997] },
-  moonFade: { rise: [0.012, 0.045], set: [0.968, 0.994] },
+  namedPhases: { dawn: 0.985, noon: 0.4167, dusk: 0.85, night: 0.92 },
+  // NE 54 deg → south → NW 306 deg by day, back under the north by night
+  sun: { rise: 54, sweep: 252, noon: 52, nightRise: 306, nightSweep: 108, nadir: 24 },
+  moon: { rise: 115, sweep: 130, base: 26, arc: 32 },
+  night: { rise: [DAY - 0.012, DAY + 0.04], fall: [0.962, 0.997] },
+  fade: { sunY: [-0.01, 0.06], moonIn: [DAY + 0.012, DAY + 0.045], moonOut: [0.968, 0.994] },
   // G427: the moon's shadow under dense crowns was near-black and hid the held crossbow; softened at night only
   nightShadow: 0.8,
   dusk: [0.06, 0.35],

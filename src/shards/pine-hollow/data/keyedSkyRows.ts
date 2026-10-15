@@ -1,8 +1,8 @@
-import type { DayClockRow, DayClockSegment } from '@wildshard/format/dayCycle';
-import type { DayLookSchema } from '@wildshard/sdk/looks/dayLookPresets';
+import type { DayClockStyle } from '@wildshard/sdk/looks/dayClock';
+import type { DayLookPreset, DayLookSchema } from '@wildshard/sdk/looks/dayLookPresets';
 
 /**
- * A keyed sky's row types (SHARD-PLATFORM M3, look-family rows; `keyedSkyDay` is its clock, `keyedSky` its backdrop) and its
+ * A keyed sky's row types (SHARD-PLATFORM M3, look-family rows; the shared day clock is its clock, `keyedSky` its backdrop) and its
  * key files: import-free at run time, so a shard's boot file list reads the key URLs without the clock.
  */
 
@@ -58,16 +58,13 @@ export const SKY_PRESET = {
   far: 'colour', lamps: 'number', sat: 'number',
 } as const satisfies DayLookSchema & Record<keyof SkyPresetRow, unknown>;
 
-/** A keyed sky: its keys, presets, keyframes, phases and paths. */
-export interface KeyedSkyStyle {
-  /** the day's share of the cycle (sunset's phase) */
-  readonly dayFraction: number;
+/** A keyed sky's live preset: the row's colours as three.js colours. */
+export type SkyPreset = DayLookPreset<typeof SKY_PRESET>;
+
+/** A keyed sky: its keys and dome over the shared day clock's row (presets, keyframes, phases, paths and curves). */
+export interface KeyedSkyStyle extends DayClockStyle<typeof SKY_PRESET> {
   /** the whole cycle in real minutes */
   readonly cycleMinutes: number;
-  /** the start phase when nothing pins one */
-  readonly start: number;
-  /** the real-time schedule the clock's hours run on */
-  readonly schedule: readonly DayClockSegment[];
   /** the photographic sky keys by name */
   readonly keys: Readonly<Record<string, SkyKeyRow>>;
   /** the key whose glow sits on the moon (every other key's sits on the sun) */
@@ -76,28 +73,12 @@ export interface KeyedSkyStyle {
   readonly keyFiles: { readonly color: string; readonly gain: string };
   /** the light presets by name */
   readonly presets: Readonly<Record<string, SkyPresetRow>>;
-  /** keyframes over the phase (sorted; wraps 1 → 0): a phase and the preset it holds */
-  readonly frames: readonly (readonly [number, string])[];
   /** named phases (`?tod=` names, the quest's and ambience's times) */
   readonly phases: Readonly<Record<string, number>>;
-  /** Settings ▸ Time of day's picks */
-  readonly fixed: Readonly<Record<keyof DayClockRow['fixed'], number>>;
-  /** the engine's named light presets */
-  readonly lightPresets: Readonly<Record<keyof DayClockRow['presets'], number>>;
-  /** the sun's path: compass azimuths (0 = north = +Z, 90 = east = −X) and elevations in degrees */
-  readonly sun: { readonly riseAz: number; readonly setAz: number; readonly noonEl: number; readonly nightDip: number };
-  /** the moon's path over the night: azimuth `az` + `azSpan` × s, elevation `el` + `elRise` × sin(π s) */
-  readonly moon: { readonly az: number; readonly azSpan: number; readonly el: number; readonly elRise: number };
-  /** the night curve: up over dayFraction + `rise`, down over `set` (phases) */
-  readonly night: { readonly rise: readonly [number, number]; readonly set: readonly [number, number] };
-  /** the night light body's fade: in over dayFraction + `rise`, out over `set` (the day's follows the sun's height) */
-  readonly moonFade: { readonly rise: readonly [number, number]; readonly set: readonly [number, number] };
   /** the key light's shadow intensity at full night (1 by day, blended by the night curve): the moon's shade is not black */
   readonly nightShadow: number;
   /** the dusk curve's sun heights (1 → 0) */
   readonly dusk: readonly [number, number];
-  /** the dawn curve: its phase and the distance window it fades over */
-  readonly dawn: { readonly at: number; readonly width: readonly [number, number] };
   /** the dome: its object name, radius and sphere segments */
   readonly dome: { readonly name: string; readonly radius: number; readonly segments: readonly [number, number] };
 }

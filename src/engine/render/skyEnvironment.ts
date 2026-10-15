@@ -1,4 +1,4 @@
-import { Vector3, WebGLRenderer, WebGLRenderTarget, type Camera, type PMREMGenerator, type Scene, type Texture } from 'three';
+import { PMREMGenerator, Vector3, WebGLRenderer, WebGLRenderTarget, type Camera, type Scene, type Texture } from 'three';
 
 /**
  * A day clock's sky as the scene's image-based light (SHARD-PLATFORM W2 C2; Pine Hollow's keyed sky and Driftwood's faceted
@@ -122,4 +122,73 @@ export function skyEnvironmentCeiling(source: SkyEnvironmentSource): number {
   const size = cubeSize(source);
   if (source.kind === 'equirect') return targetBytes(source.target) + 2 * atlasBytes(size, false);
   return 2 * atlasBytes(size, true) + atlasBytes(size, false);
+}
+
+/** How a `SkyEnvironment` refreshes: every `every` seconds, whole or one step a frame; `ready` false skips a refresh. */
+export interface SkyEnvironmentRefresh { readonly every: number; readonly stepped: boolean; readonly ready?: () => boolean }
+
+/**
+ * A day clock's environment owner: its PMREM generator (made on the first refresh, after a context loss again), the one
+ * cube-UV target filled in place, the refresh timer (whole, or `stepped` one step a frame), `scene.environment`, and their
+ * release (the environment cleared only if still its own). The backdrop keeps its source and calls `refresh` on a jump.
+ */
+export class SkyEnvironment {
+  private gen: PMREMGenerator | null = null;
+  private cube: WebGLRenderTarget | null = null;
+  private texture: Texture | null = null;
+  private timer = 0;
+  /** the stepped refresh's next step: -1 idle, 0 the top level, i GGX level i */
+  private step = -1;
+  private disposed = false;
+  private readonly renderer: WebGLRenderer;
+  private readonly scene: Scene;
+  private readonly source: SkyEnvironmentSource;
+  private readonly how: SkyEnvironmentRefresh;
+
+  constructor(renderer: WebGLRenderer, scene: Scene, source: SkyEnvironmentSource, how: SkyEnvironmentRefresh) {
+    this.renderer = renderer; this.scene = scene; this.source = source; this.how = how;
+  }
+
+  /** take over a generator and target built elsewhere (an offscreen first build) as the scene's environment */
+  adopt(gen: PMREMGenerator | null, cube: WebGLRenderTarget): void { this.gen = gen; this.set(cube); }
+
+  /** the whole refresh now, in place (a stepped one in flight is superseded) */
+  refresh(): void {
+    if (this.disposed) return;
+    this.timer = 0;
+    this.step = -1;
+    if (this.how.ready?.() === false) return;
+    this.gen ??= new PMREMGenerator(this.renderer);
+    this.set(refreshSkyEnvironment(this.gen, this.source, this.cube));
+  }
+
+  /** the clock's tick: a refresh due every `every` seconds, whole or one step a frame */
+  update(dt: number): void {
+    this.timer += dt;
+    if (!this.how.stepped) { if (this.timer > this.how.every) this.refresh(); return; }
+    if (this.step < 0 && this.timer > this.how.every) { this.timer = 0; this.step = 0; }
+    if (this.step < 0) return;
+    const gen = this.gen, cube = this.cube;
+    if (gen === null || cube === null || !canStepSkyEnvironment(gen) || this.how.ready?.() === false) { this.refresh(); return; }
+    this.step = stepSkyEnvironment(gen, this.source, cube, this.step);
+  }
+
+  /** after an in-place WebGL restore: the old generator and target belong to the lost context; the next refresh rebuilds */
+  rebuild(): void { this.gen = null; this.cube = null; }
+
+  /** free the target and the generator; the scene's environment is cleared only if still its own */
+  dispose(): void {
+    this.disposed = true;
+    if (this.texture !== null && this.scene.environment === this.texture) this.scene.environment = null;
+    this.texture = null;
+    this.cube?.dispose(); this.cube = null;
+    this.gen?.dispose(); this.gen = null;
+  }
+
+  /** the GPU bytes held now (skyEnvironmentBytes) */
+  bytes(): number { return skyEnvironmentBytes(this.source, this.cube, this.gen); }
+  /** the most it can hold (skyEnvironmentCeiling) */
+  ceiling(): number { return skyEnvironmentCeiling(this.source); }
+
+  private set(cube: WebGLRenderTarget): void { this.cube = cube; this.texture = cube.texture; this.scene.environment = cube.texture; }
 }
