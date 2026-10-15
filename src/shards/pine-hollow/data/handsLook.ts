@@ -1,6 +1,6 @@
-// Pine Hollow's first-person hands as data (SHARD-PLATFORM M3, the viewmodel system ./gloveHands):
+// Pine Hollow's first-person hands as data (SHARD-PLATFORM M3, the viewmodel system ../runtime/viewmodel/gloveHands):
 // the hunter's gloves on the Longbow, the crossbow and the lever-action (E322 F-M6, Jake's pick B: always on).
-import type { GloveHandsLook } from './gloveHands';
+import type { GloveHandsLook } from '../runtime/viewmodel/gloveHands';
 
 /** The hunter's dark-tan leather gloves, a grey knit cuff, the sleeve of a waxed-canvas coat with leather patches (sRGB hex
  *  over nalatiArms' palette); the coat cuff's worn lip and its stitches. */
@@ -17,3 +17,5 @@ export const HUNTER_HANDS: GloveHandsLook = {
 export const BUCKSKIN: [number, number, number] = [3.2, 4.2, 6.0];
 /** The hands' material parameters (the Longbow's: the viewmodels' shared lit program, vertex colours × the 1×1 fillers). */
 export const HANDS_MATERIAL = { roughness: 0.62, metalness: 0, envMapIntensity: 0.55, specularIntensity: 0.5 };
+/** The coat sleeve's material (a ViewmodelMaterialRow): the waxed canvas's baked maps (`coat`: runtime/viewmodel/gloveHands.ts coatSet). */
+export const COAT_MATERIAL = { set: 'coat', normalScale: [0.8, 0.8], roughness: 1, metalness: 0, envMapIntensity: 0.5, specularIntensity: 0.5 } as const;

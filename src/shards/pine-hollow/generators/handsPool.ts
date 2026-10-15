@@ -6,8 +6,8 @@ import { lin } from '@wildshard/engine/math/color';
 import { ARM_PAL, gloveFist, riderArm } from '@wildshard/engine/player/nalatiArms';
 import type { ArmPaletteKey, ArmPaletteRow, GloveHandsLook, HandSpec } from '../runtime/viewmodel/gloveHands';
 import type { ArrowLook, StaveBowLook } from '../runtime/viewmodel/staveBow';
-import { BUCKSKIN, HUNTER_HANDS } from '../runtime/viewmodel/handsLook';
-import { LONGBOW_LOOK } from '../runtime/viewmodel/longbowLook';
+import { BUCKSKIN, HUNTER_HANDS } from '../data/handsLook';
+import { LONGBOW_LOOK } from '../data/longbowLook';
 
 /**
  * Pine Hollow's first-person hands, baked (SHARD-PLATFORM, sp-o190): every gloved hand a weapon holds (the crossbow's and

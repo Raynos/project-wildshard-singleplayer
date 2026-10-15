@@ -1,7 +1,7 @@
-// Pine Hollow's Longbow in first person as data (SHARD-PLATFORM M3, the viewmodel system ./staveBow):
+// Pine Hollow's Longbow in first person as data (SHARD-PLATFORM M3, the viewmodel system ../runtime/viewmodel/staveBow):
 // a yew self bow twice as tall as the starter recurve — the pale sapwood back, the orange-brown heartwood belly, a leather
 // grip with a band of amber, horn nocks, a linen string — its ash arrow, the hunter's gloves and the grip poses.
-import type { ArrowLook, GripPoseRow, StaveBowLook } from './staveBow';
+import type { ArrowLook, GripPoseRow, StaveBowLook } from '../runtime/viewmodel/staveBow';
 import { HUNTER_HANDS } from './handsLook';
 
 /** The arrow: an ash shaft, a sinew-bound bodkin head, three grey-goose feathers (a white cock feather). */
@@ -29,6 +29,8 @@ export const LONGBOW_LOOK: StaveBowLook = {
 };
 /** The Longbow's material (the viewmodels' shared lit program): waxed yew, leather, linen. */
 export const LONGBOW_MATERIAL = { roughness: 0.62, metalness: 0, envMapIntensity: 0.55, specularIntensity: 0.5 };
+/** The arrows' material (the viewmodels' shared lit program, vertex colours × the 1×1 fillers): ash, sinew, feathers. */
+export const ARROW_MATERIAL = { roughness: 0.7, metalness: 0 };
 /* Poses in rig space (camera space / VM_SCALE), the starter bow's, re-seated for a bow twice as tall: rest = lowered and
  * canted across the body; drawn = the fist right of centre, the stave canted, the arrow converging on the crosshair ~6 m out. */
 /** The Longbow's grip poses. */

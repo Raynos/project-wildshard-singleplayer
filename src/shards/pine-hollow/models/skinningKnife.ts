@@ -19,7 +19,7 @@ import type { Game } from '@wildshard/engine/core/Game';
 import { defineModel, type ModelDef } from '@wildshard/engine/models/model';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { HeldTool, heldToolSpecimen, type HeldToolRow } from '../runtime/kit/heldTool';
-import { KNIFE_LOOK } from '../runtime/kit/skinningKnifeLook';
+import { KNIFE_LOOK } from '../data/skinningKnifeLook';
 import { PINE_LIFE } from '../data/ambientLife';
 
 const BEAT=PINE_LIFE.harvest;

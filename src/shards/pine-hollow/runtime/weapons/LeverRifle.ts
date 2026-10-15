@@ -1,10 +1,11 @@
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
-import { viewmodelMaterial, viewmodelTexSet, whiteColors, type TexSet } from '@wildshard/engine/combat/view/ranged';
+import { viewmodelMaterial, viewmodelRowMaterial, viewmodelTexSet, whiteColors, type TexSet } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { leverFirearmType, type LeverFirearmBuild, type LeverFirearmHandsKit, type LeverFirearmView, type LeverFirearm as LeverFirearmWeapon } from '../items/leverFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 import { WeaponHands, blendGrip, gripPose, holdDef, prepareWeaponHands, type HandHold } from '../viewmodel/gloveHands';
-import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../viewmodel/handsLook';
+import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../../data/handsLook';
+import { LEVER_MATERIALS } from '../../data/heldLook';
 import { LEVER_WEAPON_PROFILE } from '../../data/leverProfile';
 import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, MAGAZINE, RELOAD_IN, RELOAD_OUT, RESERVE_START, ROUND_TIME } from '../../weapons/leverAction';
 import * as THREE from 'three';
@@ -115,13 +116,11 @@ interface LeverParts { wood: THREE.BufferGeometry; stock: THREE.BufferGeometry; 
 interface LeverBuild { readonly brassMat: THREE.MeshPhysicalMaterial; readonly woodMat: THREE.MeshPhysicalMaterial; readonly steelMat: THREE.MeshPhysicalMaterial; readonly parts: LeverParts; readonly beadGeo: THREE.BufferGeometry }
 /** The viewmodel's build and the Model Explorer's card (`leverSpecimen`) are this one function, so the two never drift. */
 function buildLever(sky: Sky, model: LeverModel): LeverBuild {
-  // ── materials: the viewmodels' shared lit program (MeshPhysical + vertex colours + the five map slots) ──
-  const std = (name: string, t: TexSet, extra: THREE.MeshPhysicalMaterialParameters) => viewmodelMaterial(sky, name, { map: t.map, normalMap: t.normalMap, aoMap: t.armMap, roughnessMap: t.armMap, metalnessMap: t.armMap, roughness: 1, metalness: 1, ...extra });
-  const steelTex = viewmodelTexSet('gunmetal'); // the cartridges' tiled brass UVs
-  for (const t of [steelTex.map, steelTex.normalMap, steelTex.armMap]) t.repeat.set(2, 2);
-  const brassMat = std('lever-brass', steelTex, { normalScale: new THREE.Vector2(0.25, 0.25), color: new THREE.Color(0.95, 0.7, 0.34), roughness: 0.75, envMapIntensity: 1.1 });
-  const woodMat = std('lever-wood', model.wood, { normalScale: new THREE.Vector2(0.9, -0.9), envMapIntensity: 0.55, specularIntensity: 0.55 });
-  const steelMat = std('lever-steel', model.steel, { normalScale: new THREE.Vector2(0.8, -0.8), envMapIntensity: 0.95 });
+  // ── materials: the viewmodels' shared lit program, data/heldLook.ts LEVER_MATERIALS ──
+  const sets = { gunmetal: viewmodelTexSet('gunmetal'), wood: model.wood, steel: model.steel }; // gunmetal: the cartridges' tiled brass UVs
+  sets.gunmetal.map.repeat.set(2, 2); sets.gunmetal.normalMap.repeat.set(2, 2); sets.gunmetal.armMap.repeat.set(2, 2);
+  const mat = (id: keyof typeof LEVER_MATERIALS): THREE.MeshPhysicalMaterial => viewmodelRowMaterial(sky, `lever-${id}`, LEVER_MATERIALS[id], sets);
+  const brassMat = mat('brass'), woodMat = mat('wood'), steelMat = mat('steel');
   const g = model.geo, parts = { wood: g.forend, stock: g.stock, steel: g.steel, lever: g.lever, hammer: g.hammer, bolt: g.bolt, leverPivot: MODEL_LEVER_PIVOT, gate: MODEL_GATE };
   const beadGeo = detailGeometry('sight-bead');
 

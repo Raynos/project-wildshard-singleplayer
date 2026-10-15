@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { BAKED_BOW, BAKED_HANDS } from '../src/shards/pine-hollow/boot/handsGeometry';
-import { HUNTER_HANDS } from '../src/shards/pine-hollow/runtime/viewmodel/handsLook';
-import { LONGBOW_LOOK } from '../src/shards/pine-hollow/runtime/viewmodel/longbowLook';
+import { HUNTER_HANDS } from '../src/shards/pine-hollow/data/handsLook';
+import { LONGBOW_LOOK } from '../src/shards/pine-hollow/data/longbowLook';
 import { LEVER_HAND_HOLDS } from '../src/shards/pine-hollow/runtime/weapons/LeverRifle';
 import { CROSSBOW_HAND_HOLDS } from '../src/shards/pine-hollow/runtime/weapons/crossbow/Crossbow';
 

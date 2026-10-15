@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { ARM_PAL } from '@wildshard/engine/player/nalatiArms';
+import type { ViewmodelSet } from '@wildshard/engine/combat/view/ranged';
 import { BAKED_HANDS, handsPart } from '../../boot/handsGeometry';
 import { loadPainted, painted } from '../looks/paintedTextures';
 
@@ -34,15 +35,12 @@ export interface GloveHandsLook {
   readonly coatStitch: number;
 }
 
-/** The coat's waxed-canvas maps (generators/coatCanvas.ts, baked offline), loaded ahead of `coatMaterialParams`. */
+/** The coat's waxed-canvas maps (generators/coatCanvas.ts, baked offline), loaded ahead of `coatSet`. */
 export function loadCoatTextures(): Promise<unknown> {
   return Promise.all([loadPainted('coatMap'), loadPainted('coatNormal'), loadPainted('coatArm')]);
 }
-/** The coat sleeve's material parameters (the viewmodels' shared program: its five map slots all filled by the canvas). */
-export function coatMaterialParams(): THREE.MeshPhysicalMaterialParameters {
-  const arm = painted('coatArm');
-  return { map: painted('coatMap'), normalMap: painted('coatNormal'), normalScale: new THREE.Vector2(0.8, 0.8), aoMap: arm, roughnessMap: arm, metalnessMap: arm, roughness: 1, metalness: 0, envMapIntensity: 0.5, specularIntensity: 0.5 };
-}
+/** The coat sleeve's texture set (data/handsLook.ts COAT_MATERIAL's `coat`: its five map slots all filled by the canvas). */
+export function coatSet(): ViewmodelSet { return { map: painted('coatMap'), normalMap: painted('coatNormal'), armMap: painted('coatArm') }; }
 
 // ───────────────────────────── a hand ─────────────────────────────
 

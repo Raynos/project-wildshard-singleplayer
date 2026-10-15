@@ -1714,7 +1714,8 @@ The starter set (`@wildshard/game/plugin/ui`) is `effect.poison`, `effect.burn`,
 `ProjectileKind`, `ProjectileWorld`, `ShotOpts`, `DropArc`, `hitscan`, `HitscanProfile`, `HitscanResult`, `HitLine`,
 `makeFlashTexture`, `brassFloor`, `stepBrass`, `BrassCase`, `installRangedFeel`, `RangedFeelProfile`, `ImpactSurface`,
 `AmmoId`, `AmmoRow`, `ProjectileModification`, and the shared viewmodel helpers in `./combat/view/ranged`
-(`Puffs`, `worldHit`, `FOV_HIP`, `FOV_ADS`, `viewmodelMaterial`, `TRACER_ORDER` … listed in the appendix).
+(`Puffs`, `worldHit`, `FOV_HIP`, `FOV_ADS`, `viewmodelMaterial`, `TRACER_ORDER` … listed in the appendix);
+`viewmodelRowMaterial` builds that shared material from a data row (`ViewmodelMaterialRow`: factors, a named texture set, tuples).
 Renderer-free numeric ranged laws are defined by `./combat/shotSpread` (`shotSpread`, `ShotCone`,
 `drawnSpreadDegrees`, `instantSpreadDegrees`) and `./world/windField` (`clockGust`, `fieldGustAt`, `WindFieldSpec`).
 Cones consume exactly four caller-supplied gameplay draws; wind reads only its explicit clock, gust and front policy.

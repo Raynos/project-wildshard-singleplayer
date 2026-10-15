@@ -233,6 +233,27 @@ export function viewmodelMaterial(sky: Sky, name: string, params: THREE.MeshPhys
   m.name = name; fixIBL(m, VIEWMODEL_GROUP); sky.setupMaterial(m);
   return m;
 }
+/** A texture set a viewmodel material row names: the colour and normal planes and, when it has one, the ARM plane. */
+export interface ViewmodelSet { readonly map: THREE.Texture; readonly normalMap: THREE.Texture; readonly armMap?: THREE.Texture }
+/**
+ * One viewmodel material as plain data (a shard's data/ row): three's factors as numbers, the set whose planes fill the
+ * map slots (`set`, a key of the caller's sets; the 1×1 fillers without one), `normalScale` and a linear `color` as tuples.
+ */
+export interface ViewmodelMaterialRow extends Omit<THREE.MeshPhysicalMaterialParameters, 'color' | 'normalScale'> {
+  readonly set?: string;
+  readonly normalScale?: readonly [number, number];
+  readonly color?: readonly [number, number, number];
+}
+/** `viewmodelMaterial` from a row: the named set's colour and normal planes, its ARM plane in ao / roughness / metalness. */
+export function viewmodelRowMaterial(sky: Sky, name: string, row: ViewmodelMaterialRow, sets: Readonly<Record<string, ViewmodelSet>> = {}): THREE.MeshPhysicalMaterial {
+  const { set, normalScale, color, ...factors } = row, planes = set === undefined ? undefined : sets[set], arm = planes?.armMap;
+  if (set !== undefined && planes === undefined) throw new Error(`viewmodel material ${name}: no texture set ${set}`);
+  return viewmodelMaterial(sky, name, { ...factors,
+    ...(planes === undefined ? {} : { map: planes.map, normalMap: planes.normalMap }),
+    ...(arm === undefined ? {} : { aoMap: arm, roughnessMap: arm, metalnessMap: arm }),
+    ...(normalScale === undefined ? {} : { normalScale: new THREE.Vector2(...normalScale) }),
+    ...(color === undefined ? {} : { color: new THREE.Color(...color) }) });
+}
 /** `Mesh` type guard for `Object3D.traverse` callbacks (three sets `isMesh` on every Mesh) */
 export function isMesh(o: THREE.Object3D): o is THREE.Mesh { return 'isMesh' in o; }
 

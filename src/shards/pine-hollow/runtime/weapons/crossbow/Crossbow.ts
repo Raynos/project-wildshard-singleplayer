@@ -1,11 +1,12 @@
 import { createClientScene } from '@wildshard/game/plugin/ui';
 import { CROSSBOW_GEOMETRY } from '../../../boot/crossbowGeometry';
 import rows from '../../../data/crossbowPool.generated.json' with {type:'json'};
-import { dataTexture, viewmodelTexSet, makeCord, makeBoltAtlas, fixIBL, VIEWMODEL_GROUP, viewmodelMaterial } from '@wildshard/engine/combat/view/ranged';
+import { viewmodelTexSet, makeCord, makeBoltAtlas, viewmodelMaterial, viewmodelRowMaterial } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { crossbowType, type BoltCrossbowParts, type BoltCrossbowView, type BoltCrossbow as BoltCrossbowWeapon } from '../../items/boltCrossbow';
-import { WeaponHands, coatMaterialParams, holdDef, loadCoatTextures, prepareWeaponHands, type HandHold, type WeaponHands as WeaponHandsView } from '../../viewmodel/gloveHands';
-import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../../viewmodel/handsLook';
+import { WeaponHands, coatSet, holdDef, loadCoatTextures, prepareWeaponHands, type HandHold, type WeaponHands as WeaponHandsView } from '../../viewmodel/gloveHands';
+import { BUCKSKIN, COAT_MATERIAL, HANDS_MATERIAL, HUNTER_HANDS } from '../../../data/handsLook';
+import { CROSSBOW_MATERIALS, CROSSBOW_TILING } from '../../../data/heldLook';
 import { CROSSBOW_PROFILE, type CrossbowProfile } from '../../../weapons/crossbow/profiles';
 import { boltFlightStep } from '../../../weapons/crossbow/flight';
 import * as THREE from 'three';
@@ -45,16 +46,9 @@ const PEEP_R = 0.01, PEEP_CYAN = 0x8fe3ff; // rear peep: 2.1 cm ring (CROSSBOW_V
  * parts) and the Model Explorer's bolt card (src/shards/pine-hollow/models/gear.ts: its own copy) are built by this.
  */
 export function buildBolt(sky: Sky): { geometry: THREE.BufferGeometry; material: THREE.MeshStandardMaterial } {
-  const atlas = makeBoltAtlas();
   const geometry = CROSSBOW_GEOMETRY.geometry('loaded-bolt', {borrow:true});
   if (geometry === null) throw new Error('Crossbow bolt pool not ready');
-  const material = new THREE.MeshStandardMaterial({ map: atlas.map, normalMap: atlas.normalMap, aoMap: atlas.armMap, roughnessMap: atlas.armMap, metalnessMap: atlas.armMap, roughness: 1, metalness: 1, alphaTest: 0.5, side: THREE.DoubleSide });
-  // one DoubleSide pass: the viewmodel makes this material transparent (Crossbow), and three draws a transparent
-  // DoubleSide material as a BackSide + a FrontSide pass — two programs. The fletching is alpha-tested and the
-  // bolt writes depth, so one pass looks the same.
-  material.forceSinglePass = true;
-  material.name = 'xbow-bolt'; fixIBL(material, VIEWMODEL_GROUP); sky.setupMaterial(material);
-  return { geometry, material };
+  return { geometry, material: viewmodelRowMaterial(sky, 'xbow-bolt', { ...CROSSBOW_MATERIALS.bolt, side: THREE.DoubleSide }, { bolt: makeBoltAtlas() }) };
 }
 
 /**
@@ -66,30 +60,15 @@ export function buildBolt(sky: Sky): { geometry: THREE.BufferGeometry; material:
  * `whiteColors` before a draw.
  */
 export function buildCrossbow(sky: Sky, into: { readonly model: THREE.Group; readonly peep: THREE.Group; readonly peepRing: THREE.Group }): BoltCrossbowParts {
-  const walnut = viewmodelTexSet('walnut'), steel = viewmodelTexSet('brushed-steel'), leather = viewmodelTexSet('leather'), cord = makeCord();
-  walnut.map.repeat.set(1, 4); walnut.normalMap.repeat.set(1, 4); walnut.armMap.repeat.set(1, 4);
-  // Every lit material below is the SAME program: MeshPhysical + vertex colours, the same map slots (map, normal,
-  // ao, roughness, metalness — the ARM texture feeds the last three, a 1×1 ARM where a set has none) and the same
-  // cache key. Physical at its defaults (ior 1.5, specularIntensity 1, white specularColor) is exactly Standard's
-  // F0 0.04 / F90 1, and a mesh with no wear colours gets an all-white colour attribute (`whiteColors`), so iron,
-  // brass, cord, leather and the peep ring render as before and share the stock's program. The prod keeps its own
-  // (anisotropy is a define — the hero-weapon sheen stays). Each program is ~150 ms of Metal compile on the iPhone.
-  const flatArm = dataTexture(new Uint8Array([255, 255, 0, 255]), 1, 1, false); // ao 1 · roughness 1 · metal 0
-  const woodMat = new THREE.MeshPhysicalMaterial({ map: walnut.map, normalMap: walnut.normalMap, normalScale: new THREE.Vector2(0.75, 0.75), aoMap: walnut.armMap, roughnessMap: walnut.armMap, metalnessMap: walnut.armMap, roughness: 1, metalness: 0, vertexColors: true, envMapIntensity: 0.45, specularIntensity: 0.3 }); // low specularIntensity kills the grazing sunset sheen on the rail
-  const ironMat = new THREE.MeshPhysicalMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.7, 0.7), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.5, metalness: 1, color: new THREE.Color(0.24, 0.23, 0.23), vertexColors: true, envMapIntensity: 0.6 });
-  const prodMat = new THREE.MeshPhysicalMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.6, 0.6), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.25, metalness: 1, color: new THREE.Color(0.55, 0.55, 0.57), vertexColors: true, anisotropy: 0.8, anisotropyRotation: 0, envMapIntensity: 0.7 }); // anisotropy kept (hero-weapon sheen): its define is the prod's own program
-  steel.map.repeat.set(2, 2); steel.normalMap.repeat.set(2, 2); steel.armMap.repeat.set(2, 2);
-  const leatherMat = new THREE.MeshPhysicalMaterial({ map: leather.map, normalMap: leather.normalMap, aoMap: leather.armMap, roughnessMap: leather.armMap, metalnessMap: leather.armMap, roughness: 1, metalness: 0, vertexColors: true, envMapIntensity: 0.5 });
-  const cordMat = new THREE.MeshPhysicalMaterial({ map: cord.map, normalMap: cord.normalMap, aoMap: flatArm, roughnessMap: flatArm, metalnessMap: flatArm, roughness: 0.85, metalness: 0, vertexColors: true });
-  const brassMat = new THREE.MeshPhysicalMaterial({ map: steel.map, normalMap: steel.normalMap, normalScale: new THREE.Vector2(0.3, 0.3), aoMap: steel.armMap, roughnessMap: steel.armMap, metalnessMap: steel.armMap, roughness: 1.1, metalness: 1, color: new THREE.Color(0.95, 0.66, 0.3), vertexColors: true, envMapIntensity: 1.0 });
-  ([['xbow-wood', woodMat], ['xbow-iron', ironMat], ['xbow-prod', prodMat], ['xbow-leather', leatherMat], ['xbow-cord', cordMat], ['xbow-brass', brassMat]] as [string, THREE.Material][]).forEach(([n, m]) => { m.name = n; fixIBL(m, VIEWMODEL_GROUP); sky.setupMaterial(m); });
-
-  const {material:boltMat} = buildBolt(sky);
-  const peepIron = viewmodelMaterial(sky, 'xbow-peep', { color: new THREE.Color(0.05,0.05,0.055), roughness:0.9, metalness:0.75, emissive:new THREE.Color(PEEP_CYAN), emissiveIntensity:0.05 });
+  const sets = { walnut: viewmodelTexSet('walnut'), steel: viewmodelTexSet('brushed-steel'), leather: viewmodelTexSet('leather'), cord: makeCord() };
+  const { walnut, steel } = sets, [wu, wv] = CROSSBOW_TILING.walnut, [su, sv] = CROSSBOW_TILING.steel;
+  walnut.map.repeat.set(wu, wv); walnut.normalMap.repeat.set(wu, wv); walnut.armMap.repeat.set(wu, wv); steel.map.repeat.set(su, sv); steel.normalMap.repeat.set(su, sv); steel.armMap.repeat.set(su, sv);
+  const mat = (id: Exclude<keyof typeof CROSSBOW_MATERIALS, 'bolt'>): THREE.MeshPhysicalMaterial => viewmodelRowMaterial(sky, `xbow-${id}`, CROSSBOW_MATERIALS[id], sets);
+  const {material:boltMat} = buildBolt(sky), peepIron = mat('peep');
   const peepGlow = new THREE.MeshBasicMaterial({color:new THREE.Color(PEEP_CYAN),toneMapped:false,fog:false,opacity:.85});
   const made=createClientScene(rows.hierarchy,{geometry:id=>CROSSBOW_GEOMETRY.geometry(id,{borrow:true}),
     objects:new Map([['peep',into.peep],['peep-ring',into.peepRing]]),
-    materials:new Map<string, THREE.Material>([['wood',woodMat],['iron',ironMat],['prod',prodMat],['leather',leatherMat],['cord',cordMat],['brass',brassMat],['bolt',boltMat],['peep-iron',peepIron],['peep-glow',peepGlow]])});
+    materials:new Map<string, THREE.Material>([...(['wood','iron','prod','leather','cord','brass'] as const).map(id => [id, mat(id)] as const),['bolt',boltMat],['peep-iron',peepIron],['peep-glow',peepGlow]])});
   into.model.add(...made.root.children);
   const mesh=(id:string):THREE.Mesh=>{const node=made.mesh(id);if(node===null)throw new Error('Crossbow pool part missing');return node;};
   const loadedBolt=mesh('loaded-bolt'), boltGeo=loadedBolt.geometry;
@@ -123,7 +102,7 @@ function crossbowHands(sky: Sky): (model: THREE.Group) => WeaponHandsView {
   let handsMat: THREE.MeshPhysicalMaterial | null = null, coatMat: THREE.MeshPhysicalMaterial | null = null;
   return (model) => {
     handsMat ??= viewmodelMaterial(sky, 'hunter-hands', HANDS_MATERIAL);
-    coatMat ??= viewmodelMaterial(sky, 'hunter-coat', coatMaterialParams());
+    coatMat ??= viewmodelRowMaterial(sky, 'hunter-coat', COAT_MATERIAL, { coat: coatSet() });
     return new WeaponHands(HUNTER_HANDS, model, handsMat, holdDef(CROSSBOW_HAND_HOLDS.left), holdDef(CROSSBOW_HAND_HOLDS.right), coatMat);
   };
 }
