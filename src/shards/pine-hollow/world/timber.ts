@@ -15,7 +15,7 @@ import type { ModelContext, ModelDef } from '@wildshard/engine/models/model';
 import { libraryModel, type LibraryDraw } from '@wildshard/game/models/libraryModel';
 import { cabinMats, type Mats, type MatKey } from './homestead';
 import { TIMBER_DRAWS, TIMBER_GLASS } from '../data/timberDraws';
-import { colliderOf, type TimberRow } from './timberBake';
+import type { TimberRow } from './timberBake';
 import { timberDraw } from './timberSites';
 
 /** a walkable deck rectangle: centre, turn, half extents, height (own space, or world once placed) */
@@ -53,7 +53,7 @@ export function timberModel<P extends object>(copy: (params: P) => TimberCopy, p
     draws: (params) => draws(copy(params)),
     geometry: timberDraw,
     material: (ctx, key) => timberMats(ctx)[key],
-    colliders: (params) => copy(params).row.colliders.map(colliderOf),
+    colliders: (params) => structuredClone(copy(params).row.colliders),
     finish: ({ meshes, proxies }) => {
       for (const { mesh, part } of meshes) band(mesh, part.until);
       for (const { mesh, until } of proxies) if (until === FAR) band(mesh, until);
