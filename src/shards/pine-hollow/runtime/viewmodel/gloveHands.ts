@@ -116,14 +116,6 @@ export function gripQuat(p: GripPose, mirror: boolean, out: THREE.Quaternion): T
   return out.setFromRotationMatrix(_m.makeBasis(_x, _y, _z));
 }
 
-/** `a` → `b` by t (0..1), into `out` (the directions re-normalised). */
-export function blendGrip(a: GripPose, b: GripPose, t: number, out: GripPose): GripPose {
-  out.at.lerpVectors(a.at, b.at, t);
-  out.axis.lerpVectors(a.axis, b.axis, t).normalize();
-  out.palm.lerpVectors(a.palm, b.palm, t).normalize();
-  return out;
-}
-
 // ───────────────────────────── a weapon's two hands ─────────────────────────────
 
 /** A hand's spec and where it grips. */

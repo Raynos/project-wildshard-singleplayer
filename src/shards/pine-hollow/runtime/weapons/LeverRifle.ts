@@ -3,7 +3,7 @@ import { viewmodelMaterial, viewmodelRowMaterial, viewmodelTexSet, whiteColors, 
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { leverFirearmType, type LeverFirearmBuild, type LeverFirearmHandsKit, type LeverFirearmView, type LeverFirearm as LeverFirearmWeapon } from '../items/leverFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
-import { WeaponHands, blendGrip, gripPose, holdDef, prepareWeaponHands, type HandHold } from '../viewmodel/gloveHands';
+import { WeaponHands, gripPose, holdDef, prepareWeaponHands, type HandHold } from '../viewmodel/gloveHands';
 import { BUCKSKIN, HANDS_MATERIAL, HUNTER_HANDS } from '../../data/handsLook';
 import { LEVER_MATERIALS } from '../../data/heldLook';
 import { LEVER_WEAPON_PROFILE } from '../../data/leverProfile';
@@ -182,7 +182,6 @@ const LEVER_HANDS: LeverFirearmHandsKit = {
     };
   },
   grip: () => gripPose([0, 0, 0], [0, 1, 0], [1, 0, 0]),
-  blend: blendGrip,
 };
 
 /** Pine's view: the .30-30's kick, flash, brass and tracer; the lever's throw; the sights at a carbine's eye relief; the

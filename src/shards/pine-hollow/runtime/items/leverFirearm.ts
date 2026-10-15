@@ -1,6 +1,7 @@
 import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import inputs from '../../data/heldInputs.json' with { type: 'json' };
+import leverPlayback from '../../data/leverPlayback.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
 import { RangedFrame, RangedTrace, RangedFlash } from '@wildshard/engine/render/viewmodelFeel';
 import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_HIT, RANGED_BRASS } from '../../data/rangedFrame';
@@ -84,7 +85,6 @@ export interface LeverFirearmHandsBuilt { readonly hands: LeverFirearmHands; rea
 export interface LeverFirearmHandsKit {
   readonly make: (sky: Sky) => (model: THREE.Group) => LeverFirearmHandsBuilt;
   readonly grip: () => LeverGrip;
-  readonly blend: (a: LeverGrip, b: LeverGrip, t: number, out: LeverGrip) => LeverGrip;
 }
 
 /** The family's view as rows (metres, seconds, radians). */
@@ -134,14 +134,6 @@ const _q = new THREE.Quaternion();
 /** the display model's shadow: depth only, on SHADOW_LAYER (front-sided like the lever's materials, so the same depth) */
 const DEPTH_ONLY = new THREE.MeshBasicMaterial({ colorWrite: false });
 
-/** the lever's throw over one cycle u 0..1: down fast, a beat open, up and home */
-export function leverOpen(u: number): number {
-  if (u <= 0 || u >= 1) return 0;
-  if (u < 0.4) return sstep(0, 0.4, u);
-  if (u < 0.52) return 1;
-  return 1 - sstep(0.52, 1, u);
-}
-
 /** A lever firearm: the shard's model, hands, action and rows on the platform's trigger, hitscan, cycle, gate, brass and pose. */
 export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> extends Firearm {
   readonly profile: P;
@@ -182,7 +174,8 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   // parts
   private readonly stock: THREE.Mesh;
   /** where the loading gate is (the cartridge's reload path aims at it) — the build's */
-  private readonly gate: THREE.Vector3;
+  /** Read-only model observations borrowed by the admitted hand playback. */
+  readonly gate: THREE.Vector3;
   private readonly lever: THREE.Mesh; private readonly hammer: THREE.Mesh; private readonly bolt: THREE.Mesh; private readonly round: THREE.Mesh;
   private readonly flash: RangedFlash; private readonly flashLight: THREE.PointLight;
   private readonly displayParts: { geo: THREE.BufferGeometry; mat: THREE.Material; pos?: THREE.Vector3; rot?: THREE.Euler }[] = [];
@@ -195,12 +188,12 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   /** the shard's hands on the model (LeverFirearmOptions.hands), null without */
   private hands: LeverFirearmHands | null = null;
   private readonly makeHands: ((model: THREE.Group) => LeverFirearmHandsBuilt) | null;
-  private readonly leverPivot: THREE.Vector3;
+  readonly leverPivot: THREE.Vector3;
   private readonly hammerPivot: THREE.Vector3; private readonly port: THREE.Vector3;
   /** the right hand's grips: at rest (the shard's), at the gate (the shard's, relative to the round's base), through a
    *  cycle, held at the gate, and the blend posed */
-  private readonly grips: { rest: LeverGrip; gate: LeverGrip; cyc: LeverGrip; held: LeverGrip; out: LeverGrip };
-  private readonly blendGrip: LeverFirearmHandsKit['blend'];
+  private readonly grips: { rest: LeverGrip; gate: LeverGrip; out: LeverGrip };
+  private readonly handFrame = { roundVisible: 0 };
 
   // pose
   
@@ -209,7 +202,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
   private readonly posePlayback: HeldPlayback;
   private readonly poseFrame = { portrait: 0, ads: 0, scale: 0, cycle: 0 };
-  private readonly partValues = { open: 0, leverAngle: 0, boltTravel: 0, cocked: 0, hammerCocked: 0, hammerDown: 0, hammerAngle: 0, reloading: 0, phaseT: 0, reloadIn: 0, roundTime: 0, fed: 0, planned: 0, gateX: 0, gateY: 0, gateZ: 0 };
+  private readonly partValues = { open: 0, cycling: 0, cycleU: 0, hammerAngle: 0, cocked: 0, reloading: 0 };
 
   private sprintBlend = 0; private loadBlend = 0;
   private time = 0;
@@ -228,8 +221,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     this.state = { ammo: opts.view.magazine, magazine: opts.view.magazine, reserve: opts.view.reserve, loaded: true, reloading: false, reloadProgress: 0, ads: false };
     this.act = opts.action(this.state);
     const kit = opts.hands;
-    this.grips = { rest: kit.grip(), gate: kit.grip(), cyc: kit.grip(), held: kit.grip(), out: kit.grip() };
-    this.blendGrip = kit.blend;
+    this.grips = { rest: kit.grip(), gate: kit.grip(), out: kit.grip() };
     this.tracerLife = opts.view.tracer.time;
     this.hip = { ...opts.view.hip }; this.cyclePose = { ...opts.view.cyclePose };
     this.hammerPivot = new THREE.Vector3(...opts.view.hammerPivot); this.port = new THREE.Vector3(...opts.view.port);
@@ -288,8 +280,15 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
 
     this.syncState();
     this.buildHands();
-    this.posePlayback = new HeldPlayback({ pose: playback.lever, parts: playback.leverParts }, new Map<string, unknown>([['root', this.model], ['lever', this.lever], ['hammer', this.hammer], ['bolt', this.bolt], ['round', this.round]]));
+    this.posePlayback = new HeldPlayback({ pose: playback.lever, parts: playback.leverParts, sight: leverPlayback.sight, cycle: leverPlayback.cycle, handAt: leverPlayback.handAt, handAxis: leverPlayback.handAxis, handPalm: leverPlayback.handPalm }, new Map<string, unknown>([['root', this.model], ['lever', this.lever], ['hammer', this.hammer], ['bolt', this.bolt], ['round', this.round]]));
     this.posePlayback.bindInputs('pose', inputs.lever, new Map([['weapon', this]]));
+    const owners = new Map([['weapon', this]]);
+    this.posePlayback.bindInputs('parts', leverPlayback.partInputs, owners);
+    for (let i = 0; i < 5; i++) {
+      const row = leverPlayback.bindings[i]; if (row === undefined) throw new Error('Missing lever presentation binding');
+      this.posePlayback.bindInputs(row.group, row.inputs, owners);
+      this.posePlayback.bindOutputs(row.group, row.outputs, new Map([['visual', row.target === 'sight' ? this.adsPose : row.target === 'cycle' ? this.partValues : this.grips.out]]));
+    }
   }
 
   private buildHands(): void {
@@ -303,26 +302,12 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
   /** dev / the cost readout: what the hands add (null: not made yet) */
   get handsCost(): LeverFirearmHands['cost'] | null { return this.hands?.cost ?? null; }
 
-  /** the right hand: on the wrist, its fingers in the loop — thrown with the lever through a cycle; on a reload, behind the
-   *  cartridge it thumbs through the gate */
-  private poseRightHand(open: number): void {
+  private poseRightHand(): void {
     const hands = this.hands;
     if (hands === null || !hands.group.visible) return;
-    const g = this.grips, piv = this.leverPivot;
-    // the fist rides the loop; the hand turns with it only part of the way (the wrist gives, the forearm stays low)
-    _q.setFromAxisAngle(_v3.set(1, 0, 0), this.view.lever.open * open);
-    g.cyc.at.copy(g.rest.at).sub(piv).applyQuaternion(_q).add(piv);
-    _q.setFromAxisAngle(_v3, this.view.lever.open * open * this.view.lever.handTurn);
-    g.cyc.axis.copy(g.rest.axis).applyQuaternion(_q); g.cyc.palm.copy(g.rest.palm).applyQuaternion(_q);
-    const k = sstep(0, 1, this.loadBlend);
-    if (k > 0.001) {
-      // the round's base (its rim at +z 0.0255) while one is in hand, else hovering by the gate
-      const base = this.round.visible ? _v1.copy(this.round.position).add(_v2.set(0, 0, 0.0255)) : _v1.copy(this.gate).add(_v2.set(0.03, -0.03, 0.08));
-      g.held.at.copy(g.gate.at).add(base); g.held.axis.copy(g.gate.axis); g.held.palm.copy(g.gate.palm);
-      this.blendGrip(g.cyc, g.held, k, g.out);
-    } else { g.out.at.copy(g.cyc.at); g.out.axis.copy(g.cyc.axis); g.out.palm.copy(g.cyc.palm); }
-    hands.placeRight(g.out);
-    hands.right.visible = this.stock.visible; // sighted, the wrist is under the eye: the hand goes with the stock
+    this.handFrame.roundVisible = Number(this.round.visible);
+    this.posePlayback.apply('handAt', this.handFrame); this.posePlayback.apply('handAxis', this.handFrame); this.posePlayback.apply('handPalm', this.handFrame);
+    hands.placeRight(this.grips.out); hands.right.visible = this.stock.visible;
   }
 
   // ── input ──
@@ -436,16 +421,6 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     ejectBrass(this.brass, RANGED_BRASS.lever, this.model, this.game.camera, this.port, this.view.brass.life, _v1, _v2, _v3, _q);
   }
 
-  /** Sighted: rotation 0, the eye on the comb on the sight line — the bead in the notch on the crosshair. */
-  private solveAds(scale: number): LeverFirearm['adsPose'] {
-    const sight = this.view.sight;
-    const o = this.adsPose;
-    if (o.scale === scale) return o;
-    o.scale = scale; o.px = 0; o.py = -sight.y * scale; o.pz = -sight.eyeZ * scale;
-    o.rearDepth = (sight.eyeZ - sight.rearZ) * scale; o.frontDepth = (sight.eyeZ - sight.frontZ) * scale;
-    return o;
-  }
-
   // ── per frame ──
   update(dt: number, t: number): void {
     this.time = t; this.posePlayback.beginFrame(dt);
@@ -454,7 +429,6 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     this.stepAction(dt);
 
     // the parts: lever, bolt, hammer from the cycle; the cartridge in hand on a reload
-    const open = this.freezeCycle !== null || this.phase === 'cycle' ? leverOpen(this.cycleU) : 0;
     this.animateAction(t, dt);
 
     // muzzle flash
@@ -473,10 +447,10 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
     const a = sstep(0, 1, this.feel.adsBlend);
     const port = portrait, scale = this.hip.scale * (1 - port * 0.14);
-    if (a > 0) this.solveAds(scale);
+    this.poseFrame.scale = scale; if (a > 0 && this.adsPose.scale !== scale) this.posePlayback.apply('sight', this.poseFrame);
     this.stock.visible = a < 0.85 || this.inspect > 0;
     this.model.scale.setScalar(scale);
-    this.poseFrame.portrait = portrait; this.poseFrame.ads = a; this.poseFrame.scale = scale; this.poseFrame.cycle = open; this.posePlayback.apply('pose', this.poseFrame);
+    this.poseFrame.portrait = portrait; this.poseFrame.ads = a; this.poseFrame.scale = scale; this.poseFrame.cycle = this.partValues.open; this.posePlayback.apply('pose', this.poseFrame);
 
     this.feel.scanAim(this, this.targets, this.active, _o, _d, _v2, this.model);
 
@@ -492,15 +466,10 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     this.syncState();
   }
   protected override animateAction(_t: number, _dt: number): void {
-    const u = this.cycleU, open = this.freezeCycle !== null || this.act.phase === 'cycle' ? leverOpen(u) : 0;
-    const parts = this.partValues, view = this.view;
-    parts.open = open; parts.leverAngle = view.lever.open; parts.boltTravel = view.lever.boltTravel;
-    parts.cocked = Number(this.freezeCycle !== null ? u >= 0.2 : this.act.hammerCocked);
-    parts.hammerCocked = view.lever.hammerCocked; parts.hammerDown = view.lever.hammerDown; parts.hammerAngle = this.hammer.rotation.x;
-    parts.reloading = Number(this.act.phase === 'reload'); parts.phaseT = this.act.phaseT;
-    parts.reloadIn = view.timing.reloadIn; parts.roundTime = view.timing.roundTime; parts.fed = this.act.fed; parts.planned = this.act.planned;
-    parts.gateX = this.gate.x; parts.gateY = this.gate.y; parts.gateZ = this.gate.z; this.posePlayback.apply('parts', parts);
-    this.poseRightHand(open);
+    this.partValues.cycleU = this.cycleU; this.partValues.cycling = Number(this.freezeCycle !== null || this.act.phase === 'cycle'); this.posePlayback.apply('cycle', this.poseFrame);
+    this.partValues.cocked = Number(this.freezeCycle !== null ? this.cycleU >= 0.2 : this.act.hammerCocked);
+    this.partValues.hammerAngle = this.hammer.rotation.x; this.partValues.reloading = Number(this.act.phase === 'reload'); this.posePlayback.apply('parts', this.partValues);
+    this.poseRightHand();
 
   }
   protected override autoReloadDue(): boolean {

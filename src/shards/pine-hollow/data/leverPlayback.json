@@ -1,0 +1,450 @@
+{
+  "handAt": [
+    {
+      "id": "lever.hand.at",
+      "reads": [
+        "restX",
+        "restY",
+        "restZ",
+        "gateX",
+        "gateY",
+        "gateZ",
+        "open",
+        "leverAngle",
+        "pivotX",
+        "pivotY",
+        "pivotZ",
+        "roundVisible",
+        "roundX",
+        "gatePositionX",
+        "roundY",
+        "gatePositionY",
+        "roundZ",
+        "gatePositionZ",
+        "loadBlend"
+      ],
+      "nodes": [
+        {"op":"read","index":0},
+        {"op":"read","index":1},
+        {"op":"read","index":2},
+        {"op":"read","index":3},
+        {"op":"read","index":4},
+        {"op":"read","index":5},
+        {"op":"read","index":6},
+        {"op":"read","index":7},
+        {"op":"mul","a":6,"b":7},
+        {"op":"constant","value":0.5},
+        {"op":"mul","a":8,"b":9},
+        {"op":"sin","a":10},
+        {"op":"cos","a":10},
+        {"op":"read","index":8},
+        {"op":"read","index":9},
+        {"op":"read","index":10},
+        {"op":"sub","a":0,"b":13},
+        {"op":"sub","a":1,"b":14},
+        {"op":"sub","a":2,"b":15},
+        {"op":"constant","value":0},
+        {"op":"constant","value":-2},
+        {"op":"mul","a":11,"b":18},
+        {"op":"mul","a":20,"b":21},
+        {"op":"constant","value":2},
+        {"op":"mul","a":11,"b":17},
+        {"op":"mul","a":23,"b":24},
+        {"op":"mul","a":12,"b":22},
+        {"op":"add","a":17,"b":26},
+        {"op":"mul","a":11,"b":25},
+        {"op":"sub","a":27,"b":28},
+        {"op":"mul","a":12,"b":25},
+        {"op":"add","a":18,"b":30},
+        {"op":"mul","a":11,"b":22},
+        {"op":"add","a":31,"b":32},
+        {"op":"add","a":16,"b":13},
+        {"op":"add","a":29,"b":14},
+        {"op":"add","a":33,"b":15},
+        {"op":"read","index":11},
+        {"op":"read","index":12},
+        {"op":"read","index":13},
+        {"op":"constant","value":0.03},
+        {"op":"add","a":39,"b":40},
+        {"op":"select","test":37,"yes":38,"no":41},
+        {"op":"add","a":3,"b":42},
+        {"op":"read","index":14},
+        {"op":"read","index":15},
+        {"op":"constant","value":-0.03},
+        {"op":"add","a":45,"b":46},
+        {"op":"select","test":37,"yes":44,"no":47},
+        {"op":"add","a":4,"b":48},
+        {"op":"read","index":16},
+        {"op":"read","index":17},
+        {"op":"constant","value":0.0255},
+        {"op":"add","a":50,"b":52},
+        {"op":"constant","value":0.08},
+        {"op":"add","a":51,"b":54},
+        {"op":"select","test":37,"yes":53,"no":55},
+        {"op":"add","a":5,"b":56},
+        {"op":"read","index":18},
+        {"op":"sample","a":58,"interpolation":"smoothstep","keys":[[0,0],[1,1]]},
+        {"op":"constant","value":0.001},
+        {"op":"gt","a":59,"b":60},
+        {"op":"sub","a":43,"b":34},
+        {"op":"mul","a":62,"b":59},
+        {"op":"add","a":34,"b":63},
+        {"op":"sub","a":49,"b":35},
+        {"op":"mul","a":65,"b":59},
+        {"op":"add","a":35,"b":66},
+        {"op":"sub","a":57,"b":36},
+        {"op":"mul","a":68,"b":59},
+        {"op":"add","a":36,"b":69},
+        {"op":"select","test":61,"yes":64,"no":34},
+        {"op":"select","test":61,"yes":67,"no":35},
+        {"op":"select","test":61,"yes":70,"no":36}
+      ],
+      "channels": [
+        {"property":"x","value":71},
+        {"property":"y","value":72},
+        {"property":"z","value":73}
+      ]
+    }
+  ],
+  "handAxis": [
+    {
+      "id": "lever.hand.axis",
+      "reads": [
+        "restX",
+        "restY",
+        "restZ",
+        "gateX",
+        "gateY",
+        "gateZ",
+        "open",
+        "leverAngle",
+        "handTurn",
+        "loadBlend"
+      ],
+      "nodes": [
+        {"op":"read","index":0},
+        {"op":"read","index":1},
+        {"op":"read","index":2},
+        {"op":"read","index":3},
+        {"op":"read","index":4},
+        {"op":"read","index":5},
+        {"op":"read","index":6},
+        {"op":"read","index":7},
+        {"op":"mul","a":6,"b":7},
+        {"op":"read","index":8},
+        {"op":"mul","a":8,"b":9},
+        {"op":"constant","value":0.5},
+        {"op":"mul","a":10,"b":11},
+        {"op":"sin","a":12},
+        {"op":"cos","a":12},
+        {"op":"constant","value":0},
+        {"op":"constant","value":-2},
+        {"op":"mul","a":13,"b":2},
+        {"op":"mul","a":16,"b":17},
+        {"op":"constant","value":2},
+        {"op":"mul","a":13,"b":1},
+        {"op":"mul","a":19,"b":20},
+        {"op":"mul","a":14,"b":18},
+        {"op":"add","a":1,"b":22},
+        {"op":"mul","a":13,"b":21},
+        {"op":"sub","a":23,"b":24},
+        {"op":"mul","a":14,"b":21},
+        {"op":"add","a":2,"b":26},
+        {"op":"mul","a":13,"b":18},
+        {"op":"add","a":27,"b":28},
+        {"op":"read","index":9},
+        {"op":"sample","a":30,"interpolation":"smoothstep","keys":[[0,0],[1,1]]},
+        {"op":"constant","value":0.001},
+        {"op":"gt","a":31,"b":32},
+        {"op":"sub","a":3,"b":0},
+        {"op":"mul","a":34,"b":31},
+        {"op":"add","a":0,"b":35},
+        {"op":"sub","a":4,"b":25},
+        {"op":"mul","a":37,"b":31},
+        {"op":"add","a":25,"b":38},
+        {"op":"sub","a":5,"b":29},
+        {"op":"mul","a":40,"b":31},
+        {"op":"add","a":29,"b":41},
+        {"op":"mul","a":36,"b":36},
+        {"op":"mul","a":39,"b":39},
+        {"op":"add","a":43,"b":44},
+        {"op":"mul","a":42,"b":42},
+        {"op":"add","a":45,"b":46},
+        {"op":"sqrt","a":47},
+        {"op":"constant","value":1},
+        {"op":"select","test":48,"yes":48,"no":49},
+        {"op":"div","a":36,"b":50},
+        {"op":"div","a":39,"b":50},
+        {"op":"div","a":42,"b":50},
+        {"op":"select","test":33,"yes":51,"no":0},
+        {"op":"select","test":33,"yes":52,"no":25},
+        {"op":"select","test":33,"yes":53,"no":29}
+      ],
+      "channels": [
+        {"property":"x","value":54},
+        {"property":"y","value":55},
+        {"property":"z","value":56}
+      ]
+    }
+  ],
+  "handPalm": [
+    {
+      "id": "lever.hand.palm",
+      "reads": [
+        "restX",
+        "restY",
+        "restZ",
+        "gateX",
+        "gateY",
+        "gateZ",
+        "open",
+        "leverAngle",
+        "handTurn",
+        "loadBlend"
+      ],
+      "nodes": [
+        {"op":"read","index":0},
+        {"op":"read","index":1},
+        {"op":"read","index":2},
+        {"op":"read","index":3},
+        {"op":"read","index":4},
+        {"op":"read","index":5},
+        {"op":"read","index":6},
+        {"op":"read","index":7},
+        {"op":"mul","a":6,"b":7},
+        {"op":"read","index":8},
+        {"op":"mul","a":8,"b":9},
+        {"op":"constant","value":0.5},
+        {"op":"mul","a":10,"b":11},
+        {"op":"sin","a":12},
+        {"op":"cos","a":12},
+        {"op":"constant","value":0},
+        {"op":"constant","value":-2},
+        {"op":"mul","a":13,"b":2},
+        {"op":"mul","a":16,"b":17},
+        {"op":"constant","value":2},
+        {"op":"mul","a":13,"b":1},
+        {"op":"mul","a":19,"b":20},
+        {"op":"mul","a":14,"b":18},
+        {"op":"add","a":1,"b":22},
+        {"op":"mul","a":13,"b":21},
+        {"op":"sub","a":23,"b":24},
+        {"op":"mul","a":14,"b":21},
+        {"op":"add","a":2,"b":26},
+        {"op":"mul","a":13,"b":18},
+        {"op":"add","a":27,"b":28},
+        {"op":"read","index":9},
+        {"op":"sample","a":30,"interpolation":"smoothstep","keys":[[0,0],[1,1]]},
+        {"op":"constant","value":0.001},
+        {"op":"gt","a":31,"b":32},
+        {"op":"sub","a":3,"b":0},
+        {"op":"mul","a":34,"b":31},
+        {"op":"add","a":0,"b":35},
+        {"op":"sub","a":4,"b":25},
+        {"op":"mul","a":37,"b":31},
+        {"op":"add","a":25,"b":38},
+        {"op":"sub","a":5,"b":29},
+        {"op":"mul","a":40,"b":31},
+        {"op":"add","a":29,"b":41},
+        {"op":"mul","a":36,"b":36},
+        {"op":"mul","a":39,"b":39},
+        {"op":"add","a":43,"b":44},
+        {"op":"mul","a":42,"b":42},
+        {"op":"add","a":45,"b":46},
+        {"op":"sqrt","a":47},
+        {"op":"constant","value":1},
+        {"op":"select","test":48,"yes":48,"no":49},
+        {"op":"div","a":36,"b":50},
+        {"op":"div","a":39,"b":50},
+        {"op":"div","a":42,"b":50},
+        {"op":"select","test":33,"yes":51,"no":0},
+        {"op":"select","test":33,"yes":52,"no":25},
+        {"op":"select","test":33,"yes":53,"no":29}
+      ],
+      "channels": [
+        {"property":"x","value":54},
+        {"property":"y","value":55},
+        {"property":"z","value":56}
+      ]
+    }
+  ],
+  "sight": [
+    {
+      "id": "lever.sight",
+      "reads": [
+        "scale",
+        "height",
+        "eye",
+        "rear",
+        "front"
+      ],
+      "nodes": [
+        {"op":"read","index":0},
+        {"op":"read","index":1},
+        {"op":"read","index":2},
+        {"op":"read","index":3},
+        {"op":"read","index":4},
+        {"op":"constant","value":0},
+        {"op":"neg","a":1},
+        {"op":"mul","a":6,"b":0},
+        {"op":"neg","a":2},
+        {"op":"mul","a":8,"b":0},
+        {"op":"sub","a":2,"b":3},
+        {"op":"mul","a":10,"b":0},
+        {"op":"sub","a":2,"b":4},
+        {"op":"mul","a":12,"b":0}
+      ],
+      "channels": [
+        {"property":"x","value":5},
+        {"property":"y","value":7},
+        {"property":"z","value":9},
+        {"property":"scaleX","value":0},
+        {"property":"scaleY","value":11},
+        {"property":"scaleZ","value":13}
+      ]
+    }
+  ],
+  "cycle": [
+    {
+      "id": "lever.cycle",
+      "reads": [
+        "cycleU",
+        "cycling"
+      ],
+      "nodes": [
+        {"op":"read","index":0},
+        {"op":"sample","a":0,"interpolation":"smoothstep","keys":[[0,0],[0.4,1],[0.52,1],[1,0]]},
+        {"op":"read","index":1},
+        {"op":"constant","value":0},
+        {"op":"select","test":2,"yes":1,"no":3}
+      ],
+      "channels": [
+        {"property":"value","value":4}
+      ]
+    }
+  ],
+  "partInputs": [
+    {"input":"open","owner":"weapon","path":["partValues","open"]},
+    {"input":"leverAngle","owner":"weapon","path":["view","lever","open"]},
+    {"input":"boltTravel","owner":"weapon","path":["view","lever","boltTravel"]},
+    {"input":"hammerCocked","owner":"weapon","path":["view","lever","hammerCocked"]},
+    {"input":"hammerDown","owner":"weapon","path":["view","lever","hammerDown"]},
+    {"input":"hammerAngle","owner":"weapon","path":["partValues","hammerAngle"]},
+    {"input":"phaseT","owner":"weapon","path":["act","phaseT"]},
+    {"input":"reloadIn","owner":"weapon","path":["view","timing","reloadIn"]},
+    {"input":"roundTime","owner":"weapon","path":["view","timing","roundTime"]},
+    {"input":"fed","owner":"weapon","path":["act","fed"]},
+    {"input":"planned","owner":"weapon","path":["act","planned"]},
+    {"input":"gateX","owner":"weapon","path":["gate","x"]},
+    {"input":"gateY","owner":"weapon","path":["gate","y"]},
+    {"input":"gateZ","owner":"weapon","path":["gate","z"]}
+  ],
+  "partReads": [
+    "cocked",
+    "reloading"
+  ],
+  "bindings": [
+    {
+      "group": "sight",
+      "target": "sight",
+      "inputs": [
+        {"input":"scale","owner":"weapon","path":["poseFrame","scale"]},
+        {"input":"height","owner":"weapon","path":["view","sight","y"]},
+        {"input":"eye","owner":"weapon","path":["view","sight","eyeZ"]},
+        {"input":"rear","owner":"weapon","path":["view","sight","rearZ"]},
+        {"input":"front","owner":"weapon","path":["view","sight","frontZ"]}
+      ],
+      "outputs": [
+        {"property":"x","target":"visual","path":["px"]},
+        {"property":"y","target":"visual","path":["py"]},
+        {"property":"z","target":"visual","path":["pz"]},
+        {"property":"scaleX","target":"visual","path":["scale"]},
+        {"property":"scaleY","target":"visual","path":["rearDepth"]},
+        {"property":"scaleZ","target":"visual","path":["frontDepth"]}
+      ]
+    },
+    {
+      "group": "cycle",
+      "target": "cycle",
+      "inputs": [
+        {"input":"cycleU","owner":"weapon","path":["partValues","cycleU"]},
+        {"input":"cycling","owner":"weapon","path":["partValues","cycling"]}
+      ],
+      "outputs": [
+        {"property":"value","target":"visual","path":["open"]}
+      ]
+    },
+    {
+      "group": "handAt",
+      "target": "grip",
+      "inputs": [
+        {"input":"restX","owner":"weapon","path":["grips","rest","at","x"]},
+        {"input":"restY","owner":"weapon","path":["grips","rest","at","y"]},
+        {"input":"restZ","owner":"weapon","path":["grips","rest","at","z"]},
+        {"input":"gateX","owner":"weapon","path":["grips","gate","at","x"]},
+        {"input":"gateY","owner":"weapon","path":["grips","gate","at","y"]},
+        {"input":"gateZ","owner":"weapon","path":["grips","gate","at","z"]},
+        {"input":"open","owner":"weapon","path":["partValues","open"]},
+        {"input":"leverAngle","owner":"weapon","path":["view","lever","open"]},
+        {"input":"pivotX","owner":"weapon","path":["leverPivot","x"]},
+        {"input":"pivotY","owner":"weapon","path":["leverPivot","y"]},
+        {"input":"pivotZ","owner":"weapon","path":["leverPivot","z"]},
+        {"input":"roundVisible","owner":"weapon","path":["handFrame","roundVisible"]},
+        {"input":"roundX","owner":"weapon","path":["round","position","x"]},
+        {"input":"gatePositionX","owner":"weapon","path":["gate","x"]},
+        {"input":"roundY","owner":"weapon","path":["round","position","y"]},
+        {"input":"gatePositionY","owner":"weapon","path":["gate","y"]},
+        {"input":"roundZ","owner":"weapon","path":["round","position","z"]},
+        {"input":"gatePositionZ","owner":"weapon","path":["gate","z"]},
+        {"input":"loadBlend","owner":"weapon","path":["loadBlend"]}
+      ],
+      "outputs": [
+        {"property":"x","target":"visual","path":["at","x"]},
+        {"property":"y","target":"visual","path":["at","y"]},
+        {"property":"z","target":"visual","path":["at","z"]}
+      ]
+    },
+    {
+      "group": "handAxis",
+      "target": "grip",
+      "inputs": [
+        {"input":"restX","owner":"weapon","path":["grips","rest","axis","x"]},
+        {"input":"restY","owner":"weapon","path":["grips","rest","axis","y"]},
+        {"input":"restZ","owner":"weapon","path":["grips","rest","axis","z"]},
+        {"input":"gateX","owner":"weapon","path":["grips","gate","axis","x"]},
+        {"input":"gateY","owner":"weapon","path":["grips","gate","axis","y"]},
+        {"input":"gateZ","owner":"weapon","path":["grips","gate","axis","z"]},
+        {"input":"open","owner":"weapon","path":["partValues","open"]},
+        {"input":"leverAngle","owner":"weapon","path":["view","lever","open"]},
+        {"input":"handTurn","owner":"weapon","path":["view","lever","handTurn"]},
+        {"input":"loadBlend","owner":"weapon","path":["loadBlend"]}
+      ],
+      "outputs": [
+        {"property":"x","target":"visual","path":["axis","x"]},
+        {"property":"y","target":"visual","path":["axis","y"]},
+        {"property":"z","target":"visual","path":["axis","z"]}
+      ]
+    },
+    {
+      "group": "handPalm",
+      "target": "grip",
+      "inputs": [
+        {"input":"restX","owner":"weapon","path":["grips","rest","palm","x"]},
+        {"input":"restY","owner":"weapon","path":["grips","rest","palm","y"]},
+        {"input":"restZ","owner":"weapon","path":["grips","rest","palm","z"]},
+        {"input":"gateX","owner":"weapon","path":["grips","gate","palm","x"]},
+        {"input":"gateY","owner":"weapon","path":["grips","gate","palm","y"]},
+        {"input":"gateZ","owner":"weapon","path":["grips","gate","palm","z"]},
+        {"input":"open","owner":"weapon","path":["partValues","open"]},
+        {"input":"leverAngle","owner":"weapon","path":["view","lever","open"]},
+        {"input":"handTurn","owner":"weapon","path":["view","lever","handTurn"]},
+        {"input":"loadBlend","owner":"weapon","path":["loadBlend"]}
+      ],
+      "outputs": [
+        {"property":"x","target":"visual","path":["palm","x"]},
+        {"property":"y","target":"visual","path":["palm","y"]},
+        {"property":"z","target":"visual","path":["palm","z"]}
+      ]
+    }
+  ]
+}
