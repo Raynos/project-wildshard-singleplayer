@@ -1,5 +1,3 @@
-import { bindDirectorActions,type BoundDirectorActions } from '@wildshard/game/plugin/director';
-import preludeRows from '../data/elitePreludeStages.json' with {type:'json'};
 import type { Vector3 } from 'three';
 import { EliteBrain, type EliteActor } from '@wildshard/engine/ai/EliteBrain';
 import { inspectBrain, pinBrain } from '@wildshard/engine/ai/inspect';
@@ -90,15 +88,10 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
   readonly env: PineEliteWorld<B>;
   /** the elite's admitted fight script (its slots are the fight's state) */
   readonly script: EliteScriptLane;
-  /** Authored outer encounter selection, distinct from the existing admitted fight script. */
-  readonly prelude: BoundDirectorActions;
-  private readonly preludeObservation={alive:false,engaged:false,leashing:false};
   private readonly rule:NonNullable<(typeof PINE_ELITE_HOSTS)[string]>;
   private readonly nativeLanes:readonly Lane<B>[];
   private readonly ring:PineRingTell|null;
   rivals:Rival<B>[]=[];
-  private frameDt = 0;
-  private frameTime = 0;
   constructor(id: string, env: PineEliteWorld<B>, seed?: number) {
     const rule=PINE_ELITE_HOSTS[id],row=PINE_ELITE_FIGHTS[id];
     if(rule===undefined||row===undefined)throw new Error(`Missing elite host row '${id}'`);
@@ -108,16 +101,6 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
     const streams = pineEliteStreams(def.id, seed);
     super(def, { player: env.player, random: () => streams.fight.next() }); this.def = def; this.env = env;
     this.streams = streams;
-    if(preludeRows.stages.some(stage=>stage.do.length>3))throw new Error('Pine elite prelude action bound');
-    const actions={
-      'pine.elite.clock':()=>{this.modeT+=this.frameDt;},
-      'pine.elite.clear':()=>{this.clearTells();},
-      'pine.elite.home':()=>{this.goHome(this.preludeBody());},
-      'pine.elite.fight':()=>{this.fight(this.preludeBody(),this.frameDt,this.frameTime);},
-      'pine.elite.idle':()=>{this.idle(this.preludeBody(),this.frameDt);},
-    };
-    this.prelude=bindDirectorActions(preludeRows,{read:()=>this.preludeObservation,
-      initial:[this.preludeObservation],bindings:Object.entries(actions).map(([emit,run])=>({action:{emit,value:0},run}))});
     const bytes = PINE_ELITE_MODULES[row.module];
     if (bytes === undefined) throw new Error(`pine elite '${id}' has no module`);
     this.script = new EliteScriptLane(row,moduleBytes(bytes),()=>streams.fight.next());
@@ -167,17 +150,6 @@ export class PineEliteScript<B extends PineEliteBody> extends EliteBrain<B> {
     if(a.position.distanceTo(this.env.player.position)>35)this.lurk(a);else super.idle(a,dt);
   }
   /** the brain's and the script's own state (its lanes ride `lanes()`) */
-  /** Advance at the original owner phase; rows select the same ordered native actions. */
-  override tick(dt: number, t: number, engaged: boolean, leashing: boolean): void {
-    this.frameDt = dt; this.frameTime = t;
-    this.preludeObservation.alive=this.animal?.alive===true;this.preludeObservation.engaged=engaged;this.preludeObservation.leashing=leashing;
-    this.prelude.advance();
-  }
-  private preludeBody(): B {
-    const animal = this.animal;
-    if (animal === null || !animal.alive) throw new Error('Pine elite prelude requires its live native body');
-    return animal;
-  }
   fields(): PineEliteFields { return { modeT: this.modeT, p2: this.p2, wx: this.wx, wz: this.wz, wanderT: this.wanderT, ...this.extra() }; }
   restoreFields(mode: string, f: PineEliteFields): void {
     const num = (k: string): number => { const v = f[k]; if (typeof v !== 'number') throw new Error(`Incompatible Pine elite field ${k}`); return v; };
