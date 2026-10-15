@@ -25,7 +25,7 @@
  * No lights; the flames are unlit colour that blooms.
  */
 import * as THREE from 'three';
-import { loadFaceHead, type FaceHead } from './faceHeads';
+import { WENDELL_HEAD_GEOMETRY } from '../boot/fixedGeometry';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -41,34 +41,10 @@ const FACE_R = 6;          // m (feet to feet): inside this, or while talking, h
 const TURN_K = 3;          // 1/s: the body's ease toward the facing it wants …
 const TURN_MAX = 2.2;      // … capped at this many rad/s (180° in ~1.5 s)
 
-/** E343 (Jake's pick D): Wendell's generated head (public/assets/models/driftwood-hero/faces/wendell-head.glb: scripts/img2mesh/head_cut.py
- *  → driftwood_post.py, 1 m tall, the beard's foot at y = 0), fitted to the code head's frame: its neck on the pivot, the
- *  hat's crown at the code hat's 0.335 m. NECK_FROM_TOP is head_cut's measure for this file. */
-const WENDELL_HEAD = '/assets/models/driftwood-hero/faces/wendell-head.glb';
-const WENDELL_NECK_FROM_TOP = 0.7698;
-function wendellHead(fh: FaceHead): THREE.BufferGeometry {
-  const g = new THREE.BufferGeometry();
-  const pos = Float32Array.from(fh.pos);
-  let top = -Infinity, bot = Infinity;
-  for (let i = 1; i < pos.length; i += 3) { top = Math.max(top, pos[i] ?? 0); bot = Math.min(bot, pos[i] ?? 0); }
-  const neck = top - WENDELL_NECK_FROM_TOP * (top - bot);
-  const k = 0.335 / Math.max(1e-6, top - neck);
-  let cx = 0, cz = 0, n = 0;
-  for (let i = 0; i < fh.count; i++) if ((pos[i * 3 + 1] ?? 0) > neck) { cx += pos[i * 3] ?? 0; cz += pos[i * 3 + 2] ?? 0; n++; }
-  cx /= Math.max(1, n); cz /= Math.max(1, n);
-  for (let i = 0; i < fh.count; i++) {
-    pos[i * 3] = ((pos[i * 3] ?? 0) - cx) * k; pos[i * 3 + 1] = ((pos[i * 3 + 1] ?? 0) - neck) * k; pos[i * 3 + 2] = ((pos[i * 3 + 2] ?? 0) - cz) * k + 0.01;
-  }
-  g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  g.setAttribute('normal', new THREE.BufferAttribute(Float32Array.from(fh.nrm), 3));
-  g.setAttribute('color', new THREE.BufferAttribute(Float32Array.from(fh.col), 3));
-  g.computeBoundingSphere();
-  return g;
-}
-
-export async function loadWendellFace(): Promise<THREE.BufferGeometry | null> {
-  const face = await loadFaceHead(WENDELL_HEAD);
-  return face === null ? null : wendellHead(face);
+/** The original fitted head, prepared offline and lent through the existing fixed-model library. */
+export async function loadWendellFace(): Promise<THREE.BufferGeometry> {
+  await WENDELL_HEAD_GEOMETRY.load();
+  return WENDELL_HEAD_GEOMETRY.copy();
 }
 
 export interface Pos { x: number; y: number; z: number; yaw?: number }
@@ -118,10 +94,7 @@ export class Castaway {
     // the code head (pivot at the neck)
     this.head = new THREE.Mesh(buildKitMesh(CASTAWAY_HEAD), mat);
     this.head.position.set(0, NECK, 0.01);
-    // E343 (Jake's pick D): the generated head (Hunyuan3D-2 from a codex portrait in the island's toon look, its own paint,
-    // cut at its neck, the faceted post) replaces this code head — its stand-in — as soon as the ~35 KB file is in
-
-
+    // E343: the original Hunyuan head is fitted offline; the rig replaces this entry's temporary head with its library copy.
     // the right arm (pivot at the shoulder, hanging along −Y)
     this.arm = new THREE.Mesh(buildKitMesh(CASTAWAY_ARM), mat);
     this.arm.position.copy(SHOULDER);

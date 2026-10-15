@@ -1598,3 +1598,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # Pine offline NPC hulls (registered cheap skinned producer).
 /public/assets/pine-hollow/npcs/*-skin-*.glb
+# Prepared Wendell head (registered cheap fixed-model output).
+/public/assets/driftwood-isle/baked/fixed-models/wendell-head.glb
+/src/shards/driftwood-isle/assets/2dc1437317b239defedfa557f60232e26afb7815353e7e273b8a6679fc2c5e6c

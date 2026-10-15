@@ -57,3 +57,11 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   accounting. Original deck material, pennant sway and colliders stay.
 
 | Pine Hollow | Offline NPC skins (ranger/trader/miller, immutable SHA256 names) | Desktop 1,511,556 B / phone 1,030,920 B, in addition to the existing tier-aware material GLBs. Cheap SDK skinnedGlb outputs, not Git binaries. Original tier-aware colour/normal files remain material loans. | Runtime hull fitting and its source geometry retire; only the same fitted vertex/weight channels remain, with native legBones/legPose and shared PBR material loans. Phone geometry RAM 2,719,420 → 1,688,712 B (−1,030,708), desktop 4,120,334 → 2,552,274 B (−1,568,060); drawn geometry GPU bytes and tier-aware maps unchanged. No runtime fitting fallback. |
+
+- 2026-10-15 DW Wendell head: replace the runtime source GLB loader,
+  cache and neck/AO fitting with the registered cheap fixed-model bake.
+  Original source 35,372 B raw / 28,368 B gzip9 is author-only; the
+  admitted fitted head is 114,984 B raw / 37,814 B gzip9 (+9,446 B
+  gzip). World and Explorer borrow one prepared library entry; no
+  second runtime source GLB. Geometry attributes and materials stay
+  unchanged; no binary Git blobs.

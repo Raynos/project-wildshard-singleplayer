@@ -1,10 +1,11 @@
-import { InstancedMesh, Mesh, MeshStandardMaterial, Scene } from 'three';
+import { InstancedMesh, Mesh, MeshStandardMaterial, Scene, type BufferGeometry } from 'three';
 import { bake, BakedPiece, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import { driftwoodFixedSource } from './fixedSource';
 
 /** Original static world draws and own-space equipment/cover templates; each source draw is assembled exactly once. */
-export function driftwoodScene(project?: string): { baked: BakedScene; fixed: ReturnType<typeof driftwoodFixedSource> } {
+export function driftwoodScene(project: string, head: BufferGeometry): { baked: BakedScene; fixed: ReturnType<typeof driftwoodFixedSource> } {
   const fixed = driftwoodFixedSource(), scene = new Scene(); scene.name = 'driftwood-isle';
+  fixed.geometries.set('wendell-head', head);
   const material = new MeshStandardMaterial({ vertexColors: true });
   let library = 0;
   for (const [id, geometry] of fixed.geometries) {
@@ -21,7 +22,7 @@ export function driftwoodScene(project?: string): { baked: BakedScene; fixed: Re
       scene.add(new BakedPiece(key, [[key, mesh]], [], { nativeAttributes: true, compactIndex: true, nodeExtras: () => ({ wholePartition: metadata }) }));
     }
   }
-  const baked = bake(scene, { slug: 'driftwood-isle', name: 'Driftwood Isle' }, project === undefined ? {} : { project });
+  const baked = bake(scene, { slug: 'driftwood-isle', name: 'Driftwood Isle' }, { project });
   material.dispose();
   return { baked, fixed };
 }

@@ -5,6 +5,9 @@ import { modelGeometry, readProductGeometry, type ModelGeometry } from '../runti
 import type { BufferGeometry } from 'three';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
 
+/** Prepared head; the original talk rig borrows a mutable copy, without a second source download or runtime fitter. */
+export const WENDELL_HEAD_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.wendellHead);
+
 /** Immutable CPU templates only; every model receives a deep mutable geometry copy. */
 export const HAT_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.hat, { _sway: 'aSway' });
 export const CHIME_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.chime, { _sway: 'aSway' });
@@ -73,6 +76,7 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
   const admitted = product?.templates ?? bytes;
   try {
   await Promise.all([
+    WENDELL_HEAD_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.wendellHead)),
     SHRINE_KIT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineKit)),
     SHRINE_WATER_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineWater)),
     SHRINE_GLYPHS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.shrineGlyphs)),

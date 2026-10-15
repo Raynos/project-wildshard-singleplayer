@@ -1,5 +1,6 @@
 /** Fixed low-poly geometry, baked offline without changing its vertex colours or wind channels. */
 export const FIXED_MODEL_FILES = {
+  wendellHead: '/assets/driftwood-isle/baked/fixed-models/wendell-head.glb',
   pierWorld0Deck: '/assets/driftwood-isle/baked/fixed-models/pier-world-0-deck.glb',
   pierWorld0Cloth: '/assets/driftwood-isle/baked/fixed-models/pier-world-0-cloth.glb',
   pierWorld1Deck: '/assets/driftwood-isle/baked/fixed-models/pier-world-1-deck.glb',

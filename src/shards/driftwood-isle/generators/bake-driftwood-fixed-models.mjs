@@ -1,8 +1,10 @@
 // node --experimental-transform-types --import ./scripts/bake-loader.mjs src/shards/driftwood-isle/generators/bake-driftwood-fixed-models.mjs [--check]
 // The original fixed builders run offline; no colour quantization, simplification or material conversion.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { MeshStandardMaterial } from 'three';
+import { Mesh, MeshStandardMaterial } from 'three';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
+import { readSourceModel } from '@wildshard/sdk/bake/skinned';
+import { castawayHead } from './castawayHead.ts';
 import { driftwoodScene } from './scene.ts';
 import { WorldBakeRows } from '@wildshard/sdk/bake/worldRows';
 import { bakeQueryTerrain, readNativeTerrain } from '@wildshard/sdk/bake/terrain';
@@ -24,7 +26,16 @@ const emit = (name, geometry) => {
   write(new URL(`${name}.glb`, assets), glb);
   geometry.dispose();
 };
-const { baked, fixed } = driftwoodScene(`${import.meta.dirname}/../../../..`);
+const headSource = await readSourceModel(new Uint8Array(readFileSync(new URL('../../../../public/assets/models/driftwood-hero/faces/wendell-head.glb', import.meta.url))));
+headSource.gltf.scene.updateMatrixWorld(true);
+/** @type {Mesh[]} */
+const heads = [];
+headSource.gltf.scene.traverse(node => { if (node instanceof Mesh) heads.push(node); });
+if (heads.length !== 1) throw new Error('Wendell head source must contain one mesh');
+const headMesh = heads.at(0);
+if (headMesh === undefined) throw new Error('Missing authored Wendell head');
+const head = castawayHead(headMesh.geometry.clone().applyMatrix4(headMesh.matrixWorld));
+const { baked, fixed } = driftwoodScene(`${import.meta.dirname}/../../../..`, head);
 for (const [name, geometry] of fixed.geometries) emit(name, geometry);
 for (const [name, value] of Object.entries(fixed.rows)) write(new URL(`../data/${name}.json`, import.meta.url), `${JSON.stringify(value, null, 2)}\n`);
 if (baked.props === null) throw new Error('Driftwood scene must contain its static world');
