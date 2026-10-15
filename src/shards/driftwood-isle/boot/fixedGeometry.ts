@@ -36,6 +36,9 @@ export const SHRINE_SPECIMEN_WATER_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.shri
 export const SHRINE_SPECIMEN_GLYPHS_GEOMETRY=modelGeometry(FIXED_MODEL_FILES.shrineSpecimenGlyphs);
 /** The world owns the static dune ring; transfer its buffer instead of retaining a template. */
 export const DUNE_LOGS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.duneLogs);
+/** The rope bridge's four anchor posts (own space) on the island span and the Explorer span; the deck stays live. */
+export const BRIDGE_POSTS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.bridgePosts);
+export const BRIDGE_SPECIMEN_POSTS_GEOMETRY = modelGeometry(FIXED_MODEL_FILES.bridgeSpecimenPosts);
 let ready = false;
 /** Explorer may open these models before the island's world hook has run. */
 export function fixedGeometryReady(): boolean { return ready; }
@@ -55,6 +58,7 @@ export async function loadFixedGeometry(bytes?: ReadonlyMap<string, Uint8Array |
     loadCoveGeometry(admitted),
     loadCoverGeometry(admitted),
     DUNE_LOGS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.duneLogs)),
+    BRIDGE_POSTS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.bridgePosts)), BRIDGE_SPECIMEN_POSTS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.bridgeSpecimenPosts)),
     IRON_SWORD_BLADE_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.ironSwordBlade)), IRON_SWORD_FITTINGS_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.ironSwordFittings)),
     HAT_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.hat)), CHIME_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.chime)),
     CAPE_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.cape)), BOAT_HULL_GEOMETRY.load(admitted?.get(FIXED_MODEL_FILES.boatHull)),

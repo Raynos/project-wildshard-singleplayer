@@ -263,3 +263,12 @@ export function bridgeFacts(spec:RopeBridgeSpec, ground:(x:number,z:number)=>num
   try {return {key:JSON.stringify([spec.a,spec.b,spec.width??1.4,spec.sag??1]),ground:[...samples.values()],...made.facts()};}
   finally {made.mesh.traverse(o=>{if(isMesh(o)){o.geometry.dispose();for(const material of Array.isArray(o.material)?o.material:[o.material])material.dispose();}});}
 }
+
+/** The four anchor posts in the span's own space (end a on the ground), painted as the page painted them. */
+export function bridgePosts(spec:RopeBridgeSpec, ground:(x:number,z:number)=>number): THREE.BufferGeometry {
+  const made=new RopeBridgeBuilder(spec,ground).build(), posts=made.mesh.children[0];
+  try {
+    if(posts===undefined||!isMesh(posts))throw new Error('Rope bridge posts are missing');
+    return posts.geometry.clone();
+  } finally {made.mesh.traverse(o=>{if(isMesh(o)){o.geometry.dispose();for(const material of Array.isArray(o.material)?o.material:[o.material])material.dispose();}});}
+}

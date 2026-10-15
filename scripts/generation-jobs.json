@@ -2643,7 +2643,11 @@
         "src/shards/driftwood-isle/assets/ed63f773f7d44365a171f18431da1d571aa9a4a5085ad3143dabc9155a753a35",
         "src/shards/driftwood-isle/assets/f12dc04f6f186cafce4d25689916c08737c7e7809835c509b57852087e2173bb",
         "src/shards/driftwood-isle/assets/f88561216dac439ed1d9efcd967f9d5692eced70540c8c5ea808328082b1f8e2",
-        "src/shards/driftwood-isle/assets/fab3be0e055f56bc498d1489a67226aa84a630540bfe6a2651d93c3523a6a889"
+        "src/shards/driftwood-isle/assets/fab3be0e055f56bc498d1489a67226aa84a630540bfe6a2651d93c3523a6a889",
+        "public/assets/driftwood-isle/baked/fixed-models/bridge-posts.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/bridge-specimen-posts.glb",
+        "src/shards/driftwood-isle/assets/1a1bc6150cd0bdf7431d31b6a3c7402848af0106187c3d01e119a92edce89f2c",
+        "src/shards/driftwood-isle/assets/41c9752a32dacdc24bfc94e87d4a8a8023a02b3979fdba927c01b22a94355c06"
       ],
       "seedOutputs": [],
       "platform": "native",
@@ -2714,7 +2718,11 @@
         "src/shards/driftwood-isle/assets/ed63f773f7d44365a171f18431da1d571aa9a4a5085ad3143dabc9155a753a35",
         "src/shards/driftwood-isle/assets/f12dc04f6f186cafce4d25689916c08737c7e7809835c509b57852087e2173bb",
         "src/shards/driftwood-isle/assets/f88561216dac439ed1d9efcd967f9d5692eced70540c8c5ea808328082b1f8e2",
-        "src/shards/driftwood-isle/assets/fab3be0e055f56bc498d1489a67226aa84a630540bfe6a2651d93c3523a6a889"
+        "src/shards/driftwood-isle/assets/fab3be0e055f56bc498d1489a67226aa84a630540bfe6a2651d93c3523a6a889",
+        "public/assets/driftwood-isle/baked/fixed-models/bridge-posts.glb",
+        "public/assets/driftwood-isle/baked/fixed-models/bridge-specimen-posts.glb",
+        "src/shards/driftwood-isle/assets/1a1bc6150cd0bdf7431d31b6a3c7402848af0106187c3d01e119a92edce89f2c",
+        "src/shards/driftwood-isle/assets/41c9752a32dacdc24bfc94e87d4a8a8023a02b3979fdba927c01b22a94355c06"
       ]
     },
     {

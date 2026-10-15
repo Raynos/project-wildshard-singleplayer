@@ -9,7 +9,7 @@ import { counterGeometry } from './tradeCounter';
 import { ironSwordGeometry } from './ironSword';
 import { coverGeometry } from './groundCover';
 import { originalDuneLogs } from './driftwoodDuneLogs.mjs';
-import { originalBridgeFacts } from './driftwoodBridge.mjs';
+import { originalBridgeFacts, originalBridgePosts } from './driftwoodBridge.mjs';
 import { originalTrailside } from './driftwoodTrailside.mjs';
 import { originalCove } from './driftwoodCove.mjs';
 import { originalHut, originalLookout } from './driftwoodHut.mjs';
@@ -61,5 +61,7 @@ export function driftwoodFixedSource(): {
   const logs = originalDuneLogs();
   geometries.set('cover-driftwood', logs.geometry);
   rows['duneLogsBake'] = logs.catalogue;
+  const posts = originalBridgePosts();
+  geometries.set('bridge-posts', posts.world); geometries.set('bridge-specimen-posts', posts.specimen);
   return { geometries, world, rows };
 }

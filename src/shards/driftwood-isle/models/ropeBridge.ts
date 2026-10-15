@@ -15,11 +15,10 @@
  * group's space as they are drawn. `ropeBridgeLayout(params)` is a placement's builder, shared with its build.
  */
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { SEED } from '@wildshard/engine/core/config';
-import { Rng } from '@wildshard/engine/core/rng';
 import { BRIDGE_SPANS } from '../data/bridgeRows';
-import { admitBridgeFacts } from '../boot/bridgeFacts';
+import { admitBridgeFacts, bridgeKey } from '../boot/bridgeFacts';
+import { BRIDGE_POSTS_GEOMETRY, BRIDGE_SPECIMEN_POSTS_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
+import { loadingSpecimen } from '@wildshard/engine/models/gear';
 import { staticColliders } from '../runtime/boot/staticColliders';
 import { defineModel } from '@wildshard/engine/models/model';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
@@ -34,7 +33,7 @@ export interface DeckPoses { pose: (i: number, alpha: number, p: { x: number; y:
 /** one deck segment at rest: centre, rotation (local +z along the span, +y up), half length */
 export interface DeckSegment { x: number; y: number; z: number; rot: { x: number; y: number; z: number; w: number }; hz: number }
 
-const C = { post: new THREE.Color('#6f5638'), rope: new THREE.Color('#d2bd85') };
+const C = { rope: new THREE.Color('#d2bd85') };
 /** a deck segment's length before it is fitted to the span (m), its half thickness, its weight (kg) */
 const SEG_HY = 0.05, SEG_KG = 14;
 
@@ -46,7 +45,7 @@ class RopeBridgeBuilder {
   /** the posts (static), the planks and ropes (instanced, posed by `setPoses`), and one holder per deck segment */
   mesh!: THREE.Group;
   colliders: Collider[] = [];
-  private ya = 0; private yb = 0; private len = 0; private dir = new THREE.Vector2(); private width = 1.4; private sag = 1;
+  private len = 0; private dir = new THREE.Vector2(); private width = 1.4;
   private segs: DeckSegment[] = [];
   /** per segment: an Object3D at its pose (a bolt stuck in the deck rides it) */
   private holders: THREE.Object3D[] = [];
@@ -63,40 +62,24 @@ class RopeBridgeBuilder {
   descs: ColliderDesc[] = [];
 
   private readonly facts: ReturnType<typeof admitBridgeFacts>;
-  constructor(private sky: Sky, private spec: RopeBridgeSpec, private readonly ground: (x: number, z: number) => number) { this.facts = admitBridgeFacts(spec, ground); this.o = {...this.facts.origin}; }
-
-  /** plank height at span fraction t (0 at a → 1 at b), at rest */
-  private deckY(t: number) { return this.ya + (this.yb - this.ya) * t - this.sag * 4 * t * (1 - t); }
+  constructor(private sky: Sky, private spec: RopeBridgeSpec, ground: (x: number, z: number) => number) { this.facts = admitBridgeFacts(spec, ground); this.o = {...this.facts.origin};
+    // own-space colliders for the model (the world's are these placed back at the origin); the rest plan alone, no drawing
+    const o = this.o;
+    this.descs = this.colliderDescs(); // fresh objects each call
+    for (const d of this.descs) if (d.kind !== 'treads') { d.x -= o.x; d.y -= o.y; d.z -= o.z; }
+  }
 
   build(): this {
-    const rng = new Rng(SEED ^ 0xb21d);
-    const { a } = this.spec;
     const facts=this.facts;
-    this.width=facts.width;this.sag=facts.sag;this.ya=facts.ya;this.yb=facts.yb;this.len=facts.len;
+    this.width=facts.width;this.len=facts.len;
     this.dir.set(facts.direction.x,facts.direction.z);
-    const side = new THREE.Vector2(-this.dir.y, this.dir.x);
-    const hw = this.width / 2;
-    const at = (t: number, s: number, dy: number) => new THREE.Vector3(a[0] + this.dir.x * this.len * t + side.x * s, this.deckY(t) + dy, a[1] + this.dir.y * this.len * t + side.y * s);
     this.mesh = new THREE.Group();
     this.mesh.name = 'rope-bridge';
 
-    // ── anchor posts (two per end), sunk into the ground: the one static part ──
-    const parts: THREE.BufferGeometry[] = [];
-    for (const [t, y] of [[0, this.ya], [1, this.yb]] as [number, number][]) for (const s of [-1, 1]) {
-      const p = at(t, s * (hw + 0.15), 0);
-      const gy = this.ground(p.x, p.z);
-      const g = new THREE.CylinderGeometry(0.13, 0.16, y + 1.3 - gy + 0.5, 6).translate(p.x, (y + 1.3 + gy - 0.5) / 2, p.z);
-      g.deleteAttribute('uv'); g.deleteAttribute('normal');
-      const ni = g.toNonIndexed(), n = ni.getAttribute('position').count, c = new Float32Array(n * 3);
-      for (let i = 0; i < n; i += 3) { const k = 0.94 + rng.next() * 0.12; for (let j = 0; j < 3; j++) { c[(i + j) * 3] = C.post.r * k; c[(i + j) * 3 + 1] = C.post.g * k; c[(i + j) * 3 + 2] = C.post.b * k; } }
-      ni.setAttribute('color', new THREE.BufferAttribute(c, 3));
-      parts.push(ni);
-    }
+    // ── anchor posts (two per end), sunk into the ground: the one static part, baked in own space ──
     const postMat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.88, metalness: 0 });
     this.sky.setupMaterial(postMat);
-    const postGeo = mergeGeometries(parts, false);
-    postGeo.translate(-this.o.x, -this.o.y, -this.o.z); // own space
-    const posts = new THREE.Mesh(postGeo, postMat);
+    const posts = new THREE.Mesh((facts.key === bridgeKey(BRIDGE_SPANS.specimen) ? BRIDGE_SPECIMEN_POSTS_GEOMETRY : BRIDGE_POSTS_GEOMETRY).copy(), postMat);
     posts.castShadow = true; posts.receiveShadow = true;
     this.mesh.add(posts);
 
@@ -123,10 +106,6 @@ class RopeBridgeBuilder {
 
     this.colliders=structuredClone(facts.colliders);
     this.setPoses(null, 1);
-    // own-space colliders for the model (the world's are these placed back at the origin)
-    const o = this.o;
-    this.descs = this.colliderDescs(); // fresh objects each call
-    for (const d of this.descs) if (d.kind !== 'treads') { d.x -= o.x; d.y -= o.y; d.z -= o.z; }
     return this;
   }
 
@@ -227,6 +206,9 @@ export const ropeBridge = defineModel<RopeBridgeParams>({
   file: 'src/shards/driftwood-isle/models/ropeBridge.ts', surface: 'planks',
   defaults: { span: ORIGIN, ground: FLAT },
   // the world's copy: the builder its layout made (it drives that group's deck); a specimen: a fresh one
-  build: (ctx, p) => (p.span === ORIGIN ? builderOf(ctx.sky, p, true) : builderOf(ctx.sky, p, false)).mesh,
-  colliders: (p, ctx) => builderOf(ctx.sky, p, false).descs,
+  // (the Explorer may open it before the island's world hook loaded the baked posts: it waits for them, never draws without)
+  build: (ctx, p) => p.span !== ORIGIN ? builderOf(ctx.sky, p, false).mesh : fixedGeometryReady() ? builderOf(ctx.sky, p, true).mesh
+    : loadingSpecimen('driftwood-isle/rope-bridge', [12, 2.5, 2], async () => { await loadFixedGeometry(); return builderOf(ctx.sky, p, true).mesh; }),
+  // the colliders read the rest plan only
+  colliders: (p, ctx) => (built.get(p.span) ?? new RopeBridgeBuilder(ctx.sky, p.span, p.ground)).descs,
 });
