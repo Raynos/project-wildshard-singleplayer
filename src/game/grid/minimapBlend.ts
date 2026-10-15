@@ -35,7 +35,9 @@ const STRIP = '#3b4038', ROAD = '#2a2e35', LINE = '#c9a640', VOID = '#0b1016', N
 export class CellMinimaps {
   private readonly maps = new Map<string, { image: HTMLCanvasElement | ImageBitmap | null }>();
   private disposed = false;
-  constructor(scope: Scope, private readonly url: (slug: string) => Promise<string | undefined>, private readonly fullSize: (slug: string) => boolean = () => false) {
+  constructor(scope: Scope, private readonly url: (slug: string) => Promise<string | {
+    readonly url: string; readonly retained: (image: { readonly width: number; readonly height: number } | null) => void;
+  } | undefined>, private readonly fullSize: (slug: string) => boolean = () => false) {
     scope.onDispose(() => { this.disposed = true; for (const m of this.maps.values()) if (m.image !== null) {
       if ('close' in m.image) m.image.close(); else m.image.width = m.image.height = 0;
     } this.maps.clear(); });
@@ -53,9 +55,13 @@ export class CellMinimaps {
   get bytes(): number { let n = 0; for (const m of this.maps.values()) if (m.image !== null) n += m.image.width * m.image.height * 4; return n; }
   private isDisposed(): boolean { return this.disposed; }
   private async load(slug: string, entry: { image: HTMLCanvasElement | ImageBitmap | null }): Promise<void> {
+    let settled: ((image: { readonly width: number; readonly height: number } | null) => void) | undefined;
     try {
-      const url = await this.url(slug);
-      if (url === undefined || this.isDisposed()) return;
+      const leased = await this.url(slug);
+      if (leased === undefined) return;
+      const url = typeof leased === 'string' ? leased : leased.url;
+      if (typeof leased !== 'string') settled = leased.retained;
+      if (this.isDisposed()) return;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const full = await createImageBitmap(await res.blob());
@@ -70,6 +76,16 @@ export class CellMinimaps {
         entry.image = canvas;
       } finally { if (entry.image !== full) full.close(); }
     } catch (error) { if (!this.disposed) console.warn(`[grid] the baked map ${slug} did not load:`, error); }
+    finally {
+      try { settled?.(entry.image); }
+      catch (error) {
+        if (entry.image !== null) {
+          if ('close' in entry.image) entry.image.close(); else entry.image.width = entry.image.height = 0;
+          entry.image = null;
+        }
+        if (!this.disposed) console.warn(`[grid] the baked map ${slug} could not reserve its retained image:`, error);
+      }
+    }
   }
 }
 

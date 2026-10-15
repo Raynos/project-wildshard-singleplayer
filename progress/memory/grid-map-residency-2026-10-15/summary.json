@@ -1,0 +1,163 @@
+{
+  "scope": "Accounting correction; not recovered RAM. Same retained images, no runtime claim or admission limit changes. Desktop phone tier, images, saver off, DPR2. Road z277.5 to DW centre, no collection.",
+  "before": {
+    "build": "229dd67-mv9u01dr",
+    "centre": {
+      "playing": 1064182332,
+      "loading": 1144182332,
+      "accounted": 633411556
+    },
+    "routePeak": {
+      "loading": 1144547948,
+      "phases": {
+        "dw-centre": {
+          "loading": 1144547948,
+          "playing": 1064547948
+        },
+        "dw-first-entry": {
+          "loading": 1121864088,
+          "playing": 1041864088
+        }
+      },
+      "playing": 1064547948
+    },
+    "mapClaims": 73922032,
+    "retainedImages": [
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 4000000,
+        "height": 1000,
+        "kind": "ImageBitmap",
+        "width": 1000
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      }
+    ]
+  },
+  "after": {
+    "build": "a1d0c2e-mv9ub2p6",
+    "centre": {
+      "playing": 992252077,
+      "loading": 1072252077,
+      "accounted": 568609524
+    },
+    "routePeak": {
+      "loading": 1072617693,
+      "phases": {
+        "dw-centre": {
+          "loading": 1072617693,
+          "playing": 992617693
+        },
+        "dw-first-entry": {
+          "loading": 1049933833,
+          "playing": 969933833
+        }
+      },
+      "playing": 992617693
+    },
+    "mapClaims": 9120000,
+    "retainedImages": [
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 4000000,
+        "height": 1000,
+        "kind": "ImageBitmap",
+        "width": 1000
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      },
+      {
+        "bytes": 640000,
+        "height": 400,
+        "kind": "HTMLCanvasElement",
+        "width": 400
+      }
+    ]
+  },
+  "loading": "Full admitted decode remains charged until bitmap close/downsize; route peaks begin at recovered-road gameplay, not initial page boot.",
+  "physicalClaim": "G258 native claim unchanged; this commit makes no physical-memory saving claim."
+}

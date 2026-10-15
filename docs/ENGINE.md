@@ -5664,3 +5664,14 @@ kinds, gaps and out-of-range indices refuse before the view is installed.
 **Directional sky light.** `graphInputs.skyLightDirection` points toward the first visible scene directional light in world space (shadow casters first, as classic light ordering). `skyLightColour` is its linear colour times intensity, without shadowing. Both are zero if absent and update on each draw from the renderer's collected lights, without a scene traversal.
 
 **Texture arrays.** `sampleArray(param, uv, layer)` authors `textureArray`: a lent texture parameter, vec2 UV and numeric nearest-integer layer. `setTexture` requires a DataArrayTexture or CompressedArrayTexture; a parameter cannot mix 2D and array sampling. Existing arrays are borrowed without repacking, with base mip in vertex stages and derivative-selected fragment mips. Swaps retain the program; the unbound array slot is black.
+
+
+### Retained grid map pixels
+
+`leaseMapImage` reserves the admitted full image cost before decoding.
+`CellMinimaps` reports retained dimensions only after closing a downsized
+bitmap: the home keeps its full bitmap, and neighbours keep one 400-pixel
+canvas each. The grid then charges RGBA pixels once, without an independent
+GPU texture claim. Failed or cancelled decodes release the reservation. The
+loading phase keeps the full decode charge until that handoff. This is an
+accounting correction, not recovered RAM; standalone map leases are unchanged.
