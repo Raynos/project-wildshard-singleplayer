@@ -74,11 +74,11 @@ and AGENTS.md disagree, AGENTS.md wins and this file is the bug. Execute in orde
      what is red and whose it is — another agent's uncommitted WIP is not your red, but a red *HEAD* is everyone's.
 2. **The four gates on HEAD in the build mirror — before the push.** Never a fresh export:
    ```
-   node scripts/build-mirror.mjs run HEAD --slot exit -- bash -c 'PATH=$PWD/node_modules/.bin:$PATH \
+   node scripts/build-mirror.mjs run HEAD -- bash -c 'PATH=$PWD/node_modules/.bin:$PATH \
      && node scripts/gen.mjs && tsc --noEmit && oxlint && node scripts/check-css.mjs && vite build'
    ```
    The mirror holds HEAD without `art/`, `progress/` and `sources/` (no gate reads them and Vercel ignores them): one
-   persistent copy under `./tmp/build-mirror/exit`, synced file by file and locked while the gates run. The shims
+   persistent copy under `./tmp/build-mirror/build`, synced file by file and locked while the gates run. The shims
    resolve through its linked `node_modules` (never `pnpm exec` there; gen first: src/shards.generated is not in git).
    Nothing to delete afterwards: a re-run after a fix only rewrites the files that changed.
    Red on something you committed → fix it with a new pathspec commit and re-run (never `--amend`: other agents'
