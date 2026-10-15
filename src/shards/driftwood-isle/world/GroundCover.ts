@@ -4,7 +4,7 @@ import { DENSITY, beach, ss, type Site } from '../runtime/looks/coverSites';
  * hibiscus, white daisies and mossy pebbles on the grass, sparse sun-bleached beach grass on the sand, and a thicker
  * fern understorey in the shrine jungle. So the island interior stops reading as empty planes.
  *
- * Drawn by @wildshard/sdk/looks/streamedCover from the rows in data/groundCoverLook.ts: one InstancedMesh per plant (two,
+ * Drawn by runtime/looks/streamedCover.ts from the rows and graphs in data/coverLook.ts: one InstancedMesh per plant (two,
  * E186: written and uploaded behind, swapped in one frame), refilled from 16 m cells round the viewer every 4 m, each
  * plant at its own edge in its kind's reach (E117: no ring, no pop), a far tier of stand-ins past the near set (E117
  * follow-up: "more distant cover"), plants on sloping ground keeping their reach further (E156 C), and the plants fading
@@ -25,9 +25,9 @@ import duneLogs from '../data/duneLogsBake.json' with { type: 'json' };
 import { HUT, LOOKOUT, SHRINE, WRECK } from '../world/sites';
 import { Cove } from './Cove';
 import { copyCoverGeometry } from '../boot/coverGeometry';
-import { GROUND_COVER } from '../runtime/looks/groundCoverLook';
+import { GROUND_COVER } from '../data/coverLook';
 import { lowPolyGroundColor } from '../look/groundColor';
-import { CoverGrid, COVER_SEEN_GLSL, coverSample, coverJitter } from './coverTint';
+import { CoverGrid, coverSample, coverJitter } from './coverTint';
 import { driftLog } from '../models/driftLog';
 import { SEED } from '@wildshard/engine/core/config';
 import type { Rng } from '@wildshard/engine/core/rng';
@@ -95,7 +95,7 @@ export class GroundCover {
       tint: (ki, s, rng, out) => { KIND_TINT[ki]?.(s.h, rng, out); },
       ground: (x, z, s, out, o) => this.ground(x, z, s, out, o),
     };
-    this.cover = new StreamedCover({ sky, row: GROUND_COVER, geometry: copyCoverGeometry(), hooks, heightAt, seed: SEED, glsl: { coverSeen: COVER_SEEN_GLSL } });
+    this.cover = new StreamedCover({ row: GROUND_COVER, geometry: copyCoverGeometry(), hooks, heightAt, seed: SEED });
   }
 
   /** the cover's meshes and the dune logs */

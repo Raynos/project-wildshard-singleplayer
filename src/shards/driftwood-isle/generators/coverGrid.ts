@@ -4,7 +4,7 @@ import { HUT, LOOKOUT, SHRINE, WRECK } from '../world/sites';
 import { ISLAND } from '../data/layout';
 import { islandCoveSpec } from '../world/coveLayout';
 import COVER_LOOK from '../data/coverLook.json' with { type: 'json' };
-import { GROUND_COVER } from '../runtime/looks/groundCoverLook';
+import { GROUND_COVER } from '../data/coverLook';
 import { DENSITY, type Site } from '../runtime/looks/coverSites';
 import type { CoverSample } from '../runtime/looks/coverGrid';
 

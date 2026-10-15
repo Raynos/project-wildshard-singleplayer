@@ -2,8 +2,7 @@
 // parts (runtime/kit/kitParts.ts builds it), a smoke column's numbers (data/smokeLook.ts), the reef bed's
 // scatter (runtime/looks/reefBed.ts), the faceted ground (runtime/looks/facetedGround.ts), the mooring lines
 // (runtime/props/mooringLines.ts) and the streamed ground cover (runtime/looks/streamedCover.ts). The rows themselves are
-// data/{castaway,trader,seabed,ground,boat}Look.ts and runtime/looks/groundCoverLook.ts (its GLSL is trusted runtime, G306).
-import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
+// data/{castaway,trader,seabed,ground,boat,cover}Look.ts.
 
 /** A primitive's kind; `args` are the constructor's (`log`: a, b, r0, r1, sides, twist; `rope`: r then the points
  *  flattened; `rock`: r, detail, squash, rough; `plank`: length, width, thickness, wobble), the kit's rng implied. */
@@ -156,7 +155,7 @@ export interface StreamedCoverKindRow {
   readonly far?: StreamedCoverFarRow;
 }
 
-/** The cover's numbers, material settings, patch and GLSL as data. */
+/** The cover's numbers and kinds as data (its plants' graphs are look.materials, data/coverLook.ts). */
 export interface StreamedCoverRow {
   /** cell size, refill travel (m), candidates per cell, the least cells cached */
   readonly cell: number;
@@ -183,13 +182,9 @@ export interface StreamedCoverRow {
   readonly sink: number;
   /** plants on sloping ground keep reach × up to `up` (slope `lo` … `hi`), fading out `fadeFrom` … `fadeTo` m over the ground */
   readonly slopeReach: { readonly up: number; readonly lo: number; readonly hi: number; readonly fadeFrom: number; readonly fadeTo: number };
-  readonly material: { readonly flatShading: boolean; readonly roughness: number; readonly metalness: number; readonly doubleSided: boolean };
-  /** the patch's id and program key; the meshes are named `<meshPrefix><kind>` and `<meshPrefix><kind>-far` */
-  readonly patchId: string;
-  readonly patchKey: string;
+  /** the look.materials ids' prefix: a kind's near model wears `<look>-<kind>`, its far model `<look>-<kind>-far` */
+  readonly look: string;
+  /** the meshes are named `<meshPrefix><kind>` and `<meshPrefix><kind>-far` */
   readonly meshPrefix: string;
   readonly kinds: readonly StreamedCoverKindRow[];
-  /** the edits of the plants' program; `@{reachUp}`, `@{slopeLo}`, `@{slopeHi}` splice the slope reach (3 decimals),
-   *  any other `@{name}` the caller's `glsl` */
-  readonly edits: readonly ShaderEditRow[];
 }

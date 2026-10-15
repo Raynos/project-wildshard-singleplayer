@@ -17,8 +17,6 @@ import { COVER_GLSL, COVER_TINT } from '../runtime/looks/coverGlsl';
 
 const TINT: CoverTintRow = { glsl: COVER_GLSL, ...COVER_TINT };
 
-/** `coverSeen` as a shader fragment: how much of the ground the cover hides seen at `facing` (the plants fade into it). */
-export const COVER_SEEN_GLSL = COVER_GLSL.coverSeen;
 /** What the grid holds at a point. */
 export type CoverSample = SdkCoverSample;
 /** An empty sample to fill. */

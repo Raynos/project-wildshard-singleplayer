@@ -23,6 +23,8 @@ import { setShrinePoolLook } from '../models/shrine';
 import { setPoolLook } from '../world/Cove';
 import { OCEAN_LOOK } from '../data/oceanLook';
 import { setOceanLook } from './looks/facetedOcean';
+import { COVER_LOOKS } from '../data/coverLook';
+import { setCoverLooks } from './looks/streamedCover';
 import { GULL_GRAPH_LOOK } from '../data/gullGraphLook';
 import { setGullLook } from '../world/Gulls';
 
@@ -43,9 +45,9 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
       // the look.materials graphs the runtime's own meshes wear (data/waterfallLook.ts, data/smokeLook.ts, data/fireflyLook.ts, data/reefLook.ts,
       // data/poolLook.ts, data/oceanLook.ts, data/gullGraphLook.ts), owned by the resident; the toon graphs follow the day clock's toon tunables once a frame
       const built = await residentWorld.load(context, async (owner) => {
-        const { materials, setParam, setTexture, toon } = await runtimeLookMaterials({ scope: owner, game: context.game }, source, true, [...Object.values(CASCADE_LOOKS), SMOKE_LOOK, FIREFLY_LOOK, REEF_LOOK, POOL_LOOK, SHRINE_POOL_LOOK, OCEAN_LOOK, GULL_GRAPH_LOOK]);
+        const { materials, setParam, setTexture, toon } = await runtimeLookMaterials({ scope: owner, game: context.game }, source, true, [...Object.values(CASCADE_LOOKS), SMOKE_LOOK, FIREFLY_LOOK, REEF_LOOK, POOL_LOOK, SHRINE_POOL_LOOK, OCEAN_LOOK, GULL_GRAPH_LOOK, ...COVER_LOOKS]);
         const follow = followToon(toon);
-        setWaterfallLooks(materials); setSmokeLook(materials); setFireflyLook(materials, setParam); setReefLook(materials, follow); setPoolLook(materials, follow); setShrinePoolLook(materials); setOceanLook(materials, setParam, setTexture, follow); setGullLook(materials);
+        setWaterfallLooks(materials); setSmokeLook(materials); setFireflyLook(materials, setParam); setReefLook(materials, follow); setPoolLook(materials, follow); setShrinePoolLook(materials); setOceanLook(materials, setParam, setTexture, follow); setGullLook(materials); setCoverLooks({ materials, setParam, follow });
         return withGeometryBake('/assets/models/driftwood-blender/geometry.bin',
         () => withVoxelAOBake('/assets/models/driftwood-blender/voxel-ao.bin', () => buildDriftwoodWorld(world, viewer, progress))); });
       return built;

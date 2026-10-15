@@ -2,11 +2,7 @@ import * as THREE from 'three';
 import { diagnosticNow } from '@wildshard/engine/core/clock';
 import { Rng } from '@wildshard/engine/core/rng';
 import { TIER } from '@wildshard/engine/core/tier';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { windUniforms } from '@wildshard/engine/world/wind';
-import { editShader, ShaderFamily } from "@wildshard/game/plugin/shaderFamily";
+import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import type { StreamedCoverRow } from '../../data/lookRows';
 
 
@@ -15,7 +11,9 @@ import type { StreamedCoverRow } from '../../data/lookRows';
  * InstancedMesh per kind (one draw each, no shadow casting), refilled from square cells round the viewer whenever it has
  * moved `refill` m. Each cell's candidates are generated once (deterministic, from the cell's hash) through the shard's
  * hooks and cached, then the ones that can show from here are copied into the instance buffers — no per-frame
- * allocation. The shard's vertex edits bend the plants and fade each one by its distance to the camera.
+ * allocation. The plants wear the shard's material graphs (its look.materials), which bend them and fade each one by its
+ * distance to the camera; the cover sets their params (a kind's reach, far reach, mode and keep once, the viewer's
+ * position, the slope reach and the far set's grow-in every frame).
  *
  * - No ring, no pop: each kind has a reach [near, far] (m, camera to plant, in 3D): every plant inside `near` stands, and
  *   past it each one has its own edge in [near + grow, far] (drawn from its yaw, which the shader reads back from the
@@ -30,10 +28,11 @@ import type { StreamedCoverRow } from '../../data/lookRows';
  *   and the two swap in one frame when it is all on the GPU. The near set starts `nearLag` m early and must swap within
  *   `nearLag` m of travel (else the rest uploads that frame).
  *
- * Nothing here knows a shard: its numbers, kinds and GLSL are rows in its `data/`; where a plant may stand, how dense
- * each kind is there, its tint and the ground it stands on are the shard's hooks.
+ * Nothing here knows a shard: its numbers and kinds are rows in its `data/`, its graphs its look's; where a plant may
+ * stand, how dense each kind is there, its tint and the ground it stands on are the shard's hooks.
  *
- *   const cover = new StreamedCover({ sky, row, geometry, hooks, heightAt }).build();
+ *   setCoverLooks({ materials, setParam, follow });   // the compiled graphs, before the world builds
+ *   const cover = new StreamedCover({ row, geometry, hooks, heightAt }).build();
  *   scene.add(cover.group);
  *   game.onUpdate((dt) => cover.update(dt, player.position));
  */
@@ -65,9 +64,18 @@ export interface StreamedCoverHooks<S extends CoverSite> {
   readonly ground: (x: number, z: number, site: S, out: Float32Array, o: number) => number;
 }
 
+/** The cover's compiled graphs by look.materials id, their param setter and their toon look's once-a-frame follow. */
+export interface CoverLooks {
+  readonly materials: ReadonlyMap<string, THREE.Material>;
+  readonly setParam: (id: string, name: string, value: GraphLiteral) => void;
+  readonly follow: () => void;
+}
+let lent: CoverLooks | null = null;
+/** Lend the cover its compiled graphs (the shard's runtime, before its world builds). */
+export function setCoverLooks(looks: CoverLooks): void { lent = looks; }
+
 /** What the cover needs. */
 export interface StreamedCoverOptions<S extends CoverSite> {
-  readonly sky: Sky;
   readonly row: StreamedCoverRow;
   /** the kinds' geometries by the rows' keys */
   readonly geometry: Readonly<Record<string, THREE.BufferGeometry>>;
@@ -76,8 +84,6 @@ export interface StreamedCoverOptions<S extends CoverSite> {
   readonly heightAt: (x: number, z: number) => number;
   /** the cells' seed */
   readonly seed: number;
-  /** what the edits' other `@{name}` splices */
-  readonly glsl?: Readonly<Record<string, string>>;
 }
 
 /** Measurements for the pop-in / stutter scripts (`group.userData.stats`). */
@@ -198,6 +204,10 @@ export class StreamedCover<S extends CoverSite> {
   private readonly cells = new Map<string, Float32Array[]>();
   private readonly last = new THREE.Vector3(1e9, 0, 1e9);
   private readonly uniforms = { uPlayer: { value: new THREE.Vector3() }, uReachUp: { value: 1 } };
+  /** the graphs it draws in (their ids) and their setter; the viewer's position as a param */
+  private looks: CoverLooks | null = null;
+  private readonly ids: string[] = [];
+  private readonly player = [0, 0, 0];
   /** the furthest any plant shows + a refill's travel: the cell window's radius */
   private rMax = 0;
   private cacheMax = 96;
@@ -217,7 +227,7 @@ export class StreamedCover<S extends CoverSite> {
   private readonly scratch: Float32Array[] = [];
   private readonly cellLens: number[] = [];
 
-  /** The cover's rows, geometries, hooks and sky. */
+  /** The cover's rows, geometries and hooks. */
   constructor(options: StreamedCoverOptions<S>) {
     this.o = options;
     this.row = options.row;
@@ -233,13 +243,16 @@ export class StreamedCover<S extends CoverSite> {
     return 1 + s * (sr.up - 1) * ss(sr.lo, sr.hi, 1 - (v[i + 9] ?? 1));
   }
 
-  /** Builds every kind's meshes and materials (one program for all of them) into `group`. */
+  /** Builds every kind's meshes in its lent graphs (one program for all of them) into `group`. */
   build(): this {
-    const row = this.row, K = forTier(row.reachK), capK = forTier(row.capK), ms = row.material, sr = row.slopeReach;
-    const material = (reach: THREE.Vector3, far: THREE.Vector3, mode: number, keep = 1): THREE.MeshStandardMaterial => {
-      const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: ms.flatShading, roughness: ms.roughness, metalness: ms.metalness, side: ms.doubleSided ? THREE.DoubleSide : THREE.FrontSide });
-      this.patch(mat, reach, far, mode, keep);
-      this.o.sky.setupMaterial(mat);
+    const row = this.row, K = forTier(row.reachK), capK = forTier(row.capK), sr = row.slopeReach, looks = lent;
+    if (looks === null) throw new Error('StreamedCover: no graphs lent (setCoverLooks before the world builds)');
+    this.looks = looks;
+    const material = (id: string, reach: THREE.Vector3, far: THREE.Vector3, mode: number, keep = 1): THREE.Material => {
+      const mat = looks.materials.get(id);
+      if (mat === undefined) throw new Error(`StreamedCover: look.materials lacks ${id}`);
+      looks.setParam(id, 'reach', reach.toArray()); looks.setParam(id, 'farReach', far.toArray()); looks.setParam(id, 'mode', mode); looks.setParam(id, 'keep', keep);
+      this.ids.push(id);
       return mat;
     };
     const geometry = (key: string): THREE.BufferGeometry => {
@@ -247,7 +260,9 @@ export class StreamedCover<S extends CoverSite> {
       if (g === undefined) throw new Error(`StreamedCover: no geometry ${key}`);
       return g;
     };
-    for (const [ki, k] of row.kinds.entries()) {
+    for (let ki = 0; ki < Math.min(row.kinds.length, 32); ki++) {
+      const k = row.kinds[ki];
+      if (k === undefined) continue;
       const cap = Math.round(k.cap * capK), [near, far] = k.reach, hasTint = this.o.hooks.tinted(ki);
       const reach = new THREE.Vector3(near * K, far * K, (far - near) * K * row.growShare);
       this.rMax = Math.max(this.rMax, reach.y * sr.up + row.refill + row.eyeSlack); // sized for the slope reach
@@ -257,9 +272,9 @@ export class StreamedCover<S extends CoverSite> {
         const f = k.far, [fn, ff] = f.reach, fcap = Math.round(f.cap * f.keep * capK);
         farSpan.set(fn * K, ff * K, (ff - fn) * K * row.growShare);
         this.rFar = Math.max(this.rFar, farSpan.y * sr.up + row.farSlack + row.eyeSlack);
-        farTier = { set: this.instanced(`${row.meshPrefix}${k.name}-far`, geometry(f.geometry), material(reach, farSpan, MODE_FAR), fcap, hasTint), cap: fcap, reach: farSpan, keep: f.keep };
+        farTier = { set: this.instanced(`${row.meshPrefix}${k.name}-far`, geometry(f.geometry), material(`${row.look}-${k.name}-far`, reach, farSpan, MODE_FAR), fcap, hasTint), cap: fcap, reach: farSpan, keep: f.keep };
       }
-      const set = this.instanced(`${row.meshPrefix}${k.name}`, geometry(k.geometry), material(reach, farSpan, farTier ? MODE_HANDOVER : MODE_NEAR, farTier ? farTier.keep : 1), cap, hasTint);
+      const set = this.instanced(`${row.meshPrefix}${k.name}`, geometry(k.geometry), material(`${row.look}-${k.name}`, reach, farSpan, farTier ? MODE_HANDOVER : MODE_NEAR, farTier ? farTier.keep : 1), cap, hasTint);
       this.kinds.push({ set, cap, far: farTier, reach, scale: k.scale });
     }
     const span = Math.ceil((2 * Math.max(this.rMax, this.rFar)) / row.cell) + 1;
@@ -417,8 +432,10 @@ export class StreamedCover<S extends CoverSite> {
     this.farWritten = false;
   }
 
-  /** Steps the cover: the viewer uniform, the near refill and the far job, their uploads and swaps. */
-  update(dt: number, viewer: THREE.Vector3): void {
+  /** Steps the cover: the near refill and the far job, their uploads and swaps, then the graphs' params. */
+  update(dt: number, viewer: THREE.Vector3): void { this.step(dt, viewer); this.pushParams(); }
+
+  private step(dt: number, viewer: THREE.Vector3): void {
     const row = this.row, REFILL_M = row.refill, NEAR_LAG = row.nearLag, FAR_SLACK = row.farSlack, sr = row.slopeReach;
     this.uniforms.uPlayer.value.copy(viewer);
     // full strength on foot (the viewer is the player's feet), none from high up
@@ -467,18 +484,15 @@ export class StreamedCover<S extends CoverSite> {
     this.stats.uploadBytes += used;
   }
 
-  /** the row's edits on one material: its reach, far reach, mode and keep as uniforms (the shared ones beside them) */
-  private patch(mat: THREE.MeshStandardMaterial, reach: THREE.Vector3, far: THREE.Vector3, mode: number, keep: number): void {
-    const u = this.uniforms, uReach = { value: reach }, uFarSpan = { value: far }, uMode = { value: mode }, uFarIn = this.farIn, uKeep = { value: keep };
-    const sr = this.row.slopeReach, family = new ShaderFamily({}, {});
-    const splices = { ...this.o.glsl, reachUp: (sr.up - 1).toFixed(3), slopeLo: sr.lo.toFixed(3), slopeHi: sr.hi.toFixed(3) };
-    const edits = this.row.edits.map((e) => (typeof e.put === 'string' ? { ...e, put: family.glsl(e.put, splices) } : e));
-    patchShader(mat, this.row.patchId, PATCH_ORDER.material, (sh) => {
-      attachFogUniforms(sh);
-      sh.uniforms['uPlayer'] = u.uPlayer; sh.uniforms['uTime'] = windUniforms.uWindTime; sh.uniforms['uWind'] = windUniforms.uGust; sh.uniforms['uReach'] = uReach;
-      sh.uniforms['uFarReach'] = uFarSpan; sh.uniforms['uMode'] = uMode; sh.uniforms['uFarIn'] = uFarIn;
-      sh.uniforms['uReachUp'] = u.uReachUp; sh.uniforms['uKeep'] = uKeep;
-      editShader(sh, edits);
-    }, { mode: 'replace', key: this.row.patchKey });
+  /** the per-frame params into every graph: the viewer, the slope reach's strength, the far set's grow-in; the toon follow */
+  private pushParams(): void {
+    const looks = this.looks, p = this.player, v = this.uniforms.uPlayer.value;
+    if (looks === null) return;
+    p[0] = v.x; p[1] = v.y; p[2] = v.z;
+    for (let i = 0; i < Math.min(this.ids.length, 32); i++) {
+      const id = this.ids[i];
+      if (id !== undefined) { looks.setParam(id, 'player', p); looks.setParam(id, 'reachUp', this.uniforms.uReachUp.value); looks.setParam(id, 'farIn', this.farIn.value); }
+    }
+    looks.follow();
   }
 }
