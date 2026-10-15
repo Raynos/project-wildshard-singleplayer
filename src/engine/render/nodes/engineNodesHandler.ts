@@ -376,6 +376,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (depth === undefined) {
       depth = new GraphShadowDepthMaterial();
       depth.name = 'graph:shadow-depth'; depth.userData['graphDepthVariant'] = true;
+      // MeshBasicNodeMaterial enables lighting internally; a depth caster must
+      // never receive the very shadow map currently bound as its framebuffer.
+      depth.lights = false;
       depth.colorNode = vec3(1); depth.fog = false; depth.toneMapped = false;
       this.shadowDepths.set(source, depth);
       const lifetime = new Scope('graph:shadow-depth');

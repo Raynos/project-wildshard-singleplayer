@@ -1,9 +1,11 @@
 import { afterAll, expect, test, vi } from 'vitest';
 import * as THREE from 'three';
+import { CSM } from 'three/examples/jsm/csm/CSM.js';
 import { TextureNode } from 'three/webgpu';
 import { vec3 } from 'three/tsl';
 import { compileGraph } from '../src/engine/render/graph/compile';
 import { EngineNodesHandler } from '../src/engine/render/nodes/engineNodesHandler';
+import { registerCascades } from '../src/engine/world/cascadeLights';
 import { graph as authorGraph } from '../src/sdk/materials';
 import { validateGraph, type GraphIr } from '../src/format/materialGraph';
 
@@ -21,6 +23,9 @@ test('opted-in casters share live displacement and alpha, cache by material and 
   compiled.setTexture('cut', map);
   const clone = compiled.material.clone(), geometry = new THREE.PlaneGeometry();
   const object: THREE.Mesh = new THREE.Mesh(geometry, compiled.material);
+  object.receiveShadow = true;
+  const shadowMap = new THREE.WebGLRenderTarget(16, 16);
+  shadowMap.depthTexture = new THREE.DepthTexture(16, 16); shadowMap.depthTexture.compareFunction = THREE.LessEqualCompare;
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
   const handler = new EngineNodesHandler(), draws: THREE.Material[] = [], shaders: THREE.WebGLProgramParametersWithUniforms[] = [];
@@ -29,6 +34,9 @@ test('opted-in casters share live displacement and alpha, cache by material and 
   const fields: Record<string, unknown> = {
     extensions: { has: () => false, get: () => null }, getContext: () => ({}), getRenderTarget: () => null,
     toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1, outputColorSpace: THREE.SRGBColorSpace,
+    shadowMap: { enabled: true, type: THREE.PCFShadowMap },
+    getDrawingBufferSize: (size: THREE.Vector2): THREE.Vector2 => size.set(64, 64),
+    getViewport: (view: THREE.Vector4): THREE.Vector4 => view.set(0, 0, 64, 64),
     coordinateSystem: THREE.WebGLCoordinateSystem, info: { render: { frame: 0 } },
     debug: { checkShaderErrors: true, diagnostics: { keywords: false } }, properties: { get: () => ({}), has: () => false },
     renderBufferDirect: (_camera: THREE.Camera, _scene: unknown, _geometry: THREE.BufferGeometry, material: THREE.Material): void => {
@@ -44,7 +52,11 @@ test('opted-in casters share live displacement and alpha, cache by material and 
   for (const [key, value] of Object.entries(fields)) Reflect.set(renderer, key, value);
   handler.setRenderer(renderer);
   const main = new THREE.PerspectiveCamera(60), shadow = new THREE.OrthographicCamera(-2, 2, 2, -2, 0.1, 20);
-  const scene = new THREE.Scene(); scene.add(object); handler.renderStart(scene, main); handler.updateLights([]);
+  const scene = new THREE.Scene();
+  const csm = new CSM({ parent: scene, camera: main, cascades: 2, maxFar: 80 });
+  csm.lights.forEach(sun => { sun.shadow.map = shadowMap; });
+  registerCascades({ csm, ghosts: [], fade: { value: 1 } });
+  scene.add(object); handler.renderStart(scene, main); handler.updateLights(csm.lights);
   const drawBuffer = renderer.renderBufferDirect.bind(renderer);
   const draw = (depth: THREE.Material = stock, group: THREE.GeometryGroup | null = null): void => {
     Reflect.apply(drawBuffer, undefined, [shadow, null, geometry, depth, object, group]);
@@ -61,6 +73,9 @@ test('opted-in casters share live displacement and alpha, cache by material and 
     expect(shaders[0]?.vertexShader).toContain('positionLocal');
     expect(shaders[0]?.fragmentShader).toContain('discard');
     expect(Object.values(shaders[0]?.uniforms ?? {}).some(u => u instanceof TextureNode && u.value === map)).toBe(true);
+    expect(Object.values(shaders[0]?.uniforms ?? {}).some(u => u instanceof TextureNode &&
+      (u.value === shadowMap.texture || u.value === shadowMap.depthTexture))).toBe(false);
+    expect(object.receiveShadow).toBe(true);
     expect(camera()).toBe(main);
     const builder: unknown = depth === undefined ? undefined : Reflect.get(depth, '_latestBuilder');
     expect(typeof builder === 'object' && builder !== null ? Reflect.get(builder, 'camera') : null).toBe(shadow);
@@ -76,5 +91,5 @@ test('opted-in casters share live displacement and alpha, cache by material and 
     object.material = plain.material; draw(); expect(draws.at(-1)).toBe(stock); plain.material.dispose();
     expect(authorGraph({ model: 'unlit', vertex: { offset: vec3(0, 1, 0), shadow: true }, surface: { colour: vec3(1) } }).stages['vertex.offset']?.shadow).toBe(true);
     expect(validateGraph({ ...graph, stages: { ...graph.stages, 'vertex.clip': { position: [0, 0, 0, 1] } } }).ok).toBe(false);
-  } finally { clone.dispose(); compiled.material.dispose(); stock.dispose(); geometry.dispose(); map.dispose(); handler.renderEnd(); }
+  } finally { clone.dispose(); compiled.material.dispose(); stock.dispose(); geometry.dispose(); map.dispose(); shadowMap.dispose(); handler.renderEnd(); csm.dispose(); csm.remove(); }
 });
