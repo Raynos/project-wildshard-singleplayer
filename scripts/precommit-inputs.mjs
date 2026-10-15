@@ -1,10 +1,13 @@
-// G416: compiler and lint/layer checks on the actual private/pathspec staged tree.
+// G416: lint/layer checks on the actual private/pathspec staged tree. A commit lands in under 10 s (Jake, 2026-10-15):
+// the slow checks (pnpm gen, the changed-root type check) run in the push gate (scripts/local-gate.py), which already
+// runs them, plus oxlint, check-graph, the tests and the build, over every file changed since origin/main.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { openMirror } from './build-mirror.mjs';
 
-/** Check source in the `commit` slot of the build mirror, synced to the staged tree; generated inputs stay cached there. */
+/** Check source in the `commit` slot of the build mirror, synced to the staged tree; generated inputs stay cached there
+ * (generated once per slot, so type-aware lint can resolve them; the push gate regenerates them from scratch). */
 export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
   const git = (/** @type {string[]} */ args) => execFileSync('git', args, { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }).trim();
   const changed = git(['diff', '--cached', '--name-only', '--no-renames']).split('\n').filter(Boolean);
@@ -15,11 +18,12 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
     const env = { ...process.env };
     for (const key of git(['rev-parse', '--local-env-vars']).split('\n')) delete env[key];
     const run = (/** @type {string} */ command, /** @type {string[]} */ args) => execFileSync(command, args, { cwd: scratch, env, stdio: 'inherit' });
-    run(process.execPath, ['scripts/gen.mjs', '--build-inputs']);
+    // `pnpm gen` costs 30-100 s when a broad job's key changes (nine-layout); run it only for a fresh slot.
+    // The stamp sits beside the slot's tree: the sync deletes untracked files inside it, but keeps ignored outputs.
+    const generated = resolve(scratch, '..', 'precommit-generated');
+    if (!existsSync(generated)) { run(process.execPath, ['scripts/gen.mjs', '--build-inputs']); writeFileSync(generated, `${new Date().toISOString()}\n`); }
     const present = changed.filter(file => existsSync(resolve(scratch, file)) && /\.[cm]?[jt]sx?$/u.test(file));
     if (present.length > 0) {
-      const input = resolve(scratch, '.staged-source-changes.json'); writeFileSync(input, JSON.stringify(present));
-      run(process.execPath, ['scripts/local-gate-checks.mjs', 'types', input]);
       // oxlint exits 1 on 'No files found to lint' when every staged file is in its ignorePatterns (e.g. test/fixtures/).
       // .oxlintrc.json is JSONC (comments, globs with '/*'), so read only its ignorePatterns array.
       const ignoreList = /"ignorePatterns"\s*:\s*\[([^\]]*)\]/u.exec(readFileSync(resolve(scratch, '.oxlintrc.json'), 'utf8'))?.[1] ?? '';
