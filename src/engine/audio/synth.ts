@@ -101,7 +101,8 @@ export abstract class Synth {
     type Step=AudioPhraseProgram['steps'][number];
     const run=(step:Exclude<Step,{kind:'repeat'}>):void=>{
       if(++work>1024)throw new Error('Phrase work capacity');
-      if('when' in step&&value(step.when)===0)return;
+      const condition='when' in step?step.when:undefined;
+      if(condition!==undefined&&value(condition)===0)return;
       if(step.kind==='value'){values.set(step.id,value(step.value));return;}
       if(step.kind==='bus'){
         const bus=this.ctx.createGain();bus.gain.value=value(step.gain);let tail:AudioNode=bus;
