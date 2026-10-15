@@ -1,9 +1,11 @@
 // G363: changed roots with their real dependency types; CI checks all roots.
+//   node scripts/local-gate-checks.mjs types <changed.json> [--skip=<tsconfig>,…]
+// The push gate skips tsconfig.json: its `pnpm build` runs the root project's full `tsc --noEmit` anyway.
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-/** @param {string[]} changed */
-export async function checkChangedTypes(changed) {
+/** @param {string[]} changed @param {readonly string[]} [skip] project configs left to a full check elsewhere */
+export async function checkChangedTypes(changed, skip = []) {
   const { default: ts } = await import('@typescript/typescript6');
   const configs = ['tsconfig.json', 'scripts/tsconfig.json', 'api/tsconfig.json', 'admin/tsconfig.json', 'drafts/tsconfig.json'];
   const diagnostics = [];
@@ -24,7 +26,7 @@ export async function checkChangedTypes(changed) {
   }
   const merges = existsSync('src') ? ts.sys.readDirectory(resolve('src'),['.ts'],['**/node_modules/**','**/sdk/dist/**'],['**/*.merge.d.ts']) : [];
   for (const config of configs) {
-    if (!existsSync(config)) continue;
+    if (!existsSync(config) || skip.includes(config)) continue;
     const file = ts.readConfigFile(config, path => ts.sys.readFile(path));
     if (file.error) { diagnostics.push(file.error); continue; }
     const parsed = ts.parseJsonConfigFileContent(file.config, ts.sys, resolve(config, '..'));
@@ -54,6 +56,7 @@ export async function checkChangedTypes(changed) {
 if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
   try {
     if (process.argv[2] !== 'types') throw new Error('Use types <changed.json>');
-    await checkChangedTypes(JSON.parse(readFileSync(process.argv[3] ?? '', 'utf8')));
+    const skip = process.argv.find(arg => arg.startsWith('--skip='))?.slice('--skip='.length).split(',') ?? [];
+    await checkChangedTypes(JSON.parse(readFileSync(process.argv[3] ?? '', 'utf8')), skip);
   } catch (error) { console.error(error instanceof Error ? error.message : String(error)); process.exitCode = 1; }
 }

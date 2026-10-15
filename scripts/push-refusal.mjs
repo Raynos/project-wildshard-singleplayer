@@ -33,7 +33,7 @@ function value(identity, entry) {
   return hash(children.map(([file,blob]) => kind === 'D' ? file.slice(prefix.length).split('/')[0] : `${file}\0${blob}`).sort((a,b)=>a.localeCompare(b)).join('\0'));
 }
 const ALWAYS = ['F package.json','F pnpm-lock.yaml','F pnpm-workspace.yaml','F tsconfig.json','F vitest.config.ts','F .oxlintrc.json',
-  'F scripts/local-gate.py','F scripts/local-gate-checks.mjs','F scripts/push-refusal.mjs','F scripts/gate-trace.mjs','F scripts/commit-inputs.mjs'];
+  'F scripts/local-gate.py','F scripts/local-gate-checks.mjs','F scripts/gate-related-tests.mjs','F scripts/push-refusal.mjs','F scripts/gate-trace.mjs','F scripts/commit-inputs.mjs'];
 // Worker-side map reads may not appear in the parent Node trace. Their actual
 // committed stamps/rasters must still invalidate an immutable refusal repair.
 function required(identity) {

@@ -9,10 +9,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   `VERCEL_BUILD_TOKEN` is the team-scoped Actions secret used for `vercel pull`,
   `vercel build` and `vercel deploy`; the old project-scoped token cannot run the
   CLI account lookup; `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID` name the project. No credentials belong in Git.
-- **Push / PR CI runs vitest once, in 8 parallel shard jobs** (E429; 8 since SF74 W16): `typecheck-lint` runs
-  typecheck and lint; `build-and-deploy` runs `pnpm run test:checks`' commands (the node checks of `pnpm test`) and the
-  vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build; `vitest`
-  (matrix 1–8) runs `vitest run --shard=i/8`, **without coverage** (Jake, G287). **Coverage runs nightly and at
+- **Push / PR CI runs the whole vitest suite once**, in the `behaviour` job (`pnpm gen && pnpm test`, **without
+  coverage**, Jake G287); `typecheck-lint` runs typecheck and lint; `build-and-deploy` runs the node checks and the
+  vite build + chunk check in parallel (`scripts/ci-checks.mjs`), then the CSS check and the native build. **Coverage runs nightly and at
   milestones** (`.github/workflows/coverage.yml`: 09:23 UTC, or `gh workflow run coverage [-f sha=<candidate>]`): the
   same 8 shards under `--coverage`, merged with `scripts/coverage-merge.mjs` (the same numbers as one unsharded run),
   then `scripts/coverage-ratchet.mjs`; it holds no release, and a coverage drop is found there, not per push. **A push that only touches
@@ -22,8 +21,9 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
   selected exact SHA has a successful main push-CI run (SF74 W0); they still build and check chunks and verify
   production. A historical pin without that CI proof still runs `pnpm test`. The reader reports `ci_green` separately
   from smoke and pin mode; a nearby commit or successful manual release cannot supply the test proof.
-  **CI is the full backstop of the push gate's cache** (2026-10-09): the gate runs `vitest related` and skips unchanged
-  bake / audit steps (GIT.md), so a transitive break the cache missed shows up here first; fix it like any red run.
+  **CI is the full backstop of the push gate** (Jake, 2026-10-15): the gate runs only the tests that import the changed
+  files (GIT.md); `deploy.yml`'s `behaviour` job runs the whole suite (`pnpm test`) on every code push, so a transitive
+  break shows up there first; fix it forward like any red run.
 - **CI's vitest is Linux x64 (under coverage in the nightly): other floats, and ~2–2.5× a Mac's time** (ci-green, 2026-10-09; main was
   red for hours on both):
   - **A recorded digest never passes through V8's native transcendentals** (`Math.sin / cos / tan / exp / log / atan2 /
@@ -31,8 +31,7 @@ Linked from [AGENTS.md → Deploy](../../AGENTS.md). Moved from AGENTS.md by E42
     `test/fake/portableMath.ts` for the file (`installPortableMath()`), keep its terrain analytic, and check the digest
     under x64 Node too (Rosetta: `scripts/x64-vitest.sh --setup` once per Mac fetches nodejs.org's darwin-x64 build and
     the matching `@rolldown/binding-darwin-x64` into `~/.local/node-x64`; `scripts/x64-vitest.sh <files>` runs them).
-    The push gate's `x64-digests` step runs the `*-oracle` / `*-tape` / `sim-memory-interval` tests that way on every
-    gate (~45 s beside vitest; SF74 W28), and skips green on a Mac without the setup. Comparing two runs inside one
+    (The push gate's old `x64-digests` step, SF74 W28, is gone; CI's Linux run is the x64 check.) Comparing two runs inside one
     process needs none of this.
   - **Headless suites' budget:** a test's local time under `--coverage` stays under a third of its timeout (the nightly coverage run uses the same timeouts). A restore
     checkpoint costs 10–20 s under coverage (the string round trip of the native world), so: one checkpoint per test

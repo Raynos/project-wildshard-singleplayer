@@ -1,6 +1,6 @@
 // G416: lint/layer checks on the actual private/pathspec staged tree. A commit lands in under 10 s (Jake, 2026-10-15):
 // the slow checks (pnpm gen, the changed-root type check) run in the push gate (scripts/local-gate.py), which already
-// runs them, plus oxlint, check-graph, the tests and the build, over every file changed since origin/main.
+// runs them, plus oxlint, check-graph, the related tests and the build, over every file changed since origin/main.
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';

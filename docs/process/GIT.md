@@ -131,13 +131,19 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
   (boards 500 KB; save JPEG / WebP), no video / audio / archive / `.jsonl` / PDF / `.blend` outside `public/`, no
   generated paths, ≤ 10 MB of new binary per push and a 100 MB a week warning outside the runtime roots. Existing debt is
   grandfathered until it changes. `.gitattributes` marks binaries `-delta`.
-- **The local gate takes at most 120 seconds** (G363). It checks the exact
-  committed Vercel tree, changed-file types and lint, and only affected tests.
-  A deadline kills the gate's own child groups and refuses the push. Each step
-  and total time print on success, failure and cached passes. Full tests,
-  builds, bake checks and receipts run in CI. Required exact-SHA boot smoke
-  retains WebKit rendering, every public shard, and the road into Signal.
-  Production selects only a CI-green and smoke-green commit.
+- **The local gate aims at 120 seconds** (G359, G363; no hard deadline). `scripts/local-gate.py`
+  builds the exact pushed commit in the build mirror's `gate` slot (Vercel's tree) and runs, in order:
+  `pnpm gen`; `check-graph --source-only`; the changed roots' types in the scripts / api / admin /
+  drafts projects (the root project's full `tsc --noEmit` runs inside the build); oxlint on the
+  changed files; **only the tests that import the changed files** (`scripts/gate-related-tests.mjs`,
+  `vitest related` on 4 workers, capped at ~45 s estimated: files named after a changed source first,
+  then cheapest first, the rest to CI; Jake, 2026-10-15); and `pnpm build` under the gate's own
+  `push-gate` lease, so it never queues behind a lane's build. **The full suite runs in CI on every
+  code push** (`deploy.yml`'s `behaviour` job), fix-forward: a transitive break the related walk
+  missed shows up there; fix it like any red run. Each step's seconds print and land in
+  `.git/push-gate-steps.jsonl`; a passed SHA is stamped in `.git/build-gate-g416/`. Required exact-SHA
+  boot smoke retains WebKit rendering, every public shard, and the road into Signal. Production
+  selects only a CI-green and smoke-green commit.
 - **Pushes never regenerate outputs** (G367, replacing hourly batching).
   Generated outputs belong to the commit that changes their inputs. The
   regeneration bot no longer runs in `push-main.sh`; green-prefix remains on.

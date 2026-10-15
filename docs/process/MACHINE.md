@@ -35,7 +35,8 @@ now provide separate full-test and build lanes across working trees and clean ex
 
 - `python3 scripts/heavy-lane.py full-test -- pnpm exec vitest run` (coverage and sharded full runs also take this lane).
   **Lanes don't run full suites** (SF74 W1): `full-test` and `check` (so `pnpm test`, `pnpm test:coverage`) refuse
-  outside CI unless `WS_FULL_SUITE=1` (the nightly, the coordinator); the push gate runs the full suite in its own lease.
+  outside CI unless `WS_FULL_SUITE=1` (the coordinator); CI runs the full suite on every push, and the push gate runs
+  only the tests related to the pushed change (GIT.md).
   Run your focused tests: `pnpm exec vitest run test/<file>.test.ts` or `pnpm exec vitest related --run <src files>`.
 - `python3 scripts/heavy-lane.py build -- <command…>` for a whole app build pipeline, including generation.
 - `python3 scripts/heavy-lane.py status` shows active owners, commands and FIFO tickets.
@@ -47,8 +48,8 @@ An SDK package build that includes its app clients also runs through the build w
 
 The push gate has its **own `push-gate` lease** (process audit 2026-10-09: a lane's suite held pushes a median 115 s):
 one gate at a time, running beside lanes' suites and builds, and its lease covers both guards for its descendants.
-Otherwise each lane is FIFO; independent test and build jobs may overlap. The gate runs Vitest in an exclusive phase
-and bounds the remaining background jobs at three. Local Vitest defaults to six workers (`WS_VITEST_MAX_WORKERS`
+Otherwise each lane is FIFO; independent test and build jobs may overlap. The gate takes it for its `pnpm build`; its
+related-test run is focused and needs no lease (4 workers). Local Vitest defaults to six workers (`WS_VITEST_MAX_WORKERS`
 accepts a positive integer); CI keeps its runner default. Owned heavy commands run under `nice -n 10`, inherited by
 nested wrappers. Waiting is logged separately from the E454 gate time. Do not start a nested build inside a
 full-test lease; request `check` up front when one ordinary command needs both resources (`gate` is push priority).
