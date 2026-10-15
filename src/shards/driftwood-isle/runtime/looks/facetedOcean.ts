@@ -2,9 +2,8 @@
  * A faceted, stylized open sea as a look-family system (SHARD-PLATFORM M3): one mesh over the level's chunk that coarsens
  * out to the horizon, Gerstner waves (the engine's `waves.ts`, the same function the boats and swimmers call), a sea-floor
  * texture baked from the heightfield (per-pixel depth, no depth pre-pass), foam rings round whatever stands in the water.
- * Nothing here knows a shard: the shard passes its GLSL rows (spliced with the shared `ShaderFamily`: `@{WAVES_GLSL}` /
- * `@{WAVES_NORMAL_GLSL}` and, per sea, `@{DRY_UNIFORMS}`, `@{EDGE_INSET}`, `@{EDGE_NOTE}`, `@{DRY_DISCARD}`, which this
- * system passes), its colours and depth, the grid's fine cell, its patch id and the light model's uniforms it reads.
+ * The surface is the shard's sea graph (look.materials, data/oceanLook.ts), handed over with `setOceanLook` before the
+ * world builds; this system builds the grid and the sea floor, lends the graph the floor texture and moves its params.
  *
  *   const sea = new FacetedOcean(sky, look, def).build(level, dry, edgeInset);
  *   scene.add(sea.group);               // sea.mesh is the surface
@@ -12,32 +11,21 @@
  *   game.onUpdate((dt) => sea.update(dt));
  *
  * - **grid**: `cell` metres fine over the chunk (plus 30 m), then each ring ×1.16 wider (×1.25 when the cell is over 3 m)
- *   out to 4.2 km; alternate diagonals so the facets don't all lean one way. Vertex attributes `depth` (the still level
- *   less the floor) and `seed` (a per-vertex hash).
- * - **sea floor**: a 512² RG half-float texture over the chunk (R = floor height, G = obstacle proximity, `foamAround`).
- * - **material**: a transparent, premultiplied, double-sided single-pass MeshStandard (flat shading, `OCEAN_SURFACE`
- *   defined), patched by the shard's rows; fogged through the shared atmosphere; renderOrder 4, never frustum-culled.
+ *   out to 4.2 km; alternate diagonals so the facets don't all lean one way. Vertex attributes `aDepth` (the still level
+ *   less the floor) and `aSeed` (a per-vertex hash).
+ * - **sea floor**: a 512² RG half-float texture over the chunk (R = floor height, G = obstacle proximity, `foamAround`),
+ *   lent to the graph as `tSea`.
+ * - **material**: the sea graph (transparent, double-sided in one pass, toon lit without caustics, fogged by the engine
+ *   epilogue); renderOrder 4, never frustum-culled. With no graph handed over the build throws: no procedural stand-in.
  */
 import * as THREE from 'three';
+import type { GraphLiteral } from '@wildshard/format/materialGraph';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
-import { ownUniforms, PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { inChunk } from '@wildshard/engine/world/Heightfield';
 import { HORIZON_RADIUS } from '@wildshard/engine/world/HorizonMatte';
-import type { SkyRig } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { WAVES_GLSL, WAVES_NORMAL_GLSL, waveClock, waterExtent } from '@wildshard/engine/world/waves';
-import { ShaderFamily } from '@wildshard/game/plugin/shaderFamily';
-
-/** the sea's GLSL rows: each replaces one of three's MeshStandard chunks */
-export interface FacetedOceanGlsl {
-  readonly vertexCommon: string;
-  readonly vertexBegin: string;
-  readonly fragmentCommon: string;
-  readonly fragmentColor: string;
-  readonly fragmentNormal: string;
-  readonly fragmentOpaque: string;
-}
+import { waveClock, waterExtent } from '@wildshard/engine/world/waves';
+import { OCEAN_DRY_SLOTS, OCEAN_LOOK, OCEAN_NO_DRY } from '../../data/oceanLook';
 
 /** the sea as data: its still level (m), colours (linear albedo) and the depth it is fully deep at (m) */
 export interface FacetedOceanDef {
@@ -47,19 +35,14 @@ export interface FacetedOceanDef {
   readonly deepDepth: number;
 }
 
-/** the light model's uniforms the sea reads (and declares itself where the look's chunk patches are absent) */
+/** the light model's uniforms the sea reads: the caustics' sea level (it sets it) and the night tint (its `night`) */
 export interface FacetedOceanLight {
   readonly uSeaLevel: { value: number };
   readonly uToonNight: { value: number };
-  readonly uFogZenith: { value: THREE.Color };
 }
 
-/** a shard's sea look: its rows, its patch id and key, the grid's fine cell and the light it reads */
+/** a shard's sea look: the grid's fine cell and the light it reads */
 export interface FacetedOceanLook {
-  readonly glsl: FacetedOceanGlsl;
-  /** the material patch's id and cache key */
-  readonly patchId: string;
-  readonly patchKey: string;
   /** the grid's fine cell (m) */
   readonly cell: number;
   readonly light: FacetedOceanLight;
@@ -71,6 +54,23 @@ export interface OceanDryRect { readonly minX: number; readonly minZ: number; re
 /** an oriented collider box as the player uses them (a registry piece's) */
 export interface OceanColliderBox { x: number; z: number; hw: number; hd: number; rot: number; yTop: number; yBottom: number }
 
+/** the sea graph as the runtime compiled it, its param and texture writers and its toon look's once-a-frame follow */
+interface OceanGraph {
+  readonly material: THREE.Material;
+  readonly param: (name: string, value: GraphLiteral) => void;
+  readonly texture: (name: string, texture: THREE.Texture) => void;
+  readonly follow: () => void;
+}
+let oceanGraph: OceanGraph | null = null;
+/** hand the sea its compiled graph (look.materials, data/oceanLook.ts), its writers and its toon look's follow, before
+ *  the world builds */
+export function setOceanLook(materials: ReadonlyMap<string, THREE.Material>, setParam: (id: string, name: string, value: GraphLiteral) => void,
+  setTexture: (id: string, name: string, texture: THREE.Texture) => void, follow: () => void): void {
+  const material = materials.get(OCEAN_LOOK);
+  if (material === undefined) throw new Error('Driftwood: look.materials lacks the ocean graph');
+  oceanGraph = { material, follow, param: (name, value) => { setParam(OCEAN_LOOK, name, value); }, texture: (name, texture) => { setTexture(OCEAN_LOOK, name, texture); } };
+}
+
 const SEA_RES = 512; // the sea-floor texture: ~1 m per texel over the chunk
 
 /** A faceted stylized sea from a shard's look and def: build it, ring its standing colliders with foam, step its waves. */
@@ -79,23 +79,24 @@ export class FacetedOcean {
   mesh!: THREE.Mesh;
   /** sea-surface height (metres) — the still level; waves ride ±0.4 m over it */
   level = 0;
-  private uniforms = { uTime: { value: 0 } };
+  /** the wave clock (s): the graph's `clock` and `waveClock.t` */
+  private time = 0;
+  private graph: OceanGraph | null = null;
   private seaData!: Uint16Array;
   private seaTex!: THREE.DataTexture;
-  private readonly family: ShaderFamily;
 
-  constructor(private readonly sky: SkyRig, private readonly look: FacetedOceanLook, private readonly def: FacetedOceanDef) {
-    this.family = new ShaderFamily({ ...look.glsl, WAVES_GLSL, WAVES_NORMAL_GLSL }, {});
-  }
+  constructor(private readonly look: FacetedOceanLook, private readonly def: FacetedOceanDef) {}
 
   /** `level`: the still level (default the def's). `dry`: up to four level-space rectangles the sea is clipped out of;
    *  none by default. `edgeInset`: metres inside its confining square (`uWaterHalf`: a grid cell; unbounded standalone)
    *  the sea stops; 0 by default */
   build(level = this.def.level, dry: readonly OceanDryRect[] = [], edgeInset = 0): this {
-    if (dry.length > 4) throw new RangeError('The ocean clips at most four dry rectangles');
+    if (dry.length > OCEAN_DRY_SLOTS) throw new RangeError('The ocean clips at most four dry rectangles');
     if (!(edgeInset >= 0)) throw new RangeError('The ocean edge inset is a distance');
-    const holes = dry.map((r) => new THREE.Vector4(r.minX, r.minZ, r.maxX, r.maxZ));
-    const def = { ...this.def, level }, look = this.look, family = this.family, glsl = look.glsl;
+    const graph = oceanGraph;
+    if (graph === null) throw new Error('Driftwood: the ocean draws only with its look.materials graph (setOceanLook)');
+    this.graph = graph;
+    const def = { ...this.def, level }, look = this.look;
     this.level = def.level;
     look.light.uSeaLevel.value = def.level; // the caustics under it
 
@@ -127,8 +128,8 @@ export class FacetedOcean {
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute('depth', new THREE.BufferAttribute(depth, 1));
-    geo.setAttribute('seed', new THREE.BufferAttribute(seed, 1));
+    geo.setAttribute('aDepth', new THREE.BufferAttribute(depth, 1));
+    geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
     geo.setIndex(new THREE.BufferAttribute(idx, 1));
     geo.computeBoundingSphere();
 
@@ -145,39 +146,21 @@ export class FacetedOcean {
     this.seaTex.wrapS = this.seaTex.wrapT = THREE.ClampToEdgeWrapping;
     this.seaTex.needsUpdate = true;
 
-    const mat = new THREE.MeshStandardMaterial({
-      color: 0xffffff, flatShading: true, roughness: 0.9, metalness: 0.0, side: THREE.DoubleSide,
-      transparent: true, premultipliedAlpha: true, depthWrite: true,
-    });
-    mat.defines = { OCEAN_SURFACE: '' };
-    mat.forceSinglePass = true; // a transparent DoubleSide material is otherwise drawn twice (back faces, then front)
-    const shallow = new THREE.Vector3(...def.shallowColor), deep = new THREE.Vector3(...def.deepColor);
-    patchShader(mat, look.patchId, PATCH_ORDER.material, (shader) => {
-      attachFogUniforms(shader);
-      Object.assign(shader.uniforms, this.uniforms, {
-        uShallow: { value: shallow }, uDeep: { value: deep }, uDeepDepth: { value: def.deepDepth }, uLevel: { value: def.level },
-        tSea: { value: this.seaTex }, uChunkHalf: { value: CHUNK_HALF },
-        // the sea ends where the painted horizon stands: past it, the far plane cut it on a hard straight line above the
-        // matte's islands when seen from altitude
-        uSeaEnd: { value: HORIZON_RADIUS },
-        uWaterHalf: waterExtent.uWaterHalf, // the level's open-water square (unbounded standalone; its own cell in a grid)
-        ...(holes.length === 0 ? {} : { uDry: { value: holes } }),
-      });
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', family.glsl(glsl.vertexCommon))
-        .replace('#include <begin_vertex>', family.glsl(glsl.vertexBegin));
-      shader.fragmentShader = shader.fragmentShader
-        .replace('#include <common>', family.glsl(glsl.fragmentCommon, { DRY_UNIFORMS: holes.length === 0 ? '' : ` uniform vec4 uDry[${holes.length}];` }))
-        .replace('#include <color_fragment>', family.glsl(glsl.fragmentColor))
-        .replace('#include <normal_fragment_begin>', family.glsl(glsl.fragmentNormal))
-        .replace('#include <opaque_fragment>', family.glsl(glsl.fragmentOpaque, { EDGE_INSET: edgeInset === 0 ? '' : ` - ${edgeInset.toFixed(3)}`, EDGE_NOTE: edgeInset === 0 ? '' : ' (SF46: to the shore revetment inner face)', DRY_DISCARD: holes.length === 0 ? '' : `
-          for (int i = 0; i < ${holes.length}; i++) if (all(greaterThanEqual(vRest, uDry[i].xy)) && all(lessThanEqual(vRest, uDry[i].zw))) discard; // SF46: dry entry sockets` }));
-      // the night tint and the ramp fog's zenith are the light model's (its chunk patches declare them); in a grid region
-      // under the neutral page shell those patches are absent, so the sea declares and binds them itself (G226)
-      ownUniforms(shader, 'fragment', { uToonNight: { type: 'float', uniform: look.light.uToonNight }, uFogZenith: { type: 'vec3', uniform: look.light.uFogZenith } });
-    }, { mode: 'replace', key: look.patchKey });
-    this.sky.setupMaterial(mat);
-    this.mesh = new THREE.Mesh(geo, mat);
+    // the graph's params: the sea's own numbers, the chunk, the painted horizon, the inset and the dry sockets
+    graph.param('level', def.level); graph.param('deepDepth', def.deepDepth);
+    graph.param('shallow', [...def.shallowColor]); graph.param('deep', [...def.deepColor]);
+    graph.param('chunkHalf', CHUNK_HALF);
+    // the sea ends where the painted horizon stands: past it, the far plane cut it on a hard straight line above the
+    // matte's islands when seen from altitude
+    graph.param('seaEnd', HORIZON_RADIUS);
+    graph.param('edgeInset', edgeInset); // SF46: to the shore revetment inner face
+    for (const i of [0, 1, 2, 3]) { // SF46: the dry entry sockets (OCEAN_DRY_SLOTS)
+      const r = dry[i];
+      graph.param(`dry${String(i)}`, r === undefined ? [...OCEAN_NO_DRY] : [r.minX, r.minZ, r.maxX, r.maxZ]);
+    }
+    graph.texture('tSea', this.seaTex);
+    this.step();
+    this.mesh = new THREE.Mesh(geo, graph.material);
     this.mesh.position.y = def.level;
     this.mesh.receiveShadow = true;
     this.mesh.frustumCulled = false;
@@ -213,7 +196,16 @@ export class FacetedOcean {
     this.seaTex.needsUpdate = true;
   }
 
-  update(dt: number): void { this.uniforms.uTime.value += dt; waveClock.t = this.uniforms.uTime.value; }
+  update(dt: number): void { this.time += dt; waveClock.t = this.time; this.step(); }
+
+  /** the graph's live params: the wave clock, the level's open-water square (live: a grid cell's own), the night tint;
+   *  and its toon look following the day clock */
+  private step(): void {
+    const graph = this.graph;
+    if (graph === null) return;
+    graph.param('clock', this.time); graph.param('waterHalf', waterExtent.uWaterHalf.value); graph.param('night', this.look.light.uToonNight.value);
+    graph.follow();
+  }
 }
 
 function hash2(x: number, z: number) { const s = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return s - Math.floor(s); }

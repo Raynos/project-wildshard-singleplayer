@@ -23,20 +23,18 @@
  *   sparse caps on the highest crests, and rings around everything that stands in the water (`foamAround`).
  * Fogged through the shared atmosphere; transparent, drawn after the world (renderOrder 4). One draw call.
  *
- * SHARD-PLATFORM M3: the sea is the SDK faceted ocean (@wildshard/sdk/looks/facetedOcean); its GLSL is data
- * (data/oceanGlsl.ts), its patch id too (data/oceanLook.ts); the colours and depth are the manifest's OCEAN.
+ * SHARD-PLATFORM M3: the sea is the faceted ocean (runtime/looks/facetedOcean.ts); its surface is a look.materials graph
+ * (data/oceanLook.ts); the colours and depth are the manifest's OCEAN.
  */
 import { FacetedOcean } from '../runtime/looks/facetedOcean';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { OCEAN } from '../manifest';
 import { islandKnobs } from '../tiers';
 import { toonUniforms } from '../look/toon';
-import { OCEAN_GLSL } from '../runtime/looks/oceanGlsl';
-import { OCEAN_PATCH } from '../data/oceanLook';
 
 export class Ocean extends FacetedOcean {
   /** the grid is 2.75 m fine on desktop, 4 m on the phone (57 k -> 30 k verts) */
-  constructor(sky: Sky) {
-    super(sky, { glsl: OCEAN_GLSL, patchId: OCEAN_PATCH.id, patchKey: OCEAN_PATCH.key, cell: islandKnobs().oceanCell, light: toonUniforms }, OCEAN);
+  constructor(_sky: Sky) {
+    super({ cell: islandKnobs().oceanCell, light: toonUniforms }, OCEAN);
   }
 }
