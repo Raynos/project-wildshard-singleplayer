@@ -1,5 +1,6 @@
 import { InteractionRules } from '@wildshard/game/quest/interactionRows';
-import { PointLight, type Vector3 } from 'three';
+import { Object3D, PointLight, type Vector3 } from 'three';
+import { SiteLights } from '@wildshard/engine/fx/SiteLights';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { createQuestPagePrompts, bindClientChannels, bindQuestPageInteractions } from '@wildshard/game/plugin/ui';
@@ -100,21 +101,18 @@ export function buildWorld(ctx: ShardContext, flags: Flags, baked: BakedWorld, k
   lastLightAll(ctx.root, ctx.scope); // the style bible's rim and shade floor on every prop
   ctx.scope.ownPrimitives(ctx.root);
   // round 18 (row 3: a warm light pool on the sand AND the plinth, from a real light): one short-range point light rides to
-  // the lit waymark nearest the player and flickers; one light for all three keeps the shaders' light count fixed (it is
-  // in the scene from the start, dark until a waymark burns)
-  const wayLight = new PointLight(0xff7a30, 0, 10, 2); ctx.root.add(wayLight);
+  // the lit waymark nearest the player and flickers (the engine's SiteLights); one light for all three keeps the shaders'
+  // light count fixed (it is in the scene from the start, dark until a waymark burns). E409 second top-10 row 8 (mockup
+  // B): the caravan's lantern, always burning, is one of its sites; round 21/23 (seat C, B): its light amber-yellow
+  const wayLights = new SiteLights({ flicker: { depth: 1, waves: [[11, 0, 0.07], [23, 1, 0.05]] } }), wayLight = new PointLight(0xff7a30, 0, 10, 2);
+  const site = (at: Vector3, lift: number): Object3D => { const o = new Object3D(); o.position.copy(at).setY(at.y + lift); ctx.root.add(o); return o; };
+  ctx.root.add(wayLight); wayLights.addLight(wayLight);
+  for (const b of braziers) wayLights.addLamp(site(b.parts.bowlAt, 0.5), 0xff7a30, WAY_LIGHT, 10, () => b.lit, 'fire');
+  wayLights.addLamp(site(caravan.lampAt, 0), 0xffd27a, LANTERN_LIGHT, 10);
+  const gain = { fire: 1, lamp: 1 };
   ctx.system({ id: 'sunscar.fire', phase: 'update', run: (dt, t) => {
     tickFires(t);
-    // E409 second top-10 row 8 (mockup B: the lantern lights the canvas, the tailboard and the sand): the caravan's lantern,
-    // always burning, is one of the light's sources; the light goes to whichever lit source is nearest the player
-    const me = ctx.game.runtime?.world?.player.position; let near: Vector3 | null = null, gain = 0, best = Infinity;
-    if (me) {
-      for (const b of braziers) { if (!b.lit) continue; const d = b.parts.bowlAt.distanceToSquared(me); if (d < best) { best = d; near = b.parts.bowlAt; gain = WAY_LIGHT; } }
-      if (caravan.lampAt.distanceToSquared(me) < best) { near = caravan.lampAt; gain = LANTERN_LIGHT; }
-    }
-    // round 21 (seat C: the fire's orange turned the violet sand under B's wagon red-pink): the lantern's light amber-yellow
-    wayLight.color.setHex(gain === WAY_LIGHT ? 0xff7a30 : 0xffd27a); // round 23: yellower (seat B: B's pool still h356)
-    if (near) { wayLight.position.copy(near).setY(near.y + (gain === WAY_LIGHT ? 0.5 : 0)); wayLight.intensity = gain * (1 + Math.sin(t * 11) * 0.07 + Math.sin(t * 23 + 0.7) * 0.05); } else wayLight.intensity = 0;
+    const me = ctx.game.runtime?.world?.player.position; if (me) wayLights.step(t, me, gain);
     channels.evaluate(programs[0]?.id ?? '', { time: t, delta: dt, values: [Number(flags.has(FLAG.oil)), Number(well.raised), wellParts.drop] });
       if (!fire.lit) return;
     const flick = 1 + Math.sin(t * 13) * 0.06 + Math.sin(t * 29 + 1.3) * 0.04;

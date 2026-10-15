@@ -4,7 +4,8 @@
  * ./cabinBake.ts) read. Shape helpers exist only in generators/cabinShapes.ts; the live path reads admitted geometry.
  */
 import * as v from 'valibot';
-import type { BuildingDoor, BuildingFloor, BuildingFlicker, BuildingLightAnchor, BuildingLightKind, BuildingRoom, BuildingSwing } from '../runtime/props/buildingLife';
+import type { BuildingDoor, BuildingFloor, BuildingSwing } from '../runtime/props/buildingLife';
+import type { SiteFlicker as BuildingFlicker, SiteLightAnchor as BuildingLightAnchor, SiteLightKind as BuildingLightKind, SiteRoom as BuildingRoom } from '@wildshard/engine/fx/SiteLights';
 
 /** a building part's material: the PBR sets (homestead.ts `Mats`) a baked part names */
 export type KitMat = 'log' | 'endGrain' | 'chink' | 'roof' | 'beam' | 'deck' | 'door' | 'stone' | 'bark' | 'iron' | 'cloth' | 'char';

@@ -3,7 +3,8 @@ import { flatPositions, shadowProxy, twoSidedPositions, type WeldBuild, type Wel
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import type { BuildingDoor, BuildingFlicker, BuildingFloor, BuildingLightAnchor, BuildingLightKind, BuildingRoom, BuildingSwing } from './buildingLife';
+import type { BuildingDoor, BuildingFloor, BuildingSwing } from './buildingLife';
+import type { SiteFlicker as BuildingFlicker, SiteLightAnchor as BuildingLightAnchor, SiteLightKind as BuildingLightKind, SiteRoom as BuildingRoom } from '@wildshard/engine/fx/SiteLights';
 
 /**
  * A baked building assembled where it stands (SHARD-PLATFORM M3, the props system). An offline builder writes each

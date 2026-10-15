@@ -152,6 +152,7 @@
     "./fx/Impacts": "./fx/Impacts.ts",
     "./fx/LightPool": "./fx/LightPool.ts",
     "./fx/ParticlePool": "./fx/ParticlePool.ts",
+    "./fx/SiteLights": "./fx/SiteLights.ts",
     "./fx/groundFx": "./fx/groundFx.ts",
     "./input/InputService": "./input/InputService.ts",
     "./input/dom": "./input/dom.ts",

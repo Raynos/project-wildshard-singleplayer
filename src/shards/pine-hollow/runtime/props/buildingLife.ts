@@ -1,16 +1,16 @@
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
+import { SiteLights, type LightSite, type SiteFlicker, type SiteLightsLook, type SiteWave } from '@wildshard/engine/fx/SiteLights';
 
 /**
  * A settlement's buildings as a living place (SHARD-PLATFORM M3, the props system): whatever builds the buildings hands
  * their moving parts here (the doors, the fires and lamps, the lantern swings, the wheels, the
  * floors and the static solids), and this runs them: the doors swing on use (eased, barred by the caller's rule, heard
- * by listeners) with a kinematic leaf piece each; fires flicker on the clock and lamps light at dusk, by intensity only;
- * a small pool of shared point lights (the phone's) follows the nearest lit site's anchors, its room lights first once
- * the eye is indoors; lamp glass glows with the night. Every number is the shard's look row; nothing here knows a
- * shard's buildings.
+ * by listeners) with a kinematic leaf piece each; the fires, lamps and the phone's shared lights are the engine's
+ * SiteLights (fires burn all day, lamps light at dusk); lamp glass glows with the night. Every number is the shard's
+ * look row; nothing here knows a shard's buildings.
  */
 
 /** A door: its pivot (turned about +Y as it swings), its state, its legacy box, its use prompt and its leaf in the pivot's frame. */
@@ -19,38 +19,23 @@ export interface BuildingDoor {
   /** the leaf as a box in the pivot's local frame */
   slab: ColliderDesc;
 }
-/** `fire`: burns all day and only reads stronger at night; `lamp` (a lantern, a room light): lit by the clock. */
-export type BuildingLightKind = 'fire' | 'lamp';
-/** A flickering light: its base intensity, flicker seed and kind. */
-export interface BuildingFlicker { light: THREE.PointLight; base: number; seed: number; kind: BuildingLightKind }
-/** A shared light's slot at a site: where, how it looks, and its rank (which anchors take the pool first). */
-export interface BuildingLightAnchor { anchor: THREE.Object3D; color: number; intensity: number; distance: number; decay: number; seed: number; kind: BuildingLightKind; rank: number }
-/** A room's floor rectangle in its building's frame (inside: the pool lights the room). */
-export interface BuildingRoom { x: number; z: number; hw: number; hd: number }
 /** A swinging pivot (a hung lantern) and its seed. */
 export interface BuildingSwing { pivot: THREE.Object3D; seed: number }
 /** A floor / deck rectangle in world space (turned by `rot`) and its top. */
 export interface BuildingFloor { x: number; z: number; rot: number; hw: number; hd: number; y: number }
-/** A place the shared lights may visit: a building (its anchors, rooms and door in its frame) or a lone lamp. */
-export interface BuildingLightSite { root: THREE.Object3D; anchors: BuildingLightAnchor[]; lit?: () => boolean; rooms?: readonly BuildingRoom[]; door?: [number, number] }
-
 /** One wave of a clock motion: sin(t × rate + seed × seedScale) × amount. */
-export type BuildingWave = readonly [rate: number, seedScale: number, amount: number];
+export type BuildingWave = SiteWave;
 
 /** How the buildings move and light (a shard's data row). */
-export interface BuildingLifeLook {
+export interface BuildingLifeLook extends SiteLightsLook {
   /** a door's swing: seconds end to end (eased in-out) and its open angle (radians, inward) */
   readonly door: { readonly seconds: number; readonly angle: number };
-  /** the flicker: 1 + depth × Σ waves */
-  readonly flicker: { readonly depth: number; readonly waves: readonly BuildingWave[] };
   /** intensity by the night's `lamps` (0 day … 1 night): base + gain × lamps, for fires, lamps and lamp glass */
   readonly fire: readonly [number, number];
   readonly lamp: readonly [number, number];
   readonly glass: readonly [number, number];
   /** a swing: rotation.z = Σ z waves, rotation.x = cos(t × x[0] + seed) × x[1] */
   readonly swing: { readonly z: readonly BuildingWave[]; readonly x: readonly [number, number] };
-  /** indoors: the eye over a room or within `doorRadius` m of the door; then these anchor ranks take the pool first, in order */
-  readonly indoor: { readonly doorRadius: number; readonly ranks: readonly number[] };
 }
 
 const wave = (t: number, seed: number, w: BuildingWave): number => Math.sin(t * w[0] + seed * w[1]) * w[2];
@@ -65,27 +50,22 @@ export class BuildingLife {
   private readonly lifeLook: BuildingLifeLook;
   private wheels: THREE.Object3D[] = [];
   private doors: BuildingDoor[] = [];
-  private fires: BuildingFlicker[] = [];
+  /** the fires, lamps and the shared lights (the buildings and the lamp sites, in that order) */
+  private readonly lights: SiteLights;
+  /** each light kind's gain this frame (fires and lamps by the night) */
+  private readonly gain = { fire: 1, lamp: 1 };
   private swings: BuildingSwing[] = [];
   private floors: BuildingFloor[] = [];
   /** static solids that are only in colliderDescs() (floors, porch, step, plinth, furniture, props) */
   private solids: ColliderDesc[] = [];
-  /** the buildings and the lamp sites the shared lights may visit, in that order */
-  private sites: BuildingLightSite[] = [];
-  /** the shared point lights (taken from the scene's pool by the owner; none: every light is its own) */
-  private sharedLights: THREE.PointLight[] = [];
   /** emissive materials lit by the clock and their full-night intensity */
   private lampMats: { mat: THREE.MeshStandardMaterial; full: number }[] = [];
-  private nearestSite = -1;
-  private indoors = false;
-  /** the nearest site's anchors in the order the shared lights take them */
-  private order: BuildingLightAnchor[] = [];
-  private tmpL = new THREE.Vector3();
   private readonly doorBars = new Map<Interactable, () => boolean>();
   private readonly doorListeners = new Set<(door: Interactable, opening: boolean) => void>();
 
   constructor(look: BuildingLifeLook) {
     this.lifeLook = look;
+    this.lights = new SiteLights(look);
   }
 
   /**
@@ -118,40 +98,7 @@ export class BuildingLife {
   /** Per frame, the eye at `eye`, the night's `lamps` (0 day … 1 night): wheels, the shared lights, doors, flicker, glass, swings. */
   tick(dt: number, t: number, eye: THREE.Vector3, lamps: number): void {
     const look = this.lifeLook;
-    let nearest = -1, nearestD2 = Infinity;
-    for (const [i, s] of this.sites.entries()) {
-      const d2 = s.root.position.distanceToSquared(eye);
-      if (s.anchors.length > 0 && d2 < nearestD2 && (s.lit?.() ?? true)) { nearestD2 = d2; nearest = i; }
-    }
     for (const w of this.wheels) w.rotation.x += dt * this.wheelSpeed;
-    const l = this.sites[nearest];
-    if (this.sharedLights.length > 0 && nearest >= 0 && l !== undefined) {
-      // indoors (the eye over one of its rooms, or near its door) the room lights take the pool first
-      let indoors = false;
-      if (l.rooms && l.door) {
-        const p = l.root.worldToLocal(this.tmpL.copy(eye));
-        indoors = l.rooms.some((r) => Math.abs(p.x - r.x) <= r.hw && Math.abs(p.z - r.z) <= r.hd) || Math.hypot(p.x - l.door[0], p.z - l.door[1]) < look.indoor.doorRadius;
-      }
-      if (nearest !== this.nearestSite || indoors !== this.indoors) {
-        this.nearestSite = nearest; this.indoors = indoors;
-        const ranks = look.indoor.ranks;
-        const indoorRank = (a: BuildingLightAnchor): number => { const k = ranks.indexOf(a.rank); return k !== -1 ? k : a.rank + ranks.length; };
-        this.order = indoors ? [...l.anchors].sort((a, b) => indoorRank(a) - indoorRank(b)) : l.anchors;
-        this.fires = this.fires.filter((f) => !this.sharedLights.includes(f.light));
-        this.sharedLights.forEach((light, i) => {
-          const a = this.order[i];
-          if (!a) { light.intensity = 0; return; }
-          light.color.set(a.color); light.distance = a.distance; light.decay = a.decay;
-          this.fires.push({ light, base: a.intensity, seed: a.seed, kind: a.kind });
-        });
-      }
-      // the pool's group sits at its scene's origin, which a grid region offsets: place each light in its parent's frame
-      // (a pool holds a handful of lights; 8 bounds the loop)
-      for (let i = 0; i < Math.min(this.sharedLights.length, 8); i++) {
-        const light = this.sharedLights[i], a = this.order[i];
-        if (light !== undefined && a !== undefined) { a.anchor.getWorldPosition(light.position); light.parent?.worldToLocal(light.position); }
-      }
-    }
     for (const d of this.doors) {
       const target = d.open ? 1 : 0;
       if (d.t === target) continue;
@@ -159,13 +106,8 @@ export class BuildingLife {
       const e = d.t < 0.5 ? 2 * d.t * d.t : 1 - (-2 * d.t + 2) ** 2 / 2; // ease in-out
       d.pivot.rotation.y = -e * look.door.angle;
     }
-    // by intensity only: the light count never changes
-    const fireK = look.fire[0] + look.fire[1] * lamps, lampK = look.lamp[0] + look.lamp[1] * lamps;
-    for (const f of this.fires) {
-      let n = 0;
-      for (const w of look.flicker.waves) n += wave(t, f.seed, w);
-      f.light.intensity = f.base * (1 + look.flicker.depth * n) * (f.kind === 'fire' ? fireK : lampK);
-    }
+    this.gain.fire = look.fire[0] + look.fire[1] * lamps; this.gain.lamp = look.lamp[0] + look.lamp[1] * lamps;
+    this.lights.step(t, eye, this.gain);
     for (const m of this.lampMats) m.mat.emissiveIntensity = m.full * (look.glass[0] + look.glass[1] * lamps);
     for (const sw of this.swings) {
       let z = 0;
@@ -187,7 +129,7 @@ export class BuildingLife {
   /** a door: swung, collided, prompted */
   _door(d: BuildingDoor): void { this.doors.push(d); this.colliders.push(d.collider); this.interactables.push(d.interactable); }
   /** a light of its own that flickers */
-  _fire(f: BuildingFlicker): void { this.fires.push(f); }
+  _fire(f: SiteFlicker): void { this.lights.addFlicker(f); }
   /** an emissive material lit by the clock, at `full` by night */
   _lamp(mat: THREE.MeshStandardMaterial, full: number): void { this.lampMats.push({ mat, full }); }
   /** a swinging pivot */
@@ -203,16 +145,9 @@ export class BuildingLife {
   /** a fire pit's position (audio / warmth) */
   _firePit(at: { x: number; y: number; z: number }): void { this.firePits.push(at); }
   /** a site the shared lights may visit (in visiting order of registration) */
-  addSite(site: BuildingLightSite): void { this.sites.push(site); }
+  addSite(site: LightSite): void { this.lights.addSite(site); }
   /** a shared point light the nearest site's anchors take */
-  addSharedLight(light: THREE.PointLight): void { this.sharedLights.push(light); }
-
-  /**
-   * A lamp the shared lights may visit when it is the nearest lit site (a waystone lantern): `anchor` sits in world space
-   * (a child of a group at the origin). No light of its own; `lit()` false keeps the pool away.
-   */
-  addLampSite(anchor: THREE.Object3D, color: number, intensity: number, distance: number, lit: () => boolean = () => true): void {
-    const a: BuildingLightAnchor = { anchor, color, intensity, distance, decay: 2, seed: anchor.position.x * 0.37, kind: 'lamp', rank: 0 };
-    this.sites.push({ root: anchor, anchors: [a], lit });
-  }
+  addSharedLight(light: THREE.PointLight): void { this.lights.addLight(light); }
+  /** a lone lamp the shared lights may visit when it is the nearest lit site (a waystone lantern; no light of its own) */
+  addLampSite(anchor: THREE.Object3D, color: number, intensity: number, distance: number, lit?: () => boolean): void { this.lights.addLamp(anchor, color, intensity, distance, lit); }
 }
