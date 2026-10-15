@@ -31,5 +31,5 @@ export const drownedCaptain: ModelDef<CreatureParams> = defineModel<CreaturePara
 export const gull: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/gull', name: 'Herring gull', category: 'creatures', pipeline: 'code', file: FILE, surface: 'flesh',
   defaults: {},
-  build: (ctx) => new Gulls(ctx.sky).build({ perches: [new THREE.Vector3(0, 0, 0)], centre: new THREE.Vector3(0, 0, 0), radius: 1, count: 1 }).group,
+  build: () => new Gulls().build({ perches: [new THREE.Vector3(0, 0, 0)], centre: new THREE.Vector3(0, 0, 0), radius: 1, count: 1 }).group,
 });

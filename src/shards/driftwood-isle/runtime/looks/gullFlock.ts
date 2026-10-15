@@ -1,10 +1,10 @@
 /**
  * A low-poly gull flock as a look-family system (SHARD-PLATFORM M3): ONE instanced draw call for every gull, faceted
- * flat-shaded vertex-coloured geometry, no textures. Nothing here knows a shard: the shard passes its look (`GullLook`:
- * the palette, the flap rig's GLSL rows and the id its patch registers under) and, for beach perches, the ground it keeps
- * gulls off.
+ * flat-shaded vertex-coloured geometry, no textures. The shard passes its look (`GullLook`: the palette and its graph
+ * material, whose vertex stage poses the flap rig: ../../data/gullGraphLook.ts) and, for beach perches, the ground it
+ * keeps gulls off.
  *
- *   const gulls = new GullFlock(sky, look).build({
+ *   const gulls = new GullFlock(look, flight).build({
  *     perches: [...posts, ...GullFlock.beachPerches(seed, 8)],
  *     centre: new Vector3(0, 0, -215), radius: 80,       // the wheeling flocks live over this circle
  *   });
@@ -26,22 +26,17 @@ import * as THREE from 'three';
 import { CHUNK_HALF } from '@wildshard/engine/core/config';
 import { ambientTick } from '@wildshard/engine/core/harnessTap';
 import { Rng } from '@wildshard/engine/core/rng';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import { waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
-import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
-import { ShaderFamily } from '@wildshard/game/plugin/shaderFamily';
+import { GULL_RIG } from '../../data/gullGraphLook';
 
 /** a gull's colours as CSS colour strings */
 export interface GullPalette {
   readonly white: string; readonly belly: string; readonly grey: string; readonly greyDark: string;
   readonly tip: string; readonly beak: string; readonly leg: string; readonly eye: string;
 }
-/** the flap rig's GLSL rows: `vertexCommon` and `vertexBegin`, spliced with the rig's joints (`@{ELBOW_X}`, …) */
-export interface GullGlsl { readonly vertexCommon: string; readonly vertexBegin: string }
-/** a shard's gull look */
-export interface GullLook { readonly palette: GullPalette; readonly glsl: GullGlsl; readonly patchId: string }
+/** a shard's gull look: its palette and the graph material that poses the rig from `aPart` / `aAnim` */
+export interface GullLook { readonly palette: GullPalette; readonly material: THREE.Material }
 
 export interface GullsSpec {
   /** world positions a gull can stand on (feet); posts, gunwales, rock tops, sand */
@@ -59,9 +54,9 @@ export interface GullsSpec {
 
 /** vertex part ids (aPart): what the vertex shader rotates */
 const PART = { body: 0, wingL: 1, wingR: 2, head: 3, legL: 4, legR: 5 } as const;
-/** pivots, gull-local (forward = +z, up = +y, right = +x) — mirrored in the shader */
+/** pivots, gull-local (forward = +z, up = +y, right = +x) — the graph's rig turns about the same joints */
 type Vec3 = readonly [number, number, number];
-const SHOULDER_X = 0.06, SHOULDER_Y = 0.045, ELBOW_X = 0.36, NECK: Vec3 = [0, 0.05, 0.15], HIP: Vec3 = [0, -0.06, 0.0];
+const { shoulderX: SHOULDER_X, shoulderY: SHOULDER_Y, elbowX: ELBOW_X } = GULL_RIG;
 
 // oxlint-disable-next-line oxc/no-const-enum -- inlined by rolldown; keeps the gull state machine branch-free
 const enum S { Perched = 0, Hop = 1, Takeoff = 2, Wheel = 3, Landing = 4, Guide = 5 }
@@ -117,21 +112,14 @@ export class GullFlock {
   private time = 0;
   private callTimer = 6;
   private flushR = 4;
-  private uniforms = { uTime: { value: 0 } };
-
-  private readonly family: ShaderFamily;
   private readonly C: Record<keyof GullPalette, THREE.Color>;
 
-  constructor(private sky: Sky, private readonly look: GullLook, private readonly flight: {burst:(state:Gull,dt:number,flap:number,fold:number,id:string,rng:Rng,gliding:boolean)=>readonly [number,number];face:(pose:Gull,dx:number,dy:number,dz:number,dt:number,bank:number)=>void;wheel:(orbit:Flock,body:Gull,time:number,out:THREE.Vector3)=>void}) {
+  constructor(private readonly look: GullLook, private readonly flight: {burst:(state:Gull,dt:number,flap:number,fold:number,id:string,rng:Rng,gliding:boolean)=>readonly [number,number];face:(pose:Gull,dx:number,dy:number,dz:number,dt:number,bank:number)=>void;wheel:(orbit:Flock,body:Gull,time:number,out:THREE.Vector3)=>void}) {
     const p = look.palette;
     this.C = {
       white: new THREE.Color(p.white), belly: new THREE.Color(p.belly), grey: new THREE.Color(p.grey), greyDark: new THREE.Color(p.greyDark),
       tip: new THREE.Color(p.tip), beak: new THREE.Color(p.beak), leg: new THREE.Color(p.leg), eye: new THREE.Color(p.eye),
     };
-    this.family = new ShaderFamily({
-      ...look.glsl, ELBOW_X: ELBOW_X.toFixed(3), SHOULDER_Y_LIFT: (SHOULDER_Y + 0.01).toFixed(3), SHOULDER_X: SHOULDER_X.toFixed(3), SHOULDER_Y: SHOULDER_Y.toFixed(3),
-      NECK_X: NECK[0].toFixed(3), NECK_Z: NECK[2].toFixed(3), HIP_Y: HIP[1].toFixed(3), HIP_Z: HIP[2].toFixed(3),
-    }, {});
   }
 
   /** Sand perches: spots on the beach just above the water line, off the ground `keepOff` names (a shard's corridors). */
@@ -275,16 +263,7 @@ export class GullFlock {
     // the whole area (the bounding sphere is only used for culling the one mesh; the flocks roam ~100 m)
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 20, 0), 400);
 
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.8, metalness: 0, side: THREE.DoubleSide });
-    patchShader(mat, this.look.patchId, PATCH_ORDER.material, (shader) => {
-      attachFogUniforms(shader);
-      Object.assign(shader.uniforms, this.uniforms);
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', this.family.glsl(this.look.glsl.vertexCommon))
-        .replace('#include <begin_vertex>', this.family.glsl(this.look.glsl.vertexBegin));
-    }, { mode: 'replace', key: 'gulls-anim' });
-    this.sky.setupMaterial(mat);
-    this.mesh = new THREE.InstancedMesh(geo, mat, n);
+    this.mesh = new THREE.InstancedMesh(geo, this.look.material, n);
     this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     this.mesh.frustumCulled = false;
     this.mesh.castShadow = true;
@@ -382,7 +361,7 @@ export class GullFlock {
 
   update(dt: number, player: THREE.Vector3): void {
     if (dt <= 0) return;
-    this.time += dt; this.uniforms.uTime.value = this.time;
+    this.time += dt;
     const t = this.time;
     let flying = 0;
     for (let i = 0; i < 40; i++) {

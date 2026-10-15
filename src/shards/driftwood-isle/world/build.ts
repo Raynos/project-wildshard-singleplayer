@@ -166,7 +166,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   game.scene.add(bushes.mesh); // The compact batch is an explicitly owned drawnInto object.
   await slice(++completed, total, 'Bushes');
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
-  const gulls = new Gulls(sky).build({
+  const gulls = new Gulls().build({
     perches: [
       ...pier.posts.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.02, p.z)),
       ...pier.bollards.map((p) => new THREE.Vector3(p.x, pier.deckY + 1.41, p.z)),
