@@ -21,7 +21,7 @@ const agentsSchema = v.object({ result: v.object({ agents: v.array(v.object({
   agent_session: v.optional(v.object({ value: v.string() })),
 })) }) });
 const commitSchema = v.object({ sha: v.pipe(v.string(), v.regex(/^[a-f0-9]{40}$/u)), pane: v.string() });
-/** @typedef {{ identity: string, status: string, since: number, commit: string, changed: number, alerted: boolean }} Observation */
+/** @typedef {{ identity: string, status: string, since: number, commit: string, changed: number, alerted: boolean, turnAlerted: boolean }} Observation */
 /** @type {Map<string, Observation>} */
 const observations = new Map();
 const stop = new AbortController();
@@ -63,7 +63,7 @@ async function poll() {
     const status = agent.agent_status === 'idle' || agent.agent_status === 'done' ? 'idle/done' : agent.agent_status;
     let observed = observations.get(name);
     if (observed === undefined || observed.identity !== identity || observed.status !== status) {
-      observed = { identity, status, since: now, commit: '', changed: now, alerted: false };
+      observed = { identity, status, since: now, commit: '', changed: now, alerted: false, turnAlerted: false };
       observations.set(name, observed);
     }
     // git log is newest-first. Never attribute an ordinary body mentioning a peer.
@@ -81,6 +81,14 @@ async function poll() {
       }
       break;
     }
+    // G440: one task per Codex turn. A working episode (a commit does not end it) past 60 min gets one alert.
+    const turn = now - observed.since;
+    if (status === 'working' && turn > 60 * 60_000 && !observed.turnAlerted) {
+      const message = `[watchdog] ${name} one turn has run ${Math.floor(turn / 60_000)} min (G440: one task per turn). Wrap it at its next commit and start the next task in a fresh turn.`;
+      await command('bash', ['scripts/herdr-prompt.sh', 'wildshard-new', message]);
+      observed.turnAlerted = true;
+      console.info(`${new Date().toISOString()} ${message}`);
+    }
     const age = now - (status === 'working' ? observed.changed : observed.since);
     const overdue = status === 'idle/done' ? age > 5 * 60_000 : status === 'working' && age > 45 * 60_000;
     if (!overdue || observed.alerted) continue;
@@ -96,7 +104,7 @@ async function poll() {
 }
 
 if (process.env.HERDR_ENV !== '1') throw new Error('lane-watchdog requires a Herdr-managed terminal');
-console.info('lane-watchdog: 60s poll; 5min idle / 45min no-commit; alerts only wildshard-new');
+console.info('lane-watchdog: 60s poll; 5min idle / 45min no-commit / 60min turn; alerts only wildshard-new');
 while (!stop.signal.aborted) {
   const started = Date.now();
   try { await poll(); }
