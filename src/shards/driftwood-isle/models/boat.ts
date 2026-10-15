@@ -2,7 +2,7 @@
  * The sailboat (E306 / E315 M1: a model on the contract, src/engine/models/model.ts; its builder was in src/shards/driftwood-isle/world/Boat.ts) — the
  * little low-poly dinghy you arrived in, moored beside Driftwood Isle's pier. Flat-shaded, vertex-coloured, no
  * textures. Three meshes: the hull (a solid, planked dinghy with its thwarts, mast and timbers, single-sided so it can't
- * shadow itself, the thin gear its child, which receives but never casts) and the sail + rigging (two-sided, casts,
+ * shadow itself), the thin gear (receives but never casts) and the sail + rigging (two-sided, casts,
  * never receives). ~2.3k triangles, 3 draw calls.
  *
  * Built in its own space, as it always was: the origin is the hull's waterline centre at rest, the bow toward −z. It is
@@ -10,8 +10,8 @@
  * (src/shards/driftwood-isle/world/Boat.ts) — and its colliders ride it (`follows: 'copy'`): the four gunwale / bow / stern walls and the floor.
  */
 import * as THREE from 'three';
-import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
+import { defineModel } from '@wildshard/engine/models/model';
+import { libraryModel } from '@wildshard/game/models/libraryModel';
 import { BOAT_HULL_GEOMETRY, BOAT_SAIL_GEOMETRY, BOAT_GEAR_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -48,27 +48,20 @@ export function boatColliders(): ColliderDesc[] {
   ];
 }
 
-/** Original three-mesh hierarchy and material/shadow policy; only geometry comes from the offline bake. */
-function buildBoat(ctx: ModelContext): THREE.Group {
-  const mesh = new THREE.Mesh(BOAT_HULL_GEOMETRY.copy(), lowPolyLookMaterial(ctx.sky, 'solid', (m) => { m.side = THREE.FrontSide; }));
-  mesh.castShadow = true; mesh.receiveShadow = true;
-  const sail = new THREE.Mesh(BOAT_SAIL_GEOMETRY.copy(), lowPolyLookMaterial(ctx.sky));
-  sail.castShadow = true; sail.receiveShadow = false;
-  const gearMesh = new THREE.Mesh(BOAT_GEAR_GEOMETRY.copy(), lowPolyLookMaterial(ctx.sky, 'still'));
-  gearMesh.castShadow = false; gearMesh.receiveShadow = true;
-  mesh.add(gearMesh);
-  const group = new THREE.Group();
-  group.add(mesh, sail);
-  return group;
-}
+const DRAWS = { hull: BOAT_HULL_GEOMETRY, sail: BOAT_SAIL_GEOMETRY, gear: BOAT_GEAR_GEOMETRY };
 
+/** The hull (one-sided: it never shadows itself), the sail + rigging (casts, never receives) and the thin gear (receives,
+ *  never casts); only the geometry comes from the offline bake. */
 export const boat = defineModel<Record<string, never>>({
   id: 'driftwood-isle/boat', name: 'Sailboat', category: 'buildings', pipeline: 'code',
   file: 'src/shards/driftwood-isle/models/boat.ts', surface: 'planks',
   defaults: {},
-  build: (ctx) => fixedGeometryReady() ? buildBoat(ctx) : loadingSpecimen('driftwood-isle/boat', [BEAM, 5.6, LENGTH], async () => {
-    await loadFixedGeometry();
-    return buildBoat(ctx);
+  ...libraryModel<Record<string, never>, keyof typeof DRAWS, keyof typeof DRAWS>({
+    draws: () => [{ draw: 'hull', material: 'hull', castShadow: true, receiveShadow: true }, { draw: 'sail', material: 'sail', castShadow: true },
+      { draw: 'gear', material: 'gear', receiveShadow: true }],
+    geometry: (_, draw) => DRAWS[draw].copy(),
+    material: (ctx, key) => key === 'hull' ? lowPolyLookMaterial(ctx.sky, 'solid', (m) => { m.side = THREE.FrontSide; }) : lowPolyLookMaterial(ctx.sky, key === 'gear' ? 'still' : 'default'),
+    colliders: () => boatColliders(),
+    loading: { id: 'driftwood-isle/boat', ready: fixedGeometryReady, load: () => loadFixedGeometry(), size: () => [BEAM, 5.6, LENGTH] },
   }),
-  colliders: () => boatColliders(),
 });
