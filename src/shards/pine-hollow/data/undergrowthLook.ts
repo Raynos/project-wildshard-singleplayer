@@ -43,7 +43,8 @@ function kit() {
  * its instance's) and sways it in the wind: a swell running down the wind, the
  * gust front, a small flutter, weighted by height² and by the geometry's `aWind`, dipping as it leans. The shadow depth
  * takes the same fade, sway and cut. The light keeps the physical sun (and its specular) and adds a back-light from the
- * sun (`sunDir`, `sunTint`: the sky's, set each frame) to the ambient.
+ * sun (the atmosphere's sun direction, which the sky keeps on its light; `sunTint`: the sky's, set each frame) to the
+ * ambient.
  */
 function coverGraph(): GraphIr {
   const k = kit(), { op, add, sub, mul, swz, param } = k;
@@ -68,7 +69,7 @@ function coverGraph(): GraphIr {
   // the light: the physical sun, and the ambient plus a back-light from the sun
   const albedo = op('albedo');
   const sun = mul(mul(mul(mul(albedo, op('sunColour')), op('saturate', [op('dot', [op('normalView'), op('sunDirection')])])), op('sunShadow')), 1 / Math.PI);
-  const back = op('pow', [op('saturate', [op('dot', [op('viewToWorld', [op('viewDirection')]), param('sunDir')])]), 5]);
+  const back = op('pow', [op('saturate', [op('dot', [op('viewToWorld', [op('viewDirection')]), op('atmosphereSunDirection')])]), 5]);
   const ambient = add(mul(mul(op('irradiance'), albedo), 1 / Math.PI), mul(mul(albedo, add(0.05, mul(back, 0.35))), param('sunTint')));
   const big = 1e6;
   return { version: 1, kind: 'material', model: 'standard', budget: { nodes: 160, samplers: 1, instructions: 480 }, doubleSided: true, flipBackfaceNormals: false,
@@ -76,7 +77,6 @@ function coverGraph(): GraphIr {
       viewer: { type: 'vec3', value: [0, 0, 0], min: -big, max: big },
       shift: { type: 'vec3', value: [0, 0, 0], min: -big, max: big },
       fade: { type: 'vec2', value: [60, 18], min: 0, max: 10000 },
-      sunDir: { type: 'vec3', value: [0, 1, 0], min: -1, max: 1 },
       sunTint: { type: 'vec3', value: [1, 0.93, 0.8], min: 0, max: 64 },
     },
     nodes: k.nodes,

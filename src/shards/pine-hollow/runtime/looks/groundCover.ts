@@ -13,7 +13,7 @@ import { pineMappedLook, setPineLookParam } from './graphLooks';
  * kind wears over its own painted texture. The shard gives each kind's look as data (its wind, alpha cut, roughness,
  * whether it lies flat or casts a shadow), its shapes and its texture painters (a canvas each).
  *
- *   const cover = new GroundCover({ sky, forest, look, shapes, paint }).build();   // or buildAsync(pause)
+ *   const cover = new GroundCover({ sky, forest, look, shapes, placements, paint }).buildAsync(pause);
  *   cover.update(dt, playerPos);   // feeds the graph the viewer and the sun
  *
  * Kinds that name the same graph share its lit program: a kind's wind is the `aWind` its geometry carries; its alpha
@@ -91,10 +91,6 @@ export class GroundCover {
   group = new THREE.Group();
   /** each kind's parts: its model draws them */
   kinds!: Readonly<Record<GroundCoverKind, GroundCoverDraw>>;
-  /** how many copies of each kind */
-  counts = { ferns: 0, shrubs: 0, litter: 0, stones: 0, moss: 0, reeds: 0 };
-  /** where every copy of every kind stands */
-  layout: UnderPlacements = { ferns: [], shrubs: [], litter: [], stones: [], moss: [], reeds: [] };
   private readonly viewer = new THREE.Vector3();
   private readonly v3 = [0, 0, 0];
   /** the graphs the kinds wear, each once */
@@ -106,31 +102,15 @@ export class GroundCover {
   /** the view the copies are culled from: the forest's padded frustum, refilled when it moves or turns */
   get view(): Forest { return this.o.forest; }
 
-  /** Every stage in one go. */
-  build(): this {
-    const g = this.stages();
-    while (g.next().done !== true) { /* every stage in one go */ }
-    return this;
-  }
+  /** where every copy of every kind stands */
+  get layout(): UnderPlacements { return this.o.placements; }
 
-  /**
-   * `build()` with the event loop let in between its stages (`pause`, e.g. a macrotask): the textures, then
-   * each kind's placement pass. Same rolls, same placements.
-   */
+  /** The textures and materials, then (after `pause`, e.g. a macrotask, lets the event loop in) each kind's parts. */
   async buildAsync(pause: () => Promise<void>): Promise<this> {
-    const g = this.stages();
-    while (g.next().done !== true) await pause();
-    return this;
-  }
-
-  private *stages(): Generator<void, void, undefined> {
     const far = TIER_CONFIG.undergrowthFar, fade = [far, Math.min(25, far * 0.3)]; // the tier's, read at the build
     this.graphs.forEach((id) => { setPineLookParam(id, 'fade', fade); });
     const made = new Map(this.o.look.kinds.map(([kind, row]) => [kind, { mat: this.makeMaterial(canvasTexture(this.o.paint[kind]()), row), row }]));
-    yield;
-
-    const place = this.o.placements;
-    this.layout = place;
+    await pause();
     const draw = (kind: GroundCoverKind): GroundCoverDraw => {
       const m = made.get(kind);
       if (m === undefined) throw new Error(`[ground cover] no look for ${kind}`);
@@ -140,20 +120,20 @@ export class GroundCover {
       return { geometry, material: m.mat, castShadow: m.row.shadow && TIER_CONFIG.undergrowthShadows };
     };
     this.kinds = { ferns: draw('ferns'), shrubs: draw('shrubs'), litter: draw('litter'), stones: draw('stones'), moss: draw('moss'), reeds: draw('reeds') };
-    this.counts = { ferns: place.ferns.length, shrubs: place.shrubs.length, litter: place.litter.length, stones: place.stones.length, moss: place.moss.length, reeds: place.reeds.length };
+    return this;
   }
 
   /** `playerPos` in the floor's own frame; the fade compares world positions, so it goes out through the group's world
-   *  matrix, whose offset (`shift`) carries each copy's origin out too. The sun's direction and colour are the sky's, moved by the day clock. */
+   *  matrix, whose offset (`shift`) carries each copy's origin out too. The sun's colour is the sky's, moved by the day
+   *  clock (its direction the graph reads from the atmosphere). */
   update(_dt: number, playerPos: THREE.Vector3): void {
-    const sky = this.o.sky, frame = this.group.matrixWorld.elements, at = this.viewer.copy(playerPos).applyMatrix4(this.group.matrixWorld);
+    const sun = this.o.sky.sunColor, frame = this.group.matrixWorld.elements, at = this.viewer.copy(playerPos).applyMatrix4(this.group.matrixWorld);
     for (let i = 0; i < GRAPHS_MAX; i++) {
       const id = this.graphs[i];
       if (id === undefined) break;
       setPineLookParam(id, 'viewer', this.xyz(at.x, at.y, at.z));
       setPineLookParam(id, 'shift', this.xyz(frame[12], frame[13], frame[14]));
-      setPineLookParam(id, 'sunDir', this.xyz(sky.sunDir.x, sky.sunDir.y, sky.sunDir.z));
-      setPineLookParam(id, 'sunTint', this.xyz(sky.sunColor.r, sky.sunColor.g, sky.sunColor.b));
+      setPineLookParam(id, 'sunTint', this.xyz(sun.r, sun.g, sun.b));
     }
   }
 

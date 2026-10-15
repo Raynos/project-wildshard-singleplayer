@@ -13,7 +13,7 @@ import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PA
  * `place` draws instanced into `group` and culls per 32 m cell round the forest's view (E315: `kinds`, `groundCoverMatrix`,
  * `groundCoverCells`; src/shards/pine-hollow/world/drawnModels.ts).
  *
- *   const under = new Undergrowth(sky, forest).build();
+ *   const under = await new Undergrowth(sky, forest, shapes, placements).buildAsync(macrotask);
  *   scene.add(under.group);
  *   game.onUpdate((dt) => under.update(dt, player.position));   // only feeds the viewer position uniform
  *
@@ -32,7 +32,7 @@ import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PA
  * fade and the wind; its look and graph are data/undergrowthLook.ts; its textures are data/undergrowthPaint.ts
  * (@wildshard/sdk/looks/canvasAtlas rows, painted from the level seed when the field builds).
  *
- * Public: `group` (the kinds' placed meshes go in it), `kinds` (each kind's parts), `layout`, `counts`, `view`.
+ * Public: `group` (the kinds' placed meshes go in it), `kinds` (each kind's parts), `layout`, `view`.
  */
 
 /** one kind as the field draws it: its geometry, its material (and its shadow's) — a model's parts (E315) */
