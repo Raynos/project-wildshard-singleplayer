@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
+import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
+import { libraryModel } from '@wildshard/game/models/libraryModel';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { BoxSpec } from '@wildshard/engine/physics/box';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -76,27 +76,18 @@ export function shrineMaterials(ctx: ModelContext): { water: THREE.Material; gly
   });
 }
 
-function shrineParts(ctx:ModelContext,kind:keyof typeof SHRINE_SITES):ModelPart[] {
-  const m=shrineMaterials(ctx),world=kind==='world';
-  return [
-    {geometry:(world?SHRINE_KIT_GEOMETRY:SHRINE_SPECIMEN_KIT_GEOMETRY).copy(),material:lowPolyLookMaterial(ctx.sky, 'still'),castShadow:true,receiveShadow:true},
-    {geometry:(world?SHRINE_WATER_GEOMETRY:SHRINE_SPECIMEN_WATER_GEOMETRY).copy(),material:m.water,receiveShadow:true,renderOrder:1},
-    {geometry:(world?SHRINE_GLYPHS_GEOMETRY:SHRINE_SPECIMEN_GLYPHS_GEOMETRY).copy(),material:m.glyphs,renderOrder:1},
-  ];
-}
+const DRAWS={'world-kit':SHRINE_KIT_GEOMETRY,'world-water':SHRINE_WATER_GEOMETRY,'world-glyphs':SHRINE_GLYPHS_GEOMETRY,
+  'specimen-kit':SHRINE_SPECIMEN_KIT_GEOMETRY,'specimen-water':SHRINE_SPECIMEN_WATER_GEOMETRY,'specimen-glyphs':SHRINE_SPECIMEN_GLYPHS_GEOMETRY};
 export const shrine=defineModel<ShrineParams>({
   id:'driftwood-isle/shrine',name:'Ring shrine',category:'buildings',pipeline:'code',
   file:'src/shards/driftwood-isle/models/shrine.ts',surface:'stone',
-  defaults:{site:SHRINE_SITES.specimen,ground:()=>0},prepare:loadFixedGeometry,
-  build:(ctx,p)=>{
-    const kind=shrineSiteKind(p.site);
-    if(fixedGeometryReady())return shrineParts(ctx,kind);
-    return loadingSpecimen('driftwood-isle/shrine',[20,13,30],async()=>{
-      await loadFixedGeometry();const group=new THREE.Group();
-      for(const part of shrineParts(ctx,kind)){
-        const mesh=new THREE.Mesh(part.geometry,part.material);mesh.castShadow=part.castShadow??false;mesh.receiveShadow=part.receiveShadow??false;mesh.renderOrder=part.renderOrder??0;group.add(mesh);
-      }
-      return group;
-    });
-  },colliders:p=>shrineLayout(p).colliderDescs(),
+  defaults:{site:SHRINE_SITES.specimen,ground:()=>0},
+  ...libraryModel<ShrineParams,'kit'|'water'|'glyphs',keyof typeof DRAWS>({
+    draws:p=>{const kind=shrineSiteKind(p.site);return [{draw:`${kind}-kit`,material:'kit',castShadow:true,receiveShadow:true},
+      {draw:`${kind}-water`,material:'water',receiveShadow:true,renderOrder:1},{draw:`${kind}-glyphs`,material:'glyphs',renderOrder:1}];},
+    geometry:(_,draw)=>DRAWS[draw].copy(),
+    material:(ctx,key)=>key==='kit'?lowPolyLookMaterial(ctx.sky,'still'):shrineMaterials(ctx)[key],
+    colliders:p=>shrineLayout(p).colliderDescs(),
+    loading:{id:'driftwood-isle/shrine',ready:fixedGeometryReady,load:()=>loadFixedGeometry(),size:()=>[20,13,30]},
+  }),
 });

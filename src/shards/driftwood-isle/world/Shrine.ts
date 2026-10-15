@@ -78,7 +78,7 @@ export class Shrine {
   private draw(registry: WorldRegistry | null): this {
     const { x, y: y0, z } = this.o;
     const ctx = modelContext(this.sky);
-    const placed = place(shrine, [{ x, y: y0, z, params: this.params }], { ctx, draw: 'merged', registry,
+    const placed = place(shrine, [{ x, y: y0, z, params: this.params }], { ctx, draw: 'single', registry,
       piece: { id: 'shrine', floor: (px, pz) => this.floorHeightAt(px, pz), solidFloor: true } });
     this.group = placed.object;
     this.placed = placed;
@@ -112,7 +112,7 @@ export class Shrine {
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, top - this.baseY, 0), 18);
     const mesh = new THREE.Mesh(g, this.look?.material);
     mesh.name = 'shrine-fireflies';
-    mesh.position.set(this.spec.x, this.baseY, this.spec.z);
+    mesh.position.set(this.spec.x - this.o.x, this.baseY - this.o.y, this.spec.z - this.o.z); // in the shrine's posed copy
     mesh.renderOrder = 4;
     mesh.visible = this.look !== null;
     this.group.add(mesh);
