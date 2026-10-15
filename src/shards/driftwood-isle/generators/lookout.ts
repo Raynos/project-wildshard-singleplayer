@@ -12,9 +12,10 @@
  * writes both.
  */
 import * as THREE from 'three';
+import type { CableLayout } from '@wildshard/sdk/movers';
 import { SEED } from '@wildshard/engine/core/config';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { log, plank, rope, sagLine, tris } from '@wildshard/engine/world/geometryKit';
+import { log, beam, plank, rope, rock, sagLine, tris } from '@wildshard/engine/world/geometryKit';
 import { LowPolyKit } from '@wildshard/engine/world/lowpolyKit';
 import { boxDesc, type ColliderDesc } from '@wildshard/engine/world/registry';
 
@@ -358,3 +359,47 @@ export function lookoutBake(site: LookoutSite, ground: (x: number, z: number) =>
       floor: { cos: b.cos, sin: b.sin, plat: PLAT, h: H, stair: { x0, len, w } } },
   };
 }
+
+/** Original launch deck, cable and trolley, authored offline beside its lookout. */
+export function buildZiplineGeometry(lay: CableLayout): { rig: THREE.BufferGeometry; trolley: THREE.BufferGeometry } {
+  const palette = { wood: '#8a6440', woodDark: '#5f432a', woodLight: '#a88157', steel: '#3c4046', rope: '#b9a57a', pad: '#c9b27c', straw: '#d8c07a', red: '#a83a2a' };
+  const V = (x: number, y: number, z: number): THREE.Vector3 => new THREE.Vector3(x, y, z);
+  const k = new LowPolyKit(0x21e);
+  const d = lay.deck, cs = Math.cos(d.yaw), sn = Math.sin(d.yaw);
+  const W = (lx: number, ly: number, lz: number): THREE.Vector3 => V(d.x + lx * cs + lz * sn, ly, d.z - lx * sn + lz * cs);
+  const m = new THREE.Matrix4();
+  // the deck: planks across, two stringers, four posts down to the rock, a rail at the back
+  for (let i = 0; i < 12; i++) {
+    const lz = -d.hd + 0.15 + i * 0.3;
+    k.add(plank(d.hw * 2, 0.28, 0.06, k.rng, 0.012), i % 2 ? palette.wood : palette.woodLight, { matrix: m.compose(W(0, d.y - 0.03, lz), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), d.yaw), V(1, 1, 1)) });
+  }
+  for (const sx of [-1, 1]) {
+    k.add(beam(W(sx * (d.hw - 0.1), d.y - 0.12, -d.hd), W(sx * (d.hw - 0.1), d.y - 0.12, d.hd), 0.12, 0.16), palette.woodDark);
+    for (const sz of [-1, 1]) { const p = W(sx * (d.hw - 0.12), 0, sz * (d.hd - 0.15)); k.add(log(V(p.x, d.y - 3.5, p.z), V(p.x, d.y + (sz < 0 ? 1.0 : 0), p.z), 0.1, 0.09, 6), palette.woodDark); }
+  }
+  k.add(beam(W(-d.hw, d.y + 0.95, -d.hd + 0.15), W(d.hw, d.y + 0.95, -d.hd + 0.15), 0.08, 0.1), palette.wood);
+  // the launch A-frame at the outer edge: two legs, a cross beam, the cable anchor block
+  const a = lay.a;
+  for (const sx of [-1, 1]) k.add(log(W(sx * (d.hw - 0.2), d.y, d.hd - 0.1), V(a.x + sx * 0.12 * cs, a.y + 0.35, a.z - sx * 0.12 * sn), 0.09, 0.07, 6), palette.woodDark);
+  k.add(beam(V(a.x - 0.5 * cs, a.y + 0.3, a.z + 0.5 * sn), V(a.x + 0.5 * cs, a.y + 0.3, a.z - 0.5 * sn), 0.14, 0.14), palette.wood);
+  k.add(new THREE.BoxGeometry(0.22, 0.22, 0.22), palette.steel, { matrix: m.makeTranslation(a.x, a.y + 0.05, a.z) });
+  k.add(new THREE.BoxGeometry(0.5, 0.3, 0.06), palette.red, { matrix: m.compose(W(0, d.y + 1.25, -d.hd + 0.15), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), d.yaw), V(1, 1, 1)) });   // a red flag board
+  // the cable: 40 sagging segments
+  const pts: THREE.Vector3[] = [];
+  for (let i = 0; i <= 40; i++) pts.push(lay.at((i / 40) * lay.len, V(0, 0, 0)));
+  k.add(rope(pts, 0.022, 4), palette.steel, { jitter: 0.02 });
+  // the landing: a stout post the cable ends on, a padded stop board, a straw pile to land in
+  const b = lay.b, bg = lay.spec.bottom.y, dir = lay.dir;
+  k.add(log(V(b.x + dir.x * 0.5, bg - 0.6, b.z + dir.z * 0.5), V(b.x + dir.x * 0.5, b.y + 0.5, b.z + dir.z * 0.5), 0.14, 0.12, 7), palette.woodDark);
+  k.add(new THREE.BoxGeometry(0.9, 0.9, 0.2), palette.pad, { matrix: m.compose(V(b.x + dir.x * 0.3, bg + 1.4, b.z + dir.z * 0.3), new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), d.yaw), V(1, 1, 1)) });
+  for (let i = 0; i < 6; i++) { const ang = (i / 6) * Math.PI * 2; k.add(rock(0.55, 0, k.rng, 0.45, 0.35), palette.straw, { matrix: m.makeTranslation(b.x - dir.x * 1.2 + Math.cos(ang) * 0.9, bg + 0.08, b.z - dir.z * 1.2 + Math.sin(ang) * 0.9), jitter: 0.12 }); }
+  const rig = k.finish({ ao: false });
+  // the trolley: a pulley housing on the wire, two straps, a T-bar (origin = on the cable)
+  const t = new LowPolyKit(0x21f);
+  t.add(new THREE.CylinderGeometry(0.11, 0.11, 0.06, 10).rotateX(Math.PI / 2), palette.steel);
+  t.add(new THREE.BoxGeometry(0.08, 0.26, 0.22), palette.red, { matrix: m.makeTranslation(0, -0.08, 0) });
+  for (const sx of [-1, 1]) t.add(log(V(0, -0.18, 0), V(sx * 0.28, -0.72, 0), 0.018, 0.018, 4), palette.rope);
+  t.add(log(V(-0.34, -0.74, 0), V(0.34, -0.74, 0), 0.03, 0.03, 6), palette.woodDark);
+  return { rig, trolley: t.finish({ ao: false }) };
+}
+

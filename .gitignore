@@ -1610,3 +1610,10 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 
 # Generated captain body in the existing creature bundle.
 /public/assets/driftwood-isle/creatures/bodies-0546f1584cf78e498dca2c4bf567602ecce569930345ff35bdc4c7fadb992d00.bin
+
+# Cheap authored zipline geometry.
+/public/assets/driftwood-isle/baked/zipline-f46535e8c9879d9dd99034069990a534923dc9239c2efa6bb069362e49f5b38f.glb
+/public/assets/driftwood-isle/baked/zipline-418925b4346b831476c455e13d1f48118ffb34bcb6084e2d43a06290aa4e5852.glb
+/public/assets/driftwood-isle/baked/zipline-a046356e204f5dc454bafb388cdd01b60789778a428eb9b43b49c4a4120a2f2b.glb
+/public/assets/driftwood-isle/baked/zipline-21ff0e7566db26cbc6d4a67e1990adb9c3c89be792a27f0ece3908647ea0ce79.glb
+/src/shards/driftwood-isle/data/zipline.generated.json

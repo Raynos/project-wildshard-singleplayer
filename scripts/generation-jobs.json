@@ -3,6 +3,46 @@
   "notice": "DO NOT EDIT generated outputs by hand. This sidecar declares their retained source commands and SHA256-pinned build outputs. Regenerate and compare with node scripts/generate.mjs --job=<id> --compare. Only explicitly admitted buildOutputs are restored on a build-time cache miss; other outputs remain committed.",
   "jobs": [
     {
+      "id": "driftwood-zipline",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-zipline.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-zipline.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/bake-zipline.mjs",
+        "src/shards/driftwood-isle/generators/lookout.ts",
+        "src/shards/driftwood-isle/data/spotsRows.json",
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/format",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
+      ],
+      "outputs": [
+        "public/assets/driftwood-isle/baked/zipline-f46535e8c9879d9dd99034069990a534923dc9239c2efa6bb069362e49f5b38f.glb",
+        "public/assets/driftwood-isle/baked/zipline-418925b4346b831476c455e13d1f48118ffb34bcb6084e2d43a06290aa4e5852.glb",
+        "public/assets/driftwood-isle/baked/zipline-a046356e204f5dc454bafb388cdd01b60789778a428eb9b43b49c4a4120a2f2b.glb",
+        "public/assets/driftwood-isle/baked/zipline-21ff0e7566db26cbc6d4a67e1990adb9c3c89be792a27f0ece3908647ea0ce79.glb",
+        "src/shards/driftwood-isle/data/zipline.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "public/assets/driftwood-isle/baked/zipline-f46535e8c9879d9dd99034069990a534923dc9239c2efa6bb069362e49f5b38f.glb",
+        "public/assets/driftwood-isle/baked/zipline-418925b4346b831476c455e13d1f48118ffb34bcb6084e2d43a06290aa4e5852.glb",
+        "public/assets/driftwood-isle/baked/zipline-a046356e204f5dc454bafb388cdd01b60789778a428eb9b43b49c4a4120a2f2b.glb",
+        "public/assets/driftwood-isle/baked/zipline-21ff0e7566db26cbc6d4a67e1990adb9c3c89be792a27f0ece3908647ea0ce79.glb",
+        "src/shards/driftwood-isle/data/zipline.generated.json"
+      ],
+      "platform": "native"
+    },
+    {
       "id": "pine-tree-rest",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-tree-rest.mjs",

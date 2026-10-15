@@ -57,9 +57,6 @@ export class Zipline {
     };
   }
 
-  /** a point on the cable at arc position s (0 … len), sagging as a parabola */
-  at(s: number, out: THREE.Vector3): THREE.Vector3 { return this.lay.at(s, out); }
-
   build(): this {
     const { rig, trolley } = ziplineGeometry(this.lay);
     const mat = lowPolyLookMaterial(this.sky, 'still');
@@ -115,14 +112,10 @@ export class Zipline {
 
   /** after player.update: while riding, the cable owns the player's position */
   update(dt: number, player: { position: THREE.Vector3; velocity: THREE.Vector3 }): void {
-    if (!this.driver.isRiding) return;
+    if (!this.isRiding) return;
     this.driver.update(dt, player);
-    this.showTrolley();
-  }
-
-  private showTrolley(): void {
     if (this.driver.isRiding) {
-      this.at(this.driver.distance, this.trolley.position);
+      this.lay.at(this.driver.distance, this.trolley.position);
       this.trolley.rotation.z = Math.sin(this.driver.distance * 0.7) * 0.05;
     }
   }

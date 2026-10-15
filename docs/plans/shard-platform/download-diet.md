@@ -90,3 +90,12 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   estimate 70,738 → 344,899 B (+274,161 B). The existing captain GLB
   remains the original texture loan; materials, fight and animation stay.
   No Git binary blob, runtime fitting or procedural geometry fallback.
+
+
+- 2026-10-15 DW zipline: the cheap `driftwood-zipline` producer replaces
+  the launch/cable/trolley sculpt with hash-named unquantized GLBs. The
+  world and its cold Explorer card preload four draws together:
+  232,084 B raw / 77,761 B gzip-9 (116,040 / 38,644 for the world
+  rig+trolley; 116,044 / 39,117 for the specimen+parked trolley). No Git binary is added.
+  All 12 geometry channels (204,768 B) match the original builders;
+  classic materials, cable endpoints, colliders and ride law stay.
