@@ -1,7 +1,7 @@
 import { Color, DoubleSide, FrontSide, MeshStandardMaterial, MeshToonMaterial, SRGBColorSpace, Vector2, Vector3, Vector4, type ColorRepresentation } from 'three';
 import { AttributeNode, ConditionalNode, ConstNode, ConvertNode, JoinNode, MathNode, Node, OperatorNode, SplitNode, SubBuildNode, UniformNode, VaryingNode, VarNode } from 'three/webgpu';
 import {
-  cameraPosition, dot, frontFacing, normalLocal, normalView, normalWorld, normalWorldGeometry, positionGeometry, positionLocal, positionViewDirection,
+  cameraPosition, dot, frontFacing, normalLocal, normalView, normalWorld, normalWorldGeometry, positionGeometry, positionLocal, positionView, positionViewDirection,
   positionWorld, screenCoordinate, screenUV, smoothstep, step, time,
 } from 'three/tsl';
 import { GRAPH_PRESET_VERSION, parseFamilyMaterial, type PainterlyMaterialParams, type ToonMaterialParams } from '@wildshard/format/materialFamilies';
@@ -132,13 +132,15 @@ export const graphInputs = {
   vertexColour: op('vertexColour', 'vec3'),
   /** Original geometry colour alpha; 1 for RGB colour attributes or no colour attribute. */
   vertexColourAlpha: op('vertexColourAlpha', 'float'),
+  /** Camera-space vertex position after skinning/instancing; forward is negative Z. */
+  positionView: op('positionView', 'vec3'),
   /** the scene colour at the pixel (a post input) */
   sceneColour: op('sceneColour', 'vec4'),
 } as const;
 
 /** TSL built-ins that are graph inputs as they are (matched by identity; `uv()` by its attribute). */
 const BUILTINS = new Map<Node, string>([
-  [positionLocal, 'positionLocal'], [positionGeometry, 'positionGeometry'], [positionWorld, 'positionWorld'],
+  [positionLocal, 'positionLocal'], [positionGeometry, 'positionGeometry'], [positionWorld, 'positionWorld'], [positionView, 'positionView'],
   [normalLocal, 'normalLocal'], [normalWorld, 'normalWorld'], [normalWorldGeometry, 'normalWorld'], [normalView, 'normalView'],
   [positionViewDirection, 'viewDirection'], [cameraPosition, 'cameraPosition'], [time, 'time'], [screenUV, 'screenUV'],
   [screenCoordinate, 'fragCoord'], [frontFacing, 'frontFacing'],

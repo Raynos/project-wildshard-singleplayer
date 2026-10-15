@@ -20,6 +20,8 @@ async function prove(): Promise<unknown> {
       effectState: { fog: false }, surface: { colour: vec3(graphInputs.vertexColourAlpha, graphInputs.vertexColourAlpha, graphInputs.vertexColourAlpha) } }) } });
     Object.assign(source.look.materials, { animal: { family: 'graph', graph: graph({ model: 'standard',
       effectState: { fog: false }, surface: { colour: vec3(0), emissive: vec3(1, 0, 0) } }) } });
+    Object.assign(source.look.materials, { view: { family: 'graph', graph: graph({ model: 'unlit', effectState: {fog: false},
+      surface: {colour: vec3(graphInputs.positionView.x.div(3).add(0.5), graphInputs.positionView.z.mul(-0.125), 0)} }) } });
     const client = await clientMaterials(source, new Map(), renderer, scope, { graphs: true });
     const material = client.materials.get('alpha');
     if (material === undefined) throw new Error('Missing alpha graph');
@@ -63,9 +65,20 @@ async function prove(): Promise<unknown> {
     };
     const skinRest = skinPixels(); bone.position.x = 2; const skinMoved = skinPixels();
     const red = [255,0,0,255], black = [0,0,0,255];
-    const pass = JSON.stringify(skinRest) === JSON.stringify([red,black]) && JSON.stringify(skinMoved) === JSON.stringify([black,red]) && gl.getError() === gl.NO_ERROR;
-    if (!pass) throw new Error(JSON.stringify({skinRest,skinMoved}));
-    return { pass, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved} };
+    const skinPass = JSON.stringify(skinRest) === JSON.stringify([red,black]) && JSON.stringify(skinMoved) === JSON.stringify([black,red]) && gl.getError() === gl.NO_ERROR;
+    if (!skinPass) throw new Error(JSON.stringify({skinRest,skinMoved}));
+    scene.clear();
+    const viewMaterial = client.materials.get('view');
+    if (viewMaterial === undefined) throw new Error('Missing view-position graph');
+    scene.add(new Mesh(scope.own(new PlaneGeometry(10, 5)), viewMaterial));
+    const viewPixels: number[][] = [];
+    for (const [x,z] of [[0,2],[0.75,4]]) {
+      camera.position.set(x,0,z); renderer.render(scene,camera);
+      const words = new Uint8Array(4); gl.readPixels(96,32,1,1,gl.RGBA,gl.UNSIGNED_BYTE,words); viewPixels.push(Array.from(words));
+    }
+    const pass = viewPixels.every((pixel,i) => Math.abs((pixel[0] ?? -1000)-128) <= 1 && Math.abs((pixel[1] ?? -1000)-(i === 0 ? 64 : 128)) <= 1 && pixel[2] === 0 && pixel[3] === 255) && gl.getError() === gl.NO_ERROR;
+    if (!pass) throw new Error(JSON.stringify({viewPixels}));
+    return { pass, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels };
   } finally { scope.dispose(); renderer.dispose(); renderer.forceContextLoss(); }
 }
 let result: unknown;

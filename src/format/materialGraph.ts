@@ -330,6 +330,7 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   instanceTransform: { arity: [1, 1], rule: 'instanceTransform', cost: 16, type: 'vec4', places: VERT },
   objectOrigin: { arity: [0, 0], rule: 'input', cost: 4, type: 'vec3', places: VERT },
   positionWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: MESH },
+  positionView: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: MESH },
   normalLocal: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH },
   normalWorld: { arity: [0, 0], rule: 'input', cost: 1, type: 'vec3', places: MESH },
   cameraPosition: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3' },

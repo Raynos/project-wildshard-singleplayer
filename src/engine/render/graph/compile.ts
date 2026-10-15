@@ -40,7 +40,7 @@ import {
   Fn, Loop, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, frontFacing, hash,
   instanceIndex, max, materialNormal, materialReference, modelPosition, modelWorldMatrix, modelWorldMatrixInverse,
   mx_noise_float, normalLocal, normalView, normalWorldGeometry, not, or, perspectiveDepthToViewZ, pointUV, property, reference, positionGeometry, positionLocal,
-  positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
+  positionView, positionViewDirection, positionWorld, screenCoordinate, texture, time, uniform, uniformArray, uv, varying, vec2, vec3, vec4, vertexColor,
 } from 'three/tsl';
 import { FRONT_LEN, FRONT_SPEED, FRONT2_LEN, WIND_DIR, windUniforms } from '../../world/wind';
 import { sampleWindField, type WindFieldMath } from '../../world/windField';
@@ -594,6 +594,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'instanceHash': return { t: 'float', n: hash(instanceIndex) };
       case 'vertexColour': return { t: 'vec3', n: new SplitNode(vertexColor(), 'xyz') };
       case 'vertexColourAlpha': return { t: 'float', n: new SplitNode(vertexColor(), 'w') };
+      case 'positionView': return { t: 'vec3', n: positionView };
       case 'screenUV': return { t: 'vec2', n: uv() };
       case 'pointCoord': return { n: pointUV, t: 'vec2' };
       case 'viewBillboard': {
