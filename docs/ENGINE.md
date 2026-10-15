@@ -6161,3 +6161,19 @@ clamp and dirty-range cadence; it does not advance combat or input clocks.
 Pine's stave is the current user. The named G441 W3 consumer is Nalati
 `weapons/recurve.ts#BowMesh.shape` and `writeLeg`, with its original limb,
 section, grip, palette and repaint policies retained locally.
+
+**Packed creature body copies (G441).** `game/plugin/geometry` defines
+`packedCreatureBodies(input)` and its `PackedCreatureBodies` handle. It
+admits a bounded catalogue of hash-named assets, offset-addressed typed
+geometry blocks, bones and dimensions. `preload()` retains the existing
+compressed source once; `copy(kind, variant)` returns fresh owned
+geometry, bone tuples and feet. Missing keys, early copies, unsafe paths,
+truncated blocks and mismatched inflated lengths refuse. Optional raw indices,
+multiple parts and draw groups retain contiguous body layouts; a lent
+decode port handles a caller's existing lane encoding. It installs no
+materials, animation or save owner. Rendered code may import the reader
+lazily at preload so native species modules remain renderer-free.
+Driftwood keeps its existing payload and metadata. The W3 counterpart is
+Nalati `species/bodies.ts`: normalize its contiguous channel/group rows
+at intake, then replace its private body-part, bone and dimension copying;
+its lane decoding, family keys and painterly materials stay unchanged.

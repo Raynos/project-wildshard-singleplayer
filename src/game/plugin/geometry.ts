@@ -1,3 +1,4 @@
+import { unzlibSync } from 'fflate';
 import type { BorrowedNpcSpecimen, borrowedNpcSpecimen } from './ui';
 import type { HeldMeleeRecipe, createHeldPresentation } from './weaponFamily';
 import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
@@ -1292,6 +1293,80 @@ export function readBakedGeometry(bytes: Uint8Array, offset: number, row: BakedG
   g.computeBoundingSphere();
   if (row.box) g.computeBoundingBox();
   return g;
+}
+
+/** A packed body catalogue: load its compressed source once, then lend fresh owned parts per spawn. */
+export interface PackedCreatureBodies {
+  preload: () => Promise<void>;
+  copy: (kind: string, variant: string) => AnimalSpecies;
+}
+
+/**
+ * Admit offset-addressed typed geometry blocks, bones and dimensions without changing their packed representation.
+ * The compressed bytes are retained once; each copy inflates and copies its parts, never sharing mutable geometry.
+ * Missing keys, early copies, unsafe paths, truncated blocks and incompatible metadata refuse before handing out a body.
+ */
+export function packedCreatureBodies(input: unknown, decode: (bytes: Uint8Array) => Uint8Array = unzlibSync): PackedCreatureBodies {
+  const PackedBodyNumber = wholeV.pipe(wholeV.number(), wholeV.finite());
+  const PackedBodyWhole = wholeV.pipe(PackedBodyNumber, wholeV.integer(), wholeV.minValue(0), wholeV.maxValue(268435456));
+  const PackedBodyPart = wholeV.strictObject({ indexEncoding: wholeV.optional(wholeV.picklist(['delta', 'raw'])),
+    groups: wholeV.optional(wholeV.pipe(wholeV.array(wholeV.tuple([PackedBodyWhole, PackedBodyWhole, PackedBodyWhole])), wholeV.maxLength(1024))),
+    offsets: wholeV.pipe(wholeV.array(PackedBodyWhole), wholeV.maxLength(33)), row: wholeV.strictObject({
+    attrs: wholeV.pipe(wholeV.array(wholeV.tuple([wholeV.string(), wholeV.picklist(['f32', 'f16', 'u16', 'i8', 'u8']), wholeV.pipe(PackedBodyWhole, wholeV.minValue(1), wholeV.maxValue(16)), wholeV.boolean()])), wholeV.maxLength(32)),
+  count: PackedBodyWhole, index: wholeV.nullable(wholeV.picklist(['u16', 'u32'])), indexCount: PackedBodyWhole, box: wholeV.boolean() }) });
+  const PackedBodyParts = wholeV.union([wholeV.null(), PackedBodyPart, wholeV.pipe(wholeV.array(PackedBodyPart), wholeV.maxLength(64))]);
+  const PackedBody = wholeV.strictObject({ kind: wholeV.string(), variant: wholeV.string(),
+    bones: wholeV.pipe(wholeV.array(wholeV.strictObject({ name: wholeV.string(), parent: wholeV.nullable(wholeV.string()), pos: wholeV.tuple([PackedBodyNumber, PackedBodyNumber, PackedBodyNumber]) })), wholeV.maxLength(512)),
+    dims: wholeV.strictObject({ bodyY: PackedBodyNumber, bodyHalfLen: PackedBodyNumber, bodyRadius: PackedBodyNumber, headRadius: PackedBodyNumber, legLen: PackedBodyNumber,
+      feet: wholeV.pipe(wholeV.array(wholeV.tuple([PackedBodyNumber, PackedBodyNumber])), wholeV.maxLength(512)), halfWidth: PackedBodyNumber, capsuleAxis: wholeV.optional(wholeV.picklist(['y', 'z'])) }),
+    fur: PackedBodyParts, hard: PackedBodyParts, eye: PackedBodyParts });
+  const bake = wholeV.parse(wholeV.strictObject({ file: wholeV.pipe(wholeV.string(), wholeV.regex(/^\/assets\/[a-zA-Z0-9/_-]+-[0-9a-f]{64}\.bin$/u)),
+    bytes: PackedBodyWhole, bodies: wholeV.pipe(wholeV.array(PackedBody), wholeV.maxLength(1024)) }), input);
+  const keys = new Set<string>();
+  for (const body of bake.bodies) {
+    const key = JSON.stringify([body.kind, body.variant]);
+    if (keys.has(key)) throw new Error('Duplicate packed creature body');
+    keys.add(key);
+    for (const part of [body.fur, body.hard, body.eye].flatMap(parts => parts === null ? [] : Array.isArray(parts) ? parts : [parts])) {
+      const row = part.row;
+      if (row.attrs[0]?.[0] !== 'position' || new Set(row.attrs.map(attr => attr[0])).size !== row.attrs.length
+        || part.offsets.length !== row.attrs.length + (row.index === null ? 0 : 1) || (row.index === null && row.indexCount !== 0)) throw new Error('Invalid packed creature part');
+      const sizes = row.attrs.map(([, type, width]) => row.count * width * BAKED_BYTES[type]);
+      if (row.index !== null) sizes.push(row.indexCount * (part.indexEncoding === 'raw' && row.index === 'u16' ? 2 : 4));
+      if (part.offsets.some((offset, i) => offset % 4 !== 0 || offset + (sizes[i] ?? bake.bytes + 1) > bake.bytes)) throw new Error('Packed creature block exceeds its bake');
+    }
+  }
+  let compressed: Uint8Array | null = null, loading: Promise<void> | null = null;
+  return {
+    preload: () => { loading ??= fetchBuildFile(bake.file).then(bytes => { compressed = bytes; return undefined; }); return loading; },
+    copy: (kind, variant) => {
+      const body = bake.bodies.find(row => row.kind === kind && row.variant === variant);
+      if (body === undefined) throw new Error(`no baked creature body ${kind}.${variant}`);
+      if (compressed === null) throw new Error(`Packed creature bodies are not loaded (${kind}.${variant})`);
+      const bytes = decode(compressed);
+      if (bytes.length !== bake.bytes) throw new Error('Packed creature bake does not match its rows');
+      const part = (sources: wholeV.InferOutput<typeof PackedBodyParts>): BufferGeometry[] => (sources === null ? [] : Array.isArray(sources) ? sources : [sources]).map(source => {
+        const at = (i: number): number => { const offset = source.offsets[i]; if (offset === undefined) throw new Error('Packed creature block is missing'); return offset; };
+        const one = { ...source.row, index: null, indexCount: 0 }, [first, ...rest] = source.row.attrs;
+        if (first === undefined) throw new Error('Packed creature part has no attributes');
+        const g = readBakedGeometry(bytes, at(0), { ...one, attrs: [first] });
+        rest.forEach((attr, i) => { g.setAttribute(attr[0], readBakedGeometry(bytes, at(i + 1), { ...one, attrs: [attr] }).getAttribute(attr[0])); });
+        if (source.row.index !== null) {
+          const start = at(source.row.attrs.length), size = source.row.index === 'u16' ? 2 : 4;
+          if (source.indexEncoding === 'raw') {
+            const buffer = bytes.slice(start, start + source.row.indexCount * size).buffer;
+            g.setIndex(new BufferAttribute(source.row.index === 'u16' ? new Uint16Array(buffer) : new Uint32Array(buffer), 1));
+          } else g.setIndex(readBakedGeometry(bytes, start, { ...source.row, attrs: [] }).index);
+        }
+        for (const [start, count, material] of source.groups ?? []) g.addGroup(start, count, material);
+        return g;
+      });
+      const { capsuleAxis, ...dims } = body.dims;
+      return { bones: body.bones.map(bone => ({ name: bone.name, parent: bone.parent, pos: [bone.pos[0], bone.pos[1], bone.pos[2]] })),
+        furParts: part(body.fur), hardParts: part(body.hard), eyeParts: part(body.eye),
+        dims: { ...dims, feet: dims.feet.map((foot): [number, number] => [foot[0], foot[1]]), ...(capsuleAxis === undefined ? {} : { capsuleAxis }) } };
+    },
+  };
 }
 
 /** a typed array of `a`'s kind holding `a` then `b` */

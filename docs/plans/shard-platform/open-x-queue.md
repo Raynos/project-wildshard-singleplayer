@@ -93,6 +93,7 @@ Jake, 2026-10-15 (G441): a new platform host built for Pine or Driftwood counts 
 | W3 Nalati NPC head focus (G441) | `src/game/plugin/animation.ts#stepNpcHeadFocus` and its three numeric port types | Nalati `src/shards/nalati-grasslands/models/npc/figureMotion.ts#stepNpcFigure`: adopt the head focus, glance cadence and response; retain its phase clock, talking accent, body turn, orbit and matrix posing. | sp-x6 |
 
 | W3 Nalati resource acquisition memo (G441) | `src/engine/app/cachedAssets.ts#ResourceMemo` | Nalati `src/shards/nalati-grasslands/species/hulls.ts#CreatureRigs`: keyed ready/loading maps, shared in-flight acquisition, disposal invalidation and preload reset; keep rig decoding, coat adoption and optional-model failure policy caller-owned. | sp-x5 |
+| W3 Nalati packed creature bodies (G441) | `src/game/plugin/geometry.ts#packedCreatureBodies` and `#PackedCreatureBodies` | Nalati `src/shards/nalati-grasslands/species/bodies.ts#geometry/#nalatiBody`: normalize the contiguous baked channel/group metadata at intake and replace private part/bone/dimension copying; retain lane decoding, family keys and painterly materials. | sp-x6 |
 
 ## Part B: deferred (not started without Jake's word)
 
