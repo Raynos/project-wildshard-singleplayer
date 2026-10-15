@@ -92,6 +92,7 @@
     "./looks/dayLookPresets": "./looks/dayLookPresets.ts",
     "./looks/dayClock": "./looks/dayClock.ts",
     "./looks/daySky": "./looks/daySky.ts",
+    "./looks/graphDaySky": "./looks/graphDaySky.ts",
     "./looks/riggedHulls": "./looks/riggedHulls.ts",
     "./kit/bakedGeometry": "./kit/bakedGeometry.ts",
     "./kit/mergedPrimitives": "./kit/mergedPrimitives.ts",
@@ -514,6 +515,10 @@
       "./looks/daySky": {
         "types": "./dist/types/sdk/looks/daySky.d.ts",
         "default": "./dist/looks/daySky.js"
+      },
+      "./looks/graphDaySky": {
+        "types": "./dist/types/sdk/looks/graphDaySky.d.ts",
+        "default": "./dist/looks/graphDaySky.js"
       },
       "./looks/riggedHulls": {
         "types": "./dist/types/sdk/looks/riggedHulls.d.ts",

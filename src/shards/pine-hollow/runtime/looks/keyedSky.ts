@@ -1,13 +1,10 @@
-import { loadBakedSky, loadLUT, preloadBakedTextures } from '@wildshard/engine/boot/bakedApi';
-import type { OffscreenPass, SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
-import { SkyEnvironment } from '@wildshard/engine/render/skyEnvironment';
-import { resourceScope } from '@wildshard/engine/app/resources';
-import type { OptionValue } from '@wildshard/engine/ui/Settings';
+import { loadBakedSky } from '@wildshard/engine/boot/bakedApi';
+import type { SkyBackdropContext, SkyBackdropFactory, SkyBackdropPost, SkyBackdropTargets } from '@wildshard/engine/render/look';
 import type { DayCycle } from '@wildshard/engine/world/dayCycle';
 import type { SkyRig } from '@wildshard/engine/world/skyRig';
-import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import type { DayClock } from '@wildshard/sdk/looks/dayClock';
 import { driveDayLight, runDayClock } from '@wildshard/sdk/looks/daySky';
+import { graphDaySkyBackdrop, type DaySkyBody, type DaySkyGraphs } from '@wildshard/sdk/looks/graphDaySky';
 import * as THREE from 'three';
 import { skyKeyFiles, type KeyedSkyStyle, type SKY_PRESET, type SkyPreset } from '../../data/keyedSkyRows';
 
@@ -23,7 +20,8 @@ export type KeyedSkyDay = DayClock<typeof SKY_PRESET, KeyedSkyStyle>;
  * on the moon), and scaled by a per-preset gain. The dome adds an analytic aureole around the clock's own sun / moon. Both
  * are the shard's look.materials graphs (data/skyLook.ts; the keys lent as they decode, the rest params set each frame): the
  * dome's, and the environment pass's, which renders the blend into a 1024×512 equirect every 2 s and PMREM turns it into the scene's environment (IBL) in
- * place, so every lit material sees the sky of the hour. The keys' GPU textures are decoded on demand (at most 3 resident:
+ * place, so every lit material sees the sky of the hour. The SDK's graph day sky (`@wildshard/sdk/looks/graphDaySky`) owns
+ * the graphs, the environment, the clock's jumps and the backdrop's lifecycle; this is the sky and its frame. The keys' GPU textures are decoded on demand (at most 3 resident:
  * the two being blended and the next one, decoded ahead); their CPU copies are dropped after upload.
  *
  * THE LIGHT: the scene's CSM lights, hemisphere and fog — never added or removed — driven by the keyed presets: the sun's
@@ -70,10 +68,8 @@ export interface KeyedSkyOptions {
   readonly smallEnv: boolean;
 }
 
-/** The sky's two compiled graphs (the dome, the environment pass) and their checked setters, both params by name. */
-export interface KeyedSkyGraphs {
-  readonly dome: THREE.Material;
-  readonly env: THREE.Material;
+/** The sky's two graphs' setters (the dome's and the environment pass's), both params by name. */
+interface KeyedSkyGraphs {
   readonly set: (name: string, value: number | number[]) => void;
   readonly lend: (name: string, texture: THREE.Texture) => void;
 }
@@ -81,8 +77,6 @@ export interface KeyedSkyGraphs {
 export class KeyedSky {
   readonly clock: DayCycle<SkyPreset>;
   get phase(): number { return this.clock.phase; }
-  set phase(p: number) { this.clock.phase = p; }
-  get cycle(): number { return this.clock.cycle; }
   night = 0;
   dusk = 0;
   dawn = 0;
@@ -93,16 +87,18 @@ export class KeyedSky {
    *  distance fog, + the grade saturation, × the sky's fill (IBL + hemisphere), × the dome by day — the presets' numbers
    *  untouched */
   readonly look = { vol: 1, fogDist: 1, sat: 0, ambient: 1, sky: 1 };
-  /** the dome: add it to the scene; update keeps it on the camera */
+  /** the dome (the host adds it and keeps it on the camera) */
   readonly dome: THREE.Mesh;
+  /** the environment pass: the same sky, one texel per direction of an equirect */
+  readonly envScene = new THREE.Scene();
+  readonly envCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  readonly envEquirect: THREE.WebGLRenderTarget;
   private readonly style: KeyedSkyStyle;
   /** the two keys the graphs blend and their params (`push` sets both graphs) */
   private readonly u = {
     tA: { value: null as THREE.Texture | null }, tB: { value: null as THREE.Texture | null }, mix: 0,
     rotA: new THREE.Vector2(1, 0), rotB: new THREE.Vector2(1, 0), gainA: 1, gainB: 1, lightDir: new THREE.Vector3(0, 1, 0), glow: new THREE.Color(), grey: 0, flat: new THREE.Color(),
   };
-  private T: SkyBackdropTargets | null = null;
-  private post: SkyBackdropPost | null = null;
   private cur: SkyPreset;
   private sun = new THREE.Vector3();
   private moon = new THREE.Vector3();
@@ -111,33 +107,27 @@ export class KeyedSky {
   private loading = new Map<string, Promise<Resident | null>>();
   private blobs = new Map<string, Promise<{ color: Blob; gain: Blob }>>();
   private frame = 0;
-  // the environment: the blend rendered to an equirect, PMREM'd into a cube-UV target reused in place
-  private envEquirect: THREE.WebGLRenderTarget;
-  private envScene = new THREE.Scene();
-  private readonly envQuad: THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
-  private envCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-  /**
-   * The 2-second IBL refresh, with `envSteps` in steps (E142, the 30-fps-at-2× lane): the whole refresh is the sky into the
-   * equirect, then PMREM's GGX prefilter (~2 ms of the M5's GPU in one frame, a phone frame's whole budget); stepped, one
-   * level a frame, in place. A jump (boot, a Time of day pick, a GPU restore) still refreshes whole.
-   */
-  private readonly env: SkyEnvironment;
   private disposed = false;
+  private readonly day: KeyedSkyDay;
+  private readonly renderer: SkyBackdropContext['renderer'];
+  private readonly scene: THREE.Scene;
+  private readonly opts: KeyedSkyOptions;
+  private readonly graphs: KeyedSkyGraphs;
 
-  private constructor(private readonly day: KeyedSkyDay, private renderer: SkyBackdropContext['renderer'], private scene: THREE.Scene, private readonly opts: KeyedSkyOptions, private readonly graphs: KeyedSkyGraphs) {
+  constructor(day: KeyedSkyDay, renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, opts: KeyedSkyOptions, materials: { readonly dome: THREE.Material; readonly env: THREE.Material }, graphs: KeyedSkyGraphs) {
     const style = day.style;
+    this.day = day; this.renderer = renderer; this.scene = scene; this.opts = opts; this.graphs = graphs;
     this.style = style;
     const curves = day.spec.curves;
     this.clock = runDayClock(day, style.cycleMinutes * 60, { ...curves, lamps: (p) => Math.max(curves.lamps(p), .35 * this.mod.overcast) });
-    this.clock.onSet = () => this.jump();
     const first = day.presets[style.frames[0]?.[1] ?? ''];
     if (first === undefined) throw new Error('keyed sky: no keyframes');
     this.cur = day.clone(first);
     const [radius, wSeg, hSeg] = [style.dome.radius, style.dome.segments[0], style.dome.segments[1]];
     // both graphs drawn as the GLSL programs were: no depth, untouched by the material's tone map (the post chain grades it)
-    graphs.dome.depthTest = false; graphs.dome.toneMapped = false; graphs.dome.side = THREE.BackSide;
-    graphs.env.depthTest = false; graphs.env.toneMapped = false;
-    const dome = new THREE.Mesh(new THREE.SphereGeometry(radius, wSeg, hSeg), graphs.dome);
+    materials.dome.depthTest = false; materials.dome.toneMapped = false; materials.dome.side = THREE.BackSide;
+    materials.env.depthTest = false; materials.env.toneMapped = false;
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(radius, wSeg, hSeg), materials.dome);
     dome.name = style.dome.name;
     dome.frustumCulled = false;
     dome.renderOrder = -1000; // first of the opaque pass, depth untouched: everything draws over it
@@ -149,88 +139,42 @@ export class KeyedSky {
     this.envEquirect.texture.mapping = THREE.EquirectangularReflectionMapping;
     const tri = new THREE.BufferGeometry();
     tri.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
-    const quad = new THREE.Mesh(tri, graphs.env);
+    const quad = new THREE.Mesh(tri, materials.env);
     quad.frustumCulled = false;
     this.envScene.add(quad);
-    this.envQuad = quad;
-    this.env = new SkyEnvironment(renderer, this.scene, { kind: 'equirect', scene: this.envScene, camera: this.envCam, target: this.envEquirect }, { every: 2, stepped: opts.envSteps, ready: () => this.u.tA.value !== null });
   }
 
-  /** the clock at the URL's / Settings' time, its first two keys decoded, the environment rendered */
-  static async create(day: KeyedSkyDay, renderer: SkyBackdropContext['renderer'], scene: THREE.Scene, opts: KeyedSkyOptions, graphs: KeyedSkyGraphs): Promise<KeyedSky> {
-    const dn = new KeyedSky(day, renderer, scene, opts, graphs);
-    const [a, b] = dn.segment(dn.phase);
-    await Promise.all([dn.ensure(a[1].key), dn.ensure(b[1].key)]);
-    return dn;
-  }
+  /** a key is lent to the graphs (the environment waits for one) */
+  get ready(): boolean { return this.u.tA.value !== null; }
 
-  /** the environment pass `bind` draws first (op-hitch47): a grid cell's layer links it before it binds this sky */
-  get environmentPass(): OffscreenPass { return { scene: this.envScene, camera: this.envCam, target: this.envEquirect }; }
-
-  /** hand over the lights, fog, disc, clouds and far haze (once they exist); applies the current time */
-  bind(targets: SkyBackdropTargets): void { this.T = targets; this.apply(true); this.env.refresh(); }
-  /** the volumetric shafts and god rays */
-  attachPost(post: SkyBackdropPost): void { this.post = post; this.apply(true); }
-
-  /** Settings ▸ Time of day: park the sun at a pick, or run the clock on from where it stands */
-  setTime(t: OptionValue<'time'>): void {
-    this.clock.setTime(t);
-  }
-  /** Captures and transitions await the two decoded keys. */
-  setPhase(p: number): Promise<void> { return this.clock.set(p); }
-  /** decode the current segment's keys, then snap every knob and the environment to the phase */
-  private async jump(): Promise<void> {
+  /** decode the keys around the clock's phase (a jump, the boot) */
+  async prepare(): Promise<void> {
     const [a, b] = this.segment(this.phase);
     await Promise.all([this.ensure(a[1].key), this.ensure(b[1].key)]);
-    this.apply(true); this.env.refresh();
   }
 
-  update(dt: number, camera: THREE.Camera): void {
-    this.clock.update(dt);
-    this.dome.position.copy(camera.position);
-    this.frame++;
-    this.apply();
-    this.env.update(dt);
+  /** the clock's frame (the host's `drive`): every knob at the phase; `snap` at a jump */
+  drive(T: SkyBackdropTargets | null, post: SkyBackdropPost | null, snap: boolean): void {
+    if (!snap) this.frame++;
+    this.apply(T, post, snap);
   }
 
-  /** after an in-place WebGL restore (GpuRecovery): the keys' CPU copies are gone — decode them again, re-render the IBL */
-  rebuild(): void {
+  /** after an in-place WebGL restore (GpuRecovery): the keys' CPU copies are gone (the host decodes them again) */
+  dropKeys(): void {
     for (const r of this.resident.values()) r.tex.dispose();
     this.resident.clear();
-    this.env.rebuild();
-    void this.setPhase(this.phase);
   }
 
-  /**
-   * Free every GPU resource it holds (a grid region's layered sky leaves with its region): the keys, the environment
-   * equirect, PMREM's targets and passes, the dome and the environment pass. Decodes still in flight drop their texture on
-   * arrival.
-   */
+  /** Free the keys (the host frees the dome, the environment pass and the environment); decodes in flight drop theirs. */
   dispose(): void {
     this.disposed = true;
-    for (const r of this.resident.values()) r.tex.dispose();
-    this.resident.clear(); this.blobs.clear();
+    this.dropKeys(); this.blobs.clear();
     this.u.tA.value = null; this.u.tB.value = null;
-    this.envEquirect.dispose();
-    this.env.dispose();
-    this.dome.removeFromParent();
-    this.dome.geometry.dispose();
-    if (this.dome.material instanceof THREE.Material) this.dome.material.dispose();
-    this.envQuad.geometry.dispose(); this.envQuad.material.dispose();
   }
 
-  /** The GPU bytes held now: the resident keys, the environment equirect and PMREM's cube-UV targets. */
-  gpuBytes(): number {
-    let bytes = this.env.bytes();
-    for (const r of this.resident.values()) bytes += r.bytes;
-    return bytes;
-  }
-
-  /** The most it can hold: three resident keys at the decoded size, the equirect and PMREM's two cube-UV targets. */
-  gpuCeiling(): number {
-    const key = Math.max(0, ...[...this.resident.values()].map((r) => r.bytes));
-    return 3 * key + this.env.ceiling();
-  }
+  /** The GPU bytes the resident keys hold now / at most (three at the decoded size). */
+  keyBytes(): number { let bytes = 0; for (const r of this.resident.values()) bytes += r.bytes; return bytes; }
+  keyCeiling(): number { return 3 * Math.max(0, ...[...this.resident.values()].map((r) => r.bytes)); }
 
   /** the keyframes around phase p: [a, b] and the blend t */
   private segment(p: number): [readonly [number, SkyPreset], readonly [number, SkyPreset], number] {
@@ -312,7 +256,7 @@ export class KeyedSky {
   }
 
   /** `snap`: move the shadow light to the exact phase now (boot, a Time of day pick), not in SHADOW_STEP steps */
-  private apply(snap = false): void {
+  private apply(T: SkyBackdropTargets | null, post: SkyBackdropPost | null, snap: boolean): void {
     const p = this.phase, DAY = this.style.dayFraction, day0 = this.day;
     const [a, b, t] = this.segment(p);
     this.clock.key(this.cur);
@@ -363,7 +307,6 @@ export class KeyedSky {
     this.u.lightDir.copy(day || this.night < 0.5 ? this.sun : this.moon);
     this.u.glow.copy(C.glow).multiplyScalar((day ? THREE.MathUtils.smoothstep(this.sun.y, -0.08, 0.02) : 1) * (1 - ov));
     this.push();
-    const T = this.T;
     if (!T) return;
     const fade = driveDayLight(T, day0, p, this.sun, this.moon, C, 1, SHADOW_STEP, snap);
     // the shadow's depth: full by day, the style's `nightShadow` by night (a uniform: no program changes; ≤ 4 cascades)
@@ -386,7 +329,6 @@ export class KeyedSky {
     T.cloud.uSunDir.value.copy(day || this.night < 0.5 ? this.sun : this.moon);
     T.cloud.uSunColor.value.copy(C.cloudSun); T.cloud.uCloudLit.value.copy(C.cloudLit); T.cloud.uCloudAlpha.value = C.cloudA;
     T.far.uHazeCol.value.copy(C.far); T.far.uSeaSky.value.copy(C.far).multiplyScalar(1.1); T.far.uSeaSun.value.copy(C.light).multiplyScalar(Math.max(0.1, fade)); T.far.uSeaSunDir.value.copy(lightDir);
-    const post = this.post;
     if (post) {
       post.vol.setSun(lightDir, tmpC.copy(C.volColor).multiplyScalar(Math.max(0.15, fade)));
       post.vol.setFogColor(this.fogCol);
@@ -458,37 +400,32 @@ const skies = new WeakMap<SkyRig, KeyedSky>();
 export function keyedSkyOf(sky: SkyRig): KeyedSky | null { return skies.get(sky) ?? null; }
 
 /**
- * A shard's sky backdrop from its keyed-sky row: the clock at the URL's / Settings' time, the baked textures and the level's
- * LUT loaded alongside, the look loop's layer applied, the dome added. `memoryTrim` read once at build: packed keys, and on
- * the phone a half-size environment.
+ * A shard's sky backdrop from its keyed-sky row, on the SDK's graph day sky: the clock at the URL's / Settings' time, its
+ * first two keys decoded, the look loop's layer applied. `memoryTrim` read once at build: packed keys, and on the phone a
+ * half-size environment.
  */
-export function keyedSkyBackdrop(day: KeyedSkyDay, memoryTrim: () => boolean, looks: { readonly source: Parameters<typeof lookGraphMaterials>[2]; readonly dome: string; readonly env: string }): SkyBackdropFactory {
-  return async (context) => {
+export function keyedSkyBackdrop(day: KeyedSkyDay, memoryTrim: () => boolean, looks: { readonly source: Parameters<typeof graphDaySkyBackdrop>[0]['source']; readonly dome: string; readonly env: string }): SkyBackdropFactory {
+  return graphDaySkyBackdrop({ name: 'keyed sky', source: looks.source, ids: [looks.dome, looks.env], build: async (context, g: DaySkyGraphs): Promise<DaySkyBody<SkyPreset>> => {
     const { sky, scene, renderer, level, tier, look } = context;
     const opts: KeyedSkyOptions = { envSteps: level.tiers?.[tier]?.envSteps === true, packKeys: memoryTrim(), smallEnv: tier === 'phone' && memoryTrim() };
-    // the sky's graphs compile from the look catalogue on the page renderer, before the world stage; they leave with the owner
-    const compiled = await lookGraphMaterials(resourceScope(), context, looks.source, [looks.dome, looks.env]);
-    const graph = (id: string): THREE.Material => { const m = compiled.materials.get(id); if (m === undefined) throw new Error(`keyed sky: look.materials lacks ${id}`); return m; };
-    const graphs: KeyedSkyGraphs = { dome: graph(looks.dome), env: graph(looks.env),
-      set: (name, value) => { compiled.setParam(looks.dome, name, value); compiled.setParam(looks.env, name, value); },
-      lend: (name, texture) => { compiled.setTexture(looks.dome, name, texture); compiled.setTexture(looks.env, name, texture); } };
-    const [keyed, , lut] = await Promise.all([KeyedSky.create(day, renderer, scene, opts, graphs), preloadBakedTextures(), loadLUT(level.id)]);
+    const keyed = new KeyedSky(day, renderer, scene, opts, { dome: g.material(looks.dome), env: g.material(looks.env) }, {
+      set: (name, value) => { g.setParam(looks.dome, name, value); g.setParam(looks.env, name, value); },
+      lend: (name, texture) => { g.setTexture(looks.dome, name, texture); g.setTexture(looks.env, name, texture); } });
+    await keyed.prepare();
     skies.set(sky, keyed);
     if (look) Object.assign(keyed.look, { vol: look.vol, fogDist: look.fogDist, sat: look.sat, ambient: look.ambient, sky: look.sky });
     day.sunAt(keyed.phase, sky.sunDir);
-    scene.background = null;
-    scene.add(keyed.dome);
     return {
-      clock: keyed.clock, horizon: new THREE.Color(...level.sky.fogSunColor), lut,
-      bind: (targets) => { keyed.bind(targets); },
-      update: (dt, camera) => { keyed.update(dt, camera); },
-      rebuild: () => { keyed.rebuild(); },
-      attachPost: (post) => { keyed.attachPost(post); },
+      clock: keyed.clock, dome: keyed.dome, follow: true, horizon: new THREE.Color(...level.sky.fogSunColor),
+      // the 2-second IBL refresh, with `envSteps` one PMREM level a frame (E142, the 30-fps-at-2× lane); a jump refreshes whole
+      environment: { source: { kind: 'equirect', scene: keyed.envScene, camera: keyed.envCam, target: keyed.envEquirect }, refresh: { every: 2, stepped: opts.envSteps, ready: () => keyed.ready } },
+      drive: (T, post, snap) => { keyed.drive(T, post, snap); },
+      prepare: () => keyed.prepare(),
+      rebuild: () => { keyed.dropKeys(); },
       // a disposed sky leaves the rig it was registered on (only if it is still the one there)
       dispose: () => { if (skies.get(sky) === keyed) skies.delete(sky); keyed.dispose(); },
-      gpuBytes: () => keyed.gpuBytes(),
-      gpuCeiling: () => keyed.gpuCeiling(),
-      environmentPass: keyed.environmentPass,
+      bytes: () => keyed.keyBytes(),
+      ceiling: () => keyed.keyCeiling(),
     };
-  };
+  } });
 }

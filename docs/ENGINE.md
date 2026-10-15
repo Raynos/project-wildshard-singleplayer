@@ -2196,6 +2196,16 @@ species look's `skin` (null keeps the procedural mesh: no hull, not loaded, or b
 Pine Hollow's `species/hulls.ts` is its binding (row `data/creatureHulls.ts` PINE_HULLS; the thralls' eyes and ferns
 baked by `generators/bake-pine-thrall-extras.mjs`).
 
+**Graph day skies (SHARD-PLATFORM W2 C2).** `@wildshard/sdk/looks/graphDaySky` (`src/sdk/looks/graphDaySky.ts`)
+`graphDaySkyBackdrop(spec)` is a shard's day sky drawn on material graphs as a `SkyBackdropFactory`: the host compiles
+the sky's graphs (`spec.ids` from `spec.source`'s look catalogue, `DaySkyGraphs`), preloads the baked textures and LUT,
+adds the dome, owns the image-based light (`SkyEnvironment`; a scene source may build its first PMREM offscreen), runs
+the clock's jumps (`onSet`: `prepare`, then a snapped `drive` and a whole refresh), keeps the dome on the camera
+(`follow`) or hands it to Game as `clouds`, and frees the dome, the environment pass and the environment on dispose with
+their GPU bytes. The shard's `build(context, graphs)` returns a `DaySkyBody`: its dome, environment source, running clock
+(`runDayClock`) and frame (`drive(targets, post, snap)`), plus what it holds beyond them. Pine Hollow's keyed sky
+(`runtime/looks/keyedSky.ts`) and Driftwood's faceted day (`runtime/looks/facetedDayBackdrop.ts`) are its users.
+
 Shared species take a plain `{ ...BOAR, variants: [...] }` spread to add a variant (the template's Greyback elite).
 
 ## 22. Explore, practice, playgrounds
