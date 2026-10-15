@@ -83,9 +83,16 @@ sleeps, a `for` loop sleeping over 60 s in total and a bare `sleep` over 60 s (a
 
 ## No vite dev servers (Jake, E317: "Vite dev sucks")
 
-Serve a build: `scripts/serve-build.sh [--head] [--hours <h>] [--name <label>]` (≈ 10 s) prints the URL;
-`scripts/serve-build.sh stop <port>` when done. `pnpm dev` runs it too. The hook blocks `vite` dev. The reaper stops a
+Serve a build: `scripts/serve-build.sh [--head | --rev <sha>] [--shard <slug>] [--hours <h>] [--name <label>]` prints the
+URL; `scripts/serve-build.sh stop <port>` when done. `pnpm dev` runs it too. The hook blocks `vite` dev. The reaper stops a
 preview past its `--hours` (default 4), an unregistered one after 6 h and any dev server after 2 h.
+- **Proofs take the fast path by default** (Jake 2026-10-15, *"make each proof quick and cheap"*): `serve-build.sh` runs
+  `gen.mjs --proof` (no derived docs, parallel generation) and `build-shardfiles.mjs --reuse`: a shard whose inputs are
+  unchanged reuses its product, by content key, from the slot or the shared cache `~/.cache/wildshard/shardfiles`
+  (`scripts/shardfile-cache.mjs`; the push gate's full build publishes every shard it builds there). `--shard <slug>`
+  builds only that shard's product (others stay only if still current, never stale); `--full` is the old full rebuild.
+  A proof without a server: `node scripts/build-mirror.mjs run HEAD -- pnpm build:proof`. The push gate and CI still run
+  the full `pnpm build`. The build log prints per-step seconds.
 - **Start previews from your session scratchpad, not the repo root.** Its "all mine" eviction keys on the caller's
   folder, so repo-root previews get killed or reused by other agents. Read `/version.json` on your port before each
   capture batch.
@@ -118,7 +125,7 @@ login progress bar for hours: macOS empties both at boot, before login.
 - **At most three build-mirror slots machine-wide** (`./tmp/build-mirror`): `gate` (the push gate), `commit` (pre-commit)
   and `check` (the default every agent queues for; `serve-build.sh` uses it). Never a slot per lane, agent or subagent:
   each slot is a ~2 GB copy of the tree.
-- **Reuse one served build of HEAD**; rebuild only when your change needs it. Focused tests and quick checks, no repeated
+- **Reuse one served build of HEAD**; rebuild only when your change needs it, and then with the fast path above. Focused tests and quick checks, no repeated
   full rebakes or builds for a small change.
 - **Big scratch only under `./tmp/<task>`**, small, deleted with `rm -rf` on its exact path the moment its result is
   committed; commit the downsized board, never keep full-size preview dumps. Never `/tmp`, `$TMPDIR` or a session

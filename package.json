@@ -8,6 +8,7 @@
     "dev": "bash scripts/serve-build.sh",
     "prebuild": "node scripts/check-css.mjs",
     "build": "python3 scripts/heavy-lane.py build -- bash -c 'pnpm gen && tsc --noEmit && node scripts/build-shardfiles.mjs && vite build && node scripts/check-devserver.mjs dist'",
+    "build:proof": "python3 scripts/heavy-lane.py build -- bash -c 'node scripts/gen.mjs --proof && node scripts/build-shardfiles.mjs --reuse && vite build && node scripts/check-devserver.mjs dist'",
     "build:native": "python3 scripts/heavy-lane.py build -- bash -c 'vite build --mode native'",
     "typecheck": "pnpm gen && tsc --noEmit && tsc -b tsconfig.layers.json && tsc --noEmit -p api && tsc --noEmit -p scripts && tsc --noEmit -p drafts && tsc --noEmit -p drafts/tools && tsc --noEmit -p admin && tsc --noEmit -p admin/tools",
     "build:drafts": "python3 scripts/heavy-lane.py build -- bash -c 'vite build --config drafts/vite.config.ts'",

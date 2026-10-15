@@ -53,6 +53,9 @@ p95 ≤ 17.5 ms; Simulator max ≤ 200 ms, p95 ≤ 35 ms). Nothing you land may 
   lists it in STATE.md's daily 'Calls for Jake'. Anything touching an approved G-row asks first.
 - **Machine (MACHINE.md):** ≤ 4 game browsers machine-wide via `scripts/browser-lane.sh`; mute them; capture as
   "iPhone 16 Pro" unless your row says desktop. No vite dev servers (`scripts/serve-build.sh` from your own scratch dir).
+  **Proofs are fast by default** (MACHINE.md): `serve-build.sh --head` reuses every unchanged shard's product by content
+  key; add `--shard <slug>` for a one-shard capture; `node scripts/build-mirror.mjs run HEAD -- pnpm build:proof` for a
+  build without a server. Never `--full` or a plain `pnpm build` for a proof: the push gate does the full build.
   One Simulator via `scripts/sim-lane.sh`. Opus subagents share one session id: start previews as
   `SERVE_OWNER=<lane> scripts/serve-build.sh …`, or another lane's cleanup evicts them (sp-o100, 2026-10-13). Full suite / app build only through `python3 scripts/heavy-lane.py`; lanes run
   focused tests, never the full suite. Keep vitest light (`WS_VITEST_MAX_WORKERS=4`).

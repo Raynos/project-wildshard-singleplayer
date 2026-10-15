@@ -10,6 +10,9 @@ import { writeGeneratorInventory } from './generator-inventory.mjs';
 import { execFileSync } from 'node:child_process';
 
 const buildInputs = process.argv.includes('--build-inputs');
+// --proof (fast proofs: serve-build.sh, `pnpm build:proof`): the game's build inputs only, with the pre-commit's parallel
+// generation; the derived docs (API docs, WebGPU inventory, scripts/README.md, generator inventory) are skipped.
+const proof = process.argv.includes('--proof');
 async function step(name, run) {
   const started = performance.now();
   try { return await run(); }
@@ -20,7 +23,7 @@ async function step(name, run) {
 await step('arm-clips', () => genStarterArmClips());
 await step('starter-weapons', () => genStarterWeapons());
 // G292 admitted outputs are ready before asset sizes, versions and shard packing read them.
-await step('generation', () => prepareGeneration(`${import.meta.dirname}/..`, { concurrency: buildInputs ? 4 : 1 }));
+await step('generation', () => prepareGeneration(`${import.meta.dirname}/..`, { concurrency: buildInputs || proof ? 4 : 1 }));
 await import('./bake-loader.mjs');
 // DS1.1: structural wire schemas are small deterministic authoring outputs, never committed.
 const { writeFormatJsonSchemas } = await import('./gen-format-schema.mjs');
@@ -42,12 +45,12 @@ await step('shards', () => genShards(undefined, false, false, shard));
 const measures = await step('port-shares', () => genPortShares());
 // SF74 W13 (G281): the API surface, docs/api/*.md and the export index are build outputs, gitignored (~1.6 s).
 // Commit-time inputs (scripts/precommit-inputs.mjs) keep only src/public outputs, so they skip these docs.
-if (!process.argv.includes('--build-inputs')) {
+if (!buildInputs && !proof) {
   const { writeApiDocs } = await import('./gen-api.mjs');
   writeApiDocs();
   execFileSync(process.execPath, ['scripts/webgpu-inventory.mjs'], {cwd: `${import.meta.dirname}/..`, stdio: 'inherit'});
 }
 
 // G405: derived documentation is fresh build output, never commit payload.
-if (!buildInputs) execFileSync(process.execPath, ['scripts/normalize/liveness.mjs', '--readme'], {cwd: `${import.meta.dirname}/..`, stdio: 'inherit'});
-await step('generator-inventory', () => writeGeneratorInventory(`${import.meta.dirname}/..`, measures));
+if (!buildInputs && !proof) execFileSync(process.execPath, ['scripts/normalize/liveness.mjs', '--readme'], {cwd: `${import.meta.dirname}/..`, stdio: 'inherit'});
+if (!proof) await step('generator-inventory', () => writeGeneratorInventory(`${import.meta.dirname}/..`, measures));

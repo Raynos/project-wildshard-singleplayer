@@ -2,10 +2,16 @@
 # serve-build.sh — build the game and serve that build: the ONLY way to run it locally (E317, Jake 2026-09-29: "Vite dev
 # sucks. No one should be using Vite dev … a combination of vite build and vite start"). No `vite` dev servers.
 #
-#   scripts/serve-build.sh [--head | --rev <rev>] [--port <n>] [--hours <h>] [--name <label>] [--devserver]
+#   scripts/serve-build.sh [--head | --rev <rev>] [--shard <slug>[,<slug>]] [--full] [--port <n>] [--hours <h>] [--name <label>] [--devserver]
 #        vite build → a private out dir → `vite preview` on a free port (4400–4999), detached. Prints the URL.
-#        --head   build HEAD in the build mirror's `serve` slot instead of the working tree (nobody's WIP in it)
+#        --head   build HEAD in a build-mirror slot (WILDSHARD_MIRROR_SLOT, default `check`) instead of the working tree
 #        --rev    the same for any commit (a before / after pair, e.g. scripts/nine-sim-memory.mjs --rev=f9ca6490)
+#        --shard  build only these shards' products (a capture of one shard): every other shard keeps its product only
+#                 while its content key still matches, else it is left out of the preview (never served stale)
+#        --full   the push gate's full rebuild (`pnpm gen` + every shardfile from scratch); default is the fast proof
+#                 build: `gen.mjs --proof` (no derived docs, parallel generation) and `build-shardfiles.mjs --reuse`
+#                 (a shard whose inputs are unchanged reuses its product from the slot or the shared content-keyed
+#                 cache, scripts/shardfile-cache.mjs). Same bytes as --full for every changed shard; ~25–40 s, not ~95 s.
 #        --hours  the server is reaped after this long (default 4; `scripts/browser-lane.sh reap`)
 #   scripts/serve-build.sh list                  the servers this script started, their age and expiry
 #   scripts/serve-build.sh stop <port|all-mine>  stop one (all-mine: every server this Claude session started)
@@ -59,13 +65,15 @@ case "${1:-}" in
     exit 0;;
 esac
 
-MODE=production; HEAD_ONLY=0; REV=HEAD; PORT=""; HOURS=4; NAME="build"
+MODE=production; HEAD_ONLY=0; REV=HEAD; PORT=""; HOURS=4; NAME="build"; FULL=0; SHARDS=""
 ARGS=("$@")
 while [ $# -gt 0 ]; do
   case "$1" in
     --devserver) MODE=devserver; shift;;
     --head) HEAD_ONLY=1; shift;;
     --rev) HEAD_ONLY=1; REV="$2"; shift 2;;
+    --full) FULL=1; shift;;
+    --shard) SHARDS="$2"; shift 2;;
     --port) PORT="$2"; shift 2;;
     --hours) HOURS="$2"; shift 2;;
     --name) NAME="$2"; shift 2;;
@@ -169,9 +177,15 @@ export default async (env) => {
 JS
 # the generated files first, as CI's `pnpm build` does: without them a new asset (round 13: Sky Reach's LUT) had no
 # bytes.generated entry, the build skipped it, and every capture scored a game the deploy doesn't ship (E399)
+GEN_ARGS="--proof"; SHARDFILE_ARGS="--reuse"
+[ $FULL -eq 1 ] && { GEN_ARGS=""; SHARDFILE_ARGS=""; }
+[ -n "$SHARDS" ] && SHARDFILE_ARGS="$SHARDFILE_ARGS --shard=$SHARDS"
 ( cd "$SRC" && python3 "$REPO/scripts/heavy-lane.py" build -- bash -c \
-  'node scripts/gen.mjs && node scripts/build-shardfiles.mjs && pnpm exec vite build --mode "$1" --config "$2"' bash "$MODE" "$CFG" ) > "$BASE/$stamp/build.log" 2>&1 \
+  'step() { local s=$SECONDS; "$@" || return; echo "serve-build step $1 $2: $((SECONDS - s))s"; }
+   step node scripts/gen.mjs $3 && step node scripts/build-shardfiles.mjs $4 && step pnpm exec vite build --mode "$1" --config "$2"' \
+  bash "$MODE" "$CFG" "$GEN_ARGS" "$SHARDFILE_ARGS" ) > "$BASE/$stamp/build.log" 2>&1 \
   || { tail -30 "$BASE/$stamp/build.log" >&2; exit 1; }
+grep -h '^serve-build step\|^wildshard build: .* in \|^heavy-lane: acquired' "$BASE/$stamp/build.log" | sed 's/^/serve-build: /' >&2
 # public/ by symlink (vite preview follows them): an entry the build didn't write is linked whole; a folder both have
 # (assets/: the build's JS chunks + public's models) is merged one level down, recursively; a file the build wrote wins
 link_tree() {
