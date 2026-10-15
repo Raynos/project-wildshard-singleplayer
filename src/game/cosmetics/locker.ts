@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type { WeaponId } from '@wildshard/engine/combat/Equipment';
 import type { SkinDef } from '@wildshard/engine/player/Skins';
+import type { SkinRow } from '@wildshard/engine/ui/Menu';
 import { saves } from '@wildshard/engine/saves/runtime';
 import type { SaveSlot } from '@wildshard/engine/saves/store';
 
@@ -55,10 +56,25 @@ export class CosmeticsLocker<Slot extends string, Row extends { id: string }> {
     if (id === null) delete this.worn[slot]; else this.worn[slot] = id;
     this.save();
   }
+  /** A registered, owned cosmetic's next wear action, without saving or applying its look. */
+  pick(id: string): { skin: Row; act: 'wear' | 'off' } | null {
+    const skin = this.rows.get(id);
+    if (skin === undefined || !this.has(id)) return null;
+    return { skin, act: this.wearing(this.profile.slot(skin))?.id === id ? 'off' : 'wear' };
+  }
   toggle(id: string): void {
-    const row = this.rows.get(id);
-    if (row === undefined || !this.owned.has(id)) return;
-    this.wear(this.profile.slot(row), this.worn[this.profile.slot(row)] === id ? null : id);
+    const pick = this.pick(id);
+    if (pick !== null) this.wear(this.profile.slot(pick.skin), pick.act === 'off' ? null : id);
+  }
+  /** Authored card order and words, with live ownership and wear state from this locker. */
+  cardRows(cards: readonly (Omit<SkinRow, 'worn' | 'locked'> & { lockedBlurb: string })[]): SkinRow[] {
+    return cards.map(({ lockedBlurb, ...card }) => {
+      const skin = this.rows.get(card.id);
+      if (skin === undefined) throw new Error('Unregistered cosmetic card');
+      const owned = this.has(card.id);
+      return { ...card, blurb: owned ? card.blurb : lockedBlurb, locked: !owned,
+        worn: owned && this.wearing(this.profile.slot(skin))?.id === card.id };
+    });
   }
   entries(): (Row & { worn: boolean })[] {
     const entries: (Row & { worn: boolean })[] = [];

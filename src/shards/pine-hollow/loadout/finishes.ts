@@ -1,5 +1,4 @@
 import type { EffectDef } from '@wildshard/engine/combat/effects/types';
-import type { SkinRow } from '@wildshard/engine/ui/Menu';
 import { pineFinishEffect } from './effects';
 /**
  * Pine Hollow's FINISHES row on the Bag's GEAR (E314, Jake's pick C, art/loot/round-3-other-shards/board-1-pine-hollow.jpg):
@@ -30,20 +29,12 @@ const WEAPON_WORD: Record<'crossbow' | 'rifle', string> = { crossbow: 'Crossbow'
 
 export const isSkinId = (id: string): id is SkinId => Object.hasOwn(SKINS, id);
 
-export function pineFinishes(locker: Pick<SkinLocker, 'has' | 'wearing'>): SkinRow[] {
-  return FINISHES.map(({ id, from }) => {
-    const s = SKINS[id], owned = locker.has(id);
-    return {
-      id, name: s.name, worn: owned && locker.wearing(s.weapon)?.id === id, locked: !owned,
-      blurb: owned ? WEAPON_WORD[s.weapon] : `${WEAPON_WORD[s.weapon]} · ${from}`,
-      icon: s.weapon === 'rifle' ? 'lever' : 'crossbow',
-    };
-  });
-}
+const CARDS = FINISHES.map(({ id, from }) => {
+  const skin = SKINS[id], word = WEAPON_WORD[skin.weapon];
+  return { id, name: skin.name, blurb: word, lockedBlurb: `${word} · ${from}`,
+    icon: skin.weapon === 'rifle' ? 'lever' as const : 'crossbow' as const };
+});
+export const pineFinishes = (locker: Pick<SkinLocker, 'cardRows'>): ReturnType<SkinLocker['cardRows']> => locker.cardRows(CARDS);
 
 /** a tap on finish `id`: wear it, take it off (it is worn), or nothing (not owned / not a finish) */
-export function finishPick(locker: Pick<SkinLocker, 'has' | 'wearing'>, id: string): { skin: (typeof SKINS)[SkinId]; act: 'wear' | 'off' } | null {
-  if (!isSkinId(id) || !locker.has(id)) return null;
-  const skin = SKINS[id];
-  return { skin, act: locker.wearing(skin.weapon)?.id === id ? 'off' : 'wear' };
-}
+export const finishPick = (locker: Pick<SkinLocker, 'pick'>, id: string): ReturnType<SkinLocker['pick']> => isSkinId(id) ? locker.pick(id) : null;

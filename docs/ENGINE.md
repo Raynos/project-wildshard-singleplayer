@@ -2030,6 +2030,17 @@ runtime.play.animals.spawn('my-shard.wisp', x, z, yaw, undefined, { y: 32 });
 
 `CosmeticsLocker<Slot, Row>` (`@wildshard/game`) owns registered cosmetics, validates saved ownership and slot matches, and provides `own`, `wear`, `toggle`, `wearing`, `entries`, `version` and `onChange`. A `CosmeticProfile` supplies a slot selector, save slot and optional `autoWear` for empty slots. `SkinLocker` is the weapon-material profile (`SkinDef.weapon`), using the existing per-shard `skins` save with manual wear; Nalati supplies its own saved skin rows and auto-wear policy.
 
+`src/game/cosmetics/locker.ts` owns the cosmetic inventory card state.
+`CosmeticsLocker.pick(id)` returns the registered owned row and its next
+`wear` / `off` action without changing state, saving or applying a look.
+`cardRows(cards)` combines authored card order, icon, name, owned blurb and
+`lockedBlurb` with live ownership and per-slot wear state. Unknown card IDs
+refuse; `toggle` uses the same choice before its existing save path. Pine's
+finish menu uses these methods. Nalati's W3 `bag.ts#skinRows` adopts the same
+card-state owner, retaining its source labels and slot icons; its existing
+locker already uses the shared toggle and auto-wear policy.
+
+
 `@wildshard/game/inventoryLaw` defines the shipping `DEFAULT_PACK_SLOTS` fallback and renderer-free `InventoryState`, `InventoryPolicy`, `addInventory` and
 `takeInventory`. The page's `Inventory` supplies its actual catalogue, kept kinds and slot limit; it continues to own
 legacy save filtering, write timing and change notifications. Headless consumers supply the same authored pack policy.
