@@ -335,7 +335,7 @@ cell (the row text is the authority).
 
 ## 6. Done when
 
-**G417 overrides what follows:** one measure only, custom ÷ frozen legacy (the second measure is gone); **M2 is done** when the 3 × 3 grid plays from the menu with seamless travel and Jake's three phone runs have no tab kill and feel OK, with no Simulator millisecond targets; **the compatibility proofs** a shard must pass are headless only (it simulates on a server with no renderer); exact replay, ledger and witness matching are dropped.
+**G433:** the Explorer memory limit is 1.2 GB until the plan ends; the last row before the plan closes brings it back under 1.0 GB. **G417 overrides what follows:** one measure only, custom ÷ frozen legacy (the second measure is gone); **M2 is done** when the 3 × 3 grid plays from the menu with seamless travel and Jake's three phone runs have no tab kill and feel OK, with no Simulator millisecond targets; **the compatibility proofs** a shard must pass are headless only (it simulates on a server with no renderer); exact replay, ledger and witness matching are dropped.
 
 Part A (this plan's goal):
 - **M1:** every milestone boolean true for the template.
@@ -481,7 +481,7 @@ line to Jake at each milestone.
 Everything in [`shard-platform/`](shard-platform/), beside this file:
 
 - [STATE.md](shard-platform/STATE.md): the live status, calls for Jake and the fleet (coordinator only, ≤ 3 KB).
-- [decisions.md](shard-platform/decisions.md): every decision G1–G432+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
+- [decisions.md](shard-platform/decisions.md): every decision G1–G433+ and the pre-grill picks Q1–Q5, verbatim; superseded rows marked.
 - [rows.md](shard-platform/rows.md): §4 in full, Part A and Part B, with done-whens and evidence.
 - [contracts.md](shard-platform/contracts.md): §3 in full (determinism, caps, the grid, versioning, a shard project).
 - [history.md](shard-platform/history.md): the long State line, the council-time baseline (old §2), the pre-G291 measure and the 2026-10-04 Handoff.

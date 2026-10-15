@@ -14,7 +14,7 @@ Each line is a rule; the date or ask id is where he said it.
   first-minute reading or any Mac number overstates what the phone holds.
 - **Render scale stays 2× on the phone.** Never dynamic resolution or a render-scale drop as a perf fix (E142: "a
   complete bullshit hack"); perf work is real cost cuts, measured at 2×.
-- **Memory limits are 1.8 GB while loading and 1.0 GB in the Explorer** (decimal). The per-shard `gpuMB` ceilings are a
+- **Memory limits are 1.8 GB while loading and 1.0 GB in the Explorer** (decimal). Temporarily **1.2 GB in the Explorer** until SHARD-PLATFORM ends (Jake, 2026-10-15: *"To speed things up let's lift the memory cap to 1.2gb and fix it later at the very end"*, G433); bringing it back under 1.0 GB is the plan's last step. The per-shard `gpuMB` ceilings are a
   ratchet for spotting jumps, not the device limit: never quote one as "the budget", never propose a cap below the
   device limits, and no GPU-memory check trips below 500 MB (E424, "ceremony porn").
 
