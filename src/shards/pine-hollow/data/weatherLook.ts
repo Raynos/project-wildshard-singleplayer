@@ -48,7 +48,8 @@ function kit() {
  * = p · `coverK` + 0.5) stops the rain under a roof and turns most of it under the crowns into short, straight drips.
  * No rain in the cave's hood (`cave`: x, z, cos yaw, sin yaw; `caveBox`: half width, lz from, lz to, the ceiling's world
  * y; all 0 with no hood). Each streak turns its width to the eye and fades at the box's walls and right at the eye. The
- * fog takes 0.6 of it (`vertex.scale`); `colour`, `alpha`, `velocity` and `length` follow the rain, the wind and the fog.
+ * fog takes 0.6 of it (`vertex.scale`); its colour is the fog's, lifted; `alpha`, `velocity` and `length` follow the
+ * rain and the wind.
  */
 function curtainGraph(): GraphIr {
   const k = kit(), { op, add, sub, mul, swz, ss, param } = k;
@@ -76,7 +77,7 @@ function curtainGraph(): GraphIr {
   const edge = op('oneMinus', [ss(mul(R, 0.65), mul(R, 0.98), far)]);
   const vA = mul(mul(mul(keep, edge), mul(ss(0.5, 2.2, dist), op('mix', [0.15, 1, cy]))), op('mix', [1, 1.4, drip]));
   const alpha = mul(op('varying', [vA]), param('alpha'));
-  const colour = mul(param('colour'), op('mix', [1, 1.15, op('varying', [drip])]));
+  const colour = mul(add(mul(op('fogColour'), 1.5), 0.04), op('mix', [1, 1.15, op('varying', [drip])]));
   const big = 1e6;
   return { version: 1, kind: 'material', model: 'unlit', doubleSided: true, effectState: { blend: 'alpha', depthWrite: false },
     params: {
@@ -88,7 +89,6 @@ function curtainGraph(): GraphIr {
       radius: { type: 'float', value: 16, min: 1, max: 100 },
       velocity: { type: 'vec3', value: [0, -9, 0], min: -100, max: 100 },
       length: { type: 'float', value: 0.9, min: 0, max: 10 },
-      colour: { type: 'vec3', value: [0.6, 0.65, 0.75], min: 0, max: 64 },
       alpha: { type: 'float', value: 0.3, min: 0, max: 1 },
     },
     nodes: k.nodes,
@@ -99,7 +99,7 @@ function curtainGraph(): GraphIr {
  * The splashes at the feet: per instance slot (`aSplash`: x, y, z, born on the `time` param's clock, set each frame) a flat
  * ripple ring (corners with z 0) and an upright crown facing the eye (z 1), both posed from the slot's age over 0.42 s;
  * a dead slot collapses to a point. The ring widens and thins out; the crown throws five droplets up and out on arcs.
- * `colour` and `alpha` follow the rain and the fog colour, set each frame.
+ * Its colour is the fog's, lifted; `alpha` follows the rain, set each frame.
  */
 function splashGraph(): GraphIr {
   const k = kit(), { op, add, sub, mul, swz, fall, param } = k;
@@ -131,40 +131,59 @@ function splashGraph(): GraphIr {
   return { version: 1, kind: 'material', model: 'unlit', budget: { nodes: 200, samplers: 1, instructions: 500 }, doubleSided: true, effectState: { blend: 'alpha', depthWrite: false, fog: false, singlePass: true },
     params: {
       time: { type: 'float', value: 0, min: 0, max: 1e9 },
-      colour: { type: 'vec3', value: [0.8, 0.84, 0.9], min: 0, max: 64 },
       alpha: { type: 'float', value: 0.5, min: 0, max: 1 },
     },
-    nodes: k.nodes, stages: { 'vertex.position': { position }, surface: { colour: param('colour'), alpha, discard: op('lt', [alpha, 0.01]) } } };
+    nodes: k.nodes, stages: { 'vertex.position': { position }, surface: { colour: add(mul(op('fogColour'), 1.4), 0.05), alpha, discard: op('lt', [alpha, 0.01]) } } };
 }
 
 /**
- * The drops on the lens: one clip-space quad per drop (`aDrop`: ndc x, y, radius in ndc y, alpha), a bead a little
- * taller than wide; the fragment is an uneven bead showing the world upside down and small (the bright sky pooled low,
- * the dark ground high) with a dark rim and a glint. `aspect` (the camera's), `sky` and `ground` (from the fog colour)
- * are set each frame; depth testing is switched off on the worn material (runtime/looks/rainFx).
+ * The drops on the lens: one clip-space quad per slot, every drop landed, slid and dried here from the slot
+ * (`instanceHash`) and the lens clock (`clock`: seconds, run three times faster under a roof, so the drops dry off
+ * quicker). Each slot lives a drop of its own 2.5–6 s life over and over, every life a new spot, size and (one in three)
+ * a slide down after a beat; `wet` (0..1: the exposure to the open sky, smoothed, times the share of slots that hold a
+ * drop) says which lives show. The bead is a little taller than wide; the fragment is an uneven bead showing the world
+ * upside down and small (the bright sky pooled low, the dark ground high, both from the fog's colour) with a dark rim
+ * and a glint. `aspect` (the camera's) is set each frame; depth testing is switched off on the worn material
+ * (runtime/looks/rainFx).
  */
 function lensGraph(): GraphIr {
   const k = kit(), { op, add, sub, mul, swz, ss, fall, param } = k;
-  const drop = k.attr('aDrop'), corner = swz(op('positionGeometry'), 'xy');
-  const scale = mul(mul(corner, swz(drop, 'z')), op('combine', [op('div', [1, param('aspect')]), 1.15]));
-  const clip = op('combine', [add(swz(drop, 'xy'), scale), 0, 1]);
-  const uv = op('varying', [corner]), vA = op('varying', [swz(drop, 'w')]);
-  const vSeed = op('varying', [op('fract', [mul(op('sin', [add(mul(swz(drop, 'x'), 91.3), mul(swz(drop, 'y'), 47.1))]), 1753.1)])]);
+  const corner = swz(op('positionGeometry'), 'xy'), slot = op('instanceHash');
+  const life = op('mix', [2.5, 6, op('fract', [mul(slot, 7.13)])]);
+  const phase = add(op('div', [param('clock'), life]), slot), age = mul(op('fract', [phase]), life);
+  const seed = add(op('floor', [phase]), mul(slot, 1000));
+  /** a fraction (0..1) of this life, one per `n` (a sine-free hash: it stays even on a long clock) */
+  const roll = (n: number): string => {
+    const p = op('fract', [mul(add(seed, n * 17.31), 0.1031)]), q = mul(p, add(p, 33.33));
+    return op('fract', [mul(q, add(q, q))]);
+  };
+  const r = op('mix', [0.018, 0.05, roll(3)]), show = roll(6);
+  // one in three lets go after a beat and runs down, speeding up to its pace (the old CPU fall, in closed form)
+  const slide = add(op('mix', [0.6, 1.4, roll(5)]), mul(op('step', [0.35, roll(4)]), 1e3));
+  const tau = op('max', [sub(age, slide), 0]), tc = op('min', [tau, 0.7]);
+  const run = add(mul(mul(tc, tc), 0.25), mul(op('max', [sub(tau, 0.7), 0]), 0.35));
+  const y = sub(op('mix', [-0.8, 0.95, roll(2)]), mul(mul(r, 12), run));
+  const fade = mul(op('min', [1, op('div', [age, 0.12])]), op('oneMinus', [ss(mul(life, 0.6), life, age)]));
+  const a = mul(mul(fade, op('step', [-1.1, y])), ss(show, add(show, 0.08), param('wet')));
+  const radius = mul(mul(r, op('oneMinus', [mul(op('min', [1, op('div', [tau, 0.7])]), 0.3)])), op('step', [0.001, a]));
+  const scale = mul(mul(corner, radius), op('combine', [op('div', [1, param('aspect')]), 1.15]));
+  const clip = op('combine', [add(op('combine', [op('mix', [-0.95, 0.95, roll(1)]), y]), scale), 0, 1]);
+  const uv = op('varying', [corner]), vA = op('varying', [a]), vSeed = op('varying', [roll(7)]);
   const uy = swz(uv, 'y'), ang = op('atan', [uy, swz(uv, 'x')]);
   const wob = add(add(1, mul(op('sin', [add(mul(ang, 3), mul(vSeed, 6.3))]), 0.07)), mul(op('sin', [sub(mul(ang, 5), mul(vSeed, 4))]), 0.04));
-  const r = mul(op('length', [uv]), wob);
-  const body = fall(0, 1, r), sky = param('sky'), ground = param('ground');
-  const rim = mul(ss(0.72, 0.95, r), fall(0.95, 1, r));
+  const rr = mul(op('length', [uv]), wob);
+  const body = fall(0, 1, rr), fogC = op('fogColour'), sky = add(mul(fogC, 1.45), 0.06), ground = mul(fogC, 0.35);
+  const rim = mul(ss(0.72, 0.95, rr), fall(0.95, 1, rr));
   const glint = fall(0, 0.22, op('length', [sub(uv, [-0.32, 0.4])]));
   const col = add(op('mix', [op('mix', [ground, sky, fall(-0.6, 0.5, uy)]), mul(ground, 0.35), mul(rim, 0.8)]), mul(glint, 0.9));
-  const alpha = mul(mul(mul(add(add(0.28, mul(rim, 0.4)), mul(glint, 0.5)), fall(0.9, 1, r)), vA), op('mix', [0.8, 1, body]));
-  return { version: 1, kind: 'material', model: 'unlit', budget: { nodes: 120, samplers: 1, instructions: 300 }, effectState: { blend: 'alpha', depthWrite: false, fog: false },
+  const alpha = mul(mul(mul(add(add(0.28, mul(rim, 0.4)), mul(glint, 0.5)), fall(0.9, 1, rr)), vA), op('mix', [0.8, 1, body]));
+  return { version: 1, kind: 'material', model: 'unlit', budget: { nodes: 240, samplers: 1, instructions: 500 }, effectState: { blend: 'alpha', depthWrite: false, fog: false },
     params: {
       aspect: { type: 'float', value: 1, min: 0.05, max: 20 },
-      sky: { type: 'vec3', value: [0.8, 0.82, 0.86], min: 0, max: 64 },
-      ground: { type: 'vec3', value: [0.2, 0.22, 0.2], min: 0, max: 64 },
+      clock: { type: 'float', value: 0, min: 0, max: 1e9 },
+      wet: { type: 'float', value: 0, min: 0, max: 1 },
     },
-    nodes: k.nodes, stages: { 'vertex.clip': { position: clip }, surface: { colour: col, alpha, discard: op('gt', [r, 1]) } } };
+    nodes: k.nodes, stages: { 'vertex.clip': { position: clip }, surface: { colour: col, alpha, discard: op('gt', [rr, 1]) } } };
 }
 
 /** The rain's graphs by look.materials id. */

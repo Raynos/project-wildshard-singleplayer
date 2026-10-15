@@ -103,7 +103,6 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
   const baseMist = h.particles?.params.mistOpacity ?? 1;
   const shelter = new HerdShelter(h.animals, h.trees, (x, z) => fx.coverAt(x, z), PINE_HERD_SHELTER);
   const wind = { x: 0, z: 0 };
-  const fogCol = new THREE.Color(0.6, 0.65, 0.72);
 
   const veil = { x: { value: 0 }, y: { value: 0 } };
   const roots = new Map<string, unknown>(Object.entries({ mod: pine.mod, fog: fogUniforms, weather: weatherUniforms, volume: volumetricFog,
@@ -170,9 +169,7 @@ export function installPineWeather(h: PineWeatherHost, ctx?: LevelContext, enter
     }
     if (h.horizonVeil) h.horizonVeil.value.set(veil.x.value, veil.y.value);
     if (h.ambience) h.ambience.rain = room ? 0 : weather.rain;
-    const f = h.game.scene.fog;
-    if (f instanceof THREE.Fog || f instanceof THREE.FogExp2) fogCol.copy(f.color);
-    fx.update(dt, weather, fogCol, wind, h.game.camera);
+    fx.update(dt, weather, wind, h.game.camera);
     shelter.update(dt, weather.rain);
     stagInFog(eye, dt);
   };

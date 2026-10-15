@@ -113,9 +113,9 @@ export class RainFx {
   private splashAttr!: THREE.InstancedBufferAttribute;
   private splashNext = 0;
   private splashAcc = 0;
-  private lensAttr!: THREE.InstancedBufferAttribute;
-  private readonly drops: { x: number; y: number; r: number; age: number; life: number; vy: number; slide: number }[] = [];
-  private lensAcc = 0;
+  /** the lens drops' clock (s; three times as fast under a roof) and their smoothed exposure × slot share */
+  private lensClock = 0;
+  private lensWet = 0;
   private readonly eye = new THREE.Vector3();
   private readonly fwd = new THREE.Vector3(0, 0, -1);
   private readonly xrng: Rng;
@@ -142,19 +142,18 @@ export class RainFx {
     return this;
   }
 
-  /** crown cover (0..1) at (x, z), from the CPU copy of the cover map (the animals' shelter, the ambience) */
-  coverAt(x: number, z: number): number {
-    const N = this.coverN;
-    const i = Math.floor((x + CHUNK_HALF) / (2 * CHUNK_HALF) * N), j = Math.floor((z + CHUNK_HALF) / (2 * CHUNK_HALF) * N);
-    if (i < 0 || j < 0 || i >= N || j >= N) return 0;
-    return (this.coverData[(j * N + i) * 4] ?? 0) / 255;
+  /** the cover map's byte `ch` (0 R the crowns, 1 G a roof) at (x, z); 0 off the map */
+  private texel(x: number, z: number, ch: number): number {
+    const N = this.coverN, i = Math.floor((x + CHUNK_HALF) / (2 * CHUNK_HALF) * N), j = Math.floor((z + CHUNK_HALF) / (2 * CHUNK_HALF) * N);
+    return i < 0 || j < 0 || i >= N || j >= N ? 0 : this.coverData[(j * N + i) * 4 + ch] ?? 0;
   }
+
+  /** crown cover (0..1) at (x, z), from the CPU copy of the cover map (the animals' shelter, the ambience) */
+  coverAt(x: number, z: number): number { return this.texel(x, z, 0) / 255; }
 
   /** no rain reaches (x, y, z): under a roof (the cover map's G) or in the hood */
   private dryAt(x: number, y: number, z: number): boolean {
-    const N = this.coverN;
-    const i = Math.floor((x + CHUNK_HALF) / (2 * CHUNK_HALF) * N), j = Math.floor((z + CHUNK_HALF) / (2 * CHUNK_HALF) * N);
-    if (i >= 0 && j >= 0 && i < N && j < N && (this.coverData[(j * N + i) * 4 + 1] ?? 0) > 127) return true;
+    if (this.texel(x, z, 1) > 127) return true;
     const c = this.cave, b = this.caveBox, dx = x - c.x, dz = z - c.y;
     const lx = dx * c.z - dz * c.w, lz = dx * c.w + dz * c.z;
     return Math.abs(lx) < b.x && lz > b.y && lz < b.z && y < b.w;
@@ -254,16 +253,13 @@ export class RainFx {
   }
 
   // ─────────────────────────── drops on the lens ───────────────────────────
-  /** quads in clip space over everything (no depth, no scene sample) */
+  /** one quad a slot in clip space over everything (no depth, no scene sample); the `programs.lens` graph lands, slides
+   *  and dries each slot's drops from its clock */
   private buildLens(): THREE.Mesh {
-    const n = this.o.phone ? this.o.look.lensDrops.phone : this.o.look.lensDrops.desktop;
     const geo = new THREE.InstancedBufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-1, -1, 0, 1, -1, 0, -1, 1, 0, 1, 1, 0]), 3));
     geo.setIndex([0, 1, 2, 1, 3, 2]);
-    this.lensAttr = new THREE.InstancedBufferAttribute(new Float32Array(n * 4), 4); // ndc x, y, radius (ndc y), alpha
-    this.lensAttr.setUsage(THREE.DynamicDrawUsage);
-    geo.setAttribute('aDrop', this.lensAttr);
-    geo.instanceCount = 0;
+    geo.instanceCount = this.o.phone ? this.o.look.lensDrops.phone : this.o.look.lensDrops.desktop;
     geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e6);
     const mat = pineLook(this.o.programs.lens);
     mat.depthTest = false; // over everything
@@ -272,53 +268,28 @@ export class RainFx {
     return m;
   }
 
-  /** the drops: land while the rain reaches the eye (facing the open sky: more looking up, none looking down), bead, slide, dry */
+  /** the drops land while the rain reaches the eye (facing the open sky: more looking up, none looking down) and dry off
+   *  three times as fast under a roof; ~6.8 drops at full exposure, as many as the slots hold at most */
   private updateLens(dt: number, rain: number): void {
-    const rng = this.xrng, max = this.lensAttr.count;
-    const dry = this.dryAt(this.eye.x, this.eye.y, this.eye.z);
+    const dry = this.dryAt(this.eye.x, this.eye.y, this.eye.z), slots = this.o.phone ? this.o.look.lensDrops.phone : this.o.look.lensDrops.desktop;
     const expose = dry ? 0 : rain * (1 - 0.7 * this.coverAt(this.eye.x, this.eye.z)) * THREE.MathUtils.smoothstep(this.fwd.y, -0.55, 0.25);
-    this.lensAcc += dt * expose * 1.6;
-    while (this.lensAcc >= 1) {
-      this.lensAcc -= 1;
-      if (this.drops.length >= max) break;
-      this.drops.push({ x: rng.range(-0.95, 0.95), y: rng.range(-0.8, 0.95), r: rng.range(0.018, 0.05), age: 0, life: rng.range(2.5, 6), vy: 0, slide: rng.next() < 0.35 ? rng.range(0.6, 1.4) : 0 });
-    }
-    if (this.lensAcc > 1) this.lensAcc = 1;
-    const arr = this.lensAttr.array;
-    let k = 0;
-    for (let i = this.drops.length - 1; i >= 0; i--) {
-      const d = this.drops[i];
-      if (d === undefined) continue;
-      d.age += dt * (dry ? 3 : 1); // under a roof they dry off quicker
-      // a big bead lets go after a beat and runs down, slowing as it thins
-      if (d.slide > 0 && d.age > d.slide) { d.vy = Math.min(0.35, d.vy + dt * 0.5); d.y -= d.vy * dt * d.r * 12; }
-      if (d.age >= d.life || d.y < -1.1) { this.drops.splice(i, 1); continue; }
-    }
-    for (const d of this.drops) {
-      const fade = Math.min(1, d.age / 0.12) * (1 - THREE.MathUtils.smoothstep(d.age, d.life * 0.6, d.life));
-      arr[k * 4] = d.x; arr[k * 4 + 1] = d.y; arr[k * 4 + 2] = d.r * (1 - 0.3 * Math.min(1, d.vy / 0.35)); arr[k * 4 + 3] = fade;
-      k++;
-    }
-    const geo = this.lens.geometry;
-    if (geo instanceof THREE.InstancedBufferGeometry) geo.instanceCount = k;
-    this.lensAttr.needsUpdate = k > 0;
-    this.lens.visible = k > 0;
+    this.lensClock += dt * (dry ? 3 : 1);
+    this.lensWet += (expose * Math.min(1, 6.8 / slots) - this.lensWet) * Math.min(1, dt / 2.5);
+    setPineLookParam(this.o.programs.lens, 'clock', this.lensClock);
+    setPineLookParam(this.o.programs.lens, 'wet', this.lensWet);
+    this.lens.visible = this.lensWet > 0.002;
   }
 
   // ─────────────────────────────── per frame ───────────────────────────────
-  private readonly rgb = [0, 0, 0];
-  /** `c` · k + add as a param's rgb (one array, copied by the param setter) */
-  private tint(c: THREE.Color, k: number, add: number): number[] {
-    return this.xyz(c.r * k + add, c.g * k + add, c.b * k + add);
-  }
-  /** (x, y, z) as a param's vec3, in the same array */
+  private readonly v3 = [0, 0, 0];
+  /** (x, y, z) as a param's vec3 (one array, copied by the param setter) */
   private xyz(x: number, y: number, z: number): number[] {
-    this.rgb[0] = x; this.rgb[1] = y; this.rgb[2] = z;
-    return this.rgb;
+    this.v3[0] = x; this.v3[1] = y; this.v3[2] = z;
+    return this.v3;
   }
 
-  /** `fogColor` the scene fog's (the rain's tint), `wind` the world wind (m/s, xz) for the slant, `cam` the view (the extras) */
-  update(dt: number, w: RainReading, fogColor: THREE.Color, wind: { x: number; z: number }, cam?: THREE.Camera): void {
+  /** `wind` the world wind (m/s, xz) for the slant, `cam` the view (the extras); the rain's tints are the fog's, in its graphs */
+  update(dt: number, w: RainReading, wind: { x: number; z: number }, cam?: THREE.Camera): void {
     // the curtain is camera-local, so it would follow the eye into a practice room: none there, like the extras below
     const rainOn = w.rain > 0.01 && !practiceRoom.open;
     this.rain.visible = rainOn;
@@ -331,25 +302,21 @@ export class RainFx {
       setPineLookParam(id, 'offset', this.xyz(o.x, o.y, o.z));
       setPineLookParam(id, 'radius', R);
       setPineLookParam(id, 'length', 0.42 + 0.26 * w.rain);
-      setPineLookParam(id, 'colour', this.tint(fogColor, 1.5, 0.04));
       setPineLookParam(id, 'alpha', 0.16 + 0.2 * w.rain);
       this.rain.geometry.setDrawRange(0, Math.ceil(this.rainCount * Math.min(1, w.rain * 1.1)) * 6);
     }
     this.puddleFade.value = THREE.MathUtils.smoothstep(w.wet, 0.05, 0.6);
     this.puddles.visible = this.puddleFade.value > 0.01;
     // the extras — none in a practice room (its x / z is no spot on the level)
-    if (practiceRoom.open) { this.splashes.visible = false; this.lens.visible = false; this.drops.length = 0; return; }
+    if (practiceRoom.open) { this.splashes.visible = false; this.lens.visible = false; this.lensWet = 0; return; }
     if (cam) { cam.getWorldPosition(this.eye); cam.getWorldDirection(this.fwd); }
     if (cam instanceof THREE.PerspectiveCamera) setPineLookParam(this.o.programs.lens, 'aspect', cam.aspect); // the screen's shape
     this.splashTime += dt;
     setPineLookParam(this.o.programs.splash, 'time', this.splashTime);
     this.splashes.visible = rainOn;
     if (rainOn) {
-      setPineLookParam(this.o.programs.splash, 'colour', this.tint(fogColor, 1.4, 0.05));
       setPineLookParam(this.o.programs.splash, 'alpha', 0.24 + 0.26 * w.rain);
       this.spawnSplashes(dt, w.rain);
-      setPineLookParam(this.o.programs.lens, 'sky', this.tint(fogColor, 1.45, 0.06));
-      setPineLookParam(this.o.programs.lens, 'ground', this.tint(fogColor, 0.35, 0));
     }
     this.updateLens(dt, rainOn ? w.rain : 0);
   }
