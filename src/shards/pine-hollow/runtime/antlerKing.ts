@@ -13,7 +13,6 @@ import type { Animal } from '@wildshard/engine/entities/AnimalView';
 import { registerSpecies, variantDef, hasSpecies, type SpeciesDef } from '@wildshard/engine/entities/species/registry';
 import { ELK } from '@wildshard/game/systems/species/elk';
 import { hullBody } from '../species/bodies';
-import type { FxMaterial } from '@wildshard/engine/fx/groundFx';
 import { Impacts } from '@wildshard/engine/fx/Impacts';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { BossBar } from '@wildshard/engine/ui/BossBar';
@@ -26,7 +25,10 @@ import { GroundTell } from '@wildshard/game/Elite';
 import { PINE_PHASES } from '../look/dayKeys';
 import { KINGS_CLEARING } from '../data/layout';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
-import { FogWall, Puffs, flameCard } from '../combat/fxKit';
+import { Puffs } from '../combat/fxKit';
+import { effectField } from '@wildshard/sdk/looks/effectField';
+import { KING_FX_LOOKS } from '../data/kingFxLook';
+import { pineLook, setPineLookParam } from './looks/graphLooks';
 import { KING_VARIANT, dressAntlerKing, makeKingKit, kingOwnSpecies, type KingKit, type KingLook } from '../models/antlerKing';
 import { ACT_BRACE, ACT_ROAR, ACT_STRIKE, ACT_SWEEP } from '../combat/kingRig';
 import { own, retire, voice, LaneCharge, type PineCtx } from '../combat/ctx';
@@ -107,7 +109,7 @@ function tintThrall(a: Animal): void {
   if (m instanceof THREE.MeshStandardMaterial) m.color.multiply(MOSS);
 }
 
-interface LanternView { group: THREE.Group; flame: { mesh: THREE.Mesh; mat: FxMaterial }; ring: GroundTell; from: THREE.Vector3 }
+interface LanternView { group: THREE.Group; flame: THREE.Object3D; ring: GroundTell; from: THREE.Vector3 }
 
 /** a number some other system rewrites every frame (or never): scaled on top of whatever it holds this frame */
 class Dim {
@@ -115,7 +117,7 @@ class Dim {
   apply(cur: number, k: number): number { if (cur !== this.last) this.base = cur; const v = this.base * k; this.last = v; return v; }
 }
 
-const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _col = new THREE.Color();
+const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _col = new THREE.Color(), _fog = [0, 0, 0];
 
 /**
  * The page's King: the shared renderer-free fight (combat/kingFight.ts, AntlerKingCore: the BossScript, his moves, the root
@@ -131,7 +133,7 @@ export class AntlerKingFight extends AntlerKingCore<Animal> {
   protected override readonly lane: LaneCharge;
   protected override readonly thrallLanes: LaneCharge[];
   private readonly fallen: LanternView[] = [];
-  private readonly wall: FogWall;
+  private readonly wall: THREE.Mesh;
   private readonly puffs: Puffs;
   private light: THREE.PointLight | null = null;
   // the dimmers (the sky rewrites these every frame; the fight scales them after it)
@@ -156,11 +158,16 @@ export class AntlerKingFight extends AntlerKingCore<Animal> {
     this.waves = [0, 1].map(() => ({ g: new GroundTell(scene, 'ring', EMBER), r: 0, on: false, hit: false, delay: 0 }));
     this.lane = new LaneCharge(scene, AMBER_TELL, PINE_LANES.king, this.ctx.reach);
     this.thrallLanes = [0, 1, 2].map(() => new LaneCharge(scene, EMBER, PINE_LANES.thrall, this.ctx.reach));
-    this.wall = new FogWall(scene, C.x, heightAt(C.x, C.z) - 2.5, C.z, KING_FOG_R, 22);
+    // the fog wall: an open cylinder round the clearing in its graph (data/kingFxLook.ts), thick at the foot
+    this.wall = new THREE.Mesh(new THREE.CylinderGeometry(KING_FOG_R, KING_FOG_R * 1.04, 22, 96, 1, true).translate(0, 11, 0), pineLook(KING_FX_LOOKS.fog));
+    this.wall.position.set(C.x, heightAt(C.x, C.z) - 2.5, C.z); this.wall.visible = false; this.wall.frustumCulled = false; this.wall.renderOrder = 26;
+    this.wall.name = 'antler-king-fog-wall'; scene.add(this.wall);
     this.puffs = new Puffs(scene, new THREE.Color(2.0, 1.1, 0.4), 3);
     for (let i = 0; i < 3; i++) {
       const group = new THREE.Group(); group.visible = false; scene.add(group);
-      const flame = flameCard(EMBER, 1.3, 1.9); scene.add(flame.mesh);
+      // a fallen lantern's fire: the SDK's crossed streak quads stood upright (1.3 wide, 1.9 tall) in its flame graph
+      const fire = effectField({ name: 'antler-king-lantern-fire', shape: 'streak', count: 1 }, pineLook(KING_FX_LOOKS.flame)), flame = fire.object;
+      fire.place(_v.set(0, 0, 0), _w.set(0, 1, 0)); flame.scale.set(1.3, 1.3, 1.9); flame.visible = false; flame.renderOrder = 27; scene.add(flame);
       this.fallen.push({ group, flame, ring: new GroundTell(scene, 'ring', EMBER), from: new THREE.Vector3() });
     }
     // the fight's one light: taken from the scene's LightPool at boot (a constant light count — no recompile), dark
@@ -277,17 +284,19 @@ export class AntlerKingFight extends AntlerKingCore<Animal> {
       if (event === 'land') { this.ctx.shot('lanternLight', _v.set(f.x, f.y, f.z)); Impacts.for(this.ctx.game).burst('sparks', _v.set(f.x, f.y + 0.3, f.z), _w.set(0, 1, 0), 16); }
     } else if (event === 'burn') {
       const ember = this.darkK > 0 ? 1 - 0.5 * this.darkK : 1;
-      view.flame.mesh.visible = true; view.flame.mesh.position.set(f.x, f.y, f.z);
-      view.flame.mat.uniforms.uAlpha.value = 0.95 * ember; view.flame.mat.uniforms.uTime.value = t;
+      view.flame.visible = true; view.flame.position.set(f.x, f.y, f.z);
+      setPineLookParam(KING_FX_LOOKS.flame, 'alpha', 0.95 * ember);
       view.ring.setTime(t);
       view.ring.ring(f.x, f.z, 3.2, (0.35 + 0.15 * Math.sin(t * 5 + f.x)) * ember, 0.2);
     } else if (event === 'placed') { view.group.visible = true; view.group.position.set(f.x, f.y + 0.3, f.z); view.group.rotation.set(1.3, i, 0.4); }
-    else { view.group.visible = false; view.flame.mesh.visible = false; view.ring.hide(); }
+    else { view.group.visible = false; view.flame.visible = false; view.ring.hide(); }
   }
   /** the fog wall, the puffs, the ribcage's opening and the fight's light, every frame */
   protected override room(dt: number, t: number): void {
-    this.wall.alpha = 0.92 * this.sealK;
-    this.wall.update(t, this.ctx.game.scene.fog instanceof THREE.Fog ? this.ctx.game.scene.fog.color : null);
+    const seal = 0.92 * this.sealK, fog = this.ctx.game.scene.fog;
+    setPineLookParam(KING_FX_LOOKS.fog, 'alpha', seal); this.wall.visible = seal > 0.01;
+    // the wall is the scene fog's murk this frame
+    if (fog instanceof THREE.Fog) setPineLookParam(KING_FX_LOOKS.fog, 'colour', _col.copy(fog.color).multiplyScalar(1.15).toArray(_fog));
     this.puffs.update(dt, t);
     const look = this.look;
     if (this.king === null || look === null) return;
