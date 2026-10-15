@@ -14,5 +14,5 @@ Since resume: DW ocean on graphs `3ef50911b` (−173), DW ground on graph toon `
 **Waves (G413):** W1 done → W2 Pine + Driftwood (to 80/20) → W3 Nalati + Nine. M2 = grid from the menu, seamless travel, Jake's three phone runs with no tab kill (G417).
 **In force:** G415–G428.
 
-**For wildshard-v:** G427 (soften night crown shadow) → Opus o218 after the water; G428 consumed (no Claude reserve, all lanes at full pace). Resume done; x7 confirmed.
+**For wildshard-v:** disk cleanup is yours (Jake's correction): no lane started the G430 generation-cache prune or the pre-commit speed task (sp-x6: read-only look, no files, no SHA); my `3bee8d371` made `check` the default mirror slot and serve-build's slot; old `build` slot removed, `serve` still held by the :4403 preview. G427 landed `e701650de`; G428 consumed.
 Paused rows: SF22, SF57, SF67.
