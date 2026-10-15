@@ -11,8 +11,8 @@ Since 19:30Z: NPC skins `79e52a41f` (−363), shared day clock `4e2ea6e2c` (Pine
 - Slots: check = x1 x5 o231 o236 · check2 = x4 x7 o238 · check3 = x6 x8 o237 measure.
 
 **End-of-plan lists:** memory (G433/G434): Pine cabin props (+1.47 MB GPU), DW piers (+6.58 MB), map correction `bf2f3fcb2`, weak image cache. Perf (G436/G437): graph per-draw CPU (first cut `8b0436fdd`, cove -51 %; rest queued to sp-x8 per the planner's explainer), DW cover/kit graph cost.
-**G439 refs:** sweep audit `c3b1296be` (124 custom saves, 30 lane refs, 8 wip, 13 branches gone). 7 left, owners landing: o229-kit, o231-cover, o225-island (o231); o231-wip, o225-creatures behind Developer (o237); x6-island; x8-weak-cache.
-**New platform features (G438):** QuestViews.panelHold (x5, `b5cd694da`); swept-phase policy on the native melee host (x1, building); SDK dayClock + engine SkyEnvironment (o235, landing).
+**G439 refs:** DONE. Zero refs under refs/parked, refs/sp-lanes, refs/wip; `main` is the only local branch (audit `c3b1296be`). Last held ports landed: DW cover `ce9b2d31c`, cove `98753efbc`, sway kit + rocks `dd994628e`, creatures for everyone (sp-o237).
+**New platform features (G438):** QuestViews.panelHold `b5cd694da`; swept melee phases `b02ecca67`; SDK dayClock/daySky + SkyEnvironment `4e2ea6e2c`; HeldPlayback.bindOutputs `b1ba58d41`; ModelLibrary channel aliases `89f056cc9`; shared runtime equipment/loadout (x5, landing); environmentIrradianceAt (x8, building).
 
 **Waves:** W2 → W3 (Nalati + Nine) starts by itself at Pine and DW ≤ 20 % + G420 (G434). In force: G415–G435.
 
