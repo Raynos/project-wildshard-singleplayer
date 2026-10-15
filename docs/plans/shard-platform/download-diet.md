@@ -83,3 +83,10 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
 | Pine Hollow | Authored tree rest geometry | Hash-named immutable `baked/trees-9c39e53e….glb`: 2,702,644 B raw, replaces 1,422,848 B quantized trees.glb (+1,279,796 B). Gzip-9 estimate 1,676,163 B versus 833,763 B. G438 approves the download increase. Cheap pine-tree-rest job; no new binary committed. | All 84 original part channels, indices, bounds and shader wind/bark values retained; ModelLibrary borrows decoded attributes without a template/clone pair. Existing graph materials, tree placement, LODs and colliders unchanged. |
 
 | Driftwood Isle | Baked faceted ground (sp-o239) | Two hash-named G405 build outputs: the grid `baked/ground-239a2c11….glb` 2,354,140 B raw / 1,020,486 B gzip-9 and the slab walls `baked/ground-c1b1903f….glb` 130,212 B raw / 30,850 B gzip-9 (+2,484,352 B raw). Cheap driftwood-faceted-ground author job; outputs stay out of Git. | Replaces the runtime build of the 256² grid, its paint and the slab walls one to one: in-page terrain position / colour / clipped index and slab bytes hash equal to the parent's (98753efbc); programs 113 -> 113. Colours ride as float (GLB), index u16. Download is not a hold reason (G438). |
+
+- 2026-10-15 DW captain: the existing cheap creature-body producer now
+  emits the original fitted mesh, rigid skin channels and eye spheres.
+  Body bundle 75,942 → 352,334 B deflated (+276,392 B); HTTP gzip-9
+  estimate 70,738 → 344,899 B (+274,161 B). The existing captain GLB
+  remains the original texture loan; materials, fight and animation stay.
+  No Git binary blob, runtime fitting or procedural geometry fallback.

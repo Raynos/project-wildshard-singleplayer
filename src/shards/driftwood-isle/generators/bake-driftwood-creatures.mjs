@@ -12,7 +12,7 @@ import { resolve } from 'node:path';
 import { deflateSync } from 'node:zlib';
 import { BufferAttribute, Float16BufferAttribute, Mesh } from 'three';
 import { readSourceModel } from '@wildshard/sdk/bake/skinned';
-import { bakeCreatureBodies, faceHeadOf } from './creatureBodies.ts';
+import { bakeCreatureBodies, faceHeadOf, bakeCaptainBody } from './creatureBodies.ts';
 
 /** @wildshard/sdk/kit/bakedGeometry's element sizes and block padding (its reader decodes these blocks) */
 const BAKED_BYTES = { f32: 4, f16: 2, u16: 2, i8: 1, u8: 1 }, pad4 = (n) => Math.ceil(n / 4) * 4;
@@ -25,8 +25,10 @@ source.gltf.scene.updateMatrixWorld(true);
 const meshes = [];
 source.gltf.scene.traverse((o) => { if (o instanceof Mesh) meshes.push(o); });
 if (meshes.length !== 1) throw new Error(`${HEAD} must hold one mesh`);
-const [headMesh] = meshes;
-const bodies = bakeCreatureBodies(faceHeadOf(headMesh.geometry.clone().applyMatrix4(headMesh.matrixWorld)));
+const headMesh = meshes.at(0);
+if (headMesh === undefined) throw new Error('Missing sailor head');
+const captain = await readSourceModel(new Uint8Array(readFileSync(resolve(root, 'public/assets/models/driftwood-hero/captain/captain.glb'))));
+const bodies = [...bakeCreatureBodies(faceHeadOf(headMesh.geometry.clone().applyMatrix4(headMesh.matrixWorld))), bakeCaptainBody(captain.gltf.scene)];
 
 /** @type {Uint8Array[]} */
 const blocks = [];
@@ -57,7 +59,7 @@ const blockAt = (bytes) => {
 const write = (g, what) => {
   if (g === null) return null;
   const attrs = [], offsets = [];
-  for (const [name, attr] of Object.entries(g.attributes)) {
+  for (const [name, attr] of Object.entries(g.attributes).sort(([a], [b]) => Number(b === 'position') - Number(a === 'position'))) {
     if (!(attr instanceof BufferAttribute)) throw new Error(`${what}: '${name}' is interleaved`);
     const type = typeOf(attr, what);
     attrs.push([name, type, attr.itemSize, attr.normalized]);

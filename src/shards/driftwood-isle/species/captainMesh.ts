@@ -1,149 +1,43 @@
 import { cacheUntilDisposed } from '@wildshard/engine/app/cachedAssets';
 import { loadRigFile } from '@wildshard/engine/anim/rig';
-import type { BoneDef } from '@wildshard/engine/entities/species/registry';
 import * as THREE from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { preloadCreatureBodies } from './bodies';
 
-/**
- * The Drowned Captain's generated mesh (v0.2, DRIFTWOOD-REMASTER M3): a codex concept (art/driftwood-isle/round-8-assets/
- * ref-captain.jpg) → Hunyuan3D-2 full shape + paint → gltf-transform simplify (12.7 k tris, the generation's own UVs and
- * paint kept) → 1024² WebP → meshopt: public/assets/models/driftwood-hero/captain/captain.glb (~210 KB), facing +z.
- * E343 (Jake's pick D): the head is a Hunyuan3D-2 bust from a codex portrait (art/driftwood-isle/round-14-faces/) with its
- * own paint, grafted at its own neck (scripts/img2mesh/e304_faces.sh paint captain, face_remaster.py --graft-v2): ~346 KB.
- *
- *   await preloadCaptainMesh();         // quest/install.ts waits behind the loading screen, before saved-altar restore
- *   const m = captainMesh.meshFor(bones); // buildCaptain: { parts, map } bound to the captain's own bones
- *
- * At load the mesh is normalized to the rig: 1.9 m tall (the tricorn's top — the rig's head bone sits at 1.56), feet at
- * y = 0, centred on x / z. Binding: every vertex rides the bone whose segment (bone → each child; a leaf is a point) is
- * nearest in the bind pose — rigid, like the loft kit's parts, so animateCaptain() drives it unchanged. The texture goes
- * on the rig's material (AnimalSpecies.map); the vertex colours are white so it shows true. A failed load rejects the
- * preload (there is no stand-in), and a build before the load throws.
- */
 export const CAPTAIN_GLB_URL = '/assets/models/driftwood-hero/captain/captain.glb';
-const URL_GLB = CAPTAIN_GLB_URL;
-const HEIGHT = 1.9;
-/** metres from the centre line below which a vertex under the shoulders never rides an arm bone (the coat skirt) */
-const ARM_MIN_X = 0.36;
-
-/**
- * gltf-transform's meshopt pass quantizes position / normal / uv to normalized ints (KHR_mesh_quantization): copy every
- * attribute out as plain float32 (getComponent de-normalizes), so the node matrix applies cleanly and mergeGeometries sees
- * the same attribute types as the rest of the species parts.
- */
-function asFloat(src: THREE.BufferGeometry): THREE.BufferGeometry {
-  const g = new THREE.BufferGeometry();
-  for (const [name, attr] of Object.entries(src.attributes)) {
-    const n = attr.count, k = attr.itemSize, out = new Float32Array(n * k);
-    for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) out[i * k + j] = attr.getComponent(i, j);
-    g.setAttribute(name, new THREE.BufferAttribute(out, k));
-  }
-  if (src.index) g.setIndex(Array.from(src.index.array));
-  return g;
-}
-
-const isMesh = (o: THREE.Object3D): o is THREE.Mesh => o instanceof THREE.Mesh;
-
-/**
- * The generated captain mesh: loaded once, fitted to the rig at build. The page has one (`captainMesh`); a test builds its
- * own with its own file loader instead of reloading the module or spying on a loader (E422).
- */
+/** Captain texture intake; fitted geometry and skin weights come from the creature-body bake. */
 export class CaptainMesh {
-  private source: THREE.BufferGeometry | null = null;
   private texture: THREE.Texture | null = null;
+  private ready = false;
   private loading: Promise<void> | null = null;
   private readonly loadFile: (url: string) => Promise<GLTF>;
   constructor(loadFile: (url: string) => Promise<GLTF> = loadRigFile) { this.loadFile = loadFile; }
-
   private async load(): Promise<void> {
-    const gltf = await this.loadFile(URL_GLB);
-    const hit: { geo: THREE.BufferGeometry | null; map: THREE.Texture | null } = { geo: null, map: null };
-    gltf.scene.updateMatrixWorld(true);
-    gltf.scene.traverse((o) => {
-      if (hit.geo !== null || !isMesh(o)) return;
-      hit.geo = asFloat(o.geometry).applyMatrix4(o.matrixWorld);
-      const mat = Array.isArray(o.material) ? o.material[0] : o.material;
-      if (mat instanceof THREE.MeshStandardMaterial) hit.map = mat.map;
+    const [gltf] = await Promise.all([this.loadFile(CAPTAIN_GLB_URL), preloadCreatureBodies()]);
+    const hit: { found: boolean; map: THREE.Texture | null } = { found: false, map: null };
+    gltf.scene.traverse(node => {
+      if (hit.found || !(node instanceof THREE.Mesh)) return;
+      hit.found = true;
+      const raw: unknown = node.material;
+      const material: unknown = Array.isArray(raw) ? raw[0] : raw;
+      hit.map = material instanceof THREE.MeshStandardMaterial ? material.map : null;
     });
-    const g = hit.geo;
-    if (g === null) throw new Error('Captain GLB has no mesh');
-    g.computeBoundingBox();
-    const bb = g.boundingBox;
-    if (bb === null) throw new Error('Captain mesh has no bounds');
-    const k = HEIGHT / Math.max(1e-6, bb.max.y - bb.min.y);
-    g.translate(-(bb.min.x + bb.max.x) / 2, -bb.min.y, -(bb.min.z + bb.max.z) / 2).scale(k, k, k);
-    this.source = g;
+    if (!hit.found) throw new Error('Captain GLB has no mesh');
     this.texture = hit.map;
-    cacheUntilDisposed({ geometry: g, map: hit.map }, () => {
-      if (this.source !== g) return;
-      this.source = null; this.texture = null; this.loading = null;
+    this.ready = true;
+    const texture = this.texture;
+    cacheUntilDisposed({ map: texture }, () => {
+      if (this.texture !== texture) return;
+      this.ready = false; this.texture = null; this.loading = null;
     });
   }
-
-  /** Fetch and fit the mesh once; a failed load rejects. */
-  preload(): Promise<void> {
-    this.loading ??= this.load();
-    return this.loading;
+  /** Await both the original texture and the required baked body before saved-altar restore. */
+  preload(): Promise<void> { this.loading ??= this.load(); return this.loading; }
+  /** The original GLB material's map, with the same pre-build refusal. */
+  textureFor(): THREE.Texture | null {
+    if (!this.ready) throw new Error('Captain mesh is not loaded; await preloadCaptainMesh before building');
+    return this.texture;
   }
-
-/**
- * The mesh bound to `bones` (the attributes every species part carries) as TWO geometries — its triangles split in half —
- * because AnimalFactory merges furParts and hardParts separately and neither list may be empty (the captain has no fur,
- * so both halves draw alike), plus its texture. Refuses before the load.
- */
-  meshFor(bones: BoneDef[]): { parts: [THREE.BufferGeometry, THREE.BufferGeometry]; map: THREE.Texture | null } {
-  if (this.source === null) throw new Error('Captain mesh is not loaded; await preloadCaptainMesh before building');
-  const g = this.source.clone();
-  const pos = g.getAttribute('position');
-  const n = pos.count;
-  g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3)); // white: the texture carries the albedo
-  // bind pose segments: each bone to each of its children, a leaf bone as a point
-  const at = new Map(bones.map((b) => [b.name, new THREE.Vector3(...b.pos)]));
-  const segs: { a: THREE.Vector3; b: THREE.Vector3; bone: number; arm: boolean }[] = [];
-  bones.forEach((b, i) => {
-    const kids = bones.filter((c) => c.parent === b.name);
-    const a = at.get(b.name);
-    if (a === undefined) return;
-    const arm = b.name.startsWith('arm');
-    if (kids.length === 0) segs.push({ a, b: a, bone: i, arm });
-    for (const c of kids) { const e = at.get(c.name); if (e) segs.push({ a, b: e, bone: i, arm }); }
-  });
-  const si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
-  const p = new THREE.Vector3(), ab = new THREE.Vector3(), q = new THREE.Vector3();
-  for (let i = 0; i < n; i++) {
-    p.fromBufferAttribute(pos, i);
-    let best = Infinity, bone = 0;
-    // the coat skirt hangs beside the hands: below the shoulders only what sits well out from the body rides an arm bone
-    // (E70 round 3: the fitted, lower hands otherwise swung coat-tail facets with the arm)
-    const coat = p.y < 1.3 && Math.abs(p.x) < ARM_MIN_X;
-    for (const s of segs) {
-      if (coat && s.arm) continue;
-      ab.subVectors(s.b, s.a);
-      const len2 = ab.lengthSq();
-      const t = len2 > 1e-9 ? Math.min(1, Math.max(0, q.subVectors(p, s.a).dot(ab) / len2)) : 0;
-      const d = q.copy(s.a).addScaledVector(ab, t).distanceToSquared(p);
-      if (d < best) { best = d; bone = s.bone; }
-    }
-    si[i * 4] = bone; sw[i * 4] = 1;
-  }
-  g.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
-  g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
-  g.setAttribute('furLen', new THREE.BufferAttribute(new Float32Array(n), 1));
-  if (!g.hasAttribute('uv')) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(n * 2), 2));
-  if (!g.hasAttribute('normal')) g.computeVertexNormals();
-  for (const key of Object.keys(g.attributes)) if (!['position', 'normal', 'uv', 'color', 'skinIndex', 'skinWeight', 'furLen'].includes(key)) g.deleteAttribute(key);
-  if (g.index === null) g.setIndex(Array.from({ length: n }, (_, i) => i)); // the species parts are indexed; mergeGeometries wants them all alike
-  const idx = g.index;
-  if (idx === null) throw new Error('Captain mesh lost its index');
-  const cut = Math.floor(idx.count / 6) * 3;
-  const ids = Array.from(idx.array);
-  const a = g.clone(), b = g.clone();
-  a.setIndex(ids.slice(0, cut)); b.setIndex(ids.slice(cut));
-  g.dispose();
-  return { parts: [a, b], map: this.texture };
 }
-}
-
-/** the page's captain mesh */
 export const captainMesh = new CaptainMesh();
 export function preloadCaptainMesh(): Promise<void> { return captainMesh.preload(); }

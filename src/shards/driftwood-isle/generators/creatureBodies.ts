@@ -611,3 +611,124 @@ export function faceHeadOf(g0: THREE.BufferGeometry): FaceHead {
   }
   return { pos, nrm, col, count };
 }
+
+// ── generated captain: original float conversion, fit, skin and eyes ──
+const HEIGHT = 1.9, ARM_MIN_X = 0.36;
+const isGeometry = (value: unknown): value is THREE.BufferGeometry => value instanceof THREE.BufferGeometry;
+const EYE = srgb(0.35, 1.0, 1.0);
+const eyePaint: Paint = out => { out.copy(EYE); };
+function asFloat(src: THREE.BufferGeometry): THREE.BufferGeometry {
+  const g = new THREE.BufferGeometry();
+  for (const [name, attr] of Object.entries(src.attributes)) {
+    const n = attr.count, k = attr.itemSize, out = new Float32Array(n * k);
+    for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) out[i * k + j] = attr.getComponent(i, j);
+    g.setAttribute(name, new THREE.BufferAttribute(out, k));
+  }
+  if (src.index) g.setIndex(Array.from(src.index.array));
+  return g;
+}
+
+const CAPTAIN_DIMS: AnimalSpecies['dims'] = { bodyY: 0.95, bodyHalfLen: 0.5, bodyRadius: 0.3, headRadius: 0.16, legLen: 0.85, feet: [[0.12, 0.05], [-0.12, 0.05], [0.12, -0.05], [-0.12, -0.05]], halfWidth: 0.28, capsuleAxis: 'y' };
+
+/** The captain's rig: the sailor's bones, the limb joints fitted to the generated mesh (measured band by band, E70 round
+ *  3: he hangs his arms lower and wider than the sailor and stands wider), so the elbows and shoulders pivot where his
+ *  arms bend. */
+function captainBones(): BoneDef[] {
+  const bones: BoneDef[] = [
+    { name: 'body', parent: null, pos: [0, 0.95, 0] },
+    { name: 'spine', parent: 'body', pos: [0, 1.12, 0] },
+    { name: 'chest', parent: 'spine', pos: [0, 1.32, 0] },
+    { name: 'head', parent: 'chest', pos: [0, 1.56, 0.02] },
+  ];
+  for (const side of ['L', 'R'] as const) {
+    const sx = side === 'L' ? 1 : -1;
+    bones.push(
+      { name: `arm${side}_sh`, parent: 'chest', pos: [sx * 0.26, 1.42, 0] },
+      { name: `arm${side}_el`, parent: `arm${side}_sh`, pos: [sx * 0.40, 1.12, 0.02] },
+      { name: `arm${side}_hand`, parent: `arm${side}_el`, pos: [sx * 0.47, 0.84, 0.05] },
+      { name: `leg${side}_hip`, parent: 'body', pos: [sx * 0.12, 0.90, 0] },
+      { name: `leg${side}_knee`, parent: `leg${side}_hip`, pos: [sx * 0.16, 0.48, 0.01] },
+      { name: `leg${side}_foot`, parent: `leg${side}_knee`, pos: [sx * 0.17, 0.08, 0.02] },
+    );
+  }
+  return bones;
+}
+
+
+/** Original captain fitting and rigid skin assignment, evaluated only by the body producer. */
+export function bakeCaptainBody(scene: THREE.Object3D): BakedCreatureBody {
+  scene.updateMatrixWorld(true);
+  const hit: { geometry: THREE.BufferGeometry | null } = { geometry: null };
+  scene.traverse(node => {
+    if (hit.geometry !== null || !(node instanceof THREE.Mesh)) return;
+    const geometry: unknown = node.geometry;
+    if (!isGeometry(geometry)) throw new Error('Captain mesh needs buffer geometry');
+    hit.geometry = asFloat(geometry).applyMatrix4(node.matrixWorld);
+  });
+  const g = hit.geometry;
+  if (g === null) throw new Error('Captain GLB has no mesh');
+    g.computeBoundingBox();
+    const bb = g.boundingBox;
+    if (bb === null) throw new Error('Captain mesh has no bounds');
+    const k = HEIGHT / Math.max(1e-6, bb.max.y - bb.min.y);
+    g.translate(-(bb.min.x + bb.max.x) / 2, -bb.min.y, -(bb.min.z + bb.max.z) / 2).scale(k, k, k);
+
+  const bones = captainBones(), head = boneIndex(bones)('head');
+  const eyes = [1, -1].map(sx => skinPlain(new THREE.SphereGeometry(0.02, 8, 6).translate(0.022 + sx * 0.034, 1.70, 0.092), head, 'eye', eyePaint));
+  const parts = bindCaptain(g, bones);
+  const eye = merge(eyes);
+  if (eye === null) throw new Error('Captain eye attributes differ');
+  for (const part of eyes) part.dispose();
+  g.dispose();
+  return { kind: 'captain', variant: 'captain', bones, dims: CAPTAIN_DIMS, fur: parts[0], hard: parts[1], eye };
+}
+function bindCaptain(fitted: THREE.BufferGeometry, bones: BoneDef[]): [THREE.BufferGeometry, THREE.BufferGeometry] {
+  const g = fitted.clone();
+  const pos = g.getAttribute('position');
+  const n = pos.count;
+  g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3)); // white: the texture carries the albedo
+  // bind pose segments: each bone to each of its children, a leaf bone as a point
+  const at = new Map(bones.map((b) => [b.name, new THREE.Vector3(...b.pos)]));
+  const segs: { a: THREE.Vector3; b: THREE.Vector3; bone: number; arm: boolean }[] = [];
+  bones.forEach((b, i) => {
+    const kids = bones.filter((c) => c.parent === b.name);
+    const a = at.get(b.name);
+    if (a === undefined) return;
+    const arm = b.name.startsWith('arm');
+    if (kids.length === 0) segs.push({ a, b: a, bone: i, arm });
+    for (const c of kids) { const e = at.get(c.name); if (e) segs.push({ a, b: e, bone: i, arm }); }
+  });
+  const si = new Uint16Array(n * 4), sw = new Float32Array(n * 4);
+  const p = new THREE.Vector3(), ab = new THREE.Vector3(), q = new THREE.Vector3();
+  for (let i = 0; i < n; i++) {
+    p.fromBufferAttribute(pos, i);
+    let best = Infinity, bone = 0;
+    // the coat skirt hangs beside the hands: below the shoulders only what sits well out from the body rides an arm bone
+    // (E70 round 3: the fitted, lower hands otherwise swung coat-tail facets with the arm)
+    const coat = p.y < 1.3 && Math.abs(p.x) < ARM_MIN_X;
+    for (const s of segs) {
+      if (coat && s.arm) continue;
+      ab.subVectors(s.b, s.a);
+      const len2 = ab.lengthSq();
+      const t = len2 > 1e-9 ? Math.min(1, Math.max(0, q.subVectors(p, s.a).dot(ab) / len2)) : 0;
+      const d = q.copy(s.a).addScaledVector(ab, t).distanceToSquared(p);
+      if (d < best) { best = d; bone = s.bone; }
+    }
+    si[i * 4] = bone; sw[i * 4] = 1;
+  }
+  g.setAttribute('skinIndex', new THREE.BufferAttribute(si, 4));
+  g.setAttribute('skinWeight', new THREE.BufferAttribute(sw, 4));
+  g.setAttribute('furLen', new THREE.BufferAttribute(new Float32Array(n), 1));
+  if (!g.hasAttribute('uv')) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(n * 2), 2));
+  if (!g.hasAttribute('normal')) g.computeVertexNormals();
+  for (const key of Object.keys(g.attributes)) if (!['position', 'normal', 'uv', 'color', 'skinIndex', 'skinWeight', 'furLen'].includes(key)) g.deleteAttribute(key);
+  if (g.index === null) g.setIndex(Array.from({ length: n }, (_, i) => i)); // the species parts are indexed; mergeGeometries wants them all alike
+  const idx = g.index;
+  if (idx === null) throw new Error('Captain mesh lost its index');
+  const cut = Math.floor(idx.count / 6) * 3;
+  const ids = Array.from(idx.array);
+  const a = g.clone(), b = g.clone();
+  a.setIndex(ids.slice(0, cut)); b.setIndex(ids.slice(cut));
+  g.dispose();
+  return [a, b];
+}

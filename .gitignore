@@ -1607,3 +1607,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /public/assets/pine-hollow/baked/trees-*.glb
 
 /public/assets/driftwood-isle/baked/ground-*.glb
+
+# Generated captain body in the existing creature bundle.
+/public/assets/driftwood-isle/creatures/bodies-0546f1584cf78e498dca2c4bf567602ecce569930345ff35bdc4c7fadb992d00.bin

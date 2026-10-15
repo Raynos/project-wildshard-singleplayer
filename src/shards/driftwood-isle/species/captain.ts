@@ -2,11 +2,10 @@ import { ENEMY_SPECIES_METADATA } from '../data/enemySpecies';
 import { animateCaptain } from './captainPose';
 import type { SpeciesRow } from '@wildshard/engine/ai/species';
 import type { Animal } from '@wildshard/engine/entities/AnimalView';
-import { skinPlain, boneIndex, srgb, type Paint } from '@wildshard/engine/entities/species/loft';
 import type { SpeciesLook } from '@wildshard/engine/entities/species/look';
-import type { AnimalSpecies, BoneDef, ThinkCtx } from '@wildshard/engine/entities/species/registry';
+import type { AnimalSpecies, ThinkCtx } from '@wildshard/engine/entities/species/registry';
 import { NO_FUR } from '@wildshard/engine/entities/species/rigs';
-import * as THREE from 'three';
+import { creatureBody } from './bodies';
 import { captainMesh, type CaptainMesh } from './captainMesh';
 import { CaptainBrain } from './captainPolicy';
 
@@ -33,45 +32,10 @@ import { CaptainBrain } from './captainPolicy';
  * `mem.poolX / poolZ` = where he rises (default: where he was spawned).
  */
 
-/** the glowing eye spheres' colour (the generated head's painted eyes sit under them) */
-const EYE = srgb(0.35, 1.0, 1.0);
-const eyePaint: Paint = (out) => { out.copy(EYE); };
-
-const CAPTAIN_DIMS: AnimalSpecies['dims'] = { bodyY: 0.95, bodyHalfLen: 0.5, bodyRadius: 0.3, headRadius: 0.16, legLen: 0.85, feet: [[0.12, 0.05], [-0.12, 0.05], [0.12, -0.05], [-0.12, -0.05]], halfWidth: 0.28, capsuleAxis: 'y' };
-
-/** The captain's rig: the sailor's bones, the limb joints fitted to the generated mesh (measured band by band, E70 round
- *  3: he hangs his arms lower and wider than the sailor and stands wider), so the elbows and shoulders pivot where his
- *  arms bend. */
-function captainBones(): BoneDef[] {
-  const bones: BoneDef[] = [
-    { name: 'body', parent: null, pos: [0, 0.95, 0] },
-    { name: 'spine', parent: 'body', pos: [0, 1.12, 0] },
-    { name: 'chest', parent: 'spine', pos: [0, 1.32, 0] },
-    { name: 'head', parent: 'chest', pos: [0, 1.56, 0.02] },
-  ];
-  for (const side of ['L', 'R'] as const) {
-    const sx = side === 'L' ? 1 : -1;
-    bones.push(
-      { name: `arm${side}_sh`, parent: 'chest', pos: [sx * 0.26, 1.42, 0] },
-      { name: `arm${side}_el`, parent: `arm${side}_sh`, pos: [sx * 0.40, 1.12, 0.02] },
-      { name: `arm${side}_hand`, parent: `arm${side}_el`, pos: [sx * 0.47, 0.84, 0.05] },
-      { name: `leg${side}_hip`, parent: 'body', pos: [sx * 0.12, 0.90, 0] },
-      { name: `leg${side}_knee`, parent: `leg${side}_hip`, pos: [sx * 0.16, 0.48, 0.01] },
-      { name: `leg${side}_foot`, parent: `leg${side}_knee`, pos: [sx * 0.17, 0.08, 0.02] },
-    );
-  }
-  return bones;
-}
-
-/** The generated captain (codex concept → Hunyuan3D-2, ./captainMesh.ts) bound to his bones, so animateCaptain() drives
- *  it unchanged, with the glowing eye spheres on top (the generated head's painted cyan eyes sit at x 0.022 ± 0.034,
- *  y 1.70, z 0.084 of its 1.9 m frame — measured off the file's texture, E343). The play installer awaits the file; a
- *  build before it refuses. */
+/** The prepared body retains the original groups, skin indices, eyes and texture. */
 function buildCaptain(mesh: CaptainMesh = captainMesh): AnimalSpecies {
-  const bones = captainBones(), head = boneIndex(bones)('head');
-  const eyes = [1, -1].map((sx) => skinPlain(new THREE.SphereGeometry(0.02, 8, 6).translate(0.022 + sx * 0.034, 1.70, 0.092), head, 'eye', eyePaint));
-  const generated = mesh.meshFor(bones);
-  return { bones, furParts: [generated.parts[0]], hardParts: [generated.parts[1]], eyeParts: eyes, dims: CAPTAIN_DIMS, ...(generated.map ? { map: generated.map, selfLight: 0.5 } : {}), facetJitter: 0 };
+  const map = mesh.textureFor();
+  return { ...creatureBody('captain', 'captain'), ...(map ? { map, selfLight: 0.5 } : {}), facetJitter: 0 };
 }
 
 // ── animation (the sailor's rig language, heavier) ────────────────────────────────────────

@@ -13535,6 +13535,7 @@
         "src/shards/driftwood-isle/generators/bake-driftwood-creatures.mjs",
         "src/shards/driftwood-isle/generators/creatureBodies.ts",
         "public/assets/models/driftwood-hero/faces/sailor-head.glb",
+        "public/assets/models/driftwood-hero/captain/captain.glb",
         "src/engine",
         "src/game",
         "src/sdk",
@@ -13547,11 +13548,11 @@
         "pnpm-workspace.yaml"
       ],
       "outputs": [
-        "public/assets/driftwood-isle/creatures/bodies-3cc97fab831593ffccebd201f84adcafc9bb5f25caed70db4fe8ee029148dcc2.bin",
+        "public/assets/driftwood-isle/creatures/bodies-0546f1584cf78e498dca2c4bf567602ecce569930345ff35bdc4c7fadb992d00.bin",
         "src/shards/driftwood-isle/data/creatureBodies.generated.json"
       ],
       "buildTimeOutputs": [
-        "public/assets/driftwood-isle/creatures/bodies-3cc97fab831593ffccebd201f84adcafc9bb5f25caed70db4fe8ee029148dcc2.bin",
+        "public/assets/driftwood-isle/creatures/bodies-0546f1584cf78e498dca2c4bf567602ecce569930345ff35bdc4c7fadb992d00.bin",
         "src/shards/driftwood-isle/data/creatureBodies.generated.json"
       ],
       "platform": "native"
