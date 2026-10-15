@@ -5679,8 +5679,8 @@ service or actor is created or mutated by this owner.
 
 
 `@wildshard/engine/models/place` `placeModelSite(model, origin, layout, options)` places one authored fixed site through
-ordinary merged model placement. Its origin translates existing own-space geometry, legacy boxes, anchors and floor;
-it never reapplies authored rotation. The returned `ModelSite` lends the actual `Placed` object and collider descriptors.
+ordinary `single` model placement (a parts build or a whole object, such as a library model). Its origin translates
+existing own-space geometry, legacy boxes, anchors and floor; it never reapplies authored rotation. The returned `ModelSite` lends the actual `Placed` object and collider descriptors.
 `ModelSiteLayout` supplies authored boxes/anchors and the existing floor evaluator. Invalid origins and unsafe anchors
 refuse before placement. A null registry builds the same export specimen without registering it.
 

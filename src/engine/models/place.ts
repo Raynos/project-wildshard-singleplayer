@@ -1305,7 +1305,8 @@ export interface ModelSite {
 }
 /** Place an already authored fixed site through the ordinary model builder, then translate its metadata once.
  * The origin is a translation, not another turn: the site's geometry, floor and anchor yaw already carry their authored
- * rotation. The existing place path keeps model seed, registration, colliders, drawing and ownership unchanged.
+ * rotation. The existing place path keeps model seed, registration, colliders, drawing and ownership unchanged. Its one
+ * copy is drawn `single`, so a model that builds a whole object (a library model) places as one that builds parts does.
  */
 export function placeModelSite<P extends object>(model: ModelDef<P>, origin: { readonly x: number; readonly y: number; readonly z: number },
   layout: ModelSiteLayout, options: Omit<PlaceOptions, 'draw'>): ModelSite {
@@ -1317,7 +1318,7 @@ export function placeModelSite<P extends object>(model: ModelDef<P>, origin: { r
     const y = layout.floorHeightAt(x - origin.x, z - origin.z);
     return y === undefined ? undefined : y + origin.y;
   };
-  const placed = place(model, [{ ...origin, params: {} }], { ...options, draw: 'merged',
+  const placed = place(model, [{ ...origin, params: {} }], { ...options, draw: 'single',
     piece: { ...options.piece, floor: floorHeightAt, solidFloor: true } });
   return { group: placed.object, placed,
     colliders: layout.colliders.map(box => ({ ...box, x: box.x + origin.x, z: box.z + origin.z, yTop: box.yTop + origin.y, yBottom: box.yBottom + origin.y })),

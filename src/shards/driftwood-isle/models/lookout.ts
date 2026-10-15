@@ -14,9 +14,8 @@
  * shard (the back-left corner), zipTop (the zipline post's foot on the platform corner facing the cave, yaw = toward
  * it; the cable leaves the pulley 2.5 m above it), stairFoot (y = ground).
  */
-import * as THREE from 'three';
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
+import { defineModel } from '@wildshard/engine/models/model';
+import { libraryModel } from '@wildshard/game/models/libraryModel';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -70,22 +69,14 @@ export function lookoutLayout(p: LookoutPlacement): LookoutLayout {
   };
 }
 
-function lookoutParts(ctx: ModelContext): ModelPart[] {
-  const geometry = LOOKOUT_GEOMETRY.copy();
-  geometry.computeBoundingSphere(); geometry.computeBoundingBox();
-  // the banner's shadow moves with it (M5)
-  return [{ geometry, material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true }];
-}
-
+// the banner's shadow moves with it (M5)
 export const lookout = defineModel<Record<string, never>>({
   id: 'driftwood-isle/lookout', name: 'Lookout tower', category: 'buildings', pipeline: 'code',
   file: 'src/shards/driftwood-isle/models/lookout.ts', surface: 'planks',
   defaults: {},
-  build: (ctx) => fixedGeometryReady() ? lookoutParts(ctx) : loadingSpecimen('driftwood-isle/lookout', [6, 11, 9], async () => {
-    await loadFixedGeometry();
-    const group = new THREE.Group();
-    for (const p of lookoutParts(ctx)) group.add(new THREE.Mesh(p.geometry, p.material));
-    return group;
+  ...libraryModel<Record<string, never>, 'kit', 'lookout'>({
+    draws: () => [{ draw: 'lookout', material: 'kit', castShadow: true, receiveShadow: true }],
+    geometry: () => LOOKOUT_GEOMETRY.copy(), material: (ctx) => lowPolyLookMaterial(ctx.sky), colliders: () => bakedDescs(),
+    loading: { id: 'driftwood-isle/lookout', ready: fixedGeometryReady, load: () => loadFixedGeometry(), size: () => [6, 11, 9] },
   }),
-  colliders: () => bakedDescs(),
 });

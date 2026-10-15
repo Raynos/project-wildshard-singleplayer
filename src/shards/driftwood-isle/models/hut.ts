@@ -13,8 +13,8 @@
  * porch in front of the door).
  */
 import * as THREE from 'three';
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
+import { defineModel } from '@wildshard/engine/models/model';
+import { libraryModel } from '@wildshard/game/models/libraryModel';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -66,23 +66,17 @@ export function hutLayout(site: HutSite): HutLayout {
   };
 }
 
-const own = (g: THREE.BufferGeometry): THREE.BufferGeometry => { g.computeBoundingSphere(); g.computeBoundingBox(); return g; };
-function hutParts(ctx: ModelContext): ModelPart[] {
-  return [
-    { geometry: own(HUT_KIT_GEOMETRY.copy()), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true },
-    { geometry: own(HUT_FLAMES_GEOMETRY.copy()), material: new THREE.MeshBasicMaterial({ vertexColors: true }) },
-  ];
-}
+const DRAWS = { kit: HUT_KIT_GEOMETRY, flames: HUT_FLAMES_GEOMETRY };
 
 export const hut = defineModel<Record<string, never>>({
   id: 'driftwood-isle/hut', name: 'Hut', category: 'buildings', pipeline: 'code',
   file: 'src/shards/driftwood-isle/models/hut.ts', surface: 'planks',
   defaults: {},
-  build: (ctx) => fixedGeometryReady() ? hutParts(ctx) : loadingSpecimen('driftwood-isle/hut', [11, 7, 8], async () => {
-    await loadFixedGeometry();
-    const group = new THREE.Group();
-    for (const p of hutParts(ctx)) group.add(new THREE.Mesh(p.geometry, p.material));
-    return group;
+  ...libraryModel<Record<string, never>, keyof typeof DRAWS, keyof typeof DRAWS>({
+    draws: () => [{ draw: 'kit', material: 'kit', castShadow: true, receiveShadow: true }, { draw: 'flames', material: 'flames' }],
+    geometry: (_, draw) => DRAWS[draw].copy(),
+    material: (ctx, key) => key === 'kit' ? lowPolyLookMaterial(ctx.sky, 'still') : ctx.once('driftwood-isle/hut:flames', () => new THREE.MeshBasicMaterial({ vertexColors: true })),
+    colliders: () => bakedDescs(),
+    loading: { id: 'driftwood-isle/hut', ready: fixedGeometryReady, load: () => loadFixedGeometry(), size: () => [11, 7, 8] },
   }),
-  colliders: () => bakedDescs(),
 });
