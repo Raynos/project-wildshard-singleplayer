@@ -342,6 +342,8 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   fogColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3' },
   atmosphereSunDirection: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3' },
   atmosphereSunColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3' },
+  skyLightDirection: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH },
+  skyLightColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH },
   instanceHash: { arity: [0, 0], rule: 'input', cost: 4, type: 'float', places: MESH },
   vertexColour: { arity: [0, 0], rule: 'input', cost: 0, type: 'vec3', places: MESH }, // the geometry's `color` attribute (rgb, linear); white where it has none
   vertexColourAlpha: { arity: [0, 0], rule: 'input', cost: 0, type: 'float', places: MESH }, // original vertex alpha; 1 for RGB or absent colour

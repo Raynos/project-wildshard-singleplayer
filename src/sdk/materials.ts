@@ -134,6 +134,10 @@ export const graphInputs = {
   vertexColourAlpha: op('vertexColourAlpha', 'float'),
   /** Camera-space vertex position after skinning/instancing; forward is negative Z. */
   positionView: op('positionView', 'vec3'),
+  /** Toward the first visible scene directional light (shadow casters first), world space; zero when absent. */
+  skyLightDirection: op('skyLightDirection', 'vec3'),
+  /** Its linear colour multiplied by intensity; excludes shadowing and atmosphere fog colour. */
+  skyLightColour: op('skyLightColour', 'vec3'),
   /** the scene colour at the pixel (a post input) */
   sceneColour: op('sceneColour', 'vec4'),
 } as const;

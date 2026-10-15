@@ -1,6 +1,6 @@
 /** Untimed real-renderer oracle for additive graph inputs. */
-import { Bone, Float32BufferAttribute, LinearSRGBColorSpace, Mesh, NoToneMapping, OrthographicCamera, PlaneGeometry, Scene, Skeleton, SkinnedMesh, Uint16BufferAttribute, WebGLRenderer } from 'three';
-import { vec3 } from 'three/tsl';
+import { Bone, DirectionalLight, Float32BufferAttribute, LinearSRGBColorSpace, Mesh, NoToneMapping, OrthographicCamera, PlaneGeometry, Scene, Skeleton, SkinnedMesh, Uint16BufferAttribute, WebGLRenderer } from 'three';
+import { dot, max, vec3 } from 'three/tsl';
 import { MeshStandardNodeMaterial } from 'three/webgpu';
 import { Scope } from '../../src/engine/app/scope';
 import type { AnimalMaterial } from '../../src/engine/entities/AnimalFactory';
@@ -22,6 +22,8 @@ async function prove(): Promise<unknown> {
       effectState: { fog: false }, surface: { colour: vec3(0), emissive: vec3(1, 0, 0) } }) } });
     Object.assign(source.look.materials, { view: { family: 'graph', graph: graph({ model: 'unlit', effectState: {fog: false},
       surface: {colour: vec3(graphInputs.positionView.x.div(3).add(0.5), graphInputs.positionView.z.mul(-0.125), 0)} }) } });
+    Object.assign(source.look.materials, { skyLight: { family: 'graph', graph: graph({model: 'unlit', effectState: {fog: false},
+      surface: {colour: graphInputs.skyLightColour.mul(max(dot(graphInputs.skyLightDirection,vec3(0,0,1)),0))} }) } });
     const client = await clientMaterials(source, new Map(), renderer, scope, { graphs: true });
     const material = client.materials.get('alpha');
     if (material === undefined) throw new Error('Missing alpha graph');
@@ -76,9 +78,24 @@ async function prove(): Promise<unknown> {
       camera.position.set(x,0,z); renderer.render(scene,camera);
       const words = new Uint8Array(4); gl.readPixels(96,32,1,1,gl.RGBA,gl.UNSIGNED_BYTE,words); viewPixels.push(Array.from(words));
     }
-    const pass = viewPixels.every((pixel,i) => Math.abs((pixel[0] ?? -1000)-128) <= 1 && Math.abs((pixel[1] ?? -1000)-(i === 0 ? 64 : 128)) <= 1 && pixel[2] === 0 && pixel[3] === 255) && gl.getError() === gl.NO_ERROR;
-    if (!pass) throw new Error(JSON.stringify({viewPixels}));
-    return { pass, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels };
+    const viewPass = viewPixels.every((pixel,i) => Math.abs((pixel[0] ?? -1000)-128) <= 1 && Math.abs((pixel[1] ?? -1000)-(i === 0 ? 64 : 128)) <= 1 && pixel[2] === 0 && pixel[3] === 255) && gl.getError() === gl.NO_ERROR;
+    if (!viewPass) throw new Error(JSON.stringify({viewPixels}));
+    scene.clear(); camera.position.set(0,0,2);
+    const lightMaterial = client.materials.get('skyLight');
+    if (lightMaterial === undefined) throw new Error('Missing directional sky-light graph');
+    scene.add(new Mesh(scope.own(new PlaneGeometry(1,1)),lightMaterial));
+    const fill = new DirectionalLight(0xff0000,0.5), sun = new DirectionalLight(0x0000ff,0.25);
+    fill.position.set(0,0,1); sun.position.set(0,0,1); sun.castShadow = true; scene.add(fill,sun,fill.target,sun.target);
+    const lightPixels: number[][] = [];
+    const readLight = (): void => {
+      renderer.render(scene,camera); const words = new Uint8Array(4); gl.readPixels(96,32,1,1,gl.RGBA,gl.UNSIGNED_BYTE,words); lightPixels.push(Array.from(words));
+    };
+    readLight(); sun.color.setRGB(0,1,0); sun.intensity = 1; sun.position.set(1,0,0); readLight();
+    sun.position.set(0,0,2); sun.target.position.z = 1; readLight(); sun.visible = false; readLight(); fill.visible = false; readLight();
+    const lightExpected = [[0,0,64,255],black,[0,255,0,255],[128,0,0,255],black];
+    const pass = lightPixels.every((pixel,i) => pixel.every((value,j) => Math.abs(value-(lightExpected[i]?.[j] ?? -1000)) <= 1)) && gl.getError() === gl.NO_ERROR;
+    if (!pass) throw new Error(JSON.stringify({lightPixels,lightExpected}));
+    return { pass, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels, skyLight: lightPixels };
   } finally { scope.dispose(); renderer.dispose(); renderer.forceContextLoss(); }
 }
 let result: unknown;

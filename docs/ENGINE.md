@@ -5654,3 +5654,5 @@ kinds, gaps and out-of-range indices refuse before the view is installed.
 **Animal graph materials.** `AnimalMaterial` also accepts a compiled standard/toon node material; body colour, map and emissive hit-flash ports retain the same types. This is a type-only extension and adds no eager graph-backend import.
 
 **View-space position.** Graph `positionView` is the camera-space position after skinning and instancing, with forward along negative Z. SDK graphs accept both `graphInputs.positionView` and TSL `positionView`.
+
+**Directional sky light.** `graphInputs.skyLightDirection` points toward the first visible scene directional light in world space (shadow casters first, as classic light ordering). `skyLightColour` is its linear colour times intensity, without shadowing. Both are zero if absent and update on each draw from the renderer's collected lights, without a scene traversal.

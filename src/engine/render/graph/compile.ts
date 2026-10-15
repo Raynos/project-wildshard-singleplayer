@@ -34,7 +34,7 @@
 import * as THREE from 'three';
 import {
   ConditionalNode, ConvertNode, JoinNode, MathNode, MeshBasicNodeMaterial, MeshStandardNodeMaterial, OperatorNode,
-  Node as BaseNode, PhysicalLightingModel, SplitNode, TextureNode, type Node, type NodeBuilder, type NodeMaterial, type UniformArrayNode,
+  Node as BaseNode, PhysicalLightingModel, SplitNode, TextureNode, type Node, type NodeBuilder, type NodeFrame, type NodeMaterial, type UniformArrayNode,
 } from 'three/webgpu';
 import {
   Fn, Loop, Var, and, attribute, cameraPosition, cameraProjectionMatrix, cameraViewMatrix, cameraWorldMatrix, clamp, diffuseContribution, dot, float, frontFacing, hash,
@@ -386,6 +386,27 @@ function lentStandIn(): THREE.DataTexture {
   return standIn;
 }
 
+/** Borrow the renderer's already collected lights; never walk a world's scene graph per draw. */
+function firstSkyLight(frame: NodeFrame): THREE.DirectionalLight | null {
+  if (frame.scene === null || frame.renderer === null) return null;
+  let first: THREE.DirectionalLight | null = null;
+  for (const light of frame.renderer.lighting.getNode(frame.scene).getLights()) {
+    if (!(light instanceof THREE.DirectionalLight)) continue;
+    first ??= light;
+    if (light.castShadow) return light;
+  }
+  return first;
+}
+function skyLightInput(colour: boolean): Node<'vec3'> {
+  const value = new THREE.Vector3(), target = new THREE.Vector3();
+  return uniform(value).onObjectUpdate(frame => {
+    const light = firstSkyLight(frame);
+    if (light === null) return value.set(0, 0, 0);
+    if (colour) return value.set(light.color.r, light.color.g, light.color.b).multiplyScalar(light.intensity);
+    return light.getWorldPosition(value).sub(light.target.getWorldPosition(target)).normalize();
+  });
+}
+
 /** Stage selection happens during generation, not a shared Fn setup. Both samples
  * reference one texture owner, so a lent texture remains retargetable in both stages. */
 class GraphTextureSample extends BaseNode<'vec4'> {
@@ -594,6 +615,8 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
       case 'instanceHash': return { t: 'float', n: hash(instanceIndex) };
       case 'vertexColour': return { t: 'vec3', n: new SplitNode(vertexColor(), 'xyz') };
       case 'vertexColourAlpha': return { t: 'float', n: new SplitNode(vertexColor(), 'w') };
+      case 'skyLightDirection': return { t: 'vec3', n: skyLightInput(false) };
+      case 'skyLightColour': return { t: 'vec3', n: skyLightInput(true) };
       case 'positionView': return { t: 'vec3', n: positionView };
       case 'screenUV': return { t: 'vec2', n: uv() };
       case 'pointCoord': return { n: pointUV, t: 'vec2' };
