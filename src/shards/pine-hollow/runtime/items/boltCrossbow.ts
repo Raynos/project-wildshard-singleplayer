@@ -1,4 +1,4 @@
-import { RangedReload } from '@wildshard/engine/combat/Firearm';
+import { RangedAction } from '@wildshard/engine/combat/Firearm';
 import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import inputs from '../../data/heldInputs.json' with { type: 'json' };
@@ -8,7 +8,7 @@ import { ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/proje
 import { app, gameplayRandom } from '@wildshard/engine/app/runtime';
 import type { AmmoRow } from '@wildshard/engine/combat/ammo';
 import { RangedFrame } from '@wildshard/engine/render/viewmodelFeel';
-import { RANGED_FRAME, RANGED_TRACE, RANGED_RELOAD } from '../../data/rangedFrame';
+import { RANGED_FRAME, RANGED_TRACE } from '../../data/rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import type { TargetHit, Targets } from '@wildshard/engine/combat/types';
@@ -182,8 +182,8 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   // animation state
   private draw = 1; private drawVel = 0; private drawTarget = 1;
   
-  private cooldown = 0; private sinceFire = 99;
-  private readonly reloadClock = new RangedReload(RANGED_RELOAD.crossbow);
+  private readonly action: RangedAction;
+  private readonly reloadPose = (pr: number): void => { this.drawTarget = pr >= 1 ? 1 : sstep(0.18, 0.78, pr); };
   
   private readonly feel: RangedFrame;
   private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
@@ -221,6 +221,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.makeHands = opts.hands?.(world.sky) ?? null;
     this.adsPose.rx = opts.view.ads.pitch; this.adsPose.peepZ = opts.view.peep.z;
     this.state = quiverState({ bolts: this.profile.quiver, loaded: true, reloading: false, reloadProgress: 0, ads: false }, this.profile.quiver);
+    this.action = new RangedAction(this, { mode: 'quiver', maximum: this.profile.quiver, interval: this.profile.cooldown, reload: this.profile.reload, autoReload: this.profile.autoReload, autoFrom: 'shot' });
     this.game = world.game; this.sky = world.sky; this.player = world.player;
     this.setAimSource(() => this.player.sampleAimCommand());
     this.targets = targets;
@@ -258,24 +259,18 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
 
 
   /** Pull the trigger. Fires if loaded, else starts a reload (and reports a dry click). */
-  tryFire(): void {
-    if (this.state.reloading || this.cooldown > 0) return;
-    if (!this.state.loaded) { this.onDry?.(); this.reload(); return; }
-    this.fire();
-  }
+  tryFire(): void { this.action.trigger(() => { this.fire(); }); }
 
   fire(): void {
     if (!this.state.loaded || this.state.reloading) return;
-    this.state.loaded = false;
-    this.state.bolts = Math.max(0, this.state.bolts - 1);
-    this.cooldown = this.profile.cooldown; this.sinceFire = 0;
+    this.action.shot();
     this.drawTarget = 0; this.drawVel = -40; // string snaps forward
     this.feel.shot(this.profile.kick);
     this.spawnBolt();
     this.onFire?.();
   }
 
-  override reload(): void { this.reloadClock.begin(this, this.profile.quiver); }
+  override reload(): void { this.action.reload(); }
 
   override addBolts(n: number): void { this.state.bolts = Math.min(this.profile.quiver, this.state.bolts + n); }
 
@@ -338,16 +333,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   update(dt: number, t: number): void {
     this.time = t; this.posePlayback.beginFrame(dt);
     const p = this.player, cam = this.game.camera;
-    this.cooldown = Math.max(0, this.cooldown - dt);
-    this.sinceFire += dt;
-
-    // auto reload
-    if (!this.state.loaded && !this.state.reloading && this.state.bolts > 0 && this.sinceFire > this.profile.autoReload) this.reload();
-    if (this.state.reloading) {
-      const pr = this.reloadClock.progress(this, dt, this.profile.reload, this.reloadScale);
-      this.drawTarget = sstep(0.18, 0.78, pr);
-      if (pr >= 1) { this.drawTarget = 1; this.reloadClock.finish(this, this.profile.quiver); }
-    }
+    this.action.advance(dt, this.reloadScale, true, this.reloadPose);
     // string spring (stiff, slightly under-damped so the release overshoots)
     const k = this.state.reloading ? 260 : 1400, c = this.state.reloading ? 28 : 34;
     this.drawVel += (-(this.draw - this.drawTarget) * k - this.drawVel * c) * dt;

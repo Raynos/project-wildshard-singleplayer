@@ -6043,3 +6043,16 @@ or random draws are produced. Pine keeps King hit volumes and shelter checks
 in its reader declaration. G441's real W3 user is Nalati
 `runtime/baked.ts` (lattice, solids, actors and parsed-world memo); its
 flock/tree/group/spawn cross-record checks remain its own admission callback.
+
+### Ranged action clocks
+
+`engine/combat/Firearm.ts` defines `RangedAction` and `RangedActionRow`.
+The bounded row selects quiver or magazine consumption and declares capacity,
+interval, reload duration, auto-reload delay and its shot/empty-trigger clock.
+`trigger` preserves reload/cooldown/empty refusals; `shot` claims consumption
+before caller-owned effects; `reload` composes `RangedReload`. `advance` uses
+the caller's frame delta and optional reload scale/active policy, observes
+progress before the original end callback, and never advances physics or pose.
+The string spring remains caller-owned. W3's real matching consumer is
+`src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts`; its bloom,
+muzzle flash, shot callbacks and active-only automatic reload stay ordered.

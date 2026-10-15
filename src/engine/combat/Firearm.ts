@@ -33,6 +33,59 @@ export class RangedReload {
   }
 }
 
+/** Action coefficients on the caller's frame clock; contacts and presentation stay caller-owned. */
+export interface RangedActionRow extends RangedReloadRow {
+  readonly maximum: number; readonly interval: number; readonly reload: number; readonly autoReload: number;
+  readonly autoFrom: 'shot' | 'empty';
+}
+/** Trigger, cooldown and automatic reload owner, composing the existing transfer controller. */
+export class RangedAction {
+  private cooldown = 0;
+  private sinceAction = 99;
+  private readonly clock: RangedReload;
+  private readonly weapon: Weapon;
+  private readonly row: RangedActionRow;
+  constructor(weapon: Weapon, row: RangedActionRow) {
+    if (!Number.isInteger(row.maximum) || row.maximum < 1 || row.maximum > 65536
+      || ![row.interval, row.reload, row.autoReload].every(value => Number.isFinite(value) && value >= 0 && value <= 3600)
+      || row.reload === 0 || !['quiver', 'magazine'].includes(row.mode) || !['shot', 'empty'].includes(row.autoFrom)) throw new RangeError('Invalid ranged action row');
+    this.weapon = weapon; this.row = row; this.clock = new RangedReload(row);
+  }
+  get ready(): boolean { return this.cooldown <= 0; }
+  /** Call the fire phase only after the original reload/cooldown/loaded refusals. */
+  trigger(fire: () => void): void {
+    const s = this.weapon.state;
+    if (s.reloading || !this.ready) return;
+    if (this.row.mode === 'quiver' ? !s.loaded : (s.ammo ?? 0) <= 0) {
+      this.weapon.onDry?.();
+      if (this.row.autoFrom === 'empty') this.sinceAction = 0;
+      this.reload(); return;
+    }
+    fire();
+  }
+  /** Claim consumption at the old shot phase, before recoil, flight and fire callbacks. */
+  shot(): void {
+    const s = this.weapon.state;
+    if (this.row.mode === 'quiver') { s.loaded = false; s.bolts = Math.max(0, (s.bolts ?? 0) - 1); }
+    else { if (s.ammo === undefined) throw new Error('Magazine action requires ammunition'); s.ammo--; s.loaded = s.ammo > 0; }
+    this.cooldown = this.row.interval;
+    if (this.row.autoFrom === 'shot') this.sinceAction = 0;
+  }
+  reload(): void { this.clock.begin(this.weapon, this.row.maximum); }
+  /** Observe progress before transfer/end callbacks, preserving the action pose phase. */
+  advance(dt: number, scale = 1, active = true, progress?: (value: number) => void): void {
+    const s = this.weapon.state;
+    this.cooldown = Math.max(0, this.cooldown - dt); this.sinceAction += dt;
+    const empty = this.row.mode === 'quiver' ? !s.loaded && (s.bolts ?? 0) > 0 : (s.ammo ?? 0) <= 0 && s.reserve > 0;
+    if (!s.reloading && empty && this.sinceAction > this.row.autoReload && active) this.reload();
+    if (s.reloading) {
+      const value = this.clock.progress(this.weapon, dt, this.row.reload, scale);
+      progress?.(value);
+      if (value >= 1) this.clock.finish(this.weapon, this.row.maximum);
+    }
+  }
+}
+
 /** The trigger template is shared; custom actions override readiness, cycling and reload hooks. */
 export abstract class Firearm extends Weapon {
   protected sinceEmpty = 99;
