@@ -5754,3 +5754,9 @@ at runtime. The shard-owned cheap producer derives profiles from the
 original authored tree GLB. Ambient clocks, RNG and flock owners remain
 with installAmbientLife.
 
+
+`ProjectileContact<T, H = TargetHit>` accepts the native owner's existing
+hit result as `H`; the target and damage ports exchange that value without
+conversion. Default page callers retain `TargetHit`. Surface policy, nearest
+world fence, flight slots and stopped-shaft continuation keep their existing
+owners; the host never installs physics or applies damage itself.

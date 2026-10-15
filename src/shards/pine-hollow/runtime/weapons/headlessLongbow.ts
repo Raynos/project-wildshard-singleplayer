@@ -7,10 +7,10 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { BowDraw } from '@wildshard/engine/combat/bowDraw';
 import { projectileFlightStep, ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
-import { projectileContactTip, projectileGlance, StoppedProjectileSlots, stoppedProjectileSaved } from '@wildshard/engine/combat/projectileContact';
+import { ProjectileContact, StoppedProjectileSlots, stoppedProjectileSaved } from '@wildshard/engine/combat/projectileContact';
 import { drawnSpreadDegrees, shotSpread } from '@wildshard/engine/combat/shotSpread';
-import { floorBelow, sticksIn } from '@wildshard/engine/physics/query';
-import { EYE, aimAt, bodyHit, worldHit } from './headlessRanged';
+import { floorBelow } from '@wildshard/engine/physics/query';
+import { EYE, aimAt, bodyHit, worldHit, type BodyHit } from './headlessRanged';
 
 /** The longbow's fixed-step id; its continuation is the draw, the quiver, the aim and every arrow in flight. */
 export const LONGBOW_STEP = 'pine.longbow';
@@ -71,44 +71,34 @@ export function installPineLongbow(host: SimHost, ports: PineLongbowPorts): { re
   const random = (): number => host.rng.stream('gameplay').next(), player = host.player;
   const draw = new BowDraw(profile.draw), state: { arrows: number; aim: string | null } = { arrows: profile.quiver, aim: null };
 
-  const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), seg = new Vector3(), n = new Vector3(), contact = new Vector3(), wind = new Vector3();
+  const eye = new Vector3(), dir = new Vector3(), across = new Vector3(), seg = new Vector3(), wind = new Vector3();
   const stuck = new StoppedProjectileSlots<null, string>({ capacity: 48, length: 0.76, bury: 0.09, radius: RADIUS,
     reach: { radius: 1.25, up: 2.1, down: 1.2 }, recover: 0.7, recoveryStride: 8 }, { feet: player.position,
     floorAt: (x, y, z) => floorBelow(host.physics, x, z, y + 0.3, 60) ?? host.groundHeightAt(x, z),
     body: id => host.entities.get(id), canRecover: () => state.arrows < profile.quiver,
     recover: survived => { if (survived) state.arrows = Math.min(profile.quiver, state.arrows + 1); }, random }, () => null);
   const req: DamageRequest = { source: player.health, sourceTags: ['weapon.longbow', 'dmg.ranged', 'cover.checked'], target: player.health, amount: 0, point: new Vector3(), dir: seg, headshot: false };
-  /** the step prev → arrow: the nearer of a body and the world; true when the arrow stopped */
-  const testHit = (a: Arrow, prev: Vector3): boolean => {
-    seg.subVectors(a.pos, prev);
-    const len = seg.length();
-    if (len < 1e-6) return false;
-    seg.multiplyScalar(1 / len);
-    const wall = worldHit(host, prev, a.pos, RADIUS);
-    const hit = bodyHit(ports.bodies(), prev, seg, wall ? wall.distance : len), body = hit?.body ?? null;
-    if (hit !== null && body !== null) {
-      req.target = body.combatActor(); req.amount = Math.max(1, Math.round(body.damageFor(hit.head, hit.point.distanceTo(a.origin)) * profile.damageScale));
-      req.point.copy(hit.point); req.headshot = hit.head;
+  const contacts = new ProjectileContact<Arrow, BodyHit>({
+    glance: GLANCE, spentRest: 'any', impactAfterLift: false, impactOnRepeatedGlance: false,
+  }, {
+    world: (from, to, radius) => worldHit(host, from, to, radius),
+    target: (from, direction, distance) => { const hit = bodyHit(ports.bodies(), from, direction, distance); return hit?.body === null ? null : hit; },
+    hit: (arrow, hit, direction) => {
+      const body = hit.body; if (body === null) return;
+      req.target = body.combatActor(); req.amount = Math.max(1, Math.round(body.damageFor(hit.head, hit.point.distanceTo(arrow.origin)) * profile.damageScale));
+      req.point.copy(hit.point); req.dir.copy(direction); req.headshot = hit.head;
       host.combat.hit(req);
-      stuck.stop(hit.point, seg, true, body.alive ? body.entityId : null);
+      stuck.stop(hit.point, direction, true, body.alive ? body.entityId : null);
       if (!body.alive) stuck.dropLast();
-      return true;
-    }
-    if (!wall) return false;
-    n.set(wall.normal.x, wall.normal.y, wall.normal.z);
-    if (n.dot(seg) > 0) n.negate();
-    contact.set(wall.point.x, wall.point.y, wall.point.z);
-    if (a.glanced) { stuck.rest(contact, seg, n); return true; }
-    if (sticksIn(wall.material)) { projectileContactTip(contact, seg, n, RADIUS); stuck.stop(contact, seg, false, null); return true; }
-    projectileGlance(contact, a.vel, n, GLANCE);
-    a.pos.copy(contact);
-    a.glanced = true;
-    return false;
-  };
+    },
+    stop: (_arrow, at, direction) => { stuck.stop(at, direction, false, null); },
+    rest: (_arrow, at, direction) => { stuck.settle(at, direction); },
+    impact: () => { /* native contacts have no dust or sound */ }, expire: arrow => { arrow.active = false; },
+  });
   const pool = new ProjectileSlots<{ origin: Vector3 }>(profile.pool, () => ({ origin: new Vector3() }), {
     substeps: profile.substeps, extent: BOUND, floor: FLOOR, lifetime: profile.lifetime,
     integrate: (slot, h) => { projectileFlightStep(slot.pos, slot.vel, h, profile.flight,
-      ports.wind === undefined ? null : ports.wind.vecAt(slot.pos.x, slot.pos.z, wind)); }, contact: testHit,
+      ports.wind === undefined ? null : ports.wind.vecAt(slot.pos.x, slot.pos.z, wind)); }, contact: (arrow, previous) => contacts.step(arrow, previous, RADIUS, 0.76),
   });
   const arrows = pool.slots;
   const loose = (): void => {

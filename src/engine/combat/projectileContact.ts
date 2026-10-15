@@ -191,10 +191,10 @@ export interface ProjectileContactRow {
   readonly impactOnRepeatedGlance: boolean;
 }
 export interface ProjectileContactSlot { readonly pos: Vector3; readonly vel: Vector3; glanced: boolean }
-export interface ProjectileContactPorts<T extends ProjectileContactSlot> {
+export interface ProjectileContactPorts<T extends ProjectileContactSlot, H = TargetHit> {
   readonly world: (from: Vector3, to: Vector3, radius: number) => Hit | null;
-  readonly target: (from: Vector3, direction: Vector3, distance: number) => TargetHit | null;
-  readonly hit: (slot: T, hit: TargetHit, direction: Vector3) => void;
+  readonly target: (from: Vector3, direction: Vector3, distance: number) => H | null;
+  readonly hit: (slot: T, hit: H, direction: Vector3) => void;
   readonly stop: (slot: T, at: Vector3, direction: Vector3, wall: Hit) => void;
   readonly rest: (slot: T, at: Vector3, direction: Vector3, normal: Vector3) => void;
   readonly impact: (at: Vector3, direction: Vector3, wall: Hit) => void;
@@ -203,15 +203,16 @@ export interface ProjectileContactPorts<T extends ProjectileContactSlot> {
 }
 /** Resolve a posed segment once, retaining its wall fence and the authored surface phase.
  * Radius, shaft length and sticking are live observations from the caller's existing profile.
+ * Native hosts may supply their existing hit-result type through H; page callers retain TargetHit.
  * Scratch vectors are borrowed by synchronous ports only; no actor or physics service is owned here.
  */
-export class ProjectileContact<T extends ProjectileContactSlot> {
+export class ProjectileContact<T extends ProjectileContactSlot, H = TargetHit> {
   private readonly row: ProjectileContactRow;
-  private readonly ports: ProjectileContactPorts<T>;
+  private readonly ports: ProjectileContactPorts<T, H>;
   private readonly withoutLift: ProjectileGlance;
   private readonly direction = new Vector3(); private readonly normal = new Vector3(); private readonly at = new Vector3();
   private readonly along = new Vector3(); private readonly y = new Vector3(0, 1, 0); private readonly x = new Vector3(1, 0, 0);
-  constructor(row: ProjectileContactRow, ports: ProjectileContactPorts<T>) {
+  constructor(row: ProjectileContactRow, ports: ProjectileContactPorts<T, H>) {
     this.row = row; this.ports = ports; this.withoutLift = { ...row.glance, lift: 0 };
   }
   step(slot: T, from: Vector3, radius: number, shaftLength: number, stick = true): boolean {

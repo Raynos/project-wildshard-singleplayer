@@ -6,11 +6,11 @@ import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import type { DamageRequest } from '@wildshard/engine/combat/pipeline';
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { sticksIn } from '@wildshard/engine/physics/query';
+import { ProjectileContact } from '@wildshard/engine/combat/projectileContact';
 import { crossbowProfile } from '../../weapons/crossbow/profiles';
 import { CROSSBOW_WEAPON_PROFILE } from '../../data/crossbowProfile';
 import { boltFlightStep, PLAIN_FLIGHT, type BoltFlight } from '../../weapons/crossbow/flight';
-import { aimAt, bodyHit, worldHit } from './headlessRanged';
+import { aimAt, bodyHit, worldHit, type BodyHit } from './headlessRanged';
 import { boltDamage, type BoltKind } from '../../loadout/ammo';
 
 /** The crossbow's fixed-step id; its continuation is the bow's state and every bolt in flight. */
@@ -67,40 +67,28 @@ export function installPineCrossbow(host: SimHost, ports: PineCrossbowPorts): { 
   const state = { loaded: true, quiver: p.quiver, reloading: false, reloadT: 0, cooldown: 0, sinceFire: 99 };
 
   const reload = (): void => { if (!state.reloading && !state.loaded && state.quiver > 0) { state.reloading = true; state.reloadT = 0; } };
-  const eye = new Vector3(), fwd = new Vector3(), side = new Vector3(), dir = new Vector3(), seg = new Vector3(), n = new Vector3();
+  const eye = new Vector3(), fwd = new Vector3(), side = new Vector3(), dir = new Vector3(), seg = new Vector3();
   // one request, refilled per hit (the pipeline copies the contact frame and the tags)
   const req: DamageRequest = { source: player.health, sourceTags: ['weapon.crossbow', 'dmg.ranged', 'cover.checked'], target: player.health, amount: 0, point: new Vector3(), dir: seg, headshot: false };
-  /** the step prev → bolt: the nearer of a body and the world; true when the bolt stopped */
-  const testHit = (b: Bolt, prev: Vector3): boolean => {
-    seg.subVectors(b.pos, prev);
-    const len = seg.length();
-    if (len < 1e-6) return false;
-    seg.multiplyScalar(1 / len);
-    const wall = worldHit(host, prev, b.pos, p.radius);
-    const hit = bodyHit(ports.bodies(), prev, seg, wall ? wall.distance : len), body = hit?.body ?? null;
-    if (hit !== null && body !== null) {
-      // the pipeline copies the contact frame (its scratch vectors are reused)
-      req.target = body.combatActor(); req.amount = body.damageFor(hit.head, hit.point.distanceTo(player.position)) * boltDamage(b.ammo, body.kind) * p.damageScale;
-      req.point.copy(hit.point); req.headshot = hit.head;
+  const contacts = new ProjectileContact<Bolt, BodyHit>({
+    glance: { lift: GLANCE_LIFT, keep: GLANCE_KEEP, bounce: GLANCE_BOUNCE, maxSpeed: GLANCE_MAX },
+    spentRest: 'upward', impactAfterLift: false, impactOnRepeatedGlance: false,
+  }, {
+    world: (from, to, radius) => worldHit(host, from, to, radius),
+    target: (from, direction, distance) => { const hit = bodyHit(ports.bodies(), from, direction, distance); return hit?.body === null ? null : hit; },
+    hit: (bolt, hit, direction) => {
+      const body = hit.body; if (body === null) return;
+      req.target = body.combatActor(); req.amount = body.damageFor(hit.head, hit.point.distanceTo(player.position)) * boltDamage(bolt.ammo, body.kind) * p.damageScale;
+      req.point.copy(hit.point); req.dir.copy(direction); req.headshot = hit.head;
       host.combat.hit(req);
-      return true;
-    }
-    if (!wall) return false;
-    n.set(wall.normal.x, wall.normal.y, wall.normal.z);
-    if (n.dot(seg) > 0) n.negate();
-    if (b.glanced && n.y >= 0.5) return true; // a spent bolt lies where it lands
-    if (!b.glanced && sticksIn(wall.material)) return true;
-    const vn = b.vel.dot(n);
-    b.vel.addScaledVector(n, -vn).multiplyScalar(GLANCE_KEEP).addScaledVector(n, -vn * GLANCE_BOUNCE);
-    if (b.vel.length() > GLANCE_MAX) b.vel.setLength(GLANCE_MAX);
-    b.pos.set(wall.point.x, wall.point.y, wall.point.z).addScaledVector(n, GLANCE_LIFT);
-    b.glanced = true;
-    return false;
-  };
+    },
+    stop: () => { /* native bolts have no stopped display */ }, rest: () => { /* the spent flight ends here */ },
+    impact: () => { /* page-only dust and sound */ }, expire: bolt => { bolt.active = false; },
+  });
   const pool = new ProjectileSlots<{ ammo: BoltKind }>(p.maxFlying, () => ({ ammo: 'iron' }), {
     substeps: p.substeps, extent: BOUND, floor: FLOOR, lifetime: p.lifetime,
     integrate: (slot, h) => { boltFlightStep(slot.pos, slot.vel, h, ports.flight?.(slot.ammo) ?? PLAIN_FLIGHT, p); },
-    contact: testHit,
+    contact: (bolt, previous) => contacts.step(bolt, previous, p.radius, 0),
   });
   const bolts = pool.slots;
   const fire = (target: AnimalSim): void => {
