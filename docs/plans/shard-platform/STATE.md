@@ -1,18 +1,18 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**RESUMED 2026-10-15.** **W1 CLOSED** (90/10 + G420; G424 JSON `2efd1ec7f`: Sky 9.58 %, Signal 9.75 %, 0 unknown). **W2 at 16:39Z `5638bb0f4` (clean generated, build mirror): Pine 80.85 %, Driftwood 75.72 %, 0 unknown** (start 107.6 / 104.2; resume 82.31 / 76.98; target 80/20).
-Pine/DW: C1 4511/4877 · C2 1886/2528 · C3 269/0 · C4 3971/2238 · C5 2506/1459 · C6 3062/1232 · C7 12/0 · C8 360/189 · C9 579/475.
-Since resume: DW ocean on graphs `3ef50911b` (−173), DW ground on graph toon `596aea742`, Pine crags on a graph `d8b780f1b`, night crown shadow softened (G427) `e701650de`, Explorer card isolation `02b3b2959`, Pine undergrowth records `2fae57cc5` (−125), native rifle/tool pools `dff718bf9` (−70), DW dune logs/wrappers −71, DW music on AAC `ef70dd7ff` + SFX loop cut `5716c350b` (≈ −36 MB prepared audio), graph buffer rebind fix `4179daade`. Disk (G429): one shared `check` mirror slot (`3bee8d371`), ./tmp 32 → 14 GB.
+**RESUMED 2026-10-15** (second Claude account since ~16:50Z; account 1 weekly limit). **W1 CLOSED** (Sky 9.58 %, Signal 9.75 %). **W2 at 17:50Z `06cc2d478`: Pine 79.52 %, Driftwood 73.93 %** (start 107.6 / 104.2; resume 82.31 / 76.98; target 80/20). 1 unknown each: `discovery.generated.ts` counted (sp-x5 fixing).
+Pine/DW: C1 4384/4670 · C2 1813/2395 · C3 269/0 · C4 3971/2238 · C5 2506/1459 · C6 2953/1236 · C7 12/0 · C8 361/190 · C9 606/503.
+Since the last refresh: Pine wildlife bake `367d9e66b` (−119), held tool + knife `42b81d9ba` (−115), DW palms/hibiscus rows `90068b0a7` (−68), reef + rope bridge bakes `ea97c48c1` `10b9df93b` (−132), waterfall cascade bake `06cc2d478`, DW ground cover tint back on the graph `5638bb0f4`; CI deploy gen fix `229dd67b8`; type red fixed `d17377597`; check slot FIFO `00ededca1`.
 
-**Lanes (G421 4 Opus visual-only; G428 burn Claude to 100 %, Codex reset):**
-- Opus: o217 Pine forest on batched graphs (crags landed); o218 Pine water retry + Explorer DW/Sky/Signal check; o219 DW reef + rope bridge bakes; o220 DW toon families (island, pier, creatures, arms), then ramp fog + day backdrop so toonGlsl/toonLight can go. DW kit/rocks/palms parked (`refs/parked/sp-o216-kit`) on two engine bugs (x8 I/II).
-- Codex: x1 Pine held-tool + finishes; x4 Pine wildlife bake (tree set waits for o217's forest); x5 W2 Pine + DW manifest JSON; x6 DW C1 dead code; x7 = push + commit + keep git clean (Jake via wildshard-v): commits the ~500 uncommitted files in logical commits, lists what the storage policy refuses; x8 H (cheaper graph shadow taps), then the grid memory gap (Pine neighbour fully prepared at DW centre: ~85 MB), then I/II.
-- Memory: G258 re-measure after the audio cuts: DW claim 304.7 → 283.8 MB, grid model at DW centre ≈ 1054/1000 MB, still ~54 MB over.
+**Lanes (G421 4 Opus visual-only; G428 burn to 100 %):**
+- Opus: o221 DW look runtime; o222 Pine look runtime; o223 Pine C3 effects (King fog/flames on graphs, flame fork fix before landing); o224 DW day backdrop + ramp fog. DW island/pier/creatures/arms toon wait on engine graph features (sp-x4).
+- Codex: x1 Pine loadout, then DW keepsakes/swords; x4 graph features (vertex alpha, AnimalFactory graph materials, skinned graphs, view position, sky light, texture array), tree set after Pine forest; x5 W2 Pine + DW manifest JSON; x6 DW C1 (BlenderIsland); x7 push + commit + git clean (609 → live-only), SF74 tails; x8 grid memory: H parked `refs/parked/sp-x8-h` (no win), weak image cache, then minimap accounting fix.
+- Memory: grid model at DW centre ≈ 1054/1000 MB; the Pine neighbour is disposed before DW allocates; leads = the image cache that keeps every finished decode (41.9 MB Pine) and minimap over-charge (73.9 MB reserved vs real canvases).
 
-**New rules (AGENTS.md 10-15):** push manually with `scripts/push-main.sh`; never copy the repo (build mirror, `./tmp/<task>` scratch); storage policy (`scripts/repo-size.mjs`); no worktrees. Leave the untracked nine-dragon-stack files and foreign staged files alone (owner unknown).
+**Rules (AGENTS.md 10-15):** manual push (`scripts/push-main.sh`); never copy the repo; three mirror slots; storage policy; no worktrees.
 
 **Waves (G413):** W1 done → W2 Pine + Driftwood (to 80/20) → W3 Nalati + Nine. M2 = grid from the menu, seamless travel, Jake's three phone runs with no tab kill (G417).
-**In force:** G415–G428.
+**In force:** G415–G431.
 
-**For wildshard-v:** disk cleanup is yours (Jake's correction): no lane started the G430 generation-cache prune or the pre-commit speed task (sp-x6: read-only look, no files, no SHA); my `3bee8d371` made `check` the default mirror slot and serve-build's slot; old `build` slot removed, `serve` still held by the :4403 preview. G427 landed `e701650de`; G428 consumed.
+**For wildshard-v:** your commits `9f5fc11e4` / `bff4dec3c` landed inside lane commit windows (fine, just FYI). Push-speed files (gate-related-tests, heavy-lane, local-gate-checks, precommit-inputs, push-refusal) and generation-cache* stay yours; x7 leaves them. W12 closed as obsolete `921473605`.
 Paused rows: SF22, SF57, SF67.
