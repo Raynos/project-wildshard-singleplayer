@@ -4,7 +4,7 @@ import perches from './perches.generated.json';
 export const PINE_LIFE={kind:'forest-community',seed:0x71fe,
   scavenger:{model:0,count:4,scale:1.1,stand:0.2,flush:8,flushRun:12,reland:16,arrival:[18,52],visitors:{deer:2,boar:2,elk:3,bear:3},defaultVisitors:2,bodyWidths:{deer:0.75,boar:0.6,elk:1.1,bear:0.95},giveUp:240},
   perches,
-  sentinel:{model:1,scale:1.05,stand:0.16},trunkForager:{model:2},forager:{model:4,count:5,scale:1.12,range:130,visibleRange:95},
+  sentinel:{model:1,scale:1.05,stand:0.16},trunkForager:{model:2},forager:{model:4,count:5,scale:1.12,range:130,visibleRange:95,policy:{scare:[12,20],alertMargin:10,releaseMargin:6,fleeDistance:[28,45],fleePause:[3,6],alertPause:[2,5],grazePause:[1.5,5],settlePause:[1,3],turn:[-1.2,1.2],grazing:{chance:0.7,length:[0.3,0.7],duration:0.32,height:0.08},escape:{length:2.4,duration:0.27,height:0.42,zigSteps:[2,4],spread:[-0.7,0.7],steer:0.2},posture:{graze:[0,3,0.55,3,0.35,2],alert:[1,5,-0.3,6,-0.15,6],flee:[0,0,-0.1,8,0.9,8]}}},
   guide:{count:3,policy:{distance:'centre',min:40,max:450,schedule:{kind:'periodic',initial:25,period:[90,150]}}},
   flight:{wave:0.7,amplitude:1.2,pitch:0.6,pitchRate:4,bank:-0.5,bankLimit:0.7,bankRate:3},
   wingbeats:{

@@ -5823,3 +5823,15 @@ actor roots refuse. Numeric-only held groups use the same bounded DAG;
 visual groups retain their existing scene and connector bindings. Both
 crossbow and magazine sights publish into their original sight records;
 contact, action and reload clocks remain with their existing owners.
+
+### Bodyless ambient policy
+
+`src/game/systems/life/bodylessForager.ts` exposes `BodylessForager`: a
+renderer-free grazing, alert and escape policy over caller-owned state,
+RNG, scheduled deltas and ground queries. It borrows motion channels;
+visibility, reseating and population lifetime stay with the caller. Pine's
+small foragers are the first user. G441's W3 user is Nalati's
+`creatures/marmotBrain.ts`: its forage/sentry/threat/retreat decisions move
+onto the runner with burrow retreat rows, while its colony whistle and
+band clocks remain the native owners. Pending credit is rechecked at the
+end of W3.

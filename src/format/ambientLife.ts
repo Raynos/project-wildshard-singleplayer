@@ -6,12 +6,21 @@ const positive=v.pipe(finite,v.minValue(0.001),v.maxValue(100000));
 const count=v.pipe(v.number(),v.integer(),v.minValue(1),v.maxValue(256));
 const model=v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(31));
 const range=v.pipe(v.tuple([finite,finite]),v.check(pair=>pair[0]<=pair[1]));
+const posture=v.tuple([finite,finite,finite,finite,finite,finite]);
 const burst=v.strictObject({phase:v.pipe(v.array(positive),v.minLength(2),v.maxLength(3)),amplitude:finite,foldPhase:finite,foldAmplitude:finite,rest:v.tuple([finite,finite]),rates:v.tuple([positive,positive]),glide:range,beats:v.pipe(v.tuple([count,count]),v.check(pair=>pair[0]<=pair[1]&&pair[1]<=64))});
+/** Bodyless grazing/alert/escape policy, independent of renderer and clock ownership. */
+export const ForagerPolicySchema=v.strictObject({
+  scare:range,alertMargin:positive,releaseMargin:positive,fleeDistance:range,fleePause:range,alertPause:range,grazePause:range,settlePause:range,turn:range,
+  grazing:v.strictObject({chance:v.pipe(finite,v.minValue(0),v.maxValue(1)),length:range,duration:positive,height:positive}),
+  escape:v.strictObject({length:positive,duration:positive,height:positive,zigSteps:v.tuple([count,count]),spread:range,steer:positive}),
+  posture:v.strictObject({graze:posture,alert:posture,flee:posture}),
+});
+export type ForagerPolicyRows=v.InferOutput<typeof ForagerPolicySchema>;
 /** Ambient populations borrow actual models and world owners. No resources or callbacks are encoded in rows. */
 export const ForestLifeSchema=v.pipe(v.strictObject({kind:v.literal('forest-community'),seed:v.pipe(v.number(),v.integer(),v.minValue(0),v.maxValue(0xffffffff)),
   scavenger:v.strictObject({model,count,scale:positive,stand:finite,flush:positive,flushRun:positive,reland:positive,arrival:range,visitors:v.record(id,count),defaultVisitors:count,bodyWidths:v.record(id,positive),giveUp:positive}),
   perches:v.pipe(v.strictObject({step:positive,spines:v.pipe(v.array(v.pipe(v.array(v.strictObject({y:finite,cx:finite,cz:finite,r:positive})),v.maxLength(256))),v.minLength(1),v.maxLength(32))}),v.check(row=>row.spines.every(spine=>spine.every((knot,index)=>knot.y===(index+1)*row.step)),'ordered equal-step perch knots')),
-  sentinel:v.strictObject({model,scale:positive,stand:finite}),trunkForager:v.strictObject({model}),forager:v.strictObject({model,count,scale:positive,range:positive,visibleRange:positive}),
+  sentinel:v.strictObject({model,scale:positive,stand:finite}),trunkForager:v.strictObject({model}),forager:v.strictObject({model,count,scale:positive,range:positive,visibleRange:positive,policy:ForagerPolicySchema}),
   guide:v.strictObject({count,policy:v.strictObject({distance:v.literal('centre'),min:positive,max:positive,schedule:v.strictObject({kind:v.literal('periodic'),initial:finite,period:range})})}),
   flight:v.strictObject({wave:finite,amplitude:finite,pitch:finite,pitchRate:positive,bank:finite,bankLimit:positive,bankRate:positive}),
   wingbeats:v.pipe(v.record(id,burst),v.check(rows=>Object.keys(rows).length<=16)),

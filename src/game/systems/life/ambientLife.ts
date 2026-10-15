@@ -21,6 +21,7 @@ import type { ShardContext } from '../../plugin/context';
 import { installEnteredRuntimeObserver,installEnteredRuntimeService,retainsRuntimeServices } from '../../shard/retainedHooks';
 import { sharedWeaponVoices } from '../../plugin/audio';
 import { CirclingFlyer } from '@wildshard/engine/ai/ambientFlight';
+import { BodylessForager, type BodylessForagerState, type ForagerMotion } from './bodylessForager';
 import { TrunkProbe } from './trunkProbe';
 import type { AmbientLifeData, CirclingLifeData } from '@wildshard/format/ambientLife';
 
@@ -73,15 +74,8 @@ interface Bird {
   /** where it stands / perches (ground or branch height) */
   gy: number;
 }
-interface Hare {
-  slot: number; pose: WildPose;
-  mode: 'graze' | 'alert' | 'flee';
-  x: number; z: number; yaw: number;
-  /** a hop: from → to over dur, height h */
-  fx: number; fz: number; tx: number; tz: number; t: number; dur: number; h: number;
-  timer: number; fleeLeft: number; zig: number; retry: number;
-  headPitch: number; ears: number; sit: number;
-}
+interface Hare extends BodylessForagerState { slot: number; pose: WildPose; motion: ForagerMotion; retry: number }
+
 interface Carcass { a: Animal; killT: number; comeT: number; harvestT: number; visit: RavenVisit; ravens: Bird[]; feedLeft: number; leaveT: number; dimmed: boolean }
 
 const TAU = Math.PI * 2;
@@ -544,7 +538,7 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   // ── the hares ──
   const hares: Hare[] = Array.from({ length: N_HARE }, (_, i) => ({
     slot: SLOT.hare + i, pose: newPose(KIND.hare), mode: 'graze', x: 0, z: 0, yaw: 0, fx: 0, fz: 0, tx: 0, tz: 0, t: 1, dur: 1, h: 0,
-    timer: 0, fleeLeft: 0, zig: 0, retry: 0, headPitch: 0.5, ears: 0.2, sit: 0,
+    timer: 0, fleeLeft: 0, zig: 0, retry: 0, headPitch: 0.5, ears: 0.2, sit: 0, motion: { y: -999, hind: 0, fore: 0, pitch: 0 },
   }));
   for (const hr of hares) hr.pose.scale = data.forager.scale;
   const seatHare = (hr: Hare, rMin: number, rMax: number, hidden: boolean): boolean => {
@@ -560,18 +554,6 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
     return false;
   };
   hares.forEach((hr) => { if (!seatHare(hr, 25, 80, false)) { hr.x = 1e5; hr.z = 1e5; } });
-  const hop = (hr: Hare, len: number, dur: number, height: number): void => {
-    let tx = hr.x + Math.sin(hr.yaw) * len, tz = hr.z + Math.cos(hr.yaw) * len;
-    if (!groundOk(tx, tz)) {
-      // blocked: turn and try the other ways round
-      for (const turn of [0.9, -0.9, 1.8, -1.8, Math.PI]) {
-        const y = hr.yaw + turn, x2 = hr.x + Math.sin(y) * len, z2 = hr.z + Math.cos(y) * len;
-        if (groundOk(x2, z2)) { hr.yaw = y; tx = x2; tz = z2; break; }
-      }
-      if (!groundOk(tx, tz)) { hr.mode = 'alert'; hr.timer = 1; return; }
-    }
-    hr.fx = hr.x; hr.fz = hr.z; hr.tx = tx; hr.tz = tz; hr.t = 0; hr.dur = dur; hr.h = height;
-  };
   // Re-seating is the ambient population's placement/visibility work, even when its brain is held.
   const prepareHare = (hr: Hare, dt: number): boolean => {
     const pp = player.position;
@@ -583,54 +565,12 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
     }
     return true;
   };
+  const forager = new BodylessForager(data.forager.policy, rng, { heightAt, canStep: groundOk });
   const updateHare = (hr: Hare, dt: number): void => {
-    const pp = player.position, p = hr.pose;
-    const d = Math.hypot(hr.x - pp.x, hr.z - pp.z);
-    const scare = player.sprinting ? 20 : 12;
-    if (hr.mode !== 'flee' && d < scare) { hr.mode = 'flee'; hr.fleeLeft = rng.range(28, 45); hr.zig = 0; hr.yaw = Math.atan2(hr.x - pp.x, hr.z - pp.z); hr.t = hr.dur; }
-    else if (hr.mode === 'graze' && d < scare + 10) { hr.mode = 'alert'; hr.timer = rng.range(2, 5); }
-    const hopping = hr.t < hr.dur;
-    if (hopping) {
-      hr.t += dt;
-      const u = Math.min(1, hr.t / hr.dur);
-      hr.x = hr.fx + (hr.tx - hr.fx) * u; hr.z = hr.fz + (hr.tz - hr.fz) * u;
-      const arc = Math.sin(u * Math.PI);
-      p.y = heightAt(hr.x, hr.z) + arc * hr.h;
-      // the bound: hind legs drive back off the ground, fore legs reach, then land fore-first
-      p.a0 = u < 0.35 ? Math.sin((u / 0.35) * Math.PI * 0.5) : 1 - (u - 0.35) / 0.65 * 1.5;
-      p.a1 = u < 0.5 ? -0.7 * Math.sin(u * TAU) : 0.5 * Math.sin((u - 0.5) * TAU);
-      p.pitch = (0.5 - u) * (hr.mode === 'flee' ? 0.5 : 0.3);
-    } else {
-      p.y = heightAt(hr.x, hr.z);
-      p.a0 += (0 - p.a0) * Math.min(1, dt * 10); p.a1 += (0 - p.a1) * Math.min(1, dt * 10);
-      p.pitch += (hr.sit * 0.22 - 0.04 - p.pitch) * Math.min(1, dt * 6);
-    }
-    hr.timer -= dt;
-    switch (hr.mode) {
-      case 'graze':
-        hr.sit += (0 - hr.sit) * Math.min(1, dt * 3);
-        hr.headPitch += (0.55 - hr.headPitch) * Math.min(1, dt * 3); hr.ears += (0.35 - hr.ears) * Math.min(1, dt * 2);
-        if (!hopping && hr.timer <= 0) { hr.timer = rng.range(1.5, 5); hr.yaw += rng.range(-1.2, 1.2); if (rng.next() < 0.7) hop(hr, rng.range(0.3, 0.7), 0.32, 0.08); }
-        break;
-      case 'alert':
-        hr.sit += (1 - hr.sit) * Math.min(1, dt * 5);
-        hr.headPitch += (-0.3 - hr.headPitch) * Math.min(1, dt * 6); hr.ears += (-0.15 - hr.ears) * Math.min(1, dt * 6);
-        if (hr.timer <= 0 && d > scare + 6) { hr.mode = 'graze'; hr.timer = rng.range(1, 3); }
-        break;
-      case 'flee':
-        hr.sit = 0;
-        hr.headPitch += (-0.1 - hr.headPitch) * Math.min(1, dt * 8); hr.ears += (0.9 - hr.ears) * Math.min(1, dt * 8);
-        if (!hopping) {
-          if (hr.fleeLeft <= 0) { hr.mode = 'alert'; hr.timer = rng.range(3, 6); break; }
-          hr.zig -= 1;
-          const away = Math.atan2(hr.x - pp.x, hr.z - pp.z);
-          if (hr.zig <= 0) { hr.zig = rng.int(2, 4); hr.yaw = away + rng.range(-0.7, 0.7); } else hr.yaw += wrap(away - hr.yaw) * 0.2;
-          hop(hr, 2.4, 0.27, 0.42); hr.fleeLeft -= 2.4;
-        }
-        break;
-      default: break;
-    }
-    p.x = hr.x; p.z = hr.z; p.yaw = hr.yaw; p.roll = 0;
+    forager.step(hr, hr.motion, dt, player.position, player.sprinting);
+    const p = hr.pose, motion = hr.motion;
+    p.x = hr.x; p.y = motion.y; p.z = hr.z; p.yaw = hr.yaw; p.roll = 0;
+    p.a0 = motion.hind; p.a1 = motion.fore; p.pitch = motion.pitch;
     p.a2 = hr.headPitch - hr.sit * 0.2; p.a3 = hr.ears; p.b1 = hr.mode === 'alert' ? Math.sin(now() * 1.3 + hr.slot) * 0.5 : 0;
     wild.add(p);
   };
