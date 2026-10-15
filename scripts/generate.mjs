@@ -19,6 +19,25 @@ const Catalog = v.strictObject({schema:v.literal('generation-jobs/1'),notice:v.p
 const infrastructure=['src/format','scripts/generate.mjs','scripts/generation-cache.mjs','scripts/bake-input-hashes.mjs','scripts/link-node-modules.mjs','scripts/generation-capture.mjs','scripts/generation-sources.mjs','scripts/generation-inventory.mjs'];
 // These are loader/check/hash/write helpers, not output producers. New bake entry points default to undeclared.
 const sharedHelpers=new Set(['bake-check.mjs','bake-loader.mjs','bake-input-hashes.mjs','bake-output.mjs']);
+// `pnpm gen` writes these two tables before the generation step; producers read them (scripts/gen.mjs).
+const preGenerationTables=new Set(['src/game/systems/viewmodel/clips.generated.ts','src/game/weapons/starter.generated.ts']);
+/** @type {Map<string,Set<string>|null>} */
+const registeredOutputs=new Map();
+/** A gitignored table that `pnpm gen` writes only AFTER the generation step (boot byte / version / pack tables, the shard
+ * list, closures, port shares): a clean tree (CI, Vercel) has none while producers run, and a reused tree holds the
+ * previous run's copy, which made every key depend on history (each new commit's tables re-keyed ~15 jobs, ~40 s per
+ * gen in the gate and every proof; fast proofs, 2026-10-15). Producers neither see nor key on them, as in CI.
+ * @param {string} root @param {string} catalog @param {string} file */
+function postGenerationTable(root,catalog,file) {
+  if(!file.startsWith('src/') || !/\.generated\./u.test(file) || file.endsWith('/ktx2.generated.ts') || preGenerationTables.has(file)) return false;
+  const at=`${root}\0${catalog}`;
+  if(!registeredOutputs.has(at)) {
+    try {registeredOutputs.set(at,new Set(discoverGeneration(root,catalog).jobs.flatMap(job=>job.outputs)));}
+    catch {registeredOutputs.set(at,null);} // no readable catalogue: exclude nothing
+  }
+  const outputs=registeredOutputs.get(at);
+  return outputs!==null && outputs!==undefined && !outputs.has(file);
+}
 
 /** A shared producer is explicitly unowned, never assigned a fake shard; helpers cannot masquerade as producers.
  * @param {import('./generate.mjs').ShardGenerationJob} job */
@@ -135,7 +154,7 @@ export async function generateShardJob(root,descriptor,options={}) {
   const tools={...generationTools(job.toolCommands),...(job.browser?{browserDigest:generationBrowserDigest()}:{})};
   const collected=generationInputs(root,[...job.inputRoots,...infrastructure.filter(file=>existsSync(resolve(root,file))),catalog]);
   // Produced bytes are not source inputs. Explicit schema seeds remain inputs until their imports are separated.
-  const inputs=Object.fromEntries(Object.entries(collected).filter(([file])=>(projected===undefined || file!==catalog) && (!job.outputs.includes(file) || job.seedOutputs.includes(file))));
+  const inputs=Object.fromEntries(Object.entries(collected).filter(([file])=>(projected===undefined || file!==catalog) && (!job.outputs.includes(file) || job.seedOutputs.includes(file)) && !postGenerationTable(root,catalog,file)));
   /** @type {number|null} */
   let coldSeconds=null;
   const result=await runGenerationJob(root,{id:job.id,inputs,command:['node',...command,...captureArgs],outputs:job.outputs,platform:job.platform,tools:{...controller,...tools,descriptor:JSON.stringify(job),...(projected===undefined?{}:{catalogue:projected}),...(preview===undefined?{}:{previewBuild:preview.build,browserDigest:preview.browserDigest})}},{
