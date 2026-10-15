@@ -450,6 +450,7 @@ export const GRAPH_OPS: Readonly<Record<string, GraphOpSpec>> = {
   noise: { arity: [1, 1], rule: 'noise', cost: 40 },
   meshMap: { arity: [0, 0], rule: 'input', cost: 4, type: 'vec4', places: ['fragment'] },
   texture: { arity: [1, 1], rule: 'texture', cost: 4 },
+  textureArray: { arity: [2, 2], rule: 'texture', cost: 6 },
   // the constant-count loop
   loop: { arity: [1, 1], rule: 'loop', cost: 1 },
   acc: { arity: [0, 0], rule: 'acc', cost: 0 },
@@ -652,6 +653,7 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
   const types = new Map<string, GraphValueType>(); // `<scope path>/<id>` → type
   const visiting = new Set<string>();
   const textures = new Set<string>();
+  const textureDimensions = new Map<string, '2d' | 'array'>();
   const sampled = { scene: false, depth: false, normal: false, mesh: false }; // set while typing (a post graph reads a scene input)
   const counted = new Set<string>();
   /** `<scope path>/<id>` → whether the node reads a sun input (directly, through its inputs or a loop body) */
@@ -797,6 +799,14 @@ export function validateGraph(input: unknown, opts: GraphValidationOptions = {})
         const name = raw.param;
         if (typeof name !== 'string' || paramTypes.get(name) !== 'texture') return fail(`${at}: texture names a texture param`);
         if (ins[0] !== 'vec2') return fail(`${at}: texture samples at a vec2`);
+        const dimension = op === 'textureArray' ? 'array' : '2d';
+        if (dimension === 'array') {
+          const param = isRecord(rawParams) ? rawParams[name] : undefined;
+          if (ins[1] !== 'float' || !isRecord(param) || param.role !== 'lent') return fail(`${at}: textureArray needs a numeric layer and a lent texture param`);
+        }
+        const previous = textureDimensions.get(name);
+        if (previous !== undefined && previous !== dimension) return fail(`${at}: a texture param cannot mix 2D and array samples`);
+        textureDimensions.set(name, dimension);
         textures.add(name);
         return 'vec4';
       }

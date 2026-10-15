@@ -5656,3 +5656,5 @@ kinds, gaps and out-of-range indices refuse before the view is installed.
 **View-space position.** Graph `positionView` is the camera-space position after skinning and instancing, with forward along negative Z. SDK graphs accept both `graphInputs.positionView` and TSL `positionView`.
 
 **Directional sky light.** `graphInputs.skyLightDirection` points toward the first visible scene directional light in world space (shadow casters first, as classic light ordering). `skyLightColour` is its linear colour times intensity, without shadowing. Both are zero if absent and update on each draw from the renderer's collected lights, without a scene traversal.
+
+**Texture arrays.** `sampleArray(param, uv, layer)` authors `textureArray`: a lent texture parameter, vec2 UV and numeric nearest-integer layer. `setTexture` requires a DataArrayTexture or CompressedArrayTexture; a parameter cannot mix 2D and array sampling. Existing arrays are borrowed without repacking, with base mip in vertex stages and derivative-selected fragment mips. Swaps retain the program; the unbound array slot is black.

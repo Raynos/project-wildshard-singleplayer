@@ -66,6 +66,12 @@ export function sample(texture: Node, at: GraphValue): Node<'vec4'> {
   if (info?.paramDef?.type !== 'texture') throw new Error('sample() reads a texture param()');
   return op('texture', 'vec4', [at], info.paramName, info.paramDef);
 }
+/** Sample an existing lent 2D texture array at UV and nearest integer layer; no texture is repacked. */
+export function sampleArray(texture: Node, at: GraphValue, layer: GraphValue): Node<'vec4'> {
+  const info = graphOps.get(unwrap(texture));
+  if (info?.paramDef?.type !== 'texture' || info.paramDef.role !== 'lent') throw new Error('sampleArray() reads a lent texture param()');
+  return op('textureArray', 'vec4', [at, layer], info.paramName, info.paramDef);
+}
 /** The original mesh material's colour map at its own UV, or white RGBA when unmapped. */
 export const meshMap = op('meshMap', 'vec4');
 

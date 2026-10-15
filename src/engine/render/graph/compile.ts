@@ -385,6 +385,11 @@ function lentStandIn(): THREE.DataTexture {
   if (standIn === null) { standIn = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1); standIn.needsUpdate = true; }
   return standIn;
 }
+let arrayStandIn: THREE.DataArrayTexture | null = null;
+function lentArrayStandIn(): THREE.DataArrayTexture {
+  if (arrayStandIn === null) { arrayStandIn = new THREE.DataArrayTexture(new Uint8Array([0, 0, 0, 255]), 1, 1, 1); arrayStandIn.needsUpdate = true; }
+  return arrayStandIn;
+}
 
 /** Borrow the renderer's already collected lights; never walk a world's scene graph per draw. */
 function firstSkyLight(frame: NodeFrame): THREE.DirectionalLight | null {
@@ -444,6 +449,14 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
   const lent = new Map<string, ((next: THREE.Texture) => void)[]>();
   /** the texture each lent param was lent last, for its samples not built yet */
   const lentNow = new Map<string, THREE.Texture>();
+  const arraySamplers = new Set<string>();
+  const findArraySamplers = (nodes: Readonly<Record<string, GraphNode>>): void => {
+    for (const node of Object.values(nodes)) {
+      if (node.op === 'textureArray' && node.param !== undefined) arraySamplers.add(node.param);
+      if (node.body !== undefined) findArraySamplers(node.body.nodes);
+    }
+  };
+  findArraySamplers(ir.nodes);
   for (const [name, p] of Object.entries(ir.params ?? {})) {
     if (p.bind !== undefined) bindings.push({ param: name, bind: p.bind });
     if (p.type === 'texture') { if (typeof p.value === 'string') texParams.set(name, { file: p.value, ...(p.role === undefined ? {} : { role: p.role }) }); continue; }
@@ -794,13 +807,16 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
           return map instanceof THREE.Texture ? new ConvertNode<'vec4'>(materialReference(slot, 'texture'), 'vec4') : vec4(1);
         })() };
       }
+      case 'textureArray':
       case 'texture': {
         const file = n.param === undefined ? undefined : texParams.get(n.param);
         if (file?.role === 'lent' && n.param !== undefined) {
-          const sample = retargetableTexture(lentNow.get(n.param) ?? lentStandIn(), asVec2(one())), list = lent.get(n.param) ?? [];
+          const array = n.op === 'textureArray';
+          const sample = retargetableTexture(lentNow.get(n.param) ?? (array ? lentArrayStandIn() : lentStandIn()), asVec2(one())), list = lent.get(n.param) ?? [];
           list.push(sample.retarget); lent.set(n.param, list);
           if (!(sample.node instanceof TextureNode)) throw new Error('material graph: lent sample is not a texture node');
-          return { t: 'vec4', n: stagedTexture(sample.node) };
+          const sampled = array ? sample.node.depth(new MathNode('floor', asFloat(two()[1]).add(0.5))) : sample.node;
+          return { t: 'vec4', n: stagedTexture(sampled) };
         }
         if (file === undefined || file.role === 'lent' || opts.textures === undefined) throw new Error(`material graph: texture ${String(n.param)} needs { textures }`);
         return { t: 'vec4', n: stagedTexture(texture(file.role === undefined ? opts.textures(file.file) : opts.textures(file.file, file.role), one().n)) };
@@ -1011,6 +1027,7 @@ export function compileGraph(input: unknown, opts: CompileGraphOptions = {}): Co
     setTexture(name, next) {
       // a lighting-stage sample builds with the program (after this call): it starts on the texture lent last
       if (texParams.get(name)?.role !== 'lent') throw new Error(`material graph: no sampled lent texture ${name}`);
+      if (arraySamplers.has(name) && !(next instanceof THREE.DataArrayTexture) && !(next instanceof THREE.CompressedArrayTexture)) throw new Error(`material graph: ${name} requires a 2D texture array`);
       lentNow.set(name, next);
       for (const retarget of lent.get(name) ?? []) retarget(next);
     },

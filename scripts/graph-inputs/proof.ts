@@ -1,12 +1,12 @@
 /** Untimed real-renderer oracle for additive graph inputs. */
-import { Bone, DirectionalLight, Float32BufferAttribute, LinearSRGBColorSpace, Mesh, NoToneMapping, OrthographicCamera, PlaneGeometry, Scene, Skeleton, SkinnedMesh, Uint16BufferAttribute, WebGLRenderer } from 'three';
-import { dot, max, vec3 } from 'three/tsl';
+import { Bone, DataArrayTexture, DataTexture, DirectionalLight, Float32BufferAttribute, LinearSRGBColorSpace, Mesh, NearestFilter, NoToneMapping, OrthographicCamera, PlaneGeometry, Scene, Skeleton, SkinnedMesh, Uint16BufferAttribute, WebGLRenderer } from 'three';
+import { attribute, dot, max, uv, vec3 } from 'three/tsl';
 import { MeshStandardNodeMaterial } from 'three/webgpu';
 import { Scope } from '../../src/engine/app/scope';
 import type { AnimalMaterial } from '../../src/engine/entities/AnimalFactory';
 import { clientMaterials } from '../../src/game/shardfile/clientMaterials';
 import { emptyShardfile } from '../../src/sdk/author';
-import { graph, graphInputs } from '../../src/sdk/materials';
+import { graph, graphInputs, param, sample, sampleArray } from '../../src/sdk/materials';
 
 async function prove(): Promise<unknown> {
   const canvas = document.getElementById('proof');
@@ -24,6 +24,9 @@ async function prove(): Promise<unknown> {
       surface: {colour: vec3(graphInputs.positionView.x.div(3).add(0.5), graphInputs.positionView.z.mul(-0.125), 0)} }) } });
     Object.assign(source.look.materials, { skyLight: { family: 'graph', graph: graph({model: 'unlit', effectState: {fog: false},
       surface: {colour: graphInputs.skyLightColour.mul(max(dot(graphInputs.skyLightDirection,vec3(0,0,1)),0))} }) } });
+    const layers = param('layers',{type: 'texture', value: 'array-slot', role: 'lent'});
+    Object.assign(source.look.materials, { array: {family: 'graph', graph: graph({model: 'unlit', effectState: {fog: false},
+      surface: {colour: sampleArray(layers,uv(),attribute('aLayer','float')).rgb} })} });
     const client = await clientMaterials(source, new Map(), renderer, scope, { graphs: true });
     const material = client.materials.get('alpha');
     if (material === undefined) throw new Error('Missing alpha graph');
@@ -93,9 +96,39 @@ async function prove(): Promise<unknown> {
     readLight(); sun.color.setRGB(0,1,0); sun.intensity = 1; sun.position.set(1,0,0); readLight();
     sun.position.set(0,0,2); sun.target.position.z = 1; readLight(); sun.visible = false; readLight(); fill.visible = false; readLight();
     const lightExpected = [[0,0,64,255],black,[0,255,0,255],[128,0,0,255],black];
-    const pass = lightPixels.every((pixel,i) => pixel.every((value,j) => Math.abs(value-(lightExpected[i]?.[j] ?? -1000)) <= 1)) && gl.getError() === gl.NO_ERROR;
-    if (!pass) throw new Error(JSON.stringify({lightPixels,lightExpected}));
-    return { pass, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels, skyLight: lightPixels };
+    const lightPass = lightPixels.every((pixel,i) => pixel.every((value,j) => Math.abs(value-(lightExpected[i]?.[j] ?? -1000)) <= 1)) && gl.getError() === gl.NO_ERROR;
+    if (!lightPass) throw new Error(JSON.stringify({lightPixels,lightExpected}));
+    scene.clear();
+    const arrayMaterial = client.materials.get('array');
+    if (arrayMaterial === undefined) throw new Error('Missing array-sample graph');
+    for (const [i,layer] of [0,1,0].entries()) {
+      const geometry = scope.own(new PlaneGeometry(1,1)); geometry.setAttribute('aLayer',new Float32BufferAttribute(new Float32Array(4).fill(layer),1));
+      const mesh = new Mesh(geometry,arrayMaterial); mesh.position.x = i-1; scene.add(mesh);
+    }
+    const readArray = (): number[][] => {
+      renderer.render(scene,camera);
+      return [32,96,160].map(x => {const words = new Uint8Array(4); gl.readPixels(x,32,1,1,gl.RGBA,gl.UNSIGNED_BYTE,words); return Array.from(words);});
+    };
+    const unset = readArray();
+    let refused2d = false, refusedMixed = false;
+    try {client.setTexture('array','layers',scope.own(new DataTexture(new Uint8Array([255,0,0,255]),1,1)));}
+    catch (error: unknown) {refused2d = error instanceof Error && error.message.includes('requires a 2D texture array');}
+    try {graph({model: 'unlit',surface: {colour: sample(layers,uv()).rgb.add(sampleArray(layers,uv(),0).rgb)}});}
+    catch (error: unknown) {refusedMixed = error instanceof Error && error.message.includes('cannot mix 2D and array');}
+    const arrayTexture = (words: number[]): DataArrayTexture => {
+      const texture = scope.own(new DataArrayTexture(new Uint8Array(words),1,1,2)); texture.minFilter = NearestFilter; texture.magFilter = NearestFilter; texture.needsUpdate = true; return texture;
+    };
+    client.setTexture('array','layers',arrayTexture([255,0,0,255,0,255,0,255]));
+    const firstArray = readArray(), arrayPrograms = renderer.info.programs?.length ?? 0;
+    client.setTexture('array','layers',arrayTexture([0,0,255,255,255,255,0,255]));
+    const swappedArray = readArray(), swappedPrograms = renderer.info.programs?.length ?? 0;
+    const pass = unset.every(pixel => JSON.stringify(pixel) === JSON.stringify(black))
+      && JSON.stringify(firstArray) === JSON.stringify([red,[0,255,0,255],red])
+      && JSON.stringify(swappedArray) === JSON.stringify([[0,0,255,255],[255,255,0,255],[0,0,255,255]])
+      && refused2d && refusedMixed && arrayPrograms === swappedPrograms && gl.getError() === gl.NO_ERROR;
+    if (!pass) throw new Error(JSON.stringify({unset,firstArray,swappedArray,refused2d,refusedMixed,arrayPrograms,swappedPrograms}));
+    return { pass, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels, skyLight: lightPixels,
+      textureArray: {unset,firstArray,swappedArray,refused2d,refusedMixed,arrayPrograms,swappedPrograms} };
   } finally { scope.dispose(); renderer.dispose(); renderer.forceContextLoss(); }
 }
 let result: unknown;
