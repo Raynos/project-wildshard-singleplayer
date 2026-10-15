@@ -489,8 +489,9 @@ export type SpeciesDecision<A extends AnimalSim> =
   | { readonly archetype: 'skirmisher'; readonly policy: SkirmisherBrain<A> }
   | { readonly archetype: 'guardian'; readonly policy: GuardianBrain<A> }
   | { readonly archetype: 'perch-hunter'; readonly policy: PerchHunterBrain<A> };
-/** A trusted browser body adapter, constructed once per animal without running a decision or consuming RNG. */
-export type SpeciesNativeFactory = (actor: Animal, decision: SpeciesDecision<Animal>) => {
+/** A trusted browser body adapter, constructed once at the first think/act without advancing policy or RNG.
+ * The optional third argument lends that first callback context; subsequent callbacks keep their own live context. */
+export type SpeciesNativeFactory = (actor: Animal, decision: SpeciesDecision<Animal>, firstContext?: ThinkCtx) => {
   think: (context: ThinkCtx) => void; act: (context: ThinkCtx) => void;
 };
 
@@ -664,13 +665,13 @@ function browserCallbacks(brain: Admitted, native?: SpeciesNativeFactory, homes?
       if (adapter === undefined) throw new Error(`Species ${brain.archetype} requires a trusted native body adapter`);
       if ((brain.archetype === 'orbit-diver' || brain.archetype === 'burst-flyer') && homes === undefined) throw new Error(`Species ${brain.archetype} requires its native body home`);
       const live = new WeakMap<Animal, ReturnType<SpeciesNativeFactory>>();
-      const of = (actor: Animal): ReturnType<SpeciesNativeFactory> => {
+      const of = (actor: Animal, context: ThinkCtx): ReturnType<SpeciesNativeFactory> => {
         let value = live.get(actor);
-        if (value === undefined) { value = adapter(actor, decisionOf(brain, actor, homes?.(actor))); live.set(actor, value); }
+        if (value === undefined) { value = adapter(actor, decisionOf(brain, actor, homes?.(actor)), context); live.set(actor, value); }
         return value;
       };
-      return { live: actor => live.has(actor), callbacks: { think: (actor, context) => { of(actor).think(context); },
-        act: (actor, context) => { of(actor).act(context); } } };
+      return { live: actor => live.has(actor), callbacks: { think: (actor, context) => { of(actor, context).think(context); },
+        act: (actor, context) => { of(actor, context).act(context); } } };
     }
     case 'challenge-grazer': {
       const live = new WeakMap<Animal, ChallengeGrazerBrain<Animal>>(), slots = brain.phaseSlots;

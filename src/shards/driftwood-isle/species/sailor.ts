@@ -52,20 +52,6 @@ export function preloadSailorHead(): Promise<void> { return preloadCreatureBodie
 const ST_ATTACK = 2;
 const HIT_R = 1.9, WINDUP = 0.6, SWING_DUR = 0.9;
 
-export const SAILOR: SpeciesRow = { ...ENEMY_SPECIES_METADATA.sailor, act: actSailor, think: thinkSailor };
-
-export const SAILOR_LOOK: SpeciesLook = {
-  rigContract: { skeleton: 'sailor.v1', clips: [], sockets: ['body', 'head'] },
-  id: 'driftwood.look.sailor', species: SAILOR.id, kind: 'sailor',
-  standMem: { init: 1, rise: 1 }, // it waits sunk under the wreck's deck until woken: the Explorer shows it risen
-  fur: NO_FUR,
-  rig: 'custom',
-  eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.0,
-  // the lofted skeleton with its Hunyuan head, baked offline (generators/creatureBodies.ts)
-  build: (v) => creatureBody('sailor', v.id),
-  animate: animateSailor,
-};
-
 /** What the strike reads: the contact ports and the sound (ThinkCtx in the browser, a headless host's ports in SF72). */
 export interface SailorStrikePorts<A extends AnimalSim> extends DriftwoodContactPorts<A> { sound: (name: string) => void }
 function strikeSailor<A extends AnimalSim>(a: A, c: SailorStrikePorts<A>): void {
@@ -85,16 +71,22 @@ export class SailorBrain<A extends AnimalSim, C extends SailorStrikePorts<A>> ex
   }
   override act(ctx: C): void { strikeSailor(this.actor, ctx); }
 }
-const brains = new WeakMap<Animal, SailorBrain<Animal, ThinkCtx>>();
-function brain(a: Animal): SailorBrain<Animal, ThinkCtx> {
-  let value = brains.get(a);
-  if (value === undefined) {
-    const decision = driftwoodSpeciesBrains.decision('sailor', a);
-    if (decision.archetype !== 'guardian') throw new Error('Driftwood sailor requires its authored interior guardian row');
-    value = new SailorBrain<Animal, ThinkCtx>(a, (_actor, ctx) => { decision.policy.think(ctx); });
-    brains.set(a, value);
-  }
-  return value;
-}
-function thinkSailor(a: Animal, ctx: ThinkCtx): void { brain(a).think(ctx); }
-function actSailor(a: Animal, ctx: ThinkCtx): void { brain(a).act(ctx); }
+
+const callbacks = driftwoodSpeciesBrains.bind('sailor', (actor, decision) => {
+  if (decision.archetype !== 'guardian') throw new Error('Driftwood sailor requires its authored guardian row');
+  return new SailorBrain<Animal, ThinkCtx>(actor, (_actor, ctx) => { decision.policy.think(ctx); });
+});
+
+export const SAILOR: SpeciesRow = { ...ENEMY_SPECIES_METADATA.sailor, ...callbacks };
+
+export const SAILOR_LOOK: SpeciesLook = {
+  rigContract: { skeleton: 'sailor.v1', clips: [], sockets: ['body', 'head'] },
+  id: 'driftwood.look.sailor', species: SAILOR.id, kind: 'sailor',
+  standMem: { init: 1, rise: 1 }, // it waits sunk under the wreck's deck until woken: the Explorer shows it risen
+  fur: NO_FUR,
+  rig: 'custom',
+  eyeGlow: [0.2, 1.0, 1.0], eyeGlowIntensity: 1.0,
+  // the lofted skeleton with its Hunyuan head, baked offline (generators/creatureBodies.ts)
+  build: (v) => creatureBody('sailor', v.id),
+  animate: animateSailor,
+};

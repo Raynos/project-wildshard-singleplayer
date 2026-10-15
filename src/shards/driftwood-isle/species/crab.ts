@@ -44,19 +44,6 @@ function crabDamageMul(a: Animal, _hit: THREE.Vector3, dir: THREE.Vector3): numb
   return dot < -0.5 ? 0.5 : 1;
 }
 
-export const CRAB: SpeciesRow = { ...ENEMY_SPECIES_METADATA.crab, act: actCrab, think: thinkCrab };
-
-export const CRAB_LOOK: SpeciesLook = {
-  rigContract: { skeleton: 'crab.v1', clips: [], sockets: ['body', 'head'] },
-  id: 'driftwood.look.crab', species: CRAB.id, kind: 'crab',
-  fur: NO_FUR,
-  rig: 'custom',
-  // the lofted shell, claws and legs, baked offline (generators/creatureBodies.ts, the big crab's claws a quarter larger)
-  build: (v) => creatureBody('crab', v.id),
-  animate: animateCrab,
-  damageMul: crabDamageMul,
-};
-
 /** What the strike reads: the contact ports and the sound (ThinkCtx in the browser, a headless host's ports in SF72). */
 export interface CrabStrikePorts<A extends AnimalSim> extends DriftwoodContactPorts<A> { sound: (name: string) => void }
 function strikeCrab<A extends AnimalSim>(a: A, c: CrabStrikePorts<A>): void {
@@ -82,16 +69,20 @@ interface CrabMem extends Record<string, number> {
   wander: number; tx: number; tz: number; hit: number;
 }
 
-const brains = new WeakMap<Animal, CrabBrain<Animal, ThinkCtx>>();
-function brain(a: Animal): CrabBrain<Animal, ThinkCtx> {
-  let value = brains.get(a);
-  if (value === undefined) {
-    const decision = driftwoodSpeciesBrains.decision('crab', a);
-    if (decision.archetype !== 'skirmisher') throw new Error('Driftwood crab requires its authored stalker skirmish row');
-    value = new CrabBrain<Animal, ThinkCtx>(a, (_actor, ctx) => { decision.policy.think(ctx); });
-    brains.set(a, value);
-  }
-  return value;
-}
-function thinkCrab(a: Animal, ctx: ThinkCtx): void { brain(a).think(ctx); }
-function actCrab(a: Animal, ctx: ThinkCtx): void { brain(a).act(ctx); }
+const callbacks = driftwoodSpeciesBrains.bind('crab', (actor, decision) => {
+  if (decision.archetype !== 'skirmisher') throw new Error('Driftwood crab requires its authored skirmisher row');
+  return new CrabBrain<Animal, ThinkCtx>(actor, (_actor, ctx) => { decision.policy.think(ctx); });
+});
+
+export const CRAB: SpeciesRow = { ...ENEMY_SPECIES_METADATA.crab, ...callbacks };
+
+export const CRAB_LOOK: SpeciesLook = {
+  rigContract: { skeleton: 'crab.v1', clips: [], sockets: ['body', 'head'] },
+  id: 'driftwood.look.crab', species: CRAB.id, kind: 'crab',
+  fur: NO_FUR,
+  rig: 'custom',
+  // the lofted shell, claws and legs, baked offline (generators/creatureBodies.ts, the big crab's claws a quarter larger)
+  build: (v) => creatureBody('crab', v.id),
+  animate: animateCrab,
+  damageMul: crabDamageMul,
+};

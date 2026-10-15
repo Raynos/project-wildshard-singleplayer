@@ -15,7 +15,7 @@ export interface EnemyBrain { decide: (dt: number) => void; move: (dt: number) =
 type EnemyBrainPorts = Parameters<typeof createNativeSpeciesContext<EnemyWorld<HuntBody>>>[0];
 
 /**
- * The shipping policy for one Driftwood enemy (runtime/brains.ts `declaredCreatureRows`): the crab's skirmisher in its
+ * The shipping policy for one Driftwood enemy (species/install.ts `DRIFTWOOD_SPECIES`): the crab's skirmisher in its
  * CrabBrain shell, the sailor's guardian in its SailorBrain shell, the monkey's perch hunter in its MonkeyBrain shell with
  * perch choice over the baked palm crowns and the shared 'ai' cooldown stream (monkey.ts `monkeyAttackRandom`), the
  * Drowned Captain's authored fight (species/captainPolicy.ts: its continuation is its pending strike step). The

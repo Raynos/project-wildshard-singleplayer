@@ -2674,7 +2674,10 @@ with no species row adoption, native body or collision change.
 
 Species decision families `skirmisher`, `guardian` and `perch-hunter` use the strict `shardfile/brains` schemas.
 `brains.bind(kind, native)` requires a trusted body factory for these families, called once per animal with the
-admitted `{ archetype, policy }`; it retains native contact, rise/sink, perch and shared RNG recipes.
+admitted `{ archetype, policy }` and an optional third `firstContext`
+argument from that first think/act callback. It retains native contact,
+rise/sink, perch and shared RNG recipes; later callbacks lend their current
+context without reconstructing the adapter.
 `brains.decision(kind, actor)` supplies the same admitted policy to a renderer-free native body adapter. Construction
 and restore perform no decisions or RNG draws. Automatic `bind` / `policy` without that body ownership refuses.
 

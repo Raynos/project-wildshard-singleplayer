@@ -6,7 +6,6 @@ import RuntimePlugin from './index';
 import { buildDriftwoodWorld, type DriftwoodWorld } from '../world/build';
 import { RESIDENT_WORLD } from '../data/residentWorld';
 import { installDriftwoodCreatures } from '../creatures/install';
-import { declaredCreatureRows } from './brains';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import source from '../shard.config';
 import { CASCADE_LOOKS } from '../data/waterfallLook';
@@ -62,7 +61,7 @@ class DriftwoodMoverPlugin extends RuntimePlugin {
     this.binding.context = context;
     await super.world(context);
   }
-  protected override installCreatures(context: ShardContext): void { installDriftwoodCreatures(context, declaredCreatureRows()); }
+  protected override installCreatures(context: ShardContext): void { installDriftwoodCreatures(context); }
 }
 
 // oxlint-disable-next-line import/no-default-export -- The declared trusted runtime loader consumes a constructor.

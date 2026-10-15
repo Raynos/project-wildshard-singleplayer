@@ -36,7 +36,21 @@ import { MonkeyBrain, pickPerch, setPerch } from './monkeyPolicy';
 /** G51: preserve the existing shared cooldown stream and its lazy creation order. */
 export function monkeyAttackRandom(): Pick<Rng, 'range'> { return app.rng.stream('ai'); }
 
-export const MONKEY: SpeciesRow = { ...ENEMY_SPECIES_METADATA.monkey, act: actMonkey, think: thinkMonkey };
+const callbacks = driftwoodSpeciesBrains.bind('monkey', (actor, decision, ctx) => {
+  if (decision.archetype !== 'perch-hunter') throw new Error('Driftwood monkey requires its authored perch guardian row');
+  if (ctx === undefined) throw new Error('Driftwood monkey requires its first callback context');
+  let current = ctx;
+  const ports = { ...ctx,
+    attackRandom: { range: (min: number, max: number): number => monkeyAttackRandom().range(min, max) },
+    pickPerch: (a: Animal, min: number, max: number, away?: Animal['position']): number => pickPerch(a, current, min, max, away),
+    setPerch: (a: Animal, index: number): void => { setPerch(a, current, index); },
+  };
+  return new MonkeyBrain<Animal, ThinkCtx>(actor, (_actor, context) => {
+    current = context; Object.assign(ports, context); decision.policy.think(ports);
+  });
+});
+
+export const MONKEY: SpeciesRow = { ...ENEMY_SPECIES_METADATA.monkey, ...callbacks };
 
 export const MONKEY_LOOK: SpeciesLook = {
   rigContract: { skeleton: 'monkey.v1', clips: [], sockets: ['body', 'head'] },
@@ -47,26 +61,3 @@ export const MONKEY_LOOK: SpeciesLook = {
   build: (v) => creatureBody('monkey', v.id),
   animate: animateMonkey,
 };
-
-const brains = new WeakMap<Animal, MonkeyBrain<Animal, ThinkCtx>>();
-function brain(a: Animal, ctx: ThinkCtx): MonkeyBrain<Animal, ThinkCtx> {
-  let value = brains.get(a);
-  if (value === undefined) {
-    const decision = driftwoodSpeciesBrains.decision('monkey', a);
-    if (decision.archetype !== 'perch-hunter') throw new Error('Driftwood monkey requires its authored perch guardian row');
-    // Allocate native recipe ports once per animal, preserving the lazy shared attack stream.
-    let current = ctx;
-    const ports = { ...ctx,
-      attackRandom: { range: (min: number, max: number): number => monkeyAttackRandom().range(min, max) },
-      pickPerch: (actor: Animal, min: number, max: number, away?: Animal['position']): number => pickPerch(actor, current, min, max, away),
-      setPerch: (actor: Animal, index: number): void => { setPerch(actor, current, index); },
-    };
-    value = new MonkeyBrain<Animal, ThinkCtx>(a, (_actor, context) => {
-      current = context; Object.assign(ports, context); decision.policy.think(ports);
-    });
-    brains.set(a, value);
-  }
-  return value;
-}
-function thinkMonkey(a: Animal, ctx: ThinkCtx): void { brain(a, ctx).think(ctx); }
-function actMonkey(a: Animal, ctx: ThinkCtx): void { brain(a, ctx).act(ctx); }
