@@ -41,7 +41,8 @@ const LABEL: Record<string, string> = {
 };
 
 /**
- * one band of a variant: its parts in the forest's materials. Each copy is tinted (its needles, twigs and impostor; the
+ * one band of a variant: its parts in the forest's materials (graphs casting their own swayed, dissolving shadow depth,
+ * ../data/forestLook.ts). Each copy is tinted (its needles, twigs and impostor; the
  * bark only when the factory tints it); the needle cards are sorted front to back in their batch (E142)
  */
 function band(ctx: ModelContext, v: number, level: 'near' | 'far' | 'impostor'): ModelPart[] {
@@ -50,12 +51,12 @@ function band(ctx: ModelContext, v: number, level: 'near' | 'far' | 'impostor'):
   if (level === 'impostor') return [{ geometry: t.far, material: f.farMaterial, receiveShadow: true }];
   if (level === 'far') return [
     { geometry: t.trunkLo ?? t.trunk, material: f.barkMaterial, castShadow: TIER_CONFIG.loTreeShadows, receiveShadow: true, tint: f.tintBark },
-    { geometry: t.cardsLo, material: f.needleMaterial, customDepthMaterial: f.needleDepth, castShadow: TIER_CONFIG.loTreeShadows, receiveShadow: true, sortObjects: true },
+    { geometry: t.cardsLo, material: f.needleMaterial, castShadow: TIER_CONFIG.loTreeShadows, receiveShadow: true, sortObjects: true },
   ];
   return [
     { geometry: t.trunk, material: f.barkMaterial, castShadow: true, receiveShadow: true, tint: f.tintBark },
-    { geometry: t.cardsHi, material: f.needleMaterial, customDepthMaterial: f.needleDepth, castShadow: true, receiveShadow: true, sortObjects: true },
-    { geometry: t.twigs, material: f.twigMaterial, customDepthMaterial: f.twigDepth, castShadow: true, receiveShadow: true, until: FOREST_BANDS.twig },
+    { geometry: t.cardsHi, material: f.needleMaterial, castShadow: true, receiveShadow: true, sortObjects: true },
+    { geometry: t.twigs, material: f.twigMaterial, castShadow: true, receiveShadow: true, until: FOREST_BANDS.twig },
   ];
 }
 

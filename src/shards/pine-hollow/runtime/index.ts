@@ -36,6 +36,7 @@ import { Bow } from '@wildshard/sdk/runtime/weapons/starterBow';
 import { Crossbow, prepareCrossbowHands } from './weapons/crossbow/Crossbow';
 import { crossbowDisplayModel } from '../weapons/crossbow/display';
 import { Cabins } from '../world/homestead';
+import { updatePineForest } from '../world/treeFactory';
 import { PINE_GRAPHS } from '../data/graphLooks';
 import { lendPineLooks } from './looks/graphLooks';
 import { dressPineWater } from '../world/water';
@@ -144,6 +145,7 @@ export class PineHollow extends ShardPlugin {
     await placeDrawnModels({ sky, renderer: game.renderer, forest, under: carpet.under, registry }, slicer(30).due);
     Object.assign(rt.objects, { cabins: this.cabins, props, streams, ...carpet });
     rt.hooks.worldUpdate = (dt, t) => {
+      updatePineForest(forest.factory, rt.viewer());
       carpet.grass.update(dt, rt.viewer());
       carpet.under.update(dt, rt.viewer());
       carpet.particles.update(dt, rt.viewer(), game.camera);

@@ -68,14 +68,16 @@ export function patchFade(shader: { vertexShader: string; fragmentShader: string
       }`);
 }
 
-export type TreeMaterial = THREE.MeshStandardMaterial | THREE.MeshLambertMaterial;
+/** a forest material: a classic standard / Lambert one, or a shard's compiled graph (which casts its own shadow depth) */
+export type TreeMaterial = THREE.Material;
 
 export class TreeFactory {
   barkMaterial!: TreeMaterial;
   needleMaterial!: TreeMaterial;
-  needleDepth!: THREE.MeshDepthMaterial;
+  /** the cards' shadow depth; absent: the card material casts its own (a graph's) */
+  needleDepth?: THREE.MeshDepthMaterial;
   twigMaterial!: TreeMaterial;
-  twigDepth!: THREE.MeshDepthMaterial;
+  twigDepth?: THREE.MeshDepthMaterial;
   /** far-tree impostor: albedo + normal atlas, one column per variant (baked from the hi tree at load) */
   farMaterial!: TreeMaterial;
   /** each material's dissolve band (`forestFade`): Forest sets them from the tier's LOD distances */

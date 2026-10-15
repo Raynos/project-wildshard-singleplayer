@@ -2,6 +2,7 @@ import type { GraphIr } from '@wildshard/format/materialGraph';
 import { CABIN_DOOR_GRAPHS, CABIN_MOSS_GRAPHS } from './cabinLook';
 import { CAVE_SHAFT_GRAPHS } from './caveShaftLook';
 import { CRAG_GRAPHS } from './cragLook';
+import { FOREST_GRAPHS } from './forestLook';
 import { HEARTH_GRAPHS } from './hearthLook';
 import { KING_FX_GRAPHS } from './kingFxLook';
 import { SKY_GRAPHS } from './skyLook';
@@ -19,6 +20,7 @@ import { WATER_GRAPHS } from './waterLook';
  */
 export const PINE_GRAPHS: Readonly<Record<string, GraphIr>> = { ...CABIN_DOOR_GRAPHS, ...CABIN_MOSS_GRAPHS, ...HEARTH_GRAPHS, ...CAVE_SHAFT_GRAPHS, ...CRAG_GRAPHS, ...SPRAY_GRAPHS, ...KING_FX_GRAPHS, ...RAIN_GRAPHS, ...UNDER_GRAPHS, ...WATER_GRAPHS };
 
-/** Every look.materials graph the shardfile declares: the runtime's (above) and the sky backdrop's (./skyLook.ts, compiled
- *  by look/render.ts's keyed sky before the world stage). */
-export const PINE_LOOK_GRAPHS: Readonly<Record<string, GraphIr>> = { ...PINE_GRAPHS, ...SKY_GRAPHS };
+/** Every look.materials graph the shardfile declares: the runtime's (above), the sky backdrop's (./skyLook.ts, compiled
+ *  by look/render.ts's keyed sky before the world stage) and the forest's (./forestLook.ts, compiled by the trees' boot
+ *  step, world/treeFactory.ts). */
+export const PINE_LOOK_GRAPHS: Readonly<Record<string, GraphIr>> = { ...PINE_GRAPHS, ...SKY_GRAPHS, ...FOREST_GRAPHS };
