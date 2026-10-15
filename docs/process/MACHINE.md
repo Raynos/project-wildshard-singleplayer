@@ -106,6 +106,28 @@ Every model load runs under `lockf -k ~/projects/localai/.model.lock` ([LOCAL-MO
 `pgrep -fl "lockf -k"` shows the queue. `~/projects/localai/bin/evict.sh` unloads every LLM server, including other
 agents'.
 
+## Disk and boot: few copies, little temp (Jake, 2026-10-15)
+
+Jake: *"we don't use the SSD as much … we don't waste lots of space with lots of giga clones … be efficient and not
+demolish the machine and have as few checkouts as possible and as little space in tmp as possible"*, and *"when the
+machine does not boot up cleanly because it has to delete millions of files in tmp as part of boot it causes me a heart
+attack."* On 2026-10-15 millions of leftover `git archive` export files in `/tmp` and `$TMPDIR` held the laptop at the
+login progress bar for hours: macOS empties both at boot, before login.
+- **One checkout.** No exports, clones, worktrees or copies of `public/` assets, ever.
+- **At most three build-mirror slots machine-wide** (`./tmp/build-mirror`): `gate` (the push gate), `commit` (pre-commit)
+  and `check` (the default every agent queues for; `serve-build.sh` uses it). Never a slot per lane, agent or subagent:
+  each slot is a ~2 GB copy of the tree.
+- **Reuse one served build of HEAD**; rebuild only when your change needs it. Focused tests and quick checks, no repeated
+  full rebakes or builds for a small change.
+- **Big scratch only under `./tmp/<task>`**, small, deleted with `rm -rf` on its exact path the moment its result is
+  committed; commit the downsized board, never keep full-size preview dumps. Never `/tmp`, `$TMPDIR` or a session
+  scratchpad (also under `/private/tmp`) for anything big.
+- **Node's compile cache lives in `~/Library/Caches/node-compile-cache`** (`NODE_COMPILE_CACHE`, set in the dotfiles'
+  `.bash_profile`), not `$TMPDIR`: it had 110k files there.
+- **Pre-commit warns** (never refuses) through `scripts/boot-temp-warn.sh` when `/private/tmp` + `$TMPDIR` pass 500,000
+  files or `./tmp/build-mirror` holds a slot beyond the three; `scripts/boot-temp-warn.sh --top` lists the biggest
+  folders. Delete your own; ask before touching another agent's.
+
 ## Scratchpads (Jake, 2026-10-02)
 
 The session scratchpads once grew to 1.6 TB and filled the 4 TB disk (333 throwaway checkouts, 190 GB of frames, folders
@@ -114,8 +136,8 @@ renamed `trash/` instead of deleted). Nothing else cleans a scratchpad.
   written, logs, dumps, model outputs you didn't pick. Delete with a literal path (`rm -rf <scratchpad>/m1/gate-3a4d9187`).
 - **Never rename aside instead of deleting** (`trash/`, `old-*`, `*.old-<ts>`, `/tmp/delete-me-*`). If a delete is
   blocked, say so in your report.
-- **Reuse, don't multiply:** one export dir per job, emptied and refilled. Symlink `node_modules` into an export; never
-  `pnpm install` into a scratch copy.
+- **Reuse, don't multiply:** no exports at all since 2026-10-15; an exact-commit check runs in the shared `check`
+  mirror slot (above). Never `pnpm install` into a scratch copy.
 - **What you keep goes in the repo** (`progress/` or `art/<subject>/round-<n>-<label>/`, as JPEG): summaries, boards and
   the numbers, never raw soak / census / receipt archives (`.gz` / `.br` / raw `.jsonl`; the storage check in pre-commit and pre-push refuses new ones outside `public/`,
   [STORAGE.md](STORAGE.md)), which stay in the scratchpad (Jake, 2026-10-09, after the process audit `progress/process/audit-2026-10-09/`). A tool you will

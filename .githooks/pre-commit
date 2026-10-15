@@ -9,3 +9,5 @@ python3 scripts/check-commit-index.py "$PPID"
 # unpushed and rolling-week budgets. Restores the progress-image / .blend / raw-archive guards removed in 819a36b8d.
 node scripts/repo-size.mjs --index
 node scripts/precommit-inputs.mjs
+# Warns (never refuses) when the folders macOS empties at boot pass 500k files or build-mirror grows extra slots.
+scripts/boot-temp-warn.sh
