@@ -78,7 +78,7 @@ export const zipline = defineModel<ZiplineParams>({
     const { rig, trolley } = ziplineGeometry(lay);
     const at = new THREE.Vector3(), yaw = lay.park(at);
     trolley.applyMatrix4(new THREE.Matrix4().compose(at, new THREE.Quaternion().setFromAxisAngle(V(0, 1, 0), yaw), V(1, 1, 1)));
-    const mat = lowPolyLookMaterial(ctx.sky);
+    const mat = lowPolyLookMaterial(ctx.sky, 'still');
     return [{ geometry: rig, material: mat, castShadow: true, receiveShadow: true }, { geometry: trolley, material: mat, castShadow: true }];
   },
 });

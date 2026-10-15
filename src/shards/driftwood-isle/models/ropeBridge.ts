@@ -23,6 +23,7 @@ import { staticColliders } from '../runtime/boot/staticColliders';
 import { defineModel } from '@wildshard/engine/models/model';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 
 export interface RopeBridgeSpec { a: [number, number]; b: [number, number]; /** metres the middle hangs below the straight line */ sag?: number; width?: number }
@@ -77,9 +78,7 @@ class RopeBridgeBuilder {
     this.mesh.name = 'rope-bridge';
 
     // ── anchor posts (two per end), sunk into the ground: the one static part, baked in own space ──
-    const postMat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.88, metalness: 0 });
-    this.sky.setupMaterial(postMat);
-    const posts = new THREE.Mesh((facts.key === bridgeKey(BRIDGE_SPANS.specimen) ? BRIDGE_SPECIMEN_POSTS_GEOMETRY : BRIDGE_POSTS_GEOMETRY).copy(), postMat);
+    const posts = new THREE.Mesh((facts.key === bridgeKey(BRIDGE_SPANS.specimen) ? BRIDGE_SPECIMEN_POSTS_GEOMETRY : BRIDGE_POSTS_GEOMETRY).copy(), lowPolyLookMaterial(this.sky, 'still'));
     posts.castShadow = true; posts.receiveShadow = true;
     this.mesh.add(posts);
 

@@ -50,7 +50,7 @@ export function addCoil(kit: LowPolyKit, m: THREE.Matrix4, r = 0.3): void {
 function specimen(ctx: ModelContext, seed: number, floorY: number, add: (kit: LowPolyKit, m: THREE.Matrix4) => void): ModelPart[] {
   const kit = new LowPolyKit(seed);
   add(kit, new THREE.Matrix4());
-  return [{ geometry: kit.finish({ ao: { floorY } }), material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true }];
+  return [{ geometry: kit.finish({ ao: { floorY } }), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }];
 }
 
 export interface BarrelParams { readonly lying: boolean }

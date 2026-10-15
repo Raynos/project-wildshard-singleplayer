@@ -69,7 +69,7 @@ export function hutLayout(site: HutSite): HutLayout {
 const own = (g: THREE.BufferGeometry): THREE.BufferGeometry => { g.computeBoundingSphere(); g.computeBoundingBox(); return g; };
 function hutParts(ctx: ModelContext): ModelPart[] {
   return [
-    { geometry: own(HUT_KIT_GEOMETRY.copy()), material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true },
+    { geometry: own(HUT_KIT_GEOMETRY.copy()), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true },
     { geometry: own(HUT_FLAMES_GEOMETRY.copy()), material: new THREE.MeshBasicMaterial({ vertexColors: true }) },
   ];
 }

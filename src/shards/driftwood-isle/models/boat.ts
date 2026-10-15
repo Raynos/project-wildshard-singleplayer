@@ -56,7 +56,7 @@ function buildBoat(ctx: ModelContext): THREE.Group {
   const sail = new THREE.Mesh(BOAT_SAIL_GEOMETRY.copy(), lowPolyLookMaterial(ctx.sky));
   sail.castShadow = true; sail.receiveShadow = false;
   sail.customDepthMaterial = swayDepthMaterial();
-  const gearMesh = new THREE.Mesh(BOAT_GEAR_GEOMETRY.copy(), lowPolyLookMaterial(ctx.sky));
+  const gearMesh = new THREE.Mesh(BOAT_GEAR_GEOMETRY.copy(), lowPolyLookMaterial(ctx.sky, 'still'));
   gearMesh.castShadow = false; gearMesh.receiveShadow = true;
   mesh.add(gearMesh);
   const group = new THREE.Group();

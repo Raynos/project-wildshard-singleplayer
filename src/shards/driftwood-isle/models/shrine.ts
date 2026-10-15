@@ -87,7 +87,7 @@ export function shrineMaterials(ctx: ModelContext): { water: THREE.Material; gly
 function shrineParts(ctx:ModelContext,kind:keyof typeof SHRINE_SITES):ModelPart[] {
   const m=shrineMaterials(ctx),world=kind==='world';
   return [
-    {geometry:(world?SHRINE_KIT_GEOMETRY:SHRINE_SPECIMEN_KIT_GEOMETRY).copy(),material:lowPolyLookMaterial(ctx.sky),castShadow:true,receiveShadow:true},
+    {geometry:(world?SHRINE_KIT_GEOMETRY:SHRINE_SPECIMEN_KIT_GEOMETRY).copy(),material:lowPolyLookMaterial(ctx.sky, 'still'),castShadow:true,receiveShadow:true},
     {geometry:(world?SHRINE_WATER_GEOMETRY:SHRINE_SPECIMEN_WATER_GEOMETRY).copy(),material:m.water,receiveShadow:true,renderOrder:1},
     {geometry:(world?SHRINE_GLYPHS_GEOMETRY:SHRINE_SPECIMEN_GLYPHS_GEOMETRY).copy(),material:m.glyphs,renderOrder:1},
   ];

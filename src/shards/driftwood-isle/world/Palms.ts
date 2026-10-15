@@ -16,7 +16,7 @@ import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { windUniforms, updateWind } from '@wildshard/engine/world/wind';
 import { loadPalmWorld } from '../boot/palmGeometry';
-import { palm, palmMaterials, type PalmParams } from '../models/palm';
+import { palm, palmMaterial, type PalmParams } from '../models/palm';
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }
 
@@ -36,8 +36,8 @@ export class Palms {
   async placeSliced(rows: {readonly specs: readonly PalmSpec[]; readonly placements: readonly Placement<PalmParams>[]}, registry: WorldRegistry, due: () => Promise<void> | null): Promise<this> {
     const { specs, placements: pls } = rows;
     const batch = await loadPalmWorld(specs.length); await due();
-    const { lit, depth } = palmMaterials(modelContext(this.sky)), mesh = new THREE.Mesh(batch.geometry, lit);
-    mesh.name = palm.id; mesh.castShadow = true; mesh.receiveShadow = true; mesh.customDepthMaterial = depth;
+    const mesh = new THREE.Mesh(batch.geometry, palmMaterial(modelContext(this.sky)));
+    mesh.name = palm.id; mesh.castShadow = true; mesh.receiveShadow = true;
     mesh.userData['islandDressingClipped'] = true;
     return this.take(specs, pls, place(palm, pls, { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'palms', solidFloor: true }, drawnInto: { object: mesh, boxes: batch.boxes } }));
   }

@@ -15,6 +15,7 @@ import { DECK_SLAB } from '../data/entryRows';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ENTRY_WIDTH } from '@wildshard/engine/core/config';
 import { defineModel } from '@wildshard/engine/models/model';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 
 export interface EntryDeckParams {
   /** how far in from the cell edge the deck runs, metres (the 15 m socket and its landing) */
@@ -71,12 +72,5 @@ export const entryDeck = defineModel<EntryDeckParams>({
     { id: 'shallow', label: 'Over the shallows', params: { bed: -2.5 } },
   ],
   seed: 0xdec4,
-  build: (ctx, p) => {
-    const material = ctx.once('driftwood-isle/entry-deck:concrete', () => {
-      const m = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.92, metalness: 0 });
-      ctx.sky.setupMaterial(m);
-      return m;
-    });
-    return [{ geometry: entryDeckGeometry(p), material, castShadow: false, receiveShadow: true }];
-  },
+  build: (ctx, p) => [{ geometry: entryDeckGeometry(p), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: false, receiveShadow: true }],
 });

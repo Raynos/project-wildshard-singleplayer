@@ -62,7 +62,7 @@ export class Zipline {
 
   build(): this {
     const { rig, trolley } = ziplineGeometry(this.lay);
-    const mat = lowPolyLookMaterial(this.sky);
+    const mat = lowPolyLookMaterial(this.sky, 'still');
     const mesh = new THREE.Mesh(rig, mat);
     mesh.castShadow = true; mesh.receiveShadow = true; mesh.name = 'zipline';
     this.trolley = new THREE.Mesh(trolley, mat);

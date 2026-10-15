@@ -9,18 +9,13 @@
  * steps' side rails, the trestle stairs), welds everything into one mesh (one draw, as before) and places each model
  * `drawnInto` it. The posts and signposts collide as the boxes they always had (own space, carried to each placement).
  */
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { defineModel, type ModelContext } from '@wildshard/engine/models/model';
+import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { trailSpecimen } from '../boot/trailSpecimens';
 
 /** the trail's one material (the dressing and the trail's own geometry share it: one draw) */
-export function trailMaterial(ctx: ModelContext): THREE.MeshStandardMaterial {
-  return ctx.once('driftwood-isle/trail:material', () => {
-    const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.88, metalness: 0, side: THREE.DoubleSide });
-    ctx.sky.setupMaterial(mat);
-    return mat;
-  });
-}
+export function trailMaterial(ctx: ModelContext): THREE.Material { return ctx.once('driftwood-isle/trail:material', () => lowPolyLookMaterial(ctx.sky, 'still')); }
 
 export const fencePost = defineModel<Record<string, never>>({
   id: 'driftwood-isle/fence-post', name: 'Fence post', category: 'props', pipeline: 'code',

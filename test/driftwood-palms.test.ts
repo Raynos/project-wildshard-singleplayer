@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { expect, it, vi } from 'vitest';
-import { BufferGeometry, Mesh, MeshStandardMaterial, MeshDepthMaterial } from 'three';
+import { BufferGeometry, Mesh, MeshStandardMaterial } from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, seedOf } from '@wildshard/engine/models/model';
@@ -20,7 +20,7 @@ it('owns compacted palm channels independently while retaining full picking boun
   try {
     const position = geometry.getAttribute('position'), colour = geometry.getAttribute('color');
     expect(position.count).toBeLessThan(vertices);
-    expect(geometry.getAttribute('sway').count).toBe(position.count);
+    expect(geometry.getAttribute('aSway').count).toBe(position.count);
     expect(position.array.buffer).not.toBe(transport.buffer);
     expect(colour.array.buffer).not.toBe(position.array.buffer);
     expect(boxes.buffer).not.toBe(position.array.buffer);
@@ -34,9 +34,9 @@ it('owns compacted palm channels independently while retaining full picking boun
   } finally { geometry.dispose(); shape.dispose(); }
 });
 
-it('loads each authored Explorer palm with its original wind and shadow materials', async () => {
-  const material = new MeshStandardMaterial(), depth = new MeshDepthMaterial(), ctx = modelContext(null);
-  ctx.once('driftwood-isle/palm:materials', () => ({lit: material, depth}));
+it('loads each authored Explorer palm with its swaying kit material', async () => {
+  const material = new MeshStandardMaterial(), ctx = modelContext(null);
+  ctx.once('driftwood-isle/palm:material', () => material);
   const emitted = new Map<string, Uint8Array>(), files = PALM_FILES[TIER === 'phone' ? 'phone' : 'desktop'];
   for (const variant of palm.variants ?? []) {
     if (variant.id !== 'tall' && variant.id !== 'young' && variant.id !== 'leaning') throw new Error('Unexpected palm');
@@ -58,10 +58,10 @@ it('loads each authored Explorer palm with its original wind and shadow material
       if (!(mesh instanceof Mesh)) throw new Error('Palm mesh absent');
       const geometry: unknown = mesh.geometry;
       if (!isGeometry(geometry)) throw new Error('Palm geometry absent');
-      expect(mesh.material).toBe(material); expect(mesh.customDepthMaterial).toBe(depth);
-      expect(geometry.getAttribute('sway').count).toBe(geometry.getAttribute('position').count);
+      expect(mesh.material).toBe(material);
+      expect(geometry.getAttribute('aSway').count).toBe(geometry.getAttribute('position').count);
       geometry.dispose();
     }
     expect(() => palm.build(ctx, {...palm.defaults, h: 12}, new Rng(1))).toThrow('no authored geometry');
-  } finally { mocked.mockRestore(); material.dispose(); depth.dispose(); }
+  } finally { mocked.mockRestore(); material.dispose(); }
 });

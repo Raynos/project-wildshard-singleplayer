@@ -53,7 +53,7 @@ export class Boat {
       piece: { id: 'boat', follows: 'copy', floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true } });
     this.group = placed.object;
     this.placed = placed;
-    const mat = lowPolyLookMaterial(this.sky);
+    const mat = lowPolyLookMaterial(this.sky, 'still');
 
     // mooring lines: bow / stern cleats → the posts, in world space (a separate static mesh so they don't bob)
     if (this.spec.moorTo?.length) {

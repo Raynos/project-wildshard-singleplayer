@@ -100,7 +100,7 @@ export class Cove {
     this.colliders=structuredClone(built.native.colliders);
     this.anchors=structuredClone(built.native.anchors);
     this.cuts=built.native.cuts;
-    const rocks = new THREE.Mesh(built.geometry.structure, lowPolyLookMaterial(this.sky));
+    const rocks = new THREE.Mesh(built.geometry.structure, lowPolyLookMaterial(this.sky, 'still'));
     rocks.castShadow = true; rocks.receiveShadow = true;
     this.group.add(rocks);
     const sm = new THREE.Mesh(built.geometry.rocks, rockMaterial(this.sky));
