@@ -1,0 +1,130 @@
+[
+  {
+    "file": "/assets/sfx/best/bed-underwater-3-cbe2810d.m4a",
+    "originalBytes": 8448000,
+    "compactBytes": 4610048,
+    "storedSamplesDifferent": 0,
+    "renders": [
+      {
+        "rate": 48000,
+        "phase": 0,
+        "different": 0,
+        "maxDelta": 0
+      },
+      {
+        "rate": 48000,
+        "phase": 0.371,
+        "different": 0,
+        "maxDelta": 0
+      },
+      {
+        "rate": 44100,
+        "phase": 0,
+        "different": 1786517,
+        "maxDelta": 2.4586915969848633e-7
+      },
+      {
+        "rate": 44100,
+        "phase": 0.371,
+        "different": 1956448,
+        "maxDelta": 2.1606683731079102e-7
+      }
+    ]
+  },
+  {
+    "file": "/assets/sfx/best/hum-pickup-3-7b7db58f.m4a",
+    "originalBytes": 3936000,
+    "compactBytes": 2306048,
+    "storedSamplesDifferent": 0,
+    "renders": [
+      {
+        "rate": 48000,
+        "phase": 0,
+        "different": 0,
+        "maxDelta": 0
+      },
+      {
+        "rate": 48000,
+        "phase": 0.371,
+        "different": 0,
+        "maxDelta": 0
+      },
+      {
+        "rate": 44100,
+        "phase": 0,
+        "different": 1089953,
+        "maxDelta": 2.8032809495925903e-7
+      },
+      {
+        "rate": 44100,
+        "phase": 0.371,
+        "different": 1085966,
+        "maxDelta": 3.0174851417541504e-7
+      }
+    ]
+  },
+  {
+    "file": "/assets/sfx/driftwood-isle/bed-island-1-4611714d.m4a",
+    "originalBytes": 6240000,
+    "compactBytes": 4994048,
+    "storedSamplesDifferent": 0,
+    "renders": [
+      {
+        "rate": 48000,
+        "phase": 0,
+        "different": 0,
+        "maxDelta": 0
+      },
+      {
+        "rate": 48000,
+        "phase": 0.371,
+        "different": 0,
+        "maxDelta": 0
+      },
+      {
+        "rate": 44100,
+        "phase": 0,
+        "different": 2192613,
+        "maxDelta": 8.121132850646973e-7
+      },
+      {
+        "rate": 44100,
+        "phase": 0.371,
+        "different": 2024881,
+        "maxDelta": 9.015202522277832e-7
+      }
+    ]
+  },
+  {
+    "file": "/assets/sfx/driftwood-isle/hum-shrine-2-d89ed03a.m4a",
+    "originalBytes": 3744000,
+    "compactBytes": 2306048,
+    "storedSamplesDifferent": 0,
+    "renders": [
+      {
+        "rate": 48000,
+        "phase": 0,
+        "different": 0,
+        "maxDelta": 0
+      },
+      {
+        "rate": 48000,
+        "phase": 0.371,
+        "different": 0,
+        "maxDelta": 0
+      },
+      {
+        "rate": 44100,
+        "phase": 0,
+        "different": 432468,
+        "maxDelta": 1.4901161193847656e-8
+      },
+      {
+        "rate": 44100,
+        "phase": 0.371,
+        "different": 344207,
+        "maxDelta": 1.4901161193847656e-8
+      }
+    ]
+  }
+]

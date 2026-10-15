@@ -1472,6 +1472,14 @@ listener/weather input. Floor, site and point ports remain real owners.
 | `Synth`, `impact`, `synthKit` | synth fallbacks, the impact generator, and the synthesis primitives (`noise`, `voice`, `strike`, `bubbles`, …) content voices build on (a shard's creature voices) |
 | `panFromYaw`, `loopAt`, `audioRandom`, `ownAudioSource` | helpers |
 
+`compactSampleLoop` (`engine/audio/preload`) keeps only an authored integer-sample loop window plus
+128 interpolation samples on each side. It preserves the sample rate, channels, gains, random phase
+and loop duration; fractional cuts keep the original recording. Compact windows share a bounded weak
+cache by encoded-content digest, source shape and bounds. They never replace the full-file decoder
+cache used by one-shots. `compactLoopWindow` (`engine/audio/loopWindow`) is the allocation-injected
+PCM operation; it opens no device. Native 48 kHz playback is unchanged; another output rate may
+produce inaudible resampler rounding from the shifted buffer origin.
+
 `manifest.audio` is `{ bed?, ambience, score, cues?, preload?, samples?, alertOnlyHostile? }`. The template points every
 cue at kit sounds:
 

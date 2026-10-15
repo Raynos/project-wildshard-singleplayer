@@ -1,4 +1,5 @@
 import { sfxManifests } from '../boot/tables';
+import { compactSampleLoop } from './preload';
 import { shipped } from './Stems';
 import type { SampleLoop } from './Audio';
 import type { AudioMixer } from './levelAudio';
@@ -99,9 +100,10 @@ export class CueCatalogue {
   private files(family:string):string[] {return cueFamilyNames(this.manifest,family).map(name=>cueFile(this.key,name)).filter((url):url is string=>url!==undefined);}
   private whole(buffer:AudioBuffer,gain=1):SampleClip {return {buffer,offset:0,duration:buffer.duration,gain};}
   private cut(sprite:CueSprite,buffer:AudioBuffer,into:Map<string,SampleClip[]>):void {cutCueSprite(this.manifest,sprite,buffer,into,this.policy);}
-  private loop(buffer:AudioBuffer,row:Record<string,unknown>):CatalogueLoop {
+  private loop(buffer:AudioBuffer,row:Record<string,unknown>,url:string):CatalogueLoop {
     const loopEnd=Math.min(buffer.duration,num(row['loopEnd'],buffer.duration)),loopStart=Math.max(0,Math.min(loopEnd-0.05,num(row['loopStart'],0)));
-    return {buffer,loopStart,loopEnd,gain:num(row['gain'],this.policy.loopGain),zone:typeof row['zone']==='string'?row['zone']:undefined,live:row['live']===true};
+    const packed=compactSampleLoop(buffer,{loopStart,loopEnd},url);
+    return {...packed,gain:num(row['gain'],this.policy.loopGain),zone:typeof row['zone']==='string'?row['zone']:undefined,live:row['live']===true};
   }
   bed(name:string):Promise<CatalogueLoop|undefined> {
     const have=this.beds.get(name);if(have!==undefined)return have;
@@ -109,7 +111,7 @@ export class CueCatalogue {
       if(!this.available)return undefined;
       const rows=this.manifest?.['beds'],row=obj(rows)?rows[name]:undefined;if(!obj(row))return undefined;
       const url=cueFile(this.key,row['file']);if(url===undefined)return undefined;
-      try{return this.loop(await this.decode(await this.read(url)),row);}
+      try{return this.loop(await this.decode(await this.read(url)),row,url);}
       catch(error){console.info(`[sfx] ${url}: ${error instanceof Error?error.message:String(error)} — that bed stays silent`);return undefined;}
     })();this.beds.set(name,pending);return pending;
   }
@@ -152,8 +154,8 @@ export class CueCatalogue {
     for(const section of ['beds','hums']){
       const rows=raw[section];if(!obj(rows))continue;
       for(const [name,row] of Object.entries(rows)){
-        if(!obj(row))continue;const url=cueFile(this.key,row['file']),buffer=url===undefined?undefined:buffers.get(url);if(buffer===undefined)continue;
-        const loop=this.loop(buffer,row);if(loop.loopEnd>loop.loopStart)this.loops.set(`${section==='beds'?'bed':'hum'}.${name}`,{buffer,loopStart:loop.loopStart,loopEnd:loop.loopEnd,gain:loop.gain});
+        if(!obj(row))continue;const url=cueFile(this.key,row['file']),buffer=url===undefined?undefined:buffers.get(url);if(buffer===undefined||url===undefined)continue;
+        const loop=this.loop(buffer,row,url);if(loop.loopEnd>loop.loopStart)this.loops.set(`${section==='beds'?'bed':'hum'}.${name}`,{buffer:loop.buffer,loopStart:loop.loopStart,loopEnd:loop.loopEnd,gain:loop.gain});
       }
     }
     const sprite=raw['sprite'],rows=raw['oneshots'];if(!obj(rows))return bank;

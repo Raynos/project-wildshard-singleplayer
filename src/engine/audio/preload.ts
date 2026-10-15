@@ -20,6 +20,7 @@ import type { AmbientBed, LoopName, SampleLoop } from './Audio';
 import { sfxDir } from '../boot/audioFiles';
 import { currentOwner, onOwnerDispose } from '../app/ownership';
 import { observeAudioMemory } from '../core/memoryResources';
+import { compactLoopWindow } from './loopWindow';
 
 export const DECODE_RATE = 48000;
 let offline: OfflineAudioContext | undefined;
@@ -31,6 +32,8 @@ function decodeContext(): OfflineAudioContext {
 // retirement of the last bank/deck releases its PCM, and a later visit decodes again. Bound the metadata too.
 const decoded = new Map<string, WeakRef<AudioBuffer>>();
 const decoding = new Map<string, Promise<AudioBuffer>>();
+const decodedKeys = new WeakMap<AudioBuffer, string>();
+const compactedLoops = new Map<string, { buffer: WeakRef<AudioBuffer>; loopStart: number; loopEnd: number }>();
 const DECODE_ENTRIES = 256;
 /** SF64: the file each fetched recording came from, so its decoded PCM is charged to a file instead of a hash. Weak: the
  *  bytes are detached by the decode and the entry goes with them. */
@@ -56,6 +59,7 @@ export async function decodeBytes(bytes: ArrayBuffer): Promise<AudioBuffer> {
   decoding.set(key, work);
   try {
     const buffer = observeAudioMemory(await work, { owner: label.owner, asset: label.asset ?? `audio/sha256:${key}` });
+    decodedKeys.set(buffer, key);
     decoded.delete(key); decoded.set(key, new WeakRef(buffer));
     while (decoded.size > DECODE_ENTRIES) {
       const first = decoded.keys().next().value;
@@ -64,6 +68,28 @@ export async function decodeBytes(bytes: ArrayBuffer): Promise<AudioBuffer> {
     }
     return buffer;
   } finally { if (decoding.get(key) === work) decoding.delete(key); }
+}
+
+/** Loop-only PCM keeps its authored samples and interpolation guards, not unused intro/outro.
+ * A separate weak cache shares compact windows by verified encoded content and bounds; the full-file
+ * decoder cache stays untouched so a later one-shot still receives the complete recording.
+ */
+export function compactSampleLoop(buffer: AudioBuffer, bounds: { readonly loopStart: number; readonly loopEnd: number }, url: string): { buffer: AudioBuffer; loopStart: number; loopEnd: number } {
+  if (typeof AudioBuffer !== 'function') return { buffer, ...bounds };
+  const digest = decodedKeys.get(buffer), key = digest === undefined ? undefined : `${digest}:${buffer.sampleRate}:${buffer.numberOfChannels}:${buffer.length}:${bounds.loopStart}:${bounds.loopEnd}`;
+  const cached = key === undefined ? undefined : compactedLoops.get(key), live = cached?.buffer.deref();
+  if (live !== undefined && cached !== undefined) return { buffer: live, loopStart: cached.loopStart, loopEnd: cached.loopEnd };
+  const packed = compactLoopWindow(buffer, bounds, (length, numberOfChannels, sampleRate) => new AudioBuffer({ length, numberOfChannels, sampleRate }));
+  if (packed.buffer === buffer) return packed;
+  const label = audioLabel(currentOwner()?.name ?? 'engine/audio', url);
+  observeAudioMemory(packed.buffer, { owner: label.owner, asset: label.asset ?? url });
+  if (key !== undefined) {
+    compactedLoops.delete(key); compactedLoops.set(key, { buffer: new WeakRef(packed.buffer), loopStart: packed.loopStart, loopEnd: packed.loopEnd });
+    while (compactedLoops.size > DECODE_ENTRIES) {
+      const first = compactedLoops.keys().next().value; if (first === undefined) break; compactedLoops.delete(first);
+    }
+  }
+  return packed;
 }
 
 /** the bytes of `url` from the offline cache the bar filled — a style / set switch never touches the network */
@@ -125,7 +151,8 @@ function sfxJobs(set: string, bed: AmbientBed, policy: SfxDecodePolicy): Job[] {
     if (u === undefined) return;
     jobs.push({ url: u, apply: (buffer, bank) => {
       const loopEnd = Math.min(buffer.duration, num(v['loopEnd'], buffer.duration)), loopStart = Math.max(0, Math.min(loopEnd - 0.05, num(v['loopStart'], 0)));
-      bank.loops.set(name, { buffer, loopStart, loopEnd, gain: (policy.loopGains?.[name] ?? LOOP_GAIN[name] ?? 1) * num(v['gain'], 1) });
+      const packed = compactSampleLoop(buffer, { loopStart, loopEnd }, u);
+      bank.loops.set(name, { ...packed, gain: (policy.loopGains?.[name] ?? LOOP_GAIN[name] ?? 1) * num(v['gain'], 1) });
     } });
   };
   const beds = isObj(j['beds']) ? j['beds'] : {}, hums = isObj(j['hums']) ? j['hums'] : {}, shots = isObj(j['oneshots']) ? j['oneshots'] : {};
