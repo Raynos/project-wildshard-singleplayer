@@ -22,6 +22,9 @@ export function precommitInputs(root = resolve(import.meta.dirname, '..')) {
     // The stamp sits beside the slot's tree: the sync deletes untracked files inside it, but keeps ignored outputs.
     const generated = resolve(scratch, '..', 'precommit-generated');
     if (!existsSync(generated)) { run(process.execPath, ['scripts/gen.mjs', '--build-inputs']); writeFileSync(generated, `${new Date().toISOString()}\n`); }
+    // Discovery changes when authored manifests change, even in an already warm
+    // slot. Refresh this cheap source glue before typed lint resolves imports.
+    run(process.execPath, ['scripts/gen-shards.mjs']);
     const present = changed.filter(file => existsSync(resolve(scratch, file)) && /\.[cm]?[jt]sx?$/u.test(file));
     if (present.length > 0) {
       // oxlint exits 1 on 'No files found to lint' when every staged file is in its ignorePatterns (e.g. test/fixtures/).
