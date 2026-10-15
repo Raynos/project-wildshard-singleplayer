@@ -6,11 +6,11 @@
  * provenance, not the subtracted resident set. Images / Memory saver off; no physical-phone cap claim.
  */
 export const DRIFTWOOD_RUNTIME_COST = {
-  webContentMB: 602.771488,
-  glMB: 193.503436,
+  webContentMB: 564.252728,
+  glMB: 193.506540,
   engineBaseMB: 299,
-  residentBaseMB: 458.082832,
-  rev: '2ca20f6bf7c00f479fd1cd5804841fad5532ed22',
+  residentBaseMB: 442.731048,
+  rev: 'ef70dd7ff9a09b6bdec26bf666c8154eb15abe3a',
   device: 'iOS Simulator Safari images matched pre-entry increment, three cold runs',
-  evidence: 'progress/memory/dw-g258-2026-10-14/summary.json',
+  evidence: 'progress/memory/dw-g258-2026-10-15/summary.json',
 } as const;

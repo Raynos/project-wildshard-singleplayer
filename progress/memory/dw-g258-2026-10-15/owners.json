@@ -1,0 +1,2870 @@
+{
+  "revision": "ef70dd7ff9a09b6bdec26bf666c8154eb15abe3a",
+  "pose": "dw-centre",
+  "readAfterAllPhysicalSamples": true,
+  "warning": "Weakly observed allocation capacity, including not-yet-collected objects; not measured resident RAM. RAM and GL can share backing on Apple hardware. Never add this census to the physical footprint.",
+  "totals": {
+    "gpu": 193255980,
+    "ram": 414839844
+  },
+  "owners": [
+    {
+      "owner": "engine/render-target",
+      "gpu": 50618860
+    },
+    {
+      "owner": "scene:region:driftwood-isle",
+      "gpu": 40333675,
+      "ram": 9840564
+    },
+    {
+      "owner": "engine/loadGLTF",
+      "ram": 47446662
+    },
+    {
+      "owner": "engine/loadTexture",
+      "ram": 41943040
+    },
+    {
+      "owner": "engine/loadRigFile",
+      "ram": 40336872,
+      "gpu": 516700
+    },
+    {
+      "owner": "grid.world:driftwood-isle",
+      "gpu": 9600502,
+      "ram": 25538684
+    },
+    {
+      "owner": "grid.world:pine-hollow",
+      "ram": 34776654,
+      "gpu": 1024
+    },
+    {
+      "owner": "audio:assets/sfx/pine-hollow",
+      "ram": 30687936
+    },
+    {
+      "owner": "engine/physics",
+      "ram": 29163520
+    },
+    {
+      "owner": "engine/scene",
+      "gpu": 3268936,
+      "ram": 18249804
+    },
+    {
+      "owner": "scene:region:pine-hollow",
+      "ram": 19154492
+    },
+    {
+      "owner": "scene:grid-cell-screens",
+      "gpu": 10485872,
+      "ram": 7864460
+    },
+    {
+      "owner": "scene:grid-deck",
+      "gpu": 13424356,
+      "ram": 3234540
+    },
+    {
+      "owner": "unattributed",
+      "gpu": 7860533,
+      "ram": 3079044
+    },
+    {
+      "owner": "props",
+      "ram": 9641824
+    },
+    {
+      "owner": "props-stumps",
+      "ram": 9534720
+    },
+    {
+      "owner": "props-wood",
+      "ram": 9533116
+    },
+    {
+      "owner": "cove-small-rocks",
+      "gpu": 4497120,
+      "ram": 4497120
+    },
+    {
+      "owner": "rocks",
+      "gpu": 6467040,
+      "ram": 2155680
+    },
+    {
+      "owner": "scene:grid-signs",
+      "gpu": 7965588,
+      "ram": 43584
+    },
+    {
+      "owner": "scene:grid-cell:pine-hollow",
+      "ram": 4200160,
+      "gpu": 3058924
+    },
+    {
+      "owner": "scene:grid-cell:nalati-grasslands",
+      "ram": 3862508,
+      "gpu": 2650736
+    },
+    {
+      "owner": "pine-crags-crag-cliff",
+      "ram": 6002764
+    },
+    {
+      "owner": "scene:pine-crags",
+      "ram": 5980872
+    },
+    {
+      "owner": "scene:grid-junctions",
+      "gpu": 5618548,
+      "ram": 5668
+    },
+    {
+      "owner": "scene:far-proxy",
+      "gpu": 2804196,
+      "ram": 2804196
+    },
+    {
+      "owner": "scene:grid-cell:driftwood-isle",
+      "ram": 5467188
+    },
+    {
+      "owner": "trailside",
+      "gpu": 2784960,
+      "ram": 1392480
+    },
+    {
+      "owner": "audio:assets/music/piano",
+      "ram": 3840000
+    },
+    {
+      "owner": "engine/bakedTexture",
+      "gpu": 2097152,
+      "ram": 1572864
+    },
+    {
+      "owner": "pine-hollow/forest-tree",
+      "ram": 3616824
+    },
+    {
+      "owner": "scene:grid-cell:far-reach",
+      "ram": 2088296,
+      "gpu": 1366112
+    },
+    {
+      "owner": "shrine",
+      "gpu": 2502720,
+      "ram": 837360
+    },
+    {
+      "owner": "cove",
+      "gpu": 2335182,
+      "ram": 768978
+    },
+    {
+      "owner": "scene:grid-asphalt",
+      "gpu": 2832012,
+      "ram": 6628
+    },
+    {
+      "owner": "scene:grid-cell:blender-template-1",
+      "gpu": 1399828,
+      "ram": 1399972
+    },
+    {
+      "owner": "pine-hollow/fern",
+      "ram": 2556824
+    },
+    {
+      "owner": "engine/loadGlbPart",
+      "ram": 1438368
+    },
+    {
+      "owner": "pine-hollow/needle-litter",
+      "ram": 1428732
+    },
+    {
+      "owner": "lookout",
+      "gpu": 1058640,
+      "ram": 288720
+    },
+    {
+      "owner": "pine-hollow/bilberry-shrub",
+      "ram": 1334536
+    },
+    {
+      "owner": "scene:grid-cell:sunscar-dunes",
+      "gpu": 665080,
+      "ram": 665128
+    },
+    {
+      "owner": "pier",
+      "gpu": 880128,
+      "ram": 439200
+    },
+    {
+      "owner": "jetty-1",
+      "gpu": 816768,
+      "ram": 408384
+    },
+    {
+      "owner": "scene:shrine-kit_p2_5_n0",
+      "ram": 1080000
+    },
+    {
+      "owner": "scene:cove-structure_p6_4_n1",
+      "ram": 1080000
+    },
+    {
+      "owner": "scene:lookout_p5_5_n0",
+      "ram": 1058640
+    },
+    {
+      "owner": "jetty-2",
+      "gpu": 593856,
+      "ram": 296064
+    },
+    {
+      "owner": "jetty-0",
+      "gpu": 561600,
+      "ram": 279936
+    },
+    {
+      "owner": "scene:grid-cell:template-2",
+      "gpu": 535616,
+      "ram": 282944
+    },
+    {
+      "owner": "scene:grid-cell:ink-cel-valley-1",
+      "gpu": 535616,
+      "ram": 282944
+    },
+    {
+      "owner": "scene:grid-cell:pastel-plain-1",
+      "gpu": 535616,
+      "ram": 282944
+    },
+    {
+      "owner": "runtime:driftwood-isle",
+      "ram": 802644,
+      "gpu": 504
+    },
+    {
+      "owner": "hut",
+      "gpu": 568728,
+      "ram": 189576
+    },
+    {
+      "owner": "scene:cloud-sea",
+      "gpu": 349664,
+      "ram": 262284
+    },
+    {
+      "owner": "BackdropLayer",
+      "gpu": 176772,
+      "ram": 338696
+    },
+    {
+      "owner": "pine-hollow/pebbles",
+      "ram": 490300
+    },
+    {
+      "owner": "pine-hollow/moss-patch",
+      "ram": 490300
+    },
+    {
+      "owner": "scene:pine-hollow/fern:base:0",
+      "ram": 456000
+    },
+    {
+      "owner": "scene:hut-kit_p3_2_n0",
+      "ram": 425520
+    },
+    {
+      "owner": "trader",
+      "gpu": 210744,
+      "ram": 210744
+    },
+    {
+      "owner": "scene:trailside_p2_4_n1",
+      "ram": 419904
+    },
+    {
+      "owner": "runtime:pine-hollow",
+      "ram": 393216
+    },
+    {
+      "owner": "scene:pine-hollow/needle-litter:base:0",
+      "ram": 380000
+    },
+    {
+      "owner": "pine-hollow/reeds",
+      "ram": 377116
+    },
+    {
+      "owner": "scene:trailside_p3_1_n3",
+      "ram": 373896
+    },
+    {
+      "owner": "scene:trailside_p3_2_n4",
+      "ram": 371088
+    },
+    {
+      "owner": "boat",
+      "gpu": 248832,
+      "ram": 82656
+    },
+    {
+      "owner": "scene:trailside_p5_5_n13",
+      "gpu": 165456,
+      "ram": 165456
+    },
+    {
+      "owner": "trade-counter",
+      "gpu": 163152,
+      "ram": 163152
+    },
+    {
+      "owner": "scene:pine-hollow/bilberry-shrub:base:0",
+      "ram": 285000
+    },
+    {
+      "owner": "trophy-plaques",
+      "gpu": 139536,
+      "ram": 139536
+    },
+    {
+      "owner": "scene:trailside_p4_3_n8",
+      "ram": 264240
+    },
+    {
+      "owner": "hollow-log",
+      "ram": 262144
+    },
+    {
+      "owner": "scene:trailside_p2_5_n2",
+      "ram": 250560
+    },
+    {
+      "owner": "scene:grid-border-shimmer-line",
+      "gpu": 121248,
+      "ram": 121248
+    },
+    {
+      "owner": "scene:trailside_p5_3_n11",
+      "ram": 241056
+    },
+    {
+      "owner": "pine-hollow/token-shelf",
+      "ram": 234576
+    },
+    {
+      "owner": "scene:pine-hollow/pebbles:base:0",
+      "ram": 228000
+    },
+    {
+      "owner": "scene:pine-hollow/moss-patch:base:0",
+      "ram": 228000
+    },
+    {
+      "owner": "scene:trailside_p4_4_n9",
+      "ram": 208512
+    },
+    {
+      "owner": "scene:trailside_p4_2_n7",
+      "ram": 204192
+    },
+    {
+      "owner": "practice-arena",
+      "ram": 196776
+    },
+    {
+      "owner": "level",
+      "ram": 196608
+    },
+    {
+      "owner": "scene:weapon-hands",
+      "ram": 196608
+    },
+    {
+      "owner": "scene:trailside_p3_3_n5",
+      "ram": 178992
+    },
+    {
+      "owner": "scene:cove-rocks_p5_4_n0",
+      "ram": 173340
+    },
+    {
+      "owner": "sea-glass-chime",
+      "gpu": 79764,
+      "ram": 79764
+    },
+    {
+      "owner": "entry-decks",
+      "gpu": 77760,
+      "ram": 77760
+    },
+    {
+      "owner": "scene:props100",
+      "gpu": 76608,
+      "ram": 76608
+    },
+    {
+      "owner": "scene:hut-kit_p3_3_n1",
+      "ram": 140616
+    },
+    {
+      "owner": "scene:pine-hollow/reeds:base:0",
+      "ram": 114000
+    },
+    {
+      "owner": "scene:pine-sky-dome",
+      "ram": 92448
+    },
+    {
+      "owner": "scene:trailside_p4_1_n6",
+      "ram": 90216
+    },
+    {
+      "owner": "scene:skin-knife",
+      "ram": 89760
+    },
+    {
+      "owner": "pine-landmarks",
+      "ram": 71812
+    },
+    {
+      "owner": "scene:grid-seam-curtain",
+      "gpu": 46560,
+      "ram": 18528
+    },
+    {
+      "owner": "scene:props130",
+      "gpu": 27648,
+      "ram": 27648
+    },
+    {
+      "owner": "scene:terrain:125,-250",
+      "gpu": 26952,
+      "ram": 26952
+    },
+    {
+      "owner": "bridge",
+      "gpu": 19984,
+      "ram": 15848
+    },
+    {
+      "owner": "scene:copy-layout",
+      "gpu": 15624,
+      "ram": 15624
+    },
+    {
+      "owner": "scene:terrain:-250,-250",
+      "gpu": 13476,
+      "ram": 13476
+    },
+    {
+      "owner": "scene:terrain:125,125",
+      "gpu": 13476,
+      "ram": 13476
+    },
+    {
+      "owner": "scene:terrain:125,0",
+      "gpu": 13476,
+      "ram": 13476
+    },
+    {
+      "owner": "scene:terrain:125,-125",
+      "gpu": 13476,
+      "ram": 13476
+    },
+    {
+      "owner": "scene:trailside_p5_4_n12",
+      "ram": 14688
+    },
+    {
+      "owner": "scene:shrine-kit_p2_6_n3",
+      "ram": 11124
+    },
+    {
+      "owner": "scene:beaver-pool-trickle",
+      "ram": 10608
+    },
+    {
+      "owner": "scene:grid-soft-wall",
+      "gpu": 3888,
+      "ram": 3888
+    },
+    {
+      "owner": "scene:antler-king-fog-wall",
+      "ram": 7360
+    },
+    {
+      "owner": "grid.object:shrine",
+      "ram": 5400,
+      "gpu": 1080
+    },
+    {
+      "owner": "scene:cove-structure_p6_3_n0",
+      "ram": 6480
+    },
+    {
+      "owner": "scene:copy-identity-number",
+      "gpu": 2880,
+      "ram": 2880
+    },
+    {
+      "owner": "reef-fish",
+      "gpu": 2848,
+      "ram": 2488
+    },
+    {
+      "owner": "scene:trailside_p4_5_n10",
+      "gpu": 1584,
+      "ram": 1584
+    },
+    {
+      "owner": "scene:cove-pools_p6_4_n1",
+      "ram": 2258
+    },
+    {
+      "owner": "scene:cove-pools_p6_3_n0",
+      "ram": 1332
+    },
+    {
+      "owner": "scene:copy-identity-plate",
+      "gpu": 576,
+      "ram": 576
+    },
+    {
+      "owner": "scene:pine-wildlife",
+      "ram": 896
+    },
+    {
+      "owner": "scene:shrine-water_p2_5_n0",
+      "ram": 720
+    },
+    {
+      "owner": "scene:waterfall-spray",
+      "ram": 704
+    },
+    {
+      "owner": "scene:trailside_p2_3_n0",
+      "ram": 576
+    },
+    {
+      "owner": "scene:grid-void-floor",
+      "gpu": 144,
+      "ram": 144
+    },
+    {
+      "owner": "scene:grid-border-save",
+      "ram": 140
+    },
+    {
+      "owner": "pine-hollow/canoe",
+      "ram": 128
+    },
+    {
+      "owner": "engine/renderer",
+      "gpu": 36
+    },
+    {
+      "owner": "pine-lookout",
+      "gpu": 8,
+      "ram": 8
+    }
+  ],
+  "largestAllocations": [
+    {
+      "id": "ram:2486",
+      "domain": "ram",
+      "kind": "audio-buffer",
+      "bytes": 30687936,
+      "precision": "exact",
+      "owner": "audio:assets/sfx/pine-hollow",
+      "asset": "audio/assets/sfx/pine-hollow/oneshots-362ce515.m4a"
+    },
+    {
+      "id": "ram:9",
+      "domain": "ram",
+      "kind": "wasm",
+      "bytes": 29163520,
+      "precision": "exact",
+      "owner": "engine/physics",
+      "asset": "/assets/physics/rapier.wasm"
+    },
+    {
+      "id": "gpu:32",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 9184896,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "EffectComposer.Buffer/color/Texture"
+    },
+    {
+      "id": "gpu:389",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 9184896,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "LuminancePass.Target/color/Texture"
+    },
+    {
+      "id": "gpu:401",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 9184896,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "EffectComposer.Buffer/color/Texture"
+    },
+    {
+      "id": "gpu:199",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 7689556,
+      "precision": "exact",
+      "owner": "scene:grid-signs",
+      "asset": "generated/Group/grid-signs/map/Texture"
+    },
+    {
+      "id": "gpu:198",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 5592404,
+      "precision": "exact",
+      "owner": "scene:grid-junctions",
+      "asset": "generated/Group/grid-junctions/map/Texture"
+    },
+    {
+      "id": "gpu:5630",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 5592404,
+      "precision": "exact",
+      "owner": "grid.world:driftwood-isle",
+      "asset": "http://127.0.0.1:4400/assets/models/driftwood-blender/lm-ao.phone.webp/Texture"
+    },
+    {
+      "id": "gpu:33",
+      "domain": "gpu",
+      "kind": "renderbuffer",
+      "bytes": 4592448,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "EffectComposer.Buffer/Depthbuffer"
+    },
+    {
+      "id": "gpu:402",
+      "domain": "gpu",
+      "kind": "renderbuffer",
+      "bytes": 4592448,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "EffectComposer.Buffer/Depthbuffer"
+    },
+    {
+      "id": "gpu:286",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 4194304,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "generated/render-target/1024x1024/color/Texture"
+    },
+    {
+      "id": "gpu:287",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 4194304,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "generated/render-target/1024x1024/depth/Texture"
+    },
+    {
+      "id": "ram:1024",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadTexture",
+      "asset": "/assets/tex/rock_ground/diffuse_1k.jpg"
+    },
+    {
+      "id": "ram:1026",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadTexture",
+      "asset": "/assets/tex/rock_ground/nor_gl_1k.jpg"
+    },
+    {
+      "id": "ram:1107",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadGLTF",
+      "asset": "/assets/models/stone_fire_pit/stone_fire_pit.gltf/stone_fire_pit/map/stone_fire_pit_diff"
+    },
+    {
+      "id": "ram:1108",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadGLTF",
+      "asset": "/assets/models/stone_fire_pit/stone_fire_pit.gltf/stone_fire_pit/normalMap/stone_fire_pit_nor_gl"
+    },
+    {
+      "id": "ram:1142",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadGLTF",
+      "asset": "/assets/models/wooden_crate_02/wooden_crate_02.gltf/wooden_crate_02_crate/map/wooden_crate_02_diff"
+    },
+    {
+      "id": "ram:1143",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadGLTF",
+      "asset": "/assets/models/wooden_crate_02/wooden_crate_02.gltf/wooden_crate_02_crate/normalMap/wooden_crate_02_nor_gl"
+    },
+    {
+      "id": "ram:1158",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadGLTF",
+      "asset": "/assets/models/wine_barrel_01/wine_barrel_01.gltf/wine_barrel_01_Lid/map/wine_barrel_01_diff"
+    },
+    {
+      "id": "ram:1159",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadGLTF",
+      "asset": "/assets/models/wine_barrel_01/wine_barrel_01.gltf/wine_barrel_01_Lid/normalMap/wine_barrel_01_nor_gl"
+    },
+    {
+      "id": "ram:1177",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadGLTF",
+      "asset": "/assets/models/wooden_bucket_01/wooden_bucket_01.gltf/wooden_bucket_01/map/wooden_bucket_01_diff"
+    },
+    {
+      "id": "ram:1178",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadGLTF",
+      "asset": "/assets/models/wooden_bucket_01/wooden_bucket_01.gltf/wooden_bucket_01/normalMap/wooden_bucket_01_nor_gl"
+    },
+    {
+      "id": "ram:1188",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadGLTF",
+      "asset": "/assets/models/hatchet/hatchet.gltf/hatchet/map/hatchet_diff"
+    },
+    {
+      "id": "ram:1189",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadGLTF",
+      "asset": "/assets/models/hatchet/hatchet.gltf/hatchet/normalMap/hatchet_nor_gl"
+    },
+    {
+      "id": "ram:1385",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "scene:region:pine-hollow",
+      "asset": "generated/Scene/region:pine-hollow/region-scene:pine-hollow/Group[7]/Group[0]/Group[9]/Scene/Lantern_01/map/Lantern_01_brass_diff"
+    },
+    {
+      "id": "ram:1386",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "scene:region:pine-hollow",
+      "asset": "generated/Scene/region:pine-hollow/region-scene:pine-hollow/Group[7]/Group[0]/Group[9]/Scene/Lantern_01/normalMap/Lantern_01_brass_nor_gl"
+    },
+    {
+      "id": "ram:1792",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "props",
+      "asset": "src/shards/pine-hollow/models/mossyBoulder.ts#Mossy boulder/map/rock_moss_set_01_diff"
+    },
+    {
+      "id": "ram:1793",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "props",
+      "asset": "src/shards/pine-hollow/models/mossyBoulder.ts#Mossy boulder/normalMap/rock_moss_set_01_nor_gl"
+    },
+    {
+      "id": "ram:1801",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "props-stumps",
+      "asset": "src/shards/pine-hollow/models/treeStump.ts#Tree stump/map/tree_stump_01_diff"
+    },
+    {
+      "id": "ram:1802",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "props-stumps",
+      "asset": "src/shards/pine-hollow/models/treeStump.ts#Tree stump/normalMap/tree_stump_01_nor_gl"
+    },
+    {
+      "id": "ram:1809",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "props-wood",
+      "asset": "src/shards/pine-hollow/models/fallenLog.ts#Fallen log/map/dead_tree_trunk_diff"
+    },
+    {
+      "id": "ram:1810",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "props-wood",
+      "asset": "src/shards/pine-hollow/models/fallenLog.ts#Fallen log/normalMap/dead_tree_trunk_nor_gl"
+    },
+    {
+      "id": "ram:2464",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadRigFile",
+      "asset": "/assets/pine-hollow/life/birds.glb/owl_fly/map/atlas.phone.b"
+    },
+    {
+      "id": "ram:4854",
+      "domain": "ram",
+      "kind": "image",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "grid.world:driftwood-isle",
+      "asset": "http://127.0.0.1:4400/assets/models/driftwood-blender/lm-ao.phone.webp"
+    },
+    {
+      "id": "ram:5374",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 4194304,
+      "precision": "estimate",
+      "owner": "engine/loadRigFile",
+      "asset": "/assets/models/driftwood-hero/captain/captain.glb/captainraw/map/atlas"
+    },
+    {
+      "id": "gpu:4082",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 3495244,
+      "precision": "exact",
+      "owner": "scene:grid-cell-screens",
+      "asset": "generated/Scene/grid-cell-screens/grid-cell-screen/map/Texture"
+    },
+    {
+      "id": "gpu:5602",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 3495244,
+      "precision": "exact",
+      "owner": "scene:grid-cell-screens",
+      "asset": "generated/Scene/grid-cell-screens/grid-cell-screen/map/Texture"
+    },
+    {
+      "id": "gpu:6957",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 3495244,
+      "precision": "exact",
+      "owner": "scene:grid-cell-screens",
+      "asset": "generated/Scene/grid-cell-screens/grid-cell-screen/map/Texture"
+    },
+    {
+      "id": "gpu:309",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 3234540,
+      "precision": "exact",
+      "owner": "scene:grid-deck",
+      "asset": "generated/Group/grid-deck/index"
+    },
+    {
+      "id": "ram:149",
+      "domain": "ram",
+      "kind": "array-buffer",
+      "bytes": 3234540,
+      "precision": "exact",
+      "owner": "scene:grid-deck",
+      "asset": "generated/Group/grid-deck/index"
+    },
+    {
+      "id": "gpu:268",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 3135328,
+      "precision": "exact",
+      "owner": "scene:grid-deck",
+      "asset": "generated/Group/grid-deck/grainUv"
+    },
+    {
+      "id": "gpu:197",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 2796204,
+      "precision": "exact",
+      "owner": "scene:grid-asphalt",
+      "asset": "generated/Group/grid-asphalt/map/Texture"
+    },
+    {
+      "id": "ram:2366",
+      "domain": "ram",
+      "kind": "canvas",
+      "bytes": 2621440,
+      "precision": "estimate",
+      "owner": "grid.world:pine-hollow",
+      "asset": "generated/Scene/region:pine-hollow/region-scene:pine-hollow/Group[7]/Group[0]/Object3D[25]/trophy-wall/trophy-chalk/map"
+    },
+    {
+      "id": "ram:4083",
+      "domain": "ram",
+      "kind": "canvas",
+      "bytes": 2621440,
+      "precision": "estimate",
+      "owner": "scene:grid-cell-screens",
+      "asset": "generated/Scene/grid-cell-screens/grid-cell-screen/map"
+    },
+    {
+      "id": "ram:5603",
+      "domain": "ram",
+      "kind": "canvas",
+      "bytes": 2621440,
+      "precision": "estimate",
+      "owner": "scene:grid-cell-screens",
+      "asset": "generated/Scene/grid-cell-screens/grid-cell-screen/map"
+    },
+    {
+      "id": "ram:6958",
+      "domain": "ram",
+      "kind": "canvas",
+      "bytes": 2621440,
+      "precision": "estimate",
+      "owner": "scene:grid-cell-screens",
+      "asset": "generated/Scene/grid-cell-screens/grid-cell-screen/map"
+    },
+    {
+      "id": "gpu:265",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 2351496,
+      "precision": "exact",
+      "owner": "scene:grid-deck",
+      "asset": "generated/Group/grid-deck/position"
+    },
+    {
+      "id": "gpu:266",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 2351496,
+      "precision": "exact",
+      "owner": "scene:grid-deck",
+      "asset": "generated/Group/grid-deck/normal"
+    },
+    {
+      "id": "gpu:267",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 2351496,
+      "precision": "exact",
+      "owner": "scene:grid-deck",
+      "asset": "generated/Group/grid-deck/color"
+    },
+    {
+      "id": "gpu:394",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 2296224,
+      "precision": "exact",
+      "owner": "engine/render-target",
+      "asset": "Downsampling.Mipmap0/color/Texture"
+    },
+    {
+      "id": "gpu:400",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 2296224,
+      "precision": "exact",
+      "owner": "engine/scene",
+      "asset": "generated/Group/Mesh[2]/uniform/e0Map/Upsampling.Mipmap0/Texture"
+    },
+    {
+      "id": "gpu:6772",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 2155680,
+      "precision": "exact",
+      "owner": "rocks",
+      "asset": "src/shards/driftwood-isle/models/shoreBoulder.ts#Shore boulder/position"
+    },
+    {
+      "id": "gpu:6773",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 2155680,
+      "precision": "exact",
+      "owner": "rocks",
+      "asset": "src/shards/driftwood-isle/models/shoreBoulder.ts#Shore boulder/normal"
+    },
+    {
+      "id": "gpu:6774",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 2155680,
+      "precision": "exact",
+      "owner": "rocks",
+      "asset": "src/shards/driftwood-isle/models/shoreBoulder.ts#Shore boulder/color"
+    },
+    {
+      "id": "ram:4563",
+      "domain": "ram",
+      "kind": "array-buffer",
+      "bytes": 2155680,
+      "precision": "exact",
+      "owner": "rocks",
+      "asset": "src/shards/driftwood-isle/models/shoreBoulder.ts#Shore boulder/position"
+    },
+    {
+      "id": "ram:1027",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 2097152,
+      "precision": "estimate",
+      "owner": "engine/loadTexture",
+      "asset": "/assets/models/pine-hollow-trees/cards-albedo.png"
+    },
+    {
+      "id": "ram:1028",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 2097152,
+      "precision": "estimate",
+      "owner": "engine/loadTexture",
+      "asset": "/assets/models/pine-hollow-trees/impostor-albedo.png"
+    },
+    {
+      "id": "ram:1029",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 2097152,
+      "precision": "estimate",
+      "owner": "engine/loadTexture",
+      "asset": "/assets/models/pine-hollow-trees/cards-arm.jpg"
+    },
+    {
+      "id": "ram:1033",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 2097152,
+      "precision": "estimate",
+      "owner": "engine/loadTexture",
+      "asset": "/assets/models/pine-hollow-trees/cards-normal.jpg"
+    },
+    {
+      "id": "ram:1034",
+      "domain": "ram",
+      "kind": "image-bitmap",
+      "bytes": 2097152,
+      "precision": "estimate",
+      "owner": "engine/loadTexture",
+      "asset": "/assets/models/pine-hollow-trees/impostor-normal.jpg"
+    },
+    {
+      "id": "ram:1266",
+      "domain": "ram",
+      "kind": "canvas",
+      "bytes": 2097152,
+      "precision": "estimate",
+      "owner": "grid.world:pine-hollow",
+      "asset": "generated/Scene/region:pine-hollow/region-scene:pine-hollow/Group[3]/Mesh[0]/map"
+    },
+    {
+      "id": "ram:1856",
+      "domain": "ram",
+      "kind": "canvas",
+      "bytes": 2097152,
+      "precision": "estimate",
+      "owner": "pine-hollow/fern",
+      "asset": "src/shards/pine-hollow/models/fern.ts#Fern/map"
+    },
+    {
+      "id": "gpu:5707",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 1901880,
+      "precision": "exact",
+      "owner": "scene:region:driftwood-isle",
+      "asset": "generated/Scene/region:driftwood-isle/region-scene:driftwood-isle/driftwood-isle/palm/position"
+    },
+    {
+      "id": "gpu:5708",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 1901880,
+      "precision": "exact",
+      "owner": "scene:region:driftwood-isle",
+      "asset": "generated/Scene/region:driftwood-isle/region-scene:driftwood-isle/driftwood-isle/palm/color"
+    },
+    {
+      "id": "ram:4688",
+      "domain": "ram",
+      "kind": "array-buffer",
+      "bytes": 1901880,
+      "precision": "exact",
+      "owner": "grid.world:driftwood-isle",
+      "asset": "generated/Scene/region:driftwood-isle/region-scene:driftwood-isle/driftwood-isle/palm/position"
+    },
+    {
+      "id": "gpu:204",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 1747620,
+      "precision": "exact",
+      "owner": "unattributed",
+      "asset": "unattributed"
+    },
+    {
+      "id": "ram:444",
+      "domain": "ram",
+      "kind": "audio-buffer",
+      "bytes": 1728000,
+      "precision": "exact",
+      "owner": "audio:assets/music/piano",
+      "asset": "audio/assets/music/piano/sting-death-99b071e0.m4a"
+    },
+    {
+      "id": "ram:1859",
+      "domain": "ram",
+      "kind": "array-buffer",
+      "bytes": 1560264,
+      "precision": "exact",
+      "owner": "grid.world:pine-hollow",
+      "asset": "generated/Scene/region:pine-hollow/region-scene:pine-hollow/Group[0]/Mesh[0]/index"
+    },
+    {
+      "id": "ram:1777",
+      "domain": "ram",
+      "kind": "array-buffer",
+      "bytes": 1512928,
+      "precision": "exact",
+      "owner": "pine-crags-crag-cliff",
+      "asset": "src/shards/pine-hollow/models/cragCliff.ts#Ridge crag/aCdata"
+    },
+    {
+      "id": "ram:2948",
+      "domain": "ram",
+      "kind": "array-buffer",
+      "bytes": 1512928,
+      "precision": "exact",
+      "owner": "scene:pine-crags",
+      "asset": "generated/Group/pine-crags/aCdata"
+    },
+    {
+      "id": "gpu:6904",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 1499040,
+      "precision": "exact",
+      "owner": "cove-small-rocks",
+      "asset": "src/shards/driftwood-isle/models/smallRock.ts#Small rock/position"
+    },
+    {
+      "id": "gpu:6905",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 1499040,
+      "precision": "exact",
+      "owner": "cove-small-rocks",
+      "asset": "src/shards/driftwood-isle/models/smallRock.ts#Small rock/normal"
+    },
+    {
+      "id": "gpu:6906",
+      "domain": "gpu",
+      "kind": "buffer",
+      "bytes": 1499040,
+      "precision": "exact",
+      "owner": "cove-small-rocks",
+      "asset": "src/shards/driftwood-isle/models/smallRock.ts#Small rock/color"
+    },
+    {
+      "id": "ram:4658",
+      "domain": "ram",
+      "kind": "array-buffer",
+      "bytes": 1499040,
+      "precision": "exact",
+      "owner": "cove-small-rocks",
+      "asset": "src/shards/driftwood-isle/models/smallRock.ts#Small rock/position"
+    },
+    {
+      "id": "ram:4659",
+      "domain": "ram",
+      "kind": "array-buffer",
+      "bytes": 1499040,
+      "precision": "exact",
+      "owner": "cove-small-rocks",
+      "asset": "src/shards/driftwood-isle/models/smallRock.ts#Small rock/normal"
+    },
+    {
+      "id": "ram:4660",
+      "domain": "ram",
+      "kind": "array-buffer",
+      "bytes": 1499040,
+      "precision": "exact",
+      "owner": "cove-small-rocks",
+      "asset": "src/shards/driftwood-isle/models/smallRock.ts#Small rock/color"
+    },
+    {
+      "id": "ram:1774",
+      "domain": "ram",
+      "kind": "array-buffer",
+      "bytes": 1442088,
+      "precision": "exact",
+      "owner": "pine-crags-crag-cliff",
+      "asset": "src/shards/pine-hollow/models/cragCliff.ts#Ridge crag/index"
+    },
+    {
+      "id": "ram:2945",
+      "domain": "ram",
+      "kind": "array-buffer",
+      "bytes": 1442088,
+      "precision": "exact",
+      "owner": "scene:pine-crags",
+      "asset": "generated/Group/pine-crags/index"
+    },
+    {
+      "id": "ram:1267",
+      "domain": "ram",
+      "kind": "array-buffer",
+      "bytes": 1433600,
+      "precision": "exact",
+      "owner": "scene:region:pine-hollow",
+      "asset": "generated/Scene/region:pine-hollow/region-scene:pine-hollow/Group[3]/Mesh[0]/instanceMatrix"
+    },
+    {
+      "id": "gpu:1099",
+      "domain": "gpu",
+      "kind": "texture",
+      "bytes": 1398100,
+      "precision": "exact",
+      "owner": "engine/bakedTexture",
+      "asset": "/assets/baked/pine-hollow/tex/clouds.jpg/Texture"
+    }
+  ],
+  "model": {
+    "cost": {
+      "playing": 1077656710,
+      "loading": 1157656710,
+      "accounted": 644600061,
+      "input": {
+        "l0": 83932218,
+        "l1": 407424,
+        "far": 14400000,
+        "libraries": 73922032,
+        "sims": 309796065,
+        "commons": 0,
+        "products": 97699854,
+        "overlap": 80000000,
+        "near": 21636232,
+        "page": 42806236,
+        "engineBase": 286859328
+      }
+    },
+    "claims": [
+      {
+        "id": "commons:retained:503:cpu",
+        "category": "commons",
+        "bytes": 20136,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:504:gpu",
+        "category": "commons",
+        "bytes": 20136,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:505:cpu",
+        "category": "commons",
+        "bytes": 10068,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:506:gpu",
+        "category": "commons",
+        "bytes": 10068,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:507:cpu",
+        "category": "commons",
+        "bytes": 19560,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:508:gpu",
+        "category": "commons",
+        "bytes": 19560,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:509:cpu",
+        "category": "commons",
+        "bytes": 9780,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:510:gpu",
+        "category": "commons",
+        "bytes": 9780,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:511:cpu",
+        "category": "commons",
+        "bytes": 9780,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:512:gpu",
+        "category": "commons",
+        "bytes": 9780,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:513:cpu",
+        "category": "commons",
+        "bytes": 96480,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:514:gpu",
+        "category": "commons",
+        "bytes": 96480,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:515:cpu",
+        "category": "commons",
+        "bytes": 192960,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:516:gpu",
+        "category": "commons",
+        "bytes": 192960,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:517:cpu",
+        "category": "commons",
+        "bytes": 96480,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:518:gpu",
+        "category": "commons",
+        "bytes": 96480,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:519:cpu",
+        "category": "commons",
+        "bytes": 96480,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:520:gpu",
+        "category": "commons",
+        "bytes": 96480,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:521:cpu",
+        "category": "commons",
+        "bytes": 25920,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:522:gpu",
+        "category": "commons",
+        "bytes": 25920,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:523:cpu",
+        "category": "commons",
+        "bytes": 25920,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:524:gpu",
+        "category": "commons",
+        "bytes": 25920,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:525:cpu",
+        "category": "commons",
+        "bytes": 25920,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:526:gpu",
+        "category": "commons",
+        "bytes": 25920,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:527:cpu",
+        "category": "commons",
+        "bytes": 3024,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:528:gpu",
+        "category": "commons",
+        "bytes": 3024,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:529:cpu",
+        "category": "commons",
+        "bytes": 3024,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:530:gpu",
+        "category": "commons",
+        "bytes": 3024,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:531:cpu",
+        "category": "commons",
+        "bytes": 3024,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:532:gpu",
+        "category": "commons",
+        "bytes": 3024,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:533:cpu",
+        "category": "commons",
+        "bytes": 25920,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:534:gpu",
+        "category": "commons",
+        "bytes": 25920,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:535:cpu",
+        "category": "commons",
+        "bytes": 25920,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:536:gpu",
+        "category": "commons",
+        "bytes": 25920,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:537:cpu",
+        "category": "commons",
+        "bytes": 25920,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:538:gpu",
+        "category": "commons",
+        "bytes": 25920,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:539:cpu",
+        "category": "commons",
+        "bytes": 3024,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:540:gpu",
+        "category": "commons",
+        "bytes": 3024,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:541:cpu",
+        "category": "commons",
+        "bytes": 3024,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:542:gpu",
+        "category": "commons",
+        "bytes": 3024,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:543:cpu",
+        "category": "commons",
+        "bytes": 3024,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "commons:retained:544:gpu",
+        "category": "commons",
+        "bytes": 3024,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "library:blender-template:f064d2d06de8e445777e1e4411374fe5f41eeaa71b47e6d905dc5964afff3b77",
+        "category": "library",
+        "bytes": 8039032,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 8039032
+      },
+      {
+        "id": "library:driftwood-isle:c9ed47bf3dafbd7ab9808caef2443f57cb3c3f3fe116cc37a79d58ab1a4079df",
+        "category": "library",
+        "bytes": 8397368,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 8397368
+      },
+      {
+        "id": "library:far-reach:0f3f312b9be41519dcbf6e23f131a6f82d62f821cc66e5fa48f0c78c269778f9",
+        "category": "library",
+        "bytes": 8093408,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 8093408
+      },
+      {
+        "id": "library:ink-cel-valley:5816a7d2a9129846c392bf128890b18ee3b9a13d75b50ac5235b88d1b9d272f9",
+        "category": "library",
+        "bytes": 8140736,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 8140736
+      },
+      {
+        "id": "library:nalati-grasslands:e48ef2ae66a9acab0952dddb95f9fd9ace6d92de66a2f65d6b5ebad947dfaee8",
+        "category": "library",
+        "bytes": 8538016,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 8538016
+      },
+      {
+        "id": "library:pastel-plain:155219202c35e41217e470cefe5edc99da6ca40ae0043fc41ca7cd7b4a6e1a3f",
+        "category": "library",
+        "bytes": 8113984,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 8113984
+      },
+      {
+        "id": "library:pine-hollow:e7cc19e10f905c377c9b0a61e64aec5d95dff3eff504198b877b3f058b3dea09",
+        "category": "library",
+        "bytes": 8382400,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 8382400
+      },
+      {
+        "id": "library:sunscar-dunes:f8ae4cdc3eb7454a68b2d6746d9b96a01762bf5d9030596da2cd31a28a34aa5f",
+        "category": "library",
+        "bytes": 8109272,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 8109272
+      },
+      {
+        "id": "library:template:acfb2a6682ec6f5f7bf95d3231eea6221fa7c2bcc868ef8c38dbaa7a9dc22223",
+        "category": "library",
+        "bytes": 8107816,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 8107816
+      },
+      {
+        "id": "near:far-reach",
+        "category": "near",
+        "bytes": 4177788,
+        "owner": "far-reach",
+        "distance": 306.0890840297701,
+        "needed": false,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 4177788
+      },
+      {
+        "id": "near:nalati-grasslands",
+        "category": "near",
+        "bytes": 7726216,
+        "owner": "nalati-grasslands",
+        "distance": 305.10983216678255,
+        "needed": false,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 7726216
+      },
+      {
+        "id": "near:pine-hollow",
+        "category": "near",
+        "bytes": 8401516,
+        "owner": "pine-hollow",
+        "distance": 303.9109159702299,
+        "needed": false,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 8401516
+      },
+      {
+        "id": "near:sunscar-dunes",
+        "category": "near",
+        "bytes": 1330712,
+        "owner": "sunscar-dunes",
+        "distance": 304.89016783321745,
+        "needed": false,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 1330712
+      },
+      {
+        "id": "page:composer",
+        "category": "page",
+        "bytes": 42806200,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 42806200
+      },
+      {
+        "id": "page:renderer-initialization",
+        "category": "page",
+        "bytes": 36,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 36
+      },
+      {
+        "id": "platform:render:cell-screens",
+        "category": "l0",
+        "bytes": 280,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 280
+      },
+      {
+        "id": "platform:render:cell-screens.slot-0",
+        "category": "l0",
+        "bytes": 6141718,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 6141718
+      },
+      {
+        "id": "platform:render:cell-screens.slot-1",
+        "category": "l0",
+        "bytes": 6141718,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 6141718
+      },
+      {
+        "id": "platform:render:cell-screens.slot-2",
+        "category": "l0",
+        "bytes": 6141718,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 6141718
+      },
+      {
+        "id": "platform:render:road.asphalt",
+        "category": "l0",
+        "bytes": 2845264,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 2845264
+      },
+      {
+        "id": "platform:render:road.curtain",
+        "category": "l0",
+        "bytes": 83616,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 83616
+      },
+      {
+        "id": "platform:render:road.deck",
+        "category": "l0",
+        "bytes": 21641056,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 21641056
+      },
+      {
+        "id": "platform:render:road.junctions",
+        "category": "l0",
+        "bytes": 5629880,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 5629880
+      },
+      {
+        "id": "platform:render:road.signs",
+        "category": "l0",
+        "bytes": 8052754,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 8052754
+      },
+      {
+        "id": "platform:render:road.void",
+        "category": "l0",
+        "bytes": 288,
+        "owner": "platform",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 288
+      },
+      {
+        "id": "product:grid:_template",
+        "category": "product",
+        "bytes": 7454150,
+        "owner": "grid",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 7454150
+      },
+      {
+        "id": "product:grid:blender-template",
+        "category": "product",
+        "bytes": 4475172,
+        "owner": "grid",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 4475172
+      },
+      {
+        "id": "product:grid:driftwood-isle",
+        "category": "product",
+        "bytes": 24980812,
+        "owner": "grid",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 24980812
+      },
+      {
+        "id": "product:grid:edge:blender-template-1",
+        "category": "product",
+        "bytes": 118088,
+        "owner": "blender-template-1",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 118088
+      },
+      {
+        "id": "product:grid:edge:driftwood-isle",
+        "category": "product",
+        "bytes": 117944,
+        "owner": "driftwood-isle",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 117944
+      },
+      {
+        "id": "product:grid:edge:far-reach",
+        "category": "product",
+        "bytes": 118088,
+        "owner": "far-reach",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 118088
+      },
+      {
+        "id": "product:grid:edge:ink-cel-valley-1",
+        "category": "product",
+        "bytes": 118088,
+        "owner": "ink-cel-valley-1",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 118088
+      },
+      {
+        "id": "product:grid:edge:nalati-grasslands",
+        "category": "product",
+        "bytes": 117656,
+        "owner": "nalati-grasslands",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 117656
+      },
+      {
+        "id": "product:grid:edge:pastel-plain-1",
+        "category": "product",
+        "bytes": 118088,
+        "owner": "pastel-plain-1",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 118088
+      },
+      {
+        "id": "product:grid:edge:pine-hollow",
+        "category": "product",
+        "bytes": 117656,
+        "owner": "pine-hollow",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 117656
+      },
+      {
+        "id": "product:grid:edge:sunscar-dunes",
+        "category": "product",
+        "bytes": 118104,
+        "owner": "sunscar-dunes",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 118104
+      },
+      {
+        "id": "product:grid:edge:template-2",
+        "category": "product",
+        "bytes": 118088,
+        "owner": "template-2",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 118088
+      },
+      {
+        "id": "product:grid:far-reach",
+        "category": "product",
+        "bytes": 14747043,
+        "owner": "grid",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 14747043
+      },
+      {
+        "id": "product:grid:ink-cel-valley",
+        "category": "product",
+        "bytes": 7524416,
+        "owner": "grid",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 7524416
+      },
+      {
+        "id": "product:grid:nalati-grasslands",
+        "category": "product",
+        "bytes": 1468532,
+        "owner": "grid",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 1468532
+      },
+      {
+        "id": "product:grid:pastel-plain",
+        "category": "product",
+        "bytes": 7510092,
+        "owner": "grid",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 7510092
+      },
+      {
+        "id": "product:grid:pine-hollow",
+        "category": "product",
+        "bytes": 22239932,
+        "owner": "grid",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 22239932
+      },
+      {
+        "id": "product:grid:sunscar-dunes",
+        "category": "product",
+        "bytes": 6237905,
+        "owner": "grid",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 6237905
+      },
+      {
+        "id": "render:blender-template-1:far",
+        "category": "far",
+        "bytes": 1600000,
+        "owner": "blender-template-1",
+        "distance": 432.0283836640072,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 1600000
+      },
+      {
+        "id": "render:driftwood-isle:far",
+        "category": "far",
+        "bytes": 1600000,
+        "owner": "driftwood-isle",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 1600000
+      },
+      {
+        "id": "render:driftwood-isle:l0/2/3",
+        "category": "l0",
+        "bytes": 2584,
+        "owner": "driftwood-isle",
+        "distance": 62.39965666800614,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 2584
+      },
+      {
+        "id": "render:driftwood-isle:l0/2/4",
+        "category": "l0",
+        "bytes": 981004,
+        "owner": "driftwood-isle",
+        "distance": 62.39015207858293,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 981004
+      },
+      {
+        "id": "render:driftwood-isle:l0/2/5",
+        "category": "l0",
+        "bytes": 6079652,
+        "owner": "driftwood-isle",
+        "distance": 87.54332220534472,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 6079652
+      },
+      {
+        "id": "render:driftwood-isle:l0/2/6",
+        "category": "l0",
+        "bytes": 26220,
+        "owner": "driftwood-isle",
+        "distance": 138.73157309427643,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 26220
+      },
+      {
+        "id": "render:driftwood-isle:l0/3/1",
+        "category": "l0",
+        "bytes": 865044,
+        "owner": "driftwood-isle",
+        "distance": 126.08907111628992,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 865044
+      },
+      {
+        "id": "render:driftwood-isle:l0/3/2",
+        "category": "l0",
+        "bytes": 1799100,
+        "owner": "driftwood-isle",
+        "distance": 63.589071116289915,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 1799100
+      },
+      {
+        "id": "render:driftwood-isle:l0/3/3",
+        "category": "l0",
+        "bytes": 733496,
+        "owner": "driftwood-isle",
+        "distance": 1.0890711162899152,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 733496
+      },
+      {
+        "id": "render:driftwood-isle:l0/4/1",
+        "category": "l0",
+        "bytes": 213304,
+        "owner": "driftwood-isle",
+        "distance": 126.08911896565324,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 213304
+      },
+      {
+        "id": "render:driftwood-isle:l0/4/2",
+        "category": "l0",
+        "bytes": 475432,
+        "owner": "driftwood-isle",
+        "distance": 63.58916599546196,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 475432
+      },
+      {
+        "id": "render:driftwood-isle:l0/4/3",
+        "category": "l0",
+        "bytes": 619476,
+        "owner": "driftwood-isle",
+        "distance": 1.0945969405112606,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 619476
+      },
+      {
+        "id": "render:driftwood-isle:l0/4/4",
+        "category": "l0",
+        "bytes": 489864,
+        "owner": "driftwood-isle",
+        "distance": 0.10984792141706695,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 489864
+      },
+      {
+        "id": "render:driftwood-isle:l0/4/5",
+        "category": "l0",
+        "bytes": 4972,
+        "owner": "driftwood-isle",
+        "distance": 61.4110271280813,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 4972
+      },
+      {
+        "id": "render:driftwood-isle:l0/5/3",
+        "category": "l0",
+        "bytes": 563696,
+        "owner": "driftwood-isle",
+        "distance": 62.61931916461013,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 563696
+      },
+      {
+        "id": "render:driftwood-isle:l0/5/4",
+        "category": "l0",
+        "bytes": 420200,
+        "owner": "driftwood-isle",
+        "distance": 62.609847921417064,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 420200
+      },
+      {
+        "id": "render:driftwood-isle:l0/5/5",
+        "category": "l0",
+        "bytes": 2680844,
+        "owner": "driftwood-isle",
+        "distance": 87.70002989225871,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 2680844
+      },
+      {
+        "id": "render:driftwood-isle:l0/6/3",
+        "category": "l0",
+        "bytes": 3973128,
+        "owner": "driftwood-isle",
+        "distance": 125.11458796965462,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 3973128
+      },
+      {
+        "id": "render:driftwood-isle:l0/6/4",
+        "category": "l0",
+        "bytes": 7325910,
+        "owner": "driftwood-isle",
+        "distance": 125.10984792141707,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 7325910
+      },
+      {
+        "id": "render:far-reach:far",
+        "category": "far",
+        "bytes": 1600000,
+        "owner": "far-reach",
+        "distance": 306.0890711162899,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 1600000
+      },
+      {
+        "id": "render:ink-cel-valley-1:far",
+        "category": "far",
+        "bytes": 1600000,
+        "owner": "ink-cel-valley-1",
+        "distance": 432.18345497654514,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 1600000
+      },
+      {
+        "id": "render:nalati-grasslands:far",
+        "category": "far",
+        "bytes": 1600000,
+        "owner": "nalati-grasslands",
+        "distance": 305.1098479214171,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 1600000
+      },
+      {
+        "id": "render:pastel-plain-1:far",
+        "category": "far",
+        "bytes": 1600000,
+        "owner": "pastel-plain-1",
+        "distance": 430.4879295978702,
+        "needed": true,
+        "refs": 1,
+        "holds": 1,
+        "accountedBytes": 1600000
+      },
+      {
+        "id": "render:pastel-plain-1:l1/3/0",
+        "category": "l1",
+        "bytes": 89236,
+        "owner": "pastel-plain-1",
+        "distance": 430.4879295978702,
+        "needed": false,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 89236
+      },
+      {
+        "id": "render:pine-hollow:far",
+        "category": "far",
+        "bytes": 1600000,
+        "owner": "pine-hollow",
+        "distance": 303.9109288837101,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 1600000
+      },
+      {
+        "id": "render:sunscar-dunes:far",
+        "category": "far",
+        "bytes": 1600000,
+        "owner": "sunscar-dunes",
+        "distance": 304.8901520785829,
+        "needed": true,
+        "refs": 1,
+        "holds": 4,
+        "accountedBytes": 1600000
+      },
+      {
+        "id": "render:sunscar-dunes:l1/3/0",
+        "category": "l1",
+        "bytes": 32764,
+        "owner": "sunscar-dunes",
+        "distance": 329.93402172172273,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 32764
+      },
+      {
+        "id": "render:sunscar-dunes:l1/3/1",
+        "category": "l1",
+        "bytes": 32764,
+        "owner": "sunscar-dunes",
+        "distance": 304.8920971596308,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 32764
+      },
+      {
+        "id": "render:sunscar-dunes:l1/3/2",
+        "category": "l1",
+        "bytes": 32764,
+        "owner": "sunscar-dunes",
+        "distance": 304.8901520785829,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 32764
+      },
+      {
+        "id": "render:sunscar-dunes:l1/3/3",
+        "category": "l1",
+        "bytes": 32764,
+        "owner": "sunscar-dunes",
+        "distance": 329.1077682634144,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 32764
+      },
+      {
+        "id": "render:template-2:far",
+        "category": "far",
+        "bytes": 1600000,
+        "owner": "template-2",
+        "distance": 430.6435556159987,
+        "needed": true,
+        "refs": 1,
+        "holds": 1,
+        "accountedBytes": 1600000
+      },
+      {
+        "id": "render:template-2:l1/0/0",
+        "category": "l1",
+        "bytes": 187132,
+        "owner": "template-2",
+        "distance": 430.6435556159987,
+        "needed": false,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 187132
+      },
+      {
+        "id": "sim-sky:driftwood-isle",
+        "category": "page",
+        "bytes": 2752512,
+        "owner": "driftwood-isle",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 0,
+        "coveredBy": "sim:driftwood-isle"
+      },
+      {
+        "id": "sim:driftwood-isle",
+        "category": "sim",
+        "bytes": 304677561,
+        "owner": "driftwood-isle",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 1,
+        "accountedBytes": 304677561
+      },
+      {
+        "id": "sim:platform.highway",
+        "category": "sim",
+        "bytes": 5118504,
+        "owner": "platform.highway",
+        "distance": 0,
+        "needed": true,
+        "refs": 1,
+        "holds": 0,
+        "accountedBytes": 5118504
+      }
+    ],
+    "home": {
+      "instance": "driftwood-isle",
+      "bytes": 304677561
+    }
+  },
+  "live": {
+    "live": {
+      "current": "driftwood-isle",
+      "worldFeet": {
+        "x": -0.10984792141706695,
+        "y": 5.4737435760524935,
+        "z": 1.0890711162899152
+      },
+      "crossings": 1,
+      "transitions": [
+        {
+          "from": null,
+          "to": "driftwood-isle"
+        }
+      ],
+      "residents": [
+        "driftwood-isle"
+      ],
+      "pending": [],
+      "issues": {},
+      "gameplayReady": true,
+      "continuations": {
+        "entries": 0,
+        "storedChars": 0,
+        "capacityChars": 0,
+        "claimedBytes": 0
+      }
+    },
+    "crossing": {
+      "current": "driftwood-isle",
+      "target": "driftwood-isle",
+      "phase": "settled",
+      "issue": null
+    },
+    "stowed": false,
+    "renderOrigin": {
+      "x": 0,
+      "z": 0
+    },
+    "runtimeTiming": {
+      "current": null,
+      "completed": [
+        {
+          "instance": "pine-hollow",
+          "hook": "beforeWorld",
+          "start": 42101,
+          "end": 42101,
+          "outcome": "done"
+        },
+        {
+          "instance": "pine-hollow",
+          "hook": "constructor",
+          "start": 42152,
+          "end": 42152,
+          "outcome": "done"
+        },
+        {
+          "instance": "pine-hollow",
+          "hook": "world",
+          "start": 42160.00000000001,
+          "end": 43798,
+          "outcome": "done"
+        },
+        {
+          "instance": "pine-hollow",
+          "hook": "afterWorld",
+          "start": 43824,
+          "end": 43824,
+          "outcome": "done"
+        },
+        {
+          "instance": "pine-hollow",
+          "hook": "kit",
+          "start": 43824,
+          "end": 43912,
+          "outcome": "done"
+        },
+        {
+          "instance": "pine-hollow",
+          "hook": "afterKit",
+          "start": 43920,
+          "end": 44487,
+          "outcome": "done"
+        },
+        {
+          "instance": "pine-hollow",
+          "hook": "play",
+          "start": 44508,
+          "end": 45813,
+          "outcome": "done"
+        },
+        {
+          "instance": "pine-hollow",
+          "hook": "afterPlay",
+          "start": 45849.00000000001,
+          "end": 54375,
+          "outcome": "done"
+        },
+        {
+          "instance": "driftwood-isle",
+          "hook": "beforeWorld",
+          "start": 118120,
+          "end": 118120,
+          "outcome": "done"
+        },
+        {
+          "instance": "driftwood-isle",
+          "hook": "constructor",
+          "start": 118139,
+          "end": 118140,
+          "outcome": "done"
+        },
+        {
+          "instance": "driftwood-isle",
+          "hook": "world",
+          "start": 118140,
+          "end": 119994,
+          "outcome": "done"
+        },
+        {
+          "instance": "driftwood-isle",
+          "hook": "afterWorld",
+          "start": 120008,
+          "end": 120008,
+          "outcome": "done"
+        },
+        {
+          "instance": "driftwood-isle",
+          "hook": "kit",
+          "start": 120008,
+          "end": 120009,
+          "outcome": "done"
+        },
+        {
+          "instance": "driftwood-isle",
+          "hook": "afterKit",
+          "start": 120009,
+          "end": 120228.00000000001,
+          "outcome": "done"
+        },
+        {
+          "instance": "driftwood-isle",
+          "hook": "play",
+          "start": 120228.00000000001,
+          "end": 120358,
+          "outcome": "done"
+        },
+        {
+          "instance": "driftwood-isle",
+          "hook": "afterPlay",
+          "start": 120361,
+          "end": 125607,
+          "outcome": "done"
+        },
+        {
+          "instance": "driftwood-isle",
+          "hook": "activate",
+          "start": 126638,
+          "end": 126641,
+          "outcome": "done"
+        }
+      ]
+    },
+    "crossingTiming": [
+      {
+        "from": null,
+        "to": "driftwood-isle",
+        "requestedAt": 125670,
+        "readyAt": 125674,
+        "start": 125701.00000000001,
+        "checkpointEnd": 125701.00000000001,
+        "commitEnd": 125702,
+        "end": 125702
+      }
+    ],
+    "hoverCap": 14,
+    "homeActive": null
+  }
+}
