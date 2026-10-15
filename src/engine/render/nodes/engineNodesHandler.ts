@@ -44,7 +44,7 @@
  */
 import * as THREE from 'three';
 import { WebGLNodesHandler } from 'three/examples/jsm/tsl/WebGLNodesHandler.js';
-import { ConvertNode, MeshBasicNodeMaterial, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
+import { ConvertNode, MeshBasicNodeMaterial, NodeFrame, NodeMaterial, PMREMNode, TextureNode, type Node, type NodeBuilder } from 'three/webgpu';
 import { Fn, and, cameraPosition, context, mix, modelWorldMatrix, nodeObject, normalLocal, positionWorld, reference, step, uniform, vec2, vec3, vec4, workingToColorSpace } from 'three/tsl';
 import { fogPatches, materialNodeFogOf } from '../fogPatches';
 import { planeBiasShadowFilterOn, tentShadowFilterOn } from '../../world/shadowFilter';
@@ -63,6 +63,7 @@ import { installNodeCoarseMask, type NodeCoarseMask } from '../nodeCoarseMask';
 import { installNodeLayerFrame, layerFrameOf, type NodeLayerFrameInstaller } from '../nodeLayerFrame';
 import { bindGraphAttributeDefaults, copyGraphAttributeDefaults, prepareGraphAttributeDefaults } from './graphAttributes';
 import { buildWithInstanceAttributes, instanceAttributeShader, nodeInstanceKey } from './nodeInstancing';
+import { TextureUpdates } from './textureUpdates';
 
 /** Depth displacement reads the same authored local normal as its surface. */
 class GraphShadowDepthMaterial extends MeshBasicNodeMaterial {
@@ -256,6 +257,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   constructor() {
     super();
+    const textureFrame: unknown = Reflect.get(this, 'nodeFrame');
+    if (!(textureFrame instanceof NodeFrame)) throw new Error('Missing node frame');
+    const textures = new TextureUpdates(textureFrame);
+    Reflect.set(this, 'updateNodes', (nodes: unknown): void => { textures.update(nodes); });
     installNodeCoarseMask(nodeCoarseMask);
     installNodeLayerFrame(nodeLayerFrame);
     const self = internals(this);
