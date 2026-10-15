@@ -45,3 +45,5 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
   obsolete records leave and 9 exact Explorer recipes join. No new world
   request or retained template; Explorer borrows/releases the table. The
   cheap registered producer regenerates it from source, not a Git blob.
+
+| Pine Hollow | Cabin prop geometry in the existing props library (`d5fea0cf…`) | — | — | 1,309,752 B library, plus material-only hash-named glTFs | G434 | Cheap regenerated build outputs, no binary Git blobs. Replaces live cabin scan merging; original materials, doors and floors retained. Approved end-of-plan memory item: +1.47 MB GPU / +1.31 MB RAM. |

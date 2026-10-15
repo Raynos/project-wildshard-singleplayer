@@ -8,13 +8,13 @@
  * draws it (`ModelDef.weld`, src/engine/models/weld.ts): the cabins' parts merged per building and their never-hidden
  * materials welded across the three, the hamlet's five welded into one set, the detail and far sets dropped with distance
  * (../world/cabins.ts). The Explorer's specimen is the building assembled alone and merged as the world merges a cabin
- * (`buildingSpecimen`). The kit's shared shapes (`logGeo`, `boxUV`) live in ../world/logKit.ts; `finishParts` and
- * `mergeParts` stay here for the landmarks' timber and the props.
+ * (`buildingSpecimen`). The kit's shared shapes (`logGeo`, `boxUV`) live in ../world/logKit.ts;
+ * `finishParts` stays here for the landmarks' timber.
  */
 import * as THREE from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
-import { UnitParts, mergeOrNull, nearProxy, type WeldBuild } from '@wildshard/engine/models/weld';
+import { UnitParts, nearProxy, type WeldBuild } from '@wildshard/engine/models/weld';
 import type { Cabins, Mats, MatKey } from '../world/homestead';
 import { CABIN_ROWS, LogBuilding, NO_OWNER } from '../world/cabinBake';
 import { PROP_KINDS } from '../world/logKit';
@@ -40,25 +40,6 @@ export function finishParts(parts: Map<MatKey, THREE.BufferGeometry[]>, mats: Ma
     else if (part.until === FAR) farList.push(mesh);
   }
   for (const { mesh, until } of drawn.proxies) if (until === FAR) farList.push(mesh);
-}
-
-/**
- * Collapse the parts that share a material into one part (their matrices baked into the geometry) — the same pixels, one
- * draw instead of one per glTF mesh. Parts whose attributes do not line up for a merge stay as they are.
- */
-export function mergeParts(parts: PropPart[]): PropPart[] {
-  const byMat = new Map<THREE.Material, PropPart[]>();
-  for (const p of parts) { const l = byMat.get(p.material); if (l === undefined) byMat.set(p.material, [p]); else l.push(p); }
-  const out: PropPart[] = [];
-  for (const [material, list] of byMat) {
-    const first = list[0];
-    if (list.length === 1 && first !== undefined) { out.push(first); continue; }
-    const merged = mergeOrNull(list.map((p) => p.geometry.clone().applyMatrix4(p.matrix)));
-    if (merged === null) { out.push(...list); continue; }
-    merged.computeBoundingSphere();
-    out.push({ geometry: merged, material, matrix: new THREE.Matrix4() });
-  }
-  return out;
 }
 
 // ───────────────────────────── the homestead, as its models read it ─────────────────────────────

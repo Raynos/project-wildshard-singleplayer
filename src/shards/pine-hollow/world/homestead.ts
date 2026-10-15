@@ -18,7 +18,7 @@ import { END_GRAIN_PAINT, GLOW_PAINT } from '../data/cabinPaint';
 import { CABIN_DOOR_LOOK, CABIN_LIFE, cabinMossLook } from '../data/cabinLook';
 import { HEARTH_LOOKS } from '../data/hearthLook';
 import { pineLook, pineMappedLook, setPineLookParam, setPineLookTexture } from '../runtime/looks/graphLooks';
-import { mergeParts, type PropPart } from '../models/logCabin';
+import type { PropPart } from '../models/logCabin';
 import { PROP_KINDS, type PropKind } from './logKit';
 import { pineModels } from './context';
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
@@ -196,11 +196,15 @@ export class Cabins extends BuildingLife implements BuildingOwner {
    */
   async build(): Promise<{ group: THREE.Group; colliders: Collider[]; interactables: Interactable[] }> {
     // the seven PBR sets, the six models and the bake in one round of fetches
-    const [mats, [firePitGltf, lanternGltf, crate, barrel, bucket, hatchet], geometries] = await Promise.all([cabinMats(this.sky), Promise.all([
-      loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadGLTF('wooden_crate_02'), loadGLTF('wine_barrel_01'), loadGLTF('wooden_bucket_01'), loadGLTF('hatchet'),
+    const [mats, [firePitGltf, lanternGltf, ...scans], geometries] = await Promise.all([cabinMats(this.sky), Promise.all([
+      loadGLTF('stone_fire_pit'), loadLod('Lantern_01'), loadLodGlb('/assets/models/wooden_crate_02/wooden_crate_02.gltf', authored.propMaterials), loadLodGlb('/assets/models/wine_barrel_01/wine_barrel_01.gltf', authored.propMaterials), loadLodGlb('/assets/models/wooden_bucket_01/wooden_bucket_01.gltf', authored.propMaterials), loadLodGlb('/assets/models/hatchet/hatchet.gltf', authored.propMaterials),
     ]), loadCabinBake(pineModels(this.sky))]);
-    // each model's parts share one material: merged into one part, a cabin's crates / barrels / buckets are one draw each (9 → 4)
-    const props = { crate: mergeParts(prepModel(crate.scene, this.sky)), barrel: mergeParts(prepModel(barrel.scene, this.sky)), bucket: mergeParts(prepModel(bucket.scene, this.sky)), hatchet: mergeParts(prepModel(hatchet.scene, this.sky)) };
+    const props: Record<PropKind, PropPart[]> = { crate: [], barrel: [], bucket: [], hatchet: [] };
+    if (geometries !== null) for (const [index, kind] of PROP_KINDS.entries()) {
+      const scan = scans[index], row = authored.cabinProps[kind];
+      if (scan === undefined) throw new Error('Cabin material recipe missing');
+      props[kind] = prepModel(scan.scene, this.sky).map(part => ({ geometry: geometries.geometry(row.name), material: part.material, matrix: new THREE.Matrix4().fromArray(row.matrix) }));
+    }
     this._lamp(mats.glass, mats.glass.emissiveIntensity);
     // the phone's shared cabin lights (PH-L3): TWO pooled lights, not one per anchor — every point light is per-fragment
     // cost on every lit surface, grass included; the nearest cabin's fire pit and porch lantern (else its room / hearth)

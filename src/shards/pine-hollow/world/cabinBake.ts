@@ -32,12 +32,12 @@ export class CabinGeometries {
     this.views = views; this.seeds = new Map(v.parse(v.array(Seed), seeds).map(seed => [seed.ordinal, seed.values]));
   }
   /** Preserve geometry ordinals, typed channels and the original particle seed blocks. */
-  geometry(ordinal: number): THREE.BufferGeometry {
-    const seeds = this.seeds.get(ordinal);
+  geometry(ordinal: number | string): THREE.BufferGeometry {
+    const seeds = typeof ordinal === 'number' ? this.seeds.get(ordinal) : undefined;
     if (seeds !== undefined) return new THREE.BufferGeometry().setAttribute('seed', new THREE.BufferAttribute(Float32Array.from(seeds), 4));
-    const view = this.views.get(`cabin-geometry-${String(ordinal)}`);
+    const view = this.views.get(typeof ordinal === 'number' ? `cabin-geometry-${String(ordinal)}` : ordinal);
     if (view === undefined) throw new Error(`[cabins] missing original geometry ${String(ordinal)}`);
-    return mossHint(view.geometry.clone());
+    return typeof ordinal === 'number' ? mossHint(view.geometry.clone()) : view.geometry;
   }
 }
 
