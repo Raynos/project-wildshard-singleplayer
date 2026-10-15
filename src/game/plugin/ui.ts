@@ -1459,7 +1459,7 @@ export function questNpcSpecimen(source: Pick<Shardfile, 'questNpcs'>, id: strin
 /** The admitted figure supplies its model identity; the borrowed provider supplies the preparation form. */
 export function questNpcSpecimen(source: Pick<Shardfile, 'questNpcs'>, id: string, modelOrPorts: QuestNpcModelRow | QuestNpcModelSource, borrowed?: QuestNpcModelSource): Group {
   const binding = source.questNpcs?.find(row => row.npc.id === id);
-  if (binding === undefined || 'kind' in binding) throw new Error(`Undeclared pivot quest NPC ${id}`);
+  if (binding === undefined || 'kind' in binding) throw new Error(`Undeclared quest NPC ${id}`);
   let model: QuestNpcModelRow, ports: QuestNpcModelSource;
   if ('read' in modelOrPorts) { ports = modelOrPorts; model = { id: binding.npc.figure.model, kind: ports.kind }; }
   else { if (borrowed === undefined) throw new Error('Missing quest model provider'); model = modelOrPorts; ports = borrowed; }
@@ -1533,7 +1533,7 @@ export async function prepareBorrowedNpcSpecimen(row:BorrowedNpcSpecimen,owners:
 /** Build the admitted figure through the page copier; no world or quest is installed. */
 export function borrowedNpcSpecimen(source:Pick<Shardfile,'questNpcs'>,row:BorrowedNpcSpecimen,owners:ReadonlyMap<string,unknown>):Group {
   const binding=source.questNpcs?.find(entry=>entry.npc.id===row.npc);
-  if(binding===undefined||'kind'in binding)throw new Error(`Undeclared pivot quest NPC ${row.npc}`);
+  if(binding===undefined||'kind'in binding)throw new Error(`Undeclared quest NPC ${row.npc}`);
   const model={id:binding.npc.figure.model,kind:row.figure.kind,...(row.figure.materialId===undefined?{}:{material:row.figure.materialId})};
   return questNpcSpecimen(source,row.npc,model,borrowedNpcModel(model,row.figure,owners));
 }
