@@ -1,6 +1,6 @@
 // SHARD-PLATFORM W2 C2 (look-family rows): the Blender cove's numbers as data (world/BlenderIsland.ts builds it; its
-// terrain, props and clip GLSL stay trusted runtime in runtime/looks/islandLook.ts, G306): the tiers' files, tile counts
-// and reaches, and the tier-free LOD, simplification, splat, file and placement-name rows.
+// terrain and props wear the graph toon looks of data/islandLook.ts): the tiers' files, tile counts and reaches, and the
+// tier-free LOD, simplification, splat, file and placement-name rows.
 
 /**
  * The tiers' numbers. Tiles per side: the casters (palms, rocks, logs; near + far copies) and the ground cover.
@@ -31,6 +31,5 @@ export const ISLAND_LOOK = {
   names: { casterKinds: ['palm', 'rock', 'prop'], skip: '^rockb?\\d+$', apart: '^smallrock\\d+$', big: '^(bush|flowerbush|hibiscus|fern)\\d+$' },
   protoPrefix: 'proto_',
   meshPrefix: 'island-',
-  coverKeys: { cover: 'island-cover', big: 'island-cover-big' },
   palmCell: 8,
 };

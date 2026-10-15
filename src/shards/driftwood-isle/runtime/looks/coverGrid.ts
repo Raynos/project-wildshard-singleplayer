@@ -1,8 +1,5 @@
 import * as THREE from 'three';
 import { CHUNK_HALF, CHUNK_SIZE } from '@wildshard/engine/core/config';
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { editShader, spliceEdits } from '@wildshard/game/plugin/shaderFamily';
-import type { COVER_GLSL, COVER_TINT } from './coverGlsl';
 
 /**
  * The ground wears the cover (SHARD-PLATFORM M3, look-family rows): a shard whose ground cover is drawn only round the
@@ -10,15 +7,14 @@ import type { COVER_GLSL, COVER_TINT } from './coverGlsl';
  * the cover makes the ground look like: per cell the share of the ground the plants cover seen from straight above
  * (`top`), how much they hide seen from the side (`side`: their upright blades and fronds) and their mean colour (`rgb`).
  * The author fills it from its density rules and splats the cover it placed. The page borrows that validated file. Terrains sample it per vertex (`aCover`, `flat`, like their colour) through `tintTerrain`, and
- * their shader mixes the facet towards the cover colour by how much of the ground the plants hide *from where you look*:
- * a little from above, nearly all of it at the grazing angle far ground is seen at. Nothing here knows a shard's look:
- * the GLSL (`COVER_GLSL`, runtime/looks/coverGlsl.ts) and the patch's id are the shard's.
+ * their graph mixes the facet towards the cover colour by how much of the ground the plants hide *from where you look*:
+ * a little from above, nearly all of it at the grazing angle far ground is seen at (data/groundLook.ts `coverMix`: the
+ * faceted ground's and the baked cove's terrain graphs). Each terrain declares the attributes zeroed when it builds
+ * (`coverAttributes`) and `tintTerrain` fills them in place.
  *
  *   const grid = CoverGrid.create(admitted, bounds);  // full grid, no second allocation
- *   tintTerrain(terrain.mesh, row);           // after the fill: aCover per vertex + the shader
- *
- * A graph terrain (the faceted ground's toon graph, data/groundLook.ts) mixes the cover in its own graph: it declares the
- * attributes zeroed when it builds (`coverAttributes`) and `tintTerrain` fills them in place without patching it.
+ *   coverAttributes(geometry, count);         // as the terrain builds: its graph reads them from the first draw
+ *   tintTerrain(terrain.mesh);                // after the fill: aCover per vertex
  */
 
 /** What the grid holds at a point: mean colour (linear), and top / side packed as 1 − e^−τ. */
@@ -76,30 +72,18 @@ export class CoverGrid {
 /** ×0.88 … ×1.12 per point, a hash of where it is (the facets of covered ground keep their light / dark mosaic). */
 export const coverJitter = (x: number, z: number): number => { const h = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return 0.88 + (h - Math.floor(h)) * 0.24; };
 
-/** The terrain tint as a row: its GLSL (`@{coverSeen}` splices), the patch id, and the suffix its program key takes. */
-export type CoverTintRow = typeof COVER_TINT & { readonly glsl: typeof COVER_GLSL };
-
-const patched = new WeakSet<THREE.Material>();
-function patchTerrainMaterial(mat: THREE.Material, row: CoverTintRow): void {
-  if (patched.has(mat)) return;
-  patched.add(mat);
-  const edits = spliceEdits(row.glsl.edits, { coverSeen: row.glsl.coverSeen }), suffix = row.keySuffix;
-  patchShader(mat, row.patchId, PATCH_ORDER.decorate, (sh) => { editShader(sh, edits); }, { key: (k) => `${k}${suffix}` });
-  mat.needsUpdate = true;
-}
-
 /**
- * Give a low-poly terrain mesh the cover's look: an `aCover` attribute (the grid sampled at each vertex's world position,
- * read `flat` like the facet colour: a facet takes its provoking vertex's) and the shader that mixes it in by view angle.
- * `matrixWorld`: the mesh's (meshopt tiles keep their dequantisation there). Chains the material's own patch.
+ * Give a low-poly terrain mesh the cover's look: fill its `aCover` / `aCoverSide` attributes (declared by
+ * `coverAttributes` as it built; the grid sampled at each vertex's world position, read `flat` like the facet colour: a
+ * facet takes its provoking vertex's). `matrixWorld`: the mesh's (meshopt tiles keep their dequantisation there).
  */
-export function tintTerrain(mesh: THREE.Mesh, row: CoverTintRow, matrixWorld = mesh.matrixWorld): void {
+export function tintTerrain(mesh: THREE.Mesh, matrixWorld = mesh.matrixWorld): void {
   const grid = CoverGrid.get();
   if (!grid) return;
   const geo = mesh.geometry, pos = geo.getAttribute('position');
-  // a graph ground declared its own (zeroed, `coverAttributes`) and reads them itself: fill those in place, no patch
   const own = ownCover(geo, pos.count);
-  const cover = own?.cover ?? new Uint8Array(pos.count * 4), side = own?.side ?? new Uint8Array(pos.count);
+  if (own === null) throw new Error('tintTerrain: the terrain declares no cover attributes (coverAttributes as it builds)');
+  const { cover, side } = own;
   const p = new THREE.Vector3(), s = coverSample(), byte = (v: number) => Math.round(Math.min(1, Math.max(0, v)) * 255);
   for (let i = 0; i < pos.count; i++) {
     p.fromBufferAttribute(pos, i).applyMatrix4(matrixWorld);
@@ -109,11 +93,7 @@ export function tintTerrain(mesh: THREE.Mesh, row: CoverTintRow, matrixWorld = m
     cover[i * 4] = byte(s.r * j); cover[i * 4 + 1] = byte(s.g * j); cover[i * 4 + 2] = byte(s.b * j); cover[i * 4 + 3] = byte(s.top);
     side[i] = byte(s.side);
   }
-  if (own !== null) { own.coverAttr.needsUpdate = true; own.sideAttr.needsUpdate = true; return; }
-  geo.setAttribute('aCover', new THREE.BufferAttribute(cover, 4, true));
-  geo.setAttribute('aCoverSide', new THREE.BufferAttribute(side, 1, true));
-  const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-  for (const mat of mats) patchTerrainMaterial(mat, row);
+  own.coverAttr.needsUpdate = true; own.sideAttr.needsUpdate = true;
 }
 
 /** A graph terrain's cover attributes, zeroed (no tint until `tintTerrain` fills them in place): `aCover` (rgb, top) and

@@ -20,6 +20,7 @@ import { POOL_GRAPHS } from './data/poolLook';
 import { OCEAN_GRAPHS } from './data/oceanLook';
 import { GROUND_GRAPHS } from './data/groundLook';
 import { COVER_GRAPHS } from './data/coverLook';
+import { ISLAND_GRAPHS } from './data/islandLook';
 import { KIT_GRAPHS } from './data/kitLook';
 import { SKY_GRAPHS } from './data/skyLook';
 import { FP_ARMS_GRAPHS } from './data/fpArmsLook';
@@ -59,11 +60,11 @@ export default parseShardfile({
   budgets: { ...base.budgets, library: fixed.libraryCost, sim: { resident: MOTION_MEMORY + simulationFiles.reduce((sum, file) => sum + file.decoded + file.gpu, 0),
     compressed: simulationFiles.reduce((sum, file) => sum + file.compressed, 0) } },
   accent: 'marigold',
-  // the material graphs the runtime draws its own meshes in (runtime/hybrid.ts): the cove's cascade, the castaway's smoke, the shrine's fireflies, the lagoon's reef, the cove's pools, the gulls, the creatures;
+  // the material graphs the runtime draws its own meshes in (runtime/hybrid.ts): the cove's cascade, the castaway's smoke, the shrine's fireflies, the lagoon's reef, the cove's pools, the gulls, the creatures, the baked cove's terrain and props;
   // the faceted sky's dome and cumulus (compiled by the sky backdrop before the world stage, runtime/looks/facetedDayBackdrop.ts);
   // the faceted ground and its slab, and the low-poly kit's variants (compiled by the look's prepareWorld before the ground builds, look/terrainPainter.ts)
   // the castaway arms, their swords and their swimming (compiled by the kit hook, runtime/index.ts)
-  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...CASCADE_GRAPHS, ...SMOKE_GRAPHS, ...FIREFLY_GRAPHS, ...REEF_GRAPHS, ...POOL_GRAPHS, ...OCEAN_GRAPHS, ...SKY_GRAPHS, ...GROUND_GRAPHS, ...COVER_GRAPHS, ...KIT_GRAPHS, ...FP_ARMS_GRAPHS, ...GULL_GRAPHS, ...CREATURE_GRAPHS }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
+  look: { ...base.look, materials: { ...base.look.materials, ...Object.fromEntries(Object.entries({ ...CASCADE_GRAPHS, ...SMOKE_GRAPHS, ...FIREFLY_GRAPHS, ...REEF_GRAPHS, ...POOL_GRAPHS, ...OCEAN_GRAPHS, ...SKY_GRAPHS, ...GROUND_GRAPHS, ...COVER_GRAPHS, ...ISLAND_GRAPHS, ...KIT_GRAPHS, ...FP_ARMS_GRAPHS, ...GULL_GRAPHS, ...CREATURE_GRAPHS }).map(([id, graph]) => [id, { family: 'graph' as const, graph }])) } },
   runtime: { entry: 'runtime/hybrid.ts', cost: DRIFTWOOD_RUNTIME_COST, binds: ['quests', 'ledger', 'items', 'spawns', 'modes', 'props', 'terrain', 'movers'], spawns: DRIFTWOOD_SPAWNS },
   quests: DRIFTWOOD_QUESTS, questHost: QUEST_HOST, questNpcs: QUEST_NPCS, ledger: DRIFTWOOD_LEDGER, items: DRIFTWOOD_SWORDS,
   edge: { north: row(DRIFTWOOD_EDGE_HEIGHTS.north), east: row(DRIFTWOOD_EDGE_HEIGHTS.east), south: row(DRIFTWOOD_EDGE_HEIGHTS.south), west: row(DRIFTWOOD_EDGE_HEIGHTS.west) },

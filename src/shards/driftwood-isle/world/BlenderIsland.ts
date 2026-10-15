@@ -47,10 +47,11 @@ import type { PalmSpec } from './Palms';
 import { WORLD_DROP } from './sea';
 import { smallRock } from '../models/smallRock';
 import { COVE_MODELS, coveProtos, type CoveFamily } from '../models/cove';
-import { ISLAND_PROPS, ISLAND_TERRAIN } from '../runtime/looks/islandLook';
+import { ISLAND_LOOKS } from '../data/islandLook';
 import { ISLAND_LOOK, ISLAND_TIERS } from '../data/islandRows';
 import { CoverGrid, tintTerrain, coverSample, coverJitter } from './coverTint';
-import { bakedPropsMaterial, bakedTerrainMaterial, clipGridTerrain, droppedPlacements, protosFromMeshes, simplifiedProto, simplifierReady, sunBounceLevel, tileRect, usedPlacements, type IslandCoverFade, type IslandProto } from '../runtime/looks/bakedIsland';
+import { clipGridTerrain, droppedPlacements, islandLooks, protosFromMeshes, simplifiedProto, simplifierReady, sunBounceLevel, tileRect, usedPlacements, type IslandLooks, type IslandProto } from '../runtime/looks/bakedIsland';
+import { coverAttributes } from '../runtime/looks/coverGrid';
 import { TiledInstances, type TiledInstances as TiledInstanceSet } from '../runtime/looks/instancedTiles';
 import { slicer } from '@wildshard/engine/boot/plan';
 import { ktx2Texture } from '@wildshard/engine/core/ktx2';
@@ -128,7 +129,7 @@ export class BlenderIsland {
   /** the area the island covers (GroundCover leaves it to the island's own dressing, E156) */
   static readonly area = area;
   group = new THREE.Group();
-  private terrainMat!: THREE.MeshStandardMaterial;
+  private looks!: IslandLooks;
   private meta!: IslandMeta;
   /** G144: the instanced placements, repacked in `late` (null until the build has made them) */
   instances: TiledInstanceSet | null = null;
@@ -166,11 +167,13 @@ export class BlenderIsland {
     this.meta = meta;
     for (const t of [ao, bounce]) { t.flipY = false; t.colorSpace = THREE.NoColorSpace; t.channel = 0; t.anisotropy = 4; t.needsUpdate = true; }
 
-    // ── materials: the shard's toon lighting (stylize.ts), fog, CSM — plus the bake (data/islandLook.ts) ──
-    const terrainMat = this.terrainMat = bakedTerrainMaterial(ISLAND_TERRAIN, ao, bounce, ctx.sky);
-    const makePropsMat = (cover: IslandCoverFade | null, tinted = true) => bakedPropsMaterial(ISLAND_PROPS, ctx.sky, cover, tinted);
-    const propsMat = makePropsMat(null), coverMat = makePropsMat({ ...TIER_LOOK.cover, key: ISLAND_LOOK.coverKeys.cover });
-    const bigMat = makePropsMat({ ...TIER_LOOK.big, key: ISLAND_LOOK.coverKeys.big });
+    // ── materials: the graph toon looks the runtime lent (data/islandLook.ts), the bake's maps lent to the terrain's and the
+    //    tier's cover reach set on the two cover sets' ──
+    const looks = this.looks = islandLooks();
+    looks.texture(ISLAND_LOOKS.terrain, 'ao', ao); looks.texture(ISLAND_LOOKS.terrain, 'bounceMap', bounce);
+    for (const [id, c] of [[ISLAND_LOOKS.cover, TIER_LOOK.cover], [ISLAND_LOOKS.coverBig, TIER_LOOK.big]] as const) looks.param(id, 'fade', [c.near + c.grow, c.far, c.grow]);
+    const terrainMat = looks.material(ISLAND_LOOKS.terrain), propsMat = looks.material(ISLAND_LOOKS.props);
+    const coverMat = looks.material(ISLAND_LOOKS.cover), bigMat = looks.material(ISLAND_LOOKS.coverBig);
 
     // ── terrain tiles ──
     gltf.scene.updateMatrixWorld(true);
@@ -186,6 +189,8 @@ export class BlenderIsland {
       const m = new THREE.Mesh(o.geometry, terrainMat);
       m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld); m.matrix.elements[13] -= drop; m.matrixWorld.copy(m.matrix);
       m.name = `${ISLAND_LOOK.meshPrefix}${o.name}`; m.castShadow = true; m.receiveShadow = true;
+      m.onBeforeRender = looks.follow; // the terrain draws whenever the cove is in view: its toon look follows the day clock here
+      coverAttributes(o.geometry, o.geometry.getAttribute('position').count); // the graph reads the cover tint's (tintTerrain fills them)
       terrainTiles.push(m);
       if (!o.geometry.hasAttribute('normal')) o.geometry.computeVertexNormals(); // lighting is flat (derivatives); the normals are the shadows' normal bias
       o.geometry.computeBoundingSphere();
@@ -232,7 +237,7 @@ export class BlenderIsland {
     this.group.name = 'blender-island';
     ctx.scene.add(this.group);
     // the specimens draw with an untinted props material (a single specimen has no per-instance `aTint`)
-    const unclaimed = await this.placeModels(models, f, plan, meta, protos, makePropsMat(null, false));
+    const unclaimed = await this.placeModels(models, f, plan, meta, protos, looks.material(ISLAND_LOOKS.specimens));
 
     // ── hide what the area replaces ──
     clipGridTerrain(ctx.terrain);
@@ -292,6 +297,6 @@ export class BlenderIsland {
   update(sky: Sky): void {
     const level = sunBounceLevel(sky, this.meta.bake.refSun[1]);
     if (level === null) return;
-    this.terrainMat.lightMapIntensity = level / this.meta.bake.bounceGain;
+    this.looks.param(ISLAND_LOOKS.terrain, 'bounce', level / this.meta.bake.bounceGain);
   }
 }

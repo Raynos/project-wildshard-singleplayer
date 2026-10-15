@@ -37,9 +37,10 @@ export const GROUND_PATHS: { readonly above: number; readonly from: number; read
  * E156, the ground wears the cover (runtime/looks/coverGrid.ts `tintTerrain` fills `aCover` rgb + top and `aCoverSide`
  * per vertex, `flat` like the paint): the facet mixes toward the cover's colour by how much of the ground the plants hide
  * from where you look, 1 − (1 − top)·(1 − side)^(√(1 − f²) / f) at facing f (the classic patch's
- * 1 − e^−τ, τ = −ln(1 − top) − ln(1 − side)·√(1 − f²) / f; each share kept under 0.999).
+ * 1 − e^−τ, τ = −ln(1 − top) − ln(1 − side)·√(1 − f²) / f; each share kept under 0.999). `coverMix(base)` mixes node
+ * `base` into `covered` (the baked cove's terrain wears it too, data/islandLook.ts).
  */
-const COVER_NODES: GraphIr['nodes'] = {
+export const coverMix = (base: string): GraphIr['nodes'] => ({
   coverIn: { op: 'attribute', name: 'aCover', type: 'vec4' }, cover: { op: 'varying', in: ['coverIn'], interpolation: 'flat' },
   sideIn: { op: 'attribute', name: 'aCoverSide', type: 'float' }, side: { op: 'varying', in: ['sideIn'], interpolation: 'flat' },
   at: { op: 'positionWorld' }, dx: { op: 'dFdx', in: ['at'] }, dy: { op: 'dFdy', in: ['at'] },
@@ -52,12 +53,12 @@ const COVER_NODES: GraphIr['nodes'] = {
   bareTop: { op: 'oneMinus', in: ['top'] }, bareTopK: { op: 'max', in: ['bareTop', 0.001] },
   bareSide: { op: 'oneMinus', in: ['side'] }, bareSideK: { op: 'max', in: ['bareSide', 0.001] },
   bareSeen: { op: 'pow', in: ['bareSideK', 'slant'] }, bare: { op: 'mul', in: ['bareTopK', 'bareSeen'] }, seen: { op: 'oneMinus', in: ['bare'] },
-  covered: { op: 'mix', in: ['facet', 'coverRgb', 'seen'] },
-};
+  covered: { op: 'mix', in: [base, 'coverRgb', 'seen'] },
+});
 
 function groundGraph(roughness: number, facetColour: boolean): GraphIr {
   return { version: 1, kind: 'material', model: 'toon', flatShading: true,
-    nodes: { paint: { op: 'vertexColour' }, ...(facetColour ? { facet: { op: 'varying', in: ['paint'], interpolation: 'flat' }, ...COVER_NODES } : {}) },
+    nodes: { paint: { op: 'vertexColour' }, ...(facetColour ? { facet: { op: 'varying', in: ['paint'], interpolation: 'flat' }, ...coverMix('facet') } : {}) },
     stages: { surface: { colour: facetColour ? 'covered' : 'paint', roughness, metalness: 0 } } };
 }
 

@@ -2,21 +2,17 @@ import type { BlenderArea as IslandRect } from '@wildshard/engine/world/blenderA
 import * as THREE from 'three';
 import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
 import ISLAND_TERRAIN_CLIP from '../../data/islandClips.generated.json' with { type: 'json' };
-import { PATCH_ORDER, patchShader } from '@wildshard/engine/render/shaderPatches';
-import { attachFogUniforms } from '@wildshard/engine/world/Atmosphere';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { editShader, spliceEdits, type ShaderEditRow } from '@wildshard/game/plugin/shaderFamily';
-import type { ISLAND_PROPS, ISLAND_TERRAIN } from './islandLook';
+import type { GraphLiteral } from '@wildshard/format/materialGraph';
 
 /**
  * A baked island's generic parts (SHARD-PLATFORM M3; ex a shard's Blender-island install): an area of the world rebuilt
  * from an offline bake (terrain tiles with baked AO and bounce lightmaps, prototypes and their placements) over the
  * procedural ground it replaces. The shard keeps what is its own — its files, its area, its models and colliders — and
- * gives its looks as rows: the GLSL edits (`ShaderEditRow`s, `@{name}` splicing the numbers this module formats), the
- * patch ids and program keys, the materials' settings, the tile counts and the name patterns that sort the placements.
+ * gives its looks as graph toon materials (data/islandLook.ts) and rows: the tile counts and the name patterns that sort
+ * the placements.
  *
- * - `bakedTerrainMaterial` / `bakedPropsMaterial`: the toon standard materials of the baked terrain and props (fog, the
- *   sky rig's setup, the AO edits, per-instance tint and the cover's fade-out past each plant's own edge).
+ * - `setIslandLooks` / `islandLooks`: the compiled graph looks the runtime lends the island before the world builds.
  * - `clipGridTerrain`: install the authored terrain clipping facts.
  * - `simplifiedProto`: a prototype's far copy (meshoptimizer), so a tile's far copies keep its near copies' shape.
  * - `protosFromMeshes`, `droppedPlacements`, `usedPlacements`, `tileRect`: read and sort the bake.
@@ -27,34 +23,25 @@ import type { ISLAND_PROPS, ISLAND_TERRAIN } from './islandLook';
 /** a prototype as the bake holds it: world-space positions, Uint8 RGBA (alpha: its baked AO), index */
 export interface IslandProto { pos: Float32Array; col: Uint8Array; index: Uint32Array }
 
-/** a cover fade: every plant stands to `near`, each has its own edge in [near + grow, far] and takes on its ground's
- *  colour over the `grow` m before it; `key` is its program key */
-export interface IslandCoverFade { readonly near: number; readonly far: number; readonly grow: number; readonly key: string }
+/** The island's compiled graph looks (look.materials, data/islandLook.ts) with their param / texture writers and their toon
+ *  look's once-a-frame follow of the day clock. */
+export interface IslandLooks {
+  readonly material: (id: string) => THREE.Material;
+  readonly param: (id: string, name: string, value: GraphLiteral) => void;
+  readonly texture: (id: string, name: string, texture: THREE.Texture) => void;
+  readonly follow: () => void;
+}
+let lent: IslandLooks | null = null;
 
-/** The baked terrain's toon material: vertex colours, flat shading, the baked AO and the bounce lightmap (intensity 0
- *  until `sunBounceLevel` sets it), fog and the sky rig's setup. */
-export function bakedTerrainMaterial(row: typeof ISLAND_TERRAIN, ao: THREE.Texture, bounce: THREE.Texture, sky: Sky): THREE.MeshStandardMaterial {
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: row.roughness, metalness: 0, aoMap: ao, aoMapIntensity: 1, lightMap: bounce, lightMapIntensity: 0 });
-  return toon(mat, row.patch, spliceEdits(row.edits, { aoDirect: row.aoDirect.toFixed(2) }), row.key, sky);
+/** Hand the island its compiled graph looks, their writers and their toon look's follow, before the world builds. */
+export function setIslandLooks(materials: ReadonlyMap<string, THREE.Material>, param: IslandLooks['param'], texture: IslandLooks['texture'], follow: () => void): void {
+  lent = { follow, param, texture, material: (id) => { const m = materials.get(id); if (m === undefined) throw new Error(`Baked island: look.materials lacks ${id}`); return m; } };
 }
 
-/** `mat` with the island's fog and edits (its whole program replaced, keyed `key`) and the sky rig's setup */
-function toon(mat: THREE.MeshStandardMaterial, patch: string, edits: readonly ShaderEditRow[], key: string, sky: Sky): THREE.MeshStandardMaterial {
-  patchShader(mat, patch, PATCH_ORDER.material, (sh) => {
-    attachFogUniforms(sh);
-    editShader(sh, edits);
-  }, { mode: 'replace', key });
-  sky.setupMaterial(mat);
-  return mat;
-}
-
-/** The baked props' toon material (double-sided, vertex colours whose alpha is the baked AO), tinted per instance when
- *  `tinted`, with the cover's fade when `cover` is given. */
-export function bakedPropsMaterial(row: typeof ISLAND_PROPS, sky: Sky, cover: IslandCoverFade | null, tinted = true): THREE.MeshStandardMaterial {
-  const mat = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: row.roughness, metalness: 0, side: THREE.DoubleSide });
-  const edits: ShaderEditRow[] = [...row.ao, ...(tinted ? row.tint : [])];
-  if (cover !== null) edits.push(...spliceEdits(row.fade, { edgeNear: (cover.near + cover.grow).toFixed(1), far: cover.far.toFixed(1), grow: cover.grow.toFixed(1) }));
-  return toon(mat, row.patch, edits, (cover !== null ? cover.key : row.key) + (tinted ? row.tintKey : ''), sky);
+/** The island's lent looks; throws when the runtime lent none (there is no classic stand-in). */
+export function islandLooks(): IslandLooks {
+  if (lent === null) throw new Error('Baked island: no graph looks lent (the runtime compiles them before the world builds)');
+  return lent;
 }
 
 /** Install the authored grid's retained index runs; another topology is not this island bake. */
