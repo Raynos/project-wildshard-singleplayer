@@ -122,7 +122,7 @@ export class GullFlock {
   private readonly family: ShaderFamily;
   private readonly C: Record<keyof GullPalette, THREE.Color>;
 
-  constructor(private sky: Sky, private readonly look: GullLook, private readonly flight: {face:(pose:Gull,dx:number,dy:number,dz:number,dt:number,bank:number)=>void;wheel:(orbit:Flock,body:Gull,time:number,out:THREE.Vector3)=>void}) {
+  constructor(private sky: Sky, private readonly look: GullLook, private readonly flight: {burst:(state:Gull,dt:number,flap:number,fold:number,id:string,rng:Rng,gliding:boolean)=>readonly [number,number];face:(pose:Gull,dx:number,dy:number,dz:number,dt:number,bank:number)=>void;wheel:(orbit:Flock,body:Gull,time:number,out:THREE.Vector3)=>void}) {
     const p = look.palette;
     this.C = {
       white: new THREE.Color(p.white), belly: new THREE.Color(p.belly), grey: new THREE.Color(p.grey), greyDark: new THREE.Color(p.greyDark),
@@ -330,18 +330,7 @@ export class GullFlock {
   }
 
   private flapBurst(g: Gull, dt: number, flying: boolean) {
-    // flap bursts: `burst` beats of ~0.28 s, then a glide of `glide` seconds with the wings in a shallow V
-    if (g.burst > 0) {
-      g.flapT += dt * 3.6 * Math.PI * 2;
-      g.flap = Math.sin(g.flapT) * 0.75;
-      g.fold = Math.max(0, -Math.sin(g.flapT - 0.6)) * 0.5;
-      if (g.flapT >= Math.PI * 2) { g.flapT -= Math.PI * 2; g.burst--; if (g.burst === 0) g.glide = flying ? this.rng.range(1.5, 5) : 0; }
-    } else {
-      g.flap += (0.14 - g.flap) * Math.min(1, dt * 6);
-      g.fold += (0.12 - g.fold) * Math.min(1, dt * 6);
-      g.glide -= dt;
-      if (g.glide <= 0) { g.burst = this.rng.int(2, 6); g.flapT = 0; }
-    }
+    [g.flap,g.fold]=this.flight.burst(g,dt,g.flap,g.fold,'gull',this.rng,flying);
   }
 
   private headTurn(g: Gull, dt: number) {

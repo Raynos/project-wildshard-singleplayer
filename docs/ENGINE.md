@@ -5390,6 +5390,14 @@ the native transition's bank gain. Driftwood's wheeling gulls lend their existin
 poses and clock; perch, flush, landing and guide owners remain native. No new
 clock, body roster, wing draw or RNG is allocated by the circling law.
 
+CirclingFlyer accepts optional bounded wingbeat rows as its third argument.
+`burst(state, dt, flap, fold, id, rng, gliding?)` advances the caller's existing
+phase/burst/glide fields and returns a borrowed two-channel pose. Rows declare
+phase factors, flap/fold gain, rest/rates and glide/beat ranges. Equal bounds
+use the fixed value without drawing RNG; disabling glide also draws none.
+Pine's raven/owl/woodpecker and Driftwood's gulls use the same law, retaining
+native clocks, seeded streams, body ownership and material/shader posing.
+
 `bindDirectorActions(...).validate(saved)` checks the installed immutable
 stage contract and cursor without mutating its lane or calling native ports.
 Use it before an aggregate encounter restore applies any body effects.

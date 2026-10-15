@@ -104,7 +104,7 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   const ravenCount=(kind:string):number=>data.scavenger.visitors[kind]??data.scavenger.defaultVisitors;
   const carcassMayGo=(visit:RavenVisit,since:number):boolean=>visit==='gone'||since>data.scavenger.giveUp;
   const hareMayDraw=(distance:number,inView:boolean):boolean=>distance<=data.forager.range&&(distance<=data.forager.visibleRange||inView);
-  const flight=new CirclingFlyer(data.flight);
+  const flight=new CirclingFlyer(data.flight,undefined,data.wingbeats);
   const retained = retainsRuntimeServices(h.ctx);
   let lifeTime = app.clock.now;
   const now = (): number => retained ? lifeTime : app.clock.now;
@@ -205,19 +205,7 @@ export function createAmbientLife<Birds>(data: AmbientLifeData,h: AmbientLifeHos
   };
   /** the wingbeat: bursts of beats, then a glide; the woodpecker bounds (beats, then wings shut) */
   const wings = (b: Bird, dt: number): void => {
-    const k = b.pose.kind, bounding = k === KIND.woodpecker;
-    const hz = k === KIND.owl ? 2.4 : k === KIND.raven ? 3.6 : 11, amp = k === KIND.owl ? 0.75 : k === KIND.raven ? 0.68 : 0.8;
-    if (b.burst > 0) {
-      b.flapT += dt * hz * TAU;
-      b.pose.a0 = Math.sin(b.flapT) * amp; b.pose.a1 = Math.max(0, -Math.sin(b.flapT - 0.6)) * 0.25;
-      if (b.flapT >= TAU) { b.flapT -= TAU; b.burst--; if (b.burst === 0) b.glide = bounding ? 0.3 : k === KIND.owl ? rng.range(1.2, 2.6) : rng.range(0.8, 2.4); }
-    } else {
-      const shut = bounding ? 0.95 : 0.05;
-      b.pose.a0 += ((bounding ? -0.05 : 0.12) - b.pose.a0) * Math.min(1, dt * 8);
-      b.pose.a1 += (shut - b.pose.a1) * Math.min(1, dt * 10);
-      b.glide -= dt;
-      if (b.glide <= 0) { b.burst = bounding ? 3 : k === KIND.owl ? rng.int(2, 3) : rng.int(2, 5); b.flapT = 0; }
-    }
+    [b.pose.a0,b.pose.a1]=flight.burst(b,dt,b.pose.a0,b.pose.a1,b.pose.kind,rng);
   };
   /** turn to face a motion (dx, dy, dz): heading, pitch into it, bank into the turn */
   const face=(b:Bird,dx:number,dy:number,dz:number,dt:number):void=>{flight.face(b.pose,dx,dy,dz,dt);};
