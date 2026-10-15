@@ -1,3 +1,4 @@
+import FOLIAGE from '../data/foliagePlacements.generated.json' with {type:'json'};
 import { loadIslandCover } from './islandCover';
 import { area as BLENDER_AREA } from './blenderArea';
 /**
@@ -155,8 +156,9 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
     const jetty = new Pier(sky, { x, z, rot: j.rot, length: j.length - cut, width: 3, deckY: sea.level + 1.2, landing: j.landing ?? false, ...seaRamp }).place(registry, `jetty-${i}`); statics.push(...jetty.colliders); jetties.push(jetty); await slice(++completed, total, `Jetty ${i + 1}`);
   }
   await slice();
-  const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
-  const bushes = await new Bushes(sky).placeSliced(Bushes.scatterIsland(manifest.seed, undefined, AVOID), registry, slice.due);
+  if (FOLIAGE.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
+  const foliage = FOLIAGE.tiers[game.tier];
+  const bushes = await new Bushes(sky).placeSliced(foliage.bushes, registry, slice.due);
   game.scene.add(bushes.mesh); // The compact batch is an explicitly owned drawnInto object.
   await slice(++completed, total, 'Bushes');
   // gulls: perched on the pier posts / bollards, the boat's bow and stern, the big shore rocks and the wet sand; flocks wheel over the lagoon
@@ -187,7 +189,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish);
   await slice(++completed, total, 'Seabed');
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
-  const palmSpecs = Palms.scatterIsland(manifest.seed, undefined, AVOID);
+  const palmSpecs = foliage.palms.specs;
   await slice(++completed, total, 'Palm placement');
   // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
   // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model
@@ -195,7 +197,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   statics.push(...cove.colliders);
   cutTerrain(world.physics, cove.terrainCuts()); // the drawn terrain pokes up through the sea cave: the physics ground doesn't
   await slice(++completed, total, 'Cove');
-  const palms = await new Palms(sky).placeSliced(palmSpecs, registry, slice.due);
+  const palms = await new Palms(sky).placeSliced(foliage.palms, registry, slice.due);
   game.scene.add(palms.mesh); // The registry borrows the compacted batch and its native boxes.
   statics.push(...palms.colliders);
   // ground cover near the player (M4): instanced grass / ferns / flowers / pebbles, refilled as you walk

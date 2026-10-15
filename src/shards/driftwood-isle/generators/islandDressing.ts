@@ -1,22 +1,85 @@
+import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
+import { Noise2D } from '@wildshard/engine/core/noise';
+import { islandKnobs } from '../tiers';
 import type * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { _buildAs } from '@wildshard/engine/core/tier';
 import { Rng } from '@wildshard/engine/core/rng';
-import { seedOf } from '@wildshard/engine/models/model';
+import { seedOf, type Placement } from '@wildshard/engine/models/model';
 import { bindLevelSelection } from '@wildshard/engine/level/selection';
-import { HeightfieldBinding, bindHeightfield } from '@wildshard/engine/world/Heightfield';
+import { HeightfieldBinding, bindHeightfield, normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import { readNativeTerrain } from '@wildshard/sdk/bake/terrain';
 import manifest, { HUT, LOOKOUT, SHRINE, WRECK } from '../manifest';
-import { Palms } from '../world/Palms';
-import { Bushes } from '../world/Bushes';
-import { palm } from '../models/palm';
+import type { PalmSpec } from '../world/Palms';
+import type { BushSpec } from '../world/Bushes';
+import { palm, type PalmParams } from '../models/palm';
 import { palmGeometry } from './palm';
-import { hibiscusBush } from '../models/hibiscusBush';
+import { hibiscusBush, type HibiscusBushParams } from '../models/hibiscusBush';
 import { leafClump } from './hibiscus';
 import { driftwoodGroundBytes } from './groundRows';
 import { duneLogs } from './duneLogs';
 import { bakeFullIslandCover } from './islandCover';
 import { inArea } from '../world/blenderArea';
+
+interface FoliagePlacements { palms: {specs: PalmSpec[]; placements: Placement<PalmParams>[]}; bushes: {specs: BushSpec[]; placements: Placement<HibiscusBushParams>[]} }
+function scatterPalms(heightAt: (x: number, z: number) => number, seed: number, count = Math.round(islandKnobs().palmCount * 1.7), avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
+    const rng = new Rng(seed ^ 0x9a1e), grove = new Noise2D(seed + 21);
+    const wl = waterLevel();
+    const out: PalmSpec[] = [];
+    let tries = 0;
+    while (out.length < count && tries++ < count * 80) {
+      const x = rng.range(-CHUNK_HALF + 25, CHUNK_HALF - 25), z = rng.range(-CHUNK_HALF + 25, CHUNK_HALF - 25);
+      if (!inChunk(x, z, 20)) continue;
+      const h = heightAt(x, z) - wl;
+      if (h < 1.4) continue;                                                       // land only, above the beach berm
+      const [, ny] = normalAt(x, z, 1.5);
+      if (ny < 0.9) continue;                                                      // not on the crag walls
+      const g = grove.fbm(x * 0.012, z * 0.012, 3);
+      const beachEdge = h < 3.4 ? 0.95 : 0;                                        // the back beach is lined with palms (E43: twice as many)
+      if (rng.next() > Math.max(beachEdge, (g + 0.35) * 0.9)) continue;           // groves inland
+      if (Math.abs(x) < ROAD_WIDTH / 2 + 6 && Math.abs(z) > 140) continue;
+      if (Math.abs(z) < ROAD_WIDTH / 2 + 6 && Math.abs(x) > 140) continue;
+      if (avoid.some((a) => Math.hypot(a.x - x, a.z - z) < a.r)) continue;
+      if (out.some((p) => Math.hypot(p.x - x, p.z - z) < 3.8)) continue;
+      out.push({ x, z, h: rng.range(5, 9.5), lean: rng.range(0.05, 0.35), leanDir: rng.range(0, Math.PI * 2), rot: rng.range(0, Math.PI * 2), fronds: rng.int(9, 13) });
+    }
+    return out;
+  }
+
+  /** each spec as a placement of the palm: its foot 0.2 m into the sand, its shape from the spec */
+function palmPlacements(heightAt: (x: number, z: number) => number, specs: readonly PalmSpec[]): Placement<PalmParams>[] {
+    return specs.map((p) => ({ x: p.x, y: heightAt(p.x, p.z) - 0.2, z: p.z, params: { h: p.h, lean: p.lean, leanDir: p.leanDir, rot: p.rot, fronds: p.fronds } }));
+  }
+
+function scatterBushes(heightAt: (x: number, z: number) => number, seed: number, count = islandKnobs().bushCount, avoid: { x: number; z: number; r: number }[] = []): BushSpec[] {
+    const rng = new Rng(seed ^ 0xb054), clump = new Noise2D(seed + 33);
+    const wl = waterLevel();
+    const out: BushSpec[] = [];
+    let tries = 0;
+    while (out.length < count && tries++ < count * 60) {
+      const x = rng.range(-CHUNK_HALF + 25, CHUNK_HALF - 25), z = rng.range(-CHUNK_HALF + 25, CHUNK_HALF - 25);
+      if (!inChunk(x, z, 20)) continue;
+      const h = heightAt(x, z) - wl;
+      if (h < 1.5) continue;
+      const [, ny] = normalAt(x, z, 1.2);
+      if (ny < 0.88) continue;
+      const c = clump.fbm(x * 0.02, z * 0.02, 2);
+      const beachTop = h < 3.0 ? 0.5 : 0;
+      if (rng.next() > Math.max(beachTop, (c + 0.4) * 0.8)) continue;
+      if (Math.abs(x) < ROAD_WIDTH / 2 + 4 && Math.abs(z) > 140) continue;
+      if (Math.abs(z) < ROAD_WIDTH / 2 + 4 && Math.abs(x) > 140) continue;
+      if (avoid.some((a) => Math.hypot(a.x - x, a.z - z) < a.r)) continue;
+      if (out.some((b) => Math.hypot(b.x - x, b.z - z) < 2.2)) continue;
+      out.push({ x, z, r: rng.range(0.7, 1.5), flowers: rng.next() < 0.28 });
+    }
+    return out;
+  }
+
+  /** each spec as a placement of the bush: on the ground, its sway's phase from where it stands */
+function bushPlacements(heightAt: (x: number, z: number) => number, specs: readonly BushSpec[]): Placement<HibiscusBushParams>[] {
+    return specs.map((b) => ({ x: b.x, y: heightAt(b.x, b.z), z: b.z, params: { r: b.r, flowers: b.flowers, phase: (b.x + b.z) * 0.37 } }));
+  }
+
 
 /** Retained triangle runs of the native merged shape, without a second geometry payload. */
 export interface ClipRuns { vertices:number; indices:number; output:number; runs:{start:number;count:number}[] }
@@ -39,7 +102,7 @@ function palmKeep(points:readonly{x:number;z:number}[]):(x:number,z:number)=>boo
  };
 }
 /** Compile both tiers from their actual scatter, native shapes and original height binding. */
-export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void, palmsReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void):Promise<{tiers:{tier:'phone'|'desktop';clips:{palms:ClipRuns;bushes:ClipRuns;logs:ClipRuns};cover:Awaited<ReturnType<typeof bakeFullIslandCover>>}[]}> {
+export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void, palmsReady?: (tier:'phone'|'desktop', geometry:THREE.BufferGeometry, originals:readonly THREE.BufferGeometry[], clips:ClipRuns) => void):Promise<{seed:number;tiers:{foliage:FoliagePlacements;tier:'phone'|'desktop';clips:{palms:ClipRuns;bushes:ClipRuns;logs:ClipRuns};cover:Awaited<ReturnType<typeof bakeFullIslandCover>>}[]}> {
  const terrain=manifest.ground.terrain;if(terrain===undefined)throw new Error('Native island ground is required');
  const level={id:manifest.slug,ground:{terrain},spawn:manifest.spawn,sky:manifest.sky,atmosphere:manifest.atmosphere,grade:manifest.grade,
   budgets:{},mechanisms:[],fight:{},boot:{files:[]},audio:{ambience:'none',score:'none'},loadout:{weapons:[],tools:[],start:[]},species:[],spawns:[],minimap:{},kitLook:'toon' as const}; // Only the real authored ground frame is evaluated by this isolated producer.
@@ -54,19 +117,20 @@ export async function islandDressing(readAsset:(url:string)=>Uint8Array, bushesR
   const tiers=[];
   for(const tier of ['phone','desktop'] as const){
    _buildAs(tier);
-   const palms=Palms.scatterIsland(manifest.seed,undefined,avoid),bushes=Bushes.scatterIsland(manifest.seed,undefined,avoid);
+   const palms=scatterPalms(ground.heightAt,manifest.seed,undefined,avoid),bushes=scatterBushes(ground.heightAt,manifest.seed,undefined,avoid);
    const palmRng=new Rng(seedOf(palm)),bushRng=new Rng(seedOf(hibiscusBush));
-   const pg=Palms.placements(palms).map(p=>palmGeometry({...palm.defaults,...p.params},palmRng).translate(p.x,p.y,p.z));
-   const bg=Bushes.placements(bushes).map(p=>leafClump({...hibiscusBush.defaults,...p.params},bushRng).translate(p.x,p.y,p.z));
+   const palmRows=palmPlacements(ground.heightAt,palms),bushRows=bushPlacements(ground.heightAt,bushes);
+   const pg=palmRows.map(p=>palmGeometry({...palm.defaults,...p.params},palmRng).translate(p.x,p.y,p.z));
+   const bg=bushRows.map(p=>leafClump({...hibiscusBush.defaults,...p.params},bushRng).translate(p.x,p.y,p.z));
    const mergedPalms=mergeGeometries(pg),mergedBushes=mergeGeometries(bg);
    try{
     const clips={palms:retain(mergedPalms,palmKeep(palms)),bushes:retain(mergedBushes,(x,z)=>!inArea(x,z)),logs:retain(logs.geometry,(x,z)=>!inArea(x,z))};
     bushesReady?.(tier,mergedBushes,bg,clips.bushes);
     palmsReady?.(tier,mergedPalms,pg,clips.palms);
     const cover=await bakeFullIslandCover(readAsset,tier==='phone',palms,ground);
-    tiers.push({tier,clips,cover});
+    tiers.push({tier,clips,cover,foliage:{palms:{specs:palms,placements:palmRows},bushes:{specs:bushes,placements:bushRows}}});
    }finally{mergedPalms.dispose();mergedBushes.dispose();for(const geometry of [...pg,...bg])geometry.dispose();}
   }
-  return{tiers};
+  return{seed:manifest.seed,tiers};
  }finally{logs.geometry.dispose();_buildAs(null);restoreGround();restoreLevel();}
 }

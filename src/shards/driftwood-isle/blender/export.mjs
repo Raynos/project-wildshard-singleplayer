@@ -1,3 +1,4 @@
+import FOLIAGE from '../data/foliagePlacements.generated.json' with {type:'json'};
 // Driftwood Isle's half of scripts/blender/lib/export-scene.mjs (DRIFTWOOD-REMASTER X2, E52): the game's low-poly ground
 // colour, and the cove's layout specs + bake occluders. Moved here unchanged from export-scene.mjs (PH-0.3): the exported
 // scene is byte-for-byte what it was.
@@ -25,19 +26,17 @@ export async function layout({ THREE, imp, def, addObject, tryBuild, CHUNK_HALF,
   const island = await imp('src/shards/driftwood-isle/manifest.ts');
   const wl = def.ocean.level - (def.ground.terrain?.datum ?? 0); // the authored frame of the raw bake (G164's datum undone)
   // ── layout specs (desktop tier, as the bake's reference) ──
-  const { Palms } = await imp('src/shards/driftwood-isle/world/Palms.ts');
   const { Boulders } = await imp('src/shards/driftwood-isle/world/Boulders.ts');
-  const { Bushes } = await imp('src/shards/driftwood-isle/world/Bushes.ts');
   const { Trailside } = await imp('src/shards/driftwood-isle/world/Trailside.ts');
   const { Pier } = await imp('src/shards/driftwood-isle/world/Pier.ts');
   const { hut, hutOrigin, hutLayout } = await imp('src/shards/driftwood-isle/models/hut.ts');
   const { modelContext } = await imp('src/engine/models/model.ts');
   const { placeModelSite } = await imp('src/engine/models/place.ts');
-  const { HUT, LOOKOUT, SHRINE, WRECK } = island;
-  const AVOID = [{ x: HUT.x, z: HUT.z, r: 11 }, { x: LOOKOUT.x, z: LOOKOUT.z, r: 12 }, { x: SHRINE.x, z: SHRINE.z, r: 13 }, { x: WRECK.x, z: WRECK.z, r: 14 }];
-  const palms = Palms.scatterIsland(def.seed, undefined, AVOID);
+  const { HUT } = island;
+  if (FOLIAGE.seed !== def.seed) throw new Error('Foliage placements require their authored seed');
+  const palms = FOLIAGE.tiers.desktop.palms.specs;
   const rocks = Boulders.scatterShore(def.seed);
-  const bushes = Bushes.scatterIsland(def.seed, undefined, AVOID);
+  const bushes = FOLIAGE.tiers.desktop.bushes.specs;
   const trailside = Trailside.forIsland();
 
   // ── structures kept in blender mode, as bake occluders ──

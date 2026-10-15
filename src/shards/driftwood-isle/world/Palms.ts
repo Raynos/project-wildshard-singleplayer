@@ -1,27 +1,21 @@
 /**
  * Palms — where Driftwood Isle's coconut palms stand (E306 / E315 M1: the palm itself is the model
- * src/shards/driftwood-isle/models/palm.ts; this is the world side). `scatterIsland()` is the island rule; `placeSliced()` admits
+ * src/shards/driftwood-isle/models/palm.ts; this is the world side). the authored island rows own its sites; `placeSliced()` admits
  * one palm on each spec, its foot 0.2 m into the sand, merged into one mesh through src/engine/models/place.ts — one registry
  * piece, `palms`, with every trunk's three capsules. `update()` advances the shared wind the fronds sway in.
  *
- *   const palms = await new Palms(sky).placeSliced(Palms.scatterIsland(seed), registry, due);
+ *   const palms = await new Palms(sky).placeSliced(foliage.palms, registry, due);
  *   scene.add(palms.mesh); its registry piece.push(...palms.colliders);
  *   game.onUpdate((dt) => palms.update(dt));
  */
 import * as THREE from 'three';
-import { CHUNK_HALF, ROAD_WIDTH } from '@wildshard/engine/core/config';
-import { Noise2D } from '@wildshard/engine/core/noise';
-import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, type Placement } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
-import { normalAt, waterLevel, inChunk } from '@wildshard/engine/world/Heightfield';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
-import { terrainHeight as heightAt } from '@wildshard/engine/world/terrainHeight';
 import { windUniforms, updateWind } from '@wildshard/engine/world/wind';
 import { loadPalmWorld } from '../boot/palmGeometry';
-import { islandKnobs } from '../tiers';
 import { palm, palmMaterials, type PalmParams } from '../models/palm';
 
 export interface PalmSpec { x: number; z: number; h: number; lean: number; leanDir: number; rot: number; fronds: number }
@@ -38,39 +32,9 @@ export class Palms {
 
   constructor(private sky: Sky) {}
 
-  /** Island rule: behind the beach and on the plateau top, denser in groves, never on steep rock, clear of the hut and piers. */
-  static scatterIsland(seed: number, count = Math.round(islandKnobs().palmCount * 1.7), avoid: { x: number; z: number; r: number }[] = []): PalmSpec[] {
-    const rng = new Rng(seed ^ 0x9a1e), grove = new Noise2D(seed + 21);
-    const wl = waterLevel();
-    const out: PalmSpec[] = [];
-    let tries = 0;
-    while (out.length < count && tries++ < count * 80) {
-      const x = rng.range(-CHUNK_HALF + 25, CHUNK_HALF - 25), z = rng.range(-CHUNK_HALF + 25, CHUNK_HALF - 25);
-      if (!inChunk(x, z, 20)) continue;
-      const h = heightAt(x, z) - wl;
-      if (h < 1.4) continue;                                                       // land only, above the beach berm
-      const [, ny] = normalAt(x, z, 1.5);
-      if (ny < 0.9) continue;                                                      // not on the crag walls
-      const g = grove.fbm(x * 0.012, z * 0.012, 3);
-      const beachEdge = h < 3.4 ? 0.95 : 0;                                        // the back beach is lined with palms (E43: twice as many)
-      if (rng.next() > Math.max(beachEdge, (g + 0.35) * 0.9)) continue;           // groves inland
-      if (Math.abs(x) < ROAD_WIDTH / 2 + 6 && Math.abs(z) > 140) continue;
-      if (Math.abs(z) < ROAD_WIDTH / 2 + 6 && Math.abs(x) > 140) continue;
-      if (avoid.some((a) => Math.hypot(a.x - x, a.z - z) < a.r)) continue;
-      if (out.some((p) => Math.hypot(p.x - x, p.z - z) < 3.8)) continue;
-      out.push({ x, z, h: rng.range(5, 9.5), lean: rng.range(0.05, 0.35), leanDir: rng.range(0, Math.PI * 2), rot: rng.range(0, Math.PI * 2), fronds: rng.int(9, 13) });
-    }
-    return out;
-  }
-
-  /** each spec as a placement of the palm: its foot 0.2 m into the sand, its shape from the spec */
-  static placements(specs: readonly PalmSpec[]): Placement<PalmParams>[] {
-    return specs.map((p) => ({ x: p.x, y: heightAt(p.x, p.z) - 0.2, z: p.z, params: { h: p.h, lean: p.lean, leanDir: p.leanDir, rot: p.rot, fronds: p.fronds } }));
-  }
-
   /** Admit the owned world batch, then register its original native placements and capsules. */
-  async placeSliced(specs: PalmSpec[], registry: WorldRegistry, due: () => Promise<void> | null): Promise<this> {
-    const pls = Palms.placements(specs);
+  async placeSliced(rows: {specs: PalmSpec[]; placements: Placement<PalmParams>[]}, registry: WorldRegistry, due: () => Promise<void> | null): Promise<this> {
+    const { specs, placements: pls } = rows;
     const batch = await loadPalmWorld(specs.length); await due();
     const { lit, depth } = palmMaterials(modelContext(this.sky)), mesh = new THREE.Mesh(batch.geometry, lit);
     mesh.name = palm.id; mesh.castShadow = true; mesh.receiveShadow = true; mesh.customDepthMaterial = depth;

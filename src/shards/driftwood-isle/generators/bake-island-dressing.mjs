@@ -43,3 +43,5 @@ for(const row of data.tiers){
 writeFileSync(new URL('../data/islandDressing.generated.json',import.meta.url),`${JSON.stringify(Object.fromEntries(Object.entries(tiers).map(([tier,row])=>[tier,row.clips])))}\n`);
 console.log('Island dressing: native triangle runs and two cropped full cover grids');
 console.log(`cover-files ${JSON.stringify(Object.fromEntries(Object.entries(tiers).map(([tier,row])=>[tier,row.cover])))}`);
+
+writeFileSync(new URL('../data/foliagePlacements.generated.json',import.meta.url),`${JSON.stringify({seed:data.seed,tiers:Object.fromEntries(data.tiers.map(row=>[row.tier,row.foliage]))})}\n`);
