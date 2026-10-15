@@ -2,15 +2,13 @@ import * as THREE from 'three';
 import { gpuOnlyTexture } from '@wildshard/engine/core/gpuOnly';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import { memorySaverOn } from '@wildshard/engine/render/memorySaver';
-import { bakedUndergrowth } from '@wildshard/engine/world/BakedTerrain';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
-import { DecisionLog, placeUndergrowth, placementChecksum, sameChecksum, type Placement, type UnderPlacements } from '@wildshard/engine/world/forest/placement';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { pineMappedLook, setPineLookParam } from './graphLooks';
 
 /**
- * A forest floor's ground cover as rows (SHARD-PLATFORM M3): the engine's undergrowth placement (ferns, shrubs, litter,
- * stones, moss, reeds: `placeUndergrowth`, replayed from the terrain bake's decision log when it fits) drawn in SF59
+ * A forest floor's ground cover as rows (SHARD-PLATFORM M3): authored undergrowth placements (ferns, shrubs, litter,
+ * stones, moss and reeds) drawn in SF59
  * material graphs (data/undergrowthLook.ts: the distance fade, the wind, the foliage light, the cut shadow) that each
  * kind wears over its own painted texture. The shard gives each kind's look as data (its wind, alpha cut, roughness,
  * whether it lies flat or casts a shadow), its shapes and its texture painters (a canvas each).
@@ -21,6 +19,10 @@ import { pineMappedLook, setPineLookParam } from './graphLooks';
  * Kinds that name the same graph share its lit program: a kind's wind is the `aWind` its geometry carries; its alpha
  * cut, roughness and depth bias are its material's own. Each graph's params are one set, shared by every field of it.
  */
+
+/** Retained per-instance facts; matrices and tints still use the existing instanced draw. */
+export interface Placement { x: number; y: number; z: number; nx: number; ny: number; nz: number; rot: number; scale: number; r: number; g: number; b: number }
+export type UnderPlacements = Record<'ferns' | 'shrubs' | 'litter' | 'stones' | 'moss' | 'reeds', Placement[]>;
 
 /** A ground-cover kind (the engine placement's kinds). */
 export type GroundCoverKind = keyof UnderPlacements;
@@ -66,6 +68,7 @@ export interface GroundCoverDraw {
 export interface GroundCoverOptions {
   sky: Sky;
   forest: Forest;
+  placements: UnderPlacements;
   look: GroundCoverLook;
   shapes: Readonly<Record<GroundCoverKind, GroundCoverShape>>;
   /** each kind's texture, painted on a canvas */
@@ -126,7 +129,7 @@ export class GroundCover {
     const made = new Map(this.o.look.kinds.map(([kind, row]) => [kind, { mat: this.makeMaterial(canvasTexture(this.o.paint[kind]()), row), row }]));
     yield;
 
-    const place = yield* this.placements();
+    const place = this.o.placements;
     this.layout = place;
     const draw = (kind: GroundCoverKind): GroundCoverDraw => {
       const m = made.get(kind);
@@ -138,23 +141,6 @@ export class GroundCover {
     };
     this.kinds = { ferns: draw('ferns'), shrubs: draw('shrubs'), litter: draw('litter'), stones: draw('stones'), moss: draw('moss'), reeds: draw('reeds') };
     this.counts = { ferns: place.ferns.length, shrubs: place.shrubs.length, litter: place.litter.length, stones: place.stones.length, moss: place.moss.length, reeds: place.reeds.length };
-  }
-
-  /**
-   * Where everything goes (the engine's forest placement): the build's decision log replayed when the chunk's
-   * terrain bake carries one that fits this build — no candidate tested at launch — else the tests run.
-   */
-  private *placements(): Generator<void, UnderPlacements, undefined> {
-    const baked = bakedUndergrowth();
-    const forest = this.o.forest;
-    if (baked) {
-      try {
-        const p = yield* placeUndergrowth(forest.trees, forest, DecisionLog.replay(baked.bits, baked.length));
-        if (sameChecksum(placementChecksum(p), baked.checksum)) return p;
-        console.warn('[baked] undergrowth decision log does not fit this build; placing at launch');
-      } catch (e) { console.warn(`[baked] undergrowth decision log not used (${(e as Error).message}); placing at launch`); }
-    }
-    return yield* placeUndergrowth(forest.trees, forest, DecisionLog.record());
   }
 
   /** `playerPos` in the floor's own frame; the fade compares world positions, so it goes out through the group's world

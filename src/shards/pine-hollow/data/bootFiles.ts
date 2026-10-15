@@ -1,3 +1,4 @@
+import floor from './floor.generated.json' with { type: 'json' };
 import birds from './ambientBirds.generated.json' with {type:'json'};
 import heldPool from './crossbowPool.generated.json' with {type:'json'};
 import handsPool from './handsPool.generated.json' with {type:'json'};
@@ -225,6 +226,7 @@ export const PINE_BOOT_FILES = {
           heldPool.pool.url,
           handsPool.pool.url,
           kingKit.pool.url,
+          floor.url,
           "/assets/pine-hollow/creatures/thrall-extras.phone.glb",
           "/assets/pine-hollow/baked/rain.phone.bin"
         ],
@@ -244,6 +246,7 @@ export const PINE_BOOT_FILES = {
           heldPool.pool.url,
           handsPool.pool.url,
           kingKit.pool.url,
+          floor.url,
           "/assets/pine-hollow/creatures/thrall-extras.glb",
           "/assets/pine-hollow/baked/rain.bin"
         ]

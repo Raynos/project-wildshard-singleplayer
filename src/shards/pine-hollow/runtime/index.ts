@@ -38,6 +38,7 @@ import { PINE_GRAPHS } from '../data/graphLooks';
 import { lendPineLooks } from './looks/graphLooks';
 import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import { loadUnderShapes } from '../world/undergrowthKit';
+import { loadUnderPlacements } from '../world/timberSites';
 import { pineModels } from '../world/context';
 import { Undergrowth } from '../world/undergrowth';
 import { Props } from '../world/props';
@@ -103,7 +104,7 @@ export class PineHollow extends ShardPlugin {
     const carpet = await step('grass', async () => {
       const grass = new Grass(sky, forest, { trample: { field: trample, glsl: TRAMPLE_GLSL } }).build();
       await macrotask();
-      const under = await new Undergrowth(sky, forest, await loadUnderShapes(pineModels(sky))).buildAsync(macrotask);
+      const under = await new Undergrowth(sky, forest, await loadUnderShapes(pineModels(sky)), await loadUnderPlacements()).buildAsync(macrotask);
       const particles = new ParticleField(sky, forest).build();
       game.scene.add(grass.group, under.group, particles.group);
       return { grass, under, particles };

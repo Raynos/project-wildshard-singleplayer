@@ -38,7 +38,7 @@ export function vegetationCanvasLifetime(enabled: boolean): void {
     let previous: readonly Texture[] = [];
     for (let visit = 0; visit < 2; visit++) {
       const shapes = { ferns: new BufferGeometry(), shrubs: new BufferGeometry(), litter: new BufferGeometry(), stones: new BufferGeometry(), moss: new BufferGeometry(), reeds: new BufferGeometry() };
-      const grass = new Grass(sky, forest).build(), under = new Undergrowth(sky, forest, shapes).build();
+      const grass = new Grass(sky, forest).build(), under = new Undergrowth(sky, forest, shapes, { ferns: [], shrubs: [], litter: [], stones: [], moss: [], reeds: [] }).build();
       const textures = [map(grass.material), map(grass.flowers.material), ...Object.values(under.kinds).map(kind => map(kind.material))];
       expect(textures).toHaveLength(8);
       expect(textures.every(texture => !previous.includes(texture))).toBe(true);

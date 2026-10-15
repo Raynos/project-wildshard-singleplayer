@@ -2,7 +2,7 @@ import { SEED } from '@wildshard/engine/core/config';
 import type { Forest } from '@wildshard/engine/world/forest/Forest';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { paintCanvas, type CanvasAtlasRow } from '@wildshard/sdk/looks/canvasAtlas';
-import { GroundCover, type GroundCoverDraw, type GroundCoverKind } from '../runtime/looks/groundCover';
+import { GroundCover, type GroundCoverDraw, type GroundCoverKind, type UnderPlacements } from '../runtime/looks/groundCover';
 import type { UnderShapes } from './undergrowthKit';
 import { UNDER_LOOK } from '../data/undergrowthLook';
 import { FERN_PAINT, LITTER_PAINT, MOSS_PAINT, REED_PAINT, SHRUB_PAINT, STONE_PAINT } from '../data/undergrowthPaint';
@@ -46,9 +46,9 @@ const paint = (row: CanvasAtlasRow) => (): HTMLCanvasElement => paintCanvas(row,
 /** Pine Hollow's forest floor: the ground cover with its look, shapes and painted textures. */
 export class Undergrowth extends GroundCover {
   /** the field over `forest`, lit by `sky` */
-  constructor(sky: Sky, forest: Forest, shapes: UnderShapes) {
+  constructor(sky: Sky, forest: Forest, shapes: UnderShapes, placements: UnderPlacements) {
     super({
-      sky, forest, look: UNDER_LOOK, shapes,
+      sky, forest, look: UNDER_LOOK, shapes, placements,
       paint: { ferns: paint(FERN_PAINT), shrubs: paint(SHRUB_PAINT), litter: paint(LITTER_PAINT), stones: paint(STONE_PAINT), moss: paint(MOSS_PAINT), reeds: paint(REED_PAINT) },
     });
   }

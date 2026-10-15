@@ -8,7 +8,7 @@
  */
 import * as THREE from 'three';
 import type { ModelContext, ModelPart } from '@wildshard/engine/models/model';
-import type { UnderPlacements } from '@wildshard/engine/world/forest/placement';
+import type { UnderPlacements } from '../runtime/looks/groundCover';
 import { loadSiteTimbers } from './timberSites';
 import type { UnderKind, UnderKindDraw } from './undergrowth';
 /** The six original shapes are charged GLB library views, shared with the native world reader. */
@@ -53,3 +53,4 @@ export function underSpecimen(ctx: ModelContext, kind: UnderKind): ModelPart[] {
   });
   return [{ geometry: k.geometry, material, castShadow: true, receiveShadow: true }];
 }
+
