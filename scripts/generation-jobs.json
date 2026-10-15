@@ -319,34 +319,6 @@
       }
     },
     {
-      "id": "driftwood-isle-held-sword-pool",
-      "shard": "driftwood-isle",
-      "entry": "src/shards/driftwood-isle/generators/bake-sword-pool.mjs",
-      "command": [
-        "--experimental-transform-types",
-        "--import",
-        "./src/sdk/bake/source-loader.mjs",
-        "src/shards/driftwood-isle/generators/bake-sword-pool.mjs"
-      ],
-      "inputRoots": [
-        "package.json",
-        "pnpm-lock.yaml",
-        "src/sdk",
-        "src/format",
-        "src/shards/driftwood-isle/generators/bake-sword-pool.mjs",
-        "src/shards/driftwood-isle/generators/swordPool.ts"
-      ],
-      "outputs": [
-        "public/assets/driftwood-isle/baked/c00e6ad0f0384c1208d5b56a125f21793bd209ed59cfce9acd9e65c96a5bc981.glb",
-        "src/shards/driftwood-isle/data/swordPool.generated.json"
-      ],
-      "platform": "portable",
-      "buildTimeOutputs": [
-        "public/assets/driftwood-isle/baked/c00e6ad0f0384c1208d5b56a125f21793bd209ed59cfce9acd9e65c96a5bc981.glb",
-        "src/shards/driftwood-isle/data/swordPool.generated.json"
-      ]
-    },
-    {
       "id": "driftwood-reef",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-reef.mjs",

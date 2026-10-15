@@ -39,6 +39,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 export interface IronSwordPickupOptions {
   scene: THREE.Scene;
   sky: Sky;
+  materials: ReadonlyMap<string, THREE.Material>;
   /** the floor point under the orb (the deck) */
   position: THREE.Vector3;
   tier?: PickupTier;
@@ -127,7 +128,7 @@ export class IronSwordPickup {
     this.scene = opts.scene;
     this.floor = opts.position.clone(); this.floor.y += LIFT;
     this.takeRadius = opts.takeRadius ?? TAKE_R;
-    this.pickup = new ItemPickup({ scene: opts.scene, item: buildIronSwordDisplay(opts.sky), position: this.floor, tier: opts.tier ?? 'common', prompt: opts.prompt ?? 'Take iron sword', radius: opts.radius ?? 2.6, scale: DISPLAY_SCALE, tilt: TILT, random: () => this.cosmetic.next() });
+    this.pickup = new ItemPickup({ scene: opts.scene, item: buildIronSwordDisplay(opts.materials), position: this.floor, tier: opts.tier ?? 'common', prompt: opts.prompt ?? 'Take iron sword', radius: opts.radius ?? 2.6, scale: DISPLAY_SCALE, tilt: TILT, random: () => this.cosmetic.next() });
     const base = this.pickup.interactable, reason = (): string | null => this.guard?.() ?? null;
     this.interactable = {
       position: base.position,

@@ -4,7 +4,7 @@
 import type { GraphIr } from '@wildshard/format/materialGraph';
 
 /** the look.materials ids the arms, the two swords and the swimming arms wear */
-export const FP_ARMS_MATERIALS = { arms: 'driftwood-fp-arms', wood: 'driftwood-fp-wood', iron: 'driftwood-fp-iron', swim: 'driftwood-fp-swim' } as const;
+export const FP_ARMS_MATERIALS = { arms: 'driftwood-fp-arms', wood: 'driftwood-fp-wood', iron: 'driftwood-fp-iron', swim: 'driftwood-fp-swim', pickupBlade: 'driftwood-pickup-blade', pickupFittings: 'driftwood-pickup-fittings' } as const;
 
 export const FP_ARMS_LOOK = {
   url: '/assets/models/driftwood-fp/fp-arms.glb',
@@ -103,4 +103,7 @@ function swimGraph(): GraphIr {
 export const FP_ARMS_GRAPHS: Readonly<Record<string, GraphIr>> = {
   [FP_ARMS_MATERIALS.arms]: heldGraph('arms'), [FP_ARMS_MATERIALS.wood]: heldGraph('wood'),
   [FP_ARMS_MATERIALS.iron]: heldGraph('iron'), [FP_ARMS_MATERIALS.swim]: swimGraph(),
+  // World pickup: the arms' toon family, original surface values, no held shadow offset.
+  [FP_ARMS_MATERIALS.pickupBlade]: { version: 1, kind: 'material', model: 'toon', flatShading: true, nodes: { paint: { op: 'vertexColour' } }, stages: { surface: { colour: 'paint', roughness: 0.5, metalness: 0.65 } } },
+  [FP_ARMS_MATERIALS.pickupFittings]: { version: 1, kind: 'material', model: 'toon', flatShading: true, nodes: { paint: { op: 'vertexColour' } }, stages: { surface: { colour: 'paint', roughness: 0.62, metalness: 0.45 } } },
 };

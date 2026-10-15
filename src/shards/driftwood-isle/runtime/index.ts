@@ -71,7 +71,7 @@ export class DriftwoodPlugin extends ShardPlugin {
     if (ctx.scope.disposed) throw new Error('Driftwood Isle was unloaded while compiling its arms');
     ctx.scope.onDispose((await import('../fpArms')).lendCastawayArms(arms, followToon(arms.toon)));
     this.installCreatures(ctx);
-    const rows = driftwoodLoadoutRows(shell.world, shell);
+    const rows = driftwoodLoadoutRows(shell.world, shell, arms.materials);
     ctx.rows.weapon(rows); installDriftwoodLoadout(shell.world, shell, rows, ctx);
     ctx.scope.onDispose(() => { clearDriftwoodDrop(shell); });
     ctx.rows.item(DRIFTWOOD_ITEMS); ctx.rows.feat(DRIFTWOOD_FEATS);

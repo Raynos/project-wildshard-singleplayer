@@ -38,7 +38,7 @@ export interface SwordOptions {
   profile: MeleeProfile;
   inputContext: string;
   allowUnlocked?: boolean; blade?: 'wood' | 'iron';
-  /** the viewmodel (required, SF54: Driftwood's wooden / iron sword `swordRig`, the sabre's, the jian's) + moves + numbers */
+  /** the rigid viewmodel (optional when animated arms are supplied, SF54: Driftwood's wooden / iron sword `swordRig`, the sabre's, the jian's) + moves + numbers */
   rig?: SwordRig; moves?: SwordMoveSet; damage?: number; reach?: number;
   /** portrait phone: how far the hands are pulled in from the right (× portrait; default 0.32) — the sabre pulls further, clear of the Nalati discs */
   portraitPullX?: number;
@@ -259,7 +259,8 @@ export class SweptMelee extends Melee {
     this.impacts = Impacts.for(this.game); // contact debris (C4), in the scene from boot so its program is precompiled
     this.iron = opts.blade === 'iron';
     this.fx = CameraFX.for(this.game); // camera kick / FOV punch (C3); after bootstrap, so it layers on Player.update's camera
-    this.buildViewmodel(opts.rig);
+    if (opts.rig !== undefined) this.buildViewmodel(opts.rig);
+    else if (opts.arms === undefined) throw new Error('Swept contact family: no rigid or animated rig supplied');
     if (opts.arms) this.useArms(opts.arms);
     this.buildTrail();
     this.game.viewmodel.add(this.model);

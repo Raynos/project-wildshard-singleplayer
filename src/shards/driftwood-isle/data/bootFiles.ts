@@ -2,10 +2,8 @@ import { REEF_FILES } from './reefFiles';
 import { PALM_FILES } from './palmFiles';
 import { HIBISCUS_FILES } from './hibiscusFiles';
 import { ISLAND_COVER_FILES } from './islandCoverFiles';
-import heldPool from './swordPool.generated.json' with {type:'json'};
 /** Ordered retained boot and late inventory selections. */
 export const DRIFTWOOD_BOOT_FILES = {
-  held: {source: {urls: [heldPool.url]}},
   "empty": {
     "source": {
       "urls": []
@@ -132,7 +130,7 @@ export const DRIFTWOOD_BOOT_SOURCES = {
   "trees": "empty",
   "physics": "physics",
   "cabins": "empty",
-  "props": "held",
+  "props": "empty",
   "art": "empty",
   "music": "empty",
   "sfx": "empty"
