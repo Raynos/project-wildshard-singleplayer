@@ -73,6 +73,9 @@ test('a shared material pairs its precompiled composer program after an environm
     const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
     if (!isParameters(parameters)) throw new Error('Missing parameters');
     handler.build(material, mesh, parameters);
+    expect(parameters.vertexShader).toContain('uniform highp mat4 modelMatrix;');
+    const blocks = [...parameters.vertexShader.matchAll(/uniform\s+\w+\s*\{([^{}]*)\};/gu)];
+    expect(blocks.every(block => !block[1]?.includes('modelMatrix'))).toBe(true);
     const retained: unknown = Reflect.get(material, '_latestBuilder');
     if (typeof retained !== 'object' || retained === null) throw new Error('Missing cold fallback');
     expect(Object.keys(retained).sort()).toEqual(['uniformGroups', 'uniforms', 'updateNodes']);

@@ -1,3 +1,4 @@
+import { uniformTransport } from './uniforms';
 /** Untimed real-renderer oracle for additive graph inputs. */
 import { programVariants } from './variants';
 import { Bone, CubeTexture, DataArrayTexture, DataTexture, DirectionalLight, Float32BufferAttribute, LinearSRGBColorSpace, Mesh, NearestFilter, NoToneMapping, OrthographicCamera, PlaneGeometry, PMREMGenerator, Scene, Skeleton, SkinnedMesh, Uint16BufferAttribute, WebGLRenderer } from 'three';
@@ -183,7 +184,8 @@ async function prove(): Promise<unknown> {
       && noEnvironment.slice(0, 3).every(value => value <= 1) && gl.getError() === gl.NO_ERROR;
     if (!environmentPass) throw new Error(JSON.stringify({above, below, atNormal, legacyNormal, dimmed, noEnvironment}));
     const variants = await programVariants(renderer, scope);
-    return { pass, environmentIrradianceAt: {above, below, atNormal, legacyNormal, dimmed, noEnvironment, refusedDirection, refusedPlace}, variants, materialPorts: {portsDark, portsFlash}, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels, skyLight: lightPixels,
+    const uniforms = uniformTransport(renderer, scope);
+    return { pass, uniforms, environmentIrradianceAt: {above, below, atNormal, legacyNormal, dimmed, noEnvironment, refusedDirection, refusedPlace}, variants, materialPorts: {portsDark, portsFlash}, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels, skyLight: lightPixels,
       textureArray: {unset,firstArray,swappedArray,refused2d,refusedMixed,arrayPrograms,swappedPrograms} };
   } finally { scope.dispose(); renderer.dispose(); renderer.forceContextLoss(); }
 }

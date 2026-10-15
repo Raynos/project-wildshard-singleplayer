@@ -5230,6 +5230,12 @@ program-switch callback. A material shared by a main/composer scene and a
 PMREM scene retains every program's own uniform blocks and sampler list.
 Actual material disposal releases them; environment refresh does not.
 
+The stock node model-world matrix uses the classic renderer's `modelMatrix`
+uniform. Custom, high-precision and normal-matrix inputs retain their original
+nodes and blocks. Consecutive graph draws retain indexed UBO bindings until a
+classic draw, render boundary or disposal displaces them; live values still
+upload when changed, including callback edits inside a render.
+
 Model-library `geometry(name, { borrow: true })` lends its cached rest primitive. The default remains an independent owned clone. Borrowers must never transform, recolour, replace attributes or dispose the immutable geometry; bake all geometry transforms before admission. Held crossbow and fallback sword meshes use this door without retaining a second backing.
 
 `clientMaterials` and `runtimeLookMaterials` return `toon`, the live

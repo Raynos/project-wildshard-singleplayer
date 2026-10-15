@@ -65,6 +65,7 @@ import { bindGraphAttributeDefaults, copyGraphAttributeDefaults, prepareGraphAtt
 import { buildWithInstanceAttributes, instanceAttributeShader, nodeInstanceKey } from './nodeInstancing';
 import { TextureUpdates } from './textureUpdates';
 import { NodeProgramVariants } from './nodeProgramVariants';
+import { classicModelUniform } from './nodeObjectUniforms';
 
 /** Depth displacement reads the same authored local normal as its surface. */
 class GraphShadowDepthMaterial extends MeshBasicNodeMaterial {
@@ -372,7 +373,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     });
   }
 
-  override renderEnd(): void { try { super.renderEnd(); } finally { this.textureUpdates.endRender(); } }
+  override renderEnd(): void { try { super.renderEnd(); } finally { this.textureUpdates.endRender(); this.blocks?.invalidateBindings(); } }
 
   /** Clone-safe optional attributes use the renderer's existing constant-value binding. */
   override setObject(object: THREE.Object3D, material: THREE.Material): void {
@@ -396,7 +397,10 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     if (previous !== renderer && typeof stock === 'function') {
       const draw = renderer.renderBufferDirect.bind(renderer);
       renderer.renderBufferDirect = (camera, scene, geometry, material, object, group): void => {
-        this.drawShadow(camera, material, object, group, next => { draw(camera, scene, geometry, next, object, group); });
+        this.drawShadow(camera, material, object, group, next => {
+          if (!(next instanceof NodeMaterial)) this.blocks?.invalidateBindings();
+          draw(camera, scene, geometry, next, object, group);
+        });
       };
     }
     const gl: unknown = renderer.getContext();
@@ -481,7 +485,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
    * bakes of one build differed); three's stock fog node is dropped wherever the engine epilogue fogs
    */
   override renderStart(scene: THREE.Object3D, camera: THREE.Camera, targetScene?: THREE.Object3D): void {
-    super.renderStart(scene, camera, targetScene); this.textureUpdates.beginRender();
+    super.renderStart(scene, camera, targetScene); this.textureUpdates.beginRender(); this.blocks?.invalidateBindings();
     const frame: unknown = Reflect.get(this, 'nodeFrame');
     if (worldTime.t !== null && typeof frame === 'object' && frame !== null) {
       Reflect.set(frame, 'time', worldTime.t);
@@ -540,7 +544,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const programs: unknown = typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'programs') : undefined;
     const pending = this.pendingBuilds.get(material) ?? [];
     const updateNodes: unknown = typeof builder === 'object' && builder !== null ? Reflect.get(builder, 'updateNodes') : undefined;
-    const uniformsGroups = internals(this).collectUniformsGroups(builder);
+    const uniformsGroups = classicModelUniform(parameters, internals(this).collectUniformsGroups(builder).filter(isBlockGroup));
     stableBufferNames(builder, parameters, uniformsGroups);
     pending.push({ uniformsGroups, updateNodes,
       uniforms: parameters.uniforms, programs, slot: programs instanceof Map ? programs.size : -1 });

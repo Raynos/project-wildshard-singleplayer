@@ -38,6 +38,9 @@ if (mode === '--bundle') {
     await browser(['--args', '--mute-audio,--use-angle=metal,--ignore-gpu-blocklist', 'open', `http://127.0.0.1:${address.port}`]);
     await browser(['wait', '--fn', 'window.graphInputsProof !== undefined']);
     console.log((await browser(['eval', 'JSON.stringify(window.graphInputsProof)'])).stdout.trim());
-    if ((await browser(['eval', 'window.graphInputsProof.pass === true'])).stdout.trim() !== 'true') throw new Error('Graph input GPU oracle failed');
+    if ((await browser(['eval', 'window.graphInputsProof.pass === true'])).stdout.trim() !== 'true') {
+      console.error((await browser(['console', '--json'])).stdout.trim());
+      throw new Error('Graph input GPU oracle failed');
+    }
   } finally {await browser(['close']).catch(() => undefined); server.close();}
 } else throw new Error('Unknown oracle mode');

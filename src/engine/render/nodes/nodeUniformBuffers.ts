@@ -112,6 +112,7 @@ export class NodeUniformBuffers {
   private readonly blocks = new WeakMap<object, Block>();
   /** each program's block indices by block name, and the binding point each block index was last pointed at */
   private readonly programs = new WeakMap<WebGLProgram, { readonly index: Map<string, number>; readonly point: Map<number, number> }>();
+  private readonly bound = new Map<number, WebGLBuffer>();
   private readonly top: number;
   private readonly gl: UniformBlockGl;
 
@@ -130,7 +131,9 @@ export class NodeUniformBuffers {
       const block = this.block(group);
       this.upload(block);
       const point = this.top - i;
-      gl.bindBufferBase(gl.UNIFORM_BUFFER, point, block.buffer);
+      if (this.bound.get(point) !== block.buffer) {
+        gl.bindBufferBase(gl.UNIFORM_BUFFER, point, block.buffer); this.bound.set(point, block.buffer);
+      }
       let index = known.index.get(group.name);
       if (index === undefined) { index = gl.getUniformBlockIndex(program, group.name); known.index.set(group.name, index); }
       if (index === gl.INVALID_INDEX || known.point.get(index) === point) return;
@@ -139,11 +142,15 @@ export class NodeUniformBuffers {
     });
   }
 
+  /** Classic draws and render boundaries may bind external groups. */
+  invalidateBindings(): void { this.bound.clear(); }
+
   /** free a group's buffer (its material was disposed) */
   release(group: object): void {
     const block = this.blocks.get(group);
     if (block === undefined) return;
     this.gl.deleteBuffer(block.buffer);
+    for (const [point, buffer] of this.bound) if (buffer === block.buffer) this.bound.delete(point);
     this.blocks.delete(group);
   }
 
