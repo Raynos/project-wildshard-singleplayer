@@ -72,7 +72,7 @@ it('syncs only what differs, drops art/progress/sources, and leaves the checkout
 it('links workspace packages to the mirror sources, takes over a dead lock and rejects bad slots', () => {
   const { repo, commit, env } = fixture();
   const sha = commit({ 'src/engine/package.json': '{"name":"@wildshard/engine"}', 'src/engine/index.ts': 'e' });
-  const lock = join(env['WILDSHARD_BUILD_MIRROR'] ?? '', 'build.lock');
+  const lock = join(env['WILDSHARD_BUILD_MIRROR'] ?? '', 'check.lock');
   mkdirSync(lock, { recursive: true });
   writeFileSync(join(lock, 'owner'), '999999\n');
   const mirror = openMirror(sha, { repo, env });
