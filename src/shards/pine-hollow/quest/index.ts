@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import { PINE_LANTERN_PAGE } from '../data/questPageInteractions';
 import { PINE_QUEST_CONSEQUENCES, PINE_CLOCK_CONSEQUENCES } from '../data/questConsequences';
+import { PINE_QUEST_TRANSACTIONS } from '../data/questTransactions';
 import NPC_ROSTER from '../data/questNpcs.generated.json' with { type: 'json' };
 import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { PINE_KIT_EVENTS } from '../data/questEvents';
@@ -253,17 +254,20 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     v.parse(jsonSchema, JSON.parse(raw) as unknown); lodge.write(raw);
   } };
   const board: Board = loadBoard(store);
+  const traderVoice = new THREE.Vector3();   // his head (set once he stands in his stall, below)
+  const transactions = bindQuestPageInteractions(PINE_QUEST_TRANSACTIONS, { flags, toast: text => { hud.toast(text); },
+    owners: new Map<string, unknown>([['inventory', inventory], ['crossbow', h.crossbow], ['skins', h.skins], ['music', h.music], ['sfx', kitSfx],
+      ['ammo', { get add() { return h.crossbow.addAmmo?.bind(h.crossbow) ?? null; } }], ['voice', { get current() { return sfx; } }], ['points', { trader: traderVoice }],
+      ['finishes', Object.fromEntries((['hollow-ash', 'scarback-furnace'] as const).map(id => [id, { wear: () => { h.wearSkin(SKINS[id]); } }]))]]) });
   const boardUi = ui.view('board', (scope) => {
     const panel = new BoardPanel(() => board, scope);
     panel.onClaim = (i) => {
-      const r = claim(board, i);
-      if (!r) return;
-      for (const it of r.items) inventory.add(it.id, it.n);
-      if (r.bolts > 0) h.crossbow.addBolts(r.bolts);
-      if (r.skin) { const s = SKINS[r.skin]; h.skins.own(s.id); h.wearSkin(s); hud.toast(`${s.name} crossbow finish — ${s.blurb}`); }
+      const contract = board.slots[i], r = claim(board, i);
+      if (!r || contract === undefined) return;
+      transactions.run(`contract.${contract.kind}.${contract.target}`);
+      if (r.skin) transactions.run('contract.finish');
       saveBoard(board, store);
-      kitSfx.interact('chest');
-      h.music.sting('pickup');
+      transactions.run('contract.claimed');
       featFacts.event('streak', board.streak);
       hud.toast(`Contract claimed · ${board.claimed} so far · ${board.streak} in a row`);
     };
@@ -280,7 +284,6 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   h.interactables.push(boardPrompt);
 
   // ── the trader's slate ──
-  const traderVoice = new THREE.Vector3();   // his head (set once he stands in his stall, below)
   const pack = { count: (id: TradeItem): number => inventory.count(id) };
   const owns = (s: string): boolean => s in SKINS && h.skins.has(s);
   const room: Room = (k, n) => h.crossbow.room?.(k, n) ?? true;
@@ -291,17 +294,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
       state: (g) => tradeShopState(g.trade, pack, owns, room), cost: (g) => tradeCost(g.trade, pack),
       scope,
     });
-    panel.onBuy = ({ trade: t }) => {
-      for (const g of t.give) inventory.take(g.item, g.n);
-      const got = t.get;
-      if ('bolts' in got) h.crossbow.addBolts(got.bolts);
-      else if ('ammo' in got) h.crossbow.addAmmo?.(got.ammo, got.n);
-      else { const s = SKINS[got.skin]; h.skins.own(s.id); h.wearSkin(s); } // nothing Mott gives goes in the pack (E314 C)
-      sfx?.bark('trader', traderVoice);
-      kitSfx.interact('chime');
-      hud.toast(`Traded · ${t.label}`);
-      return true;
-    };
+    panel.onBuy = ({ trade: t }) => transactions.run(`trade.${t.id}`);
     return panel;
   });
 
