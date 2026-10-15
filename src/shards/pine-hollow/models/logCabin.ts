@@ -8,39 +8,18 @@
  * draws it (`ModelDef.weld`, src/engine/models/weld.ts): the cabins' parts merged per building and their never-hidden
  * materials welded across the three, the hamlet's five welded into one set, the detail and far sets dropped with distance
  * (../world/cabins.ts). The Explorer's specimen is the building assembled alone and merged as the world merges a cabin
- * (`buildingSpecimen`). The kit's shared shapes (`logGeo`, `boxUV`) live in ../world/logKit.ts;
- * `finishParts` stays here for the landmarks' timber.
+ * (`buildingSpecimen`). The kit's shared shapes (`logGeo`, `boxUV`) live in ../world/logKit.ts.
  */
 import * as THREE from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { defineModel, type ModelBuild, type ModelContext } from '@wildshard/engine/models/model';
 import { UnitParts, nearProxy, type WeldBuild } from '@wildshard/engine/models/weld';
-import type { Cabins, Mats, MatKey } from '../world/homestead';
+import type { Cabins } from '../world/homestead';
 import { CABIN_ROWS, LogBuilding, NO_OWNER } from '../world/cabinBake';
 import { PROP_KINDS } from '../world/logKit';
-import { TIMBER_DRAWS } from '../data/timberDraws';
 
 /** one (geometry, material, world matrix) part of a flattened glTF prop */
 export interface PropPart { geometry: THREE.BufferGeometry; material: THREE.Material; matrix: THREE.Matrix4 }
-
-/**
- * Merge a timber's parts per material under `root` (src/shards/pine-hollow/world/timber.ts: the landmarks, drawn `single`):
- * one mesh per material, the small hardware in `detailList` (it casts its own shadow), the mid parts in `farList`, and the
- * static shadow casters as two position-only proxies (the silhouette set, and the far set that goes with the far list).
- */
-export function finishParts(parts: Map<MatKey, THREE.BufferGeometry[]>, mats: Mats, root: THREE.Object3D, detailList: THREE.Object3D[], farList: THREE.Object3D[]): void {
-  // The declared bands are markers; the live tier and copy pad resolve their distances.
-  const DETAIL = 1, FAR = 2;
-  const unit = new UnitParts();
-  for (const [key, geometries] of parts) unit.add([{ ...TIMBER_DRAWS[key], material: mats[key], geometries }]);
-  parts.clear();
-  const drawn = unit.draw(root, false);
-  for (const { mesh, part } of drawn.meshes) {
-    if (part.until === DETAIL) detailList.push(mesh);
-    else if (part.until === FAR) farList.push(mesh);
-  }
-  for (const { mesh, until } of drawn.proxies) if (until === FAR) farList.push(mesh);
-}
 
 // ───────────────────────────── the homestead, as its models read it ─────────────────────────────
 

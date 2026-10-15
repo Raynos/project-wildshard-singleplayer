@@ -13,8 +13,8 @@ import * as v from 'valibot';
 import type { ModelContext } from '@wildshard/engine/models/model';
 import { resourceScope } from '@wildshard/engine/app/resources';
 import { readWholeGeometry, fetchLaneBake, type WholeGeometryView } from '@wildshard/game/plugin/geometry';
-import { Timber } from './timber';
-import { colliderOf, mossHint, TimberRowSchema, type TimberRow } from './timberBake';
+import type { TimberCopy } from './timber';
+import { mossHint, TimberRowSchema } from './timberBake';
 import siteJson from '../data/siteTimbers.json' with { type: 'json' };
 import authored from '../data/timberWorld.generated.json' with { type: 'json' };
 import source from '../shard.config';
@@ -66,29 +66,20 @@ export async function loadSiteTimbers(ctx: ModelContext): Promise<Map<string, Wh
   return ready;
 }
 
-/** Recreate original draws and unchanged facts; the native timber material and shadow policy still finishes them. */
-export function timberFromViews(ctx: ModelContext, name: string, identity: string, row: TimberRow): Timber {
+/** One original timber draw from the bake: a fresh copy, its moss channel named as the timber's look reads it. */
+export function timberDraw(ctx: ModelContext, name: string): THREE.BufferGeometry {
   const ready = ctx.once<Map<string, WholeGeometryView>>('pine-hollow/timber:ready', () => { throw new Error('[timber] admitted views not ready'); });
-  const draw = (key: string): THREE.BufferGeometry => {
-    const view = ready.get(`${identity}-${key}`);
-    if (view === undefined) throw new Error(`[timber] missing original draw ${identity}-${key}`);
-    return mossHint(view.geometry.clone());
-  };
-  const parts = new Map(row.parts.filter(part => part.counts.length > 0).map(part => [part.key, [draw(part.key)]]));
-  const glass = row.glass.length === 0 ? [] : [draw('glass')];
-  const anchors = Object.fromEntries(Object.entries(row.anchors).map(([key, point]) => [key, new THREE.Vector3(...point)]));
-  return Timber.baked(name, parts, glass, { colliders: row.colliders.map(colliderOf), floors: row.floors, anchors });
+  const view = ready.get(name);
+  if (view === undefined) throw new Error(`[timber] missing original draw ${name}`);
+  return mossHint(view.geometry.clone());
 }
 
-/** one copy's timber from the bake, unfinished */
-export function siteTimber(ctx: ModelContext, name: string, site: TimberSite, rows: SiteTimberRows = SITE_TIMBER_ROWS): Timber {
-  const copies = name === LANDING.name ? rows.landing : name === BRIDGE.name ? rows.bridge : undefined;
+/** A site-fitted copy: its draws' prefix and its bake's rows, at its site in the world or on the turntable. */
+export function siteCopy(name: string, site: TimberSite): TimberCopy {
+  const copies = name === LANDING.name ? SITE_TIMBER_ROWS.landing : name === BRIDGE.name ? SITE_TIMBER_ROWS.bridge : undefined;
   if (copies === undefined) throw new Error(`[timber] unknown copy ${name}`);
-  return timberFromViews(ctx, name, site === 'world' ? name : `${name}-turntable`, copies[site]);
+  return { identity: site === 'world' ? name : `${name}-turntable`, row: copies[site] };
 }
-
-/** the identity a copy's facts are kept by (`timberFacts` keys by object) */
-export const SITE_KEYS: Readonly<Record<TimberSite, object>> = { world: {}, turntable: {} };
 
 /** Borrow one authored rest shape, retaining the original native culling sphere. */
 export function propShapeGeometry(views: ReadonlyMap<string, WholeGeometryView>, name: string, sphere: readonly number[]): THREE.BufferGeometry {

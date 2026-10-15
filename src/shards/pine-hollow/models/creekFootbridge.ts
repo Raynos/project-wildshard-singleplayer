@@ -7,24 +7,17 @@
  * (src/shards/pine-hollow/world/landmarks.ts).
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { timberFacts, timberMats } from '../world/timber';
-import { BRIDGE, BRIDGE_HALF, SITE_KEYS, siteTimber, type TimberSite } from '../world/timberSites';
+import { timberModel } from '../world/timber';
+import { BRIDGE, BRIDGE_HALF, siteCopy, type TimberSite } from '../world/timberSites';
 
 export interface CreekFootbridgeParams {
   /** the copy: fitted to its site in the world, or on the turntable (1.2 m over its gully) */
   readonly site: TimberSite;
 }
 
-const footbridge = timberFacts<CreekFootbridgeParams>((ctx, p) => {
-  const t = siteTimber(ctx, BRIDGE.name, p.site);
-  t.finish(timberMats(ctx), BRIDGE_HALF);
-  return t;
-}, (p) => SITE_KEYS[p.site]);
-
 export const creekFootbridge = defineModel<CreekFootbridgeParams>({
   id: 'pine-hollow/creek-footbridge', name: 'Creek footbridge', category: 'buildings', pipeline: 'code',
   file: 'src/shards/pine-hollow/models/creekFootbridge.ts', surface: 'wood',
   defaults: { site: 'turntable' },
-  build: (ctx, p) => footbridge.build(ctx, p),
-  colliders: (p, ctx) => footbridge.facts(ctx, p).colliders,
+  ...timberModel((p: CreekFootbridgeParams) => siteCopy(BRIDGE.name, p.site), BRIDGE_HALF),
 });

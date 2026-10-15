@@ -7,24 +7,17 @@
  * Placed once in the Hollow (src/shards/pine-hollow/world/landmarks.ts); its anchors (`zipBottom`, `landing`) are the ride's.
  */
 import { defineModel } from '@wildshard/engine/models/model';
-import { timberFacts, timberMats } from '../world/timber';
-import { LANDING, SITE_KEYS, siteTimber, type TimberSite } from '../world/timberSites';
+import { timberModel } from '../world/timber';
+import { LANDING, siteCopy, type TimberSite } from '../world/timberSites';
 
 export interface ZiplineLandingParams {
   /** the copy: fitted to its site in the world, or on the turntable's flat ground */
   readonly site: TimberSite;
 }
 
-const landing = timberFacts<ZiplineLandingParams>((ctx, p) => {
-  const t = siteTimber(ctx, LANDING.name, p.site);
-  t.finish(timberMats(ctx), 4);
-  return t;
-}, (p) => SITE_KEYS[p.site]);
-
 export const ziplineLanding = defineModel<ZiplineLandingParams>({
   id: 'pine-hollow/zipline-landing', name: 'Zipline landing', category: 'buildings', pipeline: 'code',
   file: 'src/shards/pine-hollow/models/ziplineLanding.ts', surface: 'wood',
   defaults: { site: 'turntable' },
-  build: (ctx, p) => landing.build(ctx, p),
-  colliders: (p, ctx) => landing.facts(ctx, p).colliders,
+  ...timberModel((p: ZiplineLandingParams) => siteCopy(LANDING.name, p.site), 4),
 });

@@ -2,7 +2,7 @@
  * Pine Hollow's timber landmarks from their offline bakes (G285, SF72 "bake the code-built worlds"). A timber's builder runs
  * at build time (`../generators/timberBake.ts` records what it leaves: each material's parts and the glass as float32
  * attribute blocks in a binary, the colliders, deck floors and anchors as a row); here a row and its blocks become the
- * timber again, ready to `finish` (./timber.ts `Timber.baked`), exactly as the builder's own timber was.
+ * timber's library draws again (./timberSites.ts `timberDraw`, ./timber.ts `timberModel`), exactly as the builder left them.
  */
 import type * as THREE from 'three';
 import * as v from 'valibot';

@@ -2,7 +2,7 @@
  * The timber kit's builder (E315 M2; G285: build-time only): the generators of Pine Hollow's timber landmarks
  * (./fireLookout.ts, ./siteTimbers.ts) lay a building's parts in its OWN frame on the cabins' log kit (../world/logKit.ts
  * `logGeo`, `boxUV`), gather its colliders, deck floors and named points, and hand it to the bake (./timberBake.ts); the
- * page finishes the baked parts on the cabins' materials (../world/timber.ts `Timber.baked`, `finish`).
+ * page draws the baked parts on the cabins' materials (../world/timber.ts `timberModel`).
  */
 import * as THREE from 'three';
 import { PINE_TIMBER_SEED as SEED, type ColliderRow as ColliderDesc, type TimberFacts } from './timberRows';

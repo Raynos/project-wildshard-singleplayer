@@ -14,6 +14,7 @@
     "./systems/viewmodel/rigArms": "./systems/viewmodel/rigArms.ts",
     "./models/pickups": "./models/pickups.ts",
     "./models/creatures": "./models/creatures.ts",
+    "./models/libraryModel": "./models/libraryModel.ts",
     "./systems/npc/npcRig": "./systems/npc/npcRig.ts",
     "./systems/species/view/bear": "./systems/species/view/bear.ts",
     "./systems/species/view/boar": "./systems/species/view/boar.ts",

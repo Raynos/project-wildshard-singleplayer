@@ -46,7 +46,7 @@ import { contractBoard } from '../models/contractBoard';
 import { caveArch, openCaveArch } from '../models/caveArch';
 import { loadTimber, type Floor } from './timber';
 import { bridgeSite, landingSite, lookoutSite, loadSiteTimbers } from './timberSites';
-import { fireLookout, loadFireLookout } from '../models/fireLookout';
+import { fireLookout } from '../models/fireLookout';
 import { ziplineLanding } from '../models/ziplineLanding';
 import { creekFootbridge } from '../models/creekFootbridge';
 import { zipCable } from '../models/zipCable';
@@ -126,7 +126,7 @@ export class PineLandmarks implements PineLandmarksHandle {
   async build(cabins: Cabins | null, registry: WorldRegistry | null = null): Promise<this> {
     const crags = PineCrags.load(this.sky); // the kit + the cave + their textures, fetched while the timber builds
     const ctx = pineModels(this.sky);
-    await Promise.all([loadTimber(ctx), loadFireLookout(ctx), loadSiteTimbers(ctx)]);
+    await Promise.all([loadTimber(ctx), loadSiteTimbers(ctx)]);
     // the timber landmarks (models), one task each, at the frames their world-space builders used
     const lookoutAt = lookoutSite();
     this.placeTimber(fireLookout, lookoutAt, undefined, 'pine-lookout', registry);
