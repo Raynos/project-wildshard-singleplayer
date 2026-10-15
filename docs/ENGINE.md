@@ -2716,6 +2716,17 @@ graph owns the shell's colour, alpha and streaks, so a shard's storm is data onl
 shells. Signal's Dune Matriarch is the first user (`data/matriarchPresentation.ts`, `data/stormLook.ts`); Nalati's
 Storm Titan (SF48) is the planned second (`lint/platform-pending-users.json`).
 
+`game/plugin/headless.runtimeEquipment` constructs a primary and optional rifle
+and secondary in declared order. Each preparation is awaited, then paused before
+construction; the shared slice starts when equipment builds. `bindRuntimeEquipment`
+adopts these same instances through admitted item families, checking profiles and
+retaining native ammunition, legacy slots, metadata and declared presentation.
+W1 single-item kits and Pine's three ranged owners use the same builder.
+`game/plugin/simulation.bindNativeLoadout` supplies the existing slot/swap law,
+live body and aim readers, and optional step/snapshot registration at the native
+owner's original id and phase. Weapon and ammunition continuations keep their
+existing owners; single-item `prepareRuntimePlan` adds no new saved step.
+
 `@wildshard/game/plugin/quests` `installQuestGraph(host, { quests, interactions, npcs, graph }, ports)` runs a shard's
 declared quest graph headless (SF27): `DeclaredQuests` plus the interaction step at the baked spots and each quest-giver's
 talk spot, its runtime row (`parseQuestGraph`: `actor`, `step`, `actions`: `{ row, summon }` arms a boss when the row

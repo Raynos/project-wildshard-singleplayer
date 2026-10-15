@@ -18,9 +18,8 @@ import { installPineLever } from './weapons/headlessLever';
 import { parseLeverProfile } from '../weapons/leverAction';
 import { installPineLongbow } from './weapons/headlessLongbow';
 import { AIM_COMMAND, AIM_MIDDLE, aimShare } from './weapons/headlessRanged';
-import { createNativeLoadout, trustedLevel } from '@wildshard/game/plugin/simulation';
+import { bindNativeLoadout, trustedLevel } from '@wildshard/game/plugin/simulation';
 import { PINE_NATIVE_LOADOUT, PINE_WEAPON, WEAPON_COMMAND, LOADOUT_STEP, LEVER_FLAG } from '../data/nativeLoadout';
-import type { AnimalSim } from '@wildshard/engine/entities/AnimalSim';
 import { DayCycle } from '@wildshard/engine/world/dayCycle';
 import { PINE_DAY } from '../look/dayKeys';
 import { PINE_QUESTS } from '../data/quests';
@@ -146,7 +145,7 @@ export interface PineInstall {
 /** Install Pine's world, elites, King and roster on a host, in the page's order (the trusted runtime's `install`). */
 export function installPine(host: SimHost, parts: PineInstall): {
   roster: ReturnType<typeof installPineRoster>; elites: ReturnType<typeof installPineElites>; king: ReturnType<typeof installPineKing>; crossbow: ReturnType<typeof installPineCrossbow>;
-  lever: ReturnType<typeof installPineLever>; longbow: ReturnType<typeof installPineLongbow>; loadout: ReturnType<typeof createNativeLoadout<0 | 1 | 2>>;
+  lever: ReturnType<typeof installPineLever>; longbow: ReturnType<typeof installPineLongbow>; loadout: ReturnType<typeof bindNativeLoadout<0 | 1 | 2>>;
   quest: ReturnType<typeof installHollowQuest>;
   air: ReturnType<typeof installPineAir>;
   thralls: ReturnType<typeof installPineNight>;
@@ -174,21 +173,19 @@ export function installPine(host: SimHost, parts: PineInstall): {
   // reinstalls its live spawns at install, and the host keeps every adapter in registration order). Their afterBodies
   // work follows the creature manager, as on the page; the loadout swaps before every weapon updates. The roster's King
   // publication comes last, matching render propagation after equipment's cached-pose queries.
-  const shots = parts.shots ?? ((): readonly string[] => []), heavy = parts.heavy ?? ((): null => null), pick = parts.pick ?? ((): null => null);
+  const shots = parts.shots ?? ((): readonly string[] => []), heavy = parts.heavy ?? ((): null => null);
   // the quest (installed after the weapons) stows the weapons for the zipline's ride, and its lever-action pickup selects the rifle
-  const loadout = createNativeLoadout(PINE_NATIVE_LOADOUT, {
+  const loadout = bindNativeLoadout(host, PINE_NATIVE_LOADOUT, {
     owned: slot => slot === PINE_WEAPON.crossbow || (slot === PINE_WEAPON.lever && host.flags.has(LEVER_FLAG))
       || (slot === PINE_WEAPON.longbow && host.flags.has(KING_RECORD.paid)),
     locked: () => king.locked() || (quest?.riding() ?? false) || (quest?.talking() ?? false),
+    ...(parts.aim === undefined ? {} : { aim: parts.aim }), step: { id: LOADOUT_STEP, phase: 'afterBodies', pick: () => {
+      const picked = parts.pick?.() ?? null, took = quest?.takeRifle() ?? false;
+      return picked ?? (took ? PINE_WEAPON.lever : null);
+    } },
   });
-  host.onStep(LOADOUT_STEP, dt => {
-    const picked = pick(), took = quest?.takeRifle() ?? false, slot = picked ?? (took ? PINE_WEAPON.lever : null);
-    loadout.step(dt, slot === 0 || slot === 1 || slot === 2 ? slot : null);
-  }, { snapshot: loadout.snapshot, restore: loadout.restore }, 'afterBodies');
   // the bodies a bolt can hit: every host body (the roster's list, a fight's own), one buffer refilled a tick
-  const bodyBuffer: AnimalSim[] = [];
-  const bodies = (): readonly AnimalSim[] => { bodyBuffer.length = 0; host.entities.forEach(body => { bodyBuffer.push(body); }); return bodyBuffer; };
-  const aim = parts.aim ?? ((): number => AIM_MIDDLE);
+  const { bodies, aim } = loadout;
   const speedFactor = installPineRangedMotion(host);
   // The air callback is registered after quest, but all weapon flight runs after bodies. They read that same owner.
   let air: ReturnType<typeof installPineAir> | null = null;

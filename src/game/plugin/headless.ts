@@ -13,7 +13,7 @@ import { Vector3, type Object3D } from 'three';
 import { shardContentIdentity, legacyContentIdentity } from "../shard/list";
 import type { Actor } from '@wildshard/engine/combat/pipeline';
 import type { EquipmentIcon, EquipmentRow } from '@wildshard/engine/combat/Equipment';
-import type { ItemFamily } from '@wildshard/engine/combat/itemFamilies';
+import type { ItemFamily, ItemFamilyPresentation } from '@wildshard/engine/combat/itemFamilies';
 import { QuestState, type QuestMarker, type QuestStep } from '@wildshard/engine/quest/core';
 import type { Flags } from '@wildshard/engine/world/interact/flags';
 import { type ShardContext, ShardPlugin } from './context';
@@ -469,6 +469,64 @@ export function bindRuntimeActor(ctx: ShardContext, source: Pick<Shardfile, 'run
 
 type InputDefinition = Parameters<ShardContext['inputContext']>[0];
 type BuildEquipment = NonNullable<NonNullable<ShardContext['game']['runtime']>['buildEquipment']>;
+/** Existing equipment constructors run in declared order, with optional awaited
+ * preparation and pauses. A single held item and a full ranged kit use one path.
+ */
+export function runtimeEquipment(steps: readonly {
+  readonly slot: 'primary' | 'rifle' | 'secondary';
+  readonly prepare?: (due: () => Promise<void> | null) => Promise<void>;
+  readonly create: (...args: Parameters<BuildEquipment>) => Awaited<ReturnType<BuildEquipment>>['primary'];
+}[], options: { readonly pause?: () => Promise<void>; readonly slice?: () => () => Promise<void> | null; readonly bind?: (weapons: Awaited<ReturnType<BuildEquipment>>) => void } = {}): BuildEquipment {
+  if (steps.length === 0 || steps.length > 3 || !steps.some(step => step.slot === 'primary') ||
+    new Set(steps.map(step => step.slot)).size !== steps.length) throw new Error('Invalid runtime equipment slots');
+  return async (...args) => {
+    const due = options.slice?.() ?? (() => null);
+    const weapons: { primary: Awaited<ReturnType<BuildEquipment>>['primary'] | null; rifle: Awaited<ReturnType<BuildEquipment>>['rifle']; secondary: Awaited<ReturnType<BuildEquipment>>['secondary'] } = { primary: null, rifle: null, secondary: null };
+    for (const [index, step] of steps.entries()) {
+      if (step.prepare !== undefined) { await step.prepare(due); if (options.pause !== undefined) await options.pause(); }
+      weapons[step.slot] = step.create(...args);
+      if (index + 1 < steps.length && options.pause !== undefined) await options.pause();
+    }
+    const primary = weapons.primary;
+    if (primary === null) throw new Error('Runtime equipment needs its primary');
+    const built = { primary, rifle: weapons.rifle, secondary: weapons.secondary };
+    options.bind?.(built); return built;
+  };
+}
+
+/** Adopt already constructed ranged owners into admitted item rows, retaining
+ * their original controllers, legacy slots, profiles and optional presentation.
+ */
+export function bindRuntimeEquipment(ctx: Parameters<typeof bindRuntimeItems>[0], source: Shardfile,
+  owners: readonly { readonly id: string; readonly weapon: Awaited<ReturnType<BuildEquipment>>['primary']; readonly profile: unknown; readonly presentation?: boolean }[]): void {
+  if (owners.length === 0 || owners.length > 3 || new Set(owners.map(owner => owner.id)).size !== owners.length) throw new Error('Invalid runtime item owners');
+  const entries = owners.map(owner => {
+    const declaration = source.items.rows.find(row => row.id === owner.id), native = owner.weapon.row;
+    if (declaration?.kind !== 'weapon' || JSON.stringify(declaration.profile) !== JSON.stringify(owner.profile)) throw new Error('Runtime item profile differs from its constructed owner');
+    const { name: _name, icon: _icon, inputContext: _context, swapIcon: _swap, ...ui } = native.ui;
+    const presentation: ItemFamilyPresentation = { ui, ...(native.cues === undefined ? {} : { cues: native.cues }),
+      ...(native.hitStop === undefined ? {} : { hitStop: native.hitStop }), ...(native.rangedFeel === undefined ? {} : { rangedFeel: native.rangedFeel }) };
+    return { owner, declaration, native, presentation };
+  });
+  const families = new Map<string, ItemFamily>();
+  for (const { declaration } of entries) families.set(declaration.family, { kind: 'weapon', profiles: entries.filter(entry => entry.declaration.family === declaration.family)
+    .flatMap(entry => entry.declaration.profile === undefined ? [] : [entry.declaration.profile.family]), create: (row, _spec, ports) => {
+      const entry = entries.find(value => value.owner.id === row.id);
+      if (entry === undefined || JSON.stringify(ports.profile) !== JSON.stringify(entry.owner.profile)) throw new Error('Unbound runtime item profile');
+      const { weapon } = entry.owner;
+      weapon.row = entry.owner.presentation === true ? { ...entry.presentation, ...row, ui: { ...row.ui, ...entry.presentation.ui }, legacySlot: weapon.id, meta: entry.native.meta }
+        : { ...row, legacySlot: weapon.id, meta: entry.native.meta };
+      return weapon;
+    } });
+  // A sole family can lend presentation before row construction (the bow path).
+  for (const [name, family] of families) {
+    const matches = entries.filter(entry => entry.declaration.family === name), first = matches[0];
+    if (matches.length === 1 && first !== undefined) family.presentation = first.presentation;
+  }
+  bindRuntimeItems(ctx, source, { families: new Map(), kit: families, icon: name => {
+    const entry = entries.find(value => value.native.ui.icon === name); if (entry === undefined) throw new Error('Unknown runtime item icon'); return entry.native.ui.icon;
+  } });
+}
 type AnimalBody = NonNullable<Animal>;
 /** The combat targets `buildEquipment` lends a hybrid runtime's weapon. */
 export type HybridTargets = Parameters<BuildEquipment>[0];
@@ -826,11 +884,11 @@ export abstract class HybridRuntimePlugin extends ShardPlugin {
       this.createMelee(ctx, primary.contacts);
     }
     this.prepare(ctx);
-    if (rt) rt.buildEquipment = (targets) => {
+    if (rt) rt.buildEquipment = runtimeEquipment([{ slot: 'primary', create: (targets) => {
       const primary = this.arm(ctx, targets);
       primary.onSwing = (heavy) => { if (heavy) rt.play?.cues.charge(rows.weapon, 'heavy'); else rt.play?.cues.fire(rows.weapon); };
-      return Promise.resolve({ primary, secondary: null, rifle: null, install: () => undefined });
-    };
+      return primary;
+    } }]);
   }
   override async play(ctx: ShardContext): Promise<void> {
     const host = ctx.app.equipmentHost, weapon = this.armed(), rt = ctx.game.runtime;

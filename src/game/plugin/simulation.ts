@@ -215,8 +215,11 @@ export async function prepareRuntimePlan(shard: Shardfile, assets: ReadonlyMap<s
       if (declarations === undefined) throw new Error('Missing admitted quest world reactions');
       return bindQuestWorldReactions(declarations, { flags: host.flags });
     })();
+    const loadout = bindNativeLoadout(host, { slots: [0], initial: 0, lower: 0, raise: 0 }, {
+      owned: () => true, locked: () => encounter.locked() || (row.weapon.stowOnBoard === true && host.playerBoard.on),
+    });
     const melee = installNativeMelee(host, weapon, weapon.native, { inputCommands: context.commands,
-      enabled: () => !encounter.locked() && (!row.weapon.stowOnBoard || !host.playerBoard.on),
+      enabled: () => loadout.live(0),
       ...(row.weapon.questWorld ? { questWorld: { row: quest, spots } } : {}),
       hook: environment.hooks.get(weapon.id) ?? null, hookTick: environment.hookTick,
       ...(reactions === undefined ? {} : { landed: (action: number, from: Vector3, dir: Vector3) => { if (action === row.weapon.worldReactionAction) reactions.scan(from, dir); } }),
@@ -1358,6 +1361,23 @@ export interface NativeLoadout<Slot extends number> {
   readonly owned: (slot: Slot) => boolean; readonly live: (slot: Slot) => boolean;
   readonly select: (slot: Slot) => void; readonly step: (dt: number, pick: Slot | null) => void;
   readonly snapshot: () => NativeLoadoutSnapshot<Slot>; readonly restore: (value: unknown) => void;
+}
+/** Bind one or several native item slots without taking over weapon/ammunition
+ * continuations. Optional stepping keeps the existing id, phase and save shape;
+ * the body list and aim reader remain live while ranged items are stowed.
+ */
+export function bindNativeLoadout<Slot extends number>(host: SimHost, row: NativeLoadoutRow<Slot>,
+  ports: NativeLoadoutPorts<Slot> & { readonly aim?: () => number;
+    readonly step?: { readonly id: string; readonly phase: 'beforeBodies' | 'afterBodies'; readonly pick: () => number | null } }):
+  NativeLoadout<Slot> & { readonly aim: () => number; readonly bodies: () => readonly NonNullable<ReturnType<SimHost['entities']['get']>>[] } {
+  const loadout = createNativeLoadout(row, ports), step = ports.step;
+  if (step !== undefined) host.onStep(step.id, dt => {
+    const picked = step.pick(); loadout.step(dt, row.slots.find(slot => slot === picked) ?? null);
+  }, { snapshot: loadout.snapshot, restore: loadout.restore }, step.phase);
+  const bodies: NonNullable<ReturnType<SimHost['entities']['get']>>[] = [];
+  return { ...loadout, aim: ports.aim ?? (() => 0.5), bodies: () => {
+    bodies.length = 0; host.entities.forEach(body => { bodies.push(body); }); return bodies;
+  } };
 }
 /** One renderer-free equipment selection owner for timed and immediate kits.
  * The caller registers step/snapshot in its existing adapter, preserving order.

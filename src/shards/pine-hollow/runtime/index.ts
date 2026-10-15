@@ -7,7 +7,10 @@ import { runtimeAudio } from '@wildshard/game/plugin/audio';
 import { requireAudioProfile } from '@wildshard/engine/audio/audioProfiles';
 import source from '../shard.config';
 import { installEnteredPineScore } from './audio/score';
-import { bindPineItems } from './items';
+import { bindRuntimeEquipment, runtimeEquipment } from '@wildshard/game/plugin/headless';
+import { CROSSBOW_WEAPON_PROFILE } from '../data/crossbowProfile';
+import { LEVER_WEAPON_PROFILE } from '../data/leverProfile';
+import { BOW_PROFILE } from '../data/bowProfile';
 import { installPineLandmarkUpdate } from './landmarkLifetime';
 import { STRINGS } from '../strings';
 import { installEnteredPineVoices } from './audio/entered';
@@ -168,24 +171,18 @@ export class PineHollow extends ShardPlugin {
     if (world === null) throw new Error('Pine equipment needs a world');
     await Promise.all([CROSSBOW_GEOMETRY.preload(), preloadKingKit()]);
     await preloadLeverModel();
-    rt.buildEquipment = async (targets, nolock) => {
-      // SF67: each weapon's hands are its longest stretch; build them ahead in slices, then each constructor takes them
-      const due = slicer(30).due;
-      await prepareCrossbowHands(due);
-      await macrotask();
-      const primary = new Crossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock });
-      await macrotask();
-      await prepareLeverHands(due);
-      await macrotask();
-      const rifle = new LeverRifle(world, targets, { row: LEVER, allowUnlocked: nolock });
-      await macrotask();
-      await prepareLongbowHands(due);
-      await macrotask();
-      const secondary = new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE, allowUnlocked: nolock });
-      const weapons = { primary, rifle, secondary };
-      bindPineItems(ctx, weapons);
-      return weapons;
-    };
+    rt.buildEquipment = runtimeEquipment([
+      { slot: 'primary', prepare: prepareCrossbowHands, create: (targets, nolock) => new Crossbow(world, targets, { row: CROSSBOW, allowUnlocked: nolock }) },
+      { slot: 'rifle', prepare: prepareLeverHands, create: (targets, nolock) => new LeverRifle(world, targets, { row: LEVER, allowUnlocked: nolock }) },
+      { slot: 'secondary', prepare: prepareLongbowHands, create: (targets, nolock) => new Bow(world, targets, { row: LONGBOW, profile: LONGBOW_PROFILE, allowUnlocked: nolock }) },
+    ], { pause: macrotask, slice: () => slicer(30).due, bind: weapons => {
+      if (weapons.rifle === null || weapons.secondary === null) throw new Error('Pine requires all three ranged owners');
+      bindRuntimeEquipment(ctx, source, [
+        { id: 'weapon.crossbow', weapon: weapons.primary, profile: CROSSBOW_WEAPON_PROFILE, presentation: true },
+        { id: 'weapon.lever', weapon: weapons.rifle, profile: LEVER_WEAPON_PROFILE, presentation: true },
+        { id: 'weapon.longbow', weapon: weapons.secondary, profile: BOW_PROFILE },
+      ]);
+    } });
     ctx.rows.encounter({ id: KING_KIND, displayName: 'The Antler King', showHeadBar: false });
     ctx.rows.weapon([CROSSBOW, LEVER, LONGBOW]);
     ctx.rows.ammo(AMMO_ROWS);
