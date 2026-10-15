@@ -12885,7 +12885,6 @@
         "src/sdk/clientChannels.ts",
         "src/sdk/ledger.ts",
         "src/sdk/looks/effectField.ts",
-        "src/sdk/looks/shaderEdits.ts",
         "src/sdk/modes.ts",
         "src/sdk/movers.ts",
         "src/sdk/package.json",

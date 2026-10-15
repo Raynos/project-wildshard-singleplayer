@@ -1,11 +1,10 @@
-import type { ShaderEditRow } from '@wildshard/sdk/looks/shaderEdits';
 import { skyMapGraph } from './mapGraph';
 
 /**
  * Sky Reach's smaller paint corrections, each pulling a generated model's paint toward the mockups: SF59 material graphs
  * over the model's own map (the shardfile's `look.materials`, bound by world/looks.ts `skyMappedLook` in world/crown.ts,
  * world/bookStand.ts, quest/keeper.ts, world/trees.ts, weapons/fanModel.ts; one program per graph, a material per map), and shader edit rows
- * (applied with `editShader` in runtime/index.ts): a creature wears the Roc's.
+ * a baked creature look wears (its `materialEdits`, applied by the game's baked look): the Roc's.
  */
 
 const LUMA = [0.2126, 0.7152, 0.0722];
@@ -36,8 +35,8 @@ export const FAN_SILK_GRAPH = { ...skyMapGraph({ tint: { op: 'param', param: 'ti
   params: { tint: { type: 'colour', value: [0xdf / 255, 0xec / 255, 0xe6 / 255] }, glow: { type: 'colour', value: [0x04 / 255, 0x12 / 255, 0x12 / 255] } }, doubleSided: true } as const;
 
 /** The Roc's plumage to mockup D's slate / white split (E399, E410): its browns slate grey in the paint and in the emission fed back from it; the white head and belly and the gold beak and talons kept. */
-export const ROC_SLATE_EDITS: readonly ShaderEditRow[] = [
+export const ROC_SLATE_EDITS = [
   { stage: 'fragment', find: '#include <map_fragment>', put: '#include <map_fragment>\n  diffuseColor.rgb = farSlate(diffuseColor.rgb);' },
   { stage: 'fragment', find: '#include <emissivemap_fragment>', put: '#include <emissivemap_fragment>\n  totalEmissiveRadiance = farSlate(totalEmissiveRadiance);' },
   { stage: 'fragment', find: '', put: 'vec3 farSlate(vec3 c){ float l = dot(c, vec3(0.2126, 0.7152, 0.0722)); float gold = (1.0 - smoothstep(0.06, 0.12, c.b / max(c.r, 1e-3))) * smoothstep(0.2, 0.3, c.r); float brown = clamp((c.r - c.b) / max(c.r, 1e-3) * 1.6 - 0.3, 0.0, 1.0) * (1.0 - smoothstep(0.55, 0.75, c.g / max(c.r, 1e-3))) * (1.0 - gold); return mix(c, vec3(0.085, 0.09, 0.11) + vec3(l) * vec3(0.82, 0.9, 1.05) * 1.1, brown * 0.95); }\n' },
-];
+] as const;

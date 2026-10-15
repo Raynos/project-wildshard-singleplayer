@@ -83,7 +83,6 @@
     "./interactions": "./interactions.ts",
     "./questGraph": "./questGraph.ts",
     "./looks/shaderFamily": "./looks/shaderFamily.ts",
-    "./looks/shaderEdits": "./looks/shaderEdits.ts",
     "./kit/geometryPack": "./kit/geometryPack.ts",
     "./looks/modelLibrary": "./looks/modelLibrary.ts",
     "./looks/canvasAtlas": "./looks/canvasAtlas.ts",
@@ -479,10 +478,6 @@
       "./looks/shaderFamily": {
         "types": "./dist/types/sdk/looks/shaderFamily.d.ts",
         "default": "./dist/looks/shaderFamily.js"
-      },
-      "./looks/shaderEdits": {
-        "types": "./dist/types/sdk/looks/shaderEdits.d.ts",
-        "default": "./dist/looks/shaderEdits.js"
       },
       "./kit/geometryPack": {
         "types": "./dist/types/sdk/kit/geometryPack.d.ts",
