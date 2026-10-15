@@ -70,19 +70,28 @@ test('a shared material pairs its precompiled composer program after an environm
     const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
     if (!isParameters(parameters)) throw new Error('Missing parameters');
     handler.build(material, mesh, parameters);
+    const retained: unknown = Reflect.get(material, '_latestBuilder');
+    if (typeof retained !== 'object' || retained === null) throw new Error('Missing cold fallback');
+    expect(Object.keys(retained).sort()).toEqual(['uniformGroups', 'uniforms', 'updateNodes']);
+    const pending: unknown = Reflect.get(handler, 'pendingBuilds');
+    if (!(pending instanceof WeakMap)) throw new Error('Missing pending builds');
+    const waiting: unknown = pending.get(material);
+    if (!Array.isArray(waiting)) throw new Error('Missing cold build');
+    expect(waiting.every((entry: unknown) => typeof entry === 'object' && entry !== null && !Reflect.has(entry, 'builder'))).toBe(true);
     const linked = new LinkedProgram(), program = { program: linked, getUniforms: () => ({ seq: Object.keys(parameters.uniforms).map(id => ({ id })) }) };
     programs.set(name, program); properties.currentProgram = program; properties.uniforms = parameters.uniforms; properties.uniformsList = null;
     return { program, linked, uniforms: parameters.uniforms };
   }
   const before = compile(env, envMesh, 'env');
   handler.onUpdateProgram(material, before.program, properties);
+  expect(Reflect.get(material, '_latestBuilder')).toBeUndefined();
   material.onBeforeRender(renderer, env, camera, geometry, envMesh, new THREE.Group()); handler.renderEnd();
   expect(gl.ready(before.linked)).toBe(true);
   const after = compile(main, mainMesh, 'composer');
   // renderer.compile has selected the program but does not issue onUpdateProgram.
   expect(gl.ready(after.linked)).toBe(false);
   material.onBeforeRender(renderer, main, camera, geometry, mainMesh, new THREE.Group()); handler.renderEnd();
-  expect(gl.ready(after.linked)).toBe(true);
+  expect(gl.ready(after.linked)).toBe(true); expect(Reflect.get(material, '_latestBuilder')).toBeUndefined();
   for (let i = 0; i < 3; i++) {
     handler.renderStart(env, camera); handler.setObject(envMesh, material); properties.currentProgram = before.program;
     properties.uniforms = after.uniforms; properties.uniformsList = null;

@@ -28,7 +28,7 @@ test('opted-in casters share live displacement and alpha, cache by material and 
   shadowMap.depthTexture = new THREE.DepthTexture(16, 16); shadowMap.depthTexture.compareFunction = THREE.LessEqualCompare;
   const renderer: unknown = Object.create(THREE.WebGLRenderer.prototype);
   if (!(renderer instanceof THREE.WebGLRenderer)) throw new Error('Missing renderer');
-  const handler = new EngineNodesHandler(), draws: THREE.Material[] = [], shaders: THREE.WebGLProgramParametersWithUniforms[] = [];
+  const handler = new EngineNodesHandler(), draws: THREE.Material[] = [], shaders: THREE.WebGLProgramParametersWithUniforms[] = [], buildCameras: unknown[] = [];
   const stock = new THREE.MeshDepthMaterial(); stock.side = THREE.BackSide; stock.alphaTest = 0.5;
   let fail = false;
   const fields: Record<string, unknown> = {
@@ -46,6 +46,8 @@ test('opted-in casters share live displacement and alpha, cache by material and 
       const params: object = {};
       const isParameters = (value: object): value is THREE.WebGLProgramParametersWithUniforms => !Array.isArray(value);
       if (!isParameters(params)) throw new Error('Missing parameters');
+      const frame: unknown = Reflect.get(handler, 'nodeFrame');
+      buildCameras.push(typeof frame === 'object' && frame !== null ? Reflect.get(frame, 'camera') : undefined);
       handler.build(material, object, params); shaders.push(params);
     },
   };
@@ -77,8 +79,7 @@ test('opted-in casters share live displacement and alpha, cache by material and 
       (u.value === shadowMap.texture || u.value === shadowMap.depthTexture))).toBe(false);
     expect(object.receiveShadow).toBe(true);
     expect(camera()).toBe(main);
-    const builder: unknown = depth === undefined ? undefined : Reflect.get(depth, '_latestBuilder');
-    expect(typeof builder === 'object' && builder !== null ? Reflect.get(builder, 'camera') : null).toBe(shadow);
+    expect(buildCameras[0]).toBe(shadow);
     compiled.setParam('bend', 0.8); draw(); expect(draws[1]).toBe(depth);
     const released = vi.fn(); depth?.addEventListener('dispose', () => { released(); });
     object.material = [new THREE.MeshBasicMaterial(), clone];

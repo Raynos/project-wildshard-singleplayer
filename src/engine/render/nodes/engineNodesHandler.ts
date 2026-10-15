@@ -200,7 +200,7 @@ function isBlockGroup(v: unknown): v is BlockGroup {
  * one node build not yet paired with the program the renderer acquired for it: the renderer files that program in the
  * material's program map (`programs`, key → program) at `slot`, the map's size when the build ran
  */
-interface PendingBuild { readonly builder: unknown; readonly uniforms: Record<string, unknown>; readonly programs: unknown; readonly slot: number }
+interface PendingBuild { readonly uniformsGroups: unknown[]; readonly updateNodes: unknown; readonly uniforms: Record<string, unknown>; readonly programs: unknown; readonly slot: number }
 
 /** the program's active uniforms that the build declares (three's `generateUniformsList`, WebGLUniforms.seqWithValue) */
 function uniformsListOf(program: unknown, uniforms: Record<string, unknown>): unknown[] {
@@ -496,7 +496,16 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const properties: unknown = this.classicRenderer().properties.get(material);
     const programs: unknown = typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'programs') : undefined;
     const pending = this.pendingBuilds.get(material) ?? [];
-    pending.push({ builder, uniforms: parameters.uniforms, programs, slot: programs instanceof Map ? programs.size : -1 });
+    const updateNodes: unknown = typeof builder === 'object' && builder !== null ? Reflect.get(builder, 'updateNodes') : undefined;
+    pending.push({ uniformsGroups: internals(this).collectUniformsGroups(builder), updateNodes,
+      uniforms: parameters.uniforms, programs, slot: programs instanceof Map ? programs.size : -1 });
+    // A cold precompile may never draw. Retain only the stock fallback's runtime
+    // view, not the builder's graph caches, source strings, scene and geometry.
+    if (typeof builder === 'object' && builder !== null) {
+      const uniformGroups: unknown = Reflect.get(builder, 'uniformGroups');
+      const uniforms: unknown = Reflect.get(builder, 'uniforms');
+      Reflect.set(material, '_latestBuilder', { uniformGroups, uniforms, updateNodes });
+    }
     this.pendingBuilds.set(material, pending);
   }
 
@@ -524,13 +533,13 @@ export class EngineNodesHandler extends WebGLNodesHandler {
           // a build from before the material was disposed filed into a map that is gone: nothing to pair
           const built: unknown = build.programs === programs ? acquired[build.slot] : undefined;
           if (built === undefined || known.has(built)) continue;
-          const updateNodes: unknown = typeof build.builder === 'object' && build.builder !== null ? Reflect.get(build.builder, 'updateNodes') : undefined;
-          known.set(built, { uniformsGroups: internals(this).collectUniformsGroups(build.builder), uniforms: build.uniforms, uniformsList: uniformsListOf(built, build.uniforms), updateNodes });
+          known.set(built, { uniformsGroups: build.uniformsGroups, uniforms: build.uniforms, uniformsList: uniformsListOf(built, build.uniforms), updateNodes: build.updateNodes });
         }
       }
     }
     const stock: unknown = Reflect.get(WebGLNodesHandler.prototype, 'onUpdateProgram');
     if (typeof stock === 'function') Reflect.apply(stock, this, [material, program, materialProperties]);
+    if (internals(this).programCache.get(material)?.has(program) === true) Reflect.deleteProperty(material, '_latestBuilder');
     this.bindBlocks(material, program);
     const frame: unknown = Reflect.get(this, 'nodeFrame');
     this.bindAttributeDefaults(material, typeof frame === 'object' && frame !== null ? Reflect.get(frame, 'object') : undefined, program);
@@ -599,6 +608,8 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   /** a node material was disposed (three's onDisposeMaterialCallback): its uniform groups and block buffers go */
   private disposeMaterial(material: THREE.Material): void {
+    this.pendingBuilds.delete(material);
+    Reflect.deleteProperty(material, '_latestBuilder');
     const self = internals(this), programs = self.programCache.get(material), blocks = this.blocks;
     if (programs !== undefined) {
       for (const entry of programs.values()) {
