@@ -151,6 +151,40 @@ export class QuestViews {
     return scope.timeout(ms, run);
   }
   cancelTimer(timer: ReturnType<typeof setTimeout> | 0): void { this.entered?.cancelTimer(timer); }
+  /** Share modal input release while borrowing each world's stow, resume and pause policies. */
+  panelHold(ports: {
+    readonly hud: { holdPause: boolean; readonly entered: boolean; onResume?: () => void; setPaused: (on: boolean) => void };
+    readonly weapons: { setEnabled: (on: boolean) => void };
+    readonly menu: { readonly isOpen: boolean; close: (silent?: boolean) => void };
+    readonly nolock: boolean; readonly touchUi: () => boolean;
+    readonly stow?: (on: boolean) => void; readonly resume?: () => void;
+    readonly panels?: readonly (() => { readonly isOpen: boolean; onOpen?: () => void; onClose?: () => void })[];
+    readonly closeMenu?: boolean; readonly resetOnLeave?: boolean; readonly restartOnClose?: boolean;
+  }): (on: boolean) => void {
+    let timer: ReturnType<typeof setTimeout> | 0 = 0;
+    const hold = (on: boolean): void => {
+      if (on || ports.restartOnClose === true) this.cancelTimer(timer);
+      ports.stow?.(on);
+      if (on) {
+        ports.hud.holdPause = true; ports.weapons.setEnabled(false);
+        if (ports.closeMenu === true && ports.menu.isOpen) ports.menu.close(true);
+        if (document.pointerLockElement) document.exitPointerLock();
+        return;
+      }
+      ports.resume?.(); ports.hud.onResume?.();
+      timer = this.timeout(450, () => {
+        ports.hud.holdPause = false;
+        if (!ports.nolock && !ports.touchUi() && !document.pointerLockElement && ports.hud.entered && !ports.menu.isOpen
+          && !(ports.panels?.some(panel => panel().isOpen) ?? false)) ports.hud.setPaused(true);
+      });
+    };
+    if (ports.panels !== undefined) this.enter(() => { for (const view of ports.panels ?? []) {
+      const panel = view(); panel.onOpen = () => { hold(true); }; panel.onClose = () => { hold(false); };
+    } });
+    if (ports.resetOnLeave === true) this.leave(() => { ports.hud.holdPause = false; timer = 0; });
+    this.resident.onDispose(() => { this.cancelTimer(timer); });
+    return hold;
+  }
   /** The retained browser observer leaves with its cell; false preserves the original resident assignment. */
   exposeBrowser(name: string, observer: object): boolean {
     if (!this.retained) return false;

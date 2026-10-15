@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import { PINE_LANTERN_PAGE } from '../data/questPageInteractions';
+import { PINE_QUEST_CONSEQUENCES, PINE_CLOCK_CONSEQUENCES } from '../data/questConsequences';
 import NPC_ROSTER from '../data/questNpcs.generated.json' with { type: 'json' };
 import { QUEST_PRESENTATION } from '../data/questPresentation';
 import { PINE_KIT_EVENTS } from '../data/questEvents';
@@ -59,7 +60,7 @@ import type { Cabins } from '../world/homestead';
 import type { PineHollowSfx } from '../runtime/audio/sfx';
 import { SKINS } from '../loadout/skins';
 import { PINE_PHASES } from '../look/dayKeys';
-import { installPineClock, type PineClockEvent } from '../runtime/directorClock';
+import { installPineClock } from '../runtime/directorClock';
 import { waystoneSites, contractBoardSite, CANOE_SITE, type PineLandmarks } from '../world/landmarks';
 import { ZIP_YAW } from '../world/timberSites';
 import { hamletRoofs } from '../world/cabinBake';
@@ -205,14 +206,11 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const lanternPrompts = { pond: lanternPage.prompt('pond'), ridge: lanternPage.prompt('ridge'), den: lanternPage.prompt('den') };
 
   // ── the miller's errand: the wheel stands still until the race is clear ──
-  const payMiller = (): void => {
-    flags.set('errand:paid');
-    inventory.add('lodge-ribbon', 3); inventory.add('amber-resin', 4);
-    hud.toast('Brandt pays · 3 lodge ribbons · 4 amber resin');
-    h.music.sting('pickup');
-  };
   const syncWheel = (): void => { if (h.cabins) h.cabins.wheelSpeed = flags.has('errand:done') ? 0.55 : 0; };
   syncWheel();
+  const consequences = bindQuestPageInteractions(PINE_QUEST_CONSEQUENCES, { flags, toast: text => { hud.toast(text); },
+    owners: new Map<string, unknown>([['flags', flags], ['inventory', inventory], ['music', h.music], ['native', { syncWheel }]]) });
+  const payMiller = consequences.action('miller.pay');
   // the mill's door (E322 F-M7): a cabin door like the others (Cabin.ts swings it, its kinematic piece follows the pivot),
   // barred until the race is clear — pressed before `errand:done` it only rattles. The cabin door's own piece lets go of the
   // player within 1.4 m of its hinge (main.ts: a swing never pins anyone), so while barred a second piece holds the shut
@@ -245,7 +243,7 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   const thralls = new NightThralls({
     animals, scene: game.scene, night,
     errand: () => flags.has('errand:asked') && !flags.has('errand:done'),
-    onErrandDone: () => { flags.set('errand:done'); syncWheel(); hud.toast('The last of them goes down in the race. Behind you the mill wheel shudders, and turns'); h.music.sting('chunk'); },
+    onErrandDone: consequences.action('errand.complete'),
     shot: (name, at) => { shot(name, at); },
   }, createNight());
 
@@ -308,25 +306,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   });
 
   // ── panels: the board and the slate release the lock + the weapons like the journal ──
-  let holdTimer: ReturnType<typeof setTimeout> | 0 = 0;
-  const onOpen = (): void => {
-    ui.cancelTimer(holdTimer);
-    hud.holdPause = true; h.weapons.setEnabled(false);
-    if (h.menu.isOpen) h.menu.close(true);
-    if (document.pointerLockElement) document.exitPointerLock();
-  };
-  const onClose = (): void => {
-    hud.onResume?.();
-    holdTimer = ui.timeout(450, () => {
-      hud.holdPause = false;
-      if (!h.nolock && !h.touchUi() && !document.pointerLockElement && hud.entered && !h.menu.isOpen && !boardUi().isOpen && !trade().isOpen) hud.setPaused(true);
-    });
-  };
-  ui.enter(() => {
-    boardUi().onOpen = onOpen; boardUi().onClose = onClose;
-    trade().onOpen = onOpen; trade().onClose = onClose;
-  });
-  ui.leave(() => { hud.holdPause = false; holdTimer = 0; });
+  ui.panelHold({ hud, weapons: h.weapons, menu: h.menu, nolock: h.nolock, touchUi: h.touchUi,
+    panels: [boardUi, trade], closeMenu: true, resetOnLeave: true });
 
   // ── the people ──
   const dialogue = ui.view('dialogue', (scope) => new DialogueBox(scope));
@@ -408,21 +389,10 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
     const span = (((to - dn.phase) % 1) + 1) % 1;
     ff = { from: dn.phase, span, t: 0, dur, to };
   };
-  const publishClock = (event: PineClockEvent, value: number): void => {
-    if (event === 'night.consume') flags.clear('wait:night');
-    else if (event === 'night.start') { hud.toast('You sit with Hale on the porch while the light goes out of the Hollow…'); fastForward(PINE_PHASES.night, value); }
-    else if (event === 'dawn.start') hud.toast('The Antler King falls. In the east, the sky is going grey');
-    else if (event === 'dawn.sunrise') fastForward(PINE_PHASES.sunrise + 0.012, value);
-    else if (event === 'dawn.lanterns') { for (const f of LANTERN_FLAGS) flags.set(f); if (lm) for (const id of ['pond', 'ridge', 'den'] as const) lm.setLit(id, true); h.music.sting('dawn'); }
-    else if (event === 'dawn.caption') { reward.show(true); objective.hide(true); }
-    else {
-      reward.show(false); objective.hide(false);
-      inventory.add('amber-resin', 4); // was 2 amber heartwood, which nothing used (E314 C)
-      hud.toast("Hale's thanks · 4 amber resin — and the Warden's bow is yours to keep");
-      flags.set('seen:dawn');
-    }
-  };
-  const clock = await installPineClock(ctx, { seen: () => flags.has('seen:dawn'), hasClock: () => sky.dayNight !== null, night, publish: publishClock }, quest.current?.id === 'dawn');
+  const clockPage = bindQuestPageInteractions(PINE_CLOCK_CONSEQUENCES, { flags, toast: text => { hud.toast(text); },
+    owners: new Map<string, unknown>([['flags', flags], ['inventory', inventory], ['music', h.music], ['lamps', lm],
+      ['caption', reward], ['objective', objective], ['native', { fastForward }]]) });
+  const clock = await installPineClock(ctx, { seen: () => flags.has('seen:dawn'), hasClock: () => sky.dayNight !== null, night, publish: event => { clockPage.run(event); } }, quest.current?.id === 'dawn');
   ctx.scope.onDispose(flags.onChange((f, on) => {
     if (!on) return;
     if (f === 'wait:night') clock.night();
@@ -434,8 +404,8 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
 
   // ── the stag ──
   const stag = new StagLead(game.scene, animals);
-  stag.onAppear = (first) => { if (first) hud.toast('On the west road, something pale is standing very still'); };
-  stag.onDone = () => { flags.set('followed:stag'); hud.toast('The stag is gone. Ahead, the standing stones, and the fog between them'); };
+  stag.onAppear = (first) => { if (first) consequences.run('stag.appear'); };
+  stag.onDone = consequences.action('stag.complete');
 
   // ── the map (C9's hook): the places with discovery, the live quest markers ──
   const liveMarkers = (): { label: string; x: number; z: number; short: string }[] => quest.markers().map((m) => ({ label: m.label, short: m.short ?? m.label, x: m.at.x, z: m.at.z }));
@@ -527,7 +497,6 @@ export async function installPineQuest(h: PineQuestHost, deps: { preload?: () =>
   ctx.scope.onDispose(() => {
     objective.root.remove(); reward.root.remove();
     ui.disposeLegacy(() => { dialogue().dispose(); boardUi().root.remove(); trade().root.remove(); chip().root.remove(); });
-    ui.cancelTimer(holdTimer);
   });
   if (quest.current?.id === 'dawn') runDawn();   // an early kill (or `?quest=dawn`): the dawn plays now
   return { useSfx: (s) => { sfx = s; }, stagAt: () => stag.position };

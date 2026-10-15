@@ -1,6 +1,7 @@
 import { onCreatureDeath } from '@wildshard/game/loot/deaths';
 import { installLoot } from '@wildshard/game/loot/runtime';
 import type { ShardContext } from '@wildshard/game/shard/context';
+import { QuestViews } from '@wildshard/game/plugin/ui';
 import { Sword } from '@wildshard/game/weapons/Sword';
 import { driftwoodWorld } from '../world/build';
 import { placeDriftwoodPlaces } from '../world/places';
@@ -41,14 +42,10 @@ export async function installDriftwoodAdventure(ctx: ShardContext, deps: { prelo
   installKeepsakes({ owner: ctx, onDeath: (run, order) => { onCreatureDeath(ctx, () => h.animals.animals, run, order); },
     owned: h.owned, adventure, sky, game: scopedGame, player, hud: h.hud, audio: h.audio, music: h.music, registry,
     body: h.bodyShadow ?? null, swords, effectsManaged: true });
-  let release = ctx.scope.child('shop.release');
   const presentation = await driftwoodLootPresentation({ adventure, owned: h.owned, audio: h.audio, scope: ctx.scope,
-    toast: (text) => { h.hud.toast(text); }, hold: (on) => {
-      release.dispose(); release = ctx.scope.child('shop.release'); h.weapons.stowed = on;
-      if (on) { h.hud.holdPause = true; h.weapons.setEnabled(false); if (document.pointerLockElement) document.exitPointerLock(); return; }
-      h.weapons.setEnabled(!player.swimming); h.hud.onResume?.();
-      release.timeout(450, () => { h.hud.holdPause = false; if (!h.nolock && !h.touchUi() && !document.pointerLockElement && h.hud.entered && !h.menu.isOpen) h.hud.setPaused(true); });
-    } });
+    toast: (text) => { h.hud.toast(text); }, hold: new QuestViews(ctx).panelHold({ hud: h.hud, weapons: h.weapons, menu: h.menu,
+      nolock: h.nolock, touchUi: h.touchUi, restartOnClose: true,
+      stow: on => { h.weapons.stowed = on; }, resume: () => { h.weapons.setEnabled(!player.swimming); } }) });
   installLoot({ ctx, owned: h.owned, manifest: ctx.manifest, scene: game.scene, player, camera: game.camera,
     animals: () => h.animals.animals, menu: h.menu, presentation, minimap: h.minimap ?? null,
     before: ['body-shadow', 'keepsakes', 'last place', 'first hints', 'main.world'] });

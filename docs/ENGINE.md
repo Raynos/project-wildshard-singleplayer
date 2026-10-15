@@ -5443,6 +5443,11 @@ The getter refuses after leaving that home. `enter`, `leave`, `timeout`,
 `disposeLegacy` keeps the ordinary resident teardown order. Quest flags,
 saves, NPC figures and the lent DialogueBox reading clock keep their owners.
 
+`QuestViews.panelHold` binds existing modal views to the borrowed HUD, weapons
+and menu. It releases pointer lock and uses the entered 450 ms pause timer;
+callers retain their stow/resume, menu-close and other-open-panel policies.
+No panel content, durable state or reading clock is created by the binding.
+
 ### Foliage graph normals
 
 A mesh graph may set `flipBackfaceNormals: false` to retain its front-face
