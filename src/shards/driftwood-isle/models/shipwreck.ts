@@ -1,6 +1,6 @@
-import { Group, Mesh, MeshBasicMaterial } from 'three';
-import { defineModel, type ModelContext, type ModelPart } from '@wildshard/engine/models/model';
-import { loadingSpecimen } from '@wildshard/engine/models/gear';
+import { MeshBasicMaterial } from 'three';
+import { defineModel } from '@wildshard/engine/models/model';
+import { libraryModel } from '@wildshard/game/models/libraryModel';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import { fixedGeometryReady, loadFixedGeometry, SHIPWRECK_KIT_GEOMETRY, SHIPWRECK_GLOW_GEOMETRY, WRECK_KIT_GEOMETRY, WRECK_GLOW_GEOMETRY } from '../boot/fixedGeometry';
 import { WRECK_SITES } from '../data/wreckSites';
@@ -18,31 +18,17 @@ export function wreckSiteKind(site: WreckSpec): keyof typeof WRECK_SITES {
 /** Retained placement contract; the admitted baked site owns its terrain-dependent shape. */
 export interface ShipwreckParams { readonly site: WreckSpec; readonly ground: (x: number, z: number) => number }
 
-function shipParts(ctx:ModelContext,world:boolean):ModelPart[] {
-  return [
-    { geometry: (world ? WRECK_KIT_GEOMETRY : SHIPWRECK_KIT_GEOMETRY).copy(), material: lowPolyLookMaterial(ctx.sky),
-      castShadow: true, receiveShadow: true },
-    { geometry: (world ? WRECK_GLOW_GEOMETRY : SHIPWRECK_GLOW_GEOMETRY).copy(),
-      material: ctx.once('driftwood-isle/shipwreck:lanterns', () => new MeshBasicMaterial({ vertexColors: true })) },
-  ];
-}
+const DRAWS = { 'world-kit': WRECK_KIT_GEOMETRY, 'world-glow': WRECK_GLOW_GEOMETRY, 'specimen-kit': SHIPWRECK_KIT_GEOMETRY, 'specimen-glow': SHIPWRECK_GLOW_GEOMETRY };
 
+/** The world copy's colliders and draw are the Wreck site's (world/Wreck.ts: `drawnInto`); this draws its Explorer card. */
 export const shipwreck = defineModel<ShipwreckParams>({
   id: 'driftwood-isle/shipwreck', name: 'Shipwreck', category: 'buildings', pipeline: 'code',
   file: 'src/shards/driftwood-isle/models/shipwreck.ts', surface: 'planks',
-  defaults: { site: WRECK_SITES.specimen, ground: () => 0 }, prepare: loadFixedGeometry,
-  build: (ctx, p) => {
-    const world = wreckSiteKind(p.site) === 'world';
-    if (fixedGeometryReady()) return shipParts(ctx,world);
-    return loadingSpecimen('driftwood-isle/shipwreck',[12,15,24],async()=>{
-      await loadFixedGeometry();
-      const group=new Group();
-      for(const part of shipParts(ctx,world)) {
-        const mesh=new Mesh(part.geometry,part.material);
-        mesh.castShadow=part.castShadow??false;mesh.receiveShadow=part.receiveShadow??false;
-        group.add(mesh);
-      }
-      return group;
-    });
-  },
+  defaults: { site: WRECK_SITES.specimen, ground: () => 0 },
+  ...libraryModel<ShipwreckParams, 'kit' | 'glow', keyof typeof DRAWS>({
+    draws: (p) => { const kind = wreckSiteKind(p.site); return [{ draw: `${kind}-kit`, material: 'kit', castShadow: true, receiveShadow: true }, { draw: `${kind}-glow`, material: 'glow' }]; },
+    geometry: (_, draw) => DRAWS[draw].copy(),
+    material: (ctx, key) => key === 'kit' ? lowPolyLookMaterial(ctx.sky) : ctx.once('driftwood-isle/shipwreck:lanterns', () => new MeshBasicMaterial({ vertexColors: true })),
+    loading: { id: 'driftwood-isle/shipwreck', ready: fixedGeometryReady, load: () => loadFixedGeometry(), size: () => [12, 15, 24] },
+  }),
 });

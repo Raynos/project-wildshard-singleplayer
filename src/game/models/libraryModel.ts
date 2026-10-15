@@ -12,8 +12,9 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
  *
  *   export const pier = defineModel({ id: '<slug>/pier', …, ...libraryModel({ draws, geometry, material, colliders }) });
  *
- * `draws` gives a copy's parts by its params, `geometry` a fresh geometry for a library name (the unit merges it),
- * `material` the material for a key, `colliders` the copy's own-space colliders, `finish` (optional) tags the drawn
+ * `draws` gives a copy's parts by its params, `geometry` a fresh geometry for a library name (`D`: a shard's own table's
+ * keys, or any string; the unit merges it),
+ * `material` the material for a key, `colliders` (optional) the copy's own-space colliders, `finish` (optional) tags the drawn
  * meshes and proxies (a shard's distance bands, a tier's shadows) before `place` takes them, and `loading` (optional) is
  * for a library that may load after a copy is asked for (an Explorer card opened before the shard's world hook): the
  * model `prepare`s by its `load`, and until `ready()` a copy is a loading specimen about `size` big that fills once it
@@ -21,17 +22,17 @@ import { loadingSpecimen } from '@wildshard/engine/models/gear';
  */
 
 /** One part of a library model's copy: a library geometry by name, its material's key and its weld flags. */
-export interface LibraryDraw<K extends string> extends Omit<WeldPart, 'material' | 'geometries'> {
-  readonly draw: string;
+export interface LibraryDraw<K extends string, D extends string = string> extends Omit<WeldPart, 'material' | 'geometries'> {
+  readonly draw: D;
   readonly material: K;
 }
 
 /** What a library model is built from (see the module comment). */
-export interface LibraryModelSpec<P extends object, K extends string> {
-  readonly draws: (params: P) => readonly LibraryDraw<K>[];
-  readonly geometry: (ctx: ModelContext, draw: string) => BufferGeometry;
+export interface LibraryModelSpec<P extends object, K extends string, D extends string = string> {
+  readonly draws: (params: P) => readonly LibraryDraw<K, D>[];
+  readonly geometry: (ctx: ModelContext, draw: D) => BufferGeometry;
   readonly material: (ctx: ModelContext, key: K) => Material;
-  readonly colliders: (params: P) => readonly ColliderSpec[];
+  readonly colliders?: (params: P) => readonly ColliderSpec[];
   readonly finish?: (drawn: UnitDrawn, params: P) => void;
   readonly loading?: LibraryLoading<P>;
 }
@@ -45,7 +46,7 @@ export interface LibraryLoading<P extends object> {
 }
 
 /** The `build` and `colliders` (and `prepare`, for a library that loads late) of a model drawn from a whole-geometry library. */
-export function libraryModel<P extends object, K extends string>(spec: LibraryModelSpec<P, K>): Pick<ModelDef<P>, 'build' | 'colliders' | 'prepare'> {
+export function libraryModel<P extends object, K extends string, D extends string = string>(spec: LibraryModelSpec<P, K, D>): Pick<ModelDef<P>, 'build' | 'colliders' | 'prepare'> {
   const { loading } = spec;
   return {
     build: (ctx, params) => {
@@ -60,7 +61,7 @@ export function libraryModel<P extends object, K extends string>(spec: LibraryMo
       if (loading === undefined || loading.ready()) return make();
       return loadingSpecimen(loading.id, loading.size(params), async () => { await loading.load(); return make(); });
     },
-    colliders: (params) => spec.colliders(params),
+    ...(spec.colliders === undefined ? {} : { colliders: spec.colliders }),
     ...(loading === undefined ? {} : { prepare: loading.load }),
   };
 }
