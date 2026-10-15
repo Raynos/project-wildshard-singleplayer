@@ -79,7 +79,7 @@ export class Castaway {
   }
 
   build(): this {
-    const mat = lowPolyLookMaterial(this.sky);
+    const mat = lowPolyLookMaterial(this.sky, 'still'); // nothing of his sways: the kit's still material
     this.group.position.set(this.feet.x, this.feet.y, this.feet.z);
     this.group.rotation.y = this.bodyYaw;
     this.group.name = 'castaway';
