@@ -68,8 +68,14 @@ export function patchFade(shader: { vertexShader: string; fragmentShader: string
       }`);
 }
 
-/** a forest material: a classic standard / Lambert one, or a shard's compiled graph (which casts its own shadow depth) */
-export type TreeMaterial = THREE.Material;
+/**
+ * a forest material: a classic standard / Lambert one, or a shard's compiled graph (which casts its own shadow depth);
+ * each carries its base `color` (the impostor bakes read the needle / bark tint)
+ */
+export type TreeMaterial = THREE.Material & { readonly color: THREE.Color };
+
+/** whether a material can dress a forest: it has the base `color` every TreeMaterial carries */
+export function isTreeMaterial(m: THREE.Material): m is TreeMaterial { return 'color' in m && m.color instanceof THREE.Color; }
 
 export class TreeFactory {
   barkMaterial!: TreeMaterial;

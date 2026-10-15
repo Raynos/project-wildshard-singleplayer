@@ -5,7 +5,7 @@ import { loadTexture, loadPBRArray } from '@wildshard/engine/core/assets';
 import { TIER_CONFIG } from '@wildshard/engine/core/tier';
 import type { LookReplaceContext } from '@wildshard/engine/render/look';
 import { BARK_LAYERS, loadTreeSetGeometry, treeSetUrls } from '@wildshard/engine/world/forest/treeSet';
-import { TreeFactory, type FadeBand } from '@wildshard/engine/world/TreeFactory';
+import { TreeFactory, isTreeMaterial, type FadeBand, type TreeMaterial } from '@wildshard/engine/world/TreeFactory';
 import { lookGraphMaterials } from '@wildshard/game/plugin/shaderFamily';
 import source from '../shard.config';
 import { FOREST_LOOKS } from '../data/forestLook';
@@ -73,10 +73,11 @@ export class PineTreeFactory extends TreeFactory {
     ]);
     this.tintBark = false;
     this.looks = looks;
-    const look = (id: string, lent: Readonly<Record<string, THREE.Texture>>): THREE.Material => {
+    const look = (id: string, lent: Readonly<Record<string, THREE.Texture>>): TreeMaterial => {
       for (const [name, texture] of Object.entries(lent)) looks.setTexture(id, name, texture);
       const m = looks.materials.get(id);
       if (m === undefined) throw new Error(`[trees] look.materials lacks ${id}`);
+      if (!isTreeMaterial(m)) throw new Error(`[trees] ${id} has no base colour (not a standard-model graph)`);
       return m;
     };
     this.barkMaterial = look(FOREST_LOOKS.bark, { barkMap: bark.map, barkNormal: bark.normalMap, barkArm: bark.armMap });

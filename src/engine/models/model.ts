@@ -157,8 +157,8 @@ export interface ModelPart {
   readonly material: THREE.Material;
   readonly castShadow?: boolean;
   readonly receiveShadow?: boolean;
-  /** the shadow pass's material (alpha-tested cards) */
-  readonly customDepthMaterial?: THREE.Material;
+  /** the shadow pass's material (alpha-tested cards); absent or undefined: the part's own material casts */
+  readonly customDepthMaterial?: THREE.Material | undefined;
   readonly renderOrder?: number;
   /**
    * instanced / batched, culled: metres — this part is drawn only while its copy is nearer, inside its level (a detail
