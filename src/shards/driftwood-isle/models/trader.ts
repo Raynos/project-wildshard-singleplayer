@@ -44,7 +44,7 @@ export const tradeCounter: ModelDef<object> = defineModel<object>({
   id: 'driftwood-isle/trade-counter', name: 'The trader\'s counter', category: 'props', pipeline: 'code', file: 'src/shards/driftwood-isle/models/trader.ts', surface: 'wood',
   defaults: {},
   build: (ctx) => {
-    const parts = (): readonly ModelPart[] => [{ geometry: COUNTER_GEOMETRY.copy(), material: lowPolyLookMaterial(ctx.sky), castShadow: true, receiveShadow: true }];
+    const parts = (): readonly ModelPart[] => [{ geometry: COUNTER_GEOMETRY.copy(), material: lowPolyLookMaterial(ctx.sky, 'still'), castShadow: true, receiveShadow: true }];
     if (fixedGeometryReady()) return parts();
     return loadingSpecimen('driftwood-isle/trade-counter', [TOP.w, TOP.y + 0.4, TOP.d], async () => {
       await loadFixedGeometry();
