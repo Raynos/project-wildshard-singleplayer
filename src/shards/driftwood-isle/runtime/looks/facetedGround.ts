@@ -6,7 +6,7 @@ import { runtimeLookMaterials } from '@wildshard/game/shardfile/runtimeProduct';
 import type { Shardfile } from '@wildshard/format/shardSchema';
 import type { FacetedGroundRow } from '../../data/lookRows';
 import { coverAttributes } from './coverGrid';
-import { modelGeometry } from '../boot/modelGeometry';
+import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 
 /**
  * A faceted, texture-free ground as a terrain painter (SHARD-PLATFORM M3, look-family rows; W2 C2 baked it): the level's

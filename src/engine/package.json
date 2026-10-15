@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./models/ownedGeometry": "./models/ownedGeometry.ts",
     "./player/modeData": "./player/modeData.ts",
     "./entities/bodyClear": "./entities/bodyClear.ts",
     "./entities/animalPose": "./entities/animalPose.ts",

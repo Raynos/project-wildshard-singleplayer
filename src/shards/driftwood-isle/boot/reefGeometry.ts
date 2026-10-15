@@ -1,6 +1,6 @@
 import { Mesh, type Material } from 'three';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { modelGeometry } from '../runtime/boot/modelGeometry';
+import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { decodeFoliageWorld, readFoliageWorld } from './foliageGeometry';
 import { REEF_FILES } from '../data/reefFiles';
 import { REEF_SPECIMENS, type ReefKind } from '../data/reefSpecimenRows';

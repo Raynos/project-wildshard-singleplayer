@@ -1,6 +1,6 @@
 import { Mesh, type Material, type Object3D } from 'three';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { modelGeometry } from '../runtime/boot/modelGeometry';
+import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { TRAIL_SPECIMENS } from '../data/trailSpecimens';
 import { TRAIL_SPECIMEN_ROWS } from '../data/trailSpecimenRows';
 import type { PlankStepParams, SignpostParams } from '../models/trailside';

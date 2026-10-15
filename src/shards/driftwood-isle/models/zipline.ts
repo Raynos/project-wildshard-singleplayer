@@ -2,7 +2,7 @@
 import { defineModel } from '@wildshard/engine/models/model';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { CableLayout } from '@wildshard/sdk/movers';
-import { modelGeometry } from '../runtime/boot/modelGeometry';
+import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import rows from '../data/zipline.generated.json';
 
 const world = modelGeometry(rows.world), specimen = modelGeometry(rows.specimen);

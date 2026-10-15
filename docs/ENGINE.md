@@ -2475,7 +2475,20 @@ The SDK cannot import shard content. Each module owns its exports; there is no b
 
 `@wildshard/sdk/assets.assetBytes(base64)` decodes a JSON-safe authored payload without fetching or installing a service. The resulting bytes still pass through `assetCost(kind, bytes)` and normal library admission; decoding alone makes no residency claim.
 
-Driftwood's private `runtime/boot/modelGeometry.ts` loader (`modelGeometry(url, channels?)`) loads a single identity-space offline GLB before synchronous model placement. `load(bytes?)` deduplicates the intake and permits explicit bytes in Node; `copy()` returns independent geometry attributes for merging, scaling, collectible slots or release after upload. Custom GLB attributes map back to authored shader channels without quantization or recomputing normals; identity triangle indices restore an original triangle soup. Materials, colliders and animation stay with the runtime owner. Nothing loads or installs on import.
+`src/engine/models/ownedGeometry.ts` defines `createOwnedGeometry(url, channels?)`:
+an explicit owned-template intake for a single identity-space offline GLB.
+`load(bytes?)` deduplicates fetch/parse, or clones an explicitly supplied
+`BufferGeometry`; `copy()` returns independent mutable attributes. `adopt()`
+accepts an already-owned geometry only while unloaded, without retaining a
+second copy. `take()` transfers the template and clears both template and
+pending load, so subsequent reads refuse until another load/adopt. Custom GLB
+channel aliases and triangle-soup identity-index restoration preserve the draw.
+The owner still supplies materials, placement, animation and colliders; import
+installs nothing. Driftwood's fixed, foliage and specimen intakes use this host.
+G441 pending user: Nine's `world/specimens.ts` `SpecimenBake` will replace its
+keyed clone/delete templates with owned intakes, adopting assembled geometry
+from `runtime/geometry.ts`; `world/modelLook.ts` keeps its context ownership.
+This pending second user is rechecked at the end of W3.
 
 
 `@wildshard/game/plugin/ui` admits a browser product with `shardfileSource` or selects it with

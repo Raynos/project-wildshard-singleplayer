@@ -11,7 +11,7 @@ import { GROUND_LOOK } from '../src/shards/driftwood-isle/data/groundLook';
 import { OCEAN } from '../src/shards/driftwood-isle/world/sites';
 import { facetedGroundGlbs } from '../src/shards/driftwood-isle/generators/facetedGround';
 import { driftwoodGroundBytes } from '../src/shards/driftwood-isle/generators/groundRows';
-import { modelGeometry } from '../src/shards/driftwood-isle/runtime/boot/modelGeometry';
+import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { GROUND_FILES } from '../src/shards/driftwood-isle/data/groundFiles';
 
 it('bakes the faceted ground on the heights the runtime walks, in the provoking-vertex order', async () => {

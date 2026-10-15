@@ -1,7 +1,7 @@
 import type { BufferGeometry } from 'three';
 import { decodeFoliageWorld, readFoliageWorld } from './foliageGeometry';
 import { TIER } from '@wildshard/engine/core/tier';
-import { modelGeometry } from '../runtime/boot/modelGeometry';
+import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { HIBISCUS_FILES } from '../data/hibiscusFiles';
 import type { HibiscusBushParams } from '../models/hibiscusBush';
 

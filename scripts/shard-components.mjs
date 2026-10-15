@@ -78,6 +78,7 @@ const questOwners=new Set([
 ]);
 // Reviewed W2 baseline owners. Exact paths/exports only; mixed AST ownership below still applies.
 const reviewedW2Owners = new Map([
+  ['src/engine/models/ownedGeometry.ts', 'C1'],
   ['src/shards/driftwood-isle/boot/trailSpecimens.ts', 'C1'],
   // Native geometry admission and owned static batch/specimen buffers.
   ['src/shards/driftwood-isle/boot/hibiscusGeometry.ts', 'C1'],

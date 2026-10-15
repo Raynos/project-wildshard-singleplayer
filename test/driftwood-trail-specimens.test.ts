@@ -4,7 +4,7 @@ import { BoxGeometry, MeshStandardMaterial, Object3D } from 'three';
 import { Rng } from '@wildshard/engine/core/rng';
 import { modelContext, seedOf, type ModelDef, type ModelBuild, type ModelPart } from '@wildshard/engine/models/model';
 import { staticGlb } from '@wildshard/sdk/bake/glb';
-import { modelGeometry } from '../src/shards/driftwood-isle/runtime/boot/modelGeometry';
+import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { fencePost, signpost, plankStep } from '../src/shards/driftwood-isle/models/trailside';
 import { fencePost as nativePost, signpost as nativeSign, plankStep as nativePlank } from '../src/shards/driftwood-isle/generators/trailsideModels';
 import { TRAIL_SPECIMENS } from '../src/shards/driftwood-isle/data/trailSpecimens';

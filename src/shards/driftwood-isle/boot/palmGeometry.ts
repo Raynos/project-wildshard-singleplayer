@@ -1,7 +1,7 @@
 import { Mesh, type Material } from 'three';
 import { TIER } from '@wildshard/engine/core/tier';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { modelGeometry } from '../runtime/boot/modelGeometry';
+import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { decodeFoliageWorld, readFoliageWorld } from './foliageGeometry';
 import { PALM_FILES } from '../data/palmFiles';
 import type { PalmParams } from '../models/palm';

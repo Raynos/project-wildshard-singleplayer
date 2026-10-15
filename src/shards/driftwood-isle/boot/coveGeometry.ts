@@ -1,7 +1,7 @@
 import type { BufferGeometry } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
 import { staticColliders } from '../runtime/boot/staticColliders';
-import { modelGeometry } from '../runtime/boot/modelGeometry';
+import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
 import bake from '../data/coveBake.json' with { type: 'json' };
 import { coveSpecKey, type CoveSpec } from '../world/coveLayout';
