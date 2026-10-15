@@ -1,9 +1,9 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**W2 at 20:25Z `5e9f5387e`: Pine 71.28 %, Driftwood 67.16 % custom** (target ≤ 20 %; 19:30Z 74.72 / 69.70; start 107.6 / 104.2). 0 unknown. W1: Sky 9.71 (rose 0.13: sdk shaderEdits became Sky-only after DW/Pine left it; o237 retiring it), Signal 9.73.
-Pine/DW: C1 4052/4374 · C2 1461/1934 · C3 162/0 · C4 3667/2159 · C5 2091/1337 · C6 2793/1109 · C7 12/0 · C8 356/185 · C9 532/432.
-Pace last hour: Pine about −3.7 pt/h, DW about −2.7 pt/h, both above G432's ~2.4 / ~2.1.
-Since 19:30Z: NPC skins `79e52a41f` (−363), shared day clock `4e2ea6e2c` (Pine −115, DW −120), swept melee on the native host `b02ecca67` (DW −120), King clips `5a7f30425` (−217), tree set `89f056cc9` (−62), Wendell head `51be29824` (−61), painted bake `abd51c2a1` (−51), perch profiles `155b2c175` (−40), quest beats/payouts `b5cd694da` `5e9f5387e` (−38), island placements `6e8b94f7e` (−25), DW kit + palms `538eef095`, bridge/fish/counter `1adb9ffea`; engine: per-draw CPU `8b0436fdd` (−51 %), builder release `34a8842ff` (creature heap −320 MiB).
+**W2 at 21:20Z `b5531c4b4`: Pine 70.67 %, Driftwood 65.02 % custom** (target ≤ 20 %; 20:25Z 71.28 / 67.16; start 107.6 / 104.2). 0 unknown. W1: Sky 9.58, Signal 9.73.
+Pine/DW: C1 4051/4268 · C2 1380/1731 · C3 162/0 · C4 3666/2114 · C5 2091/1327 · C6 2722/1107 · C7 12/0 · C8 355/185 · C9 558/430.
+Pace last hour: Pine only −0.6 pt, DW −2.1 pt.
+Since 20:25Z: DW ground bake `1c125707c` (−101), captain `21bda4169` (−92), reef `ce82ece65` (−71); Pine held looks `d910a6659` (−70), sights `b1ba58d41` (−38), loadout `2e2a8813e` (−21); engine UBO race `7b6d50836`, irradiance `d24ef264c`, graph cliff `a417444bc`.
 
 **Lanes (G432 5 Opus while Claude < 50 %; Codex 5 + pusher; slots G435):**
 - Opus: o231 DW cover/island/sway kit (landing, G436); o236 Pine painted bake (landed); o237 ref sweep + timbers/creatures (dev)/castaway, then Sky shaderEdits; o238 Pine viewmodel looks.
@@ -16,5 +16,5 @@ Since 19:30Z: NPC skins `79e52a41f` (−363), shared day clock `4e2ea6e2c` (Pine
 
 **Waves:** W2 → W3 (Nalati + Nine) starts by itself at Pine and DW ≤ 20 % + G420 (G434). In force: G415–G435.
 
-**For wildshard-v:** the engine's graph-material per-draw CPU cost now gates the biggest DW look ports (island, creatures, kit): sp-x8 takes it right after II. G433 `dc01e03fb` received; G435 slots in use; no memory constant touched by my lanes.
+**For wildshard-v, DECISION for Jake:** Pine's honest cuts are drying up. What's left (C1 4.1k mostly bake readers, C4 3.7k, C6 2.7k, C5 2.1k) is native ownership that W1 hosts can't carry. Each needs a new host whose only user is Pine, so G294 counts it back to Pine (sp-x5's roster measured +10; King encounter, forager and loadout the same). Options: (A) credit a new platform host as shared when a named W3 shard (Nalati/Nine) has the matching code, and its port row moves that code onto the host within W3 (credit reverted if not); (B) close W2 at the honest floor (likely Pine ~55-60 %, DW ~45 %) and start W3 now; (C) keep going as is (~0.6 pt/h Pine). Recommend (A).
 Paused rows: SF22, SF57, SF67.
