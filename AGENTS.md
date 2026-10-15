@@ -57,8 +57,8 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   imports another shard. SF54 dissolved `@wildshard/kit`: shared content lives in the game, runtime facades in the SDK.
 - **No barrels (E434).** The layers are pnpm workspace packages (E432) with no index file: each `package.json`'s
   `exports` lists its public modules, and an import names the module that defines the binding
-  (`@wildshard/engine/physics/query`). `wildshard/no-reexport` refuses `export … from` of our own modules. A clean export
-  of the tree links `node_modules` with `scripts/link-node-modules.mjs`, never a whole-folder symlink.
+  (`@wildshard/engine/physics/query`). `wildshard/no-reexport` refuses `export … from` of our own modules. A clean tree
+  (the build mirror) links `node_modules` with `scripts/link-node-modules.mjs`, never a whole-folder symlink.
 - **No module installs a service by being imported** (E434): an installer is a function the session or the setup calls
   (`installWorldRegistry()`). A declaration merge that other layers read lives in a `*.merge.d.ts` file the layer
   projects include (`src/game/equipmentTypes.merge.d.ts`, `src/game/icons.merge.d.ts`).
@@ -107,6 +107,12 @@ file in `docs/` is: [docs/README.md](docs/README.md).
 - **One full suite and one app build machine-wide**: use `python3 scripts/heavy-lane.py full-test|build -- <command>`; the push gate has queue priority, focused tests are unrestricted. Lanes never run the full suite: `full-test` refuses outside CI without `WS_FULL_SUITE=1` (SF74 W1).
 - **Clean your scratchpad**: delete throwaways as soon as you have the result; never rename aside. What you keep goes in
   the repo.
+- **Disk: never copy the repo.** No `git archive | tar -x` exports, clones or worktrees. An exact-commit build or check runs
+  in the one build mirror: `node scripts/build-mirror.mjs run <sha> [--slot name] -- <cmd>` (synced file by file,
+  locked; `serve-build.sh --head/--rev`, the pre-commit check and the push gate already use it). Big scratch goes under
+  the git-ignored `./tmp/<task>`, deleted with `rm -rf` on its exact path when done. Never `/tmp`, `$TMPDIR` or the
+  session scratchpad for anything big, and never `mv` trees to `/tmp/delete-me-*`: macOS empties those at boot before
+  login, and millions of leftover export files held the laptop at the login progress bar for hours (2026-10-15).
 
 ## Subagents → [docs/process/SUBAGENTS.md](docs/process/SUBAGENTS.md)
 

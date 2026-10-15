@@ -111,9 +111,10 @@ reap() {
   # vite servers (E317: no dev servers — scripts/serve-build.sh builds and previews). Registered previews
   # (~/.dev-servers/<port>: "pid expiry dir cwd name") live until their expiry, and never past PREVIEW_MAX_AGE_H; an
   # unregistered preview for PREVIEW_MAX_AGE_H; a dev server (`vite` with neither build nor preview) for DEV_MAX_AGE_H.
-  # `vite build` is left alone. A served dir is only ever deleted under /private/tmp/.
-  local reg="${SERVE_REG_DIR:-$HOME/.dev-servers}" f rpid exp dir rcwd name why
-  rm_dir() { [[ "$1" == /private/tmp/?*/?* ]] && [ -d "$1" ] && rm -rf "$1"; return 0; }
+  # `vite build` is left alone. A served dir is only ever deleted under the repo's tmp/serve (or legacy /private/tmp/).
+  local reg="${SERVE_REG_DIR:-$HOME/.dev-servers}" f rpid exp dir rcwd name why serve_root
+  serve_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/tmp/serve"
+  rm_dir() { [[ "$1" == /private/tmp/?*/?* || "$1" == "$serve_root"/?* ]] && [ -d "$1" ] && rm -rf "$1"; return 0; }
   for f in "$reg"/*; do
     [ -f "$f" ] || continue
     read -r rpid exp dir rcwd name < "$f"
@@ -144,7 +145,7 @@ reap() {
   done < <(pgrep -f 'vite/bin/vite\.js' 2>/dev/null)
   # served build dirs nothing serves or builds any more (a stopped or killed preview): no registry row and no live
   # process naming the dir. No age rule: a day of kept builds filled the disk (221 GB, 2026-10-02)
-  find "${SERVE_BUILD_DIR:-/private/tmp/wildshard-serve}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | while read -r d; do
+  find "${SERVE_BUILD_DIR:-$serve_root}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | while read -r d; do
     grep -qs " ${d%.stopped-*} " "$reg"/* && [[ "$d" != *.stopped-* ]] && continue
     pgrep -f "$d" >/dev/null 2>&1 && continue
     [ "$dry" = "--dry-run" ] && echo "would remove $d" || rm_dir "$d"

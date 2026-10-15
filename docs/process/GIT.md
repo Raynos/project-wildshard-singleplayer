@@ -160,9 +160,10 @@ and Codex builders) edit **one working tree, one git index and one local `main`*
 - **Ask ids:** use the path `scripts/ask-new.sh` prints (`f=$(scripts/ask-new.sh "…")`). Never predict the next number:
   parallel sessions claim ids in the same second. Claim in the main checkout, never in a worktree behind main (E105
   was handed out twice that way).
-- **A clean export needs `node scripts/gen.mjs`** before raw `tsc` / `oxlint`: `src/**/*.generated.*` is gitignored and
-  CI's `pnpm run typecheck` / `lint` run `pnpm gen` first. Export with
-  `git archive HEAD -- . ':!art' ':!progress' ':!sources'` (~0.7 GB, not 3.3 GB).
+- **A clean tree needs `node scripts/gen.mjs`** before raw `tsc` / `oxlint`: `src/**/*.generated.*` is gitignored and
+  CI's `pnpm run typecheck` / `lint` run `pnpm gen` first. Never export: run it in the build mirror,
+  `node scripts/build-mirror.mjs run HEAD [--slot name] -- <cmd>` (HEAD without art/progress/sources, ~0.9 GB once,
+  synced file by file; generated files persist between runs).
 - **CI-only node checks:** `pnpm test`'s check-paths, audit-assets, check-model-sources and webgpu-inventory don't run
   in the pre-push gate (its tree drops paths they read). After moving fixtures or editing an allowlist, run
   `node scripts/check-paths.mjs` yourself.

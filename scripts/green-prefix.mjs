@@ -12,9 +12,8 @@
 // checkpoint continuations and builds remain required CI checks. Probes never generate.
 // Unknown failures refuse selection. A committed repair earns one new actual gate.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, lstatSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { linkNodeModules } from './link-node-modules.mjs';
@@ -124,7 +123,13 @@ function gatedRed(common) {
  * @param {string} root @param {string} sha @param {readonly string[]} files @param {readonly string[][]} [commands]
  * @param {(work: string, snapshot: string) => void} [keepPassing] */
 export function probeFailure(root, sha, files, commands, keepPassing) {
-  const work = realpathSync(mkdtempSync(join(tmpdir(), 'green-prefix-')));
+  // Under the git-ignored ./tmp (never the OS temp dir, which macOS empties at boot before login); git run in the probe
+  // must not find the checkout above it, as it could not from a temp-dir export.
+  const scratch = join(root, 'tmp');
+  mkdirSync(scratch, { recursive: true });
+  const ceilings = (process.env.GIT_CEILING_DIRECTORIES ?? '').split(':').filter(Boolean);
+  if (!ceilings.includes(scratch)) process.env.GIT_CEILING_DIRECTORIES = [...ceilings, scratch].join(':');
+  const work = realpathSync(mkdtempSync(join(scratch, 'green-prefix-')));
   let kept = false;
   try {
     const archive = join(work, 'source.tar');

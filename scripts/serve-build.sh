@@ -4,13 +4,14 @@
 #
 #   scripts/serve-build.sh [--head | --rev <rev>] [--port <n>] [--hours <h>] [--name <label>] [--devserver]
 #        vite build → a private out dir → `vite preview` on a free port (4400–4999), detached. Prints the URL.
-#        --head   build a clean `git archive HEAD` export instead of the working tree (nobody's WIP in it)
+#        --head   build HEAD in the build mirror's `serve` slot instead of the working tree (nobody's WIP in it)
 #        --rev    the same for any commit (a before / after pair, e.g. scripts/nine-sim-memory.mjs --rev=f9ca6490)
 #        --hours  the server is reaped after this long (default 4; `scripts/browser-lane.sh reap`)
 #   scripts/serve-build.sh list                  the servers this script started, their age and expiry
 #   scripts/serve-build.sh stop <port|all-mine>  stop one (all-mine: every server this Claude session started)
 #
-# public/ (≈ 500 MB) is not copied: the out dir symlinks its top-level entries, so a build takes the JS build's time only.
+# public/ (≈ 500 MB) is not copied: the out dir symlinks its top-level entries (--head/--rev: APFS clones, `cp -c`, no extra
+# bytes, because the mirror moves on once this script exits), so a build takes the JS build's time only.
 # Registry: ~/.dev-servers/<port> ("pid expiry outdir owner name"; owner = the session id, E338). Reaped by `scripts/browser-lane.sh reap` (hooks on
 # SessionStart / Stop / SubagentStop): an expired registered preview, an unregistered `vite preview` older than 6 h, and
 # every `vite` dev server older than 2 h.
@@ -23,7 +24,7 @@ REG="${SERVE_REG_DIR:-$HOME/.dev-servers}"; mkdir -p "$REG"
 # anything else falls back to the folder. Subagents share their parent's session id, so a lane sets SERVE_OWNER=<lane>
 # (op-nine11, …) or a sibling's eviction stops its preview mid-capture.
 CALLER="${SERVE_OWNER:-${CLAUDE_CODE_SESSION_ID:-${CODEX_SESSION_ID:-$PWD}}}"; CALLER="${CALLER// /_}"
-BASE="${SERVE_BUILD_DIR:-/private/tmp/wildshard-serve}"; mkdir -p "$BASE"; BASE="$(cd "$BASE" && pwd -P)" # canonical (E432)
+BASE="${SERVE_BUILD_DIR:-$REPO/tmp/serve}"; mkdir -p "$BASE"; BASE="$(cd "$BASE" && pwd -P)" # canonical (E432)
 
 case "${1:-}" in
   list)
@@ -51,7 +52,7 @@ case "${1:-}" in
         fi
         rm -f "$f"
         # delete the build now (~1.5 GB each): kept as .stopped-* they filled the disk (221 GB, 2026-10-02)
-        [ -n "$out" ] && [ -d "$out" ] && [[ "$out" == /private/tmp/?*/?* ]] && { rm -rf "$out" & } 2>/dev/null
+        [ -n "$out" ] && [ -d "$out" ] && [[ "$out" == /private/tmp/?*/?* || "$out" == "$REPO"/tmp/serve/?* ]] && { rm -rf "$out" & } 2>/dev/null
         echo "stopped :$(basename "$f")"
       fi
     done
@@ -59,6 +60,7 @@ case "${1:-}" in
 esac
 
 MODE=production; HEAD_ONLY=0; REV=HEAD; PORT=""; HOURS=4; NAME="build"
+ARGS=("$@")
 while [ $# -gt 0 ]; do
   case "$1" in
     --devserver) MODE=devserver; shift;;
@@ -70,6 +72,12 @@ while [ $# -gt 0 ]; do
     *) echo "serve-build.sh: unknown option $1" >&2; exit 64;;
   esac
 done
+# --head / --rev: the whole build runs in the locked `serve` slot of the build mirror (one persistent copy under ./tmp,
+# synced file by file) instead of a fresh export per preview; this script re-runs itself there and exits, releasing
+# the slot, once the preview is up.
+if [ $HEAD_ONLY -eq 1 ] && [ -z "${SERVE_IN_MIRROR:-}" ]; then
+  SERVE_IN_MIRROR=1 exec node "$REPO/scripts/build-mirror.mjs" run "$REV" --slot serve -- bash "$REPO/scripts/serve-build.sh" "${ARGS[@]}"
+fi
 
 # caps (E317 follow-up: one session held 26 previews registered for 8–12 h): --hours at most SERVE_MAX_HOURS (4), and at
 # most SERVE_MAX_LIVE (12) previews machine-wide. Over it: this caller's own oldest preview is stopped to make room; else
@@ -144,11 +152,8 @@ done
 OUT="$BASE/$stamp/dist"
 SRC="$REPO"
 if [ $HEAD_ONLY -eq 1 ]; then
-  SRC="$BASE/$stamp/src"; mkdir -p "$SRC"
-  git -C "$REPO" archive "$REV" | tar -x -C "$SRC" || { echo "serve-build.sh: cannot export $REV" >&2; exit 1; }
-  # an export has no .git: hand vite.config.ts the commit, so the build id in version.json names it
-  export VERCEL_GIT_COMMIT_SHA="$(git -C "$REPO" rev-parse "$REV")"
-  node "$REPO/scripts/link-node-modules.mjs" "$REPO" "$SRC" # E432: @wildshard/* → this export, not the working tree
+  # the mirror (cwd): build-mirror.mjs synced it to $REV, linked node_modules (E432) and set VERCEL_GIT_COMMIT_SHA
+  SRC="$(pwd -P)"
 fi
 mkdir -p "$BASE/$stamp"
 echo "serve-build: building $( [ $HEAD_ONLY -eq 1 ] && echo "$REV $(git -C "$REPO" rev-parse --short "$REV")" || echo "the working tree" ) → $OUT" >&2
@@ -174,7 +179,7 @@ link_tree() {
   for e in "$src"/* "$src"/.[!.]*; do
     [ -e "$e" ] || continue
     n="$dst/$(basename "$e")"
-    if [ ! -e "$n" ]; then ln -s "$e" "$n"
+    if [ ! -e "$n" ]; then if [ $HEAD_ONLY -eq 1 ]; then cp -cR "$e" "$n"; else ln -s "$e" "$n"; fi
     elif [ -d "$e" ] && [ -d "$n" ] && [ ! -L "$n" ]; then link_tree "$e" "$n"; fi
   done
 }
