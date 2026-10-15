@@ -9,6 +9,7 @@
  * timer and hides the strip. Text is authored with `textContent` only. Players never see it (no URL switch, E162).
  */
 import type { Scope } from '@wildshard/engine/app/scope';
+import { CONTENT_CAPS } from '@wildshard/engine/core/config';
 import { isDev, onDev } from '@wildshard/engine/core/devMode';
 import { mountUi } from '@wildshard/engine/ui/ownership';
 import { memoryAttribution, type MemorySnapshot } from '@wildshard/engine/core/memoryAttribution';
@@ -120,7 +121,7 @@ export function installBudgetOverlay(host: BudgetOverlayHost): BudgetOverlay {
       row('UNATTRIBUTED GPU', MB(snapshot.unattributed.gpu)), row('UNATTRIBUTED RAM STORAGE', MB(snapshot.unattributed.ram)));
     const measured = snapshot.measured;
     sec.append(row('NATIVE WC + LABELLED GL', measured === null ? 'NOT SAMPLED' : MB(measured.webContentBytes + measured.labelledGpuBytes),
-      measured !== null && measured.webContentBytes + measured.labelledGpuBytes > 1e9 ? 'red' : null));
+      measured !== null && measured.webContentBytes + measured.labelledGpuBytes > CONTENT_CAPS.playing ? 'red' : null));
     if (measured !== null) sec.append(el('p', 'ws-grid-budget-memory-note', `${new Date(measured.sampledAt).toISOString()} · ${measured.source}`));
     sec.append(footprintGauge(memoryFootprint(snapshot, calibrated), cap));
     sec.append(el('p', 'ws-grid-budget-memory-note', 'GPU is allocated storage. RAM is live storage / capacity, not physical footprint. Neither is added to WebContent. Native unobserved RAM remains unknown.'));

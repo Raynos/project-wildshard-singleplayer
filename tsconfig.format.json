@@ -14,6 +14,7 @@
   },
   "include": [
     "src/format/**/*.ts",
+    "src/format/memoryGates.json",
     "types/format-standards.d.ts"
   ]
 }

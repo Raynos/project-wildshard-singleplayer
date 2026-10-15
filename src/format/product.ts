@@ -11,7 +11,7 @@ import { assertMigrationCompatibility } from "@wildshard/format/migrations";
 import { StateSchema } from "@wildshard/format/state";
 import * as v from "valibot";
 import { worstContentCost, memoryTargetWarnings, nearbyContentCost } from "@wildshard/format/budget";
-import { CONTENT_CAPS as C, CONTENT_CAPS } from '@wildshard/format/contentBounds';
+import { CONTENT_CAPS as C, CONTENT_CAPS, MEMORY_GATES } from '@wildshard/format/contentBounds';
 import { DEFAULT_GRAPH_BUDGET, validateGraph } from "@wildshard/format/materialGraph";
 import { SCRIPT_LIMITS } from '@wildshard/format/scriptLimits';
 import { runtimeAccountedBytes } from "@wildshard/format/runtimeCost";
@@ -524,7 +524,11 @@ export function performanceReport(source: Shardfile, observations: PerformanceOb
   };
   if (native.unmeasuredViewAndDownload) check('native view/download measurement required', 1, 0);
   if (source.runtime !== null && source.runtime.cost === undefined) check('native resident measurement required', 1, 0);
-  check('worst playing total bytes', worst.playing, C.playing); check('worst loading total bytes', worst.loading, C.loading);
+  // G433: while src/format/memoryGates.json is report-only the totals print as warnings and never refuse a build.
+  const total = (metric: string, actual: number, limit: number): void => {
+    if (MEMORY_GATES.reportOnly && actual > limit) issues.push({ metric: `${metric} (report-only, G433)`, actual, limit, severity: 'warning' }); else check(metric, actual, limit);
+  };
+  total('worst playing total bytes', worst.playing, C.playing); total('worst loading total bytes', worst.loading, C.loading);
   const library = reportCardClosure(source, source.library), critical = reportCardClosure(source, source.critical);
   const tileRoots = source.tiles.flatMap(tile => tile.files), farRoots = source.far?.files ?? [], nearRoots = nearPlaceholderRoots(source.near);
   const playable = reportCardClosure(source, [...source.critical, ...source.library, ...farRoots, ...source.tiles.filter(tile => tile.lod === 1 || near(tile, spawn.x, spawn.z)).flatMap(tile => tile.files)]);
@@ -656,4 +660,10 @@ export class MemoryAdmission {
   /** Page disposal forgets every warning and listener; no later admission resurrects a UI subscription. */
   dispose(): void { this.warnings.clear(); this.listeners.clear(); }
   private notify(): void { for (const read of this.listeners) read(); }
+}
+
+/** The memory admission an offline author build uses: strict for `refuse` unless src/format/memoryGates.json is
+ * report-only (G433), when an over-envelope total is accepted and printed by the performance report instead. */
+export function offlineMemoryAdmission(policy: 'warn' | 'refuse'): MemoryAdmission | undefined {
+  return policy === 'warn' || MEMORY_GATES.reportOnly ? new MemoryAdmission(() => true) : undefined;
 }

@@ -12,6 +12,12 @@ import time
 
 GIB = 1024 ** 3
 GB = 1000 ** 3
+# The one memory switch (src/format/memoryGates.json, G433): phase budgets and whether a budget overrun fails the run.
+# In report-only mode an overrun is recorded and printed, never a failure; a vanished or restarted WebContent still fails.
+MEMORY_GATES = json.loads((pathlib.Path(__file__).resolve().parent.parent / 'src' / 'format' / 'memoryGates.json').read_text())
+LOADING_BUDGET = int(MEMORY_GATES['loadingMB'] * 1_000_000)
+WORLD_BUDGET = int(MEMORY_GATES['explorerMB'] * 1_000_000)
+REPORT_ONLY = MEMORY_GATES['mode'] == 'report-only'
 
 
 class RUsageInfo(ctypes.Structure):
@@ -154,6 +160,7 @@ class BudgetRun:
         self.peak_resident = 0
         self.peak_interval_sum = 0
         self.samples = 0
+        self.overruns = []
 
     def observe(self, readings):
         current = {row['pid']: row['startAbstime'] for row in readings}
@@ -171,11 +178,17 @@ class BudgetRun:
         self.peak_interval_sum = max(self.peak_interval_sum, interval_sum)
         if readings:
             self.samples += 1
+        over = None
         if footprint > self.budget_bytes:
-            return f'Physical footprint {footprint:,} bytes ({footprint / GB:.3f} GB) exceeds {self.budget_bytes:,} byte budget'
-        if interval_sum > self.budget_bytes:
-            return f'Native interval high-water sum {interval_sum:,} bytes ({interval_sum / GB:.3f} GB) exceeds {self.budget_bytes:,} byte budget'
-        return None
+            over = f'Physical footprint {footprint:,} bytes ({footprint / GB:.3f} GB) exceeds {self.budget_bytes:,} byte budget'
+        elif interval_sum > self.budget_bytes:
+            over = f'Native interval high-water sum {interval_sum:,} bytes ({interval_sum / GB:.3f} GB) exceeds {self.budget_bytes:,} byte budget'
+        if over is not None and REPORT_ONLY:
+            if not self.overruns or self.overruns[-1]['budgetBytes'] != self.budget_bytes:
+                self.overruns.append({'budgetBytes': self.budget_bytes, 'first': over})
+            self.overruns[-1]['peakBytes'] = max(self.overruns[-1].get('peakBytes', 0), footprint, interval_sum)
+            return None
+        return over
 
 
 class PhaseBudget:
@@ -189,7 +202,7 @@ class PhaseBudget:
     def update(self):
         if self.world_phase_file.exists():
             self.phase = 'world'
-        return 1_000_000_000 if self.phase == 'world' else 1_800_000_000
+        return WORLD_BUDGET if self.phase == 'world' else LOADING_BUDGET
 
 
 def positive_number(value):
@@ -205,7 +218,7 @@ def main():
     budget = parser.add_mutually_exclusive_group()
     budget.add_argument('--budget-gib', type=positive_number, help='Single budget in binary GiB; defaults to 4 GiB outside phase mode')
     budget.add_argument('--budget-gb', type=positive_number, help='Single budget in decimal GB (1 GB = 1,000,000,000 bytes)')
-    budget.add_argument('--world-phase-file', type=pathlib.Path, help='Two-phase mode: 1.8 decimal GB loading, 1.0 GB once test driver creates this new marker')
+    budget.add_argument('--world-phase-file', type=pathlib.Path, help='Two-phase mode: the loading / Explorer budgets of src/format/memoryGates.json (decimal), Explorer once the test driver creates this new marker')
     parser.add_argument('--duration', type=positive_number, default=120, help='Seconds to watch AFTER first WebContent sample')
     parser.add_argument('--interval', type=positive_number, default=0.1, help='Sampling interval in seconds; default 0.1; brief bursts can still be missed')
     parser.add_argument('--start-timeout', type=positive_number, default=30, help='Fail if no WebContent appears within this many seconds')
@@ -213,7 +226,7 @@ def main():
     parser.add_argument('--url', help='Optionally open this URL in Simulator Safari after the watchdog starts')
     parser.add_argument('--out', type=pathlib.Path, required=True, help='New JSONL output path (refuses to overwrite)')
     args = parser.parse_args()
-    initial_budget = 1_800_000_000 if args.world_phase_file else int(
+    initial_budget = LOADING_BUDGET if args.world_phase_file else int(
         args.budget_gb * GB if args.budget_gb is not None else (args.budget_gib or 4) * GIB)
     run = BudgetRun(initial_budget)
     phase_budget = None
@@ -239,7 +252,8 @@ def main():
             emit('start', device=args.device, simulatorLaunchdPid=manager,
                  simulatorLaunchdStartAbstime=manager_identity, budgetBytes=run.budget_bytes,
                  durationSeconds=args.duration, intervalSeconds=args.interval,
-                 phaseBudgetsBytes={'loading': 1_800_000_000, 'world': 1_000_000_000} if phase_budget else None,
+                 phaseBudgetsBytes={'loading': LOADING_BUDGET, 'world': WORLD_BUDGET} if phase_budget else None,
+                 memoryGates=MEMORY_GATES['mode'],
                  worldPhaseFile=str(args.world_phase_file) if args.world_phase_file else None,
                  scope='single Simulator WebContent PID' if args.pid else 'sum of all Simulator WebContent processes',
                  metric='macOS proc_pid_rusage RUSAGE_INFO_V4 physical footprint + kernel interval high-water', url=args.url)
@@ -302,6 +316,8 @@ def main():
                     if phase_budget and phase_budget.phase != 'world':
                         raise RuntimeError('World phase was never marked; refusing to pass a loading-only run')
                     result, reason, code = 'pass', 'Observed native memory stayed within budget for the requested window', 0
+                    if run.overruns:
+                        reason = 'REPORT-ONLY (src/format/memoryGates.json, G433): over budget but not failed: ' + '; '.join(row['first'] for row in run.overruns)
                     break
                 time.sleep(max(0, args.interval - (time.monotonic() - tick)))
         except KeyboardInterrupt:
@@ -313,7 +329,7 @@ def main():
              peakPhysicalFootprintBytes=run.peak_footprint, peakResidentBytes=run.peak_resident,
              peakIntervalHighWaterSumBytes=run.peak_interval_sum, phasePeakIntervalHighWaterSumBytes=phase_peaks,
              gpuPeakSampledPhysicalFootprintBytes=gpu_peak_footprint,
-             processIdentities=run.identities)
+             processIdentities=run.identities, memoryGates=MEMORY_GATES['mode'], reportOnlyOverruns=run.overruns)
         print(f'{result.upper()}: {reason}; sampled footprint peak {run.peak_footprint / GB:.3f} GB; '
               f'native interval high-water sum {run.peak_interval_sum / GB:.3f} GB; report {args.out}', flush=True)
     return code

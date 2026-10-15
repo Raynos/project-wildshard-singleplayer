@@ -1,5 +1,9 @@
 import { publicGridIntentCode } from '../public-grid.mjs';
 import { gridFloorWitnessFailures } from '../frame-floor-grid.mjs';
+import memoryGates from '../../src/format/memoryGates.json' with { type: 'json' };
+
+/** The Explorer cap of the one memory switch (src/format/memoryGates.json, G433), decimal bytes. */
+const EXPLORER_CAP_BYTES = memoryGates.explorerMB * 1_000_000;
 
 /** Reuse the floor's pre-release tap intent; the public menu gate and Developer mode never change.
  * @param {string} layout */
@@ -311,7 +315,7 @@ export function soakLapMemory(samples, circuits) {
     cycles.set(cycle, lap);
   }
   const laps = [];
-  for (const lap of cycles.values()) { lap.overCapBytes = Math.max(0, lap.peakBytes - 1e9); laps.push(lap); }
+  for (const lap of cycles.values()) { lap.overCapBytes = Math.max(0, lap.peakBytes - EXPLORER_CAP_BYTES); laps.push(lap); }
   return laps;
 }
 

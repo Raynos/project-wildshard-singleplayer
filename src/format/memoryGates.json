@@ -1,0 +1,7 @@
+{
+  "$doc": "The one memory switch (Jake, 2026-10-15, G433). explorerMB / loadingMB are the runtime caps (CONTENT_CAPS.playing / .loading: grid admission, page residency, the phone's images-first texture switch). mode 'report-only' makes every memory CHECK print its numbers and never fail (build product admission, the Simulator watchdog's phase budgets); 'enforce' restores refusal. Restore when SHARD-PLATFORM closes: set mode to \"enforce\" and explorerMB to 1000 in this one edit.",
+  "mode": "report-only",
+  "explorerMB": 1200,
+  "loadingMB": 1800,
+  "until": "SHARD-PLATFORM closes (G433): then mode enforce, explorerMB 1000"
+}

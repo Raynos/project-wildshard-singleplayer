@@ -7,7 +7,7 @@ import { resolve, sep } from 'node:path';
 import { Buffer } from 'node:buffer';
 import { build } from 'vite';
 import { parseShardfile, type Shardfile } from './shardfile';
-import { preflightAssetGraph, MemoryAdmission } from "@wildshard/format/product";
+import { preflightAssetGraph, offlineMemoryAdmission } from "@wildshard/format/product";
 import { preflightDeclaredCosts } from '@wildshard/format/assetAdmission';
 import { preflightShardfile } from '@wildshard/format/preflight';
 
@@ -34,7 +34,6 @@ export function validateProject(input: unknown, assets: ReadonlyMap<string, Uint
   const source = parseShardfile(input);
   return admitProduct(source, assets, projectPerformancePolicy(project, source));
 }
-function offlineMemory(policy: 'warn' | 'refuse'): MemoryAdmission | undefined { return policy === 'warn' ? new MemoryAdmission(() => true) : undefined; }
 
 async function projectModule(project: string): Promise<{ shard: Shardfile; commons: unknown; baked?: ReadonlyMap<string, Uint8Array> }> {
   const result = await build({ configFile: false, logLevel: 'silent', build: { write: false, minify: false, lib: { entry: resolve(project, 'shard.config.ts'), formats: ['es'], fileName: 'config' }, rolldownOptions: { external: [/^node:/u, 'assemblyscript/dist/asc.js'] } } });
@@ -82,7 +81,7 @@ export async function readProjectAssets(project: string, map?: ProjectMap): Prom
 
 function pinnedCommons(input: unknown, source: Shardfile, project: string): ReadonlyMap<string, Uint8Array> | undefined {
   if (input === undefined) return undefined;
-  preflightDeclaredCosts(source, offlineMemory(projectPerformancePolicy(project, source)));
+  preflightDeclaredCosts(source, offlineMemoryAdmission(projectPerformancePolicy(project, source)));
   if (typeof input !== 'object' || input === null || !('catalogue' in input) || !('assets' in input)) throw new Error('Build-only commons export needs a compiled catalogue');
   const catalogue = input.catalogue;
   if (typeof catalogue !== 'object' || catalogue === null || !('format' in catalogue) || catalogue.format !== 'wildshard.commons' || !('version' in catalogue) || catalogue.version !== 0 || !(input.assets instanceof Map)) throw new Error('Unsupported build-only commons catalogue');
@@ -97,7 +96,7 @@ function pinnedCommons(input: unknown, source: Shardfile, project: string): Read
 /** Preflight and read bounded immutable files from an author project or flat built product. */
 export function projectAssets(project: string, shard: Shardfile, layout: 'project' | 'product' = 'project', pinned?: ReadonlyMap<string, Uint8Array>): Map<string, Uint8Array> {
   preflightShardfile(shard); preflightAssetGraph(shard);
-  preflightDeclaredCosts(shard, offlineMemory(projectPerformancePolicy(project, shard)));
+  preflightDeclaredCosts(shard, offlineMemoryAdmission(projectPerformancePolicy(project, shard)));
   assertProductTargets(shard, projectPerformancePolicy(project, shard));
   const read = (hash: string, size: number, folder: string): Uint8Array => {
     const bytes = pinned?.get(hash) ?? readBoundedFile(resolve(project, layout === 'project' ? folder : '.', hash), size);

@@ -16,6 +16,9 @@ Linked from [AGENTS.md](../../AGENTS.md). Moved from AGENTS.md by E423 (2026-10-
 - `pnpm test:gpu-boot` includes `scripts/test-facade-instancing.mjs`: it requires the actual facade to stay instanced
   with multi-draw available on desktop, phone tier, and an iPhone using desktop quality. Keep this regression check;
   do not weaken it to make an optimization pass. Memory targets remain 1.8 GB loading / 1.0 GB Explorer (decimal).
+- **The one memory switch is `src/format/memoryGates.json`** (G433): its `explorerMB` / `loadingMB` are the runtime
+  caps (`CONTENT_CAPS.playing` / `.loading`), and `mode: "report-only"` makes every memory check print and never fail.
+  Until SHARD-PLATFORM closes it reads report-only, 1,200 MB; restoring is the one edit `"enforce"`, `1000`.
 - **A risky rendering or memory change** (batching, multi-draw, texture or memory policy) ships **default-off behind a
   Debug row** until a physical-device reading backs it (E423 decision 6). It is the one exception to "no phone checks".
 

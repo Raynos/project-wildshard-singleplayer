@@ -13,17 +13,32 @@ spec.loader.exec_module(watchdog)
 
 
 class WatchdogTests(unittest.TestCase):
+    # These tests pin enforcement; src/format/memoryGates.json's report-only mode has its own test below.
+    def setUp(self):
+        self.report_only = watchdog.REPORT_ONLY
+        watchdog.REPORT_ONLY = False
+
+    def tearDown(self):
+        watchdog.REPORT_ONLY = self.report_only
+
+    def test_report_only_records_an_overrun_without_failing(self):
+        watchdog.REPORT_ONLY = True
+        run = watchdog.BudgetRun(100)
+        self.assertIsNone(run.observe([{'pid': 1, 'startAbstime': 1, 'physicalFootprintBytes': 150, 'residentBytes': 1}]))
+        self.assertEqual(run.overruns[0]['peakBytes'], 150)
+        self.assertIn('disappeared or restarted', run.observe([]))
+
     def test_decimal_phase_budget_drops_and_stale_marker_is_rejected(self):
         with tempfile.TemporaryDirectory() as directory:
             marker = pathlib.Path(directory) / 'world'
             phase = watchdog.PhaseBudget(marker)
             run = watchdog.BudgetRun(phase.update())
-            row = {'pid': 12, 'startAbstime': 1, 'physicalFootprintBytes': 1_100_000_000, 'residentBytes': 2_000_000_000}
-            self.assertEqual(run.budget_bytes, 1_800_000_000)
+            row = {'pid': 12, 'startAbstime': 1, 'physicalFootprintBytes': watchdog.WORLD_BUDGET + 100_000_000, 'residentBytes': 2_000_000_000}
+            self.assertEqual(run.budget_bytes, watchdog.LOADING_BUDGET)
             self.assertIsNone(run.observe([row]))
             marker.touch()
             run.budget_bytes = phase.update()
-            self.assertEqual(run.budget_bytes, 1_000_000_000)
+            self.assertEqual(run.budget_bytes, watchdog.WORLD_BUDGET)
             self.assertIn('exceeds', run.observe([row]))
             with self.assertRaises(RuntimeError):
                 watchdog.PhaseBudget(marker)

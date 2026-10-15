@@ -3,7 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 // oxlint-disable-next-line import/no-nodejs-modules -- The caller supplies its owned output directory.
 import { resolve } from 'node:path';
 import { parseShardfile, type Shardfile } from '@wildshard/format/shardSchema';
-import { MemoryAdmission, validationRevision, validationSourceBytes } from '@wildshard/format/product';
+import { offlineMemoryAdmission, validationRevision, validationSourceBytes } from '@wildshard/format/product';
 import { preflightDeclaredCosts, validateShardfileAssets } from '@wildshard/format/assetAdmission';
 import { encodeCanonicalJson, hashImmutableBytes } from './immutable';
 import { performanceReport, performanceReportLines, performanceTargetIssues } from './reportCard';
@@ -11,7 +11,6 @@ import { packProjectMap } from './projectMap';
 import { readBoundedFile } from './sourceReader';
 import { STILL_IMAGE_LIMITS } from '@wildshard/format/stillImage';
 
-function memory(policy: 'warn' | 'refuse'): MemoryAdmission | undefined { return policy === 'warn' ? new MemoryAdmission(() => true) : undefined; }
 
 /** Refuse the same target overages as the author CLI; warning policy belongs only to trusted checkout callers. */
 export function assertProductTargets(source: Shardfile, policy: 'warn' | 'refuse'): void {
@@ -23,9 +22,9 @@ export function assertProductTargets(source: Shardfile, policy: 'warn' | 'refuse
 /** Admit declared costs and actual immutable bytes through the browser's defining contracts, without a config loader. */
 export function admitProduct(input: unknown, assets: ReadonlyMap<string, Uint8Array>, policy: 'warn' | 'refuse' = 'refuse'): Shardfile {
   const source = parseShardfile(input);
-  preflightDeclaredCosts(source, memory(policy));
+  preflightDeclaredCosts(source, offlineMemoryAdmission(policy));
   assertProductTargets(source, policy);
-  return validateShardfileAssets(source, assets, hashImmutableBytes, memory(policy));
+  return validateShardfileAssets(source, assets, hashImmutableBytes, offlineMemoryAdmission(policy));
 }
 
 /** Emit a complete product: canonical shard.json, every charged local/commons asset and the informational validation receipt.
@@ -43,7 +42,7 @@ export function writeProduct(input: unknown, assets: ReadonlyMap<string, Uint8Ar
     writeFileSync(resolve(destination, hash), bytes); emitted.add(hash);
   }
   writeFileSync(resolve(destination, 'shard.json'), encodeCanonicalJson(shard));
-  writeFileSync(resolve(destination, 'validation.json'), encodeCanonicalJson({ revision: validationRevision(), sourceHash: hashImmutableBytes(validationSourceBytes(shard)), worst: preflightDeclaredCosts(shard, memory(policy)).worst }));
+  writeFileSync(resolve(destination, 'validation.json'), encodeCanonicalJson({ revision: validationRevision(), sourceHash: hashImmutableBytes(validationSourceBytes(shard)), worst: preflightDeclaredCosts(shard, offlineMemoryAdmission(policy)).worst }));
   return shard;
 }
 
