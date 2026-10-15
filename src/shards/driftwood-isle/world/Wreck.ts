@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { modelContext } from '@wildshard/engine/models/model';
+import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { place, type Placed } from '@wildshard/engine/models/place';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
@@ -15,16 +16,6 @@ import { reefRock } from '../models/reefRock';
 import { WRECK_KIT_GEOMETRY, WRECK_GLOW_GEOMETRY, WRECK_ROCKS_GEOMETRY } from '../boot/fixedGeometry';
 import bake from '../data/wreckBake.json' with { type: 'json' };
 import { wreckFloorHeight } from './wreckFloor';
-
-const n = (value: number | undefined): number => { if (value === undefined) throw new Error('Wreck collider lacks a number'); return value; };
-const end = (value: {x:number;y:number;z:number} | undefined) => { if (value === undefined) throw new Error('Wreck tread lacks an endpoint'); return {...value}; };
-const bakedDescs = (): ColliderDesc[] => bake.descs.map((row): ColliderDesc => {
-  if (row.kind === 'treads') return {kind:'treads',from:end(row.from),to:end(row.to),width:n(row.width),count:n(row.count)};
-  const at = {x:n(row.x),y:n(row.y),z:n(row.z),...(row.rot === undefined ? {} : {rot:{...row.rot}}),...(row.yaw === undefined ? {} : {yaw:row.yaw})};
-  if (row.kind === 'box') return {...at,kind:'box',hx:n(row.hx),hy:n(row.hy),hz:n(row.hz)};
-  if (row.kind === 'capsule') return {...at,kind:'capsule',radius:n(row.radius),halfHeight:n(row.halfHeight)};
-  throw new Error('Unsupported baked wreck collider');
-});
 
 /** Wreck Cove's authored draw, native floor query and existing model/registry ownership. */
 export class Wreck {
@@ -66,6 +57,6 @@ export class Wreck {
   }
 
   /** The authored walls, timber, mast, ramps and treads retain their existing collision owner. */
-  colliderDescs(): ColliderDesc[] { return bakedDescs(); }
+  colliderDescs(): ColliderDesc[] { return readColliderRows(bake.descs, { kinds: ['box', 'capsule', 'treads'], surfaces: [] }); }
   floorHeightAt(x:number,z:number):number|undefined { return wreckFloorHeight(bake.floor,x,z); }
 }

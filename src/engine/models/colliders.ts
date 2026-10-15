@@ -4,9 +4,43 @@
  * everywhere else: src/engine/physics/pieces.ts makes the Rapier colliders.
  */
 import * as THREE from 'three';
+import * as val from 'valibot';
 import type { Material as SurfaceMaterial } from '../physics/surface';
 import type { ColliderDesc } from '../world/registry';
 import type { Placement } from './model';
+
+/** Decode fresh registry descriptors from serialized facts. Callers explicitly admit shape kinds and surfaces;
+ * absent surfaces stay absent, unless requireSurface is true. No physics objects are created here.
+ * At most 65,536 rows and 6,000,000 values per geometry lane are admitted; indices must fit Uint32. */
+export function readColliderRows(rows: readonly unknown[], policy: {
+  readonly kinds: readonly ColliderDesc['kind'][];
+  readonly surfaces: readonly SurfaceMaterial[];
+  readonly requireSurface?: boolean;
+}): ColliderDesc[] {
+  if (rows.length > 65_536) throw new Error('Collider row bound exceeded');
+  const finite = val.pipe(val.number('Collider values must be finite'), val.finite('Collider values must be finite'));
+  const point = val.strictObject({ x: finite, y: finite, z: finite }, 'Collider lacks an endpoint');
+  const surface = val.exactOptional(val.picklist(policy.surfaces));
+  const at = { x: finite, y: finite, z: finite, yaw: val.exactOptional(finite), rot: val.exactOptional(val.strictObject({ x: finite, y: finite, z: finite, w: finite })), surface };
+  const lane = val.pipe(val.array(finite), val.maxLength(6_000_000));
+  const schema = val.variant('kind', [
+    val.strictObject({ kind: val.literal('box'), ...at, hx: finite, hy: finite, hz: finite }),
+    val.strictObject({ kind: val.literal('capsule'), ...at, halfHeight: finite, radius: finite }),
+    val.strictObject({ kind: val.literal('ball'), ...at, radius: finite }),
+    val.strictObject({ kind: val.literal('hull'), ...at, points: lane }),
+    val.strictObject({ kind: val.literal('trimesh'), ...at, vertices: lane, indices: val.pipe(val.array(val.pipe(finite, val.integer(), val.minValue(0), val.maxValue(0xffff_ffff))), val.maxLength(6_000_000)) }),
+    val.strictObject({ kind: val.literal('treads'), from: point, to: point, width: finite, count: val.pipe(finite, val.integer(), val.minValue(1)), surface }),
+  ]);
+  return rows.map(raw => {
+    if (typeof raw !== 'object' || raw === null || !('kind' in raw) || !policy.kinds.some(kind => kind === raw.kind)) throw new Error('Unexpected collider shape');
+    const actual = 'surface' in raw ? raw.surface : undefined;
+    if ((actual === undefined && policy.requireSurface === true) || (actual !== undefined && !policy.surfaces.some(allowed => allowed === actual))) throw new Error('Unexpected collider surface');
+    const row = val.parse(schema, raw);
+    if (row.kind === 'hull') return { ...row, points: Float32Array.from(row.points) };
+    if (row.kind === 'trimesh') return { ...row, vertices: Float32Array.from(row.vertices), indices: Uint32Array.from(row.indices) };
+    return row;
+  });
+}
 
 /** one copy's transform: the matrix, and its rotation and uniform scale taken apart once */
 export interface Pose {

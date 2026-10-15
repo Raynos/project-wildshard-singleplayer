@@ -1,6 +1,6 @@
 import type { BufferGeometry } from 'three';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
-import { staticColliders } from '../runtime/boot/staticColliders';
+import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { createOwnedGeometry as modelGeometry } from '@wildshard/engine/models/ownedGeometry';
 import { FIXED_MODEL_FILES } from '../data/modelFiles';
 import bake from '../data/coveBake.json' with { type: 'json' };
@@ -42,5 +42,5 @@ export function copyCoveGeometry(spec: CoveSpec): {
 
 /** Fresh native descriptors from the admitted static cave facts. */
 export function coveColliderDescs(): ColliderDesc[] {
-  return staticColliders(bake.native.descs, 'rock');
+  return readColliderRows(bake.native.descs, { kinds: ['box', 'treads'], surfaces: ['rock'], requireSurface: true });
 }

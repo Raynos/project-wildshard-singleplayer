@@ -29,14 +29,14 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { fencePost, plankStep, signpost, trailMaterial } from '../models/trailside';
 
 import { copyTrailsideGeometry } from '../boot/trailsideGeometry';
-import { staticColliders, type StaticColliderFact } from '../runtime/boot/staticColliders';
+import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { islandTrailsideSpec, type TrailsideSpec } from './trailsideLayout';
 
 /** The placed native trail weld with its existing terrain-following collision law. */
 export class Trailside {
   mesh!: THREE.Mesh;
   colliders: Collider[] = [];
-  private worldFacts: readonly StaticColliderFact[] = [];
+  private worldFacts: readonly unknown[] = [];
   /** the models placed into the weld: the posts' and signposts' colliders, in the layout's order */
   readonly placed: Placed[] = [];
 
@@ -80,6 +80,6 @@ export class Trailside {
   /** the trail's own collision (its piece `trailside`): the plank steps' treads and the trestle stairs'; the posts and
    *  signposts collide as their models (pieces `trail-fence-posts`, `trail-signposts`) */
   worldColliderDescs(): ColliderDesc[] {
-    return staticColliders(this.worldFacts);
+    return readColliderRows(this.worldFacts, { kinds: ['box', 'treads'], surfaces: [] });
   }
 }

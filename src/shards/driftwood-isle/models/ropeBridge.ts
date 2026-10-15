@@ -19,7 +19,7 @@ import { BRIDGE_SPANS } from '../data/bridgeRows';
 import { admitBridgeFacts, bridgeKey } from '../boot/bridgeFacts';
 import { BRIDGE_POSTS_GEOMETRY, BRIDGE_SPECIMEN_POSTS_GEOMETRY, fixedGeometryReady, loadFixedGeometry } from '../boot/fixedGeometry';
 import { loadingSpecimen } from '@wildshard/engine/models/gear';
-import { staticColliders } from '../runtime/boot/staticColliders';
+import { readColliderRows } from '@wildshard/engine/models/colliders';
 import { defineModel } from '@wildshard/engine/models/model';
 import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import type { ColliderDesc } from '@wildshard/engine/world/registry';
@@ -168,9 +168,9 @@ class RopeBridgeBuilder {
   }
 
   /** Fresh native post, rail and end-tread descriptors from the authored rest plan. */
-  colliderDescs(): ColliderDesc[] { return staticColliders(this.facts.descs); }
+  colliderDescs(): ColliderDesc[] { return readColliderRows(this.facts.descs, { kinds: ['box', 'treads'], surfaces: [] }); }
   /** Static rest slabs for navmesh and trail probes; live collision remains the RopeChain. */
-  deckDescs(): ColliderDesc[] { return staticColliders(this.facts.deck); }
+  deckDescs(): ColliderDesc[] { return readColliderRows(this.facts.deck, { kinds: ['box', 'treads'], surfaces: [] }); }
 
 }
 

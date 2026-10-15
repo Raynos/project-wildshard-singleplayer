@@ -6079,3 +6079,11 @@ layer ownership with the caller. A closed/disposed owner cannot reopen.
 Pine's lodge board keeps its own rows, text, claim/reroll callbacks and payouts.
 The G441 W3 user is Nalati's horse-name prompt: retain its Enter/save, name
 cleaning, first-input grace, focus and modal order in the caller binding.
+
+`src/engine/models/colliders.ts#readColliderRows(rows, {kinds, surfaces, requireSurface?})` reads serialized
+box, capsule, ball, hull, trimesh and tread descriptors into fresh registry data. The caller explicitly
+admits kinds and surface names; an empty surface list permits only absent surfaces, while `requireSurface`
+refuses absence. Strict fields, finite numbers, positive integer tread counts and Uint32 indices refuse
+malformed input. Hull/trimesh lanes become independent typed arrays; nested points and rotations are fresh.
+Limits are 65,536 rows and 6,000,000 values per geometry lane. This reader never installs colliders; return
+the descriptors through the normal model/world registry and engine physics owner.
