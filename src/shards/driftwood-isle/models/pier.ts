@@ -1,7 +1,6 @@
-import * as THREE from 'three';
 import {SEED} from '@wildshard/engine/core/config';
-import {defineModel,type ModelContext,type ModelPart} from '@wildshard/engine/models/model';
-import {loadingSpecimen} from '@wildshard/engine/models/gear';
+import {defineModel} from '@wildshard/engine/models/model';
+import {libraryModel} from '@wildshard/game/models/libraryModel';
 import {lowPolyLookMaterial} from '@wildshard/engine/world/lowpolyKit';
 import {boxDesc,type ColliderDesc} from '@wildshard/engine/world/registry';
 import {pierBoxes} from '../world/pierLayout';
@@ -25,14 +24,6 @@ export function pierGeometryKey(p:PierParams):string {
  const row=rows.find(r=>r.paramKey===pierParamsKey(p));
  if(row===undefined)throw new Error('Pier parameters changed; regenerate its authored geometry');
  return row.id;
-}
-function pierParts(ctx:ModelContext,p:PierParams):ModelPart[] {
- const geometry=PIER_GEOMETRIES.get(pierGeometryKey(p));if(geometry===undefined)throw new Error('Missing authored pier geometry');
- const deck=lowPolyLookMaterial(ctx.sky,'still');
- const parts:ModelPart[]=[{geometry:geometry.deck.copy(),material:deck,castShadow:true,receiveShadow:true}];
- // the pennant flutters in its graph, its shadow too (data/kitLook.ts)
- if(geometry.cloth!==null)parts.push({geometry:geometry.cloth.copy(),material:lowPolyLookMaterial(ctx.sky,'pennant'),castShadow:true,receiveShadow:false});
- return parts;
 }
 /**
  * PHYSICS P4, own space: the posts and bollards (the legacy boxes) and every floor the deck describes, as real geometry.
@@ -73,13 +64,16 @@ export function pierColliders(p: PierParams): ColliderDesc[] {
 }
 
 
+/** The deck on the kit's still look; the pennant flutters in its graph, its shadow too (data/kitLook.ts). */
 export const pier=defineModel<PierParams>({
  id:'driftwood-isle/pier',name:'Pier',category:'buildings',pipeline:'code',file:'src/shards/driftwood-isle/models/pier.ts',surface:'planks',
- defaults:PIER_DEFAULTS,variants:PIER_VARIANTS,seed:SEED^0x9e37,prepare:loadFixedGeometry,
- build:(ctx,p)=>{
-  pierGeometryKey(p);
-  if(fixedGeometryReady())return pierParts(ctx,p);
-  return loadingSpecimen('driftwood-isle/pier',[p.width+2,10,p.length],async()=>{await loadFixedGeometry();const group=new THREE.Group();
-   for(const part of pierParts(ctx,p)){const mesh=new THREE.Mesh(part.geometry,part.material);mesh.castShadow=part.castShadow??false;mesh.receiveShadow=part.receiveShadow??false;group.add(mesh);}return group;});
- },colliders:p=>pierColliders(p),
+ defaults:PIER_DEFAULTS,variants:PIER_VARIANTS,seed:SEED^0x9e37,
+ ...libraryModel<PierParams,'still'|'pennant'>({
+  draws:p=>{const key=pierGeometryKey(p);return [{draw:`${key}/deck`,material:'still',castShadow:true,receiveShadow:true},
+   ...(PIER_GEOMETRIES.get(key)?.cloth?[{draw:`${key}/cloth`,material:'pennant' as const,castShadow:true}]:[])];},
+  geometry:(_,draw)=>{const [key,part]=draw.split('/'),g=PIER_GEOMETRIES.get(key??'')?.[part==='cloth'?'cloth':'deck'];
+   if(!g)throw new Error(`Missing authored pier geometry ${draw}`);return g.copy();},
+  material:(ctx,key)=>lowPolyLookMaterial(ctx.sky,key),colliders:pierColliders,
+  loading:{id:'driftwood-isle/pier',ready:fixedGeometryReady,load:()=>loadFixedGeometry(),size:p=>[p.width+2,10,p.length]},
+ }),
 });

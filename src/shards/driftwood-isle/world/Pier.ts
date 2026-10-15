@@ -64,7 +64,7 @@ export class Pier {
   private draw(registry: WorldRegistry | null, id: string): this {
     const {deckY}=this.spec,yaw=this.spec.rot??0;
     const pl: Placement<PierParams> = { x: this.spec.x, y: deckY, z: this.spec.z, ...(yaw === 0 ? {} : { yaw }), params: this.params };
-    const placed = place(pier, [pl], { ctx: modelContext(this.sky), draw: 'merged', registry,
+    const placed = place(pier, [pl], { ctx: modelContext(this.sky), draw: 'single', registry,
       piece: { id, floor: (x, z) => this.floorHeightAt(x, z), solidFloor: true } });
     this.group = placed.object;
     this.placed = placed;
