@@ -6107,3 +6107,15 @@ optional `opaque: true` restores normal world material flags on its owned
 clones. Omission preserves existing direct/merged material ownership.
 Tree cloning, content selection and the crossbow's three cord-rest rows
 remain Pine-owned; there is no tree-copy host or extra pending-user credit.
+
+`src/game/bag/findsCatalogue.ts#createFindsCatalogue` prepares bounded
+`FindsCatalogueRows` for the existing Bag FINDS renderer. Counters read
+declared flag sets (explicit IDs or a numbered prefix); stickers read
+flags or registered ownership, preserving authored labels, icons, prizes
+and dense/wide presentation. Optional glass rows cycle authored colours;
+an optional numbered milestone uses a counter for the next reward text.
+Metadata is copied and bounded before use. Every view observes current
+flags and ownership; missing required ownership refuses. This owner never
+grants rewards or changes UI layout. Driftwood is the first user. G441's
+W3 match is Nalati `bag.ts#nalatiFinds`, whose elite/place counters and
+prize stickers use the same catalogue; Nalati's skin painter stays local.

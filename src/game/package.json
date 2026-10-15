@@ -103,7 +103,8 @@
     "./shardfile/socketLift": "./shardfile/socketLift.ts",
     "./shardfile/portalLink": "./shardfile/portalLink.ts",
     "./shardfile/dataCreaturePorts": "./shardfile/dataCreaturePorts.ts",
-    "./systems/life/bodylessForager": "./systems/life/bodylessForager.ts"
+    "./systems/life/bodylessForager": "./systems/life/bodylessForager.ts",
+    "./bag/findsCatalogue": "./bag/findsCatalogue.ts"
   },
   "dependencies": {
     "@wildshard/format": "workspace:*"

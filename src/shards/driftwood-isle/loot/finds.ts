@@ -10,15 +10,14 @@
  *   next charm:   every 5 pieces (5 → I, 10 → II, 15 → III)
  * And the sea chart's marks (E314 stage 2, `seaChartMarks`): every beach piece not found yet, where it lies, in its colour.
  */
-import type { FindsView } from '@wildshard/game/bag/bag';
+import { createFindsCatalogue } from '@wildshard/game/bag/findsCatalogue';
 import type { OwnedId } from '@wildshard/game/loot/Owned';
-import { DRIFTWOOD_PLACES } from '../data/discovery';
-import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG, SHARD_FLAGS } from '../data/interactables';
+import { DRIFTWOOD_FINDS } from '../data/finds';
+import { DRIFTWOOD_INTERACT, SEA_GLASS_COUNT, SEA_GLASS_FLAG } from '../data/interactables';
 
 export interface FlagReader { has: (flag: string) => boolean }
 export interface OwnedReader { has: (id: OwnedId) => boolean }
 
-const GLASS_COLORS = ['#7df0d0', '#8fd8ff', '#b7f59a', '#9fb8ff', '#f0f7a0']; // the pieces' own colours (driftwood.ts)
 export const CHARM_EVERY = 5;
 
 /** the sea glass count the next charm needs, or null once all three are strung */
@@ -31,30 +30,9 @@ export function seaGlassFound(flags: FlagReader): boolean[] {
   return Array.from({ length: SEA_GLASS_COUNT }, (_, i) => flags.has(`${SEA_GLASS_FLAG}${i + 1}`));
 }
 
-export function driftwoodFinds(flags: FlagReader, owned: OwnedReader): FindsView {
-  const glass = seaGlassFound(flags);
-  const nGlass = glass.filter(Boolean).length;
-  const nPlaces = DRIFTWOOD_PLACES.filter((p) => flags.has(`seen:${p.id}`)).length;
-  const nShards = SHARD_FLAGS.filter((f) => flags.has(f)).length;
-  const next = nextCharmAt(nGlass);
-  return {
-    counters: [
-      { label: 'Sea glass', n: nGlass, of: SEA_GLASS_COUNT },
-      { label: 'Places', n: nPlaces, of: DRIFTWOOD_PLACES.length },
-      { label: 'Glyph shards', n: nShards, of: SHARD_FLAGS.length },
-    ],
-    next: next === null ? null : `Next charm at ${next}`,
-    sections: [
-      { title: 'Trophies', items: [
-        { label: 'Bear claw', icon: 'talon', found: owned.has('bear-claw') },
-        { label: 'Boar tusk', icon: 'tusk', found: owned.has('boar-tusk') },
-        { label: "Captain's hat", icon: 'hat', found: owned.has('captain-hat') },
-      ] },
-      { title: 'Treasures', items: [{ label: 'Pearl necklace', icon: 'necklace', found: flags.has('found:reef-treasure') }] },
-    ],
-    glass: glass.map((found, i) => ({ found, color: GLASS_COLORS[i % GLASS_COLORS.length] ?? '#7df0d0' })),
-  };
-}
+const catalogue = createFindsCatalogue(DRIFTWOOD_FINDS);
+/** The Bag observes current flags and ownership through its declared catalogue. */
+export const driftwoodFinds = (flags: FlagReader, owned: OwnedReader): ReturnType<typeof catalogue> => catalogue({ flags, owned });
 
 /** the sea chart (E314 stage 2): the beach sea glass not found yet — world x / z and the piece's colour (a found one is gone) */
 export function seaChartMarks(flags: FlagReader): { x: number; z: number; color: string }[] {
