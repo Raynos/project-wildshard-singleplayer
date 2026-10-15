@@ -62,7 +62,7 @@ const restQ = boneList.map((b) => b.quaternion.clone()), restP = boneList.map((b
 const rest = kingRest(bones);
 const pose = newPose();
 const resetPose = () => boneList.forEach((b, i) => { b.quaternion.copy(restQ[i]); b.position.copy(restP[i]); });
-function poseClip(clip, x) { resetPose(); if (clip) applyKingPose(rest, clipPose(pose, rest, clip, x, x)); mesh.updateMatrixWorld(true); skeleton.update(); }
+function poseClip(clip, x) { resetPose(); if (clip) applyKingPose(rest, clipPose(pose, clip, x, x)); mesh.updateMatrixWorld(true); skeleton.update(); }
 const _v = new THREE.Vector3();
 function skinned() { const out = new Float64Array(NV * 3); for (let i = 0; i < NV; i++) { _v.set(POS[i * 3], POS[i * 3 + 1], POS[i * 3 + 2]); mesh.applyBoneTransform(i, _v); out[i * 3] = _v.x; out[i * 3 + 1] = _v.y; out[i * 3 + 2] = _v.z; } return out; }
 

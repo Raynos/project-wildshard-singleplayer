@@ -1,16 +1,13 @@
 import * as THREE from 'three';
-import { smoothstep } from '@wildshard/engine/core/noise';
+import * as v from 'valibot';
 
 /**
  * The limb rig (SHARD-PLATFORM M3): a custom four-legged rig posed from one scalar record, so its clips can blend before
  * one IK pass plants the feet. A shard names its skeleton (a spine of root → hips → tail and root → chest → neck → head,
  * four limbs of upper → middle → lower → foot) in a `LimbRigSpec`; this system measures the rest off the bones
  * (`limbRest`), solves a pose onto them (`applyLimbPose`: the spine by FK, each limb by two-bone IK in its own rest bend
- * plane, so the rest pose solves to itself and a knee never flips) and plays clips written as rows (`playPoseClip`).
- *
- * A clip is data: named values (`lets`, evaluated in order), then the channels it sets (`set`), each an expression tree of
- * numbers, names and calls (`PoseExpr`). The evaluation follows the tree exactly, left to right, so a clip written in the
- * same order as the arithmetic it replaces reproduces it bit for bit (Antler King: test/shards/pine-hollow/king-clips.test.ts).
+ * plane, so the rest pose solves to itself and a knee never flips) and plays baked clips (`playBakedClip`: a shard's
+ * generator samples its clip rows offline, e.g. generators/kingClips.ts for the Antler King; nothing evaluates a row here).
  */
 
 /** The pose's scalar channels: offsets from the rest (the hull's stance). Angles in radians: pitch + = nose down (three's
@@ -208,107 +205,53 @@ export function applyLimbPose(spec: LimbRigSpec, r: LimbRest, p: LimbPose): void
   }
 }
 
-// ─────────────────────────────── the clips: rows ───────────────────────────────
+// ─────────────────────────────── the clips: baked samples ───────────────────────────────
 
-/**
- * An expression: a number; a name (a `let` of the clip, the clip's input `x`, the clock `t`, the rest's `H`, `walkStride`
- * or `chargeStride`, or `TAU`); or a call `[op, ...args]`:
- *   `+` `*` (two or more, folded left to right), `-` (two), `neg`, `sin`, `cos`, `abs`, `max`, `min` (two, Math's order),
- *   `pow` (two), `?` (cond ≠ 0 ? a : b), `step` (x, a, b: smoothstep(0, 1, (x − a) / (b − a))), `at` (bone, 'x' | 'y' | 'z':
- *   its rest position, the root's when the rig lacks it), `root` ('x' | 'y' | 'z'), `gait` (component 0 | 1 | 2 = dz | dy | toe
- *   of the stance / swing foot curve, phase, stance share, stroke, lift).
- */
-export type PoseExpr = number | string | readonly PoseExpr[];
-/** One channel a clip sets: a pose key or a foot slot (`limb * 4 + 0..3` = dx dy dz toe), its value, and (optionally) a
- *  bone the rest must have for it to apply. */
-export type PoseSet = readonly [channel: LimbPoseKey | number, value: PoseExpr] | readonly [channel: LimbPoseKey | number, value: PoseExpr, needs: string];
-/** One clip: its named values in order, then the channels it sets. Unset channels stay at the rest (0). */
-export interface PoseClip { readonly lets?: readonly (readonly [string, PoseExpr])[]; readonly set: readonly PoseSet[] }
-
-const TAU = Math.PI * 2;
-const step = (x: number, a: number, b: number): number => smoothstep(0, 1, (x - a) / (b - a));
-/** the walk / the charge: a foot's offset along one gait cycle. Stance: planted (moves back at the body's speed); swing:
- *  lifted and carried forward. [dz, dy, toe] */
-export function gaitFoot(ph: number, stance: number, stroke: number, lift: number, out: [number, number, number]): [number, number, number] {
-  const p = ((ph % 1) + 1) % 1;
-  if (p < stance) { out[0] = stroke * (0.5 - p / stance); out[1] = 0; out[2] = 0; return out; }
-  const u = (p - stance) / (1 - stance);
-  out[0] = stroke * (-0.5 + smoothstep(0, 1, u));
-  out[1] = lift * Math.sin(Math.PI * u) ** 1.2;
-  out[2] = 0.7 * Math.sin(Math.PI * u) * (1 - u);   // the toe flicks back as it leaves, flat as it lands
-  return out;
-}
-const _g: [number, number, number] = [0, 0, 0];
-
-interface Scope { x: number; t: number; r: LimbPoseRest; lets: Map<string, number> }
-const axisOf = (v: PoseExpr | undefined): 'x' | 'y' | 'z' => {
-  if (v === 'x' || v === 'y' || v === 'z') return v;
-  throw new Error(`limb rig clip: bad axis ${String(v)}`);
-};
-
-function name(n: string, s: Scope): number {
-  const v = s.lets.get(n);
-  if (v !== undefined) return v;
-  switch (n) {
-    case 'x': return s.x;
-    case 't': return s.t;
-    case 'H': return s.r.H;
-    case 'walkStride': return s.r.walkStride;
-    case 'chargeStride': return s.r.chargeStride;
-    case 'TAU': return TAU;
-    default: throw new Error(`limb rig clip: unknown name ${n}`);
-  }
+const channel = v.union([v.picklist(LIMB_POSE_KEYS), v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(15))]);
+const count = v.pipe(v.number(), v.integer(), v.minValue(1));
+const BakedClip = v.pipe(v.strictObject({
+  channels: v.pipe(v.array(channel), v.maxLength(32)),
+  x: v.tuple([v.number(), v.number(), count, v.picklist([0, 1])]),
+  t: v.optional(v.tuple([v.pipe(v.number(), v.minValue(1e-6)), count])),
+  values: v.array(v.number()),
+}), v.check(c => c.values.length === c.channels.length * c.x[2] * (c.t?.[1] ?? 1), 'baked clip: wrong sample count'));
+/** One baked clip (a shard's generator samples its clip rows offline): the channels it sets (a pose key or a foot slot
+ *  `limb * 4 + 0..3`), its input grid `x` (from, to, samples, 1 = loops over [from, to) / 0 = clamps to [from, to]), for a
+ *  clip that also reads the clock its period and samples `t`, and the samples (row-major: t, then x, then channel). */
+export type BakedPoseClip = v.InferOutput<typeof BakedClip>;
+/** Read a generated clip table (a malformed one refuses, it is never defaulted); the lookup refuses a clip it lacks. */
+export function readBakedClips(input: unknown): (name: string) => BakedPoseClip {
+  const table = v.parse(v.strictObject({ version: v.literal(1), clips: v.record(v.string(), BakedClip) }), input);
+  return (name) => {
+    const clip = table.clips[name];
+    if (clip === undefined) throw new Error(`limb rig: the baked clips lack ${name}`);
+    return clip;
+  };
 }
 
-function arg(e: readonly PoseExpr[], i: number, s: Scope): number {
-  const a = e[i];
-  if (a === undefined) throw new Error(`limb rig clip: ${String(e[0])} lacks argument ${i}`);
-  return ev(a, s);
+/** a grid lookup: the two samples around `u` and the blend between them (a loop wraps, a clamp holds its ends) */
+function cell(u: number, from: number, to: number, n: number, loop: boolean, out: [number, number, number]): void {
+  const k = loop ? (((u - from) / (to - from)) % 1 + 1) % 1 * n : clamp((u - from) / (to - from), 0, 1) * (n - 1);
+  const i = Math.min(n - 1, Math.floor(k));
+  out[0] = i; out[1] = loop ? (i + 1) % n : Math.min(n - 1, i + 1); out[2] = k - i;
 }
+const _cx: [number, number, number] = [0, 0, 0], _ct: [number, number, number] = [0, 0, 0];
+/** channel `c` of the sample at grid cell (t row, x column) */
+const sample = (clip: BakedPoseClip, ti: number, xi: number, c: number): number => clip.values[(ti * clip.x[2] + xi) * clip.channels.length + c] ?? 0;
 
-function ev(e: PoseExpr, s: Scope): number {
-  if (typeof e === 'number') return e;
-  if (typeof e === 'string') return name(e, s);
-  const op = e[0];
-  if (typeof op !== 'string') throw new Error('limb rig clip: a call starts with its op');
-  switch (op) {
-    case '+': { let v = arg(e, 1, s); for (let i = 2; i < e.length; i++) v += arg(e, i, s); return v; }
-    case '*': { let v = arg(e, 1, s); for (let i = 2; i < e.length; i++) v *= arg(e, i, s); return v; }
-    case '-': return arg(e, 1, s) - arg(e, 2, s);
-    case 'neg': return -arg(e, 1, s);
-    case 'sin': return Math.sin(arg(e, 1, s));
-    case 'cos': return Math.cos(arg(e, 1, s));
-    case 'abs': return Math.abs(arg(e, 1, s));
-    case 'max': return Math.max(arg(e, 1, s), arg(e, 2, s));
-    case 'min': return Math.min(arg(e, 1, s), arg(e, 2, s));
-    case 'pow': return arg(e, 1, s) ** arg(e, 2, s);
-    case '?': return arg(e, 1, s) !== 0 ? arg(e, 2, s) : arg(e, 3, s);
-    case 'step': return step(arg(e, 1, s), arg(e, 2, s), arg(e, 3, s));
-    case 'at': { const bone = e[1], at = typeof bone === 'string' ? s.r.at[bone] : undefined; return (at ?? s.r.rootPos)[axisOf(e[2])]; }
-    case 'root': return s.r.rootPos[axisOf(e[1])];
-    case 'gait': {
-      const c = arg(e, 1, s);
-      gaitFoot(arg(e, 2, s), arg(e, 3, s), arg(e, 4, s), arg(e, 5, s), _g);
-      return _g[c === 0 ? 0 : c === 1 ? 1 : 2];
-    }
-    default: throw new Error(`limb rig clip: unknown op ${op}`);
-  }
-}
-
-const _scope: Scope = { x: 0, t: 0, r: { at: {}, rootPos: { x: 0, y: 0, z: 0 }, H: 1, walkStride: 1, chargeStride: 1 }, lets: new Map() };
-
-/** Plays `clip` at `x` (its input: a phase, a progress, seconds) and clock `t` onto `p` (added to what `p` holds: zero it
- *  first for the clip alone). Allocates nothing. */
-export function playPoseClip(clip: PoseClip, p: LimbPose, r: LimbPoseRest, x: number, t: number): LimbPose {
-  const s = _scope;
-  s.x = x; s.t = t; s.r = r;
-  s.lets.clear();
-  for (const [n, e] of clip.lets ?? []) s.lets.set(n, ev(e, s));
-  for (const row of clip.set) {
-    const needs = row[2];
-    if (needs !== undefined && r.at[needs] === undefined) continue;
-    const ch = row[0], v = ev(row[1], s);
-    if (typeof ch === 'number') p.feet[ch] = v; else p[ch] = v;
+/** Plays a baked clip at `x` (its input: a phase, a progress, seconds) and clock `t` onto `p` (each channel it sets is
+ *  overwritten; zero `p` first for the clip alone): the samples blended linearly on both grids. Allocates nothing. */
+export function playBakedClip(clip: BakedPoseClip, p: LimbPose, x: number, t: number): LimbPose {
+  const [from, to, n, loop] = clip.x;
+  cell(x, from, to, n, loop === 1, _cx);
+  cell(t, 0, clip.t?.[0] ?? 1, clip.t?.[1] ?? 1, true, _ct);
+  const x0 = _cx[0], x1 = _cx[1], fx = _cx[2], t0 = _ct[0], t1 = _ct[1], ft = _ct[2];
+  for (let c = 0; c < 32; c++) {   // a clip sets at most every channel: 16 scalars and 16 foot slots
+    const ch = clip.channels[c];
+    if (ch === undefined) break;
+    const a = sample(clip, t0, x0, c) + (sample(clip, t0, x1, c) - sample(clip, t0, x0, c)) * fx;
+    const b = sample(clip, t1, x0, c) + (sample(clip, t1, x1, c) - sample(clip, t1, x0, c)) * fx;
+    if (typeof ch === 'number') p.feet[ch] = a + (b - a) * ft; else p[ch] = a + (b - a) * ft;
   }
   return p;
 }

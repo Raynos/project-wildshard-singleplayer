@@ -1,8 +1,9 @@
 import * as THREE from 'three';
-import type { BoneDef, RigAnimCtx } from '@wildshard/engine/entities/species/registry';
+import type { RigAnimCtx } from '@wildshard/engine/entities/species/registry';
 import { smoothstep } from '@wildshard/engine/core/noise';
-import { addLimbPose, applyLimbPose, limbRest, newLimbPose, playPoseClip, scaleLimbPose, zeroLimbPose, type LimbPose, type LimbPoseRest, type LimbRest } from '../runtime/species/limbRig';
-import { KING_CLIPS, KING_GAITS as GAITS, KING_RIG } from '../runtime/species/kingClips';
+import { addLimbPose, applyLimbPose, limbRest, newLimbPose, playBakedClip, readBakedClips, scaleLimbPose, zeroLimbPose, type BakedPoseClip, type LimbPose, type LimbPoseRest, type LimbRest, type LimbRigSpec } from '../runtime/species/limbRig';
+import { KING_GAITS as GAITS, KING_RIG as RIG } from '../data/kingRig';
+import baked from '../data/kingClips.generated.json' with { type: 'json' };
 
 /**
  * The Antler King's OWN rig (E322 F-M1; Jake picked B — A, the Bark Warden hull baked onto the elk's bones, walking like
@@ -13,43 +14,18 @@ import { KING_CLIPS, KING_GAITS as GAITS, KING_RIG } from '../runtime/species/ki
  * skinned by scripts/king-rig-bake.mjs). A custom rig (`SpeciesDef.rig: 'custom'`): Animal.ts hands `animateKing` the
  * shared timers every frame and the poses drive the bones.
  *
- * The skeleton, the solve and the clips are rows on @wildshard/sdk/species/limbRig (SHARD-PLATFORM M3): the bone names,
- * proportions and every clip are ../data/kingClips.ts; this file keeps the stand-in skeleton and the King's blend
- * (`advanceKingPose`: walk ↔ charge by ground speed, the fight's named attack held and eased out, the recoil, the look).
+ * The skeleton and the solve are the limb rig's (../runtime/species/limbRig.ts, SHARD-PLATFORM M3): the bone names and
+ * proportions (and the stand-in skeleton) are ../data/kingRig.ts, and every clip is baked from rows offline (../generators/kingClips.ts →
+ * data/kingClips.generated.json, looked up here, never evaluated); this file keeps the King's
+ * blend (`advanceKingPose`: walk ↔ charge by ground speed, the fight's named attack held and eased out, the recoil, the look).
  *
  * The fight names its move in `Animal.mem.act` before `startAttack` (ACT_*); a charge is the speed (the lane runs at
  * 13 m/s); a hit is Animal's flinch. `Animal.debugGait` ({ gait: clip name, phase }) holds a clip still (the capture
  * scripts). The gate (scripts/king-rig-gate.mjs) samples these same functions.
  */
 
-type Side = 'L' | 'R';
+const KING_RIG: LimbRigSpec = RIG;
 export const KING_LIMBS: readonly (readonly [string, string, string, string])[] = KING_RIG.limbs;
-
-/** the stand-in skeleton (the hull's own joints replace these positions when its rig loads) */
-export const KING_BONES: readonly BoneDef[] = (() => {
-  const b: BoneDef[] = [
-    { name: 'body', parent: null, pos: [0, 1.55, -0.1] },
-    { name: 'hips', parent: 'body', pos: [0, 1.45, -0.75] },
-    { name: 'chest', parent: 'body', pos: [0, 2.0, 0.45] },
-    { name: 'neck', parent: 'chest', pos: [0, 2.35, 0.75] },
-    { name: 'head', parent: 'neck', pos: [0, 2.6, 0.95] },
-    { name: 'tail', parent: 'hips', pos: [0, 1.5, -1.15] },
-  ];
-  for (const s of ['L', 'R'] as Side[]) {
-    const x = s === 'L' ? 1 : -1;
-    b.push(
-      { name: `arm${s}_sh`, parent: 'chest', pos: [x * 0.45, 1.85, 0.5] },
-      { name: `arm${s}_el`, parent: `arm${s}_sh`, pos: [x * 0.55, 1.1, 0.45] },
-      { name: `arm${s}_wr`, parent: `arm${s}_el`, pos: [x * 0.6, 0.4, 0.6] },
-      { name: `arm${s}_hoof`, parent: `arm${s}_wr`, pos: [x * 0.6, 0.0, 0.65] },
-      { name: `leg${s}_hip`, parent: 'hips', pos: [x * 0.35, 1.3, -0.75] },
-      { name: `leg${s}_knee`, parent: `leg${s}_hip`, pos: [x * 0.4, 0.8, -0.55] },
-      { name: `leg${s}_hock`, parent: `leg${s}_knee`, pos: [x * 0.4, 0.4, -0.85] },
-      { name: `leg${s}_hoof`, parent: `leg${s}_hock`, pos: [x * 0.4, 0.0, -0.8] },
-    );
-  }
-  return b;
-})();
 
 /** what the fight writes in `Animal.mem.act` before `startAttack` (0 / missing: an attack with no name = the strike) */
 export const ACT_SWEEP = 1, ACT_STRIKE = 2, ACT_ROAR = 3, ACT_BRACE = 4;
@@ -57,6 +33,11 @@ export const ACT_SWEEP = 1, ACT_STRIKE = 2, ACT_ROAR = 3, ACT_BRACE = 4;
 /** every clip a capture or the gate can hold (`Animal.debugGait.gait`) */
 export const KING_CLIP_NAMES = ['idle', 'walk', 'charge', 'strike', 'hit', 'sweep', 'roar', 'brace', 'die'] as const;
 export type KingClip = typeof KING_CLIP_NAMES[number];
+const bakedClip = readBakedClips(baked);
+const KING_CLIPS: Readonly<Record<KingClip, BakedPoseClip>> = {
+  idle: bakedClip('idle'), walk: bakedClip('walk'), charge: bakedClip('charge'), strike: bakedClip('strike'), hit: bakedClip('hit'),
+  sweep: bakedClip('sweep'), roar: bakedClip('roar'), brace: bakedClip('brace'), die: bakedClip('die'),
+};
 
 /** one pose: offsets from the rest (the hull's stance); feet per limb FL FR BL BR: dx dy dz toe */
 export type KingPose = LimbPose;
@@ -74,9 +55,9 @@ const clamp = THREE.MathUtils.clamp;
 const step = (x: number, a: number, b: number): number => smoothstep(0, 1, (x - a) / (b - a));
 
 /** one clip, alone, at `x` (a phase for walk / charge, a 0..1 progress for the attacks, seconds for idle) into `p` */
-export function clipPose(p: KingPose, r: KingPoseRest, clip: KingClip, x: number, t = 0): KingPose {
+export function clipPose(p: KingPose, clip: KingClip, x: number, t = 0): KingPose {
   zeroLimbPose(p);
-  return playPoseClip(KING_CLIPS[clip], p, r, x, t);
+  return playBakedClip(KING_CLIPS[clip], p, x, t);
 }
 
 /** Pose the skeleton: the spine by FK, each limb by two-bone IK onto its hoof's target (the limb rig's solve). */
@@ -106,11 +87,11 @@ export function advanceKingPose(c: KingPoseInput, r: KingPoseRest, into: KingPos
   const P = zeroLimbPose(into);
   if (dbg !== undefined && (KING_CLIP_NAMES as readonly string[]).includes(dbg.gait)) {
     const clip = dbg.gait as KingClip;
-    addLimbPose(P, clipPose(_clip, r, clip, clip === 'idle' ? c.t : dbg.phase, c.t), 1);
+    addLimbPose(P, clipPose(_clip, clip, clip === 'idle' ? c.t : dbg.phase, c.t), 1);
     return P;
   }
   if (c.deathT >= 0) {
-    addLimbPose(P, clipPose(_clip, r, 'die', c.deathT, c.t), 1);
+    addLimbPose(P, clipPose(_clip, 'die', c.deathT, c.t), 1);
     return P;
   }
   // locomotion: walk ↔ charge by ground speed (model units: ÷ the mesh scale), the phase advanced by the stride
@@ -122,9 +103,9 @@ export function advanceKingPose(c: KingPoseInput, r: KingPoseRest, into: KingPos
   const stride = THREE.MathUtils.lerp(r.walkStride, r.chargeStride, clamp(rw / Math.max(1e-3, ww + rw), 0, 1));
   const ph = ((m['ph'] ?? 0) + (v / stride) * c.dt) % 1;
   m['ph'] = ph;
-  if (iw > 0) addLimbPose(P, clipPose(_clip, r, 'idle', c.t), iw);
-  if (ww > 0) addLimbPose(P, clipPose(_clip, r, 'walk', ph), ww);
-  if (rw > 0) addLimbPose(P, clipPose(_clip, r, 'charge', ph), rw);
+  if (iw > 0) addLimbPose(P, clipPose(_clip, 'idle', c.t), iw);
+  if (ww > 0) addLimbPose(P, clipPose(_clip, 'walk', ph), ww);
+  if (rw > 0) addLimbPose(P, clipPose(_clip, 'charge', ph), rw);
   // the attack the fight named (held at 1 until the next: eased back out over 0.6 s)
   let dive = 0;
   if (c.attack >= 0) {
@@ -137,13 +118,13 @@ export function advanceKingPose(c: KingPoseInput, r: KingPoseRest, into: KingPos
       // the attack owns the body: the gait's feet fade under it
       const k = w * (clip === 'brace' ? 0.7 : 1);
       scaleLimbPose(P, 1 - k);
-      addLimbPose(P, clipPose(_clip, r, clip, a, c.t), k);
+      addLimbPose(P, clipPose(_clip, clip, a, c.t), k);
       if (clip === 'sweep') dive = k;
     }
   } else m['held'] = 0;
   // the recoil: a hit (the flinch) and the stagger's brace
   const f = Math.max(c.flinch, c.brace * 0.7);
-  if (f > 0.01) addLimbPose(P, clipPose(_clip, r, 'hit', 1 - f, c.t), 1);
+  if (f > 0.01) addLimbPose(P, clipPose(_clip, 'hit', 1 - f, c.t), 1);
   // the look: the neck and head turn to the target, on top of the clip
   if (c.lookWeight > 0.001) {
     const head = r.at['head'];

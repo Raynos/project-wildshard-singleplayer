@@ -74,7 +74,7 @@ export function bakeKingCollision(root: string): ReturnType<typeof readKingColli
       clips: Object.entries(KING_ATTACK_TIMING).map(([name, timing]) => ({ name, duration: timing.duration,
         frames: Array.from({ length: Math.ceil(timing.duration * 60) + 1 }, (_, tick) => {
           if (name !== 'sweep' && name !== 'strike' && name !== 'roar') throw new Error('Unknown King attack');
-          applyKingPose(rest, clipPose(pose, rest, name, Math.min(tick / 60 / timing.duration, 1), tick / 60)); group.updateMatrixWorld(true);
+          applyKingPose(rest, clipPose(pose, name, Math.min(tick / 60 / timing.duration, 1), tick / 60)); group.updateMatrixWorld(true);
           return { tick, phase: Math.min(tick / 60 / timing.duration, 1), transforms: selected.map(bone => bone.matrixWorld.toArray()) };
         }) })),
     });

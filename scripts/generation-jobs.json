@@ -3418,6 +3418,37 @@
       "seedOutputs": []
     },
     {
+      "id": "pine-king-clips",
+      "shard": "pine-hollow",
+      "entry": "src/shards/pine-hollow/generators/kingClips.ts",
+      "command": [
+        "--import",
+        "./src/sdk/bake/source-loader.mjs",
+        "src/sdk/bake/json.mjs",
+        "src/shards/pine-hollow/generators/kingClips.ts",
+        "pineKingClips",
+        "src/shards/pine-hollow/data/kingClips.generated.json"
+      ],
+      "inputRoots": [
+        "package.json",
+        "pnpm-lock.yaml",
+        "src/format/package.json",
+        "src/sdk/bake/json.mjs",
+        "src/sdk/bake/source-loader.mjs",
+        "src/sdk/package.json",
+        "src/shards/pine-hollow/data/kingCollisionRows.json",
+        "src/shards/pine-hollow/generators/kingClips.ts"
+      ],
+      "outputs": [
+        "src/shards/pine-hollow/data/kingClips.generated.json"
+      ],
+      "platform": "portable",
+      "buildOutputs": {
+        "src/shards/pine-hollow/data/kingClips.generated.json": "7cdc75dd26e5a63c9eb9bac7c92b8d838cc5114b85dcb8d768e6b6a0126caf27"
+      },
+      "seedOutputs": []
+    },
+    {
       "id": "pine-lookout",
       "shard": "pine-hollow",
       "entry": "src/shards/pine-hollow/generators/bake-pine-lookout.mjs",

@@ -37,7 +37,8 @@ import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 import * as THREE from 'three';
-import { KING_BONES, KING_LIMBS, KING_CLIP_NAMES, KING_GAITS, kingRest, clipPose, applyKingPose, newPose } from '../src/shards/pine-hollow/combat/kingRig.ts';
+import { KING_LIMBS, KING_CLIP_NAMES, KING_GAITS, kingRest, clipPose, applyKingPose, newPose } from '../src/shards/pine-hollow/combat/kingRig.ts';
+import { KING_BONES } from '../src/shards/pine-hollow/data/kingRig.ts';
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
@@ -93,7 +94,7 @@ let H = 0; for (let i = 0; i < NV; i++) H = Math.max(H, POS[i * 3 + 1]);
 
 const resetPose = () => boneList.forEach((b, i) => { b.quaternion.copy(restQ[i]); b.position.copy(restP[i]); b.scale.set(1, 1, 1); });
 const pose = newPose();
-function poseClip(clip, x) { resetPose(); applyKingPose(rest, clipPose(pose, rest, clip, x, x)); mesh.updateMatrixWorld(true); skeleton.update(); }
+function poseClip(clip, x) { resetPose(); applyKingPose(rest, clipPose(pose, clip, x, x)); mesh.updateMatrixWorld(true); skeleton.update(); }
 const _v = new THREE.Vector3();
 function skinned() { const out = new Float64Array(NV * 3); for (let i = 0; i < NV; i++) { _v.set(POS[i * 3], POS[i * 3 + 1], POS[i * 3 + 2]); mesh.applyBoneTransform(i, _v); out[i * 3] = _v.x; out[i * 3 + 1] = _v.y; out[i * 3 + 2] = _v.z; } return out; }
 

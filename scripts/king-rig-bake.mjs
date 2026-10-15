@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // king-rig-bake.mjs — the Antler King's own rig (E322 F-M1): skins his upright hull (art/pine-hollow/round-25-e322-king-rig/
 // antler-king-rig[.phone].glb: codex ref → Hunyuan3D-2 full + paint → driftwood_post.py --keep-texture → the backdrop
-// sheet stripped → creature-color.mjs) to his own 22-bone skeleton (KING_BONES, src/shards/pine-hollow/combat/kingRig.ts),
+// sheet stripped → creature-color.mjs) to his own 22-bone skeleton (KING_BONES, src/shards/pine-hollow/data/kingRig.ts),
 // in Node, no browser. Writes public/assets/pine-hollow/creatures/antler-king-rig[.phone].rigged.glb: one mesh, the hull's
 // own textures, a glTF skin whose joints are KING_BONES by name and in order, bound at the rest pose (inverse binds =
 // −joint position, identity rotations — what src/engine/entities/pineCreatures.ts loads).
@@ -26,7 +26,8 @@ import { tmpdir } from 'node:os';
 import { resolve as resolvePath, join } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import { KING_BONES, KING_LIMBS } from '../src/shards/pine-hollow/combat/kingRig.ts';
+import { KING_LIMBS } from '../src/shards/pine-hollow/combat/kingRig.ts';
+import { KING_BONES } from '../src/shards/pine-hollow/data/kingRig.ts';
 
 const ROOT = resolvePath(new URL('..', import.meta.url).pathname);
 const argv = process.argv.slice(2);
