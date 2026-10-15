@@ -5779,3 +5779,12 @@ source tags, lunge limits and contact tuning. SweptMeleeCore owns combo,
 heavy-charge and queued-follow-up timing; existing posed queries and the
 native loadout retain contacts, switching and old saved clock envelopes.
 Borrowed input, alarm and stagger ports preserve each world's reactions.
+
+HeldPlayback.bindOutputs(group, rows, owners) binds exactly one numeric
+programme through the existing client-channel numeric loan validator. Rows
+name published channels and explicitly borrowed private numeric fields;
+unknown channels, repeated binding, oversized rosters and authoritative
+actor roots refuse. Numeric-only held groups use the same bounded DAG;
+visual groups retain their existing scene and connector bindings. Both
+crossbow and magazine sights publish into their original sight records;
+contact, action and reload clocks remain with their existing owners.

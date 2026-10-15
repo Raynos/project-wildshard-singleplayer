@@ -1,6 +1,6 @@
 import { readBorrowedOwner, type BorrowedOwnerPath } from './headless';
 import { bindMeleeContacts } from './simulation';
-import { bindClientChannelInputs, createClientChannelView, createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts, type ClientGeometryKernels } from './ui';
+import { createClientChannels, bindClientChannelInputs, createClientChannelView, createClientScene, createHeldMeleeBinding, type ClientScene, type ClientScenePorts, type ClientGeometryKernels } from './ui';
 import { type Object3D, BufferGeometry, Group, Mesh, BoxGeometry, CylinderGeometry, MeshBasicMaterial, MeshStandardMaterial, PerspectiveCamera, PointLight, Vector2, Vector3, MathUtils } from "three";
 import { blocks } from "@wildshard/engine/blocks";
 import type { ContactFamily, ContactScanTarget, ContactFamilyPorts, ContactWorldTarget } from "@wildshard/engine/combat/contactWeapon";
@@ -343,7 +343,7 @@ export class HeldPlayback {
   private elapsed = 0;
   private delta = 0;
   private readonly inputs = new Map<string, ReadonlyMap<string, () => number>>();
-  private readonly groups = new Map<string, { lane: ReturnType<typeof createClientChannelView>; copied: number[] }[]>();
+  private readonly groups = new Map<string, { lane: ReturnType<typeof createClientChannelView>; copied: number[]; outputs?: ReturnType<ReturnType<typeof createClientChannelView>['bindNumeric']> }[]>();
   constructor(rows: Readonly<Record<string, readonly unknown[]>>, parts: ReadonlyMap<string, unknown>, kernels?: ClientGeometryKernels | ((parts: ReadonlyMap<string, unknown>, model: ClientScene | null) => ClientGeometryKernels), source?: { readonly row: unknown; readonly ports: ClientScenePorts }) {
     const groups = Object.entries(rows);
     if (groups.length === 0 || groups.length > 16) throw new RangeError('Held playback groups exceed admission');
@@ -358,7 +358,8 @@ export class HeldPlayback {
     const binding = typeof kernels === 'function' ? kernels(targets, this.model) : kernels;
     for (const [id, programs] of groups) {
       this.groups.set(id, programs.map(program => {
-        const lane = createClientChannelView(program, targets, binding);
+        const visual = typeof program === 'object' && program !== null && ('bindings' in program || 'geometry' in program || 'connectors' in program);
+        const lane = visual ? createClientChannelView(program, targets, binding) : createClientChannels(program);
         return { lane, copied: Array.from({ length: lane.reads.length }, () => 0) };
       }));
     }    } catch (error) { this.model?.dispose(); throw error; }
@@ -403,16 +404,24 @@ export class HeldPlayback {
     if (this.inputs.has(group)) throw new Error('Held numeric inputs already bound');
     this.inputs.set(group, bindClientChannelInputs(rows, owners, new Set(views.flatMap(view => view.lane.reads))));
   }
+  /** Bind one numeric programme's existing output channels to explicitly borrowed private visual fields. */
+  bindOutputs(group: string, rows: readonly { readonly property: string; readonly target: string; readonly path: readonly string[] }[], owners: ReadonlyMap<string, unknown>): void {
+    const views = this.groups.get(group), view = views?.[0];
+    if (views?.length !== 1 || view === undefined || view.outputs !== undefined || rows.length === 0 || rows.length > 32) throw new Error('Invalid held numeric output group');
+    const property = (key: string): key is keyof typeof view.lane.frame => Object.hasOwn(view.lane.frame, key);
+    const bindings = rows.map(row => { if (!property(row.property)) throw new Error('Missing held output channel'); return { ...row, property: row.property }; });
+    view.outputs = view.lane.bindNumeric(bindings, owners);
+  }
   /** Copy a bounded observation into one selected view group; never lends authoritative objects. */
   apply(group: string, values: Readonly<Record<string, number>>): void {
     const views = this.groups.get(group); if (views === undefined) throw new Error('Missing held playback group');
-    for (const { lane, copied } of views) {
+    for (const { lane, copied, outputs } of views) {
       for (let i = 0; i < lane.reads.length; i++) {
         const key = lane.reads[i]; if (key === undefined) throw new Error('Missing held playback read');
         const value = values[key] ?? this.inputs.get(group)?.get(key)?.(); if (value === undefined) throw new Error(`Missing held playback observation ${key}`);
         copied[i] = value;
       }
-      lane.evaluate({ time: this.elapsed, delta: this.delta, values: copied });
+      lane.evaluate({ time: this.elapsed, delta: this.delta, values: copied }); outputs?.apply(lane.frame);
     }
   }
 }

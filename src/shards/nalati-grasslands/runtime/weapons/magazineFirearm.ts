@@ -1,6 +1,7 @@
 import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import inputs from '../../data/heldInputs.json' with { type: 'json' };
+import sights from '../../data/heldSights.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
 import { RangedFrame, RangedTrace, RangedFlash } from '@wildshard/engine/render/viewmodelFeel';
 import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_RELOAD, RANGED_HIT, RANGED_BRASS } from '../../data/rangedFrame';
@@ -120,7 +121,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
   private readonly feel: RangedFrame;
   private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
   private readonly posePlayback: HeldPlayback;
-  private readonly poseFrame = { portrait: 0, ads: 0 };
+  private readonly poseFrame = { portrait: 0, ads: 0, scale: 1 };
   private readonly partValues = { reloading: 0, reloadProgress: 0, magX: 0, magY: 0, magZ: 0 };
   private sprintBlend = 0; private reloadTilt = 0;
   private time = 0;
@@ -153,9 +154,10 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     this.allowUnlocked = opts.allowUnlocked ?? false;
     this.feel = new RangedFrame(RANGED_FRAME.magazine, this.player, FOV_HIP, FOV_ADS);
     this.buildViewmodel();
-    this.posePlayback = new HeldPlayback({ pose: playback.magazine, parts: playback.magazineParts },
+    this.posePlayback = new HeldPlayback({ pose: playback.magazine, parts: playback.magazineParts, sight: sights.sight },
       new Map<string, unknown>([['root', this.model], ['magazine', this.mag], ['handle', this.handle], ['bolt', this.bolt]]));
     this.posePlayback.bindInputs('pose', inputs.magazine, new Map([['weapon', this]]));
+    this.posePlayback.bindInputs('sight', sights.sightInputs, new Map([['weapon', this]])); this.posePlayback.bindOutputs('sight', sights.sightOutputs, new Map([['sight', this.adsPose]]));
     this.buildEffects();
     this.game.viewmodel.add(this.model);
     this.game.scene.add(this.puffs.points);
@@ -251,16 +253,6 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
 
 
   /** Shouldered pose: rotation 0, sight line on the eye, rear aperture at near + margin. Depends on the scale only. */
-  private solveAds(scale: number) {
-    const o = this.adsPose, cam = this.game.camera;
-    if (o.scale === scale && o.rearDepth > 0) return o;
-    o.scale = scale;
-    o.rearDepth = cam.near + this.profile.ads.nearMargin;
-    o.px = 0; o.py = -this.profile.ads.sightY * scale; o.pz = -o.rearDepth - this.profile.ads.rearZ * scale;
-    o.frontDepth = -(o.pz + this.profile.ads.frontZ * scale); o.muzzleDepth = -(o.pz + this.profile.ads.muzzleZ * scale);
-    return o;
-  }
-
   // ── per-frame ──
   update(dt: number, t: number): void {
     this.time = t; this.posePlayback.beginFrame(dt);
@@ -288,7 +280,7 @@ export class MagazineFirearm<P extends MagazineFirearmProfile = MagazineFirearmP
     this.reloadTilt += (rl - this.reloadTilt) * Math.min(1, dt * 10);
     const portrait = cam.aspect < 1 ? Math.min(1, (1 - cam.aspect) * 1.6) : 0;
     const a = sstep(0, 1, this.feel.adsBlend), scale = this.hip.scale * (1 - portrait * 0.12);
-    if (a > 0) this.solveAds(scale);
+    this.poseFrame.scale = scale; if (a > 0 && (this.adsPose.scale !== scale || this.adsPose.rearDepth <= 0)) this.posePlayback.apply('sight', this.poseFrame);
     this.glowRing.visible = a > 0.001; (this.rearGlow as THREE.MeshBasicMaterial).opacity = a * 0.85;
     this.model.scale.setScalar(scale); this.poseFrame.portrait = portrait; this.poseFrame.ads = a; this.posePlayback.apply('pose', this.poseFrame);
 

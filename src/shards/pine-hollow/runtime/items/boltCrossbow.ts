@@ -2,6 +2,7 @@ import { RangedReload } from '@wildshard/engine/combat/Firearm';
 import { HeldPlayback } from '@wildshard/game/plugin/weaponFamily';
 import playback from '../../data/heldPlayback.json' with { type: 'json' };
 import inputs from '../../data/heldInputs.json' with { type: 'json' };
+import sights from '../../data/heldSights.json' with { type: 'json' };
 import { ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/projectileFlight';
 import { app, gameplayRandom } from '@wildshard/engine/app/runtime';
 import type { AmmoRow } from '@wildshard/engine/combat/ammo';
@@ -134,10 +135,10 @@ type Bolt = FlightSlot<BoltData>;
 
 interface Stuck { mesh: THREE.Mesh }
 
-const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
+const _v1 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _dir = new THREE.Vector3(), _fwd = new THREE.Vector3();
 const _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion();
 const _aimEnd = new THREE.Vector3();
-const NEG_Z = new THREE.Vector3(0, 0, -1), Y_AXIS = new THREE.Vector3(0, 1, 0), X_AXIS = new THREE.Vector3(1, 0, 0);
+const NEG_Z = new THREE.Vector3(0, 0, -1);
 
 /** A bolt crossbow: the shard's parts, hands and rows on the platform's trigger, string, bolts, tracers, sights and pose. */
 export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> extends Weapon {
@@ -189,13 +190,12 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   private readonly feel: RangedFrame;
   private readonly frameInputs = { enabled: false, active: false, held: false, reloading: false, adsDuration: 1, kick: 0 };
   private readonly posePlayback: HeldPlayback;
-  private readonly poseFrame = { portrait: 0, ads: 0, reloading: 0 };
+  private readonly poseFrame = { portrait: 0, ads: 0, reloading: 0, scale: 1 };
   private readonly partValues = { loaded: 0, reloading: 0, reloadProgress: 0 };
 
   private sprintBlend = 0; private reloadTilt = 0;
   /** loaded bolt's broadhead tip, in model space (measured from the bolt geometry) and bolt-local */
   private tipModel = new THREE.Vector3(); private tipLocal = new THREE.Vector3();
-  private adsCache = { aspect: 0, fov: 0, scale: 0 };
   /** the solved iron-sights pose + the numbers behind it (dev / verification: `__wildshard.world.crossbow.adsPose`) */
   readonly adsPose = { px: 0, py: 0, pz: 0, rx: 0, scale: 0, tipDepth: 0, eyeAboveRail: 0, nutDepth: 0, nutNdcY: 0, limbNdcX: 0, tipNdcY: 0, peepY: 0, peepZ: 0, peepDepth: 0, peepR: 0 };
   /** the rear peep sight: ring + post, posed from `adsPose` every sighted frame */
@@ -236,8 +236,10 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     this.game.scene.add(this.puffs.points);
 
     this.buildHands();
-    this.posePlayback = new HeldPlayback({ pose: playback.crossbow, parts: playback.crossbowParts }, new Map<string, unknown>([['root', this.model], ['loadedBolt', this.loadedBolt]]));
+    this.posePlayback = new HeldPlayback({ pose: playback.crossbow, parts: playback.crossbowParts, sight: sights.sight, string: sights.string, peep: sights.peep }, new Map<string, unknown>([['root', this.model], ['loadedBolt', this.loadedBolt], ['stringLeft', this.stringLeft], ['stringRight', this.stringRight], ['serving', this.serving], ['peep', this.peep], ['peepRing', this.peepRing], ['peepPost', this.peepPost]]));
     this.posePlayback.bindInputs('pose', inputs.crossbow, new Map([['weapon', this]]));
+    this.posePlayback.bindInputs('sight', sights.sightInputs, new Map([['weapon', this]])); this.posePlayback.bindOutputs('sight', sights.sightOutputs, new Map([['sight', this.adsPose]]));
+    this.posePlayback.bindInputs('string', sights.stringInputs, new Map([['weapon', this]])); this.posePlayback.bindInputs('peep', sights.peepInputs, new Map([['weapon', this]]));
   }
 
   private buildHands(): void {
@@ -372,36 +374,6 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     b.glow.visible = b.traced;
   }
 
-  /**
-   * Iron-sights pose, derived once per (aspect, fov, scale): model rotation is (view.ads.pitch, 0, 0) so the bolt runs
-   * parallel to the camera forward, and the translation puts the tip on the ray to NDC (0, ADS_TIP_NDC_Y).
-   * With the tip depth D and the eye h above the bolt: h = -ADS_TIP_NDC_Y·tan(fov/2)·D. The nut sits A = (nut.z - tip.z)·scale
-   * behind the tip, at depth D - A; asking for it at ADS_NUT_NDC_Y gives one linear equation in D. The near plane
-   * (+ margin) caps how close the nut may come, which is what limits the 94° portrait frame.
-   */
-  private solveAds(cam: THREE.PerspectiveCamera, scale: number): BoltCrossbow['adsPose'] {
-    const { ads: { eyeAboveRail, nearMargin, pitch }, peep } = this.view;
-    const c = this.adsCache, o = this.adsPose;
-    if (c.aspect === cam.aspect && c.fov === cam.fov && c.scale === scale) return o;
-    c.aspect = cam.aspect; c.fov = cam.fov; c.scale = scale;
-    // Shouldered: the stock is pulled up under the cheek so the eye sits a few cm above the rail and looks straight down
-    // the bolt; the nut is as close as the near plane allows (that is what "pinned into the shoulder" looks like).
-    const tv = Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2), th = tv * cam.aspect;
-    const tip = this.tipModel, nut = this.nockDrawn;
-    const A = (nut.z - tip.z) * scale;
-    const nutDepth = cam.near + nearMargin;
-    const D = nutDepth + A;
-    o.px = 0; o.py = -eyeAboveRail; o.pz = -D - tip.z * scale; o.rx = pitch; o.scale = scale;
-    o.tipDepth = D; o.eyeAboveRail = eyeAboveRail; o.nutDepth = nutDepth;
-    o.nutNdcY = (nut.y * scale + o.py) / (nutDepth * tv); o.tipNdcY = (tip.y * scale + o.py) / (D * tv);
-    o.limbNdcX = (this.tipR.x * scale) / (-(this.tipR.z * scale + o.pz) * th);
-    // peep: a real rear sight MOUNTED ON THE STOCK at model z = peep.z, its centre exactly at eye height (on the forward
-    // line → screen centre); fixed physical size, so the post is short and the ring reads as part of the weapon.
-    o.peepZ = peep.z; o.peepY = eyeAboveRail / scale; o.peepDepth = -(o.pz + peep.z * scale);
-    o.peepR = peep.worldRadius;
-    return o;
-  }
-
   // ── per-frame ──
   update(dt: number, t: number): void {
     this.time = t; this.posePlayback.beginFrame(dt);
@@ -420,7 +392,7 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     const k = this.state.reloading ? 260 : 1400, c = this.state.reloading ? 28 : 34;
     this.drawVel += (-(this.draw - this.drawTarget) * k - this.drawVel * c) * dt;
     this.draw += this.drawVel * dt;
-    this.updateString();
+    this.posePlayback.apply('string', this.poseFrame);
 
     const parts = this.partValues; parts.loaded = Number(this.state.loaded); parts.reloading = Number(this.state.reloading); parts.reloadProgress = this.state.reloadProgress;
     this.posePlayback.apply('parts', parts);
@@ -439,17 +411,10 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     const a = sstep(0, 1, this.feel.adsBlend);
     // portrait phone: the wider FOV + narrow frame make the bow fill the screen — hold it lower, further out, smaller
     const port = portrait, scale = this.view.hip.scale * (1 - port * 0.55);
-    if (a > 0) this.solveAds(cam, scale);
+    this.poseFrame.scale = scale; if (a > 0) this.posePlayback.apply('sight', this.poseFrame);
 
-    // peep sight: posed from the solve, faded with the blend (its centre, the eye and the tip are collinear at a = 1)
-    if (a > 0.001 && !this.inspect) {
-      const ads = this.solveAds(cam, scale);
-      this.peep.visible = true;
-      this.peep.position.set(0, ads.peepY, ads.peepZ);
-      this.peepRing.scale.setScalar(ads.peepR / (scale * this.view.peep.radius));
-      this.peepPost.scale.y = Math.max(0.001, ads.peepY);
-      for (const m of this.peepMats) m.opacity = a;
-    } else this.peep.visible = false;
+    this.peep.visible = a > 0.001 && !this.inspect;
+    if (this.peep.visible) { this.posePlayback.apply('peep', this.poseFrame); for (const m of this.peepMats) m.opacity = a; }
 
     this.model.scale.setScalar(scale);
     this.poseFrame.portrait = portrait; this.poseFrame.ads = a; this.poseFrame.reloading = Number(this.state.reloading); this.posePlayback.apply('pose', this.poseFrame);
@@ -462,23 +427,6 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
   }
 
   private stepBolts(dt: number): void { this.flightPool.step(dt); }
-
-  private updateString(): void {
-    const d = THREE.MathUtils.clamp(this.draw, -0.12, 1.05);
-    const nock = _v1.copy(this.nockRest).lerp(this.nockDrawn, d);
-    nock.y = this.nockRest.y + (1 - Math.abs(d - 0.5) * 2) * 0.002;
-    this.placeLeg(this.stringLeft, this.tipL, nock);
-    this.placeLeg(this.stringRight, this.tipR, nock);
-    this.serving.position.copy(nock);
-    this.serving.quaternion.setFromUnitVectors(X_AXIS, _v2.subVectors(this.tipR, this.tipL).normalize());
-  }
-  private placeLeg(leg: THREE.Mesh, from: THREE.Vector3, to: THREE.Vector3): void {
-    leg.position.copy(from);
-    _v3.subVectors(to, from);
-    const len = _v3.length();
-    leg.scale.set(1, len, 1);
-    leg.quaternion.setFromUnitVectors(Y_AXIS, _v3.multiplyScalar(1 / len));
-  }
 
   // ── projectiles ──
   /**
