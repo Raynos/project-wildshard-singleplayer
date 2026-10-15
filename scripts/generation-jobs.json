@@ -495,6 +495,49 @@
       "platform": "native"
     },
     {
+      "id": "driftwood-faceted-ground",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-faceted-ground.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "--import",
+        "./scripts/generation-level.mjs",
+        "src/shards/driftwood-isle/generators/bake-faceted-ground.mjs",
+        "--generation-shard=driftwood-isle"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/driftwood-isle",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-island-cover.mjs",
+        "scripts/bake-output.mjs",
+        "scripts/bake",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "scripts/generation-level.mjs",
+        "scripts/authored-manifest.mjs",
+        "public/assets/driftwood-isle/map/top.webp",
+        "public/assets/horizon/driftwood-isle-day.webp",
+        "public/assets/horizon/driftwood-isle-night.webp"
+      ],
+      "outputs": [
+        "public/assets/driftwood-isle/baked/ground-239a2c11d0e40f6cf32f64d6d09a03429c8c1bead98db28532099b4d002c33d6.glb",
+        "public/assets/driftwood-isle/baked/ground-c1b1903f1ee18926f7489a52f4f5eddd224d57f030fbca0dd4e0e2893f609b92.glb"
+      ],
+      "buildTimeOutputs": [
+        "public/assets/driftwood-isle/baked/ground-239a2c11d0e40f6cf32f64d6d09a03429c8c1bead98db28532099b4d002c33d6.glb",
+        "public/assets/driftwood-isle/baked/ground-c1b1903f1ee18926f7489a52f4f5eddd224d57f030fbca0dd4e0e2893f609b92.glb"
+      ],
+      "seedOutputs": [],
+      "platform": "native"
+    },
+    {
       "id": "sky-rest-scenes",
       "shard": "far-reach",
       "entry": "src/shards/far-reach/generators/restScene.ts",

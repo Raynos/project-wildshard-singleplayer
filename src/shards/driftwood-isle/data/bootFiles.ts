@@ -1,5 +1,6 @@
 import { ISLAND_PLAN_FILES as PLAN_FILES } from './islandPlanFiles';
 import { REEF_FILES } from './reefFiles';
+import { GROUND_FILES } from './groundFiles';
 import { PALM_FILES } from './palmFiles';
 import { HIBISCUS_FILES } from './hibiscusFiles';
 import { ISLAND_COVER_FILES } from './islandCoverFiles';
@@ -82,6 +83,7 @@ export const DRIFTWOOD_BOOT_FILES = {
     ]
   },
   "reef": {source: {urls: [REEF_FILES.world]}},
+  "ground": {source: {urls: [GROUND_FILES.ground, GROUND_FILES.slab]}},
   "palms": { source: { urls: { phone: [PALM_FILES.phone.world], desktop: [PALM_FILES.desktop.world] } } },
   "hibiscus": { source: { urls: { phone: [HIBISCUS_FILES.phone.world], desktop: [HIBISCUS_FILES.desktop.world] } } },
   "cover": {
@@ -118,6 +120,7 @@ export const DRIFTWOOD_BOOT_FILES = {
         "hibiscus",
         "palms",
         "reef",
+        "ground",
         "captain"
       ]
     },
