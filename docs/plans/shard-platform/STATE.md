@@ -1,18 +1,18 @@
 # SHARD-PLATFORM — State (coordinator wildshard-new; ≤ 3 KB; overwritten)
 
-**RESUMED 2026-10-15** (second Claude account since ~16:50Z; account 1 weekly limit). **W1 CLOSED** (Sky 9.58 %, Signal 9.75 %). **W2 at 17:50Z `06cc2d478`: Pine 79.52 %, Driftwood 73.93 %** (start 107.6 / 104.2; resume 82.31 / 76.98; target 80/20). 1 unknown each: `discovery.generated.ts` counted (sp-x5 fixing).
-Pine/DW: C1 4384/4670 · C2 1813/2395 · C3 269/0 · C4 3971/2238 · C5 2506/1459 · C6 2953/1236 · C7 12/0 · C8 361/190 · C9 606/503.
-Since the last refresh: Pine wildlife bake `367d9e66b` (−119), held tool + knife `42b81d9ba` (−115), DW palms/hibiscus rows `90068b0a7` (−68), reef + rope bridge bakes `ea97c48c1` `10b9df93b` (−132), waterfall cascade bake `06cc2d478`, DW ground cover tint back on the graph `5638bb0f4`; CI deploy gen fix `229dd67b8`; type red fixed `d17377597`; check slot FIFO `00ededca1`.
+**W2 at 19:15Z `9296a81cc`: Pine 78.66 %, Driftwood 71.74 % custom** (target ≤ 20 %; 16:39Z 80.85 / 75.72; start 107.6 / 104.2). 0 unknown. W1 closed (Sky 9.58, Signal 9.75).
+Pine/DW: C1 4401/4615 · C2 1805/2126 · C3 209/0 · C4 3922/2237 · C5 2503/1459 · C6 2952/1266 · C7 12/0 · C8 356/186 · C9 532/426.
+Pace: about −0.9 pt/h Pine and −1.6 pt/h DW over the last 2.5 h. G432's 24 h needs roughly 2.4 / 2.1 pt/h.
+Since 17:50Z: DW rock table `25fb99192` (−199), arms on graph toon `a1602d555` (−71), backdrop + ramp fog `3b651edbd` `e4841389d` (≈−49), W2 manifest JSON `a5e53cc7d` (Pine −51, DW −26), Pine elite brain `4c12492ec` (−32), King FX on graphs `5d7fbf38b` (C3 −60), lens drops + cover `fc7868cf4` `5d378a55d` (−53); DW re-entry fix `66984dac5`; engine I `9296a81cc`; six graph inputs (sp-x4).
 
-**Lanes (G421 4 Opus visual-only; G428 burn to 100 %):**
-- Opus: o221 DW look runtime; o222 Pine look runtime; o223 Pine C3 effects (King fog/flames on graphs, flame fork fix before landing); o224 DW day backdrop + ramp fog. DW island/pier/creatures/arms toon wait on engine graph features (sp-x4).
-- Codex: x1 Pine loadout, then DW keepsakes/swords; x4 graph features (vertex alpha, AnimalFactory graph materials, skinned graphs, view position, sky light, texture array), tree set after Pine forest; x5 W2 Pine + DW manifest JSON; x6 DW C1 (BlenderIsland); x7 push + commit + git clean (609 → live-only), SF74 tails; x8 grid memory: H parked `refs/parked/sp-x8-h` (no win), weak image cache, then minimap accounting fix.
-- Memory: grid model at DW centre ≈ 1054/1000 MB; the Pine neighbour is disposed before DW allocates; leads = the image cache that keeps every finished decode (41.9 MB Pine) and minimap over-charge (73.9 MB reserved vs real canvases).
+**Lanes (G432 5 Opus while Claude < 50 %; Codex 5 + pusher; slots G435):**
+- Opus: o225 DW island + creatures (island HELD on graph per-draw CPU cost); o227 Pine forest; o228 Pine water; o229 DW kit/rocks/palms (waits engine II); o230 Pine site lights shared with Signal, then DW gulls.
+- Codex: x1 Pine rifle, then DW swords; x4 Pine cabin (G434), then C4 ambient; x5 Pine C5 quests; x6 DW pier (G434), then DW C4; x7 push, git, maps; x8 engine II, then node per-draw cost (~45 vs 8 µs, profile from o225).
+- Slots: check = x1 x5 o225 o228 · check2 = x4 x7 o230 o229 · check3 = x6 x8 o227 measure.
 
-**Rules (AGENTS.md 10-15):** manual push (`scripts/push-main.sh`); never copy the repo; three mirror slots; storage policy; no worktrees.
+**For the end-of-plan memory pass (G433/G434):** Pine cabin props (+1.47 MB GPU, +1.31 MB RAM, sp-x4); DW piers (+6.58 MB resident, +3.73 MB wire, sp-x6); map accounting correction `bf2f3fcb2`; parked `refs/parked/sp-x8-weak-cache`, `refs/parked/sp-x8-h`.
 
-**Waves (G413):** W1 done → W2 Pine + Driftwood (to 80/20) → W3 Nalati + Nine. M2 = grid from the menu, seamless travel, Jake's three phone runs with no tab kill (G417).
-**In force:** G415–G431.
+**Waves:** W2 → W3 (Nalati + Nine) starts by itself at Pine and DW ≤ 20 % + G420 (G434). In force: G415–G435.
 
-**For wildshard-v (ask for Jake, G432 speed):** the shared `check` mirror slot is the W2 bottleneck: 6-8 lanes queue there (~5 min per job), each waiting 20-30 min per proof. Recommend: allow a 4th slot `check2` until W2 ends (one more ./tmp/build-mirror tree; lanes split odd/even). No memory constant was edited by my lanes (G433). your commits `9f5fc11e4` / `bff4dec3c` landed inside lane commit windows (fine, just FYI). Push-speed files (gate-related-tests, heavy-lane, local-gate-checks, precommit-inputs, push-refusal) and generation-cache* stay yours; x7 leaves them. W12 closed as obsolete `921473605`. Your tmp/push-speed gate_before/gate_after timing runs hold the `gate` slot ~5 min each and block every lane push meanwhile: please run them between pushes or on `check`.
+**For wildshard-v:** the engine's graph-material per-draw CPU cost now gates the biggest DW look ports (island, creatures, kit): sp-x8 takes it right after II. G433 `dc01e03fb` received; G435 slots in use; no memory constant touched by my lanes.
 Paused rows: SF22, SF57, SF67.
