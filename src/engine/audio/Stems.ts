@@ -71,7 +71,7 @@ export function parseManifest(raw: unknown): MusicManifest | undefined {
 }
 
 /** a decoded slot: its spec and the stems (tension absent for the title cut; layers only on the boss) */
-export interface SlotAudio { genre: MusicGenre; slot: SlotName; spec: SlotSpec; calm: AudioBuffer | AacTrack; tension: AudioBuffer | undefined; layers: AudioBuffer[] }
+export interface SlotAudio { genre: MusicGenre; slot: SlotName; spec: SlotSpec; calm: AudioBuffer | AacTrack; tension: AudioBuffer | AacTrack | undefined; layers: AudioBuffer[] }
 
 /** one genre, decoded: the slots this shard can play and the stings, plus what each file cost */
 export type StyleBank = GenreBank;
@@ -134,17 +134,17 @@ export async function decodeStyle(genre: MusicGenre, slots: readonly SlotName[],
       const spec = m.slots[slot];
       if (!spec) return;
       try {
-        const single = setting('memorySaver') === 'on' && spec.tension === undefined && spec.layers.length === 0;
-        const calmFile = single ? readOne(spec.calm, async bytes => {
+        const bounded = spec.layers.length === 0 && (spec.tension !== undefined || setting('memorySaver') === 'on');
+        const stem = (file: string): Promise<AudioBuffer | AacTrack> => bounded ? readOne(file, async bytes => {
           const prepared = await AacTrack.prepare(new Uint8Array(bytes), spec.loopStart, spec.loopEnd, decode, undefined, owner);
           if (owner.disposed) throw new Error('Music preparation owner retired');
           return prepared ?? await decode(bytes);
-        }) : one(spec.calm);
-        const [calm, tension, ...layers] = await Promise.all([calmFile, spec.tension === undefined ? Promise.resolve(undefined) : one(spec.tension), ...spec.layers.map(one)]);
+        }) : one(file);
+        const [calm, tension, ...layers] = await Promise.all([stem(spec.calm), spec.tension === undefined ? Promise.resolve(undefined) : stem(spec.tension), ...spec.layers.map(one)]);
         // the loop must fit the file (a bad loopEnd would loop into silence)
         if (spec.loopEnd > calm.duration + 0.05) throw new Error(`${slot}: loopEnd ${spec.loopEnd} past the file (${calm.duration.toFixed(2)} s)`);
         // stems of one recording: a stem of another length would drift off the calm one — drop it rather than play it wrong
-        const aligned = (b: AudioBuffer | undefined): b is AudioBuffer => b !== undefined && Math.abs(b.duration - calm.duration) < 0.05;
+        const aligned = (b: AudioBuffer | AacTrack | undefined): b is AudioBuffer | AacTrack => b !== undefined && Math.abs(b.duration - calm.duration) < 0.05;
         if (!layers.every(aligned)) throw new Error(`${slot}: a layer's length differs from the base`);
         bank.slots.set(slot, { genre, slot, spec, calm, tension: aligned(tension) ? tension : undefined, layers });
       } catch (err: unknown) { console.info(`[music] ${genre}/${slot}: ${err instanceof Error ? err.message : String(err)} — the synth plays it`); }
@@ -167,7 +167,7 @@ export class Deck {
   readonly layerGains: GainNode[] = [];
   readonly bar: number;
   private srcs: AudioBufferSourceNode[] = [];
-  private stream: AacSource | undefined;
+  private streams: AacSource[] = [];
   private tension = 0;
   private _phase: BossPhase = 1;
   stopAt = Infinity;
@@ -179,8 +179,8 @@ export class Deck {
   readonly t0: number;
   private readonly ctx: BaseAudioContext;
   constructor(ctx: BaseAudioContext, audio: SlotAudio, dest: AudioNode, t0: number, fadeIn: number, tension = 0, phase: BossPhase = 1, failed?: (error: unknown) => void) {
-    if (audio.calm instanceof AacTrack && (ctx.sampleRate !== audio.calm.sampleRate || audio.tension !== undefined || audio.layers.length > 0)) {
-      this.scope.dispose(); throw new Error('Bounded AAC deck requires unpaired 48 kHz playback');
+    if ([audio.calm, audio.tension].some(stem => stem instanceof AacTrack && (ctx.sampleRate !== stem.sampleRate || audio.layers.length > 0))) {
+      this.scope.dispose(); throw new Error('Bounded AAC deck requires 48 kHz playback without boss layers');
     }
     this.ctx = ctx;
     this.heldAudio = audio;
@@ -199,7 +199,7 @@ export class Deck {
     this.scope.onDispose(() => {
       for (const source of this.srcs) source.buffer = null;
       this.srcs = [];
-      this.stream = undefined;
+      this.streams = [];
       this.heldAudio = undefined;
       this.out.disconnect();
       this.tensionGain?.disconnect();
@@ -209,16 +209,18 @@ export class Deck {
     this.scope.listen(ctx, 'statechange', () => {
       if (this.stopAt !== Infinity && this.pausedClock()) this.dispose();
     });
-    const mk = (buf: AudioBuffer, to: AudioNode) => {
-      const s = withOwner(this.scope, () => ownAudioSource(ctx.createBufferSource())); s.buffer = buf; s.loop = true; s.loopStart = spec.loopStart; s.loopEnd = spec.loopEnd;
-      s.connect(to); s.start(t0, 0); this.srcs.push(s);
+    const mk = (buf: AudioBuffer | AacTrack, to: AudioNode) => {
+      if (buf instanceof AacTrack) {
+        try {
+          this.streams.push(new AacSource(buf, { context: ctx, output: to, scope: this.scope,
+            ended: () => this.dispose(), failed: error => { this.dispose(); failed?.(error); } }, t0));
+        } catch (error) { this.scope.dispose(); throw error; }
+      } else {
+        const s = withOwner(this.scope, () => ownAudioSource(ctx.createBufferSource())); s.buffer = buf; s.loop = true; s.loopStart = spec.loopStart; s.loopEnd = spec.loopEnd;
+        s.connect(to); s.start(t0, 0); this.srcs.push(s);
+      }
     };
-    if (audio.calm instanceof AacTrack) {
-      try {
-        this.stream = new AacSource(audio.calm, { context: ctx, output: this.out, scope: this.scope,
-          ended: () => this.dispose(), failed: error => { this.dispose(); failed?.(error); } }, t0);
-      } catch (error) { this.scope.dispose(); throw error; }
-    } else mk(audio.calm, this.out);
+    mk(audio.calm, this.out);
     if (audio.tension) {
       this.tension = tension;
       this.tensionGain = ctx.createGain(); this.tensionGain.gain.value = tension; this.tensionGain.connect(this.out);
@@ -290,7 +292,7 @@ export class Deck {
     if (cp.cancelAndHoldAtTime) cp.cancelAndHoldAtTime(t); else { g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); }
     g.linearRampToValueAtTime(0, t + secs);
     for (const s of this.srcs) { try { s.stop(t + secs + 0.05); } catch { /* already stopped */ } }
-    if (this.stream) { this.stream.stop(t + secs + 0.05); return; }
+    if (this.streams.length > 0) { for (const stream of this.streams) stream.stop(t + secs + 0.05); return; }
     const last = this.srcs[0];
     if (last) { if (firstFade) this.scope.listen(last, 'ended', () => this.dispose(), { once: true }); }
     else this.dispose();

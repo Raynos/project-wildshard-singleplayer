@@ -1472,6 +1472,16 @@ listener/weather input. Floor, site and point ports remain real owners.
 | `Synth`, `impact`, `synthKit` | synth fallbacks, the impact generator, and the synthesis primitives (`noise`, `voice`, `strike`, `bubbles`, …) content voices build on (a shard's creature voices) |
 | `panFromYaw`, `loopAt`, `audioRandom`, `ownAudioSource` | helpers |
 
+Paired music without boss layers uses the same bounded native AAC reader at
+48 kHz, including mono tension. Both stems enter one `Deck` at the same
+absolute start time and keep its existing independent gains, bar changes and
+fade end. Authored loop cuts round to the nearest sample for both stems
+(maximum half a sample); no track is time-stretched. Unsupported native
+codecs/files or a live context at another rate keep the whole-file decoder.
+Single-track bounded playback retains the existing Memory saver option.
+Each short PCM window is observed by the audio memory ledger and released
+when its source ends; preparation retains ten seconds, never a full recording.
+
 `compactSampleLoop` (`engine/audio/preload`) keeps only an authored integer-sample loop window plus
 128 interpolation samples on each side. It preserves the sample rate, channels, gains, random phase
 and loop duration; fractional cuts keep the original recording. Compact windows share a bounded weak

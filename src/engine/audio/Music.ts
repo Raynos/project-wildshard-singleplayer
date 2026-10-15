@@ -757,7 +757,10 @@ export class Music {
       const buffer = original ? await track.decoded() : undefined;
       if (!original) await track.prime(this.scope);
       if (this.scope.disposed) return;
-      if (buffer) a.calm = buffer;
+      if (buffer) {
+        if (a.calm === track) a.calm = buffer;
+        if (a.tension === track) a.tension = buffer;
+      }
       if (this.playing && this._genre === a.genre && this.wantSlot() === a.slot) this.sync();
     } catch (error: unknown) {
       if (this.scope.disposed) return;
@@ -771,11 +774,14 @@ export class Music {
     if (!rig) return;
     // The device context is created only by a gesture. Unsupported rates keep the original decoder;
     // the old deck continues while that fallback resolves, and stale completion cannot install a slot.
-    if (a.calm instanceof AacTrack && (rig.ctx.sampleRate !== a.calm.sampleRate || !a.calm.ready)) {
-      const track = a.calm;
-      if (this.resolvingTracks.has(track)) return;
-      this.resolvingTracks.add(track);
-      void this.resolveTrack(a, track, rig.ctx.sampleRate !== track.sampleRate);
+    const waiting = [a.calm, a.tension].filter((track): track is AacTrack => track instanceof AacTrack
+      && (rig.ctx.sampleRate !== track.sampleRate || !track.ready));
+    if (waiting.length > 0) {
+      for (const track of waiting) {
+        if (this.resolvingTracks.has(track)) continue;
+        this.resolvingTracks.add(track);
+        void this.resolveTrack(a, track, rig.ctx.sampleRate !== track.sampleRate);
+      }
       if (!this.deck && !this.synthOn) this.startSynth(rig.ctx.currentTime + .05, 1);
       return;
     }

@@ -27,6 +27,7 @@ export class AacSource {
   private readonly windows = new Map<Scope, PlayingWindow>();
   private readonly plans: AacWindows;
   private readonly pull: AacPull;
+  private readonly track: AacTrack;
   private next: AacWindow;
   private pending: Promise<void> | undefined;
   private stopAt = Infinity;
@@ -36,7 +37,7 @@ export class AacSource {
     if (ports.scope.disposed || ports.context.sampleRate !== RATE || !Number.isFinite(t0) || t0 < ports.context.currentTime) {
       throw new Error('AAC source requires a live owner, 48 kHz context and future start');
     }
-    this.ports = ports; this.t0 = t0; this.scope = ports.scope.child('AAC.source');
+    this.track = track; this.ports = ports; this.t0 = t0; this.scope = ports.scope.child('AAC.source');
     this.plans = new AacWindows(track.loopStart, track.loopEnd, track.frames);
     this.pull = new AacPull(track.bytes, track.index, track.factory, this.scope);
     this.scope.onDispose(() => { this.windows.clear(); });
@@ -100,15 +101,13 @@ export class AacSource {
         const plan = this.next, start = this.t0 + plan.timeline / RATE;
         if (start >= this.stopAt || start >= this.ports.context.currentTime + LOOKAHEAD) return;
         if (start < this.ports.context.currentTime) throw new Error('AAC source missed its exact scheduling deadline');
-        const channels = [new Float32Array(plan.frames), new Float32Array(plan.frames)] as const;
+        const buffer = this.track.buffer(plan.frames);
         for (const part of plan.parts) {
           const pcm = await this.pull.read(part.start, part.frames);
           if (!this.active()) return;
-          channels[0].set(pcm[0], part.destination); channels[1].set(pcm[1], part.destination);
+          pcm.forEach((channel, i) => { buffer.getChannelData(i).set(channel, part.destination); });
         }
         if (start < this.ports.context.currentTime) throw new Error('AAC source missed its exact scheduling deadline');
-        const buffer = this.ports.context.createBuffer(2, plan.frames, RATE);
-        buffer.getChannelData(0).set(channels[0]); buffer.getChannelData(1).set(channels[1]);
         this.next = this.plans.next(); this.schedule(plan, buffer);
       }
     } catch (error) {

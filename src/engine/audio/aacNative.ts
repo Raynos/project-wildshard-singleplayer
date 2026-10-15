@@ -1,11 +1,11 @@
-import type { AacIndex } from '@wildshard/format/aacIndex';
+import type { RecordingAacIndex } from '@wildshard/format/aacIndex';
 import type { AacCodecFactory, AacOutput } from './aacPull';
 
 /** Minimal standard WebCodecs declarations, kept separate from playback policy. */
 export interface NativeAacConfig {
   readonly codec: 'mp4a.40.2';
   readonly sampleRate: 48000;
-  readonly numberOfChannels: 2;
+  readonly numberOfChannels: 1 | 2;
   readonly description: Uint8Array;
 }
 export interface NativeAacPacket { readonly timestamp: number; readonly byteLength: number }
@@ -25,11 +25,11 @@ export type NativeAacPacketConstructor = new (init: { type: 'key'; timestamp: nu
  * Unsupported native APIs/configurations return undefined so the existing decoder remains available.
  * Each factory creates its own configured decoder; close is idempotent for pending-flush cancellation.
  */
-export async function nativeAacFactory(index: AacIndex): Promise<AacCodecFactory | undefined> {
+export async function nativeAacFactory(index: RecordingAacIndex): Promise<AacCodecFactory | undefined> {
   if (typeof window === 'undefined') return undefined;
   const Decoder = window.AudioDecoder, Packet = window.EncodedAudioChunk;
   if (typeof Decoder !== 'function' || typeof Packet !== 'function') return undefined;
-  const config: NativeAacConfig = { codec: 'mp4a.40.2', sampleRate: 48000, numberOfChannels: 2, description: index.description };
+  const config: NativeAacConfig = { codec: 'mp4a.40.2', sampleRate: 48000, numberOfChannels: index.channels, description: index.description };
   try { if ((await Decoder.isConfigSupported(config)).supported !== true) return undefined; }
   catch { return undefined; }
   return (output, error) => {

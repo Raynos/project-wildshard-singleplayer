@@ -1,0 +1,513 @@
+{
+  "codec": {
+    "at": "2026-10-15T15:47:34.394Z",
+    "revision": "5716c350ba32c2978eb00a8764bda48df0bc497f",
+    "device": "0204D232-EEF1-4115-87D3-FC273BE9FA64",
+    "musicFile": "island-calm-05125ed8.m4a",
+    "calmChannels": 2,
+    "loopStart": 14.3035,
+    "loopEnd": 54.9384,
+    "result": {
+      "state": "done",
+      "secure": true,
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Mobile/15E148 Safari/604.1",
+      "standalone": false,
+      "audioDecoder": "function",
+      "encodedAudioChunk": "function",
+      "nativeFactoryAvailable": true,
+      "expectedPath": "native AAC available; playback/memory proof still required"
+    }
+  },
+  "comparison": {
+    "at": "2026-10-15T15:56:45.263Z",
+    "revision": "588299fde309f6d953d9f32ec2196ad901a11614",
+    "device": "0204D232-EEF1-4115-87D3-FC273BE9FA64",
+    "musicFile": "island-calm-05125ed8.m4a",
+    "calmChannels": 2,
+    "loopStart": 14.3035,
+    "loopEnd": 54.9384,
+    "runs": [
+      {
+        "mode": "pcm",
+        "initial": {
+          "state": "playing",
+          "mode": "pcm",
+          "fallback": 0,
+          "paths": [
+            "PCM",
+            "PCM"
+          ],
+          "channels": [
+            2,
+            1
+          ],
+          "preparedBytes": 33444864,
+          "contextRate": 48000,
+          "start": 0,
+          "t0": 0.2
+        },
+        "snapshots": [
+          {
+            "page": {
+              "state": "playing",
+              "mode": "pcm",
+              "fallback": 0,
+              "paths": [
+                "PCM",
+                "PCM"
+              ],
+              "channels": [
+                2,
+                1
+              ],
+              "preparedBytes": 33444864,
+              "contextRate": 48000,
+              "start": 0,
+              "t0": 0.2,
+              "now": 8.458666666666666,
+              "tension": 0.8,
+              "nextBar": 11.37772669670882,
+              "allocations": 0
+            },
+            "native": {
+              "processes": [
+                {
+                  "pid": 98045,
+                  "startAbstime": 461949587118,
+                  "physicalFootprintBytes": 35670560,
+                  "residentBytes": 222429184,
+                  "lifetimeMaxPhysicalFootprintBytes": 36604448,
+                  "intervalMaxPhysicalFootprintBytes": 36604448
+                },
+                {
+                  "pid": 97796,
+                  "startAbstime": 461912521122,
+                  "physicalFootprintBytes": 80464536,
+                  "residentBytes": 345882624,
+                  "lifetimeMaxPhysicalFootprintBytes": 114821760,
+                  "intervalMaxPhysicalFootprintBytes": 114821760
+                }
+              ],
+              "physicalFootprintBytes": 116135096
+            }
+          },
+          {
+            "page": {
+              "state": "playing",
+              "mode": "pcm",
+              "fallback": 0,
+              "paths": [
+                "PCM",
+                "PCM"
+              ],
+              "channels": [
+                2,
+                1
+              ],
+              "preparedBytes": 33444864,
+              "contextRate": 48000,
+              "start": 0,
+              "t0": 0.2,
+              "now": 21.845333333333333,
+              "tension": 0.1,
+              "nextBar": 23.880819909873534,
+              "allocations": 0
+            },
+            "native": {
+              "processes": [
+                {
+                  "pid": 98045,
+                  "startAbstime": 461949587118,
+                  "physicalFootprintBytes": 39438880,
+                  "residentBytes": 229588992,
+                  "lifetimeMaxPhysicalFootprintBytes": 42797600,
+                  "intervalMaxPhysicalFootprintBytes": 42797600
+                },
+                {
+                  "pid": 97796,
+                  "startAbstime": 461912521122,
+                  "physicalFootprintBytes": 79858328,
+                  "residentBytes": 343867392,
+                  "lifetimeMaxPhysicalFootprintBytes": 114821760,
+                  "intervalMaxPhysicalFootprintBytes": 114821760
+                }
+              ],
+              "physicalFootprintBytes": 119297208
+            }
+          },
+          {
+            "page": {
+              "state": "playing",
+              "mode": "pcm",
+              "fallback": 0,
+              "paths": [
+                "PCM",
+                "PCM"
+              ],
+              "channels": [
+                2,
+                1
+              ],
+              "preparedBytes": 33444864,
+              "contextRate": 48000,
+              "start": 0,
+              "t0": 0.2,
+              "now": 66.336,
+              "tension": 0.1,
+              "nextBar": 67.64164615595003,
+              "allocations": 0
+            },
+            "native": {
+              "processes": [
+                {
+                  "pid": 98045,
+                  "startAbstime": 461949587118,
+                  "physicalFootprintBytes": 39438880,
+                  "residentBytes": 228458496,
+                  "lifetimeMaxPhysicalFootprintBytes": 42797600,
+                  "intervalMaxPhysicalFootprintBytes": 42797600
+                },
+                {
+                  "pid": 97796,
+                  "startAbstime": 461912521122,
+                  "physicalFootprintBytes": 79612568,
+                  "residentBytes": 343015424,
+                  "lifetimeMaxPhysicalFootprintBytes": 114821760,
+                  "intervalMaxPhysicalFootprintBytes": 114821760
+                }
+              ],
+              "physicalFootprintBytes": 119051448
+            }
+          }
+        ]
+      },
+      {
+        "mode": "aac",
+        "initial": {
+          "state": "playing",
+          "mode": "aac",
+          "fallback": 0,
+          "paths": [
+            "AAC",
+            "AAC"
+          ],
+          "channels": [
+            2,
+            1
+          ],
+          "preparedBytes": 5774976,
+          "contextRate": 48000,
+          "start": 0.05333333333333334,
+          "t0": 0.24266666666666667
+        },
+        "snapshots": [
+          {
+            "page": {
+              "state": "playing",
+              "mode": "aac",
+              "fallback": 0,
+              "paths": [
+                "AAC",
+                "AAC"
+              ],
+              "channels": [
+                2,
+                1
+              ],
+              "preparedBytes": 5774976,
+              "contextRate": 48000,
+              "start": 0.05333333333333334,
+              "t0": 0.24266666666666667,
+              "now": 8.501333333333333,
+              "tension": 0.8,
+              "nextBar": 11.420393363375489,
+              "allocations": 8085504
+            },
+            "native": {
+              "processes": [
+                {
+                  "pid": 98045,
+                  "startAbstime": 461949587118,
+                  "physicalFootprintBytes": 39438880,
+                  "residentBytes": 228392960,
+                  "lifetimeMaxPhysicalFootprintBytes": 42797600,
+                  "intervalMaxPhysicalFootprintBytes": 42797600
+                },
+                {
+                  "pid": 97796,
+                  "startAbstime": 461912521122,
+                  "physicalFootprintBytes": 57428632,
+                  "residentBytes": 386678784,
+                  "lifetimeMaxPhysicalFootprintBytes": 114821760,
+                  "intervalMaxPhysicalFootprintBytes": 114821760
+                }
+              ],
+              "physicalFootprintBytes": 96867512
+            }
+          },
+          {
+            "page": {
+              "state": "playing",
+              "mode": "aac",
+              "fallback": 0,
+              "paths": [
+                "AAC",
+                "AAC"
+              ],
+              "channels": [
+                2,
+                1
+              ],
+              "preparedBytes": 5774976,
+              "contextRate": 48000,
+              "start": 0.05333333333333334,
+              "t0": 0.24266666666666667,
+              "now": 21.962666666666667,
+              "tension": 0.1,
+              "nextBar": 23.9234865765402,
+              "allocations": 6352896
+            },
+            "native": {
+              "processes": [
+                {
+                  "pid": 98045,
+                  "startAbstime": 461949587118,
+                  "physicalFootprintBytes": 39438880,
+                  "residentBytes": 228392960,
+                  "lifetimeMaxPhysicalFootprintBytes": 42797600,
+                  "intervalMaxPhysicalFootprintBytes": 42797600
+                },
+                {
+                  "pid": 97796,
+                  "startAbstime": 461912521122,
+                  "physicalFootprintBytes": 53250712,
+                  "residentBytes": 388136960,
+                  "lifetimeMaxPhysicalFootprintBytes": 114821760,
+                  "intervalMaxPhysicalFootprintBytes": 114821760
+                }
+              ],
+              "physicalFootprintBytes": 92689592
+            }
+          },
+          {
+            "page": {
+              "state": "playing",
+              "mode": "aac",
+              "fallback": 0,
+              "paths": [
+                "AAC",
+                "AAC"
+              ],
+              "channels": [
+                2,
+                1
+              ],
+              "preparedBytes": 5774976,
+              "contextRate": 48000,
+              "start": 0.05333333333333334,
+              "t0": 0.24266666666666667,
+              "now": 66.45333333333333,
+              "tension": 0.1,
+              "nextBar": 67.6843128226167,
+              "allocations": 8085504
+            },
+            "native": {
+              "processes": [
+                {
+                  "pid": 98045,
+                  "startAbstime": 461949587118,
+                  "physicalFootprintBytes": 39438880,
+                  "residentBytes": 228163584,
+                  "lifetimeMaxPhysicalFootprintBytes": 42797600,
+                  "intervalMaxPhysicalFootprintBytes": 42797600
+                },
+                {
+                  "pid": 97796,
+                  "startAbstime": 461912521122,
+                  "physicalFootprintBytes": 63769264,
+                  "residentBytes": 402276352,
+                  "lifetimeMaxPhysicalFootprintBytes": 114821760,
+                  "intervalMaxPhysicalFootprintBytes": 114821760
+                }
+              ],
+              "physicalFootprintBytes": 103208144
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "defaultBoot": {
+    "at": "2026-10-15T16:12:42.244Z",
+    "dirtyAudio": true,
+    "audioSources": {
+      "aacNative.ts": "19193a3672a6af97bea2ba79d0a25e159aa22d7ee1829a30719dee002d10c4af",
+      "aacPull.ts": "703e7b460b14b09d4e7bf655d607a0ceec5e634e696a5c4aaea345c33bf80b78",
+      "aacTrack.ts": "32e72d2592def79facb26c07e21890fa1eb089f068c714fbbabc6bb875d809e3",
+      "aacSource.ts": "3af5dedad7ba6086c779109664bb5483a24c10fc82c8be837a1682598ecd8c01",
+      "Stems.ts": "8c127aadcc9fdb1e4b94e557c3ceb4b0e1abb6ae24008c0db37cee875ab4132c",
+      "Music.ts": "656e6181c8b42f27e0faa5f98eebe7988faa39f879da17b3c20a28a5c505c775"
+    },
+    "device": "0204D232-EEF1-4115-87D3-FC273BE9FA64",
+    "musicFile": "island-calm-05125ed8.m4a",
+    "calmChannels": 2,
+    "loopStart": 14.3035,
+    "loopEnd": 54.9384,
+    "runs": [
+      {
+        "mode": "aac",
+        "initial": {
+          "state": "playing",
+          "mode": "aac",
+          "fallback": 0,
+          "paths": [
+            "AAC",
+            "AAC"
+          ],
+          "channels": [
+            2,
+            1
+          ],
+          "preparedBytes": 5774976,
+          "contextRate": 48000,
+          "start": 0.05333333333333334,
+          "t0": 0.25333333333333335
+        },
+        "snapshots": [
+          {
+            "page": {
+              "state": "playing",
+              "mode": "aac",
+              "fallback": 0,
+              "paths": [
+                "AAC",
+                "AAC"
+              ],
+              "channels": [
+                2,
+                1
+              ],
+              "preparedBytes": 5774976,
+              "contextRate": 48000,
+              "start": 0.05333333333333334,
+              "t0": 0.25333333333333335,
+              "now": 8.448,
+              "tension": 0.8,
+              "nextBar": 11.431060030042154,
+              "allocations": 6352896
+            },
+            "native": {
+              "processes": [
+                {
+                  "pid": 49423,
+                  "startAbstime": 484911947486,
+                  "physicalFootprintBytes": 39619056,
+                  "residentBytes": 228818944,
+                  "lifetimeMaxPhysicalFootprintBytes": 42732016,
+                  "intervalMaxPhysicalFootprintBytes": 42732016
+                },
+                {
+                  "pid": 49291,
+                  "startAbstime": 484882707400,
+                  "physicalFootprintBytes": 57641576,
+                  "residentBytes": 307920896,
+                  "lifetimeMaxPhysicalFootprintBytes": 72878672,
+                  "intervalMaxPhysicalFootprintBytes": 72878672
+                }
+              ],
+              "physicalFootprintBytes": 97260632
+            }
+          },
+          {
+            "page": {
+              "state": "playing",
+              "mode": "aac",
+              "fallback": 0,
+              "paths": [
+                "AAC",
+                "AAC"
+              ],
+              "channels": [
+                2,
+                1
+              ],
+              "preparedBytes": 5774976,
+              "contextRate": 48000,
+              "start": 0.05333333333333334,
+              "t0": 0.25333333333333335,
+              "now": 21.749333333333333,
+              "tension": 0.1,
+              "nextBar": 23.934153243206868,
+              "allocations": 6352896
+            },
+            "native": {
+              "processes": [
+                {
+                  "pid": 49423,
+                  "startAbstime": 484911947486,
+                  "physicalFootprintBytes": 39406064,
+                  "residentBytes": 228196352,
+                  "lifetimeMaxPhysicalFootprintBytes": 42732016,
+                  "intervalMaxPhysicalFootprintBytes": 42732016
+                },
+                {
+                  "pid": 49291,
+                  "startAbstime": 484882707400,
+                  "physicalFootprintBytes": 56248936,
+                  "residentBytes": 310444032,
+                  "lifetimeMaxPhysicalFootprintBytes": 72878672,
+                  "intervalMaxPhysicalFootprintBytes": 72878672
+                }
+              ],
+              "physicalFootprintBytes": 95655000
+            }
+          },
+          {
+            "page": {
+              "state": "playing",
+              "mode": "aac",
+              "fallback": 0,
+              "paths": [
+                "AAC",
+                "AAC"
+              ],
+              "channels": [
+                2,
+                1
+              ],
+              "preparedBytes": 5774976,
+              "contextRate": 48000,
+              "start": 0.05333333333333334,
+              "t0": 0.25333333333333335,
+              "now": 66.112,
+              "tension": 0.1,
+              "nextBar": 67.69497948928337,
+              "allocations": 7219200
+            },
+            "native": {
+              "processes": [
+                {
+                  "pid": 49423,
+                  "startAbstime": 484911947486,
+                  "physicalFootprintBytes": 39406064,
+                  "residentBytes": 228114432,
+                  "lifetimeMaxPhysicalFootprintBytes": 42732016,
+                  "intervalMaxPhysicalFootprintBytes": 42732016
+                },
+                {
+                  "pid": 49291,
+                  "startAbstime": 484882707400,
+                  "physicalFootprintBytes": 65899136,
+                  "residentBytes": 330678272,
+                  "lifetimeMaxPhysicalFootprintBytes": 72878672,
+                  "intervalMaxPhysicalFootprintBytes": 72878672
+                }
+              ],
+              "physicalFootprintBytes": 105305200
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

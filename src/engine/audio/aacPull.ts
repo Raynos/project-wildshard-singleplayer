@@ -1,4 +1,4 @@
-import type { AacIndex } from '@wildshard/format/aacIndex';
+import type { RecordingAacIndex } from '@wildshard/format/aacIndex';
 import type { Scope } from '../app/scope';
 
 /** The small native-codec surface used by the bounded reader; injectable for deterministic lifecycle tests. */
@@ -15,8 +15,8 @@ export interface AacCodec {
   close: () => void;
 }
 export type AacCodecFactory = (output: (data: AacOutput) => void, error: (error: unknown) => void) => AacCodec;
-type Stereo = readonly [Float32Array, Float32Array];
-interface Chunk { readonly channels: Stereo; at: number }
+type Channels = readonly Float32Array[];
+interface Chunk { readonly channels: Channels; at: number }
 const BATCH = 8, PACKET_FRAMES = 1024, HISTORY = 64;
 /** Maximum one pull: half a second at 48 kHz plus both 32-frame interpolation guards. */
 export const AAC_WINDOW_FRAMES = 24064;
@@ -43,26 +43,27 @@ export class AacPull {
   private cursor = 0;
   private queuedFrames = 0;
   private chunks: Chunk[] = [];
-  private history: Stereo = [new Float32Array(HISTORY), new Float32Array(HISTORY)];
+  private history: Channels;
   private historyFrames = 0;
   private highWaterFrames = HISTORY;
   private readonly removeOwner: () => void;
-  private readonly index: AacIndex;
+  private readonly index: RecordingAacIndex;
   private readonly factory: AacCodecFactory;
-  constructor(bytes: Uint8Array, index: AacIndex, factory: AacCodecFactory, scope: Scope) {
+  constructor(bytes: Uint8Array, index: RecordingAacIndex, factory: AacCodecFactory, scope: Scope) {
     if (scope.disposed) throw new Error('AAC owner has retired');
     this.bytes = bytes; this.index = index; this.factory = factory;
+    this.history = Array.from({ length: index.channels }, () => new Float32Array(HISTORY));
     this.removeOwner = scope.capture('disposers', () => this.dispose());
   }
   /** Current bounded decoder queue, excluding the caller-owned returned short window. */
-  get retainedFrames(): number { return this.chunks.length * PACKET_FRAMES + this.history[0].length; }
+  get retainedFrames(): number { return this.chunks.length * PACKET_FRAMES + (this.history[0]?.length ?? 0); }
   /** High-water PCM frames retained by the decoder queue/history; excludes caller-owned windows. */
   get peakRetainedFrames(): number { return this.highWaterFrames; }
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true; this.generation++; this.wake?.(); this.wake = undefined; this.codec?.close(); this.codec = undefined;
     this.bytes = undefined; this.failure = undefined; this.chunks = []; this.queuedFrames = 0; this.historyFrames = 0;
-    this.history = [new Float32Array(0), new Float32Array(0)]; this.removeOwner();
+    this.history = []; this.removeOwner();
   }
   private live(): void {
     if (this.disposed) throw new Error('AAC owner has retired');
@@ -75,7 +76,7 @@ export class AacPull {
     this.codec = this.factory(data => {
       try {
         if (this.disposed || generation !== this.generation) return;
-        if (data.numberOfFrames !== PACKET_FRAMES || data.numberOfChannels !== 2 || data.sampleRate !== 48000
+        if (data.numberOfFrames !== PACKET_FRAMES || data.numberOfChannels !== this.index.channels || data.sampleRate !== 48000
           || this.queuedFrames + data.numberOfFrames > BATCH * PACKET_FRAMES
           || this.outputFrames + data.numberOfFrames > this.index.sizes.length * PACKET_FRAMES) {
           throw new Error('AAC output exceeds the admitted packet bounds');
@@ -83,9 +84,10 @@ export class AacPull {
         const skip = Math.min(PACKET_FRAMES, Math.max(0, this.index.primingFrames - this.outputFrames));
         this.outputFrames += data.numberOfFrames;
         if (skip === PACKET_FRAMES) return;
-        const channels: Stereo = [new Float32Array(PACKET_FRAMES), new Float32Array(PACKET_FRAMES)];
-        data.copyTo(channels[0], { planeIndex: 0, format: 'f32-planar' });
-        data.copyTo(channels[1], { planeIndex: 1, format: 'f32-planar' });
+        const channels = Array.from({ length: this.index.channels }, (_, planeIndex) => {
+          const channel = new Float32Array(PACKET_FRAMES);
+          data.copyTo(channel, { planeIndex, format: 'f32-planar' }); return channel;
+        });
         this.chunks.push({ channels, at: skip }); this.queuedFrames += PACKET_FRAMES - skip;
         this.highWaterFrames = Math.max(this.highWaterFrames, this.retainedFrames);
       } catch (error) { this.failed = true; this.failure = error; }
@@ -118,13 +120,13 @@ export class AacPull {
     if (this.queuedFrames === 0) return this.fill(); // A priming-only output may precede presented samples.
   }
 
-  private consume(limit: number, into: Stereo | undefined, at: number): number {
+  private consume(limit: number, into: Channels | undefined, at: number): number {
     const chunk = this.chunks[0];
     if (!chunk) throw new Error('AAC output queue empty');
     const count = Math.min(limit, PACKET_FRAMES - chunk.at);
-    for (let channel = 0; channel < 2; channel++) {
+    for (let channel = 0; channel < this.index.channels; channel++) {
       const source = chunk.channels[channel], history = this.history[channel], target = into?.[channel];
-      if (!source || !history) throw new Error('AAC stereo channel missing');
+      if (!source || !history) throw new Error('AAC channel missing');
       if (target) target.set(source.subarray(chunk.at, chunk.at + count), at);
       const kept = Math.min(HISTORY, count);
       history.copyWithin(0, kept);
@@ -136,7 +138,7 @@ export class AacPull {
     return count;
   }
   /** Read source-sample coordinates after the validated priming edit; returned arrays belong to the caller. */
-  async read(start: number, frames: number): Promise<Stereo> {
+  async read(start: number, frames: number): Promise<Channels> {
     this.live();
     if (this.busy) throw new Error('AAC pulls must be serialized');
     if (!Number.isSafeInteger(start) || start < 0 || !Number.isSafeInteger(frames) || frames < 1 || frames > AAC_WINDOW_FRAMES
@@ -145,11 +147,11 @@ export class AacPull {
     try {
       if (start < this.cursor - this.historyFrames) this.reset();
       while (this.cursor < start) { await this.fill(); this.live(); this.consume(start - this.cursor, undefined, 0); }
-      const result: Stereo = [new Float32Array(frames), new Float32Array(frames)];
+      const result = Array.from({ length: this.index.channels }, () => new Float32Array(frames));
       let done = 0;
       if (start < this.cursor) {
         done = Math.min(frames, this.cursor - start);
-        for (let channel = 0; channel < 2; channel++) {
+        for (let channel = 0; channel < this.index.channels; channel++) {
           const source = this.history[channel], target = result[channel];
           if (!source || !target) throw new Error('AAC history channel missing');
           const from = HISTORY - (this.cursor - start); target.set(source.subarray(from, from + done));
