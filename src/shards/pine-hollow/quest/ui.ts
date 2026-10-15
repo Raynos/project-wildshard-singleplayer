@@ -13,8 +13,7 @@
  */
 import './pinehollow.css';
 import { Scope } from '@wildshard/engine/app/scope';
-import { listenPage } from '@wildshard/engine/input/dom';
-import { declarePanel, mountPanel, type PanelNode, type PanelView } from '@wildshard/sdk/panels';
+import { DeclaredPanel, declarePanel, mountPanel, type PanelNode } from '@wildshard/sdk/panels';
 import { isFilled, type Board, type Contract } from './contracts';
 import { itemName } from './trades';
 
@@ -33,51 +32,6 @@ const panelFrame = (cls: string, kicker: string, title: string): PanelNode => ({
   ] },
   { tag: 'button', cls: 'ws-ph-close', button: 'button', text: 'Close', ref: 'close' },
 ] });
-
-abstract class Panel {
-  readonly root: HTMLElement;
-  protected readonly view: PanelView;
-  onOpen?: () => void;
-  onClose?: () => void;
-  private open_ = false;
-  private readonly scope: Scope;
-  private rows: Scope | null = null;
-  constructor(cls: string, title: string, kicker: string, scope: Scope) {
-    this.scope = scope;
-    this.view = declarePanel(panelFrame(cls, kicker, title));
-    this.root = this.view.root;
-    this.view.on('close', 'click', (e) => { e.stopPropagation(); this.close(); }, scope);
-    this.view.on('', 'pointerdown', (e) => { e.stopPropagation(); }, scope);
-    listenPage(scope, 'keydown', (event) => {
-      const e = event;
-      if (!this.open_ || e.repeat) return;
-      if (e.code === 'Escape' || e.code === 'KeyE') { e.preventDefault(); e.stopPropagation(); this.close(); }
-    }, { capture: true, on: 'document' });
-    mountPanel(this.view, scope);
-    scope.onDispose(() => { this.open_ = false; });
-  }
-  get isOpen(): boolean { return this.open_; }
-  /** replace the body with declared rows; listeners bound through the returned scope leave with the next render */
-  protected renderRows(nodes: readonly PanelNode[]): Scope {
-    this.rows?.dispose();
-    this.view.fill('body', nodes);
-    this.rows = this.scope.child('rows');
-    return this.rows;
-  }
-  open(): void {
-    if (this.open_ || this.scope.disposed) return;
-    this.open_ = true; this.render();
-    this.view.flag('', 'show', true);
-    this.onOpen?.();
-  }
-  close(): void {
-    if (!this.open_) return;
-    this.open_ = false;
-    this.view.flag('', 'show', false);
-    this.onClose?.();
-  }
-  abstract render(): void;
-}
 
 const NOTE_TILT = [-1.2, 0.8, -0.5] as const;
 const noteKind = (c: Contract): string => c.kind === 'species' ? 'Game' : c.kind === 'rarity' ? 'Rare coat' : c.kind === 'elite' ? 'Wanted' : 'Cull';
@@ -111,11 +65,14 @@ export function boardRows(b: Board): PanelNode[] {
   ];
 }
 
-export class BoardPanel extends Panel {
+export class BoardPanel extends DeclaredPanel {
   onClaim?: (i: number) => void;
   onReroll?: (i: number) => void;
-  constructor(private readonly board: () => Board, scope = new Scope('quest.board')) { super('ws-ph-board', 'Contracts', 'The hunting lodge', scope); }
-  render(): void {
+  constructor(private readonly board: () => Board, scope = new Scope('quest.board')) {
+    super(() => panelFrame('ws-ph-board', 'The hunting lodge', 'Contracts'), scope,
+      { showClass: 'show', closeRef: 'close', closeKeys: ['Escape', 'KeyE'], stopEvents: ['pointerdown'] });
+  }
+  override render(): void {
     const b = this.board();
     const scope = this.renderRows(boardRows(b));
     b.slots.forEach((_c, i) => {

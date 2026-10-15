@@ -6067,3 +6067,15 @@ object and boxes and own no colliders. Bounds views retain the original registra
 follow the source promise. `registerPlaceSets(rows, {file, registry?, skipEmpty?, members})` registers rows
 in order, combining borrowed `whole` placements with optional `near` views. Each row may override `file`;
 empty sets register unless `skipEmpty` is true. Content resolution and any inter-row pacing stay with the caller.
+
+**Declared panel lifetime (W2 C5).** `@wildshard/sdk/panels` defines
+`DeclaredPanel` and `DeclaredPanelPolicy`. Persistent panels mount once and
+retain their DOM across close/open; per-open panels make a fresh child scope
+and content tree, blur before close callbacks and release their scoped layer
+and listeners on close. `renderRows` retires old row listeners before replacing
+content. Close refs, bounded close-key lists and pointer isolation are policy;
+`bind(view, scope, close)` retains custom submit keys, focus/input guards and UI
+layer ownership with the caller. A closed/disposed owner cannot reopen.
+Pine's lodge board keeps its own rows, text, claim/reroll callbacks and payouts.
+The G441 W3 user is Nalati's horse-name prompt: retain its Enter/save, name
+cleaning, first-input grace, focus and modal order in the caller binding.

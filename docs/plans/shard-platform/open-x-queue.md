@@ -86,6 +86,8 @@ Jake, 2026-10-15 (G441): a new platform host built for Pine or Driftwood counts 
 | W3 Nalati ranged action clocks (G441) | `src/engine/combat/Firearm.ts#RangedAction` / `RangedActionRow` | `src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts`: trigger readiness, cooldown, empty-trigger clock, auto-reload and reload progress/transfer; keep its bloom/flash/shot ordering and active-only auto policy | sp-x1 |
 
 
+| W3 Nalati declared-panel lifecycle (G441) | `src/sdk/panels.ts#DeclaredPanel` + `DeclaredPanelPolicy` | Nalati `src/shards/nalati-grasslands/ride/HorseNamePrompt.ts`: declared content mounting, per-open scope and listener lifetime, blur/close and borrowed modal-layer disposal. Keep name validation, Enter/save, input grace and focus in caller bindings; Pine uses the persistent policy. | sp-x5 |
+
 ## Part B: deferred (not started without Jake's word)
 
 S1 population / LOD-AI · S2 interior / vertical streaming · S3 physics toys and vehicles · S4 climb / drive / author-AS modes ·
