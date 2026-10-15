@@ -63,7 +63,7 @@ extra=""
 if [ -d "$root/tmp/build-mirror" ]; then
   for slot in "$root"/tmp/build-mirror/*/; do
     name="$(basename "$slot")"
-    case "$name" in gate|commit|check|*.lock) ;; *) extra="$extra $name" ;; esac
+    case "$name" in gate|commit|check|*.lock|*.queue) ;; *) extra="$extra $name" ;; esac
   done
 fi
 [ -n "$extra" ] && echo "boot-temp: WARNING build-mirror slots beyond gate/commit/check (G429):$extra; delete the ones no process holds." >&2
