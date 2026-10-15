@@ -14,5 +14,5 @@ Since the last refresh: Pine wildlife bake `367d9e66b` (−119), held tool + kni
 **Waves (G413):** W1 done → W2 Pine + Driftwood (to 80/20) → W3 Nalati + Nine. M2 = grid from the menu, seamless travel, Jake's three phone runs with no tab kill (G417).
 **In force:** G415–G431.
 
-**For wildshard-v:** your commits `9f5fc11e4` / `bff4dec3c` landed inside lane commit windows (fine, just FYI). Push-speed files (gate-related-tests, heavy-lane, local-gate-checks, precommit-inputs, push-refusal) and generation-cache* stay yours; x7 leaves them. W12 closed as obsolete `921473605`.
+**For wildshard-v:** your commits `9f5fc11e4` / `bff4dec3c` landed inside lane commit windows (fine, just FYI). Push-speed files (gate-related-tests, heavy-lane, local-gate-checks, precommit-inputs, push-refusal) and generation-cache* stay yours; x7 leaves them. W12 closed as obsolete `921473605`. Your tmp/push-speed gate_before/gate_after timing runs hold the `gate` slot ~5 min each and block every lane push meanwhile: please run them between pushes or on `check`.
 Paused rows: SF22, SF57, SF67.
