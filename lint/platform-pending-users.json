@@ -422,6 +422,28 @@
       },
       "documentation": "docs/ENGINE.md",
       "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/engine/models/sets.ts",
+      "export": "placedWithin",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati spatial model sets (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
+    },
+    {
+      "module": "src/engine/models/sets.ts",
+      "export": "registerPlaceSets",
+      "shard": "nalati-grasslands",
+      "plan": {
+        "path": "docs/plans/shard-platform/open-x-queue.md",
+        "row": "W3 Nalati spatial model sets (G441)"
+      },
+      "documentation": "docs/ENGINE.md",
+      "rechecked-by": "end of W3"
     }
   ]
 }

@@ -12,9 +12,8 @@
  *
  *   placeDriftwoodPlaces(adventure.place, [hut.placed, lookout.placed, …], { wreck: [...wreck.placed, ...cove.placed] });   // main.ts, after the adventure
  */
-import * as THREE from 'three';
 import type { Placed } from '@wildshard/engine/models/place';
-import { placeSet } from '@wildshard/engine/models/sets';
+import { registerPlaceSets } from '@wildshard/engine/models/sets';
 import type { Place } from '@wildshard/engine/world/interact/types';
 import { DRIFTWOOD_PLACES } from '../data/discovery';
 
@@ -44,38 +43,15 @@ const SETS: readonly PlaceSet[] = [
   { id: 'driftwood-isle/ring-shrine', name: 'The ring shrine', place: 'driftwood-isle/shrine' },
 ];
 
-const _b = new THREE.Box3();
-
-/** the copies of `p` whose world box reaches within r of (x, z), as a set's member (null: none there) */
-export function within(p: Placed, x: number, z: number, r: number): Placed | null {
-  const idx: number[] = [];
-  for (let i = 0; i < p.copies; i++) {
-    p.copyBox(i, _b);
-    const dx = Math.max(_b.min.x - x, 0, x - _b.max.x), dz = Math.max(_b.min.z - z, 0, z - _b.max.z);
-    if (dx * dx + dz * dz <= r * r) idx.push(i);
-  }
-  if (idx.length === 0) return null;
-  if (idx.length === p.copies) return p;
-  const box = (i: number, target: THREE.Box3): THREE.Box3 => p.copyBox(idx[i] ?? 0, target);
-  return { ...p, colliders: [], copies: idx.length, copyBox: box,
-    nearest: (pt) => { let bi = -1, bd = Infinity; idx.forEach((_, i) => { const d = box(i, _b).distanceToPoint(pt); if (d < bd) { bd = d; bi = i; } }); return bi; } };
-}
-
 /**
  * Register the named places' sets from what the shard placed (`placed`: every placement the world made, null where a
  * builder did not run) and the sets built from a site (`explicit`).
  */
 export function placeDriftwoodPlaces(resolve: (p: Place) => { x: number; z: number }, placed: readonly (Placed | null | undefined)[], explicit: Readonly<Record<string, readonly Placed[]>>): void {
-  const all = placed.filter((p): p is Placed => p !== null && p !== undefined && p.copies > 0);
-  for (const s of SETS) {
+  registerPlaceSets(SETS, { file: FILE, members: s => {
     const def = DRIFTWOOD_PLACES.find((d) => `driftwood-isle/${d.id}` === s.place);
     if (def === undefined) throw new Error(`places: no named place ${s.place}`);
-    let members: Placed[];
-    if (s.explicit !== undefined) members = [...(explicit[s.explicit] ?? [])];
-    else {
-      const at = resolve(def.at);
-      members = all.map((p) => within(p, at.x, at.z, def.r)).filter((m): m is Placed => m !== null);
-    }
-    placeSet({ id: s.id, name: s.name, file: FILE, place: s.place, members, ...(s.pending === undefined ? {} : { pending: s.pending }) });
-  }
+    if (s.explicit !== undefined) return { whole: explicit[s.explicit] ?? [] };
+    return { near: { placed, ...resolve(def.at), r: def.r, mode: 'bounds' } };
+  } });
 }

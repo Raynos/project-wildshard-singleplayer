@@ -6056,3 +6056,11 @@ progress before the original end callback, and never advances physics or pose.
 The string spring remains caller-owned. W3's real matching consumer is
 `src/shards/nalati-grasslands/runtime/weapons/magazineFirearm.ts`; its bloom,
 muzzle flash, shot callbacks and active-only automatic reload stay ordered.
+
+`src/engine/models/sets.ts#placedWithin(placed, x, z, radius, mode)` returns an Explorer-only copy view.
+`bounds` selects intersecting horizontal boxes and uses box distance for nearest; `centre` selects box centres
+and uses squared centre distance. Whole selections keep the original placement; partial views borrow its
+object and boxes and own no colliders. Bounds views retain the original registration promise; centre views
+follow the source promise. `registerPlaceSets(rows, {file, registry?, skipEmpty?, members})` registers rows
+in order, combining borrowed `whole` placements with optional `near` views. Each row may override `file`;
+empty sets register unless `skipEmpty` is true. Content resolution and any inter-row pacing stay with the caller.

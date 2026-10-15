@@ -3,13 +3,12 @@
  * field. A set owns no geometry; its members are `place` results. Registered on the shard's registry (`sets`) for the
  * sets explorer between single models and the whole world.
  *
- * Every named place is a Set (M12, Jake 2026-09-30): a shard's discovery list (Driftwood's `DRIFTWOOD_PLACES`, Nalati's
- * `NALATI_PLACES`, Pine Hollow's `PINE_HOLLOW_POIS`, Nine Dragon's `NINE_DRAGON_PLACES`) names its places, and each one's
+ * Every named place is a Set (M12, Jake 2026-09-30): a shard's discovery list names its places, and each one's
  * set says so with `place: '<slug>/<place id>'`. The set lists the models placed there; the place's welded ground stays
  * world. scripts/check-models.mjs fails a named place no set names.
  *
  *   const yurts = place(yurt, camp.yurts, { ctx, draw: 'merged' }), props = place(cauldron, camp.props, { ctx, draw: 'instanced' });
- *   placeSet({ id: 'nalati-grasslands/spring-camp', name: 'Spring camp', file: 'src/shards/…/world/camp.ts', members: [yurts, props] });
+ *   placeSet({ id: 'example/spring-camp', name: 'Spring camp', file: 'content/world/camp.ts', members: [yurts, props] });
  */
 import { app } from '../app/runtime';
 import * as THREE from 'three';
@@ -43,4 +42,59 @@ export function placeSet(o: SetOptions): RegisteredSet {
     ...(o.place === undefined ? {} : { place: o.place }), ...(o.pending === undefined ? {} : { pending: o.pending }) };
   (o.registry ?? app.registry).addSet(set);
   return set;
+}
+
+/** A spatial view of placed copies, without copying geometry or registering collision. Bounds select touching boxes
+ * and use box distance for nearest(); centre selects box centres and uses squared centre distance. */
+export function placedWithin(p: Placed, x: number, z: number, radius: number, mode: 'bounds' | 'centre'): Placed | null {
+  const box = new THREE.Box3(), centre = new THREE.Vector3(), indices: number[] = [];
+  for (let i = 0; i < p.copies; i++) {
+    p.copyBox(i, box);
+    box.getCenter(centre);
+    const dx = mode === 'centre' ? centre.x - x : Math.max(box.min.x - x, 0, x - box.max.x);
+    const dz = mode === 'centre' ? centre.z - z : Math.max(box.min.z - z, 0, z - box.max.z);
+    if (dx * dx + dz * dz <= radius * radius) indices.push(i);
+  }
+  if (indices.length === 0) return null;
+  if (indices.length === p.copies) return p;
+  const copyBox = (i: number, target: THREE.Box3): THREE.Box3 => p.copyBox(indices[i] ?? 0, target);
+  const registered = p.registered;
+  return { ...p, colliders: [], copies: indices.length, copyBox,
+    nearest: point => {
+      let best = -1, distance = Infinity;
+      for (let i = 0; i < indices.length; i++) {
+        copyBox(i, box);
+        const d = mode === 'centre' ? box.getCenter(centre).distanceToSquared(point) : box.distanceToPoint(point);
+        if (d < distance) { distance = d; best = i; }
+      }
+      return best;
+    },
+    get registered() { return mode === 'centre' ? p.registered : registered; },
+  };
+}
+
+/** Register ordered named places from borrowed whole placements and/or spatial views. The caller resolves content
+ * and explicit membership; empty sets register by default, or are skipped with skipEmpty. Returns registered count. */
+export function registerPlaceSets<R extends Pick<SetOptions, 'id' | 'name' | 'place' | 'pending'> & { readonly file?: string }>(rows: readonly R[], options: {
+  readonly file: string;
+  readonly registry?: WorldRegistry;
+  readonly skipEmpty?: boolean;
+  readonly members: (row: R) => {
+    readonly whole?: readonly Placed[];
+    readonly near?: { readonly placed: readonly (Placed | null | undefined)[]; readonly x: number; readonly z: number; readonly r: number; readonly mode: 'bounds' | 'centre' };
+  };
+}): number {
+  let count = 0;
+  for (const row of rows) {
+    const selection = options.members(row), members = [...(selection.whole ?? [])], near = selection.near;
+    if (near) for (const placed of near.placed) {
+      if (placed === null || placed === undefined || placed.copies <= 0) continue;
+      const view = placedWithin(placed, near.x, near.z, near.r, near.mode);
+      if (view) members.push(view);
+    }
+    if (options.skipEmpty === true && members.length === 0) continue;
+    placeSet({ ...row, file: row.file ?? options.file, members, ...(options.registry === undefined ? {} : { registry: options.registry }) });
+    count++;
+  }
+  return count;
 }
