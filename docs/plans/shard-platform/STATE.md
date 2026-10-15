@@ -10,7 +10,9 @@ Since then: Pine water on graphs `de1b7286f` (−282), forest on graphs `659d793
 - Codex: x1 held-playback bindings (Pine + Nalati); x4 Pine ambientLife, then tree set; x5 Pine NPC bake; x6 DW C5 (castaway head); x7 push, git, maps (next batch ~2 h); x8 node per-draw CPU (second variant), then builder retention + UBO race.
 - Slots: check = x1 x5 o231 o232 · check2 = x4 x7 o229 o234 · check3 = x6 x8 o233 measure.
 
-**For the end-of-plan memory pass (G433/G434):** Pine cabin props (+1.47 MB GPU, +1.31 MB RAM, sp-x4); DW piers (+6.58 MB resident, +3.73 MB wire, sp-x6); map accounting correction `bf2f3fcb2`; parked `refs/parked/sp-x8-weak-cache`, `refs/parked/sp-x8-h`.
+**End-of-plan lists:** memory (G433/G434): Pine cabin props (+1.47 MB GPU), DW piers (+6.58 MB), map correction `bf2f3fcb2`, weak image cache. Perf (G436/G437): graph per-draw CPU (first cut `8b0436fdd`, cove -51 %; rest queued to sp-x8 per the planner's explainer), DW cover/kit graph cost.
+**G439 refs:** sweep audit `c3b1296be` (124 custom saves, 30 lane refs, 8 wip, 13 branches gone). 7 left, owners landing: o229-kit, o231-cover, o225-island (o231); o231-wip, o225-creatures behind Developer (o237); x6-island; x8-weak-cache.
+**New platform features (G438):** QuestViews.panelHold (x5, `b5cd694da`); swept-phase policy on the native melee host (x1, building); SDK dayClock + engine SkyEnvironment (o235, landing).
 
 **Waves:** W2 → W3 (Nalati + Nine) starts by itself at Pine and DW ≤ 20 % + G420 (G434). In force: G415–G435.
 
