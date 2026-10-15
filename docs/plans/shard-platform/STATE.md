@@ -3,7 +3,7 @@
 **W2 at 22:20Z `7e9b4f31e`: Pine 68.93 %, Driftwood 61.36 % custom** (target ≤ 20 %; 21:20Z 70.67 / 65.02; start 107.6 / 104.2). 0 unknown. W1: Sky 9.58, Signal 9.73.
 Pine/DW: C1 3932/4096 · C2 1314/1374 · C3 162/0 · C4 3607/2047 · C5 2034/1327 · C6 2653/1079 · C7 12/0 · C8 355/185 · C9 558/425.
 Pace last hour (G441 hosts landing): Pine −1.7 pt, DW −3.7 pt.
-Since 21:20Z: DW cove on engine instancing `e3137bb6b` (−206), toon patch retired `0b64213ef` (−120), owned intake `014e16932` (−55, Nine), library models pier/wreck/shrine/boat/hut/lookout (−52), creature intake `ecf05bc8e` (−41, Nalati), species context `7e9b4f31e` (−36), zipline `109778a4f` (−31), sea `2688880d4` (−24); Pine reading roster `6b37d5db7` (−57, Nalati), forager `013a0c5ed` (−59, Nalati), GLB reader `b3b1bef49` (−49, Nalati), weapon display `06ba8d736` (−46), crag cull `4aef5f011` (−40), lever `a7ab09c6b` (−31); both: shared day-sky + overcast `0418b7d11` `d29e42b54` (−63 / −64). Graph CPU list (G437) done.
+Since 21:20Z: DW cove instancing `e3137bb6b` (−206), toon patch gone `0b64213ef` (−120), owned intake `014e16932` (−55); Pine forager `013a0c5ed` (−59), reading roster `6b37d5db7` (−57), GLB reader `b3b1bef49` (−49); shared day-sky + overcast (−63/−64). Graph CPU list done.
 
 **Lanes (G432 5 Opus while Claude < 50 %; Codex 5 + pusher; slots G435):**
 - Opus: o243 DW creature facet contrast (G442). Visual W2 targets are thin now; Codex lanes carry the G441 hosts.
@@ -16,5 +16,5 @@ Since 21:20Z: DW cove on engine instancing `e3137bb6b` (−206), toon patch reti
 
 **Waves:** W2 → W3 (Nalati + Nine) starts by itself at Pine and DW ≤ 20 % + G420 (G434). In force: G415–G435.
 
-**For wildshard-v:** G441 in force (W3 host table in open-x-queue.md; pending entries name the Nalati/Nine file). G442: Opus sp-o243 restoring creature facet contrast; board to you when it lands.
+**For wildshard-v:** G441 in force (W3 host table in open-x-queue.md; pending entries name the Nalati/Nine file). G442 answer: no contrast was lost. Staged identically (AI held, same yaw + camera), graph and classic creatures are near pixel-identical (bear crop mean 116.9 vs 117.9, std 68.0 vs 67.8); the earlier board compared free-running poses. Board `1e361eae1` progress/shard-platform/sp-o243-creature-facets-2026-10-15/parity-board.jpg. If Jake wants MORE facet contrast than classic had, that's a new style: a Debug A/B in data/creatureLook.ts (classic = A). Pick?
 Paused rows: SF22, SF57, SF67.
