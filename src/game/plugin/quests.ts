@@ -1,5 +1,5 @@
 /** Transitional quest bridge: retire when quest behavior is expressed by authored rows. */
-import { MathUtils, type Vector3 } from "three";
+import { MathUtils, Vector3 } from "three";
 import * as v from "valibot";
 import * as npcs from '@wildshard/format/npcs';
 import * as graphContracts from '@wildshard/format/questGraph';
@@ -31,6 +31,79 @@ export function applyQuestRewardPose(elapsed: number, from: Readonly<QuestReward
   if (dayNight && target.phase !== undefined) {
     const ahead = ((target.phase - from.phase) % 1 + 1) % 1;
     dayNight.phase = (from.phase + ahead * MathUtils.smoothstep(elapsed, 0, 3.5)) % 1;
+  }
+}
+
+/** A reward borrows the existing player's carry fence; it never installs a player or clock. */
+export interface QuestRewardCarryPlayer extends QuestRewardPosePlayer { carried: boolean }
+/** Existing start and completion owners; a completion card may retain carry by returning true. */
+export interface QuestRewardControllerSpec extends QuestRewardPoseTarget {
+  readonly when: () => boolean;
+  readonly finish: () => boolean | undefined;
+  readonly holdSeconds?: number;
+}
+/** Page-only effects run at the original capture, pre-finish and release boundaries. */
+export interface QuestRewardEffects {
+  readonly start?: () => void;
+  readonly finish?: () => void;
+  readonly release?: () => void;
+}
+const rewardFinite = v.pipe(v.number(), v.finite());
+const RewardSaved = v.strictObject({
+  elapsed: v.union([v.literal(-2), v.literal(-1), v.pipe(rewardFinite, v.minValue(0))]),
+  carried: v.boolean(), player: v.strictObject({ pitch: rewardFinite, carried: v.boolean() }),
+  from: v.strictObject({ x: rewardFinite, y: rewardFinite, z: rewardFinite, yaw: rewardFinite, pitch: rewardFinite, phase: rewardFinite }),
+});
+/** One renderer-free reward continuation for native and page quests. Restore validates before mutation and never
+ * advances time or invokes effects; the existing host retains position, velocity, yaw, clock and save ownership.
+ */
+export class QuestRewardController {
+  private readonly from: QuestRewardOrigin = { position: new Vector3(), yaw: 0, pitch: 0, phase: 0 };
+  private elapsed = -1;
+  private carried = false;
+  private disposed = false;
+  constructor(private readonly player: QuestRewardCarryPlayer, private readonly day: { phase: number } | null | undefined,
+    private readonly spec: QuestRewardControllerSpec, private readonly effects: QuestRewardEffects = {}) {}
+  get active(): boolean { return this.elapsed >= 0; }
+  /** The admitted director may own completion; otherwise the authored hold duration finishes the beat. */
+  update(dt: number, authoritativeFinish?: boolean): void {
+    if (this.disposed) return;
+    if (this.elapsed === -1 && this.spec.when()) {
+      this.elapsed = 0; this.carried = this.player.carried; this.player.carried = true;
+      this.from.position.copy(this.player.position); this.from.yaw = this.player.yaw; this.from.pitch = this.player.pitch;
+      this.from.phase = this.day?.phase ?? 0;
+      this.effects.start?.();
+    }
+    if (!this.active) return;
+    this.elapsed += dt;
+    applyQuestRewardPose(this.elapsed, this.from, this.spec, this.player, this.day);
+    if (authoritativeFinish ?? this.elapsed > (this.spec.holdSeconds ?? 7)) {
+      this.elapsed = -2; this.effects.finish?.();
+      if (this.spec.finish() !== true) this.release();
+    }
+  }
+  private release(): void { this.player.carried = this.carried; this.effects.release?.(); }
+  /** Copy the existing native envelope without sharing mutable origin data. */
+  snapshot(): v.InferOutput<typeof RewardSaved> {
+    const { position, yaw, pitch, phase } = this.from;
+    return { elapsed: this.elapsed, carried: this.carried, player: { pitch: this.player.pitch, carried: this.player.carried },
+      from: { x: position.x, y: position.y, z: position.z, yaw, pitch, phase } };
+  }
+  /** Restore the reward-owned pitch and carry only after the entire saved envelope passes admission. */
+  restore(value: unknown): void {
+    if (this.disposed) throw new Error('Quest reward is disposed');
+    const saved = v.parse(RewardSaved, value);
+    if (saved.elapsed >= 0 && !saved.player.carried) throw new Error('Active quest reward must own the player');
+    this.elapsed = saved.elapsed; this.carried = saved.carried;
+    this.from.position.set(saved.from.x, saved.from.y, saved.from.z);
+    this.from.yaw = saved.from.yaw; this.from.pitch = saved.from.pitch; this.from.phase = saved.from.phase;
+    this.player.pitch = saved.player.pitch; this.player.carried = saved.player.carried;
+  }
+  /** Only an active beat releases carry on teardown; a finished card keeps its own ownership. */
+  dispose(): void {
+    if (this.disposed) return;
+    if (this.active) this.release();
+    this.disposed = true;
   }
 }
 

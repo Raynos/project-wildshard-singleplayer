@@ -1,7 +1,6 @@
-import { Vector3 } from 'three';
 import type { Scope } from '@wildshard/engine/app/scope';
 import { RewardCaption } from '@wildshard/engine/quest/view/ui';
-import { applyQuestRewardPose, type QuestRewardOrigin, type QuestRewardPosePlayer, type QuestRewardPoseTarget } from '../plugin/quests';
+import { QuestRewardController, type QuestRewardPosePlayer, type QuestRewardPoseTarget } from '../plugin/quests';
 
 export interface QuestRewardPlayer extends QuestRewardPosePlayer { carried: boolean }
 export interface QuestRewardSpec extends QuestRewardPoseTarget {
@@ -24,39 +23,24 @@ export interface QuestRewardHost {
 /** Wendell's held reward view: the same caption, 2.5 s camera ease, 3.5 s clock ease and 7 s hold. */
 export class QuestRewardBeat {
   private readonly caption: RewardCaption;
-  private readonly from: QuestRewardOrigin = { position: new Vector3(), yaw: 0, pitch: 0, phase: 0 };
-  private elapsed = -1;
-  private carried = false;
-  constructor(private readonly host: QuestRewardHost, private readonly spec: QuestRewardSpec) {
+  private readonly motion: QuestRewardController;
+  constructor(private readonly host: QuestRewardHost, spec: QuestRewardSpec) {
     this.caption = new RewardCaption(spec.kicker, spec.title, spec.subtitle);
-    host.scope.onDispose(() => {
-      if (this.elapsed >= 0) this.release();
-      this.caption.scope.dispose();
+    this.motion = new QuestRewardController(host.player, host.dayNight, spec, {
+      start: () => {
+        this.caption.show(true); host.setViewmodel?.(false);
+        host.objective?.classList.add('ws-quest-hide'); host.sting();
+      },
+      finish: () => { this.caption.show(false); },
+      release: () => {
+        host.setViewmodel?.(true); host.objective?.classList.remove('ws-quest-hide');
+      },
     });
+    host.scope.onDispose(() => { this.motion.dispose(); this.caption.scope.dispose(); });
   }
-  get active(): boolean { return this.elapsed >= 0; }
+  get active(): boolean { return this.motion.active; }
   /** An admitted director may supply completion explicitly; the local elapsed clock then serves presentation only. */
   update(dt: number, authoritativeFinish?: boolean): void {
-    if (this.host.scope.disposed) return;
-    const { player, dayNight, objective } = this.host;
-    if (this.elapsed === -1 && this.spec.when()) {
-      this.elapsed = 0; this.carried = player.carried; player.carried = true;
-      this.from.position.copy(player.position); this.from.yaw = player.yaw; this.from.pitch = player.pitch;
-      this.from.phase = dayNight?.phase ?? 0;
-      this.caption.show(true); this.host.setViewmodel?.(false);
-      objective?.classList.add('ws-quest-hide'); this.host.sting();
-    }
-    if (!this.active) return;
-    this.elapsed += dt;
-    applyQuestRewardPose(this.elapsed, this.from, this.spec, player, dayNight);
-    if (authoritativeFinish ?? this.elapsed > (this.spec.holdSeconds ?? 7)) {
-      this.elapsed = -2; this.caption.show(false);
-      if (this.spec.finish() !== true) this.release();
-    }
-  }
-  private release(): void {
-    this.host.player.carried = this.carried;
-    this.host.setViewmodel?.(true);
-    this.host.objective?.classList.remove('ws-quest-hide');
+    if (!this.host.scope.disposed) this.motion.update(dt, authoritativeFinish);
   }
 }

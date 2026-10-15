@@ -9,14 +9,13 @@ import type { InteractTable } from '@wildshard/engine/world/interact/types';
 import { bindInteractionTransitions, type InteractionState } from '@wildshard/engine/world/interact/flags';
 import type { QuestData } from '@wildshard/format/quests';
 import type { DeclaredQuests } from '@wildshard/game/quest/declared';
-import { installQuestGraph, bindQuestTableSpots } from '@wildshard/game/plugin/quests';
+import { installQuestGraph, bindQuestTableSpots, QuestRewardController } from '@wildshard/game/plugin/quests';
 import { createAchievementCounters } from '@wildshard/game/achievements';
 import { DRIFTWOOD_FEAT_COUNTERS } from '../data/questInventory';
 import { DRIFTWOOD_GRAPH, DRIFTWOOD_ACTIONS } from '../data/questGraph';
 import baked from '../data/spots.generated.json' with { type: 'json' };
 import { DriftwoodPack } from './pack';
 import { ZiplineDriver } from '@wildshard/sdk/movers';
-import { DriftwoodReward } from './reward';
 import type { DirectorScriptStageLane } from '@wildshard/game/plugin/director';
 import { bindHeadlessPrompts, createHeadlessPromptPicker, parsePromptRegistrations, type PromptRegistration, type HeadlessPrompt } from '@wildshard/sdk/runtime/prompts';
 
@@ -157,7 +156,7 @@ export function installDriftwoodQuest(host: SimHost, ports: DriftwoodQuestPorts)
     host.playerImpulse.set(0, 0, 0); rider.velocity.set(0, 0, 0); host.playerFall.grounded = false;
     return true;
   }, step: () => undefined });
-  const reward = new DriftwoodReward(rider, host.dayClock, {
+  const reward = new QuestRewardController(rider, host.dayClock, {
     at: new Vector3(spots.reward.x, spots.reward.y, spots.reward.z), yaw: spots.reward.yaw, pitch: spots.reward.pitch, phase: spots.reward.phase,
     when: () => ports.reward.started,
     finish: () => {

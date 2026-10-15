@@ -2096,6 +2096,16 @@ the reward flag in `finish()`; return `true` if a completion card takes camera o
 
 `@wildshard/game/plugin/quests` defines renderer-free `applyQuestRewardPose(elapsed, origin, target, player, dayNight)` and its structural pose ports. It is the same defining law called by `QuestRewardBeat`: no timer, carry owner, caption, DOM, renderer or state restore is installed. The trusted owner captures/persists the origin and elapsed time, then supplies its existing player and clock; omitted destinations preserve the shipping behavior.
 
+`QuestRewardController(player, dayNight, spec, effects?)` in the same module
+owns the reward's existing elapsed/carry continuation. `spec` supplies its
+start predicate, pose destination, hold duration and finish callback; returning
+true from finish lends carry to the completion owner. Optional `start`,
+`finish` and `release` effects retain the page's caption/sting/weapon order.
+`snapshot` copies the native reward envelope; `restore` validates it completely
+before changing pitch/carry and never runs effects. Position, velocity, yaw,
+day clock and save registration remain with the caller. `QuestRewardBeat`
+uses this controller for presentation; native quests use it without a view.
+
 `QuestPresentation` returns `quest`, `chip`, `markers()`, `places`, `reward`, `update(dt, t)` and `dispose()`.
 Disposal removes views, prompts and overlays, removes transition observers and releases an active reward hold.
 A state created by the installer is unsubscribed; an external state remains caller-owned. `QuestPresentationContext`
