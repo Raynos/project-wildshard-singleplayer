@@ -11,8 +11,8 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { terrainHeight as heightAt, terrainWaterLevel as waterLevel } from '@wildshard/engine/world/terrainHeight';
 import { waveHeight } from '@wildshard/engine/world/waves';
 import type { PalmSpec } from '../world/Palms';
-import { WRECK } from '../world/sites';
-import { enemyCount, DRIFTWOOD_PRACTICE } from './tables';
+import { placeEnemies, holdCentre, type EnemyPlacement } from '../runtime/placement';
+import { DRIFTWOOD_PRACTICE } from './tables';
 import { COCONUT_R, COCONUTS, Coconuts } from '../combat/coconuts';
 import { preloadSailorHead } from '../species/sailor';
 
@@ -160,7 +160,7 @@ export class Enemies {
     // waited on the same ~45 KB file behind the loading screen), then the placements in their order
     void preloadSailorHead().then(() => {
       if (this.disposed) return null;
-      this.placeCrabs(); this.placePracticeCrab(); this.placeMonkeys(); this.placeSailor();
+      this.placeAuthoredEnemies();
       return null;
     });
     opts.scene.add(this.group);
@@ -169,22 +169,24 @@ export class Enemies {
 
   // ── placement ──────────────────────────────────────────────────────────────────────────
 
-  private placeCrabs(): void {
-    const sites = this.opts.crabSites ?? [];
-    const rng = this.rng;
-    for (const s of sites) {
-      const n = enemyCount('tidepool', () => rng.next());
-      const herd = this.animals.addHerd('crab', s.x, s.z);
-      for (let i = 0; i < n; i++) {
-        const ang = rng.range(0, Math.PI * 2), r = i === 0 ? 0 : rng.range(1.2, 2.8);
-        const x = s.x + Math.cos(ang) * r, z = s.z + Math.sin(ang) * r;
-        if (heightAt(x, z) < waterLevel() + 0.15) continue;
-        const a = this.spawn('crab', x, z, rng.range(0, Math.PI * 2), i === 0 ? 'big' : 'small');
-        a.herd = herd; this.animals.herds[herd]?.members.push(a);
-        this.placed.crabs++;
+  private placeAuthoredEnemies(): void {
+    const rows=placeEnemies({seed:SEED,crabSites:this.opts.crabSites??[],palms:this.opts.palms??[],
+      heightAt,waterLevel:waterLevel(),practice:this.opts.practice??null,
+      ...(this.opts.spawn===undefined?{}:{spawn:this.opts.spawn}),...(this.opts.troops===undefined?{}:{troops:this.opts.troops}),
+      sailor:this.opts.wreck!==null&&this.opts.wreck!==undefined});
+    this.rng.restore(rows.stream.snapshot());
+    for(const [i,centre] of rows.centres.entries()){
+      const kind=rows.kinds[i];if(kind===undefined)throw new Error('Missing enemy herd kind');
+      const herd=this.animals.addHerd(kind,centre.x,centre.z);
+      for(const row of rows.enemies.filter(entry=>entry.herd===i)){
+        const actor=this.spawn(row.kind,row.x,row.z,row.yaw,row.variant??undefined);
+        actor.herd=herd;this.animals.herds[herd]?.members.push(actor);
+        if(row.practice===true){this.practiceCrab=actor;this.practiceDead=0;}
+        if(kind==='crab')this.placed.crabs++;else this.placed.monkeys++;
       }
-      this.placed.crabGroups++;
+      if(kind==='monkey')this.placed.troops++;else if(this.opts.practice===undefined||i!==(this.opts.crabSites?.length??0))this.placed.crabGroups++;
     }
+    const sailor=rows.enemies.find(row=>row.kind==='sailor');if(sailor!==undefined)this.placeSailor(sailor);
   }
 
   /** the lone small crab on the path at the pier's foot (E308): a herd of one, so no big crab's death scatters it */
@@ -208,49 +210,12 @@ export class Enemies {
     this.placePracticeCrab();
   }
 
-  private placeMonkeys(): void {
-    const palms = this.opts.palms ?? [];
-    if (palms.length < 4) return;
-    const rng = this.rng;
-    const spawn = this.opts.spawn ?? { x: 0, z: -235 };
-    // grove density: neighbours within 10 m
-    const score = palms.map((p) => { let n = 0; for (const q of palms) if (q !== p && Math.hypot(q.x - p.x, q.z - p.z) < 10) n++; return n; });
-    const order = palms.map((_, i) => i).filter((i) => (score[i] ?? 0) >= 3).sort((a, b) => (score[b] ?? 0) - (score[a] ?? 0));
-    const centres: PalmSpec[] = [];
-    for (const i of order) {
-      const p = palms[i];
-      if (p === undefined) continue;
-      if (centres.length >= (this.opts.troops ?? 3)) break;
-      if (Math.hypot(p.x - spawn.x, p.z - spawn.z) < 60) continue;
-      if (Math.hypot(p.x - WRECK.x, p.z - WRECK.z) < 30) continue;
-      if (centres.some((c) => Math.hypot(c.x - p.x, c.z - p.z) < 45)) continue;
-      centres.push(p);
-    }
-    for (const c of centres) {
-      const grove = palms.filter((p) => Math.hypot(p.x - c.x, p.z - c.z) < 10);
-      const n = Math.min(grove.length, enemyCount('grove', () => rng.next()));
-      const herd = this.animals.addHerd('monkey', c.x, c.z);
-      for (let i = 0; i < n; i++) {
-        const p = grove[i];
-        if (p === undefined) continue;
-        const a = this.spawn('monkey', p.x, p.z, rng.range(0, Math.PI * 2));
-        a.herd = herd; this.animals.herds[herd]?.members.push(a);
-        this.placed.monkeys++;
-      }
-      this.placed.troops++;
-    }
-  }
-
-  private placeSailor(): void {
+  private placeSailor(spot:EnemyPlacement): void {
     const wreck = this.opts.wreck;
     if (wreck === null || wreck === undefined) return;
-    // hull frame (Wreck.ts): local x = starboard, z = stern; the hold hatch is the broken midships deck (local z 0..4.8),
-    // the iron sword hovers at local (-0.7, 4.2) (IronSword.ts) — the sailor rises 2 m forward of it, a little to starboard
-    const h = WRECK.heading, cs = Math.cos(h), sn = Math.sin(h);
-    const at = (lx: number, lz: number): { x: number; z: number } => ({ x: WRECK.x + lx * cs + lz * sn, z: WRECK.z - lx * sn + lz * cs });
-    const spot = at(0.5, 2.2), centre = at(0, 3.2);
+    const centre=holdCentre();
     this.animals.habitat.hold = { x: centre.x, z: centre.z, r: 7.5, guardR: 8, floorAt: (x, z) => wreck.floorHeightAt(x, z) };
-    const a = this.spawn('sailor', spot.x, spot.z, h + Math.PI, 'sailor');
+    const a = this.spawn('sailor', spot.x, spot.z, spot.yaw, 'sailor');
     a.herd = -1;
     const light = new THREE.PointLight(0x7fe8ff, 0, 7, 2);
     light.castShadow = false;
