@@ -63,7 +63,8 @@ extra=""
 if [ -d "$root/tmp/build-mirror" ]; then
   for slot in "$root"/tmp/build-mirror/*/; do
     name="$(basename "$slot")"
-    case "$name" in gate|commit|check|*.lock|*.queue) ;; *) extra="$extra $name" ;; esac
+    # check2 and check3: temporary, until W2 of SHARD-PLATFORM closes (Jake, 2026-10-15, G435); then delete them here.
+    case "$name" in gate|commit|check|check2|check3|*.lock|*.queue) ;; *) extra="$extra $name" ;; esac
   done
 fi
 [ -n "$extra" ] && echo "boot-temp: WARNING build-mirror slots beyond gate/commit/check (G429):$extra; delete the ones no process holds." >&2
