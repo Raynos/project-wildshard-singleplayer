@@ -1110,3 +1110,11 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /public/assets/driftwood-isle/baked/fixed-models/bridge-specimen-posts.glb
 /src/shards/driftwood-isle/assets/1a1bc6150cd0bdf7431d31b6a3c7402848af0106187c3d01e119a92edce89f2c
 /src/shards/driftwood-isle/assets/41c9752a32dacdc24bfc94e87d4a8a8023a02b3979fdba927c01b22a94355c06
+
+# G405: declared derived geometry/navigation; builds regenerate these outputs.
+/public/assets/driftwood-isle/baked/fixed-models/cover-driftwood.glb
+/public/assets/driftwood-isle/creatures/bodies-3cc97fab831593ffccebd201f84adcafc9bb5f25caed70db4fe8ee029148dcc2.bin
+/public/assets/pine-hollow/baked/9500ccf884a8bf642237d00c950f96c6aa81e6b06307d7f517adf0c7e4ae5020.glb
+/src/shards/driftwood-isle/assets/e8c1ff5f599561bc7340780bf19aa8e1a196a36960913a6e85ee715762bf2acd
+/src/shards/far-reach/assets/97a29a22f3827e4103059929276b2e6a6831f50bd5fc3b121abc11252f774f26
+/src/shards/sunscar-dunes/assets/9922f620591f1a29bd42ace6bce7829eb54604f977dfb86ae3b18b383b06fbb6
