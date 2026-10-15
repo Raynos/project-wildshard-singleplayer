@@ -29,7 +29,8 @@ import { PlaceGuide, type Places } from '@wildshard/engine/quest/view';
 import { GUIDE } from '../data/discovery';
 import { installFinale, type Finale } from './Finale';
 import { installComplete, type Complete, type CompleteProgress } from './Complete';
-import { installEcology, type RespawnQueue } from './Ecology';
+import { installEcology } from './Ecology';
+import type { RespawnQueue } from '../runtime/ecology';
 import { Zipline } from '../world/Zipline';
 import { ironSwordGuard, SWORD_GUARDED } from './guards';
 

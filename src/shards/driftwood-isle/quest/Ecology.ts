@@ -1,11 +1,12 @@
-import { OUT_OF_SIGHT, RESPAWN, type RespawnRule } from '../data/ecology';
+import { RESPAWN } from '../data/ecology';
+import { RespawnQueue, type RespawnEntry } from '../runtime/ecology';
 /**
  * Ecology — the island's enemies come back (DRIFTWOOD-REMASTER A6): a crab, monkey, boar or bear you kill is
  * replaced a few minutes later by a fresh one of the same kind + variant at its herd's home (the tidepool, the grove,
  * the beach), and the drowned sailor rises in the wreck's hold again after dark. A replacement only appears while you
  * are more than 60 m from where it would stand — nothing pops in in front of you.
  *
- *   RespawnQueue — the pure part (vitest: test/shards/driftwood-isle/ecology.test.ts): `add(entry, now)` on a kill, `take(now, x, z, night)`
+ *   RespawnQueue — the renderer-free queue (runtime/ecology.ts): `add(entry, now)` on a kill, `take(now, x, z, night)`
  *                  hands back the entries that are due, out of sight and (for night-only kinds) in the dark.
  *   installEcology(adv, world) — subscribes to ordered creature deaths, checks the queue once a second, spawns with
  *                  `animals.spawn` and puts the newcomer back into its herd.
@@ -15,39 +16,18 @@ import { OUT_OF_SIGHT, RESPAWN, type RespawnRule } from '../data/ecology';
 import type { AdvAnimal, AdventureWorld } from './adventure';
 import { app } from '@wildshard/engine/app/runtime';
 
-export interface RespawnEntry { kind: string; variant: string | undefined; herd: number; x: number; z: number; due: number; night: boolean }
-
-export class RespawnQueue {
-  readonly pending: RespawnEntry[] = [];
-  constructor(private rules: Record<string, RespawnRule> = RESPAWN, private rand: () => number = () => app.rng.stream('spawn').next()) {}
-
-  /** a kill at `now` (seconds): queue its replacement at (x, z) if the kind comes back at all */
-  add(kind: string, variant: string | undefined, herd: number, x: number, z: number, now: number): RespawnEntry | null {
-    const r = this.rules[kind];
-    if (!r) return null;
-    const e: RespawnEntry = { kind, variant, herd, x, z, due: now + r.delay[0] + (r.delay[1] - r.delay[0]) * this.rand(), night: r.night === true };
-    this.pending.push(e);
-    return e;
-  }
-
-  /** the entries that are due at `now`, at least OUT_OF_SIGHT m from the player, and — night-only kinds — in the dark; removed from the queue */
-  take(now: number, px: number, pz: number, night: number): RespawnEntry[] {
+/** The page keeps its uncapped traversal and fresh result while sharing the native queue's delay and gates. */
+export class PageRespawnQueue extends RespawnQueue {
+  override take(now: number, px: number, pz: number, night: number): RespawnEntry[] {
     const out: RespawnEntry[] = [];
-    for (let i = this.pending.length - 1; i >= 0; i--) {
-      const e = this.pending[i];
-      if (e === undefined || now < e.due) continue;
-      if (e.night && night < 0.5) continue;
-      if ((e.x - px) ** 2 + (e.z - pz) ** 2 < OUT_OF_SIGHT * OUT_OF_SIGHT) continue;
-      out.push(e);
-      this.pending.splice(i, 1);
-    }
+    for (let i = this.pending.length - 1; i >= 0; i--) this.takeAt(i, now, px, pz, night, out);
     return out;
   }
 }
 
 export function installEcology<A extends AdvAnimal>(w: AdventureWorld<A>, isLand: (x: number, z: number) => boolean): RespawnQueue {
   const random = (): number => app.rng.stream('spawn').next();
-  const q = new RespawnQueue(RESPAWN, random);
+  const q = new PageRespawnQueue(RESPAWN, random);
   let now = 0, checkT = 0;
   const killed = (a: A): void => {
     if (a.kind === 'captain') return;

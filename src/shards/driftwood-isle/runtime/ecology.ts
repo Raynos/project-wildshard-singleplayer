@@ -16,21 +16,23 @@ export class RespawnQueue {
     return e;
   }
 
-  /** the entries that are due at `now`, at least OUT_OF_SIGHT m from the player, and — night-only kinds — in the dark; removed from the queue */
+  /** Remove one eligible entry without copying it; traversal and result ownership stay with each caller. */
+  protected takeAt(i: number, now: number, px: number, pz: number, night: number, out: RespawnEntry[]): void {
+    const e = this.pending[i];
+    if (e === undefined || now < e.due || (e.night && night < 0.5)) return;
+    if ((e.x - px) ** 2 + (e.z - pz) ** 2 < OUT_OF_SIGHT * OUT_OF_SIGHT) return;
+    out.push(e); this.pending.splice(i, 1);
+  }
+
+  /** Native traversal retains its 256-entry refusal and reuses the result. */
   take(now: number, px: number, pz: number, night: number): RespawnEntry[] {
     const out = this.due; out.length = 0;
     const length = this.pending.length;
     if (length > 256) throw new Error('Driftwood ecology queue exceeds its native bound');
     for (let n = 0; n < 256; n++) {
       const i = length - 1 - n; if (i < 0) break;
-      const e = this.pending[i];
-      if (e === undefined || now < e.due) continue;
-      if (e.night && night < 0.5) continue;
-      if ((e.x - px) ** 2 + (e.z - pz) ** 2 < OUT_OF_SIGHT * OUT_OF_SIGHT) continue;
-      out.push(e);
-      this.pending.splice(i, 1);
+      this.takeAt(i, now, px, pz, night, out);
     }
     return out;
   }
 }
-
