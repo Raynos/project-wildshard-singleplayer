@@ -1,4 +1,5 @@
 /** Untimed real-renderer oracle for additive graph inputs. */
+import { programVariants } from './variants';
 import { Bone, DataArrayTexture, DataTexture, DirectionalLight, Float32BufferAttribute, LinearSRGBColorSpace, Mesh, NearestFilter, NoToneMapping, OrthographicCamera, PlaneGeometry, Scene, Skeleton, SkinnedMesh, Uint16BufferAttribute, WebGLRenderer } from 'three';
 import { attribute, dot, max, uv, vec3 } from 'three/tsl';
 import { MeshBasicNodeMaterial, MeshStandardNodeMaterial } from 'three/webgpu';
@@ -145,7 +146,8 @@ async function prove(): Promise<unknown> {
     const portsPass = near(portsDark, [red, [0, 128, 0, 255], black]) && near(portsFlash, [red, [0, 128, 0, 255], [128, 128, 128, 255]])
       && portPrograms === (renderer.info.programs?.length ?? -1) && gl.getError() === gl.NO_ERROR;
     if (!portsPass) throw new Error(JSON.stringify({portsDark, portsFlash}));
-    return { pass, materialPorts: {portsDark, portsFlash}, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels, skyLight: lightPixels,
+    const variants = await programVariants(renderer, scope);
+    return { pass, variants, materialPorts: {portsDark, portsFlash}, vertexColourAlpha: {pixels, expected}, animalMaterial: Array.from(animalPixel), skinning: {skinRest,skinMoved}, positionView: viewPixels, skyLight: lightPixels,
       textureArray: {unset,firstArray,swappedArray,refused2d,refusedMixed,arrayPrograms,swappedPrograms} };
   } finally { scope.dispose(); renderer.dispose(); renderer.forceContextLoss(); }
 }

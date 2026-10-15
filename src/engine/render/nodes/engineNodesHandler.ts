@@ -64,6 +64,7 @@ import { installNodeLayerFrame, layerFrameOf, type NodeLayerFrameInstaller } fro
 import { bindGraphAttributeDefaults, copyGraphAttributeDefaults, prepareGraphAttributeDefaults } from './graphAttributes';
 import { buildWithInstanceAttributes, instanceAttributeShader, nodeInstanceKey } from './nodeInstancing';
 import { TextureUpdates } from './textureUpdates';
+import { NodeProgramVariants } from './nodeProgramVariants';
 
 /** Depth displacement reads the same authored local normal as its surface. */
 class GraphShadowDepthMaterial extends MeshBasicNodeMaterial {
@@ -290,6 +291,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   private blocks: NodeUniformBuffers | null = null;
   /** builds of each material not yet paired with their programs (see `onUpdateProgram`) */
   private readonly pendingBuilds = new WeakMap<object, PendingBuild[]>();
+  private readonly objectVariants = new NodeProgramVariants();
   /** each classic PMREM environment's upright node (`ClassicPMREMNode`) */
   private readonly environments = new WeakMap<THREE.Texture, Node>();
 
@@ -582,6 +584,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const stock: unknown = Reflect.get(WebGLNodesHandler.prototype, 'onUpdateProgram');
     if (typeof stock === 'function') Reflect.apply(stock, this, [material, program, materialProperties]);
     if (internals(this).programCache.get(material)?.has(program) === true) Reflect.deleteProperty(material, '_latestBuilder');
+    // Precompile pairing has no renderer version yet and must not claim the
+    // last build's program for the current object's variant.
+    if (Reflect.get(materialProperties, '__version') === material.version) this.objectVariants.record(material, material.customProgramCacheKey(), materialProperties);
     this.bindBlocks(material, program);
     const frame: unknown = Reflect.get(this, 'nodeFrame');
     this.bindAttributeDefaults(material, typeof frame === 'object' && frame !== null ? Reflect.get(frame, 'object') : undefined, program);
@@ -606,7 +611,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   /**
    * a node material is about to draw (three's onBeforeRenderCallback): point the node frame at it, force the per-draw
-   * update, update its current program's nodes, recompile when the object's shadow receipt changed; then bind its blocks
+   * update, select a warm object-layout program, update its nodes; then bind its blocks
    */
   private beforeDraw(material: THREE.Material, renderer: unknown, object: unknown): void {
     const self = internals(this), frame: unknown = Reflect.get(this, 'nodeFrame');
@@ -617,6 +622,11 @@ export class EngineNodesHandler extends WebGLNodesHandler {
     const real = this.classicRenderer();
     if (real.properties.has(material)) {
       const properties: unknown = real.properties.get(material);
+      if (typeof properties === 'object' && properties !== null && !this.objectVariants.select(material, material.customProgramCacheKey(), properties)) {
+        // A cold variant needs one normal lookup, without invalidating every
+        // other warm variant by incrementing the material's version.
+        Reflect.set(properties, '__version', -1);
+      }
       const current: unknown = typeof properties === 'object' && properties !== null ? Reflect.get(properties, 'currentProgram') : undefined;
       const entry = self.programCache.get(material)?.get(current);
       // compile() can select a new program without onUpdateProgram. After an offscreen
@@ -627,8 +637,6 @@ export class EngineNodesHandler extends WebGLNodesHandler {
           Reflect.get(properties, 'uniformsList') !== entry.uniformsList)) this.onUpdateProgram(material, current, properties);
       else if (entry !== undefined) this.updateNodeList(entry.updateNodes);
     }
-    const hash = `${String(typeof object === 'object' && object !== null ? Reflect.get(object, 'receiveShadow') : undefined)}|${nodeObjectKey(object)}`;
-    if (Reflect.get(material, 'prevObjectHash') !== hash) { Reflect.set(material, 'prevObjectHash', hash); material.needsUpdate = true; }
     this.bindBlocks(material, null);
     this.bindAttributeDefaults(material, object);
   }
@@ -650,7 +658,7 @@ export class EngineNodesHandler extends WebGLNodesHandler {
 
   /** a node material was disposed (three's onDisposeMaterialCallback): its uniform groups and block buffers go */
   private disposeMaterial(material: THREE.Material): void {
-    this.pendingBuilds.delete(material);
+    this.pendingBuilds.delete(material); this.objectVariants.forget(material);
     Reflect.deleteProperty(material, '_latestBuilder');
     const self = internals(this), programs = self.programCache.get(material), blocks = this.blocks;
     if (programs !== undefined) {
