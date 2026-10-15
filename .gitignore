@@ -1081,3 +1081,21 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /public/assets/driftwood-isle/baked/palm-*.bin
 
 /public/assets/driftwood-isle/baked/palm-*.glb
+
+# Storage policy (docs/process/STORAGE.md): scratch, the media cache and media stay out of Git. Ignoring only prevents
+# an accident; scripts/repo-size.mjs is the enforcement.
+/tmp/
+/media-cache/
+/art/**/*.mp4
+/art/**/*.mov
+/art/**/*.webm
+/art/**/*.gif
+/art/**/*.mp3
+/art/**/*.m4a
+/art/**/*.wav
+/art/**/*.ogg
+/progress/**/*.mp4
+/progress/**/*.mov
+/progress/**/*.webm
+/progress/**/*.gif
+/docs/**/*.pdf
