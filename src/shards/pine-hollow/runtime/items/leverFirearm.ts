@@ -10,10 +10,8 @@ import { Firearm } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';
 import { stepBrass, brassRoster, ejectBrass, type BrassCase } from '@wildshard/engine/combat/view/brass';
 import type { HitscanProfile } from '@wildshard/engine/combat/view/hitscan';
-import { Puffs, whiteColors, FOV_HIP, FOV_ADS, isMesh, fixIBL, VIEWMODEL_GROUP, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
+import { Puffs, whiteColors, FOV_HIP, FOV_ADS, isMesh, weaponDisplay, type RangedOptions, type RangedWorld } from '@wildshard/engine/combat/view/ranged';
 import type { WeaponState, AimInfo } from '@wildshard/engine/combat/Weapon';
-import { SHADOW_LAYER } from '@wildshard/engine/core/shadowLayer';
-import { mergeOrNull } from '@wildshard/engine/models/weld';
 import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { sstep } from '@wildshard/engine/player/viewmodelTextures';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -131,8 +129,6 @@ export interface LeverFirearmOptions<P extends LeverFirearmProfile> extends Rang
 
 const _o = new THREE.Vector3(), _d = new THREE.Vector3(), _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3();
 const _q = new THREE.Quaternion();
-/** the display model's shadow: depth only, on SHADOW_LAYER (front-sided like the lever's materials, so the same depth) */
-const DEPTH_ONLY = new THREE.MeshBasicMaterial({ colorWrite: false });
 
 /** A lever firearm: the shard's model, hands, action and rows on the platform's trigger, hitscan, cycle, gate, brass and pose. */
 export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> extends Firearm {
@@ -373,49 +369,7 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
 
   /** A world-space copy for the cabin pickup / the skin drops: the same geometry, its own copies of the materials (one
    *  program), hammer down. */
-  displayModel(): THREE.Group {
-    // one mesh per material (PINE-HOLLOW PH-P2): the seven parts were 7 draws + 7 per shadow cascade wherever the pickup
-    // was in range; the posed parts are baked into their material's geometry (the same triangles)
-    const g = new THREE.Group();
-    // the copy's own materials (PH-C11): the pickup orb tints its item's materials, and on shared ones the glow sat on the
-    // rifle in your hands until the orb was taken. A clone is the same program: the dfg fix's group and the sky's CSM
-    // hooks re-applied, as a skin's clones (Skins.cloneWith)
-    const own = new Map<THREE.Material, THREE.Material>();
-    const copyOf = (m: THREE.Material): THREE.Material => {
-      let c = own.get(m);
-      if (!c) { c = m.clone(); c.name = m.name; fixIBL(c, VIEWMODEL_GROUP); this.sky.setupMaterial(c); own.set(m, c); }
-      return c;
-    };
-    const byMat = new Map<THREE.Material, THREE.BufferGeometry[]>();
-    const xf = new THREE.Matrix4(), quat = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
-    for (const { geo, mat, pos, rot } of this.displayParts) {
-      const part = pos || rot ? geo.clone().applyMatrix4(xf.compose(pos ?? new THREE.Vector3(), rot ? quat.setFromEuler(rot) : quat.identity(), one)) : geo;
-      const list = byMat.get(mat) ?? [];
-      list.push(part);
-      byMat.set(mat, list);
-    }
-    const positions: THREE.BufferGeometry[] = [];
-    for (const [mat, parts] of byMat) {
-      const merged = parts.length > 1 ? mergeOrNull(parts) : parts[0] ?? null;
-      for (const geo of merged === null ? parts : [merged]) {
-        const m = new THREE.Mesh(geo, copyOf(mat));
-        m.castShadow = false; m.receiveShadow = true;
-        g.add(m);
-        const p = new THREE.BufferGeometry(); p.setAttribute('position', geo.getAttribute('position')); p.setIndex(geo.getIndex());
-        positions.push(p);
-      }
-    }
-    // one shadow draw per cascade for the three materials' parts (3 → 1)
-    const indexed = positions.every((p) => p.getIndex() !== null);
-    // three types mergeGeometries non-null; it returns null (and logs) on mismatched attributes: then each part casts itself
-    const caster = mergeOrNull(indexed ? positions : positions.map((p) => (p.getIndex() === null ? p : p.toNonIndexed())));
-    if (caster !== null) {
-      const proxy = new THREE.Mesh(caster, DEPTH_ONLY);
-      proxy.castShadow = true; proxy.layers.set(SHADOW_LAYER);
-      g.add(proxy);
-    } else for (const m of g.children) m.castShadow = true;
-    return g;
-  }
+  displayModel(): THREE.Group { return weaponDisplay(this.displayParts, { mode: 'merged', sky: this.sky }); }
 
   private ejectCase(): void {
     ejectBrass(this.brass, RANGED_BRASS.lever, this.model, this.game.camera, this.port, this.view.brass.life, _v1, _v2, _v3, _q);

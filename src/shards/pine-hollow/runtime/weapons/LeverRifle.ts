@@ -1,5 +1,5 @@
 import { cacheUntilDisposed, retainCachedResources } from '@wildshard/engine/app/cachedAssets';
-import { viewmodelMaterial, viewmodelRowMaterial, viewmodelTexSet, whiteColors, type TexSet } from '@wildshard/engine/combat/view/ranged';
+import { viewmodelMaterial, viewmodelRowMaterial, viewmodelTexSet, weaponDisplay, type TexSet } from '@wildshard/engine/combat/view/ranged';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
 import { leverFirearmType, type LeverFirearmBuild, type LeverFirearmHandsKit, type LeverFirearmView, type LeverFirearm as LeverFirearmWeapon } from '../items/leverFirearm';
 import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
@@ -134,18 +134,10 @@ function buildLever(sky: Sky, model: LeverModel): LeverBuild {
  */
 export function leverSpecimen(sky: Sky, model: LeverModel): THREE.Group {
   const { brassMat, woodMat, steelMat, parts, beadGeo } = buildLever(sky, model);
-  const g = new THREE.Group();
-  const add = (geo: THREE.BufferGeometry, mat: THREE.Material, pos?: THREE.Vector3, rotX = 0): void => {
-    const m = new THREE.Mesh(geo.clone(), mat); // the loaded model's geometry is the held rifle's: a copy
-    whiteColors(m.geometry);
-    if (pos) m.position.copy(pos);
-    m.rotation.x = rotX;
-    m.castShadow = true; m.receiveShadow = true;
-    g.add(m);
-  };
-  add(parts.wood, woodMat); add(parts.stock, woodMat); add(parts.steel, steelMat); add(beadGeo, brassMat);
-  add(parts.lever, steelMat, parts.leverPivot); add(parts.hammer, steelMat, HAMMER_PIVOT, HAMMER_DOWN); add(parts.bolt, steelMat);
-  return g;
+  return weaponDisplay([
+    { geo: parts.wood, mat: woodMat }, { geo: parts.stock, mat: woodMat }, { geo: parts.steel, mat: steelMat }, { geo: beadGeo, mat: brassMat },
+    { geo: parts.lever, mat: steelMat, pos: parts.leverPivot }, { geo: parts.hammer, mat: steelMat, pos: HAMMER_PIVOT, rot: new THREE.Euler(HAMMER_DOWN, 0, 0) }, { geo: parts.bolt, mat: steelMat },
+  ], { mode: 'parts', copyGeometry: true, whiteColors: true });
 }
 
 /** Details are admitted through the same model library and handed out as owned clones. */

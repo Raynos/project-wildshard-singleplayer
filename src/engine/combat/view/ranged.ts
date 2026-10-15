@@ -2,6 +2,7 @@ import { levelBakedId } from '../../level/spec';
 import { app } from '../../app/runtime';
 import * as THREE from 'three';
 import type { Game } from '../../core/Game';
+import { mergeOrNull, shadowProxy } from '../../models/weld';
 import type { SkyRig as Sky } from '../../world/skyRig';
 import type { Player } from '../../player/Player';
 import type { Forest } from '../../world/forest/Forest';
@@ -369,3 +370,47 @@ export class Puffs {
 }
 
 // ───────────────────────────── debug tracers ─────────────────────────────
+
+/** Build a bounded world/Explorer weapon display from borrowed model parts.
+ * Direct parts retain borrowed materials; optional geometry copies alone may receive white vertex colours.
+ * Merged displays own one decorated material clone per source material and retain a position-only shadow proxy.
+ * No input geometry, transform or material is mutated; callers retain disposal of borrowed model-library resources. */
+export function weaponDisplay(parts: readonly { readonly geo: THREE.BufferGeometry; readonly mat: THREE.Material; readonly pos?: THREE.Vector3; readonly rot?: THREE.Euler }[],
+  options?: { readonly mode: 'parts'; readonly copyGeometry?: boolean; readonly whiteColors?: boolean }
+    | { readonly mode: 'merged'; readonly sky: Pick<Sky, 'setupMaterial'> }): THREE.Group {
+  const policy = options ?? { mode: 'parts' as const };
+  if (parts.length === 0 || parts.length > 128) throw new RangeError('Weapon display parts exceed their bound');
+  const group = new THREE.Group();
+  if (policy.mode === 'parts') {
+    if (policy.whiteColors === true && policy.copyGeometry !== true) throw new Error('Display colours require owned geometry');
+    for (const part of parts) {
+      const geometry = policy.copyGeometry === true ? part.geo.clone() : part.geo;
+      if (policy.whiteColors === true) whiteColors(geometry);
+      const mesh = new THREE.Mesh(geometry, part.mat); mesh.castShadow = true; mesh.receiveShadow = true;
+      if (part.pos !== undefined) mesh.position.copy(part.pos);
+      if (part.rot !== undefined) mesh.rotation.copy(part.rot);
+      group.add(mesh);
+    }
+    return group;
+  }
+  const owned = new Map<THREE.Material, THREE.Material>(), byMaterial = new Map<THREE.Material, THREE.BufferGeometry[]>();
+  const matrix = new THREE.Matrix4(), rotation = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
+  for (const { geo, mat, pos, rot } of parts) {
+    const geometry = pos || rot ? geo.clone().applyMatrix4(matrix.compose(pos ?? new THREE.Vector3(), rot ? rotation.setFromEuler(rot) : rotation.identity(), one)) : geo;
+    const list = byMaterial.get(mat) ?? []; list.push(geometry); byMaterial.set(mat, list);
+  }
+  const positions: THREE.BufferGeometry[] = [];
+  for (const [material, geometries] of byMaterial) {
+    const merged = geometries.length > 1 ? mergeOrNull(geometries) : geometries[0] ?? null;
+    for (const geometry of merged === null ? geometries : [merged]) {
+      let copy = owned.get(material);
+      if (copy === undefined) { copy = material.clone(); copy.name = material.name; fixIBL(copy, VIEWMODEL_GROUP); policy.sky.setupMaterial(copy); owned.set(material, copy); }
+      const mesh = new THREE.Mesh(geometry, copy); mesh.castShadow = false; mesh.receiveShadow = true; group.add(mesh);
+      const position = new THREE.BufferGeometry(); position.setAttribute('position', geometry.getAttribute('position')); position.setIndex(geometry.getIndex()); positions.push(position);
+    }
+  }
+  const indexed = positions.every(geometry => geometry.getIndex() !== null);
+  const caster = shadowProxy(indexed ? positions : positions.map(geometry => geometry.getIndex() === null ? geometry : geometry.toNonIndexed()));
+  if (caster !== null) group.add(caster); else for (const mesh of group.children) mesh.castShadow = true;
+  return group;
+}

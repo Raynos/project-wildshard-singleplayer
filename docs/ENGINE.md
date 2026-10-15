@@ -5852,3 +5852,18 @@ its explicit `any` policy treats every heightfield hit as terrain.
 G441 pending second user: Nalati's native creature manager will use this
 intake for its pack/elite/bonded spawns and restored roster. The allowance
 is rechecked at the end of W3; it is not an actual second-user claim.
+
+
+`engine/combat/view/ranged.weaponDisplay(parts, policy)` builds at most 128
+world/Explorer weapon parts. `mode: 'parts'` keeps their original draw order,
+borrowed geometry/materials and local position/rotation. `copyGeometry: true`
+returns independent geometries; `whiteColors: true` requires that copy policy.
+`mode: 'merged'` bakes local transforms into the geometry, merges only equal
+material identities in source order, and owns one material clone per source
+material, with the existing viewmodel IBL and supplied sky decorators. It uses
+the existing position-only shadow proxy, keeping per-part casters when the
+merge cannot represent their attributes. Inputs remain borrowed and unchanged;
+the caller retains its existing disposal policy. No animation, contact, ammo or
+pickup policy is installed. The pending W3 consumer is Nalati's
+`runtime/weapons/magazineFirearm.ts#displayModel`, whose direct mesh/position
+loop adopts the default borrowed `parts` policy.
