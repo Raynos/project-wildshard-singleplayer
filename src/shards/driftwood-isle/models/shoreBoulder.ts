@@ -5,16 +5,23 @@
  * Its placement sinks it about a third into the sand and leans it with the slope (src/shards/driftwood-isle/world/Boulders.ts). A rock over
  * 0.9 m collides as the convex hull of what it draws; the small ones stay walk-through.
  */
-import { rockGeometry, rockMaterial } from '../world/rockKit';
+import { rockGeometry, rockMaterial, rockSpecimen } from '../world/rockKit';
 import { SHORE_ROCK } from '../data/rockProfiles';
 import { islandKnobs } from '../tiers';
-import { defineModel } from '@wildshard/engine/models/model';
+import { defineModel, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 
 export interface ShoreBoulderParams {
   /** radius, metres */
   readonly r: number;
   /** height over width */
   readonly squash: number;
+}
+
+function parts(...[ctx, p, rng]: Parameters<ModelDef<ShoreBoulderParams>['build']>): ModelPart[] {
+  return [{
+    geometry: rockGeometry(p.r, rng, { squash: p.squash, palette: SHORE_ROCK, moss: rng.range(0.25, 0.85), ground: -0.35 * p.r * p.squash }),
+    material: rockMaterial(ctx.sky), castShadow: islandKnobs().boulderShadows, receiveShadow: true,
+  }];
 }
 
 export const shoreBoulder = defineModel<ShoreBoulderParams>({
@@ -28,9 +35,7 @@ export const shoreBoulder = defineModel<ShoreBoulderParams>({
   ],
   seed: 0x5ea1 ^ 0x70c5,
   // the order the old loop drew in: the moss first, then the rock's own shape
-  build: (ctx, p, rng) => [{
-    geometry: rockGeometry(p.r, rng, { squash: p.squash, palette: SHORE_ROCK, moss: rng.range(0.25, 0.85), ground: -0.35 * p.r * p.squash }),
-    material: rockMaterial(ctx.sky), castShadow: islandKnobs().boulderShadows, receiveShadow: true,
-  }],
+  build: parts,
+  specimen: (ctx, p, rng) => rockSpecimen('driftwood-isle/shore-boulder', [p.r * 2, p.r * 2, p.r * 2], () => parts(ctx, p, rng)),
   colliders: (p) => (p.r > 0.9 ? [{ kind: 'drawn-hull' }] : []),
 });

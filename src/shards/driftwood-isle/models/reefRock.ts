@@ -5,9 +5,9 @@
  * radius, squash and moss are its params, the rest the stream of the world that lays it — which welds its copies into
  * one smooth-shaded mesh (their normals can't join the flat-shaded kits) and places the model `drawnInto` it.
  */
-import { rockGeometry, rockMaterial } from '../world/rockKit';
+import { rockGeometry, rockMaterial, rockSpecimen } from '../world/rockKit';
 import { REEF_ROCK } from '../data/rockProfiles';
-import { defineModel } from '@wildshard/engine/models/model';
+import { defineModel, type ModelDef, type ModelPart } from '@wildshard/engine/models/model';
 
 export interface ReefRockParams {
   /** radius, metres */
@@ -16,6 +16,13 @@ export interface ReefRockParams {
   readonly squash: number;
   /** 0 … 1 moss on the crown */
   readonly moss: number;
+}
+
+function parts(...[ctx, p, rng]: Parameters<ModelDef<ReefRockParams>['build']>): ModelPart[] {
+  return [{
+    geometry: rockGeometry(p.r, rng, { squash: p.squash, palette: REEF_ROCK, moss: p.moss, ground: -0.2 * p.r }),
+    material: rockMaterial(ctx.sky), castShadow: true, receiveShadow: true,
+  }];
 }
 
 export const reefRock = defineModel<ReefRockParams>({
@@ -27,8 +34,6 @@ export const reefRock = defineModel<ReefRockParams>({
     { id: 'tall', label: 'Tall', params: { r: 0.9, squash: 0.95, moss: 0.3 } },
   ],
   seed: 0x5a11 ^ 0x70c5,
-  build: (ctx, p, rng) => [{
-    geometry: rockGeometry(p.r, rng, { squash: p.squash, palette: REEF_ROCK, moss: p.moss, ground: -0.2 * p.r }),
-    material: rockMaterial(ctx.sky), castShadow: true, receiveShadow: true,
-  }],
+  build: parts,
+  specimen: (ctx, p, rng) => rockSpecimen('driftwood-isle/reef-rock', [p.r * 2, p.r * 2, p.r * 2], () => parts(ctx, p, rng)),
 });

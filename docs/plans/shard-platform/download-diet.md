@@ -38,3 +38,10 @@ authored allowance stays 8,811,813 B. Other shards retain the 8 MB default.
 | Driftwood Isle | Rope bridge anchor posts | Two fixed-model templates (island span, Explorer span) add two admitted product subsets 10,032 / 3,530 B and 10,044 / 3,479 B raw / gzip-9 (20,076 / 7,009 B). Cheap fixed-model build output, not a Git blob. | Replaces the runtime post cylinders, paint and merge; colliders, rest facts, deck chain, planks and ropes unchanged. Each built bridge takes a 6,912 B copy of its template (the SF63 rebuild needs one); the two retained templates are 13,824 B. Measured with the reef bake (see its row). Physics walk on the candidate: 8 legs, 0 stuck, bridge leg ends at y 12.289. |
 
 | Driftwood Isle | Authored palm/hibiscus placement rows (phone + desktop, generated JSON bundled with world construction) | — | — | 263,956 B raw / 91,573 B gzip-9 estimate | W2 foliage placement call | No new geometry; phone 204 palms + 170 bushes, desktop 255 + 260. Original site, transform, params and registry order unchanged (max numeric delta 0); existing 18 geometry/cover files unchanged. Replaces live scatter/height sampling and unused synchronous bush construction. |
+
+- 2026-10-15 DW rocks: cold author table replaces the existing geometry.bin,
+  2,039,324 → 1,962,412 B raw (−76,912), gzip9 1,382,013 → 1,329,869 B
+  (−52,144). The 509 live recipes and RNG continuations are exact; 17
+  obsolete records leave and 9 exact Explorer recipes join. No new world
+  request or retained template; Explorer borrows/releases the table. The
+  cheap registered producer regenerates it from source, not a Git blob.

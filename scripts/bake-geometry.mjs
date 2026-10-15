@@ -42,6 +42,12 @@ if (tierArg === undefined) {
   try {
     for (const [slug, out] of Object.entries(OUTPUT)) {
       if (only.length > 0 && !only.includes(slug)) continue;
+      if (slug === 'driftwood-isle') {
+        const run = spawnSync(process.execPath, [...process.execArgv, resolve(ROOT, 'scripts/bake-driftwood-rocks.mjs'),
+          'src/shards/driftwood-isle/generators/rocks.ts', ...(verify ? ['--verify'] : check ? ['--check'] : [])], { cwd: ROOT, stdio: 'inherit' });
+        if (run.status !== 0) failed = true;
+        continue;
+      }
       const merged = new Map();
       for (const tier of TIERS) {
         const file = join(scratch, `${slug}.${tier}.bin`);

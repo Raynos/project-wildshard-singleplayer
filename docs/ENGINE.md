@@ -5675,3 +5675,9 @@ canvas each. The grid then charges RGBA pixels once, without an independent
 GPU texture claim. Failed or cancelled decodes release the reservation. The
 loading phase keeps the full decode charge until that handoff. This is an
 accounting correction, not recovered RAM; standalone map leases are unchanged.
+
+The geometry table recorder `recordGeometryBake(producer?)` accepts an
+optional build-only `GeometryBakeProducer`. It supplies raw geometry for
+retired procedural builders while the existing numeric inputs and RNG
+continuation still determine each table record. Returning null delegates
+to the caller's build callback; runtime lookup is unchanged.

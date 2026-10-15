@@ -1180,3 +1180,6 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/driftwood-isle/assets/2ca7c5b3c9a4bb724afc08b115307cb4b04eee0c3b08e9cc66c5b616f10ff36e
 /src/shards/driftwood-isle/assets/c6d08b85ed309fa1ea620f18548206c6c62bd0e13ee2fcde0742424315e600a5
 /src/shards/driftwood-isle/assets/f8fb551749db9c017cc2a1b7bd2a0b0b68ed844b0014c757bee72a3e3dd9dccb
+
+# Cold authored rock table, cached and rebuilt by driftwood-rock-table.
+/public/assets/models/driftwood-blender/geometry.bin

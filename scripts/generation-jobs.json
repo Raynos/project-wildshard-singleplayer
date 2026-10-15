@@ -13190,6 +13190,41 @@
       "platform": "native"
     },
     {
+      "id": "driftwood-rock-table",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/rocks.ts",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "scripts/bake-driftwood-rocks.mjs",
+        "src/shards/driftwood-isle/generators/rocks.ts"
+      ],
+      "inputRoots": [
+        "src/engine",
+        "src/game",
+        "src/sdk",
+        "src/commons",
+        "src/shards/driftwood-isle",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "scripts/bake-driftwood-rocks.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/models/driftwood-blender/island.json",
+        "public/assets/models/driftwood-blender/placements.bin"
+      ],
+      "outputs": [
+        "public/assets/models/driftwood-blender/geometry.bin"
+      ],
+      "buildTimeOutputs": [
+        "public/assets/models/driftwood-blender/geometry.bin"
+      ],
+      "seedOutputs": [],
+      "platform": "native"
+    },
+    {
       "id": "driftwood-creature-bodies",
       "shard": "driftwood-isle",
       "entry": "src/shards/driftwood-isle/generators/bake-driftwood-creatures.mjs",

@@ -44,7 +44,10 @@ const MAGIC = 0x42475357, VERSION = 1;
 /** key → where its entry starts in the table it came from (parsed on a hit) */
 const baked = new Map<string, { readonly view: DataView; readonly at: number }>();
 const stats = { hits: 0, misses: 0 };
+/** Build-only replacement for a recorded builder; null delegates to its original callback. */
+export type GeometryBakeProducer = (id: string, inputs: readonly number[], rng: Rng | null) => THREE.BufferGeometry | null;
 let recording: Map<string, BakedGeometry> | null = null;
+let recordingProducer: GeometryBakeProducer | null = null;
 const _f64 = new Float64Array(1), _u32 = new Uint32Array(_f64.buffer);
 const Q = 2 ** 30;
 
@@ -106,7 +109,7 @@ export function bakedGeometry(id: string, inputs: readonly number[], rng: Rng | 
     stats.misses++;
     return build();
   }
-  const g = build();
+  const g = recordingProducer?.(id, inputs, rng) ?? build();
   const rec = fromGeometry(g, rng === null ? null : rng.snapshot());
   if (rec !== null && !recording.has(key)) recording.set(key, rec);
   return g;
@@ -217,11 +220,13 @@ export function decodeGeometryBake(bytes: ArrayBuffer): Map<string, BakedGeometr
 }
 
 /** The native bake's recorder: every `bakedGeometry` result from now until `stop()`, keyed by its inputs' hash (a recorder
- *  always builds: the bake is the code's own output, never a copy of an older table). */
-export function recordGeometryBake(): { readonly entries: ReadonlyMap<string, BakedGeometry>; stop: () => void } {
+ *  always builds: the bake is the code's own output, never a copy of an older table). An optional build-only producer
+ *  supplies raw geometry after a runtime builder has retired its procedural fallback; inputs and RNG still form the key. */
+export function recordGeometryBake(producer?: GeometryBakeProducer): { readonly entries: ReadonlyMap<string, BakedGeometry>; stop: () => void } {
   const entries = new Map<string, BakedGeometry>();
   recording = entries;
-  return { entries, stop: () => { if (recording === entries) recording = null; } };
+  recordingProducer = producer ?? null;
+  return { entries, stop: () => { if (recording === entries) { recording = null; recordingProducer = null; } } };
 }
 
 /** The table's bytes, entries in key order (a byte-stable bake). */
