@@ -10,7 +10,7 @@ Sizes: S ≤ half an agent-day, M ≤ 2, L ≤ 5, XL > 5. Rows that share an own
 |---|---|---|---|
 | SF22 / SF0 milestone gate | Safari / frame-floor main-thread waits, crossing and install cadence; requalify the assembled routes | M–L | sp-x4 (Safari), sp-x1 (floor) |
 | SF67 | Responsive cold/warm loads: the remaining > 100 ms work, cold-arrival waits, home exit/return, real progress; per-phase remeasure | L | sp-x2 (all cells), sp-x1 |
-| SF74 tails | W12 nightly flakes; W14 lock collisions; W16/W23 CI duration balance; W21 polling census; W24 cached-gate timings; W25 stale-prefix / non-vitest red handling; W27 regeneration census; W28 heavy-proof x64 portability; prove 12 h commit-to-origin and the one-day release | M–L | sp-x7 (between reds) |
+| SF74 tails | ~~W12 nightly flakes~~ obsolete after G416 (no nightly workflow left; sp-x7 10-15); W14 lock collisions (check slot FIFO `00ededca1`); W16/W23 CI duration balance; W21 polling census; W24 cached-gate timings; W25 stale-prefix / non-vitest red handling; W27 regeneration census; W28 heavy-proof x64 portability; prove 12 h commit-to-origin and the one-day release | M–L | sp-x7 (between reds) |
 | SF86 / OS-1 | Grade run 2 (hard gates, friction delta); fix newly shown gaps; repeat at M3 | S + fixes | sp-x5 |
 | SF87 / G320 + G292 / G318 | Producers truly authoring-only; complete cold shard-product jobs; runtime/legacy/cache-deleted clean room green; then per-output cache promotions and removals (cold job, pinned hash, Linux build and boot) | XL | sp-x6 |
 | SF82 BR-1, BR-2, BR-4, BR-5 | Automatic row admission with per-body authority; automatic root boss construction; Driftwood Captain and Nalati Qara ownership; Pine's remaining native continuation gaps | L each | sp-x5 after run 2 |
