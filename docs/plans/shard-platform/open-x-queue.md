@@ -55,6 +55,13 @@ job. These producers still run trusted constructors and need geometry authored f
 - **King collision:** author rig / pose metadata.
 No trusted constructor goes into an allowlist; Pine's product deletion waits for all of them.
 
+## W3 pending-user hosts (G441)
+
+Jake, 2026-10-15 (G441): a new platform host built for Pine or Driftwood counts as shared when Nalati or Nine has matching code that its W3 port row moves onto the host. One row per host, named exactly as its `lint/platform-pending-users.json` entry's `plan.row`. The entry's `shard` is the W3 shard; the row names that shard and the exact W3 file(s). At the end of W3, unresolved entries come out and the lines count again.
+
+| Row | Host (module#export) | W3 shard and file(s) that move onto it | Lane |
+|---|---|---|---|
+
 ## Part B: deferred (not started without Jake's word)
 
 S1 population / LOD-AI · S2 interior / vertical streaming · S3 physics toys and vehicles · S4 climb / drive / author-AS modes ·
