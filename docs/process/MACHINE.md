@@ -122,6 +122,9 @@ login progress bar for hours: macOS empties both at boot, before login.
 - **Big scratch only under `./tmp/<task>`**, small, deleted with `rm -rf` on its exact path the moment its result is
   committed; commit the downsized board, never keep full-size preview dumps. Never `/tmp`, `$TMPDIR` or a session
   scratchpad (also under `/private/tmp`) for anything big.
+- **Vitest's module cache lives in `./tmp/vitest/<pid>`**, not `$TMPDIR` (`vitest.config.ts` → `scripts/vitest-tmp.ts`,
+  with the workers' compile cache): removed when the run exits, and a killed run's dir is swept after an hour by the
+  `boot-temp-warn.sh` recount. A run that skips `vitest.config.ts` (`--config <other>`) still writes to `$TMPDIR`.
 - **Node's compile cache lives in `~/Library/Caches/node-compile-cache`** (`NODE_COMPILE_CACHE`, set in the dotfiles'
   `.bash_profile`), not `$TMPDIR`: it had 110k files there.
 - **Pre-commit warns** (never refuses) through `scripts/boot-temp-warn.sh` when `/private/tmp` or `$TMPDIR` (two separate counts) passes 500,000

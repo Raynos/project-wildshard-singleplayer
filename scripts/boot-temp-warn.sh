@@ -5,7 +5,8 @@
 #      millions of leftover export files there held the laptop at the login progress bar for hours.
 #   2. ./tmp/build-mirror holds a slot other than gate, commit and check (G429: no per-lane or per-agent copies).
 # Counting takes seconds, so the hook prints the last count at once and starts a background recount when that count is
-# over 10 minutes old. `scripts/boot-temp-warn.sh --top` lists the biggest folders by file count.
+# over 10 minutes old. The recount also sweeps ./tmp/vitest (Vitest's module cache, scripts/vitest-tmp.ts): a run's
+# <pid> dir goes once that process is gone and nothing in it changed for an hour (a killed run leaves one behind). `scripts/boot-temp-warn.sh --top` lists the biggest folders by file count.
 # Rules: docs/process/MACHINE.md "Disk and boot".
 set -u
 root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
@@ -16,8 +17,20 @@ temp_dirs=(/private/tmp)
 
 count_files() { find "$1" -xdev 2>/dev/null | wc -l | tr -d ' '; }
 
+sweep_vitest() {
+  local d name
+  for d in "$root"/tmp/vitest/* "$root"/tmp/build-mirror/*/tmp/vitest/*; do
+    [ -d "$d" ] || continue
+    name="${d##*/}"
+    case "$name" in *[!0-9]*) ;; *) ps -p "$name" >/dev/null 2>&1 && continue ;; esac
+    [ -n "$(find "$d" -mmin -60 -print -quit 2>/dev/null)" ] && continue
+    rm -rf "$d"
+  done
+}
+
 case "${1:-}" in
   --count)
+    sweep_vitest
     line="$(date +%s)"
     for d in "${temp_dirs[@]}"; do line="$line $(count_files "$d")"; done
     mkdir -p "$root/tmp"
