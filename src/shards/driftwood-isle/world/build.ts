@@ -45,6 +45,9 @@ import { loadFixedGeometry } from '../boot/fixedGeometry';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, placeModelSite, type ModelSite } from '@wildshard/engine/models/place';
 
+// Imported recipes survive world disposal; only each build owns mutable native lists.
+type AuthoredFoliage<T> = { readonly [K in keyof T]: T[K] extends object ? AuthoredFoliage<T[K]> : T[K] };
+
 /** What the world build hands the rest of the level (today's `dressing` handle in main.ts, plus the deck and the cove). */
 export interface DriftwoodWorld {
   ocean: Ocean | null; pier: Pier | null; jetties: Pier[]; boat: Boat | null; rocks: Boulders | null;
@@ -158,7 +161,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   }
   await slice();
   if (FOLIAGE.seed !== manifest.seed) throw new Error('Foliage placements require their authored seed');
-  const foliage = FOLIAGE.tiers[game.tier];
+  const foliage: AuthoredFoliage<typeof FOLIAGE.tiers.phone> = FOLIAGE.tiers[game.tier];
   const bushes = await new Bushes(sky).placeSliced(foliage.bushes, registry, slice.due);
   game.scene.add(bushes.mesh); // The compact batch is an explicitly owned drawnInto object.
   await slice(++completed, total, 'Bushes');
@@ -190,7 +193,7 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
   game.scene.add(seabed.mesh); if (seabed.fish) game.scene.add(seabed.fish);
   await slice(++completed, total, 'Seabed');
   // coconut palms: where they stand (the palm itself is a model, placed below — one draw call, fronds sway in update)
-  const palmSpecs = foliage.palms.specs;
+  const palmSpecs = [...foliage.palms.specs];
   await slice(++completed, total, 'Palm placement');
   // Wreck Cove dressing: tidepools (the reef crabs' homes), the cascade + plunge pool, the glowing cave mouth
   // E315 M1: the cove is world (piece `cove`); its reef rocks are the reef-rock model

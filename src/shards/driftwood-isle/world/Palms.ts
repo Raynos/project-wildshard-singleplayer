@@ -33,7 +33,7 @@ export class Palms {
   constructor(private sky: Sky) {}
 
   /** Admit the owned world batch, then register its original native placements and capsules. */
-  async placeSliced(rows: {specs: PalmSpec[]; placements: Placement<PalmParams>[]}, registry: WorldRegistry, due: () => Promise<void> | null): Promise<this> {
+  async placeSliced(rows: {readonly specs: readonly PalmSpec[]; readonly placements: readonly Placement<PalmParams>[]}, registry: WorldRegistry, due: () => Promise<void> | null): Promise<this> {
     const { specs, placements: pls } = rows;
     const batch = await loadPalmWorld(specs.length); await due();
     const { lit, depth } = palmMaterials(modelContext(this.sky)), mesh = new THREE.Mesh(batch.geometry, lit);
@@ -42,7 +42,7 @@ export class Palms {
     return this.take(specs, pls, place(palm, pls, { ctx: modelContext(this.sky), draw: 'merged', registry, piece: { id: 'palms', solidFloor: true }, drawnInto: { object: mesh, boxes: batch.boxes } }));
   }
 
-  private take(specs: PalmSpec[], pls: readonly Placement<PalmParams>[], placed: Placed): this {
+  private take(specs: readonly PalmSpec[], pls: readonly Placement<PalmParams>[], placed: Placed): this {
     // (an empty scatter — a stale terrain, a def with no land — places nothing: an empty mesh stands in, as it always did)
     this.mesh = isMesh(placed.object) ? placed.object : new THREE.Mesh();
     this.placed = placed;

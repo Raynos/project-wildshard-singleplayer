@@ -33,7 +33,7 @@ export class Bushes {
   constructor(private sky: Sky) {}
 
   /** Admit the compiled placement rows and geometry a slice at a time (SF67: `due` is the load's task budget); the same bushes */
-  async placeSliced(rows: {specs: BushSpec[]; placements: Placement<HibiscusBushParams>[]}, registry: WorldRegistry, due: () => Promise<void> | null): Promise<this> {
+  async placeSliced(rows: {readonly specs: readonly BushSpec[]; readonly placements: readonly Placement<HibiscusBushParams>[]}, registry: WorldRegistry, due: () => Promise<void> | null): Promise<this> {
     const { specs, placements } = rows;
     this.specs.push(...specs);
     const batch = await loadHibiscusWorld(specs.length); await due();
