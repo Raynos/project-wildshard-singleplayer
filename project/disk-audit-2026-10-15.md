@@ -69,8 +69,11 @@ the last 5 minutes. That is about **400k files an hour**, and it put the boot pu
   `generate.mjs` / `generation-clean-room.mjs` run inside a throwaway copy. A cache keyed on a path that is used once
   can only miss. Tools run from the stable checkout or the mirror slots can keep it.
 - **Stop-gap for the machine (needs Jake; dcg blocks agents from `mv` under `/var` and `$HOME`):** move the existing
-  folder out of the boot purge and leave a symlink, so running writers follow it without a restart. Command in the localai
-  audit session.
+  folder out of the boot purge and leave a symlink, so running writers follow it without a restart. **Done 12:04:**
+  `$TMPDIR/node-compile-cache -> ~/Library/Caches/node-compile-cache-from-tmpdir`. The boot purge fell from 389k to
+  70k files, and new writes land in the target (9k in the first minute). The churn itself goes on until
+  `NODE_DISABLE_COMPILE_CACHE` lands; it now fills `~/Library/Caches` instead. Delete that folder once agents have
+  restarted.
 
 ## 3. `~/.cache/wildshard/generate`: what it is, and can it be nuked
 
