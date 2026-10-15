@@ -100,6 +100,11 @@ file in `docs/` is: [docs/README.md](docs/README.md).
   enforces it in pre-commit, pre-push (every outgoing commit) and CI; a big shipped file needs an exact pin.
 - **No worktrees or feature branches by default** (Jake, 2026-10-15): everyone works on `main` in this one checkout.
   A worktree only for an exceptional case Jake approves, under `./tmp`, removed when done.
+- **No parked branches or refs, ever** (Jake, 2026-10-15: *"we're all supposed to be slamming stuff into main with
+  small commits, move fast … commit early and often"*): no `refs/parked/*`, `refs/sp-lanes/*` or local branches as
+  save slots. Work lands on `main` in small commits the same hour; unfinished work lands behind Developer or a Debug row
+  (E451); work that won't land is deleted, not parked. A private-index landing deletes its scratch ref the moment it
+  lands. Download, memory, graph CPU cost and exact parity are never reasons to hold work back (G438).
 
 ## The shared Mac → [docs/process/MACHINE.md](docs/process/MACHINE.md)
 
