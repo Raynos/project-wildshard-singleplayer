@@ -8,21 +8,24 @@
  * Quaternius CC0 palms and TRELLIS.2 hero palms, the driftwood and the coconut cluster TRELLIS.2 generations
  * (scripts/img2mesh/props/driftwood-hero.json), all cleaned up and baked in Blender.
  *
- * Their ~16,700 placements are the cove's layout (placements.bin), and the cove draws them itself: src/world/
- * BlenderIsland.ts welds them into its 2×2 m-cell tiles (casters with a far copy, ground cover fading plant by plant),
- * then places each family with `drawnInto` (its copies, their world boxes, the catalog card; nothing drawn twice). The
- * builds below are the Model Explorer's specimens: one prototype on its own, in its own space (origin at its foot), from
- * the loaded file (the island hands its prototypes to the shard's model context, `coveProtos`).
+ * Their ~16,700 placements are the cove's layout (placements.bin): src/shards/driftwood-isle/world/BlenderIsland.ts places
+ * each family instanced (the palms with a far copy, the ground cover fading plant by plant) in its look's material. The
+ * Explorer's specimen is one prototype on its own, in its own space (origin at its foot), in the casters' look, from the
+ * loaded file (the island hands its prototypes to the shard's model context, `coveProtos`).
  */
 import * as THREE from 'three';
 import { defineModel, type ModelContext, type ModelDef } from '@wildshard/engine/models/model';
 import type { Pipeline } from '@wildshard/engine/world/registry';
+import { ISLAND_LOOK } from '../data/islandRows';
 
 /** a prototype as the island reads it: positions (own space), rgba colours (a = AO), triangle indices */
 export interface CoveProto { readonly pos: Float32Array; readonly col: Uint8Array; readonly index: Uint32Array }
 
-/** the island's loaded prototypes by name, and the material its casters draw with (the specimens use it) */
-export interface CoveProtos { readonly protos: ReadonlyMap<string, CoveProto>; readonly material: THREE.Material }
+/** a family's look in the world: the casters', the small cover's or the big cover's (data/islandLook.ts) */
+export type CoveLook = 'cast' | 'cover' | 'big';
+
+/** the island's loaded prototypes by name (a palm's far copy is `<name>_lo`) and each look's material */
+export interface CoveProtos { readonly protos: ReadonlyMap<string, CoveProto>; readonly materials: Readonly<Record<CoveLook, THREE.Material>> }
 
 const KEY = 'driftwood-isle/cove:protos';
 
@@ -42,42 +45,44 @@ interface Family {
   readonly name: string;
   readonly protos: readonly string[];
   readonly pipeline: Pipeline | readonly Pipeline[];
-  /** a caster (palms, crags, driftwood): it casts a shadow; the ground cover does not */
-  readonly cast: boolean;
+  /** a caster (palms, crags, driftwood) casts a shadow; the ground cover does not, the big cover keeps a longer reach */
+  readonly look: CoveLook;
+  /** a far copy (`<proto>_lo`, the near one simplified) from this many metres */
+  readonly far?: number;
 }
 
 /** the families, by the prototype names' stem (build_island.py: PALM_SRC, the broad palms, CLIFF_V, KIND) */
 const FAMILIES = {
-  palm: { name: 'Cove palm', protos: ['palm0', 'palm1', 'palm2', 'palm3', 'palm4'], pipeline: ['cc0', 'trellis', 'blender'], cast: true },
-  bpalm: { name: 'Broad-frond palm', protos: ['bpalm0', 'bpalm1', 'bpalm2', 'bpalm3'], pipeline: 'blender', cast: true },
-  cliff: { name: 'Crag plate', protos: ['cliff0', 'cliff1', 'cliff2', 'cliff3', 'cliff4', 'cliff5'], pipeline: 'blender', cast: true },
-  drift: { name: 'Driftwood', protos: ['drift0', 'drift1', 'drift2', 'drift3'], pipeline: ['trellis', 'blender'], cast: true },
-  coconuts: { name: 'Coconut cluster', protos: ['coconuts0'], pipeline: ['trellis', 'blender'], cast: true },
-  shell: { name: 'Shell', protos: ['shell0', 'shell1', 'shell2', 'shell3'], pipeline: 'blender', cast: false },
-  star: { name: 'Starfish', protos: ['star0', 'star1', 'star2'], pipeline: 'blender', cast: false },
-  pebble: { name: 'Pebbles', protos: ['pebble0', 'pebble1', 'pebble2', 'pebble3'], pipeline: 'blender', cast: false },
-  beachgrass: { name: 'Beach grass', protos: ['beachgrass0', 'beachgrass1', 'beachgrass2'], pipeline: 'blender', cast: false },
-  tuft: { name: 'Grass tuft', protos: ['tuft0', 'tuft1', 'tuft2', 'tuft3'], pipeline: 'blender', cast: false },
-  fern: { name: 'Cove fern', protos: ['fern0', 'fern1', 'fern2'], pipeline: 'blender', cast: false },
-  hibiscus: { name: 'Hibiscus clump', protos: ['hibiscus0', 'hibiscus1', 'hibiscus2'], pipeline: 'blender', cast: false },
-  yellow: { name: 'Yellow flowers', protos: ['yellow0', 'yellow1'], pipeline: 'blender', cast: false },
-  white: { name: 'White flowers', protos: ['white0', 'white1'], pipeline: 'blender', cast: false },
-  bush: { name: 'Cove bush', protos: ['bush0', 'bush1', 'bush2'], pipeline: 'blender', cast: false },
-  flowerbush: { name: 'Flowering bush', protos: ['flowerbush0', 'flowerbush1'], pipeline: 'blender', cast: false },
+  palm: { name: 'Cove palm', protos: ['palm0', 'palm1', 'palm2', 'palm3', 'palm4'], pipeline: ['cc0', 'trellis', 'blender'], look: 'cast', far: ISLAND_LOOK.lod },
+  bpalm: { name: 'Broad-frond palm', protos: ['bpalm0', 'bpalm1', 'bpalm2', 'bpalm3'], pipeline: 'blender', look: 'cast', far: ISLAND_LOOK.lod },
+  cliff: { name: 'Crag plate', protos: ['cliff0', 'cliff1', 'cliff2', 'cliff3', 'cliff4', 'cliff5'], pipeline: 'blender', look: 'cast' },
+  drift: { name: 'Driftwood', protos: ['drift0', 'drift1', 'drift2', 'drift3'], pipeline: ['trellis', 'blender'], look: 'cast' },
+  coconuts: { name: 'Coconut cluster', protos: ['coconuts0'], pipeline: ['trellis', 'blender'], look: 'cast' },
+  shell: { name: 'Shell', protos: ['shell0', 'shell1', 'shell2', 'shell3'], pipeline: 'blender', look: 'cover' },
+  star: { name: 'Starfish', protos: ['star0', 'star1', 'star2'], pipeline: 'blender', look: 'cover' },
+  pebble: { name: 'Pebbles', protos: ['pebble0', 'pebble1', 'pebble2', 'pebble3'], pipeline: 'blender', look: 'cover' },
+  beachgrass: { name: 'Beach grass', protos: ['beachgrass0', 'beachgrass1', 'beachgrass2'], pipeline: 'blender', look: 'cover' },
+  tuft: { name: 'Grass tuft', protos: ['tuft0', 'tuft1', 'tuft2', 'tuft3'], pipeline: 'blender', look: 'cover' },
+  fern: { name: 'Cove fern', protos: ['fern0', 'fern1', 'fern2'], pipeline: 'blender', look: 'big' },
+  hibiscus: { name: 'Hibiscus clump', protos: ['hibiscus0', 'hibiscus1', 'hibiscus2'], pipeline: 'blender', look: 'big' },
+  yellow: { name: 'Yellow flowers', protos: ['yellow0', 'yellow1'], pipeline: 'blender', look: 'cover' },
+  white: { name: 'White flowers', protos: ['white0', 'white1'], pipeline: 'blender', look: 'cover' },
+  bush: { name: 'Cove bush', protos: ['bush0', 'bush1', 'bush2'], pipeline: 'blender', look: 'big' },
+  flowerbush: { name: 'Flowering bush', protos: ['flowerbush0', 'flowerbush1'], pipeline: 'blender', look: 'big' },
 } as const satisfies Record<string, Family>;
 
 export type CoveFamily = keyof typeof FAMILIES;
 
-/** a prototype on its own: its geometry as the tiles weld it (flat normals for the shadow bias), in own space */
-function specimen(ctx: ModelContext, p: CoveParams, cast: boolean): { geometry: THREE.BufferGeometry; material: THREE.Material; castShadow: boolean; receiveShadow: boolean }[] {
-  const island = coveProtos(ctx), proto = island?.protos.get(p.proto);
-  if (!island || !proto) return [];
+/** a prototype as the island draws it: its geometry (flat normals for the shadow bias) in own space, in `material` */
+function protoPart(ctx: ModelContext, proto: string, look: CoveLook, material: CoveLook): { geometry: THREE.BufferGeometry; material: THREE.Material; castShadow: boolean; receiveShadow: boolean }[] {
+  const island = coveProtos(ctx), p = island?.protos.get(proto);
+  if (!island || !p) return [];
   const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(proto.pos.slice(), 3));
-  g.setAttribute('color', new THREE.BufferAttribute(proto.col.slice(), 4, true));
-  g.setIndex(new THREE.BufferAttribute(proto.index.slice(), 1));
+  g.setAttribute('position', new THREE.BufferAttribute(p.pos.slice(), 3));
+  g.setAttribute('color', new THREE.BufferAttribute(p.col.slice(), 4, true));
+  g.setIndex(new THREE.BufferAttribute(p.index.slice(), 1));
   g.computeVertexNormals();
-  return [{ geometry: g, material: island.material, castShadow: cast, receiveShadow: true }];
+  return [{ geometry: g, material: island.materials[material], castShadow: look === 'cast', receiveShadow: true }];
 }
 
 function coveModel(key: CoveFamily): ModelDef<CoveParams> {
@@ -88,7 +93,10 @@ function coveModel(key: CoveFamily): ModelDef<CoveParams> {
     file: 'src/shards/driftwood-isle/models/cove.ts',
     defaults: { proto: first },
     variants: f.protos.map((proto, i) => ({ id: proto, label: `${f.name} ${i + 1}`, params: { proto } })),
-    build: (ctx, p) => specimen(ctx, p, f.cast),
+    build: (ctx, p) => protoPart(ctx, p.proto, f.look, f.look),
+    ...(f.far === undefined ? {} : { lods: [{ from: f.far, build: (ctx: ModelContext, p: CoveParams) => protoPart(ctx, `${p.proto}_lo`, f.look, f.look) }] }),
+    // the Explorer's turntable: one copy in the casters' look (a cover look fades its copies by their distance)
+    specimen: (ctx, p) => protoPart(ctx, p.proto, f.look, 'cast'),
   });
 }
 
@@ -99,6 +107,9 @@ export const COVE_MODELS: Readonly<Record<CoveFamily, ModelDef<CoveParams>>> = {
   fern: coveModel('fern'), hibiscus: coveModel('hibiscus'), yellow: coveModel('yellow'), white: coveModel('white'), bush: coveModel('bush'),
   flowerbush: coveModel('flowerbush'),
 };
+
+/** a family's look in the world */
+export const coveLook = (key: CoveFamily): CoveLook => FAMILIES[key].look;
 
 /** the family of a prototype name (undefined: not a cove model — the terrain, the rocks the shore boulders replace, the far cuts) */
 export function coveFamilyOf(proto: string): CoveFamily | undefined {

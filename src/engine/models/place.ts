@@ -61,6 +61,11 @@ export interface PieceOptions {
    * the last is in.
    */
   readonly split?: { readonly every: number; readonly yieldTask: () => Promise<void> };
+  /**
+   * world-space colliders the piece carries besides its copies' own (a baked set's boxes fitted to the ground: the
+   * Driftwood cove's palm trunks and crag plates), registered after them on the same piece
+   */
+  readonly colliders?: readonly ColliderDesc[];
 }
 
 /** how `place` draws a model's copies: the model context, the draw, merging into cells and culling */
@@ -1198,6 +1203,8 @@ function* placeSteps<P extends object>(def: ModelDef<P>, placements: readonly Pl
       : o.draw === 'batched' ? drawBatched(def, placements, poses, params, buildOptions)
         : drawSingle(def, placements, poses, params, buildOptions);
   const { boxes } = drawn;
+  const extra = o.piece?.colliders;
+  if (extra !== undefined) drawn.colliders = [...drawn.colliders, ...extra];
   // where each copy stands, for `nearest` (float64: exact) — the placements themselves are not kept alive
   const points = new Float64Array(placements.length * 3);
   placements.forEach((pl, i) => { points[i * 3] = pl.x; points[i * 3 + 1] = pl.y; points[i * 3 + 2] = pl.z; });

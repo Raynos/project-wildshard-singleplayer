@@ -67,6 +67,23 @@ export class CoverGrid {
     return out;
   }
 
+  /**
+   * The grid as a graph's texture (half floats, linear): per cell r, g, b × (top + side) and top + side, a ring of empty
+   * cells round it, so a bilinear sample's rgb over its alpha is `sample`'s colour and its alpha `top + side`. `rect`: the
+   * uv of a world (x, z) is (x, z) × [2, 3] + [0, 1].
+   */
+  texture(): { texture: THREE.DataTexture; rect: [number, number, number, number] } {
+    const w = this.rect.width + 2, h = this.rect.height + 2, out = new Uint16Array(w * h * 4), half = (v: number): number => THREE.DataUtils.toHalfFloat(v);
+    for (let z = 0; z < Math.min(this.rect.height, 4096); z++) for (let x = 0; x < Math.min(this.rect.width, 4096); x++) {
+      const o = (z * this.rect.width + x) * W, a = (this.data[o + 3] ?? 0) + (this.data[o + 4] ?? 0), t = ((z + 1) * w + x + 1) * 4;
+      out[t] = half((this.data[o] ?? 0) * a); out[t + 1] = half((this.data[o + 1] ?? 0) * a); out[t + 2] = half((this.data[o + 2] ?? 0) * a); out[t + 3] = half(a);
+    }
+    const texture = new THREE.DataTexture(out, w, h, THREE.RGBAFormat, THREE.HalfFloatType);
+    texture.magFilter = THREE.LinearFilter; texture.minFilter = THREE.LinearFilter; texture.colorSpace = THREE.NoColorSpace; texture.needsUpdate = true;
+    const k = CHUNK_HALF / this.step;
+    return { texture, rect: [(k - this.rect.x + 1.5) / w, (k - this.rect.z + 1.5) / h, 1 / (this.step * w), 1 / (this.step * h)] };
+  }
+
 }
 
 /** ×0.88 … ×1.12 per point, a hash of where it is (the facets of covered ground keep their light / dark mosaic). */

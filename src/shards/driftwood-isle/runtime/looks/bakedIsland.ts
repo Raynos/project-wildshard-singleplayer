@@ -1,4 +1,3 @@
-import type { BlenderArea as IslandRect } from '@wildshard/engine/world/blenderArea';
 import * as THREE from 'three';
 import { MeshoptSimplifier } from 'three/examples/jsm/libs/meshopt_simplifier.module.js';
 import ISLAND_TERRAIN_CLIP from '../../data/islandClips.generated.json' with { type: 'json' };
@@ -14,8 +13,8 @@ import type { GraphLiteral } from '@wildshard/format/materialGraph';
  *
  * - `setIslandLooks` / `islandLooks`: the compiled graph looks the runtime lends the island before the world builds.
  * - `clipGridTerrain`: install the authored terrain clipping facts.
- * - `simplifiedProto`: a prototype's far copy (meshoptimizer), so a tile's far copies keep its near copies' shape.
- * - `protosFromMeshes`, `droppedPlacements`, `usedPlacements`, `tileRect`: read and sort the bake.
+ * - `simplifiedProto`: a prototype's far copy (meshoptimizer), so a far copy keeps its near copy's shape.
+ * - `protosFromMeshes`, `droppedPlacements`, `usedPlacements`: read and sort the bake.
  * - `decodeFloatBlock`: a baked float block's file (a 16-byte header, then the f32s; the generator writes it).
  * - `sunBounceLevel`: how much of the baked bounce the live sun lights.
  */
@@ -115,12 +114,6 @@ export function droppedPlacements(buf: ArrayBuffer, drop: number): Float32Array 
  *  tier's set is a prefix). */
 export function usedPlacements(f: Float32Array, mustDraw: number, share: number): number {
   return mustDraw + Math.round((f.length / 10 - mustDraw) * share);
-}
-
-/** Tile `k` of `rect` split `n` × `n`. */
-export function tileRect(rect: IslandRect, k: number, n: number): IslandRect {
-  const w = (rect.x1 - rect.x0) / n, d = (rect.z1 - rect.z0) / n, tx = k % n, tz = Math.floor(k / n);
-  return { x0: rect.x0 + tx * w, x1: rect.x0 + (tx + 1) * w, z0: rect.z0 + tz * d, z1: rect.z0 + (tz + 1) * d };
 }
 
 const BLOCK_HEADER = 16;

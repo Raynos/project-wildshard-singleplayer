@@ -104,7 +104,6 @@
       "late": [
         "engine.input.trace",
         "engine.input.edges",
-        "shard.driftwood.blenderIsland.instances",
         "engine.hud.pins"
       ]
     },

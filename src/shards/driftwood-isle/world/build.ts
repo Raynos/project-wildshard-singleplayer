@@ -230,7 +230,6 @@ export async function buildDriftwoodWorld(world: World, viewer: () => THREE.Vect
       replace: [bushes.mesh], cover: cover.group,
     });
     game.onUpdate(() => { island.update(sky); }, 'shard.driftwood.blenderIsland');
-    game.onLate(() => { island.late(sky); }, 'shard.driftwood.blenderIsland.instances'); // G144: the instanced placements repack after the camera is posed
     return island;
   });
   await slice(total, total, 'Baked island');

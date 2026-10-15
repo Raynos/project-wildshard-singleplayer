@@ -14,11 +14,10 @@ describe('Driftwood baked cove graph looks', () => {
     }
   });
 
-  it('reads the per-instance tint and cover fade only where the instances carry them', () => {
+  it('reads no per-instance attributes on the copies: tint, origin, edge and ground come from the engine and the graph', () => {
     const attributes = (id: string): string[] => Object.values(ISLAND_GRAPHS[id]?.nodes ?? {}).flatMap(node => node.op === 'attribute' && node.name !== undefined ? [node.name] : []).sort();
-    expect(attributes(ISLAND_LOOKS.specimens)).toEqual([]);
-    expect(attributes(ISLAND_LOOKS.props)).toEqual(['aTint']);
-    expect(attributes(ISLAND_LOOKS.cover)).toEqual(['aBase', 'aEdge', 'aGround', 'aTint']);
+    expect(attributes(ISLAND_LOOKS.props)).toEqual([]);
+    expect(attributes(ISLAND_LOOKS.cover)).toEqual([]);
     expect(attributes(ISLAND_LOOKS.terrain)).toEqual(['aCover', 'aCoverSide']);
   });
 });
