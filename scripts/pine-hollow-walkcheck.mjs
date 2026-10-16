@@ -21,7 +21,11 @@ await import('./bake-loader.mjs'); // lets Node import the game's TypeScript chu
 if (!('location' in globalThis)) Object.assign(globalThis, { location: new URL('http://localhost/') });
 const { MANIFEST: PINE_HOLLOW } = await import('../src/shards/pine-hollow/discovery.generated.ts');
 const L = await import('../src/shards/pine-hollow/data/layout.ts');
-const { ziplineAt } = await import('../src/shards/pine-hollow/behaviour/layout.ts');
+/** the zipline's cable height above y = 0 at the fraction `t` (0 = the lookout deck, 1 = the landing): a straight chord */
+const ziplineAt = (t, lookoutGround, landingGround) => {
+  const { from, to } = L.ZIPLINE;
+  return { x: from.x + (to.x - from.x) * t, z: from.z + (to.z - from.z) * t, y: (lookoutGround + from.deck) * (1 - t) + (landingGround + to.deck) * t };
+};
 
 const argv = process.argv.slice(2);
 const flag = (name, d) => { const a = argv.find((x) => x.startsWith(`--${name}=`)); return a ? a.slice(name.length + 3) : d; };

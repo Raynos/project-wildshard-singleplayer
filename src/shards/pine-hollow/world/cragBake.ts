@@ -15,19 +15,9 @@ import cragJson from '../data/crags.json' with { type: 'json' };
 export const CRAG_IDS = ['cliff-a', 'cliff-b', 'cliff-c', 'buttress', 'slab', 'tor-a', 'tor-b', 'boulder-a', 'boulder-b', 'boulder-c', 'scree-a', 'scree-b'] as const;
 /** crags-b.glb's own module: the lookout's hero crag */
 export const CRAG_HERO = 'hero';
-export type KitId = (typeof CRAG_IDS)[number];
-export type CragId = KitId | typeof CRAG_HERO;
-/** a module's footprint in its own frame (metres, before the placement's scale): half width (x), half depth (z), height */
-export interface CragSize { hw: number; hd: number; h: number }
-/** every module's footprint; the hero's only when crags-b.glb loaded */
-export type CragSizes = Record<KitId, CragSize> & Partial<Record<typeof CRAG_HERO, CragSize>>;
+export type CragId = (typeof CRAG_IDS)[number] | typeof CRAG_HERO;
 /** one placed module: position (its base centre), a turn about +Y (its front, local +Z, faces (sin yaw, cos yaw)), a tilt */
 export interface CragPlace { id: CragId; x: number; y: number; z: number; yaw: number; scale: number; tiltX: number; tiltZ: number }
-
-/** the skin's tiles (m) */
-export const SKIN_TILE = 64;
-/** the skin's two resolutions (m) per tier: near, far */
-export const SKIN_STEPS: Record<Tier, readonly [number, number]> = { phone: [1.0, 2.6], desktop: [0.7, 2.0] };
 
 /** the cave's frame: its mouth at BEAR_CAVE, local +Z into the rock (the mouth faces local −Z), y is world height */
 export const CAVE_FRAME = { x: BEAR_CAVE.x, z: BEAR_CAVE.z, yaw: BEAR_CAVE.rot };

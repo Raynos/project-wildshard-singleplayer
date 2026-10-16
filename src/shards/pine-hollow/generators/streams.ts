@@ -8,7 +8,7 @@
  * the stale gate.
  */
 import { CREEK, WATERFALL, RIDGE_STREAM, CREEK_WATER, POND, type XZ } from '../data/layout';
-import { creekSpan, creekSurfaceAt, creekFlowAt, creekFoamAt } from '../behaviour/layout';
+import { creekSpan, creekSurfaceAt } from '../behaviour/layout';
 import * as THREE from 'three';
 import { bake, WholeShape, type BakedScene } from '@wildshard/sdk/bake';
 import type { NativeTerrainSource } from '@wildshard/sdk/bake/terrain';
@@ -17,6 +17,17 @@ import { streamGeometry } from './streamCodec';
 /** Original renderer queries, supplied explicitly instead of installing a mutable page field. */
 export type PineStreamGround = Pick<NativeTerrainSource, 'heightAt' | 'normalAt'>;
 const smoothstep = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const { dam: S_DAM } = creekSpan();
+/** flow speed (m/s): quick over the crest and down the dam's face, a gentle run after */
+function creekFlowAt(s: number): number {
+  return CREEK_WATER.run + (CREEK_WATER.dam - CREEK_WATER.run) * smoothstep(S_DAM - 1.5, S_DAM, s) * (1 - smoothstep(S_DAM + 2.5, S_DAM + 6, s));
+}
+/** white water 0..1: the dam's face, a tail of foam drifting off it, a few bubbles in the run */
+function creekFoamAt(s: number): number {
+  const face = smoothstep(S_DAM - 0.6, S_DAM + 0.4, s) * (1 - smoothstep(S_DAM + 2.5, S_DAM + 5, s));
+  const tail = smoothstep(S_DAM, S_DAM + 1, s) * (1 - smoothstep(S_DAM + 3, S_DAM + 14, s));
+  return Math.max(0.06, 0.72 * face, 0.3 * tail);
+}
 
 /** where the fall's sheet meets the pond, and the foot of its steep face (the spray's anchors, the sound's) */
 interface Anchors { plunge: [number, number, number]; faceFoot: [number, number, number] }

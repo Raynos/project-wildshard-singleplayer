@@ -1,6 +1,4 @@
-import { CREEK, BEAVER_DAM, BEAVER_POOL, POND, CREEK_BED, ZIPLINE, CREEK_WATER, beaverPoolLevel, type XZ } from '../data/layout';
-
-const smoothstep = (a: number, b: number, x: number): number => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+import { CREEK, BEAVER_DAM, BEAVER_POOL, POND, CREEK_BED, CREEK_WATER, beaverPoolLevel, type XZ } from '../data/layout';
 
 /** Exact native ridge-foot profile shared by runtime and author placements. */
 export function ridgeFootZ(x: number): number {
@@ -43,16 +41,11 @@ export function creekBedAt(s: number): number {
   return CREEK_BED.afterDam + (CREEK_BED.edge - CREEK_BED.afterDam) * ((s - sDam - 3) / (sEnd - sDam - 3));
 }
 
-/** the zipline's cable height above y = 0 at the fraction `t` (0 = the lookout deck, 1 = the landing) — a straight chord */
-export function ziplineAt(t: number, lookoutGround: number, landingGround: number): { x: number; z: number; y: number } {
-  const { from, to } = ZIPLINE;
-  return { x: from.x + (to.x - from.x) * t, z: from.z + (to.z - from.z) * t, y: (lookoutGround + from.deck) * (1 - t) + (landingGround + to.deck) * t };
-}
-
 // ── the water on the creek (PH-L9) ──────────────────────────────────────────────────────────────────────────────────
 /*
- * The creek's water surface, flow and foam along its arc length `s`, for the ribbon PineStreams.ts draws and for the
- * player / animals (`streamAt` in the terrain: wading, the dry-ground test). Upstream of the riffle the outlet is the
+ * The creek's water surface along its arc length `s`, for the ribbon PineStreams.ts draws and for the
+ * player / animals (`streamAt` in the terrain: wading, the dry-ground test); its flow and foam are the bake's
+ * (../generators/streams.ts). Upstream of the riffle the outlet is the
  * pond (its level), then the beaver pool to the dam (BEAVER_POOL: its own mesh, src/shards/pine-hollow/world/beaverPool.ts); through the
  * sluice a thin sheet runs, down the dam's face it runs fast and white, and from the toe it is a clear 0.45 m run falling
  * with the bed. The surface never rises downstream (the max of two falling profiles).
@@ -71,24 +64,7 @@ export function creekSurfaceAt(s: number): number {
   const run = CREEK_BED.afterDam + (CREEK_BED.edge - CREEK_BED.afterDam) * ((s - S_DAM - 3) / (S_END - S_DAM - 3)) + CREEK_WATER.depth;
   return Math.max(creekBedAt(s) + CREEK_WATER.crest, run);
 }
-/** flow speed (m/s): quick over the crest and down the dam's face, a gentle run after */
-export function creekFlowAt(s: number): number {
-  return CREEK_WATER.run + (CREEK_WATER.dam - CREEK_WATER.run) * smoothstep(S_DAM - 1.5, S_DAM, s) * (1 - smoothstep(S_DAM + 2.5, S_DAM + 6, s));
-}
-/** white water 0..1: the dam's face, a tail of foam drifting off it, a few bubbles in the run */
-export function creekFoamAt(s: number): number {
-  const face = smoothstep(S_DAM - 0.6, S_DAM + 0.4, s) * (1 - smoothstep(S_DAM + 2.5, S_DAM + 5, s));
-  const tail = smoothstep(S_DAM, S_DAM + 1, s) * (1 - smoothstep(S_DAM + 3, S_DAM + 14, s));
-  return Math.max(0.06, 0.72 * face, 0.3 * tail);
-}
 // ── the beaver pool (E322 F-L6) ──────────────────────────────────────────────────────────────────────────────────────
-/** the pool's bowl at arc length `s`, `d` m off the creek's line (Infinity outside it): the terrain carves it after the gully */
-export function beaverPoolBed(s: number, d: number): number {
-  const P = BEAVER_POOL, u = (s - P.centre) / P.half;
-  if (Math.abs(u) >= 1) return Infinity;
-  const w = P.width * Math.sqrt(1 - u * u);
-  return creekBedAt(s) + P.flat * Math.min(d, w) + P.bank * Math.max(0, d - w);
-}
 /** the pool's reach, riffle crest to the dam's upstream face (the pond's surface mesh leaves it to the pool's own) */
 export function inBeaverPool(x: number, z: number): boolean {
   const n = nearestOnPolyline(CREEK, x, z);

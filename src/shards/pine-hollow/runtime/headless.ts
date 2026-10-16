@@ -68,7 +68,7 @@ export function pineTerrainGrid(bytes: Uint8Array | undefined): BakedGrid {
  * Warden's Hollow (runtime/quest.ts: its declared rows and every beat's prompt at the page's baked point, by `pine.interact`
  * script commands; the stag's walk; Hale's night and the dawn on the host's day clock; its feats' facts). The page's day
  * clock steps on the host (`useDayClock`). The entry proof (runtime/entries.ts) walks a real capsule through all 92 lanes of
- * the grid's world (the scatter keeps the entry canyons clear, world/entryLanes.ts).
+ * the grid's world (the scatter keeps the entry canyons clear, generators/propRows.ts).
  */
 export const prepareHeadlessRuntime: PrepareHeadlessRuntime = async ({ shard, assets, rapier }) => {
   const row = shard.items.rows.find(item => item.id === 'weapon.longbow');
