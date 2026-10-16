@@ -182,3 +182,27 @@ export class ZiplineDriver {
     this.riding = saved.riding; this.motion.s = saved.s; this.motion.v = saved.v;
   }
 }
+
+/** A ride prompt shaped like the engine's interactable: hidden (radius 0) while its ride runs. */
+export interface ZiplinePrompt { readonly position: Vector3; readonly radius: number; readonly label: string; readonly onInteract: () => void }
+/** The cable a trolley rides: a point at arc distance `s` and the heading it turns across (CableLayout, ZiplineDriver). */
+export interface TrolleyCable { readonly at: (s: number, out: Vector3) => Vector3; readonly dir: Vector3 }
+/**
+ * A cable's drawn trolley and its ride prompt (Driftwood's zipline, Pine's ZipRide). It rests at `rest` metres down the
+ * cable, turned across its heading, and follows a cable distance with a small roll; the caller keeps the ride clock (a
+ * driver's own or a `step` state), the mesh, its material and the player. No clock or service is installed.
+ */
+export class ZiplineTrolley {
+  readonly prompt: ZiplinePrompt;
+  readonly object: Object3D;
+  private readonly cable: TrolleyCable;
+  private readonly rest: number;
+  constructor(cable: TrolleyCable, rest: number, object: Object3D, at: { readonly position: Vector3; readonly radius: number; readonly label: string }, riding: () => boolean, start: () => void) {
+    this.cable = cable; this.rest = rest; this.object = object;
+    this.prompt = { position: at.position, get radius() { return riding() ? 0 : at.radius; }, label: at.label, onInteract: start };
+    this.park();
+  }
+  park(): void { this.cable.at(this.rest, this.object.position); this.object.rotation.set(0, Math.atan2(this.cable.dir.x, this.cable.dir.z) + Math.PI / 2, 0); }
+  /** the trolley at cable distance `s`, rolling a little along the wire */
+  follow(s: number): void { this.cable.at(s, this.object.position); this.object.rotation.z = Math.sin(s * 0.7) * 0.05; }
+}

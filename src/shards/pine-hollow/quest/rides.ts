@@ -1,4 +1,4 @@
-import { ZiplineDriver, type ZiplineRideState } from '@wildshard/sdk/movers';
+import { ZiplineDriver, ZiplineTrolley, type ZiplineRideState } from '@wildshard/sdk/movers';
 import { ZIPLINE, ZIP_RIDE } from '../data/zipline';
 /**
  * Pine Hollow's two rides (PINE-HOLLOW-REMASTER PH-C1 beat 3, PH-C8 the canoe secret), on the landmarks PH-B3 built:
@@ -29,6 +29,7 @@ export class ZipRide {
   private riding = false;
   private readonly ride: ZiplineRideState = { s: 0, v: 0 };
   private readonly wire: ZiplineDriver;
+  private readonly carriage: ZiplineTrolley;
   private roll = 0;
 
   constructor(sky: Sky, top: THREE.Vector3, bottom: THREE.Vector3, launch: THREE.Vector3, private readonly landing: THREE.Vector3) {
@@ -41,17 +42,11 @@ export class ZipRide {
     this.trolley = new THREE.Mesh(k.finish(), npcMaterial(sky));
     this.trolley.castShadow = true;
     this.trolley.name = 'zip-trolley';
-    this.park();
-    const riding = (): boolean => this.riding;
-    this.prompt = { position: new THREE.Vector3(launch.x, launch.y + 1.1, launch.z), get radius() { return riding() ? 0 : 2.3; }, label: 'Ride the zipline', onInteract: () => { this.start(); } };
+    this.carriage = new ZiplineTrolley(this.wire, ZIP_RIDE.start, this.trolley, { position: new THREE.Vector3(launch.x, launch.y + 1.1, launch.z), radius: 2.3, label: 'Ride the zipline' }, () => this.riding, () => { this.start(); });
+    this.prompt = this.carriage.prompt;
   }
 
   get isRiding(): boolean { return this.riding; }
-
-  private park(): void {
-    this.wire.at(ZIP_RIDE.start, this.trolley.position);
-    this.trolley.rotation.set(0, Math.atan2(this.wire.dir.x, this.wire.dir.z) + Math.PI / 2, 0);
-  }
 
   start(): void {
     if (this.riding) return;
@@ -63,8 +58,7 @@ export class ZipRide {
   update(dt: number, p: Rider, camera: THREE.Camera): void {
     if (!this.riding) return;
     const ride = this.ride, holding = this.wire.step(ride, dt);
-    this.wire.at(ride.s, this.trolley.position);
-    this.trolley.rotation.z = Math.sin(ride.s * 0.7) * 0.05;
+    this.carriage.follow(ride.s);
     p.carried = true;
     this.wire.rider(ride.s, p.position);
     p.velocity.set(0, 0, 0);
@@ -75,7 +69,7 @@ export class ZipRide {
       this.riding = false;
       p.carried = false;
       this.wire.dismount(this.landing, p.position.y, p.position, p.velocity);
-      this.park();
+      this.carriage.park();
       this.onRide?.(false);
     }
   }

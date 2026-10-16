@@ -5162,6 +5162,11 @@ and Driftwood. A bounded optional direct-anchor profile selects start,
 release and landing values; absent profile keeps the deck ride law.
 `step` can advance the caller's existing `{s,v}` state; `update` owns the
 driver's original flat continuation. Both use the existing caller clock.
+`ZiplineTrolley(cable, rest, object, prompt, riding, start)` owns the drawn
+trolley's rest pose (`rest` metres down a `TrolleyCable`: a `CableLayout` or
+driver, turned across its heading), its `follow(s)` roll along the wire and
+the ride prompt hidden while riding. Pine's ZipRide and Driftwood's Zipline
+use it; mesh, material, player and ride clock stay the caller's.
 
 
 `engine/world/interact/flags.bindInteractionState` binds one validated kit

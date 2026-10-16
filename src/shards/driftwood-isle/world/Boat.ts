@@ -15,7 +15,7 @@
 import * as THREE from 'three';
 import { modelContext } from '@wildshard/engine/models/model';
 import { place, type Placed } from '@wildshard/engine/models/place';
-import type { BoxSpec as Collider } from '@wildshard/engine/physics/box';
+import { floorAtRects, type BoxSpec as Collider } from '@wildshard/engine/physics/box';
 import { lowPolyLookMaterial } from '@wildshard/engine/world/lowpolyKit';
 import type { WorldRegistry } from '@wildshard/engine/world/registry';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -78,11 +78,7 @@ export class Boat {
 
   /** the boat's floor if (x, z) is inside the hull */
   floorHeightAt(x: number, z: number): number | undefined {
-    const h = this.spec.heading ?? 0, cs = Math.cos(h), sn = Math.sin(h);
-    const dx = x - this.spec.x, dz = z - this.spec.z;
-    const lz = dx * sn + dz * cs, lx = dx * cs - dz * sn;
-    if (Math.abs(lz) > LENGTH / 2 - 0.3 || Math.abs(lx) > BEAM / 2 * 0.8) return undefined;
-    return this.floorY;
+    return floorAtRects([{ x: this.spec.x, z: this.spec.z, hw: BEAM / 2 * 0.8, hd: LENGTH / 2 - 0.3, y: this.floorY, rot: this.spec.heading ?? 0 }], x, z, 'first');
   }
 
   private moorings: MooringLinesSet | null = null;
