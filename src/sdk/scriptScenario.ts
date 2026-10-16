@@ -4,7 +4,7 @@ import type { DecisionBinding, DecisionCommit, DecisionContext, DecisionHost, De
 /** Small declared world, not a second mechanics implementation. Tests explicitly supply completion events. */
 export interface ScenarioActor {
   id: number; at: readonly [number, number, number]; yaw?: number; hpShare?: number; alive?: boolean;
-  fields?: Readonly<Record<number, number>>; moving?: boolean; strikeState?: number; spawn?: number;
+  fields?: Readonly<Record<number, number>>; fieldBounds?: Readonly<Record<number, { min: number; max: number; integer?: boolean }>>; moving?: boolean; strikeState?: number; spawn?: number;
 }
 export interface ScenarioWorldInput {
   actors?: readonly ScenarioActor[]; players?: readonly ScenarioActor[];
@@ -21,7 +21,13 @@ export interface ScriptScenarioInput extends ScenarioWorldInput {
 export interface ScenarioSnapshot { host: DecisionSnapshot; world: ScenarioWorldInput }
 export type ScenarioCommand = readonly (string | number)[];
 function finite(values: readonly number[]): void { if (!values.every(Number.isFinite)) throw new Error('Non-finite scenario value'); }
-function actorCopy(actor: ScenarioActor): ScenarioActor { return { ...actor, at: [...actor.at], fields: { ...actor.fields } }; }
+function actorCopy(actor: ScenarioActor): ScenarioActor {
+  for (const [key, bound] of Object.entries(actor.fieldBounds ?? {})) {
+    finite([bound.min, bound.max]); const value = actor.fields?.[Number(key)];
+    if (bound.min > bound.max || value === undefined || value < bound.min || value > bound.max || (bound.integer === true && !Number.isInteger(value))) throw new Error('Invalid scenario field bounds');
+  }
+  return { ...actor, at: [...actor.at], fields: { ...actor.fields }, fieldBounds: structuredClone(actor.fieldBounds ?? {}) };
+}
 
 /** Deterministic read-only query adapter. Commands are recorded by the host; it owns validation and timers/RNG. */
 export class ScenarioWorld implements DecisionWorld {
@@ -81,13 +87,30 @@ export class ScenarioWorld implements DecisionWorld {
     const count = Math.min(values.length, output.length); output.set(values.slice(0, count)); return count;
   }
   prepare(batch: readonly ScriptV1Command[], _context: DecisionContext): DecisionCommit {
-    // The real host validates capabilities/ownership/quotas before this adapter is called.
-    // Validate the complete fixture transaction now; this commit can then apply without throwing.
-    for (const [op, target] of batch) if ([commands.field, commands.move, commands.stop, commands.strike, commands.despawn].some(value => value === op)) this.actor(target);
+    // The host validates capabilities/known handles/quotas; the world knows actual actor kinds and ownership.
+    const player = (id: number): boolean => this.players.has(id) && _context.observed.has(id);
+    const owned = (id: number): ScenarioActor => {
+      if (!_context.binding.actors.includes(id) || this.players.has(id)) throw new Error('Scenario actor ownership refused');
+      return this.actor(id);
+    };
+    for (const [op, target, a, b] of batch) {
+      if ([commands.field, commands.move, commands.stop, commands.strike, commands.despawn].some(value => value === op)) {
+        const actor = owned(target);
+        if (op === commands.field) {
+          const bound = actor.fieldBounds?.[a];
+          if (actor.fields?.[a] === undefined || !Number.isFinite(b) || (bound !== undefined && (b < bound.min || b > bound.max || (bound.integer === true && !Number.isInteger(b))))) throw new Error('Scenario field declaration or bounds refused');
+        }
+      }
+      if ([commands.grant, commands.reward, commands.flag].some(value => value === op) && target !== 0 && !player(target)) throw new Error('Scenario target is not an observed player');
+      if ((op === commands.impulse || (op === commands.cue && target !== 0)) && !player(target)) owned(target);
+      if (op === commands.flag && b !== 0 && b !== 1) throw new Error('Scenario flag value refused');
+    }
     const copy = batch.map((command): ScriptV1Command => [command[0], command[1], command[2], command[3], command[4]]);
     return { commit: () => {
       for (const [op, target, a, b] of copy) {
-        if (op === commands.flag) this.input = { ...this.input, flags: { ...this.input.flags, [a]: b === 1 } };
+        if (op === commands.flag) this.input = target === 0
+          ? { ...this.input, flags: { ...this.input.flags, [a]: b === 1 } }
+          : { ...this.input, playerFlags: { ...this.input.playerFlags, [target]: { ...this.input.playerFlags?.[target], [a]: b === 1 } } };
         const actor = this.actors.get(target); if (actor === undefined) continue;
         if (op === commands.field) this.actors.set(target, { ...actor, fields: { ...actor.fields, [a]: b } });
         if (op === commands.move || op === commands.stop) this.actors.set(target, { ...actor, moving: op === commands.move });

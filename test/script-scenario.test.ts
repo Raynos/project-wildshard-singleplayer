@@ -69,3 +69,24 @@ it('labels real host commands without simulating their behaviour', () => {
   expect(scenarioCommand(script, [commands.timer, 0, 1, 2, 0])).toEqual(['timer', 'rest', 2]);
   expect(() => scenarioCommand(script, [commands.move, 7, 999, 0, 0])).toThrow('Unknown scenario moves');
 });
+
+it('world transactions verify actual player kind, observation and ownership before applying any command', () => {
+  const world = new ScenarioWorld({ actors: [{ id: 7, at: [0, 0, 0] }, { id: 102, at: [0, 0, 0] }], players: [{ id: 101, at: [0, 0, 0], fields: { 1: 0 } }] });
+  expect(() => world.prepare([[commands.flag, 0, 3, 1, 0], [commands.grant, 102, 4, 0, 0]], context)).toThrow('observed player');
+  expect(world.read(reads.flag, 3, 0, context)).toBe(0);
+  expect(() => world.prepare([[commands.move, 102, 1, 0, 0]], context)).toThrow('ownership');
+  expect(() => world.prepare([[commands.field, 101, 1, 1, 0]], { ...context, binding: { ...context.binding, actors: [7, 101] } })).toThrow('ownership');
+  expect(() => world.prepare([[commands.grant, 101, 4, 0, 0]], { ...context, observed: new Set() })).toThrow('observed player');
+  world.prepare([[commands.flag, 101, 3, 1, 0]], context).commit();
+  expect(world.read(reads.playerFlag, 101, 3, context)).toBe(1); expect(world.read(reads.flag, 3, 0, context)).toBe(0);
+});
+
+it('field declarations and bounds survive snapshots and still refuse replayed invalid transactions', () => {
+  const world = new ScenarioWorld({ actors: [{ id: 7, at: [0, 0, 0], fields: { 1: 0 }, fieldBounds: { 1: { min: 0, max: 2, integer: true } } }] });
+  const saved = world.snapshot(); world.restore(saved);
+  for (const [field, value] of [[1, 3], [1, 0.5], [2, 1]]) {
+    expect(() => world.prepare([[commands.flag, 0, 3, 1, 0], [commands.field, 7, field ?? 0, value ?? 0, 0]], context)).toThrow('bounds');
+  }
+  expect(world.read(reads.field, 7, 1, context)).toBe(0); expect(world.read(reads.flag, 3, 0, context)).toBe(0);
+  expect(() => world.restore({ actors: [{ id: 7, at: [0, 0, 0], fields: { 1: 0 }, fieldBounds: { 1: { min: Number.NaN, max: 2 } } }] })).toThrow('Non-finite');
+});

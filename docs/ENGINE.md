@@ -7226,3 +7226,10 @@ records an allowance. Template is closed for all three rules. The native
 Blender Template, Ink Cel Valley and Pastel Plain products are closed for
 `runtime-standalone`; their remaining build/discovery bridges retain the
 existing shrink-only ceilings. New files still start at zero everywhere.
+
+Scenario fixture transactions verify physical actor/player kind and
+binding ownership as well as the host's known-handle/capability checks.
+Player-scoped flags stay separate. Actor fields must be declared;
+`ScenarioActor.fieldBounds` optionally supplies min/max/integer rules
+(absent bounds declare a finite f64 fixture field). Full-batch refusal
+leaves all observations unchanged, including during staged-save replay.
