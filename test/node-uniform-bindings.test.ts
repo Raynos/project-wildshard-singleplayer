@@ -123,3 +123,58 @@ test('direct block writes upload exactly what changed and survive the row toggli
   expect(gl.writes).toBe(4);
   expect(uploads?.get(64)?.slice(0, 3)).toEqual([7, 8, 9]);
 });
+
+// Debug ▸ Performance ▸ Uniform block ring (sp-o290): a changed block is written whole at the ring's next aligned offset
+// and bound there, never over bytes an earlier draw still reads; an unchanged block keeps its placement until the ring
+// laps it, and turning the ring off rewrites the block's own buffer with every value it missed.
+class RingGl extends Gl {
+  readonly UNIFORM_BUFFER_OFFSET_ALIGNMENT = 35380;
+  readonly ranges = new Map<number, { buffer: WebGLBuffer | null; offset: number; size: number }>();
+  rangeCalls = 0;
+  override getParameter(name?: number): number { return name === this.UNIFORM_BUFFER_OFFSET_ALIGNMENT ? 256 : 24; }
+  bindBufferRange(_target: number, point: number, buffer: WebGLBuffer | null, offset: number, size: number): void {
+    this.ranges.set(point, { buffer, offset, size }); this.bindings.set(point, buffer); this.rangeCalls++;
+  }
+}
+
+test('the block ring writes each changed block at a fresh aligned offset and binds that range', () => {
+  const gl = new RingGl(), blocks = new NodeUniformBuffers(gl), program: WebGLProgram = {};
+  const model = { value: 1 }, fixed = { value: 9 };
+  const object: BlockGroup = { name: 'object', uniforms: [model] }, render: BlockGroup = { name: 'render', uniforms: [fixed] };
+  blocks.ring = true;
+  expect(blocks.ring).toBe(true);
+  // two draws of one shared object block: two placements, the second never over the first
+  blocks.bind(program, [object, render]);
+  const ring = gl.ranges.get(23)?.buffer;
+  if (ring === undefined || ring === null) throw new Error('Missing ring');
+  expect(gl.ranges.get(23)).toEqual({ buffer: ring, offset: 0, size: 16 });
+  expect(gl.ranges.get(22)).toEqual({ buffer: ring, offset: 256, size: 16 });
+  model.value = 2;
+  blocks.bind(program, [object, render]);
+  expect(gl.ranges.get(23)).toEqual({ buffer: ring, offset: 512, size: 16 });
+  expect(gl.ranges.get(22)?.offset).toBe(256);
+  const values = gl.values.get(ring);
+  expect(values?.get(0)).toEqual([1, 0, 0, 0]); expect(values?.get(512)).toEqual([2, 0, 0, 0]);
+  // an unchanged draw writes and binds nothing
+  const writes = gl.writes, calls = gl.rangeCalls;
+  blocks.bind(program, [object, render]);
+  expect(gl.writes).toBe(writes); expect(gl.rangeCalls).toBe(calls);
+  // a render boundary rebinds the same ranges without writing
+  blocks.invalidateBindings(); blocks.bind(program, [object, render]);
+  expect(gl.writes).toBe(writes); expect(gl.rangeCalls).toBe(calls + 2);
+  // a full lap: the object block wraps to the ring's start and the unchanged render block is placed again
+  for (let i = 0; i < 4 * 1024 * 4; i++) { model.value = 10 + i; blocks.bind(program, [object, render]); }
+  expect(gl.ranges.get(22)?.offset).not.toBe(256);
+  expect(values?.get(gl.ranges.get(22)?.offset ?? -1)).toEqual([9, 0, 0, 0]);
+  expect(values?.get(gl.ranges.get(23)?.offset ?? -1)).toEqual([model.value, 0, 0, 0]);
+  // the ring off: the block's own buffer gets every value it missed, bound whole again
+  blocks.ring = false;
+  blocks.bind(program, [object, render]);
+  const own = gl.bindings.get(23);
+  if (own === undefined || own === null) throw new Error('Missing own buffer');
+  expect(own).not.toBe(ring);
+  expect(gl.values.get(own)?.get(0)).toEqual([model.value, 0, 0, 0]);
+  // a recorder without bindBufferRange never rings
+  const plain = new NodeUniformBuffers(new Gl()); plain.ring = true;
+  expect(plain.ring).toBe(false);
+});

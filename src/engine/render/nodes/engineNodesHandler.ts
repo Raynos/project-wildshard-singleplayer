@@ -509,6 +509,9 @@ export class EngineNodesHandler extends WebGLNodesHandler {
   /** write block values straight into their floats (`NodeUniformBuffers.directWrites`; Debug ▸ Performance ▸ Direct block writes) */
   get directBlockWrites(): boolean { return this.blocks?.directWrites ?? false; }
   set directBlockWrites(on: boolean) { if (this.blocks !== null) this.blocks.directWrites = on; }
+  /** bind changed blocks from one ring buffer (`NodeUniformBuffers.ring`; Debug ▸ Performance ▸ Uniform block ring) */
+  get blockRing(): boolean { return this.blocks?.ring ?? false; }
+  set blockRing(on: boolean) { if (this.blocks !== null) this.blocks.ring = on; }
 
   override renderEnd(): void { try { super.renderEnd(); } finally { this.textureUpdates.endRender(); this.blocks?.invalidateBindings(); } }
 
