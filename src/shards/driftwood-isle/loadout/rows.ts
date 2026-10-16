@@ -26,10 +26,10 @@ export function driftwoodLoadoutRows(world: World, shell: ShardRuntime, material
       if (at !== 'wreck.deck') throw new Error(`Unknown iron sword pickup site: ${at}`);
       const wreck = driftwoodWorld(shell).wreck;
       if (wreck === null) return null;
-      const { game, sky, player } = world;
+      const { game, sky } = world;
       const drop = new IronSwordPickup({ scene: game.scene, sky, materials, position: ironSwordSite(wreck, heightAt), prompt });
       const update = drop.update.bind(drop);
-      drop.update = (dt, t) => { update(dt, t, game.renderer, game.camera, player.position); };
+      drop.update = (dt, t) => { update(dt, t, game.renderer, game.camera); };
       drops.set(shell, drop);
       return drop;
     },

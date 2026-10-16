@@ -5,7 +5,7 @@ import { LightPool } from '@wildshard/engine/fx/LightPool';
 import { SEED } from '@wildshard/engine/core/config';
 import { Rng } from '@wildshard/engine/core/rng';
 import { buildIronSwordDisplay } from '../runtime/loadout';
-import { ItemPickup, type PickupTier } from '@wildshard/engine/player/WeaponPickup';
+import { ItemPickup } from '@wildshard/engine/player/WeaponPickup';
 import type { Renderer } from '@wildshard/engine/render/renderer';
 import type { Interactable } from '@wildshard/engine/world/interact/types';
 import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
@@ -25,7 +25,7 @@ import type { SkyRig as Sky } from '@wildshard/engine/world/skyRig';
  *   interactables.push(drop.interactable);                       // "[E] Take iron sword" within `radius` (the door / harvest prompt path)
  *   drop.onPickup = () => { weapons.unlock('sword-iron'); weapons.select('sword-iron'); hud.toast('Iron sword acquired · 1/2 to switch, Q to swap'); audio.hitMarker(); };
  *   drop.onNear = (on) => audio.pickupHum(on);
- *   game.onUpdate((dt, t) => drop.update(dt, t, game.renderer, game.camera, player.position));
+ *   game.onUpdate((dt, t) => drop.update(dt, t, game.renderer, game.camera));
  *   drop.guard = () => sailorDead ? null : 'Guarded — …';        // B4 / D6 (src/game/quest/Adventure.ts sets it on Driftwood):
  *   drop.onGuarded = (why) => hud.toast(why);                    // the prompt shows why, E does nothing until the guard is down
  *   `?weapon=iron` (dev): weapons.unlock('sword-iron'); weapons.select('sword-iron', true); drop.dispose();
@@ -42,23 +42,16 @@ export interface IronSwordPickupOptions {
   materials: ReadonlyMap<string, THREE.Material>;
   /** the floor point under the orb (the deck) */
   position: THREE.Vector3;
-  tier?: PickupTier;
   prompt?: string;
-  /** "[E]" prompt radius (m from the eye; default 2.6 — the deck is a step up from the sand) */
-  radius?: number;
-  /** walk-in radius (m from the player's feet to the orb's floor point; 0 = E only) */
-  takeRadius?: number;
 }
 
 const WARM = 0xffb257;
 /** the pickup's cosmetic draws (the glow's flicker phase, the orb's bob and motes) come from this seed, not `Math.random`:
  *  the frame at the wreck stays the same however many three.js objects the boot made before it */
 const COSMETIC_SEED = SEED ^ 0x1205;
-const TAKE_R = 0;                  // m, feet to the orb's floor point for a walk-in take — off (B4): the sword is taken with E, once its guard is down
 const LIFT = 0.22;                 // m the orb's floor point sits over the deck: the big sword (DISPLAY_SCALE × 1.25 m) pokes out of the
                                    // orb top and bottom, so the pommel clears the planks
 const DISPLAY_SCALE = 1.3, TILT = THREE.MathUtils.degToRad(40);   // fills the orb diagonally like the AR-15 in the mockup
-const TAKE_DY = 1.6;               // m, |feet y − floor y| — no taking it from the sand under the hull
 const GUARDED_R = 1.4;             // m, eye → prompt point while guarded (E296): the reason shows at the rack only, not over the
                                    // whole hold's fight (on the phone it was the big USE band across the sailor), and any other prompt wins
 
@@ -116,8 +109,6 @@ export class IronSwordPickup extends ItemPickup {
   private glowLight: THREE.PointLight;
   private halo: THREE.Sprite;
   private haloMat: THREE.SpriteMaterial;
-  private floor: THREE.Vector3;
-  private takeRadius: number;
   private glowScene: THREE.Scene;
   private readonly phase: number;
   private gone = false;
@@ -125,9 +116,8 @@ export class IronSwordPickup extends ItemPickup {
   constructor(opts: IronSwordPickupOptions) {
     const cosmetic = new Rng(COSMETIC_SEED), phase = cosmetic.next() * 7;
     const floor = opts.position.clone(); floor.y += LIFT;
-    super({ scene: opts.scene, item: buildIronSwordDisplay(opts.materials), position: floor, tier: opts.tier ?? 'common', prompt: opts.prompt ?? 'Take iron sword', radius: opts.radius ?? 2.6, scale: DISPLAY_SCALE, tilt: TILT, random: () => cosmetic.next() });
-    this.glowScene = opts.scene; this.floor = floor; this.phase = phase;
-    this.takeRadius = opts.takeRadius ?? TAKE_R;
+    super({ scene: opts.scene, item: buildIronSwordDisplay(opts.materials), position: floor, prompt: opts.prompt ?? 'Take iron sword', radius: 2.6, scale: DISPLAY_SCALE, tilt: TILT, random: () => cosmetic.next() });
+    this.glowScene = opts.scene; this.phase = phase;
     const base = this.interactable, reason = (): string | null => this.guard?.() ?? null;
     this.interactable = {
       position: base.position,
@@ -138,11 +128,11 @@ export class IronSwordPickup extends ItemPickup {
     };
     // the warm glow: an amber point light over the deck (the orb's own is a short cyan one) and a big soft halo
     this.glowLight = LightPool.for(opts.scene).acquire(WARM, 18, 11, 1.6); // pooled (B7): released dark on pickup, never removed
-    this.glowLight.position.set(this.floor.x, this.floor.y + 1.3, this.floor.z);
+    this.glowLight.position.set(floor.x, floor.y + 1.3, floor.z);
     haloTex ??= cacheUntilDisposed(makeHalo(), () => { haloTex = null; });
     this.haloMat = new THREE.SpriteMaterial({ map: haloTex, color: WARM, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, toneMapped: false });
     this.halo = new THREE.Sprite(this.haloMat);
-    this.halo.position.set(this.floor.x, this.floor.y + 0.75, this.floor.z);
+    this.halo.position.set(floor.x, floor.y + 0.75, floor.z);
     this.halo.scale.setScalar(3.2);
     this.halo.renderOrder = 19;
     opts.scene.add(this.halo);
@@ -160,14 +150,10 @@ export class IronSwordPickup extends ItemPickup {
     this.haloMat.dispose();
   }
 
-  /** `playerPos` = the player's feet: inside `takeRadius` of the floor point (and on its level) the sword is taken */
-  override update(dt: number, t: number, renderer?: Renderer, camera?: THREE.PerspectiveCamera, playerPos?: THREE.Vector3): void {
+  /** the glow flickers while the sword waits, and flares out with the orb once it is taken */
+  override update(dt: number, t: number, renderer?: Renderer, camera?: THREE.PerspectiveCamera): void {
     super.update(dt, t, renderer, camera);
     if (!this.taken) {
-      if (playerPos && this.takeRadius > 0 && (this.guard?.() ?? null) === null) {
-        const dx = playerPos.x - this.floor.x, dz = playerPos.z - this.floor.z;
-        if (dx * dx + dz * dz < this.takeRadius * this.takeRadius && Math.abs(playerPos.y - this.floor.y) < TAKE_DY + LIFT) this.take();
-      }
       const tt = t + this.phase;
       const flick = 1 + Math.sin(tt * 2.2) * 0.1 + Math.sin(tt * 7.3) * 0.05;
       this.glowLight.intensity = 18 * flick;
