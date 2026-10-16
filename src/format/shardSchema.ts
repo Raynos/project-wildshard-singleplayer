@@ -109,6 +109,9 @@ const rawSchema = v.strictObject({
   runtime: v.optional(v.nullable(RuntimeSchema), null),
   spawn: v.optional(SpawnSchema, { x: 0, y: 2, z: 0, yaw: 0 }),
 });
+/** Defining field schemas used by the sectioned output writer and reader.
+ * Cross-field rules still run once the complete product is assembled. */
+export const ShardfileFieldSchemas: Readonly<Record<keyof Shardfile, v.GenericSchema>> = rawSchema.entries;
 /** A serialisable shardfile v0, independent of renderer and placement. */
 /** Public parsed output, independently named by section. The unchanged schema
  * is checked against this interface, so consumers need not expand its input tree. */

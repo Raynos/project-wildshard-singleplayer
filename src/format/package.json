@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "exports": {
+    "./outputIndex": "./outputIndex.ts",
     "./shardCatalog": "./shardCatalog.ts",
     "./edgeProfiles": "./edgeProfiles.ts",
     "./plumbing": "./plumbing.ts",
