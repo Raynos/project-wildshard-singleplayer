@@ -53,6 +53,11 @@ export const SECTIONS = {
   'custom/islandClips': v.strictObject({ sourceVertices: natural, sourceIndices: natural, outputIndices: natural, ranges: runs }),
   /** the fixed models' baked layouts: the chime's draw slots, the hut's, lookout's and shrine's colliders, anchors and floors */
   'custom/fixedLayouts': v.strictObject({
+    /** All seven authored pier collider sets, keyed to the exact primitive parameters. */
+    piers: v.pipe(v.array(v.strictObject({ paramKey: v.pipe(v.string(), v.maxLength(4096)), colliders: v.pipe(v.array(v.variant('kind', [
+      v.strictObject({ kind: v.literal('box'), x: number, y: number, z: number, hx: number, hy: number, hz: number, yaw: v.exactOptional(v.nullable(number)), rot: v.exactOptional(v.strictObject({ x: number, y: number, z: number, w: number })) }),
+      v.strictObject({ kind: v.literal('hull'), x: number, y: number, z: number, points: v.pipe(v.array(number), v.maxLength(24)) }),
+    ])), v.maxLength(128)) })), v.length(7)),
     chimeSlots: runs,
     gullPerches: v.pipe(v.array(point), v.maxLength(10)),
     /** the sea cave's spec key, native colliders, anchors, stair descriptors, terrain cuts and reef-rock catalogue */

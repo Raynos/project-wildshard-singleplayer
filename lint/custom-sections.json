@@ -152,6 +152,18 @@
         "bytes": 205433
       },
       "why": "G465: bake the fixed wet-sand gull perches into existing fixedLayouts, deleting the runtime sampler and corridor adapter"
+    },
+    {
+      "slug": "driftwood-isle",
+      "from": {
+        "count": 6,
+        "bytes": 205433
+      },
+      "to": {
+        "count": 8,
+        "bytes": 245826
+      },
+      "why": "Compile exact pier colliders offline (+39270 B); adopt the existing 8-section/206556 B output, previously 2 sections and 1123 B over its stale ceiling. No custom-line exemption."
     }
   ]
 }
