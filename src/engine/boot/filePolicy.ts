@@ -7,20 +7,20 @@ import type { ChunkFiles } from './bytes';
 
 interface FilePolicy { phone: (url: string) => string; gpu: (url: string) => string; layer: (url: string) => string; pbr: (id: string) => string[] }
 /** Pure asset-name resolution for node-safe manifest file lists. */
-export function filePolicy(tier: Tier, mode: TexMode, table: Ktx2Table): FilePolicy {
+export function filePolicy(tier: Tier, mode: TexMode, table: Ktx2Table, inventory: Readonly<Record<string, number>> = publicBytes()): FilePolicy {
   const files = { ...ENGINE_GPU_FILES[tier], ...table[tier] };
   const phone = (url: string): string => {
     if (tier !== 'phone') return url;
     const match = /^(.*)\.(png|jpg|webp|glb)$/.exec(url);
     if (match === null) return url;
     const candidate = `${match[1]}.phone.${match[2] === 'glb' ? 'glb' : 'webp'}`;
-    return candidate in publicBytes() ? candidate : url;
+    return candidate in inventory ? candidate : url;
   };
   const gpu = (url: string): string => { const mapped = phone(url); return mode === 'ktx2' ? files[mapped] ?? mapped : mapped; };
   const layer = (url: string): string => { const mapped = phone(url); return mode === 'ktx2' ? files[`${mapped}#layer`] ?? mapped : mapped; };
   const pbr = (id: string): string[] => ['diffuse', 'nor_gl', 'arm'].map((kind) => {
     const base = `/assets/tex/${id}/${kind}`;
-    return tier === 'phone' && `${base}_1k.jpg` in publicBytes() ? `${base}_1k.jpg` : `${base}.jpg`;
+    return tier === 'phone' && `${base}_1k.jpg` in inventory ? `${base}_1k.jpg` : `${base}.jpg`;
   });
   return { phone, gpu, layer, pbr };
 }
@@ -28,6 +28,7 @@ export function filePolicy(tier: Tier, mode: TexMode, table: Ktx2Table): FilePol
 /** Resolve authored rows in their original order; frozen callable inventories retain their exact arguments. */
 export function bootSourceFiles(sources: NonNullable<BootSpec['sources']>, tier: Tier, tex: TexMode): ChunkFiles {
   if (typeof sources === 'function') return sources(tier, tex);
+  if ('modes' in sources) return sources.modes[tier][tex];
   const policy = filePolicy(tier, tex, sources.gpuFiles ?? { phone: {}, desktop: {} });
   const resolve = (rows: readonly (string | { readonly gpu: string })[]): readonly string[] => rows.map(row => typeof row === 'string' ? row : policy.gpu(row.gpu));
   const rows = sources.tiers[tier];
@@ -38,13 +39,15 @@ export function bootSourceFiles(sources: NonNullable<BootSpec['sources']>, tier:
 /** Resolve a declared ordered file list, including inventories intentionally pinned to one source tier. */
 export function bootFileList(files: BootSpec['files'], tier: Tier): readonly string[] {
   if (typeof files === 'function') return files(tier);
+  if ('modes' in files) return files.modes[tier].img;
   if ('sources' in files) return Object.values(bootSourceFiles(files.sources, files.tier, files.tex)).flat();
   return files;
 }
 
 /** Resolve late reads without running author-specific callbacks for row declarations. */
 export function bootLateReads(reads: BootSpec['lateReads'], tier: Tier, tex?: TexMode): readonly string[] {
-  return typeof reads === 'function' ? reads(tier, tex) : reads ?? [];
+  if (typeof reads === 'function') return reads(tier, tex);
+  return reads !== undefined && 'modes' in reads ? reads.modes[tier][tex ?? 'img'] : reads ?? [];
 }
 
 /** Ordered boot file recipes. Only bounded inventory selection and asset-name transforms are supported. */
@@ -64,6 +67,8 @@ export interface BootFileRecipe {
 }
 /** External immutable inventories and aliases, supplied by the same build/runtime owner as the GPU table. */
 export interface BootFileInputs {
+  /** Offline producers pass their real public-file facts instead of installing app services. */
+  readonly inventory?: Readonly<Record<string, number>>;
   readonly pages?: Readonly<Record<string, Readonly<Record<Tier, Readonly<Record<string, { readonly image: string }>>>>>>;
   readonly aliases?: Readonly<Record<string, Readonly<Record<string, string>>>>;
 }
@@ -72,7 +77,7 @@ const isUrlList = (value: readonly string[] | Readonly<Record<Tier, readonly str
 /** Resolve a named recipe without fetching. Keep original order/duplicates unless unique is declared. */
 export function resolveBootFiles(recipes: BootFileRecipes, name: string, tier: Tier, tex: TexMode,
   table: Ktx2Table, inputs: BootFileInputs = {}): string[] {
-  const policy = filePolicy(tier, tex, table), inventory = publicBytes();
+  const inventory = inputs.inventory ?? publicBytes(), policy = filePolicy(tier, tex, table, inventory);
   let visits = 0;
   const run = (id: string, chain: readonly string[]): string[] => {
     if (chain.includes(id) || chain.length >= 16 || ++visits > 256) throw new Error('Boot recipe cycle or bound exceeded');

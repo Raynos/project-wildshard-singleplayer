@@ -4204,6 +4204,19 @@ ordered URL array, resolved by `bootLateReads`. Callable legacy inventories
 retain their original arguments and results. Both Sky and Signal consume
 these declarations; frozen manifests remain callable.
 
+`BootModeRows<T>` adds offline-resolved inventories: `modes.phone` and
+`modes.desktop`, each with ordered `img` and `ktx2` values. Sources use
+`ChunkFiles`; files and late reads use URL arrays. `bootFileList` selects
+the requested tier image inventory, preserving the callable file-list
+contract; `bootSourceFiles` and `bootLateReads` select the exact mode
+(default image for late reads). A fixed `{ sources, tier, tex }` selection
+also accepts compiled sources. Generators bind these JSON rows through
+authored manifest boot bindings before admission, including background
+prefetch, with no runtime recipe tables or per-shard selector callbacks.
+Offline recipe compilers may pass real file-size facts through
+`BootFileInputs.inventory`; presence and phone fallbacks use those facts
+instead of installing application asset-table services.
+
 These are native level boot rows, not a second untrusted asset-admission
 path. A compiled shardfile's files must still pass its content and cost
 admission before the data client can read them.

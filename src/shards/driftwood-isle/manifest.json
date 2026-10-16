@@ -351,16 +351,16 @@
     },
     "boot": {
       "files": {
-        "module": "./runtime/boot/sources",
-        "export": "bootFiles"
+        "module": "./data/boot-files.generated.json",
+        "export": "default"
       },
       "sources": {
-        "module": "./runtime/boot/sources",
-        "export": "bootSources"
+        "module": "./data/boot-sources.generated.json",
+        "export": "default"
       },
       "lateReads": {
-        "module": "./runtime/boot/lateReads",
-        "export": "lateReads"
+        "module": "./data/boot-lateReads.generated.json",
+        "export": "default"
       }
     },
     "navigation": {

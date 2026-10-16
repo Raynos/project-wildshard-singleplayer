@@ -6,10 +6,6 @@ import { ISLAND_KNOBS } from '../src/shards/driftwood-isle/tiers';
 import { ISLAND_KNOBS as RUNTIME_ISLAND_KNOBS } from '../src/shards/driftwood-isle/runtime/tiers';
 import { FIXED_MODEL_FILES } from '../src/shards/driftwood-isle/data/modelFiles';
 import { DRIFTWOOD_ASSET_NAMES, DRIFTWOOD_OUTPUT, DRIFTWOOD_FIXED_SOURCES as NAMED_MODELS } from '../src/shards/driftwood-isle/data/output';
-import { DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES } from '../src/shards/driftwood-isle/data/bootFiles';
-import { GPU_FILES } from '../src/shards/driftwood-isle/ktx2.generated';
-import { resolveBootSources } from '../src/engine/boot/filePolicy';
-import { bootSources } from '../src/shards/driftwood-isle/runtime/boot/sources';
 
 // P2a spec §2.3 / review item 8: Driftwood's runtime/const.ts copies must equal the data/ values they mirror.
 test('Driftwood runtime/const.ts mirrors data/ exactly', () => {
@@ -32,11 +28,5 @@ test('all 86 named fixed draws retain the assembler identities and admitted blob
     expect(name).toBe(DRIFTWOOD_ASSET_NAMES[url]);
     expect(names.has(name)).toBe(true);
     expect(name.slice(name.lastIndexOf('/') + 1, -4)).toBe(url.slice(url.lastIndexOf('/') + 1, -4));
-  }
-});
-
-test('both tier and texture choices retain every ordered public boot source', () => {
-  for (const tier of ['phone', 'desktop'] as const) for (const mode of ['img', 'ktx2'] as const) {
-    expect(bootSources(tier, mode)).toEqual(resolveBootSources(DRIFTWOOD_BOOT_FILES, DRIFTWOOD_BOOT_SOURCES, tier, mode, GPU_FILES));
   }
 });

@@ -1898,3 +1898,7 @@ src/shards/driftwood-isle/data/islandFacts.generated.json
 /src/shards/pine-hollow/generators/sectionSchemas.generated.ts
 
 /src/shards/driftwood-isle/generators/sectionSchemas.generated.ts
+
+/src/shards/driftwood-isle/data/boot-sources.generated.json
+/src/shards/driftwood-isle/data/boot-files.generated.json
+/src/shards/driftwood-isle/data/boot-lateReads.generated.json

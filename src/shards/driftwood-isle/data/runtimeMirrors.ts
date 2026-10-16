@@ -38,11 +38,9 @@ import { SMOKE_LOOK } from './smokeLook';
 import { DAY_LIGHT, RAMP_FOG } from './toonLook';
 import { CASCADE_LOOKS } from './waterfallLook';
 import { WRECK_SITES } from './wreckSites';
-import { DRIFTWOOD_FILE_MIRRORS } from './runtimeFiles';
 
 /** Every value runtime/const.ts copies, next to its source (P2a spec §2.3); a drift refuses. */
 export const RUNTIME_MIRRORS = [
-  ...Object.entries(DRIFTWOOD_FILE_MIRRORS).map(([name, value]) => defineMirror(name, value)),
   defineMirror('CASCADE_LOOKS', CASCADE_LOOKS),
   defineMirror('SMOKE_LOOK', SMOKE_LOOK),
   defineMirror('FIREFLY_LOOK', FIREFLY_LOOK),

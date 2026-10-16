@@ -14862,6 +14862,62 @@
       "buildTimeOutputs": [
         "src/shards/driftwood-isle/generators/sectionSchemas.generated.ts"
       ]
+    },
+    {
+      "id": "driftwood-boot-inventory",
+      "shard": "driftwood-isle",
+      "entry": "src/shards/driftwood-isle/generators/bake-boot-inventory.mjs",
+      "command": [
+        "--experimental-transform-types",
+        "--import",
+        "./scripts/bake-loader.mjs",
+        "src/shards/driftwood-isle/generators/bake-boot-inventory.mjs"
+      ],
+      "inputRoots": [
+        "src/shards/driftwood-isle/generators/bake-boot-inventory.mjs",
+        "src/shards/driftwood-isle/generators/bootInventory.ts",
+        "src/shards/driftwood-isle/data/bootFiles.ts",
+        "src/shards/driftwood-isle/data/islandPlanFiles.ts",
+        "src/shards/driftwood-isle/data/reefFiles.ts",
+        "src/shards/driftwood-isle/data/groundFiles.ts",
+        "src/shards/driftwood-isle/data/oceanFiles.ts",
+        "src/shards/driftwood-isle/data/palmFiles.ts",
+        "src/shards/driftwood-isle/data/hibiscusFiles.ts",
+        "src/shards/driftwood-isle/data/islandCoverFiles.ts",
+        "src/shards/driftwood-isle/ktx2.generated.ts",
+        "src/engine/boot/filePolicy.ts",
+        "src/engine/boot/tables.ts",
+        "src/engine/boot/ktx2.generated.ts",
+        "src/engine/app/identity.ts",
+        "src/engine/package.json",
+        "src/game/shard/list.ts",
+        "src/game/identity.ts",
+        "scripts/bake-loader.mjs",
+        "scripts/bake-output.mjs",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "public/assets/baked/driftwood-isle",
+        "public/assets/models/driftwood-blender",
+        "public/assets/models/driftwood-hero",
+        "public/assets/horizon",
+        "public/assets/lut",
+        "public/assets/driftwood-isle/baked",
+        "public/assets/gpu/horizon",
+        "public/assets/gpu/models/driftwood-blender",
+        "public/assets/gpu/models/driftwood-hero"
+      ],
+      "outputs": [
+        "src/shards/driftwood-isle/data/boot-sources.generated.json",
+        "src/shards/driftwood-isle/data/boot-files.generated.json",
+        "src/shards/driftwood-isle/data/boot-lateReads.generated.json"
+      ],
+      "buildTimeOutputs": [
+        "src/shards/driftwood-isle/data/boot-sources.generated.json",
+        "src/shards/driftwood-isle/data/boot-files.generated.json",
+        "src/shards/driftwood-isle/data/boot-lateReads.generated.json"
+      ],
+      "platform": "portable"
     }
   ]
 }

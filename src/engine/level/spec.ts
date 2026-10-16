@@ -42,16 +42,18 @@ export interface BootSourceRows {
   readonly tiers: Readonly<Record<Tier, Readonly<Record<ByteKey, readonly BootSourceReference[]>>>>;
   readonly gpuFiles?: Ktx2Table;
 }
+/** Offline-resolved inventory for every tier and texture choice, in authored order. */
+export interface BootModeRows<T> { readonly modes: Readonly<Record<Tier, Readonly<Record<TexMode, T>>>> }
 /** A flattened file inventory from a fixed source tier and texture mode. */
-export interface BootFileSelection { readonly sources: BootSourceRows; readonly tier: Tier; readonly tex: TexMode }
+export interface BootFileSelection { readonly sources: BootSourceRows | BootModeRows<ChunkFiles>; readonly tier: Tier; readonly tex: TexMode }
 export interface BootSpec {
   viewmodelSets?: readonly SetName[];
   shaders?: { scene?: boolean; shadows?: boolean; background?: boolean; post?: boolean };
   /** The plugin runs grass, cabins and props as separate counted world steps. */
   stagedWorld?: boolean;
-  lateReads?: readonly string[] | ((tier: Tier, tex?: TexMode) => readonly string[]);
-  files: readonly string[] | BootFileSelection | ((tier: Tier) => readonly string[]);
-  sources?: BootSourceRows | ((tier: Tier, tex: TexMode) => ChunkFiles);
+  lateReads?: readonly string[] | BootModeRows<readonly string[]> | ((tier: Tier, tex?: TexMode) => readonly string[]);
+  files: readonly string[] | BootModeRows<readonly string[]> | BootFileSelection | ((tier: Tier) => readonly string[]);
+  sources?: BootSourceRows | BootModeRows<ChunkFiles> | ((tier: Tier, tex: TexMode) => ChunkFiles);
   bakedUnread?: RegExp;
   steps?: Readonly<Record<string, { label: string; weight: number }>>;
   bytes?: Readonly<Partial<Record<ByteKey, string>>>;
