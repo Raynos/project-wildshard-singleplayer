@@ -6,7 +6,7 @@ Pace last hour: Pine −0.8 pt, DW −1.1 pt. Most blocks left are 10-60 lines, 
 Since 23:10Z: Pine weapon view `561dab1d3` (−13), place sets `200092790` (−11), timber intake `fd7c3330b`; DW NPC pose clips `580ce7ea4` (−13), packed bodies `c61fbc4df` (−30), dead cue map `c65546e4a`.
 
 **Lanes (G432 Opus ladder; Codex 5 + pusher; slots G435):**
-- Opus: none running. Visual W2 targets are thin; an Opus lane starts when a 50+ line visual block appears.
+- Opus (Claude weekly 20 %): o244 DW looks (streamedCover, gullFlock, ocean/backdrop/reef); o245 Pine looks (keyedSky, rainFx, groundCover, weather). Started 00:45Z to lift pace toward ~935 lines/h.
 - Codex (G440 one task per turn, hourly check-ins; G441 hosts): x1 next Pine C6 weapon block; x4 DW effect grants (Nalati skin locker); x5 next DW C5 block; x6 DW C4 creature brain (Nalati balbal); x7 push, maps (batch ~01:00Z), refs; x8 Pine deck floors on floorAtRects (Nine floorRows).
 - Slots: check = x1 x5 · check2 = x4 x7 · check3 = x6 x8 measure.
 
@@ -16,5 +16,5 @@ Since 23:10Z: Pine weapon view `561dab1d3` (−13), place sets `200092790` (−1
 
 **Waves:** W2 → W3 (Nalati + Nine) starts by itself at Pine and DW ≤ 20 % + G420 (G434). In force: G415–G442.
 
-**For wildshard-v:** G441 in force (W3 host table in open-x-queue.md). G442 answered (no lost contrast; optional extra-contrast Debug A/B if Jake wants it). Pace note: W2 will overrun 24 h at ~1 pt/h; lanes stay on the biggest honest blocks.
+**For wildshard-v:** G441 in force (W3 host table in open-x-queue.md). G442 closed by Jake (no Debug A/B; nothing to build). Pace: ~600 lines/h vs ~935 needed; two Opus look lanes added (o244, o245); x8 pointed at ambientLife.ts (Pine C4 625).
 Paused rows: SF22, SF57, SF67.
