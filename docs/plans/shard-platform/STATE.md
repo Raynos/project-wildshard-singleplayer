@@ -7,7 +7,7 @@ Pine/DW: C1 3844/3606 · C2 1703/1917 · C4 3796/1661 · C5 1944/1309 · C6 2426
 
 **Lanes (G450, 11:15Z):** Codex: x4 Pine load-time prewarm (default-off row) · x5 P1 writer · x8 P1 loader · x6 P2b sections (`40db802bc`) · x1 P3 catalog (`1ce7644d3`) and runtime copy · x7 sim ratchet `378f868df`, H2 `a47863919`, then Pine assets → blobs + pusher. o263 W2a Pine client-only folders into runtime/. Opus: o260 Pine W2c · o261 DW W2c · o268 Pine client moves + lint fixes · o264 DW client folders → runtime/ · o265/o266 Pine/DW rewire to product reads · o269 R1 shared roster. Rows: open-x-queue.md "Shardfile design rows".
 
-**fps (Jake's bar):** milestone `68cd273ea`: the ~1 s Pine stall is gone (`3efc0d81d`). Still failing: Pine Safari approach p95 72 ms (`54210bc02`, `ec3527529`; load-time precompile next); DW Safari work 6-7 → 15-18 ms, first cause `c5b1f0b2f` + later graph ports (receipt `06f180053`), Safari textureFlip −3 ms worst view (`85c777932`). 
+**fps:** milestone `68cd273ea`: the ~1 s Pine stall is gone (`3efc0d81d`). Still failing: Pine Safari approach p95 72 ms (`54210bc02`, `ec3527529`; load-time precompile next); DW Safari work 6-7 → 15-18 ms, first cause `c5b1f0b2f` + later graph ports (receipt `06f180053`), Safari textureFlip −3 ms worst view (`85c777932`). 
 Fixes: `f542a4cfb`, `c5ef7b1c1`, `3e1f25d7b`, `d5d5f9185`, `ef1b80191`.
 
 **Rules:** offline bakes honest (`1c125707c`); G448 no hand-converted JSON; G449 runtime/ standalone; G445 ruler `f0ca1f1c8` stays until P4. G441: 89 entries. In force: G415–G454.
