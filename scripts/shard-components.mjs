@@ -82,7 +82,7 @@ const reviewedW2Owners = new Map([
   ['src/shards/driftwood-isle/runtime/boot/trailSpecimens.ts', 'C1'],
   // Native geometry admission and owned static batch/specimen buffers.
   ['src/shards/driftwood-isle/runtime/boot/hibiscusGeometry.ts', 'C1'],
-  ['src/shards/driftwood-isle/boot/foliageGeometry.ts', 'C1'],
+  ['src/shards/driftwood-isle/runtime/boot/foliageGeometry.ts', 'C1'],
   ['src/shards/driftwood-isle/runtime/boot/palmGeometry.ts', 'C1'],
   ['src/shards/driftwood-isle/runtime/boot/reefGeometry.ts', 'C1'],
   // Reviewed runtime tile views, lent looks, terrain admission and combat status.
