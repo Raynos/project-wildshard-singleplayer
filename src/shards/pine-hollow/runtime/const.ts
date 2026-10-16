@@ -34,3 +34,7 @@ export const PINE_RUNTIME_GRAPHS = [
 ] as const;
 /** the small wildlife's look.materials id (data/wildlifeLook.ts WILDLIFE_LOOK) */
 export const WILDLIFE_LOOK = 'pine-wildlife';
+/** the lever action's auto-reload close (data/leverProfile.ts LEVER_WEAPON_PROFILE.lever.autoReloadClose) */
+export const LEVER_AUTO_RELOAD_CLOSE = 5;
+/** the gloves' linear tint over the hunter palette (data/handsLook.ts BUCKSKIN) */
+export const BUCKSKIN: [number, number, number] = [3.2, 4.2, 6.0];

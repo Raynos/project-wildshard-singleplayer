@@ -8,7 +8,7 @@ import { ProjectileSlots, type FlightSlot } from '@wildshard/engine/combat/proje
 import { app, gameplayRandom } from '@wildshard/engine/app/runtime';
 import type { AmmoRow } from '@wildshard/engine/combat/ammo';
 import { RangedFrame } from '@wildshard/engine/render/viewmodelFeel';
-import { RANGED_FRAME, RANGED_TRACE } from '../../data/rangedFrame';
+import { RANGED_FRAME, RANGED_TRACE } from './rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { shotSpread } from '@wildshard/engine/combat/shotSpread';
 import type { TargetHit, Targets } from '@wildshard/engine/combat/types';

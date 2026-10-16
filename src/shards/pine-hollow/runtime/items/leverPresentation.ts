@@ -1,6 +1,6 @@
-import type { LeverFirearmView } from '../runtime/items/leverFirearm';
-import type { HandHold } from '../runtime/viewmodel/gloveHands';
-import { BUCKSKIN } from './handsLook';
+import type { LeverFirearmView } from './leverFirearm';
+import type { HandHold } from '../viewmodel/gloveHands';
+import { BUCKSKIN } from '../const';
 
 /** Authored rifle presentation: metres, seconds and radians. Kick is 1.25 degrees.
  * Gameplay magazine/reserve and action timing remain in the admitted weapon profile.

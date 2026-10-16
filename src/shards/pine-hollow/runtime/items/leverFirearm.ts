@@ -4,7 +4,7 @@ import inputs from '../../data/heldInputs.json' with { type: 'json' };
 import leverPlayback from '../../data/leverPlayback.json' with { type: 'json' };
 import { app } from '@wildshard/engine/app/runtime';
 import { RangedFrame, HitscanPresentation } from '@wildshard/engine/render/viewmodelFeel';
-import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_HIT, RANGED_BRASS } from '../../data/rangedFrame';
+import { RANGED_FRAME, RANGED_TRACE, RANGED_FLASH, RANGED_HIT, RANGED_BRASS } from './rangedFrame';
 import type { EquipContext } from '@wildshard/engine/combat/Equipment';
 import { Firearm } from '@wildshard/engine/combat/Firearm';
 import type { Targets } from '@wildshard/engine/combat/types';

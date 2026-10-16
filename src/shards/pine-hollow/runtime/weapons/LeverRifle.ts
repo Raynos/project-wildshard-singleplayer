@@ -6,11 +6,11 @@ import type { FirearmProfile } from '@wildshard/sdk/weapons/firearmProfile';
 import { WeaponHands, gripPose, holdDef } from '../viewmodel/gloveHands';
 import { HANDS_MATERIAL, HUNTER_HANDS } from '../../data/handsLook';
 import { LEVER_MATERIALS } from '../../data/heldLook';
-import { LEVER_WEAPON_PROFILE } from '../../data/leverProfile';
+import { LEVER_AUTO_RELOAD_CLOSE } from '../const';
 import { AUTO_RELOAD_DELAY, LEVER_PROFILE, LeverAction, MAGAZINE, RELOAD_IN, RELOAD_OUT, RESERVE_START, ROUND_TIME } from '../../weapons/leverAction';
 import * as THREE from 'three';
 import { createModelLibrary } from '@wildshard/game/plugin/geometry';
-import { LEVER_PRESENTATION, LEVER_HAND_HOLDS } from '../../data/leverPresentation';
+import { LEVER_PRESENTATION, LEVER_HAND_HOLDS } from '../items/leverPresentation';
 import details from '../../data/leverDetails.json' with { type: 'json' };
 
 /**
@@ -153,7 +153,7 @@ const LEVER_HANDS: LeverFirearmHandsKit = {
  *  action's clock; the hip pose and the lever's rock. */
 export const LEVER_VIEW: LeverFirearmView = {
   ...LEVER_PRESENTATION, magazine: MAGAZINE, reserve: RESERVE_START,
-  timing: { autoReloadDelay: AUTO_RELOAD_DELAY, autoReloadClose: LEVER_WEAPON_PROFILE.lever.autoReloadClose, reloadIn: RELOAD_IN, reloadOut: RELOAD_OUT, roundTime: ROUND_TIME },
+  timing: { autoReloadDelay: AUTO_RELOAD_DELAY, autoReloadClose: LEVER_AUTO_RELOAD_CLOSE, reloadIn: RELOAD_IN, reloadOut: RELOAD_OUT, roundTime: ROUND_TIME },
 };
 
 function requireLeverModel(): LeverModel {
