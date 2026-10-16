@@ -550,10 +550,6 @@ export class Game {
     const aa = knobs.aa ?? (TIER_CONFIG.smaa === 'off' ? 'off' : 'smaa');
     const fxaa = aa === 'fxaa' ? new FXAAEffect() : null;
     const raysOn = knobs.godRays ?? true;
-    // G461 (c): the phone tier's leaner bloom chain (Debug ▸ Performance ▸ Phone bloom chain, a Developer reload row): the
-    // luminance pass at half size and 3 or 2 mip levels instead of the tier's 4 (each level is a downsample and an upsample)
-    const phoneBloom = TIER === 'phone' ? setting('phoneBloom') : 'full';
-    const bloomLevels = phoneBloom === 'three' ? 3 : phoneBloom === 'two' ? 2 : TIER_CONFIG.bloomLevels;
     const chain = (clean: boolean): BuiltChain => {
       const godRays = new GodRaysEffect(this.camera, this.sky.sunDisc, {
         blendFunction: BlendFunction.SCREEN, kernelSize: KernelSize.MEDIUM, density: 0.96, decay: 0.95, weight: 0.5,
@@ -561,8 +557,8 @@ export class Game {
       });
       if (knobs.skipRaysOffscreen === true) skipRaysOffscreen(godRays, this.camera, this.sky.sunDisc); // the disc off screen = no rays to draw (E142, E189)
       const tuning = ENGINE_CHAIN_TUNING[clean ? 'clean' : 'cinematic'];
-      const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: tuning.bloomSmoothing, mipmapBlur: true, radius: 0.6, levels: bloomLevels });
-      if (memorySaverOn() || phoneBloom !== 'full') halfLuminance(bloom); // SF22d, G461 (c)
+      const bloom = new BloomEffect({ intensity: G.bloomIntensity, luminanceThreshold: G.bloomThreshold, luminanceSmoothing: tuning.bloomSmoothing, mipmapBlur: true, radius: 0.6, levels: TIER_CONFIG.bloomLevels });
+      if (memorySaverOn()) halfLuminance(bloom); // SF22d
       const vignette = new VignetteEffect({ offset: 0.32, darkness: tuning.vignette });
       const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX });
       const grade = new HueSaturationEffect({ saturation: G.saturation });

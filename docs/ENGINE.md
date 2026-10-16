@@ -5682,18 +5682,6 @@ draw finds its program issued and linked (sp-o289: Pine Hollow's road
 entry built and queried them inside 107-164 ms travel frames).
 `test/precompile-variants.test.ts`.
 
-### Phone bloom chain (G461 (c), E435)
-
-`Game.buildComposer` builds the engine chain's `BloomEffect` with the
-tier's `bloomLevels` mip levels (the phone 4: a luminance pass, then a
-downsample and an upsample per level). The Developer reload row
-Debug ▸ Performance ▸ Phone bloom chain (`phoneBloom`: `full` · `three`
-· `two`, default `full`) draws the phone tier's luminance pass at half
-size (`memorySaver.halfLuminance`) with 3 or 2 levels, two or four
-render-target passes fewer per frame. Desktop ignores it. It ships for
-a phone tier only if a labelled board looks the same and the Safari
-frame floor is faster (G463); otherwise it is deleted (E451).
-
 ### Conditional quest page prompts
 
 `createQuestPagePrompts` and `bindQuestPageInteractions` accept admitted
