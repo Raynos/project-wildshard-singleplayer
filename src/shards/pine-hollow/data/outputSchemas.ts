@@ -52,22 +52,22 @@ const text = v.pipe(v.string(), v.maxLength(512));
 const number = v.number();
 const natural = v.pipe(v.number(), v.integer(), v.minValue(0));
 const strings = v.pipe(v.array(text), v.maxLength(8192));
-const vector = v.tuple([number, number, number]);
 const rect = v.tuple([number, number, number, number]);
 const path = v.pipe(v.array(v.union([text, natural])), v.minLength(1), v.maxLength(16));
 const input = v.strictObject({ input: text, owner: text, path });
 const inputs = v.pipe(v.array(input), v.maxLength(128));
-const output = v.strictObject({ property: v.picklist(['x','y','z','yaw','pitch','roll','scaleX','scaleY','scaleZ','visible','value','turn']), target: text, path });
+const outputPath = v.pipe(v.array(text), v.minLength(1), v.maxLength(16));
+const output = v.strictObject({ property: v.picklist(['x','y','z','yaw','pitch','roll','scaleX','scaleY','scaleZ','visible','value','turn']), target: text, path: outputPath });
 const outputs = v.pipe(v.array(output), v.maxLength(128));
 const pool = v.strictObject({ url: text, parts: strings });
 const skinPickup = v.strictObject({ options: v.strictObject({ tier: text, prompt: text, scale: number }),
-  toss: v.strictObject({ horizontal: number, up: number }), walkIn: v.nullable(vector), takenGrace: number,
+  toss: v.strictObject({ horizontal: number, up: number }), walkIn: v.nullable(v.strictObject({ radius: number, height: number })), takenGrace: number,
   unique: v.boolean(), disposeItemOnTake: v.boolean(), retireBeforeCallback: v.boolean() });
 const icon = v.picklist(['deer','boar','elk','bear','ghost','ironhide','claw','antlers','poi','laurel','rope','seaglass','coin','check','lock','tusk','longbow']);
 const feat = v.strictObject({ id: text, name: text, goal: text, count: natural, kind: v.exactOptional(text), variant: v.exactOptional(text), event: v.exactOptional(text), title: text, icon });
 const bagItem = v.strictObject({ id: text, label: text, icon, travels: v.boolean() });
 const packedGeometry = v.strictObject({ attrs: v.array(v.tuple([text,natural])), count: natural, unique: natural,
-  own: v.nullable(v.array(natural)), indexCount: natural });
+  own: v.nullable(v.picklist(['u16','u32'])), indexCount: natural });
 const mountPack = v.strictObject({ notice:text, url:text, sha256:text, rows:v.strictObject({ bytes:natural, geometries:v.pipe(v.array(packedGeometry),v.maxLength(128)) }), slots:v.record(text,natural) });
 const chalk = v.strictObject({ size:v.tuple([natural,natural]), outlines:v.record(text,rect), labels:v.record(text,rect) });
 const texture = v.strictObject({ url:text, srgb:v.boolean(), repeat:v.boolean() });

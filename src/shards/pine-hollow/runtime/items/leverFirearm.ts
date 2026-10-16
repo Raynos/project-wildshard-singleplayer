@@ -114,10 +114,6 @@ export interface LeverHeldRows {
   readonly inputs: Section<'custom/heldInputs'>;
   readonly lever: Section<'custom/leverPlayback'>;
 }
-/** The section's output rows as the playback binds them (a numeric path step names the same property key). */
-function boundOutputs(rows: Section<'custom/heldSights'>['sightOutputs']): { property: string; target: string; path: string[] }[] {
-  return rows.map(row => ({ property: row.property, target: row.target, path: row.path.map(String) }));
-}
 /** Read the lever's playback sections (load time, never in a frame loop). */
 export function leverHeldRows(product: ShardProduct): LeverHeldRows {
   return { playback: product.section('custom/heldPlayback', SECTIONS), inputs: product.section('custom/heldInputs', SECTIONS),
@@ -279,14 +275,14 @@ export class LeverFirearm<P extends LeverFirearmProfile = LeverFirearmProfile> e
     const { playback, inputs, lever: leverPlayback } = opts.held;
     this.posePlayback = new HeldPlayback({ frame: inputs.frames.lever.program, pose: playback.lever, parts: playback.leverParts, sight: leverPlayback.sight, cycle: leverPlayback.cycle, handAt: leverPlayback.handAt, handAxis: leverPlayback.handAxis, handPalm: leverPlayback.handPalm }, new Map<string, unknown>([['root', this.model], ['lever', this.lever], ['hammer', this.hammer], ['bolt', this.bolt], ['round', this.round]]));
     this.posePlayback.bindInputs('frame', inputs.frames.lever.inputs, new Map([['weapon', this]]));
-    this.posePlayback.bindOutputs('frame', boundOutputs(inputs.frames.lever.outputs), new Map([['frame', this.poseFrame]]));
+    this.posePlayback.bindOutputs('frame', inputs.frames.lever.outputs, new Map([['frame', this.poseFrame]]));
     this.posePlayback.bindInputs('pose', inputs.lever, new Map([['weapon', this]]));
     const owners = new Map([['weapon', this]]);
     this.posePlayback.bindInputs('parts', leverPlayback.partInputs, owners);
     for (let i = 0; i < 5; i++) {
       const row = leverPlayback.bindings[i]; if (row === undefined) throw new Error('Missing lever presentation binding');
       this.posePlayback.bindInputs(row.group, row.inputs, owners);
-      this.posePlayback.bindOutputs(row.group, boundOutputs(row.outputs), new Map([['visual', row.target === 'sight' ? this.adsPose : row.target === 'cycle' ? this.partValues : this.grips.out]]));
+      this.posePlayback.bindOutputs(row.group, row.outputs, new Map([['visual', row.target === 'sight' ? this.adsPose : row.target === 'cycle' ? this.partValues : this.grips.out]]));
     }
   }
 

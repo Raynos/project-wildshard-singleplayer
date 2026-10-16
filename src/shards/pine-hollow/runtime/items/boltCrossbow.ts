@@ -106,10 +106,6 @@ export interface CrossbowHeldRows {
   readonly inputs: Section<'custom/heldInputs'>;
   readonly sights: Section<'custom/heldSights'>;
 }
-/** The section's output rows as the playback binds them (a numeric path step names the same property key). */
-function boundOutputs(rows: Section<'custom/heldSights'>['sightOutputs']): { property: string; target: string; path: string[] }[] {
-  return rows.map(row => ({ property: row.property, target: row.target, path: row.path.map(String) }));
-}
 /** Read the crossbow's playback sections (load time, never in a frame loop). */
 export function crossbowHeldRows(product: ShardProduct): CrossbowHeldRows {
   return { playback: product.section('custom/heldPlayback', SECTIONS), inputs: product.section('custom/heldInputs', SECTIONS),
@@ -257,9 +253,9 @@ export class BoltCrossbow<P extends BoltCrossbowProfile = BoltCrossbowProfile> e
     const { playback, inputs, sights } = opts.held;
     this.posePlayback = new HeldPlayback({ frame: inputs.frames.crossbow.program, pose: playback.crossbow, parts: playback.crossbowParts, sight: sights.sight, string: sights.string, peep: sights.peep }, new Map<string, unknown>([['root', this.model], ['loadedBolt', this.loadedBolt], ['stringLeft', this.stringLeft], ['stringRight', this.stringRight], ['serving', this.serving], ['peep', this.peep], ['peepRing', this.peepRing], ['peepPost', this.peepPost]]));
     this.posePlayback.bindInputs('frame', inputs.frames.crossbow.inputs, new Map([['weapon', this]]));
-    this.posePlayback.bindOutputs('frame', boundOutputs(inputs.frames.crossbow.outputs), new Map([['frame', this.poseFrame]]));
+    this.posePlayback.bindOutputs('frame', inputs.frames.crossbow.outputs, new Map([['frame', this.poseFrame]]));
     this.posePlayback.bindInputs('pose', inputs.crossbow, new Map([['weapon', this]]));
-    this.posePlayback.bindInputs('sight', sights.sightInputs, new Map([['weapon', this]])); this.posePlayback.bindOutputs('sight', boundOutputs(sights.sightOutputs), new Map([['sight', this.adsPose]]));
+    this.posePlayback.bindInputs('sight', sights.sightInputs, new Map([['weapon', this]])); this.posePlayback.bindOutputs('sight', sights.sightOutputs, new Map([['sight', this.adsPose]]));
     this.posePlayback.bindInputs('string', sights.stringInputs, new Map([['weapon', this]])); this.posePlayback.bindInputs('peep', sights.peepInputs, new Map([['weapon', this]]));
   }
 

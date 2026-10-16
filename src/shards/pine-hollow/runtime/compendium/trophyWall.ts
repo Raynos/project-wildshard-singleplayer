@@ -22,7 +22,7 @@ import { mountUi, uiScope } from '@wildshard/engine/ui/ownership';
  */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { fetchDeflated, GeometryPack, packedRows } from '@wildshard/sdk/kit/geometryPack';
+import { fetchDeflated, GeometryPack } from '@wildshard/sdk/kit/geometryPack';
 import type { InferOutput } from 'valibot';
 import type { ShardProduct } from '@wildshard/game/shardfile/shardProduct';
 import { SECTIONS } from '../sections';
@@ -51,13 +51,6 @@ const LOOK_RANGE = 4.2;
 /** past this (m) the wall is not drawn */
 const CULL = 30;
 type TrophyMounts = InferOutput<(typeof SECTIONS)['custom/trophyMounts']>;
-/** The section's pack rows as the pack reader takes them: the bake writes no index (`own` null on every geometry). */
-function mountRows(rows: TrophyMounts['rows']): Parameters<typeof packedRows>[0] {
-  return { bytes: rows.bytes, geometries: rows.geometries.map(g => {
-    if (g.own !== null) throw new Error('[trophy-wall] an indexed mount geometry: custom/trophyMounts declares no index kind');
-    return { ...g, own: null };
-  }) };
-}
 
 export class TrophyWall {
   readonly scope = uiScope('trophyWall');
@@ -120,7 +113,7 @@ export class TrophyWall {
     let parts: THREE.BufferGeometry[] = [];
     if (taken.length > 0) {
       try {
-        const pack = new GeometryPack(await fetchDeflated(this.packUrl), packedRows(mountRows(this.pack.rows)), 'trophy-wall');
+        const pack = new GeometryPack(await fetchDeflated(this.packUrl), this.pack.rows, 'trophy-wall');
         parts = taken.map((i) => pack.geometry(i));
       } catch (error: unknown) { console.error('[trophy-wall] the baked mounts did not load:', error); return; }
     }
