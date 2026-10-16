@@ -6938,29 +6938,6 @@ Saved continuation semantics and ordinary off-mode ordering stay unchanged. This
 experiment remains off pending device evidence and a green quiet frame
 floor; see `docs/reviews/grid-loading-programs.md`.
 
-### Shared graph builds (E435)
-
-`EngineNodesHandler.shareBuilds` (the live engine Debug row **Shared
-graph builds**, Performance, default off) lets a node material reuse
-the node build of an earlier material with the same node graph. Three
-runs the whole TSL node builder for every material without a program
-of its own, even a clone (`Material.clone()` keeps the node objects,
-so the native program is already shared): a graph's borrowed-map
-variants from `bindGraphMeshMap` each paid a full build on entry.
-
-`buildShareKey(material, object, parameters)` scopes a build to the
-material's first node slot and every renderer program parameter, so
-an equal key implies three's own equal program key. A hit reuses the
-GLSL and node uniforms; the material still gets fresh classic fog and
-light uniforms, its own uniform-block groups and its dispose hook
-(`sharedBuilds` / `sharedMs` count them beside `builds` / `buildMs`).
-While sharing is on, `compileGraph`'s mapped roughness and occlusion
-factors read the drawn material's map per draw
-(`nodeBuildSharing()`). A build whose new nodes captured a value of
-its own material, and any material with a layer frame or bound fog,
-is never shared. Separately compiled graphs have distinct node
-identities and never share.
-
 ### Product-built hybrid host rows (P2a step 5)
 
 `game/plugin/headless.HybridRuntimePlugin` calls its protected

@@ -6,8 +6,6 @@ export const ENGINE_STRINGS = {
   "s_memory_saver_note": "SF22d · E435: frees image and mesh copies once on the GPU, drops the shadow map's colour texture, half-size bloom luminance, one composer depth buffer. Reloads",
   "s_fixed_shadow_samples": "Fixed shadow samples",
   "s_fixed_shadow_samples_note": "G437 · E435: remove fixed depth-texture flip updates. Off while horizon differences are reviewed; reloads",
-  "s_graph_build_share": "Shared graph builds",
-  "s_graph_build_share_note": "E435 · sp-o279: a graph material's clones (each borrowed-map variant) reuse the node build their graph already made instead of running three's node builder again on entry; maps and factors are read per draw. Off while the frame floor and a device reading are compared. Live",
   "s_graph_materials": "Graph materials",
   "s_graph_materials_note": "SF59 · E435: a level's material graphs compile to node materials (the lazy TSL back-end); off draws each graph as its family preset. Off until a physical-iPhone reading. Reloads",
   "s_build_pacing": "Build pacing in play",
